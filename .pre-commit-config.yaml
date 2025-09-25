@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+  - repo: local
+    hooks:
+      - id: npm-format-check
+        name: npm format check
+        entry: npm run format:check
+        language: system
+        pass_filenames: false
+      - id: npm-lint
+        name: npm lint
+        entry: npm run lint
+        language: system
+        pass_filenames: false
+      - id: npm-test
+        name: npm test:ci
+        entry: npm run test:ci
+        language: system
+        pass_filenames: false
+      - id: npm-docs
+        name: npm docs:check
+        entry: npm run docs:check
+        language: system
+        pass_filenames: false
