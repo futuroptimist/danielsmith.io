@@ -1,2 +1,58 @@
 # danielsmith.io
-Interactive 3D portfolio site built with Three.js and WebGL. Showcases projects as explorable scenes with a mobile-friendly experience and graceful text-only fallback. Designed to highlight engineering, design, and reliability expertise.
+
+Production-ready Vite + Three.js sandbox for the future danielsmith.io scene. It renders an orthographic isometric room with keyboard-driven sphere movement so we can iterate on spatial UX while keeping repo hygiene tight via Flywheel conventions.
+
+## Quick start
+
+```bash
+npm install
+npm run dev
+```
+
+## Project scripts
+
+- `npm run dev` – start the Vite dev server.
+- `npm run build` – production build (also used for the CI smoke test).
+- `npm run smoke` – build plus a check that `dist/index.html` exists.
+- `npm run preview` – preview the production build locally.
+- `npm run lint` – ESLint over the TypeScript sources.
+- `npm run format:check` / `npm run format:write` – Prettier in check or write mode.
+- `npm run test` / `npm run test:ci` – Vitest unit tests (CI uses the `:ci` variant).
+- `npm run typecheck` – TypeScript type checking without emit.
+- `npm run docs:check` – verifies required docs (including the Codex automation prompt) are present.
+- `npm run check` – convenience command that chains lint, test:ci, and docs:check.
+
+### Local quality gates
+
+Run the Flywheel-aligned checks before pushing:
+
+```bash
+npm run lint
+npm run test:ci
+npm run docs:check
+npm run smoke
+```
+
+Pre-commit is configured with the same commands plus basic formatting hooks. Compared to the full Flywheel stack we omit the Python-heavy aggregate hook to keep this web-only repo light; see below for details.
+
+## Architecture notes
+
+- **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
+- **Lighting** – Simple Ambient + Directional lights keep the room readable without custom shadow work.
+- **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
+- **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md). Touch controls are intentionally deferred and listed there.
+
+## Flywheel alignment
+
+- Canonical Codex automation prompt lives at [`docs/prompts/codex/automation.md`](docs/prompts/codex/automation.md) and is referenced by CI/docs checks.
+- `.editorconfig`, Prettier, ESLint, and GitHub Actions follow the Flywheel template with a smaller surface area tailored for this Vite app.
+- `.pre-commit-config.yaml` keeps the baseline hooks (whitespace, YAML) and swaps the heavy multi-language runner for direct npm scripts. This deviation is intentional to avoid unused Python dependencies in this repo.
+
+## Controls
+
+- **Movement** – `WASD` or arrow keys to roll the sphere around the room.
+- **Touch** – Not yet implemented; see the backlog entry for the planned joystick.
+
+## Smoke testing
+
+`npm run build` generates the distributable assets and the CI suite asserts that `dist/index.html` exists as part of the build step.
