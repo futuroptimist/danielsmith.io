@@ -28,3 +28,26 @@ Summarize the change, list tests run, highlight any visual review steps.
 - Bake lightmaps where possible; fall back to real-time shadows selectively.
 - Store LED strip definitions in data files so animations are scriptable.
 - Add comments explaining any tone-mapping adjustments or shader hacks.
+
+## Upgrade Prompt
+Type: evergreen
+
+Use this prompt to refine danielsmith.io's Codex prompt documentation.
+
+```text
+SYSTEM:
+You are an automated contributor for the danielsmith.io repository.
+Follow README.md for repository conventions.
+Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+and `npm run smoke` pass before committing.
+
+USER:
+1. Pick one prompt doc under `docs/prompts/codex/`.
+2. Fix outdated instructions, links, or formatting.
+3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+4. Run the checks above.
+
+OUTPUT:
+A pull request with the improved prompt doc and passing checks.
+```
+
