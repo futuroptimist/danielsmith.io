@@ -19,6 +19,7 @@ import {
 } from 'three';
 
 import { KeyboardControls } from './controls/KeyboardControls';
+import { VirtualJoystick } from './controls/VirtualJoystick';
 
 const CAMERA_SIZE = 20;
 const ROOM_HALF_WIDTH = 10;
@@ -28,6 +29,7 @@ const WALL_THICKNESS = 0.5;
 const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
+const CAMERA_PAN_SMOOTHING = 6;
 
 const container = document.getElementById('app');
 
@@ -55,8 +57,10 @@ const camera = new OrthographicCamera(
   0.1,
   1000
 );
-camera.position.set(20, 20, 20);
-camera.lookAt(0, 0, 0);
+const cameraBaseOffset = new Vector3(20, 20, 20);
+const cameraCenter = new Vector3(0, PLAYER_RADIUS, 0);
+camera.position.copy(cameraCenter).add(cameraBaseOffset);
+camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
 
 const ambientLight = new AmbientLight(0xffffff, 0.55);
 const directionalLight = new DirectionalLight(0xffffff, 0.75);
@@ -124,10 +128,15 @@ player.position.set(0, PLAYER_RADIUS, 0);
 scene.add(player);
 
 const controls = new KeyboardControls();
+const joystick = new VirtualJoystick(renderer.domElement);
 const clock = new Clock();
 const targetVelocity = new Vector3();
 const velocity = new Vector3();
 const moveDirection = new Vector3();
+const cameraPan = new Vector3();
+const cameraPanTarget = new Vector3();
+let cameraPanLimitX = 0;
+let cameraPanLimitZ = 0;
 
 function onResize() {
   const nextAspect = window.innerWidth / window.innerHeight;
@@ -139,6 +148,13 @@ function onResize() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  cameraPanLimitX = Math.max(0, CAMERA_SIZE * nextAspect - PLAYER_RADIUS);
+  cameraPanLimitZ = Math.max(0, CAMERA_SIZE - PLAYER_RADIUS);
+  cameraPanTarget.x = MathUtils.clamp(cameraPanTarget.x, -cameraPanLimitX, cameraPanLimitX);
+  cameraPanTarget.z = MathUtils.clamp(cameraPanTarget.z, -cameraPanLimitZ, cameraPanLimitZ);
+  cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
+  cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
 }
 
 window.addEventListener('resize', onResize);
@@ -157,10 +173,12 @@ function updateMovement(delta: number) {
     Number(controls.isPressed('s') || controls.isPressed('ArrowDown')) -
     Number(controls.isPressed('w') || controls.isPressed('ArrowUp'));
 
-  moveDirection.set(horizontal, 0, vertical);
+  const joystickMovement = joystick.getMovement();
+  moveDirection.set(horizontal + joystickMovement.x, 0, vertical + joystickMovement.y);
 
-  if (moveDirection.lengthSq() > 0) {
-    moveDirection.normalize();
+  const lengthSq = moveDirection.lengthSq();
+  if (lengthSq > 1) {
+    moveDirection.multiplyScalar(1 / Math.sqrt(lengthSq));
   }
 
   targetVelocity.copy(moveDirection).multiplyScalar(PLAYER_SPEED);
@@ -178,8 +196,37 @@ function updateMovement(delta: number) {
   player.position.y = PLAYER_RADIUS;
 }
 
+function updateCamera(delta: number) {
+  const cameraInput = joystick.getCamera();
+  cameraPanTarget.set(
+    cameraInput.x * cameraPanLimitX,
+    0,
+    cameraInput.y * cameraPanLimitZ
+  );
+
+  cameraPan.x = MathUtils.damp(cameraPan.x, cameraPanTarget.x, CAMERA_PAN_SMOOTHING, delta);
+  cameraPan.z = MathUtils.damp(cameraPan.z, cameraPanTarget.z, CAMERA_PAN_SMOOTHING, delta);
+
+  cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
+  cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
+
+  cameraCenter.set(
+    player.position.x + cameraPan.x,
+    player.position.y,
+    player.position.z + cameraPan.z
+  );
+
+  camera.position.set(
+    cameraCenter.x + cameraBaseOffset.x,
+    cameraCenter.y + cameraBaseOffset.y,
+    cameraCenter.z + cameraBaseOffset.z
+  );
+  camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+}
+
 renderer.setAnimationLoop(() => {
   const delta = clock.getDelta();
   updateMovement(delta);
+  updateCamera(delta);
   renderer.render(scene, camera);
 });
