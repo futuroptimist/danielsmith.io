@@ -44,7 +44,11 @@ export class VirtualJoystick {
   }
 
   private handlePointerDown = (event: PointerEvent) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) {
+    if (event.pointerType === 'mouse') {
+      return;
+    }
+
+    if (event.button !== undefined && event.button !== 0) {
       return;
     }
 
