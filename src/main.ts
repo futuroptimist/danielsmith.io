@@ -35,6 +35,11 @@ import {
   RoomWall,
   WALL_THICKNESS,
 } from './floorPlan';
+import {
+  createStaircase,
+  type RectCollider,
+  type StaircaseConfig,
+} from './structures/staircase';
 
 const CAMERA_SIZE = 20;
 const WALL_HEIGHT = 6;
@@ -48,6 +53,55 @@ const LED_STRIP_DEPTH = 0.22;
 const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
 
+const STAIRCASE_CONFIG = {
+  name: 'LivingRoomStaircase',
+  basePosition: new Vector3(6.2, 0, -18),
+  step: {
+    count: 9,
+    rise: 0.42,
+    run: 0.85,
+    width: 3.1,
+    material: {
+      color: 0x708091,
+      roughness: 0.6,
+      metalness: 0.12,
+    },
+    colliderInset: 0.05,
+  },
+  landing: {
+    depth: 2.6,
+    thickness: 0.38,
+    material: {
+      color: 0x5b6775,
+      roughness: 0.55,
+      metalness: 0.08,
+    },
+    colliderInset: 0.05,
+    guard: {
+      height: 0.55,
+      thickness: 0.14,
+      inset: 0.07,
+      widthScale: 0.95,
+      material: {
+        color: 0x2c343f,
+        roughness: 0.7,
+        metalness: 0.05,
+      },
+    },
+  },
+  supports: {
+    material: {
+      color: 0x2c343f,
+      roughness: 0.7,
+      metalness: 0.05,
+    },
+    definitions: [
+      { offsetX: -(3.1 / 2 - 0.16), width: 0.32, depth: 3.1 * 0.6 },
+      { offsetX: 3.1 / 2 - 0.16, width: 0.32, depth: 3.1 * 0.6 },
+    ],
+  },
+} satisfies StaircaseConfig;
+
 const LIGHTING_OPTIONS = {
   enableLedStrips: true,
   enableBloom: true,
@@ -58,14 +112,7 @@ const LIGHTING_OPTIONS = {
   bloomThreshold: 0.2,
 } as const;
 
-interface WallCollider {
-  minX: number;
-  maxX: number;
-  minZ: number;
-  maxZ: number;
-}
-
-const wallColliders: WallCollider[] = [];
+const staticColliders: RectCollider[] = [];
 
 function isInsideAnyRoom(x: number, z: number): boolean {
   return FLOOR_PLAN.rooms.some(
@@ -77,8 +124,12 @@ function isInsideAnyRoom(x: number, z: number): boolean {
   );
 }
 
-function collidesWithWalls(x: number, z: number, radius: number): boolean {
-  for (const collider of wallColliders) {
+function collidesWithSceneGeometry(
+  x: number,
+  z: number,
+  radius: number
+): boolean {
+  for (const collider of staticColliders) {
     const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
     const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
     const dx = x - closestX;
@@ -216,7 +267,7 @@ combinedWallSegments.forEach((segment) => {
   wall.position.set(baseX + offsetX, WALL_HEIGHT / 2, baseZ + offsetZ);
   wallGroup.add(wall);
 
-  wallColliders.push({
+  staticColliders.push({
     minX: wall.position.x - width / 2,
     maxX: wall.position.x + width / 2,
     minZ: wall.position.z - depth / 2,
@@ -225,6 +276,11 @@ combinedWallSegments.forEach((segment) => {
 });
 
 scene.add(wallGroup);
+
+const staircase = createStaircase(STAIRCASE_CONFIG);
+scene.add(staircase.group);
+// Block the player from rolling onto the vertical geometry until slope handling lands.
+staircase.colliders.forEach((collider) => staticColliders.push(collider));
 
 if (LIGHTING_OPTIONS.enableLedStrips) {
   const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
@@ -458,7 +514,7 @@ function updateMovement(delta: number) {
     const candidateX = player.position.x + stepX;
     if (
       isInsideAnyRoom(candidateX, player.position.z) &&
-      !collidesWithWalls(candidateX, player.position.z, PLAYER_RADIUS)
+      !collidesWithSceneGeometry(candidateX, player.position.z, PLAYER_RADIUS)
     ) {
       player.position.x = candidateX;
     } else {
@@ -470,7 +526,7 @@ function updateMovement(delta: number) {
     const candidateZ = player.position.z + stepZ;
     if (
       isInsideAnyRoom(player.position.x, candidateZ) &&
-      !collidesWithWalls(player.position.x, candidateZ, PLAYER_RADIUS)
+      !collidesWithSceneGeometry(player.position.x, candidateZ, PLAYER_RADIUS)
     ) {
       player.position.z = candidateZ;
     } else {
