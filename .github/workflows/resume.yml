@@ -30,7 +30,7 @@ jobs:
         id: resume
         run: |
           set -euo pipefail
-          latest_dir=$(find docs/resume -maxdepth 1 -mindepth 1 -type d -regex '.*/[0-9]{4}-[0-9]{2}$' | sort | tail -n1)
+          latest_dir=$(find docs/resume -regextype posix-extended -maxdepth 1 -mindepth 1 -type d -regex '.*/[0-9]{4}-[0-9]{2}$' | sort | tail -n1)
           if [ -z "${latest_dir}" ]; then
             echo "No dated resume directories found." >&2
             exit 1
