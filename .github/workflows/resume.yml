@@ -26,11 +26,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y texlive-full latexmk pandoc
 
-      - name: Build PDF with latexmk
+      - name: Generate PDF with latexmk
         run: |
           latexmk -pdf -interaction=nonstopmode docs/resume/2025-09/daniel-smith-resume-2025-09.tex
 
-      - name: Convert LaTeX to DOCX
+      - name: Generate DOCX with pandoc
         run: |
           pandoc docs/resume/2025-09/daniel-smith-resume-2025-09.tex -o docs/resume/2025-09/daniel-smith-resume-2025-09.docx
 
