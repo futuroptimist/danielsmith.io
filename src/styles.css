@@ -46,7 +46,7 @@ canvas {
   max-width: 18rem;
 }
 
-.overlay .todo {
+.overlay .hint {
   margin-top: 0.5rem;
   opacity: 0.75;
   font-style: italic;
