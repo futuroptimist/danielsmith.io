@@ -30,6 +30,41 @@ canvas {
   height: 100%;
 }
 
+.joystick-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.joystick {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(146, 174, 209, 0.35);
+  background: rgba(15, 21, 33, 0.45);
+  box-shadow: 0 12px 32px rgba(4, 7, 13, 0.55);
+  backdrop-filter: blur(16px);
+}
+
+.joystick--player {
+  border-color: rgba(255, 200, 87, 0.4);
+}
+
+.joystick--camera {
+  border-color: rgba(122, 198, 255, 0.35);
+}
+
+.joystick__thumb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(120, 141, 173, 0.6));
+  box-shadow: 0 10px 24px rgba(4, 7, 13, 0.45);
+}
+
 .overlay {
   position: fixed;
   bottom: 1.5rem;
