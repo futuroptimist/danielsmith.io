@@ -123,7 +123,14 @@ scene.background = new Color(0x111826);
 
 const aspect = window.innerWidth / window.innerHeight;
 const s = CAMERA_SIZE;
-const camera = new OrthographicCamera(-s * aspect, s * aspect, s, -s, 0.1, 1000);
+const camera = new OrthographicCamera(
+  -s * aspect,
+  s * aspect,
+  s,
+  -s,
+  0.1,
+  1000
+);
 const cameraBaseOffset = new Vector3(20, 20, 20);
 
 const floorBounds = getFloorBounds(FLOOR_PLAN);
@@ -182,8 +189,10 @@ combinedWallSegments.forEach((segment) => {
 
   const isInterior = segment.rooms.length > 1;
   const extension = isInterior ? WALL_THICKNESS * 0.5 : WALL_THICKNESS;
-  const width = segment.orientation === 'horizontal' ? length + extension : WALL_THICKNESS;
-  const depth = segment.orientation === 'horizontal' ? WALL_THICKNESS : length + extension;
+  const width =
+    segment.orientation === 'horizontal' ? length + extension : WALL_THICKNESS;
+  const depth =
+    segment.orientation === 'horizontal' ? WALL_THICKNESS : length + extension;
 
   const baseX =
     segment.orientation === 'horizontal'
@@ -245,7 +254,10 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
     const light = new PointLight(
       emissiveColor,
       LIGHTING_OPTIONS.ledLightIntensity,
-      Math.max(room.bounds.maxX - room.bounds.minX, room.bounds.maxZ - room.bounds.minZ) * 1.1,
+      Math.max(
+        room.bounds.maxX - room.bounds.minX,
+        room.bounds.maxZ - room.bounds.minZ
+      ) * 1.1,
       2
     );
     light.position.set(
@@ -257,17 +269,36 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
     ledFillLights.add(light);
 
     const cornerOffsets = [
-      new Vector3(room.bounds.minX + inset, ledHeight - 0.1, room.bounds.minZ + inset),
-      new Vector3(room.bounds.maxX - inset, ledHeight - 0.1, room.bounds.minZ + inset),
-      new Vector3(room.bounds.minX + inset, ledHeight - 0.1, room.bounds.maxZ - inset),
-      new Vector3(room.bounds.maxX - inset, ledHeight - 0.1, room.bounds.maxZ - inset),
+      new Vector3(
+        room.bounds.minX + inset,
+        ledHeight - 0.1,
+        room.bounds.minZ + inset
+      ),
+      new Vector3(
+        room.bounds.maxX - inset,
+        ledHeight - 0.1,
+        room.bounds.minZ + inset
+      ),
+      new Vector3(
+        room.bounds.minX + inset,
+        ledHeight - 0.1,
+        room.bounds.maxZ - inset
+      ),
+      new Vector3(
+        room.bounds.maxX - inset,
+        ledHeight - 0.1,
+        room.bounds.maxZ - inset
+      ),
     ];
 
     cornerOffsets.forEach((offset) => {
       const cornerLight = new PointLight(
         emissiveColor,
         LIGHTING_OPTIONS.ledLightIntensity * 0.35,
-        Math.max(room.bounds.maxX - room.bounds.minX, room.bounds.maxZ - room.bounds.minZ) * 0.9,
+        Math.max(
+          room.bounds.maxX - room.bounds.minX,
+          room.bounds.maxZ - room.bounds.minZ
+        ) * 0.9,
         2
       );
       cornerLight.position.copy(offset);
@@ -286,8 +317,10 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
       return;
     }
 
-    const width = segment.orientation === 'horizontal' ? effectiveLength : LED_STRIP_DEPTH;
-    const depth = segment.orientation === 'horizontal' ? LED_STRIP_DEPTH : effectiveLength;
+    const width =
+      segment.orientation === 'horizontal' ? effectiveLength : LED_STRIP_DEPTH;
+    const depth =
+      segment.orientation === 'horizontal' ? LED_STRIP_DEPTH : effectiveLength;
     const baseX =
       segment.orientation === 'horizontal'
         ? (segment.start.x + segment.end.x) / 2
@@ -304,9 +337,10 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
         return;
       }
       const direction = getOutwardDirectionForWall(roomInfo.wall);
-      const inwardOffset = segment.rooms.length > 1
-        ? WALL_THICKNESS / 2 + LED_STRIP_DEPTH / 2
-        : LED_STRIP_DEPTH / 2;
+      const inwardOffset =
+        segment.rooms.length > 1
+          ? WALL_THICKNESS / 2 + LED_STRIP_DEPTH / 2
+          : LED_STRIP_DEPTH / 2;
       const offsetX = -direction.x * inwardOffset;
       const offsetZ = -direction.z * inwardOffset;
 
@@ -372,8 +406,16 @@ function onResize() {
 
   cameraPanLimitX = Math.max(0, CAMERA_SIZE * nextAspect - PLAYER_RADIUS);
   cameraPanLimitZ = Math.max(0, CAMERA_SIZE - PLAYER_RADIUS);
-  cameraPanTarget.x = MathUtils.clamp(cameraPanTarget.x, -cameraPanLimitX, cameraPanLimitX);
-  cameraPanTarget.z = MathUtils.clamp(cameraPanTarget.z, -cameraPanLimitZ, cameraPanLimitZ);
+  cameraPanTarget.x = MathUtils.clamp(
+    cameraPanTarget.x,
+    -cameraPanLimitX,
+    cameraPanLimitX
+  );
+  cameraPanTarget.z = MathUtils.clamp(
+    cameraPanTarget.z,
+    -cameraPanLimitZ,
+    cameraPanLimitZ
+  );
   cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
   cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
 }
@@ -390,7 +432,11 @@ function updateMovement(delta: number) {
     Number(controls.isPressed('w') || controls.isPressed('ArrowUp'));
 
   const joystickMovement = joystick.getMovement();
-  moveDirection.set(horizontal + joystickMovement.x, 0, vertical + joystickMovement.y);
+  moveDirection.set(
+    horizontal + joystickMovement.x,
+    0,
+    vertical + joystickMovement.y
+  );
 
   const lengthSq = moveDirection.lengthSq();
   if (lengthSq > 1) {
@@ -437,15 +483,33 @@ function updateMovement(delta: number) {
 
 function updateCamera(delta: number) {
   const cameraInput = joystick.getCamera();
-  cameraPanTarget.set(cameraInput.x * cameraPanLimitX, 0, cameraInput.y * cameraPanLimitZ);
+  cameraPanTarget.set(
+    cameraInput.x * cameraPanLimitX,
+    0,
+    cameraInput.y * cameraPanLimitZ
+  );
 
-  cameraPan.x = MathUtils.damp(cameraPan.x, cameraPanTarget.x, CAMERA_PAN_SMOOTHING, delta);
-  cameraPan.z = MathUtils.damp(cameraPan.z, cameraPanTarget.z, CAMERA_PAN_SMOOTHING, delta);
+  cameraPan.x = MathUtils.damp(
+    cameraPan.x,
+    cameraPanTarget.x,
+    CAMERA_PAN_SMOOTHING,
+    delta
+  );
+  cameraPan.z = MathUtils.damp(
+    cameraPan.z,
+    cameraPanTarget.z,
+    CAMERA_PAN_SMOOTHING,
+    delta
+  );
 
   cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
   cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
 
-  cameraCenter.set(player.position.x + cameraPan.x, player.position.y, player.position.z + cameraPan.z);
+  cameraCenter.set(
+    player.position.x + cameraPan.x,
+    player.position.y,
+    player.position.z + cameraPan.z
+  );
 
   camera.position.set(
     cameraCenter.x + cameraBaseOffset.x,

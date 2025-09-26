@@ -217,7 +217,9 @@ function normalizeNumber(value: number): string {
   return value.toFixed(3);
 }
 
-export function getCombinedWallSegments(plan: FloorPlanDefinition): CombinedWallSegment[] {
+export function getCombinedWallSegments(
+  plan: FloorPlanDefinition
+): CombinedWallSegment[] {
   const horizontal = new Map<
     string,
     Array<{ start: number; end: number; roomId: string; wall: RoomWall }>
@@ -281,7 +283,8 @@ export function getCombinedWallSegments(plan: FloorPlanDefinition): CombinedWall
         continue;
       }
       const covering = segments.filter(
-        (segment) => segment.start <= start + epsilon && segment.end >= end - epsilon
+        (segment) =>
+          segment.start <= start + epsilon && segment.end >= end - epsilon
       );
       if (covering.length === 0) {
         continue;
@@ -290,7 +293,10 @@ export function getCombinedWallSegments(plan: FloorPlanDefinition): CombinedWall
         orientation: 'horizontal',
         start: { x: start, z: Number(zKey) },
         end: { x: end, z: Number(zKey) },
-        rooms: covering.map((segment) => ({ id: segment.roomId, wall: segment.wall })),
+        rooms: covering.map((segment) => ({
+          id: segment.roomId,
+          wall: segment.wall,
+        })),
       });
     }
   }
@@ -309,7 +315,8 @@ export function getCombinedWallSegments(plan: FloorPlanDefinition): CombinedWall
         continue;
       }
       const covering = segments.filter(
-        (segment) => segment.start <= start + epsilon && segment.end >= end - epsilon
+        (segment) =>
+          segment.start <= start + epsilon && segment.end >= end - epsilon
       );
       if (covering.length === 0) {
         continue;
@@ -318,7 +325,10 @@ export function getCombinedWallSegments(plan: FloorPlanDefinition): CombinedWall
         orientation: 'vertical',
         start: { x: Number(xKey), z: start },
         end: { x: Number(xKey), z: end },
-        rooms: covering.map((segment) => ({ id: segment.roomId, wall: segment.wall })),
+        rooms: covering.map((segment) => ({
+          id: segment.roomId,
+          wall: segment.wall,
+        })),
       });
     }
   }
