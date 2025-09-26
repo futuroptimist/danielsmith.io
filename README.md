@@ -13,7 +13,7 @@ keeps the familiar conventions while focusing purely on the web stack.
 - **Backlog** – Near-term scene tasks, including deferred touch controls, live in
   [docs/backlog.md](docs/backlog.md).
 - **Résumé** – Latest résumé source is
-  [`daniel-smith-resume-2025-09.tex`][resume-src].
+  [`resume.tex`][resume-src].
   CI renders PDF and DOCX artifacts.
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
@@ -93,6 +93,6 @@ performance, modes, animation, and more) provide ready-to-run task scaffolding f
 `npm run build` generates distributable assets, and CI asserts that `dist/index.html`
 exists as part of the smoke suite.
 
-[resume-src]: docs/resume/2025-09/daniel-smith-resume-2025-09.tex
+[resume-src]: docs/resume/2025-09/resume.tex
 [prompt-summary]: docs/prompts/summary.md
 [automation-prompt]: docs/prompts/codex/automation.md

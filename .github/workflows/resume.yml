@@ -26,22 +26,49 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y texlive-full latexmk pandoc
 
+      - name: Determine latest resume source
+        id: resume
+        run: |
+          set -euo pipefail
+          latest_dir=$(find docs/resume -maxdepth 1 -mindepth 1 -type d -regex '.*/[0-9]{4}-[0-9]{2}$' | sort | tail -n1)
+          if [ -z "${latest_dir}" ]; then
+            echo "No dated resume directories found." >&2
+            exit 1
+          fi
+
+          tex_file=$(find "${latest_dir}" -maxdepth 1 -name '*.tex' | sort | head -n1)
+          if [ -z "${tex_file}" ]; then
+            echo "No .tex file found in ${latest_dir}." >&2
+            exit 1
+          fi
+
+          base_name=$(basename "${tex_file}" .tex)
+          resume_dir=$(dirname "${tex_file}")
+
+          {
+            echo "dir=${resume_dir}"
+            echo "tex=${tex_file}"
+            echo "base=${base_name}"
+          } >>"${GITHUB_OUTPUT}"
+
       - name: Generate PDF with latexmk
         run: |
-          latexmk -pdf -interaction=nonstopmode docs/resume/2025-09/daniel-smith-resume-2025-09.tex
+          set -euo pipefail
+          latexmk -pdf -interaction=nonstopmode -outdir="${{ steps.resume.outputs.dir }}" "${{ steps.resume.outputs.tex }}"
 
       - name: Generate DOCX with pandoc
         run: |
-          pandoc docs/resume/2025-09/daniel-smith-resume-2025-09.tex -o docs/resume/2025-09/daniel-smith-resume-2025-09.docx
+          set -euo pipefail
+          pandoc "${{ steps.resume.outputs.tex }}" -o "${{ steps.resume.outputs.dir }}/${{ steps.resume.outputs.base }}.docx"
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: resume-2025-09.pdf
-          path: docs/resume/2025-09/daniel-smith-resume-2025-09.pdf
+          name: ${{ steps.resume.outputs.base }}.pdf
+          path: ${{ steps.resume.outputs.dir }}/${{ steps.resume.outputs.base }}.pdf
 
       - name: Upload DOCX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: resume-2025-09.docx
-          path: docs/resume/2025-09/daniel-smith-resume-2025-09.docx
+          name: ${{ steps.resume.outputs.base }}.docx
+          path: ${{ steps.resume.outputs.dir }}/${{ steps.resume.outputs.base }}.docx
