@@ -28,6 +28,8 @@ canvas {
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
+  user-select: none;
 }
 
 .overlay {
@@ -48,4 +50,35 @@ canvas {
   margin-top: 0.5rem;
   opacity: 0.75;
   font-style: italic;
+}
+
+.joystick {
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.joystick-base {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: rgba(13, 18, 28, 0.4);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 32px rgba(2, 6, 14, 0.5);
+}
+
+.joystick-thumb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48%;
+  height: 48%;
+  border-radius: 50%;
+  background: rgba(255, 200, 87, 0.85);
+  box-shadow: 0 8px 20px rgba(255, 200, 87, 0.4);
+  transition: transform 40ms ease-out;
 }
