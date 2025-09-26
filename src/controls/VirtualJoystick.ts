@@ -25,7 +25,9 @@ export class VirtualJoystick {
     });
     window.addEventListener('pointerup', this.handlePointerUp);
     window.addEventListener('pointercancel', this.handlePointerUp);
-    this.target.addEventListener('contextmenu', (event) => event.preventDefault());
+    this.target.addEventListener('contextmenu', (event) =>
+      event.preventDefault()
+    );
   }
 
   getMovement(): { x: number; y: number } {
@@ -145,20 +147,25 @@ export class VirtualJoystick {
     };
   }
 
-  private updateJoystick(joystick: JoystickState, clientX: number, clientY: number) {
+  private updateJoystick(
+    joystick: JoystickState,
+    clientX: number,
+    clientY: number
+  ) {
     const dx = clientX - joystick.originX;
     const dy = clientY - joystick.originY;
     const distance = Math.min(Math.hypot(dx, dy), JOYSTICK_RADIUS);
 
     const angle = Math.atan2(dy, dx);
-    const normalizedX = distance === 0 ? 0 : (Math.cos(angle) * distance) / JOYSTICK_RADIUS;
-    const normalizedY = distance === 0 ? 0 : (Math.sin(angle) * distance) / JOYSTICK_RADIUS;
+    const normalizedX =
+      distance === 0 ? 0 : (Math.cos(angle) * distance) / JOYSTICK_RADIUS;
+    const normalizedY =
+      distance === 0 ? 0 : (Math.sin(angle) * distance) / JOYSTICK_RADIUS;
 
     joystick.value.x = normalizedX;
     joystick.value.y = normalizedY;
 
-    joystick.thumb.style.transform =
-      `translate(-50%, -50%) translate(${normalizedX * JOYSTICK_RADIUS}px, ${normalizedY * JOYSTICK_RADIUS}px)`;
+    joystick.thumb.style.transform = `translate(-50%, -50%) translate(${normalizedX * JOYSTICK_RADIUS}px, ${normalizedY * JOYSTICK_RADIUS}px)`;
   }
 
   private destroyJoystick(joystick?: JoystickState) {

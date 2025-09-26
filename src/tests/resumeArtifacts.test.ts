@@ -23,7 +23,12 @@ const execFileAsync = promisify(execFile);
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(currentDir, '..', '..');
 const RESUME_ROOT = path.join(PROJECT_ROOT, 'docs', 'resume');
-const CACHE_ROOT = path.join(PROJECT_ROOT, 'node_modules', '.cache', 'resume-tools');
+const CACHE_ROOT = path.join(
+  PROJECT_ROOT,
+  'node_modules',
+  '.cache',
+  'resume-tools'
+);
 
 const TECTONIC_VERSION = '0.15.0';
 const PANDOC_VERSION = '3.8';
@@ -97,9 +102,13 @@ async function buildLatestResumeArtifacts(): Promise<ResumeArtifacts> {
   const baseName = path.basename(texPath, '.tex');
   const pdfPath = path.join(outputDir, `${baseName}.pdf`);
 
-  await execFileAsync(pandoc, [texPath, '-o', path.join(outputDir, `${baseName}.docx`)], {
-    cwd: PROJECT_ROOT,
-  });
+  await execFileAsync(
+    pandoc,
+    [texPath, '-o', path.join(outputDir, `${baseName}.docx`)],
+    {
+      cwd: PROJECT_ROOT,
+    }
+  );
 
   const docxPath = path.join(outputDir, `${baseName}.docx`);
 
@@ -148,7 +157,9 @@ async function ensureTectonic(): Promise<string> {
   }
 
   if (process.platform !== 'linux' || process.arch !== 'x64') {
-    throw new Error('tectonic not found on PATH and automatic download is only supported on Linux x64.');
+    throw new Error(
+      'tectonic not found on PATH and automatic download is only supported on Linux x64.'
+    );
   }
 
   const cacheDir = path.join(CACHE_ROOT, `tectonic-${TECTONIC_VERSION}`);
@@ -162,7 +173,10 @@ async function ensureTectonic(): Promise<string> {
   }
 
   await mkdir(cacheDir, { recursive: true });
-  const archivePath = path.join(cacheDir, `tectonic-${TECTONIC_VERSION}.tar.gz`);
+  const archivePath = path.join(
+    cacheDir,
+    `tectonic-${TECTONIC_VERSION}.tar.gz`
+  );
   const downloadUrl = `https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%40${TECTONIC_VERSION}/tectonic-${TECTONIC_VERSION}-x86_64-unknown-linux-gnu.tar.gz`;
 
   await downloadFile(downloadUrl, archivePath);
@@ -178,11 +192,18 @@ async function ensurePandoc(): Promise<string> {
   }
 
   if (process.platform !== 'linux' || process.arch !== 'x64') {
-    throw new Error('pandoc not found on PATH and automatic download is only supported on Linux x64.');
+    throw new Error(
+      'pandoc not found on PATH and automatic download is only supported on Linux x64.'
+    );
   }
 
   const cacheDir = path.join(CACHE_ROOT, `pandoc-${PANDOC_VERSION}`);
-  const binaryPath = path.join(cacheDir, `pandoc-${PANDOC_VERSION}`, 'bin', 'pandoc');
+  const binaryPath = path.join(
+    cacheDir,
+    `pandoc-${PANDOC_VERSION}`,
+    'bin',
+    'pandoc'
+  );
 
   try {
     await access(binaryPath, fsConstants.X_OK);
@@ -197,7 +218,12 @@ async function ensurePandoc(): Promise<string> {
 
   await downloadFile(downloadUrl, archivePath);
   await execFileAsync('tar', ['-xzf', archivePath, '-C', cacheDir]);
-  const pandocPath = path.join(cacheDir, `pandoc-${PANDOC_VERSION}`, 'bin', 'pandoc');
+  const pandocPath = path.join(
+    cacheDir,
+    `pandoc-${PANDOC_VERSION}`,
+    'bin',
+    'pandoc'
+  );
   await chmod(pandocPath, 0o755);
   return pandocPath;
 }
@@ -224,7 +250,8 @@ async function downloadFile(url: string, destination: string): Promise<void> {
     await writeFile(destination, buffer);
     return;
   } catch (error) {
-    const originalMessage = error instanceof Error ? error.message : String(error);
+    const originalMessage =
+      error instanceof Error ? error.message : String(error);
     try {
       await execFileAsync('curl', ['-L', '-o', destination, url]);
       return;

@@ -151,8 +151,16 @@ function onResize() {
 
   cameraPanLimitX = Math.max(0, CAMERA_SIZE * nextAspect - PLAYER_RADIUS);
   cameraPanLimitZ = Math.max(0, CAMERA_SIZE - PLAYER_RADIUS);
-  cameraPanTarget.x = MathUtils.clamp(cameraPanTarget.x, -cameraPanLimitX, cameraPanLimitX);
-  cameraPanTarget.z = MathUtils.clamp(cameraPanTarget.z, -cameraPanLimitZ, cameraPanLimitZ);
+  cameraPanTarget.x = MathUtils.clamp(
+    cameraPanTarget.x,
+    -cameraPanLimitX,
+    cameraPanLimitX
+  );
+  cameraPanTarget.z = MathUtils.clamp(
+    cameraPanTarget.z,
+    -cameraPanLimitZ,
+    cameraPanLimitZ
+  );
   cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
   cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
 }
@@ -174,7 +182,11 @@ function updateMovement(delta: number) {
     Number(controls.isPressed('w') || controls.isPressed('ArrowUp'));
 
   const joystickMovement = joystick.getMovement();
-  moveDirection.set(horizontal + joystickMovement.x, 0, vertical + joystickMovement.y);
+  moveDirection.set(
+    horizontal + joystickMovement.x,
+    0,
+    vertical + joystickMovement.y
+  );
 
   const lengthSq = moveDirection.lengthSq();
   if (lengthSq > 1) {
@@ -204,8 +216,18 @@ function updateCamera(delta: number) {
     cameraInput.y * cameraPanLimitZ
   );
 
-  cameraPan.x = MathUtils.damp(cameraPan.x, cameraPanTarget.x, CAMERA_PAN_SMOOTHING, delta);
-  cameraPan.z = MathUtils.damp(cameraPan.z, cameraPanTarget.z, CAMERA_PAN_SMOOTHING, delta);
+  cameraPan.x = MathUtils.damp(
+    cameraPan.x,
+    cameraPanTarget.x,
+    CAMERA_PAN_SMOOTHING,
+    delta
+  );
+  cameraPan.z = MathUtils.damp(
+    cameraPan.z,
+    cameraPanTarget.z,
+    CAMERA_PAN_SMOOTHING,
+    delta
+  );
 
   cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
   cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
