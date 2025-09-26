@@ -5,6 +5,32 @@ builds on the previous one so the experience grows steadily while always remaini
 The plan leans into agentic workflows: every deliverable is intentionally scoped so an
 automation-friendly prompt (see `docs/prompts/`) can guide implementation.
 
+## Delivery scoreboard
+
+| Phase | Status | Demo | Key metrics |
+| --- | --- | --- | --- |
+| 0 | ✅ Shipped | – | Baseline scene boots in <2s; bundle 1.1 MB gz. |
+| 1 | 🚧 In progress | _(tag after slice)_ | Target: p95 FPS ≥90 desktop / ≥60 Pixel 6; LCP <2.5s. |
+| 2 | 🗓️ Next | _(tag after slice)_ | Target: ≥3 POIs w/ KPI impact notes + tooltips axe clean. |
+| 3 | 🗓️ Next | _(tag after slice)_ | Target: text fallback TTI <1.5s; HUD fully keyboardable. |
+| 4 | 🗓️ Next | _(tag after slice)_ | Target: axe CI 0 critical; locale switch en+rtl. |
+| 5 | 🗓️ Next | _(tag after slice)_ | Target: avatar swap ≤5% FPS regression; animation qa. |
+
+_Actions:_ cut a git tag + screenshot/GIF when each phase slices, update the table with a
+metrics snapshot (Lighthouse CI, WebPageTest, telemetry). Numbers are privacy-respecting lab
+captures; keep artifacts in `docs/metrics/`.
+
+## Global success criteria
+
+- **Performance budgets** – p95 FPS ≥90 on desktop class hardware and ≥60 on mid-range mobile;
+  p95 INP <200 ms; LCP <2.5 s on fast 4G; initial interactive payload ≤1.5–2.0 MB gzipped.
+- **Accessibility gates** – axe CI reports 0 critical violations; full keyboard/touch parity;
+  HUD controls expose ARIA labels and 48 px touch targets.
+- **Stability** – smoke build succeeds; console error budget stays at 0; Sentry (or console
+  proxy) is clean in demo runs.
+- **Failover** – auto redirect to text-only portfolio if WebGL is unavailable, memory
+  heuristics fail (<1 GB), or FPS drops below 30 for 5s; provide manual toggle in HUD.
+
 ## Phase 0 – Foundations (Shipped)
 
 - Baseline single-room scene with free-look camera.
@@ -14,6 +40,13 @@ automation-friendly prompt (see `docs/prompts/`) can guide implementation.
 ## Phase 1 – Playable Home Shell
 
 Focus: expand the environment while keeping navigation smooth.
+
+**Done means**
+
+- Traversal GIF + release tag published (`phase-1-alpha`).
+- Perf sample captured (desktop + Pixel-class) meeting the global budgets.
+- Lighting experiments documented in `docs/metrics/lighting.md` with before/after screenshots.
+- Text fallback auto-trigger verified via scripted run (see failover criteria).
 
 1. **Lighting Pass Alpha**
    - Introduce baked + dynamic lighting pipeline.
@@ -35,6 +68,13 @@ Focus: expand the environment while keeping navigation smooth.
 
 Focus: anchor each highlighted project with an interactive artifact.
 
+**Done means**
+
+- Each POI card includes a one-line outcome metric (e.g., "Reduced p95 render 28%"), backed by
+  links in `docs/case-studies/`.
+- Tooltips overlay passes axe CI and keyboard focus audit.
+- Release tag `phase-2-pois` ships with gallery screenshots + metrics table entry.
+
 1. **POI Framework**
    - Create a data-driven registry for POIs (id, asset, interaction type, metadata).
    - Implement 3D tooltips/popups that anchor to POIs in world space and respect camera.
@@ -55,6 +95,14 @@ Focus: anchor each highlighted project with an interactive artifact.
 
 Focus: unify user controls and ensure graceful fallback experiences.
 
+**Done means**
+
+- README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
+  next to the link.
+- HUD overlay achieves full keyboard/touch parity; interaction audit recorded in
+  `docs/metrics/accessibility.md`.
+- Lab run logs (Lighthouse CI) show text mode TTI <1.5 s and immersive mode LCP <2.5 s.
+
 1. **HUD Layer**
    - Responsive overlay with movement legend, interaction prompt, and help modal.
    - Sliders/toggles for audio volume, graphics quality, and accessibility presets.
@@ -72,6 +120,13 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 Focus: make the experience inclusive and globally friendly.
 
+**Done means**
+
+- CI axe run + screen reader smoke test logged with 0 critical issues.
+- Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
+- Accessibility presets documented with metrics (contrast ratios, motion reduction) and tied to
+  acceptance prompts.
+
 1. **Input Accessibility**
    - Keyboard-only navigation parity, remappable bindings, and full controller support.
    - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
@@ -88,6 +143,12 @@ Focus: make the experience inclusive and globally friendly.
 ## Phase 5 – Hero Avatar
 
 Focus: replace the placeholder sphere with a stylized protagonist.
+
+**Done means**
+
+- Avatar swap retains ≥95% of Phase 4 perf metrics (FPS, INP) and shows comparison table.
+- Animation QA checklist completed (IK alignment, footstep sync) with clips in `docs/media/`.
+- Release tag `phase-5-avatar` published alongside narrative write-up.
 
 1. **Character Import**
    - Set up GLTF/GLB ingestion pipeline with unit tests for bone/animation integrity.
