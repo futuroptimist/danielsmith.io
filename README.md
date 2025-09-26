@@ -48,7 +48,8 @@ Pre-commit is configured with the same commands plus basic formatting hooks. Com
 ## Architecture notes
 
 - **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
-- **Lighting** – Simple Ambient + Directional lights keep the room readable without custom shadow work.
+- **Lighting** – Ambient + directional key lights are now complemented by emissive LED cove strips
+  with a lightweight bloom pass so the room inherits a soft gradient glow without heavy shadows.
 - **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md). Touch controls are intentionally deferred and listed there.
 

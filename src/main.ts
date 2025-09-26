@@ -1,22 +1,29 @@
 import './styles.css';
 
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
   BoxGeometry,
   Clock,
   Color,
   DirectionalLight,
+  Group,
   MathUtils,
   Mesh,
   MeshStandardMaterial,
   OrthographicCamera,
   PlaneGeometry,
+  PointLight,
   Scene,
   SphereGeometry,
   SRGBColorSpace,
+  Vector2,
   Vector3,
   WebGLRenderer,
 } from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
@@ -30,6 +37,18 @@ const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
+const CEILING_COVE_OFFSET = 0.35;
+const LED_STRIP_THICKNESS = 0.12;
+const LED_STRIP_DEPTH = 0.22;
+const LIGHTING_OPTIONS = {
+  enableLedStrips: true,
+  enableBloom: true,
+  ledEmissiveIntensity: 3.2,
+  ledLightIntensity: 1.4,
+  bloomStrength: 0.55,
+  bloomRadius: 0.85,
+  bloomThreshold: 0.2,
+} as const;
 
 const container = document.getElementById('app');
 
@@ -39,6 +58,8 @@ if (!container) {
 
 const renderer = new WebGLRenderer({ antialias: true });
 renderer.outputColorSpace = SRGBColorSpace;
+renderer.toneMapping = ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(new Color(0x0d121c));
@@ -62,13 +83,90 @@ const cameraCenter = new Vector3(0, PLAYER_RADIUS, 0);
 camera.position.copy(cameraCenter).add(cameraBaseOffset);
 camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
 
-const ambientLight = new AmbientLight(0xffffff, 0.55);
-const directionalLight = new DirectionalLight(0xffffff, 0.75);
+const ambientLight = new AmbientLight(0xf5f7ff, 0.45);
+const directionalLight = new DirectionalLight(0xf1f0ff, 0.7);
 directionalLight.position.set(20, 30, 10);
 directionalLight.target.position.set(0, 0, 0);
 scene.add(ambientLight);
 scene.add(directionalLight);
 scene.add(directionalLight.target);
+
+if (LIGHTING_OPTIONS.enableLedStrips) {
+  const ledStripColor = new Color(0x5ad7ff);
+  const ledStripMaterial = new MeshStandardMaterial({
+    color: new Color(0x101623),
+    emissive: ledStripColor,
+    emissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
+    roughness: 0.35,
+    metalness: 0.15,
+  });
+  const ledGroup = new Group();
+  const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
+  const stripDefs: Array<{
+    length: number;
+    position: Vector3;
+    rotationY?: number;
+  }> = [
+    {
+      length: ROOM_HALF_WIDTH * 2 - 0.6,
+      position: new Vector3(0, ledHeight, ROOM_HALF_DEPTH - LED_STRIP_DEPTH / 2),
+    },
+    {
+      length: ROOM_HALF_WIDTH * 2 - 0.6,
+      position: new Vector3(0, ledHeight, -ROOM_HALF_DEPTH + LED_STRIP_DEPTH / 2),
+    },
+    {
+      length: ROOM_HALF_DEPTH * 2 - 0.6,
+      position: new Vector3(ROOM_HALF_WIDTH - LED_STRIP_DEPTH / 2, ledHeight, 0),
+      rotationY: Math.PI / 2,
+    },
+    {
+      length: ROOM_HALF_DEPTH * 2 - 0.6,
+      position: new Vector3(-ROOM_HALF_WIDTH + LED_STRIP_DEPTH / 2, ledHeight, 0),
+      rotationY: Math.PI / 2,
+    },
+  ];
+
+  stripDefs.forEach((definition) => {
+    const geometry = new BoxGeometry(
+      definition.length,
+      LED_STRIP_THICKNESS,
+      LED_STRIP_DEPTH
+    );
+    const strip = new Mesh(geometry, ledStripMaterial);
+    strip.position.copy(definition.position);
+    if (definition.rotationY) {
+      strip.rotation.y = definition.rotationY;
+    }
+    strip.renderOrder = 1;
+    ledGroup.add(strip);
+  });
+
+  scene.add(ledGroup);
+
+  const ledFillLights = new Group();
+  const ledLightDistance = Math.max(ROOM_HALF_WIDTH, ROOM_HALF_DEPTH) * 0.9;
+  const cornerOffsets = [
+    new Vector3(ROOM_HALF_WIDTH - 1.1, ledHeight - 0.1, ROOM_HALF_DEPTH - 1.1),
+    new Vector3(-(ROOM_HALF_WIDTH - 1.1), ledHeight - 0.1, ROOM_HALF_DEPTH - 1.1),
+    new Vector3(ROOM_HALF_WIDTH - 1.1, ledHeight - 0.1, -(ROOM_HALF_DEPTH - 1.1)),
+    new Vector3(-(ROOM_HALF_WIDTH - 1.1), ledHeight - 0.1, -(ROOM_HALF_DEPTH - 1.1)),
+  ];
+
+  cornerOffsets.forEach((offset) => {
+    const light = new PointLight(
+      ledStripColor,
+      LIGHTING_OPTIONS.ledLightIntensity,
+      ledLightDistance,
+      2
+    );
+    light.position.copy(offset);
+    light.castShadow = false;
+    ledFillLights.add(light);
+  });
+
+  scene.add(ledFillLights);
+}
 
 const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
 const floorGeometry = new PlaneGeometry(
@@ -138,6 +236,21 @@ const cameraPanTarget = new Vector3();
 let cameraPanLimitX = 0;
 let cameraPanLimitZ = 0;
 
+let composer: EffectComposer | null = null;
+let bloomPass: UnrealBloomPass | null = null;
+
+if (LIGHTING_OPTIONS.enableBloom) {
+  composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  bloomPass = new UnrealBloomPass(
+    new Vector2(window.innerWidth, window.innerHeight),
+    LIGHTING_OPTIONS.bloomStrength,
+    LIGHTING_OPTIONS.bloomRadius,
+    LIGHTING_OPTIONS.bloomThreshold
+  );
+  composer.addPass(bloomPass);
+}
+
 function onResize() {
   const nextAspect = window.innerWidth / window.innerHeight;
   camera.left = -CAMERA_SIZE * nextAspect;
@@ -148,6 +261,11 @@ function onResize() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  if (composer) {
+    composer.setSize(window.innerWidth, window.innerHeight);
+    bloomPass?.setSize(window.innerWidth, window.innerHeight);
+  }
 
   cameraPanLimitX = Math.max(0, CAMERA_SIZE * nextAspect - PLAYER_RADIUS);
   cameraPanLimitZ = Math.max(0, CAMERA_SIZE - PLAYER_RADIUS);
@@ -250,5 +368,9 @@ renderer.setAnimationLoop(() => {
   const delta = clock.getDelta();
   updateMovement(delta);
   updateCamera(delta);
-  renderer.render(scene, camera);
+  if (composer) {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 });
