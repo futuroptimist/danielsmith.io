@@ -1,40 +1,49 @@
 # danielsmith.io
 
-Production-ready Vite + Three.js sandbox for the future danielsmith.io scene. It renders an orthographic isometric room with keyboard-driven sphere movement so we can iterate on spatial UX while keeping repo hygiene tight via Flywheel conventions.
+Production-ready Vite + Three.js playground for the future danielsmith.io experience.
+The scene renders an orthographic isometric room with keyboard-driven sphere movement so
+we can iterate on spatial UX while keeping repo hygiene tight. The project was originally
+bootstrapped from the [`flywheel`](https://github.com/futuroptimist/flywheel) template and
+keeps the familiar conventions while focusing purely on the web stack.
 
-Latest résumé: [docs/resume/2025-09/daniel-smith-resume-2025-09.tex](docs/resume/2025-09/daniel-smith-resume-2025-09.tex) (CI builds PDF and DOCX).
+## Key resources
 
-### Vision roadmap & prompt library
+- **Roadmap** – Long-term milestones are sequenced in [docs/roadmap.md](docs/roadmap.md)
+  covering lighting, environment, HUD work, accessibility, and avatar polish.
+- **Backlog** – Near-term scene tasks, including deferred touch controls, live in
+  [docs/backlog.md](docs/backlog.md).
+- **Résumé** – Latest résumé source is
+  [`daniel-smith-resume-2025-09.tex`][resume-src].
+  CI renders PDF and DOCX artifacts.
+- **Prompt library** – Automation-ready Codex prompts are summarized in
+  [`summary.md`][prompt-summary] and expanded across topical files in
+  `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
 
-- **Roadmap** – Long-term milestones live in [docs/roadmap.md](docs/roadmap.md); it sequences
-  lighting, environment, POIs, HUD work, accessibility, and avatar polish into cohesive phases.
-- **Agent prompts** – Ready-to-run Codex prompts are indexed in
-  [docs/prompts/summary.md](docs/prompts/summary.md) so automation tasks stay focused and
-  reproducible.
-
-## Quick start
+## Getting started
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Project scripts
+### Project scripts
 
-- `npm run dev` – start the Vite dev server.
-- `npm run build` – production build (also used for the CI smoke test).
-- `npm run smoke` – build plus a check that `dist/index.html` exists.
-- `npm run preview` – preview the production build locally.
-- `npm run lint` – ESLint over the TypeScript sources.
-- `npm run format:check` / `npm run format:write` – Prettier in check or write mode.
-- `npm run test` / `npm run test:ci` – Vitest unit tests (CI uses the `:ci` variant).
-- `npm run typecheck` – TypeScript type checking without emit.
-- `npm run docs:check` – verifies required docs (including the Codex automation prompt) are present.
-- `npm run check` – convenience command that chains lint, test:ci, and docs:check.
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Vite development server. |
+| `npm run build` | Create a production build (also used by CI smoke tests). |
+| `npm run preview` | Preview the production build locally. |
+| `npm run lint` | Run ESLint on the TypeScript sources. |
+| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting. |
+| `npm run test` / `npm run test:ci` | Execute the Vitest suite (CI uses `:ci`). |
+| `npm run typecheck` | Type-check with TypeScript without emitting files. |
+| `npm run docs:check` | Ensure required docs (including Codex prompts) exist. |
+| `npm run smoke` | Build and assert that `dist/index.html` exists. |
+| `npm run check` | Convenience command chaining lint, test:ci, and docs:check. |
 
 ### Local quality gates
 
-Run the Flywheel-aligned checks before pushing:
+Run the Flywheel-style checks before pushing to stay aligned with CI:
 
 ```bash
 npm run lint
@@ -43,27 +52,37 @@ npm run docs:check
 npm run smoke
 ```
 
-Pre-commit is configured with the same commands plus basic formatting hooks. Compared to the full Flywheel stack we omit the Python-heavy aggregate hook to keep this web-only repo light; see below for details.
+Pre-commit mirrors these commands alongside formatting hooks. Compared to the full
+Flywheel stack, we skip the Python-heavy aggregate hook to keep this web-focused repo
+lightweight.
 
 ## Architecture notes
 
-- **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
-- **Lighting** – Ambient + directional key lights are now complemented by emissive LED cove strips
-  with a lightweight bloom pass so the room inherits a soft gradient glow without heavy shadows.
-- **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
-- **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md). Touch controls are intentionally deferred and listed there.
-
-## Flywheel alignment
-
-- Canonical Codex automation prompt lives at [`docs/prompts/codex/automation.md`](docs/prompts/codex/automation.md) and is referenced by CI/docs checks.
-- `.editorconfig`, Prettier, ESLint, and GitHub Actions follow the Flywheel template with a smaller surface area tailored for this Vite app.
-- `.pre-commit-config.yaml` keeps the baseline hooks (whitespace, YAML) and swaps the heavy multi-language runner for direct npm scripts. This deviation is intentional to avoid unused Python dependencies in this repo.
+- **Camera** – Orthographic camera with constant world height (`CAMERA_SIZE = 20`). Resizes
+  recompute the left/right bounds based on aspect ratio before calling
+  `updateProjectionMatrix()`.
+- **Lighting** – Ambient and directional key lights are supported by emissive LED cove
+  strips plus a lightweight bloom pass for soft gradient glow without heavy shadows.
+- **Controls** – `KeyboardControls` listens for `keydown`/`keyup` events (WASD + arrows) and
+  clamps movement to the room bounds.
 
 ## Controls
 
-- **Movement** – `WASD` or arrow keys to roll the sphere around the room.
-- **Touch** – Not yet implemented; see the backlog entry for the planned joystick.
+- **Movement** – Use `WASD` or arrow keys to roll the sphere.
+- **Touch** – Not implemented yet; see the backlog entry for the planned joystick.
+
+## Automation prompts
+
+The canonical Codex automation prompt lives at
+[`automation.md`][automation-prompt] and feeds both docs
+checks and CI routines. Additional specialized prompts (lighting, avatar, HUD, POIs, i18n,
+performance, modes, animation, and more) provide ready-to-run task scaffolding for agents.
 
 ## Smoke testing
 
-`npm run build` generates the distributable assets and the CI suite asserts that `dist/index.html` exists as part of the build step.
+`npm run build` generates distributable assets, and CI asserts that `dist/index.html`
+exists as part of the smoke suite.
+
+[resume-src]: docs/resume/2025-09/daniel-smith-resume-2025-09.tex
+[prompt-summary]: docs/prompts/summary.md
+[automation-prompt]: docs/prompts/codex/automation.md
