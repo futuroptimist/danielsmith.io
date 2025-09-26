@@ -1,0 +1,36 @@
+name: Floor plan diagram
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/floorPlan.ts
+      - scripts/generate-floorplan-diagram.ts
+      - package.json
+      - package-lock.json
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate floor plan diagram
+        run: npm run floorplan:diagram
+      - name: Commit updated diagram
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci: update floor plan diagram"
+          file_pattern: docs/assets/floorplan.svg README.md

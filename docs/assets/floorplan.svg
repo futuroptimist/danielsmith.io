@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="384" height="896" viewBox="0 0 384 896" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="384" height="896" fill="#0b1428" />
+  <g>
+    <path d="M32.00,864.00 L352.00,864.00 L352.00,416.00 L160.00,416.00 L160.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
+    
+      <g>
+        <rect
+          x="32.00"
+          y="416.00"
+          width="320.00"
+          height="448.00"
+          fill="#4cf889"
+          fill-opacity="0.22"
+          stroke="#4cf889"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="192.00" y="640.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Living Room</text>
+      </g>
+    
+
+      <g>
+        <rect
+          x="32.00"
+          y="32.00"
+          width="128.00"
+          height="384.00"
+          fill="#58c4ff"
+          fill-opacity="0.22"
+          stroke="#58c4ff"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="96.00" y="224.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Studio</text>
+      </g>
+    
+    <line x1="32.00" y1="416.00" x2="72.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="120.00" y1="416.00" x2="160.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="416.00" x2="352.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="864.00" x2="352.00" y2="864.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="32.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="352.00" y1="864.00" x2="352.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="864.00" x2="32.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="416.00" x2="32.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="416.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+  </g>
+</svg>

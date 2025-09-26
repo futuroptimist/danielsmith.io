@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "docs:check": "node scripts/check-docs.cjs",
     "smoke": "npm run build && node scripts/assert-dist.cjs",
-    "check": "npm run lint && npm run test:ci && npm run docs:check"
+    "check": "npm run lint && npm run test:ci && npm run docs:check",
+    "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts"
   },
   "dependencies": {
     "three": "^0.161.0"
@@ -34,6 +35,7 @@
     "jszip": "^3.10.1",
     "pdf-lib": "^1.17.1",
     "prettier": "^3.2.4",
+    "tsx": "^4.7.0",
     "typescript": "~5.3.3",
     "vite": "^5.0.12",
     "vitest": "^1.2.1"
