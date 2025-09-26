@@ -1,4 +1,4 @@
-name: Resume builds
+name: Resume artifacts
 
 on:
   push:
@@ -6,42 +6,40 @@ on:
       - main
     paths:
       - 'docs/resume/**'
+      - '.github/workflows/resume.yml'
   pull_request:
     paths:
       - 'docs/resume/**'
+      - '.github/workflows/resume.yml'
+  workflow_dispatch:
 
 jobs:
-  latex-pdf:
-    name: Build PDF with latexmk
+  build-artifacts:
+    name: Build resume artifacts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Install TeX Live
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y texlive-full latexmk
-      - name: Build PDF
+          sudo apt-get install -y texlive-full latexmk pandoc
+
+      - name: Build PDF with latexmk
         run: |
           latexmk -pdf -interaction=nonstopmode docs/resume/2025-09/daniel-smith-resume-2025-09.tex
+
+      - name: Convert LaTeX to DOCX
+        run: |
+          pandoc docs/resume/2025-09/daniel-smith-resume-2025-09.tex -o docs/resume/2025-09/daniel-smith-resume-2025-09.docx
+
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
           name: resume-2025-09.pdf
           path: docs/resume/2025-09/daniel-smith-resume-2025-09.pdf
-  pandoc-docx:
-    name: Convert to DOCX with Pandoc
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Pandoc
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc
-      - name: Convert LaTeX to DOCX
-        run: |
-          pandoc docs/resume/2025-09/daniel-smith-resume-2025-09.tex -o docs/resume/2025-09/daniel-smith-resume-2025-09.docx
+
       - name: Upload DOCX artifact
         uses: actions/upload-artifact@v4
         with:
