@@ -2,7 +2,10 @@
 
 ## Planned improvements
 
-- feat: mobile touch controls (virtual joystick + drag to look)
-- feat: character controller swap (capsule) & smoother acceleration
-- feat: room art pass + materials
-- perf: offscreen canvas for future postprocessing
+The backlog now tracks near-term slices derived from `docs/roadmap.md`. Use it to spotlight
+tasks that deserve immediate attention while the roadmap handles long-range planning.
+
+- feat: HUD overlay spikes (controls, help modal)
+- feat: POI registry scaffolding + first content pass
+- feat: ground floor layout blocking & navigation QA
+- perf: lighting pipeline prototype (emissive strips + baked bounce)

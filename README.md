@@ -4,6 +4,14 @@ Production-ready Vite + Three.js sandbox for the future danielsmith.io scene. It
 
 Latest résumé: [docs/resume/2025-09/daniel-smith-resume-2025-09.tex](docs/resume/2025-09/daniel-smith-resume-2025-09.tex) (CI builds PDF and DOCX).
 
+### Vision roadmap & prompt library
+
+- **Roadmap** – Long-term milestones live in [docs/roadmap.md](docs/roadmap.md); it sequences
+  lighting, environment, POIs, HUD work, accessibility, and avatar polish into cohesive phases.
+- **Agent prompts** – Ready-to-run Codex prompts are indexed in
+  [docs/prompts/summary.md](docs/prompts/summary.md) so automation tasks stay focused and
+  reproducible.
+
 ## Quick start
 
 ```bash
