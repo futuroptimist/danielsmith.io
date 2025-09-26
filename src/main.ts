@@ -47,6 +47,15 @@ const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
 const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
+const STAIRCASE_CONFIG = {
+  stepCount: 9,
+  stepRise: 0.42,
+  stepRun: 0.85,
+  stepWidth: 3.1,
+  landingDepth: 2.6,
+  landingThickness: 0.38,
+  basePosition: new Vector3(6.2, 0, -18),
+} as const;
 
 const LIGHTING_OPTIONS = {
   enableLedStrips: true,
@@ -66,6 +75,93 @@ interface WallCollider {
 }
 
 const wallColliders: WallCollider[] = [];
+
+function buildStaircase(): Group {
+  const group = new Group();
+
+  const stairMaterial = new MeshStandardMaterial({
+    color: 0x708091,
+    roughness: 0.6,
+    metalness: 0.12,
+  });
+  const landingMaterial = new MeshStandardMaterial({
+    color: 0x5b6775,
+    roughness: 0.55,
+    metalness: 0.08,
+  });
+  const supportMaterial = new MeshStandardMaterial({
+    color: 0x2c343f,
+    roughness: 0.7,
+    metalness: 0.05,
+  });
+
+  const totalRise = STAIRCASE_CONFIG.stepCount * STAIRCASE_CONFIG.stepRise;
+  const { basePosition } = STAIRCASE_CONFIG;
+
+  for (let i = 0; i < STAIRCASE_CONFIG.stepCount; i += 1) {
+    const geometry = new BoxGeometry(
+      STAIRCASE_CONFIG.stepWidth,
+      STAIRCASE_CONFIG.stepRise,
+      STAIRCASE_CONFIG.stepRun
+    );
+    const step = new Mesh(geometry, stairMaterial);
+    step.position.set(
+      basePosition.x,
+      basePosition.y + STAIRCASE_CONFIG.stepRise * (i + 0.5),
+      basePosition.z + STAIRCASE_CONFIG.stepRun * (i + 0.5)
+    );
+    group.add(step);
+  }
+
+  const landingGeometry = new BoxGeometry(
+    STAIRCASE_CONFIG.stepWidth,
+    STAIRCASE_CONFIG.landingThickness,
+    STAIRCASE_CONFIG.landingDepth
+  );
+  const landing = new Mesh(landingGeometry, landingMaterial);
+  landing.position.set(
+    basePosition.x,
+    basePosition.y + totalRise + STAIRCASE_CONFIG.landingThickness / 2,
+    basePosition.z + STAIRCASE_CONFIG.stepRun * STAIRCASE_CONFIG.stepCount +
+      STAIRCASE_CONFIG.landingDepth / 2
+  );
+  group.add(landing);
+
+  const landingGuard = new Mesh(
+    new BoxGeometry(STAIRCASE_CONFIG.stepWidth * 0.95, 0.55, 0.14),
+    supportMaterial
+  );
+  landingGuard.position.set(
+    landing.position.x,
+    landing.position.y + 0.55 / 2 + STAIRCASE_CONFIG.landingThickness / 2,
+    landing.position.z + STAIRCASE_CONFIG.landingDepth / 2 - 0.07
+  );
+  group.add(landingGuard);
+
+  const midSupport = new Mesh(
+    new BoxGeometry(0.32, totalRise, STAIRCASE_CONFIG.stepWidth * 0.6),
+    supportMaterial
+  );
+  midSupport.position.set(
+    basePosition.x - STAIRCASE_CONFIG.stepWidth / 2 + 0.16,
+    basePosition.y + totalRise / 2,
+    basePosition.z + (STAIRCASE_CONFIG.stepRun * STAIRCASE_CONFIG.stepCount) / 2
+  );
+  group.add(midSupport);
+
+  const rearSupport = new Mesh(
+    new BoxGeometry(0.32, totalRise, STAIRCASE_CONFIG.stepWidth * 0.6),
+    supportMaterial
+  );
+  rearSupport.position.set(
+    basePosition.x + STAIRCASE_CONFIG.stepWidth / 2 - 0.16,
+    basePosition.y + totalRise / 2,
+    basePosition.z + (STAIRCASE_CONFIG.stepRun * STAIRCASE_CONFIG.stepCount) / 2
+  );
+  group.add(rearSupport);
+
+  return group;
+}
 
 function isInsideAnyRoom(x: number, z: number): boolean {
   return FLOOR_PLAN.rooms.some(
@@ -225,6 +321,9 @@ combinedWallSegments.forEach((segment) => {
 });
 
 scene.add(wallGroup);
+
+const staircase = buildStaircase();
+scene.add(staircase);
 
 if (LIGHTING_OPTIONS.enableLedStrips) {
   const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
