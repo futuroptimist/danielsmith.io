@@ -109,20 +109,36 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
   }> = [
     {
       length: ROOM_HALF_WIDTH * 2 - 0.6,
-      position: new Vector3(0, ledHeight, ROOM_HALF_DEPTH - LED_STRIP_DEPTH / 2),
+      position: new Vector3(
+        0,
+        ledHeight,
+        ROOM_HALF_DEPTH - LED_STRIP_DEPTH / 2
+      ),
     },
     {
       length: ROOM_HALF_WIDTH * 2 - 0.6,
-      position: new Vector3(0, ledHeight, -ROOM_HALF_DEPTH + LED_STRIP_DEPTH / 2),
+      position: new Vector3(
+        0,
+        ledHeight,
+        -ROOM_HALF_DEPTH + LED_STRIP_DEPTH / 2
+      ),
     },
     {
       length: ROOM_HALF_DEPTH * 2 - 0.6,
-      position: new Vector3(ROOM_HALF_WIDTH - LED_STRIP_DEPTH / 2, ledHeight, 0),
+      position: new Vector3(
+        ROOM_HALF_WIDTH - LED_STRIP_DEPTH / 2,
+        ledHeight,
+        0
+      ),
       rotationY: Math.PI / 2,
     },
     {
       length: ROOM_HALF_DEPTH * 2 - 0.6,
-      position: new Vector3(-ROOM_HALF_WIDTH + LED_STRIP_DEPTH / 2, ledHeight, 0),
+      position: new Vector3(
+        -ROOM_HALF_WIDTH + LED_STRIP_DEPTH / 2,
+        ledHeight,
+        0
+      ),
       rotationY: Math.PI / 2,
     },
   ];
@@ -148,9 +164,21 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
   const ledLightDistance = Math.max(ROOM_HALF_WIDTH, ROOM_HALF_DEPTH) * 0.9;
   const cornerOffsets = [
     new Vector3(ROOM_HALF_WIDTH - 1.1, ledHeight - 0.1, ROOM_HALF_DEPTH - 1.1),
-    new Vector3(-(ROOM_HALF_WIDTH - 1.1), ledHeight - 0.1, ROOM_HALF_DEPTH - 1.1),
-    new Vector3(ROOM_HALF_WIDTH - 1.1, ledHeight - 0.1, -(ROOM_HALF_DEPTH - 1.1)),
-    new Vector3(-(ROOM_HALF_WIDTH - 1.1), ledHeight - 0.1, -(ROOM_HALF_DEPTH - 1.1)),
+    new Vector3(
+      -(ROOM_HALF_WIDTH - 1.1),
+      ledHeight - 0.1,
+      ROOM_HALF_DEPTH - 1.1
+    ),
+    new Vector3(
+      ROOM_HALF_WIDTH - 1.1,
+      ledHeight - 0.1,
+      -(ROOM_HALF_DEPTH - 1.1)
+    ),
+    new Vector3(
+      -(ROOM_HALF_WIDTH - 1.1),
+      ledHeight - 0.1,
+      -(ROOM_HALF_DEPTH - 1.1)
+    ),
   ];
 
   cornerOffsets.forEach((offset) => {

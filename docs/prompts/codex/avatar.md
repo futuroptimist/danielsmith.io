@@ -30,6 +30,7 @@ Summaries must include asset references, tests, and manual QA steps.
 - Store temporary mannequin assets separately to ease replacement.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-

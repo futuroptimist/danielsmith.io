@@ -7,14 +7,14 @@ automation-friendly prompt (see `docs/prompts/`) can guide implementation.
 
 ## Delivery scoreboard
 
-| Phase | Status | Demo | Key metrics |
-| --- | --- | --- | --- |
-| 0 | ✅ Shipped | – | Baseline scene boots in <2s; bundle 1.1 MB gz. |
-| 1 | 🚧 In progress | _(tag after slice)_ | Target: p95 FPS ≥90 desktop / ≥60 Pixel 6; LCP <2.5s. |
-| 2 | 🗓️ Next | _(tag after slice)_ | Target: ≥3 POIs w/ KPI impact notes + tooltips axe clean. |
-| 3 | 🗓️ Next | _(tag after slice)_ | Target: text fallback TTI <1.5s; HUD fully keyboardable. |
-| 4 | 🗓️ Next | _(tag after slice)_ | Target: axe CI 0 critical; locale switch en+rtl. |
-| 5 | 🗓️ Next | _(tag after slice)_ | Target: avatar swap ≤5% FPS regression; animation qa. |
+| Phase | Status         | Demo                | Key metrics                                               |
+| ----- | -------------- | ------------------- | --------------------------------------------------------- |
+| 0     | ✅ Shipped     | –                   | Baseline scene boots in <2s; bundle 1.1 MB gz.            |
+| 1     | 🚧 In progress | _(tag after slice)_ | Target: p95 FPS ≥90 desktop / ≥60 Pixel 6; LCP <2.5s.     |
+| 2     | 🗓️ Next        | _(tag after slice)_ | Target: ≥3 POIs w/ KPI impact notes + tooltips axe clean. |
+| 3     | 🗓️ Next        | _(tag after slice)_ | Target: text fallback TTI <1.5s; HUD fully keyboardable.  |
+| 4     | 🗓️ Next        | _(tag after slice)_ | Target: axe CI 0 critical; locale switch en+rtl.          |
+| 5     | 🗓️ Next        | _(tag after slice)_ | Target: avatar swap ≤5% FPS regression; animation qa.     |
 
 _Actions:_ cut a git tag + screenshot/GIF when each phase slices, update the table with a
 metrics snapshot (Lighthouse CI, WebPageTest, telemetry). Numbers are privacy-respecting lab

@@ -34,6 +34,7 @@ Return JSON with `summary`, `tests`, and `follow_up` fields, then include the di
 - Keep commit messages short; the PR description should capture context.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -54,4 +55,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-

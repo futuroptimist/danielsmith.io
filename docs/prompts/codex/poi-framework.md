@@ -30,6 +30,7 @@ Summaries must include API notes and tests executed.
 - Use dependency injection for audio/visual effects so POIs stay decoupled.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-
