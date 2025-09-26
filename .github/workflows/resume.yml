@@ -1,0 +1,49 @@
+name: Resume builds
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/resume/**'
+  pull_request:
+    paths:
+      - 'docs/resume/**'
+
+jobs:
+  latex-pdf:
+    name: Build PDF with latexmk
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install TeX Live
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-full latexmk
+      - name: Build PDF
+        run: |
+          latexmk -pdf -interaction=nonstopmode docs/resume/2025-09/daniel-smith-resume-2025-09.tex
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-2025-09.pdf
+          path: docs/resume/2025-09/daniel-smith-resume-2025-09.pdf
+  pandoc-docx:
+    name: Convert to DOCX with Pandoc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+      - name: Convert LaTeX to DOCX
+        run: |
+          pandoc docs/resume/2025-09/daniel-smith-resume-2025-09.tex -o docs/resume/2025-09/daniel-smith-resume-2025-09.docx
+      - name: Upload DOCX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-2025-09.docx
+          path: docs/resume/2025-09/daniel-smith-resume-2025-09.docx
