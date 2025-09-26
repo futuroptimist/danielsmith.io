@@ -2,6 +2,8 @@
 
 Production-ready Vite + Three.js sandbox for the future danielsmith.io scene. It renders an orthographic isometric room with keyboard-driven sphere movement so we can iterate on spatial UX while keeping repo hygiene tight via Flywheel conventions.
 
+Latest résumé: [docs/resume/2025-09/daniel-smith-resume-2025-09.tex](docs/resume/2025-09/daniel-smith-resume-2025-09.tex) (CI builds PDF and DOCX).
+
 ## Quick start
 
 ```bash
