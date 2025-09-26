@@ -30,6 +30,7 @@ Provide summary, tests, and QA notes.
 - Leave comments where future door assets or stair railings will slot in.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-

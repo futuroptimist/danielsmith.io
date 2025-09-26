@@ -30,6 +30,7 @@ Provide summary, test list, and capture manual verification instructions.
 - Capture reference GIFs or frame captures for reviewers.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-

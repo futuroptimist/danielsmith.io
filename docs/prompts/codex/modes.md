@@ -30,6 +30,7 @@ Include summary, automated tests, and manual verification checklist.
 - Document any platform-specific fallbacks (e.g., Safari WebGL quirks).
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-

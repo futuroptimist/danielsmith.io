@@ -30,6 +30,7 @@ Share summary, tests, manual QA, and any follow-up ideas.
 - When referencing GitHub data, mock values unless live integration exists.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-

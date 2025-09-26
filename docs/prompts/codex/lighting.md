@@ -30,6 +30,7 @@ Summarize the change, list tests run, highlight any visual review steps.
 - Add comments explaining any tone-mapping adjustments or shader hacks.
 
 ## Upgrade Prompt
+
 Type: evergreen
 
 Use this prompt to refine danielsmith.io's Codex prompt documentation.
@@ -50,4 +51,3 @@ USER:
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
 ```
-
