@@ -20,6 +20,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Add emissive LED strip meshes along ceiling edges with gentle bloom.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
    - Add toggleable debug view to compare current vs. future lighting iterations.
+   - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
 2. **House Footprint Layout**
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
