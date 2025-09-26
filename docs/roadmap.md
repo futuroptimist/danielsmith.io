@@ -59,6 +59,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
    - Stub staircase volumes that connect to a placeholder second-floor landing.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
+   - ✅ Feature staircase volume now links the living room to a loft landing stub.
 3. **Outdoor Transition**
    - Sculpt backyard terrain plane, fence line, and skybox updates.
    - Add lighting probes/reflections so the outdoor zone feels distinct at dusk.
