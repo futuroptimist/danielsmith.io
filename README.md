@@ -40,18 +40,18 @@ locally with `npm run floorplan:diagram`).
 
 ## Project scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Start the Vite development server. |
-| `npm run build` | Create a production build (also used by CI smoke tests). |
-| `npm run preview` | Preview the production build locally. |
-| `npm run lint` | Run ESLint on the TypeScript sources. |
-| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting. |
-| `npm run test` / `npm run test:ci` | Execute the Vitest suite (CI uses `:ci`). |
-| `npm run typecheck` | Type-check with TypeScript without emitting files. |
-| `npm run docs:check` | Ensure required docs (including Codex prompts) exist. |
-| `npm run smoke` | Build and assert that `dist/index.html` exists. |
-| `npm run check` | Convenience command chaining lint, test:ci, and docs:check. |
+| Script                                          | Purpose                                                     |
+| ----------------------------------------------- | ----------------------------------------------------------- |
+| `npm run dev`                                   | Start the Vite development server.                          |
+| `npm run build`                                 | Create a production build (also used by CI smoke tests).    |
+| `npm run preview`                               | Preview the production build locally.                       |
+| `npm run lint`                                  | Run ESLint on the TypeScript sources.                       |
+| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting.                         |
+| `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                   |
+| `npm run typecheck`                             | Type-check with TypeScript without emitting files.          |
+| `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.       |
+| `npm run smoke`                                 | Build and assert that `dist/index.html` exists.             |
+| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check. |
 
 ### Local quality gates
 
@@ -93,6 +93,6 @@ performance, modes, animation, and more) provide ready-to-run task scaffolding f
 `npm run build` generates distributable assets, and CI asserts that `dist/index.html`
 exists as part of the smoke suite.
 
-[resume-src]: docs/resume/2025-09/daniel-smith-resume-2025-09.tex  
-[prompt-summary]: docs/prompts/summary.md  
+[resume-src]: docs/resume/2025-09/daniel-smith-resume-2025-09.tex
+[prompt-summary]: docs/prompts/summary.md
 [automation-prompt]: docs/prompts/codex/automation.md

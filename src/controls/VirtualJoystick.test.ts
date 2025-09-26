@@ -25,7 +25,10 @@ describe('VirtualJoystick', () => {
       button?: number;
     }
   ): PointerEvent {
-    const event = new Event(type, { bubbles: true, cancelable: true }) as MutablePointerEvent;
+    const event = new Event(type, {
+      bubbles: true,
+      cancelable: true,
+    }) as MutablePointerEvent;
 
     Object.assign(event, init);
 

@@ -1,7 +1,11 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-import { FLOOR_PLAN, WALL_THICKNESS, getCombinedWallSegments } from '../src/floorPlan';
+import {
+  FLOOR_PLAN,
+  WALL_THICKNESS,
+  getCombinedWallSegments,
+} from '../src/floorPlan';
 
 const OUTPUT_PATH = path.resolve(process.cwd(), 'docs/assets/floorplan.svg');
 const PADDING = 32;
