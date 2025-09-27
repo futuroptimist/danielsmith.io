@@ -1,0 +1,55 @@
+name: Launch screenshot
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture launch screenshot
+        run: npm run screenshot
+
+      - name: Detect tracked screenshot
+        id: screenshot_state
+        run: |
+          if git ls-files --error-unmatch docs/assets/game-launch.png >/dev/null 2>&1; then
+            echo "tracked=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tracked=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload screenshot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-screenshot
+          path: docs/assets/game-launch.png
+
+      - name: Ensure screenshot committed
+        if: ${{ steps.screenshot_state.outputs.tracked == 'true' }}
+        run: git diff --exit-code docs/assets/game-launch.png
+
+      - name: Commit refreshed screenshot
+        if: ${{ steps.screenshot_state.outputs.tracked == 'false' && github.ref == 'refs/heads/main' }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '📸 : – Refresh launch screenshot'
+          file_pattern: docs/assets/game-launch.png

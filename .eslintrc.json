@@ -18,7 +18,9 @@
   ],
   "settings": {
     "import/resolver": {
-      "typescript": true
+      "typescript": {
+        "project": ["tsconfig.json", "playwright/tsconfig.json"]
+      }
     }
   },
   "rules": {
@@ -36,6 +38,15 @@
       "files": ["src/tests/**/*.ts"],
       "env": {
         "node": true
+    }
+    },
+    {
+      "files": ["playwright.config.ts", "playwright/**/*.ts"],
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "import/no-unresolved": "off"
       }
     }
   ]
