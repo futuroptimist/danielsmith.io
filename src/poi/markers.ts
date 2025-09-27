@@ -1,4 +1,5 @@
 import {
+  AdditiveBlending,
   CanvasTexture,
   Color,
   CylinderGeometry,
@@ -9,6 +10,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  RingGeometry,
   SphereGeometry,
   Vector3,
 } from 'three';
@@ -19,23 +21,35 @@ export interface PoiInstance {
   definition: PoiDefinition;
   group: Group;
   orb: Mesh;
+  orbMaterial: MeshStandardMaterial;
   orbBaseHeight: number;
+  accentMaterial: MeshStandardMaterial;
   label: Mesh;
+  labelMaterial: MeshBasicMaterial;
   labelBaseHeight: number;
   labelWorldPosition: Vector3;
   floatPhase: number;
   floatSpeed: number;
   floatAmplitude: number;
+  halo: Mesh;
+  haloMaterial: MeshBasicMaterial;
   collider: { minX: number; maxX: number; minZ: number; maxZ: number };
+  activation: number;
+  pulseOffset: number;
 }
 
-export function createPoiInstances(definitions: PoiDefinition[]): PoiInstance[] {
+export function createPoiInstances(
+  definitions: PoiDefinition[]
+): PoiInstance[] {
   return definitions.map((definition, index) =>
     createPoiInstance(definition, index * Math.PI * 0.37)
   );
 }
 
-function createPoiInstance(definition: PoiDefinition, phaseOffset: number): PoiInstance {
+function createPoiInstance(
+  definition: PoiDefinition,
+  phaseOffset: number
+): PoiInstance {
   const group = new Group();
   group.name = `POI:${definition.id}`;
   group.position.set(
@@ -111,6 +125,28 @@ function createPoiInstance(definition: PoiDefinition, phaseOffset: number): PoiI
   label.renderOrder = 12;
   group.add(label);
 
+  const haloInnerRadius = Math.max(baseRadiusX, baseRadiusZ) * 0.92;
+  const haloOuterRadius = haloInnerRadius + 0.36;
+  const haloGeometry = new RingGeometry(
+    haloInnerRadius,
+    haloOuterRadius,
+    48,
+    1
+  );
+  const haloMaterial = new MeshBasicMaterial({
+    color: new Color(0x4bd8ff),
+    transparent: true,
+    opacity: 0.18,
+    blending: AdditiveBlending,
+    depthWrite: false,
+  });
+  haloMaterial.side = DoubleSide;
+  const halo = new Mesh(haloGeometry, haloMaterial);
+  halo.rotation.x = -Math.PI / 2;
+  halo.position.y = 0.08;
+  halo.renderOrder = 11;
+  group.add(halo);
+
   const collider = {
     minX: definition.position.x - baseRadiusX,
     maxX: definition.position.x + baseRadiusX,
@@ -122,14 +158,21 @@ function createPoiInstance(definition: PoiDefinition, phaseOffset: number): PoiI
     definition,
     group,
     orb,
+    orbMaterial,
     orbBaseHeight,
+    accentMaterial,
     label,
+    labelMaterial,
     labelBaseHeight,
     labelWorldPosition: new Vector3(),
     floatPhase: phaseOffset,
     floatSpeed: MathUtils.randFloat(0.8, 1.1),
     floatAmplitude: MathUtils.randFloat(0.12, 0.18),
+    halo,
+    haloMaterial,
     collider,
+    activation: 0,
+    pulseOffset: MathUtils.randFloatSpread(Math.PI * 2),
   };
 }
 
@@ -143,7 +186,12 @@ function createPoiLabelTexture(definition: PoiDefinition): CanvasTexture {
   }
 
   context.clearRect(0, 0, canvas.width, canvas.height);
-  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  const gradient = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
   gradient.addColorStop(0, 'rgba(33, 108, 255, 0.92)');
   gradient.addColorStop(1, 'rgba(20, 188, 255, 0.55)');
 
@@ -196,7 +244,11 @@ function createPoiLabelTexture(definition: PoiDefinition): CanvasTexture {
     context.font = '24px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = 'rgba(255, 255, 255, 0.75)';
     const textWidth = context.measureText(statusText).width;
-    context.fillText(statusText, canvas.width - padding * 1.5 - textWidth, padding * 1.4);
+    context.fillText(
+      statusText,
+      canvas.width - padding * 1.5 - textWidth,
+      padding * 1.4
+    );
   }
 
   const texture = new CanvasTexture(canvas);
@@ -244,7 +296,12 @@ function roundRect(
   context.lineTo(x + width - radius, y);
   context.quadraticCurveTo(x + width, y, x + width, y + radius);
   context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - radius,
+    y + height
+  );
   context.lineTo(x + radius, y + height);
   context.quadraticCurveTo(x, y + height, x, y + height - radius);
   context.lineTo(x, y + radius);

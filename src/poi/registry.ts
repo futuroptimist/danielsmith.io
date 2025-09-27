@@ -28,7 +28,8 @@ const definitions: PoiDefinition[] = [
   {
     id: 'flywheel-studio-flywheel',
     title: 'Flywheel Kinetic Hub',
-    summary: 'Studio centrepiece celebrating the Flywheel automation template lineage.',
+    summary:
+      'Studio centrepiece celebrating the Flywheel automation template lineage.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
@@ -41,7 +42,10 @@ const definitions: PoiDefinition[] = [
       { label: 'Adoption', value: 'Used across DS portfolio' },
     ],
     links: [
-      { label: 'Flywheel Repo', href: 'https://github.com/futuroptimist/flywheel' },
+      {
+        label: 'Flywheel Repo',
+        href: 'https://github.com/futuroptimist/flywheel',
+      },
       { label: 'Docs', href: 'https://flywheel.futuroptimist.dev' },
     ],
     status: 'prototype',
@@ -79,13 +83,12 @@ export function isPoiInsideRoom(poi: PoiDefinition): boolean {
   const { bounds } = room;
   const { x, z } = poi.position;
   return (
-    x >= bounds.minX &&
-    x <= bounds.maxX &&
-    z >= bounds.minZ &&
-    z <= bounds.maxZ
+    x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ
   );
 }
 
 export function getPoiRoomBounds(poi: PoiDefinition) {
-  return FLOOR_PLAN.rooms.find((room) => room.id === poi.roomId)?.bounds ?? null;
+  return (
+    FLOOR_PLAN.rooms.find((room) => room.id === poi.roomId)?.bounds ?? null
+  );
 }

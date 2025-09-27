@@ -785,6 +785,7 @@ const moveDirection = new Vector3();
 const cameraPan = new Vector3();
 const cameraPanTarget = new Vector3();
 const poiLabelLookTarget = new Vector3();
+const poiPlayerOffset = new Vector2();
 let cameraPanLimitX = 0;
 let cameraPanLimitZ = 0;
 
@@ -934,7 +935,11 @@ function updateCamera(delta: number) {
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
 }
 
-function updatePois(elapsedTime: number) {
+const POI_ACTIVATION_RESPONSE = 5.5;
+
+function updatePois(elapsedTime: number, delta: number) {
+  const smoothing =
+    delta > 0 ? 1 - Math.exp(-delta * POI_ACTIVATION_RESPONSE) : 1;
   for (const poi of poiInstances) {
     const floatOffset = Math.sin(elapsedTime * poi.floatSpeed + poi.floatPhase);
     const scaledOffset = floatOffset * poi.floatAmplitude;
@@ -947,6 +952,40 @@ function updatePois(elapsedTime: number) {
       camera.position.z
     );
     poi.label.lookAt(poiLabelLookTarget);
+
+    poiPlayerOffset.set(
+      player.position.x - poi.group.position.x,
+      player.position.z - poi.group.position.z
+    );
+    const planarDistance = poiPlayerOffset.length();
+    const maxRadius = poi.definition.interactionRadius;
+    const targetActivation = MathUtils.clamp(
+      1 - planarDistance / maxRadius,
+      0,
+      1
+    );
+    poi.activation = MathUtils.lerp(
+      poi.activation,
+      targetActivation,
+      smoothing
+    );
+
+    const labelOpacity = MathUtils.lerp(0.32, 1, poi.activation);
+    poi.labelMaterial.opacity = labelOpacity;
+    poi.label.visible = labelOpacity > 0.05;
+
+    const orbEmissive = MathUtils.lerp(0.85, 1.7, poi.activation);
+    poi.orbMaterial.emissiveIntensity = orbEmissive;
+
+    const accentEmissive = MathUtils.lerp(0.65, 1.05, poi.activation);
+    poi.accentMaterial.emissiveIntensity = accentEmissive;
+
+    const haloPulse = 1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
+    const haloScale = MathUtils.lerp(1, 1.18, poi.activation) * haloPulse;
+    poi.halo.scale.setScalar(haloScale);
+    const haloOpacity = MathUtils.lerp(0.18, 0.62, poi.activation);
+    poi.haloMaterial.opacity = haloOpacity;
+    poi.halo.visible = haloOpacity > 0.04;
   }
 }
 
@@ -955,7 +994,7 @@ renderer.setAnimationLoop(() => {
   const elapsedTime = clock.elapsedTime;
   updateMovement(delta);
   updateCamera(delta);
-  updatePois(elapsedTime);
+  updatePois(elapsedTime, delta);
   if (composer) {
     composer.render();
   } else {
