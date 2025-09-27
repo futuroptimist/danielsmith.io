@@ -7,3 +7,4 @@ node_modules
 dist-ssr
 *.log
 coverage
+test-results/

@@ -1,0 +1,72 @@
+name: Launch screenshot
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture launch screenshot
+        run: npm run screenshot
+
+      - name: Evaluate screenshot state
+        id: screenshot_state
+        run: |
+          set -euo pipefail
+          screenshot_path="docs/assets/game-launch.png"
+
+          if git ls-files --error-unmatch "$screenshot_path" >/dev/null 2>&1; then
+            tracked=true
+          else
+            tracked=false
+          fi
+
+          if [ -f "$screenshot_path" ]; then
+            if [ "$tracked" = "true" ]; then
+              if git diff --quiet -- "$screenshot_path"; then
+                changed=false
+              else
+                changed=true
+              fi
+            else
+              changed=true
+            fi
+          else
+            echo "Screenshot not found at $screenshot_path" >&2
+            exit 1
+          fi
+
+          echo "tracked=$tracked" >>"$GITHUB_OUTPUT"
+          echo "changed=$changed" >>"$GITHUB_OUTPUT"
+
+      - name: Upload screenshot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-screenshot
+          path: docs/assets/game-launch.png
+
+      - name: Commit refreshed screenshot
+        if: ${{ github.ref == 'refs/heads/main' && steps.screenshot_state.outputs.changed == 'true' }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: '📸 : – Refresh launch screenshot'
+          file_pattern: docs/assets/game-launch.png
