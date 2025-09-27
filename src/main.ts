@@ -46,6 +46,8 @@ import {
   type Bounds2D,
   type RoomCategory,
 } from './floorPlan';
+import { createPoiInstances, type PoiInstance } from './poi/markers';
+import { getPoiDefinitions } from './poi/registry';
 import {
   createStaircase,
   type RectCollider,
@@ -127,6 +129,7 @@ const LIGHTING_OPTIONS = {
 } as const;
 
 const staticColliders: RectCollider[] = [];
+const poiInstances: PoiInstance[] = [];
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -760,6 +763,13 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
   scene.add(ledFillLights);
 }
 
+const builtPoiInstances = createPoiInstances(getPoiDefinitions());
+builtPoiInstances.forEach((poi) => {
+  scene.add(poi.group);
+  staticColliders.push(poi.collider);
+  poiInstances.push(poi);
+});
+
 const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
 const playerGeometry = new SphereGeometry(PLAYER_RADIUS, 32, 32);
 const player = new Mesh(playerGeometry, playerMaterial);
@@ -774,6 +784,7 @@ const velocity = new Vector3();
 const moveDirection = new Vector3();
 const cameraPan = new Vector3();
 const cameraPanTarget = new Vector3();
+const poiLabelLookTarget = new Vector3();
 let cameraPanLimitX = 0;
 let cameraPanLimitZ = 0;
 
@@ -923,10 +934,28 @@ function updateCamera(delta: number) {
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
 }
 
+function updatePois(elapsedTime: number) {
+  for (const poi of poiInstances) {
+    const floatOffset = Math.sin(elapsedTime * poi.floatSpeed + poi.floatPhase);
+    const scaledOffset = floatOffset * poi.floatAmplitude;
+    poi.orb.position.y = poi.orbBaseHeight + scaledOffset;
+    poi.label.position.y = poi.labelBaseHeight + scaledOffset * 0.4;
+    poi.label.getWorldPosition(poi.labelWorldPosition);
+    poiLabelLookTarget.set(
+      camera.position.x,
+      poi.labelWorldPosition.y,
+      camera.position.z
+    );
+    poi.label.lookAt(poiLabelLookTarget);
+  }
+}
+
 renderer.setAnimationLoop(() => {
   const delta = clock.getDelta();
+  const elapsedTime = clock.elapsedTime;
   updateMovement(delta);
   updateCamera(delta);
+  updatePois(elapsedTime);
   if (composer) {
     composer.render();
   } else {
