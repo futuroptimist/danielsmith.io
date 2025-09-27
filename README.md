@@ -1,5 +1,12 @@
 # danielsmith.io
 
+[![Lint & Format](https://img.shields.io/github/actions/workflow/status/futuroptimist/danielsmith.io/.github/workflows/01-lint-format.yml?label=lint%20%26%20format)](https://github.com/futuroptimist/danielsmith.io/actions/workflows/01-lint-format.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/futuroptimist/danielsmith.io/.github/workflows/02-tests.yml?label=tests)](https://github.com/futuroptimist/danielsmith.io/actions/workflows/02-tests.yml)
+[![Docs](https://img.shields.io/github/actions/workflow/status/futuroptimist/danielsmith.io/.github/workflows/03-docs.yml?label=docs)](https://github.com/futuroptimist/danielsmith.io/actions/workflows/03-docs.yml)
+[![Floorplan Diagram](https://img.shields.io/github/actions/workflow/status/futuroptimist/danielsmith.io/.github/workflows/floorplan-diagram.yml?label=floorplan)](https://github.com/futuroptimist/danielsmith.io/actions/workflows/floorplan-diagram.yml)
+[![Resume](https://img.shields.io/github/actions/workflow/status/futuroptimist/danielsmith.io/.github/workflows/resume.yml?label=resume)](https://github.com/futuroptimist/danielsmith.io/actions/workflows/resume.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Production-ready Vite + Three.js playground for the future danielsmith.io experience.
 The scene renders an orthographic isometric room with keyboard-driven sphere movement so
 we can iterate on spatial UX while keeping repo hygiene tight. The project was originally
