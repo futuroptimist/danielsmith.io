@@ -4,15 +4,22 @@ import {
   ACESFilmicToneMapping,
   AmbientLight,
   BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  CanvasTexture,
   Clock,
   Color,
   DirectionalLight,
   Group,
+  HemisphereLight,
   MathUtils,
   Mesh,
   MeshStandardMaterial,
   OrthographicCamera,
+  PlaneGeometry,
   PointLight,
+  Points,
+  PointsMaterial,
   Scene,
   Shape,
   ShapeGeometry,
@@ -34,6 +41,8 @@ import {
   getFloorBounds,
   RoomWall,
   WALL_THICKNESS,
+  type Bounds2D,
+  type RoomCategory,
 } from './floorPlan';
 import {
   createStaircase,
@@ -43,6 +52,8 @@ import {
 
 const CAMERA_SIZE = 20;
 const WALL_HEIGHT = 6;
+const FENCE_HEIGHT = 2.4;
+const FENCE_THICKNESS = 0.28;
 const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
@@ -52,6 +63,7 @@ const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
 const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
+const BACKYARD_ROOM_ID = 'backyard';
 
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
@@ -114,6 +126,151 @@ const LIGHTING_OPTIONS = {
 
 const staticColliders: RectCollider[] = [];
 
+const roomDefinitions = new Map(FLOOR_PLAN.rooms.map((room) => [room.id, room]));
+
+function getRoomCategory(roomId: string): RoomCategory {
+  const room = roomDefinitions.get(roomId);
+  return room?.category ?? 'interior';
+}
+
+function createVerticalGradientTexture(topHex: number, bottomHex: number): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Failed to create gradient canvas context.');
+  }
+  const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, new Color(topHex).getStyle());
+  gradient.addColorStop(1, new Color(bottomHex).getStyle());
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createBackyardEnvironment(bounds: Bounds2D): Group {
+  const group = new Group();
+  group.name = 'BackyardEnvironment';
+
+  const width = bounds.maxX - bounds.minX;
+  const depth = bounds.maxZ - bounds.minZ;
+  const centerX = (bounds.minX + bounds.maxX) / 2;
+  const centerZ = (bounds.minZ + bounds.maxZ) / 2;
+
+  const terrainSegments = 32;
+  const terrainGeometry = new PlaneGeometry(width, depth, terrainSegments, terrainSegments);
+  const terrainPositions = terrainGeometry.attributes.position as BufferAttribute;
+  for (let i = 0; i < terrainPositions.count; i += 1) {
+    const x = terrainPositions.getX(i);
+    const y = terrainPositions.getY(i);
+    const normalizedX = (x / width) + 0.5;
+    const normalizedY = (y / depth) + 0.5;
+    const swell = Math.sin(normalizedY * Math.PI) * 0.38;
+    const ripple = Math.cos(normalizedX * Math.PI * 2) * 0.18;
+    const microVariation =
+      (Math.sin(x * 1.7 + y * 0.9) + Math.cos(x * 0.85 - y * 1.3)) * 0.04;
+    terrainPositions.setZ(i, (swell + ripple) * 0.12 + microVariation);
+  }
+  terrainPositions.needsUpdate = true;
+  terrainGeometry.computeVertexNormals();
+  terrainGeometry.rotateX(-Math.PI / 2);
+
+  const terrainMaterial = new MeshStandardMaterial({
+    color: 0x1d2f22,
+    roughness: 0.92,
+    metalness: 0.05,
+  });
+  const terrain = new Mesh(terrainGeometry, terrainMaterial);
+  terrain.position.set(centerX, -0.05, centerZ);
+  terrain.receiveShadow = false;
+  group.add(terrain);
+
+  const pathWidth = width * 0.48;
+  const pathDepth = Math.min(6, depth * 0.55);
+  const pathGeometry = new BoxGeometry(pathWidth, 0.08, pathDepth);
+  const pathMaterial = new MeshStandardMaterial({
+    color: 0x515c66,
+    roughness: 0.65,
+    metalness: 0.2,
+  });
+  const path = new Mesh(pathGeometry, pathMaterial);
+  path.position.set(centerX, 0.04, bounds.minZ + pathDepth / 2 + 0.35);
+  group.add(path);
+
+  const steppingStoneGeometry = new BoxGeometry(pathWidth * 0.32, 0.12, 0.9);
+  const steppingStoneMaterial = new MeshStandardMaterial({
+    color: 0x676f78,
+    roughness: 0.7,
+    metalness: 0.18,
+  });
+  const steppingStoneCount = 4;
+  for (let i = 0; i < steppingStoneCount; i += 1) {
+    const stone = new Mesh(steppingStoneGeometry, steppingStoneMaterial);
+    const offset = (i + 1) / (steppingStoneCount + 1);
+    stone.position.set(
+      centerX,
+      0.08,
+      bounds.minZ + pathDepth + (depth - pathDepth) * offset
+    );
+    stone.rotation.y = (i % 2 === 0 ? 1 : -1) * Math.PI * 0.03;
+    group.add(stone);
+  }
+
+  const shrubGeometry = new SphereGeometry(1.05, 20, 20);
+  const shrubMaterial = new MeshStandardMaterial({
+    color: 0x2c6b3d,
+    roughness: 0.78,
+    metalness: 0.08,
+  });
+  const shrubPositions = [
+    new Vector3(bounds.minX + 1.6, 0, bounds.maxZ - 3.2),
+    new Vector3(centerX + 0.8, 0, centerZ + depth * 0.28),
+    new Vector3(bounds.maxX - 1.4, 0, bounds.maxZ - 5.1),
+  ];
+  shrubPositions.forEach((position, index) => {
+    const shrub = new Mesh(shrubGeometry, shrubMaterial);
+    shrub.position.set(position.x, 0.9, position.z);
+    const scale = 0.9 + (index % 3) * 0.12;
+    shrub.scale.setScalar(scale);
+    group.add(shrub);
+  });
+
+  const particleGeometry = new BufferGeometry();
+  const particleCount = 24;
+  const particlePositions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i += 1) {
+    const px = bounds.minX + Math.random() * width;
+    const pz = bounds.minZ + Math.random() * depth;
+    const py = 1.6 + Math.random() * 1.4;
+    particlePositions[i * 3] = px;
+    particlePositions[i * 3 + 1] = py;
+    particlePositions[i * 3 + 2] = pz;
+  }
+  particleGeometry.setAttribute('position', new BufferAttribute(particlePositions, 3));
+  const particleMaterial = new PointsMaterial({
+    color: 0x9ad7ff,
+    size: 0.14,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+  const fireflies = new Points(particleGeometry, particleMaterial);
+  fireflies.name = 'BackyardFireflies';
+  group.add(fireflies);
+
+  const duskLight = new PointLight(0x8fb8ff, 0.65, Math.max(width, depth) * 0.9, 2.4);
+  duskLight.position.set(centerX - width * 0.18, 2.6, centerZ + depth * 0.18);
+  duskLight.castShadow = false;
+  group.add(duskLight);
+
+  return group;
+}
+
 function isInsideAnyRoom(x: number, z: number): boolean {
   return FLOOR_PLAN.rooms.some(
     (room) =>
@@ -170,7 +327,7 @@ renderer.setClearColor(new Color(0x0d121c));
 container.appendChild(renderer.domElement);
 
 const scene = new Scene();
-scene.background = new Color(0x111826);
+scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
 
 const aspect = window.innerWidth / window.innerHeight;
 const s = CAMERA_SIZE;
@@ -202,13 +359,21 @@ const cameraCenter = initialPlayerPosition.clone();
 camera.position.copy(cameraCenter).add(cameraBaseOffset);
 camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
 
-const ambientLight = new AmbientLight(0xf5f7ff, 0.45);
-const directionalLight = new DirectionalLight(0xf1f0ff, 0.7);
+const ambientLight = new AmbientLight(0xf5f7ff, 0.38);
+const hemisphericLight = new HemisphereLight(0x324a6d, 0x131a17, 0.22);
+const directionalLight = new DirectionalLight(0xf1f0ff, 0.64);
 directionalLight.position.set(20, 30, 10);
 directionalLight.target.position.set(floorCenter.x, 0, floorCenter.z);
 scene.add(ambientLight);
+scene.add(hemisphericLight);
 scene.add(directionalLight);
 scene.add(directionalLight.target);
+
+const backyardRoom = FLOOR_PLAN.rooms.find((room) => room.id === BACKYARD_ROOM_ID);
+if (backyardRoom) {
+  const backyard = createBackyardEnvironment(backyardRoom.bounds);
+  scene.add(backyard);
+}
 
 const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
 const floorShape = new Shape();
@@ -226,6 +391,7 @@ floor.position.y = 0;
 scene.add(floor);
 
 const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
+const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
 const wallGroup = new Group();
 const combinedWallSegments = getCombinedWallSegments(FLOOR_PLAN);
 
@@ -238,12 +404,19 @@ combinedWallSegments.forEach((segment) => {
     return;
   }
 
+  const hasExterior = segment.rooms.some((roomInfo) => getRoomCategory(roomInfo.id) === 'exterior');
+  const hasInterior = segment.rooms.some((roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior');
+  const isMixed = hasExterior && hasInterior;
+  const segmentThickness = hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
+  const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
+  const material = hasExterior && !isMixed ? fenceMaterial : wallMaterial;
+
   const isInterior = segment.rooms.length > 1;
-  const extension = isInterior ? WALL_THICKNESS * 0.5 : WALL_THICKNESS;
+  const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
   const width =
-    segment.orientation === 'horizontal' ? length + extension : WALL_THICKNESS;
+    segment.orientation === 'horizontal' ? length + extension : segmentThickness;
   const depth =
-    segment.orientation === 'horizontal' ? WALL_THICKNESS : length + extension;
+    segment.orientation === 'horizontal' ? segmentThickness : length + extension;
 
   const baseX =
     segment.orientation === 'horizontal'
@@ -262,9 +435,9 @@ combinedWallSegments.forEach((segment) => {
     offsetZ = direction.z * (WALL_THICKNESS / 2);
   }
 
-  const geometry = new BoxGeometry(width, WALL_HEIGHT, depth);
-  const wall = new Mesh(geometry, wallMaterial);
-  wall.position.set(baseX + offsetX, WALL_HEIGHT / 2, baseZ + offsetZ);
+  const geometry = new BoxGeometry(width, segmentHeight, depth);
+  const wall = new Mesh(geometry, material);
+  wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
   wallGroup.add(wall);
 
   staticColliders.push({
@@ -291,6 +464,9 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
   const roomLedMaterials = new Map<string, MeshStandardMaterial>();
 
   FLOOR_PLAN.rooms.forEach((room) => {
+    if (getRoomCategory(room.id) === 'exterior') {
+      return;
+    }
     const emissiveColor = new Color(room.ledColor);
     const material = new MeshStandardMaterial({
       color: ledBaseColor,
@@ -387,6 +563,9 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
         : (segment.start.z + segment.end.z) / 2;
 
     segment.rooms.forEach((roomInfo) => {
+      if (getRoomCategory(roomInfo.id) === 'exterior') {
+        return;
+      }
       const material = roomLedMaterials.get(roomInfo.id);
       const group = roomLedGroups.get(roomInfo.id);
       if (!material || !group) {

@@ -64,6 +64,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Sculpt backyard terrain plane, fence line, and skybox updates.
    - Add lighting probes/reflections so the outdoor zone feels distinct at dusk.
    - Gate unfinished zones with temporary hologram barriers and in-world signage.
+   - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
 
 ## Phase 2 – Points of Interest (POIs)
 

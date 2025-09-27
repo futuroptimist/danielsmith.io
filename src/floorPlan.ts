@@ -13,12 +13,15 @@ export interface DoorwayDefinition {
   end: number;
 }
 
+export type RoomCategory = 'interior' | 'exterior';
+
 export interface RoomDefinition {
   id: string;
   name: string;
   bounds: Bounds2D;
   ledColor: number;
   doorways?: DoorwayDefinition[];
+  category?: RoomCategory;
 }
 
 export interface FloorPlanDefinition {
@@ -56,8 +59,8 @@ export const FLOOR_PLAN: FloorPlanDefinition = {
     [10, -28],
     [10, 0],
     [-2, 0],
-    [-2, 24],
-    [-10, 24],
+    [-2, 44],
+    [-10, 44],
   ],
   rooms: [
     {
@@ -84,7 +87,26 @@ export const FLOOR_PLAN: FloorPlanDefinition = {
           start: livingRoomDoorwayStart,
           end: livingRoomDoorwayEnd,
         },
+        {
+          wall: 'north',
+          start: livingRoomDoorwayStart,
+          end: livingRoomDoorwayEnd,
+        },
       ],
+    },
+    {
+      id: 'backyard',
+      name: 'Backyard',
+      bounds: { minX: -10, maxX: -2, minZ: 24, maxZ: 44 },
+      ledColor: 0x274f37,
+      doorways: [
+        {
+          wall: 'south',
+          start: livingRoomDoorwayStart,
+          end: livingRoomDoorwayEnd,
+        },
+      ],
+      category: 'exterior',
     },
   ],
 };
