@@ -1,12 +1,7 @@
 import type { MeshStandardMaterialParameters, Vector3 } from 'three';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 
-export interface RectCollider {
-  minX: number;
-  maxX: number;
-  minZ: number;
-  maxZ: number;
-}
+import type { RectCollider } from '../collision';
 
 export interface StaircaseStepConfig {
   count: number;
