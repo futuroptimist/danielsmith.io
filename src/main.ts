@@ -55,11 +55,11 @@ import { getCameraRelativeMovementVector } from './movement/cameraRelativeMoveme
 import { PoiInteractionManager } from './poi/interactionManager';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
-import { createLivingRoomMediaWall } from './structures/mediaWall';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './structures/flywheel';
+import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
 const CAMERA_SIZE = 20;

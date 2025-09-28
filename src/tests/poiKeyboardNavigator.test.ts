@@ -10,9 +10,10 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PoiInteractionManager } from '../poi/interactionManager';
+import { PoiKeyboardNavigator } from '../poi/keyboardNavigator';
 import type { PoiInstance } from '../poi/markers';
 import type { PoiDefinition } from '../poi/types';
 
@@ -88,23 +89,37 @@ function createCanvas(): HTMLCanvasElement {
   return canvas;
 }
 
-describe('PoiInteractionManager', () => {
-  const definition: PoiDefinition = {
-    id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist TV Wall',
-    summary: 'summary',
-    category: 'project',
-    interaction: 'inspect',
-    roomId: 'livingRoom',
-    position: { x: 0, y: 0, z: 0 },
-    interactionRadius: 2,
-    footprint: { width: 1, depth: 1 },
-  };
+describe('PoiKeyboardNavigator', () => {
+  const definitions: PoiDefinition[] = [
+    {
+      id: 'futuroptimist-living-room-tv',
+      title: 'Futuroptimist TV Wall',
+      summary: 'summary',
+      category: 'project',
+      interaction: 'inspect',
+      roomId: 'livingRoom',
+      position: { x: 0, y: 0, z: 0 },
+      interactionRadius: 2,
+      footprint: { width: 1, depth: 1 },
+    },
+    {
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Kinetic Hub',
+      summary: 'summary',
+      category: 'project',
+      interaction: 'inspect',
+      roomId: 'studio',
+      position: { x: 2, y: 0, z: 0 },
+      interactionRadius: 2,
+      footprint: { width: 1, depth: 1 },
+    },
+  ];
 
   let domElement: HTMLCanvasElement;
   let camera: OrthographicCamera;
-  let poi: PoiInstance;
+  let poiInstances: PoiInstance[];
   let manager: PoiInteractionManager;
+  let navigator: PoiKeyboardNavigator;
 
   beforeEach(() => {
     domElement = createCanvas();
@@ -113,79 +128,58 @@ describe('PoiInteractionManager', () => {
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld(true);
-    poi = createMockPoi(definition);
-    poi.hitArea.updateWorldMatrix(true, true);
-    manager = new PoiInteractionManager(domElement, camera, [poi]);
+
+    poiInstances = definitions.map(createMockPoi);
+    poiInstances.forEach((instance) => {
+      instance.hitArea.updateWorldMatrix(true, true);
+    });
+
+    manager = new PoiInteractionManager(domElement, camera, poiInstances);
     manager.start();
+    navigator = new PoiKeyboardNavigator(manager, poiInstances);
+    navigator.start();
   });
 
   afterEach(() => {
+    navigator.dispose();
     manager.dispose();
   });
 
-  it('updates focus target based on pointer hover', () => {
-    domElement.dispatchEvent(
-      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
-    );
-    expect(poi.focusTarget).toBe(1);
-
-    domElement.dispatchEvent(new MouseEvent('mouseleave'));
-    expect(poi.focusTarget).toBe(0);
-  });
-
-  it('persists focus on selected POIs and emits selection events', () => {
-    const listener = vi.fn();
-    manager.addSelectionListener(listener);
-    const customEventHandler = vi.fn();
-    window.addEventListener('poi:selected', customEventHandler);
-
-    domElement.dispatchEvent(
-      new MouseEvent('click', { clientX: 200, clientY: 200 })
-    );
-
-    expect(listener).toHaveBeenCalledWith(definition);
-    expect(customEventHandler).toHaveBeenCalledTimes(1);
-    expect(poi.focusTarget).toBe(1);
-
-    domElement.dispatchEvent(new MouseEvent('mouseleave'));
-    expect(poi.focusTarget).toBe(1);
-
-    window.removeEventListener('poi:selected', customEventHandler);
-  });
-
-  it('supports programmatic focus, selection, and activation', () => {
+  it('cycles focus and activates POIs using keyboard input', () => {
     const listener = vi.fn();
     manager.addSelectionListener(listener);
 
-    expect(manager.focusPoiById(definition.id)).toBe(true);
-    expect(manager.getManualFocus()).toEqual(definition);
-    expect(poi.focusTarget).toBe(1);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(manager.getManualFocus()).toEqual(definitions[0]);
 
-    const activated = manager.activateFocusedPoi();
-    expect(activated).toEqual(definition);
-    expect(listener).toHaveBeenCalledWith(definition);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(manager.getManualFocus()).toEqual(definitions[1]);
 
-    listener.mockReset();
-    const selected = manager.selectPoiById(definition.id, { emitEvent: false });
-    expect(selected).toEqual(definition);
-    expect(listener).not.toHaveBeenCalled();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(manager.getManualFocus()).toEqual(definitions[0]);
 
-    const reactivated = manager.activateFocusedPoi({ emitEvent: false });
-    expect(reactivated).toEqual(definition);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(listener).toHaveBeenCalledWith(definitions[0]);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(manager.getManualFocus()).toEqual(definitions[0]);
   });
 
-  it('clears manual focus when pointer resumes control and ignores unknown ids', () => {
-    manager.focusPoiById(definition.id);
-    expect(manager.getManualFocus()).toEqual(definition);
+  it('supports tab navigation and stops responding once disposed', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+    expect(manager.getManualFocus()).toEqual(definitions[0]);
 
-    domElement.dispatchEvent(
-      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
-    );
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
+    expect(manager.getManualFocus()).toEqual(definitions[1]);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true }));
+    expect(manager.getManualFocus()).toEqual(definitions[0]);
+
+    navigator.dispose();
+    domElement.dispatchEvent(new MouseEvent('mousemove', { clientX: 200, clientY: 200 }));
     expect(manager.getManualFocus()).toBeNull();
 
-    const invalidId = 'non-existent-poi' as typeof definition.id;
-    expect(manager.focusPoiById(invalidId)).toBe(false);
-    expect(manager.selectPoiById(invalidId)).toBeNull();
-    expect(manager.activateFocusedPoi()).not.toBeNull();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Spacebar' }));
+    expect(manager.getManualFocus()).toBeNull();
   });
 });
