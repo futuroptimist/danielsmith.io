@@ -46,6 +46,7 @@ import {
   type Bounds2D,
   type RoomCategory,
 } from './floorPlan';
+import { PoiInteractionManager } from './poi/interactionManager';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
 import {
@@ -770,6 +771,16 @@ builtPoiInstances.forEach((poi) => {
   poiInstances.push(poi);
 });
 
+const poiInteractionManager = new PoiInteractionManager(
+  renderer.domElement,
+  camera,
+  poiInstances
+);
+poiInteractionManager.start();
+window.addEventListener('beforeunload', () => {
+  poiInteractionManager.dispose();
+});
+
 const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
 const playerGeometry = new SphereGeometry(PLAYER_RADIUS, 32, 32);
 const player = new Mesh(playerGeometry, playerMaterial);
@@ -969,21 +980,23 @@ function updatePois(elapsedTime: number, delta: number) {
       targetActivation,
       smoothing
     );
+    poi.focus = MathUtils.lerp(poi.focus, poi.focusTarget, smoothing);
+    const emphasis = Math.max(poi.activation, poi.focus);
 
-    const labelOpacity = MathUtils.lerp(0.32, 1, poi.activation);
+    const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
     poi.labelMaterial.opacity = labelOpacity;
     poi.label.visible = labelOpacity > 0.05;
 
-    const orbEmissive = MathUtils.lerp(0.85, 1.7, poi.activation);
+    const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
     poi.orbMaterial.emissiveIntensity = orbEmissive;
 
-    const accentEmissive = MathUtils.lerp(0.65, 1.05, poi.activation);
+    const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
     poi.accentMaterial.emissiveIntensity = accentEmissive;
 
     const haloPulse = 1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
-    const haloScale = MathUtils.lerp(1, 1.18, poi.activation) * haloPulse;
+    const haloScale = MathUtils.lerp(1, 1.18, emphasis) * haloPulse;
     poi.halo.scale.setScalar(haloScale);
-    const haloOpacity = MathUtils.lerp(0.18, 0.62, poi.activation);
+    const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
     poi.haloMaterial.opacity = haloOpacity;
     poi.halo.visible = haloOpacity > 0.04;
   }
