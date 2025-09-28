@@ -36,6 +36,9 @@ export interface PoiInstance {
   collider: { minX: number; maxX: number; minZ: number; maxZ: number };
   activation: number;
   pulseOffset: number;
+  hitArea: Mesh;
+  focus: number;
+  focusTarget: number;
 }
 
 export function createPoiInstances(
@@ -147,6 +150,23 @@ function createPoiInstance(
   halo.renderOrder = 11;
   group.add(halo);
 
+  const hitAreaGeometry = new CylinderGeometry(
+    baseRadiusX,
+    baseRadiusX,
+    accentHeight + 0.24,
+    32
+  );
+  const hitAreaMaterial = new MeshBasicMaterial({
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  hitAreaMaterial.side = DoubleSide;
+  const hitArea = new Mesh(hitAreaGeometry, hitAreaMaterial);
+  hitArea.position.y = (accentHeight + 0.24) / 2;
+  hitArea.name = `POI_HIT:${definition.id}`;
+  group.add(hitArea);
+
   const collider = {
     minX: definition.position.x - baseRadiusX,
     maxX: definition.position.x + baseRadiusX,
@@ -173,6 +193,9 @@ function createPoiInstance(
     collider,
     activation: 0,
     pulseOffset: MathUtils.randFloatSpread(Math.PI * 2),
+    hitArea,
+    focus: 0,
+    focusTarget: 0,
   };
 }
 

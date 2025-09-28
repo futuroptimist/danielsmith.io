@@ -84,6 +84,7 @@ Focus: anchor each highlighted project with an interactive artifact.
    - Support desktop click + gamepad/mid-air selection; prepare for accessibility focus rings.
    - ⚙️ Data-driven registry now spawns holographic pedestals for Futuroptimist + Flywheel exhibits.
    - ✨ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
+   - ✅ Desktop pointer interaction manager highlights POIs and emits selection events.
 2. **Interior Showpieces**
    - Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching triggers
      a rich text popup with repo summary, star count, and CTA buttons.
