@@ -113,18 +113,18 @@ export class PoiInteractionManager {
       return;
     }
 
-    switch (event.key) {
-      case 'ArrowRight':
-      case 'ArrowDown':
+    const key = event.key.toLowerCase();
+
+    switch (key) {
+      case 'e':
         event.preventDefault();
         this.moveKeyboardFocus(1);
         break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
+      case 'q':
         event.preventDefault();
         this.moveKeyboardFocus(-1);
         break;
-      case 'Enter':
+      case 'enter':
       case ' ': {
         if (this.hovered) {
           event.preventDefault();
@@ -134,7 +134,7 @@ export class PoiInteractionManager {
         }
         break;
       }
-      case 'Escape':
+      case 'escape':
         if (this.selected) {
           event.preventDefault();
           this.setSelected(null);
