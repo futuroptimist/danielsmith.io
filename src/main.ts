@@ -52,14 +52,15 @@ import {
   type LightingMode,
 } from './lighting/debugControls';
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
+import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
-import { createLivingRoomMediaWall } from './structures/mediaWall';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './structures/flywheel';
+import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
 const CAMERA_SIZE = 20;
@@ -1090,6 +1091,8 @@ builtPoiInstances.forEach((poi) => {
   poiInstances.push(poi);
 });
 
+const poiAnalytics = createWindowPoiAnalytics();
+
 const flywheelPoi = poiInstances.find(
   (poi) => poi.definition.id === 'flywheel-studio-flywheel'
 );
@@ -1115,7 +1118,8 @@ if (studioRoom) {
 const poiInteractionManager = new PoiInteractionManager(
   renderer.domElement,
   camera,
-  poiInstances
+  poiInstances,
+  poiAnalytics
 );
 poiInteractionManager.start();
 window.addEventListener('beforeunload', () => {

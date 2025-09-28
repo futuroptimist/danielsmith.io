@@ -14,7 +14,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
 import { PoiInteractionManager } from '../poi/interactionManager';
 import type { PoiInstance } from '../poi/markers';
-import type { PoiDefinition } from '../poi/types';
+import type { PoiAnalytics, PoiDefinition } from '../poi/types';
 
 function createMockPoi(definition: PoiDefinition): PoiInstance {
   const group = new Group();
@@ -151,5 +151,40 @@ describe('PoiInteractionManager', () => {
     expect(poi.focusTarget).toBe(1);
 
     window.removeEventListener('poi:selected', customEventHandler);
+  });
+
+  it('notifies analytics hooks for hover and selection transitions', () => {
+    const hoverStarted = vi.fn();
+    const hoverEnded = vi.fn();
+    const selected = vi.fn();
+    const selectionCleared = vi.fn();
+    const analytics = {
+      hoverStarted,
+      hoverEnded,
+      selected,
+      selectionCleared,
+    } satisfies PoiAnalytics;
+
+    manager.dispose();
+    manager = new PoiInteractionManager(domElement, camera, [poi], analytics);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(hoverStarted).toHaveBeenCalledWith(definition);
+    expect(hoverEnded).not.toHaveBeenCalled();
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+    expect(selected).toHaveBeenCalledWith(definition);
+    expect(selectionCleared).not.toHaveBeenCalled();
+
+    domElement.dispatchEvent(new MouseEvent('mouseleave'));
+    expect(hoverEnded).toHaveBeenCalledWith(definition);
+
+    manager.dispose();
+    expect(selectionCleared).toHaveBeenCalledWith(definition);
   });
 });
