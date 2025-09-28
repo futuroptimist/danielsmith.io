@@ -1136,12 +1136,12 @@ if (studioRoom) {
 
   const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
   const terminalX = MathUtils.clamp(
-    11.4,
+    jobbotPoi?.group.position.x ?? 11.4,
     studioRoom.bounds.minX + 1.2,
     studioRoom.bounds.maxX - 0.8
   );
   const terminalZ = MathUtils.clamp(
-    -0.6,
+    jobbotPoi?.group.position.z ?? -0.6,
     studioRoom.bounds.minZ + 1.2,
     studioRoom.bounds.maxZ - 1.1
   );
