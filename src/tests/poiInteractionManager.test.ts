@@ -116,7 +116,6 @@ describe('PoiInteractionManager', () => {
     poi = createMockPoi(definition);
     poi.hitArea.updateWorldMatrix(true, true);
     manager = new PoiInteractionManager(domElement, camera, [poi]);
-    manager.start();
   });
 
   afterEach(() => {
@@ -124,6 +123,7 @@ describe('PoiInteractionManager', () => {
   });
 
   it('updates focus target based on pointer hover', () => {
+    manager.start();
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
@@ -134,6 +134,7 @@ describe('PoiInteractionManager', () => {
   });
 
   it('persists focus on selected POIs and emits selection events', () => {
+    manager.start();
     const listener = vi.fn();
     manager.addSelectionListener(listener);
     const customEventHandler = vi.fn();
@@ -153,6 +154,85 @@ describe('PoiInteractionManager', () => {
     window.removeEventListener('poi:selected', customEventHandler);
   });
 
+  it('cycles focus with keyboard input and wraps around', () => {
+    manager.dispose();
+    const secondDefinition: PoiDefinition = {
+      ...definition,
+      id: 'flywheel-centerpiece',
+      title: 'Flywheel Centerpiece',
+      position: { x: 3, y: 0, z: 0 },
+    };
+    const secondPoi = createMockPoi(secondDefinition);
+    const keyboardManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi, secondPoi],
+      {
+        keyboardTarget: window,
+      }
+    );
+    keyboardManager.start();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(poi.focusTarget).toBe(1);
+    expect(secondPoi.focusTarget).toBe(0);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(secondPoi.focusTarget).toBe(1);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(poi.focusTarget).toBe(1);
+    expect(secondPoi.focusTarget).toBe(0);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(secondPoi.focusTarget).toBe(1);
+
+    keyboardManager.dispose();
+  });
+
+  it('selects focused POIs via keyboard activation', () => {
+    manager.start();
+    const listener = vi.fn();
+    manager.addSelectionListener(listener);
+    const customEventHandler = vi.fn();
+    window.addEventListener('poi:selected', customEventHandler);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(listener).toHaveBeenCalledWith(definition);
+    expect(customEventHandler).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(poi.focusTarget).toBe(1);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    window.removeEventListener('poi:selected', customEventHandler);
+  });
+
+  it('ignores keyboard input when disabled', () => {
+    const disabledManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {
+        enableKeyboard: false,
+      }
+    );
+    disabledManager.start();
+    const handler = disabledManager as unknown as {
+      handleKeyDown(event: KeyboardEvent): void;
+    };
+    handler.handleKeyDown(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(poi.focusTarget).toBe(0);
+    disabledManager.dispose();
+  });
+
   it('notifies analytics hooks for hover and selection transitions', () => {
     const hoverStarted = vi.fn();
     const hoverEnded = vi.fn();
@@ -166,7 +246,7 @@ describe('PoiInteractionManager', () => {
     } satisfies PoiAnalytics;
 
     manager.dispose();
-    manager = new PoiInteractionManager(domElement, camera, [poi], analytics);
+    manager = new PoiInteractionManager(domElement, camera, [poi], {}, analytics);
     manager.start();
 
     domElement.dispatchEvent(
