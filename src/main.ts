@@ -35,6 +35,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -46,13 +47,10 @@ import {
   type Bounds2D,
   type RoomCategory,
 } from './floorPlan';
+import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
-import {
-  createStaircase,
-  type RectCollider,
-  type StaircaseConfig,
-} from './structures/staircase';
+import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
 const CAMERA_SIZE = 20;
 const WALL_HEIGHT = 6;
@@ -441,23 +439,6 @@ function isInsideAnyRoom(x: number, z: number): boolean {
   );
 }
 
-function collidesWithSceneGeometry(
-  x: number,
-  z: number,
-  radius: number
-): boolean {
-  for (const collider of staticColliders) {
-    const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
-    const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
-    const dx = x - closestX;
-    const dz = z - closestZ;
-    if (dx * dx + dz * dz < radius * radius) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function getOutwardDirectionForWall(wall: RoomWall): { x: number; z: number } {
   switch (wall) {
     case 'north':
@@ -840,18 +821,22 @@ window.addEventListener('resize', onResize);
 onResize();
 
 function updateMovement(delta: number) {
-  const horizontal =
+  const rightInput =
     Number(controls.isPressed('d') || controls.isPressed('ArrowRight')) -
     Number(controls.isPressed('a') || controls.isPressed('ArrowLeft'));
-  const vertical =
-    Number(controls.isPressed('s') || controls.isPressed('ArrowDown')) -
-    Number(controls.isPressed('w') || controls.isPressed('ArrowUp'));
+  const forwardInput =
+    Number(controls.isPressed('w') || controls.isPressed('ArrowUp')) -
+    Number(controls.isPressed('s') || controls.isPressed('ArrowDown'));
 
   const joystickMovement = joystick.getMovement();
-  moveDirection.set(
-    horizontal + joystickMovement.x,
-    0,
-    vertical + joystickMovement.y
+  const combinedRight = rightInput + joystickMovement.x;
+  const combinedForward = forwardInput - joystickMovement.y;
+
+  getCameraRelativeMovementVector(
+    camera,
+    combinedRight,
+    combinedForward,
+    moveDirection
   );
 
   const lengthSq = moveDirection.lengthSq();
@@ -874,10 +859,16 @@ function updateMovement(delta: number) {
     const candidateX = player.position.x + stepX;
     if (
       isInsideAnyRoom(candidateX, player.position.z) &&
-      !collidesWithSceneGeometry(candidateX, player.position.z, PLAYER_RADIUS)
+      !collidesWithColliders(
+        candidateX,
+        player.position.z,
+        PLAYER_RADIUS,
+        staticColliders
+      )
     ) {
       player.position.x = candidateX;
     } else {
+      targetVelocity.x = 0;
       velocity.x = 0;
     }
   }
@@ -886,10 +877,16 @@ function updateMovement(delta: number) {
     const candidateZ = player.position.z + stepZ;
     if (
       isInsideAnyRoom(player.position.x, candidateZ) &&
-      !collidesWithSceneGeometry(player.position.x, candidateZ, PLAYER_RADIUS)
+      !collidesWithColliders(
+        player.position.x,
+        candidateZ,
+        PLAYER_RADIUS,
+        staticColliders
+      )
     ) {
       player.position.z = candidateZ;
     } else {
+      targetVelocity.z = 0;
       velocity.z = 0;
     }
   }
