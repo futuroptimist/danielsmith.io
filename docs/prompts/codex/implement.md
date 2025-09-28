@@ -19,8 +19,9 @@ USER:
 1. Pick a scoped task from `docs/roadmap.md` or an associated prompt doc.
 2. Implement the change with production-quality TypeScript/Three.js code.
 3. Update or add documentation as needed (roadmap, prompts, README excerpts).
-4. Run `npm run lint`, `npm run test:ci`, and any task-specific scripts.
-5. Produce a concise summary and list of manual verification steps, if any.
+4. Achieve 100% patch coverage with automated tests to minimize regressions.
+5. Run `npm run lint`, `npm run test:ci`, and any task-specific scripts.
+6. Produce a concise summary and list of manual verification steps, if any.
 
 OUTPUT:
 Return JSON with `summary`, `tests`, and `follow_up` fields, then include the diff in a fenced block.
@@ -49,8 +50,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

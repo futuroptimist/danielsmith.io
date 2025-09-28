@@ -16,8 +16,9 @@ USER:
 1. Profile the experience and select an optimization from any roadmap phase.
 2. Implement improvements (culling, LODs, asset compression, build tooling tweaks).
 3. Add automated benchmarks or metrics dashboards when practical.
-4. Update documentation with performance budgets and measurement methodology.
-5. Run `npm run build`, `npm run test:ci`, and share perf before/after notes.
+4. Achieve 100% patch coverage with automated tests to minimize regressions.
+5. Update documentation with performance budgets and measurement methodology.
+6. Run `npm run build`, `npm run test:ci`, and share perf before/after notes.
 
 OUTPUT:
 Summaries must include metrics and test evidence.
@@ -45,8 +46,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

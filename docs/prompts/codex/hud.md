@@ -16,7 +16,7 @@ USER:
 1. Implement a HUD feature from Phase 3 of `docs/roadmap.md` (controls, settings, help).
 2. Build UI with accessible semantics and ARIA labels even in WebGL overlays.
 3. Wire HUD controls to Three.js scene systems (audio, graphics quality, assists).
-4. Add unit/integration tests for UI state reducers or hooks.
+4. Achieve 100% patch coverage with unit/integration tests for UI state reducers or hooks.
 5. Update documentation/screenshot references in `docs/roadmap.md` or README.
 
 OUTPUT:
@@ -45,8 +45,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
