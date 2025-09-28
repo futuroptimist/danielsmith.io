@@ -123,20 +123,28 @@ describe('PoiInteractionManager', () => {
   });
 
   it('updates focus target based on pointer hover', () => {
+    const hoverListener = vi.fn();
+    const removeHover = manager.addHoverListener(hoverListener);
     manager.start();
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
     expect(poi.focusTarget).toBe(1);
+    expect(hoverListener).toHaveBeenLastCalledWith(definition);
 
     domElement.dispatchEvent(new MouseEvent('mouseleave'));
     expect(poi.focusTarget).toBe(0);
+    expect(hoverListener).toHaveBeenLastCalledWith(null);
+    removeHover();
   });
 
   it('persists focus on selected POIs and emits selection events', () => {
     manager.start();
     const listener = vi.fn();
     manager.addSelectionListener(listener);
+    const selectionState = vi.fn();
+    const removeSelectionState =
+      manager.addSelectionStateListener(selectionState);
     const customEventHandler = vi.fn();
     window.addEventListener('poi:selected', customEventHandler);
 
@@ -147,11 +155,14 @@ describe('PoiInteractionManager', () => {
     expect(listener).toHaveBeenCalledWith(definition);
     expect(customEventHandler).toHaveBeenCalledTimes(1);
     expect(poi.focusTarget).toBe(1);
+    expect(selectionState).toHaveBeenLastCalledWith(definition);
 
     domElement.dispatchEvent(new MouseEvent('mouseleave'));
     expect(poi.focusTarget).toBe(1);
+    expect(selectionState).toHaveBeenCalledTimes(1);
 
     window.removeEventListener('poi:selected', customEventHandler);
+    removeSelectionState();
   });
 
   it('cycles focus with keyboard input and wraps around', () => {
@@ -213,6 +224,20 @@ describe('PoiInteractionManager', () => {
     expect(listener).toHaveBeenCalledTimes(2);
 
     window.removeEventListener('poi:selected', customEventHandler);
+  });
+
+  it('notifies selection state listeners when selection clears', () => {
+    manager.start();
+    const selectionState = vi.fn();
+    manager.addSelectionStateListener(selectionState);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+    expect(selectionState).toHaveBeenLastCalledWith(definition);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(selectionState).toHaveBeenLastCalledWith(null);
   });
 
   it('ignores keyboard input when disabled', () => {

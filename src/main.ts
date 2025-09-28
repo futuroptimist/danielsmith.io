@@ -56,6 +56,7 @@ import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
+import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -1105,6 +1106,7 @@ builtPoiInstances.forEach((poi) => {
 });
 
 const poiAnalytics = createWindowPoiAnalytics();
+const poiTooltipOverlay = new PoiTooltipOverlay({ container });
 
 const flywheelPoi = poiInstances.find(
   (poi) => poi.definition.id === 'flywheel-studio-flywheel'
@@ -1134,9 +1136,19 @@ const poiInteractionManager = new PoiInteractionManager(
   poiInstances,
   poiAnalytics
 );
+const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
+  poiTooltipOverlay.setHovered(poi);
+});
+const removeSelectionStateListener =
+  poiInteractionManager.addSelectionStateListener((poi) => {
+    poiTooltipOverlay.setSelected(poi);
+  });
 poiInteractionManager.start();
 window.addEventListener('beforeunload', () => {
   poiInteractionManager.dispose();
+  removeHoverListener();
+  removeSelectionStateListener();
+  poiTooltipOverlay.dispose();
 });
 
 const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });

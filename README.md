@@ -92,8 +92,9 @@ lightweight.
 - **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
 - **Points of Interest** – A data-driven registry spawns holographic pedestals with animated
   tooltips for featured repos. Proximity-based halos ease the labels in so players sense each
-  interaction radius without clutter. Metadata is authored in TypeScript so future automations can
-  extend exhibits by updating data alone.
+  interaction radius without clutter, and a DOM overlay mirrors the metadata so screen readers and
+  keyboard users receive the same context. Metadata is authored in TypeScript so future automations
+  can extend exhibits by updating data alone.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).
 
 ## Controls

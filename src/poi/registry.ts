@@ -15,10 +15,7 @@ const definitions: PoiDefinition[] = [
     headingRadians: Math.PI * 0.5,
     interactionRadius: 2.4,
     footprint: { width: 3, depth: 6.8 },
-    metrics: [
-      { label: 'Stars', value: '180+' },
-      { label: 'Stack', value: 'Three.js · Vite · TypeScript' },
-    ],
+    metrics: [{ label: 'Stack', value: 'Three.js · Vite · TypeScript' }],
     links: [
       { label: 'GitHub', href: 'https://github.com/futuroptimist' },
       { label: 'Docs', href: 'https://futuroptimist.dev' },

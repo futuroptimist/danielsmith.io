@@ -87,6 +87,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✨ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
    - ✅ Desktop pointer interaction manager highlights POIs and emits selection events.
    - ✅ Analytics hooks emit hover and selection lifecycle events for instrumentation pipelines.
+   - ✅ Accessibility overlay mirrors POI metadata in HTML so screen readers capture
+     hover/selection state.
 2. **Interior Showpieces**
    - Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching triggers
      a rich text popup with repo summary, star count, and CTA buttons.

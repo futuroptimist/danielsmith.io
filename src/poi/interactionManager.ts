@@ -4,6 +4,8 @@ import type { PoiInstance } from './markers';
 import type { PoiAnalytics, PoiDefinition } from './types';
 
 export type PoiSelectionListener = (poi: PoiDefinition) => void;
+export type PoiHoverListener = (poi: PoiDefinition | null) => void;
+export type PoiSelectionStateListener = (poi: PoiDefinition | null) => void;
 
 type ListenerTarget = Pick<
   HTMLElement,
@@ -19,6 +21,9 @@ export class PoiInteractionManager {
   private readonly raycaster = new Raycaster();
   private readonly pointer = new Vector2();
   private readonly listeners = new Set<PoiSelectionListener>();
+  private readonly hoverListeners = new Set<PoiHoverListener>();
+  private readonly selectionStateListeners =
+    new Set<PoiSelectionStateListener>();
   private hovered: PoiInstance | null = null;
   private selected: PoiInstance | null = null;
   private active = false;
@@ -80,6 +85,20 @@ export class PoiInteractionManager {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
+    };
+  }
+
+  addHoverListener(listener: PoiHoverListener): () => void {
+    this.hoverListeners.add(listener);
+    return () => {
+      this.hoverListeners.delete(listener);
+    };
+  }
+
+  addSelectionStateListener(listener: PoiSelectionStateListener): () => void {
+    this.selectionStateListeners.add(listener);
+    return () => {
+      this.selectionStateListeners.delete(listener);
     };
   }
 
@@ -229,6 +248,7 @@ export class PoiInteractionManager {
     if (poi && previous !== poi) {
       this.analytics?.hoverStarted?.(poi.definition);
     }
+    this.notifyHoverListeners(poi?.definition ?? null);
   }
 
   private setSelected(poi: PoiInstance | null) {
@@ -249,6 +269,7 @@ export class PoiInteractionManager {
     if (poi && previous !== poi) {
       this.analytics?.selected?.(poi.definition);
     }
+    this.notifySelectionStateListeners(poi?.definition ?? null);
   }
 
   private dispatchSelection(definition: PoiDefinition) {
@@ -259,6 +280,18 @@ export class PoiInteractionManager {
       window.dispatchEvent(
         new CustomEvent('poi:selected', { detail: { poi: definition } })
       );
+    }
+  }
+
+  private notifyHoverListeners(poi: PoiDefinition | null) {
+    for (const listener of this.hoverListeners) {
+      listener(poi);
+    }
+  }
+
+  private notifySelectionStateListeners(poi: PoiDefinition | null) {
+    for (const listener of this.selectionStateListeners) {
+      listener(poi);
     }
   }
 }
