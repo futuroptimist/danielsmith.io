@@ -81,11 +81,12 @@ Focus: anchor each highlighted project with an interactive artifact.
 1. **POI Framework**
    - Create a data-driven registry for POIs (id, asset, interaction type, metadata).
    - Implement 3D tooltips/popups that anchor to POIs in world space and respect camera.
-  - ✅ Desktop pointer + keyboard selection loops share accessible focus targets and emit POI
-    events, paving the path for gamepad + mid-air parity.
+   - ✅ Desktop pointer + keyboard selection loops share accessible focus targets and emit POI
+     events, paving the path for gamepad + mid-air parity.
    - ⚙️ Data-driven registry now spawns holographic pedestals for Futuroptimist + Flywheel exhibits.
    - ✨ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
    - ✅ Desktop pointer interaction manager highlights POIs and emits selection events.
+
 2. **Interior Showpieces**
    - Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching triggers
      a rich text popup with repo summary, star count, and CTA buttons.

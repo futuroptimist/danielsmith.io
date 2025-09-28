@@ -40,7 +40,9 @@ export class PoiInteractionManager {
 
     const defaultKeyboardTarget =
       options.keyboardTarget ??
-      ((typeof window !== 'undefined' ? window : null) as ListenerTarget | null);
+      ((typeof window !== 'undefined'
+        ? window
+        : null) as ListenerTarget | null);
     this.keyboardTarget = defaultKeyboardTarget ?? domElement;
     this.enableKeyboard = options.enableKeyboard ?? true;
   }
@@ -113,17 +115,26 @@ export class PoiInteractionManager {
       return;
     }
 
-    const key = event.key.toLowerCase();
+    const { key } = event;
+    const normalizedKey = key.toLowerCase();
 
-    switch (key) {
-      case 'e':
+    const isCycleKey =
+      key === 'ArrowRight' ||
+      key === 'ArrowLeft' ||
+      normalizedKey === 'e' ||
+      normalizedKey === 'q';
+
+    if (isCycleKey) {
+      if (normalizedKey === 'e' || normalizedKey === 'q') {
         event.preventDefault();
-        this.moveKeyboardFocus(1);
-        break;
-      case 'q':
-        event.preventDefault();
-        this.moveKeyboardFocus(-1);
-        break;
+      }
+
+      const direction = key === 'ArrowRight' || normalizedKey === 'e' ? 1 : -1;
+      this.moveKeyboardFocus(direction);
+      return;
+    }
+
+    switch (normalizedKey) {
       case 'enter':
       case ' ': {
         if (this.hovered) {

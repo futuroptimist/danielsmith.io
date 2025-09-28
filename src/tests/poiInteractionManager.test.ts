@@ -163,9 +163,14 @@ describe('PoiInteractionManager', () => {
       position: { x: 3, y: 0, z: 0 },
     };
     const secondPoi = createMockPoi(secondDefinition);
-    const keyboardManager = new PoiInteractionManager(domElement, camera, [poi, secondPoi], {
-      keyboardTarget: window,
-    });
+    const keyboardManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi, secondPoi],
+      {
+        keyboardTarget: window,
+      }
+    );
     keyboardManager.start();
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
@@ -211,12 +216,18 @@ describe('PoiInteractionManager', () => {
   });
 
   it('ignores keyboard input when disabled', () => {
-    const disabledManager = new PoiInteractionManager(domElement, camera, [poi], {
-      enableKeyboard: false,
-    });
+    const disabledManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {
+        enableKeyboard: false,
+      }
+    );
     disabledManager.start();
-    const handler =
-      disabledManager as unknown as { handleKeyDown(event: KeyboardEvent): void };
+    const handler = disabledManager as unknown as {
+      handleKeyDown(event: KeyboardEvent): void;
+    };
     handler.handleKeyDown(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     expect(poi.focusTarget).toBe(0);
     disabledManager.dispose();
