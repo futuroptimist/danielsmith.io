@@ -35,6 +35,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -47,13 +48,14 @@ import {
   type RoomCategory,
 } from './floorPlan';
 import { PoiInteractionManager } from './poi/interactionManager';
+import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
+import {
+  createLightingDebugController,
+  type LightingMode,
+} from './lighting/debugControls';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
-import {
-  createStaircase,
-  type RectCollider,
-  type StaircaseConfig,
-} from './structures/staircase';
+import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
 const CAMERA_SIZE = 20;
 const WALL_HEIGHT = 6;
@@ -131,6 +133,8 @@ const LIGHTING_OPTIONS = {
 
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
+let ledStripGroup: Group | null = null;
+let ledFillLightGroup: Group | null = null;
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -442,23 +446,6 @@ function isInsideAnyRoom(x: number, z: number): boolean {
   );
 }
 
-function collidesWithSceneGeometry(
-  x: number,
-  z: number,
-  radius: number
-): boolean {
-  for (const collider of staticColliders) {
-    const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
-    const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
-    const dx = x - closestX;
-    const dz = z - closestZ;
-    if (dx * dx + dz * dz < radius * radius) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function getOutwardDirectionForWall(wall: RoomWall): { x: number; z: number } {
   switch (wall) {
     case 'north':
@@ -633,6 +620,8 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
   const ledBaseColor = new Color(0x101623);
   const ledGroup = new Group();
   const ledFillLights = new Group();
+  ledStripGroup = ledGroup;
+  ledFillLightGroup = ledFillLights;
   const roomLedGroups = new Map<string, Group>();
   const roomLedMaterials = new Map<string, MeshStandardMaterial>();
 
@@ -815,6 +804,46 @@ if (LIGHTING_OPTIONS.enableBloom) {
   composer.addPass(bloomPass);
 }
 
+const lightingDebugController = createLightingDebugController({
+  renderer,
+  ambientLight,
+  hemisphericLight,
+  directionalLight,
+  bloomPass,
+  ledGroup: ledStripGroup,
+  ledFillLights: ledFillLightGroup,
+  debug: {
+    exposure: 0.92,
+    ambientIntensity: 0.55,
+    hemisphericIntensity: 0.38,
+    directionalIntensity: 0.35,
+    ledVisible: false,
+    bloomEnabled: false,
+  },
+});
+
+lightingDebugController.setMode('cinematic');
+
+const lightingDebugIndicator = document.createElement('div');
+lightingDebugIndicator.className = 'lighting-debug-indicator';
+container.appendChild(lightingDebugIndicator);
+
+const updateLightingIndicator = (mode: LightingMode) => {
+  const label = mode === 'cinematic' ? 'Cinematic' : 'Debug (flat)';
+  lightingDebugIndicator.textContent = `Lighting: ${label} · Shift+L to toggle`;
+  lightingDebugIndicator.setAttribute('data-mode', mode);
+};
+
+updateLightingIndicator(lightingDebugController.getMode());
+
+window.addEventListener('keydown', (event) => {
+  if ((event.key === 'l' || event.key === 'L') && event.shiftKey) {
+    event.preventDefault();
+    const nextMode = lightingDebugController.toggle();
+    updateLightingIndicator(nextMode);
+  }
+});
+
 function onResize() {
   const nextAspect = window.innerWidth / window.innerHeight;
   camera.left = -CAMERA_SIZE * nextAspect;
@@ -851,18 +880,22 @@ window.addEventListener('resize', onResize);
 onResize();
 
 function updateMovement(delta: number) {
-  const horizontal =
+  const rightInput =
     Number(controls.isPressed('d') || controls.isPressed('ArrowRight')) -
     Number(controls.isPressed('a') || controls.isPressed('ArrowLeft'));
-  const vertical =
-    Number(controls.isPressed('s') || controls.isPressed('ArrowDown')) -
-    Number(controls.isPressed('w') || controls.isPressed('ArrowUp'));
+  const forwardInput =
+    Number(controls.isPressed('w') || controls.isPressed('ArrowUp')) -
+    Number(controls.isPressed('s') || controls.isPressed('ArrowDown'));
 
   const joystickMovement = joystick.getMovement();
-  moveDirection.set(
-    horizontal + joystickMovement.x,
-    0,
-    vertical + joystickMovement.y
+  const combinedRight = rightInput + joystickMovement.x;
+  const combinedForward = forwardInput - joystickMovement.y;
+
+  getCameraRelativeMovementVector(
+    camera,
+    combinedRight,
+    combinedForward,
+    moveDirection
   );
 
   const lengthSq = moveDirection.lengthSq();
@@ -885,10 +918,16 @@ function updateMovement(delta: number) {
     const candidateX = player.position.x + stepX;
     if (
       isInsideAnyRoom(candidateX, player.position.z) &&
-      !collidesWithSceneGeometry(candidateX, player.position.z, PLAYER_RADIUS)
+      !collidesWithColliders(
+        candidateX,
+        player.position.z,
+        PLAYER_RADIUS,
+        staticColliders
+      )
     ) {
       player.position.x = candidateX;
     } else {
+      targetVelocity.x = 0;
       velocity.x = 0;
     }
   }
@@ -897,10 +936,16 @@ function updateMovement(delta: number) {
     const candidateZ = player.position.z + stepZ;
     if (
       isInsideAnyRoom(player.position.x, candidateZ) &&
-      !collidesWithSceneGeometry(player.position.x, candidateZ, PLAYER_RADIUS)
+      !collidesWithColliders(
+        player.position.x,
+        candidateZ,
+        PLAYER_RADIUS,
+        staticColliders
+      )
     ) {
       player.position.z = candidateZ;
     } else {
+      targetVelocity.z = 0;
       velocity.z = 0;
     }
   }
