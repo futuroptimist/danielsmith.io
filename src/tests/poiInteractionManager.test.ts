@@ -246,7 +246,13 @@ describe('PoiInteractionManager', () => {
     } satisfies PoiAnalytics;
 
     manager.dispose();
-    manager = new PoiInteractionManager(domElement, camera, [poi], {}, analytics);
+    manager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {},
+      analytics
+    );
     manager.start();
 
     domElement.dispatchEvent(
