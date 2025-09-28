@@ -52,7 +52,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Introduce baked + dynamic lighting pipeline.
    - Add emissive LED strip meshes along ceiling edges with gentle bloom.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
-   - Add toggleable debug view to compare current vs. future lighting iterations.
+  - ✅ Keyboard `L` toggle flips between cinematic LEDs and a baseline lighting pass for A/B review.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
 2. **House Footprint Layout**
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.

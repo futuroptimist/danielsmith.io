@@ -99,6 +99,7 @@ lightweight.
 
 - **Movement** – Use `WASD` or arrow keys to roll the sphere.
 - **Touch** – Not implemented yet; see the backlog entry for the planned joystick.
+- **Lighting debug** – Press `L` to toggle between the cinematic LED pass and the baseline fill.
 
 ## Automation prompts
 

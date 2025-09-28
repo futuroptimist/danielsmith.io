@@ -128,6 +128,29 @@ const LIGHTING_OPTIONS = {
   bloomThreshold: 0.2,
 } as const;
 
+const LIGHTING_DEBUG_TOGGLE_KEY = 'l';
+
+const LIGHTING_DEBUG_MODES = {
+  cinematic: {
+    ambientIntensity: 0.38,
+    hemisphereIntensity: 0.22,
+    directionalIntensity: 0.64,
+    toneMappingExposure: 1.1,
+    ledEnabled: true,
+    bloomEnabled: true,
+  },
+  baseline: {
+    ambientIntensity: 0.48,
+    hemisphereIntensity: 0.24,
+    directionalIntensity: 0.42,
+    toneMappingExposure: 0.95,
+    ledEnabled: false,
+    bloomEnabled: false,
+  },
+} as const;
+
+type LightingDebugMode = keyof typeof LIGHTING_DEBUG_MODES;
+
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 
@@ -627,11 +650,14 @@ scene.add(staircase.group);
 // Block the player from rolling onto the vertical geometry until slope handling lands.
 staircase.colliders.forEach((collider) => staticColliders.push(collider));
 
+let ledGroup: Group | null = null;
+let ledFillLights: Group | null = null;
+
 if (LIGHTING_OPTIONS.enableLedStrips) {
   const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
   const ledBaseColor = new Color(0x101623);
-  const ledGroup = new Group();
-  const ledFillLights = new Group();
+  ledGroup = new Group();
+  ledFillLights = new Group();
   const roomLedGroups = new Map<string, Group>();
   const roomLedMaterials = new Map<string, MeshStandardMaterial>();
 
@@ -791,6 +817,7 @@ let cameraPanLimitZ = 0;
 
 let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
+let lightingMode: LightingDebugMode = 'cinematic';
 
 if (LIGHTING_OPTIONS.enableBloom) {
   composer = new EffectComposer(renderer);
@@ -803,6 +830,26 @@ if (LIGHTING_OPTIONS.enableBloom) {
   );
   composer.addPass(bloomPass);
 }
+
+function applyLightingMode(mode: LightingDebugMode) {
+  const config = LIGHTING_DEBUG_MODES[mode];
+  ambientLight.intensity = config.ambientIntensity;
+  hemisphericLight.intensity = config.hemisphereIntensity;
+  directionalLight.intensity = config.directionalIntensity;
+  renderer.toneMappingExposure = config.toneMappingExposure;
+
+  if (ledGroup) {
+    ledGroup.visible = config.ledEnabled;
+  }
+  if (ledFillLights) {
+    ledFillLights.visible = config.ledEnabled;
+  }
+  if (bloomPass) {
+    bloomPass.enabled = config.bloomEnabled;
+  }
+}
+
+applyLightingMode(lightingMode);
 
 function onResize() {
   const nextAspect = window.innerWidth / window.innerHeight;
@@ -838,6 +885,35 @@ function onResize() {
 
 window.addEventListener('resize', onResize);
 onResize();
+
+function cycleLightingMode() {
+  lightingMode = lightingMode === 'cinematic' ? 'baseline' : 'cinematic';
+  applyLightingMode(lightingMode);
+  console.info(`Lighting debug mode: ${lightingMode}`);
+}
+
+function onLightingDebugKey(event: KeyboardEvent) {
+  if (event.repeat || event.defaultPrevented) {
+    return;
+  }
+  if (event.ctrlKey || event.metaKey || event.altKey) {
+    return;
+  }
+  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  if (key !== LIGHTING_DEBUG_TOGGLE_KEY) {
+    return;
+  }
+  const target = event.target as HTMLElement | null;
+  if (target) {
+    const tagName = target.tagName;
+    if (tagName === 'INPUT' || tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+  }
+  cycleLightingMode();
+}
+
+window.addEventListener('keydown', onLightingDebugKey);
 
 function updateMovement(delta: number) {
   const horizontal =
