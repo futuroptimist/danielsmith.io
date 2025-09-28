@@ -115,11 +115,8 @@ canvas {
   padding: 1.1rem 1.35rem;
   max-width: min(26rem, calc(100% - 3rem));
   border-radius: 1rem;
-  background: linear-gradient(
-      140deg,
-      rgba(12, 21, 33, 0.92),
-      rgba(15, 36, 58, 0.78)
-    ),
+  background:
+    linear-gradient(140deg, rgba(12, 21, 33, 0.92), rgba(15, 36, 58, 0.78)),
     rgba(9, 15, 26, 0.94);
   color: #e5f4ff;
   box-shadow: 0 32px 80px rgba(3, 8, 18, 0.58);
@@ -128,7 +125,9 @@ canvas {
   opacity: 0;
   transform: translateY(12px);
   pointer-events: none;
-  transition: opacity 160ms ease, transform 180ms ease;
+  transition:
+    opacity 160ms ease,
+    transform 180ms ease;
   z-index: 30;
 }
 
@@ -208,7 +207,9 @@ canvas {
   font-size: 0.84rem;
   border-bottom: 1px solid rgba(154, 221, 255, 0.25);
   padding-bottom: 0.15rem;
-  transition: color 120ms ease, border-color 120ms ease;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .poi-tooltip-overlay__link:focus,

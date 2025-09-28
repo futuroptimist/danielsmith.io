@@ -39,9 +39,7 @@ describe('PoiTooltipOverlay', () => {
   it('renders hovered POI metadata and exposes links', () => {
     overlay.setHovered(basePoi);
 
-    const root = container.querySelector(
-      '.poi-tooltip-overlay'
-    ) as HTMLElement;
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root).toBeTruthy();
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
     expect(root.getAttribute('aria-hidden')).toBe('false');
@@ -73,16 +71,16 @@ describe('PoiTooltipOverlay', () => {
       title: 'Flywheel Kinetic Hub',
       position: { x: 2, y: 0, z: 4 },
       metrics: [{ label: 'Automation', value: 'CI-ready prompts' }],
-      links: [{ label: 'Flywheel', href: 'https://flywheel.futuroptimist.dev' }],
+      links: [
+        { label: 'Flywheel', href: 'https://flywheel.futuroptimist.dev' },
+      ],
       status: undefined,
     };
 
     overlay.setSelected(selectedPoi);
     overlay.setHovered({ ...basePoi, title: 'Temporary Hover' });
 
-    const root = container.querySelector(
-      '.poi-tooltip-overlay'
-    ) as HTMLElement;
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.dataset.state).toBe('hovered');
     expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
       'Temporary Hover'

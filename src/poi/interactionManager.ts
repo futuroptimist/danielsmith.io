@@ -22,7 +22,8 @@ export class PoiInteractionManager {
   private readonly pointer = new Vector2();
   private readonly listeners = new Set<PoiSelectionListener>();
   private readonly hoverListeners = new Set<PoiHoverListener>();
-  private readonly selectionStateListeners = new Set<PoiSelectionStateListener>();
+  private readonly selectionStateListeners =
+    new Set<PoiSelectionStateListener>();
   private hovered: PoiInstance | null = null;
   private selected: PoiInstance | null = null;
   private active = false;
@@ -94,9 +95,7 @@ export class PoiInteractionManager {
     };
   }
 
-  addSelectionStateListener(
-    listener: PoiSelectionStateListener
-  ): () => void {
+  addSelectionStateListener(listener: PoiSelectionStateListener): () => void {
     this.selectionStateListeners.add(listener);
     return () => {
       this.selectionStateListeners.delete(listener);

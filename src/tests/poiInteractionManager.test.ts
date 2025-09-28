@@ -143,9 +143,8 @@ describe('PoiInteractionManager', () => {
     const listener = vi.fn();
     manager.addSelectionListener(listener);
     const selectionState = vi.fn();
-    const removeSelectionState = manager.addSelectionStateListener(
-      selectionState
-    );
+    const removeSelectionState =
+      manager.addSelectionStateListener(selectionState);
     const customEventHandler = vi.fn();
     window.addEventListener('poi:selected', customEventHandler);
 
