@@ -47,14 +47,15 @@ import {
   type Bounds2D,
   type RoomCategory,
 } from './floorPlan';
-import { PoiInteractionManager } from './poi/interactionManager';
-import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import {
   createLightingDebugController,
   type LightingMode,
 } from './lighting/debugControls';
+import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
+import { PoiInteractionManager } from './poi/interactionManager';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
+import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
 const CAMERA_SIZE = 20;
@@ -609,6 +610,13 @@ combinedWallSegments.forEach((segment) => {
 });
 
 scene.add(wallGroup);
+
+const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
+if (livingRoom) {
+  const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
+  scene.add(mediaWall.group);
+  mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
+}
 
 const staircase = createStaircase(STAIRCASE_CONFIG);
 scene.add(staircase.group);

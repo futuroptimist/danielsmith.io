@@ -91,6 +91,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - Spinning flywheel centerpiece representing the `flywheel` repo; interaction spins faster,
      reveals tech stack, and links to docs.
    - Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
+   - ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
+     screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
 3. **Backyard Exhibits**
    - Launch-ready model rocket for `dspace`, with staged ignition sequence and lore text.
    - Aluminum extrusion greenhouse inspired by `sugarkube`, including animated solar panels,
