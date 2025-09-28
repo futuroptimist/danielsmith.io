@@ -32,6 +32,28 @@ canvas {
   user-select: none;
 }
 
+.lighting-debug-indicator {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  background: rgba(5, 12, 21, 0.75);
+  color: #e7f1ff;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(86, 184, 255, 0.25);
+  box-shadow: 0 8px 24px rgba(3, 9, 18, 0.55);
+  pointer-events: none;
+  z-index: 25;
+}
+
+.lighting-debug-indicator[data-mode='debug'] {
+  border-color: rgba(255, 196, 120, 0.4);
+  color: #ffe5c4;
+}
+
 .overlay {
   position: fixed;
   bottom: 1.5rem;

@@ -46,6 +46,10 @@ import {
   type Bounds2D,
   type RoomCategory,
 } from './floorPlan';
+import {
+  createLightingDebugController,
+  type LightingMode,
+} from './lighting/debugControls';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
 import {
@@ -130,6 +134,8 @@ const LIGHTING_OPTIONS = {
 
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
+let ledStripGroup: Group | null = null;
+let ledFillLightGroup: Group | null = null;
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -632,6 +638,8 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
   const ledBaseColor = new Color(0x101623);
   const ledGroup = new Group();
   const ledFillLights = new Group();
+  ledStripGroup = ledGroup;
+  ledFillLightGroup = ledFillLights;
   const roomLedGroups = new Map<string, Group>();
   const roomLedMaterials = new Map<string, MeshStandardMaterial>();
 
@@ -803,6 +811,46 @@ if (LIGHTING_OPTIONS.enableBloom) {
   );
   composer.addPass(bloomPass);
 }
+
+const lightingDebugController = createLightingDebugController({
+  renderer,
+  ambientLight,
+  hemisphericLight,
+  directionalLight,
+  bloomPass,
+  ledGroup: ledStripGroup,
+  ledFillLights: ledFillLightGroup,
+  debug: {
+    exposure: 0.92,
+    ambientIntensity: 0.55,
+    hemisphericIntensity: 0.38,
+    directionalIntensity: 0.35,
+    ledVisible: false,
+    bloomEnabled: false,
+  },
+});
+
+lightingDebugController.setMode('cinematic');
+
+const lightingDebugIndicator = document.createElement('div');
+lightingDebugIndicator.className = 'lighting-debug-indicator';
+container.appendChild(lightingDebugIndicator);
+
+const updateLightingIndicator = (mode: LightingMode) => {
+  const label = mode === 'cinematic' ? 'Cinematic' : 'Debug (flat)';
+  lightingDebugIndicator.textContent = `Lighting: ${label} · Shift+L to toggle`;
+  lightingDebugIndicator.setAttribute('data-mode', mode);
+};
+
+updateLightingIndicator(lightingDebugController.getMode());
+
+window.addEventListener('keydown', (event) => {
+  if ((event.key === 'l' || event.key === 'L') && event.shiftKey) {
+    event.preventDefault();
+    const nextMode = lightingDebugController.toggle();
+    updateLightingIndicator(nextMode);
+  }
+});
 
 function onResize() {
   const nextAspect = window.innerWidth / window.innerHeight;
