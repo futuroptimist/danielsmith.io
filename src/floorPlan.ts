@@ -46,64 +46,97 @@ export interface CombinedWallSegment {
 
 export const WALL_THICKNESS = 0.5;
 
-const DOOR_CENTER_X = -6;
-const DOOR_WIDTH = 3;
+const DOOR_WIDTH = 4;
 const DOOR_HALF_WIDTH = DOOR_WIDTH / 2;
 
-const livingRoomDoorwayStart = DOOR_CENTER_X - DOOR_HALF_WIDTH;
-const livingRoomDoorwayEnd = DOOR_CENTER_X + DOOR_HALF_WIDTH;
+const livingToKitchenDoorCenter = -9;
+const livingToStudioDoorCenter = 7.5;
+const kitchenToBackyardDoorCenter = -9;
+const studioToBackyardDoorCenter = 7.5;
+const kitchenToStudioDoorCenterZ = 2;
+
+const doorwayRange = (center: number) => ({
+  start: center - DOOR_HALF_WIDTH,
+  end: center + DOOR_HALF_WIDTH,
+});
 
 export const FLOOR_PLAN: FloorPlanDefinition = {
   outline: [
-    [-10, -28],
-    [10, -28],
-    [10, 0],
-    [-2, 0],
-    [-2, 44],
-    [-10, 44],
+    [-16, -16],
+    [16, -16],
+    [16, 16],
+    [-16, 16],
   ],
   rooms: [
     {
       id: 'livingRoom',
       name: 'Living Room',
-      bounds: { minX: -10, maxX: 10, minZ: -28, maxZ: 0 },
+      bounds: { minX: -16, maxX: 16, minZ: -16, maxZ: -4 },
       ledColor: 0x4cf889,
       doorways: [
         {
           wall: 'north',
-          start: livingRoomDoorwayStart,
-          end: livingRoomDoorwayEnd,
+          ...doorwayRange(livingToKitchenDoorCenter),
+        },
+        {
+          wall: 'north',
+          ...doorwayRange(livingToStudioDoorCenter),
         },
       ],
     },
     {
       id: 'studio',
       name: 'Studio',
-      bounds: { minX: -10, maxX: -2, minZ: 0, maxZ: 24 },
+      bounds: { minX: -2, maxX: 16, minZ: -4, maxZ: 8 },
       ledColor: 0x58c4ff,
       doorways: [
         {
           wall: 'south',
-          start: livingRoomDoorwayStart,
-          end: livingRoomDoorwayEnd,
+          ...doorwayRange(livingToStudioDoorCenter),
+        },
+        {
+          wall: 'west',
+          ...doorwayRange(kitchenToStudioDoorCenterZ),
         },
         {
           wall: 'north',
-          start: livingRoomDoorwayStart,
-          end: livingRoomDoorwayEnd,
+          ...doorwayRange(studioToBackyardDoorCenter),
+        },
+      ],
+    },
+    {
+      id: 'kitchen',
+      name: 'Kitchen',
+      bounds: { minX: -16, maxX: -2, minZ: -4, maxZ: 8 },
+      ledColor: 0xffb347,
+      doorways: [
+        {
+          wall: 'south',
+          ...doorwayRange(livingToKitchenDoorCenter),
+        },
+        {
+          wall: 'east',
+          ...doorwayRange(kitchenToStudioDoorCenterZ),
+        },
+        {
+          wall: 'north',
+          ...doorwayRange(kitchenToBackyardDoorCenter),
         },
       ],
     },
     {
       id: 'backyard',
       name: 'Backyard',
-      bounds: { minX: -10, maxX: -2, minZ: 24, maxZ: 44 },
+      bounds: { minX: -16, maxX: 16, minZ: 8, maxZ: 16 },
       ledColor: 0x274f37,
       doorways: [
         {
           wall: 'south',
-          start: livingRoomDoorwayStart,
-          end: livingRoomDoorwayEnd,
+          ...doorwayRange(kitchenToBackyardDoorCenter),
+        },
+        {
+          wall: 'south',
+          ...doorwayRange(studioToBackyardDoorCenter),
         },
       ],
       category: 'exterior',
