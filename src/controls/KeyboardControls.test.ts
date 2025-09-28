@@ -28,4 +28,19 @@ describe('KeyboardControls', () => {
     window.dispatchEvent(new KeyboardEvent('keyup', { key: 'W' }));
     expect(controls.isPressed('w')).toBe(false);
   });
+
+  it('tracks multiple simultaneous keys for diagonal movement', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd' }));
+
+    expect(controls.isPressed('w')).toBe(true);
+    expect(controls.isPressed('d')).toBe(true);
+
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w' }));
+    expect(controls.isPressed('w')).toBe(false);
+    expect(controls.isPressed('d')).toBe(true);
+
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd' }));
+    expect(controls.isPressed('d')).toBe(false);
+  });
 });
