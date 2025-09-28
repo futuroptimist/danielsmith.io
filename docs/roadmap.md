@@ -99,6 +99,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
    - ✨ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
      orbitals, and an activation-driven tech stack reveal panel.
+   - ✨ Studio Jobbot terminal desk projects live automation telemetry via a holographic console
+     and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
 3. **Backyard Exhibits**
    - Launch-ready model rocket for `dspace`, with staged ignition sequence and lore text.
    - Aluminum extrusion greenhouse inspired by `sugarkube`, including animated solar panels,

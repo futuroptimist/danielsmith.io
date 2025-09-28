@@ -61,6 +61,7 @@ import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './structures/flywheel';
+import { createJobbotTerminal, type JobbotTerminalBuild } from './structures/jobbotTerminal';
 import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
@@ -141,6 +142,7 @@ const LIGHTING_OPTIONS = {
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
+let jobbotTerminal: JobbotTerminalBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 
@@ -1111,6 +1113,9 @@ const poiTooltipOverlay = new PoiTooltipOverlay({ container });
 const flywheelPoi = poiInstances.find(
   (poi) => poi.definition.id === 'flywheel-studio-flywheel'
 );
+const jobbotPoi = poiInstances.find(
+  (poi) => poi.definition.id === 'jobbot-studio-terminal'
+);
 const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
 if (studioRoom) {
   const centerX =
@@ -1128,6 +1133,25 @@ if (studioRoom) {
   scene.add(showpiece.group);
   showpiece.colliders.forEach((collider) => staticColliders.push(collider));
   flywheelShowpiece = showpiece;
+
+  const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
+  const terminalX = MathUtils.clamp(
+    11.4,
+    studioRoom.bounds.minX + 1.2,
+    studioRoom.bounds.maxX - 0.8
+  );
+  const terminalZ = MathUtils.clamp(
+    -0.6,
+    studioRoom.bounds.minZ + 1.2,
+    studioRoom.bounds.maxZ - 1.1
+  );
+  const terminal = createJobbotTerminal({
+    position: { x: terminalX, y: 0, z: terminalZ },
+    orientationRadians: terminalOrientation,
+  });
+  scene.add(terminal.group);
+  terminal.colliders.forEach((collider) => staticColliders.push(collider));
+  jobbotTerminal = terminal;
 }
 
 const poiInteractionManager = new PoiInteractionManager(
@@ -1438,6 +1462,15 @@ renderer.setAnimationLoop(() => {
     const activation = flywheelPoi?.activation ?? 0;
     const focus = flywheelPoi?.focus ?? 0;
     flywheelShowpiece.update({
+      elapsed: elapsedTime,
+      delta,
+      emphasis: Math.max(activation, focus),
+    });
+  }
+  if (jobbotTerminal) {
+    const activation = jobbotPoi?.activation ?? 0;
+    const focus = jobbotPoi?.focus ?? 0;
+    jobbotTerminal.update({
       elapsed: elapsedTime,
       delta,
       emphasis: Math.max(activation, focus),

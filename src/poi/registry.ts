@@ -47,6 +47,28 @@ const definitions: PoiDefinition[] = [
     ],
     status: 'prototype',
   },
+  {
+    id: 'jobbot-studio-terminal',
+    title: 'Jobbot Holographic Terminal',
+    summary:
+      'Holographic command desk broadcasting live telemetry from the Jobbot3000 automation mesh.',
+    category: 'project',
+    interaction: 'inspect',
+    roomId: 'studio',
+    position: { x: 9.4, y: 0, z: -0.6 },
+    headingRadians: -Math.PI / 2,
+    interactionRadius: 2.3,
+    footprint: { width: 2.4, depth: 2 },
+    metrics: [
+      { label: 'Ops savings', value: 'Recovered 6h weekly toil' },
+      { label: 'Reliability', value: '99.98% SLA self-healing loops' },
+    ],
+    links: [
+      { label: 'GitHub', href: 'https://github.com/futuroptimist/jobbot3000' },
+      { label: 'Automation Log', href: 'https://futuroptimist.dev/automation' },
+    ],
+    status: 'prototype',
+  },
 ];
 
 class StaticPoiRegistry implements PoiRegistry {
