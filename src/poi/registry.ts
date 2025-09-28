@@ -11,10 +11,10 @@ const definitions: PoiDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
-    position: { x: -3.4, y: 0, z: -14.2 },
+    position: { x: -9.1, y: 0, z: -14.2 },
     headingRadians: Math.PI * 0.5,
     interactionRadius: 2.4,
-    footprint: { width: 2.2, depth: 1.8 },
+    footprint: { width: 3, depth: 6.8 },
     metrics: [
       { label: 'Stars', value: '180+' },
       { label: 'Stack', value: 'Three.js · Vite · TypeScript' },
