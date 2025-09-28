@@ -94,7 +94,8 @@ lightweight.
   tooltips for featured repos. Proximity-based halos ease the labels in so players sense each
   interaction radius without clutter, and a DOM overlay mirrors the metadata so screen readers and
   keyboard users receive the same context. Metadata is authored in TypeScript so future automations
-  can extend exhibits by updating data alone.
+  can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
+  terminal that pulses in sync with the new automation POI.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).
 
 ## Controls
