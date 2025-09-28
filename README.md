@@ -88,6 +88,7 @@ lightweight.
 - **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
 - **Lighting** – Ambient + directional key lights are now complemented by emissive LED cove strips
   with a lightweight bloom pass so the room inherits a soft gradient glow without heavy shadows.
+  A Shift+L debug toggle disables bloom/LED accents to compare raw material response.
 - **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
 - **Points of Interest** – A data-driven registry spawns holographic pedestals with animated
   tooltips for featured repos. Proximity-based halos ease the labels in so players sense each
@@ -99,6 +100,7 @@ lightweight.
 
 - **Movement** – Use `WASD` or arrow keys to roll the sphere.
 - **Touch** – Not implemented yet; see the backlog entry for the planned joystick.
+- **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
 
 ## Automation prompts
 
