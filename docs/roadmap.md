@@ -30,6 +30,7 @@ captures; keep artifacts in `docs/metrics/`.
   proxy) is clean in demo runs.
 - **Failover** – auto redirect to text-only portfolio if WebGL is unavailable, memory
   heuristics fail (<1 GB), or FPS drops below 30 for 5s; provide manual toggle in HUD.
+  - ✅ WebGL capability detection now routes unsupported browsers to the lightweight text view (also available via `?mode=text`).
 
 ## Phase 0 – Foundations (Shipped)
 

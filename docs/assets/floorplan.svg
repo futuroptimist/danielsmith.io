@@ -3,7 +3,7 @@
   <rect x="0" y="0" width="576" height="576" fill="#0b1428" />
   <g>
     <path d="M32.00,544.00 L544.00,544.00 L544.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
-    
+
       <g>
         <rect
           x="32.00"
@@ -18,7 +18,7 @@
         />
         <text x="288.00" y="448.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Living Room</text>
       </g>
-    
+
 
       <g>
         <rect
@@ -34,7 +34,7 @@
         />
         <text x="400.00" y="256.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Studio</text>
       </g>
-    
+
 
       <g>
         <rect
@@ -50,7 +50,7 @@
         />
         <text x="144.00" y="256.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Kitchen</text>
       </g>
-    
+
 
       <g>
         <rect
@@ -66,7 +66,7 @@
         />
         <text x="288.00" y="96.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Backyard</text>
       </g>
-    
+
     <line x1="32.00" y1="352.00" x2="112.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="176.00" y1="352.00" x2="256.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="256.00" y1="352.00" x2="376.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />

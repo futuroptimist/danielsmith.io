@@ -40,7 +40,12 @@ function createTerminalScreenTexture(): CanvasTexture {
     context.fillStyle = '#07111f';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    const background = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+    const background = context.createLinearGradient(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
     background.addColorStop(0, '#0d253f');
     background.addColorStop(0.6, '#10203a');
     background.addColorStop(1, '#0c1728');
@@ -63,7 +68,11 @@ function createTerminalScreenTexture(): CanvasTexture {
 
     context.font = '52px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#fede72';
-    context.fillText('Status: nominal · queue depth 0 · SLA 99.98%', canvas.width * 0.08, canvas.height * 0.82);
+    context.fillText(
+      'Status: nominal · queue depth 0 · SLA 99.98%',
+      canvas.width * 0.08,
+      canvas.height * 0.82
+    );
 
     const rightColumnX = canvas.width * 0.7;
     context.font = '600 56px "Inter", "Segoe UI", sans-serif';
@@ -176,7 +185,11 @@ export function createJobbotTerminal(
     group.add(leg);
   });
 
-  const consoleGeometry = new BoxGeometry(deskWidth * 0.62, 0.18, deskDepth * 0.54);
+  const consoleGeometry = new BoxGeometry(
+    deskWidth * 0.62,
+    0.18,
+    deskDepth * 0.54
+  );
   const consoleMaterial = new MeshStandardMaterial({
     color: new Color(0x151f2c),
     roughness: 0.55,
@@ -186,7 +199,11 @@ export function createJobbotTerminal(
   console.position.set(0, deskHeight + 0.18 / 2, 0);
   group.add(console);
 
-  const accentGeometry = new BoxGeometry(deskWidth * 0.94, 0.06, deskDepth * 0.18);
+  const accentGeometry = new BoxGeometry(
+    deskWidth * 0.94,
+    0.06,
+    deskDepth * 0.18
+  );
   const accentMaterial = new MeshStandardMaterial({
     color: new Color(0x113044),
     emissive: new Color(0x1c84ff),
@@ -195,7 +212,11 @@ export function createJobbotTerminal(
     metalness: 0.28,
   });
   const accent = new Mesh(accentGeometry, accentMaterial);
-  accent.position.set(0, deskHeight + 0.03, deskDepth / 2 - accentGeometry.parameters.depth / 2);
+  accent.position.set(
+    0,
+    deskHeight + 0.03,
+    deskDepth / 2 - accentGeometry.parameters.depth / 2
+  );
   group.add(accent);
 
   const screenTexture = createTerminalScreenTexture();
@@ -209,7 +230,11 @@ export function createJobbotTerminal(
   const screenGeometry = new PlaneGeometry(screenWidth, screenHeight);
   const screen = new Mesh(screenGeometry, screenMaterial);
   screen.name = 'JobbotTerminalScreen';
-  screen.position.set(0, deskHeight + deskThickness + screenHeight / 2 + 0.1, -deskDepth / 2 + 0.05);
+  screen.position.set(
+    0,
+    deskHeight + deskThickness + screenHeight / 2 + 0.1,
+    -deskDepth / 2 + 0.05
+  );
   screen.renderOrder = 6;
   group.add(screen);
 
@@ -255,12 +280,17 @@ export function createJobbotTerminal(
     metalness: 0.28,
   });
   const hologramBase = new Mesh(hologramBaseGeometry, hologramBaseMaterial);
-  hologramBase.position.set(0, deskHeight + deskThickness + hologramBaseGeometry.parameters.height / 2, 0);
+  hologramBase.position.set(
+    0,
+    deskHeight + deskThickness + hologramBaseGeometry.parameters.height / 2,
+    0
+  );
   group.add(hologramBase);
 
   const hologramGroup = new Group();
   hologramGroup.name = 'JobbotTerminalHologram';
-  const hologramBaseHeight = hologramBase.position.y + hologramBaseGeometry.parameters.height / 2;
+  const hologramBaseHeight =
+    hologramBase.position.y + hologramBaseGeometry.parameters.height / 2;
   hologramGroup.position.set(0, hologramBaseHeight + 0.06, 0);
   group.add(hologramGroup);
 
@@ -340,7 +370,11 @@ export function createJobbotTerminal(
       hologramGroup.position.y = hologramBaseHeight + 0.06 + bob;
       hologramGroup.rotation.y = elapsed * 0.8;
 
-      const hologramOpacity = MathUtils.lerp(0.28, 0.72, Math.max(emphasis, 0.25));
+      const hologramOpacity = MathUtils.lerp(
+        0.28,
+        0.72,
+        Math.max(emphasis, 0.25)
+      );
       hologramMaterial.opacity = hologramOpacity;
       hologramPanelMaterial.opacity = MathUtils.lerp(0.28, 0.6, emphasis);
 
@@ -351,14 +385,26 @@ export function createJobbotTerminal(
       screenGlowMaterial.emissiveIntensity = glowIntensity;
 
       const tickerPulse = (Math.sin(elapsed * 3.4) + 1) / 2;
-      tickerMaterial.opacity = MathUtils.lerp(0.35, 0.95, Math.max(emphasis, tickerPulse * 0.7));
+      tickerMaterial.opacity = MathUtils.lerp(
+        0.35,
+        0.95,
+        Math.max(emphasis, tickerPulse * 0.7)
+      );
       screenMaterial.opacity = MathUtils.lerp(0.82, 1, Math.max(emphasis, 0.4));
 
       beacons.forEach((beacon, index) => {
         const material = beacon.material as MeshStandardMaterial;
         const pulse = (Math.sin(elapsed * 2.3 + index) + 1) / 2;
-        material.emissiveIntensity = MathUtils.lerp(0.4, 1.25, Math.max(emphasis, pulse));
-        beacon.position.y = deskHeight + deskThickness + 0.12 + Math.sin(elapsed * 1.6 + index) * 0.05;
+        material.emissiveIntensity = MathUtils.lerp(
+          0.4,
+          1.25,
+          Math.max(emphasis, pulse)
+        );
+        beacon.position.y =
+          deskHeight +
+          deskThickness +
+          0.12 +
+          Math.sin(elapsed * 1.6 + index) * 0.05;
       });
     },
   } satisfies JobbotTerminalBuild;

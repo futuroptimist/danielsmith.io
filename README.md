@@ -101,8 +101,9 @@ lightweight.
 ## Controls
 
 - **Movement** – Use `WASD` or arrow keys to roll the sphere.
-- **Touch** – Not implemented yet; see the backlog entry for the planned joystick.
+- **Touch** – Drag the on-screen joysticks (left: movement, right: camera pan) on touch devices.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
+- **Failover** – Append `?mode=text` to the URL (or rely on automatic detection when WebGL is unavailable) to load the lightweight text view; `?mode=immersive` switches back when supported.
 
 ## Automation prompts
 
