@@ -55,14 +55,13 @@ import { getCameraRelativeMovementVector } from './movement/cameraRelativeMoveme
 import { PoiInteractionManager } from './poi/interactionManager';
 import { createPoiInstances, type PoiInstance } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
-import { createLivingRoomMediaWall } from './structures/mediaWall';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './structures/flywheel';
+import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
-const CAMERA_SIZE = 20;
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
@@ -70,6 +69,7 @@ const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
+const CAMERA_MARGIN = 4;
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -79,7 +79,7 @@ const BACKYARD_ROOM_ID = 'backyard';
 
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
-  basePosition: new Vector3(6.2, 0, -18),
+  basePosition: new Vector3(6.2, 0, -14.25),
   step: {
     count: 9,
     rise: 0.42,
@@ -800,18 +800,6 @@ container.appendChild(renderer.domElement);
 const scene = new Scene();
 scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
 
-const aspect = window.innerWidth / window.innerHeight;
-const s = CAMERA_SIZE;
-const camera = new OrthographicCamera(
-  -s * aspect,
-  s * aspect,
-  s,
-  -s,
-  0.1,
-  1000
-);
-const cameraBaseOffset = new Vector3(20, 20, 20);
-
 const floorBounds = getFloorBounds(FLOOR_PLAN);
 const floorCenter = new Vector3(
   (floorBounds.minX + floorBounds.maxX) / 2,
@@ -824,6 +812,31 @@ const initialPlayerPosition = new Vector3(
   (initialRoom.bounds.minX + initialRoom.bounds.maxX) / 2,
   PLAYER_RADIUS,
   (initialRoom.bounds.minZ + initialRoom.bounds.maxZ) / 2
+);
+
+const halfWidth = (floorBounds.maxX - floorBounds.minX) / 2;
+const distanceToNorthEdge = floorBounds.maxZ - initialPlayerPosition.z;
+const distanceToSouthEdge = initialPlayerPosition.z - floorBounds.minZ;
+const largestHalfExtent = Math.max(
+  halfWidth,
+  distanceToNorthEdge,
+  distanceToSouthEdge
+);
+const cameraSize = largestHalfExtent + CAMERA_MARGIN;
+
+const aspect = window.innerWidth / window.innerHeight;
+const camera = new OrthographicCamera(
+  -cameraSize * aspect,
+  cameraSize * aspect,
+  cameraSize,
+  -cameraSize,
+  0.1,
+  1000
+);
+const cameraBaseOffset = new Vector3(
+  cameraSize * 1.35,
+  cameraSize * 1.35,
+  cameraSize * 1.35
 );
 
 const cameraCenter = initialPlayerPosition.clone();
@@ -1198,10 +1211,10 @@ window.addEventListener('keydown', (event) => {
 
 function onResize() {
   const nextAspect = window.innerWidth / window.innerHeight;
-  camera.left = -CAMERA_SIZE * nextAspect;
-  camera.right = CAMERA_SIZE * nextAspect;
-  camera.top = CAMERA_SIZE;
-  camera.bottom = -CAMERA_SIZE;
+  camera.left = -cameraSize * nextAspect;
+  camera.right = cameraSize * nextAspect;
+  camera.top = cameraSize;
+  camera.bottom = -cameraSize;
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1212,8 +1225,8 @@ function onResize() {
     bloomPass.setSize(window.innerWidth, window.innerHeight);
   }
 
-  cameraPanLimitX = Math.max(0, CAMERA_SIZE * nextAspect - PLAYER_RADIUS);
-  cameraPanLimitZ = Math.max(0, CAMERA_SIZE - PLAYER_RADIUS);
+  cameraPanLimitX = Math.max(0, cameraSize * nextAspect - PLAYER_RADIUS);
+  cameraPanLimitZ = Math.max(0, cameraSize - PLAYER_RADIUS);
   cameraPanTarget.x = MathUtils.clamp(
     cameraPanTarget.x,
     -cameraPanLimitX,

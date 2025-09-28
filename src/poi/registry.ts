@@ -33,7 +33,7 @@ const definitions: PoiDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: -6.4, y: 0, z: 10.8 },
+    position: { x: 6.2, y: 0, z: 2.6 },
     headingRadians: 0,
     interactionRadius: 2.2,
     footprint: { width: 2, depth: 2 },
