@@ -16,8 +16,9 @@ USER:
 1. Implement a lighting upgrade from Phase 1 or 2 in `docs/roadmap.md`.
 2. Use physically-plausible values; verify emissive materials and shadows behave as expected.
 3. Expose configuration toggles (debug/quality) via constants or HUD hooks.
-4. Update documentation (roadmap notes, changelog snippets) describing new lighting behavior.
-5. Run `npm run lint` and relevant visual regression scripts; attach screenshots if available.
+4. Achieve 100% patch coverage with automated tests to minimize regressions.
+5. Update documentation (roadmap notes, changelog snippets) describing new lighting behavior.
+6. Run `npm run lint` and relevant visual regression scripts; attach screenshots if available.
 
 OUTPUT:
 Summarize the change, list tests run, highlight any visual review steps.
@@ -45,8 +46,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

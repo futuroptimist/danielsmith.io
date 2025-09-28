@@ -2,7 +2,8 @@
 
 This index summarizes the Codex prompts available for the immersive portfolio project.
 Each prompt is evergreen unless noted otherwise and is intended to be copied verbatim
-when spinning up an agentic task.
+when spinning up an agentic task. Every prompt now explicitly directs agents to achieve
+100% patch coverage so regressions stay unlikely.
 
 | Prompt                                           | Purpose                                            | One-click? |
 | ------------------------------------------------ | -------------------------------------------------- | ---------- |

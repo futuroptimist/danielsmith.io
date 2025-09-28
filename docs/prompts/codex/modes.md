@@ -16,7 +16,7 @@ USER:
 1. Deliver a feature from Phase 3 (Experience Toggle) in `docs/roadmap.md`.
 2. Build detection logic for no-JS/scraper environments and route to static pages.
 3. Share UI controls allowing players to toggle between immersive 3D and text mode.
-4. Add tests covering SSR/CSR paths and user-agent heuristics.
+4. Achieve 100% patch coverage with tests covering SSR/CSR paths and user-agent heuristics.
 5. Update documentation on how to force modes for debugging.
 
 OUTPUT:
@@ -45,8 +45,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

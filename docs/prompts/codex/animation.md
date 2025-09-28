@@ -16,7 +16,7 @@ USER:
 1. Implement an animation feature from Phase 5 of `docs/roadmap.md`.
 2. Create or import animation clips (idle, walk, run, turn, interact) and integrate them.
 3. Wire the character controller to drive animation state machines.
-4. Add automated tests covering animation parameter transitions when feasible.
+4. Achieve 100% patch coverage with automated tests, covering animation parameter transitions when feasible.
 5. Document tuning knobs (speeds, blend times) and manual QA steps.
 
 OUTPUT:
@@ -45,8 +45,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

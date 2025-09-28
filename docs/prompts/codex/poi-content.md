@@ -17,7 +17,8 @@ USER:
 2. Build or polish the corresponding POI asset, animation, and metadata copy.
 3. Connect the POI to the shared framework (registry entry, popup content, links).
 4. Ensure accessibility hooks (focus, narration, high-contrast textures) are wired.
-5. Update `docs/roadmap.md` progress notes or add showcase screenshots.
+5. Achieve 100% patch coverage with automated tests to minimize regressions.
+6. Update `docs/roadmap.md` progress notes or add showcase screenshots.
 
 OUTPUT:
 Share summary, tests, manual QA, and any follow-up ideas.
@@ -45,8 +46,9 @@ and `npm run smoke` pass before committing.
 USER:
 1. Pick one prompt doc under `docs/prompts/codex/`.
 2. Fix outdated instructions, links, or formatting.
-3. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-4. Run the checks above.
+3. Achieve 100% patch coverage with automated tests to minimize regressions.
+4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
+5. Run the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.
