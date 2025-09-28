@@ -24,12 +24,71 @@ body {
   height: 100%;
 }
 
+#app[data-mode='text'] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
 canvas {
   display: block;
   width: 100%;
   height: 100%;
   touch-action: none;
   user-select: none;
+}
+
+.text-fallback {
+  margin: 0 auto;
+  padding: 3rem 1.75rem;
+  max-width: 32rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: #ecf4ff;
+  text-align: left;
+  background:
+    linear-gradient(140deg, rgba(11, 18, 30, 0.95), rgba(13, 31, 46, 0.85)),
+    rgba(6, 12, 22, 0.9);
+  border-radius: 1.25rem;
+  border: 1px solid rgba(82, 184, 255, 0.28);
+  box-shadow: 0 32px 90px rgba(0, 8, 20, 0.6);
+  backdrop-filter: blur(18px);
+}
+
+.text-fallback__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.text-fallback__description {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 0.88;
+}
+
+.text-fallback__actions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.text-fallback__link {
+  color: #8fd6ff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.text-fallback__link:hover,
+.text-fallback__link:focus {
+  text-decoration: underline;
 }
 
 .lighting-debug-indicator {

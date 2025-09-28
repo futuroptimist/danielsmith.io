@@ -38,6 +38,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
+import { evaluateFailoverDecision, renderTextFallback } from './failover';
 import {
   FLOOR_PLAN,
   getCombinedWallSegments,
@@ -61,7 +62,10 @@ import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './structures/flywheel';
-import { createJobbotTerminal, type JobbotTerminalBuild } from './structures/jobbotTerminal';
+import {
+  createJobbotTerminal,
+  type JobbotTerminalBuild,
+} from './structures/jobbotTerminal';
 import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 
@@ -792,276 +796,155 @@ if (!container) {
   throw new Error('Missing #app container element.');
 }
 
-const renderer = new WebGLRenderer({ antialias: true });
-renderer.outputColorSpace = SRGBColorSpace;
-renderer.toneMapping = ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(new Color(0x0d121c));
-container.appendChild(renderer.domElement);
+const failoverDecision = evaluateFailoverDecision();
 
-const scene = new Scene();
-scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
-
-const floorBounds = getFloorBounds(FLOOR_PLAN);
-const floorCenter = new Vector3(
-  (floorBounds.minX + floorBounds.maxX) / 2,
-  0,
-  (floorBounds.minZ + floorBounds.maxZ) / 2
-);
-
-const initialRoom = FLOOR_PLAN.rooms[0];
-const initialPlayerPosition = new Vector3(
-  (initialRoom.bounds.minX + initialRoom.bounds.maxX) / 2,
-  PLAYER_RADIUS,
-  (initialRoom.bounds.minZ + initialRoom.bounds.maxZ) / 2
-);
-
-const halfWidth = (floorBounds.maxX - floorBounds.minX) / 2;
-const distanceToNorthEdge = floorBounds.maxZ - initialPlayerPosition.z;
-const distanceToSouthEdge = initialPlayerPosition.z - floorBounds.minZ;
-const largestHalfExtent = Math.max(
-  halfWidth,
-  distanceToNorthEdge,
-  distanceToSouthEdge
-);
-const cameraSize = largestHalfExtent + CAMERA_MARGIN;
-
-const aspect = window.innerWidth / window.innerHeight;
-const camera = new OrthographicCamera(
-  -cameraSize * aspect,
-  cameraSize * aspect,
-  cameraSize,
-  -cameraSize,
-  0.1,
-  1000
-);
-const cameraBaseOffset = new Vector3(
-  cameraSize * 1.35,
-  cameraSize * 1.35,
-  cameraSize * 1.35
-);
-
-const cameraCenter = initialPlayerPosition.clone();
-camera.position.copy(cameraCenter).add(cameraBaseOffset);
-camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
-
-const ambientLight = new AmbientLight(0xf5f7ff, 0.38);
-const hemisphericLight = new HemisphereLight(0x324a6d, 0x131a17, 0.22);
-const directionalLight = new DirectionalLight(0xf1f0ff, 0.64);
-directionalLight.position.set(20, 30, 10);
-directionalLight.target.position.set(floorCenter.x, 0, floorCenter.z);
-scene.add(ambientLight);
-scene.add(hemisphericLight);
-scene.add(directionalLight);
-scene.add(directionalLight.target);
-
-const backyardRoom = FLOOR_PLAN.rooms.find(
-  (room) => room.id === BACKYARD_ROOM_ID
-);
-if (backyardRoom) {
-  const backyard = createBackyardEnvironment(backyardRoom.bounds);
-  scene.add(backyard.group);
-  backyard.colliders.forEach((collider) => staticColliders.push(collider));
-}
-
-const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
-const floorShape = new Shape();
-const [firstX, firstZ] = FLOOR_PLAN.outline[0];
-floorShape.moveTo(firstX, firstZ);
-for (let i = 1; i < FLOOR_PLAN.outline.length; i += 1) {
-  const [x, z] = FLOOR_PLAN.outline[i];
-  floorShape.lineTo(x, z);
-}
-floorShape.closePath();
-const floorGeometry = new ShapeGeometry(floorShape);
-floorGeometry.rotateX(-Math.PI / 2);
-const floor = new Mesh(floorGeometry, floorMaterial);
-floor.position.y = 0;
-scene.add(floor);
-
-const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
-const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
-const wallGroup = new Group();
-const combinedWallSegments = getCombinedWallSegments(FLOOR_PLAN);
-
-combinedWallSegments.forEach((segment) => {
-  const length =
-    segment.orientation === 'horizontal'
-      ? Math.abs(segment.end.x - segment.start.x)
-      : Math.abs(segment.end.z - segment.start.z);
-  if (length <= 1e-4) {
-    return;
-  }
-
-  const hasExterior = segment.rooms.some(
-    (roomInfo) => getRoomCategory(roomInfo.id) === 'exterior'
-  );
-  const hasInterior = segment.rooms.some(
-    (roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior'
-  );
-  const isMixed = hasExterior && hasInterior;
-  const segmentThickness =
-    hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
-  const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
-  const material = hasExterior && !isMixed ? fenceMaterial : wallMaterial;
-
-  const isInterior = segment.rooms.length > 1;
-  const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
-  const width =
-    segment.orientation === 'horizontal'
-      ? length + extension
-      : segmentThickness;
-  const depth =
-    segment.orientation === 'horizontal'
-      ? segmentThickness
-      : length + extension;
-
-  const baseX =
-    segment.orientation === 'horizontal'
-      ? (segment.start.x + segment.end.x) / 2
-      : segment.start.x;
-  const baseZ =
-    segment.orientation === 'horizontal'
-      ? segment.start.z
-      : (segment.start.z + segment.end.z) / 2;
-
-  let offsetX = 0;
-  let offsetZ = 0;
-  if (!isInterior) {
-    const direction = getOutwardDirectionForWall(segment.rooms[0].wall);
-    offsetX = direction.x * (WALL_THICKNESS / 2);
-    offsetZ = direction.z * (WALL_THICKNESS / 2);
-  }
-
-  const geometry = new BoxGeometry(width, segmentHeight, depth);
-  const wall = new Mesh(geometry, material);
-  wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
-  wallGroup.add(wall);
-
-  staticColliders.push({
-    minX: wall.position.x - width / 2,
-    maxX: wall.position.x + width / 2,
-    minZ: wall.position.z - depth / 2,
-    maxZ: wall.position.z + depth / 2,
-  });
-});
-
-scene.add(wallGroup);
-
-const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
-if (livingRoom) {
-  const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
-  scene.add(mediaWall.group);
-  mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
-}
-
-const staircase = createStaircase(STAIRCASE_CONFIG);
-scene.add(staircase.group);
-// Block the player from rolling onto the vertical geometry until slope handling lands.
-staircase.colliders.forEach((collider) => staticColliders.push(collider));
-
-if (LIGHTING_OPTIONS.enableLedStrips) {
-  const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
-  const ledBaseColor = new Color(0x101623);
-  const ledGroup = new Group();
-  const ledFillLights = new Group();
-  ledStripGroup = ledGroup;
-  ledFillLightGroup = ledFillLights;
-  const roomLedGroups = new Map<string, Group>();
-  const roomLedMaterials = new Map<string, MeshStandardMaterial>();
-
-  FLOOR_PLAN.rooms.forEach((room) => {
-    if (getRoomCategory(room.id) === 'exterior') {
-      return;
+if (failoverDecision.shouldUseFallback) {
+  const immersiveUrl = (() => {
+    if (typeof window === 'undefined') {
+      return '/?mode=immersive';
     }
-    const emissiveColor = new Color(room.ledColor);
-    const material = new MeshStandardMaterial({
-      color: ledBaseColor,
-      emissive: emissiveColor,
-      emissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
-      roughness: 0.35,
-      metalness: 0.15,
-    });
-    roomLedMaterials.set(room.id, material);
+    const params = new URLSearchParams(window.location.search);
+    params.set('mode', 'immersive');
+    const query = params.toString();
+    const hash = window.location.hash ?? '';
+    return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
+  })();
 
-    const group = new Group();
-    group.name = `${room.name} LED`; // helpful for debugging
-    roomLedGroups.set(room.id, group);
-    ledGroup.add(group);
-
-    const inset = 1.1;
-    const light = new PointLight(
-      emissiveColor,
-      LIGHTING_OPTIONS.ledLightIntensity,
-      Math.max(
-        room.bounds.maxX - room.bounds.minX,
-        room.bounds.maxZ - room.bounds.minZ
-      ) * 1.1,
-      2
-    );
-    light.position.set(
-      (room.bounds.minX + room.bounds.maxX) / 2,
-      ledHeight - 0.1,
-      (room.bounds.minZ + room.bounds.maxZ) / 2
-    );
-    light.castShadow = false;
-    ledFillLights.add(light);
-
-    const cornerOffsets = [
-      new Vector3(
-        room.bounds.minX + inset,
-        ledHeight - 0.1,
-        room.bounds.minZ + inset
-      ),
-      new Vector3(
-        room.bounds.maxX - inset,
-        ledHeight - 0.1,
-        room.bounds.minZ + inset
-      ),
-      new Vector3(
-        room.bounds.minX + inset,
-        ledHeight - 0.1,
-        room.bounds.maxZ - inset
-      ),
-      new Vector3(
-        room.bounds.maxX - inset,
-        ledHeight - 0.1,
-        room.bounds.maxZ - inset
-      ),
-    ];
-
-    cornerOffsets.forEach((offset) => {
-      const cornerLight = new PointLight(
-        emissiveColor,
-        LIGHTING_OPTIONS.ledLightIntensity * 0.35,
-        Math.max(
-          room.bounds.maxX - room.bounds.minX,
-          room.bounds.maxZ - room.bounds.minZ
-        ) * 0.9,
-        2
-      );
-      cornerLight.position.copy(offset);
-      cornerLight.castShadow = false;
-      ledFillLights.add(cornerLight);
-    });
+  renderTextFallback(container, {
+    reason: failoverDecision.reason ?? 'manual',
+    immersiveUrl,
   });
+} else {
+  initializeImmersiveScene(container);
+}
+
+function initializeImmersiveScene(container: HTMLElement) {
+  const renderer = new WebGLRenderer({ antialias: true });
+  renderer.outputColorSpace = SRGBColorSpace;
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(new Color(0x0d121c));
+  container.appendChild(renderer.domElement);
+
+  const scene = new Scene();
+  scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
+
+  const floorBounds = getFloorBounds(FLOOR_PLAN);
+  const floorCenter = new Vector3(
+    (floorBounds.minX + floorBounds.maxX) / 2,
+    0,
+    (floorBounds.minZ + floorBounds.maxZ) / 2
+  );
+
+  const initialRoom = FLOOR_PLAN.rooms[0];
+  const initialPlayerPosition = new Vector3(
+    (initialRoom.bounds.minX + initialRoom.bounds.maxX) / 2,
+    PLAYER_RADIUS,
+    (initialRoom.bounds.minZ + initialRoom.bounds.maxZ) / 2
+  );
+
+  const halfWidth = (floorBounds.maxX - floorBounds.minX) / 2;
+  const distanceToNorthEdge = floorBounds.maxZ - initialPlayerPosition.z;
+  const distanceToSouthEdge = initialPlayerPosition.z - floorBounds.minZ;
+  const largestHalfExtent = Math.max(
+    halfWidth,
+    distanceToNorthEdge,
+    distanceToSouthEdge
+  );
+  const cameraSize = largestHalfExtent + CAMERA_MARGIN;
+
+  const aspect = window.innerWidth / window.innerHeight;
+  const camera = new OrthographicCamera(
+    -cameraSize * aspect,
+    cameraSize * aspect,
+    cameraSize,
+    -cameraSize,
+    0.1,
+    1000
+  );
+  const cameraBaseOffset = new Vector3(
+    cameraSize * 1.35,
+    cameraSize * 1.35,
+    cameraSize * 1.35
+  );
+
+  const cameraCenter = initialPlayerPosition.clone();
+  camera.position.copy(cameraCenter).add(cameraBaseOffset);
+  camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+
+  const ambientLight = new AmbientLight(0xf5f7ff, 0.38);
+  const hemisphericLight = new HemisphereLight(0x324a6d, 0x131a17, 0.22);
+  const directionalLight = new DirectionalLight(0xf1f0ff, 0.64);
+  directionalLight.position.set(20, 30, 10);
+  directionalLight.target.position.set(floorCenter.x, 0, floorCenter.z);
+  scene.add(ambientLight);
+  scene.add(hemisphericLight);
+  scene.add(directionalLight);
+  scene.add(directionalLight.target);
+
+  const backyardRoom = FLOOR_PLAN.rooms.find(
+    (room) => room.id === BACKYARD_ROOM_ID
+  );
+  if (backyardRoom) {
+    const backyard = createBackyardEnvironment(backyardRoom.bounds);
+    scene.add(backyard.group);
+    backyard.colliders.forEach((collider) => staticColliders.push(collider));
+  }
+
+  const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
+  const floorShape = new Shape();
+  const [firstX, firstZ] = FLOOR_PLAN.outline[0];
+  floorShape.moveTo(firstX, firstZ);
+  for (let i = 1; i < FLOOR_PLAN.outline.length; i += 1) {
+    const [x, z] = FLOOR_PLAN.outline[i];
+    floorShape.lineTo(x, z);
+  }
+  floorShape.closePath();
+  const floorGeometry = new ShapeGeometry(floorShape);
+  floorGeometry.rotateX(-Math.PI / 2);
+  const floor = new Mesh(floorGeometry, floorMaterial);
+  floor.position.y = 0;
+  scene.add(floor);
+
+  const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
+  const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
+  const wallGroup = new Group();
+  const combinedWallSegments = getCombinedWallSegments(FLOOR_PLAN);
 
   combinedWallSegments.forEach((segment) => {
-    const segmentLength =
+    const length =
       segment.orientation === 'horizontal'
         ? Math.abs(segment.end.x - segment.start.x)
         : Math.abs(segment.end.z - segment.start.z);
-    const effectiveLength = segmentLength - LED_STRIP_EDGE_BUFFER * 2;
-    if (effectiveLength <= LED_STRIP_DEPTH * 0.5) {
+    if (length <= 1e-4) {
       return;
     }
 
+    const hasExterior = segment.rooms.some(
+      (roomInfo) => getRoomCategory(roomInfo.id) === 'exterior'
+    );
+    const hasInterior = segment.rooms.some(
+      (roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior'
+    );
+    const isMixed = hasExterior && hasInterior;
+    const segmentThickness =
+      hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
+    const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
+    const material = hasExterior && !isMixed ? fenceMaterial : wallMaterial;
+
+    const isInterior = segment.rooms.length > 1;
+    const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
     const width =
-      segment.orientation === 'horizontal' ? effectiveLength : LED_STRIP_DEPTH;
+      segment.orientation === 'horizontal'
+        ? length + extension
+        : segmentThickness;
     const depth =
-      segment.orientation === 'horizontal' ? LED_STRIP_DEPTH : effectiveLength;
+      segment.orientation === 'horizontal'
+        ? segmentThickness
+        : length + extension;
+
     const baseX =
       segment.orientation === 'horizontal'
         ? (segment.start.x + segment.end.x) / 2
@@ -1071,414 +954,582 @@ if (LIGHTING_OPTIONS.enableLedStrips) {
         ? segment.start.z
         : (segment.start.z + segment.end.z) / 2;
 
-    segment.rooms.forEach((roomInfo) => {
-      if (getRoomCategory(roomInfo.id) === 'exterior') {
-        return;
-      }
-      const material = roomLedMaterials.get(roomInfo.id);
-      const group = roomLedGroups.get(roomInfo.id);
-      if (!material || !group) {
-        return;
-      }
-      const direction = getOutwardDirectionForWall(roomInfo.wall);
-      const inwardOffset =
-        segment.rooms.length > 1
-          ? WALL_THICKNESS / 2 + LED_STRIP_DEPTH / 2
-          : LED_STRIP_DEPTH / 2;
-      const offsetX = -direction.x * inwardOffset;
-      const offsetZ = -direction.z * inwardOffset;
+    let offsetX = 0;
+    let offsetZ = 0;
+    if (!isInterior) {
+      const direction = getOutwardDirectionForWall(segment.rooms[0].wall);
+      offsetX = direction.x * (WALL_THICKNESS / 2);
+      offsetZ = direction.z * (WALL_THICKNESS / 2);
+    }
 
-      const geometry = new BoxGeometry(width, LED_STRIP_THICKNESS, depth);
-      const strip = new Mesh(geometry, material);
-      strip.position.set(baseX + offsetX, ledHeight, baseZ + offsetZ);
-      strip.renderOrder = 1;
-      group.add(strip);
+    const geometry = new BoxGeometry(width, segmentHeight, depth);
+    const wall = new Mesh(geometry, material);
+    wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
+    wallGroup.add(wall);
+
+    staticColliders.push({
+      minX: wall.position.x - width / 2,
+      maxX: wall.position.x + width / 2,
+      minZ: wall.position.z - depth / 2,
+      maxZ: wall.position.z + depth / 2,
     });
   });
 
-  scene.add(ledGroup);
-  scene.add(ledFillLights);
-}
+  scene.add(wallGroup);
 
-const builtPoiInstances = createPoiInstances(getPoiDefinitions());
-builtPoiInstances.forEach((poi) => {
-  scene.add(poi.group);
-  staticColliders.push(poi.collider);
-  poiInstances.push(poi);
-});
-
-const poiAnalytics = createWindowPoiAnalytics();
-const poiTooltipOverlay = new PoiTooltipOverlay({ container });
-
-const flywheelPoi = poiInstances.find(
-  (poi) => poi.definition.id === 'flywheel-studio-flywheel'
-);
-const jobbotPoi = poiInstances.find(
-  (poi) => poi.definition.id === 'jobbot-studio-terminal'
-);
-const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
-if (studioRoom) {
-  const centerX =
-    flywheelPoi?.group.position.x ??
-    (studioRoom.bounds.minX + studioRoom.bounds.maxX) / 2;
-  const centerZ =
-    flywheelPoi?.group.position.z ??
-    (studioRoom.bounds.minZ + studioRoom.bounds.maxZ) / 2;
-  const showpiece = createFlywheelShowpiece({
-    centerX,
-    centerZ,
-    roomBounds: studioRoom.bounds,
-    orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
-  });
-  scene.add(showpiece.group);
-  showpiece.colliders.forEach((collider) => staticColliders.push(collider));
-  flywheelShowpiece = showpiece;
-
-  const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
-  const terminalX = MathUtils.clamp(
-    jobbotPoi?.group.position.x ?? 11.4,
-    studioRoom.bounds.minX + 1.2,
-    studioRoom.bounds.maxX - 0.8
-  );
-  const terminalZ = MathUtils.clamp(
-    jobbotPoi?.group.position.z ?? -0.6,
-    studioRoom.bounds.minZ + 1.2,
-    studioRoom.bounds.maxZ - 1.1
-  );
-  const terminal = createJobbotTerminal({
-    position: { x: terminalX, y: 0, z: terminalZ },
-    orientationRadians: terminalOrientation,
-  });
-  scene.add(terminal.group);
-  terminal.colliders.forEach((collider) => staticColliders.push(collider));
-  jobbotTerminal = terminal;
-}
-
-const poiInteractionManager = new PoiInteractionManager(
-  renderer.domElement,
-  camera,
-  poiInstances,
-  poiAnalytics
-);
-const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
-  poiTooltipOverlay.setHovered(poi);
-});
-const removeSelectionStateListener =
-  poiInteractionManager.addSelectionStateListener((poi) => {
-    poiTooltipOverlay.setSelected(poi);
-  });
-poiInteractionManager.start();
-window.addEventListener('beforeunload', () => {
-  poiInteractionManager.dispose();
-  removeHoverListener();
-  removeSelectionStateListener();
-  poiTooltipOverlay.dispose();
-});
-
-const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
-const playerGeometry = new SphereGeometry(PLAYER_RADIUS, 32, 32);
-const player = new Mesh(playerGeometry, playerMaterial);
-player.position.copy(initialPlayerPosition);
-scene.add(player);
-
-const controls = new KeyboardControls();
-const joystick = new VirtualJoystick(renderer.domElement);
-const clock = new Clock();
-const targetVelocity = new Vector3();
-const velocity = new Vector3();
-const moveDirection = new Vector3();
-const cameraPan = new Vector3();
-const cameraPanTarget = new Vector3();
-const poiLabelLookTarget = new Vector3();
-const poiPlayerOffset = new Vector2();
-let cameraPanLimitX = 0;
-let cameraPanLimitZ = 0;
-
-let composer: EffectComposer | null = null;
-let bloomPass: UnrealBloomPass | null = null;
-
-if (LIGHTING_OPTIONS.enableBloom) {
-  composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  bloomPass = new UnrealBloomPass(
-    new Vector2(window.innerWidth, window.innerHeight),
-    LIGHTING_OPTIONS.bloomStrength,
-    LIGHTING_OPTIONS.bloomRadius,
-    LIGHTING_OPTIONS.bloomThreshold
-  );
-  composer.addPass(bloomPass);
-}
-
-const lightingDebugController = createLightingDebugController({
-  renderer,
-  ambientLight,
-  hemisphericLight,
-  directionalLight,
-  bloomPass,
-  ledGroup: ledStripGroup,
-  ledFillLights: ledFillLightGroup,
-  debug: {
-    exposure: 0.92,
-    ambientIntensity: 0.55,
-    hemisphericIntensity: 0.38,
-    directionalIntensity: 0.35,
-    ledVisible: false,
-    bloomEnabled: false,
-  },
-});
-
-lightingDebugController.setMode('cinematic');
-
-const lightingDebugIndicator = document.createElement('div');
-lightingDebugIndicator.className = 'lighting-debug-indicator';
-container.appendChild(lightingDebugIndicator);
-
-const updateLightingIndicator = (mode: LightingMode) => {
-  const label = mode === 'cinematic' ? 'Cinematic' : 'Debug (flat)';
-  lightingDebugIndicator.textContent = `Lighting: ${label} · Shift+L to toggle`;
-  lightingDebugIndicator.setAttribute('data-mode', mode);
-};
-
-updateLightingIndicator(lightingDebugController.getMode());
-
-window.addEventListener('keydown', (event) => {
-  if ((event.key === 'l' || event.key === 'L') && event.shiftKey) {
-    event.preventDefault();
-    const nextMode = lightingDebugController.toggle();
-    updateLightingIndicator(nextMode);
-  }
-});
-
-function onResize() {
-  const nextAspect = window.innerWidth / window.innerHeight;
-  camera.left = -cameraSize * nextAspect;
-  camera.right = cameraSize * nextAspect;
-  camera.top = cameraSize;
-  camera.bottom = -cameraSize;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-  if (composer && bloomPass) {
-    composer.setSize(window.innerWidth, window.innerHeight);
-    bloomPass.setSize(window.innerWidth, window.innerHeight);
+  const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
+  if (livingRoom) {
+    const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
+    scene.add(mediaWall.group);
+    mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
   }
 
-  cameraPanLimitX = Math.max(0, cameraSize * nextAspect - PLAYER_RADIUS);
-  cameraPanLimitZ = Math.max(0, cameraSize - PLAYER_RADIUS);
-  cameraPanTarget.x = MathUtils.clamp(
-    cameraPanTarget.x,
-    -cameraPanLimitX,
-    cameraPanLimitX
+  const staircase = createStaircase(STAIRCASE_CONFIG);
+  scene.add(staircase.group);
+  // Block the player from rolling onto the vertical geometry until slope handling lands.
+  staircase.colliders.forEach((collider) => staticColliders.push(collider));
+
+  if (LIGHTING_OPTIONS.enableLedStrips) {
+    const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
+    const ledBaseColor = new Color(0x101623);
+    const ledGroup = new Group();
+    const ledFillLights = new Group();
+    ledStripGroup = ledGroup;
+    ledFillLightGroup = ledFillLights;
+    const roomLedGroups = new Map<string, Group>();
+    const roomLedMaterials = new Map<string, MeshStandardMaterial>();
+
+    FLOOR_PLAN.rooms.forEach((room) => {
+      if (getRoomCategory(room.id) === 'exterior') {
+        return;
+      }
+      const emissiveColor = new Color(room.ledColor);
+      const material = new MeshStandardMaterial({
+        color: ledBaseColor,
+        emissive: emissiveColor,
+        emissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
+        roughness: 0.35,
+        metalness: 0.15,
+      });
+      roomLedMaterials.set(room.id, material);
+
+      const group = new Group();
+      group.name = `${room.name} LED`; // helpful for debugging
+      roomLedGroups.set(room.id, group);
+      ledGroup.add(group);
+
+      const inset = 1.1;
+      const light = new PointLight(
+        emissiveColor,
+        LIGHTING_OPTIONS.ledLightIntensity,
+        Math.max(
+          room.bounds.maxX - room.bounds.minX,
+          room.bounds.maxZ - room.bounds.minZ
+        ) * 1.1,
+        2
+      );
+      light.position.set(
+        (room.bounds.minX + room.bounds.maxX) / 2,
+        ledHeight - 0.1,
+        (room.bounds.minZ + room.bounds.maxZ) / 2
+      );
+      light.castShadow = false;
+      ledFillLights.add(light);
+
+      const cornerOffsets = [
+        new Vector3(
+          room.bounds.minX + inset,
+          ledHeight - 0.1,
+          room.bounds.minZ + inset
+        ),
+        new Vector3(
+          room.bounds.maxX - inset,
+          ledHeight - 0.1,
+          room.bounds.minZ + inset
+        ),
+        new Vector3(
+          room.bounds.minX + inset,
+          ledHeight - 0.1,
+          room.bounds.maxZ - inset
+        ),
+        new Vector3(
+          room.bounds.maxX - inset,
+          ledHeight - 0.1,
+          room.bounds.maxZ - inset
+        ),
+      ];
+
+      cornerOffsets.forEach((offset) => {
+        const cornerLight = new PointLight(
+          emissiveColor,
+          LIGHTING_OPTIONS.ledLightIntensity * 0.35,
+          Math.max(
+            room.bounds.maxX - room.bounds.minX,
+            room.bounds.maxZ - room.bounds.minZ
+          ) * 0.9,
+          2
+        );
+        cornerLight.position.copy(offset);
+        cornerLight.castShadow = false;
+        ledFillLights.add(cornerLight);
+      });
+    });
+
+    combinedWallSegments.forEach((segment) => {
+      const segmentLength =
+        segment.orientation === 'horizontal'
+          ? Math.abs(segment.end.x - segment.start.x)
+          : Math.abs(segment.end.z - segment.start.z);
+      const effectiveLength = segmentLength - LED_STRIP_EDGE_BUFFER * 2;
+      if (effectiveLength <= LED_STRIP_DEPTH * 0.5) {
+        return;
+      }
+
+      const width =
+        segment.orientation === 'horizontal'
+          ? effectiveLength
+          : LED_STRIP_DEPTH;
+      const depth =
+        segment.orientation === 'horizontal'
+          ? LED_STRIP_DEPTH
+          : effectiveLength;
+      const baseX =
+        segment.orientation === 'horizontal'
+          ? (segment.start.x + segment.end.x) / 2
+          : segment.start.x;
+      const baseZ =
+        segment.orientation === 'horizontal'
+          ? segment.start.z
+          : (segment.start.z + segment.end.z) / 2;
+
+      segment.rooms.forEach((roomInfo) => {
+        if (getRoomCategory(roomInfo.id) === 'exterior') {
+          return;
+        }
+        const material = roomLedMaterials.get(roomInfo.id);
+        const group = roomLedGroups.get(roomInfo.id);
+        if (!material || !group) {
+          return;
+        }
+        const direction = getOutwardDirectionForWall(roomInfo.wall);
+        const inwardOffset =
+          segment.rooms.length > 1
+            ? WALL_THICKNESS / 2 + LED_STRIP_DEPTH / 2
+            : LED_STRIP_DEPTH / 2;
+        const offsetX = -direction.x * inwardOffset;
+        const offsetZ = -direction.z * inwardOffset;
+
+        const geometry = new BoxGeometry(width, LED_STRIP_THICKNESS, depth);
+        const strip = new Mesh(geometry, material);
+        strip.position.set(baseX + offsetX, ledHeight, baseZ + offsetZ);
+        strip.renderOrder = 1;
+        group.add(strip);
+      });
+    });
+
+    scene.add(ledGroup);
+    scene.add(ledFillLights);
+  }
+
+  const builtPoiInstances = createPoiInstances(getPoiDefinitions());
+  builtPoiInstances.forEach((poi) => {
+    scene.add(poi.group);
+    staticColliders.push(poi.collider);
+    poiInstances.push(poi);
+  });
+
+  const poiAnalytics = createWindowPoiAnalytics();
+  const poiTooltipOverlay = new PoiTooltipOverlay({ container });
+
+  const flywheelPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'flywheel-studio-flywheel'
   );
-  cameraPanTarget.z = MathUtils.clamp(
-    cameraPanTarget.z,
-    -cameraPanLimitZ,
-    cameraPanLimitZ
+  const jobbotPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'jobbot-studio-terminal'
   );
-  cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
-  cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
-}
+  const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
+  if (studioRoom) {
+    const centerX =
+      flywheelPoi?.group.position.x ??
+      (studioRoom.bounds.minX + studioRoom.bounds.maxX) / 2;
+    const centerZ =
+      flywheelPoi?.group.position.z ??
+      (studioRoom.bounds.minZ + studioRoom.bounds.maxZ) / 2;
+    const showpiece = createFlywheelShowpiece({
+      centerX,
+      centerZ,
+      roomBounds: studioRoom.bounds,
+      orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
+    });
+    scene.add(showpiece.group);
+    showpiece.colliders.forEach((collider) => staticColliders.push(collider));
+    flywheelShowpiece = showpiece;
 
-window.addEventListener('resize', onResize);
-onResize();
+    const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
+    const terminalX = MathUtils.clamp(
+      jobbotPoi?.group.position.x ?? 11.4,
+      studioRoom.bounds.minX + 1.2,
+      studioRoom.bounds.maxX - 0.8
+    );
+    const terminalZ = MathUtils.clamp(
+      jobbotPoi?.group.position.z ?? -0.6,
+      studioRoom.bounds.minZ + 1.2,
+      studioRoom.bounds.maxZ - 1.1
+    );
+    const terminal = createJobbotTerminal({
+      position: { x: terminalX, y: 0, z: terminalZ },
+      orientationRadians: terminalOrientation,
+    });
+    scene.add(terminal.group);
+    terminal.colliders.forEach((collider) => staticColliders.push(collider));
+    jobbotTerminal = terminal;
+  }
 
-function updateMovement(delta: number) {
-  const rightInput =
-    Number(controls.isPressed('d') || controls.isPressed('ArrowRight')) -
-    Number(controls.isPressed('a') || controls.isPressed('ArrowLeft'));
-  const forwardInput =
-    Number(controls.isPressed('w') || controls.isPressed('ArrowUp')) -
-    Number(controls.isPressed('s') || controls.isPressed('ArrowDown'));
-
-  const joystickMovement = joystick.getMovement();
-  const combinedRight = rightInput + joystickMovement.x;
-  const combinedForward = forwardInput - joystickMovement.y;
-
-  getCameraRelativeMovementVector(
+  const poiInteractionManager = new PoiInteractionManager(
+    renderer.domElement,
     camera,
-    combinedRight,
-    combinedForward,
-    moveDirection
+    poiInstances,
+    poiAnalytics
   );
+  const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
+    poiTooltipOverlay.setHovered(poi);
+  });
+  const removeSelectionStateListener =
+    poiInteractionManager.addSelectionStateListener((poi) => {
+      poiTooltipOverlay.setSelected(poi);
+    });
+  poiInteractionManager.start();
+  window.addEventListener('beforeunload', () => {
+    poiInteractionManager.dispose();
+    removeHoverListener();
+    removeSelectionStateListener();
+    poiTooltipOverlay.dispose();
+  });
 
-  const lengthSq = moveDirection.lengthSq();
-  if (lengthSq > 1) {
-    moveDirection.multiplyScalar(1 / Math.sqrt(lengthSq));
-  }
+  const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
+  const playerGeometry = new SphereGeometry(PLAYER_RADIUS, 32, 32);
+  const player = new Mesh(playerGeometry, playerMaterial);
+  player.position.copy(initialPlayerPosition);
+  scene.add(player);
 
-  targetVelocity.copy(moveDirection).multiplyScalar(PLAYER_SPEED);
+  const controls = new KeyboardControls();
+  const joystick = new VirtualJoystick(renderer.domElement);
+  const clock = new Clock();
+  const targetVelocity = new Vector3();
+  const velocity = new Vector3();
+  const moveDirection = new Vector3();
+  const cameraPan = new Vector3();
+  const cameraPanTarget = new Vector3();
+  const poiLabelLookTarget = new Vector3();
+  const poiPlayerOffset = new Vector2();
+  let cameraPanLimitX = 0;
+  let cameraPanLimitZ = 0;
 
-  velocity.set(
-    MathUtils.damp(velocity.x, targetVelocity.x, MOVEMENT_SMOOTHING, delta),
-    0,
-    MathUtils.damp(velocity.z, targetVelocity.z, MOVEMENT_SMOOTHING, delta)
-  );
+  let composer: EffectComposer | null = null;
+  let bloomPass: UnrealBloomPass | null = null;
 
-  const stepX = velocity.x * delta;
-  const stepZ = velocity.z * delta;
-
-  if (stepX !== 0) {
-    const candidateX = player.position.x + stepX;
-    if (
-      isInsideAnyRoom(candidateX, player.position.z) &&
-      !collidesWithColliders(
-        candidateX,
-        player.position.z,
-        PLAYER_RADIUS,
-        staticColliders
-      )
-    ) {
-      player.position.x = candidateX;
-    } else {
-      targetVelocity.x = 0;
-      velocity.x = 0;
-    }
-  }
-
-  if (stepZ !== 0) {
-    const candidateZ = player.position.z + stepZ;
-    if (
-      isInsideAnyRoom(player.position.x, candidateZ) &&
-      !collidesWithColliders(
-        player.position.x,
-        candidateZ,
-        PLAYER_RADIUS,
-        staticColliders
-      )
-    ) {
-      player.position.z = candidateZ;
-    } else {
-      targetVelocity.z = 0;
-      velocity.z = 0;
-    }
-  }
-
-  player.position.y = PLAYER_RADIUS;
-}
-
-function updateCamera(delta: number) {
-  const cameraInput = joystick.getCamera();
-  cameraPanTarget.set(
-    cameraInput.x * cameraPanLimitX,
-    0,
-    cameraInput.y * cameraPanLimitZ
-  );
-
-  cameraPan.x = MathUtils.damp(
-    cameraPan.x,
-    cameraPanTarget.x,
-    CAMERA_PAN_SMOOTHING,
-    delta
-  );
-  cameraPan.z = MathUtils.damp(
-    cameraPan.z,
-    cameraPanTarget.z,
-    CAMERA_PAN_SMOOTHING,
-    delta
-  );
-
-  cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
-  cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
-
-  cameraCenter.set(
-    player.position.x + cameraPan.x,
-    player.position.y,
-    player.position.z + cameraPan.z
-  );
-
-  camera.position.set(
-    cameraCenter.x + cameraBaseOffset.x,
-    cameraCenter.y + cameraBaseOffset.y,
-    cameraCenter.z + cameraBaseOffset.z
-  );
-  camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
-}
-
-const POI_ACTIVATION_RESPONSE = 5.5;
-
-function updatePois(elapsedTime: number, delta: number) {
-  const smoothing =
-    delta > 0 ? 1 - Math.exp(-delta * POI_ACTIVATION_RESPONSE) : 1;
-  for (const poi of poiInstances) {
-    const floatOffset = Math.sin(elapsedTime * poi.floatSpeed + poi.floatPhase);
-    const scaledOffset = floatOffset * poi.floatAmplitude;
-    poi.orb.position.y = poi.orbBaseHeight + scaledOffset;
-    poi.label.position.y = poi.labelBaseHeight + scaledOffset * 0.4;
-    poi.label.getWorldPosition(poi.labelWorldPosition);
-    poiLabelLookTarget.set(
-      camera.position.x,
-      poi.labelWorldPosition.y,
-      camera.position.z
+  if (LIGHTING_OPTIONS.enableBloom) {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    bloomPass = new UnrealBloomPass(
+      new Vector2(window.innerWidth, window.innerHeight),
+      LIGHTING_OPTIONS.bloomStrength,
+      LIGHTING_OPTIONS.bloomRadius,
+      LIGHTING_OPTIONS.bloomThreshold
     );
-    poi.label.lookAt(poiLabelLookTarget);
+    composer.addPass(bloomPass);
+  }
 
-    poiPlayerOffset.set(
-      player.position.x - poi.group.position.x,
-      player.position.z - poi.group.position.z
+  const lightingDebugController = createLightingDebugController({
+    renderer,
+    ambientLight,
+    hemisphericLight,
+    directionalLight,
+    bloomPass,
+    ledGroup: ledStripGroup,
+    ledFillLights: ledFillLightGroup,
+    debug: {
+      exposure: 0.92,
+      ambientIntensity: 0.55,
+      hemisphericIntensity: 0.38,
+      directionalIntensity: 0.35,
+      ledVisible: false,
+      bloomEnabled: false,
+    },
+  });
+
+  lightingDebugController.setMode('cinematic');
+
+  const lightingDebugIndicator = document.createElement('div');
+  lightingDebugIndicator.className = 'lighting-debug-indicator';
+  container.appendChild(lightingDebugIndicator);
+
+  const updateLightingIndicator = (mode: LightingMode) => {
+    const label = mode === 'cinematic' ? 'Cinematic' : 'Debug (flat)';
+    lightingDebugIndicator.textContent = `Lighting: ${label} · Shift+L to toggle`;
+    lightingDebugIndicator.setAttribute('data-mode', mode);
+  };
+
+  updateLightingIndicator(lightingDebugController.getMode());
+
+  window.addEventListener('keydown', (event) => {
+    if ((event.key === 'l' || event.key === 'L') && event.shiftKey) {
+      event.preventDefault();
+      const nextMode = lightingDebugController.toggle();
+      updateLightingIndicator(nextMode);
+    }
+  });
+
+  function onResize() {
+    const nextAspect = window.innerWidth / window.innerHeight;
+    camera.left = -cameraSize * nextAspect;
+    camera.right = cameraSize * nextAspect;
+    camera.top = cameraSize;
+    camera.bottom = -cameraSize;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    if (composer && bloomPass) {
+      composer.setSize(window.innerWidth, window.innerHeight);
+      bloomPass.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    cameraPanLimitX = Math.max(0, cameraSize * nextAspect - PLAYER_RADIUS);
+    cameraPanLimitZ = Math.max(0, cameraSize - PLAYER_RADIUS);
+    cameraPanTarget.x = MathUtils.clamp(
+      cameraPanTarget.x,
+      -cameraPanLimitX,
+      cameraPanLimitX
     );
-    const planarDistance = poiPlayerOffset.length();
-    const maxRadius = poi.definition.interactionRadius;
-    const targetActivation = MathUtils.clamp(
-      1 - planarDistance / maxRadius,
+    cameraPanTarget.z = MathUtils.clamp(
+      cameraPanTarget.z,
+      -cameraPanLimitZ,
+      cameraPanLimitZ
+    );
+    cameraPan.x = MathUtils.clamp(
+      cameraPan.x,
+      -cameraPanLimitX,
+      cameraPanLimitX
+    );
+    cameraPan.z = MathUtils.clamp(
+      cameraPan.z,
+      -cameraPanLimitZ,
+      cameraPanLimitZ
+    );
+  }
+
+  window.addEventListener('resize', onResize);
+  onResize();
+
+  function updateMovement(delta: number) {
+    const rightInput =
+      Number(controls.isPressed('d') || controls.isPressed('ArrowRight')) -
+      Number(controls.isPressed('a') || controls.isPressed('ArrowLeft'));
+    const forwardInput =
+      Number(controls.isPressed('w') || controls.isPressed('ArrowUp')) -
+      Number(controls.isPressed('s') || controls.isPressed('ArrowDown'));
+
+    const joystickMovement = joystick.getMovement();
+    const combinedRight = rightInput + joystickMovement.x;
+    const combinedForward = forwardInput - joystickMovement.y;
+
+    getCameraRelativeMovementVector(
+      camera,
+      combinedRight,
+      combinedForward,
+      moveDirection
+    );
+
+    const lengthSq = moveDirection.lengthSq();
+    if (lengthSq > 1) {
+      moveDirection.multiplyScalar(1 / Math.sqrt(lengthSq));
+    }
+
+    targetVelocity.copy(moveDirection).multiplyScalar(PLAYER_SPEED);
+
+    velocity.set(
+      MathUtils.damp(velocity.x, targetVelocity.x, MOVEMENT_SMOOTHING, delta),
       0,
-      1
+      MathUtils.damp(velocity.z, targetVelocity.z, MOVEMENT_SMOOTHING, delta)
     );
-    poi.activation = MathUtils.lerp(
-      poi.activation,
-      targetActivation,
-      smoothing
-    );
-    poi.focus = MathUtils.lerp(poi.focus, poi.focusTarget, smoothing);
-    const emphasis = Math.max(poi.activation, poi.focus);
 
-    const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
-    poi.labelMaterial.opacity = labelOpacity;
-    poi.label.visible = labelOpacity > 0.05;
+    const stepX = velocity.x * delta;
+    const stepZ = velocity.z * delta;
 
-    const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
-    poi.orbMaterial.emissiveIntensity = orbEmissive;
+    if (stepX !== 0) {
+      const candidateX = player.position.x + stepX;
+      if (
+        isInsideAnyRoom(candidateX, player.position.z) &&
+        !collidesWithColliders(
+          candidateX,
+          player.position.z,
+          PLAYER_RADIUS,
+          staticColliders
+        )
+      ) {
+        player.position.x = candidateX;
+      } else {
+        targetVelocity.x = 0;
+        velocity.x = 0;
+      }
+    }
 
-    const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
-    poi.accentMaterial.emissiveIntensity = accentEmissive;
+    if (stepZ !== 0) {
+      const candidateZ = player.position.z + stepZ;
+      if (
+        isInsideAnyRoom(player.position.x, candidateZ) &&
+        !collidesWithColliders(
+          player.position.x,
+          candidateZ,
+          PLAYER_RADIUS,
+          staticColliders
+        )
+      ) {
+        player.position.z = candidateZ;
+      } else {
+        targetVelocity.z = 0;
+        velocity.z = 0;
+      }
+    }
 
-    const haloPulse = 1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
-    const haloScale = MathUtils.lerp(1, 1.18, emphasis) * haloPulse;
-    poi.halo.scale.setScalar(haloScale);
-    const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
-    poi.haloMaterial.opacity = haloOpacity;
-    poi.halo.visible = haloOpacity > 0.04;
+    player.position.y = PLAYER_RADIUS;
   }
+
+  function updateCamera(delta: number) {
+    const cameraInput = joystick.getCamera();
+    cameraPanTarget.set(
+      cameraInput.x * cameraPanLimitX,
+      0,
+      cameraInput.y * cameraPanLimitZ
+    );
+
+    cameraPan.x = MathUtils.damp(
+      cameraPan.x,
+      cameraPanTarget.x,
+      CAMERA_PAN_SMOOTHING,
+      delta
+    );
+    cameraPan.z = MathUtils.damp(
+      cameraPan.z,
+      cameraPanTarget.z,
+      CAMERA_PAN_SMOOTHING,
+      delta
+    );
+
+    cameraPan.x = MathUtils.clamp(
+      cameraPan.x,
+      -cameraPanLimitX,
+      cameraPanLimitX
+    );
+    cameraPan.z = MathUtils.clamp(
+      cameraPan.z,
+      -cameraPanLimitZ,
+      cameraPanLimitZ
+    );
+
+    cameraCenter.set(
+      player.position.x + cameraPan.x,
+      player.position.y,
+      player.position.z + cameraPan.z
+    );
+
+    camera.position.set(
+      cameraCenter.x + cameraBaseOffset.x,
+      cameraCenter.y + cameraBaseOffset.y,
+      cameraCenter.z + cameraBaseOffset.z
+    );
+    camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+  }
+
+  const POI_ACTIVATION_RESPONSE = 5.5;
+
+  function updatePois(elapsedTime: number, delta: number) {
+    const smoothing =
+      delta > 0 ? 1 - Math.exp(-delta * POI_ACTIVATION_RESPONSE) : 1;
+    for (const poi of poiInstances) {
+      const floatOffset = Math.sin(
+        elapsedTime * poi.floatSpeed + poi.floatPhase
+      );
+      const scaledOffset = floatOffset * poi.floatAmplitude;
+      poi.orb.position.y = poi.orbBaseHeight + scaledOffset;
+      poi.label.position.y = poi.labelBaseHeight + scaledOffset * 0.4;
+      poi.label.getWorldPosition(poi.labelWorldPosition);
+      poiLabelLookTarget.set(
+        camera.position.x,
+        poi.labelWorldPosition.y,
+        camera.position.z
+      );
+      poi.label.lookAt(poiLabelLookTarget);
+
+      poiPlayerOffset.set(
+        player.position.x - poi.group.position.x,
+        player.position.z - poi.group.position.z
+      );
+      const planarDistance = poiPlayerOffset.length();
+      const maxRadius = poi.definition.interactionRadius;
+      const targetActivation = MathUtils.clamp(
+        1 - planarDistance / maxRadius,
+        0,
+        1
+      );
+      poi.activation = MathUtils.lerp(
+        poi.activation,
+        targetActivation,
+        smoothing
+      );
+      poi.focus = MathUtils.lerp(poi.focus, poi.focusTarget, smoothing);
+      const emphasis = Math.max(poi.activation, poi.focus);
+
+      const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
+      poi.labelMaterial.opacity = labelOpacity;
+      poi.label.visible = labelOpacity > 0.05;
+
+      const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
+      poi.orbMaterial.emissiveIntensity = orbEmissive;
+
+      const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
+      poi.accentMaterial.emissiveIntensity = accentEmissive;
+
+      const haloPulse =
+        1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
+      const haloScale = MathUtils.lerp(1, 1.18, emphasis) * haloPulse;
+      poi.halo.scale.setScalar(haloScale);
+      const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
+      poi.haloMaterial.opacity = haloOpacity;
+      poi.halo.visible = haloOpacity > 0.04;
+    }
+  }
+
+  renderer.setAnimationLoop(() => {
+    const delta = clock.getDelta();
+    const elapsedTime = clock.elapsedTime;
+    updateMovement(delta);
+    updateCamera(delta);
+    updatePois(elapsedTime, delta);
+    if (flywheelShowpiece) {
+      const activation = flywheelPoi?.activation ?? 0;
+      const focus = flywheelPoi?.focus ?? 0;
+      flywheelShowpiece.update({
+        elapsed: elapsedTime,
+        delta,
+        emphasis: Math.max(activation, focus),
+      });
+    }
+    if (jobbotTerminal) {
+      const activation = jobbotPoi?.activation ?? 0;
+      const focus = jobbotPoi?.focus ?? 0;
+      jobbotTerminal.update({
+        elapsed: elapsedTime,
+        delta,
+        emphasis: Math.max(activation, focus),
+      });
+    }
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
+  });
 }
-
-renderer.setAnimationLoop(() => {
-  const delta = clock.getDelta();
-  const elapsedTime = clock.elapsedTime;
-  updateMovement(delta);
-  updateCamera(delta);
-  updatePois(elapsedTime, delta);
-  if (flywheelShowpiece) {
-    const activation = flywheelPoi?.activation ?? 0;
-    const focus = flywheelPoi?.focus ?? 0;
-    flywheelShowpiece.update({
-      elapsed: elapsedTime,
-      delta,
-      emphasis: Math.max(activation, focus),
-    });
-  }
-  if (jobbotTerminal) {
-    const activation = jobbotPoi?.activation ?? 0;
-    const focus = jobbotPoi?.focus ?? 0;
-    jobbotTerminal.update({
-      elapsed: elapsedTime,
-      delta,
-      emphasis: Math.max(activation, focus),
-    });
-  }
-  if (composer) {
-    composer.render();
-  } else {
-    renderer.render(scene, camera);
-  }
-});

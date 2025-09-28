@@ -1,12 +1,5 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
-import {
-  afterAll,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createJobbotTerminal } from '../structures/jobbotTerminal';
 
@@ -60,14 +53,20 @@ describe('JobbotTerminal structure', () => {
     expect(collider.minZ).toBeLessThanOrEqual(-1);
     expect(collider.maxZ).toBeGreaterThanOrEqual(-1);
 
-    expect(build.group.getObjectByName('JobbotTerminalScreen')).toBeInstanceOf(Mesh);
-    expect(build.group.getObjectByName('JobbotTerminalHologram')).toBeInstanceOf(Group);
+    expect(build.group.getObjectByName('JobbotTerminalScreen')).toBeInstanceOf(
+      Mesh
+    );
+    expect(
+      build.group.getObjectByName('JobbotTerminalHologram')
+    ).toBeInstanceOf(Group);
   });
 
   it('responds to emphasis updates with animated materials', () => {
     const build = createJobbotTerminal({ position: { x: 0, z: 0 } });
     const screen = build.group.getObjectByName('JobbotTerminalScreen') as Mesh;
-    const hologramCore = build.group.getObjectByName('JobbotTerminalCore') as Mesh;
+    const hologramCore = build.group.getObjectByName(
+      'JobbotTerminalCore'
+    ) as Mesh;
     const ticker = build.group.getObjectByName('JobbotTerminalTicker') as Mesh;
 
     const screenMaterial = screen.material as MeshBasicMaterial;
@@ -81,7 +80,9 @@ describe('JobbotTerminal structure', () => {
 
     build.update({ elapsed: 1.5, delta: 0.016, emphasis: 1 });
     expect(screenMaterial.opacity).toBeGreaterThanOrEqual(initialScreenOpacity);
-    expect(coreMaterial.emissiveIntensity).toBeGreaterThan(initialCoreIntensity);
+    expect(coreMaterial.emissiveIntensity).toBeGreaterThan(
+      initialCoreIntensity
+    );
     expect(tickerMaterial.opacity).toBeGreaterThanOrEqual(initialTickerOpacity);
   });
 });
