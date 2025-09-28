@@ -1,38 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="384" height="1216" viewBox="0 0 384 1216" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="384" height="1216" fill="#0b1428" />
+<svg width="576" height="576" viewBox="0 0 576 576" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="576" height="576" fill="#0b1428" />
   <g>
-    <path d="M32.00,1184.00 L352.00,1184.00 L352.00,736.00 L160.00,736.00 L160.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
+    <path d="M32.00,544.00 L544.00,544.00 L544.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
     
       <g>
         <rect
           x="32.00"
-          y="736.00"
-          width="320.00"
-          height="448.00"
+          y="352.00"
+          width="512.00"
+          height="192.00"
           fill="#4cf889"
           fill-opacity="0.22"
           stroke="#4cf889"
           stroke-opacity="0.5"
           stroke-width="1.5"
         />
-        <text x="192.00" y="960.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Living Room</text>
+        <text x="288.00" y="448.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Living Room</text>
       </g>
     
 
       <g>
         <rect
-          x="32.00"
-          y="352.00"
-          width="128.00"
-          height="384.00"
+          x="256.00"
+          y="160.00"
+          width="288.00"
+          height="192.00"
           fill="#58c4ff"
           fill-opacity="0.22"
           stroke="#58c4ff"
           stroke-opacity="0.5"
           stroke-width="1.5"
         />
-        <text x="96.00" y="544.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Studio</text>
+        <text x="400.00" y="256.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Studio</text>
+      </g>
+    
+
+      <g>
+        <rect
+          x="32.00"
+          y="160.00"
+          width="224.00"
+          height="192.00"
+          fill="#ffb347"
+          fill-opacity="0.22"
+          stroke="#ffb347"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="144.00" y="256.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Kitchen</text>
       </g>
     
 
@@ -40,29 +56,34 @@
         <rect
           x="32.00"
           y="32.00"
-          width="128.00"
-          height="320.00"
+          width="512.00"
+          height="128.00"
           fill="#274f37"
           fill-opacity="0.22"
           stroke="#274f37"
           stroke-opacity="0.5"
           stroke-width="1.5"
         />
-        <text x="96.00" y="192.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Backyard</text>
+        <text x="288.00" y="96.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Backyard</text>
       </g>
     
-    <line x1="32.00" y1="736.00" x2="72.00" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="120.00" y1="736.00" x2="160.00" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="160.00" y1="736.00" x2="352.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="1184.00" x2="352.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="352.00" x2="72.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="120.00" y1="352.00" x2="160.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="32.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="352.00" y1="1184.00" x2="352.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="1184.00" x2="32.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="736.00" x2="32.00" y2="352.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="352.00" x2="32.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="160.00" y1="736.00" x2="160.00" y2="352.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="160.00" y1="352.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+    <line x1="32.00" y1="352.00" x2="112.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="176.00" y1="352.00" x2="256.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="256.00" y1="352.00" x2="376.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="440.00" y1="352.00" x2="544.00" y2="352.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="544.00" x2="544.00" y2="544.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="160.00" x2="112.00" y2="160.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="176.00" y1="160.00" x2="256.00" y2="160.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="256.00" y1="160.00" x2="376.00" y2="160.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="440.00" y1="160.00" x2="544.00" y2="160.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="32.00" x2="544.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="544.00" x2="544.00" y2="352.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="352.00" x2="544.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="160.00" x2="544.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="544.00" x2="32.00" y2="352.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="352.00" x2="32.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="160.00" x2="32.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="256.00" y1="352.00" x2="256.00" y2="288.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="256.00" y1="224.00" x2="256.00" y2="160.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
   </g>
 </svg>

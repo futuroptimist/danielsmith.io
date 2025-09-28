@@ -1,7 +1,7 @@
 import { Camera, Raycaster, Vector2 } from 'three';
 
 import type { PoiInstance } from './markers';
-import type { PoiDefinition } from './types';
+import type { PoiAnalytics, PoiDefinition } from './types';
 
 export type PoiSelectionListener = (poi: PoiDefinition) => void;
 
@@ -31,7 +31,8 @@ export class PoiInteractionManager {
     private readonly domElement: HTMLElement,
     private readonly camera: Camera,
     private readonly poiInstances: PoiInstance[],
-    options: PoiInteractionOptions = {}
+    options: PoiInteractionOptions = {},
+    private readonly analytics?: PoiAnalytics
   ) {
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
@@ -204,6 +205,7 @@ export class PoiInteractionManager {
     if (this.hovered === poi) {
       return;
     }
+    const previous = this.hovered;
     if (this.hovered && this.hovered !== this.selected) {
       this.hovered.focusTarget = 0;
     }
@@ -221,18 +223,31 @@ export class PoiInteractionManager {
     } else if (!this.usingKeyboard) {
       this.keyboardIndex = null;
     }
+    if (previous && previous !== poi) {
+      this.analytics?.hoverEnded?.(previous.definition);
+    }
+    if (poi && previous !== poi) {
+      this.analytics?.hoverStarted?.(poi.definition);
+    }
   }
 
   private setSelected(poi: PoiInstance | null) {
     if (this.selected === poi) {
       return;
     }
+    const previous = this.selected;
     if (this.selected && this.selected !== this.hovered) {
       this.selected.focusTarget = 0;
     }
     this.selected = poi;
     if (this.selected) {
       this.selected.focusTarget = 1;
+    }
+    if (previous && previous !== poi) {
+      this.analytics?.selectionCleared?.(previous.definition);
+    }
+    if (poi && previous !== poi) {
+      this.analytics?.selected?.(poi.definition);
     }
   }
 

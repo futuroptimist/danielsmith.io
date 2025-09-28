@@ -38,6 +38,13 @@ export interface PoiDefinition {
   status?: 'prototype' | 'live';
 }
 
+export interface PoiAnalytics {
+  hoverStarted?(poi: PoiDefinition): void;
+  hoverEnded?(poi: PoiDefinition): void;
+  selected?(poi: PoiDefinition): void;
+  selectionCleared?(poi: PoiDefinition): void;
+}
+
 export interface PoiRegistry {
   all(): PoiDefinition[];
   getById(id: PoiId): PoiDefinition | undefined;
