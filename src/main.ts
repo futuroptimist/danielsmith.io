@@ -88,7 +88,11 @@ const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
+const CAMERA_ZOOM_SMOOTHING = 6;
 const CAMERA_MARGIN = 1.1;
+const MIN_CAMERA_ZOOM = 0.65;
+const MAX_CAMERA_ZOOM = 1.65;
+const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -858,23 +862,25 @@ function initializeImmersiveScene(container: HTMLElement) {
     distanceToNorthEdge,
     distanceToSouthEdge
   );
-  const cameraSize = largestHalfExtent + CAMERA_MARGIN;
+  const baseCameraSize = largestHalfExtent + CAMERA_MARGIN;
+  let cameraZoom = 1;
+  let cameraZoomTarget = 1;
 
   const aspect = window.innerWidth / window.innerHeight;
   const camera = new OrthographicCamera(
-    -cameraSize * aspect,
-    cameraSize * aspect,
-    cameraSize,
-    -cameraSize,
+    -baseCameraSize * aspect,
+    baseCameraSize * aspect,
+    baseCameraSize,
+    -baseCameraSize,
     0.1,
     1000
   );
   const audioListener = new AudioListener();
   camera.add(audioListener);
   const cameraBaseOffset = new Vector3(
-    cameraSize * 1.06,
-    cameraSize * 1.08,
-    cameraSize * 1.06
+    baseCameraSize * 1.06,
+    baseCameraSize * 1.08,
+    baseCameraSize * 1.06
   );
 
   const cameraCenter = initialPlayerPosition.clone();
@@ -1212,6 +1218,14 @@ function initializeImmersiveScene(container: HTMLElement) {
     removeSelectionStateListener();
     poiTooltipOverlay.dispose();
     ambientAudioController?.dispose();
+    renderer.domElement.removeEventListener('wheel', handleWheelZoom);
+    renderer.domElement.removeEventListener(
+      'pointerdown',
+      handlePointerDownForZoom
+    );
+    window.removeEventListener('pointermove', handlePointerMoveForZoom);
+    window.removeEventListener('pointerup', handlePointerEndForZoom);
+    window.removeEventListener('pointercancel', handlePointerEndForZoom);
   });
 
   const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
@@ -1242,6 +1256,140 @@ function initializeImmersiveScene(container: HTMLElement) {
   let cameraPanLimitX = 0;
   let cameraPanLimitZ = 0;
   let interactKeyWasPressed = false;
+  const pinchPointers = new Map<number, { x: number; y: number }>();
+  let pinchStartDistance: number | null = null;
+  let pinchStartZoomTarget = cameraZoomTarget;
+
+  const setCameraZoomTarget = (next: number) => {
+    cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+  };
+
+  const updateCameraPanLimits = (aspect: number) => {
+    const effectiveHalfWidth = (baseCameraSize * aspect) / cameraZoom;
+    const effectiveHalfHeight = baseCameraSize / cameraZoom;
+    cameraPanLimitX = Math.max(0, effectiveHalfWidth - PLAYER_RADIUS);
+    cameraPanLimitZ = Math.max(0, effectiveHalfHeight - PLAYER_RADIUS);
+    cameraPanTarget.x = MathUtils.clamp(
+      cameraPanTarget.x,
+      -cameraPanLimitX,
+      cameraPanLimitX
+    );
+    cameraPanTarget.z = MathUtils.clamp(
+      cameraPanTarget.z,
+      -cameraPanLimitZ,
+      cameraPanLimitZ
+    );
+    cameraPan.x = MathUtils.clamp(
+      cameraPan.x,
+      -cameraPanLimitX,
+      cameraPanLimitX
+    );
+    cameraPan.z = MathUtils.clamp(
+      cameraPan.z,
+      -cameraPanLimitZ,
+      cameraPanLimitZ
+    );
+  };
+
+  const updateCameraProjection = (aspect: number) => {
+    camera.left = -baseCameraSize * aspect;
+    camera.right = baseCameraSize * aspect;
+    camera.top = baseCameraSize;
+    camera.bottom = -baseCameraSize;
+    camera.zoom = cameraZoom;
+    camera.updateProjectionMatrix();
+    updateCameraPanLimits(aspect);
+  };
+
+  const getPinchDistance = () => {
+    const points = Array.from(pinchPointers.values());
+    if (points.length < 2) {
+      return 0;
+    }
+    const [a, b] = points;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
+  updateCameraProjection(aspect);
+
+  const handleWheelZoom = (event: WheelEvent) => {
+    event.preventDefault();
+    setCameraZoomTarget(
+      cameraZoomTarget - event.deltaY * CAMERA_ZOOM_WHEEL_SENSITIVITY
+    );
+  };
+
+  const handlePointerDownForZoom = (event: PointerEvent) => {
+    if (event.pointerType !== 'touch') {
+      return;
+    }
+    if (pinchPointers.size >= 2 && !pinchPointers.has(event.pointerId)) {
+      return;
+    }
+    pinchPointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    if (pinchPointers.size === 2) {
+      pinchStartDistance = getPinchDistance();
+      pinchStartZoomTarget = cameraZoomTarget;
+    }
+  };
+
+  const handlePointerMoveForZoom = (event: PointerEvent) => {
+    if (event.pointerType !== 'touch') {
+      return;
+    }
+    if (!pinchPointers.has(event.pointerId)) {
+      return;
+    }
+    pinchPointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    if (pinchPointers.size < 2) {
+      return;
+    }
+    const distance = getPinchDistance();
+    if (!isFinite(distance) || distance <= 0) {
+      return;
+    }
+    if (pinchStartDistance === null || pinchStartDistance <= 0) {
+      pinchStartDistance = distance;
+      pinchStartZoomTarget = cameraZoomTarget;
+      return;
+    }
+    const scale = distance / pinchStartDistance;
+    if (!isFinite(scale) || scale <= 0) {
+      return;
+    }
+    setCameraZoomTarget(pinchStartZoomTarget * scale);
+  };
+
+  const handlePointerEndForZoom = (event: PointerEvent) => {
+    if (event.pointerType !== 'touch') {
+      return;
+    }
+    if (!pinchPointers.has(event.pointerId)) {
+      return;
+    }
+    pinchPointers.delete(event.pointerId);
+    if (pinchPointers.size < 2) {
+      pinchStartDistance = null;
+      pinchStartZoomTarget = cameraZoomTarget;
+      return;
+    }
+    pinchStartDistance = getPinchDistance();
+    pinchStartZoomTarget = cameraZoomTarget;
+  };
+
+  renderer.domElement.addEventListener('wheel', handleWheelZoom, {
+    passive: false,
+  });
+  renderer.domElement.addEventListener('pointerdown', handlePointerDownForZoom);
+  window.addEventListener('pointermove', handlePointerMoveForZoom);
+  window.addEventListener('pointerup', handlePointerEndForZoom);
+  window.addEventListener('pointercancel', handlePointerEndForZoom);
 
   if (!ambientAudioController) {
     const audioBeds: AmbientAudioBedDefinition[] = [];
@@ -1404,11 +1552,7 @@ function initializeImmersiveScene(container: HTMLElement) {
 
   function onResize() {
     const nextAspect = window.innerWidth / window.innerHeight;
-    camera.left = -cameraSize * nextAspect;
-    camera.right = cameraSize * nextAspect;
-    camera.top = cameraSize;
-    camera.bottom = -cameraSize;
-    camera.updateProjectionMatrix();
+    updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -1417,29 +1561,6 @@ function initializeImmersiveScene(container: HTMLElement) {
       composer.setSize(window.innerWidth, window.innerHeight);
       bloomPass.setSize(window.innerWidth, window.innerHeight);
     }
-
-    cameraPanLimitX = Math.max(0, cameraSize * nextAspect - PLAYER_RADIUS);
-    cameraPanLimitZ = Math.max(0, cameraSize - PLAYER_RADIUS);
-    cameraPanTarget.x = MathUtils.clamp(
-      cameraPanTarget.x,
-      -cameraPanLimitX,
-      cameraPanLimitX
-    );
-    cameraPanTarget.z = MathUtils.clamp(
-      cameraPanTarget.z,
-      -cameraPanLimitZ,
-      cameraPanLimitZ
-    );
-    cameraPan.x = MathUtils.clamp(
-      cameraPan.x,
-      -cameraPanLimitX,
-      cameraPanLimitX
-    );
-    cameraPan.z = MathUtils.clamp(
-      cameraPan.z,
-      -cameraPanLimitZ,
-      cameraPanLimitZ
-    );
   }
 
   window.addEventListener('resize', onResize);
@@ -1520,6 +1641,21 @@ function initializeImmersiveScene(container: HTMLElement) {
   }
 
   function updateCamera(delta: number) {
+    const previousZoom = cameraZoom;
+    cameraZoom = MathUtils.damp(
+      cameraZoom,
+      cameraZoomTarget,
+      CAMERA_ZOOM_SMOOTHING,
+      delta
+    );
+    cameraZoom = MathUtils.clamp(cameraZoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    if (!Number.isFinite(cameraZoom)) {
+      cameraZoom = previousZoom;
+    }
+    if (Math.abs(cameraZoom - previousZoom) > 1e-4) {
+      updateCameraProjection(window.innerWidth / window.innerHeight);
+    }
+
     const cameraInput = joystick.getCamera();
     cameraPanTarget.set(
       cameraInput.x * cameraPanLimitX,
