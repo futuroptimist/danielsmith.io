@@ -52,7 +52,7 @@ export interface PoiInstance {
   floatAmplitude: number;
   halo?: Mesh;
   haloMaterial?: MeshBasicMaterial;
-  collider: { minX: number; maxX: number; minZ: number; maxZ: number };
+  collider?: { minX: number; maxX: number; minZ: number; maxZ: number };
   activation: number;
   pulseOffset: number;
   hitArea: Mesh;
@@ -249,27 +249,41 @@ function createDisplayPoiInstance(
   override: PoiInstanceOverride
 ): PoiInstance {
   override.hitArea.updateWorldMatrix(true, false);
-  const colliderBounds = new Box3().setFromObject(override.hitArea);
 
-  const hasValidBounds =
-    Number.isFinite(colliderBounds.min.x) &&
-    Number.isFinite(colliderBounds.max.x) &&
-    Number.isFinite(colliderBounds.min.z) &&
-    Number.isFinite(colliderBounds.max.z);
+  let collider: PoiInstance['collider'];
+  const geometry = override.hitArea.geometry;
 
-  const collider = hasValidBounds
-    ? {
-        minX: colliderBounds.min.x,
-        maxX: colliderBounds.max.x,
-        minZ: colliderBounds.min.z,
-        maxZ: colliderBounds.max.z,
-      }
-    : {
-        minX: definition.position.x - definition.footprint.width / 2,
-        maxX: definition.position.x + definition.footprint.width / 2,
-        minZ: definition.position.z - definition.footprint.depth / 2,
-        maxZ: definition.position.z + definition.footprint.depth / 2,
+  if (geometry) {
+    geometry.computeBoundingBox();
+    const boundingBox = geometry.boundingBox?.clone();
+    if (boundingBox) {
+      boundingBox.applyMatrix4(override.hitArea.matrixWorld);
+      collider = {
+        minX: boundingBox.min.x,
+        maxX: boundingBox.max.x,
+        minZ: boundingBox.min.z,
+        maxZ: boundingBox.max.z,
       };
+    }
+  }
+
+  if (!collider) {
+    const fallbackBounds = new Box3().setFromObject(override.hitArea);
+    const hasValidBounds =
+      Number.isFinite(fallbackBounds.min.x) &&
+      Number.isFinite(fallbackBounds.max.x) &&
+      Number.isFinite(fallbackBounds.min.z) &&
+      Number.isFinite(fallbackBounds.max.z);
+
+    if (hasValidBounds) {
+      collider = {
+        minX: fallbackBounds.min.x,
+        maxX: fallbackBounds.max.x,
+        minZ: fallbackBounds.min.z,
+        maxZ: fallbackBounds.max.z,
+      };
+    }
+  }
 
   override.hitArea.name = `POI_HIT:${definition.id}`;
 

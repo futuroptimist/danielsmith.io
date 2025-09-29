@@ -1065,7 +1065,9 @@ function initializeImmersiveScene(container: HTMLElement) {
     if (!poi.group.parent) {
       scene.add(poi.group);
     }
-    staticColliders.push(poi.collider);
+    if (poi.collider) {
+      staticColliders.push(poi.collider);
+    }
     poiInstances.push(poi);
   });
 
@@ -1871,16 +1873,16 @@ function initializeImmersiveScene(container: HTMLElement) {
         const nextOpacity = MathUtils.lerp(baseOpacity, focusOpacity, emphasis);
         material.opacity = nextOpacity;
         mesh.visible = nextOpacity > 0.02;
-        if (
-          baseScale !== undefined &&
-          focusScale !== undefined &&
-          mesh.scale
-        ) {
+        if (baseScale !== undefined && focusScale !== undefined && mesh.scale) {
           const nextScale = MathUtils.lerp(baseScale, focusScale, emphasis);
           mesh.scale.setScalar(nextScale);
         }
       } else {
-        if (poi.orbMaterial && poi.orbEmissiveBase && poi.orbEmissiveHighlight) {
+        if (
+          poi.orbMaterial &&
+          poi.orbEmissiveBase &&
+          poi.orbEmissiveHighlight
+        ) {
           const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
           poi.orbMaterial.emissiveIntensity = orbEmissive;
           poi.orbMaterial.emissive.lerpColors(
