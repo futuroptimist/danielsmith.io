@@ -104,46 +104,72 @@ describe('VirtualJoystick', () => {
     expect(joystick.getMovement()).toEqual({ x: 0, y: 0 });
   });
 
-  it('spawns a camera joystick on the right half and tracks pointer deltas', () => {
+  it('spawns a camera joystick on the right half and scales by viewport size', () => {
     const target = document.createElement('div');
     document.body.appendChild(target);
 
-    const joystick = new VirtualJoystick(target);
-
-    const downEvent = createPointerEvent('pointerdown', {
-      pointerId: 2,
-      clientX: 900,
-      clientY: 360,
+    const originalWidth = window.innerWidth;
+    const originalHeight = window.innerHeight;
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1200,
+      writable: true,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 800,
+      writable: true,
     });
 
-    target.dispatchEvent(downEvent);
+    try {
+      const joystick = new VirtualJoystick(target);
 
-    expect(downEvent.defaultPrevented).toBe(true);
-    expect(document.querySelectorAll('.joystick')).toHaveLength(1);
-    expect(joystick.getCamera()).toEqual({ x: 0, y: 0 });
+      const downEvent = createPointerEvent('pointerdown', {
+        pointerId: 2,
+        clientX: 900,
+        clientY: 360,
+      });
 
-    const moveEvent = createPointerEvent('pointermove', {
-      pointerId: 2,
-      clientX: 900,
-      clientY: 290,
-    });
+      target.dispatchEvent(downEvent);
 
-    window.dispatchEvent(moveEvent);
+      expect(downEvent.defaultPrevented).toBe(true);
+      expect(document.querySelectorAll('.joystick')).toHaveLength(1);
+      expect(joystick.getCamera()).toEqual({ x: 0, y: 0 });
 
-    expect(moveEvent.defaultPrevented).toBe(true);
-    expect(joystick.getCamera().x).toBeCloseTo(0, 5);
-    expect(joystick.getCamera().y).toBeCloseTo(-1, 5);
+      const moveEvent = createPointerEvent('pointermove', {
+        pointerId: 2,
+        clientX: 900,
+        clientY: 0,
+      });
 
-    const upEvent = createPointerEvent('pointerup', {
-      pointerId: 2,
-      clientX: 900,
-      clientY: 290,
-    });
+      window.dispatchEvent(moveEvent);
 
-    window.dispatchEvent(upEvent);
+      expect(moveEvent.defaultPrevented).toBe(true);
+      expect(joystick.getCamera().x).toBeCloseTo(0, 5);
+      expect(joystick.getCamera().y).toBeCloseTo(-0.9, 5);
 
-    expect(document.querySelectorAll('.joystick')).toHaveLength(0);
-    expect(joystick.getCamera()).toEqual({ x: 0, y: 0 });
+      const upEvent = createPointerEvent('pointerup', {
+        pointerId: 2,
+        clientX: 900,
+        clientY: 0,
+      });
+
+      window.dispatchEvent(upEvent);
+
+      expect(document.querySelectorAll('.joystick')).toHaveLength(0);
+      expect(joystick.getCamera()).toEqual({ x: 0, y: 0 });
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        value: originalWidth,
+        writable: true,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        configurable: true,
+        value: originalHeight,
+        writable: true,
+      });
+    }
   });
 
   it('reset removes any active joysticks and clears values', () => {

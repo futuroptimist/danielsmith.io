@@ -195,7 +195,8 @@ canvas {
 }
 
 .overlay__keys {
-  min-width: 7rem;
+  display: inline-block;
+  width: 11rem;
   font-weight: 600;
   color: #8fd6ff;
   letter-spacing: 0.02em;

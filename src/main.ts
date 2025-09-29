@@ -1085,9 +1085,16 @@ function initializeImmersiveScene(container: HTMLElement) {
       'pointerdown',
       handlePointerDownForZoom
     );
+    renderer.domElement.removeEventListener(
+      'pointerdown',
+      handlePointerDownForCameraPan
+    );
     window.removeEventListener('pointermove', handlePointerMoveForZoom);
     window.removeEventListener('pointerup', handlePointerEndForZoom);
     window.removeEventListener('pointercancel', handlePointerEndForZoom);
+    window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
+    window.removeEventListener('pointerup', handlePointerUpForCameraPan);
+    window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
   });
 
   const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
@@ -1121,6 +1128,10 @@ function initializeImmersiveScene(container: HTMLElement) {
   const pinchPointers = new Map<number, { x: number; y: number }>();
   let pinchStartDistance: number | null = null;
   let pinchStartZoomTarget = cameraZoomTarget;
+  const mouseCameraInput = new Vector2();
+  const mouseCameraStart = new Vector2();
+  let mouseCameraPointerId: number | null = null;
+
   let activeFloorId: FloorId = 'ground';
 
   const isWithinStairWidth = (x: number, margin = 0) =>
@@ -1312,13 +1323,76 @@ function initializeImmersiveScene(container: HTMLElement) {
     pinchStartZoomTarget = cameraZoomTarget;
   };
 
+  const updateMouseCameraInput = (clientX: number, clientY: number) => {
+    const halfWidth = window.innerWidth / 2;
+    const halfHeight = window.innerHeight / 2;
+    const dx = clientX - mouseCameraStart.x;
+    const dy = clientY - mouseCameraStart.y;
+    mouseCameraInput.set(
+      halfWidth <= 0 ? 0 : MathUtils.clamp(dx / halfWidth, -1, 1),
+      halfHeight <= 0 ? 0 : MathUtils.clamp(dy / halfHeight, -1, 1)
+    );
+  };
+
+  let mouseCameraDragging = false;
+
+  const handlePointerDownForCameraPan = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) {
+      return;
+    }
+    renderer.domElement.setPointerCapture?.(event.pointerId);
+    mouseCameraPointerId = event.pointerId;
+    mouseCameraStart.set(event.clientX, event.clientY);
+    mouseCameraInput.set(0, 0);
+    mouseCameraDragging = false;
+  };
+
+  const handlePointerMoveForCameraPan = (event: PointerEvent) => {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.pointerId !== mouseCameraPointerId
+    ) {
+      return;
+    }
+    if (!mouseCameraDragging) {
+      const deltaX = event.clientX - mouseCameraStart.x;
+      const deltaY = event.clientY - mouseCameraStart.y;
+      if (deltaX === 0 && deltaY === 0) {
+        return;
+      }
+      mouseCameraDragging = true;
+    }
+    event.preventDefault();
+    updateMouseCameraInput(event.clientX, event.clientY);
+  };
+
+  const handlePointerUpForCameraPan = (event: PointerEvent) => {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.pointerId !== mouseCameraPointerId
+    ) {
+      return;
+    }
+    renderer.domElement.releasePointerCapture?.(event.pointerId);
+    mouseCameraPointerId = null;
+    mouseCameraInput.set(0, 0);
+    mouseCameraDragging = false;
+  };
+
   renderer.domElement.addEventListener('wheel', handleWheelZoom, {
     passive: false,
   });
   renderer.domElement.addEventListener('pointerdown', handlePointerDownForZoom);
+  renderer.domElement.addEventListener(
+    'pointerdown',
+    handlePointerDownForCameraPan
+  );
   window.addEventListener('pointermove', handlePointerMoveForZoom);
   window.addEventListener('pointerup', handlePointerEndForZoom);
   window.addEventListener('pointercancel', handlePointerEndForZoom);
+  window.addEventListener('pointermove', handlePointerMoveForCameraPan);
+  window.addEventListener('pointerup', handlePointerUpForCameraPan);
+  window.addEventListener('pointercancel', handlePointerUpForCameraPan);
 
   if (!ambientAudioController) {
     const audioBeds: AmbientAudioBedDefinition[] = [];
@@ -1625,7 +1699,8 @@ function initializeImmersiveScene(container: HTMLElement) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
     }
 
-    const cameraInput = joystick.getCamera();
+    const cameraInput =
+      mouseCameraPointerId !== null ? mouseCameraInput : joystick.getCamera();
     cameraPanTarget.set(
       cameraInput.x * cameraPanLimitX,
       0,
