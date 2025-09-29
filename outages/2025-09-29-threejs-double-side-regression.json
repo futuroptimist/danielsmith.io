@@ -1,0 +1,10 @@
+{
+  "id": "2025-09-29-threejs-double-side-regression",
+  "date": "2025-09-29",
+  "component": "webapp",
+  "rootCause": "Omitting the DoubleSide import during the white-pop-in refactor left it undefined and crashed init.",
+  "resolution": "Re-import DoubleSide in src/main.ts so materials can set side without triggering a ReferenceError.",
+  "references": [
+    "https://github.com/danielsmith-io/danielsmith.io/blob/main/src/main.ts#L772"
+  ]
+}
