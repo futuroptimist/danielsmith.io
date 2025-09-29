@@ -1279,8 +1279,16 @@ function initializeImmersiveScene(container: HTMLElement) {
       -cameraPanLimitZ,
       cameraPanLimitZ
     );
-    cameraPan.x = MathUtils.clamp(cameraPan.x, -cameraPanLimitX, cameraPanLimitX);
-    cameraPan.z = MathUtils.clamp(cameraPan.z, -cameraPanLimitZ, cameraPanLimitZ);
+    cameraPan.x = MathUtils.clamp(
+      cameraPan.x,
+      -cameraPanLimitX,
+      cameraPanLimitX
+    );
+    cameraPan.z = MathUtils.clamp(
+      cameraPan.z,
+      -cameraPanLimitZ,
+      cameraPanLimitZ
+    );
   };
 
   const updateCameraProjection = (aspect: number) => {
