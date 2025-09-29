@@ -17,7 +17,10 @@ class FakeAudioBuffer implements AudioBufferLike {
     public readonly sampleRate: number,
     channels: number
   ) {
-    this.channelData = Array.from({ length: channels }, () => new Float32Array(length));
+    this.channelData = Array.from(
+      { length: channels },
+      () => new Float32Array(length)
+    );
   }
 
   getChannelData(channel: number): Float32Array {
@@ -28,7 +31,11 @@ class FakeAudioBuffer implements AudioBufferLike {
 class FakeContext implements BufferContext {
   constructor(public readonly sampleRate: number) {}
 
-  createBuffer(channels: number, length: number, sampleRate: number): AudioBufferLike {
+  createBuffer(
+    channels: number,
+    length: number,
+    sampleRate: number
+  ): AudioBufferLike {
     return new FakeAudioBuffer(length, sampleRate, channels);
   }
 }
@@ -85,7 +92,10 @@ describe('buffer helpers', () => {
   it('normalizes content to requested amplitude', () => {
     const data = new Float32Array([0.2, -0.4, 0.1]);
     _normalizeBuffer(data, 0.5);
-    const maxAbs = data.reduce((acc, value) => Math.max(acc, Math.abs(value)), 0);
+    const maxAbs = data.reduce(
+      (acc, value) => Math.max(acc, Math.abs(value)),
+      0
+    );
     expect(maxAbs).toBeCloseTo(0.5, 5);
     expect(Math.min(...data)).toBeCloseTo(-0.5, 5);
   });

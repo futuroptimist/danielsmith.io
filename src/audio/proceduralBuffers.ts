@@ -109,4 +109,7 @@ export function createDistantHumBuffer<T extends BufferContext>(
   return buffer;
 }
 
-export { applyLoopFades as _applyLoopFades, normalizeBuffer as _normalizeBuffer };
+export {
+  applyLoopFades as _applyLoopFades,
+  normalizeBuffer as _normalizeBuffer,
+};

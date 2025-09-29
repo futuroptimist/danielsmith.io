@@ -151,4 +151,7 @@ export class AmbientAudioController {
   }
 }
 
-export { computeAttenuation as _computeAttenuation, smoothingFactor as _smoothingFactor };
+export {
+  computeAttenuation as _computeAttenuation,
+  smoothingFactor as _smoothingFactor,
+};
