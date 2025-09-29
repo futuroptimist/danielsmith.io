@@ -10,6 +10,7 @@ import {
   Clock,
   Color,
   DirectionalLight,
+  DoubleSide,
   Group,
   HemisphereLight,
   MathUtils,
