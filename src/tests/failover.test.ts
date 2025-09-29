@@ -80,6 +80,28 @@ describe('evaluateFailoverDecision', () => {
       reason: 'webgl-unsupported',
     });
   });
+
+  it('triggers fallback when reported memory is below the threshold', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getDeviceMemory: () => 0.5,
+      minimumDeviceMemory: 1,
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'low-memory',
+    });
+  });
+
+  it('allows immersive override when memory is low but WebGL works', () => {
+    const decision = evaluateFailoverDecision({
+      search: '?mode=immersive',
+      createCanvas: canvasFactory,
+      getDeviceMemory: () => 0.25,
+      minimumDeviceMemory: 1,
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
 });
 
 describe('renderTextFallback', () => {
@@ -111,5 +133,13 @@ describe('renderTextFallback', () => {
     expect(section?.getAttribute('data-reason')).toBe('webgl-unsupported');
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/WebGL/);
+  });
+
+  it('describes memory-driven fallback messaging', () => {
+    const container = render('low-memory');
+    const section = container.querySelector('.text-fallback');
+    expect(section?.getAttribute('data-reason')).toBe('low-memory');
+    const description = container.querySelector('.text-fallback__description');
+    expect(description?.textContent).toMatch(/memory/i);
   });
 });

@@ -2,7 +2,12 @@ const WEBGL_CONTEXT_NAMES = ['webgl2', 'webgl', 'experimental-webgl'] as const;
 
 type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 
-export type FallbackReason = 'webgl-unsupported' | 'manual';
+type DeviceMemoryReader = () => number | undefined;
+
+export type FallbackReason =
+  | 'webgl-unsupported'
+  | 'manual'
+  | 'low-memory';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -43,11 +48,27 @@ export function isWebglSupported(options: WebglSupportOptions = {}): boolean {
 
 export interface FailoverDecisionOptions extends WebglSupportOptions {
   search?: string;
+  getDeviceMemory?: DeviceMemoryReader;
+  minimumDeviceMemory?: number;
 }
 
 export interface FailoverDecision {
   shouldUseFallback: boolean;
   reason?: FallbackReason;
+}
+
+interface NavigatorWithDeviceMemory extends Navigator {
+  deviceMemory?: number;
+}
+
+function getNavigatorDeviceMemory(): number | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  const reported = (navigator as NavigatorWithDeviceMemory).deviceMemory;
+  return typeof reported === 'number' && Number.isFinite(reported)
+    ? reported
+    : undefined;
 }
 
 export function evaluateFailoverDecision(
@@ -59,6 +80,14 @@ export function evaluateFailoverDecision(
   const params = new URLSearchParams(search);
   const mode = params.get('mode');
 
+  const minimumDeviceMemory = options.minimumDeviceMemory ?? 1;
+  const readDeviceMemory = options.getDeviceMemory ?? getNavigatorDeviceMemory;
+  const reportedDeviceMemory = readDeviceMemory();
+  const hasLowMemory =
+    reportedDeviceMemory !== undefined &&
+    reportedDeviceMemory >= 0 &&
+    reportedDeviceMemory < minimumDeviceMemory;
+
   const webglSupported = isWebglSupported(options);
 
   if (mode === 'text') {
@@ -66,13 +95,18 @@ export function evaluateFailoverDecision(
   }
 
   if (mode === 'immersive') {
-    return webglSupported
-      ? { shouldUseFallback: false }
-      : { shouldUseFallback: true, reason: 'webgl-unsupported' };
+    if (!webglSupported) {
+      return { shouldUseFallback: true, reason: 'webgl-unsupported' };
+    }
+    return { shouldUseFallback: false };
   }
 
   if (!webglSupported) {
     return { shouldUseFallback: true, reason: 'webgl-unsupported' };
+  }
+
+  if (hasLowMemory) {
+    return { shouldUseFallback: true, reason: 'low-memory' };
   }
 
   return { shouldUseFallback: false };
@@ -111,10 +145,16 @@ export function renderTextFallback(
 
   const description = document.createElement('p');
   description.className = 'text-fallback__description';
-  description.textContent =
-    reason === 'webgl-unsupported'
-      ? "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light."
-      : 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
+  description.textContent = (() => {
+    switch (reason) {
+      case 'webgl-unsupported':
+        return "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light.";
+      case 'low-memory':
+        return 'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.';
+      default:
+        return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
+    }
+  })();
   section.appendChild(description);
 
   const list = document.createElement('ul');
