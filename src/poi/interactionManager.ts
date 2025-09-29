@@ -102,6 +102,20 @@ export class PoiInteractionManager {
     };
   }
 
+  selectPoiById(poiId: string): void {
+    const poi = this.poiInstances.find(
+      (instance) => instance.definition.id === poiId
+    );
+    if (!poi) {
+      return;
+    }
+    this.usingKeyboard = true;
+    this.keyboardIndex = this.poiInstances.indexOf(poi);
+    this.setHovered(poi);
+    this.setSelected(poi);
+    this.dispatchSelection(poi.definition);
+  }
+
   private handleMouseMove(event: MouseEvent) {
     if (!this.updatePointer(event)) {
       return;

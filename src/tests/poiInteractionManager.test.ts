@@ -1,4 +1,5 @@
 import {
+  Color,
   DoubleSide,
   Group,
   Mesh,
@@ -30,6 +31,17 @@ function createMockPoi(definition: PoiDefinition): PoiInstance {
     new MeshBasicMaterial({ side: DoubleSide })
   );
   hitArea.position.y = 0.1;
+
+  const accentBaseColor = new Color(0x3bb7ff);
+  const accentFocusColor = new Color(0x7ce9ff);
+  const haloBaseColor = new Color(0x4bd8ff);
+  const haloFocusColor = new Color(0xaefbff);
+  const orbEmissiveBase = new Color(0x3de1ff);
+  const orbEmissiveHighlight = new Color(0x7efcff);
+
+  accentMaterial.color.copy(accentBaseColor);
+  haloMaterial.color.copy(haloBaseColor);
+  orbMaterial.emissive.copy(orbEmissiveBase);
 
   group.add(orb);
   group.add(label);
@@ -64,6 +76,12 @@ function createMockPoi(definition: PoiDefinition): PoiInstance {
     hitArea,
     focus: 0,
     focusTarget: 0,
+    accentBaseColor,
+    accentFocusColor,
+    haloBaseColor,
+    haloFocusColor,
+    orbEmissiveBase,
+    orbEmissiveHighlight,
   } satisfies PoiInstance;
 }
 
@@ -200,6 +218,14 @@ describe('PoiInteractionManager', () => {
     expect(poi.focusTarget).toBe(0);
     expect(secondPoi.focusTarget).toBe(1);
 
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+    expect(poi.focusTarget).toBe(1);
+    expect(secondPoi.focusTarget).toBe(0);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(secondPoi.focusTarget).toBe(1);
+
     keyboardManager.dispose();
   });
 
@@ -224,6 +250,17 @@ describe('PoiInteractionManager', () => {
     expect(listener).toHaveBeenCalledTimes(2);
 
     window.removeEventListener('poi:selected', customEventHandler);
+  });
+
+  it('selects POIs programmatically by id', () => {
+    manager.start();
+    const listener = vi.fn();
+    manager.addSelectionListener(listener);
+
+    manager.selectPoiById(definition.id);
+
+    expect(listener).toHaveBeenCalledWith(definition);
+    expect(poi.focusTarget).toBe(1);
   });
 
   it('notifies selection state listeners when selection clears', () => {

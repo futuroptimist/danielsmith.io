@@ -1212,6 +1212,15 @@ function initializeImmersiveScene(container: HTMLElement) {
   player.position.copy(initialPlayerPosition);
   scene.add(player);
 
+  const controlOverlay = document.getElementById('control-overlay');
+  const interactControl = controlOverlay?.querySelector<HTMLElement>(
+    '[data-control="interact"]'
+  );
+  const interactDescription = controlOverlay?.querySelector<HTMLElement>(
+    '[data-control="interact-description"]'
+  );
+  let interactablePoi: PoiInstance | null = null;
+
   const controls = new KeyboardControls();
   const joystick = new VirtualJoystick(renderer.domElement);
   const clock = new Clock();
@@ -1224,6 +1233,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   const poiPlayerOffset = new Vector2();
   let cameraPanLimitX = 0;
   let cameraPanLimitZ = 0;
+  let interactKeyWasPressed = false;
 
   let composer: EffectComposer | null = null;
   let bloomPass: UnrealBloomPass | null = null;
@@ -1448,6 +1458,8 @@ function initializeImmersiveScene(container: HTMLElement) {
   function updatePois(elapsedTime: number, delta: number) {
     const smoothing =
       delta > 0 ? 1 - Math.exp(-delta * POI_ACTIVATION_RESPONSE) : 1;
+    let closestPoi: PoiInstance | null = null;
+    let highestActivation = 0;
     for (const poi of poiInstances) {
       const floatOffset = Math.sin(
         elapsedTime * poi.floatSpeed + poi.floatPhase
@@ -1482,15 +1494,30 @@ function initializeImmersiveScene(container: HTMLElement) {
       poi.focus = MathUtils.lerp(poi.focus, poi.focusTarget, smoothing);
       const emphasis = Math.max(poi.activation, poi.focus);
 
+      if (poi.activation > highestActivation) {
+        highestActivation = poi.activation;
+        closestPoi = poi;
+      }
+
       const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
       poi.labelMaterial.opacity = labelOpacity;
       poi.label.visible = labelOpacity > 0.05;
 
       const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
       poi.orbMaterial.emissiveIntensity = orbEmissive;
+      poi.orbMaterial.emissive.lerpColors(
+        poi.orbEmissiveBase,
+        poi.orbEmissiveHighlight,
+        poi.focus
+      );
 
       const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
       poi.accentMaterial.emissiveIntensity = accentEmissive;
+      poi.accentMaterial.color.lerpColors(
+        poi.accentBaseColor,
+        poi.accentFocusColor,
+        poi.focus
+      );
 
       const haloPulse =
         1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
@@ -1499,7 +1526,42 @@ function initializeImmersiveScene(container: HTMLElement) {
       const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
       poi.haloMaterial.opacity = haloOpacity;
       poi.halo.visible = haloOpacity > 0.04;
+      poi.haloMaterial.color.lerpColors(
+        poi.haloBaseColor,
+        poi.haloFocusColor,
+        poi.focus
+      );
     }
+    if (closestPoi && highestActivation >= 0.6) {
+      setInteractablePoi(closestPoi);
+    } else {
+      setInteractablePoi(null);
+    }
+  }
+
+  function setInteractablePoi(poi: PoiInstance | null) {
+    if (interactablePoi === poi) {
+      return;
+    }
+    interactablePoi = poi;
+    if (!interactControl || !interactDescription) {
+      return;
+    }
+    if (poi) {
+      interactControl.hidden = false;
+      interactDescription.textContent = `Interact with ${poi.definition.title}`;
+    } else {
+      interactControl.hidden = true;
+      interactDescription.textContent = 'Interact';
+    }
+  }
+
+  function handleInteractionInput() {
+    const pressed = controls.isPressed('f');
+    if (pressed && !interactKeyWasPressed && interactablePoi) {
+      poiInteractionManager.selectPoiById(interactablePoi.definition.id);
+    }
+    interactKeyWasPressed = pressed;
   }
 
   renderer.setAnimationLoop(() => {
@@ -1508,6 +1570,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     updateMovement(delta);
     updateCamera(delta);
     updatePois(elapsedTime, delta);
+    handleInteractionInput();
     if (flywheelShowpiece) {
       const activation = flywheelPoi?.activation ?? 0;
       const focus = flywheelPoi?.focus ?? 0;

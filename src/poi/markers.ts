@@ -39,6 +39,12 @@ export interface PoiInstance {
   hitArea: Mesh;
   focus: number;
   focusTarget: number;
+  accentBaseColor: Color;
+  accentFocusColor: Color;
+  haloBaseColor: Color;
+  haloFocusColor: Color;
+  orbEmissiveBase: Color;
+  orbEmissiveHighlight: Color;
 }
 
 export function createPoiInstances(
@@ -87,8 +93,10 @@ function createPoiInstance(
     accentHeight,
     28
   );
+  const accentBaseColor = new Color(0x3bb7ff);
+  const accentFocusColor = new Color(0x7ce9ff);
   const accentMaterial = new MeshStandardMaterial({
-    color: new Color(0x3bb7ff),
+    color: accentBaseColor.clone(),
     emissive: new Color(0x1073ff),
     emissiveIntensity: 0.65,
     roughness: 0.28,
@@ -100,9 +108,11 @@ function createPoiInstance(
 
   const orbRadius = Math.min(baseRadiusX, baseRadiusZ) * 0.45;
   const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
+  const orbEmissiveBase = new Color(0x3de1ff);
+  const orbEmissiveHighlight = new Color(0x7efcff);
   const orbMaterial = new MeshStandardMaterial({
     color: new Color(0xb8f3ff),
-    emissive: new Color(0x3de1ff),
+    emissive: orbEmissiveBase.clone(),
     emissiveIntensity: 0.9,
     roughness: 0.22,
     metalness: 0.18,
@@ -136,8 +146,10 @@ function createPoiInstance(
     48,
     1
   );
+  const haloBaseColor = new Color(0x4bd8ff);
+  const haloFocusColor = new Color(0xaefbff);
   const haloMaterial = new MeshBasicMaterial({
-    color: new Color(0x4bd8ff),
+    color: haloBaseColor.clone(),
     transparent: true,
     opacity: 0.18,
     blending: AdditiveBlending,
@@ -196,6 +208,12 @@ function createPoiInstance(
     hitArea,
     focus: 0,
     focusTarget: 0,
+    accentBaseColor,
+    accentFocusColor,
+    haloBaseColor,
+    haloFocusColor,
+    orbEmissiveBase,
+    orbEmissiveHighlight,
   };
 }
 
