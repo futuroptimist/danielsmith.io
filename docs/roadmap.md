@@ -92,6 +92,7 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ Analytics hooks emit hover and selection lifecycle events for instrumentation pipelines.
    - ✅ Accessibility overlay mirrors POI metadata in HTML so screen readers capture
      hover/selection state.
+   - ✅ Registry validation enforces room bounds, unique ids, and safe spacing at build time.
 2. **Interior Showpieces**
    - Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching triggers
      a rich text popup with repo summary, star count, and CTA buttons.
@@ -105,7 +106,7 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✨ Studio Jobbot terminal desk projects live automation telemetry via a holographic console
      and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
 3. **Backyard Exhibits**
-   - Launch-ready model rocket for `dspace`, with staged ignition sequence and lore text.
+   - ✨ Launch-ready model rocket for `dspace`, complete with illuminated launch pad, caution halo, and countdown-ready stance.
    - Aluminum extrusion greenhouse inspired by `sugarkube`, including animated solar panels,
      grow lights, plants, and koi pond voxels.
    - ✨ Ambient audio beds (crickets, hum) that fade based on player proximity.

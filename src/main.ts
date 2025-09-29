@@ -6,13 +6,10 @@ import {
   Audio,
   AudioListener,
   BoxGeometry,
-  BufferAttribute,
-  BufferGeometry,
   CanvasTexture,
   Clock,
   Color,
   DirectionalLight,
-  DoubleSide,
   Group,
   HemisphereLight,
   MathUtils,
@@ -22,8 +19,6 @@ import {
   OrthographicCamera,
   PlaneGeometry,
   PointLight,
-  Points,
-  PointsMaterial,
   Scene,
   Shape,
   ShapeGeometry,
@@ -49,15 +44,18 @@ import {
 import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
+import { createBackyardEnvironment } from './environments/backyard';
 import { evaluateFailoverDecision, renderTextFallback } from './failover';
 import {
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
+  UPPER_FLOOR_PLAN,
   getCombinedWallSegments,
   getFloorBounds,
   RoomWall,
   WALL_THICKNESS,
   type Bounds2D,
+  type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
 import {
@@ -104,6 +102,7 @@ const BACKYARD_ROOM_ID = 'backyard';
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
 type AppMode = 'immersive' | 'fallback';
+type FloorId = 'ground' | 'upper';
 
 const markDocumentReady = (mode: AppMode) => {
   const root = document.documentElement;
@@ -174,7 +173,8 @@ const LIGHTING_OPTIONS = {
   bloomThreshold: 0.2,
 } as const;
 
-const staticColliders: RectCollider[] = [];
+const groundColliders: RectCollider[] = [];
+const upperFloorColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
@@ -229,6 +229,29 @@ function createSignageTexture(title: string, subtitle: string): CanvasTexture {
   context.font = '32px "Inter", "Segoe UI", sans-serif';
   context.shadowBlur = 10;
   context.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 44);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createVerticalGradientTexture(
+  topHex: number,
+  bottomHex: number
+): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Failed to create gradient canvas context.');
+  }
+  const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, new Color(topHex).getStyle());
+  gradient.addColorStop(1, new Color(bottomHex).getStyle());
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -363,230 +386,6 @@ function createYouTubeBadgeTexture(): CanvasTexture {
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
   return texture;
-}
-
-function createBackyardEnvironment(bounds: Bounds2D): BackyardEnvironmentBuild {
-  const group = new Group();
-  group.name = 'BackyardEnvironment';
-  const colliders: RectCollider[] = [];
-
-  const width = bounds.maxX - bounds.minX;
-  const depth = bounds.maxZ - bounds.minZ;
-  const centerX = (bounds.minX + bounds.maxX) / 2;
-  const centerZ = (bounds.minZ + bounds.maxZ) / 2;
-
-  const terrainSegments = 32;
-  const terrainGeometry = new PlaneGeometry(
-    width,
-    depth,
-    terrainSegments,
-    terrainSegments
-  );
-  const terrainPositions = terrainGeometry.attributes
-    .position as BufferAttribute;
-  for (let i = 0; i < terrainPositions.count; i += 1) {
-    const x = terrainPositions.getX(i);
-    const y = terrainPositions.getY(i);
-    const normalizedX = x / width + 0.5;
-    const normalizedY = y / depth + 0.5;
-    const swell = Math.sin(normalizedY * Math.PI) * 0.38;
-    const ripple = Math.cos(normalizedX * Math.PI * 2) * 0.18;
-    const microVariation =
-      (Math.sin(x * 1.7 + y * 0.9) + Math.cos(x * 0.85 - y * 1.3)) * 0.04;
-    terrainPositions.setZ(i, (swell + ripple) * 0.12 + microVariation);
-  }
-  terrainPositions.needsUpdate = true;
-  terrainGeometry.computeVertexNormals();
-  terrainGeometry.rotateX(-Math.PI / 2);
-
-  const terrainMaterial = new MeshStandardMaterial({
-    color: 0x1d2f22,
-    roughness: 0.92,
-    metalness: 0.05,
-  });
-  const terrain = new Mesh(terrainGeometry, terrainMaterial);
-  terrain.position.set(centerX, -0.05, centerZ);
-  terrain.receiveShadow = false;
-  group.add(terrain);
-
-  const pathWidth = width * 0.48;
-  const pathDepth = Math.min(6, depth * 0.55);
-  const pathGeometry = new BoxGeometry(pathWidth, 0.08, pathDepth);
-  const pathMaterial = new MeshStandardMaterial({
-    color: 0x515c66,
-    roughness: 0.65,
-    metalness: 0.2,
-  });
-  const path = new Mesh(pathGeometry, pathMaterial);
-  path.position.set(centerX, 0.04, bounds.minZ + pathDepth / 2 + 0.35);
-  group.add(path);
-
-  const steppingStoneGeometry = new BoxGeometry(pathWidth * 0.32, 0.12, 0.9);
-  const steppingStoneMaterial = new MeshStandardMaterial({
-    color: 0x676f78,
-    roughness: 0.7,
-    metalness: 0.18,
-  });
-  const steppingStoneCount = 4;
-  for (let i = 0; i < steppingStoneCount; i += 1) {
-    const stone = new Mesh(steppingStoneGeometry, steppingStoneMaterial);
-    const offset = (i + 1) / (steppingStoneCount + 1);
-    stone.position.set(
-      centerX,
-      0.08,
-      bounds.minZ + pathDepth + (depth - pathDepth) * offset
-    );
-    stone.rotation.y = (i % 2 === 0 ? 1 : -1) * Math.PI * 0.03;
-    group.add(stone);
-  }
-
-  const shrubGeometry = new SphereGeometry(1.05, 20, 20);
-  const shrubMaterial = new MeshStandardMaterial({
-    color: 0x2c6b3d,
-    roughness: 0.78,
-    metalness: 0.08,
-  });
-  const shrubPositions = [
-    new Vector3(bounds.minX + 1.6, 0, bounds.maxZ - 3.2),
-    new Vector3(centerX + 0.8, 0, centerZ + depth * 0.28),
-    new Vector3(bounds.maxX - 1.4, 0, bounds.maxZ - 5.1),
-  ];
-  shrubPositions.forEach((position, index) => {
-    const shrub = new Mesh(shrubGeometry, shrubMaterial);
-    shrub.position.set(position.x, 0.9, position.z);
-    const scale = 0.9 + (index % 3) * 0.12;
-    shrub.scale.setScalar(scale);
-    group.add(shrub);
-  });
-
-  const particleGeometry = new BufferGeometry();
-  const particleCount = 24;
-  const particlePositions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i += 1) {
-    const px = bounds.minX + Math.random() * width;
-    const pz = bounds.minZ + Math.random() * depth;
-    const py = 1.6 + Math.random() * 1.4;
-    particlePositions[i * 3] = px;
-    particlePositions[i * 3 + 1] = py;
-    particlePositions[i * 3 + 2] = pz;
-  }
-  particleGeometry.setAttribute(
-    'position',
-    new BufferAttribute(particlePositions, 3)
-  );
-  const particleMaterial = new PointsMaterial({
-    color: 0x9ad7ff,
-    size: 0.14,
-    transparent: true,
-    opacity: 0.85,
-    depthWrite: false,
-    sizeAttenuation: true,
-  });
-  const fireflies = new Points(particleGeometry, particleMaterial);
-  fireflies.name = 'BackyardFireflies';
-  group.add(fireflies);
-
-  const duskLight = new PointLight(
-    0x8fb8ff,
-    0.65,
-    Math.max(width, depth) * 0.9,
-    2.4
-  );
-  duskLight.position.set(centerX - width * 0.18, 2.6, centerZ + depth * 0.18);
-  duskLight.castShadow = false;
-  group.add(duskLight);
-
-  const barrierWidth = Math.min(width * 0.68, 6.5);
-  const barrierHeight = 2.6;
-  const barrierThickness = 0.34;
-  const barrierZ = bounds.maxZ - 1.2;
-
-  const barrierMaterial = new MeshStandardMaterial({
-    color: 0x66d4ff,
-    emissive: new Color(0x0d3245),
-    emissiveIntensity: 1.25,
-    transparent: true,
-    opacity: 0.55,
-    roughness: 0.18,
-    metalness: 0.04,
-  });
-  const barrierGeometry = new BoxGeometry(
-    barrierWidth,
-    barrierHeight,
-    barrierThickness
-  );
-  const barrier = new Mesh(barrierGeometry, barrierMaterial);
-  barrier.name = 'BackyardHologramBarrier';
-  barrier.position.set(centerX, barrierHeight / 2, barrierZ);
-  group.add(barrier);
-
-  const barrierBaseMaterial = new MeshStandardMaterial({
-    color: 0x1a2732,
-    roughness: 0.82,
-    metalness: 0.12,
-  });
-  const barrierBaseHeight = 0.22;
-  const barrierBaseGeometry = new BoxGeometry(
-    barrierWidth + 0.8,
-    barrierBaseHeight,
-    barrierThickness * 2.4
-  );
-  const barrierBase = new Mesh(barrierBaseGeometry, barrierBaseMaterial);
-  barrierBase.name = 'BackyardBarrierBase';
-  barrierBase.position.set(centerX, barrierBaseHeight / 2, barrierZ - 0.12);
-  group.add(barrierBase);
-
-  const signageTexture = createSignageTexture(
-    'Backyard Exhibits Incoming',
-    'Hologram gate active while installations finish calibrating.'
-  );
-  const signageMaterial = new MeshBasicMaterial({
-    map: signageTexture,
-    transparent: true,
-    depthWrite: false,
-    side: DoubleSide,
-  });
-  const signageGeometry = new PlaneGeometry(barrierWidth * 0.72, 0.78);
-  const signage = new Mesh(signageGeometry, signageMaterial);
-  signage.name = 'BackyardBarrierSignage';
-  signage.position.set(centerX, 1.68, barrierZ + 0.08);
-  group.add(signage);
-
-  const emitterGeometry = new BufferGeometry();
-  const emitterCount = 32;
-  const emitterPositions = new Float32Array(emitterCount * 3);
-  for (let i = 0; i < emitterCount; i += 1) {
-    const ratio = i / emitterCount;
-    const px = centerX - barrierWidth / 2 + barrierWidth * ratio;
-    const py = 0.8 + Math.random() * (barrierHeight - 0.8);
-    emitterPositions[i * 3] = px;
-    emitterPositions[i * 3 + 1] = py;
-    emitterPositions[i * 3 + 2] = barrierZ + 0.02;
-  }
-  emitterGeometry.setAttribute(
-    'position',
-    new BufferAttribute(emitterPositions, 3)
-  );
-  const emitterMaterial = new PointsMaterial({
-    color: 0x9ad7ff,
-    size: 0.12,
-    transparent: true,
-    opacity: 0.75,
-    depthWrite: false,
-    sizeAttenuation: true,
-  });
-  const barrierEmitters = new Points(emitterGeometry, emitterMaterial);
-  barrierEmitters.name = 'BackyardBarrierEmitters';
-  group.add(barrierEmitters);
-
-  colliders.push({
-    minX: barrier.position.x - barrierWidth / 2,
-    maxX: barrier.position.x + barrierWidth / 2,
-    minZ: barrier.position.z - barrierThickness / 2,
-    maxZ: barrier.position.z + barrierThickness / 2,
-  });
-
-  return { group, colliders };
 }
 
 interface LivingRoomMediaWallBuild {
@@ -777,8 +576,12 @@ function createLivingRoomMediaWall(bounds: Bounds2D): LivingRoomMediaWallBuild {
   return { group, colliders };
 }
 
-function isInsideAnyRoom(x: number, z: number): boolean {
-  return FLOOR_PLAN.rooms.some(
+function isInsideAnyRoom(
+  plan: FloorPlanDefinition,
+  x: number,
+  z: number
+): boolean {
+  return plan.rooms.some(
     (room) =>
       x >= room.bounds.minX - POSITION_EPSILON &&
       x <= room.bounds.maxX + POSITION_EPSILON &&
@@ -909,7 +712,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   if (backyardRoom) {
     const backyard = createBackyardEnvironment(backyardRoom.bounds);
     scene.add(backyard.group);
-    backyard.colliders.forEach((collider) => staticColliders.push(collider));
+    backyard.colliders.forEach((collider) => groundColliders.push(collider));
   }
 
   const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
@@ -986,7 +789,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
     wallGroup.add(wall);
 
-    staticColliders.push({
+    groundColliders.push({
       minX: wall.position.x - width / 2,
       maxX: wall.position.x + width / 2,
       minZ: wall.position.z - depth / 2,
@@ -1000,13 +803,139 @@ function initializeImmersiveScene(container: HTMLElement) {
   if (livingRoom) {
     const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
     scene.add(mediaWall.group);
-    mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
+    mediaWall.colliders.forEach((collider) => groundColliders.push(collider));
   }
 
   const staircase = createStaircase(STAIRCASE_CONFIG);
   scene.add(staircase.group);
-  // Block the player from rolling onto the vertical geometry until slope handling lands.
-  staircase.colliders.forEach((collider) => staticColliders.push(collider));
+  const stairTotalRise = staircase.totalRise;
+  const stairCenterX = STAIRCASE_CONFIG.basePosition.x;
+  const stairHalfWidth = STAIRCASE_CONFIG.step.width / 2;
+  const stairRun = STAIRCASE_CONFIG.step.run;
+  const stairBottomZ = STAIRCASE_CONFIG.basePosition.z;
+  const stairTopZ = stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
+  const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
+  const stairLandingMinZ = stairTopZ - stairLandingDepth;
+  const upperFloorElevation =
+    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
+  const stairTransitionMargin = toWorldUnits(0.6);
+  const stairGuardThickness = toWorldUnits(0.22);
+  const stairGuardMinZ = stairLandingMinZ;
+  const stairGuardMaxZ = stairBottomZ + toWorldUnits(0.6);
+
+  groundColliders.push({
+    minX: stairCenterX - stairHalfWidth - stairGuardThickness,
+    maxX: stairCenterX - stairHalfWidth,
+    minZ: stairGuardMinZ,
+    maxZ: stairGuardMaxZ,
+  });
+  groundColliders.push({
+    minX: stairCenterX + stairHalfWidth,
+    maxX: stairCenterX + stairHalfWidth + stairGuardThickness,
+    minZ: stairGuardMinZ,
+    maxZ: stairGuardMaxZ,
+  });
+
+  const upperFloorGroup = new Group();
+  upperFloorGroup.visible = false;
+  scene.add(upperFloorGroup);
+
+  const upperFloorMaterial = new MeshStandardMaterial({
+    color: 0x1f273a,
+    side: DoubleSide,
+  });
+  const upperFloorShape = new Shape();
+  const [upperFirstX, upperFirstZ] = UPPER_FLOOR_PLAN.outline[0];
+  upperFloorShape.moveTo(upperFirstX, upperFirstZ);
+  for (let i = 1; i < UPPER_FLOOR_PLAN.outline.length; i += 1) {
+    const [x, z] = UPPER_FLOOR_PLAN.outline[i];
+    upperFloorShape.lineTo(x, z);
+  }
+  upperFloorShape.closePath();
+  const upperFloorGeometry = new ShapeGeometry(upperFloorShape);
+  upperFloorGeometry.rotateX(-Math.PI / 2);
+  const upperFloor = new Mesh(upperFloorGeometry, upperFloorMaterial);
+  upperFloor.position.y = upperFloorElevation;
+  upperFloorGroup.add(upperFloor);
+
+  const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
+  const upperWallGroup = new Group();
+  upperFloorGroup.add(upperWallGroup);
+  const upperWallSegments = getCombinedWallSegments(UPPER_FLOOR_PLAN);
+
+  upperWallSegments.forEach((segment) => {
+    const length =
+      segment.orientation === 'horizontal'
+        ? Math.abs(segment.end.x - segment.start.x)
+        : Math.abs(segment.end.z - segment.start.z);
+    if (length <= 1e-4) {
+      return;
+    }
+
+    const hasExterior = segment.rooms.some(
+      (roomInfo) => getRoomCategory(roomInfo.id) === 'exterior'
+    );
+    const hasInterior = segment.rooms.some(
+      (roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior'
+    );
+    const isMixed = hasExterior && hasInterior;
+    const segmentThickness =
+      hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
+    const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
+    const isInterior = segment.rooms.length > 1;
+    const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
+    const width =
+      segment.orientation === 'horizontal'
+        ? length + extension
+        : segmentThickness;
+    const depth =
+      segment.orientation === 'horizontal'
+        ? segmentThickness
+        : length + extension;
+
+    const baseX =
+      segment.orientation === 'horizontal'
+        ? (segment.start.x + segment.end.x) / 2
+        : segment.start.x;
+    const baseZ =
+      segment.orientation === 'horizontal'
+        ? segment.start.z
+        : (segment.start.z + segment.end.z) / 2;
+
+    let offsetX = 0;
+    let offsetZ = 0;
+    if (!isInterior) {
+      const direction = getOutwardDirectionForWall(segment.rooms[0].wall);
+      offsetX = direction.x * (WALL_THICKNESS / 2);
+      offsetZ = direction.z * (WALL_THICKNESS / 2);
+    }
+
+    const geometry = new BoxGeometry(width, segmentHeight, depth);
+    const wall = new Mesh(geometry, upperWallMaterial);
+    wall.position.set(
+      baseX + offsetX,
+      upperFloorElevation + segmentHeight / 2,
+      baseZ + offsetZ
+    );
+    upperWallGroup.add(wall);
+
+    upperFloorColliders.push({
+      minX: wall.position.x - width / 2,
+      maxX: wall.position.x + width / 2,
+      minZ: wall.position.z - depth / 2,
+      maxZ: wall.position.z + depth / 2,
+    });
+  });
+
+  const floorPlansById: Record<FloorId, FloorPlanDefinition> = {
+    ground: FLOOR_PLAN,
+    upper: UPPER_FLOOR_PLAN,
+  };
+
+  const floorColliders: Record<FloorId, RectCollider[]> = {
+    ground: groundColliders,
+    upper: upperFloorColliders,
+  };
 
   if (LIGHTING_OPTIONS.enableLedStrips) {
     const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
@@ -1153,7 +1082,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   const builtPoiInstances = createPoiInstances(getPoiDefinitions());
   builtPoiInstances.forEach((poi) => {
     scene.add(poi.group);
-    staticColliders.push(poi.collider);
+    groundColliders.push(poi.collider);
     poiInstances.push(poi);
   });
 
@@ -1181,7 +1110,7 @@ function initializeImmersiveScene(container: HTMLElement) {
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
     });
     scene.add(showpiece.group);
-    showpiece.colliders.forEach((collider) => staticColliders.push(collider));
+    showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
@@ -1200,7 +1129,7 @@ function initializeImmersiveScene(container: HTMLElement) {
       orientationRadians: terminalOrientation,
     });
     scene.add(terminal.group);
-    terminal.colliders.forEach((collider) => staticColliders.push(collider));
+    terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
   }
 
@@ -1229,9 +1158,16 @@ function initializeImmersiveScene(container: HTMLElement) {
       'pointerdown',
       handlePointerDownForZoom
     );
+    renderer.domElement.removeEventListener(
+      'pointerdown',
+      handlePointerDownForCameraPan
+    );
     window.removeEventListener('pointermove', handlePointerMoveForZoom);
     window.removeEventListener('pointerup', handlePointerEndForZoom);
     window.removeEventListener('pointercancel', handlePointerEndForZoom);
+    window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
+    window.removeEventListener('pointerup', handlePointerUpForCameraPan);
+    window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
   });
 
   const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
@@ -1265,6 +1201,77 @@ function initializeImmersiveScene(container: HTMLElement) {
   const pinchPointers = new Map<number, { x: number; y: number }>();
   let pinchStartDistance: number | null = null;
   let pinchStartZoomTarget = cameraZoomTarget;
+  const mouseCameraInput = new Vector2();
+  const mouseCameraStart = new Vector2();
+  let mouseCameraPointerId: number | null = null;
+
+  let activeFloorId: FloorId = 'ground';
+
+  const isWithinStairWidth = (x: number, margin = 0) =>
+    Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
+
+  const computeRampHeight = (x: number, z: number): number => {
+    if (!isWithinStairWidth(x, stairTransitionMargin)) {
+      return 0;
+    }
+    const denominator = stairBottomZ - stairTopZ;
+    if (Math.abs(denominator) <= 1e-6) {
+      return 0;
+    }
+    const progress = (stairBottomZ - z) / denominator;
+    if (!Number.isFinite(progress)) {
+      return 0;
+    }
+    const clamped = MathUtils.clamp(progress, 0, 1);
+    return clamped * stairTotalRise;
+  };
+
+  const predictFloorId = (x: number, z: number, current: FloorId): FloorId => {
+    const rampHeight = computeRampHeight(x, z);
+    if (current === 'upper') {
+      const nearBottom =
+        isWithinStairWidth(x, stairTransitionMargin) &&
+        rampHeight <= STAIRCASE_CONFIG.step.rise * 0.5 &&
+        z >= stairBottomZ - stairRun * 0.5;
+      if (nearBottom) {
+        return 'ground';
+      }
+      return 'upper';
+    }
+
+    const nearLanding =
+      isWithinStairWidth(x, stairTransitionMargin) &&
+      (z <= stairTopZ + stairTransitionMargin ||
+        rampHeight >= stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
+    if (nearLanding) {
+      return 'upper';
+    }
+
+    return 'ground';
+  };
+
+  const canOccupyPosition = (x: number, z: number, floorId: FloorId): boolean =>
+    isInsideAnyRoom(floorPlansById[floorId], x, z) &&
+    !collidesWithColliders(x, z, PLAYER_RADIUS, floorColliders[floorId]);
+
+  const setActiveFloorId = (next: FloorId) => {
+    if (activeFloorId === next) {
+      return;
+    }
+    activeFloorId = next;
+    upperFloorGroup.visible = next === 'upper';
+  };
+
+  const updatePlayerVerticalPosition = () => {
+    const rampHeight = computeRampHeight(player.position.x, player.position.z);
+    const baseHeight =
+      activeFloorId === 'upper'
+        ? upperFloorElevation
+        : Math.min(rampHeight, upperFloorElevation);
+    player.position.y = PLAYER_RADIUS + baseHeight;
+  };
+
+  updatePlayerVerticalPosition();
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -1389,13 +1396,76 @@ function initializeImmersiveScene(container: HTMLElement) {
     pinchStartZoomTarget = cameraZoomTarget;
   };
 
+  const updateMouseCameraInput = (clientX: number, clientY: number) => {
+    const halfWidth = window.innerWidth / 2;
+    const halfHeight = window.innerHeight / 2;
+    const dx = clientX - mouseCameraStart.x;
+    const dy = clientY - mouseCameraStart.y;
+    mouseCameraInput.set(
+      halfWidth <= 0 ? 0 : MathUtils.clamp(dx / halfWidth, -1, 1),
+      halfHeight <= 0 ? 0 : MathUtils.clamp(dy / halfHeight, -1, 1)
+    );
+  };
+
+  let mouseCameraDragging = false;
+
+  const handlePointerDownForCameraPan = (event: PointerEvent) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) {
+      return;
+    }
+    renderer.domElement.setPointerCapture?.(event.pointerId);
+    mouseCameraPointerId = event.pointerId;
+    mouseCameraStart.set(event.clientX, event.clientY);
+    mouseCameraInput.set(0, 0);
+    mouseCameraDragging = false;
+  };
+
+  const handlePointerMoveForCameraPan = (event: PointerEvent) => {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.pointerId !== mouseCameraPointerId
+    ) {
+      return;
+    }
+    if (!mouseCameraDragging) {
+      const deltaX = event.clientX - mouseCameraStart.x;
+      const deltaY = event.clientY - mouseCameraStart.y;
+      if (deltaX === 0 && deltaY === 0) {
+        return;
+      }
+      mouseCameraDragging = true;
+    }
+    event.preventDefault();
+    updateMouseCameraInput(event.clientX, event.clientY);
+  };
+
+  const handlePointerUpForCameraPan = (event: PointerEvent) => {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.pointerId !== mouseCameraPointerId
+    ) {
+      return;
+    }
+    renderer.domElement.releasePointerCapture?.(event.pointerId);
+    mouseCameraPointerId = null;
+    mouseCameraInput.set(0, 0);
+    mouseCameraDragging = false;
+  };
+
   renderer.domElement.addEventListener('wheel', handleWheelZoom, {
     passive: false,
   });
   renderer.domElement.addEventListener('pointerdown', handlePointerDownForZoom);
+  renderer.domElement.addEventListener(
+    'pointerdown',
+    handlePointerDownForCameraPan
+  );
   window.addEventListener('pointermove', handlePointerMoveForZoom);
   window.addEventListener('pointerup', handlePointerEndForZoom);
   window.addEventListener('pointercancel', handlePointerEndForZoom);
+  window.addEventListener('pointermove', handlePointerMoveForCameraPan);
+  window.addEventListener('pointerup', handlePointerUpForCameraPan);
+  window.addEventListener('pointercancel', handlePointerUpForCameraPan);
 
   if (!ambientAudioController) {
     const audioBeds: AmbientAudioBedDefinition[] = [];
@@ -1479,26 +1549,70 @@ function initializeImmersiveScene(container: HTMLElement) {
       },
     });
 
-    const enableAmbientAudio = async () => {
-      if (!ambientAudioController || ambientAudioController.isEnabled()) {
+    const audioToggleButton = document.createElement('button');
+    audioToggleButton.className = 'audio-toggle';
+    audioToggleButton.type = 'button';
+    audioToggleButton.title = 'Toggle ambient audio (M)';
+    audioToggleButton.setAttribute('aria-pressed', 'false');
+    container.appendChild(audioToggleButton);
+
+    let audioTogglePending = false;
+
+    const updateAudioToggle = () => {
+      const enabled = ambientAudioController?.isEnabled() ?? false;
+      audioToggleButton.dataset.state = enabled ? 'on' : 'off';
+      audioToggleButton.textContent = enabled
+        ? 'Audio: On · Press M to mute'
+        : 'Audio: Off · Press M to unmute';
+      audioToggleButton.setAttribute(
+        'aria-pressed',
+        enabled ? 'true' : 'false'
+      );
+      audioToggleButton.disabled = audioTogglePending;
+    };
+
+    const setAudioEnabled = async (enabled: boolean) => {
+      if (!ambientAudioController) {
         return;
       }
-      try {
-        await ambientAudioController.enable();
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn('Ambient audio failed to start', error);
+      audioTogglePending = true;
+      updateAudioToggle();
+      if (enabled) {
+        try {
+          await ambientAudioController.enable();
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('Ambient audio failed to start', error);
+        }
+      } else {
+        ambientAudioController.disable();
       }
+      audioTogglePending = false;
+      updateAudioToggle();
     };
 
-    const onFirstInteraction = () => {
-      window.removeEventListener('pointerdown', onFirstInteraction);
-      window.removeEventListener('keydown', onFirstInteraction);
-      void enableAmbientAudio();
-    };
+    audioToggleButton.addEventListener('click', () => {
+      if (audioTogglePending || !ambientAudioController) {
+        return;
+      }
+      const nextState = !ambientAudioController.isEnabled();
+      void setAudioEnabled(nextState);
+    });
 
-    window.addEventListener('pointerdown', onFirstInteraction);
-    window.addEventListener('keydown', onFirstInteraction);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'm' || event.key === 'M') {
+        if (event.metaKey || event.ctrlKey || event.altKey) {
+          return;
+        }
+        if (audioTogglePending) {
+          return;
+        }
+        event.preventDefault();
+        void setAudioEnabled(!(ambientAudioController?.isEnabled() ?? false));
+      }
+    });
+
+    updateAudioToggle();
   }
 
   let composer: EffectComposer | null = null;
@@ -1609,16 +1723,14 @@ function initializeImmersiveScene(container: HTMLElement) {
 
     if (stepX !== 0) {
       const candidateX = player.position.x + stepX;
-      if (
-        isInsideAnyRoom(candidateX, player.position.z) &&
-        !collidesWithColliders(
-          candidateX,
-          player.position.z,
-          PLAYER_RADIUS,
-          staticColliders
-        )
-      ) {
+      const predictedFloor = predictFloorId(
+        candidateX,
+        player.position.z,
+        activeFloorId
+      );
+      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
         player.position.x = candidateX;
+        setActiveFloorId(predictedFloor);
       } else {
         targetVelocity.x = 0;
         velocity.x = 0;
@@ -1627,23 +1739,21 @@ function initializeImmersiveScene(container: HTMLElement) {
 
     if (stepZ !== 0) {
       const candidateZ = player.position.z + stepZ;
-      if (
-        isInsideAnyRoom(player.position.x, candidateZ) &&
-        !collidesWithColliders(
-          player.position.x,
-          candidateZ,
-          PLAYER_RADIUS,
-          staticColliders
-        )
-      ) {
+      const predictedFloor = predictFloorId(
+        player.position.x,
+        candidateZ,
+        activeFloorId
+      );
+      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
         player.position.z = candidateZ;
+        setActiveFloorId(predictedFloor);
       } else {
         targetVelocity.z = 0;
         velocity.z = 0;
       }
     }
 
-    player.position.y = PLAYER_RADIUS;
+    updatePlayerVerticalPosition();
   }
 
   function updateCamera(delta: number) {
@@ -1662,7 +1772,8 @@ function initializeImmersiveScene(container: HTMLElement) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
     }
 
-    const cameraInput = joystick.getCamera();
+    const cameraInput =
+      mouseCameraPointerId !== null ? mouseCameraInput : joystick.getCamera();
     cameraPanTarget.set(
       cameraInput.x * cameraPanLimitX,
       0,
