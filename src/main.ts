@@ -1200,26 +1200,67 @@ function initializeImmersiveScene(container: HTMLElement) {
       },
     });
 
-    const enableAmbientAudio = async () => {
-      if (!ambientAudioController || ambientAudioController.isEnabled()) {
+    const audioToggleButton = document.createElement('button');
+    audioToggleButton.className = 'audio-toggle';
+    audioToggleButton.type = 'button';
+    audioToggleButton.title = 'Toggle ambient audio (M)';
+    audioToggleButton.setAttribute('aria-pressed', 'false');
+    container.appendChild(audioToggleButton);
+
+    let audioTogglePending = false;
+
+    const updateAudioToggle = () => {
+      const enabled = ambientAudioController?.isEnabled() ?? false;
+      audioToggleButton.dataset.state = enabled ? 'on' : 'off';
+      audioToggleButton.textContent = enabled
+        ? 'Audio: On · Press M to mute'
+        : 'Audio: Off · Press M to unmute';
+      audioToggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      audioToggleButton.disabled = audioTogglePending;
+    };
+
+    const setAudioEnabled = async (enabled: boolean) => {
+      if (!ambientAudioController) {
         return;
       }
-      try {
-        await ambientAudioController.enable();
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn('Ambient audio failed to start', error);
+      audioTogglePending = true;
+      updateAudioToggle();
+      if (enabled) {
+        try {
+          await ambientAudioController.enable();
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('Ambient audio failed to start', error);
+        }
+      } else {
+        ambientAudioController.disable();
       }
+      audioTogglePending = false;
+      updateAudioToggle();
     };
 
-    const onFirstInteraction = () => {
-      window.removeEventListener('pointerdown', onFirstInteraction);
-      window.removeEventListener('keydown', onFirstInteraction);
-      void enableAmbientAudio();
-    };
+    audioToggleButton.addEventListener('click', () => {
+      if (audioTogglePending || !ambientAudioController) {
+        return;
+      }
+      const nextState = !ambientAudioController.isEnabled();
+      void setAudioEnabled(nextState);
+    });
 
-    window.addEventListener('pointerdown', onFirstInteraction);
-    window.addEventListener('keydown', onFirstInteraction);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'm' || event.key === 'M') {
+        if (event.metaKey || event.ctrlKey || event.altKey) {
+          return;
+        }
+        if (audioTogglePending) {
+          return;
+        }
+        event.preventDefault();
+        void setAudioEnabled(!(ambientAudioController?.isEnabled() ?? false));
+      }
+    });
+
+    updateAudioToggle();
   }
 
   let composer: EffectComposer | null = null;

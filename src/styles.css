@@ -113,6 +113,40 @@ canvas {
   color: #ffe5c4;
 }
 
+.audio-toggle {
+  position: fixed;
+  top: 4.5rem;
+  right: 1.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  background: rgba(5, 12, 21, 0.8);
+  color: #e7f1ff;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(86, 184, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(3, 9, 18, 0.55);
+  cursor: pointer;
+  z-index: 25;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.audio-toggle:hover,
+.audio-toggle:focus-visible {
+  border-color: rgba(143, 214, 255, 0.75);
+  outline: none;
+}
+
+.audio-toggle[data-state='on'] {
+  border-color: rgba(120, 212, 168, 0.5);
+  color: #d0ffe7;
+}
+
+.audio-toggle:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
 .overlay {
   position: fixed;
   bottom: 1.5rem;
