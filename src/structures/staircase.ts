@@ -43,6 +43,7 @@ export interface StaircaseConfig {
   step: StaircaseStepConfig;
   landing: StaircaseLandingConfig;
   supports?: StaircaseSupportConfig;
+  direction?: 'positiveZ' | 'negativeZ';
 }
 
 export interface StaircaseBuildResult {
@@ -78,6 +79,9 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
   const landingColliderInset =
     config.landing.colliderInset ?? stepColliderInset;
 
+  const direction = config.direction ?? 'positiveZ';
+  const directionMultiplier = direction === 'negativeZ' ? -1 : 1;
+
   for (let i = 0; i < config.step.count; i += 1) {
     const geometry = new BoxGeometry(
       config.step.width,
@@ -88,7 +92,7 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
     step.position.set(
       basePosition.x,
       basePosition.y + config.step.rise * (i + 0.5),
-      basePosition.z + config.step.run * (i + 0.5)
+      basePosition.z + directionMultiplier * config.step.run * (i + 0.5)
     );
     step.name = `StaircaseStep-${i + 1}`;
     group.add(step);
@@ -111,8 +115,8 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
     basePosition.x,
     basePosition.y + totalRise + config.landing.thickness / 2,
     basePosition.z +
-      config.step.run * config.step.count +
-      config.landing.depth / 2
+      directionMultiplier *
+        (config.step.run * config.step.count + config.landing.depth / 2)
   );
   landing.name = 'StaircaseLanding';
   group.add(landing);
@@ -133,12 +137,15 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
       config.landing.guard.thickness
     );
     const guard = new Mesh(guardGeometry, guardMaterial);
+    const guardOffset =
+      directionMultiplier *
+      (config.landing.depth / 2 - config.landing.guard.inset);
     guard.position.set(
       landing.position.x,
       landing.position.y +
         config.landing.guard.height / 2 +
         config.landing.thickness / 2,
-      landing.position.z + config.landing.depth / 2 - config.landing.guard.inset
+      landing.position.z + guardOffset
     );
     guard.name = 'StaircaseLandingGuard';
     group.add(guard);
@@ -156,7 +163,7 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
       support.position.set(
         basePosition.x + definition.offsetX,
         basePosition.y + totalRise / 2,
-        basePosition.z + runLength / 2
+        basePosition.z + directionMultiplier * (runLength / 2)
       );
       support.name = `StaircaseSupport-${index + 1}`;
       group.add(support);

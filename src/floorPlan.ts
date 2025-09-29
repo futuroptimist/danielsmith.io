@@ -29,6 +29,10 @@ export interface FloorPlanDefinition {
   rooms: RoomDefinition[];
 }
 
+export const FLOOR_PLAN_SCALE = Math.SQRT2;
+
+const scaleValue = (value: number): number => value * FLOOR_PLAN_SCALE;
+
 export interface RoomWallSegment {
   roomId: string;
   wall: RoomWall;
@@ -60,7 +64,7 @@ const doorwayRange = (center: number) => ({
   end: center + DOOR_HALF_WIDTH,
 });
 
-export const FLOOR_PLAN: FloorPlanDefinition = {
+const BASE_FLOOR_PLAN: FloorPlanDefinition = {
   outline: [
     [-16, -16],
     [16, -16],
@@ -142,6 +146,27 @@ export const FLOOR_PLAN: FloorPlanDefinition = {
       category: 'exterior',
     },
   ],
+};
+
+export const FLOOR_PLAN: FloorPlanDefinition = {
+  outline: BASE_FLOOR_PLAN.outline.map(([x, z]) => [
+    scaleValue(x),
+    scaleValue(z),
+  ]),
+  rooms: BASE_FLOOR_PLAN.rooms.map((room) => ({
+    ...room,
+    bounds: {
+      minX: scaleValue(room.bounds.minX),
+      maxX: scaleValue(room.bounds.maxX),
+      minZ: scaleValue(room.bounds.minZ),
+      maxZ: scaleValue(room.bounds.maxZ),
+    },
+    doorways: room.doorways?.map((doorway) => ({
+      ...doorway,
+      start: scaleValue(doorway.start),
+      end: scaleValue(doorway.end),
+    })),
+  })),
 };
 
 const WALL_ORDER: RoomWall[] = ['north', 'east', 'south', 'west'];

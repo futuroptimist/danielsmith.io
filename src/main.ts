@@ -41,6 +41,7 @@ import { VirtualJoystick } from './controls/VirtualJoystick';
 import { evaluateFailoverDecision, renderTextFallback } from './failover';
 import {
   FLOOR_PLAN,
+  FLOOR_PLAN_SCALE,
   getCombinedWallSegments,
   getFloorBounds,
   RoomWall,
@@ -76,7 +77,7 @@ const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
-const CAMERA_MARGIN = 4;
+const CAMERA_MARGIN = 1.1;
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -84,34 +85,37 @@ const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 
+const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
+
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
-  basePosition: new Vector3(6.2, 0, -14.25),
+  basePosition: new Vector3(toWorldUnits(6.2), 0, toWorldUnits(-5.3)),
+  direction: 'negativeZ',
   step: {
     count: 9,
     rise: 0.42,
-    run: 0.85,
-    width: 3.1,
+    run: toWorldUnits(0.85),
+    width: toWorldUnits(3.1),
     material: {
       color: 0x708091,
       roughness: 0.6,
       metalness: 0.12,
     },
-    colliderInset: 0.05,
+    colliderInset: toWorldUnits(0.05),
   },
   landing: {
-    depth: 2.6,
+    depth: toWorldUnits(2.6),
     thickness: 0.38,
     material: {
       color: 0x5b6775,
       roughness: 0.55,
       metalness: 0.08,
     },
-    colliderInset: 0.05,
+    colliderInset: toWorldUnits(0.05),
     guard: {
       height: 0.55,
-      thickness: 0.14,
-      inset: 0.07,
+      thickness: toWorldUnits(0.14),
+      inset: toWorldUnits(0.07),
       widthScale: 0.95,
       material: {
         color: 0x2c343f,
@@ -119,17 +123,6 @@ const STAIRCASE_CONFIG = {
         metalness: 0.05,
       },
     },
-  },
-  supports: {
-    material: {
-      color: 0x2c343f,
-      roughness: 0.7,
-      metalness: 0.05,
-    },
-    definitions: [
-      { offsetX: -(3.1 / 2 - 0.16), width: 0.32, depth: 3.1 * 0.6 },
-      { offsetX: 3.1 / 2 - 0.16, width: 0.32, depth: 3.1 * 0.6 },
-    ],
   },
 } satisfies StaircaseConfig;
 
@@ -865,9 +858,9 @@ function initializeImmersiveScene(container: HTMLElement) {
     1000
   );
   const cameraBaseOffset = new Vector3(
-    cameraSize * 1.35,
-    cameraSize * 1.35,
-    cameraSize * 1.35
+    cameraSize * 1.06,
+    cameraSize * 1.08,
+    cameraSize * 1.06
   );
 
   const cameraCenter = initialPlayerPosition.clone();
