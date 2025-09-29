@@ -243,10 +243,12 @@ const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
   ],
 };
 
-export const FLOOR_PLAN: FloorPlanDefinition = scaleFloorPlanDefinition(BASE_FLOOR_PLAN);
+export const FLOOR_PLAN: FloorPlanDefinition =
+  scaleFloorPlanDefinition(BASE_FLOOR_PLAN);
 
-export const UPPER_FLOOR_PLAN: FloorPlanDefinition =
-  scaleFloorPlanDefinition(UPPER_FLOOR_BASE_PLAN);
+export const UPPER_FLOOR_PLAN: FloorPlanDefinition = scaleFloorPlanDefinition(
+  UPPER_FLOOR_BASE_PLAN
+);
 
 export interface FloorPlanLevel {
   id: string;

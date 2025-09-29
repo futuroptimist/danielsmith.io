@@ -1013,8 +1013,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   const stairHalfWidth = STAIRCASE_CONFIG.step.width / 2;
   const stairRun = STAIRCASE_CONFIG.step.run;
   const stairBottomZ = STAIRCASE_CONFIG.basePosition.z;
-  const stairTopZ =
-    stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
+  const stairTopZ = stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
   const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
   const stairLandingMinZ = stairTopZ - stairLandingDepth;
   const upperFloorElevation =
@@ -1416,11 +1415,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     return clamped * stairTotalRise;
   };
 
-  const predictFloorId = (
-    x: number,
-    z: number,
-    current: FloorId
-  ): FloorId => {
+  const predictFloorId = (x: number, z: number, current: FloorId): FloorId => {
     const rampHeight = computeRampHeight(x, z);
     if (current === 'upper') {
       const nearBottom =
@@ -1436,8 +1431,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     const nearLanding =
       isWithinStairWidth(x, stairTransitionMargin) &&
       (z <= stairTopZ + stairTransitionMargin ||
-        rampHeight >=
-          stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
+        rampHeight >= stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
     if (nearLanding) {
       return 'upper';
     }
@@ -1445,11 +1439,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     return 'ground';
   };
 
-  const canOccupyPosition = (
-    x: number,
-    z: number,
-    floorId: FloorId
-  ): boolean =>
+  const canOccupyPosition = (x: number, z: number, floorId: FloorId): boolean =>
     isInsideAnyRoom(floorPlansById[floorId], x, z) &&
     !collidesWithColliders(x, z, PLAYER_RADIUS, floorColliders[floorId]);
 
