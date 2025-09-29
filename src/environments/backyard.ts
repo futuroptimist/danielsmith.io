@@ -37,7 +37,12 @@ function createSignageTexture(title: string, subtitle: string): CanvasTexture {
 
   context.clearRect(0, 0, canvas.width, canvas.height);
 
-  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  const gradient = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
   gradient.addColorStop(0, 'rgba(18, 52, 80, 0.9)');
   gradient.addColorStop(1, 'rgba(35, 95, 135, 0.35)');
   context.fillStyle = gradient;
@@ -274,7 +279,10 @@ export function createBackyardEnvironment(
     emitterPositions[i * 3 + 1] = py;
     emitterPositions[i * 3 + 2] = barrierZ + 0.02;
   }
-  emitterGeometry.setAttribute('position', new BufferAttribute(emitterPositions, 3));
+  emitterGeometry.setAttribute(
+    'position',
+    new BufferAttribute(emitterPositions, 3)
+  );
   const emitterMaterial = new PointsMaterial({
     color: 0x9ad7ff,
     size: 0.12,

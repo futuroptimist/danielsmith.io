@@ -18,31 +18,33 @@ describe('createBackyardEnvironment', () => {
     originalRandom = Math.random;
     Math.random = () => 0.42;
     originalGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((type) => {
-      if (type === '2d') {
-        return {
-          clearRect: vi.fn(),
-          createLinearGradient: vi
-            .fn()
-            .mockReturnValue({ addColorStop: vi.fn() }),
-          fillRect: vi.fn(),
-          fillText: vi.fn(),
-          beginPath: vi.fn(),
-          moveTo: vi.fn(),
-          lineTo: vi.fn(),
-          closePath: vi.fn(),
-          quadraticCurveTo: vi.fn(),
-          font: '',
-          textAlign: 'left',
-          textBaseline: 'alphabetic',
-          shadowColor: '',
-          shadowBlur: 0,
-          globalAlpha: 1,
-          fillStyle: '',
-        } as unknown as CanvasRenderingContext2D;
-      }
-      return null;
-    });
+    HTMLCanvasElement.prototype.getContext = vi
+      .fn()
+      .mockImplementation((type) => {
+        if (type === '2d') {
+          return {
+            clearRect: vi.fn(),
+            createLinearGradient: vi
+              .fn()
+              .mockReturnValue({ addColorStop: vi.fn() }),
+            fillRect: vi.fn(),
+            fillText: vi.fn(),
+            beginPath: vi.fn(),
+            moveTo: vi.fn(),
+            lineTo: vi.fn(),
+            closePath: vi.fn(),
+            quadraticCurveTo: vi.fn(),
+            font: '',
+            textAlign: 'left',
+            textBaseline: 'alphabetic',
+            shadowColor: '',
+            shadowBlur: 0,
+            globalAlpha: 1,
+            fillStyle: '',
+          } as unknown as CanvasRenderingContext2D;
+        }
+        return null;
+      });
   });
 
   afterEach(() => {

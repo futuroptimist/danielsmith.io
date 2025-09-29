@@ -26,7 +26,9 @@ describe('createModelRocket', () => {
     expect(childNames).toContain('ModelRocketThruster');
     expect(childNames).toContain('ModelRocketSafetyRing');
 
-    const finNames = childNames.filter((name) => name.startsWith('ModelRocketFin-'));
+    const finNames = childNames.filter((name) =>
+      name.startsWith('ModelRocketFin-')
+    );
     expect(finNames.length).toBeGreaterThanOrEqual(3);
 
     const footprintHalf = (collider.maxX - collider.minX) / 2;
