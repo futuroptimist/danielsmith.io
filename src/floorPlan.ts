@@ -29,9 +29,29 @@ export interface FloorPlanDefinition {
   rooms: RoomDefinition[];
 }
 
-export const FLOOR_PLAN_SCALE = Math.SQRT2;
+export const FLOOR_PLAN_SCALE = Math.SQRT2 * Math.SQRT2;
 
 const scaleValue = (value: number): number => value * FLOOR_PLAN_SCALE;
+
+const scaleFloorPlanDefinition = (
+  plan: FloorPlanDefinition
+): FloorPlanDefinition => ({
+  outline: plan.outline.map(([x, z]) => [scaleValue(x), scaleValue(z)]),
+  rooms: plan.rooms.map((room) => ({
+    ...room,
+    bounds: {
+      minX: scaleValue(room.bounds.minX),
+      maxX: scaleValue(room.bounds.maxX),
+      minZ: scaleValue(room.bounds.minZ),
+      maxZ: scaleValue(room.bounds.maxZ),
+    },
+    doorways: room.doorways?.map((doorway) => ({
+      ...doorway,
+      start: scaleValue(doorway.start),
+      end: scaleValue(doorway.end),
+    })),
+  })),
+});
 
 export interface RoomWallSegment {
   roomId: string;
@@ -148,26 +168,96 @@ const BASE_FLOOR_PLAN: FloorPlanDefinition = {
   ],
 };
 
-export const FLOOR_PLAN: FloorPlanDefinition = {
-  outline: BASE_FLOOR_PLAN.outline.map(([x, z]) => [
-    scaleValue(x),
-    scaleValue(z),
-  ]),
-  rooms: BASE_FLOOR_PLAN.rooms.map((room) => ({
-    ...room,
-    bounds: {
-      minX: scaleValue(room.bounds.minX),
-      maxX: scaleValue(room.bounds.maxX),
-      minZ: scaleValue(room.bounds.minZ),
-      maxZ: scaleValue(room.bounds.maxZ),
+const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
+  outline: [
+    [-14, -16],
+    [14, -16],
+    [14, 14],
+    [-14, 14],
+  ],
+  rooms: [
+    {
+      id: 'upperLanding',
+      name: 'Upper Landing',
+      bounds: { minX: 2, maxX: 10.4, minZ: -16, maxZ: -8 },
+      ledColor: 0xffba52,
+      doorways: [
+        {
+          wall: 'west',
+          ...doorwayRange(-12),
+        },
+        {
+          wall: 'north',
+          ...doorwayRange(6.2),
+        },
+      ],
     },
-    doorways: room.doorways?.map((doorway) => ({
-      ...doorway,
-      start: scaleValue(doorway.start),
-      end: scaleValue(doorway.end),
-    })),
-  })),
+    {
+      id: 'creatorsStudio',
+      name: 'Creators Studio',
+      bounds: { minX: -10, maxX: 2, minZ: -16, maxZ: 0 },
+      ledColor: 0x7bd5ff,
+      doorways: [
+        {
+          wall: 'east',
+          ...doorwayRange(-12),
+        },
+        {
+          wall: 'east',
+          ...doorwayRange(-4),
+        },
+      ],
+    },
+    {
+      id: 'loftLibrary',
+      name: 'Loft Library',
+      bounds: { minX: 2, maxX: 12, minZ: -8, maxZ: 6 },
+      ledColor: 0xc3a7ff,
+      doorways: [
+        {
+          wall: 'south',
+          ...doorwayRange(6.2),
+        },
+        {
+          wall: 'west',
+          ...doorwayRange(-4),
+        },
+        {
+          wall: 'north',
+          ...doorwayRange(4),
+        },
+      ],
+    },
+    {
+      id: 'focusPods',
+      name: 'Focus Pods',
+      bounds: { minX: -10, maxX: 12, minZ: 6, maxZ: 14 },
+      ledColor: 0x9cf7c7,
+      doorways: [
+        {
+          wall: 'south',
+          ...doorwayRange(4),
+        },
+      ],
+    },
+  ],
 };
+
+export const FLOOR_PLAN: FloorPlanDefinition = scaleFloorPlanDefinition(BASE_FLOOR_PLAN);
+
+export const UPPER_FLOOR_PLAN: FloorPlanDefinition =
+  scaleFloorPlanDefinition(UPPER_FLOOR_BASE_PLAN);
+
+export interface FloorPlanLevel {
+  id: string;
+  name: string;
+  plan: FloorPlanDefinition;
+}
+
+export const FLOOR_PLAN_LEVELS: FloorPlanLevel[] = [
+  { id: 'ground', name: 'Ground Floor', plan: FLOOR_PLAN },
+  { id: 'upper', name: 'Upper Floor', plan: UPPER_FLOOR_PLAN },
+];
 
 const WALL_ORDER: RoomWall[] = ['north', 'east', 'south', 'west'];
 

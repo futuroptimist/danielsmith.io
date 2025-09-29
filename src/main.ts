@@ -53,11 +53,13 @@ import { evaluateFailoverDecision, renderTextFallback } from './failover';
 import {
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
+  UPPER_FLOOR_PLAN,
   getCombinedWallSegments,
   getFloorBounds,
   RoomWall,
   WALL_THICKNESS,
   type Bounds2D,
+  type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
 import {
@@ -101,6 +103,8 @@ const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
+
+type FloorId = 'ground' | 'upper';
 
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
@@ -151,7 +155,8 @@ const LIGHTING_OPTIONS = {
   bloomThreshold: 0.2,
 } as const;
 
-const staticColliders: RectCollider[] = [];
+const groundColliders: RectCollider[] = [];
+const upperFloorColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
@@ -776,8 +781,12 @@ function createLivingRoomMediaWall(bounds: Bounds2D): LivingRoomMediaWallBuild {
   return { group, colliders };
 }
 
-function isInsideAnyRoom(x: number, z: number): boolean {
-  return FLOOR_PLAN.rooms.some(
+function isInsideAnyRoom(
+  plan: FloorPlanDefinition,
+  x: number,
+  z: number
+): boolean {
+  return plan.rooms.some(
     (room) =>
       x >= room.bounds.minX - POSITION_EPSILON &&
       x <= room.bounds.maxX + POSITION_EPSILON &&
@@ -903,7 +912,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   if (backyardRoom) {
     const backyard = createBackyardEnvironment(backyardRoom.bounds);
     scene.add(backyard.group);
-    backyard.colliders.forEach((collider) => staticColliders.push(collider));
+    backyard.colliders.forEach((collider) => groundColliders.push(collider));
   }
 
   const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
@@ -980,7 +989,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
     wallGroup.add(wall);
 
-    staticColliders.push({
+    groundColliders.push({
       minX: wall.position.x - width / 2,
       maxX: wall.position.x + width / 2,
       minZ: wall.position.z - depth / 2,
@@ -994,13 +1003,140 @@ function initializeImmersiveScene(container: HTMLElement) {
   if (livingRoom) {
     const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
     scene.add(mediaWall.group);
-    mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
+    mediaWall.colliders.forEach((collider) => groundColliders.push(collider));
   }
 
   const staircase = createStaircase(STAIRCASE_CONFIG);
   scene.add(staircase.group);
-  // Block the player from rolling onto the vertical geometry until slope handling lands.
-  staircase.colliders.forEach((collider) => staticColliders.push(collider));
+  const stairTotalRise = staircase.totalRise;
+  const stairCenterX = STAIRCASE_CONFIG.basePosition.x;
+  const stairHalfWidth = STAIRCASE_CONFIG.step.width / 2;
+  const stairRun = STAIRCASE_CONFIG.step.run;
+  const stairBottomZ = STAIRCASE_CONFIG.basePosition.z;
+  const stairTopZ =
+    stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
+  const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
+  const stairLandingMinZ = stairTopZ - stairLandingDepth;
+  const upperFloorElevation =
+    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
+  const stairTransitionMargin = toWorldUnits(0.6);
+  const stairGuardThickness = toWorldUnits(0.22);
+  const stairGuardMinZ = stairLandingMinZ;
+  const stairGuardMaxZ = stairBottomZ + toWorldUnits(0.6);
+
+  groundColliders.push({
+    minX: stairCenterX - stairHalfWidth - stairGuardThickness,
+    maxX: stairCenterX - stairHalfWidth,
+    minZ: stairGuardMinZ,
+    maxZ: stairGuardMaxZ,
+  });
+  groundColliders.push({
+    minX: stairCenterX + stairHalfWidth,
+    maxX: stairCenterX + stairHalfWidth + stairGuardThickness,
+    minZ: stairGuardMinZ,
+    maxZ: stairGuardMaxZ,
+  });
+
+  const upperFloorGroup = new Group();
+  upperFloorGroup.visible = false;
+  scene.add(upperFloorGroup);
+
+  const upperFloorMaterial = new MeshStandardMaterial({
+    color: 0x1f273a,
+    side: DoubleSide,
+  });
+  const upperFloorShape = new Shape();
+  const [upperFirstX, upperFirstZ] = UPPER_FLOOR_PLAN.outline[0];
+  upperFloorShape.moveTo(upperFirstX, upperFirstZ);
+  for (let i = 1; i < UPPER_FLOOR_PLAN.outline.length; i += 1) {
+    const [x, z] = UPPER_FLOOR_PLAN.outline[i];
+    upperFloorShape.lineTo(x, z);
+  }
+  upperFloorShape.closePath();
+  const upperFloorGeometry = new ShapeGeometry(upperFloorShape);
+  upperFloorGeometry.rotateX(-Math.PI / 2);
+  const upperFloor = new Mesh(upperFloorGeometry, upperFloorMaterial);
+  upperFloor.position.y = upperFloorElevation;
+  upperFloorGroup.add(upperFloor);
+
+  const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
+  const upperWallGroup = new Group();
+  upperFloorGroup.add(upperWallGroup);
+  const upperWallSegments = getCombinedWallSegments(UPPER_FLOOR_PLAN);
+
+  upperWallSegments.forEach((segment) => {
+    const length =
+      segment.orientation === 'horizontal'
+        ? Math.abs(segment.end.x - segment.start.x)
+        : Math.abs(segment.end.z - segment.start.z);
+    if (length <= 1e-4) {
+      return;
+    }
+
+    const hasExterior = segment.rooms.some(
+      (roomInfo) => getRoomCategory(roomInfo.id) === 'exterior'
+    );
+    const hasInterior = segment.rooms.some(
+      (roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior'
+    );
+    const isMixed = hasExterior && hasInterior;
+    const segmentThickness =
+      hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
+    const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
+    const isInterior = segment.rooms.length > 1;
+    const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
+    const width =
+      segment.orientation === 'horizontal'
+        ? length + extension
+        : segmentThickness;
+    const depth =
+      segment.orientation === 'horizontal'
+        ? segmentThickness
+        : length + extension;
+
+    const baseX =
+      segment.orientation === 'horizontal'
+        ? (segment.start.x + segment.end.x) / 2
+        : segment.start.x;
+    const baseZ =
+      segment.orientation === 'horizontal'
+        ? segment.start.z
+        : (segment.start.z + segment.end.z) / 2;
+
+    let offsetX = 0;
+    let offsetZ = 0;
+    if (!isInterior) {
+      const direction = getOutwardDirectionForWall(segment.rooms[0].wall);
+      offsetX = direction.x * (WALL_THICKNESS / 2);
+      offsetZ = direction.z * (WALL_THICKNESS / 2);
+    }
+
+    const geometry = new BoxGeometry(width, segmentHeight, depth);
+    const wall = new Mesh(geometry, upperWallMaterial);
+    wall.position.set(
+      baseX + offsetX,
+      upperFloorElevation + segmentHeight / 2,
+      baseZ + offsetZ
+    );
+    upperWallGroup.add(wall);
+
+    upperFloorColliders.push({
+      minX: wall.position.x - width / 2,
+      maxX: wall.position.x + width / 2,
+      minZ: wall.position.z - depth / 2,
+      maxZ: wall.position.z + depth / 2,
+    });
+  });
+
+  const floorPlansById: Record<FloorId, FloorPlanDefinition> = {
+    ground: FLOOR_PLAN,
+    upper: UPPER_FLOOR_PLAN,
+  };
+
+  const floorColliders: Record<FloorId, RectCollider[]> = {
+    ground: groundColliders,
+    upper: upperFloorColliders,
+  };
 
   if (LIGHTING_OPTIONS.enableLedStrips) {
     const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
@@ -1147,7 +1283,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   const builtPoiInstances = createPoiInstances(getPoiDefinitions());
   builtPoiInstances.forEach((poi) => {
     scene.add(poi.group);
-    staticColliders.push(poi.collider);
+    groundColliders.push(poi.collider);
     poiInstances.push(poi);
   });
 
@@ -1175,7 +1311,7 @@ function initializeImmersiveScene(container: HTMLElement) {
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
     });
     scene.add(showpiece.group);
-    showpiece.colliders.forEach((collider) => staticColliders.push(collider));
+    showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
@@ -1194,7 +1330,7 @@ function initializeImmersiveScene(container: HTMLElement) {
       orientationRadians: terminalOrientation,
     });
     scene.add(terminal.group);
-    terminal.colliders.forEach((collider) => staticColliders.push(collider));
+    terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
   }
 
@@ -1259,6 +1395,82 @@ function initializeImmersiveScene(container: HTMLElement) {
   const pinchPointers = new Map<number, { x: number; y: number }>();
   let pinchStartDistance: number | null = null;
   let pinchStartZoomTarget = cameraZoomTarget;
+  let activeFloorId: FloorId = 'ground';
+
+  const isWithinStairWidth = (x: number, margin = 0) =>
+    Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
+
+  const computeRampHeight = (x: number, z: number): number => {
+    if (!isWithinStairWidth(x, stairTransitionMargin)) {
+      return 0;
+    }
+    const denominator = stairBottomZ - stairTopZ;
+    if (Math.abs(denominator) <= 1e-6) {
+      return 0;
+    }
+    const progress = (stairBottomZ - z) / denominator;
+    if (!Number.isFinite(progress)) {
+      return 0;
+    }
+    const clamped = MathUtils.clamp(progress, 0, 1);
+    return clamped * stairTotalRise;
+  };
+
+  const predictFloorId = (
+    x: number,
+    z: number,
+    current: FloorId
+  ): FloorId => {
+    const rampHeight = computeRampHeight(x, z);
+    if (current === 'upper') {
+      const nearBottom =
+        isWithinStairWidth(x, stairTransitionMargin) &&
+        rampHeight <= STAIRCASE_CONFIG.step.rise * 0.5 &&
+        z >= stairBottomZ - stairRun * 0.5;
+      if (nearBottom) {
+        return 'ground';
+      }
+      return 'upper';
+    }
+
+    const nearLanding =
+      isWithinStairWidth(x, stairTransitionMargin) &&
+      (z <= stairTopZ + stairTransitionMargin ||
+        rampHeight >=
+          stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
+    if (nearLanding) {
+      return 'upper';
+    }
+
+    return 'ground';
+  };
+
+  const canOccupyPosition = (
+    x: number,
+    z: number,
+    floorId: FloorId
+  ): boolean =>
+    isInsideAnyRoom(floorPlansById[floorId], x, z) &&
+    !collidesWithColliders(x, z, PLAYER_RADIUS, floorColliders[floorId]);
+
+  const setActiveFloorId = (next: FloorId) => {
+    if (activeFloorId === next) {
+      return;
+    }
+    activeFloorId = next;
+    upperFloorGroup.visible = next === 'upper';
+  };
+
+  const updatePlayerVerticalPosition = () => {
+    const rampHeight = computeRampHeight(player.position.x, player.position.z);
+    const baseHeight =
+      activeFloorId === 'upper'
+        ? upperFloorElevation
+        : Math.min(rampHeight, upperFloorElevation);
+    player.position.y = PLAYER_RADIUS + baseHeight;
+  };
+
+  updatePlayerVerticalPosition();
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -1603,16 +1815,14 @@ function initializeImmersiveScene(container: HTMLElement) {
 
     if (stepX !== 0) {
       const candidateX = player.position.x + stepX;
-      if (
-        isInsideAnyRoom(candidateX, player.position.z) &&
-        !collidesWithColliders(
-          candidateX,
-          player.position.z,
-          PLAYER_RADIUS,
-          staticColliders
-        )
-      ) {
+      const predictedFloor = predictFloorId(
+        candidateX,
+        player.position.z,
+        activeFloorId
+      );
+      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
         player.position.x = candidateX;
+        setActiveFloorId(predictedFloor);
       } else {
         targetVelocity.x = 0;
         velocity.x = 0;
@@ -1621,23 +1831,21 @@ function initializeImmersiveScene(container: HTMLElement) {
 
     if (stepZ !== 0) {
       const candidateZ = player.position.z + stepZ;
-      if (
-        isInsideAnyRoom(player.position.x, candidateZ) &&
-        !collidesWithColliders(
-          player.position.x,
-          candidateZ,
-          PLAYER_RADIUS,
-          staticColliders
-        )
-      ) {
+      const predictedFloor = predictFloorId(
+        player.position.x,
+        candidateZ,
+        activeFloorId
+      );
+      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
         player.position.z = candidateZ;
+        setActiveFloorId(predictedFloor);
       } else {
         targetVelocity.z = 0;
         velocity.z = 0;
       }
     }
 
-    player.position.y = PLAYER_RADIUS;
+    updatePlayerVerticalPosition();
   }
 
   function updateCamera(delta: number) {

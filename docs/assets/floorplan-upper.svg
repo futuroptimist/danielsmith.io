@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="960" height="1024" viewBox="0 0 960 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="960" height="1024" fill="#0b1428" />
+  <g>
+    <path d="M32.00,992.00 L928.00,992.00 L928.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
+    
+      <g>
+        <rect
+          x="544.00"
+          y="736.00"
+          width="268.80"
+          height="256.00"
+          fill="#ffba52"
+          fill-opacity="0.22"
+          stroke="#ffba52"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="678.40" y="864.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Upper Landing</text>
+      </g>
+    
+
+      <g>
+        <rect
+          x="160.00"
+          y="480.00"
+          width="384.00"
+          height="512.00"
+          fill="#7bd5ff"
+          fill-opacity="0.22"
+          stroke="#7bd5ff"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="352.00" y="736.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Creators Studio</text>
+      </g>
+    
+
+      <g>
+        <rect
+          x="544.00"
+          y="288.00"
+          width="320.00"
+          height="448.00"
+          fill="#c3a7ff"
+          fill-opacity="0.22"
+          stroke="#c3a7ff"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="704.00" y="512.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Loft Library</text>
+      </g>
+    
+
+      <g>
+        <rect
+          x="160.00"
+          y="32.00"
+          width="704.00"
+          height="256.00"
+          fill="#9cf7c7"
+          fill-opacity="0.22"
+          stroke="#9cf7c7"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="512.00" y="160.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Focus Pods</text>
+      </g>
+    
+    <line x1="544.00" y1="736.00" x2="614.40" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="742.40" y1="736.00" x2="812.80" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="812.80" y1="736.00" x2="864.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="992.00" x2="544.00" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="992.00" x2="812.80" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="480.00" x2="544.00" y2="480.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="288.00" x2="544.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="672.00" y1="288.00" x2="864.00" y2="288.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="32.00" x2="864.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="812.80" y1="992.00" x2="812.80" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="992.00" x2="544.00" y2="928.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="800.00" x2="544.00" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="736.00" x2="544.00" y2="672.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="544.00" x2="544.00" y2="480.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="480.00" x2="544.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="992.00" x2="160.00" y2="480.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="288.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="864.00" y1="736.00" x2="864.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="864.00" y1="288.00" x2="864.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+  </g>
+</svg>
