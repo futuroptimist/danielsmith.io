@@ -1131,20 +1131,30 @@ function initializeImmersiveScene(container: HTMLElement) {
     );
   };
 
+  let mouseCameraDragging = false;
+
   const handlePointerDownForCameraPan = (event: PointerEvent) => {
     if (event.pointerType !== 'mouse' || event.button !== 0) {
       return;
     }
-    event.preventDefault();
     renderer.domElement.setPointerCapture?.(event.pointerId);
     mouseCameraPointerId = event.pointerId;
     mouseCameraStart.set(event.clientX, event.clientY);
     mouseCameraInput.set(0, 0);
+    mouseCameraDragging = false;
   };
 
   const handlePointerMoveForCameraPan = (event: PointerEvent) => {
     if (event.pointerType !== 'mouse' || event.pointerId !== mouseCameraPointerId) {
       return;
+    }
+    if (!mouseCameraDragging) {
+      const deltaX = event.clientX - mouseCameraStart.x;
+      const deltaY = event.clientY - mouseCameraStart.y;
+      if (deltaX === 0 && deltaY === 0) {
+        return;
+      }
+      mouseCameraDragging = true;
     }
     event.preventDefault();
     updateMouseCameraInput(event.clientX, event.clientY);
@@ -1157,6 +1167,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     renderer.domElement.releasePointerCapture?.(event.pointerId);
     mouseCameraPointerId = null;
     mouseCameraInput.set(0, 0);
+    mouseCameraDragging = false;
   };
 
   renderer.domElement.addEventListener('wheel', handleWheelZoom, {
