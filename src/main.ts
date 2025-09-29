@@ -610,10 +610,7 @@ if (failoverDecision.shouldUseFallback) {
 
 function initializeImmersiveScene(
   container: HTMLElement,
-  onFatalError: (
-    error: unknown,
-    options: { renderer?: WebGLRenderer }
-  ) => void
+  onFatalError: (error: unknown, options: { renderer?: WebGLRenderer }) => void
 ) {
   const renderer = new WebGLRenderer({ antialias: true });
   renderer.outputColorSpace = SRGBColorSpace;

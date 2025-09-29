@@ -22,7 +22,8 @@ const projectRoot = path.resolve(__dirname, '..', '..');
 const indexHtmlPath = path.resolve(projectRoot, 'index.html');
 const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
 
-const INLINE_GRADIENT_REGEX = /background:\s*linear-gradient\(180deg,\s*(#[0-9a-fA-F]{6}) 0%,\s*(#[0-9a-fA-F]{6}) 100%\s*\);/;
+const INLINE_GRADIENT_REGEX =
+  /background:\s*linear-gradient\(180deg,\s*(#[0-9a-fA-F]{6}) 0%,\s*(#[0-9a-fA-F]{6}) 100%\s*\);/;
 
 const DEVICE_SCENARIOS: DeviceScenario[] = [
   { label: 'phone portrait', width: 375, height: 812, devicePixelRatio: 3 },
@@ -41,7 +42,9 @@ const ORIGINAL_VIEWPORT = {
 const toHex = (value: number) => value.toString(16).padStart(2, '0');
 
 const parseGradientStops = (backgroundImage: string) => {
-  const rgbMatches = [...backgroundImage.matchAll(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g)];
+  const rgbMatches = [
+    ...backgroundImage.matchAll(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g),
+  ];
   if (rgbMatches.length >= 2) {
     return {
       top: `#${rgbMatches[0]
@@ -109,8 +112,10 @@ describe('immersive gradient parity', () => {
         value: scenario.devicePixelRatio,
       });
 
-      document.documentElement.style.backgroundImage = IMMERSIVE_GRADIENT_CSS_BACKGROUND;
-      document.documentElement.style.backgroundColor = IMMERSIVE_GRADIENT_SOLID_FALLBACK;
+      document.documentElement.style.backgroundImage =
+        IMMERSIVE_GRADIENT_CSS_BACKGROUND;
+      document.documentElement.style.backgroundColor =
+        IMMERSIVE_GRADIENT_SOLID_FALLBACK;
 
       const computed = window.getComputedStyle(document.documentElement);
       const { top, bottom } = parseGradientStops(computed.backgroundImage);
@@ -139,7 +144,9 @@ describe('immersive gradient parity', () => {
             return {
               width: 0,
               height: 0,
-              getContext: vi.fn((type: string) => (type === '2d' ? context : null)),
+              getContext: vi.fn((type: string) =>
+                type === '2d' ? context : null
+              ),
             } as unknown as HTMLCanvasElement;
           }
           return originalCreateElement(tagName);
