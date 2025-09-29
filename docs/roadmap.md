@@ -106,7 +106,7 @@ Focus: anchor each highlighted project with an interactive artifact.
    - Launch-ready model rocket for `dspace`, with staged ignition sequence and lore text.
    - Aluminum extrusion greenhouse inspired by `sugarkube`, including animated solar panels,
      grow lights, plants, and koi pond voxels.
-   - Ambient audio beds (crickets, hum) that fade based on player proximity.
+   - ✨ Ambient audio beds (crickets, hum) that fade based on player proximity.
 
 ## Phase 3 – Interface & Modes
 

@@ -3,6 +3,8 @@ import './styles.css';
 import {
   ACESFilmicToneMapping,
   AmbientLight,
+  Audio,
+  AudioListener,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -35,6 +37,15 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+import {
+  AmbientAudioController,
+  type AmbientAudioBedDefinition,
+  type AmbientAudioSource,
+} from './audio/ambientAudio';
+import {
+  createCricketChorusBuffer,
+  createDistantHumBuffer,
+} from './audio/proceduralBuffers';
 import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
@@ -142,6 +153,7 @@ let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
+let ambientAudioController: AmbientAudioController | null = null;
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -857,6 +869,8 @@ function initializeImmersiveScene(container: HTMLElement) {
     0.1,
     1000
   );
+  const audioListener = new AudioListener();
+  camera.add(audioListener);
   const cameraBaseOffset = new Vector3(
     cameraSize * 1.06,
     cameraSize * 1.08,
@@ -1197,6 +1211,7 @@ function initializeImmersiveScene(container: HTMLElement) {
     removeHoverListener();
     removeSelectionStateListener();
     poiTooltipOverlay.dispose();
+    ambientAudioController?.dispose();
   });
 
   const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
@@ -1227,6 +1242,110 @@ function initializeImmersiveScene(container: HTMLElement) {
   let cameraPanLimitX = 0;
   let cameraPanLimitZ = 0;
   let interactKeyWasPressed = false;
+
+  if (!ambientAudioController) {
+    const audioBeds: AmbientAudioBedDefinition[] = [];
+    const audioContext: AudioContext = audioListener.context;
+
+    const createLoopingSource = (
+      id: string,
+      bufferFactory: (context: AudioContext) => AudioBuffer
+    ): AmbientAudioSource => {
+      const audio = new Audio(audioListener);
+      audio.setLoop(true);
+      audio.setVolume(0);
+      const buffer = bufferFactory(audioContext);
+      audio.setBuffer(buffer);
+      return {
+        id,
+        get isPlaying() {
+          return audio.isPlaying;
+        },
+        play: () => {
+          if (!audio.isPlaying) {
+            audio.play();
+          }
+        },
+        stop: () => {
+          if (audio.isPlaying) {
+            audio.stop();
+          }
+        },
+        setVolume: (volume: number) => {
+          audio.setVolume(volume);
+        },
+      };
+    };
+
+    const homeHalfExtent = Math.max(
+      (floorBounds.maxX - floorBounds.minX) / 2,
+      (floorBounds.maxZ - floorBounds.minZ) / 2
+    );
+    audioBeds.push({
+      id: 'interior-hum',
+      center: {
+        x: (floorBounds.minX + floorBounds.maxX) / 2,
+        z: (floorBounds.minZ + floorBounds.maxZ) / 2,
+      },
+      innerRadius: homeHalfExtent * 0.55,
+      outerRadius: homeHalfExtent * 1.2,
+      baseVolume: 0.32,
+      source: createLoopingSource('interior-hum', (context) =>
+        createDistantHumBuffer(context)
+      ),
+    });
+
+    if (backyardRoom) {
+      const bounds = backyardRoom.bounds;
+      const backyardHalfExtent = Math.max(
+        (bounds.maxX - bounds.minX) / 2,
+        (bounds.maxZ - bounds.minZ) / 2
+      );
+      audioBeds.push({
+        id: 'backyard-crickets',
+        center: {
+          x: (bounds.minX + bounds.maxX) / 2,
+          z: (bounds.minZ + bounds.maxZ) / 2,
+        },
+        innerRadius: backyardHalfExtent * 0.6,
+        outerRadius: backyardHalfExtent + toWorldUnits(6),
+        baseVolume: 0.65,
+        source: createLoopingSource('backyard-crickets', (context) =>
+          createCricketChorusBuffer(context)
+        ),
+      });
+    }
+
+    ambientAudioController = new AmbientAudioController(audioBeds, {
+      smoothing: 3.2,
+      onEnable: async () => {
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+      },
+    });
+
+    const enableAmbientAudio = async () => {
+      if (!ambientAudioController || ambientAudioController.isEnabled()) {
+        return;
+      }
+      try {
+        await ambientAudioController.enable();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('Ambient audio failed to start', error);
+      }
+    };
+
+    const onFirstInteraction = () => {
+      window.removeEventListener('pointerdown', onFirstInteraction);
+      window.removeEventListener('keydown', onFirstInteraction);
+      void enableAmbientAudio();
+    };
+
+    window.addEventListener('pointerdown', onFirstInteraction);
+    window.addEventListener('keydown', onFirstInteraction);
+  }
 
   let composer: EffectComposer | null = null;
   let bloomPass: UnrealBloomPass | null = null;
@@ -1564,6 +1683,9 @@ function initializeImmersiveScene(container: HTMLElement) {
     updateCamera(delta);
     updatePois(elapsedTime, delta);
     handleInteractionInput();
+    if (ambientAudioController) {
+      ambientAudioController.update(player.position, delta);
+    }
     if (flywheelShowpiece) {
       const activation = flywheelPoi?.activation ?? 0;
       const focus = flywheelPoi?.focus ?? 0;
