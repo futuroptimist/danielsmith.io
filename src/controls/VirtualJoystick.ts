@@ -1,6 +1,8 @@
 const JOYSTICK_RADIUS = 70;
 const JOYSTICK_DIAMETER = JOYSTICK_RADIUS * 2;
 
+type JoystickMode = 'movement' | 'camera';
+
 interface JoystickState {
   pointerId: number;
   originX: number;
@@ -8,6 +10,7 @@ interface JoystickState {
   container: HTMLDivElement;
   thumb: HTMLDivElement;
   value: { x: number; y: number };
+  mode: JoystickMode;
 }
 
 export class VirtualJoystick {
@@ -68,7 +71,7 @@ export class VirtualJoystick {
       }
     }
 
-    const joystick = this.createJoystick(event);
+    const joystick = this.createJoystick(event, side);
     if (side === 'movement') {
       this.movement = joystick;
     } else {
@@ -117,7 +120,7 @@ export class VirtualJoystick {
     return undefined;
   }
 
-  private createJoystick(event: PointerEvent): JoystickState {
+  private createJoystick(event: PointerEvent, mode: JoystickMode): JoystickState {
     const container = document.createElement('div');
     container.className = 'joystick';
     container.style.width = `${JOYSTICK_DIAMETER}px`;
@@ -144,6 +147,7 @@ export class VirtualJoystick {
       container,
       thumb,
       value: { x: 0, y: 0 },
+      mode,
     };
   }
 
@@ -154,6 +158,21 @@ export class VirtualJoystick {
   ) {
     const dx = clientX - joystick.originX;
     const dy = clientY - joystick.originY;
+    if (joystick.mode === 'camera') {
+      const halfWidth = window.innerWidth / 2;
+      const halfHeight = window.innerHeight / 2;
+      const normalizedX =
+        halfWidth <= 0 ? 0 : Math.max(-1, Math.min(1, dx / halfWidth));
+      const normalizedY =
+        halfHeight <= 0 ? 0 : Math.max(-1, Math.min(1, dy / halfHeight));
+
+      joystick.value.x = normalizedX;
+      joystick.value.y = normalizedY;
+
+      joystick.thumb.style.transform = `translate(-50%, -50%) translate(${normalizedX * JOYSTICK_RADIUS}px, ${normalizedY * JOYSTICK_RADIUS}px)`;
+      return;
+    }
+
     const distance = Math.min(Math.hypot(dx, dy), JOYSTICK_RADIUS);
 
     const angle = Math.atan2(dy, dx);
