@@ -156,9 +156,19 @@ function getMediaWallTextures(): MediaWallTextures {
   };
 }
 
+export interface LivingRoomMediaWallPoiBindings {
+  futuroptimistTv: {
+    screen: Mesh;
+    screenMaterial: MeshBasicMaterial;
+    glow: Mesh;
+    glowMaterial: MeshBasicMaterial;
+  };
+}
+
 export interface LivingRoomMediaWallBuild {
   group: Group;
   colliders: RectCollider[];
+  poiBindings: LivingRoomMediaWallPoiBindings;
 }
 
 export function createLivingRoomMediaWall(
@@ -343,5 +353,14 @@ export function createLivingRoomMediaWall(
     maxZ: anchorZ + shelfWidth / 2,
   });
 
-  return { group, colliders };
+  const poiBindings: LivingRoomMediaWallPoiBindings = {
+    futuroptimistTv: {
+      screen: screenMesh,
+      screenMaterial,
+      glow: screenGlow,
+      glowMaterial: screenGlowMaterial,
+    },
+  };
+
+  return { group, colliders, poiBindings };
 }
