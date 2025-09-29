@@ -9,53 +9,78 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  Object3D,
   PlaneGeometry,
   RingGeometry,
   SphereGeometry,
   Vector3,
 } from 'three';
 
-import type { PoiDefinition } from './types';
+import type { PoiDefinition, PoiId } from './types';
+
+export interface PoiDisplayHighlight {
+  mesh: Mesh;
+  material: MeshBasicMaterial;
+  baseOpacity: number;
+  focusOpacity: number;
+  baseScale?: number;
+  focusScale?: number;
+}
+
+export type PoiInstanceOverride = {
+  mode: 'display';
+  hitArea: Mesh;
+  highlight: PoiDisplayHighlight;
+};
+
+export type PoiInstanceOverrides = Partial<Record<PoiId, PoiInstanceOverride>>;
 
 export interface PoiInstance {
   definition: PoiDefinition;
-  group: Group;
-  orb: Mesh;
-  orbMaterial: MeshStandardMaterial;
-  orbBaseHeight: number;
-  accentMaterial: MeshStandardMaterial;
-  label: Mesh;
-  labelMaterial: MeshBasicMaterial;
-  labelBaseHeight: number;
+  group: Object3D;
+  orb?: Mesh;
+  orbMaterial?: MeshStandardMaterial;
+  orbBaseHeight?: number;
+  accentMaterial?: MeshStandardMaterial;
+  label?: Mesh;
+  labelMaterial?: MeshBasicMaterial;
+  labelBaseHeight?: number;
   labelWorldPosition: Vector3;
   floatPhase: number;
   floatSpeed: number;
   floatAmplitude: number;
-  halo: Mesh;
-  haloMaterial: MeshBasicMaterial;
+  halo?: Mesh;
+  haloMaterial?: MeshBasicMaterial;
   collider: { minX: number; maxX: number; minZ: number; maxZ: number };
   activation: number;
   pulseOffset: number;
   hitArea: Mesh;
   focus: number;
   focusTarget: number;
-  accentBaseColor: Color;
-  accentFocusColor: Color;
-  haloBaseColor: Color;
-  haloFocusColor: Color;
-  orbEmissiveBase: Color;
-  orbEmissiveHighlight: Color;
+  accentBaseColor?: Color;
+  accentFocusColor?: Color;
+  haloBaseColor?: Color;
+  haloFocusColor?: Color;
+  orbEmissiveBase?: Color;
+  orbEmissiveHighlight?: Color;
+  visualMode: 'pedestal' | 'display';
+  displayHighlight?: PoiDisplayHighlight;
 }
 
 export function createPoiInstances(
-  definitions: PoiDefinition[]
+  definitions: PoiDefinition[],
+  overrides: PoiInstanceOverrides = {}
 ): PoiInstance[] {
-  return definitions.map((definition, index) =>
-    createPoiInstance(definition, index * Math.PI * 0.37)
-  );
+  return definitions.map((definition, index) => {
+    const override = overrides[definition.id];
+    if (override?.mode === 'display') {
+      return createDisplayPoiInstance(definition, override);
+    }
+    return createPedestalPoiInstance(definition, index * Math.PI * 0.37);
+  });
 }
 
-function createPoiInstance(
+function createPedestalPoiInstance(
   definition: PoiDefinition,
   phaseOffset: number
 ): PoiInstance {
@@ -214,6 +239,38 @@ function createPoiInstance(
     haloFocusColor,
     orbEmissiveBase,
     orbEmissiveHighlight,
+    visualMode: 'pedestal',
+  };
+}
+
+function createDisplayPoiInstance(
+  definition: PoiDefinition,
+  override: PoiInstanceOverride
+): PoiInstance {
+  const collider = {
+    minX: definition.position.x - definition.footprint.width / 2,
+    maxX: definition.position.x + definition.footprint.width / 2,
+    minZ: definition.position.z - definition.footprint.depth / 2,
+    maxZ: definition.position.z + definition.footprint.depth / 2,
+  };
+
+  override.hitArea.name = `POI_HIT:${definition.id}`;
+
+  return {
+    definition,
+    group: override.hitArea,
+    collider,
+    activation: 0,
+    pulseOffset: 0,
+    hitArea: override.hitArea,
+    focus: 0,
+    focusTarget: 0,
+    labelWorldPosition: new Vector3(),
+    floatPhase: 0,
+    floatSpeed: 0,
+    floatAmplitude: 0,
+    visualMode: 'display',
+    displayHighlight: override.highlight,
   };
 }
 

@@ -10,6 +10,7 @@ import {
   Clock,
   Color,
   DirectionalLight,
+  DoubleSide,
   Group,
   HemisphereLight,
   MathUtils,
@@ -63,7 +64,11 @@ import {
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
-import { createPoiInstances, type PoiInstance } from './poi/markers';
+import {
+  createPoiInstances,
+  type PoiInstance,
+  type PoiInstanceOverrides,
+} from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import {
@@ -315,9 +320,19 @@ function createYouTubeBadgeTexture(): CanvasTexture {
   return texture;
 }
 
+interface LivingRoomMediaWallPoiBindings {
+  futuroptimistTv: {
+    screen: Mesh;
+    screenMaterial: MeshBasicMaterial;
+    glow: Mesh;
+    glowMaterial: MeshBasicMaterial;
+  };
+}
+
 interface LivingRoomMediaWallBuild {
   group: Group;
   colliders: RectCollider[];
+  poiBindings: LivingRoomMediaWallPoiBindings;
 }
 
 function createLivingRoomMediaWall(bounds: Bounds2D): LivingRoomMediaWallBuild {
@@ -500,7 +515,16 @@ function createLivingRoomMediaWall(bounds: Bounds2D): LivingRoomMediaWallBuild {
     maxZ: anchorZ + shelfWidth / 2,
   });
 
-  return { group, colliders };
+  const poiBindings: LivingRoomMediaWallPoiBindings = {
+    futuroptimistTv: {
+      screen,
+      screenMaterial,
+      glow: screenGlow,
+      glowMaterial: screenGlowMaterial,
+    },
+  };
+
+  return { group, colliders, poiBindings };
 }
 
 function isInsideAnyRoom(x: number, z: number): boolean {
@@ -566,6 +590,8 @@ function initializeImmersiveScene(container: HTMLElement) {
 
   const scene = new Scene();
   scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
+
+  const poiOverrides: PoiInstanceOverrides = {};
 
   const floorBounds = getFloorBounds(FLOOR_PLAN);
   const floorCenter = new Vector3(
@@ -722,6 +748,31 @@ function initializeImmersiveScene(container: HTMLElement) {
     const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
     scene.add(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
+
+    const tvBinding = mediaWall.poiBindings.futuroptimistTv;
+    const tvHitArea = tvBinding.screen.clone();
+    const tvHitMaterial = new MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      side: DoubleSide,
+      toneMapped: false,
+    });
+    tvHitArea.material = tvHitMaterial;
+    tvHitArea.visible = true;
+    tvHitArea.renderOrder = tvBinding.glow.renderOrder + 1;
+    mediaWall.group.add(tvHitArea);
+
+    poiOverrides['futuroptimist-living-room-tv'] = {
+      mode: 'display',
+      hitArea: tvHitArea,
+      highlight: {
+        mesh: tvBinding.glow,
+        material: tvBinding.glowMaterial,
+        baseOpacity: tvBinding.glowMaterial.opacity,
+        focusOpacity: 0.55,
+      },
+    };
   }
 
   const staircase = createStaircase(STAIRCASE_CONFIG);
@@ -871,9 +922,14 @@ function initializeImmersiveScene(container: HTMLElement) {
     scene.add(ledFillLights);
   }
 
-  const builtPoiInstances = createPoiInstances(getPoiDefinitions());
+  const builtPoiInstances = createPoiInstances(
+    getPoiDefinitions(),
+    poiOverrides
+  );
   builtPoiInstances.forEach((poi) => {
-    scene.add(poi.group);
+    if (!poi.group.parent) {
+      scene.add(poi.group);
+    }
     staticColliders.push(poi.collider);
     poiInstances.push(poi);
   });
@@ -1440,15 +1496,21 @@ function initializeImmersiveScene(container: HTMLElement) {
         elapsedTime * poi.floatSpeed + poi.floatPhase
       );
       const scaledOffset = floatOffset * poi.floatAmplitude;
-      poi.orb.position.y = poi.orbBaseHeight + scaledOffset;
-      poi.label.position.y = poi.labelBaseHeight + scaledOffset * 0.4;
-      poi.label.getWorldPosition(poi.labelWorldPosition);
-      poiLabelLookTarget.set(
-        camera.position.x,
-        poi.labelWorldPosition.y,
-        camera.position.z
-      );
-      poi.label.lookAt(poiLabelLookTarget);
+
+      if (poi.orb && poi.orbBaseHeight !== undefined) {
+        poi.orb.position.y = poi.orbBaseHeight + scaledOffset;
+      }
+
+      if (poi.label && poi.labelBaseHeight !== undefined) {
+        poi.label.position.y = poi.labelBaseHeight + scaledOffset * 0.4;
+        poi.label.getWorldPosition(poi.labelWorldPosition);
+        poiLabelLookTarget.set(
+          camera.position.x,
+          poi.labelWorldPosition.y,
+          camera.position.z
+        );
+        poi.label.lookAt(poiLabelLookTarget);
+      }
 
       poiPlayerOffset.set(
         player.position.x - poi.group.position.x,
@@ -1474,38 +1536,73 @@ function initializeImmersiveScene(container: HTMLElement) {
         closestPoi = poi;
       }
 
-      const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
-      poi.labelMaterial.opacity = labelOpacity;
-      poi.label.visible = labelOpacity > 0.05;
+      if (poi.label && poi.labelMaterial) {
+        const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
+        poi.labelMaterial.opacity = labelOpacity;
+        poi.label.visible = labelOpacity > 0.05;
+      }
 
-      const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
-      poi.orbMaterial.emissiveIntensity = orbEmissive;
-      poi.orbMaterial.emissive.lerpColors(
-        poi.orbEmissiveBase,
-        poi.orbEmissiveHighlight,
-        poi.focus
-      );
+      if (poi.displayHighlight) {
+        const {
+          mesh,
+          material,
+          baseOpacity,
+          focusOpacity,
+          baseScale,
+          focusScale,
+        } = poi.displayHighlight;
+        const nextOpacity = MathUtils.lerp(baseOpacity, focusOpacity, emphasis);
+        material.opacity = nextOpacity;
+        mesh.visible = nextOpacity > 0.02;
+        if (
+          baseScale !== undefined &&
+          focusScale !== undefined &&
+          mesh.scale
+        ) {
+          const nextScale = MathUtils.lerp(baseScale, focusScale, emphasis);
+          mesh.scale.setScalar(nextScale);
+        }
+      } else {
+        if (poi.orbMaterial && poi.orbEmissiveBase && poi.orbEmissiveHighlight) {
+          const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
+          poi.orbMaterial.emissiveIntensity = orbEmissive;
+          poi.orbMaterial.emissive.lerpColors(
+            poi.orbEmissiveBase,
+            poi.orbEmissiveHighlight,
+            poi.focus
+          );
+        }
 
-      const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
-      poi.accentMaterial.emissiveIntensity = accentEmissive;
-      poi.accentMaterial.color.lerpColors(
-        poi.accentBaseColor,
-        poi.accentFocusColor,
-        poi.focus
-      );
+        if (poi.accentMaterial && poi.accentBaseColor && poi.accentFocusColor) {
+          const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
+          poi.accentMaterial.emissiveIntensity = accentEmissive;
+          poi.accentMaterial.color.lerpColors(
+            poi.accentBaseColor,
+            poi.accentFocusColor,
+            poi.focus
+          );
+        }
 
-      const haloPulse =
-        1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
-      const haloScale = MathUtils.lerp(1, 1.18, emphasis) * haloPulse;
-      poi.halo.scale.setScalar(haloScale);
-      const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
-      poi.haloMaterial.opacity = haloOpacity;
-      poi.halo.visible = haloOpacity > 0.04;
-      poi.haloMaterial.color.lerpColors(
-        poi.haloBaseColor,
-        poi.haloFocusColor,
-        poi.focus
-      );
+        if (
+          poi.halo &&
+          poi.haloMaterial &&
+          poi.haloBaseColor &&
+          poi.haloFocusColor
+        ) {
+          const haloPulse =
+            1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
+          const haloScale = MathUtils.lerp(1, 1.18, emphasis) * haloPulse;
+          poi.halo.scale.setScalar(haloScale);
+          const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
+          poi.haloMaterial.opacity = haloOpacity;
+          poi.halo.visible = haloOpacity > 0.04;
+          poi.haloMaterial.color.lerpColors(
+            poi.haloBaseColor,
+            poi.haloFocusColor,
+            poi.focus
+          );
+        }
+      }
     }
     if (closestPoi && highestActivation >= 0.6) {
       setInteractablePoi(closestPoi);
