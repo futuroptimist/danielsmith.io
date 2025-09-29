@@ -80,6 +80,7 @@ import {
 } from './structures/jobbotTerminal';
 import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
+import { createImmersiveGradientTexture } from './theme/immersiveGradient';
 
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
@@ -101,6 +102,14 @@ const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
+
+type AppMode = 'immersive' | 'fallback';
+
+const markDocumentReady = (mode: AppMode) => {
+  const root = document.documentElement;
+  root.dataset.appMode = mode;
+  root.removeAttribute('data-app-loading');
+};
 
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
@@ -166,28 +175,6 @@ const roomDefinitions = new Map(
 function getRoomCategory(roomId: string): RoomCategory {
   const room = roomDefinitions.get(roomId);
   return room?.category ?? 'interior';
-}
-
-function createVerticalGradientTexture(
-  topHex: number,
-  bottomHex: number
-): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 2;
-  canvas.height = 512;
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('Failed to create gradient canvas context.');
-  }
-  const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, new Color(topHex).getStyle());
-  gradient.addColorStop(1, new Color(bottomHex).getStyle());
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.needsUpdate = true;
-  return texture;
 }
 
 interface BackyardEnvironmentBuild {
@@ -823,6 +810,7 @@ if (failoverDecision.shouldUseFallback) {
     reason: failoverDecision.reason ?? 'manual',
     immersiveUrl,
   });
+  markDocumentReady('fallback');
 } else {
   initializeImmersiveScene(container);
 }
@@ -838,7 +826,7 @@ function initializeImmersiveScene(container: HTMLElement) {
   container.appendChild(renderer.domElement);
 
   const scene = new Scene();
-  scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
+  scene.background = createImmersiveGradientTexture();
 
   const floorBounds = getFloorBounds(FLOOR_PLAN);
   const floorCenter = new Vector3(
@@ -1812,6 +1800,8 @@ function initializeImmersiveScene(container: HTMLElement) {
     interactKeyWasPressed = pressed;
   }
 
+  let hasPresentedFirstFrame = false;
+
   renderer.setAnimationLoop(() => {
     const delta = clock.getDelta();
     const elapsedTime = clock.elapsedTime;
@@ -1844,6 +1834,10 @@ function initializeImmersiveScene(container: HTMLElement) {
       composer.render();
     } else {
       renderer.render(scene, camera);
+    }
+    if (!hasPresentedFirstFrame) {
+      hasPresentedFirstFrame = true;
+      markDocumentReady('immersive');
     }
   });
 }
