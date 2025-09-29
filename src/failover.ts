@@ -4,10 +4,7 @@ type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 
 type DeviceMemoryReader = () => number | undefined;
 
-export type FallbackReason =
-  | 'webgl-unsupported'
-  | 'manual'
-  | 'low-memory';
+export type FallbackReason = 'webgl-unsupported' | 'manual' | 'low-memory';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
