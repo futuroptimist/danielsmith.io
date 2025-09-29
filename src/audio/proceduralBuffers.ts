@@ -162,7 +162,11 @@ function createCricketVoice(
     microDrift,
     decayRate,
     prng: createPrng(seed),
-    filterCoefficients: createBandPassCoefficients(sampleRate, centerFrequency, q),
+    filterCoefficients: createBandPassCoefficients(
+      sampleRate,
+      centerFrequency,
+      q
+    ),
     filterState: { x1: 0, x2: 0, y1: 0, y2: 0 },
   };
 }
@@ -237,11 +241,19 @@ export function createCricketChorusBuffer<T extends BufferContext>(
 
     for (const voice of voices) {
       const noise = voice.prng() * 2 - 1;
-      const filteredNoise = processBiquad(voice.filterState, voice.filterCoefficients, noise);
+      const filteredNoise = processBiquad(
+        voice.filterState,
+        voice.filterCoefficients,
+        noise
+      );
       const voiceTime = (t + voice.offset) % voice.interval;
       let voiceSample = 0;
 
-      for (let chirpIndex = 0; chirpIndex < voice.chirpsPerCycle; chirpIndex += 1) {
+      for (
+        let chirpIndex = 0;
+        chirpIndex < voice.chirpsPerCycle;
+        chirpIndex += 1
+      ) {
         const chirpStart = chirpIndex * voice.separation;
         const timeInChirp = voiceTime - chirpStart;
         const envelope = computeChirpEnvelope(
