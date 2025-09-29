@@ -1,6 +1,7 @@
 import { FLOOR_PLAN } from '../floorPlan';
 
 import type { PoiDefinition, PoiId, PoiRegistry } from './types';
+import { assertValidPoiDefinitions } from './validation';
 
 const definitions: PoiDefinition[] = [
   {
@@ -70,6 +71,8 @@ const definitions: PoiDefinition[] = [
     status: 'prototype',
   },
 ];
+
+assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
 
 class StaticPoiRegistry implements PoiRegistry {
   private readonly pois: Map<PoiId, PoiDefinition>;
