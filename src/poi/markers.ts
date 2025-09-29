@@ -1,5 +1,6 @@
 import {
   AdditiveBlending,
+  Box3,
   CanvasTexture,
   Color,
   CylinderGeometry,
@@ -247,12 +248,28 @@ function createDisplayPoiInstance(
   definition: PoiDefinition,
   override: PoiInstanceOverride
 ): PoiInstance {
-  const collider = {
-    minX: definition.position.x - definition.footprint.width / 2,
-    maxX: definition.position.x + definition.footprint.width / 2,
-    minZ: definition.position.z - definition.footprint.depth / 2,
-    maxZ: definition.position.z + definition.footprint.depth / 2,
-  };
+  override.hitArea.updateWorldMatrix(true, false);
+  const colliderBounds = new Box3().setFromObject(override.hitArea);
+
+  const hasValidBounds =
+    Number.isFinite(colliderBounds.min.x) &&
+    Number.isFinite(colliderBounds.max.x) &&
+    Number.isFinite(colliderBounds.min.z) &&
+    Number.isFinite(colliderBounds.max.z);
+
+  const collider = hasValidBounds
+    ? {
+        minX: colliderBounds.min.x,
+        maxX: colliderBounds.max.x,
+        minZ: colliderBounds.min.z,
+        maxZ: colliderBounds.max.z,
+      }
+    : {
+        minX: definition.position.x - definition.footprint.width / 2,
+        maxX: definition.position.x + definition.footprint.width / 2,
+        minZ: definition.position.z - definition.footprint.depth / 2,
+        maxZ: definition.position.z + definition.footprint.depth / 2,
+      };
 
   override.hitArea.name = `POI_HIT:${definition.id}`;
 
