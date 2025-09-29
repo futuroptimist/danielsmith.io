@@ -117,20 +117,70 @@ canvas {
   position: fixed;
   bottom: 1.5rem;
   left: 1.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  background: rgba(8, 12, 20, 0.75);
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  background: rgba(8, 12, 20, 0.78);
   color: #f5f7fa;
   backdrop-filter: blur(12px);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.4;
-  max-width: 18rem;
+  max-width: 20rem;
+  border: 1px solid rgba(86, 184, 255, 0.28);
+  box-shadow: 0 20px 48px rgba(3, 9, 18, 0.55);
 }
 
-.overlay .hint {
-  margin-top: 0.5rem;
-  opacity: 0.75;
-  font-style: italic;
+.overlay__heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(196, 228, 255, 0.82);
+}
+
+.overlay__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.overlay__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.overlay__item[hidden] {
+  display: none;
+}
+
+.overlay__keys {
+  min-width: 7rem;
+  font-weight: 600;
+  color: #8fd6ff;
+  letter-spacing: 0.02em;
+}
+
+.overlay__description {
+  flex: 1;
+  color: rgba(239, 245, 255, 0.88);
+}
+
+.overlay__item--touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .overlay__item--touch {
+    display: flex;
+  }
+
+  .overlay__item--desktop {
+    display: none;
+  }
 }
 
 .joystick {

@@ -7,11 +7,37 @@
   </head>
   <body>
     <div id="app"></div>
-    <div class="overlay">
-      <p>WASD / Arrow keys: move</p>
-      <p class="hint">
-        Touch: drag the left half for movement and the right half to pan.
-      </p>
+    <div class="overlay" id="control-overlay">
+      <p class="overlay__heading">Controls</p>
+      <ul class="overlay__list">
+        <li class="overlay__item">
+          <span class="overlay__keys">WASD / Arrow keys</span>
+          <span class="overlay__description">Move</span>
+        </li>
+        <li class="overlay__item overlay__item--desktop">
+          <span class="overlay__keys">Mouse</span>
+          <span class="overlay__description">Look around</span>
+        </li>
+        <li class="overlay__item overlay__item--touch">
+          <span class="overlay__keys">Touch</span>
+          <span class="overlay__description">
+            Drag the left half to move and the right half to pan
+          </span>
+        </li>
+        <li class="overlay__item">
+          <span class="overlay__keys">Q / E</span>
+          <span class="overlay__description">Cycle POIs</span>
+        </li>
+        <li class="overlay__item" data-control="interact" hidden>
+          <span class="overlay__keys">F</span>
+          <span
+            class="overlay__description"
+            data-control="interact-description"
+          >
+            Interact
+          </span>
+        </li>
+      </ul>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
