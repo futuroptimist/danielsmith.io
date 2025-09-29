@@ -225,6 +225,7 @@ const LIGHTING_OPTIONS = {
 
 const groundColliders: RectCollider[] = [];
 const upperFloorColliders: RectCollider[] = [];
+const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
@@ -1287,9 +1288,29 @@ function initializeImmersiveScene(
     return 'ground';
   };
 
-  const canOccupyPosition = (x: number, z: number, floorId: FloorId): boolean =>
-    isInsideAnyRoom(floorPlansById[floorId], x, z) &&
-    !collidesWithColliders(x, z, PLAYER_RADIUS, floorColliders[floorId]);
+  const canOccupyPosition = (
+    x: number,
+    z: number,
+    floorId: FloorId
+  ): boolean => {
+    const inside = isInsideAnyRoom(floorPlansById[floorId], x, z);
+    if (!inside) {
+      return false;
+    }
+
+    if (collidesWithColliders(x, z, PLAYER_RADIUS, floorColliders[floorId])) {
+      return false;
+    }
+
+    if (
+      floorId === 'ground' &&
+      collidesWithColliders(x, z, PLAYER_RADIUS, staticColliders)
+    ) {
+      return false;
+    }
+
+    return true;
+  };
 
   const setActiveFloorId = (next: FloorId) => {
     if (activeFloorId === next) {
