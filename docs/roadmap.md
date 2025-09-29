@@ -105,7 +105,7 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✨ Studio Jobbot terminal desk projects live automation telemetry via a holographic console
      and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
 3. **Backyard Exhibits**
-   - Launch-ready model rocket for `dspace`, with staged ignition sequence and lore text.
+   - ✨ Launch-ready model rocket for `dspace`, complete with illuminated launch pad, caution halo, and countdown-ready stance.
    - Aluminum extrusion greenhouse inspired by `sugarkube`, including animated solar panels,
      grow lights, plants, and koi pond voxels.
    - ✨ Ambient audio beds (crickets, hum) that fade based on player proximity.
