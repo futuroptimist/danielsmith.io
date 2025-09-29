@@ -27,6 +27,8 @@ keeps the familiar conventions while focusing purely on the web stack.
   covering lighting, environment, HUD work, accessibility, and avatar polish.
 - **Backlog** – Near-term scene tasks, including deferred touch controls, live in
   [docs/backlog.md](docs/backlog.md).
+- **UI placement guide** – Compare in-world vs. overlay treatments in
+  [docs/guides/in-world-vs-overlay.md](docs/guides/in-world-vs-overlay.md).
 - **Résumé** – Latest résumé source is
   [`resume.tex`][resume-src].
   CI renders PDF and DOCX artifacts.
