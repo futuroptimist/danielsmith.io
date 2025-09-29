@@ -4,7 +4,11 @@ type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 
 type DeviceMemoryReader = () => number | undefined;
 
-export type FallbackReason = 'webgl-unsupported' | 'manual' | 'low-memory';
+export type FallbackReason =
+  | 'webgl-unsupported'
+  | 'manual'
+  | 'low-memory'
+  | 'immersive-init-error';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -148,6 +152,8 @@ export function renderTextFallback(
         return "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light.";
       case 'low-memory':
         return 'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.';
+      case 'immersive-init-error':
+        return 'Something went wrong starting the immersive scene, so we brought you the text overview instead.';
       default:
         return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
     }

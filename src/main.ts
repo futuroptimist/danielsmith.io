@@ -111,6 +111,20 @@ const markDocumentReady = (mode: AppMode) => {
   root.removeAttribute('data-app-loading');
 };
 
+const createImmersiveModeUrl = () => {
+  if (typeof window === 'undefined') {
+    return '/?mode=immersive';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  params.set('mode', 'immersive');
+
+  const query = params.toString();
+  const hash = window.location.hash ?? '';
+
+  return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
+};
+
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
   basePosition: new Vector3(toWorldUnits(6.2), 0, toWorldUnits(-5.3)),
@@ -795,24 +809,28 @@ if (!container) {
 const failoverDecision = evaluateFailoverDecision();
 
 if (failoverDecision.shouldUseFallback) {
-  const immersiveUrl = (() => {
-    if (typeof window === 'undefined') {
-      return '/?mode=immersive';
-    }
-    const params = new URLSearchParams(window.location.search);
-    params.set('mode', 'immersive');
-    const query = params.toString();
-    const hash = window.location.hash ?? '';
-    return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
-  })();
-
+  const immersiveUrl = createImmersiveModeUrl();
   renderTextFallback(container, {
     reason: failoverDecision.reason ?? 'manual',
     immersiveUrl,
   });
   markDocumentReady('fallback');
 } else {
-  initializeImmersiveScene(container);
+  try {
+    initializeImmersiveScene(container);
+  } catch (error) {
+    console.error('Failed to initialize immersive scene:', error);
+    try {
+      renderTextFallback(container, {
+        reason: 'immersive-init-error',
+        immersiveUrl: createImmersiveModeUrl(),
+      });
+    } catch (fallbackError) {
+      console.error('Failed to render fallback experience:', fallbackError);
+    } finally {
+      markDocumentReady('fallback');
+    }
+  }
 }
 
 function initializeImmersiveScene(container: HTMLElement) {
