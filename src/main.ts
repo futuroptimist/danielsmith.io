@@ -83,6 +83,7 @@ import {
 } from './structures/jobbotTerminal';
 import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
+import { createImmersiveGradientTexture } from './theme/immersiveGradient';
 
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
@@ -105,7 +106,73 @@ const BACKYARD_ROOM_ID = 'backyard';
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
+type AppMode = 'immersive' | 'fallback';
 type FloorId = 'ground' | 'upper';
+
+const markDocumentReady = (mode: AppMode) => {
+  const root = document.documentElement;
+  root.dataset.appMode = mode;
+  root.removeAttribute('data-app-loading');
+};
+
+const createImmersiveModeUrl = () => {
+  if (typeof window === 'undefined') {
+    return '/?mode=immersive';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  params.set('mode', 'immersive');
+
+  const query = params.toString();
+  const hash = window.location.hash ?? '';
+
+  return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
+};
+
+let immersiveFailureHandled = false;
+
+const handleImmersiveFailure = (
+  container: HTMLElement,
+  error: unknown,
+  { renderer }: { renderer?: WebGLRenderer } = {}
+) => {
+  if (immersiveFailureHandled) {
+    return;
+  }
+  immersiveFailureHandled = true;
+  console.error('Failed to initialize immersive scene:', error);
+
+  if (renderer) {
+    try {
+      renderer.setAnimationLoop(null);
+    } catch (loopError) {
+      console.error('Failed to stop immersive renderer loop:', loopError);
+    }
+
+    try {
+      renderer.dispose();
+    } catch (disposeError) {
+      console.error('Failed to dispose immersive renderer:', disposeError);
+    }
+
+    try {
+      renderer.domElement.remove();
+    } catch (removeError) {
+      console.error('Failed to remove renderer canvas:', removeError);
+    }
+  }
+
+  try {
+    renderTextFallback(container, {
+      reason: 'immersive-init-error',
+      immersiveUrl: createImmersiveModeUrl(),
+    });
+  } catch (fallbackError) {
+    console.error('Failed to render fallback experience:', fallbackError);
+  }
+
+  markDocumentReady('fallback');
+};
 
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
@@ -172,28 +239,6 @@ const roomDefinitions = new Map(
 function getRoomCategory(roomId: string): RoomCategory {
   const room = roomDefinitions.get(roomId);
   return room?.category ?? 'interior';
-}
-
-function createVerticalGradientTexture(
-  topHex: number,
-  bottomHex: number
-): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 2;
-  canvas.height = 512;
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('Failed to create gradient canvas context.');
-  }
-  const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, new Color(topHex).getStyle());
-  gradient.addColorStop(1, new Color(bottomHex).getStyle());
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.needsUpdate = true;
-  return texture;
 }
 
 function createMediaWallScreenTexture(): CanvasTexture {
@@ -568,26 +613,29 @@ if (!container) {
 const failoverDecision = evaluateFailoverDecision();
 
 if (failoverDecision.shouldUseFallback) {
-  const immersiveUrl = (() => {
-    if (typeof window === 'undefined') {
-      return '/?mode=immersive';
-    }
-    const params = new URLSearchParams(window.location.search);
-    params.set('mode', 'immersive');
-    const query = params.toString();
-    const hash = window.location.hash ?? '';
-    return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
-  })();
-
+  const immersiveUrl = createImmersiveModeUrl();
   renderTextFallback(container, {
     reason: failoverDecision.reason ?? 'manual',
     immersiveUrl,
   });
+  markDocumentReady('fallback');
 } else {
-  initializeImmersiveScene(container);
+  const failImmersive = (
+    error: unknown,
+    options: { renderer?: WebGLRenderer } = {}
+  ) => handleImmersiveFailure(container, error, options);
+
+  try {
+    initializeImmersiveScene(container, failImmersive);
+  } catch (error) {
+    failImmersive(error);
+  }
 }
 
-function initializeImmersiveScene(container: HTMLElement) {
+function initializeImmersiveScene(
+  container: HTMLElement,
+  onFatalError: (error: unknown, options: { renderer?: WebGLRenderer }) => void
+) {
   const renderer = new WebGLRenderer({ antialias: true });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
@@ -597,8 +645,12 @@ function initializeImmersiveScene(container: HTMLElement) {
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
 
+  const handleFatalError = (error: unknown) => {
+    onFatalError(error, { renderer });
+  };
+
   const scene = new Scene();
-  scene.background = createVerticalGradientTexture(0x152238, 0x04080f);
+  scene.background = createImmersiveGradientTexture();
 
   const poiOverrides: PoiInstanceOverrides = {};
 
@@ -1955,38 +2007,53 @@ function initializeImmersiveScene(container: HTMLElement) {
     interactKeyWasPressed = pressed;
   }
 
+  let hasPresentedFirstFrame = false;
+
   renderer.setAnimationLoop(() => {
-    const delta = clock.getDelta();
-    const elapsedTime = clock.elapsedTime;
-    updateMovement(delta);
-    updateCamera(delta);
-    updatePois(elapsedTime, delta);
-    handleInteractionInput();
-    if (ambientAudioController) {
-      ambientAudioController.update(player.position, delta);
+    try {
+      const delta = clock.getDelta();
+      const elapsedTime = clock.elapsedTime;
+      updateMovement(delta);
+      updateCamera(delta);
+      updatePois(elapsedTime, delta);
+      handleInteractionInput();
+      if (ambientAudioController) {
+        ambientAudioController.update(player.position, delta);
+      }
+      if (flywheelShowpiece) {
+        const activation = flywheelPoi?.activation ?? 0;
+        const focus = flywheelPoi?.focus ?? 0;
+        flywheelShowpiece.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (jobbotTerminal) {
+        const activation = jobbotPoi?.activation ?? 0;
+        const focus = jobbotPoi?.focus ?? 0;
+        jobbotTerminal.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (composer) {
+        composer.render();
+      } else {
+        renderer.render(scene, camera);
+      }
+      if (!hasPresentedFirstFrame) {
+        hasPresentedFirstFrame = true;
+        markDocumentReady('immersive');
+      }
+    } catch (error) {
+      handleFatalError(error);
     }
-    if (flywheelShowpiece) {
-      const activation = flywheelPoi?.activation ?? 0;
-      const focus = flywheelPoi?.focus ?? 0;
-      flywheelShowpiece.update({
-        elapsed: elapsedTime,
-        delta,
-        emphasis: Math.max(activation, focus),
-      });
-    }
-    if (jobbotTerminal) {
-      const activation = jobbotPoi?.activation ?? 0;
-      const focus = jobbotPoi?.focus ?? 0;
-      jobbotTerminal.update({
-        elapsed: elapsedTime,
-        delta,
-        emphasis: Math.max(activation, focus),
-      });
-    }
-    if (composer) {
-      composer.render();
-    } else {
-      renderer.render(scene, camera);
-    }
+  });
+
+  renderer.domElement.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    handleFatalError(new Error('WebGL context lost during initialization.'));
   });
 }
