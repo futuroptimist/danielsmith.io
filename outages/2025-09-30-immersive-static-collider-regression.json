@@ -1,0 +1,11 @@
+{
+  "id": "2025-09-30-immersive-static-collider-regression",
+  "date": "2025-09-30",
+  "component": "webapp",
+  "rootCause": "The scene refactor dropped the staticColliders array, so pushes now throw at init time.",
+  "resolution": "Restore the static colliders collection and include it in ground occupancy checks.",
+  "references": [
+    "https://github.com/danielsmith-io/danielsmith.io/blob/main/src/main.ts#L226-L233",
+    "https://github.com/danielsmith-io/danielsmith.io/blob/main/src/main.ts#L1296-L1311"
+  ]
+}
