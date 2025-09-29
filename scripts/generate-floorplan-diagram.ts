@@ -2,12 +2,14 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 import {
-  FLOOR_PLAN,
+  FLOOR_PLAN_LEVELS,
   WALL_THICKNESS,
   getCombinedWallSegments,
+  type FloorPlanDefinition,
+  type FloorPlanLevel,
 } from '../src/floorPlan';
 
-const OUTPUT_PATH = path.resolve(process.cwd(), 'docs/assets/floorplan.svg');
+const OUTPUT_DIR = path.resolve(process.cwd(), 'docs/assets');
 const PADDING = 32;
 const SCALE = 16; // pixels per world unit
 
@@ -19,13 +21,13 @@ async function ensureDirectoryExists(filePath: string) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 }
 
-async function generate() {
-  if (FLOOR_PLAN.outline.length === 0) {
+function getPlanBounds(plan: FloorPlanDefinition) {
+  if (plan.outline.length === 0) {
     throw new Error('Floor plan outline is empty.');
   }
 
-  const xs = FLOOR_PLAN.outline.map(([x]) => x);
-  const zs = FLOOR_PLAN.outline.map(([, z]) => z);
+  const xs = plan.outline.map(([x]) => x);
+  const zs = plan.outline.map(([, z]) => z);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minZ = Math.min(...zs);
@@ -36,16 +38,30 @@ async function generate() {
   const svgWidth = Math.round(widthUnits * SCALE + PADDING * 2);
   const svgHeight = Math.round(heightUnits * SCALE + PADDING * 2);
 
+  return {
+    minX,
+    maxX,
+    minZ,
+    maxZ,
+    svgWidth,
+    svgHeight,
+  };
+}
+
+function renderFloorSvg(level: FloorPlanLevel): string {
+  const plan = level.plan;
+  const { minX, minZ, svgWidth, svgHeight } = getPlanBounds(plan);
+
   const projectX = (x: number) => (x - minX) * SCALE + PADDING;
   const projectY = (z: number) => svgHeight - ((z - minZ) * SCALE + PADDING);
 
-  const outlinePath = FLOOR_PLAN.outline.map(([x, z], index) => {
+  const outlinePath = plan.outline.map(([x, z], index) => {
     const command = index === 0 ? 'M' : 'L';
     return `${command}${projectX(x).toFixed(2)},${projectY(z).toFixed(2)}`;
   });
   outlinePath.push('Z');
 
-  const roomLayers = FLOOR_PLAN.rooms.map((room) => {
+  const roomLayers = plan.rooms.map((room) => {
     const color = formatColor(room.ledColor);
     const x = projectX(room.bounds.minX);
     const y = projectY(room.bounds.maxZ);
@@ -73,7 +89,7 @@ async function generate() {
   });
 
   const wallStroke = WALL_THICKNESS * SCALE;
-  const wallSegments = getCombinedWallSegments(FLOOR_PLAN);
+  const wallSegments = getCombinedWallSegments(plan);
   const wallLayers = wallSegments.map((segment) => {
     const x1 = projectX(segment.start.x);
     const y1 = projectY(segment.start.z);
@@ -84,7 +100,7 @@ async function generate() {
     return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${stroke}" stroke-width="${wallStroke.toFixed(2)}" stroke-linecap="round" />`;
   });
 
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#0b1428" />
   <g>
@@ -94,12 +110,20 @@ async function generate() {
   </g>
 </svg>
 `;
-
-  await ensureDirectoryExists(OUTPUT_PATH);
-  await fs.writeFile(OUTPUT_PATH, svg, 'utf8');
 }
 
 generate().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+async function generate() {
+  await ensureDirectoryExists(OUTPUT_DIR);
+  await Promise.all(
+    FLOOR_PLAN_LEVELS.map(async (level) => {
+      const svg = renderFloorSvg(level);
+      const filePath = path.resolve(OUTPUT_DIR, `floorplan-${level.id}.svg`);
+      await fs.writeFile(filePath, svg, 'utf8');
+    })
+  );
+}
