@@ -128,7 +128,10 @@ canvas {
   box-shadow: 0 8px 24px rgba(3, 9, 18, 0.55);
   cursor: pointer;
   z-index: 25;
-  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
 }
 
 .audio-toggle:hover,
