@@ -23,7 +23,9 @@ function clonePoi(overrides: Partial<PoiDefinition>): PoiDefinition {
 
 describe('validatePoiDefinitions', () => {
   it('returns no issues for baseline registry', () => {
-    const issues = validatePoiDefinitions(baseDefinitions, { floorPlan: FLOOR_PLAN });
+    const issues = validatePoiDefinitions(baseDefinitions, {
+      floorPlan: FLOOR_PLAN,
+    });
     expect(issues).toHaveLength(0);
   });
 
@@ -43,9 +45,12 @@ describe('validatePoiDefinitions', () => {
 
   it('detects invalid room references', () => {
     const invalidRoomPoi = clonePoi({ roomId: 'moon-base' });
-    const issues = validatePoiDefinitions([...baseDefinitions, invalidRoomPoi], {
-      floorPlan: FLOOR_PLAN,
-    });
+    const issues = validatePoiDefinitions(
+      [...baseDefinitions, invalidRoomPoi],
+      {
+        floorPlan: FLOOR_PLAN,
+      }
+    );
     expect(issues).toContainEqual({
       type: 'invalid-room',
       poiId: invalidRoomPoi.id,
@@ -57,10 +62,15 @@ describe('validatePoiDefinitions', () => {
     const invalidPositionPoi = clonePoi({
       position: { x: Number.POSITIVE_INFINITY, y: 0, z: 0 },
     });
-    const issues = validatePoiDefinitions([...baseDefinitions, invalidPositionPoi], {
-      floorPlan: FLOOR_PLAN,
-    });
-    expect(issues.find((issue) => issue.type === 'out-of-bounds')).toMatchObject({
+    const issues = validatePoiDefinitions(
+      [...baseDefinitions, invalidPositionPoi],
+      {
+        floorPlan: FLOOR_PLAN,
+      }
+    );
+    expect(
+      issues.find((issue) => issue.type === 'out-of-bounds')
+    ).toMatchObject({
       poiId: invalidPositionPoi.id,
       roomId: invalidPositionPoi.roomId,
     });
@@ -68,7 +78,7 @@ describe('validatePoiDefinitions', () => {
 
   it('detects overlapping footprints based on distance heuristics', () => {
     const poiA = clonePoi({
-      id: 'futuroptimist-overlap-test' as typeof baseDefinitions[0]['id'],
+      id: 'futuroptimist-overlap-test' as (typeof baseDefinitions)[0]['id'],
       position: {
         x: livingRoomBounds.minX + 2,
         y: baseDefinitions[0].position.y,
@@ -76,7 +86,7 @@ describe('validatePoiDefinitions', () => {
       },
     });
     const poiB = clonePoi({
-      id: 'futuroptimist-overlap-test-b' as typeof baseDefinitions[0]['id'],
+      id: 'futuroptimist-overlap-test-b' as (typeof baseDefinitions)[0]['id'],
       position: {
         x: livingRoomBounds.minX + 2.1,
         y: baseDefinitions[0].position.y,
@@ -93,9 +103,42 @@ describe('validatePoiDefinitions', () => {
     } satisfies PoiValidationIssue);
   });
 
+  it('includes interaction radii when checking for overlaps', () => {
+    const poiA = clonePoi({
+      id: 'futuroptimist-interaction-overlap-a' as (typeof baseDefinitions)[0]['id'],
+      position: {
+        x: livingRoomBounds.minX + 6,
+        y: baseDefinitions[0].position.y,
+        z: livingRoomBounds.minZ + 6,
+      },
+      footprint: { width: 0.5, depth: 0.5 },
+      interactionRadius: 2,
+    });
+    const poiB = clonePoi({
+      id: 'futuroptimist-interaction-overlap-b' as (typeof baseDefinitions)[0]['id'],
+      position: {
+        x: poiA.position.x + 3,
+        y: baseDefinitions[0].position.y,
+        z: poiA.position.z,
+      },
+      footprint: { width: 0.5, depth: 0.5 },
+      interactionRadius: 2,
+    });
+
+    const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
+      floorPlan: FLOOR_PLAN,
+    });
+
+    expect(issues).toContainEqual({
+      type: 'overlap',
+      poiId: poiA.id,
+      otherPoiId: poiB.id,
+    } satisfies PoiValidationIssue);
+  });
+
   it('allows configured POIs to overlap when explicitly permitted', () => {
     const poiA = clonePoi({
-      id: 'futuroptimist-overlap-permitted' as typeof baseDefinitions[0]['id'],
+      id: 'futuroptimist-overlap-permitted' as (typeof baseDefinitions)[0]['id'],
       position: {
         x: livingRoomBounds.minX + 4,
         y: baseDefinitions[0].position.y,
@@ -103,7 +146,7 @@ describe('validatePoiDefinitions', () => {
       },
     });
     const poiB = clonePoi({
-      id: 'futuroptimist-overlap-permitted-b' as typeof baseDefinitions[0]['id'],
+      id: 'futuroptimist-overlap-permitted-b' as (typeof baseDefinitions)[0]['id'],
       position: {
         x: livingRoomBounds.minX + 4.1,
         y: baseDefinitions[0].position.y,

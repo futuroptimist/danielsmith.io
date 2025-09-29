@@ -35,9 +35,7 @@ export function validatePoiDefinitions(
 
   const issues: PoiValidationIssue[] = [];
   const seen = new Map<PoiId, PoiDefinition>();
-  const roomLookup = new Map(
-    floorPlan.rooms.map((room) => [room.id, room])
-  );
+  const roomLookup = new Map(floorPlan.rooms.map((room) => [room.id, room]));
 
   definitions.forEach((definition) => {
     const duplicate = seen.get(definition.id);
@@ -78,7 +76,11 @@ export function validatePoiDefinitions(
   for (let i = 0; i < pairs; i += 1) {
     const a = definitions[i];
     if (!a) continue;
-    const radiusA = Math.hypot(a.footprint.width / 2, a.footprint.depth / 2);
+    const footprintRadiusA = Math.hypot(
+      a.footprint.width / 2,
+      a.footprint.depth / 2
+    );
+    const radiusA = Math.max(footprintRadiusA, a.interactionRadius);
 
     for (let j = i + 1; j < pairs; j += 1) {
       const b = definitions[j];
@@ -88,7 +90,11 @@ export function validatePoiDefinitions(
         continue;
       }
 
-      const radiusB = Math.hypot(b.footprint.width / 2, b.footprint.depth / 2);
+      const footprintRadiusB = Math.hypot(
+        b.footprint.width / 2,
+        b.footprint.depth / 2
+      );
+      const radiusB = Math.max(footprintRadiusB, b.interactionRadius);
       const dx = a.position.x - b.position.x;
       const dz = a.position.z - b.position.z;
       const distance = Math.hypot(dx, dz);
