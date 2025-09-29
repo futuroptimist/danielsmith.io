@@ -1145,7 +1145,10 @@ function initializeImmersiveScene(container: HTMLElement) {
   };
 
   const handlePointerMoveForCameraPan = (event: PointerEvent) => {
-    if (event.pointerType !== 'mouse' || event.pointerId !== mouseCameraPointerId) {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.pointerId !== mouseCameraPointerId
+    ) {
       return;
     }
     if (!mouseCameraDragging) {
@@ -1161,7 +1164,10 @@ function initializeImmersiveScene(container: HTMLElement) {
   };
 
   const handlePointerUpForCameraPan = (event: PointerEvent) => {
-    if (event.pointerType !== 'mouse' || event.pointerId !== mouseCameraPointerId) {
+    if (
+      event.pointerType !== 'mouse' ||
+      event.pointerId !== mouseCameraPointerId
+    ) {
       return;
     }
     renderer.domElement.releasePointerCapture?.(event.pointerId);

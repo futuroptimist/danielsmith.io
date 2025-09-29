@@ -120,7 +120,10 @@ export class VirtualJoystick {
     return undefined;
   }
 
-  private createJoystick(event: PointerEvent, mode: JoystickMode): JoystickState {
+  private createJoystick(
+    event: PointerEvent,
+    mode: JoystickMode
+  ): JoystickState {
     const container = document.createElement('div');
     container.className = 'joystick';
     container.style.width = `${JOYSTICK_DIAMETER}px`;
