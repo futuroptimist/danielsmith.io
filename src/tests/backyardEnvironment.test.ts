@@ -1,5 +1,12 @@
 import { Group } from 'three';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type SpyInstance,
+} from 'vitest';
 
 import { createBackyardEnvironment } from '../environments/backyard';
 
@@ -11,15 +18,16 @@ const BACKYARD_BOUNDS = {
 };
 
 describe('createBackyardEnvironment', () => {
-  let originalRandom: () => number;
-  let originalGetContext: HTMLCanvasElement['getContext'];
+  let randomSpy: SpyInstance<[], number>;
+  let getContextSpy: SpyInstance<
+    [contextId: string, ...args: unknown[]],
+    CanvasRenderingContext2D | null
+  >;
 
   beforeEach(() => {
-    originalRandom = Math.random;
-    Math.random = () => 0.42;
-    originalGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = vi
-      .fn()
+    randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.42);
+    getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
       .mockImplementation((type) => {
         if (type === '2d') {
           return {
@@ -48,8 +56,8 @@ describe('createBackyardEnvironment', () => {
   });
 
   afterEach(() => {
-    Math.random = originalRandom;
-    HTMLCanvasElement.prototype.getContext = originalGetContext;
+    randomSpy.mockRestore();
+    getContextSpy.mockRestore();
   });
 
   it('adds the model rocket installation and collider to the backyard', () => {
