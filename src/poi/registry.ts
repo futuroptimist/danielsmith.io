@@ -70,6 +70,31 @@ const definitions: PoiDefinition[] = [
     ],
     status: 'prototype',
   },
+  {
+    id: 'dspace-backyard-rocket',
+    title: 'dSpace Launch Pad',
+    summary:
+      'Backyard launch gantry staging the dSpace model rocket with telemetry-guided countdown cues.',
+    category: 'project',
+    interaction: 'inspect',
+    roomId: 'backyard',
+    position: { x: -14.08, y: 0, z: 23.6 },
+    headingRadians: -Math.PI / 10,
+    interactionRadius: 2.6,
+    footprint: { width: 3.4, depth: 3.4 },
+    metrics: [
+      { label: 'Countdown', value: 'Autonomous T-0 sequencing' },
+      { label: 'Stack', value: 'Three.js FX · Spatial audio' },
+    ],
+    links: [
+      { label: 'GitHub', href: 'https://github.com/futuroptimist/dspace' },
+      {
+        label: 'Mission Log',
+        href: 'https://futuroptimist.dev/projects/dspace',
+      },
+    ],
+    status: 'prototype',
+  },
 ];
 
 assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
