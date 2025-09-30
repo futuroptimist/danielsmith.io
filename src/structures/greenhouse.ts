@@ -82,7 +82,11 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   frameGroup.position.y = BASE_HEIGHT;
   group.add(frameGroup);
 
-  const postGeometry = new BoxGeometry(FRAME_THICKNESS, FRAME_HEIGHT, FRAME_THICKNESS);
+  const postGeometry = new BoxGeometry(
+    FRAME_THICKNESS,
+    FRAME_HEIGHT,
+    FRAME_THICKNESS
+  );
   const frameMaterial = new MeshStandardMaterial({
     color: new Color(0xc1d1d9),
     roughness: 0.32,
@@ -101,7 +105,11 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     frameGroup.add(post);
   });
 
-  const lintelGeometry = new BoxGeometry(width - FRAME_THICKNESS, FRAME_THICKNESS, FRAME_THICKNESS);
+  const lintelGeometry = new BoxGeometry(
+    width - FRAME_THICKNESS,
+    FRAME_THICKNESS,
+    FRAME_THICKNESS
+  );
   const lintelDepthGeometry = new BoxGeometry(
     FRAME_THICKNESS,
     FRAME_THICKNESS,
@@ -128,16 +136,28 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   rightLintel.position.x = width / 2 - FRAME_THICKNESS / 2;
   frameGroup.add(rightLintel);
 
-  const roofRidgeGeometry = new BoxGeometry(FRAME_THICKNESS, ROOF_PEAK_HEIGHT, depth - FRAME_THICKNESS);
+  const roofRidgeGeometry = new BoxGeometry(
+    FRAME_THICKNESS,
+    ROOF_PEAK_HEIGHT,
+    depth - FRAME_THICKNESS
+  );
   const roofRidge = new Mesh(roofRidgeGeometry, frameMaterial);
   roofRidge.name = 'BackyardGreenhouseRoofRidge';
   roofRidge.position.set(0, FRAME_HEIGHT + ROOF_PEAK_HEIGHT / 2, 0);
   frameGroup.add(roofRidge);
 
-  const roofBeamGeometry = new BoxGeometry(width - FRAME_THICKNESS, FRAME_THICKNESS, FRAME_THICKNESS);
+  const roofBeamGeometry = new BoxGeometry(
+    width - FRAME_THICKNESS,
+    FRAME_THICKNESS,
+    FRAME_THICKNESS
+  );
   const roofBeamLeft = new Mesh(roofBeamGeometry, frameMaterial);
   roofBeamLeft.name = 'BackyardGreenhouseRoofBeamLeft';
-  roofBeamLeft.position.set(0, FRAME_HEIGHT + ROOF_PEAK_HEIGHT / 2, -depth / 2 + FRAME_THICKNESS / 2);
+  roofBeamLeft.position.set(
+    0,
+    FRAME_HEIGHT + ROOF_PEAK_HEIGHT / 2,
+    -depth / 2 + FRAME_THICKNESS / 2
+  );
   roofBeamLeft.rotation.z = MathUtils.degToRad(32);
   frameGroup.add(roofBeamLeft);
 
@@ -157,7 +177,10 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     thickness: 0.18,
   });
 
-  const wallGeometry = new PlaneGeometry(width - FRAME_THICKNESS, FRAME_HEIGHT - 0.1);
+  const wallGeometry = new PlaneGeometry(
+    width - FRAME_THICKNESS,
+    FRAME_HEIGHT - 0.1
+  );
   const frontWall = new Mesh(wallGeometry, glassMaterial);
   frontWall.name = 'BackyardGreenhouseGlassFront';
   frontWall.position.set(0, FRAME_HEIGHT / 2, -depth / 2 + GLASS_THICKNESS);
@@ -170,7 +193,10 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   backWall.rotation.y = 0;
   frameGroup.add(backWall);
 
-  const sideGeometry = new PlaneGeometry(depth - FRAME_THICKNESS, FRAME_HEIGHT - 0.1);
+  const sideGeometry = new PlaneGeometry(
+    depth - FRAME_THICKNESS,
+    FRAME_HEIGHT - 0.1
+  );
   const leftWall = new Mesh(sideGeometry, glassMaterial);
   leftWall.name = 'BackyardGreenhouseGlassLeft';
   leftWall.position.set(-width / 2 + GLASS_THICKNESS, FRAME_HEIGHT / 2, 0);
@@ -223,7 +249,12 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     group.add(foliage);
   });
 
-  const pondGeometry = new CylinderGeometry(depth * 0.18, depth * 0.18, 0.12, 32);
+  const pondGeometry = new CylinderGeometry(
+    depth * 0.18,
+    depth * 0.18,
+    0.12,
+    32
+  );
   const pondMaterial = new MeshStandardMaterial({
     color: new Color(0x1a4a5e),
     roughness: 0.18,

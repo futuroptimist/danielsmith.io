@@ -76,7 +76,9 @@ describe('createBackyardEnvironment', () => {
     const greenhouse = environment.group.getObjectByName('BackyardGreenhouse');
     expect(greenhouse).toBeInstanceOf(Group);
 
-    const walkway = environment.group.getObjectByName('BackyardGreenhouseWalkway');
+    const walkway = environment.group.getObjectByName(
+      'BackyardGreenhouseWalkway'
+    );
     expect(walkway).toBeInstanceOf(Mesh);
 
     const solarPivot = (greenhouse as Group).getObjectByName(

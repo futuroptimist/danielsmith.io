@@ -75,7 +75,8 @@ export function createBackyardEnvironment(
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
-  const updates: Array<(context: { elapsed: number; delta: number }) => void> = [];
+  const updates: Array<(context: { elapsed: number; delta: number }) => void> =
+    [];
 
   const width = bounds.maxX - bounds.minX;
   const depth = bounds.maxZ - bounds.minZ;
@@ -175,7 +176,11 @@ export function createBackyardEnvironment(
   greenhouse.colliders.forEach((collider) => colliders.push(collider));
   updates.push(greenhouse.update);
 
-  const walkwayGeometry = new BoxGeometry(greenhouseWidth * 0.68, 0.06, greenhouseDepth * 0.72);
+  const walkwayGeometry = new BoxGeometry(
+    greenhouseWidth * 0.68,
+    0.06,
+    greenhouseDepth * 0.72
+  );
   const walkwayMaterial = new MeshStandardMaterial({
     color: 0x454f57,
     roughness: 0.58,

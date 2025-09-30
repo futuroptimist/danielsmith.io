@@ -21,7 +21,8 @@ describe('createGreenhouse', () => {
 
     const growLight = group.getObjectByName('BackyardGreenhouseGrowLight-0');
     expect(growLight).toBeInstanceOf(Mesh);
-    const growLightMaterial = (growLight as Mesh).material as MeshStandardMaterial;
+    const growLightMaterial = (growLight as Mesh)
+      .material as MeshStandardMaterial;
     const baselineIntensity = growLightMaterial.emissiveIntensity;
     update({ elapsed: 2.4, delta: 0.016 });
     expect(growLightMaterial.emissiveIntensity).not.toBe(baselineIntensity);
