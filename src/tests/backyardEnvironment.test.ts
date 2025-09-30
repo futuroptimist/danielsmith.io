@@ -1,5 +1,5 @@
 import { Group, Mesh, MeshStandardMaterial } from 'three';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createBackyardEnvironment } from '../environments/backyard';
 
