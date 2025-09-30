@@ -38,4 +38,15 @@ describe('POI registry', () => {
       expect(poi.summary.trim().length).toBeGreaterThan(20);
     });
   });
+
+  it('registers the backyard rocket POI with outdoor placement metadata', () => {
+    const rocket = pois.find((poi) => poi.id === 'dspace-backyard-rocket');
+    expect(rocket).toBeDefined();
+    expect(rocket?.roomId).toBe('backyard');
+    expect(rocket?.interaction).toBe('inspect');
+    expect(rocket?.interactionRadius).toBeGreaterThan(2);
+    expect(rocket?.footprint.width).toBeGreaterThan(3);
+    expect(rocket?.links?.[0]?.href).toContain('dspace');
+    expect(rocket?.metrics?.some((metric) => metric.label === 'Countdown')).toBe(true);
+  });
 });
