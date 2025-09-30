@@ -1,12 +1,5 @@
 import { Group } from 'three';
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-  type SpyInstance,
-} from 'vitest';
+import { beforeEach, describe, expect, it, vi, type SpyInstance } from 'vitest';
 
 import { createBackyardEnvironment } from '../environments/backyard';
 
