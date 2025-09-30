@@ -19,11 +19,13 @@ import {
 
 import type { RectCollider } from '../collision';
 import type { Bounds2D } from '../floorPlan';
+import { createGreenhouse } from '../structures/greenhouse';
 import { createModelRocket } from '../structures/modelRocket';
 
 export interface BackyardEnvironmentBuild {
   group: Group;
   colliders: RectCollider[];
+  update(context: { elapsed: number; delta: number }): void;
 }
 
 function createSignageTexture(title: string, subtitle: string): CanvasTexture {
@@ -73,6 +75,8 @@ export function createBackyardEnvironment(
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
+  const updates: Array<(context: { elapsed: number; delta: number }) => void> =
+    [];
 
   const width = bounds.maxX - bounds.minX;
   const depth = bounds.maxZ - bounds.minZ;
@@ -155,6 +159,41 @@ export function createBackyardEnvironment(
     stone.rotation.y = (i % 2 === 0 ? 1 : -1) * Math.PI * 0.03;
     group.add(stone);
   }
+
+  const greenhouseWidth = Math.min(4.6, width * 0.52);
+  const greenhouseDepth = Math.min(3.2, depth * 0.38);
+  const greenhouseBase = new Vector3(
+    centerX + width * 0.22,
+    0,
+    bounds.minZ + pathDepth + (depth - pathDepth) * 0.62
+  );
+  const greenhouse = createGreenhouse({
+    basePosition: greenhouseBase,
+    width: greenhouseWidth,
+    depth: greenhouseDepth,
+  });
+  group.add(greenhouse.group);
+  greenhouse.colliders.forEach((collider) => colliders.push(collider));
+  updates.push(greenhouse.update);
+
+  const walkwayGeometry = new BoxGeometry(
+    greenhouseWidth * 0.68,
+    0.06,
+    greenhouseDepth * 0.72
+  );
+  const walkwayMaterial = new MeshStandardMaterial({
+    color: 0x454f57,
+    roughness: 0.58,
+    metalness: 0.22,
+  });
+  const walkway = new Mesh(walkwayGeometry, walkwayMaterial);
+  walkway.name = 'BackyardGreenhouseWalkway';
+  walkway.position.set(
+    greenhouseBase.x,
+    0.03,
+    greenhouseBase.z - greenhouseDepth * 0.65
+  );
+  group.add(walkway);
 
   const shrubGeometry = new SphereGeometry(1.05, 20, 20);
   const shrubMaterial = new MeshStandardMaterial({
@@ -302,5 +341,9 @@ export function createBackyardEnvironment(
     maxZ: barrier.position.z + barrierThickness / 2,
   });
 
-  return { group, colliders };
+  const update = (context: { elapsed: number; delta: number }) => {
+    updates.forEach((fn) => fn(context));
+  };
+
+  return { group, colliders, update };
 }

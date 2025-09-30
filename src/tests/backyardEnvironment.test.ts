@@ -1,4 +1,4 @@
-import { Group } from 'three';
+import { Group, Mesh, MeshStandardMaterial } from 'three';
 import { beforeEach, describe, expect, it, vi, type SpyInstance } from 'vitest';
 
 import { createBackyardEnvironment } from '../environments/backyard';
@@ -70,5 +70,46 @@ describe('createBackyardEnvironment', () => {
     expect(matchingCollider).toBeDefined();
     expect(matchingCollider?.maxX).toBeGreaterThan(matchingCollider!.minX);
     expect(matchingCollider?.maxZ).toBeGreaterThan(matchingCollider!.minZ);
+  });
+
+  it('installs the greenhouse exhibit with animated elements and collider', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const greenhouse = environment.group.getObjectByName('BackyardGreenhouse');
+    expect(greenhouse).toBeInstanceOf(Group);
+
+    const walkway = environment.group.getObjectByName(
+      'BackyardGreenhouseWalkway'
+    );
+    expect(walkway).toBeInstanceOf(Mesh);
+
+    const solarPivot = (greenhouse as Group).getObjectByName(
+      'BackyardGreenhouseSolarPanels'
+    );
+    expect(solarPivot).toBeInstanceOf(Group);
+    const initialSolarRotation = (solarPivot as Group).rotation.x;
+    environment.update({ elapsed: 1.4, delta: 0.016 });
+    expect((solarPivot as Group).rotation.x).not.toBe(initialSolarRotation);
+
+    const growLight = environment.group.getObjectByName(
+      'BackyardGreenhouseGrowLight-1'
+    );
+    expect(growLight).toBeInstanceOf(Mesh);
+    const growMaterial = (growLight as Mesh).material as MeshStandardMaterial;
+    const baseline = growMaterial.emissiveIntensity;
+    environment.update({ elapsed: 2.8, delta: 0.016 });
+    expect(growMaterial.emissiveIntensity).not.toBe(baseline);
+
+    const greenhousePosition = (greenhouse as Group).position.clone();
+    const greenhouseCollider = environment.colliders.find(
+      (collider) =>
+        greenhousePosition.x >= collider.minX &&
+        greenhousePosition.x <= collider.maxX &&
+        greenhousePosition.z >= collider.minZ &&
+        greenhousePosition.z <= collider.maxZ
+    );
+
+    expect(greenhouseCollider).toBeDefined();
+    expect(greenhouseCollider?.maxX).toBeGreaterThan(greenhouseCollider!.minX);
+    expect(greenhouseCollider?.maxZ).toBeGreaterThan(greenhouseCollider!.minZ);
   });
 });
