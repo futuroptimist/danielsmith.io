@@ -45,7 +45,10 @@ import {
 import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
-import { createBackyardEnvironment } from './environments/backyard';
+import {
+  createBackyardEnvironment,
+  type BackyardEnvironmentBuild,
+} from './environments/backyard';
 import { evaluateFailoverDecision, renderTextFallback } from './failover';
 import {
   FLOOR_PLAN,
@@ -227,6 +230,7 @@ const groundColliders: RectCollider[] = [];
 const upperFloorColliders: RectCollider[] = [];
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
+let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let ledStripGroup: Group | null = null;
@@ -716,9 +720,11 @@ function initializeImmersiveScene(
     (room) => room.id === BACKYARD_ROOM_ID
   );
   if (backyardRoom) {
-    const backyard = createBackyardEnvironment(backyardRoom.bounds);
-    scene.add(backyard.group);
-    backyard.colliders.forEach((collider) => groundColliders.push(collider));
+    backyardEnvironment = createBackyardEnvironment(backyardRoom.bounds);
+    scene.add(backyardEnvironment.group);
+    backyardEnvironment.colliders.forEach((collider) =>
+      groundColliders.push(collider)
+    );
   }
 
   const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
@@ -2058,6 +2064,9 @@ function initializeImmersiveScene(
           delta,
           emphasis: Math.max(activation, focus),
         });
+      }
+      if (backyardEnvironment) {
+        backyardEnvironment.update({ elapsed: elapsedTime, delta });
       }
       if (composer) {
         composer.render();
