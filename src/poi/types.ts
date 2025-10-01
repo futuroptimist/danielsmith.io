@@ -2,7 +2,8 @@ export type PoiId =
   | 'futuroptimist-living-room-tv'
   | 'flywheel-studio-flywheel'
   | 'jobbot-studio-terminal'
-  | 'dspace-backyard-rocket';
+  | 'dspace-backyard-rocket'
+  | 'sugarkube-backyard-greenhouse';
 
 export type PoiCategory = 'project' | 'environment';
 
