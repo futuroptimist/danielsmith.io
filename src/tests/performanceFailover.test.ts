@@ -60,7 +60,8 @@ describe('createPerformanceFailoverHandler', () => {
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback');
     expect(onTrigger).toHaveBeenCalled();
-    const context = onTrigger.mock.calls[0][0] as PerformanceFailoverTriggerContext;
+    const context = onTrigger.mock
+      .calls[0][0] as PerformanceFailoverTriggerContext;
     expect(context.averageFps).toBeLessThan(25);
     expect(context.durationMs).toBeGreaterThanOrEqual(5000);
   });

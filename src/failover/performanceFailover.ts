@@ -44,7 +44,9 @@ class PerformanceFailoverMonitor {
 
   private readonly maxFrameDeltaMs: number;
 
-  private readonly onTrigger: (context: PerformanceFailoverTriggerContext) => void;
+  private readonly onTrigger: (
+    context: PerformanceFailoverTriggerContext
+  ) => void;
 
   private lowFpsDurationMs = 0;
 
@@ -150,7 +152,10 @@ export function createPerformanceFailoverHandler(
       try {
         renderer.domElement.remove();
       } catch (error) {
-        console.error('Failed to remove renderer canvas during failover:', error);
+        console.error(
+          'Failed to remove renderer canvas during failover:',
+          error
+        );
       }
       try {
         render(container, {
@@ -160,7 +165,10 @@ export function createPerformanceFailoverHandler(
           githubUrl: fallbackLinks?.githubUrl,
         });
       } catch (error) {
-        console.error('Failed to render text fallback after performance trigger:', error);
+        console.error(
+          'Failed to render text fallback after performance trigger:',
+          error
+        );
       }
       markAppReady('fallback');
     },
