@@ -1145,9 +1145,8 @@ function initializeImmersiveScene(
     poiTooltipOverlay.setVisitedPoiIds(visited);
   };
 
-  const removeVisitedSubscription = poiVisitedState.subscribe(
-    handleVisitedUpdate
-  );
+  const removeVisitedSubscription =
+    poiVisitedState.subscribe(handleVisitedUpdate);
 
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
@@ -1989,13 +1988,17 @@ function initializeImmersiveScene(
           const nextScale = MathUtils.lerp(baseScale, focusScale, emphasis);
           mesh.scale.setScalar(nextScale);
         }
-      } else if (poi.visitedHighlight) {
+      }
+
+      if (poi.visitedHighlight) {
         const visitedOpacity = MathUtils.lerp(0, 0.55, visitedEmphasis);
         poi.visitedHighlight.material.opacity = visitedOpacity;
         poi.visitedHighlight.mesh.visible = visitedOpacity > 0.02;
         const visitedScale = 1 + visitedEmphasis * 0.12;
         poi.visitedHighlight.mesh.scale.setScalar(visitedScale);
-      } else {
+      }
+
+      if (!poi.displayHighlight) {
         if (
           poi.orbMaterial &&
           poi.orbEmissiveBase &&

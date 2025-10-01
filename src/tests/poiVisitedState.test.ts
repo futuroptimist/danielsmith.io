@@ -16,13 +16,15 @@ describe('PoiVisitedState', () => {
 
   it('loads visited ids from storage and deduplicates entries', () => {
     const storage = {
-      getItem: vi.fn().mockReturnValue(
-        JSON.stringify([
-          'futuroptimist-living-room-tv',
-          'flywheel-studio-flywheel',
-          'flywheel-studio-flywheel',
-        ])
-      ),
+      getItem: vi
+        .fn()
+        .mockReturnValue(
+          JSON.stringify([
+            'futuroptimist-living-room-tv',
+            'flywheel-studio-flywheel',
+            'flywheel-studio-flywheel',
+          ])
+        ),
       setItem: vi.fn(),
     } satisfies Pick<Storage, 'getItem' | 'setItem'>;
 
@@ -104,9 +106,7 @@ describe('PoiVisitedState', () => {
     state.markVisited('flywheel-studio-flywheel');
 
     expect(listener).toHaveBeenCalledTimes(2);
-    expect(state.snapshot()).toEqual(
-      new Set(['flywheel-studio-flywheel'])
-    );
+    expect(state.snapshot()).toEqual(new Set(['flywheel-studio-flywheel']));
     expect(warnings).not.toHaveBeenCalled();
   });
 

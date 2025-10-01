@@ -16,7 +16,10 @@ const getDefaultStorage = (): Storage | null => {
   try {
     return window.localStorage;
   } catch (error) {
-    console.warn('Accessing localStorage failed, continuing without persistence.', error);
+    console.warn(
+      'Accessing localStorage failed, continuing without persistence.',
+      error
+    );
     return null;
   }
 };
