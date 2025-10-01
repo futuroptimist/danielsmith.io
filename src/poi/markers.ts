@@ -66,6 +66,12 @@ export interface PoiInstance {
   orbEmissiveHighlight?: Color;
   visualMode: 'pedestal' | 'display';
   displayHighlight?: PoiDisplayHighlight;
+  visited: boolean;
+  visitedStrength: number;
+  visitedHighlight?: {
+    mesh: Mesh;
+    material: MeshBasicMaterial;
+  };
 }
 
 export function createPoiInstances(
@@ -188,6 +194,28 @@ function createPedestalPoiInstance(
   halo.renderOrder = 11;
   group.add(halo);
 
+  const visitedRingGeometry = new RingGeometry(
+    haloInnerRadius * 0.92,
+    haloOuterRadius * 1.05,
+    60,
+    1
+  );
+  const visitedRingMaterial = new MeshBasicMaterial({
+    color: new Color(0x7effc7),
+    transparent: true,
+    opacity: 0,
+    blending: AdditiveBlending,
+    depthWrite: false,
+  });
+  visitedRingMaterial.side = DoubleSide;
+  const visitedRing = new Mesh(visitedRingGeometry, visitedRingMaterial);
+  visitedRing.rotation.x = -Math.PI / 2;
+  visitedRing.position.y = 0.12;
+  visitedRing.renderOrder = 10;
+  visitedRing.visible = false;
+  visitedRing.scale.setScalar(1);
+  group.add(visitedRing);
+
   const hitAreaGeometry = new CylinderGeometry(
     baseRadiusX,
     baseRadiusX,
@@ -241,6 +269,9 @@ function createPedestalPoiInstance(
     orbEmissiveBase,
     orbEmissiveHighlight,
     visualMode: 'pedestal',
+    visited: false,
+    visitedStrength: 0,
+    visitedHighlight: { mesh: visitedRing, material: visitedRingMaterial },
   };
 }
 
@@ -302,6 +333,8 @@ function createDisplayPoiInstance(
     floatAmplitude: 0,
     visualMode: 'display',
     displayHighlight: override.highlight,
+    visited: false,
+    visitedStrength: 0,
   };
 }
 
