@@ -8,6 +8,7 @@ export type FallbackReason =
   | 'webgl-unsupported'
   | 'manual'
   | 'low-memory'
+  | 'low-performance'
   | 'immersive-init-error';
 
 export interface WebglSupportOptions {
@@ -152,6 +153,8 @@ export function renderTextFallback(
         return "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light.";
       case 'low-memory':
         return 'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.';
+      case 'low-performance':
+        return 'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.';
       case 'immersive-init-error':
         return 'Something went wrong starting the immersive scene, so we brought you the text overview instead.';
       default:
