@@ -51,4 +51,22 @@ describe('POI registry', () => {
       rocket?.metrics?.some((metric) => metric.label === 'Countdown')
     ).toBe(true);
   });
+
+  it('registers the greenhouse POI with Sugarkube storytelling hooks', () => {
+    const greenhouse = pois.find(
+      (poi) => poi.id === 'sugarkube-backyard-greenhouse'
+    );
+    expect(greenhouse).toBeDefined();
+    expect(greenhouse?.roomId).toBe('backyard');
+    expect(greenhouse?.interactionRadius).toBeGreaterThan(2);
+    expect(greenhouse?.footprint.width).toBeGreaterThan(3);
+    expect(greenhouse?.links?.some((link) =>
+      link.href.includes('sugarkube')
+    )).toBe(true);
+    expect(
+      greenhouse?.metrics?.some((metric) =>
+        /irrigation|solar tilt/i.test(metric.value)
+      )
+    ).toBe(true);
+  });
 });

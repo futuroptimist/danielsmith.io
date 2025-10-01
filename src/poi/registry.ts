@@ -95,6 +95,34 @@ const definitions: PoiDefinition[] = [
     ],
     status: 'prototype',
   },
+  {
+    id: 'sugarkube-backyard-greenhouse',
+    title: 'Sugarkube Solar Greenhouse',
+    summary:
+      'Adaptive greenhouse showcasing Sugarkube automation with responsive grow lights and solar tracking.',
+    category: 'project',
+    interaction: 'inspect',
+    roomId: 'backyard',
+    position: { x: 14.08, y: 0, z: 28.2 },
+    headingRadians: Math.PI * 0.55,
+    interactionRadius: 2.4,
+    footprint: { width: 3.6, depth: 3.2 },
+    metrics: [
+      { label: 'Automation', value: 'Sugarkube schedules solar tilt + irrigation' },
+      { label: 'Throughput', value: '3× daily harvest cadence maintained' },
+    ],
+    links: [
+      {
+        label: 'GitHub',
+        href: 'https://github.com/futuroptimist/sugarkube',
+      },
+      {
+        label: 'Greenhouse Log',
+        href: 'https://futuroptimist.dev/projects/sugarkube',
+      },
+    ],
+    status: 'prototype',
+  },
 ];
 
 assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
