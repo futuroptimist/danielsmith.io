@@ -70,6 +70,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Gate unfinished zones with temporary hologram barriers and in-world signage.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
+   - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
 
 ## Phase 2 – Points of Interest (POIs)
 

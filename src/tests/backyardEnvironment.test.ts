@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshStandardMaterial } from 'three';
+import { Group, Mesh, MeshStandardMaterial, PointLight } from 'three';
 import { beforeEach, describe, expect, it, vi, type SpyInstance } from 'vitest';
 
 import { createBackyardEnvironment } from '../environments/backyard';
@@ -111,5 +111,42 @@ describe('createBackyardEnvironment', () => {
     expect(greenhouseCollider).toBeDefined();
     expect(greenhouseCollider?.maxX).toBeGreaterThan(greenhouseCollider!.minX);
     expect(greenhouseCollider?.maxZ).toBeGreaterThan(greenhouseCollider!.minZ);
+  });
+
+  it('adds walkway lanterns that glow and pulse along the greenhouse approach', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const lanternGroup = environment.group.getObjectByName(
+      'BackyardWalkwayLanterns'
+    );
+    expect(lanternGroup).toBeInstanceOf(Group);
+
+    const lanternChildren = (lanternGroup as Group).children.filter((child) =>
+      child.name.startsWith('BackyardWalkwayLantern-')
+    );
+    expect(lanternChildren).toHaveLength(6);
+
+    const firstGlass = (lanternGroup as Group).getObjectByName(
+      'BackyardWalkwayLanternGlass-0'
+    );
+    expect(firstGlass).toBeInstanceOf(Mesh);
+    const glassMaterial = (firstGlass as Mesh).material as MeshStandardMaterial;
+    const baselineEmissive = glassMaterial.emissiveIntensity;
+
+    const firstLight = (lanternGroup as Group).getObjectByName(
+      'BackyardWalkwayLanternLight-0'
+    );
+    expect(firstLight).toBeInstanceOf(PointLight);
+    const baselineLightIntensity = (firstLight as PointLight).intensity;
+
+    environment.update({ elapsed: 0.5, delta: 0.016 });
+    const midEmissive = glassMaterial.emissiveIntensity;
+    const midLightIntensity = (firstLight as PointLight).intensity;
+
+    environment.update({ elapsed: 1.2, delta: 0.016 });
+
+    expect(midEmissive).not.toBe(baselineEmissive);
+    expect(glassMaterial.emissiveIntensity).not.toBe(midEmissive);
+    expect(midLightIntensity).not.toBe(baselineLightIntensity);
+    expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
   });
 });
