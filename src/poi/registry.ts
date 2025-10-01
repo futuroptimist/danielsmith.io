@@ -108,7 +108,10 @@ const definitions: PoiDefinition[] = [
     interactionRadius: 2.4,
     footprint: { width: 3.6, depth: 3.2 },
     metrics: [
-      { label: 'Automation', value: 'Sugarkube schedules solar tilt + irrigation' },
+      {
+        label: 'Automation',
+        value: 'Sugarkube schedules solar tilt + irrigation',
+      },
       { label: 'Throughput', value: '3× daily harvest cadence maintained' },
     ],
     links: [

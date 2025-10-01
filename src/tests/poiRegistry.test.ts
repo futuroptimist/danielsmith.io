@@ -60,9 +60,9 @@ describe('POI registry', () => {
     expect(greenhouse?.roomId).toBe('backyard');
     expect(greenhouse?.interactionRadius).toBeGreaterThan(2);
     expect(greenhouse?.footprint.width).toBeGreaterThan(3);
-    expect(greenhouse?.links?.some((link) =>
-      link.href.includes('sugarkube')
-    )).toBe(true);
+    expect(
+      greenhouse?.links?.some((link) => link.href.includes('sugarkube'))
+    ).toBe(true);
     expect(
       greenhouse?.metrics?.some((metric) =>
         /irrigation|solar tilt/i.test(metric.value)
