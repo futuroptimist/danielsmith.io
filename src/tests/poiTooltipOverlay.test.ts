@@ -96,4 +96,20 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
     expect(root.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('surfaces visited badge when POI is marked as visited', () => {
+    overlay.setVisitedPoiIds(new Set([basePoi.id]));
+    overlay.setSelected(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const visitedBadge = root.querySelector(
+      '.poi-tooltip-overlay__visited'
+    ) as HTMLSpanElement;
+    expect(visitedBadge.hidden).toBe(false);
+    expect(visitedBadge.textContent).toBe('Visited');
+
+    overlay.setVisitedPoiIds(new Set());
+    overlay.setSelected(basePoi);
+    expect(visitedBadge.hidden).toBe(true);
+  });
 });

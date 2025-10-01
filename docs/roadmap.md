@@ -136,6 +136,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
    - In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
    - Optional guided tour mode that highlights the next recommended POI.
+   - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
 
 ## Phase 4 – Accessibility & Internationalization
 

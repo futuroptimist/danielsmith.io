@@ -76,6 +76,7 @@ import {
 } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
+import { PoiVisitedState } from './poi/visitedState';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -1132,6 +1133,20 @@ function initializeImmersiveScene(
 
   const poiAnalytics = createWindowPoiAnalytics();
   const poiTooltipOverlay = new PoiTooltipOverlay({ container });
+  const poiVisitedState = new PoiVisitedState();
+
+  const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
+    for (const poi of poiInstances) {
+      const isVisited = visited.has(poi.definition.id);
+      if (poi.visited !== isVisited) {
+        poi.visited = isVisited;
+      }
+    }
+    poiTooltipOverlay.setVisitedPoiIds(visited);
+  };
+
+  const removeVisitedSubscription =
+    poiVisitedState.subscribe(handleVisitedUpdate);
 
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
@@ -1190,11 +1205,18 @@ function initializeImmersiveScene(
     poiInteractionManager.addSelectionStateListener((poi) => {
       poiTooltipOverlay.setSelected(poi);
     });
+  const removeSelectionListener = poiInteractionManager.addSelectionListener(
+    (poi) => {
+      poiVisitedState.markVisited(poi.id);
+    }
+  );
   poiInteractionManager.start();
   window.addEventListener('beforeunload', () => {
     poiInteractionManager.dispose();
     removeHoverListener();
     removeSelectionStateListener();
+    removeSelectionListener();
+    removeVisitedSubscription();
     poiTooltipOverlay.dispose();
     ambientAudioController?.dispose();
     renderer.domElement.removeEventListener('wheel', handleWheelZoom);
@@ -1921,13 +1943,20 @@ function initializeImmersiveScene(
         0,
         1
       );
+      const visitedTarget = poi.visited ? 1 : 0;
       poi.activation = MathUtils.lerp(
         poi.activation,
         targetActivation,
         smoothing
       );
+      poi.visitedStrength = MathUtils.lerp(
+        poi.visitedStrength,
+        visitedTarget,
+        smoothing
+      );
       poi.focus = MathUtils.lerp(poi.focus, poi.focusTarget, smoothing);
       const emphasis = Math.max(poi.activation, poi.focus);
+      const visitedEmphasis = poi.visitedStrength;
 
       if (poi.activation > highestActivation) {
         highestActivation = poi.activation;
@@ -1935,7 +1964,8 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const labelOpacity = MathUtils.lerp(0.32, 1, emphasis);
+        const baseOpacity = MathUtils.lerp(0.32, 0.52, visitedEmphasis);
+        const labelOpacity = MathUtils.lerp(baseOpacity, 1, emphasis);
         poi.labelMaterial.opacity = labelOpacity;
         poi.label.visible = labelOpacity > 0.05;
       }
@@ -1949,20 +1979,33 @@ function initializeImmersiveScene(
           baseScale,
           focusScale,
         } = poi.displayHighlight;
+        const visitedOpacityBoost = MathUtils.lerp(0, 0.25, visitedEmphasis);
         const nextOpacity = MathUtils.lerp(baseOpacity, focusOpacity, emphasis);
-        material.opacity = nextOpacity;
-        mesh.visible = nextOpacity > 0.02;
+        const combinedOpacity = Math.min(nextOpacity + visitedOpacityBoost, 1);
+        material.opacity = combinedOpacity;
+        mesh.visible = combinedOpacity > 0.02;
         if (baseScale !== undefined && focusScale !== undefined && mesh.scale) {
           const nextScale = MathUtils.lerp(baseScale, focusScale, emphasis);
           mesh.scale.setScalar(nextScale);
         }
-      } else {
+      }
+
+      if (poi.visitedHighlight) {
+        const visitedOpacity = MathUtils.lerp(0, 0.55, visitedEmphasis);
+        poi.visitedHighlight.material.opacity = visitedOpacity;
+        poi.visitedHighlight.mesh.visible = visitedOpacity > 0.02;
+        const visitedScale = 1 + visitedEmphasis * 0.12;
+        poi.visitedHighlight.mesh.scale.setScalar(visitedScale);
+      }
+
+      if (!poi.displayHighlight) {
         if (
           poi.orbMaterial &&
           poi.orbEmissiveBase &&
           poi.orbEmissiveHighlight
         ) {
-          const orbEmissive = MathUtils.lerp(0.85, 1.7, emphasis);
+          const baseIntensity = MathUtils.lerp(0.85, 1.05, visitedEmphasis);
+          const orbEmissive = MathUtils.lerp(baseIntensity, 1.7, emphasis);
           poi.orbMaterial.emissiveIntensity = orbEmissive;
           poi.orbMaterial.emissive.lerpColors(
             poi.orbEmissiveBase,
@@ -1972,7 +2015,8 @@ function initializeImmersiveScene(
         }
 
         if (poi.accentMaterial && poi.accentBaseColor && poi.accentFocusColor) {
-          const accentEmissive = MathUtils.lerp(0.65, 1.05, emphasis);
+          const baseAccent = MathUtils.lerp(0.65, 0.82, visitedEmphasis);
+          const accentEmissive = MathUtils.lerp(baseAccent, 1.05, emphasis);
           poi.accentMaterial.emissiveIntensity = accentEmissive;
           poi.accentMaterial.color.lerpColors(
             poi.accentBaseColor,
@@ -1989,9 +2033,12 @@ function initializeImmersiveScene(
         ) {
           const haloPulse =
             1 + Math.sin(elapsedTime * 1.8 + poi.pulseOffset) * 0.08;
-          const haloScale = MathUtils.lerp(1, 1.18, emphasis) * haloPulse;
+          const baseHaloScale = MathUtils.lerp(1, 1.05, visitedEmphasis);
+          const haloScale =
+            MathUtils.lerp(baseHaloScale, 1.18, emphasis) * haloPulse;
           poi.halo.scale.setScalar(haloScale);
-          const haloOpacity = MathUtils.lerp(0.18, 0.62, emphasis);
+          const baseHaloOpacity = MathUtils.lerp(0.18, 0.32, visitedEmphasis);
+          const haloOpacity = MathUtils.lerp(baseHaloOpacity, 0.62, emphasis);
           poi.haloMaterial.opacity = haloOpacity;
           poi.halo.visible = haloOpacity > 0.04;
           poi.haloMaterial.color.lerpColors(

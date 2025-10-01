@@ -83,6 +83,8 @@ function createMockPoi(definition: PoiDefinition): PoiInstance {
     orbEmissiveBase,
     orbEmissiveHighlight,
     visualMode: 'pedestal',
+    visited: false,
+    visitedStrength: 0,
   } satisfies PoiInstance;
 }
 

@@ -15,9 +15,11 @@ export class PoiTooltipOverlay {
   private readonly metricsList: HTMLUListElement;
   private readonly linksList: HTMLUListElement;
   private readonly statusBadge: HTMLSpanElement;
+  private readonly visitedBadge: HTMLSpanElement;
   private hovered: PoiDefinition | null = null;
   private selected: PoiDefinition | null = null;
   private renderState: RenderState = { poiId: null };
+  private visitedPoiIds: ReadonlySet<string> = new Set();
 
   constructor(options: PoiTooltipOverlayOptions) {
     const { container } = options;
@@ -42,6 +44,12 @@ export class PoiTooltipOverlay {
     this.statusBadge.className = 'poi-tooltip-overlay__status';
     this.statusBadge.hidden = true;
     headingRow.appendChild(this.statusBadge);
+
+    this.visitedBadge = document.createElement('span');
+    this.visitedBadge.className = 'poi-tooltip-overlay__visited';
+    this.visitedBadge.textContent = 'Visited';
+    this.visitedBadge.hidden = true;
+    headingRow.appendChild(this.visitedBadge);
 
     this.summary = document.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';
@@ -69,6 +77,11 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
+  setVisitedPoiIds(ids: ReadonlySet<string>) {
+    this.visitedPoiIds = ids;
+    this.update();
+  }
+
   dispose() {
     this.root.remove();
   }
@@ -80,6 +93,7 @@ export class PoiTooltipOverlay {
       this.root.dataset.state = 'hidden';
       this.root.setAttribute('aria-hidden', 'true');
       this.renderState.poiId = null;
+      this.visitedBadge.hidden = true;
       return;
     }
 
@@ -87,6 +101,9 @@ export class PoiTooltipOverlay {
     this.root.dataset.state = state;
     this.root.classList.add('poi-tooltip-overlay--visible');
     this.root.setAttribute('aria-hidden', 'false');
+
+    const visited = this.visitedPoiIds.has(poi.id);
+    this.visitedBadge.hidden = !visited;
 
     if (this.renderState.poiId !== poi.id) {
       this.renderPoi(poi);
