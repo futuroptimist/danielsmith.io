@@ -129,8 +129,7 @@ describe('createBackyardEnvironment', () => {
       'BackyardWalkwayLanternGlass-0'
     );
     expect(firstGlass).toBeInstanceOf(Mesh);
-    const glassMaterial = (firstGlass as Mesh)
-      .material as MeshStandardMaterial;
+    const glassMaterial = (firstGlass as Mesh).material as MeshStandardMaterial;
     const baselineEmissive = glassMaterial.emissiveIntensity;
 
     const firstLight = (lanternGroup as Group).getObjectByName(
