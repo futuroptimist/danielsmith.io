@@ -4,6 +4,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
+  CylinderGeometry,
   DoubleSide,
   Group,
   Mesh,
@@ -176,11 +177,9 @@ export function createBackyardEnvironment(
   greenhouse.colliders.forEach((collider) => colliders.push(collider));
   updates.push(greenhouse.update);
 
-  const walkwayGeometry = new BoxGeometry(
-    greenhouseWidth * 0.68,
-    0.06,
-    greenhouseDepth * 0.72
-  );
+  const walkwayWidth = greenhouseWidth * 0.68;
+  const walkwayDepth = greenhouseDepth * 0.72;
+  const walkwayGeometry = new BoxGeometry(walkwayWidth, 0.06, walkwayDepth);
   const walkwayMaterial = new MeshStandardMaterial({
     color: 0x454f57,
     roughness: 0.58,
@@ -194,6 +193,89 @@ export function createBackyardEnvironment(
     greenhouseBase.z - greenhouseDepth * 0.65
   );
   group.add(walkway);
+
+  interface LanternAnimationTarget {
+    glassMaterial: MeshStandardMaterial;
+    light: PointLight;
+    baseIntensity: number;
+    baseLightIntensity: number;
+    offset: number;
+  }
+
+  const lanternAnimationTargets: LanternAnimationTarget[] = [];
+  const lanternGroup = new Group();
+  lanternGroup.name = 'BackyardWalkwayLanterns';
+
+  const lanternPostGeometry = new CylinderGeometry(0.08, 0.12, 1.1, 12);
+  const lanternCapGeometry = new CylinderGeometry(0.22, 0.22, 0.14, 12);
+  const lanternGlassGeometry = new SphereGeometry(0.3, 16, 16);
+  const lanternPostMaterial = new MeshStandardMaterial({
+    color: 0x1b232b,
+    roughness: 0.76,
+    metalness: 0.32,
+  });
+  const lanternCapMaterial = new MeshStandardMaterial({
+    color: 0x262f3b,
+    roughness: 0.64,
+    metalness: 0.4,
+  });
+
+  const lateralOffset = walkwayWidth / 2 + 0.32;
+  const lanternPairs = 3;
+  for (let i = 0; i < lanternPairs; i += 1) {
+    const progression = (i + 1) / (lanternPairs + 1);
+    const lanternZ =
+      walkway.position.z - walkwayDepth / 2 + progression * walkwayDepth;
+
+    [-1, 1].forEach((direction, lateralIndex) => {
+      const lanternIndex = i * 2 + lateralIndex;
+      const lantern = new Group();
+      lantern.name = `BackyardWalkwayLantern-${lanternIndex}`;
+      lantern.position.set(
+        walkway.position.x + direction * lateralOffset,
+        0,
+        lanternZ
+      );
+
+      const post = new Mesh(lanternPostGeometry, lanternPostMaterial);
+      post.position.y = 0.55;
+      lantern.add(post);
+
+      const cap = new Mesh(lanternCapGeometry, lanternCapMaterial);
+      cap.position.y = 1.15;
+      lantern.add(cap);
+
+      const glassMaterial = new MeshStandardMaterial({
+        color: 0xfff3d4,
+        emissive: new Color(0xffa445),
+        emissiveIntensity: 1.18,
+        roughness: 0.42,
+        metalness: 0.12,
+        transparent: true,
+        opacity: 0.92,
+      });
+      const glass = new Mesh(lanternGlassGeometry, glassMaterial);
+      glass.name = `BackyardWalkwayLanternGlass-${lanternIndex}`;
+      glass.position.y = 1.05;
+      lantern.add(glass);
+
+      const light = new PointLight(0xffd9a2, 0.85, 4.4, 2.6);
+      light.name = `BackyardWalkwayLanternLight-${lanternIndex}`;
+      light.position.y = 1.05;
+      lantern.add(light);
+
+      lanternGroup.add(lantern);
+      lanternAnimationTargets.push({
+        glassMaterial,
+        light,
+        baseIntensity: glassMaterial.emissiveIntensity,
+        baseLightIntensity: light.intensity,
+        offset: i * 1.1 + (direction < 0 ? 0 : Math.PI / 3),
+      });
+    });
+  }
+
+  group.add(lanternGroup);
 
   const shrubGeometry = new SphereGeometry(1.05, 20, 20);
   const shrubMaterial = new MeshStandardMaterial({
@@ -344,6 +426,23 @@ export function createBackyardEnvironment(
   const update = (context: { elapsed: number; delta: number }) => {
     updates.forEach((fn) => fn(context));
   };
+
+  if (lanternAnimationTargets.length > 0) {
+    updates.push(({ elapsed }) => {
+      const baseWave = Math.sin(elapsed * 0.9) * 0.12;
+      lanternAnimationTargets.forEach((target) => {
+        const flicker =
+          0.84 +
+          baseWave +
+          Math.sin(elapsed * 1.7 + target.offset) * 0.16 +
+          Math.sin(elapsed * 2.4 + target.offset * 0.8) * 0.08;
+        const clampedFlicker = Math.max(0.4, flicker);
+        target.glassMaterial.emissiveIntensity =
+          target.baseIntensity * clampedFlicker;
+        target.light.intensity = target.baseLightIntensity * clampedFlicker;
+      });
+    });
+  }
 
   return { group, colliders, update };
 }
