@@ -33,6 +33,7 @@ captures; keep artifacts in `docs/metrics/`.
   - ✅ WebGL capability detection now routes unsupported browsers to the lightweight text view (also available via `?mode=text`)
   - ✅ Low-memory heuristic now routes devices reporting <1 GB via `navigator.deviceMemory`
     to the text experience while honoring `?mode=immersive` overrides.
+  - ✅ Runtime performance monitor now auto-switches to text mode after 5 s below 30 FPS.
 
 ## Phase 0 – Foundations (Shipped)
 

@@ -50,6 +50,7 @@ import {
   type BackyardEnvironmentBuild,
 } from './environments/backyard';
 import { evaluateFailoverDecision, renderTextFallback } from './failover';
+import { createPerformanceFailoverHandler } from './failover/performanceFailover';
 import {
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
@@ -107,6 +108,8 @@ const LED_STRIP_DEPTH = 0.22;
 const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
+const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
+const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
@@ -642,6 +645,7 @@ function initializeImmersiveScene(
   container: HTMLElement,
   onFatalError: (error: unknown, options: { renderer?: WebGLRenderer }) => void
 ) {
+  const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
@@ -650,6 +654,23 @@ function initializeImmersiveScene(
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
+
+  const performanceFailover = createPerformanceFailoverHandler({
+    renderer,
+    container,
+    immersiveUrl,
+    markAppReady: markDocumentReady,
+    fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
+    minimumDurationMs: PERFORMANCE_FAILOVER_DURATION_MS,
+    onTrigger: ({ averageFps, durationMs }) => {
+      const roundedDuration = Math.round(durationMs);
+      const averaged = averageFps.toFixed(1);
+      console.warn(
+        `Switching to text fallback after ${roundedDuration}ms below ` +
+          `${PERFORMANCE_FAILOVER_FPS_THRESHOLD} FPS (avg ${averaged} FPS).`
+      );
+    },
+  });
 
   const handleFatalError = (error: unknown) => {
     onFatalError(error, { renderer });
@@ -2087,6 +2108,10 @@ function initializeImmersiveScene(
     try {
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
+      performanceFailover.update(delta);
+      if (performanceFailover.hasTriggered()) {
+        return;
+      }
       updateMovement(delta);
       updateCamera(delta);
       updatePois(elapsedTime, delta);

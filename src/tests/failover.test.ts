@@ -142,4 +142,12 @@ describe('renderTextFallback', () => {
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/memory/i);
   });
+
+  it('announces performance-triggered fallback messaging', () => {
+    const container = render('low-performance');
+    const section = container.querySelector('.text-fallback');
+    expect(section?.getAttribute('data-reason')).toBe('low-performance');
+    const description = container.querySelector('.text-fallback__description');
+    expect(description?.textContent).toMatch(/frame/);
+  });
 });
