@@ -323,12 +323,7 @@ export function createLanternChimeBuffer<T extends BufferContext>(
   const data = buffer.getChannelData(0);
 
   const prng = createPrng(2027);
-  const overtoneFrequencies = [
-    180,
-    240,
-    320,
-    420,
-  ];
+  const overtoneFrequencies = [180, 240, 320, 420];
 
   for (let i = 0; i < length; i += 1) {
     const time = i / context.sampleRate;
@@ -342,10 +337,10 @@ export function createLanternChimeBuffer<T extends BufferContext>(
         2 * Math.PI * frequency * time +
         Math.sin(time * Math.PI * 0.6 + index * 0.5) * 0.8;
       const envelope =
-        slowPulse *
-          (0.28 + 0.12 * Math.sin(time * Math.PI * 0.5 + index)) +
+        slowPulse * (0.28 + 0.12 * Math.sin(time * Math.PI * 0.5 + index)) +
         shimmer;
-      value += Math.sin(phase + detune) * envelope * (1 / overtoneFrequencies.length);
+      value +=
+        Math.sin(phase + detune) * envelope * (1 / overtoneFrequencies.length);
     });
 
     const rustle = (prng() - 0.5) * 0.08 * slowPulse;

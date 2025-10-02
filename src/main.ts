@@ -1654,9 +1654,8 @@ function initializeImmersiveScene(
           }
           audioBeds.push({
             ...bed,
-            source: createLoopingSource(
-              bed.id,
-              (context) => createLanternChimeBuffer(context)
+            source: createLoopingSource(bed.id, (context) =>
+              createLanternChimeBuffer(context)
             ),
           });
         });
