@@ -136,6 +136,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - Mode switch between immersive 3D view and a fast-loading text portfolio.
    - Detect low-end/no-JS/scraper clients and auto-route to static mode.
    - Share canonical content via structured data (JSON-LD) for SEO and bots.
+   - ✅ JSON-LD structured data now mirrors the POI registry so bots and scrapers receive the
+     same exhibit catalog as players.
    - ✅ HUD toggle + `T` keybinding now trigger the text portfolio without a page reload.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).

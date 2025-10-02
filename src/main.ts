@@ -81,6 +81,7 @@ import {
   type PoiInstanceOverrides,
 } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
+import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiVisitedState } from './poi/visitedState';
 import {
@@ -696,6 +697,8 @@ function initializeImmersiveScene(
   scene.background = createImmersiveGradientTexture();
 
   const poiOverrides: PoiInstanceOverrides = {};
+  const poiDefinitions = getPoiDefinitions();
+  injectPoiStructuredData(poiDefinitions);
 
   const floorBounds = getFloorBounds(FLOOR_PLAN);
   const floorCenter = new Vector3(
@@ -1154,10 +1157,7 @@ function initializeImmersiveScene(
     scene.add(ledFillLights);
   }
 
-  const builtPoiInstances = createPoiInstances(
-    getPoiDefinitions(),
-    poiOverrides
-  );
+  const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides);
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
       scene.add(poi.group);
