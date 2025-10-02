@@ -133,11 +133,14 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
      accessibility tips, and failover guidance.
    - Sliders/toggles for audio volume, graphics quality, and accessibility presets.
+   - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
    - Mobile-friendly layout that coexists with on-screen joystick.
 2. **Experience Toggle**
    - Mode switch between immersive 3D view and a fast-loading text portfolio.
    - Detect low-end/no-JS/scraper clients and auto-route to static mode.
    - Share canonical content via structured data (JSON-LD) for SEO and bots.
+   - ✅ JSON-LD structured data now mirrors the POI registry so bots and scrapers receive the
+     same exhibit catalog as players.
    - ✅ HUD toggle + `T` keybinding now trigger the text portfolio without a page reload.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).

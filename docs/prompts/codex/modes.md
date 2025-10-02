@@ -26,6 +26,7 @@ Include summary, automated tests, and manual verification checklist.
 ## Engineering reminders
 
 - Keep static mode content accessible and SEO-friendly (semantic HTML, metadata).
+- Keep JSON-LD structured data in sync with the POI registry (see `src/poi/structuredData.ts`).
 - Ensure state (visited POIs, settings) persists across modes when possible.
 - Document any platform-specific fallbacks (e.g., Safari WebGL quirks).
 

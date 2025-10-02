@@ -70,6 +70,12 @@ export class AmbientAudioController {
 
   private enabled = false;
 
+  private masterVolume = 1;
+
+  private lastListenerPosition: { x: number; z: number } = { x: 0, z: 0 };
+
+  private hasListenerPosition = false;
+
   constructor(
     beds: AmbientAudioBedDefinition[],
     options: AmbientAudioControllerOptions = {}
@@ -128,6 +134,11 @@ export class AmbientAudioController {
   }
 
   update(listenerPosition: { x: number; z: number }, delta: number): void {
+    this.lastListenerPosition = {
+      x: listenerPosition.x,
+      z: listenerPosition.z,
+    };
+    this.hasListenerPosition = true;
     const factor = smoothingFactor(this.smoothing, delta);
     for (const bed of this.beds) {
       const distance = Math.hypot(
@@ -140,7 +151,11 @@ export class AmbientAudioController {
         bed.definition.outerRadius
       );
       const targetVolume = this.enabled
-        ? clamp(bed.definition.baseVolume * attenuation, 0, 1)
+        ? clamp(
+            bed.definition.baseVolume * attenuation * this.masterVolume,
+            0,
+            1
+          )
         : 0;
       const nextVolume =
         bed.currentVolume + (targetVolume - bed.currentVolume) * factor;
@@ -148,6 +163,22 @@ export class AmbientAudioController {
       bed.currentVolume = clampedVolume;
       bed.definition.source.setVolume(clampedVolume);
     }
+  }
+
+  getMasterVolume(): number {
+    return this.masterVolume;
+  }
+
+  setMasterVolume(volume: number): void {
+    const clamped = clamp(volume, 0, 1);
+    if (clamped === this.masterVolume) {
+      return;
+    }
+    this.masterVolume = clamped;
+    if (!this.enabled || !this.hasListenerPosition) {
+      return;
+    }
+    this.update(this.lastListenerPosition, 0);
   }
 }
 

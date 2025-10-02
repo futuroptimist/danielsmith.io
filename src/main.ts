@@ -44,6 +44,10 @@ import {
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
 import { collidesWithColliders, type RectCollider } from './collision';
+import {
+  createAudioHudControl,
+  type AudioHudControlHandle,
+} from './controls/audioHudControl';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -82,6 +86,7 @@ import {
   type PoiInstanceOverrides,
 } from './poi/markers';
 import { getPoiDefinitions } from './poi/registry';
+import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiVisitedState } from './poi/visitedState';
 import {
@@ -664,9 +669,7 @@ function initializeImmersiveScene(
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
-  let audioKeydownHandler: ((event: KeyboardEvent) => void) | null = null;
-  let audioToggleButton: HTMLButtonElement | null = null;
-  let audioToggleClickHandler: (() => void) | null = null;
+  let audioHudHandle: AudioHudControlHandle | null = null;
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -697,6 +700,8 @@ function initializeImmersiveScene(
   scene.background = createImmersiveGradientTexture();
 
   const poiOverrides: PoiInstanceOverrides = {};
+  const poiDefinitions = getPoiDefinitions();
+  injectPoiStructuredData(poiDefinitions);
 
   const floorBounds = getFloorBounds(FLOOR_PLAN);
   const floorCenter = new Vector3(
@@ -1155,10 +1160,7 @@ function initializeImmersiveScene(
     scene.add(ledFillLights);
   }
 
-  const builtPoiInstances = createPoiInstances(
-    getPoiDefinitions(),
-    poiOverrides
-  );
+  const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides);
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
       scene.add(poi.group);
@@ -1677,71 +1679,28 @@ function initializeImmersiveScene(
       },
     });
 
-    audioToggleButton = document.createElement('button');
-    const audioButton = audioToggleButton;
-    audioButton.className = 'audio-toggle';
-    audioButton.type = 'button';
-    audioButton.title = 'Toggle ambient audio (M)';
-    audioButton.setAttribute('aria-pressed', 'false');
-    container.appendChild(audioButton);
-
-    let audioTogglePending = false;
-
-    const updateAudioToggle = () => {
-      const enabled = ambientAudioController?.isEnabled() ?? false;
-      audioButton.dataset.state = enabled ? 'on' : 'off';
-      audioButton.textContent = enabled
-        ? 'Audio: On · Press M to mute'
-        : 'Audio: Off · Press M to unmute';
-      audioButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-      audioButton.disabled = audioTogglePending;
-    };
-
-    const setAudioEnabled = async (enabled: boolean) => {
-      if (!ambientAudioController) {
-        return;
-      }
-      audioTogglePending = true;
-      updateAudioToggle();
-      if (enabled) {
-        try {
-          await ambientAudioController.enable();
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn('Ambient audio failed to start', error);
+    audioHudHandle = createAudioHudControl({
+      container,
+      getEnabled: () => ambientAudioController?.isEnabled() ?? false,
+      setEnabled: async (enabled) => {
+        if (!ambientAudioController) {
+          return;
         }
-      } else {
-        ambientAudioController.disable();
-      }
-      audioTogglePending = false;
-      updateAudioToggle();
-    };
-
-    audioToggleClickHandler = () => {
-      if (audioTogglePending || !ambientAudioController) {
-        return;
-      }
-      const nextState = !ambientAudioController.isEnabled();
-      void setAudioEnabled(nextState);
-    };
-    audioButton.addEventListener('click', audioToggleClickHandler);
-
-    audioKeydownHandler = (event: KeyboardEvent) => {
-      if (event.key !== 'm' && event.key !== 'M') {
-        return;
-      }
-      if (event.metaKey || event.ctrlKey || event.altKey) {
-        return;
-      }
-      if (audioTogglePending) {
-        return;
-      }
-      event.preventDefault();
-      void setAudioEnabled(!(ambientAudioController?.isEnabled() ?? false));
-    };
-    window.addEventListener('keydown', audioKeydownHandler);
-
-    updateAudioToggle();
+        if (enabled) {
+          try {
+            await ambientAudioController.enable();
+          } catch (error) {
+            console.warn('Ambient audio failed to start', error);
+          }
+        } else {
+          ambientAudioController.disable();
+        }
+      },
+      getVolume: () => ambientAudioController?.getMasterVolume() ?? 1,
+      setVolume: (volume) => {
+        ambientAudioController?.setMasterVolume(volume);
+      },
+    });
 
     manualModeToggle = createManualModeToggle({
       container,
@@ -2183,18 +2142,9 @@ function initializeImmersiveScene(
     window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
     window.removeEventListener('pointerup', handlePointerUpForCameraPan);
     window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
-    if (audioToggleButton && audioToggleClickHandler) {
-      audioToggleButton.removeEventListener('click', audioToggleClickHandler);
-    }
-    audioToggleButton = null;
-    audioToggleClickHandler = null;
-    if (helpButton && helpButtonClickHandler) {
-      helpButton.removeEventListener('click', helpButtonClickHandler);
-      helpButtonClickHandler = null;
-    }
-    if (audioKeydownHandler) {
-      window.removeEventListener('keydown', audioKeydownHandler);
-      audioKeydownHandler = null;
+    if (audioHudHandle) {
+      audioHudHandle.dispose();
+      audioHudHandle = null;
     }
     if (beforeUnloadHandler) {
       window.removeEventListener('beforeunload', beforeUnloadHandler);
