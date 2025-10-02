@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createCricketChorusBuffer,
   createDistantHumBuffer,
+  createLanternChimeBuffer,
   type BufferContext,
   type AudioBufferLike,
   _applyLoopFades,
@@ -71,6 +72,23 @@ describe('procedural buffers', () => {
     const context = new FakeContext(5);
     const buffer = createCricketChorusBuffer(context);
     expect(buffer.length).toBeGreaterThan(0);
+  });
+
+  it('builds lantern chimes with gentle shimmer and motion', () => {
+    const context = new FakeContext(48000);
+    const buffer = createLanternChimeBuffer(context);
+    expect(buffer.length).toBeGreaterThan(0);
+    const data = buffer.getChannelData(0);
+    expect(data.every(Number.isFinite)).toBe(true);
+    const totalEnergy = data.reduce((acc, value) => acc + Math.abs(value), 0);
+    expect(totalEnergy).toBeGreaterThan(10);
+    const maxMagnitude = data.reduce(
+      (acc, value) => Math.max(acc, Math.abs(value)),
+      0
+    );
+    expect(maxMagnitude).toBeLessThanOrEqual(1);
+    expect(Math.abs(data[0])).toBeLessThan(1e-3);
+    expect(Math.abs(data.at(-1) ?? 0)).toBeLessThan(1e-3);
   });
 });
 

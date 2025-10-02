@@ -314,6 +314,49 @@ export function createDistantHumBuffer<T extends BufferContext>(
   return buffer;
 }
 
+export function createLanternChimeBuffer<T extends BufferContext>(
+  context: T
+): ReturnType<T['createBuffer']> {
+  const durationSeconds = 8;
+  const length = Math.max(1, Math.floor(context.sampleRate * durationSeconds));
+  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  const prng = createPrng(2027);
+  const overtoneFrequencies = [
+    180,
+    240,
+    320,
+    420,
+  ];
+
+  for (let i = 0; i < length; i += 1) {
+    const time = i / context.sampleRate;
+    const slowPulse = 0.6 + 0.35 * Math.sin(time * Math.PI * 0.25);
+    const shimmer = 0.25 + 0.2 * Math.sin(time * Math.PI * 2.1 + 0.5);
+    let value = 0;
+
+    overtoneFrequencies.forEach((frequency, index) => {
+      const detune = (prng() - 0.5) * 0.6;
+      const phase =
+        2 * Math.PI * frequency * time +
+        Math.sin(time * Math.PI * 0.6 + index * 0.5) * 0.8;
+      const envelope =
+        slowPulse *
+          (0.28 + 0.12 * Math.sin(time * Math.PI * 0.5 + index)) +
+        shimmer;
+      value += Math.sin(phase + detune) * envelope * (1 / overtoneFrequencies.length);
+    });
+
+    const rustle = (prng() - 0.5) * 0.08 * slowPulse;
+    data[i] = value + rustle;
+  }
+
+  applyLoopFades(data, Math.floor(context.sampleRate * 0.8));
+  normalizeBuffer(data, 0.7);
+  return buffer;
+}
+
 export {
   applyLoopFades as _applyLoopFades,
   normalizeBuffer as _normalizeBuffer,
