@@ -103,6 +103,36 @@ describe('AmbientAudioController', () => {
     expect(source.isPlaying).toBe(false);
     expect(source.volumes.at(-1)).toBe(0);
   });
+
+  it('applies master volume scaling and updates immediately', () => {
+    const { bed, source } = createBed();
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+    controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.1);
+    const baseline = source.volumes.at(-1) ?? 0;
+    expect(baseline).toBeCloseTo(bed.baseVolume, 5);
+    controller.setMasterVolume(0.5);
+    expect(controller.getMasterVolume()).toBeCloseTo(0.5, 5);
+    const scaled = source.volumes.at(-1) ?? 0;
+    expect(scaled).toBeCloseTo(bed.baseVolume * 0.5, 5);
+  });
+
+  it('clamps master volume updates and defers when listener position unknown', () => {
+    const { bed, source } = createBed();
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+    controller.enable();
+    controller.setMasterVolume(2);
+    expect(controller.getMasterVolume()).toBe(1);
+    expect(source.volumes).toEqual([0]);
+    controller.update({ x: 0, z: 0 }, 0.1);
+    expect(source.volumes.at(-1)).toBeCloseTo(bed.baseVolume, 5);
+    controller.disable();
+    controller.setMasterVolume(-1);
+    expect(controller.getMasterVolume()).toBe(0);
+    controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.1);
+    expect(source.volumes.at(-1)).toBe(0);
+  });
 });
 
 describe('attenuation helpers', () => {

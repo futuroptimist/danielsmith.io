@@ -131,6 +131,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
 1. **HUD Layer**
    - Responsive overlay with movement legend, interaction prompt, and help modal.
    - Sliders/toggles for audio volume, graphics quality, and accessibility presets.
+   - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
    - Mobile-friendly layout that coexists with on-screen joystick.
 2. **Experience Toggle**
    - Mode switch between immersive 3D view and a fast-loading text portfolio.
