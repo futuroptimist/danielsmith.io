@@ -112,6 +112,8 @@ lightweight.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support and sustained frame rates below 30 FPS;
   `?mode=immersive` switches back when supported.
+- **Low FPS override** – Use `?disableLowFpsFailover=1` (or `=true`) to keep immersive mode active
+  during captures and automation runs that intentionally tolerate slower frames.
 
 ## Automation prompts
 

@@ -51,6 +51,7 @@ import {
 } from './environments/backyard';
 import { evaluateFailoverDecision, renderTextFallback } from './failover';
 import { createPerformanceFailoverHandler } from './failover/performanceFailover';
+import { resolvePerformanceFailoverEnabled } from './failover/performanceFailoverConfig';
 import {
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
@@ -63,6 +64,7 @@ import {
   type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
+import { ControlOverlay } from './hud/controlOverlay';
 import {
   createLightingDebugController,
   type LightingMode,
@@ -111,6 +113,12 @@ const BACKYARD_ROOM_ID = 'backyard';
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
 const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
 
+declare global {
+  interface Window {
+    __IMMERSIVE_DISABLE_LOW_FPS_FAILOVER__?: boolean;
+  }
+}
+
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
 type AppMode = 'immersive' | 'fallback';
@@ -134,6 +142,16 @@ const createImmersiveModeUrl = () => {
   const hash = window.location.hash ?? '';
 
   return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
+};
+
+const isPerformanceFailoverEnabled = () => {
+  if (typeof window === 'undefined') {
+    return true;
+  }
+  return resolvePerformanceFailoverEnabled({
+    search: window.location.search,
+    disableOverride: window.__IMMERSIVE_DISABLE_LOW_FPS_FAILOVER__,
+  });
 };
 
 let immersiveFailureHandled = false;
@@ -655,6 +673,7 @@ function initializeImmersiveScene(
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
 
+  const performanceFailoverEnabled = isPerformanceFailoverEnabled();
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
     container,
@@ -670,6 +689,7 @@ function initializeImmersiveScene(
           `${PERFORMANCE_FAILOVER_FPS_THRESHOLD} FPS (avg ${averaged} FPS).`
       );
     },
+    enabled: performanceFailoverEnabled,
   });
 
   const handleFatalError = (error: unknown) => {
@@ -1156,6 +1176,18 @@ function initializeImmersiveScene(
   const poiTooltipOverlay = new PoiTooltipOverlay({ container });
   const poiVisitedState = new PoiVisitedState();
 
+  const controlOverlayElement = document.getElementById('control-overlay');
+  const controlOverlayUi = controlOverlayElement
+    ? new ControlOverlay(controlOverlayElement)
+    : null;
+  const interactControl = controlOverlayElement?.querySelector<HTMLElement>(
+    '[data-control="interact"]'
+  );
+  const interactDescription = controlOverlayElement?.querySelector<HTMLElement>(
+    '[data-control="interact-description"]'
+  );
+  let interactablePoi: PoiInstance | null = null;
+
   const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
     for (const poi of poiInstances) {
       const isVisited = visited.has(poi.definition.id);
@@ -1240,6 +1272,7 @@ function initializeImmersiveScene(
     removeVisitedSubscription();
     poiTooltipOverlay.dispose();
     ambientAudioController?.dispose();
+    controlOverlayUi?.dispose();
     renderer.domElement.removeEventListener('wheel', handleWheelZoom);
     renderer.domElement.removeEventListener(
       'pointerdown',
@@ -1262,15 +1295,6 @@ function initializeImmersiveScene(
   const player = new Mesh(playerGeometry, playerMaterial);
   player.position.copy(initialPlayerPosition);
   scene.add(player);
-
-  const controlOverlay = document.getElementById('control-overlay');
-  const interactControl = controlOverlay?.querySelector<HTMLElement>(
-    '[data-control="interact"]'
-  );
-  const interactDescription = controlOverlay?.querySelector<HTMLElement>(
-    '[data-control="interact-description"]'
-  );
-  let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
   const joystick = new VirtualJoystick(renderer.domElement);

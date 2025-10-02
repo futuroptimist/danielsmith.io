@@ -28,6 +28,7 @@ export interface PerformanceFailoverHandlerOptions {
     options: RenderTextFallbackOptions
   ) => void;
   fallbackLinks?: Pick<RenderTextFallbackOptions, 'resumeUrl' | 'githubUrl'>;
+  enabled?: boolean;
 }
 
 interface PerformanceFailoverMonitorOptions {
@@ -126,7 +127,19 @@ export function createPerformanceFailoverHandler(
     onTrigger,
     renderFallback: render = renderTextFallback,
     fallbackLinks,
+    enabled = true,
   } = options;
+
+  if (!enabled) {
+    return {
+      update() {
+        /* noop */
+      },
+      hasTriggered() {
+        return false;
+      },
+    };
+  }
 
   let transitioned = false;
 

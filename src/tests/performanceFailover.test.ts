@@ -114,4 +114,28 @@ describe('createPerformanceFailoverHandler', () => {
     expect(handler.hasTriggered()).toBe(false);
     expect(renderFallback).not.toHaveBeenCalled();
   });
+
+  it('skips monitoring entirely when disabled', () => {
+    const { renderer, setAnimationLoop, dispose } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: '/?mode=immersive',
+      markAppReady,
+      renderFallback,
+      enabled: false,
+    });
+
+    handler.update(10);
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+    expect(setAnimationLoop).not.toHaveBeenCalled();
+    expect(dispose).not.toHaveBeenCalled();
+  });
 });
