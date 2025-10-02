@@ -95,6 +95,7 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ Accessibility overlay mirrors POI metadata in HTML so screen readers capture
      hover/selection state.
    - ✅ Registry validation enforces room bounds, unique ids, and safe spacing at build time.
+   - ✅ Touch interactions now share the pointer pipeline so mobile taps mirror desktop focus.
 2. **Interior Showpieces**
    - Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching triggers
      a rich text popup with repo summary, star count, and CTA buttons.

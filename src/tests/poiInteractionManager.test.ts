@@ -109,6 +109,68 @@ function createCanvas(): HTMLCanvasElement {
   return canvas;
 }
 
+interface MockTouchInit {
+  clientX: number;
+  clientY: number;
+  identifier?: number;
+}
+
+function createTouchList(
+  target: EventTarget,
+  touches: MockTouchInit[]
+): TouchList {
+  const entries = touches.map((touch, index) => ({
+    clientX: touch.clientX,
+    clientY: touch.clientY,
+    screenX: touch.clientX,
+    screenY: touch.clientY,
+    pageX: touch.clientX,
+    pageY: touch.clientY,
+    radiusX: 0,
+    radiusY: 0,
+    rotationAngle: 0,
+    force: 0,
+    identifier: touch.identifier ?? index,
+    target,
+  })) as unknown as Touch[];
+  const touchList = {
+    length: entries.length,
+    item(index: number) {
+      return entries[index] ?? null;
+    },
+    [Symbol.iterator]: entries[Symbol.iterator].bind(entries),
+  } as TouchList & { [index: number]: Touch };
+  entries.forEach((touch, index) => {
+    (touchList as { [key: number]: Touch })[index] = touch;
+  });
+  return touchList;
+}
+
+function dispatchTouchEvent(
+  target: HTMLElement,
+  type: 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel',
+  touches: MockTouchInit[]
+) {
+  const event = new Event(type, {
+    bubbles: true,
+    cancelable: true,
+  }) as TouchEvent;
+  const changedTouches = createTouchList(target, touches);
+  const activeTouches =
+    type === 'touchend' || type === 'touchcancel'
+      ? createTouchList(target, [])
+      : changedTouches;
+  Object.defineProperty(event, 'changedTouches', {
+    configurable: true,
+    value: changedTouches,
+  });
+  Object.defineProperty(event, 'touches', {
+    configurable: true,
+    value: activeTouches,
+  });
+  target.dispatchEvent(event);
+}
+
 describe('PoiInteractionManager', () => {
   const definition: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
@@ -184,6 +246,86 @@ describe('PoiInteractionManager', () => {
 
     window.removeEventListener('poi:selected', customEventHandler);
     removeSelectionState();
+  });
+
+  it('supports touch interactions for hover and selection', () => {
+    manager.start();
+    const selection = vi.fn();
+    const hover = vi.fn();
+    manager.addSelectionListener(selection);
+    manager.addHoverListener(hover);
+
+    dispatchTouchEvent(domElement, 'touchstart', [
+      { clientX: 200, clientY: 200, identifier: 42 },
+    ]);
+    expect(hover).toHaveBeenLastCalledWith(definition);
+    expect(poi.focusTarget).toBe(1);
+
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 210, clientY: 210, identifier: 42 },
+    ]);
+    expect(hover).toHaveBeenLastCalledWith(definition);
+
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 205, clientY: 205, identifier: 99 },
+    ]);
+    expect(hover).toHaveBeenLastCalledWith(definition);
+
+    dispatchTouchEvent(domElement, 'touchend', [
+      { clientX: 210, clientY: 210, identifier: 42 },
+    ]);
+    expect(selection).toHaveBeenCalledWith(definition);
+    expect(poi.focusTarget).toBe(1);
+
+    dispatchTouchEvent(domElement, 'touchend', []);
+    expect(hover).toHaveBeenLastCalledWith(null);
+    expect(poi.focusTarget).toBe(1);
+
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 200, clientY: 200, identifier: 7 },
+    ]);
+    expect(hover).toHaveBeenLastCalledWith(definition);
+
+    dispatchTouchEvent(domElement, 'touchcancel', []);
+    expect(hover).toHaveBeenLastCalledWith(null);
+    expect(poi.focusTarget).toBe(1);
+  });
+
+  it('suppresses synthetic clicks dispatched after touch selection', () => {
+    manager.start();
+    const selection = vi.fn();
+    manager.addSelectionListener(selection);
+
+    let currentTime = 1_000;
+    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => currentTime);
+
+    try {
+      dispatchTouchEvent(domElement, 'touchstart', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      dispatchTouchEvent(domElement, 'touchend', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      expect(selection).toHaveBeenCalledTimes(1);
+
+      domElement.dispatchEvent(
+        new MouseEvent('click', { clientX: 200, clientY: 200 })
+      );
+
+      expect(selection).toHaveBeenCalledTimes(1);
+
+      currentTime += 600;
+
+      domElement.dispatchEvent(
+        new MouseEvent('click', { clientX: 200, clientY: 200 })
+      );
+
+      expect(selection).toHaveBeenCalledTimes(2);
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it('cycles focus with keyboard input and wraps around', () => {
