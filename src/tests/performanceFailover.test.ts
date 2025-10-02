@@ -114,4 +114,41 @@ describe('createPerformanceFailoverHandler', () => {
     expect(handler.hasTriggered()).toBe(false);
     expect(renderFallback).not.toHaveBeenCalled();
   });
+
+  it('allows manual fallback triggering with preparation hooks', () => {
+    const { renderer, canvas, setAnimationLoop, dispose } = createRenderer();
+    const removeSpy = vi.spyOn(canvas, 'remove');
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const onTrigger = vi.fn();
+    const onBeforeFallback = vi.fn();
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: '/?mode=immersive',
+      markAppReady,
+      renderFallback,
+      onTrigger,
+      onBeforeFallback,
+    });
+
+    handler.triggerFallback('manual');
+
+    expect(handler.hasTriggered()).toBe(true);
+    expect(onBeforeFallback).toHaveBeenCalledWith('manual');
+    expect(onTrigger).not.toHaveBeenCalled();
+    expect(setAnimationLoop).toHaveBeenCalledWith(null);
+    expect(dispose).toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalled();
+    expect(renderFallback).toHaveBeenCalledWith(container, {
+      reason: 'manual',
+      immersiveUrl: '/?mode=immersive',
+      resumeUrl: undefined,
+      githubUrl: undefined,
+    });
+    expect(markAppReady).toHaveBeenCalledWith('fallback');
+  });
 });
