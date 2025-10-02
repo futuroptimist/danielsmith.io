@@ -151,7 +151,10 @@ function dispatchTouchEvent(
   type: 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel',
   touches: MockTouchInit[]
 ) {
-  const event = new Event(type, { bubbles: true, cancelable: true }) as TouchEvent;
+  const event = new Event(type, {
+    bubbles: true,
+    cancelable: true,
+  }) as TouchEvent;
   const changedTouches = createTouchList(target, touches);
   const activeTouches =
     type === 'touchend' || type === 'touchcancel'
@@ -286,6 +289,43 @@ describe('PoiInteractionManager', () => {
     dispatchTouchEvent(domElement, 'touchcancel', []);
     expect(hover).toHaveBeenLastCalledWith(null);
     expect(poi.focusTarget).toBe(1);
+  });
+
+  it('suppresses synthetic clicks dispatched after touch selection', () => {
+    manager.start();
+    const selection = vi.fn();
+    manager.addSelectionListener(selection);
+
+    let currentTime = 1_000;
+    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => currentTime);
+
+    try {
+      dispatchTouchEvent(domElement, 'touchstart', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      dispatchTouchEvent(domElement, 'touchend', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      expect(selection).toHaveBeenCalledTimes(1);
+
+      domElement.dispatchEvent(
+        new MouseEvent('click', { clientX: 200, clientY: 200 })
+      );
+
+      expect(selection).toHaveBeenCalledTimes(1);
+
+      currentTime += 600;
+
+      domElement.dispatchEvent(
+        new MouseEvent('click', { clientX: 200, clientY: 200 })
+      );
+
+      expect(selection).toHaveBeenCalledTimes(2);
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it('cycles focus with keyboard input and wraps around', () => {

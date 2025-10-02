@@ -32,6 +32,9 @@ export class PoiInteractionManager {
   private keyboardIndex: number | null = null;
   private usingKeyboard = false;
   private touchPointerId: number | null = null;
+  private suppressSyntheticClickUntil = 0;
+
+  private static readonly syntheticClickSuppressionMs = 500;
 
   constructor(
     private readonly domElement: HTMLElement,
@@ -130,6 +133,7 @@ export class PoiInteractionManager {
   }
 
   private handleMouseMove(event: MouseEvent) {
+    this.suppressSyntheticClickUntil = 0;
     if (!this.updatePointer(event)) {
       return;
     }
@@ -139,11 +143,22 @@ export class PoiInteractionManager {
   }
 
   private handleMouseLeave() {
+    this.suppressSyntheticClickUntil = 0;
     this.usingKeyboard = false;
     this.setHovered(null);
   }
 
   private handleClick(event: MouseEvent) {
+    if (this.suppressSyntheticClickUntil) {
+      const now = Date.now();
+      if (now <= this.suppressSyntheticClickUntil) {
+        this.suppressSyntheticClickUntil = 0;
+        event.preventDefault();
+        event.stopImmediatePropagation?.();
+        return;
+      }
+      this.suppressSyntheticClickUntil = 0;
+    }
     if (!this.updatePointer(event)) {
       return;
     }
@@ -180,7 +195,10 @@ export class PoiInteractionManager {
       return;
     }
     this.usingKeyboard = false;
-    if (this.touchPointerId === null || touch.identifier !== this.touchPointerId) {
+    if (
+      this.touchPointerId === null ||
+      touch.identifier !== this.touchPointerId
+    ) {
       this.touchPointerId = touch.identifier;
     }
     if (!this.updatePointerFromTouch(touch)) {
@@ -196,21 +214,26 @@ export class PoiInteractionManager {
     if (!touch) {
       this.touchPointerId = null;
       this.setHovered(null);
+      this.suppressSyntheticClickUntil = 0;
       return;
     }
     this.touchPointerId = null;
     if (!this.updatePointerFromTouch(touch)) {
+      this.suppressSyntheticClickUntil = 0;
       return;
     }
     const poi = this.pickPoi();
     if (!poi) {
       this.setSelected(null);
       this.setHovered(null);
+      this.suppressSyntheticClickUntil = 0;
       return;
     }
     this.setHovered(poi);
     this.setSelected(poi);
     this.dispatchSelection(poi.definition);
+    this.suppressSyntheticClickUntil =
+      Date.now() + PoiInteractionManager.syntheticClickSuppressionMs;
   }
 
   private handleTouchCancel() {
