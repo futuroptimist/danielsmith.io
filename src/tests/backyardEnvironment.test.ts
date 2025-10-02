@@ -149,4 +149,25 @@ describe('createBackyardEnvironment', () => {
     expect(midLightIntensity).not.toBe(baselineLightIntensity);
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
   });
+
+  it('exposes ambient audio beds centered on the greenhouse walkway', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    expect(environment.ambientAudioBeds.length).toBeGreaterThan(0);
+    const walkwayBed = environment.ambientAudioBeds.find(
+      (bed) => bed.id === 'backyard-greenhouse-chimes'
+    );
+    expect(walkwayBed).toBeDefined();
+
+    const walkway = environment.group.getObjectByName(
+      'BackyardGreenhouseWalkway'
+    ) as Mesh | null;
+    expect(walkway).toBeInstanceOf(Mesh);
+    expect(walkwayBed?.center.x).toBeCloseTo(walkway!.position.x, 5);
+    expect(walkwayBed?.center.z).toBeCloseTo(walkway!.position.z, 5);
+    expect(walkwayBed?.innerRadius).toBeGreaterThan(0);
+    expect(walkwayBed?.outerRadius).toBeGreaterThan(
+      walkwayBed?.innerRadius ?? 0
+    );
+    expect(walkwayBed?.baseVolume).toBeGreaterThan(0);
+  });
 });

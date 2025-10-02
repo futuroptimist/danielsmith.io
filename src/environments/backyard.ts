@@ -27,6 +27,15 @@ export interface BackyardEnvironmentBuild {
   group: Group;
   colliders: RectCollider[];
   update(context: { elapsed: number; delta: number }): void;
+  ambientAudioBeds: BackyardAmbientAudioBed[];
+}
+
+export interface BackyardAmbientAudioBed {
+  id: string;
+  center: { x: number; z: number };
+  innerRadius: number;
+  outerRadius: number;
+  baseVolume: number;
 }
 
 function createSignageTexture(title: string, subtitle: string): CanvasTexture {
@@ -78,6 +87,7 @@ export function createBackyardEnvironment(
   const colliders: RectCollider[] = [];
   const updates: Array<(context: { elapsed: number; delta: number }) => void> =
     [];
+  const ambientAudioBeds: BackyardAmbientAudioBed[] = [];
 
   const width = bounds.maxX - bounds.minX;
   const depth = bounds.maxZ - bounds.minZ;
@@ -193,6 +203,15 @@ export function createBackyardEnvironment(
     greenhouseBase.z - greenhouseDepth * 0.65
   );
   group.add(walkway);
+
+  const walkwayMaxExtent = Math.max(walkwayWidth, walkwayDepth);
+  ambientAudioBeds.push({
+    id: 'backyard-greenhouse-chimes',
+    center: { x: walkway.position.x, z: walkway.position.z },
+    innerRadius: Math.max(1, (walkwayMaxExtent / 2) * 0.9),
+    outerRadius: Math.max(1.6, walkwayMaxExtent * 1.2 + 1.4),
+    baseVolume: 0.42,
+  });
 
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;
@@ -444,5 +463,5 @@ export function createBackyardEnvironment(
     });
   }
 
-  return { group, colliders, update };
+  return { group, colliders, update, ambientAudioBeds };
 }

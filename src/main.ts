@@ -41,6 +41,7 @@ import {
 import {
   createCricketChorusBuffer,
   createDistantHumBuffer,
+  createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
 import { collidesWithColliders, type RectCollider } from './collision';
 import { KeyboardControls } from './controls/KeyboardControls';
@@ -1645,6 +1646,20 @@ function initializeImmersiveScene(
           createCricketChorusBuffer(context)
         ),
       });
+
+      if (backyardEnvironment) {
+        backyardEnvironment.ambientAudioBeds.forEach((bed) => {
+          if (bed.id !== 'backyard-greenhouse-chimes') {
+            return;
+          }
+          audioBeds.push({
+            ...bed,
+            source: createLoopingSource(bed.id, (context) =>
+              createLanternChimeBuffer(context)
+            ),
+          });
+        });
+      }
     }
 
     ambientAudioController = new AmbientAudioController(audioBeds, {
