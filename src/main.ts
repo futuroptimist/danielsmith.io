@@ -1667,10 +1667,7 @@ function initializeImmersiveScene(
       audioButton.textContent = enabled
         ? 'Audio: On · Press M to mute'
         : 'Audio: Off · Press M to unmute';
-      audioButton.setAttribute(
-        'aria-pressed',
-        enabled ? 'true' : 'false'
-      );
+      audioButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
       audioButton.disabled = audioTogglePending;
     };
 
