@@ -80,11 +80,17 @@ describe('buildPoiStructuredData', () => {
       sameAs: ['https://example.com/repo'],
     });
 
-    const additionalProperty = firstItem.additionalProperty as Array<Record<string, unknown>>;
+    const additionalProperty = firstItem.additionalProperty as Array<
+      Record<string, unknown>
+    >;
     expect(additionalProperty).toEqual([
       { '@type': 'PropertyValue', name: 'Category', value: 'project' },
       { '@type': 'PropertyValue', name: 'Impact', value: 'Reduced toil 42%' },
-      { '@type': 'PropertyValue', name: 'Stack', value: 'TypeScript · Three.js' },
+      {
+        '@type': 'PropertyValue',
+        name: 'Stack',
+        value: 'TypeScript · Three.js',
+      },
       { '@type': 'PropertyValue', name: 'Status', value: 'prototype' },
     ]);
 
@@ -138,17 +144,21 @@ describe('injectPoiStructuredData', () => {
   });
 
   it('throws when the document lacks a head element', () => {
-    const documentTarget = document.implementation.createHTMLDocument('MissingHead');
+    const documentTarget =
+      document.implementation.createHTMLDocument('MissingHead');
     documentTarget.documentElement.removeChild(documentTarget.head);
 
     expect(() =>
       injectPoiStructuredData([createPoi()], { documentTarget })
-    ).toThrowError('Document must include a <head> element for structured data injection.');
+    ).toThrowError(
+      'Document must include a <head> element for structured data injection.'
+    );
   });
 
   it('falls back gracefully when canonical URL parsing fails', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const documentTarget = document.implementation.createHTMLDocument('Fallback');
+    const documentTarget =
+      document.implementation.createHTMLDocument('Fallback');
     const script = injectPoiStructuredData([createPoi()], {
       documentTarget,
       canonicalUrl: 'https://example.com/immersive',
@@ -185,11 +195,17 @@ describe('structured data utilities', () => {
     );
 
     expect(
-      _testables.normalizeCanonicalUrl(undefined, 'https://example.com/base?q=1#hash')
+      _testables.normalizeCanonicalUrl(
+        undefined,
+        'https://example.com/base?q=1#hash'
+      )
     ).toBe('https://example.com/base/');
 
     expect(
-      _testables.normalizeCanonicalUrl('https://example.com/folio?x=1#section', '')
+      _testables.normalizeCanonicalUrl(
+        'https://example.com/folio?x=1#section',
+        ''
+      )
     ).toBe('https://example.com/folio/');
   });
 

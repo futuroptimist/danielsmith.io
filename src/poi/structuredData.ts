@@ -9,7 +9,8 @@ export interface PoiStructuredDataOptions {
   siteName?: string;
 }
 
-export interface InjectPoiStructuredDataOptions extends PoiStructuredDataOptions {
+export interface InjectPoiStructuredDataOptions
+  extends PoiStructuredDataOptions {
   documentTarget?: Document;
 }
 
@@ -131,7 +132,9 @@ export const injectPoiStructuredData = (
   const documentTarget = options.documentTarget ?? document;
   const head = documentTarget.head ?? documentTarget.querySelector('head');
   if (!head) {
-    throw new Error('Document must include a <head> element for structured data injection.');
+    throw new Error(
+      'Document must include a <head> element for structured data injection.'
+    );
   }
 
   const canonicalFallback =
@@ -139,7 +142,10 @@ export const injectPoiStructuredData = (
     documentTarget.defaultView?.location?.href ??
     documentTarget.baseURI ??
     DEFAULT_CANONICAL_URL;
-  const canonical = normalizeCanonicalUrl(options.canonicalUrl, canonicalFallback);
+  const canonical = normalizeCanonicalUrl(
+    options.canonicalUrl,
+    canonicalFallback
+  );
   const structuredData = buildPoiStructuredData(pois, {
     canonicalUrl: canonical,
     siteName: options.siteName,
