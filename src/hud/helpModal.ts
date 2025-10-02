@@ -34,7 +34,10 @@ const DEFAULT_SECTIONS: HelpModalSection[] = [
     id: 'movement',
     title: 'Movement & Camera',
     items: [
-      { label: 'WASD / Arrow keys', description: 'Roll the explorer around the home.' },
+      {
+        label: 'WASD / Arrow keys',
+        description: 'Roll the explorer around the home.',
+      },
       { label: 'Mouse drag', description: 'Pan the isometric camera.' },
       { label: 'Scroll wheel', description: 'Adjust zoom level.' },
       {
@@ -54,7 +57,8 @@ const DEFAULT_SECTIONS: HelpModalSection[] = [
       },
       {
         label: 'Q / E or ← / →',
-        description: 'Cycle focus between points of interest with the keyboard.',
+        description:
+          'Cycle focus between points of interest with the keyboard.',
       },
       {
         label: 'T',
@@ -72,11 +76,13 @@ const DEFAULT_SECTIONS: HelpModalSection[] = [
     items: [
       {
         label: 'Low performance',
-        description: 'The scene automatically switches to text mode below 30 FPS.',
+        description:
+          'The scene automatically switches to text mode below 30 FPS.',
       },
       {
         label: 'Manual toggle',
-        description: 'Use the on-screen Text mode button or press T at any time.',
+        description:
+          'Use the on-screen Text mode button or press T at any time.',
       },
       {
         label: 'Ambient audio',
@@ -86,17 +92,16 @@ const DEFAULT_SECTIONS: HelpModalSection[] = [
   },
 ];
 
-const FOCUSABLE_SELECTOR =
-  [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input[type="text"]:not([disabled])',
-    'input[type="radio"]:not([disabled])',
-    'input[type="checkbox"]:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(',');
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input[type="text"]:not([disabled])',
+  'input[type="radio"]:not([disabled])',
+  'input[type="checkbox"]:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 function createList(
   section: HelpModalSection,
@@ -126,13 +131,19 @@ function createList(
 }
 
 function getFocusableChildren(root: HTMLElement): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+  ).filter(
     (element) => !element.hasAttribute('tabindex') || element.tabIndex >= 0
   );
 }
 
 export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
-  const { container, heading = DEFAULT_HEADING, sections = DEFAULT_SECTIONS } = options;
+  const {
+    container,
+    heading = DEFAULT_HEADING,
+    sections = DEFAULT_SECTIONS,
+  } = options;
   const description = options.description ?? DEFAULT_DESCRIPTION;
 
   const backdrop = document.createElement('div');
@@ -250,9 +261,10 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
       return;
     }
     open = true;
-    previouslyFocused = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    previouslyFocused =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     backdrop.hidden = false;
     backdrop.dataset.state = 'open';
     document.addEventListener('keydown', handleKeydown);

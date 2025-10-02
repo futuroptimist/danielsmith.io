@@ -50,7 +50,9 @@ describe('createHelpModal', () => {
     handle.open();
 
     const title = document.querySelector('.help-modal__title');
-    const sectionHeading = document.querySelector('.help-modal__section-heading');
+    const sectionHeading = document.querySelector(
+      '.help-modal__section-heading'
+    );
     const items = document.querySelectorAll('.help-modal__item');
 
     expect(title?.textContent).toBe('Custom help');
@@ -72,7 +74,9 @@ describe('createHelpModal', () => {
     expect(handle.isOpen()).toBe(false);
 
     handle.open();
-    (backdrop as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    (backdrop as HTMLElement).dispatchEvent(
+      new MouseEvent('click', { bubbles: true })
+    );
     expect(handle.isOpen()).toBe(false);
   });
 
@@ -85,7 +89,8 @@ describe('createHelpModal', () => {
     const handle = createHelpModal({ container: document.body });
     handle.open();
 
-    const closeButton = document.querySelector<HTMLButtonElement>('.help-modal__close');
+    const closeButton =
+      document.querySelector<HTMLButtonElement>('.help-modal__close');
     expect(closeButton).toBeTruthy();
     closeButton?.focus();
 
