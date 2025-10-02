@@ -31,6 +31,7 @@ export class PoiInteractionManager {
   private readonly enableKeyboard: boolean;
   private keyboardIndex: number | null = null;
   private usingKeyboard = false;
+  private touchPointerId: number | null = null;
 
   constructor(
     private readonly domElement: HTMLElement,
@@ -43,6 +44,10 @@ export class PoiInteractionManager {
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleTouchStart = this.handleTouchStart.bind(this);
+    this.handleTouchMove = this.handleTouchMove.bind(this);
+    this.handleTouchEnd = this.handleTouchEnd.bind(this);
+    this.handleTouchCancel = this.handleTouchCancel.bind(this);
 
     const defaultKeyboardTarget =
       options.keyboardTarget ??
@@ -60,6 +65,10 @@ export class PoiInteractionManager {
     this.domElement.addEventListener('mousemove', this.handleMouseMove);
     this.domElement.addEventListener('mouseleave', this.handleMouseLeave);
     this.domElement.addEventListener('click', this.handleClick);
+    this.domElement.addEventListener('touchstart', this.handleTouchStart);
+    this.domElement.addEventListener('touchmove', this.handleTouchMove);
+    this.domElement.addEventListener('touchend', this.handleTouchEnd);
+    this.domElement.addEventListener('touchcancel', this.handleTouchCancel);
     if (this.enableKeyboard) {
       this.keyboardTarget?.addEventListener('keydown', this.handleKeyDown);
     }
@@ -73,6 +82,10 @@ export class PoiInteractionManager {
     this.domElement.removeEventListener('mousemove', this.handleMouseMove);
     this.domElement.removeEventListener('mouseleave', this.handleMouseLeave);
     this.domElement.removeEventListener('click', this.handleClick);
+    this.domElement.removeEventListener('touchstart', this.handleTouchStart);
+    this.domElement.removeEventListener('touchmove', this.handleTouchMove);
+    this.domElement.removeEventListener('touchend', this.handleTouchEnd);
+    this.domElement.removeEventListener('touchcancel', this.handleTouchCancel);
     if (this.enableKeyboard) {
       this.keyboardTarget?.removeEventListener('keydown', this.handleKeyDown);
     }
@@ -144,6 +157,68 @@ export class PoiInteractionManager {
     this.dispatchSelection(poi.definition);
   }
 
+  private handleTouchStart(event: TouchEvent) {
+    if (!event.changedTouches.length) {
+      return;
+    }
+    const touch = event.changedTouches[0];
+    this.touchPointerId = touch.identifier;
+    this.usingKeyboard = false;
+    if (!this.updatePointerFromTouch(touch)) {
+      return;
+    }
+    const poi = this.pickPoi();
+    this.setHovered(poi);
+  }
+
+  private handleTouchMove(event: TouchEvent) {
+    if (!event.changedTouches.length) {
+      return;
+    }
+    const touch = this.getActiveTouch(event.changedTouches);
+    if (!touch) {
+      return;
+    }
+    this.usingKeyboard = false;
+    if (this.touchPointerId === null || touch.identifier !== this.touchPointerId) {
+      this.touchPointerId = touch.identifier;
+    }
+    if (!this.updatePointerFromTouch(touch)) {
+      return;
+    }
+    const poi = this.pickPoi();
+    this.setHovered(poi);
+  }
+
+  private handleTouchEnd(event: TouchEvent) {
+    const touch = this.getActiveTouch(event.changedTouches);
+    this.usingKeyboard = false;
+    if (!touch) {
+      this.touchPointerId = null;
+      this.setHovered(null);
+      return;
+    }
+    this.touchPointerId = null;
+    if (!this.updatePointerFromTouch(touch)) {
+      return;
+    }
+    const poi = this.pickPoi();
+    if (!poi) {
+      this.setSelected(null);
+      this.setHovered(null);
+      return;
+    }
+    this.setHovered(poi);
+    this.setSelected(poi);
+    this.dispatchSelection(poi.definition);
+  }
+
+  private handleTouchCancel() {
+    this.touchPointerId = null;
+    this.usingKeyboard = false;
+    this.setHovered(null);
+  }
+
   private handleKeyDown(event: KeyboardEvent) {
     if (!this.enableKeyboard || this.poiInstances.length === 0) {
       return;
@@ -205,12 +280,23 @@ export class PoiInteractionManager {
   }
 
   private updatePointer(event: MouseEvent): boolean {
+    return this.updatePointerFromClientPosition(event.clientX, event.clientY);
+  }
+
+  private updatePointerFromTouch(touch: Touch): boolean {
+    return this.updatePointerFromClientPosition(touch.clientX, touch.clientY);
+  }
+
+  private updatePointerFromClientPosition(
+    clientX: number,
+    clientY: number
+  ): boolean {
     const rect = this.domElement.getBoundingClientRect();
     if (!rect.width || !rect.height) {
       return false;
     }
-    const normalizedX = (event.clientX - rect.left) / rect.width;
-    const normalizedY = (event.clientY - rect.top) / rect.height;
+    const normalizedX = (clientX - rect.left) / rect.width;
+    const normalizedY = (clientY - rect.top) / rect.height;
     this.pointer.set(normalizedX * 2 - 1, -(normalizedY * 2 - 1));
     return true;
   }
@@ -307,5 +393,21 @@ export class PoiInteractionManager {
     for (const listener of this.selectionStateListeners) {
       listener(poi);
     }
+  }
+
+  private getActiveTouch(touches: TouchList): Touch | null {
+    if (touches.length === 0) {
+      return null;
+    }
+    if (this.touchPointerId === null) {
+      return touches[0] ?? null;
+    }
+    for (let index = 0; index < touches.length; index += 1) {
+      const touch = touches.item(index);
+      if (touch && touch.identifier === this.touchPointerId) {
+        return touch;
+      }
+    }
+    return touches[0] ?? null;
   }
 }
