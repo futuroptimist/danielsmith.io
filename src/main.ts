@@ -72,6 +72,7 @@ import {
   type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
+import { createHelpModal } from './hud/helpModal';
 import {
   createLightingDebugController,
   type LightingMode,
@@ -1268,6 +1269,15 @@ function initializeImmersiveScene(
   const interactDescription = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact-description"]'
   );
+  const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-control="help"]'
+  );
+  const helpModal = createHelpModal({ container: document.body });
+  let helpButtonClickHandler: (() => void) | null = null;
+  if (helpButton) {
+    helpButtonClickHandler = () => helpModal.open();
+    helpButton.addEventListener('click', helpButtonClickHandler);
+  }
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
@@ -1291,6 +1301,7 @@ function initializeImmersiveScene(
   let mouseCameraPointerId: number | null = null;
 
   let activeFloorId: FloorId = 'ground';
+  let helpKeyWasPressed = false;
 
   const isWithinStairWidth = (x: number, margin = 0) =>
     Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
@@ -2085,6 +2096,18 @@ function initializeImmersiveScene(
     interactKeyWasPressed = pressed;
   }
 
+  function handleHelpInput() {
+    const pressed = controls.isPressed('h') || controls.isPressed('?');
+    if (immersiveDisposed) {
+      helpKeyWasPressed = pressed;
+      return;
+    }
+    if (pressed && !helpKeyWasPressed) {
+      helpModal.toggle();
+    }
+    helpKeyWasPressed = pressed;
+  }
+
   function disposeImmersiveResources() {
     if (immersiveDisposed) {
       return;
@@ -2127,6 +2150,7 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    helpModal.dispose();
   }
 
   let hasPresentedFirstFrame = false;
@@ -2143,6 +2167,7 @@ function initializeImmersiveScene(
       updateCamera(delta);
       updatePois(elapsedTime, delta);
       handleInteractionInput();
+      handleHelpInput();
       if (ambientAudioController) {
         ambientAudioController.update(player.position, delta);
       }
