@@ -1,4 +1,4 @@
-import type { RenderTextFallbackOptions } from '../failover';
+import type { FallbackReason, RenderTextFallbackOptions } from '../failover';
 import { renderTextFallback } from '../failover';
 
 type AnimationLoop = (() => void) | null;
@@ -28,6 +28,7 @@ export interface PerformanceFailoverHandlerOptions {
     options: RenderTextFallbackOptions
   ) => void;
   fallbackLinks?: Pick<RenderTextFallbackOptions, 'resumeUrl' | 'githubUrl'>;
+  onBeforeFallback?: (reason: FallbackReason) => void;
 }
 
 interface PerformanceFailoverMonitorOptions {
@@ -110,6 +111,7 @@ class PerformanceFailoverMonitor {
 export interface PerformanceFailoverHandler {
   update(deltaSeconds: number): void;
   hasTriggered(): boolean;
+  triggerFallback(reason: FallbackReason): void;
 }
 
 export function createPerformanceFailoverHandler(
@@ -126,51 +128,64 @@ export function createPerformanceFailoverHandler(
     onTrigger,
     renderFallback: render = renderTextFallback,
     fallbackLinks,
+    onBeforeFallback,
   } = options;
 
   let transitioned = false;
+
+  const transitionToFallback = (
+    reason: FallbackReason,
+    context?: PerformanceFailoverTriggerContext
+  ) => {
+    if (transitioned) {
+      return;
+    }
+    transitioned = true;
+    if (context && onTrigger) {
+      onTrigger(context);
+    }
+    try {
+      onBeforeFallback?.(reason);
+    } catch (error) {
+      console.error('Failed preparing fallback transition:', error);
+    }
+    try {
+      renderer.setAnimationLoop(null);
+    } catch (error) {
+      console.error('Failed to stop renderer loop during failover:', error);
+    }
+    try {
+      renderer.dispose();
+    } catch (error) {
+      console.error('Failed to dispose renderer during failover:', error);
+    }
+    try {
+      renderer.domElement.remove();
+    } catch (error) {
+      console.error('Failed to remove renderer canvas during failover:', error);
+    }
+    try {
+      render(container, {
+        reason,
+        immersiveUrl,
+        resumeUrl: fallbackLinks?.resumeUrl,
+        githubUrl: fallbackLinks?.githubUrl,
+      });
+    } catch (error) {
+      console.error(
+        'Failed to render text fallback after performance trigger:',
+        error
+      );
+    }
+    markAppReady('fallback');
+  };
 
   const monitor = new PerformanceFailoverMonitor({
     fpsThreshold,
     minimumDurationMs,
     maxFrameDeltaMs,
     onTrigger: (context) => {
-      transitioned = true;
-      if (onTrigger) {
-        onTrigger(context);
-      }
-      try {
-        renderer.setAnimationLoop(null);
-      } catch (error) {
-        console.error('Failed to stop renderer loop during failover:', error);
-      }
-      try {
-        renderer.dispose();
-      } catch (error) {
-        console.error('Failed to dispose renderer during failover:', error);
-      }
-      try {
-        renderer.domElement.remove();
-      } catch (error) {
-        console.error(
-          'Failed to remove renderer canvas during failover:',
-          error
-        );
-      }
-      try {
-        render(container, {
-          reason: 'low-performance',
-          immersiveUrl,
-          resumeUrl: fallbackLinks?.resumeUrl,
-          githubUrl: fallbackLinks?.githubUrl,
-        });
-      } catch (error) {
-        console.error(
-          'Failed to render text fallback after performance trigger:',
-          error
-        );
-      }
-      markAppReady('fallback');
+      transitionToFallback('low-performance', context);
     },
   });
 
@@ -183,6 +198,9 @@ export function createPerformanceFailoverHandler(
     },
     hasTriggered() {
       return transitioned || monitor.hasTriggered();
+    },
+    triggerFallback(reason: FallbackReason) {
+      transitionToFallback(reason);
     },
   };
 }

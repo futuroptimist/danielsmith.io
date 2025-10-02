@@ -109,6 +109,8 @@ lightweight.
 - **Movement** – Use `WASD` or arrow keys to roll the sphere.
 - **Touch** – Drag the on-screen joysticks (left: movement, right: camera pan) on touch devices.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
+- **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
+  lightweight portfolio view at any time.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support and sustained frame rates below 30 FPS;
   `?mode=immersive` switches back when supported.

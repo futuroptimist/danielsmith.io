@@ -50,6 +50,10 @@ import {
   type BackyardEnvironmentBuild,
 } from './environments/backyard';
 import { evaluateFailoverDecision, renderTextFallback } from './failover';
+import {
+  createManualModeToggle,
+  type ManualModeToggleHandle,
+} from './failover/manualModeToggle';
 import { createPerformanceFailoverHandler } from './failover/performanceFailover';
 import {
   FLOOR_PLAN,
@@ -655,6 +659,13 @@ function initializeImmersiveScene(
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
 
+  let manualModeToggle: ManualModeToggleHandle | null = null;
+  let immersiveDisposed = false;
+  let beforeUnloadHandler: (() => void) | null = null;
+  let audioKeydownHandler: ((event: KeyboardEvent) => void) | null = null;
+  let audioToggleButton: HTMLButtonElement | null = null;
+  let audioToggleClickHandler: (() => void) | null = null;
+
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
     container,
@@ -670,9 +681,13 @@ function initializeImmersiveScene(
           `${PERFORMANCE_FAILOVER_FPS_THRESHOLD} FPS (avg ${averaged} FPS).`
       );
     },
+    onBeforeFallback: () => {
+      disposeImmersiveResources();
+    },
   });
 
   const handleFatalError = (error: unknown) => {
+    disposeImmersiveResources();
     onFatalError(error, { renderer });
   };
 
@@ -1232,30 +1247,10 @@ function initializeImmersiveScene(
     }
   );
   poiInteractionManager.start();
-  window.addEventListener('beforeunload', () => {
-    poiInteractionManager.dispose();
-    removeHoverListener();
-    removeSelectionStateListener();
-    removeSelectionListener();
-    removeVisitedSubscription();
-    poiTooltipOverlay.dispose();
-    ambientAudioController?.dispose();
-    renderer.domElement.removeEventListener('wheel', handleWheelZoom);
-    renderer.domElement.removeEventListener(
-      'pointerdown',
-      handlePointerDownForZoom
-    );
-    renderer.domElement.removeEventListener(
-      'pointerdown',
-      handlePointerDownForCameraPan
-    );
-    window.removeEventListener('pointermove', handlePointerMoveForZoom);
-    window.removeEventListener('pointerup', handlePointerEndForZoom);
-    window.removeEventListener('pointercancel', handlePointerEndForZoom);
-    window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
-    window.removeEventListener('pointerup', handlePointerUpForCameraPan);
-    window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
-  });
+  beforeUnloadHandler = () => {
+    disposeImmersiveResources();
+  };
+  window.addEventListener('beforeunload', beforeUnloadHandler);
 
   const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
   const playerGeometry = new SphereGeometry(PLAYER_RADIUS, 32, 32);
@@ -1656,26 +1651,27 @@ function initializeImmersiveScene(
       },
     });
 
-    const audioToggleButton = document.createElement('button');
-    audioToggleButton.className = 'audio-toggle';
-    audioToggleButton.type = 'button';
-    audioToggleButton.title = 'Toggle ambient audio (M)';
-    audioToggleButton.setAttribute('aria-pressed', 'false');
-    container.appendChild(audioToggleButton);
+    audioToggleButton = document.createElement('button');
+    const audioButton = audioToggleButton;
+    audioButton.className = 'audio-toggle';
+    audioButton.type = 'button';
+    audioButton.title = 'Toggle ambient audio (M)';
+    audioButton.setAttribute('aria-pressed', 'false');
+    container.appendChild(audioButton);
 
     let audioTogglePending = false;
 
     const updateAudioToggle = () => {
       const enabled = ambientAudioController?.isEnabled() ?? false;
-      audioToggleButton.dataset.state = enabled ? 'on' : 'off';
-      audioToggleButton.textContent = enabled
+      audioButton.dataset.state = enabled ? 'on' : 'off';
+      audioButton.textContent = enabled
         ? 'Audio: On · Press M to mute'
         : 'Audio: Off · Press M to unmute';
-      audioToggleButton.setAttribute(
+      audioButton.setAttribute(
         'aria-pressed',
         enabled ? 'true' : 'false'
       );
-      audioToggleButton.disabled = audioTogglePending;
+      audioButton.disabled = audioTogglePending;
     };
 
     const setAudioEnabled = async (enabled: boolean) => {
@@ -1698,28 +1694,44 @@ function initializeImmersiveScene(
       updateAudioToggle();
     };
 
-    audioToggleButton.addEventListener('click', () => {
+    audioToggleClickHandler = () => {
       if (audioTogglePending || !ambientAudioController) {
         return;
       }
       const nextState = !ambientAudioController.isEnabled();
       void setAudioEnabled(nextState);
-    });
+    };
+    audioButton.addEventListener('click', audioToggleClickHandler);
 
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'm' || event.key === 'M') {
-        if (event.metaKey || event.ctrlKey || event.altKey) {
-          return;
-        }
-        if (audioTogglePending) {
-          return;
-        }
-        event.preventDefault();
-        void setAudioEnabled(!(ambientAudioController?.isEnabled() ?? false));
+    audioKeydownHandler = (event: KeyboardEvent) => {
+      if (event.key !== 'm' && event.key !== 'M') {
+        return;
       }
-    });
+      if (event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+      if (audioTogglePending) {
+        return;
+      }
+      event.preventDefault();
+      void setAudioEnabled(!(ambientAudioController?.isEnabled() ?? false));
+    };
+    window.addEventListener('keydown', audioKeydownHandler);
 
     updateAudioToggle();
+
+    manualModeToggle = createManualModeToggle({
+      container,
+      label: 'Text mode · Press T',
+      description: 'Switch to the text-only portfolio',
+      keyHint: 'T',
+      getIsFallbackActive: () => performanceFailover.hasTriggered(),
+      onToggle: () => {
+        if (!performanceFailover.hasTriggered()) {
+          performanceFailover.triggerFallback('manual');
+        }
+      },
+    });
   }
 
   let composer: EffectComposer | null = null;
@@ -2100,6 +2112,55 @@ function initializeImmersiveScene(
       poiInteractionManager.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
+  }
+
+  function disposeImmersiveResources() {
+    if (immersiveDisposed) {
+      return;
+    }
+    immersiveDisposed = true;
+    poiInteractionManager.dispose();
+    removeHoverListener();
+    removeSelectionStateListener();
+    removeSelectionListener();
+    removeVisitedSubscription();
+    poiTooltipOverlay.dispose();
+    if (manualModeToggle) {
+      manualModeToggle.dispose();
+      manualModeToggle = null;
+    }
+    if (ambientAudioController) {
+      ambientAudioController.dispose();
+      ambientAudioController = null;
+    }
+    renderer.domElement.removeEventListener('wheel', handleWheelZoom);
+    renderer.domElement.removeEventListener(
+      'pointerdown',
+      handlePointerDownForZoom
+    );
+    renderer.domElement.removeEventListener(
+      'pointerdown',
+      handlePointerDownForCameraPan
+    );
+    window.removeEventListener('pointermove', handlePointerMoveForZoom);
+    window.removeEventListener('pointerup', handlePointerEndForZoom);
+    window.removeEventListener('pointercancel', handlePointerEndForZoom);
+    window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
+    window.removeEventListener('pointerup', handlePointerUpForCameraPan);
+    window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
+    if (audioToggleButton && audioToggleClickHandler) {
+      audioToggleButton.removeEventListener('click', audioToggleClickHandler);
+    }
+    audioToggleButton = null;
+    audioToggleClickHandler = null;
+    if (audioKeydownHandler) {
+      window.removeEventListener('keydown', audioKeydownHandler);
+      audioKeydownHandler = null;
+    }
+    if (beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+      beforeUnloadHandler = null;
+    }
   }
 
   let hasPresentedFirstFrame = false;
