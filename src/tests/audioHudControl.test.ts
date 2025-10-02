@@ -28,7 +28,9 @@ describe('createAudioHudControl', () => {
     });
 
     const button = container.querySelector('button.audio-toggle');
-    const slider = container.querySelector<HTMLInputElement>('.audio-volume__slider');
+    const slider = container.querySelector<HTMLInputElement>(
+      '.audio-volume__slider'
+    );
     const valueText = container.querySelector('.audio-volume__value');
     expect(button).toBeTruthy();
     expect(slider).toBeTruthy();

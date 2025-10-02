@@ -151,7 +151,11 @@ export class AmbientAudioController {
         bed.definition.outerRadius
       );
       const targetVolume = this.enabled
-        ? clamp(bed.definition.baseVolume * attenuation * this.masterVolume, 0, 1)
+        ? clamp(
+            bed.definition.baseVolume * attenuation * this.masterVolume,
+            0,
+            1
+          )
         : 0;
       const nextVolume =
         bed.currentVolume + (targetVolume - bed.currentVolume) * factor;
