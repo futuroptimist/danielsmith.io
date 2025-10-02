@@ -130,6 +130,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 1. **HUD Layer**
    - Responsive overlay with movement legend, interaction prompt, and help modal.
+   - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
+     accessibility tips, and failover guidance.
    - Sliders/toggles for audio volume, graphics quality, and accessibility presets.
    - Mobile-friendly layout that coexists with on-screen joystick.
 2. **Experience Toggle**
