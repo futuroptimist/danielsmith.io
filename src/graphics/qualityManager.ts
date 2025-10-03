@@ -171,9 +171,15 @@ export function createGraphicsQualityManager({
   const listeners = new Set<(level: GraphicsQualityLevel) => void>();
 
   let currentLevel: GraphicsQualityLevel = 'cinematic';
-  const stored = storage?.getItem?.(storageKey) ?? null;
-  if (isGraphicsQualityLevel(stored)) {
-    currentLevel = stored;
+  if (storage?.getItem) {
+    try {
+      const stored = storage.getItem(storageKey);
+      if (isGraphicsQualityLevel(stored)) {
+        currentLevel = stored;
+      }
+    } catch (error) {
+      console.warn('Failed to read persisted graphics quality level:', error);
+    }
   }
 
   applyPreset(currentLevel);
