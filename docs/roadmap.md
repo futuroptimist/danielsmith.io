@@ -133,6 +133,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
      accessibility tips, and failover guidance.
    - Sliders/toggles for audio volume, graphics quality, and accessibility presets.
+     - ✅ Graphics quality HUD toggle now disables bloom and caps render pixel ratio for a
+       performance preset.
    - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
    - Mobile-friendly layout that coexists with on-screen joystick.
 2. **Experience Toggle**

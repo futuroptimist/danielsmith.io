@@ -75,9 +75,6 @@ export function createLightingDebugController(
   };
 
   const setMode = (nextMode: LightingMode): LightingMode => {
-    if (mode === nextMode) {
-      return mode;
-    }
     mode = nextMode;
     if (mode === 'cinematic') {
       applyCinematic();

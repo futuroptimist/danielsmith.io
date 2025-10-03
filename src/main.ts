@@ -48,6 +48,10 @@ import {
   createAudioHudControl,
   type AudioHudControlHandle,
 } from './controls/audioHudControl';
+import {
+  createGraphicsQualityControl,
+  type GraphicsQualityControlHandle,
+} from './controls/graphicsQualityControl';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -72,6 +76,10 @@ import {
   type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
+import {
+  GraphicsQualityManager,
+  type GraphicsQualityPreset,
+} from './graphics/qualityManager';
 import { createHelpModal } from './hud/helpModal';
 import {
   createLightingDebugController,
@@ -670,6 +678,8 @@ function initializeImmersiveScene(
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
+  let graphicsQualityControlHandle: GraphicsQualityControlHandle | null = null;
+  let graphicsQualityManager: GraphicsQualityManager | null = null;
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -1731,6 +1741,16 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
+  graphicsQualityManager = new GraphicsQualityManager({
+    renderer,
+    composer,
+    bloomPass,
+    getDevicePixelRatio: () =>
+      typeof window !== 'undefined' && window.devicePixelRatio
+        ? window.devicePixelRatio
+        : 1,
+  });
+
   const lightingDebugController = createLightingDebugController({
     renderer,
     ambientLight,
@@ -1763,6 +1783,25 @@ function initializeImmersiveScene(
 
   updateLightingIndicator(lightingDebugController.getMode());
 
+  const applyGraphicsQuality = (preset: GraphicsQualityPreset) => {
+    if (!graphicsQualityManager) {
+      return;
+    }
+    graphicsQualityManager.setQuality(preset);
+    const currentMode = lightingDebugController.getMode();
+    lightingDebugController.setMode(currentMode);
+  };
+
+  graphicsQualityControlHandle = createGraphicsQualityControl({
+    container,
+    getQuality: () => graphicsQualityManager?.getQuality() ?? 'cinematic',
+    setQuality: (preset) => {
+      applyGraphicsQuality(preset);
+    },
+  });
+
+  applyGraphicsQuality(graphicsQualityManager?.getQuality() ?? 'cinematic');
+
   window.addEventListener('keydown', (event) => {
     if ((event.key === 'l' || event.key === 'L') && event.shiftKey) {
       event.preventDefault();
@@ -1776,7 +1815,11 @@ function initializeImmersiveScene(
     updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    if (graphicsQualityManager) {
+      graphicsQualityManager.handleResize();
+    } else {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
 
     if (composer && bloomPass) {
       composer.setSize(window.innerWidth, window.innerHeight);
@@ -2146,6 +2189,11 @@ function initializeImmersiveScene(
       audioHudHandle.dispose();
       audioHudHandle = null;
     }
+    if (graphicsQualityControlHandle) {
+      graphicsQualityControlHandle.dispose();
+      graphicsQualityControlHandle = null;
+    }
+    graphicsQualityManager = null;
     if (beforeUnloadHandler) {
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
