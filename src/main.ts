@@ -48,6 +48,11 @@ import {
   createAudioHudControl,
   type AudioHudControlHandle,
 } from './controls/audioHudControl';
+import {
+  createGraphicsQualityHudControl,
+  type GraphicsQualityHudControlHandle,
+  type GraphicsQuality,
+} from './controls/graphicsQualityHudControl';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -670,6 +675,18 @@ function initializeImmersiveScene(
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
+  let graphicsHudHandle: GraphicsQualityHudControlHandle | null = null;
+  let hudRoot: HTMLDivElement | null = null;
+  let graphicsQuality: GraphicsQuality = 'cinematic';
+
+  const ensureHudRoot = () => {
+    if (!hudRoot) {
+      hudRoot = document.createElement('div');
+      hudRoot.className = 'hud-root';
+      container.appendChild(hudRoot);
+    }
+    return hudRoot;
+  };
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -1678,42 +1695,6 @@ function initializeImmersiveScene(
         }
       },
     });
-
-    audioHudHandle = createAudioHudControl({
-      container,
-      getEnabled: () => ambientAudioController?.isEnabled() ?? false,
-      setEnabled: async (enabled) => {
-        if (!ambientAudioController) {
-          return;
-        }
-        if (enabled) {
-          try {
-            await ambientAudioController.enable();
-          } catch (error) {
-            console.warn('Ambient audio failed to start', error);
-          }
-        } else {
-          ambientAudioController.disable();
-        }
-      },
-      getVolume: () => ambientAudioController?.getMasterVolume() ?? 1,
-      setVolume: (volume) => {
-        ambientAudioController?.setMasterVolume(volume);
-      },
-    });
-
-    manualModeToggle = createManualModeToggle({
-      container,
-      label: 'Text mode · Press T',
-      description: 'Switch to the text-only portfolio',
-      keyHint: 'T',
-      getIsFallbackActive: () => performanceFailover.hasTriggered(),
-      onToggle: () => {
-        if (!performanceFailover.hasTriggered()) {
-          performanceFailover.triggerFallback('manual');
-        }
-      },
-    });
   }
 
   let composer: EffectComposer | null = null;
@@ -1730,6 +1711,8 @@ function initializeImmersiveScene(
     );
     composer.addPass(bloomPass);
   }
+
+  let shouldUseComposer = composer !== null;
 
   const lightingDebugController = createLightingDebugController({
     renderer,
@@ -1751,6 +1734,40 @@ function initializeImmersiveScene(
 
   lightingDebugController.setMode('cinematic');
 
+  const reapplyGraphicsQuality = () => {
+    const deviceRatio =
+      Number.isFinite(window.devicePixelRatio) && window.devicePixelRatio > 0
+        ? window.devicePixelRatio
+        : 1;
+    const maxPixelRatio = graphicsQuality === 'cinematic' ? 2 : 1;
+    const nextPixelRatio = Math.max(1, Math.min(deviceRatio, maxPixelRatio));
+    renderer.setPixelRatio(nextPixelRatio);
+
+    shouldUseComposer = Boolean(composer) && graphicsQuality === 'cinematic';
+
+    if (bloomPass) {
+      const lightingMode = lightingDebugController.getMode();
+      const bloomEnabled =
+        graphicsQuality === 'cinematic' &&
+        lightingMode === 'cinematic' &&
+        LIGHTING_OPTIONS.enableBloom;
+      bloomPass.enabled = bloomEnabled;
+    }
+
+    document.documentElement.dataset.graphicsQuality = graphicsQuality;
+  };
+
+  const setGraphicsQuality = (quality: GraphicsQuality) => {
+    if (graphicsQuality === quality) {
+      reapplyGraphicsQuality();
+      return;
+    }
+    graphicsQuality = quality;
+    reapplyGraphicsQuality();
+  };
+
+  reapplyGraphicsQuality();
+
   const lightingDebugIndicator = document.createElement('div');
   lightingDebugIndicator.className = 'lighting-debug-indicator';
   container.appendChild(lightingDebugIndicator);
@@ -1768,7 +1785,56 @@ function initializeImmersiveScene(
       event.preventDefault();
       const nextMode = lightingDebugController.toggle();
       updateLightingIndicator(nextMode);
+      reapplyGraphicsQuality();
     }
+  });
+
+  const hudContainer = ensureHudRoot();
+
+  if (!audioHudHandle && ambientAudioController) {
+    audioHudHandle = createAudioHudControl({
+      container: hudContainer,
+      getEnabled: () => ambientAudioController?.isEnabled() ?? false,
+      setEnabled: async (enabled) => {
+        if (!ambientAudioController) {
+          return;
+        }
+        if (enabled) {
+          try {
+            await ambientAudioController.enable();
+          } catch (error) {
+            console.warn('Ambient audio failed to start', error);
+          }
+        } else {
+          ambientAudioController.disable();
+        }
+      },
+      getVolume: () => ambientAudioController?.getMasterVolume() ?? 1,
+      setVolume: (volume) => {
+        ambientAudioController?.setMasterVolume(volume);
+      },
+    });
+  }
+
+  if (!graphicsHudHandle) {
+    graphicsHudHandle = createGraphicsQualityHudControl({
+      container: hudContainer,
+      getQuality: () => graphicsQuality,
+      setQuality: setGraphicsQuality,
+    });
+  }
+
+  manualModeToggle = createManualModeToggle({
+    container: hudContainer,
+    label: 'Text mode · Press T',
+    description: 'Switch to the text-only portfolio',
+    keyHint: 'T',
+    getIsFallbackActive: () => performanceFailover.hasTriggered(),
+    onToggle: () => {
+      if (!performanceFailover.hasTriggered()) {
+        performanceFailover.triggerFallback('manual');
+      }
+    },
   });
 
   function onResize() {
@@ -1776,7 +1842,7 @@ function initializeImmersiveScene(
     updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    reapplyGraphicsQuality();
 
     if (composer && bloomPass) {
       composer.setSize(window.innerWidth, window.innerHeight);
@@ -2142,10 +2208,19 @@ function initializeImmersiveScene(
     window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
     window.removeEventListener('pointerup', handlePointerUpForCameraPan);
     window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
+    if (graphicsHudHandle) {
+      graphicsHudHandle.dispose();
+      graphicsHudHandle = null;
+    }
     if (audioHudHandle) {
       audioHudHandle.dispose();
       audioHudHandle = null;
     }
+    if (hudRoot) {
+      hudRoot.remove();
+      hudRoot = null;
+    }
+    delete document.documentElement.dataset.graphicsQuality;
     if (beforeUnloadHandler) {
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
@@ -2192,7 +2267,7 @@ function initializeImmersiveScene(
       if (backyardEnvironment) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
       }
-      if (composer) {
+      if (composer && shouldUseComposer) {
         composer.render();
       } else {
         renderer.render(scene, camera);
