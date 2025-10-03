@@ -48,6 +48,10 @@ import {
   createAudioHudControl,
   type AudioHudControlHandle,
 } from './controls/audioHudControl';
+import {
+  createGraphicsQualityControl,
+  type GraphicsQualityControlHandle,
+} from './controls/graphicsQualityControl';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -72,6 +76,11 @@ import {
   type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
+import {
+  GRAPHICS_QUALITY_PRESETS,
+  createGraphicsQualityManager,
+  type GraphicsQualityManager,
+} from './graphics/qualityManager';
 import { createHelpModal } from './hud/helpModal';
 import {
   createLightingDebugController,
@@ -250,6 +259,8 @@ let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
+const ledStripMaterials: MeshStandardMaterial[] = [];
+const ledFillLightsList: PointLight[] = [];
 let ambientAudioController: AmbientAudioController | null = null;
 
 const roomDefinitions = new Map(
@@ -666,10 +677,16 @@ function initializeImmersiveScene(
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
 
+  ledStripMaterials.length = 0;
+  ledFillLightsList.length = 0;
+
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
+  let graphicsQualityManager: GraphicsQualityManager | null = null;
+  let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
+  let unsubscribeGraphicsQuality: (() => void) | null = null;
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -1040,6 +1057,7 @@ function initializeImmersiveScene(
         roughness: 0.35,
         metalness: 0.15,
       });
+      ledStripMaterials.push(material);
       roomLedMaterials.set(room.id, material);
 
       const group = new Group();
@@ -1064,6 +1082,7 @@ function initializeImmersiveScene(
       );
       light.castShadow = false;
       ledFillLights.add(light);
+      ledFillLightsList.push(light);
 
       const cornerOffsets = [
         new Vector3(
@@ -1731,6 +1750,45 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
+  let qualityStorage: Storage | undefined;
+  try {
+    qualityStorage = window.localStorage;
+  } catch {
+    qualityStorage = undefined;
+  }
+
+  graphicsQualityManager = createGraphicsQualityManager({
+    renderer,
+    bloomPass: bloomPass ?? undefined,
+    ledStripMaterials,
+    ledFillLights: ledFillLightsList,
+    basePixelRatio: Math.min(window.devicePixelRatio ?? 1, 2),
+    baseBloom: {
+      strength: LIGHTING_OPTIONS.bloomStrength,
+      radius: LIGHTING_OPTIONS.bloomRadius,
+      threshold: LIGHTING_OPTIONS.bloomThreshold,
+    },
+    baseLed: {
+      emissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
+      lightIntensity: LIGHTING_OPTIONS.ledLightIntensity,
+    },
+    storage: qualityStorage,
+  });
+
+  graphicsQualityControl = createGraphicsQualityControl({
+    container,
+    presets: GRAPHICS_QUALITY_PRESETS,
+    getActiveLevel: () =>
+      graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
+    setActiveLevel: (level) => {
+      graphicsQualityManager?.setLevel(level);
+    },
+  });
+
+  unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
+    graphicsQualityControl?.refresh();
+  });
+
   const lightingDebugController = createLightingDebugController({
     renderer,
     ambientLight,
@@ -1776,7 +1834,12 @@ function initializeImmersiveScene(
     updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const nextPixelRatio = Math.min(window.devicePixelRatio ?? 1, 2);
+    if (graphicsQualityManager) {
+      graphicsQualityManager.setBasePixelRatio(nextPixelRatio);
+    } else {
+      renderer.setPixelRatio(nextPixelRatio);
+    }
 
     if (composer && bloomPass) {
       composer.setSize(window.innerWidth, window.innerHeight);
@@ -2146,6 +2209,15 @@ function initializeImmersiveScene(
       audioHudHandle.dispose();
       audioHudHandle = null;
     }
+    if (graphicsQualityControl) {
+      graphicsQualityControl.dispose();
+      graphicsQualityControl = null;
+    }
+    if (unsubscribeGraphicsQuality) {
+      unsubscribeGraphicsQuality();
+      unsubscribeGraphicsQuality = null;
+    }
+    graphicsQualityManager = null;
     if (beforeUnloadHandler) {
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
