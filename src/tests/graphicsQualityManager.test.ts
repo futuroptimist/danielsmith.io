@@ -29,7 +29,12 @@ describe('createGraphicsQualityManager', () => {
       },
       toneMappingExposure: 1,
     };
-    return { renderer, get pixelRatio() { return pixelRatio; } };
+    return {
+      renderer,
+      get pixelRatio() {
+        return pixelRatio;
+      },
+    };
   };
 
   it('applies presets, persists selections, and notifies listeners', () => {
@@ -69,10 +74,7 @@ describe('createGraphicsQualityManager', () => {
       baseLed.emissiveIntensity * 0.85,
       3
     );
-    expect(ledLight.intensity).toBeCloseTo(
-      baseLed.lightIntensity * 0.85,
-      3
-    );
+    expect(ledLight.intensity).toBeCloseTo(baseLed.lightIntensity * 0.85, 3);
 
     const listener = vi.fn();
     const unsubscribe = manager.onChange(listener);
@@ -139,6 +141,37 @@ describe('createGraphicsQualityManager', () => {
 
     manager.refresh();
     expect(renderer.getPixelRatio()).toBeCloseTo(2.4 * 0.85, 3);
+  });
+
+  it('guards against storage read errors during initialization', () => {
+    const { renderer } = createRenderer();
+    const storage = {
+      getItem: vi.fn(() => {
+        throw new Error('blocked');
+      }),
+      setItem: vi.fn(),
+    } as const;
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const manager = createGraphicsQualityManager({
+      renderer,
+      basePixelRatio: 1,
+      baseBloom,
+      baseLed,
+      storage,
+    });
+
+    expect(manager.getLevel()).toBe('cinematic');
+    expect(storage.getItem).toHaveBeenCalledWith(
+      'danielsmith:graphics-quality-level'
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Failed to read persisted graphics quality level:',
+      expect.any(Error)
+    );
+
+    warnSpy.mockRestore();
   });
 
   it('throws for unsupported levels', () => {

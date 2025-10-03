@@ -10,9 +10,7 @@ export interface GraphicsQualityControlOptions {
   container: HTMLElement;
   presets: ReadonlyArray<GraphicsQualityControlPreset>;
   getActiveLevel: () => GraphicsQualityLevel;
-  setActiveLevel: (
-    level: GraphicsQualityLevel
-  ) => void | Promise<void>;
+  setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
   title?: string;
   description?: string;
 }

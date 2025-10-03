@@ -7,11 +7,13 @@ import {
 } from '../graphics/qualityManager';
 
 describe('createGraphicsQualityControl', () => {
-  const presets = GRAPHICS_QUALITY_PRESETS.map(({ id, label, description }) => ({
-    id,
-    label,
-    description,
-  }));
+  const presets = GRAPHICS_QUALITY_PRESETS.map(
+    ({ id, label, description }) => ({
+      id,
+      label,
+      description,
+    })
+  );
 
   it('renders presets, updates state, and handles refreshes', async () => {
     const container = document.createElement('div');
@@ -30,9 +32,7 @@ describe('createGraphicsQualityControl', () => {
     });
 
     const options = Array.from(
-      container.querySelectorAll<HTMLInputElement>(
-        '.graphics-quality__radio'
-      )
+      container.querySelectorAll<HTMLInputElement>('.graphics-quality__radio')
     );
     expect(options).toHaveLength(presets.length);
     expect(options[0].checked).toBe(true);
@@ -44,9 +44,9 @@ describe('createGraphicsQualityControl', () => {
 
     control.refresh();
     expect(options[1].checked).toBe(true);
-    expect(container.querySelector('.graphics-quality__status')?.textContent).toContain(
-      'Balanced preset selected'
-    );
+    expect(
+      container.querySelector('.graphics-quality__status')?.textContent
+    ).toContain('Balanced preset selected');
 
     control.dispose();
     expect(container.querySelector('.graphics-quality')).toBeNull();

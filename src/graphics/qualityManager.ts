@@ -18,59 +18,61 @@ export interface GraphicsQualityPresetDefinition {
   };
 }
 
-export const GRAPHICS_QUALITY_PRESETS: readonly GraphicsQualityPresetDefinition[] = [
-  {
-    id: 'cinematic',
-    label: 'Cinematic',
-    description: 'Full post-processing with cinematic bloom and lighting.',
-    pixelRatioScale: 1,
-    exposure: 1.1,
-    bloom: {
-      enabled: true,
-      strengthScale: 1,
-      radiusScale: 1,
-      thresholdOffset: 0,
+export const GRAPHICS_QUALITY_PRESETS: readonly GraphicsQualityPresetDefinition[] =
+  [
+    {
+      id: 'cinematic',
+      label: 'Cinematic',
+      description: 'Full post-processing with cinematic bloom and lighting.',
+      pixelRatioScale: 1,
+      exposure: 1.1,
+      bloom: {
+        enabled: true,
+        strengthScale: 1,
+        radiusScale: 1,
+        thresholdOffset: 0,
+      },
+      led: {
+        emissiveScale: 1,
+        lightScale: 1,
+      },
     },
-    led: {
-      emissiveScale: 1,
-      lightScale: 1,
+    {
+      id: 'balanced',
+      label: 'Balanced',
+      description:
+        'Moderate bloom with slightly reduced resolution for laptops.',
+      pixelRatioScale: 0.85,
+      exposure: 1.02,
+      bloom: {
+        enabled: true,
+        strengthScale: 0.8,
+        radiusScale: 0.92,
+        thresholdOffset: 0.05,
+      },
+      led: {
+        emissiveScale: 0.85,
+        lightScale: 0.85,
+      },
     },
-  },
-  {
-    id: 'balanced',
-    label: 'Balanced',
-    description: 'Moderate bloom with slightly reduced resolution for laptops.',
-    pixelRatioScale: 0.85,
-    exposure: 1.02,
-    bloom: {
-      enabled: true,
-      strengthScale: 0.8,
-      radiusScale: 0.92,
-      thresholdOffset: 0.05,
+    {
+      id: 'performance',
+      label: 'Performance',
+      description: 'Disables bloom and lowers resolution to prioritize FPS.',
+      pixelRatioScale: 0.7,
+      exposure: 0.96,
+      bloom: {
+        enabled: false,
+        strengthScale: 0,
+        radiusScale: 0.8,
+        thresholdOffset: 0.12,
+      },
+      led: {
+        emissiveScale: 0.65,
+        lightScale: 0.6,
+      },
     },
-    led: {
-      emissiveScale: 0.85,
-      lightScale: 0.85,
-    },
-  },
-  {
-    id: 'performance',
-    label: 'Performance',
-    description: 'Disables bloom and lowers resolution to prioritize FPS.',
-    pixelRatioScale: 0.7,
-    exposure: 0.96,
-    bloom: {
-      enabled: false,
-      strengthScale: 0,
-      radiusScale: 0.8,
-      thresholdOffset: 0.12,
-    },
-    led: {
-      emissiveScale: 0.65,
-      lightScale: 0.6,
-    },
-  },
-] as const;
+  ] as const;
 
 export interface RendererLike {
   getPixelRatio(): number;
@@ -209,8 +211,7 @@ export function createGraphicsQualityManager({
       bloomPass.enabled = preset.bloom.enabled;
       bloomPass.strength = baseBloom.strength * preset.bloom.strengthScale;
       bloomPass.radius = baseBloom.radius * preset.bloom.radiusScale;
-      bloomPass.threshold =
-        baseBloom.threshold + preset.bloom.thresholdOffset;
+      bloomPass.threshold = baseBloom.threshold + preset.bloom.thresholdOffset;
     }
 
     ledMaterialEntries.forEach(({ target, baseIntensity }) => {
