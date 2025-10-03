@@ -9,7 +9,8 @@ export type FallbackReason =
   | 'manual'
   | 'low-memory'
   | 'low-performance'
-  | 'immersive-init-error';
+  | 'immersive-init-error'
+  | 'automated-client';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -52,6 +53,8 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   search?: string;
   getDeviceMemory?: DeviceMemoryReader;
   minimumDeviceMemory?: number;
+  userAgent?: string;
+  isAutomatedClient?: (userAgent: string | undefined) => boolean;
 }
 
 export interface FailoverDecision {
@@ -73,6 +76,76 @@ function getNavigatorDeviceMemory(): number | undefined {
     : undefined;
 }
 
+function getNavigatorUserAgent(): string | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  const ua = navigator.userAgent;
+  return typeof ua === 'string' && ua.length > 0 ? ua : undefined;
+}
+
+const AUTOMATED_SUBSTRINGS = [
+  'googlebot',
+  'bingbot',
+  'duckduckbot',
+  'baiduspider',
+  'yandexbot',
+  'slurp',
+  'facebookexternalhit',
+  'twitterbot',
+  'linkedinbot',
+  'discordbot',
+  'whatsapp',
+  'skypeuripreview',
+  'embedly',
+  'quora link preview',
+  'pinterestbot',
+  'redditbot',
+  'ia_archiver',
+  'lighthouse',
+  'pagespeed',
+  'headlesschrome',
+  'rendertron',
+  'phantomjs',
+  'puppeteer',
+  'playwright',
+  'selenium',
+  'curl/',
+  'wget/',
+  'python-requests',
+  'httpclient',
+  'go-http-client',
+  'okhttp',
+  'postmanruntime',
+  'axios',
+  'node.js',
+  'nodejs',
+  'java/',
+  'libwww-perl',
+];
+
+const AUTOMATED_PATTERNS = [
+  /(?:^|[^a-z])bot(?:[^a-z]|$)/i,
+  /\bcrawl(?:er)?\b/i,
+  /\bspider\b/i,
+  /\bscrap(?:er|y)\b/i,
+  /\bvalidator\b/i,
+  /\bpreview\b/i,
+];
+
+function defaultAutomatedClientDetector(
+  userAgent: string | undefined
+): boolean {
+  if (!userAgent) {
+    return false;
+  }
+  const normalized = userAgent.toLowerCase();
+  if (AUTOMATED_SUBSTRINGS.some((token) => normalized.includes(token))) {
+    return true;
+  }
+  return AUTOMATED_PATTERNS.some((pattern) => pattern.test(userAgent));
+}
+
 export function evaluateFailoverDecision(
   options: FailoverDecisionOptions = {}
 ): FailoverDecision {
@@ -90,6 +163,15 @@ export function evaluateFailoverDecision(
     reportedDeviceMemory >= 0 &&
     reportedDeviceMemory < minimumDeviceMemory;
 
+  const readUserAgent =
+    options.userAgent !== undefined
+      ? () => options.userAgent
+      : getNavigatorUserAgent;
+  const automatedClientDetector =
+    options.isAutomatedClient ?? defaultAutomatedClientDetector;
+  const userAgent = readUserAgent();
+  const isAutomated = automatedClientDetector(userAgent);
+
   const webglSupported = isWebglSupported(options);
 
   if (mode === 'text') {
@@ -101,6 +183,10 @@ export function evaluateFailoverDecision(
       return { shouldUseFallback: true, reason: 'webgl-unsupported' };
     }
     return { shouldUseFallback: false };
+  }
+
+  if (isAutomated) {
+    return { shouldUseFallback: true, reason: 'automated-client' };
   }
 
   if (!webglSupported) {
@@ -157,6 +243,8 @@ export function renderTextFallback(
         return 'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.';
       case 'immersive-init-error':
         return 'Something went wrong starting the immersive scene, so we brought you the text overview instead.';
+      case 'automated-client':
+        return 'We noticed an automated or preview client, so we served the text portfolio for fast parsing.';
       default:
         return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
     }
