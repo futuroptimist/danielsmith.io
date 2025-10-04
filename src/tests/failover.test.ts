@@ -106,7 +106,8 @@ describe('evaluateFailoverDecision', () => {
   it('routes automated clients to text mode when mode is not forced', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
-      getUserAgent: () => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      getUserAgent: () =>
+        'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
     });
     expect(decision).toEqual({
       shouldUseFallback: true,

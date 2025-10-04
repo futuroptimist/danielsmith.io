@@ -85,7 +85,9 @@ function getNavigatorUserAgent(): string | undefined {
     return undefined;
   }
   const reported = (navigator as NavigatorWithUserAgent).userAgent;
-  return typeof reported === 'string' && reported.length > 0 ? reported : undefined;
+  return typeof reported === 'string' && reported.length > 0
+    ? reported
+    : undefined;
 }
 
 const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
@@ -145,7 +147,11 @@ export function evaluateFailoverDecision(
     return { shouldUseFallback: false };
   }
 
-  if ((!mode || mode.length === 0) && userAgent && shouldForceTextModeForUserAgent(userAgent)) {
+  if (
+    (!mode || mode.length === 0) &&
+    userAgent &&
+    shouldForceTextModeForUserAgent(userAgent)
+  ) {
     return { shouldUseFallback: true, reason: 'automated-client' };
   }
 
