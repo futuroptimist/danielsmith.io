@@ -34,6 +34,11 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
+  ACCESSIBILITY_PRESETS,
+  createAccessibilityPresetManager,
+  type AccessibilityPresetManager,
+} from './accessibility/presetManager';
+import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
@@ -44,6 +49,10 @@ import {
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
 import { collidesWithColliders, type RectCollider } from './collision';
+import {
+  createAccessibilityPresetControl,
+  type AccessibilityPresetControlHandle,
+} from './controls/accessibilityPresetControl';
 import {
   createAudioHudControl,
   type AudioHudControlHandle,
@@ -687,6 +696,13 @@ function initializeImmersiveScene(
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
+  let accessibilityPresetManager: AccessibilityPresetManager | null = null;
+  let accessibilityControlHandle: AccessibilityPresetControlHandle | null = null;
+  let unsubscribeAccessibility: (() => void) | null = null;
+  let getAmbientAudioVolume = () => ambientAudioController?.getMasterVolume() ?? 1;
+  let setAmbientAudioVolume = (volume: number) => {
+    ambientAudioController?.setMasterVolume(volume);
+  };
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -1715,9 +1731,9 @@ function initializeImmersiveScene(
           ambientAudioController.disable();
         }
       },
-      getVolume: () => ambientAudioController?.getMasterVolume() ?? 1,
+      getVolume: () => getAmbientAudioVolume(),
       setVolume: (volume) => {
-        ambientAudioController?.setMasterVolume(volume);
+        setAmbientAudioVolume(volume);
       },
     });
 
@@ -1773,6 +1789,58 @@ function initializeImmersiveScene(
       lightIntensity: LIGHTING_OPTIONS.ledLightIntensity,
     },
     storage: qualityStorage,
+  });
+
+  let accessibilityStorage: Storage | undefined;
+  try {
+    accessibilityStorage = window.localStorage;
+  } catch {
+    accessibilityStorage = undefined;
+  }
+
+  accessibilityPresetManager = createAccessibilityPresetManager({
+    documentElement: document.documentElement,
+    graphicsQualityManager,
+    bloomPass: bloomPass ?? undefined,
+    ledStripMaterials,
+    ledFillLights: ledFillLightsList,
+    ambientAudioController: ambientAudioController ?? undefined,
+    storage: accessibilityStorage,
+  });
+
+  if (accessibilityPresetManager) {
+    getAmbientAudioVolume = () =>
+      accessibilityPresetManager?.getBaseAudioVolume() ??
+      ambientAudioController?.getMasterVolume() ??
+      1;
+    setAmbientAudioVolume = (volume: number) => {
+      if (accessibilityPresetManager) {
+        accessibilityPresetManager.setBaseAudioVolume(volume);
+      } else {
+        ambientAudioController?.setMasterVolume(volume);
+      }
+    };
+    accessibilityPresetManager.refresh();
+    audioHudHandle?.refresh();
+  }
+
+  accessibilityControlHandle = createAccessibilityPresetControl({
+    container,
+    options: ACCESSIBILITY_PRESETS.map(({ id, label, description }) => ({
+      id,
+      label,
+      description,
+    })),
+    getActivePreset: () =>
+      accessibilityPresetManager?.getPreset() ?? ACCESSIBILITY_PRESETS[0].id,
+    setActivePreset: (preset) => {
+      accessibilityPresetManager?.setPreset(preset);
+    },
+  });
+
+  unsubscribeAccessibility = accessibilityPresetManager.onChange(() => {
+    accessibilityControlHandle?.refresh();
+    audioHudHandle?.refresh();
   });
 
   graphicsQualityControl = createGraphicsQualityControl({
@@ -2208,6 +2276,18 @@ function initializeImmersiveScene(
     if (audioHudHandle) {
       audioHudHandle.dispose();
       audioHudHandle = null;
+    }
+    if (accessibilityControlHandle) {
+      accessibilityControlHandle.dispose();
+      accessibilityControlHandle = null;
+    }
+    if (unsubscribeAccessibility) {
+      unsubscribeAccessibility();
+      unsubscribeAccessibility = null;
+    }
+    if (accessibilityPresetManager) {
+      accessibilityPresetManager.dispose();
+      accessibilityPresetManager = null;
     }
     if (graphicsQualityControl) {
       graphicsQualityControl.dispose();

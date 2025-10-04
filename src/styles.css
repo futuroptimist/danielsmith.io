@@ -295,6 +295,104 @@ canvas {
   border: 0;
 }
 
+.accessibility-presets {
+  position: fixed;
+  top: 21.8rem;
+  right: 1.5rem;
+  width: 16rem;
+  max-width: calc(100vw - 3rem);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: rgba(5, 12, 21, 0.82);
+  color: #e7f1ff;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(86, 184, 255, 0.28);
+  box-shadow: 0 12px 28px rgba(3, 9, 18, 0.55);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.accessibility-presets[data-pending='true'] {
+  opacity: 0.82;
+}
+
+.accessibility-presets__title {
+  margin: 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(196, 228, 255, 0.85);
+}
+
+.accessibility-presets__description {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(215, 235, 255, 0.88);
+  line-height: 1.4;
+}
+
+.accessibility-presets__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.accessibility-presets__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(86, 184, 255, 0.22);
+  background: rgba(8, 16, 28, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(7, 28, 48, 0.3);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+  cursor: pointer;
+}
+
+.accessibility-presets__option[data-state='active'] {
+  border-color: rgba(120, 212, 168, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(34, 180, 128, 0.35);
+}
+
+.accessibility-presets__option:hover,
+.accessibility-presets__option:focus-within {
+  border-color: rgba(143, 214, 255, 0.75);
+}
+
+.accessibility-presets__radio {
+  margin-top: 0.2rem;
+}
+
+.accessibility-presets__option-title {
+  font-weight: 600;
+  color: rgba(224, 244, 255, 0.94);
+}
+
+.accessibility-presets__option-description {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  color: rgba(200, 224, 255, 0.78);
+}
+
+.accessibility-presets__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
 .mode-toggle {
   position: fixed;
   top: 10.25rem;
@@ -396,6 +494,52 @@ canvas {
   .overlay__item--desktop {
     display: none;
   }
+}
+
+:root[data-accessibility-motion='reduced'] .audio-hud,
+:root[data-accessibility-motion='reduced'] .graphics-quality,
+:root[data-accessibility-motion='reduced'] .mode-toggle,
+:root[data-accessibility-motion='reduced'] .overlay,
+:root[data-accessibility-motion='reduced'] .poi-tooltip-overlay,
+:root[data-accessibility-motion='reduced'] .accessibility-presets {
+  transition: none !important;
+  animation: none !important;
+}
+
+:root[data-accessibility-contrast='high'] .audio-hud,
+:root[data-accessibility-contrast='high'] .graphics-quality,
+:root[data-accessibility-contrast='high'] .mode-toggle,
+:root[data-accessibility-contrast='high'] .overlay,
+:root[data-accessibility-contrast='high'] .poi-tooltip-overlay,
+:root[data-accessibility-contrast='high'] .accessibility-presets {
+  background: rgba(4, 10, 18, 0.92);
+  border-color: rgba(214, 238, 255, 0.5);
+  color: #f5f9ff;
+  box-shadow: 0 14px 36px rgba(2, 6, 12, 0.7);
+}
+
+:root[data-accessibility-contrast='high'] .audio-toggle {
+  background: rgba(10, 18, 30, 0.96);
+  border-color: rgba(174, 238, 255, 0.6);
+  color: #ffffff;
+}
+
+:root[data-accessibility-contrast='high'] .graphics-quality__option,
+:root[data-accessibility-contrast='high'] .accessibility-presets__option {
+  background: rgba(10, 18, 30, 0.92);
+  border-color: rgba(174, 238, 255, 0.5);
+}
+
+:root[data-accessibility-contrast='high'] .graphics-quality__option-title,
+:root[data-accessibility-contrast='high'] .accessibility-presets__option-title {
+  color: #f4fbff;
+}
+
+:root[data-accessibility-contrast='high'] .graphics-quality__option-description,
+:root[data-accessibility-contrast='high'] .accessibility-presets__option-description,
+:root[data-accessibility-contrast='high'] .audio-volume__label,
+:root[data-accessibility-contrast='high'] .audio-volume__value {
+  color: rgba(240, 250, 255, 0.88);
 }
 
 .overlay__help-button {
