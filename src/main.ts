@@ -697,9 +697,11 @@ function initializeImmersiveScene(
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
   let accessibilityPresetManager: AccessibilityPresetManager | null = null;
-  let accessibilityControlHandle: AccessibilityPresetControlHandle | null = null;
+  let accessibilityControlHandle: AccessibilityPresetControlHandle | null =
+    null;
   let unsubscribeAccessibility: (() => void) | null = null;
-  let getAmbientAudioVolume = () => ambientAudioController?.getMasterVolume() ?? 1;
+  let getAmbientAudioVolume = () =>
+    ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
     ambientAudioController?.setMasterVolume(volume);
   };

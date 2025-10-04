@@ -42,9 +42,13 @@ describe('createAccessibilityPresetControl', () => {
     });
 
     const radios = Array.from(
-      container.querySelectorAll<HTMLInputElement>('.accessibility-presets__radio')
+      container.querySelectorAll<HTMLInputElement>(
+        '.accessibility-presets__radio'
+      )
     );
-    const wrapper = container.querySelector<HTMLElement>('.accessibility-presets');
+    const wrapper = container.querySelector<HTMLElement>(
+      '.accessibility-presets'
+    );
     expect(radios).toHaveLength(3);
     expect(wrapper?.dataset.pending).toBe('false');
 

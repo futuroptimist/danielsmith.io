@@ -57,7 +57,8 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
   {
     id: 'calm',
     label: 'Calm',
-    description: 'Softens bloom, LED glow, and ambient audio for a gentler pass.',
+    description:
+      'Softens bloom, LED glow, and ambient audio for a gentler pass.',
     motion: 'reduced',
     contrast: 'standard',
     bloom: {
@@ -141,8 +142,12 @@ function clamp01(value: number): number {
   return value;
 }
 
-function isAccessibilityPresetId(value: unknown): value is AccessibilityPresetId {
-  return typeof value === 'string' && ACCESSIBILITY_PRESET_MAP.has(value as never);
+function isAccessibilityPresetId(
+  value: unknown
+): value is AccessibilityPresetId {
+  return (
+    typeof value === 'string' && ACCESSIBILITY_PRESET_MAP.has(value as never)
+  );
 }
 
 export function createAccessibilityPresetManager({
@@ -155,9 +160,7 @@ export function createAccessibilityPresetManager({
   storage,
   storageKey = DEFAULT_STORAGE_KEY,
 }: AccessibilityPresetManagerOptions): AccessibilityPresetManager {
-  const ledMaterials = ledStripMaterials
-    ? Array.from(ledStripMaterials)
-    : [];
+  const ledMaterials = ledStripMaterials ? Array.from(ledStripMaterials) : [];
   const ledLights = ledFillLights ? Array.from(ledFillLights) : [];
 
   let baseAudioVolume = clamp01(
@@ -178,7 +181,9 @@ export function createAccessibilityPresetManager({
 
   const listeners = new Set<(preset: AccessibilityPresetId) => void>();
 
-  const applyDocumentAttributes = (definition: AccessibilityPresetDefinition) => {
+  const applyDocumentAttributes = (
+    definition: AccessibilityPresetDefinition
+  ) => {
     documentElement.dataset.accessibilityPreset = definition.id;
     documentElement.dataset.accessibilityMotion =
       definition.motion === 'reduced' ? 'reduced' : 'default';
@@ -186,9 +191,7 @@ export function createAccessibilityPresetManager({
       definition.contrast === 'high' ? 'high' : 'standard';
   };
 
-  const applyBloomAndLighting = (
-    definition: AccessibilityPresetDefinition
-  ) => {
+  const applyBloomAndLighting = (definition: AccessibilityPresetDefinition) => {
     graphicsQualityManager.refresh();
 
     if (bloomPass) {

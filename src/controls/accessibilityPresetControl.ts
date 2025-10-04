@@ -41,7 +41,9 @@ export function createAccessibilityPresetControl({
   description = 'Tune motion assists and HUD contrast.',
 }: AccessibilityPresetControlOptions): AccessibilityPresetControlHandle {
   if (!options.length) {
-    throw new Error('Accessibility preset control requires at least one option.');
+    throw new Error(
+      'Accessibility preset control requires at least one option.'
+    );
   }
 
   const controlId = `accessibility-presets-${nextControlId++}`;
@@ -92,7 +94,8 @@ export function createAccessibilityPresetControl({
         label.dataset.state = isActive ? 'active' : 'idle';
       }
     });
-    const activeLabel = options.find((option) => option.id === active)?.label ?? active;
+    const activeLabel =
+      options.find((option) => option.id === active)?.label ?? active;
     updateLiveRegion(`${activeLabel} preset selected.`);
   };
 

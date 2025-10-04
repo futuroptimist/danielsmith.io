@@ -82,8 +82,12 @@ describe('createAccessibilityPresetManager', () => {
 
     expect(manager.getPreset()).toBe('calm');
     expect(document.documentElement.dataset.accessibilityPreset).toBe('calm');
-    expect(document.documentElement.dataset.accessibilityMotion).toBe('reduced');
-    expect(document.documentElement.dataset.accessibilityContrast).toBe('standard');
+    expect(document.documentElement.dataset.accessibilityMotion).toBe(
+      'reduced'
+    );
+    expect(document.documentElement.dataset.accessibilityContrast).toBe(
+      'standard'
+    );
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(0.9, 5);
     expect(bloomPass.radius).toBeCloseTo(0.81, 5);

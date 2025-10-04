@@ -536,7 +536,8 @@ canvas {
 }
 
 :root[data-accessibility-contrast='high'] .graphics-quality__option-description,
-:root[data-accessibility-contrast='high'] .accessibility-presets__option-description,
+:root[data-accessibility-contrast='high']
+  .accessibility-presets__option-description,
 :root[data-accessibility-contrast='high'] .audio-volume__label,
 :root[data-accessibility-contrast='high'] .audio-volume__value {
   color: rgba(240, 250, 255, 0.88);
