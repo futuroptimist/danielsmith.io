@@ -134,7 +134,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - Responsive overlay with movement legend, interaction prompt, and help modal.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
      accessibility tips, and failover guidance.
-   - Sliders/toggles for audio volume, graphics quality, and accessibility presets.
+   - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
+     that soften bloom, ease emissives, duck ambient audio, and boost HUD contrast.
      - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes
        that retune bloom, LED lighting, and pixel ratio for their device.
    - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
