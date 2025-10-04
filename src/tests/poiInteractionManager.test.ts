@@ -480,4 +480,33 @@ describe('PoiInteractionManager', () => {
     manager.dispose();
     expect(selectionCleared).toHaveBeenCalledWith(definition);
   });
+
+  it('supports analytics passed without options for backward compatibility', () => {
+    const analytics = {
+      hoverStarted: vi.fn(),
+      hoverEnded: vi.fn(),
+      selected: vi.fn(),
+      selectionCleared: vi.fn(),
+    } satisfies PoiAnalytics;
+
+    manager.dispose();
+    manager = new PoiInteractionManager(domElement, camera, [poi], analytics);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(analytics.hoverStarted).toHaveBeenCalledWith(definition);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+    expect(analytics.selected).toHaveBeenCalledWith(definition);
+
+    domElement.dispatchEvent(new MouseEvent('mouseleave'));
+    expect(analytics.hoverEnded).toHaveBeenCalledWith(definition);
+
+    manager.dispose();
+    expect(analytics.selectionCleared).toHaveBeenCalledWith(definition);
+  });
 });

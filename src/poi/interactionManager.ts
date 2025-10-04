@@ -3,6 +3,19 @@ import { Camera, Raycaster, Vector2 } from 'three';
 import type { PoiInstance } from './markers';
 import type { PoiAnalytics, PoiDefinition } from './types';
 
+function isPoiAnalyticsCandidate(value: unknown): value is PoiAnalytics {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.hoverStarted === 'function' ||
+    typeof candidate.hoverEnded === 'function' ||
+    typeof candidate.selected === 'function' ||
+    typeof candidate.selectionCleared === 'function'
+  );
+}
+
 export type PoiSelectionListener = (poi: PoiDefinition) => void;
 export type PoiHoverListener = (poi: PoiDefinition | null) => void;
 export type PoiSelectionStateListener = (poi: PoiDefinition | null) => void;
@@ -36,13 +49,22 @@ export class PoiInteractionManager {
 
   private static readonly syntheticClickSuppressionMs = 500;
 
+  private readonly analytics?: PoiAnalytics;
+
   constructor(
     private readonly domElement: HTMLElement,
     private readonly camera: Camera,
     private readonly poiInstances: PoiInstance[],
-    options: PoiInteractionOptions = {},
-    private readonly analytics?: PoiAnalytics
+    optionsOrAnalytics?: PoiInteractionOptions | PoiAnalytics,
+    maybeAnalytics?: PoiAnalytics
   ) {
+    const options = isPoiAnalyticsCandidate(optionsOrAnalytics)
+      ? undefined
+      : optionsOrAnalytics;
+    this.analytics = isPoiAnalyticsCandidate(optionsOrAnalytics)
+      ? optionsOrAnalytics
+      : maybeAnalytics;
+
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -52,13 +74,15 @@ export class PoiInteractionManager {
     this.handleTouchEnd = this.handleTouchEnd.bind(this);
     this.handleTouchCancel = this.handleTouchCancel.bind(this);
 
+    const resolvedOptions: PoiInteractionOptions = options ?? {};
+
     const defaultKeyboardTarget =
-      options.keyboardTarget ??
+      resolvedOptions.keyboardTarget ??
       ((typeof window !== 'undefined'
         ? window
         : null) as ListenerTarget | null);
     this.keyboardTarget = defaultKeyboardTarget ?? domElement;
-    this.enableKeyboard = options.enableKeyboard ?? true;
+    this.enableKeyboard = resolvedOptions.enableKeyboard ?? true;
   }
 
   start() {

@@ -92,6 +92,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✨ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
    - ✅ Desktop pointer interaction manager highlights POIs and emits selection events.
    - ✅ Analytics hooks emit hover and selection lifecycle events for instrumentation pipelines.
+   - ✅ Interaction manager now normalizes analytics injection so instrumentation fires when
+     options are omitted in runtime wiring.
    - ✅ Accessibility overlay mirrors POI metadata in HTML so screen readers capture
      hover/selection state.
    - ✅ Registry validation enforces room bounds, unique ids, and safe spacing at build time.
