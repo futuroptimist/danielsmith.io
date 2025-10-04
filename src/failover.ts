@@ -134,18 +134,15 @@ export function evaluateFailoverDecision(
   const readUserAgent = options.getUserAgent ?? getNavigatorUserAgent;
   const userAgent = readUserAgent();
 
-  const webglSupported = isWebglSupported(options);
-
   if (mode === 'text') {
     return { shouldUseFallback: true, reason: 'manual' };
   }
 
   if (mode === 'immersive') {
-    if (!webglSupported) {
-      return { shouldUseFallback: true, reason: 'webgl-unsupported' };
-    }
     return { shouldUseFallback: false };
   }
+
+  const webglSupported = isWebglSupported(options);
 
   if (
     (!mode || mode.length === 0) &&

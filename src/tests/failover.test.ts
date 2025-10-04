@@ -67,7 +67,7 @@ describe('evaluateFailoverDecision', () => {
     expect(decision).toEqual({ shouldUseFallback: false });
   });
 
-  it('falls back even with immersive override if WebGL fails', () => {
+  it('allows immersive override even when WebGL detection fails', () => {
     const decision = evaluateFailoverDecision({
       search: '?mode=immersive',
       createCanvas: () =>
@@ -75,10 +75,7 @@ describe('evaluateFailoverDecision', () => {
           getContext: () => null,
         }) as unknown as HTMLCanvasElement,
     });
-    expect(decision).toEqual({
-      shouldUseFallback: true,
-      reason: 'webgl-unsupported',
-    });
+    expect(decision).toEqual({ shouldUseFallback: false });
   });
 
   it('triggers fallback when reported memory is below the threshold', () => {
