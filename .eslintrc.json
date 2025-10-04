@@ -60,6 +60,15 @@
       "rules": {
         "@typescript-eslint/no-var-requires": "off"
       }
+    },
+    {
+      "files": ["scripts/**/*.ts"],
+      "env": {
+        "node": true
+      },
+      "parserOptions": {
+        "sourceType": "module"
+      }
     }
   ]
 }
