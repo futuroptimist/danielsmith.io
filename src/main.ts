@@ -688,6 +688,9 @@ function initializeImmersiveScene(
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const hasForcedImmersiveMode = searchParams.get('mode') === 'immersive';
+
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
     container,
@@ -706,6 +709,7 @@ function initializeImmersiveScene(
     onBeforeFallback: () => {
       disposeImmersiveResources();
     },
+    disabled: hasForcedImmersiveMode,
   });
 
   const handleFatalError = (error: unknown) => {
