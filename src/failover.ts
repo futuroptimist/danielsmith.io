@@ -3,13 +3,15 @@ const WEBGL_CONTEXT_NAMES = ['webgl2', 'webgl', 'experimental-webgl'] as const;
 type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 
 type DeviceMemoryReader = () => number | undefined;
+type UserAgentReader = () => string | undefined;
 
 export type FallbackReason =
   | 'webgl-unsupported'
   | 'manual'
   | 'low-memory'
   | 'low-performance'
-  | 'immersive-init-error';
+  | 'immersive-init-error'
+  | 'automated-client';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -52,6 +54,7 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   search?: string;
   getDeviceMemory?: DeviceMemoryReader;
   minimumDeviceMemory?: number;
+  getUserAgent?: UserAgentReader;
 }
 
 export interface FailoverDecision {
@@ -63,6 +66,10 @@ interface NavigatorWithDeviceMemory extends Navigator {
   deviceMemory?: number;
 }
 
+interface NavigatorWithUserAgent extends Navigator {
+  userAgent?: string;
+}
+
 function getNavigatorDeviceMemory(): number | undefined {
   if (typeof navigator === 'undefined') {
     return undefined;
@@ -71,6 +78,38 @@ function getNavigatorDeviceMemory(): number | undefined {
   return typeof reported === 'number' && Number.isFinite(reported)
     ? reported
     : undefined;
+}
+
+function getNavigatorUserAgent(): string | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  const reported = (navigator as NavigatorWithUserAgent).userAgent;
+  return typeof reported === 'string' && reported.length > 0 ? reported : undefined;
+}
+
+const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
+  /bot\b/i,
+  /crawler/i,
+  /spider/i,
+  /slurp/i,
+  /headless/i,
+  /lighthouse/i,
+  /rendertron/i,
+  /playwright/i,
+  /puppeteer/i,
+  /phantomjs/i,
+  /curl\//i,
+  /wget/i,
+  /httpclient/i,
+  /postmanruntime/i,
+  /insomnia/i,
+  /python-requests/i,
+  /httpx/i,
+];
+
+function shouldForceTextModeForUserAgent(userAgent: string): boolean {
+  return AUTOMATED_CLIENT_PATTERNS.some((pattern) => pattern.test(userAgent));
 }
 
 export function evaluateFailoverDecision(
@@ -90,6 +129,9 @@ export function evaluateFailoverDecision(
     reportedDeviceMemory >= 0 &&
     reportedDeviceMemory < minimumDeviceMemory;
 
+  const readUserAgent = options.getUserAgent ?? getNavigatorUserAgent;
+  const userAgent = readUserAgent();
+
   const webglSupported = isWebglSupported(options);
 
   if (mode === 'text') {
@@ -101,6 +143,10 @@ export function evaluateFailoverDecision(
       return { shouldUseFallback: true, reason: 'webgl-unsupported' };
     }
     return { shouldUseFallback: false };
+  }
+
+  if ((!mode || mode.length === 0) && userAgent && shouldForceTextModeForUserAgent(userAgent)) {
+    return { shouldUseFallback: true, reason: 'automated-client' };
   }
 
   if (!webglSupported) {
@@ -157,6 +203,8 @@ export function renderTextFallback(
         return 'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.';
       case 'immersive-init-error':
         return 'Something went wrong starting the immersive scene, so we brought you the text overview instead.';
+      case 'automated-client':
+        return 'We detected an automated client, so we surfaced the fast-loading text portfolio for reliable previews and crawlers.';
       default:
         return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
     }

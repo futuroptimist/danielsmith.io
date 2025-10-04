@@ -102,6 +102,34 @@ describe('evaluateFailoverDecision', () => {
     });
     expect(decision).toEqual({ shouldUseFallback: false });
   });
+
+  it('routes automated clients to text mode when mode is not forced', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getUserAgent: () => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'automated-client',
+    });
+  });
+
+  it('does not force fallback for automated client when immersive override is present', () => {
+    const decision = evaluateFailoverDecision({
+      search: '?mode=immersive',
+      createCanvas: canvasFactory,
+      getUserAgent: () => 'HeadlessChrome/118.0.0.0',
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('ignores automated heuristics when user agent is unavailable', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getUserAgent: () => undefined,
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
 });
 
 describe('renderTextFallback', () => {
@@ -149,5 +177,11 @@ describe('renderTextFallback', () => {
     expect(section?.getAttribute('data-reason')).toBe('low-performance');
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/frame/);
+  });
+
+  it('describes automated client fallback messaging', () => {
+    const container = render('automated-client');
+    const description = container.querySelector('.text-fallback__description');
+    expect(description?.textContent).toMatch(/automated client/i);
   });
 });
