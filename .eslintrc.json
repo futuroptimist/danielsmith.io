@@ -48,6 +48,18 @@
       "rules": {
         "import/no-unresolved": "off"
       }
+    },
+    {
+      "files": ["scripts/**/*.cjs"],
+      "env": {
+        "node": true
+      },
+      "parserOptions": {
+        "sourceType": "script"
+      },
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
     }
   ]
 }
