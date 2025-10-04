@@ -113,6 +113,8 @@ lightweight.
   lightweight portfolio view at any time.
 - **Help** – Press `H` or `?`, or tap the HUD Help button to open a modal with controls,
   accessibility tips, and failover guidance.
+- **Accessibility presets** – Open the HUD accessibility card to enable Reduce Motion or High
+  Contrast overlays that tame camera parallax and boost HUD legibility.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support and sustained frame rates below 30 FPS;
   `?mode=immersive` switches back when supported.

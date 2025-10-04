@@ -34,6 +34,10 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
+  createAccessibilityPreferencesManager,
+  type AccessibilityPreferencesState,
+} from './accessibility/preferences';
+import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
@@ -44,6 +48,11 @@ import {
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
 import { collidesWithColliders, type RectCollider } from './collision';
+import {
+  applyAccessibilityDataset,
+  createAccessibilityHudControl,
+  type AccessibilityHudControlHandle,
+} from './controls/accessibilityHudControl';
 import {
   createAudioHudControl,
   type AudioHudControlHandle,
@@ -115,9 +124,14 @@ const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
 const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
-const MOVEMENT_SMOOTHING = 8;
-const CAMERA_PAN_SMOOTHING = 6;
-const CAMERA_ZOOM_SMOOTHING = 6;
+const DEFAULT_MOVEMENT_SMOOTHING = 8;
+const REDUCED_MOVEMENT_SMOOTHING = 3.5;
+const DEFAULT_CAMERA_PAN_SMOOTHING = 6;
+const REDUCED_CAMERA_PAN_SMOOTHING = 3.2;
+const DEFAULT_CAMERA_ZOOM_SMOOTHING = 6;
+const REDUCED_CAMERA_ZOOM_SMOOTHING = 3.4;
+const DEFAULT_CAMERA_MOTION_SCALE = 1;
+const REDUCED_CAMERA_MOTION_SCALE = 0.35;
 const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 1.65;
@@ -684,9 +698,37 @@ function initializeImmersiveScene(
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
+  let accessibilityHudHandle: AccessibilityHudControlHandle | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
+  let unsubscribeAccessibility: (() => void) | null = null;
+
+  let accessibilityStorage: Pick<Storage, 'getItem' | 'setItem'> | null = null;
+  try {
+    accessibilityStorage = window.localStorage;
+  } catch (error) {
+    console.warn('Unable to access localStorage for accessibility preferences:', error);
+  }
+
+  const accessibilityPreferences = createAccessibilityPreferencesManager({
+    storage: accessibilityStorage,
+  });
+  let currentAccessibilityState = accessibilityPreferences.getState();
+
+  let movementSmoothing = currentAccessibilityState.reduceMotion
+    ? REDUCED_MOVEMENT_SMOOTHING
+    : DEFAULT_MOVEMENT_SMOOTHING;
+  let cameraPanSmoothing = currentAccessibilityState.reduceMotion
+    ? REDUCED_CAMERA_PAN_SMOOTHING
+    : DEFAULT_CAMERA_PAN_SMOOTHING;
+  let cameraZoomSmoothing = currentAccessibilityState.reduceMotion
+    ? REDUCED_CAMERA_ZOOM_SMOOTHING
+    : DEFAULT_CAMERA_ZOOM_SMOOTHING;
+  let cameraMotionScale = currentAccessibilityState.reduceMotion
+    ? REDUCED_CAMERA_MOTION_SCALE
+    : DEFAULT_CAMERA_MOTION_SCALE;
+  let poiMotionScale = currentAccessibilityState.reduceMotion ? 0.2 : 1;
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -1415,8 +1457,10 @@ function initializeImmersiveScene(
   const updateCameraPanLimits = (aspect: number) => {
     const effectiveHalfWidth = (baseCameraSize * aspect) / cameraZoom;
     const effectiveHalfHeight = baseCameraSize / cameraZoom;
-    cameraPanLimitX = Math.max(0, effectiveHalfWidth - PLAYER_RADIUS);
-    cameraPanLimitZ = Math.max(0, effectiveHalfHeight - PLAYER_RADIUS);
+    const baseLimitX = Math.max(0, effectiveHalfWidth - PLAYER_RADIUS);
+    const baseLimitZ = Math.max(0, effectiveHalfHeight - PLAYER_RADIUS);
+    cameraPanLimitX = baseLimitX * cameraMotionScale;
+    cameraPanLimitZ = baseLimitZ * cameraMotionScale;
     cameraPanTarget.x = MathUtils.clamp(
       cameraPanTarget.x,
       -cameraPanLimitX,
@@ -1438,6 +1482,27 @@ function initializeImmersiveScene(
       cameraPanLimitZ
     );
   };
+
+  const applyAccessibilityState = (state: AccessibilityPreferencesState) => {
+    currentAccessibilityState = state;
+    applyAccessibilityDataset(document.documentElement, state);
+    movementSmoothing = state.reduceMotion
+      ? REDUCED_MOVEMENT_SMOOTHING
+      : DEFAULT_MOVEMENT_SMOOTHING;
+    cameraPanSmoothing = state.reduceMotion
+      ? REDUCED_CAMERA_PAN_SMOOTHING
+      : DEFAULT_CAMERA_PAN_SMOOTHING;
+    cameraZoomSmoothing = state.reduceMotion
+      ? REDUCED_CAMERA_ZOOM_SMOOTHING
+      : DEFAULT_CAMERA_ZOOM_SMOOTHING;
+    cameraMotionScale = state.reduceMotion
+      ? REDUCED_CAMERA_MOTION_SCALE
+      : DEFAULT_CAMERA_MOTION_SCALE;
+    poiMotionScale = state.reduceMotion ? 0.2 : 1;
+    updateCameraPanLimits(window.innerWidth / window.innerHeight);
+  };
+
+  applyAccessibilityState(currentAccessibilityState);
 
   const updateCameraProjection = (aspect: number) => {
     camera.left = -baseCameraSize * aspect;
@@ -1789,6 +1854,40 @@ function initializeImmersiveScene(
     graphicsQualityControl?.refresh();
   });
 
+  const accessibilityChangeListener = (state: AccessibilityPreferencesState) => {
+    applyAccessibilityState(state);
+    accessibilityHudHandle?.refresh();
+  };
+
+  unsubscribeAccessibility = accessibilityPreferences.subscribe(
+    accessibilityChangeListener
+  );
+
+  accessibilityHudHandle = createAccessibilityHudControl({
+    container,
+    description: 'Adjust comfort, motion, and contrast preferences for the HUD.',
+    toggles: [
+      {
+        id: 'reduceMotion',
+        label: 'Reduce motion',
+        description: 'Limit camera parallax and ease floating POI animations.',
+        getState: () => currentAccessibilityState.reduceMotion,
+        setState: (value) => {
+          accessibilityPreferences.setPreference('reduceMotion', value);
+        },
+      },
+      {
+        id: 'highContrast',
+        label: 'High contrast',
+        description: 'Boost HUD contrast and clarity for low-light environments.',
+        getState: () => currentAccessibilityState.highContrast,
+        setState: (value) => {
+          accessibilityPreferences.setPreference('highContrast', value);
+        },
+      },
+    ],
+  });
+
   const lightingDebugController = createLightingDebugController({
     renderer,
     ambientLight,
@@ -1877,9 +1976,9 @@ function initializeImmersiveScene(
     targetVelocity.copy(moveDirection).multiplyScalar(PLAYER_SPEED);
 
     velocity.set(
-      MathUtils.damp(velocity.x, targetVelocity.x, MOVEMENT_SMOOTHING, delta),
+      MathUtils.damp(velocity.x, targetVelocity.x, movementSmoothing, delta),
       0,
-      MathUtils.damp(velocity.z, targetVelocity.z, MOVEMENT_SMOOTHING, delta)
+      MathUtils.damp(velocity.z, targetVelocity.z, movementSmoothing, delta)
     );
 
     const stepX = velocity.x * delta;
@@ -1925,7 +2024,7 @@ function initializeImmersiveScene(
     cameraZoom = MathUtils.damp(
       cameraZoom,
       cameraZoomTarget,
-      CAMERA_ZOOM_SMOOTHING,
+      cameraZoomSmoothing,
       delta
     );
     cameraZoom = MathUtils.clamp(cameraZoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -1947,13 +2046,13 @@ function initializeImmersiveScene(
     cameraPan.x = MathUtils.damp(
       cameraPan.x,
       cameraPanTarget.x,
-      CAMERA_PAN_SMOOTHING,
+      cameraPanSmoothing,
       delta
     );
     cameraPan.z = MathUtils.damp(
       cameraPan.z,
       cameraPanTarget.z,
-      CAMERA_PAN_SMOOTHING,
+      cameraPanSmoothing,
       delta
     );
 
@@ -1993,7 +2092,7 @@ function initializeImmersiveScene(
       const floatOffset = Math.sin(
         elapsedTime * poi.floatSpeed + poi.floatPhase
       );
-      const scaledOffset = floatOffset * poi.floatAmplitude;
+      const scaledOffset = floatOffset * poi.floatAmplitude * poiMotionScale;
 
       if (poi.orb && poi.orbBaseHeight !== undefined) {
         poi.orb.position.y = poi.orbBaseHeight + scaledOffset;
@@ -2209,6 +2308,10 @@ function initializeImmersiveScene(
       audioHudHandle.dispose();
       audioHudHandle = null;
     }
+    if (accessibilityHudHandle) {
+      accessibilityHudHandle.dispose();
+      accessibilityHudHandle = null;
+    }
     if (graphicsQualityControl) {
       graphicsQualityControl.dispose();
       graphicsQualityControl = null;
@@ -2216,6 +2319,10 @@ function initializeImmersiveScene(
     if (unsubscribeGraphicsQuality) {
       unsubscribeGraphicsQuality();
       unsubscribeGraphicsQuality = null;
+    }
+    if (unsubscribeAccessibility) {
+      unsubscribeAccessibility();
+      unsubscribeAccessibility = null;
     }
     graphicsQualityManager = null;
     if (beforeUnloadHandler) {
