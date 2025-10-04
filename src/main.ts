@@ -706,6 +706,9 @@ function initializeImmersiveScene(
     ambientAudioController?.setMasterVolume(volume);
   };
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const hasForcedImmersiveMode = searchParams.get('mode') === 'immersive';
+
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
     container,
@@ -724,6 +727,7 @@ function initializeImmersiveScene(
     onBeforeFallback: () => {
       disposeImmersiveResources();
     },
+    disabled: hasForcedImmersiveMode,
   });
 
   const handleFatalError = (error: unknown) => {

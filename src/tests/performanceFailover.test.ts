@@ -151,4 +151,44 @@ describe('createPerformanceFailoverHandler', () => {
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback');
   });
+
+  it('can disable automated fallback while keeping manual toggles available', () => {
+    const { renderer, canvas, setAnimationLoop, dispose } = createRenderer();
+    const removeSpy = vi.spyOn(canvas, 'remove');
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: '/?mode=immersive',
+      markAppReady,
+      renderFallback,
+      disabled: true,
+    });
+
+    for (let i = 0; i < 500; i += 1) {
+      handler.update(1 / 10);
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+
+    handler.triggerFallback('manual');
+
+    expect(handler.hasTriggered()).toBe(true);
+    expect(setAnimationLoop).toHaveBeenCalledWith(null);
+    expect(dispose).toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalled();
+    expect(renderFallback).toHaveBeenCalledWith(container, {
+      reason: 'manual',
+      immersiveUrl: '/?mode=immersive',
+      resumeUrl: undefined,
+      githubUrl: undefined,
+    });
+    expect(markAppReady).toHaveBeenCalledWith('fallback');
+  });
 });

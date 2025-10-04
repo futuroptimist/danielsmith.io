@@ -147,6 +147,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ JSON-LD structured data now mirrors the POI registry so bots and scrapers receive the
      same exhibit catalog as players.
    - ✅ HUD toggle + `T` keybinding now trigger the text portfolio without a page reload.
+   - ✅ Automated user-agent heuristics now route crawlers and headless previews to the text
+     portfolio while honoring manual immersive overrides.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
    - In-world visual cues for discovered content (e.g., glowing trims, checkmarks).

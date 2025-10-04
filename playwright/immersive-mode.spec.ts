@@ -25,7 +25,8 @@ test.describe('immersive experience', () => {
     const consoleErrors = collectConsoleErrors(page);
     const pageErrors = collectPageErrors(page);
 
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    // Force immersive mode to bypass automated-client heuristics that default to text.
+    await page.goto('/?mode=immersive', { waitUntil: 'domcontentloaded' });
 
     await page.waitForFunction(
       () => document.documentElement.dataset.appMode === 'immersive',

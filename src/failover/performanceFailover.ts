@@ -29,6 +29,7 @@ export interface PerformanceFailoverHandlerOptions {
   ) => void;
   fallbackLinks?: Pick<RenderTextFallbackOptions, 'resumeUrl' | 'githubUrl'>;
   onBeforeFallback?: (reason: FallbackReason) => void;
+  disabled?: boolean;
 }
 
 interface PerformanceFailoverMonitorOptions {
@@ -129,6 +130,7 @@ export function createPerformanceFailoverHandler(
     renderFallback: render = renderTextFallback,
     fallbackLinks,
     onBeforeFallback,
+    disabled = false,
   } = options;
 
   let transitioned = false;
@@ -180,24 +182,26 @@ export function createPerformanceFailoverHandler(
     markAppReady('fallback');
   };
 
-  const monitor = new PerformanceFailoverMonitor({
-    fpsThreshold,
-    minimumDurationMs,
-    maxFrameDeltaMs,
-    onTrigger: (context) => {
-      transitionToFallback('low-performance', context);
-    },
-  });
+  const monitor = disabled
+    ? null
+    : new PerformanceFailoverMonitor({
+        fpsThreshold,
+        minimumDurationMs,
+        maxFrameDeltaMs,
+        onTrigger: (context) => {
+          transitionToFallback('low-performance', context);
+        },
+      });
 
   return {
     update(deltaSeconds: number) {
-      if (transitioned) {
+      if (transitioned || !monitor) {
         return;
       }
       monitor.update(deltaSeconds);
     },
     hasTriggered() {
-      return transitioned || monitor.hasTriggered();
+      return transitioned || monitor?.hasTriggered() === true;
     },
     triggerFallback(reason: FallbackReason) {
       transitionToFallback(reason);
