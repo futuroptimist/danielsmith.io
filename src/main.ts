@@ -92,6 +92,10 @@ import {
 } from './graphics/qualityManager';
 import { createHelpModal } from './hud/helpModal';
 import {
+  createHudLayoutManager,
+  type HudLayoutManagerHandle,
+} from './hud/layoutManager';
+import {
   createLightingDebugController,
   type LightingMode,
 } from './lighting/debugControls';
@@ -691,6 +695,7 @@ function initializeImmersiveScene(
   ledFillLightsList.length = 0;
 
   let manualModeToggle: ManualModeToggleHandle | null = null;
+  let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
@@ -1777,6 +1782,11 @@ function initializeImmersiveScene(
   let composer: EffectComposer | null = null;
   let bloomPass: UnrealBloomPass | null = null;
 
+  hudLayoutManager = createHudLayoutManager({
+    root: document.documentElement,
+    windowTarget: window,
+  });
+
   if (LIGHTING_OPTIONS.enableBloom) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
@@ -2301,6 +2311,10 @@ function initializeImmersiveScene(
     if (audioHudHandle) {
       audioHudHandle.dispose();
       audioHudHandle = null;
+    }
+    if (hudLayoutManager) {
+      hudLayoutManager.dispose();
+      hudLayoutManager = null;
     }
     if (accessibilityControlHandle) {
       accessibilityControlHandle.dispose();

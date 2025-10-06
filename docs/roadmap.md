@@ -139,7 +139,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes
        that retune bloom, LED lighting, and pixel ratio for their device.
    - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
-   - Mobile-friendly layout that coexists with on-screen joystick.
+   - ✅ Mobile HUD layout now lifts instructional overlays above the joystick
+     safe zone so touch movement remains unobstructed.
 2. **Experience Toggle**
    - Mode switch between immersive 3D view and a fast-loading text portfolio.
    - Detect low-end/no-JS/scraper clients and auto-route to static mode.
