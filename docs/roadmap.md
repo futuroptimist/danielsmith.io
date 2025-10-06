@@ -153,7 +153,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      portfolio while honoring manual immersive overrides.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
-   - In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
+   - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
+     - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
    - Optional guided tour mode that highlights the next recommended POI.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
