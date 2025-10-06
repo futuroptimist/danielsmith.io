@@ -18,6 +18,8 @@ USER:
 3. Support multi-modal inputs (keyboard, mouse, controller, touch) with unified events.
 4. Achieve 100% patch coverage with automated tests for registry loading and interaction state machines.
 5. Document new APIs in `docs/roadmap.md` or dedicated README sections.
+6. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 Summaries must include API notes and tests executed.

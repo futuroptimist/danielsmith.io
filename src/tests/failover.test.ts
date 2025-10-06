@@ -6,6 +6,16 @@ import {
   renderTextFallback,
   type FallbackReason,
 } from '../failover';
+import { createImmersiveModeUrl } from '../immersiveUrl';
+
+const IMMERSIVE_URL = createImmersiveModeUrl({
+  pathname: '/',
+  search: '',
+  hash: '',
+});
+const IMMERSIVE_SEARCH = IMMERSIVE_URL.includes('?')
+  ? `?${IMMERSIVE_URL.split('?')[1]}`
+  : '';
 
 describe('isWebglSupported', () => {
   it('returns true when any WebGL context is available', () => {
@@ -61,7 +71,7 @@ describe('evaluateFailoverDecision', () => {
 
   it('respects manual immersive override when WebGL works', () => {
     const decision = evaluateFailoverDecision({
-      search: '?mode=immersive',
+      search: IMMERSIVE_SEARCH,
       createCanvas: canvasFactory,
     });
     expect(decision).toEqual({ shouldUseFallback: false });
@@ -69,7 +79,7 @@ describe('evaluateFailoverDecision', () => {
 
   it('allows immersive override even when WebGL detection fails', () => {
     const decision = evaluateFailoverDecision({
-      search: '?mode=immersive',
+      search: IMMERSIVE_SEARCH,
       createCanvas: () =>
         ({
           getContext: () => null,
@@ -92,7 +102,7 @@ describe('evaluateFailoverDecision', () => {
 
   it('allows immersive override when memory is low but WebGL works', () => {
     const decision = evaluateFailoverDecision({
-      search: '?mode=immersive',
+      search: IMMERSIVE_SEARCH,
       createCanvas: canvasFactory,
       getDeviceMemory: () => 0.25,
       minimumDeviceMemory: 1,
@@ -114,7 +124,7 @@ describe('evaluateFailoverDecision', () => {
 
   it('does not force fallback for automated client when immersive override is present', () => {
     const decision = evaluateFailoverDecision({
-      search: '?mode=immersive',
+      search: IMMERSIVE_SEARCH,
       createCanvas: canvasFactory,
       getUserAgent: () => 'HeadlessChrome/118.0.0.0',
     });
@@ -135,7 +145,7 @@ describe('renderTextFallback', () => {
     const container = document.createElement('div');
     renderTextFallback(container, {
       reason,
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       resumeUrl: '/resume.pdf',
       githubUrl: 'https://example.com',
     });

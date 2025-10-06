@@ -18,6 +18,8 @@ USER:
 3. Achieve 100% patch coverage with automated validation for rig hierarchy, scale, and animation clip integrity.
 4. Document asset preparation steps for future custom models.
 5. Run visual smoke tests (screenshots/video) and record known issues.
+6. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 Summaries must include asset references, tests, and manual QA steps.
