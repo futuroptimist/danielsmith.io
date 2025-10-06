@@ -122,7 +122,8 @@ describe('AmbientAudioController', () => {
     const { bed, source } = createBed({ falloffCurve: 'smoothstep' });
     const controller = new AmbientAudioController([bed], { smoothing: 0 });
     controller.enable();
-    const midDistance = bed.innerRadius + (bed.outerRadius - bed.innerRadius) * 0.7;
+    const midDistance =
+      bed.innerRadius + (bed.outerRadius - bed.innerRadius) * 0.7;
     controller.update({ x: midDistance, z: 0 }, 0.1);
     const expected =
       bed.baseVolume *
@@ -158,7 +159,10 @@ describe('attenuation helpers', () => {
     expect(_computeAttenuation(0, 2, 5)).toBe(1);
     expect(_computeAttenuation(10, 2, 5)).toBe(0);
     expect(_computeAttenuation(3.5, 2, 5)).toBeCloseTo(0.5, 2);
-    expect(_computeAttenuation(4.25, 2, 5, 'smoothstep')).toBeCloseTo(0.15625, 5);
+    expect(_computeAttenuation(4.25, 2, 5, 'smoothstep')).toBeCloseTo(
+      0.15625,
+      5
+    );
   });
 
   it('handles smoothing factor edge cases', () => {
