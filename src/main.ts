@@ -708,9 +708,8 @@ function initializeImmersiveScene(
   };
 
   const searchParams = new URLSearchParams(window.location.search);
-  const disablePerformanceFailover = shouldDisablePerformanceFailover(
-    searchParams
-  );
+  const disablePerformanceFailover =
+    shouldDisablePerformanceFailover(searchParams);
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,

@@ -36,18 +36,24 @@ describe('createImmersiveModeUrl', () => {
       search: '?mode=text&feature=preview',
       hash: '',
     });
-    expect(url).toBe('/space?mode=immersive&feature=preview&disablePerformanceFailover=1');
+    expect(url).toBe(
+      '/space?mode=immersive&feature=preview&disablePerformanceFailover=1'
+    );
   });
 });
 
 describe('immersive flag helpers', () => {
   it('detects immersive override and bypass params independently', () => {
     expect(hasImmersiveOverride('mode=immersive')).toBe(true);
-    expect(hasPerformanceFailoverBypass('disablePerformanceFailover=1')).toBe(true);
+    expect(hasPerformanceFailoverBypass('disablePerformanceFailover=1')).toBe(
+      true
+    );
   });
 
   it('only bypasses when value matches the expected flag', () => {
-    expect(hasPerformanceFailoverBypass('disablePerformanceFailover=0')).toBe(false);
+    expect(hasPerformanceFailoverBypass('disablePerformanceFailover=0')).toBe(
+      false
+    );
     expect(hasPerformanceFailoverBypass('mode=immersive')).toBe(false);
   });
 

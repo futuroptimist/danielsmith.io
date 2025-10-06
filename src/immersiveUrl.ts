@@ -33,7 +33,10 @@ export const createImmersiveModeUrl = (location?: LocationLike) => {
   const { pathname, search, hash } = normalizeLocation(location);
   const params = new URLSearchParams(search);
   params.set(IMMERSIVE_MODE_PARAM, IMMERSIVE_MODE_VALUE);
-  params.set(DISABLE_PERFORMANCE_FAILOVER_PARAM, DISABLE_PERFORMANCE_FAILOVER_VALUE);
+  params.set(
+    DISABLE_PERFORMANCE_FAILOVER_PARAM,
+    DISABLE_PERFORMANCE_FAILOVER_VALUE
+  );
   const query = params.toString();
   return `${pathname}${query ? `?${query}` : ''}${hash}`;
 };
