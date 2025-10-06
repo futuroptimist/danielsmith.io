@@ -96,6 +96,10 @@ import {
   type HudLayoutManagerHandle,
 } from './hud/layoutManager';
 import {
+  createMovementLegend,
+  type MovementLegendHandle,
+} from './hud/movementLegend';
+import {
   createLightingDebugController,
   type LightingMode,
 } from './lighting/debugControls';
@@ -1335,6 +1339,9 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const movementLegend: MovementLegendHandle | null = controlOverlay
+    ? createMovementLegend({ container: controlOverlay })
+    : null;
   const helpModal = createHelpModal({ container: document.body });
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
@@ -2242,6 +2249,15 @@ function initializeImmersiveScene(
       return;
     }
     interactablePoi = poi;
+    if (movementLegend) {
+      if (poi) {
+        movementLegend.setInteractPrompt(
+          `Interact with ${poi.definition.title}`
+        );
+      } else {
+        movementLegend.setInteractPrompt(null);
+      }
+    }
     if (!interactControl || !interactDescription) {
       return;
     }
@@ -2343,6 +2359,7 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    movementLegend?.dispose();
     helpModal.dispose();
   }
 

@@ -133,6 +133,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 1. **HUD Layer**
    - Responsive overlay with movement legend, interaction prompt, and help modal.
+   - ✨ Movement legend now detects the last input method (keyboard, mouse, or touch) and
+     refreshes the interact prompt copy so players always see the relevant control hint.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
      accessibility tips, and failover guidance.
    - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes

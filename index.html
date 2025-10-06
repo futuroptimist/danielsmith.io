@@ -78,10 +78,21 @@
         display: flex;
         align-items: flex-start;
         gap: 0.75rem;
+        border-radius: 0.6rem;
+        padding: 0.25rem 0.35rem;
+        transition:
+          background-color 180ms ease,
+          box-shadow 180ms ease,
+          color 180ms ease;
       }
 
       .overlay__item[hidden] {
         display: none;
+      }
+
+      .overlay__item[data-state='active'] {
+        background: rgba(32, 82, 128, 0.28);
+        box-shadow: 0 0 0 1px rgba(114, 210, 255, 0.28);
       }
 
       .overlay__keys {
@@ -91,9 +102,17 @@
         color: rgba(143, 214, 255, 0.9);
       }
 
+      .overlay__item[data-state='active'] .overlay__keys {
+        color: rgba(173, 236, 255, 0.96);
+      }
+
       .overlay__description {
         flex: 1;
         color: rgba(239, 245, 255, 0.88);
+      }
+
+      .overlay__item[data-state='active'] .overlay__description {
+        color: rgba(244, 250, 255, 0.96);
       }
 
       .overlay__item--touch {
@@ -286,41 +305,60 @@
     <div class="overlay" id="control-overlay">
       <p class="overlay__heading">Controls</p>
       <ul class="overlay__list">
-        <li class="overlay__item">
+        <li class="overlay__item" data-input-methods="keyboard">
           <span class="overlay__keys">WASD / Arrow keys</span>
           <span class="overlay__description">Move</span>
         </li>
-        <li class="overlay__item overlay__item--desktop">
+        <li
+          class="overlay__item overlay__item--desktop"
+          data-input-methods="pointer"
+        >
           <span class="overlay__keys">Left mouse button</span>
           <span class="overlay__description">Drag to pan</span>
         </li>
-        <li class="overlay__item overlay__item--desktop">
+        <li
+          class="overlay__item overlay__item--desktop"
+          data-input-methods="pointer"
+        >
           <span class="overlay__keys">Scroll wheel</span>
           <span class="overlay__description">Zoom</span>
         </li>
-        <li class="overlay__item overlay__item--touch">
+        <li
+          class="overlay__item overlay__item--touch"
+          data-input-methods="touch"
+        >
           <span class="overlay__keys">Touch</span>
           <span class="overlay__description">
             Drag the left half to move and the right half to pan
           </span>
         </li>
-        <li class="overlay__item overlay__item--touch">
+        <li
+          class="overlay__item overlay__item--touch"
+          data-input-methods="touch"
+        >
           <span class="overlay__keys">Pinch</span>
           <span class="overlay__description">Zoom</span>
         </li>
-        <li class="overlay__item">
+        <li class="overlay__item" data-input-methods="keyboard">
           <span class="overlay__keys">Q / E</span>
           <span class="overlay__description">Cycle POIs</span>
         </li>
-        <li class="overlay__item">
+        <li class="overlay__item" data-input-methods="keyboard">
           <span class="overlay__keys">T</span>
           <span class="overlay__description">Switch to text mode</span>
         </li>
-        <li class="overlay__item" data-control="interact" hidden>
-          <span class="overlay__keys">F</span>
+        <li
+          class="overlay__item"
+          data-control="interact"
+          data-role="interact"
+          data-input-methods="keyboard pointer touch"
+          hidden
+        >
+          <span class="overlay__keys" data-role="interact-label">F</span>
           <span
             class="overlay__description"
             data-control="interact-description"
+            data-role="interact-description"
           >
             Interact
           </span>
