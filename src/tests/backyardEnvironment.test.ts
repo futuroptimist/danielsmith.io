@@ -165,7 +165,9 @@ describe('createBackyardEnvironment', () => {
     const material = (sky as Mesh).material as ShaderMaterial;
     expect(material).toBeInstanceOf(ShaderMaterial);
 
-    const horizonColor = material.uniforms.horizonColor?.value as Color | undefined;
+    const horizonColor = material.uniforms.horizonColor?.value as
+      | Color
+      | undefined;
     expect(horizonColor).toBeInstanceOf(Color);
 
     const beforeHsl = { h: 0, s: 0, l: 0 };
