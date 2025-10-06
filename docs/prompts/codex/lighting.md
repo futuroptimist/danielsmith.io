@@ -19,6 +19,8 @@ USER:
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Update documentation (roadmap notes, changelog snippets) describing new lighting behavior.
 6. Run `npm run lint` and relevant visual regression scripts; attach screenshots if available.
+7. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 Summarize the change, list tests run, highlight any visual review steps.

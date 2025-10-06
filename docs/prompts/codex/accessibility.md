@@ -19,6 +19,8 @@ USER:
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Document usage and configuration in README or dedicated docs.
 6. Provide manual QA notes describing assistive tech used for verification.
+7. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 Summaries must include testing evidence (screenshots, transcripts, tooling logs).

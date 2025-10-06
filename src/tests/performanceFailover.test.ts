@@ -5,6 +5,13 @@ import {
   type ImmersiveRendererHandle,
   type PerformanceFailoverTriggerContext,
 } from '../failover/performanceFailover';
+import { createImmersiveModeUrl } from '../immersiveUrl';
+
+const IMMERSIVE_URL = createImmersiveModeUrl({
+  pathname: '/',
+  search: '',
+  hash: '',
+});
 
 describe('createPerformanceFailoverHandler', () => {
   const createRenderer = () => {
@@ -36,7 +43,7 @@ describe('createPerformanceFailoverHandler', () => {
     const handler = createPerformanceFailoverHandler({
       renderer,
       container,
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       markAppReady,
       renderFallback,
       onTrigger,
@@ -54,7 +61,7 @@ describe('createPerformanceFailoverHandler', () => {
     expect(removeSpy).toHaveBeenCalled();
     expect(renderFallback).toHaveBeenCalledWith(container, {
       reason: 'low-performance',
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       resumeUrl: undefined,
       githubUrl: undefined,
     });
@@ -75,7 +82,7 @@ describe('createPerformanceFailoverHandler', () => {
     const handler = createPerformanceFailoverHandler({
       renderer,
       container,
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       markAppReady,
       renderFallback,
     });
@@ -99,7 +106,7 @@ describe('createPerformanceFailoverHandler', () => {
     const handler = createPerformanceFailoverHandler({
       renderer,
       container,
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       markAppReady,
       renderFallback,
       maxFrameDeltaMs: 200,
@@ -128,7 +135,7 @@ describe('createPerformanceFailoverHandler', () => {
     const handler = createPerformanceFailoverHandler({
       renderer,
       container,
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       markAppReady,
       renderFallback,
       onTrigger,
@@ -145,7 +152,7 @@ describe('createPerformanceFailoverHandler', () => {
     expect(removeSpy).toHaveBeenCalled();
     expect(renderFallback).toHaveBeenCalledWith(container, {
       reason: 'manual',
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       resumeUrl: undefined,
       githubUrl: undefined,
     });
@@ -163,7 +170,7 @@ describe('createPerformanceFailoverHandler', () => {
     const handler = createPerformanceFailoverHandler({
       renderer,
       container,
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       markAppReady,
       renderFallback,
       disabled: true,
@@ -185,7 +192,7 @@ describe('createPerformanceFailoverHandler', () => {
     expect(removeSpy).toHaveBeenCalled();
     expect(renderFallback).toHaveBeenCalledWith(container, {
       reason: 'manual',
-      immersiveUrl: '/?mode=immersive',
+      immersiveUrl: IMMERSIVE_URL,
       resumeUrl: undefined,
       githubUrl: undefined,
     });

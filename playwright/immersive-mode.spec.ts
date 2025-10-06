@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
+const IMMERSIVE_PREVIEW_URL =
+  '/?mode=immersive&disablePerformanceFailover=1';
 
 const collectConsoleErrors = (page: Page): string[] => {
   const errors: string[] = [];
@@ -25,8 +27,8 @@ test.describe('immersive experience', () => {
     const consoleErrors = collectConsoleErrors(page);
     const pageErrors = collectPageErrors(page);
 
-    // Force immersive mode to bypass automated-client heuristics that default to text.
-    await page.goto('/?mode=immersive', { waitUntil: 'domcontentloaded' });
+    // Force immersive mode and bypass low-FPS failover heuristics used for production visitors.
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
 
     await page.waitForFunction(
       () => document.documentElement.dataset.appMode === 'immersive',

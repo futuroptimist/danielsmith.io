@@ -96,6 +96,10 @@ import {
   type HudLayoutManagerHandle,
 } from './hud/layoutManager';
 import {
+  createImmersiveModeUrl,
+  shouldDisablePerformanceFailover,
+} from './immersiveUrl';
+import {
   createLightingDebugController,
   type LightingMode,
 } from './lighting/debugControls';
@@ -154,20 +158,6 @@ const markDocumentReady = (mode: AppMode) => {
   const root = document.documentElement;
   root.dataset.appMode = mode;
   root.removeAttribute('data-app-loading');
-};
-
-const createImmersiveModeUrl = () => {
-  if (typeof window === 'undefined') {
-    return '/?mode=immersive';
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  params.set('mode', 'immersive');
-
-  const query = params.toString();
-  const hash = window.location.hash ?? '';
-
-  return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
 };
 
 let immersiveFailureHandled = false;
@@ -713,7 +703,9 @@ function initializeImmersiveScene(
   };
 
   const searchParams = new URLSearchParams(window.location.search);
-  const hasForcedImmersiveMode = searchParams.get('mode') === 'immersive';
+  const disablePerformanceFailover = shouldDisablePerformanceFailover(
+    searchParams
+  );
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -733,7 +725,7 @@ function initializeImmersiveScene(
     onBeforeFallback: () => {
       disposeImmersiveResources();
     },
-    disabled: hasForcedImmersiveMode,
+    disabled: disablePerformanceFailover,
   });
 
   const handleFatalError = (error: unknown) => {
