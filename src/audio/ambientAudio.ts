@@ -6,12 +6,15 @@ export interface AmbientAudioSource {
   setVolume(volume: number): void;
 }
 
+export type AmbientAudioFalloffCurve = 'linear' | 'smoothstep';
+
 export interface AmbientAudioBedDefinition {
   id: string;
   center: { x: number; z: number };
   innerRadius: number;
   outerRadius: number;
   baseVolume: number;
+  falloffCurve?: AmbientAudioFalloffCurve;
   source: AmbientAudioSource;
 }
 
@@ -32,10 +35,24 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+function applyFalloffCurve(
+  value: number,
+  falloff: AmbientAudioFalloffCurve
+): number {
+  switch (falloff) {
+    case 'smoothstep':
+      return value * value * (3 - 2 * value);
+    case 'linear':
+    default:
+      return value;
+  }
+}
+
 function computeAttenuation(
   distance: number,
   innerRadius: number,
-  outerRadius: number
+  outerRadius: number,
+  falloff: AmbientAudioFalloffCurve = 'linear'
 ): number {
   if (outerRadius <= innerRadius) {
     return distance <= innerRadius ? 1 : 0;
@@ -48,7 +65,8 @@ function computeAttenuation(
   }
   const range = outerRadius - innerRadius;
   const normalized = (distance - innerRadius) / range;
-  return clamp(1 - normalized, 0, 1);
+  const attenuated = clamp(1 - normalized, 0, 1);
+  return applyFalloffCurve(attenuated, falloff);
 }
 
 function smoothingFactor(rate: number, delta: number): number {
@@ -148,7 +166,8 @@ export class AmbientAudioController {
       const attenuation = computeAttenuation(
         distance,
         bed.definition.innerRadius,
-        bed.definition.outerRadius
+        bed.definition.outerRadius,
+        bed.definition.falloffCurve
       );
       const targetVolume = this.enabled
         ? clamp(

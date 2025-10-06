@@ -18,6 +18,7 @@ import {
   Vector3,
 } from 'three';
 
+import type { AmbientAudioFalloffCurve } from '../audio/ambientAudio';
 import type { RectCollider } from '../collision';
 import type { Bounds2D } from '../floorPlan';
 import { createGreenhouse } from '../structures/greenhouse';
@@ -36,6 +37,7 @@ export interface BackyardAmbientAudioBed {
   innerRadius: number;
   outerRadius: number;
   baseVolume: number;
+  falloffCurve?: AmbientAudioFalloffCurve;
 }
 
 function createSignageTexture(title: string, subtitle: string): CanvasTexture {
@@ -211,6 +213,7 @@ export function createBackyardEnvironment(
     innerRadius: Math.max(1, (walkwayMaxExtent / 2) * 0.9),
     outerRadius: Math.max(1.6, walkwayMaxExtent * 1.2 + 1.4),
     baseVolume: 0.42,
+    falloffCurve: 'smoothstep',
   });
 
   interface LanternAnimationTarget {
