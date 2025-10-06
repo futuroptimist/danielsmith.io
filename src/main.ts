@@ -1671,6 +1671,7 @@ function initializeImmersiveScene(
       innerRadius: homeHalfExtent * 0.55,
       outerRadius: homeHalfExtent * 1.2,
       baseVolume: 0.32,
+      falloffCurve: 'smoothstep',
       source: createLoopingSource('interior-hum', (context) =>
         createDistantHumBuffer(context)
       ),
@@ -1691,6 +1692,7 @@ function initializeImmersiveScene(
         innerRadius: backyardHalfExtent * 0.6,
         outerRadius: backyardHalfExtent + toWorldUnits(6),
         baseVolume: 0.65,
+        falloffCurve: 'smoothstep',
         source: createLoopingSource('backyard-crickets', (context) =>
           createCricketChorusBuffer(context)
         ),
