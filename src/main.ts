@@ -106,6 +106,7 @@ import {
 import { getPoiDefinitions } from './poi/registry';
 import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
+import { PoiTourGuide } from './poi/tourGuide';
 import { PoiVisitedState } from './poi/visitedState';
 import {
   createFlywheelShowpiece,
@@ -1215,6 +1216,17 @@ function initializeImmersiveScene(
   const poiAnalytics = createWindowPoiAnalytics();
   const poiTooltipOverlay = new PoiTooltipOverlay({ container });
   const poiVisitedState = new PoiVisitedState();
+  const poiTourGuide = new PoiTourGuide({
+    definitions: poiDefinitions,
+    visitedState: poiVisitedState,
+    priorityOrder: [
+      'futuroptimist-living-room-tv',
+      'flywheel-studio-flywheel',
+      'jobbot-studio-terminal',
+      'dspace-backyard-rocket',
+      'sugarkube-backyard-greenhouse',
+    ],
+  });
 
   const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
     for (const poi of poiInstances) {
@@ -1228,6 +1240,11 @@ function initializeImmersiveScene(
 
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
+  const removeTourGuideSubscription = poiTourGuide.subscribe(
+    (recommendation) => {
+      poiTooltipOverlay.setRecommendation(recommendation);
+    }
+  );
 
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
@@ -2255,7 +2272,9 @@ function initializeImmersiveScene(
     removeSelectionStateListener();
     removeSelectionListener();
     removeVisitedSubscription();
+    removeTourGuideSubscription();
     poiTooltipOverlay.dispose();
+    poiTourGuide.dispose();
     if (manualModeToggle) {
       manualModeToggle.dispose();
       manualModeToggle = null;

@@ -16,8 +16,10 @@ export class PoiTooltipOverlay {
   private readonly linksList: HTMLUListElement;
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
+  private readonly recommendationBadge: HTMLSpanElement;
   private hovered: PoiDefinition | null = null;
   private selected: PoiDefinition | null = null;
+  private recommendation: PoiDefinition | null = null;
   private renderState: RenderState = { poiId: null };
   private visitedPoiIds: ReadonlySet<string> = new Set();
 
@@ -51,6 +53,12 @@ export class PoiTooltipOverlay {
     this.visitedBadge.hidden = true;
     headingRow.appendChild(this.visitedBadge);
 
+    this.recommendationBadge = document.createElement('span');
+    this.recommendationBadge.className = 'poi-tooltip-overlay__recommendation';
+    this.recommendationBadge.textContent = 'Next highlight';
+    this.recommendationBadge.hidden = true;
+    headingRow.appendChild(this.recommendationBadge);
+
     this.summary = document.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';
     this.root.appendChild(this.summary);
@@ -77,6 +85,11 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
+  setRecommendation(poi: PoiDefinition | null) {
+    this.recommendation = poi;
+    this.update();
+  }
+
   setVisitedPoiIds(ids: ReadonlySet<string>) {
     this.visitedPoiIds = ids;
     this.update();
@@ -87,23 +100,29 @@ export class PoiTooltipOverlay {
   }
 
   private update() {
-    const poi = this.hovered ?? this.selected;
+    const poi = this.hovered ?? this.selected ?? this.recommendation;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
       this.root.dataset.state = 'hidden';
       this.root.setAttribute('aria-hidden', 'true');
       this.renderState.poiId = null;
       this.visitedBadge.hidden = true;
+      this.recommendationBadge.hidden = true;
       return;
     }
 
-    const state = this.hovered ? 'hovered' : 'selected';
+    const state = this.hovered
+      ? 'hovered'
+      : this.selected
+        ? 'selected'
+        : 'recommended';
     this.root.dataset.state = state;
     this.root.classList.add('poi-tooltip-overlay--visible');
     this.root.setAttribute('aria-hidden', 'false');
 
     const visited = this.visitedPoiIds.has(poi.id);
     this.visitedBadge.hidden = !visited;
+    this.recommendationBadge.hidden = state !== 'recommended';
 
     if (this.renderState.poiId !== poi.id) {
       this.renderPoi(poi);
