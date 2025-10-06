@@ -112,8 +112,10 @@ function readFallbackReason(documentTarget: Document): FallbackReason {
 }
 
 function handleModeChange(documentTarget: Document): void {
-  const mode = documentTarget.documentElement.dataset
-    .appMode as 'immersive' | 'fallback' | undefined;
+  const mode = documentTarget.documentElement.dataset.appMode as
+    | 'immersive'
+    | 'fallback'
+    | undefined;
   if (!mode) {
     return;
   }

@@ -168,9 +168,11 @@ Focus: make the experience inclusive and globally friendly.
 
 1. **Input Accessibility**
    - Keyboard-only navigation parity, remappable bindings, and full controller support.
-  - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
-    - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
-   - Interaction timeline tuned for cognitive load (limited simultaneous prompts).
+
+- Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
+  - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
+- Interaction timeline tuned for cognitive load (limited simultaneous prompts).
+
 2. **Visual & Audio Accessibility**
    - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
    - Subtitle/captions system for ambient audio callouts and POI narration.
