@@ -496,6 +496,33 @@ canvas {
   }
 }
 
+:root[data-hud-layout='mobile'] {
+  --hud-mobile-safe-zone: calc(8.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+:root[data-hud-layout='mobile'] .overlay {
+  bottom: var(--hud-mobile-safe-zone);
+  left: 1rem;
+  right: 1rem;
+  max-width: none;
+  width: auto;
+  padding: 0.9rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+:root[data-hud-layout='mobile'] .overlay__keys {
+  width: 8.5rem;
+}
+
+:root[data-hud-layout='mobile'] .poi-tooltip-overlay {
+  bottom: calc(var(--hud-mobile-safe-zone) + 1rem);
+  left: 1rem;
+  right: 1rem;
+  max-width: none;
+  width: auto;
+}
+
 :root[data-accessibility-motion='reduced'] .audio-hud,
 :root[data-accessibility-motion='reduced'] .graphics-quality,
 :root[data-accessibility-motion='reduced'] .mode-toggle,
