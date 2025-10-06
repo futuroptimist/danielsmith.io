@@ -123,7 +123,10 @@ describe('validatePoiDefinitions', () => {
       poiId: doorwayPoi.id,
       roomId: doorwayPoi.roomId,
       wall: 'north',
-      doorway: expect.objectContaining({ start: expect.any(Number), end: expect.any(Number) }),
+      doorway: expect.objectContaining({
+        start: expect.any(Number),
+        end: expect.any(Number),
+      }),
     });
   });
 

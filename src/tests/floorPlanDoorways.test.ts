@@ -10,7 +10,9 @@ describe('getDoorwayClearanceZones', () => {
   });
 
   it('generates doorway clearances for rooms with door definitions', () => {
-    const livingRoomZones = zones.filter((zone) => zone.roomId === 'livingRoom');
+    const livingRoomZones = zones.filter(
+      (zone) => zone.roomId === 'livingRoom'
+    );
     expect(livingRoomZones.length).toBeGreaterThan(0);
   });
 
