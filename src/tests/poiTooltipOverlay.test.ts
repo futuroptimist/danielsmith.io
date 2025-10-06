@@ -112,4 +112,21 @@ describe('PoiTooltipOverlay', () => {
     overlay.setSelected(basePoi);
     expect(visitedBadge.hidden).toBe(true);
   });
+
+  it('renders a guided tour recommendation when available', () => {
+    overlay.setRecommendation(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('recommended');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+
+    const recommendationBadge = root.querySelector(
+      '.poi-tooltip-overlay__recommendation'
+    ) as HTMLSpanElement;
+    expect(recommendationBadge.hidden).toBe(false);
+    expect(recommendationBadge.textContent).toBe('Next highlight');
+
+    overlay.setRecommendation(null);
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+  });
 });

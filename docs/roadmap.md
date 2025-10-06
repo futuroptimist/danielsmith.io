@@ -154,6 +154,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
    - Optional guided tour mode that highlights the next recommended POI.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
+   - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
 
 ## Phase 4 – Accessibility & Internationalization
 

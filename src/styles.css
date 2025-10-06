@@ -788,6 +788,17 @@ canvas {
   text-transform: uppercase;
 }
 
+.poi-tooltip-overlay__recommendation {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 207, 129, 0.14);
+  border: 1px solid rgba(255, 207, 129, 0.4);
+  color: #ffd79a;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .poi-tooltip-overlay__summary {
   margin: 0;
   color: rgba(222, 245, 255, 0.92);
@@ -853,4 +864,8 @@ canvas {
 
 .poi-tooltip-overlay[data-state='selected'] {
   border-color: rgba(255, 200, 87, 0.45);
+}
+
+.poi-tooltip-overlay[data-state='recommended'] {
+  border-color: rgba(255, 207, 129, 0.42);
 }
