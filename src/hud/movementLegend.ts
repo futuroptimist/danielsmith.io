@@ -265,13 +265,11 @@ export function createMovementLegend(
 
     addListener('keydown', handleKeydown);
 
-    const supportsPointerEvents =
-      'PointerEvent' in windowTarget &&
-      typeof windowTarget.PointerEvent === 'function';
+    const hasPointerDownSupport = 'onpointerdown' in windowTarget;
 
-    if (supportsPointerEvents) {
-      addListener('pointerdown', handlePointerEvent as EventListener);
-    } else {
+    addListener('pointerdown', handlePointerEvent as EventListener);
+
+    if (!hasPointerDownSupport) {
       addListener('mousedown', handlePointerEvent as EventListener);
     }
 
