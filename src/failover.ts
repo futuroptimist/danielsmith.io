@@ -1,3 +1,12 @@
+import { initializeModeAnnouncementObserver } from './accessibility/modeAnnouncer';
+
+if (
+  typeof document !== 'undefined' &&
+  typeof MutationObserver !== 'undefined'
+) {
+  initializeModeAnnouncementObserver();
+}
+
 const WEBGL_CONTEXT_NAMES = ['webgl2', 'webgl', 'experimental-webgl'] as const;
 
 type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
