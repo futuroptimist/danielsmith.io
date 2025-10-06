@@ -1,7 +1,9 @@
 import type { PoiDefinition, PoiId } from './types';
 import { PoiVisitedState } from './visitedState';
 
-export type PoiTourGuideListener = (recommendation: PoiDefinition | null) => void;
+export type PoiTourGuideListener = (
+  recommendation: PoiDefinition | null
+) => void;
 
 export interface PoiTourGuideOptions {
   definitions: PoiDefinition[];
@@ -34,7 +36,8 @@ export class PoiTourGuide {
     this.visitedState = options.visitedState;
     this.setDefinitions(options.definitions);
     this.priorityOrder = this.normalizePriority(
-      options.priorityOrder ?? options.definitions.map((definition) => definition.id)
+      options.priorityOrder ??
+        options.definitions.map((definition) => definition.id)
     );
 
     this.refreshRecommendation();
@@ -103,7 +106,9 @@ export class PoiTourGuide {
     this.emit(next);
   }
 
-  private computeRecommendation(visited: ReadonlySet<PoiId>): PoiDefinition | null {
+  private computeRecommendation(
+    visited: ReadonlySet<PoiId>
+  ): PoiDefinition | null {
     const order = this.buildOrderedDefinitions();
     for (const definition of order) {
       if (!visited.has(definition.id)) {

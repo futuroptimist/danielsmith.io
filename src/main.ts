@@ -1240,9 +1240,11 @@ function initializeImmersiveScene(
 
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
-  const removeTourGuideSubscription = poiTourGuide.subscribe((recommendation) => {
-    poiTooltipOverlay.setRecommendation(recommendation);
-  });
+  const removeTourGuideSubscription = poiTourGuide.subscribe(
+    (recommendation) => {
+      poiTooltipOverlay.setRecommendation(recommendation);
+    }
+  );
 
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
