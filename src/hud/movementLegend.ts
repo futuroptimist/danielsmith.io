@@ -264,8 +264,17 @@ export function createMovementLegend(
     };
 
     addListener('keydown', handleKeydown);
-    addListener('pointerdown', handlePointerEvent as EventListener);
-    addListener('mousedown', handlePointerEvent as EventListener);
+
+    const supportsPointerEvents =
+      'PointerEvent' in windowTarget &&
+      typeof windowTarget.PointerEvent === 'function';
+
+    if (supportsPointerEvents) {
+      addListener('pointerdown', handlePointerEvent as EventListener);
+    } else {
+      addListener('mousedown', handlePointerEvent as EventListener);
+    }
+
     addListener('touchstart', handleTouchStart, { passive: true });
   }
 
