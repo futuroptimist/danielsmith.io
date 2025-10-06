@@ -159,7 +159,9 @@ export function createHudLayoutManager({
       windowTarget.removeEventListener('resize', handleResize);
       windowTarget.removeEventListener('orientationchange', handleResize);
       if (root) {
-        delete (root.dataset as Record<string, string | undefined>)[dataAttribute];
+        delete (root.dataset as Record<string, string | undefined>)[
+          dataAttribute
+        ];
       }
     },
   };

@@ -68,10 +68,16 @@ const createMediaQueryStub = (
     });
   } else {
     Object.assign(stub, {
-      addEventListener: (_type: string, listener: Listener<MediaQueryListEvent>) => {
+      addEventListener: (
+        _type: string,
+        listener: Listener<MediaQueryListEvent>
+      ) => {
         listeners.add(listener);
       },
-      removeEventListener: (_type: string, listener: Listener<MediaQueryListEvent>) => {
+      removeEventListener: (
+        _type: string,
+        listener: Listener<MediaQueryListEvent>
+      ) => {
         listeners.delete(listener);
       },
     });
