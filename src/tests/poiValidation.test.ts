@@ -103,6 +103,33 @@ describe('validatePoiDefinitions', () => {
     } satisfies PoiValidationIssue);
   });
 
+  it('flags POIs that intrude on reserved doorway clearances', () => {
+    const doorwayPoi = clonePoi({
+      id: 'futuroptimist-doorway-test' as (typeof baseDefinitions)[0]['id'],
+      position: {
+        x: livingRoomBounds.minX + 14,
+        y: baseDefinitions[0].position.y,
+        z: livingRoomBounds.maxZ - 0.4,
+      },
+      footprint: { width: 3.2, depth: 2.4 },
+    });
+
+    const issues = validatePoiDefinitions([...baseDefinitions, doorwayPoi], {
+      floorPlan: FLOOR_PLAN,
+    });
+
+    expect(issues).toContainEqual({
+      type: 'doorway-blocked',
+      poiId: doorwayPoi.id,
+      roomId: doorwayPoi.roomId,
+      wall: 'north',
+      doorway: expect.objectContaining({
+        start: expect.any(Number),
+        end: expect.any(Number),
+      }),
+    });
+  });
+
   it('includes interaction radii when checking for overlaps', () => {
     const poiA = clonePoi({
       id: 'futuroptimist-interaction-overlap-a' as (typeof baseDefinitions)[0]['id'],
@@ -188,6 +215,15 @@ describe('assertValidPoiDefinitions', () => {
         z: baseDefinitions[0].position.z,
       },
     });
+    const doorwayBlocker = clonePoi({
+      id: 'doorway-blocker' as PoiDefinition['id'],
+      position: {
+        x: livingRoomBounds.minX + 14,
+        y: baseDefinitions[0].position.y,
+        z: livingRoomBounds.maxZ - 0.35,
+      },
+      footprint: { width: 3.2, depth: 2.4 },
+    });
 
     const problematicList = [
       ...baseDefinitions,
@@ -196,6 +232,7 @@ describe('assertValidPoiDefinitions', () => {
       outOfBoundsPoi,
       overlapA,
       overlapB,
+      doorwayBlocker,
     ];
 
     expect(() =>
@@ -209,6 +246,7 @@ describe('assertValidPoiDefinitions', () => {
         expect(error.message).toContain('unknown room');
         expect(error.message).toContain('outside livingRoom');
         expect(error.message).toContain('overlap');
+        expect(error.message).toContain('doorway');
       } else {
         throw error;
       }

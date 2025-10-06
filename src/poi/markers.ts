@@ -18,6 +18,7 @@ import {
 } from 'three';
 
 import type { PoiDefinition, PoiId } from './types';
+import { createVisitedBadge, type PoiVisitedBadge } from './visitedBadge';
 
 export interface PoiDisplayHighlight {
   mesh: Mesh;
@@ -72,6 +73,7 @@ export interface PoiInstance {
     mesh: Mesh;
     material: MeshBasicMaterial;
   };
+  visitedBadge?: PoiVisitedBadge;
 }
 
 export function createPoiInstances(
@@ -169,6 +171,13 @@ function createPedestalPoiInstance(
   label.position.set(0, labelBaseHeight, 0);
   label.renderOrder = 12;
   group.add(label);
+
+  const badgeBaseHeight = labelBaseHeight + labelHeight * 0.42;
+  const visitedBadge = createVisitedBadge({
+    baseHeight: badgeBaseHeight,
+  });
+  visitedBadge.mesh.position.set(0, badgeBaseHeight, 0);
+  group.add(visitedBadge.mesh);
 
   const haloInnerRadius = Math.max(baseRadiusX, baseRadiusZ) * 0.92;
   const haloOuterRadius = haloInnerRadius + 0.36;
@@ -272,6 +281,7 @@ function createPedestalPoiInstance(
     visited: false,
     visitedStrength: 0,
     visitedHighlight: { mesh: visitedRing, material: visitedRingMaterial },
+    visitedBadge,
   };
 }
 

@@ -1,4 +1,5 @@
 import {
+  BackSide,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -14,9 +15,11 @@ import {
   PointLight,
   Points,
   PointsMaterial,
+  ShaderMaterial,
   SphereGeometry,
   Vector3,
 } from 'three';
+import type { IUniform } from 'three';
 
 import type { AmbientAudioFalloffCurve } from '../audio/ambientAudio';
 import type { RectCollider } from '../collision';
@@ -95,6 +98,81 @@ export function createBackyardEnvironment(
   const depth = bounds.maxZ - bounds.minZ;
   const centerX = (bounds.minX + bounds.maxX) / 2;
   const centerZ = (bounds.minZ + bounds.maxZ) / 2;
+
+  const skyRadius = Math.max(width, depth) * 1.32;
+  const skyGeometry = new SphereGeometry(skyRadius, 48, 48);
+  skyGeometry.scale(1, 0.62, 1);
+  const verticalExtent = skyRadius * 0.62;
+
+  const baseHorizonColor = new Color(0x7fa4d9);
+  const baseHorizonHsl = { h: 0, s: 0, l: 0 };
+  baseHorizonColor.getHSL(baseHorizonHsl);
+
+  const skyUniforms: {
+    topColor: IUniform<Color>;
+    midColor: IUniform<Color>;
+    horizonColor: IUniform<Color>;
+    time: IUniform<number>;
+    verticalExtent: IUniform<number>;
+  } = {
+    topColor: { value: new Color(0x051024) },
+    midColor: { value: new Color(0x102132) },
+    horizonColor: { value: baseHorizonColor },
+    time: { value: 0 },
+    verticalExtent: { value: verticalExtent },
+  };
+
+  const skyMaterial = new ShaderMaterial({
+    uniforms: skyUniforms,
+    vertexShader: `
+      uniform float verticalExtent;
+      varying float vHeight;
+
+      void main() {
+        vHeight = clamp((position.y / verticalExtent + 1.0) * 0.5, 0.0, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 topColor;
+      uniform vec3 midColor;
+      uniform vec3 horizonColor;
+      uniform float time;
+      varying float vHeight;
+
+      void main() {
+        float horizonBlend = smoothstep(0.18, 0.68, vHeight);
+        float zenithBlend = smoothstep(0.4, 1.0, vHeight);
+        vec3 base = mix(midColor, topColor, zenithBlend);
+        base = mix(horizonColor, base, horizonBlend);
+        float shimmer = 0.03 * (sin(time * 0.17 + vHeight * 6.0) + sin(time * 0.23 + vHeight * 5.0));
+        base += vec3(shimmer);
+        base = clamp(base, 0.0, 1.0);
+        gl_FragColor = vec4(base, 1.0);
+      }
+    `,
+    side: BackSide,
+    depthWrite: false,
+  });
+
+  const skyDome = new Mesh(skyGeometry, skyMaterial);
+  skyDome.name = 'BackyardSkyDome';
+  skyDome.position.set(centerX, -0.6, centerZ);
+  group.add(skyDome);
+
+  updates.push(({ elapsed }) => {
+    skyUniforms.time.value = elapsed;
+    const duskWave = Math.sin(elapsed * 0.12) * 0.08;
+    const adjustedLightness = Math.min(
+      1,
+      Math.max(0, baseHorizonHsl.l + duskWave * 0.6)
+    );
+    skyUniforms.horizonColor.value.setHSL(
+      baseHorizonHsl.h,
+      baseHorizonHsl.s,
+      adjustedLightness
+    );
+  });
 
   const terrainSegments = 32;
   const terrainGeometry = new PlaneGeometry(

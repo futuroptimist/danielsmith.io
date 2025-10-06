@@ -64,6 +64,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
    - Stub staircase volumes that connect to a placeholder second-floor landing.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
+     - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
 3. **Outdoor Transition**
    - Sculpt backyard terrain plane, fence line, and skybox updates.
@@ -72,6 +73,7 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
+   - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
 
 ## Phase 2 – Points of Interest (POIs)
 
@@ -134,6 +136,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 1. **HUD Layer**
    - Responsive overlay with movement legend, interaction prompt, and help modal.
+   - ✨ Movement legend now detects the last input method (keyboard, mouse, or touch) and
+     refreshes the interact prompt copy so players always see the relevant control hint.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
      accessibility tips, and failover guidance.
    - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
@@ -154,7 +158,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      portfolio while honoring manual immersive overrides.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
-   - In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
+   - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
+     - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
    - Optional guided tour mode that highlights the next recommended POI.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.

@@ -96,6 +96,10 @@ import {
   type HudLayoutManagerHandle,
 } from './hud/layoutManager';
 import {
+  createMovementLegend,
+  type MovementLegendHandle,
+} from './hud/movementLegend';
+import {
   createImmersiveModeUrl,
   shouldDisablePerformanceFailover,
 } from './immersiveUrl';
@@ -115,6 +119,7 @@ import { getPoiDefinitions } from './poi/registry';
 import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiTourGuide } from './poi/tourGuide';
+import { updateVisitedBadge } from './poi/visitedBadge';
 import { PoiVisitedState } from './poi/visitedState';
 import {
   createFlywheelShowpiece,
@@ -1327,6 +1332,9 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const movementLegend: MovementLegendHandle | null = controlOverlay
+    ? createMovementLegend({ container: controlOverlay })
+    : null;
   const helpModal = createHelpModal({ container: document.body });
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
@@ -2171,6 +2179,15 @@ function initializeImmersiveScene(
         poi.visitedHighlight.mesh.scale.setScalar(visitedScale);
       }
 
+      if (poi.visitedBadge) {
+        updateVisitedBadge(poi.visitedBadge, {
+          elapsedTime,
+          delta,
+          visitedEmphasis,
+          floatPhase: poi.floatPhase,
+        });
+      }
+
       if (!poi.displayHighlight) {
         if (
           poi.orbMaterial &&
@@ -2234,6 +2251,15 @@ function initializeImmersiveScene(
       return;
     }
     interactablePoi = poi;
+    if (movementLegend) {
+      if (poi) {
+        movementLegend.setInteractPrompt(
+          `Interact with ${poi.definition.title}`
+        );
+      } else {
+        movementLegend.setInteractPrompt(null);
+      }
+    }
     if (!interactControl || !interactDescription) {
       return;
     }
@@ -2335,6 +2361,7 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    movementLegend?.dispose();
     helpModal.dispose();
   }
 
