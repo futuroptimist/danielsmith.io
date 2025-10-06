@@ -111,6 +111,7 @@ import { getPoiDefinitions } from './poi/registry';
 import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiTourGuide } from './poi/tourGuide';
+import { updateVisitedBadge } from './poi/visitedBadge';
 import { PoiVisitedState } from './poi/visitedState';
 import {
   createFlywheelShowpiece,
@@ -2177,6 +2178,15 @@ function initializeImmersiveScene(
         poi.visitedHighlight.mesh.visible = visitedOpacity > 0.02;
         const visitedScale = 1 + visitedEmphasis * 0.12;
         poi.visitedHighlight.mesh.scale.setScalar(visitedScale);
+      }
+
+      if (poi.visitedBadge) {
+        updateVisitedBadge(poi.visitedBadge, {
+          elapsedTime,
+          delta,
+          visitedEmphasis,
+          floatPhase: poi.floatPhase,
+        });
       }
 
       if (!poi.displayHighlight) {
