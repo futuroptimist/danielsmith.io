@@ -102,6 +102,11 @@ const ACCESSIBILITY_PRESET_MAP = new Map(
 
 const DEFAULT_STORAGE_KEY = 'danielsmith:accessibility-preset';
 
+interface AccessibilityPresetStoragePayload {
+  readonly presetId?: AccessibilityPresetId;
+  readonly baseAudioVolume?: number;
+}
+
 interface GraphicsQualityManagerLike
   extends Pick<GraphicsQualityManager, 'refresh' | 'onChange' | 'getLevel'> {}
 
@@ -150,6 +155,52 @@ function isAccessibilityPresetId(
   );
 }
 
+function parseStoredPayload(
+  raw: string | null
+): AccessibilityPresetStoragePayload {
+  if (!raw) {
+    return {};
+  }
+
+  if (isAccessibilityPresetId(raw)) {
+    return { presetId: raw };
+  }
+
+  const parsed: unknown = JSON.parse(raw);
+  if (!parsed || typeof parsed !== 'object') {
+    return {};
+  }
+
+  const payload = parsed as {
+    presetId?: unknown;
+    baseAudioVolume?: unknown;
+  };
+
+  return {
+    presetId: isAccessibilityPresetId(payload.presetId)
+      ? payload.presetId
+      : undefined,
+    baseAudioVolume:
+      typeof payload.baseAudioVolume === 'number' &&
+      Number.isFinite(payload.baseAudioVolume)
+        ? payload.baseAudioVolume
+        : undefined,
+  } satisfies AccessibilityPresetStoragePayload;
+}
+
+function clampPersistedVolume(value: number | undefined): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return undefined;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  if (value >= 1) {
+    return 1;
+  }
+  return value;
+}
+
 export function createAccessibilityPresetManager({
   documentElement,
   graphicsQualityManager,
@@ -170,9 +221,13 @@ export function createAccessibilityPresetManager({
 
   if (storage?.getItem) {
     try {
-      const stored = storage.getItem(storageKey);
-      if (isAccessibilityPresetId(stored)) {
-        presetId = stored;
+      const stored = parseStoredPayload(storage.getItem(storageKey));
+      if (stored.presetId) {
+        presetId = stored.presetId;
+      }
+      const storedVolume = clampPersistedVolume(stored.baseAudioVolume);
+      if (typeof storedVolume === 'number') {
+        baseAudioVolume = storedVolume;
       }
     } catch (error) {
       console.warn('Failed to read persisted accessibility preset:', error);
@@ -238,12 +293,16 @@ export function createAccessibilityPresetManager({
     applyAudio(definition);
   };
 
-  const persist = (id: AccessibilityPresetId) => {
+  const persistState = () => {
     if (!storage?.setItem) {
       return;
     }
     try {
-      storage.setItem(storageKey, id);
+      const payload: Required<AccessibilityPresetStoragePayload> = {
+        presetId,
+        baseAudioVolume,
+      };
+      storage.setItem(storageKey, JSON.stringify(payload));
     } catch (error) {
       console.warn('Failed to persist accessibility preset:', error);
     }
@@ -280,12 +339,12 @@ export function createAccessibilityPresetManager({
         throw new Error(`Unsupported accessibility preset: ${id}`);
       }
       if (presetId === id) {
-        persist(id);
+        persistState();
         applyPreset(currentDefinition());
         return;
       }
       presetId = id;
-      persist(id);
+      persistState();
       applyPreset(currentDefinition());
       notify();
     },
@@ -302,6 +361,7 @@ export function createAccessibilityPresetManager({
       }
       baseAudioVolume = clamped;
       applyAudio(currentDefinition());
+      persistState();
     },
     onChange(listener) {
       listeners.add(listener);

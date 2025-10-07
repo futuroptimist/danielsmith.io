@@ -162,6 +162,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
    - Optional guided tour mode that highlights the next recommended POI.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
+   - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
 
 ## Phase 4 – Accessibility & Internationalization
