@@ -1,7 +1,13 @@
 import type { PoiDefinition } from './types';
 
+type DiscoveryFormatter = (poi: PoiDefinition) => string;
+
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
+  discoveryAnnouncer?: {
+    format?: DiscoveryFormatter;
+    politeness?: 'polite' | 'assertive';
+  };
 }
 
 interface RenderState {
@@ -17,6 +23,9 @@ export class PoiTooltipOverlay {
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
+  private readonly liveRegion: HTMLElement;
+  private discoveryFormatter: DiscoveryFormatter;
+  private discoveryPoliteness: 'polite' | 'assertive';
   private hovered: PoiDefinition | null = null;
   private selected: PoiDefinition | null = null;
   private recommendation: PoiDefinition | null = null;
@@ -24,7 +33,11 @@ export class PoiTooltipOverlay {
   private visitedPoiIds: ReadonlySet<string> = new Set();
 
   constructor(options: PoiTooltipOverlayOptions) {
-    const { container } = options;
+    const { container, discoveryAnnouncer } = options;
+    this.discoveryPoliteness = discoveryAnnouncer?.politeness ?? 'polite';
+    this.discoveryFormatter =
+      discoveryAnnouncer?.format ??
+      ((poi) => `${poi.title} discovered. ${poi.summary}`);
     this.root = document.createElement('section');
     this.root.className = 'poi-tooltip-overlay';
     this.root.setAttribute('role', 'region');
@@ -73,6 +86,15 @@ export class PoiTooltipOverlay {
     this.root.appendChild(this.linksList);
 
     container.appendChild(this.root);
+
+    this.liveRegion = document.createElement('div');
+    this.liveRegion.className = 'poi-tooltip-overlay__live-region';
+    this.liveRegion.setAttribute('role', 'status');
+    this.liveRegion.setAttribute('aria-live', this.discoveryPoliteness);
+    this.liveRegion.setAttribute('aria-atomic', 'true');
+    this.liveRegion.textContent = '';
+    this.applyLiveRegionStyles();
+    container.appendChild(this.liveRegion);
   }
 
   setHovered(poi: PoiDefinition | null) {
@@ -97,6 +119,7 @@ export class PoiTooltipOverlay {
 
   dispose() {
     this.root.remove();
+    this.liveRegion.remove();
   }
 
   private update() {
@@ -108,6 +131,7 @@ export class PoiTooltipOverlay {
       this.renderState.poiId = null;
       this.visitedBadge.hidden = true;
       this.recommendationBadge.hidden = true;
+      this.liveRegion.textContent = '';
       return;
     }
 
@@ -124,9 +148,14 @@ export class PoiTooltipOverlay {
     this.visitedBadge.hidden = !visited;
     this.recommendationBadge.hidden = state !== 'recommended';
 
-    if (this.renderState.poiId !== poi.id) {
+    const previousPoiId = this.renderState.poiId;
+
+    if (previousPoiId !== poi.id) {
       this.renderPoi(poi);
       this.renderState.poiId = poi.id;
+      if (state === 'selected') {
+        this.announceDiscovery(poi);
+      }
     } else {
       this.updateStatus(poi);
     }
@@ -208,5 +237,24 @@ export class PoiTooltipOverlay {
       item.appendChild(anchor);
       this.linksList.appendChild(item);
     }
+  }
+
+  private announceDiscovery(poi: PoiDefinition) {
+    this.liveRegion.setAttribute('aria-live', this.discoveryPoliteness);
+    this.liveRegion.textContent = this.discoveryFormatter(poi);
+  }
+
+  private applyLiveRegionStyles() {
+    const style = this.liveRegion.style;
+    style.position = 'absolute';
+    style.width = '1px';
+    style.height = '1px';
+    style.margin = '-1px';
+    style.border = '0';
+    style.padding = '0';
+    style.overflow = 'hidden';
+    style.clip = 'rect(0 0 0 0)';
+    style.clipPath = 'inset(50%)';
+    style.whiteSpace = 'nowrap';
   }
 }

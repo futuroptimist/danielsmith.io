@@ -7,9 +7,7 @@ import {
 } from '../poi/structuredData';
 import type { PoiDefinition } from '../poi/types';
 
-const createPoi = (
-  overrides: Partial<PoiDefinition> = {}
-): PoiDefinition => ({
+const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   id: 'futuroptimist-living-room-tv',
   title: 'Test Exhibit',
   summary: 'An exhibit used for structured data validation.',

@@ -277,10 +277,10 @@ async function downloadFile(url: string, destination: string): Promise<void> {
     } catch (curlError) {
       const curlMessage =
         curlError instanceof Error ? curlError.message : String(curlError);
-        throw createErrorWithCause(
-          `Failed to download ${url}: ${originalMessage}; curl fallback: ${curlMessage}`,
-          curlError instanceof Error ? curlError : undefined
-        );
+      throw createErrorWithCause(
+        `Failed to download ${url}: ${originalMessage}; curl fallback: ${curlMessage}`,
+        curlError instanceof Error ? curlError : undefined
+      );
     }
   }
 }

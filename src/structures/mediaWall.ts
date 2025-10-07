@@ -65,7 +65,12 @@ function createEditingSuiteTexture(): CanvasTexture {
 
   context.strokeStyle = 'rgba(151, 229, 255, 0.8)';
   context.lineWidth = 6;
-  context.strokeRect(previewX + 8, previewY + 8, previewWidth - 16, previewHeight - 16);
+  context.strokeRect(
+    previewX + 8,
+    previewY + 8,
+    previewWidth - 16,
+    previewHeight - 16
+  );
 
   context.fillStyle = 'rgba(255, 255, 255, 0.72)';
   context.font = '600 86px "Inter", "Segoe UI", sans-serif';
@@ -74,12 +79,21 @@ function createEditingSuiteTexture(): CanvasTexture {
 
   context.fillStyle = '#83e8ff';
   context.font = '48px "Inter", "Segoe UI", sans-serif';
-  context.fillText('Scene: Rocket telemetry breakdown', previewX, previewY + previewHeight + 70);
+  context.fillText(
+    'Scene: Rocket telemetry breakdown',
+    previewX,
+    previewY + previewHeight + 70
+  );
 
   const timelineY = canvas.height * 0.78;
   const timelineHeight = canvas.height * 0.16;
   context.fillStyle = '#0b1e30';
-  context.fillRect(canvas.width * 0.04, timelineY, canvas.width * 0.92, timelineHeight);
+  context.fillRect(
+    canvas.width * 0.04,
+    timelineY,
+    canvas.width * 0.92,
+    timelineHeight
+  );
 
   context.fillStyle = '#16324b';
   const clipCount = 6;
@@ -188,7 +202,11 @@ function createTelemetryTexture(): CanvasTexture {
   context.fillStyle = '#a6f2ff';
   context.font = 'bold 88px "Inter", "Segoe UI", sans-serif';
   context.textAlign = 'left';
-  context.fillText('Cluster Telemetry', canvas.width * 0.08, canvas.height * 0.18);
+  context.fillText(
+    'Cluster Telemetry',
+    canvas.width * 0.08,
+    canvas.height * 0.18
+  );
 
   context.font = '58px "Inter", "Segoe UI", sans-serif';
   const metrics = [
@@ -197,7 +215,11 @@ function createTelemetryTexture(): CanvasTexture {
     'Bandwidth: 1.4 Gbps burst',
   ];
   metrics.forEach((line, index) => {
-    context.fillText(line, canvas.width * 0.08, canvas.height * (0.32 + index * 0.12));
+    context.fillText(
+      line,
+      canvas.width * 0.08,
+      canvas.height * (0.32 + index * 0.12)
+    );
   });
 
   const texture = new CanvasTexture(canvas);
@@ -229,7 +251,12 @@ function createStoryboardTexture(): CanvasTexture {
     for (let col = 0; col < columns; col += 1) {
       const x = padding + col * (cellWidth + padding);
       const y = padding + row * (cellHeight + padding);
-      const gradient = context.createLinearGradient(x, y, x + cellWidth, y + cellHeight);
+      const gradient = context.createLinearGradient(
+        x,
+        y,
+        x + cellWidth,
+        y + cellHeight
+      );
       gradient.addColorStop(0, '#1e3d5a');
       gradient.addColorStop(1, '#102439');
       context.fillStyle = gradient;
@@ -391,11 +418,7 @@ export function createLivingRoomMediaWall(
   legAnchors.forEach(([offsetX, offsetZ], index) => {
     const leg = new Mesh(legGeometry, legMaterial);
     leg.name = `CreatorDeskLeg-${index}`;
-    leg.position.set(
-      offsetX,
-      deskHeight / 2,
-      offsetZ
-    );
+    leg.position.set(offsetX, deskHeight / 2, offsetZ);
     deskTop.add(leg);
   });
 
@@ -441,7 +464,11 @@ export function createLivingRoomMediaWall(
       metalness: 0.24,
     });
     const stand = new Mesh(new BoxGeometry(0.14, 0.5, 0.26), standMaterial);
-    stand.position.set(monitorOffsetX - 0.42, deskHeight + 0.25, anchorZ + offsetZ);
+    stand.position.set(
+      monitorOffsetX - 0.42,
+      deskHeight + 0.25,
+      anchorZ + offsetZ
+    );
     stand.rotation.y = rotationOffset;
     stand.name = `${name}Stand`;
     group.add(stand);
@@ -456,11 +483,7 @@ export function createLivingRoomMediaWall(
       screenMaterial
     );
     screen.name = name;
-    screen.position.set(
-      monitorOffsetX,
-      monitorElevation,
-      anchorZ + offsetZ
-    );
+    screen.position.set(monitorOffsetX, monitorElevation, anchorZ + offsetZ);
     screen.rotation.y = Math.PI / 2 + rotationOffset;
     screen.renderOrder = 10;
     group.add(screen);

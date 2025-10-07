@@ -53,10 +53,8 @@ function createCollider(
   let maxZ = Number.NEGATIVE_INFINITY;
 
   corners.forEach((corner) => {
-    const worldX =
-      center.x + corner.x * cos - corner.z * sin;
-    const worldZ =
-      center.z + corner.x * sin + corner.z * cos;
+    const worldX = center.x + corner.x * cos - corner.z * sin;
+    const worldZ = center.z + corner.x * sin + corner.z * cos;
     minX = Math.min(minX, worldX);
     maxX = Math.max(maxX, worldX);
     minZ = Math.min(minZ, worldZ);
@@ -102,7 +100,12 @@ export function createTokenPlaceRack(
     roughness: 0.42,
     metalness: 0.28,
   });
-  const columnGeometry = new CylinderGeometry(0.08, 0.08, tiers * 0.42 + 0.4, 12);
+  const columnGeometry = new CylinderGeometry(
+    0.08,
+    0.08,
+    tiers * 0.42 + 0.4,
+    12
+  );
   const columnOffsets: Array<[number, number]> = [
     [-baseDepth / 2 + 0.12, -baseWidth / 2 + 0.14],
     [baseDepth / 2 - 0.12, -baseWidth / 2 + 0.14],
@@ -121,7 +124,11 @@ export function createTokenPlaceRack(
     roughness: 0.46,
     metalness: 0.24,
   });
-  const trayGeometry = new BoxGeometry(baseDepth * 0.88, 0.06, baseWidth * 0.86);
+  const trayGeometry = new BoxGeometry(
+    baseDepth * 0.88,
+    0.06,
+    baseWidth * 0.86
+  );
 
   const nodeMaterial = new MeshStandardMaterial({
     color: new Color(0x1d5b3d),
@@ -145,11 +152,7 @@ export function createTokenPlaceRack(
       const lateral = node - (nodesPerTier - 1) / 2;
       const nodeMesh = new Mesh(nodeGeometry, nodeMaterial.clone());
       nodeMesh.name = `TokenPlaceNode-${tier}-${node}`;
-      nodeMesh.position.set(
-        0,
-        tray.position.y + 0.12,
-        lateral * 0.36
-      );
+      nodeMesh.position.set(0, tray.position.y + 0.12, lateral * 0.36);
       tray.add(nodeMesh);
 
       const ledMaterial = new MeshStandardMaterial({
@@ -163,7 +166,10 @@ export function createTokenPlaceRack(
       led.name = `TokenPlaceNodeLed-${tier}-${node}`;
       led.position.set(nodeGeometry.parameters.width / 2 + 0.08, 0.04, 0);
       nodeMesh.add(led);
-      ledNodes.push({ material: ledMaterial, offset: tier * 0.9 + node * 0.35 });
+      ledNodes.push({
+        material: ledMaterial,
+        offset: tier * 0.9 + node * 0.35,
+      });
     }
   }
 
@@ -181,16 +187,20 @@ export function createTokenPlaceRack(
   fan.position.set(-baseDepth / 2 + 0.14, baseHeight + tiers * 0.42 + 0.24, 0);
   group.add(fan);
 
-  const colliderCenter = new Vector3(
-    basePosition.x,
-    0,
-    basePosition.z
-  );
+  const colliderCenter = new Vector3(basePosition.x, 0, basePosition.z);
   colliders.push(
-    createCollider(colliderCenter, baseDepth + 0.4, baseWidth + 0.4, orientationRadians)
+    createCollider(
+      colliderCenter,
+      baseDepth + 0.4,
+      baseWidth + 0.4,
+      orientationRadians
+    )
   );
 
-  const update = ({ elapsed, emphasis }: {
+  const update = ({
+    elapsed,
+    emphasis,
+  }: {
     elapsed: number;
     delta: number;
     emphasis: number;
@@ -201,7 +211,8 @@ export function createTokenPlaceRack(
         Math.sin(elapsed * 3.2 + node.offset + index * 0.1)
       );
       const intensity = MathUtils.lerp(0.35, 1.2, pulse);
-      node.material.emissiveIntensity = intensity * MathUtils.lerp(1, 1.8, emphasis);
+      node.material.emissiveIntensity =
+        intensity * MathUtils.lerp(1, 1.8, emphasis);
     });
 
     const spin = (elapsed * 1.6) % (Math.PI * 2);

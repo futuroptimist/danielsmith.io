@@ -136,9 +136,7 @@ const definitions: PoiDefinition[] = [
       { label: 'Guidance', value: 'Auto-prioritised quests from repo scans' },
       { label: 'Modes', value: 'Focus · explore toggles per sprint' },
     ],
-    links: [
-      { label: 'GitHub', href: 'https://github.com/futuroptimist/axel' },
-    ],
+    links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/axel' }],
     status: 'prototype',
   },
   {
@@ -182,7 +180,10 @@ const definitions: PoiDefinition[] = [
     ],
     links: [
       { label: 'Live Site', href: 'https://danielsmith.io' },
-      { label: 'GitHub', href: 'https://github.com/futuroptimist/danielsmith.io' },
+      {
+        label: 'GitHub',
+        href: 'https://github.com/futuroptimist/danielsmith.io',
+      },
     ],
     status: 'prototype',
   },
@@ -247,9 +248,7 @@ const definitions: PoiDefinition[] = [
       { label: 'Craft', value: 'Loom calibrates from CAD stitch maps' },
       { label: 'Roadmap', value: 'Path toward robotic weaving labs' },
     ],
-    links: [
-      { label: 'GitHub', href: 'https://github.com/futuroptimist/wove' },
-    ],
+    links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/wove' }],
     status: 'prototype',
   },
   {

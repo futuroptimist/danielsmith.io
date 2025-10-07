@@ -49,10 +49,8 @@ function createCollider(
   let maxZ = Number.NEGATIVE_INFINITY;
 
   corners.forEach((corner) => {
-    const worldX =
-      center.x + corner.x * cos - corner.z * sin;
-    const worldZ =
-      center.z + corner.x * sin + corner.z * cos;
+    const worldX = center.x + corner.x * cos - corner.z * sin;
+    const worldZ = center.z + corner.x * sin + corner.z * cos;
     minX = Math.min(minX, worldX);
     maxX = Math.max(maxX, worldX);
     minZ = Math.min(minZ, worldZ);
@@ -97,10 +95,7 @@ export function createGabrielSentry(
     roughness: 0.42,
     metalness: 0.32,
   });
-  const core = new Mesh(
-    new CylinderGeometry(0.38, 0.5, 1.6, 24),
-    coreMaterial
-  );
+  const core = new Mesh(new CylinderGeometry(0.38, 0.5, 1.6, 24), coreMaterial);
   core.name = 'GabrielSentryCore';
   core.position.y = baseHeight + 0.8;
   group.add(core);
@@ -140,7 +135,10 @@ export function createGabrielSentry(
     roughness: 0.28,
     metalness: 0.36,
   });
-  const scannerBar = new Mesh(new BoxGeometry(0.12, 0.42, 1.1), scannerMaterial);
+  const scannerBar = new Mesh(
+    new BoxGeometry(0.12, 0.42, 1.1),
+    scannerMaterial
+  );
   scannerBar.name = 'GabrielSentryScannerBar';
   scannerBar.position.y = 0.12;
   headGroup.add(scannerBar);
@@ -152,7 +150,10 @@ export function createGabrielSentry(
     roughness: 0.22,
     metalness: 0.4,
   });
-  const beacon = new Mesh(new CylinderGeometry(0.14, 0.12, 0.24, 20), beaconMaterial);
+  const beacon = new Mesh(
+    new CylinderGeometry(0.14, 0.12, 0.24, 20),
+    beaconMaterial
+  );
   beacon.name = 'GabrielSentryBeacon';
   beacon.position.y = 0.44;
   headGroup.add(beacon);
@@ -172,7 +173,10 @@ export function createGabrielSentry(
   shield.position.set(0, 0.32, 0);
   core.add(shield);
 
-  const update = ({ elapsed, emphasis }: {
+  const update = ({
+    elapsed,
+    emphasis,
+  }: {
     elapsed: number;
     delta: number;
     emphasis: number;
@@ -183,7 +187,8 @@ export function createGabrielSentry(
     const pulse = Math.max(0, Math.sin(elapsed * Math.PI * 2));
     const flashIntensity = Math.pow(pulse, 3);
     const scaled = MathUtils.lerp(0.4, 1.4, flashIntensity);
-    beaconMaterial.emissiveIntensity = scaled * MathUtils.lerp(1, 1.8, emphasis);
+    beaconMaterial.emissiveIntensity =
+      scaled * MathUtils.lerp(1, 1.8, emphasis);
     beaconLight.intensity = MathUtils.lerp(
       2.5,
       9,
@@ -199,7 +204,12 @@ export function createGabrielSentry(
 
   const colliderCenter = new Vector3(basePosition.x, 0, basePosition.z);
   colliders.push(
-    createCollider(colliderCenter, baseRadius * 2.2, baseRadius * 2, orientationRadians)
+    createCollider(
+      colliderCenter,
+      baseRadius * 2.2,
+      baseRadius * 2,
+      orientationRadians
+    )
   );
 
   return { group, colliders, update };

@@ -18,7 +18,9 @@ describe('PoiTooltipOverlay', () => {
     position: { x: 0, y: 0, z: 0 },
     interactionRadius: 2.6,
     footprint: { width: 3.2, depth: 3 },
-    metrics: [{ label: 'Workflow', value: 'Resolve-style suite · triple display' }],
+    metrics: [
+      { label: 'Workflow', value: 'Resolve-style suite · triple display' },
+    ],
     links: [
       { label: 'GitHub', href: 'https://github.com/futuroptimist' },
       { label: 'Docs', href: 'https://futuroptimist.dev' },
@@ -112,6 +114,50 @@ describe('PoiTooltipOverlay', () => {
     overlay.setVisitedPoiIds(new Set());
     overlay.setSelected(basePoi);
     expect(visitedBadge.hidden).toBe(true);
+  });
+
+  it('announces discovery in a live region when selecting a new POI', () => {
+    overlay.setSelected(basePoi);
+
+    const liveRegion = container.querySelector(
+      '.poi-tooltip-overlay__live-region'
+    ) as HTMLElement;
+    expect(liveRegion).toBeTruthy();
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    const initialMessage = liveRegion.textContent ?? '';
+    expect(initialMessage).toContain(`${basePoi.title} discovered.`);
+    expect(initialMessage).toContain(basePoi.summary);
+
+    const nextPoi: PoiDefinition = {
+      ...basePoi,
+      id: 'futuroptimist-living-room-tv-variant',
+      title: 'Futuroptimist Creator Desk Alt',
+    };
+
+    overlay.setSelected(nextPoi);
+    expect(liveRegion.textContent).toContain(`${nextPoi.title} discovered.`);
+  });
+
+  it('supports custom discovery formatter and politeness levels', () => {
+    overlay.dispose();
+    overlay = new PoiTooltipOverlay({
+      container,
+      discoveryAnnouncer: {
+        politeness: 'assertive',
+        format: (poi) => `${poi.title} ready for inspection`,
+      },
+    });
+
+    overlay.setSelected(basePoi);
+
+    const liveRegion = container.querySelector(
+      '.poi-tooltip-overlay__live-region'
+    ) as HTMLElement;
+    expect(liveRegion.getAttribute('aria-live')).toBe('assertive');
+    expect(liveRegion.textContent).toBe(
+      `${basePoi.title} ready for inspection`
+    );
   });
 
   it('renders a guided tour recommendation when available', () => {
