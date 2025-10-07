@@ -43,6 +43,7 @@ import {
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
 } from './audio/ambientAudio';
+import { AmbientCaptionBridge } from './audio/ambientCaptionBridge';
 import {
   createCricketChorusBuffer,
   createDistantHumBuffer,
@@ -90,6 +91,10 @@ import {
   createGraphicsQualityManager,
   type GraphicsQualityManager,
 } from './graphics/qualityManager';
+import {
+  createAudioSubtitles,
+  type AudioSubtitlesHandle,
+} from './hud/audioSubtitles';
 import { createHelpModal } from './hud/helpModal';
 import {
   createHudLayoutManager,
@@ -694,6 +699,8 @@ function initializeImmersiveScene(
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
+  let audioSubtitles: AudioSubtitlesHandle | null = null;
+  let ambientCaptionBridge: AmbientCaptionBridge | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
@@ -1307,6 +1314,15 @@ function initializeImmersiveScene(
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
       poiVisitedState.markVisited(poi.id);
+      if (poi.narration?.caption && audioSubtitles) {
+        audioSubtitles.show({
+          id: `poi-${poi.id}`,
+          text: poi.narration.caption,
+          source: 'poi',
+          durationMs: poi.narration.durationMs,
+          priority: 5,
+        });
+      }
     }
   );
   poiInteractionManager.start();
@@ -1645,6 +1661,8 @@ function initializeImmersiveScene(
   window.addEventListener('pointerup', handlePointerUpForCameraPan);
   window.addEventListener('pointercancel', handlePointerUpForCameraPan);
 
+  audioSubtitles = createAudioSubtitles({ container: document.body });
+
   if (!ambientAudioController) {
     const audioBeds: AmbientAudioBedDefinition[] = [];
     const audioContext: AudioContext = audioListener.context;
@@ -1693,6 +1711,7 @@ function initializeImmersiveScene(
       outerRadius: homeHalfExtent * 1.2,
       baseVolume: 0.32,
       falloffCurve: 'smoothstep',
+      caption: 'Interior hum wraps the home shell with a calm pulse.',
       source: createLoopingSource('interior-hum', (context) =>
         createDistantHumBuffer(context)
       ),
@@ -1714,6 +1733,7 @@ function initializeImmersiveScene(
         outerRadius: backyardHalfExtent + toWorldUnits(6),
         baseVolume: 0.65,
         falloffCurve: 'smoothstep',
+        caption: 'Backyard crickets swell into a dusk chorus beyond the fence.',
         source: createLoopingSource('backyard-crickets', (context) =>
           createCricketChorusBuffer(context)
         ),
@@ -1726,6 +1746,7 @@ function initializeImmersiveScene(
           }
           audioBeds.push({
             ...bed,
+            caption: 'Greenhouse chimes shimmer around the lantern-lined path.',
             source: createLoopingSource(bed.id, (context) =>
               createLanternChimeBuffer(context)
             ),
@@ -1742,6 +1763,13 @@ function initializeImmersiveScene(
         }
       },
     });
+
+    if (!ambientCaptionBridge && audioSubtitles) {
+      ambientCaptionBridge = new AmbientCaptionBridge({
+        controller: ambientAudioController,
+        subtitles: audioSubtitles,
+      });
+    }
 
     audioHudHandle = createAudioHudControl({
       container,
@@ -2331,6 +2359,11 @@ function initializeImmersiveScene(
       audioHudHandle.dispose();
       audioHudHandle = null;
     }
+    ambientCaptionBridge = null;
+    if (audioSubtitles) {
+      audioSubtitles.dispose();
+      audioSubtitles = null;
+    }
     if (hudLayoutManager) {
       hudLayoutManager.dispose();
       hudLayoutManager = null;
@@ -2381,6 +2414,7 @@ function initializeImmersiveScene(
       handleHelpInput();
       if (ambientAudioController) {
         ambientAudioController.update(player.position, delta);
+        ambientCaptionBridge?.update();
       }
       if (flywheelShowpiece) {
         const activation = flywheelPoi?.activation ?? 0;

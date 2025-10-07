@@ -102,6 +102,9 @@ lightweight.
   keyboard users receive the same context. Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
   terminal that pulses in sync with the new automation POI.
+- **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
+  cooldown-aware timing so visitors who mute audio or rely on captions still catch the
+  story beats.
 - **Backyard installations** – The dusk courtyard now features a dSpace-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.

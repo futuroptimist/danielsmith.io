@@ -38,6 +38,8 @@ describe('AmbientAudioController', () => {
       outerRadius: overrides.outerRadius ?? 6,
       baseVolume: overrides.baseVolume ?? 0.8,
       falloffCurve: overrides.falloffCurve,
+      caption: overrides.caption,
+      captionThreshold: overrides.captionThreshold,
       source,
     };
     return { bed, source };
@@ -151,6 +153,23 @@ describe('AmbientAudioController', () => {
     controller.enable();
     controller.update({ x: 0, z: 0 }, 0.1);
     expect(source.volumes.at(-1)).toBe(0);
+  });
+
+  it('exposes immutable snapshots with current and target volume metadata', () => {
+    const { bed } = createBed({ caption: 'Interior hum', baseVolume: 0.42 });
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+    controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.016);
+    const snapshots = controller.getBedSnapshots();
+    expect(snapshots).toHaveLength(1);
+    const [snapshot] = snapshots;
+    expect(snapshot.id).toBe(bed.id);
+    expect(snapshot.definition).not.toBe(bed);
+    expect(snapshot.definition.caption).toBe('Interior hum');
+    expect(snapshot.currentVolume).toBeCloseTo(0.42, 5);
+    expect(snapshot.targetVolume).toBeCloseTo(0.42, 5);
+    snapshot.definition.center.x = 999;
+    expect(controller.getBedSnapshots()[0].definition.center.x).not.toBe(999);
   });
 });
 
