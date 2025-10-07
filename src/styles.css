@@ -197,6 +197,52 @@ canvas {
   font-variant-numeric: tabular-nums;
 }
 
+.audio-subtitles {
+  position: fixed;
+  left: 50%;
+  bottom: 3.5rem;
+  transform: translateX(-50%);
+  max-width: min(90vw, 36rem);
+  padding: 0.9rem 1.2rem;
+  border-radius: 0.9rem;
+  background: rgba(5, 12, 21, 0.82);
+  border: 1px solid rgba(88, 183, 255, 0.32);
+  box-shadow: 0 22px 48px rgba(3, 9, 18, 0.6);
+  color: #e7f1ff;
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 30;
+}
+
+.audio-subtitles[data-visible='true'] {
+  opacity: 1;
+}
+
+.audio-subtitles__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(148, 208, 255, 0.85);
+}
+
+.audio-subtitles__caption {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(230, 243, 255, 0.95);
+}
+
+html[data-hudLayout='mobile'] .audio-subtitles {
+  bottom: 6.5rem;
+  padding: 0.85rem 1.05rem;
+  font-size: 0.95rem;
+}
+
 .graphics-quality {
   position: fixed;
   top: 13.6rem;

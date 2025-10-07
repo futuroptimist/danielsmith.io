@@ -189,8 +189,11 @@ Focus: make the experience inclusive and globally friendly.
 
 2. **Visual & Audio Accessibility**
    - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
-   - Subtitle/captions system for ambient audio callouts and POI narration.
-   - Photo sensitivity safe mode (reduced flicker, muted emissives).
+
+- Subtitle/captions system for ambient audio callouts and POI narration.
+  - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
+  - Photo sensitivity safe mode (reduced flicker, muted emissives).
+
 3. **Localization Pipeline**
    - Extract UI + POI copy into i18n catalog with English baseline.
    - Provide translation scaffolding (e.g., JSON/PO files) and fallback strings.

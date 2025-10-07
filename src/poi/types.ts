@@ -19,6 +19,11 @@ export interface PoiLink {
   href: string;
 }
 
+export interface PoiNarration {
+  caption: string;
+  durationMs?: number;
+}
+
 export interface PoiFootprint {
   /** Width of the POI stand footprint in world units. */
   width: number;
@@ -41,6 +46,7 @@ export interface PoiDefinition {
   links?: PoiLink[];
   /** Optional note to surface prototype status in tooltips. */
   status?: 'prototype' | 'live';
+  narration?: PoiNarration;
 }
 
 export interface PoiAnalytics {
