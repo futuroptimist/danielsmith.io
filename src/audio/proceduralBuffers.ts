@@ -190,7 +190,11 @@ export function createCricketChorusBuffer<T extends BufferContext>(
 ): ReturnType<T['createBuffer']> {
   const durationSeconds = 6;
   const length = Math.max(1, Math.floor(context.sampleRate * durationSeconds));
-  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const buffer = context.createBuffer(
+    1,
+    length,
+    context.sampleRate
+  ) as ReturnType<T['createBuffer']>;
   const data = buffer.getChannelData(0);
 
   const voices: CricketVoice[] = [
@@ -296,7 +300,11 @@ export function createDistantHumBuffer<T extends BufferContext>(
 ): ReturnType<T['createBuffer']> {
   const durationSeconds = 8;
   const length = Math.max(1, Math.floor(context.sampleRate * durationSeconds));
-  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const buffer = context.createBuffer(
+    1,
+    length,
+    context.sampleRate
+  ) as ReturnType<T['createBuffer']>;
   const data = buffer.getChannelData(0);
 
   for (let i = 0; i < data.length; i += 1) {
@@ -319,7 +327,11 @@ export function createLanternChimeBuffer<T extends BufferContext>(
 ): ReturnType<T['createBuffer']> {
   const durationSeconds = 8;
   const length = Math.max(1, Math.floor(context.sampleRate * durationSeconds));
-  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const buffer = context.createBuffer(
+    1,
+    length,
+    context.sampleRate
+  ) as ReturnType<T['createBuffer']>;
   const data = buffer.getChannelData(0);
 
   const prng = createPrng(2027);

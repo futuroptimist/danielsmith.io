@@ -174,8 +174,8 @@ function dispatchTouchEvent(
 describe('PoiInteractionManager', () => {
   const definition: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist TV Wall',
-    summary: 'summary',
+    title: 'Futuroptimist Creator Desk',
+    summary: 'Triple-monitor editing suite showcasing Futuroptimist workflows.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
@@ -332,7 +332,7 @@ describe('PoiInteractionManager', () => {
     manager.dispose();
     const secondDefinition: PoiDefinition = {
       ...definition,
-      id: 'flywheel-centerpiece',
+      id: 'flywheel-studio-flywheel',
       title: 'Flywheel Centerpiece',
       position: { x: 3, y: 0, z: 0 },
     };

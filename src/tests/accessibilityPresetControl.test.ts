@@ -27,7 +27,7 @@ describe('createAccessibilityPresetControl', () => {
     document.body.appendChild(container);
 
     let active: AccessibilityPresetId = 'standard';
-    let resolveSelection: (() => void) | null = null;
+    let resolveSelection: (() => void) | undefined;
 
     const handle = createAccessibilityPresetControl({
       container,
@@ -36,7 +36,7 @@ describe('createAccessibilityPresetControl', () => {
       setActivePreset: (next) => {
         active = next;
         return new Promise<void>((resolve) => {
-          resolveSelection = resolve;
+          resolveSelection = () => resolve();
         });
       },
     });

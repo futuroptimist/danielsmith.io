@@ -7,8 +7,9 @@ import { PoiVisitedState } from '../poi/visitedState';
 const DEFINITIONS: PoiDefinition[] = [
   {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist TV Wall',
-    summary: 'Living room media wall with immersive tooling.',
+    title: 'Futuroptimist Creator Desk',
+    summary:
+      'Triple-monitor editing bay capturing Futuroptimist releases with live timeline overlays.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
@@ -40,8 +41,8 @@ const DEFINITIONS: PoiDefinition[] = [
   },
   {
     id: 'dspace-backyard-rocket',
-    title: 'dSpace Launch Pad',
-    summary: 'Backyard launch gantry staging the dSpace model rocket.',
+    title: 'DSPACE Launch Pad',
+    summary: 'Backyard launch gantry staging the DSPACE model rocket.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'backyard',

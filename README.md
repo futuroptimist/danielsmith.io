@@ -105,7 +105,7 @@ lightweight.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
   story beats.
-- **Backyard installations** – The dusk courtyard now features a dSpace-inspired model rocket on a
+- **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).

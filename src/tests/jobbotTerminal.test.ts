@@ -1,5 +1,13 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+  type SpyInstance,
+} from 'vitest';
 
 import { createJobbotTerminal } from '../structures/jobbotTerminal';
 
@@ -22,7 +30,10 @@ function createMockContext(): CanvasRenderingContext2D {
 }
 
 describe('JobbotTerminal structure', () => {
-  let getContextSpy: ReturnType<typeof vi.spyOn>;
+  let getContextSpy: SpyInstance<
+    [contextId: string, ...args: unknown[]],
+    RenderingContext | null
+  >;
 
   beforeAll(() => {
     getContextSpy = vi

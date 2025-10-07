@@ -6,7 +6,15 @@ import {
   PointLight,
   ShaderMaterial,
 } from 'three';
-import { beforeEach, describe, expect, it, vi, type SpyInstance } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type SpyInstance,
+} from 'vitest';
 
 import { createBackyardEnvironment } from '../environments/backyard';
 
@@ -21,7 +29,7 @@ describe('createBackyardEnvironment', () => {
   let randomSpy: SpyInstance<[], number>;
   let getContextSpy: SpyInstance<
     [contextId: string, ...args: unknown[]],
-    CanvasRenderingContext2D | null
+    RenderingContext | null
   >;
 
   beforeEach(() => {

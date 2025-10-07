@@ -9,7 +9,7 @@ describe('createAudioHudControl', () => {
     let enabled = false;
     let volume = 0.6;
     let toggleCallCount = 0;
-    let resolveToggle: (() => void) | null = null;
+    let resolveToggle: (() => void) | undefined;
 
     const handle = createAudioHudControl({
       container,
@@ -18,7 +18,7 @@ describe('createAudioHudControl', () => {
         enabled = next;
         toggleCallCount += 1;
         return new Promise<void>((resolve) => {
-          resolveToggle = resolve;
+          resolveToggle = () => resolve();
         });
       },
       getVolume: () => volume,
@@ -27,7 +27,9 @@ describe('createAudioHudControl', () => {
       },
     });
 
-    const button = container.querySelector('button.audio-toggle');
+    const button = container.querySelector<HTMLButtonElement>(
+      'button.audio-toggle'
+    );
     const slider = container.querySelector<HTMLInputElement>(
       '.audio-volume__slider'
     );

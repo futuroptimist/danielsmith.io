@@ -1,10 +1,21 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type SpyInstance,
+} from 'vitest';
 
 import { PoiVisitedState } from '../poi/visitedState';
 
 describe('PoiVisitedState', () => {
   const storageKey = 'test::visited';
-  let warnings: ReturnType<typeof vi.fn>;
+  let warnings: SpyInstance<
+    [message?: unknown, ...optionalParams: unknown[]],
+    void
+  >;
 
   beforeEach(() => {
     warnings = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

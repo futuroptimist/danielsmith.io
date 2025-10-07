@@ -9,15 +9,18 @@ describe('PoiTooltipOverlay', () => {
 
   const basePoi: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist TV Wall',
-    summary: 'Living room media wall with immersive tooling.',
+    title: 'Futuroptimist Creator Desk',
+    summary:
+      'Triple-monitor editing bay capturing Futuroptimist releases with live timeline overlays.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
     position: { x: 0, y: 0, z: 0 },
-    interactionRadius: 2.4,
-    footprint: { width: 3, depth: 2 },
-    metrics: [{ label: 'Stack', value: 'Three.js · Vite · TypeScript' }],
+    interactionRadius: 2.6,
+    footprint: { width: 3.2, depth: 3 },
+    metrics: [
+      { label: 'Workflow', value: 'Resolve-style suite · triple display' },
+    ],
     links: [
       { label: 'GitHub', href: 'https://github.com/futuroptimist' },
       { label: 'Docs', href: 'https://futuroptimist.dev' },
@@ -49,13 +52,13 @@ describe('PoiTooltipOverlay', () => {
     expect(title?.textContent).toBe(basePoi.title);
 
     const summary = root.querySelector('.poi-tooltip-overlay__summary');
-    expect(summary?.textContent).toContain('immersive');
+    expect(summary?.textContent).toContain('editing');
 
     const metrics = Array.from(
       root.querySelectorAll('.poi-tooltip-overlay__metric')
     );
     expect(metrics).toHaveLength(1);
-    expect(metrics[0]?.textContent).toContain('Stack');
+    expect(metrics[0]?.textContent).toContain('Workflow');
 
     const links = Array.from(
       root.querySelectorAll<HTMLAnchorElement>('.poi-tooltip-overlay__link')
@@ -113,6 +116,50 @@ describe('PoiTooltipOverlay', () => {
     expect(visitedBadge.hidden).toBe(true);
   });
 
+  it('announces discovery in a live region when selecting a new POI', () => {
+    overlay.setSelected(basePoi);
+
+    const liveRegion = container.querySelector(
+      '.poi-tooltip-overlay__live-region'
+    ) as HTMLElement;
+    expect(liveRegion).toBeTruthy();
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    const initialMessage = liveRegion.textContent ?? '';
+    expect(initialMessage).toContain(`${basePoi.title} discovered.`);
+    expect(initialMessage).toContain(basePoi.summary);
+
+    const nextPoi: PoiDefinition = {
+      ...basePoi,
+      id: 'futuroptimist-living-room-tv-variant',
+      title: 'Futuroptimist Creator Desk Alt',
+    };
+
+    overlay.setSelected(nextPoi);
+    expect(liveRegion.textContent).toContain(`${nextPoi.title} discovered.`);
+  });
+
+  it('supports custom discovery formatter and politeness levels', () => {
+    overlay.dispose();
+    overlay = new PoiTooltipOverlay({
+      container,
+      discoveryAnnouncer: {
+        politeness: 'assertive',
+        format: (poi) => `${poi.title} ready for inspection`,
+      },
+    });
+
+    overlay.setSelected(basePoi);
+
+    const liveRegion = container.querySelector(
+      '.poi-tooltip-overlay__live-region'
+    ) as HTMLElement;
+    expect(liveRegion.getAttribute('aria-live')).toBe('assertive');
+    expect(liveRegion.textContent).toBe(
+      `${basePoi.title} ready for inspection`
+    );
+  });
+
   it('renders a guided tour recommendation when available', () => {
     overlay.setRecommendation(basePoi);
 
@@ -130,68 +177,32 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
   });
 
-  it('announces discovery in a live region when selecting a new POI', () => {
+  it('avoids repeating announcements for previously visited POIs', () => {
     overlay.setSelected(basePoi);
 
     const liveRegion = container.querySelector(
-      '[data-poi-announcement="discovery"]'
+      '.poi-tooltip-overlay__live-region'
     ) as HTMLElement;
-    expect(liveRegion).toBeTruthy();
-    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
-    const initialMessage = liveRegion.textContent ?? '';
-    expect(initialMessage).toContain('Futuroptimist TV Wall discovered.');
-    expect(initialMessage).toContain(basePoi.summary);
-
-    const secondaryPoi: PoiDefinition = {
-      ...basePoi,
-      id: 'flywheel-studio-flywheel',
-      title: 'Flywheel Hub',
-      summary: undefined,
-    };
-    overlay.setSelected(secondaryPoi);
-    expect(liveRegion.textContent).toBe('Flywheel Hub discovered.');
+    expect(liveRegion.textContent).toContain(`${basePoi.title} discovered.`);
 
     overlay.setVisitedPoiIds(new Set([basePoi.id]));
     overlay.setSelected(basePoi);
-    expect(liveRegion.textContent).toBe('Flywheel Hub discovered.');
-  });
-
-  it('supports custom discovery formatter and politeness levels', () => {
-    overlay.dispose();
-    overlay = new PoiTooltipOverlay({
-      container,
-      announcementPoliteness: 'assertive',
-      formatDiscoveryAnnouncement: (poi) => `${poi.title} ready for inspection`,
-    });
-
-    overlay.setSelected(basePoi);
-
-    const liveRegion = container.querySelector(
-      '[data-poi-announcement="discovery"]'
-    ) as HTMLElement;
-    expect(liveRegion.getAttribute('aria-live')).toBe('assertive');
-    expect(liveRegion.textContent).toBe(
-      'Futuroptimist TV Wall ready for inspection'
-    );
-
-    overlay.setVisitedPoiIds(new Set([basePoi.id]));
-    overlay.setSelected(basePoi);
-    expect(liveRegion.textContent).toBe(
-      'Futuroptimist TV Wall ready for inspection'
-    );
+    expect(liveRegion.textContent).toContain(`${basePoi.title} discovered.`);
   });
 
   it('ignores discovery announcements when the formatter returns an empty string', () => {
     overlay.dispose();
     overlay = new PoiTooltipOverlay({
       container,
-      formatDiscoveryAnnouncement: () => '   ',
+      discoveryAnnouncer: {
+        format: () => '   ',
+      },
     });
 
     overlay.setSelected({ ...basePoi, summary: undefined });
 
     const liveRegion = container.querySelector(
-      '[data-poi-announcement="discovery"]'
+      '.poi-tooltip-overlay__live-region'
     ) as HTMLElement;
     expect(liveRegion.textContent).toBe('');
   });
