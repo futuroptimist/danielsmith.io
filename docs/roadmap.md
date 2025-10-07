@@ -192,7 +192,7 @@ Focus: make the experience inclusive and globally friendly.
 
 - Subtitle/captions system for ambient audio callouts and POI narration.
   - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
-  - Photo sensitivity safe mode (reduced flicker, muted emissives).
+  - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
 
 3. **Localization Pipeline**
    - Extract UI + POI copy into i18n catalog with English baseline.

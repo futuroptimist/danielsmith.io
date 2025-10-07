@@ -118,7 +118,9 @@ lightweight.
 - **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
   lightweight portfolio view at any time.
 - **Accessibility presets** – Pick Standard, Calm, or Photosensitive-safe modes from the HUD
-  to soften bloom, reduce motion cues, and boost overlay contrast.
+  to soften bloom, reduce motion cues, and boost overlay contrast. The
+  Photosensitive-safe preset now also smooths greenhouse grow lights, walkway lanterns, and
+  holographic beacons so emissive pulses settle into a steady glow for flicker-sensitive players.
 - **Help** – Press `H` or `?`, or tap the HUD Help button to open a modal with controls,
   accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
