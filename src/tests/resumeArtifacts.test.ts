@@ -97,7 +97,7 @@ function ensureArtifactsOrSkip(context: TestContext): ResumeArtifacts {
       setupError.message;
     // eslint-disable-next-line no-console -- Provide context when falling back to a skip.
     console.warn(message);
-    context.skip();
+    return context.skip() as never;
   }
 
   if (!artifacts) {
