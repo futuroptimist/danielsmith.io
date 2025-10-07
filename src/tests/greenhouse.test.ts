@@ -1,4 +1,12 @@
-import { Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import {
+  CanvasTexture,
+  Group,
+  Mesh,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  SRGBColorSpace,
+  Vector3,
+} from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { createGreenhouse } from '../structures/greenhouse';
@@ -35,5 +43,30 @@ describe('createGreenhouse', () => {
     expect(basePosition.x).toBeLessThanOrEqual(collider.maxX);
     expect(basePosition.z).toBeGreaterThanOrEqual(collider.minZ);
     expect(basePosition.z).toBeLessThanOrEqual(collider.maxZ);
+  });
+
+  it('applies the supplied environment map to reflective greenhouse materials', () => {
+    const environmentCanvas = document.createElement('canvas');
+    const environmentMap = new CanvasTexture(environmentCanvas);
+    environmentMap.colorSpace = SRGBColorSpace;
+    environmentMap.needsUpdate = true;
+
+    const { group } = createGreenhouse({
+      basePosition: new Vector3(0, 0, 0),
+      environmentMap,
+      environmentIntensity: 0.9,
+    });
+
+    const glass = group.getObjectByName('BackyardGreenhouseGlassFront');
+    expect(glass).toBeInstanceOf(Mesh);
+    const glassMaterial = (glass as Mesh).material as MeshPhysicalMaterial;
+    expect(glassMaterial.envMap).toBe(environmentMap);
+    expect(glassMaterial.envMapIntensity).toBeCloseTo(0.9, 5);
+
+    const frame = group.getObjectByName('BackyardGreenhousePost-0');
+    expect(frame).toBeInstanceOf(Mesh);
+    const frameMaterial = (frame as Mesh).material as MeshStandardMaterial;
+    expect(frameMaterial.envMap).toBe(environmentMap);
+    expect(frameMaterial.envMapIntensity).toBeCloseTo(0.9, 5);
   });
 });

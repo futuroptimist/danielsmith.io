@@ -8,6 +8,7 @@ import {
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  Texture,
   Vector3,
 } from 'three';
 
@@ -19,6 +20,8 @@ export interface GreenhouseConfig {
   orientationRadians?: number;
   width?: number;
   depth?: number;
+  environmentMap?: Texture | null;
+  environmentIntensity?: number;
 }
 
 export interface GreenhouseBuild {
@@ -41,6 +44,19 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   const depth = config.depth ?? DEFAULT_DEPTH;
   const orientation = config.orientationRadians ?? 0;
   const basePosition = config.basePosition.clone();
+  const environmentMap = config.environmentMap ?? null;
+  const environmentIntensity = config.environmentIntensity ?? 0.5;
+
+  const applyEnvironmentMap = (
+    material: MeshStandardMaterial | MeshPhysicalMaterial
+  ) => {
+    if (!environmentMap) {
+      return;
+    }
+    material.envMap = environmentMap;
+    material.envMapIntensity = environmentIntensity;
+    material.needsUpdate = true;
+  };
 
   const group = new Group();
   group.name = 'BackyardGreenhouse';
@@ -62,6 +78,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     roughness: 0.58,
     metalness: 0.22,
   });
+  applyEnvironmentMap(baseMaterial);
   const base = new Mesh(baseGeometry, baseMaterial);
   base.name = 'BackyardGreenhouseBase';
   base.position.y = BASE_HEIGHT / 2 - 0.02;
@@ -73,6 +90,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     roughness: 0.62,
     metalness: 0.14,
   });
+  applyEnvironmentMap(floorMaterial);
   const floor = new Mesh(floorGeometry, floorMaterial);
   floor.name = 'BackyardGreenhouseFloor';
   floor.position.y = BASE_HEIGHT;
@@ -93,6 +111,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     roughness: 0.32,
     metalness: 0.78,
   });
+  applyEnvironmentMap(frameMaterial);
   const postOffsets: [number, number][] = [
     [-width / 2, -depth / 2],
     [width / 2, -depth / 2],
@@ -177,6 +196,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     transmission: 0.86,
     thickness: 0.18,
   });
+  applyEnvironmentMap(glassMaterial);
 
   const wallGeometry = new PlaneGeometry(
     width - FRAME_THICKNESS,

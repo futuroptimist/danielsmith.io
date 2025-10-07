@@ -70,7 +70,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
 3. **Outdoor Transition**
    - Sculpt backyard terrain plane, fence line, and skybox updates.
-   - Add lighting probes/reflections so the outdoor zone feels distinct at dusk.
+   - ✅ Lighting probes and dusk reflections now wash the backyard with dusk-tinted bounce
+     light and greenhouse glass highlights.
    - Gate unfinished zones with temporary hologram barriers and in-world signage.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
