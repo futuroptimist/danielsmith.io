@@ -97,16 +97,24 @@ export class AmbientCaptionBridge {
           priority: 1,
         });
 
-        if (this.subtitles.getCurrent()?.id === messageId) {
+        const updatedMessage = this.subtitles.getCurrent();
+        const gainedFocus = updatedMessage?.id === messageId;
+
+        if (gainedFocus) {
           state.lastShownAt = currentTime;
           state.audible = true;
           this.states.set(snapshot.id, state);
           return;
         }
+
+        state.audible = false;
+        this.states.set(snapshot.id, state);
+        return;
       }
     }
 
-    state.audible = isAudible && this.subtitles.getCurrent()?.id === messageId;
+    const refreshedMessage = this.subtitles.getCurrent();
+    state.audible = isAudible && refreshedMessage?.id === messageId;
     this.states.set(snapshot.id, state);
   }
 }

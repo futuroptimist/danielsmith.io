@@ -111,7 +111,8 @@ export function createAudioSubtitles({
 
     current = { ...message, priority: nextPriority };
     root.dataset.visible = 'true';
-    label.textContent = labels[message.source] ?? DEFAULT_LABELS[message.source];
+    label.textContent =
+      labels[message.source] ?? DEFAULT_LABELS[message.source];
     caption.textContent = message.text;
     scheduleHide(current);
   };
