@@ -332,7 +332,7 @@ describe('PoiInteractionManager', () => {
     manager.dispose();
     const secondDefinition: PoiDefinition = {
       ...definition,
-      id: 'flywheel-centerpiece',
+      id: 'flywheel-studio-flywheel',
       title: 'Flywheel Centerpiece',
       position: { x: 3, y: 0, z: 0 },
     };

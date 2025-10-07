@@ -7,8 +7,10 @@ import {
 } from '../poi/structuredData';
 import type { PoiDefinition } from '../poi/types';
 
-const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
-  id: 'test-poi',
+const createPoi = (
+  overrides: Partial<PoiDefinition> = {}
+): PoiDefinition => ({
+  id: 'futuroptimist-living-room-tv',
   title: 'Test Exhibit',
   summary: 'An exhibit used for structured data validation.',
   category: 'project',
@@ -27,7 +29,7 @@ const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
 describe('buildPoiStructuredData', () => {
   it('serializes POIs into schema.org ItemList entries', () => {
     const poiA = createPoi({
-      id: 'poi-a',
+      id: 'tokenplace-studio-cluster',
       title: 'First Exhibit',
       summary: 'Highlights automation systems.',
       metrics: [
@@ -38,7 +40,7 @@ describe('buildPoiStructuredData', () => {
       status: 'prototype',
     });
     const poiB = createPoi({
-      id: 'poi-b',
+      id: 'gabriel-studio-sentry',
       title: 'Second Exhibit',
       summary: 'Focuses on storytelling pipelines.',
       roomId: 'livingRoom',
@@ -65,17 +67,18 @@ describe('buildPoiStructuredData', () => {
     expect(first).toMatchObject({
       '@type': 'ListItem',
       position: 1,
-      url: 'https://portfolio.example/immersive/#poi-poi-a',
+      url: 'https://portfolio.example/immersive/#poi-tokenplace-studio-cluster',
     });
 
     const firstItem = first.item as Record<string, unknown>;
     expect(firstItem).toMatchObject({
       '@type': 'CreativeWork',
-      '@id': 'https://portfolio.example/immersive/#poi-poi-a',
-      url: 'https://portfolio.example/immersive/#poi-poi-a',
+      '@id':
+        'https://portfolio.example/immersive/#poi-tokenplace-studio-cluster',
+      url: 'https://portfolio.example/immersive/#poi-tokenplace-studio-cluster',
       name: 'First Exhibit',
       description: 'Highlights automation systems.',
-      identifier: 'poi-a',
+      identifier: 'tokenplace-studio-cluster',
       keywords: ['project', 'studio'],
       sameAs: ['https://example.com/repo'],
     });
@@ -98,7 +101,7 @@ describe('buildPoiStructuredData', () => {
     expect(second).toMatchObject({
       '@type': 'ListItem',
       position: 2,
-      url: 'https://portfolio.example/immersive/#poi-poi-b',
+      url: 'https://portfolio.example/immersive/#poi-gabriel-studio-sentry',
     });
     const secondItem = second.item as Record<string, unknown>;
     expect(secondItem).not.toHaveProperty('sameAs');
@@ -112,8 +115,8 @@ describe('injectPoiStructuredData', () => {
   it('injects a single ld+json script and replaces prior instances', () => {
     const documentTarget = document.implementation.createHTMLDocument('Test');
     const pois = [
-      createPoi({ id: 'poi-a', roomId: 'studio' }),
-      createPoi({ id: 'poi-b', roomId: 'backyard' }),
+      createPoi({ id: 'tokenplace-studio-cluster', roomId: 'studio' }),
+      createPoi({ id: 'gabriel-studio-sentry', roomId: 'backyard' }),
     ];
 
     const firstScript = injectPoiStructuredData(pois, {
@@ -178,7 +181,7 @@ describe('injectPoiStructuredData', () => {
 
     const parsed = JSON.parse(script.textContent ?? '{}');
     expect(parsed.itemListElement[0].url).toBe(
-      'https://example.com/immersive/#poi-test-poi'
+      'https://example.com/immersive/#poi-futuroptimist-living-room-tv'
     );
 
     warnSpy.mockRestore();

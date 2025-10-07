@@ -39,6 +39,21 @@ interface ResumeArtifacts {
   cleanup: () => Promise<void>;
 }
 
+interface ErrorWithOptionalCause extends Error {
+  cause?: unknown;
+}
+
+function createErrorWithCause(
+  message: string,
+  cause: unknown
+): ErrorWithOptionalCause {
+  const error = new Error(message) as ErrorWithOptionalCause;
+  if (cause !== undefined) {
+    error.cause = cause;
+  }
+  return error;
+}
+
 let artifacts: ResumeArtifacts | null = null;
 let setupError: Error | null = null;
 
@@ -47,9 +62,9 @@ beforeAll(async () => {
     artifacts = await buildLatestResumeArtifacts();
   } catch (error) {
     const original = error instanceof Error ? error : new Error(String(error));
-    setupError = new Error(
+    setupError = createErrorWithCause(
       `Unable to prepare resume artifacts: ${original.message}. Ensure Tectonic and Pandoc are available or that the test environment can download the pinned binaries.`,
-      { cause: original }
+      original
     );
   }
 }, 120_000);
@@ -258,10 +273,10 @@ async function downloadFile(url: string, destination: string): Promise<void> {
     } catch (curlError) {
       const curlMessage =
         curlError instanceof Error ? curlError.message : String(curlError);
-      throw new Error(
-        `Failed to download ${url}: ${originalMessage}; curl fallback: ${curlMessage}`,
-        { cause: curlError instanceof Error ? curlError : undefined }
-      );
+        throw createErrorWithCause(
+          `Failed to download ${url}: ${originalMessage}; curl fallback: ${curlMessage}`,
+          curlError instanceof Error ? curlError : undefined
+        );
     }
   }
 }

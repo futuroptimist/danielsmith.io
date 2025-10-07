@@ -21,6 +21,12 @@ interface ListItem {
   item: Record<string, unknown>;
 }
 
+interface PropertyValue {
+  '@type': 'PropertyValue';
+  name: string;
+  value: string;
+}
+
 const ensureTrailingSlash = (value: string): string => {
   if (value.endsWith('/')) {
     return value;
@@ -63,7 +69,7 @@ export const buildPoiStructuredData = (
 
   const itemListElement: ListItem[] = pois.map((poi, index) => {
     const poiUrl = createPoiUrl(canonical, poi.id);
-    const additionalProperty = [
+    const additionalProperty: PropertyValue[] = [
       {
         '@type': 'PropertyValue',
         name: 'Category',

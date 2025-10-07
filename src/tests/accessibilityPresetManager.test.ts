@@ -174,13 +174,15 @@ describe('createAccessibilityPresetManager', () => {
     };
     const graphicsManager = createStubGraphicsQualityManager(baseline);
 
-    let qualityListener: ((level: string) => void) | null = null;
+    let qualityListener:
+      | ((level: GraphicsQualityLevel) => void)
+      | undefined;
     const onChangeSpy = vi
       .spyOn(graphicsManager, 'onChange')
-      .mockImplementation((listener: (level: string) => void) => {
+      .mockImplementation((listener: (level: GraphicsQualityLevel) => void) => {
         qualityListener = listener;
         return () => {
-          qualityListener = null;
+          qualityListener = undefined;
         };
       });
 

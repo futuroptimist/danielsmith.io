@@ -75,9 +75,7 @@ interface NavigatorWithDeviceMemory extends Navigator {
   deviceMemory?: number;
 }
 
-interface NavigatorWithUserAgent extends Navigator {
-  userAgent?: string;
-}
+type NavigatorWithUserAgent = Navigator & { userAgent?: string };
 
 function getNavigatorDeviceMemory(): number | undefined {
   if (typeof navigator === 'undefined') {
