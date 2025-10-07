@@ -7,6 +7,7 @@ import type {
   AmbientAudioSource,
 } from '../audio/ambientAudio';
 import { AmbientCaptionBridge } from '../audio/ambientCaptionBridge';
+import type { AudioSubtitleMessage } from '../hud/audioSubtitles';
 
 class FakeController implements AmbientAudioController {
   private snapshot: AmbientAudioBedSnapshot;
@@ -62,12 +63,17 @@ describe('AmbientCaptionBridge', () => {
       caption: 'Soft hum fills the room.',
     });
 
-    const show = vi.fn();
+    let current: AudioSubtitleMessage | null = null;
+    const show = vi.fn((message: AudioSubtitleMessage) => {
+      current = { ...message };
+    });
     const subtitles = {
       show,
-      clear: vi.fn(),
+      clear: vi.fn(() => {
+        current = null;
+      }),
       dispose: vi.fn(),
-      getCurrent: vi.fn(() => null),
+      getCurrent: vi.fn(() => current),
     };
 
     const bridge = new AmbientCaptionBridge({
@@ -102,5 +108,65 @@ describe('AmbientCaptionBridge', () => {
     controller.setVolume(0.3);
     bridge.update();
     expect(show).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('AmbientCaptionBridge priority handling', () => {
+  it('retries ambient captions when suppressed by a higher-priority message', () => {
+    const controller = new FakeController({
+      id: 'hum',
+      center: { x: 0, z: 0 },
+      innerRadius: 1,
+      outerRadius: 4,
+      baseVolume: 0.4,
+      source: fakeSource,
+      caption: 'Soft hum fills the room.',
+    });
+
+    let current: AudioSubtitleMessage | null = {
+      id: 'poi-1',
+      source: 'poi',
+      text: 'POI narration',
+      priority: 2,
+    };
+
+    const show = vi.fn((message: AudioSubtitleMessage) => {
+      const nextPriority = message.priority ?? 0;
+      const currentPriority = current?.priority ?? 0;
+      if (
+        current &&
+        current.id !== message.id &&
+        nextPriority < currentPriority
+      ) {
+        return;
+      }
+      current = { ...message, priority: nextPriority };
+    });
+
+    const subtitles = {
+      show,
+      clear: vi.fn(() => {
+        current = null;
+      }),
+      dispose: vi.fn(),
+      getCurrent: vi.fn(() => current),
+    };
+
+    const bridge = new AmbientCaptionBridge({
+      controller,
+      subtitles,
+      cooldownMs: 0,
+      now: () => 0,
+    });
+
+    controller.setVolume(0.3);
+    bridge.update();
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(current?.id).toBe('poi-1');
+
+    current = null;
+    bridge.update();
+    expect(show).toHaveBeenCalledTimes(2);
+    expect(current?.id).toBe('ambient-hum');
   });
 });

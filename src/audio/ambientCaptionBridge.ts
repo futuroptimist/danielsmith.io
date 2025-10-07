@@ -36,7 +36,8 @@ export class AmbientCaptionBridge {
     controller,
     subtitles,
     cooldownMs = DEFAULT_COOLDOWN_MS,
-    now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
+    now = () =>
+      typeof performance !== 'undefined' ? performance.now() : Date.now(),
   }: AmbientCaptionBridgeOptions) {
     this.controller = controller;
     this.subtitles = subtitles;
@@ -78,21 +79,27 @@ export class AmbientCaptionBridge {
       audible: false,
       lastShownAt: null,
     };
+    const wasAudible = state.audible;
+    const messageId = `ambient-${snapshot.id}`;
+    let didDisplay = false;
 
     if (isAudible && !state.audible) {
       const lastShownAt = state.lastShownAt ?? -Infinity;
       if (currentTime - lastShownAt >= this.cooldownMs) {
         this.subtitles.show({
-          id: `ambient-${snapshot.id}`,
+          id: messageId,
           text: caption,
           source: 'ambient',
           priority: 1,
         });
-        state.lastShownAt = currentTime;
+        if (this.subtitles.getCurrent()?.id === messageId) {
+          state.lastShownAt = currentTime;
+          didDisplay = true;
+        }
       }
     }
 
-    state.audible = isAudible;
+    state.audible = isAudible && (wasAudible || didDisplay);
     this.states.set(snapshot.id, state);
   }
 }
