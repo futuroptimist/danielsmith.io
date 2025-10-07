@@ -179,6 +179,8 @@ Focus: make the experience inclusive and globally friendly.
    - Keyboard-only navigation parity, remappable bindings, and full controller support.
 
 - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
+  - ✅ Screen reader announcements now trigger when players discover a new POI, narrating the
+    exhibit name and summary via a live region.
   - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
 - Interaction timeline tuned for cognitive load (limited simultaneous prompts).
 

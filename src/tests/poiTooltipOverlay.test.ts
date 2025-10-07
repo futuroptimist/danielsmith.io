@@ -129,4 +129,70 @@ describe('PoiTooltipOverlay', () => {
     overlay.setRecommendation(null);
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
   });
+
+  it('announces discovery in a live region when selecting a new POI', () => {
+    overlay.setSelected(basePoi);
+
+    const liveRegion = container.querySelector(
+      '[data-poi-announcement="discovery"]'
+    ) as HTMLElement;
+    expect(liveRegion).toBeTruthy();
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+    const initialMessage = liveRegion.textContent ?? '';
+    expect(initialMessage).toContain('Futuroptimist TV Wall discovered.');
+    expect(initialMessage).toContain(basePoi.summary);
+
+    const secondaryPoi: PoiDefinition = {
+      ...basePoi,
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Hub',
+      summary: undefined,
+    };
+    overlay.setSelected(secondaryPoi);
+    expect(liveRegion.textContent).toBe('Flywheel Hub discovered.');
+
+    overlay.setVisitedPoiIds(new Set([basePoi.id]));
+    overlay.setSelected(basePoi);
+    expect(liveRegion.textContent).toBe('Flywheel Hub discovered.');
+  });
+
+  it('supports custom discovery formatter and politeness levels', () => {
+    overlay.dispose();
+    overlay = new PoiTooltipOverlay({
+      container,
+      announcementPoliteness: 'assertive',
+      formatDiscoveryAnnouncement: (poi) => `${poi.title} ready for inspection`,
+    });
+
+    overlay.setSelected(basePoi);
+
+    const liveRegion = container.querySelector(
+      '[data-poi-announcement="discovery"]'
+    ) as HTMLElement;
+    expect(liveRegion.getAttribute('aria-live')).toBe('assertive');
+    expect(liveRegion.textContent).toBe(
+      'Futuroptimist TV Wall ready for inspection'
+    );
+
+    overlay.setVisitedPoiIds(new Set([basePoi.id]));
+    overlay.setSelected(basePoi);
+    expect(liveRegion.textContent).toBe(
+      'Futuroptimist TV Wall ready for inspection'
+    );
+  });
+
+  it('ignores discovery announcements when the formatter returns an empty string', () => {
+    overlay.dispose();
+    overlay = new PoiTooltipOverlay({
+      container,
+      formatDiscoveryAnnouncement: () => '   ',
+    });
+
+    overlay.setSelected({ ...basePoi, summary: undefined });
+
+    const liveRegion = container.querySelector(
+      '[data-poi-announcement="discovery"]'
+    ) as HTMLElement;
+    expect(liveRegion.textContent).toBe('');
+  });
 });

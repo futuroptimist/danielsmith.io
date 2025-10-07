@@ -2,6 +2,8 @@ import type { PoiDefinition } from './types';
 
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
+  announcementPoliteness?: 'polite' | 'assertive';
+  formatDiscoveryAnnouncement?: (poi: PoiDefinition) => string;
 }
 
 interface RenderState {
@@ -17,6 +19,9 @@ export class PoiTooltipOverlay {
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
+  private readonly discoveryRegion: HTMLElement;
+  private readonly discoveryMessages: (poi: PoiDefinition) => string;
+  private readonly discoveredPoiIds = new Set<string>();
   private hovered: PoiDefinition | null = null;
   private selected: PoiDefinition | null = null;
   private recommendation: PoiDefinition | null = null;
@@ -24,7 +29,8 @@ export class PoiTooltipOverlay {
   private visitedPoiIds: ReadonlySet<string> = new Set();
 
   constructor(options: PoiTooltipOverlayOptions) {
-    const { container } = options;
+    const { container, announcementPoliteness = 'polite' } = options;
+    const documentTarget = container.ownerDocument ?? document;
     this.root = document.createElement('section');
     this.root.className = 'poi-tooltip-overlay';
     this.root.setAttribute('role', 'region');
@@ -73,6 +79,17 @@ export class PoiTooltipOverlay {
     this.root.appendChild(this.linksList);
 
     container.appendChild(this.root);
+
+    this.discoveryRegion = documentTarget.createElement('div');
+    this.discoveryRegion.setAttribute('role', 'status');
+    this.discoveryRegion.setAttribute('aria-live', announcementPoliteness);
+    this.discoveryRegion.setAttribute('aria-atomic', 'true');
+    this.discoveryRegion.dataset.poiAnnouncement = 'discovery';
+    applyVisuallyHiddenStyles(this.discoveryRegion);
+    container.appendChild(this.discoveryRegion);
+
+    this.discoveryMessages =
+      options.formatDiscoveryAnnouncement ?? defaultDiscoveryFormatter;
   }
 
   setHovered(poi: PoiDefinition | null) {
@@ -82,6 +99,9 @@ export class PoiTooltipOverlay {
 
   setSelected(poi: PoiDefinition | null) {
     this.selected = poi;
+    if (poi && !this.discoveredPoiIds.has(poi.id)) {
+      this.announceDiscovery(poi);
+    }
     this.update();
   }
 
@@ -92,11 +112,13 @@ export class PoiTooltipOverlay {
 
   setVisitedPoiIds(ids: ReadonlySet<string>) {
     this.visitedPoiIds = ids;
+    ids.forEach((id) => this.discoveredPoiIds.add(id));
     this.update();
   }
 
   dispose() {
     this.root.remove();
+    this.discoveryRegion.remove();
   }
 
   private update() {
@@ -209,4 +231,33 @@ export class PoiTooltipOverlay {
       this.linksList.appendChild(item);
     }
   }
+
+  private announceDiscovery(poi: PoiDefinition) {
+    const message = this.discoveryMessages(poi).trim();
+    if (!message) {
+      return;
+    }
+    this.discoveryRegion.textContent = '';
+    this.discoveryRegion.textContent = message;
+    this.discoveredPoiIds.add(poi.id);
+  }
+}
+
+function applyVisuallyHiddenStyles(element: HTMLElement): void {
+  element.style.position = 'absolute';
+  element.style.width = '1px';
+  element.style.height = '1px';
+  element.style.margin = '-1px';
+  element.style.border = '0';
+  element.style.padding = '0';
+  element.style.overflow = 'hidden';
+  element.style.clip = 'rect(0 0 0 0)';
+  element.style.clipPath = 'inset(50%)';
+  element.style.whiteSpace = 'nowrap';
+  element.style.pointerEvents = 'none';
+}
+
+function defaultDiscoveryFormatter(poi: PoiDefinition): string {
+  const summary = poi.summary ? ` ${poi.summary}` : '';
+  return `${poi.title} discovered.${summary}`;
 }
