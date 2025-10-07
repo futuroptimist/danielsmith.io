@@ -16,6 +16,17 @@ export interface AmbientAudioBedDefinition {
   baseVolume: number;
   falloffCurve?: AmbientAudioFalloffCurve;
   source: AmbientAudioSource;
+  /** Optional caption surfaced when the bed becomes audible. */
+  caption?: string;
+  /** Minimum rendered volume before the caption is considered audible. Defaults to 0.18. */
+  captionThreshold?: number;
+}
+
+export interface AmbientAudioBedSnapshot {
+  id: string;
+  currentVolume: number;
+  targetVolume: number;
+  definition: AmbientAudioBedDefinition;
 }
 
 export interface AmbientAudioControllerOptions {
@@ -26,6 +37,7 @@ export interface AmbientAudioControllerOptions {
 interface AmbientAudioBedState {
   definition: AmbientAudioBedDefinition;
   currentVolume: number;
+  targetVolume: number;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -101,12 +113,14 @@ export class AmbientAudioController {
     this.beds = beds.map((definition) => ({
       definition,
       currentVolume: 0,
+      targetVolume: 0,
     }));
     this.smoothing = options.smoothing ?? 3.5;
     this.onEnable = options.onEnable;
 
     this.beds.forEach((bed) => {
       bed.definition.source.setVolume(0);
+      bed.targetVolume = 0;
     });
   }
 
@@ -137,12 +151,14 @@ export class AmbientAudioController {
     this.beds.forEach((bed) => {
       bed.currentVolume = 0;
       bed.definition.source.setVolume(0);
+      bed.targetVolume = 0;
     });
   }
 
   dispose(): void {
     this.beds.forEach((bed) => {
       bed.currentVolume = 0;
+      bed.targetVolume = 0;
       bed.definition.source.setVolume(0);
       if (bed.definition.source.isPlaying) {
         bed.definition.source.stop();
@@ -176,6 +192,7 @@ export class AmbientAudioController {
             1
           )
         : 0;
+      bed.targetVolume = targetVolume;
       const nextVolume =
         bed.currentVolume + (targetVolume - bed.currentVolume) * factor;
       const clampedVolume = clamp(nextVolume, 0, 1);
@@ -198,6 +215,18 @@ export class AmbientAudioController {
       return;
     }
     this.update(this.lastListenerPosition, 0);
+  }
+
+  getBedSnapshots(): AmbientAudioBedSnapshot[] {
+    return this.beds.map((bed) => ({
+      id: bed.definition.id,
+      currentVolume: bed.currentVolume,
+      targetVolume: bed.targetVolume,
+      definition: {
+        ...bed.definition,
+        center: { ...bed.definition.center },
+      },
+    }));
   }
 }
 

@@ -59,6 +59,8 @@ Focus: expand the environment while keeping navigation smooth.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
+   - ✨ Baked dusk lightmaps now bathe floors and walls in a gradient bounce wash that pairs with the LED strips.
+   - ✨ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
 2. **House Footprint Layout**
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
@@ -162,6 +164,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
    - Optional guided tour mode that highlights the next recommended POI.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
+   - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
 
 ## Phase 4 – Accessibility & Internationalization
@@ -179,13 +182,18 @@ Focus: make the experience inclusive and globally friendly.
    - Keyboard-only navigation parity, remappable bindings, and full controller support.
 
 - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
+  - ✅ Screen reader announcements now trigger when players discover a new POI, narrating the
+    exhibit name and summary via a live region.
   - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
 - Interaction timeline tuned for cognitive load (limited simultaneous prompts).
 
 2. **Visual & Audio Accessibility**
    - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
-   - Subtitle/captions system for ambient audio callouts and POI narration.
-   - Photo sensitivity safe mode (reduced flicker, muted emissives).
+
+- Subtitle/captions system for ambient audio callouts and POI narration.
+  - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
+  - Photo sensitivity safe mode (reduced flicker, muted emissives).
+
 3. **Localization Pipeline**
    - Extract UI + POI copy into i18n catalog with English baseline.
    - Provide translation scaffolding (e.g., JSON/PO files) and fallback strings.

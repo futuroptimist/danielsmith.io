@@ -26,6 +26,10 @@ const definitions: PoiDefinition[] = [
       { label: 'Docs', href: 'https://futuroptimist.dev' },
     ],
     status: 'prototype',
+    narration: {
+      caption:
+        'Futuroptimist media wall radiates highlight reels across the living room.',
+    },
   },
   {
     id: 'tokenplace-studio-cluster',
@@ -96,6 +100,10 @@ const definitions: PoiDefinition[] = [
       { label: 'Docs', href: 'https://flywheel.futuroptimist.dev' },
     ],
     status: 'prototype',
+    narration: {
+      caption:
+        'Flywheel kinetic hub whirs alive, spotlighting automation prompts and tooling.',
+    },
   },
   {
     id: 'jobbot-studio-terminal',
@@ -118,6 +126,10 @@ const definitions: PoiDefinition[] = [
       { label: 'Automation Log', href: 'https://futuroptimist.dev/automation' },
     ],
     status: 'prototype',
+    narration: {
+      caption:
+        'Jobbot holographic terminal streams automation telemetry in shimmering overlays.',
+    },
   },
   {
     id: 'axel-studio-tracker',
@@ -276,6 +288,11 @@ const definitions: PoiDefinition[] = [
       },
     ],
     status: 'prototype',
+    narration: {
+      caption:
+        'dSpace launch pad crackles with countdown energy beside the backyard path.',
+      durationMs: 6000,
+    },
   },
   {
     id: 'pr-reaper-backyard-console',
@@ -330,6 +347,11 @@ const definitions: PoiDefinition[] = [
       },
     ],
     status: 'prototype',
+    narration: {
+      caption:
+        'Sugarkube greenhouse cycles soft grow lights and koi pond ambience in sync.',
+      durationMs: 6500,
+    },
   },
 ];
 

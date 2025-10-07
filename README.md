@@ -89,8 +89,8 @@ lightweight.
 ## Architecture notes
 
 - **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
-- **Lighting** – Ambient + directional key lights are now complemented by emissive LED cove strips
-  with a lightweight bloom pass so the room inherits a soft gradient glow without heavy shadows.
+- **Lighting** – Ambient + directional key lights now pair with emissive LED cove strips and baked
+  gradient lightmaps so the room inherits a dusk bounce wash without heavy shadows.
   A Shift+L debug toggle disables bloom/LED accents to compare raw material response.
 - **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
 - **HUD overlay** – The floating movement legend now reacts to the most recent input method
@@ -102,6 +102,9 @@ lightweight.
   keyboard users receive the same context. Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
   terminal that pulses in sync with the new automation POI.
+- **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
+  cooldown-aware timing so visitors who mute audio or rely on captions still catch the
+  story beats.
 - **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.

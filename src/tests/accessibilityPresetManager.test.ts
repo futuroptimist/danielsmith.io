@@ -145,15 +145,21 @@ describe('createAccessibilityPresetManager', () => {
     expect(listener).toHaveBeenCalledWith('photosensitive');
     expect(storage.setItem).toHaveBeenCalledWith(
       'danielsmith:accessibility-preset',
-      'photosensitive'
+      JSON.stringify({ presetId: 'photosensitive', baseAudioVolume: 0.5 })
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
     expect(bloomPass.enabled).toBe(false);
     expect(masterVolume).toBeCloseTo(0.35, 5);
 
+    storage.setItem.mockClear();
+
     manager.setBaseAudioVolume(0.9);
     expect(manager.getBaseAudioVolume()).toBeCloseTo(0.9, 5);
     expect(masterVolume).toBeCloseTo(0.63, 5);
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'danielsmith:accessibility-preset',
+      JSON.stringify({ presetId: 'photosensitive', baseAudioVolume: 0.9 })
+    );
 
     manager.dispose();
     restoreDataset();
@@ -214,6 +220,97 @@ describe('createAccessibilityPresetManager', () => {
     manager.dispose();
     onChangeSpy.mockRestore();
     warnSpy.mockRestore();
+    restoreDataset();
+  });
+
+  it('restores persisted base audio volume payloads and clamps values', () => {
+    const bloomPass: BloomPassLike = {
+      enabled: true,
+      strength: 1.2,
+      radius: 0.9,
+      threshold: 0.6,
+    };
+    const baseline = () => {
+      bloomPass.enabled = true;
+      bloomPass.strength = 1.2;
+      bloomPass.radius = 0.9;
+      bloomPass.threshold = 0.6;
+    };
+    const graphicsManager = createStubGraphicsQualityManager(baseline);
+
+    let masterVolume = 0.4;
+    const ambientAudio = {
+      getMasterVolume: () => masterVolume,
+      setMasterVolume: (value: number) => {
+        masterVolume = value;
+      },
+    };
+
+    const storage = {
+      getItem: vi.fn(() =>
+        JSON.stringify({ presetId: 'calm', baseAudioVolume: 1.75 })
+      ),
+      setItem: vi.fn(),
+    };
+
+    const manager = createAccessibilityPresetManager({
+      documentElement: document.documentElement,
+      graphicsQualityManager: graphicsManager,
+      bloomPass,
+      ambientAudioController: ambientAudio,
+      storage,
+    });
+
+    expect(manager.getPreset()).toBe('calm');
+    expect(manager.getBaseAudioVolume()).toBeCloseTo(1, 5);
+    expect(masterVolume).toBeCloseTo(0.8, 5);
+
+    manager.dispose();
+    restoreDataset();
+  });
+
+  it('clamps persisted base audio volume below zero to zero', () => {
+    const bloomPass: BloomPassLike = {
+      enabled: true,
+      strength: 1.1,
+      radius: 0.95,
+      threshold: 0.62,
+    };
+    const baseline = () => {
+      bloomPass.enabled = true;
+      bloomPass.strength = 1.1;
+      bloomPass.radius = 0.95;
+      bloomPass.threshold = 0.62;
+    };
+    const graphicsManager = createStubGraphicsQualityManager(baseline);
+
+    let masterVolume = 1;
+    const ambientAudio = {
+      getMasterVolume: () => masterVolume,
+      setMasterVolume: (value: number) => {
+        masterVolume = value;
+      },
+    };
+
+    const storage = {
+      getItem: vi.fn(() =>
+        JSON.stringify({ presetId: 'calm', baseAudioVolume: -0.4 })
+      ),
+      setItem: vi.fn(),
+    };
+
+    const manager = createAccessibilityPresetManager({
+      documentElement: document.documentElement,
+      graphicsQualityManager: graphicsManager,
+      bloomPass,
+      ambientAudioController: ambientAudio,
+      storage,
+    });
+
+    expect(manager.getBaseAudioVolume()).toBeCloseTo(0, 5);
+    expect(masterVolume).toBeCloseTo(0, 5);
+
+    manager.dispose();
     restoreDataset();
   });
 });
