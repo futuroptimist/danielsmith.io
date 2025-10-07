@@ -142,7 +142,9 @@ describe('PoiVisitedState', () => {
       },
     });
 
-    const originalWindow = Reflect.get(globalThis, 'window') as Window | undefined;
+    const originalWindow = Reflect.get(globalThis, 'window') as
+      | Window
+      | undefined;
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
       value: windowStub,
@@ -180,7 +182,9 @@ describe('PoiVisitedState', () => {
         throw storageError;
       },
     });
-    const originalWindow = Reflect.get(globalThis, 'window') as Window | undefined;
+    const originalWindow = Reflect.get(globalThis, 'window') as
+      | Window
+      | undefined;
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
       value: windowStub,

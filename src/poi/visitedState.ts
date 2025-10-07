@@ -11,10 +11,7 @@ const DEFAULT_STORAGE_KEY = 'danielsmith.io::poi::visited::v1';
 
 type StorageKey = 'localStorage' | 'sessionStorage';
 
-const getWindowStorage = (
-  target: Window,
-  key: StorageKey
-): Storage | null => {
+const getWindowStorage = (target: Window, key: StorageKey): Storage | null => {
   if (!(key in target)) {
     return null;
   }
