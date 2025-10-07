@@ -79,9 +79,13 @@ export class AmbientCaptionBridge {
       audible: false,
       lastShownAt: null,
     };
-    const wasAudible = state.audible;
     const messageId = `ambient-${snapshot.id}`;
-    let didDisplay = false;
+    const currentMessage = this.subtitles.getCurrent();
+    const hasFocus = currentMessage?.id === messageId;
+
+    if (!hasFocus) {
+      state.audible = false;
+    }
 
     if (isAudible && !state.audible) {
       const lastShownAt = state.lastShownAt ?? -Infinity;
@@ -92,14 +96,17 @@ export class AmbientCaptionBridge {
           source: 'ambient',
           priority: 1,
         });
+
         if (this.subtitles.getCurrent()?.id === messageId) {
           state.lastShownAt = currentTime;
-          didDisplay = true;
+          state.audible = true;
+          this.states.set(snapshot.id, state);
+          return;
         }
       }
     }
 
-    state.audible = isAudible && (wasAudible || didDisplay);
+    state.audible = isAudible && this.subtitles.getCurrent()?.id === messageId;
     this.states.set(snapshot.id, state);
   }
 }
