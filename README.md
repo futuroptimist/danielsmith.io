@@ -99,7 +99,7 @@ lightweight.
   keyboard users receive the same context. Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
   terminal that pulses in sync with the new automation POI.
-- **Backyard installations** – The dusk courtyard now features a dSpace-inspired model rocket on a
+- **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).

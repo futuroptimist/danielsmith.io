@@ -117,11 +117,19 @@ import {
   type FlywheelShowpieceBuild,
 } from './structures/flywheel';
 import {
+  createGabrielSentry,
+  type GabrielSentryBuild,
+} from './structures/gabrielSentry';
+import {
   createJobbotTerminal,
   type JobbotTerminalBuild,
 } from './structures/jobbotTerminal';
 import { createLivingRoomMediaWall } from './structures/mediaWall';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
+import {
+  createTokenPlaceRack,
+  type TokenPlaceRackBuild,
+} from './structures/tokenPlaceRack';
 import { createImmersiveGradientTexture } from './theme/immersiveGradient';
 
 const WALL_HEIGHT = 6;
@@ -271,6 +279,8 @@ const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
+let tokenPlaceRack: TokenPlaceRackBuild | null = null;
+let gabrielSentry: GabrielSentryBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
@@ -296,64 +306,93 @@ function createMediaWallScreenTexture(): CanvasTexture {
   }
 
   context.save();
-  context.fillStyle = '#0f1724';
+  context.fillStyle = '#0a1422';
   context.fillRect(0, 0, canvas.width, canvas.height);
-  const gradient = context.createLinearGradient(
+
+  const backdrop = context.createLinearGradient(
     0,
     0,
     canvas.width,
     canvas.height
   );
-  gradient.addColorStop(0, '#182a47');
-  gradient.addColorStop(0.55, '#0f233c');
-  gradient.addColorStop(1, '#192339');
-  context.fillStyle = gradient;
+  backdrop.addColorStop(0, '#14263d');
+  backdrop.addColorStop(1, '#091526');
+  context.fillStyle = backdrop;
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  context.globalAlpha = 0.6;
-  const accent = context.createLinearGradient(0, 0, canvas.width, 0);
-  accent.addColorStop(0, 'rgba(75, 217, 255, 0.8)');
-  accent.addColorStop(0.45, 'rgba(83, 146, 255, 0.35)');
-  accent.addColorStop(1, 'rgba(255, 82, 82, 0.6)');
-  context.fillStyle = accent;
-  context.fillRect(
-    canvas.width * 0.05,
-    canvas.height * 0.16,
-    canvas.width * 0.9,
-    canvas.height * 0.68
+  const previewWidth = canvas.width * 0.4;
+  const previewHeight = canvas.height * 0.52;
+  const previewX = canvas.width * 0.08;
+  const previewY = canvas.height * 0.2;
+
+  const previewGradient = context.createLinearGradient(
+    previewX,
+    previewY,
+    previewX + previewWidth,
+    previewY + previewHeight
   );
-  context.globalAlpha = 1;
+  previewGradient.addColorStop(0, '#1f4d6e');
+  previewGradient.addColorStop(1, '#102539');
+  context.fillStyle = previewGradient;
+  context.fillRect(previewX, previewY, previewWidth, previewHeight);
 
-  context.fillStyle = '#ffffff';
-  context.font = 'bold 180px "Inter", "Segoe UI", sans-serif';
-  context.textAlign = 'left';
-  context.textBaseline = 'alphabetic';
-  context.fillText('Futuroptimist', canvas.width * 0.08, canvas.height * 0.44);
+  context.strokeStyle = 'rgba(138, 224, 255, 0.8)';
+  context.lineWidth = 8;
+  context.strokeRect(previewX + 10, previewY + 10, previewWidth - 20, previewHeight - 20);
 
+  context.fillStyle = '#7feaff';
   context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#ff4c4c';
-  context.fillText('YouTube', canvas.width * 0.08, canvas.height * 0.62);
+  context.textAlign = 'left';
+  context.fillText('Futuroptimist Episode Edit', previewX, previewY - 40);
 
-  context.font = '48px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#dbe7ff';
-  context.fillText(
-    'Designing resilient automation, live devlogs, and deep dives.',
-    canvas.width * 0.08,
-    canvas.height * 0.74
-  );
+  const metadataX = canvas.width * 0.52;
+  const metadataY = canvas.height * 0.24;
+  const metadataWidth = canvas.width * 0.36;
+  const metadataHeight = canvas.height * 0.44;
+  context.fillStyle = 'rgba(15, 33, 55, 0.85)';
+  context.fillRect(metadataX, metadataY, metadataWidth, metadataHeight);
 
-  context.font = '48px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#9ddcff';
-  context.fillText(
-    'Latest Episode · Async Flywheel Blueprints',
-    canvas.width * 0.08,
-    canvas.height * 0.84
-  );
+  context.fillStyle = '#9ae6ff';
+  context.font = '72px "Inter", "Segoe UI", sans-serif';
+  context.fillText('Timeline cues', metadataX + 48, metadataY + 96);
 
-  context.font = '600 72px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#ffffff';
-  context.textAlign = 'right';
-  context.fillText('Watch now →', canvas.width * 0.92, canvas.height * 0.84);
+  context.font = '52px "Inter", "Segoe UI", sans-serif';
+  const notes = [
+    '• token.place rack synced',
+    '• Gabriel sentry clears bay',
+    '• DSPACE telemetry overlay',
+  ];
+  notes.forEach((line, index) => {
+    context.fillText(line, metadataX + 48, metadataY + 180 + index * 100);
+  });
+
+  const timelineY = canvas.height * 0.8;
+  const timelineHeight = canvas.height * 0.14;
+  context.fillStyle = '#101e2f';
+  context.fillRect(canvas.width * 0.06, timelineY, canvas.width * 0.88, timelineHeight);
+
+  context.fillStyle = '#1c3f64';
+  const segments = 7;
+  const segmentWidth = (canvas.width * 0.88 - 80) / segments;
+  for (let i = 0; i < segments; i += 1) {
+    const segmentX = canvas.width * 0.06 + 40 + i * segmentWidth;
+    const segmentHeight = timelineHeight * (0.4 + (i % 2) * 0.2);
+    const segmentTop = timelineY + timelineHeight / 2 - segmentHeight / 2;
+    context.fillRect(segmentX, segmentTop, segmentWidth * 0.8, segmentHeight);
+  }
+
+  const playheadX = canvas.width * 0.54;
+  context.strokeStyle = '#ff5b5b';
+  context.lineWidth = 10;
+  context.beginPath();
+  context.moveTo(playheadX, timelineY - 20);
+  context.lineTo(playheadX, timelineY + timelineHeight + 20);
+  context.stroke();
+
+  context.fillStyle = '#ffd166';
+  context.font = '64px "Inter", "Segoe UI", sans-serif';
+  context.textAlign = 'center';
+  context.fillText('02:14 / 07:52', playheadX, timelineY - 32);
 
   context.restore();
 
@@ -1226,8 +1265,17 @@ function initializeImmersiveScene(
     visitedState: poiVisitedState,
     priorityOrder: [
       'futuroptimist-living-room-tv',
+      'tokenplace-studio-cluster',
+      'gabriel-studio-sentry',
       'flywheel-studio-flywheel',
       'jobbot-studio-terminal',
+      'axel-studio-tracker',
+      'gitshelves-living-room-installation',
+      'danielsmith-portfolio-table',
+      'f2clipboard-kitchen-console',
+      'sigma-kitchen-workbench',
+      'wove-kitchen-loom',
+      'pr-reaper-backyard-console',
       'dspace-backyard-rocket',
       'sugarkube-backyard-greenhouse',
     ],
@@ -1256,6 +1304,12 @@ function initializeImmersiveScene(
   );
   const jobbotPoi = poiInstances.find(
     (poi) => poi.definition.id === 'jobbot-studio-terminal'
+  );
+  const tokenPlacePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'tokenplace-studio-cluster'
+  );
+  const gabrielPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'gabriel-studio-sentry'
   );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   if (studioRoom) {
@@ -1293,6 +1347,34 @@ function initializeImmersiveScene(
     scene.add(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
+
+    if (tokenPlacePoi) {
+      const rack = createTokenPlaceRack({
+        position: {
+          x: tokenPlacePoi.group.position.x,
+          y: tokenPlacePoi.group.position.y,
+          z: tokenPlacePoi.group.position.z,
+        },
+        orientationRadians: tokenPlacePoi.group.rotation.y ?? 0,
+      });
+      scene.add(rack.group);
+      rack.colliders.forEach((collider) => groundColliders.push(collider));
+      tokenPlaceRack = rack;
+    }
+
+    if (gabrielPoi) {
+      const sentry = createGabrielSentry({
+        position: {
+          x: gabrielPoi.group.position.x,
+          y: gabrielPoi.group.position.y,
+          z: gabrielPoi.group.position.z,
+        },
+        orientationRadians: gabrielPoi.group.rotation.y ?? 0,
+      });
+      scene.add(sentry.group);
+      sentry.colliders.forEach((collider) => groundColliders.push(collider));
+      gabrielSentry = sentry;
+    }
   }
 
   const poiInteractionManager = new PoiInteractionManager(
@@ -2377,6 +2459,24 @@ function initializeImmersiveScene(
         const activation = jobbotPoi?.activation ?? 0;
         const focus = jobbotPoi?.focus ?? 0;
         jobbotTerminal.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (tokenPlaceRack) {
+        const activation = tokenPlacePoi?.activation ?? 0;
+        const focus = tokenPlacePoi?.focus ?? 0;
+        tokenPlaceRack.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (gabrielSentry) {
+        const activation = gabrielPoi?.activation ?? 0;
+        const focus = gabrielPoi?.focus ?? 0;
+        gabrielSentry.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),

@@ -174,8 +174,8 @@ function dispatchTouchEvent(
 describe('PoiInteractionManager', () => {
   const definition: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist TV Wall',
-    summary: 'summary',
+    title: 'Futuroptimist Creator Desk',
+    summary: 'Triple-monitor editing suite showcasing Futuroptimist workflows.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',

@@ -3,7 +3,16 @@ export type PoiId =
   | 'flywheel-studio-flywheel'
   | 'jobbot-studio-terminal'
   | 'dspace-backyard-rocket'
-  | 'sugarkube-backyard-greenhouse';
+  | 'sugarkube-backyard-greenhouse'
+  | 'tokenplace-studio-cluster'
+  | 'gabriel-studio-sentry'
+  | 'f2clipboard-kitchen-console'
+  | 'axel-studio-tracker'
+  | 'sigma-kitchen-workbench'
+  | 'gitshelves-living-room-installation'
+  | 'wove-kitchen-loom'
+  | 'pr-reaper-backyard-console'
+  | 'danielsmith-portfolio-table';
 
 export type PoiCategory = 'project' | 'environment';
 

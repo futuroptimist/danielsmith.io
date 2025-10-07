@@ -9,15 +9,16 @@ describe('PoiTooltipOverlay', () => {
 
   const basePoi: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist TV Wall',
-    summary: 'Living room media wall with immersive tooling.',
+    title: 'Futuroptimist Creator Desk',
+    summary:
+      'Triple-monitor editing bay capturing Futuroptimist releases with live timeline overlays.',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
     position: { x: 0, y: 0, z: 0 },
-    interactionRadius: 2.4,
-    footprint: { width: 3, depth: 2 },
-    metrics: [{ label: 'Stack', value: 'Three.js · Vite · TypeScript' }],
+    interactionRadius: 2.6,
+    footprint: { width: 3.2, depth: 3 },
+    metrics: [{ label: 'Workflow', value: 'Resolve-style suite · triple display' }],
     links: [
       { label: 'GitHub', href: 'https://github.com/futuroptimist' },
       { label: 'Docs', href: 'https://futuroptimist.dev' },
@@ -49,13 +50,13 @@ describe('PoiTooltipOverlay', () => {
     expect(title?.textContent).toBe(basePoi.title);
 
     const summary = root.querySelector('.poi-tooltip-overlay__summary');
-    expect(summary?.textContent).toContain('immersive');
+    expect(summary?.textContent).toContain('editing');
 
     const metrics = Array.from(
       root.querySelectorAll('.poi-tooltip-overlay__metric')
     );
     expect(metrics).toHaveLength(1);
-    expect(metrics[0]?.textContent).toContain('Stack');
+    expect(metrics[0]?.textContent).toContain('Workflow');
 
     const links = Array.from(
       root.querySelectorAll<HTMLAnchorElement>('.poi-tooltip-overlay__link')
