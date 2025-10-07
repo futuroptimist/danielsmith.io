@@ -76,11 +76,7 @@ function createGradientTexture(
   return texture;
 }
 
-function sampleFloorLightmap(
-  uv: Vector2,
-  output: Color,
-  aspect: number
-): void {
+function sampleFloorLightmap(uv: Vector2, output: Color, aspect: number): void {
   const offsetX = uv.x - 0.48;
   const offsetY = (uv.y - 0.42) * aspect;
   const radialDistance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
@@ -107,7 +103,8 @@ function sampleWallLightmap(uv: Vector2, output: Color): void {
   const horizontal = 1 - Math.abs(uv.x - 0.5) * 2;
   const midBlend = smoothstep(0.1, 0.75, vertical);
   const crownBlend = smoothstep(0.55, 1, vertical);
-  const accentBlend = smoothstep(0.35, 0.95, vertical) * smoothstep(0.2, 1, horizontal);
+  const accentBlend =
+    smoothstep(0.35, 0.95, vertical) * smoothstep(0.2, 1, horizontal);
 
   output.copy(WALL_BASE_COLOR);
   output.lerp(WALL_MID_COLOR, midBlend);
@@ -150,6 +147,10 @@ export function applyLightmapUv2(geometry: BufferGeometry): void {
   }
   const source = uv as BufferAttribute;
   const cloneArray = new Float32Array(source.array as ArrayLike<number>);
-  const clone = new BufferAttribute(cloneArray, source.itemSize, source.normalized);
+  const clone = new BufferAttribute(
+    cloneArray,
+    source.itemSize,
+    source.normalized
+  );
   geometry.setAttribute('uv2', clone);
 }

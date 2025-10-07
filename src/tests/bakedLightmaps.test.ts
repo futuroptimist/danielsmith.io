@@ -1,4 +1,9 @@
-import { BoxGeometry, BufferGeometry, DataTexture, SRGBColorSpace } from 'three';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  DataTexture,
+  SRGBColorSpace,
+} from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -7,7 +12,11 @@ import {
 } from '../lighting/bakedLightmaps';
 
 function sampleLuminance(texture: DataTexture, u: number, v: number): number {
-  const image = texture.image as { data: Uint8Array; width: number; height: number };
+  const image = texture.image as {
+    data: Uint8Array;
+    width: number;
+    height: number;
+  };
   const width = image.width;
   const height = image.height;
   const x = Math.min(width - 1, Math.max(0, Math.round(u * (width - 1))));
