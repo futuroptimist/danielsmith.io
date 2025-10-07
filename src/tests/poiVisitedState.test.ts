@@ -121,6 +121,56 @@ describe('PoiVisitedState', () => {
     expect(warnings).not.toHaveBeenCalled();
   });
 
+  it('falls back to sessionStorage when localStorage access is blocked', () => {
+    const localError = new Error('denied');
+    const sessionStorage = {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+    } satisfies Pick<Storage, 'getItem' | 'setItem'>;
+
+    const windowStub = {} as Window;
+    Object.defineProperty(windowStub, 'localStorage', {
+      configurable: true,
+      get() {
+        throw localError;
+      },
+    });
+    Object.defineProperty(windowStub, 'sessionStorage', {
+      configurable: true,
+      get() {
+        return sessionStorage as unknown as Storage;
+      },
+    });
+
+    const originalWindow = Reflect.get(globalThis, 'window') as Window | undefined;
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: windowStub,
+    });
+
+    const state = new PoiVisitedState({ storageKey });
+    state.markVisited('flywheel-studio-flywheel');
+
+    expect(sessionStorage.setItem).toHaveBeenCalledWith(
+      storageKey,
+      JSON.stringify(['flywheel-studio-flywheel'])
+    );
+    expect(warnings).toHaveBeenCalledTimes(1);
+    expect(warnings).toHaveBeenLastCalledWith(
+      'Accessing localStorage failed, continuing without persistence.',
+      localError
+    );
+
+    if (originalWindow) {
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: originalWindow,
+      });
+    } else {
+      Reflect.deleteProperty(globalThis, 'window');
+    }
+  });
+
   it('handles window.localStorage access errors gracefully', () => {
     const storageError = new Error('denied');
     const windowStub = {} as Window;
@@ -130,6 +180,7 @@ describe('PoiVisitedState', () => {
         throw storageError;
       },
     });
+    const originalWindow = Reflect.get(globalThis, 'window') as Window | undefined;
     Object.defineProperty(globalThis, 'window', {
       configurable: true,
       value: windowStub,
@@ -142,7 +193,14 @@ describe('PoiVisitedState', () => {
       storageError
     );
 
-    expect(Reflect.deleteProperty(globalThis, 'window')).toBe(true);
+    if (originalWindow) {
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: originalWindow,
+      });
+    } else {
+      expect(Reflect.deleteProperty(globalThis, 'window')).toBe(true);
+    }
     expect(state.snapshot().size).toBe(0);
   });
 });
