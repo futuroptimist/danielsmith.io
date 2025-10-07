@@ -7,7 +7,9 @@ import {
   Color,
   CylinderGeometry,
   DoubleSide,
+  EquirectangularReflectionMapping,
   Group,
+  LightProbe,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -17,6 +19,8 @@ import {
   PointsMaterial,
   ShaderMaterial,
   SphereGeometry,
+  SRGBColorSpace,
+  Texture,
   Vector3,
 } from 'three';
 import type { IUniform } from 'three';
@@ -84,6 +88,56 @@ function createSignageTexture(title: string, subtitle: string): CanvasTexture {
   return texture;
 }
 
+function createDuskReflectionTexture(): Texture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Failed to create dusk reflection canvas.');
+  }
+
+  const verticalGradient = context.createLinearGradient(0, 0, 0, canvas.height);
+  verticalGradient.addColorStop(0, 'rgba(12, 24, 46, 1)');
+  verticalGradient.addColorStop(0.52, 'rgba(28, 48, 74, 1)');
+  verticalGradient.addColorStop(1, 'rgba(86, 55, 38, 1)');
+  context.fillStyle = verticalGradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const horizonGlow = context.createLinearGradient(
+    0,
+    canvas.height * 0.58,
+    0,
+    canvas.height
+  );
+  horizonGlow.addColorStop(0, 'rgba(255, 190, 125, 0.45)');
+  horizonGlow.addColorStop(1, 'rgba(255, 142, 88, 0)');
+  context.fillStyle = horizonGlow;
+  context.fillRect(0, canvas.height * 0.58, canvas.width, canvas.height * 0.42);
+
+  const reflectionTexture = new CanvasTexture(canvas);
+  reflectionTexture.mapping = EquirectangularReflectionMapping;
+  reflectionTexture.colorSpace = SRGBColorSpace;
+  reflectionTexture.needsUpdate = true;
+
+  return reflectionTexture;
+}
+
+function createDuskLightProbe(): LightProbe {
+  const probe = new LightProbe();
+  probe.name = 'BackyardDuskLightProbe';
+  const coefficients = probe.sh.coefficients;
+  for (let i = 0; i < coefficients.length; i += 1) {
+    coefficients[i].set(0, 0, 0);
+  }
+  const skyColor = new Color(0x1a2c45).multiplyScalar(Math.PI);
+  coefficients[0].set(skyColor.r, skyColor.g, skyColor.b);
+  const warmColor = new Color(0x533621).multiplyScalar(Math.PI * 0.45);
+  coefficients[3].set(warmColor.r, warmColor.g, warmColor.b);
+  probe.intensity = 1.18;
+  return probe;
+}
+
 export function createBackyardEnvironment(
   bounds: Bounds2D
 ): BackyardEnvironmentBuild {
@@ -98,6 +152,12 @@ export function createBackyardEnvironment(
   const depth = bounds.maxZ - bounds.minZ;
   const centerX = (bounds.minX + bounds.maxX) / 2;
   const centerZ = (bounds.minZ + bounds.maxZ) / 2;
+
+  const duskReflectionMap = createDuskReflectionTexture();
+
+  const duskLightProbe = createDuskLightProbe();
+  duskLightProbe.position.set(centerX, 2.2, centerZ);
+  group.add(duskLightProbe);
 
   const skyRadius = Math.max(width, depth) * 1.32;
   const skyGeometry = new SphereGeometry(skyRadius, 48, 48);
@@ -202,6 +262,8 @@ export function createBackyardEnvironment(
     color: 0x1d2f22,
     roughness: 0.92,
     metalness: 0.05,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.18,
   });
   const terrain = new Mesh(terrainGeometry, terrainMaterial);
   terrain.position.set(centerX, -0.05, centerZ);
@@ -213,8 +275,10 @@ export function createBackyardEnvironment(
   const pathGeometry = new BoxGeometry(pathWidth, 0.08, pathDepth);
   const pathMaterial = new MeshStandardMaterial({
     color: 0x515c66,
-    roughness: 0.65,
-    metalness: 0.2,
+    roughness: 0.58,
+    metalness: 0.32,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.38,
   });
   const path = new Mesh(pathGeometry, pathMaterial);
   path.position.set(centerX, 0.04, bounds.minZ + pathDepth / 2 + 0.35);
@@ -235,8 +299,10 @@ export function createBackyardEnvironment(
   const steppingStoneGeometry = new BoxGeometry(pathWidth * 0.32, 0.12, 0.9);
   const steppingStoneMaterial = new MeshStandardMaterial({
     color: 0x676f78,
-    roughness: 0.7,
-    metalness: 0.18,
+    roughness: 0.64,
+    metalness: 0.26,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.35,
   });
   const steppingStoneCount = 4;
   for (let i = 0; i < steppingStoneCount; i += 1) {
@@ -262,6 +328,8 @@ export function createBackyardEnvironment(
     basePosition: greenhouseBase,
     width: greenhouseWidth,
     depth: greenhouseDepth,
+    environmentMap: duskReflectionMap,
+    environmentIntensity: 0.62,
   });
   group.add(greenhouse.group);
   greenhouse.colliders.forEach((collider) => colliders.push(collider));
@@ -272,8 +340,10 @@ export function createBackyardEnvironment(
   const walkwayGeometry = new BoxGeometry(walkwayWidth, 0.06, walkwayDepth);
   const walkwayMaterial = new MeshStandardMaterial({
     color: 0x454f57,
-    roughness: 0.58,
-    metalness: 0.22,
+    roughness: 0.52,
+    metalness: 0.28,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.42,
   });
   const walkway = new Mesh(walkwayGeometry, walkwayMaterial);
   walkway.name = 'BackyardGreenhouseWalkway';
@@ -382,6 +452,8 @@ export function createBackyardEnvironment(
     color: 0x2c6b3d,
     roughness: 0.78,
     metalness: 0.08,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.16,
   });
   const shrubPositions = [
     new Vector3(bounds.minX + 1.6, 0, bounds.maxZ - 3.2),
