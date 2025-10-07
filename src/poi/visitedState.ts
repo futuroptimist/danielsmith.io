@@ -9,19 +9,38 @@ export interface PoiVisitedStateOptions {
 
 const DEFAULT_STORAGE_KEY = 'danielsmith.io::poi::visited::v1';
 
-const getDefaultStorage = (): Storage | null => {
-  if (typeof window === 'undefined') {
+type StorageKey = 'localStorage' | 'sessionStorage';
+
+const getWindowStorage = (target: Window, key: StorageKey): Storage | null => {
+  if (!(key in target)) {
     return null;
   }
   try {
-    return window.localStorage;
+    const storage = target[key];
+    if (!storage) {
+      return null;
+    }
+    return storage;
   } catch (error) {
     console.warn(
-      'Accessing localStorage failed, continuing without persistence.',
+      `Accessing ${key} failed, continuing without persistence.`,
       error
     );
     return null;
   }
+};
+
+const getDefaultStorage = (): Storage | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const local = getWindowStorage(window, 'localStorage');
+  if (local) {
+    return local;
+  }
+
+  return getWindowStorage(window, 'sessionStorage');
 };
 
 const normalizeVisitedList = (value: unknown): PoiId[] => {

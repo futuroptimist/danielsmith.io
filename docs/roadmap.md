@@ -161,6 +161,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      portfolio while honoring manual immersive overrides.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
+     - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
    - Optional guided tour mode that highlights the next recommended POI.
