@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { getFlickerScale, getPulseScale } from '../accessibility/animationPreferences';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../accessibility/animationPreferences';
 
 describe('animation accessibility preferences', () => {
   const restore = () => {

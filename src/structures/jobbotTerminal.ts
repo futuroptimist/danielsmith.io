@@ -375,7 +375,11 @@ export function createJobbotTerminal(
       hologramGroup.position.y = hologramBaseHeight + 0.06 + bob;
       hologramGroup.rotation.y = elapsed * 0.8 * spinScale;
 
-      const opacityDriver = MathUtils.lerp(0.3, Math.max(emphasis, 0.25), pulseScale);
+      const opacityDriver = MathUtils.lerp(
+        0.3,
+        Math.max(emphasis, 0.25),
+        pulseScale
+      );
       const hologramOpacity = MathUtils.lerp(0.28, 0.72, opacityDriver);
       hologramMaterial.opacity = hologramOpacity;
       hologramPanelMaterial.opacity = MathUtils.lerp(
@@ -391,7 +395,11 @@ export function createJobbotTerminal(
       );
       hologramCoreMaterial.emissiveIntensity = coreIntensity;
 
-      const glowDriver = MathUtils.lerp(0.24, Math.max(emphasis, 0.35), pulseScale);
+      const glowDriver = MathUtils.lerp(
+        0.24,
+        Math.max(emphasis, 0.35),
+        pulseScale
+      );
       const glowIntensity = MathUtils.lerp(0.32, 0.78, glowDriver);
       screenGlowMaterial.emissiveIntensity = glowIntensity;
 
@@ -416,11 +424,7 @@ export function createJobbotTerminal(
           Math.max(emphasis, pulse),
           pulseScale
         );
-        material.emissiveIntensity = MathUtils.lerp(
-          0.4,
-          1.25,
-          beaconDriver
-        );
+        material.emissiveIntensity = MathUtils.lerp(0.4, 1.25, beaconDriver);
         beacon.position.y =
           deskHeight +
           deskThickness +

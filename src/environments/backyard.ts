@@ -22,7 +22,10 @@ import {
 } from 'three';
 import type { IUniform } from 'three';
 
-import { getFlickerScale, getPulseScale } from '../accessibility/animationPreferences';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../accessibility/animationPreferences';
 import type { AmbientAudioFalloffCurve } from '../audio/ambientAudio';
 import type { RectCollider } from '../collision';
 import type { Bounds2D } from '../floorPlan';
@@ -552,10 +555,8 @@ export function createBackyardEnvironment(
         );
         target.glassMaterial.emissiveIntensity =
           target.baseIntensity * intensityScale;
-        target.light.intensity =
-          target.baseLightIntensity * intensityScale;
-        target.light.distance =
-          4.4 * MathUtils.lerp(0.7, 1, rotationScale);
+        target.light.intensity = target.baseLightIntensity * intensityScale;
+        target.light.distance = 4.4 * MathUtils.lerp(0.7, 1, rotationScale);
       });
     });
   }

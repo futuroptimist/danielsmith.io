@@ -157,7 +157,9 @@ describe('createAccessibilityPresetManager', () => {
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
     expect(document.documentElement.dataset.accessibilityPulseScale).toBe('0');
-    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe('0');
+    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
+      '0'
+    );
     expect(bloomPass.enabled).toBe(false);
     expect(masterVolume).toBeCloseTo(0.35, 5);
 
