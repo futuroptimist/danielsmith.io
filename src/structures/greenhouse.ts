@@ -12,6 +12,7 @@ import {
   Vector3,
 } from 'three';
 
+import { getPulseScale } from '../accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
 export interface GreenhouseConfig {
@@ -344,13 +345,22 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   });
 
   const update = ({ elapsed }: { elapsed: number; delta: number }) => {
-    const sway = Math.sin(elapsed * 0.4) * MathUtils.degToRad(6);
+    const pulseScale = getPulseScale();
+    const swayAmplitude = MathUtils.lerp(0.8, 6, pulseScale);
+    const sway = Math.sin(elapsed * 0.4) * MathUtils.degToRad(swayAmplitude);
     solarPanelPivot.rotation.x = SOLAR_BASE_TILT + sway;
 
     growLightMaterials.forEach((material, index) => {
       const phase = index * 0.6;
       const pulse = (Math.sin(elapsed * 1.3 + phase) + 1) / 2;
-      material.emissiveIntensity = MathUtils.lerp(0.72, 1.65, pulse);
+      const safePulse = MathUtils.lerp(0.25, pulse, pulseScale);
+      const minIntensity = MathUtils.lerp(0.68, 0.72, pulseScale);
+      const maxIntensity = MathUtils.lerp(1.1, 1.65, pulseScale);
+      material.emissiveIntensity = MathUtils.lerp(
+        minIntensity,
+        maxIntensity,
+        safePulse
+      );
     });
   };
 

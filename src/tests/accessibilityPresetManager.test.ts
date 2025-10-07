@@ -34,6 +34,8 @@ describe('createAccessibilityPresetManager', () => {
     delete document.documentElement.dataset.accessibilityPreset;
     delete document.documentElement.dataset.accessibilityMotion;
     delete document.documentElement.dataset.accessibilityContrast;
+    delete document.documentElement.dataset.accessibilityPulseScale;
+    delete document.documentElement.dataset.accessibilityFlickerScale;
   };
 
   it('applies stored preset, scales lighting, and adjusts audio', () => {
@@ -87,6 +89,12 @@ describe('createAccessibilityPresetManager', () => {
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe(
       'standard'
+    );
+    expect(document.documentElement.dataset.accessibilityPulseScale).toBe(
+      '0.65'
+    );
+    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
+      '0.55'
     );
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(0.9, 5);
@@ -148,6 +156,10 @@ describe('createAccessibilityPresetManager', () => {
       JSON.stringify({ presetId: 'photosensitive', baseAudioVolume: 0.5 })
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
+    expect(document.documentElement.dataset.accessibilityPulseScale).toBe('0');
+    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
+      '0'
+    );
     expect(bloomPass.enabled).toBe(false);
     expect(masterVolume).toBeCloseTo(0.35, 5);
 

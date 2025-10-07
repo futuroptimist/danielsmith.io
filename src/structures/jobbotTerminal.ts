@@ -13,6 +13,7 @@ import {
   SRGBColorSpace,
 } from 'three';
 
+import { getPulseScale } from '../accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
 export interface JobbotTerminalBuild {
@@ -348,6 +349,7 @@ export function createJobbotTerminal(
   const beacons: Mesh[] = [];
   beaconOffsets.forEach(([x, z]) => {
     const beacon = new Mesh(statusBeaconGeometry, statusBeaconMaterial.clone());
+    beacon.name = `JobbotTerminalBeacon-${beacons.length}`;
     beacon.position.set(x, deskHeight + deskThickness + 0.12, z);
     group.add(beacon);
     beacons.push(beacon);
@@ -366,45 +368,68 @@ export function createJobbotTerminal(
     group,
     colliders,
     update({ elapsed, emphasis }) {
-      const bob = Math.sin(elapsed * 2.1) * 0.08;
+      const pulseScale = getPulseScale();
+      const bobAmplitude = MathUtils.lerp(0.012, 0.08, pulseScale);
+      const spinScale = MathUtils.lerp(0.15, 1, pulseScale);
+      const bob = Math.sin(elapsed * 2.1 * spinScale) * bobAmplitude;
       hologramGroup.position.y = hologramBaseHeight + 0.06 + bob;
-      hologramGroup.rotation.y = elapsed * 0.8;
+      hologramGroup.rotation.y = elapsed * 0.8 * spinScale;
 
-      const hologramOpacity = MathUtils.lerp(
-        0.28,
-        0.72,
-        Math.max(emphasis, 0.25)
+      const opacityDriver = MathUtils.lerp(
+        0.3,
+        Math.max(emphasis, 0.25),
+        pulseScale
       );
+      const hologramOpacity = MathUtils.lerp(0.28, 0.72, opacityDriver);
       hologramMaterial.opacity = hologramOpacity;
-      hologramPanelMaterial.opacity = MathUtils.lerp(0.28, 0.6, emphasis);
+      hologramPanelMaterial.opacity = MathUtils.lerp(
+        0.28,
+        MathUtils.lerp(0.42, 0.6, pulseScale),
+        Math.max(emphasis, 0.1)
+      );
 
-      const coreIntensity = MathUtils.lerp(0.9, 1.9, emphasis);
+      const coreIntensity = MathUtils.lerp(
+        MathUtils.lerp(0.7, 0.9, pulseScale),
+        MathUtils.lerp(1.1, 1.9, pulseScale),
+        emphasis
+      );
       hologramCoreMaterial.emissiveIntensity = coreIntensity;
 
-      const glowIntensity = MathUtils.lerp(0.32, 0.78, emphasis);
+      const glowDriver = MathUtils.lerp(
+        0.24,
+        Math.max(emphasis, 0.35),
+        pulseScale
+      );
+      const glowIntensity = MathUtils.lerp(0.32, 0.78, glowDriver);
       screenGlowMaterial.emissiveIntensity = glowIntensity;
 
-      const tickerPulse = (Math.sin(elapsed * 3.4) + 1) / 2;
-      tickerMaterial.opacity = MathUtils.lerp(
-        0.35,
-        0.95,
-        Math.max(emphasis, tickerPulse * 0.7)
+      const tickerPulse = (Math.sin(elapsed * 3.4 * spinScale) + 1) / 2;
+      const tickerDriver = MathUtils.lerp(
+        0.2,
+        Math.max(emphasis, tickerPulse * 0.7),
+        pulseScale
       );
-      screenMaterial.opacity = MathUtils.lerp(0.82, 1, Math.max(emphasis, 0.4));
+      tickerMaterial.opacity = MathUtils.lerp(0.35, 0.95, tickerDriver);
+      screenMaterial.opacity = MathUtils.lerp(
+        0.82,
+        MathUtils.lerp(0.92, 1, pulseScale),
+        Math.max(emphasis, 0.4)
+      );
 
       beacons.forEach((beacon, index) => {
         const material = beacon.material as MeshStandardMaterial;
-        const pulse = (Math.sin(elapsed * 2.3 + index) + 1) / 2;
-        material.emissiveIntensity = MathUtils.lerp(
-          0.4,
-          1.25,
-          Math.max(emphasis, pulse)
+        const pulse = (Math.sin(elapsed * 2.3 * spinScale + index) + 1) / 2;
+        const beaconDriver = MathUtils.lerp(
+          0.3,
+          Math.max(emphasis, pulse),
+          pulseScale
         );
+        material.emissiveIntensity = MathUtils.lerp(0.4, 1.25, beaconDriver);
         beacon.position.y =
           deskHeight +
           deskThickness +
           0.12 +
-          Math.sin(elapsed * 1.6 + index) * 0.05;
+          Math.sin(elapsed * 1.6 * spinScale + index) * 0.05 * pulseScale;
       });
     },
   } satisfies JobbotTerminalBuild;

@@ -19,6 +19,10 @@ export interface AccessibilityPresetDefinition {
   readonly description: string;
   readonly motion: MotionSetting;
   readonly contrast: ContrastSetting;
+  readonly animation: {
+    readonly pulseScale: number;
+    readonly flickerScale: number;
+  };
   readonly bloom: {
     readonly enabled?: BooleanLike;
     readonly strengthScale: number;
@@ -41,6 +45,10 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
     description: 'Default visuals and audio balance.',
     motion: 'default',
     contrast: 'standard',
+    animation: {
+      pulseScale: 1,
+      flickerScale: 1,
+    },
     bloom: {
       strengthScale: 1,
       radiusScale: 1,
@@ -61,6 +69,10 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
       'Softens bloom, LED glow, and ambient audio for a gentler pass.',
     motion: 'reduced',
     contrast: 'standard',
+    animation: {
+      pulseScale: 0.65,
+      flickerScale: 0.55,
+    },
     bloom: {
       strengthScale: 0.6,
       radiusScale: 0.9,
@@ -80,6 +92,10 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
     description: 'Disables bloom, dulls emissives, and boosts HUD contrast.',
     motion: 'reduced',
     contrast: 'high',
+    animation: {
+      pulseScale: 0,
+      flickerScale: 0,
+    },
     bloom: {
       enabled: false,
       strengthScale: 0,
@@ -244,6 +260,12 @@ export function createAccessibilityPresetManager({
       definition.motion === 'reduced' ? 'reduced' : 'default';
     documentElement.dataset.accessibilityContrast =
       definition.contrast === 'high' ? 'high' : 'standard';
+    documentElement.dataset.accessibilityPulseScale = String(
+      definition.animation.pulseScale
+    );
+    documentElement.dataset.accessibilityFlickerScale = String(
+      definition.animation.flickerScale
+    );
   };
 
   const applyBloomAndLighting = (definition: AccessibilityPresetDefinition) => {

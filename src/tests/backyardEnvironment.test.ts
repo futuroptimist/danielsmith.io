@@ -70,6 +70,8 @@ describe('createBackyardEnvironment', () => {
   afterEach(() => {
     randomSpy.mockRestore();
     getContextSpy.mockRestore();
+    delete document.documentElement.dataset.accessibilityPulseScale;
+    delete document.documentElement.dataset.accessibilityFlickerScale;
   });
 
   it('adds the model rocket installation and collider to the backyard', () => {
@@ -167,6 +169,47 @@ describe('createBackyardEnvironment', () => {
     expect(glassMaterial.emissiveIntensity).not.toBe(midEmissive);
     expect(midLightIntensity).not.toBe(baselineLightIntensity);
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
+  });
+
+  it('dampens backyard pulses when the photosensitive safe scale is disabled', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const lanternGroup = environment.group.getObjectByName(
+      'BackyardWalkwayLanterns'
+    ) as Group | null;
+    expect(lanternGroup).toBeInstanceOf(Group);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    const glass = lanternGroup?.getObjectByName(
+      'BackyardWalkwayLanternGlass-0'
+    ) as Mesh | null;
+    expect(glass).toBeInstanceOf(Mesh);
+    const glassMaterial = (glass!.material as MeshStandardMaterial)!;
+
+    const light = lanternGroup?.getObjectByName(
+      'BackyardWalkwayLanternLight-0'
+    ) as PointLight | null;
+    expect(light).toBeInstanceOf(PointLight);
+
+    environment.update({ elapsed: 0.6, delta: 0.016 });
+    const steadyEmissive = glassMaterial.emissiveIntensity;
+    const steadyLight = light!.intensity;
+
+    environment.update({ elapsed: 1.4, delta: 0.016 });
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(steadyEmissive, 5);
+    expect(light!.intensity).toBeCloseTo(steadyLight, 5);
+
+    const growLight = environment.group.getObjectByName(
+      'BackyardGreenhouseGrowLight-1'
+    ) as Mesh | null;
+    expect(growLight).toBeInstanceOf(Mesh);
+    const growMaterial = (growLight!.material as MeshStandardMaterial)!;
+
+    environment.update({ elapsed: 2.1, delta: 0.016 });
+    const steadyGrow = growMaterial.emissiveIntensity;
+    environment.update({ elapsed: 3.2, delta: 0.016 });
+    expect(growMaterial.emissiveIntensity).toBeCloseTo(steadyGrow, 5);
   });
 
   it('wraps the backyard with a dusk sky dome that subtly shifts over time', () => {

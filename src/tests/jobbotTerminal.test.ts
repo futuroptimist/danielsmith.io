@@ -1,6 +1,7 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import {
   afterAll,
+  afterEach,
   beforeAll,
   describe,
   expect,
@@ -43,6 +44,10 @@ describe('JobbotTerminal structure', () => {
 
   afterAll(() => {
     getContextSpy.mockRestore();
+  });
+
+  afterEach(() => {
+    delete document.documentElement.dataset.accessibilityPulseScale;
   });
 
   it('creates terminal geometry and collider footprint', () => {
@@ -95,5 +100,32 @@ describe('JobbotTerminal structure', () => {
       initialCoreIntensity
     );
     expect(tickerMaterial.opacity).toBeGreaterThanOrEqual(initialTickerOpacity);
+  });
+
+  it('reduces hologram flicker when pulse scale is disabled', () => {
+    const build = createJobbotTerminal({ position: { x: 0, z: 0 } });
+    const ticker = build.group.getObjectByName('JobbotTerminalTicker') as Mesh;
+    const beacon = build.group.getObjectByName('JobbotTerminalBeacon-0') as
+      | Mesh
+      | undefined;
+
+    expect(ticker).toBeInstanceOf(Mesh);
+    expect(beacon).toBeInstanceOf(Mesh);
+
+    const tickerMaterial = ticker.material as MeshBasicMaterial;
+    const beaconMaterial = (beacon!.material as MeshStandardMaterial)!;
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    build.update({ elapsed: 0.8, delta: 0.016, emphasis: 0.6 });
+    const steadyTicker = tickerMaterial.opacity;
+    const steadyBeacon = beaconMaterial.emissiveIntensity;
+    const steadyHeight = beacon!.position.y;
+
+    build.update({ elapsed: 1.6, delta: 0.016, emphasis: 0.6 });
+
+    expect(tickerMaterial.opacity).toBeCloseTo(steadyTicker, 5);
+    expect(beaconMaterial.emissiveIntensity).toBeCloseTo(steadyBeacon, 5);
+    expect(beacon!.position.y).toBeCloseTo(steadyHeight, 5);
   });
 });

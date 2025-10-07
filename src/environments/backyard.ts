@@ -10,6 +10,7 @@ import {
   EquirectangularReflectionMapping,
   Group,
   LightProbe,
+  MathUtils,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -25,6 +26,10 @@ import {
 } from 'three';
 import type { IUniform } from 'three';
 
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../accessibility/animationPreferences';
 import type { AmbientAudioFalloffCurve } from '../audio/ambientAudio';
 import type { RectCollider } from '../collision';
 import type { Bounds2D } from '../floorPlan';
@@ -222,7 +227,9 @@ export function createBackyardEnvironment(
 
   updates.push(({ elapsed }) => {
     skyUniforms.time.value = elapsed;
-    const duskWave = Math.sin(elapsed * 0.12) * 0.08;
+    const pulseScale = getPulseScale();
+    const duskAmplitude = MathUtils.lerp(0.015, 0.08, pulseScale);
+    const duskWave = Math.sin(elapsed * 0.12) * duskAmplitude;
     const adjustedLightness = Math.min(
       1,
       Math.max(0, baseHorizonHsl.l + duskWave * 0.6)
@@ -602,6 +609,10 @@ export function createBackyardEnvironment(
   if (lanternAnimationTargets.length > 0) {
     updates.push(({ elapsed }) => {
       const baseWave = Math.sin(elapsed * 0.9) * 0.12;
+      const flickerScale = getFlickerScale();
+      const pulseScale = getPulseScale();
+      const steadyBase = MathUtils.lerp(0.6, 1, flickerScale);
+      const rotationScale = MathUtils.lerp(0.2, 1, pulseScale);
       lanternAnimationTargets.forEach((target) => {
         const flicker =
           0.84 +
@@ -609,9 +620,15 @@ export function createBackyardEnvironment(
           Math.sin(elapsed * 1.7 + target.offset) * 0.16 +
           Math.sin(elapsed * 2.4 + target.offset * 0.8) * 0.08;
         const clampedFlicker = Math.max(0.4, flicker);
+        const intensityScale = MathUtils.lerp(
+          steadyBase,
+          clampedFlicker,
+          flickerScale
+        );
         target.glassMaterial.emissiveIntensity =
-          target.baseIntensity * clampedFlicker;
-        target.light.intensity = target.baseLightIntensity * clampedFlicker;
+          target.baseIntensity * intensityScale;
+        target.light.intensity = target.baseLightIntensity * intensityScale;
+        target.light.distance = 4.4 * MathUtils.lerp(0.7, 1, rotationScale);
       });
     });
   }
