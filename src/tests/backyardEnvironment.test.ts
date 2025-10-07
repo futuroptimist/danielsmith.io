@@ -1,10 +1,14 @@
 import {
   Color,
+  EquirectangularReflectionMapping,
   Group,
+  LightProbe,
   Mesh,
   MeshStandardMaterial,
   PointLight,
   ShaderMaterial,
+  SRGBColorSpace,
+  Texture,
 } from 'three';
 import {
   afterEach,
@@ -215,5 +219,25 @@ describe('createBackyardEnvironment', () => {
       walkwayBed?.innerRadius ?? 0
     );
     expect(walkwayBed?.baseVolume).toBeGreaterThan(0);
+  });
+
+  it('layers dusk reflections and a light probe across the backyard materials', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const walkway = environment.group.getObjectByName(
+      'BackyardGreenhouseWalkway'
+    ) as Mesh | null;
+    expect(walkway).toBeInstanceOf(Mesh);
+    const walkwayMaterial = (walkway as Mesh).material as MeshStandardMaterial;
+    const envMap = walkwayMaterial.envMap as Texture | null;
+    expect(envMap).toBeTruthy();
+    expect(envMap?.mapping).toBe(EquirectangularReflectionMapping);
+    expect(envMap?.colorSpace).toBe(SRGBColorSpace);
+    expect(walkwayMaterial.envMapIntensity).toBeGreaterThan(0);
+
+    const lightProbe = environment.group.getObjectByName(
+      'BackyardDuskLightProbe'
+    );
+    expect(lightProbe).toBeInstanceOf(LightProbe);
+    expect((lightProbe as LightProbe).intensity).toBeGreaterThan(1);
   });
 });
