@@ -59,6 +59,8 @@ Focus: expand the environment while keeping navigation smooth.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
+   - ✨ Baked dusk lightmaps now bathe floors and walls in a gradient bounce wash that pairs with the LED strips.
+   - ✨ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
 2. **House Footprint Layout**
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.

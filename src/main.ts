@@ -104,6 +104,10 @@ import {
   shouldDisablePerformanceFailover,
 } from './immersiveUrl';
 import {
+  applyLightmapUv2,
+  createInteriorLightmapTextures,
+} from './lighting/bakedLightmaps';
+import {
   createLightingDebugController,
   type LightingMode,
 } from './lighting/debugControls';
@@ -822,6 +826,7 @@ function initializeImmersiveScene(
   }
   floorShape.closePath();
   const floorGeometry = new ShapeGeometry(floorShape);
+  applyLightmapUv2(floorGeometry);
   floorGeometry.rotateX(-Math.PI / 2);
   const floor = new Mesh(floorGeometry, floorMaterial);
   floor.position.y = 0;
@@ -829,6 +834,19 @@ function initializeImmersiveScene(
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
+
+  const interiorLightmaps = createInteriorLightmapTextures({
+    floorSize: {
+      width: floorBounds.maxX - floorBounds.minX,
+      depth: floorBounds.maxZ - floorBounds.minZ,
+    },
+  });
+  floorMaterial.lightMap = interiorLightmaps.floor;
+  floorMaterial.lightMapIntensity = 0.78;
+  wallMaterial.lightMap = interiorLightmaps.wall;
+  wallMaterial.lightMapIntensity = 0.68;
+  fenceMaterial.lightMap = interiorLightmaps.wall;
+  fenceMaterial.lightMapIntensity = 0.56;
   const wallGroup = new Group();
   const combinedWallSegments = getCombinedWallSegments(FLOOR_PLAN);
 
@@ -882,6 +900,7 @@ function initializeImmersiveScene(
     }
 
     const geometry = new BoxGeometry(width, segmentHeight, depth);
+    applyLightmapUv2(geometry);
     const wall = new Mesh(geometry, material);
     wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
     wallGroup.add(wall);
