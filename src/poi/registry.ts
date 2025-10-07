@@ -217,7 +217,7 @@ const definitions: PoiDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'kitchen',
-    position: { x: -5.2, y: 0, z: 3.8 },
+    position: { x: -5.2, y: 0, z: 10 },
     headingRadians: Math.PI * 0.1,
     interactionRadius: 2,
     footprint: { width: 1.8, depth: 1.8 },
