@@ -93,6 +93,9 @@ lightweight.
   with a lightweight bloom pass so the room inherits a soft gradient glow without heavy shadows.
   A Shift+L debug toggle disables bloom/LED accents to compare raw material response.
 - **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
+- **HUD overlay** – The floating movement legend now reacts to the most recent input method
+  (keyboard, mouse, or touch) and swaps the interact hint to match, so visitors always see the
+  action verb that applies to their device.
 - **Points of Interest** – A data-driven registry spawns holographic pedestals with animated
   tooltips for featured repos. Proximity-based halos ease the labels in so players sense each
   interaction radius without clutter, and a DOM overlay mirrors the metadata so screen readers and
@@ -117,8 +120,9 @@ lightweight.
   accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support and sustained frame rates below 30 FPS;
-  `?mode=immersive` switches back when supported. Screen readers now announce each switch so
-  assistive technology users know which mode is active.
+  `?mode=immersive&disablePerformanceFailover=1` forces the full scene even on
+  throttled preview clients. Screen readers now announce each switch so assistive
+  technology users know which mode is active.
 
 ## Automation prompts
 

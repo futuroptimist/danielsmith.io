@@ -93,6 +93,14 @@ import {
   type HudLayoutManagerHandle,
 } from './hud/layoutManager';
 import {
+  createMovementLegend,
+  type MovementLegendHandle,
+} from './hud/movementLegend';
+import {
+  createImmersiveModeUrl,
+  shouldDisablePerformanceFailover,
+} from './immersiveUrl';
+import {
   createLightingDebugController,
   type LightingMode,
 } from './lighting/debugControls';
@@ -108,6 +116,7 @@ import { getPoiDefinitions } from './poi/registry';
 import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiTourGuide } from './poi/tourGuide';
+import { updateVisitedBadge } from './poi/visitedBadge';
 import { PoiVisitedState } from './poi/visitedState';
 import {
   createFlywheelShowpiece,
@@ -159,20 +168,6 @@ const markDocumentReady = (mode: AppMode) => {
   const root = document.documentElement;
   root.dataset.appMode = mode;
   root.removeAttribute('data-app-loading');
-};
-
-const createImmersiveModeUrl = () => {
-  if (typeof window === 'undefined') {
-    return '/?mode=immersive';
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  params.set('mode', 'immersive');
-
-  const query = params.toString();
-  const hash = window.location.hash ?? '';
-
-  return `${window.location.pathname}${query ? `?${query}` : ''}${hash}`;
 };
 
 let immersiveFailureHandled = false;
@@ -384,7 +379,8 @@ function initializeImmersiveScene(
   };
 
   const searchParams = new URLSearchParams(window.location.search);
-  const hasForcedImmersiveMode = searchParams.get('mode') === 'immersive';
+  const disablePerformanceFailover =
+    shouldDisablePerformanceFailover(searchParams);
 
   const performanceFailover = createPerformanceFailoverHandler({
     renderer,
@@ -404,7 +400,7 @@ function initializeImmersiveScene(
     onBeforeFallback: () => {
       disposeImmersiveResources();
     },
-    disabled: hasForcedImmersiveMode,
+    disabled: disablePerformanceFailover,
   });
 
   const handleFatalError = (error: unknown) => {
@@ -1049,6 +1045,9 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const movementLegend: MovementLegendHandle | null = controlOverlay
+    ? createMovementLegend({ container: controlOverlay })
+    : null;
   const helpModal = createHelpModal({ container: document.body });
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
@@ -1893,6 +1892,15 @@ function initializeImmersiveScene(
         poi.visitedHighlight.mesh.scale.setScalar(visitedScale);
       }
 
+      if (poi.visitedBadge) {
+        updateVisitedBadge(poi.visitedBadge, {
+          elapsedTime,
+          delta,
+          visitedEmphasis,
+          floatPhase: poi.floatPhase,
+        });
+      }
+
       if (!poi.displayHighlight) {
         if (
           poi.orbMaterial &&
@@ -1956,6 +1964,15 @@ function initializeImmersiveScene(
       return;
     }
     interactablePoi = poi;
+    if (movementLegend) {
+      if (poi) {
+        movementLegend.setInteractPrompt(
+          `Interact with ${poi.definition.title}`
+        );
+      } else {
+        movementLegend.setInteractPrompt(null);
+      }
+    }
     if (!interactControl || !interactDescription) {
       return;
     }
@@ -2057,6 +2074,7 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    movementLegend?.dispose();
     helpModal.dispose();
   }
 

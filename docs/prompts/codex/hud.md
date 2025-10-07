@@ -18,6 +18,8 @@ USER:
 3. Wire HUD controls to Three.js scene systems (audio, graphics quality, assists).
 4. Achieve 100% patch coverage with unit/integration tests for UI state reducers or hooks.
 5. Update documentation/screenshot references in `docs/roadmap.md` or README.
+6. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 Summarize functionality, tests, and any UX research notes.

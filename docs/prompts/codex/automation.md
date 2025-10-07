@@ -87,6 +87,8 @@ USER:
 3. Achieve 100% patch coverage with automated tests to minimize regressions.
 4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
 5. Run the checks above.
+6. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

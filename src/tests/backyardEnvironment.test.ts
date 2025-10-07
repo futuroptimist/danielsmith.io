@@ -1,4 +1,11 @@
-import { Group, Mesh, MeshStandardMaterial, PointLight } from 'three';
+import {
+  Color,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  PointLight,
+  ShaderMaterial,
+} from 'three';
 import {
   afterEach,
   beforeEach,
@@ -156,6 +163,37 @@ describe('createBackyardEnvironment', () => {
     expect(glassMaterial.emissiveIntensity).not.toBe(midEmissive);
     expect(midLightIntensity).not.toBe(baselineLightIntensity);
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
+  });
+
+  it('wraps the backyard with a dusk sky dome that subtly shifts over time', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const sky = environment.group.getObjectByName('BackyardSkyDome');
+    expect(sky).toBeInstanceOf(Mesh);
+
+    const material = (sky as Mesh).material as ShaderMaterial;
+    expect(material).toBeInstanceOf(ShaderMaterial);
+
+    const horizonColor = material.uniforms.horizonColor?.value as
+      | Color
+      | undefined;
+    expect(horizonColor).toBeInstanceOf(Color);
+
+    const beforeHsl = { h: 0, s: 0, l: 0 };
+    horizonColor!.getHSL(beforeHsl);
+
+    environment.update({ elapsed: 1.5, delta: 0.016 });
+    expect(material.uniforms.time.value).toBeCloseTo(1.5, 5);
+
+    const afterHsl = { h: 0, s: 0, l: 0 };
+    horizonColor!.getHSL(afterHsl);
+    expect(afterHsl.l).not.toBeCloseTo(beforeHsl.l);
+
+    environment.update({ elapsed: 3.2, delta: 0.016 });
+    expect(material.uniforms.time.value).toBeCloseTo(3.2, 5);
+
+    const laterHsl = { h: 0, s: 0, l: 0 };
+    horizonColor!.getHSL(laterHsl);
+    expect(laterHsl.l).not.toBeCloseTo(afterHsl.l);
   });
 
   it('exposes ambient audio beds centered on the greenhouse walkway', () => {

@@ -18,6 +18,8 @@ USER:
 3. Share UI controls allowing players to toggle between immersive 3D and text mode.
 4. Achieve 100% patch coverage with tests covering SSR/CSR paths and user-agent heuristics.
 5. Update documentation on how to force modes for debugging.
+6. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
+   so the immersive scene stays active instead of tripping the low-FPS guard.
 
 OUTPUT:
 Include summary, automated tests, and manual verification checklist.

@@ -1,4 +1,8 @@
-import type { FloorPlanDefinition } from '../floorPlan';
+import type { FloorPlanDefinition, RoomWall } from '../floorPlan';
+import {
+  getDoorwayClearanceZones,
+  type DoorwayClearanceZone,
+} from '../floorPlan/doorways';
 
 import type { PoiDefinition, PoiId } from './types';
 
@@ -11,7 +15,14 @@ export type PoiValidationIssue =
       roomId: string;
       position: { x: number; z: number };
     }
-  | { type: 'overlap'; poiId: PoiId; otherPoiId: PoiId };
+  | { type: 'overlap'; poiId: PoiId; otherPoiId: PoiId }
+  | {
+      type: 'doorway-blocked';
+      poiId: PoiId;
+      roomId: string;
+      wall: RoomWall;
+      doorway: { start: number; end: number };
+    };
 
 export interface PoiValidationOptions {
   floorPlan: FloorPlanDefinition;
@@ -26,6 +37,22 @@ const defaultOptions: Required<Omit<PoiValidationOptions, 'floorPlan'>> = {
   allowOverlapFor: [],
 };
 
+interface RectLike {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+function rectanglesOverlap(a: RectLike, b: RectLike, epsilon: number): boolean {
+  return (
+    a.minX < b.maxX - epsilon &&
+    a.maxX > b.minX + epsilon &&
+    a.minZ < b.maxZ - epsilon &&
+    a.maxZ > b.minZ + epsilon
+  );
+}
+
 export function validatePoiDefinitions(
   definitions: PoiDefinition[],
   options: PoiValidationOptions
@@ -36,6 +63,18 @@ export function validatePoiDefinitions(
   const issues: PoiValidationIssue[] = [];
   const seen = new Map<PoiId, PoiDefinition>();
   const roomLookup = new Map(floorPlan.rooms.map((room) => [room.id, room]));
+  const clearances = getDoorwayClearanceZones(floorPlan);
+  const clearancesByRoom = new Map<string, DoorwayClearanceZone[]>(
+    floorPlan.rooms.map((room) => [room.id, []])
+  );
+  clearances.forEach((zone) => {
+    const list = clearancesByRoom.get(zone.roomId);
+    if (list) {
+      list.push(zone);
+    } else {
+      clearancesByRoom.set(zone.roomId, [zone]);
+    }
+  });
 
   definitions.forEach((definition) => {
     const duplicate = seen.get(definition.id);
@@ -67,6 +106,29 @@ export function validatePoiDefinitions(
         poiId: definition.id,
         roomId: definition.roomId,
         position: { x, z },
+      });
+    }
+
+    const footprintBounds = {
+      minX: x - definition.footprint.width / 2,
+      maxX: x + definition.footprint.width / 2,
+      minZ: z - definition.footprint.depth / 2,
+      maxZ: z + definition.footprint.depth / 2,
+    };
+    const roomClearances = clearancesByRoom.get(definition.roomId) ?? [];
+    const blockingDoorway = roomClearances.find((zone) =>
+      rectanglesOverlap(zone.bounds, footprintBounds, epsilon)
+    );
+    if (blockingDoorway) {
+      issues.push({
+        type: 'doorway-blocked',
+        poiId: definition.id,
+        roomId: definition.roomId,
+        wall: blockingDoorway.wall,
+        doorway: {
+          start: blockingDoorway.doorway.start,
+          end: blockingDoorway.doorway.end,
+        },
       });
     }
   });
@@ -135,6 +197,11 @@ export function assertValidPoiDefinitions(
         }
         case 'overlap':
           return `POIs ${issue.poiId} and ${issue.otherPoiId} overlap beyond allowed footprint clearance`;
+        case 'doorway-blocked': {
+          const start = issue.doorway.start.toFixed(2);
+          const end = issue.doorway.end.toFixed(2);
+          return `POI ${issue.poiId} blocks the ${issue.wall} doorway (${start}–${end}) of ${issue.roomId}`;
+        }
         default:
           return 'Unknown POI validation issue';
       }
