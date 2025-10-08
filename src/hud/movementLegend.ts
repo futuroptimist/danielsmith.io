@@ -12,6 +12,7 @@ export interface MovementLegendHandle {
   getActiveMethod(): InputMethod;
   setActiveMethod(method: InputMethod): void;
   setInteractPrompt(description: string | null): void;
+  setKeyboardInteractLabel(label: string): void;
   dispose(): void;
 }
 
@@ -173,6 +174,8 @@ export function createMovementLegend(
     ...interactLabels,
   } as Record<InputMethod, string>;
 
+  const defaultKeyboardLabel = labels.keyboard;
+
   if (context.interactDescription) {
     context.interactDescription.textContent =
       context.defaultInteractDescription || defaultInteractDescription;
@@ -202,6 +205,15 @@ export function createMovementLegend(
 
   const ensureInteractLabel = () => {
     updateInteractLabel(context, labels, activeMethod);
+  };
+
+  const setKeyboardInteractLabel = (label: string) => {
+    const normalized = label && label.trim() ? label.trim() : defaultKeyboardLabel;
+    if (labels.keyboard === normalized) {
+      return;
+    }
+    labels.keyboard = normalized;
+    ensureInteractLabel();
   };
 
   const setActiveMethod = (method: InputMethod) => {
@@ -287,6 +299,7 @@ export function createMovementLegend(
     },
     setActiveMethod,
     setInteractPrompt,
+    setKeyboardInteractLabel,
     dispose() {
       while (listeners.length > 0) {
         const remove = listeners.pop();
@@ -303,6 +316,7 @@ export function createMovementLegend(
         context.interactDescription.textContent =
           context.defaultInteractDescription;
       }
+      labels.keyboard = defaultKeyboardLabel;
       ensureInteractLabel();
     },
   };

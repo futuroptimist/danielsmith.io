@@ -113,6 +113,9 @@ lightweight.
 ## Controls
 
 - **Movement** – Use `WASD` or arrow keys to roll the sphere.
+- **Key remapping** – Use `portfolio.input.keyBindings.setBinding('interact', ['e'])`
+  in the browser console to try alternate bindings. HUD prompts update instantly and
+  the mapping persists locally.
 - **Touch** – Drag the on-screen joysticks (left: movement, right: camera pan) on touch devices.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
 - **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
@@ -121,8 +124,8 @@ lightweight.
   to soften bloom, reduce motion cues, and boost overlay contrast. The
   Photosensitive-safe preset now also smooths greenhouse grow lights, walkway lanterns, and
   holographic beacons so emissive pulses settle into a steady glow for flicker-sensitive players.
-- **Help** – Press `H` or `?`, or tap the HUD Help button to open a modal with controls,
-  accessibility tips, and failover guidance.
+- **Help** – Use the help key (default `H` or `?`), or tap the HUD Help button to
+  open a modal with controls, accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support and sustained frame rates below 30 FPS;
   `?mode=immersive&disablePerformanceFailover=1` forces the full scene even on
