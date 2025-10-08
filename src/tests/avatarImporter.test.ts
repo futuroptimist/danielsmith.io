@@ -139,9 +139,9 @@ describe('createAvatarImporter', () => {
       requiredBones: ['Hips'],
     });
 
-    await expect(
-      importer.load({ url: '/missing-bone.glb' })
-    ).rejects.toThrow(/missing required bones: Hips/i);
+    await expect(importer.load({ url: '/missing-bone.glb' })).rejects.toThrow(
+      /missing required bones: Hips/i
+    );
   });
 
   it('throws when a required animation clip is missing', async () => {
@@ -153,9 +153,9 @@ describe('createAvatarImporter', () => {
       requiredAnimations: ['Walk'],
     });
 
-    await expect(
-      importer.load({ url: '/missing-clip.glb' })
-    ).rejects.toThrow(/missing required animations: Walk/i);
+    await expect(importer.load({ url: '/missing-clip.glb' })).rejects.toThrow(
+      /missing required animations: Walk/i
+    );
   });
 
   it('throws when the scene does not contain skinned meshes', async () => {

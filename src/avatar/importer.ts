@@ -220,7 +220,10 @@ export function createAvatarImporter({
               bones: Array.from(additionalBones),
               animations: Array.from(additionalAnimations),
             };
-      const combinedRequirements = mergeRequirements(baseRequirements, overrides);
+      const combinedRequirements = mergeRequirements(
+        baseRequirements,
+        overrides
+      );
 
       const gltf = await loader.loadAsync(url);
       const scan = scanScene(gltf.scene);
