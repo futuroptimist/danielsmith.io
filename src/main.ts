@@ -127,6 +127,7 @@ import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiTourGuide } from './poi/tourGuide';
 import { updateVisitedBadge } from './poi/visitedBadge';
 import { PoiVisitedState } from './poi/visitedState';
+import { createRoomCeilingPanels } from './structures/ceilingPanels';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -592,6 +593,14 @@ function initializeImmersiveScene(
   });
 
   scene.add(wallGroup);
+
+  const ceilings = createRoomCeilingPanels(FLOOR_PLAN.rooms, {
+    height: WALL_HEIGHT - 0.15,
+    inset: 1.1,
+    thickness: 0.32,
+    tintIntensity: 0.24,
+  });
+  scene.add(ceilings.group);
 
   const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
   if (livingRoom) {
