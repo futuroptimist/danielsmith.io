@@ -119,7 +119,9 @@ describe('createAudioHudControl', () => {
       'Failed to toggle ambient audio:',
       expect.any(Error)
     );
-    const button = container.querySelector<HTMLButtonElement>('button.audio-toggle');
+    const button = container.querySelector<HTMLButtonElement>(
+      'button.audio-toggle'
+    );
     expect(button?.dataset.hudAnnounce).toBe(
       'Ambient audio off. Press M to toggle.'
     );

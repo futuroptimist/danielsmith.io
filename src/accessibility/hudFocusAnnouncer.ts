@@ -138,9 +138,12 @@ export function createHudFocusAnnouncer({
   politeness = DEFAULT_POLITENESS,
   datasetKey = DEFAULT_DATASET_KEY,
 }: HudFocusAnnouncerOptions = {}): HudFocusAnnouncerHandle {
-  const host = container ?? documentTarget.body ?? documentTarget.documentElement;
+  const host =
+    container ?? documentTarget.body ?? documentTarget.documentElement;
   if (!host) {
-    throw new Error('Unable to determine host element for HUD focus announcer.');
+    throw new Error(
+      'Unable to determine host element for HUD focus announcer.'
+    );
   }
 
   const liveRegion = documentTarget.createElement('div');
