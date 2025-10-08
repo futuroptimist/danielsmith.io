@@ -1,0 +1,160 @@
+import type { PoiId } from '../poi/types';
+
+import { EN_LOCALE_STRINGS } from './locales/en';
+import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
+import type {
+  ControlOverlayStrings,
+  DeepPartial,
+  HelpModalStrings,
+  Locale,
+  LocaleInput,
+  LocaleOverrides,
+  LocaleStrings,
+  MovementLegendStrings,
+  PoiCopy,
+  SiteStrings,
+} from './types';
+
+export * from './types';
+
+function cloneValue<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => cloneValue(item)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, nested] of Object.entries(
+      value as Record<string, unknown>
+    )) {
+      result[key] = cloneValue(nested);
+    }
+    return result as T;
+  }
+  return value;
+}
+
+function applyOverrides<T>(target: T, overrides: DeepPartial<T>): void {
+  for (const key of Object.keys(overrides) as Array<keyof T>) {
+    const overrideValue = overrides[key];
+    if (overrideValue === undefined) {
+      continue;
+    }
+
+    const currentValue = (target as Record<string, unknown>)[key as string];
+
+    if (
+      currentValue !== null &&
+      typeof currentValue === 'object' &&
+      !Array.isArray(currentValue) &&
+      overrideValue !== null &&
+      typeof overrideValue === 'object' &&
+      !Array.isArray(overrideValue)
+    ) {
+      applyOverrides(
+        currentValue,
+        overrideValue as DeepPartial<typeof currentValue>
+      );
+      continue;
+    }
+
+    if (Array.isArray(overrideValue)) {
+      (target as Record<string, unknown>)[key as string] = overrideValue.map(
+        (item) => cloneValue(item)
+      ) as unknown;
+      continue;
+    }
+
+    (target as Record<string, unknown>)[key as string] =
+      overrideValue as unknown;
+  }
+}
+
+function buildLocale(
+  base: LocaleStrings,
+  overrides: LocaleOverrides | undefined,
+  locale: Locale
+): LocaleStrings {
+  const clone = cloneValue(base);
+  if (overrides) {
+    applyOverrides(clone, overrides as DeepPartial<LocaleStrings>);
+  }
+  clone.locale = locale;
+  return Object.freeze(clone);
+}
+
+const MERGED_PSEUDO = buildLocale(
+  EN_LOCALE_STRINGS,
+  EN_X_PSEUDO_OVERRIDES,
+  'en-x-pseudo'
+);
+
+const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
+  en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
+  'en-x-pseudo': MERGED_PSEUDO,
+});
+
+export const AVAILABLE_LOCALES = Object.freeze(
+  Object.keys(localeCatalog) as ReadonlyArray<Locale>
+);
+
+export function resolveLocale(input: LocaleInput): Locale {
+  if (!input) {
+    return 'en';
+  }
+  const normalized = `${input}`.toLowerCase().replace(/_/g, '-').trim();
+
+  if (
+    normalized === 'en-x-pseudo' ||
+    normalized === 'pseudo' ||
+    normalized === 'x-pseudo'
+  ) {
+    return 'en-x-pseudo';
+  }
+
+  if (normalized.startsWith('en')) {
+    return 'en';
+  }
+
+  return 'en';
+}
+
+export function getLocaleStrings(input?: LocaleInput): LocaleStrings {
+  const locale = resolveLocale(input);
+  return localeCatalog[locale];
+}
+
+export function getPoiCopy(
+  input?: LocaleInput
+): Readonly<Record<PoiId, PoiCopy>> {
+  return getLocaleStrings(input).poi;
+}
+
+export function formatMessage(
+  template: string,
+  values: Record<string, string | number>
+): string {
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+    const replacement = values[key];
+    return replacement === undefined ? match : String(replacement);
+  });
+}
+
+export function getControlOverlayStrings(
+  input?: LocaleInput
+): ControlOverlayStrings {
+  return getLocaleStrings(input).hud.controlOverlay;
+}
+
+export function getHelpModalStrings(input?: LocaleInput): HelpModalStrings {
+  return getLocaleStrings(input).hud.helpModal;
+}
+
+export function getMovementLegendStrings(
+  input?: LocaleInput
+): MovementLegendStrings {
+  return getLocaleStrings(input).hud.movementLegend;
+}
+
+export function getSiteStrings(input?: LocaleInput): SiteStrings {
+  return getLocaleStrings(input).site;
+}

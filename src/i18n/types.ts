@@ -1,0 +1,98 @@
+import type { InputMethod } from '../hud/movementLegend';
+import type { PoiId, PoiNarration } from '../poi/types';
+
+export type Locale = 'en' | 'en-x-pseudo';
+
+export interface ControlOverlayItemStrings {
+  keys: string;
+  description: string;
+}
+
+export interface ControlOverlayStrings {
+  heading: string;
+  items: {
+    keyboardMove: ControlOverlayItemStrings;
+    pointerDrag: ControlOverlayItemStrings;
+    pointerZoom: ControlOverlayItemStrings;
+    touchDrag: ControlOverlayItemStrings;
+    touchPinch: ControlOverlayItemStrings;
+    cyclePoi: ControlOverlayItemStrings;
+    toggleTextMode: ControlOverlayItemStrings;
+  };
+  interact: {
+    defaultLabel: string;
+    description: string;
+  };
+  helpButton: {
+    labelTemplate: string;
+    announcementTemplate: string;
+    shortcutFallback: string;
+  };
+}
+
+export interface MovementLegendStrings {
+  defaultDescription: string;
+  labels: Record<InputMethod, string>;
+}
+
+export interface HelpModalItemStrings {
+  label: string;
+  description: string;
+}
+
+export interface HelpModalSectionStrings {
+  id: string;
+  title: string;
+  items: readonly HelpModalItemStrings[];
+}
+
+export interface HelpModalStrings {
+  heading: string;
+  description: string;
+  closeLabel: string;
+  closeAriaLabel: string;
+  sections: readonly HelpModalSectionStrings[];
+}
+
+export interface SiteStructuredDataStrings {
+  description: string;
+  listNameTemplate: string;
+}
+
+export interface SiteStrings {
+  name: string;
+  structuredData: SiteStructuredDataStrings;
+}
+
+export interface PoiCopy {
+  title: string;
+  summary: string;
+  metrics?: ReadonlyArray<{ label: string; value: string }>;
+  links?: ReadonlyArray<{ label: string; href: string }>;
+  narration?: PoiNarration;
+}
+
+export interface LocaleStrings {
+  locale: Locale;
+  site: SiteStrings;
+  hud: {
+    controlOverlay: ControlOverlayStrings;
+    movementLegend: MovementLegendStrings;
+    helpModal: HelpModalStrings;
+  };
+  poi: Record<PoiId, PoiCopy>;
+}
+
+export type LocaleInput = Locale | string | null | undefined;
+
+type Primitive = string | number | boolean | null | undefined;
+
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends Primitive
+    ? T[K]
+    : T[K] extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : DeepPartial<T[K]>;
+};
+
+export type LocaleOverrides = DeepPartial<LocaleStrings> & { locale?: Locale };

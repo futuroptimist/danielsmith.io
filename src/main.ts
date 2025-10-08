@@ -103,6 +103,7 @@ import {
   createAudioSubtitles,
   type AudioSubtitlesHandle,
 } from './hud/audioSubtitles';
+import { applyControlOverlayStrings } from './hud/controlOverlay';
 import { createHelpModal } from './hud/helpModal';
 import {
   createHudLayoutManager,
@@ -112,6 +113,13 @@ import {
   createMovementLegend,
   type MovementLegendHandle,
 } from './hud/movementLegend';
+import {
+  formatMessage,
+  getControlOverlayStrings,
+  getHelpModalStrings,
+  getSiteStrings,
+  resolveLocale,
+} from './i18n';
 import {
   createImmersiveModeUrl,
   shouldDisablePerformanceFailover,
@@ -419,6 +427,16 @@ function initializeImmersiveScene(
     ambientAudioController?.setMasterVolume(volume);
   };
 
+  const detectedLanguage =
+    typeof navigator !== 'undefined' && navigator.language
+      ? navigator.language
+      : document.documentElement.lang;
+  const locale = resolveLocale(detectedLanguage);
+  document.documentElement.lang = locale;
+  const controlOverlayStrings = getControlOverlayStrings(locale);
+  const helpModalStrings = getHelpModalStrings(locale);
+  const siteStrings = getSiteStrings(locale);
+
   const searchParams = new URLSearchParams(window.location.search);
   const disablePerformanceFailover =
     shouldDisablePerformanceFailover(searchParams);
@@ -454,7 +472,10 @@ function initializeImmersiveScene(
 
   const poiOverrides: PoiInstanceOverrides = {};
   const poiDefinitions = getPoiDefinitions();
-  injectPoiStructuredData(poiDefinitions);
+  injectPoiStructuredData(poiDefinitions, {
+    siteName: siteStrings.name,
+    locale,
+  });
 
   const floorBounds = getFloorBounds(FLOOR_PLAN);
   const floorCenter = new Vector3(
@@ -1109,6 +1130,9 @@ function initializeImmersiveScene(
   scene.add(player);
 
   const controlOverlay = document.getElementById('control-overlay');
+  if (controlOverlay) {
+    applyControlOverlayStrings(controlOverlay, controlOverlayStrings);
+  }
   const keyBindings = new KeyBindings();
   const KEY_BINDINGS_STORAGE_KEY = 'danielsmith.io:keyBindings';
   const bindingActions: KeyBindingAction[] = [
@@ -1200,10 +1224,11 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
-  const interactLabelFallback = 'F';
+  const interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   const movementLegend: MovementLegendHandle | null = controlOverlay
     ? createMovementLegend({
         container: controlOverlay,
+        locale,
         interactLabels: {
           keyboard:
             formatKeyLabel(keyBindings.getPrimaryBinding('interact')) ||
@@ -1211,7 +1236,10 @@ function initializeImmersiveScene(
         },
       })
     : null;
-  const helpModal = createHelpModal({ container: document.body });
+  const helpModal = createHelpModal({
+    container: document.body,
+    content: helpModalStrings,
+  });
   hudFocusAnnouncer = createHudFocusAnnouncer({
     documentTarget: document,
     container: document.body,
@@ -1246,7 +1274,15 @@ function initializeImmersiveScene(
 
   let activeFloorId: FloorId = 'ground';
   let helpKeyWasPressed = false;
-  const helpLabelFallback = 'H';
+  const helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
+  const buildHelpButtonText = (shortcut: string) =>
+    formatMessage(controlOverlayStrings.helpButton.labelTemplate, {
+      shortcut,
+    });
+  const buildHelpAnnouncement = (shortcut: string) =>
+    formatMessage(controlOverlayStrings.helpButton.announcementTemplate, {
+      shortcut,
+    });
   const updateHelpButtonLabel = () => {
     if (!helpButton) {
       return;
@@ -1254,7 +1290,8 @@ function initializeImmersiveScene(
     const label =
       formatKeyLabel(keyBindings.getPrimaryBinding('help')) ||
       helpLabelFallback;
-    helpButton.textContent = `Open help · Press ${label}`;
+    helpButton.textContent = buildHelpButtonText(label);
+    helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
   };
   updateHelpButtonLabel();
 

@@ -1,10 +1,3 @@
-export interface HelpModalOptions {
-  container: HTMLElement;
-  heading?: string;
-  sections?: ReadonlyArray<HelpModalSection>;
-  description?: string;
-}
-
 export interface HelpModalSection {
   id: string;
   title: string;
@@ -16,6 +9,19 @@ export interface HelpModalItem {
   description: string;
 }
 
+export interface HelpModalContent {
+  heading: string;
+  description: string;
+  closeLabel: string;
+  closeAriaLabel: string;
+  sections: ReadonlyArray<HelpModalSection>;
+}
+
+export interface HelpModalOptions {
+  container: HTMLElement;
+  content: HelpModalContent;
+}
+
 export interface HelpModalHandle {
   readonly element: HTMLElement;
   open(): void;
@@ -24,75 +30,6 @@ export interface HelpModalHandle {
   isOpen(): boolean;
   dispose(): void;
 }
-
-const DEFAULT_HEADING = 'Quick Reference';
-const DEFAULT_DESCRIPTION =
-  'Review controls, accessibility tips, and failover shortcuts. ' +
-  'Use the help shortcut (default H or ?) to toggle this panel.';
-
-const DEFAULT_SECTIONS: HelpModalSection[] = [
-  {
-    id: 'movement',
-    title: 'Movement & Camera',
-    items: [
-      {
-        label: 'WASD / Arrow keys',
-        description: 'Roll the explorer around the home.',
-      },
-      { label: 'Mouse drag', description: 'Pan the isometric camera.' },
-      { label: 'Scroll wheel', description: 'Adjust zoom level.' },
-      {
-        label: 'Touch joysticks',
-        description: 'Drag the left pad to move and the right pad to pan.',
-      },
-      { label: 'Pinch', description: 'Zoom on touch devices.' },
-    ],
-  },
-  {
-    id: 'interactions',
-    title: 'Interactions',
-    items: [
-      {
-        label: 'Approach glowing POIs',
-        description:
-          'Press your interact key (default F), tap, or click to open the exhibit overlay.',
-      },
-      {
-        label: 'Q / E or ← / →',
-        description:
-          'Cycle focus between points of interest with the keyboard.',
-      },
-      {
-        label: 'T',
-        description: 'Toggle between immersive mode and the text fallback.',
-      },
-      {
-        label: 'Shift + L',
-        description: 'Compare cinematic lighting with the debug pass.',
-      },
-    ],
-  },
-  {
-    id: 'accessibility',
-    title: 'Accessibility & Failover',
-    items: [
-      {
-        label: 'Low performance',
-        description:
-          'The scene automatically switches to text mode below 30 FPS.',
-      },
-      {
-        label: 'Manual toggle',
-        description:
-          'Use the on-screen Text mode button or press T at any time.',
-      },
-      {
-        label: 'Ambient audio',
-        description: 'Toggle with the Audio button or press M.',
-      },
-    ],
-  },
-];
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -141,12 +78,9 @@ function getFocusableChildren(root: HTMLElement): HTMLElement[] {
 }
 
 export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
-  const {
-    container,
-    heading = DEFAULT_HEADING,
-    sections = DEFAULT_SECTIONS,
-  } = options;
-  const description = options.description ?? DEFAULT_DESCRIPTION;
+  const { container, content } = options;
+  const { heading, description, sections, closeLabel, closeAriaLabel } =
+    content;
 
   const backdrop = document.createElement('div');
   backdrop.className = 'help-modal-backdrop';
@@ -176,8 +110,8 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   const closeButton = document.createElement('button');
   closeButton.type = 'button';
   closeButton.className = 'help-modal__close';
-  closeButton.setAttribute('aria-label', 'Close help');
-  closeButton.textContent = 'Close';
+  closeButton.setAttribute('aria-label', closeAriaLabel);
+  closeButton.textContent = closeLabel;
   header.appendChild(closeButton);
 
   const descriptionParagraph = document.createElement('p');
