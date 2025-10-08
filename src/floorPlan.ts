@@ -40,10 +40,11 @@ export interface DoorwayWidthValidationOptions {
   tolerance?: number;
 }
 
-const DEFAULT_DOORWAY_VALIDATION_OPTIONS: Required<DoorwayWidthValidationOptions> = {
-  minWidth: 1.2,
-  tolerance: 1e-4,
-};
+const DEFAULT_DOORWAY_VALIDATION_OPTIONS: Required<DoorwayWidthValidationOptions> =
+  {
+    minWidth: 1.2,
+    tolerance: 1e-4,
+  };
 
 export function assertDoorwayWidths(
   plan: FloorPlanDefinition,
