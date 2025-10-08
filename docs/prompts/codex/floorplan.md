@@ -30,6 +30,7 @@ Provide summary, tests, and QA notes.
 
 - Represent rooms via data definitions to enable future editor tooling.
 - Keep door openings wide enough for mobile touch precision (>= 1.2m virtual width).
+- Run the doorway width validator when tweaking plans so the 1.2m clearance budget stays enforced.
 - Leave comments where future door assets or stair railings will slot in.
 
 ## Upgrade Prompt
