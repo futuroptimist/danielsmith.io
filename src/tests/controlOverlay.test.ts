@@ -39,7 +39,9 @@ describe('applyControlOverlayStrings', () => {
     );
     expect(keyboardItem?.textContent).toBe(strings.items.keyboardMove.keys);
 
-    const interactLabel = container.querySelector('[data-role="interact-label"]');
+    const interactLabel = container.querySelector(
+      '[data-role="interact-label"]'
+    );
     const interactDescription = container.querySelector(
       '[data-role="interact-description"]'
     );

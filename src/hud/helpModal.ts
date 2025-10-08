@@ -79,7 +79,8 @@ function getFocusableChildren(root: HTMLElement): HTMLElement[] {
 
 export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   const { container, content } = options;
-  const { heading, description, sections, closeLabel, closeAriaLabel } = content;
+  const { heading, description, sections, closeLabel, closeAriaLabel } =
+    content;
 
   const backdrop = document.createElement('div');
   backdrop.className = 'help-modal-backdrop';

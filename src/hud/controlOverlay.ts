@@ -6,7 +6,10 @@ const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
 
-function setTextContent(element: Element | null | undefined, value: string): void {
+function setTextContent(
+  element: Element | null | undefined,
+  value: string
+): void {
   if (element instanceof HTMLElement) {
     element.textContent = value;
   }
@@ -21,9 +24,7 @@ export function applyControlOverlayStrings(
     strings.heading
   );
 
-  const applyItem = (
-    key: keyof ControlOverlayStrings['items']
-  ): void => {
+  const applyItem = (key: keyof ControlOverlayStrings['items']): void => {
     const item = container.querySelector<HTMLElement>(
       `[data-control-item="${key}"]`
     );
@@ -60,4 +61,3 @@ export function applyControlOverlayStrings(
     );
   }
 }
-

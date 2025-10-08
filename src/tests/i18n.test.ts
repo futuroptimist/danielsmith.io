@@ -26,7 +26,9 @@ describe('i18n utilities', () => {
 
   it('formats template strings with provided values', () => {
     expect(formatMessage('Press {key}', { key: 'H' })).toBe('Press H');
-    expect(formatMessage('Open {target}', { target: 'menu' })).toBe('Open menu');
+    expect(formatMessage('Open {target}', { target: 'menu' })).toBe(
+      'Open menu'
+    );
     expect(formatMessage('Hold {missing}', {})).toBe('Hold {missing}');
   });
 

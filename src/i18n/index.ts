@@ -23,7 +23,9 @@ function cloneValue<T>(value: T): T {
   }
   if (value && typeof value === 'object') {
     const result: Record<string, unknown> = {};
-    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    for (const [key, nested] of Object.entries(
+      value as Record<string, unknown>
+    )) {
       result[key] = cloneValue(nested);
     }
     return result as T;
@@ -48,18 +50,22 @@ function applyOverrides<T>(target: T, overrides: DeepPartial<T>): void {
       typeof overrideValue === 'object' &&
       !Array.isArray(overrideValue)
     ) {
-      applyOverrides(currentValue, overrideValue as DeepPartial<typeof currentValue>);
+      applyOverrides(
+        currentValue,
+        overrideValue as DeepPartial<typeof currentValue>
+      );
       continue;
     }
 
     if (Array.isArray(overrideValue)) {
-      (target as Record<string, unknown>)[key as string] = overrideValue.map((item) =>
-        cloneValue(item)
+      (target as Record<string, unknown>)[key as string] = overrideValue.map(
+        (item) => cloneValue(item)
       ) as unknown;
       continue;
     }
 
-    (target as Record<string, unknown>)[key as string] = overrideValue as unknown;
+    (target as Record<string, unknown>)[key as string] =
+      overrideValue as unknown;
   }
 }
 
@@ -76,7 +82,11 @@ function buildLocale(
   return Object.freeze(clone);
 }
 
-const MERGED_PSEUDO = buildLocale(EN_LOCALE_STRINGS, EN_X_PSEUDO_OVERRIDES, 'en-x-pseudo');
+const MERGED_PSEUDO = buildLocale(
+  EN_LOCALE_STRINGS,
+  EN_X_PSEUDO_OVERRIDES,
+  'en-x-pseudo'
+);
 
 const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
@@ -91,12 +101,13 @@ export function resolveLocale(input: LocaleInput): Locale {
   if (!input) {
     return 'en';
   }
-  const normalized = `${input}`
-    .toLowerCase()
-    .replace(/_/g, '-')
-    .trim();
+  const normalized = `${input}`.toLowerCase().replace(/_/g, '-').trim();
 
-  if (normalized === 'en-x-pseudo' || normalized === 'pseudo' || normalized === 'x-pseudo') {
+  if (
+    normalized === 'en-x-pseudo' ||
+    normalized === 'pseudo' ||
+    normalized === 'x-pseudo'
+  ) {
     return 'en-x-pseudo';
   }
 
@@ -112,7 +123,9 @@ export function getLocaleStrings(input?: LocaleInput): LocaleStrings {
   return localeCatalog[locale];
 }
 
-export function getPoiCopy(input?: LocaleInput): Readonly<Record<PoiId, PoiCopy>> {
+export function getPoiCopy(
+  input?: LocaleInput
+): Readonly<Record<PoiId, PoiCopy>> {
   return getLocaleStrings(input).poi;
 }
 
@@ -126,7 +139,9 @@ export function formatMessage(
   });
 }
 
-export function getControlOverlayStrings(input?: LocaleInput): ControlOverlayStrings {
+export function getControlOverlayStrings(
+  input?: LocaleInput
+): ControlOverlayStrings {
   return getLocaleStrings(input).hud.controlOverlay;
 }
 
@@ -134,7 +149,9 @@ export function getHelpModalStrings(input?: LocaleInput): HelpModalStrings {
   return getLocaleStrings(input).hud.helpModal;
 }
 
-export function getMovementLegendStrings(input?: LocaleInput): MovementLegendStrings {
+export function getMovementLegendStrings(
+  input?: LocaleInput
+): MovementLegendStrings {
   return getLocaleStrings(input).hud.movementLegend;
 }
 

@@ -81,7 +81,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             { label: 'Scroll wheel', description: 'Adjust zoom level.' },
             {
               label: 'Touch joysticks',
-              description: 'Drag the left pad to move and the right pad to pan.',
+              description:
+                'Drag the left pad to move and the right pad to pan.',
             },
             { label: 'Pinch', description: 'Zoom on touch devices.' },
           ],
@@ -97,11 +98,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             },
             {
               label: 'Q / E or ← / →',
-              description: 'Cycle focus between points of interest with the keyboard.',
+              description:
+                'Cycle focus between points of interest with the keyboard.',
             },
             {
               label: 'T',
-              description: 'Toggle between immersive mode and the text fallback.',
+              description:
+                'Toggle between immersive mode and the text fallback.',
             },
             {
               label: 'Shift + L',
@@ -115,11 +118,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           items: [
             {
               label: 'Low performance',
-              description: 'The scene automatically switches to text mode below 30 FPS.',
+              description:
+                'The scene automatically switches to text mode below 30 FPS.',
             },
             {
               label: 'Manual toggle',
-              description: 'Use the on-screen Text mode button or press T at any time.',
+              description:
+                'Use the on-screen Text mode button or press T at any time.',
             },
             {
               label: 'Ambient audio',
@@ -136,7 +141,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       summary:
         'Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.',
       metrics: [
-        { label: 'Workflow', value: 'Resolve-style edit suite · triple display' },
+        {
+          label: 'Workflow',
+          value: 'Resolve-style edit suite · triple display',
+        },
         { label: 'Focus', value: 'Futuroptimist ecosystem reels in progress' },
       ],
       links: [
@@ -144,7 +152,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Docs', href: 'https://futuroptimist.dev' },
       ],
       narration: {
-        caption: 'Futuroptimist media wall radiates highlight reels across the living room.',
+        caption:
+          'Futuroptimist media wall radiates highlight reels across the living room.',
       },
     },
     'tokenplace-studio-cluster': {
@@ -157,7 +166,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
       links: [
         { label: 'Site', href: 'https://token.place' },
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/token.place' },
+        {
+          label: 'GitHub',
+          href: 'https://github.com/futuroptimist/token.place',
+        },
       ],
     },
     'gabriel-studio-sentry': {
@@ -168,7 +180,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Focus', value: '360° lidar sweep + local heuristics' },
         { label: 'Cadence', value: 'Red alert flash every 1.0 s' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/gabriel' }],
+      links: [
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/gabriel' },
+      ],
     },
     'flywheel-studio-flywheel': {
       title: 'Flywheel Kinetic Hub',
@@ -179,11 +193,15 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Adoption', value: 'Used across DS portfolio' },
       ],
       links: [
-        { label: 'Flywheel Repo', href: 'https://github.com/futuroptimist/flywheel' },
+        {
+          label: 'Flywheel Repo',
+          href: 'https://github.com/futuroptimist/flywheel',
+        },
         { label: 'Docs', href: 'https://flywheel.futuroptimist.dev' },
       ],
       narration: {
-        caption: 'Flywheel kinetic hub whirs alive, spotlighting automation prompts and tooling.',
+        caption:
+          'Flywheel kinetic hub whirs alive, spotlighting automation prompts and tooling.',
       },
     },
     'jobbot-studio-terminal': {
@@ -195,11 +213,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Reliability', value: '99.98% SLA self-healing loops' },
       ],
       links: [
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/jobbot3000' },
-        { label: 'Automation Log', href: 'https://futuroptimist.dev/automation' },
+        {
+          label: 'GitHub',
+          href: 'https://github.com/futuroptimist/jobbot3000',
+        },
+        {
+          label: 'Automation Log',
+          href: 'https://futuroptimist.dev/automation',
+        },
       ],
       narration: {
-        caption: 'Jobbot holographic terminal streams automation telemetry in shimmering overlays.',
+        caption:
+          'Jobbot holographic terminal streams automation telemetry in shimmering overlays.',
       },
     },
     'axel-studio-tracker': {
@@ -213,7 +238,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         { label: 'Modes', value: 'Focus · explore toggles per sprint' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/axel' }],
+      links: [
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/axel' },
+      ],
     },
     'gitshelves-living-room-installation': {
       title: 'Gitshelves Living Room Array',
@@ -223,7 +250,12 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Material', value: '42 mm Gridfinity compatible blocks' },
         { label: 'Sync', value: 'Auto generated from GitHub timelines' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/gitshelves' }],
+      links: [
+        {
+          label: 'GitHub',
+          href: 'https://github.com/futuroptimist/gitshelves',
+        },
+      ],
     },
     'danielsmith-portfolio-table': {
       title: 'danielsmith.io Holographic Map',
@@ -235,7 +267,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
       links: [
         { label: 'Live Site', href: 'https://danielsmith.io' },
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/danielsmith.io' },
+        {
+          label: 'GitHub',
+          href: 'https://github.com/futuroptimist/danielsmith.io',
+        },
       ],
     },
     'f2clipboard-kitchen-console': {
@@ -246,7 +281,12 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Speed', value: 'Copy failing logs in under 3 s' },
         { label: 'Formats', value: 'CLI + clipboard + Markdown output' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/f2clipboard' }],
+      links: [
+        {
+          label: 'GitHub',
+          href: 'https://github.com/futuroptimist/f2clipboard',
+        },
+      ],
     },
     'sigma-kitchen-workbench': {
       title: 'Sigma Fabrication Bench',
@@ -256,7 +296,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Hardware', value: 'ESP32 · on-device speech stack' },
         { label: 'Modes', value: 'Push-to-talk · local inference loops' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/sigma' }],
+      links: [
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/sigma' },
+      ],
     },
     'wove-kitchen-loom': {
       title: 'Wove Loom Atelier',
@@ -266,7 +308,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Craft', value: 'Loom calibrates from CAD stitch maps' },
         { label: 'Roadmap', value: 'Path toward robotic weaving labs' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/wove' }],
+      links: [
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/wove' },
+      ],
     },
     'dspace-backyard-rocket': {
       title: 'DSPACE Launch Pad',
@@ -278,10 +322,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/dspace' },
-        { label: 'Mission Log', href: 'https://futuroptimist.dev/projects/dspace' },
+        {
+          label: 'Mission Log',
+          href: 'https://futuroptimist.dev/projects/dspace',
+        },
       ],
       narration: {
-        caption: 'dSpace launch pad crackles with countdown energy beside the backyard path.',
+        caption:
+          'dSpace launch pad crackles with countdown energy beside the backyard path.',
         durationMs: 6000,
       },
     },
@@ -293,7 +341,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Sweep', value: 'Bulk-close stale PRs with preview mode' },
         { label: 'Cadence', value: 'Cron triggers + manual dry-runs' },
       ],
-      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist/pr-reaper' }],
+      links: [
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/pr-reaper' },
+      ],
     },
     'sugarkube-backyard-greenhouse': {
       title: 'Sugarkube Solar Greenhouse',
@@ -308,10 +358,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sugarkube' },
-        { label: 'Greenhouse Log', href: 'https://futuroptimist.dev/projects/sugarkube' },
+        {
+          label: 'Greenhouse Log',
+          href: 'https://futuroptimist.dev/projects/sugarkube',
+        },
       ],
       narration: {
-        caption: 'Sugarkube greenhouse cycles soft grow lights and koi pond ambience in sync.',
+        caption:
+          'Sugarkube greenhouse cycles soft grow lights and koi pond ambience in sync.',
         durationMs: 6500,
       },
     },
