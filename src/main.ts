@@ -87,13 +87,15 @@ import {
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
   UPPER_FLOOR_PLAN,
-  getCombinedWallSegments,
   getFloorBounds,
-  RoomWall,
   WALL_THICKNESS,
   type FloorPlanDefinition,
   type RoomCategory,
 } from './floorPlan';
+import {
+  createWallSegmentInstances,
+  getWallOutwardDirection,
+} from './floorPlan/wallSegments';
 import {
   GRAPHICS_QUALITY_PRESETS,
   createGraphicsQualityManager,
@@ -348,19 +350,6 @@ function isInsideAnyRoom(
   );
 }
 
-function getOutwardDirectionForWall(wall: RoomWall): { x: number; z: number } {
-  switch (wall) {
-    case 'north':
-      return { x: 0, z: 1 };
-    case 'south':
-      return { x: 0, z: -1 };
-    case 'east':
-      return { x: 1, z: 0 };
-    case 'west':
-      return { x: -1, z: 0 };
-  }
-}
-
 const container = document.getElementById('app');
 
 if (!container) {
@@ -577,69 +566,31 @@ function initializeImmersiveScene(
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
   const wallGroup = new Group();
-  const combinedWallSegments = getCombinedWallSegments(FLOOR_PLAN);
+  const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+    baseElevation: 0,
+    wallHeight: WALL_HEIGHT,
+    wallThickness: WALL_THICKNESS,
+    fenceHeight: FENCE_HEIGHT,
+    fenceThickness: FENCE_THICKNESS,
+    getRoomCategory,
+  });
+  const combinedWallSegments = groundWallInstances.map(
+    (instance) => instance.segment
+  );
 
-  combinedWallSegments.forEach((segment) => {
-    const length =
-      segment.orientation === 'horizontal'
-        ? Math.abs(segment.end.x - segment.start.x)
-        : Math.abs(segment.end.z - segment.start.z);
-    if (length <= 1e-4) {
-      return;
-    }
-
-    const hasExterior = segment.rooms.some(
-      (roomInfo) => getRoomCategory(roomInfo.id) === 'exterior'
+  groundWallInstances.forEach((instance) => {
+    const geometry = new BoxGeometry(
+      instance.dimensions.width,
+      instance.dimensions.height,
+      instance.dimensions.depth
     );
-    const hasInterior = segment.rooms.some(
-      (roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior'
-    );
-    const isMixed = hasExterior && hasInterior;
-    const segmentThickness =
-      hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
-    const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
-    const material = hasExterior && !isMixed ? fenceMaterial : wallMaterial;
-
-    const isInterior = segment.rooms.length > 1;
-    const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
-    const width =
-      segment.orientation === 'horizontal'
-        ? length + extension
-        : segmentThickness;
-    const depth =
-      segment.orientation === 'horizontal'
-        ? segmentThickness
-        : length + extension;
-
-    const baseX =
-      segment.orientation === 'horizontal'
-        ? (segment.start.x + segment.end.x) / 2
-        : segment.start.x;
-    const baseZ =
-      segment.orientation === 'horizontal'
-        ? segment.start.z
-        : (segment.start.z + segment.end.z) / 2;
-
-    let offsetX = 0;
-    let offsetZ = 0;
-    if (!isInterior) {
-      const direction = getOutwardDirectionForWall(segment.rooms[0].wall);
-      offsetX = direction.x * (WALL_THICKNESS / 2);
-      offsetZ = direction.z * (WALL_THICKNESS / 2);
-    }
-
-    const geometry = new BoxGeometry(width, segmentHeight, depth);
     applyLightmapUv2(geometry);
+    const material = instance.isFence ? fenceMaterial : wallMaterial;
     const wall = new Mesh(geometry, material);
-    wall.position.set(baseX + offsetX, segmentHeight / 2, baseZ + offsetZ);
+    wall.position.set(instance.center.x, instance.center.y, instance.center.z);
     wallGroup.add(wall);
 
-    groundColliders.push({
-      minX: wall.position.x - width / 2,
-      maxX: wall.position.x + width / 2,
-      minZ: wall.position.z - depth / 2,
-      maxZ: wall.position.z + depth / 2,
-    });
+    groundColliders.push(instance.collider);
   });
 
   scene.add(wallGroup);
@@ -739,70 +690,26 @@ function initializeImmersiveScene(
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallGroup = new Group();
   upperFloorGroup.add(upperWallGroup);
-  const upperWallSegments = getCombinedWallSegments(UPPER_FLOOR_PLAN);
+  const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+    baseElevation: upperFloorElevation,
+    wallHeight: WALL_HEIGHT,
+    wallThickness: WALL_THICKNESS,
+    fenceHeight: FENCE_HEIGHT,
+    fenceThickness: FENCE_THICKNESS,
+    getRoomCategory,
+  });
 
-  upperWallSegments.forEach((segment) => {
-    const length =
-      segment.orientation === 'horizontal'
-        ? Math.abs(segment.end.x - segment.start.x)
-        : Math.abs(segment.end.z - segment.start.z);
-    if (length <= 1e-4) {
-      return;
-    }
-
-    const hasExterior = segment.rooms.some(
-      (roomInfo) => getRoomCategory(roomInfo.id) === 'exterior'
+  upperWallInstances.forEach((instance) => {
+    const geometry = new BoxGeometry(
+      instance.dimensions.width,
+      instance.dimensions.height,
+      instance.dimensions.depth
     );
-    const hasInterior = segment.rooms.some(
-      (roomInfo) => getRoomCategory(roomInfo.id) !== 'exterior'
-    );
-    const isMixed = hasExterior && hasInterior;
-    const segmentThickness =
-      hasExterior && !isMixed ? FENCE_THICKNESS : WALL_THICKNESS;
-    const segmentHeight = hasExterior && !isMixed ? FENCE_HEIGHT : WALL_HEIGHT;
-    const isInterior = segment.rooms.length > 1;
-    const extension = isInterior ? segmentThickness * 0.5 : segmentThickness;
-    const width =
-      segment.orientation === 'horizontal'
-        ? length + extension
-        : segmentThickness;
-    const depth =
-      segment.orientation === 'horizontal'
-        ? segmentThickness
-        : length + extension;
-
-    const baseX =
-      segment.orientation === 'horizontal'
-        ? (segment.start.x + segment.end.x) / 2
-        : segment.start.x;
-    const baseZ =
-      segment.orientation === 'horizontal'
-        ? segment.start.z
-        : (segment.start.z + segment.end.z) / 2;
-
-    let offsetX = 0;
-    let offsetZ = 0;
-    if (!isInterior) {
-      const direction = getOutwardDirectionForWall(segment.rooms[0].wall);
-      offsetX = direction.x * (WALL_THICKNESS / 2);
-      offsetZ = direction.z * (WALL_THICKNESS / 2);
-    }
-
-    const geometry = new BoxGeometry(width, segmentHeight, depth);
     const wall = new Mesh(geometry, upperWallMaterial);
-    wall.position.set(
-      baseX + offsetX,
-      upperFloorElevation + segmentHeight / 2,
-      baseZ + offsetZ
-    );
+    wall.position.set(instance.center.x, instance.center.y, instance.center.z);
     upperWallGroup.add(wall);
 
-    upperFloorColliders.push({
-      minX: wall.position.x - width / 2,
-      maxX: wall.position.x + width / 2,
-      minZ: wall.position.z - depth / 2,
-      maxZ: wall.position.z + depth / 2,
-    });
+    upperFloorColliders.push(instance.collider);
   });
 
   const floorPlansById: Record<FloorId, FloorPlanDefinition> = {
@@ -939,7 +846,7 @@ function initializeImmersiveScene(
         if (!material || !group) {
           return;
         }
-        const direction = getOutwardDirectionForWall(roomInfo.wall);
+        const direction = getWallOutwardDirection(roomInfo.wall);
         const inwardOffset =
           segment.rooms.length > 1
             ? WALL_THICKNESS / 2 + LED_STRIP_DEPTH / 2

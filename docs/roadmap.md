@@ -67,6 +67,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
    - Stub staircase volumes that connect to a placeholder second-floor landing.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
+     - ✅ Wall segment builder now reserves doorway openings and keeps player colliders clear.
      - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.
      - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
