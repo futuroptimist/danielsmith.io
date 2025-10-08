@@ -31,11 +31,18 @@ describe('createManualModeToggle', () => {
       getIsFallbackActive: () => fallbackActive,
     });
 
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      'Switch to the text-only portfolio. Press T to activate.'
+    );
+
     handle.element.click();
 
     expect(onToggle).toHaveBeenCalledTimes(1);
     expect(handle.element.disabled).toBe(true);
     expect(handle.element.dataset.state).toBe('pending');
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      'Switch to the text-only portfolio. Switching to text mode…'
+    );
 
     cleanupHandle(handle);
     container.remove();
@@ -49,6 +56,10 @@ describe('createManualModeToggle', () => {
       onToggle,
       getIsFallbackActive: () => true,
     });
+
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      'Switch to the text-only portfolio. Text mode already active.'
+    );
 
     handle.element.click();
 
@@ -75,6 +86,9 @@ describe('createManualModeToggle', () => {
 
     expect(handle.element.disabled).toBe(false);
     expect(handle.element.dataset.state).toBe('idle');
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      'Switch to the text-only portfolio. Press T to activate.'
+    );
 
     cleanupHandle(handle);
     container.remove();

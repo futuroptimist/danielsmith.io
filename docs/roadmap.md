@@ -187,6 +187,8 @@ Focus: make the experience inclusive and globally friendly.
   - ✅ Screen reader announcements now trigger when players discover a new POI, narrating the
     exhibit name and summary via a live region.
   - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
+  - ✅ HUD controls now announce focus changes through a dedicated live region tied to overlay and
+    control focus events.
 - Interaction timeline tuned for cognitive load (limited simultaneous prompts).
 
 2. **Visual & Audio Accessibility**

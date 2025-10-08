@@ -74,6 +74,7 @@ export function createAudioHudControl({
   slider.max = '1';
   slider.step = volumeStep.toString();
   slider.setAttribute('aria-label', 'Ambient audio volume');
+  slider.dataset.hudAnnounce = 'Ambient audio volume slider.';
 
   const valueText = document.createElement('span');
   valueText.className = 'audio-volume__value';
@@ -89,6 +90,10 @@ export function createAudioHudControl({
 
   let pending = false;
 
+  const normalizeKey = (value: string) =>
+    value.length === 1 ? value.toUpperCase() : value;
+  const normalizedToggleKey = normalizeKey(toggleKey);
+
   const updateToggle = () => {
     const enabled = getEnabled();
     const nextLabel = enabled ? toggleLabelOn : toggleLabelOff;
@@ -97,6 +102,10 @@ export function createAudioHudControl({
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
     wrapper.dataset.pending = pending ? 'true' : 'false';
+    const toggleMessage = enabled
+      ? `Ambient audio on. Press ${normalizedToggleKey} to toggle.`
+      : `Ambient audio off. Press ${normalizedToggleKey} to toggle.`;
+    toggleButton.dataset.hudAnnounce = toggleMessage;
   };
 
   const updateVolume = () => {

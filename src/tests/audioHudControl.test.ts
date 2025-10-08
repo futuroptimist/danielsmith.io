@@ -37,6 +37,10 @@ describe('createAudioHudControl', () => {
     expect(button).toBeTruthy();
     expect(slider).toBeTruthy();
     expect(valueText?.textContent).toBe('60%');
+    expect(button?.dataset.hudAnnounce).toBe(
+      'Ambient audio off. Press M to toggle.'
+    );
+    expect(slider?.dataset.hudAnnounce).toBe('Ambient audio volume slider.');
 
     button?.dispatchEvent(new Event('click'));
     expect(toggleCallCount).toBe(1);
@@ -52,6 +56,9 @@ describe('createAudioHudControl', () => {
 
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
+    expect(button?.dataset.hudAnnounce).toBe(
+      'Ambient audio on. Press M to toggle.'
+    );
 
     slider!.value = '0.82';
     slider?.dispatchEvent(new Event('input'));
@@ -63,6 +70,9 @@ describe('createAudioHudControl', () => {
     handle.refresh();
     expect(button?.dataset.state).toBe('off');
     expect(valueText?.textContent).toBe('25%');
+    expect(button?.dataset.hudAnnounce).toBe(
+      'Ambient audio off. Press M to toggle.'
+    );
 
     slider!.value = '1.6';
     slider?.dispatchEvent(new Event('input'));
@@ -109,9 +119,17 @@ describe('createAudioHudControl', () => {
       'Failed to toggle ambient audio:',
       expect.any(Error)
     );
+    const button = container.querySelector<HTMLButtonElement>('button.audio-toggle');
+    expect(button?.dataset.hudAnnounce).toBe(
+      'Ambient audio off. Press M to toggle.'
+    );
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
     expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    expect(button?.dataset.hudAnnounce).toBe(
+      'Ambient audio on. Press M to toggle.'
+    );
 
     handle.dispose();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
