@@ -1,3 +1,6 @@
+import type { LocaleInput } from '../i18n';
+import { getMovementLegendStrings, resolveLocale } from '../i18n';
+
 export type InputMethod = 'keyboard' | 'pointer' | 'touch';
 
 export interface MovementLegendOptions {
@@ -6,6 +9,7 @@ export interface MovementLegendOptions {
   initialMethod?: InputMethod;
   interactLabels?: Partial<Record<InputMethod, string>>;
   defaultInteractDescription?: string;
+  locale?: LocaleInput;
 }
 
 export interface MovementLegendHandle {
@@ -28,12 +32,6 @@ interface MovementLegendContext {
   interactDescription: HTMLElement | null;
   defaultInteractDescription: string;
 }
-
-const DEFAULT_INTERACT_LABELS: Record<InputMethod, string> = {
-  keyboard: 'F',
-  pointer: 'Click',
-  touch: 'Tap',
-};
 
 const MODIFIER_KEYS = new Set([
   'Shift',
@@ -99,7 +97,10 @@ function resolvePointerMethod(event: PointerEvent | MouseEvent): InputMethod {
   return 'pointer';
 }
 
-function collectContext(container: HTMLElement): MovementLegendContext {
+function collectContext(
+  container: HTMLElement,
+  fallbackDescription: string
+): MovementLegendContext {
   const items = Array.from(
     container.querySelectorAll<HTMLElement>('[data-input-methods]')
   ).map((element) => ({
@@ -120,7 +121,7 @@ function collectContext(container: HTMLElement): MovementLegendContext {
 
   const defaultInteractDescription = interactDescription?.textContent?.trim()
     ? interactDescription.textContent.trim()
-    : 'Interact';
+    : fallbackDescription;
 
   return {
     items,
@@ -164,13 +165,23 @@ export function createMovementLegend(
     windowTarget = typeof window !== 'undefined' ? window : undefined,
     initialMethod,
     interactLabels,
-    defaultInteractDescription = 'Interact',
+    defaultInteractDescription,
+    locale,
   } = options;
 
-  const context = collectContext(container);
+  const navigatorLanguage =
+    windowTarget?.navigator && 'language' in windowTarget.navigator
+      ? String((windowTarget.navigator as Navigator).language)
+      : undefined;
+  const resolvedLocale = resolveLocale(locale ?? navigatorLanguage);
+  const legendStrings = getMovementLegendStrings(resolvedLocale);
+  const fallbackInteractDescription =
+    defaultInteractDescription ?? legendStrings.defaultDescription;
+
+  const context = collectContext(container, fallbackInteractDescription);
 
   const labels: Record<InputMethod, string> = {
-    ...DEFAULT_INTERACT_LABELS,
+    ...legendStrings.labels,
     ...interactLabels,
   } as Record<InputMethod, string>;
 
@@ -178,13 +189,14 @@ export function createMovementLegend(
 
   if (context.interactDescription) {
     context.interactDescription.textContent =
-      context.defaultInteractDescription || defaultInteractDescription;
+      context.defaultInteractDescription || fallbackInteractDescription;
   }
 
   const activeLabelsDescription = context.interactDescription
     ? context.interactDescription.textContent
-    : defaultInteractDescription;
-  context.defaultInteractDescription = activeLabelsDescription || 'Interact';
+    : fallbackInteractDescription;
+  context.defaultInteractDescription =
+    activeLabelsDescription || fallbackInteractDescription;
 
   let activeMethod = detectInitialMethod({
     explicit: initialMethod,

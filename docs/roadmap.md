@@ -204,8 +204,8 @@ Focus: make the experience inclusive and globally friendly.
   - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
 
 3. **Localization Pipeline**
-   - Extract UI + POI copy into i18n catalog with English baseline.
-   - Provide translation scaffolding (e.g., JSON/PO files) and fallback strings.
+   - ✅ Extract UI + POI copy into i18n catalog with English baseline.
+   - ✅ Translation scaffolding now provides pseudo locale overrides and English fallbacks.
    - Ensure fonts, layout, and text rendering handle RTL and CJK scripts gracefully.
 
 ## Phase 5 – Hero Avatar

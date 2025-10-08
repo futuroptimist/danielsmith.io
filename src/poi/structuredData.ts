@@ -1,12 +1,15 @@
+import type { LocaleInput } from '../i18n';
+import { formatMessage, getSiteStrings, resolveLocale } from '../i18n';
+
 import type { PoiDefinition } from './types';
 
-const DEFAULT_SITE_NAME = 'Daniel Smith Immersive Portfolio';
 const DEFAULT_CANONICAL_URL = 'https://danielsmith.io/';
 const SCRIPT_ELEMENT_ID = 'danielsmith-portfolio-pois-structured-data';
 
 export interface PoiStructuredDataOptions {
   canonicalUrl?: string;
   siteName?: string;
+  locale?: LocaleInput;
 }
 
 export interface InjectPoiStructuredDataOptions
@@ -61,11 +64,17 @@ export const buildPoiStructuredData = (
   pois: readonly PoiDefinition[],
   options: PoiStructuredDataOptions = {}
 ): Record<string, unknown> => {
+  const locale = resolveLocale(options.locale);
+  const siteStrings = getSiteStrings(locale);
+  const siteName = options.siteName ?? siteStrings.name;
   const canonical = normalizeCanonicalUrl(
     options.canonicalUrl,
     DEFAULT_CANONICAL_URL
   );
-  const siteName = options.siteName ?? DEFAULT_SITE_NAME;
+  const listName = formatMessage(siteStrings.structuredData.listNameTemplate, {
+    siteName,
+  });
+  const description = siteStrings.structuredData.description;
 
   const itemListElement: ListItem[] = pois.map((poi, index) => {
     const poiUrl = createPoiUrl(canonical, poi.id);
@@ -123,9 +132,8 @@ export const buildPoiStructuredData = (
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: `${siteName} Exhibits`,
-    description:
-      'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
+    name: listName,
+    description,
     itemListOrder: 'https://schema.org/ItemListOrderAscending',
     itemListElement,
   };
@@ -155,6 +163,7 @@ export const injectPoiStructuredData = (
   const structuredData = buildPoiStructuredData(pois, {
     canonicalUrl: canonical,
     siteName: options.siteName,
+    locale: options.locale,
   });
 
   const existing = documentTarget.getElementById(SCRIPT_ELEMENT_ID);

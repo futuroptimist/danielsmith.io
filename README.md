@@ -102,6 +102,9 @@ lightweight.
   keyboard users receive the same context. Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
   terminal that pulses in sync with the new automation POI.
+- **Localization** – UI chrome and POI copy are centralized in `src/i18n/index.ts`, letting future
+  locales load structured strings while keeping Vitest coverage in
+  `src/tests/i18n.test.ts` to guard against regressions.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
   story beats.

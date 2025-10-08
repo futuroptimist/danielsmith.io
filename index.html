@@ -303,15 +303,20 @@
   <body>
     <div id="app"></div>
     <div class="overlay" id="control-overlay">
-      <p class="overlay__heading">Controls</p>
+      <p class="overlay__heading" data-control-text="heading">Controls</p>
       <ul class="overlay__list">
-        <li class="overlay__item" data-input-methods="keyboard">
+        <li
+          class="overlay__item"
+          data-input-methods="keyboard"
+          data-control-item="keyboardMove"
+        >
           <span class="overlay__keys">WASD / Arrow keys</span>
           <span class="overlay__description">Move</span>
         </li>
         <li
           class="overlay__item overlay__item--desktop"
           data-input-methods="pointer"
+          data-control-item="pointerDrag"
         >
           <span class="overlay__keys">Left mouse button</span>
           <span class="overlay__description">Drag to pan</span>
@@ -319,6 +324,7 @@
         <li
           class="overlay__item overlay__item--desktop"
           data-input-methods="pointer"
+          data-control-item="pointerZoom"
         >
           <span class="overlay__keys">Scroll wheel</span>
           <span class="overlay__description">Zoom</span>
@@ -326,6 +332,7 @@
         <li
           class="overlay__item overlay__item--touch"
           data-input-methods="touch"
+          data-control-item="touchDrag"
         >
           <span class="overlay__keys">Touch</span>
           <span class="overlay__description">
@@ -335,15 +342,24 @@
         <li
           class="overlay__item overlay__item--touch"
           data-input-methods="touch"
+          data-control-item="touchPinch"
         >
           <span class="overlay__keys">Pinch</span>
           <span class="overlay__description">Zoom</span>
         </li>
-        <li class="overlay__item" data-input-methods="keyboard">
+        <li
+          class="overlay__item"
+          data-input-methods="keyboard"
+          data-control-item="cyclePoi"
+        >
           <span class="overlay__keys">Q / E</span>
           <span class="overlay__description">Cycle POIs</span>
         </li>
-        <li class="overlay__item" data-input-methods="keyboard">
+        <li
+          class="overlay__item"
+          data-input-methods="keyboard"
+          data-control-item="toggleTextMode"
+        >
           <span class="overlay__keys">T</span>
           <span class="overlay__description">Switch to text mode</span>
         </li>
@@ -352,6 +368,7 @@
           data-control="interact"
           data-role="interact"
           data-input-methods="keyboard pointer touch"
+          data-control-item="interact"
           hidden
         >
           <span class="overlay__keys" data-role="interact-label">F</span>

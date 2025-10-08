@@ -1,6 +1,25 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import { createHelpModal } from '../hud/helpModal';
+import { getHelpModalStrings } from '../i18n';
+
+function cloneContent() {
+  const content = getHelpModalStrings();
+  return {
+    heading: content.heading,
+    description: content.description,
+    closeLabel: content.closeLabel,
+    closeAriaLabel: content.closeAriaLabel,
+    sections: content.sections.map((section) => ({
+      id: section.id,
+      title: section.title,
+      items: section.items.map((item) => ({
+        label: item.label,
+        description: item.description,
+      })),
+    })),
+  };
+}
 
 describe('createHelpModal', () => {
   beforeEach(() => {
@@ -13,7 +32,10 @@ describe('createHelpModal', () => {
     document.body.appendChild(focusAnchor);
     focusAnchor.focus();
 
-    const handle = createHelpModal({ container: document.body });
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
 
     const backdrop = document.querySelector('.help-modal-backdrop');
     expect(backdrop).toBeInstanceOf(HTMLElement);
@@ -33,18 +55,22 @@ describe('createHelpModal', () => {
   it('supports custom headings and sections', () => {
     const handle = createHelpModal({
       container: document.body,
-      heading: 'Custom help',
-      description: 'Custom description',
-      sections: [
-        {
-          id: 'testing',
-          title: 'Testing',
-          items: [
-            { label: 'A', description: 'First item' },
-            { label: 'B', description: 'Second item' },
-          ],
-        },
-      ],
+      content: {
+        heading: 'Custom help',
+        description: 'Custom description',
+        closeLabel: 'Done',
+        closeAriaLabel: 'Close the custom help panel',
+        sections: [
+          {
+            id: 'testing',
+            title: 'Testing',
+            items: [
+              { label: 'A', description: 'First item' },
+              { label: 'B', description: 'Second item' },
+            ],
+          },
+        ],
+      },
     });
 
     handle.open();
@@ -63,7 +89,10 @@ describe('createHelpModal', () => {
   });
 
   it('closes when Escape is pressed or the backdrop is clicked', () => {
-    const handle = createHelpModal({ container: document.body });
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
     handle.open();
 
     const backdrop = document.querySelector('.help-modal-backdrop');
@@ -86,7 +115,10 @@ describe('createHelpModal', () => {
     document.body.appendChild(before);
     before.focus();
 
-    const handle = createHelpModal({ container: document.body });
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
     handle.open();
 
     const closeButton =
@@ -103,7 +135,10 @@ describe('createHelpModal', () => {
   });
 
   it('disposes elements and listeners on dispose', () => {
-    const handle = createHelpModal({ container: document.body });
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
     handle.open();
     handle.dispose();
 
