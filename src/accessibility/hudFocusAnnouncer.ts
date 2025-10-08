@@ -140,6 +140,7 @@ export function createHudFocusAnnouncer({
 }: HudFocusAnnouncerOptions = {}): HudFocusAnnouncerHandle {
   const host =
     container ?? documentTarget.body ?? documentTarget.documentElement;
+
   if (!host) {
     throw new Error(
       'Unable to determine host element for HUD focus announcer.'

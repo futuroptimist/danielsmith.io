@@ -2293,3 +2293,81 @@ function initializeImmersiveScene(
     }
     controls.dispose();
   }
+
+  let hasPresentedFirstFrame = false;
+
+  renderer.setAnimationLoop(() => {
+    try {
+      const delta = clock.getDelta();
+      const elapsedTime = clock.elapsedTime;
+      performanceFailover.update(delta);
+      if (performanceFailover.hasTriggered()) {
+        return;
+      }
+      updateMovement(delta);
+      updateCamera(delta);
+      updatePois(elapsedTime, delta);
+      handleInteractionInput();
+      handleHelpInput();
+      if (ambientAudioController) {
+        ambientAudioController.update(player.position, delta);
+        ambientCaptionBridge?.update();
+      }
+      if (flywheelShowpiece) {
+        const activation = flywheelPoi?.activation ?? 0;
+        const focus = flywheelPoi?.focus ?? 0;
+        flywheelShowpiece.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (jobbotTerminal) {
+        const activation = jobbotPoi?.activation ?? 0;
+        const focus = jobbotPoi?.focus ?? 0;
+        jobbotTerminal.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (tokenPlaceRack) {
+        const activation = tokenPlacePoi?.activation ?? 0;
+        const focus = tokenPlacePoi?.focus ?? 0;
+        tokenPlaceRack.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (gabrielSentry) {
+        const activation = gabrielPoi?.activation ?? 0;
+        const focus = gabrielPoi?.focus ?? 0;
+        gabrielSentry.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (backyardEnvironment) {
+        backyardEnvironment.update({ elapsed: elapsedTime, delta });
+      }
+      if (composer) {
+        composer.render();
+      } else {
+        renderer.render(scene, camera);
+      }
+      if (!hasPresentedFirstFrame) {
+        hasPresentedFirstFrame = true;
+        markDocumentReady('immersive');
+      }
+    } catch (error) {
+      handleFatalError(error);
+    }
+  });
+
+  renderer.domElement.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    handleFatalError(new Error('WebGL context lost during initialization.'));
+  });
+}
