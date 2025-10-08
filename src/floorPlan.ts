@@ -33,6 +33,63 @@ export const FLOOR_PLAN_SCALE = Math.SQRT2 * Math.SQRT2;
 
 const scaleValue = (value: number): number => value * FLOOR_PLAN_SCALE;
 
+export interface DoorwayWidthValidationOptions {
+  /** Minimum allowed doorway width, measured in the same units as the plan. */
+  minWidth?: number;
+  /** Tolerance used when comparing doorway widths to the minimum. */
+  tolerance?: number;
+}
+
+const DEFAULT_DOORWAY_VALIDATION_OPTIONS: Required<DoorwayWidthValidationOptions> = {
+  minWidth: 1.2,
+  tolerance: 1e-4,
+};
+
+export function assertDoorwayWidths(
+  plan: FloorPlanDefinition,
+  options: DoorwayWidthValidationOptions = {}
+): void {
+  const { minWidth, tolerance } = {
+    ...DEFAULT_DOORWAY_VALIDATION_OPTIONS,
+    ...options,
+  };
+
+  const violations: Array<{
+    roomId: string;
+    wall: RoomWall;
+    width: number;
+    doorway: DoorwayDefinition;
+  }> = [];
+
+  plan.rooms.forEach((room) => {
+    room.doorways?.forEach((doorway) => {
+      const width = Math.abs(doorway.end - doorway.start);
+      if (width + tolerance < minWidth) {
+        violations.push({
+          roomId: room.id,
+          wall: doorway.wall,
+          width,
+          doorway,
+        });
+      }
+    });
+  });
+
+  if (violations.length > 0) {
+    const report = violations
+      .map((violation) => {
+        const { roomId, wall, width, doorway } = violation;
+        return `room="${roomId}" wall="${wall}" width=${width.toFixed(
+          3
+        )} range=[${doorway.start.toFixed(3)}, ${doorway.end.toFixed(3)}]`;
+      })
+      .join('; ');
+    throw new Error(
+      `Doorway widths below ${minWidth.toFixed(2)} units detected: ${report}`
+    );
+  }
+}
+
 const scaleFloorPlanDefinition = (
   plan: FloorPlanDefinition
 ): FloorPlanDefinition => ({
@@ -249,6 +306,9 @@ export const FLOOR_PLAN: FloorPlanDefinition =
 export const UPPER_FLOOR_PLAN: FloorPlanDefinition = scaleFloorPlanDefinition(
   UPPER_FLOOR_BASE_PLAN
 );
+
+assertDoorwayWidths(FLOOR_PLAN);
+assertDoorwayWidths(UPPER_FLOOR_PLAN);
 
 export interface FloorPlanLevel {
   id: string;
