@@ -27,7 +27,8 @@ export interface HelpModalHandle {
 
 const DEFAULT_HEADING = 'Quick Reference';
 const DEFAULT_DESCRIPTION =
-  'Review controls, accessibility tips, and failover shortcuts. Press H or ? to toggle this panel.';
+  'Review controls, accessibility tips, and failover shortcuts. ' +
+  'Use the help shortcut (default H or ?) to toggle this panel.';
 
 const DEFAULT_SECTIONS: HelpModalSection[] = [
   {
@@ -53,7 +54,8 @@ const DEFAULT_SECTIONS: HelpModalSection[] = [
     items: [
       {
         label: 'Approach glowing POIs',
-        description: 'Press F, tap, or click to open the exhibit overlay.',
+        description:
+          'Press your interact key (default F), tap, or click to open the exhibit overlay.',
       },
       {
         label: 'Q / E or ← / →',

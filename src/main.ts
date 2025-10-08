@@ -64,6 +64,13 @@ import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
 } from './controls/graphicsQualityControl';
+import {
+  KeyBindings,
+  createKeyBindingAwareSource,
+  formatKeyLabel,
+  type KeyBindingAction,
+  type KeyBindingConfig,
+} from './controls/keyBindings';
 import { KeyboardControls } from './controls/KeyboardControls';
 import { VirtualJoystick } from './controls/VirtualJoystick';
 import {
@@ -154,6 +161,23 @@ import { createImmersiveGradientTexture } from './theme/immersiveGradient';
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
+type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
+
+declare global {
+  interface Window {
+    portfolio?: {
+      input?: {
+        keyBindings?: {
+          getBindings(): KeyBindingSnapshot;
+          setBinding(action: KeyBindingAction, keys: readonly string[]): void;
+          resetBinding(action: KeyBindingAction): void;
+          resetAll(): void;
+        };
+      };
+    };
+  }
+}
+
 const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
@@ -1076,6 +1100,88 @@ function initializeImmersiveScene(
   scene.add(player);
 
   const controlOverlay = document.getElementById('control-overlay');
+  const keyBindings = new KeyBindings();
+  const KEY_BINDINGS_STORAGE_KEY = 'danielsmith.io:keyBindings';
+  const bindingActions: KeyBindingAction[] = [
+    'moveForward',
+    'moveBackward',
+    'moveLeft',
+    'moveRight',
+    'interact',
+    'help',
+  ];
+  const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
+
+  const getBindingSnapshot = (): KeyBindingSnapshot => {
+    const snapshot = {} as KeyBindingSnapshot;
+    for (const action of bindingActions) {
+      snapshot[action] = [...keyBindings.getBindings(action)];
+    }
+    return snapshot;
+  };
+
+  const loadStoredKeyBindings = () => {
+    try {
+      const stored = window.localStorage?.getItem(KEY_BINDINGS_STORAGE_KEY);
+      if (!stored) {
+        return;
+      }
+      const parsed = JSON.parse(stored) as KeyBindingConfig;
+      if (parsed && typeof parsed === 'object') {
+        keyBindings.update(parsed);
+      }
+    } catch (error) {
+      console.warn('Failed to load key bindings from storage', error);
+    }
+  };
+
+  const saveKeyBindings = () => {
+    try {
+      window.localStorage?.setItem(
+        KEY_BINDINGS_STORAGE_KEY,
+        JSON.stringify(getBindingSnapshot())
+      );
+    } catch (error) {
+      console.warn('Failed to save key bindings', error);
+    }
+  };
+
+  loadStoredKeyBindings();
+
+  const ensureKeyBindingApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    if (!portfolioWindow.portfolio.input) {
+      portfolioWindow.portfolio.input = {};
+    }
+    portfolioWindow.portfolio.input.keyBindings = {
+      getBindings() {
+        return getBindingSnapshot();
+      },
+      setBinding(action, keys) {
+        if (!bindingActionSet.has(action)) {
+          throw new Error(`Unknown key binding action: ${action}`);
+        }
+        keyBindings.setBindings(action, Array.from(keys));
+        saveKeyBindings();
+      },
+      resetBinding(action) {
+        if (!bindingActionSet.has(action)) {
+          throw new Error(`Unknown key binding action: ${action}`);
+        }
+        keyBindings.reset(action);
+        saveKeyBindings();
+      },
+      resetAll() {
+        keyBindings.resetAll();
+        saveKeyBindings();
+      },
+    };
+  };
+
+  ensureKeyBindingApi();
   const interactControl = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact"]'
   );
@@ -1085,8 +1191,16 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const interactLabelFallback = 'F';
   const movementLegend: MovementLegendHandle | null = controlOverlay
-    ? createMovementLegend({ container: controlOverlay })
+    ? createMovementLegend({
+        container: controlOverlay,
+        interactLabels: {
+          keyboard:
+            formatKeyLabel(keyBindings.getPrimaryBinding('interact')) ||
+            interactLabelFallback,
+        },
+      })
     : null;
   const helpModal = createHelpModal({ container: document.body });
   hudFocusAnnouncer = createHudFocusAnnouncer({
@@ -1101,6 +1215,7 @@ function initializeImmersiveScene(
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
+  const keyPressSource = createKeyBindingAwareSource(controls);
   const joystick = new VirtualJoystick(renderer.domElement);
   const clock = new Clock();
   const targetVelocity = new Vector3();
@@ -1122,6 +1237,31 @@ function initializeImmersiveScene(
 
   let activeFloorId: FloorId = 'ground';
   let helpKeyWasPressed = false;
+  const helpLabelFallback = 'H';
+  const updateHelpButtonLabel = () => {
+    if (!helpButton) {
+      return;
+    }
+    const label =
+      formatKeyLabel(keyBindings.getPrimaryBinding('help')) ||
+      helpLabelFallback;
+    helpButton.textContent = `Open help · Press ${label}`;
+  };
+  updateHelpButtonLabel();
+
+  const keyBindingUnsubscribes: Array<() => void> = [];
+  keyBindingUnsubscribes.push(
+    keyBindings.subscribe((action, bindings) => {
+      if (action === 'interact' && movementLegend) {
+        const label = formatKeyLabel(bindings[0]) || interactLabelFallback;
+        movementLegend.setKeyboardInteractLabel(label);
+      }
+      if (action === 'help') {
+        updateHelpButtonLabel();
+      }
+      saveKeyBindings();
+    })
+  );
 
   const isWithinStairWidth = (x: number, margin = 0) =>
     Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
@@ -1724,11 +1864,11 @@ function initializeImmersiveScene(
 
   function updateMovement(delta: number) {
     const rightInput =
-      Number(controls.isPressed('d') || controls.isPressed('ArrowRight')) -
-      Number(controls.isPressed('a') || controls.isPressed('ArrowLeft'));
+      Number(keyBindings.isActionActive('moveRight', keyPressSource)) -
+      Number(keyBindings.isActionActive('moveLeft', keyPressSource));
     const forwardInput =
-      Number(controls.isPressed('w') || controls.isPressed('ArrowUp')) -
-      Number(controls.isPressed('s') || controls.isPressed('ArrowDown'));
+      Number(keyBindings.isActionActive('moveForward', keyPressSource)) -
+      Number(keyBindings.isActionActive('moveBackward', keyPressSource));
 
     const joystickMovement = joystick.getMovement();
     const combinedRight = rightInput + joystickMovement.x;
@@ -2042,7 +2182,7 @@ function initializeImmersiveScene(
   }
 
   function handleInteractionInput() {
-    const pressed = controls.isPressed('f');
+    const pressed = keyBindings.isActionActive('interact', keyPressSource);
     if (pressed && !interactKeyWasPressed && interactablePoi) {
       poiInteractionManager.selectPoiById(interactablePoi.definition.id);
     }
@@ -2050,7 +2190,7 @@ function initializeImmersiveScene(
   }
 
   function handleHelpInput() {
-    const pressed = controls.isPressed('h') || controls.isPressed('?');
+    const pressed = keyBindings.isActionActive('help', keyPressSource);
     if (immersiveDisposed) {
       helpKeyWasPressed = pressed;
       return;
@@ -2135,88 +2275,21 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    while (keyBindingUnsubscribes.length > 0) {
+      const unsubscribe = keyBindingUnsubscribes.pop();
+      unsubscribe?.();
+    }
+    if (window.portfolio?.input?.keyBindings) {
+      delete window.portfolio.input.keyBindings;
+    }
+    if (helpButton) {
+      helpButton.textContent = `Open help · Press ${helpLabelFallback}`;
+    }
     movementLegend?.dispose();
     helpModal.dispose();
     if (hudFocusAnnouncer) {
       hudFocusAnnouncer.dispose();
       hudFocusAnnouncer = null;
     }
+    controls.dispose();
   }
-
-  let hasPresentedFirstFrame = false;
-
-  renderer.setAnimationLoop(() => {
-    try {
-      const delta = clock.getDelta();
-      const elapsedTime = clock.elapsedTime;
-      performanceFailover.update(delta);
-      if (performanceFailover.hasTriggered()) {
-        return;
-      }
-      updateMovement(delta);
-      updateCamera(delta);
-      updatePois(elapsedTime, delta);
-      handleInteractionInput();
-      handleHelpInput();
-      if (ambientAudioController) {
-        ambientAudioController.update(player.position, delta);
-        ambientCaptionBridge?.update();
-      }
-      if (flywheelShowpiece) {
-        const activation = flywheelPoi?.activation ?? 0;
-        const focus = flywheelPoi?.focus ?? 0;
-        flywheelShowpiece.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (jobbotTerminal) {
-        const activation = jobbotPoi?.activation ?? 0;
-        const focus = jobbotPoi?.focus ?? 0;
-        jobbotTerminal.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (tokenPlaceRack) {
-        const activation = tokenPlacePoi?.activation ?? 0;
-        const focus = tokenPlacePoi?.focus ?? 0;
-        tokenPlaceRack.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (gabrielSentry) {
-        const activation = gabrielPoi?.activation ?? 0;
-        const focus = gabrielPoi?.focus ?? 0;
-        gabrielSentry.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (backyardEnvironment) {
-        backyardEnvironment.update({ elapsed: elapsedTime, delta });
-      }
-      if (composer) {
-        composer.render();
-      } else {
-        renderer.render(scene, camera);
-      }
-      if (!hasPresentedFirstFrame) {
-        hasPresentedFirstFrame = true;
-        markDocumentReady('immersive');
-      }
-    } catch (error) {
-      handleFatalError(error);
-    }
-  });
-
-  renderer.domElement.addEventListener('webglcontextlost', (event) => {
-    event.preventDefault();
-    handleFatalError(new Error('WebGL context lost during initialization.'));
-  });
-}
