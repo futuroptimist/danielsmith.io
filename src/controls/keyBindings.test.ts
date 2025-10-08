@@ -90,7 +90,9 @@ describe('formatKeyLabel', () => {
 describe('createKeyBindingAwareSource', () => {
   it('delegates to the provided controls', () => {
     const isPressed = vi.fn().mockReturnValue(true);
-    const controls = { isPressed } as unknown as import('./KeyboardControls').KeyboardControls;
+    const controls = {
+      isPressed,
+    } as unknown as import('./KeyboardControls').KeyboardControls;
     const source = createKeyBindingAwareSource(controls);
 
     expect(source.isPressed('f')).toBe(true);

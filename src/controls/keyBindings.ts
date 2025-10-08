@@ -8,7 +8,9 @@ export type KeyBindingAction =
   | 'interact'
   | 'help';
 
-export type KeyBindingConfig = Partial<Record<KeyBindingAction, readonly string[]>>;
+export type KeyBindingConfig = Partial<
+  Record<KeyBindingAction, readonly string[]>
+>;
 
 export interface KeyPressSource {
   isPressed(key: string): boolean;
@@ -19,14 +21,15 @@ export type KeyBindingListener = (
   bindings: readonly string[]
 ) => void;
 
-export const DEFAULT_KEY_BINDINGS: Record<KeyBindingAction, readonly string[]> = {
-  moveForward: ['w', 'ArrowUp'],
-  moveBackward: ['s', 'ArrowDown'],
-  moveLeft: ['a', 'ArrowLeft'],
-  moveRight: ['d', 'ArrowRight'],
-  interact: ['f'],
-  help: ['h', '?'],
-};
+export const DEFAULT_KEY_BINDINGS: Record<KeyBindingAction, readonly string[]> =
+  {
+    moveForward: ['w', 'ArrowUp'],
+    moveBackward: ['s', 'ArrowDown'],
+    moveLeft: ['a', 'ArrowLeft'],
+    moveRight: ['d', 'ArrowRight'],
+    interact: ['f'],
+    help: ['h', '?'],
+  };
 
 type ActionEntries = [KeyBindingAction, readonly string[]];
 
@@ -140,7 +143,10 @@ export class KeyBindings {
     }
   }
 
-  private areBindingsEqual(a: readonly string[], b: readonly string[]): boolean {
+  private areBindingsEqual(
+    a: readonly string[],
+    b: readonly string[]
+  ): boolean {
     if (a.length !== b.length) {
       return false;
     }

@@ -208,7 +208,8 @@ export function createMovementLegend(
   };
 
   const setKeyboardInteractLabel = (label: string) => {
-    const normalized = label && label.trim() ? label.trim() : defaultKeyboardLabel;
+    const normalized =
+      label && label.trim() ? label.trim() : defaultKeyboardLabel;
     if (labels.keyboard === normalized) {
       return;
     }

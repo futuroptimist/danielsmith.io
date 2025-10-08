@@ -1234,7 +1234,8 @@ function initializeImmersiveScene(
       return;
     }
     const label =
-      formatKeyLabel(keyBindings.getPrimaryBinding('help')) || helpLabelFallback;
+      formatKeyLabel(keyBindings.getPrimaryBinding('help')) ||
+      helpLabelFallback;
     helpButton.textContent = `Open help · Press ${label}`;
   };
   updateHelpButtonLabel();
@@ -1243,8 +1244,7 @@ function initializeImmersiveScene(
   keyBindingUnsubscribes.push(
     keyBindings.subscribe((action, bindings) => {
       if (action === 'interact' && movementLegend) {
-        const label =
-          formatKeyLabel(bindings[0]) || interactLabelFallback;
+        const label = formatKeyLabel(bindings[0]) || interactLabelFallback;
         movementLegend.setKeyboardInteractLabel(label);
       }
       if (action === 'help') {
