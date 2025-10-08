@@ -28,6 +28,8 @@ Summaries must include asset references, tests, and manual QA steps.
 ## Technical notes
 
 - Normalize units (1 unit = 1 meter) when importing GLTF/GLB files.
+- Use `createAvatarImporter` (`src/avatar/importer.ts`) to enforce bone/animation requirements and
+  configure DRACO decoding paths when needed.
 - Keep animation blending configurable for future gameplay states.
 - Store temporary mannequin assets separately to ease replacement.
 
