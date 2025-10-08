@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import type { RoomDefinition } from '../floorPlan';
 import { createRoomCeilingPanels } from '../structures/ceilingPanels';
 
-const createRoom = (overrides: Partial<RoomDefinition> = {}): RoomDefinition => ({
+const createRoom = (
+  overrides: Partial<RoomDefinition> = {}
+): RoomDefinition => ({
   id: 'room',
   name: 'Room',
   bounds: { minX: 0, maxX: 10, minZ: 0, maxZ: 8 },
@@ -35,7 +37,10 @@ describe('createRoomCeilingPanels', () => {
     ]);
 
     expect(group.children).toHaveLength(2);
-    expect(panels.map((panel) => panel.roomId)).toEqual(['livingRoom', 'studio']);
+    expect(panels.map((panel) => panel.roomId)).toEqual([
+      'livingRoom',
+      'studio',
+    ]);
 
     const firstPanel = panels[0]!.mesh;
     expect(firstPanel.receiveShadow).toBe(true);
@@ -46,7 +51,10 @@ describe('createRoomCeilingPanels', () => {
     expect(geometry.parameters.depth).toBeCloseTo(8 - 0.9 * 2, 5);
     expect(geometry.parameters.height).toBeCloseTo(0.3, 5);
 
-    const expectedColor = new Color(0x1f2636).lerp(new Color(interiorA.ledColor), 0.28);
+    const expectedColor = new Color(0x1f2636).lerp(
+      new Color(interiorA.ledColor),
+      0.28
+    );
     const material = firstPanel.material as MeshStandardMaterial;
     expect(material.color.getHex()).toBeCloseTo(expectedColor.getHex());
   });

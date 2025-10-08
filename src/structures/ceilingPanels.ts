@@ -1,4 +1,11 @@
-import { BoxGeometry, Color, Group, MathUtils, Mesh, MeshStandardMaterial } from 'three';
+import {
+  BoxGeometry,
+  Color,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 
 import type { RoomDefinition } from '../floorPlan';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
@@ -50,7 +57,11 @@ function createMaterial(
     return options.material.clone();
   }
 
-  const tint = MathUtils.clamp(options.tintIntensity ?? DEFAULT_TINT_INTENSITY, 0, 1);
+  const tint = MathUtils.clamp(
+    options.tintIntensity ?? DEFAULT_TINT_INTENSITY,
+    0,
+    1
+  );
   const material = defaultMaterial.clone();
   const color = new Color(BASE_COLOR);
   const ledColor = new Color(room.ledColor);
@@ -68,7 +79,10 @@ export function createRoomCeilingPanels(
 
   const panels: RoomCeilingPanel[] = [];
   const inset = Math.max(options.inset ?? DEFAULT_INSET, 0);
-  const thickness = Math.max(options.thickness ?? DEFAULT_THICKNESS, MIN_DIMENSION);
+  const thickness = Math.max(
+    options.thickness ?? DEFAULT_THICKNESS,
+    MIN_DIMENSION
+  );
   const height = options.height ?? DEFAULT_HEIGHT;
   const defaultMaterial =
     options.material ??
@@ -93,7 +107,10 @@ export function createRoomCeilingPanels(
     const geometry = new BoxGeometry(width, thickness, depth);
     applyLightmapUv2(geometry);
 
-    const mesh = new Mesh(geometry, createMaterial(room, options, defaultMaterial));
+    const mesh = new Mesh(
+      geometry,
+      createMaterial(room, options, defaultMaterial)
+    );
     mesh.position.set(
       (room.bounds.minX + room.bounds.maxX) / 2,
       height,
