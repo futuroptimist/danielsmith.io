@@ -108,6 +108,8 @@ lightweight.
 - **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.
+- **Avatar pipeline** – `createAvatarImporter` validates GLTF bone and animation requirements and can
+  attach a DRACO decoder path so future mannequins load consistently.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).
 
 ## Controls
