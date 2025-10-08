@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { collidesWithColliders } from '../collision';
-import { FLOOR_PLAN, WALL_THICKNESS, type DoorwayDefinition } from '../floorPlan';
+import {
+  FLOOR_PLAN,
+  WALL_THICKNESS,
+  type DoorwayDefinition,
+} from '../floorPlan';
 import { createWallSegmentInstances } from '../floorPlan/wallSegments';
 
 const WALL_HEIGHT = 6;
@@ -42,7 +46,9 @@ describe('createWallSegmentInstances', () => {
   const colliders = groundWallInstances.map((instance) => instance.collider);
 
   it('leaves usable gaps for shared doorways', () => {
-    const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
+    const livingRoom = FLOOR_PLAN.rooms.find(
+      (room) => room.id === 'livingRoom'
+    );
     const kitchen = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
     expect(livingRoom).toBeDefined();
     expect(kitchen).toBeDefined();
@@ -61,14 +67,26 @@ describe('createWallSegmentInstances', () => {
     const kitchenSideZ = kitchen.bounds.minZ + PLAYER_RADIUS * 0.6;
 
     expect(
-      collidesWithColliders(doorwayCenter, livingSideZ, PLAYER_RADIUS, colliders)
+      collidesWithColliders(
+        doorwayCenter,
+        livingSideZ,
+        PLAYER_RADIUS,
+        colliders
+      )
     ).toBe(false);
     expect(
-      collidesWithColliders(doorwayCenter, kitchenSideZ, PLAYER_RADIUS, colliders)
+      collidesWithColliders(
+        doorwayCenter,
+        kitchenSideZ,
+        PLAYER_RADIUS,
+        colliders
+      )
     ).toBe(false);
 
     const wallX = livingRoom.bounds.minX + WALL_THICKNESS * 0.25;
-    expect(collidesWithColliders(wallX, livingSideZ, 0.3, colliders)).toBe(true);
+    expect(collidesWithColliders(wallX, livingSideZ, 0.3, colliders)).toBe(
+      true
+    );
   });
 
   it('flags backyard perimeter segments as fences', () => {

@@ -553,7 +553,9 @@ function initializeImmersiveScene(
     fenceThickness: FENCE_THICKNESS,
     getRoomCategory,
   });
-  const combinedWallSegments = groundWallInstances.map((instance) => instance.segment);
+  const combinedWallSegments = groundWallInstances.map(
+    (instance) => instance.segment
+  );
 
   groundWallInstances.forEach((instance) => {
     const geometry = new BoxGeometry(
@@ -564,11 +566,7 @@ function initializeImmersiveScene(
     applyLightmapUv2(geometry);
     const material = instance.isFence ? fenceMaterial : wallMaterial;
     const wall = new Mesh(geometry, material);
-    wall.position.set(
-      instance.center.x,
-      instance.center.y,
-      instance.center.z
-    );
+    wall.position.set(instance.center.x, instance.center.y, instance.center.z);
     wallGroup.add(wall);
 
     groundColliders.push(instance.collider);
@@ -687,11 +685,7 @@ function initializeImmersiveScene(
       instance.dimensions.depth
     );
     const wall = new Mesh(geometry, upperWallMaterial);
-    wall.position.set(
-      instance.center.x,
-      instance.center.y,
-      instance.center.z
-    );
+    wall.position.set(instance.center.x, instance.center.y, instance.center.z);
     upperWallGroup.add(wall);
 
     upperFloorColliders.push(instance.collider);

@@ -37,7 +37,10 @@ const DEFAULT_INTERIOR_EXTENSION = 0.5;
 const DEFAULT_EXTERIOR_EXTENSION = 1;
 const LENGTH_EPSILON = 1e-4;
 
-export function getWallOutwardDirection(wall: RoomWall): { x: number; z: number } {
+export function getWallOutwardDirection(wall: RoomWall): {
+  x: number;
+  z: number;
+} {
   switch (wall) {
     case 'north':
       return { x: 0, z: 1 };
@@ -76,15 +79,21 @@ export function createWallSegmentInstances(
     const roomCategories = segment.rooms.map((roomInfo) =>
       options.getRoomCategory(roomInfo.id)
     );
-    const hasExterior = roomCategories.some((category) => category === 'exterior');
-    const hasInterior = roomCategories.some((category) => category !== 'exterior');
+    const hasExterior = roomCategories.some(
+      (category) => category === 'exterior'
+    );
+    const hasInterior = roomCategories.some(
+      (category) => category !== 'exterior'
+    );
     const isMixed = hasExterior && hasInterior;
     const isFence = hasExterior && !isMixed;
 
     const thickness = isFence ? options.fenceThickness : options.wallThickness;
     const height = isFence ? options.fenceHeight : options.wallHeight;
     const isSharedInterior = segment.rooms.length > 1;
-    const extensionFactor = isSharedInterior ? interiorExtension : exteriorExtension;
+    const extensionFactor = isSharedInterior
+      ? interiorExtension
+      : exteriorExtension;
     const extension = thickness * extensionFactor;
 
     const width =
