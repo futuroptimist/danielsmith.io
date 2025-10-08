@@ -225,7 +225,9 @@ describe('createAccessibilityPresetManager', () => {
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
     expect(document.documentElement.dataset.accessibilityPulseScale).toBe('1');
-    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe('1');
+    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
+      '1'
+    );
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(1.32, 5);
     expect(bloomPass.radius).toBeCloseTo(0.95, 5);
