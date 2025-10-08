@@ -193,6 +193,8 @@ Focus: make the experience inclusive and globally friendly.
 
 2. **Visual & Audio Accessibility**
    - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
+   - ✅ High contrast accessibility preset now boosts HUD readability without disabling cinematic
+     lighting cues.
 
 - Subtitle/captions system for ambient audio callouts and POI narration.
   - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.

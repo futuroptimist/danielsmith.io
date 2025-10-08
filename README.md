@@ -120,8 +120,9 @@ lightweight.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
 - **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
   lightweight portfolio view at any time.
-- **Accessibility presets** – Pick Standard, Calm, or Photosensitive-safe modes from the HUD
-  to soften bloom, reduce motion cues, and boost overlay contrast. The
+- **Accessibility presets** – Pick Standard, Calm, High contrast, or Photosensitive-safe modes
+  from the HUD to soften bloom, boost readability, reduce motion cues, and tune emissive
+  lighting. The
   Photosensitive-safe preset now also smooths greenhouse grow lights, walkway lanterns, and
   holographic beacons so emissive pulses settle into a steady glow for flicker-sensitive players.
 - **Help** – Use the help key (default `H` or `?`), or tap the HUD Help button to

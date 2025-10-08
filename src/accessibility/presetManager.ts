@@ -6,7 +6,11 @@ import type {
   LedMaterialLike,
 } from '../graphics/qualityManager';
 
-export type AccessibilityPresetId = 'standard' | 'calm' | 'photosensitive';
+export type AccessibilityPresetId =
+  | 'standard'
+  | 'calm'
+  | 'high-contrast'
+  | 'photosensitive';
 
 type MotionSetting = 'default' | 'reduced';
 type ContrastSetting = 'standard' | 'high';
@@ -84,6 +88,29 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
     },
     audio: {
       volumeScale: 0.8,
+    },
+  },
+  {
+    id: 'high-contrast',
+    label: 'High contrast',
+    description: 'Boosts HUD readability while keeping motion cues active.',
+    motion: 'default',
+    contrast: 'high',
+    animation: {
+      pulseScale: 1,
+      flickerScale: 1,
+    },
+    bloom: {
+      strengthScale: 1.1,
+      radiusScale: 1,
+      thresholdOffset: -0.02,
+    },
+    led: {
+      emissiveScale: 1.15,
+      lightScale: 1.1,
+    },
+    audio: {
+      volumeScale: 1,
     },
   },
   {

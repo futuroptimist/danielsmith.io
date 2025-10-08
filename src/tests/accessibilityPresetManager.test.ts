@@ -177,6 +177,69 @@ describe('createAccessibilityPresetManager', () => {
     restoreDataset();
   });
 
+  it('enables the high-contrast preset while keeping motion assists active', () => {
+    const bloomPass: BloomPassLike = {
+      enabled: true,
+      strength: 1.2,
+      radius: 0.95,
+      threshold: 0.65,
+    };
+    const ledMaterial: LedMaterialLike = { emissiveIntensity: 0.8 };
+    const ledLight: LedLightLike = { intensity: 0.9 };
+
+    const baseline = () => {
+      bloomPass.enabled = true;
+      bloomPass.strength = 1.2;
+      bloomPass.radius = 0.95;
+      bloomPass.threshold = 0.65;
+      ledMaterial.emissiveIntensity = 0.8;
+      ledLight.intensity = 0.9;
+    };
+
+    const graphicsManager = createStubGraphicsQualityManager(baseline);
+
+    let masterVolume = 0.7;
+    const ambientAudio = {
+      getMasterVolume: () => masterVolume,
+      setMasterVolume: (value: number) => {
+        masterVolume = value;
+      },
+    };
+
+    const manager = createAccessibilityPresetManager({
+      documentElement: document.documentElement,
+      graphicsQualityManager: graphicsManager,
+      bloomPass,
+      ledStripMaterials: [ledMaterial],
+      ledFillLights: [ledLight],
+      ambientAudioController: ambientAudio,
+    });
+
+    manager.setPreset('high-contrast');
+
+    expect(document.documentElement.dataset.accessibilityPreset).toBe(
+      'high-contrast'
+    );
+    expect(document.documentElement.dataset.accessibilityMotion).toBe(
+      'default'
+    );
+    expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
+    expect(document.documentElement.dataset.accessibilityPulseScale).toBe('1');
+    expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
+      '1'
+    );
+    expect(bloomPass.enabled).toBe(true);
+    expect(bloomPass.strength).toBeCloseTo(1.32, 5);
+    expect(bloomPass.radius).toBeCloseTo(0.95, 5);
+    expect(bloomPass.threshold).toBeCloseTo(0.63, 5);
+    expect(ledMaterial.emissiveIntensity).toBeCloseTo(0.92, 5);
+    expect(ledLight.intensity).toBeCloseTo(0.99, 5);
+    expect(masterVolume).toBeCloseTo(0.7, 5);
+
+    manager.dispose();
+    restoreDataset();
+  });
+
   it('handles storage failures and re-applies on quality changes', () => {
     const bloomPass: BloomPassLike = {
       enabled: true,

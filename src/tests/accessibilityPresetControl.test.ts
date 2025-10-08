@@ -15,6 +15,11 @@ const OPTIONS = [
     description: 'Reduce motion cues.',
   },
   {
+    id: 'high-contrast' as AccessibilityPresetId,
+    label: 'High contrast',
+    description: 'Increase HUD contrast without disabling effects.',
+  },
+  {
     id: 'photosensitive' as AccessibilityPresetId,
     label: 'Photosensitive safe',
     description: 'Disable bloom and boost contrast.',
@@ -49,7 +54,7 @@ describe('createAccessibilityPresetControl', () => {
     const wrapper = container.querySelector<HTMLElement>(
       '.accessibility-presets'
     );
-    expect(radios).toHaveLength(3);
+    expect(radios).toHaveLength(4);
     expect(wrapper?.dataset.pending).toBe('false');
 
     radios[1].checked = true;
@@ -57,8 +62,8 @@ describe('createAccessibilityPresetControl', () => {
     expect(wrapper?.dataset.pending).toBe('true');
 
     // While pending, subsequent selections are ignored.
-    radios[2].checked = true;
-    radios[2].dispatchEvent(new Event('change'));
+    radios[3].checked = true;
+    radios[3].dispatchEvent(new Event('change'));
     expect(wrapper?.dataset.pending).toBe('true');
 
     resolveSelection?.();
@@ -70,7 +75,7 @@ describe('createAccessibilityPresetControl', () => {
 
     active = 'photosensitive';
     handle.refresh();
-    expect(radios[2].checked).toBe(true);
+    expect(radios[3].checked).toBe(true);
 
     handle.dispose();
     expect(container.querySelector('.accessibility-presets')).toBeNull();
