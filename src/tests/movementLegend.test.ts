@@ -125,6 +125,30 @@ describe('createMovementLegend', () => {
     legend.dispose();
   });
 
+  it('updates the keyboard interact label when bindings change', () => {
+    const container = createOverlayContainer();
+    const legend = createMovementLegend({
+      container,
+      initialMethod: 'keyboard',
+    });
+
+    const interactLabel = container.querySelector(
+      '[data-role="interact-label"]'
+    );
+
+    legend.setInteractPrompt('Interact with Exhibit');
+    legend.setKeyboardInteractLabel('E');
+    expect(interactLabel?.textContent).toBe('E');
+
+    legend.setActiveMethod('touch');
+    legend.setKeyboardInteractLabel('Space');
+    legend.setActiveMethod('keyboard');
+    expect(interactLabel?.textContent).toBe('Space');
+
+    legend.dispose();
+    expect(interactLabel?.textContent).toBe('F');
+  });
+
   it('reacts to runtime input signals from window events', () => {
     const container = createOverlayContainer();
     const legend = createMovementLegend({ container, windowTarget: window });
