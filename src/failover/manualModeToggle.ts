@@ -42,6 +42,46 @@ export function createManualModeToggle({
 
   let pending = false;
 
+  const normalizeKeyHint = (value: string) =>
+    value.length === 1 ? value.toUpperCase() : value;
+
+  const normalizedKeyHint = normalizeKeyHint(keyHint);
+
+  const appendClause = (base: string, clause: string) => {
+    const trimmedBase = base.trim();
+    const trimmedClause = clause.trim();
+    if (!trimmedClause) {
+      return trimmedBase;
+    }
+    if (!trimmedBase) {
+      return trimmedClause;
+    }
+    const separator = /[.!?]\s*$/.test(trimmedBase) ? ' ' : '. ';
+    return `${trimmedBase}${separator}${trimmedClause}`;
+  };
+
+  const updateAnnouncement = () => {
+    const fallbackActive = getIsFallbackActive();
+    if (pending) {
+      button.dataset.hudAnnounce = appendClause(
+        description,
+        'Switching to text mode…'
+      );
+      return;
+    }
+    if (fallbackActive) {
+      button.dataset.hudAnnounce = appendClause(
+        description,
+        'Text mode already active.'
+      );
+      return;
+    }
+    const keyPrompt = normalizedKeyHint
+      ? `Press ${normalizedKeyHint} to activate.`
+      : 'Use this button to activate text mode.';
+    button.dataset.hudAnnounce = appendClause(description, keyPrompt);
+  };
+
   const setPendingState = (next: boolean) => {
     pending = next;
     button.disabled = next;
@@ -51,9 +91,11 @@ export function createManualModeToggle({
     } else {
       button.textContent = label;
     }
+    updateAnnouncement();
   };
 
   const activate = () => {
+    updateAnnouncement();
     if (pending || getIsFallbackActive()) {
       return;
     }
@@ -105,12 +147,16 @@ export function createManualModeToggle({
 
   button.addEventListener('click', handleClick);
   windowTarget.addEventListener('keydown', handleKeydown);
+  button.addEventListener('focus', updateAnnouncement);
+
+  updateAnnouncement();
 
   return {
     element: button,
     dispose() {
       button.removeEventListener('click', handleClick);
       windowTarget.removeEventListener('keydown', handleKeydown);
+      button.removeEventListener('focus', updateAnnouncement);
       if (button.parentElement) {
         button.remove();
       }

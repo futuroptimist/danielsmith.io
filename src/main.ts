@@ -32,6 +32,10 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
+  createHudFocusAnnouncer,
+  type HudFocusAnnouncerHandle,
+} from './accessibility/hudFocusAnnouncer';
+import {
   ACCESSIBILITY_PRESETS,
   createAccessibilityPresetManager,
   type AccessibilityPresetManager,
@@ -408,6 +412,7 @@ function initializeImmersiveScene(
   let accessibilityControlHandle: AccessibilityPresetControlHandle | null =
     null;
   let unsubscribeAccessibility: (() => void) | null = null;
+  let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
@@ -1207,6 +1212,10 @@ function initializeImmersiveScene(
       })
     : null;
   const helpModal = createHelpModal({ container: document.body });
+  hudFocusAnnouncer = createHudFocusAnnouncer({
+    documentTarget: document,
+    container: document.body,
+  });
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
     helpButtonClickHandler = () => helpModal.open();
@@ -2287,6 +2296,10 @@ function initializeImmersiveScene(
     }
     movementLegend?.dispose();
     helpModal.dispose();
+    if (hudFocusAnnouncer) {
+      hudFocusAnnouncer.dispose();
+      hudFocusAnnouncer = null;
+    }
     controls.dispose();
   }
 
