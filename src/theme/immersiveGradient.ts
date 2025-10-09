@@ -1,17 +1,17 @@
 import { CanvasTexture, Color, SRGBColorSpace } from 'three';
 
 export const IMMERSIVE_GRADIENT_STOPS = {
-  top: '#152238',
-  bottom: '#04080f',
+  top: '#0a111c',
+  bottom: '#020408',
 } as const;
 
 export const IMMERSIVE_GRADIENT_CSS_BACKGROUND = `linear-gradient(180deg, ${IMMERSIVE_GRADIENT_STOPS.top} 0%, ${IMMERSIVE_GRADIENT_STOPS.bottom} 100%)`;
 
-export const IMMERSIVE_GRADIENT_SOLID_FALLBACK = '#04080f';
+export const IMMERSIVE_GRADIENT_SOLID_FALLBACK = '#020408';
 
 const HEX_STOPS = {
-  top: 0x152238,
-  bottom: 0x04080f,
+  top: 0x0a111c,
+  bottom: 0x020408,
 } as const;
 
 export function createImmersiveGradientTexture(): CanvasTexture {
