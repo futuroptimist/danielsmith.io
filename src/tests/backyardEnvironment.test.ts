@@ -9,6 +9,7 @@ import {
   ShaderMaterial,
   SRGBColorSpace,
   Texture,
+  Vector3,
 } from 'three';
 import {
   afterEach,
@@ -169,6 +170,83 @@ describe('createBackyardEnvironment', () => {
     expect(glassMaterial.emissiveIntensity).not.toBe(midEmissive);
     expect(midLightIntensity).not.toBe(baselineLightIntensity);
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
+  });
+
+  it('wraps the backyard exhibits with a perimeter fence and matching colliders', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const fenceGroup = environment.group.getObjectByName(
+      'BackyardPerimeterFence'
+    );
+    expect(fenceGroup).toBeInstanceOf(Group);
+
+    const leftRun = (fenceGroup as Group).getObjectByName(
+      'BackyardFenceRun-0'
+    ) as Group | null;
+    expect(leftRun).toBeInstanceOf(Group);
+
+    const leftPosts = (leftRun as Group).children.filter((child) =>
+      child.name.startsWith('BackyardFencePost-0-')
+    );
+    expect(leftPosts.length).toBeGreaterThan(2);
+
+    const firstTopRail = leftRun?.getObjectByName('BackyardFenceRail-Top-0-0');
+    expect(firstTopRail).toBeInstanceOf(Mesh);
+
+    const firstMidRail = leftRun?.getObjectByName('BackyardFenceRail-Mid-0-0');
+    expect(firstMidRail).toBeInstanceOf(Mesh);
+
+    const topRailMesh = firstTopRail as Mesh;
+    const midRailMesh = firstMidRail as Mesh;
+    expect(topRailMesh.position.y).toBeGreaterThan(midRailMesh.position.y);
+    expect(topRailMesh.scale.x).toBeGreaterThan(1);
+
+    const verticalOrientation = new Vector3(1, 0, 0).applyQuaternion(
+      topRailMesh.quaternion
+    );
+    expect(Math.abs(verticalOrientation.z)).toBeCloseTo(1, 5);
+
+    const backRun = (fenceGroup as Group).getObjectByName(
+      'BackyardFenceRun-2'
+    ) as Group | null;
+    expect(backRun).toBeInstanceOf(Group);
+
+    const backTopRail = backRun?.getObjectByName(
+      'BackyardFenceRail-Top-2-0'
+    ) as Mesh | null;
+    expect(backTopRail).toBeInstanceOf(Mesh);
+
+    const horizontalOrientation = new Vector3(1, 0, 0).applyQuaternion(
+      backTopRail!.quaternion
+    );
+    expect(Math.abs(horizontalOrientation.x)).toBeCloseTo(1, 5);
+    expect(Math.abs(horizontalOrientation.z)).toBeLessThan(0.25);
+
+    const postZPositions = leftPosts.map((child) => (child as Mesh).position.z);
+    const frontMostPostZ = Math.min(...postZPositions);
+    const backMostPostZ = Math.max(...postZPositions);
+    const fenceRunX = (leftPosts[0] as Mesh).position.x;
+
+    const leftCollider = environment.colliders.find(
+      (collider) =>
+        collider.minX <= fenceRunX &&
+        collider.maxX >= fenceRunX &&
+        collider.minZ <= frontMostPostZ + 0.05 &&
+        collider.maxZ >= backMostPostZ - 0.05
+    );
+    expect(leftCollider).toBeDefined();
+
+    const backCollider = environment.colliders.find(
+      (collider) =>
+        collider.minZ <= backMostPostZ &&
+        collider.maxZ >= backMostPostZ &&
+        collider.minX <= backTopRail!.position.x + backTopRail!.scale.x / 2 &&
+        collider.maxX >= backTopRail!.position.x - backTopRail!.scale.x / 2
+    );
+    expect(backCollider).toBeDefined();
+
+    const railMaterial = topRailMesh.material as MeshStandardMaterial;
+    expect(railMaterial.envMap).toBeTruthy();
+    expect(railMaterial.envMapIntensity).toBeGreaterThan(0);
   });
 
   it('dampens backyard pulses when the photosensitive safe scale is disabled', () => {
