@@ -317,10 +317,10 @@ const LIGHTING_OPTIONS = {
   enableBloom: true,
   ledEmissiveIntensity: 3.2,
   ledLightIntensity: 1.4,
-  // Tone down bloom to avoid large white halo on high quality presets
-  bloomStrength: 0.22,
-  bloomRadius: 0.6,
-  bloomThreshold: 0.6,
+  // Further tone down bloom: barely perceptible halo
+  bloomStrength: 0.12,
+  bloomRadius: 0.45,
+  bloomThreshold: 0.78,
 } as const;
 
 const groundColliders: RectCollider[] = [];
