@@ -121,6 +121,94 @@ describe('PoiVisitedState', () => {
     expect(warnings).not.toHaveBeenCalled();
   });
 
+  it('clears visited entries and storage when reset is called without arguments', () => {
+    const storage = {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+    } satisfies Pick<Storage, 'getItem' | 'setItem'>;
+
+    const state = new PoiVisitedState({ storage, storageKey });
+    const listener = vi.fn();
+    state.subscribe(listener);
+
+    state.markVisited('flywheel-studio-flywheel');
+    state.markVisited('jobbot-studio-terminal');
+
+    listener.mockClear();
+    storage.setItem.mockClear();
+
+    state.reset();
+
+    expect(storage.setItem).toHaveBeenCalledWith(
+      storageKey,
+      JSON.stringify([])
+    );
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenLastCalledWith(new Set());
+    expect(state.snapshot().size).toBe(0);
+  });
+
+  it('replaces visited entries when reset receives a new list', () => {
+    const storage = {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+    } satisfies Pick<Storage, 'getItem' | 'setItem'>;
+
+    const state = new PoiVisitedState({ storage, storageKey });
+    const listener = vi.fn();
+    state.subscribe(listener);
+
+    state.markVisited('flywheel-studio-flywheel');
+    state.markVisited('jobbot-studio-terminal');
+
+    listener.mockClear();
+    storage.setItem.mockClear();
+
+    state.reset([
+      'dspace-backyard-rocket',
+      'futuroptimist-living-room-tv',
+      'dspace-backyard-rocket',
+      42 as unknown as string,
+    ]);
+
+    expect(storage.setItem).toHaveBeenLastCalledWith(
+      storageKey,
+      JSON.stringify(['dspace-backyard-rocket', 'futuroptimist-living-room-tv'])
+    );
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenLastCalledWith(
+      new Set(['dspace-backyard-rocket', 'futuroptimist-living-room-tv'])
+    );
+    expect(state.snapshot()).toEqual(
+      new Set(['dspace-backyard-rocket', 'futuroptimist-living-room-tv'])
+    );
+  });
+
+  it('skips persistence when reset receives the same visited ids', () => {
+    const storage = {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+    } satisfies Pick<Storage, 'getItem' | 'setItem'>;
+
+    const state = new PoiVisitedState({ storage, storageKey });
+    const listener = vi.fn();
+    state.subscribe(listener);
+
+    state.markVisited('flywheel-studio-flywheel');
+    state.markVisited('jobbot-studio-terminal');
+
+    listener.mockClear();
+    storage.setItem.mockClear();
+
+    state.reset(['jobbot-studio-terminal', 'flywheel-studio-flywheel']);
+
+    expect(storage.setItem).not.toHaveBeenCalled();
+    expect(listener).not.toHaveBeenCalled();
+    expect(state.snapshot()).toEqual(
+      new Set(['flywheel-studio-flywheel', 'jobbot-studio-terminal'])
+    );
+  });
+
   it('falls back to sessionStorage when localStorage access is blocked', () => {
     const localError = new Error('denied');
     const sessionStorage = {

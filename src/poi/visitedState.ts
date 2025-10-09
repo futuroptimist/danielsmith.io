@@ -50,6 +50,21 @@ const normalizeVisitedList = (value: unknown): PoiId[] => {
   return value.filter((item): item is PoiId => typeof item === 'string');
 };
 
+const collectVisitedIds = (
+  ids: Iterable<unknown> | null | undefined
+): PoiId[] => {
+  if (!ids) {
+    return [];
+  }
+  const collected: PoiId[] = [];
+  for (const id of ids) {
+    if (typeof id === 'string') {
+      collected.push(id);
+    }
+  }
+  return collected;
+};
+
 export class PoiVisitedState {
   private readonly storage: PoiVisitedStateOptions['storage'];
   private readonly storageKey: string;
@@ -88,6 +103,20 @@ export class PoiVisitedState {
     };
   }
 
+  reset(nextVisited?: Iterable<PoiId> | null): void {
+    const normalized = collectVisitedIds(nextVisited);
+    const nextSet = new Set<PoiId>(normalized);
+
+    if (this.areSetsEqual(this.visited, nextSet)) {
+      return;
+    }
+
+    this.visited.clear();
+    nextSet.forEach((id) => this.visited.add(id));
+    this.persist();
+    this.notifyListeners();
+  }
+
   private loadFromStorage() {
     if (!this.storage) {
       return;
@@ -122,5 +151,17 @@ export class PoiVisitedState {
     for (const listener of this.listeners) {
       listener(snapshot);
     }
+  }
+
+  private areSetsEqual(a: Set<PoiId>, b: Set<PoiId>): boolean {
+    if (a.size !== b.size) {
+      return false;
+    }
+    for (const id of a) {
+      if (!b.has(id)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
