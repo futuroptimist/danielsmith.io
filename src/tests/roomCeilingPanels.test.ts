@@ -116,4 +116,21 @@ describe('createRoomCeilingPanels', () => {
     );
     expect(sharedPanel.material).not.toBe(sharedMaterial);
   });
+
+  it('applies low default opacity and respects override', () => {
+    const room = createRoom({ id: 'opacityRoom', name: 'Opacity Room' });
+    const { panels: defaultPanels } = createRoomCeilingPanels([room]);
+    const defaultMaterial = defaultPanels[0]!.mesh
+      .material as MeshStandardMaterial;
+    expect(defaultMaterial.transparent).toBe(true);
+    expect(defaultMaterial.opacity).toBeLessThan(0.2);
+
+    const { panels: opaquePanels } = createRoomCeilingPanels([room], {
+      opacity: 1,
+    });
+    const opaqueMaterial = opaquePanels[0]!.mesh
+      .material as MeshStandardMaterial;
+    expect(opaqueMaterial.transparent).toBe(false);
+    expect(opaqueMaterial.opacity).toBeCloseTo(1);
+  });
 });

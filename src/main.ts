@@ -190,6 +190,11 @@ declare global {
           resetAll(): void;
         };
       };
+      world?: {
+        getActiveFloor(): FloorId;
+        setActiveFloor(next: FloorId): void;
+        getCeilingOpacities(): number[];
+      };
     };
   }
 }
@@ -605,6 +610,7 @@ function initializeImmersiveScene(
     inset: 1.1,
     thickness: 0.32,
     tintIntensity: 0.24,
+    opacity: 0.08,
   });
   scene.add(ceilings.group);
 
@@ -1157,6 +1163,28 @@ function initializeImmersiveScene(
   };
 
   ensureKeyBindingApi();
+  const ensureWorldApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.world = {
+      getActiveFloor() {
+        return activeFloorId;
+      },
+      setActiveFloor(next: FloorId) {
+        setActiveFloorId(next);
+        updatePlayerVerticalPosition();
+      },
+      getCeilingOpacities(): number[] {
+        return ceilings.panels.map((p) => {
+          const material = p.mesh.material as MeshStandardMaterial;
+          return material.opacity;
+        });
+      },
+    };
+  };
+  ensureWorldApi();
   const interactControl = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact"]'
   );
@@ -1324,6 +1352,7 @@ function initializeImmersiveScene(
     }
     activeFloorId = next;
     upperFloorGroup.visible = next === 'upper';
+    document.documentElement.dataset.activeFloor = next;
   };
 
   const updatePlayerVerticalPosition = () => {
@@ -1336,6 +1365,7 @@ function initializeImmersiveScene(
   };
 
   updatePlayerVerticalPosition();
+  document.documentElement.dataset.activeFloor = activeFloorId;
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);

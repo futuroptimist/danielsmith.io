@@ -28,6 +28,12 @@ export interface RoomCeilingOptions {
   /** Physical thickness of the ceiling slab. */
   readonly thickness?: number;
   /**
+   * Opacity for the ceiling material. Defaults to a low value so ceilings do not
+   * visually occlude the ground floor from the top-down camera. Set to 1 for
+   * fully opaque.
+   */
+  readonly opacity?: number;
+  /**
    * Controls how much of the room LED color should influence the ceiling tint.
    * Values are clamped between 0 and 1.
    */
@@ -44,6 +50,7 @@ const MIN_DIMENSION = 0.1;
 const DEFAULT_THICKNESS = 0.3;
 const BASE_COLOR = 0x1f2636;
 const DEFAULT_TINT_INTENSITY = 0.28;
+const DEFAULT_OPACITY = 0.08;
 
 function createMaterial(
   room: RoomDefinition,
@@ -51,10 +58,21 @@ function createMaterial(
   defaultMaterial: MeshStandardMaterial
 ): MeshStandardMaterial {
   if (options.materialFactory) {
-    return options.materialFactory(room);
+    const material = options.materialFactory(room);
+    const opacity = MathUtils.clamp(options.opacity ?? DEFAULT_OPACITY, 0, 1);
+    material.transparent = opacity < 1;
+    material.opacity = opacity;
+    // Transparent ceilings should not write depth so they don't occlude content below.
+    material.depthWrite = !material.transparent ? true : false;
+    return material;
   }
   if (options.material) {
-    return options.material.clone();
+    const material = options.material.clone();
+    const opacity = MathUtils.clamp(options.opacity ?? DEFAULT_OPACITY, 0, 1);
+    material.transparent = opacity < 1;
+    material.opacity = opacity;
+    material.depthWrite = !material.transparent ? true : false;
+    return material;
   }
 
   const tint = MathUtils.clamp(
@@ -67,6 +85,10 @@ function createMaterial(
   const ledColor = new Color(room.ledColor);
   color.lerp(ledColor, tint);
   material.color.copy(color);
+  const opacity = MathUtils.clamp(options.opacity ?? DEFAULT_OPACITY, 0, 1);
+  material.transparent = opacity < 1;
+  material.opacity = opacity;
+  material.depthWrite = !material.transparent ? true : false;
   return material;
 }
 
@@ -90,7 +112,11 @@ export function createRoomCeilingPanels(
       color: BASE_COLOR,
       roughness: 0.6,
       metalness: 0.12,
+      transparent: (options.opacity ?? DEFAULT_OPACITY) < 1,
+      opacity: MathUtils.clamp(options.opacity ?? DEFAULT_OPACITY, 0, 1),
     });
+  // See-through ceilings must not occlude geometry below.
+  defaultMaterial.depthWrite = !defaultMaterial.transparent ? true : false;
 
   rooms.forEach((room) => {
     if (room.category === 'exterior') {

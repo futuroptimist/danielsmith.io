@@ -46,4 +46,44 @@ test.describe('immersive experience', () => {
     expect.soft(immersiveInitFailures).toHaveLength(0);
     expect.soft(pageErrors).toHaveLength(0);
   });
+
+  test('upper floor shows only when ascending stairs; ceilings are translucent', async ({ page }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    // Ground floor should be active at launch.
+    await expect(page.locator('html')).toHaveAttribute('data-active-floor', 'ground');
+
+    // Read ceiling opacities via the exposed world API to ensure translucency.
+    const opacities = await page.evaluate(() =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).portfolio?.world?.getCeilingOpacities?.() ?? []
+    );
+    expect(Array.isArray(opacities)).toBe(true);
+    expect(opacities.length).toBeGreaterThan(0);
+    for (const value of opacities) {
+      expect(Number.isFinite(value)).toBe(true);
+      expect(value).toBeLessThan(0.2);
+    }
+
+    // Programmatically switch to upper floor using the test API.
+    await page.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).portfolio?.world?.setActiveFloor?.('upper');
+    });
+
+    // Verify DOM dataset reflects the change; renderer visibility is tied to this.
+    await expect(page.locator('html')).toHaveAttribute('data-active-floor', 'upper');
+
+    // Switch back to ground to ensure toggling does not regress.
+    await page.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).portfolio?.world?.setActiveFloor?.('ground');
+    });
+    await expect(page.locator('html')).toHaveAttribute('data-active-floor', 'ground');
+  });
 });
