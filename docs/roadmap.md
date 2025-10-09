@@ -94,7 +94,7 @@ Focus: anchor each highlighted project with an interactive artifact.
 
 1. **POI Framework**
    - Create a data-driven registry for POIs (id, asset, interaction type, metadata).
-   - Implement 3D tooltips/popups that anchor to POIs in world space and respect camera.
+   - ✅ 3D tooltip cards anchor POIs in world space, billboard to the camera, and reuse overlay copy.
    - ✅ Desktop pointer + keyboard selection loops share accessible focus targets and emit POI
      events, paving the path for gamepad + mid-air parity.
    - ⚙️ Data-driven registry now spawns holographic pedestals for Futuroptimist + Flywheel exhibits.
