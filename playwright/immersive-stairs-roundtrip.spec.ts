@@ -51,8 +51,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
 
     try {
       await page.waitForFunction(
-        (expected) =>
-          document.documentElement.dataset.activeFloor === expected,
+        (expected) => document.documentElement.dataset.activeFloor === expected,
         target,
         { timeout }
       );
