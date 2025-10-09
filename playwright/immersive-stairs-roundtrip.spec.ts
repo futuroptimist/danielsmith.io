@@ -25,14 +25,20 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
 
   // Move toward the staircase using WASD inputs. We step in small bursts so the
   // physics/collision checks run between frames, similar to real gameplay.
-  const press = async (key: string, ms = 220) => {
-    await page.keyboard.down(key);
+  const press = async (keys: string | string[], ms = 220) => {
+    const activeKeys = Array.isArray(keys) ? keys : [keys];
+
+    for (const key of activeKeys) {
+      await page.keyboard.down(key);
+    }
     await page.waitForTimeout(ms);
-    await page.keyboard.up(key);
+    for (const key of activeKeys.slice().reverse()) {
+      await page.keyboard.up(key);
+    }
   };
 
   const moveUntilFloor = async (
-    key: string,
+    keys: string | string[],
     {
       maxSteps,
       duration,
@@ -40,7 +46,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     }: { maxSteps: number; duration: number; target: 'ground' | 'upper' }
   ) => {
     for (let i = 0; i < maxSteps; i += 1) {
-      await press(key, duration);
+      await press(keys, duration);
       const active = await html.getAttribute('data-active-floor');
       if (active === target) {
         return;
@@ -51,13 +57,16 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   };
 
   // From spawn (living room center), head northeast toward the stair bottom.
-  for (let i = 0; i < 10; i += 1) {
-    await press('w', 120);
-    await press('d', 120);
+  for (let i = 0; i < 18; i += 1) {
+    await press(['w', 'd'], 120);
   }
 
   // Enter the staircase and walk up.
-  await moveUntilFloor('w', { maxSteps: 24, duration: 150, target: 'upper' });
+  await moveUntilFloor(['w', 'd'], {
+    maxSteps: 28,
+    duration: 150,
+    target: 'upper',
+  });
 
   // Verify we reached upper floor.
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
@@ -71,7 +80,11 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   for (let i = 0; i < 8; i += 1) {
     await press('s', 120);
   }
-  await moveUntilFloor('s', { maxSteps: 24, duration: 150, target: 'ground' });
+  await moveUntilFloor(['s', 'a'], {
+    maxSteps: 28,
+    duration: 150,
+    target: 'ground',
+  });
 
   // Should be back on ground.
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
