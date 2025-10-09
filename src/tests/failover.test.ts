@@ -254,7 +254,11 @@ describe('renderTextFallback', () => {
       delete document.documentElement.dataset.localeDirection;
     }
     if (originalNavigatorLanguage) {
-      Object.defineProperty(window.navigator, 'language', originalNavigatorLanguage);
+      Object.defineProperty(
+        window.navigator,
+        'language',
+        originalNavigatorLanguage
+      );
     }
   });
 });
