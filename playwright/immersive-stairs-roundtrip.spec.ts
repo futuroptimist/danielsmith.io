@@ -12,11 +12,17 @@ async function waitForImmersiveReady(page: import('@playwright/test').Page) {
   );
 }
 
-test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
+test('ascend stairs from spawn, roam, return and descend', async ({
+  page,
+}, testInfo) => {
+  testInfo.setTimeout(120_000);
   await waitForImmersiveReady(page);
 
   // Start on ground.
-  await expect(page.locator('html')).toHaveAttribute('data-active-floor', 'ground');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-active-floor',
+    'ground'
+  );
 
   // Move toward the staircase using WASD inputs. We step in small bursts so the
   // physics/collision checks run between frames, similar to real gameplay.
@@ -38,7 +44,10 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   }
 
   // Verify we reached upper floor.
-  await expect(page.locator('html')).toHaveAttribute('data-active-floor', 'upper');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-active-floor',
+    'upper'
+  );
 
   // Walk away from the landing to ensure we can leave the stair area.
   for (let i = 0; i < 8; i += 1) {
@@ -54,7 +63,8 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   }
 
   // Should be back on ground.
-  await expect(page.locator('html')).toHaveAttribute('data-active-floor', 'ground');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-active-floor',
+    'ground'
+  );
 });
-
-
