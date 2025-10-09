@@ -5,6 +5,7 @@ import {
   formatMessage,
   getControlOverlayStrings,
   getHelpModalStrings,
+  getLocaleDirection,
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
@@ -22,6 +23,15 @@ describe('i18n utilities', () => {
     expect(resolveLocale(undefined)).toBe('en');
     expect(resolveLocale('pseudo')).toBe('en-x-pseudo');
     expect(resolveLocale('en_x_pseudo')).toBe('en-x-pseudo');
+  });
+
+  it('detects locale direction for RTL and LTR language inputs', () => {
+    expect(getLocaleDirection('en')).toBe('ltr');
+    expect(getLocaleDirection('en-x-pseudo')).toBe('ltr');
+    expect(getLocaleDirection('ar')).toBe('rtl');
+    expect(getLocaleDirection('AR_EG')).toBe('rtl');
+    expect(getLocaleDirection('fa-IR')).toBe('rtl');
+    expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
   it('formats template strings with provided values', () => {

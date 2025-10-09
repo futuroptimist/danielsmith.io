@@ -192,4 +192,69 @@ describe('renderTextFallback', () => {
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/automated client/i);
   });
+
+  it('applies rtl direction metadata based on document language', () => {
+    const originalLang = document.documentElement.lang;
+    const originalDir = document.documentElement.getAttribute('dir');
+    const originalDataset = document.documentElement.dataset.localeDirection;
+    document.documentElement.lang = 'ar';
+    document.documentElement.removeAttribute('dir');
+    delete document.documentElement.dataset.localeDirection;
+
+    const container = render('manual');
+    const section = container.querySelector<HTMLElement>('.text-fallback');
+
+    expect(document.documentElement.dir).toBe('rtl');
+    expect(document.documentElement.dataset.localeDirection).toBe('rtl');
+    expect(container.dataset.localeDirection).toBe('rtl');
+    expect(section?.dir).toBe('rtl');
+    expect(section?.style.textAlign).toBe('right');
+
+    document.documentElement.lang = originalLang;
+    if (originalDir) {
+      document.documentElement.setAttribute('dir', originalDir);
+    } else {
+      document.documentElement.removeAttribute('dir');
+    }
+    if (originalDataset) {
+      document.documentElement.dataset.localeDirection = originalDataset;
+    } else {
+      delete document.documentElement.dataset.localeDirection;
+    }
+  });
+
+  it('falls back to navigator language when document language is empty', () => {
+    const originalLang = document.documentElement.lang;
+    const originalDir = document.documentElement.getAttribute('dir');
+    const originalDataset = document.documentElement.dataset.localeDirection;
+    const originalNavigatorLanguage = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'language'
+    );
+    document.documentElement.lang = '';
+    Object.defineProperty(window.navigator, 'language', {
+      configurable: true,
+      value: 'fa-IR',
+    });
+
+    const container = render('manual');
+
+    expect(container.dataset.localeDirection).toBe('rtl');
+    expect(document.documentElement.dir).toBe('rtl');
+
+    document.documentElement.lang = originalLang;
+    if (originalDir) {
+      document.documentElement.setAttribute('dir', originalDir);
+    } else {
+      document.documentElement.removeAttribute('dir');
+    }
+    if (originalDataset) {
+      document.documentElement.dataset.localeDirection = originalDataset;
+    } else {
+      delete document.documentElement.dataset.localeDirection;
+    }
+    if (originalNavigatorLanguage) {
+      Object.defineProperty(window.navigator, 'language', originalNavigatorLanguage);
+    }
+  });
 });
