@@ -189,14 +189,10 @@ describe('createBackyardEnvironment', () => {
     );
     expect(leftPosts.length).toBeGreaterThan(2);
 
-    const firstTopRail = leftRun?.getObjectByName(
-      'BackyardFenceRail-Top-0-0'
-    );
+    const firstTopRail = leftRun?.getObjectByName('BackyardFenceRail-Top-0-0');
     expect(firstTopRail).toBeInstanceOf(Mesh);
 
-    const firstMidRail = leftRun?.getObjectByName(
-      'BackyardFenceRail-Mid-0-0'
-    );
+    const firstMidRail = leftRun?.getObjectByName('BackyardFenceRail-Mid-0-0');
     expect(firstMidRail).toBeInstanceOf(Mesh);
 
     const topRailMesh = firstTopRail as Mesh;
@@ -225,9 +221,7 @@ describe('createBackyardEnvironment', () => {
     expect(Math.abs(horizontalOrientation.x)).toBeCloseTo(1, 5);
     expect(Math.abs(horizontalOrientation.z)).toBeLessThan(0.25);
 
-    const postZPositions = leftPosts.map((child) =>
-      (child as Mesh).position.z
-    );
+    const postZPositions = leftPosts.map((child) => (child as Mesh).position.z);
     const frontMostPostZ = Math.min(...postZPositions);
     const backMostPostZ = Math.max(...postZPositions);
     const fenceRunX = (leftPosts[0] as Mesh).position.x;
