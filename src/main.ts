@@ -1218,6 +1218,16 @@ function initializeImmersiveScene(
     container: document.body,
     content: helpModalStrings,
   });
+  const hudSettingsContainer =
+    helpModal.settingsContainer ?? (() => {
+      const fallback = document.createElement('div');
+      fallback.className = 'help-modal__settings';
+      helpModal.element.appendChild(fallback);
+      return fallback;
+    })();
+  const hudSettingsStack = document.createElement('div');
+  hudSettingsStack.className = 'hud-settings';
+  hudSettingsContainer.appendChild(hudSettingsStack);
   hudFocusAnnouncer = createHudFocusAnnouncer({
     documentTarget: document,
     container: document.body,
@@ -1680,7 +1690,7 @@ function initializeImmersiveScene(
     }
 
     audioHudHandle = createAudioHudControl({
-      container,
+      container: hudSettingsStack,
       getEnabled: () => ambientAudioController?.isEnabled() ?? false,
       setEnabled: async (enabled) => {
         if (!ambientAudioController) {
@@ -1703,7 +1713,7 @@ function initializeImmersiveScene(
     });
 
     manualModeToggle = createManualModeToggle({
-      container,
+      container: hudSettingsStack,
       label: 'Text mode · Press T',
       description: 'Switch to the text-only portfolio',
       keyHint: 'T',
@@ -1795,7 +1805,7 @@ function initializeImmersiveScene(
   }
 
   accessibilityControlHandle = createAccessibilityPresetControl({
-    container,
+    container: hudSettingsStack,
     options: ACCESSIBILITY_PRESETS.map(({ id, label, description }) => ({
       id,
       label,
@@ -1814,7 +1824,7 @@ function initializeImmersiveScene(
   });
 
   graphicsQualityControl = createGraphicsQualityControl({
-    container,
+    container: hudSettingsStack,
     presets: GRAPHICS_QUALITY_PRESETS,
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
@@ -1849,12 +1859,14 @@ function initializeImmersiveScene(
 
   const lightingDebugIndicator = document.createElement('div');
   lightingDebugIndicator.className = 'lighting-debug-indicator';
+  lightingDebugIndicator.hidden = true;
   container.appendChild(lightingDebugIndicator);
 
   const updateLightingIndicator = (mode: LightingMode) => {
     const label = mode === 'cinematic' ? 'Cinematic' : 'Debug (flat)';
     lightingDebugIndicator.textContent = `Lighting: ${label} · Shift+L to toggle`;
     lightingDebugIndicator.setAttribute('data-mode', mode);
+    lightingDebugIndicator.hidden = mode === 'cinematic';
   };
 
   updateLightingIndicator(lightingDebugController.getMode());
@@ -2310,7 +2322,8 @@ function initializeImmersiveScene(
       delete window.portfolio.input.keyBindings;
     }
     if (helpButton) {
-      helpButton.textContent = `Open help · Press ${helpLabelFallback}`;
+      helpButton.textContent = buildHelpButtonText(helpLabelFallback);
+      helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
     }
     movementLegend?.dispose();
     helpModal.dispose();

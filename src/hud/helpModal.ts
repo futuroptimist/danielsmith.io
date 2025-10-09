@@ -14,6 +14,10 @@ export interface HelpModalContent {
   description: string;
   closeLabel: string;
   closeAriaLabel: string;
+  settings?: {
+    heading: string;
+    description?: string;
+  };
   sections: ReadonlyArray<HelpModalSection>;
 }
 
@@ -24,6 +28,7 @@ export interface HelpModalOptions {
 
 export interface HelpModalHandle {
   readonly element: HTMLElement;
+  readonly settingsContainer: HTMLElement | null;
   open(): void;
   close(): void;
   toggle(force?: boolean): void;
@@ -79,7 +84,7 @@ function getFocusableChildren(root: HTMLElement): HTMLElement[] {
 
 export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   const { container, content } = options;
-  const { heading, description, sections, closeLabel, closeAriaLabel } =
+  const { heading, description, sections, closeLabel, closeAriaLabel, settings } =
     content;
 
   const backdrop = document.createElement('div');
@@ -120,6 +125,30 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   descriptionParagraph.textContent = description;
 
   modal.append(header, descriptionParagraph);
+
+  let settingsContainer: HTMLElement | null = null;
+
+  if (settings) {
+    const settingsSection = document.createElement('section');
+    settingsSection.className = 'help-modal__section help-modal__section--settings';
+
+    const settingsHeading = document.createElement('h3');
+    settingsHeading.className = 'help-modal__section-heading help-modal__section-heading--settings';
+    settingsHeading.textContent = settings.heading;
+    settingsSection.appendChild(settingsHeading);
+
+    if (settings.description) {
+      const settingsDescription = document.createElement('p');
+      settingsDescription.className = 'help-modal__settings-description';
+      settingsDescription.textContent = settings.description;
+      settingsSection.appendChild(settingsDescription);
+    }
+
+    settingsContainer = document.createElement('div');
+    settingsContainer.className = 'help-modal__settings';
+    settingsSection.appendChild(settingsContainer);
+    modal.appendChild(settingsSection);
+  }
 
   sections.forEach((section) => {
     const sectionWrapper = document.createElement('section');
@@ -244,6 +273,7 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
 
   return {
     element: modal,
+    settingsContainer,
     open: openModal,
     close,
     toggle,

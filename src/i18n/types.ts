@@ -47,11 +47,17 @@ export interface HelpModalSectionStrings {
   items: readonly HelpModalItemStrings[];
 }
 
+export interface HelpModalSettingsStrings {
+  heading: string;
+  description?: string;
+}
+
 export interface HelpModalStrings {
   heading: string;
   description: string;
   closeLabel: string;
   closeAriaLabel: string;
+  settings: HelpModalSettingsStrings;
   sections: readonly HelpModalSectionStrings[];
 }
 

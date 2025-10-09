@@ -160,11 +160,20 @@ describe('PoiTooltipOverlay', () => {
     );
   });
 
-  it('renders a guided tour recommendation when available', () => {
+  it('keeps the overlay hidden when only a recommendation is available', () => {
     overlay.setRecommendation(basePoi);
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.dataset.state).toBe('recommended');
+    expect(root.dataset.state).toBe('hidden');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+  });
+
+  it('shows a badge when the recommended POI is selected', () => {
+    overlay.setRecommendation(basePoi);
+    overlay.setSelected(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
 
     const recommendationBadge = root.querySelector(
@@ -173,7 +182,7 @@ describe('PoiTooltipOverlay', () => {
     expect(recommendationBadge.hidden).toBe(false);
     expect(recommendationBadge.textContent).toBe('Next highlight');
 
-    overlay.setRecommendation(null);
+    overlay.setSelected(null);
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
   });
 

@@ -108,17 +108,18 @@ canvas {
   z-index: 25;
 }
 
+.lighting-debug-indicator[hidden] {
+  display: none;
+}
+
 .lighting-debug-indicator[data-mode='debug'] {
   border-color: rgba(255, 196, 120, 0.4);
   color: #ffe5c4;
 }
 
 .audio-hud {
-  position: fixed;
-  top: 4.5rem;
-  right: 1.5rem;
-  width: 16rem;
-  max-width: calc(100vw - 3rem);
+  width: 100%;
+  max-width: 100%;
   padding: 0.9rem 1rem;
   border-radius: 0.75rem;
   background: rgba(5, 12, 21, 0.82);
@@ -128,7 +129,6 @@ canvas {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(86, 184, 255, 0.3);
   box-shadow: 0 12px 28px rgba(3, 9, 18, 0.55);
-  z-index: 25;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -244,11 +244,8 @@ html[data-hudLayout='mobile'] .audio-subtitles {
 }
 
 .graphics-quality {
-  position: fixed;
-  top: 13.6rem;
-  right: 1.5rem;
-  width: 16rem;
-  max-width: calc(100vw - 3rem);
+  width: 100%;
+  max-width: 100%;
   padding: 1rem;
   border-radius: 0.75rem;
   background: rgba(5, 12, 21, 0.82);
@@ -258,7 +255,6 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(86, 184, 255, 0.28);
   box-shadow: 0 12px 28px rgba(3, 9, 18, 0.55);
-  z-index: 25;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -342,11 +338,8 @@ html[data-hudLayout='mobile'] .audio-subtitles {
 }
 
 .accessibility-presets {
-  position: fixed;
-  top: 21.8rem;
-  right: 1.5rem;
-  width: 16rem;
-  max-width: calc(100vw - 3rem);
+  width: 100%;
+  max-width: 100%;
   padding: 1rem;
   border-radius: 0.75rem;
   background: rgba(5, 12, 21, 0.82);
@@ -356,7 +349,6 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(86, 184, 255, 0.28);
   box-shadow: 0 12px 28px rgba(3, 9, 18, 0.55);
-  z-index: 25;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -440,9 +432,7 @@ html[data-hudLayout='mobile'] .audio-subtitles {
 }
 
 .mode-toggle {
-  position: fixed;
-  top: 10.25rem;
-  right: 1.5rem;
+  width: 100%;
   padding: 0.6rem 0.9rem;
   border-radius: 0.5rem;
   background: rgba(5, 12, 21, 0.8);
@@ -453,7 +443,10 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   border: 1px solid rgba(86, 184, 255, 0.3);
   box-shadow: 0 8px 24px rgba(3, 9, 18, 0.55);
   cursor: pointer;
-  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   transition:
     border-color 120ms ease,
     background 120ms ease,
@@ -469,6 +462,13 @@ html[data-hudLayout='mobile'] .audio-subtitles {
 .mode-toggle[data-state='pending'] {
   cursor: progress;
   opacity: 0.78;
+}
+
+.hud-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
+  width: 100%;
 }
 
 .overlay {
@@ -735,6 +735,29 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   font-weight: 700;
   letter-spacing: 0.02em;
   color: rgba(154, 220, 255, 0.95);
+}
+
+.help-modal__section-heading--settings {
+  margin-bottom: 0.65rem;
+}
+
+.help-modal__section--settings {
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid rgba(104, 202, 255, 0.24);
+  margin-bottom: 1.4rem;
+}
+
+.help-modal__settings-description {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: rgba(210, 232, 255, 0.88);
+  line-height: 1.5;
+}
+
+.help-modal__settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
 }
 
 .help-modal__list {

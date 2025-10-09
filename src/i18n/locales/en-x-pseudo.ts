@@ -20,9 +20,9 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         description: wrap('Interact'),
       },
       helpButton: {
-        labelTemplate: wrap('Open help · Press {shortcut}'),
+        labelTemplate: wrap('Open menu · Press {shortcut}'),
         announcementTemplate: wrap(
-          'Open help overlay. Press {shortcut} to review controls and accessibility tips.'
+          'Open settings and help. Press {shortcut} to review controls and accessibility tips.'
         ),
         shortcutFallback: wrap('H'),
       },
@@ -36,9 +36,18 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       },
     },
     helpModal: {
-      heading: wrap('Quick Reference'),
+      heading: wrap('Settings & Help'),
       closeLabel: wrap('Close'),
       closeAriaLabel: wrap('Close help'),
+      settings: {
+        heading: wrap('Experience settings'),
+        description: wrap(
+          [
+            'Tune audio, video, and accessibility preferences.',
+            'These controls stay available even when the menu is closed via keyboard shortcuts.',
+          ].join(' ')
+        ),
+      },
     },
   },
   poi: {

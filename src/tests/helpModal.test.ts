@@ -10,6 +10,10 @@ function cloneContent() {
     description: content.description,
     closeLabel: content.closeLabel,
     closeAriaLabel: content.closeAriaLabel,
+    settings: {
+      heading: content.settings.heading,
+      description: content.settings.description,
+    },
     sections: content.sections.map((section) => ({
       id: section.id,
       title: section.title,
@@ -60,6 +64,10 @@ describe('createHelpModal', () => {
         description: 'Custom description',
         closeLabel: 'Done',
         closeAriaLabel: 'Close the custom help panel',
+        settings: {
+          heading: 'Custom settings',
+          description: 'Adjust everything here',
+        },
         sections: [
           {
             id: 'testing',
@@ -76,16 +84,22 @@ describe('createHelpModal', () => {
     handle.open();
 
     const title = document.querySelector('.help-modal__title');
-    const sectionHeading = document.querySelector(
-      '.help-modal__section-heading'
+    const sectionHeading = Array.from(
+      document.querySelectorAll('.help-modal__section-heading')
+    ).find((heading) =>
+      !heading.classList.contains('help-modal__section-heading--settings')
     );
     const items = document.querySelectorAll('.help-modal__item');
+    const settingsHeading = document.querySelector(
+      '.help-modal__section-heading--settings'
+    );
 
     expect(title?.textContent).toBe('Custom help');
     expect(sectionHeading?.textContent).toBe('Testing');
     expect(Array.from(items).map((item) => item.textContent?.trim())).toContain(
       'AFirst item'
     );
+    expect(settingsHeading?.textContent).toBe('Custom settings');
   });
 
   it('closes when Escape is pressed or the backdrop is clicked', () => {
