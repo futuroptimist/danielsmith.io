@@ -146,8 +146,13 @@ import { getPoiDefinitions } from './poi/registry';
 import { injectPoiStructuredData } from './poi/structuredData';
 import { PoiTooltipOverlay } from './poi/tooltipOverlay';
 import { PoiTourGuide } from './poi/tourGuide';
+import type { PoiDefinition } from './poi/types';
 import { updateVisitedBadge } from './poi/visitedBadge';
 import { PoiVisitedState } from './poi/visitedState';
+import {
+  PoiWorldTooltip,
+  type PoiWorldTooltipTarget,
+} from './poi/worldTooltip';
 import { createRoomCeilingPanels } from './structures/ceilingPanels';
 import {
   createFlywheelShowpiece,
@@ -879,6 +884,7 @@ function initializeImmersiveScene(
 
   const poiAnalytics = createWindowPoiAnalytics();
   const poiTooltipOverlay = new PoiTooltipOverlay({ container });
+  const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
   const poiVisitedState = new PoiVisitedState();
   const poiTourGuide = new PoiTourGuide({
     definitions: poiDefinitions,
@@ -901,6 +907,30 @@ function initializeImmersiveScene(
     ],
   });
 
+  const resolveWorldTooltipTarget = (
+    poi: PoiDefinition | null
+  ): PoiWorldTooltipTarget | null => {
+    if (!poi) {
+      return null;
+    }
+    const instance = poiInstances.find(
+      (candidate) => candidate.definition.id === poi.id
+    );
+    if (!instance) {
+      return null;
+    }
+    return {
+      poi,
+      getAnchorPosition: (out: Vector3) => {
+        if (instance.label) {
+          return out.copy(instance.labelWorldPosition);
+        }
+        instance.group.getWorldPosition(out);
+        return out;
+      },
+    };
+  };
+
   const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
     for (const poi of poiInstances) {
       const isVisited = visited.has(poi.definition.id);
@@ -916,6 +946,9 @@ function initializeImmersiveScene(
   const removeTourGuideSubscription = poiTourGuide.subscribe(
     (recommendation) => {
       poiTooltipOverlay.setRecommendation(recommendation);
+      poiWorldTooltip.setRecommendation(
+        resolveWorldTooltipTarget(recommendation)
+      );
     }
   );
 
@@ -1005,10 +1038,12 @@ function initializeImmersiveScene(
   );
   const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
     poiTooltipOverlay.setHovered(poi);
+    poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
   });
   const removeSelectionStateListener =
     poiInteractionManager.addSelectionStateListener((poi) => {
       poiTooltipOverlay.setSelected(poi);
+      poiWorldTooltip.setSelected(resolveWorldTooltipTarget(poi));
     });
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
@@ -2166,6 +2201,7 @@ function initializeImmersiveScene(
     removeVisitedSubscription();
     removeTourGuideSubscription();
     poiTooltipOverlay.dispose();
+    poiWorldTooltip.dispose();
     poiTourGuide.dispose();
     if (manualModeToggle) {
       manualModeToggle.dispose();
@@ -2260,6 +2296,7 @@ function initializeImmersiveScene(
       updateMovement(delta);
       updateCamera(delta);
       updatePois(elapsedTime, delta);
+      poiWorldTooltip.update(delta);
       handleInteractionInput();
       handleHelpInput();
       if (ambientAudioController) {
