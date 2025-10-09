@@ -10,6 +10,7 @@ import type {
   LocaleInput,
   LocaleOverrides,
   LocaleStrings,
+  LocaleDirection,
   MovementLegendStrings,
   PoiCopy,
   SiteStrings,
@@ -97,11 +98,15 @@ export const AVAILABLE_LOCALES = Object.freeze(
   Object.keys(localeCatalog) as ReadonlyArray<Locale>
 );
 
-export function resolveLocale(input: LocaleInput): Locale {
+function normalizeLocaleInput(input: LocaleInput): string {
   if (!input) {
-    return 'en';
+    return '';
   }
-  const normalized = `${input}`.toLowerCase().replace(/_/g, '-').trim();
+  return `${input}`.toLowerCase().replace(/_/g, '-').trim();
+}
+
+export function resolveLocale(input: LocaleInput): Locale {
+  const normalized = normalizeLocaleInput(input);
 
   if (
     normalized === 'en-x-pseudo' ||
@@ -116,6 +121,37 @@ export function resolveLocale(input: LocaleInput): Locale {
   }
 
   return 'en';
+}
+
+const RTL_LOCALE_CODES = new Set([
+  'ar',
+  'dv',
+  'fa',
+  'he',
+  'ku',
+  'ps',
+  'sd',
+  'ug',
+  'ur',
+  'yi',
+]);
+
+export function getLocaleDirection(input?: LocaleInput): LocaleDirection {
+  const normalized = normalizeLocaleInput(input);
+  if (!normalized) {
+    return 'ltr';
+  }
+
+  if (RTL_LOCALE_CODES.has(normalized)) {
+    return 'rtl';
+  }
+
+  const [primary] = normalized.split('-', 1);
+  if (primary && RTL_LOCALE_CODES.has(primary)) {
+    return 'rtl';
+  }
+
+  return 'ltr';
 }
 
 export function getLocaleStrings(input?: LocaleInput): LocaleStrings {

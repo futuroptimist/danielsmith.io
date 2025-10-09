@@ -1,5 +1,9 @@
 import type { LocaleInput } from '../i18n';
-import { getMovementLegendStrings, resolveLocale } from '../i18n';
+import {
+  getLocaleDirection,
+  getMovementLegendStrings,
+  resolveLocale,
+} from '../i18n';
 
 export type InputMethod = 'keyboard' | 'pointer' | 'touch';
 
@@ -173,7 +177,11 @@ export function createMovementLegend(
     windowTarget?.navigator && 'language' in windowTarget.navigator
       ? String((windowTarget.navigator as Navigator).language)
       : undefined;
-  const resolvedLocale = resolveLocale(locale ?? navigatorLanguage);
+  const localeInput = locale ?? navigatorLanguage;
+  const resolvedLocale = resolveLocale(localeInput);
+  const direction = getLocaleDirection(localeInput);
+  container.dir = direction;
+  container.dataset.localeDirection = direction;
   const legendStrings = getMovementLegendStrings(resolvedLocale);
   const fallbackInteractDescription =
     defaultInteractDescription ?? legendStrings.defaultDescription;

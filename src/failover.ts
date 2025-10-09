@@ -1,4 +1,5 @@
 import { initializeModeAnnouncementObserver } from './accessibility/modeAnnouncer';
+import { getLocaleDirection } from './i18n';
 
 if (
   typeof document !== 'undefined' &&
@@ -186,14 +187,26 @@ export function renderTextFallback(
     githubUrl = 'https://github.com/futuroptimist',
   }: RenderTextFallbackOptions
 ): void {
+  const documentTarget = container.ownerDocument ?? document;
+  const localeHint =
+    documentTarget.documentElement.lang ||
+    (typeof navigator !== 'undefined' ? navigator.language : undefined);
+  const direction = getLocaleDirection(localeHint);
+  documentTarget.documentElement.dir = direction;
+  documentTarget.documentElement.dataset.localeDirection = direction;
+
   container.innerHTML = '';
   container.setAttribute('data-mode', 'text');
+  container.dataset.localeDirection = direction;
 
-  const section = document.createElement('section');
+  const section = documentTarget.createElement('section');
   section.className = 'text-fallback';
   section.setAttribute('data-reason', reason);
+  section.dir = direction;
+  section.dataset.localeDirection = direction;
+  section.style.textAlign = direction === 'rtl' ? 'right' : 'left';
 
-  const heading = document.createElement('h1');
+  const heading = documentTarget.createElement('h1');
   heading.className = 'text-fallback__title';
   heading.textContent =
     reason === 'manual'
@@ -201,7 +214,7 @@ export function renderTextFallback(
       : 'Immersive mode unavailable';
   section.appendChild(heading);
 
-  const description = document.createElement('p');
+  const description = documentTarget.createElement('p');
   description.className = 'text-fallback__description';
   description.textContent = (() => {
     switch (reason) {
@@ -221,30 +234,39 @@ export function renderTextFallback(
   })();
   section.appendChild(description);
 
-  const list = document.createElement('ul');
+  const list = documentTarget.createElement('ul');
   list.className = 'text-fallback__actions';
 
-  const immersiveItem = document.createElement('li');
-  const immersiveLink = document.createElement('a');
+  const immersiveItem = documentTarget.createElement('li');
+  immersiveItem.className = 'text-fallback__action';
+  const immersiveLink = documentTarget.createElement('a');
   immersiveLink.href = immersiveUrl;
   immersiveLink.className = 'text-fallback__link';
   immersiveLink.textContent = 'Launch immersive mode';
+  immersiveLink.rel = 'noopener';
+  immersiveLink.dataset.action = 'immersive';
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
 
-  const resumeItem = document.createElement('li');
-  const resumeLink = document.createElement('a');
+  const resumeItem = documentTarget.createElement('li');
+  resumeItem.className = 'text-fallback__action';
+  const resumeLink = documentTarget.createElement('a');
   resumeLink.href = resumeUrl;
   resumeLink.className = 'text-fallback__link';
   resumeLink.textContent = 'Download the latest résumé';
+  resumeLink.rel = 'noopener';
+  resumeLink.dataset.action = 'resume';
   resumeItem.appendChild(resumeLink);
   list.appendChild(resumeItem);
 
-  const githubItem = document.createElement('li');
-  const githubLink = document.createElement('a');
+  const githubItem = documentTarget.createElement('li');
+  githubItem.className = 'text-fallback__action';
+  const githubLink = documentTarget.createElement('a');
   githubLink.href = githubUrl;
   githubLink.className = 'text-fallback__link';
   githubLink.textContent = 'Explore projects on GitHub';
+  githubLink.rel = 'noopener';
+  githubLink.dataset.action = 'github';
   githubItem.appendChild(githubLink);
   list.appendChild(githubItem);
 

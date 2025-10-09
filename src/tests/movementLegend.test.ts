@@ -82,6 +82,9 @@ describe('createMovementLegend', () => {
       initialMethod: 'keyboard',
     });
 
+    expect(container.dataset.localeDirection).toBe('ltr');
+    expect(container.getAttribute('dir')).toBe('ltr');
+
     const [keyboardItem, pointerItem] = container.querySelectorAll('li');
     expect(keyboardItem?.dataset.state).toBe('active');
     expect(pointerItem?.dataset.state).toBeUndefined();
@@ -210,5 +213,16 @@ describe('createMovementLegend', () => {
 
     dispatchPointerEvent(window, 'touch');
     expect(legend.getActiveMethod()).toBe('pointer');
+  });
+
+  it('exposes locale direction metadata for rtl overlays', () => {
+    const container = createOverlayContainer();
+    createMovementLegend({
+      container,
+      locale: 'ar',
+    });
+
+    expect(container.dataset.localeDirection).toBe('rtl');
+    expect(container.getAttribute('dir')).toBe('rtl');
   });
 });
