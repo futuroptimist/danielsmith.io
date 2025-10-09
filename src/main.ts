@@ -1219,7 +1219,8 @@ function initializeImmersiveScene(
     content: helpModalStrings,
   });
   const hudSettingsContainer =
-    helpModal.settingsContainer ?? (() => {
+    helpModal.settingsContainer ??
+    (() => {
       const fallback = document.createElement('div');
       fallback.className = 'help-modal__settings';
       helpModal.element.appendChild(fallback);

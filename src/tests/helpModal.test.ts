@@ -86,8 +86,9 @@ describe('createHelpModal', () => {
     const title = document.querySelector('.help-modal__title');
     const sectionHeading = Array.from(
       document.querySelectorAll('.help-modal__section-heading')
-    ).find((heading) =>
-      !heading.classList.contains('help-modal__section-heading--settings')
+    ).find(
+      (heading) =>
+        !heading.classList.contains('help-modal__section-heading--settings')
     );
     const items = document.querySelectorAll('.help-modal__item');
     const settingsHeading = document.querySelector(

@@ -84,8 +84,14 @@ function getFocusableChildren(root: HTMLElement): HTMLElement[] {
 
 export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   const { container, content } = options;
-  const { heading, description, sections, closeLabel, closeAriaLabel, settings } =
-    content;
+  const {
+    heading,
+    description,
+    sections,
+    closeLabel,
+    closeAriaLabel,
+    settings,
+  } = content;
 
   const backdrop = document.createElement('div');
   backdrop.className = 'help-modal-backdrop';
@@ -130,10 +136,12 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
 
   if (settings) {
     const settingsSection = document.createElement('section');
-    settingsSection.className = 'help-modal__section help-modal__section--settings';
+    settingsSection.className =
+      'help-modal__section help-modal__section--settings';
 
     const settingsHeading = document.createElement('h3');
-    settingsHeading.className = 'help-modal__section-heading help-modal__section-heading--settings';
+    settingsHeading.className =
+      'help-modal__section-heading help-modal__section-heading--settings';
     settingsHeading.textContent = settings.heading;
     settingsSection.appendChild(settingsHeading);
 
