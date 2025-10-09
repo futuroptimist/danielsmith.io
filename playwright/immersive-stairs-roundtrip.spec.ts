@@ -40,7 +40,8 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   const holdKeysUntilFloor = async (
     keys: string | string[],
     target: 'ground' | 'upper',
-    timeout = 15_000
+    timeout = 15_000,
+    stabilityMs = 1_200
   ) => {
     const activeKeys = Array.isArray(keys) ? keys : [keys];
 
@@ -55,13 +56,17 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
         target,
         { timeout }
       );
+      await page.waitForTimeout(stabilityMs);
     } finally {
       for (const key of activeKeys.slice().reverse()) {
         await page.keyboard.up(key);
       }
     }
 
-    await expect(html).toHaveAttribute('data-active-floor', target);
+    await page.waitForTimeout(300);
+    await expect(html).toHaveAttribute('data-active-floor', target, {
+      timeout: stabilityMs,
+    });
   };
 
   // From spawn (living room center), head northeast toward the stair bottom.
