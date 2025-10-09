@@ -181,7 +181,8 @@ export class PoiWorldTooltip {
     }
 
     const targetChanged =
-      this.renderState.poiId !== active.poi.id || this.renderState.mode !== mode;
+      this.renderState.poiId !== active.poi.id ||
+      this.renderState.mode !== mode;
 
     const anchor = active.getAnchorPosition(this.anchorScratch);
     this.targetPosition.copy(anchor);
@@ -298,7 +299,12 @@ export class PoiWorldTooltip {
       radius,
     });
 
-    const accentGradient = context.createLinearGradient(0, padding, 0, padding + 96);
+    const accentGradient = context.createLinearGradient(
+      0,
+      padding,
+      0,
+      padding + 96
+    );
     accentGradient.addColorStop(0, 'rgba(33, 116, 255, 0.75)');
     accentGradient.addColorStop(1, 'rgba(21, 192, 255, 0.35)');
     context.fillStyle = accentGradient;

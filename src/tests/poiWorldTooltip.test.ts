@@ -2,7 +2,10 @@ import { OrthographicCamera, Scene, Vector3 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { PoiDefinition } from '../poi/types';
-import { PoiWorldTooltip, type PoiWorldTooltipTarget } from '../poi/worldTooltip';
+import {
+  PoiWorldTooltip,
+  type PoiWorldTooltipTarget,
+} from '../poi/worldTooltip';
 
 let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
 
@@ -61,12 +64,10 @@ function createPoiDefinition(
     headingRadians: overrides.headingRadians ?? 0,
     interactionRadius: overrides.interactionRadius ?? 3,
     footprint: overrides.footprint ?? { width: 2, depth: 2 },
-    metrics:
-      overrides.metrics ??
-      [
-        { label: 'Impact', value: 'Launch-ready' },
-        { label: 'Tech', value: 'Three.js' },
-      ],
+    metrics: overrides.metrics ?? [
+      { label: 'Impact', value: 'Launch-ready' },
+      { label: 'Tech', value: 'Three.js' },
+    ],
     links: overrides.links ?? [{ label: 'Read more', href: '#' }],
     status: overrides.status,
     narration: overrides.narration,
@@ -118,7 +119,9 @@ describe('PoiWorldTooltip', () => {
     expect(tooltip.group.position.y).toBeCloseTo(anchor.y + 0.6, 1e-4);
     expect(tooltip.group.position.z).toBeCloseTo(anchor.z, 1e-4);
 
-    const forward = new Vector3(0, 0, 1).applyQuaternion(tooltip.group.quaternion);
+    const forward = new Vector3(0, 0, 1).applyQuaternion(
+      tooltip.group.quaternion
+    );
     const toCamera = camera.position
       .clone()
       .sub(tooltip.group.position)
@@ -149,8 +152,12 @@ describe('PoiWorldTooltip', () => {
 
   it('falls back to the recommendation when no hover or selection is active', () => {
     const { tooltip } = createTooltip();
-    const recommendedPoi = createPoiDefinition({ id: 'sugarkube-backyard-greenhouse' });
-    tooltip.setRecommendation(createTarget(recommendedPoi, new Vector3(-1, 0.5, 2)));
+    const recommendedPoi = createPoiDefinition({
+      id: 'sugarkube-backyard-greenhouse',
+    });
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
     tooltip.update(0.016);
 
     const state = tooltip.getState();
