@@ -37,19 +37,27 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     }
   };
 
-  const moveUntilFloor = async (
+  const holdKeysUntilFloor = async (
     keys: string | string[],
-    {
-      maxSteps,
-      duration,
-      target,
-    }: { maxSteps: number; duration: number; target: 'ground' | 'upper' }
+    target: 'ground' | 'upper',
+    timeout = 15_000
   ) => {
-    for (let i = 0; i < maxSteps; i += 1) {
-      await press(keys, duration);
-      const active = await html.getAttribute('data-active-floor');
-      if (active === target) {
-        return;
+    const activeKeys = Array.isArray(keys) ? keys : [keys];
+
+    for (const key of activeKeys) {
+      await page.keyboard.down(key);
+    }
+
+    try {
+      await page.waitForFunction(
+        (expected) =>
+          document.documentElement.dataset.activeFloor === expected,
+        target,
+        { timeout }
+      );
+    } finally {
+      for (const key of activeKeys.slice().reverse()) {
+        await page.keyboard.up(key);
       }
     }
 
@@ -62,11 +70,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   }
 
   // Enter the staircase and walk up.
-  await moveUntilFloor(['w', 'd'], {
-    maxSteps: 28,
-    duration: 150,
-    target: 'upper',
-  });
+  await holdKeysUntilFloor(['w', 'd'], 'upper');
 
   // Verify we reached upper floor.
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
@@ -80,11 +84,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   for (let i = 0; i < 8; i += 1) {
     await press('s', 120);
   }
-  await moveUntilFloor(['s', 'a'], {
-    maxSteps: 28,
-    duration: 150,
-    target: 'ground',
-  });
+  await holdKeysUntilFloor(['s', 'a'], 'ground');
 
   // Should be back on ground.
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
