@@ -72,7 +72,7 @@ Focus: expand the environment while keeping navigation smooth.
      - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
 3. **Outdoor Transition**
-   - Sculpt backyard terrain plane, fence line, and skybox updates.
+   - ✅ Sculpted backyard terrain plane and layered perimeter fence framing the dusk skybox.
    - ✅ Lighting probes and dusk reflections now wash the backyard with dusk-tinted bounce
      light and greenhouse glass highlights.
    - Gate unfinished zones with temporary hologram barriers and in-world signage.

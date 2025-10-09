@@ -17,6 +17,7 @@ import {
   PlaneGeometry,
   PointLight,
   Points,
+  Quaternion,
   PointsMaterial,
   ShaderMaterial,
   SphereGeometry,
@@ -371,6 +372,123 @@ export function createBackyardEnvironment(
     falloffCurve: 'smoothstep',
   });
 
+  const barrierZ = bounds.maxZ - 1.2;
+
+  const fenceGroup = new Group();
+  fenceGroup.name = 'BackyardPerimeterFence';
+  const fenceHeight = 1.5;
+  const fenceInsetX = 0.35;
+  const fenceFrontPadding = 0.9;
+  const fenceBackGap = 0.6;
+  const fenceFrontZ = bounds.minZ + fenceFrontPadding;
+  const fenceBackZ = barrierZ - fenceBackGap;
+
+  const fencePostGeometry = new CylinderGeometry(0.07, 0.09, fenceHeight, 10);
+  const fenceRailGeometry = new BoxGeometry(1, 0.08, 0.12);
+  const fencePostMaterial = new MeshStandardMaterial({
+    color: 0x2a333a,
+    roughness: 0.68,
+    metalness: 0.28,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.22,
+  });
+  const fenceRailMaterial = new MeshStandardMaterial({
+    color: 0x3e4a54,
+    roughness: 0.52,
+    metalness: 0.22,
+    envMap: duskReflectionMap,
+    envMapIntensity: 0.2,
+  });
+
+  const addFenceRun = (runIndex: number, start: Vector3, end: Vector3) => {
+    const runGroup = new Group();
+    runGroup.name = `BackyardFenceRun-${runIndex}`;
+    const direction = new Vector3().subVectors(end, start);
+    const runLength = direction.length();
+    const normalizedDirection = direction.clone().normalize();
+    const segmentCount = Math.max(1, Math.round(runLength / 1.6));
+    const segmentDistance = runLength / segmentCount;
+    const orientation = new Quaternion().setFromUnitVectors(
+      new Vector3(1, 0, 0),
+      normalizedDirection
+    );
+
+    for (let postIndex = 0; postIndex <= segmentCount; postIndex += 1) {
+      const ratio = postIndex / segmentCount;
+      const position = new Vector3()
+        .copy(start)
+        .add(normalizedDirection.clone().multiplyScalar(runLength * ratio));
+      const post = new Mesh(fencePostGeometry, fencePostMaterial);
+      post.name = `BackyardFencePost-${runIndex}-${postIndex}`;
+      post.position.set(position.x, fenceHeight / 2, position.z);
+      runGroup.add(post);
+    }
+
+    for (let segmentIndex = 0; segmentIndex < segmentCount; segmentIndex += 1) {
+      const center = new Vector3()
+        .copy(start)
+        .add(
+          normalizedDirection
+            .clone()
+            .multiplyScalar(segmentDistance * (segmentIndex + 0.5))
+        );
+
+      const createRail = (tier: 'Top' | 'Mid', height: number) => {
+        const rail = new Mesh(fenceRailGeometry, fenceRailMaterial);
+        rail.name = `BackyardFenceRail-${tier}-${runIndex}-${segmentIndex}`;
+        rail.scale.x = segmentDistance;
+        rail.position.set(center.x, height, center.z);
+        rail.quaternion.copy(orientation);
+        runGroup.add(rail);
+      };
+
+      createRail('Top', fenceHeight - 0.18);
+      createRail('Mid', fenceHeight * 0.52);
+    }
+
+    fenceGroup.add(runGroup);
+  };
+
+  const fenceRuns = [
+    {
+      start: new Vector3(bounds.minX + fenceInsetX, 0, fenceFrontZ),
+      end: new Vector3(bounds.minX + fenceInsetX, 0, fenceBackZ),
+    },
+    {
+      start: new Vector3(bounds.maxX - fenceInsetX, 0, fenceFrontZ),
+      end: new Vector3(bounds.maxX - fenceInsetX, 0, fenceBackZ),
+    },
+    {
+      start: new Vector3(bounds.minX + fenceInsetX, 0, fenceBackZ),
+      end: new Vector3(bounds.maxX - fenceInsetX, 0, fenceBackZ),
+    },
+  ];
+
+  fenceRuns.forEach(({ start, end }, index) => addFenceRun(index, start, end));
+  group.add(fenceGroup);
+
+  const fenceColliders: RectCollider[] = [
+    {
+      minX: bounds.minX + fenceInsetX - 0.12,
+      maxX: bounds.minX + fenceInsetX + 0.18,
+      minZ: fenceFrontZ - 0.3,
+      maxZ: fenceBackZ + 0.3,
+    },
+    {
+      minX: bounds.maxX - fenceInsetX - 0.18,
+      maxX: bounds.maxX - fenceInsetX + 0.12,
+      minZ: fenceFrontZ - 0.3,
+      maxZ: fenceBackZ + 0.3,
+    },
+    {
+      minX: bounds.minX + fenceInsetX - 0.3,
+      maxX: bounds.maxX - fenceInsetX + 0.3,
+      minZ: fenceBackZ - 0.18,
+      maxZ: fenceBackZ + 0.18,
+    },
+  ];
+  fenceColliders.forEach((collider) => colliders.push(collider));
+
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;
     light: PointLight;
@@ -515,7 +633,6 @@ export function createBackyardEnvironment(
   const barrierWidth = Math.min(width * 0.68, 6.5);
   const barrierHeight = 2.6;
   const barrierThickness = 0.34;
-  const barrierZ = bounds.maxZ - 1.2;
 
   const barrierMaterial = new MeshStandardMaterial({
     color: 0x66d4ff,
