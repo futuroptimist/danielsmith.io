@@ -139,7 +139,10 @@ describe('PoiVisitedState', () => {
 
     state.reset();
 
-    expect(storage.setItem).toHaveBeenCalledWith(storageKey, JSON.stringify([]));
+    expect(storage.setItem).toHaveBeenCalledWith(
+      storageKey,
+      JSON.stringify([])
+    );
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenLastCalledWith(new Set());
     expect(state.snapshot().size).toBe(0);
