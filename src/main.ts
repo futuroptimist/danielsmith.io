@@ -1224,7 +1224,11 @@ function initializeImmersiveScene(
       },
       // Test helpers – intentionally minimal and read-only in production.
       getPlayerPosition() {
-        return { x: player.position.x, y: player.position.y, z: player.position.z };
+        return {
+          x: player.position.x,
+          y: player.position.y,
+          z: player.position.z,
+        };
       },
       getStairMetrics() {
         return {

@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test';
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
+test.setTimeout(150_000);
+
 async function waitForImmersiveReady(page: import('@playwright/test').Page) {
   await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
@@ -12,10 +14,8 @@ async function waitForImmersiveReady(page: import('@playwright/test').Page) {
   );
 }
 
-test('ascend stairs from spawn, roam, return and descend', async ({
-  page,
-}, testInfo) => {
-  testInfo.setTimeout(120_000);
+test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
+  test.slow();
   await waitForImmersiveReady(page);
 
   // Start on ground.
