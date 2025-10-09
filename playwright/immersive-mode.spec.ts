@@ -98,4 +98,52 @@ test.describe('immersive experience', () => {
       'ground'
     );
   });
+
+  test('HUD menu hides optional controls until opened', async ({ page }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    const menuButton = page.locator('[data-control="help"]');
+    const audioHud = page.locator('.audio-hud');
+    const graphicsControl = page.locator('.graphics-quality');
+    const accessibilityControl = page.locator('.accessibility-presets');
+    const modeToggle = page.locator('.mode-toggle');
+    const poiOverlay = page.locator('.poi-tooltip-overlay');
+    const lightingIndicator = page.locator('.lighting-debug-indicator');
+
+    await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
+    await expect(poiOverlay).toHaveAttribute('aria-hidden', 'true');
+    await expect(lightingIndicator).toBeHidden();
+
+    await expect(audioHud).toHaveCount(1);
+    await expect(graphicsControl).toHaveCount(1);
+    await expect(accessibilityControl).toHaveCount(1);
+    await expect(modeToggle).toHaveCount(1);
+
+    await expect(audioHud).toBeHidden();
+    await expect(graphicsControl).toBeHidden();
+    await expect(accessibilityControl).toBeHidden();
+    await expect(modeToggle).toBeHidden();
+
+    await menuButton.click();
+
+    const backdrop = page.locator('.help-modal-backdrop');
+    await expect(backdrop).toBeVisible();
+    await expect(audioHud).toBeVisible();
+    await expect(graphicsControl).toBeVisible();
+    await expect(accessibilityControl).toBeVisible();
+    await expect(modeToggle).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(backdrop).toBeHidden();
+    await expect(audioHud).toBeHidden();
+    await expect(graphicsControl).toBeHidden();
+    await expect(accessibilityControl).toBeHidden();
+    await expect(modeToggle).toBeHidden();
+    await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
+  });
 });

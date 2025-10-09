@@ -48,9 +48,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         description: 'Interact',
       },
       helpButton: {
-        labelTemplate: 'Open help · Press {shortcut}',
+        labelTemplate: 'Open menu · Press {shortcut}',
         announcementTemplate:
-          'Open help overlay. Press {shortcut} to review controls and accessibility tips.',
+          'Open settings and help. Press {shortcut} to review controls and accessibility tips.',
         shortcutFallback: 'H',
       },
     },
@@ -63,11 +63,20 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
     },
     helpModal: {
-      heading: 'Quick Reference',
-      description:
-        'Review controls, accessibility tips, and failover shortcuts. Use the help shortcut (default H or ?) to toggle this panel.',
+      heading: 'Settings & Help',
+      description: [
+        'Adjust accessibility presets, graphics quality, audio, and review shortcuts.',
+        'Use the help shortcut (default H or ?) to toggle this panel.',
+      ].join(' '),
       closeLabel: 'Close',
       closeAriaLabel: 'Close help',
+      settings: {
+        heading: 'Experience settings',
+        description: [
+          'Tune audio, video, and accessibility preferences.',
+          'These controls stay available even when the menu is closed via keyboard shortcuts.',
+        ].join(' '),
+      },
       sections: [
         {
           id: 'movement',

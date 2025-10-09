@@ -130,7 +130,7 @@ export class PoiTooltipOverlay {
   }
 
   private update() {
-    const poi = this.hovered ?? this.selected ?? this.recommendation;
+    const poi = this.hovered ?? this.selected;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
       this.root.dataset.state = 'hidden';
@@ -142,18 +142,16 @@ export class PoiTooltipOverlay {
       return;
     }
 
-    const state = this.hovered
-      ? 'hovered'
-      : this.selected
-        ? 'selected'
-        : 'recommended';
+    const state = this.hovered ? 'hovered' : 'selected';
     this.root.dataset.state = state;
     this.root.classList.add('poi-tooltip-overlay--visible');
     this.root.setAttribute('aria-hidden', 'false');
 
     const visited = this.visitedPoiIds.has(poi.id);
     this.visitedBadge.hidden = !visited;
-    this.recommendationBadge.hidden = state !== 'recommended';
+    const isRecommendedSelection =
+      state === 'selected' && this.recommendation?.id === poi.id;
+    this.recommendationBadge.hidden = !isRecommendedSelection;
 
     const previousPoiId = this.renderState.poiId;
 
