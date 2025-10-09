@@ -317,9 +317,10 @@ const LIGHTING_OPTIONS = {
   enableBloom: true,
   ledEmissiveIntensity: 3.2,
   ledLightIntensity: 1.4,
-  bloomStrength: 0.55,
-  bloomRadius: 0.85,
-  bloomThreshold: 0.2,
+  // Tone down bloom to avoid large white halo on high quality presets
+  bloomStrength: 0.22,
+  bloomRadius: 0.6,
+  bloomThreshold: 0.6,
 } as const;
 
 const groundColliders: RectCollider[] = [];
@@ -570,7 +571,7 @@ function initializeImmersiveScene(
     },
   });
   floorMaterial.lightMap = interiorLightmaps.floor;
-  floorMaterial.lightMapIntensity = 0.78;
+  floorMaterial.lightMapIntensity = 0.078;
   wallMaterial.lightMap = interiorLightmaps.wall;
   wallMaterial.lightMapIntensity = 0.68;
   fenceMaterial.lightMap = interiorLightmaps.wall;
