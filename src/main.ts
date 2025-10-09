@@ -193,6 +193,16 @@ declare global {
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
+        getPlayerPosition(): { x: number; y: number; z: number };
+        getStairMetrics(): {
+          stairCenterX: number;
+          stairHalfWidth: number;
+          stairBottomZ: number;
+          stairTopZ: number;
+          stairLandingMinZ: number;
+          stairLandingDepth: number;
+          upperFloorElevation: number;
+        };
         getCeilingOpacities(): number[];
       };
     };
@@ -700,6 +710,28 @@ function initializeImmersiveScene(
     upperFloorShape.lineTo(x, z);
   }
   upperFloorShape.closePath();
+
+  // Carve a stairwell hole in the upper floor directly above the stairs to
+  // eliminate z-fighting and allow the player to visually descend. Use a
+  // slightly oversized cutout so collision tolerances near edges feel natural.
+  const stairwellMarginX = toWorldUnits(0.2);
+  const stairwellMarginZ = toWorldUnits(0.4);
+  const stairHoleHalfWidth = stairHalfWidth + stairwellMarginX;
+  const stairHoleMinX = stairCenterX - stairHoleHalfWidth;
+  const stairHoleMaxX = stairCenterX + stairHoleHalfWidth;
+  const stairHoleMaxZ = stairBottomZ + stairwellMarginZ; // near bottom
+  const stairHoleMinZ = stairLandingMinZ - stairwellMarginZ; // extends past landing
+  upperFloorShape.holes.push(
+    (() => {
+      const hole = new Shape();
+      hole.moveTo(stairHoleMinX, stairHoleMinZ);
+      hole.lineTo(stairHoleMaxX, stairHoleMinZ);
+      hole.lineTo(stairHoleMaxX, stairHoleMaxZ);
+      hole.lineTo(stairHoleMinX, stairHoleMaxZ);
+      hole.closePath();
+      return hole;
+    })()
+  );
   const upperFloorGeometry = new ShapeGeometry(upperFloorShape);
   upperFloorGeometry.rotateX(-Math.PI / 2);
   const upperFloor = new Mesh(upperFloorGeometry, upperFloorMaterial);
@@ -1184,6 +1216,21 @@ function initializeImmersiveScene(
         setActiveFloorId(next);
         updatePlayerVerticalPosition();
       },
+      // Test helpers – intentionally minimal and read-only in production.
+      getPlayerPosition() {
+        return { x: player.position.x, y: player.position.y, z: player.position.z };
+      },
+      getStairMetrics() {
+        return {
+          stairCenterX,
+          stairHalfWidth,
+          stairBottomZ,
+          stairTopZ,
+          stairLandingMinZ,
+          stairLandingDepth: stairLandingDepth,
+          upperFloorElevation,
+        };
+      },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
           const material = p.mesh.material as MeshStandardMaterial;
@@ -1308,19 +1355,31 @@ function initializeImmersiveScene(
 
   const predictFloorId = (x: number, z: number, current: FloorId): FloorId => {
     const rampHeight = computeRampHeight(x, z);
+    const withinStairs = isWithinStairWidth(x, stairTransitionMargin);
+
     if (current === 'upper') {
+      // Allow transitioning back to ground when entering the stair zone near
+      // the bottom of the staircase.
       const nearBottom =
-        isWithinStairWidth(x, stairTransitionMargin) &&
+        withinStairs &&
         rampHeight <= STAIRCASE_CONFIG.step.rise * 0.5 &&
         z >= stairBottomZ - stairRun * 0.5;
       if (nearBottom) {
         return 'ground';
       }
+      // Also allow descending anywhere along the stair ramp zone when the
+      // computed ramp height is below the top landing height threshold.
+      const onRampDescending = withinStairs && rampHeight < stairTotalRise;
+      if (onRampDescending) {
+        return 'ground';
+      }
       return 'upper';
     }
 
+    // Ascend when entering the stair zone near the landing or when the ramp
+    // height implies we've progressed sufficiently up the stairs.
     const nearLanding =
-      isWithinStairWidth(x, stairTransitionMargin) &&
+      withinStairs &&
       (z <= stairTopZ + stairTransitionMargin ||
         rampHeight >= stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
     if (nearLanding) {
