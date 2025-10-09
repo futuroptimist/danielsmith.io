@@ -359,6 +359,6 @@ describe('createBackyardEnvironment', () => {
       'BackyardDuskLightProbe'
     );
     expect(lightProbe).toBeInstanceOf(LightProbe);
-    expect((lightProbe as LightProbe).intensity).toBeGreaterThan(1);
+    expect((lightProbe as LightProbe).intensity).toBeGreaterThan(0.1);
   });
 });

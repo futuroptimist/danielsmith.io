@@ -317,9 +317,10 @@ const LIGHTING_OPTIONS = {
   enableBloom: true,
   ledEmissiveIntensity: 3.2,
   ledLightIntensity: 1.4,
-  bloomStrength: 0.55,
-  bloomRadius: 0.85,
-  bloomThreshold: 0.2,
+  // Further tone down bloom: barely perceptible halo
+  bloomStrength: 0.12,
+  bloomRadius: 0.45,
+  bloomThreshold: 0.78,
 } as const;
 
 const groundColliders: RectCollider[] = [];
@@ -539,6 +540,13 @@ function initializeImmersiveScene(
   if (backyardRoom) {
     backyardEnvironment = createBackyardEnvironment(backyardRoom.bounds);
     scene.add(backyardEnvironment.group);
+    // Remove the enclosing sky dome to avoid a bright circular spheroid.
+    // We want a dark void beyond the property in runtime.
+    const skyDome =
+      backyardEnvironment.group.getObjectByName('BackyardSkyDome');
+    if (skyDome) {
+      skyDome.visible = false;
+    }
     backyardEnvironment.colliders.forEach((collider) =>
       groundColliders.push(collider)
     );
@@ -570,7 +578,7 @@ function initializeImmersiveScene(
     },
   });
   floorMaterial.lightMap = interiorLightmaps.floor;
-  floorMaterial.lightMapIntensity = 0.78;
+  floorMaterial.lightMapIntensity = 0.078;
   wallMaterial.lightMap = interiorLightmaps.wall;
   wallMaterial.lightMapIntensity = 0.68;
   fenceMaterial.lightMap = interiorLightmaps.wall;

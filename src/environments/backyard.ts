@@ -140,7 +140,7 @@ function createDuskLightProbe(): LightProbe {
   coefficients[0].set(skyColor.r, skyColor.g, skyColor.b);
   const warmColor = new Color(0x533621).multiplyScalar(Math.PI * 0.45);
   coefficients[3].set(warmColor.r, warmColor.g, warmColor.b);
-  probe.intensity = 1.18;
+  probe.intensity = 0.118;
   return probe;
 }
 
@@ -211,7 +211,7 @@ export function createBackyardEnvironment(
         float zenithBlend = smoothstep(0.4, 1.0, vHeight);
         vec3 base = mix(midColor, topColor, zenithBlend);
         base = mix(horizonColor, base, horizonBlend);
-        float shimmer = 0.03 * (sin(time * 0.17 + vHeight * 6.0) + sin(time * 0.23 + vHeight * 5.0));
+        float shimmer = 0.003 * (sin(time * 0.17 + vHeight * 6.0) + sin(time * 0.23 + vHeight * 5.0));
         base += vec3(shimmer);
         base = clamp(base, 0.0, 1.0);
         gl_FragColor = vec4(base, 1.0);
@@ -622,7 +622,7 @@ export function createBackyardEnvironment(
 
   const duskLight = new PointLight(
     0x8fb8ff,
-    0.65,
+    0.065,
     Math.max(width, depth) * 0.9,
     2.4
   );
