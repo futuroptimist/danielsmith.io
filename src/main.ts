@@ -540,6 +540,12 @@ function initializeImmersiveScene(
   if (backyardRoom) {
     backyardEnvironment = createBackyardEnvironment(backyardRoom.bounds);
     scene.add(backyardEnvironment.group);
+    // Remove the enclosing sky dome to avoid a bright circular spheroid.
+    // We want a dark void beyond the property in runtime.
+    const skyDome = backyardEnvironment.group.getObjectByName('BackyardSkyDome');
+    if (skyDome) {
+      skyDome.visible = false;
+    }
     backyardEnvironment.colliders.forEach((collider) =>
       groundColliders.push(collider)
     );
