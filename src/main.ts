@@ -701,6 +701,11 @@ function initializeImmersiveScene(
   const upperFloorMaterial = new MeshStandardMaterial({
     color: 0x1f273a,
     side: DoubleSide,
+    // Nudge the upper floor away from coplanar surfaces (e.g., landing top)
+    // to avoid depth fighting at shared boundaries.
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   });
   const upperFloorShape = new Shape();
   const [upperFirstX, upperFirstZ] = UPPER_FLOOR_PLAN.outline[0];
@@ -735,7 +740,8 @@ function initializeImmersiveScene(
   const upperFloorGeometry = new ShapeGeometry(upperFloorShape);
   upperFloorGeometry.rotateX(-Math.PI / 2);
   const upperFloor = new Mesh(upperFloorGeometry, upperFloorMaterial);
-  upperFloor.position.y = upperFloorElevation;
+  // Slightly lower than the landing top to ensure no coplanar z-fighting.
+  upperFloor.position.y = upperFloorElevation - 0.002;
   upperFloorGroup.add(upperFloor);
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
