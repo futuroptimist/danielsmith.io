@@ -171,6 +171,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
+   - ✨ Guided tour reset utility now lets the HUD restart the curated path on demand so
+     visitors can replay the experience during sessions or demos.
 
 ## Phase 4 – Accessibility & Internationalization
 
