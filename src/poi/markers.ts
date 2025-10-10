@@ -17,6 +17,7 @@ import {
   Vector3,
 } from 'three';
 
+import { scalePoiValue } from './constants';
 import type { PoiDefinition, PoiId } from './types';
 import { createVisitedBadge, type PoiVisitedBadge } from './visitedBadge';
 
@@ -102,7 +103,7 @@ function createPedestalPoiInstance(
   );
   group.rotation.y = definition.headingRadians ?? 0;
 
-  const baseHeight = 0.32;
+  const baseHeight = scalePoiValue(0.32);
   const baseRadiusX = definition.footprint.width / 2;
   const baseRadiusZ = definition.footprint.depth / 2;
   const baseGeometry = new CylinderGeometry(
@@ -120,7 +121,7 @@ function createPedestalPoiInstance(
   base.position.y = baseHeight / 2;
   group.add(base);
 
-  const accentHeight = 0.08;
+  const accentHeight = scalePoiValue(0.08);
   const accentGeometry = new CylinderGeometry(
     baseRadiusX * 0.85,
     baseRadiusX * 0.85,
@@ -152,7 +153,8 @@ function createPedestalPoiInstance(
     metalness: 0.18,
   });
   const orb = new Mesh(orbGeometry, orbMaterial);
-  const orbBaseHeight = baseHeight + accentHeight + orbRadius + 0.18;
+  const orbBaseHeight =
+    baseHeight + accentHeight + orbRadius + scalePoiValue(0.18);
   orb.position.y = orbBaseHeight;
   group.add(orb);
 
@@ -163,11 +165,12 @@ function createPedestalPoiInstance(
     depthWrite: false,
   });
   labelMaterial.side = DoubleSide;
-  const labelHeight = 1.2;
-  const labelWidth = 2.7;
+  const labelHeight = scalePoiValue(1.2);
+  const labelWidth = scalePoiValue(2.7);
   const labelGeometry = new PlaneGeometry(labelWidth, labelHeight, 1, 1);
   const label = new Mesh(labelGeometry, labelMaterial);
-  const labelBaseHeight = orbBaseHeight + orbRadius + 0.4;
+  const labelBaseHeight =
+    orbBaseHeight + orbRadius + scalePoiValue(0.4);
   label.position.set(0, labelBaseHeight, 0);
   label.renderOrder = 12;
   group.add(label);
@@ -180,7 +183,7 @@ function createPedestalPoiInstance(
   group.add(visitedBadge.mesh);
 
   const haloInnerRadius = Math.max(baseRadiusX, baseRadiusZ) * 0.92;
-  const haloOuterRadius = haloInnerRadius + 0.36;
+  const haloOuterRadius = haloInnerRadius + scalePoiValue(0.36);
   const haloGeometry = new RingGeometry(
     haloInnerRadius,
     haloOuterRadius,
@@ -199,7 +202,7 @@ function createPedestalPoiInstance(
   haloMaterial.side = DoubleSide;
   const halo = new Mesh(haloGeometry, haloMaterial);
   halo.rotation.x = -Math.PI / 2;
-  halo.position.y = 0.08;
+  halo.position.y = scalePoiValue(0.08);
   halo.renderOrder = 11;
   group.add(halo);
 
@@ -219,16 +222,17 @@ function createPedestalPoiInstance(
   visitedRingMaterial.side = DoubleSide;
   const visitedRing = new Mesh(visitedRingGeometry, visitedRingMaterial);
   visitedRing.rotation.x = -Math.PI / 2;
-  visitedRing.position.y = 0.12;
+  visitedRing.position.y = scalePoiValue(0.12);
   visitedRing.renderOrder = 10;
   visitedRing.visible = false;
   visitedRing.scale.setScalar(1);
   group.add(visitedRing);
 
+  const hitAreaHeight = accentHeight + scalePoiValue(0.24);
   const hitAreaGeometry = new CylinderGeometry(
     baseRadiusX,
     baseRadiusX,
-    accentHeight + 0.24,
+    hitAreaHeight,
     32
   );
   const hitAreaMaterial = new MeshBasicMaterial({
@@ -238,7 +242,7 @@ function createPedestalPoiInstance(
   });
   hitAreaMaterial.side = DoubleSide;
   const hitArea = new Mesh(hitAreaGeometry, hitAreaMaterial);
-  hitArea.position.y = (accentHeight + 0.24) / 2;
+  hitArea.position.y = hitAreaHeight / 2;
   hitArea.name = `POI_HIT:${definition.id}`;
   group.add(hitArea);
 
@@ -262,7 +266,7 @@ function createPedestalPoiInstance(
     labelWorldPosition: new Vector3(),
     floatPhase: phaseOffset,
     floatSpeed: MathUtils.randFloat(0.8, 1.1),
-    floatAmplitude: MathUtils.randFloat(0.12, 0.18),
+    floatAmplitude: MathUtils.randFloat(0.12, 0.18) * scalePoiValue(1),
     halo,
     haloMaterial,
     collider,
