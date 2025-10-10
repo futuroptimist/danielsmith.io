@@ -6,6 +6,8 @@ export interface ManualModeToggleOptions {
   label?: string;
   description?: string;
   keyHint?: string;
+  activeLabel?: string;
+  activeDescription?: string;
 }
 
 export interface ManualModeToggleHandle {
@@ -30,14 +32,12 @@ export function createManualModeToggle({
   label = 'Text mode · Press T',
   description = 'Switch to the text-only portfolio',
   keyHint = 'T',
+  activeLabel = 'Text mode active',
+  activeDescription = 'Text mode already active.',
 }: ManualModeToggleOptions): ManualModeToggleHandle {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'mode-toggle';
-  button.textContent = label;
-  button.title = `${description} (${keyHint})`;
-  button.setAttribute('aria-label', description);
-  button.dataset.state = 'idle';
   container.appendChild(button);
 
   let pending = false;
@@ -46,6 +46,10 @@ export function createManualModeToggle({
     value.length === 1 ? value.toUpperCase() : value;
 
   const normalizedKeyHint = normalizeKeyHint(keyHint);
+
+  const idleTitle = normalizedKeyHint
+    ? `${description} (${normalizedKeyHint})`
+    : description;
 
   const appendClause = (base: string, clause: string) => {
     const trimmedBase = base.trim();
@@ -60,9 +64,15 @@ export function createManualModeToggle({
     return `${trimmedBase}${separator}${trimmedClause}`;
   };
 
-  const updateAnnouncement = () => {
+  const refreshState = () => {
     const fallbackActive = getIsFallbackActive();
     if (pending) {
+      button.disabled = true;
+      button.dataset.state = 'pending';
+      button.textContent = 'Switching to text mode…';
+      button.setAttribute('aria-pressed', 'false');
+      button.setAttribute('aria-label', description);
+      button.title = idleTitle;
       button.dataset.hudAnnounce = appendClause(
         description,
         'Switching to text mode…'
@@ -70,12 +80,21 @@ export function createManualModeToggle({
       return;
     }
     if (fallbackActive) {
-      button.dataset.hudAnnounce = appendClause(
-        description,
-        'Text mode already active.'
-      );
+      button.disabled = true;
+      button.dataset.state = 'active';
+      button.textContent = activeLabel;
+      button.setAttribute('aria-pressed', 'true');
+      button.setAttribute('aria-label', activeDescription);
+      button.title = activeDescription;
+      button.dataset.hudAnnounce = activeDescription;
       return;
     }
+    button.disabled = false;
+    button.dataset.state = 'idle';
+    button.textContent = label;
+    button.setAttribute('aria-pressed', 'false');
+    button.setAttribute('aria-label', description);
+    button.title = idleTitle;
     const keyPrompt = normalizedKeyHint
       ? `Press ${normalizedKeyHint} to activate.`
       : 'Use this button to activate text mode.';
@@ -84,27 +103,18 @@ export function createManualModeToggle({
 
   const setPendingState = (next: boolean) => {
     pending = next;
-    button.disabled = next;
-    button.dataset.state = next ? 'pending' : 'idle';
-    if (next) {
-      button.textContent = 'Switching to text mode…';
-    } else {
-      button.textContent = label;
-    }
-    updateAnnouncement();
+    refreshState();
   };
 
   const activate = () => {
-    updateAnnouncement();
+    refreshState();
     if (pending || getIsFallbackActive()) {
       return;
     }
     setPendingState(true);
     const finalize = () => {
       queueMicrotask(() => {
-        if (!getIsFallbackActive()) {
-          setPendingState(false);
-        }
+        setPendingState(false);
       });
     };
     try {
@@ -147,16 +157,16 @@ export function createManualModeToggle({
 
   button.addEventListener('click', handleClick);
   windowTarget.addEventListener('keydown', handleKeydown);
-  button.addEventListener('focus', updateAnnouncement);
+  button.addEventListener('focus', refreshState);
 
-  updateAnnouncement();
+  refreshState();
 
   return {
     element: button,
     dispose() {
       button.removeEventListener('click', handleClick);
       windowTarget.removeEventListener('keydown', handleKeydown);
-      button.removeEventListener('focus', updateAnnouncement);
+      button.removeEventListener('focus', refreshState);
       if (button.parentElement) {
         button.remove();
       }
