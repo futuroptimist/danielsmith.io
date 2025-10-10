@@ -134,9 +134,7 @@ describe('createPortfolioMannequin', () => {
     const accentColor = new Color(nextPalette.accent);
     const expectedEmissive = accentColor.clone().multiplyScalar(0.45);
     const visorMaterial = visor.material as MeshStandardMaterial;
-    expect(visorMaterial.color.getHexString()).toBe(
-      accentColor.getHexString()
-    );
+    expect(visorMaterial.color.getHexString()).toBe(accentColor.getHexString());
     expect(visorMaterial.emissive.getHexString()).toBe(
       accentColor.getHexString()
     );
@@ -146,9 +144,7 @@ describe('createPortfolioMannequin', () => {
     );
 
     const trimColor = new Color(nextPalette.trim);
-    const expectedHeadColor = trimColor
-      .clone()
-      .offsetHSL(0.04, -0.18, 0.18);
+    const expectedHeadColor = trimColor.clone().offsetHSL(0.04, -0.18, 0.18);
     const headMaterial = head.material as MeshStandardMaterial;
     expect(headMaterial.color.getHexString()).toBe(
       expectedHeadColor.getHexString()

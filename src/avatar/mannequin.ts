@@ -103,10 +103,13 @@ export function createPortfolioMannequin(
   mannequinRoot.position.y = -collisionRadius;
   group.add(mannequinRoot);
 
-  const platformMaterial = createStandardMaterial(new Color(initialPalette.accent), {
-    emissive: new Color(initialPalette.accent),
-    emissiveIntensity: 0.55,
-  });
+  const platformMaterial = createStandardMaterial(
+    new Color(initialPalette.accent),
+    {
+      emissive: new Color(initialPalette.accent),
+      emissiveIntensity: 0.55,
+    }
+  );
   const platformHeight = 0.08;
   const platform = new Mesh(
     new CylinderGeometry(0.58, 0.58, platformHeight, 48),
@@ -154,7 +157,9 @@ export function createPortfolioMannequin(
   torso.receiveShadow = true;
   mannequinRoot.add(torso);
 
-  const shoulderMaterial = createStandardMaterial(new Color(initialPalette.base));
+  const shoulderMaterial = createStandardMaterial(
+    new Color(initialPalette.base)
+  );
   const armGeometry = new CylinderGeometry(0.16, 0.18, 0.82, 24);
 
   const leftArm = new Mesh(armGeometry, shoulderMaterial);
@@ -173,10 +178,13 @@ export function createPortfolioMannequin(
   rightArm.receiveShadow = true;
   mannequinRoot.add(rightArm);
 
-  const cuffMaterial = createStandardMaterial(new Color(initialPalette.accent), {
-    emissive: new Color(initialPalette.accent),
-    emissiveIntensity: 0.6,
-  });
+  const cuffMaterial = createStandardMaterial(
+    new Color(initialPalette.accent),
+    {
+      emissive: new Color(initialPalette.accent),
+      emissiveIntensity: 0.6,
+    }
+  );
   const leftCuff = new Mesh(
     new TorusGeometry(0.16, 0.035, 14, 32),
     cuffMaterial
@@ -213,10 +221,13 @@ export function createPortfolioMannequin(
   rightGlove.receiveShadow = true;
   mannequinRoot.add(rightGlove);
 
-  const collarMaterial = createStandardMaterial(new Color(initialPalette.accent), {
-    emissive: new Color(initialPalette.accent).multiplyScalar(0.9),
-    emissiveIntensity: 0.7,
-  });
+  const collarMaterial = createStandardMaterial(
+    new Color(initialPalette.accent),
+    {
+      emissive: new Color(initialPalette.accent).multiplyScalar(0.9),
+      emissiveIntensity: 0.7,
+    }
+  );
   const collar = new Mesh(
     new TorusGeometry(0.3, 0.045, 16, 36),
     collarMaterial
@@ -257,10 +268,13 @@ export function createPortfolioMannequin(
   mouth.position.set(0, head.position.y - 0.02, 0.25);
   mannequinRoot.add(mouth);
 
-  const visorMaterial = createStandardMaterial(new Color(initialPalette.accent), {
-    emissive: new Color(initialPalette.accent),
-    emissiveIntensity: 0.65,
-  });
+  const visorMaterial = createStandardMaterial(
+    new Color(initialPalette.accent),
+    {
+      emissive: new Color(initialPalette.accent),
+      emissiveIntensity: 0.65,
+    }
+  );
   visorMaterial.transparent = true;
   visorMaterial.opacity = 0.72;
   visorMaterial.side = DoubleSide;
@@ -273,10 +287,13 @@ export function createPortfolioMannequin(
   visor.position.y = head.position.y;
   mannequinRoot.add(visor);
 
-  const crestMaterial = createStandardMaterial(new Color(initialPalette.accent), {
-    emissive: new Color(initialPalette.accent).multiplyScalar(0.6),
-    emissiveIntensity: 0.5,
-  });
+  const crestMaterial = createStandardMaterial(
+    new Color(initialPalette.accent),
+    {
+      emissive: new Color(initialPalette.accent).multiplyScalar(0.6),
+      emissiveIntensity: 0.5,
+    }
+  );
   const crest = new Mesh(new ConeGeometry(0.12, 0.24, 24), crestMaterial);
   crest.name = 'PortfolioMannequinCrest';
   crest.position.y = head.position.y + 0.3;

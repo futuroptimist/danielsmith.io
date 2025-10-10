@@ -68,9 +68,9 @@ describe('createAvatarVariantControl', () => {
       '.avatar-variants__swatch'
     );
     expect(swatches).toHaveLength(OPTIONS.length * 3);
-    expect(
-      swatches[0].style.getPropertyValue('--avatar-variant-color')
-    ).toBe('#283347');
+    expect(swatches[0].style.getPropertyValue('--avatar-variant-color')).toBe(
+      '#283347'
+    );
 
     radios[1].checked = true;
     radios[1].dispatchEvent(new Event('change'));

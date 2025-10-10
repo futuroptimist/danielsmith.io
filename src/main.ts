@@ -1369,16 +1369,14 @@ function initializeImmersiveScene(
     };
   };
   ensureWorldApi();
-  const ensureAvatarApi = () => {
+  function ensureAvatarApi() {
     const portfolioWindow = window as Window;
     if (!portfolioWindow.portfolio) {
       portfolioWindow.portfolio = {};
     }
     portfolioWindow.portfolio.avatar = {
       getActiveVariant(): AvatarVariantId {
-        return (
-          avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID
-        );
+        return avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID;
       },
       setActiveVariant(variant: AvatarVariantId) {
         avatarVariantManager?.setVariant(variant);
@@ -1391,7 +1389,7 @@ function initializeImmersiveScene(
         }));
       },
     };
-  };
+  }
   const interactControl = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact"]'
   );
