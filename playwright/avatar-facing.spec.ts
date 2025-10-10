@@ -5,7 +5,7 @@ const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
 function normalizeAngle(angle: number): number {
   const twoPi = Math.PI * 2;
-  return ((angle + Math.PI) % twoPi) - Math.PI;
+  return ((angle + Math.PI) % twoPi + twoPi) % twoPi - Math.PI;
 }
 
 function angularDifference(a: number, b: number): number {
@@ -67,9 +67,9 @@ test.describe('avatar facing', () => {
     await page.keyboard.down('w');
     await page.keyboard.down('d');
     await page.waitForTimeout(450);
+    await expectYawNear(Math.PI / 4);
     await page.keyboard.up('d');
     await page.keyboard.up('w');
-    await expectYawNear(Math.PI / 4);
 
     // Moving backward should point the mannequin south (~ +/- PI radians).
     await page.keyboard.down('s');
@@ -91,8 +91,8 @@ test.describe('avatar facing', () => {
     await page.keyboard.down('s');
     await page.keyboard.down('a');
     await page.waitForTimeout(450);
+    await expectYawNear((-3 * Math.PI) / 4, { tolerance: Math.PI / 5 });
     await page.keyboard.up('a');
     await page.keyboard.up('s');
-    await expectYawNear((-3 * Math.PI) / 4, { tolerance: Math.PI / 5 });
   });
 });
