@@ -9,6 +9,34 @@ const DEFAULT_FORWARD = new Vector3(0, 0, -1);
 const DEFAULT_RIGHT = new Vector3(1, 0, 0);
 const EPSILON = 1e-6;
 
+function updateCameraPlanarBasis(camera: Camera) {
+  camera.getWorldDirection(CAMERA_FORWARD);
+  CAMERA_FORWARD.y = 0;
+
+  if (CAMERA_FORWARD.lengthSq() <= EPSILON) {
+    CAMERA_FORWARD.copy(DEFAULT_FORWARD);
+  } else {
+    CAMERA_FORWARD.normalize();
+  }
+
+  CAMERA_RIGHT.crossVectors(CAMERA_FORWARD, WORLD_UP);
+  if (CAMERA_RIGHT.lengthSq() <= EPSILON) {
+    CAMERA_RIGHT.copy(DEFAULT_RIGHT);
+  } else {
+    CAMERA_RIGHT.normalize();
+  }
+}
+
+export function copyCameraPlanarBasis(
+  camera: Camera,
+  outForward: Vector3,
+  outRight: Vector3
+): void {
+  updateCameraPlanarBasis(camera);
+  outForward.copy(CAMERA_FORWARD);
+  outRight.copy(CAMERA_RIGHT);
+}
+
 export function computeYawFromVector(vector: Vector3): number {
   // Expect vector on XZ plane; yaw is rotation around Y.
   // Convention: forward (0,0,-1) => yaw 0; right (1,0,0) => +PI/2.
@@ -62,20 +90,7 @@ export function computeCameraRelativeYaw(
   camera: Camera,
   vector: Vector3
 ): number {
-  camera.getWorldDirection(CAMERA_FORWARD);
-  CAMERA_FORWARD.y = 0;
-  if (CAMERA_FORWARD.lengthSq() <= EPSILON) {
-    CAMERA_FORWARD.copy(DEFAULT_FORWARD);
-  } else {
-    CAMERA_FORWARD.normalize();
-  }
-
-  CAMERA_RIGHT.crossVectors(CAMERA_FORWARD, WORLD_UP);
-  if (CAMERA_RIGHT.lengthSq() <= EPSILON) {
-    CAMERA_RIGHT.copy(DEFAULT_RIGHT);
-  } else {
-    CAMERA_RIGHT.normalize();
-  }
+  updateCameraPlanarBasis(camera);
 
   const forwardComponent = vector.dot(CAMERA_FORWARD);
   const rightComponent = vector.dot(CAMERA_RIGHT);
@@ -90,6 +105,23 @@ export function computeCameraRelativeYaw(
   }
 
   return Math.atan2(rightComponent, forwardComponent);
+}
+
+export function getCameraRelativeDirection(
+  camera: Camera,
+  yaw: number,
+  target: Vector3 = WORK
+): Vector3 {
+  updateCameraPlanarBasis(camera);
+
+  const sinYaw = Math.sin(yaw);
+  const cosYaw = Math.cos(yaw);
+
+  return target
+    .copy(CAMERA_FORWARD)
+    .multiplyScalar(cosYaw)
+    .addScaledVector(CAMERA_RIGHT, sinYaw)
+    .normalize();
 }
 
 export function computeModelYawFromVector(vector: Vector3): number {
