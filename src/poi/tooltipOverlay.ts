@@ -1,3 +1,5 @@
+import type { InteractionTimeline } from '../accessibility/interactionTimeline';
+
 import type { PoiDefinition } from './types';
 
 type DiscoveryFormatter = (poi: PoiDefinition) => string;
@@ -8,6 +10,7 @@ export interface PoiTooltipOverlayOptions {
     format?: DiscoveryFormatter;
     politeness?: 'polite' | 'assertive';
   };
+  interactionTimeline?: InteractionTimeline;
 }
 
 interface RenderState {
@@ -24,6 +27,7 @@ export class PoiTooltipOverlay {
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
   private readonly liveRegion: HTMLElement;
+  private readonly interactionTimeline: InteractionTimeline | null;
   private discoveryFormatter: DiscoveryFormatter;
   private discoveryPoliteness: 'polite' | 'assertive';
   private readonly discoveredPoiIds = new Set<string>();
@@ -34,12 +38,13 @@ export class PoiTooltipOverlay {
   private visitedPoiIds: ReadonlySet<string> = new Set();
 
   constructor(options: PoiTooltipOverlayOptions) {
-    const { container, discoveryAnnouncer } = options;
+    const { container, discoveryAnnouncer, interactionTimeline } = options;
     const documentTarget = container.ownerDocument ?? document;
 
     this.discoveryPoliteness = discoveryAnnouncer?.politeness ?? 'polite';
     this.discoveryFormatter =
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
+    this.interactionTimeline = interactionTimeline ?? null;
 
     this.root = documentTarget.createElement('section');
     this.root.className = 'poi-tooltip-overlay';
@@ -158,9 +163,6 @@ export class PoiTooltipOverlay {
     if (previousPoiId !== poi.id) {
       this.renderPoi(poi);
       this.renderState.poiId = poi.id;
-      if (state === 'selected') {
-        this.announceDiscovery(poi);
-      }
     } else {
       this.updateStatus(poi);
     }
@@ -247,10 +249,21 @@ export class PoiTooltipOverlay {
     if (!message) {
       return;
     }
-    this.liveRegion.setAttribute('aria-live', this.discoveryPoliteness);
-    this.liveRegion.textContent = '';
-    this.liveRegion.textContent = message;
-    this.discoveredPoiIds.add(poi.id);
+    const announce = () => {
+      this.liveRegion.setAttribute('aria-live', this.discoveryPoliteness);
+      this.liveRegion.textContent = '';
+      this.liveRegion.textContent = message;
+      this.discoveredPoiIds.add(poi.id);
+    };
+
+    if (this.interactionTimeline) {
+      this.interactionTimeline.enqueue({
+        id: poi.id,
+        run: announce,
+      });
+    } else {
+      announce();
+    }
   }
 }
 

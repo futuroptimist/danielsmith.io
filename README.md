@@ -99,7 +99,9 @@ lightweight.
 - **Points of Interest** – A data-driven registry spawns holographic pedestals with animated
   tooltips for featured repos. Proximity-based halos ease the labels in so players sense each
   interaction radius without clutter, and a DOM overlay mirrors the metadata so screen readers and
-  keyboard users receive the same context. Metadata is authored in TypeScript so future automations
+  keyboard users receive the same context. A cognitive load-aware interaction timeline now staggers
+  live region announcements so discovery prompts never rapid-fire when players browse exhibits.
+  Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
   terminal that pulses in sync with the new automation POI.
 - **Localization** – UI chrome and POI copy are centralized in `src/i18n/index.ts`, letting future
