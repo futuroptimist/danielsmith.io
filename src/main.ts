@@ -137,7 +137,7 @@ import {
 } from './lighting/debugControls';
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import {
-  computeYawFromVector,
+  computeCameraRelativeYaw,
   dampYawTowards,
   normalizeRadians,
 } from './movement/facing';
@@ -2097,7 +2097,9 @@ function initializeImmersiveScene(
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
     if (speedSq > 1e-6) {
-      mannequinYawTarget = normalizeRadians(computeYawFromVector(velocity));
+      mannequinYawTarget = normalizeRadians(
+        computeCameraRelativeYaw(camera, velocity)
+      );
     }
     mannequinYaw = dampYawTowards(
       mannequinYaw,
