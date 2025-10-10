@@ -3,6 +3,8 @@ import './styles.css';
 import {
   ACESFilmicToneMapping,
   AmbientLight,
+  AnimationClip,
+  AnimationMixer,
   Audio,
   AudioListener,
   BoxGeometry,
@@ -51,6 +53,8 @@ import {
   createDistantHumBuffer,
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
+import { createAvatarLocomotionAnimator } from './avatar/locomotionAnimator';
+import type { AvatarLocomotionAnimatorHandle } from './avatar/locomotionAnimator';
 import { createPortfolioMannequin } from './avatar/mannequin';
 import {
   createAvatarVariantManager,
@@ -153,6 +157,7 @@ import {
   computeCameraRelativeYaw,
   computeModelYawFromVector,
   computeYawFromVector,
+  angularDifference,
   dampYawTowards,
   getCameraRelativeDirection,
   normalizeRadians,
@@ -278,6 +283,10 @@ const markDocumentReady = (mode: AppMode) => {
 };
 
 let immersiveFailureHandled = false;
+
+let locomotionAnimator: AvatarLocomotionAnimatorHandle | null = null;
+let locomotionLinearSpeed = 0;
+let locomotionAngularSpeed = 0;
 
 const handleImmersiveFailure = (
   container: HTMLElement,
@@ -1232,6 +1241,40 @@ function initializeImmersiveScene(
   player.position.copy(initialPlayerPosition);
   scene.add(player);
 
+  const mannequinMixer = new AnimationMixer(player);
+  const createStaticClip = (name: string) => new AnimationClip(name, -1, []);
+  locomotionAnimator = createAvatarLocomotionAnimator({
+    mixer: mannequinMixer,
+    clips: {
+      idle: createStaticClip('MannequinIdle'),
+      walk: createStaticClip('MannequinWalk'),
+      run: createStaticClip('MannequinRun'),
+      turnLeft: createStaticClip('MannequinTurnLeft'),
+      turnRight: createStaticClip('MannequinTurnRight'),
+    },
+    maxLinearSpeed: PLAYER_SPEED,
+    thresholds: {
+      idleToWalk: PLAYER_SPEED * 0.18,
+      walkToRun: PLAYER_SPEED * 0.62,
+    },
+    smoothing: {
+      linear: 6,
+      turn: 10,
+    },
+    timeScale: {
+      min: 0.4,
+      max: 2.2,
+      walkReferenceSpeed: PLAYER_SPEED * 0.3,
+      runReferenceSpeed: PLAYER_SPEED * 0.82,
+      turnReferenceSpeed: Math.PI,
+    },
+    turn: {
+      threshold: 0.9,
+      max: 2.6,
+      linearSpeedLimit: PLAYER_SPEED * 0.24,
+    },
+  });
+
   let avatarVariantStorage: Storage | undefined;
   try {
     avatarVariantStorage = window.localStorage;
@@ -2103,6 +2146,7 @@ function initializeImmersiveScene(
   onResize();
 
   function updateMovement(delta: number) {
+    const yawBefore = player.rotation.y;
     const rightInput =
       Number(keyBindings.isActionActive('moveRight', keyPressSource)) -
       Number(keyBindings.isActionActive('moveLeft', keyPressSource));
@@ -2206,6 +2250,21 @@ function initializeImmersiveScene(
       mannequinFacingDirection
     );
     player.rotation.y = computeModelYawFromVector(facingDirection);
+
+    const yawAfter = player.rotation.y;
+    if (Number.isFinite(delta) && delta > 1e-6) {
+      const yawDelta = angularDifference(yawBefore, yawAfter);
+      const angularVelocity = yawDelta / delta;
+      locomotionAngularSpeed = Number.isFinite(angularVelocity)
+        ? angularVelocity
+        : 0;
+    } else {
+      locomotionAngularSpeed = 0;
+    }
+    const planarSpeed = Math.sqrt(
+      velocity.x * velocity.x + velocity.z * velocity.z
+    );
+    locomotionLinearSpeed = Number.isFinite(planarSpeed) ? planarSpeed : 0;
   }
 
   function updateCamera(delta: number) {
@@ -2582,6 +2641,12 @@ function initializeImmersiveScene(
       hudFocusAnnouncer.dispose();
       hudFocusAnnouncer = null;
     }
+    if (locomotionAnimator) {
+      locomotionAnimator.dispose();
+      locomotionAnimator = null;
+      locomotionLinearSpeed = 0;
+      locomotionAngularSpeed = 0;
+    }
     controls.dispose();
     gitshelvesInstallation = null;
   }
@@ -2597,6 +2662,13 @@ function initializeImmersiveScene(
         return;
       }
       updateMovement(delta);
+      if (locomotionAnimator) {
+        locomotionAnimator.update({
+          delta,
+          linearSpeed: locomotionLinearSpeed,
+          angularSpeed: locomotionAngularSpeed,
+        });
+      }
       updateCamera(delta);
       updatePois(elapsedTime, delta);
       poiWorldTooltip.update(delta);
