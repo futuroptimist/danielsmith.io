@@ -19,7 +19,7 @@ describe('createManualModeToggle', () => {
     }
   };
 
-  it('activates via click and disables while pending', () => {
+  it('activates via click, shows pending state, then marks text mode active', async () => {
     const container = createContainer();
     let fallbackActive = false;
     const onToggle = vi.fn(() => {
@@ -34,6 +34,9 @@ describe('createManualModeToggle', () => {
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Press T to activate.'
     );
+    expect(handle.element.dataset.state).toBe('idle');
+    expect(handle.element.textContent).toBe('Text mode · Press T');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
 
     handle.element.click();
 
@@ -43,6 +46,17 @@ describe('createManualModeToggle', () => {
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Switching to text mode…'
     );
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.textContent).toBe('Text mode active');
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      'Text mode already active.'
+    );
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
+    expect(handle.element.disabled).toBe(true);
 
     cleanupHandle(handle);
     container.remove();
@@ -57,15 +71,18 @@ describe('createManualModeToggle', () => {
       getIsFallbackActive: () => true,
     });
 
-    expect(handle.element.dataset.hudAnnounce).toBe(
-      'Switch to the text-only portfolio. Text mode already active.'
-    );
+    expect(handle.element.dataset.hudAnnounce).toBe('Text mode already active.');
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.textContent).toBe('Text mode active');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
+    expect(handle.element.disabled).toBe(true);
 
     handle.element.click();
 
     expect(onToggle).not.toHaveBeenCalled();
-    expect(handle.element.disabled).toBe(false);
-    expect(handle.element.dataset.state).toBe('idle');
+    expect(handle.element.disabled).toBe(true);
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
 
     cleanupHandle(handle);
     container.remove();
