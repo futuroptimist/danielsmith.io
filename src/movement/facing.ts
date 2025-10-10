@@ -51,4 +51,22 @@ export function directionFromPoints(
   return out;
 }
 
+export function computeModelYawFromVector(vector: Vector3): number {
+  // Rotation required so the model's +Z faces the provided vector.
+  // This is the typical THREE.js yaw formula for aligning +Z to (x, z).
+  const x = vector.x;
+  const z = vector.z;
+  if (!Number.isFinite(x) || !Number.isFinite(z)) {
+    return 0;
+  }
+  if (x === 0 && z === 0) {
+    return 0;
+  }
+  return Math.atan2(x, z);
+}
+
+export function rotateYaw(base: number, delta: number): number {
+  return normalizeRadians(base + delta);
+}
+
 

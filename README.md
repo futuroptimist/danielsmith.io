@@ -14,6 +14,19 @@ we can iterate on spatial UX while keeping repo hygiene tight. The project was o
 bootstrapped from the [`flywheel`](https://github.com/futuroptimist/flywheel) template and
 keeps the familiar conventions while focusing purely on the web stack.
 
+### Directionality and facing
+
+The camera is isometric/orthographic and the room is rotated ~45°. Directional input is
+defined from the camera’s view:
+
+- `W`/`ArrowUp`: north (away from camera)
+- `S`/`ArrowDown`: south (toward camera)
+- `A`/`ArrowLeft`: west (left from camera)
+- `D`/`ArrowRight`: east (right from camera)
+
+Avatar facing is computed from the camera-relative movement vector; see
+`src/movement/facing.ts` for helpers and `src/main.ts` for integration.
+
 ## Launch state
 
 ![Launch-ready room at initial load](docs/assets/game-launch.png)

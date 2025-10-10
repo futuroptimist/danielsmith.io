@@ -137,9 +137,10 @@ import {
 } from './lighting/debugControls';
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import {
-  computeYawFromVector,
   dampYawTowards,
   normalizeRadians,
+  computeModelYawFromVector,
+  rotateYaw,
 } from './movement/facing';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
@@ -232,7 +233,6 @@ const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
-const MANNEQUIN_YAW_OFFSET = Math.PI / 2 + Math.PI; // additional 180° to correct backward walk
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -1293,7 +1293,7 @@ function initializeImmersiveScene(
       },
       // Test helpers – expose current mannequin yaw in radians.
       getPlayerYaw() {
-        return normalizeRadians(-mannequinYaw + MANNEQUIN_YAW_OFFSET);
+        return normalizeRadians(mannequinYaw);
       },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
@@ -2098,7 +2098,8 @@ function initializeImmersiveScene(
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
     if (speedSq > 1e-6) {
-      mannequinYawTarget = computeYawFromVector(velocity);
+      const base = computeModelYawFromVector(velocity);
+      mannequinYawTarget = rotateYaw(base, -Math.PI / 2);
     }
     mannequinYaw = dampYawTowards(
       mannequinYaw,
@@ -2107,7 +2108,7 @@ function initializeImmersiveScene(
       delta
     );
     // Mirror yaw horizontally for visible model so A/D map intuitively.
-    player.rotation.y = -mannequinYaw + MANNEQUIN_YAW_OFFSET;
+    player.rotation.y = mannequinYaw;
   }
 
   function updateCamera(delta: number) {
