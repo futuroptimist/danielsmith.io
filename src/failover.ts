@@ -1,5 +1,6 @@
 import { initializeModeAnnouncementObserver } from './accessibility/modeAnnouncer';
 import { getLocaleDirection } from './i18n';
+import { IMMERSIVE_MODE_PARAM, IMMERSIVE_MODE_VALUE } from './immersiveUrl';
 
 if (
   typeof document !== 'undefined' &&
@@ -122,6 +123,8 @@ function shouldForceTextModeForUserAgent(userAgent: string): boolean {
   return AUTOMATED_CLIENT_PATTERNS.some((pattern) => pattern.test(userAgent));
 }
 
+const TEXT_MODE_VALUE = 'text';
+
 export function evaluateFailoverDecision(
   options: FailoverDecisionOptions = {}
 ): FailoverDecision {
@@ -129,7 +132,9 @@ export function evaluateFailoverDecision(
     options.search ??
     (typeof window !== 'undefined' ? window.location.search : '');
   const params = new URLSearchParams(search);
-  const mode = params.get('mode');
+  const modeValues = params.getAll(IMMERSIVE_MODE_PARAM);
+  const hasImmersiveOverride = modeValues.includes(IMMERSIVE_MODE_VALUE);
+  const hasManualTextMode = modeValues.includes(TEXT_MODE_VALUE);
 
   const minimumDeviceMemory = options.minimumDeviceMemory ?? 1;
   const readDeviceMemory = options.getDeviceMemory ?? getNavigatorDeviceMemory;
@@ -142,18 +147,18 @@ export function evaluateFailoverDecision(
   const readUserAgent = options.getUserAgent ?? getNavigatorUserAgent;
   const userAgent = readUserAgent();
 
-  if (mode === 'text') {
-    return { shouldUseFallback: true, reason: 'manual' };
+  if (hasImmersiveOverride) {
+    return { shouldUseFallback: false };
   }
 
-  if (mode === 'immersive') {
-    return { shouldUseFallback: false };
+  if (hasManualTextMode) {
+    return { shouldUseFallback: true, reason: 'manual' };
   }
 
   const webglSupported = isWebglSupported(options);
 
   if (
-    (!mode || mode.length === 0) &&
+    modeValues.length === 0 &&
     userAgent &&
     shouldForceTextModeForUserAgent(userAgent)
   ) {

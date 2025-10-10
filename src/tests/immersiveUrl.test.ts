@@ -64,4 +64,10 @@ describe('immersive flag helpers', () => {
     ).toBe(true);
     expect(shouldDisablePerformanceFailover('feature=preview')).toBe(false);
   });
+
+  it('treats any immersive mode value as an override even when duplicates exist', () => {
+    const params = new URLSearchParams('mode=text&mode=immersive');
+    expect(hasImmersiveOverride(params)).toBe(true);
+    expect(shouldDisablePerformanceFailover(params)).toBe(true);
+  });
 });

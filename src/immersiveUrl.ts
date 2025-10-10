@@ -44,9 +44,14 @@ export const createImmersiveModeUrl = (location?: LocationLike) => {
 const toSearchParams = (value: string | URLSearchParams): URLSearchParams =>
   typeof value === 'string' ? new URLSearchParams(value) : value;
 
+const hasImmersiveModeValue = (params: URLSearchParams) =>
+  params
+    .getAll(IMMERSIVE_MODE_PARAM)
+    .some((value) => value === IMMERSIVE_MODE_VALUE);
+
 export const hasImmersiveOverride = (value: string | URLSearchParams) => {
   const params = toSearchParams(value);
-  return params.get(IMMERSIVE_MODE_PARAM) === IMMERSIVE_MODE_VALUE;
+  return hasImmersiveModeValue(params);
 };
 
 export const hasPerformanceFailoverBypass = (
@@ -63,5 +68,5 @@ export const shouldDisablePerformanceFailover = (
   value: string | URLSearchParams
 ) => {
   const params = toSearchParams(value);
-  return hasImmersiveOverride(params) || hasPerformanceFailoverBypass(params);
+  return hasImmersiveModeValue(params) || hasPerformanceFailoverBypass(params);
 };

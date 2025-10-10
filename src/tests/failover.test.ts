@@ -110,6 +110,14 @@ describe('evaluateFailoverDecision', () => {
     expect(decision).toEqual({ shouldUseFallback: false });
   });
 
+  it('prioritizes immersive override when both immersive and text modes are present', () => {
+    const decision = evaluateFailoverDecision({
+      search: '?mode=text&mode=immersive',
+      createCanvas: canvasFactory,
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('routes automated clients to text mode when mode is not forced', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
