@@ -14,7 +14,10 @@ test('capture launch state screenshot', async ({ page }) => {
     { timeout: IMMERSIVE_READY_TIMEOUT_MS }
   );
 
-  await expect(page.locator('html')).toHaveAttribute('data-app-mode', 'immersive');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-app-mode',
+    'immersive'
+  );
   await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
 
   await page.waitForTimeout(WAIT_FOR_RENDER_MS);
