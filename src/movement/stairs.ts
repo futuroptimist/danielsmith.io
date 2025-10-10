@@ -75,6 +75,11 @@ export const predictStairFloorId = (
       return 'upper';
     }
 
+    const baseExitHalfWidth = Math.max(
+      geometry.halfWidth - behavior.transitionMargin * 0.5,
+      geometry.halfWidth * 0.5
+    );
+
     const withinLanding = isWithinLanding(
       geometry,
       x,
@@ -89,7 +94,12 @@ export const predictStairFloorId = (
       rampHeight < geometry.totalRise - behavior.stepRise * 0.1;
     const nearBottomBuffer = geometry.bottomZ - behavior.transitionMargin * 0.5;
 
-    if ((hasLeftLanding && z <= nearBottomBuffer) || z >= geometry.bottomZ) {
+    if (hasLeftLanding && z <= nearBottomBuffer) {
+      return 'ground';
+    }
+
+    const withinBaseExit = Math.abs(x - geometry.centerX) <= baseExitHalfWidth;
+    if (withinBaseExit && z >= geometry.bottomZ) {
       return 'ground';
     }
 
