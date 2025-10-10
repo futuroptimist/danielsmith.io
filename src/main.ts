@@ -544,10 +544,20 @@ function initializeImmersiveScene(
     baseCameraSize * 1.08,
     baseCameraSize * 1.06
   );
+  const cameraForwardPlanar = new Vector3();
+  let cameraYawOffset = 0;
 
   const cameraCenter = initialPlayerPosition.clone();
   camera.position.copy(cameraCenter).add(cameraBaseOffset);
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+  camera.getWorldDirection(cameraForwardPlanar);
+  cameraForwardPlanar.y = 0;
+  if (cameraForwardPlanar.lengthSq() <= 1e-6) {
+    cameraForwardPlanar.set(0, 0, -1);
+  } else {
+    cameraForwardPlanar.normalize();
+  }
+  cameraYawOffset = computeYawFromVector(cameraForwardPlanar);
 
   const ambientLight = new AmbientLight(0xf5f7ff, 0.38);
   const hemisphericLight = new HemisphereLight(0x324a6d, 0x131a17, 0.22);
@@ -2037,6 +2047,9 @@ function initializeImmersiveScene(
     const combinedRight = rightInput + joystickMovement.x;
     const combinedForward = forwardInput - joystickMovement.y;
 
+    const planarInputLengthSq =
+      combinedRight * combinedRight + combinedForward * combinedForward;
+
     getCameraRelativeMovementVector(
       camera,
       combinedRight,
@@ -2056,6 +2069,17 @@ function initializeImmersiveScene(
       0,
       MathUtils.damp(velocity.z, targetVelocity.z, MOVEMENT_SMOOTHING, delta)
     );
+
+    const planarVelocityLengthSq = velocity.x * velocity.x + velocity.z * velocity.z;
+
+    if (planarVelocityLengthSq > 1e-6) {
+      const rawYaw = computeYawFromVector(velocity);
+      mannequinYawTarget = normalizeRadians(rawYaw - cameraYawOffset);
+    } else if (planarInputLengthSq > 1e-6) {
+      mannequinYawTarget = normalizeRadians(
+        Math.atan2(combinedRight, combinedForward)
+      );
+    }
 
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
@@ -2095,10 +2119,6 @@ function initializeImmersiveScene(
     updatePlayerVerticalPosition();
 
     // Update facing: aim toward current planar velocity when moving.
-    const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
-    if (speedSq > 1e-6) {
-      mannequinYawTarget = normalizeRadians(computeYawFromVector(velocity));
-    }
     mannequinYaw = dampYawTowards(
       mannequinYaw,
       mannequinYawTarget,
