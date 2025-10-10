@@ -86,8 +86,16 @@ export function createPrReaperConsole(
   group.position.copy(basePosition);
   group.rotation.y = orientationRadians;
 
-  const right = new Vector3(Math.cos(orientationRadians), 0, -Math.sin(orientationRadians));
-  const forward = new Vector3(Math.sin(orientationRadians), 0, Math.cos(orientationRadians));
+  const right = new Vector3(
+    Math.cos(orientationRadians),
+    0,
+    -Math.sin(orientationRadians)
+  );
+  const forward = new Vector3(
+    Math.sin(orientationRadians),
+    0,
+    Math.cos(orientationRadians)
+  );
 
   const colliders: RectCollider[] = [];
 
@@ -126,7 +134,10 @@ export function createPrReaperConsole(
     roughness: 0.38,
     metalness: 0.34,
   });
-  const consoleBase = new Mesh(new BoxGeometry(1.24, 0.5, 0.62), consoleBaseMaterial);
+  const consoleBase = new Mesh(
+    new BoxGeometry(1.24, 0.5, 0.62),
+    consoleBaseMaterial
+  );
   consoleBase.name = 'PrReaperConsoleBase';
   consoleBase.position.set(0, deckHeight + 0.5, -0.08);
   group.add(consoleBase);
@@ -138,7 +149,10 @@ export function createPrReaperConsole(
     roughness: 0.32,
     metalness: 0.28,
   });
-  const consoleBridge = new Mesh(new BoxGeometry(1.26, 0.18, 0.68), consoleBridgeMaterial);
+  const consoleBridge = new Mesh(
+    new BoxGeometry(1.26, 0.18, 0.68),
+    consoleBridgeMaterial
+  );
   consoleBridge.name = 'PrReaperConsoleBridge';
   consoleBridge.position.set(0, deckHeight + 0.94, -0.04);
   group.add(consoleBridge);
@@ -173,7 +187,10 @@ export function createPrReaperConsole(
     roughness: 0.2,
     metalness: 0.24,
   });
-  const holoRing = new Mesh(new TorusGeometry(0.52, 0.04, 16, 64), holoRingMaterial);
+  const holoRing = new Mesh(
+    new TorusGeometry(0.52, 0.04, 16, 64),
+    holoRingMaterial
+  );
   holoRing.name = 'PrReaperConsoleHologram';
   holoRing.rotation.x = Math.PI / 2;
   holoRing.position.set(0, deckHeight + 1.08, -0.36);
@@ -210,7 +227,10 @@ export function createPrReaperConsole(
     roughness: 0.38,
     metalness: 0.3,
   });
-  const intake = new Mesh(new CylinderGeometry(0.22, 0.22, 0.18, 24), intakeMaterial);
+  const intake = new Mesh(
+    new CylinderGeometry(0.22, 0.22, 0.18, 24),
+    intakeMaterial
+  );
   intake.name = 'PrReaperConsoleIntake';
   intake.rotation.x = Math.PI / 2;
   intake.position.copy(logTable.position).add(new Vector3(0, 0.12, -0.08));
@@ -222,7 +242,10 @@ export function createPrReaperConsole(
     metalness: 0.18,
   });
   const walkwayDepth = 0.7;
-  const walkway = new Mesh(new BoxGeometry(1.6, 0.12, walkwayDepth), walkwayMaterial);
+  const walkway = new Mesh(
+    new BoxGeometry(1.6, 0.12, walkwayDepth),
+    walkwayMaterial
+  );
   walkway.name = 'PrReaperConsoleWalkway';
   walkway.position.set(0, 0.06, deckDepth / 2 + walkwayDepth / 2 - 0.12);
   group.add(walkway);
@@ -238,11 +261,24 @@ export function createPrReaperConsole(
   cautionStrip.position.set(0, walkway.position.y + 0.07, walkway.position.z);
   group.add(cautionStrip);
 
-  const deckCollider = createCollider(basePosition, deckWidth, deckDepth, orientationRadians);
+  const deckCollider = createCollider(
+    basePosition,
+    deckWidth,
+    deckDepth,
+    orientationRadians
+  );
   colliders.push(deckCollider);
   const walkwayOffset = deckDepth / 2 + walkwayDepth / 2 - 0.12;
-  const walkwayCenter = offsetLocal(basePosition, right, forward, 0, walkwayOffset);
-  colliders.push(createCollider(walkwayCenter, 1.6, walkwayDepth, orientationRadians));
+  const walkwayCenter = offsetLocal(
+    basePosition,
+    right,
+    forward,
+    0,
+    walkwayOffset
+  );
+  colliders.push(
+    createCollider(walkwayCenter, 1.6, walkwayDepth, orientationRadians)
+  );
 
   const update = ({
     elapsed,
@@ -254,7 +290,11 @@ export function createPrReaperConsole(
   }) => {
     const clampedEmphasis = MathUtils.clamp(emphasis, 0, 1);
     const pulse = (Math.sin(elapsed * 2.2) + 1) / 2;
-    const intensity = MathUtils.lerp(0.35, 1.25, Math.min(1, clampedEmphasis + pulse * 0.55));
+    const intensity = MathUtils.lerp(
+      0.35,
+      1.25,
+      Math.min(1, clampedEmphasis + pulse * 0.55)
+    );
     screenMaterial.emissiveIntensity = intensity;
     consoleBridgeMaterial.emissiveIntensity = MathUtils.lerp(
       0.4,

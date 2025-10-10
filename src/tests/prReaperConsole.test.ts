@@ -7,12 +7,21 @@ describe('createPrReaperConsole', () => {
   it('builds the console with expected structure and colliders respecting rotation', () => {
     const position = { x: 6.6, z: 19.6 };
     const orientation = Math.PI * 0.35;
-    const console = createPrReaperConsole({ position, orientationRadians: orientation });
+    const console = createPrReaperConsole({
+      position,
+      orientationRadians: orientation,
+    });
 
     expect(console.group.name).toBe('PrReaperConsole');
-    expect(console.group.getObjectByName('PrReaperConsoleScreen')).toBeInstanceOf(Mesh);
-    expect(console.group.getObjectByName('PrReaperConsoleHologram')).toBeInstanceOf(Mesh);
-    expect(console.group.getObjectByName('PrReaperConsoleWalkway')).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleScreen')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleHologram')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleWalkway')
+    ).toBeInstanceOf(Mesh);
 
     expect(console.colliders).toHaveLength(2);
     const [deckCollider, walkwayCollider] = console.colliders;
@@ -35,10 +44,18 @@ describe('createPrReaperConsole', () => {
 
   it('animates hologram elements and emissive surfaces based on emphasis', () => {
     const console = createPrReaperConsole({ position: { x: 0, z: 0 } });
-    const screen = console.group.getObjectByName('PrReaperConsoleScreen') as Mesh;
-    const bridge = console.group.getObjectByName('PrReaperConsoleBridge') as Mesh;
-    const hologram = console.group.getObjectByName('PrReaperConsoleHologram') as Mesh;
-    const intake = console.group.getObjectByName('PrReaperConsoleIntake') as Mesh;
+    const screen = console.group.getObjectByName(
+      'PrReaperConsoleScreen'
+    ) as Mesh;
+    const bridge = console.group.getObjectByName(
+      'PrReaperConsoleBridge'
+    ) as Mesh;
+    const hologram = console.group.getObjectByName(
+      'PrReaperConsoleHologram'
+    ) as Mesh;
+    const intake = console.group.getObjectByName(
+      'PrReaperConsoleIntake'
+    ) as Mesh;
     const sweep = console.group.getObjectByName('PrReaperConsoleSweep') as Mesh;
 
     const screenMaterial = screen.material as MeshStandardMaterial;
@@ -57,7 +74,9 @@ describe('createPrReaperConsole', () => {
     console.update({ elapsed: 1.5, delta: 0.016, emphasis: 0.8 });
     expect(screenMaterial.emissiveIntensity).toBeGreaterThan(baselineScreen);
     expect(bridgeMaterial.emissiveIntensity).toBeGreaterThan(baselineBridge);
-    expect(hologramMaterial.emissiveIntensity).toBeGreaterThan(baselineHologram);
+    expect(hologramMaterial.emissiveIntensity).toBeGreaterThan(
+      baselineHologram
+    );
     expect(intakeMaterial.emissiveIntensity).toBeGreaterThan(baselineIntake);
     expect(sweepMaterial.opacity).toBeGreaterThan(baselineOpacity);
     expect(sweep.rotation.z).not.toBe(0);
