@@ -64,9 +64,17 @@ export const predictStairFloorId = (
   current: FloorId
 ): FloorId => {
   const rampHeight = computeRampHeight(geometry, behavior, x, z);
-  const withinStairs = isWithinStairWidth(geometry, x, behavior.transitionMargin);
+  const withinStairs = isWithinStairWidth(
+    geometry,
+    x,
+    behavior.transitionMargin
+  );
 
   if (current === 'upper') {
+    if (!withinStairs) {
+      return 'upper';
+    }
+
     const withinLanding = isWithinLanding(
       geometry,
       x,
@@ -74,8 +82,17 @@ export const predictStairFloorId = (
       behavior.landingTriggerMargin
     );
     if (withinLanding) {
+      return 'upper';
+    }
+
+    const hasLeftLanding =
+      rampHeight < geometry.totalRise - behavior.stepRise * 0.1;
+    const nearBottomBuffer = geometry.bottomZ - behavior.transitionMargin * 0.5;
+
+    if ((hasLeftLanding && z <= nearBottomBuffer) || z >= geometry.bottomZ) {
       return 'ground';
     }
+
     return 'upper';
   }
 

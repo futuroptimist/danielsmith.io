@@ -15,8 +15,7 @@ const STAIR_GEOMETRY: StairGeometry = {
   halfWidth: toWorldUnits(3.1) / 2,
   bottomZ: toWorldUnits(-5.3),
   topZ: toWorldUnits(-5.3) - toWorldUnits(0.85) * 9,
-  landingMinZ:
-    toWorldUnits(-5.3) - toWorldUnits(0.85) * 9 - toWorldUnits(2.6),
+  landingMinZ: toWorldUnits(-5.3) - toWorldUnits(0.85) * 9 - toWorldUnits(2.6),
   totalRise: 0.42 * 9,
 };
 
@@ -41,14 +40,42 @@ describe('stair floor transitions', () => {
     expect(result).toBe('upper');
   });
 
-  it('only allows descending when inside the landing zone', () => {
+  it('stays on the upper floor while roaming across the landing', () => {
     const currentFloor: FloorId = 'upper';
-    const landingZ = STAIR_GEOMETRY.topZ - toWorldUnits(0.1);
+    const landingInteriorZ = STAIR_GEOMETRY.landingMinZ + toWorldUnits(0.6);
     const result = predictStairFloorId(
       STAIR_GEOMETRY,
       STAIR_BEHAVIOR,
       STAIR_GEOMETRY.centerX,
-      landingZ,
+      landingInteriorZ,
+      currentFloor
+    );
+
+    expect(result).toBe('upper');
+  });
+
+  it('switches to the ground floor after leaving the landing for the ramp', () => {
+    const currentFloor: FloorId = 'upper';
+    const firstStepZ = STAIR_GEOMETRY.topZ + toWorldUnits(0.3);
+    const result = predictStairFloorId(
+      STAIR_GEOMETRY,
+      STAIR_BEHAVIOR,
+      STAIR_GEOMETRY.centerX,
+      firstStepZ,
+      currentFloor
+    );
+
+    expect(result).toBe('ground');
+  });
+
+  it('remains on the ground after passing the stair base', () => {
+    const currentFloor: FloorId = 'upper';
+    const groundExitZ = STAIR_GEOMETRY.bottomZ + toWorldUnits(0.1);
+    const result = predictStairFloorId(
+      STAIR_GEOMETRY,
+      STAIR_BEHAVIOR,
+      STAIR_GEOMETRY.centerX,
+      groundExitZ,
       currentFloor
     );
 
