@@ -1,11 +1,75 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { InteractionTimeline } from '../accessibility/interactionTimeline';
 import { PoiTooltipOverlay } from '../poi/tooltipOverlay';
 import type { PoiDefinition } from '../poi/types';
+
+class TimelineHarness {
+  private currentTime = 0;
+
+  private nextHandle = 1;
+
+  private readonly events = new Map<
+    number,
+    { time: number; callback: () => void }
+  >();
+
+  readonly timeline: InteractionTimeline;
+
+  constructor({
+    minIntervalMs = 250,
+    maxQueueLength = 2,
+  }: { minIntervalMs?: number; maxQueueLength?: number } = {}) {
+    this.timeline = new InteractionTimeline({
+      minIntervalMs,
+      maxQueueLength,
+      now: () => this.currentTime,
+      schedule: (callback, delay) => {
+        const handle = this.nextHandle++;
+        this.events.set(handle, {
+          time: this.currentTime + Math.max(0, delay),
+          callback,
+        });
+        return handle as unknown as ReturnType<typeof setTimeout>;
+      },
+      cancel: (handle) => {
+        this.events.delete(handle as unknown as number);
+      },
+    });
+  }
+
+  advance(ms: number): void {
+    if (ms < 0) {
+      throw new Error('TimelineHarness cannot advance backwards.');
+    }
+    this.currentTime += ms;
+    this.flush();
+  }
+
+  flush(): void {
+    let ran = false;
+    do {
+      ran = false;
+      for (const [handle, event] of Array.from(this.events.entries())) {
+        if (event.time <= this.currentTime) {
+          this.events.delete(handle);
+          event.callback();
+          ran = true;
+        }
+      }
+    } while (ran);
+  }
+
+  dispose(): void {
+    this.timeline.dispose();
+    this.events.clear();
+  }
+}
 
 describe('PoiTooltipOverlay', () => {
   let container: HTMLElement;
   let overlay: PoiTooltipOverlay;
+  let timelineHarness: TimelineHarness;
 
   const basePoi: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
@@ -31,11 +95,16 @@ describe('PoiTooltipOverlay', () => {
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
-    overlay = new PoiTooltipOverlay({ container });
+    timelineHarness = new TimelineHarness();
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+    });
   });
 
   afterEach(() => {
     overlay.dispose();
+    timelineHarness.dispose();
     container.remove();
   });
 
@@ -129,6 +198,8 @@ describe('PoiTooltipOverlay', () => {
     expect(initialMessage).toContain(`${basePoi.title} discovered.`);
     expect(initialMessage).toContain(basePoi.summary);
 
+    timelineHarness.advance(250);
+
     const nextPoi: PoiDefinition = {
       ...basePoi,
       id: 'futuroptimist-living-room-tv-variant',
@@ -136,17 +207,30 @@ describe('PoiTooltipOverlay', () => {
     };
 
     overlay.setSelected(nextPoi);
+    expect(liveRegion.textContent).not.toContain(
+      `${nextPoi.title} discovered.`
+    );
+
+    timelineHarness.advance(249);
+    expect(liveRegion.textContent).not.toContain(
+      `${nextPoi.title} discovered.`
+    );
+
+    timelineHarness.advance(1);
     expect(liveRegion.textContent).toContain(`${nextPoi.title} discovered.`);
   });
 
   it('supports custom discovery formatter and politeness levels', () => {
     overlay.dispose();
+    timelineHarness.dispose();
+    timelineHarness = new TimelineHarness();
     overlay = new PoiTooltipOverlay({
       container,
       discoveryAnnouncer: {
         politeness: 'assertive',
         format: (poi) => `${poi.title} ready for inspection`,
       },
+      interactionTimeline: timelineHarness.timeline,
     });
 
     overlay.setSelected(basePoi);
@@ -195,17 +279,22 @@ describe('PoiTooltipOverlay', () => {
     expect(liveRegion.textContent).toContain(`${basePoi.title} discovered.`);
 
     overlay.setVisitedPoiIds(new Set([basePoi.id]));
+    timelineHarness.advance(1000);
     overlay.setSelected(basePoi);
+    timelineHarness.advance(250);
     expect(liveRegion.textContent).toContain(`${basePoi.title} discovered.`);
   });
 
   it('ignores discovery announcements when the formatter returns an empty string', () => {
     overlay.dispose();
+    timelineHarness.dispose();
+    timelineHarness = new TimelineHarness();
     overlay = new PoiTooltipOverlay({
       container,
       discoveryAnnouncer: {
         format: () => '   ',
       },
+      interactionTimeline: timelineHarness.timeline,
     });
 
     overlay.setSelected({ ...basePoi, summary: undefined });

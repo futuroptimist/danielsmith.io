@@ -35,6 +35,7 @@ import {
   createHudFocusAnnouncer,
   type HudFocusAnnouncerHandle,
 } from './accessibility/hudFocusAnnouncer';
+import { InteractionTimeline } from './accessibility/interactionTimeline';
 import {
   ACCESSIBILITY_PRESETS,
   createAccessibilityPresetManager,
@@ -936,7 +937,11 @@ function initializeImmersiveScene(
   });
 
   const poiAnalytics = createWindowPoiAnalytics();
-  const poiTooltipOverlay = new PoiTooltipOverlay({ container });
+  const interactionTimeline = new InteractionTimeline();
+  const poiTooltipOverlay = new PoiTooltipOverlay({
+    container,
+    interactionTimeline,
+  });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
   const poiVisitedState = new PoiVisitedState();
   const poiTourGuide = new PoiTourGuide({
@@ -2334,6 +2339,7 @@ function initializeImmersiveScene(
     removeSelectionListener();
     removeVisitedSubscription();
     removeTourGuideSubscription();
+    interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();
     poiTourGuide.dispose();

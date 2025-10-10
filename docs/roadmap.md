@@ -196,7 +196,7 @@ Focus: make the experience inclusive and globally friendly.
   - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
   - ✅ HUD controls now announce focus changes through a dedicated live region tied to overlay and
     control focus events.
-- Interaction timeline tuned for cognitive load (limited simultaneous prompts).
+  - ✅ Interaction timeline now staggers POI discovery calls so prompts never stack.
 
 2. **Visual & Audio Accessibility**
    - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
