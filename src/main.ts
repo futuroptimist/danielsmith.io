@@ -179,6 +179,10 @@ import {
   type GabrielSentryBuild,
 } from './structures/gabrielSentry';
 import {
+  createGitshelvesInstallation,
+  type GitshelvesInstallationBuild,
+} from './structures/gitshelves';
+import {
   createJobbotTerminal,
   type JobbotTerminalBuild,
 } from './structures/jobbotTerminal';
@@ -365,6 +369,7 @@ let jobbotTerminal: JobbotTerminalBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
+let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
@@ -1067,6 +1072,9 @@ function initializeImmersiveScene(
   const gabrielPoi = poiInstances.find(
     (poi) => poi.definition.id === 'gabriel-studio-sentry'
   );
+  const gitshelvesPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'gitshelves-living-room-installation'
+  );
   const prReaperPoi = poiInstances.find(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
@@ -1148,6 +1156,22 @@ function initializeImmersiveScene(
     scene.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
+  }
+
+  if (gitshelvesPoi) {
+    const installation = createGitshelvesInstallation({
+      position: {
+        x: gitshelvesPoi.group.position.x,
+        y: gitshelvesPoi.group.position.y,
+        z: gitshelvesPoi.group.position.z,
+      },
+      orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
+    });
+    scene.add(installation.group);
+    installation.colliders.forEach((collider) =>
+      groundColliders.push(collider)
+    );
+    gitshelvesInstallation = installation;
   }
 
   const poiInteractionManager = new PoiInteractionManager(
@@ -2478,6 +2502,7 @@ function initializeImmersiveScene(
       hudFocusAnnouncer = null;
     }
     controls.dispose();
+    gitshelvesInstallation = null;
   }
 
   let hasPresentedFirstFrame = false;
@@ -2531,6 +2556,15 @@ function initializeImmersiveScene(
         const activation = gabrielPoi?.activation ?? 0;
         const focus = gabrielPoi?.focus ?? 0;
         gabrielSentry.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (gitshelvesInstallation) {
+        const activation = gitshelvesPoi?.activation ?? 0;
+        const focus = gitshelvesPoi?.focus ?? 0;
+        gitshelvesInstallation.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
