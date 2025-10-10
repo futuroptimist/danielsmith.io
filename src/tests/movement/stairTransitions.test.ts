@@ -49,4 +49,15 @@ describe('stair floor predictor', () => {
     );
     expect(floor).toBe('ground');
   });
+
+  it('keeps the player on the ground floor when stepping onto the first tread', () => {
+    const firstTreadZ =
+      STAIR_METRICS.stairTopZ + STAIR_METRICS.stairRun * 0.5;
+    const floor = predictFloor(
+      STAIR_METRICS.stairCenterX,
+      firstTreadZ,
+      'ground'
+    );
+    expect(floor).toBe('ground');
+  });
 });

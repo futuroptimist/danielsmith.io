@@ -81,11 +81,22 @@ export function createStairFloorPredictor(
     stairTopZ
   );
   const computeRampHeight = createRampHeightCalculator(metrics);
+  const STAIR_DESCENT_EPSILON = 1e-3;
 
   return (x: number, z: number, current: StairFloorId): StairFloorId => {
     const rampHeight = computeRampHeight(x, z);
     const withinStairs = isWithinStairWidth(x, stairTransitionMargin);
     const onLanding = isWithinLanding(x, z, stairTransitionMargin);
+    const strictlyOnLanding = isWithinLanding(x, z);
+
+    if (
+      current === 'ground' &&
+      withinStairs &&
+      !strictlyOnLanding &&
+      z >= stairTopZ - STAIR_DESCENT_EPSILON
+    ) {
+      return 'ground';
+    }
 
     if (current === 'upper') {
       return onLanding ? 'ground' : 'upper';
