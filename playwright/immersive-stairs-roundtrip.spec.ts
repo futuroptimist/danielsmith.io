@@ -86,6 +86,13 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await movePlayerTo({ x: stairCenterX, z: landingRoamZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
+  // Step onto the floor beside the stairwell cutout; stay on the upper level.
+  const stairSideOffset = Math.min(stairHalfWidth * 0.5, 1.0);
+  const stairSideX = stairCenterX + stairHalfWidth + stairSideOffset;
+  const stairSideZ = (stairBottomZ + stairTopZ) / 2;
+  await movePlayerTo({ x: stairSideX, z: stairSideZ });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
   // Return toward the stairs and descend back to ground.
   await movePlayerTo({ x: stairCenterX, z: stairTopZ - 0.15 });
   await movePlayerTo({ x: stairCenterX, z: (stairBottomZ + stairTopZ) / 2 });

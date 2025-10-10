@@ -1427,6 +1427,19 @@ function initializeImmersiveScene(
   const isWithinStairWidth = (x: number, margin = 0) =>
     Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
 
+  const stairwellFootprintMarginX = Math.max(stairwellMarginX * 0.5, toWorldUnits(0.05));
+  const stairwellFootprintMarginZ = Math.max(stairwellMarginZ * 0.5, toWorldUnits(0.05));
+  const isWithinStairwellFootprint = (
+    x: number,
+    z: number,
+    marginX = 0,
+    marginZ = 0
+  ) =>
+    x >= stairHoleMinX - marginX &&
+    x <= stairHoleMaxX + marginX &&
+    z >= stairHoleMinZ - marginZ &&
+    z <= stairHoleMaxZ + marginZ;
+
   const computeRampHeight = (x: number, z: number): number => {
     if (!isWithinStairWidth(x, stairTransitionMargin)) {
       return 0;
@@ -1445,21 +1458,30 @@ function initializeImmersiveScene(
 
   const predictFloorId = (x: number, z: number, current: FloorId): FloorId => {
     const rampHeight = computeRampHeight(x, z);
-    const withinStairs = isWithinStairWidth(x, stairTransitionMargin);
+    const withinStairwell = isWithinStairwellFootprint(
+      x,
+      z,
+      stairwellFootprintMarginX,
+      stairwellFootprintMarginZ
+    );
 
     if (current === 'upper') {
       // Allow transitioning back to ground when entering the stair zone near
       // the bottom of the staircase.
       const nearBottom =
-        withinStairs &&
+        withinStairwell &&
         rampHeight <= STAIRCASE_CONFIG.step.rise * 0.5 &&
-        z >= stairBottomZ - stairRun * 0.5;
+        z >= stairBottomZ - stairRun * 0.5 &&
+        z <= stairBottomZ + stairwellFootprintMarginZ;
       if (nearBottom) {
         return 'ground';
       }
       // Also allow descending anywhere along the stair ramp zone when the
       // computed ramp height is below the top landing height threshold.
-      const onRampDescending = withinStairs && rampHeight < stairTotalRise;
+      const onRampDescending =
+        withinStairwell &&
+        rampHeight < stairTotalRise &&
+        z <= stairTopZ + stairTransitionMargin;
       if (onRampDescending) {
         return 'ground';
       }
@@ -1469,7 +1491,7 @@ function initializeImmersiveScene(
     // Ascend when entering the stair zone near the landing or when the ramp
     // height implies we've progressed sufficiently up the stairs.
     const nearLanding =
-      withinStairs &&
+      withinStairwell &&
       (z <= stairTopZ + stairTransitionMargin ||
         rampHeight >= stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
     if (nearLanding) {

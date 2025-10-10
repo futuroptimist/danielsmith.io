@@ -70,6 +70,7 @@ Focus: expand the environment while keeping navigation smooth.
      - ✅ Wall segment builder now reserves doorway openings and keeps player colliders clear.
      - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.
      - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
+     - ✅ Stair landing descent guard now limits floor changes to the landing pad so loft walkways stay playable.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
 3. **Outdoor Transition**
    - ✅ Sculpted backyard terrain plane and layered perimeter fence framing the dusk skybox.
