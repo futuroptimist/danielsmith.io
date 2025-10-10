@@ -2071,7 +2071,8 @@ function initializeImmersiveScene(
       MathUtils.damp(velocity.z, targetVelocity.z, MOVEMENT_SMOOTHING, delta)
     );
 
-    const planarVelocityLengthSq = velocity.x * velocity.x + velocity.z * velocity.z;
+    const planarVelocityLengthSq =
+      velocity.x * velocity.x + velocity.z * velocity.z;
 
     if (planarVelocityLengthSq > 1e-6) {
       const rawYaw = computeYawFromVector(velocity);
