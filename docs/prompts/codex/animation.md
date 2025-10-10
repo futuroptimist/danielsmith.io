@@ -18,8 +18,10 @@ USER:
 3. Wire the character controller to drive animation state machines.
 4. Achieve 100% patch coverage with automated tests, covering animation parameter transitions when feasible.
 5. Document tuning knobs (speeds, blend times) and manual QA steps.
-6. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
-   so the immersive scene stays active instead of tripping the low-FPS guard.
+6. Always open the Web preview at
+   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
+   needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
+   `createImmersiveModeUrl(...)` to keep both overrides intact.
 
 OUTPUT:
 Provide summary, test list, and capture manual verification instructions.

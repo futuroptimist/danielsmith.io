@@ -19,8 +19,10 @@ USER:
 4. Ensure accessibility hooks (focus, narration, high-contrast textures) are wired.
 5. Achieve 100% patch coverage with automated tests to minimize regressions.
 6. Update `docs/roadmap.md` progress notes or add showcase screenshots.
-7. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
-   so the immersive scene stays active instead of tripping the low-FPS guard.
+7. Always open the Web preview at
+   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
+   needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
+   `createImmersiveModeUrl(...)` to keep both overrides intact.
 
 OUTPUT:
 Share summary, tests, manual QA, and any follow-up ideas.
