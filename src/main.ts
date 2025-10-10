@@ -144,6 +144,13 @@ import {
   getCameraRelativeDirection,
   normalizeRadians,
 } from './movement/facing';
+import {
+  computeRampHeight as computeStairRampHeight,
+  predictStairFloorId,
+  type FloorId,
+  type StairBehavior,
+  type StairGeometry,
+} from './movement/stairs';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
 import {
@@ -247,8 +254,6 @@ const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
 type AppMode = 'immersive' | 'fallback';
-type FloorId = 'ground' | 'upper';
-
 const markDocumentReady = (mode: AppMode) => {
   const root = document.documentElement;
   root.dataset.appMode = mode;
@@ -705,6 +710,20 @@ function initializeImmersiveScene(
   const upperFloorElevation =
     stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairTransitionMargin = toWorldUnits(0.6);
+  const stairLandingTriggerMargin = toWorldUnits(0.2);
+  const stairGeometry: StairGeometry = {
+    centerX: stairCenterX,
+    halfWidth: stairHalfWidth,
+    bottomZ: stairBottomZ,
+    topZ: stairTopZ,
+    landingMinZ: stairLandingMinZ,
+    totalRise: stairTotalRise,
+  };
+  const stairBehavior: StairBehavior = {
+    transitionMargin: stairTransitionMargin,
+    landingTriggerMargin: stairLandingTriggerMargin,
+    stepRise: STAIRCASE_CONFIG.step.rise,
+  };
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLandingMinZ;
   const stairGuardMaxZ = stairBottomZ + toWorldUnits(0.6);
@@ -1424,60 +1443,11 @@ function initializeImmersiveScene(
     })
   );
 
-  const isWithinStairWidth = (x: number, margin = 0) =>
-    Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
+  const computeRampHeight = (x: number, z: number): number =>
+    computeStairRampHeight(stairGeometry, stairBehavior, x, z);
 
-  const computeRampHeight = (x: number, z: number): number => {
-    if (!isWithinStairWidth(x, stairTransitionMargin)) {
-      return 0;
-    }
-    const denominator = stairBottomZ - stairTopZ;
-    if (Math.abs(denominator) <= 1e-6) {
-      return 0;
-    }
-    const progress = (stairBottomZ - z) / denominator;
-    if (!Number.isFinite(progress)) {
-      return 0;
-    }
-    const clamped = MathUtils.clamp(progress, 0, 1);
-    return clamped * stairTotalRise;
-  };
-
-  const predictFloorId = (x: number, z: number, current: FloorId): FloorId => {
-    const rampHeight = computeRampHeight(x, z);
-    const withinStairs = isWithinStairWidth(x, stairTransitionMargin);
-
-    if (current === 'upper') {
-      // Allow transitioning back to ground when entering the stair zone near
-      // the bottom of the staircase.
-      const nearBottom =
-        withinStairs &&
-        rampHeight <= STAIRCASE_CONFIG.step.rise * 0.5 &&
-        z >= stairBottomZ - stairRun * 0.5;
-      if (nearBottom) {
-        return 'ground';
-      }
-      // Also allow descending anywhere along the stair ramp zone when the
-      // computed ramp height is below the top landing height threshold.
-      const onRampDescending = withinStairs && rampHeight < stairTotalRise;
-      if (onRampDescending) {
-        return 'ground';
-      }
-      return 'upper';
-    }
-
-    // Ascend when entering the stair zone near the landing or when the ramp
-    // height implies we've progressed sufficiently up the stairs.
-    const nearLanding =
-      withinStairs &&
-      (z <= stairTopZ + stairTransitionMargin ||
-        rampHeight >= stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
-    if (nearLanding) {
-      return 'upper';
-    }
-
-    return 'ground';
-  };
+  const predictFloorId = (x: number, z: number, current: FloorId): FloorId =>
+    predictStairFloorId(stairGeometry, stairBehavior, x, z, current);
 
   const canOccupyPosition = (
     x: number,
