@@ -15,6 +15,21 @@ describe('facing helpers', () => {
     expect(Math.abs(computeYawFromVector(new Vector3(0, 0, 1)))).toBeCloseTo(Math.PI, 6);
   });
 
+  it('computes diagonals correctly (two-key combos)', () => {
+    expect(
+      computeYawFromVector(new Vector3(1, 0, -1).normalize())
+    ).toBeCloseTo(Math.PI / 4, 6); // forward + right
+    expect(
+      computeYawFromVector(new Vector3(-1, 0, -1).normalize())
+    ).toBeCloseTo(-Math.PI / 4, 6); // forward + left
+    expect(
+      computeYawFromVector(new Vector3(1, 0, 1).normalize())
+    ).toBeCloseTo((3 * Math.PI) / 4, 6); // back + right
+    expect(
+      computeYawFromVector(new Vector3(-1, 0, 1).normalize())
+    ).toBeCloseTo((-3 * Math.PI) / 4, 6); // back + left
+  });
+
   it('normalizes and differences around wrap boundaries', () => {
     const a = Math.PI - 0.1;
     const b = -Math.PI + 0.1;

@@ -44,6 +44,25 @@ test.describe('avatar facing', () => {
     const yawAfterEast = await getYaw();
     const diffToEast = Math.abs(((yawAfterEast - Math.PI / 2 + Math.PI) % (2 * Math.PI)) - Math.PI);
     expect(diffToEast).toBeLessThan(1.0);
+
+    // Diagonal forward-right: hold W + D together, expect ~ PI/4.
+    await page.keyboard.down('w');
+    await page.keyboard.down('d');
+    await page.waitForTimeout(450);
+    await page.keyboard.up('d');
+    await page.keyboard.up('w');
+    const yawAfterDiag = await getYaw();
+    const target = Math.PI / 4;
+    const diffToDiag = Math.abs(((yawAfterDiag - target + Math.PI) % (2 * Math.PI)) - Math.PI);
+    expect(diffToDiag).toBeLessThan(1.0);
+
+    // Left (A) should face west (~ -PI/2).
+    await page.keyboard.down('a');
+    await page.waitForTimeout(400);
+    await page.keyboard.up('a');
+    const yawAfterLeft = await getYaw();
+    const diffToWest = Math.abs(((yawAfterLeft + Math.PI / 2 + Math.PI) % (2 * Math.PI)) - Math.PI);
+    expect(diffToWest).toBeLessThan(1.0);
   });
 });
 

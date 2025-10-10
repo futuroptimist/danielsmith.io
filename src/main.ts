@@ -139,6 +139,7 @@ import { getCameraRelativeMovementVector } from './movement/cameraRelativeMoveme
 import {
   computeYawFromVector,
   dampYawTowards,
+  normalizeRadians,
 } from './movement/facing';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
@@ -231,7 +232,7 @@ const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
-const MANNEQUIN_YAW_OFFSET = Math.PI / 2; // align mannequin forward with movement
+const MANNEQUIN_YAW_OFFSET = Math.PI / 2 + Math.PI; // additional 180° to correct backward walk
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -1292,7 +1293,7 @@ function initializeImmersiveScene(
       },
       // Test helpers – expose current mannequin yaw in radians.
       getPlayerYaw() {
-        return mannequinYaw;
+        return normalizeRadians(-mannequinYaw + MANNEQUIN_YAW_OFFSET);
       },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
@@ -2105,7 +2106,8 @@ function initializeImmersiveScene(
       MANNEQUIN_YAW_SMOOTHING,
       delta
     );
-    player.rotation.y = mannequinYaw + MANNEQUIN_YAW_OFFSET;
+    // Mirror yaw horizontally for visible model so A/D map intuitively.
+    player.rotation.y = -mannequinYaw + MANNEQUIN_YAW_OFFSET;
   }
 
   function updateCamera(delta: number) {
