@@ -44,7 +44,8 @@ afterAll(() => {
       originalGetContext
     );
   } else {
-    delete (HTMLCanvasElement.prototype as unknown as Record<string, unknown>).getContext;
+    delete (HTMLCanvasElement.prototype as unknown as Record<string, unknown>)
+      .getContext;
   }
 });
 
@@ -91,7 +92,9 @@ describe('createGitshelvesInstallation', () => {
     expect(afterIdleIntensity).not.toBe(baseIntensity);
 
     build.update({ elapsed: 1.2, delta: 0.016, emphasis: 1 });
-    expect(commitMaterial.emissiveIntensity).toBeGreaterThan(afterIdleIntensity);
+    expect(commitMaterial.emissiveIntensity).toBeGreaterThan(
+      afterIdleIntensity
+    );
     expect(commit.position.y).not.toBe(baseY);
 
     const header = build.group.getObjectByName('GitshelvesHeader') as Mesh;

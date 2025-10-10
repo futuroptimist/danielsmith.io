@@ -48,7 +48,12 @@ function createLabelTexture(): CanvasTexture {
   context.fillStyle = '#07111f';
   context.fillRect(0, 0, canvas.width, canvas.height);
 
-  const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+  const gradient = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
   gradient.addColorStop(0, '#10243d');
   gradient.addColorStop(1, '#061320');
   context.fillStyle = gradient;
@@ -111,12 +116,7 @@ function createOrientedCollider(
 export function createGitshelvesInstallation(
   options: GitshelvesInstallationOptions
 ): GitshelvesInstallationBuild {
-  const {
-    position,
-    orientationRadians = 0,
-    columns = 6,
-    rows = 4,
-  } = options;
+  const { position, orientationRadians = 0, columns = 6, rows = 4 } = options;
 
   const basePosition = new Vector3(position.x, position.y ?? 0, position.z);
 
@@ -137,7 +137,10 @@ export function createGitshelvesInstallation(
     roughness: 0.6,
     metalness: 0.22,
   });
-  const base = new Mesh(new BoxGeometry(baseWidth, baseHeight, baseDepth), baseMaterial);
+  const base = new Mesh(
+    new BoxGeometry(baseWidth, baseHeight, baseDepth),
+    baseMaterial
+  );
   base.name = 'GitshelvesBase';
   base.position.set(0, baseHeight / 2, 0);
   base.castShadow = true;
@@ -154,7 +157,11 @@ export function createGitshelvesInstallation(
     pedestalMaterial
   );
   pedestal.name = 'GitshelvesPedestal';
-  pedestal.position.set(0, baseHeight + pedestal.geometry.parameters.height / 2, 0.04);
+  pedestal.position.set(
+    0,
+    baseHeight + pedestal.geometry.parameters.height / 2,
+    0.04
+  );
   pedestal.castShadow = true;
   pedestal.receiveShadow = true;
   group.add(pedestal);
@@ -172,7 +179,11 @@ export function createGitshelvesInstallation(
     panelMaterial
   );
   panel.name = 'GitshelvesPanel';
-  panel.position.set(0, baseHeight + panelHeight / 2 + 0.1, -baseDepth / 2 + panelThickness / 2);
+  panel.position.set(
+    0,
+    baseHeight + panelHeight / 2 + 0.1,
+    -baseDepth / 2 + panelThickness / 2
+  );
   panel.receiveShadow = true;
   group.add(panel);
 
@@ -190,7 +201,11 @@ export function createGitshelvesInstallation(
   ['Left', 'Right'].forEach((label, index) => {
     const rail = new Mesh(railGeometry, railMaterial.clone());
     rail.name = `GitshelvesRail${label}`;
-    rail.position.set(index === 0 ? -railOffsetX : railOffsetX, panel.position.y, railZ);
+    rail.position.set(
+      index === 0 ? -railOffsetX : railOffsetX,
+      panel.position.y,
+      railZ
+    );
     rail.castShadow = true;
     group.add(rail);
   });
@@ -207,7 +222,11 @@ export function createGitshelvesInstallation(
     headerMaterial
   );
   header.name = 'GitshelvesHeader';
-  header.position.set(0, panel.position.y + panelHeight / 2 - 0.18, railZ + 0.02);
+  header.position.set(
+    0,
+    panel.position.y + panelHeight / 2 - 0.18,
+    railZ + 0.02
+  );
   group.add(header);
 
   const labelTexture = createLabelTexture();
@@ -277,21 +296,36 @@ export function createGitshelvesInstallation(
     roughness: 0.28,
     metalness: 0.34,
   });
-  const spotlight = new Mesh(new BoxGeometry(panelWidth * 0.74, 0.08, 0.18), spotlightMaterial);
+  const spotlight = new Mesh(
+    new BoxGeometry(panelWidth * 0.74, 0.08, 0.18),
+    spotlightMaterial
+  );
   spotlight.name = 'GitshelvesSpotlight';
   spotlight.position.set(0, baseHeight + 0.26, railZ + 0.05);
   group.add(spotlight);
 
   colliders.push(
-    createOrientedCollider(basePosition, baseWidth + 0.4, baseDepth + 0.4, orientationRadians)
+    createOrientedCollider(
+      basePosition,
+      baseWidth + 0.4,
+      baseDepth + 0.4,
+      orientationRadians
+    )
   );
 
-  const update = ({ elapsed, emphasis }: {
+  const update = ({
+    elapsed,
+    emphasis,
+  }: {
     elapsed: number;
     delta: number;
     emphasis: number;
   }) => {
-    const intensityScale = MathUtils.lerp(1, 1.75, MathUtils.clamp(emphasis, 0, 1));
+    const intensityScale = MathUtils.lerp(
+      1,
+      1.75,
+      MathUtils.clamp(emphasis, 0, 1)
+    );
     commitCells.forEach((cell, index) => {
       const wave = Math.sin(elapsed * 2.2 + cell.offset + index * 0.05);
       const normalized = (wave + 1) / 2;
@@ -302,12 +336,11 @@ export function createGitshelvesInstallation(
     });
 
     const headerPulse = (Math.sin(elapsed * 1.8) + 1) / 2;
-    headerMaterial.emissiveIntensity = MathUtils.lerp(0.35, 1.1, headerPulse) * intensityScale;
-    spotlightMaterial.emissiveIntensity = MathUtils.lerp(
-      0.28,
-      0.95,
-      (Math.sin(elapsed * 2.5 + 0.6) + 1) / 2
-    ) * MathUtils.lerp(1, 1.4, emphasis);
+    headerMaterial.emissiveIntensity =
+      MathUtils.lerp(0.35, 1.1, headerPulse) * intensityScale;
+    spotlightMaterial.emissiveIntensity =
+      MathUtils.lerp(0.28, 0.95, (Math.sin(elapsed * 2.5 + 0.6) + 1) / 2) *
+      MathUtils.lerp(1, 1.4, emphasis);
   };
 
   return { group, colliders, update };

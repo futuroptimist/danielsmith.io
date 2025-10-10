@@ -1168,7 +1168,9 @@ function initializeImmersiveScene(
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
     scene.add(installation.group);
-    installation.colliders.forEach((collider) => groundColliders.push(collider));
+    installation.colliders.forEach((collider) =>
+      groundColliders.push(collider)
+    );
     gitshelvesInstallation = installation;
   }
 
