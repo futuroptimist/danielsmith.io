@@ -30,6 +30,12 @@ export interface PortfolioMannequinOptions {
   trimColor?: string;
 }
 
+export interface PortfolioMannequinPalette {
+  base: string;
+  accent: string;
+  trim: string;
+}
+
 export interface PortfolioMannequinBuild {
   /**
    * Root group containing the hidden collision proxy and visible meshes.
@@ -43,6 +49,14 @@ export interface PortfolioMannequinBuild {
    * Approximate visual height (from the floor to the top of the head) in world units.
    */
   height: number;
+  /**
+   * Applies a palette to the mannequin, updating materials in-place.
+   */
+  applyPalette(palette: PortfolioMannequinPalette): void;
+  /**
+   * Retrieves the active palette applied to the mannequin.
+   */
+  getPalette(): PortfolioMannequinPalette;
 }
 
 function createStandardMaterial(
@@ -67,9 +81,11 @@ export function createPortfolioMannequin(
   options: PortfolioMannequinOptions = {}
 ): PortfolioMannequinBuild {
   const collisionRadius = options.collisionRadius ?? 0.75;
-  const baseColor = new Color(options.baseColor ?? '#283347');
-  const accentColor = new Color(options.accentColor ?? '#57d7ff');
-  const trimColor = new Color(options.trimColor ?? '#f7c77d');
+  const initialPalette: PortfolioMannequinPalette = {
+    base: options.baseColor ?? '#283347',
+    accent: options.accentColor ?? '#57d7ff',
+    trim: options.trimColor ?? '#f7c77d',
+  };
 
   const group = new Group();
   group.name = 'PortfolioMannequin';
@@ -87,13 +103,10 @@ export function createPortfolioMannequin(
   mannequinRoot.position.y = -collisionRadius;
   group.add(mannequinRoot);
 
-  const platformMaterial = createStandardMaterial(
-    accentColor.clone().multiplyScalar(0.72),
-    {
-      emissive: accentColor.clone().multiplyScalar(0.45),
-      emissiveIntensity: 0.55,
-    }
-  );
+  const platformMaterial = createStandardMaterial(new Color(initialPalette.accent), {
+    emissive: new Color(initialPalette.accent),
+    emissiveIntensity: 0.55,
+  });
   const platformHeight = 0.08;
   const platform = new Mesh(
     new CylinderGeometry(0.58, 0.58, platformHeight, 48),
@@ -105,9 +118,7 @@ export function createPortfolioMannequin(
   platform.receiveShadow = true;
   mannequinRoot.add(platform);
 
-  const legMaterial = createStandardMaterial(
-    baseColor.clone().multiplyScalar(0.9)
-  );
+  const legMaterial = createStandardMaterial(new Color(initialPalette.base));
   const legHeight = 0.92;
   const legs = new Mesh(
     new CylinderGeometry(0.26, 0.3, legHeight, 32),
@@ -130,9 +141,9 @@ export function createPortfolioMannequin(
   accentBand.receiveShadow = true;
   mannequinRoot.add(accentBand);
 
-  const torsoMaterial = createStandardMaterial(
-    baseColor.clone().offsetHSL(0.02, -0.08, 0.08)
-  );
+  const accentBandMaterial = accentBand.material as MeshStandardMaterial;
+
+  const torsoMaterial = createStandardMaterial(new Color(initialPalette.base));
   const torso = new Mesh(
     new CylinderGeometry(0.46, 0.36, 0.86, 32),
     torsoMaterial
@@ -143,9 +154,7 @@ export function createPortfolioMannequin(
   torso.receiveShadow = true;
   mannequinRoot.add(torso);
 
-  const shoulderMaterial = createStandardMaterial(
-    baseColor.clone().offsetHSL(-0.04, 0.04, 0.05)
-  );
+  const shoulderMaterial = createStandardMaterial(new Color(initialPalette.base));
   const armGeometry = new CylinderGeometry(0.16, 0.18, 0.82, 24);
 
   const leftArm = new Mesh(armGeometry, shoulderMaterial);
@@ -164,8 +173,8 @@ export function createPortfolioMannequin(
   rightArm.receiveShadow = true;
   mannequinRoot.add(rightArm);
 
-  const cuffMaterial = createStandardMaterial(accentColor.clone(), {
-    emissive: accentColor.clone(),
+  const cuffMaterial = createStandardMaterial(new Color(initialPalette.accent), {
+    emissive: new Color(initialPalette.accent),
     emissiveIntensity: 0.6,
   });
   const leftCuff = new Mesh(
@@ -182,9 +191,7 @@ export function createPortfolioMannequin(
   rightCuff.position.x *= -1;
   mannequinRoot.add(rightCuff);
 
-  const trimMaterial = createStandardMaterial(
-    trimColor.clone().offsetHSL(0, -0.1, 0.1)
-  );
+  const trimMaterial = createStandardMaterial(new Color(initialPalette.trim));
   const gloveGeometry = new CylinderGeometry(0.18, 0.18, 0.22, 18);
   const leftGlove = new Mesh(gloveGeometry, trimMaterial);
   leftGlove.name = 'PortfolioMannequinGloveLeft';
@@ -206,8 +213,8 @@ export function createPortfolioMannequin(
   rightGlove.receiveShadow = true;
   mannequinRoot.add(rightGlove);
 
-  const collarMaterial = createStandardMaterial(accentColor.clone(), {
-    emissive: accentColor.clone().multiplyScalar(0.9),
+  const collarMaterial = createStandardMaterial(new Color(initialPalette.accent), {
+    emissive: new Color(initialPalette.accent).multiplyScalar(0.9),
     emissiveIntensity: 0.7,
   });
   const collar = new Mesh(
@@ -219,9 +226,7 @@ export function createPortfolioMannequin(
   collar.position.y = torso.position.y + 0.46;
   mannequinRoot.add(collar);
 
-  const headMaterial = createStandardMaterial(
-    trimColor.clone().offsetHSL(0.04, -0.18, 0.18)
-  );
+  const headMaterial = createStandardMaterial(new Color(initialPalette.trim));
   const head = new Mesh(new SphereGeometry(0.28, 32, 32), headMaterial);
   head.name = 'PortfolioMannequinHead';
   head.position.y = collar.position.y + 0.32;
@@ -252,8 +257,8 @@ export function createPortfolioMannequin(
   mouth.position.set(0, head.position.y - 0.02, 0.25);
   mannequinRoot.add(mouth);
 
-  const visorMaterial = createStandardMaterial(accentColor.clone(), {
-    emissive: accentColor.clone(),
+  const visorMaterial = createStandardMaterial(new Color(initialPalette.accent), {
+    emissive: new Color(initialPalette.accent),
     emissiveIntensity: 0.65,
   });
   visorMaterial.transparent = true;
@@ -268,13 +273,10 @@ export function createPortfolioMannequin(
   visor.position.y = head.position.y;
   mannequinRoot.add(visor);
 
-  const crestMaterial = createStandardMaterial(
-    accentColor.clone().offsetHSL(-0.03, 0.1, 0.08),
-    {
-      emissive: accentColor.clone().multiplyScalar(0.6),
-      emissiveIntensity: 0.5,
-    }
-  );
+  const crestMaterial = createStandardMaterial(new Color(initialPalette.accent), {
+    emissive: new Color(initialPalette.accent).multiplyScalar(0.6),
+    emissiveIntensity: 0.5,
+  });
   const crest = new Mesh(new ConeGeometry(0.12, 0.24, 24), crestMaterial);
   crest.name = 'PortfolioMannequinCrest';
   crest.position.y = head.position.y + 0.3;
@@ -285,9 +287,61 @@ export function createPortfolioMannequin(
   group.userData.boundingRadius = collisionRadius;
   group.userData.visualHeight = totalHeight;
 
+  let currentPalette: PortfolioMannequinPalette = {
+    base: `#${new Color(initialPalette.base).getHexString()}`,
+    accent: `#${new Color(initialPalette.accent).getHexString()}`,
+    trim: `#${new Color(initialPalette.trim).getHexString()}`,
+  };
+
+  const applyPalette = (palette: PortfolioMannequinPalette) => {
+    const baseColor = new Color(palette.base);
+    const accentColor = new Color(palette.accent);
+    const trimColor = new Color(palette.trim);
+
+    currentPalette = {
+      base: `#${baseColor.getHexString()}`,
+      accent: `#${accentColor.getHexString()}`,
+      trim: `#${trimColor.getHexString()}`,
+    };
+
+    const legColor = baseColor.clone().multiplyScalar(0.9);
+    legMaterial.color.copy(legColor);
+
+    torsoMaterial.color.copy(baseColor).offsetHSL(0.02, -0.08, 0.08);
+    shoulderMaterial.color.copy(baseColor).offsetHSL(-0.04, 0.04, 0.05);
+
+    const platformColor = accentColor.clone().multiplyScalar(0.72);
+    const platformEmissive = accentColor.clone().multiplyScalar(0.45);
+    platformMaterial.color.copy(platformColor);
+    platformMaterial.emissive.copy(platformEmissive);
+    accentBandMaterial.color.copy(platformColor);
+    accentBandMaterial.emissive.copy(platformEmissive);
+
+    cuffMaterial.color.copy(accentColor);
+    cuffMaterial.emissive.copy(accentColor);
+
+    collarMaterial.color.copy(accentColor);
+    collarMaterial.emissive.copy(accentColor).multiplyScalar(0.9);
+
+    visorMaterial.color.copy(accentColor);
+    visorMaterial.emissive.copy(accentColor);
+
+    crestMaterial.color.copy(accentColor).offsetHSL(-0.03, 0.1, 0.08);
+    crestMaterial.emissive.copy(accentColor).multiplyScalar(0.6);
+
+    trimMaterial.color.copy(trimColor).offsetHSL(0, -0.1, 0.1);
+    headMaterial.color.copy(trimColor).offsetHSL(0.04, -0.18, 0.18);
+  };
+
+  applyPalette(initialPalette);
+
   return {
     group,
     collisionRadius,
     height: totalHeight,
+    applyPalette,
+    getPalette() {
+      return { ...currentPalette };
+    },
   };
 }

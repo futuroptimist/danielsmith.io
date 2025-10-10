@@ -14,6 +14,11 @@ describe('createPortfolioMannequin', () => {
       build.collisionRadius
     );
     expect(build.group.userData.visualHeight).toBeCloseTo(build.height);
+    expect(build.getPalette()).toEqual({
+      base: '#283347',
+      accent: '#57d7ff',
+      trim: '#f7c77d',
+    });
 
     const collisionProxy = build.group.getObjectByName(
       'PortfolioMannequinCollisionProxy'
@@ -49,6 +54,11 @@ describe('createPortfolioMannequin', () => {
     const build = createPortfolioMannequin(options);
 
     expect(build.collisionRadius).toBeCloseTo(options.collisionRadius);
+    expect(build.getPalette()).toEqual({
+      base: '#102030',
+      accent: '#44ccff',
+      trim: '#ffd7aa',
+    });
     const visualRoot = build.group.getObjectByName('PortfolioMannequinVisual');
     expect(visualRoot).toBeInstanceOf(Group);
     if (!(visualRoot instanceof Group)) {
@@ -80,5 +90,68 @@ describe('createPortfolioMannequin', () => {
       expect(headHsl.h).toBeCloseTo(trimHsl.h, 1);
       expect(headHsl.l).toBeGreaterThan(trimHsl.l);
     }
+  });
+
+  it('repaints active materials when applying a palette dynamically', () => {
+    const build = createPortfolioMannequin();
+    const nextPalette = {
+      base: '#123456',
+      accent: '#abcdef',
+      trim: '#fedcba',
+    } as const;
+
+    const visor = build.group.getObjectByName('PortfolioMannequinVisor');
+    const legs = build.group.getObjectByName('PortfolioMannequinLegs');
+    const accentBand = build.group.getObjectByName(
+      'PortfolioMannequinWaistBand'
+    );
+    const head = build.group.getObjectByName('PortfolioMannequinHead');
+
+    expect(visor).toBeInstanceOf(Mesh);
+    expect(legs).toBeInstanceOf(Mesh);
+    expect(accentBand).toBeInstanceOf(Mesh);
+    expect(head).toBeInstanceOf(Mesh);
+    if (
+      !(visor instanceof Mesh) ||
+      !(legs instanceof Mesh) ||
+      !(accentBand instanceof Mesh) ||
+      !(head instanceof Mesh)
+    ) {
+      throw new Error('Expected mannequin meshes to exist.');
+    }
+
+    build.applyPalette(nextPalette);
+
+    expect(build.getPalette()).toEqual(nextPalette);
+
+    const baseColor = new Color(nextPalette.base);
+    const expectedLegColor = baseColor.clone().multiplyScalar(0.9);
+    const legMaterial = legs.material as MeshStandardMaterial;
+    expect(legMaterial.color.getHexString()).toBe(
+      expectedLegColor.getHexString()
+    );
+
+    const accentColor = new Color(nextPalette.accent);
+    const expectedEmissive = accentColor.clone().multiplyScalar(0.45);
+    const visorMaterial = visor.material as MeshStandardMaterial;
+    expect(visorMaterial.color.getHexString()).toBe(
+      accentColor.getHexString()
+    );
+    expect(visorMaterial.emissive.getHexString()).toBe(
+      accentColor.getHexString()
+    );
+    const accentBandMaterial = accentBand.material as MeshStandardMaterial;
+    expect(accentBandMaterial.emissive.getHexString()).toBe(
+      expectedEmissive.getHexString()
+    );
+
+    const trimColor = new Color(nextPalette.trim);
+    const expectedHeadColor = trimColor
+      .clone()
+      .offsetHSL(0.04, -0.18, 0.18);
+    const headMaterial = head.material as MeshStandardMaterial;
+    expect(headMaterial.color.getHexString()).toBe(
+      expectedHeadColor.getHexString()
+    );
   });
 });

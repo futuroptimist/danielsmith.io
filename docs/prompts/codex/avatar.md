@@ -32,6 +32,8 @@ Summaries must include asset references, tests, and manual QA steps.
   configure DRACO decoding paths when needed.
 - Keep animation blending configurable for future gameplay states.
 - Store temporary mannequin assets separately to ease replacement.
+- Update `src/avatar/variants.ts` and the HUD avatar style control when introducing new outfits
+  so palettes, analytics, and persistence stay aligned.
 
 ## Upgrade Prompt
 

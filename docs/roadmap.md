@@ -232,7 +232,7 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 - ✅ Stylized mannequin placeholder now replaces the golden sphere, aligning with the controller
   collider while showcasing emissive visor accents and HUD-ready trim palettes.
-- Support material variants (portfolio outfit, casual, formal) toggled via HUD.
+- ✅ Support material variants (portfolio, casual, formal) now switchable via the HUD avatar style selector.
 
 2. **Locomotion Polish**
    - Blend tree for idle/walk/run/turn animations aligned to physics controller speed.
