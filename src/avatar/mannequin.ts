@@ -87,28 +87,42 @@ export function createPortfolioMannequin(
   mannequinRoot.position.y = -collisionRadius;
   group.add(mannequinRoot);
 
-  const platformMaterial = createStandardMaterial(accentColor.clone().multiplyScalar(0.72), {
-    emissive: accentColor.clone().multiplyScalar(0.45),
-    emissiveIntensity: 0.55,
-  });
+  const platformMaterial = createStandardMaterial(
+    accentColor.clone().multiplyScalar(0.72),
+    {
+      emissive: accentColor.clone().multiplyScalar(0.45),
+      emissiveIntensity: 0.55,
+    }
+  );
   const platformHeight = 0.08;
-  const platform = new Mesh(new CylinderGeometry(0.58, 0.58, platformHeight, 48), platformMaterial);
+  const platform = new Mesh(
+    new CylinderGeometry(0.58, 0.58, platformHeight, 48),
+    platformMaterial
+  );
   platform.name = 'PortfolioMannequinPlatform';
   platform.position.y = platformHeight / 2;
   platform.castShadow = true;
   platform.receiveShadow = true;
   mannequinRoot.add(platform);
 
-  const legMaterial = createStandardMaterial(baseColor.clone().multiplyScalar(0.9));
+  const legMaterial = createStandardMaterial(
+    baseColor.clone().multiplyScalar(0.9)
+  );
   const legHeight = 0.92;
-  const legs = new Mesh(new CylinderGeometry(0.26, 0.3, legHeight, 32), legMaterial);
+  const legs = new Mesh(
+    new CylinderGeometry(0.26, 0.3, legHeight, 32),
+    legMaterial
+  );
   legs.name = 'PortfolioMannequinLegs';
   legs.position.y = platform.position.y + legHeight / 2;
   legs.castShadow = true;
   legs.receiveShadow = true;
   mannequinRoot.add(legs);
 
-  const accentBand = new Mesh(new TorusGeometry(0.34, 0.05, 20, 48), platformMaterial.clone());
+  const accentBand = new Mesh(
+    new TorusGeometry(0.34, 0.05, 20, 48),
+    platformMaterial.clone()
+  );
   accentBand.name = 'PortfolioMannequinWaistBand';
   accentBand.rotation.x = Math.PI / 2;
   accentBand.position.y = legs.position.y + 0.42;
@@ -116,15 +130,22 @@ export function createPortfolioMannequin(
   accentBand.receiveShadow = true;
   mannequinRoot.add(accentBand);
 
-  const torsoMaterial = createStandardMaterial(baseColor.clone().offsetHSL(0.02, -0.08, 0.08));
-  const torso = new Mesh(new CylinderGeometry(0.46, 0.36, 0.86, 32), torsoMaterial);
+  const torsoMaterial = createStandardMaterial(
+    baseColor.clone().offsetHSL(0.02, -0.08, 0.08)
+  );
+  const torso = new Mesh(
+    new CylinderGeometry(0.46, 0.36, 0.86, 32),
+    torsoMaterial
+  );
   torso.name = 'PortfolioMannequinTorso';
   torso.position.y = accentBand.position.y + 0.48;
   torso.castShadow = true;
   torso.receiveShadow = true;
   mannequinRoot.add(torso);
 
-  const shoulderMaterial = createStandardMaterial(baseColor.clone().offsetHSL(-0.04, 0.04, 0.05));
+  const shoulderMaterial = createStandardMaterial(
+    baseColor.clone().offsetHSL(-0.04, 0.04, 0.05)
+  );
   const armGeometry = new CylinderGeometry(0.16, 0.18, 0.82, 24);
 
   const leftArm = new Mesh(armGeometry, shoulderMaterial);
@@ -147,7 +168,10 @@ export function createPortfolioMannequin(
     emissive: accentColor.clone(),
     emissiveIntensity: 0.6,
   });
-  const leftCuff = new Mesh(new TorusGeometry(0.16, 0.035, 14, 32), cuffMaterial);
+  const leftCuff = new Mesh(
+    new TorusGeometry(0.16, 0.035, 14, 32),
+    cuffMaterial
+  );
   leftCuff.name = 'PortfolioMannequinCuffLeft';
   leftCuff.rotation.x = Math.PI / 2;
   leftCuff.position.copy(leftArm.position).setY(leftArm.position.y - 0.36);
@@ -158,11 +182,17 @@ export function createPortfolioMannequin(
   rightCuff.position.x *= -1;
   mannequinRoot.add(rightCuff);
 
-  const trimMaterial = createStandardMaterial(trimColor.clone().offsetHSL(0, -0.1, 0.1));
+  const trimMaterial = createStandardMaterial(
+    trimColor.clone().offsetHSL(0, -0.1, 0.1)
+  );
   const gloveGeometry = new CylinderGeometry(0.18, 0.18, 0.22, 18);
   const leftGlove = new Mesh(gloveGeometry, trimMaterial);
   leftGlove.name = 'PortfolioMannequinGloveLeft';
-  leftGlove.position.set(leftArm.position.x - 0.02, leftCuff.position.y - 0.2, 0);
+  leftGlove.position.set(
+    leftArm.position.x - 0.02,
+    leftCuff.position.y - 0.2,
+    0
+  );
   leftGlove.rotation.z = leftArm.rotation.z;
   leftGlove.castShadow = true;
   leftGlove.receiveShadow = true;
@@ -180,13 +210,18 @@ export function createPortfolioMannequin(
     emissive: accentColor.clone().multiplyScalar(0.9),
     emissiveIntensity: 0.7,
   });
-  const collar = new Mesh(new TorusGeometry(0.3, 0.045, 16, 36), collarMaterial);
+  const collar = new Mesh(
+    new TorusGeometry(0.3, 0.045, 16, 36),
+    collarMaterial
+  );
   collar.name = 'PortfolioMannequinCollar';
   collar.rotation.x = Math.PI / 2;
   collar.position.y = torso.position.y + 0.46;
   mannequinRoot.add(collar);
 
-  const headMaterial = createStandardMaterial(trimColor.clone().offsetHSL(0.04, -0.18, 0.18));
+  const headMaterial = createStandardMaterial(
+    trimColor.clone().offsetHSL(0.04, -0.18, 0.18)
+  );
   const head = new Mesh(new SphereGeometry(0.28, 32, 32), headMaterial);
   head.name = 'PortfolioMannequinHead';
   head.position.y = collar.position.y + 0.32;
@@ -201,16 +236,22 @@ export function createPortfolioMannequin(
   visorMaterial.transparent = true;
   visorMaterial.opacity = 0.72;
   visorMaterial.side = DoubleSide;
-  const visor = new Mesh(new CylinderGeometry(0.27, 0.27, 0.16, 32, 1, true), visorMaterial);
+  const visor = new Mesh(
+    new CylinderGeometry(0.27, 0.27, 0.16, 32, 1, true),
+    visorMaterial
+  );
   visor.name = 'PortfolioMannequinVisor';
   visor.rotation.x = Math.PI / 2;
   visor.position.y = head.position.y;
   mannequinRoot.add(visor);
 
-  const crestMaterial = createStandardMaterial(accentColor.clone().offsetHSL(-0.03, 0.1, 0.08), {
-    emissive: accentColor.clone().multiplyScalar(0.6),
-    emissiveIntensity: 0.5,
-  });
+  const crestMaterial = createStandardMaterial(
+    accentColor.clone().offsetHSL(-0.03, 0.1, 0.08),
+    {
+      emissive: accentColor.clone().multiplyScalar(0.6),
+      emissiveIntensity: 0.5,
+    }
+  );
   const crest = new Mesh(new ConeGeometry(0.12, 0.24, 24), crestMaterial);
   crest.name = 'PortfolioMannequinCrest';
   crest.position.y = head.position.y + 0.3;

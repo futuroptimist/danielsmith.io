@@ -10,10 +10,14 @@ describe('createPortfolioMannequin', () => {
     expect(build.collisionRadius).toBeCloseTo(0.75);
     expect(build.height).toBeGreaterThan(1.5);
     expect(build.group.name).toBe('PortfolioMannequin');
-    expect(build.group.userData.boundingRadius).toBeCloseTo(build.collisionRadius);
+    expect(build.group.userData.boundingRadius).toBeCloseTo(
+      build.collisionRadius
+    );
     expect(build.group.userData.visualHeight).toBeCloseTo(build.height);
 
-    const collisionProxy = build.group.getObjectByName('PortfolioMannequinCollisionProxy');
+    const collisionProxy = build.group.getObjectByName(
+      'PortfolioMannequinCollisionProxy'
+    );
     expect(collisionProxy).toBeInstanceOf(Mesh);
     if (!(collisionProxy instanceof Mesh)) {
       throw new Error('Collision proxy mesh missing.');
