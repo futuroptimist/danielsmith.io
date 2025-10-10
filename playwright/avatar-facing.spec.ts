@@ -5,7 +5,7 @@ const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
 function normalizeAngle(angle: number): number {
   const twoPi = Math.PI * 2;
-  return ((angle + Math.PI) % twoPi + twoPi) % twoPi - Math.PI;
+  return ((((angle + Math.PI) % twoPi) + twoPi) % twoPi) - Math.PI;
 }
 
 function angularDifference(a: number, b: number): number {
