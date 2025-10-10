@@ -167,6 +167,10 @@ import {
   type JobbotTerminalBuild,
 } from './structures/jobbotTerminal';
 import { createLivingRoomMediaWall } from './structures/mediaWall';
+import {
+  createPrReaperConsole,
+  type PrReaperConsoleBuild,
+} from './structures/prReaperConsole';
 import { createStaircase, type StaircaseConfig } from './structures/staircase';
 import {
   createTokenPlaceRack,
@@ -342,6 +346,7 @@ let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
+let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
@@ -1017,6 +1022,9 @@ function initializeImmersiveScene(
   const gabrielPoi = poiInstances.find(
     (poi) => poi.definition.id === 'gabriel-studio-sentry'
   );
+  const prReaperPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'pr-reaper-backyard-console'
+  );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   if (studioRoom) {
     const centerX =
@@ -1081,6 +1089,20 @@ function initializeImmersiveScene(
       sentry.colliders.forEach((collider) => groundColliders.push(collider));
       gabrielSentry = sentry;
     }
+  }
+
+  if (prReaperPoi) {
+    const console = createPrReaperConsole({
+      position: {
+        x: prReaperPoi.group.position.x,
+        y: prReaperPoi.group.position.y,
+        z: prReaperPoi.group.position.z,
+      },
+      orientationRadians: prReaperPoi.group.rotation.y ?? 0,
+    });
+    scene.add(console.group);
+    console.colliders.forEach((collider) => groundColliders.push(collider));
+    prReaperConsole = console;
   }
 
   const poiInteractionManager = new PoiInteractionManager(
@@ -2469,6 +2491,15 @@ function initializeImmersiveScene(
         const activation = gabrielPoi?.activation ?? 0;
         const focus = gabrielPoi?.focus ?? 0;
         gabrielSentry.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (prReaperConsole) {
+        const activation = prReaperPoi?.activation ?? 0;
+        const focus = prReaperPoi?.focus ?? 0;
+        prReaperConsole.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
