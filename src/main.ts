@@ -52,6 +52,15 @@ import {
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
 import { createPortfolioMannequin } from './avatar/mannequin';
+import {
+  createAvatarVariantManager,
+  type AvatarVariantManager,
+} from './avatar/variantManager';
+import {
+  AVATAR_VARIANTS,
+  DEFAULT_AVATAR_VARIANT_ID,
+  type AvatarVariantId,
+} from './avatar/variants';
 import { collidesWithColliders, type RectCollider } from './collision';
 import {
   createAccessibilityPresetControl,
@@ -61,6 +70,10 @@ import {
   createAudioHudControl,
   type AudioHudControlHandle,
 } from './controls/audioHudControl';
+import {
+  createAvatarVariantControl,
+  type AvatarVariantControlHandle,
+} from './controls/avatarVariantControl';
 import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
@@ -458,6 +471,9 @@ function initializeImmersiveScene(
   let accessibilityControlHandle: AccessibilityPresetControlHandle | null =
     null;
   let unsubscribeAccessibility: (() => void) | null = null;
+  let avatarVariantManager: AvatarVariantManager | null = null;
+  let avatarVariantControl: AvatarVariantControlHandle | null = null;
+  let unsubscribeAvatarVariant: (() => void) | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
@@ -1209,11 +1225,29 @@ function initializeImmersiveScene(
   };
   window.addEventListener('beforeunload', beforeUnloadHandler);
 
-  const { group: player } = createPortfolioMannequin({
+  const mannequin = createPortfolioMannequin({
     collisionRadius: PLAYER_RADIUS,
   });
+  const player = mannequin.group;
   player.position.copy(initialPlayerPosition);
   scene.add(player);
+
+  let avatarVariantStorage: Storage | undefined;
+  try {
+    avatarVariantStorage = window.localStorage;
+  } catch {
+    avatarVariantStorage = undefined;
+  }
+
+  avatarVariantManager = createAvatarVariantManager({
+    target: {
+      applyPalette: (palette) => {
+        mannequin.applyPalette(palette);
+      },
+    },
+    storage: avatarVariantStorage,
+  });
+  ensureAvatarApi();
 
   const controlOverlay = document.getElementById('control-overlay');
   if (controlOverlay) {
@@ -1359,6 +1393,27 @@ function initializeImmersiveScene(
     };
   };
   ensureWorldApi();
+  function ensureAvatarApi() {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.avatar = {
+      getActiveVariant(): AvatarVariantId {
+        return avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID;
+      },
+      setActiveVariant(variant: AvatarVariantId) {
+        avatarVariantManager?.setVariant(variant);
+      },
+      listVariants() {
+        return AVATAR_VARIANTS.map(({ id, label, description }) => ({
+          id,
+          label,
+          description,
+        }));
+      },
+    };
+  }
   const interactControl = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact"]'
   );
@@ -1395,6 +1450,20 @@ function initializeImmersiveScene(
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
   hudSettingsContainer.appendChild(hudSettingsStack);
+  if (avatarVariantManager) {
+    avatarVariantControl = createAvatarVariantControl({
+      container: hudSettingsStack,
+      options: AVATAR_VARIANTS,
+      getActiveVariant: () =>
+        avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
+      setActiveVariant: (variant) => {
+        avatarVariantManager?.setVariant(variant);
+      },
+    });
+    unsubscribeAvatarVariant = avatarVariantManager.onChange(() => {
+      avatarVariantControl?.refresh();
+    });
+  }
   hudFocusAnnouncer = createHudFocusAnnouncer({
     documentTarget: document,
     container: document.body,
@@ -2450,6 +2519,10 @@ function initializeImmersiveScene(
       audioHudHandle.dispose();
       audioHudHandle = null;
     }
+    if (avatarVariantControl) {
+      avatarVariantControl.dispose();
+      avatarVariantControl = null;
+    }
     ambientCaptionBridge = null;
     if (audioSubtitles) {
       audioSubtitles.dispose();
@@ -2471,6 +2544,11 @@ function initializeImmersiveScene(
       accessibilityPresetManager.dispose();
       accessibilityPresetManager = null;
     }
+    if (unsubscribeAvatarVariant) {
+      unsubscribeAvatarVariant();
+      unsubscribeAvatarVariant = null;
+    }
+    avatarVariantManager = null;
     if (graphicsQualityControl) {
       graphicsQualityControl.dispose();
       graphicsQualityControl = null;
@@ -2490,6 +2568,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.input?.keyBindings) {
       delete window.portfolio.input.keyBindings;
+    }
+    if (window.portfolio?.avatar) {
+      delete window.portfolio.avatar;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);
