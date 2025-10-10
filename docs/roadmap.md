@@ -120,6 +120,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      orbitals, and an activation-driven tech stack reveal panel.
    - ✨ Studio Jobbot terminal desk projects live automation telemetry via a holographic console
      and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
+   - ✨ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
+     columns and nightly sync signage.
 3. **Backyard Exhibits**
    - ✨ Launch-ready model rocket for `DSPACE`, complete with illuminated launch pad, caution halo,
      countdown-ready stance, and an interactive POI that links to the mission log.

@@ -116,7 +116,8 @@ lightweight.
   live region announcements so discovery prompts never rapid-fire when players browse exhibits.
   Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
-  terminal that pulses in sync with the new automation POI.
+  terminal that pulses in sync with the new automation POI. The living room's gitshelves array now
+  extrudes nightly commit streaks into illuminated shelving mosaics with sync signage overhead.
 - **Localization** – UI chrome and POI copy are centralized in `src/i18n/index.ts`, letting future
   locales load structured strings while keeping Vitest coverage in
   `src/tests/i18n.test.ts` to guard against regressions. HUD overlays and the
