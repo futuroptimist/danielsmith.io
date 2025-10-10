@@ -1,7 +1,8 @@
-import { Vector3 } from 'three';
+import { PerspectiveCamera, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
+  computeCameraRelativeYaw,
   computeYawFromVector,
   angularDifference,
   dampYawTowards,
@@ -68,5 +69,28 @@ describe('facing helpers', () => {
       expect(Math.abs(angularDifference(next, 0))).toBeLessThan(Math.PI + 1e-6);
       current = next;
     }
+  });
+
+  it('derives yaw relative to camera basis from world velocity', () => {
+    const camera = new PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(10, 12, 10);
+    camera.lookAt(0, 0, 0);
+
+    const forward = new Vector3();
+    camera.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+
+    const right = new Vector3().crossVectors(forward, new Vector3(0, 1, 0));
+    right.normalize();
+
+    expect(computeCameraRelativeYaw(camera, forward)).toBeCloseTo(0, 6);
+    expect(computeCameraRelativeYaw(camera, right)).toBeCloseTo(Math.PI / 2, 6);
+    expect(
+      computeCameraRelativeYaw(camera, forward.clone().add(right).normalize())
+    ).toBeCloseTo(Math.PI / 4, 6);
+    expect(
+      computeCameraRelativeYaw(camera, forward.clone().negate())
+    ).toBeCloseTo(Math.PI, 6);
   });
 });

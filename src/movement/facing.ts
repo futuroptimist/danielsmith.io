@@ -1,6 +1,13 @@
+import type { Camera } from 'three';
 import { MathUtils, Vector3 } from 'three';
 
 const WORK = new Vector3();
+const CAMERA_FORWARD = new Vector3();
+const CAMERA_RIGHT = new Vector3();
+const WORLD_UP = new Vector3(0, 1, 0);
+const DEFAULT_FORWARD = new Vector3(0, 0, -1);
+const DEFAULT_RIGHT = new Vector3(1, 0, 0);
+const EPSILON = 1e-6;
 
 export function computeYawFromVector(vector: Vector3): number {
   // Expect vector on XZ plane; yaw is rotation around Y.
@@ -49,6 +56,40 @@ export function directionFromPoints(
 ): Vector3 {
   out.set(to.x - from.x, 0, to.z - from.z);
   return out;
+}
+
+export function computeCameraRelativeYaw(
+  camera: Camera,
+  vector: Vector3
+): number {
+  camera.getWorldDirection(CAMERA_FORWARD);
+  CAMERA_FORWARD.y = 0;
+  if (CAMERA_FORWARD.lengthSq() <= EPSILON) {
+    CAMERA_FORWARD.copy(DEFAULT_FORWARD);
+  } else {
+    CAMERA_FORWARD.normalize();
+  }
+
+  CAMERA_RIGHT.crossVectors(CAMERA_FORWARD, WORLD_UP);
+  if (CAMERA_RIGHT.lengthSq() <= EPSILON) {
+    CAMERA_RIGHT.copy(DEFAULT_RIGHT);
+  } else {
+    CAMERA_RIGHT.normalize();
+  }
+
+  const forwardComponent = vector.dot(CAMERA_FORWARD);
+  const rightComponent = vector.dot(CAMERA_RIGHT);
+
+  if (
+    !Number.isFinite(forwardComponent) ||
+    !Number.isFinite(rightComponent) ||
+    (Math.abs(forwardComponent) <= EPSILON &&
+      Math.abs(rightComponent) <= EPSILON)
+  ) {
+    return 0;
+  }
+
+  return Math.atan2(rightComponent, forwardComponent);
 }
 
 export function computeModelYawFromVector(vector: Vector3): number {
