@@ -29,6 +29,8 @@ Provide summary, test list, and capture manual verification instructions.
 
 - Use animation events sparingly; prefer state machine logic.
 - Keep clip lengths optimized and loopable.
+- Tie locomotion clips into `src/avatar/locomotionAnimator.ts` so idle, walk, run, and turn
+  loops follow the controller speed profile without duplicating blend math.
 - Capture reference GIFs or frame captures for reviewers.
 
 ## Upgrade Prompt
