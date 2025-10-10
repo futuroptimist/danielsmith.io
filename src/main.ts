@@ -232,7 +232,6 @@ const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
-const FACING_YAW_BIAS = Math.PI / 2; // rotate 90° counter-clockwise relative to camera-forward
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -2098,9 +2097,7 @@ function initializeImmersiveScene(
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
     if (speedSq > 1e-6) {
-      mannequinYawTarget = normalizeRadians(
-        computeYawFromVector(velocity) + FACING_YAW_BIAS
-      );
+      mannequinYawTarget = normalizeRadians(computeYawFromVector(velocity));
     }
     mannequinYaw = dampYawTowards(
       mannequinYaw,

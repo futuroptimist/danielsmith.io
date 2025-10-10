@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
+
 import {
   computeYawFromVector,
   angularDifference,
