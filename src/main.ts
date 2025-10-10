@@ -136,6 +136,11 @@ import {
   type LightingMode,
 } from './lighting/debugControls';
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
+import {
+  computeCameraRelativeYaw,
+  dampYawTowards,
+  normalizeRadians,
+} from './movement/facing';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
 import {
@@ -210,6 +215,8 @@ declare global {
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
+        // Test-only helper: current player yaw in radians
+        getPlayerYaw?(): number;
       };
     };
   }
@@ -224,6 +231,7 @@ const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
+const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -536,10 +544,20 @@ function initializeImmersiveScene(
     baseCameraSize * 1.08,
     baseCameraSize * 1.06
   );
+  const cameraForwardPlanar = new Vector3();
+  let cameraYawOffset = 0;
 
   const cameraCenter = initialPlayerPosition.clone();
   camera.position.copy(cameraCenter).add(cameraBaseOffset);
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+  camera.getWorldDirection(cameraForwardPlanar);
+  cameraForwardPlanar.y = 0;
+  if (cameraForwardPlanar.lengthSq() <= 1e-6) {
+    cameraForwardPlanar.set(0, 0, -1);
+  } else {
+    cameraForwardPlanar.normalize();
+  }
+  cameraYawOffset = computeYawFromVector(cameraForwardPlanar);
 
   const ambientLight = new AmbientLight(0xf5f7ff, 0.38);
   const hemisphericLight = new HemisphereLight(0x324a6d, 0x131a17, 0.22);
@@ -1282,6 +1300,10 @@ function initializeImmersiveScene(
           upperFloorElevation,
         };
       },
+      // Test helpers – expose current mannequin yaw in radians.
+      getPlayerYaw() {
+        return normalizeRadians(mannequinYaw);
+      },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
           const material = p.mesh.material as MeshStandardMaterial;
@@ -1345,6 +1367,8 @@ function initializeImmersiveScene(
   const targetVelocity = new Vector3();
   const velocity = new Vector3();
   const moveDirection = new Vector3();
+  let mannequinYaw = 0;
+  let mannequinYawTarget = 0;
   const cameraPan = new Vector3();
   const cameraPanTarget = new Vector3();
   const poiLabelLookTarget = new Vector3();
@@ -2023,6 +2047,9 @@ function initializeImmersiveScene(
     const combinedRight = rightInput + joystickMovement.x;
     const combinedForward = forwardInput - joystickMovement.y;
 
+    const planarInputLengthSq =
+      combinedRight * combinedRight + combinedForward * combinedForward;
+
     getCameraRelativeMovementVector(
       camera,
       combinedRight,
@@ -2042,6 +2069,17 @@ function initializeImmersiveScene(
       0,
       MathUtils.damp(velocity.z, targetVelocity.z, MOVEMENT_SMOOTHING, delta)
     );
+
+    const planarVelocityLengthSq = velocity.x * velocity.x + velocity.z * velocity.z;
+
+    if (planarVelocityLengthSq > 1e-6) {
+      const rawYaw = computeYawFromVector(velocity);
+      mannequinYawTarget = normalizeRadians(rawYaw - cameraYawOffset);
+    } else if (planarInputLengthSq > 1e-6) {
+      mannequinYawTarget = normalizeRadians(
+        Math.atan2(combinedRight, combinedForward)
+      );
+    }
 
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
@@ -2079,6 +2117,22 @@ function initializeImmersiveScene(
     }
 
     updatePlayerVerticalPosition();
+
+    // Update facing: aim toward current planar velocity when moving.
+    const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
+    if (speedSq > 1e-6) {
+      mannequinYawTarget = normalizeRadians(
+        computeCameraRelativeYaw(camera, velocity)
+      );
+    }
+    mannequinYaw = dampYawTowards(
+      mannequinYaw,
+      mannequinYawTarget,
+      MANNEQUIN_YAW_SMOOTHING,
+      delta
+    );
+    // Mirror yaw horizontally for visible model so A/D map intuitively.
+    player.rotation.y = mannequinYaw;
   }
 
   function updateCamera(delta: number) {

@@ -229,6 +229,29 @@ export function createPortfolioMannequin(
   head.receiveShadow = true;
   mannequinRoot.add(head);
 
+  // Add a simple smiley face marker to the front of the head for directionality.
+  const faceMaterial = new MeshBasicMaterial({ color: 0x000000 });
+  const eyeGeometry = new SphereGeometry(0.03, 12, 12);
+  const leftEye = new Mesh(eyeGeometry, faceMaterial);
+  leftEye.name = 'PortfolioMannequinFaceLeftEye';
+  leftEye.position.set(-0.08, head.position.y + 0.06, 0.25);
+  mannequinRoot.add(leftEye);
+
+  const rightEye = leftEye.clone();
+  rightEye.name = 'PortfolioMannequinFaceRightEye';
+  rightEye.position.x *= -1;
+  mannequinRoot.add(rightEye);
+
+  // Mouth as a thin torus segment to suggest a smile on the front side.
+  const mouth = new Mesh(
+    new TorusGeometry(0.09, 0.012, 8, 24, Math.PI),
+    faceMaterial
+  );
+  mouth.name = 'PortfolioMannequinFaceMouth';
+  mouth.rotation.x = Math.PI / 2;
+  mouth.position.set(0, head.position.y - 0.02, 0.25);
+  mannequinRoot.add(mouth);
+
   const visorMaterial = createStandardMaterial(accentColor.clone(), {
     emissive: accentColor.clone(),
     emissiveIntensity: 0.65,
