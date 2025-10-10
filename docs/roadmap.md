@@ -130,6 +130,8 @@ Focus: anchor each highlighted project with an interactive artifact.
          eases in based on player proximity.
    - ✨ PR Reaper triage console now anchors the backyard ops POI with holographic sweeps,
      caution-lit walkways, and log review surfaces.
+     - ✅ Caution-lit walkway now pulses with triage emphasis cues and honors accessibility
+       motion dampening scales.
 
 ## Phase 3 – Interface & Modes
 

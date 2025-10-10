@@ -57,12 +57,20 @@ describe('createPrReaperConsole', () => {
       'PrReaperConsoleIntake'
     ) as Mesh;
     const sweep = console.group.getObjectByName('PrReaperConsoleSweep') as Mesh;
+    const walkway = console.group.getObjectByName(
+      'PrReaperConsoleWalkway'
+    ) as Mesh;
+    const caution = console.group.getObjectByName(
+      'PrReaperConsoleCautionStrip'
+    ) as Mesh;
 
     const screenMaterial = screen.material as MeshStandardMaterial;
     const bridgeMaterial = bridge.material as MeshStandardMaterial;
     const hologramMaterial = hologram.material as MeshStandardMaterial;
     const intakeMaterial = intake.material as MeshStandardMaterial;
     const sweepMaterial = sweep.material as MeshBasicMaterial;
+    const walkwayMaterial = walkway.material as MeshStandardMaterial;
+    const cautionMaterial = caution.material as MeshBasicMaterial;
 
     console.update({ elapsed: 0.5, delta: 0.016, emphasis: 0 });
     const baselineScreen = screenMaterial.emissiveIntensity;
@@ -71,7 +79,24 @@ describe('createPrReaperConsole', () => {
     const baselineIntake = intakeMaterial.emissiveIntensity;
     const baselineOpacity = sweepMaterial.opacity;
 
-    console.update({ elapsed: 1.5, delta: 0.016, emphasis: 0.8 });
+    const baselineWalkway = walkwayMaterial.emissiveIntensity;
+    const baselineCaution = cautionMaterial.opacity;
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    console.update({ elapsed: 1.5, delta: 0.016, emphasis: 0 });
+    const reducedWalkwayBaseline = walkwayMaterial.emissiveIntensity;
+    const reducedCautionBaseline = cautionMaterial.opacity;
+    expect(reducedWalkwayBaseline).toBeLessThanOrEqual(baselineWalkway);
+    expect(reducedCautionBaseline).toBeLessThanOrEqual(baselineCaution);
+
+    console.update({ elapsed: 2.5, delta: 0.016, emphasis: 0.8 });
+    const dampenedWalkway = walkwayMaterial.emissiveIntensity;
+    const dampenedCaution = cautionMaterial.opacity;
+    expect(dampenedWalkway).toBeGreaterThan(reducedWalkwayBaseline);
+    expect(dampenedCaution).toBeGreaterThan(reducedCautionBaseline);
+
+    delete document.documentElement.dataset.accessibilityPulseScale;
+    console.update({ elapsed: 3.5, delta: 0.016, emphasis: 0.8 });
     expect(screenMaterial.emissiveIntensity).toBeGreaterThan(baselineScreen);
     expect(bridgeMaterial.emissiveIntensity).toBeGreaterThan(baselineBridge);
     expect(hologramMaterial.emissiveIntensity).toBeGreaterThan(
@@ -80,5 +105,7 @@ describe('createPrReaperConsole', () => {
     expect(intakeMaterial.emissiveIntensity).toBeGreaterThan(baselineIntake);
     expect(sweepMaterial.opacity).toBeGreaterThan(baselineOpacity);
     expect(sweep.rotation.z).not.toBe(0);
+    expect(walkwayMaterial.emissiveIntensity).toBeGreaterThan(dampenedWalkway);
+    expect(cautionMaterial.opacity).toBeGreaterThan(dampenedCaution);
   });
 });

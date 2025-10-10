@@ -13,6 +13,7 @@ import {
   Vector3,
 } from 'three';
 
+import { getPulseScale } from '../accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
 export interface PrReaperConsoleBuild {
@@ -238,6 +239,8 @@ export function createPrReaperConsole(
 
   const walkwayMaterial = new MeshStandardMaterial({
     color: new Color(0x0f171f),
+    emissive: new Color(0x135c88),
+    emissiveIntensity: 0.22,
     roughness: 0.7,
     metalness: 0.18,
   });
@@ -290,6 +293,16 @@ export function createPrReaperConsole(
   }) => {
     const clampedEmphasis = MathUtils.clamp(emphasis, 0, 1);
     const pulse = (Math.sin(elapsed * 2.2) + 1) / 2;
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const walkwayBase = MathUtils.lerp(0.2, 0.68, Math.min(1, clampedEmphasis + 0.2));
+    const walkwayPulse = MathUtils.lerp(0, 0.42, pulseScale) * (0.45 + pulse * 0.55);
+    walkwayMaterial.emissiveIntensity = walkwayBase + walkwayPulse;
+    walkwayMaterial.needsUpdate = true;
+
+    const cautionBase = MathUtils.lerp(0.38, 0.82, clampedEmphasis);
+    const cautionPulse = MathUtils.lerp(0, 0.4, pulseScale) * (0.5 + pulse * 0.5);
+    cautionMaterial.opacity = MathUtils.clamp(cautionBase + cautionPulse, 0.2, 0.95);
+    cautionMaterial.needsUpdate = true;
     const intensity = MathUtils.lerp(
       0.35,
       1.25,
