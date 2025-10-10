@@ -702,6 +702,9 @@ function initializeImmersiveScene(
   const stairTopZ = stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
   const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
   const stairLandingMinZ = stairTopZ - stairLandingDepth;
+  const stairLandingMaxZ = stairTopZ;
+  const stairLandingMarginX = toWorldUnits(0.1);
+  const stairLandingMarginZ = toWorldUnits(0.1);
   const upperFloorElevation =
     stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairTransitionMargin = toWorldUnits(0.6);
@@ -1273,7 +1276,12 @@ function initializeImmersiveScene(
       },
       movePlayerTo(target: { x: number; z: number; floorId?: FloorId }) {
         const { x, z, floorId } = target;
-        const predictedFloor = floorId ?? predictFloorId(x, z, activeFloorId);
+        const predictedFloor =
+          floorId ??
+          predictFloorId(x, z, activeFloorId, {
+            x: player.position.x,
+            z: player.position.z,
+          });
         if (!canOccupyPosition(x, z, predictedFloor)) {
           throw new Error(
             `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
@@ -1427,6 +1435,18 @@ function initializeImmersiveScene(
   const isWithinStairWidth = (x: number, margin = 0) =>
     Math.abs(x - stairCenterX) <= stairHalfWidth + margin;
 
+  const isWithinLandingFootprint = (
+    x: number,
+    z: number,
+    marginX = 0,
+    marginZ = 0
+  ) =>
+    Math.abs(x - stairCenterX) <= stairHalfWidth + marginX &&
+    z >= stairLandingMinZ - marginZ &&
+    z <= stairLandingMaxZ + marginZ;
+
+  const FLOOR_TRANSITION_EPSILON = 1e-4;
+
   const computeRampHeight = (x: number, z: number): number => {
     if (!isWithinStairWidth(x, stairTransitionMargin)) {
       return 0;
@@ -1443,24 +1463,33 @@ function initializeImmersiveScene(
     return clamped * stairTotalRise;
   };
 
-  const predictFloorId = (x: number, z: number, current: FloorId): FloorId => {
+  const predictFloorId = (
+    x: number,
+    z: number,
+    current: FloorId,
+    previousPosition?: { x: number; z: number }
+  ): FloorId => {
     const rampHeight = computeRampHeight(x, z);
     const withinStairs = isWithinStairWidth(x, stairTransitionMargin);
+    const onLanding = isWithinLandingFootprint(
+      x,
+      z,
+      stairLandingMarginX,
+      stairLandingMarginZ
+    );
+
+    const deltaZ = previousPosition ? z - previousPosition.z : 0;
+    const movingTowardBottom = deltaZ > FLOOR_TRANSITION_EPSILON;
+    const movingTowardLanding = deltaZ < -FLOOR_TRANSITION_EPSILON;
+
+    const approachingLandingFromGround =
+      withinStairs &&
+      movingTowardLanding &&
+      rampHeight >=
+        stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25;
 
     if (current === 'upper') {
-      // Allow transitioning back to ground when entering the stair zone near
-      // the bottom of the staircase.
-      const nearBottom =
-        withinStairs &&
-        rampHeight <= STAIRCASE_CONFIG.step.rise * 0.5 &&
-        z >= stairBottomZ - stairRun * 0.5;
-      if (nearBottom) {
-        return 'ground';
-      }
-      // Also allow descending anywhere along the stair ramp zone when the
-      // computed ramp height is below the top landing height threshold.
-      const onRampDescending = withinStairs && rampHeight < stairTotalRise;
-      if (onRampDescending) {
+      if (onLanding && movingTowardBottom) {
         return 'ground';
       }
       return 'upper';
@@ -1468,11 +1497,8 @@ function initializeImmersiveScene(
 
     // Ascend when entering the stair zone near the landing or when the ramp
     // height implies we've progressed sufficiently up the stairs.
-    const nearLanding =
-      withinStairs &&
-      (z <= stairTopZ + stairTransitionMargin ||
-        rampHeight >= stairTotalRise - STAIRCASE_CONFIG.step.rise * 0.25);
-    if (nearLanding) {
+    const nearLanding = onLanding && movingTowardLanding;
+    if (nearLanding || approachingLandingFromGround) {
       return 'upper';
     }
 
@@ -2089,15 +2115,22 @@ function initializeImmersiveScene(
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
 
+    const previousPosition2D = {
+      x: player.position.x,
+      z: player.position.z,
+    };
+
     if (stepX !== 0) {
       const candidateX = player.position.x + stepX;
       const predictedFloor = predictFloorId(
         candidateX,
         player.position.z,
-        activeFloorId
+        activeFloorId,
+        previousPosition2D
       );
       if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
         player.position.x = candidateX;
+        previousPosition2D.x = candidateX;
         setActiveFloorId(predictedFloor);
       } else {
         targetVelocity.x = 0;
@@ -2110,10 +2143,12 @@ function initializeImmersiveScene(
       const predictedFloor = predictFloorId(
         player.position.x,
         candidateZ,
-        activeFloorId
+        activeFloorId,
+        previousPosition2D
       );
       if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
         player.position.z = candidateZ;
+        previousPosition2D.z = candidateZ;
         setActiveFloorId(predictedFloor);
       } else {
         targetVelocity.z = 0;
