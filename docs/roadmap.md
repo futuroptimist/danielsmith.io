@@ -75,8 +75,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Sculpted backyard terrain plane and layered perimeter fence framing the dusk skybox.
    - ✅ Lighting probes and dusk reflections now wash the backyard with dusk-tinted bounce
      light and greenhouse glass highlights.
-  - ✅ Hologram barrier signage now pulses with accessibility-aware gating while unfinished
-    zones stage future exhibits.
+   - ✅ Hologram barrier signage now pulses with accessibility-aware gating while unfinished
+     zones stage future exhibits.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
