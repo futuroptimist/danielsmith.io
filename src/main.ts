@@ -137,10 +137,9 @@ import {
 } from './lighting/debugControls';
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import {
+  computeYawFromVector,
   dampYawTowards,
   normalizeRadians,
-  computeModelYawFromVector,
-  rotateYaw,
 } from './movement/facing';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
@@ -233,6 +232,7 @@ const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
+const FACING_YAW_BIAS = 0; // no global bias; computeYawFromVector already matches camera-relative axes
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -2098,8 +2098,7 @@ function initializeImmersiveScene(
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
     if (speedSq > 1e-6) {
-      const base = computeModelYawFromVector(velocity);
-      mannequinYawTarget = rotateYaw(base, -Math.PI / 2);
+      mannequinYawTarget = computeYawFromVector(velocity);
     }
     mannequinYaw = dampYawTowards(
       mannequinYaw,
