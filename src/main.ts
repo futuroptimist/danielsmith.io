@@ -138,6 +138,7 @@ import {
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
+  computeYawFromVector,
   dampYawTowards,
   normalizeRadians,
 } from './movement/facing';
