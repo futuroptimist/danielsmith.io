@@ -14,3 +14,8 @@ tasks that deserve immediate attention while the roadmap handles long-range plan
 - docs: publish release tags per phase w/ changelog + screenshots
 - chore: wire telemetry-friendly console budget + error reporting (Sentry or proxy)
 - docs: spin up `docs/case-studies/` for POI impact blurbs + KPI receipts
+
+## Recently shipped
+
+- fix: Upper floor traversal no longer auto-descends when walking above the stairwell;
+  the landing plate now gates stair descent to prevent surprise teleports.
