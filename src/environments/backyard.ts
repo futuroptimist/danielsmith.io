@@ -643,6 +643,7 @@ export function createBackyardEnvironment(
     roughness: 0.18,
     metalness: 0.04,
   });
+  const baseBarrierEmissive = barrierMaterial.emissiveIntensity;
   const barrierGeometry = new BoxGeometry(
     barrierWidth,
     barrierHeight,
@@ -678,7 +679,9 @@ export function createBackyardEnvironment(
     transparent: true,
     depthWrite: false,
     side: DoubleSide,
+    opacity: 0.78,
   });
+  const baseSignageOpacity = signageMaterial.opacity;
   const signageGeometry = new PlaneGeometry(barrierWidth * 0.72, 0.78);
   const signage = new Mesh(signageGeometry, signageMaterial);
   signage.name = 'BackyardBarrierSignage';
@@ -711,12 +714,48 @@ export function createBackyardEnvironment(
   const barrierEmitters = new Points(emitterGeometry, emitterMaterial);
   barrierEmitters.name = 'BackyardBarrierEmitters';
   group.add(barrierEmitters);
+  const baseEmitterOpacity = emitterMaterial.opacity;
+  const baseEmitterSize = emitterMaterial.size;
 
   colliders.push({
     minX: barrier.position.x - barrierWidth / 2,
     maxX: barrier.position.x + barrierWidth / 2,
     minZ: barrier.position.z - barrierThickness / 2,
     maxZ: barrier.position.z + barrierThickness / 2,
+  });
+
+  updates.push(({ elapsed }) => {
+    const flickerScale = getFlickerScale();
+    const pulseScale = getPulseScale();
+
+    const emissiveTarget =
+      baseBarrierEmissive * (1.05 + Math.sin(elapsed * 1.8) * 0.22);
+    barrierMaterial.emissiveIntensity = Math.max(
+      baseBarrierEmissive * 0.68,
+      MathUtils.lerp(baseBarrierEmissive, emissiveTarget, flickerScale)
+    );
+
+    const signageTarget = Math.min(
+      1,
+      baseSignageOpacity + Math.abs(Math.sin(elapsed * 0.9)) * 0.32
+    );
+    signageMaterial.opacity = MathUtils.lerp(
+      baseSignageOpacity,
+      signageTarget,
+      pulseScale
+    );
+    signageMaterial.needsUpdate = true;
+
+    emitterMaterial.opacity = MathUtils.lerp(
+      baseEmitterOpacity,
+      Math.min(1, baseEmitterOpacity + 0.35 + Math.sin(elapsed * 1.6) * 0.18),
+      pulseScale
+    );
+    emitterMaterial.size = MathUtils.lerp(
+      baseEmitterSize,
+      baseEmitterSize * (1.08 + Math.sin(elapsed * 1.2) * 0.16),
+      pulseScale
+    );
   });
 
   const update = (context: { elapsed: number; delta: number }) => {

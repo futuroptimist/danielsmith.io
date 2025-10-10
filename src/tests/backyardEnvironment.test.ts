@@ -4,8 +4,11 @@ import {
   Group,
   LightProbe,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PointLight,
+  Points,
+  PointsMaterial,
   ShaderMaterial,
   SRGBColorSpace,
   Texture,
@@ -288,6 +291,51 @@ describe('createBackyardEnvironment', () => {
     const steadyGrow = growMaterial.emissiveIntensity;
     environment.update({ elapsed: 3.2, delta: 0.016 });
     expect(growMaterial.emissiveIntensity).toBeCloseTo(steadyGrow, 5);
+  });
+
+  it('animates the hologram barrier while respecting accessibility damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const barrier = environment.group.getObjectByName(
+      'BackyardHologramBarrier'
+    ) as Mesh | null;
+    expect(barrier).toBeInstanceOf(Mesh);
+    const barrierMaterial = (barrier!.material as MeshStandardMaterial)!;
+
+    const signage = environment.group.getObjectByName(
+      'BackyardBarrierSignage'
+    ) as Mesh | null;
+    expect(signage).toBeInstanceOf(Mesh);
+    const signageMaterial = (signage!.material as MeshBasicMaterial)!;
+
+    const emitters = environment.group.getObjectByName(
+      'BackyardBarrierEmitters'
+    ) as Points | null;
+    expect(emitters).toBeInstanceOf(Points);
+    const emitterMaterial = (emitters!.material as PointsMaterial)!;
+
+    const baseBarrier = barrierMaterial.emissiveIntensity;
+    const baseSignageOpacity = signageMaterial.opacity;
+    const baseEmitterOpacity = emitterMaterial.opacity;
+    const baseEmitterSize = emitterMaterial.size;
+
+    environment.update({ elapsed: 0.6, delta: 0.016 });
+    expect(barrierMaterial.emissiveIntensity).not.toBeCloseTo(baseBarrier, 5);
+    expect(signageMaterial.opacity).not.toBeCloseTo(baseSignageOpacity, 5);
+    expect(emitterMaterial.opacity).not.toBeCloseTo(baseEmitterOpacity, 5);
+    expect(emitterMaterial.size).not.toBeCloseTo(baseEmitterSize, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    barrierMaterial.emissiveIntensity = baseBarrier;
+    signageMaterial.opacity = baseSignageOpacity;
+    emitterMaterial.opacity = baseEmitterOpacity;
+    emitterMaterial.size = baseEmitterSize;
+
+    environment.update({ elapsed: 1.6, delta: 0.016 });
+    expect(barrierMaterial.emissiveIntensity).toBeCloseTo(baseBarrier, 5);
+    expect(signageMaterial.opacity).toBeCloseTo(baseSignageOpacity, 5);
+    expect(emitterMaterial.opacity).toBeCloseTo(baseEmitterOpacity, 5);
+    expect(emitterMaterial.size).toBeCloseTo(baseEmitterSize, 5);
   });
 
   it('wraps the backyard with a dusk sky dome that subtly shifts over time', () => {
