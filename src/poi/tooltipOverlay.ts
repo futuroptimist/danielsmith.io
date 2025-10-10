@@ -163,9 +163,6 @@ export class PoiTooltipOverlay {
     if (previousPoiId !== poi.id) {
       this.renderPoi(poi);
       this.renderState.poiId = poi.id;
-      if (state === 'selected') {
-        this.announceDiscovery(poi);
-      }
     } else {
       this.updateStatus(poi);
     }

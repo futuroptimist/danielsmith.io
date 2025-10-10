@@ -198,8 +198,6 @@ describe('PoiTooltipOverlay', () => {
     expect(initialMessage).toContain(`${basePoi.title} discovered.`);
     expect(initialMessage).toContain(basePoi.summary);
 
-    timelineHarness.advance(250);
-
     const nextPoi: PoiDefinition = {
       ...basePoi,
       id: 'futuroptimist-living-room-tv-variant',
@@ -207,9 +205,7 @@ describe('PoiTooltipOverlay', () => {
     };
 
     overlay.setSelected(nextPoi);
-    expect(liveRegion.textContent).not.toContain(
-      `${nextPoi.title} discovered.`
-    );
+    expect(liveRegion.textContent).toBe(initialMessage);
 
     timelineHarness.advance(249);
     expect(liveRegion.textContent).not.toContain(

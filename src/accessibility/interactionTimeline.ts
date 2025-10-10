@@ -68,7 +68,8 @@ export class InteractionTimeline {
     this.minIntervalMs = Math.max(0, options.minIntervalMs ?? 1800);
     this.maxQueueLength = Math.max(1, options.maxQueueLength ?? 3);
     this.now = options.now ?? (() => Date.now());
-    this.schedule = options.schedule ?? ((callback, delay) => setTimeout(callback, delay));
+    this.schedule =
+      options.schedule ?? ((callback, delay) => setTimeout(callback, delay));
     this.cancel = options.cancel ?? ((handle) => clearTimeout(handle));
   }
 
@@ -82,7 +83,9 @@ export class InteractionTimeline {
     };
 
     if (entry.id) {
-      const existingIndex = this.queue.findIndex((queued) => queued.id === entry.id);
+      const existingIndex = this.queue.findIndex(
+        (queued) => queued.id === entry.id
+      );
       if (existingIndex >= 0) {
         this.queue.splice(existingIndex, 1, entry);
       } else {
