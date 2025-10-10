@@ -21,7 +21,6 @@ import {
   Scene,
   Shape,
   ShapeGeometry,
-  SphereGeometry,
   SRGBColorSpace,
   Vector2,
   Vector3,
@@ -51,6 +50,7 @@ import {
   createDistantHumBuffer,
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
+import { createPortfolioMannequin } from './avatar/mannequin';
 import { collidesWithColliders, type RectCollider } from './collision';
 import {
   createAccessibilityPresetControl,
@@ -1118,9 +1118,9 @@ function initializeImmersiveScene(
   };
   window.addEventListener('beforeunload', beforeUnloadHandler);
 
-  const playerMaterial = new MeshStandardMaterial({ color: 0xffc857 });
-  const playerGeometry = new SphereGeometry(PLAYER_RADIUS, 32, 32);
-  const player = new Mesh(playerGeometry, playerMaterial);
+  const { group: player } = createPortfolioMannequin({
+    collisionRadius: PLAYER_RADIUS,
+  });
   player.position.copy(initialPlayerPosition);
   scene.add(player);
 

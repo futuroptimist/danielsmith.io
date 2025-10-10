@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Production-ready Vite + Three.js playground for the future danielsmith.io experience.
-The scene renders an orthographic isometric room with keyboard-driven sphere movement so
+The scene renders an orthographic isometric room with keyboard-driven mannequin movement so
 we can iterate on spatial UX while keeping repo hygiene tight. The project was originally
 bootstrapped from the [`flywheel`](https://github.com/futuroptimist/flywheel) template and
 keeps the familiar conventions while focusing purely on the web stack.
@@ -114,12 +114,14 @@ lightweight.
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.
 - **Avatar pipeline** – `createAvatarImporter` validates GLTF bone and animation requirements and can
-  attach a DRACO decoder path so future mannequins load consistently.
+  attach a DRACO decoder path so future mannequins load consistently, and a stylized emissive
+  mannequin now rides on the controller collider so the space feels inhabited even before the hero
+  avatar lands.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).
 
 ## Controls
 
-- **Movement** – Use `WASD` or arrow keys to roll the sphere.
+- **Movement** – Use `WASD` or arrow keys to guide the mannequin.
 - **Key remapping** – Use `portfolio.input.keyBindings.setBinding('interact', ['e'])`
   in the browser console to try alternate bindings. HUD prompts update instantly and
   the mapping persists locally.

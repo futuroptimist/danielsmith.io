@@ -226,7 +226,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 1. **Character Import**
    - Set up GLTF/GLB ingestion pipeline with unit tests for bone/animation integrity.
      - ⚙️ Avatar importer now validates required bones and animation clips before controller wiring.
-   - Integrate temporary mannequin until Daniel's custom model ships.
+  - ✅ Stylized mannequin placeholder now replaces the golden sphere, aligning with the controller
+    collider while showcasing emissive visor accents and HUD-ready trim palettes.
    - Support material variants (portfolio outfit, casual, formal) toggled via HUD.
 2. **Locomotion Polish**
    - Blend tree for idle/walk/run/turn animations aligned to physics controller speed.
