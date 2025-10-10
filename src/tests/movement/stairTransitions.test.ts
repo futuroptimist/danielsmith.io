@@ -54,6 +54,22 @@ describe('stair floor transitions', () => {
     expect(result).toBe('upper');
   });
 
+  it('does not leave the upper floor when west of the stair base', () => {
+    const currentFloor: FloorId = 'upper';
+    const westLandingX =
+      STAIR_GEOMETRY.centerX - STAIR_GEOMETRY.halfWidth + toWorldUnits(0.15);
+    const southOfLandingZ = STAIR_GEOMETRY.bottomZ + toWorldUnits(0.35);
+    const result = predictStairFloorId(
+      STAIR_GEOMETRY,
+      STAIR_BEHAVIOR,
+      westLandingX,
+      southOfLandingZ,
+      currentFloor
+    );
+
+    expect(result).toBe('upper');
+  });
+
   it('switches to the ground floor after leaving the landing for the ramp', () => {
     const currentFloor: FloorId = 'upper';
     const firstStepZ = STAIR_GEOMETRY.topZ + toWorldUnits(0.3);
