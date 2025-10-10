@@ -68,5 +68,3 @@ export function computeModelYawFromVector(vector: Vector3): number {
 export function rotateYaw(base: number, delta: number): number {
   return normalizeRadians(base + delta);
 }
-
-

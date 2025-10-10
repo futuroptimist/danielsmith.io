@@ -11,24 +11,36 @@ import {
 describe('facing helpers', () => {
   it('computes yaw from planar vectors', () => {
     expect(computeYawFromVector(new Vector3(0, 0, -1))).toBeCloseTo(0, 6);
-    expect(computeYawFromVector(new Vector3(1, 0, 0))).toBeCloseTo(Math.PI / 2, 6);
-    expect(computeYawFromVector(new Vector3(-1, 0, 0))).toBeCloseTo(-Math.PI / 2, 6);
-    expect(Math.abs(computeYawFromVector(new Vector3(0, 0, 1)))).toBeCloseTo(Math.PI, 6);
+    expect(computeYawFromVector(new Vector3(1, 0, 0))).toBeCloseTo(
+      Math.PI / 2,
+      6
+    );
+    expect(computeYawFromVector(new Vector3(-1, 0, 0))).toBeCloseTo(
+      -Math.PI / 2,
+      6
+    );
+    expect(Math.abs(computeYawFromVector(new Vector3(0, 0, 1)))).toBeCloseTo(
+      Math.PI,
+      6
+    );
   });
 
   it('computes diagonals correctly (two-key combos)', () => {
-    expect(
-      computeYawFromVector(new Vector3(1, 0, -1).normalize())
-    ).toBeCloseTo(Math.PI / 4, 6); // forward + right
+    expect(computeYawFromVector(new Vector3(1, 0, -1).normalize())).toBeCloseTo(
+      Math.PI / 4,
+      6
+    ); // forward + right
     expect(
       computeYawFromVector(new Vector3(-1, 0, -1).normalize())
     ).toBeCloseTo(-Math.PI / 4, 6); // forward + left
-    expect(
-      computeYawFromVector(new Vector3(1, 0, 1).normalize())
-    ).toBeCloseTo((3 * Math.PI) / 4, 6); // back + right
-    expect(
-      computeYawFromVector(new Vector3(-1, 0, 1).normalize())
-    ).toBeCloseTo((-3 * Math.PI) / 4, 6); // back + left
+    expect(computeYawFromVector(new Vector3(1, 0, 1).normalize())).toBeCloseTo(
+      (3 * Math.PI) / 4,
+      6
+    ); // back + right
+    expect(computeYawFromVector(new Vector3(-1, 0, 1).normalize())).toBeCloseTo(
+      (-3 * Math.PI) / 4,
+      6
+    ); // back + left
   });
 
   it('normalizes and differences around wrap boundaries', () => {
@@ -58,5 +70,3 @@ describe('facing helpers', () => {
     }
   });
 });
-
-
