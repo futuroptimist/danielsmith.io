@@ -1,8 +1,4 @@
-import type {
-  AnimationAction,
-  AnimationClip,
-  AnimationMixer,
-} from 'three';
+import type { AnimationAction, AnimationClip, AnimationMixer } from 'three';
 import { MathUtils } from 'three';
 
 export type AvatarLocomotionClipSet = {
@@ -94,7 +90,11 @@ type InternalState = {
 };
 
 function normalizedProgress(value: number, start: number, end: number): number {
-  if (!Number.isFinite(value) || !Number.isFinite(start) || !Number.isFinite(end)) {
+  if (
+    !Number.isFinite(value) ||
+    !Number.isFinite(start) ||
+    !Number.isFinite(end)
+  ) {
     return 0;
   }
   if (end <= start + 1e-6) {
@@ -169,7 +169,9 @@ export function createAvatarLocomotionAnimator(
   const walkAction = mixer.clipAction(walkClip);
   const runAction = mixer.clipAction(runClip);
   const turnLeftAction = turnLeftClip ? mixer.clipAction(turnLeftClip) : null;
-  const turnRightAction = turnRightClip ? mixer.clipAction(turnRightClip) : null;
+  const turnRightAction = turnRightClip
+    ? mixer.clipAction(turnRightClip)
+    : null;
 
   idleAction.reset();
   walkAction.reset();
@@ -261,11 +263,8 @@ export function createAvatarLocomotionAnimator(
     state.snapshot.angularSpeed = angularSpeed;
 
     const idleRampStart = idleToWalk * 0.4;
-    let idleContribution = 1 - normalizedProgress(
-      planarSpeed,
-      idleRampStart,
-      idleToWalk
-    );
+    let idleContribution =
+      1 - normalizedProgress(planarSpeed, idleRampStart, idleToWalk);
     let runContribution = normalizedProgress(
       planarSpeed,
       walkToRun,
