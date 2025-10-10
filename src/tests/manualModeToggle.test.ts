@@ -71,7 +71,9 @@ describe('createManualModeToggle', () => {
       getIsFallbackActive: () => true,
     });
 
-    expect(handle.element.dataset.hudAnnounce).toBe('Text mode already active.');
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      'Text mode already active.'
+    );
     expect(handle.element.dataset.state).toBe('active');
     expect(handle.element.textContent).toBe('Text mode active');
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
