@@ -136,6 +136,10 @@ import {
   type LightingMode,
 } from './lighting/debugControls';
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
+import {
+  computeYawFromVector,
+  dampYawTowards,
+} from './movement/facing';
 import { createWindowPoiAnalytics } from './poi/analytics';
 import { PoiInteractionManager } from './poi/interactionManager';
 import {
@@ -210,6 +214,8 @@ declare global {
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
+        // Test-only helper: current player yaw in radians
+        getPlayerYaw?(): number;
       };
     };
   }
@@ -224,6 +230,7 @@ const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
+const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -1282,6 +1289,10 @@ function initializeImmersiveScene(
           upperFloorElevation,
         };
       },
+      // Test helpers – expose current mannequin yaw in radians.
+      getPlayerYaw() {
+        return mannequinYaw;
+      },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
           const material = p.mesh.material as MeshStandardMaterial;
@@ -1345,6 +1356,8 @@ function initializeImmersiveScene(
   const targetVelocity = new Vector3();
   const velocity = new Vector3();
   const moveDirection = new Vector3();
+  let mannequinYaw = 0;
+  let mannequinYawTarget = 0;
   const cameraPan = new Vector3();
   const cameraPanTarget = new Vector3();
   const poiLabelLookTarget = new Vector3();
@@ -2079,6 +2092,19 @@ function initializeImmersiveScene(
     }
 
     updatePlayerVerticalPosition();
+
+    // Update facing: aim toward current planar velocity when moving.
+    const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
+    if (speedSq > 1e-6) {
+      mannequinYawTarget = computeYawFromVector(velocity);
+    }
+    mannequinYaw = dampYawTowards(
+      mannequinYaw,
+      mannequinYawTarget,
+      MANNEQUIN_YAW_SMOOTHING,
+      delta
+    );
+    player.rotation.y = mannequinYaw;
   }
 
   function updateCamera(delta: number) {
