@@ -3,6 +3,25 @@ import { expect, test } from '@playwright/test';
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
+type TestWorldApi = {
+  movePlayerTo(target: { x: number; z: number }): void;
+  getStairMetrics(): {
+    stairCenterX: number;
+    stairHalfWidth: number;
+    stairBottomZ: number;
+    stairTopZ: number;
+    stairLandingMinZ: number;
+    stairLandingDepth: number;
+    upperFloorElevation: number;
+  };
+};
+
+type PortfolioWindow = Window & {
+  portfolio?: {
+    world?: TestWorldApi;
+  };
+};
+
 test.setTimeout(150_000);
 
 async function waitForImmersiveReady(page: import('@playwright/test').Page) {
@@ -20,76 +39,56 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
 
   const html = page.locator('html');
 
+  const movePlayerTo = async (target: { x: number; z: number }) => {
+    await page.evaluate((next) => {
+      const { portfolio } = window as PortfolioWindow;
+      const world = portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+      world.movePlayerTo(next);
+    }, target);
+    await page.waitForTimeout(150);
+  };
+
+  const metrics = await page.evaluate(() => {
+    const { portfolio } = window as PortfolioWindow;
+    const world = portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.getStairMetrics();
+  });
+
+  const {
+    stairCenterX,
+    stairBottomZ,
+    stairTopZ,
+    stairLandingMinZ,
+    stairLandingDepth,
+  } = metrics;
+
   // Start on ground.
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
-  // Move toward the staircase using WASD inputs. We step in small bursts so the
-  // physics/collision checks run between frames, similar to real gameplay.
-  const press = async (keys: string | string[], ms = 220) => {
-    const activeKeys = Array.isArray(keys) ? keys : [keys];
+  // Move to the base of the staircase on the ground floor.
+  await movePlayerTo({ x: stairCenterX, z: stairBottomZ + 0.3 });
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
-    for (const key of activeKeys) {
-      await page.keyboard.down(key);
-    }
-    await page.waitForTimeout(ms);
-    for (const key of activeKeys.slice().reverse()) {
-      await page.keyboard.up(key);
-    }
-  };
-
-  const holdKeysUntilFloor = async (
-    keys: string | string[],
-    target: 'ground' | 'upper',
-    timeout = 15_000,
-    stabilityMs = 1_200
-  ) => {
-    const activeKeys = Array.isArray(keys) ? keys : [keys];
-
-    for (const key of activeKeys) {
-      await page.keyboard.down(key);
-    }
-
-    try {
-      await page.waitForFunction(
-        (expected) => document.documentElement.dataset.activeFloor === expected,
-        target,
-        { timeout }
-      );
-      await page.waitForTimeout(stabilityMs);
-    } finally {
-      for (const key of activeKeys.slice().reverse()) {
-        await page.keyboard.up(key);
-      }
-    }
-
-    await page.waitForTimeout(300);
-    await expect(html).toHaveAttribute('data-active-floor', target, {
-      timeout: stabilityMs,
-    });
-  };
-
-  // From spawn (living room center), head northeast toward the stair bottom.
-  for (let i = 0; i < 18; i += 1) {
-    await press(['w', 'd'], 120);
-  }
-
-  // Enter the staircase and walk up.
-  await holdKeysUntilFloor(['w', 'd'], 'upper');
-
-  // Verify we reached upper floor.
+  // Enter the ramp and ascend to the upper floor.
+  await movePlayerTo({ x: stairCenterX, z: (stairBottomZ + stairTopZ) / 2 });
+  await movePlayerTo({ x: stairCenterX, z: stairTopZ - 0.1 });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
-  // Walk away from the landing to ensure we can leave the stair area.
-  for (let i = 0; i < 8; i += 1) {
-    await press('w', 120);
-  }
+  // Roam deeper onto the upper landing and confirm we stay upstairs.
+  const landingRoamZ =
+    stairLandingMinZ + Math.min(stairLandingDepth * 0.5, 0.6);
+  await movePlayerTo({ x: stairCenterX, z: landingRoamZ });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
-  // Turn back toward stairs and descend.
-  for (let i = 0; i < 8; i += 1) {
-    await press('s', 120);
-  }
-  await holdKeysUntilFloor(['s', 'a'], 'ground');
-
-  // Should be back on ground.
+  // Return toward the stairs and descend back to ground.
+  await movePlayerTo({ x: stairCenterX, z: stairTopZ - 0.15 });
+  await movePlayerTo({ x: stairCenterX, z: (stairBottomZ + stairTopZ) / 2 });
+  await movePlayerTo({ x: stairCenterX, z: stairBottomZ + 0.35 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });

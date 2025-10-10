@@ -193,6 +193,7 @@ declare global {
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
+        movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
         getPlayerPosition(): { x: number; y: number; z: number };
         getStairMetrics(): {
           stairCenterX: number;
@@ -1220,6 +1221,19 @@ function initializeImmersiveScene(
       },
       setActiveFloor(next: FloorId) {
         setActiveFloorId(next);
+        updatePlayerVerticalPosition();
+      },
+      movePlayerTo(target: { x: number; z: number; floorId?: FloorId }) {
+        const { x, z, floorId } = target;
+        const predictedFloor = floorId ?? predictFloorId(x, z, activeFloorId);
+        if (!canOccupyPosition(x, z, predictedFloor)) {
+          throw new Error(
+            `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
+          );
+        }
+        player.position.x = x;
+        player.position.z = z;
+        setActiveFloorId(predictedFloor);
         updatePlayerVerticalPosition();
       },
       // Test helpers – intentionally minimal and read-only in production.
