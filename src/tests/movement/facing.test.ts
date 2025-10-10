@@ -6,6 +6,7 @@ import {
   computeYawFromVector,
   angularDifference,
   dampYawTowards,
+  getCameraRelativeDirection,
   normalizeRadians,
 } from '../../movement/facing';
 
@@ -92,5 +93,16 @@ describe('facing helpers', () => {
     expect(
       computeCameraRelativeYaw(camera, forward.clone().negate())
     ).toBeCloseTo(Math.PI, 6);
+
+    const relativeForward = getCameraRelativeDirection(camera, 0);
+    expect(relativeForward.angleTo(forward)).toBeLessThan(1e-6);
+
+    const relativeRight = getCameraRelativeDirection(camera, Math.PI / 2);
+    expect(relativeRight.angleTo(right)).toBeLessThan(1e-6);
+
+    const relativeDiagonal = getCameraRelativeDirection(camera, Math.PI / 4);
+    expect(
+      relativeDiagonal.angleTo(forward.clone().add(right).normalize())
+    ).toBeLessThan(1e-6);
   });
 });

@@ -138,8 +138,10 @@ import {
 import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
+  computeModelYawFromVector,
   computeYawFromVector,
   dampYawTowards,
+  getCameraRelativeDirection,
   normalizeRadians,
 } from './movement/facing';
 import { createWindowPoiAnalytics } from './poi/analytics';
@@ -1303,7 +1305,7 @@ function initializeImmersiveScene(
       },
       // Test helpers – expose current mannequin yaw in radians.
       getPlayerYaw() {
-        return normalizeRadians(mannequinYaw);
+        return normalizeRadians(mannequinRelativeYaw);
       },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
@@ -1368,8 +1370,9 @@ function initializeImmersiveScene(
   const targetVelocity = new Vector3();
   const velocity = new Vector3();
   const moveDirection = new Vector3();
-  let mannequinYaw = 0;
-  let mannequinYawTarget = 0;
+  const mannequinFacingDirection = new Vector3();
+  let mannequinRelativeYaw = 0;
+  let mannequinRelativeYawTarget = 0;
   const cameraPan = new Vector3();
   const cameraPanTarget = new Vector3();
   const poiLabelLookTarget = new Vector3();
@@ -2076,9 +2079,9 @@ function initializeImmersiveScene(
 
     if (planarVelocityLengthSq > 1e-6) {
       const rawYaw = computeYawFromVector(velocity);
-      mannequinYawTarget = normalizeRadians(rawYaw - cameraYawOffset);
+      mannequinRelativeYawTarget = normalizeRadians(rawYaw - cameraYawOffset);
     } else if (planarInputLengthSq > 1e-6) {
-      mannequinYawTarget = normalizeRadians(
+      mannequinRelativeYawTarget = normalizeRadians(
         Math.atan2(combinedRight, combinedForward)
       );
     }
@@ -2123,18 +2126,23 @@ function initializeImmersiveScene(
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
     if (speedSq > 1e-6) {
-      mannequinYawTarget = normalizeRadians(
+      mannequinRelativeYawTarget = normalizeRadians(
         computeCameraRelativeYaw(camera, velocity)
       );
     }
-    mannequinYaw = dampYawTowards(
-      mannequinYaw,
-      mannequinYawTarget,
+    mannequinRelativeYaw = dampYawTowards(
+      mannequinRelativeYaw,
+      mannequinRelativeYawTarget,
       MANNEQUIN_YAW_SMOOTHING,
       delta
     );
-    // Mirror yaw horizontally for visible model so A/D map intuitively.
-    player.rotation.y = mannequinYaw;
+    // Convert the camera-relative yaw to a world-facing orientation for the visible model.
+    const facingDirection = getCameraRelativeDirection(
+      camera,
+      mannequinRelativeYaw,
+      mannequinFacingDirection
+    );
+    player.rotation.y = computeModelYawFromVector(facingDirection);
   }
 
   function updateCamera(delta: number) {
