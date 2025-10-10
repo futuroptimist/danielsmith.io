@@ -231,6 +231,7 @@ const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 7;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
+const MANNEQUIN_YAW_OFFSET = Math.PI / 2; // align mannequin forward with movement
 const CEILING_COVE_OFFSET = 0.35;
 const LED_STRIP_THICKNESS = 0.12;
 const LED_STRIP_DEPTH = 0.22;
@@ -2104,7 +2105,7 @@ function initializeImmersiveScene(
       MANNEQUIN_YAW_SMOOTHING,
       delta
     );
-    player.rotation.y = mannequinYaw;
+    player.rotation.y = mannequinYaw + MANNEQUIN_YAW_OFFSET;
   }
 
   function updateCamera(delta: number) {
