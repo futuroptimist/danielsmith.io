@@ -156,7 +156,6 @@ import { getCameraRelativeMovementVector } from './movement/cameraRelativeMoveme
 import {
   computeCameraRelativeYaw,
   computeModelYawFromVector,
-  computeYawFromVector,
   angularDifference,
   dampYawTowards,
   getCameraRelativeDirection,
@@ -583,7 +582,6 @@ function initializeImmersiveScene(
     baseCameraSize * 1.06
   );
   const cameraForwardPlanar = new Vector3();
-  let cameraYawOffset = 0;
 
   const cameraCenter = initialPlayerPosition.clone();
   camera.position.copy(cameraCenter).add(cameraBaseOffset);
@@ -595,7 +593,6 @@ function initializeImmersiveScene(
   } else {
     cameraForwardPlanar.normalize();
   }
-  cameraYawOffset = computeYawFromVector(cameraForwardPlanar);
 
   const ambientLight = new AmbientLight(0xf5f7ff, 0.38);
   const hemisphericLight = new HemisphereLight(0x324a6d, 0x131a17, 0.22);
@@ -2183,13 +2180,15 @@ function initializeImmersiveScene(
 
     const planarVelocityLengthSq =
       velocity.x * velocity.x + velocity.z * velocity.z;
+    const hasPlanarInput = planarInputLengthSq > 1e-6;
 
-    if (planarVelocityLengthSq > 1e-6) {
-      const rawYaw = computeYawFromVector(velocity);
-      mannequinRelativeYawTarget = normalizeRadians(rawYaw - cameraYawOffset);
-    } else if (planarInputLengthSq > 1e-6) {
+    if (hasPlanarInput) {
       mannequinRelativeYawTarget = normalizeRadians(
-        Math.atan2(combinedRight, combinedForward)
+        computeCameraRelativeYaw(camera, moveDirection)
+      );
+    } else if (planarVelocityLengthSq > 1e-6) {
+      mannequinRelativeYawTarget = normalizeRadians(
+        computeCameraRelativeYaw(camera, velocity)
       );
     }
 
@@ -2232,7 +2231,7 @@ function initializeImmersiveScene(
 
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
-    if (speedSq > 1e-6) {
+    if (speedSq > 1e-6 && !hasPlanarInput) {
       mannequinRelativeYawTarget = normalizeRadians(
         computeCameraRelativeYaw(camera, velocity)
       );
