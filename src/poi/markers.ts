@@ -17,7 +17,7 @@ import {
   Vector3,
 } from 'three';
 
-import { scalePoiValue } from './constants';
+import { scalePoiValue, POI_ORB_VERTICAL_OFFSET } from './constants';
 import type { PoiDefinition, PoiId } from './types';
 import { createVisitedBadge, type PoiVisitedBadge } from './visitedBadge';
 
@@ -154,7 +154,7 @@ function createPedestalPoiInstance(
   });
   const orb = new Mesh(orbGeometry, orbMaterial);
   const orbBaseHeight =
-    baseHeight + accentHeight + orbRadius + scalePoiValue(0.18);
+    baseHeight + accentHeight + orbRadius + scalePoiValue(POI_ORB_VERTICAL_OFFSET);
   orb.position.y = orbBaseHeight;
   group.add(orb);
 
