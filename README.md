@@ -154,9 +154,9 @@ lightweight.
   open a modal with controls, accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support and sustained frame rates below 30 FPS;
-  `?mode=immersive&disablePerformanceFailover=1` forces the full scene even on
-  throttled preview clients. Screen readers now announce each switch so assistive
-  technology users know which mode is active.
+  share preview links as `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`
+  (swap host/port as needed) to force the full scene even on throttled preview clients.
+  Screen readers now announce each switch so assistive technology users know which mode is active.
 
 ## Automation prompts
 

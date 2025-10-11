@@ -19,8 +19,10 @@ USER:
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Update minimap/plan docs or diagrams if included in the repo.
 6. Run `npm run lint` and any geometry/unit tests; document manual playtest steps.
-7. When opening the Web preview, append `?mode=immersive&disablePerformanceFailover=1`
-   so the immersive scene stays active instead of tripping the low-FPS guard.
+7. Always open the Web preview at
+   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
+   needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
+   `createImmersiveModeUrl(...)` to keep both overrides intact.
 
 OUTPUT:
 Provide summary, tests, and QA notes.

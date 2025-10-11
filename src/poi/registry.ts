@@ -1,6 +1,7 @@
 import { FLOOR_PLAN } from '../floorPlan';
 import { getPoiCopy } from '../i18n';
 
+import { scalePoiValue } from './constants';
 import type { PoiDefinition, PoiId, PoiRegistry } from './types';
 import { assertValidPoiDefinitions } from './validation';
 
@@ -15,7 +16,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
-    position: { x: -9.1, y: 0, z: -14.2 },
+    position: { x: -10.5, y: 0, z: -13.5 },
     headingRadians: Math.PI * 0.5,
     interactionRadius: 2.6,
     footprint: { width: 3.4, depth: 3.2 },
@@ -26,7 +27,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 1.2, y: 0, z: 5.8 },
+    position: { x: 13.6, y: 0, z: 3.6615 },
     headingRadians: Math.PI * 0.05,
     interactionRadius: 2.2,
     footprint: { width: 2.4, depth: 2 },
@@ -37,7 +38,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 12.2, y: 0, z: 3.2 },
+    position: { x: 0.2547, y: 0, z: 5.1889 },
     headingRadians: -Math.PI * 0.3,
     interactionRadius: 2.3,
     footprint: { width: 2.2, depth: 2 },
@@ -48,7 +49,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 6.2, y: 0, z: 2.6 },
+    position: { x: 10.2076, y: 0, z: -2 },
     headingRadians: 0,
     interactionRadius: 2.2,
     footprint: { width: 2, depth: 2 },
@@ -59,7 +60,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 9.4, y: 0, z: -0.6 },
+    position: { x: 7.1076, y: 0, z: 6 },
     headingRadians: -Math.PI / 2,
     interactionRadius: 2.3,
     footprint: { width: 2.4, depth: 2 },
@@ -70,7 +71,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 1.8, y: 0, z: -2.4 },
+    position: { x: 4.2491, y: 0, z: 0.0506 },
     headingRadians: Math.PI,
     interactionRadius: 2,
     footprint: { width: 2.2, depth: 1.8 },
@@ -81,7 +82,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
-    position: { x: 4.4, y: 0, z: -11.6 },
+    position: { x: -2, y: 0, z: -9 },
     headingRadians: Math.PI * 0.1,
     interactionRadius: 2.1,
     footprint: { width: 2.6, depth: 1.8 },
@@ -92,7 +93,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
-    position: { x: 0.6, y: 0, z: -8.4 },
+    position: { x: 7.6, y: 0, z: -13.6 },
     headingRadians: 0,
     interactionRadius: 2.2,
     footprint: { width: 2.4, depth: 2.4 },
@@ -103,7 +104,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'kitchen',
-    position: { x: -9.2, y: 0, z: -0.6 },
+    position: { x: -14, y: 0, z: 4 },
     headingRadians: Math.PI * 0.5,
     interactionRadius: 2,
     footprint: { width: 2, depth: 1.6 },
@@ -114,7 +115,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'kitchen',
-    position: { x: -5.2, y: 0, z: 10 },
+    position: { x: -8, y: 0, z: 6 },
     headingRadians: Math.PI * 0.1,
     interactionRadius: 2,
     footprint: { width: 1.8, depth: 1.8 },
@@ -125,7 +126,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'kitchen',
-    position: { x: -11.8, y: 0, z: 6.2 },
+    position: { x: -10, y: 0, z: -2 },
     headingRadians: Math.PI * 0.45,
     interactionRadius: 2.2,
     footprint: { width: 2.6, depth: 2.2 },
@@ -136,7 +137,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'backyard',
-    position: { x: -14.08, y: 0, z: 23.6 },
+    position: { x: -12, y: 0, z: 24 },
     headingRadians: -Math.PI / 10,
     interactionRadius: 2.6,
     footprint: { width: 3.4, depth: 3.4 },
@@ -147,7 +148,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'backyard',
-    position: { x: 6.6, y: 0, z: 19.6 },
+    position: { x: 0, y: 0, z: 20 },
     headingRadians: Math.PI * 0.35,
     interactionRadius: 2.1,
     footprint: { width: 2.4, depth: 2 },
@@ -158,7 +159,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'backyard',
-    position: { x: 14.08, y: 0, z: 28.2 },
+    position: { x: 12, y: 0, z: 26 },
     headingRadians: Math.PI * 0.55,
     interactionRadius: 2.4,
     footprint: { width: 3.6, depth: 3.2 },
@@ -173,8 +174,19 @@ const definitions: PoiDefinition[] = baseDefinitions.map((base) => {
   if (!copy) {
     throw new Error(`Missing localized POI copy for ${base.id}`);
   }
+  const footprintWidth = scalePoiValue(base.footprint.width);
+  const footprintDepth = scalePoiValue(base.footprint.depth);
+  const baseMaxHalf = Math.max(base.footprint.width, base.footprint.depth) / 2;
+  const scaledMaxHalf = Math.max(footprintWidth, footprintDepth) / 2;
+  const preservedMargin = Math.max(0, base.interactionRadius - baseMaxHalf);
+  const scaledInteractionRadius = scaledMaxHalf + preservedMargin;
   return {
     ...base,
+    interactionRadius: scaledInteractionRadius,
+    footprint: {
+      width: footprintWidth,
+      depth: footprintDepth,
+    },
     title: copy.title,
     summary: copy.summary,
     metrics: copy.metrics?.map((metric) => ({ ...metric })),

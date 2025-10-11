@@ -41,6 +41,17 @@ npm run docs:check
 npm run smoke
 ```
 
+## Preview overrides
+
+- When launching the Vite preview (local or Codespaces), always load the immersive scene via
+  `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (swap the host/port if
+  previewing elsewhere).
+- If you need to add extra query parameters, append them with `&` or call
+  `createImmersiveModeUrl(...)` from `src/immersiveUrl.ts` so both `mode=immersive` and
+  `disablePerformanceFailover=1` remain intact.
+- Never share preview links without those overrides—headless and low-FPS heuristics will otherwise
+  fall back to the text mode.
+
 Run targeted scripts (e.g., `npm run floorplan:diagram`,
 `npm run launch:screenshot`) only when your changes impact the related assets.
 
