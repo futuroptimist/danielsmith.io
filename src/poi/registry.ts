@@ -93,7 +93,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
-    position: { x: 9.2, y: 0, z: -13.4 },
+    position: { x: 7.6, y: 0, z: -13.6 },
     headingRadians: 0,
     interactionRadius: 2.2,
     footprint: { width: 2.4, depth: 2.4 },
