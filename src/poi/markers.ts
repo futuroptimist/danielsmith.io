@@ -169,8 +169,7 @@ function createPedestalPoiInstance(
   const labelWidth = scalePoiValue(2.7);
   const labelGeometry = new PlaneGeometry(labelWidth, labelHeight, 1, 1);
   const label = new Mesh(labelGeometry, labelMaterial);
-  const labelBaseHeight =
-    orbBaseHeight + orbRadius + scalePoiValue(0.4);
+  const labelBaseHeight = orbBaseHeight + orbRadius + scalePoiValue(0.4);
   label.position.set(0, labelBaseHeight, 0);
   label.renderOrder = 12;
   group.add(label);
