@@ -1,7 +1,7 @@
 import { FLOOR_PLAN } from '../floorPlan';
 import { getPoiCopy } from '../i18n';
 
-import { POI_SCALE } from './constants';
+import { POI_SCALE, scalePoiValue } from './constants';
 import type { PoiDefinition, PoiId, PoiRegistry } from './types';
 import { assertValidPoiDefinitions } from './validation';
 
@@ -174,15 +174,15 @@ const definitions: PoiDefinition[] = baseDefinitions.map((base) => {
   if (!copy) {
     throw new Error(`Missing localized POI copy for ${base.id}`);
   }
-  const footprintWidth = base.footprint.width * POI_SCALE;
-  const footprintDepth = base.footprint.depth * POI_SCALE;
+  const footprintWidth = scalePoiValue(base.footprint.width);
+  const footprintDepth = scalePoiValue(base.footprint.depth);
   const baseMaxHalf = Math.max(base.footprint.width, base.footprint.depth) / 2;
   const scaledMaxHalf = Math.max(footprintWidth, footprintDepth) / 2;
-  const interactionRadius =
-    base.interactionRadius + (scaledMaxHalf - baseMaxHalf);
+  const preservedMargin = Math.max(0, base.interactionRadius - baseMaxHalf);
+  const scaledInteractionRadius = scaledMaxHalf + preservedMargin;
   return {
     ...base,
-    interactionRadius,
+    interactionRadius: scaledInteractionRadius,
     footprint: {
       width: footprintWidth,
       depth: footprintDepth,

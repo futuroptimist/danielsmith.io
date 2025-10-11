@@ -32,6 +32,14 @@ describe('POI registry', () => {
     });
   });
 
+  it('keeps interaction radii outside the scaled footprint extents', () => {
+    pois.forEach((poi) => {
+      const maxHalfExtent =
+        Math.max(poi.footprint.width, poi.footprint.depth) / 2;
+      expect(poi.interactionRadius).toBeGreaterThanOrEqual(maxHalfExtent);
+    });
+  });
+
   it('supplies basic metadata for tooltips', () => {
     pois.forEach((poi) => {
       expect(poi.title.trim()).not.toHaveLength(0);
