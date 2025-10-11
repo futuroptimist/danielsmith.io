@@ -7,4 +7,7 @@ export const POI_ORB_VERTICAL_OFFSET = 0.3;
 // Multiplier applied to the computed orb base height (origin).
 export const POI_ORB_HEIGHT_MULTIPLIER = 2;
 
+// Multiplier applied to the orb diameter (0.5 halves the diameter).
+export const POI_ORB_DIAMETER_MULTIPLIER = 0.5;
+
 export const scalePoiValue = (value: number): number => value * POI_SCALE;

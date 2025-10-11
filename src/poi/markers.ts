@@ -17,7 +17,7 @@ import {
   Vector3,
 } from 'three';
 
-import { scalePoiValue, POI_ORB_VERTICAL_OFFSET, POI_ORB_HEIGHT_MULTIPLIER } from './constants';
+import { scalePoiValue, POI_ORB_VERTICAL_OFFSET, POI_ORB_HEIGHT_MULTIPLIER, POI_ORB_DIAMETER_MULTIPLIER } from './constants';
 import type { PoiDefinition, PoiId } from './types';
 import { createVisitedBadge, type PoiVisitedBadge } from './visitedBadge';
 
@@ -141,7 +141,7 @@ function createPedestalPoiInstance(
   accent.position.y = baseHeight + accentHeight / 2;
   group.add(accent);
 
-  const orbRadius = Math.min(baseRadiusX, baseRadiusZ) * 0.45;
+  const orbRadius = Math.min(baseRadiusX, baseRadiusZ) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
   const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
   const orbEmissiveBase = new Color(0x3de1ff);
   const orbEmissiveHighlight = new Color(0x7efcff);
