@@ -1,7 +1,7 @@
 import { FLOOR_PLAN } from '../floorPlan';
 import { getPoiCopy } from '../i18n';
 
-import { POI_SCALE, scalePoiValue } from './constants';
+import { scalePoiValue } from './constants';
 import type { PoiDefinition, PoiId, PoiRegistry } from './types';
 import { assertValidPoiDefinitions } from './validation';
 
