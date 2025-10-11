@@ -62,6 +62,7 @@ import {
   type AvatarVariantId,
 } from './avatar/variants';
 import { collidesWithColliders, type RectCollider } from './collision';
+import { PLAYER_RADIUS } from './constants/player';
 import {
   createAccessibilityPresetControl,
   type AccessibilityPresetControlHandle,
@@ -249,7 +250,6 @@ declare global {
   }
 }
 
-const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 6;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;

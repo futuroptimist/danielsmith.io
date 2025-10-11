@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { PLAYER_RADIUS } from '../../constants/player';
 import { FLOOR_PLAN_SCALE } from '../../floorPlan';
 import {
   predictStairFloorId,
@@ -7,6 +8,7 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from '../../movement/stairs';
+import { getPoiDefinitions } from '../../poi/registry';
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
@@ -96,5 +98,34 @@ describe('stair floor transitions', () => {
     );
 
     expect(result).toBe('ground');
+  });
+
+  it('keeps living room POIs clear of the stair walkway', () => {
+    const walkwayBuffer = 0.3;
+    const walkwayMinX = STAIR_GEOMETRY.centerX - STAIR_GEOMETRY.halfWidth;
+    const walkwayMaxX = STAIR_GEOMETRY.centerX + STAIR_GEOMETRY.halfWidth;
+    const walkwayMinZ = STAIR_GEOMETRY.landingMinZ - walkwayBuffer;
+    const walkwayMaxZ = STAIR_GEOMETRY.bottomZ + walkwayBuffer;
+    const walkwayClearMinX = walkwayMinX - PLAYER_RADIUS * 2;
+
+    const livingRoomPois = getPoiDefinitions().filter(
+      (poi) => poi.roomId === 'livingRoom'
+    );
+
+    const intrudingPois = livingRoomPois.filter((poi) => {
+      const halfWidth = poi.footprint.width / 2;
+      const halfDepth = poi.footprint.depth / 2;
+      const xMin = poi.position.x - halfWidth;
+      const xMax = poi.position.x + halfWidth;
+      const zMin = poi.position.z - halfDepth;
+      const zMax = poi.position.z + halfDepth;
+
+      const overlapsX = xMax > walkwayClearMinX && xMin < walkwayMaxX;
+      const overlapsZ = zMax > walkwayMinZ && zMin < walkwayMaxZ;
+
+      return overlapsX && overlapsZ;
+    });
+
+    expect(intrudingPois).toEqual([]);
   });
 });

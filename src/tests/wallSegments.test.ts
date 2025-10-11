@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { collidesWithColliders } from '../collision';
+import { PLAYER_RADIUS } from '../constants/player';
 import {
   FLOOR_PLAN,
   WALL_THICKNESS,
@@ -11,7 +12,6 @@ import { createWallSegmentInstances } from '../floorPlan/wallSegments';
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
-const PLAYER_RADIUS = 0.75;
 
 function getRoomCategory(roomId: string) {
   const room = FLOOR_PLAN.rooms.find((entry) => entry.id === roomId);
