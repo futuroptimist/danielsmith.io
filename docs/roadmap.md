@@ -195,11 +195,12 @@ Focus: make the experience inclusive and globally friendly.
   acceptance prompts.
 
 1. **Input Accessibility**
-  - Keyboard-only navigation parity, remappable bindings, and full controller support.
-    - ✅ Keyboard bindings now persist across sessions and update the HUD/help overlays
-      via the new remapping service.
-    - ✅ Gamepad activity monitor now drives the HUD movement legend so controller
-      players see the A-button interact prompt the moment a pad is used.
+
+- Keyboard-only navigation parity, remappable bindings, and full controller support.
+  - ✅ Keyboard bindings now persist across sessions and update the HUD/help overlays
+    via the new remapping service.
+  - ✅ Gamepad activity monitor now drives the HUD movement legend so controller
+    players see the A-button interact prompt the moment a pad is used.
 
 - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
   - ✅ Screen reader announcements now trigger when players discover a new POI, narrating the

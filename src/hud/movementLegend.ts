@@ -127,7 +127,10 @@ const createGamepadReader = (windowTarget?: Window): GamepadReader | null => {
   const navigatorCandidate = windowTarget.navigator as
     | (Navigator & { getGamepads?: () => (GamepadLike | null)[] | null })
     | undefined;
-  if (!navigatorCandidate || typeof navigatorCandidate.getGamepads !== 'function') {
+  if (
+    !navigatorCandidate ||
+    typeof navigatorCandidate.getGamepads !== 'function'
+  ) {
     return null;
   }
   return () => {
@@ -139,7 +142,9 @@ const createGamepadReader = (windowTarget?: Window): GamepadReader | null => {
   };
 };
 
-const hasGamepadActivity = (gamepads: ReadonlyArray<GamepadLike | null>): boolean => {
+const hasGamepadActivity = (
+  gamepads: ReadonlyArray<GamepadLike | null>
+): boolean => {
   for (const pad of gamepads) {
     if (!pad || pad.connected === false) {
       continue;
