@@ -18,10 +18,14 @@ function createOverlayContainer(): HTMLElement {
         <span class="overlay__keys">Touch</span>
         <span class="overlay__description">Drag</span>
       </li>
+      <li class="overlay__item" data-input-methods="gamepad">
+        <span class="overlay__keys">A</span>
+        <span class="overlay__description">Interact</span>
+      </li>
       <li
         class="overlay__item"
         data-role="interact"
-        data-input-methods="keyboard pointer touch"
+        data-input-methods="keyboard pointer touch gamepad"
         hidden
       >
         <span class="overlay__keys" data-role="interact-label">F</span>
@@ -74,6 +78,51 @@ function dispatchPointerEvent(target: Window, pointerType: string): void {
   target.dispatchEvent(event);
 }
 
+class GamepadStubWindow extends EventTarget {
+  navigator = {
+    language: 'en-US',
+    getGamepads: () => this.gamepads,
+  };
+
+  private nextFrameId = 1;
+
+  private scheduled = new Map<number, FrameRequestCallback>();
+
+  readonly cancelled: number[] = [];
+
+  gamepads: Array<{
+    connected: boolean;
+    buttons: Array<{ pressed: boolean; value?: number }>;
+    axes: number[];
+  }> = [
+    {
+      connected: true,
+      buttons: [{ pressed: false, value: 0 }],
+      axes: [0, 0],
+    },
+  ];
+
+  requestAnimationFrame(callback: FrameRequestCallback): number {
+    const id = this.nextFrameId++;
+    this.scheduled.set(id, callback);
+    return id;
+  }
+
+  cancelAnimationFrame(id: number): void {
+    if (this.scheduled.delete(id)) {
+      this.cancelled.push(id);
+    }
+  }
+
+  flushFrame(): void {
+    const pending = Array.from(this.scheduled.entries());
+    this.scheduled.clear();
+    pending.forEach(([id, callback]) => {
+      callback(id);
+    });
+  }
+}
+
 describe('createMovementLegend', () => {
   it('highlights the configured input method and allows manual switching', () => {
     const container = createOverlayContainer();
@@ -121,6 +170,9 @@ describe('createMovementLegend', () => {
     legend.setActiveMethod('touch');
     expect(interactLabel?.textContent).toBe('Tap');
 
+    legend.setActiveMethod('gamepad');
+    expect(interactLabel?.textContent).toBe('A');
+
     legend.setInteractPrompt(null);
     expect(interactItem?.hidden).toBe(true);
     expect(interactDescription?.textContent).toBe('Interact');
@@ -147,6 +199,10 @@ describe('createMovementLegend', () => {
     legend.setKeyboardInteractLabel('Space');
     legend.setActiveMethod('keyboard');
     expect(interactLabel?.textContent).toBe('Space');
+
+    legend.setInteractLabel('gamepad', 'X');
+    legend.setActiveMethod('gamepad');
+    expect(interactLabel?.textContent).toBe('X');
 
     legend.dispose();
     expect(interactLabel?.textContent).toBe('F');
@@ -190,6 +246,46 @@ describe('createMovementLegend', () => {
     });
 
     expect(legend.getActiveMethod()).toBe('touch');
+    legend.dispose();
+  });
+
+  it('activates the gamepad method when controller activity is detected', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+
+    // Initial frame without activity keeps the keyboard hint.
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('keyboard');
+
+    // Simulate input and advance the monitor loop.
+    stubWindow.gamepads[0].buttons[0].pressed = true;
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
+
+    const cancellationsBeforeDispose = stubWindow.cancelled.length;
+    legend.dispose();
+    expect(stubWindow.cancelled.length).toBeGreaterThanOrEqual(
+      cancellationsBeforeDispose + 1
+    );
+  });
+
+  it('switches to gamepad mode when the gamepadconnected event fires', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+
+    stubWindow.dispatchEvent(new Event('gamepadconnected'));
+    expect(legend.getActiveMethod()).toBe('gamepad');
+
     legend.dispose();
   });
 

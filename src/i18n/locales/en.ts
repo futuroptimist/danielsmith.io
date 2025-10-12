@@ -60,6 +60,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         keyboard: 'F',
         pointer: 'Click',
         touch: 'Tap',
+        gamepad: 'A',
       },
     },
     helpModal: {

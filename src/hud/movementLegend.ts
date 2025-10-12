@@ -5,7 +5,7 @@ import {
   resolveLocale,
 } from '../i18n';
 
-export type InputMethod = 'keyboard' | 'pointer' | 'touch';
+export type InputMethod = 'keyboard' | 'pointer' | 'touch' | 'gamepad';
 
 export interface MovementLegendOptions {
   container: HTMLElement;
@@ -20,6 +20,7 @@ export interface MovementLegendHandle {
   getActiveMethod(): InputMethod;
   setActiveMethod(method: InputMethod): void;
   setInteractPrompt(description: string | null): void;
+  setInteractLabel(method: InputMethod, label: string): void;
   setKeyboardInteractLabel(label: string): void;
   dispose(): void;
 }
@@ -83,7 +84,10 @@ function parseInputMethods(value: string | null | undefined): InputMethod[] {
     .map((method) => method.trim())
     .filter(
       (method): method is InputMethod =>
-        method === 'keyboard' || method === 'pointer' || method === 'touch'
+        method === 'keyboard' ||
+        method === 'pointer' ||
+        method === 'touch' ||
+        method === 'gamepad'
     );
 }
 
@@ -100,6 +104,120 @@ function resolvePointerMethod(event: PointerEvent | MouseEvent): InputMethod {
   }
   return 'pointer';
 }
+
+const GAMEPAD_ACTIVITY_THRESHOLD = 0.3;
+
+interface GamepadButtonLike {
+  pressed?: boolean;
+  value?: number;
+}
+
+interface GamepadLike {
+  connected?: boolean;
+  buttons?: ReadonlyArray<GamepadButtonLike | null | undefined>;
+  axes?: ReadonlyArray<number | null | undefined>;
+}
+
+type GamepadReader = () => ReadonlyArray<GamepadLike | null>;
+
+const createGamepadReader = (windowTarget?: Window): GamepadReader | null => {
+  if (!windowTarget) {
+    return null;
+  }
+  const navigatorCandidate = windowTarget.navigator as
+    | (Navigator & { getGamepads?: () => (GamepadLike | null)[] | null })
+    | undefined;
+  if (
+    !navigatorCandidate ||
+    typeof navigatorCandidate.getGamepads !== 'function'
+  ) {
+    return null;
+  }
+  return () => {
+    const pads = navigatorCandidate.getGamepads?.();
+    if (!pads) {
+      return [];
+    }
+    return Array.from(pads);
+  };
+};
+
+const hasGamepadActivity = (
+  gamepads: ReadonlyArray<GamepadLike | null>
+): boolean => {
+  for (const pad of gamepads) {
+    if (!pad || pad.connected === false) {
+      continue;
+    }
+    if (
+      pad.buttons &&
+      pad.buttons.some((button) => {
+        if (!button) {
+          return false;
+        }
+        if (button.pressed) {
+          return true;
+        }
+        const value = button.value ?? 0;
+        return Math.abs(value) > GAMEPAD_ACTIVITY_THRESHOLD;
+      })
+    ) {
+      return true;
+    }
+    if (
+      pad.axes &&
+      pad.axes.some((axis) => {
+        if (axis === null || axis === undefined) {
+          return false;
+        }
+        return Math.abs(axis) > GAMEPAD_ACTIVITY_THRESHOLD;
+      })
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const createGamepadMonitor = (
+  windowTarget: Window | undefined,
+  onActivity: () => void
+): (() => void) | null => {
+  if (!windowTarget) {
+    return null;
+  }
+  const readGamepads = createGamepadReader(windowTarget);
+  if (!readGamepads) {
+    return null;
+  }
+  const request = windowTarget.requestAnimationFrame?.bind(windowTarget);
+  if (typeof request !== 'function') {
+    return null;
+  }
+  const cancel = windowTarget.cancelAnimationFrame?.bind(windowTarget);
+  let disposed = false;
+  let rafId: number | null = null;
+
+  const tick = () => {
+    if (disposed) {
+      return;
+    }
+    const pads = readGamepads();
+    if (hasGamepadActivity(pads)) {
+      onActivity();
+    }
+    rafId = request(tick);
+  };
+
+  rafId = request(tick);
+
+  return () => {
+    disposed = true;
+    if (rafId !== null && typeof cancel === 'function') {
+      cancel(rafId);
+    }
+  };
+};
 
 function collectContext(
   container: HTMLElement,
@@ -188,10 +306,12 @@ export function createMovementLegend(
 
   const context = collectContext(container, fallbackInteractDescription);
 
-  const labels: Record<InputMethod, string> = {
+  const defaultLabels: Record<InputMethod, string> = {
     ...legendStrings.labels,
     ...interactLabels,
   } as Record<InputMethod, string>;
+
+  const labels: Record<InputMethod, string> = { ...defaultLabels };
 
   const defaultKeyboardLabel = labels.keyboard;
 
@@ -227,14 +347,18 @@ export function createMovementLegend(
     updateInteractLabel(context, labels, activeMethod);
   };
 
-  const setKeyboardInteractLabel = (label: string) => {
-    const normalized =
-      label && label.trim() ? label.trim() : defaultKeyboardLabel;
-    if (labels.keyboard === normalized) {
+  const setInteractLabel = (method: InputMethod, label: string) => {
+    const fallback = defaultLabels[method] ?? defaultLabels.keyboard;
+    const normalized = label && label.trim() ? label.trim() : fallback;
+    if (labels[method] === normalized) {
       return;
     }
-    labels.keyboard = normalized;
+    labels[method] = normalized;
     ensureInteractLabel();
+  };
+
+  const setKeyboardInteractLabel = (label: string) => {
+    setInteractLabel('keyboard', label);
   };
 
   const setActiveMethod = (method: InputMethod) => {
@@ -307,6 +431,17 @@ export function createMovementLegend(
     }
 
     addListener('touchstart', handleTouchStart, { passive: true });
+
+    const gamepadCleanup = createGamepadMonitor(windowTarget, () => {
+      applyMethod('gamepad');
+    });
+    if (gamepadCleanup) {
+      listeners.push(gamepadCleanup);
+    }
+
+    addListener('gamepadconnected', () => {
+      applyMethod('gamepad');
+    });
   }
 
   // Apply the initial method after listeners to ensure the DOM is in sync.
@@ -320,6 +455,7 @@ export function createMovementLegend(
     },
     setActiveMethod,
     setInteractPrompt,
+    setInteractLabel,
     setKeyboardInteractLabel,
     dispose() {
       while (listeners.length > 0) {
@@ -337,8 +473,13 @@ export function createMovementLegend(
         context.interactDescription.textContent =
           context.defaultInteractDescription;
       }
+      (Object.keys(labels) as InputMethod[]).forEach((method) => {
+        labels[method] = defaultLabels[method];
+      });
       labels.keyboard = defaultKeyboardLabel;
-      ensureInteractLabel();
+      if (context.interactLabel) {
+        context.interactLabel.textContent = defaultKeyboardLabel;
+      }
     },
   };
 }

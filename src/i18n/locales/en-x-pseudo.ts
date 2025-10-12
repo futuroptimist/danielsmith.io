@@ -33,6 +33,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         keyboard: wrap('F'),
         pointer: wrap('Click'),
         touch: wrap('Tap'),
+        gamepad: wrap('A'),
       },
     },
     helpModal: {
