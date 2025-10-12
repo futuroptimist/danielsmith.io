@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createCricketChorusBuffer,
   createDistantHumBuffer,
+  createFootstepBuffer,
   createLanternChimeBuffer,
   type BufferContext,
   type AudioBufferLike,
@@ -89,6 +90,27 @@ describe('procedural buffers', () => {
     expect(maxMagnitude).toBeLessThanOrEqual(1);
     expect(Math.abs(data[0])).toBeLessThan(1e-3);
     expect(Math.abs(data.at(-1) ?? 0)).toBeLessThan(1e-3);
+  });
+
+  it('synthesizes a percussive footstep hit with early impact', () => {
+    const context = new FakeContext(48000);
+    const buffer = createFootstepBuffer(context);
+    expect(buffer.length).toBeGreaterThan(0);
+    const data = buffer.getChannelData(0);
+    expect(data.every(Number.isFinite)).toBe(true);
+    const maxMagnitude = data.reduce(
+      (acc, value) => Math.max(acc, Math.abs(value)),
+      0
+    );
+    expect(maxMagnitude).toBeLessThanOrEqual(1);
+    const quarter = Math.max(1, Math.floor(data.length / 4));
+    let earlyEnergy = 0;
+    let lateEnergy = 0;
+    for (let i = 0; i < quarter; i += 1) {
+      earlyEnergy += Math.abs(data[i]);
+      lateEnergy += Math.abs(data[data.length - 1 - i]);
+    }
+    expect(earlyEnergy).toBeGreaterThan(lateEnergy);
   });
 });
 
