@@ -231,6 +231,15 @@ declare global {
           resetAll(): void;
         };
       };
+      avatar?: {
+        getActiveVariant(): AvatarVariantId;
+        setActiveVariant(variant: AvatarVariantId): void;
+        listVariants(): Array<{
+          id: AvatarVariantId;
+          label: string;
+          description?: string;
+        }>;
+      };
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
