@@ -49,8 +49,13 @@ import {
 } from './audio/ambientAudio';
 import { AmbientCaptionBridge } from './audio/ambientCaptionBridge';
 import {
+  createFootstepAudioController,
+  type FootstepAudioControllerHandle,
+} from './audio/footstepController';
+import {
   createCricketChorusBuffer,
   createDistantHumBuffer,
+  createFootstepBuffer,
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
 import { createAvatarLocomotionAnimator } from './avatar/locomotionAnimator';
@@ -396,6 +401,8 @@ let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
 const ledFillLightsList: PointLight[] = [];
 let ambientAudioController: AmbientAudioController | null = null;
+let footstepAudioController: FootstepAudioControllerHandle | null = null;
+let footstepAudio: Audio | null = null;
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -1237,6 +1244,53 @@ function initializeImmersiveScene(
   const player = mannequin.group;
   player.position.copy(initialPlayerPosition);
   scene.add(player);
+
+  const footstepStereoPanner =
+    typeof audioListener.context.createStereoPanner === 'function'
+      ? audioListener.context.createStereoPanner()
+      : null;
+  const footstepSample = createFootstepBuffer(audioListener.context);
+  const footstepAudioNode = new Audio(audioListener);
+  footstepAudioNode.name = 'FootstepAudio';
+  footstepAudioNode.setLoop(false);
+  footstepAudioNode.setVolume(0);
+  footstepAudioNode.setBuffer(footstepSample);
+  if (footstepStereoPanner) {
+    footstepAudioNode.setFilter(footstepStereoPanner);
+  } else {
+    footstepAudioNode.setFilter(null);
+  }
+  player.add(footstepAudioNode);
+  footstepAudio = footstepAudioNode;
+
+  footstepAudioController = createFootstepAudioController({
+    player: {
+      play: ({ volume, playbackRate, pan }) => {
+        const clampedVolume = MathUtils.clamp(volume, 0, 1);
+        const clampedRate = MathUtils.clamp(playbackRate, 0.25, 3);
+        if (footstepStereoPanner && typeof pan === 'number') {
+          const clampedPan = MathUtils.clamp(pan, -1, 1);
+          footstepStereoPanner.pan.setTargetAtTime(
+            clampedPan,
+            audioListener.context.currentTime,
+            0.01
+          );
+        }
+        footstepAudioNode.setVolume(clampedVolume);
+        footstepAudioNode.setPlaybackRate(clampedRate);
+        if (footstepAudioNode.isPlaying) {
+          footstepAudioNode.stop();
+        }
+        footstepAudioNode.play();
+      },
+    },
+    maxLinearSpeed: PLAYER_SPEED,
+    minActivationSpeed: PLAYER_SPEED * 0.12,
+    intervalRange: { min: 0.26, max: 0.58 },
+    volumeRange: { min: 0.32, max: 0.7 },
+    pitchRange: { min: 0.88, max: 1.18 },
+    stereoSeparation: 0.22,
+  });
 
   const mannequinMixer = new AnimationMixer(player);
   const createStaticClip = (name: string) => new AnimationClip(name, -1, []);
@@ -2558,6 +2612,10 @@ function initializeImmersiveScene(
       ambientAudioController.dispose();
       ambientAudioController = null;
     }
+    if (footstepAudioController) {
+      footstepAudioController.dispose();
+      footstepAudioController = null;
+    }
     renderer.domElement.removeEventListener('wheel', handleWheelZoom);
     renderer.domElement.removeEventListener(
       'pointerdown',
@@ -2576,6 +2634,13 @@ function initializeImmersiveScene(
     if (audioHudHandle) {
       audioHudHandle.dispose();
       audioHudHandle = null;
+    }
+    if (footstepAudio) {
+      if (footstepAudio.isPlaying) {
+        footstepAudio.stop();
+      }
+      footstepAudio.parent?.remove(footstepAudio);
+      footstepAudio = null;
     }
     if (avatarVariantControl) {
       avatarVariantControl.dispose();
@@ -2666,6 +2731,13 @@ function initializeImmersiveScene(
           delta,
           linearSpeed: locomotionLinearSpeed,
           angularSpeed: locomotionAngularSpeed,
+        });
+      }
+      if (footstepAudioController) {
+        footstepAudioController.update({
+          delta,
+          linearSpeed: locomotionLinearSpeed,
+          masterVolume: getAmbientAudioVolume(),
         });
       }
       updateCamera(delta);

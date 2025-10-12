@@ -246,7 +246,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
        controller velocity profile while matching animation playback speed to the player's
        movement rate.
    - Interaction animation set (button press, item inspect) triggered by POI events.
-   - Footstep sounds + IK adjustments to align feet with uneven terrain/stairs.
+   - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
+   - IK adjustments to align feet with uneven terrain/stairs.
 3. **Self-Representation Touches**
    - Optional selfie cam / mirror to show the avatar.
    - Narrative text logs tied to POIs referencing creator stories.
