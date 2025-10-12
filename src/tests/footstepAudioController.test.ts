@@ -94,10 +94,30 @@ describe('footstep audio controller', () => {
       random: () => 0.5,
     });
 
-    controller.update({ delta: 0.35, linearSpeed: 1, masterVolume: 0.5, surfaceMultiplier: 0.5 });
-    controller.update({ delta: 0.35, linearSpeed: 1, masterVolume: 0.5, surfaceMultiplier: 0.5 });
-    controller.update({ delta: 0.35, linearSpeed: 5, masterVolume: 1, surfaceMultiplier: 1 });
-    controller.update({ delta: 0.35, linearSpeed: 5, masterVolume: 1, surfaceMultiplier: 1 });
+    controller.update({
+      delta: 0.35,
+      linearSpeed: 1,
+      masterVolume: 0.5,
+      surfaceMultiplier: 0.5,
+    });
+    controller.update({
+      delta: 0.35,
+      linearSpeed: 1,
+      masterVolume: 0.5,
+      surfaceMultiplier: 0.5,
+    });
+    controller.update({
+      delta: 0.35,
+      linearSpeed: 5,
+      masterVolume: 1,
+      surfaceMultiplier: 1,
+    });
+    controller.update({
+      delta: 0.35,
+      linearSpeed: 5,
+      masterVolume: 1,
+      surfaceMultiplier: 1,
+    });
 
     expect(player.calls.length).toBe(2);
     const [slowStep, fastStep] = player.calls;

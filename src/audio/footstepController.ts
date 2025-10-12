@@ -159,7 +159,8 @@ export function createFootstepAudioController(
       if (!enabled) {
         return;
       }
-      const delta = Number.isFinite(update.delta) && update.delta > 0 ? update.delta : 0;
+      const delta =
+        Number.isFinite(update.delta) && update.delta > 0 ? update.delta : 0;
       const isGrounded = update.isGrounded ?? true;
       const speed = update.linearSpeed;
       const normalizedSpeed = computeNormalizedSpeed(speed);

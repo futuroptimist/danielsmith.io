@@ -305,9 +305,11 @@ export function createFootstepBuffer<T extends BufferContext>(
 ): ReturnType<T['createBuffer']> {
   const durationSeconds = 0.48;
   const length = Math.max(1, Math.floor(context.sampleRate * durationSeconds));
-  const buffer = context.createBuffer(1, length, context.sampleRate) as ReturnType<
-    T['createBuffer']
-  >;
+  const buffer = context.createBuffer(
+    1,
+    length,
+    context.sampleRate
+  ) as ReturnType<T['createBuffer']>;
   const data = buffer.getChannelData(0);
 
   for (let i = 0; i < data.length; i += 1) {
@@ -315,8 +317,10 @@ export function createFootstepBuffer<T extends BufferContext>(
     const progress = t / durationSeconds;
     const clampedProgress = Math.min(Math.max(progress, 0), 1);
     const heel = Math.sin(2 * Math.PI * 68 * t) * Math.exp(-progress * 9.5);
-    const toe = Math.sin(2 * Math.PI * 180 * t + Math.PI / 4) * Math.exp(-progress * 14);
-    const scrape = Math.sin(2 * Math.PI * 24 * t) * Math.exp(-progress * 7) * 0.35;
+    const toe =
+      Math.sin(2 * Math.PI * 180 * t + Math.PI / 4) * Math.exp(-progress * 14);
+    const scrape =
+      Math.sin(2 * Math.PI * 24 * t) * Math.exp(-progress * 7) * 0.35;
     const noise = (pseudoRandom(i) * 2 - 1) * Math.exp(-progress * 11) * 0.45;
     const envelope = (1 - clampedProgress) ** 2;
     data[i] = (heel * 0.9 + toe * 0.35 + scrape + noise) * envelope;
