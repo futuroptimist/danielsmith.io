@@ -254,7 +254,7 @@ declare global {
 }
 
 const PLAYER_RADIUS = 0.75;
-const PLAYER_SPEED = 6;
+const PLAYER_SPEED = 12;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
 const CAMERA_ZOOM_SMOOTHING = 6;
