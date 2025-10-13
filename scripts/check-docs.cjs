@@ -3,7 +3,8 @@ const { access } = require('fs/promises');
 const path = require('path');
 
 const requiredFiles = [
-  path.join(__dirname, '..', 'docs', 'prompts', 'codex', 'automation.md'),
+  path.join(__dirname, '..', 'docs', 'prompts', 'codex', 'baseline.md'),
+  path.join(__dirname, '..', 'docs', 'prompts', 'codex', 'polish.md'),
 ];
 
 (async () => {
