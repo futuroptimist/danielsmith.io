@@ -126,25 +126,8 @@ function createPedestalPoiInstance(
   base.position.y = baseHeight / 2;
   group.add(base);
 
-  const accentHeight = scalePoiValue(0.08);
-  const accentGeometry = new CylinderGeometry(
-    baseRadiusX * 0.85,
-    baseRadiusX * 0.85,
-    accentHeight,
-    28
-  );
-  const accentBaseColor = new Color(0x3bb7ff);
-  const accentFocusColor = new Color(0x7ce9ff);
-  const accentMaterial = new MeshStandardMaterial({
-    color: accentBaseColor.clone(),
-    emissive: new Color(0x1073ff),
-    emissiveIntensity: 0.65,
-    roughness: 0.28,
-    metalness: 0.2,
-  });
-  const accent = new Mesh(accentGeometry, accentMaterial);
-  accent.position.y = baseHeight + accentHeight / 2;
-  group.add(accent);
+  // Removed inner accent disc for a cleaner look. Rings below are sized
+  // relative to the POI model footprint to avoid overlaps across exhibits.
 
   const orbRadius =
     Math.min(baseRadiusX, baseRadiusZ) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
@@ -161,7 +144,6 @@ function createPedestalPoiInstance(
   const orb = new Mesh(orbGeometry, orbMaterial);
   const orbBaseHeight =
     (baseHeight +
-      accentHeight +
       orbRadius +
       scalePoiValue(POI_ORB_VERTICAL_OFFSET)) *
     POI_ORB_HEIGHT_MULTIPLIER;
@@ -191,8 +173,11 @@ function createPedestalPoiInstance(
   visitedBadge.mesh.position.set(0, badgeBaseHeight, 0);
   group.add(visitedBadge.mesh);
 
-  const haloInnerRadius = Math.max(baseRadiusX, baseRadiusZ) * 0.92;
-  const haloOuterRadius = haloInnerRadius + scalePoiValue(0.36);
+  // Size the ground ring proportionally to the underlying model footprint.
+  // Use the smaller half-extent to keep a conservative footprint and avoid overlaps.
+  const modelRadius = Math.min(baseRadiusX, baseRadiusZ);
+  const haloInnerRadius = modelRadius * 0.62; // tighter than the platform base
+  const haloOuterRadius = haloInnerRadius + scalePoiValue(0.22);
   const haloGeometry = new RingGeometry(
     haloInnerRadius,
     haloOuterRadius,
@@ -237,7 +222,7 @@ function createPedestalPoiInstance(
   visitedRing.scale.setScalar(1);
   group.add(visitedRing);
 
-  const hitAreaHeight = accentHeight + scalePoiValue(0.24);
+  const hitAreaHeight = baseHeight + scalePoiValue(0.24);
   const hitAreaGeometry = new CylinderGeometry(
     baseRadiusX,
     baseRadiusX,
@@ -268,7 +253,6 @@ function createPedestalPoiInstance(
     orb,
     orbMaterial,
     orbBaseHeight,
-    accentMaterial,
     label,
     labelMaterial,
     labelBaseHeight,
@@ -284,8 +268,6 @@ function createPedestalPoiInstance(
     hitArea,
     focus: 0,
     focusTarget: 0,
-    accentBaseColor,
-    accentFocusColor,
     haloBaseColor,
     haloFocusColor,
     orbEmissiveBase,
