@@ -33,6 +33,9 @@ Summaries must include asset references, tests, and manual QA steps.
 - Use `createAvatarImporter` (`src/avatar/importer.ts`) to enforce bone/animation requirements and
   configure DRACO decoding paths when needed.
 - Keep animation blending configurable for future gameplay states.
+- Drive placeholder interaction gestures through `createAvatarInteractionAnimator`
+  (`src/avatar/interactionAnimator.ts`) so POI selections trigger expressive beats even before the
+  hero avatar swap lands.
 - Store temporary mannequin assets separately to ease replacement.
 - Update `src/avatar/variants.ts` and the HUD avatar style control when introducing new outfits
   so palettes, analytics, and persistence stay aligned.
