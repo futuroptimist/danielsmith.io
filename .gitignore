@@ -8,3 +8,4 @@ dist-ssr
 *.log
 coverage
 test-results/
+public/favicon.ico

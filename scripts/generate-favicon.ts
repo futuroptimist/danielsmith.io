@@ -1,35 +1,49 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-// Minimal ICO encoder for 32-bit BGRA DIB images with AND mask.
-// Draws a simple pixel-art head: long dark hair, beard, pale skin,
-// tiny shirt at the bottom, transparent background.
-
-type Rgba = { r: number; g: number; b: number; a: number };
+type Rgba = { r: number; g: number; b: number; a?: number };
 
 function clampByte(v: number): number {
   return Math.max(0, Math.min(255, v | 0));
 }
 
 function createImage(size: number): Uint8Array {
-  return new Uint8Array(size * size * 4); // RGBA, top-down in our buffer
+  return new Uint8Array(size * size * 4);
 }
 
-function setPixel(
-  img: Uint8Array,
-  size: number,
-  x: number,
-  y: number,
-  color: Rgba
-) {
+function setPixel(img: Uint8Array, size: number, x: number, y: number, color: Rgba) {
   if (x < 0 || y < 0 || x >= size || y >= size) {
     return;
   }
+
   const i = (y * size + x) * 4;
-  img[i + 0] = clampByte(color.r);
-  img[i + 1] = clampByte(color.g);
-  img[i + 2] = clampByte(color.b);
-  img[i + 3] = clampByte(color.a);
+  const srcA = clampByte(color.a ?? 255) / 255;
+  const dstA = img[i + 3] / 255;
+  const outA = srcA + dstA * (1 - srcA);
+
+  if (outA <= 0) {
+    img[i + 0] = 0;
+    img[i + 1] = 0;
+    img[i + 2] = 0;
+    img[i + 3] = 0;
+    return;
+  }
+
+  const srcR = clampByte(color.r);
+  const srcG = clampByte(color.g);
+  const srcB = clampByte(color.b);
+  const dstR = img[i + 0];
+  const dstG = img[i + 1];
+  const dstB = img[i + 2];
+
+  const outR = (srcR * srcA + dstR * dstA * (1 - srcA)) / outA;
+  const outG = (srcG * srcA + dstG * dstA * (1 - srcA)) / outA;
+  const outB = (srcB * srcA + dstB * dstA * (1 - srcA)) / outA;
+
+  img[i + 0] = clampByte(outR);
+  img[i + 1] = clampByte(outG);
+  img[i + 2] = clampByte(outB);
+  img[i + 3] = clampByte(outA * 255);
 }
 
 function fillEllipse(
@@ -41,16 +55,13 @@ function fillEllipse(
   ry: number,
   color: Rgba
 ) {
-  for (
-    let y = Math.max(0, Math.floor(cy - ry));
-    y <= Math.min(size - 1, Math.ceil(cy + ry));
-    y += 1
-  ) {
-    for (
-      let x = Math.max(0, Math.floor(cx - rx));
-      x <= Math.min(size - 1, Math.ceil(cy + rx));
-      x += 1
-    ) {
+  const minY = Math.max(0, Math.floor(cy - ry));
+  const maxY = Math.min(size - 1, Math.ceil(cy + ry));
+  const minX = Math.max(0, Math.floor(cx - rx));
+  const maxX = Math.min(size - 1, Math.ceil(cx + rx));
+
+  for (let y = minY; y <= maxY; y += 1) {
+    for (let x = minX; x <= maxX; x += 1) {
       const dx = (x + 0.5 - cx) / rx;
       const dy = (y + 0.5 - cy) / ry;
       if (dx * dx + dy * dy <= 1) {
@@ -73,6 +84,7 @@ function fillRect(
   const maxX = Math.min(size - 1, Math.max(x0, x1) | 0);
   const minY = Math.max(0, Math.min(y0, y1) | 0);
   const maxY = Math.min(size - 1, Math.max(y0, y1) | 0);
+
   for (let y = minY; y <= maxY; y += 1) {
     for (let x = minX; x <= maxX; x += 1) {
       setPixel(img, size, x, y, color);
@@ -80,225 +92,468 @@ function fillRect(
   }
 }
 
-function drawPortrait(size: number): Uint8Array {
-  const img = createImage(size);
-  // Background is transparent by default (no fill needed)
-  const hair: Rgba = { r: 40, g: 32, b: 26, a: 255 }; // deep brown/black
-  // Single-tone hair keeps edges clean at small sizes
-  const skin: Rgba = { r: 242, g: 214, b: 200, a: 255 }; // pale skin
-  const skinShadow: Rgba = { r: 226, g: 190, b: 176, a: 255 };
-  const beard: Rgba = { r: 34, g: 28, b: 24, a: 255 };
-  const shirt: Rgba = { r: 30, g: 35, b: 43, a: 255 };
-  const eye: Rgba = { r: 56, g: 60, b: 64, a: 255 };
-  const eyeHighlight: Rgba = { r: 230, g: 240, b: 255, a: 255 };
-  const mouth: Rgba = { r: 172, g: 120, b: 118, a: 255 };
-  const nose: Rgba = { r: 210, g: 178, b: 166, a: 255 };
-  const drawEye = (xc: number, yc: number) => {
-    const sclera: Rgba = { r: 245, g: 248, b: 255, a: 255 };
-    const scleraRx = size * 0.06;
-    const scleraRy = size * 0.05;
-    fillEllipse(img, size, xc, yc, scleraRx, scleraRy, sclera);
-    fillEllipse(img, size, xc, yc, size * 0.035, size * 0.035, eye);
-    fillEllipse(
-      img,
-      size,
-      xc + size * 0.01,
-      yc - size * 0.01,
-      size * 0.015,
-      size * 0.015,
-      eyeHighlight
-    );
-  };
-
-  // Pixel-crisp eye that guarantees visible pupils at favicon scale
-  const drawEyeBox = (xc: number, yc: number) => {
-    const sx = Math.round(xc);
-    const sy = Math.round(yc);
-    // Sclera 4x3
-    fillRect(img, size, sx - 2, sy - 1, sx + 1, sy + 1, {
-      r: 245,
-      g: 248,
-      b: 255,
-      a: 255,
-    });
-    // Pupil 1x1 centered
-    setPixel(img, size, sx, sy, { r: 45, g: 48, b: 52, a: 255 });
-  };
-
-  // Background transparent by default (already zeroed)
-  // Long hair halo – reduced poof, more vertical/long than round
-  const cx = size / 2;
-  const cy = size / 2 - 1;
-  fillEllipse(img, size, cx, cy - size * 0.18, size * 0.46, size * 0.6, hair);
-  // Flatten the top to avoid an afro shape
-  fillRect(
-    img,
-    size,
-    Math.floor(size * 0.18),
-    Math.floor(size * 0.06),
-    Math.floor(size * 0.82),
-    Math.floor(size * 0.22),
-    hair
-  );
-  // Side curtains to imply longer hair (symmetrical, slim)
-  fillRect(
-    img,
-    size,
-    Math.floor(size * 0.1),
-    Math.floor(size * 0.3),
-    Math.floor(size * 0.18),
-    Math.floor(size * 0.88),
-    hair
-  );
-  fillRect(
-    img,
-    size,
-    Math.floor(size * 0.82),
-    Math.floor(size * 0.3),
-    Math.floor(size * 0.9),
-    Math.floor(size * 0.88),
-    hair
-  );
-
-  // Remove highlight band to keep hair uniform at favicon scale
-
-  // Face oval (smaller so hair frames naturally)
-  fillEllipse(img, size, cx, cy + size * 0.02, size * 0.34, size * 0.42, skin);
-  // Cheek/jaw shadows
+function drawEye(
+  img: Uint8Array,
+  size: number,
+  xc: number,
+  yc: number,
+  scleraColor: Rgba,
+  irisColor: Rgba,
+  pupilColor: Rgba,
+  highlightColor: Rgba
+) {
+  const scleraRx = size * 0.07;
+  const scleraRy = size * 0.055;
+  fillEllipse(img, size, xc, yc, scleraRx, scleraRy, scleraColor);
+  fillEllipse(img, size, xc, yc, size * 0.035, size * 0.035, irisColor);
+  fillEllipse(img, size, xc, yc, size * 0.02, size * 0.02, pupilColor);
   fillEllipse(
     img,
     size,
-    cx - size * 0.12,
-    cy + size * 0.06,
-    size * 0.2,
+    xc + size * 0.018,
+    yc - size * 0.018,
+    size * 0.01,
+    size * 0.01,
+    highlightColor
+  );
+}
+
+function drawPortraitHighRes(size: number): Uint8Array {
+  const img = createImage(size);
+  const cx = size / 2;
+  const circleCy = size * 0.52;
+  const faceCy = size * 0.6;
+
+  const colors = {
+    bgOuter: { r: 30, g: 18, b: 52, a: 255 },
+    bgMid: { r: 58, g: 36, b: 92, a: 255 },
+    bgInner: { r: 104, g: 74, b: 148, a: 240 },
+    shirt: { r: 34, g: 42, b: 68, a: 255 },
+    shirtHighlight: { r: 82, g: 96, b: 136, a: 140 },
+    hairBase: { r: 56, g: 44, b: 38, a: 255 },
+    hairShadow: { r: 24, g: 16, b: 14, a: 210 },
+    hairHighlight: { r: 118, g: 96, b: 84, a: 140 },
+    skinBase: { r: 242, g: 214, b: 200, a: 255 },
+    skinHighlight: { r: 255, g: 232, b: 220, a: 170 },
+    skinShadow: { r: 210, g: 182, b: 170, a: 170 },
+    underEye: { r: 255, g: 234, b: 222, a: 140 },
+    cheekWarm: { r: 255, g: 204, b: 196, a: 120 },
+    brow: { r: 74, g: 58, b: 52, a: 255 },
+    browHighlight: { r: 134, g: 108, b: 96, a: 120 },
+    sclera: { r: 248, g: 246, b: 242, a: 255 },
+    iris: { r: 128, g: 124, b: 160, a: 255 },
+    pupil: { r: 42, g: 36, b: 52, a: 255 },
+    eyeHighlight: { r: 255, g: 255, b: 255, a: 255 },
+    nose: { r: 236, g: 204, b: 190, a: 230 },
+    noseHighlight: { r: 255, g: 230, b: 216, a: 160 },
+    noseShadow: { r: 198, g: 170, b: 160, a: 120 },
+    lip: { r: 206, g: 154, b: 164, a: 210 },
+    lipHighlight: { r: 228, g: 180, b: 186, a: 140 },
+    beardBase: { r: 48, g: 36, b: 32, a: 255 },
+    beardShadow: { r: 30, g: 22, b: 20, a: 220 },
+    beardHighlight: { r: 106, g: 88, b: 78, a: 130 },
+    moustache: { r: 66, g: 48, b: 44, a: 255 },
+    moustacheHighlight: { r: 130, g: 108, b: 98, a: 120 },
+  } satisfies Record<string, Rgba>;
+
+  // Background gradient circle
+  fillEllipse(img, size, cx, circleCy, size * 0.46, size * 0.46, colors.bgOuter);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    circleCy - size * 0.015,
+    size * 0.43,
+    size * 0.43,
+    colors.bgMid
+  );
+  fillEllipse(
+    img,
+    size,
+    cx,
+    circleCy - size * 0.02,
+    size * 0.38,
+    size * 0.38,
+    colors.bgInner
+  );
+
+  // Shirt / shoulders (subtle curve)
+  fillEllipse(img, size, cx, size * 0.86, size * 0.36, size * 0.18, colors.shirt);
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.08,
+    size * 0.83,
+    size * 0.22,
+    size * 0.12,
+    colors.shirtHighlight
+  );
+
+  // Hair mass - drawn behind facial features
+  fillEllipse(img, size, cx, faceCy - size * 0.3, size * 0.34, size * 0.32, colors.hairBase);
+  fillEllipse(img, size, cx, faceCy - size * 0.05, size * 0.46, size * 0.44, colors.hairBase);
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.28,
+    faceCy + size * 0.02,
+    size * 0.18,
+    size * 0.38,
+    colors.hairBase
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.28,
+    faceCy + size * 0.02,
+    size * 0.18,
+    size * 0.38,
+    colors.hairBase
+  );
+  fillEllipse(img, size, cx, faceCy + size * 0.26, size * 0.38, size * 0.3, colors.hairBase);
+
+  // Hair depth & highlight
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.18,
+    faceCy + size * 0.08,
+    size * 0.28,
+    size * 0.34,
+    colors.hairShadow
+  );
+  fillEllipse(img, size, cx, faceCy + size * 0.32, size * 0.32, size * 0.22, colors.hairShadow);
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.16,
+    faceCy - size * 0.04,
     size * 0.26,
-    skinShadow
+    size * 0.26,
+    colors.hairHighlight
+  );
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.1,
+    faceCy + size * 0.2,
+    size * 0.22,
+    size * 0.18,
+    colors.hairHighlight
+  );
+
+  // Face base
+  fillEllipse(img, size, cx, faceCy, size * 0.26, size * 0.32, colors.skinBase);
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.08,
+    faceCy - size * 0.02,
+    size * 0.18,
+    size * 0.24,
+    colors.skinHighlight
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.09,
+    faceCy + size * 0.02,
+    size * 0.2,
+    size * 0.28,
+    colors.skinShadow
+  );
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.14,
+    faceCy + size * 0.05,
+    size * 0.12,
+    size * 0.1,
+    colors.cheekWarm
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.05,
+    faceCy + size * 0.12,
+    size * 0.16,
+    size * 0.12,
+    colors.skinShadow
+  );
+
+  const eyeY = faceCy - size * 0.12;
+  const eyeDx = size * 0.155;
+  fillEllipse(
+    img,
+    size,
+    cx - eyeDx,
+    eyeY + size * 0.03,
+    size * 0.12,
+    size * 0.045,
+    colors.underEye
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + eyeDx,
+    eyeY + size * 0.03,
+    size * 0.12,
+    size * 0.045,
+    colors.underEye
+  );
+
+  drawEye(
+    img,
+    size,
+    cx - eyeDx,
+    eyeY,
+    colors.sclera,
+    colors.iris,
+    colors.pupil,
+    colors.eyeHighlight
+  );
+  drawEye(
+    img,
+    size,
+    cx + eyeDx,
+    eyeY,
+    colors.sclera,
+    colors.iris,
+    colors.pupil,
+    colors.eyeHighlight
+  );
+
+  // Eyelids and brows
+  fillEllipse(
+    img,
+    size,
+    cx - eyeDx,
+    eyeY - size * 0.032,
+    size * 0.13,
+    size * 0.05,
+    colors.skinShadow
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + eyeDx,
+    eyeY - size * 0.032,
+    size * 0.13,
+    size * 0.05,
+    colors.skinShadow
+  );
+  fillEllipse(img, size, cx - eyeDx, eyeY - size * 0.085, size * 0.16, size * 0.045, colors.brow);
+  fillEllipse(img, size, cx + eyeDx, eyeY - size * 0.085, size * 0.16, size * 0.045, colors.brow);
+  fillEllipse(
+    img,
+    size,
+    cx - eyeDx,
+    eyeY - size * 0.095,
+    size * 0.16,
+    size * 0.03,
+    colors.browHighlight
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + eyeDx,
+    eyeY - size * 0.095,
+    size * 0.16,
+    size * 0.03,
+    colors.browHighlight
+  );
+
+  // Nose structure
+  fillRect(
+    img,
+    size,
+    Math.round(cx - size * 0.015),
+    Math.round(faceCy - size * 0.05),
+    Math.round(cx + size * 0.015),
+    Math.round(faceCy + size * 0.08),
+    colors.nose
+  );
+  fillEllipse(img, size, cx, faceCy + size * 0.06, size * 0.04, size * 0.045, colors.noseHighlight);
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.035,
+    faceCy + size * 0.04,
+    size * 0.05,
+    size * 0.06,
+    colors.noseShadow
+  );
+
+  // Lips
+  const lipY = faceCy + size * 0.1;
+  fillEllipse(img, size, cx, lipY, size * 0.14, size * 0.028, colors.lip);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    lipY - size * 0.01,
+    size * 0.14,
+    size * 0.016,
+    colors.lipHighlight
+  );
+
+  // Beard and moustache
+  fillEllipse(img, size, cx, faceCy + size * 0.2, size * 0.3, size * 0.28, colors.beardBase);
+  fillEllipse(img, size, cx, faceCy + size * 0.3, size * 0.26, size * 0.24, colors.beardBase);
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.18,
+    faceCy + size * 0.2,
+    size * 0.16,
+    size * 0.22,
+    colors.beardBase
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.18,
+    faceCy + size * 0.2,
+    size * 0.16,
+    size * 0.22,
+    colors.beardBase
   );
   fillEllipse(
     img,
     size,
     cx + size * 0.12,
-    cy + size * 0.06,
+    faceCy + size * 0.28,
+    size * 0.18,
     size * 0.2,
-    size * 0.26,
-    skinShadow
+    colors.beardShadow
   );
-
-  // Eyes (higher so beard cannot intersect) with white sclera
-  const eyeY = cy - size * 0.1;
-  const eyeDx = size * 0.14;
-  drawEye(cx - eyeDx, eyeY);
-  drawEye(cx + eyeDx, eyeY);
-
-  // Nose
-  const noseTop = Math.floor(cy - size * 0.03);
-  const noseBottom = Math.floor(cy + size * 0.05);
-  fillRect(
+  fillEllipse(
     img,
     size,
-    Math.floor(cx - 0.5),
-    noseTop,
-    Math.floor(cx + 0.5),
-    noseBottom,
-    nose
+    cx - size * 0.12,
+    faceCy + size * 0.22,
+    size * 0.18,
+    size * 0.16,
+    colors.beardHighlight
   );
 
-  // Mouth
-  const mouthW = Math.max(6, Math.floor(size * 0.26));
-  const mouthH = Math.max(1, Math.round(size * 0.04));
-  const mouthY = Math.floor(cy + size * 0.08 - mouthH / 2);
-  fillRect(
+  fillEllipse(
     img,
     size,
-    Math.floor(cx - mouthW / 2),
-    mouthY,
-    Math.floor(cx + mouthW / 2),
-    mouthY + mouthH,
-    mouth
+    cx - size * 0.11,
+    faceCy + size * 0.07,
+    size * 0.14,
+    size * 0.06,
+    colors.moustache
   );
-
-  // Redraw eyes after nose/mouth to ensure nothing overwrites them
-  {
-    // Ensure eyes render on top of all features, using crisp boxes
-    const eyeY2 = cy - size * 0.1;
-    const eyeDx2 = size * 0.14;
-    drawEyeBox(cx - eyeDx2, eyeY2);
-    drawEyeBox(cx + eyeDx2, eyeY2);
-  }
-
-  // Beard – starts under mouth and overlaps shirt (smooth, no rectangular tails)
-  fillEllipse(img, size, cx, cy + size * 0.3, size * 0.32, size * 0.3, beard);
-  // Slight chin extension
-  fillEllipse(img, size, cx, cy + size * 0.4, size * 0.28, size * 0.2, beard);
-
-  // Tiny shirt at bottom (behind beard overlap visually it will be under)
-  fillRect(
+  fillEllipse(
     img,
     size,
-    Math.floor(size * 0.18),
-    Math.floor(size * 0.84),
-    Math.floor(size * 0.82),
-    size - 1,
-    shirt
+    cx + size * 0.11,
+    faceCy + size * 0.07,
+    size * 0.14,
+    size * 0.06,
+    colors.moustache
+  );
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.065,
+    size * 0.18,
+    size * 0.04,
+    colors.moustacheHighlight
+  );
+  fillEllipse(img, size, cx, faceCy + size * 0.15, size * 0.24, size * 0.1, colors.beardShadow);
+
+  // Blend beard softly into the cheeks to keep features gentle
+  fillEllipse(
+    img,
+    size,
+    cx - size * 0.12,
+    faceCy + size * 0.12,
+    size * 0.16,
+    size * 0.12,
+    colors.skinShadow
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + size * 0.12,
+    faceCy + size * 0.12,
+    size * 0.16,
+    size * 0.12,
+    colors.skinShadow
   );
 
-  // Clean up edges: make pixels transparent where hair/face never painted
-  // (already transparent by default).
   return img;
 }
 
-function downscaleNearest(
-  src: Uint8Array,
-  srcSize: number,
-  dstSize: number
-): Uint8Array {
+function downscaleBox(src: Uint8Array, srcSize: number, dstSize: number): Uint8Array {
+  const factor = srcSize / dstSize;
+  if (!Number.isInteger(factor)) {
+    throw new Error(`downscaleBox requires integer factor (got ${factor})`);
+  }
+
   const dst = new Uint8Array(dstSize * dstSize * 4);
+  const area = factor * factor;
+
   for (let y = 0; y < dstSize; y += 1) {
     for (let x = 0; x < dstSize; x += 1) {
-      const sx = Math.min(srcSize - 1, Math.floor((x / dstSize) * srcSize));
-      const sy = Math.min(srcSize - 1, Math.floor((y / dstSize) * srcSize));
-      const si = (sy * srcSize + sx) * 4;
+      let rSum = 0;
+      let gSum = 0;
+      let bSum = 0;
+      let aSum = 0;
+      const sy0 = y * factor;
+      const sx0 = x * factor;
+
+      for (let dy = 0; dy < factor; dy += 1) {
+        for (let dx = 0; dx < factor; dx += 1) {
+          const si = ((sy0 + dy) * srcSize + (sx0 + dx)) * 4;
+          bSum += src[si + 0];
+          gSum += src[si + 1];
+          rSum += src[si + 2];
+          aSum += src[si + 3];
+        }
+      }
+
       const di = (y * dstSize + x) * 4;
-      dst[di] = src[si];
-      dst[di + 1] = src[si + 1];
-      dst[di + 2] = src[si + 2];
-      dst[di + 3] = src[si + 3];
+      dst[di + 0] = clampByte(bSum / area);
+      dst[di + 1] = clampByte(gSum / area);
+      dst[di + 2] = clampByte(rSum / area);
+      dst[di + 3] = clampByte(aSum / area);
     }
   }
+
   return dst;
 }
 
-function encodeIco(
-  images: Array<{ size: number; rgba: Uint8Array }>
-): Uint8Array {
-  // Prepare DIB sections for each image
+function encodeIco(images: Array<{ size: number; rgba: Uint8Array }>): Uint8Array {
   const dibs = images.map(({ size, rgba }) => encodeDib32WithMask(size, rgba));
   const imageDataSizes = dibs.map((b) => b.length);
 
-  // ICONDIR (6 bytes) + n * ICONDIRENTRY (16 bytes)
   const headerSize = 6 + images.length * 16;
   let offset = headerSize;
   const totalSize = headerSize + imageDataSizes.reduce((a, b) => a + b, 0);
   const out = new Uint8Array(totalSize);
   const view = new DataView(out.buffer);
 
-  // ICONDIR
-  view.setUint16(0, 0, true); // reserved
-  view.setUint16(2, 1, true); // type
-  view.setUint16(4, images.length, true); // count
+  view.setUint16(0, 0, true);
+  view.setUint16(2, 1, true);
+  view.setUint16(4, images.length, true);
 
   let dirPos = 6;
   for (let i = 0; i < images.length; i += 1) {
     const { size } = images[i];
     const dib = dibs[i];
-    out[dirPos + 0] = size === 256 ? 0 : size; // width
-    out[dirPos + 1] = size === 256 ? 0 : size; // height
-    out[dirPos + 2] = 0; // color count
-    out[dirPos + 3] = 0; // reserved
-    view.setUint16(dirPos + 4, 1, true); // planes
-    view.setUint16(dirPos + 6, 32, true); // bit count
-    view.setUint32(dirPos + 8, dib.length, true); // bytes in res
-    view.setUint32(dirPos + 12, offset, true); // image offset
+    out[dirPos + 0] = size === 256 ? 0 : size;
+    out[dirPos + 1] = size === 256 ? 0 : size;
+    out[dirPos + 2] = 0;
+    out[dirPos + 3] = 0;
+    view.setUint16(dirPos + 4, 1, true);
+    view.setUint16(dirPos + 6, 32, true);
+    view.setUint32(dirPos + 8, dib.length, true);
+    view.setUint32(dirPos + 12, offset, true);
     dirPos += 16;
 
     out.set(dib, offset);
@@ -308,56 +563,45 @@ function encodeIco(
   return out;
 }
 
-function encodeDib32WithMask(
-  size: number,
-  rgbaTopDown: Uint8Array
-): Uint8Array {
+function encodeDib32WithMask(size: number, rgbaTopDown: Uint8Array): Uint8Array {
   const width = size;
   const height = size;
-  const headerSize = 40; // BITMAPINFOHEADER
-
-  // XOR bitmap (BGRA, bottom-up rows)
+  const headerSize = 40;
   const rowSize = width * 4;
   const xorSize = rowSize * height;
-
-  // AND mask: 1 bit per pixel, rows padded to 32 bits
   const andRowBytes = Math.ceil(width / 32) * 4;
   const andSize = andRowBytes * height;
-
   const total = headerSize + xorSize + andSize;
   const out = new Uint8Array(total);
   const view = new DataView(out.buffer);
 
-  // BITMAPINFOHEADER
   view.setUint32(0, headerSize, true);
   view.setInt32(4, width, true);
-  view.setInt32(8, height * 2, true); // includes AND mask
-  view.setUint16(12, 1, true); // planes
-  view.setUint16(14, 32, true); // bit count
-  view.setUint32(16, 0, true); // BI_RGB
+  view.setInt32(8, height * 2, true);
+  view.setUint16(12, 1, true);
+  view.setUint16(14, 32, true);
+  view.setUint32(16, 0, true);
   view.setUint32(20, xorSize, true);
-  view.setInt32(24, 0, true); // ppm X
-  view.setInt32(28, 0, true); // ppm Y
-  view.setUint32(32, 0, true); // colors used
-  view.setUint32(36, 0, true); // important colors
+  view.setInt32(24, 0, true);
+  view.setInt32(28, 0, true);
+  view.setUint32(32, 0, true);
+  view.setUint32(36, 0, true);
 
-  // XOR: convert RGBA top-down to BGRA bottom-up
   let dst = headerSize;
   for (let y = 0; y < height; y += 1) {
-    const sy = height - 1 - y; // bottom-up
+    const sy = height - 1 - y;
     for (let x = 0; x < width; x += 1) {
       const si = (sy * width + x) * 4;
-      out[dst + 0] = rgbaTopDown[si + 2]; // B
-      out[dst + 1] = rgbaTopDown[si + 1]; // G
-      out[dst + 2] = rgbaTopDown[si + 0]; // R
-      out[dst + 3] = rgbaTopDown[si + 3]; // A
+      out[dst + 0] = rgbaTopDown[si + 2];
+      out[dst + 1] = rgbaTopDown[si + 1];
+      out[dst + 2] = rgbaTopDown[si + 0];
+      out[dst + 3] = rgbaTopDown[si + 3];
       dst += 4;
     }
   }
 
-  // AND mask: 1 = transparent, 0 = opaque
   for (let y = 0; y < height; y += 1) {
-    const sy = height - 1 - y; // bottom-up
+    const sy = height - 1 - y;
     let byte = 0;
     let bit = 7;
     for (let x = 0; x < width; x += 1) {
@@ -375,7 +619,6 @@ function encodeDib32WithMask(
     if (bit !== 7) {
       out[dst++] = byte;
     }
-    // Row padding to 32-bit boundary
     const used = Math.ceil(width / 8);
     const padding = andRowBytes - used;
     for (let p = 0; p < padding; p += 1) {
@@ -398,23 +641,19 @@ async function main() {
 
   await ensureDir(outDir);
 
-  const img32 = drawPortrait(32);
-  const img16 = downscaleNearest(img32, 32, 16);
-  const leftEyeX = Math.round(32 / 2 - 32 * 0.14);
-  const rightEyeX = Math.round(32 / 2 + 32 * 0.14);
-  const eyeY = Math.round(32 / 2 - 1 - 32 * 0.1);
+  const highResSize = 128;
+  const highRes = drawPortraitHighRes(highResSize);
+  const img64 = downscaleBox(highRes, highResSize, 64);
+  const img32 = downscaleBox(highRes, highResSize, 32);
+  const img16 = downscaleBox(highRes, highResSize, 16);
 
   if (debug) {
-    const idx = (y: number, x: number) => (y * 32 + x) * 4;
-    const li = idx(eyeY, leftEyeX);
-    const ri = idx(eyeY, rightEyeX);
     // eslint-disable-next-line no-console
-    console.log('Left eye RGBA@32:', img32.slice(li, li + 4));
-    // eslint-disable-next-line no-console
-    console.log('Right eye RGBA@32:', img32.slice(ri, ri + 4));
+    console.log('Generated portrait layers at 128px resolution.');
   }
 
   const ico = encodeIco([
+    { size: 64, rgba: img64 },
     { size: 32, rgba: img32 },
     { size: 16, rgba: img16 },
   ]);
