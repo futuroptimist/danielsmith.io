@@ -606,28 +606,49 @@ function downscaleBox(
 
   for (let y = 0; y < dstSize; y += 1) {
     for (let x = 0; x < dstSize; x += 1) {
-      let rSum = 0;
-      let gSum = 0;
-      let bSum = 0;
-      let aSum = 0;
+      let rPremultipliedSum = 0;
+      let gPremultipliedSum = 0;
+      let bPremultipliedSum = 0;
+      let alphaSum = 0;
       const sy0 = y * factor;
       const sx0 = x * factor;
 
       for (let dy = 0; dy < factor; dy += 1) {
         for (let dx = 0; dx < factor; dx += 1) {
           const si = ((sy0 + dy) * srcSize + (sx0 + dx)) * 4;
-          rSum += src[si + 0];
-          gSum += src[si + 1];
-          bSum += src[si + 2];
-          aSum += src[si + 3];
+          const alpha = src[si + 3];
+          rPremultipliedSum += src[si + 0] * alpha;
+          gPremultipliedSum += src[si + 1] * alpha;
+          bPremultipliedSum += src[si + 2] * alpha;
+          alphaSum += alpha;
         }
       }
 
       const di = (y * dstSize + x) * 4;
-      dst[di + 0] = clampByte(rSum / area);
-      dst[di + 1] = clampByte(gSum / area);
-      dst[di + 2] = clampByte(bSum / area);
-      dst[di + 3] = clampByte(aSum / area);
+      if (alphaSum <= 0) {
+        dst[di + 0] = 0;
+        dst[di + 1] = 0;
+        dst[di + 2] = 0;
+        dst[di + 3] = 0;
+        continue;
+      }
+
+      const averageAlpha = alphaSum / area;
+      const alphaByte = clampByte(Math.round(averageAlpha));
+
+      if (alphaByte <= 0) {
+        dst[di + 0] = 0;
+        dst[di + 1] = 0;
+        dst[di + 2] = 0;
+        dst[di + 3] = 0;
+        continue;
+      }
+
+      const invAlphaSum = 1 / alphaSum;
+      dst[di + 0] = clampByte(Math.round(rPremultipliedSum * invAlphaSum));
+      dst[di + 1] = clampByte(Math.round(gPremultipliedSum * invAlphaSum));
+      dst[di + 2] = clampByte(Math.round(bPremultipliedSum * invAlphaSum));
+      dst[di + 3] = alphaByte;
     }
   }
 
