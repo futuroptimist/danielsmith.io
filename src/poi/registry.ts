@@ -4,6 +4,7 @@ import { getPoiCopy } from '../i18n';
 import { scalePoiValue } from './constants';
 import type { PoiDefinition, PoiId, PoiRegistry } from './types';
 import { assertValidPoiDefinitions } from './validation';
+import { applyManualPoiPlacements } from './placements';
 
 type PoiStaticDefinition = Omit<
   PoiDefinition,
@@ -28,7 +29,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 13.6, y: 0, z: 3.6615 },
+    position: { x: 0, y: 0, z: -2 },
     headingRadians: Math.PI * 0.05,
     interactionRadius: 2.2,
     footprint: { width: 2.4, depth: 2 },
@@ -39,7 +40,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 0.2547, y: 0, z: 5.1889 },
+    position: { x: 5, y: 0, z: 7.5 },
     headingRadians: -Math.PI * 0.3,
     interactionRadius: 2.3,
     footprint: { width: 2.2, depth: 2 },
@@ -50,7 +51,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 10.2076, y: 0, z: -2 },
+    position: { x: 10, y: 0, z: -2 },
     headingRadians: 0,
     interactionRadius: 2.2,
     footprint: { width: 2, depth: 2 },
@@ -61,7 +62,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 7.1076, y: 0, z: 6 },
+    position: { x: 14, y: 0, z: 6 },
     headingRadians: -Math.PI / 2,
     interactionRadius: 2.3,
     footprint: { width: 2.4, depth: 2 },
@@ -72,7 +73,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
-    position: { x: 4.2491, y: 0, z: 0.0506 },
+    position: { x: 2, y: 0, z: -3 },
     headingRadians: Math.PI,
     interactionRadius: 2,
     footprint: { width: 2.2, depth: 1.8 },
@@ -170,7 +171,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
 
 const poiCopy = getPoiCopy();
 
-const definitions: PoiDefinition[] = baseDefinitions.map((base) => {
+const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
   const copy = poiCopy[base.id];
   if (!copy) {
     throw new Error(`Missing localized POI copy for ${base.id}`);
@@ -195,6 +196,10 @@ const definitions: PoiDefinition[] = baseDefinitions.map((base) => {
     narration: copy.narration ? { ...copy.narration } : undefined,
   } satisfies PoiDefinition;
 });
+
+// Deterministically lay out indoor POIs across downstairs rooms.
+// Apply only manual placements for downstairs. Simple, explicit, and easy to tweak.
+const definitions: PoiDefinition[] = applyManualPoiPlacements(scaled);
 
 assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
 
