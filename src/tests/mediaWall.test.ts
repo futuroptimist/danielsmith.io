@@ -1,4 +1,5 @@
-import { beforeAll, describe, it, expect } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+
 import { createLivingRoomMediaWall } from '../structures/mediaWall';
 
 describe('createLivingRoomMediaWall', () => {
@@ -56,5 +57,3 @@ describe('createLivingRoomMediaWall', () => {
     expect(build.poiBindings.futuroptimistTv.glow).toBeTruthy();
   });
 });
-
-

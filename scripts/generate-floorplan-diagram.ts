@@ -132,11 +132,11 @@ function renderFloorSvg(level: FloorPlanLevel): string {
   const legend = `
     <g>
       <rect x="${(svgWidth - 210).toFixed(2)}" y="${(svgHeight - 86).toFixed(
-    2
-  )}" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
-      <g transform="translate(${(svgWidth - 196).toFixed(2)}, ${(svgHeight - 70).toFixed(
-    2
-  )})">
+        2
+      )}" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
+      <g transform="translate(${(svgWidth - 196).toFixed(2)}, ${(
+        svgHeight - 70
+      ).toFixed(2)})">
         <circle cx="8" cy="10" r="6" fill="#85e5ff" />
         <circle cx="8" cy="10" r="3" fill="#0b1428" />
         <text x="22" y="14" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">POI</text>

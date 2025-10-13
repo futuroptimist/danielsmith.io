@@ -37,5 +37,3 @@ test.describe('browser errors', () => {
     expect(pageErrors).toEqual([]);
   });
 });
-
-

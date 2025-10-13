@@ -1,11 +1,16 @@
 import type { PoiDefinition, PoiId } from './types';
 
 // Manual downstairs placements (world units). TV remains a wall display and is left as-is.
-export const MANUAL_POI_PLACEMENTS: Partial<Record<PoiId, {
-  roomId: string;
-  position: { x: number; y?: number; z: number };
-  headingRadians?: number;
-}>> = {
+export const MANUAL_POI_PLACEMENTS: Partial<
+  Record<
+    PoiId,
+    {
+      roomId: string;
+      position: { x: number; y?: number; z: number };
+      headingRadians?: number;
+    }
+  >
+> = {
   // Living room (center-biased spread)
   'gitshelves-living-room-installation': {
     roomId: 'livingRoom',
@@ -63,7 +68,9 @@ export const MANUAL_POI_PLACEMENTS: Partial<Record<PoiId, {
   },
 };
 
-export function applyManualPoiPlacements(defs: PoiDefinition[]): PoiDefinition[] {
+export function applyManualPoiPlacements(
+  defs: PoiDefinition[]
+): PoiDefinition[] {
   return defs.map((d) => {
     const override = MANUAL_POI_PLACEMENTS[d.id];
     if (!override) return d;
@@ -79,5 +86,3 @@ export function applyManualPoiPlacements(defs: PoiDefinition[]): PoiDefinition[]
     };
   });
 }
-
-

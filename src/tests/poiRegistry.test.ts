@@ -15,11 +15,21 @@ describe('POI registry', () => {
   it('places each POI within its target room bounds', () => {
     const outOfBounds = pois.filter((poi) => !isPoiInsideRoom(poi));
     // Allow TV exhibit to be anchored on wall edge for display override.
-    const allowed = new Set(['futuroptimist-living-room-tv', 'danielsmith-portfolio-table']);
+    const allowed = new Set([
+      'futuroptimist-living-room-tv',
+      'danielsmith-portfolio-table',
+    ]);
     const remaining = outOfBounds.filter((p) => !allowed.has(p.id));
     if (remaining.length > 0) {
       // eslint-disable-next-line no-console
-      console.warn('Out-of-bounds POIs:', remaining.map((p) => ({ id: p.id, roomId: p.roomId, position: p.position })));
+      console.warn(
+        'Out-of-bounds POIs:',
+        remaining.map((p) => ({
+          id: p.id,
+          roomId: p.roomId,
+          position: p.position,
+        }))
+      );
     }
     expect(remaining).toHaveLength(0);
   });

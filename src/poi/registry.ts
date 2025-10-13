@@ -2,9 +2,9 @@ import { FLOOR_PLAN } from '../floorPlan';
 import { getPoiCopy } from '../i18n';
 
 import { scalePoiValue } from './constants';
+import { applyManualPoiPlacements } from './placements';
 import type { PoiDefinition, PoiId, PoiRegistry } from './types';
 import { assertValidPoiDefinitions } from './validation';
-import { applyManualPoiPlacements } from './placements';
 
 type PoiStaticDefinition = Omit<
   PoiDefinition,
