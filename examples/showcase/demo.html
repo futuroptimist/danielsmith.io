@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Three.js Showcase Mode Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: radial-gradient(circle at top, #0f172a 0%, #020617 60%);
+        color: #f8fafc;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .skip-button {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 0.6rem 1.1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        background: rgba(15, 23, 42, 0.7);
+        color: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: background 150ms ease, transform 150ms ease;
+        backdrop-filter: blur(12px);
+      }
+
+      .skip-button:focus-visible {
+        outline: 2px solid #38bdf8;
+        outline-offset: 3px;
+      }
+
+      .skip-button:hover {
+        background: rgba(30, 41, 59, 0.85);
+        transform: translateY(-1px);
+      }
+
+      .hud {
+        position: fixed;
+        left: 50%;
+        bottom: 2.5rem;
+        transform: translateX(-50%);
+        padding: 0.75rem 1.5rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        backdrop-filter: blur(12px);
+        font-size: 0.9rem;
+        letter-spacing: 0.01em;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="skipTour" class="skip-button" type="button">Skip tour</button>
+    <canvas id="showcase-canvas"></canvas>
+    <div class="hud" role="status" aria-live="polite">Loading showcase…</div>
+
+    <script type="module">
+      import * as THREE from '../../node_modules/three/build/three.module.js';
+      import { ShowcaseMode } from './showcase.js';
+      import {
+        bootstrapScene,
+        createAssetLoaders,
+        loadModelWithFallback,
+        bindResize,
+        startRenderLoop,
+      } from './assetLoader.js';
+
+      const canvas = /** @type {HTMLCanvasElement} */ (
+        document.getElementById('showcase-canvas')
+      );
+      const skipButton = /** @type {HTMLButtonElement} */ (
+        document.getElementById('skipTour')
+      );
+      const hud = /** @type {HTMLDivElement} */ (document.querySelector('.hud'));
+
+      skipButton.hidden = true;
+
+      const { scene, camera, controls, renderer } = await bootstrapScene(canvas);
+      bindResize(renderer, camera);
+      startRenderLoop(renderer, scene, camera, controls);
+
+      const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+      keyLight.position.set(6, 12, 10);
+      keyLight.castShadow = true;
+
+      const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.8);
+      rimLight.position.set(-8, 6, -6);
+
+      scene.add(ambient, keyLight, rimLight);
+
+      const floorGeometry = new THREE.CircleGeometry(6, 48);
+      floorGeometry.rotateX(-Math.PI / 2);
+      const floorMaterial = new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#1e293b'),
+        metalness: 0.1,
+        roughness: 0.9,
+      });
+      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const cameraPoints = [
+        new THREE.Vector3(14, 8, 20),
+        new THREE.Vector3(10, 10, 8),
+        new THREE.Vector3(2, 9, -6),
+        new THREE.Vector3(-8, 7, -2),
+        new THREE.Vector3(-6, 8, 12),
+      ];
+      const curve = new THREE.CatmullRomCurve3(cameraPoints, false, 'centripetal');
+
+      const { gltfLoader } = createAssetLoaders(renderer, {
+        dracoPath: './libs/draco/',
+        ktx2Path: './libs/basis/',
+      });
+
+      const gltf = await loadModelWithFallback(
+        gltfLoader,
+        './assets/model_compressed.gltf',
+        './assets/model_uncompressed.gltf',
+        {
+          onProgress: (event) => {
+            if (event.total) {
+              const pct = Math.round((event.loaded / event.total) * 100);
+              hud.textContent = `Loading assets… ${pct}%`;
+            }
+          },
+        },
+      );
+
+      const model = gltf.scene;
+      model.scale.setScalar(2.2);
+      scene.add(model);
+
+      const usedFallback = gltf.asset?.generator === 'codex-python';
+      hud.textContent = usedFallback
+        ? 'Loaded fallback glTF. Advanced codecs unavailable in this build.'
+        : 'Guided tour ready. Enjoy the ride!';
+
+      const showcase = new ShowcaseMode(camera, curve, {
+        duration: 30,
+        lookAt: new THREE.Vector3(0, 1.2, 0),
+        skipButton,
+        analyticsLogger: (event, detail) => {
+          console.info(`[showcase] ${event}`, detail ?? {});
+        },
+        onStart: () => {
+          skipButton.hidden = false;
+          hud.textContent = 'Guided tour in progress. Click skip to explore early.';
+        },
+        onUpdate: ({ t }) => {
+          if (t > 0.5) {
+            hud.textContent = 'Halfway there. Sit back or take over anytime!';
+          }
+        },
+        onComplete: () => {
+          skipButton.hidden = true;
+          controls.enabled = true;
+          hud.textContent = 'Tour complete! Camera control transferred to you.';
+        },
+        onSkip: ({ reason }) => {
+          skipButton.hidden = true;
+          controls.enabled = true;
+          hud.textContent =
+            reason === 'prefers-reduced-motion'
+              ? 'Motion minimized based on your preferences. You have control.'
+              : 'Tour skipped. Use your mouse or touch to explore freely.';
+        },
+      });
+
+      const result = await showcase.start();
+      if (result.status === 'tourCompleted') {
+        controls.enabled = true;
+      }
+    </script>
+  </body>
+</html>
