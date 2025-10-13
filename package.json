@@ -18,6 +18,7 @@
     "smoke": "npm run build && node scripts/assert-dist.cjs",
     "check": "npm run lint && npm run test:ci && npm run docs:check",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
+    "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
