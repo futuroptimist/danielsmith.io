@@ -36,5 +36,5 @@ jobs:
       - name: Commit updated favicon
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'ci: update favicon'
+          commit_message: '🤖 : – Update favicon'
           file_pattern: public/favicon.ico
