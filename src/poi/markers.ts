@@ -111,20 +111,7 @@ function createPedestalPoiInstance(
   const baseHeight = scalePoiValue(0.32);
   const baseRadiusX = definition.footprint.width / 2;
   const baseRadiusZ = definition.footprint.depth / 2;
-  const baseGeometry = new CylinderGeometry(
-    baseRadiusX,
-    baseRadiusX,
-    baseHeight,
-    28
-  );
-  const baseMaterial = new MeshStandardMaterial({
-    color: new Color(0x1a2431),
-    roughness: 0.42,
-    metalness: 0.18,
-  });
-  const base = new Mesh(baseGeometry, baseMaterial);
-  base.position.y = baseHeight / 2;
-  group.add(base);
+  // Removed pedestal/base disc; keep only floating orb + footprint-derived rings.
 
   // Removed inner accent disc for a cleaner look. Rings below are sized
   // relative to the POI model footprint to avoid overlaps across exhibits.
