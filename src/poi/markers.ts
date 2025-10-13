@@ -130,9 +130,7 @@ function createPedestalPoiInstance(
   });
   const orb = new Mesh(orbGeometry, orbMaterial);
   const orbBaseHeight =
-    (baseHeight +
-      orbRadius +
-      scalePoiValue(POI_ORB_VERTICAL_OFFSET)) *
+    (baseHeight + orbRadius + scalePoiValue(POI_ORB_VERTICAL_OFFSET)) *
     POI_ORB_HEIGHT_MULTIPLIER;
   orb.position.y = orbBaseHeight;
   group.add(orb);
