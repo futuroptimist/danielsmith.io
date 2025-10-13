@@ -248,7 +248,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
      - ✅ Locomotion blend tree now normalizes idle, walk, run, and turn clip weights from the
        controller velocity profile while matching animation playback speed to the player's
        movement rate.
-   - Interaction animation set (button press, item inspect) triggered by POI events.
+   - ✅ Interaction animation set now pulses the mannequin arms when POIs are activated,
+     responding to POI selections with a controller-synced gesture.
    - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
    - IK adjustments to align feet with uneven terrain/stairs.
 3. **Self-Representation Touches**

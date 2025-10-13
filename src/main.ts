@@ -28,6 +28,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
+import type { Object3D } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -58,6 +59,11 @@ import {
   createFootstepBuffer,
   createLanternChimeBuffer,
 } from './audio/proceduralBuffers';
+import {
+  bindPoiInteractionAnimation,
+  createAvatarInteractionAnimator,
+  type AvatarInteractionAnimatorHandle,
+} from './avatar/interactionAnimator';
 import { createAvatarLocomotionAnimator } from './avatar/locomotionAnimator';
 import type { AvatarLocomotionAnimatorHandle } from './avatar/locomotionAnimator';
 import { createPortfolioMannequin } from './avatar/mannequin';
@@ -412,6 +418,8 @@ const ledFillLightsList: PointLight[] = [];
 let ambientAudioController: AmbientAudioController | null = null;
 let footstepAudioController: FootstepAudioControllerHandle | null = null;
 let footstepAudio: Audio | null = null;
+let avatarInteractionAnimator: AvatarInteractionAnimatorHandle | null = null;
+let removePoiInteractionAnimation: (() => void) | null = null;
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -1334,6 +1342,33 @@ function initializeImmersiveScene(
       linearSpeedLimit: PLAYER_SPEED * 0.24,
     },
   });
+
+  const mannequinRightArm = player.getObjectByName(
+    'PortfolioMannequinArmRight'
+  ) as Object3D | null;
+  const mannequinLeftArm = player.getObjectByName(
+    'PortfolioMannequinArmLeft'
+  ) as Object3D | null;
+  const mannequinTorso = player.getObjectByName(
+    'PortfolioMannequinTorso'
+  ) as Object3D | null;
+
+  if (mannequinRightArm && mannequinLeftArm && mannequinTorso) {
+    avatarInteractionAnimator = createAvatarInteractionAnimator({
+      mixer: mannequinMixer,
+      targets: {
+        rightArm: mannequinRightArm,
+        leftArm: mannequinLeftArm,
+        torso: mannequinTorso,
+      },
+    });
+    removePoiInteractionAnimation = bindPoiInteractionAnimation({
+      source: poiInteractionManager,
+      animator: avatarInteractionAnimator,
+    });
+  } else {
+    console.warn('Avatar interaction animation targets missing; skipping bind.');
+  }
 
   let avatarVariantStorage: Storage | undefined;
   try {
@@ -2603,6 +2638,14 @@ function initializeImmersiveScene(
       return;
     }
     immersiveDisposed = true;
+    if (removePoiInteractionAnimation) {
+      removePoiInteractionAnimation();
+      removePoiInteractionAnimation = null;
+    }
+    if (avatarInteractionAnimator) {
+      avatarInteractionAnimator.dispose();
+      avatarInteractionAnimator = null;
+    }
     poiInteractionManager.dispose();
     removeHoverListener();
     removeSelectionStateListener();
