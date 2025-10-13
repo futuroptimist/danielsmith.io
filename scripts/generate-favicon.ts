@@ -11,7 +11,13 @@ function createImage(size: number): Uint8Array {
   return new Uint8Array(size * size * 4);
 }
 
-function setPixel(img: Uint8Array, size: number, x: number, y: number, color: Rgba) {
+function setPixel(
+  img: Uint8Array,
+  size: number,
+  x: number,
+  y: number,
+  color: Rgba
+) {
   if (x < 0 || y < 0 || x >= size || y >= size) {
     return;
   }
@@ -157,7 +163,15 @@ function drawPortraitHighRes(size: number): Uint8Array {
   } satisfies Record<string, Rgba>;
 
   // Background gradient circle
-  fillEllipse(img, size, cx, circleCy, size * 0.46, size * 0.46, colors.bgOuter);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    circleCy,
+    size * 0.46,
+    size * 0.46,
+    colors.bgOuter
+  );
   fillEllipse(
     img,
     size,
@@ -178,7 +192,15 @@ function drawPortraitHighRes(size: number): Uint8Array {
   );
 
   // Shirt / shoulders (subtle curve)
-  fillEllipse(img, size, cx, size * 0.86, size * 0.36, size * 0.18, colors.shirt);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    size * 0.86,
+    size * 0.36,
+    size * 0.18,
+    colors.shirt
+  );
   fillEllipse(
     img,
     size,
@@ -190,8 +212,24 @@ function drawPortraitHighRes(size: number): Uint8Array {
   );
 
   // Hair mass - drawn behind facial features
-  fillEllipse(img, size, cx, faceCy - size * 0.3, size * 0.34, size * 0.32, colors.hairBase);
-  fillEllipse(img, size, cx, faceCy - size * 0.05, size * 0.46, size * 0.44, colors.hairBase);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy - size * 0.3,
+    size * 0.34,
+    size * 0.32,
+    colors.hairBase
+  );
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy - size * 0.05,
+    size * 0.46,
+    size * 0.44,
+    colors.hairBase
+  );
   fillEllipse(
     img,
     size,
@@ -210,7 +248,15 @@ function drawPortraitHighRes(size: number): Uint8Array {
     size * 0.38,
     colors.hairBase
   );
-  fillEllipse(img, size, cx, faceCy + size * 0.26, size * 0.38, size * 0.3, colors.hairBase);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.26,
+    size * 0.38,
+    size * 0.3,
+    colors.hairBase
+  );
 
   // Hair depth & highlight
   fillEllipse(
@@ -222,7 +268,15 @@ function drawPortraitHighRes(size: number): Uint8Array {
     size * 0.34,
     colors.hairShadow
   );
-  fillEllipse(img, size, cx, faceCy + size * 0.32, size * 0.32, size * 0.22, colors.hairShadow);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.32,
+    size * 0.32,
+    size * 0.22,
+    colors.hairShadow
+  );
   fillEllipse(
     img,
     size,
@@ -342,8 +396,24 @@ function drawPortraitHighRes(size: number): Uint8Array {
     size * 0.05,
     colors.skinShadow
   );
-  fillEllipse(img, size, cx - eyeDx, eyeY - size * 0.085, size * 0.16, size * 0.045, colors.brow);
-  fillEllipse(img, size, cx + eyeDx, eyeY - size * 0.085, size * 0.16, size * 0.045, colors.brow);
+  fillEllipse(
+    img,
+    size,
+    cx - eyeDx,
+    eyeY - size * 0.085,
+    size * 0.16,
+    size * 0.045,
+    colors.brow
+  );
+  fillEllipse(
+    img,
+    size,
+    cx + eyeDx,
+    eyeY - size * 0.085,
+    size * 0.16,
+    size * 0.045,
+    colors.brow
+  );
   fillEllipse(
     img,
     size,
@@ -373,7 +443,15 @@ function drawPortraitHighRes(size: number): Uint8Array {
     Math.round(faceCy + size * 0.08),
     colors.nose
   );
-  fillEllipse(img, size, cx, faceCy + size * 0.06, size * 0.04, size * 0.045, colors.noseHighlight);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.06,
+    size * 0.04,
+    size * 0.045,
+    colors.noseHighlight
+  );
   fillEllipse(
     img,
     size,
@@ -398,8 +476,24 @@ function drawPortraitHighRes(size: number): Uint8Array {
   );
 
   // Beard and moustache
-  fillEllipse(img, size, cx, faceCy + size * 0.2, size * 0.3, size * 0.28, colors.beardBase);
-  fillEllipse(img, size, cx, faceCy + size * 0.3, size * 0.26, size * 0.24, colors.beardBase);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.2,
+    size * 0.3,
+    size * 0.28,
+    colors.beardBase
+  );
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.3,
+    size * 0.26,
+    size * 0.24,
+    colors.beardBase
+  );
   fillEllipse(
     img,
     size,
@@ -464,7 +558,15 @@ function drawPortraitHighRes(size: number): Uint8Array {
     size * 0.04,
     colors.moustacheHighlight
   );
-  fillEllipse(img, size, cx, faceCy + size * 0.15, size * 0.24, size * 0.1, colors.beardShadow);
+  fillEllipse(
+    img,
+    size,
+    cx,
+    faceCy + size * 0.15,
+    size * 0.24,
+    size * 0.1,
+    colors.beardShadow
+  );
 
   // Blend beard softly into the cheeks to keep features gentle
   fillEllipse(
@@ -489,7 +591,11 @@ function drawPortraitHighRes(size: number): Uint8Array {
   return img;
 }
 
-function downscaleBox(src: Uint8Array, srcSize: number, dstSize: number): Uint8Array {
+function downscaleBox(
+  src: Uint8Array,
+  srcSize: number,
+  dstSize: number
+): Uint8Array {
   const factor = srcSize / dstSize;
   if (!Number.isInteger(factor)) {
     throw new Error(`downscaleBox requires integer factor (got ${factor})`);
@@ -528,7 +634,9 @@ function downscaleBox(src: Uint8Array, srcSize: number, dstSize: number): Uint8A
   return dst;
 }
 
-function encodeIco(images: Array<{ size: number; rgba: Uint8Array }>): Uint8Array {
+function encodeIco(
+  images: Array<{ size: number; rgba: Uint8Array }>
+): Uint8Array {
   const dibs = images.map(({ size, rgba }) => encodeDib32WithMask(size, rgba));
   const imageDataSizes = dibs.map((b) => b.length);
 
@@ -563,7 +671,10 @@ function encodeIco(images: Array<{ size: number; rgba: Uint8Array }>): Uint8Arra
   return out;
 }
 
-function encodeDib32WithMask(size: number, rgbaTopDown: Uint8Array): Uint8Array {
+function encodeDib32WithMask(
+  size: number,
+  rgbaTopDown: Uint8Array
+): Uint8Array {
   const width = size;
   const height = size;
   const headerSize = 40;
