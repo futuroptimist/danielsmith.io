@@ -32,7 +32,10 @@ export const DEFAULT_RIGHT_ARM_REACH_RADIANS = -0.72;
 export const DEFAULT_LEFT_ARM_LIFT_RADIANS = 0.32;
 export const DEFAULT_TORSO_LEAN_RADIANS = 0.12;
 
-function assertNamedTarget(target: Object3D | null | undefined, label: string): Object3D {
+function assertNamedTarget(
+  target: Object3D | null | undefined,
+  label: string
+): Object3D {
   if (!target) {
     throw new Error(`Avatar interaction animator missing target: ${label}`);
   }
@@ -73,8 +76,10 @@ export function createAvatarInteractionAnimator(
     ? assertNamedTarget(options.targets.torso, 'torso')
     : null;
 
-  const rightArmReach = options.rightArmReachRadians ?? DEFAULT_RIGHT_ARM_REACH_RADIANS;
-  const leftArmLift = options.leftArmLiftRadians ?? DEFAULT_LEFT_ARM_LIFT_RADIANS;
+  const rightArmReach =
+    options.rightArmReachRadians ?? DEFAULT_RIGHT_ARM_REACH_RADIANS;
+  const leftArmLift =
+    options.leftArmLiftRadians ?? DEFAULT_LEFT_ARM_LIFT_RADIANS;
   const torsoLean = options.torsoLeanRadians ?? DEFAULT_TORSO_LEAN_RADIANS;
 
   const tracks = [buildRotationTrack(rightArm, 'x', rightArmReach, duration)];
@@ -145,7 +150,8 @@ function defaultIntensityResolver(poi: PoiDefinition): number {
 export function bindPoiInteractionAnimation(
   options: PoiInteractionAnimationBindingOptions
 ): () => void {
-  const resolveIntensity = options.intensityResolver ?? defaultIntensityResolver;
+  const resolveIntensity =
+    options.intensityResolver ?? defaultIntensityResolver;
   const unsubscribe = options.source.addSelectionListener((poi) => {
     const intensity = resolveIntensity(poi);
     options.animator.triggerInteraction({ intensity });

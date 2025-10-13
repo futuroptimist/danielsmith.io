@@ -142,7 +142,11 @@ describe('bindPoiInteractionAnimation', () => {
 
     listeners[0](basePoi);
     listeners[0]({ ...basePoi, interactionRadius: 1.2 });
-    listeners[0]({ ...basePoi, interaction: 'activate', interactionRadius: 3.4 });
+    listeners[0]({
+      ...basePoi,
+      interaction: 'activate',
+      interactionRadius: 3.4,
+    });
 
     expect(triggerMock).toHaveBeenCalledTimes(3);
     const calls = triggerMock.mock.calls;

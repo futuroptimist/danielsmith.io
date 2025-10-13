@@ -1367,7 +1367,9 @@ function initializeImmersiveScene(
       animator: avatarInteractionAnimator,
     });
   } else {
-    console.warn('Avatar interaction animation targets missing; skipping bind.');
+    console.warn(
+      'Avatar interaction animation targets missing; skipping bind.'
+    );
   }
 
   let avatarVariantStorage: Storage | undefined;
