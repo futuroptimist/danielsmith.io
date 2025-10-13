@@ -100,6 +100,9 @@ export async function loadModelWithFallback(
     try {
       return await loadAsync(gltfLoader, compressedUrl, options);
     } catch (error) {
+      if (error?.name === 'AbortError') {
+        throw error;
+      }
       console.warn('Compressed model failed to load. Attempting fallback.', error);
     }
   }
