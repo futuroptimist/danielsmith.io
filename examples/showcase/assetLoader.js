@@ -37,7 +37,10 @@ export async function createRenderer(config) {
       await webgpuRenderer.init();
       return { renderer: webgpuRenderer, isWebGPU: true };
     } catch (error) {
-      console.warn('WebGPU renderer failed to initialize. Falling back to WebGL.', error);
+      console.warn(
+        'WebGPU renderer failed to initialize. Falling back to WebGL.',
+        error
+      );
     }
   }
 
@@ -92,7 +95,7 @@ export async function loadModelWithFallback(
   gltfLoader,
   compressedUrl,
   fallbackUrl,
-  options = {},
+  options = {}
 ) {
   const preferCompressed = options.preferCompressed ?? true;
 
@@ -103,14 +106,20 @@ export async function loadModelWithFallback(
       if (error?.name === 'AbortError') {
         throw error;
       }
-      console.warn('Compressed model failed to load. Attempting fallback.', error);
+      console.warn(
+        'Compressed model failed to load. Attempting fallback.',
+        error
+      );
     }
   }
 
   try {
     return await loadAsync(gltfLoader, fallbackUrl, options);
   } catch (error) {
-    console.error('Fallback model failed to load. Using procedural placeholder.', error);
+    console.error(
+      'Fallback model failed to load. Using procedural placeholder.',
+      error
+    );
     return createPlaceholderGLTF();
   }
 }
@@ -170,7 +179,7 @@ function loadAsync(loader, url, options) {
       (error) => {
         signal?.removeEventListener('abort', abortListener);
         reject(error);
-      },
+      }
     );
   });
 }
@@ -192,7 +201,12 @@ export async function bootstrapScene(canvas) {
   const scene = new Scene();
   scene.background = new Color('#0f172a');
 
-  const camera = new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+  const camera = new PerspectiveCamera(
+    55,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    200
+  );
   camera.position.set(14, 8, 20);
 
   const controls = new OrbitControls(camera, canvas);

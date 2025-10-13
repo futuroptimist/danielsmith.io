@@ -56,7 +56,10 @@ export class ShowcaseMode {
       ...options,
     };
 
-    if (typeof this.options.duration !== 'number' || this.options.duration <= 0) {
+    if (
+      typeof this.options.duration !== 'number' ||
+      this.options.duration <= 0
+    ) {
       throw new Error('ShowcaseMode requires a positive duration value.');
     }
 
@@ -67,7 +70,9 @@ export class ShowcaseMode {
     /** @private */
     this._isRunning = false;
     /** @private */
-    this._resolve = /** @type {((result: ShowcaseResult) => void)|null} */ (null);
+    this._resolve = /** @type {((result: ShowcaseResult) => void)|null} */ (
+      null
+    );
     /** @private */
     this._finalState = /** @type {ShowcaseResult|null} */ (null);
 
@@ -92,7 +97,10 @@ export class ShowcaseMode {
     }
 
     if (this.options.respectReducedMotion && this._prefersReducedMotion) {
-      this._prefersReducedMotion.addEventListener('change', this._boundMotionHandler);
+      this._prefersReducedMotion.addEventListener(
+        'change',
+        this._boundMotionHandler
+      );
     }
   }
 
@@ -110,7 +118,10 @@ export class ShowcaseMode {
       this._resolve = resolve;
     });
 
-    if (this.options.respectReducedMotion && this._prefersReducedMotion?.matches) {
+    if (
+      this.options.respectReducedMotion &&
+      this._prefersReducedMotion?.matches
+    ) {
       this.skip('prefers-reduced-motion');
       return this._runPromise;
     }
@@ -145,7 +156,10 @@ export class ShowcaseMode {
     }
 
     if (this._prefersReducedMotion) {
-      this._prefersReducedMotion.removeEventListener('change', this._boundMotionHandler);
+      this._prefersReducedMotion.removeEventListener(
+        'change',
+        this._boundMotionHandler
+      );
     }
 
     this._resolve = null;
@@ -164,7 +178,7 @@ export class ShowcaseMode {
 
     const target = this.options.lookAtCurve
       ? this.options.lookAtCurve.getPointAt(easedProgress)
-      : this.options.lookAt ?? DEFAULT_LOOK_AT;
+      : (this.options.lookAt ?? DEFAULT_LOOK_AT);
 
     this.camera.lookAt(target);
     this.options.onUpdate?.({ position, target, t: easedProgress });
@@ -206,7 +220,10 @@ export class ShowcaseMode {
       this.options.onComplete?.({ status: 'tourCompleted' });
       this.options.analyticsLogger?.('tourCompleted');
     } else {
-      this.options.onSkip?.({ status: 'tourSkipped', reason: result.reason ?? 'manual' });
+      this.options.onSkip?.({
+        status: 'tourSkipped',
+        reason: result.reason ?? 'manual',
+      });
       this.options.analyticsLogger?.('tourSkipped', { reason: result.reason });
     }
 

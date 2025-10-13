@@ -7,7 +7,12 @@
     <style>
       :root {
         color-scheme: dark;
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family:
+          'Inter',
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
       }
 
       body {
@@ -37,7 +42,9 @@
         font-weight: 600;
         letter-spacing: 0.02em;
         cursor: pointer;
-        transition: background 150ms ease, transform 150ms ease;
+        transition:
+          background 150ms ease,
+          transform 150ms ease;
         backdrop-filter: blur(12px);
       }
 
@@ -89,11 +96,14 @@
       const skipButton = /** @type {HTMLButtonElement} */ (
         document.getElementById('skipTour')
       );
-      const hud = /** @type {HTMLDivElement} */ (document.querySelector('.hud'));
+      const hud = /** @type {HTMLDivElement} */ (
+        document.querySelector('.hud')
+      );
 
       skipButton.hidden = true;
 
-      const { scene, camera, controls, renderer } = await bootstrapScene(canvas);
+      const { scene, camera, controls, renderer } =
+        await bootstrapScene(canvas);
       bindResize(renderer, camera);
       startRenderLoop(renderer, scene, camera, controls);
 
@@ -125,7 +135,11 @@
         new THREE.Vector3(-8, 7, -2),
         new THREE.Vector3(-6, 8, 12),
       ];
-      const curve = new THREE.CatmullRomCurve3(cameraPoints, false, 'centripetal');
+      const curve = new THREE.CatmullRomCurve3(
+        cameraPoints,
+        false,
+        'centripetal'
+      );
 
       const { gltfLoader } = createAssetLoaders(renderer, {
         dracoPath: './libs/draco/',
@@ -143,7 +157,7 @@
               hud.textContent = `Loading assets… ${pct}%`;
             }
           },
-        },
+        }
       );
 
       const model = gltf.scene;
@@ -164,7 +178,8 @@
         },
         onStart: () => {
           skipButton.hidden = false;
-          hud.textContent = 'Guided tour in progress. Click skip to explore early.';
+          hud.textContent =
+            'Guided tour in progress. Click skip to explore early.';
         },
         onUpdate: ({ t }) => {
           if (t > 0.5) {
