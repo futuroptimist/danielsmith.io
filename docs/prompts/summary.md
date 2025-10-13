@@ -7,7 +7,9 @@ when spinning up an agentic task. Every prompt now explicitly directs agents to 
 
 | Prompt                                           | Purpose                                            | One-click? |
 | ------------------------------------------------ | -------------------------------------------------- | ---------- |
+| [codex/baseline.md](codex/baseline.md)           | Canonical automation prompt for danielsmith.io.    | Yes        |
 | [codex/implement.md](codex/implement.md)         | Generic implementation prompt for roadmap tasks.   | Yes        |
+| [codex/polish.md](codex/polish.md)               | Scene structure, performance, and accessibility.   | Yes        |
 | [codex/lighting.md](codex/lighting.md)           | Iterative lighting and mood upgrades.              | Yes        |
 | [codex/floorplan.md](codex/floorplan.md)         | Level layout, rooms, doorways, stairs.             | Yes        |
 | [codex/outdoor.md](codex/outdoor.md)             | Backyard environment and transitions.              | Yes        |

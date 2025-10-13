@@ -161,7 +161,7 @@ lightweight.
 ## Automation prompts
 
 The canonical Codex automation prompt lives at
-[`automation.md`][automation-prompt] and feeds both docs
+[`baseline.md`][baseline-prompt] and feeds both docs
 checks and CI routines. Additional specialized prompts (lighting, avatar, HUD, POIs, i18n,
 performance, modes, animation, and more) provide ready-to-run task scaffolding for agents.
 
@@ -172,4 +172,4 @@ exists as part of the smoke suite.
 
 [resume-src]: docs/resume/2025-09/resume.tex
 [prompt-summary]: docs/prompts/summary.md
-[automation-prompt]: docs/prompts/codex/automation.md
+[baseline-prompt]: docs/prompts/codex/baseline.md
