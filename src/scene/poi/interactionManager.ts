@@ -271,8 +271,8 @@ export class PoiInteractionManager {
       return;
     }
 
-    const activeElement =
-      (this.domElement.ownerDocument ?? document).activeElement;
+    const activeElement = (this.domElement.ownerDocument ?? document)
+      .activeElement;
     if (
       activeElement &&
       activeElement !== this.domElement &&
