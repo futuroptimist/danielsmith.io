@@ -271,6 +271,17 @@ export class PoiInteractionManager {
       return;
     }
 
+    const activeElement =
+      (this.domElement.ownerDocument ?? document).activeElement;
+    if (
+      activeElement &&
+      activeElement !== this.domElement &&
+      activeElement !== activeElement.ownerDocument?.body &&
+      !this.domElement.contains(activeElement)
+    ) {
+      return;
+    }
+
     const { key } = event;
     const normalizedKey = key.toLowerCase();
 
@@ -292,7 +303,8 @@ export class PoiInteractionManager {
 
     switch (normalizedKey) {
       case 'enter':
-      case ' ': {
+      case ' ':
+      case 'f': {
         if (this.hovered) {
           event.preventDefault();
           this.usingKeyboard = true;

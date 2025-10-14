@@ -47,7 +47,12 @@ test.describe('keyboard traversal macro', () => {
 
     // Tab forward until the help/menu button receives focus.
     let attempts = 0;
-    while (!(await helpButton.isFocused()) && attempts < 8) {
+    while (
+      !(await helpButton.evaluate(
+        (element) => element === document.activeElement
+      )) &&
+      attempts < 8
+    ) {
       await page.keyboard.press('Tab');
       attempts += 1;
     }
