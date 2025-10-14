@@ -1,5 +1,9 @@
 import type { LocaleInput } from '../../assets/i18n';
-import { formatMessage, getSiteStrings, resolveLocale } from '../../assets/i18n';
+import {
+  formatMessage,
+  getSiteStrings,
+  resolveLocale,
+} from '../../assets/i18n';
 
 import type { PoiDefinition } from './types';
 

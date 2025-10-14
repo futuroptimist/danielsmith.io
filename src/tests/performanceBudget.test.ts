@@ -8,9 +8,9 @@ import {
 
 describe('performance budgets', () => {
   it('baseline metrics stay within the immersive budget', () => {
-    expect(isWithinBudget(IMMERSIVE_SCENE_BASELINE, IMMERSIVE_PERFORMANCE_BUDGET)).toBe(
-      true
-    );
+    expect(
+      isWithinBudget(IMMERSIVE_SCENE_BASELINE, IMMERSIVE_PERFORMANCE_BUDGET)
+    ).toBe(true);
   });
 
   it('budgets leave measurable headroom for new content', () => {

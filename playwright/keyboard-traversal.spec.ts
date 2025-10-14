@@ -13,7 +13,9 @@ async function waitForImmersiveReady(page: import('@playwright/test').Page) {
 }
 
 test.describe('keyboard traversal macro', () => {
-  test('cycles POIs and HUD overlays using keyboard input only', async ({ page }) => {
+  test('cycles POIs and HUD overlays using keyboard input only', async ({
+    page,
+  }) => {
     test.slow();
     await waitForImmersiveReady(page);
 

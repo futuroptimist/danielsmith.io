@@ -126,7 +126,10 @@ import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
 } from './scene/structures/prReaperConsole';
-import { createStaircase, type StaircaseConfig } from './scene/structures/staircase';
+import {
+  createStaircase,
+  type StaircaseConfig,
+} from './scene/structures/staircase';
 import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
@@ -173,7 +176,10 @@ import {
 } from './systems/controls/keyBindings';
 import { KeyboardControls } from './systems/controls/KeyboardControls';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
-import { evaluateFailoverDecision, renderTextFallback } from './systems/failover';
+import {
+  evaluateFailoverDecision,
+  renderTextFallback,
+} from './systems/failover';
 import {
   createManualModeToggle,
   type ManualModeToggleHandle,

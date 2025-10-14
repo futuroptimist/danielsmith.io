@@ -118,9 +118,9 @@ lightweight.
 
 ## Auto-generated assets
 
-| Script | Output | Trigger |
-| ------ | ------ | ------- |
-| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run when room geometry or labels change; CI refreshes after merges. |
+| Script                      | Output                        | Trigger                                                                                           |
+| --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run when room geometry or labels change; CI refreshes after merges.                               |
 | `npm run launch:screenshot` | `docs/assets/game-launch.png` | Refresh after lighting, HUD, or camera framing updates. Captured automatically by CI once merged. |
 
 ## Performance guardrails
