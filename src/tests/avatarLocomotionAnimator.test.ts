@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createAvatarLocomotionAnimator,
   type AvatarLocomotionAnimatorHandle,
-} from '../avatar/locomotionAnimator';
+} from '../scene/avatar/locomotionAnimator';
 
 function createClip(name: string): AnimationClip {
   return new AnimationClip(name, -1, []);

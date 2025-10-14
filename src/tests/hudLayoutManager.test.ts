@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createHudLayoutManager, type HudLayout } from '../hud/layoutManager';
+import { createHudLayoutManager, type HudLayout } from '../ui/hud/layoutManager';
 
 type Listener<T> = (event: T) => void;
 

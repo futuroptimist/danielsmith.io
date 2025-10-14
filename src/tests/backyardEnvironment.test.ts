@@ -24,7 +24,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { createBackyardEnvironment } from '../environments/backyard';
+import { createBackyardEnvironment } from '../scene/environments/backyard';
 
 const BACKYARD_BOUNDS = {
   minX: -10,

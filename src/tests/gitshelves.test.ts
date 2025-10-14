@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { createGitshelvesInstallation } from '../structures/gitshelves';
+import { createGitshelvesInstallation } from '../scene/structures/gitshelves';
 
 function getCommitMeshes(group: Group): Mesh[] {
   return group.children.filter((child) =>

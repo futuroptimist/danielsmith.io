@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../floorPlan';
-import { getDoorwayClearanceZones } from '../floorPlan/doorways';
+import { FLOOR_PLAN } from '../assets/floorPlan';
+import { getDoorwayClearanceZones } from '../assets/floorPlan/doorways';
 
 describe('getDoorwayClearanceZones', () => {
   const zones = getDoorwayClearanceZones(FLOOR_PLAN, {

@@ -5,9 +5,9 @@ import type {
   AmbientAudioBedSnapshot,
   AmbientAudioController,
   AmbientAudioSource,
-} from '../audio/ambientAudio';
-import { AmbientCaptionBridge } from '../audio/ambientCaptionBridge';
-import type { AudioSubtitleMessage } from '../hud/audioSubtitles';
+} from '../systems/audio/ambientAudio';
+import { AmbientCaptionBridge } from '../systems/audio/ambientCaptionBridge';
+import type { AudioSubtitleMessage } from '../ui/hud/audioSubtitles';
 
 class FakeController implements AmbientAudioController {
   private snapshot: AmbientAudioBedSnapshot;

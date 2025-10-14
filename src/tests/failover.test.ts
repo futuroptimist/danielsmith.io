@@ -5,8 +5,8 @@ import {
   isWebglSupported,
   renderTextFallback,
   type FallbackReason,
-} from '../failover';
-import { createImmersiveModeUrl } from '../immersiveUrl';
+} from '../systems/failover';
+import { createImmersiveModeUrl } from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',

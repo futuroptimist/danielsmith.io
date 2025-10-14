@@ -6,7 +6,7 @@ import {
   type AmbientAudioSource,
   _computeAttenuation,
   _smoothingFactor,
-} from '../audio/ambientAudio';
+} from '../systems/audio/ambientAudio';
 
 class FakeSource implements AmbientAudioSource {
   public isPlaying = false;

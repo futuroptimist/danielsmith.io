@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { createLivingRoomMediaWall } from '../structures/mediaWall';
+import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
 
 describe('createLivingRoomMediaWall', () => {
   beforeAll(() => {

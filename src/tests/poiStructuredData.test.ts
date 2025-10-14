@@ -4,8 +4,8 @@ import {
   _testables,
   buildPoiStructuredData,
   injectPoiStructuredData,
-} from '../poi/structuredData';
-import type { PoiDefinition } from '../poi/types';
+} from '../scene/poi/structuredData';
+import type { PoiDefinition } from '../scene/poi/types';
 
 const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   id: 'futuroptimist-living-room-tv',

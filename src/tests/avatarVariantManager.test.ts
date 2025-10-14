@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { PortfolioMannequinPalette } from '../avatar/mannequin';
-import { createAvatarVariantManager } from '../avatar/variantManager';
-import { AVATAR_VARIANTS, DEFAULT_AVATAR_VARIANT_ID } from '../avatar/variants';
+import type { PortfolioMannequinPalette } from '../scene/avatar/mannequin';
+import { createAvatarVariantManager } from '../scene/avatar/variantManager';
+import { AVATAR_VARIANTS, DEFAULT_AVATAR_VARIANT_ID } from '../scene/avatar/variants';
 
 describe('createAvatarVariantManager', () => {
   it('applies stored variant, persists updates, and notifies listeners', () => {

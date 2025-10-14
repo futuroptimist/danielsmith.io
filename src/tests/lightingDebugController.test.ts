@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createLightingDebugController } from '../lighting/debugControls';
+import { createLightingDebugController } from '../scene/lighting/debugControls';
 
 describe('lighting debug controller', () => {
   const createController = () => {

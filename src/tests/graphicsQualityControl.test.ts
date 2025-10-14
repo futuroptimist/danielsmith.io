@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createGraphicsQualityControl } from '../controls/graphicsQualityControl';
 import {
   GRAPHICS_QUALITY_PRESETS,
   type GraphicsQualityLevel,
-} from '../graphics/qualityManager';
+} from '../scene/graphics/qualityManager';
+import { createGraphicsQualityControl } from '../systems/controls/graphicsQualityControl';
 
 describe('createGraphicsQualityControl', () => {
   const presets = GRAPHICS_QUALITY_PRESETS.map(

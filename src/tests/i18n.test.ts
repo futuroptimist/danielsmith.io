@@ -9,7 +9,7 @@ import {
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
-} from '../i18n';
+} from '../assets/i18n';
 
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {

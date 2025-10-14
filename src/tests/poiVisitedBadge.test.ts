@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { createVisitedBadge, updateVisitedBadge } from '../poi/visitedBadge';
+import { createVisitedBadge, updateVisitedBadge } from '../scene/poi/visitedBadge';
 
 beforeAll(() => {
   const noop = () => {};

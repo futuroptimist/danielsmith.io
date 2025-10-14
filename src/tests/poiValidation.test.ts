@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../floorPlan';
-import { getPoiDefinitions } from '../poi/registry';
-import type { PoiDefinition } from '../poi/types';
+import { FLOOR_PLAN } from '../assets/floorPlan';
+import { getPoiDefinitions } from '../scene/poi/registry';
+import type { PoiDefinition } from '../scene/poi/types';
 import {
   assertValidPoiDefinitions,
   type PoiValidationIssue,
   validatePoiDefinitions,
-} from '../poi/validation';
+} from '../scene/poi/validation';
 
 const baseDefinitions = getPoiDefinitions();
 const livingRoomBounds = FLOOR_PLAN.rooms.find(

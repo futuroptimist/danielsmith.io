@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createAudioHudControl } from '../controls/audioHudControl';
+import { createAudioHudControl } from '../systems/controls/audioHudControl';
 
 describe('createAudioHudControl', () => {
   it('renders controls, syncs state, and handles async toggles', async () => {

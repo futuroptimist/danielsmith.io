@@ -7,8 +7,8 @@ import {
   getCombinedWallSegments,
   type FloorPlanDefinition,
   type FloorPlanLevel,
-} from '../src/floorPlan';
-import { getPoiDefinitions } from '../src/poi/registry';
+} from '../src/assets/floorPlan';
+import { getPoiDefinitions } from '../src/scene/poi/registry';
 
 const OUTPUT_DIR = path.resolve(process.cwd(), 'docs/assets');
 const PADDING = 32;

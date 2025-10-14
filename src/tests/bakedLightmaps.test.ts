@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyLightmapUv2,
   createInteriorLightmapTextures,
-} from '../lighting/bakedLightmaps';
+} from '../scene/lighting/bakedLightmaps';
 
 function sampleLuminance(texture: DataTexture, u: number, v: number): number {
   const image = texture.image as {

@@ -8,7 +8,7 @@ import {
   dampYawTowards,
   getCameraRelativeDirection,
   normalizeRadians,
-} from '../../movement/facing';
+} from '../../systems/movement/facing';
 
 describe('facing helpers', () => {
   it('computes yaw from planar vectors', () => {

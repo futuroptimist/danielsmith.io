@@ -6,7 +6,7 @@ import {
   type BloomPassLike,
   type GraphicsQualityLevel,
   type RendererLike,
-} from '../graphics/qualityManager';
+} from '../scene/graphics/qualityManager';
 
 describe('createGraphicsQualityManager', () => {
   const baseBloom = {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyControlOverlayStrings } from '../hud/controlOverlay';
-import { getControlOverlayStrings } from '../i18n';
+import { getControlOverlayStrings } from '../assets/i18n';
+import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
 
 describe('applyControlOverlayStrings', () => {
   it('updates heading, list items, and interact defaults', () => {

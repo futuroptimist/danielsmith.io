@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { InteractionTimeline } from '../accessibility/interactionTimeline';
+import { InteractionTimeline } from '../ui/accessibility/interactionTimeline';
 
 describe('InteractionTimeline', () => {
   beforeEach(() => {

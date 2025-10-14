@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { collidesWithColliders } from '../collision';
 import {
   FLOOR_PLAN,
   WALL_THICKNESS,
   type DoorwayDefinition,
-} from '../floorPlan';
-import { createWallSegmentInstances } from '../floorPlan/wallSegments';
+} from '../assets/floorPlan';
+import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import { collidesWithColliders } from '../systems/collision';
 
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;

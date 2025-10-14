@@ -9,7 +9,7 @@ import {
   type AudioBufferLike,
   _applyLoopFades,
   _normalizeBuffer,
-} from '../audio/proceduralBuffers';
+} from '../systems/audio/proceduralBuffers';
 
 class FakeAudioBuffer implements AudioBufferLike {
   public readonly channelData: Float32Array[];

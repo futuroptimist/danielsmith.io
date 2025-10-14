@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { createHudFocusAnnouncer } from '../accessibility/hudFocusAnnouncer';
+import { createHudFocusAnnouncer } from '../ui/accessibility/hudFocusAnnouncer';
 
 describe('createHudFocusAnnouncer', () => {
   afterEach(() => {

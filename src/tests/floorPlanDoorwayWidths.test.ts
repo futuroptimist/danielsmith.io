@@ -5,7 +5,7 @@ import {
   type FloorPlanDefinition,
   FLOOR_PLAN,
   UPPER_FLOOR_PLAN,
-} from '../floorPlan';
+} from '../assets/floorPlan';
 
 const createPlan = (doorWidth: number): FloorPlanDefinition => ({
   outline: [

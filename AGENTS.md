@@ -25,7 +25,7 @@ Welcome to `danielsmith.io`. Follow these guardrails when working inside this re
   - South = toward camera (`S` / `ArrowDown`).
   - West/East map to `A`/`D` respectively.
 - Movement vectors and avatar facing MUST be computed camera-relative.
-- For facing, use the helper in `src/movement/facing.ts`:
+- For facing, use the helper in `src/systems/movement/facing.ts`:
   - `getCameraRelativeMovementVector(...)` (already used in `main.ts`).
   - Convert that vector to yaw and apply any required model rotation via `rotateYaw`.
 - Avoid hard-coded axes assumptions tied to world/floor plan; always derive from camera.

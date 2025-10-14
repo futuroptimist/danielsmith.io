@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createManualModeToggle,
   type ManualModeToggleHandle,
-} from '../failover/manualModeToggle';
+} from '../systems/failover/manualModeToggle';
 
 describe('createManualModeToggle', () => {
   const createContainer = () => {
