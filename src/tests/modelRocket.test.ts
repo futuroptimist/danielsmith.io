@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createModelRocket } from '../structures/modelRocket';
+import { createModelRocket } from '../scene/structures/modelRocket';
 
 describe('createModelRocket', () => {
   it('builds a rocket group with expected child components', () => {

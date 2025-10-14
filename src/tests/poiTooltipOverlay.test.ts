@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { InteractionTimeline } from '../accessibility/interactionTimeline';
-import { PoiTooltipOverlay } from '../poi/tooltipOverlay';
-import type { PoiDefinition } from '../poi/types';
+import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
+import type { PoiDefinition } from '../scene/poi/types';
+import { InteractionTimeline } from '../ui/accessibility/interactionTimeline';
 
 class TimelineHarness {
   private currentTime = 0;

@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createAccessibilityPresetManager } from '../accessibility/presetManager';
 import type {
   BloomPassLike,
   GraphicsQualityLevel,
   GraphicsQualityManager,
   LedLightLike,
   LedMaterialLike,
-} from '../graphics/qualityManager';
+} from '../scene/graphics/qualityManager';
+import { createAccessibilityPresetManager } from '../ui/accessibility/presetManager';
 
 function createStubGraphicsQualityManager(
   applyBaseline: () => void

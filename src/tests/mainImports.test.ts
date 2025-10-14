@@ -10,7 +10,7 @@ describe('main module imports', () => {
     const mainPath = resolve(currentDir, '../main.ts');
     const source = readFileSync(mainPath, 'utf-8');
     expect(source).toMatch(
-      /import\s*\{[^}]*\bcomputeCameraRelativeYaw\b[^}]*\}\s*from '\.\/movement\/facing';/
+      /import\s*\{[^}]*\bcomputeCameraRelativeYaw\b[^}]*\}\s*from '\.\/systems\/movement\/facing';/
     );
   });
 });

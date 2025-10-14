@@ -1,5 +1,3 @@
-import './styles.css';
-
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -34,85 +32,6 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
-  createHudFocusAnnouncer,
-  type HudFocusAnnouncerHandle,
-} from './accessibility/hudFocusAnnouncer';
-import { InteractionTimeline } from './accessibility/interactionTimeline';
-import {
-  ACCESSIBILITY_PRESETS,
-  createAccessibilityPresetManager,
-  type AccessibilityPresetManager,
-} from './accessibility/presetManager';
-import {
-  AmbientAudioController,
-  type AmbientAudioBedDefinition,
-  type AmbientAudioSource,
-} from './audio/ambientAudio';
-import { AmbientCaptionBridge } from './audio/ambientCaptionBridge';
-import {
-  createFootstepAudioController,
-  type FootstepAudioControllerHandle,
-} from './audio/footstepController';
-import {
-  createCricketChorusBuffer,
-  createDistantHumBuffer,
-  createFootstepBuffer,
-  createLanternChimeBuffer,
-} from './audio/proceduralBuffers';
-import {
-  bindPoiInteractionAnimation,
-  createAvatarInteractionAnimator,
-  type AvatarInteractionAnimatorHandle,
-} from './avatar/interactionAnimator';
-import { createAvatarLocomotionAnimator } from './avatar/locomotionAnimator';
-import type { AvatarLocomotionAnimatorHandle } from './avatar/locomotionAnimator';
-import { createPortfolioMannequin } from './avatar/mannequin';
-import {
-  createAvatarVariantManager,
-  type AvatarVariantManager,
-} from './avatar/variantManager';
-import {
-  AVATAR_VARIANTS,
-  DEFAULT_AVATAR_VARIANT_ID,
-  type AvatarVariantId,
-} from './avatar/variants';
-import { collidesWithColliders, type RectCollider } from './collision';
-import {
-  createAccessibilityPresetControl,
-  type AccessibilityPresetControlHandle,
-} from './controls/accessibilityPresetControl';
-import {
-  createAudioHudControl,
-  type AudioHudControlHandle,
-} from './controls/audioHudControl';
-import {
-  createAvatarVariantControl,
-  type AvatarVariantControlHandle,
-} from './controls/avatarVariantControl';
-import {
-  createGraphicsQualityControl,
-  type GraphicsQualityControlHandle,
-} from './controls/graphicsQualityControl';
-import {
-  KeyBindings,
-  createKeyBindingAwareSource,
-  formatKeyLabel,
-  type KeyBindingAction,
-  type KeyBindingConfig,
-} from './controls/keyBindings';
-import { KeyboardControls } from './controls/KeyboardControls';
-import { VirtualJoystick } from './controls/VirtualJoystick';
-import {
-  createBackyardEnvironment,
-  type BackyardEnvironmentBuild,
-} from './environments/backyard';
-import { evaluateFailoverDecision, renderTextFallback } from './failover';
-import {
-  createManualModeToggle,
-  type ManualModeToggleHandle,
-} from './failover/manualModeToggle';
-import { createPerformanceFailoverHandler } from './failover/performanceFailover';
-import {
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
   UPPER_FLOOR_PLAN,
@@ -120,50 +39,153 @@ import {
   WALL_THICKNESS,
   type FloorPlanDefinition,
   type RoomCategory,
-} from './floorPlan';
+} from './assets/floorPlan';
 import {
   createWallSegmentInstances,
   getWallOutwardDirection,
-} from './floorPlan/wallSegments';
-import {
-  GRAPHICS_QUALITY_PRESETS,
-  createGraphicsQualityManager,
-  type GraphicsQualityManager,
-} from './graphics/qualityManager';
-import {
-  createAudioSubtitles,
-  type AudioSubtitlesHandle,
-} from './hud/audioSubtitles';
-import { applyControlOverlayStrings } from './hud/controlOverlay';
-import { createHelpModal } from './hud/helpModal';
-import {
-  createHudLayoutManager,
-  type HudLayoutManagerHandle,
-} from './hud/layoutManager';
-import {
-  createMovementLegend,
-  type MovementLegendHandle,
-} from './hud/movementLegend';
+} from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
   getControlOverlayStrings,
   getHelpModalStrings,
   getSiteStrings,
   resolveLocale,
-} from './i18n';
+} from './assets/i18n';
+import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
-  createImmersiveModeUrl,
-  shouldDisablePerformanceFailover,
-} from './immersiveUrl';
+  bindPoiInteractionAnimation,
+  createAvatarInteractionAnimator,
+  type AvatarInteractionAnimatorHandle,
+} from './scene/avatar/interactionAnimator';
+import { createAvatarLocomotionAnimator } from './scene/avatar/locomotionAnimator';
+import type { AvatarLocomotionAnimatorHandle } from './scene/avatar/locomotionAnimator';
+import { createPortfolioMannequin } from './scene/avatar/mannequin';
+import {
+  createAvatarVariantManager,
+  type AvatarVariantManager,
+} from './scene/avatar/variantManager';
+import {
+  AVATAR_VARIANTS,
+  DEFAULT_AVATAR_VARIANT_ID,
+  type AvatarVariantId,
+} from './scene/avatar/variants';
+import {
+  createBackyardEnvironment,
+  type BackyardEnvironmentBuild,
+} from './scene/environments/backyard';
+import {
+  GRAPHICS_QUALITY_PRESETS,
+  createGraphicsQualityManager,
+  type GraphicsQualityManager,
+} from './scene/graphics/qualityManager';
 import {
   applyLightmapUv2,
   createInteriorLightmapTextures,
-} from './lighting/bakedLightmaps';
+} from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
   type LightingMode,
-} from './lighting/debugControls';
-import { getCameraRelativeMovementVector } from './movement/cameraRelativeMovement';
+} from './scene/lighting/debugControls';
+import { createWindowPoiAnalytics } from './scene/poi/analytics';
+import { PoiInteractionManager } from './scene/poi/interactionManager';
+import {
+  createPoiInstances,
+  type PoiInstance,
+  type PoiInstanceOverrides,
+} from './scene/poi/markers';
+import { getPoiDefinitions } from './scene/poi/registry';
+import { injectPoiStructuredData } from './scene/poi/structuredData';
+import { PoiTooltipOverlay } from './scene/poi/tooltipOverlay';
+import { PoiTourGuide } from './scene/poi/tourGuide';
+import type { PoiDefinition } from './scene/poi/types';
+import { updateVisitedBadge } from './scene/poi/visitedBadge';
+import { PoiVisitedState } from './scene/poi/visitedState';
+import {
+  PoiWorldTooltip,
+  type PoiWorldTooltipTarget,
+} from './scene/poi/worldTooltip';
+import { createRoomCeilingPanels } from './scene/structures/ceilingPanels';
+import {
+  createFlywheelShowpiece,
+  type FlywheelShowpieceBuild,
+} from './scene/structures/flywheel';
+import {
+  createGabrielSentry,
+  type GabrielSentryBuild,
+} from './scene/structures/gabrielSentry';
+import {
+  createGitshelvesInstallation,
+  type GitshelvesInstallationBuild,
+} from './scene/structures/gitshelves';
+import {
+  createJobbotTerminal,
+  type JobbotTerminalBuild,
+} from './scene/structures/jobbotTerminal';
+import { createLivingRoomMediaWall } from './scene/structures/mediaWall';
+import {
+  createPrReaperConsole,
+  type PrReaperConsoleBuild,
+} from './scene/structures/prReaperConsole';
+import {
+  createStaircase,
+  type StaircaseConfig,
+} from './scene/structures/staircase';
+import {
+  createTokenPlaceRack,
+  type TokenPlaceRackBuild,
+} from './scene/structures/tokenPlaceRack';
+import {
+  AmbientAudioController,
+  type AmbientAudioBedDefinition,
+  type AmbientAudioSource,
+} from './systems/audio/ambientAudio';
+import { AmbientCaptionBridge } from './systems/audio/ambientCaptionBridge';
+import {
+  createFootstepAudioController,
+  type FootstepAudioControllerHandle,
+} from './systems/audio/footstepController';
+import {
+  createCricketChorusBuffer,
+  createDistantHumBuffer,
+  createFootstepBuffer,
+  createLanternChimeBuffer,
+} from './systems/audio/proceduralBuffers';
+import { collidesWithColliders, type RectCollider } from './systems/collision';
+import {
+  createAccessibilityPresetControl,
+  type AccessibilityPresetControlHandle,
+} from './systems/controls/accessibilityPresetControl';
+import {
+  createAudioHudControl,
+  type AudioHudControlHandle,
+} from './systems/controls/audioHudControl';
+import {
+  createAvatarVariantControl,
+  type AvatarVariantControlHandle,
+} from './systems/controls/avatarVariantControl';
+import {
+  createGraphicsQualityControl,
+  type GraphicsQualityControlHandle,
+} from './systems/controls/graphicsQualityControl';
+import {
+  KeyBindings,
+  createKeyBindingAwareSource,
+  formatKeyLabel,
+  type KeyBindingAction,
+  type KeyBindingConfig,
+} from './systems/controls/keyBindings';
+import { KeyboardControls } from './systems/controls/KeyboardControls';
+import { VirtualJoystick } from './systems/controls/VirtualJoystick';
+import {
+  evaluateFailoverDecision,
+  renderTextFallback,
+} from './systems/failover';
+import {
+  createManualModeToggle,
+  type ManualModeToggleHandle,
+} from './systems/failover/manualModeToggle';
+import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
+import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
   computeModelYawFromVector,
@@ -171,60 +193,43 @@ import {
   dampYawTowards,
   getCameraRelativeDirection,
   normalizeRadians,
-} from './movement/facing';
+} from './systems/movement/facing';
 import {
   computeRampHeight as computeStairRampHeight,
   predictStairFloorId,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
-} from './movement/stairs';
-import { createWindowPoiAnalytics } from './poi/analytics';
-import { PoiInteractionManager } from './poi/interactionManager';
+} from './systems/movement/stairs';
 import {
-  createPoiInstances,
-  type PoiInstance,
-  type PoiInstanceOverrides,
-} from './poi/markers';
-import { getPoiDefinitions } from './poi/registry';
-import { injectPoiStructuredData } from './poi/structuredData';
-import { PoiTooltipOverlay } from './poi/tooltipOverlay';
-import { PoiTourGuide } from './poi/tourGuide';
-import type { PoiDefinition } from './poi/types';
-import { updateVisitedBadge } from './poi/visitedBadge';
-import { PoiVisitedState } from './poi/visitedState';
+  createHudFocusAnnouncer,
+  type HudFocusAnnouncerHandle,
+} from './ui/accessibility/hudFocusAnnouncer';
+import { InteractionTimeline } from './ui/accessibility/interactionTimeline';
 import {
-  PoiWorldTooltip,
-  type PoiWorldTooltipTarget,
-} from './poi/worldTooltip';
-import { createRoomCeilingPanels } from './structures/ceilingPanels';
+  ACCESSIBILITY_PRESETS,
+  createAccessibilityPresetManager,
+  type AccessibilityPresetManager,
+} from './ui/accessibility/presetManager';
 import {
-  createFlywheelShowpiece,
-  type FlywheelShowpieceBuild,
-} from './structures/flywheel';
+  createAudioSubtitles,
+  type AudioSubtitlesHandle,
+} from './ui/hud/audioSubtitles';
+import { applyControlOverlayStrings } from './ui/hud/controlOverlay';
+import { createHelpModal } from './ui/hud/helpModal';
 import {
-  createGabrielSentry,
-  type GabrielSentryBuild,
-} from './structures/gabrielSentry';
+  createHudLayoutManager,
+  type HudLayoutManagerHandle,
+} from './ui/hud/layoutManager';
 import {
-  createGitshelvesInstallation,
-  type GitshelvesInstallationBuild,
-} from './structures/gitshelves';
+  createMovementLegend,
+  type MovementLegendHandle,
+} from './ui/hud/movementLegend';
 import {
-  createJobbotTerminal,
-  type JobbotTerminalBuild,
-} from './structures/jobbotTerminal';
-import { createLivingRoomMediaWall } from './structures/mediaWall';
-import {
-  createPrReaperConsole,
-  type PrReaperConsoleBuild,
-} from './structures/prReaperConsole';
-import { createStaircase, type StaircaseConfig } from './structures/staircase';
-import {
-  createTokenPlaceRack,
-  type TokenPlaceRackBuild,
-} from './structures/tokenPlaceRack';
-import { createImmersiveGradientTexture } from './theme/immersiveGradient';
+  createImmersiveModeUrl,
+  shouldDisablePerformanceFailover,
+} from './ui/immersiveUrl';
+import './ui/styles.css';
 
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;

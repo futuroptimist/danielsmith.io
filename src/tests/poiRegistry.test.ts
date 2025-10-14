@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../floorPlan';
-import { getPoiDefinitions, isPoiInsideRoom } from '../poi/registry';
+import { FLOOR_PLAN } from '../assets/floorPlan';
+import { getPoiDefinitions, isPoiInsideRoom } from '../scene/poi/registry';
 
 describe('POI registry', () => {
   const pois = getPoiDefinitions();

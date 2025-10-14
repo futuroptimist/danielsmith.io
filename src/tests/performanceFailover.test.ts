@@ -4,8 +4,8 @@ import {
   createPerformanceFailoverHandler,
   type ImmersiveRendererHandle,
   type PerformanceFailoverTriggerContext,
-} from '../failover/performanceFailover';
-import { createImmersiveModeUrl } from '../immersiveUrl';
+} from '../systems/failover/performanceFailover';
+import { createImmersiveModeUrl } from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',

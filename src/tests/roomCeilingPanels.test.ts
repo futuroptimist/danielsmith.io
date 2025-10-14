@@ -1,8 +1,8 @@
 import { BoxGeometry, Color, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import type { RoomDefinition } from '../floorPlan';
-import { createRoomCeilingPanels } from '../structures/ceilingPanels';
+import type { RoomDefinition } from '../assets/floorPlan';
+import { createRoomCeilingPanels } from '../scene/structures/ceilingPanels';
 
 const createRoom = (
   overrides: Partial<RoomDefinition> = {}

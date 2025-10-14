@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createMovementLegend } from '../hud/movementLegend';
+import { createMovementLegend } from '../ui/hud/movementLegend';
 
 function createOverlayContainer(): HTMLElement {
   const wrapper = document.createElement('div');

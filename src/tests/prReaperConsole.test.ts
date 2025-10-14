@@ -1,7 +1,7 @@
 import { Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createPrReaperConsole } from '../structures/prReaperConsole';
+import { createPrReaperConsole } from '../scene/structures/prReaperConsole';
 
 describe('createPrReaperConsole', () => {
   it('builds the console with expected structure and colliders respecting rotation', () => {

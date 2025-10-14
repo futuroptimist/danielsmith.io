@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN_SCALE } from '../../floorPlan';
+import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
   predictStairFloorId,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
-} from '../../movement/stairs';
+} from '../../systems/movement/stairs';
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 

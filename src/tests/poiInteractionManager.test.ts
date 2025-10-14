@@ -13,9 +13,9 @@ import {
 } from 'three';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
-import { PoiInteractionManager } from '../poi/interactionManager';
-import type { PoiInstance } from '../poi/markers';
-import type { PoiAnalytics, PoiDefinition } from '../poi/types';
+import { PoiInteractionManager } from '../scene/poi/interactionManager';
+import type { PoiInstance } from '../scene/poi/markers';
+import type { PoiAnalytics, PoiDefinition } from '../scene/poi/types';
 
 function createMockPoi(definition: PoiDefinition): PoiInstance {
   const group = new Group();

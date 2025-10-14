@@ -8,7 +8,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { PoiVisitedState } from '../poi/visitedState';
+import { PoiVisitedState } from '../scene/poi/visitedState';
 
 describe('PoiVisitedState', () => {
   const storageKey = 'test::visited';

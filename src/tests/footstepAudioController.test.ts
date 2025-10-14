@@ -4,7 +4,7 @@ import {
   createFootstepAudioController,
   type FootstepAudioControllerHandle,
   type FootstepPlaybackOptions,
-} from '../audio/footstepController';
+} from '../systems/audio/footstepController';
 
 class StubFootstepPlayer {
   public readonly calls: FootstepPlaybackOptions[] = [];

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
-import { createAudioSubtitles } from '../hud/audioSubtitles';
+import { createAudioSubtitles } from '../ui/hud/audioSubtitles';
 
 describe('audio subtitles overlay', () => {
   beforeEach(() => {

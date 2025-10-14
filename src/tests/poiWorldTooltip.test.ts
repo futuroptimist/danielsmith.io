@@ -1,11 +1,11 @@
 import { OrthographicCamera, Scene, Vector3 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import type { PoiDefinition } from '../poi/types';
+import type { PoiDefinition } from '../scene/poi/types';
 import {
   PoiWorldTooltip,
   type PoiWorldTooltipTarget,
-} from '../poi/worldTooltip';
+} from '../scene/poi/worldTooltip';
 
 let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
 

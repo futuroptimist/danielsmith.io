@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { renderTextFallback } from '../systems/failover';
 import {
   __resetModeAnnouncementForTests,
   createModeAnnouncer,
   getModeAnnouncer,
   initializeModeAnnouncementObserver,
-} from '../accessibility/modeAnnouncer';
-import { renderTextFallback } from '../failover';
+} from '../ui/accessibility/modeAnnouncer';
 
 const flushObserver = async () => {
   await new Promise((resolve) => {

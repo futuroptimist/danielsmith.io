@@ -9,8 +9,8 @@ import {
   bindPoiInteractionAnimation,
   createAvatarInteractionAnimator,
   type AvatarInteractionAnimatorHandle,
-} from '../avatar/interactionAnimator';
-import type { PoiDefinition } from '../poi/types';
+} from '../scene/avatar/interactionAnimator';
+import type { PoiDefinition } from '../scene/poi/types';
 
 function createRig() {
   const root = new Object3D();

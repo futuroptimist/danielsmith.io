@@ -10,7 +10,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { createJobbotTerminal } from '../structures/jobbotTerminal';
+import { createJobbotTerminal } from '../scene/structures/jobbotTerminal';
 
 function createMockContext(): CanvasRenderingContext2D {
   const gradient = { addColorStop: vi.fn() };

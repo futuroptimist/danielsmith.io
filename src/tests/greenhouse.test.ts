@@ -9,7 +9,7 @@ import {
 } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createGreenhouse } from '../structures/greenhouse';
+import { createGreenhouse } from '../scene/structures/greenhouse';
 
 describe('createGreenhouse', () => {
   it('builds greenhouse exhibit with animated solar panels and grow lights', () => {

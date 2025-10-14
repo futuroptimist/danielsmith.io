@@ -5,7 +5,7 @@ import {
   hasImmersiveOverride,
   hasPerformanceFailoverBypass,
   shouldDisablePerformanceFailover,
-} from '../immersiveUrl';
+} from '../ui/immersiveUrl';
 
 const baseLocation = {
   pathname: '/',

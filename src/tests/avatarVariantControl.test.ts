@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AvatarVariantId } from '../avatar/variants';
-import { createAvatarVariantControl } from '../controls/avatarVariantControl';
+import type { AvatarVariantId } from '../scene/avatar/variants';
+import { createAvatarVariantControl } from '../systems/controls/avatarVariantControl';
 
 const OPTIONS = [
   {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AccessibilityPresetId } from '../accessibility/presetManager';
-import { createAccessibilityPresetControl } from '../controls/accessibilityPresetControl';
+import { createAccessibilityPresetControl } from '../systems/controls/accessibilityPresetControl';
+import type { AccessibilityPresetId } from '../ui/accessibility/presetManager';
 
 const OPTIONS = [
   {

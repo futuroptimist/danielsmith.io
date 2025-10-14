@@ -9,7 +9,7 @@ import {
   IMMERSIVE_GRADIENT_SOLID_FALLBACK,
   IMMERSIVE_GRADIENT_STOPS,
   createImmersiveGradientTexture,
-} from '../theme/immersiveGradient';
+} from '../assets/theme/immersiveGradient';
 
 type DeviceScenario = {
   label: string;

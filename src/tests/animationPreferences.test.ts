@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getFlickerScale,
   getPulseScale,
-} from '../accessibility/animationPreferences';
+} from '../ui/accessibility/animationPreferences';
 
 describe('animation accessibility preferences', () => {
   const restore = () => {

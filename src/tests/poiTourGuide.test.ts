@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { PoiTourGuide } from '../poi/tourGuide';
-import type { PoiDefinition } from '../poi/types';
-import { PoiVisitedState } from '../poi/visitedState';
+import { PoiTourGuide } from '../scene/poi/tourGuide';
+import type { PoiDefinition } from '../scene/poi/types';
+import { PoiVisitedState } from '../scene/poi/visitedState';
 
 const DEFINITIONS: PoiDefinition[] = [
   {

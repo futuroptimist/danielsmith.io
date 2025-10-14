@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 
-import { createWindowPoiAnalytics } from '../poi/analytics';
-import type { PoiDefinition } from '../poi/types';
+import { createWindowPoiAnalytics } from '../scene/poi/analytics';
+import type { PoiDefinition } from '../scene/poi/types';
 
 describe('createWindowPoiAnalytics', () => {
   let poi: PoiDefinition;

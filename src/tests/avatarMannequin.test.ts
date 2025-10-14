@@ -1,7 +1,7 @@
 import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createPortfolioMannequin } from '../avatar/mannequin';
+import { createPortfolioMannequin } from '../scene/avatar/mannequin';
 
 describe('createPortfolioMannequin', () => {
   it('creates a mannequin with a hidden collision proxy aligned to the controller radius', () => {

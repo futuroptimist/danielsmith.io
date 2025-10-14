@@ -25,7 +25,7 @@ defined from the camera’s view:
 - `D`/`ArrowRight`: east (right from camera)
 
 Avatar facing is computed from the camera-relative movement vector; see
-`src/movement/facing.ts` for helpers and `src/main.ts` for integration.
+`src/systems/movement/facing.ts` for helpers and `src/main.ts` for integration.
 
 ## Launch state
 
@@ -48,6 +48,16 @@ Avatar facing is computed from the camera-relative movement vector; see
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
   `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
+
+## Map of the repo
+
+- **Scene data** – [`src/assets/`](src/assets/) collects floor plans, localisation, performance budgets, and theming tokens.
+- **Simulation systems** – [`src/systems/`](src/systems/) powers input controls, audio, collision, and failover heuristics.
+- **Three.js composition** – [`src/scene/`](src/scene/) assembles avatar rigs, lighting, structures, and POI orchestration.
+- **HUD & overlays** – [`src/ui/`](src/ui/) renders accessibility surfaces, HUD widgets, and the immersive URL helpers.
+- **Tests** – [`src/tests/`](src/tests/) (Vitest) and [`playwright/`](playwright/) capture unit and end-to-end coverage, including the keyboard traversal macro.
+- **Docs & planning** – [`docs/roadmap.md`](docs/roadmap.md), [`docs/backlog.md`](docs/backlog.md), and the prompt library in [`docs/prompts/`](docs/prompts/) track longer-term intent.
+- **Architecture notes** – See [`docs/architecture/scene-stack.md`](docs/architecture/scene-stack.md) for a visual of the new data → systems → scene → UI flow.
 
 ## Getting started
 
@@ -99,6 +109,31 @@ Pre-commit mirrors these commands alongside formatting hooks. Compared to the fu
 Flywheel stack, we skip the Python-heavy aggregate hook to keep this web-focused repo
 lightweight.
 
+## Testing & automation
+
+- **Unit suites** – [`src/tests/`](src/tests/) run via `npm run test:ci`. Set `CI=1` in CI or when reproducing pipeline behaviour locally; Vitest uses this flag to disable watch mode.
+- **End-to-end** – [`playwright/`](playwright/) specs run with `npm run test:e2e` or the alias `npm run screenshot` for capture workflows. The config locks to a single worker when `CI=1` so the WebGL boot sequence stays deterministic.
+- **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) exercises POI cycling, HUD focus, and modal toggles using keyboard-only input.
+- **Docs validation** – `npm run docs:check` ensures playbooks, prompts, and architecture notes stay in sync.
+
+## Auto-generated assets
+
+| Script                      | Output                        | Trigger                                                                                           |
+| --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run when room geometry or labels change; CI refreshes after merges.                               |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Refresh after lighting, HUD, or camera framing updates. Captured automatically by CI once merged. |
+
+## Performance guardrails
+
+- Budgets and the baseline snapshot live in [`src/assets/performance.ts`](src/assets/performance.ts); see [`docs/architecture/performance-budgets.md`](docs/architecture/performance-budgets.md) for measurement notes and lazy-loading plans.
+- [`src/tests/performanceBudget.test.ts`](src/tests/performanceBudget.test.ts) enforces headroom.
+- Playwright screenshot expectations inherit the diff budget via [`playwright.config.ts`](playwright.config.ts), keeping `toHaveScreenshot` tolerant to minor bloom noise while failing significant shifts.
+
+## Accessibility overlays
+
+- Follow the checklist in [`docs/guides/accessibility-overlays.md`](docs/guides/accessibility-overlays.md) to keep ARIA labels, focus order, and text alternatives aligned with in-world metadata.
+- The POI tooltip overlay mirrors registry copy; run the keyboard macro above to confirm parity before shipping new exhibits.
+
 ## Architecture notes
 
 - **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
@@ -118,7 +153,7 @@ lightweight.
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
   terminal that pulses in sync with the new automation POI. The living room's gitshelves array now
   extrudes nightly commit streaks into illuminated shelving mosaics with sync signage overhead.
-- **Localization** – UI chrome and POI copy are centralized in `src/i18n/index.ts`, letting future
+- **Localization** – UI chrome and POI copy are centralized in `src/assets/i18n/index.ts`, letting future
   locales load structured strings while keeping Vitest coverage in
   `src/tests/i18n.test.ts` to guard against regressions. HUD overlays and the
   text fallback now tag their containers with locale direction metadata so RTL

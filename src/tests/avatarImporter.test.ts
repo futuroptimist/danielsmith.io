@@ -11,7 +11,7 @@ import {
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it, vi } from 'vitest';
 
-import { createAvatarImporter } from '../avatar/importer';
+import { createAvatarImporter } from '../scene/avatar/importer';
 
 type LoaderStub = {
   loadAsync: ReturnType<typeof vi.fn>;

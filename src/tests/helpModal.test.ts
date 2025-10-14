@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 
-import { createHelpModal } from '../hud/helpModal';
-import { getHelpModalStrings } from '../i18n';
+import { getHelpModalStrings } from '../assets/i18n';
+import { createHelpModal } from '../ui/hud/helpModal';
 
 function cloneContent() {
   const content = getHelpModalStrings();
