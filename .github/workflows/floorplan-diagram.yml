@@ -32,5 +32,5 @@ jobs:
       - name: Commit updated diagram
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'ci: update floor plan diagram'
+          commit_message: '🤖 : – Update floor plan diagram'
           file_pattern: docs/assets/floorplan.svg README.md
