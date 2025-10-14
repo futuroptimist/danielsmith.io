@@ -1,4 +1,4 @@
-import type { FallbackReason } from '../failover';
+import type { FallbackReason } from '../../systems/failover';
 
 export interface ModeAnnouncer {
   readonly element: HTMLElement;
