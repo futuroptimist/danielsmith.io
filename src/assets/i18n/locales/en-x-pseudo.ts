@@ -36,6 +36,17 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         gamepad: wrap('A'),
       },
     },
+    narrativeLog: {
+      heading: wrap('Creator story log'),
+      empty: wrap(
+        'Visit exhibits to unlock narrative entries chronicling the creator showcase.'
+      ),
+      defaultVisitedLabel: wrap('Visited'),
+      visitedLabelTemplate: wrap('Visited at {time}'),
+      liveAnnouncementTemplate: wrap(
+        '{title} added to the creator story log.'
+      ),
+    },
     helpModal: {
       heading: wrap('Settings & Help'),
       closeLabel: wrap('Close'),

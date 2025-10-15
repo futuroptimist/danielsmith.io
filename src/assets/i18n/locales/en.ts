@@ -63,12 +63,20 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         gamepad: 'A',
       },
     },
+    narrativeLog: {
+      heading: 'Creator story log',
+      empty:
+        'Visit exhibits to unlock narrative entries chronicling the creator showcase.',
+      defaultVisitedLabel: 'Visited',
+      visitedLabelTemplate: 'Visited at {time}',
+      liveAnnouncementTemplate: '{title} added to the creator story log.',
+    },
     helpModal: {
       heading: 'Settings & Help',
       description: [
         'Adjust accessibility presets, graphics quality, audio, and review shortcuts.',
         'Use the help shortcut (default H or ?) to toggle this panel.',
-      ].join(' '),
+        ].join(' '),
       closeLabel: 'Close',
       closeAriaLabel: 'Close help',
       settings: {

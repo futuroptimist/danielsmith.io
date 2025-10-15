@@ -6,6 +6,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getPoiNarrativeLogStrings,
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
@@ -52,6 +53,21 @@ describe('i18n utilities', () => {
     );
     const helpModal = getHelpModalStrings('en-x-pseudo');
     expect(helpModal.closeLabel).toBe('⟦Close⟧');
+  });
+
+  it('exposes narrative log strings with localized announcements', () => {
+    const english = getPoiNarrativeLogStrings('en');
+    expect(english.heading).toBe('Creator story log');
+    expect(
+      formatMessage(english.visitedLabelTemplate, { time: '3:30 PM' })
+    ).toBe('Visited at 3:30 PM');
+
+    const pseudo = getPoiNarrativeLogStrings('en-x-pseudo');
+    expect(pseudo.heading).toBe('⟦Creator story log⟧');
+    expect(pseudo.defaultVisitedLabel).toBe('⟦Visited⟧');
+    expect(
+      formatMessage(pseudo.liveAnnouncementTemplate, { title: 'Story' })
+    ).toBe('⟦Story added to the creator story log.⟧');
   });
 
   it('provides localized copy for POIs with English fallback', () => {
