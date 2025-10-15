@@ -58,6 +58,8 @@ Avatar facing is computed from the camera-relative movement vector; see
 - **Tests** – [`src/tests/`](src/tests/) (Vitest) and [`playwright/`](playwright/) capture unit and end-to-end coverage, including the keyboard traversal macro.
 - **Docs & planning** – [`docs/roadmap.md`](docs/roadmap.md), [`docs/backlog.md`](docs/backlog.md), and the prompt library in [`docs/prompts/`](docs/prompts/) track longer-term intent.
 - **Architecture notes** – See [`docs/architecture/scene-stack.md`](docs/architecture/scene-stack.md) for a visual of the new data → systems → scene → UI flow.
+- **Testing & assets** – [`docs/architecture/testing-assets.md`](docs/architecture/testing-assets.md)
+  details Vitest/Playwright commands, CI flags, and auto-generated capture workflows.
 
 ## Getting started
 
