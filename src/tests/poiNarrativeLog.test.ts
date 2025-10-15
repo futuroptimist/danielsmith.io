@@ -63,7 +63,9 @@ describe('createPoiNarrativeLog', () => {
     const visited = entry?.querySelector('.poi-narrative-log__entry-visited');
     const empty = document.querySelector('.poi-narrative-log__empty');
     const list = document.querySelector('.poi-narrative-log__list');
-    const liveRegion = document.querySelector('.poi-narrative-log__live-region');
+    const liveRegion = document.querySelector(
+      '.poi-narrative-log__live-region'
+    );
 
     expect(entry).toBeInstanceOf(HTMLElement);
     expect(title?.textContent).toBe(poi.title);
@@ -76,7 +78,9 @@ describe('createPoiNarrativeLog', () => {
 
   it('supports silent entries and summary fallbacks when narration is missing', () => {
     const log = setup();
-    const liveRegion = document.querySelector('.poi-narrative-log__live-region');
+    const liveRegion = document.querySelector(
+      '.poi-narrative-log__live-region'
+    );
 
     const narrated = createPoi({
       id: 'flywheel-studio-flywheel',
@@ -106,8 +110,12 @@ describe('createPoiNarrativeLog', () => {
     const silentEntry = document.querySelector(
       '.poi-narrative-log__entry[data-poi-id="jobbot-studio-terminal"]'
     );
-    const caption = silentEntry?.querySelector('.poi-narrative-log__entry-caption');
-    const visited = silentEntry?.querySelector('.poi-narrative-log__entry-visited');
+    const caption = silentEntry?.querySelector(
+      '.poi-narrative-log__entry-caption'
+    );
+    const visited = silentEntry?.querySelector(
+      '.poi-narrative-log__entry-visited'
+    );
 
     expect(caption?.textContent).toBe('Jobbot summary fallback');
     expect(visited?.textContent).toBe('Pinned from history');
@@ -120,7 +128,9 @@ describe('createPoiNarrativeLog', () => {
 
   it('synchronizes visited entries and removes stale items', () => {
     const log = setup();
-    const liveRegion = document.querySelector('.poi-narrative-log__live-region');
+    const liveRegion = document.querySelector(
+      '.poi-narrative-log__live-region'
+    );
 
     const first = createPoi({
       id: 'gitshelves-living-room-installation',
@@ -142,8 +152,7 @@ describe('createPoiNarrativeLog', () => {
     expect(entriesAfterSync).toHaveLength(1);
     expect(entriesAfterSync[0]?.getAttribute('data-poi-id')).toBe(first.id);
     expect(
-      entriesAfterSync[0]
-        ?.querySelector('.poi-narrative-log__entry-visited')
+      entriesAfterSync[0]?.querySelector('.poi-narrative-log__entry-visited')
         ?.textContent
     ).toBe('Persisted');
 

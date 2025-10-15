@@ -19,10 +19,7 @@ export interface PoiNarrativeLogSyncOptions {
 
 export interface PoiNarrativeLogHandle {
   readonly element: HTMLElement;
-  recordVisit(
-    poi: PoiDefinition,
-    options?: PoiNarrativeLogRecordOptions
-  ): void;
+  recordVisit(poi: PoiDefinition, options?: PoiNarrativeLogRecordOptions): void;
   syncVisited(
     pois: Iterable<PoiDefinition>,
     options?: PoiNarrativeLogSyncOptions
@@ -54,7 +51,8 @@ export function createPoiNarrativeLog(
   options: PoiNarrativeLogOptions
 ): PoiNarrativeLogHandle {
   const { container, strings } = options;
-  const documentTarget = options.documentTarget ?? container.ownerDocument ?? document;
+  const documentTarget =
+    options.documentTarget ?? container.ownerDocument ?? document;
 
   const section = documentTarget.createElement('section');
   section.className = 'help-modal__section poi-narrative-log';
@@ -134,8 +132,7 @@ export function createPoiNarrativeLog(
     poi: PoiDefinition,
     options?: PoiNarrativeLogRecordOptions
   ) => {
-    const visitedLabel =
-      options?.visitedLabel ?? strings.defaultVisitedLabel;
+    const visitedLabel = options?.visitedLabel ?? strings.defaultVisitedLabel;
     const announce = options?.announce ?? true;
     const existing = entries.get(poi.id);
 
@@ -176,8 +173,7 @@ export function createPoiNarrativeLog(
     pois: Iterable<PoiDefinition>,
     options?: PoiNarrativeLogSyncOptions
   ) => {
-    const visitedLabel =
-      options?.visitedLabel ?? strings.defaultVisitedLabel;
+    const visitedLabel = options?.visitedLabel ?? strings.defaultVisitedLabel;
     const activeIds = new Set<string>();
     for (const poi of pois) {
       activeIds.add(poi.id);

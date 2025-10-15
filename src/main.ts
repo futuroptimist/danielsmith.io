@@ -1121,7 +1121,9 @@ function initializeImmersiveScene(
     if (poiNarrativeLog) {
       const visitedDefinitions = Array.from(visited)
         .map((id) => poiDefinitionsById.get(id))
-        .filter((definition): definition is PoiDefinition => Boolean(definition));
+        .filter((definition): definition is PoiDefinition =>
+          Boolean(definition)
+        );
 
       poiNarrativeLog.syncVisited(visitedDefinitions, {
         visitedLabel: narrativeLogStrings.defaultVisitedLabel,

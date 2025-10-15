@@ -43,9 +43,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       ),
       defaultVisitedLabel: wrap('Visited'),
       visitedLabelTemplate: wrap('Visited at {time}'),
-      liveAnnouncementTemplate: wrap(
-        '{title} added to the creator story log.'
-      ),
+      liveAnnouncementTemplate: wrap('{title} added to the creator story log.'),
     },
     helpModal: {
       heading: wrap('Settings & Help'),

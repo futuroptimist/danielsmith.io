@@ -76,7 +76,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       description: [
         'Adjust accessibility presets, graphics quality, audio, and review shortcuts.',
         'Use the help shortcut (default H or ?) to toggle this panel.',
-        ].join(' '),
+      ].join(' '),
       closeLabel: 'Close',
       closeAriaLabel: 'Close help',
       settings: {
