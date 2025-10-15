@@ -71,6 +71,7 @@ Focus: expand the environment while keeping navigation smooth.
      - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.
      - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
+   - ✅ Staircase prefab now supports both +Z and −Z runs, auto-sizing guards and stairwell cutouts.
 3. **Outdoor Transition**
    - ✅ Sculpted backyard terrain plane and layered perimeter fence framing the dusk skybox.
    - ✅ Lighting probes and dusk reflections now wash the backyard with dusk-tinted bounce

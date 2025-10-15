@@ -8,7 +8,9 @@ export interface StairGeometry {
   bottomZ: number;
   topZ: number;
   landingMinZ: number;
+  landingMaxZ: number;
   totalRise: number;
+  direction: 1 | -1;
 }
 
 export interface StairBehavior {
@@ -32,8 +34,8 @@ export const isWithinLanding = (
   margin = 0
 ): boolean =>
   Math.abs(x - geometry.centerX) <= geometry.halfWidth + margin &&
-  z >= geometry.landingMinZ - margin &&
-  z <= geometry.topZ + margin;
+  z >= Math.min(geometry.landingMinZ, geometry.landingMaxZ) - margin &&
+  z <= Math.max(geometry.landingMinZ, geometry.landingMaxZ) + margin;
 
 export const computeRampHeight = (
   geometry: StairGeometry,
@@ -69,6 +71,7 @@ export const predictStairFloorId = (
     x,
     behavior.transitionMargin
   );
+  const direction = geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
 
   if (current === 'upper') {
     if (!withinStairs) {
@@ -79,6 +82,7 @@ export const predictStairFloorId = (
       geometry.halfWidth - behavior.transitionMargin * 0.5,
       geometry.halfWidth * 0.5
     );
+    const withinBaseExit = Math.abs(x - geometry.centerX) <= baseExitHalfWidth;
 
     const withinLanding = isWithinLanding(
       geometry,
@@ -92,23 +96,36 @@ export const predictStairFloorId = (
 
     const hasLeftLanding =
       rampHeight < geometry.totalRise - behavior.stepRise * 0.1;
-    const nearBottomBuffer = geometry.bottomZ - behavior.transitionMargin * 0.5;
+    const bottomThreshold =
+      direction === -1
+        ? geometry.bottomZ - behavior.transitionMargin * 0.5
+        : geometry.bottomZ + behavior.transitionMargin * 0.5;
 
-    if (hasLeftLanding && z <= nearBottomBuffer) {
-      return 'ground';
+    if (hasLeftLanding) {
+      const reachedLowerRegion =
+        direction === -1 ? z <= bottomThreshold : z >= bottomThreshold;
+      if (reachedLowerRegion) {
+        return 'ground';
+      }
     }
 
-    const withinBaseExit = Math.abs(x - geometry.centerX) <= baseExitHalfWidth;
-    if (withinBaseExit && z >= geometry.bottomZ) {
+    const crossedBaseExit =
+      direction === -1 ? z >= geometry.bottomZ : z <= geometry.bottomZ;
+    if (withinBaseExit && crossedBaseExit) {
       return 'ground';
     }
 
     return 'upper';
   }
 
+  const nearTop =
+    direction === -1
+      ? z <= geometry.topZ + behavior.transitionMargin
+      : z >= geometry.topZ - behavior.transitionMargin;
+
   const nearLanding =
     withinStairs &&
-    (z <= geometry.topZ + behavior.transitionMargin ||
+    (nearTop ||
       rampHeight >= geometry.totalRise - behavior.stepRise * 0.25 ||
       isWithinLanding(geometry, x, z, behavior.landingTriggerMargin));
   if (nearLanding) {

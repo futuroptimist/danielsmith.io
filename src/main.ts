@@ -194,6 +194,7 @@ import {
   getCameraRelativeDirection,
   normalizeRadians,
 } from './systems/movement/facing';
+import { computeStairLayout } from './systems/movement/stairLayout';
 import {
   computeRampHeight as computeStairRampHeight,
   predictStairFloorId,
@@ -267,7 +268,9 @@ declare global {
           stairBottomZ: number;
           stairTopZ: number;
           stairLandingMinZ: number;
+          stairLandingMaxZ: number;
           stairLandingDepth: number;
+          stairDirection: 1 | -1;
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
@@ -760,20 +763,34 @@ function initializeImmersiveScene(
   const stairHalfWidth = STAIRCASE_CONFIG.step.width / 2;
   const stairRun = STAIRCASE_CONFIG.step.run;
   const stairBottomZ = STAIRCASE_CONFIG.basePosition.z;
-  const stairTopZ = stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
   const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
-  const stairLandingMinZ = stairTopZ - stairLandingDepth;
-  const upperFloorElevation =
-    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairTransitionMargin = toWorldUnits(0.6);
   const stairLandingTriggerMargin = toWorldUnits(0.2);
+  const stairwellMarginX = toWorldUnits(0.2);
+  const stairwellMarginZ = toWorldUnits(0.4);
+  const stairLayout = computeStairLayout({
+    baseZ: stairBottomZ,
+    stepRun: stairRun,
+    stepCount: STAIRCASE_CONFIG.step.count,
+    landingDepth: stairLandingDepth,
+    direction: STAIRCASE_CONFIG.direction,
+    guardMargin: stairTransitionMargin,
+    stairwellMargin: stairwellMarginZ,
+  });
+  const stairTopZ = stairLayout.topZ;
+  const stairLandingMinZ = stairLayout.landingMinZ;
+  const stairLandingMaxZ = stairLayout.landingMaxZ;
+  const upperFloorElevation =
+    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairGeometry: StairGeometry = {
     centerX: stairCenterX,
     halfWidth: stairHalfWidth,
     bottomZ: stairBottomZ,
     topZ: stairTopZ,
     landingMinZ: stairLandingMinZ,
+    landingMaxZ: stairLandingMaxZ,
     totalRise: stairTotalRise,
+    direction: stairLayout.directionMultiplier,
   };
   const stairBehavior: StairBehavior = {
     transitionMargin: stairTransitionMargin,
@@ -781,8 +798,8 @@ function initializeImmersiveScene(
     stepRise: STAIRCASE_CONFIG.step.rise,
   };
   const stairGuardThickness = toWorldUnits(0.22);
-  const stairGuardMinZ = stairLandingMinZ;
-  const stairGuardMaxZ = stairBottomZ + toWorldUnits(0.6);
+  const stairGuardMinZ = stairLayout.guardRange.minZ;
+  const stairGuardMaxZ = stairLayout.guardRange.maxZ;
 
   groundColliders.push({
     minX: stairCenterX - stairHalfWidth - stairGuardThickness,
@@ -822,13 +839,11 @@ function initializeImmersiveScene(
   // Carve a stairwell hole in the upper floor directly above the stairs to
   // eliminate z-fighting and allow the player to visually descend. Use a
   // slightly oversized cutout so collision tolerances near edges feel natural.
-  const stairwellMarginX = toWorldUnits(0.2);
-  const stairwellMarginZ = toWorldUnits(0.4);
   const stairHoleHalfWidth = stairHalfWidth + stairwellMarginX;
   const stairHoleMinX = stairCenterX - stairHoleHalfWidth;
   const stairHoleMaxX = stairCenterX + stairHoleHalfWidth;
-  const stairHoleMaxZ = stairBottomZ + stairwellMarginZ; // near bottom
-  const stairHoleMinZ = stairLandingMinZ - stairwellMarginZ; // extends past landing
+  const stairHoleMinZ = stairLayout.stairHoleRange.minZ;
+  const stairHoleMaxZ = stairLayout.stairHoleRange.maxZ;
   upperFloorShape.holes.push(
     (() => {
       const hole = new Shape();
@@ -1521,7 +1536,9 @@ function initializeImmersiveScene(
           stairBottomZ,
           stairTopZ,
           stairLandingMinZ,
+          stairLandingMaxZ,
           stairLandingDepth: stairLandingDepth,
+          stairDirection: stairLayout.directionMultiplier,
           upperFloorElevation,
         };
       },
