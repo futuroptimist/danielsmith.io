@@ -65,7 +65,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
      - ✅ Modular ceiling panels now cap each ground-floor room with LED-friendly insets.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
-   - Stub staircase volumes that connect to a placeholder second-floor landing.
+   - ✅ Stub staircase volumes that connect to a placeholder second-floor landing.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
      - ✅ Wall segment builder now reserves doorway openings and keeps player colliders clear.
      - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.

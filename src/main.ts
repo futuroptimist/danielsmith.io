@@ -134,6 +134,7 @@ import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
+import { createUpperLandingStub } from './scene/structures/upperLandingStub';
 import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
@@ -846,6 +847,38 @@ function initializeImmersiveScene(
   // Slightly lower than the landing top to ensure no coplanar z-fighting.
   upperFloor.position.y = upperFloorElevation - 0.002;
   upperFloorGroup.add(upperFloor);
+
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  if (upperLandingRoom) {
+    const upperLandingStub = createUpperLandingStub({
+      bounds: upperLandingRoom.bounds,
+      landingMaxZ: stairTopZ,
+      elevation: upperFloorElevation,
+      thickness: STAIRCASE_CONFIG.landing.thickness,
+      landingClearance: toWorldUnits(0.05),
+      material: {
+        color: 0x4c596b,
+        roughness: 0.58,
+        metalness: 0.06,
+      },
+      guard: {
+        height: 0.62,
+        thickness: toWorldUnits(0.12),
+        inset: toWorldUnits(0.4),
+        material: {
+          color: 0x2a3241,
+          roughness: 0.72,
+          metalness: 0.05,
+        },
+      },
+    });
+    upperFloorGroup.add(upperLandingStub.group);
+    upperLandingStub.colliders.forEach((collider) =>
+      upperFloorColliders.push(collider)
+    );
+  }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallGroup = new Group();
