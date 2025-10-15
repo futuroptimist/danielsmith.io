@@ -69,50 +69,45 @@ test.describe('avatar facing', () => {
 
     await expectYawNear(0, { settleMs: 0 });
 
-    // Simulate pressing W (forward/north) for a few frames to induce movement.
+    // Simulate pressing W (forward/north) and validate yaw while moving.
     await page.keyboard.down('w');
-    await page.waitForTimeout(400);
+    await expectYawNear(0, { settleMs: 450 });
     await page.keyboard.up('w');
 
-    // Expect yaw to move toward facing north (z-), i.e., around 0 radians.
-    await expectYawNear(0);
-
-    // Now simulate moving right (east) and expect yaw to approach +PI/2.
+    // Now hold D (east) and ensure yaw aligns with +PI/2 while input is active.
     await page.keyboard.down('d');
-    await page.waitForTimeout(400);
+    await expectYawNear(Math.PI / 2, { settleMs: 450 });
     await page.keyboard.up('d');
-
-    await expectYawNear(Math.PI / 2);
 
     // Diagonal forward-right: hold W + D together, expect ~ PI/4.
     await page.keyboard.down('w');
     await page.keyboard.down('d');
-    await page.waitForTimeout(450);
-    await expectYawNear(Math.PI / 4);
+    await expectYawNear(Math.PI / 4, { settleMs: 500 });
     await page.keyboard.up('d');
     await page.keyboard.up('w');
 
     // Moving backward should point the mannequin south (~ +/- PI radians).
     await page.keyboard.down('s');
-    await page.waitForTimeout(420);
-    await page.keyboard.up('s');
     const yawAfterSouth = await expectYawNear(Math.PI, {
+      settleMs: 480,
       tolerance: Math.PI / 5,
     });
+    await page.keyboard.up('s');
     // Ensure it is not inverted (north) anymore.
     expect(angularDifference(yawAfterSouth, 0)).toBeGreaterThan(Math.PI / 2);
 
     // Left (A) should face west (~ -PI/2).
     await page.keyboard.down('a');
-    await page.waitForTimeout(400);
+    await expectYawNear(-Math.PI / 2, { settleMs: 450 });
     await page.keyboard.up('a');
-    await expectYawNear(-Math.PI / 2);
 
     // Clean up any lingering velocity before finishing the test (diagonal back-left).
     await page.keyboard.down('s');
     await page.keyboard.down('a');
-    await page.waitForTimeout(450);
-    await expectYawNear((-3 * Math.PI) / 4, { tolerance: Math.PI / 5 });
+    await expectYawNear((-3 * Math.PI) / 4, {
+      settleMs: 500,
+      tolerance: Math.PI / 5,
+    });
     await page.keyboard.up('a');
     await page.keyboard.up('s');
   });
