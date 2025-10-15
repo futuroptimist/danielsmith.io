@@ -48,6 +48,7 @@ import {
   formatMessage,
   getControlOverlayStrings,
   getHelpModalStrings,
+  getPoiNarrativeLogStrings,
   getSiteStrings,
   resolveLocale,
 } from './assets/i18n';
@@ -225,6 +226,10 @@ import {
   createMovementLegend,
   type MovementLegendHandle,
 } from './ui/hud/movementLegend';
+import {
+  createPoiNarrativeLog,
+  type PoiNarrativeLogHandle,
+} from './ui/hud/poiNarrativeLog';
 import {
   createImmersiveModeUrl,
   shouldDisablePerformanceFailover,
@@ -512,6 +517,7 @@ function initializeImmersiveScene(
   let avatarVariantControl: AvatarVariantControlHandle | null = null;
   let unsubscribeAvatarVariant: (() => void) | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
+  let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
@@ -526,7 +532,15 @@ function initializeImmersiveScene(
   document.documentElement.lang = locale;
   const controlOverlayStrings = getControlOverlayStrings(locale);
   const helpModalStrings = getHelpModalStrings(locale);
+  const narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   const siteStrings = getSiteStrings(locale);
+  const narrativeTimeFormatter = new Intl.DateTimeFormat(
+    locale === 'en-x-pseudo' ? 'en' : locale,
+    {
+      hour: 'numeric',
+      minute: '2-digit',
+    }
+  );
 
   const searchParams = new URLSearchParams(window.location.search);
   const disablePerformanceFailover =
@@ -563,6 +577,9 @@ function initializeImmersiveScene(
 
   const poiOverrides: PoiInstanceOverrides = {};
   const poiDefinitions = getPoiDefinitions();
+  const poiDefinitionsById = new Map(
+    poiDefinitions.map((definition) => [definition.id, definition] as const)
+  );
   injectPoiStructuredData(poiDefinitions, {
     siteName: siteStrings.name,
     locale,
@@ -1090,6 +1107,9 @@ function initializeImmersiveScene(
     };
   };
 
+  let visitedInitialized = false;
+  let previousVisited = new Set<string>();
+
   const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
     for (const poi of poiInstances) {
       const isVisited = visited.has(poi.definition.id);
@@ -1098,6 +1118,39 @@ function initializeImmersiveScene(
       }
     }
     poiTooltipOverlay.setVisitedPoiIds(visited);
+    if (poiNarrativeLog) {
+      const visitedDefinitions = Array.from(visited)
+        .map((id) => poiDefinitionsById.get(id))
+        .filter((definition): definition is PoiDefinition =>
+          Boolean(definition)
+        );
+
+      poiNarrativeLog.syncVisited(visitedDefinitions, {
+        visitedLabel: narrativeLogStrings.defaultVisitedLabel,
+      });
+
+      if (visitedInitialized) {
+        for (const id of visited) {
+          if (previousVisited.has(id)) {
+            continue;
+          }
+          const definition = poiDefinitionsById.get(id);
+          if (!definition) {
+            continue;
+          }
+          const timeLabel = narrativeTimeFormatter.format(new Date());
+          const visitedLabel = formatMessage(
+            narrativeLogStrings.visitedLabelTemplate,
+            { time: timeLabel }
+          );
+          poiNarrativeLog.recordVisit(definition, {
+            visitedLabel,
+          });
+        }
+      }
+    }
+    previousVisited = new Set(visited);
+    visitedInitialized = true;
   };
 
   const removeVisitedSubscription =
@@ -1595,6 +1648,10 @@ function initializeImmersiveScene(
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
   hudSettingsContainer.appendChild(hudSettingsStack);
+  poiNarrativeLog = createPoiNarrativeLog({
+    container: helpModal.element,
+    strings: narrativeLogStrings,
+  });
   if (avatarVariantManager) {
     avatarVariantControl = createAvatarVariantControl({
       container: hudSettingsStack,
@@ -2759,6 +2816,10 @@ function initializeImmersiveScene(
       helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
     }
     movementLegend?.dispose();
+    if (poiNarrativeLog) {
+      poiNarrativeLog.dispose();
+      poiNarrativeLog = null;
+    }
     helpModal.dispose();
     if (hudFocusAnnouncer) {
       hudFocusAnnouncer.dispose();

@@ -254,7 +254,7 @@ Focus: replace the placeholder sphere with a stylized protagonist.
    - IK adjustments to align feet with uneven terrain/stairs.
 3. **Self-Representation Touches**
    - Optional selfie cam / mirror to show the avatar.
-   - Narrative text logs tied to POIs referencing creator stories.
+   - ✅ Narrative story log now captures POI visits in the help modal with creator captions.
    - Future hook: customization menu for outfits/accessories.
 
 ## Phase 6 – Beyond

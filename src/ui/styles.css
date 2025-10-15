@@ -904,6 +904,79 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   color: rgba(224, 243, 255, 0.9);
 }
 
+.poi-narrative-log {
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(86, 184, 255, 0.12);
+}
+
+.poi-narrative-log__empty {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(214, 236, 255, 0.72);
+}
+
+.poi-narrative-log__list {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.poi-narrative-log__entry {
+  background: rgba(5, 12, 21, 0.78);
+  border: 1px solid rgba(86, 184, 255, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  box-shadow: 0 12px 32px rgba(3, 10, 20, 0.45);
+}
+
+.poi-narrative-log__entry-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.poi-narrative-log__entry-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e6f2ff;
+}
+
+.poi-narrative-log__entry-visited {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(142, 208, 255, 0.8);
+  white-space: nowrap;
+}
+
+.poi-narrative-log__entry-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(214, 236, 255, 0.88);
+}
+
+.poi-narrative-log__live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .joystick {
   position: fixed;
   left: 0;
