@@ -128,6 +128,10 @@ import {
   type PrReaperConsoleBuild,
 } from './scene/structures/prReaperConsole';
 import {
+  createSelfieMirror,
+  type SelfieMirrorBuild,
+} from './scene/structures/selfieMirror';
+import {
   createStaircase,
   type StaircaseConfig,
 } from './scene/structures/staircase';
@@ -425,6 +429,7 @@ let tokenPlaceRack: TokenPlaceRackBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
+let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
@@ -772,6 +777,29 @@ function initializeImmersiveScene(
         focusOpacity: 0.55,
       },
     };
+
+    const livingRoomCenterX =
+      (livingRoom.bounds.minX + livingRoom.bounds.maxX) / 2;
+    const livingRoomCenterZ =
+      (livingRoom.bounds.minZ + livingRoom.bounds.maxZ) / 2;
+    const selfiePosition = {
+      x: livingRoom.bounds.maxX - 3.2,
+      y: 0,
+      z: livingRoom.bounds.minZ + 9.2,
+    };
+    const selfieOrientation = Math.atan2(
+      livingRoomCenterX - selfiePosition.x,
+      livingRoomCenterZ - selfiePosition.z
+    );
+    const mirror = createSelfieMirror({
+      position: selfiePosition,
+      orientationRadians: selfieOrientation,
+      width: 3.4,
+      height: 4.1,
+    });
+    scene.add(mirror.group);
+    groundColliders.push(mirror.collider);
+    selfieMirror = mirror;
   }
 
   const staircase = createStaircase(STAIRCASE_CONFIG);
@@ -1365,6 +1393,7 @@ function initializeImmersiveScene(
     collisionRadius: PLAYER_RADIUS,
   });
   const player = mannequin.group;
+  const mannequinHeight = mannequin.height;
   player.position.copy(initialPlayerPosition);
   scene.add(player);
 
@@ -2882,6 +2911,10 @@ function initializeImmersiveScene(
       locomotionAngularSpeed = 0;
     }
     controls.dispose();
+    if (selfieMirror) {
+      selfieMirror.dispose();
+      selfieMirror = null;
+    }
     gitshelvesInstallation = null;
   }
 
@@ -2911,6 +2944,13 @@ function initializeImmersiveScene(
         });
       }
       updateCamera(delta);
+      if (selfieMirror) {
+        selfieMirror.update({
+          playerPosition: player.position,
+          playerRotationY: player.rotation.y,
+          playerHeight: mannequinHeight,
+        });
+      }
       updatePois(elapsedTime, delta);
       poiWorldTooltip.update(delta);
       handleInteractionInput();
@@ -2975,6 +3015,9 @@ function initializeImmersiveScene(
       }
       if (backyardEnvironment) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
+      }
+      if (selfieMirror) {
+        selfieMirror.render(renderer, scene);
       }
       if (composer) {
         composer.render();

@@ -232,7 +232,7 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 **Done means**
 
-- Avatar swap retains ≥95% of Phase 4 perf metrics (FPS, INP) and shows comparison table.
+- Avatar swap retains ≥95% of Phase 4 perf metrics (FPS, INP) and shows comparison table.
 - Animation QA checklist completed (IK alignment, footstep sync) with clips in `docs/media/`.
 - Release tag `phase-5-avatar` published alongside narrative write-up.
 
@@ -253,8 +253,10 @@ Focus: replace the placeholder sphere with a stylized protagonist.
      responding to POI selections with a controller-synced gesture.
    - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
    - IK adjustments to align feet with uneven terrain/stairs.
+
 3. **Self-Representation Touches**
-   - Optional selfie cam / mirror to show the avatar.
+   - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the
+     living room east wall.
    - ✅ Narrative story log now captures POI visits in the help modal with creator captions.
    - Future hook: customization menu for outfits/accessories.
 
