@@ -64,7 +64,9 @@ export function createUpperLandingStub(
   );
   const depth = config.bounds.maxZ - startZ;
   if (depth <= 0) {
-    throw new Error('Upper landing bounds must extend beyond the stair landing.');
+    throw new Error(
+      'Upper landing bounds must extend beyond the stair landing.'
+    );
   }
 
   const slabMaterial = new MeshStandardMaterial(config.material);
@@ -83,7 +85,11 @@ export function createUpperLandingStub(
       config.guard.material ?? config.material
     );
     const guardLength = Math.max(0, width - config.guard.inset * 2);
-    if (guardLength > 0 && config.guard.thickness > 0 && config.guard.height > 0) {
+    if (
+      guardLength > 0 &&
+      config.guard.thickness > 0 &&
+      config.guard.height > 0
+    ) {
       const guardGeometry = new BoxGeometry(
         guardLength,
         config.guard.height,
