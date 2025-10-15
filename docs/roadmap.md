@@ -253,7 +253,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
    - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
    - IK adjustments to align feet with uneven terrain/stairs.
 3. **Self-Representation Touches**
-   - Optional selfie cam / mirror to show the avatar.
+   - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the
+       living room east wall.
    - Narrative text logs tied to POIs referencing creator stories.
    - Future hook: customization menu for outfits/accessories.
 
