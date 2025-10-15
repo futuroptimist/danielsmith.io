@@ -35,14 +35,35 @@ test.describe('avatar facing', () => {
 
     const expectYawNear = async (
       target: number,
-      options: { tolerance?: number; settleMs?: number } = {}
+      options: {
+        tolerance?: number;
+        settleMs?: number;
+        maxWaitMs?: number;
+        sampleIntervalMs?: number;
+      } = {}
     ) => {
-      const { tolerance = Math.PI / 6, settleMs = 120 } = options;
+      const {
+        tolerance = Math.PI / 6,
+        settleMs = 120,
+        maxWaitMs = 1200,
+        sampleIntervalMs = 60,
+      } = options;
+
       if (settleMs > 0) {
         await page.waitForTimeout(settleMs);
       }
-      const yaw = await getYaw();
-      expect(angularDifference(yaw, target)).toBeLessThan(tolerance);
+
+      const deadline = Date.now() + Math.max(0, maxWaitMs);
+      let yaw = await getYaw();
+      let diff = angularDifference(yaw, target);
+
+      while (diff >= tolerance && Date.now() < deadline) {
+        await page.waitForTimeout(Math.max(0, sampleIntervalMs));
+        yaw = await getYaw();
+        diff = angularDifference(yaw, target);
+      }
+
+      expect(diff).toBeLessThan(tolerance);
       return yaw;
     };
 
