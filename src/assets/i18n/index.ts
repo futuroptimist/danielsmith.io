@@ -13,6 +13,7 @@ import type {
   LocaleDirection,
   MovementLegendStrings,
   PoiCopy,
+  PoiNarrativeLogStrings,
   SiteStrings,
 } from './types';
 
@@ -189,6 +190,12 @@ export function getMovementLegendStrings(
   input?: LocaleInput
 ): MovementLegendStrings {
   return getLocaleStrings(input).hud.movementLegend;
+}
+
+export function getPoiNarrativeLogStrings(
+  input?: LocaleInput
+): PoiNarrativeLogStrings {
+  return getLocaleStrings(input).hud.narrativeLog;
 }
 
 export function getSiteStrings(input?: LocaleInput): SiteStrings {

@@ -63,6 +63,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         gamepad: 'A',
       },
     },
+    narrativeLog: {
+      heading: 'Creator story log',
+      empty:
+        'Visit exhibits to unlock narrative entries chronicling the creator showcase.',
+      defaultVisitedLabel: 'Visited',
+      visitedLabelTemplate: 'Visited at {time}',
+      liveAnnouncementTemplate: '{title} added to the creator story log.',
+    },
     helpModal: {
       heading: 'Settings & Help',
       description: [
