@@ -22,7 +22,8 @@ USER:
 2. Implement the change using production-quality TypeScript/Three.js code or docs updates.
 3. Update any affected documentation (README, roadmap, prompts, changelogs).
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
-5. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke`.
+5. Run `npm run format:write`, `npm run lint`, `npm run test:ci`, `npm run docs:check`, and
+   `npm run smoke`.
 6. Capture before/after metrics or screenshots when tuning visuals or performance.
 7. Summarize the work, list manual verification (if any), and surface follow-up ideas.
 
@@ -55,7 +56,7 @@ USER:
 2. Fix outdated instructions, links, or formatting.
 3. Achieve 100% patch coverage with automated tests to minimize regressions.
 4. Update `docs/prompts/summary.md` if your edits change the prompt catalog.
-5. Run the checks above.
+5. Run `npm run format:write` and the checks above.
 
 OUTPUT:
 A pull request with the improved prompt doc and passing checks.

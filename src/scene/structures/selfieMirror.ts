@@ -99,7 +99,10 @@ export function createSelfieMirror(
   const width = Math.max(1.6, options.width ?? DEFAULT_WIDTH);
   const height = Math.max(2.4, options.height ?? DEFAULT_HEIGHT);
   const depth = Math.max(0.2, options.depth ?? DEFAULT_DEPTH);
-  const cameraDistance = Math.max(1.4, options.cameraDistance ?? DEFAULT_CAMERA_DISTANCE);
+  const cameraDistance = Math.max(
+    1.4,
+    options.cameraDistance ?? DEFAULT_CAMERA_DISTANCE
+  );
   const basePosition = new Vector3(
     options.position.x,
     options.position.y ?? 0,
@@ -132,7 +135,10 @@ export function createSelfieMirror(
     roughness: 0.48,
     metalness: 0.24,
   });
-  const pillar = new Mesh(new BoxGeometry(width, height, depth), pillarMaterial);
+  const pillar = new Mesh(
+    new BoxGeometry(width, height, depth),
+    pillarMaterial
+  );
   pillar.name = 'SelfieMirrorFrame';
   pillar.position.set(0, BASE_HEIGHT + height / 2, 0);
   pillar.castShadow = true;
@@ -163,8 +169,10 @@ export function createSelfieMirror(
     map: renderTarget.texture,
     toneMapped: false,
   });
+  const displayWidth = width - DISPLAY_MARGIN;
+  const displayHeight = height - DISPLAY_MARGIN;
   const display = new Mesh(
-    new PlaneGeometry(width - DISPLAY_MARGIN, height - DISPLAY_MARGIN),
+    new PlaneGeometry(displayWidth, displayHeight),
     displayMaterial
   );
   display.name = 'SelfieMirrorDisplay';
@@ -179,7 +187,10 @@ export function createSelfieMirror(
     toneMapped: false,
   });
   const glow = new Mesh(
-    new PlaneGeometry(width - DISPLAY_MARGIN * 0.4, height - DISPLAY_MARGIN * 0.4),
+    new PlaneGeometry(
+      width - DISPLAY_MARGIN * 0.4,
+      height - DISPLAY_MARGIN * 0.4
+    ),
     glowMaterial
   );
   glow.name = 'SelfieMirrorGlow';
@@ -187,8 +198,14 @@ export function createSelfieMirror(
   glow.renderOrder = 1;
   group.add(glow);
 
-  const camera = new PerspectiveCamera(CAMERA_FOV, 1, CAMERA_NEAR, CAMERA_FAR);
+  const camera = new PerspectiveCamera(
+    CAMERA_FOV,
+    displayWidth / displayHeight,
+    CAMERA_NEAR,
+    CAMERA_FAR
+  );
   camera.name = 'SelfieMirrorCamera';
+  camera.updateProjectionMatrix();
 
   const collider = createFootprintCollider(
     basePosition,
@@ -208,7 +225,11 @@ export function createSelfieMirror(
   }: SelfieMirrorUpdateContext) => {
     const heightTarget = playerHeight ?? PLAYER_HEIGHT_FALLBACK;
     const focusHeight = heightTarget * 0.62;
-    lookTarget.set(playerPosition.x, playerPosition.y + focusHeight, playerPosition.z);
+    lookTarget.set(
+      playerPosition.x,
+      playerPosition.y + focusHeight,
+      playerPosition.z
+    );
 
     const forwardX = Math.sin(playerRotationY);
     const forwardZ = Math.cos(playerRotationY);

@@ -255,7 +255,7 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 3. **Self-Representation Touches**
    - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the
-       living room east wall.
+     living room east wall.
    - ✅ Narrative story log now captures POI visits in the help modal with creator captions.
    - Future hook: customization menu for outfits/accessories.
 
