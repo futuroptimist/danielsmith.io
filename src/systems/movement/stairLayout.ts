@@ -33,7 +33,8 @@ export const computeStairLayout = (
   const landingMinZ = Math.min(topZ, landingFarZ);
   const landingMaxZ = Math.max(topZ, landingFarZ);
 
-  const guardApproachZ = config.baseZ - directionMultiplier * config.guardMargin;
+  const guardApproachZ =
+    config.baseZ - directionMultiplier * config.guardMargin;
   const guardRangeMin = Math.min(
     landingMinZ,
     landingMaxZ,
@@ -67,4 +68,3 @@ export const computeStairLayout = (
     stairHoleRange: { minZ: stairHoleMinZ, maxZ: stairHoleMaxZ },
   };
 };
-

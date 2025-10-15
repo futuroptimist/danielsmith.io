@@ -71,7 +71,8 @@ export const predictStairFloorId = (
     x,
     behavior.transitionMargin
   );
-  const direction = geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
+  const direction =
+    geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
 
   if (current === 'upper') {
     if (!withinStairs) {

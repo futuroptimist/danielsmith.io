@@ -55,8 +55,7 @@ describe('stair floor transitions (negative Z ascent)', () => {
 
   it('stays on the upper floor while roaming across the landing', () => {
     const currentFloor: FloorId = 'upper';
-    const landingInteriorZ =
-      NEGATIVE_Z_STAIRS.landingMinZ + toWorldUnits(0.6);
+    const landingInteriorZ = NEGATIVE_Z_STAIRS.landingMinZ + toWorldUnits(0.6);
     const result = predictStairFloorId(
       NEGATIVE_Z_STAIRS,
       STAIR_BEHAVIOR,
@@ -71,9 +70,10 @@ describe('stair floor transitions (negative Z ascent)', () => {
   it('does not leave the upper floor when west of the stair base', () => {
     const currentFloor: FloorId = 'upper';
     const westLandingX =
-      NEGATIVE_Z_STAIRS.centerX - NEGATIVE_Z_STAIRS.halfWidth + toWorldUnits(0.15);
-    const southOfLandingZ =
-      NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.35);
+      NEGATIVE_Z_STAIRS.centerX -
+      NEGATIVE_Z_STAIRS.halfWidth +
+      toWorldUnits(0.15);
+    const southOfLandingZ = NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.35);
     const result = predictStairFloorId(
       NEGATIVE_Z_STAIRS,
       STAIR_BEHAVIOR,
@@ -119,8 +119,7 @@ describe('stair floor transitions (positive Z ascent)', () => {
 
   it('keeps the player on the upper floor across the landing interior', () => {
     const currentFloor: FloorId = 'upper';
-    const landingInteriorZ =
-      positiveGeometry.landingMaxZ - toWorldUnits(0.6);
+    const landingInteriorZ = positiveGeometry.landingMaxZ - toWorldUnits(0.6);
     const result = predictStairFloorId(
       positiveGeometry,
       STAIR_BEHAVIOR,
