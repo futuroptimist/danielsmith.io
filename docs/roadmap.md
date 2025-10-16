@@ -65,12 +65,13 @@ Focus: expand the environment while keeping navigation smooth.
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
      - ✅ Modular ceiling panels now cap each ground-floor room with LED-friendly insets.
    - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
-   - Stub staircase volumes that connect to a placeholder second-floor landing.
+   - ✅ Stub staircase volumes that connect to a placeholder second-floor landing.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
      - ✅ Wall segment builder now reserves doorway openings and keeps player colliders clear.
      - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.
      - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
+   - ✅ Staircase prefab now supports both +Z and −Z runs, auto-sizing guards and stairwell cutouts.
 3. **Outdoor Transition**
    - ✅ Sculpted backyard terrain plane and layered perimeter fence framing the dusk skybox.
    - ✅ Lighting probes and dusk reflections now wash the backyard with dusk-tinted bounce
@@ -231,7 +232,7 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 **Done means**
 
-- Avatar swap retains ≥95% of Phase 4 perf metrics (FPS, INP) and shows comparison table.
+- Avatar swap retains ≥95% of Phase 4 perf metrics (FPS, INP) and shows comparison table.
 - Animation QA checklist completed (IK alignment, footstep sync) with clips in `docs/media/`.
 - Release tag `phase-5-avatar` published alongside narrative write-up.
 
@@ -252,9 +253,11 @@ Focus: replace the placeholder sphere with a stylized protagonist.
      responding to POI selections with a controller-synced gesture.
    - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
    - IK adjustments to align feet with uneven terrain/stairs.
+
 3. **Self-Representation Touches**
-   - Optional selfie cam / mirror to show the avatar.
-   - Narrative text logs tied to POIs referencing creator stories.
+   - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the
+     living room east wall.
+   - ✅ Narrative story log now captures POI visits in the help modal with creator captions.
    - Future hook: customization menu for outfits/accessories.
 
 ## Phase 6 – Beyond

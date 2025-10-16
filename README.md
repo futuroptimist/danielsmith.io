@@ -57,9 +57,18 @@ Avatar facing is computed from the camera-relative movement vector; see
 - **HUD & overlays** – [`src/ui/`](src/ui/) renders accessibility surfaces, HUD widgets, and the immersive URL helpers.
 - **Tests** – [`src/tests/`](src/tests/) (Vitest) and [`playwright/`](playwright/) capture unit and end-to-end coverage, including the keyboard traversal macro.
 - **Docs & planning** – [`docs/roadmap.md`](docs/roadmap.md), [`docs/backlog.md`](docs/backlog.md), and the prompt library in [`docs/prompts/`](docs/prompts/) track longer-term intent.
-- **Architecture notes** – See [`docs/architecture/scene-stack.md`](docs/architecture/scene-stack.md) for a visual of the new data → systems → scene → UI flow.
-- **Testing & assets** – [`docs/architecture/testing-assets.md`](docs/architecture/testing-assets.md)
-  details Vitest/Playwright commands, CI flags, and auto-generated capture workflows.
+- **Architecture notes** – See [`docs/architecture/scene-stack.md`](docs/architecture/scene-stack.md) for a visual of the data → systems → scene → UI flow.
+
+### Scene module composition & state flow
+
+State always originates from data, flows through systems, powers the Three.js scene, and finally reaches DOM overlays:
+
+1. **Assets (`src/assets/`)** expose immutable data (floor plans, POI metadata, performance budgets, localisation strings). These modules remain side-effect free so Vitest and Playwright suites can import them directly.
+2. **Systems (`src/systems/`)** transform assets into behaviour. Keyboard controls, collision, accessibility presets, and failover heuristics emit typed handles that the rest of the app consumes.
+3. **Scene (`src/scene/`)** composes meshes and rigs from those handles. Builders return lightweight APIs (`createWorld`, `createAvatarRig`) so tests and HUD overlays can observe state without mutating Three.js internals.
+4. **UI (`src/ui/`)** mirrors scene state for accessibility. HUD widgets subscribe to system handles, surface ARIA-complete overlays, and never reach back into scene objects.
+
+For diagrams, contracts, and specific entry points see [`docs/architecture/scene-stack.md`](docs/architecture/scene-stack.md).
 
 ## Getting started
 
@@ -113,17 +122,22 @@ lightweight.
 
 ## Testing & automation
 
-- **Unit suites** – [`src/tests/`](src/tests/) run via `npm run test:ci`. Set `CI=1` in CI or when reproducing pipeline behaviour locally; Vitest uses this flag to disable watch mode.
-- **End-to-end** – [`playwright/`](playwright/) specs run with `npm run test:e2e` or the alias `npm run screenshot` for capture workflows. The config locks to a single worker when `CI=1` so the WebGL boot sequence stays deterministic.
-- **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) exercises POI cycling, HUD focus, and modal toggles using keyboard-only input.
-- **Docs validation** – `npm run docs:check` ensures playbooks, prompts, and architecture notes stay in sync.
+- **Vitest unit suites** – [`src/tests/`](src/tests/) run via `npm run test:ci`. Export `CI=1` locally to mirror pipeline behaviour and disable watch mode.
+- **Playwright end-to-end specs** – [`playwright/`](playwright/) run with `npm run test:e2e` (alias: `npm run screenshot`). `CI=1` forces a single worker for deterministic WebGL bootstrapping.
+- **Visual smoke thresholds** – [`playwright.config.ts`](playwright.config.ts) loads [`VISUAL_SMOKE_DIFF_BUDGET`](src/assets/performance.ts#L37-L45) so `expect().toHaveScreenshot` allows at most a 0.015 diff ratio or 1,200 differing pixels.
+- **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) touches every POI and HUD overlay using keyboard-only input. Use `npm run test:e2e -- --grep traversal` to run just that macro when iterating.
+- **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage.
+- **Launch smoke** – `npm run smoke` builds the project once and asserts `dist/index.html` exists before heavier suites run.
 
 ## Auto-generated assets
 
-| Script                      | Output                        | Trigger                                                                                           |
+| Script                      | Output                        | Refresh trigger                                                                                   |
 | --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
-| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run when room geometry or labels change; CI refreshes after merges.                               |
-| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Refresh after lighting, HUD, or camera framing updates. Captured automatically by CI once merged. |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges. |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run whenever lighting, camera, or HUD composition shifts. CI captures a fresh image post-merge.   |
+| `npm run smoke`             | `dist/index.html` (assert)    | Ensures the production build succeeds before visual diffs or E2E suites rely on generated assets. |
+
+Keep pipelines deterministic by regenerating assets immediately after touching geometry, lighting, or HUD composition so CI diffs stay tidy.
 
 ## Performance guardrails
 

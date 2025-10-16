@@ -48,6 +48,7 @@ import {
   formatMessage,
   getControlOverlayStrings,
   getHelpModalStrings,
+  getPoiNarrativeLogStrings,
   getSiteStrings,
   resolveLocale,
 } from './assets/i18n';
@@ -127,6 +128,10 @@ import {
   type PrReaperConsoleBuild,
 } from './scene/structures/prReaperConsole';
 import {
+  createSelfieMirror,
+  type SelfieMirrorBuild,
+} from './scene/structures/selfieMirror';
+import {
   createStaircase,
   type StaircaseConfig,
 } from './scene/structures/staircase';
@@ -134,6 +139,7 @@ import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
+import { createUpperLandingStub } from './scene/structures/upperLandingStub';
 import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
@@ -194,6 +200,7 @@ import {
   getCameraRelativeDirection,
   normalizeRadians,
 } from './systems/movement/facing';
+import { computeStairLayout } from './systems/movement/stairLayout';
 import {
   computeRampHeight as computeStairRampHeight,
   predictStairFloorId,
@@ -225,6 +232,10 @@ import {
   createMovementLegend,
   type MovementLegendHandle,
 } from './ui/hud/movementLegend';
+import {
+  createPoiNarrativeLog,
+  type PoiNarrativeLogHandle,
+} from './ui/hud/poiNarrativeLog';
 import {
   createImmersiveModeUrl,
   shouldDisablePerformanceFailover,
@@ -267,7 +278,9 @@ declare global {
           stairBottomZ: number;
           stairTopZ: number;
           stairLandingMinZ: number;
+          stairLandingMaxZ: number;
           stairLandingDepth: number;
+          stairDirection: 1 | -1;
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
@@ -416,6 +429,7 @@ let tokenPlaceRack: TokenPlaceRackBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
+let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
@@ -512,6 +526,7 @@ function initializeImmersiveScene(
   let avatarVariantControl: AvatarVariantControlHandle | null = null;
   let unsubscribeAvatarVariant: (() => void) | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
+  let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
@@ -526,7 +541,15 @@ function initializeImmersiveScene(
   document.documentElement.lang = locale;
   const controlOverlayStrings = getControlOverlayStrings(locale);
   const helpModalStrings = getHelpModalStrings(locale);
+  const narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   const siteStrings = getSiteStrings(locale);
+  const narrativeTimeFormatter = new Intl.DateTimeFormat(
+    locale === 'en-x-pseudo' ? 'en' : locale,
+    {
+      hour: 'numeric',
+      minute: '2-digit',
+    }
+  );
 
   const searchParams = new URLSearchParams(window.location.search);
   const disablePerformanceFailover =
@@ -563,6 +586,9 @@ function initializeImmersiveScene(
 
   const poiOverrides: PoiInstanceOverrides = {};
   const poiDefinitions = getPoiDefinitions();
+  const poiDefinitionsById = new Map(
+    poiDefinitions.map((definition) => [definition.id, definition] as const)
+  );
   injectPoiStructuredData(poiDefinitions, {
     siteName: siteStrings.name,
     locale,
@@ -751,6 +777,29 @@ function initializeImmersiveScene(
         focusOpacity: 0.55,
       },
     };
+
+    const livingRoomCenterX =
+      (livingRoom.bounds.minX + livingRoom.bounds.maxX) / 2;
+    const livingRoomCenterZ =
+      (livingRoom.bounds.minZ + livingRoom.bounds.maxZ) / 2;
+    const selfiePosition = {
+      x: livingRoom.bounds.maxX - 3.2,
+      y: 0,
+      z: livingRoom.bounds.minZ + 9.2,
+    };
+    const selfieOrientation = Math.atan2(
+      livingRoomCenterX - selfiePosition.x,
+      livingRoomCenterZ - selfiePosition.z
+    );
+    const mirror = createSelfieMirror({
+      position: selfiePosition,
+      orientationRadians: selfieOrientation,
+      width: 3.4,
+      height: 4.1,
+    });
+    scene.add(mirror.group);
+    groundColliders.push(mirror.collider);
+    selfieMirror = mirror;
   }
 
   const staircase = createStaircase(STAIRCASE_CONFIG);
@@ -760,20 +809,34 @@ function initializeImmersiveScene(
   const stairHalfWidth = STAIRCASE_CONFIG.step.width / 2;
   const stairRun = STAIRCASE_CONFIG.step.run;
   const stairBottomZ = STAIRCASE_CONFIG.basePosition.z;
-  const stairTopZ = stairBottomZ - stairRun * STAIRCASE_CONFIG.step.count;
   const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
-  const stairLandingMinZ = stairTopZ - stairLandingDepth;
-  const upperFloorElevation =
-    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairTransitionMargin = toWorldUnits(0.6);
   const stairLandingTriggerMargin = toWorldUnits(0.2);
+  const stairwellMarginX = toWorldUnits(0.2);
+  const stairwellMarginZ = toWorldUnits(0.4);
+  const stairLayout = computeStairLayout({
+    baseZ: stairBottomZ,
+    stepRun: stairRun,
+    stepCount: STAIRCASE_CONFIG.step.count,
+    landingDepth: stairLandingDepth,
+    direction: STAIRCASE_CONFIG.direction,
+    guardMargin: stairTransitionMargin,
+    stairwellMargin: stairwellMarginZ,
+  });
+  const stairTopZ = stairLayout.topZ;
+  const stairLandingMinZ = stairLayout.landingMinZ;
+  const stairLandingMaxZ = stairLayout.landingMaxZ;
+  const upperFloorElevation =
+    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairGeometry: StairGeometry = {
     centerX: stairCenterX,
     halfWidth: stairHalfWidth,
     bottomZ: stairBottomZ,
     topZ: stairTopZ,
     landingMinZ: stairLandingMinZ,
+    landingMaxZ: stairLandingMaxZ,
     totalRise: stairTotalRise,
+    direction: stairLayout.directionMultiplier,
   };
   const stairBehavior: StairBehavior = {
     transitionMargin: stairTransitionMargin,
@@ -781,8 +844,8 @@ function initializeImmersiveScene(
     stepRise: STAIRCASE_CONFIG.step.rise,
   };
   const stairGuardThickness = toWorldUnits(0.22);
-  const stairGuardMinZ = stairLandingMinZ;
-  const stairGuardMaxZ = stairBottomZ + toWorldUnits(0.6);
+  const stairGuardMinZ = stairLayout.guardRange.minZ;
+  const stairGuardMaxZ = stairLayout.guardRange.maxZ;
 
   groundColliders.push({
     minX: stairCenterX - stairHalfWidth - stairGuardThickness,
@@ -822,13 +885,11 @@ function initializeImmersiveScene(
   // Carve a stairwell hole in the upper floor directly above the stairs to
   // eliminate z-fighting and allow the player to visually descend. Use a
   // slightly oversized cutout so collision tolerances near edges feel natural.
-  const stairwellMarginX = toWorldUnits(0.2);
-  const stairwellMarginZ = toWorldUnits(0.4);
   const stairHoleHalfWidth = stairHalfWidth + stairwellMarginX;
   const stairHoleMinX = stairCenterX - stairHoleHalfWidth;
   const stairHoleMaxX = stairCenterX + stairHoleHalfWidth;
-  const stairHoleMaxZ = stairBottomZ + stairwellMarginZ; // near bottom
-  const stairHoleMinZ = stairLandingMinZ - stairwellMarginZ; // extends past landing
+  const stairHoleMinZ = stairLayout.stairHoleRange.minZ;
+  const stairHoleMaxZ = stairLayout.stairHoleRange.maxZ;
   upperFloorShape.holes.push(
     (() => {
       const hole = new Shape();
@@ -846,6 +907,38 @@ function initializeImmersiveScene(
   // Slightly lower than the landing top to ensure no coplanar z-fighting.
   upperFloor.position.y = upperFloorElevation - 0.002;
   upperFloorGroup.add(upperFloor);
+
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  if (upperLandingRoom) {
+    const upperLandingStub = createUpperLandingStub({
+      bounds: upperLandingRoom.bounds,
+      landingMaxZ: stairTopZ,
+      elevation: upperFloorElevation,
+      thickness: STAIRCASE_CONFIG.landing.thickness,
+      landingClearance: toWorldUnits(0.05),
+      material: {
+        color: 0x4c596b,
+        roughness: 0.58,
+        metalness: 0.06,
+      },
+      guard: {
+        height: 0.62,
+        thickness: toWorldUnits(0.12),
+        inset: toWorldUnits(0.4),
+        material: {
+          color: 0x2a3241,
+          roughness: 0.72,
+          metalness: 0.05,
+        },
+      },
+    });
+    upperFloorGroup.add(upperLandingStub.group);
+    upperLandingStub.colliders.forEach((collider) =>
+      upperFloorColliders.push(collider)
+    );
+  }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallGroup = new Group();
@@ -1090,6 +1183,9 @@ function initializeImmersiveScene(
     };
   };
 
+  let visitedInitialized = false;
+  let previousVisited = new Set<string>();
+
   const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
     for (const poi of poiInstances) {
       const isVisited = visited.has(poi.definition.id);
@@ -1098,6 +1194,39 @@ function initializeImmersiveScene(
       }
     }
     poiTooltipOverlay.setVisitedPoiIds(visited);
+    if (poiNarrativeLog) {
+      const visitedDefinitions = Array.from(visited)
+        .map((id) => poiDefinitionsById.get(id))
+        .filter((definition): definition is PoiDefinition =>
+          Boolean(definition)
+        );
+
+      poiNarrativeLog.syncVisited(visitedDefinitions, {
+        visitedLabel: narrativeLogStrings.defaultVisitedLabel,
+      });
+
+      if (visitedInitialized) {
+        for (const id of visited) {
+          if (previousVisited.has(id)) {
+            continue;
+          }
+          const definition = poiDefinitionsById.get(id);
+          if (!definition) {
+            continue;
+          }
+          const timeLabel = narrativeTimeFormatter.format(new Date());
+          const visitedLabel = formatMessage(
+            narrativeLogStrings.visitedLabelTemplate,
+            { time: timeLabel }
+          );
+          poiNarrativeLog.recordVisit(definition, {
+            visitedLabel,
+          });
+        }
+      }
+    }
+    previousVisited = new Set(visited);
+    visitedInitialized = true;
   };
 
   const removeVisitedSubscription =
@@ -1264,6 +1393,7 @@ function initializeImmersiveScene(
     collisionRadius: PLAYER_RADIUS,
   });
   const player = mannequin.group;
+  const mannequinHeight = mannequin.height;
   player.position.copy(initialPlayerPosition);
   scene.add(player);
 
@@ -1521,7 +1651,9 @@ function initializeImmersiveScene(
           stairBottomZ,
           stairTopZ,
           stairLandingMinZ,
+          stairLandingMaxZ,
           stairLandingDepth: stairLandingDepth,
+          stairDirection: stairLayout.directionMultiplier,
           upperFloorElevation,
         };
       },
@@ -1595,6 +1727,10 @@ function initializeImmersiveScene(
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
   hudSettingsContainer.appendChild(hudSettingsStack);
+  poiNarrativeLog = createPoiNarrativeLog({
+    container: helpModal.element,
+    strings: narrativeLogStrings,
+  });
   if (avatarVariantManager) {
     avatarVariantControl = createAvatarVariantControl({
       container: hudSettingsStack,
@@ -2759,6 +2895,10 @@ function initializeImmersiveScene(
       helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
     }
     movementLegend?.dispose();
+    if (poiNarrativeLog) {
+      poiNarrativeLog.dispose();
+      poiNarrativeLog = null;
+    }
     helpModal.dispose();
     if (hudFocusAnnouncer) {
       hudFocusAnnouncer.dispose();
@@ -2771,6 +2911,10 @@ function initializeImmersiveScene(
       locomotionAngularSpeed = 0;
     }
     controls.dispose();
+    if (selfieMirror) {
+      selfieMirror.dispose();
+      selfieMirror = null;
+    }
     gitshelvesInstallation = null;
   }
 
@@ -2800,6 +2944,13 @@ function initializeImmersiveScene(
         });
       }
       updateCamera(delta);
+      if (selfieMirror) {
+        selfieMirror.update({
+          playerPosition: player.position,
+          playerRotationY: player.rotation.y,
+          playerHeight: mannequinHeight,
+        });
+      }
       updatePois(elapsedTime, delta);
       poiWorldTooltip.update(delta);
       handleInteractionInput();
@@ -2864,6 +3015,9 @@ function initializeImmersiveScene(
       }
       if (backyardEnvironment) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
+      }
+      if (selfieMirror) {
+        selfieMirror.render(renderer, scene);
       }
       if (composer) {
         composer.render();

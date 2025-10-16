@@ -61,6 +61,14 @@ export interface HelpModalStrings {
   sections: readonly HelpModalSectionStrings[];
 }
 
+export interface PoiNarrativeLogStrings {
+  heading: string;
+  empty: string;
+  defaultVisitedLabel: string;
+  visitedLabelTemplate: string;
+  liveAnnouncementTemplate: string;
+}
+
 export interface SiteStructuredDataStrings {
   description: string;
   listNameTemplate: string;
@@ -86,6 +94,7 @@ export interface LocaleStrings {
     controlOverlay: ControlOverlayStrings;
     movementLegend: MovementLegendStrings;
     helpModal: HelpModalStrings;
+    narrativeLog: PoiNarrativeLogStrings;
   };
   poi: Record<PoiId, PoiCopy>;
 }

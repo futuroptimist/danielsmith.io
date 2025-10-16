@@ -32,9 +32,10 @@ Welcome to `danielsmith.io`. Follow these guardrails when working inside this re
 
 ## Quality gates
 
-Run the Flywheel-style checks before committing or opening a PR:
+Run Prettier in write mode, then run the Flywheel-style checks before committing or opening a PR:
 
 ```bash
+npm run format:write
 npm run lint
 npm run test:ci
 npm run docs:check
