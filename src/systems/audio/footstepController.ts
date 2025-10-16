@@ -139,7 +139,8 @@ export function createFootstepAudioController(
     { allowJitter }: { allowJitter?: boolean } = {}
   ): void => {
     const baseInterval = computeBaseInterval(normalizedSpeed);
-    const jitterFactor = allowJitter !== false ? centeredRandom() * intervalJitter : 0;
+    const jitterFactor =
+      allowJitter !== false ? centeredRandom() * intervalJitter : 0;
     const jittered = baseInterval * (1 + jitterFactor);
     timeUntilNextStep = Math.max(jittered, MIN_INTERVAL);
   };
@@ -193,9 +194,15 @@ export function createFootstepAudioController(
       let safety = 0;
       while (timeUntilNextStep <= 0 && safety < 6) {
         const overshoot = -timeUntilNextStep;
-        triggerStep(normalizedSpeed, masterVolume, surfaceMultiplier, undefined, {
-          allowJitter: true,
-        });
+        triggerStep(
+          normalizedSpeed,
+          masterVolume,
+          surfaceMultiplier,
+          undefined,
+          {
+            allowJitter: true,
+          }
+        );
         timeUntilNextStep -= overshoot;
         safety += 1;
       }

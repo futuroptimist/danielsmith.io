@@ -2983,9 +2983,8 @@ function initializeImmersiveScene(
         avatarFootIkController.update({
           delta,
           sampleHeight({ x, y }) {
-            const z = y;
-            const rampHeight = computeRampHeight(x, z);
-            const predictedFloor = predictFloorId(x, z, activeFloorId);
+            const rampHeight = computeRampHeight(x, y);
+            const predictedFloor = predictFloorId(x, y, activeFloorId);
             if (predictedFloor === 'upper') {
               if (rampHeight >= upperFloorElevation - 1e-3) {
                 return upperFloorElevation;
