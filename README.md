@@ -92,18 +92,19 @@ Each floor has its own auto-generated diagram (regenerated locally with
 
 ## Project scripts
 
-| Script                                          | Purpose                                                     |
-| ----------------------------------------------- | ----------------------------------------------------------- |
-| `npm run dev`                                   | Start the Vite development server.                          |
-| `npm run build`                                 | Create a production build (also used by CI smoke tests).    |
-| `npm run preview`                               | Preview the production build locally.                       |
-| `npm run lint`                                  | Run ESLint on the TypeScript sources.                       |
-| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting.                         |
-| `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                   |
-| `npm run typecheck`                             | Type-check with TypeScript without emitting files.          |
-| `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.       |
-| `npm run smoke`                                 | Build and assert that `dist/index.html` exists.             |
-| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check. |
+| Script                                          | Purpose                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------ |
+| `npm run dev`                                   | Start the Vite development server.                           |
+| `npm run build`                                 | Create a production build (also used by CI smoke tests).     |
+| `npm run preview`                               | Preview the production build locally.                        |
+| `npm run lint`                                  | Run ESLint on the TypeScript sources.                        |
+| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting.                          |
+| `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                    |
+| `npm run typecheck`                             | Type-check with TypeScript without emitting files.           |
+| `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.        |
+| `npm run smoke`                                 | Build and assert that `dist/index.html` exists.              |
+| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.  |
+| `npm run press-kit`                             | Emit a JSON press kit summary of POIs and performance stats. |
 
 ### Local quality gates
 
@@ -136,6 +137,7 @@ lightweight.
 | `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges. |
 | `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run whenever lighting, camera, or HUD composition shifts. CI captures a fresh image post-merge.   |
 | `npm run smoke`             | `dist/index.html` (assert)    | Ensures the production build succeeds before visual diffs or E2E suites rely on generated assets. |
+| `npm run press-kit`         | `docs/assets/press-kit.json`  | Refresh after updating POI copy or performance budgets to keep the export current.                |
 
 Keep pipelines deterministic by regenerating assets immediately after touching geometry, lighting, or HUD composition so CI diffs stay tidy.
 
@@ -154,7 +156,8 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 
 - **Camera** – Orthographic camera with a constant world height (`CAMERA_SIZE = 20`). On resize we recompute the left/right bounds from the new aspect ratio and call `updateProjectionMatrix()` to keep scale consistent.
 - **Lighting** – Ambient + directional key lights now pair with emissive LED cove strips and baked
-  gradient lightmaps so the room inherits a dusk bounce wash without heavy shadows.
+  gradient lightmaps so the room inherits a dusk bounce wash without heavy shadows. LED pulses are
+  authored in `src/scene/lighting/ledPulsePrograms.ts` so per-room timelines stay data-driven.
   A Shift+L debug toggle disables bloom/LED accents to compare raw material response.
 - **Controls** – `KeyboardControls` listens for `keydown`/`keyup` using `event.key` strings (WASD + arrow keys) and feeds the movement loop, which clamps the player inside the room bounds.
 - **HUD overlay** – The floating movement legend now reacts to the most recent input method
