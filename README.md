@@ -131,8 +131,8 @@ lightweight.
 
 ## Auto-generated assets
 
-| Script                      | Output                        | Refresh trigger                                                                                 |
-| --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| Script                      | Output                        | Refresh trigger                                                                                   |
+| --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
 | `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges. |
 | `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run whenever lighting, camera, or HUD composition shifts. CI captures a fresh image post-merge.   |
 | `npm run smoke`             | `dist/index.html` (assert)    | Ensures the production build succeeds before visual diffs or E2E suites rely on generated assets. |
