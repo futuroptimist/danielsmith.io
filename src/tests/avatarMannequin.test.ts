@@ -41,6 +41,16 @@ describe('createPortfolioMannequin', () => {
     if (crest instanceof Mesh) {
       expect(crest.position.y).toBeGreaterThan(1.6);
     }
+
+    const leftFoot = build.group.getObjectByName('PortfolioMannequinFootLeft');
+    expect(leftFoot).toBeInstanceOf(Group);
+    if (!(leftFoot instanceof Group)) {
+      throw new Error('Left foot group missing.');
+    }
+    const leftFootMesh = leftFoot.getObjectByName(
+      'PortfolioMannequinFootLeftMesh'
+    );
+    expect(leftFootMesh).toBeInstanceOf(Mesh);
   });
 
   it('honors palette and collision radius overrides for accent-driven materials', () => {
@@ -102,6 +112,9 @@ describe('createPortfolioMannequin', () => {
 
     const visor = build.group.getObjectByName('PortfolioMannequinVisor');
     const legs = build.group.getObjectByName('PortfolioMannequinLegs');
+    const leftFoot = build.group.getObjectByName(
+      'PortfolioMannequinFootLeftMesh'
+    );
     const accentBand = build.group.getObjectByName(
       'PortfolioMannequinWaistBand'
     );
@@ -109,11 +122,13 @@ describe('createPortfolioMannequin', () => {
 
     expect(visor).toBeInstanceOf(Mesh);
     expect(legs).toBeInstanceOf(Mesh);
+    expect(leftFoot).toBeInstanceOf(Mesh);
     expect(accentBand).toBeInstanceOf(Mesh);
     expect(head).toBeInstanceOf(Mesh);
     if (
       !(visor instanceof Mesh) ||
       !(legs instanceof Mesh) ||
+      !(leftFoot instanceof Mesh) ||
       !(accentBand instanceof Mesh) ||
       !(head instanceof Mesh)
     ) {
@@ -128,6 +143,10 @@ describe('createPortfolioMannequin', () => {
     const expectedLegColor = baseColor.clone().multiplyScalar(0.9);
     const legMaterial = legs.material as MeshStandardMaterial;
     expect(legMaterial.color.getHexString()).toBe(
+      expectedLegColor.getHexString()
+    );
+    const leftFootMaterial = leftFoot.material as MeshStandardMaterial;
+    expect(leftFootMaterial.color.getHexString()).toBe(
       expectedLegColor.getHexString()
     );
 

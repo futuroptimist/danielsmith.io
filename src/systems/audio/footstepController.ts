@@ -39,8 +39,11 @@ export interface FootstepControllerUpdate {
   isGrounded?: boolean;
 }
 
+type FootLabel = 'left' | 'right';
+
 export interface FootstepAudioControllerHandle {
   update(update: FootstepControllerUpdate): void;
+  notifyFootfall(foot: FootLabel): void;
   setEnabled(enabled: boolean): void;
   isEnabled(): boolean;
   dispose(): void;
@@ -99,7 +102,11 @@ export function createFootstepAudioController(
 
   let enabled = true;
   let timeUntilNextStep = 0;
-  let stepIndex = 0;
+  let lastFoot: FootLabel = 'right';
+  let lastNormalizedSpeed = 0;
+  let lastMasterVolume = 1;
+  let lastSurfaceMultiplier = 1;
+  let lastGrounded = true;
 
   const centeredRandom = (): number => randomFn() * 2 - 1;
 
@@ -127,16 +134,22 @@ export function createFootstepAudioController(
     return clamp(base, MIN_PITCH, MAX_PITCH);
   };
 
-  const scheduleNextStep = (normalizedSpeed: number): void => {
+  const scheduleNextStep = (
+    normalizedSpeed: number,
+    { allowJitter }: { allowJitter?: boolean } = {}
+  ): void => {
     const baseInterval = computeBaseInterval(normalizedSpeed);
-    const jittered = baseInterval * (1 + centeredRandom() * intervalJitter);
+    const jitterFactor = allowJitter !== false ? centeredRandom() * intervalJitter : 0;
+    const jittered = baseInterval * (1 + jitterFactor);
     timeUntilNextStep = Math.max(jittered, MIN_INTERVAL);
   };
 
   const triggerStep = (
     normalizedSpeed: number,
     masterVolume: number,
-    surfaceMultiplier: number
+    surfaceMultiplier: number,
+    foot?: FootLabel,
+    optionsOverride?: { allowJitter?: boolean }
   ): void => {
     const baseVolume = computeBaseVolume(normalizedSpeed);
     const basePitch = computeBasePitch(normalizedSpeed);
@@ -148,10 +161,11 @@ export function createFootstepAudioController(
       MAX_VOLUME
     );
     const playbackRate = clamp(jitteredPitch, MIN_PITCH, MAX_PITCH);
-    const pan = stepIndex % 2 === 0 ? -stereoSeparation : stereoSeparation;
+    const resolvedFoot = foot ?? (lastFoot === 'left' ? 'right' : 'left');
+    const pan = resolvedFoot === 'left' ? -stereoSeparation : stereoSeparation;
     options.player.play({ volume, playbackRate, pan });
-    stepIndex = (stepIndex + 1) % 2;
-    scheduleNextStep(normalizedSpeed);
+    lastFoot = resolvedFoot;
+    scheduleNextStep(normalizedSpeed, optionsOverride);
   };
 
   return {
@@ -166,6 +180,8 @@ export function createFootstepAudioController(
       const normalizedSpeed = computeNormalizedSpeed(speed);
       if (!isGrounded || normalizedSpeed <= 0) {
         timeUntilNextStep = 0;
+        lastNormalizedSpeed = 0;
+        lastGrounded = isGrounded;
         return;
       }
       const masterVolume = clamp(update.masterVolume ?? 1, 0, 1);
@@ -177,15 +193,41 @@ export function createFootstepAudioController(
       let safety = 0;
       while (timeUntilNextStep <= 0 && safety < 6) {
         const overshoot = -timeUntilNextStep;
-        triggerStep(normalizedSpeed, masterVolume, surfaceMultiplier);
+        triggerStep(normalizedSpeed, masterVolume, surfaceMultiplier, undefined, {
+          allowJitter: true,
+        });
         timeUntilNextStep -= overshoot;
         safety += 1;
       }
+      lastNormalizedSpeed = normalizedSpeed;
+      lastMasterVolume = masterVolume;
+      lastSurfaceMultiplier = surfaceMultiplier;
+      lastGrounded = isGrounded;
+    },
+    notifyFootfall(foot) {
+      if (!enabled) {
+        return;
+      }
+      if (foot !== 'left' && foot !== 'right') {
+        return;
+      }
+      if (!lastGrounded || lastNormalizedSpeed <= 0) {
+        return;
+      }
+      triggerStep(
+        lastNormalizedSpeed,
+        lastMasterVolume,
+        lastSurfaceMultiplier,
+        foot,
+        { allowJitter: false }
+      );
     },
     setEnabled(nextEnabled) {
       enabled = nextEnabled;
       if (!enabled) {
         timeUntilNextStep = 0;
+        lastNormalizedSpeed = 0;
+        lastGrounded = true;
       }
     },
     isEnabled() {
@@ -194,6 +236,7 @@ export function createFootstepAudioController(
     dispose() {
       enabled = false;
       timeUntilNextStep = 0;
+      lastNormalizedSpeed = 0;
     },
   };
 }
