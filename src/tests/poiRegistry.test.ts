@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN } from '../assets/floorPlan';
-import { getPoiDefinitions, isPoiInsideRoom } from '../scene/poi/registry';
+import {
+  getPoiDefinitions,
+  getPoiDefinitionsByRoom,
+  isPoiInsideRoom,
+} from '../scene/poi/registry';
 
 describe('POI registry', () => {
   const pois = getPoiDefinitions();
@@ -93,5 +97,72 @@ describe('POI registry', () => {
         /irrigation|solar tilt/i.test(metric.value)
       )
     ).toBe(true);
+  });
+
+  it('exposes stable room-level ordering with defensive copies', () => {
+    const expectedStudioOrder = [
+      'tokenplace-studio-cluster',
+      'gabriel-studio-sentry',
+      'flywheel-studio-flywheel',
+      'jobbot-studio-terminal',
+      'axel-studio-tracker',
+    ];
+
+    const firstCall = getPoiDefinitionsByRoom('studio');
+    const secondCall = getPoiDefinitionsByRoom('studio');
+
+    expect(firstCall.map((poi) => poi.id)).toEqual(expectedStudioOrder);
+    expect(secondCall.map((poi) => poi.id)).toEqual(expectedStudioOrder);
+
+    expect(firstCall).not.toBe(secondCall);
+    expect(firstCall[0]).not.toBe(secondCall[0]);
+    expect(firstCall[0].position).not.toBe(secondCall[0].position);
+    expect(firstCall[0].footprint).not.toBe(secondCall[0].footprint);
+    expect(firstCall[0].metrics).not.toBe(secondCall[0].metrics);
+    expect(firstCall[0].links).not.toBe(secondCall[0].links);
+
+    const mutated = firstCall[0];
+    const originalTitle = secondCall[0].title;
+    const originalX = secondCall[0].position.x;
+    const originalFootprintWidth = secondCall[0].footprint.width;
+    const originalMetricValue = secondCall[0].metrics?.[0]?.value;
+    const originalLinksLength = secondCall[0].links?.length ?? 0;
+
+    mutated.title = 'Mutated';
+    mutated.position.x += 42;
+    mutated.footprint.width += 1.5;
+    if (mutated.metrics?.[0]) {
+      mutated.metrics[0].value = 'Changed metric';
+    }
+    mutated.links?.push({ label: 'Temp', href: '#' });
+
+    const flywheel = firstCall.find(
+      (poi) => poi.id === 'flywheel-studio-flywheel'
+    );
+    const flywheelBaseline = secondCall.find(
+      (poi) => poi.id === 'flywheel-studio-flywheel'
+    );
+    if (flywheel?.narration) {
+      flywheel.narration.caption = 'Altered caption';
+    }
+
+    const thirdCall = getPoiDefinitionsByRoom('studio');
+    const refreshed = thirdCall[0];
+    expect(refreshed.title).toBe(originalTitle);
+    expect(refreshed.position.x).toBe(originalX);
+    expect(refreshed.footprint.width).toBe(originalFootprintWidth);
+    expect(refreshed.metrics?.[0]?.value).toBe(originalMetricValue);
+    expect(refreshed.links?.length ?? 0).toBe(originalLinksLength);
+
+    const refreshedFlywheel = thirdCall.find(
+      (poi) => poi.id === 'flywheel-studio-flywheel'
+    );
+    expect(refreshedFlywheel?.narration?.caption).toBe(
+      flywheelBaseline?.narration?.caption
+    );
+  });
+
+  it('returns an empty array when a room has no registered POIs', () => {
+    expect(getPoiDefinitionsByRoom('loft')).toEqual([]);
   });
 });

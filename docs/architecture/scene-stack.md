@@ -82,9 +82,10 @@ layer without guessing where functionality lives.
   active axis without touching Three.js meshes.
 - **POI orchestration** – The registry
   (`src/scene/poi/registry.ts`) hydrates data from
-  [`src/assets/poi/index.ts`](../../src/assets/poi/index.ts). Interaction
-  handlers in `src/scene/poi/interactionManager.ts` emit POI selection events.
-  UI layers listen via the shared observable to mirror selection state in
+  [`src/assets/poi/index.ts`](../../src/assets/poi/index.ts) and now exposes
+  room-aware lookups via `poiRegistry.getByRoom(...)`. Interaction handlers in
+  `src/scene/poi/interactionManager.ts` emit POI selection events. UI layers
+  listen via the shared observable to mirror selection state in
   [`src/ui/poi/tooltipOverlay.tsx`](../../src/ui/poi/tooltipOverlay.tsx).
 - **Accessibility overlays** – `HudFocusAnnouncerHandle` flows from systems
   into DOM overlays: `src/ui/accessibility/ariaBridges.ts` registers live
@@ -114,8 +115,9 @@ layer without guessing where functionality lives.
   preset, and POI selection handles. Each overlay follows the
   [accessibility checklist](../guides/accessibility-overlays.md).
 - **POI orchestration** – The registry at
-  [`src/scene/poi/registry.ts`](../../src/scene/poi/registry.ts), interactions in
-  [`interactionManager.ts`](../../src/scene/poi/interactionManager.ts), and DOM
+  [`src/scene/poi/registry.ts`](../../src/scene/poi/registry.ts) now includes
+  room-scoped helpers such as `getPoiDefinitionsByRoom(...)`. Interactions in
+  [`interactionManager.ts`](../../src/scene/poi/interactionManager.ts) and DOM
   mirroring in [`tooltipOverlay.ts`](../../src/scene/poi/tooltipOverlay.ts)
   propagate copy and analytics across Three.js markers, HUD tooltips, and the
   keyboard traversal macro. `PoiVisitedState` keeps visited/featured flags
