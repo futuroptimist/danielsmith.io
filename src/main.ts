@@ -54,6 +54,10 @@ import {
 } from './assets/i18n';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
+  createAvatarFootIkController,
+  type AvatarFootIkControllerHandle,
+} from './scene/avatar/footIkController';
+import {
   bindPoiInteractionAnimation,
   createAvatarInteractionAnimator,
   type AvatarInteractionAnimatorHandle,
@@ -327,6 +331,7 @@ const markDocumentReady = (mode: AppMode) => {
 let immersiveFailureHandled = false;
 
 let locomotionAnimator: AvatarLocomotionAnimatorHandle | null = null;
+let avatarFootIkController: AvatarFootIkControllerHandle | null = null;
 let locomotionLinearSpeed = 0;
 let locomotionAngularSpeed = 0;
 
@@ -1509,6 +1514,12 @@ function initializeImmersiveScene(
   const mannequinTorso = player.getObjectByName(
     'PortfolioMannequinTorso'
   ) as Object3D | null;
+  const mannequinLeftFoot = player.getObjectByName(
+    'PortfolioMannequinFootLeft'
+  ) as Object3D | null;
+  const mannequinRightFoot = player.getObjectByName(
+    'PortfolioMannequinFootRight'
+  ) as Object3D | null;
 
   if (mannequinRightArm && mannequinLeftArm && mannequinTorso) {
     avatarInteractionAnimator = createAvatarInteractionAnimator({
@@ -1526,6 +1537,34 @@ function initializeImmersiveScene(
   } else {
     console.warn(
       'Avatar interaction animation targets missing; skipping bind.'
+    );
+  }
+
+  if (mannequinLeftFoot && mannequinRightFoot) {
+    avatarFootIkController = createAvatarFootIkController({
+      leftFoot: mannequinLeftFoot,
+      rightFoot: mannequinRightFoot,
+      pelvis: mannequinTorso ?? undefined,
+      maxFootOffset: 0.22,
+      maxFootPitch: Math.PI / 5,
+      slopeSampleDistance: 0.34,
+      smoothing: {
+        foot: 10,
+        rotation: 10,
+        pelvis: 8,
+      },
+      pelvisWeight: 0.6,
+      maxPelvisOffset: 0.18,
+      contact: { offsetTolerance: 0.018 },
+      events: {
+        onFootContact: ({ foot }) => {
+          footstepAudioController?.notifyFootfall(foot);
+        },
+      },
+    });
+  } else {
+    console.warn(
+      'Avatar foot IK requires both foot targets; skipping alignment.'
     );
   }
 
@@ -2818,6 +2857,10 @@ function initializeImmersiveScene(
       avatarInteractionAnimator.dispose();
       avatarInteractionAnimator = null;
     }
+    if (avatarFootIkController) {
+      avatarFootIkController.dispose();
+      avatarFootIkController = null;
+    }
     poiInteractionManager.dispose();
     removeHoverListener();
     removeSelectionStateListener();
@@ -2963,6 +3006,28 @@ function initializeImmersiveScene(
           delta,
           linearSpeed: locomotionLinearSpeed,
           angularSpeed: locomotionAngularSpeed,
+        });
+      }
+      if (avatarFootIkController) {
+        avatarFootIkController.update({
+          delta,
+          sampleHeight({ x, y }) {
+            const rampHeight = computeRampHeight(x, y);
+            const predictedFloor = predictFloorId(x, y, activeFloorId);
+            if (predictedFloor === 'upper') {
+              if (rampHeight >= upperFloorElevation - 1e-3) {
+                return upperFloorElevation;
+              }
+              const withinStairWidth =
+                Math.abs(x - stairGeometry.centerX) <=
+                stairGeometry.halfWidth + stairBehavior.transitionMargin;
+              if (withinStairWidth) {
+                return Math.min(upperFloorElevation, Math.max(rampHeight, 0));
+              }
+              return upperFloorElevation;
+            }
+            return Math.min(Math.max(rampHeight, 0), upperFloorElevation);
+          },
         });
       }
       if (footstepAudioController) {

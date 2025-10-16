@@ -128,4 +128,28 @@ describe('footstep audio controller', () => {
     controller.dispose();
     expect(controller.isEnabled()).toBe(false);
   });
+
+  it('syncs playback with footfall notifications', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player, { random: () => 0.4 });
+
+    controller.update({ delta: 0.2, linearSpeed: 3, masterVolume: 0.8 });
+    const initialCalls = player.calls.length;
+
+    controller.notifyFootfall('left');
+    controller.notifyFootfall('right');
+
+    expect(player.calls.length).toBe(initialCalls + 2);
+    const [leftHit, rightHit] = player.calls.slice(-2);
+    expect(leftHit.pan ?? 0).toBeLessThan(0);
+    expect(rightHit.pan ?? 0).toBeGreaterThan(0);
+
+    controller.update({ delta: 0.2, linearSpeed: 0.1 });
+    controller.notifyFootfall('left');
+    expect(player.calls.length).toBe(initialCalls + 2);
+
+    controller.update({ delta: 0.2, linearSpeed: 3, isGrounded: false });
+    controller.notifyFootfall('right');
+    expect(player.calls.length).toBe(initialCalls + 2);
+  });
 });

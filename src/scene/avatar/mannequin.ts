@@ -1,4 +1,5 @@
 import {
+  BoxGeometry,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -132,6 +133,38 @@ export function createPortfolioMannequin(
   legs.castShadow = true;
   legs.receiveShadow = true;
   mannequinRoot.add(legs);
+
+  const footGeometry = new BoxGeometry(0.24, 0.08, 0.36);
+  const leftFootMaterial = legMaterial.clone();
+  const rightFootMaterial = legMaterial.clone();
+
+  const footBaseHeight = platform.position.y + platformHeight / 2;
+  const footForwardOffset = 0.12;
+  const footOuterOffset = 0.26;
+
+  const leftFoot = new Group();
+  leftFoot.name = 'PortfolioMannequinFootLeft';
+  leftFoot.position.set(-footOuterOffset, footBaseHeight, footForwardOffset);
+  mannequinRoot.add(leftFoot);
+
+  const leftFootMesh = new Mesh(footGeometry, leftFootMaterial);
+  leftFootMesh.name = 'PortfolioMannequinFootLeftMesh';
+  leftFootMesh.position.y = (footGeometry.parameters.height as number) / 2;
+  leftFootMesh.castShadow = true;
+  leftFootMesh.receiveShadow = true;
+  leftFoot.add(leftFootMesh);
+
+  const rightFoot = new Group();
+  rightFoot.name = 'PortfolioMannequinFootRight';
+  rightFoot.position.set(footOuterOffset, footBaseHeight, footForwardOffset);
+  mannequinRoot.add(rightFoot);
+
+  const rightFootMesh = new Mesh(footGeometry, rightFootMaterial);
+  rightFootMesh.name = 'PortfolioMannequinFootRightMesh';
+  rightFootMesh.position.y = (footGeometry.parameters.height as number) / 2;
+  rightFootMesh.castShadow = true;
+  rightFootMesh.receiveShadow = true;
+  rightFoot.add(rightFootMesh);
 
   const accentBand = new Mesh(
     new TorusGeometry(0.34, 0.05, 20, 48),
@@ -323,6 +356,8 @@ export function createPortfolioMannequin(
 
     const legColor = baseColor.clone().multiplyScalar(0.9);
     legMaterial.color.copy(legColor);
+    leftFootMaterial.color.copy(legColor);
+    rightFootMaterial.color.copy(legColor);
 
     torsoMaterial.color.copy(baseColor).offsetHSL(0.02, -0.08, 0.08);
     shoulderMaterial.color.copy(baseColor).offsetHSL(-0.04, 0.04, 0.05);
