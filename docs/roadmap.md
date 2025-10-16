@@ -59,6 +59,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
+   - ⚙️ LED pulse programs now drive per-room emissive and fill intensities via data timelines.
    - ✨ Baked dusk lightmaps now bathe floors and walls in a gradient bounce wash that pairs with the LED strips.
    - ✨ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
 2. **House Footprint Layout**
@@ -269,6 +270,7 @@ Ideas to evaluate after the core experience is stable:
 - Procedural storytelling AI that narrates the journey between POIs.
 - Integration with GitHub API for live repo stats and contribution heatmaps.
 - Exportable "press kit" mode that packages screenshots, POI blurbs, and metrics.
+  - ⚙️ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
 
 ## Delivery Principles
 

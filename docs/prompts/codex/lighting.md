@@ -32,6 +32,8 @@ Summarize the change, list tests run, highlight any visual review steps.
 
 - Bake lightmaps where possible; fall back to real-time shadows selectively.
 - Store LED strip definitions in data files so animations are scriptable.
+- LED pulse programs live in `src/scene/lighting/ledPulsePrograms.ts`; extend definitions there
+  when adding new rooms or effects.
 - Add comments explaining any tone-mapping adjustments or shader hacks.
 
 ## Upgrade Prompt

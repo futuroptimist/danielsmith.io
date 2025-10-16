@@ -87,6 +87,11 @@ import {
   createLightingDebugController,
   type LightingMode,
 } from './scene/lighting/debugControls';
+import {
+  createLedAnimator,
+  ROOM_LED_PULSE_PROGRAMS,
+  type LedAnimator,
+} from './scene/lighting/ledPulsePrograms';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import { PoiInteractionManager } from './scene/poi/interactionManager';
 import {
@@ -434,6 +439,7 @@ let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
 const ledFillLightsList: PointLight[] = [];
+let ledAnimator: LedAnimator | null = null;
 let ambientAudioController: AmbientAudioController | null = null;
 let footstepAudioController: FootstepAudioControllerHandle | null = null;
 let footstepAudio: Audio | null = null;
@@ -507,6 +513,7 @@ function initializeImmersiveScene(
 
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
+  ledAnimator = null;
 
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
@@ -984,6 +991,7 @@ function initializeImmersiveScene(
     ledFillLightGroup = ledFillLights;
     const roomLedGroups = new Map<string, Group>();
     const roomLedMaterials = new Map<string, MeshStandardMaterial>();
+    const roomLedFillLights = new Map<string, PointLight>();
 
     FLOOR_PLAN.rooms.forEach((room) => {
       if (getRoomCategory(room.id) === 'exterior') {
@@ -1023,6 +1031,7 @@ function initializeImmersiveScene(
       light.castShadow = false;
       ledFillLights.add(light);
       ledFillLightsList.push(light);
+      roomLedFillLights.set(room.id, light);
 
       const cornerOffsets = [
         new Vector3(
@@ -1114,6 +1123,19 @@ function initializeImmersiveScene(
         group.add(strip);
       });
     });
+
+    const ledTargets = Array.from(roomLedMaterials.entries()).map(
+      ([roomId, material]) => ({
+        roomId,
+        material,
+        fillLight: roomLedFillLights.get(roomId),
+      })
+    );
+    ledAnimator = createLedAnimator({
+      programs: ROOM_LED_PULSE_PROGRAMS,
+      targets: ledTargets,
+    });
+    ledAnimator.captureBaseline();
 
     scene.add(ledGroup);
     scene.add(ledFillLights);
@@ -2253,6 +2275,7 @@ function initializeImmersiveScene(
     },
     storage: qualityStorage,
   });
+  ledAnimator?.captureBaseline();
 
   let accessibilityStorage: Storage | undefined;
   try {
@@ -2271,6 +2294,8 @@ function initializeImmersiveScene(
     storage: accessibilityStorage,
   });
 
+  ledAnimator?.captureBaseline();
+
   if (accessibilityPresetManager) {
     getAmbientAudioVolume = () =>
       accessibilityPresetManager?.getBaseAudioVolume() ??
@@ -2284,6 +2309,7 @@ function initializeImmersiveScene(
       }
     };
     accessibilityPresetManager.refresh();
+    ledAnimator?.captureBaseline();
     audioHudHandle?.refresh();
   }
 
@@ -2304,6 +2330,7 @@ function initializeImmersiveScene(
   unsubscribeAccessibility = accessibilityPresetManager.onChange(() => {
     accessibilityControlHandle?.refresh();
     audioHudHandle?.refresh();
+    ledAnimator?.captureBaseline();
   });
 
   graphicsQualityControl = createGraphicsQualityControl({
@@ -2318,6 +2345,7 @@ function initializeImmersiveScene(
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
     graphicsQualityControl?.refresh();
+    ledAnimator?.captureBaseline();
   });
 
   const lightingDebugController = createLightingDebugController({
@@ -2781,6 +2809,7 @@ function initializeImmersiveScene(
       return;
     }
     immersiveDisposed = true;
+    ledAnimator = null;
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
       removePoiInteractionAnimation = null;
@@ -3015,6 +3044,9 @@ function initializeImmersiveScene(
       }
       if (backyardEnvironment) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
+      }
+      if (ledAnimator) {
+        ledAnimator.update(elapsedTime);
       }
       if (selfieMirror) {
         selfieMirror.render(renderer, scene);
