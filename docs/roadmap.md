@@ -96,7 +96,8 @@ Focus: anchor each highlighted project with an interactive artifact.
 - Release tag `phase-2-pois` ships with gallery screenshots + metrics table entry.
 
 1. **POI Framework**
-   - Create a data-driven registry for POIs (id, asset, interaction type, metadata).
+   - ✅ Create a data-driven registry for POIs (id, asset, interaction type, metadata).
+     - ✅ Room-aware registry queries now expose `getByRoom(...)` for pedestals and HUD overlays.
    - ✅ 3D tooltip cards anchor POIs in world space, billboard to the camera, and reuse overlay copy.
    - ✅ Desktop pointer + keyboard selection loops share accessible focus targets and emit POI
      events, paving the path for gamepad + mid-air parity.
