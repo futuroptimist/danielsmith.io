@@ -213,6 +213,8 @@ Focus: make the experience inclusive and globally friendly.
 
 2. **Visual & Audio Accessibility**
    - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
+     - ✅ Colorblind-safe LED palette now remaps cove lighting and fill lights with
+       protanopia/deuteranopia-friendly hues while preserving room identity.
    - ✅ High contrast accessibility preset now boosts HUD readability without disabling cinematic
      lighting cues.
 

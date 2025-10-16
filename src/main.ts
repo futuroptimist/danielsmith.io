@@ -83,6 +83,7 @@ import {
   applyLightmapUv2,
   createInteriorLightmapTextures,
 } from './scene/lighting/bakedLightmaps';
+import { COLORBLIND_LED_PALETTE } from './scene/lighting/colorPalettes';
 import {
   createLightingDebugController,
   type LightingMode,
@@ -208,6 +209,11 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
+import {
+  createColorblindLightingAdapter,
+  type ColorblindLightingAdapterHandle,
+  type LedColorBinding,
+} from './ui/accessibility/colorblindLightingAdapter';
 import {
   createHudFocusAnnouncer,
   type HudFocusAnnouncerHandle,
@@ -434,11 +440,13 @@ let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
 const ledFillLightsList: PointLight[] = [];
+const ledColorBindings: LedColorBinding[] = [];
 let ambientAudioController: AmbientAudioController | null = null;
 let footstepAudioController: FootstepAudioControllerHandle | null = null;
 let footstepAudio: Audio | null = null;
 let avatarInteractionAnimator: AvatarInteractionAnimatorHandle | null = null;
 let removePoiInteractionAnimation: (() => void) | null = null;
+let colorblindLightingAdapter: ColorblindLightingAdapterHandle | null = null;
 
 const roomDefinitions = new Map(
   FLOOR_PLAN.rooms.map((room) => [room.id, room])
@@ -507,6 +515,9 @@ function initializeImmersiveScene(
 
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
+  ledColorBindings.length = 0;
+  colorblindLightingAdapter?.dispose();
+  colorblindLightingAdapter = null;
 
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
@@ -1023,6 +1034,11 @@ function initializeImmersiveScene(
       light.castShadow = false;
       ledFillLights.add(light);
       ledFillLightsList.push(light);
+      ledColorBindings.push({
+        roomId: room.id,
+        material,
+        light,
+      });
 
       const cornerOffsets = [
         new Vector3(
@@ -2272,6 +2288,11 @@ function initializeImmersiveScene(
   });
 
   if (accessibilityPresetManager) {
+    colorblindLightingAdapter = createColorblindLightingAdapter({
+      presetManager: accessibilityPresetManager,
+      bindings: ledColorBindings,
+      colorblindPalette: COLORBLIND_LED_PALETTE,
+    });
     getAmbientAudioVolume = () =>
       accessibilityPresetManager?.getBaseAudioVolume() ??
       ambientAudioController?.getMasterVolume() ??
@@ -2284,6 +2305,7 @@ function initializeImmersiveScene(
       }
     };
     accessibilityPresetManager.refresh();
+    colorblindLightingAdapter?.refresh();
     audioHudHandle?.refresh();
   }
 
@@ -2781,6 +2803,10 @@ function initializeImmersiveScene(
       return;
     }
     immersiveDisposed = true;
+    if (colorblindLightingAdapter) {
+      colorblindLightingAdapter.dispose();
+      colorblindLightingAdapter = null;
+    }
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
       removePoiInteractionAnimation = null;

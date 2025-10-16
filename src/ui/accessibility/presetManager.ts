@@ -9,6 +9,7 @@ import type { AmbientAudioController } from '../../systems/audio/ambientAudio';
 export type AccessibilityPresetId =
   | 'standard'
   | 'calm'
+  | 'colorblind'
   | 'high-contrast'
   | 'photosensitive';
 
@@ -88,6 +89,30 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
     },
     audio: {
       volumeScale: 0.8,
+    },
+  },
+  {
+    id: 'colorblind',
+    label: 'Colorblind safe',
+    description:
+      'Rebalances LED hues for protanopia and deuteranopia-friendly contrast.',
+    motion: 'default',
+    contrast: 'high',
+    animation: {
+      pulseScale: 1,
+      flickerScale: 1,
+    },
+    bloom: {
+      strengthScale: 1,
+      radiusScale: 1,
+      thresholdOffset: -0.01,
+    },
+    led: {
+      emissiveScale: 1,
+      lightScale: 1,
+    },
+    audio: {
+      volumeScale: 1,
     },
   },
   {

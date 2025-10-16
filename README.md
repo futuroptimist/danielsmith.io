@@ -196,11 +196,12 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
 - **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
   lightweight portfolio view at any time.
-- **Accessibility presets** – Pick Standard, Calm, High contrast, or Photosensitive-safe modes
-  from the HUD to soften bloom, boost readability, reduce motion cues, and tune emissive
-  lighting. The
-  Photosensitive-safe preset now also smooths greenhouse grow lights, walkway lanterns, and
-  holographic beacons so emissive pulses settle into a steady glow for flicker-sensitive players.
+- **Accessibility presets** – Pick Standard, Calm, Colorblind safe, High contrast, or
+  Photosensitive-safe modes from the HUD to soften bloom, rebalance LED hues, boost readability,
+  reduce motion cues, and tune emissive lighting. The Colorblind safe preset remaps cove lighting
+  to protanopia/deuteranopia-friendly hues, while the Photosensitive-safe preset smooths greenhouse
+  grow lights, walkway lanterns, and holographic beacons so emissive pulses settle into a steady
+  glow for flicker-sensitive players.
 - **Help** – Use the help key (default `H` or `?`), or tap the HUD Help button to
   open a modal with controls, accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
