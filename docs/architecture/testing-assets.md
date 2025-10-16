@@ -5,12 +5,12 @@ auto-generated artifacts stay up to date.
 
 ## Test suites
 
-| Suite                    | Location                      | Command                | Notes |
-| ------------------------ | ----------------------------- | ---------------------- | ----- |
-| Unit & integration tests | `src/tests/` (Vitest)         | `npm run test:ci`      | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode. |
-| End-to-end + visual      | `playwright/` (Playwright)    | `npm run test:e2e`     | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot. |
-| Smoke build check        | Vite production build output  | `npm run smoke`        | Ensures `npm run build` succeeds and that `dist/index.html` exists. |
-| Linting & types          | Source TypeScript             | `npm run lint`, `npm run typecheck` | Linting runs ESLint; `npm run check` chains lint, tests, and docs validation. |
+| Suite                    | Location                     | Command                             | Notes                                                                                                              |
+| ------------------------ | ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                        |
+| End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot. |
+| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds and that `dist/index.html` exists.                                                |
+| Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | Linting runs ESLint; `npm run check` chains lint, tests, and docs validation.                                      |
 
 ### Visual diff budgets
 
@@ -28,10 +28,10 @@ coverage remains comprehensive.
 
 ## Auto-generated assets
 
-| Script                      | Output path                      | Trigger |
-| --------------------------- | -------------------------------- | ------- |
-| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg`    | Run after floor geometry or labels change. CI refreshes the diagrams post-merge. |
-| `npm run launch:screenshot` | `docs/assets/game-launch.png`    | Run after lighting, HUD, or camera framing changes. CI captures a fresh launch pose on every merge. |
+| Script                      | Output path                   | Trigger                                                                                             |
+| --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after floor geometry or labels change. CI refreshes the diagrams post-merge.                    |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run after lighting, HUD, or camera framing changes. CI captures a fresh launch pose on every merge. |
 
 Regenerate affected assets locally before committing so diffs stay deterministic.
 Document the update in commit messages when budgets or captures shift.
