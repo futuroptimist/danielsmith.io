@@ -14,89 +14,219 @@ import {
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../collision';
 
+const SCREEN_WIDTH = 2048;
+const SCREEN_HEIGHT = 1024;
+const BASE_GLOW_OPACITY = 0.18;
+const EMPHASISED_GLOW_OPACITY = 0.62;
+
+interface MediaWallScreenRendererOptions {
+  starCount: number;
+}
+
+class MediaWallScreenRenderer {
+  private readonly canvas: HTMLCanvasElement;
+  private readonly context: CanvasRenderingContext2D;
+  private readonly texture: CanvasTexture;
+  private highlight = 0;
+  private starCount: number;
+
+  constructor(options: MediaWallScreenRendererOptions) {
+    const canvas = document.createElement('canvas');
+    canvas.width = SCREEN_WIDTH;
+    canvas.height = SCREEN_HEIGHT;
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('Failed to create media wall screen context.');
+    }
+
+    this.canvas = canvas;
+    this.context = context;
+    this.texture = new CanvasTexture(canvas);
+    this.texture.colorSpace = SRGBColorSpace;
+    this.starCount = options.starCount;
+
+    this.render();
+  }
+
+  getTexture(): CanvasTexture {
+    return this.texture;
+  }
+
+  setStarCount(count: number) {
+    if (!Number.isFinite(count) || count < 0) {
+      this.starCount = 0;
+    } else {
+      this.starCount = count;
+    }
+    this.render();
+  }
+
+  updateHighlight(target: number) {
+    const clamped = MathUtils.clamp(target, 0, 1);
+    if (Math.abs(clamped - this.highlight) < 1e-4) {
+      return;
+    }
+    this.highlight = clamped;
+    this.render();
+  }
+
+  dispose() {
+    this.texture.dispose();
+  }
+
+  private render() {
+    this.context.save();
+    this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    this.drawBase();
+    this.drawStarHighlight();
+    this.context.restore();
+    this.texture.needsUpdate = true;
+  }
+
+  private drawBase() {
+    const ctx = this.context;
+    ctx.save();
+    ctx.fillStyle = '#0f1724';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    const baseGradient = ctx.createLinearGradient(
+      0,
+      0,
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT
+    );
+    baseGradient.addColorStop(0, '#182a47');
+    baseGradient.addColorStop(0.55, '#0f233c');
+    baseGradient.addColorStop(1, '#192339');
+    ctx.fillStyle = baseGradient;
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    ctx.globalAlpha = 0.6;
+    const accentGradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, 0);
+    accentGradient.addColorStop(0, 'rgba(75, 217, 255, 0.8)');
+    accentGradient.addColorStop(0.45, 'rgba(83, 146, 255, 0.35)');
+    accentGradient.addColorStop(1, 'rgba(255, 82, 82, 0.6)');
+    ctx.fillStyle = accentGradient;
+
+    const accentX = SCREEN_WIDTH * 0.05;
+    const accentY = SCREEN_HEIGHT * 0.16;
+    const accentWidth = SCREEN_WIDTH * 0.9;
+    const accentHeight = SCREEN_HEIGHT * 0.68;
+    ctx.fillRect(accentX, accentY, accentWidth, accentHeight);
+    ctx.globalAlpha = 1;
+
+    const leftTextAnchor = SCREEN_WIDTH * 0.08;
+    const headerY = SCREEN_HEIGHT * 0.44;
+    const platformY = SCREEN_HEIGHT * 0.62;
+    const taglineY = SCREEN_HEIGHT * 0.74;
+    const episodeY = SCREEN_HEIGHT * 0.84;
+    const rightTextAnchor = SCREEN_WIDTH * 0.92;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 180px "Inter", "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('Futuroptimist', leftTextAnchor, headerY);
+
+    ctx.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
+    ctx.fillStyle = '#ff4c4c';
+    ctx.fillText('YouTube', leftTextAnchor, platformY);
+
+    const tagline =
+      'Designing resilient automation, live devlogs, and deep dives.';
+    ctx.font = '48px "Inter", "Segoe UI", sans-serif';
+    ctx.fillStyle = '#dbe7ff';
+    ctx.fillText(tagline, leftTextAnchor, taglineY);
+
+    const latestEpisode = 'Latest Episode · Async Flywheel Blueprints';
+    ctx.fillStyle = '#9ddcff';
+    ctx.fillText(latestEpisode, leftTextAnchor, episodeY);
+
+    ctx.font = '600 72px "Inter", "Segoe UI", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'right';
+    ctx.fillText('Watch now →', rightTextAnchor, episodeY);
+    ctx.restore();
+  }
+
+  private drawStarHighlight() {
+    const ctx = this.context;
+    const cardWidth = SCREEN_WIDTH * 0.26;
+    const cardHeight = SCREEN_HEIGHT * 0.32;
+    const cardX = SCREEN_WIDTH * 0.62;
+    const cardY = SCREEN_HEIGHT * 0.18;
+    const cardRadius = cardHeight * 0.16;
+
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = 'rgba(12, 26, 44, 0.82)';
+    ctx.beginPath();
+    const x = cardX;
+    const y = cardY;
+    const w = cardWidth;
+    const h = cardHeight;
+    const r = cardRadius;
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+
+    const glowStrength = 0.25 + this.highlight * 0.45;
+    ctx.shadowColor = `rgba(74, 210, 255, ${glowStrength})`;
+    ctx.shadowBlur = 120 * (0.35 + this.highlight * 0.55);
+    ctx.fillStyle = `rgba(74, 210, 255, ${glowStrength})`;
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
+    const iconX = x + w * 0.16;
+    const iconY = y + h * 0.48;
+    const valueX = iconX + w * 0.12;
+    const valueY = y + h * 0.68;
+    const labelY = y + h * 0.86;
+
+    ctx.fillStyle = '#ffdd63';
+    ctx.font = 'bold 92px "Inter", "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('★', iconX, iconY);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 160px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText(this.formatStarCount(), valueX, valueY);
+
+    ctx.fillStyle = '#a7c5ff';
+    ctx.font = '48px "Inter", "Segoe UI", sans-serif';
+    ctx.fillText('GitHub stars', iconX, labelY);
+
+    ctx.restore();
+  }
+
+  private formatStarCount(): string {
+    if (this.starCount >= 1_000_000) {
+      return `${(this.starCount / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (this.starCount >= 1_000) {
+      return `${(this.starCount / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+    return `${Math.round(this.starCount)}`;
+  }
+}
+
 interface MediaWallTextures {
-  screen: CanvasTexture;
+  screen: MediaWallScreenRenderer;
   badge: CanvasTexture;
 }
 
-function createScreenTexture(): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 1024;
-  const context = canvas.getContext('2d');
-
-  if (!context) {
-    throw new Error('Failed to create media wall screen context.');
-  }
-
-  context.save();
-  context.fillStyle = '#0f1724';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  const baseGradient = context.createLinearGradient(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-  baseGradient.addColorStop(0, '#182a47');
-  baseGradient.addColorStop(0.55, '#0f233c');
-  baseGradient.addColorStop(1, '#192339');
-  context.fillStyle = baseGradient;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  context.globalAlpha = 0.6;
-  const accentGradient = context.createLinearGradient(0, 0, canvas.width, 0);
-  accentGradient.addColorStop(0, 'rgba(75, 217, 255, 0.8)');
-  accentGradient.addColorStop(0.45, 'rgba(83, 146, 255, 0.35)');
-  accentGradient.addColorStop(1, 'rgba(255, 82, 82, 0.6)');
-  context.fillStyle = accentGradient;
-
-  const accentX = canvas.width * 0.05;
-  const accentY = canvas.height * 0.16;
-  const accentWidth = canvas.width * 0.9;
-  const accentHeight = canvas.height * 0.68;
-  context.fillRect(accentX, accentY, accentWidth, accentHeight);
-  context.globalAlpha = 1;
-
-  const leftTextAnchor = canvas.width * 0.08;
-  const headerY = canvas.height * 0.44;
-  const platformY = canvas.height * 0.62;
-  const taglineY = canvas.height * 0.74;
-  const episodeY = canvas.height * 0.84;
-  const rightTextAnchor = canvas.width * 0.92;
-
-  context.fillStyle = '#ffffff';
-  context.font = 'bold 180px "Inter", "Segoe UI", sans-serif';
-  context.textAlign = 'left';
-  context.textBaseline = 'alphabetic';
-  context.fillText('Futuroptimist', leftTextAnchor, headerY);
-
-  context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#ff4c4c';
-  context.fillText('YouTube', leftTextAnchor, platformY);
-
-  const tagline =
-    'Designing resilient automation, live devlogs, and deep dives.';
-  context.font = '48px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#dbe7ff';
-  context.fillText(tagline, leftTextAnchor, taglineY);
-
-  const latestEpisode = 'Latest Episode · Async Flywheel Blueprints';
-  context.fillStyle = '#9ddcff';
-  context.fillText(latestEpisode, leftTextAnchor, episodeY);
-
-  context.font = '600 72px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = '#ffffff';
-  context.textAlign = 'right';
-  context.fillText('Watch now →', rightTextAnchor, episodeY);
-
-  context.restore();
-
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.needsUpdate = true;
-  return texture;
+function createScreenRenderer(): MediaWallScreenRenderer {
+  return new MediaWallScreenRenderer({ starCount: 1280 });
 }
 
 function createBadgeTexture(): CanvasTexture {
@@ -151,7 +281,7 @@ function createBadgeTexture(): CanvasTexture {
 
 function getMediaWallTextures(): MediaWallTextures {
   return {
-    screen: createScreenTexture(),
+    screen: createScreenRenderer(),
     badge: createBadgeTexture(),
   };
 }
@@ -165,10 +295,51 @@ export interface LivingRoomMediaWallPoiBindings {
   };
 }
 
+export interface LivingRoomMediaWallController {
+  update(options: { elapsed: number; delta: number; emphasis: number }): void;
+  setStarCount(count: number): void;
+  dispose(): void;
+}
+
 export interface LivingRoomMediaWallBuild {
   group: Group;
   colliders: RectCollider[];
   poiBindings: LivingRoomMediaWallPoiBindings;
+  controller: LivingRoomMediaWallController;
+}
+
+interface MediaWallControllerOptions {
+  screenRenderer: MediaWallScreenRenderer;
+  glowMaterial: MeshBasicMaterial;
+}
+
+function createMediaWallController({
+  screenRenderer,
+  glowMaterial,
+}: MediaWallControllerOptions): LivingRoomMediaWallController {
+  let highlight = 0;
+  return {
+    update({ delta, emphasis }) {
+      const target = MathUtils.clamp(emphasis, 0, 1);
+      highlight = MathUtils.damp(highlight, target, 5.5, delta);
+      const opacity = MathUtils.lerp(
+        BASE_GLOW_OPACITY,
+        EMPHASISED_GLOW_OPACITY,
+        highlight
+      );
+      if (Math.abs(glowMaterial.opacity - opacity) > 1e-3) {
+        glowMaterial.opacity = opacity;
+        glowMaterial.needsUpdate = true;
+      }
+      screenRenderer.updateHighlight(highlight);
+    },
+    setStarCount(count) {
+      screenRenderer.setStarCount(count);
+    },
+    dispose() {
+      screenRenderer.dispose();
+    },
+  };
 }
 
 export function createLivingRoomMediaWall(
@@ -217,7 +388,7 @@ export function createLivingRoomMediaWall(
   const { screen, badge } = getMediaWallTextures();
 
   const screenMaterial = new MeshBasicMaterial({
-    map: screen,
+    map: screen.getTexture(),
     transparent: true,
     toneMapped: false,
   });
@@ -235,7 +406,7 @@ export function createLivingRoomMediaWall(
   const screenGlowMaterial = new MeshBasicMaterial({
     color: new Color(0x3abfff),
     transparent: true,
-    opacity: 0.18,
+    opacity: BASE_GLOW_OPACITY,
     toneMapped: false,
   });
   const screenGlowGeometry = new PlaneGeometry(
@@ -342,5 +513,11 @@ export function createLivingRoomMediaWall(
     },
   };
 
-  return { group, colliders, poiBindings };
+  const controller = createMediaWallController({
+    screenRenderer: screen,
+    glowMaterial: screenGlowMaterial,
+  });
+  controller.setStarCount(1280);
+
+  return { group, colliders, poiBindings, controller };
 }

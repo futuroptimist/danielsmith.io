@@ -66,6 +66,17 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       summary: wrap(
         'Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.'
       ),
+      metrics: [
+        { label: wrap('Stars'), value: wrap('1,280+') },
+        {
+          label: wrap('Workflow'),
+          value: wrap('Resolve-style edit suite · triple display'),
+        },
+        {
+          label: wrap('Focus'),
+          value: wrap('Futuroptimist ecosystem reels in progress'),
+        },
+      ],
     },
   },
 };
