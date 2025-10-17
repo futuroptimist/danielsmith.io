@@ -79,6 +79,10 @@ import {
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
 import {
+  createMotionBlurController,
+  type MotionBlurController,
+} from './scene/graphics/motionBlurController';
+import {
   GRAPHICS_QUALITY_PRESETS,
   createGraphicsQualityManager,
   type GraphicsQualityManager,
@@ -2376,15 +2380,18 @@ function initializeImmersiveScene(
 
   let composer: EffectComposer | null = null;
   let bloomPass: UnrealBloomPass | null = null;
+  let motionBlurController: MotionBlurController | null = null;
 
   hudLayoutManager = createHudLayoutManager({
     root: document.documentElement,
     windowTarget: window,
   });
 
+  composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
   if (LIGHTING_OPTIONS.enableBloom) {
-    composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
     bloomPass = new UnrealBloomPass(
       new Vector2(window.innerWidth, window.innerHeight),
       LIGHTING_OPTIONS.bloomStrength,
@@ -2393,6 +2400,10 @@ function initializeImmersiveScene(
     );
     composer.addPass(bloomPass);
   }
+
+  motionBlurController = createMotionBlurController({ intensity: 0.6 });
+  composer.addPass(motionBlurController.pass);
+  motionBlurController.pass.renderToScreen = true;
 
   let qualityStorage: Storage | undefined;
   try {
@@ -2434,6 +2445,7 @@ function initializeImmersiveScene(
     ledStripMaterials,
     ledFillLights: ledFillLightsList,
     ambientAudioController: ambientAudioController ?? undefined,
+    motionBlurController: motionBlurController ?? undefined,
     storage: accessibilityStorage,
   });
 
@@ -2545,8 +2557,10 @@ function initializeImmersiveScene(
       renderer.setPixelRatio(nextPixelRatio);
     }
 
-    if (composer && bloomPass) {
+    if (composer) {
       composer.setSize(window.innerWidth, window.innerHeight);
+    }
+    if (bloomPass) {
       bloomPass.setSize(window.innerWidth, window.innerHeight);
     }
   }
