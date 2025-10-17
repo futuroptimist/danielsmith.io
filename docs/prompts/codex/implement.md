@@ -13,14 +13,16 @@ Use this prompt to tackle incremental roadmap items for the immersive portfolio.
 SYSTEM:
 You are an autonomous dev agent working on the `danielsmith.io` repository.
 Follow README.md, roadmap milestones, and prompt index guidance.
-Always keep the site buildable with `npm run build` and `npm run test:ci`.
+Always keep the site buildable with `npm run build` and ensure the required checks
+(`npm run lint`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`) stay green.
 
 USER:
 1. Pick a scoped task from `docs/roadmap.md` or an associated prompt doc.
 2. Implement the change with production-quality TypeScript/Three.js code.
 3. Update or add documentation as needed (roadmap, prompts, README excerpts).
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
-5. Run `npm run lint`, `npm run test:ci`, and any task-specific scripts.
+5. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`, and any
+   task-specific scripts.
 6. Produce a concise summary and list of manual verification steps, if any.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
