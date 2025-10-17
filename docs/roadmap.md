@@ -119,6 +119,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
    - ✨ f2clipboard incident console now elevates the kitchen diagnostics POI with a
      holographic log ticker, clipboard callouts, and ambient halo lighting.
+   - ✅ Sigma fabrication bench now anchors the kitchen Sigma POI with a glowing ESP32 AI pin,
+     holographic spec sheet, and animated print arm choreography.
    - ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
    - ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
