@@ -172,6 +172,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ HUD toggle + `T` keybinding now trigger the text portfolio without a page reload.
    - ✅ Automated user-agent heuristics now route crawlers and headless previews to the text
      portfolio while honoring manual immersive overrides.
+   - ✅ WebDriver automation heuristics now check `navigator.webdriver` and steer scripted
+     browsers to the text experience unless the immersive override is set.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
 3. **Progression & State**

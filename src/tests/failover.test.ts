@@ -122,11 +122,32 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes webdriver-flagged clients to text mode when mode is not forced', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getUserAgent: () => undefined,
+      getIsWebDriver: () => true,
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'automated-client',
+    });
+  });
+
   it('does not force fallback for automated client when immersive override is present', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
       createCanvas: canvasFactory,
       getUserAgent: () => 'HeadlessChrome/118.0.0.0',
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('does not force fallback when webdriver flag is set but immersive override is present', () => {
+    const decision = evaluateFailoverDecision({
+      search: IMMERSIVE_SEARCH,
+      createCanvas: canvasFactory,
+      getIsWebDriver: () => true,
     });
     expect(decision).toEqual({ shouldUseFallback: false });
   });
