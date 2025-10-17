@@ -548,7 +548,8 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   border: 0;
 }
 
-.mode-toggle {
+.mode-toggle,
+.tour-reset {
   width: 100%;
   padding: 0.6rem 0.9rem;
   border-radius: 0.5rem;
@@ -570,15 +571,27 @@ html[data-hudLayout='mobile'] .audio-subtitles {
     color 120ms ease;
 }
 
+.tour-reset {
+  font-weight: 600;
+}
+
 .mode-toggle:hover,
-.mode-toggle:focus-visible {
+.mode-toggle:focus-visible,
+.tour-reset:hover,
+.tour-reset:focus-visible {
   border-color: rgba(143, 214, 255, 0.75);
   outline: none;
 }
 
-.mode-toggle[data-state='pending'] {
+.mode-toggle[data-state='pending'],
+.tour-reset[data-state='pending'] {
   cursor: progress;
   opacity: 0.78;
+}
+
+.tour-reset[data-state='empty'] {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .hud-settings {
