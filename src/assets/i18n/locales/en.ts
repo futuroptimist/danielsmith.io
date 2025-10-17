@@ -205,11 +205,16 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     },
     'flywheel-studio-flywheel': {
       title: 'Flywheel Kinetic Hub',
-      summary:
-        'Studio centrepiece celebrating the Flywheel automation template lineage.',
+      summary: [
+        'Kinetic automation hub that accelerates with approach, revealing tech stack glow',
+        'and docs callouts.',
+      ].join(' '),
       metrics: [
-        { label: 'Automation', value: 'CI-ready prompts + scripts' },
-        { label: 'Adoption', value: 'Used across DS portfolio' },
+        {
+          label: 'Automation',
+          value: 'CI scaffolds · typed prompts · QA loops',
+        },
+        { label: 'Docs CTA', value: 'flywheel.futuroptimist.dev →' },
       ],
       links: [
         {
