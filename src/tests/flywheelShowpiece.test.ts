@@ -86,6 +86,12 @@ describe('createFlywheelShowpiece', () => {
     expect(capturedText).toContain('Flywheel Automation');
     expect(capturedText).toContain('Docs');
     expect(capturedText).toContain('flywheel.futuroptimist.dev');
+    expect(capturedText).toContain('CI templates');
+    expect(capturedText).toContain('Typed prompts');
+    expect(capturedText).toContain('Scaffolds');
+    expect(capturedText).toContain('lint · test · deploy');
+    expect(capturedText).toContain('codex-driven flows');
+    expect(capturedText).toContain('vite · playwright');
   });
 
   it('reveals docs callout and accelerates the rotor under emphasis', () => {
@@ -138,5 +144,45 @@ describe('createFlywheelShowpiece', () => {
 
     expect(calloutMaterial.opacity).toBe(0);
     expect(callout.visible).toBe(false);
+  });
+
+  it('reveals tech stack chips and animates their orbit with emphasis', () => {
+    const build = createFlywheelShowpiece({
+      centerX: 0,
+      centerZ: 0,
+      roomBounds,
+    });
+
+    const techStackGroup = build.group.getObjectByName(
+      'FlywheelTechStackGroup'
+    ) as Group;
+    expect(techStackGroup).toBeInstanceOf(Group);
+
+    const wrappers = techStackGroup.children as Group[];
+    expect(wrappers).toHaveLength(3);
+
+    const initialRotations = wrappers.map((wrapper) => wrapper.rotation.y);
+    const materials = wrappers.map((wrapper) => {
+      const chip = wrapper.children[0] as Mesh;
+      return chip.material as MeshBasicMaterial;
+    });
+
+    build.update({ elapsed: 0.25, delta: 0.25, emphasis: 0 });
+    materials.forEach((material) => {
+      expect(material.opacity).toBeLessThan(0.05);
+    });
+
+    build.update({ elapsed: 0.75, delta: 0.5, emphasis: 1 });
+    build.update({ elapsed: 1.4, delta: 0.65, emphasis: 1 });
+
+    wrappers.forEach((wrapper, index) => {
+      expect(wrapper.rotation.y).not.toBeCloseTo(initialRotations[index]);
+      const chip = wrapper.children[0] as Mesh;
+      expect(chip.visible).toBe(true);
+    });
+
+    materials.forEach((material) => {
+      expect(material.opacity).toBeGreaterThan(0.25);
+    });
   });
 });

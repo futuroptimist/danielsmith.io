@@ -114,8 +114,10 @@ Focus: anchor each highlighted project with an interactive artifact.
 2. **Interior Showpieces**
    - ✅ Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching
      triggers a rich text popup with repo summary, star count, and CTA buttons.
-   - Spinning flywheel centerpiece representing the `flywheel` repo; interaction spins faster,
-     reveals tech stack, and links to docs.
+   - ✅ Spinning flywheel centerpiece representing the `flywheel` repo; interaction spins
+     faster, reveals tech stack, and links to docs.
+     - ✨ Orbiting tech-stack chips now fade in with POI emphasis and highlight automation
+       pillars around the rotor.
    - ✅ Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
    - ✨ f2clipboard incident console now elevates the kitchen diagnostics POI with a
      holographic log ticker, clipboard callouts, and ambient halo lighting.
