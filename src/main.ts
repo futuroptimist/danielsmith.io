@@ -205,6 +205,10 @@ import {
   type KeyBindingConfig,
 } from './systems/controls/keyBindings';
 import { KeyboardControls } from './systems/controls/KeyboardControls';
+import {
+  createTourResetControl,
+  type TourResetControlHandle,
+} from './systems/controls/tourResetControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
 import {
   evaluateFailoverDecision,
@@ -540,6 +544,7 @@ function initializeImmersiveScene(
   ledAnimator = null;
 
   let manualModeToggle: ManualModeToggleHandle | null = null;
+  let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
@@ -2372,6 +2377,14 @@ function initializeImmersiveScene(
         }
       },
     });
+
+    tourResetControl = createTourResetControl({
+      container: hudSettingsStack,
+      subscribeVisited: (listener) => poiVisitedState.subscribe(listener),
+      onReset: () => {
+        poiVisitedState.reset();
+      },
+    });
   }
 
   let composer: EffectComposer | null = null;
@@ -2978,6 +2991,10 @@ function initializeImmersiveScene(
     if (manualModeToggle) {
       manualModeToggle.dispose();
       manualModeToggle = null;
+    }
+    if (tourResetControl) {
+      tourResetControl.dispose();
+      tourResetControl = null;
     }
     if (ambientAudioController) {
       ambientAudioController.dispose();
