@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { MotionBlurController } from '../scene/graphics/motionBlurController';
 import type {
   BloomPassLike,
   GraphicsQualityLevel,
@@ -29,6 +30,18 @@ function createStubGraphicsQualityManager(
   };
 }
 
+function createMotionBlurStub(): MotionBlurController {
+  let intensity = 0;
+  return {
+    pass: {} as MotionBlurController['pass'],
+    getIntensity: vi.fn(() => intensity),
+    setIntensity: vi.fn((value: number) => {
+      intensity = value;
+    }),
+    dispose: vi.fn(),
+  };
+}
+
 describe('createAccessibilityPresetManager', () => {
   const restoreDataset = () => {
     delete document.documentElement.dataset.accessibilityPreset;
@@ -36,6 +49,7 @@ describe('createAccessibilityPresetManager', () => {
     delete document.documentElement.dataset.accessibilityContrast;
     delete document.documentElement.dataset.accessibilityPulseScale;
     delete document.documentElement.dataset.accessibilityFlickerScale;
+    delete document.documentElement.dataset.accessibilityMotionBlur;
   };
 
   it('applies stored preset, scales lighting, and adjusts audio', () => {
@@ -72,6 +86,8 @@ describe('createAccessibilityPresetManager', () => {
       setItem: vi.fn(),
     };
 
+    const motionBlur = createMotionBlurStub();
+
     const manager = createAccessibilityPresetManager({
       documentElement: document.documentElement,
       graphicsQualityManager: graphicsManager,
@@ -79,6 +95,7 @@ describe('createAccessibilityPresetManager', () => {
       ledStripMaterials: [ledMaterial],
       ledFillLights: [ledLight],
       ambientAudioController: ambientAudio,
+      motionBlurController: motionBlur,
       storage,
     });
 
@@ -96,6 +113,9 @@ describe('createAccessibilityPresetManager', () => {
     expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
       '0.55'
     );
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe(
+      '0.25'
+    );
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(0.9, 5);
     expect(bloomPass.radius).toBeCloseTo(0.81, 5);
@@ -103,6 +123,7 @@ describe('createAccessibilityPresetManager', () => {
     expect(ledMaterial.emissiveIntensity).toBeCloseTo(0.75, 5);
     expect(ledLight.intensity).toBeCloseTo(0.8, 5);
     expect(masterVolume).toBeCloseTo(0.8, 5);
+    expect(motionBlur.setIntensity).toHaveBeenCalledWith(0.25);
 
     manager.dispose();
     restoreDataset();
@@ -136,11 +157,14 @@ describe('createAccessibilityPresetManager', () => {
       setItem: vi.fn(),
     };
 
+    const motionBlur = createMotionBlurStub();
+
     const manager = createAccessibilityPresetManager({
       documentElement: document.documentElement,
       graphicsQualityManager: graphicsManager,
       bloomPass,
       ambientAudioController: ambientAudio,
+      motionBlurController: motionBlur,
       storage,
     });
 
@@ -160,8 +184,10 @@ describe('createAccessibilityPresetManager', () => {
     expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
       '0'
     );
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe('0');
     expect(bloomPass.enabled).toBe(false);
     expect(masterVolume).toBeCloseTo(0.35, 5);
+    expect(motionBlur.setIntensity).toHaveBeenLastCalledWith(0);
 
     storage.setItem.mockClear();
 
@@ -213,6 +239,7 @@ describe('createAccessibilityPresetManager', () => {
       ledStripMaterials: [ledMaterial],
       ledFillLights: [ledLight],
       ambientAudioController: ambientAudio,
+      motionBlurController: createMotionBlurStub(),
     });
 
     manager.setPreset('high-contrast');
@@ -227,6 +254,9 @@ describe('createAccessibilityPresetManager', () => {
     expect(document.documentElement.dataset.accessibilityPulseScale).toBe('1');
     expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
       '1'
+    );
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe(
+      '0.6'
     );
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(1.32, 5);
@@ -280,6 +310,7 @@ describe('createAccessibilityPresetManager', () => {
       documentElement: document.documentElement,
       graphicsQualityManager: graphicsManager,
       bloomPass,
+      motionBlurController: createMotionBlurStub(),
       storage,
     });
 

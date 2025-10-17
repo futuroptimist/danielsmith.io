@@ -1,3 +1,4 @@
+import type { MotionBlurController } from '../../scene/graphics/motionBlurController';
 import type {
   BloomPassLike,
   GraphicsQualityManager,
@@ -27,6 +28,9 @@ export interface AccessibilityPresetDefinition {
     readonly pulseScale: number;
     readonly flickerScale: number;
   };
+  readonly motionBlur: {
+    readonly intensity: number;
+  };
   readonly bloom: {
     readonly enabled?: BooleanLike;
     readonly strengthScale: number;
@@ -53,6 +57,9 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
       pulseScale: 1,
       flickerScale: 1,
     },
+    motionBlur: {
+      intensity: 0.6,
+    },
     bloom: {
       strengthScale: 1,
       radiusScale: 1,
@@ -77,6 +84,9 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
       pulseScale: 0.65,
       flickerScale: 0.55,
     },
+    motionBlur: {
+      intensity: 0.25,
+    },
     bloom: {
       strengthScale: 0.6,
       radiusScale: 0.9,
@@ -100,6 +110,9 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
       pulseScale: 1,
       flickerScale: 1,
     },
+    motionBlur: {
+      intensity: 0.6,
+    },
     bloom: {
       strengthScale: 1.1,
       radiusScale: 1,
@@ -122,6 +135,9 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
     animation: {
       pulseScale: 0,
       flickerScale: 0,
+    },
+    motionBlur: {
+      intensity: 0,
     },
     bloom: {
       enabled: false,
@@ -163,6 +179,7 @@ export interface AccessibilityPresetManagerOptions {
   ledStripMaterials?: Iterable<LedMaterialLike>;
   ledFillLights?: Iterable<LedLightLike>;
   ambientAudioController?: AmbientAudioControllerLike | null;
+  motionBlurController?: MotionBlurController | null;
   storage?: Pick<Storage, 'getItem' | 'setItem'> | null;
   storageKey?: string;
 }
@@ -251,6 +268,7 @@ export function createAccessibilityPresetManager({
   ledStripMaterials,
   ledFillLights,
   ambientAudioController,
+  motionBlurController,
   storage,
   storageKey = DEFAULT_STORAGE_KEY,
 }: AccessibilityPresetManagerOptions): AccessibilityPresetManager {
@@ -292,6 +310,9 @@ export function createAccessibilityPresetManager({
     );
     documentElement.dataset.accessibilityFlickerScale = String(
       definition.animation.flickerScale
+    );
+    documentElement.dataset.accessibilityMotionBlur = String(
+      clamp01(definition.motionBlur.intensity)
     );
   };
 
@@ -336,10 +357,16 @@ export function createAccessibilityPresetManager({
     ambientAudioController.setMasterVolume(effectiveVolume);
   };
 
+  const applyMotionBlur = (definition: AccessibilityPresetDefinition) => {
+    const intensity = clamp01(definition.motionBlur.intensity);
+    motionBlurController?.setIntensity(intensity);
+  };
+
   const applyPreset = (definition: AccessibilityPresetDefinition) => {
     applyDocumentAttributes(definition);
     applyBloomAndLighting(definition);
     applyAudio(definition);
+    applyMotionBlur(definition);
   };
 
   const persistState = () => {
