@@ -152,6 +152,10 @@ import {
   type SelfieMirrorBuild,
 } from './scene/structures/selfieMirror';
 import {
+  createSigmaWorkbench,
+  type SigmaWorkbenchBuild,
+} from './scene/structures/sigmaWorkbench';
+import {
   createStaircase,
   type StaircaseConfig,
 } from './scene/structures/staircase';
@@ -446,6 +450,7 @@ const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let f2ClipboardConsole: F2ClipboardConsoleBuild | null = null;
+let sigmaWorkbench: SigmaWorkbenchBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
@@ -1294,6 +1299,9 @@ function initializeImmersiveScene(
   const f2ClipboardPoi = poiInstances.find(
     (poi) => poi.definition.id === 'f2clipboard-kitchen-console'
   );
+  const sigmaPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'sigma-kitchen-workbench'
+  );
   const axelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'axel-studio-tracker'
   );
@@ -1310,6 +1318,8 @@ function initializeImmersiveScene(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
+  const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
+  const kitchenBounds = kitchenRoom?.bounds;
   if (studioRoom) {
     const centerX =
       flywheelPoi?.group.position.x ??
@@ -1420,20 +1430,18 @@ function initializeImmersiveScene(
   }
 
   if (f2ClipboardPoi) {
-    const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
-    const bounds = kitchenRoom?.bounds;
-    const consoleX = bounds
+    const consoleX = kitchenBounds
       ? MathUtils.clamp(
           f2ClipboardPoi.group.position.x,
-          bounds.minX + 0.8,
-          bounds.maxX - 0.8
+          kitchenBounds.minX + 0.8,
+          kitchenBounds.maxX - 0.8
         )
       : f2ClipboardPoi.group.position.x;
-    const consoleZ = bounds
+    const consoleZ = kitchenBounds
       ? MathUtils.clamp(
           f2ClipboardPoi.group.position.z,
-          bounds.minZ + 0.8,
-          bounds.maxZ - 0.8
+          kitchenBounds.minZ + 0.8,
+          kitchenBounds.maxZ - 0.8
         )
       : f2ClipboardPoi.group.position.z;
     const console = createF2ClipboardConsole({
@@ -1447,6 +1455,34 @@ function initializeImmersiveScene(
     scene.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     f2ClipboardConsole = console;
+  }
+
+  if (sigmaPoi) {
+    const benchX = kitchenBounds
+      ? MathUtils.clamp(
+          sigmaPoi.group.position.x,
+          kitchenBounds.minX + 0.9,
+          kitchenBounds.maxX - 0.9
+        )
+      : sigmaPoi.group.position.x;
+    const benchZ = kitchenBounds
+      ? MathUtils.clamp(
+          sigmaPoi.group.position.z,
+          kitchenBounds.minZ + 0.9,
+          kitchenBounds.maxZ - 0.9
+        )
+      : sigmaPoi.group.position.z;
+    const workbench = createSigmaWorkbench({
+      position: {
+        x: benchX,
+        y: sigmaPoi.group.position.y,
+        z: benchZ,
+      },
+      orientationRadians: sigmaPoi.group.rotation.y ?? 0,
+    });
+    scene.add(workbench.group);
+    workbench.colliders.forEach((collider) => groundColliders.push(collider));
+    sigmaWorkbench = workbench;
   }
 
   const poiInteractionManager = new PoiInteractionManager(
@@ -3061,6 +3097,7 @@ function initializeImmersiveScene(
     }
     flywheelShowpiece = null;
     f2ClipboardConsole = null;
+    sigmaWorkbench = null;
     jobbotTerminal = null;
     axelNavigator = null;
     tokenPlaceRack = null;
@@ -3154,6 +3191,15 @@ function initializeImmersiveScene(
         const activation = f2ClipboardPoi?.activation ?? 0;
         const focus = f2ClipboardPoi?.focus ?? 0;
         f2ClipboardConsole.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (sigmaWorkbench) {
+        const activation = sigmaPoi?.activation ?? 0;
+        const focus = sigmaPoi?.focus ?? 0;
+        sigmaWorkbench.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
