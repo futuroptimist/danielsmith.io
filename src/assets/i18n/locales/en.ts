@@ -221,7 +221,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           label: 'Flywheel Repo',
           href: 'https://github.com/futuroptimist/flywheel',
         },
-        { label: 'Docs', href: 'https://flywheel.futuroptimist.dev' },
+        {
+          label: 'Docs',
+          href: 'https://flywheel.futuroptimist.dev',
+          featured: true,
+        },
       ],
       narration: {
         caption:

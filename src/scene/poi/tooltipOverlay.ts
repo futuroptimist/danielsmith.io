@@ -239,6 +239,13 @@ export class PoiTooltipOverlay {
       anchor.rel = 'noopener noreferrer';
       anchor.textContent = link.label;
 
+      if (link.featured) {
+        anchor.classList.add('poi-tooltip-overlay__link--featured');
+        anchor.setAttribute('aria-current', 'page');
+        anchor.dataset.featuredLink = 'true';
+        item.dataset.featuredLink = 'true';
+      }
+
       item.appendChild(anchor);
       this.linksList.appendChild(item);
     }

@@ -26,6 +26,11 @@ export interface PoiMetric {
 export interface PoiLink {
   label: string;
   href: string;
+  /**
+   * Flag primary call-to-action links so overlays can spotlight critical CTAs
+   * (e.g., repo docs) with additional styling and accessibility affordances.
+   */
+  featured?: boolean;
 }
 
 export interface PoiNarration {

@@ -1137,6 +1137,27 @@ html[data-hudLayout='mobile'] .audio-subtitles {
     border-color 120ms ease;
 }
 
+.poi-tooltip-overlay__link--featured {
+  color: #e6f7ff;
+  border-bottom-color: rgba(230, 247, 255, 0.7);
+  font-weight: 600;
+  text-shadow: 0 0 6px rgba(92, 202, 255, 0.5);
+}
+
+.poi-tooltip-overlay__link--featured::after {
+  content: 'Primary';
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.4rem;
+  background: rgba(76, 200, 255, 0.18);
+  border: 1px solid rgba(76, 200, 255, 0.42);
+  color: rgba(214, 244, 255, 0.95);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .poi-tooltip-overlay__link:focus,
 .poi-tooltip-overlay__link:hover {
   color: #d4f2ff;

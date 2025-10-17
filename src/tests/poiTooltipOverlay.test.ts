@@ -216,6 +216,48 @@ describe('PoiTooltipOverlay', () => {
     expect(liveRegion.textContent).toContain(`${nextPoi.title} discovered.`);
   });
 
+  it('spotlights featured links with CTA styling and aria-current metadata', () => {
+    const poiWithFeaturedLink: PoiDefinition = {
+      ...basePoi,
+      id: 'flywheel-studio-flywheel',
+      links: [
+        {
+          label: 'Flywheel Repo',
+          href: 'https://github.com/futuroptimist/flywheel',
+        },
+        {
+          label: 'Docs',
+          href: 'https://flywheel.futuroptimist.dev',
+          featured: true,
+        },
+      ],
+    };
+
+    overlay.setSelected(poiWithFeaturedLink);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const links = root.querySelectorAll<HTMLAnchorElement>(
+      '.poi-tooltip-overlay__link'
+    );
+
+    expect(links).toHaveLength(2);
+    const featuredLink = Array.from(links).find(
+      (anchor) => anchor.dataset.featuredLink === 'true'
+    );
+    expect(
+      featuredLink?.classList.contains('poi-tooltip-overlay__link--featured')
+    ).toBe(true);
+    expect(featuredLink?.getAttribute('aria-current')).toBe('page');
+
+    const nonFeaturedLink = Array.from(links).find(
+      (anchor) => anchor.dataset.featuredLink !== 'true'
+    );
+    expect(
+      nonFeaturedLink?.classList.contains('poi-tooltip-overlay__link--featured')
+    ).toBe(false);
+    expect(nonFeaturedLink?.hasAttribute('aria-current')).toBe(false);
+  });
+
   it('supports custom discovery formatter and politeness levels', () => {
     overlay.dispose();
     timelineHarness.dispose();
