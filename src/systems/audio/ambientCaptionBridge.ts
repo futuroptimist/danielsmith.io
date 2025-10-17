@@ -21,6 +21,18 @@ const DEFAULT_COOLDOWN_MS = 8000;
 
 const DEFAULT_THRESHOLD = 0.18;
 
+const DEFAULT_CAPTION_PRIORITY = 1;
+
+const resolveCaptionPriority = (value: number | undefined): number => {
+  if (typeof value !== 'number') {
+    return DEFAULT_CAPTION_PRIORITY;
+  }
+  if (!Number.isFinite(value)) {
+    return DEFAULT_CAPTION_PRIORITY;
+  }
+  return value;
+};
+
 export class AmbientCaptionBridge {
   private readonly controller: AmbientAudioController;
 
@@ -94,7 +106,7 @@ export class AmbientCaptionBridge {
           id: messageId,
           text: caption,
           source: 'ambient',
-          priority: 1,
+          priority: resolveCaptionPriority(definition.captionPriority),
         });
 
         const updatedMessage = this.subtitles.getCurrent();

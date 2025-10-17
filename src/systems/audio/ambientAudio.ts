@@ -20,6 +20,8 @@ export interface AmbientAudioBedDefinition {
   caption?: string;
   /** Minimum rendered volume before the caption is considered audible. Defaults to 0.18. */
   captionThreshold?: number;
+  /** Priority forwarded to the subtitles overlay when this bed becomes audible. */
+  captionPriority?: number;
 }
 
 export interface AmbientAudioBedSnapshot {

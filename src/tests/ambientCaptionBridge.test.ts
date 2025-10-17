@@ -89,6 +89,7 @@ describe('AmbientCaptionBridge', () => {
     controller.setVolume(0.3);
     bridge.update();
     expect(show).toHaveBeenCalledTimes(1);
+    expect(show.mock.calls[0][0].priority).toBe(1);
 
     bridge.update();
     expect(show).toHaveBeenCalledTimes(1);
@@ -233,5 +234,102 @@ describe('AmbientCaptionBridge priority handling', () => {
     bridge.update();
     expect(show).toHaveBeenCalledTimes(3);
     expect(current?.id).toBe('ambient-hum');
+  });
+
+  it('uses bed-defined caption priority values when available', () => {
+    const controller = new FakeController({
+      id: 'hum',
+      center: { x: 0, z: 0 },
+      innerRadius: 1,
+      outerRadius: 4,
+      baseVolume: 0.4,
+      source: fakeSource,
+      caption: 'Soft hum fills the room.',
+      captionPriority: 5,
+    });
+
+    let current: AudioSubtitleMessage | null = {
+      id: 'poi-1',
+      source: 'poi',
+      text: 'POI narration',
+      priority: 2,
+    };
+
+    const show = vi.fn((message: AudioSubtitleMessage) => {
+      const nextPriority = message.priority ?? 0;
+      const currentPriority = current?.priority ?? 0;
+      if (
+        current &&
+        current.id !== message.id &&
+        nextPriority < currentPriority
+      ) {
+        return;
+      }
+      current = { ...message, priority: nextPriority };
+    });
+
+    const subtitles = {
+      show,
+      clear: vi.fn(() => {
+        current = null;
+      }),
+      dispose: vi.fn(),
+      getCurrent: vi.fn(() => current),
+    };
+
+    const bridge = new AmbientCaptionBridge({
+      controller,
+      subtitles,
+      cooldownMs: 0,
+      now: () => 0,
+    });
+
+    controller.setVolume(0.3);
+    bridge.update();
+
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(current?.id).toBe('ambient-hum');
+    expect(current?.priority).toBe(5);
+  });
+
+  it('falls back to default priority when captionPriority is invalid', () => {
+    const controller = new FakeController({
+      id: 'hum',
+      center: { x: 0, z: 0 },
+      innerRadius: 1,
+      outerRadius: 4,
+      baseVolume: 0.4,
+      source: fakeSource,
+      caption: 'Soft hum fills the room.',
+      // Deliberately pass NaN to verify sanitisation.
+      captionPriority: Number.NaN,
+    });
+
+    let current: AudioSubtitleMessage | null = null;
+    const show = vi.fn((message: AudioSubtitleMessage) => {
+      current = { ...message };
+    });
+
+    const subtitles = {
+      show,
+      clear: vi.fn(() => {
+        current = null;
+      }),
+      dispose: vi.fn(),
+      getCurrent: vi.fn(() => current),
+    };
+
+    const bridge = new AmbientCaptionBridge({
+      controller,
+      subtitles,
+      cooldownMs: 0,
+      now: () => 0,
+    });
+
+    controller.setVolume(0.3);
+    bridge.update();
+
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(show.mock.calls[0][0].priority).toBe(1);
   });
 });
