@@ -300,7 +300,8 @@ export function createF2ClipboardConsole(
     );
 
     const tickerTarget =
-      MathUtils.lerp(0.16, 0.82, emphasis) * MathUtils.lerp(0.25, 1, pulseScale);
+      MathUtils.lerp(0.16, 0.82, emphasis) *
+      MathUtils.lerp(0.25, 1, pulseScale);
     tickerMaterial.opacity = MathUtils.lerp(
       tickerMaterial.opacity,
       tickerTarget,

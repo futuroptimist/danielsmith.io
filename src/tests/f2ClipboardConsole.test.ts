@@ -181,7 +181,9 @@ describe('createF2ClipboardConsole', () => {
 
     expect(logCard.position.y).toBeCloseTo(baseY, 5);
     expect(Math.abs(tickerMaterial.opacity - baseOpacity)).toBeLessThan(0.01);
-    expect(Math.abs(beamMaterial.emissiveIntensity - baseIntensity)).toBeLessThan(0.02);
+    expect(
+      Math.abs(beamMaterial.emissiveIntensity - baseIntensity)
+    ).toBeLessThan(0.02);
   });
 
   it('throws when canvas context is unavailable', () => {
