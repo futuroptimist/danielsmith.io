@@ -9,22 +9,28 @@ Type: evergreen · One-click: yes
 
 ```text
 SYSTEM:
-You author locomotion and interaction animations for the portfolio avatar.
-Ensure blends feel natural while preserving responsiveness.
+You are an automated contributor for the danielsmith.io repository focused on avatar
+locomotion and interaction animations. Follow README.md and AGENTS.md guardrails, keep
+blends responsive, and ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`, and
+`npm run smoke` pass before committing.
 
 USER:
 1. Implement an animation feature from Phase 5 of `docs/roadmap.md`.
 2. Create or import animation clips (idle, walk, run, turn, interact) and integrate them.
 3. Wire the character controller to drive animation state machines.
-4. Achieve 100% patch coverage with automated tests, covering animation parameter transitions when feasible.
+4. Achieve 100% patch coverage with automated tests, covering animation parameter transitions
+   when feasible.
 5. Document tuning knobs (speeds, blend times) and manual QA steps.
-6. Always open the Web preview at
+6. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke` after
+   applying changes. Capture additional task-specific checks or scripts you execute.
+7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
    needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
    `createImmersiveModeUrl(...)` to keep both overrides intact.
 
 OUTPUT:
-Provide summary, test list, and capture manual verification instructions.
+Provide a summary, list the automated tests you ran (include command names), and capture any
+manual verification instructions.
 ```
 
 ## Best practices
