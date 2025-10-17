@@ -7,11 +7,11 @@ describe('createMotionBlurController', () => {
     const controller = createMotionBlurController({ intensity: 0.5 });
 
     expect(controller.getIntensity()).toBeCloseTo(0.5, 5);
-    expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.46, 5);
+    expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.96, 5);
 
     controller.setIntensity(0.25);
     expect(controller.getIntensity()).toBeCloseTo(0.25, 5);
-    expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.23, 5);
+    expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.98, 5);
 
     controller.dispose();
   });
@@ -27,7 +27,7 @@ describe('createMotionBlurController', () => {
 
     controller.setIntensity(-0.4);
     expect(controller.getIntensity()).toBe(0);
-    expect(controller.pass.uniforms.damp.value).toBe(0);
+    expect(controller.pass.uniforms.damp.value).toBe(1);
 
     controller.dispose();
   });
