@@ -257,6 +257,62 @@ export function createFlywheelShowpiece(
     orbitGroup.add(wrapper);
   }
 
+  const techStackGroup = new Group();
+  techStackGroup.name = 'FlywheelTechStackGroup';
+  techStackGroup.position.copy(rotorGroup.position);
+  group.add(techStackGroup);
+
+  const techStackItems = [
+    {
+      label: 'CI templates',
+      caption: 'lint · test · deploy',
+      accent: '#56d7ff',
+    },
+    {
+      label: 'Typed prompts',
+      caption: 'codex-driven flows',
+      accent: '#63e1ff',
+    },
+    {
+      label: 'Scaffolds',
+      caption: 'vite · playwright',
+      accent: '#71e9ff',
+    },
+  ];
+
+  const techStackRadius = rotorRingRadius * 1.32;
+  const techStackGeometry = new PlaneGeometry(0.72, 0.28);
+  const techStackChips: {
+    wrapper: Group;
+    mesh: Mesh;
+    material: MeshBasicMaterial;
+  }[] = [];
+
+  techStackItems.forEach((item, index) => {
+    const texture = createFlywheelTechStackChipTexture(item);
+    const material = new MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    const mesh = new Mesh(techStackGeometry, material);
+    mesh.name = `FlywheelTechStackChip:${index}`;
+    mesh.position.set(techStackRadius, 0.22, 0);
+    mesh.lookAt(0, mesh.position.y, 0);
+    mesh.rotateY(Math.PI);
+    mesh.renderOrder = 18;
+    mesh.visible = false;
+
+    const wrapper = new Group();
+    wrapper.name = `FlywheelTechStackChipWrapper:${index}`;
+    wrapper.rotation.y = (Math.PI * 2 * index) / techStackItems.length;
+    wrapper.add(mesh);
+    techStackGroup.add(wrapper);
+
+    techStackChips.push({ wrapper, mesh, material });
+  });
+
   const kioskWidth = 0.6;
   const orientation = options.orientationRadians ?? 0;
   const panelRadius = daisRadius + 0.48;
@@ -376,6 +432,7 @@ export function createFlywheelShowpiece(
   let spinVelocity = 0.6;
   let infoReveal = 0.08;
   let calloutPhase = 0;
+  let techStackReveal = 0.04;
 
   function update(context: {
     elapsed: number;
@@ -445,6 +502,29 @@ export function createFlywheelShowpiece(
     orbitGroup.children.forEach((wrapper, index) => {
       wrapper.rotation.y =
         context.elapsed * 0.65 + (Math.PI * 2 * index) / orbitCount;
+    });
+
+    techStackReveal = MathUtils.lerp(
+      techStackReveal,
+      MathUtils.lerp(0.04, 1, context.emphasis),
+      smoothing
+    );
+    const chipOpacity = MathUtils.lerp(0, 0.96, context.emphasis);
+    const chipOrbitSpeed = MathUtils.lerp(0.3, 0.85, context.emphasis);
+    techStackChips.forEach((chip, index) => {
+      const baseAngle = (Math.PI * 2 * index) / techStackChips.length;
+      chip.wrapper.rotation.y = context.elapsed * chipOrbitSpeed + baseAngle;
+      chip.mesh.position.y =
+        MathUtils.lerp(0.18, 0.34, context.emphasis) +
+        Math.sin(context.elapsed * 1.2 + index) * 0.05;
+      const targetOpacity =
+        MathUtils.clamp(techStackReveal, 0, 1) * chipOpacity;
+      chip.material.opacity = MathUtils.lerp(
+        chip.material.opacity,
+        targetOpacity,
+        smoothing
+      );
+      chip.mesh.visible = chip.material.opacity > 0.02;
     });
   }
 
@@ -555,6 +635,52 @@ function createFlywheelDocsCalloutTexture(): CanvasTexture {
   context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#67d2ff';
   context.fillText('→', canvas.width - 64, canvas.height * 0.58);
+  context.restore();
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createFlywheelTechStackChipTexture(item: {
+  label: string;
+  caption: string;
+  accent: string;
+}): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create tech stack chip canvas.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.fillStyle = 'rgba(10, 24, 38, 0.92)';
+  roundRect(context, 28, 36, canvas.width - 56, canvas.height - 72, 42);
+  context.fill();
+  context.strokeStyle = `${item.accent}cc`;
+  context.lineWidth = 6;
+  context.stroke();
+  context.restore();
+
+  context.save();
+  context.fillStyle = item.accent;
+  context.fillRect(52, canvas.height - 78, canvas.width - 104, 12);
+  context.restore();
+
+  context.save();
+  context.fillStyle = '#e7f7ff';
+  context.font = 'bold 104px "Inter", "Segoe UI", sans-serif';
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+  context.fillText(item.label, 64, canvas.height * 0.56);
+
+  context.font = '600 52px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = '#a4ebff';
+  context.fillText(item.caption, 64, canvas.height * 0.78);
   context.restore();
 
   const texture = new CanvasTexture(canvas);
