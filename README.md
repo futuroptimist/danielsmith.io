@@ -171,7 +171,8 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
   live region announcements so discovery prompts never rapid-fire when players browse exhibits.
   Metadata is authored in TypeScript so future automations
   can extend exhibits by updating data alone, and the studio desk now hosts a Jobbot holographic
-  terminal that pulses in sync with the new automation POI. The living room's gitshelves array now
+  terminal with orbiting telemetry shards that pulse in sync with the automation POI. The living
+  room's gitshelves array now
   extrudes nightly commit streaks into illuminated shelving mosaics with sync signage overhead.
 - **Localization** – UI chrome and POI copy are centralized in `src/assets/i18n/index.ts`, letting future
   locales load structured strings while keeping Vitest coverage in
