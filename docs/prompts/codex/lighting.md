@@ -13,12 +13,15 @@ You are refining lighting for the `danielsmith.io` Three.js experience.
 Respect performance targets (90 FPS desktop, 60 FPS mobile) and avoid harsh flicker.
 
 USER:
-1. Implement a lighting upgrade from Phase 1 or 2 in `docs/roadmap.md`.
-2. Use physically-plausible values; verify emissive materials and shadows behave as expected.
-3. Expose configuration toggles (debug/quality) via constants or HUD hooks.
+1. Implement a lighting upgrade sourced from Phase 1 or 2 of `docs/roadmap.md`.
+2. Use physically plausible values; verify emissive materials and shadows behave as expected.
+3. Expose cinematic/debug toggles via `src/scene/lighting/debugControls.ts` or HUD wiring so the
+   team can flip modes without touching code.
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
-5. Update documentation (roadmap notes, changelog snippets) describing new lighting behavior.
-6. Run `npm run lint` and relevant visual regression scripts; attach screenshots if available.
+5. Record before/after notes in `docs/roadmap.md` or `docs/backlog.md`, and stash visual evidence
+   under `docs/media/` when available.
+6. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke`; attach
+   immersive screenshots when they help reviewers.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
    needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
