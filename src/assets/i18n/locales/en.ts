@@ -159,6 +159,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       summary:
         'Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.',
       metrics: [
+        { label: 'Stars', value: '1,280+' },
         {
           label: 'Workflow',
           value: 'Resolve-style edit suite · triple display',

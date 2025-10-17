@@ -112,8 +112,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ Registry validation enforces room bounds, unique ids, and safe spacing at build time.
    - ✅ Touch interactions now share the pointer pipeline so mobile taps mirror desktop focus.
 2. **Interior Showpieces**
-   - Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching triggers
-     a rich text popup with repo summary, star count, and CTA buttons.
+   - ✅ Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching
+     triggers a rich text popup with repo summary, star count, and CTA buttons.
    - Spinning flywheel centerpiece representing the `flywheel` repo; interaction spins faster,
      reveals tech stack, and links to docs.
    - Studio desk with holographic terminal referencing `jobbot3000` automation lineage.

@@ -131,7 +131,10 @@ import {
   createJobbotTerminal,
   type JobbotTerminalBuild,
 } from './scene/structures/jobbotTerminal';
-import { createLivingRoomMediaWall } from './scene/structures/mediaWall';
+import {
+  createLivingRoomMediaWall,
+  type LivingRoomMediaWallBuild,
+} from './scene/structures/mediaWall';
 import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
@@ -439,6 +442,7 @@ let tokenPlaceRack: TokenPlaceRackBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
+let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
@@ -764,6 +768,7 @@ function initializeImmersiveScene(
     const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
     scene.add(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
+    livingRoomMediaWall = mediaWall;
 
     const tvBinding = mediaWall.poiBindings.futuroptimistTv;
     const tvHitArea = tvBinding.screen.clone();
@@ -1267,6 +1272,9 @@ function initializeImmersiveScene(
     }
   );
 
+  const futuroptimistPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'futuroptimist-living-room-tv'
+  );
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
   );
@@ -2983,6 +2991,10 @@ function initializeImmersiveScene(
       locomotionAngularSpeed = 0;
     }
     controls.dispose();
+    if (livingRoomMediaWall) {
+      livingRoomMediaWall.controller.dispose();
+      livingRoomMediaWall = null;
+    }
     if (selfieMirror) {
       selfieMirror.dispose();
       selfieMirror = null;
@@ -3052,6 +3064,15 @@ function initializeImmersiveScene(
       if (ambientAudioController) {
         ambientAudioController.update(player.position, delta);
         ambientCaptionBridge?.update();
+      }
+      if (livingRoomMediaWall) {
+        const activation = futuroptimistPoi?.activation ?? 0;
+        const focus = futuroptimistPoi?.focus ?? 0;
+        livingRoomMediaWall.controller.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
       }
       if (flywheelShowpiece) {
         const activation = flywheelPoi?.activation ?? 0;
