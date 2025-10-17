@@ -14,6 +14,7 @@ type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 
 type DeviceMemoryReader = () => number | undefined;
 type UserAgentReader = () => string | undefined;
+type WebDriverReader = () => boolean | undefined;
 
 export type FallbackReason =
   | 'webgl-unsupported'
@@ -65,6 +66,7 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   getDeviceMemory?: DeviceMemoryReader;
   minimumDeviceMemory?: number;
   getUserAgent?: UserAgentReader;
+  getIsWebDriver?: WebDriverReader;
 }
 
 export interface FailoverDecision {
@@ -77,6 +79,7 @@ interface NavigatorWithDeviceMemory extends Navigator {
 }
 
 type NavigatorWithUserAgent = Navigator & { userAgent?: string };
+type NavigatorWithWebDriver = Navigator & { webdriver?: boolean };
 
 function getNavigatorDeviceMemory(): number | undefined {
   if (typeof navigator === 'undefined') {
@@ -96,6 +99,14 @@ function getNavigatorUserAgent(): string | undefined {
   return typeof reported === 'string' && reported.length > 0
     ? reported
     : undefined;
+}
+
+function getNavigatorWebDriver(): boolean | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  const reported = (navigator as NavigatorWithWebDriver).webdriver;
+  return typeof reported === 'boolean' ? reported : undefined;
 }
 
 const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
@@ -141,6 +152,10 @@ export function evaluateFailoverDecision(
 
   const readUserAgent = options.getUserAgent ?? getNavigatorUserAgent;
   const userAgent = readUserAgent();
+  const readIsWebDriver = options.getIsWebDriver ?? getNavigatorWebDriver;
+  const isWebDriver = readIsWebDriver() ?? false;
+  const automatedByUserAgent =
+    !!userAgent && shouldForceTextModeForUserAgent(userAgent);
 
   if (mode === 'text') {
     return { shouldUseFallback: true, reason: 'manual' };
@@ -152,11 +167,7 @@ export function evaluateFailoverDecision(
 
   const webglSupported = isWebglSupported(options);
 
-  if (
-    (!mode || mode.length === 0) &&
-    userAgent &&
-    shouldForceTextModeForUserAgent(userAgent)
-  ) {
+  if ((!mode || mode.length === 0) && (automatedByUserAgent || isWebDriver)) {
     return { shouldUseFallback: true, reason: 'automated-client' };
   }
 
