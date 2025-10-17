@@ -54,6 +54,7 @@ export function createFlywheelShowpiece(
     metalness: 0.18,
   });
   const dais = new Mesh(daisGeometry, daisMaterial);
+  dais.name = 'FlywheelDais';
   dais.position.set(options.centerX, daisHeight / 2, options.centerZ);
   group.add(dais);
 
@@ -71,6 +72,7 @@ export function createFlywheelShowpiece(
     metalness: 0.24,
   });
   const pedestal = new Mesh(pedestalGeometry, pedestalMaterial);
+  pedestal.name = 'FlywheelPedestal';
   pedestal.position.set(
     options.centerX,
     daisHeight + pedestalHeight / 2,
@@ -93,6 +95,7 @@ export function createFlywheelShowpiece(
     metalness: 0.42,
   });
   const accent = new Mesh(accentGeometry, accentMaterial);
+  accent.name = 'FlywheelAccent';
   accent.position.set(
     options.centerX,
     daisHeight + pedestalHeight + accentHeight / 2,
@@ -118,6 +121,7 @@ export function createFlywheelShowpiece(
     metalness: 0.05,
   });
   const glass = new Mesh(glassGeometry, glassMaterial);
+  glass.name = 'FlywheelGlass';
   glass.position.set(
     options.centerX,
     daisHeight + pedestalHeight + glassHeight / 2,
@@ -126,6 +130,7 @@ export function createFlywheelShowpiece(
   group.add(glass);
 
   const rotorGroup = new Group();
+  rotorGroup.name = 'FlywheelRotorGroup';
   rotorGroup.position.set(
     options.centerX,
     daisHeight + pedestalHeight + glassHeight * 0.36,
@@ -149,6 +154,7 @@ export function createFlywheelShowpiece(
     metalness: 0.5,
   });
   const rotorRing = new Mesh(rotorRingGeometry, rotorRingMaterial);
+  rotorRing.name = 'FlywheelRotorRing';
   rotorRing.rotation.x = Math.PI / 2;
   rotorGroup.add(rotorRing);
 
@@ -159,10 +165,12 @@ export function createFlywheelShowpiece(
     metalness: 0.3,
   });
   const innerDisc = new Mesh(innerDiscGeometry, innerDiscMaterial);
+  innerDisc.name = 'FlywheelInnerDisc';
   innerDisc.rotation.x = Math.PI / 2;
   rotorGroup.add(innerDisc);
 
   const spokesGroup = new Group();
+  spokesGroup.name = 'FlywheelSpokesGroup';
   rotorGroup.add(spokesGroup);
   const spokeCount = 6;
   const spokeLength = rotorRingRadius * 1.6;
@@ -185,6 +193,7 @@ export function createFlywheelShowpiece(
   }
 
   const counterGroup = new Group();
+  counterGroup.name = 'FlywheelCounterGroup';
   counterGroup.position.copy(rotorGroup.position);
   group.add(counterGroup);
 
@@ -202,6 +211,7 @@ export function createFlywheelShowpiece(
     metalness: 0.38,
   });
   const counterRing = new Mesh(counterRingGeometry, counterRingMaterial);
+  counterRing.name = 'FlywheelCounterRing';
   counterRing.rotation.x = Math.PI / 2;
   counterGroup.add(counterRing);
 
@@ -219,10 +229,12 @@ export function createFlywheelShowpiece(
     depthWrite: false,
   });
   const glyphRing = new Mesh(glyphRingGeometry, glyphRingMaterial);
+  glyphRing.name = 'FlywheelGlyphRing';
   glyphRing.rotation.x = Math.PI / 2;
   counterGroup.add(glyphRing);
 
   const orbitGroup = new Group();
+  orbitGroup.name = 'FlywheelOrbitGroup';
   orbitGroup.position.copy(rotorGroup.position);
   group.add(orbitGroup);
 
@@ -261,6 +273,7 @@ export function createFlywheelShowpiece(
     options.roomBounds.maxZ - kioskWidth / 2
   );
   const infoPanelGroup = new Group();
+  infoPanelGroup.name = 'FlywheelInfoPanelGroup';
   infoPanelGroup.position.set(clampedPanelX, daisHeight + 0.62, clampedPanelZ);
   infoPanelGroup.lookAt(options.centerX, daisHeight + 0.62, options.centerZ);
   infoPanelGroup.rotateY(Math.PI);
@@ -275,6 +288,7 @@ export function createFlywheelShowpiece(
   });
   const panelGeometry = new PlaneGeometry(1.8, 1);
   const panel = new Mesh(panelGeometry, panelMaterial);
+  panel.name = 'FlywheelInfoPanel';
   panel.position.y = 0.4;
   panel.renderOrder = 14;
   infoPanelGroup.add(panel);
@@ -288,6 +302,7 @@ export function createFlywheelShowpiece(
     metalness: 0.12,
   });
   const panelBacker = new Mesh(panelBackerGeometry, panelBackerMaterial);
+  panelBacker.name = 'FlywheelInfoPanelBacker';
   panelBacker.position.set(0, 0.4, -0.02);
   infoPanelGroup.add(panelBacker);
 
@@ -299,6 +314,7 @@ export function createFlywheelShowpiece(
     depthWrite: false,
   });
   const panelGlow = new Mesh(panelGlowGeometry, panelGlowMaterial);
+  panelGlow.name = 'FlywheelInfoPanelGlow';
   panelGlow.position.set(0, 0.4, 0.02);
   panelGlow.renderOrder = 13;
   infoPanelGroup.add(panelGlow);
@@ -310,8 +326,38 @@ export function createFlywheelShowpiece(
     metalness: 0.18,
   });
   const plinth = new Mesh(plinthGeometry, plinthMaterial);
+  plinth.name = 'FlywheelInfoPanelPlinth';
   plinth.position.set(0, 0.25, 0);
   infoPanelGroup.add(plinth);
+
+  const calloutTexture = createFlywheelDocsCalloutTexture();
+  const calloutMaterial = new MeshBasicMaterial({
+    map: calloutTexture,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  const calloutGeometry = new PlaneGeometry(1, 0.46);
+  const callout = new Mesh(calloutGeometry, calloutMaterial);
+  callout.name = 'FlywheelDocsCallout';
+  callout.position.set(0, 0.78, 0.05);
+  callout.renderOrder = 16;
+  callout.visible = false;
+  infoPanelGroup.add(callout);
+
+  const calloutGlowGeometry = new PlaneGeometry(1.06, 0.52);
+  const calloutGlowMaterial = new MeshBasicMaterial({
+    color: new Color(0x4cd0ff),
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  });
+  const calloutGlow = new Mesh(calloutGlowGeometry, calloutGlowMaterial);
+  calloutGlow.name = 'FlywheelDocsCalloutGlow';
+  calloutGlow.position.set(0, callout.position.y, 0.06);
+  calloutGlow.renderOrder = 15;
+  calloutGlow.visible = false;
+  infoPanelGroup.add(calloutGlow);
 
   colliders.push({
     minX: options.centerX - daisRadius,
@@ -329,6 +375,7 @@ export function createFlywheelShowpiece(
 
   let spinVelocity = 0.6;
   let infoReveal = 0.08;
+  let calloutPhase = 0;
 
   function update(context: {
     elapsed: number;
@@ -377,6 +424,22 @@ export function createFlywheelShowpiece(
     panelGlow.position.y = panel.position.y;
     panel.visible = panelMaterial.opacity > 0.04;
     panelGlow.visible = panel.visible;
+
+    calloutPhase +=
+      context.delta * MathUtils.lerp(0.55, 1.35, context.emphasis);
+    const calloutBob = Math.sin(calloutPhase) * 0.05;
+    const panelReveal = MathUtils.clamp(infoReveal, 0, 1);
+    const calloutReveal = Math.pow(panelReveal, 0.8);
+    const calloutOpacity =
+      calloutReveal * MathUtils.lerp(0, 0.92, context.emphasis);
+    calloutMaterial.opacity = calloutOpacity;
+    calloutGlowMaterial.opacity =
+      calloutReveal * MathUtils.lerp(0, 0.26, context.emphasis);
+    const baseCalloutHeight = MathUtils.lerp(0.7, 0.94, context.emphasis);
+    callout.position.y = baseCalloutHeight + calloutBob;
+    calloutGlow.position.y = callout.position.y;
+    callout.visible = calloutMaterial.opacity > 0.02;
+    calloutGlow.visible = callout.visible;
 
     glyphRingMaterial.opacity = MathUtils.lerp(0.18, 0.36, context.emphasis);
     orbitGroup.children.forEach((wrapper, index) => {
@@ -451,6 +514,48 @@ function createFlywheelTechStackTexture(): CanvasTexture {
   context.fillStyle = '#ffffff';
   context.font = 'bold 64px "Inter", "Segoe UI", sans-serif';
   context.fillText('Docs →', canvas.width - 280, canvas.height - 120);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createFlywheelDocsCalloutTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create docs callout canvas.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.fillStyle = 'rgba(8, 20, 34, 0.92)';
+  roundRect(context, 32, 24, canvas.width - 64, canvas.height - 48, 32);
+  context.fill();
+  context.strokeStyle = 'rgba(76, 208, 255, 0.7)';
+  context.lineWidth = 5;
+  context.stroke();
+  context.restore();
+
+  context.save();
+  context.fillStyle = '#ecfbff';
+  context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+  context.fillText('Docs', 64, canvas.height * 0.56);
+
+  context.font = '600 56px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = '#a8eeff';
+  context.fillText('flywheel.futuroptimist.dev', 64, canvas.height * 0.78);
+
+  context.textAlign = 'right';
+  context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = '#67d2ff';
+  context.fillText('→', canvas.width - 64, canvas.height * 0.58);
+  context.restore();
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
