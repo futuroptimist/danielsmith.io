@@ -284,7 +284,7 @@ Ideas to evaluate after the core experience is stable:
 - Procedural storytelling AI that narrates the journey between POIs.
 - Integration with GitHub API for live repo stats and contribution heatmaps.
 - Exportable "press kit" mode that packages screenshots, POI blurbs, and metrics.
-  - ⚙️ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
+  - ✅ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
 
 ## Delivery Principles
 
