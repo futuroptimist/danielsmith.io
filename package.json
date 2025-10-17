@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "docs:check": "node scripts/check-docs.cjs",
     "smoke": "npm run build && node scripts/assert-dist.cjs",
+    "press-kit": "tsx scripts/generate-press-kit.ts",
     "check": "npm run lint && npm run test:ci && npm run docs:check",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",

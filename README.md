@@ -104,7 +104,7 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.        |
 | `npm run smoke`                                 | Build and assert that `dist/index.html` exists.              |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.  |
-| `npm run press-kit`                             | Emit a JSON press kit summary of POIs and performance stats. |
+| `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI metadata details. |
 
 ### Local quality gates
 
