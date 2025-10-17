@@ -120,6 +120,10 @@ import {
 } from './scene/structures/axelNavigator';
 import { createRoomCeilingPanels } from './scene/structures/ceilingPanels';
 import {
+  createF2ClipboardConsole,
+  type F2ClipboardConsoleBuild,
+} from './scene/structures/f2ClipboardConsole';
+import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './scene/structures/flywheel';
@@ -441,6 +445,7 @@ const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
+let f2ClipboardConsole: F2ClipboardConsoleBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
@@ -1286,6 +1291,9 @@ function initializeImmersiveScene(
   const jobbotPoi = poiInstances.find(
     (poi) => poi.definition.id === 'jobbot-studio-terminal'
   );
+  const f2ClipboardPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'f2clipboard-kitchen-console'
+  );
   const axelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'axel-studio-tracker'
   );
@@ -1409,6 +1417,36 @@ function initializeImmersiveScene(
       groundColliders.push(collider)
     );
     gitshelvesInstallation = installation;
+  }
+
+  if (f2ClipboardPoi) {
+    const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
+    const bounds = kitchenRoom?.bounds;
+    const consoleX = bounds
+      ? MathUtils.clamp(
+          f2ClipboardPoi.group.position.x,
+          bounds.minX + 0.8,
+          bounds.maxX - 0.8
+        )
+      : f2ClipboardPoi.group.position.x;
+    const consoleZ = bounds
+      ? MathUtils.clamp(
+          f2ClipboardPoi.group.position.z,
+          bounds.minZ + 0.8,
+          bounds.maxZ - 0.8
+        )
+      : f2ClipboardPoi.group.position.z;
+    const console = createF2ClipboardConsole({
+      position: {
+        x: consoleX,
+        y: f2ClipboardPoi.group.position.y,
+        z: consoleZ,
+      },
+      orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
+    });
+    scene.add(console.group);
+    console.colliders.forEach((collider) => groundColliders.push(collider));
+    f2ClipboardConsole = console;
   }
 
   const poiInteractionManager = new PoiInteractionManager(
@@ -3022,6 +3060,7 @@ function initializeImmersiveScene(
       selfieMirror = null;
     }
     flywheelShowpiece = null;
+    f2ClipboardConsole = null;
     jobbotTerminal = null;
     axelNavigator = null;
     tokenPlaceRack = null;
@@ -3106,6 +3145,15 @@ function initializeImmersiveScene(
         const activation = flywheelPoi?.activation ?? 0;
         const focus = flywheelPoi?.focus ?? 0;
         flywheelShowpiece.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (f2ClipboardConsole) {
+        const activation = f2ClipboardPoi?.activation ?? 0;
+        const focus = f2ClipboardPoi?.focus ?? 0;
+        f2ClipboardConsole.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
