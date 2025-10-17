@@ -114,6 +114,10 @@ import {
   PoiWorldTooltip,
   type PoiWorldTooltipTarget,
 } from './scene/poi/worldTooltip';
+import {
+  createAxelNavigator,
+  type AxelNavigatorBuild,
+} from './scene/structures/axelNavigator';
 import { createRoomCeilingPanels } from './scene/structures/ceilingPanels';
 import {
   createFlywheelShowpiece,
@@ -438,6 +442,7 @@ const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
+let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
@@ -1281,6 +1286,9 @@ function initializeImmersiveScene(
   const jobbotPoi = poiInstances.find(
     (poi) => poi.definition.id === 'jobbot-studio-terminal'
   );
+  const axelPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'axel-studio-tracker'
+  );
   const tokenPlacePoi = poiInstances.find(
     (poi) => poi.definition.id === 'tokenplace-studio-cluster'
   );
@@ -1329,6 +1337,20 @@ function initializeImmersiveScene(
     scene.add(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
+
+    if (axelPoi) {
+      const navigator = createAxelNavigator({
+        position: {
+          x: axelPoi.group.position.x,
+          y: axelPoi.group.position.y,
+          z: axelPoi.group.position.z,
+        },
+        orientationRadians: axelPoi.group.rotation.y ?? 0,
+      });
+      scene.add(navigator.group);
+      navigator.colliders.forEach((collider) => groundColliders.push(collider));
+      axelNavigator = navigator;
+    }
 
     if (tokenPlacePoi) {
       const rack = createTokenPlaceRack({
@@ -2999,6 +3021,12 @@ function initializeImmersiveScene(
       selfieMirror.dispose();
       selfieMirror = null;
     }
+    flywheelShowpiece = null;
+    jobbotTerminal = null;
+    axelNavigator = null;
+    tokenPlaceRack = null;
+    prReaperConsole = null;
+    gabrielSentry = null;
     gitshelvesInstallation = null;
   }
 
@@ -3087,6 +3115,15 @@ function initializeImmersiveScene(
         const activation = jobbotPoi?.activation ?? 0;
         const focus = jobbotPoi?.focus ?? 0;
         jobbotTerminal.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (axelNavigator) {
+        const activation = axelPoi?.activation ?? 0;
+        const focus = axelPoi?.focus ?? 0;
+        axelNavigator.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
