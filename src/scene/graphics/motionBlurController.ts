@@ -41,8 +41,8 @@ function clamp01(value: number): number {
 
 function resolveDampValue(intensity: number, maxDamp: number): number {
   const clamped = clamp01(intensity);
-  // Damp of 0 means no trail, whereas 0.92 approximates the stock blur.
-  return MathUtils.lerp(0, maxDamp, clamped);
+  // Damp of 1 disables trails entirely; lower values extend the afterimage.
+  return MathUtils.lerp(1, maxDamp, clamped);
 }
 
 export function createMotionBlurController({
