@@ -116,17 +116,19 @@ Focus: anchor each highlighted project with an interactive artifact.
      triggers a rich text popup with repo summary, star count, and CTA buttons.
    - Spinning flywheel centerpiece representing the `flywheel` repo; interaction spins faster,
      reveals tech stack, and links to docs.
-   - Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
-   - ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
-     screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
-   - ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
-     orbitals, and an activation-driven tech stack + docs callout panel.
-   - ✨ Studio Jobbot terminal desk projects live automation telemetry via a holographic console
-     and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
-   - ✨ Axel quest navigator tabletop now charts backlog quests with holographic rings and
-     momentum beacons around the studio tracker POI.
-   - ✨ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
-     columns and nightly sync signage.
+
+- ✅ Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
+- ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
+  screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
+- ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
+  orbitals, and an activation-driven tech stack + docs callout panel.
+- ✅ Studio Jobbot terminal desk now projects live automation telemetry via orbiting data
+  shards and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
+- ✨ Axel quest navigator tabletop now charts backlog quests with holographic rings and
+  momentum beacons around the studio tracker POI.
+- ✨ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
+  columns and nightly sync signage.
+
 3. **Backyard Exhibits**
    - ✨ Launch-ready model rocket for `DSPACE`, complete with illuminated launch pad, caution halo,
      countdown-ready stance, and an interactive POI that links to the mission log.

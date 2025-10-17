@@ -27,6 +27,7 @@ function createMockContext(): CanvasRenderingContext2D {
     save: vi.fn(),
     restore: vi.fn(),
     measureText: vi.fn(() => ({ width: 0 })),
+    strokeRect: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -75,6 +76,18 @@ describe('JobbotTerminal structure', () => {
     expect(
       build.group.getObjectByName('JobbotTerminalHologram')
     ).toBeInstanceOf(Group);
+
+    const telemetryGroup = build.group.getObjectByName(
+      'JobbotTerminalTelemetryGroup'
+    ) as Group;
+    expect(telemetryGroup).toBeInstanceOf(Group);
+    expect(telemetryGroup.children.length).toBeGreaterThanOrEqual(3);
+    telemetryGroup.children.forEach((child) => {
+      expect(child).toBeInstanceOf(Mesh);
+    });
+    expect(
+      build.group.getObjectByName('JobbotTerminalTelemetryAura')
+    ).toBeInstanceOf(Mesh);
   });
 
   it('responds to emphasis updates with animated materials', () => {
@@ -84,15 +97,24 @@ describe('JobbotTerminal structure', () => {
       'JobbotTerminalCore'
     ) as Mesh;
     const ticker = build.group.getObjectByName('JobbotTerminalTicker') as Mesh;
+    const telemetryGroup = build.group.getObjectByName(
+      'JobbotTerminalTelemetryGroup'
+    ) as Group;
+    const telemetryPanel = build.group.getObjectByName(
+      'JobbotTerminalTelemetry-0'
+    ) as Mesh;
 
     const screenMaterial = screen.material as MeshBasicMaterial;
     const coreMaterial = hologramCore.material as MeshStandardMaterial;
     const tickerMaterial = ticker.material as MeshBasicMaterial;
+    const telemetryMaterial = telemetryPanel.material as MeshBasicMaterial;
 
     build.update({ elapsed: 0, delta: 0.016, emphasis: 0 });
     const initialScreenOpacity = screenMaterial.opacity;
     const initialCoreIntensity = coreMaterial.emissiveIntensity;
     const initialTickerOpacity = tickerMaterial.opacity;
+    const initialTelemetryOpacity = telemetryMaterial.opacity;
+    const initialTelemetryRotation = telemetryGroup.rotation.y;
 
     build.update({ elapsed: 1.5, delta: 0.016, emphasis: 1 });
     expect(screenMaterial.opacity).toBeGreaterThanOrEqual(initialScreenOpacity);
@@ -100,6 +122,10 @@ describe('JobbotTerminal structure', () => {
       initialCoreIntensity
     );
     expect(tickerMaterial.opacity).toBeGreaterThanOrEqual(initialTickerOpacity);
+    expect(telemetryMaterial.opacity).toBeGreaterThanOrEqual(
+      initialTelemetryOpacity
+    );
+    expect(telemetryGroup.rotation.y).toBeGreaterThan(initialTelemetryRotation);
   });
 
   it('reduces hologram flicker when pulse scale is disabled', () => {
@@ -108,12 +134,17 @@ describe('JobbotTerminal structure', () => {
     const beacon = build.group.getObjectByName('JobbotTerminalBeacon-0') as
       | Mesh
       | undefined;
+    const telemetryPanel = build.group.getObjectByName(
+      'JobbotTerminalTelemetry-1'
+    ) as Mesh;
 
     expect(ticker).toBeInstanceOf(Mesh);
     expect(beacon).toBeInstanceOf(Mesh);
+    expect(telemetryPanel).toBeInstanceOf(Mesh);
 
     const tickerMaterial = ticker.material as MeshBasicMaterial;
     const beaconMaterial = (beacon!.material as MeshStandardMaterial)!;
+    const telemetryMaterial = telemetryPanel.material as MeshBasicMaterial;
 
     document.documentElement.dataset.accessibilityPulseScale = '0';
 
@@ -121,11 +152,13 @@ describe('JobbotTerminal structure', () => {
     const steadyTicker = tickerMaterial.opacity;
     const steadyBeacon = beaconMaterial.emissiveIntensity;
     const steadyHeight = beacon!.position.y;
+    const steadyTelemetry = telemetryMaterial.opacity;
 
     build.update({ elapsed: 1.6, delta: 0.016, emphasis: 0.6 });
 
     expect(tickerMaterial.opacity).toBeCloseTo(steadyTicker, 5);
     expect(beaconMaterial.emissiveIntensity).toBeCloseTo(steadyBeacon, 5);
     expect(beacon!.position.y).toBeCloseTo(steadyHeight, 5);
+    expect(telemetryMaterial.opacity).toBeCloseTo(steadyTelemetry, 5);
   });
 });

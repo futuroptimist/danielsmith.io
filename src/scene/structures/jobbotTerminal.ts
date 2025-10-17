@@ -98,6 +98,54 @@ function createTerminalScreenTexture(): CanvasTexture {
   return texture;
 }
 
+function createTelemetryPanelTexture(
+  heading: string,
+  primary: string,
+  metrics: string[]
+): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('Unable to create telemetry panel canvas.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'rgba(5, 18, 32, 0.9)';
+  context.fillRect(48, 48, canvas.width - 96, canvas.height - 96);
+
+  context.strokeStyle = 'rgba(124, 241, 255, 0.4)';
+  context.lineWidth = 6;
+  context.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
+
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+
+  context.fillStyle = '#7cf1ff';
+  context.font = 'bold 156px "Inter", "Segoe UI", sans-serif';
+  context.fillText(heading, 88, 220);
+
+  context.font = '600 94px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = '#d9fbff';
+  context.fillText(primary, 88, 320);
+
+  context.font = '52px "Inter", "Segoe UI", sans-serif';
+  metrics.forEach((metric, index) => {
+    const y = 380 + index * 64;
+    context.fillStyle = 'rgba(124, 241, 255, 0.65)';
+    context.fillRect(88, y - 32, 32, 32);
+    context.fillStyle = '#f1fdff';
+    context.fillText(metric, 136, y - 6);
+  });
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function createCollider(
   center: { x: number; z: number },
   width: number,
@@ -333,6 +381,83 @@ export function createJobbotTerminal(
   hologramPanel.rotation.x = MathUtils.degToRad(-18);
   hologramGroup.add(hologramPanel);
 
+  const telemetryGroup = new Group();
+  telemetryGroup.name = 'JobbotTerminalTelemetryGroup';
+  const telemetryBaseHeight = deskHeight + deskThickness + 0.58;
+  telemetryGroup.position.set(0, telemetryBaseHeight, 0);
+  group.add(telemetryGroup);
+
+  const telemetryDescriptors = [
+    {
+      heading: 'Deploy',
+      primary: 'Queue · 0',
+      metrics: ['Checks stable', 'Latency 52 ms'],
+    },
+    {
+      heading: 'Cron',
+      primary: 'Sync · ok',
+      metrics: ['Nightly ✓', 'Seeding ✓'],
+    },
+    {
+      heading: 'Alerts',
+      primary: 'Open · 0',
+      metrics: ['Last 05:35', 'Status green'],
+    },
+  ];
+  const telemetryRadius = deskDepth * 0.54 + 0.12;
+  const telemetryPanelMaterials: MeshBasicMaterial[] = [];
+  telemetryDescriptors.forEach((descriptor, index) => {
+    const texture = createTelemetryPanelTexture(
+      descriptor.heading,
+      descriptor.primary,
+      descriptor.metrics
+    );
+    const material = new MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0,
+      toneMapped: false,
+      depthWrite: false,
+    });
+    const panel = new Mesh(new PlaneGeometry(0.72, 0.38), material);
+    panel.name = `JobbotTerminalTelemetry-${index}`;
+    const angle = (Math.PI * 2 * index) / telemetryDescriptors.length;
+    panel.position.set(
+      Math.cos(angle) * telemetryRadius,
+      0.18,
+      Math.sin(angle) * telemetryRadius
+    );
+    panel.lookAt(0, 0.18, 0);
+    panel.rotateY(Math.PI);
+    panel.renderOrder = 9;
+    telemetryGroup.add(panel);
+    telemetryPanelMaterials.push(material);
+  });
+
+  const telemetryAuraMaterial = new MeshStandardMaterial({
+    color: new Color(0x0d273b),
+    emissive: new Color(0x1f7aff),
+    emissiveIntensity: 0.34,
+    roughness: 0.42,
+    metalness: 0.24,
+    transparent: true,
+    opacity: 0.52,
+  });
+  const telemetryAura = new Mesh(
+    new CylinderGeometry(
+      telemetryRadius * 1.06,
+      telemetryRadius * 1.06,
+      0.04,
+      48
+    ),
+    telemetryAuraMaterial
+  );
+  telemetryAura.name = 'JobbotTerminalTelemetryAura';
+  telemetryAura.rotation.x = Math.PI / 2;
+  telemetryAura.position.set(0, telemetryBaseHeight - 0.16, 0);
+  telemetryAura.renderOrder = 2;
+  group.add(telemetryAura);
+
   const statusBeaconGeometry = new SphereGeometry(0.08, 24, 24);
   const statusBeaconMaterial = new MeshStandardMaterial({
     color: new Color(0x1a2f40),
@@ -364,10 +489,16 @@ export function createJobbotTerminal(
     )
   );
 
+  let telemetryRotation = 0;
+  let lastElapsed = 0;
+
   return {
     group,
     colliders,
     update({ elapsed, emphasis }) {
+      const delta = Math.max(0, elapsed - lastElapsed);
+      lastElapsed = elapsed;
+      const smoothing = delta > 0 ? 1 - Math.exp(-delta * 3.8) : 1;
       const pulseScale = getPulseScale();
       const bobAmplitude = MathUtils.lerp(0.012, 0.08, pulseScale);
       const spinScale = MathUtils.lerp(0.15, 1, pulseScale);
@@ -431,6 +562,44 @@ export function createJobbotTerminal(
           0.12 +
           Math.sin(elapsed * 1.6 * spinScale + index) * 0.05 * pulseScale;
       });
+
+      const telemetrySpeed = MathUtils.lerp(0.42, 1.3, emphasis) * spinScale;
+      telemetryRotation += delta * telemetrySpeed;
+      telemetryGroup.rotation.y = telemetryRotation;
+      telemetryGroup.position.y =
+        telemetryBaseHeight + bob * MathUtils.lerp(0.26, 0.6, pulseScale);
+
+      telemetryPanelMaterials.forEach((material, index) => {
+        const wave = (Math.sin(elapsed * 2.6 + index) + 1) / 2;
+        const driver = MathUtils.lerp(
+          0.24,
+          Math.max(emphasis, wave),
+          pulseScale
+        );
+        const targetOpacity = MathUtils.lerp(0.08, 0.9, driver);
+        material.opacity =
+          pulseScale <= 0
+            ? targetOpacity
+            : MathUtils.lerp(material.opacity, targetOpacity, smoothing);
+      });
+
+      const auraTargetIntensity = MathUtils.lerp(0.34, 1.1, emphasis);
+      telemetryAuraMaterial.emissiveIntensity = MathUtils.lerp(
+        telemetryAuraMaterial.emissiveIntensity,
+        auraTargetIntensity,
+        smoothing
+      );
+      const auraOpacityDriver = MathUtils.lerp(0.42, 0.8, pulseScale);
+      const targetAuraOpacity = MathUtils.lerp(
+        MathUtils.lerp(0.28, 0.36, pulseScale),
+        MathUtils.lerp(0.6, 0.84, pulseScale),
+        Math.max(emphasis, auraOpacityDriver)
+      );
+      telemetryAuraMaterial.opacity = MathUtils.lerp(
+        telemetryAuraMaterial.opacity,
+        targetAuraOpacity,
+        smoothing
+      );
     },
   } satisfies JobbotTerminalBuild;
 }
