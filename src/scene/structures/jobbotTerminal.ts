@@ -31,6 +31,15 @@ export interface JobbotTerminalOptions {
   };
 }
 
+interface DataShardState {
+  mesh: Mesh;
+  radius: number;
+  baseHeight: number;
+  bobAmplitude: number;
+  orbitAngle: number;
+  orbitSpeed: number;
+}
+
 function createTerminalScreenTexture(): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 2048;
@@ -381,6 +390,42 @@ export function createJobbotTerminal(
   hologramPanel.rotation.x = MathUtils.degToRad(-18);
   hologramGroup.add(hologramPanel);
 
+  const dataShardGroup = new Group();
+  dataShardGroup.name = 'JobbotTerminalDataShards';
+  dataShardGroup.position.set(0, hologramBaseHeight + 0.24, 0);
+  group.add(dataShardGroup);
+
+  const shardGeometry = new BoxGeometry(0.12, 0.34, 0.04);
+  const shardMaterial = new MeshStandardMaterial({
+    color: new Color(0x162f44),
+    emissive: new Color(0x52f0ff),
+    emissiveIntensity: 0.8,
+    roughness: 0.32,
+    metalness: 0.48,
+    transparent: true,
+    opacity: 0.72,
+  });
+  const dataShards: DataShardState[] = [];
+  const shardCount = 6;
+  for (let index = 0; index < shardCount; index += 1) {
+    const mesh = new Mesh(shardGeometry, shardMaterial.clone());
+    mesh.name = `JobbotTerminalDataShard-${index}`;
+    const radius = MathUtils.lerp(0.32, 0.58, index / shardCount);
+    const baseHeight = MathUtils.lerp(0.12, 0.34, (index % 3) / 2);
+    const bobAmplitude = MathUtils.lerp(0.05, 0.12, (index % 2) / 1);
+    const orbitAngle = (Math.PI * 2 * index) / shardCount;
+    const orbitSpeed = MathUtils.lerp(0.5, 1.15, (index % 4) / 3);
+    dataShards.push({
+      mesh,
+      radius,
+      baseHeight,
+      bobAmplitude,
+      orbitAngle,
+      orbitSpeed,
+    });
+    dataShardGroup.add(mesh);
+  }
+
   const telemetryGroup = new Group();
   telemetryGroup.name = 'JobbotTerminalTelemetryGroup';
   const telemetryBaseHeight = deskHeight + deskThickness + 0.58;
@@ -561,6 +606,46 @@ export function createJobbotTerminal(
           deskThickness +
           0.12 +
           Math.sin(elapsed * 1.6 * spinScale + index) * 0.05 * pulseScale;
+      });
+
+      const shardOrbitDriver = MathUtils.lerp(0.42, 1.25, emphasis);
+      const shardEmissiveDriver = MathUtils.lerp(
+        MathUtils.lerp(0.38, 0.6, pulseScale),
+        Math.max(emphasis, 0.65),
+        pulseScale
+      );
+      const shardSpinScale = pulseScale <= 0 ? 0 : Math.max(spinScale, 0.15);
+      const shardAmplitudeScale =
+        pulseScale <= 0 ? 0 : MathUtils.lerp(0.4, 1, emphasis);
+      dataShards.forEach((shard, index) => {
+        shard.orbitAngle +=
+          delta * shard.orbitSpeed * shardOrbitDriver * shardSpinScale;
+        const wave = Math.sin(elapsed * 2.4 * spinScale + index);
+        const altitude =
+          shard.baseHeight + wave * shard.bobAmplitude * shardAmplitudeScale;
+        shard.mesh.position.set(
+          Math.cos(shard.orbitAngle) * shard.radius,
+          altitude,
+          Math.sin(shard.orbitAngle) * shard.radius
+        );
+        shard.mesh.lookAt(0, shard.baseHeight, 0);
+        shard.mesh.rotation.z =
+          MathUtils.degToRad(12) * Math.sin(elapsed * 1.7 + index);
+        const shardMaterial = shard.mesh.material as MeshStandardMaterial;
+        shardMaterial.emissiveIntensity = MathUtils.lerp(
+          0.4,
+          1.5,
+          shardEmissiveDriver
+        );
+        const targetOpacity = MathUtils.lerp(
+          0.5,
+          0.92,
+          Math.max(emphasis, pulseScale)
+        );
+        shardMaterial.opacity =
+          pulseScale <= 0
+            ? targetOpacity
+            : MathUtils.lerp(shardMaterial.opacity, targetOpacity, smoothing);
       });
 
       const telemetrySpeed = MathUtils.lerp(0.42, 1.3, emphasis) * spinScale;

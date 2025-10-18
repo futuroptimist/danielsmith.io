@@ -133,6 +133,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      orbitals, and an activation-driven tech stack + docs callout panel.
    - ✅ Studio Jobbot terminal desk now projects live automation telemetry via orbiting data
      shards and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
+     - ✨ Orbiting data shards now sync their emissive sweeps with visitor emphasis pulses,
+       echoing the HUD analytics glow rhythm.
    - ✨ Axel quest navigator tabletop now charts backlog quests with holographic rings and
      momentum beacons around the studio tracker POI.
    - ✨ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
