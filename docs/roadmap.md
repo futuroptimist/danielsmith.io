@@ -188,6 +188,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      browsers to the text experience unless the immersive override is set.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
+   - ✨ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
+     crawlers understand language coverage and free access guarantees.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
