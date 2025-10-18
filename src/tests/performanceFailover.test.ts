@@ -13,6 +13,30 @@ const IMMERSIVE_URL = createImmersiveModeUrl({
   hash: '',
 });
 
+class FakeWindowTarget {
+  private readonly target = new EventTarget();
+
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject
+  ): void {
+    this.target.addEventListener(type, listener);
+  }
+
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject
+  ): void {
+    this.target.removeEventListener(type, listener);
+  }
+
+  dispatch(type: string, detail?: unknown): void {
+    const event = new Event(type);
+    Object.assign(event, { detail });
+    this.target.dispatchEvent(event);
+  }
+}
+
 describe('createPerformanceFailoverHandler', () => {
   const createRenderer = () => {
     const canvas = document.createElement('canvas');
@@ -197,5 +221,54 @@ describe('createPerformanceFailoverHandler', () => {
       githubUrl: undefined,
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback');
+  });
+
+  it('triggers fallback when console error budget is exceeded', () => {
+    const { renderer, canvas, setAnimationLoop, dispose } = createRenderer();
+    const removeSpy = vi.spyOn(canvas, 'remove');
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const consoleTarget = { error: vi.fn() } as Pick<Console, 'error'>;
+    const originalError = consoleTarget.error;
+    const windowTarget = new FakeWindowTarget();
+    const eventTarget = new EventTarget();
+    const onExceeded = vi.fn();
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      consoleFailover: {
+        budget: 0,
+        consoleTarget,
+        windowTarget,
+        eventTarget,
+        eventName: 'test:console-budget',
+        onExceeded,
+      },
+    });
+
+    const instrumented = consoleTarget.error;
+    expect(instrumented).not.toBe(originalError);
+
+    consoleTarget.error('runtime failure');
+
+    expect(handler.hasTriggered()).toBe(true);
+    expect(onExceeded).toHaveBeenCalledTimes(1);
+    expect(setAnimationLoop).toHaveBeenCalledWith(null);
+    expect(dispose).toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalled();
+    expect(renderFallback).toHaveBeenCalledWith(container, {
+      reason: 'console-error',
+      immersiveUrl: IMMERSIVE_URL,
+      resumeUrl: undefined,
+      githubUrl: undefined,
+    });
+    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(consoleTarget.error).toBe(originalError);
   });
 });
