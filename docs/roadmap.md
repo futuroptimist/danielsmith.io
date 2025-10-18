@@ -186,6 +186,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      portfolio while honoring manual immersive overrides.
    - ✅ WebDriver automation heuristics now check `navigator.webdriver` and steer scripted
      browsers to the text experience unless the immersive override is set.
+   - ✅ Data-saver detection now honors Save-Data and slow 2G hints by launching the text tour
+     unless immersive mode is explicitly forced.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
 3. **Progression & State**
