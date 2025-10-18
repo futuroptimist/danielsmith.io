@@ -55,6 +55,8 @@ describe('buildPoiStructuredData', () => {
       name: 'Immersive Portfolio Exhibits',
       description:
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
+      inLanguage: 'en',
+      isAccessibleForFree: true,
       itemListOrder: 'https://schema.org/ItemListOrderAscending',
     });
 
@@ -79,6 +81,8 @@ describe('buildPoiStructuredData', () => {
       identifier: 'tokenplace-studio-cluster',
       keywords: ['project', 'studio'],
       sameAs: ['https://example.com/repo'],
+      inLanguage: 'en',
+      isAccessibleForFree: true,
     });
 
     const additionalProperty = firstItem.additionalProperty as Array<
@@ -103,9 +107,23 @@ describe('buildPoiStructuredData', () => {
     });
     const secondItem = second.item as Record<string, unknown>;
     expect(secondItem).not.toHaveProperty('sameAs');
+    expect(secondItem).toMatchObject({
+      inLanguage: 'en',
+      isAccessibleForFree: true,
+    });
     expect(secondItem.additionalProperty).toEqual([
       { '@type': 'PropertyValue', name: 'Category', value: 'project' },
     ]);
+  });
+
+  it('honors locale overrides when emitting language metadata', () => {
+    const data = buildPoiStructuredData([createPoi()], {
+      locale: 'en-x-pseudo',
+    });
+
+    expect(data.inLanguage).toBe('en-x-pseudo');
+    const items = data.itemListElement as Array<Record<string, unknown>>;
+    expect(items[0]?.item).toMatchObject({ inLanguage: 'en-x-pseudo' });
   });
 });
 
@@ -129,6 +147,8 @@ describe('injectPoiStructuredData', () => {
 
     const parsed = JSON.parse(firstScript.textContent ?? '{}');
     expect(parsed.name).toBe('Immersive Portfolio Exhibits');
+    expect(parsed.inLanguage).toBe('en');
+    expect(parsed.isAccessibleForFree).toBe(true);
 
     const secondScript = injectPoiStructuredData(pois, {
       documentTarget,
