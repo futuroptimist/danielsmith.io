@@ -40,6 +40,44 @@ export interface PoiFootprint {
   depth: number;
 }
 
+export interface PoiHologramPedestalConfig {
+  type: 'hologram';
+  /** Optional height of the holographic pedestal shell, in world units. */
+  height?: number;
+  /** Scale applied to the pedestal radius relative to the POI footprint. */
+  radiusScale?: number;
+  /** Base color tint applied to the holographic shell. */
+  bodyColor?: number;
+  /** Opacity applied to the holographic shell material. */
+  bodyOpacity?: number;
+  /** Emissive color for the holographic shell glow. */
+  emissiveColor?: number;
+  /** Emissive intensity multiplier for the holographic shell glow. */
+  emissiveIntensity?: number;
+  /** Accent band color used near the top of the pedestal. */
+  accentColor?: number;
+  /** Accent band emissive tint. */
+  accentEmissiveColor?: number;
+  /** Accent band emissive intensity. */
+  accentEmissiveIntensity?: number;
+  /** Accent band opacity. */
+  accentOpacity?: number;
+  /** Color applied to the floating holographic top ring. */
+  ringColor?: number;
+  /** Opacity for the floating holographic top ring. */
+  ringOpacity?: number;
+  /** Base albedo color for the interaction orb. */
+  orbColor?: number;
+  /** Emissive color for the interaction orb. */
+  orbEmissiveColor?: number;
+  /** Highlight emissive color when the orb is focused. */
+  orbHighlightColor?: number;
+  /** Emissive intensity applied to the interaction orb. */
+  orbEmissiveIntensity?: number;
+}
+
+export type PoiPedestalConfig = PoiHologramPedestalConfig;
+
 export interface PoiDefinition {
   id: PoiId;
   title: string;
@@ -56,6 +94,7 @@ export interface PoiDefinition {
   /** Optional note to surface prototype status in tooltips. */
   status?: 'prototype' | 'live';
   narration?: PoiNarration;
+  pedestal?: PoiPedestalConfig;
 }
 
 export interface PoiAnalytics {
