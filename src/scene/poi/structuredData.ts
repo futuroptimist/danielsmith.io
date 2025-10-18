@@ -118,6 +118,8 @@ export const buildPoiStructuredData = (
       description: poi.summary,
       identifier: poi.id,
       keywords: [poi.category, poi.roomId],
+      inLanguage: locale,
+      isAccessibleForFree: true,
       additionalProperty,
     };
 
@@ -138,6 +140,8 @@ export const buildPoiStructuredData = (
     '@type': 'ItemList',
     name: listName,
     description,
+    inLanguage: locale,
+    isAccessibleForFree: true,
     itemListOrder: 'https://schema.org/ItemListOrderAscending',
     itemListElement,
   };

@@ -100,12 +100,94 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes data-saver clients to text mode when mode is not forced', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ saveData: true }),
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
+  it('reads save-data hints from navigator.connection when available', () => {
+    const original = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'connection'
+    );
+    Object.defineProperty(window.navigator, 'connection', {
+      configurable: true,
+      value: { saveData: true },
+    });
+
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+
+    if (original) {
+      Object.defineProperty(window.navigator, 'connection', original);
+    } else {
+      delete (window.navigator as Navigator & { connection?: unknown })
+        .connection;
+    }
+  });
+
+  it('ignores navigator.connection when no data-saver hints are present', () => {
+    const original = Object.getOwnPropertyDescriptor(
+      window.navigator,
+      'connection'
+    );
+    Object.defineProperty(window.navigator, 'connection', {
+      configurable: true,
+      value: {},
+    });
+
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+
+    if (original) {
+      Object.defineProperty(window.navigator, 'connection', original);
+    } else {
+      delete (window.navigator as Navigator & { connection?: unknown })
+        .connection;
+    }
+  });
+
+  it('routes slow connections to text mode when mode is not forced', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ effectiveType: 'slow-2g' }),
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
   it('allows immersive override when memory is low but WebGL works', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
       createCanvas: canvasFactory,
       getDeviceMemory: () => 0.25,
       minimumDeviceMemory: 1,
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('respects immersive override even when data-saver is active', () => {
+    const decision = evaluateFailoverDecision({
+      search: IMMERSIVE_SEARCH,
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ saveData: true }),
     });
     expect(decision).toEqual({ shouldUseFallback: false });
   });
@@ -248,6 +330,14 @@ describe('renderTextFallback', () => {
     expect(section?.getAttribute('data-reason')).toBe('low-performance');
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/frame/);
+  });
+
+  it('highlights data-saver fallback messaging', () => {
+    const container = render('data-saver');
+    const section = container.querySelector('.text-fallback');
+    expect(section?.getAttribute('data-reason')).toBe('data-saver');
+    const description = container.querySelector('.text-fallback__description');
+    expect(description?.textContent).toMatch(/data-saver|bandwidth/i);
   });
 
   it('describes automated client fallback messaging', () => {

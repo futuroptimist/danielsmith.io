@@ -77,6 +77,15 @@ describe('JobbotTerminal structure', () => {
       build.group.getObjectByName('JobbotTerminalHologram')
     ).toBeInstanceOf(Group);
 
+    const shardGroup = build.group.getObjectByName(
+      'JobbotTerminalDataShards'
+    ) as Group;
+    expect(shardGroup).toBeInstanceOf(Group);
+    expect(shardGroup.children).toHaveLength(6);
+    shardGroup.children.forEach((child) => {
+      expect(child).toBeInstanceOf(Mesh);
+    });
+
     const telemetryGroup = build.group.getObjectByName(
       'JobbotTerminalTelemetryGroup'
     ) as Group;
@@ -103,11 +112,15 @@ describe('JobbotTerminal structure', () => {
     const telemetryPanel = build.group.getObjectByName(
       'JobbotTerminalTelemetry-0'
     ) as Mesh;
+    const shard = build.group.getObjectByName(
+      'JobbotTerminalDataShard-0'
+    ) as Mesh;
 
     const screenMaterial = screen.material as MeshBasicMaterial;
     const coreMaterial = hologramCore.material as MeshStandardMaterial;
     const tickerMaterial = ticker.material as MeshBasicMaterial;
     const telemetryMaterial = telemetryPanel.material as MeshBasicMaterial;
+    const shardMaterial = shard.material as MeshStandardMaterial;
 
     build.update({ elapsed: 0, delta: 0.016, emphasis: 0 });
     const initialScreenOpacity = screenMaterial.opacity;
@@ -115,6 +128,9 @@ describe('JobbotTerminal structure', () => {
     const initialTickerOpacity = tickerMaterial.opacity;
     const initialTelemetryOpacity = telemetryMaterial.opacity;
     const initialTelemetryRotation = telemetryGroup.rotation.y;
+    const initialShardPosition = shard.position.clone();
+    const initialShardIntensity = shardMaterial.emissiveIntensity;
+    const initialShardOpacity = shardMaterial.opacity;
 
     build.update({ elapsed: 1.5, delta: 0.016, emphasis: 1 });
     expect(screenMaterial.opacity).toBeGreaterThanOrEqual(initialScreenOpacity);
@@ -126,6 +142,13 @@ describe('JobbotTerminal structure', () => {
       initialTelemetryOpacity
     );
     expect(telemetryGroup.rotation.y).toBeGreaterThan(initialTelemetryRotation);
+    expect(shard.position.distanceTo(initialShardPosition)).toBeGreaterThan(
+      0.001
+    );
+    expect(shardMaterial.emissiveIntensity).toBeGreaterThan(
+      initialShardIntensity
+    );
+    expect(shardMaterial.opacity).toBeGreaterThanOrEqual(initialShardOpacity);
   });
 
   it('reduces hologram flicker when pulse scale is disabled', () => {
@@ -137,14 +160,19 @@ describe('JobbotTerminal structure', () => {
     const telemetryPanel = build.group.getObjectByName(
       'JobbotTerminalTelemetry-1'
     ) as Mesh;
+    const shard = build.group.getObjectByName(
+      'JobbotTerminalDataShard-1'
+    ) as Mesh;
 
     expect(ticker).toBeInstanceOf(Mesh);
     expect(beacon).toBeInstanceOf(Mesh);
     expect(telemetryPanel).toBeInstanceOf(Mesh);
+    expect(shard).toBeInstanceOf(Mesh);
 
     const tickerMaterial = ticker.material as MeshBasicMaterial;
     const beaconMaterial = (beacon!.material as MeshStandardMaterial)!;
     const telemetryMaterial = telemetryPanel.material as MeshBasicMaterial;
+    const shardMaterial = shard.material as MeshStandardMaterial;
 
     document.documentElement.dataset.accessibilityPulseScale = '0';
 
@@ -153,6 +181,9 @@ describe('JobbotTerminal structure', () => {
     const steadyBeacon = beaconMaterial.emissiveIntensity;
     const steadyHeight = beacon!.position.y;
     const steadyTelemetry = telemetryMaterial.opacity;
+    const steadyShardPosition = shard.position.clone();
+    const steadyShardIntensity = shardMaterial.emissiveIntensity;
+    const steadyShardOpacity = shardMaterial.opacity;
 
     build.update({ elapsed: 1.6, delta: 0.016, emphasis: 0.6 });
 
@@ -160,5 +191,11 @@ describe('JobbotTerminal structure', () => {
     expect(beaconMaterial.emissiveIntensity).toBeCloseTo(steadyBeacon, 5);
     expect(beacon!.position.y).toBeCloseTo(steadyHeight, 5);
     expect(telemetryMaterial.opacity).toBeCloseTo(steadyTelemetry, 5);
+    expect(shard.position.distanceTo(steadyShardPosition)).toBeLessThan(0.002);
+    expect(shardMaterial.emissiveIntensity).toBeCloseTo(
+      steadyShardIntensity,
+      5
+    );
+    expect(shardMaterial.opacity).toBeCloseTo(steadyShardOpacity, 5);
   });
 });

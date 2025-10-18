@@ -133,6 +133,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      orbitals, and an activation-driven tech stack + docs callout panel.
    - ✅ Studio Jobbot terminal desk now projects live automation telemetry via orbiting data
      shards and anchors the Jobbot3000 POI with reactive lighting and diagnostics beacons.
+     - ✨ Orbiting data shards now sync their emissive sweeps with visitor emphasis pulses,
+       echoing the HUD analytics glow rhythm.
    - ✨ Axel quest navigator tabletop now charts backlog quests with holographic rings and
      momentum beacons around the studio tracker POI.
    - ✨ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
@@ -186,8 +188,12 @@ Focus: unify user controls and ensure graceful fallback experiences.
      portfolio while honoring manual immersive overrides.
    - ✅ WebDriver automation heuristics now check `navigator.webdriver` and steer scripted
      browsers to the text experience unless the immersive override is set.
+   - ✅ Data-saver detection now honors Save-Data and slow 2G hints by launching the text tour
+     unless immersive mode is explicitly forced.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
+   - ✨ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
+     crawlers understand language coverage and free access guarantees.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
