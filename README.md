@@ -203,17 +203,20 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
   lightweight portfolio view at any time.
 - **Accessibility presets** – Pick Standard, Calm, High contrast, or Photosensitive-safe modes
   from the HUD to soften bloom, boost readability, reduce motion cues, and tune emissive
-  lighting. The
-  Photosensitive-safe preset now also smooths greenhouse grow lights, walkway lanterns, and
-  holographic beacons so emissive pulses settle into a steady glow for flicker-sensitive players.
+  lighting. The Photosensitive-safe preset now also smooths greenhouse grow lights, walkway
+  lanterns, and holographic beacons so emissive pulses settle into a steady glow for
+  flicker-sensitive players.
 - **Help** – Use the help key (default `H` or `?`), or tap the HUD Help button to
   open a modal with controls, accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
-  Automatic detection now covers missing WebGL support, sustained frame rates below 30 FPS,
-  data-saver preferences, and slow 2G network hints;
-  share preview links as `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`
+  Automatic detection now covers missing WebGL support, sustained frame rates below 30 FPS,
+  low-memory and low-core devices, data-saver preferences, slow 2G network hints,
+  and automated crawlers. A `<noscript>` fallback now routes no-JS clients
+  and scrapers to the static tour immediately. Share preview links as
+  `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`
   (swap host/port as needed) to force the full scene even on throttled preview clients.
-  Screen readers now announce each switch so assistive technology users know which mode is active.
+  Screen readers now announce each switch so assistive technology users
+  know which mode is active.
 
 ## Automation prompts
 

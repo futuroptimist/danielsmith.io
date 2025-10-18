@@ -32,6 +32,7 @@ export type FallbackReason =
   | 'low-performance'
   | 'immersive-init-error'
   | 'automated-client'
+  | 'low-end-device'
   | 'console-error'
   | 'data-saver';
 
@@ -78,6 +79,8 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   minimumDeviceMemory?: number;
   getUserAgent?: UserAgentReader;
   getIsWebDriver?: WebDriverReader;
+  getHardwareConcurrency?: () => number | undefined;
+  minimumHardwareConcurrency?: number;
   getNetworkInformation?: NetworkInformationReader;
 }
 
@@ -92,6 +95,9 @@ interface NavigatorWithDeviceMemory extends Navigator {
 
 type NavigatorWithUserAgent = Navigator & { userAgent?: string };
 type NavigatorWithWebDriver = Navigator & { webdriver?: boolean };
+type NavigatorWithHardwareConcurrency = Navigator & {
+  hardwareConcurrency?: number;
+};
 type NavigatorWithConnection = Navigator & {
   connection?: NetworkInformationLike;
   mozConnection?: NetworkInformationLike;
@@ -129,6 +135,17 @@ function getNavigatorWebDriver(): boolean | undefined {
   }
   const reported = (navigator as NavigatorWithWebDriver).webdriver;
   return typeof reported === 'boolean' ? reported : undefined;
+}
+
+function getNavigatorHardwareConcurrency(): number | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  const reported = (navigator as NavigatorWithHardwareConcurrency)
+    .hardwareConcurrency;
+  return typeof reported === 'number' && Number.isFinite(reported)
+    ? reported
+    : undefined;
 }
 
 function normalizeNetworkInformation(
@@ -189,6 +206,17 @@ function shouldForceTextModeForUserAgent(userAgent: string): boolean {
   return AUTOMATED_CLIENT_PATTERNS.some((pattern) => pattern.test(userAgent));
 }
 
+const LOW_END_DEVICE_PATTERNS: ReadonlyArray<RegExp> = [
+  /android\s?(6|7|8)\b/i,
+  /iphone\s?os\s?(1[0-2]|9|10|11)_/i,
+  /windows\sphone/i,
+  /nexus\s5/i,
+];
+
+function shouldTreatUserAgentAsLowEnd(userAgent: string): boolean {
+  return LOW_END_DEVICE_PATTERNS.some((pattern) => pattern.test(userAgent));
+}
+
 export function evaluateFailoverDecision(
   options: FailoverDecisionOptions = {}
 ): FailoverDecision {
@@ -212,6 +240,16 @@ export function evaluateFailoverDecision(
   const isWebDriver = readIsWebDriver() ?? false;
   const automatedByUserAgent =
     !!userAgent && shouldForceTextModeForUserAgent(userAgent);
+  const readHardwareConcurrency =
+    options.getHardwareConcurrency ?? getNavigatorHardwareConcurrency;
+  const reportedHardwareConcurrency = readHardwareConcurrency();
+  const minimumHardwareConcurrency = options.minimumHardwareConcurrency ?? 2;
+  const hasLowHardwareConcurrency =
+    reportedHardwareConcurrency !== undefined &&
+    reportedHardwareConcurrency > 0 &&
+    reportedHardwareConcurrency <= minimumHardwareConcurrency;
+  const lowEndByUserAgent =
+    !!userAgent && shouldTreatUserAgentAsLowEnd(userAgent);
 
   const readNetworkInformation =
     options.getNetworkInformation ?? getNavigatorNetworkInformation;
@@ -232,6 +270,13 @@ export function evaluateFailoverDecision(
   }
 
   const webglSupported = isWebglSupported(options);
+
+  if (
+    (!mode || mode.length === 0) &&
+    (hasLowHardwareConcurrency || lowEndByUserAgent)
+  ) {
+    return { shouldUseFallback: true, reason: 'low-end-device' };
+  }
 
   if ((!mode || mode.length === 0) && (automatedByUserAgent || isWebDriver)) {
     return { shouldUseFallback: true, reason: 'automated-client' };
@@ -306,6 +351,8 @@ export function renderTextFallback(
         return "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light.";
       case 'low-memory':
         return 'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.';
+      case 'low-end-device':
+        return 'We detected a lightweight device profile, so we loaded the fast text tour to keep navigation responsive.';
       case 'low-performance':
         return 'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.';
       case 'immersive-init-error':

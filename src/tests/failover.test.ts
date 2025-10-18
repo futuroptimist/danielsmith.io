@@ -204,6 +204,40 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes low hardware concurrency devices to text mode', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getHardwareConcurrency: () => 2,
+      minimumHardwareConcurrency: 3,
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'low-end-device',
+    });
+  });
+
+  it('routes low-end user agents to text mode', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getUserAgent: () =>
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15',
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'low-end-device',
+    });
+  });
+
+  it('does not force fallback for low hardware concurrency when immersive override is present', () => {
+    const decision = evaluateFailoverDecision({
+      search: IMMERSIVE_SEARCH,
+      createCanvas: canvasFactory,
+      getHardwareConcurrency: () => 1,
+      minimumHardwareConcurrency: 3,
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('routes webdriver-flagged clients to text mode when mode is not forced', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
@@ -310,6 +344,12 @@ describe('renderTextFallback', () => {
     const container = render('automated-client');
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/automated client/i);
+  });
+
+  it('describes low-end device fallback messaging', () => {
+    const container = render('low-end-device');
+    const description = container.querySelector('.text-fallback__description');
+    expect(description?.textContent).toMatch(/lightweight device/i);
   });
 
   it('applies rtl direction metadata based on document language', () => {

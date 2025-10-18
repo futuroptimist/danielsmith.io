@@ -33,6 +33,9 @@ Include summary, automated tests, and manual verification checklist.
 - Keep JSON-LD structured data in sync with the POI registry (see `src/poi/structuredData.ts`).
 - Ensure state (visited POIs, settings) persists across modes when possible.
 - Document any platform-specific fallbacks (e.g., Safari WebGL quirks).
+- Low-end detection now considers hardware concurrency ≤2 and legacy mobile user agents.
+  Use `?mode=immersive&disablePerformanceFailover=1` when validating on constrained
+  dev environments. A `<noscript>` text tour keeps scrapers and no-JS browsers covered.
 
 ## Upgrade Prompt
 

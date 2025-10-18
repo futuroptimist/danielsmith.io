@@ -25,6 +25,10 @@ describe('createModeAnnouncer', () => {
     expect(announcer.element.getAttribute('aria-live')).toBe('polite');
     announcer.announceFallback('manual');
     expect(announcer.element.textContent).toMatch(/text mode enabled/i);
+    announcer.announceFallback('low-end-device');
+    expect(announcer.element.textContent).toMatch(
+      /lightweight device profile/i
+    );
     announcer.announceImmersiveReady();
     expect(announcer.element.textContent).toMatch(/immersive mode ready/i);
   });

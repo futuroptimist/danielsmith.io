@@ -302,6 +302,93 @@
     </style>
   </head>
   <body>
+    <noscript>
+      <style>
+        #app {
+          display: none !important;
+        }
+
+        .noscript-fallback {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 3rem clamp(1.5rem, 4vw, 4rem);
+          gap: 1.5rem;
+          background: linear-gradient(180deg, #0a111c 0%, #020408 100%);
+          color: rgba(224, 236, 255, 0.9);
+          font-family:
+            'Inter',
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            sans-serif;
+        }
+
+        .noscript-fallback__actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          padding: 0;
+          margin: 0;
+          list-style: none;
+        }
+
+        .noscript-fallback__link {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.6rem 1rem;
+          border-radius: 0.65rem;
+          background: rgba(16, 43, 70, 0.78);
+          border: 1px solid rgba(114, 210, 255, 0.28);
+          color: inherit;
+          text-decoration: none;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+        }
+
+        .noscript-fallback__link:focus,
+        .noscript-fallback__link:hover {
+          border-color: rgba(158, 232, 255, 0.8);
+        }
+      </style>
+      <section class="noscript-fallback" data-mode="text" lang="en">
+        <header>
+          <h1>danielsmith.io — text tour</h1>
+          <p>
+            JavaScript is disabled or blocked, so we launched the lightweight
+            text experience.
+          </p>
+        </header>
+        <p>
+          Explore recent projects, download a résumé, or re-enable JavaScript to
+          load the immersive 3D home.
+        </p>
+        <ul class="noscript-fallback__actions">
+          <li>
+            <a
+              class="noscript-fallback__link"
+              href="/docs/resume/2025-09/resume.pdf"
+            >
+              View résumé
+            </a>
+          </li>
+          <li>
+            <a
+              class="noscript-fallback__link"
+              href="https://github.com/futuroptimist"
+            >
+              GitHub projects
+            </a>
+          </li>
+          <li>
+            <a class="noscript-fallback__link" href="/?mode=text">
+              Static portfolio
+            </a>
+          </li>
+        </ul>
+      </section>
+    </noscript>
     <div id="app"></div>
     <div class="overlay" id="control-overlay">
       <p class="overlay__heading" data-control-text="heading">Controls</p>
