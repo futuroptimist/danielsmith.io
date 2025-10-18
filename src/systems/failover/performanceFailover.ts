@@ -216,7 +216,7 @@ export function createPerformanceFailoverHandler(
 
   const consoleFailoverOptions = consoleFailover;
 
-  if (consoleFailoverOptions?.disabled !== true) {
+  if (!disabled && consoleFailoverOptions?.disabled !== true) {
     const {
       onExceeded,
       budget: consoleBudget,
