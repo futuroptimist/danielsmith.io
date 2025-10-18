@@ -28,6 +28,8 @@ captures; keep artifacts in `docs/metrics/`.
   HUD controls expose ARIA labels and 48 px touch targets.
 - **Stability** – smoke build succeeds; console error budget stays at 0; Sentry (or console
   proxy) is clean in demo runs.
+  - ✅ Console budget monitor now routes the scene to text mode when runtime errors exceed the
+    zero-tolerance threshold and emits instrumentation events for telemetry hooks.
 - **Failover** – auto redirect to text-only portfolio if WebGL is unavailable, memory
   heuristics fail (<1 GB), or FPS drops below 30 for 5s; provide manual toggle in HUD.
   - ✅ WebGL capability detection now routes unsupported browsers to the lightweight text view (also available via `?mode=text`)

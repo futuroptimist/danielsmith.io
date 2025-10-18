@@ -1,6 +1,13 @@
 import type { FallbackReason, RenderTextFallbackOptions } from '../failover';
 import { renderTextFallback } from '../failover';
 
+import {
+  createConsoleBudgetMonitor,
+  type ConsoleBudgetMonitorHandle,
+  type ConsoleBudgetExceededDetail,
+  type ConsoleBudgetMonitorOptions,
+} from './consoleBudgetMonitor';
+
 type AnimationLoop = (() => void) | null;
 
 export interface ImmersiveRendererHandle {
@@ -30,6 +37,14 @@ export interface PerformanceFailoverHandlerOptions {
   fallbackLinks?: Pick<RenderTextFallbackOptions, 'resumeUrl' | 'githubUrl'>;
   onBeforeFallback?: (reason: FallbackReason) => void;
   disabled?: boolean;
+  consoleFailover?: ConsoleFailoverOptions;
+}
+
+export interface ConsoleFailoverOptions
+  extends Omit<ConsoleBudgetMonitorOptions, 'budget' | 'onBudgetExceeded'> {
+  budget?: number;
+  disabled?: boolean;
+  onExceeded?: (detail: ConsoleBudgetExceededDetail) => void;
 }
 
 interface PerformanceFailoverMonitorOptions {
@@ -131,9 +146,11 @@ export function createPerformanceFailoverHandler(
     fallbackLinks,
     onBeforeFallback,
     disabled = false,
+    consoleFailover,
   } = options;
 
   let transitioned = false;
+  let consoleMonitor: ConsoleBudgetMonitorHandle | null = null;
 
   const transitionToFallback = (
     reason: FallbackReason,
@@ -143,6 +160,10 @@ export function createPerformanceFailoverHandler(
       return;
     }
     transitioned = true;
+    if (consoleMonitor) {
+      consoleMonitor.dispose();
+      consoleMonitor = null;
+    }
     if (context && onTrigger) {
       onTrigger(context);
     }
@@ -192,6 +213,31 @@ export function createPerformanceFailoverHandler(
           transitionToFallback('low-performance', context);
         },
       });
+
+  const consoleFailoverOptions = consoleFailover;
+
+  if (consoleFailoverOptions?.disabled !== true) {
+    const {
+      onExceeded,
+      budget: consoleBudget,
+      disabled: inheritedDisabled,
+      ...rest
+    } = consoleFailoverOptions ?? {};
+    if (inheritedDisabled !== true) {
+      consoleMonitor = createConsoleBudgetMonitor({
+        ...rest,
+        budget: consoleBudget ?? 0,
+        onBudgetExceeded: (detail) => {
+          try {
+            onExceeded?.(detail);
+          } catch (error) {
+            console.warn('Console failover callback failed:', error);
+          }
+          transitionToFallback('console-error');
+        },
+      });
+    }
+  }
 
   return {
     update(deltaSeconds: number) {

@@ -200,6 +200,14 @@ describe('renderTextFallback', () => {
     expect(description?.textContent).toMatch(/memory/i);
   });
 
+  it('signals console error fallback messaging when runtime errors occur', () => {
+    const container = render('console-error');
+    const section = container.querySelector('.text-fallback');
+    expect(section?.getAttribute('data-reason')).toBe('console-error');
+    const description = container.querySelector('.text-fallback__description');
+    expect(description?.textContent).toMatch(/runtime error/i);
+  });
+
   it('announces performance-triggered fallback messaging', () => {
     const container = render('low-performance');
     const section = container.querySelector('.text-fallback');

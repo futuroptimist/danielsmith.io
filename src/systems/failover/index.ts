@@ -22,7 +22,8 @@ export type FallbackReason =
   | 'low-memory'
   | 'low-performance'
   | 'immersive-init-error'
-  | 'automated-client';
+  | 'automated-client'
+  | 'console-error';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -239,6 +240,8 @@ export function renderTextFallback(
         return 'Something went wrong starting the immersive scene, so we brought you the text overview instead.';
       case 'automated-client':
         return 'We detected an automated client, so we surfaced the fast-loading text portfolio for reliable previews and crawlers.';
+      case 'console-error':
+        return 'We detected a runtime error and switched to the resilient text tour while the immersive scene recovers.';
       default:
         return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
     }

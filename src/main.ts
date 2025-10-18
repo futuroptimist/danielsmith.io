@@ -614,6 +614,15 @@ function initializeImmersiveScene(
       disposeImmersiveResources();
     },
     disabled: disablePerformanceFailover,
+    consoleFailover: {
+      budget: 0,
+      onExceeded: ({ source, count }) => {
+        const eventsLabel = count === 1 ? 'event' : 'events';
+        console.warn(
+          `Switching to text fallback after ${count} console ${eventsLabel} (${source}).`
+        );
+      },
+    },
   });
 
   const handleFatalError = (error: unknown) => {
