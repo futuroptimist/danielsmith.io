@@ -79,7 +79,8 @@ describe('createBackyardEnvironment', () => {
   });
 
   it('adds the model rocket installation and collider to the backyard', () => {
-    const { group, colliders } = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const { group, colliders } = environment;
     const rocket = group.getObjectByName('BackyardModelRocket');
     expect(rocket).toBeInstanceOf(Group);
 
@@ -95,6 +96,54 @@ describe('createBackyardEnvironment', () => {
     expect(matchingCollider).toBeDefined();
     expect(matchingCollider?.maxX).toBeGreaterThan(matchingCollider!.minX);
     expect(matchingCollider?.maxZ).toBeGreaterThan(matchingCollider!.minZ);
+
+    const thruster = (rocket as Group).getObjectByName('ModelRocketThruster');
+    expect(thruster).toBeInstanceOf(Mesh);
+    const thrusterMaterial = (thruster as Mesh)
+      .material as MeshStandardMaterial;
+    const thrusterBaseline = thrusterMaterial.emissiveIntensity;
+
+    const flame = (rocket as Group).getObjectByName('ModelRocketThrusterFlame');
+    expect(flame).toBeInstanceOf(Mesh);
+    const flameMaterial = (flame as Mesh).material as MeshBasicMaterial;
+    const flameBaseline = flameMaterial.opacity;
+
+    const thrusterLight = (rocket as Group).getObjectByName(
+      'ModelRocketThrusterLight'
+    );
+    expect(thrusterLight).toBeInstanceOf(PointLight);
+    const lightBaseline = (thrusterLight as PointLight).intensity;
+
+    const safetyRing = (rocket as Group).getObjectByName(
+      'ModelRocketSafetyRing'
+    );
+    expect(safetyRing).toBeInstanceOf(Mesh);
+    const safetyMaterial = (safetyRing as Mesh).material as MeshBasicMaterial;
+    const safetyBaseline = safetyMaterial.opacity;
+
+    const countdownPanel = (rocket as Group).getObjectByName(
+      'ModelRocketCountdownPanel'
+    );
+    expect(countdownPanel).toBeInstanceOf(Mesh);
+    const countdownMaterial = (countdownPanel as Mesh)
+      .material as MeshBasicMaterial;
+    const countdownOpacityBaseline = countdownMaterial.opacity;
+    const countdownScaleBaseline = (countdownPanel as Mesh).scale.y;
+
+    environment.update({ elapsed: 1.25, delta: 0.016 });
+
+    expect(thrusterMaterial.emissiveIntensity).not.toBeCloseTo(
+      thrusterBaseline
+    );
+    expect(flameMaterial.opacity).not.toBeCloseTo(flameBaseline);
+    expect((thrusterLight as PointLight).intensity).not.toBeCloseTo(
+      lightBaseline
+    );
+    expect(safetyMaterial.opacity).not.toBeCloseTo(safetyBaseline);
+    expect(countdownMaterial.opacity).not.toBeCloseTo(countdownOpacityBaseline);
+    expect((countdownPanel as Mesh).scale.y).not.toBeCloseTo(
+      countdownScaleBaseline
+    );
   });
 
   it('installs the greenhouse exhibit with animated elements and collider', () => {

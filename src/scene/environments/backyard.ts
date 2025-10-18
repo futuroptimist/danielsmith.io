@@ -303,6 +303,7 @@ export function createBackyardEnvironment(
   });
   group.add(rocket.group);
   colliders.push(rocket.collider);
+  updates.push(rocket.update);
 
   const steppingStoneGeometry = new BoxGeometry(pathWidth * 0.32, 0.12, 0.9);
   const steppingStoneMaterial = new MeshStandardMaterial({
