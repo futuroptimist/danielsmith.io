@@ -228,6 +228,8 @@ Focus: make the experience inclusive and globally friendly.
 - High-contrast material set, colorblind-safe lighting palettes, and adjustable motion blur.
   - ✅ Adjustable motion blur now routes through accessibility presets so visitors can dial
     back or disable camera trails.
+  - ✅ Motion blur slider in the HUD settings now lets visitors fine-tune trail intensity
+    alongside audio and accessibility controls.
 - ✅ High contrast accessibility preset now boosts HUD readability without disabling cinematic
   lighting cues.
 

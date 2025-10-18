@@ -210,6 +210,10 @@ import {
 } from './systems/controls/keyBindings';
 import { KeyboardControls } from './systems/controls/KeyboardControls';
 import {
+  createMotionBlurControl,
+  type MotionBlurControlHandle,
+} from './systems/controls/motionBlurControl';
+import {
   createTourResetControl,
   type TourResetControlHandle,
 } from './systems/controls/tourResetControl';
@@ -553,6 +557,7 @@ function initializeImmersiveScene(
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
+  let motionBlurControl: MotionBlurControlHandle | null = null;
   let audioSubtitles: AudioSubtitlesHandle | null = null;
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
@@ -2479,6 +2484,31 @@ function initializeImmersiveScene(
     accessibilityPresetManager.refresh();
     ledAnimator?.captureBaseline();
     audioHudHandle?.refresh();
+    motionBlurControl?.refresh();
+  }
+
+  motionBlurControl = createMotionBlurControl({
+    container: hudSettingsStack,
+    getIntensity: () =>
+      accessibilityPresetManager?.getBaseMotionBlurIntensity() ??
+      motionBlurController?.getIntensity() ??
+      0,
+    setIntensity: (intensity) => {
+      if (accessibilityPresetManager) {
+        accessibilityPresetManager.setBaseMotionBlurIntensity(intensity);
+        return;
+      }
+      const clamped = Math.min(Math.max(intensity, 0), 1);
+      motionBlurController?.setIntensity(clamped);
+      document.documentElement.dataset.accessibilityMotionBlur =
+        String(clamped);
+    },
+  });
+  if (manualModeToggle) {
+    hudSettingsStack.insertBefore(
+      motionBlurControl.element,
+      manualModeToggle.element
+    );
   }
 
   accessibilityControlHandle = createAccessibilityPresetControl({
@@ -2498,6 +2528,7 @@ function initializeImmersiveScene(
   unsubscribeAccessibility = accessibilityPresetManager.onChange(() => {
     accessibilityControlHandle?.refresh();
     audioHudHandle?.refresh();
+    motionBlurControl?.refresh();
     ledAnimator?.captureBaseline();
   });
 
@@ -3036,6 +3067,10 @@ function initializeImmersiveScene(
     if (audioHudHandle) {
       audioHudHandle.dispose();
       audioHudHandle = null;
+    }
+    if (motionBlurControl) {
+      motionBlurControl.dispose();
+      motionBlurControl = null;
     }
     if (footstepAudio) {
       if (footstepAudio.isPlaying) {
