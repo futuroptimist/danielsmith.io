@@ -15,6 +15,15 @@ type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 type DeviceMemoryReader = () => number | undefined;
 type UserAgentReader = () => string | undefined;
 type WebDriverReader = () => boolean | undefined;
+type NetworkInformationReader = () =>
+  | NetworkInformationSnapshot
+  | null
+  | undefined;
+
+interface NetworkInformationSnapshot {
+  saveData?: boolean;
+  effectiveType?: string | null;
+}
 
 export type FallbackReason =
   | 'webgl-unsupported'
@@ -23,7 +32,8 @@ export type FallbackReason =
   | 'low-performance'
   | 'immersive-init-error'
   | 'automated-client'
-  | 'console-error';
+  | 'console-error'
+  | 'data-saver';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -68,6 +78,7 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   minimumDeviceMemory?: number;
   getUserAgent?: UserAgentReader;
   getIsWebDriver?: WebDriverReader;
+  getNetworkInformation?: NetworkInformationReader;
 }
 
 export interface FailoverDecision {
@@ -81,6 +92,16 @@ interface NavigatorWithDeviceMemory extends Navigator {
 
 type NavigatorWithUserAgent = Navigator & { userAgent?: string };
 type NavigatorWithWebDriver = Navigator & { webdriver?: boolean };
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkInformationLike;
+  mozConnection?: NetworkInformationLike;
+  webkitConnection?: NetworkInformationLike;
+};
+
+type NetworkInformationLike = {
+  saveData?: boolean;
+  effectiveType?: string | null;
+} | null;
 
 function getNavigatorDeviceMemory(): number | undefined {
   if (typeof navigator === 'undefined') {
@@ -108,6 +129,40 @@ function getNavigatorWebDriver(): boolean | undefined {
   }
   const reported = (navigator as NavigatorWithWebDriver).webdriver;
   return typeof reported === 'boolean' ? reported : undefined;
+}
+
+function normalizeNetworkInformation(
+  info: NetworkInformationLike
+): NetworkInformationSnapshot | undefined {
+  if (!info || typeof info !== 'object') {
+    return undefined;
+  }
+  const saveData = info.saveData === true;
+  const effectiveType =
+    typeof info.effectiveType === 'string' && info.effectiveType.length > 0
+      ? info.effectiveType
+      : undefined;
+  if (!saveData && !effectiveType) {
+    return undefined;
+  }
+  return {
+    saveData,
+    effectiveType,
+  } satisfies NetworkInformationSnapshot;
+}
+
+function getNavigatorNetworkInformation():
+  | NetworkInformationSnapshot
+  | undefined {
+  if (typeof navigator === 'undefined') {
+    return undefined;
+  }
+  const candidate =
+    (navigator as NavigatorWithConnection).connection ??
+    (navigator as NavigatorWithConnection).mozConnection ??
+    (navigator as NavigatorWithConnection).webkitConnection ??
+    null;
+  return normalizeNetworkInformation(candidate);
 }
 
 const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
@@ -158,6 +213,16 @@ export function evaluateFailoverDecision(
   const automatedByUserAgent =
     !!userAgent && shouldForceTextModeForUserAgent(userAgent);
 
+  const readNetworkInformation =
+    options.getNetworkInformation ?? getNavigatorNetworkInformation;
+  const networkInformation = readNetworkInformation() ?? undefined;
+  const prefersReducedData = networkInformation?.saveData === true;
+  const effectiveType = networkInformation?.effectiveType;
+  const normalizedEffectiveType =
+    typeof effectiveType === 'string' ? effectiveType.toLowerCase() : undefined;
+  const hasSlowConnection =
+    normalizedEffectiveType === 'slow-2g' || normalizedEffectiveType === '2g';
+
   if (mode === 'text') {
     return { shouldUseFallback: true, reason: 'manual' };
   }
@@ -178,6 +243,13 @@ export function evaluateFailoverDecision(
 
   if (hasLowMemory) {
     return { shouldUseFallback: true, reason: 'low-memory' };
+  }
+
+  if (
+    (!mode || mode.length === 0) &&
+    (prefersReducedData || hasSlowConnection)
+  ) {
+    return { shouldUseFallback: true, reason: 'data-saver' };
   }
 
   return { shouldUseFallback: false };
@@ -242,6 +314,8 @@ export function renderTextFallback(
         return 'We detected an automated client, so we surfaced the fast-loading text portfolio for reliable previews and crawlers.';
       case 'console-error':
         return 'We detected a runtime error and switched to the resilient text tour while the immersive scene recovers.';
+      case 'data-saver':
+        return 'Your browser requested a data-saver experience, so we launched the lightweight text tour to minimize bandwidth while keeping the highlights accessible.';
       default:
         return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
     }
