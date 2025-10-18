@@ -31,6 +31,8 @@ const DEFAULT_FALLBACK_MESSAGES: Record<FallbackReason, string> = {
     'WebGL is unavailable here, so the accessible text portfolio is now active.',
   'automated-client':
     'Detected an automated client. Presenting the text portfolio for reliable previews.',
+  'low-end-device':
+    'Detected a lightweight device profile. Running the text portfolio for a smoother tour.',
 };
 
 function applyVisuallyHiddenStyles(element: HTMLElement): void {
