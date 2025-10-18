@@ -111,27 +111,135 @@ function createPedestalPoiInstance(
   const baseHeight = scalePoiValue(0.32);
   const baseRadiusX = definition.footprint.width / 2;
   const baseRadiusZ = definition.footprint.depth / 2;
-  // Removed pedestal/base disc; keep only floating orb + footprint-derived rings.
 
-  // Removed inner accent disc for a cleaner look. Rings below are sized
-  // relative to the POI model footprint to avoid overlaps across exhibits.
+  const hologramConfig =
+    definition.pedestal?.type === 'hologram' ? definition.pedestal : null;
+  const pedestalHeight = Math.max(0, hologramConfig?.height ?? 0);
+  const baseRadius = Math.min(baseRadiusX, baseRadiusZ);
+  const pedestalRadius =
+    pedestalHeight > 0
+      ? baseRadius *
+        MathUtils.clamp(hologramConfig?.radiusScale ?? 0.75, 0.3, 1.25)
+      : 0;
+
+  let accentMaterial: MeshStandardMaterial | undefined;
+  let accentBaseColor: Color | undefined;
+  let accentFocusColor: Color | undefined;
+
+  if (pedestalHeight > 0 && pedestalRadius > 0) {
+    const bodyMaterial = new MeshStandardMaterial({
+      color: new Color(hologramConfig?.bodyColor ?? 0x101c2a),
+      emissive: new Color(hologramConfig?.emissiveColor ?? 0x2f8aff),
+      emissiveIntensity: hologramConfig?.emissiveIntensity ?? 0.78,
+      roughness: 0.2,
+      metalness: 0.16,
+    });
+    bodyMaterial.transparent = true;
+    bodyMaterial.opacity = MathUtils.clamp(
+      hologramConfig?.bodyOpacity ?? 0.52,
+      0,
+      1
+    );
+    bodyMaterial.depthWrite = false;
+    const bodyGeometry = new CylinderGeometry(
+      pedestalRadius,
+      pedestalRadius,
+      pedestalHeight,
+      48,
+      1,
+      true
+    );
+    const body = new Mesh(bodyGeometry, bodyMaterial);
+    body.name = `POI_PedestalBody:${definition.id}`;
+    body.position.y = pedestalHeight / 2;
+    body.renderOrder = 6;
+    group.add(body);
+
+    const accentHeight = Math.max(
+      Math.min(pedestalHeight * 0.2, scalePoiValue(0.4)),
+      scalePoiValue(0.1)
+    );
+    accentMaterial = new MeshStandardMaterial({
+      color: new Color(hologramConfig?.accentColor ?? 0x58ddff),
+      emissive: new Color(
+        hologramConfig?.accentEmissiveColor ??
+          hologramConfig?.accentColor ??
+          0x8cefff
+      ),
+      emissiveIntensity: hologramConfig?.accentEmissiveIntensity ?? 1.05,
+      roughness: 0.18,
+      metalness: 0.42,
+    });
+    accentMaterial.transparent = true;
+    accentMaterial.opacity = MathUtils.clamp(
+      hologramConfig?.accentOpacity ?? 0.88,
+      0,
+      1
+    );
+    accentMaterial.depthWrite = false;
+    const accentGeometry = new CylinderGeometry(
+      pedestalRadius * 1.02,
+      pedestalRadius * 1.02,
+      accentHeight,
+      48,
+      1,
+      true
+    );
+    const accent = new Mesh(accentGeometry, accentMaterial);
+    accent.name = `POI_PedestalAccent:${definition.id}`;
+    accent.position.y = pedestalHeight - accentHeight / 2;
+    accent.renderOrder = 7;
+    group.add(accent);
+
+    accentBaseColor = accentMaterial.color.clone();
+    accentFocusColor = accentMaterial.color
+      .clone()
+      .lerp(new Color(0xffffff), 0.35);
+
+    const ringMaterial = new MeshBasicMaterial({
+      color: new Color(hologramConfig?.ringColor ?? 0x78eaff),
+      transparent: true,
+      opacity: MathUtils.clamp(hologramConfig?.ringOpacity ?? 0.6, 0, 1),
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    ringMaterial.side = DoubleSide;
+    const ringGeometry = new RingGeometry(
+      pedestalRadius * 0.55,
+      pedestalRadius * 1.08,
+      64,
+      1
+    );
+    const ring = new Mesh(ringGeometry, ringMaterial);
+    ring.name = `POI_PedestalRing:${definition.id}`;
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = pedestalHeight + scalePoiValue(0.02);
+    ring.renderOrder = 12;
+    group.add(ring);
+  }
 
   const orbRadius =
-    Math.min(baseRadiusX, baseRadiusZ) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
+    Math.max(baseRadius, pedestalRadius) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
   const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
-  const orbEmissiveBase = new Color(0x3de1ff);
-  const orbEmissiveHighlight = new Color(0x7efcff);
+  const orbColor = new Color(hologramConfig?.orbColor ?? 0xb8f3ff);
+  const orbEmissiveBase = new Color(
+    hologramConfig?.orbEmissiveColor ?? 0x3de1ff
+  );
+  const orbEmissiveHighlight = new Color(
+    hologramConfig?.orbHighlightColor ?? 0x7efcff
+  );
   const orbMaterial = new MeshStandardMaterial({
-    color: new Color(0xb8f3ff),
+    color: orbColor,
     emissive: orbEmissiveBase.clone(),
-    emissiveIntensity: 0.9,
+    emissiveIntensity: hologramConfig?.orbEmissiveIntensity ?? 0.9,
     roughness: 0.22,
     metalness: 0.18,
   });
   const orb = new Mesh(orbGeometry, orbMaterial);
   const orbBaseHeight =
+    pedestalHeight +
     (baseHeight + orbRadius + scalePoiValue(POI_ORB_VERTICAL_OFFSET)) *
-    POI_ORB_HEIGHT_MULTIPLIER;
+      POI_ORB_HEIGHT_MULTIPLIER;
   orb.position.y = orbBaseHeight;
   group.add(orb);
 
@@ -160,7 +268,7 @@ function createPedestalPoiInstance(
 
   // Size the ground ring proportionally to the underlying model footprint.
   // Use the smaller half-extent to keep a conservative footprint and avoid overlaps.
-  const modelRadius = Math.min(baseRadiusX, baseRadiusZ);
+  const modelRadius = Math.max(baseRadius, pedestalRadius);
   const haloInnerRadius = modelRadius * 0.62; // tighter than the platform base
   const haloOuterRadius = haloInnerRadius + scalePoiValue(0.22);
   const haloGeometry = new RingGeometry(
@@ -207,10 +315,11 @@ function createPedestalPoiInstance(
   visitedRing.scale.setScalar(1);
   group.add(visitedRing);
 
-  const hitAreaHeight = baseHeight + scalePoiValue(0.24);
+  const hitAreaHeight = baseHeight + pedestalHeight + scalePoiValue(0.24);
+  const hitAreaRadius = Math.max(baseRadiusX, pedestalRadius);
   const hitAreaGeometry = new CylinderGeometry(
-    baseRadiusX,
-    baseRadiusX,
+    hitAreaRadius,
+    hitAreaRadius,
     hitAreaHeight,
     32
   );
@@ -225,11 +334,13 @@ function createPedestalPoiInstance(
   hitArea.name = `POI_HIT:${definition.id}`;
   group.add(hitArea);
 
+  const colliderRadiusX = Math.max(baseRadiusX, pedestalRadius);
+  const colliderRadiusZ = Math.max(baseRadiusZ, pedestalRadius);
   const collider = {
-    minX: definition.position.x - baseRadiusX,
-    maxX: definition.position.x + baseRadiusX,
-    minZ: definition.position.z - baseRadiusZ,
-    maxZ: definition.position.z + baseRadiusZ,
+    minX: definition.position.x - colliderRadiusX,
+    maxX: definition.position.x + colliderRadiusX,
+    minZ: definition.position.z - colliderRadiusZ,
+    maxZ: definition.position.z + colliderRadiusZ,
   };
 
   return {
@@ -247,6 +358,9 @@ function createPedestalPoiInstance(
     floatAmplitude: MathUtils.randFloat(0.12, 0.18) * scalePoiValue(1),
     halo,
     haloMaterial,
+    accentMaterial,
+    accentBaseColor,
+    accentFocusColor,
     collider,
     activation: 0,
     pulseOffset: MathUtils.randFloatSpread(Math.PI * 2),

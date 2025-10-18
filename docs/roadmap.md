@@ -101,7 +101,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ 3D tooltip cards anchor POIs in world space, billboard to the camera, and reuse overlay copy.
    - ✅ Desktop pointer + keyboard selection loops share accessible focus targets and emit POI
      events, paving the path for gamepad + mid-air parity.
-   - ⚙️ Data-driven registry now spawns holographic pedestals for Futuroptimist + Flywheel exhibits.
+
+   - ✅ Data-driven registry now spawns holographic pedestals for Futuroptimist + Flywheel exhibits.
    - ✨ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
    - ✅ Desktop pointer interaction manager highlights POIs and emits selection events.
    - ✅ Analytics hooks emit hover and selection lifecycle events for instrumentation pipelines.
@@ -111,6 +112,7 @@ Focus: anchor each highlighted project with an interactive artifact.
      hover/selection state.
    - ✅ Registry validation enforces room bounds, unique ids, and safe spacing at build time.
    - ✅ Touch interactions now share the pointer pipeline so mobile taps mirror desktop focus.
+
 2. **Interior Showpieces**
    - ✅ Wall-mounted TV with YouTube branding for the `futuroptimist` repo; approaching
      triggers a rich text popup with repo summary, star count, and CTA buttons.

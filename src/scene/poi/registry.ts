@@ -3,13 +3,20 @@ import { getPoiCopy } from '../../assets/i18n';
 
 import { scalePoiValue } from './constants';
 import { applyManualPoiPlacements } from './placements';
-import type { PoiDefinition, PoiId, PoiRegistry } from './types';
+import type {
+  PoiDefinition,
+  PoiId,
+  PoiPedestalConfig,
+  PoiRegistry,
+} from './types';
 import { assertValidPoiDefinitions } from './validation';
+
+type PoiPedestalStaticConfig = PoiPedestalConfig;
 
 type PoiStaticDefinition = Omit<
   PoiDefinition,
-  'title' | 'summary' | 'metrics' | 'links' | 'narration'
->;
+  'title' | 'summary' | 'metrics' | 'links' | 'narration' | 'pedestal'
+> & { pedestal?: PoiPedestalStaticConfig };
 
 const baseDefinitions: PoiStaticDefinition[] = [
   {
@@ -23,6 +30,25 @@ const baseDefinitions: PoiStaticDefinition[] = [
     interactionRadius: 2.6,
     footprint: { width: 3.4, depth: 3.2 },
     status: 'prototype',
+    pedestal: {
+      type: 'hologram',
+      height: 0.86,
+      radiusScale: 0.76,
+      bodyColor: 0x122036,
+      bodyOpacity: 0.58,
+      emissiveColor: 0x1f77ff,
+      emissiveIntensity: 0.82,
+      accentColor: 0x5acbff,
+      accentEmissiveColor: 0x8fe3ff,
+      accentEmissiveIntensity: 1.08,
+      accentOpacity: 0.88,
+      ringColor: 0x7ff2ff,
+      ringOpacity: 0.62,
+      orbColor: 0xc7f3ff,
+      orbEmissiveColor: 0x4de6ff,
+      orbHighlightColor: 0x9bfbff,
+      orbEmissiveIntensity: 1.05,
+    },
   },
   {
     id: 'tokenplace-studio-cluster',
@@ -56,6 +82,25 @@ const baseDefinitions: PoiStaticDefinition[] = [
     interactionRadius: 2.2,
     footprint: { width: 2, depth: 2 },
     status: 'prototype',
+    pedestal: {
+      type: 'hologram',
+      height: 0.96,
+      radiusScale: 0.82,
+      bodyColor: 0x101a28,
+      bodyOpacity: 0.54,
+      emissiveColor: 0x1cc7a3,
+      emissiveIntensity: 0.9,
+      accentColor: 0x48ffd4,
+      accentEmissiveColor: 0x96ffe9,
+      accentEmissiveIntensity: 1.12,
+      accentOpacity: 0.92,
+      ringColor: 0x6affdf,
+      ringOpacity: 0.65,
+      orbColor: 0xbefde4,
+      orbEmissiveColor: 0x36f7c5,
+      orbHighlightColor: 0x9ffff3,
+      orbEmissiveIntensity: 1.08,
+    },
   },
   {
     id: 'jobbot-studio-terminal',
@@ -182,6 +227,15 @@ const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
   const scaledMaxHalf = Math.max(footprintWidth, footprintDepth) / 2;
   const preservedMargin = Math.max(0, base.interactionRadius - baseMaxHalf);
   const scaledInteractionRadius = scaledMaxHalf + preservedMargin;
+  const pedestal: PoiPedestalConfig | undefined = base.pedestal
+    ? {
+        ...base.pedestal,
+        height:
+          typeof base.pedestal.height === 'number'
+            ? scalePoiValue(base.pedestal.height)
+            : undefined,
+      }
+    : undefined;
   return {
     ...base,
     interactionRadius: scaledInteractionRadius,
@@ -189,6 +243,7 @@ const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
       width: footprintWidth,
       depth: footprintDepth,
     },
+    pedestal,
     title: copy.title,
     summary: copy.summary,
     metrics: copy.metrics?.map((metric) => ({ ...metric })),
