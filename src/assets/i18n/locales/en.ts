@@ -145,6 +145,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
                 'Use the on-screen Text mode button or press T at any time.',
             },
             {
+              label: 'Motion blur slider',
+              description:
+                'Adjust trail strength with the Settings → Motion blur control.',
+            },
+            {
               label: 'Ambient audio',
               description: 'Toggle with the Audio button or press M.',
             },

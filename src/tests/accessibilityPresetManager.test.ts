@@ -177,7 +177,11 @@ describe('createAccessibilityPresetManager', () => {
     expect(listener).toHaveBeenCalledWith('photosensitive');
     expect(storage.setItem).toHaveBeenCalledWith(
       'danielsmith:accessibility-preset',
-      JSON.stringify({ presetId: 'photosensitive', baseAudioVolume: 0.5 })
+      JSON.stringify({
+        presetId: 'photosensitive',
+        baseAudioVolume: 0.5,
+        baseMotionBlurIntensity: 1,
+      })
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
     expect(document.documentElement.dataset.accessibilityPulseScale).toBe('0');
@@ -196,7 +200,11 @@ describe('createAccessibilityPresetManager', () => {
     expect(masterVolume).toBeCloseTo(0.63, 5);
     expect(storage.setItem).toHaveBeenCalledWith(
       'danielsmith:accessibility-preset',
-      JSON.stringify({ presetId: 'photosensitive', baseAudioVolume: 0.9 })
+      JSON.stringify({
+        presetId: 'photosensitive',
+        baseAudioVolume: 0.9,
+        baseMotionBlurIntensity: 1,
+      })
     );
 
     manager.dispose();
@@ -265,6 +273,62 @@ describe('createAccessibilityPresetManager', () => {
     expect(ledMaterial.emissiveIntensity).toBeCloseTo(0.92, 5);
     expect(ledLight.intensity).toBeCloseTo(0.99, 5);
     expect(masterVolume).toBeCloseTo(0.7, 5);
+
+    manager.dispose();
+    restoreDataset();
+  });
+
+  it('allows customizing motion blur intensity and persists overrides', () => {
+    const graphicsManager = createStubGraphicsQualityManager(() => {
+      /* baseline noop */
+    });
+
+    const motionBlur = createMotionBlurStub();
+    const storage = {
+      getItem: vi.fn(() =>
+        JSON.stringify({
+          presetId: 'calm',
+          baseAudioVolume: 0.8,
+          baseMotionBlurIntensity: 0.4,
+        })
+      ),
+      setItem: vi.fn(),
+    };
+
+    const manager = createAccessibilityPresetManager({
+      documentElement: document.documentElement,
+      graphicsQualityManager: graphicsManager,
+      motionBlurController: motionBlur,
+      storage,
+    });
+
+    expect(manager.getPreset()).toBe('calm');
+    expect(manager.getBaseMotionBlurIntensity()).toBeCloseTo(0.4, 5);
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe(
+      '0.1'
+    );
+    expect(motionBlur.setIntensity).toHaveBeenLastCalledWith(0.1);
+
+    storage.setItem.mockClear();
+    const setIntensityMock = motionBlur.setIntensity as unknown as ReturnType<
+      typeof vi.fn
+    >;
+    setIntensityMock.mockClear();
+
+    manager.setBaseMotionBlurIntensity(0.8);
+    expect(manager.getBaseMotionBlurIntensity()).toBeCloseTo(0.8, 5);
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe(
+      '0.2'
+    );
+    expect(setIntensityMock).toHaveBeenLastCalledWith(0.2);
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'danielsmith:accessibility-preset',
+      JSON.stringify({
+        presetId: 'calm',
+        baseAudioVolume: 0.8,
+        baseMotionBlurIntensity: 0.8,
+      })
+    );
 
     manager.dispose();
     restoreDataset();

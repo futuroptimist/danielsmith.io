@@ -164,6 +164,7 @@ const DEFAULT_STORAGE_KEY = 'danielsmith:accessibility-preset';
 interface AccessibilityPresetStoragePayload {
   readonly presetId?: AccessibilityPresetId;
   readonly baseAudioVolume?: number;
+  readonly baseMotionBlurIntensity?: number;
 }
 
 interface GraphicsQualityManagerLike
@@ -190,6 +191,8 @@ export interface AccessibilityPresetManager {
   refresh(): void;
   getBaseAudioVolume(): number;
   setBaseAudioVolume(volume: number): void;
+  getBaseMotionBlurIntensity(): number;
+  setBaseMotionBlurIntensity(intensity: number): void;
   onChange(listener: (preset: AccessibilityPresetId) => void): () => void;
   dispose(): void;
 }
@@ -234,6 +237,7 @@ function parseStoredPayload(
   const payload = parsed as {
     presetId?: unknown;
     baseAudioVolume?: unknown;
+    baseMotionBlurIntensity?: unknown;
   };
 
   return {
@@ -245,10 +249,28 @@ function parseStoredPayload(
       Number.isFinite(payload.baseAudioVolume)
         ? payload.baseAudioVolume
         : undefined,
+    baseMotionBlurIntensity:
+      typeof payload.baseMotionBlurIntensity === 'number' &&
+      Number.isFinite(payload.baseMotionBlurIntensity)
+        ? payload.baseMotionBlurIntensity
+        : undefined,
   } satisfies AccessibilityPresetStoragePayload;
 }
 
 function clampPersistedVolume(value: number | undefined): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return undefined;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  if (value >= 1) {
+    return 1;
+  }
+  return value;
+}
+
+function clampPersistedRatio(value: number | undefined): number | undefined {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return undefined;
   }
@@ -278,6 +300,7 @@ export function createAccessibilityPresetManager({
   let baseAudioVolume = clamp01(
     ambientAudioController?.getMasterVolume?.() ?? 1
   );
+  let baseMotionBlurIntensity = 1;
   let presetId: AccessibilityPresetId = 'standard';
 
   if (storage?.getItem) {
@@ -290,12 +313,22 @@ export function createAccessibilityPresetManager({
       if (typeof storedVolume === 'number') {
         baseAudioVolume = storedVolume;
       }
+      const storedMotionBlur = clampPersistedRatio(
+        stored.baseMotionBlurIntensity
+      );
+      if (typeof storedMotionBlur === 'number') {
+        baseMotionBlurIntensity = storedMotionBlur;
+      }
     } catch (error) {
       console.warn('Failed to read persisted accessibility preset:', error);
     }
   }
 
   const listeners = new Set<(preset: AccessibilityPresetId) => void>();
+
+  const resolveMotionBlurIntensity = (
+    definition: AccessibilityPresetDefinition
+  ) => clamp01(definition.motionBlur.intensity * baseMotionBlurIntensity);
 
   const applyDocumentAttributes = (
     definition: AccessibilityPresetDefinition
@@ -312,7 +345,7 @@ export function createAccessibilityPresetManager({
       definition.animation.flickerScale
     );
     documentElement.dataset.accessibilityMotionBlur = String(
-      clamp01(definition.motionBlur.intensity)
+      resolveMotionBlurIntensity(definition)
     );
   };
 
@@ -358,8 +391,7 @@ export function createAccessibilityPresetManager({
   };
 
   const applyMotionBlur = (definition: AccessibilityPresetDefinition) => {
-    const intensity = clamp01(definition.motionBlur.intensity);
-    motionBlurController?.setIntensity(intensity);
+    motionBlurController?.setIntensity(resolveMotionBlurIntensity(definition));
   };
 
   const applyPreset = (definition: AccessibilityPresetDefinition) => {
@@ -377,6 +409,7 @@ export function createAccessibilityPresetManager({
       const payload: Required<AccessibilityPresetStoragePayload> = {
         presetId,
         baseAudioVolume,
+        baseMotionBlurIntensity,
       };
       storage.setItem(storageKey, JSON.stringify(payload));
     } catch (error) {
@@ -437,6 +470,19 @@ export function createAccessibilityPresetManager({
       }
       baseAudioVolume = clamped;
       applyAudio(currentDefinition());
+      persistState();
+    },
+    getBaseMotionBlurIntensity() {
+      return baseMotionBlurIntensity;
+    },
+    setBaseMotionBlurIntensity(intensity) {
+      const clamped = clamp01(intensity);
+      if (clamped === baseMotionBlurIntensity) {
+        return;
+      }
+      baseMotionBlurIntensity = clamped;
+      applyDocumentAttributes(currentDefinition());
+      applyMotionBlur(currentDefinition());
       persistState();
     },
     onChange(listener) {
