@@ -3,14 +3,18 @@ import {
   Color,
   ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
   Group,
+  MathUtils,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  PointLight,
   RingGeometry,
   Vector3,
 } from 'three';
 
+import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
 export interface ModelRocketConfig {
@@ -22,6 +26,7 @@ export interface ModelRocketConfig {
 export interface ModelRocketBuild {
   group: Group;
   collider: RectCollider;
+  update(context: { elapsed: number; delta: number }): void;
 }
 
 const DEFAULT_SCALE = 1;
@@ -145,6 +150,37 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   thruster.position.y = standHeight + thrusterHeight / 2 - 0.02 * scale;
   group.add(thruster);
 
+  const thrusterLightBaseIntensity = 3.6 * scale;
+  const thrusterLight = new PointLight(
+    new Color(0xffa46b),
+    thrusterLightBaseIntensity,
+    4.2 * scale,
+    1.6
+  );
+  thrusterLight.name = 'ModelRocketThrusterLight';
+  thrusterLight.position.set(0, standHeight + thrusterHeight * 0.24, 0);
+  group.add(thrusterLight);
+
+  const flameGeometry = new ConeGeometry(
+    bodyRadius * 0.42,
+    0.88 * scale,
+    24,
+    1,
+    true
+  );
+  const flameMaterial = new MeshBasicMaterial({
+    color: new Color(0xffa45b),
+    transparent: true,
+    opacity: 0.32,
+    side: DoubleSide,
+  });
+  const flame = new Mesh(flameGeometry, flameMaterial);
+  flame.name = 'ModelRocketThrusterFlame';
+  flame.position.set(0, standHeight - thrusterHeight * 0.32, 0);
+  flame.rotation.x = Math.PI;
+  flame.scale.set(0.75, 0.5, 0.75);
+  group.add(flame);
+
   const finHeight = 0.78 * scale;
   const finLength = 0.96 * scale;
   const finThickness = 0.12 * scale;
@@ -179,12 +215,32 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     color: new Color(0xffd166),
     transparent: true,
     opacity: 0.62,
+    side: DoubleSide,
   });
   const safetyRing = new Mesh(safetyRingGeometry, safetyRingMaterial);
   safetyRing.name = 'ModelRocketSafetyRing';
   safetyRing.rotation.x = -Math.PI / 2;
   safetyRing.position.y = 0.02 * scale;
   group.add(safetyRing);
+
+  const countdownPanelMaterial = new MeshBasicMaterial({
+    color: new Color(0xffe3a7),
+    transparent: true,
+    opacity: 0.36,
+    side: DoubleSide,
+  });
+  const countdownPanel = new Mesh(
+    new BoxGeometry(0.32 * scale, bodyHeight * 0.38, 0.04 * scale),
+    countdownPanelMaterial
+  );
+  countdownPanel.name = 'ModelRocketCountdownPanel';
+  countdownPanel.position.set(
+    0,
+    standHeight + bodyHeight * 0.52,
+    bodyRadius + 0.12 * scale
+  );
+  countdownPanel.rotation.y = Math.PI;
+  group.add(countdownPanel);
 
   const footprintRadius = standRadius * 1.45;
   const collider: RectCollider = {
@@ -194,5 +250,73 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     maxZ: basePosition.z + footprintRadius,
   };
 
-  return { group, collider };
+  const thrusterBaseEmissive = thrusterMaterial.emissiveIntensity;
+  const standTrimBaseEmissive = standTrimMaterial.emissiveIntensity;
+  const flameBaseOpacity = flameMaterial.opacity;
+  const safetyRingBaseOpacity = safetyRingMaterial.opacity;
+  const countdownBaseOpacity = countdownPanelMaterial.opacity;
+  const countdownBaseScaleY = countdownPanel.scale.y;
+  const thrusterLightBaseDistance = thrusterLight.distance;
+
+  const update = ({ elapsed }: { elapsed: number; delta: number }) => {
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const thrusterPulse =
+      ((Math.sin(elapsed * 2.1) + 1) / 2) * MathUtils.lerp(0.45, 1, pulseScale);
+    const haloPulse =
+      ((Math.sin(elapsed * 1.08 + Math.PI / 3) + 1) / 2) *
+      MathUtils.lerp(0.35, 1, pulseScale);
+    const countdownPhase = (((elapsed % 4.5) + 4.5) % 4.5) / 4.5;
+    const countdownStrength = MathUtils.lerp(0.4, 1, pulseScale);
+
+    thrusterMaterial.emissiveIntensity = MathUtils.lerp(
+      thrusterBaseEmissive * 0.72,
+      thrusterBaseEmissive * 1.9,
+      thrusterPulse
+    );
+
+    standTrimMaterial.emissiveIntensity = MathUtils.lerp(
+      standTrimBaseEmissive * 0.85,
+      standTrimBaseEmissive * 1.42,
+      haloPulse
+    );
+
+    thrusterLight.intensity =
+      thrusterLightBaseIntensity * MathUtils.lerp(0.78, 1.62, thrusterPulse);
+    thrusterLight.distance =
+      thrusterLightBaseDistance * MathUtils.lerp(0.82, 1.24, thrusterPulse);
+
+    flameMaterial.opacity = MathUtils.clamp(
+      MathUtils.lerp(flameBaseOpacity * 0.25, 0.9, thrusterPulse),
+      0,
+      0.95
+    );
+    const flameScale = MathUtils.lerp(0.55, 1.08, thrusterPulse);
+    flame.scale.set(
+      flameScale,
+      MathUtils.lerp(0.45, 1.18, thrusterPulse),
+      flameScale
+    );
+
+    safetyRingMaterial.opacity = MathUtils.clamp(
+      safetyRingBaseOpacity * (0.62 + haloPulse * 0.55),
+      0.12,
+      0.95
+    );
+    safetyRing.scale.setScalar(MathUtils.lerp(1, 1.14, haloPulse));
+    safetyRing.rotation.z = -Math.PI * 2 * countdownPhase;
+
+    const countdownWeight = (1 - countdownPhase) * countdownStrength;
+    countdownPanel.scale.y = MathUtils.lerp(
+      countdownBaseScaleY * 0.5,
+      countdownBaseScaleY * 1.08,
+      countdownWeight
+    );
+    countdownPanelMaterial.opacity = MathUtils.clamp(
+      MathUtils.lerp(countdownBaseOpacity * 0.45, 0.92, countdownWeight),
+      0.14,
+      0.92
+    );
+  };
+
+  return { group, collider, update };
 }
