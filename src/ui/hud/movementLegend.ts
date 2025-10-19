@@ -38,6 +38,39 @@ interface MovementLegendContext {
   defaultInteractDescription: string;
 }
 
+const composeInteractAnnouncement = (
+  label: string,
+  description: string
+): string | null => {
+  const trimmedLabel = label.trim();
+  const trimmedDescription = description.trim();
+  if (trimmedLabel && trimmedDescription) {
+    return `${trimmedLabel} — ${trimmedDescription}`;
+  }
+  if (trimmedLabel) {
+    return trimmedLabel;
+  }
+  if (trimmedDescription) {
+    return trimmedDescription;
+  }
+  return null;
+};
+
+const applyHudAnnouncement = (
+  context: MovementLegendContext,
+  message: string | null
+) => {
+  if (!context.interactItem) {
+    return;
+  }
+  const trimmed = message?.trim();
+  if (trimmed) {
+    context.interactItem.dataset.hudAnnounce = trimmed;
+  } else {
+    delete context.interactItem.dataset.hudAnnounce;
+  }
+};
+
 const MODIFIER_KEYS = new Set([
   'Shift',
   'Control',
@@ -315,6 +348,28 @@ export function createMovementLegend(
 
   const defaultKeyboardLabel = labels.keyboard;
 
+  const getInteractDescription = () => {
+    const text = context.interactDescription?.textContent?.trim();
+    if (text && text.length > 0) {
+      return text;
+    }
+    return context.defaultInteractDescription || fallbackInteractDescription;
+  };
+
+  const refreshInteractAnnouncement = () => {
+    if (!context.interactItem) {
+      return;
+    }
+    if (context.interactItem.hidden) {
+      applyHudAnnouncement(context, null);
+      return;
+    }
+    const description = getInteractDescription();
+    const label = labels[activeMethod] ?? labels.keyboard ?? '';
+    const message = composeInteractAnnouncement(label, description);
+    applyHudAnnouncement(context, message);
+  };
+
   if (context.interactDescription) {
     context.interactDescription.textContent =
       context.defaultInteractDescription || fallbackInteractDescription;
@@ -341,10 +396,12 @@ export function createMovementLegend(
     }
     updateActiveState(context, method);
     updateInteractLabel(context, labels, method);
+    refreshInteractAnnouncement();
   };
 
   const ensureInteractLabel = () => {
     updateInteractLabel(context, labels, activeMethod);
+    refreshInteractAnnouncement();
   };
 
   const setInteractLabel = (method: InputMethod, label: string) => {
@@ -473,6 +530,7 @@ export function createMovementLegend(
         context.interactDescription.textContent =
           context.defaultInteractDescription;
       }
+      applyHudAnnouncement(context, null);
       (Object.keys(labels) as InputMethod[]).forEach((method) => {
         labels[method] = defaultLabels[method];
       });
