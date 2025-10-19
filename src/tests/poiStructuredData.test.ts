@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   _testables,
   buildPoiStructuredData,
+  buildTextPortfolioStructuredData,
   injectPoiStructuredData,
+  injectTextPortfolioStructuredData,
 } from '../scene/poi/structuredData';
 import type { PoiDefinition } from '../scene/poi/types';
 
@@ -24,7 +26,18 @@ const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   ...overrides,
 });
 
-const { SCRIPT_ELEMENT_ID, ITEM_LIST_FRAGMENT } = _testables;
+const {
+  SCRIPT_ELEMENT_ID,
+  TEXT_SCRIPT_ELEMENT_ID,
+  ITEM_LIST_FRAGMENT,
+  TEXT_COLLECTION_FRAGMENT,
+  createTextModeUrl,
+  createImmersiveOverrideUrl,
+} = _testables;
+
+const TEXT_COLLECTION_DESCRIPTION =
+  'Fast-loading summaries of every immersive exhibit tuned for accessible ' +
+  'and crawler-friendly reading.';
 
 describe('buildPoiStructuredData', () => {
   it('serializes POIs into schema.org ItemList entries', () => {
@@ -199,6 +212,109 @@ describe('buildPoiStructuredData', () => {
   });
 });
 
+describe('buildTextPortfolioStructuredData', () => {
+  it('emits collection metadata that references the immersive ItemList', () => {
+    const pois = [
+      createPoi({ id: 'tokenplace-studio-cluster', roomId: 'studio' }),
+      createPoi({ id: 'gabriel-studio-sentry', roomId: 'backyard' }),
+    ];
+    const canonicalBase = 'https://example.com/portfolio/';
+    const data = buildTextPortfolioStructuredData(pois, {
+      canonicalUrl: 'https://example.com/portfolio/index.html?utm=1#view',
+      siteName: 'Immersive Portfolio',
+    });
+
+    expect(data['@context']).toBe('https://schema.org');
+    expect(data['@type']).toBe('CollectionPage');
+    expect(data['@id']).toBe(canonicalBase + TEXT_COLLECTION_FRAGMENT);
+    expect(data.url).toBe(createTextModeUrl(canonicalBase));
+    expect(data.name).toBe('Immersive Portfolio Text Portfolio');
+    expect(data.description).toBe(TEXT_COLLECTION_DESCRIPTION);
+    expect(data.inLanguage).toBe('en');
+    expect(data.isAccessibleForFree).toBe(true);
+    expect(data.isPartOf).toEqual({
+      '@type': 'WebSite',
+      '@id': canonicalBase,
+      name: 'Immersive Portfolio',
+      url: canonicalBase,
+      inLanguage: 'en',
+    });
+    expect(data.mainEntity).toEqual({
+      '@type': 'ItemList',
+      '@id': canonicalBase + ITEM_LIST_FRAGMENT,
+    });
+    expect(data.mainEntityOfPage).toEqual({
+      '@type': 'ItemList',
+      '@id': canonicalBase + ITEM_LIST_FRAGMENT,
+    });
+    expect(data.hasPart).toEqual([
+      {
+        '@type': 'CreativeWork',
+        '@id': `${canonicalBase}#poi-tokenplace-studio-cluster`,
+      },
+      {
+        '@type': 'CreativeWork',
+        '@id': `${canonicalBase}#poi-gabriel-studio-sentry`,
+      },
+    ]);
+    expect(data.potentialAction).toEqual({
+      '@type': 'Action',
+      name: 'Launch immersive mode',
+      target: createImmersiveOverrideUrl(canonicalBase),
+    });
+    expect(data.publisher).toMatchObject({
+      '@type': 'Person',
+      name: 'Daniel Smith',
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(data.provider).toEqual(data.publisher);
+    expect(data.author).toMatchObject({
+      '@type': 'Person',
+      name: 'Daniel Smith',
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(data.creator).toEqual(data.author);
+    expect(data.about).toEqual({ '@id': 'https://danielsmith.io/' });
+  });
+
+  it('honors overrides for collection metadata and URLs', () => {
+    const data = buildTextPortfolioStructuredData([createPoi()], {
+      canonicalUrl: 'https://example.com/portfolio/?ref=manual',
+      textCollectionName: 'Custom Text Tour',
+      textCollectionDescription: 'Custom description for testing.',
+      immersiveActionName: 'Enter immersive',
+      textModeUrl: 'https://example.com/custom-text',
+      immersiveModeUrl: 'https://example.com/custom-immersive',
+      publisher: {
+        name: 'Immersive Publisher',
+        url: 'https://publisher.example/',
+        type: 'Organization',
+      },
+      author: {
+        name: 'Immersive Author',
+        url: 'https://author.example/',
+        type: 'Person',
+      },
+    });
+
+    expect(data.name).toBe('Custom Text Tour');
+    expect(data.description).toBe('Custom description for testing.');
+    expect(data.url).toBe('https://example.com/custom-text');
+    expect(data.potentialAction).toEqual({
+      '@type': 'Action',
+      name: 'Enter immersive',
+      target: 'https://example.com/custom-immersive',
+    });
+    expect(data.publisher).toMatchObject({
+      '@type': 'Organization',
+      name: 'Immersive Publisher',
+      '@id': 'https://publisher.example/',
+    });
+    expect(data.provider).toEqual(data.publisher);
+    expect(data.about).toEqual({ '@id': 'https://author.example/' });
+  });
+});
+
 describe('injectPoiStructuredData', () => {
   it('injects a single ld+json script and replaces prior instances', () => {
     const documentTarget = document.implementation.createHTMLDocument('Test');
@@ -304,6 +420,63 @@ describe('injectPoiStructuredData', () => {
   });
 });
 
+describe('injectTextPortfolioStructuredData', () => {
+  it('injects a collection page script and replaces prior instances', () => {
+    const documentTarget = document.implementation.createHTMLDocument('Text');
+    const pois = [
+      createPoi({ id: 'tokenplace-studio-cluster', roomId: 'studio' }),
+      createPoi({ id: 'gabriel-studio-sentry', roomId: 'backyard' }),
+    ];
+
+    const firstScript = injectTextPortfolioStructuredData(pois, {
+      documentTarget,
+      canonicalUrl: 'https://example.com/portfolio/index.html?utm=1#view',
+      siteName: 'Immersive Portfolio',
+      immersiveActionName: 'Enter immersive mode',
+    });
+
+    expect(firstScript.type).toBe('application/ld+json');
+    expect(firstScript.id).toBe(TEXT_SCRIPT_ELEMENT_ID);
+    expect(firstScript.isConnected).toBe(true);
+
+    const parsed = JSON.parse(firstScript.textContent ?? '{}');
+    const canonicalBase = 'https://example.com/portfolio/';
+    expect(parsed['@id']).toBe(canonicalBase + TEXT_COLLECTION_FRAGMENT);
+    expect(parsed.url).toBe(createTextModeUrl(canonicalBase));
+    expect(parsed.name).toBe('Immersive Portfolio Text Portfolio');
+    expect(parsed.potentialAction).toEqual({
+      '@type': 'Action',
+      name: 'Enter immersive mode',
+      target: createImmersiveOverrideUrl(canonicalBase),
+    });
+    expect(parsed.hasPart).toHaveLength(2);
+
+    const secondScript = injectTextPortfolioStructuredData(pois, {
+      documentTarget,
+      canonicalUrl: 'https://example.com/portfolio/?ref=2',
+    });
+
+    expect(secondScript).not.toBe(firstScript);
+    expect(firstScript.isConnected).toBe(false);
+    expect(
+      documentTarget.head.querySelectorAll(`script#${TEXT_SCRIPT_ELEMENT_ID}`)
+        .length
+    ).toBe(1);
+  });
+
+  it('throws when the document lacks a head element', () => {
+    const documentTarget =
+      document.implementation.createHTMLDocument('MissingTextHead');
+    documentTarget.documentElement.removeChild(documentTarget.head);
+
+    expect(() =>
+      injectTextPortfolioStructuredData([createPoi()], { documentTarget })
+    ).toThrowError(
+      'Document must include a <head> element for structured data injection.'
+    );
+  });
+});
+
 describe('structured data utilities', () => {
   it('normalizes canonical URLs and appends missing trailing slashes', () => {
     expect(_testables.ensureTrailingSlash('https://example.com/app')).toBe(
@@ -345,6 +518,15 @@ describe('structured data utilities', () => {
   it('builds POI detail anchors from canonical URLs', () => {
     expect(_testables.createPoiUrl('https://example.com/app/', 'demo')).toBe(
       'https://example.com/app/#poi-demo'
+    );
+  });
+
+  it('constructs text and immersive mode URLs from canonical inputs', () => {
+    expect(createTextModeUrl('https://example.com/app/')).toBe(
+      'https://example.com/app/?mode=text'
+    );
+    expect(createImmersiveOverrideUrl('https://example.com/app/')).toBe(
+      'https://example.com/app/?mode=immersive&disablePerformanceFailover=1'
     );
   });
 });

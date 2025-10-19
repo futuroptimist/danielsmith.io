@@ -13,7 +13,11 @@ import type { PoiDefinition } from './types';
 
 const DEFAULT_CANONICAL_URL = 'https://danielsmith.io/';
 const SCRIPT_ELEMENT_ID = 'danielsmith-portfolio-pois-structured-data';
+const TEXT_SCRIPT_ELEMENT_ID = 'danielsmith-portfolio-text-structured-data';
 const ITEM_LIST_FRAGMENT = '#immersive-poi-list';
+const TEXT_COLLECTION_FRAGMENT = '#text-tour';
+const TEXT_MODE_QUERY = '?mode=text';
+const IMMERSIVE_OVERRIDE_QUERY = '?mode=immersive&disablePerformanceFailover=1';
 
 const stripFragmentAndQuery = (value: string): string => {
   return value.replace(/[#?].*$/, '');
@@ -36,6 +40,20 @@ export interface PoiStructuredDataOptions {
 
 export interface InjectPoiStructuredDataOptions
   extends PoiStructuredDataOptions {
+  documentTarget?: Document;
+}
+
+export interface TextPortfolioStructuredDataOptions
+  extends PoiStructuredDataOptions {
+  textCollectionName?: string;
+  textCollectionDescription?: string;
+  immersiveActionName?: string;
+  textModeUrl?: string;
+  immersiveModeUrl?: string;
+}
+
+export interface InjectTextPortfolioStructuredDataOptions
+  extends TextPortfolioStructuredDataOptions {
   documentTarget?: Document;
 }
 
@@ -172,6 +190,28 @@ const createEntityReference = (
   return undefined;
 };
 
+const createSiteEntry = (
+  canonical: string,
+  siteName: string,
+  locale: string
+) => {
+  return {
+    '@type': 'WebSite',
+    '@id': canonical,
+    name: siteName,
+    url: canonical,
+    inLanguage: locale,
+  };
+};
+
+const createTextModeUrl = (canonical: string): string => {
+  return `${canonical}${TEXT_MODE_QUERY}`;
+};
+
+const createImmersiveOverrideUrl = (canonical: string): string => {
+  return `${canonical}${IMMERSIVE_OVERRIDE_QUERY}`;
+};
+
 export const buildPoiStructuredData = (
   pois: readonly PoiDefinition[],
   options: PoiStructuredDataOptions = {}
@@ -206,13 +246,7 @@ export const buildPoiStructuredData = (
   const publisherReference = createEntityReference(publisherEntity);
   const authorReference = createEntityReference(authorEntity);
 
-  const siteEntry: Record<string, unknown> = {
-    '@type': 'WebSite',
-    '@id': canonical,
-    name: siteName,
-    url: canonical,
-    inLanguage: locale,
-  };
+  const siteEntry = createSiteEntry(canonical, siteName, locale);
 
   const itemListElement: ListItem[] = pois.map((poi, index) => {
     const poiUrl = createPoiUrl(canonical, poi.id);
@@ -304,6 +338,97 @@ export const buildPoiStructuredData = (
   return structuredData;
 };
 
+export const buildTextPortfolioStructuredData = (
+  pois: readonly PoiDefinition[],
+  options: TextPortfolioStructuredDataOptions = {}
+): Record<string, unknown> => {
+  const locale = resolveLocale(options.locale);
+  const siteStrings = getSiteStrings(locale);
+  const siteName = options.siteName ?? siteStrings.name;
+  const canonical = normalizeCanonicalUrl(
+    options.canonicalUrl,
+    DEFAULT_CANONICAL_URL
+  );
+  const listId = `${canonical}${ITEM_LIST_FRAGMENT}`;
+  const collectionId = `${canonical}${TEXT_COLLECTION_FRAGMENT}`;
+  const textCollectionName =
+    sanitizeOptionalString(options.textCollectionName) ??
+    formatMessage(siteStrings.structuredData.textCollectionNameTemplate, {
+      siteName,
+    });
+  const description =
+    sanitizeOptionalString(options.textCollectionDescription) ??
+    siteStrings.structuredData.textCollectionDescription;
+  const textModeUrl =
+    sanitizeOptionalString(options.textModeUrl) ?? createTextModeUrl(canonical);
+  const immersiveModeUrl =
+    sanitizeOptionalString(options.immersiveModeUrl) ??
+    createImmersiveOverrideUrl(canonical);
+  const immersiveActionName =
+    sanitizeOptionalString(options.immersiveActionName) ??
+    siteStrings.structuredData.immersiveActionName;
+
+  const publisherDefinition = mergeEntityDefinition(
+    siteStrings.structuredData.publisher,
+    options.publisher
+  );
+  const authorDefinition = mergeEntityDefinition(
+    siteStrings.structuredData.author,
+    options.author
+  );
+  const publisherEntity = publisherDefinition
+    ? createEntitySchema(publisherDefinition)
+    : null;
+  const authorEntity = authorDefinition
+    ? createEntitySchema(authorDefinition)
+    : null;
+  const publisherReference = createEntityReference(publisherEntity);
+  const authorReference = createEntityReference(authorEntity);
+
+  const hasPart = pois.map((poi) => ({
+    '@type': 'CreativeWork',
+    '@id': createPoiUrl(canonical, poi.id),
+  }));
+
+  const structuredData: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': collectionId,
+    url: textModeUrl,
+    name: textCollectionName,
+    description,
+    inLanguage: locale,
+    isAccessibleForFree: true,
+    isPartOf: createSiteEntry(canonical, siteName, locale),
+    mainEntity: { '@type': 'ItemList', '@id': listId },
+    mainEntityOfPage: { '@type': 'ItemList', '@id': listId },
+    hasPart,
+  };
+
+  if (immersiveActionName && immersiveModeUrl) {
+    structuredData.potentialAction = {
+      '@type': 'Action',
+      name: immersiveActionName,
+      target: immersiveModeUrl,
+    };
+  }
+
+  if (publisherEntity) {
+    structuredData.publisher = publisherEntity;
+    structuredData.provider = publisherEntity;
+  }
+  if (authorEntity) {
+    structuredData.author = authorEntity;
+    structuredData.creator = authorEntity;
+  }
+  const aboutReference = authorReference ?? publisherReference;
+  if (aboutReference) {
+    structuredData.about = aboutReference;
+  }
+
+  return structuredData;
+};
+
 export const injectPoiStructuredData = (
   pois: readonly PoiDefinition[],
   options: InjectPoiStructuredDataOptions = {}
@@ -347,10 +472,62 @@ export const injectPoiStructuredData = (
   return script;
 };
 
+export const injectTextPortfolioStructuredData = (
+  pois: readonly PoiDefinition[],
+  options: InjectTextPortfolioStructuredDataOptions = {}
+): HTMLScriptElement => {
+  const documentTarget = options.documentTarget ?? document;
+  const head = documentTarget.head ?? documentTarget.querySelector('head');
+  if (!head) {
+    throw new Error(
+      'Document must include a <head> element for structured data injection.'
+    );
+  }
+
+  const canonicalFallback =
+    options.canonicalUrl ??
+    documentTarget.defaultView?.location?.href ??
+    documentTarget.baseURI ??
+    DEFAULT_CANONICAL_URL;
+  const canonical = normalizeCanonicalUrl(
+    options.canonicalUrl,
+    canonicalFallback
+  );
+  const structuredData = buildTextPortfolioStructuredData(pois, {
+    canonicalUrl: canonical,
+    siteName: options.siteName,
+    locale: options.locale,
+    publisher: options.publisher,
+    author: options.author,
+    textCollectionName: options.textCollectionName,
+    textCollectionDescription: options.textCollectionDescription,
+    immersiveActionName: options.immersiveActionName,
+    textModeUrl: options.textModeUrl,
+    immersiveModeUrl: options.immersiveModeUrl,
+  });
+
+  const existing = documentTarget.getElementById(TEXT_SCRIPT_ELEMENT_ID);
+  if (existing?.parentNode) {
+    existing.parentNode.removeChild(existing);
+  }
+
+  const script = documentTarget.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = TEXT_SCRIPT_ELEMENT_ID;
+  script.textContent = JSON.stringify(structuredData, null, 2);
+
+  head.appendChild(script);
+  return script;
+};
+
 export const _testables = {
   ensureTrailingSlash,
   normalizeCanonicalUrl,
   createPoiUrl,
+  createTextModeUrl,
+  createImmersiveOverrideUrl,
   SCRIPT_ELEMENT_ID,
+  TEXT_SCRIPT_ELEMENT_ID,
   ITEM_LIST_FRAGMENT,
+  TEXT_COLLECTION_FRAGMENT,
 };
