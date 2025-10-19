@@ -19,6 +19,8 @@ import {
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../collision';
 
+const FLYWHEEL_POI_ID = 'flywheel-studio-flywheel';
+
 export interface FlywheelShowpieceBuild {
   group: Group;
   colliders: RectCollider[];
@@ -39,6 +41,61 @@ export function createFlywheelShowpiece(
   group.name = 'FlywheelShowpiece';
 
   const colliders: RectCollider[] = [];
+
+  const selectionEventTarget = typeof window === 'undefined' ? null : window;
+  let selectionTarget = 0;
+  let selectionStrength = 0;
+
+  const handleSelection = (event: Event) => {
+    const poiId = getPoiIdFromEvent(event);
+    if (!poiId) {
+      return;
+    }
+    if (poiId === FLYWHEEL_POI_ID) {
+      selectionTarget = 1;
+    } else {
+      selectionTarget = 0;
+    }
+  };
+
+  const handleSelectionCleared = (event: Event) => {
+    const poiId = getPoiIdFromEvent(event);
+    if (!poiId || poiId === FLYWHEEL_POI_ID) {
+      selectionTarget = 0;
+    }
+  };
+
+  const removeSelectionListeners = () => {
+    if (!selectionEventTarget) {
+      return;
+    }
+    selectionEventTarget.removeEventListener('poi:selected', handleSelection);
+    selectionEventTarget.removeEventListener(
+      'poi:selected:analytics',
+      handleSelection
+    );
+    selectionEventTarget.removeEventListener(
+      'poi:selection-cleared',
+      handleSelectionCleared
+    );
+  };
+
+  if (selectionEventTarget) {
+    selectionEventTarget.addEventListener('poi:selected', handleSelection);
+    selectionEventTarget.addEventListener(
+      'poi:selected:analytics',
+      handleSelection
+    );
+    selectionEventTarget.addEventListener(
+      'poi:selection-cleared',
+      handleSelectionCleared
+    );
+    const handleRemoval = () => {
+      removeSelectionListeners();
+      group.removeEventListener('removed', handleRemoval);
+    };
+    group.addEventListener('removed', handleRemoval);
+  }
 
   const daisRadius = 1.45;
   const daisHeight = 0.16;
@@ -441,7 +498,15 @@ export function createFlywheelShowpiece(
   }) {
     const smoothing =
       context.delta > 0 ? 1 - Math.exp(-context.delta * 3.8) : 1;
-    const targetVelocity = MathUtils.lerp(0.55, 2.6, context.emphasis);
+    selectionStrength = MathUtils.lerp(
+      selectionStrength,
+      selectionTarget,
+      smoothing
+    );
+    const selectionInfluence = MathUtils.clamp(selectionStrength, 0, 1);
+    const targetVelocity =
+      MathUtils.lerp(0.55, 2.4, context.emphasis) +
+      MathUtils.lerp(0, 1.1, selectionInfluence);
     spinVelocity = MathUtils.lerp(spinVelocity, targetVelocity, smoothing);
     rotorGroup.rotation.y += spinVelocity * context.delta;
     counterGroup.rotation.y -= spinVelocity * 0.42 * context.delta;
@@ -450,22 +515,25 @@ export function createFlywheelShowpiece(
     const targetEmissive = MathUtils.lerp(0.8, 2.4, context.emphasis);
     accentMaterial.emissiveIntensity = MathUtils.lerp(
       accentMaterial.emissiveIntensity,
-      targetEmissive,
+      targetEmissive + MathUtils.lerp(0, 0.6, selectionInfluence),
       smoothing
     );
     rotorRingMaterial.emissiveIntensity = MathUtils.lerp(
       rotorRingMaterial.emissiveIntensity,
-      MathUtils.lerp(0.9, 2.1, context.emphasis),
+      MathUtils.lerp(0.9, 2.1, context.emphasis) +
+        MathUtils.lerp(0, 0.5, selectionInfluence),
       smoothing
     );
     spokeMaterial.emissiveIntensity = MathUtils.lerp(
       spokeMaterial.emissiveIntensity,
-      MathUtils.lerp(0.75, 1.8, context.emphasis),
+      MathUtils.lerp(0.75, 1.8, context.emphasis) +
+        MathUtils.lerp(0, 0.45, selectionInfluence),
       smoothing
     );
     counterRingMaterial.emissiveIntensity = MathUtils.lerp(
       counterRingMaterial.emissiveIntensity,
-      MathUtils.lerp(0.8, 1.9, context.emphasis),
+      MathUtils.lerp(0.8, 1.9, context.emphasis) +
+        MathUtils.lerp(0, 0.42, selectionInfluence),
       smoothing
     );
 
@@ -483,22 +551,32 @@ export function createFlywheelShowpiece(
     panelGlow.visible = panel.visible;
 
     calloutPhase +=
-      context.delta * MathUtils.lerp(0.55, 1.35, context.emphasis);
+      context.delta *
+      (MathUtils.lerp(0.55, 1.35, context.emphasis) +
+        MathUtils.lerp(0, 0.35, selectionInfluence));
     const calloutBob = Math.sin(calloutPhase) * 0.05;
     const panelReveal = MathUtils.clamp(infoReveal, 0, 1);
-    const calloutReveal = Math.pow(panelReveal, 0.8);
+    const calloutRevealBase = Math.pow(panelReveal, 0.8);
+    const selectionReveal = Math.pow(selectionInfluence, 0.85);
+    const combinedReveal = calloutRevealBase * selectionReveal;
     const calloutOpacity =
-      calloutReveal * MathUtils.lerp(0, 0.92, context.emphasis);
+      combinedReveal * MathUtils.lerp(0.2, 0.95, context.emphasis);
     calloutMaterial.opacity = calloutOpacity;
     calloutGlowMaterial.opacity =
-      calloutReveal * MathUtils.lerp(0, 0.26, context.emphasis);
-    const baseCalloutHeight = MathUtils.lerp(0.7, 0.94, context.emphasis);
+      combinedReveal * MathUtils.lerp(0.05, 0.32, context.emphasis);
+    const baseCalloutHeight =
+      MathUtils.lerp(0.7, 0.94, context.emphasis) +
+      MathUtils.lerp(0, 0.08, selectionInfluence);
     callout.position.y = baseCalloutHeight + calloutBob;
     calloutGlow.position.y = callout.position.y;
     callout.visible = calloutMaterial.opacity > 0.02;
     calloutGlow.visible = callout.visible;
 
-    glyphRingMaterial.opacity = MathUtils.lerp(0.18, 0.36, context.emphasis);
+    glyphRingMaterial.opacity = MathUtils.lerp(
+      0.18,
+      0.36,
+      Math.max(context.emphasis, selectionInfluence)
+    );
     orbitGroup.children.forEach((wrapper, index) => {
       wrapper.rotation.y =
         context.elapsed * 0.65 + (Math.PI * 2 * index) / orbitCount;
@@ -506,11 +584,16 @@ export function createFlywheelShowpiece(
 
     techStackReveal = MathUtils.lerp(
       techStackReveal,
-      MathUtils.lerp(0.04, 1, context.emphasis),
+      Math.max(
+        MathUtils.lerp(0.02, 0.35, context.emphasis),
+        selectionInfluence
+      ),
       smoothing
     );
-    const chipOpacity = MathUtils.lerp(0, 0.96, context.emphasis);
-    const chipOrbitSpeed = MathUtils.lerp(0.3, 0.85, context.emphasis);
+    const chipOpacity = MathUtils.lerp(0, 0.96, techStackReveal);
+    const chipOrbitSpeed =
+      MathUtils.lerp(0.3, 0.75, context.emphasis) +
+      MathUtils.lerp(0, 0.35, selectionInfluence);
     techStackChips.forEach((chip, index) => {
       const baseAngle = (Math.PI * 2 * index) / techStackChips.length;
       chip.wrapper.rotation.y = context.elapsed * chipOrbitSpeed + baseAngle;
@@ -709,4 +792,15 @@ function roundRect(
   context.lineTo(x, y + r);
   context.quadraticCurveTo(x, y, x + r, y);
   context.closePath();
+}
+
+type PoiEventDetail = { poi?: { id?: string } };
+
+function getPoiIdFromEvent(event: Event): string | null {
+  const detail = (event as CustomEvent<PoiEventDetail>).detail;
+  if (!detail || typeof detail !== 'object') {
+    return null;
+  }
+  const poiId = detail.poi?.id;
+  return typeof poiId === 'string' ? poiId : null;
 }
