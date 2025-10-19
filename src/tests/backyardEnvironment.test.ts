@@ -25,6 +25,7 @@ import {
 } from 'vitest';
 
 import { createBackyardEnvironment } from '../scene/environments/backyard';
+import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
 const BACKYARD_BOUNDS = {
   minX: -10,
@@ -228,6 +229,75 @@ describe('createBackyardEnvironment', () => {
     expect(glassMaterial.emissiveIntensity).not.toBe(midEmissive);
     expect(midLightIntensity).not.toBe(baselineLightIntensity);
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
+  });
+
+  it('retints walkway lanterns and preserves seasonal baselines', () => {
+    const preset: SeasonalLightingPreset = {
+      id: 'aurora-backyard',
+      label: 'Aurora Backyard',
+      start: { month: 11, day: 1 },
+      end: { month: 11, day: 30 },
+      tintHex: '#88ccff',
+      tintStrength: 0.4,
+      emissiveIntensityScale: 1.2,
+      fillIntensityScale: 1.3,
+      roomOverrides: {
+        backyard: {
+          tintStrength: 0.7,
+          emissiveIntensityScale: 1.5,
+          fillIntensityScale: 1.6,
+        },
+      },
+    };
+
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS, {
+      seasonalPreset: preset,
+    });
+    const lanternGroup = environment.group.getObjectByName(
+      'BackyardWalkwayLanterns'
+    ) as Group | null;
+    expect(lanternGroup).toBeInstanceOf(Group);
+
+    const glass = lanternGroup?.getObjectByName(
+      'BackyardWalkwayLanternGlass-0'
+    ) as Mesh | null;
+    expect(glass).toBeInstanceOf(Mesh);
+    const glassMaterial = (glass!.material as MeshStandardMaterial)!;
+
+    const expectedTint = new Color(0xffa445).lerp(new Color('#88ccff'), 0.7);
+    expect(glassMaterial.emissive.getHexString()).toBe(
+      expectedTint.getHexString()
+    );
+    const tintedEmissiveBaseline = 1.18 * 1.5;
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(
+      tintedEmissiveBaseline,
+      5
+    );
+
+    const light = lanternGroup?.getObjectByName(
+      'BackyardWalkwayLanternLight-0'
+    ) as PointLight | null;
+    expect(light).toBeInstanceOf(PointLight);
+    expect(light!.color.getHexString()).toBe(expectedTint.getHexString());
+    const tintedLightBaseline = 0.85 * 1.6;
+    expect(light!.intensity).toBeCloseTo(tintedLightBaseline, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    environment.update({ elapsed: 0.8, delta: 0.016 });
+
+    const dampingScale = 0.6; // steadyBase when flicker scale is 0 in lantern animation.
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(
+      tintedEmissiveBaseline * dampingScale,
+      5
+    );
+    expect(light!.intensity).toBeCloseTo(
+      tintedLightBaseline * dampingScale,
+      5
+    );
+    expect(glassMaterial.emissiveIntensity).toBeGreaterThan(1.18 * dampingScale);
+    expect(light!.intensity).toBeGreaterThan(0.85 * dampingScale);
   });
 
   it('wraps the backyard exhibits with a perimeter fence and matching colliders', () => {

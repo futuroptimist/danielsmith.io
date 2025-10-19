@@ -733,11 +733,15 @@ function initializeImmersiveScene(
   scene.add(directionalLight);
   scene.add(directionalLight.target);
 
+  const seasonalPreset = resolveSeasonalLightingPreset();
+
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.id === BACKYARD_ROOM_ID
   );
   if (backyardRoom) {
-    backyardEnvironment = createBackyardEnvironment(backyardRoom.bounds);
+    backyardEnvironment = createBackyardEnvironment(backyardRoom.bounds, {
+      seasonalPreset,
+    });
     scene.add(backyardEnvironment.group);
     // Remove the enclosing sky dome to avoid a bright circular spheroid.
     // We want a dark void beyond the property in runtime.
@@ -1175,7 +1179,6 @@ function initializeImmersiveScene(
       });
     });
 
-    const seasonalPreset = resolveSeasonalLightingPreset();
     applySeasonalLightingPreset({
       preset: seasonalPreset,
       targets: roomSeasonalTargets,

@@ -34,6 +34,11 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  applySeasonalLightingPreset,
+  type SeasonalLightingPreset,
+  type SeasonalLightingTarget,
+} from '../lighting/seasonalPresets';
 import { createGreenhouse } from '../structures/greenhouse';
 import { createModelRocket } from '../structures/modelRocket';
 
@@ -144,8 +149,13 @@ function createDuskLightProbe(): LightProbe {
   return probe;
 }
 
+export interface BackyardEnvironmentOptions {
+  seasonalPreset?: SeasonalLightingPreset | null;
+}
+
 export function createBackyardEnvironment(
-  bounds: Bounds2D
+  bounds: Bounds2D,
+  { seasonalPreset = null }: BackyardEnvironmentOptions = {}
 ): BackyardEnvironmentBuild {
   const group = new Group();
   group.name = 'BackyardEnvironment';
@@ -499,6 +509,7 @@ export function createBackyardEnvironment(
   }
 
   const lanternAnimationTargets: LanternAnimationTarget[] = [];
+  const lanternSeasonalTargets: SeasonalLightingTarget[] = [];
   const lanternGroup = new Group();
   lanternGroup.name = 'BackyardWalkwayLanterns';
 
@@ -561,6 +572,18 @@ export function createBackyardEnvironment(
       lantern.add(light);
 
       lanternGroup.add(lantern);
+      lanternSeasonalTargets.push({
+        roomId: 'backyard',
+        material: glassMaterial,
+        baseEmissiveColor: glassMaterial.emissive.clone(),
+        baseEmissiveIntensity: glassMaterial.emissiveIntensity,
+        fillLights: [
+          {
+            light,
+            baseIntensity: light.intensity,
+          },
+        ],
+      });
       lanternAnimationTargets.push({
         glassMaterial,
         light,
@@ -572,6 +595,21 @@ export function createBackyardEnvironment(
   }
 
   group.add(lanternGroup);
+
+  if (seasonalPreset && lanternSeasonalTargets.length > 0) {
+    applySeasonalLightingPreset({
+      preset: seasonalPreset,
+      targets: lanternSeasonalTargets,
+    });
+    lanternSeasonalTargets.forEach((target, index) => {
+      const animationTarget = lanternAnimationTargets[index];
+      animationTarget.baseIntensity = target.material.emissiveIntensity;
+      const firstLight = target.fillLights[0]?.light;
+      if (firstLight) {
+        animationTarget.baseLightIntensity = firstLight.intensity;
+      }
+    });
+  }
 
   const shrubGeometry = new SphereGeometry(1.05, 20, 20);
   const shrubMaterial = new MeshStandardMaterial({
