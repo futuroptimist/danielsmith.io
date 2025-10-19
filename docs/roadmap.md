@@ -122,6 +122,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      faster, reveals tech stack, and links to docs.
      - ✨ Orbiting tech-stack chips now fade in with POI emphasis and highlight automation
        pillars around the rotor.
+     - ✅ Docs callout glow now locks to POI selection, syncing rotor surges with interaction
+       intent and spotlighting the flywheel docs CTA.
    - ✅ Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
    - ✨ f2clipboard incident console now elevates the kitchen diagnostics POI with a
      holographic log ticker, clipboard callouts, and ambient halo lighting.
