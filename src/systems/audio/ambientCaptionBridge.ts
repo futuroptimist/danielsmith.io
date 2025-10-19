@@ -15,6 +15,11 @@ export interface AmbientCaptionBridgeOptions {
 interface AmbientCaptionState {
   audible: boolean;
   lastShownAt: number | null;
+  /**
+   * Tracks whether the caption should bypass the cooldown because it was
+   * previously audible but got pre-empted by a higher-priority message.
+   */
+  pendingImmediateReshow: boolean;
 }
 
 const DEFAULT_COOLDOWN_MS = 8000;
@@ -87,21 +92,41 @@ export class AmbientCaptionBridge {
 
     const threshold = definition.captionThreshold ?? DEFAULT_THRESHOLD;
     const isAudible = currentVolume >= threshold;
-    const state = this.states.get(snapshot.id) ?? {
-      audible: false,
-      lastShownAt: null,
-    };
+    const state =
+      this.states.get(snapshot.id) ??
+      ({
+        audible: false,
+        lastShownAt: null,
+        pendingImmediateReshow: false,
+      } satisfies AmbientCaptionState);
     const messageId = `ambient-${snapshot.id}`;
     const currentMessage = this.subtitles.getCurrent();
     const hasFocus = currentMessage?.id === messageId;
+    const otherMessageActive =
+      !!currentMessage && currentMessage.id !== messageId;
+
+    const wasAudible = state.audible;
 
     if (!hasFocus) {
       state.audible = false;
     }
 
+    if (!isAudible) {
+      state.audible = false;
+      state.pendingImmediateReshow = false;
+      this.states.set(snapshot.id, state);
+      return;
+    }
+
+    if (wasAudible && otherMessageActive) {
+      state.pendingImmediateReshow = true;
+    }
+
     if (isAudible && !state.audible) {
       const lastShownAt = state.lastShownAt ?? -Infinity;
-      if (currentTime - lastShownAt >= this.cooldownMs) {
+      const elapsed = currentTime - lastShownAt;
+      const bypassCooldown = state.pendingImmediateReshow;
+      if (bypassCooldown || elapsed >= this.cooldownMs) {
         this.subtitles.show({
           id: messageId,
           text: caption,
@@ -115,8 +140,13 @@ export class AmbientCaptionBridge {
         if (gainedFocus) {
           state.lastShownAt = currentTime;
           state.audible = true;
+          state.pendingImmediateReshow = false;
           this.states.set(snapshot.id, state);
           return;
+        }
+
+        if (updatedMessage && updatedMessage.id !== messageId) {
+          state.pendingImmediateReshow = true;
         }
 
         state.audible = false;
@@ -126,7 +156,13 @@ export class AmbientCaptionBridge {
     }
 
     const refreshedMessage = this.subtitles.getCurrent();
-    state.audible = isAudible && refreshedMessage?.id === messageId;
+    const hasUpdatedFocus = refreshedMessage?.id === messageId;
+    state.audible = isAudible && hasUpdatedFocus;
+    if (state.audible) {
+      state.pendingImmediateReshow = false;
+    } else if (otherMessageActive) {
+      state.pendingImmediateReshow = true;
+    }
     this.states.set(snapshot.id, state);
   }
 }

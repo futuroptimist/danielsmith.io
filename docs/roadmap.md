@@ -246,8 +246,9 @@ Focus: make the experience inclusive and globally friendly.
 - Subtitle/captions system for ambient audio callouts and POI narration.
   - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
   - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
-  - ✨ Ambient caption bridge now honors per-bed priorities so critical narration can override
-    gentle ambient beds while still surfacing once the higher-priority clip ends.
+  - ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
+    gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
+    guards would normally delay the ambient line.
 
 3. **Localization Pipeline**
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.
