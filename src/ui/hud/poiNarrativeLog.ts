@@ -24,6 +24,7 @@ export interface PoiNarrativeLogHandle {
     pois: Iterable<PoiDefinition>,
     options?: PoiNarrativeLogSyncOptions
   ): void;
+  setStrings(strings: PoiNarrativeLogStrings): void;
   dispose(): void;
 }
 
@@ -54,19 +55,21 @@ export function createPoiNarrativeLog(
   const documentTarget =
     options.documentTarget ?? container.ownerDocument ?? document;
 
+  let activeStrings = strings;
+
   const section = documentTarget.createElement('section');
   section.className = 'help-modal__section poi-narrative-log';
   section.setAttribute('role', 'region');
-  section.setAttribute('aria-label', strings.heading);
+  section.setAttribute('aria-label', activeStrings.heading);
 
   const heading = documentTarget.createElement('h3');
   heading.className = 'help-modal__section-heading';
-  heading.textContent = strings.heading;
+  heading.textContent = activeStrings.heading;
   section.appendChild(heading);
 
   const emptyMessage = documentTarget.createElement('p');
   emptyMessage.className = 'poi-narrative-log__empty';
-  emptyMessage.textContent = strings.empty;
+  emptyMessage.textContent = activeStrings.empty;
   section.appendChild(emptyMessage);
 
   const list = documentTarget.createElement('ol');
@@ -132,7 +135,8 @@ export function createPoiNarrativeLog(
     poi: PoiDefinition,
     options?: PoiNarrativeLogRecordOptions
   ) => {
-    const visitedLabel = options?.visitedLabel ?? strings.defaultVisitedLabel;
+    const visitedLabel =
+      options?.visitedLabel ?? activeStrings.defaultVisitedLabel;
     const announce = options?.announce ?? true;
     const existing = entries.get(poi.id);
 
@@ -159,7 +163,7 @@ export function createPoiNarrativeLog(
       return;
     }
 
-    const message = formatMessage(strings.liveAnnouncementTemplate, {
+    const message = formatMessage(activeStrings.liveAnnouncementTemplate, {
       title: poi.title,
     }).trim();
     if (!message) {
@@ -173,7 +177,8 @@ export function createPoiNarrativeLog(
     pois: Iterable<PoiDefinition>,
     options?: PoiNarrativeLogSyncOptions
   ) => {
-    const visitedLabel = options?.visitedLabel ?? strings.defaultVisitedLabel;
+    const visitedLabel =
+      options?.visitedLabel ?? activeStrings.defaultVisitedLabel;
     const activeIds = new Set<string>();
     for (const poi of pois) {
       activeIds.add(poi.id);
@@ -208,6 +213,15 @@ export function createPoiNarrativeLog(
     element: section,
     recordVisit,
     syncVisited,
+    setStrings(nextStrings) {
+      activeStrings = nextStrings;
+      section.setAttribute('aria-label', nextStrings.heading);
+      heading.textContent = nextStrings.heading;
+      emptyMessage.textContent = nextStrings.empty;
+      entries.forEach((entry) => {
+        entry.visitedLabel.textContent = nextStrings.defaultVisitedLabel;
+      });
+    },
     dispose,
   };
 }

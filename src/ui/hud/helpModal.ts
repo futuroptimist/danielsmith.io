@@ -33,7 +33,13 @@ export interface HelpModalHandle {
   close(): void;
   toggle(force?: boolean): void;
   isOpen(): boolean;
+  setContent(content: HelpModalContent): void;
   dispose(): void;
+}
+
+interface HelpModalListItemElements {
+  label: HTMLElement;
+  description: HTMLElement;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -50,11 +56,12 @@ const FOCUSABLE_SELECTOR = [
 function createList(
   section: HelpModalSection,
   container: HTMLElement
-): HTMLUListElement {
+): { list: HTMLUListElement; items: HelpModalListItemElements[] } {
   const list = document.createElement('ul');
   list.className = 'help-modal__list';
   list.id = `help-modal-section-${section.id}`;
   list.setAttribute('aria-labelledby', `help-modal-heading-${section.id}`);
+  const items: HelpModalListItemElements[] = [];
   section.items.forEach((item) => {
     const listItem = document.createElement('li');
     listItem.className = 'help-modal__item';
@@ -69,9 +76,10 @@ function createList(
 
     listItem.append(label, description);
     list.append(listItem);
+    items.push({ label, description });
   });
   container.append(list);
-  return list;
+  return { list, items };
 }
 
 function getFocusableChildren(root: HTMLElement): HTMLElement[] {
@@ -133,6 +141,10 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   modal.append(header, descriptionParagraph);
 
   let settingsContainer: HTMLElement | null = null;
+  let settingsElements: {
+    heading: HTMLElement;
+    description: HTMLElement | null;
+  } | null = null;
 
   if (settings) {
     const settingsSection = document.createElement('section');
@@ -145,18 +157,30 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     settingsHeading.textContent = settings.heading;
     settingsSection.appendChild(settingsHeading);
 
+    let settingsDescriptionElement: HTMLElement | null = null;
     if (settings.description) {
       const settingsDescription = document.createElement('p');
       settingsDescription.className = 'help-modal__settings-description';
       settingsDescription.textContent = settings.description;
       settingsSection.appendChild(settingsDescription);
+      settingsDescriptionElement = settingsDescription;
     }
 
     settingsContainer = document.createElement('div');
     settingsContainer.className = 'help-modal__settings';
     settingsSection.appendChild(settingsContainer);
     modal.appendChild(settingsSection);
+
+    settingsElements = {
+      heading: settingsHeading,
+      description: settingsDescriptionElement,
+    };
   }
+
+  const sectionElements = new Map<
+    string,
+    { heading: HTMLElement; items: HelpModalListItemElements[] }
+  >();
 
   sections.forEach((section) => {
     const sectionWrapper = document.createElement('section');
@@ -168,7 +192,8 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     sectionHeading.textContent = section.title;
 
     sectionWrapper.appendChild(sectionHeading);
-    createList(section, sectionWrapper);
+    const { items } = createList(section, sectionWrapper);
+    sectionElements.set(section.id, { heading: sectionHeading, items });
     modal.appendChild(sectionWrapper);
   });
 
@@ -286,6 +311,46 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     close,
     toggle,
     isOpen: () => open,
+    setContent(nextContent) {
+      title.textContent = nextContent.heading;
+      descriptionParagraph.textContent = nextContent.description;
+      closeButton.textContent = nextContent.closeLabel;
+      closeButton.setAttribute('aria-label', nextContent.closeAriaLabel);
+
+      if (settingsElements && nextContent.settings) {
+        settingsElements.heading.textContent = nextContent.settings.heading;
+        if (settingsElements.description) {
+          settingsElements.description.textContent =
+            nextContent.settings.description ?? '';
+          settingsElements.description.hidden =
+            !nextContent.settings.description;
+        }
+      }
+
+      if (nextContent.sections.length !== sectionElements.size) {
+        throw new Error(
+          'Help modal structure mismatch: section count changed.'
+        );
+      }
+
+      nextContent.sections.forEach((sectionContent) => {
+        const existing = sectionElements.get(sectionContent.id);
+        if (!existing) {
+          throw new Error(`Unknown help modal section: ${sectionContent.id}`);
+        }
+        existing.heading.textContent = sectionContent.title;
+        if (existing.items.length !== sectionContent.items.length) {
+          throw new Error(
+            `Help modal section ${sectionContent.id} item count mismatch.`
+          );
+        }
+        sectionContent.items.forEach((item, index) => {
+          const target = existing.items[index];
+          target.label.textContent = item.label;
+          target.description.textContent = item.description;
+        });
+      });
+    },
     dispose,
   };
 }

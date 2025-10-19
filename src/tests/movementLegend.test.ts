@@ -332,4 +332,30 @@ describe('createMovementLegend', () => {
     expect(container.dataset.localeDirection).toBe('rtl');
     expect(container.getAttribute('dir')).toBe('rtl');
   });
+
+  it('updates copy and direction when locale changes', () => {
+    const container = createOverlayContainer();
+    const legend = createMovementLegend({
+      container,
+      locale: 'en',
+    });
+
+    const description = container.querySelector<HTMLElement>(
+      '[data-role="interact-description"]'
+    );
+    expect(description?.textContent).toBe('Interact');
+    expect(container.dataset.localeDirection).toBe('ltr');
+
+    legend.setLocale('ar');
+
+    expect(container.dataset.localeDirection).toBe('rtl');
+    expect(container.getAttribute('dir')).toBe('rtl');
+    expect(description?.textContent).toBe('تفاعل');
+
+    legend.setLocale('en');
+
+    expect(container.dataset.localeDirection).toBe('ltr');
+    expect(container.getAttribute('dir')).toBe('ltr');
+    expect(description?.textContent).toBe('Interact');
+  });
 });
