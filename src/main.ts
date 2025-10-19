@@ -2012,6 +2012,55 @@ function initializeImmersiveScene(
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
   hudSettingsContainer.appendChild(hudSettingsStack);
+  const hudControlElements = new Set<HTMLElement>();
+  const registerHudControlElement = (element?: HTMLElement | null) => {
+    if (!element) {
+      return;
+    }
+    element.hidden = true;
+    hudControlElements.add(element);
+  };
+  const showHudControlElements = () => {
+    hudControlElements.forEach((element) => {
+      element.hidden = false;
+    });
+  };
+  const hideHudControlElements = () => {
+    hudControlElements.forEach((element) => {
+      element.hidden = true;
+    });
+  };
+  const helpModalBackdrop = helpModal.element.parentElement as HTMLElement | null;
+  const syncHudControlVisibility = () => {
+    if (helpModalBackdrop?.hidden) {
+      hideHudControlElements();
+    } else {
+      showHudControlElements();
+    }
+  };
+  syncHudControlVisibility();
+  const hudControlObserver =
+    helpModalBackdrop && new MutationObserver(syncHudControlVisibility);
+  hudControlObserver?.observe(helpModalBackdrop, {
+    attributes: true,
+    attributeFilter: ['hidden'],
+  });
+  const openHelpMenu = () => {
+    showHudControlElements();
+    helpModal.open();
+  };
+  const closeHelpMenu = () => {
+    helpModal.close();
+    hideHudControlElements();
+  };
+  const toggleHelpMenu = (force?: boolean) => {
+    const shouldOpen = force ?? !helpModal.isOpen();
+    if (shouldOpen) {
+      openHelpMenu();
+    } else {
+      closeHelpMenu();
+    }
+  };
   poiNarrativeLog = createPoiNarrativeLog({
     container: helpModal.element,
     strings: narrativeLogStrings,
@@ -2036,7 +2085,7 @@ function initializeImmersiveScene(
   });
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
-    helpButtonClickHandler = () => helpModal.open();
+    helpButtonClickHandler = () => openHelpMenu();
     helpButton.addEventListener('click', helpButtonClickHandler);
   }
   let interactablePoi: PoiInstance | null = null;
@@ -2163,6 +2212,7 @@ function initializeImmersiveScene(
     title: 'Language',
     description: 'Choose language and direction for the HUD.',
   });
+  registerHudControlElement(localeToggleControl?.element ?? null);
 
   const keyBindingUnsubscribes: Array<() => void> = [];
   keyBindingUnsubscribes.push(
@@ -2555,6 +2605,7 @@ function initializeImmersiveScene(
         setAmbientAudioVolume(volume);
       },
     });
+    registerHudControlElement(audioHudHandle?.element);
 
     manualModeToggle = createManualModeToggle({
       container: hudSettingsStack,
@@ -2568,6 +2619,7 @@ function initializeImmersiveScene(
         }
       },
     });
+    registerHudControlElement(manualModeToggle?.element ?? null);
 
     tourResetControl = createTourResetControl({
       container: hudSettingsStack,
@@ -2576,6 +2628,7 @@ function initializeImmersiveScene(
         poiVisitedState.reset();
       },
     });
+    registerHudControlElement(tourResetControl?.element ?? null);
   }
 
   let composer: EffectComposer | null = null;
@@ -2706,6 +2759,7 @@ function initializeImmersiveScene(
       accessibilityPresetManager?.setPreset(preset);
     },
   });
+  registerHudControlElement(accessibilityControlHandle?.element ?? null);
 
   unsubscribeAccessibility = accessibilityPresetManager.onChange(() => {
     accessibilityControlHandle?.refresh();
@@ -2723,6 +2777,7 @@ function initializeImmersiveScene(
       graphicsQualityManager?.setLevel(level);
     },
   });
+  registerHudControlElement(graphicsQualityControl?.element ?? null);
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
     graphicsQualityControl?.refresh();
@@ -3182,7 +3237,7 @@ function initializeImmersiveScene(
       return;
     }
     if (pressed && !helpKeyWasPressed) {
-      helpModal.toggle();
+      toggleHelpMenu();
     }
     helpKeyWasPressed = pressed;
   }
@@ -3192,6 +3247,7 @@ function initializeImmersiveScene(
       return;
     }
     immersiveDisposed = true;
+    hudControlObserver?.disconnect();
     ledAnimator = null;
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
