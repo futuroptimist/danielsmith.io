@@ -221,6 +221,14 @@ export function applySeasonalLightingPreset({
     }
   }
   if (!preset) {
+    for (const target of targets) {
+      target.material.emissive.copy(target.baseEmissiveColor);
+      target.material.emissiveIntensity = target.baseEmissiveIntensity;
+      for (const entry of target.fillLights) {
+        entry.light.color.copy(target.baseEmissiveColor);
+        entry.light.intensity = entry.baseIntensity;
+      }
+    }
     return;
   }
   const globalTint = new Color();
@@ -238,9 +246,7 @@ export function applySeasonalLightingPreset({
       preset.tintStrength ?? 0
     );
     const overrideTint = new Color();
-    const fallbackTint = hasGlobalTint
-      ? globalTint
-      : target.baseEmissiveColor;
+    const fallbackTint = hasGlobalTint ? globalTint : target.baseEmissiveColor;
     const appliedTint = safeSetColor(
       overrideTint,
       override?.tintHex ?? preset.tintHex,

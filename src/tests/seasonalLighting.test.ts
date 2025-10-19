@@ -168,6 +168,11 @@ describe('applySeasonalLightingPreset', () => {
     });
     const light = new PointLight('#abcdef', 1.2);
 
+    material.emissive.set('#654321');
+    material.emissiveIntensity = 0.4;
+    light.color.set('#654321');
+    light.intensity = 0.5;
+
     applySeasonalLightingPreset({
       preset: null,
       documentElement,
@@ -188,6 +193,9 @@ describe('applySeasonalLightingPreset', () => {
     );
     expect(material.emissiveIntensity).toBeCloseTo(1.5, 5);
     expect(light.intensity).toBeCloseTo(1.2, 5);
+    expect(light.color.getHexString()).toBe(
+      new Color('#abcdef').getHexString()
+    );
   });
 
   it('falls back to the base emissive color when tint parsing throws', () => {
@@ -201,11 +209,21 @@ describe('applySeasonalLightingPreset', () => {
     const originalSet = Color.prototype.set;
     const setSpy = vi
       .spyOn(Color.prototype, 'set')
-      .mockImplementation(function (this: Color, value: unknown, g?: number, b?: number) {
+      .mockImplementation(function (
+        this: Color,
+        value: unknown,
+        g?: number,
+        b?: number
+      ) {
         if (typeof value === 'string') {
           throw new Error('bad color');
         }
-        return originalSet.call(this, value as number | Color, g as number, b as number);
+        return originalSet.call(
+          this,
+          value as number | Color,
+          g as number,
+          b as number
+        );
       });
 
     applySeasonalLightingPreset({
