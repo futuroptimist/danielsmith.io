@@ -93,5 +93,14 @@ describe('i18n utilities', () => {
     expect(pseudoSite.structuredData.description).toBe(
       '⟦Interactive exhibits within the Daniel Smith immersive portfolio experience.⟧'
     );
+    expect(pseudoSite.structuredData.publisher.name).toBe(
+      englishSite.structuredData.publisher.name
+    );
+    expect(pseudoSite.structuredData.publisher.url).toBe(
+      englishSite.structuredData.publisher.url
+    );
+    expect(pseudoSite.structuredData.author.name).toBe(
+      englishSite.structuredData.author.name
+    );
   });
 });

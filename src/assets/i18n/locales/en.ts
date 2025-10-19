@@ -8,6 +8,17 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       description:
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
       listNameTemplate: '{siteName} Exhibits',
+      publisher: {
+        name: 'Daniel Smith',
+        url: 'https://danielsmith.io/',
+        type: 'Person',
+        logoUrl: 'https://danielsmith.io/favicon.ico',
+      },
+      author: {
+        name: 'Daniel Smith',
+        url: 'https://danielsmith.io/',
+        type: 'Person',
+      },
     },
   },
   hud: {

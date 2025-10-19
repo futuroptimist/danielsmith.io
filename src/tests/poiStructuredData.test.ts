@@ -24,8 +24,12 @@ const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   ...overrides,
 });
 
+const { SCRIPT_ELEMENT_ID, ITEM_LIST_FRAGMENT } = _testables;
+
 describe('buildPoiStructuredData', () => {
   it('serializes POIs into schema.org ItemList entries', () => {
+    const expectedListId =
+      'https://portfolio.example/immersive/' + ITEM_LIST_FRAGMENT;
     const poiA = createPoi({
       id: 'tokenplace-studio-cluster',
       title: 'First Exhibit',
@@ -47,11 +51,24 @@ describe('buildPoiStructuredData', () => {
     const data = buildPoiStructuredData([poiA, poiB], {
       canonicalUrl: 'https://portfolio.example/immersive?ref=home#section',
       siteName: 'Immersive Portfolio',
+      publisher: {
+        name: 'Immersive Portfolio Publishing',
+        url: 'https://portfolio.example/about/',
+        type: 'Organization',
+        logoUrl: 'https://portfolio.example/logo.png',
+      },
+      author: {
+        name: 'Daniel Smith',
+        url: 'https://danielsmith.io/',
+        type: 'Person',
+      },
     });
 
     expect(data['@context']).toBe('https://schema.org');
     expect(data['@type']).toBe('ItemList');
     expect(data).toMatchObject({
+      '@id': expectedListId,
+      url: 'https://portfolio.example/immersive/',
       name: 'Immersive Portfolio Exhibits',
       description:
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
@@ -59,6 +76,36 @@ describe('buildPoiStructuredData', () => {
       isAccessibleForFree: true,
       itemListOrder: 'https://schema.org/ItemListOrderAscending',
     });
+
+    expect(data.isPartOf).toEqual({
+      '@type': 'WebSite',
+      '@id': 'https://portfolio.example/immersive/',
+      name: 'Immersive Portfolio',
+      url: 'https://portfolio.example/immersive/',
+      inLanguage: 'en',
+    });
+
+    const publisher = data.publisher as Record<string, unknown>;
+    expect(publisher).toMatchObject({
+      '@type': 'Organization',
+      name: 'Immersive Portfolio Publishing',
+      url: 'https://portfolio.example/about/',
+      '@id': 'https://portfolio.example/about/',
+    });
+    expect(publisher.logo).toEqual({
+      '@type': 'ImageObject',
+      url: 'https://portfolio.example/logo.png',
+    });
+    expect(data.provider).toBe(publisher);
+
+    const author = data.author as Record<string, unknown>;
+    expect(author).toMatchObject({
+      '@type': 'Person',
+      name: 'Daniel Smith',
+      url: 'https://danielsmith.io/',
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(data.creator).toBe(author);
 
     const items = data.itemListElement as Array<Record<string, unknown>>;
     expect(items).toHaveLength(2);
@@ -99,6 +146,19 @@ describe('buildPoiStructuredData', () => {
       { '@type': 'PropertyValue', name: 'Status', value: 'prototype' },
     ]);
 
+    expect(firstItem.isPartOf).toEqual({
+      '@type': 'ItemList',
+      '@id': expectedListId,
+    });
+    expect(firstItem.publisher).toEqual({
+      '@id': 'https://portfolio.example/about/',
+    });
+    expect(firstItem.provider).toEqual(firstItem.publisher);
+    expect(firstItem.author).toEqual({
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(firstItem.creator).toEqual(firstItem.author);
+
     const second = items[1];
     expect(second).toMatchObject({
       '@type': 'ListItem',
@@ -114,6 +174,18 @@ describe('buildPoiStructuredData', () => {
     expect(secondItem.additionalProperty).toEqual([
       { '@type': 'PropertyValue', name: 'Category', value: 'project' },
     ]);
+    expect(secondItem.isPartOf).toEqual({
+      '@type': 'ItemList',
+      '@id': expectedListId,
+    });
+    expect(secondItem.publisher).toEqual({
+      '@id': 'https://portfolio.example/about/',
+    });
+    expect(secondItem.provider).toEqual(secondItem.publisher);
+    expect(secondItem.author).toEqual({
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(secondItem.creator).toEqual(secondItem.author);
   });
 
   it('honors locale overrides when emitting language metadata', () => {
@@ -142,13 +214,41 @@ describe('injectPoiStructuredData', () => {
     });
 
     expect(firstScript.type).toBe('application/ld+json');
-    expect(firstScript.id).toBe(_testables.SCRIPT_ELEMENT_ID);
+    expect(firstScript.id).toBe(SCRIPT_ELEMENT_ID);
     expect(firstScript.isConnected).toBe(true);
 
     const parsed = JSON.parse(firstScript.textContent ?? '{}');
+    const expectedListId =
+      'https://example.com/portfolio/' + ITEM_LIST_FRAGMENT;
     expect(parsed.name).toBe('Immersive Portfolio Exhibits');
     expect(parsed.inLanguage).toBe('en');
     expect(parsed.isAccessibleForFree).toBe(true);
+    expect(parsed['@id']).toBe(expectedListId);
+    expect(parsed.url).toBe('https://example.com/portfolio/');
+    expect(parsed.isPartOf).toEqual({
+      '@type': 'WebSite',
+      '@id': 'https://example.com/portfolio/',
+      name: 'Immersive Portfolio',
+      url: 'https://example.com/portfolio/',
+      inLanguage: 'en',
+    });
+    expect(parsed.publisher).toMatchObject({
+      '@type': 'Person',
+      name: 'Daniel Smith',
+      url: 'https://danielsmith.io/',
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(parsed.publisher.logo).toEqual({
+      '@type': 'ImageObject',
+      url: 'https://danielsmith.io/favicon.ico',
+    });
+    expect(parsed.provider).toEqual(parsed.publisher);
+    expect(parsed.author).toMatchObject({
+      '@type': 'Person',
+      name: 'Daniel Smith',
+      '@id': 'https://danielsmith.io/',
+    });
+    expect(parsed.creator).toEqual(parsed.author);
 
     const secondScript = injectPoiStructuredData(pois, {
       documentTarget,
@@ -158,9 +258,7 @@ describe('injectPoiStructuredData', () => {
     expect(secondScript).not.toBe(firstScript);
     expect(firstScript.isConnected).toBe(false);
     expect(
-      documentTarget.head.querySelectorAll(
-        `script#${_testables.SCRIPT_ELEMENT_ID}`
-      ).length
+      documentTarget.head.querySelectorAll(`script#${SCRIPT_ELEMENT_ID}`).length
     ).toBe(1);
   });
 
@@ -228,6 +326,20 @@ describe('structured data utilities', () => {
         ''
       )
     ).toBe('https://example.com/folio/');
+
+    expect(
+      _testables.normalizeCanonicalUrl(
+        'https://example.com/folio/index.html?x=1#section',
+        ''
+      )
+    ).toBe('https://example.com/folio/');
+
+    expect(
+      _testables.normalizeCanonicalUrl(
+        undefined,
+        'https://example.com/portfolio/index.html?utm=1#view'
+      )
+    ).toBe('https://example.com/portfolio/');
   });
 
   it('builds POI detail anchors from canonical URLs', () => {
