@@ -140,6 +140,12 @@ export const DEFAULT_SEASONAL_LIGHTING_PRESETS: readonly SeasonalLightingPreset[
           tintHex: '#a4e4ff',
           tintStrength: 0.65,
         },
+        backyard: {
+          tintHex: '#8fd9ff',
+          tintStrength: 0.6,
+          emissiveIntensityScale: 1.2,
+          fillIntensityScale: 1.2,
+        },
       },
     },
     {
@@ -157,6 +163,12 @@ export const DEFAULT_SEASONAL_LIGHTING_PRESETS: readonly SeasonalLightingPreset[
           tintHex: '#fff4d1',
           tintStrength: 0.5,
           cycleScale: 1.2,
+        },
+        backyard: {
+          tintHex: '#ffe6bb',
+          tintStrength: 0.55,
+          emissiveIntensityScale: 1.1,
+          fillIntensityScale: 1.1,
         },
       },
     },
