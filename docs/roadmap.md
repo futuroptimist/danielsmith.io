@@ -194,6 +194,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      announces when the text tour is engaged.
    - ✨ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
      crawlers understand language coverage and free access guarantees.
+   - ✅ Text fallback links back to immersive mode with the override URL so returns bypass
+     automatic failover heuristics.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.

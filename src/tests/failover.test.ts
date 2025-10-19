@@ -5,6 +5,7 @@ import {
   isWebglSupported,
   renderTextFallback,
   type FallbackReason,
+  type RenderTextFallbackOptions,
 } from '../systems/failover';
 import { createImmersiveModeUrl } from '../ui/immersiveUrl';
 
@@ -278,13 +279,16 @@ describe('evaluateFailoverDecision', () => {
 });
 
 describe('renderTextFallback', () => {
-  const render = (reason: FallbackReason) => {
+  const render = (
+    reason: FallbackReason,
+    overrides: Partial<RenderTextFallbackOptions> = {}
+  ) => {
     const container = document.createElement('div');
     renderTextFallback(container, {
       reason,
-      immersiveUrl: IMMERSIVE_URL,
       resumeUrl: '/resume.pdf',
       githubUrl: 'https://example.com',
+      ...overrides,
     });
     return container;
   };
@@ -298,6 +302,25 @@ describe('renderTextFallback', () => {
       container.querySelectorAll<HTMLAnchorElement>('.text-fallback__link')
     );
     expect(links.map((link) => link.href)).toContain('https://example.com/');
+  });
+
+  it('defaults immersive link to the override-enforced URL when unspecified', () => {
+    const container = render('manual');
+    const immersiveLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+    expect(immersiveLink?.href).toBe(
+      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+    );
+  });
+
+  it('respects custom immersive links when provided', () => {
+    const customUrl = 'https://portfolio.test/demo?force=immersive';
+    const container = render('manual', { immersiveUrl: customUrl });
+    const immersiveLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+    expect(immersiveLink?.href).toBe(customUrl);
   });
 
   it('indicates WebGL unsupported reason', () => {
