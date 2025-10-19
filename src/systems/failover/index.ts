@@ -1,5 +1,6 @@
 import { getLocaleDirection } from '../../assets/i18n';
 import { initializeModeAnnouncementObserver } from '../../ui/accessibility/modeAnnouncer';
+import { createImmersiveModeUrl } from '../../ui/immersiveUrl';
 
 if (
   typeof document !== 'undefined' &&
@@ -309,14 +310,18 @@ export interface RenderTextFallbackOptions {
 
 export function renderTextFallback(
   container: HTMLElement,
-  {
+  options: RenderTextFallbackOptions
+): void {
+  const {
     reason,
-    immersiveUrl = window.location.pathname,
     resumeUrl = 'docs/resume/2025-09/resume.pdf',
     githubUrl = 'https://github.com/futuroptimist',
-  }: RenderTextFallbackOptions
-): void {
+    immersiveUrl: providedImmersiveUrl,
+  } = options;
   const documentTarget = container.ownerDocument ?? document;
+  const immersiveUrl =
+    providedImmersiveUrl ??
+    createImmersiveModeUrl(documentTarget.defaultView?.location ?? undefined);
   const localeHint =
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
