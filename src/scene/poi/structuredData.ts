@@ -14,6 +14,7 @@ import type { PoiDefinition } from './types';
 const DEFAULT_CANONICAL_URL = 'https://danielsmith.io/';
 const SCRIPT_ELEMENT_ID = 'danielsmith-portfolio-pois-structured-data';
 const ITEM_LIST_FRAGMENT = '#immersive-poi-list';
+const PAGE_FRAGMENT = '#immersive-poi-page';
 
 const stripFragmentAndQuery = (value: string): string => {
   return value.replace(/[#?].*$/, '');
@@ -212,6 +213,20 @@ export const buildPoiStructuredData = (
     name: siteName,
     url: canonical,
     inLanguage: locale,
+    description,
+  };
+
+  const pageId = `${canonical}${PAGE_FRAGMENT}`;
+  const pageEntry: Record<string, unknown> = {
+    '@type': 'CollectionPage',
+    '@id': pageId,
+    url: canonical,
+    name: listName,
+    description,
+    inLanguage: locale,
+    isAccessibleForFree: true,
+    isPartOf: { '@type': 'WebSite', '@id': canonical },
+    mainEntity: { '@type': 'ItemList', '@id': listId },
   };
 
   const itemListElement: ListItem[] = pois.map((poi, index) => {
@@ -295,11 +310,22 @@ export const buildPoiStructuredData = (
   if (publisherEntity) {
     structuredData.publisher = publisherEntity;
     structuredData.provider = publisherEntity;
+    siteEntry.publisher = publisherEntity;
+    siteEntry.provider = publisherEntity;
+    pageEntry.publisher = publisherReference;
+    pageEntry.provider = publisherReference;
   }
   if (authorEntity) {
     structuredData.author = authorEntity;
     structuredData.creator = authorEntity;
+    siteEntry.author = authorEntity;
+    siteEntry.creator = authorEntity;
+    pageEntry.author = authorReference;
+    pageEntry.creator = authorReference;
   }
+
+  siteEntry.mainEntity = { '@id': pageId };
+  structuredData.mainEntityOfPage = pageEntry;
 
   return structuredData;
 };
@@ -353,4 +379,5 @@ export const _testables = {
   createPoiUrl,
   SCRIPT_ELEMENT_ID,
   ITEM_LIST_FRAGMENT,
+  PAGE_FRAGMENT,
 };
