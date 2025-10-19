@@ -133,6 +133,7 @@ import {
   type AxelNavigatorBuild,
 } from './scene/structures/axelNavigator';
 import { createRoomCeilingPanels } from './scene/structures/ceilingPanels';
+import { createDoorwayOpenings } from './scene/structures/doorwayOpenings';
 import {
   createF2ClipboardConsole,
   type F2ClipboardConsoleBuild,
@@ -768,6 +769,13 @@ function initializeImmersiveScene(
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
+  const doorwayTrimMaterial = new MeshStandardMaterial({
+    color: new Color(0x556278),
+    emissive: new Color(0x111b29),
+    emissiveIntensity: 0.12,
+    roughness: 0.46,
+    metalness: 0.3,
+  });
 
   const interiorLightmaps = createInteriorLightmapTextures({
     floorSize: {
@@ -810,6 +818,17 @@ function initializeImmersiveScene(
   });
 
   scene.add(wallGroup);
+
+  const doorwayOpenings = createDoorwayOpenings(FLOOR_PLAN, {
+    wallHeight: WALL_HEIGHT,
+    baseElevation: 0,
+    doorHeight: WALL_HEIGHT * 0.72,
+    jambThickness: WALL_THICKNESS * 0.76,
+    lintelThickness: 0.26,
+    trimDepth: WALL_THICKNESS * 0.92,
+    material: doorwayTrimMaterial,
+  });
+  scene.add(doorwayOpenings.group);
 
   const ceilings = createRoomCeilingPanels(FLOOR_PLAN.rooms, {
     height: WALL_HEIGHT - 0.15,

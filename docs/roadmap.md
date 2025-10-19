@@ -67,7 +67,8 @@ Focus: expand the environment while keeping navigation smooth.
 2. **House Footprint Layout**
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
      - ✅ Modular ceiling panels now cap each ground-floor room with LED-friendly insets.
-   - Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
+   - ✅ Cut simple doorway openings (no doors yet) between rooms and toward the backyard.
+     - Doorway trim now frames each threshold.
    - ✅ Stub staircase volumes that connect to a placeholder second-floor landing.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
      - ✅ Wall segment builder now reserves doorway openings and keeps player colliders clear.
