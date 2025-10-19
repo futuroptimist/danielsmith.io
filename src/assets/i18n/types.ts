@@ -69,9 +69,20 @@ export interface PoiNarrativeLogStrings {
   liveAnnouncementTemplate: string;
 }
 
+export type StructuredDataEntityType = 'Person' | 'Organization';
+
+export interface SiteStructuredDataEntityStrings {
+  name: string;
+  url?: string;
+  type?: StructuredDataEntityType;
+  logoUrl?: string;
+}
+
 export interface SiteStructuredDataStrings {
   description: string;
   listNameTemplate: string;
+  publisher: SiteStructuredDataEntityStrings;
+  author: SiteStructuredDataEntityStrings;
 }
 
 export interface SiteStrings {
