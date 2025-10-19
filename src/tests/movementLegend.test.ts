@@ -166,16 +166,26 @@ describe('createMovementLegend', () => {
       'Interact with Futuroptimist'
     );
     expect(interactLabel?.textContent).toBe('F');
+    expect(interactItem?.dataset.hudAnnounce).toBe(
+      'F — Interact with Futuroptimist'
+    );
 
     legend.setActiveMethod('touch');
     expect(interactLabel?.textContent).toBe('Tap');
+    expect(interactItem?.dataset.hudAnnounce).toBe(
+      'Tap — Interact with Futuroptimist'
+    );
 
     legend.setActiveMethod('gamepad');
     expect(interactLabel?.textContent).toBe('A');
+    expect(interactItem?.dataset.hudAnnounce).toBe(
+      'A — Interact with Futuroptimist'
+    );
 
     legend.setInteractPrompt(null);
     expect(interactItem?.hidden).toBe(true);
     expect(interactDescription?.textContent).toBe('Interact');
+    expect(interactItem?.dataset.hudAnnounce).toBeUndefined();
 
     legend.dispose();
   });
@@ -306,6 +316,7 @@ describe('createMovementLegend', () => {
     );
     expect(interactItem?.hidden).toBe(true);
     expect(interactDescription?.textContent).toBe('Interact');
+    expect(interactItem?.dataset.hudAnnounce).toBeUndefined();
 
     dispatchPointerEvent(window, 'touch');
     expect(legend.getActiveMethod()).toBe('pointer');
