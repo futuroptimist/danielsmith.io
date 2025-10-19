@@ -30,6 +30,7 @@ const {
   SCRIPT_ELEMENT_ID,
   TEXT_SCRIPT_ELEMENT_ID,
   ITEM_LIST_FRAGMENT,
+  PAGE_FRAGMENT,
   TEXT_COLLECTION_FRAGMENT,
   createTextModeUrl,
   createImmersiveOverrideUrl,
@@ -43,6 +44,8 @@ describe('buildPoiStructuredData', () => {
   it('serializes POIs into schema.org ItemList entries', () => {
     const expectedListId =
       'https://portfolio.example/immersive/' + ITEM_LIST_FRAGMENT;
+    const expectedPageId =
+      'https://portfolio.example/immersive/' + PAGE_FRAGMENT;
     const poiA = createPoi({
       id: 'tokenplace-studio-cluster',
       title: 'First Exhibit',
@@ -90,14 +93,6 @@ describe('buildPoiStructuredData', () => {
       itemListOrder: 'https://schema.org/ItemListOrderAscending',
     });
 
-    expect(data.isPartOf).toEqual({
-      '@type': 'WebSite',
-      '@id': 'https://portfolio.example/immersive/',
-      name: 'Immersive Portfolio',
-      url: 'https://portfolio.example/immersive/',
-      inLanguage: 'en',
-    });
-
     const publisher = data.publisher as Record<string, unknown>;
     expect(publisher).toMatchObject({
       '@type': 'Organization',
@@ -119,6 +114,42 @@ describe('buildPoiStructuredData', () => {
       '@id': 'https://danielsmith.io/',
     });
     expect(data.creator).toBe(author);
+
+    expect(data.isPartOf).toEqual({
+      '@type': 'WebSite',
+      '@id': 'https://portfolio.example/immersive/',
+      name: 'Immersive Portfolio',
+      url: 'https://portfolio.example/immersive/',
+      inLanguage: 'en',
+      description:
+        'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
+      mainEntity: { '@id': expectedPageId },
+      publisher,
+      provider: publisher,
+      author,
+      creator: author,
+    });
+
+    const page = data.mainEntityOfPage as Record<string, unknown>;
+    expect(page).toMatchObject({
+      '@type': 'CollectionPage',
+      '@id': expectedPageId,
+      url: 'https://portfolio.example/immersive/',
+      name: 'Immersive Portfolio Exhibits',
+      description:
+        'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
+      inLanguage: 'en',
+      isAccessibleForFree: true,
+      isPartOf: {
+        '@type': 'WebSite',
+        '@id': 'https://portfolio.example/immersive/',
+      },
+      mainEntity: { '@type': 'ItemList', '@id': expectedListId },
+      publisher: { '@id': 'https://portfolio.example/about/' },
+      provider: { '@id': 'https://portfolio.example/about/' },
+      author: { '@id': 'https://danielsmith.io/' },
+      creator: { '@id': 'https://danielsmith.io/' },
+    });
 
     const items = data.itemListElement as Array<Record<string, unknown>>;
     expect(items).toHaveLength(2);
@@ -209,6 +240,9 @@ describe('buildPoiStructuredData', () => {
     expect(data.inLanguage).toBe('en-x-pseudo');
     const items = data.itemListElement as Array<Record<string, unknown>>;
     expect(items[0]?.item).toMatchObject({ inLanguage: 'en-x-pseudo' });
+
+    const page = data.mainEntityOfPage as Record<string, unknown>;
+    expect(page).toMatchObject({ inLanguage: 'en-x-pseudo' });
   });
 });
 
@@ -336,18 +370,26 @@ describe('injectPoiStructuredData', () => {
     const parsed = JSON.parse(firstScript.textContent ?? '{}');
     const expectedListId =
       'https://example.com/portfolio/' + ITEM_LIST_FRAGMENT;
+    const expectedPageId = 'https://example.com/portfolio/' + PAGE_FRAGMENT;
     expect(parsed.name).toBe('Immersive Portfolio Exhibits');
     expect(parsed.inLanguage).toBe('en');
     expect(parsed.isAccessibleForFree).toBe(true);
     expect(parsed['@id']).toBe(expectedListId);
     expect(parsed.url).toBe('https://example.com/portfolio/');
-    expect(parsed.isPartOf).toEqual({
+    expect(parsed.isPartOf).toMatchObject({
       '@type': 'WebSite',
       '@id': 'https://example.com/portfolio/',
       name: 'Immersive Portfolio',
       url: 'https://example.com/portfolio/',
       inLanguage: 'en',
+      description:
+        'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
+      mainEntity: { '@id': expectedPageId },
     });
+    expect(parsed.isPartOf.publisher).toEqual(parsed.publisher);
+    expect(parsed.isPartOf.provider).toEqual(parsed.publisher);
+    expect(parsed.isPartOf.author).toEqual(parsed.author);
+    expect(parsed.isPartOf.creator).toEqual(parsed.author);
     expect(parsed.publisher).toMatchObject({
       '@type': 'Person',
       name: 'Daniel Smith',
@@ -365,6 +407,24 @@ describe('injectPoiStructuredData', () => {
       '@id': 'https://danielsmith.io/',
     });
     expect(parsed.creator).toEqual(parsed.author);
+
+    const page = parsed.mainEntityOfPage as Record<string, unknown>;
+    expect(page).toMatchObject({
+      '@type': 'CollectionPage',
+      '@id': expectedPageId,
+      url: 'https://example.com/portfolio/',
+      name: 'Immersive Portfolio Exhibits',
+      description:
+        'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
+      inLanguage: 'en',
+      isAccessibleForFree: true,
+      isPartOf: { '@type': 'WebSite', '@id': 'https://example.com/portfolio/' },
+      mainEntity: { '@type': 'ItemList', '@id': expectedListId },
+      publisher: { '@id': 'https://danielsmith.io/' },
+      provider: { '@id': 'https://danielsmith.io/' },
+      author: { '@id': 'https://danielsmith.io/' },
+      creator: { '@id': 'https://danielsmith.io/' },
+    });
 
     const secondScript = injectPoiStructuredData(pois, {
       documentTarget,
