@@ -8,6 +8,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       description:
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
       listNameTemplate: '{siteName} Exhibits',
+      textCollectionNameTemplate: '{siteName} Text Portfolio',
+      textCollectionDescription:
+        'Fast-loading summaries of every immersive exhibit tuned for accessible and crawler-friendly reading.',
+      immersiveActionName: 'Launch immersive mode',
       publisher: {
         name: 'Daniel Smith',
         url: 'https://danielsmith.io/',

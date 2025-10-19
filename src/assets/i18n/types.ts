@@ -81,6 +81,9 @@ export interface SiteStructuredDataEntityStrings {
 export interface SiteStructuredDataStrings {
   description: string;
   listNameTemplate: string;
+  textCollectionNameTemplate: string;
+  textCollectionDescription: string;
+  immersiveActionName: string;
   publisher: SiteStructuredDataEntityStrings;
   author: SiteStructuredDataEntityStrings;
 }

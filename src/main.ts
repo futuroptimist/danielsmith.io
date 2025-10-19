@@ -115,7 +115,10 @@ import {
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
 import { getPoiDefinitions } from './scene/poi/registry';
-import { injectPoiStructuredData } from './scene/poi/structuredData';
+import {
+  injectPoiStructuredData,
+  injectTextPortfolioStructuredData,
+} from './scene/poi/structuredData';
 import { PoiTooltipOverlay } from './scene/poi/tooltipOverlay';
 import { PoiTourGuide } from './scene/poi/tourGuide';
 import type { PoiDefinition } from './scene/poi/types';
@@ -656,6 +659,10 @@ function initializeImmersiveScene(
     poiDefinitions.map((definition) => [definition.id, definition] as const)
   );
   injectPoiStructuredData(poiDefinitions, {
+    siteName: siteStrings.name,
+    locale,
+  });
+  injectTextPortfolioStructuredData(poiDefinitions, {
     siteName: siteStrings.name,
     locale,
   });
