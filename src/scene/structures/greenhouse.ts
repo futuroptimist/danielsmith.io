@@ -8,8 +8,10 @@ import {
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  ShaderMaterial,
   Texture,
   Vector3,
+  type IUniform,
 } from 'three';
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
@@ -289,6 +291,78 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   pond.rotation.x = Math.PI / 2;
   group.add(pond);
 
+  const pondRippleUniforms: {
+    time: IUniform<number>;
+    amplitude: IUniform<number>;
+    brightness: IUniform<number>;
+    innerColor: IUniform<Color>;
+    outerColor: IUniform<Color>;
+  } = {
+    time: { value: 0 },
+    amplitude: { value: 0.38 },
+    brightness: { value: 0.22 },
+    innerColor: { value: new Color(0x33cff5) },
+    outerColor: { value: new Color(0x082b3e) },
+  };
+
+  const pondRippleMaterial = new ShaderMaterial({
+    uniforms: pondRippleUniforms,
+    transparent: true,
+    depthWrite: false,
+    vertexShader: `
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float time;
+      uniform float amplitude;
+      uniform float brightness;
+      uniform vec3 innerColor;
+      uniform vec3 outerColor;
+      varying vec2 vUv;
+
+      float ripple(vec2 offset, float frequency, float phase) {
+        float dist = length(offset);
+        return sin((dist - phase) * frequency);
+      }
+
+      void main() {
+        vec2 centered = vUv - 0.5;
+        float dist = length(centered);
+
+        float wavePrimary = ripple(centered, 22.0, time * 0.35);
+        float waveSecondary = ripple(centered + vec2(0.08, -0.04), 14.0, time * 0.22);
+        float wave = mix(wavePrimary, waveSecondary, 0.45);
+
+        float rimFade = smoothstep(0.52, 0.18, dist);
+        float alpha = clamp(0.28 + amplitude * 0.45, 0.0, 1.0) * rimFade;
+
+        vec3 baseColor = mix(outerColor, innerColor, smoothstep(0.48, 0.0, dist));
+        baseColor += wave * brightness * amplitude;
+
+        gl_FragColor = vec4(baseColor, alpha);
+      }
+    `,
+  });
+
+  const pondRipple = new Mesh(
+    new PlaneGeometry(depth * 0.36, depth * 0.36),
+    pondRippleMaterial
+  );
+  pondRipple.name = 'BackyardGreenhousePondRipple';
+  pondRipple.position.set(
+    pond.position.x,
+    pond.position.y + 0.01,
+    pond.position.z
+  );
+  pondRipple.rotation.x = -Math.PI / 2;
+  pondRipple.renderOrder = 6;
+  group.add(pondRipple);
+
   const solarPanelPivot = new Group();
   solarPanelPivot.name = 'BackyardGreenhouseSolarPanels';
   solarPanelPivot.position.set(0, FRAME_HEIGHT + ROOF_PEAK_HEIGHT * 0.72, 0);
@@ -362,6 +436,15 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
         safePulse
       );
     });
+
+    const rippleSpeed = MathUtils.lerp(0.24, 0.52, pulseScale);
+    pondRippleUniforms.time.value = elapsed * rippleSpeed;
+    pondRippleUniforms.amplitude.value = MathUtils.lerp(0.25, 0.75, pulseScale);
+    pondRippleUniforms.brightness.value = MathUtils.lerp(
+      0.14,
+      0.32,
+      pulseScale
+    );
   };
 
   return { group, colliders, update };

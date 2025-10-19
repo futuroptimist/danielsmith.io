@@ -1,9 +1,11 @@
 import {
   CanvasTexture,
   Group,
+  MathUtils,
   Mesh,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
+  ShaderMaterial,
   SRGBColorSpace,
   Vector3,
 } from 'three';
@@ -34,6 +36,31 @@ describe('createGreenhouse', () => {
     const baselineIntensity = growLightMaterial.emissiveIntensity;
     update({ elapsed: 2.4, delta: 0.016 });
     expect(growLightMaterial.emissiveIntensity).not.toBe(baselineIntensity);
+
+    const pondRipple = group.getObjectByName('BackyardGreenhousePondRipple');
+    expect(pondRipple).toBeInstanceOf(Mesh);
+    const rippleMaterial = (pondRipple as Mesh).material as ShaderMaterial;
+    const rippleUniforms = rippleMaterial.uniforms as {
+      time: { value: number };
+      amplitude: { value: number };
+      brightness: { value: number };
+    };
+    const baselineTime = rippleUniforms.time.value;
+    document.documentElement.dataset.accessibilityPulseScale = '0.2';
+    const lowElapsed = 3.6;
+    update({ elapsed: lowElapsed, delta: 0.016 });
+    const lowSpeed = MathUtils.lerp(0.24, 0.52, 0.2);
+    expect(rippleUniforms.time.value).toBeCloseTo(lowElapsed * lowSpeed, 6);
+    const lowAmplitude = rippleUniforms.amplitude.value;
+    document.documentElement.dataset.accessibilityPulseScale = '1';
+    const highElapsed = 5.2;
+    update({ elapsed: highElapsed, delta: 0.016 });
+    const highSpeed = MathUtils.lerp(0.24, 0.52, 1);
+    expect(rippleUniforms.time.value).toBeCloseTo(highElapsed * highSpeed, 6);
+    expect(rippleUniforms.amplitude.value).toBeGreaterThan(lowAmplitude);
+    expect(rippleUniforms.time.value).toBeGreaterThan(baselineTime * 0.5);
+    expect(rippleUniforms.brightness.value).toBeGreaterThan(0);
+    delete document.documentElement.dataset.accessibilityPulseScale;
 
     expect(colliders).toHaveLength(1);
     const [collider] = colliders;
