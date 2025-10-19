@@ -102,5 +102,14 @@ describe('i18n utilities', () => {
     expect(pseudoSite.structuredData.author.name).toBe(
       englishSite.structuredData.author.name
     );
+    expect(pseudoSite.structuredData.textCollectionNameTemplate).toBe(
+      englishSite.structuredData.textCollectionNameTemplate
+    );
+    expect(pseudoSite.structuredData.textCollectionDescription).toBe(
+      englishSite.structuredData.textCollectionDescription
+    );
+    expect(pseudoSite.structuredData.immersiveActionName).toBe(
+      englishSite.structuredData.immersiveActionName
+    );
   });
 });

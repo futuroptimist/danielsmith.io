@@ -186,7 +186,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
 2. **Experience Toggle**
    - Mode switch between immersive 3D view and a fast-loading text portfolio.
    - ✅ Detect low-end/no-JS/scraper clients and auto-route to static mode.
-   - Share canonical content via structured data (JSON-LD) for SEO and bots.
+   - ✅ Share canonical content via structured data (JSON-LD) for SEO and bots.
    - ✅ JSON-LD ItemList now advertises canonical site URLs plus publisher/author metadata.
      Logo references ensure search surfaces attribute exhibits correctly.
    - ✅ JSON-LD structured data now mirrors the POI registry so bots and scrapers receive the
