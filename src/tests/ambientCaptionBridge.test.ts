@@ -7,7 +7,10 @@ import type {
   AmbientAudioSource,
 } from '../systems/audio/ambientAudio';
 import { AmbientCaptionBridge } from '../systems/audio/ambientCaptionBridge';
-import type { AudioSubtitleMessage } from '../ui/hud/audioSubtitles';
+import type {
+  AudioSubtitleMessage,
+  AudioSubtitlesHandle,
+} from '../ui/hud/audioSubtitles';
 
 class FakeController implements AmbientAudioController {
   private snapshot: AmbientAudioBedSnapshot;
@@ -234,6 +237,73 @@ describe('AmbientCaptionBridge priority handling', () => {
     bridge.update();
     expect(show).toHaveBeenCalledTimes(3);
     expect(current?.id).toBe('ambient-hum');
+  });
+
+  it('bypasses cooldown when reshowing after a higher-priority caption clears', () => {
+    let currentTime = 0;
+    const controller = new FakeController({
+      id: 'hum',
+      center: { x: 0, z: 0 },
+      innerRadius: 1,
+      outerRadius: 4,
+      baseVolume: 0.4,
+      source: fakeSource,
+      caption: 'Soft hum fills the room.',
+    });
+
+    let current: AudioSubtitleMessage | null = null;
+    const show = vi.fn((message: AudioSubtitleMessage) => {
+      const nextPriority = message.priority ?? 0;
+      const currentPriority = current?.priority ?? 0;
+      if (
+        current &&
+        current.id !== message.id &&
+        nextPriority < currentPriority
+      ) {
+        return;
+      }
+      current = { ...message, priority: nextPriority };
+    });
+
+    const subtitles = {
+      show,
+      clear: vi.fn(() => {
+        current = null;
+      }),
+      dispose: vi.fn(),
+      getCurrent: vi.fn(() => current),
+    } satisfies AudioSubtitlesHandle;
+
+    const bridge = new AmbientCaptionBridge({
+      controller,
+      subtitles,
+      cooldownMs: 5000,
+      now: () => currentTime,
+    });
+
+    controller.setVolume(0.3);
+    bridge.update();
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(current?.id).toBe('ambient-hum');
+
+    currentTime += 100;
+    current = {
+      id: 'poi-1',
+      source: 'poi',
+      text: 'POI narration',
+      priority: 4,
+    };
+
+    bridge.update();
+    expect(show).toHaveBeenCalledTimes(2);
+    expect(current?.id).toBe('poi-1');
+
+    current = null;
+    currentTime += 200;
+    bridge.update();
+    expect(show).toHaveBeenCalledTimes(3);
+    expect(current?.id).toBe('ambient-hum');
+    expect(subtitles.getCurrent()).toEqual(current);
   });
 
   it('uses bed-defined caption priority values when available', () => {
