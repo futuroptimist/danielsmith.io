@@ -100,6 +100,13 @@ import {
   ROOM_LED_PULSE_PROGRAMS,
   type LedAnimator,
 } from './scene/lighting/ledPulsePrograms';
+import {
+  applySeasonalLightingPreset,
+  createSeasonallyAdjustedPrograms,
+  resolveSeasonalLightingPreset,
+  type SeasonalLightingFillLightTarget,
+  type SeasonalLightingTarget,
+} from './scene/lighting/seasonalPresets';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import { PoiInteractionManager } from './scene/poi/interactionManager';
 import {
@@ -1040,6 +1047,7 @@ function initializeImmersiveScene(
     const roomLedGroups = new Map<string, Group>();
     const roomLedMaterials = new Map<string, MeshStandardMaterial>();
     const roomLedFillLights = new Map<string, PointLight>();
+    const roomSeasonalTargets: SeasonalLightingTarget[] = [];
 
     FLOOR_PLAN.rooms.forEach((room) => {
       if (getRoomCategory(room.id) === 'exterior') {
@@ -1080,6 +1088,9 @@ function initializeImmersiveScene(
       ledFillLights.add(light);
       ledFillLightsList.push(light);
       roomLedFillLights.set(room.id, light);
+      const fillTargets: SeasonalLightingFillLightTarget[] = [
+        { light, baseIntensity: light.intensity },
+      ];
 
       const cornerOffsets = [
         new Vector3(
@@ -1117,7 +1128,27 @@ function initializeImmersiveScene(
         cornerLight.position.copy(offset);
         cornerLight.castShadow = false;
         ledFillLights.add(cornerLight);
+        ledFillLightsList.push(cornerLight);
+        fillTargets.push({
+          light: cornerLight,
+          baseIntensity: cornerLight.intensity,
+        });
       });
+
+      roomSeasonalTargets.push({
+        roomId: room.id,
+        material,
+        baseEmissiveColor: emissiveColor.clone(),
+        baseEmissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
+        fillLights: fillTargets,
+      });
+    });
+
+    const seasonalPreset = resolveSeasonalLightingPreset();
+    applySeasonalLightingPreset({
+      preset: seasonalPreset,
+      targets: roomSeasonalTargets,
+      documentElement: document.documentElement,
     });
 
     combinedWallSegments.forEach((segment) => {
@@ -1179,8 +1210,12 @@ function initializeImmersiveScene(
         fillLight: roomLedFillLights.get(roomId),
       })
     );
+    const seasonalPrograms = createSeasonallyAdjustedPrograms(
+      ROOM_LED_PULSE_PROGRAMS,
+      seasonalPreset
+    );
     ledAnimator = createLedAnimator({
-      programs: ROOM_LED_PULSE_PROGRAMS,
+      programs: seasonalPrograms,
       targets: ledTargets,
     });
     ledAnimator.captureBaseline();

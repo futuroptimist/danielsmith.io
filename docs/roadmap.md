@@ -296,6 +296,8 @@ Ideas to evaluate after the core experience is stable:
 
 - Multiplayer showroom tours or live streams as ambient projections.
 - Seasonal lighting presets (e.g., aurora, holiday lights) scheduled via calendar.
+- ✅ Seasonal lighting scheduler now retints LED strips and fill lights for holiday and spring
+  windows, slowing or accelerating pulse programs according to the calendar.
 - Procedural storytelling AI that narrates the journey between POIs.
 - Integration with GitHub API for live repo stats and contribution heatmaps.
 - Exportable "press kit" mode that packages screenshots, POI blurbs, and metrics.
