@@ -292,11 +292,10 @@ describe('createBackyardEnvironment', () => {
       tintedEmissiveBaseline * dampingScale,
       5
     );
-    expect(light!.intensity).toBeCloseTo(
-      tintedLightBaseline * dampingScale,
-      5
+    expect(light!.intensity).toBeCloseTo(tintedLightBaseline * dampingScale, 5);
+    expect(glassMaterial.emissiveIntensity).toBeGreaterThan(
+      1.18 * dampingScale
     );
-    expect(glassMaterial.emissiveIntensity).toBeGreaterThan(1.18 * dampingScale);
     expect(light!.intensity).toBeGreaterThan(0.85 * dampingScale);
   });
 
