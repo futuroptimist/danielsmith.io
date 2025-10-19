@@ -169,6 +169,10 @@ import {
 } from './scene/structures/tokenPlaceRack';
 import { createUpperLandingStub } from './scene/structures/upperLandingStub';
 import {
+  createWoveLoom,
+  type WoveLoomBuild,
+} from './scene/structures/woveLoom';
+import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
@@ -463,6 +467,7 @@ let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let f2ClipboardConsole: F2ClipboardConsoleBuild | null = null;
 let sigmaWorkbench: SigmaWorkbenchBuild | null = null;
+let woveLoom: WoveLoomBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
@@ -1325,6 +1330,9 @@ function initializeImmersiveScene(
   const sigmaPoi = poiInstances.find(
     (poi) => poi.definition.id === 'sigma-kitchen-workbench'
   );
+  const wovePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'wove-kitchen-loom'
+  );
   const axelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'axel-studio-tracker'
   );
@@ -1506,6 +1514,34 @@ function initializeImmersiveScene(
     scene.add(workbench.group);
     workbench.colliders.forEach((collider) => groundColliders.push(collider));
     sigmaWorkbench = workbench;
+  }
+
+  if (wovePoi) {
+    const loomX = kitchenBounds
+      ? MathUtils.clamp(
+          wovePoi.group.position.x,
+          kitchenBounds.minX + 0.8,
+          kitchenBounds.maxX - 0.8
+        )
+      : wovePoi.group.position.x;
+    const loomZ = kitchenBounds
+      ? MathUtils.clamp(
+          wovePoi.group.position.z,
+          kitchenBounds.minZ + 0.8,
+          kitchenBounds.maxZ - 0.6
+        )
+      : wovePoi.group.position.z;
+    const loom = createWoveLoom({
+      position: {
+        x: loomX,
+        y: wovePoi.group.position.y,
+        z: loomZ,
+      },
+      orientationRadians: wovePoi.group.rotation.y ?? 0,
+    });
+    scene.add(loom.group);
+    loom.colliders.forEach((collider) => groundColliders.push(collider));
+    woveLoom = loom;
   }
 
   const poiInteractionManager = new PoiInteractionManager(
@@ -3173,6 +3209,7 @@ function initializeImmersiveScene(
     flywheelShowpiece = null;
     f2ClipboardConsole = null;
     sigmaWorkbench = null;
+    woveLoom = null;
     jobbotTerminal = null;
     axelNavigator = null;
     tokenPlaceRack = null;
@@ -3275,6 +3312,15 @@ function initializeImmersiveScene(
         const activation = sigmaPoi?.activation ?? 0;
         const focus = sigmaPoi?.focus ?? 0;
         sigmaWorkbench.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (woveLoom) {
+        const activation = wovePoi?.activation ?? 0;
+        const focus = wovePoi?.focus ?? 0;
+        woveLoom.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
