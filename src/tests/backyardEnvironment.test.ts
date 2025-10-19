@@ -156,6 +156,12 @@ describe('createBackyardEnvironment', () => {
     );
     expect(walkway).toBeInstanceOf(Mesh);
 
+    const pondRipple = environment.group.getObjectByName(
+      'BackyardGreenhousePondRipple'
+    );
+    expect(pondRipple).toBeInstanceOf(Mesh);
+    expect((pondRipple as Mesh).material).toBeInstanceOf(ShaderMaterial);
+
     const solarPivot = (greenhouse as Group).getObjectByName(
       'BackyardGreenhouseSolarPanels'
     );

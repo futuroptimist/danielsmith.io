@@ -146,8 +146,9 @@ Focus: anchor each highlighted project with an interactive artifact.
 3. **Backyard Exhibits**
    - ✅ Launch-ready model rocket for `DSPACE`, complete with illuminated launch pad, pulsing
      caution halo, countdown-ready stance, and an interactive POI that links to the mission log.
-   - ✨ Aluminum extrusion greenhouse inspired by `sugarkube`, complete with animated solar
-     trackers, pulsing grow lights, interior planter beds, and a koi pond plinth.
+   - ✅ Aluminum extrusion greenhouse inspired by `sugarkube`, complete with animated solar
+     trackers, pulsing grow lights, interior planter beds, and a koi pond plinth with shimmering
+     ripple shaders.
      - ✅ Sugarkube greenhouse POI now surfaces automation metrics and dual CTAs in the registry.
        - ✅ Ambient audio beds (crickets, greenhouse chimes) now use smoothstep falloff so volume
          eases in based on player proximity.
