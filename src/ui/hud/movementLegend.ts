@@ -23,6 +23,7 @@ export interface MovementLegendHandle {
   setInteractPrompt(description: string | null): void;
   setInteractLabel(method: InputMethod, label: string): void;
   setKeyboardInteractLabel(label: string): void;
+  setLocale(locale: LocaleInput): void;
   dispose(): void;
 }
 
@@ -342,7 +343,7 @@ export function createMovementLegend(
 
   const context = collectContext(container, fallbackInteractDescription);
 
-  const defaultLabels: Record<InputMethod, string> = {
+  let defaultLabels: Record<InputMethod, string> = {
     ...legendStrings.labels,
     ...interactLabels,
   } as Record<InputMethod, string>;
@@ -423,6 +424,49 @@ export function createMovementLegend(
 
   const setActiveMethod = (method: InputMethod) => {
     applyMethod(method);
+  };
+
+  const setLocale = (nextLocale: LocaleInput) => {
+    const previousDefaults: Record<InputMethod, string> = {
+      ...defaultLabels,
+    };
+    const nextResolved = resolveLocale(nextLocale ?? resolvedLocale);
+    const nextDirection = getLocaleDirection(nextLocale);
+    const nextScript = getLocaleScript(nextLocale);
+    container.dir = nextDirection;
+    container.dataset.localeDirection = nextDirection;
+    container.dataset.localeScript = nextScript;
+
+    const nextLegendStrings = getMovementLegendStrings(nextResolved);
+    const nextFallbackDescription =
+      defaultInteractDescription ?? nextLegendStrings.defaultDescription;
+
+    defaultLabels = {
+      ...nextLegendStrings.labels,
+      ...interactLabels,
+    } as Record<InputMethod, string>;
+
+    const descriptionNode = context.interactDescription;
+    const previousDefaultDescription = context.defaultInteractDescription;
+    if (descriptionNode) {
+      const currentText = descriptionNode.textContent?.trim() ?? '';
+      if (!currentText || currentText === previousDefaultDescription) {
+        descriptionNode.textContent = nextFallbackDescription;
+      }
+    }
+
+    const normalizedDescription =
+      context.interactDescription?.textContent?.trim() ||
+      nextFallbackDescription;
+    context.defaultInteractDescription = normalizedDescription;
+
+    (Object.keys(defaultLabels) as InputMethod[]).forEach((method) => {
+      if (labels[method] === previousDefaults[method]) {
+        labels[method] = defaultLabels[method];
+      }
+    });
+
+    ensureInteractLabel();
   };
 
   const setInteractPrompt = (description: string | null) => {
@@ -517,6 +561,7 @@ export function createMovementLegend(
     setInteractPrompt,
     setInteractLabel,
     setKeyboardInteractLabel,
+    setLocale,
     dispose() {
       while (listeners.length > 0) {
         const remove = listeners.pop();

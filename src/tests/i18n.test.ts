@@ -17,6 +17,8 @@ describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
     expect(AVAILABLE_LOCALES).toContain('en');
     expect(AVAILABLE_LOCALES).toContain('en-x-pseudo');
+    expect(AVAILABLE_LOCALES).toContain('ar');
+    expect(AVAILABLE_LOCALES).toContain('ja');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -25,6 +27,8 @@ describe('i18n utilities', () => {
     expect(resolveLocale(undefined)).toBe('en');
     expect(resolveLocale('pseudo')).toBe('en-x-pseudo');
     expect(resolveLocale('en_x_pseudo')).toBe('en-x-pseudo');
+    expect(resolveLocale('ar-EG')).toBe('ar');
+    expect(resolveLocale('ja-JP')).toBe('ja');
   });
 
   it('detects locale direction for RTL and LTR language inputs', () => {
@@ -33,6 +37,7 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('ar')).toBe('rtl');
     expect(getLocaleDirection('AR_EG')).toBe('rtl');
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
+    expect(getLocaleDirection('ja-JP')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -57,13 +62,21 @@ describe('i18n utilities', () => {
   it('returns localized HUD strings and applies pseudo locale overrides', () => {
     const englishOverlay = getControlOverlayStrings('en');
     const pseudoOverlay = getControlOverlayStrings('en-x-pseudo');
+    const arabicOverlay = getControlOverlayStrings('ar');
+    const japaneseOverlay = getControlOverlayStrings('ja');
     expect(englishOverlay.heading).toBe('Controls');
     expect(pseudoOverlay.heading).toBe('⟦Controls⟧');
+    expect(arabicOverlay.heading).toBe('عناصر التحكم');
+    expect(japaneseOverlay.heading).toBe('操作');
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(
       englishOverlay.items.keyboardMove.keys
     );
     const helpModal = getHelpModalStrings('en-x-pseudo');
     expect(helpModal.closeLabel).toBe('⟦Close⟧');
+    const arabicHelp = getHelpModalStrings('ar');
+    expect(arabicHelp.heading).toBe('الإعدادات والمساعدة');
+    const japaneseHelp = getHelpModalStrings('ja');
+    expect(japaneseHelp.heading).toBe('設定とヘルプ');
   });
 
   it('exposes narrative log strings with localized announcements', () => {
@@ -79,6 +92,18 @@ describe('i18n utilities', () => {
     expect(
       formatMessage(pseudo.liveAnnouncementTemplate, { title: 'Story' })
     ).toBe('⟦Story added to the creator story log.⟧');
+
+    const arabic = getPoiNarrativeLogStrings('ar');
+    expect(arabic.heading).toBe('سجل القصة');
+    expect(formatMessage(arabic.visitedLabelTemplate, { time: '٣:٣٠ م' })).toBe(
+      'تمت الزيارة في ٣:٣٠ م'
+    );
+
+    const japanese = getPoiNarrativeLogStrings('ja');
+    expect(japanese.heading).toBe('クリエイターストーリーログ');
+    expect(
+      formatMessage(japanese.visitedLabelTemplate, { time: '15:30' })
+    ).toBe('15:30 に訪問');
   });
 
   it('provides localized copy for POIs with English fallback', () => {
@@ -98,6 +123,7 @@ describe('i18n utilities', () => {
   it('falls back to English site metadata when pseudo overrides omit values', () => {
     const englishSite = getSiteStrings('en');
     const pseudoSite = getSiteStrings('en-x-pseudo');
+    const arabicSite = getSiteStrings('ar');
     expect(pseudoSite.structuredData.listNameTemplate).toBe(
       englishSite.structuredData.listNameTemplate
     );
@@ -121,6 +147,10 @@ describe('i18n utilities', () => {
     );
     expect(pseudoSite.structuredData.immersiveActionName).toBe(
       englishSite.structuredData.immersiveActionName
+    );
+    expect(arabicSite.name).toBe('محفظة دانيل سميث الغامرة');
+    expect(arabicSite.structuredData.description).toBe(
+      'جولة تفاعلية في مشاريع دانيل سميث مع معارض ثلاثية الأبعاد وتعليقات صوتية.'
     );
   });
 });
