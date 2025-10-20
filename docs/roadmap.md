@@ -218,7 +218,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - Optional guided tour mode that highlights the next recommended POI.
+   - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
