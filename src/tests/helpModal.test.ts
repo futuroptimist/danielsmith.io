@@ -22,6 +22,10 @@ function cloneContent() {
         description: item.description,
       })),
     })),
+    announcements: {
+      open: content.announcements.open,
+      close: content.announcements.close,
+    },
   };
 }
 

@@ -161,6 +161,10 @@ export const AR_OVERRIDES: LocaleOverrides = {
           ],
         },
       ],
+      announcements: {
+        open: 'تم فتح قائمة المساعدة. راجع عناصر التحكم والإعدادات.',
+        close: 'تم إغلاق قائمة المساعدة.',
+      },
     },
   },
 };

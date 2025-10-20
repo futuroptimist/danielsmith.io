@@ -23,6 +23,8 @@ screen-reader visitors receive the same metadata as 3D players.
 3. When a POI is selected, focus shifts to `.poi-tooltip-overlay`; the close
    button (if present) should be first in the overlay’s tab order.
 4. Trap focus inside modal dialogs (`help-modal`) until dismissed.
+5. Announce help menu open/close transitions through the HUD focus announcer so
+   assistive tech users know when the dialog state changes.
 
 ## Text alternatives
 

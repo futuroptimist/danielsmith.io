@@ -61,6 +61,10 @@ export interface HelpModalStrings {
   closeAriaLabel: string;
   settings: HelpModalSettingsStrings;
   sections: readonly HelpModalSectionStrings[];
+  announcements: {
+    open: string;
+    close: string;
+  };
 }
 
 export interface PoiNarrativeLogStrings {

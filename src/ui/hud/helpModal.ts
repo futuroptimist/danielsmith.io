@@ -19,6 +19,10 @@ export interface HelpModalContent {
     description?: string;
   };
   sections: ReadonlyArray<HelpModalSection>;
+  announcements?: {
+    open: string;
+    close: string;
+  };
 }
 
 export interface HelpModalOptions {

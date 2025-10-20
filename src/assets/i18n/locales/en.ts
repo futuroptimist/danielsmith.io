@@ -176,6 +176,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           ],
         },
       ],
+      announcements: {
+        open: 'Help menu opened. Review controls and settings.',
+        close: 'Help menu closed.',
+      },
     },
   },
   poi: {
