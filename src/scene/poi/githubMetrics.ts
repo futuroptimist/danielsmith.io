@@ -93,12 +93,15 @@ export function wireGitHubRepoMetrics({
       if (!isGitHubStarsSource(metric.source)) {
         return;
       }
-      const bucket = getBucket(metric.source);
-      bucket.entries.push({ poi, metric, source: metric.source });
       const fallback = metric.source.fallback ?? metric.value;
       if (fallback) {
         metric.value = fallback;
       }
+      if (metric.source.visibility === 'private') {
+        return;
+      }
+      const bucket = getBucket(metric.source);
+      bucket.entries.push({ poi, metric, source: metric.source });
       const cached = service.getCachedStats(bucket.identifier);
       if (cached) {
         metric.value = formatStars(cached.stars, metric.source);

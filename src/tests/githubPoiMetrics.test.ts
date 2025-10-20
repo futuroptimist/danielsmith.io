@@ -152,6 +152,22 @@ describe('wireGitHubRepoMetrics', () => {
           },
         ],
       }),
+      createPoi({
+        id: 'dspace-backyard-rocket',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Hidden',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'dspace',
+              visibility: 'private',
+              fallback: 'Hidden',
+            },
+          },
+        ],
+      }),
     ];
 
     const service = new MockRepoStatsService();
@@ -167,6 +183,7 @@ describe('wireGitHubRepoMetrics', () => {
       'futuroptimist/flywheel',
       'futuroptimist/axel',
     ]);
+    expect(definitions[3].metrics?.[0]?.value).toBe('Hidden');
 
     service.emit(
       { owner: 'futuroptimist', repo: 'flywheel' },
@@ -186,6 +203,9 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 86, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(definitions[2].metrics?.[0]?.value).toBe('86 stars');
+    expect(
+      service.listenerCount({ owner: 'futuroptimist', repo: 'dspace' })
+    ).toBe(0);
 
     controller.dispose();
     expect(
