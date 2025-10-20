@@ -31,6 +31,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         ),
         shortcutFallback: wrap('H'),
       },
+      mobileToggle: {
+        expandLabel: wrap('Show all controls'),
+        collapseLabel: wrap('Hide extra controls'),
+        expandAnnouncement: wrap(
+          'Showing the full controls list for mobile players.'
+        ),
+        collapseAnnouncement: wrap(
+          'Hiding extra controls to keep the list compact.'
+        ),
+      },
     },
     movementLegend: {
       defaultDescription: wrap('Interact'),

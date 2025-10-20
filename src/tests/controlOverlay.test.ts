@@ -8,7 +8,7 @@ describe('applyControlOverlayStrings', () => {
     const container = document.createElement('div');
     container.innerHTML = `
       <p class="overlay__heading" data-control-text="heading">Placeholder</p>
-      <ul class="overlay__list">
+      <ul class="overlay__list" data-role="control-list">
         <li class="overlay__item" data-control-item="keyboardMove">
           <span class="overlay__keys">Keys</span>
           <span class="overlay__description">Move</span>
@@ -27,6 +27,13 @@ describe('applyControlOverlayStrings', () => {
           </span>
         </li>
       </ul>
+      <button
+        class="overlay__collapse-toggle"
+        type="button"
+        data-role="control-toggle"
+      >
+        Toggle
+      </button>
     `;
     const strings = getControlOverlayStrings('en');
     applyControlOverlayStrings(container, strings);
@@ -47,5 +54,23 @@ describe('applyControlOverlayStrings', () => {
     );
     expect(interactLabel?.textContent).toBe(strings.interact.defaultLabel);
     expect(interactDescription?.textContent).toBe(strings.interact.description);
+
+    const toggle = container.querySelector<HTMLButtonElement>(
+      '[data-role="control-toggle"]'
+    );
+    expect(toggle?.textContent).toBe(strings.mobileToggle.expandLabel);
+    expect(toggle?.dataset.expandLabel).toBe(strings.mobileToggle.expandLabel);
+    expect(toggle?.dataset.collapseLabel).toBe(
+      strings.mobileToggle.collapseLabel
+    );
+    expect(toggle?.dataset.expandAnnouncement).toBe(
+      strings.mobileToggle.expandAnnouncement
+    );
+    expect(toggle?.dataset.collapseAnnouncement).toBe(
+      strings.mobileToggle.collapseAnnouncement
+    );
+    expect(toggle?.dataset.hudAnnounce).toBe(
+      strings.mobileToggle.expandAnnouncement
+    );
   });
 });
