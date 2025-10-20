@@ -57,7 +57,9 @@ Focus: expand the environment while keeping navigation smooth.
 - Text fallback auto-trigger verified via scripted run (see failover criteria).
 
 1. **Lighting Pass Alpha**
-   - Introduce baked + dynamic lighting pipeline.
+   - ✅ Introduce baked + dynamic lighting pipeline.
+     Ambient, hemisphere, and directional lights now flow through a seasonal animator
+     that breathes against the baked gradient lightmaps.
    - Add emissive LED strip meshes along ceiling edges with gentle bloom.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.

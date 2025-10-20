@@ -98,6 +98,10 @@ import {
   type LightingMode,
 } from './scene/lighting/debugControls';
 import {
+  createEnvironmentLightAnimator,
+  type EnvironmentLightAnimator,
+} from './scene/lighting/environmentAnimator';
+import {
   createLedAnimator,
   ROOM_LED_PULSE_PROGRAMS,
   type LedAnimator,
@@ -514,6 +518,7 @@ let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
 const ledFillLightsList: PointLight[] = [];
 let ledAnimator: LedAnimator | null = null;
+let environmentLightAnimator: EnvironmentLightAnimator | null = null;
 let ambientAudioController: AmbientAudioController | null = null;
 let footstepAudioController: FootstepAudioControllerHandle | null = null;
 let footstepAudio: Audio | null = null;
@@ -588,6 +593,7 @@ function initializeImmersiveScene(
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
   ledAnimator = null;
+  environmentLightAnimator = null;
 
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
@@ -806,6 +812,43 @@ function initializeImmersiveScene(
   scene.add(directionalLight.target);
 
   const seasonalPreset = resolveSeasonalLightingPreset();
+
+  const defaultEnvironmentTint = new Color('#ffe4c9');
+  let environmentTint = defaultEnvironmentTint.clone();
+  if (seasonalPreset?.tintHex) {
+    try {
+      environmentTint = new Color(seasonalPreset.tintHex);
+    } catch {
+      environmentTint = defaultEnvironmentTint.clone();
+    }
+  }
+  const normalizedTintStrength = MathUtils.clamp(
+    typeof seasonalPreset?.tintStrength === 'number'
+      ? seasonalPreset.tintStrength
+      : 0,
+    0,
+    1
+  );
+  const tintStrengthScale = MathUtils.clamp(
+    1 + normalizedTintStrength * 0.4,
+    0,
+    1.4
+  );
+  const cycleScale =
+    typeof seasonalPreset?.cycleScale === 'number' &&
+    Number.isFinite(seasonalPreset.cycleScale) &&
+    seasonalPreset.cycleScale > 0
+      ? seasonalPreset.cycleScale
+      : 1;
+  environmentLightAnimator = createEnvironmentLightAnimator({
+    ambient: ambientLight,
+    hemisphere: hemisphericLight,
+    directional: directionalLight,
+    cycleSeconds: 48 * cycleScale,
+    tintColor: environmentTint,
+    tintStrengthScale,
+  });
+  environmentLightAnimator.captureBaseline();
 
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.id === BACKYARD_ROOM_ID
@@ -2798,6 +2841,7 @@ function initializeImmersiveScene(
     storage: qualityStorage,
   });
   ledAnimator?.captureBaseline();
+  environmentLightAnimator?.captureBaseline();
 
   let accessibilityStorage: Storage | undefined;
   try {
@@ -2818,6 +2862,7 @@ function initializeImmersiveScene(
   });
 
   ledAnimator?.captureBaseline();
+  environmentLightAnimator?.captureBaseline();
 
   if (accessibilityPresetManager) {
     getAmbientAudioVolume = () =>
@@ -2833,6 +2878,7 @@ function initializeImmersiveScene(
     };
     accessibilityPresetManager.refresh();
     ledAnimator?.captureBaseline();
+    environmentLightAnimator?.captureBaseline();
     audioHudHandle?.refresh();
     motionBlurControl?.refresh();
   }
@@ -2881,6 +2927,7 @@ function initializeImmersiveScene(
     audioHudHandle?.refresh();
     motionBlurControl?.refresh();
     ledAnimator?.captureBaseline();
+    environmentLightAnimator?.captureBaseline();
   });
 
   graphicsQualityControl = createGraphicsQualityControl({
@@ -2897,6 +2944,7 @@ function initializeImmersiveScene(
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
     graphicsQualityControl?.refresh();
     ledAnimator?.captureBaseline();
+    environmentLightAnimator?.captureBaseline();
   });
 
   const lightingDebugController = createLightingDebugController({
@@ -2929,6 +2977,9 @@ function initializeImmersiveScene(
     lightingDebugIndicator.textContent = `Lighting: ${label} · Shift+L to toggle`;
     lightingDebugIndicator.setAttribute('data-mode', mode);
     lightingDebugIndicator.hidden = mode === 'cinematic';
+    if (mode === 'cinematic') {
+      environmentLightAnimator?.captureBaseline();
+    }
   };
 
   updateLightingIndicator(lightingDebugController.getMode());
@@ -3361,6 +3412,7 @@ function initializeImmersiveScene(
     }
     immersiveDisposed = true;
     ledAnimator = null;
+    environmentLightAnimator = null;
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
       removePoiInteractionAnimation = null;
@@ -3712,6 +3764,12 @@ function initializeImmersiveScene(
       }
       if (backyardEnvironment) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
+      }
+      if (
+        environmentLightAnimator &&
+        lightingDebugController.getMode() === 'cinematic'
+      ) {
+        environmentLightAnimator.update(elapsedTime);
       }
       if (ledAnimator) {
         ledAnimator.update(elapsedTime);
