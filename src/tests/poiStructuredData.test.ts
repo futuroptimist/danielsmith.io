@@ -122,6 +122,7 @@ describe('buildPoiStructuredData', () => {
       name: 'Immersive Portfolio',
       url: 'https://portfolio.example/immersive/',
       inLanguage: 'en',
+      isAccessibleForFree: true,
       description:
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
       mainEntity: { '@id': expectedPageId },
@@ -273,6 +274,7 @@ describe('buildTextPortfolioStructuredData', () => {
       name: 'Immersive Portfolio',
       url: canonicalBase,
       inLanguage: 'en',
+      isAccessibleForFree: true,
     });
     expect(data.mainEntity).toEqual({
       '@type': 'ItemList',
@@ -286,10 +288,14 @@ describe('buildTextPortfolioStructuredData', () => {
       {
         '@type': 'CreativeWork',
         '@id': `${canonicalBase}#poi-tokenplace-studio-cluster`,
+        inLanguage: 'en',
+        isAccessibleForFree: true,
       },
       {
         '@type': 'CreativeWork',
         '@id': `${canonicalBase}#poi-gabriel-studio-sentry`,
+        inLanguage: 'en',
+        isAccessibleForFree: true,
       },
     ]);
     expect(data.potentialAction).toEqual({
@@ -383,6 +389,7 @@ describe('injectPoiStructuredData', () => {
       name: 'Immersive Portfolio',
       url: 'https://example.com/portfolio/',
       inLanguage: 'en',
+      isAccessibleForFree: true,
       description:
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.',
       mainEntity: { '@id': expectedPageId },
