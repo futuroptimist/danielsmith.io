@@ -234,7 +234,9 @@ export function createKeyBindingRemapControl({
       return;
     }
     if (windowTarget) {
-      windowTarget.removeEventListener('keydown', activeCapture.handler);
+      windowTarget.removeEventListener('keydown', activeCapture.handler, {
+        capture: true,
+      });
     }
     const { button } = activeCapture;
     button.button.disabled = false;
@@ -373,7 +375,7 @@ export function createKeyBindingRemapControl({
     root.dataset.capturing = 'true';
 
     if (windowTarget) {
-      windowTarget.addEventListener('keydown', handler);
+      windowTarget.addEventListener('keydown', handler, { capture: true });
     }
   };
 
