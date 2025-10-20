@@ -48,6 +48,7 @@ describe('buildPressKitSummary', () => {
       id: 'futuroptimist-living-room-tv',
       title: 'Stubbed Futuroptimist Wall',
       summary: 'Stub summary for coverage.',
+      interactionPrompt: 'Inspect Stubbed Futuroptimist Wall',
       category: 'project',
       interaction: 'inspect',
       roomId: 'livingRoom',

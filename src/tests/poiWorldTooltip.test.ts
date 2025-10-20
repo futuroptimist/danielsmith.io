@@ -57,6 +57,8 @@ function createPoiDefinition(
     summary:
       overrides.summary ??
       'A kinetic centerpiece with analytics overlays and automation callouts that guide every visitor.',
+    interactionPrompt:
+      overrides.interactionPrompt ?? `Inspect ${overrides.title ?? 'Flywheel'}`,
     category: overrides.category ?? 'project',
     interaction: overrides.interaction ?? 'inspect',
     roomId: overrides.roomId ?? 'studio',

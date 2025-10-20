@@ -174,6 +174,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - Responsive overlay with movement legend, interaction prompt, and help modal.
    - ✨ Movement legend now detects the last input method (keyboard, mouse, or touch) and
      refreshes the interact prompt copy so players always see the relevant control hint.
+   - ✅ Contextual interact prompts now pull localized action copy into the HUD legend and
+     on-screen controls so exhibits advertise the right verb (inspect vs activate).
    - ✅ Movement legend now updates HUD screen reader announcements whenever interact prompts
      change, keeping keyboard and assistive tech guidance aligned with on-screen cues.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,

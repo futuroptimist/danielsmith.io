@@ -76,6 +76,7 @@ describe('PoiTooltipOverlay', () => {
     title: 'Futuroptimist Creator Desk',
     summary:
       'Triple-monitor editing bay capturing Futuroptimist releases with live timeline overlays.',
+    interactionPrompt: 'Inspect Futuroptimist Creator Desk',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
@@ -147,10 +148,15 @@ describe('PoiTooltipOverlay', () => {
         { label: 'Flywheel', href: 'https://flywheel.futuroptimist.dev' },
       ],
       status: undefined,
+      interactionPrompt: 'Engage Flywheel Kinetic Hub systems',
     };
 
     overlay.setSelected(selectedPoi);
-    overlay.setHovered({ ...basePoi, title: 'Temporary Hover' });
+    overlay.setHovered({
+      ...basePoi,
+      title: 'Temporary Hover',
+      interactionPrompt: 'Inspect Temporary Hover',
+    });
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.dataset.state).toBe('hovered');
@@ -202,6 +208,7 @@ describe('PoiTooltipOverlay', () => {
       ...basePoi,
       id: 'futuroptimist-living-room-tv-variant',
       title: 'Futuroptimist Creator Desk Alt',
+      interactionPrompt: 'Inspect Futuroptimist Creator Desk Alt',
     };
 
     overlay.setSelected(nextPoi);

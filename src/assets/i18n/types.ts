@@ -1,5 +1,5 @@
 import type { InputMethod } from '../../ui/hud/movementLegend';
-import type { PoiId, PoiNarration } from '../poi/types';
+import type { PoiId, PoiInteraction, PoiNarration } from '../poi/types';
 
 export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
 export type LocaleDirection = 'ltr' | 'rtl';
@@ -24,6 +24,7 @@ export interface ControlOverlayStrings {
   interact: {
     defaultLabel: string;
     description: string;
+    promptTemplates: Record<PoiInteraction | 'default', string>;
   };
   helpButton: {
     labelTemplate: string;
@@ -100,6 +101,7 @@ export interface PoiCopy {
   metrics?: ReadonlyArray<{ label: string; value: string }>;
   links?: ReadonlyArray<{ label: string; href: string }>;
   narration?: PoiNarration;
+  interactionPrompt?: string;
 }
 
 export interface LocaleStrings {

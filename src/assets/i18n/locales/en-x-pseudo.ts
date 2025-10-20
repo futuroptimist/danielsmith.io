@@ -18,6 +18,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       interact: {
         defaultLabel: wrap('F'),
         description: wrap('Interact'),
+        promptTemplates: {
+          default: wrap('Interact with {title}'),
+          inspect: wrap('Inspect {title}'),
+          activate: wrap('Activate {title}'),
+        },
       },
       helpButton: {
         labelTemplate: wrap('Open menu · Press {shortcut}'),

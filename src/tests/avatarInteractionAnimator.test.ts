@@ -113,6 +113,7 @@ describe('bindPoiInteractionAnimation', () => {
     id: 'futuroptimist-living-room-tv',
     title: 'Test',
     summary: 'Summary',
+    interactionPrompt: 'Inspect Test',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',

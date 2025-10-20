@@ -24,6 +24,7 @@ const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   id: 'futuroptimist-living-room-tv',
   title: 'Futuroptimist Creator Desk',
   summary: 'Default summary',
+  interactionPrompt: `Inspect ${overrides.title ?? 'Futuroptimist Creator Desk'}`,
   category: 'project',
   interaction: 'inspect',
   roomId: 'livingRoom',
