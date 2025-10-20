@@ -160,27 +160,21 @@ describe('createMovementLegend', () => {
       '[data-role="interact-description"]'
     );
 
-    legend.setInteractPrompt('Interact with Futuroptimist');
+    legend.setInteractPrompt('Inspect Futuroptimist');
     expect(interactItem?.hidden).toBe(false);
-    expect(interactDescription?.textContent).toBe(
-      'Interact with Futuroptimist'
-    );
+    expect(interactDescription?.textContent).toBe('Inspect Futuroptimist');
     expect(interactLabel?.textContent).toBe('F');
-    expect(interactItem?.dataset.hudAnnounce).toBe(
-      'F — Interact with Futuroptimist'
-    );
+    expect(interactItem?.dataset.hudAnnounce).toBe('F — Inspect Futuroptimist');
 
     legend.setActiveMethod('touch');
     expect(interactLabel?.textContent).toBe('Tap');
     expect(interactItem?.dataset.hudAnnounce).toBe(
-      'Tap — Interact with Futuroptimist'
+      'Tap — Inspect Futuroptimist'
     );
 
     legend.setActiveMethod('gamepad');
     expect(interactLabel?.textContent).toBe('A');
-    expect(interactItem?.dataset.hudAnnounce).toBe(
-      'A — Interact with Futuroptimist'
-    );
+    expect(interactItem?.dataset.hudAnnounce).toBe('A — Inspect Futuroptimist');
 
     legend.setInteractPrompt(null);
     expect(interactItem?.hidden).toBe(true);
@@ -201,7 +195,7 @@ describe('createMovementLegend', () => {
       '[data-role="interact-label"]'
     );
 
-    legend.setInteractPrompt('Interact with Exhibit');
+    legend.setInteractPrompt('Inspect Exhibit');
     legend.setKeyboardInteractLabel('E');
     expect(interactLabel?.textContent).toBe('E');
 
@@ -306,7 +300,7 @@ describe('createMovementLegend', () => {
       initialMethod: 'pointer',
     });
 
-    legend.setInteractPrompt('Interact with Exhibit');
+    legend.setInteractPrompt('Inspect Exhibit');
     legend.dispose();
 
     expect(container.dataset.activeInput).toBeUndefined();

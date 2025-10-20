@@ -95,6 +95,7 @@ export interface PoiDefinition {
   status?: 'prototype' | 'live';
   narration?: PoiNarration;
   pedestal?: PoiPedestalConfig;
+  interactionPrompt: string;
 }
 
 export interface PoiAnalytics {

@@ -61,6 +61,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       interact: {
         defaultLabel: 'F',
         description: 'Interact',
+        promptTemplates: {
+          default: 'Interact with {title}',
+          inspect: 'Inspect {title}',
+          activate: 'Activate {title}',
+        },
       },
       helpButton: {
         labelTemplate: 'Open menu · Press {shortcut}',
@@ -247,6 +252,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         caption:
           'Flywheel kinetic hub whirs alive, spotlighting automation prompts and tooling.',
       },
+      interactionPrompt: 'Engage {title} systems',
     },
     'jobbot-studio-terminal': {
       title: 'Jobbot Holographic Terminal',
@@ -376,6 +382,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'dSpace launch pad crackles with countdown energy beside the backyard path.',
         durationMs: 6000,
       },
+      interactionPrompt: 'Launch {title} countdown',
     },
     'pr-reaper-backyard-console': {
       title: 'PR Reaper Automation Gate',

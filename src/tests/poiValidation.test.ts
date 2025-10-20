@@ -15,10 +15,17 @@ const livingRoomBounds = FLOOR_PLAN.rooms.find(
 )!.bounds;
 
 function clonePoi(overrides: Partial<PoiDefinition>): PoiDefinition {
-  return {
+  const cloned: PoiDefinition = {
     ...baseDefinitions[0],
     ...overrides,
   };
+  if ('interactionPrompt' in overrides) {
+    return cloned;
+  }
+  if (overrides.title) {
+    cloned.interactionPrompt = `Inspect ${overrides.title}`;
+  }
+  return cloned;
 }
 
 describe('validatePoiDefinitions', () => {

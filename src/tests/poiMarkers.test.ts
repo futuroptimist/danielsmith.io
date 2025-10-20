@@ -111,6 +111,9 @@ describe('createPoiInstances', () => {
     id: 'gitshelves-living-room-installation',
     title: 'Gitshelves Installation',
     summary: baseSummary,
+    interactionPrompt: `Inspect ${
+      definition.title ?? 'Gitshelves Installation'
+    }`,
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',

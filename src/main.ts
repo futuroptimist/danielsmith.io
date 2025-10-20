@@ -1989,6 +1989,8 @@ function initializeImmersiveScene(
     '[data-control="help"]'
   );
   const interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
+  const interactDescriptionFallback =
+    controlOverlayStrings.interact.description;
   const movementLegend: MovementLegendHandle | null = controlOverlay
     ? createMovementLegend({
         container: controlOverlay,
@@ -3075,9 +3077,7 @@ function initializeImmersiveScene(
     interactablePoi = poi;
     if (movementLegend) {
       if (poi) {
-        movementLegend.setInteractPrompt(
-          `Interact with ${poi.definition.title}`
-        );
+        movementLegend.setInteractPrompt(poi.definition.interactionPrompt);
       } else {
         movementLegend.setInteractPrompt(null);
       }
@@ -3087,10 +3087,10 @@ function initializeImmersiveScene(
     }
     if (poi) {
       interactControl.hidden = false;
-      interactDescription.textContent = `Interact with ${poi.definition.title}`;
+      interactDescription.textContent = poi.definition.interactionPrompt;
     } else {
       interactControl.hidden = true;
-      interactDescription.textContent = 'Interact';
+      interactDescription.textContent = interactDescriptionFallback;
     }
   }
 

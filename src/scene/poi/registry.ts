@@ -1,5 +1,9 @@
 import { FLOOR_PLAN } from '../../assets/floorPlan';
-import { getPoiCopy } from '../../assets/i18n';
+import {
+  formatMessage,
+  getControlOverlayStrings,
+  getPoiCopy,
+} from '../../assets/i18n';
 
 import { scalePoiValue } from './constants';
 import { applyManualPoiPlacements } from './placements';
@@ -215,6 +219,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
 ];
 
 const poiCopy = getPoiCopy();
+const controlOverlayStrings = getControlOverlayStrings();
 
 const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
   const copy = poiCopy[base.id];
@@ -236,6 +241,11 @@ const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
             : undefined,
       }
     : undefined;
+  const template =
+    copy.interactionPrompt ??
+    controlOverlayStrings.interact.promptTemplates[base.interaction] ??
+    controlOverlayStrings.interact.promptTemplates.default;
+  const interactionPrompt = formatMessage(template, { title: copy.title });
   return {
     ...base,
     interactionRadius: scaledInteractionRadius,
@@ -249,6 +259,7 @@ const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
     metrics: copy.metrics?.map((metric) => ({ ...metric })),
     links: copy.links?.map((link) => ({ ...link })),
     narration: copy.narration ? { ...copy.narration } : undefined,
+    interactionPrompt,
   } satisfies PoiDefinition;
 });
 

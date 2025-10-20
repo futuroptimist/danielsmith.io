@@ -12,6 +12,7 @@ describe('createWindowPoiAnalytics', () => {
       title: 'Futuroptimist Creator Desk',
       summary:
         'Triple-monitor editing suite showcasing Futuroptimist workflows.',
+      interactionPrompt: 'Inspect Futuroptimist Creator Desk',
       category: 'project',
       interaction: 'inspect',
       roomId: 'livingRoom',
