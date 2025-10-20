@@ -19,6 +19,8 @@ const SCREEN_HEIGHT = 1024;
 const BASE_GLOW_OPACITY = 0.18;
 const EMPHASISED_GLOW_OPACITY = 0.62;
 
+export const DEFAULT_MEDIA_WALL_STAR_COUNT = 1280;
+
 interface MediaWallScreenRendererOptions {
   starCount: number;
 }
@@ -226,7 +228,9 @@ interface MediaWallTextures {
 }
 
 function createScreenRenderer(): MediaWallScreenRenderer {
-  return new MediaWallScreenRenderer({ starCount: 1280 });
+  return new MediaWallScreenRenderer({
+    starCount: DEFAULT_MEDIA_WALL_STAR_COUNT,
+  });
 }
 
 function createBadgeTexture(): CanvasTexture {

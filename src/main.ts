@@ -159,6 +159,7 @@ import {
 } from './scene/structures/jobbotTerminal';
 import {
   createLivingRoomMediaWall,
+  DEFAULT_MEDIA_WALL_STAR_COUNT,
   type LivingRoomMediaWallBuild,
 } from './scene/structures/mediaWall';
 import {
@@ -253,6 +254,7 @@ import {
   type ManualModeToggleHandle,
 } from './systems/failover/manualModeToggle';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
+import { refreshMediaWallStarCount } from './systems/github/mediaWall';
 import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
@@ -508,6 +510,7 @@ let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
+let mediaWallStarAbortController: AbortController | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
@@ -921,6 +924,16 @@ function initializeImmersiveScene(
     scene.add(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
+
+    if (mediaWallStarAbortController) {
+      mediaWallStarAbortController.abort();
+    }
+    mediaWallStarAbortController = new AbortController();
+    void refreshMediaWallStarCount(mediaWall.controller, {
+      signal: mediaWallStarAbortController.signal,
+      fallbackStarCount: DEFAULT_MEDIA_WALL_STAR_COUNT,
+      logger: console,
+    });
 
     const tvBinding = mediaWall.poiBindings.futuroptimistTv;
     const tvHitArea = tvBinding.screen.clone();
@@ -3528,6 +3541,10 @@ function initializeImmersiveScene(
       locomotionAngularSpeed = 0;
     }
     controls.dispose();
+    if (mediaWallStarAbortController) {
+      mediaWallStarAbortController.abort();
+      mediaWallStarAbortController = null;
+    }
     if (livingRoomMediaWall) {
       livingRoomMediaWall.controller.dispose();
       livingRoomMediaWall = null;

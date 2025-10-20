@@ -327,6 +327,8 @@ Ideas to evaluate after the core experience is stable:
 - ✅ Procedural storytelling AI that narrates the journey between POIs.
   - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
 - Integration with GitHub API for live repo stats and contribution heatmaps.
+  - ⚙️ Media wall now hydrates Futuroptimist star counts via the GitHub API so the TV POI
+    stays current.
 - Exportable "press kit" mode that packages screenshots, POI blurbs, and metrics.
   - ✅ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
 
