@@ -1,7 +1,7 @@
 import type { InputMethod } from '../../ui/hud/movementLegend';
 import type { PoiId, PoiInteraction, PoiNarration } from '../poi/types';
 
-export type Locale = 'en' | 'en-x-pseudo';
+export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
 export type LocaleDirection = 'ltr' | 'rtl';
 
 export interface ControlOverlayItemStrings {

@@ -12,6 +12,14 @@ const STRINGS: PoiNarrativeLogStrings = {
   liveAnnouncementTemplate: '{title} logged.',
 };
 
+const AR_STRINGS: PoiNarrativeLogStrings = {
+  heading: 'سجل القصة',
+  empty: 'قم بزيارة المعارض لفتح إدخالات جديدة.',
+  defaultVisitedLabel: 'تمت الزيارة',
+  visitedLabelTemplate: 'تمت الزيارة في {time}',
+  liveAnnouncementTemplate: '{title} أضيف.',
+};
+
 const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   id: 'futuroptimist-living-room-tv',
   title: 'Futuroptimist Creator Desk',
@@ -184,5 +192,26 @@ describe('createPoiNarrativeLog', () => {
     log.dispose();
 
     expect(document.querySelector('.poi-narrative-log')).toBeNull();
+  });
+
+  it('updates headings and visited labels when strings change', () => {
+    const log = setup();
+    const poi = createPoi();
+    log.recordVisit(poi);
+
+    log.setStrings(AR_STRINGS);
+
+    const section = document.querySelector('.poi-narrative-log');
+    const sectionHeading = section?.querySelector(
+      '.help-modal__section-heading'
+    );
+    const empty = document.querySelector('.poi-narrative-log__empty');
+    const visited = document.querySelector('.poi-narrative-log__entry-visited');
+    const region = section;
+
+    expect(sectionHeading?.textContent).toBe(AR_STRINGS.heading);
+    expect(empty?.textContent).toBe(AR_STRINGS.empty);
+    expect(visited?.textContent).toBe(AR_STRINGS.defaultVisitedLabel);
+    expect(region?.getAttribute('aria-label')).toBe(AR_STRINGS.heading);
   });
 });

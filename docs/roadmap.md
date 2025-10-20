@@ -230,6 +230,7 @@ Focus: make the experience inclusive and globally friendly.
 
 - CI axe run + screen reader smoke test logged with 0 critical issues.
 - Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
+- ✅ Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
 - Accessibility presets documented with metrics (contrast ratios, motion reduction) and tied to
   acceptance prompts.
 
@@ -269,8 +270,9 @@ Focus: make the experience inclusive and globally friendly.
 3. **Localization Pipeline**
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.
    - ✅ Translation scaffolding now provides pseudo locale overrides and English fallbacks.
-   - Ensure fonts, layout, and text rendering handle RTL and CJK scripts gracefully.
+   - ✅ Ensure fonts, layout, and text rendering handle RTL and CJK scripts gracefully.
      - ✅ Text fallback and HUD overlays now apply RTL direction metadata so Arabic and Hebrew copy align as expected.
+     - ✅ Japanese HUD strings and locale metadata ensure CJK glyph coverage through the immersive locale toggle.
 
 ## Phase 5 – Hero Avatar
 
