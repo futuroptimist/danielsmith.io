@@ -281,6 +281,14 @@ export const buildPoiStructuredData = (
       },
     ];
 
+    if (poi.outcome && poi.outcome.value.trim()) {
+      additionalProperty.push({
+        '@type': 'PropertyValue',
+        name: poi.outcome.label?.trim() || 'Outcome',
+        value: poi.outcome.value.trim(),
+      });
+    }
+
     if (poi.metrics && poi.metrics.length > 0) {
       poi.metrics.forEach((metric) => {
         additionalProperty.push({

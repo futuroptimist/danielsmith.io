@@ -57,6 +57,45 @@
           transform 200ms ease;
       }
 
+      .overlay__item[data-mobile-collapsed='true'] {
+        display: none;
+      }
+
+      html[data-hudLayout='mobile'] .overlay {
+        top: calc(env(safe-area-inset-top, 0) + 1rem);
+        bottom: auto;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: min(24rem, calc(100% - 2rem));
+        padding: 0.9rem 1.05rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        z-index: 40;
+      }
+
+      html[data-hudLayout='mobile'] .overlay__heading {
+        margin-bottom: 0.6rem;
+        font-size: 0.7rem;
+      }
+
+      html[data-hudLayout='mobile'] .overlay__list {
+        gap: 0.35rem;
+      }
+
+      html[data-hudLayout='mobile'] .overlay__item {
+        padding: 0.35rem 0.45rem;
+        gap: 0.6rem;
+      }
+
+      html[data-hudLayout='mobile'] .overlay__keys {
+        min-width: 5.75rem;
+      }
+
+      html[data-hudLayout='mobile'] .overlay__help-button {
+        margin-top: 0.65rem;
+      }
+
       .overlay__heading {
         margin: 0 0 0.75rem;
         font-size: 0.75rem;
@@ -128,6 +167,42 @@
         .overlay__item--desktop {
           display: none;
         }
+      }
+
+      .overlay__collapse-toggle {
+        margin-top: 0.6rem;
+        width: 100%;
+        padding: 0.55rem 0.9rem;
+        border-radius: 0.6rem;
+        border: 1px solid rgba(123, 209, 255, 0.32);
+        background:
+          linear-gradient(
+            140deg,
+            rgba(12, 25, 39, 0.88),
+            rgba(16, 43, 70, 0.72)
+          ),
+          rgba(9, 18, 28, 0.82);
+        color: rgba(231, 244, 255, 0.95);
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          box-shadow 140ms ease,
+          transform 120ms ease;
+      }
+
+      .overlay__collapse-toggle:hover,
+      .overlay__collapse-toggle:focus-visible {
+        border-color: rgba(158, 232, 255, 0.75);
+        box-shadow: 0 14px 32px rgba(8, 20, 32, 0.32);
+        outline: none;
+        transform: translateY(-1px);
+      }
+
+      .overlay__collapse-toggle:active {
+        transform: translateY(0);
       }
 
       .overlay__help-button {
@@ -392,7 +467,7 @@
     <div id="app"></div>
     <div class="overlay" id="control-overlay">
       <p class="overlay__heading" data-control-text="heading">Controls</p>
-      <ul class="overlay__list">
+      <ul class="overlay__list" data-role="control-list">
         <li
           class="overlay__item"
           data-input-methods="keyboard"
@@ -469,6 +544,14 @@
           </span>
         </li>
       </ul>
+      <button
+        class="overlay__collapse-toggle"
+        type="button"
+        data-role="control-toggle"
+        hidden
+      >
+        Show controls
+      </button>
       <button
         class="overlay__help-button"
         type="button"

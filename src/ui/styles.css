@@ -683,6 +683,79 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   width: 100%;
 }
 
+.guided-tour-control {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.75rem;
+  background: rgba(5, 12, 21, 0.82);
+  border: 1px solid rgba(86, 184, 255, 0.3);
+  box-shadow: 0 12px 32px rgba(3, 9, 18, 0.48);
+  color: #f5f7fa;
+  transition: opacity 120ms ease;
+}
+
+.guided-tour-control[data-pending='true'] {
+  opacity: 0.78;
+}
+
+.guided-tour-control[data-guided-tour='on'] {
+  border-color: rgba(143, 214, 255, 0.42);
+  box-shadow: 0 14px 36px rgba(6, 18, 32, 0.55);
+}
+
+.guided-tour-control[data-guided-tour='off'] {
+  border-color: rgba(86, 184, 255, 0.22);
+  color: rgba(232, 242, 255, 0.88);
+}
+
+.guided-tour-control__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.guided-tour-control__description {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(224, 238, 255, 0.78);
+}
+
+.guided-tour-control__toggle {
+  width: 100%;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.5rem;
+  background: rgba(12, 22, 34, 0.78);
+  border: 1px solid rgba(143, 214, 255, 0.35);
+  color: #eaf6ff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.guided-tour-control__toggle[data-state='off'] {
+  background: rgba(8, 14, 24, 0.64);
+  border-color: rgba(114, 176, 244, 0.25);
+  color: rgba(214, 232, 255, 0.78);
+}
+
+.guided-tour-control__toggle:hover,
+.guided-tour-control__toggle:focus-visible {
+  border-color: rgba(143, 214, 255, 0.75);
+  outline: none;
+}
+
 .locale-toggle {
   position: relative;
   display: flex;
@@ -1314,6 +1387,32 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   color: rgba(222, 245, 255, 0.92);
   font-size: 0.92rem;
   line-height: 1.45;
+}
+
+.poi-tooltip-overlay__outcome {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  color: rgba(180, 237, 255, 0.95);
+  font-size: 0.86rem;
+}
+
+.poi-tooltip-overlay__outcome-label {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(125, 210, 255, 0.98);
+}
+
+.poi-tooltip-overlay__outcome-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.poi-tooltip-overlay__outcome-separator {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(130, 210, 255, 0.6);
 }
 
 .poi-tooltip-overlay__metrics,

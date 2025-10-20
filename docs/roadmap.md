@@ -86,6 +86,7 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
+   - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
    - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
 
 ## Phase 2 – Points of Interest (POIs)
@@ -94,7 +95,7 @@ Focus: anchor each highlighted project with an interactive artifact.
 
 **Done means**
 
-- Each POI card includes a one-line outcome metric (e.g., "Reduced p95 render 28%"), backed by
+- ✅ Each POI card includes a one-line outcome metric (e.g., "Reduced p95 render 28%"), backed by
   links in `docs/case-studies/`.
 - Tooltips overlay passes axe CI and keyboard focus audit.
 - Release tag `phase-2-pois` ships with gallery screenshots + metrics table entry.
@@ -165,14 +166,14 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 **Done means**
 
-- README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
+- README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
   next to the link.
 - HUD overlay achieves full keyboard/touch parity; interaction audit recorded in
   `docs/metrics/accessibility.md`.
-- Lab run logs (Lighthouse CI) show text mode TTI <1.5 s and immersive mode LCP <2.5 s.
+- Lab run logs (Lighthouse CI) show text mode TTI <1.5 s and immersive mode LCP <2.5 s.
 
 1. **HUD Layer**
-   - Responsive overlay with movement legend, interaction prompt, and help modal.
+   - ✅ Responsive overlay with movement legend, interaction prompt, and help modal.
    - ✅ Movement legend now detects the last input method (keyboard, mouse, or touch) and
      refreshes the interact prompt copy so players always see the relevant control hint.
    - ✅ Contextual interact prompts now pull localized action copy into the HUD legend and

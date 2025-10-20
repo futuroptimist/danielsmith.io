@@ -1,4 +1,6 @@
 import {
+  AdditiveBlending,
+  BufferAttribute,
   Color,
   EquirectangularReflectionMapping,
   Group,
@@ -297,6 +299,51 @@ describe('createBackyardEnvironment', () => {
       1.18 * dampingScale
     );
     expect(light!.intensity).toBeGreaterThan(0.85 * dampingScale);
+  });
+
+  it('animates fireflies around the greenhouse walkway with accessibility damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const fireflies = environment.group.getObjectByName('BackyardFireflies');
+    expect(fireflies).toBeInstanceOf(Points);
+
+    const points = fireflies as Points;
+    const positions = points.geometry.getAttribute(
+      'position'
+    ) as BufferAttribute;
+    expect(positions).toBeInstanceOf(BufferAttribute);
+    expect(positions.count).toBeGreaterThan(0);
+
+    const baselinePositions = Array.from(positions.array);
+    const baseVersion = positions.version;
+    const material = points.material as PointsMaterial;
+    expect(material.blending).toBe(AdditiveBlending);
+    const baseOpacity = material.opacity;
+    const baseSize = material.size;
+
+    environment.update({ elapsed: 0.7, delta: 0.016 });
+
+    const moved = baselinePositions.some((value, index) => {
+      const updated = positions.array[index];
+      return Math.abs(updated - value) > 1e-6;
+    });
+    expect(moved).toBe(true);
+    expect(positions.version).toBeGreaterThan(baseVersion);
+
+    const animatedOpacity = material.opacity;
+    const animatedSize = material.size;
+    expect(animatedOpacity).not.toBeCloseTo(baseOpacity);
+    expect(animatedSize).not.toBeCloseTo(baseSize);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+
+    environment.update({ elapsed: 1.8, delta: 0.016 });
+
+    expect(material.opacity).toBeLessThan(animatedOpacity);
+    expect(material.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+    expect(material.size).toBeLessThan(animatedSize);
+    const dampedSizeScale = 0.82 + (1.16 - 0.82) * 0.45;
+    expect(material.size).toBeCloseTo(baseSize * dampedSizeScale, 5);
   });
 
   it('wraps the backyard exhibits with a perimeter fence and matching colliders', () => {

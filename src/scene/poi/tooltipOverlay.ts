@@ -1,3 +1,7 @@
+import {
+  GuidedTourPreference,
+  defaultGuidedTourPreference,
+} from '../../systems/guidedTour/preference';
 import type { InteractionTimeline } from '../../ui/accessibility/interactionTimeline';
 
 import type { PoiDefinition } from './types';
@@ -11,6 +15,7 @@ export interface PoiTooltipOverlayOptions {
     politeness?: 'polite' | 'assertive';
   };
   interactionTimeline?: InteractionTimeline;
+  guidedTourPreference?: GuidedTourPreference;
 }
 
 interface RenderState {
@@ -21,6 +26,10 @@ export class PoiTooltipOverlay {
   private readonly root: HTMLElement;
   private readonly title: HTMLHeadingElement;
   private readonly summary: HTMLParagraphElement;
+  private readonly outcome: HTMLParagraphElement;
+  private readonly outcomeLabel: HTMLSpanElement;
+  private readonly outcomeSeparator: HTMLSpanElement;
+  private readonly outcomeValue: HTMLSpanElement;
   private readonly metricsList: HTMLUListElement;
   private readonly linksList: HTMLUListElement;
   private readonly statusBadge: HTMLSpanElement;
@@ -28,6 +37,7 @@ export class PoiTooltipOverlay {
   private readonly recommendationBadge: HTMLSpanElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
+  private readonly guidedTourPreference: GuidedTourPreference;
   private discoveryFormatter: DiscoveryFormatter;
   private discoveryPoliteness: 'polite' | 'assertive';
   private readonly discoveredPoiIds = new Set<string>();
@@ -36,15 +46,23 @@ export class PoiTooltipOverlay {
   private recommendation: PoiDefinition | null = null;
   private renderState: RenderState = { poiId: null };
   private visitedPoiIds: ReadonlySet<string> = new Set();
+  private guidedTourEnabled = true;
+  private unsubscribeGuidedTour: (() => void) | null = null;
 
   constructor(options: PoiTooltipOverlayOptions) {
-    const { container, discoveryAnnouncer, interactionTimeline } = options;
+    const {
+      container,
+      discoveryAnnouncer,
+      interactionTimeline,
+      guidedTourPreference = defaultGuidedTourPreference,
+    } = options;
     const documentTarget = container.ownerDocument ?? document;
 
     this.discoveryPoliteness = discoveryAnnouncer?.politeness ?? 'polite';
     this.discoveryFormatter =
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
+    this.guidedTourPreference = guidedTourPreference;
 
     this.root = documentTarget.createElement('section');
     this.root.className = 'poi-tooltip-overlay';
@@ -84,6 +102,22 @@ export class PoiTooltipOverlay {
     this.summary.className = 'poi-tooltip-overlay__summary';
     this.root.appendChild(this.summary);
 
+    this.outcome = documentTarget.createElement('p');
+    this.outcome.className = 'poi-tooltip-overlay__outcome';
+    this.outcome.hidden = true;
+    this.outcomeLabel = documentTarget.createElement('span');
+    this.outcomeLabel.className = 'poi-tooltip-overlay__outcome-label';
+    this.outcome.appendChild(this.outcomeLabel);
+    this.outcomeSeparator = documentTarget.createElement('span');
+    this.outcomeSeparator.className = 'poi-tooltip-overlay__outcome-separator';
+    this.outcomeSeparator.textContent = '·';
+    this.outcomeSeparator.setAttribute('aria-hidden', 'true');
+    this.outcome.appendChild(this.outcomeSeparator);
+    this.outcomeValue = documentTarget.createElement('span');
+    this.outcomeValue.className = 'poi-tooltip-overlay__outcome-value';
+    this.outcome.appendChild(this.outcomeValue);
+    this.root.appendChild(this.outcome);
+
     this.metricsList = documentTarget.createElement('ul');
     this.metricsList.className = 'poi-tooltip-overlay__metrics';
     this.root.appendChild(this.metricsList);
@@ -103,6 +137,14 @@ export class PoiTooltipOverlay {
     this.liveRegion.dataset.poiAnnouncement = 'discovery';
     applyVisuallyHiddenStyles(this.liveRegion);
     container.appendChild(this.liveRegion);
+
+    this.unsubscribeGuidedTour = this.guidedTourPreference.subscribe(
+      (enabled) => {
+        this.guidedTourEnabled = enabled;
+        this.root.dataset.guidedTour = enabled ? 'on' : 'off';
+        this.update();
+      }
+    );
   }
 
   setHovered(poi: PoiDefinition | null) {
@@ -132,9 +174,20 @@ export class PoiTooltipOverlay {
   dispose() {
     this.root.remove();
     this.liveRegion.remove();
+    if (this.unsubscribeGuidedTour) {
+      this.unsubscribeGuidedTour();
+      this.unsubscribeGuidedTour = null;
+    }
   }
 
   private update() {
+    if (!this.root.isConnected) {
+      return;
+    }
+
+    const activeRecommendation = this.guidedTourEnabled
+      ? this.recommendation
+      : null;
     const poi = this.hovered ?? this.selected;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
@@ -155,7 +208,7 @@ export class PoiTooltipOverlay {
     const visited = this.visitedPoiIds.has(poi.id);
     this.visitedBadge.hidden = !visited;
     const isRecommendedSelection =
-      state === 'selected' && this.recommendation?.id === poi.id;
+      state === 'selected' && activeRecommendation?.id === poi.id;
     this.recommendationBadge.hidden = !isRecommendedSelection;
 
     const previousPoiId = this.renderState.poiId;
@@ -178,8 +231,28 @@ export class PoiTooltipOverlay {
     this.title.textContent = poi.title;
     this.summary.textContent = poi.summary;
     this.updateStatus(poi);
+    this.renderOutcome(poi);
     this.renderMetrics(poi);
     this.renderLinks(poi);
+  }
+
+  private renderOutcome(poi: PoiDefinition) {
+    const outcome = poi.outcome;
+    if (!outcome || !outcome.value.trim()) {
+      this.outcome.hidden = true;
+      this.outcomeLabel.textContent = '';
+      this.outcomeLabel.hidden = true;
+      this.outcomeValue.textContent = '';
+      this.outcomeSeparator.hidden = true;
+      return;
+    }
+
+    const label = outcome.label?.trim() || 'Outcome';
+    this.outcomeLabel.textContent = label;
+    this.outcomeLabel.hidden = false;
+    this.outcomeValue.textContent = outcome.value.trim();
+    this.outcome.hidden = false;
+    this.outcomeSeparator.hidden = false;
   }
 
   private updateStatus(poi: PoiDefinition) {
