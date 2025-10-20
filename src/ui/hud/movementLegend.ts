@@ -1,6 +1,7 @@
 import type { LocaleInput } from '../../assets/i18n';
 import {
   getLocaleDirection,
+  getLocaleScript,
   getMovementLegendStrings,
   resolveLocale,
 } from '../../assets/i18n';
@@ -330,15 +331,14 @@ export function createMovementLegend(
       ? String((windowTarget.navigator as Navigator).language)
       : undefined;
   const localeInput = locale ?? navigatorLanguage;
-  let resolvedLocale = resolveLocale(localeInput);
-  const applyDirection = (input: LocaleInput) => {
-    const direction = getLocaleDirection(input);
-    container.dir = direction;
-    container.dataset.localeDirection = direction;
-  };
-  applyDirection(localeInput);
-  let legendStrings = getMovementLegendStrings(resolvedLocale);
-  let fallbackInteractDescription =
+  const resolvedLocale = resolveLocale(localeInput);
+  const direction = getLocaleDirection(localeInput);
+  const script = getLocaleScript(localeInput);
+  container.dir = direction;
+  container.dataset.localeDirection = direction;
+  container.dataset.localeScript = script;
+  const legendStrings = getMovementLegendStrings(resolvedLocale);
+  const fallbackInteractDescription =
     defaultInteractDescription ?? legendStrings.defaultDescription;
 
   const context = collectContext(container, fallbackInteractDescription);
@@ -430,29 +430,34 @@ export function createMovementLegend(
     const previousDefaults: Record<InputMethod, string> = {
       ...defaultLabels,
     };
-    resolvedLocale = resolveLocale(nextLocale ?? resolvedLocale);
-    legendStrings = getMovementLegendStrings(resolvedLocale);
-    fallbackInteractDescription =
-      defaultInteractDescription ?? legendStrings.defaultDescription;
+    const nextResolved = resolveLocale(nextLocale ?? resolvedLocale);
+    const nextDirection = getLocaleDirection(nextLocale);
+    const nextScript = getLocaleScript(nextLocale);
+    container.dir = nextDirection;
+    container.dataset.localeDirection = nextDirection;
+    container.dataset.localeScript = nextScript;
+
+    const nextLegendStrings = getMovementLegendStrings(nextResolved);
+    const nextFallbackDescription =
+      defaultInteractDescription ?? nextLegendStrings.defaultDescription;
+
     defaultLabels = {
-      ...legendStrings.labels,
+      ...nextLegendStrings.labels,
       ...interactLabels,
     } as Record<InputMethod, string>;
-
-    applyDirection(nextLocale);
 
     const descriptionNode = context.interactDescription;
     const previousDefaultDescription = context.defaultInteractDescription;
     if (descriptionNode) {
       const currentText = descriptionNode.textContent?.trim() ?? '';
       if (!currentText || currentText === previousDefaultDescription) {
-        descriptionNode.textContent = fallbackInteractDescription;
+        descriptionNode.textContent = nextFallbackDescription;
       }
     }
 
     const normalizedDescription =
       context.interactDescription?.textContent?.trim() ||
-      fallbackInteractDescription;
+      nextFallbackDescription;
     context.defaultInteractDescription = normalizedDescription;
 
     (Object.keys(defaultLabels) as InputMethod[]).forEach((method) => {

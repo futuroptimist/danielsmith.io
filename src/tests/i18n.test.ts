@@ -6,6 +6,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getLocaleScript,
   getPoiNarrativeLogStrings,
   getPoiCopy,
   getSiteStrings,
@@ -38,6 +39,16 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
+  });
+
+  it('detects locale scripts for font fallback handling', () => {
+    expect(getLocaleScript('en')).toBe('latin');
+    expect(getLocaleScript('en-x-pseudo')).toBe('latin');
+    expect(getLocaleScript('zh-CN')).toBe('cjk');
+    expect(getLocaleScript('ja')).toBe('cjk');
+    expect(getLocaleScript('ko-KR')).toBe('cjk');
+    expect(getLocaleScript('ar')).toBe('rtl');
+    expect(getLocaleScript(undefined)).toBe('latin');
   });
 
   it('formats template strings with provided values', () => {

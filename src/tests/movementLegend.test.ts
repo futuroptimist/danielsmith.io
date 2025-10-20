@@ -331,6 +331,18 @@ describe('createMovementLegend', () => {
 
     expect(container.dataset.localeDirection).toBe('rtl');
     expect(container.getAttribute('dir')).toBe('rtl');
+    expect(container.dataset.localeScript).toBe('rtl');
+  });
+
+  it('exposes cjk locale script metadata for overlays', () => {
+    const container = createOverlayContainer();
+    createMovementLegend({
+      container,
+      locale: 'zh-CN',
+    });
+
+    expect(container.dataset.localeDirection).toBe('ltr');
+    expect(container.dataset.localeScript).toBe('cjk');
   });
 
   it('updates copy and direction when locale changes', () => {

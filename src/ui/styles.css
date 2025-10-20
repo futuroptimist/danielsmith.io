@@ -16,6 +16,16 @@
     sans-serif;
 }
 
+:root[data-locale-script='cjk'] {
+  font-family:
+    'Inter', 'Noto Sans CJK JP', 'Noto Sans CJK SC', 'Noto Sans CJK KR',
+    'Noto Sans JP', 'Noto Sans SC', 'Noto Sans KR', 'Hiragino Sans',
+    'Source Han Sans JP', 'Source Han Sans CN', 'Source Han Sans TW',
+    'PingFang SC', 'PingFang TC', 'Microsoft YaHei', 'Microsoft JhengHei',
+    'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-variant-east-asian: proportional-width;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -63,6 +73,10 @@ canvas {
   border: 1px solid rgba(82, 184, 255, 0.28);
   box-shadow: 0 32px 90px rgba(0, 8, 20, 0.6);
   backdrop-filter: blur(18px);
+}
+
+.text-fallback[data-locale-script='cjk'] {
+  letter-spacing: 0.02em;
 }
 
 .text-fallback__title {

@@ -1,4 +1,4 @@
-import { getLocaleDirection } from '../../assets/i18n';
+import { getLocaleDirection, getLocaleScript } from '../../assets/i18n';
 import { initializeModeAnnouncementObserver } from '../../ui/accessibility/modeAnnouncer';
 import { createImmersiveModeUrl } from '../../ui/immersiveUrl';
 
@@ -326,18 +326,22 @@ export function renderTextFallback(
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
   const direction = getLocaleDirection(localeHint);
+  const script = getLocaleScript(localeHint);
   documentTarget.documentElement.dir = direction;
   documentTarget.documentElement.dataset.localeDirection = direction;
+  documentTarget.documentElement.dataset.localeScript = script;
 
   container.innerHTML = '';
   container.setAttribute('data-mode', 'text');
   container.dataset.localeDirection = direction;
+  container.dataset.localeScript = script;
 
   const section = documentTarget.createElement('section');
   section.className = 'text-fallback';
   section.setAttribute('data-reason', reason);
   section.dir = direction;
   section.dataset.localeDirection = direction;
+  section.dataset.localeScript = script;
   section.style.textAlign = direction === 'rtl' ? 'right' : 'left';
 
   const heading = documentTarget.createElement('h1');

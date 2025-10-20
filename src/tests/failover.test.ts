@@ -379,18 +379,23 @@ describe('renderTextFallback', () => {
     const originalLang = document.documentElement.lang;
     const originalDir = document.documentElement.getAttribute('dir');
     const originalDataset = document.documentElement.dataset.localeDirection;
+    const originalScript = document.documentElement.dataset.localeScript;
     document.documentElement.lang = 'ar';
     document.documentElement.removeAttribute('dir');
     delete document.documentElement.dataset.localeDirection;
+    delete document.documentElement.dataset.localeScript;
 
     const container = render('manual');
     const section = container.querySelector<HTMLElement>('.text-fallback');
 
     expect(document.documentElement.dir).toBe('rtl');
     expect(document.documentElement.dataset.localeDirection).toBe('rtl');
+    expect(document.documentElement.dataset.localeScript).toBe('rtl');
     expect(container.dataset.localeDirection).toBe('rtl');
+    expect(container.dataset.localeScript).toBe('rtl');
     expect(section?.dir).toBe('rtl');
     expect(section?.style.textAlign).toBe('right');
+    expect(section?.dataset.localeScript).toBe('rtl');
 
     document.documentElement.lang = originalLang;
     if (originalDir) {
@@ -403,12 +408,18 @@ describe('renderTextFallback', () => {
     } else {
       delete document.documentElement.dataset.localeDirection;
     }
+    if (originalScript) {
+      document.documentElement.dataset.localeScript = originalScript;
+    } else {
+      delete document.documentElement.dataset.localeScript;
+    }
   });
 
   it('falls back to navigator language when document language is empty', () => {
     const originalLang = document.documentElement.lang;
     const originalDir = document.documentElement.getAttribute('dir');
     const originalDataset = document.documentElement.dataset.localeDirection;
+    const originalScript = document.documentElement.dataset.localeScript;
     const originalNavigatorLanguage = Object.getOwnPropertyDescriptor(
       window.navigator,
       'language'
@@ -422,6 +433,7 @@ describe('renderTextFallback', () => {
     const container = render('manual');
 
     expect(container.dataset.localeDirection).toBe('rtl');
+    expect(container.dataset.localeScript).toBe('rtl');
     expect(document.documentElement.dir).toBe('rtl');
 
     document.documentElement.lang = originalLang;
@@ -435,12 +447,53 @@ describe('renderTextFallback', () => {
     } else {
       delete document.documentElement.dataset.localeDirection;
     }
+    if (originalScript) {
+      document.documentElement.dataset.localeScript = originalScript;
+    } else {
+      delete document.documentElement.dataset.localeScript;
+    }
     if (originalNavigatorLanguage) {
       Object.defineProperty(
         window.navigator,
         'language',
         originalNavigatorLanguage
       );
+    }
+  });
+
+  it('applies cjk script metadata when the document language is Chinese', () => {
+    const originalLang = document.documentElement.lang;
+    const originalDir = document.documentElement.getAttribute('dir');
+    const originalDirection = document.documentElement.dataset.localeDirection;
+    const originalScript = document.documentElement.dataset.localeScript;
+    document.documentElement.lang = 'zh-CN';
+    document.documentElement.removeAttribute('dir');
+    delete document.documentElement.dataset.localeDirection;
+    delete document.documentElement.dataset.localeScript;
+
+    const container = render('manual');
+    const section = container.querySelector<HTMLElement>('.text-fallback');
+
+    expect(document.documentElement.dir).toBe('ltr');
+    expect(document.documentElement.dataset.localeScript).toBe('cjk');
+    expect(container.dataset.localeScript).toBe('cjk');
+    expect(section?.dataset.localeScript).toBe('cjk');
+
+    document.documentElement.lang = originalLang;
+    if (originalDir) {
+      document.documentElement.setAttribute('dir', originalDir);
+    } else {
+      document.documentElement.removeAttribute('dir');
+    }
+    if (originalDirection) {
+      document.documentElement.dataset.localeDirection = originalDirection;
+    } else {
+      delete document.documentElement.dataset.localeDirection;
+    }
+    if (originalScript) {
+      document.documentElement.dataset.localeScript = originalScript;
+    } else {
+      delete document.documentElement.dataset.localeScript;
     }
   });
 });
