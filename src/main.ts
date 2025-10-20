@@ -299,6 +299,10 @@ import {
   type PoiNarrativeLogHandle,
 } from './ui/hud/poiNarrativeLog';
 import {
+  createResponsiveControlOverlay,
+  type ResponsiveControlOverlayHandle,
+} from './ui/hud/responsiveControlOverlay';
+import {
   createImmersiveModeUrl,
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
@@ -582,6 +586,7 @@ function initializeImmersiveScene(
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
+  let responsiveControlOverlay: ResponsiveControlOverlayHandle | null = null;
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
@@ -2045,6 +2050,19 @@ function initializeImmersiveScene(
         },
       })
     : null;
+  responsiveControlOverlay = controlOverlay
+    ? createResponsiveControlOverlay({
+        container: controlOverlay,
+        list: controlOverlay.querySelector<HTMLElement>(
+          '[data-role="control-list"]'
+        ),
+        toggle: controlOverlay.querySelector<HTMLButtonElement>(
+          '[data-role="control-toggle"]'
+        ),
+        strings: controlOverlayStrings.mobileToggle,
+        initialLayout: 'desktop',
+      })
+    : null;
   const helpModal = createHelpModal({
     container: document.body,
     content: helpModalStrings,
@@ -2204,6 +2222,8 @@ function initializeImmersiveScene(
     if (controlOverlay) {
       applyControlOverlayStrings(controlOverlay, controlOverlayStrings);
     }
+    responsiveControlOverlay?.setStrings(controlOverlayStrings.mobileToggle);
+    responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
     if (movementLegend) {
       const keyboardLabel =
@@ -2674,7 +2694,13 @@ function initializeImmersiveScene(
   hudLayoutManager = createHudLayoutManager({
     root: document.documentElement,
     windowTarget: window,
+    onLayoutChange: (layout) => {
+      responsiveControlOverlay?.setLayout(layout);
+    },
   });
+  if (hudLayoutManager) {
+    responsiveControlOverlay?.setLayout(hudLayoutManager.getLayout());
+  }
 
   composer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
@@ -3362,6 +3388,10 @@ function initializeImmersiveScene(
     if (hudLayoutManager) {
       hudLayoutManager.dispose();
       hudLayoutManager = null;
+    }
+    if (responsiveControlOverlay) {
+      responsiveControlOverlay.dispose();
+      responsiveControlOverlay = null;
     }
     if (accessibilityControlHandle) {
       accessibilityControlHandle.dispose();

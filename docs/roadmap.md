@@ -172,7 +172,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
 - Lab run logs (Lighthouse CI) show text mode TTI <1.5 s and immersive mode LCP <2.5 s.
 
 1. **HUD Layer**
-   - Responsive overlay with movement legend, interaction prompt, and help modal.
+   - ✅ Responsive overlay with movement legend, interaction prompt, and help modal.
    - ✅ Movement legend now detects the last input method (keyboard, mouse, or touch) and
      refreshes the interact prompt copy so players always see the relevant control hint.
    - ✅ Contextual interact prompts now pull localized action copy into the HUD legend and

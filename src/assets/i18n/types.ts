@@ -31,6 +31,12 @@ export interface ControlOverlayStrings {
     announcementTemplate: string;
     shortcutFallback: string;
   };
+  mobileToggle: {
+    expandLabel: string;
+    collapseLabel: string;
+    expandAnnouncement: string;
+    collapseAnnouncement: string;
+  };
 }
 
 export interface MovementLegendStrings {

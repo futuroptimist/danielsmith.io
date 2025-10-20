@@ -73,6 +73,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Open settings and help. Press {shortcut} to review controls and accessibility tips.',
         shortcutFallback: 'H',
       },
+      mobileToggle: {
+        expandLabel: 'Show all controls',
+        collapseLabel: 'Hide extra controls',
+        expandAnnouncement:
+          'Showing the full controls list for mobile players.',
+        collapseAnnouncement: 'Hiding extra controls to keep the list compact.',
+      },
     },
     movementLegend: {
       defaultDescription: 'Interact',

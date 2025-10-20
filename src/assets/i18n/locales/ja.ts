@@ -63,6 +63,13 @@ export const JA_OVERRIDES: LocaleOverrides = {
           '設定とヘルプを開きます。ショートカット {shortcut} で操作方法とアクセシビリティのヒントを確認できます。',
         shortcutFallback: 'H',
       },
+      mobileToggle: {
+        expandLabel: 'すべての操作を表示',
+        collapseLabel: '追加の操作を隠す',
+        expandAnnouncement: 'モバイル向けの操作一覧を表示します。',
+        collapseAnnouncement:
+          '一覧をコンパクトに保つため追加の操作を隠します。',
+      },
     },
     movementLegend: {
       defaultDescription: 'インタラクト',
