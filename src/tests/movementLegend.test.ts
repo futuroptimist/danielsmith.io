@@ -162,18 +162,26 @@ describe('createMovementLegend', () => {
 
     legend.setInteractPrompt('Inspect Futuroptimist');
     expect(interactItem?.hidden).toBe(false);
-    expect(interactDescription?.textContent).toBe('Inspect Futuroptimist');
+    expect(interactDescription?.textContent).toBe(
+      'Press F to Inspect Futuroptimist'
+    );
     expect(interactLabel?.textContent).toBe('F');
     expect(interactItem?.dataset.hudAnnounce).toBe('F — Inspect Futuroptimist');
 
     legend.setActiveMethod('touch');
     expect(interactLabel?.textContent).toBe('Tap');
+    expect(interactDescription?.textContent).toBe(
+      'Tap to Inspect Futuroptimist'
+    );
     expect(interactItem?.dataset.hudAnnounce).toBe(
       'Tap — Inspect Futuroptimist'
     );
 
     legend.setActiveMethod('gamepad');
     expect(interactLabel?.textContent).toBe('A');
+    expect(interactDescription?.textContent).toBe(
+      'Press A to Inspect Futuroptimist'
+    );
     expect(interactItem?.dataset.hudAnnounce).toBe('A — Inspect Futuroptimist');
 
     legend.setInteractPrompt(null);
@@ -194,19 +202,27 @@ describe('createMovementLegend', () => {
     const interactLabel = container.querySelector(
       '[data-role="interact-label"]'
     );
+    const interactDescription = container.querySelector(
+      '[data-role="interact-description"]'
+    );
 
     legend.setInteractPrompt('Inspect Exhibit');
     legend.setKeyboardInteractLabel('E');
     expect(interactLabel?.textContent).toBe('E');
+    expect(interactDescription?.textContent).toBe('Press E to Inspect Exhibit');
 
     legend.setActiveMethod('touch');
     legend.setKeyboardInteractLabel('Space');
     legend.setActiveMethod('keyboard');
     expect(interactLabel?.textContent).toBe('Space');
+    expect(interactDescription?.textContent).toBe(
+      'Press Space to Inspect Exhibit'
+    );
 
     legend.setInteractLabel('gamepad', 'X');
     legend.setActiveMethod('gamepad');
     expect(interactLabel?.textContent).toBe('X');
+    expect(interactDescription?.textContent).toBe('Press X to Inspect Exhibit');
 
     legend.dispose();
     expect(interactLabel?.textContent).toBe('F');
@@ -363,5 +379,28 @@ describe('createMovementLegend', () => {
     expect(container.dataset.localeDirection).toBe('ltr');
     expect(container.getAttribute('dir')).toBe('ltr');
     expect(description?.textContent).toBe('Interact');
+  });
+
+  it('reformats interact prompts using locale templates', () => {
+    const container = createOverlayContainer();
+    const legend = createMovementLegend({
+      container,
+      locale: 'en',
+    });
+
+    const description = container.querySelector<HTMLElement>(
+      '[data-role="interact-description"]'
+    );
+
+    legend.setInteractPrompt('Inspect Exhibit');
+    expect(description?.textContent).toBe('Press F to Inspect Exhibit');
+
+    legend.setLocale('ar');
+    expect(description?.textContent).toBe('اضغط F لـ Inspect Exhibit');
+
+    legend.setActiveMethod('touch');
+    expect(description?.textContent).toBe('المس لـ Inspect Exhibit');
+
+    legend.dispose();
   });
 });

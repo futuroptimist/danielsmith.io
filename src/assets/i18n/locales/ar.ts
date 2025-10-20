@@ -72,6 +72,13 @@ export const AR_OVERRIDES: LocaleOverrides = {
         touch: 'المس',
         gamepad: 'A',
       },
+      interactPromptTemplates: {
+        default: '{prompt}',
+        keyboard: 'اضغط {label} لـ {prompt}',
+        pointer: 'انقر لـ {prompt}',
+        touch: 'المس لـ {prompt}',
+        gamepad: 'اضغط {label} لـ {prompt}',
+      },
     },
     narrativeLog: {
       heading: 'سجل القصة',

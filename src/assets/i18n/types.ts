@@ -36,6 +36,7 @@ export interface ControlOverlayStrings {
 export interface MovementLegendStrings {
   defaultDescription: string;
   labels: Record<InputMethod, string>;
+  interactPromptTemplates: Record<InputMethod | 'default', string>;
 }
 
 export interface HelpModalItemStrings {
