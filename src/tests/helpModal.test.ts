@@ -159,4 +159,46 @@ describe('createHelpModal', () => {
 
     expect(document.querySelector('.help-modal-backdrop')).toBeNull();
   });
+
+  it('updates headings and descriptions when locale content changes', () => {
+    const englishContent = cloneContent();
+    const handle = createHelpModal({
+      container: document.body,
+      content: englishContent,
+    });
+
+    const arabicContent = getHelpModalStrings('ar');
+    handle.setContent({
+      heading: arabicContent.heading,
+      description: arabicContent.description,
+      closeLabel: arabicContent.closeLabel,
+      closeAriaLabel: arabicContent.closeAriaLabel,
+      settings: {
+        heading: arabicContent.settings.heading,
+        description: arabicContent.settings.description,
+      },
+      sections: arabicContent.sections.map((section) => ({
+        id: section.id,
+        title: section.title,
+        items: section.items.map((item) => ({
+          label: item.label,
+          description: item.description,
+        })),
+      })),
+    });
+
+    const title = document.querySelector('.help-modal__title');
+    const settingsHeading = document.querySelector(
+      '.help-modal__section-heading--settings'
+    );
+    const firstItemLabel = document.querySelector(
+      '.help-modal__item .help-modal__item-label'
+    );
+
+    expect(title?.textContent).toBe(arabicContent.heading);
+    expect(settingsHeading?.textContent).toBe(arabicContent.settings.heading);
+    expect(firstItemLabel?.textContent).toBe(
+      arabicContent.sections[0].items[0].label
+    );
+  });
 });

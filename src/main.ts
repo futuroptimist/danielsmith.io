@@ -48,9 +48,11 @@ import {
   formatMessage,
   getControlOverlayStrings,
   getHelpModalStrings,
+  getLocaleDirection,
   getPoiNarrativeLogStrings,
   getSiteStrings,
   resolveLocale,
+  type Locale,
 } from './assets/i18n';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
@@ -225,6 +227,10 @@ import {
 } from './systems/controls/keyBindings';
 import { KeyboardControls } from './systems/controls/KeyboardControls';
 import {
+  createLocaleToggleControl,
+  type LocaleToggleControlHandle,
+} from './systems/controls/localeToggleControl';
+import {
   createMotionBlurControl,
   type MotionBlurControlHandle,
 } from './systems/controls/motionBlurControl';
@@ -296,6 +302,7 @@ import './ui/styles.css';
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
+const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 
 declare global {
@@ -588,23 +595,35 @@ function initializeImmersiveScene(
   let unsubscribeAvatarVariant: (() => void) | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
+  let localeToggleControl: LocaleToggleControlHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
     ambientAudioController?.setMasterVolume(volume);
   };
 
+  let localeStorage: Storage | undefined;
+  try {
+    localeStorage = window.localStorage;
+  } catch {
+    localeStorage = undefined;
+  }
+
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
       ? navigator.language
       : document.documentElement.lang;
-  const locale = resolveLocale(detectedLanguage);
-  document.documentElement.lang = locale;
-  const controlOverlayStrings = getControlOverlayStrings(locale);
-  const helpModalStrings = getHelpModalStrings(locale);
-  const narrativeLogStrings = getPoiNarrativeLogStrings(locale);
-  const siteStrings = getSiteStrings(locale);
-  const narrativeTimeFormatter = new Intl.DateTimeFormat(
+  const storedLocale = localeStorage?.getItem(LOCALE_STORAGE_KEY);
+  let locale: Locale = resolveLocale(storedLocale ?? detectedLanguage);
+  document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
+  const htmlDirection = getLocaleDirection(locale);
+  document.documentElement.dir = htmlDirection;
+  document.documentElement.dataset.localeDirection = htmlDirection;
+  let controlOverlayStrings = getControlOverlayStrings(locale);
+  let helpModalStrings = getHelpModalStrings(locale);
+  let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
+  let siteStrings = getSiteStrings(locale);
+  let narrativeTimeFormatter = new Intl.DateTimeFormat(
     locale === 'en-x-pseudo' ? 'en' : locale,
     {
       hour: 'numeric',
@@ -1988,7 +2007,7 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
-  const interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
+  let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   const movementLegend: MovementLegendHandle | null = controlOverlay
     ? createMovementLegend({
         container: controlOverlay,
@@ -2015,6 +2034,53 @@ function initializeImmersiveScene(
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
   hudSettingsContainer.appendChild(hudSettingsStack);
+  const hudControlElements = new Set<HTMLElement>();
+  const registerHudControlElement = (element?: HTMLElement | null) => {
+    if (!element) {
+      return;
+    }
+    element.hidden = true;
+    hudControlElements.add(element);
+  };
+  const showHudControlElements = () => {
+    hudControlElements.forEach((element) => {
+      element.hidden = false;
+    });
+  };
+  const hideHudControlElements = () => {
+    hudControlElements.forEach((element) => {
+      element.hidden = true;
+    });
+  };
+
+  const originalHelpModalOpen = helpModal.open.bind(helpModal);
+  const originalHelpModalClose = helpModal.close.bind(helpModal);
+  const originalHelpModalToggle = helpModal.toggle.bind(helpModal);
+
+  helpModal.open = () => {
+    showHudControlElements();
+    originalHelpModalOpen();
+  };
+  helpModal.close = () => {
+    originalHelpModalClose();
+    hideHudControlElements();
+  };
+  helpModal.toggle = (force?: boolean) => {
+    const shouldOpen = force ?? !helpModal.isOpen();
+    if (shouldOpen) {
+      showHudControlElements();
+    } else {
+      hideHudControlElements();
+    }
+    originalHelpModalToggle(force);
+  };
+
+  const openHelpMenu = () => {
+    helpModal.open();
+  };
+  const toggleHelpMenu = (force?: boolean) => {
+    helpModal.toggle(force);
+  };
   poiNarrativeLog = createPoiNarrativeLog({
     container: helpModal.element,
     strings: narrativeLogStrings,
@@ -2039,7 +2105,7 @@ function initializeImmersiveScene(
   });
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
-    helpButtonClickHandler = () => helpModal.open();
+    helpButtonClickHandler = () => openHelpMenu();
     helpButton.addEventListener('click', helpButtonClickHandler);
   }
   let interactablePoi: PoiInstance | null = null;
@@ -2070,7 +2136,7 @@ function initializeImmersiveScene(
 
   let activeFloorId: FloorId = 'ground';
   let helpKeyWasPressed = false;
-  const helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
+  let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
   const buildHelpButtonText = (shortcut: string) =>
     formatMessage(controlOverlayStrings.helpButton.labelTemplate, {
       shortcut,
@@ -2090,6 +2156,83 @@ function initializeImmersiveScene(
     helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
   };
   updateHelpButtonLabel();
+
+  const applyLocaleUpdate = (nextLocale: Locale) => {
+    if (locale === nextLocale) {
+      return;
+    }
+    locale = nextLocale;
+    if (localeStorage) {
+      try {
+        localeStorage.setItem(LOCALE_STORAGE_KEY, locale);
+      } catch (error) {
+        console.warn('Failed to persist locale preference.', error);
+      }
+    }
+    const direction = getLocaleDirection(locale);
+    document.documentElement.dir = direction;
+    document.documentElement.dataset.localeDirection = direction;
+    document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
+
+    controlOverlayStrings = getControlOverlayStrings(locale);
+    helpModalStrings = getHelpModalStrings(locale);
+    narrativeLogStrings = getPoiNarrativeLogStrings(locale);
+    siteStrings = getSiteStrings(locale);
+    narrativeTimeFormatter = new Intl.DateTimeFormat(
+      locale === 'en-x-pseudo' ? 'en' : locale,
+      { hour: 'numeric', minute: '2-digit' }
+    );
+    interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
+    helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
+
+    if (controlOverlay) {
+      applyControlOverlayStrings(controlOverlay, controlOverlayStrings);
+    }
+    movementLegend?.setLocale(locale);
+    if (movementLegend) {
+      const keyboardLabel =
+        formatKeyLabel(keyBindings.getPrimaryBinding('interact')) ||
+        interactLabelFallback;
+      movementLegend.setKeyboardInteractLabel(keyboardLabel);
+    }
+    helpModal.setContent(helpModalStrings);
+    poiNarrativeLog?.setStrings(narrativeLogStrings);
+    updateHelpButtonLabel();
+    localeToggleControl?.refresh();
+
+    const visitedSnapshot = poiVisitedState.snapshot();
+    const visitedDefinitions = Array.from(visitedSnapshot)
+      .map((id) => poiDefinitionsById.get(id))
+      .filter((definition): definition is PoiDefinition => Boolean(definition));
+    if (visitedDefinitions.length > 0 && poiNarrativeLog) {
+      poiNarrativeLog.syncVisited(visitedDefinitions, {
+        visitedLabel: narrativeLogStrings.defaultVisitedLabel,
+      });
+    }
+  };
+
+  const localeOptions: Array<{
+    id: Locale;
+    label: string;
+    direction: 'ltr' | 'rtl';
+  }> = [
+    { id: 'en', label: 'English', direction: 'ltr' },
+    { id: 'ja', label: '日本語', direction: 'ltr' },
+    { id: 'ar', label: 'العربية', direction: 'rtl' },
+    { id: 'en-x-pseudo', label: 'Pseudo', direction: 'ltr' },
+  ];
+
+  localeToggleControl = createLocaleToggleControl({
+    container: hudSettingsStack,
+    options: localeOptions,
+    getActiveLocale: () => locale,
+    setActiveLocale: (nextLocale) => {
+      applyLocaleUpdate(nextLocale);
+    },
+    title: 'Language',
+    description: 'Choose language and direction for the HUD.',
+  });
+  registerHudControlElement(localeToggleControl?.element ?? null);
 
   const keyBindingUnsubscribes: Array<() => void> = [];
   keyBindingUnsubscribes.push(
@@ -2482,6 +2625,7 @@ function initializeImmersiveScene(
         setAmbientAudioVolume(volume);
       },
     });
+    registerHudControlElement(audioHudHandle?.element);
 
     manualModeToggle = createManualModeToggle({
       container: hudSettingsStack,
@@ -2495,6 +2639,7 @@ function initializeImmersiveScene(
         }
       },
     });
+    registerHudControlElement(manualModeToggle?.element ?? null);
 
     tourResetControl = createTourResetControl({
       container: hudSettingsStack,
@@ -2503,6 +2648,7 @@ function initializeImmersiveScene(
         poiVisitedState.reset();
       },
     });
+    registerHudControlElement(tourResetControl?.element ?? null);
   }
 
   let composer: EffectComposer | null = null;
@@ -2633,6 +2779,7 @@ function initializeImmersiveScene(
       accessibilityPresetManager?.setPreset(preset);
     },
   });
+  registerHudControlElement(accessibilityControlHandle?.element ?? null);
 
   unsubscribeAccessibility = accessibilityPresetManager.onChange(() => {
     accessibilityControlHandle?.refresh();
@@ -2650,6 +2797,7 @@ function initializeImmersiveScene(
       graphicsQualityManager?.setLevel(level);
     },
   });
+  registerHudControlElement(graphicsQualityControl?.element ?? null);
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
     graphicsQualityControl?.refresh();
@@ -3109,7 +3257,7 @@ function initializeImmersiveScene(
       return;
     }
     if (pressed && !helpKeyWasPressed) {
-      helpModal.toggle();
+      toggleHelpMenu();
     }
     helpKeyWasPressed = pressed;
   }
@@ -3244,6 +3392,10 @@ function initializeImmersiveScene(
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);
       helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
+    }
+    if (localeToggleControl) {
+      localeToggleControl.dispose();
+      localeToggleControl = null;
     }
     movementLegend?.dispose();
     if (poiNarrativeLog) {

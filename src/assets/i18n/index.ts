@@ -1,7 +1,9 @@
 import type { PoiId } from '../poi/types';
 
+import { AR_OVERRIDES } from './locales/ar';
 import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
+import { JA_OVERRIDES } from './locales/ja';
 import type {
   ControlOverlayStrings,
   DeepPartial,
@@ -90,9 +92,14 @@ const MERGED_PSEUDO = buildLocale(
   'en-x-pseudo'
 );
 
+const AR_LOCALE = buildLocale(EN_LOCALE_STRINGS, AR_OVERRIDES, 'ar');
+const JA_LOCALE = buildLocale(EN_LOCALE_STRINGS, JA_OVERRIDES, 'ja');
+
 const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
   'en-x-pseudo': MERGED_PSEUDO,
+  ar: AR_LOCALE,
+  ja: JA_LOCALE,
 });
 
 export const AVAILABLE_LOCALES = Object.freeze(
@@ -119,6 +126,14 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (normalized.startsWith('en')) {
     return 'en';
+  }
+
+  if (normalized.startsWith('ar')) {
+    return 'ar';
+  }
+
+  if (normalized.startsWith('ja')) {
+    return 'ja';
   }
 
   return 'en';
