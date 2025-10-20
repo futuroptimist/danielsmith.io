@@ -70,6 +70,10 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
           ].join(' ')
         ),
       },
+      announcements: {
+        open: wrap('Help menu opened. Review controls and settings.'),
+        close: wrap('Help menu closed.'),
+      },
     },
   },
   poi: {

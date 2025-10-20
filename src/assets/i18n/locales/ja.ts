@@ -168,6 +168,10 @@ export const JA_OVERRIDES: LocaleOverrides = {
           ],
         },
       ],
+      announcements: {
+        open: 'ヘルプメニューを開きました。操作方法と設定を確認できます。',
+        close: 'ヘルプメニューを閉じました。',
+      },
     },
   },
 };

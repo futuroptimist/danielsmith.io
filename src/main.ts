@@ -282,6 +282,10 @@ import {
 import { applyControlOverlayStrings } from './ui/hud/controlOverlay';
 import { createHelpModal } from './ui/hud/helpModal';
 import {
+  attachHelpModalController,
+  type HelpModalControllerHandle,
+} from './ui/hud/helpModalController';
+import {
   createHudLayoutManager,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
@@ -594,6 +598,7 @@ function initializeImmersiveScene(
   let avatarVariantControl: AvatarVariantControlHandle | null = null;
   let unsubscribeAvatarVariant: (() => void) | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
+  let helpModalController: HelpModalControllerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
   let getAmbientAudioVolume = () =>
@@ -2058,34 +2063,6 @@ function initializeImmersiveScene(
     });
   };
 
-  const originalHelpModalOpen = helpModal.open.bind(helpModal);
-  const originalHelpModalClose = helpModal.close.bind(helpModal);
-  const originalHelpModalToggle = helpModal.toggle.bind(helpModal);
-
-  helpModal.open = () => {
-    showHudControlElements();
-    originalHelpModalOpen();
-  };
-  helpModal.close = () => {
-    originalHelpModalClose();
-    hideHudControlElements();
-  };
-  helpModal.toggle = (force?: boolean) => {
-    const shouldOpen = force ?? !helpModal.isOpen();
-    if (shouldOpen) {
-      showHudControlElements();
-    } else {
-      hideHudControlElements();
-    }
-    originalHelpModalToggle(force);
-  };
-
-  const openHelpMenu = () => {
-    helpModal.open();
-  };
-  const toggleHelpMenu = (force?: boolean) => {
-    helpModal.toggle(force);
-  };
   poiNarrativeLog = createPoiNarrativeLog({
     container: helpModal.element,
     strings: narrativeLogStrings,
@@ -2108,6 +2085,19 @@ function initializeImmersiveScene(
     documentTarget: document,
     container: document.body,
   });
+  helpModalController = attachHelpModalController({
+    helpModal,
+    onOpen: showHudControlElements,
+    onClose: hideHudControlElements,
+    hudFocusAnnouncer,
+    announcements: helpModalStrings.announcements,
+  });
+  const openHelpMenu = () => {
+    helpModal.open();
+  };
+  const toggleHelpMenu = (force?: boolean) => {
+    helpModal.toggle(force);
+  };
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
     helpButtonClickHandler = () => openHelpMenu();
@@ -2181,6 +2171,7 @@ function initializeImmersiveScene(
 
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
+    helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     siteStrings = getSiteStrings(locale);
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -3404,6 +3395,10 @@ function initializeImmersiveScene(
     if (poiNarrativeLog) {
       poiNarrativeLog.dispose();
       poiNarrativeLog = null;
+    }
+    if (helpModalController) {
+      helpModalController.dispose();
+      helpModalController = null;
     }
     helpModal.dispose();
     if (hudFocusAnnouncer) {

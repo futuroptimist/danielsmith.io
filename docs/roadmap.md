@@ -181,6 +181,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      change, keeping keyboard and assistive tech guidance aligned with on-screen cues.
    - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
      accessibility tips, and failover guidance.
+   - ✅ Help modal open and close events now announce their state to screen readers so
+     keyboard visitors know when the panel is active.
    - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
      that soften bloom, ease emissives, duck ambient audio, and boost HUD contrast.
      - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes

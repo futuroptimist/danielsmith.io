@@ -73,10 +73,20 @@ describe('i18n utilities', () => {
     );
     const helpModal = getHelpModalStrings('en-x-pseudo');
     expect(helpModal.closeLabel).toBe('⟦Close⟧');
+    expect(helpModal.announcements.open).toBe(
+      '⟦Help menu opened. Review controls and settings.⟧'
+    );
+    expect(helpModal.announcements.close).toBe('⟦Help menu closed.⟧');
     const arabicHelp = getHelpModalStrings('ar');
     expect(arabicHelp.heading).toBe('الإعدادات والمساعدة');
+    expect(arabicHelp.announcements.open).toBe(
+      'تم فتح قائمة المساعدة. راجع عناصر التحكم والإعدادات.'
+    );
     const japaneseHelp = getHelpModalStrings('ja');
     expect(japaneseHelp.heading).toBe('設定とヘルプ');
+    expect(japaneseHelp.announcements.close).toBe(
+      'ヘルプメニューを閉じました。'
+    );
   });
 
   it('exposes narrative log strings with localized announcements', () => {
