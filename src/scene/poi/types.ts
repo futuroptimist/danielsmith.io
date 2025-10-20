@@ -23,6 +23,11 @@ export interface PoiMetric {
   value: string;
 }
 
+export interface PoiOutcome {
+  label: string;
+  value: string;
+}
+
 export interface PoiLink {
   label: string;
   href: string;
@@ -89,6 +94,7 @@ export interface PoiDefinition {
   headingRadians?: number;
   interactionRadius: number;
   footprint: PoiFootprint;
+  outcome?: PoiOutcome;
   metrics?: PoiMetric[];
   links?: PoiLink[];
   /** Optional note to surface prototype status in tooltips. */

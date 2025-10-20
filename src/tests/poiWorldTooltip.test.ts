@@ -6,6 +6,7 @@ import {
   PoiWorldTooltip,
   type PoiWorldTooltipTarget,
 } from '../scene/poi/worldTooltip';
+import { GuidedTourPreference } from '../systems/guidedTour/preference';
 
 let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
 
@@ -66,6 +67,10 @@ function createPoiDefinition(
     headingRadians: overrides.headingRadians ?? 0,
     interactionRadius: overrides.interactionRadius ?? 3,
     footprint: overrides.footprint ?? { width: 2, depth: 2 },
+    outcome: overrides.outcome ?? {
+      label: 'Outcome',
+      value: 'Accelerated deploys 24%',
+    },
     metrics: overrides.metrics ?? [
       { label: 'Impact', value: 'Launch-ready' },
       { label: 'Tech', value: 'Three.js' },
@@ -82,8 +87,22 @@ function createTooltip() {
   camera.position.set(12, 14, 16);
   camera.lookAt(0, 0, 0);
   camera.updateProjectionMatrix();
-  const tooltip = new PoiWorldTooltip({ parent: scene, camera });
-  return { tooltip, camera, scene };
+  const preference = new GuidedTourPreference({
+    storage: {
+      getItem: () => null,
+      setItem: () => {
+        /* noop */
+      },
+    },
+    windowTarget: window,
+    defaultEnabled: true,
+  });
+  const tooltip = new PoiWorldTooltip({
+    parent: scene,
+    camera,
+    guidedTourPreference: preference,
+  });
+  return { tooltip, camera, scene, preference };
 }
 
 function createTarget(
@@ -104,7 +123,7 @@ function createTarget(
 
 describe('PoiWorldTooltip', () => {
   it('shows hovered tooltip anchored to the provided world position', () => {
-    const { tooltip, camera } = createTooltip();
+    const { tooltip, camera, preference } = createTooltip();
     const poi = createPoiDefinition({ status: 'prototype' });
     const anchor = new Vector3(1, 2, 3);
     const target = createTarget(poi, anchor);
@@ -130,10 +149,13 @@ describe('PoiWorldTooltip', () => {
       .normalize();
     expect(forward.dot(toCamera)).toBeCloseTo(1, 1e-3);
     expect(tooltip.group.scale.x).toBeGreaterThan(0.74);
+
+    tooltip.dispose();
+    preference.dispose();
   });
 
   it('prefers the selected state over hover when both are set', () => {
-    const { tooltip } = createTooltip();
+    const { tooltip, preference } = createTooltip();
     const hoveredPoi = createPoiDefinition({ id: 'flywheel-studio-flywheel' });
     const selectedPoi = createPoiDefinition({
       id: 'jobbot-studio-terminal',
@@ -150,10 +172,13 @@ describe('PoiWorldTooltip', () => {
     expect(state.mode).toBe('selected');
     expect(state.poiId).toBe(selectedPoi.id);
     expect(state.opacity).toBeCloseTo(1, 1e-3);
+
+    tooltip.dispose();
+    preference.dispose();
   });
 
   it('falls back to the recommendation when no hover or selection is active', () => {
-    const { tooltip } = createTooltip();
+    const { tooltip, preference } = createTooltip();
     const recommendedPoi = createPoiDefinition({
       id: 'sugarkube-backyard-greenhouse',
     });
@@ -166,10 +191,53 @@ describe('PoiWorldTooltip', () => {
     expect(state.mode).toBe('recommended');
     expect(state.poiId).toBe(recommendedPoi.id);
     expect(state.opacity).toBeCloseTo(0.72, 1e-3);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('suppresses recommendation rendering when guided tour is disabled', () => {
+    const { tooltip, preference } = createTooltip();
+    const recommendedPoi = createPoiDefinition({
+      id: 'pr-reaper-backyard-console',
+    });
+    preference.setEnabled(false, 'test');
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    const disabledState = tooltip.getState();
+    expect(disabledState.mode).toBeNull();
+    expect(disabledState.visible).toBe(false);
+
+    preference.setEnabled(true, 'test');
+    tooltip.update(0.016);
+    const enabledState = tooltip.getState();
+    expect(enabledState.mode).toBe('recommended');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('skips outcome rendering when the value is blank', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      id: 'danielsmith-portfolio-table',
+      outcome: { label: 'Outcome', value: '   ' },
+    });
+
+    tooltip.setHovered(createTarget(poi, new Vector3(0, 0.4, 0)));
+    tooltip.update(0.016);
+
+    expect(tooltip.getState().poiId).toBe(poi.id);
+
+    tooltip.dispose();
+    preference.dispose();
   });
 
   it('fades out once all targets clear', () => {
-    const { tooltip } = createTooltip();
+    const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition();
     tooltip.setHovered(createTarget(poi, new Vector3(0, 0, 0)));
     tooltip.update(0.016);
@@ -185,10 +253,13 @@ describe('PoiWorldTooltip', () => {
     expect(state.visible).toBe(false);
     expect(state.opacity).toBe(0);
     expect(state.poiId).toBeNull();
+
+    tooltip.dispose();
+    preference.dispose();
   });
 
   it('updates the anchor position each frame using the provided callback', () => {
-    const { tooltip } = createTooltip();
+    const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({ id: 'dspace-backyard-rocket' });
     let currentY = 0;
     const target = createTarget(poi, () => {
@@ -202,6 +273,9 @@ describe('PoiWorldTooltip', () => {
     tooltip.update(0.016);
     const secondY = tooltip.group.position.y;
     expect(secondY).toBeGreaterThan(firstY);
+
+    tooltip.dispose();
+    preference.dispose();
   });
 
   it('disposes resources without leaking scene children', () => {

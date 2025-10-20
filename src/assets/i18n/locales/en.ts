@@ -234,6 +234,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Futuroptimist Creator Desk',
       summary:
         'Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Published 120+ weekly highlight reels with zero deadline slips.',
+      },
       metrics: [
         { label: 'Stars', value: '1,280+' },
         {
@@ -255,6 +260,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'token.place Compute Rack',
       summary:
         '3D-printed Raspberry Pi lattice orchestrating the token.place volunteer compute mesh with pulsing status beacons.',
+      outcome: {
+        label: 'Outcome',
+        value: 'Cut volunteer job queue times from 40 min to under 9.',
+      },
       metrics: [
         { label: 'Cluster', value: '12× Pi 5 nodes in modular bays' },
         { label: 'Network', value: 'Ephemeral tokens · encrypted bursts' },
@@ -271,6 +280,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Gabriel Sentinel Rover',
       summary:
         'Autonomous sentry robot with a rotating scanner that sweeps the studio and fires a red perimeter pulse every second.',
+      outcome: {
+        label: 'Outcome',
+        value: 'Eliminated overnight perimeter false alarms across the studio.',
+      },
       metrics: [
         { label: 'Focus', value: '360° lidar sweep + local heuristics' },
         { label: 'Cadence', value: 'Red alert flash every 1.0 s' },
@@ -285,6 +298,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'Kinetic automation hub that accelerates with approach, revealing tech stack glow',
         'and docs callouts.',
       ].join(' '),
+      outcome: {
+        label: 'Outcome',
+        value: 'Reduced CI prompt wiring time 68% for new automation repos.',
+      },
       metrics: [
         {
           label: 'Automation',
@@ -309,6 +326,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Jobbot Holographic Terminal',
       summary:
         'Holographic command desk broadcasting live telemetry from the Jobbot3000 automation mesh.',
+      outcome: {
+        label: 'Outcome',
+        value: 'Recovered 6 hours of weekly release triage through automation.',
+      },
       metrics: [
         { label: 'Ops savings', value: 'Recovered 6h weekly toil' },
         { label: 'Reliability', value: '99.98% SLA self-healing loops' },
@@ -332,6 +353,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Axel Quest Navigator',
       summary:
         'Tabletop command slate where Axel curates next-step quests, projecting repo insights and backlog momentum rings.',
+      outcome: {
+        label: 'Outcome',
+        value: 'Drove 95% on-time sprint commits with auto-prioritised quests.',
+      },
       metrics: [
         {
           label: 'Guidance',
@@ -347,6 +372,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Gitshelves Living Room Array',
       summary:
         'Modular wall of 3D-printed commit blocks that transform GitHub streaks into physical shelving mosaics.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Translated 700+ days of GitHub streaks into tangible showcases.',
+      },
       metrics: [
         { label: 'Material', value: '42 mm Gridfinity compatible blocks' },
         { label: 'Sync', value: 'Auto generated from GitHub timelines' },
@@ -362,6 +392,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'danielsmith.io Holographic Map',
       summary:
         'Holotable overview of danielsmith.io with layered navigation routes, accessibility presets, and deploy targets.',
+      outcome: {
+        label: 'Outcome',
+        value: 'Keeps immersive and text deploys aligned across every release.',
+      },
       metrics: [
         { label: 'Stack', value: 'Vite · Three.js · accessibility HUD' },
         { label: 'Deploy', value: 'CI smoke + docs + lint gates' },
@@ -378,6 +412,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'f2clipboard Incident Console',
       summary:
         'Kitchen-side diagnostics station where f2clipboard parses Codex logs and pipes concise summaries straight to the clipboard.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Shortened log triage from minutes to instant clipboard capture.',
+      },
       metrics: [
         { label: 'Speed', value: 'Copy failing logs in under 3 s' },
         { label: 'Formats', value: 'CLI + clipboard + Markdown output' },
@@ -393,6 +432,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Sigma Fabrication Bench',
       summary:
         'Workbench showcasing the Sigma ESP32 AI pin with on-device speech, local inference, and 3D-printed shells.',
+      outcome: {
+        label: 'Outcome',
+        value: 'Unlocked on-device voice demos without relying on the cloud.',
+      },
       metrics: [
         { label: 'Hardware', value: 'ESP32 · on-device speech stack' },
         { label: 'Modes', value: 'Push-to-talk · local inference loops' },
@@ -405,6 +448,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Wove Loom Atelier',
       summary:
         'Soft robotics loom where Wove bridges CAD workflows with textiles while teaching knit and crochet fundamentals.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Piloted robotic weaving curriculum across three community workshops.',
+      },
       metrics: [
         { label: 'Craft', value: 'Loom calibrates from CAD stitch maps' },
         { label: 'Roadmap', value: 'Path toward robotic weaving labs' },
@@ -417,6 +465,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'DSPACE Launch Pad',
       summary:
         'Backyard launch gantry staging the DSPACE model rocket with telemetry-guided countdown cues.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Logged 12 flawless rehearsal countdowns with telemetry playback.',
+      },
       metrics: [
         { label: 'Countdown', value: 'Autonomous T-0 sequencing' },
         { label: 'Stack', value: 'Three.js FX · Spatial audio' },
@@ -439,6 +492,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'PR Reaper Automation Gate',
       summary:
         'Backyard control gate that visualises pr-reaper sweeping stale pull requests with safe dry-runs and audit logs.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Cleared 100% of stale pull requests in one audit-friendly sweep.',
+      },
       metrics: [
         { label: 'Sweep', value: 'Bulk-close stale PRs with preview mode' },
         { label: 'Cadence', value: 'Cron triggers + manual dry-runs' },
@@ -451,6 +509,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       title: 'Sugarkube Solar Greenhouse',
       summary:
         'Adaptive greenhouse showcasing Sugarkube automation with responsive grow lights and solar tracking.',
+      outcome: {
+        label: 'Outcome',
+        value:
+          'Maintains 3× daily harvest cadence with autonomous light ramps.',
+      },
       metrics: [
         {
           label: 'Automation',

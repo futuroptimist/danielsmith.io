@@ -51,6 +51,7 @@ describe('buildPoiStructuredData', () => {
       id: 'tokenplace-studio-cluster',
       title: 'First Exhibit',
       summary: 'Highlights automation systems.',
+      outcome: { label: 'Outcome', value: 'Reduced toil 42%' },
       metrics: [
         { label: 'Impact', value: 'Reduced toil 42%' },
         { label: 'Stack', value: 'TypeScript · Three.js' },
@@ -183,6 +184,7 @@ describe('buildPoiStructuredData', () => {
     >;
     expect(additionalProperty).toEqual([
       { '@type': 'PropertyValue', name: 'Category', value: 'project' },
+      { '@type': 'PropertyValue', name: 'Outcome', value: 'Reduced toil 42%' },
       { '@type': 'PropertyValue', name: 'Impact', value: 'Reduced toil 42%' },
       {
         '@type': 'PropertyValue',

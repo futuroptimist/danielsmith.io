@@ -1,5 +1,10 @@
 import type { InputMethod } from '../../ui/hud/movementLegend';
-import type { PoiId, PoiInteraction, PoiNarration } from '../poi/types';
+import type {
+  PoiId,
+  PoiInteraction,
+  PoiNarration,
+  PoiOutcome,
+} from '../poi/types';
 
 export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
 export type LocaleDirection = 'ltr' | 'rtl';
@@ -126,6 +131,7 @@ export interface SiteStrings {
 export interface PoiCopy {
   title: string;
   summary: string;
+  outcome?: PoiOutcome;
   metrics?: ReadonlyArray<{ label: string; value: string }>;
   links?: ReadonlyArray<{ label: string; href: string }>;
   narration?: PoiNarration;

@@ -11,6 +11,11 @@ import {
   Vector3,
 } from 'three';
 
+import {
+  GuidedTourPreference,
+  defaultGuidedTourPreference,
+} from '../../systems/guidedTour/preference';
+
 import type { PoiDefinition } from './types';
 
 type PoiWorldTooltipMode = 'hovered' | 'selected' | 'recommended';
@@ -31,6 +36,7 @@ export interface PoiWorldTooltipOptions {
   scaleDistance?: number;
   minScale?: number;
   maxScale?: number;
+  guidedTourPreference?: GuidedTourPreference;
 }
 
 interface RenderState {
@@ -79,6 +85,8 @@ export class PoiWorldTooltip {
 
   private readonly maxScale: number;
 
+  private readonly guidedTourPreference: GuidedTourPreference;
+
   private readonly opacityByMode: Record<PoiWorldTooltipMode, number> = {
     hovered: 0.85,
     selected: 1,
@@ -90,6 +98,10 @@ export class PoiWorldTooltip {
   private selected: PoiWorldTooltipTarget | null = null;
 
   private recommendation: PoiWorldTooltipTarget | null = null;
+
+  private guidedTourEnabled = true;
+
+  private unsubscribeGuidedTour: (() => void) | null = null;
 
   private readonly targetPosition = new Vector3();
 
@@ -115,6 +127,8 @@ export class PoiWorldTooltip {
     this.scaleDistance = options.scaleDistance ?? 14;
     this.minScale = options.minScale ?? 0.75;
     this.maxScale = options.maxScale ?? 1.85;
+    this.guidedTourPreference =
+      options.guidedTourPreference ?? defaultGuidedTourPreference;
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = 1024;
@@ -148,6 +162,15 @@ export class PoiWorldTooltip {
     this.group.add(this.mesh);
 
     options.parent.add(this.group);
+
+    this.unsubscribeGuidedTour = this.guidedTourPreference.subscribe(
+      (enabled) => {
+        this.guidedTourEnabled = enabled;
+        if (!enabled && !this.hovered && !this.selected) {
+          this.fadeOut(0);
+        }
+      }
+    );
   }
 
   setHovered(target: PoiWorldTooltipTarget | null): void {
@@ -166,12 +189,13 @@ export class PoiWorldTooltip {
     if (this.disposed) {
       return;
     }
-    const active = this.selected ?? this.hovered ?? this.recommendation;
+    const recommendation = this.guidedTourEnabled ? this.recommendation : null;
+    const active = this.selected ?? this.hovered ?? recommendation;
     const mode: PoiWorldTooltipMode | null = this.selected
       ? 'selected'
       : this.hovered
         ? 'hovered'
-        : this.recommendation
+        : recommendation
           ? 'recommended'
           : null;
 
@@ -242,6 +266,10 @@ export class PoiWorldTooltip {
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     this.texture.dispose();
+    if (this.unsubscribeGuidedTour) {
+      this.unsubscribeGuidedTour();
+      this.unsubscribeGuidedTour = null;
+    }
   }
 
   getState(): TooltipStateSnapshot {
@@ -344,6 +372,23 @@ export class PoiWorldTooltip {
       font: '36px "Inter", "Segoe UI", sans-serif',
     });
 
+    let contentBottom = summaryBottom;
+
+    if (poi.outcome && poi.outcome.value.trim()) {
+      const outcomeLabel = poi.outcome.label?.trim() || 'Outcome';
+      const outcomeText = `${outcomeLabel}: ${poi.outcome.value.trim()}`;
+      context.font = '34px "Inter", "Segoe UI", sans-serif';
+      context.fillStyle = 'rgba(172, 234, 255, 0.96)';
+      contentBottom = this.fillWrappedText(outcomeText, {
+        x: titleX,
+        y: summaryBottom + 54,
+        maxWidth: width - padding * 3,
+        lineHeight: 48,
+        maxLines: 2,
+        font: '34px "Inter", "Segoe UI", sans-serif',
+      });
+    }
+
     if (poi.metrics && poi.metrics.length > 0) {
       const metricText = poi.metrics
         .slice(0, 2)
@@ -351,7 +396,7 @@ export class PoiWorldTooltip {
         .join('   •   ');
       context.font = '34px "Inter", "Segoe UI", sans-serif';
       context.fillStyle = 'rgba(164, 232, 255, 0.95)';
-      const metricsY = Math.max(summaryBottom + 72, height - padding * 1.6);
+      const metricsY = Math.max(contentBottom + 54, height - padding * 1.6);
       context.fillText(metricText, titleX, metricsY);
     }
 

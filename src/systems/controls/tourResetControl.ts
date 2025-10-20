@@ -1,4 +1,8 @@
 import type { PoiVisitedListener } from '../../scene/poi/visitedState';
+import {
+  GuidedTourPreference,
+  defaultGuidedTourPreference,
+} from '../guidedTour/preference';
 
 export interface TourResetControlOptions {
   container: HTMLElement;
@@ -20,10 +24,14 @@ export interface TourResetControlOptions {
   emptyLabel?: string;
   emptyDescription?: string;
   pendingLabel?: string;
+  guidedTourPreference?: GuidedTourPreference;
+  guidedTourDescription?: string;
+  guidedTourLabelOn?: string;
+  guidedTourLabelOff?: string;
 }
 
 export interface TourResetControlHandle {
-  readonly element: HTMLButtonElement;
+  readonly element: HTMLElement;
   dispose(): void;
 }
 
@@ -60,13 +68,40 @@ export function createTourResetControl({
   emptyLabel = 'Guided tour ready',
   emptyDescription = 'Explore exhibits to unlock the guided tour reset.',
   pendingLabel = 'Resetting tour…',
+  guidedTourPreference = defaultGuidedTourPreference,
+  guidedTourDescription = 'Show recommended exhibits when idle.',
+  guidedTourLabelOn = 'Guided tour highlights: On',
+  guidedTourLabelOff = 'Guided tour highlights: Off',
 }: TourResetControlOptions): TourResetControlHandle {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'tour-reset';
-  button.dataset.state = 'empty';
-  button.setAttribute('aria-label', description);
-  container.appendChild(button);
+  const wrapper = document.createElement('section');
+  wrapper.className = 'guided-tour-control';
+  wrapper.dataset.pending = 'false';
+
+  const heading = document.createElement('h2');
+  heading.className = 'guided-tour-control__title';
+  heading.textContent = 'Guided tour';
+  wrapper.appendChild(heading);
+
+  const descriptionParagraph = document.createElement('p');
+  descriptionParagraph.className = 'guided-tour-control__description';
+  descriptionParagraph.textContent = guidedTourDescription;
+  wrapper.appendChild(descriptionParagraph);
+
+  const toggleButton = document.createElement('button');
+  toggleButton.type = 'button';
+  toggleButton.className = 'guided-tour-control__toggle';
+  toggleButton.setAttribute('aria-pressed', 'false');
+  toggleButton.dataset.state = 'off';
+  wrapper.appendChild(toggleButton);
+
+  const resetButton = document.createElement('button');
+  resetButton.type = 'button';
+  resetButton.className = 'tour-reset';
+  resetButton.dataset.state = 'empty';
+  resetButton.setAttribute('aria-label', description);
+  wrapper.appendChild(resetButton);
+
+  container.appendChild(wrapper);
 
   const normalizeKey = (value: string | undefined) => {
     if (!value) {
@@ -83,6 +118,32 @@ export function createTourResetControl({
 
   let visitedCount = 0;
   let pending = false;
+  let guidedTourEnabled = guidedTourPreference.isEnabled();
+
+  const buildToggleAnnouncement = (enabled: boolean) => {
+    const stateLabel = enabled ? 'enabled' : 'disabled';
+    return `Guided tour highlights ${stateLabel}. Activate to ${
+      enabled ? 'disable' : 'enable'
+    } recommendations.`;
+  };
+
+  const refreshToggle = () => {
+    guidedTourEnabled = guidedTourPreference.isEnabled();
+    toggleButton.dataset.state = guidedTourEnabled ? 'on' : 'off';
+    toggleButton.textContent = guidedTourEnabled
+      ? guidedTourLabelOn
+      : guidedTourLabelOff;
+    toggleButton.setAttribute(
+      'aria-pressed',
+      guidedTourEnabled ? 'true' : 'false'
+    );
+    toggleButton.dataset.hudAnnounce =
+      buildToggleAnnouncement(guidedTourEnabled);
+    toggleButton.title = guidedTourEnabled
+      ? 'Disable guided tour highlights'
+      : 'Enable guided tour highlights';
+    wrapper.dataset.guidedTour = guidedTourEnabled ? 'on' : 'off';
+  };
 
   const buildHudAnnouncement = (message: string, includePrompt: boolean) => {
     if (!includePrompt || !normalizedResetKey) {
@@ -94,35 +155,38 @@ export function createTourResetControl({
   const refreshState = () => {
     const hasVisited = visitedCount > 0;
     if (pending) {
-      button.disabled = true;
-      button.dataset.state = 'pending';
-      button.textContent = pendingLabel;
-      button.title = idleTitle;
-      button.setAttribute(
+      resetButton.disabled = true;
+      resetButton.dataset.state = 'pending';
+      resetButton.textContent = pendingLabel;
+      resetButton.title = idleTitle;
+      resetButton.setAttribute(
         'aria-label',
         appendClause(description, 'Resetting the guided tour…')
       );
-      button.dataset.hudAnnounce = appendClause(
+      resetButton.dataset.hudAnnounce = appendClause(
         description,
         'Resetting the guided tour…'
       );
+      wrapper.dataset.pending = 'true';
       return;
     }
     if (!hasVisited) {
-      button.disabled = true;
-      button.dataset.state = 'empty';
-      button.textContent = emptyLabel;
-      button.title = emptyDescription;
-      button.setAttribute('aria-label', emptyDescription);
-      button.dataset.hudAnnounce = emptyDescription;
+      resetButton.disabled = true;
+      resetButton.dataset.state = 'empty';
+      resetButton.textContent = emptyLabel;
+      resetButton.title = emptyDescription;
+      resetButton.setAttribute('aria-label', emptyDescription);
+      resetButton.dataset.hudAnnounce = emptyDescription;
+      wrapper.dataset.pending = 'false';
       return;
     }
-    button.disabled = false;
-    button.dataset.state = 'ready';
-    button.textContent = label;
-    button.title = idleTitle;
-    button.setAttribute('aria-label', description);
-    button.dataset.hudAnnounce = buildHudAnnouncement(description, true);
+    resetButton.disabled = false;
+    resetButton.dataset.state = 'ready';
+    resetButton.textContent = label;
+    resetButton.title = idleTitle;
+    resetButton.setAttribute('aria-label', description);
+    resetButton.dataset.hudAnnounce = buildHudAnnouncement(description, true);
+    wrapper.dataset.pending = 'false';
   };
 
   const finalizeReset = () => {
@@ -178,7 +242,18 @@ export function createTourResetControl({
     activate();
   };
 
-  button.addEventListener('click', handleClick);
+  const handleToggleClick = () => {
+    guidedTourPreference.toggle('control');
+  };
+
+  const unsubscribePreference = guidedTourPreference.subscribe(() => {
+    refreshToggle();
+  });
+
+  toggleButton.addEventListener('click', handleToggleClick);
+  refreshToggle();
+
+  resetButton.addEventListener('click', handleClick);
   if (resetKey) {
     windowTarget.addEventListener('keydown', handleKeydown);
   }
@@ -191,15 +266,17 @@ export function createTourResetControl({
   refreshState();
 
   return {
-    element: button,
+    element: wrapper,
     dispose() {
-      button.removeEventListener('click', handleClick);
+      resetButton.removeEventListener('click', handleClick);
       if (resetKey) {
         windowTarget.removeEventListener('keydown', handleKeydown);
       }
       unsubscribeVisited();
-      if (button.parentElement) {
-        button.remove();
+      unsubscribePreference();
+      toggleButton.removeEventListener('click', handleToggleClick);
+      if (wrapper.parentElement) {
+        wrapper.remove();
       }
     },
   };
