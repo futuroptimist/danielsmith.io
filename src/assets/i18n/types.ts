@@ -2,6 +2,7 @@ import type { InputMethod } from '../../ui/hud/movementLegend';
 import type {
   PoiId,
   PoiInteraction,
+  PoiMetricSource,
   PoiNarration,
   PoiOutcome,
 } from '../poi/types';
@@ -138,7 +139,11 @@ export interface PoiCopy {
   title: string;
   summary: string;
   outcome?: PoiOutcome;
-  metrics?: ReadonlyArray<{ label: string; value: string }>;
+  metrics?: ReadonlyArray<{
+    label: string;
+    value: string;
+    source?: PoiMetricSource;
+  }>;
   links?: ReadonlyArray<{ label: string; href: string }>;
   narration?: PoiNarration;
   interactionPrompt?: string;

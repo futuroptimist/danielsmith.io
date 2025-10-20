@@ -49,8 +49,9 @@ layer without guessing where functionality lives.
 - [`src/assets/`](../../src/assets/) – floor plans, localisation, theme, and
   performance budgets. Also exposes POI copy consumed across systems and UI.
 - [`src/systems/`](../../src/systems/) – keyboard controls, audio pipelines,
-  movement prediction, collision detection, mode failover, and HUD control
-  handles. Systems never import from `src/ui/`.
+  movement prediction, collision detection, mode failover, HUD control handles,
+  and the GitHub repo stats service that streams live metrics into POIs.
+  Systems never import from `src/ui/`.
 - [`src/scene/`](../../src/scene/) – avatar importers, environmental builds,
   POI registries, lighting helpers, and structural meshes. Scene code consumes
   system handles and emits immutable references for UI/tests.
@@ -86,7 +87,9 @@ layer without guessing where functionality lives.
   room-aware lookups via `poiRegistry.getByRoom(...)`. Interaction handlers in
   `src/scene/poi/interactionManager.ts` emit POI selection events. UI layers
   listen via the shared observable to mirror selection state in
-  [`src/ui/poi/tooltipOverlay.tsx`](../../src/ui/poi/tooltipOverlay.tsx).
+  [`src/ui/poi/tooltipOverlay.tsx`](../../src/ui/poi/tooltipOverlay.tsx), while
+  [`src/scene/poi/githubMetrics.ts`](../../src/scene/poi/githubMetrics.ts)
+  wires GitHub star counts into both the in-world tooltip and HUD overlay.
 - **Accessibility overlays** – `HudFocusAnnouncerHandle` flows from systems
   into DOM overlays: `src/ui/accessibility/ariaBridges.ts` registers live
   regions, while Playwright specs assert emitted announcements against

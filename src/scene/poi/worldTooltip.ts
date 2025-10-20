@@ -254,6 +254,24 @@ export class PoiWorldTooltip {
     }
   }
 
+  notifyPoiUpdated(poiId: string): void {
+    if (this.disposed) {
+      return;
+    }
+    const recommendation = this.guidedTourEnabled ? this.recommendation : null;
+    const activeTarget = this.selected ?? this.hovered ?? recommendation;
+    const mode: PoiWorldTooltipMode | null = this.selected
+      ? 'selected'
+      : this.hovered
+        ? 'hovered'
+        : recommendation
+          ? 'recommended'
+          : null;
+    if (activeTarget && mode && activeTarget.poi.id === poiId) {
+      this.renderTooltip(activeTarget.poi, mode);
+    }
+  }
+
   dispose(): void {
     if (this.disposed) {
       return;

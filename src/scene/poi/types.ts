@@ -18,9 +18,29 @@ export type PoiCategory = 'project' | 'environment';
 
 export type PoiInteraction = 'inspect' | 'activate';
 
+export interface PoiMetricGitHubStarsSource {
+  type: 'githubStars';
+  owner: string;
+  repo: string;
+  /**
+   * Optional visibility hint. Private repositories skip live fetches and stay on
+   * their fallback values to avoid surfacing missing asset errors in the client.
+   */
+  visibility?: 'public' | 'private';
+  /** Format style for rendering live star counts. */
+  format?: 'compact' | 'standard';
+  /** Optional string template that receives the formatted value via `{value}`. */
+  template?: string;
+  /** Fallback copy used when live data is unavailable. */
+  fallback?: string;
+}
+
+export type PoiMetricSource = PoiMetricGitHubStarsSource;
+
 export interface PoiMetric {
   label: string;
   value: string;
+  source?: PoiMetricSource;
 }
 
 export interface PoiOutcome {

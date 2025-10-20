@@ -202,6 +202,26 @@ describe('PoiTooltipOverlay', () => {
     expect(root.getAttribute('aria-hidden')).toBe('true');
   });
 
+  it('refreshes metric values when notified about updates', () => {
+    overlay.setHovered(basePoi);
+    const metricSelector = '.poi-tooltip-overlay__metric-value';
+    const initialValues = Array.from(
+      container.querySelectorAll<HTMLSpanElement>(metricSelector)
+    ).map((node) => node.textContent);
+    expect(initialValues).toContain('Resolve-style suite · triple display');
+
+    if (basePoi.metrics?.[0]) {
+      basePoi.metrics[0].value = 'Updated workflow';
+    }
+
+    overlay.notifyPoiUpdated(basePoi.id);
+
+    const updatedValues = Array.from(
+      container.querySelectorAll<HTMLSpanElement>(metricSelector)
+    ).map((node) => node.textContent);
+    expect(updatedValues).toContain('Updated workflow');
+  });
+
   it('hides the outcome row when a POI omits the outcome field', () => {
     const poiWithoutOutcome: PoiDefinition = {
       ...basePoi,
