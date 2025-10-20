@@ -268,6 +268,7 @@ Focus: make the experience inclusive and globally friendly.
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.
    - ✅ Translation scaffolding now provides pseudo locale overrides and English fallbacks.
    - Ensure fonts, layout, and text rendering handle RTL and CJK scripts gracefully.
+     - ✅ Locale script detection now tags the DOM so CJK locales load dedicated font fallbacks.
      - ✅ Text fallback and HUD overlays now apply RTL direction metadata so Arabic and Hebrew copy align as expected.
 
 ## Phase 5 – Hero Avatar

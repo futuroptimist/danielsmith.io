@@ -11,6 +11,7 @@ import type {
   LocaleOverrides,
   LocaleStrings,
   LocaleDirection,
+  LocaleScript,
   MovementLegendStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
@@ -137,6 +138,22 @@ const RTL_LOCALE_CODES = new Set([
   'yi',
 ]);
 
+const CJK_LOCALE_CODES = new Set([
+  'ja',
+  'ja-jp',
+  'ko',
+  'ko-kr',
+  'yue',
+  'zh',
+  'zh-cn',
+  'zh-hans',
+  'zh-hant',
+  'zh-hk',
+  'zh-mo',
+  'zh-sg',
+  'zh-tw',
+]);
+
 export function getLocaleDirection(input?: LocaleInput): LocaleDirection {
   const normalized = normalizeLocaleInput(input);
   if (!normalized) {
@@ -153,6 +170,25 @@ export function getLocaleDirection(input?: LocaleInput): LocaleDirection {
   }
 
   return 'ltr';
+}
+
+export function getLocaleScript(input?: LocaleInput): LocaleScript {
+  const normalized = normalizeLocaleInput(input);
+  if (!normalized) {
+    return 'latin';
+  }
+
+  const [primary] = normalized.split('-', 1);
+
+  if (CJK_LOCALE_CODES.has(normalized) || CJK_LOCALE_CODES.has(primary ?? '')) {
+    return 'cjk';
+  }
+
+  if (RTL_LOCALE_CODES.has(normalized) || RTL_LOCALE_CODES.has(primary ?? '')) {
+    return 'rtl';
+  }
+
+  return 'latin';
 }
 
 export function getLocaleStrings(input?: LocaleInput): LocaleStrings {

@@ -1,6 +1,7 @@
 import type { LocaleInput } from '../../assets/i18n';
 import {
   getLocaleDirection,
+  getLocaleScript,
   getMovementLegendStrings,
   resolveLocale,
 } from '../../assets/i18n';
@@ -331,8 +332,10 @@ export function createMovementLegend(
   const localeInput = locale ?? navigatorLanguage;
   const resolvedLocale = resolveLocale(localeInput);
   const direction = getLocaleDirection(localeInput);
+  const script = getLocaleScript(localeInput);
   container.dir = direction;
   container.dataset.localeDirection = direction;
+  container.dataset.localeScript = script;
   const legendStrings = getMovementLegendStrings(resolvedLocale);
   const fallbackInteractDescription =
     defaultInteractDescription ?? legendStrings.defaultDescription;

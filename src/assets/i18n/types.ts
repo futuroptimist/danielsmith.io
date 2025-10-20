@@ -3,6 +3,7 @@ import type { PoiId, PoiNarration } from '../poi/types';
 
 export type Locale = 'en' | 'en-x-pseudo';
 export type LocaleDirection = 'ltr' | 'rtl';
+export type LocaleScript = 'latin' | 'cjk' | 'rtl';
 
 export interface ControlOverlayItemStrings {
   keys: string;
