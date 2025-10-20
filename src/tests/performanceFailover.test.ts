@@ -95,6 +95,9 @@ describe('createPerformanceFailoverHandler', () => {
       .calls[0][0] as PerformanceFailoverTriggerContext;
     expect(context.averageFps).toBeLessThan(25);
     expect(context.durationMs).toBeGreaterThanOrEqual(5000);
+    expect(context.sampleCount).toBeGreaterThan(0);
+    expect(context.minFps).toBeLessThanOrEqual(context.p95Fps);
+    expect(context.maxFps).toBeGreaterThanOrEqual(context.p95Fps);
   });
 
   it('ignores sporadic low FPS frames', () => {

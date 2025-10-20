@@ -1,5 +1,6 @@
 import type { FallbackReason, RenderTextFallbackOptions } from '../failover';
 import { renderTextFallback } from '../failover';
+import { createFpsAccumulator } from '../performance/fpsAccumulator';
 
 import {
   createConsoleBudgetMonitor,
@@ -19,6 +20,10 @@ export interface ImmersiveRendererHandle {
 export interface PerformanceFailoverTriggerContext {
   averageFps: number;
   durationMs: number;
+  sampleCount: number;
+  minFps: number;
+  maxFps: number;
+  p95Fps: number;
 }
 
 export interface PerformanceFailoverHandlerOptions {
@@ -67,9 +72,7 @@ class PerformanceFailoverMonitor {
 
   private lowFpsDurationMs = 0;
 
-  private lowFpsFpsSum = 0;
-
-  private lowFpsSampleCount = 0;
+  private readonly fpsAccumulator = createFpsAccumulator();
 
   private triggered = false;
 
@@ -95,17 +98,18 @@ class PerformanceFailoverMonitor {
     const fps = frameMs > 0 ? 1000 / frameMs : Number.POSITIVE_INFINITY;
     if (fps < this.fpsThreshold) {
       this.lowFpsDurationMs += frameMs;
-      this.lowFpsFpsSum += fps;
-      this.lowFpsSampleCount += 1;
+      this.fpsAccumulator.record(fps);
       if (this.lowFpsDurationMs >= this.minimumDurationMs) {
         this.triggered = true;
-        const averageFps =
-          this.lowFpsSampleCount > 0
-            ? this.lowFpsFpsSum / this.lowFpsSampleCount
-            : fps;
+        const summary = this.fpsAccumulator.getSummary();
+        const averageFps = summary?.averageFps ?? fps;
         this.onTrigger({
           averageFps,
           durationMs: this.lowFpsDurationMs,
+          sampleCount: summary?.count ?? 1,
+          minFps: summary?.minFps ?? fps,
+          maxFps: summary?.maxFps ?? fps,
+          p95Fps: summary?.p95Fps ?? fps,
         });
       }
       return;
@@ -119,8 +123,7 @@ class PerformanceFailoverMonitor {
 
   private resetLowFpsSamples(): void {
     this.lowFpsDurationMs = 0;
-    this.lowFpsFpsSum = 0;
-    this.lowFpsSampleCount = 0;
+    this.fpsAccumulator.reset();
   }
 }
 
