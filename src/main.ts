@@ -2056,9 +2056,6 @@ function initializeImmersiveScene(
   const openHelpMenu = () => {
     helpModal.open();
   };
-  const closeHelpMenu = () => {
-    helpModal.close();
-  };
   const toggleHelpMenu = (force?: boolean) => {
     helpModal.toggle(force);
   };
