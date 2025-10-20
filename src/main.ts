@@ -2030,36 +2030,37 @@ function initializeImmersiveScene(
       element.hidden = true;
     });
   };
-  const helpModalBackdrop = helpModal.element.parentElement as HTMLElement | null;
-  const syncHudControlVisibility = () => {
-    if (helpModalBackdrop?.hidden) {
-      hideHudControlElements();
-    } else {
-      showHudControlElements();
-    }
-  };
-  syncHudControlVisibility();
-  const hudControlObserver =
-    helpModalBackdrop && new MutationObserver(syncHudControlVisibility);
-  hudControlObserver?.observe(helpModalBackdrop, {
-    attributes: true,
-    attributeFilter: ['hidden'],
-  });
-  const openHelpMenu = () => {
+
+  const originalHelpModalOpen = helpModal.open.bind(helpModal);
+  const originalHelpModalClose = helpModal.close.bind(helpModal);
+  const originalHelpModalToggle = helpModal.toggle.bind(helpModal);
+
+  helpModal.open = () => {
     showHudControlElements();
+    originalHelpModalOpen();
+  };
+  helpModal.close = () => {
+    originalHelpModalClose();
+    hideHudControlElements();
+  };
+  helpModal.toggle = (force?: boolean) => {
+    const shouldOpen = force ?? !helpModal.isOpen();
+    if (shouldOpen) {
+      showHudControlElements();
+    } else {
+      hideHudControlElements();
+    }
+    originalHelpModalToggle(force);
+  };
+
+  const openHelpMenu = () => {
     helpModal.open();
   };
   const closeHelpMenu = () => {
     helpModal.close();
-    hideHudControlElements();
   };
   const toggleHelpMenu = (force?: boolean) => {
-    const shouldOpen = force ?? !helpModal.isOpen();
-    if (shouldOpen) {
-      openHelpMenu();
-    } else {
-      closeHelpMenu();
-    }
+    helpModal.toggle(force);
   };
   poiNarrativeLog = createPoiNarrativeLog({
     container: helpModal.element,
@@ -3247,7 +3248,6 @@ function initializeImmersiveScene(
       return;
     }
     immersiveDisposed = true;
-    hudControlObserver?.disconnect();
     ledAnimator = null;
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
