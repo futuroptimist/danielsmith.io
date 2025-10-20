@@ -202,6 +202,7 @@ const createSiteEntry = (
     name: siteName,
     url: canonical,
     inLanguage: locale,
+    isAccessibleForFree: true,
   };
 };
 
@@ -253,6 +254,7 @@ export const buildPoiStructuredData = (
     name: siteName,
     url: canonical,
     inLanguage: locale,
+    isAccessibleForFree: true,
     description,
   };
 
@@ -420,6 +422,8 @@ export const buildTextPortfolioStructuredData = (
   const hasPart = pois.map((poi) => ({
     '@type': 'CreativeWork',
     '@id': createPoiUrl(canonical, poi.id),
+    inLanguage: locale,
+    isAccessibleForFree: true,
   }));
 
   const structuredData: Record<string, unknown> = {

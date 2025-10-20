@@ -207,7 +207,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      unless immersive mode is explicitly forced.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
-   - ✨ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
+   - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
      crawlers understand language coverage and free access guarantees.
    - ✅ Text fallback links back to immersive mode with the override URL so returns bypass
      automatic failover heuristics.
