@@ -78,6 +78,47 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         gamepad: 'A',
       },
     },
+    keyBindings: {
+      heading: 'Keyboard shortcuts',
+      description:
+        'Select a binding, press a key, and press Escape to cancel if needed.',
+      capturePrompt: 'Press a key…',
+      captureInstruction: 'Listening for a key press. Press Escape to cancel.',
+      unboundLabel: 'Unbound',
+      resetLabel: 'Reset',
+      resetAllLabel: 'Reset all',
+      slotLabels: {
+        primary: 'Primary',
+        secondary: 'Alternate',
+        fallbackTemplate: 'Binding {index}',
+      },
+      actions: {
+        moveForward: {
+          label: 'Move north',
+          description: 'Move away from the camera (north).',
+        },
+        moveBackward: {
+          label: 'Move south',
+          description: 'Move toward the camera (south).',
+        },
+        moveLeft: {
+          label: 'Move west',
+          description: 'Strafe left relative to the camera.',
+        },
+        moveRight: {
+          label: 'Move east',
+          description: 'Strafe right relative to the camera.',
+        },
+        interact: {
+          label: 'Interact',
+          description: 'Activate exhibits and confirm HUD controls.',
+        },
+        help: {
+          label: 'Open help',
+          description: 'Toggle the Settings & Help panel.',
+        },
+      },
+    },
     narrativeLog: {
       heading: 'Creator story log',
       empty:

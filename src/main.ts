@@ -48,6 +48,7 @@ import {
   formatMessage,
   getControlOverlayStrings,
   getHelpModalStrings,
+  getKeyBindingControlStrings,
   getPoiNarrativeLogStrings,
   getSiteStrings,
   resolveLocale,
@@ -216,6 +217,10 @@ import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
 } from './systems/controls/graphicsQualityControl';
+import {
+  createKeyBindingRemapControl,
+  type KeyBindingRemapControlHandle,
+} from './systems/controls/keyBindingRemapControl';
 import {
   KeyBindings,
   createKeyBindingAwareSource,
@@ -588,6 +593,7 @@ function initializeImmersiveScene(
   let unsubscribeAvatarVariant: (() => void) | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
+  let keyBindingRemapControl: KeyBindingRemapControlHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
@@ -602,6 +608,7 @@ function initializeImmersiveScene(
   document.documentElement.lang = locale;
   const controlOverlayStrings = getControlOverlayStrings(locale);
   const helpModalStrings = getHelpModalStrings(locale);
+  const keyBindingStrings = getKeyBindingControlStrings(locale);
   const narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   const siteStrings = getSiteStrings(locale);
   const narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -2015,6 +2022,44 @@ function initializeImmersiveScene(
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
   hudSettingsContainer.appendChild(hudSettingsStack);
+  keyBindingRemapControl = createKeyBindingRemapControl({
+    container: hudSettingsStack,
+    keyBindings,
+    strings: keyBindingStrings,
+    onCommit: saveKeyBindings,
+    actions: [
+      {
+        action: 'moveForward',
+        label: keyBindingStrings.actions.moveForward.label,
+        description: keyBindingStrings.actions.moveForward.description,
+      },
+      {
+        action: 'moveBackward',
+        label: keyBindingStrings.actions.moveBackward.label,
+        description: keyBindingStrings.actions.moveBackward.description,
+      },
+      {
+        action: 'moveLeft',
+        label: keyBindingStrings.actions.moveLeft.label,
+        description: keyBindingStrings.actions.moveLeft.description,
+      },
+      {
+        action: 'moveRight',
+        label: keyBindingStrings.actions.moveRight.label,
+        description: keyBindingStrings.actions.moveRight.description,
+      },
+      {
+        action: 'interact',
+        label: keyBindingStrings.actions.interact.label,
+        description: keyBindingStrings.actions.interact.description,
+      },
+      {
+        action: 'help',
+        label: keyBindingStrings.actions.help.label,
+        description: keyBindingStrings.actions.help.description,
+      },
+    ],
+  });
   poiNarrativeLog = createPoiNarrativeLog({
     container: helpModal.element,
     strings: narrativeLogStrings,
@@ -3173,6 +3218,10 @@ function initializeImmersiveScene(
     window.removeEventListener('pointermove', handlePointerMoveForCameraPan);
     window.removeEventListener('pointerup', handlePointerUpForCameraPan);
     window.removeEventListener('pointercancel', handlePointerUpForCameraPan);
+    if (keyBindingRemapControl) {
+      keyBindingRemapControl.dispose();
+      keyBindingRemapControl = null;
+    }
     if (audioHudHandle) {
       audioHudHandle.dispose();
       audioHudHandle = null;

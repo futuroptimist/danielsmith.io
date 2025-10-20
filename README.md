@@ -194,9 +194,10 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 ## Controls
 
 - **Movement** – Use `WASD` or arrow keys to guide the mannequin.
-- **Key remapping** – Use `portfolio.input.keyBindings.setBinding('interact', ['e'])`
-  in the browser console to try alternate bindings. HUD prompts update instantly and
-  the mapping persists locally.
+- **Key remapping** – Open the Help modal and use the **Keyboard shortcuts** panel to
+  capture new bindings (press Escape to cancel). The console API also remains
+  available via `portfolio.input.keyBindings.setBinding('interact', ['e'])`, and HUD
+  prompts update instantly with each change.
 - **Touch** – Drag the on-screen joysticks (left: movement, right: camera pan) on touch devices.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
 - **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the

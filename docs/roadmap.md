@@ -236,6 +236,8 @@ Focus: make the experience inclusive and globally friendly.
 - Keyboard-only navigation parity, remappable bindings, and full controller support.
   - ✅ Keyboard bindings now persist across sessions and update the HUD/help overlays
     via the new remapping service.
+  - ✅ HUD keyboard remap control inside the Settings panel now captures new bindings,
+    supports Escape to cancel, and persists updates locally.
   - ✅ Gamepad activity monitor now drives the HUD movement legend so controller
     players see the A-button interact prompt the moment a pad is used.
 

@@ -1,3 +1,4 @@
+import type { KeyBindingAction } from '../../systems/controls/keyBindings';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 import type { PoiId, PoiNarration } from '../poi/types';
 
@@ -61,6 +62,22 @@ export interface HelpModalStrings {
   sections: readonly HelpModalSectionStrings[];
 }
 
+export interface KeyBindingControlStrings {
+  heading: string;
+  description: string;
+  capturePrompt: string;
+  captureInstruction: string;
+  unboundLabel: string;
+  resetLabel: string;
+  resetAllLabel: string;
+  slotLabels: {
+    primary: string;
+    secondary: string;
+    fallbackTemplate: string;
+  };
+  actions: Record<KeyBindingAction, { label: string; description: string }>;
+}
+
 export interface PoiNarrativeLogStrings {
   heading: string;
   empty: string;
@@ -109,6 +126,7 @@ export interface LocaleStrings {
     movementLegend: MovementLegendStrings;
     helpModal: HelpModalStrings;
     narrativeLog: PoiNarrativeLogStrings;
+    keyBindings: KeyBindingControlStrings;
   };
   poi: Record<PoiId, PoiCopy>;
 }

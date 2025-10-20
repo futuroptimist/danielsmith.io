@@ -36,6 +36,50 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         gamepad: wrap('A'),
       },
     },
+    keyBindings: {
+      heading: wrap('Keyboard shortcuts'),
+      description: wrap(
+        'Select a binding, press a key, and press Escape to cancel if needed.'
+      ),
+      capturePrompt: wrap('Press a key…'),
+      captureInstruction: wrap(
+        'Listening for a key press. Press Escape to cancel.'
+      ),
+      unboundLabel: wrap('Unbound'),
+      resetLabel: wrap('Reset'),
+      resetAllLabel: wrap('Reset all'),
+      slotLabels: {
+        primary: wrap('Primary'),
+        secondary: wrap('Alternate'),
+        fallbackTemplate: wrap('Binding {index}'),
+      },
+      actions: {
+        moveForward: {
+          label: wrap('Move north'),
+          description: wrap('Move away from the camera (north).'),
+        },
+        moveBackward: {
+          label: wrap('Move south'),
+          description: wrap('Move toward the camera (south).'),
+        },
+        moveLeft: {
+          label: wrap('Move west'),
+          description: wrap('Strafe left relative to the camera.'),
+        },
+        moveRight: {
+          label: wrap('Move east'),
+          description: wrap('Strafe right relative to the camera.'),
+        },
+        interact: {
+          label: wrap('Interact'),
+          description: wrap('Activate exhibits and confirm HUD controls.'),
+        },
+        help: {
+          label: wrap('Open help'),
+          description: wrap('Toggle the Settings & Help panel.'),
+        },
+      },
+    },
     narrativeLog: {
       heading: wrap('Creator story log'),
       empty: wrap(

@@ -11,6 +11,7 @@ import type {
   LocaleOverrides,
   LocaleStrings,
   LocaleDirection,
+  KeyBindingControlStrings,
   MovementLegendStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
@@ -190,6 +191,12 @@ export function getMovementLegendStrings(
   input?: LocaleInput
 ): MovementLegendStrings {
   return getLocaleStrings(input).hud.movementLegend;
+}
+
+export function getKeyBindingControlStrings(
+  input?: LocaleInput
+): KeyBindingControlStrings {
+  return getLocaleStrings(input).hud.keyBindings;
 }
 
 export function getPoiNarrativeLogStrings(
