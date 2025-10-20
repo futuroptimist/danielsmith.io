@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createTourResetControl } from '../systems/controls/tourResetControl';
+import { GuidedTourPreference } from '../systems/guidedTour/preference';
 
 describe('createTourResetControl', () => {
   const flushPromises = async () => {
@@ -32,34 +33,53 @@ describe('createTourResetControl', () => {
     return { subscribe, emit, unsubscribe };
   };
 
+  const createPreference = () =>
+    new GuidedTourPreference({
+      storage: {
+        getItem: () => null,
+        setItem: () => {
+          /* noop */
+        },
+      },
+      windowTarget: window,
+      defaultEnabled: true,
+    });
+
   it('renders disabled state until POIs are visited', () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
+    const preference = createPreference();
 
     const handle = createTourResetControl({
       container,
       subscribeVisited: subscription.subscribe,
       onReset: vi.fn(),
+      guidedTourPreference: preference,
     });
 
-    const button = handle.element;
-    expect(button).toBeInstanceOf(HTMLButtonElement);
-    expect(button.disabled).toBe(true);
-    expect(button.dataset.state).toBe('empty');
-    expect(button.textContent).toBe('Guided tour ready');
-    expect(button.dataset.hudAnnounce).toBe(
+    const wrapper = handle.element;
+    expect(wrapper).toBeInstanceOf(HTMLElement);
+    const resetButton = wrapper.querySelector(
+      '.tour-reset'
+    ) as HTMLButtonElement;
+    expect(resetButton).toBeTruthy();
+    expect(resetButton.disabled).toBe(true);
+    expect(resetButton.dataset.state).toBe('empty');
+    expect(resetButton.textContent).toBe('Guided tour ready');
+    expect(resetButton.dataset.hudAnnounce).toBe(
       'Explore exhibits to unlock the guided tour reset.'
     );
 
     subscription.emit(['a', 'b']);
-    expect(button.disabled).toBe(false);
-    expect(button.dataset.state).toBe('ready');
-    expect(button.textContent).toBe('Restart guided tour');
-    expect(button.dataset.hudAnnounce).toContain('Press G to restart.');
+    expect(resetButton.disabled).toBe(false);
+    expect(resetButton.dataset.state).toBe('ready');
+    expect(resetButton.textContent).toBe('Restart guided tour');
+    expect(resetButton.dataset.hudAnnounce).toContain('Press G to restart.');
 
     handle.dispose();
     expect(subscription.unsubscribe).toHaveBeenCalledTimes(1);
-    expect(container.contains(button)).toBe(false);
+    expect(container.contains(wrapper)).toBe(false);
+    preference.dispose();
     container.remove();
   });
 
@@ -67,6 +87,7 @@ describe('createTourResetControl', () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
     subscription.emit(['seed']);
+    const preference = createPreference();
 
     const reset = vi.fn(() => Promise.resolve());
     const handle = createTourResetControl({
@@ -75,22 +96,25 @@ describe('createTourResetControl', () => {
       onReset: reset,
       resetKey: 'r',
       windowTarget: window,
+      guidedTourPreference: preference,
     });
 
-    const button = handle.element;
+    const resetButton = handle.element.querySelector(
+      '.tour-reset'
+    ) as HTMLButtonElement;
     subscription.emit(['seed']);
-    expect(button.disabled).toBe(false);
+    expect(resetButton.disabled).toBe(false);
 
-    button.click();
+    resetButton.click();
     expect(reset).toHaveBeenCalledTimes(1);
-    expect(button.dataset.state).toBe('pending');
-    expect(button.disabled).toBe(true);
+    expect(resetButton.dataset.state).toBe('pending');
+    expect(resetButton.disabled).toBe(true);
 
     await flushPromises();
     subscription.emit([]);
     await flushPromises();
-    expect(button.dataset.state).toBe('empty');
-    expect(button.disabled).toBe(true);
+    expect(resetButton.dataset.state).toBe('empty');
+    expect(resetButton.disabled).toBe(true);
 
     subscription.emit(['next']);
     const event = new KeyboardEvent('keydown', { key: 'r' });
@@ -101,6 +125,7 @@ describe('createTourResetControl', () => {
     handle.dispose();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
     expect(reset).toHaveBeenCalledTimes(2);
+    preference.dispose();
     container.remove();
   });
 
@@ -108,6 +133,7 @@ describe('createTourResetControl', () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
     subscription.emit(['seed']);
+    const preference = createPreference();
 
     const reset = vi.fn(() => Promise.reject(new Error('nope')));
     const handle = createTourResetControl({
@@ -116,22 +142,26 @@ describe('createTourResetControl', () => {
       onReset: reset,
       resetKey: 'r',
       windowTarget: window,
+      guidedTourPreference: preference,
     });
 
-    const button = handle.element;
+    const resetButton = handle.element.querySelector(
+      '.tour-reset'
+    ) as HTMLButtonElement;
     subscription.emit(['seed']);
-    expect(button.disabled).toBe(false);
+    expect(resetButton.disabled).toBe(false);
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
     expect(reset).toHaveBeenCalledTimes(1);
-    expect(button.dataset.state).toBe('pending');
+    expect(resetButton.dataset.state).toBe('pending');
     subscription.emit(['seed']);
     await flushPromises();
     await flushPromises();
-    expect(button.dataset.state).toBe('ready');
-    expect(button.disabled).toBe(false);
+    expect(resetButton.dataset.state).toBe('ready');
+    expect(resetButton.disabled).toBe(false);
 
     handle.dispose();
+    preference.dispose();
     container.remove();
   });
 
@@ -139,6 +169,7 @@ describe('createTourResetControl', () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
     subscription.emit(['seed']);
+    const preference = createPreference();
 
     const reset = vi.fn(() => {
       throw new Error('boom');
@@ -148,16 +179,53 @@ describe('createTourResetControl', () => {
       container,
       subscribeVisited: subscription.subscribe,
       onReset: reset,
+      guidedTourPreference: preference,
     });
 
     subscription.emit(['seed']);
-    const button = handle.element;
-    button.click();
+    const resetButton = handle.element.querySelector(
+      '.tour-reset'
+    ) as HTMLButtonElement;
+    resetButton.click();
     expect(reset).toHaveBeenCalledTimes(1);
-    expect(button.dataset.state).toBe('ready');
-    expect(button.disabled).toBe(false);
+    expect(resetButton.dataset.state).toBe('ready');
+    expect(resetButton.disabled).toBe(false);
 
     handle.dispose();
+    preference.dispose();
+    container.remove();
+  });
+
+  it('toggles guided tour highlights and announces state', () => {
+    const container = createContainer();
+    const subscription = createVisitedSubscription();
+    const preference = createPreference();
+
+    const handle = createTourResetControl({
+      container,
+      subscribeVisited: subscription.subscribe,
+      onReset: vi.fn(),
+      guidedTourPreference: preference,
+    });
+
+    const wrapper = handle.element;
+    const toggleButton = wrapper.querySelector(
+      '.guided-tour-control__toggle'
+    ) as HTMLButtonElement;
+    expect(toggleButton).toBeTruthy();
+    expect(toggleButton.dataset.state).toBe('on');
+    expect(toggleButton.dataset.hudAnnounce).toContain('enabled');
+
+    toggleButton.click();
+    expect(preference.isEnabled()).toBe(false);
+    expect(toggleButton.dataset.state).toBe('off');
+    expect(toggleButton.dataset.hudAnnounce).toContain('disabled');
+
+    toggleButton.click();
+    expect(preference.isEnabled()).toBe(true);
+
+    handle.dispose();
+    preference.dispose();
     container.remove();
   });
 });

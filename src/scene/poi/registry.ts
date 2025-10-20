@@ -19,7 +19,13 @@ type PoiPedestalStaticConfig = PoiPedestalConfig;
 
 type PoiStaticDefinition = Omit<
   PoiDefinition,
-  'title' | 'summary' | 'metrics' | 'links' | 'narration' | 'pedestal'
+  | 'title'
+  | 'summary'
+  | 'outcome'
+  | 'metrics'
+  | 'links'
+  | 'narration'
+  | 'pedestal'
 > & { pedestal?: PoiPedestalStaticConfig };
 
 const baseDefinitions: PoiStaticDefinition[] = [
@@ -256,6 +262,7 @@ const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
     pedestal,
     title: copy.title,
     summary: copy.summary,
+    outcome: copy.outcome ? { ...copy.outcome } : undefined,
     metrics: copy.metrics?.map((metric) => ({ ...metric })),
     links: copy.links?.map((link) => ({ ...link })),
     narration: copy.narration ? { ...copy.narration } : undefined,
@@ -274,6 +281,7 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
     ...definition,
     position: { ...definition.position },
     footprint: { ...definition.footprint },
+    outcome: definition.outcome ? { ...definition.outcome } : undefined,
     metrics: definition.metrics?.map((metric) => ({ ...metric })),
     links: definition.links?.map((link) => ({ ...link })),
     narration: definition.narration ? { ...definition.narration } : undefined,

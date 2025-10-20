@@ -94,7 +94,7 @@ Focus: anchor each highlighted project with an interactive artifact.
 
 **Done means**
 
-- Each POI card includes a one-line outcome metric (e.g., "Reduced p95 render 28%"), backed by
+- ✅ Each POI card includes a one-line outcome metric (e.g., "Reduced p95 render 28%"), backed by
   links in `docs/case-studies/`.
 - Tooltips overlay passes axe CI and keyboard focus audit.
 - Release tag `phase-2-pois` ships with gallery screenshots + metrics table entry.
@@ -218,7 +218,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - Optional guided tour mode that highlights the next recommended POI.
+   - ✅ Optional guided tour mode that highlights the next recommended POI.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
