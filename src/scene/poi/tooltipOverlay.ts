@@ -171,6 +171,16 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
+  notifyPoiUpdated(poiId: string) {
+    if (
+      (this.hovered && this.hovered.id === poiId) ||
+      (this.selected && this.selected.id === poiId) ||
+      (this.recommendation && this.recommendation.id === poiId)
+    ) {
+      this.update();
+    }
+  }
+
   dispose() {
     this.root.remove();
     this.liveRegion.remove();
@@ -218,6 +228,8 @@ export class PoiTooltipOverlay {
       this.renderState.poiId = poi.id;
     } else {
       this.updateStatus(poi);
+      this.renderOutcome(poi);
+      this.renderMetrics(poi);
     }
 
     if (state === 'selected' && !this.linksList.hidden) {

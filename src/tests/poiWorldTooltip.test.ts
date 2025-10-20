@@ -22,6 +22,7 @@ afterAll(() => {
 });
 
 function createMockCanvasContext(): CanvasRenderingContext2D {
+  const fillTextLog: string[] = [];
   const context = {
     canvas: document.createElement('canvas'),
     fillStyle: '',
@@ -44,8 +45,11 @@ function createMockCanvasContext(): CanvasRenderingContext2D {
     strokeRect: () => {},
     createLinearGradient: () => ({ addColorStop: () => {} }),
     measureText: (text: string) => ({ width: text.length * 12 }),
-    fillText: () => {},
+    fillText: (text: string) => {
+      fillTextLog.push(text);
+    },
   };
+  (context as { __fillTextLog?: string[] }).__fillTextLog = fillTextLog;
   return context as unknown as CanvasRenderingContext2D;
 }
 
@@ -172,6 +176,45 @@ describe('PoiWorldTooltip', () => {
     expect(state.mode).toBe('selected');
     expect(state.poiId).toBe(selectedPoi.id);
     expect(state.opacity).toBeCloseTo(1, 1e-3);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('re-renders the active card when metrics change', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      id: 'flywheel-studio-flywheel',
+      metrics: [
+        { label: 'Stars', value: 'Fallback' },
+        { label: 'Impact', value: 'Launch-ready' },
+      ],
+    });
+    const target = createTarget(poi, new Vector3(0, 1, 0));
+
+    tooltip.setSelected(target);
+    tooltip.update(0.016);
+
+    const context = (
+      tooltip as unknown as {
+        context: CanvasRenderingContext2D & { __fillTextLog: string[] };
+      }
+    ).context;
+    const initialLength = context.__fillTextLog.length;
+
+    if (poi.metrics?.[0]) {
+      poi.metrics[0].value = 'Live 2,000';
+    }
+
+    tooltip.notifyPoiUpdated(poi.id);
+
+    expect(context.__fillTextLog.length).toBeGreaterThan(initialLength);
+    const newEntries = context.__fillTextLog.slice(initialLength);
+    const metricEntry = newEntries.find((entry) =>
+      entry.includes('Live 2,000')
+    );
+    expect(metricEntry).toBeDefined();
+    expect(metricEntry).toContain('Impact');
 
     tooltip.dispose();
     preference.dispose();

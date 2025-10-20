@@ -247,7 +247,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Published 120+ weekly highlight reels with zero deadline slips.',
       },
       metrics: [
-        { label: 'Stars', value: '1,280+' },
+        {
+          label: 'Stars',
+          value: '1,280+',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'danielsmith.io',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: '1,280+',
+          },
+        },
         {
           label: 'Workflow',
           value: 'Resolve-style edit suite · triple display',
@@ -272,6 +283,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         value: 'Cut volunteer job queue times from 40 min to under 9.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'token.place',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Cluster', value: '12× Pi 5 nodes in modular bays' },
         { label: 'Network', value: 'Ephemeral tokens · encrypted bursts' },
       ],
@@ -292,6 +315,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         value: 'Eliminated overnight perimeter false alarms across the studio.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'gabriel',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Focus', value: '360° lidar sweep + local heuristics' },
         { label: 'Cadence', value: 'Red alert flash every 1.0 s' },
       ],
@@ -310,6 +345,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         value: 'Reduced CI prompt wiring time 68% for new automation repos.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'flywheel',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         {
           label: 'Automation',
           value: 'CI scaffolds · typed prompts · QA loops',
@@ -338,6 +385,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         value: 'Recovered 6 hours of weekly release triage through automation.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'jobbot3000',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Ops savings', value: 'Recovered 6h weekly toil' },
         { label: 'Reliability', value: '99.98% SLA self-healing loops' },
       ],
@@ -366,6 +425,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
       metrics: [
         {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'axel',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
+        {
           label: 'Guidance',
           value: 'Auto-prioritised quests from repo scans',
         },
@@ -385,6 +456,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Translated 700+ days of GitHub streaks into tangible showcases.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'gitshelves',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Material', value: '42 mm Gridfinity compatible blocks' },
         { label: 'Sync', value: 'Auto generated from GitHub timelines' },
       ],
@@ -404,6 +487,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         value: 'Keeps immersive and text deploys aligned across every release.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: '1,280+',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'danielsmith.io',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: '1,280+',
+          },
+        },
         { label: 'Stack', value: 'Vite · Three.js · accessibility HUD' },
         { label: 'Deploy', value: 'CI smoke + docs + lint gates' },
       ],
@@ -425,6 +520,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Shortened log triage from minutes to instant clipboard capture.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'f2clipboard',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Speed', value: 'Copy failing logs in under 3 s' },
         { label: 'Formats', value: 'CLI + clipboard + Markdown output' },
       ],
@@ -444,6 +551,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         value: 'Unlocked on-device voice demos without relying on the cloud.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'sigma',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Hardware', value: 'ESP32 · on-device speech stack' },
         { label: 'Modes', value: 'Push-to-talk · local inference loops' },
       ],
@@ -461,6 +580,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Piloted robotic weaving curriculum across three community workshops.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'wove',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Craft', value: 'Loom calibrates from CAD stitch maps' },
         { label: 'Roadmap', value: 'Path toward robotic weaving labs' },
       ],
@@ -478,6 +609,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Logged 12 flawless rehearsal countdowns with telemetry playback.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'dspace',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Countdown', value: 'Autonomous T-0 sequencing' },
         { label: 'Stack', value: 'Three.js FX · Spatial audio' },
       ],
@@ -505,6 +648,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Cleared 100% of stale pull requests in one audit-friendly sweep.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'pr-reaper',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Sweep', value: 'Bulk-close stale PRs with preview mode' },
         { label: 'Cadence', value: 'Cron triggers + manual dry-runs' },
       ],
@@ -522,6 +677,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Maintains 3× daily harvest cadence with autonomous light ramps.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'sugarkube',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         {
           label: 'Automation',
           value: 'Sugarkube schedules solar tilt + irrigation',

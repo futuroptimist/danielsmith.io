@@ -110,6 +110,10 @@ import {
   type SeasonalLightingTarget,
 } from './scene/lighting/seasonalPresets';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
+import {
+  wireGitHubRepoMetrics,
+  type GitHubRepoMetricsController,
+} from './scene/poi/githubMetrics';
 import { GuidedTourChannel } from './scene/poi/guidedTourChannel';
 import { PoiInteractionManager } from './scene/poi/interactionManager';
 import {
@@ -253,6 +257,7 @@ import {
   type ManualModeToggleHandle,
 } from './systems/failover/manualModeToggle';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
+import { createGitHubRepoStatsService } from './systems/github/repoStats';
 import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
@@ -617,6 +622,7 @@ function initializeImmersiveScene(
   let localeToggleControl: LocaleToggleControlHandle | null = null;
   let guidedTourChannel: GuidedTourChannel | null = null;
   let removeGuidedTourSubscription: (() => void) | null = null;
+  let githubRepoMetrics: GitHubRepoMetricsController | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
@@ -1348,6 +1354,18 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const githubRepoStatsService = createGitHubRepoStatsService();
+  githubRepoMetrics = wireGitHubRepoMetrics({
+    definitions: poiDefinitions,
+    service: githubRepoStatsService,
+    onMetricsUpdated: (poiId) => {
+      poiTooltipOverlay.notifyPoiUpdated(poiId);
+      poiWorldTooltip.notifyPoiUpdated(poiId);
+    },
+  });
+  githubRepoMetrics.refreshAll().catch(() => {
+    /* GitHub may be unreachable; metrics will remain on fallback values. */
+  });
   const poiVisitedState = new PoiVisitedState();
   const poiTourGuide = new PoiTourGuide({
     definitions: poiDefinitions,
@@ -3384,6 +3402,10 @@ function initializeImmersiveScene(
     }
     guidedTourChannel?.dispose();
     guidedTourChannel = null;
+    if (githubRepoMetrics) {
+      githubRepoMetrics.dispose();
+      githubRepoMetrics = null;
+    }
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();

@@ -18,9 +18,24 @@ export type PoiCategory = 'project' | 'environment';
 
 export type PoiInteraction = 'inspect' | 'activate';
 
+export interface PoiMetricGitHubStarsSource {
+  type: 'githubStars';
+  owner: string;
+  repo: string;
+  /** Format style for rendering live star counts. */
+  format?: 'compact' | 'standard';
+  /** Optional string template that receives the formatted value via `{value}`. */
+  template?: string;
+  /** Fallback copy used when live data is unavailable. */
+  fallback?: string;
+}
+
+export type PoiMetricSource = PoiMetricGitHubStarsSource;
+
 export interface PoiMetric {
   label: string;
   value: string;
+  source?: PoiMetricSource;
 }
 
 export interface PoiOutcome {
