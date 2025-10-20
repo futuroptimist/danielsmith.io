@@ -44,6 +44,7 @@ export interface EnvironmentLightAnimatorOptions {
 export interface EnvironmentLightAnimator {
   update(elapsedSeconds: number): void;
   captureBaseline(): void;
+  applyBaselineColors(): void;
 }
 
 interface PreparedKeyframe {
@@ -352,6 +353,13 @@ export function createEnvironmentLightAnimator({
 
   captureBaseline();
 
+  const applyBaselineColors = () => {
+    ambient.color.copy(baseAmbientColor);
+    hemisphere.color.copy(baseHemisphereSkyColor);
+    hemisphere.groundColor.copy(baseHemisphereGroundColor);
+    directional.color.copy(baseDirectionalColor);
+  };
+
   return {
     update(elapsedSeconds: number) {
       const sampleValues = sample(elapsedSeconds);
@@ -398,5 +406,6 @@ export function createEnvironmentLightAnimator({
       );
     },
     captureBaseline,
+    applyBaselineColors,
   };
 }

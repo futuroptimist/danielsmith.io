@@ -2979,6 +2979,8 @@ function initializeImmersiveScene(
     lightingDebugIndicator.hidden = mode === 'cinematic';
     if (mode === 'cinematic') {
       environmentLightAnimator?.captureBaseline();
+    } else {
+      environmentLightAnimator?.applyBaselineColors();
     }
   };
 

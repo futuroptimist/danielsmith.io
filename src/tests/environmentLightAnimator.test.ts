@@ -218,6 +218,53 @@ describe('createEnvironmentLightAnimator', () => {
     );
   });
 
+  it('restores baseline colors when applyBaselineColors is invoked', () => {
+    const ambient = new AmbientLight(0x445566, 0.85);
+    const hemisphere = new HemisphereLight(0x223344, 0x112233, 0.65);
+    const directional = new DirectionalLight(0x778899, 1.05);
+
+    const animator = createEnvironmentLightAnimator({
+      ambient,
+      hemisphere,
+      directional,
+      tintColor: new Color('#ffeedd'),
+      keyframes: [
+        {
+          time: 0,
+          ambientIntensity: 1,
+          hemisphericIntensity: 1,
+          directionalIntensity: 1,
+          ambientTintStrength: 0,
+          hemisphericTintStrength: 0,
+          directionalTintStrength: 0,
+        },
+        {
+          time: 1,
+          ambientIntensity: 1,
+          hemisphericIntensity: 1,
+          directionalIntensity: 1,
+          ambientTintStrength: 1,
+          hemisphericTintStrength: 1,
+          directionalTintStrength: 1,
+        },
+      ],
+    });
+
+    animator.update(0.5);
+
+    expect(ambient.color.getHexString()).not.toBe('445566');
+    expect(hemisphere.color.getHexString()).not.toBe('223344');
+    expect(hemisphere.groundColor.getHexString()).not.toBe('112233');
+    expect(directional.color.getHexString()).not.toBe('778899');
+
+    animator.applyBaselineColors();
+
+    expect(ambient.color.getHexString()).toBe('445566');
+    expect(hemisphere.color.getHexString()).toBe('223344');
+    expect(hemisphere.groundColor.getHexString()).toBe('112233');
+    expect(directional.color.getHexString()).toBe('778899');
+  });
+
   it('updates baselines when captureBaseline is invoked', () => {
     const ambient = new AmbientLight(0xffffff, 0.4);
     const hemisphere = new HemisphereLight(0xffffff, 0xffffff, 0.3);
