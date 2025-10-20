@@ -65,10 +65,33 @@ export interface HelpModalStrings {
 
 export interface PoiNarrativeLogStrings {
   heading: string;
+  visitedHeading: string;
   empty: string;
   defaultVisitedLabel: string;
   visitedLabelTemplate: string;
   liveAnnouncementTemplate: string;
+  journey: {
+    heading: string;
+    empty: string;
+    entryLabelTemplate: string;
+    sameRoomTemplate: string;
+    crossRoomTemplate: string;
+    crossSectionTemplate: string;
+    fallbackTemplate: string;
+    announcementTemplate: string;
+    directions: {
+      indoors: string;
+      outdoors: string;
+    };
+  };
+  rooms: Record<
+    string,
+    {
+      label: string;
+      descriptor: string;
+      zone: 'interior' | 'exterior';
+    }
+  >;
 }
 
 export type StructuredDataEntityType = 'Person' | 'Organization';
