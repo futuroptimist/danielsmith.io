@@ -82,10 +82,50 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
     narrativeLog: {
       heading: 'سجل القصة',
+      visitedHeading: 'المعارض التي تمت زيارتها',
       empty: 'قم بزيارة المعارض لفتح مدخلات جديدة تحكي قصة صانع المحتوى.',
       defaultVisitedLabel: 'تمت الزيارة',
       visitedLabelTemplate: 'تمت الزيارة في {time}',
       liveAnnouncementTemplate: '{title} أضيف إلى سجل القصة.',
+      journey: {
+        heading: 'محطات الرحلة',
+        empty: 'استكشف معارض جديدة لنسج سرد الرحلة.',
+        entryLabelTemplate: '{from} → {to}',
+        sameRoomTemplate:
+          'داخل {room} {descriptor}، ينتقل السرد من {fromPoi} نحو {toPoi}.',
+        crossRoomTemplate:
+          'مغادرًا {fromRoom} {fromDescriptor}، تنساب الرحلة إلى {toRoom} {toDescriptor} لإبراز {toPoi}.',
+        crossSectionTemplate:
+          'عند العبور {direction} عبر العتبة، يتجه المسار إلى {toRoom} {toDescriptor} للوصول إلى {toPoi}.',
+        fallbackTemplate: 'يتجه السرد نحو {toPoi}.',
+        announcementTemplate: 'تحديث الرحلة — {label}: {story}',
+        directions: {
+          indoors: 'إلى الداخل',
+          outdoors: 'إلى الخارج',
+        },
+      },
+      rooms: {
+        livingRoom: {
+          label: 'غرفة المعيشة',
+          descriptor: 'صالة سينمائية',
+          zone: 'interior',
+        },
+        studio: {
+          label: 'الاستوديو',
+          descriptor: 'مختبر الأتمتة',
+          zone: 'interior',
+        },
+        kitchen: {
+          label: 'مختبر المطبخ',
+          descriptor: 'جناح الروبوتات الطهوية',
+          zone: 'interior',
+        },
+        backyard: {
+          label: 'الفناء الخلفي',
+          descriptor: 'حديقة مضاءة عند الغسق',
+          zone: 'exterior',
+        },
+      },
     },
     helpModal: {
       heading: 'الإعدادات والمساعدة',

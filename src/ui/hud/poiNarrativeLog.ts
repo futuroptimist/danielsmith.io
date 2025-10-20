@@ -20,6 +20,8 @@ export interface PoiNarrativeLogSyncOptions {
 export interface PoiNarrativeLogHandle {
   readonly element: HTMLElement;
   recordVisit(poi: PoiDefinition, options?: PoiNarrativeLogRecordOptions): void;
+  recordJourney(fromPoi: PoiDefinition, toPoi: PoiDefinition): void;
+  clearJourneys(): void;
   syncVisited(
     pois: Iterable<PoiDefinition>,
     options?: PoiNarrativeLogSyncOptions
@@ -32,6 +34,14 @@ interface PoiNarrativeLogEntryElements {
   container: HTMLLIElement;
   visitedLabel: HTMLSpanElement;
   caption: HTMLParagraphElement;
+}
+
+interface JourneyEntryRecord {
+  container: HTMLLIElement;
+  label: HTMLSpanElement;
+  caption: HTMLParagraphElement;
+  fromPoi: PoiDefinition;
+  toPoi: PoiDefinition;
 }
 
 const VISUALLY_HIDDEN_STYLES: Partial<CSSStyleDeclaration> = {
@@ -47,6 +57,8 @@ const VISUALLY_HIDDEN_STYLES: Partial<CSSStyleDeclaration> = {
   whiteSpace: 'nowrap',
   pointerEvents: 'none',
 };
+
+const MAX_JOURNEY_ENTRIES = 6;
 
 export function createPoiNarrativeLog(
   options: PoiNarrativeLogOptions
@@ -67,15 +79,35 @@ export function createPoiNarrativeLog(
   heading.textContent = activeStrings.heading;
   section.appendChild(heading);
 
-  const emptyMessage = documentTarget.createElement('p');
-  emptyMessage.className = 'poi-narrative-log__empty';
-  emptyMessage.textContent = activeStrings.empty;
-  section.appendChild(emptyMessage);
+  const journeyHeading = documentTarget.createElement('h4');
+  journeyHeading.className = 'poi-narrative-log__journey-heading';
+  journeyHeading.textContent = activeStrings.journey.heading;
+  section.appendChild(journeyHeading);
 
-  const list = documentTarget.createElement('ol');
-  list.className = 'poi-narrative-log__list';
-  list.hidden = true;
-  section.appendChild(list);
+  const journeyEmpty = documentTarget.createElement('p');
+  journeyEmpty.className = 'poi-narrative-log__journey-empty';
+  journeyEmpty.textContent = activeStrings.journey.empty;
+  section.appendChild(journeyEmpty);
+
+  const journeyList = documentTarget.createElement('ol');
+  journeyList.className = 'poi-narrative-log__journey-list';
+  journeyList.hidden = true;
+  section.appendChild(journeyList);
+
+  const visitedHeading = documentTarget.createElement('h4');
+  visitedHeading.className = 'poi-narrative-log__visited-heading';
+  visitedHeading.textContent = activeStrings.visitedHeading;
+  section.appendChild(visitedHeading);
+
+  const visitedEmpty = documentTarget.createElement('p');
+  visitedEmpty.className = 'poi-narrative-log__empty';
+  visitedEmpty.textContent = activeStrings.empty;
+  section.appendChild(visitedEmpty);
+
+  const visitedList = documentTarget.createElement('ol');
+  visitedList.className = 'poi-narrative-log__list';
+  visitedList.hidden = true;
+  section.appendChild(visitedList);
 
   const liveRegion = documentTarget.createElement('div');
   liveRegion.className = 'poi-narrative-log__live-region';
@@ -87,11 +119,16 @@ export function createPoiNarrativeLog(
   container.appendChild(section);
 
   const entries = new Map<string, PoiNarrativeLogEntryElements>();
+  const journeyEntries: JourneyEntryRecord[] = [];
 
   const updateEmptyState = () => {
-    const hasEntries = entries.size > 0;
-    emptyMessage.hidden = hasEntries;
-    list.hidden = !hasEntries;
+    const hasVisitedEntries = entries.size > 0;
+    visitedEmpty.hidden = hasVisitedEntries;
+    visitedList.hidden = !hasVisitedEntries;
+
+    const hasJourneys = journeyEntries.length > 0;
+    journeyEmpty.hidden = hasJourneys;
+    journeyList.hidden = !hasJourneys;
   };
 
   const getCaption = (poi: PoiDefinition) =>
@@ -131,6 +168,110 @@ export function createPoiNarrativeLog(
     };
   };
 
+  const getRoomStrings = (poi: PoiDefinition) => {
+    return (
+      activeStrings.rooms[poi.roomId] ?? {
+        label: poi.roomId,
+        descriptor: '',
+        zone: 'interior' as const,
+      }
+    );
+  };
+
+  const createJourneyEntry = (
+    fromPoi: PoiDefinition,
+    toPoi: PoiDefinition
+  ): JourneyEntryRecord => {
+    const item = documentTarget.createElement('li');
+    item.className = 'poi-narrative-log__journey-entry';
+
+    const label = documentTarget.createElement('span');
+    label.className = 'poi-narrative-log__journey-label';
+    item.appendChild(label);
+
+    const caption = documentTarget.createElement('p');
+    caption.className = 'poi-narrative-log__journey-caption';
+    item.appendChild(caption);
+
+    return { container: item, label, caption, fromPoi, toPoi };
+  };
+
+  const renderJourney = (
+    entry: JourneyEntryRecord
+  ): { label: string; story: string } => {
+    const { journey } = activeStrings;
+    const fromRoom = getRoomStrings(entry.fromPoi);
+    const toRoom = getRoomStrings(entry.toPoi);
+
+    const labelText = formatMessage(journey.entryLabelTemplate, {
+      from: fromRoom.label || entry.fromPoi.title,
+      to: toRoom.label || entry.toPoi.title,
+    }).trim();
+
+    const fromZone = fromRoom.zone ?? 'interior';
+    const toZone = toRoom.zone ?? 'interior';
+
+    let template = journey.fallbackTemplate;
+    if (entry.fromPoi.roomId === entry.toPoi.roomId) {
+      template = journey.sameRoomTemplate;
+    } else if (fromZone !== toZone) {
+      template = journey.crossSectionTemplate;
+    } else {
+      template = journey.crossRoomTemplate;
+    }
+
+    const directionKey = toZone === 'exterior' ? 'outdoors' : 'indoors';
+    const direction = journey.directions[directionKey];
+
+    const story = formatMessage(template, {
+      room: fromRoom.label || entry.fromPoi.roomId,
+      descriptor: fromRoom.descriptor || '',
+      fromPoi: entry.fromPoi.title,
+      toPoi: entry.toPoi.title,
+      fromRoom: fromRoom.label || entry.fromPoi.roomId,
+      fromDescriptor: fromRoom.descriptor || '',
+      toRoom: toRoom.label || entry.toPoi.roomId,
+      toDescriptor: toRoom.descriptor || '',
+      direction,
+    }).trim();
+
+    entry.label.textContent = labelText;
+    entry.caption.textContent = story;
+
+    return { label: labelText, story };
+  };
+
+  const recordJourneyEntry = (fromPoi: PoiDefinition, toPoi: PoiDefinition) => {
+    const entry = createJourneyEntry(fromPoi, toPoi);
+    journeyEntries.unshift(entry);
+    journeyList.insertBefore(entry.container, journeyList.firstChild);
+
+    const { label, story } = renderJourney(entry);
+    updateEmptyState();
+
+    const announcement = formatMessage(
+      activeStrings.journey.announcementTemplate,
+      { label, story }
+    ).trim();
+    if (announcement) {
+      liveRegion.textContent = '';
+      liveRegion.textContent = announcement;
+    }
+
+    while (journeyEntries.length > MAX_JOURNEY_ENTRIES) {
+      const removed = journeyEntries.pop();
+      removed?.container.remove();
+    }
+  };
+
+  const clearJourneyEntries = () => {
+    while (journeyEntries.length > 0) {
+      const removed = journeyEntries.pop();
+      removed?.container.remove();
+    }
+    updateEmptyState();
+  };
+
   const recordVisit = (
     poi: PoiDefinition,
     options?: PoiNarrativeLogRecordOptions
@@ -143,8 +284,8 @@ export function createPoiNarrativeLog(
     if (existing) {
       existing.caption.textContent = getCaption(poi);
       existing.visitedLabel.textContent = visitedLabel;
-      if (list.firstChild !== existing.container) {
-        list.insertBefore(existing.container, list.firstChild);
+      if (visitedList.firstChild !== existing.container) {
+        visitedList.insertBefore(existing.container, visitedList.firstChild);
       }
       updateEmptyState();
       return;
@@ -152,11 +293,7 @@ export function createPoiNarrativeLog(
 
     const entry = createEntryElements(poi, visitedLabel);
     entries.set(poi.id, entry);
-    if (list.firstChild) {
-      list.insertBefore(entry.container, list.firstChild);
-    } else {
-      list.appendChild(entry.container);
-    }
+    visitedList.insertBefore(entry.container, visitedList.firstChild);
     updateEmptyState();
 
     if (!announce) {
@@ -190,7 +327,7 @@ export function createPoiNarrativeLog(
       }
       const entry = createEntryElements(poi, visitedLabel);
       entries.set(poi.id, entry);
-      list.appendChild(entry.container);
+      visitedList.appendChild(entry.container);
     }
 
     for (const [id, entry] of entries) {
@@ -204,24 +341,32 @@ export function createPoiNarrativeLog(
     updateEmptyState();
   };
 
-  const dispose = () => {
-    entries.clear();
-    section.remove();
-  };
-
   return {
     element: section,
     recordVisit,
+    recordJourney: recordJourneyEntry,
+    clearJourneys: clearJourneyEntries,
     syncVisited,
     setStrings(nextStrings) {
       activeStrings = nextStrings;
       section.setAttribute('aria-label', nextStrings.heading);
       heading.textContent = nextStrings.heading;
-      emptyMessage.textContent = nextStrings.empty;
+      visitedHeading.textContent = nextStrings.visitedHeading;
+      visitedEmpty.textContent = nextStrings.empty;
+      journeyHeading.textContent = nextStrings.journey.heading;
+      journeyEmpty.textContent = nextStrings.journey.empty;
       entries.forEach((entry) => {
         entry.visitedLabel.textContent = nextStrings.defaultVisitedLabel;
       });
+      journeyEntries.forEach((entry) => {
+        renderJourney(entry);
+      });
+      updateEmptyState();
     },
-    dispose,
+    dispose() {
+      entries.clear();
+      journeyEntries.splice(0, journeyEntries.length);
+      section.remove();
+    },
   };
 }

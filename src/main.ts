@@ -265,6 +265,7 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
+import { ProceduralNarrator } from './systems/narrative/proceduralNarrator';
 import {
   createHudFocusAnnouncer,
   type HudFocusAnnouncerHandle,
@@ -600,6 +601,7 @@ function initializeImmersiveScene(
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
+  let proceduralNarrator: ProceduralNarrator | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
@@ -1360,6 +1362,13 @@ function initializeImmersiveScene(
       }
     }
     poiTooltipOverlay.setVisitedPoiIds(visited);
+    let hasRemovedVisits = false;
+    for (const id of previousVisited) {
+      if (!visited.has(id)) {
+        hasRemovedVisits = true;
+        break;
+      }
+    }
     if (poiNarrativeLog) {
       const visitedDefinitions = Array.from(visited)
         .map((id) => poiDefinitionsById.get(id))
@@ -1371,7 +1380,13 @@ function initializeImmersiveScene(
         visitedLabel: narrativeLogStrings.defaultVisitedLabel,
       });
 
-      if (visitedInitialized) {
+      if (!visitedInitialized) {
+        proceduralNarrator?.primeVisited(visitedDefinitions);
+      } else {
+        if (hasRemovedVisits) {
+          poiNarrativeLog.clearJourneys();
+          proceduralNarrator?.primeVisited(visitedDefinitions);
+        }
         for (const id of visited) {
           if (previousVisited.has(id)) {
             continue;
@@ -1380,6 +1395,7 @@ function initializeImmersiveScene(
           if (!definition) {
             continue;
           }
+          proceduralNarrator?.handleVisit(definition);
           const timeLabel = narrativeTimeFormatter.format(new Date());
           const visitedLabel = formatMessage(
             narrativeLogStrings.visitedLabelTemplate,
@@ -2066,6 +2082,10 @@ function initializeImmersiveScene(
   poiNarrativeLog = createPoiNarrativeLog({
     container: helpModal.element,
     strings: narrativeLogStrings,
+  });
+  proceduralNarrator = new ProceduralNarrator({
+    log: poiNarrativeLog,
+    definitions: poiDefinitions,
   });
   if (avatarVariantManager) {
     avatarVariantControl = createAvatarVariantControl({
@@ -3392,6 +3412,10 @@ function initializeImmersiveScene(
       localeToggleControl = null;
     }
     movementLegend?.dispose();
+    if (proceduralNarrator) {
+      proceduralNarrator.dispose();
+      proceduralNarrator = null;
+    }
     if (poiNarrativeLog) {
       poiNarrativeLog.dispose();
       poiNarrativeLog = null;

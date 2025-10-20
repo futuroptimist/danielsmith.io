@@ -50,12 +50,55 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     },
     narrativeLog: {
       heading: wrap('Creator story log'),
+      visitedHeading: wrap('Visited exhibits'),
       empty: wrap(
         'Visit exhibits to unlock narrative entries chronicling the creator showcase.'
       ),
       defaultVisitedLabel: wrap('Visited'),
       visitedLabelTemplate: wrap('Visited at {time}'),
       liveAnnouncementTemplate: wrap('{title} added to the creator story log.'),
+      journey: {
+        heading: wrap('Journey beats'),
+        empty: wrap('Explore new exhibits to weave journey narration.'),
+        entryLabelTemplate: wrap('{from} → {to}'),
+        sameRoomTemplate: wrap(
+          'Within the {room} {descriptor}, the story shifts from {fromPoi} toward {toPoi}.'
+        ),
+        crossRoomTemplate: wrap(
+          'Leaving the {fromRoom} {fromDescriptor}, the journey drifts into the {toRoom} {toDescriptor} to spotlight {toPoi}.'
+        ),
+        crossSectionTemplate: wrap(
+          'Stepping {direction} through the threshold, the path flows into the {toRoom} {toDescriptor} to reach {toPoi}.'
+        ),
+        fallbackTemplate: wrap('The narrative flows toward {toPoi}.'),
+        announcementTemplate: wrap('Journey update — {label}: {story}'),
+        directions: {
+          indoors: wrap('back inside'),
+          outdoors: wrap('outdoors'),
+        },
+      },
+      rooms: {
+        livingRoom: {
+          label: wrap('living room'),
+          descriptor: wrap('cinematic lounge'),
+          zone: 'interior',
+        },
+        studio: {
+          label: wrap('studio'),
+          descriptor: wrap('automation lab'),
+          zone: 'interior',
+        },
+        kitchen: {
+          label: wrap('kitchen lab'),
+          descriptor: wrap('culinary robotics wing'),
+          zone: 'interior',
+        },
+        backyard: {
+          label: wrap('backyard observatory'),
+          descriptor: wrap('dusk-lit garden'),
+          zone: 'exterior',
+        },
+      },
     },
     helpModal: {
       heading: wrap('Settings & Help'),

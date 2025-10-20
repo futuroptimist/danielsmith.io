@@ -92,11 +92,51 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     },
     narrativeLog: {
       heading: 'Creator story log',
+      visitedHeading: 'Visited exhibits',
       empty:
         'Visit exhibits to unlock narrative entries chronicling the creator showcase.',
       defaultVisitedLabel: 'Visited',
       visitedLabelTemplate: 'Visited at {time}',
       liveAnnouncementTemplate: '{title} added to the creator story log.',
+      journey: {
+        heading: 'Journey beats',
+        empty: 'Explore new exhibits to weave journey narration.',
+        entryLabelTemplate: '{from} → {to}',
+        sameRoomTemplate:
+          'Within the {room} {descriptor}, the story shifts from {fromPoi} toward {toPoi}.',
+        crossRoomTemplate:
+          'Leaving the {fromRoom} {fromDescriptor}, the journey drifts into the {toRoom} {toDescriptor} to spotlight {toPoi}.',
+        crossSectionTemplate:
+          'Stepping {direction} through the threshold, the path flows into the {toRoom} {toDescriptor} to reach {toPoi}.',
+        fallbackTemplate: 'The narrative flows toward {toPoi}.',
+        announcementTemplate: 'Journey update — {label}: {story}',
+        directions: {
+          indoors: 'back inside',
+          outdoors: 'outdoors',
+        },
+      },
+      rooms: {
+        livingRoom: {
+          label: 'living room',
+          descriptor: 'cinematic lounge',
+          zone: 'interior',
+        },
+        studio: {
+          label: 'studio',
+          descriptor: 'automation lab',
+          zone: 'interior',
+        },
+        kitchen: {
+          label: 'kitchen lab',
+          descriptor: 'culinary robotics wing',
+          zone: 'interior',
+        },
+        backyard: {
+          label: 'backyard observatory',
+          descriptor: 'dusk-lit garden',
+          zone: 'exterior',
+        },
+      },
     },
     helpModal: {
       heading: 'Settings & Help',

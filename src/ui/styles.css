@@ -1075,6 +1075,55 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   border-top: 1px solid rgba(86, 184, 255, 0.12);
 }
 
+.poi-narrative-log__journey-heading,
+.poi-narrative-log__visited-heading {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(158, 225, 255, 0.82);
+}
+
+.poi-narrative-log__journey-empty {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(210, 236, 255, 0.68);
+}
+
+.poi-narrative-log__journey-list {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.poi-narrative-log__journey-entry {
+  background: rgba(4, 12, 22, 0.72);
+  border: 1px solid rgba(86, 184, 255, 0.16);
+  border-radius: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  box-shadow: 0 10px 24px rgba(3, 10, 20, 0.32);
+}
+
+.poi-narrative-log__journey-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(144, 219, 255, 0.78);
+}
+
+.poi-narrative-log__journey-caption {
+  margin: 0.35rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: rgba(214, 236, 255, 0.82);
+}
+
 .poi-narrative-log__empty {
   margin: 0.75rem 0 0;
   font-size: 0.85rem;
