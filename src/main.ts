@@ -2980,6 +2980,7 @@ function initializeImmersiveScene(
     if (mode === 'cinematic') {
       environmentLightAnimator?.captureBaseline();
     } else {
+      // Reset seasonal tinting so the debug preview always shows neutral lighting.
       environmentLightAnimator?.applyBaselineColors();
     }
   };

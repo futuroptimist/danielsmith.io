@@ -44,6 +44,10 @@ export interface EnvironmentLightAnimatorOptions {
 export interface EnvironmentLightAnimator {
   update(elapsedSeconds: number): void;
   captureBaseline(): void;
+  /**
+   * Restores the captured baseline hues on the scene lights. Useful when pausing the
+   * animator (for example, while the lighting debug mode is active).
+   */
   applyBaselineColors(): void;
 }
 
@@ -354,6 +358,7 @@ export function createEnvironmentLightAnimator({
   captureBaseline();
 
   const applyBaselineColors = () => {
+    // Re-apply the stored baseline colors so pausing the animator leaves the lights neutral.
     ambient.color.copy(baseAmbientColor);
     hemisphere.color.copy(baseHemisphereSkyColor);
     hemisphere.groundColor.copy(baseHemisphereGroundColor);

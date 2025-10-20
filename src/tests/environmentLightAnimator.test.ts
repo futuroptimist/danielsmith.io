@@ -1,9 +1,4 @@
-import {
-  AmbientLight,
-  Color,
-  DirectionalLight,
-  HemisphereLight,
-} from 'three';
+import { AmbientLight, Color, DirectionalLight, HemisphereLight } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { createEnvironmentLightAnimator } from '../scene/lighting/environmentAnimator';
@@ -259,6 +254,9 @@ describe('createEnvironmentLightAnimator', () => {
 
     animator.applyBaselineColors();
 
+    expect(ambient.intensity).toBeCloseTo(0.85, 6);
+    expect(hemisphere.intensity).toBeCloseTo(0.65, 6);
+    expect(directional.intensity).toBeCloseTo(1.05, 6);
     expect(ambient.color.getHexString()).toBe('445566');
     expect(hemisphere.color.getHexString()).toBe('223344');
     expect(hemisphere.groundColor.getHexString()).toBe('112233');
