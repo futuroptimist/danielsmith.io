@@ -166,11 +166,11 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 **Done means**
 
-- README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
+- README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
   next to the link.
 - HUD overlay achieves full keyboard/touch parity; interaction audit recorded in
   `docs/metrics/accessibility.md`.
-- Lab run logs (Lighthouse CI) show text mode TTI <1.5 s and immersive mode LCP <2.5 s.
+- Lab run logs (Lighthouse CI) show text mode TTI <1.5 s and immersive mode LCP <2.5 s.
 
 1. **HUD Layer**
    - ✅ Responsive overlay with movement legend, interaction prompt, and help modal.
@@ -219,7 +219,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - ✅ Optional guided tour mode that highlights the next recommended POI.
+   - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.

@@ -110,6 +110,7 @@ import {
   type SeasonalLightingTarget,
 } from './scene/lighting/seasonalPresets';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
+import { GuidedTourChannel } from './scene/poi/guidedTourChannel';
 import { PoiInteractionManager } from './scene/poi/interactionManager';
 import {
   createPoiInstances,
@@ -235,6 +236,10 @@ import {
   type MotionBlurControlHandle,
 } from './systems/controls/motionBlurControl';
 import {
+  createTourGuideToggleControl,
+  type TourGuideToggleControlHandle,
+} from './systems/controls/tourGuideToggleControl';
+import {
   createTourResetControl,
   type TourResetControlHandle,
 } from './systems/controls/tourResetControl';
@@ -312,6 +317,7 @@ const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
+const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 
 declare global {
@@ -584,6 +590,7 @@ function initializeImmersiveScene(
   ledAnimator = null;
 
   let manualModeToggle: ManualModeToggleHandle | null = null;
+  let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
   let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let responsiveControlOverlay: ResponsiveControlOverlayHandle | null = null;
@@ -608,6 +615,8 @@ function initializeImmersiveScene(
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
   let proceduralNarrator: ProceduralNarrator | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
+  let guidedTourChannel: GuidedTourChannel | null = null;
+  let removeGuidedTourSubscription: (() => void) | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
@@ -620,6 +629,35 @@ function initializeImmersiveScene(
   } catch {
     localeStorage = undefined;
   }
+
+  let guidedTourStorage: Storage | undefined;
+  try {
+    guidedTourStorage = window.localStorage;
+  } catch {
+    guidedTourStorage = undefined;
+  }
+
+  const readGuidedTourEnabled = (): boolean => {
+    const stored = guidedTourStorage?.getItem(GUIDED_TOUR_STORAGE_KEY);
+    if (stored === 'false') {
+      return false;
+    }
+    if (stored === 'true') {
+      return true;
+    }
+    return true;
+  };
+
+  const writeGuidedTourEnabled = (enabled: boolean) => {
+    try {
+      guidedTourStorage?.setItem(
+        GUIDED_TOUR_STORAGE_KEY,
+        enabled ? 'true' : 'false'
+      );
+    } catch {
+      /* ignore storage write failures */
+    }
+  };
 
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
@@ -1418,7 +1456,12 @@ function initializeImmersiveScene(
 
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
-  const removeTourGuideSubscription = poiTourGuide.subscribe(
+  const initialGuidedTourEnabled = readGuidedTourEnabled();
+  guidedTourChannel = new GuidedTourChannel({
+    source: poiTourGuide,
+    enabled: initialGuidedTourEnabled,
+  });
+  removeGuidedTourSubscription = guidedTourChannel.subscribe(
     (recommendation) => {
       poiTooltipOverlay.setRecommendation(recommendation);
       poiWorldTooltip.setRecommendation(
@@ -2677,6 +2720,16 @@ function initializeImmersiveScene(
     });
     registerHudControlElement(manualModeToggle?.element ?? null);
 
+    tourGuideToggleControl = createTourGuideToggleControl({
+      container: hudSettingsStack,
+      initialEnabled: initialGuidedTourEnabled,
+      onToggle: (enabled) => {
+        guidedTourChannel?.setEnabled(enabled);
+        writeGuidedTourEnabled(enabled);
+      },
+    });
+    registerHudControlElement(tourGuideToggleControl?.element ?? null);
+
     tourResetControl = createTourResetControl({
       container: hudSettingsStack,
       subscribeVisited: (listener) => poiVisitedState.subscribe(listener),
@@ -3325,7 +3378,12 @@ function initializeImmersiveScene(
     removeSelectionStateListener();
     removeSelectionListener();
     removeVisitedSubscription();
-    removeTourGuideSubscription();
+    if (removeGuidedTourSubscription) {
+      removeGuidedTourSubscription();
+      removeGuidedTourSubscription = null;
+    }
+    guidedTourChannel?.dispose();
+    guidedTourChannel = null;
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();
@@ -3333,6 +3391,10 @@ function initializeImmersiveScene(
     if (manualModeToggle) {
       manualModeToggle.dispose();
       manualModeToggle = null;
+    }
+    if (tourGuideToggleControl) {
+      tourGuideToggleControl.dispose();
+      tourGuideToggleControl = null;
     }
     if (tourResetControl) {
       tourResetControl.dispose();
