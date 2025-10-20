@@ -40,6 +40,13 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         touch: wrap('Tap'),
         gamepad: wrap('A'),
       },
+      interactPromptTemplates: {
+        default: wrap('{prompt}'),
+        keyboard: wrap('Press {label} to {prompt}'),
+        pointer: wrap('{label} to {prompt}'),
+        touch: wrap('{label} to {prompt}'),
+        gamepad: wrap('Press {label} to {prompt}'),
+      },
     },
     narrativeLog: {
       heading: wrap('Creator story log'),

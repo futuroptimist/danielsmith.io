@@ -82,6 +82,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         touch: 'Tap',
         gamepad: 'A',
       },
+      interactPromptTemplates: {
+        default: '{prompt}',
+        keyboard: 'Press {label} to {prompt}',
+        pointer: '{label} to {prompt}',
+        touch: '{label} to {prompt}',
+        gamepad: 'Press {label} to {prompt}',
+      },
     },
     narrativeLog: {
       heading: 'Creator story log',

@@ -72,6 +72,13 @@ export const JA_OVERRIDES: LocaleOverrides = {
         touch: 'タップ',
         gamepad: 'A',
       },
+      interactPromptTemplates: {
+        default: '{prompt}',
+        keyboard: '{label} キーで {prompt}',
+        pointer: '{label}で {prompt}',
+        touch: '{label}で {prompt}',
+        gamepad: '{label} ボタンで {prompt}',
+      },
     },
     narrativeLog: {
       heading: 'クリエイターストーリーログ',

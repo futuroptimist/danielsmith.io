@@ -2010,7 +2010,7 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
-  const interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
+  let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   const interactDescriptionFallback =
     controlOverlayStrings.interact.description;
   const movementLegend: MovementLegendHandle | null = controlOverlay

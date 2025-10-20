@@ -1,5 +1,6 @@
 import type { LocaleInput } from '../../assets/i18n';
 import {
+  formatMessage,
   getLocaleDirection,
   getLocaleScript,
   getMovementLegendStrings,
@@ -340,6 +341,9 @@ export function createMovementLegend(
   const legendStrings = getMovementLegendStrings(resolvedLocale);
   const fallbackInteractDescription =
     defaultInteractDescription ?? legendStrings.defaultDescription;
+  const interactPromptTemplates: Record<InputMethod | 'default', string> = {
+    ...legendStrings.interactPromptTemplates,
+  };
 
   const context = collectContext(container, fallbackInteractDescription);
 
@@ -352,12 +356,44 @@ export function createMovementLegend(
 
   const defaultKeyboardLabel = labels.keyboard;
 
+  const getInteractLabel = (method: InputMethod) =>
+    labels[method] ?? labels.keyboard ?? '';
+
+  const getTemplateForMethod = (method: InputMethod) =>
+    interactPromptTemplates[method] ?? interactPromptTemplates.default;
+
+  const formatPromptForDisplay = (prompt: string, method: InputMethod) =>
+    formatMessage(getTemplateForMethod(method), {
+      label: getInteractLabel(method),
+      prompt,
+    });
+
+  let activePrompt: string | null = null;
+
   const getInteractDescription = () => {
+    if (activePrompt) {
+      return activePrompt;
+    }
     const text = context.interactDescription?.textContent?.trim();
     if (text && text.length > 0) {
       return text;
     }
     return context.defaultInteractDescription || fallbackInteractDescription;
+  };
+
+  const applyInteractDescription = () => {
+    if (!context.interactDescription) {
+      return;
+    }
+    if (activePrompt && !context.interactItem?.hidden) {
+      context.interactDescription.textContent = formatPromptForDisplay(
+        activePrompt,
+        activeMethod
+      );
+      return;
+    }
+    context.interactDescription.textContent =
+      context.defaultInteractDescription || fallbackInteractDescription;
   };
 
   const refreshInteractAnnouncement = () => {
@@ -369,7 +405,7 @@ export function createMovementLegend(
       return;
     }
     const description = getInteractDescription();
-    const label = labels[activeMethod] ?? labels.keyboard ?? '';
+    const label = getInteractLabel(activeMethod);
     const message = composeInteractAnnouncement(label, description);
     applyHudAnnouncement(context, message);
   };
@@ -400,11 +436,13 @@ export function createMovementLegend(
     }
     updateActiveState(context, method);
     updateInteractLabel(context, labels, method);
+    applyInteractDescription();
     refreshInteractAnnouncement();
   };
 
   const ensureInteractLabel = () => {
     updateInteractLabel(context, labels, activeMethod);
+    applyInteractDescription();
     refreshInteractAnnouncement();
   };
 
@@ -446,6 +484,13 @@ export function createMovementLegend(
       ...interactLabels,
     } as Record<InputMethod, string>;
 
+    const nextTemplates = nextLegendStrings.interactPromptTemplates;
+    (Object.keys(nextTemplates) as (InputMethod | 'default')[]).forEach(
+      (key) => {
+        interactPromptTemplates[key] = nextTemplates[key];
+      }
+    );
+
     const descriptionNode = context.interactDescription;
     const previousDefaultDescription = context.defaultInteractDescription;
     if (descriptionNode) {
@@ -460,6 +505,8 @@ export function createMovementLegend(
       nextFallbackDescription;
     context.defaultInteractDescription = normalizedDescription;
 
+    applyInteractDescription();
+
     (Object.keys(defaultLabels) as InputMethod[]).forEach((method) => {
       if (labels[method] === previousDefaults[method]) {
         labels[method] = defaultLabels[method];
@@ -473,10 +520,13 @@ export function createMovementLegend(
     if (!context.interactItem || !context.interactDescription) {
       return;
     }
-    if (description) {
+    const trimmed = description?.trim();
+    if (trimmed) {
       context.interactItem.hidden = false;
-      context.interactDescription.textContent = description;
+      activePrompt = trimmed;
+      applyInteractDescription();
     } else {
+      activePrompt = null;
       context.interactItem.hidden = true;
       context.interactDescription.textContent =
         context.defaultInteractDescription;
@@ -578,6 +628,7 @@ export function createMovementLegend(
         context.interactDescription.textContent =
           context.defaultInteractDescription;
       }
+      activePrompt = null;
       applyHudAnnouncement(context, null);
       (Object.keys(labels) as InputMethod[]).forEach((method) => {
         labels[method] = defaultLabels[method];
