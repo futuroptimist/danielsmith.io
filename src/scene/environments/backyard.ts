@@ -1,4 +1,5 @@
 import {
+  AdditiveBlending,
   BackSide,
   BoxGeometry,
   BufferAttribute,
@@ -632,32 +633,95 @@ export function createBackyardEnvironment(
     group.add(shrub);
   });
 
-  const particleGeometry = new BufferGeometry();
-  const particleCount = 24;
-  const particlePositions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i += 1) {
-    const px = bounds.minX + Math.random() * width;
-    const pz = bounds.minZ + Math.random() * depth;
-    const py = 1.6 + Math.random() * 1.4;
-    particlePositions[i * 3] = px;
-    particlePositions[i * 3 + 1] = py;
-    particlePositions[i * 3 + 2] = pz;
+  const fireflyCount = 18;
+  const fireflyGeometry = new BufferGeometry();
+  const fireflyPositions = new Float32Array(fireflyCount * 3);
+  const fireflyBasePositions = new Float32Array(fireflyCount * 3);
+  const fireflyXAxisAmplitudes = new Float32Array(fireflyCount);
+  const fireflyYAxisAmplitudes = new Float32Array(fireflyCount);
+  const fireflyZAxisAmplitudes = new Float32Array(fireflyCount);
+  const fireflySpeeds = new Float32Array(fireflyCount);
+  const fireflyPhaseOffsets = new Float32Array(fireflyCount);
+  for (let i = 0; i < fireflyCount; i += 1) {
+    const ratio = (i + 0.5) / fireflyCount;
+    const baseX = walkway.position.x + (ratio - 0.5) * walkwayWidth * 0.6;
+    const baseZ =
+      walkway.position.z - walkwayDepth * 0.4 + walkwayDepth * 0.85 * ratio;
+    const baseY = 1.05 + Math.sin(ratio * Math.PI) * 0.55;
+    const baseIndex = i * 3;
+    fireflyBasePositions[baseIndex] = baseX;
+    fireflyBasePositions[baseIndex + 1] = baseY;
+    fireflyBasePositions[baseIndex + 2] = baseZ;
+    fireflyPositions[baseIndex] = baseX;
+    fireflyPositions[baseIndex + 1] = baseY;
+    fireflyPositions[baseIndex + 2] = baseZ;
+    fireflyXAxisAmplitudes[i] =
+      walkwayWidth * 0.18 * (0.6 + Math.sin(ratio * Math.PI * 2) * 0.25);
+    fireflyYAxisAmplitudes[i] = 0.18 + Math.sin(ratio * Math.PI) * 0.22;
+    fireflyZAxisAmplitudes[i] =
+      walkwayDepth * 0.16 * (0.7 + Math.cos(ratio * Math.PI * 1.5) * 0.2);
+    fireflySpeeds[i] = 0.65 + ratio * 0.9;
+    fireflyPhaseOffsets[i] = ratio * Math.PI * 2;
   }
-  particleGeometry.setAttribute(
-    'position',
-    new BufferAttribute(particlePositions, 3)
-  );
-  const particleMaterial = new PointsMaterial({
-    color: 0x9ad7ff,
-    size: 0.14,
+  const fireflyPositionsAttribute = new BufferAttribute(fireflyPositions, 3);
+  fireflyGeometry.setAttribute('position', fireflyPositionsAttribute);
+  const fireflyMaterial = new PointsMaterial({
+    color: 0xffcfa6,
+    size: 0.18,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.82,
     depthWrite: false,
     sizeAttenuation: true,
+    blending: AdditiveBlending,
   });
-  const fireflies = new Points(particleGeometry, particleMaterial);
+  const fireflies = new Points(fireflyGeometry, fireflyMaterial);
   fireflies.name = 'BackyardFireflies';
   group.add(fireflies);
+  const baseFireflyOpacity = fireflyMaterial.opacity;
+  const baseFireflySize = fireflyMaterial.size;
+
+  updates.push(({ elapsed }) => {
+    const flickerScale = getFlickerScale();
+    const pulseScale = getPulseScale();
+    let twinkleSum = 0;
+
+    for (let i = 0; i < fireflyCount; i += 1) {
+      const baseIndex = i * 3;
+      const offset = fireflyPhaseOffsets[i];
+      const speed = fireflySpeeds[i];
+      const phase = elapsed * speed + offset;
+      const sinPhase = Math.sin(phase);
+      const cosPhase = Math.cos(phase * 0.92 + offset * 0.4);
+      const baseX = fireflyBasePositions[baseIndex];
+      const baseY = fireflyBasePositions[baseIndex + 1];
+      const baseZ = fireflyBasePositions[baseIndex + 2];
+      const x =
+        baseX +
+        sinPhase * fireflyXAxisAmplitudes[i] +
+        Math.sin(phase * 0.35 + offset) * fireflyXAxisAmplitudes[i] * 0.18;
+      const y =
+        baseY +
+        Math.sin(phase * 1.6 + offset * 0.5) * fireflyYAxisAmplitudes[i] +
+        Math.sin(phase * 0.45 + offset) * 0.06;
+      const z = baseZ + cosPhase * fireflyZAxisAmplitudes[i];
+      fireflyPositionsAttribute.setXYZ(i, x, y, z);
+      const localTwinkle = 0.72 + Math.sin(phase * 1.7 + offset * 0.6) * 0.38;
+      twinkleSum += localTwinkle;
+    }
+
+    fireflyPositionsAttribute.needsUpdate = true;
+
+    const averageTwinkle = MathUtils.clamp(
+      twinkleSum / fireflyCount,
+      0.45,
+      1.25
+    );
+    const opacityScale = MathUtils.lerp(0.55, averageTwinkle, flickerScale);
+    const sizeTarget = MathUtils.lerp(0.45, averageTwinkle, pulseScale);
+    const sizeScale = MathUtils.lerp(0.82, 1.16, sizeTarget);
+    fireflyMaterial.opacity = baseFireflyOpacity * opacityScale;
+    fireflyMaterial.size = baseFireflySize * sizeScale;
+  });
 
   const duskLight = new PointLight(
     0x8fb8ff,
