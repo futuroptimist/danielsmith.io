@@ -114,7 +114,7 @@ Focus: anchor each highlighted project with an interactive artifact.
      events, paving the path for gamepad + mid-air parity.
 
    - ✅ Data-driven registry now spawns holographic pedestals for Futuroptimist + Flywheel exhibits.
-   - ✨ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
+   - ✅ Pedestals fade in tooltips and halo guides as players enter their interaction radii.
    - ✅ Desktop pointer interaction manager highlights POIs and emits selection events.
    - ✅ Analytics hooks emit hover and selection lifecycle events for instrumentation pipelines.
    - ✅ Interaction manager now normalizes analytics injection so instrumentation fires when

@@ -111,6 +111,11 @@ import {
 } from './scene/lighting/seasonalPresets';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import {
+  computePoiEmphasis,
+  computePoiHaloOpacity,
+  computePoiLabelOpacity,
+} from './scene/poi/emphasis';
+import {
   wireGitHubRepoMetrics,
   type GitHubRepoMetricsController,
 } from './scene/poi/githubMetrics';
@@ -3122,7 +3127,7 @@ function initializeImmersiveScene(
         smoothing
       );
       poi.focus = MathUtils.lerp(poi.focus, poi.focusTarget, smoothing);
-      const emphasis = Math.max(poi.activation, poi.focus);
+      const emphasis = computePoiEmphasis(poi.activation, poi.focus);
       const visitedEmphasis = poi.visitedStrength;
 
       if (poi.activation > highestActivation) {
@@ -3131,8 +3136,7 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const baseOpacity = MathUtils.lerp(0.32, 0.52, visitedEmphasis);
-        const labelOpacity = MathUtils.lerp(baseOpacity, 1, emphasis);
+        const labelOpacity = computePoiLabelOpacity(emphasis, visitedEmphasis);
         poi.labelMaterial.opacity = labelOpacity;
         poi.label.visible = labelOpacity > 0.05;
       }
@@ -3213,8 +3217,7 @@ function initializeImmersiveScene(
           const haloScale =
             MathUtils.lerp(baseHaloScale, 1.18, emphasis) * haloPulse;
           poi.halo.scale.setScalar(haloScale);
-          const baseHaloOpacity = MathUtils.lerp(0.18, 0.32, visitedEmphasis);
-          const haloOpacity = MathUtils.lerp(baseHaloOpacity, 0.62, emphasis);
+          const haloOpacity = computePoiHaloOpacity(emphasis, visitedEmphasis);
           poi.haloMaterial.opacity = haloOpacity;
           poi.halo.visible = haloOpacity > 0.04;
           poi.haloMaterial.color.lerpColors(
