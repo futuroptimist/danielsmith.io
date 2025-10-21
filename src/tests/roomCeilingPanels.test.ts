@@ -1,4 +1,4 @@
-import { BoxGeometry, Color, MeshStandardMaterial } from 'three';
+import { BoxGeometry, Color, DataTexture, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import type { RoomDefinition } from '../assets/floorPlan';
@@ -132,5 +132,30 @@ describe('createRoomCeilingPanels', () => {
       .material as MeshStandardMaterial;
     expect(opaqueMaterial.transparent).toBe(false);
     expect(opaqueMaterial.opacity).toBeCloseTo(1);
+  });
+
+  it('attaches lightmaps and clamps custom intensities', () => {
+    const room = createRoom({ id: 'lightmapRoom', name: 'Lightmap Room' });
+    const texture = new DataTexture(new Uint8Array([255, 240, 220, 255]), 1, 1);
+    texture.needsUpdate = true;
+
+    const { panels } = createRoomCeilingPanels([room], {
+      lightMap: texture,
+      lightMapIntensity: 0.48,
+    });
+
+    const material = panels[0]!.mesh.material as MeshStandardMaterial;
+    expect(material.lightMap).toBe(texture);
+    expect(material.lightMapIntensity).toBeCloseTo(0.48);
+
+    const { panels: clampedPanels } = createRoomCeilingPanels([room], {
+      lightMap: texture,
+      lightMapIntensity: -2,
+    });
+
+    const clampedMaterial = clampedPanels[0]!.mesh
+      .material as MeshStandardMaterial;
+    expect(clampedMaterial.lightMap).toBe(texture);
+    expect(clampedMaterial.lightMapIntensity).toBe(0);
   });
 });

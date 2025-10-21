@@ -52,6 +52,20 @@ describe('createInteriorLightmapTextures', () => {
     expect(textures.wall.colorSpace).toBe(SRGBColorSpace);
     expect(top).toBeGreaterThan(bottom);
   });
+
+  it('yields ceiling lightmaps with warm edges and greenhouse emphasis', () => {
+    const textures = createInteriorLightmapTextures({
+      floorSize: { width: 28, depth: 42 },
+    });
+
+    const center = sampleLuminance(textures.ceiling, 0.5, 0.5);
+    const edge = sampleLuminance(textures.ceiling, 0.12, 0.5);
+    const greenhouseSide = sampleLuminance(textures.ceiling, 0.82, 0.92);
+
+    expect(textures.ceiling.colorSpace).toBe(SRGBColorSpace);
+    expect(edge).toBeGreaterThan(center);
+    expect(greenhouseSide).toBeGreaterThan(edge);
+  });
 });
 
 describe('applyLightmapUv2', () => {
