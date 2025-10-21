@@ -21,6 +21,25 @@ export interface LedPulseProgram {
   keyframes: readonly LedPulseKeyframe[];
 }
 
+export interface LedPulseTimelinePoint {
+  /** Absolute time within the cycle expressed in seconds. */
+  timeSeconds: number;
+  /** Target LED strip multiplier at this timestamp. */
+  stripMultiplier: number;
+  /** Optional fill light multiplier at this timestamp. */
+  fillMultiplier?: number;
+  /** Optional easing to apply when transitioning to the next point. */
+  ease?: LedEase;
+}
+
+export interface LedPulseTimeline {
+  roomId: string;
+  /** Complete duration of the timeline in seconds. */
+  cycleSeconds: number;
+  /** Absolute timeline points that will be normalized into keyframes. */
+  points: readonly LedPulseTimelinePoint[];
+}
+
 export interface LedPulseSample {
   stripMultiplier: number;
   fillMultiplier: number;
@@ -70,6 +89,22 @@ const DEFAULT_PROGRAM: LedPulseProgram = {
 
 const EPSILON = 1e-6;
 
+function sanitizeTime(value: number, cycleSeconds: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  if (cycleSeconds <= EPSILON) {
+    return 0;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  if (value >= cycleSeconds) {
+    return cycleSeconds;
+  }
+  return value;
+}
+
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
     return 0;
@@ -110,6 +145,96 @@ interface PreparedKeyframe {
   stripMultiplier: number;
   fillMultiplier: number;
   ease: LedEase | undefined;
+}
+
+export function compileLedTimeline(
+  timeline: LedPulseTimeline
+): LedPulseProgram {
+  const baseCycle = Number.isFinite(timeline.cycleSeconds)
+    ? Math.abs(timeline.cycleSeconds)
+    : 0;
+  const cycle = baseCycle > EPSILON ? baseCycle : EPSILON;
+  const points = timeline.points
+    .map((point) => {
+      const stripMultiplier = sanitizeMultiplier(point.stripMultiplier, 1);
+      const fillMultiplier = sanitizeMultiplier(
+        point.fillMultiplier,
+        stripMultiplier
+      );
+      return {
+        timeSeconds: sanitizeTime(point.timeSeconds, cycle),
+        stripMultiplier,
+        fillMultiplier,
+        ease: point.ease,
+      };
+    })
+    .sort((a, b) => a.timeSeconds - b.timeSeconds);
+
+  const uniquePoints: typeof points = [];
+  for (const point of points) {
+    const last = uniquePoints[uniquePoints.length - 1];
+    if (last && Math.abs(last.timeSeconds - point.timeSeconds) <= EPSILON) {
+      uniquePoints[uniquePoints.length - 1] = point;
+    } else {
+      uniquePoints.push(point);
+    }
+  }
+
+  if (uniquePoints.length === 0) {
+    return { roomId: timeline.roomId, cycleSeconds: cycle, keyframes: [] };
+  }
+
+  const sanitizedPoints = uniquePoints.map((point) => ({ ...point }));
+  const firstPoint = sanitizedPoints[0];
+  if (firstPoint.timeSeconds > EPSILON) {
+    sanitizedPoints.unshift({
+      timeSeconds: 0,
+      stripMultiplier: firstPoint.stripMultiplier,
+      fillMultiplier: firstPoint.fillMultiplier,
+      ease: firstPoint.ease,
+    });
+  } else {
+    sanitizedPoints[0] = {
+      ...firstPoint,
+      timeSeconds: 0,
+    };
+  }
+
+  const lastIndex = sanitizedPoints.length - 1;
+  const lastPoint = sanitizedPoints[lastIndex];
+  if (cycle - lastPoint.timeSeconds > EPSILON) {
+    sanitizedPoints.push({
+      timeSeconds: cycle,
+      stripMultiplier: sanitizedPoints[0].stripMultiplier,
+      fillMultiplier: sanitizedPoints[0].fillMultiplier,
+      ease: lastPoint.ease,
+    });
+  } else if (sanitizedPoints.length === 1) {
+    sanitizedPoints.push({
+      timeSeconds: cycle,
+      stripMultiplier: sanitizedPoints[0].stripMultiplier,
+      fillMultiplier: sanitizedPoints[0].fillMultiplier,
+      ease: lastPoint.ease,
+    });
+    sanitizedPoints[0] = {
+      ...sanitizedPoints[0],
+      timeSeconds: 0,
+    };
+  } else {
+    sanitizedPoints[lastIndex] = {
+      ...lastPoint,
+      timeSeconds: cycle,
+    };
+  }
+
+  const keyframes: LedPulseKeyframe[] = sanitizedPoints.map((point) => ({
+    time: MathUtils.clamp(point.timeSeconds / cycle, 0, 1),
+    stripMultiplier: point.stripMultiplier,
+    fillMultiplier: point.fillMultiplier,
+    ease: point.ease,
+  }));
+
+  return { roomId: timeline.roomId, cycleSeconds: cycle, keyframes };
 }
 
 function normalizeKeyframes(
@@ -268,98 +393,118 @@ export function createLedAnimator(options: {
   };
 }
 
-export const ROOM_LED_PULSE_PROGRAMS: readonly LedPulseProgram[] = [
-  {
-    roomId: 'livingRoom',
-    cycleSeconds: 22,
-    keyframes: [
-      {
-        time: 0,
-        stripMultiplier: 0.92,
-        fillMultiplier: 0.86,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.28,
-        stripMultiplier: 1.12,
-        fillMultiplier: 1.04,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.55,
-        stripMultiplier: 0.97,
-        fillMultiplier: 0.92,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.82,
-        stripMultiplier: 1.08,
-        fillMultiplier: 1.02,
-        ease: 'sine-in-out',
-      },
-      { time: 1, stripMultiplier: 0.92, fillMultiplier: 0.86 },
-    ],
-  },
-  {
-    roomId: 'studio',
-    cycleSeconds: 26,
-    keyframes: [
-      {
-        time: 0,
-        stripMultiplier: 0.9,
-        fillMultiplier: 0.84,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.18,
-        stripMultiplier: 1.08,
-        fillMultiplier: 1.02,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.45,
-        stripMultiplier: 0.95,
-        fillMultiplier: 0.9,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.7,
-        stripMultiplier: 1.15,
-        fillMultiplier: 1.08,
-        ease: 'sine-in-out',
-      },
-      { time: 1, stripMultiplier: 0.9, fillMultiplier: 0.84 },
-    ],
-  },
-  {
-    roomId: 'kitchen',
-    cycleSeconds: 24,
-    keyframes: [
-      {
-        time: 0,
-        stripMultiplier: 0.96,
-        fillMultiplier: 0.9,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.33,
-        stripMultiplier: 1.05,
-        fillMultiplier: 0.98,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.58,
-        stripMultiplier: 0.93,
-        fillMultiplier: 0.9,
-        ease: 'sine-in-out',
-      },
-      {
-        time: 0.85,
-        stripMultiplier: 1.1,
-        fillMultiplier: 1.05,
-        ease: 'sine-in-out',
-      },
-      { time: 1, stripMultiplier: 0.96, fillMultiplier: 0.9 },
-    ],
-  },
-];
+export const ROOM_LED_TIMELINES: readonly LedPulseTimeline[] = (() => {
+  const livingRoomCycle = 22;
+  const studioCycle = 26;
+  const kitchenCycle = 24;
+  return [
+    {
+      roomId: 'livingRoom',
+      cycleSeconds: livingRoomCycle,
+      points: [
+        {
+          timeSeconds: 0,
+          stripMultiplier: 0.92,
+          fillMultiplier: 0.86,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: livingRoomCycle * 0.28,
+          stripMultiplier: 1.12,
+          fillMultiplier: 1.04,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: livingRoomCycle * 0.55,
+          stripMultiplier: 0.97,
+          fillMultiplier: 0.92,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: livingRoomCycle * 0.82,
+          stripMultiplier: 1.08,
+          fillMultiplier: 1.02,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: livingRoomCycle,
+          stripMultiplier: 0.92,
+          fillMultiplier: 0.86,
+        },
+      ],
+    },
+    {
+      roomId: 'studio',
+      cycleSeconds: studioCycle,
+      points: [
+        {
+          timeSeconds: 0,
+          stripMultiplier: 0.9,
+          fillMultiplier: 0.84,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: studioCycle * 0.18,
+          stripMultiplier: 1.08,
+          fillMultiplier: 1.02,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: studioCycle * 0.45,
+          stripMultiplier: 0.95,
+          fillMultiplier: 0.9,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: studioCycle * 0.7,
+          stripMultiplier: 1.15,
+          fillMultiplier: 1.08,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: studioCycle,
+          stripMultiplier: 0.9,
+          fillMultiplier: 0.84,
+        },
+      ],
+    },
+    {
+      roomId: 'kitchen',
+      cycleSeconds: kitchenCycle,
+      points: [
+        {
+          timeSeconds: 0,
+          stripMultiplier: 0.96,
+          fillMultiplier: 0.9,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: kitchenCycle * 0.33,
+          stripMultiplier: 1.05,
+          fillMultiplier: 0.98,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: kitchenCycle * 0.58,
+          stripMultiplier: 0.93,
+          fillMultiplier: 0.9,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: kitchenCycle * 0.85,
+          stripMultiplier: 1.1,
+          fillMultiplier: 1.05,
+          ease: 'sine-in-out',
+        },
+        {
+          timeSeconds: kitchenCycle,
+          stripMultiplier: 0.96,
+          fillMultiplier: 0.9,
+        },
+      ],
+    },
+  ] as const;
+})();
+
+export const ROOM_LED_PULSE_PROGRAMS: readonly LedPulseProgram[] =
+  ROOM_LED_TIMELINES.map((timeline) => compileLedTimeline(timeline));
