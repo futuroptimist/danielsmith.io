@@ -107,6 +107,15 @@ import {
   type LedAnimator,
 } from './scene/lighting/ledPulsePrograms';
 import {
+  LED_STRIP_DEPTH,
+  LED_STRIP_EDGE_BUFFER,
+  LED_STRIP_THICKNESS,
+  computeCornerConnectorPlacement,
+  toCornerDirection,
+  type CornerPlacementData,
+  type CornerSegmentPlacement,
+} from './scene/lighting/ledStrips';
+import {
   applySeasonalLightingPreset,
   createSeasonallyAdjustedPrograms,
   resolveSeasonalLightingPreset,
@@ -384,9 +393,6 @@ const MAX_CAMERA_ZOOM = 12;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
-const LED_STRIP_THICKNESS = 0.12;
-const LED_STRIP_DEPTH = 0.22;
-const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
@@ -1306,6 +1312,11 @@ function initializeImmersiveScene(
       documentElement: document.documentElement,
     });
 
+    const roomCornerPlacements = new Map<
+      string,
+      Map<string, CornerPlacementData>
+    >();
+
     combinedWallSegments.forEach((segment) => {
       const segmentLength =
         segment.orientation === 'horizontal'
@@ -1332,6 +1343,17 @@ function initializeImmersiveScene(
         segment.orientation === 'horizontal'
           ? segment.start.z
           : (segment.start.z + segment.end.z) / 2;
+      const segmentDirection =
+        segment.orientation === 'horizontal'
+          ? toCornerDirection(segment.end.x - segment.start.x)
+          : toCornerDirection(segment.end.z - segment.start.z);
+      const endpoints: Array<{
+        position: { x: number; z: number };
+        end: CornerSegmentPlacement['end'];
+      }> = [
+        { position: segment.start, end: 'start' },
+        { position: segment.end, end: 'end' },
+      ];
 
       segment.rooms.forEach((roomInfo) => {
         if (getRoomCategory(roomInfo.id) === 'exterior') {
@@ -1355,6 +1377,59 @@ function initializeImmersiveScene(
         strip.position.set(baseX + offsetX, ledHeight, baseZ + offsetZ);
         strip.renderOrder = 1;
         group.add(strip);
+
+        let cornerMap = roomCornerPlacements.get(roomInfo.id);
+        if (!cornerMap) {
+          cornerMap = new Map<string, CornerPlacementData>();
+          roomCornerPlacements.set(roomInfo.id, cornerMap);
+        }
+
+        endpoints.forEach(({ position, end }) => {
+          const key = `${position.x.toFixed(3)}|${position.z.toFixed(3)}`;
+          const existing = cornerMap.get(key);
+          const corner: CornerPlacementData = existing ?? {
+            position: { x: position.x, z: position.z },
+          };
+          const placement: CornerSegmentPlacement = {
+            offsetX,
+            offsetZ,
+            direction: segmentDirection,
+            end,
+          };
+          if (segment.orientation === 'horizontal') {
+            corner.horizontal = placement;
+          } else {
+            corner.vertical = placement;
+          }
+          cornerMap.set(key, corner);
+        });
+      });
+    });
+
+    roomCornerPlacements.forEach((cornerMap, roomId) => {
+      const material = roomLedMaterials.get(roomId);
+      const group = roomLedGroups.get(roomId);
+      if (!material || !group) {
+        return;
+      }
+      cornerMap.forEach((corner) => {
+        const placement = computeCornerConnectorPlacement(corner);
+        if (!placement) {
+          return;
+        }
+        const geometry = new BoxGeometry(
+          placement.size.width,
+          LED_STRIP_THICKNESS,
+          placement.size.depth
+        );
+        const connector = new Mesh(geometry, material);
+        connector.position.set(
+          placement.center.x,
+          ledHeight,
+          placement.center.z
+        );
+        connector.renderOrder = 1;
+        group.add(connector);
       });
     });
 
