@@ -256,6 +256,7 @@ import {
   createManualModeToggle,
   type ManualModeToggleHandle,
 } from './systems/failover/manualModeToggle';
+import { writeModePreference } from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
 import { createGitHubRepoStatsService } from './systems/github/repoStats';
 import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
@@ -2623,6 +2624,7 @@ function initializeImmersiveScene(
       keyHint: 'T',
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
       onToggle: () => {
+        writeModePreference('text');
         if (!performanceFailover.hasTriggered()) {
           performanceFailover.triggerFallback('manual');
         }
@@ -3658,6 +3660,7 @@ function initializeImmersiveScene(
       }
       if (!hasPresentedFirstFrame) {
         hasPresentedFirstFrame = true;
+        writeModePreference('immersive');
         markDocumentReady('immersive');
       }
     } catch (error) {

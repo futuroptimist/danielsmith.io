@@ -89,6 +89,34 @@ describe('evaluateFailoverDecision', () => {
     expect(decision).toEqual({ shouldUseFallback: false });
   });
 
+  it('honors stored text mode preference when no override is provided', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getModePreference: () => 'text',
+    });
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'manual',
+    });
+  });
+
+  it('ignores stored text preference when immersive override is set', () => {
+    const decision = evaluateFailoverDecision({
+      search: IMMERSIVE_SEARCH,
+      createCanvas: canvasFactory,
+      getModePreference: () => 'text',
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('defaults to immersive when stored preference is immersive', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getModePreference: () => 'immersive',
+    });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('triggers fallback when reported memory is below the threshold', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
