@@ -107,6 +107,11 @@ import {
   type LedAnimator,
 } from './scene/lighting/ledPulsePrograms';
 import {
+  computeDiffuserVerticalOffset,
+  createLedDiffuserGeometry,
+  createLedDiffuserMaterial,
+} from './scene/lighting/ledStrips';
+import {
   applySeasonalLightingPreset,
   createSeasonallyAdjustedPrograms,
   resolveSeasonalLightingPreset,
@@ -1202,6 +1207,7 @@ function initializeImmersiveScene(
     ledFillLightGroup = ledFillLights;
     const roomLedGroups = new Map<string, Group>();
     const roomLedMaterials = new Map<string, MeshStandardMaterial>();
+    const roomLedDiffuserMaterials = new Map<string, MeshStandardMaterial>();
     const roomLedFillLights = new Map<string, PointLight>();
     const roomSeasonalTargets: SeasonalLightingTarget[] = [];
 
@@ -1217,8 +1223,14 @@ function initializeImmersiveScene(
         roughness: 0.35,
         metalness: 0.15,
       });
-      ledStripMaterials.push(material);
+      const diffuserMaterial = createLedDiffuserMaterial({
+        baseColor: ledBaseColor,
+        emissiveColor,
+        baseEmissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
+      });
+      ledStripMaterials.push(material, diffuserMaterial);
       roomLedMaterials.set(room.id, material);
+      roomLedDiffuserMaterials.set(room.id, diffuserMaterial);
 
       const group = new Group();
       group.name = `${room.name} LED`; // helpful for debugging
@@ -1291,12 +1303,20 @@ function initializeImmersiveScene(
         });
       });
 
+      const baseEmissiveColor = emissiveColor.clone();
       roomSeasonalTargets.push({
         roomId: room.id,
         material,
-        baseEmissiveColor: emissiveColor.clone(),
+        baseEmissiveColor,
         baseEmissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
         fillLights: fillTargets,
+      });
+      roomSeasonalTargets.push({
+        roomId: room.id,
+        material: diffuserMaterial,
+        baseEmissiveColor: baseEmissiveColor.clone(),
+        baseEmissiveIntensity: diffuserMaterial.emissiveIntensity,
+        fillLights: [],
       });
     });
 
@@ -1338,6 +1358,7 @@ function initializeImmersiveScene(
           return;
         }
         const material = roomLedMaterials.get(roomInfo.id);
+        const diffuserMaterial = roomLedDiffuserMaterials.get(roomInfo.id);
         const group = roomLedGroups.get(roomInfo.id);
         if (!material || !group) {
           return;
@@ -1354,16 +1375,46 @@ function initializeImmersiveScene(
         const strip = new Mesh(geometry, material);
         strip.position.set(baseX + offsetX, ledHeight, baseZ + offsetZ);
         strip.renderOrder = 1;
+        strip.castShadow = false;
         group.add(strip);
+
+        if (diffuserMaterial) {
+          const diffuserGeometry = createLedDiffuserGeometry({
+            stripWidth: width,
+            stripDepth: depth,
+          });
+          const diffuser = new Mesh(diffuserGeometry, diffuserMaterial);
+          diffuser.position.set(
+            baseX + offsetX,
+            ledHeight - computeDiffuserVerticalOffset(LED_STRIP_THICKNESS),
+            baseZ + offsetZ
+          );
+          diffuser.renderOrder = strip.renderOrder - 0.25;
+          diffuser.castShadow = false;
+          group.add(diffuser);
+        }
       });
     });
 
-    const ledTargets = Array.from(roomLedMaterials.entries()).map(
-      ([roomId, material]) => ({
-        roomId,
-        material,
-        fillLight: roomLedFillLights.get(roomId),
-      })
+    const ledTargets = Array.from(roomLedMaterials.entries()).flatMap(
+      ([roomId, material]) => {
+        const targets = [
+          {
+            roomId,
+            material,
+            fillLight: roomLedFillLights.get(roomId),
+          },
+        ];
+        const diffuserMaterial = roomLedDiffuserMaterials.get(roomId);
+        if (diffuserMaterial) {
+          targets.push({
+            roomId,
+            material: diffuserMaterial,
+            fillLight: undefined,
+          });
+        }
+        return targets;
+      }
     );
     const seasonalPrograms = createSeasonallyAdjustedPrograms(
       ROOM_LED_PULSE_PROGRAMS,

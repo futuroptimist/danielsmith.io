@@ -60,7 +60,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Introduce baked + dynamic lighting pipeline.
      Ambient, hemisphere, and directional lights now flow through a seasonal animator
      that breathes against the baked gradient lightmaps.
-   - Add emissive LED strip meshes along ceiling edges with gentle bloom.
+   - ✅ Add emissive LED strip meshes along ceiling edges with gentle bloom.
+     Diffuser rails now wrap each interior ceiling run so bloom spreads softly without hotspots.
    - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
