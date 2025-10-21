@@ -5,6 +5,7 @@ import {
   MathUtils,
   Mesh,
   MeshStandardMaterial,
+  Texture,
 } from 'three';
 
 import type { RoomDefinition } from '../../assets/floorPlan';
@@ -42,6 +43,10 @@ export interface RoomCeilingOptions {
   readonly material?: MeshStandardMaterial;
   /** Optional factory for bespoke materials per room. */
   readonly materialFactory?: (room: RoomDefinition) => MeshStandardMaterial;
+  /** Optional baked lightmap applied to each ceiling panel. */
+  readonly lightMap?: Texture;
+  /** Intensity multiplier applied to the ceiling lightmap. */
+  readonly lightMapIntensity?: number;
 }
 
 const DEFAULT_HEIGHT = 5.85;
@@ -51,6 +56,20 @@ const DEFAULT_THICKNESS = 0.3;
 const BASE_COLOR = 0x1f2636;
 const DEFAULT_TINT_INTENSITY = 0.28;
 const DEFAULT_OPACITY = 0.08;
+
+function applyLightMapOptions(
+  material: MeshStandardMaterial,
+  options: RoomCeilingOptions
+) {
+  if (options.lightMap) {
+    material.lightMap = options.lightMap;
+    const rawIntensity =
+      options.lightMapIntensity ?? material.lightMapIntensity ?? 1;
+    material.lightMapIntensity = Math.max(0, rawIntensity);
+  } else if (typeof options.lightMapIntensity === 'number') {
+    material.lightMapIntensity = Math.max(0, options.lightMapIntensity);
+  }
+}
 
 function createMaterial(
   room: RoomDefinition,
@@ -64,6 +83,7 @@ function createMaterial(
     material.opacity = opacity;
     // Transparent ceilings should not write depth so they don't occlude content below.
     material.depthWrite = !material.transparent ? true : false;
+    applyLightMapOptions(material, options);
     return material;
   }
   if (options.material) {
@@ -72,6 +92,7 @@ function createMaterial(
     material.transparent = opacity < 1;
     material.opacity = opacity;
     material.depthWrite = !material.transparent ? true : false;
+    applyLightMapOptions(material, options);
     return material;
   }
 
@@ -89,6 +110,7 @@ function createMaterial(
   material.transparent = opacity < 1;
   material.opacity = opacity;
   material.depthWrite = !material.transparent ? true : false;
+  applyLightMapOptions(material, options);
   return material;
 }
 
