@@ -3,11 +3,102 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createLedAnimator,
+  createLedProgramFromTimeline,
   createLedProgramSampler,
   type LedPulseProgram,
+  type LedTimeline,
 } from '../scene/lighting/ledPulsePrograms';
 
 const toFixed = (value: number) => Number(value.toFixed(5));
+
+describe('createLedProgramFromTimeline', () => {
+  it('converts timeline segments into normalized keyframes', () => {
+    const timeline: LedTimeline = {
+      roomId: 'timeline-room',
+      segments: [
+        {
+          durationSeconds: 2,
+          stripMultiplier: 0.8,
+          fillMultiplier: 0.6,
+          ease: 'sine-in-out',
+        },
+        {
+          durationSeconds: 1,
+          stripMultiplier: 1.2,
+          fillMultiplier: 1.1,
+        },
+      ],
+    };
+
+    const program = createLedProgramFromTimeline(timeline);
+
+    expect(program.roomId).toBe('timeline-room');
+    expect(program.cycleSeconds).toBeCloseTo(3, 5);
+    expect(program.keyframes).toHaveLength(3);
+    expect(program.keyframes[0]).toEqual({
+      time: 0,
+      stripMultiplier: 0.8,
+      fillMultiplier: 0.6,
+      ease: 'sine-in-out',
+    });
+    expect(program.keyframes[1].time).toBeCloseTo(2 / 3, 5);
+    expect(program.keyframes[1].stripMultiplier).toBeCloseTo(1.2, 5);
+    expect(program.keyframes[1].fillMultiplier).toBeCloseTo(1.1, 5);
+    expect(program.keyframes[2]).toEqual({
+      time: 1,
+      stripMultiplier: 0.8,
+      fillMultiplier: 0.6,
+    });
+  });
+
+  it('filters invalid segments and falls back to strip multiplier for fill', () => {
+    const timeline: LedTimeline = {
+      roomId: 'sanitize',
+      segments: [
+        {
+          durationSeconds: Number.NaN,
+          stripMultiplier: 1.5,
+        },
+        {
+          durationSeconds: 1.5,
+          stripMultiplier: 0.5,
+        },
+      ],
+    };
+
+    const program = createLedProgramFromTimeline(timeline);
+    expect(program.cycleSeconds).toBeCloseTo(1.5, 5);
+    expect(program.keyframes).toEqual([
+      {
+        time: 0,
+        stripMultiplier: 0.5,
+        fillMultiplier: 0.5,
+      },
+      {
+        time: 1,
+        stripMultiplier: 0.5,
+        fillMultiplier: 0.5,
+      },
+    ]);
+  });
+
+  it('returns an empty program when no valid segments exist', () => {
+    const timeline: LedTimeline = {
+      roomId: 'empty',
+      segments: [
+        {
+          durationSeconds: -4,
+          stripMultiplier: 1,
+        },
+      ],
+    };
+
+    const program = createLedProgramFromTimeline(timeline);
+    expect(program.roomId).toBe('empty');
+    expect(program.cycleSeconds).toBe(1);
+    expect(program.keyframes).toEqual([]);
+  });
+});
 
 describe('createLedProgramSampler', () => {
   it('returns default multipliers when no keyframes exist', () => {

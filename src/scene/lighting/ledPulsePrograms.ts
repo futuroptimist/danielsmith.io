@@ -21,6 +21,23 @@ export interface LedPulseProgram {
   keyframes: readonly LedPulseKeyframe[];
 }
 
+export interface LedTimelineSegment {
+  /** Duration of this lighting state in seconds. */
+  durationSeconds: number;
+  /** Multiplier applied to the LED strip emissive intensity while this segment runs. */
+  stripMultiplier: number;
+  /** Optional multiplier for the paired fill light intensity while this segment runs. */
+  fillMultiplier?: number;
+  /** Optional easing applied when transitioning to the next segment. */
+  ease?: LedEase;
+}
+
+export interface LedTimeline {
+  roomId: string;
+  /** Ordered segments describing the LED pulse program in real time. */
+  segments: readonly LedTimelineSegment[];
+}
+
 export interface LedPulseSample {
   stripMultiplier: number;
   fillMultiplier: number;
@@ -202,6 +219,78 @@ export function createLedProgramSampler(
   };
 }
 
+const sanitizeDuration = (value: number | undefined): number => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return 0;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  return value;
+};
+
+export function createLedProgramFromTimeline(
+  timeline: LedTimeline
+): LedPulseProgram {
+  const sanitizedSegments = timeline.segments
+    .map((segment) => ({
+      durationSeconds: sanitizeDuration(segment.durationSeconds),
+      stripMultiplier: sanitizeMultiplier(segment.stripMultiplier, 1),
+      fillMultiplier: sanitizeMultiplier(
+        segment.fillMultiplier,
+        segment.stripMultiplier
+      ),
+      ease: segment.ease,
+    }))
+    .filter((segment) => segment.durationSeconds > EPSILON);
+
+  const cycleSeconds = sanitizedSegments.reduce(
+    (total, segment) => total + segment.durationSeconds,
+    0
+  );
+
+  if (cycleSeconds <= EPSILON || sanitizedSegments.length === 0) {
+    return {
+      roomId: timeline.roomId,
+      cycleSeconds: 1,
+      keyframes: [],
+    };
+  }
+
+  const keyframes: LedPulseKeyframe[] = [];
+  let elapsed = 0;
+  let firstKeyframe: LedPulseKeyframe | null = null;
+
+  sanitizedSegments.forEach((segment) => {
+    const time = clamp01(elapsed / cycleSeconds);
+    const keyframe: LedPulseKeyframe = {
+      time,
+      stripMultiplier: segment.stripMultiplier,
+      fillMultiplier: segment.fillMultiplier,
+      ease: segment.ease,
+    };
+    if (!firstKeyframe) {
+      firstKeyframe = { ...keyframe };
+    }
+    keyframes.push(keyframe);
+    elapsed += segment.durationSeconds;
+  });
+
+  if (firstKeyframe) {
+    keyframes.push({
+      time: 1,
+      stripMultiplier: firstKeyframe.stripMultiplier,
+      fillMultiplier: firstKeyframe.fillMultiplier,
+    });
+  }
+
+  return {
+    roomId: timeline.roomId,
+    cycleSeconds,
+    keyframes,
+  };
+}
+
 interface LedAnimatorEntry {
   roomId: string;
   sampler: (elapsedSeconds: number) => LedPulseSample;
@@ -268,98 +357,95 @@ export function createLedAnimator(options: {
   };
 }
 
-export const ROOM_LED_PULSE_PROGRAMS: readonly LedPulseProgram[] = [
+export const ROOM_LED_TIMELINES: readonly LedTimeline[] = [
   {
     roomId: 'livingRoom',
-    cycleSeconds: 22,
-    keyframes: [
+    segments: [
       {
-        time: 0,
+        durationSeconds: 6.16,
         stripMultiplier: 0.92,
         fillMultiplier: 0.86,
         ease: 'sine-in-out',
       },
       {
-        time: 0.28,
+        durationSeconds: 5.94,
         stripMultiplier: 1.12,
         fillMultiplier: 1.04,
         ease: 'sine-in-out',
       },
       {
-        time: 0.55,
+        durationSeconds: 5.94,
         stripMultiplier: 0.97,
         fillMultiplier: 0.92,
         ease: 'sine-in-out',
       },
       {
-        time: 0.82,
+        durationSeconds: 3.96,
         stripMultiplier: 1.08,
         fillMultiplier: 1.02,
         ease: 'sine-in-out',
       },
-      { time: 1, stripMultiplier: 0.92, fillMultiplier: 0.86 },
     ],
   },
   {
     roomId: 'studio',
-    cycleSeconds: 26,
-    keyframes: [
+    segments: [
       {
-        time: 0,
+        durationSeconds: 4.68,
         stripMultiplier: 0.9,
         fillMultiplier: 0.84,
         ease: 'sine-in-out',
       },
       {
-        time: 0.18,
+        durationSeconds: 7.02,
         stripMultiplier: 1.08,
         fillMultiplier: 1.02,
         ease: 'sine-in-out',
       },
       {
-        time: 0.45,
+        durationSeconds: 6.5,
         stripMultiplier: 0.95,
         fillMultiplier: 0.9,
         ease: 'sine-in-out',
       },
       {
-        time: 0.7,
+        durationSeconds: 7.8,
         stripMultiplier: 1.15,
         fillMultiplier: 1.08,
         ease: 'sine-in-out',
       },
-      { time: 1, stripMultiplier: 0.9, fillMultiplier: 0.84 },
     ],
   },
   {
     roomId: 'kitchen',
-    cycleSeconds: 24,
-    keyframes: [
+    segments: [
       {
-        time: 0,
+        durationSeconds: 7.92,
         stripMultiplier: 0.96,
         fillMultiplier: 0.9,
         ease: 'sine-in-out',
       },
       {
-        time: 0.33,
+        durationSeconds: 6,
         stripMultiplier: 1.05,
         fillMultiplier: 0.98,
         ease: 'sine-in-out',
       },
       {
-        time: 0.58,
+        durationSeconds: 6.48,
         stripMultiplier: 0.93,
         fillMultiplier: 0.9,
         ease: 'sine-in-out',
       },
       {
-        time: 0.85,
+        durationSeconds: 3.6,
         stripMultiplier: 1.1,
         fillMultiplier: 1.05,
         ease: 'sine-in-out',
       },
-      { time: 1, stripMultiplier: 0.96, fillMultiplier: 0.9 },
     ],
   },
 ];
+
+export const ROOM_LED_PULSE_PROGRAMS: readonly LedPulseProgram[] =
+  ROOM_LED_TIMELINES.map(createLedProgramFromTimeline);
