@@ -40,10 +40,7 @@ import {
   type FloorPlanDefinition,
   type RoomCategory,
 } from './assets/floorPlan';
-import {
-  createWallSegmentInstances,
-  getWallOutwardDirection,
-} from './assets/floorPlan/wallSegments';
+import { createWallSegmentInstances } from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
   getControlOverlayStrings,
@@ -106,12 +103,11 @@ import {
   ROOM_LED_PULSE_PROGRAMS,
   type LedAnimator,
 } from './scene/lighting/ledPulsePrograms';
+import { createRoomLedStrips } from './scene/lighting/ledStrips';
 import {
   applySeasonalLightingPreset,
   createSeasonallyAdjustedPrograms,
   resolveSeasonalLightingPreset,
-  type SeasonalLightingFillLightTarget,
-  type SeasonalLightingTarget,
 } from './scene/lighting/seasonalPresets';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import {
@@ -384,9 +380,6 @@ const MAX_CAMERA_ZOOM = 12;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
-const LED_STRIP_THICKNESS = 0.12;
-const LED_STRIP_DEPTH = 0.22;
-const LED_STRIP_EDGE_BUFFER = 0.3;
 const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
@@ -923,10 +916,6 @@ function initializeImmersiveScene(
     fenceThickness: FENCE_THICKNESS,
     getRoomCategory,
   });
-  const combinedWallSegments = groundWallInstances.map(
-    (instance) => instance.segment
-  );
-
   groundWallInstances.forEach((instance) => {
     const geometry = new BoxGeometry(
       instance.dimensions.width,
@@ -1196,177 +1185,35 @@ function initializeImmersiveScene(
   };
 
   if (LIGHTING_OPTIONS.enableLedStrips) {
-    const ledHeight = WALL_HEIGHT - CEILING_COVE_OFFSET;
-    const ledBaseColor = new Color(0x101623);
-    const ledGroup = new Group();
-    const ledFillLights = new Group();
-    ledStripGroup = ledGroup;
-    ledFillLightGroup = ledFillLights;
-    const roomLedGroups = new Map<string, Group>();
-    const roomLedMaterials = new Map<string, MeshStandardMaterial>();
-    const roomLedFillLights = new Map<string, PointLight>();
-    const roomSeasonalTargets: SeasonalLightingTarget[] = [];
-
-    FLOOR_PLAN.rooms.forEach((room) => {
-      if (getRoomCategory(room.id) === 'exterior') {
-        return;
-      }
-      const emissiveColor = new Color(room.ledColor);
-      const material = new MeshStandardMaterial({
-        color: ledBaseColor,
-        emissive: emissiveColor,
-        emissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
-        roughness: 0.35,
-        metalness: 0.15,
-      });
-      ledStripMaterials.push(material);
-      roomLedMaterials.set(room.id, material);
-
-      const group = new Group();
-      group.name = `${room.name} LED`; // helpful for debugging
-      roomLedGroups.set(room.id, group);
-      ledGroup.add(group);
-
-      const inset = 1.1;
-      const light = new PointLight(
-        emissiveColor,
-        LIGHTING_OPTIONS.ledLightIntensity,
-        Math.max(
-          room.bounds.maxX - room.bounds.minX,
-          room.bounds.maxZ - room.bounds.minZ
-        ) * 1.1,
-        2
-      );
-      light.position.set(
-        (room.bounds.minX + room.bounds.maxX) / 2,
-        ledHeight - 0.1,
-        (room.bounds.minZ + room.bounds.maxZ) / 2
-      );
-      light.castShadow = false;
-      ledFillLights.add(light);
-      ledFillLightsList.push(light);
-      roomLedFillLights.set(room.id, light);
-      const fillTargets: SeasonalLightingFillLightTarget[] = [
-        { light, baseIntensity: light.intensity },
-      ];
-
-      const cornerOffsets = [
-        new Vector3(
-          room.bounds.minX + inset,
-          ledHeight - 0.1,
-          room.bounds.minZ + inset
-        ),
-        new Vector3(
-          room.bounds.maxX - inset,
-          ledHeight - 0.1,
-          room.bounds.minZ + inset
-        ),
-        new Vector3(
-          room.bounds.minX + inset,
-          ledHeight - 0.1,
-          room.bounds.maxZ - inset
-        ),
-        new Vector3(
-          room.bounds.maxX - inset,
-          ledHeight - 0.1,
-          room.bounds.maxZ - inset
-        ),
-      ];
-
-      cornerOffsets.forEach((offset) => {
-        const cornerLight = new PointLight(
-          emissiveColor,
-          LIGHTING_OPTIONS.ledLightIntensity * 0.35,
-          Math.max(
-            room.bounds.maxX - room.bounds.minX,
-            room.bounds.maxZ - room.bounds.minZ
-          ) * 0.9,
-          2
-        );
-        cornerLight.position.copy(offset);
-        cornerLight.castShadow = false;
-        ledFillLights.add(cornerLight);
-        ledFillLightsList.push(cornerLight);
-        fillTargets.push({
-          light: cornerLight,
-          baseIntensity: cornerLight.intensity,
-        });
-      });
-
-      roomSeasonalTargets.push({
-        roomId: room.id,
-        material,
-        baseEmissiveColor: emissiveColor.clone(),
-        baseEmissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
-        fillLights: fillTargets,
-      });
+    const ledBuild = createRoomLedStrips({
+      plan: FLOOR_PLAN,
+      getRoomCategory,
+      ledHeight: WALL_HEIGHT - CEILING_COVE_OFFSET,
+      baseColor: 0x101623,
+      emissiveIntensity: LIGHTING_OPTIONS.ledEmissiveIntensity,
+      fillLightIntensity: LIGHTING_OPTIONS.ledLightIntensity,
+      wallThickness: WALL_THICKNESS,
     });
+
+    ledStripGroup = ledBuild.group;
+    ledFillLightGroup = ledBuild.fillLightGroup;
+    ledStripMaterials.push(...ledBuild.materials);
+    ledFillLightsList.push(...ledBuild.fillLights);
 
     applySeasonalLightingPreset({
       preset: seasonalPreset,
-      targets: roomSeasonalTargets,
+      targets: ledBuild.seasonalTargets,
       documentElement: document.documentElement,
     });
 
-    combinedWallSegments.forEach((segment) => {
-      const segmentLength =
-        segment.orientation === 'horizontal'
-          ? Math.abs(segment.end.x - segment.start.x)
-          : Math.abs(segment.end.z - segment.start.z);
-      const effectiveLength = segmentLength - LED_STRIP_EDGE_BUFFER * 2;
-      if (effectiveLength <= LED_STRIP_DEPTH * 0.5) {
-        return;
-      }
-
-      const width =
-        segment.orientation === 'horizontal'
-          ? effectiveLength
-          : LED_STRIP_DEPTH;
-      const depth =
-        segment.orientation === 'horizontal'
-          ? LED_STRIP_DEPTH
-          : effectiveLength;
-      const baseX =
-        segment.orientation === 'horizontal'
-          ? (segment.start.x + segment.end.x) / 2
-          : segment.start.x;
-      const baseZ =
-        segment.orientation === 'horizontal'
-          ? segment.start.z
-          : (segment.start.z + segment.end.z) / 2;
-
-      segment.rooms.forEach((roomInfo) => {
-        if (getRoomCategory(roomInfo.id) === 'exterior') {
-          return;
-        }
-        const material = roomLedMaterials.get(roomInfo.id);
-        const group = roomLedGroups.get(roomInfo.id);
-        if (!material || !group) {
-          return;
-        }
-        const direction = getWallOutwardDirection(roomInfo.wall);
-        const inwardOffset =
-          segment.rooms.length > 1
-            ? WALL_THICKNESS / 2 + LED_STRIP_DEPTH / 2
-            : LED_STRIP_DEPTH / 2;
-        const offsetX = -direction.x * inwardOffset;
-        const offsetZ = -direction.z * inwardOffset;
-
-        const geometry = new BoxGeometry(width, LED_STRIP_THICKNESS, depth);
-        const strip = new Mesh(geometry, material);
-        strip.position.set(baseX + offsetX, ledHeight, baseZ + offsetZ);
-        strip.renderOrder = 1;
-        group.add(strip);
-      });
-    });
-
-    const ledTargets = Array.from(roomLedMaterials.entries()).map(
+    const ledTargets = Array.from(ledBuild.materialsByRoom.entries()).map(
       ([roomId, material]) => ({
         roomId,
         material,
-        fillLight: roomLedFillLights.get(roomId),
+        fillLight: ledBuild.fillLightsByRoom.get(roomId),
       })
     );
+
     const seasonalPrograms = createSeasonallyAdjustedPrograms(
       ROOM_LED_PULSE_PROGRAMS,
       seasonalPreset
@@ -1377,8 +1224,8 @@ function initializeImmersiveScene(
     });
     ledAnimator.captureBaseline();
 
-    scene.add(ledGroup);
-    scene.add(ledFillLights);
+    scene.add(ledBuild.group);
+    scene.add(ledBuild.fillLightGroup);
   }
 
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides);
