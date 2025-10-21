@@ -13,12 +13,14 @@ import {
 export interface InteriorLightmapTextures {
   readonly floor: DataTexture;
   readonly wall: DataTexture;
+  readonly ceiling: DataTexture;
 }
 
 export interface InteriorLightmapOptions {
   readonly floorSize: { width: number; depth: number };
   readonly floorResolution?: number;
   readonly wallResolution?: number;
+  readonly ceilingResolution?: number;
 }
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
@@ -38,6 +40,11 @@ const WALL_BASE_COLOR = new Color(0.3, 0.33, 0.4);
 const WALL_MID_COLOR = new Color(0.46, 0.5, 0.58);
 const WALL_CROWN_COLOR = new Color(0.92, 0.86, 0.72);
 const WALL_ACCENT_COLOR = new Color(0.64, 0.6, 0.54);
+
+const CEILING_BASE_COLOR = new Color(0.26, 0.28, 0.34);
+const CEILING_CENTER_COLOR = new Color(0.34, 0.36, 0.42);
+const CEILING_EDGE_GLOW_COLOR = new Color(0.9, 0.82, 0.68);
+const CEILING_DIRECTIONAL_GLOW_COLOR = new Color(0.98, 0.86, 0.7);
 
 function createGradientTexture(
   resolution: Vector2,
@@ -112,11 +119,39 @@ function sampleWallLightmap(uv: Vector2, output: Color): void {
   output.lerp(WALL_CROWN_COLOR, crownBlend);
 }
 
+function sampleCeilingLightmap(uv: Vector2, output: Color): void {
+  const edgeDistance = Math.min(
+    Math.min(uv.x, 1 - uv.x),
+    Math.min(uv.y, 1 - uv.y)
+  );
+  const edgeGlow = 1 - smoothstep(0.12, 0.32, edgeDistance);
+
+  const cornerDistance = Math.min(
+    Math.hypot(uv.x, uv.y),
+    Math.hypot(1 - uv.x, uv.y),
+    Math.hypot(uv.x, 1 - uv.y),
+    Math.hypot(1 - uv.x, 1 - uv.y)
+  );
+  const cornerWarmth = 1 - smoothstep(0.42, 0.86, cornerDistance);
+  const walkwayWarmth = smoothstep(0.4, 0.95, uv.y);
+  const eastGlow = smoothstep(0.46, 1, uv.x);
+  const directionalInfluence = Math.max(walkwayWarmth, eastGlow);
+
+  output.copy(CEILING_BASE_COLOR);
+  output.lerp(CEILING_CENTER_COLOR, 0.6);
+  output.lerp(CEILING_EDGE_GLOW_COLOR, edgeGlow * 0.85);
+  output.lerp(
+    CEILING_DIRECTIONAL_GLOW_COLOR,
+    Math.max(cornerWarmth, directionalInfluence) * 0.65
+  );
+}
+
 export function createInteriorLightmapTextures(
   options: InteriorLightmapOptions
 ): InteriorLightmapTextures {
   const floorResolution = Math.max(32, options.floorResolution ?? 256);
   const wallResolution = Math.max(32, options.wallResolution ?? 128);
+  const ceilingResolution = Math.max(32, options.ceilingResolution ?? 192);
   const aspect = Math.max(
     0.5,
     Math.min(options.floorSize.depth / options.floorSize.width || 1, 2.5)
@@ -134,7 +169,13 @@ export function createInteriorLightmapTextures(
   );
   wall.name = 'InteriorWallLightmap';
 
-  return { floor, wall };
+  const ceiling = createGradientTexture(
+    new Vector2(ceilingResolution, ceilingResolution),
+    (uv, color) => sampleCeilingLightmap(uv, color)
+  );
+  ceiling.name = 'InteriorCeilingLightmap';
+
+  return { floor, wall, ceiling };
 }
 
 export function applyLightmapUv2(geometry: BufferGeometry): void {

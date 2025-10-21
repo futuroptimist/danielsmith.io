@@ -950,6 +950,8 @@ function initializeImmersiveScene(
     thickness: 0.32,
     tintIntensity: 0.24,
     opacity: 0.08,
+    lightMap: interiorLightmaps.ceiling,
+    lightMapIntensity: 0.52,
   });
   scene.add(ceilings.group);
 

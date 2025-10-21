@@ -63,7 +63,9 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Add emissive LED strip meshes along ceiling edges with gentle bloom.
      - LED strip builder now extrudes room-hugging coves with seasonal-aware fill lights
        and bloom-friendly emissive tuning.
-   - Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
+   - ✅ Tune lightmap UVs/materials so walls, ceiling, and floor receive a soft gradient glow.
+     - Ceiling panels now use a shared gradient lightmap that brightens perimeter coves and
+       greenhouse-facing spans for a dusk-washed glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
    - ⚙️ LED pulse programs now drive per-room emissive and fill intensities via data timelines.
@@ -78,7 +80,7 @@ Focus: expand the environment while keeping navigation smooth.
    - Ensure navmesh/character controller handles slopes and doorway thresholds.
      - ✅ Wall segment builder now reserves doorway openings and keeps player colliders clear.
      - ✅ Doorway clearance validator now protects thresholds from POI crowding during registry checks.
-     - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
+     - ✅ Doorway width guard now enforces ≥1.2 m clearances so traversal never snags on narrow frames.
    - ✅ Feature staircase prefab links the living room to a loft landing stub with nav blockers.
    - ✅ Staircase prefab now supports both +Z and −Z runs, auto-sizing guards and stairwell cutouts.
 3. **Outdoor Transition**
