@@ -68,7 +68,8 @@ Focus: expand the environment while keeping navigation smooth.
        greenhouse-facing spans for a dusk-washed glow.
    - ✅ Shift+L toggles a debug lighting view that disables bloom/LEDs for side-by-side comparisons.
    - ✅ Emissive cove strips now emit via bloom-tuned LED meshes and corner fill lights.
-   - ⚙️ LED pulse programs now drive per-room emissive and fill intensities via data timelines.
+   - ✅ LED pulse programs now drive per-room emissive and fill intensities via data timelines.
+     - Timeline data in `ROOM_LED_TIMELINES` powers the animator so lighting palettes stay editable without code changes.
    - ✨ Baked dusk lightmaps now bathe floors and walls in a gradient bounce wash that pairs with the LED strips.
    - ✨ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
 2. **House Footprint Layout**
