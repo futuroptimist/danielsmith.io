@@ -2,6 +2,11 @@ import { getLocaleDirection, getLocaleScript } from '../../assets/i18n';
 import { initializeModeAnnouncementObserver } from '../../ui/accessibility/modeAnnouncer';
 import { createImmersiveModeUrl } from '../../ui/immersiveUrl';
 
+import {
+  readModePreference as readStoredModePreference,
+  type ModePreference,
+} from './modePreference';
+
 if (
   typeof document !== 'undefined' &&
   typeof MutationObserver !== 'undefined'
@@ -83,6 +88,7 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   getHardwareConcurrency?: () => number | undefined;
   minimumHardwareConcurrency?: number;
   getNetworkInformation?: NetworkInformationReader;
+  getModePreference?: () => ModePreference | null;
 }
 
 export interface FailoverDecision {
@@ -227,6 +233,14 @@ export function evaluateFailoverDecision(
   const params = new URLSearchParams(search);
   const mode = params.get('mode');
 
+  let storedPreference: ModePreference | null = null;
+  const readPreference = options.getModePreference ?? readStoredModePreference;
+  try {
+    storedPreference = readPreference();
+  } catch {
+    storedPreference = null;
+  }
+
   const minimumDeviceMemory = options.minimumDeviceMemory ?? 1;
   const readDeviceMemory = options.getDeviceMemory ?? getNavigatorDeviceMemory;
   const reportedDeviceMemory = readDeviceMemory();
@@ -268,6 +282,10 @@ export function evaluateFailoverDecision(
 
   if (mode === 'immersive') {
     return { shouldUseFallback: false };
+  }
+
+  if ((!mode || mode.length === 0) && storedPreference === 'text') {
+    return { shouldUseFallback: true, reason: 'manual' };
   }
 
   const webglSupported = isWebglSupported(options);
