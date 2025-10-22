@@ -27,6 +27,10 @@ export interface AudioSubtitlesOptions {
 
 const DEFAULT_DURATION_MS = 5000;
 
+interface NormalizedAudioSubtitleMessage extends AudioSubtitleMessage {
+  priority: number;
+}
+
 const DEFAULT_LABELS: Record<AudioSubtitleSource, string> = {
   ambient: 'Ambient audio',
   poi: 'Narration',
@@ -57,8 +61,10 @@ export function createAudioSubtitles({
 
   const labels = { ...DEFAULT_LABELS, ...providedLabels };
 
+  const queue: NormalizedAudioSubtitleMessage[] = [];
   let hideTimeout: number | null = null;
-  let current: AudioSubtitleMessage | null = null;
+  let current: NormalizedAudioSubtitleMessage | null = null;
+  let currentToken: symbol | null = null;
 
   const clearTimer = () => {
     if (hideTimeout !== null) {
@@ -67,14 +73,43 @@ export function createAudioSubtitles({
     }
   };
 
-  const hide = () => {
-    clearTimer();
-    current = null;
-    root.dataset.visible = 'false';
-    caption.textContent = '';
+  const normalizeMessage = (
+    message: AudioSubtitleMessage
+  ): NormalizedAudioSubtitleMessage => ({
+    ...message,
+    priority:
+      typeof message.priority === 'number' && Number.isFinite(message.priority)
+        ? message.priority
+        : 0,
+  });
+
+  const removeQueuedById = (id: string) => {
+    for (let index = queue.length - 1; index >= 0; index -= 1) {
+      if (queue[index]?.id === id) {
+        queue.splice(index, 1);
+      }
+    }
   };
 
-  const scheduleHide = (message: AudioSubtitleMessage) => {
+  const enqueueMessage = (message: NormalizedAudioSubtitleMessage) => {
+    const entry: NormalizedAudioSubtitleMessage = { ...message };
+    if (entry.id) {
+      removeQueuedById(entry.id);
+    }
+    const insertIndex = queue.findIndex(
+      (queued) => entry.priority > queued.priority
+    );
+    if (insertIndex === -1) {
+      queue.push(entry);
+    } else {
+      queue.splice(insertIndex, 0, entry);
+    }
+  };
+
+  const scheduleHide = (
+    message: NormalizedAudioSubtitleMessage,
+    token: symbol
+  ) => {
     clearTimer();
     const duration =
       message.durationMs === undefined
@@ -84,7 +119,7 @@ export function createAudioSubtitles({
       return;
     }
     hideTimeout = window.setTimeout(() => {
-      if (!current) {
+      if (!current || currentToken !== token) {
         return;
       }
       if (message.id && current.id && message.id !== current.id) {
@@ -93,28 +128,70 @@ export function createAudioSubtitles({
       if (!message.id && current !== message) {
         return;
       }
-      hide();
+      hideCurrent(true);
     }, duration);
   };
 
-  const show = (message: AudioSubtitleMessage) => {
-    const nextPriority = message.priority ?? 0;
-    const currentPriority = current?.priority ?? 0;
-    const sameId =
-      current?.id !== undefined && message.id !== undefined
-        ? current.id === message.id
-        : false;
-
-    if (current && !sameId && nextPriority < currentPriority) {
-      return;
+  const showNextQueued = (): boolean => {
+    while (queue.length > 0) {
+      const next = queue.shift();
+      if (!next) {
+        continue;
+      }
+      display(next);
+      return true;
     }
+    return false;
+  };
 
-    current = { ...message, priority: nextPriority };
+  const hideCurrent = (advance: boolean) => {
+    clearTimer();
+    current = null;
+    currentToken = null;
+    root.dataset.visible = 'false';
+    caption.textContent = '';
+    if (advance) {
+      void showNextQueued();
+    }
+  };
+
+  const display = (message: NormalizedAudioSubtitleMessage) => {
+    current = message;
+    currentToken = Symbol('audio-subtitle');
     root.dataset.visible = 'true';
     label.textContent =
       labels[message.source] ?? DEFAULT_LABELS[message.source];
     caption.textContent = message.text;
-    scheduleHide(current);
+    scheduleHide(message, currentToken);
+  };
+
+  const show = (message: AudioSubtitleMessage) => {
+    const normalized = normalizeMessage(message);
+
+    if (!current) {
+      display(normalized);
+      return;
+    }
+
+    const currentId = current.id;
+    const incomingId = normalized.id;
+    const sameId =
+      currentId !== undefined && incomingId !== undefined
+        ? currentId === incomingId
+        : false;
+
+    if (sameId) {
+      display(normalized);
+      return;
+    }
+
+    if (normalized.priority >= current.priority) {
+      enqueueMessage(current);
+      display(normalized);
+      return;
+    }
+
+    enqueueMessage(normalized);
   };
 
   return {
@@ -122,16 +199,26 @@ export function createAudioSubtitles({
       show(message);
     },
     clear(messageId) {
-      if (!current) {
+      if (messageId === undefined) {
+        queue.length = 0;
+        if (!current) {
+          return;
+        }
+        hideCurrent(false);
         return;
       }
-      if (messageId && current.id && messageId !== current.id) {
-        return;
+      removeQueuedById(messageId);
+      if (current?.id === messageId) {
+        hideCurrent(true);
       }
-      hide();
     },
     dispose() {
-      hide();
+      queue.length = 0;
+      if (current) {
+        hideCurrent(false);
+      } else {
+        clearTimer();
+      }
       root.remove();
     },
     getCurrent() {

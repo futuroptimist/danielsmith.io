@@ -81,7 +81,16 @@ describe('audio subtitles overlay', () => {
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'true'
     );
+    expect(
+      document.querySelector('.audio-subtitles__caption')?.textContent
+    ).toBe('Flywheel hub spins up with automation prompts.');
     vi.advanceTimersByTime(1);
+    caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe('Interior hum lingers in the background.');
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'true'
+    );
+    vi.advanceTimersByTime(2000);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'false'
     );
@@ -129,7 +138,158 @@ describe('audio subtitles overlay', () => {
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'true'
     );
+    expect(
+      document.querySelector('.audio-subtitles__caption')?.textContent
+    ).toBe('Second ambient cue');
     vi.advanceTimersByTime(1);
+    expect(
+      document.querySelector('.audio-subtitles__caption')?.textContent
+    ).toBe('First ambient cue');
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'true'
+    );
+    vi.advanceTimersByTime(1000);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('queues lower-priority captions and replays them after the active clip', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Ambient baseline cushions the room.',
+      source: 'ambient',
+      priority: 2,
+      durationMs: 1000,
+    });
+
+    handle.show({
+      id: 'poi-flywheel',
+      text: 'Flywheel hub spins with narrated highlights.',
+      source: 'poi',
+      priority: 0,
+      durationMs: 800,
+    });
+
+    let caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe('Ambient baseline cushions the room.');
+
+    vi.advanceTimersByTime(1000);
+    caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe(
+      'Flywheel hub spins with narrated highlights.'
+    );
+
+    vi.advanceTimersByTime(800);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('requeues preempted captions so they resume after higher-priority clips', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Ambient hum steadies the space.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 1200,
+    });
+
+    vi.advanceTimersByTime(200);
+
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration cuts through with project stats.',
+      source: 'poi',
+      priority: 5,
+      durationMs: 600,
+    });
+
+    let caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe(
+      'Narration cuts through with project stats.'
+    );
+
+    vi.advanceTimersByTime(600);
+    caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe('Ambient hum steadies the space.');
+
+    vi.advanceTimersByTime(1200);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('refreshes queued captions when repeated ids update their payloads', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Initial ambient copy.',
+      source: 'ambient',
+      priority: 2,
+      durationMs: 900,
+    });
+
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration takes the stage.',
+      source: 'poi',
+      priority: 3,
+      durationMs: 500,
+    });
+
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Updated ambient copy after narration.',
+      source: 'ambient',
+      priority: 2,
+      durationMs: 700,
+    });
+
+    let caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe('Narration takes the stage.');
+
+    vi.advanceTimersByTime(500);
+    caption = document.querySelector('.audio-subtitles__caption');
+    expect(caption?.textContent).toBe('Updated ambient copy after narration.');
+
+    vi.advanceTimersByTime(700);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('clears the active and queued captions when clear is called without an id', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-narration',
+      text: 'Long-running narration clip.',
+      source: 'poi',
+      priority: 4,
+      durationMs: 5000,
+    });
+
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Queued ambient track awaiting playback.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 600,
+    });
+
+    handle.clear();
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+
+    vi.advanceTimersByTime(5000);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'false'
     );
