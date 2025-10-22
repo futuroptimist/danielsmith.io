@@ -86,7 +86,9 @@ describe('audio subtitles overlay', () => {
     ).toBe('Flywheel hub spins up with automation prompts.');
     vi.advanceTimersByTime(1);
     caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe('Interior hum lingers in the background.');
+    expect(caption?.textContent).toBe(
+      'Interior hum lingers in the background.'
+    );
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'true'
     );
