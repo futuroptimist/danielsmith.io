@@ -299,8 +299,10 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 - Release tag `phase-5-avatar` published alongside narrative write-up.
 
 1. **Character Import**
-   - Set up GLTF/GLB ingestion pipeline with unit tests for bone/animation integrity.
-     - ⚙️ Avatar importer now validates required bones and animation clips before controller wiring.
+   - ✅ Set up GLTF/GLB ingestion pipeline with unit tests for bone/animation integrity.
+     - ✅ Avatar importer now validates required bones and animation clips before controller wiring.
+     - ✅ Avatar asset pipeline enforces unit scale and validates skeleton root integrity.
+     - ✅ Console loader hook lets us validate hero avatar GLBs without wiring runtime meshes.
 
 - ✅ Stylized mannequin placeholder now replaces the golden sphere, aligning with the controller
   collider while showcasing emissive visor accents and HUD-ready trim palettes.
@@ -320,7 +322,10 @@ Focus: replace the placeholder sphere with a stylized protagonist.
    - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the
      living room east wall.
    - ✅ Narrative story log now captures POI visits in the help modal with creator captions.
-   - Future hook: customization menu for outfits/accessories.
+   - ✅ Customization menu now surfaces wrist console and holographic drone toggles in the
+     HUD settings stack.
+
+- ✅ Accessory presets now unlock through POI progression with narrative-reactive gear swaps.
 
 ## Phase 6 – Beyond
 
