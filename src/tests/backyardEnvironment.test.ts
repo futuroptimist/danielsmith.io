@@ -301,6 +301,140 @@ describe('createBackyardEnvironment', () => {
     expect(light!.intensity).toBeGreaterThan(0.85 * dampingScale);
   });
 
+  it('reapplies seasonal presets to walkway lanterns on demand', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const lanternGroup = environment.group.getObjectByName(
+      'BackyardWalkwayLanterns'
+    ) as Group | null;
+    expect(lanternGroup).toBeInstanceOf(Group);
+
+    const glass = lanternGroup?.getObjectByName(
+      'BackyardWalkwayLanternGlass-0'
+    ) as Mesh | null;
+    expect(glass).toBeInstanceOf(Mesh);
+    const glassMaterial = (glass!.material as MeshStandardMaterial)!;
+
+    const light = lanternGroup?.getObjectByName(
+      'BackyardWalkwayLanternLight-0'
+    ) as PointLight | null;
+    expect(light).toBeInstanceOf(PointLight);
+
+    const baseEmissiveColor = new Color(0xffa445);
+    expect(glassMaterial.emissive.getHexString()).toBe(
+      baseEmissiveColor.getHexString()
+    );
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(1.18, 5);
+    expect(light!.color.getHexString()).toBe(baseEmissiveColor.getHexString());
+    expect(light!.intensity).toBeCloseTo(0.85, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    const winterPreset: SeasonalLightingPreset = {
+      id: 'winter-dusk',
+      label: 'Winter Dusk',
+      start: { month: 12, day: 1 },
+      end: { month: 12, day: 31 },
+      tintHex: '#7fc2ff',
+      tintStrength: 0.5,
+      emissiveIntensityScale: 1.25,
+      fillIntensityScale: 1.15,
+      roomOverrides: {
+        backyard: {
+          tintStrength: 0.6,
+          emissiveIntensityScale: 1.4,
+          fillIntensityScale: 1.35,
+        },
+      },
+    };
+
+    environment.applySeasonalPreset(winterPreset);
+
+    const winterTint = baseEmissiveColor
+      .clone()
+      .lerp(new Color('#7fc2ff'), 0.6);
+    const winterEmissiveBaseline = 1.18 * 1.4;
+    const winterLightBaseline = 0.85 * 1.35;
+
+    expect(glassMaterial.emissive.getHexString()).toBe(
+      winterTint.getHexString()
+    );
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(
+      winterEmissiveBaseline,
+      5
+    );
+    expect(light!.color.getHexString()).toBe(winterTint.getHexString());
+    expect(light!.intensity).toBeCloseTo(winterLightBaseline, 5);
+
+    environment.update({ elapsed: 0.75, delta: 0.016 });
+
+    const dampingScale = 0.6;
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(
+      winterEmissiveBaseline * dampingScale,
+      5
+    );
+    expect(light!.intensity).toBeCloseTo(winterLightBaseline * dampingScale, 5);
+
+    environment.applySeasonalPreset(null);
+
+    expect(glassMaterial.emissive.getHexString()).toBe(
+      baseEmissiveColor.getHexString()
+    );
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(1.18, 5);
+    expect(light!.color.getHexString()).toBe(baseEmissiveColor.getHexString());
+    expect(light!.intensity).toBeCloseTo(0.85, 5);
+
+    environment.update({ elapsed: 1.1, delta: 0.016 });
+
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(1.18 * dampingScale, 5);
+    expect(light!.intensity).toBeCloseTo(0.85 * dampingScale, 5);
+
+    const springPreset: SeasonalLightingPreset = {
+      id: 'spring-horizon',
+      label: 'Spring Horizon',
+      start: { month: 3, day: 10 },
+      end: { month: 4, day: 30 },
+      tintHex: '#ffeab0',
+      tintStrength: 0.4,
+      emissiveIntensityScale: 0.95,
+      fillIntensityScale: 0.9,
+      roomOverrides: {
+        backyard: {
+          tintHex: '#ffd1eb',
+          tintStrength: 0.55,
+          emissiveIntensityScale: 1.1,
+          fillIntensityScale: 1.05,
+        },
+      },
+    };
+
+    environment.applySeasonalPreset(springPreset);
+
+    const springTint = baseEmissiveColor
+      .clone()
+      .lerp(new Color('#ffd1eb'), 0.55);
+    const springEmissiveBaseline = 1.18 * 1.1;
+    const springLightBaseline = 0.85 * 1.05;
+
+    expect(glassMaterial.emissive.getHexString()).toBe(
+      springTint.getHexString()
+    );
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(
+      springEmissiveBaseline,
+      5
+    );
+    expect(light!.color.getHexString()).toBe(springTint.getHexString());
+    expect(light!.intensity).toBeCloseTo(springLightBaseline, 5);
+
+    environment.update({ elapsed: 1.8, delta: 0.016 });
+
+    expect(glassMaterial.emissiveIntensity).toBeCloseTo(
+      springEmissiveBaseline * dampingScale,
+      5
+    );
+    expect(light!.intensity).toBeCloseTo(springLightBaseline * dampingScale, 5);
+  });
+
   it('animates fireflies around the greenhouse walkway with accessibility damping', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const fireflies = environment.group.getObjectByName('BackyardFireflies');
