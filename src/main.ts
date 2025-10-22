@@ -53,6 +53,26 @@ import {
 } from './assets/i18n';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
+  createAvatarAccessorySuite,
+  type AvatarAccessorySuite,
+  type AvatarAccessoryState,
+  type AvatarAccessoryId,
+} from './scene/avatar/accessories';
+import {
+  createAvatarAccessoryManager,
+  type AvatarAccessoryManager,
+} from './scene/avatar/accessoryManager';
+import {
+  AVATAR_ACCESSORY_PRESETS,
+  AVATAR_ACCESSORY_PRESET_RULES,
+  type AvatarAccessoryPresetId,
+} from './scene/avatar/accessoryPresets';
+import {
+  createAvatarAssetPipeline,
+  type AvatarAssetPipeline,
+  type AvatarAssetPipelineLoadOptions,
+} from './scene/avatar/assetPipeline';
+import {
   createAvatarFootIkController,
   type AvatarFootIkControllerHandle,
 } from './scene/avatar/footIkController';
@@ -221,6 +241,10 @@ import {
   type AudioHudControlHandle,
 } from './systems/controls/audioHudControl';
 import {
+  createAvatarAccessoryControl,
+  type AvatarAccessoryControlHandle,
+} from './systems/controls/avatarAccessoryControl';
+import {
   createAvatarVariantControl,
   type AvatarVariantControlHandle,
 } from './systems/controls/avatarVariantControl';
@@ -283,6 +307,10 @@ import {
 } from './systems/movement/stairs';
 import { ProceduralNarrator } from './systems/narrative/proceduralNarrator';
 import {
+  createAvatarAccessoryProgression,
+  type AvatarAccessoryProgressionHandle,
+} from './systems/progression/avatarAccessoryProgression';
+import {
   createHudFocusAnnouncer,
   type HudFocusAnnouncerHandle,
 } from './ui/accessibility/hudFocusAnnouncer';
@@ -329,6 +357,10 @@ const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
+const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
+const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
+const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
+const AVATAR_ASSET_SCALE_TOLERANCE = 0.02;
 type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 
 declare global {
@@ -350,6 +382,7 @@ declare global {
           label: string;
           description?: string;
         }>;
+        loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
       world?: {
         getActiveFloor(): FloorId;
@@ -620,6 +653,14 @@ function initializeImmersiveScene(
   let avatarVariantManager: AvatarVariantManager | null = null;
   let avatarVariantControl: AvatarVariantControlHandle | null = null;
   let unsubscribeAvatarVariant: (() => void) | null = null;
+  let avatarAccessorySuite: AvatarAccessorySuite | null = null;
+  let avatarAccessoryManager: AvatarAccessoryManager | null = null;
+  let avatarAccessoryControl: AvatarAccessoryControlHandle | null = null;
+  let unsubscribeAvatarAccessories: (() => void) | null = null;
+  let unsubscribeAvatarAccessoryPresets: (() => void) | null = null;
+  let avatarAccessoryProgression: AvatarAccessoryProgressionHandle | null =
+    null;
+  let avatarAssetPipeline: AvatarAssetPipeline | null = null;
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
@@ -1265,6 +1306,13 @@ function initializeImmersiveScene(
     /* GitHub may be unreachable; metrics will remain on fallback values. */
   });
   const poiVisitedState = new PoiVisitedState();
+  if (avatarAccessoryManager) {
+    avatarAccessoryProgression = createAvatarAccessoryProgression({
+      manager: avatarAccessoryManager,
+      visitedState: poiVisitedState,
+      rules: AVATAR_ACCESSORY_PRESET_RULES,
+    });
+  }
   const poiTourGuide = new PoiTourGuide({
     definitions: poiDefinitions,
     visitedState: poiVisitedState,
@@ -1809,10 +1857,20 @@ function initializeImmersiveScene(
     avatarVariantStorage = undefined;
   }
 
+  avatarAccessorySuite = createAvatarAccessorySuite({ mannequin });
+  avatarAccessoryManager = createAvatarAccessoryManager({
+    suite: avatarAccessorySuite,
+    storage: avatarVariantStorage,
+    storageKey: 'danielsmith.io:avatarAccessories',
+    initialPalette: mannequin.getPalette(),
+    presets: AVATAR_ACCESSORY_PRESETS,
+  });
+
   avatarVariantManager = createAvatarVariantManager({
     target: {
       applyPalette: (palette) => {
         mannequin.applyPalette(palette);
+        avatarAccessoryManager?.applyPalette(palette);
       },
     },
     storage: avatarVariantStorage,
@@ -1965,6 +2023,19 @@ function initializeImmersiveScene(
     };
   };
   ensureWorldApi();
+  const getAvatarAssetPipeline = () => {
+    if (!avatarAssetPipeline) {
+      avatarAssetPipeline = createAvatarAssetPipeline({
+        importerOptions: {
+          requiredBones: AVATAR_ASSET_REQUIRED_BONES,
+          requiredAnimations: AVATAR_ASSET_REQUIRED_ANIMATIONS,
+        },
+        expectedUnitScale: AVATAR_ASSET_EXPECTED_UNIT_SCALE,
+        scaleTolerance: AVATAR_ASSET_SCALE_TOLERANCE,
+      });
+    }
+    return avatarAssetPipeline;
+  };
   function ensureAvatarApi() {
     const portfolioWindow = window as Window;
     if (!portfolioWindow.portfolio) {
@@ -1983,6 +2054,45 @@ function initializeImmersiveScene(
           label,
           description,
         }));
+      },
+      listAccessories() {
+        return (
+          avatarAccessorySuite?.definitions.map(
+            ({ id, label, description }) => ({
+              id,
+              label,
+              description,
+              enabled: avatarAccessoryManager?.isEnabled(id) ?? false,
+            })
+          ) ?? []
+        );
+      },
+      getAccessories(): AvatarAccessoryState[] {
+        return avatarAccessoryManager?.getState() ?? [];
+      },
+      setAccessoryEnabled(id: AvatarAccessoryId, enabled: boolean) {
+        avatarAccessoryManager?.setEnabled(id, enabled);
+      },
+      toggleAccessory(id: AvatarAccessoryId) {
+        avatarAccessoryManager?.toggle(id);
+      },
+      listAccessoryPresets() {
+        return avatarAccessoryManager?.listPresets() ?? [];
+      },
+      isAccessoryPresetUnlocked(id: AvatarAccessoryPresetId) {
+        return avatarAccessoryManager?.isPresetUnlocked(id) ?? false;
+      },
+      unlockAccessoryPreset(id: AvatarAccessoryPresetId) {
+        return avatarAccessoryManager?.unlockPreset(id) ?? false;
+      },
+      lockAccessoryPreset(id: AvatarAccessoryPresetId) {
+        return avatarAccessoryManager?.lockPreset(id) ?? false;
+      },
+      applyAccessoryPreset(id: AvatarAccessoryPresetId) {
+        avatarAccessoryManager?.applyPreset(id);
+      },
+      loadAsset(options: AvatarAssetPipelineLoadOptions) {
+        return getAvatarAssetPipeline().load(options);
       },
     };
   }
@@ -2074,9 +2184,36 @@ function initializeImmersiveScene(
         avatarVariantManager?.setVariant(variant);
       },
     });
+    registerHudControlElement(avatarVariantControl.element);
     unsubscribeAvatarVariant = avatarVariantManager.onChange(() => {
       avatarVariantControl?.refresh();
     });
+  }
+  if (avatarAccessoryManager && avatarAccessorySuite) {
+    avatarAccessoryControl = createAvatarAccessoryControl({
+      container: hudSettingsStack,
+      options: avatarAccessorySuite.definitions,
+      isAccessoryEnabled: (id) =>
+        avatarAccessoryManager?.isEnabled(id) ?? false,
+      setAccessoryEnabled: (id, enabled) => {
+        avatarAccessoryManager?.setEnabled(id, enabled);
+      },
+      presets: {
+        getPresets: () => avatarAccessoryManager?.listPresets() ?? [],
+        applyPreset: (presetId) => {
+          avatarAccessoryManager?.applyPreset(presetId);
+        },
+      },
+    });
+    registerHudControlElement(avatarAccessoryControl.element);
+    unsubscribeAvatarAccessories = avatarAccessoryManager.onChange(() => {
+      avatarAccessoryControl?.refresh();
+    });
+    unsubscribeAvatarAccessoryPresets = avatarAccessoryManager.onPresetChange(
+      () => {
+        avatarAccessoryControl?.refresh();
+      }
+    );
   }
   hudFocusAnnouncer = createHudFocusAnnouncer({
     documentTarget: document,
@@ -3373,6 +3510,10 @@ function initializeImmersiveScene(
       avatarVariantControl.dispose();
       avatarVariantControl = null;
     }
+    if (avatarAccessoryControl) {
+      avatarAccessoryControl.dispose();
+      avatarAccessoryControl = null;
+    }
     ambientCaptionBridge = null;
     if (audioSubtitles) {
       audioSubtitles.dispose();
@@ -3402,7 +3543,28 @@ function initializeImmersiveScene(
       unsubscribeAvatarVariant();
       unsubscribeAvatarVariant = null;
     }
+    if (unsubscribeAvatarAccessories) {
+      unsubscribeAvatarAccessories();
+      unsubscribeAvatarAccessories = null;
+    }
+    if (unsubscribeAvatarAccessoryPresets) {
+      unsubscribeAvatarAccessoryPresets();
+      unsubscribeAvatarAccessoryPresets = null;
+    }
+    if (avatarAccessoryProgression) {
+      avatarAccessoryProgression.dispose();
+      avatarAccessoryProgression = null;
+    }
+    if (avatarAssetPipeline) {
+      avatarAssetPipeline.dispose();
+      avatarAssetPipeline = null;
+    }
     avatarVariantManager = null;
+    avatarAccessoryManager = null;
+    if (avatarAccessorySuite) {
+      avatarAccessorySuite.dispose();
+      avatarAccessorySuite = null;
+    }
     if (graphicsQualityControl) {
       graphicsQualityControl.dispose();
       graphicsQualityControl = null;
@@ -3538,6 +3700,9 @@ function initializeImmersiveScene(
       poiWorldTooltip.update(delta);
       handleInteractionInput();
       handleHelpInput();
+      if (avatarAccessorySuite) {
+        avatarAccessorySuite.update({ elapsed: elapsedTime, delta });
+      }
       if (ambientAudioController) {
         ambientAudioController.update(player.position, delta);
         ambientCaptionBridge?.update();
