@@ -142,9 +142,15 @@ export function createAvatarAccessoryManager({
     }
   });
 
-  const storedPayload = storage?.getItem
-    ? parseStoredPayload(storage.getItem(storageKey), validIds, presetValidIds)
-    : { accessories: {}, unlockedPresets: {} };
+  let storedPayload: StoredPayload = { accessories: {}, unlockedPresets: {} };
+  if (storage?.getItem) {
+    try {
+      const raw = storage.getItem(storageKey);
+      storedPayload = parseStoredPayload(raw, validIds, presetValidIds);
+    } catch (error) {
+      console.warn('Failed to read avatar accessory state from storage:', error);
+    }
+  }
 
   const defaultUnlocked: StoredPresetState = {};
   presetDefinitions.forEach((preset) => {
