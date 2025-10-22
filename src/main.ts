@@ -127,7 +127,7 @@ import { createRoomLedStrips } from './scene/lighting/ledStrips';
 import {
   applySeasonalLightingPreset,
   createSeasonallyAdjustedPrograms,
-  resolveSeasonalLightingPreset,
+  resolveSeasonalLightingSchedule,
 } from './scene/lighting/seasonalPresets';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import {
@@ -857,7 +857,8 @@ function initializeImmersiveScene(
   scene.add(directionalLight);
   scene.add(directionalLight.target);
 
-  const seasonalPreset = resolveSeasonalLightingPreset();
+  const seasonalSchedule = resolveSeasonalLightingSchedule();
+  const seasonalPreset = seasonalSchedule.active;
 
   const defaultEnvironmentTint = new Color('#ffe4c9');
   let environmentTint = defaultEnvironmentTint.clone();
@@ -1249,6 +1250,8 @@ function initializeImmersiveScene(
 
     applySeasonalLightingPreset({
       preset: seasonalPreset,
+      nextPreset: seasonalSchedule.next,
+      nextPresetStart: seasonalSchedule.nextStartDate,
       targets: ledBuild.seasonalTargets,
       documentElement: document.documentElement,
     });
@@ -1273,6 +1276,14 @@ function initializeImmersiveScene(
 
     scene.add(ledBuild.group);
     scene.add(ledBuild.fillLightGroup);
+  } else {
+    applySeasonalLightingPreset({
+      preset: seasonalPreset,
+      nextPreset: seasonalSchedule.next,
+      nextPresetStart: seasonalSchedule.nextStartDate,
+      targets: [],
+      documentElement: document.documentElement,
+    });
   }
 
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides);

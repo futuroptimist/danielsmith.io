@@ -5,7 +5,9 @@ import type { LedPulseProgram } from '../scene/lighting/ledPulsePrograms';
 import {
   applySeasonalLightingPreset,
   createSeasonallyAdjustedPrograms,
+  DEFAULT_SEASONAL_LIGHTING_PRESETS,
   resolveSeasonalLightingPreset,
+  resolveSeasonalLightingSchedule,
   type SeasonalLightingPreset,
 } from '../scene/lighting/seasonalPresets';
 
@@ -56,6 +58,60 @@ describe('resolveSeasonalLightingPreset', () => {
         presets: [],
       })
     ).toBeNull();
+  });
+});
+
+describe('resolveSeasonalLightingSchedule', () => {
+  it('returns active and next presets for the default calendar', () => {
+    const schedule = resolveSeasonalLightingSchedule({
+      date: new Date(Date.UTC(2024, 6, 10)),
+    });
+    expect(schedule.active?.id).toBe('summer-aurora');
+    expect(schedule.next?.id).toBe('autumn-harvest');
+    expect(schedule.nextStartDate?.toISOString().slice(0, 10)).toBe(
+      '2024-09-15'
+    );
+  });
+
+  it('wraps to the following year when the active preset spans new year', () => {
+    const schedule = resolveSeasonalLightingSchedule({
+      date: new Date(Date.UTC(2024, 11, 20)),
+    });
+    expect(schedule.active?.id).toBe('winter-holidays');
+    expect(schedule.next?.id).toBe('spring-bloom');
+    expect(schedule.nextStartDate?.toISOString().slice(0, 10)).toBe(
+      '2025-03-15'
+    );
+  });
+
+  it('falls back to null values when no presets are configured', () => {
+    const schedule = resolveSeasonalLightingSchedule({
+      date: new Date(Date.UTC(2024, 4, 1)),
+      presets: [],
+    });
+    expect(schedule.active).toBeNull();
+    expect(schedule.next).toBeNull();
+    expect(schedule.nextStartDate).toBeNull();
+  });
+
+  it('normalizes month and day boundaries before resolving the schedule', () => {
+    const schedule = resolveSeasonalLightingSchedule({
+      date: new Date(Date.UTC(2024, 0, 2)),
+      presets: [
+        {
+          id: 'normalized',
+          label: 'Normalized Window',
+          start: { month: 0, day: Number.NaN },
+          end: { month: 16, day: 45 },
+        },
+      ],
+    });
+
+    expect(schedule.active?.id).toBe('normalized');
+    expect(schedule.next?.id).toBe('normalized');
+    expect(schedule.nextStartDate?.toISOString().slice(0, 10)).toBe(
+      '2025-01-01'
+    );
   });
 });
 
@@ -196,6 +252,51 @@ describe('applySeasonalLightingPreset', () => {
     expect(light.color.getHexString()).toBe(
       new Color('#abcdef').getHexString()
     );
+  });
+
+  it('records upcoming preset metadata on the document element when provided', () => {
+    const documentElement = document.createElement('div');
+    applySeasonalLightingPreset({
+      preset: DEFAULT_SEASONAL_LIGHTING_PRESETS[0],
+      nextPreset: DEFAULT_SEASONAL_LIGHTING_PRESETS[1],
+      nextPresetStart: new Date(Date.UTC(2024, 2, 15)),
+      documentElement,
+      targets: [],
+    });
+
+    expect(documentElement.dataset.nextLightingSeason).toBe('spring-bloom');
+    expect(documentElement.dataset.nextLightingSeasonStarts).toBe('2024-03-15');
+  });
+
+  it('omits the next start dataset when the provided date is invalid', () => {
+    const documentElement = document.createElement('div');
+    applySeasonalLightingPreset({
+      preset: DEFAULT_SEASONAL_LIGHTING_PRESETS[0],
+      nextPreset: DEFAULT_SEASONAL_LIGHTING_PRESETS[1],
+      nextPresetStart: new Date(Number.NaN),
+      documentElement,
+      targets: [],
+    });
+
+    expect(documentElement.dataset.nextLightingSeason).toBe('spring-bloom');
+    expect(documentElement.dataset.nextLightingSeasonStarts).toBeUndefined();
+  });
+
+  it('clears upcoming preset metadata when no next preset is supplied', () => {
+    const documentElement = document.createElement('div');
+    documentElement.dataset.nextLightingSeason = 'previous';
+    documentElement.dataset.nextLightingSeasonStarts = '2024-01-01';
+
+    applySeasonalLightingPreset({
+      preset: null,
+      nextPreset: null,
+      nextPresetStart: null,
+      documentElement,
+      targets: [],
+    });
+
+    expect(documentElement.dataset.nextLightingSeason).toBeUndefined();
+    expect(documentElement.dataset.nextLightingSeasonStarts).toBeUndefined();
   });
 
   it('falls back to the base emissive color when tint parsing throws', () => {

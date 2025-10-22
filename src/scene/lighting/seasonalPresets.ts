@@ -48,6 +48,15 @@ export interface SeasonalLightingContext {
   presets?: readonly SeasonalLightingPreset[];
 }
 
+export interface SeasonalLightingSchedule {
+  /** Preset currently active for the provided date (if any). */
+  active: SeasonalLightingPreset | null;
+  /** The next preset that will activate after the provided date (if any). */
+  next: SeasonalLightingPreset | null;
+  /** UTC timestamp corresponding to the next preset's start date (midnight). */
+  nextStartDate: Date | null;
+}
+
 const clamp01 = (value: number | undefined, fallback = 0): number => {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return clamp01(fallback);
@@ -119,6 +128,46 @@ const lerpColors = (base: Color, tint: Color, strength: number): Color => {
   return base.clone().lerp(tint, strength);
 };
 
+const clampMonth = (value: number | undefined): number => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return 1;
+  }
+  const month = Math.trunc(value);
+  if (month < 1) {
+    return 1;
+  }
+  if (month > 12) {
+    return 12;
+  }
+  return month;
+};
+
+const clampDayForMonth = (
+  month: number,
+  day: number | undefined,
+  year: number
+): number => {
+  if (!Number.isFinite(day)) {
+    return 1;
+  }
+  const normalizedDay = Math.max(Math.trunc(day ?? 1), 1);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return Math.min(normalizedDay, daysInMonth);
+};
+
+const toUtcDate = (referenceYear: number, date: MonthDay): Date => {
+  const month = clampMonth(date.month);
+  const day = clampDayForMonth(month, date.day, referenceYear);
+  return new Date(Date.UTC(referenceYear, month - 1, day));
+};
+
+const formatIsoDate = (date: Date | null): string | null => {
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date.toISOString().slice(0, 10);
+};
+
 export const DEFAULT_SEASONAL_LIGHTING_PRESETS: readonly SeasonalLightingPreset[] =
   [
     {
@@ -172,6 +221,53 @@ export const DEFAULT_SEASONAL_LIGHTING_PRESETS: readonly SeasonalLightingPreset[
         },
       },
     },
+    {
+      id: 'summer-aurora',
+      label: 'Summer Aurora',
+      start: { month: 6, day: 15 },
+      end: { month: 8, day: 31 },
+      tintHex: '#ffdcb2',
+      tintStrength: 0.42,
+      emissiveIntensityScale: 1.08,
+      fillIntensityScale: 1.12,
+      cycleScale: 1.18,
+      roomOverrides: {
+        backyard: {
+          tintHex: '#ffe8c6',
+          tintStrength: 0.5,
+          emissiveIntensityScale: 1.16,
+          fillIntensityScale: 1.18,
+          cycleScale: 1.24,
+        },
+        greenhouse: {
+          tintHex: '#fff3d4',
+          tintStrength: 0.52,
+        },
+      },
+    },
+    {
+      id: 'autumn-harvest',
+      label: 'Autumn Harvest',
+      start: { month: 9, day: 15 },
+      end: { month: 11, day: 10 },
+      tintHex: '#ffcf9e',
+      tintStrength: 0.48,
+      emissiveIntensityScale: 1.12,
+      fillIntensityScale: 1.15,
+      cycleScale: 0.92,
+      roomOverrides: {
+        kitchen: {
+          tintHex: '#ffd9b3',
+          tintStrength: 0.55,
+          emissiveIntensityScale: 1.18,
+        },
+        backyard: {
+          tintHex: '#ffbfa1',
+          tintStrength: 0.58,
+          emissiveIntensityScale: 1.2,
+        },
+      },
+    },
   ];
 
 export function resolveSeasonalLightingPreset({
@@ -188,6 +284,50 @@ export function resolveSeasonalLightingPreset({
     }
   }
   return null;
+}
+
+export function resolveSeasonalLightingSchedule({
+  date = new Date(),
+  presets = DEFAULT_SEASONAL_LIGHTING_PRESETS,
+}: SeasonalLightingContext = {}): SeasonalLightingSchedule {
+  const active = resolveSeasonalLightingPreset({ date, presets });
+  if (!presets.length) {
+    return { active: null, next: null, nextStartDate: null };
+  }
+
+  const referenceYear = date.getUTCFullYear();
+  const referenceTime = Date.UTC(
+    referenceYear,
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
+
+  let next: SeasonalLightingPreset | null = null;
+  let nextStartTime: number | null = null;
+
+  for (const preset of presets) {
+    const startThisYear = toUtcDate(referenceYear, preset.start).getTime();
+    let delta = startThisYear - referenceTime;
+    let startTime = startThisYear;
+    if (delta <= 0) {
+      const startNextYear = toUtcDate(
+        referenceYear + 1,
+        preset.start
+      ).getTime();
+      delta = startNextYear - referenceTime;
+      startTime = startNextYear;
+    }
+    if (nextStartTime === null || delta < nextStartTime - referenceTime) {
+      next = preset;
+      nextStartTime = startTime;
+    }
+  }
+
+  return {
+    active,
+    next,
+    nextStartDate: nextStartTime === null ? null : new Date(nextStartTime),
+  };
 }
 
 const cloneProgram = (program: LedPulseProgram): LedPulseProgram => ({
@@ -217,6 +357,10 @@ export interface ApplySeasonalLightingOptions {
   targets: Iterable<SeasonalLightingTarget>;
   documentElement?: HTMLElement;
   dataAttribute?: string;
+  nextPreset?: SeasonalLightingPreset | null;
+  nextPresetAttribute?: string | null;
+  nextPresetStart?: Date | null;
+  nextPresetStartAttribute?: string | null;
 }
 
 export function applySeasonalLightingPreset({
@@ -224,12 +368,31 @@ export function applySeasonalLightingPreset({
   targets,
   documentElement,
   dataAttribute = 'lightingSeason',
+  nextPreset = null,
+  nextPresetAttribute = 'nextLightingSeason',
+  nextPresetStart = null,
+  nextPresetStartAttribute = 'nextLightingSeasonStarts',
 }: ApplySeasonalLightingOptions): void {
   if (documentElement) {
     if (preset) {
       documentElement.dataset[dataAttribute] = preset.id;
     } else {
       delete documentElement.dataset[dataAttribute];
+    }
+    if (nextPresetAttribute !== null) {
+      if (nextPreset) {
+        documentElement.dataset[nextPresetAttribute] = nextPreset.id;
+      } else {
+        delete documentElement.dataset[nextPresetAttribute];
+      }
+    }
+    if (nextPresetStartAttribute !== null) {
+      const formattedStart = formatIsoDate(nextPresetStart);
+      if (nextPreset && formattedStart) {
+        documentElement.dataset[nextPresetStartAttribute] = formattedStart;
+      } else if (nextPresetStartAttribute) {
+        delete documentElement.dataset[nextPresetStartAttribute];
+      }
     }
   }
   if (!preset) {

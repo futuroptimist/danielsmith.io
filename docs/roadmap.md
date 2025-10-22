@@ -334,7 +334,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 Ideas to evaluate after the core experience is stable:
 
 - Multiplayer showroom tours or live streams as ambient projections.
-- Seasonal lighting presets (e.g., aurora, holiday lights) scheduled via calendar.
+- ✅ Seasonal lighting presets (holiday dusk, spring bloom, summer aurora, autumn harvest)
+  now rotate via calendar and expose HUD dataset hooks for the upcoming transition window.
 - ✅ Seasonal lighting scheduler now retints LED strips and fill lights for holiday and spring
   windows, slowing or accelerating pulse programs according to the calendar.
   - ✨ Backyard lanterns now inherit seasonal palettes so the greenhouse walkway glow matches the
