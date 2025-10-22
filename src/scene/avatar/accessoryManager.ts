@@ -148,7 +148,10 @@ export function createAvatarAccessoryManager({
       const raw = storage.getItem(storageKey);
       storedPayload = parseStoredPayload(raw, validIds, presetValidIds);
     } catch (error) {
-      console.warn('Failed to read avatar accessory state from storage:', error);
+      console.warn(
+        'Failed to read avatar accessory state from storage:',
+        error
+      );
     }
   }
 
