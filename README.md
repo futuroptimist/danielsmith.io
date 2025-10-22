@@ -185,10 +185,10 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 - **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.
-- **Avatar pipeline** – `createAvatarImporter` validates GLTF bone and animation requirements and can
-  attach a DRACO decoder path so future mannequins load consistently, and a stylized emissive
-  mannequin now rides on the controller collider so the space feels inhabited even before the hero
-  avatar lands.
+- **Avatar pipeline** – `createAvatarImporter` validates GLTF bone and animation requirements,
+  insists required bones are bound to active skeletons, and can attach a DRACO decoder path so
+  future mannequins load consistently. A stylized emissive mannequin now rides on the controller
+  collider so the space feels inhabited even before the hero avatar lands.
 - **Backlog** – Future scene work is tracked in [`docs/backlog.md`](docs/backlog.md).
 
 ## Controls

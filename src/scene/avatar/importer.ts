@@ -145,6 +145,18 @@ function scanScene(root: Object3D): SceneScanResult {
   };
 }
 
+function collectSkeletonBoneNames(skeletons: Skeleton[]): Set<string> {
+  const names = new Set<string>();
+  for (const skeleton of skeletons) {
+    for (const bone of skeleton.bones) {
+      if (bone.name) {
+        names.add(bone.name);
+      }
+    }
+  }
+  return names;
+}
+
 function ensureRequirements(
   scan: SceneScanResult,
   animations: AnimationClip[],
@@ -162,6 +174,17 @@ function ensureRequirements(
   if (missingBones.length > 0) {
     throw new Error(
       `Avatar model is missing required bones: ${missingBones.join(', ')}`
+    );
+  }
+
+  const skeletonBoneNames = collectSkeletonBoneNames(scan.skeletons);
+  const missingBoundBones = requirements.bones.filter(
+    (bone) => !skeletonBoneNames.has(bone)
+  );
+  if (missingBoundBones.length > 0) {
+    const missingList = missingBoundBones.join(', ');
+    throw new Error(
+      `Avatar model is missing required skeleton bindings for bones: ${missingList}`
     );
   }
 

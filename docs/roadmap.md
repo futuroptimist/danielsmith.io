@@ -300,7 +300,9 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 1. **Character Import**
    - Set up GLTF/GLB ingestion pipeline with unit tests for bone/animation integrity.
-     - ⚙️ Avatar importer now validates required bones and animation clips before controller wiring.
+   - ✅ Avatar importer now validates required bones and animation clips before controller wiring.
+     - Required bones must be bound to an active skeleton so stray rig helpers cannot bypass
+       validation.
 
 - ✅ Stylized mannequin placeholder now replaces the golden sphere, aligning with the controller
   collider while showcasing emissive visor accents and HUD-ready trim palettes.
