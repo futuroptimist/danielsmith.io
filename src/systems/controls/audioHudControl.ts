@@ -35,6 +35,31 @@ function isPromiseLike(value: unknown): value is PromiseLike<void> {
 
 const formatVolume = (volume: number) => `${Math.round(volume * 100)}%`;
 
+interface VolumeUiState {
+  readonly valueDisplay: string;
+  readonly ariaValueText: string;
+  readonly announce: string;
+}
+
+function getVolumeUiState(
+  enabled: boolean,
+  formattedVolume: string
+): VolumeUiState {
+  if (enabled) {
+    return {
+      valueDisplay: formattedVolume,
+      ariaValueText: formattedVolume,
+      announce: `Ambient audio volume ${formattedVolume}.`,
+    };
+  }
+
+  return {
+    valueDisplay: `Muted · ${formattedVolume}`,
+    ariaValueText: `Muted (${formattedVolume})`,
+    announce: `Ambient audio muted. Volume set to ${formattedVolume}.`,
+  };
+}
+
 export function createAudioHudControl({
   container,
   getEnabled,
@@ -74,6 +99,8 @@ export function createAudioHudControl({
   slider.max = '1';
   slider.step = volumeStep.toString();
   slider.setAttribute('aria-label', 'Ambient audio volume');
+  slider.setAttribute('aria-valuemin', '0');
+  slider.setAttribute('aria-valuemax', '1');
   slider.dataset.hudAnnounce = 'Ambient audio volume slider.';
 
   const valueText = document.createElement('span');
@@ -89,6 +116,7 @@ export function createAudioHudControl({
   container.appendChild(wrapper);
 
   let pending = false;
+  let lastKnownEnabled = false;
 
   const normalizeKey = (value: string) =>
     value.length === 1 ? value.toUpperCase() : value;
@@ -96,6 +124,7 @@ export function createAudioHudControl({
 
   const updateToggle = () => {
     const enabled = getEnabled();
+    lastKnownEnabled = enabled;
     const nextLabel = enabled ? toggleLabelOn : toggleLabelOff;
     toggleButton.dataset.state = enabled ? 'on' : 'off';
     toggleButton.textContent = nextLabel;
@@ -106,14 +135,18 @@ export function createAudioHudControl({
       ? `Ambient audio on. Press ${normalizedToggleKey} to toggle.`
       : `Ambient audio off. Press ${normalizedToggleKey} to toggle.`;
     toggleButton.dataset.hudAnnounce = toggleMessage;
+    updateVolume(enabled);
   };
 
-  const updateVolume = () => {
+  const updateVolume = (enabled = lastKnownEnabled) => {
     const volume = clamp(getVolume(), 0, 1);
     slider.value = volume.toString();
     slider.setAttribute('aria-valuenow', volume.toFixed(2));
-    slider.setAttribute('aria-valuetext', formatVolume(volume));
-    valueText.textContent = formatVolume(volume);
+    const formatted = formatVolume(volume);
+    const uiState = getVolumeUiState(enabled, formatted);
+    slider.setAttribute('aria-valuetext', uiState.ariaValueText);
+    slider.dataset.hudAnnounce = uiState.announce;
+    valueText.textContent = uiState.valueDisplay;
   };
 
   const finalizeToggle = () => {
@@ -174,13 +207,11 @@ export function createAudioHudControl({
   windowTarget.addEventListener('keydown', handleKeydown);
 
   updateToggle();
-  updateVolume();
 
   return {
     element: wrapper,
     refresh() {
       updateToggle();
-      updateVolume();
     },
     dispose() {
       toggleButton.removeEventListener('click', handleToggleClick);

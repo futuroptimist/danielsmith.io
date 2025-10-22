@@ -273,11 +273,13 @@ Focus: make the experience inclusive and globally friendly.
   lighting cues.
 
 - Subtitle/captions system for ambient audio callouts and POI narration.
-  - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
-  - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
-  - ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
-    gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
-    guards would normally delay the ambient line.
+- ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
+- ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
+- ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
+  gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
+  guards would normally delay the ambient line.
+- ✅ Ambient audio HUD now announces mute state and current levels so screen readers surface
+  volume changes with or without sound enabled.
 
 3. **Localization Pipeline**
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.
