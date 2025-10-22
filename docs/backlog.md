@@ -10,7 +10,6 @@ tasks that deserve immediate attention while the roadmap handles long-range plan
 - feat: ground floor layout blocking & navigation QA
 - perf: lighting pipeline prototype (emissive strips + baked bounce)
 - perf: capture perf/a11y metrics via Lighthouse CI + WebGL FPS harness
-- docs: add README "Play demo" entry w/ GIF + fallback messaging
 - docs: publish release tags per phase w/ changelog + screenshots
 - chore: wire telemetry-friendly console budget + error reporting (Sentry or proxy)
 - docs: spin up `docs/case-studies/` for POI impact blurbs + KPI receipts
@@ -20,3 +19,4 @@ tasks that deserve immediate attention while the roadmap handles long-range plan
 - fix: Upper floor traversal no longer auto-descends when walking above the stairwell;
   the landing plate now gates stair descent to prevent surprise teleports.
 - perf: Low-FPS failover now records p95/min FPS with sample counts for the telemetry pipeline.
+- docs: README now surfaces a "Play demo" entry with fallback messaging and launch capture notes.
