@@ -48,6 +48,7 @@ export interface BackyardEnvironmentBuild {
   colliders: RectCollider[];
   update(context: { elapsed: number; delta: number }): void;
   ambientAudioBeds: BackyardAmbientAudioBed[];
+  applySeasonalPreset(preset: SeasonalLightingPreset | null): void;
 }
 
 export interface BackyardAmbientAudioBed {
@@ -597,20 +598,30 @@ export function createBackyardEnvironment(
 
   group.add(lanternGroup);
 
-  if (seasonalPreset && lanternSeasonalTargets.length > 0) {
-    applySeasonalLightingPreset({
-      preset: seasonalPreset,
-      targets: lanternSeasonalTargets,
-    });
-    lanternSeasonalTargets.forEach((target, index) => {
-      const animationTarget = lanternAnimationTargets[index];
-      animationTarget.baseIntensity = target.material.emissiveIntensity;
-      const firstLight = target.fillLights[0]?.light;
-      if (firstLight) {
-        animationTarget.baseLightIntensity = firstLight.intensity;
-      }
-    });
-  }
+  const applyLanternSeasonalPreset: (
+    preset: SeasonalLightingPreset | null
+  ) => void =
+    lanternSeasonalTargets.length > 0
+      ? (preset) => {
+          applySeasonalLightingPreset({
+            preset,
+            targets: lanternSeasonalTargets,
+          });
+          lanternSeasonalTargets.forEach((target, index) => {
+            const animationTarget = lanternAnimationTargets[index];
+            if (!animationTarget) {
+              return;
+            }
+            animationTarget.baseIntensity = target.material.emissiveIntensity;
+            const firstLight = target.fillLights[0]?.light;
+            if (firstLight) {
+              animationTarget.baseLightIntensity = firstLight.intensity;
+            }
+          });
+        }
+      : () => {};
+
+  applyLanternSeasonalPreset(seasonalPreset ?? null);
 
   const shrubGeometry = new SphereGeometry(1.05, 20, 20);
   const shrubMaterial = new MeshStandardMaterial({
@@ -892,5 +903,11 @@ export function createBackyardEnvironment(
     });
   }
 
-  return { group, colliders, update, ambientAudioBeds };
+  return {
+    group,
+    colliders,
+    update,
+    ambientAudioBeds,
+    applySeasonalPreset: applyLanternSeasonalPreset,
+  };
 }

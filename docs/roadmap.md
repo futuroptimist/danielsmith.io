@@ -337,8 +337,8 @@ Ideas to evaluate after the core experience is stable:
 - Seasonal lighting presets (e.g., aurora, holiday lights) scheduled via calendar.
 - ✅ Seasonal lighting scheduler now retints LED strips and fill lights for holiday and spring
   windows, slowing or accelerating pulse programs according to the calendar.
-  - ✨ Backyard lanterns now inherit seasonal palettes so the greenhouse walkway glow matches the
-    active preset.
+  - ✅ Backyard lanterns now inherit seasonal palettes and expose a runtime retint hook so the
+    greenhouse walkway glow matches the active preset.
 - ✅ Procedural storytelling AI that narrates the journey between POIs.
   - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
 - ✅ Integration with GitHub API for live repo stats and contribution heatmaps.
