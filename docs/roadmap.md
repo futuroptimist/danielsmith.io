@@ -273,7 +273,9 @@ Focus: make the experience inclusive and globally friendly.
   lighting cues.
 
 - Subtitle/captions system for ambient audio callouts and POI narration.
-- ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
+  - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
+  - ✅ Subtitle queue now sequences overlapping ambient and narration clips so lower-priority
+    callouts surface once higher-priority events finish.
 - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
 - ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
   gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
