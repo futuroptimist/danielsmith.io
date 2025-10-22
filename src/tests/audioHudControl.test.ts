@@ -36,11 +36,16 @@ describe('createAudioHudControl', () => {
     const valueText = container.querySelector('.audio-volume__value');
     expect(button).toBeTruthy();
     expect(slider).toBeTruthy();
-    expect(valueText?.textContent).toBe('60%');
+    expect(valueText?.textContent).toBe('Muted · 60%');
+    expect(slider?.getAttribute('aria-valuemin')).toBe('0');
+    expect(slider?.getAttribute('aria-valuemax')).toBe('1');
+    expect(slider?.getAttribute('aria-valuetext')).toBe('Muted (60%)');
     expect(button?.dataset.hudAnnounce).toBe(
       'Ambient audio off. Press M to toggle.'
     );
-    expect(slider?.dataset.hudAnnounce).toBe('Ambient audio volume slider.');
+    expect(slider?.dataset.hudAnnounce).toBe(
+      'Ambient audio muted. Volume set to 60%.'
+    );
 
     button?.dispatchEvent(new Event('click'));
     expect(toggleCallCount).toBe(1);
@@ -59,25 +64,36 @@ describe('createAudioHudControl', () => {
     expect(button?.dataset.hudAnnounce).toBe(
       'Ambient audio on. Press M to toggle.'
     );
+    expect(valueText?.textContent).toBe('60%');
+    expect(slider?.getAttribute('aria-valuetext')).toBe('60%');
+    expect(slider?.dataset.hudAnnounce).toBe('Ambient audio volume 60%.');
 
     slider!.value = '0.82';
     slider?.dispatchEvent(new Event('input'));
     expect(volume).toBeCloseTo(0.82, 5);
     expect(valueText?.textContent).toBe('82%');
+    expect(slider?.dataset.hudAnnounce).toBe('Ambient audio volume 82%.');
 
     volume = 0.25;
     enabled = false;
     handle.refresh();
     expect(button?.dataset.state).toBe('off');
-    expect(valueText?.textContent).toBe('25%');
+    expect(valueText?.textContent).toBe('Muted · 25%');
     expect(button?.dataset.hudAnnounce).toBe(
       'Ambient audio off. Press M to toggle.'
+    );
+    expect(slider?.getAttribute('aria-valuetext')).toBe('Muted (25%)');
+    expect(slider?.dataset.hudAnnounce).toBe(
+      'Ambient audio muted. Volume set to 25%.'
     );
 
     slider!.value = '1.6';
     slider?.dispatchEvent(new Event('input'));
     expect(volume).toBe(1);
-    expect(valueText?.textContent).toBe('100%');
+    expect(valueText?.textContent).toBe('Muted · 100%');
+    expect(slider?.dataset.hudAnnounce).toBe(
+      'Ambient audio muted. Volume set to 100%.'
+    );
 
     handle.dispose();
     expect(container.querySelector('.audio-hud')).toBeNull();
@@ -125,6 +141,12 @@ describe('createAudioHudControl', () => {
     expect(button?.dataset.hudAnnounce).toBe(
       'Ambient audio off. Press M to toggle.'
     );
+    const volumeSlider = container.querySelector<HTMLInputElement>(
+      '.audio-volume__slider'
+    );
+    expect(volumeSlider?.dataset.hudAnnounce).toBe(
+      'Ambient audio muted. Volume set to 40%.'
+    );
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
     expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -132,6 +154,7 @@ describe('createAudioHudControl', () => {
     expect(button?.dataset.hudAnnounce).toBe(
       'Ambient audio on. Press M to toggle.'
     );
+    expect(volumeSlider?.dataset.hudAnnounce).toBe('Ambient audio volume 40%.');
 
     handle.dispose();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));

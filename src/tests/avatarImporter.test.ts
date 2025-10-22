@@ -144,6 +144,32 @@ describe('createAvatarImporter', () => {
     );
   });
 
+  it('throws when a required bone is not bound to a skeleton', async () => {
+    const hips = new Bone();
+    hips.name = 'Hips';
+    const spine = new Bone();
+    spine.name = 'Spine';
+    const geometry = createGeometry();
+    const material = new MeshBasicMaterial();
+    const mesh = new SkinnedMesh(geometry, material);
+    mesh.add(spine);
+    mesh.add(hips);
+    const skeleton = new Skeleton([spine]);
+    mesh.bind(skeleton);
+    const group = new Group();
+    group.add(mesh);
+    const gltf = createGltf({ group, animations: [] });
+
+    const importer = createAvatarImporter({
+      createLoader: () => ({ loadAsync: vi.fn().mockResolvedValue(gltf) }),
+      requiredBones: ['Hips'],
+    });
+
+    await expect(
+      importer.load({ url: '/missing-skeleton-binding.glb' })
+    ).rejects.toThrow(/missing required skeleton bindings/i);
+  });
+
   it('throws when a required animation clip is missing', async () => {
     const { group, idle } = createAvatarScene();
     const gltf = createGltf({ group, animations: [idle] });
