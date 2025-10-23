@@ -8,6 +8,11 @@
 [![Resume](https://img.shields.io/github/actions/workflow/status/futuroptimist/danielsmith.io/.github/workflows/resume.yml?label=resume)](https://github.com/futuroptimist/danielsmith.io/actions/workflows/resume.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## Play the demo
+
+[▶️ Play the immersive demo](https://danielsmith.io/?mode=immersive&disablePerformanceFailover=1)
+· Prefer the lightweight tour? [Launch the text portfolio](https://danielsmith.io/?mode=text).
+
 Production-ready Vite + Three.js playground for the future danielsmith.io experience.
 The scene renders an orthographic isometric room with keyboard-driven mannequin movement so
 we can iterate on spatial UX while keeping repo hygiene tight. The project was originally
@@ -30,6 +35,10 @@ Avatar facing is computed from the camera-relative movement vector; see
 ## Launch state
 
 ![Launch-ready room at initial load](docs/assets/game-launch.png)
+
+_First frame from the CI-managed ~35 s capture minted by `npm run launch:screenshot`. The
+workflow stores a lightweight still to keep the README small while a longer clip streams in
+docs demos._
 
 > The `Launch screenshot` workflow regenerates and auto-commits this asset after merges to
 > `main`, keeping the README image in sync without storing binaries in feature branches.

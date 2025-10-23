@@ -173,7 +173,7 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 **Done means**
 
-- README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
+- ✅ README front matter surfaces "Play demo" link + 30–45 s capture; text fallback call-out sits
   next to the link.
 - HUD overlay achieves full keyboard/touch parity; interaction audit recorded in
   `docs/metrics/accessibility.md`.
