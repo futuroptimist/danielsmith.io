@@ -201,6 +201,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
 2. **Experience Toggle**
    - Mode switch between immersive 3D view and a fast-loading text portfolio.
      - ✅ Manual text mode selections now persist across visits so returning players stay in their preferred experience.
+     - ✅ Automated heuristics now catch Node.js fetch/axios and Go HTTP clients so scripted
+       crawlers land on the text tour reliably.
    - ✅ Detect low-end/no-JS/scraper clients and auto-route to static mode.
    - ✅ Share canonical content via structured data (JSON-LD) for SEO and bots.
    - ✅ CollectionPage metadata now declares the immersive ItemList as the page's main
@@ -218,6 +220,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      unless immersive mode is explicitly forced.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
+   - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
+     update immediately when visitors switch locales.
    - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
      crawlers understand language coverage and free access guarantees.
    - ✅ Text fallback links back to immersive mode with the override URL so returns bypass

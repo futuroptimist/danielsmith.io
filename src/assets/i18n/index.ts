@@ -14,6 +14,7 @@ import type {
   LocaleStrings,
   LocaleDirection,
   LocaleScript,
+  ModeToggleResolvedStrings,
   MovementLegendStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
@@ -241,6 +242,34 @@ export function getMovementLegendStrings(
   input?: LocaleInput
 ): MovementLegendStrings {
   return getLocaleStrings(input).hud.movementLegend;
+}
+
+export function getModeToggleStrings(
+  input?: LocaleInput
+): ModeToggleResolvedStrings {
+  const localeStrings = getLocaleStrings(input).hud.modeToggle;
+  const rawKeyHint = localeStrings.keyHint;
+  const normalizedKeyHint =
+    rawKeyHint.length === 1 ? rawKeyHint.toUpperCase() : rawKeyHint;
+  const formatWithHint = (template: string) =>
+    formatMessage(template, { keyHint: normalizedKeyHint });
+
+  return {
+    keyHint: rawKeyHint,
+    idleLabel: formatWithHint(localeStrings.idleLabelTemplate),
+    idleDescription: formatWithHint(localeStrings.idleDescriptionTemplate),
+    idleHudAnnouncement: formatWithHint(localeStrings.idleAnnouncementTemplate),
+    idleTitle: formatWithHint(localeStrings.idleTitleTemplate),
+    pendingLabel: formatWithHint(localeStrings.pendingLabelTemplate),
+    pendingHudAnnouncement: formatWithHint(
+      localeStrings.pendingAnnouncementTemplate
+    ),
+    activeLabel: formatWithHint(localeStrings.activeLabelTemplate),
+    activeDescription: formatWithHint(localeStrings.activeDescriptionTemplate),
+    activeHudAnnouncement: formatWithHint(
+      localeStrings.activeAnnouncementTemplate
+    ),
+  } satisfies ModeToggleResolvedStrings;
 }
 
 export function getPoiNarrativeLogStrings(

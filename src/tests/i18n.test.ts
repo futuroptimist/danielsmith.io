@@ -6,6 +6,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getModeToggleStrings,
   getLocaleScript,
   getPoiNarrativeLogStrings,
   getPoiCopy,
@@ -86,6 +87,29 @@ describe('i18n utilities', () => {
     expect(japaneseHelp.heading).toBe('設定とヘルプ');
     expect(japaneseHelp.announcements.close).toBe(
       'ヘルプメニューを閉じました。'
+    );
+  });
+
+  it('returns localized mode toggle strings with formatted key hints', () => {
+    const english = getModeToggleStrings('en');
+    expect(english.keyHint).toBe('T');
+    expect(english.idleLabel).toBe('Text mode · Press T');
+    expect(english.idleHudAnnouncement).toBe(
+      'Switch to the text-only portfolio. Press T to activate.'
+    );
+    expect(english.idleTitle).toBe('Switch to the text-only portfolio (T)');
+    expect(english.pendingHudAnnouncement).toBe(
+      'Switch to the text-only portfolio. Switching to text mode…'
+    );
+
+    const pseudo = getModeToggleStrings('en-x-pseudo');
+    expect(pseudo.keyHint).toBe('T');
+    expect(pseudo.idleLabel).toBe('⟦Text mode · Press T⟧');
+    expect(pseudo.idleHudAnnouncement).toBe(
+      '⟦Switch to the text-only portfolio. Press T to activate.⟧'
+    );
+    expect(pseudo.pendingHudAnnouncement).toBe(
+      '⟦Switch to the text-only portfolio. Switching to text mode…⟧'
     );
   });
 

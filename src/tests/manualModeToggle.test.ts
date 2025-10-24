@@ -120,11 +120,49 @@ describe('createManualModeToggle', () => {
       container,
       onToggle,
       getIsFallbackActive: () => false,
-      keyHint: 'T',
     });
 
     const event = new KeyboardEvent('keydown', { key: 't' });
     window.dispatchEvent(event);
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
+
+    cleanupHandle(handle);
+    container.remove();
+  });
+
+  it('updates localized copy and key hint when strings change', () => {
+    const container = createContainer();
+    const onToggle = vi.fn();
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => false,
+    });
+
+    const customStrings = {
+      keyHint: 'Y',
+      idleLabel: 'Modo texto · Pulsa Y',
+      idleDescription: 'Cambiar al portafolio textual',
+      idleHudAnnouncement:
+        'Cambiar al portafolio textual. Pulsa Y para activar.',
+      idleTitle: 'Cambiar al portafolio textual (Y)',
+      pendingLabel: 'Cambiando al modo texto…',
+      pendingHudAnnouncement: 'Cambiando al modo texto…',
+      activeLabel: 'Modo texto activo',
+      activeDescription: 'El modo texto ya está activo.',
+      activeHudAnnouncement: 'El modo texto ya está activo.',
+    };
+
+    handle.setStrings(customStrings);
+
+    expect(handle.element.textContent).toBe(customStrings.idleLabel);
+    expect(handle.element.dataset.hudAnnounce).toBe(
+      customStrings.idleHudAnnouncement
+    );
+    expect(handle.element.title).toBe(customStrings.idleTitle);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'y' }));
 
     expect(onToggle).toHaveBeenCalledTimes(1);
 

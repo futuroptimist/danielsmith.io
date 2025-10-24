@@ -46,6 +46,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getModeToggleStrings,
   getPoiNarrativeLogStrings,
   getSiteStrings,
   resolveLocale,
@@ -723,6 +724,7 @@ function initializeImmersiveScene(
   document.documentElement.dataset.localeDirection = htmlDirection;
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
+  let modeToggleStrings = getModeToggleStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let siteStrings = getSiteStrings(locale);
   let narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -2316,6 +2318,7 @@ function initializeImmersiveScene(
 
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
+    modeToggleStrings = getModeToggleStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     siteStrings = getSiteStrings(locale);
@@ -2338,6 +2341,7 @@ function initializeImmersiveScene(
         interactLabelFallback;
       movementLegend.setKeyboardInteractLabel(keyboardLabel);
     }
+    manualModeToggle?.setStrings(modeToggleStrings);
     helpModal.setContent(helpModalStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     updateHelpButtonLabel();
@@ -2772,9 +2776,7 @@ function initializeImmersiveScene(
 
     manualModeToggle = createManualModeToggle({
       container: hudSettingsStack,
-      label: 'Text mode · Press T',
-      description: 'Switch to the text-only portfolio',
-      keyHint: 'T',
+      strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
       onToggle: () => {
         writeModePreference('text');

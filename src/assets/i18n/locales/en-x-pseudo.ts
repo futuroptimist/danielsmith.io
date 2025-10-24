@@ -58,6 +58,21 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         gamepad: wrap('Press {label} to {prompt}'),
       },
     },
+    modeToggle: {
+      idleLabelTemplate: wrap('Text mode · Press {keyHint}'),
+      idleDescriptionTemplate: wrap('Switch to the text-only portfolio'),
+      idleAnnouncementTemplate: wrap(
+        'Switch to the text-only portfolio. Press {keyHint} to activate.'
+      ),
+      idleTitleTemplate: wrap('Switch to the text-only portfolio ({keyHint})'),
+      pendingLabelTemplate: wrap('Switching to text mode…'),
+      pendingAnnouncementTemplate: wrap(
+        'Switch to the text-only portfolio. Switching to text mode…'
+      ),
+      activeLabelTemplate: wrap('Text mode active'),
+      activeDescriptionTemplate: wrap('Text mode already active.'),
+      activeAnnouncementTemplate: wrap('Text mode already active.'),
+    },
     narrativeLog: {
       heading: wrap('Creator story log'),
       visitedHeading: wrap('Visited exhibits'),

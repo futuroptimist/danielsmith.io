@@ -97,6 +97,20 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         gamepad: 'Press {label} to {prompt}',
       },
     },
+    modeToggle: {
+      keyHint: 'T',
+      idleLabelTemplate: 'Text mode · Press {keyHint}',
+      idleDescriptionTemplate: 'Switch to the text-only portfolio',
+      idleAnnouncementTemplate:
+        'Switch to the text-only portfolio. Press {keyHint} to activate.',
+      idleTitleTemplate: 'Switch to the text-only portfolio ({keyHint})',
+      pendingLabelTemplate: 'Switching to text mode…',
+      pendingAnnouncementTemplate:
+        'Switch to the text-only portfolio. Switching to text mode…',
+      activeLabelTemplate: 'Text mode active',
+      activeDescriptionTemplate: 'Text mode already active.',
+      activeAnnouncementTemplate: 'Text mode already active.',
+    },
     narrativeLog: {
       heading: 'Creator story log',
       visitedHeading: 'Visited exhibits',

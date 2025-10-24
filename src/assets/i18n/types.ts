@@ -51,6 +51,32 @@ export interface MovementLegendStrings {
   interactPromptTemplates: Record<InputMethod | 'default', string>;
 }
 
+export interface ModeToggleStrings {
+  keyHint: string;
+  idleLabelTemplate: string;
+  idleDescriptionTemplate: string;
+  idleAnnouncementTemplate: string;
+  idleTitleTemplate: string;
+  pendingLabelTemplate: string;
+  pendingAnnouncementTemplate: string;
+  activeLabelTemplate: string;
+  activeDescriptionTemplate: string;
+  activeAnnouncementTemplate: string;
+}
+
+export interface ModeToggleResolvedStrings {
+  keyHint: string;
+  idleLabel: string;
+  idleDescription: string;
+  idleHudAnnouncement: string;
+  idleTitle: string;
+  pendingLabel: string;
+  pendingHudAnnouncement: string;
+  activeLabel: string;
+  activeDescription: string;
+  activeHudAnnouncement: string;
+}
+
 export interface HelpModalItemStrings {
   label: string;
   description: string;
@@ -155,6 +181,7 @@ export interface LocaleStrings {
   hud: {
     controlOverlay: ControlOverlayStrings;
     movementLegend: MovementLegendStrings;
+    modeToggle: ModeToggleStrings;
     helpModal: HelpModalStrings;
     narrativeLog: PoiNarrativeLogStrings;
   };
