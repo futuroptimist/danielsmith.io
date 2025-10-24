@@ -94,6 +94,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
+   - ✨ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
+     that honor accessibility damping scales.
    - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
 
 ## Phase 2 – Points of Interest (POIs)
