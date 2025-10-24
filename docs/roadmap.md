@@ -96,6 +96,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
    - ✨ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
      that honor accessibility damping scales.
+   - ✨ Dusk pollen motes now drift along the greenhouse walkway with accessibility-aware swirl
+     damping for calm-mode visitors.
    - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
 
 ## Phase 2 – Points of Interest (POIs)

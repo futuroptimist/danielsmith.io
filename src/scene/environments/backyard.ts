@@ -385,6 +385,111 @@ export function createBackyardEnvironment(
     falloffCurve: 'smoothstep',
   });
 
+  const walkwayMoteCount = 36;
+  const walkwayMoteGeometry = new BufferGeometry();
+  const walkwayMotePositions = new Float32Array(walkwayMoteCount * 3);
+  const walkwayMoteBasePositions = new Float32Array(walkwayMoteCount * 3);
+  const walkwayMoteOrbitRadii = new Float32Array(walkwayMoteCount);
+  const walkwayMoteVerticalAmplitudes = new Float32Array(walkwayMoteCount);
+  const walkwayMoteSpeeds = new Float32Array(walkwayMoteCount);
+  const walkwayMotePhaseOffsets = new Float32Array(walkwayMoteCount);
+  for (let i = 0; i < walkwayMoteCount; i += 1) {
+    const ratio = (i + 0.5) / walkwayMoteCount;
+    const baseIndex = i * 3;
+    const baseX =
+      walkway.position.x +
+      (Math.sin(ratio * Math.PI * 1.1 + i * 0.18) * walkwayWidth) / 3.6;
+    const baseZ =
+      walkway.position.z - walkwayDepth * 0.48 + walkwayDepth * 0.96 * ratio;
+    const baseY = walkway.position.y + 0.42 + Math.sin(ratio * Math.PI) * 0.26;
+    walkwayMoteBasePositions[baseIndex] = baseX;
+    walkwayMoteBasePositions[baseIndex + 1] = baseY;
+    walkwayMoteBasePositions[baseIndex + 2] = baseZ;
+    walkwayMotePositions[baseIndex] = baseX;
+    walkwayMotePositions[baseIndex + 1] = baseY;
+    walkwayMotePositions[baseIndex + 2] = baseZ;
+    walkwayMoteOrbitRadii[i] =
+      walkwayWidth * 0.18 * (0.68 + Math.cos(ratio * Math.PI * 1.2) * 0.22);
+    walkwayMoteVerticalAmplitudes[i] = 0.12 + Math.sin(ratio * Math.PI) * 0.16;
+    walkwayMoteSpeeds[i] = 0.85 + ratio * 0.75;
+    walkwayMotePhaseOffsets[i] = ratio * Math.PI * 2.6 + i * 0.12;
+  }
+  const walkwayMotePositionsAttribute = new BufferAttribute(
+    walkwayMotePositions,
+    3
+  );
+  walkwayMoteGeometry.setAttribute('position', walkwayMotePositionsAttribute);
+  const walkwayMoteMaterial = new PointsMaterial({
+    color: 0xffe5bf,
+    size: 0.12,
+    transparent: true,
+    opacity: 0.68,
+    depthWrite: false,
+    sizeAttenuation: true,
+    blending: AdditiveBlending,
+  });
+  const walkwayMotes = new Points(walkwayMoteGeometry, walkwayMoteMaterial);
+  walkwayMotes.name = 'BackyardWalkwayMotes';
+  walkwayMotes.renderOrder = 7;
+  group.add(walkwayMotes);
+  const baseWalkwayMoteOpacity = walkwayMoteMaterial.opacity;
+  const baseWalkwayMoteSize = walkwayMoteMaterial.size;
+
+  updates.push(({ elapsed }) => {
+    const flickerScale = getFlickerScale();
+    const pulseScale = getPulseScale();
+    let swirlAccumulator = 0;
+
+    for (let i = 0; i < walkwayMoteCount; i += 1) {
+      const baseIndex = i * 3;
+      const offset = walkwayMotePhaseOffsets[i];
+      const speed = walkwayMoteSpeeds[i];
+      const phase = elapsed * speed + offset;
+      const swirl = Math.sin(phase);
+      const wrapAngle = phase * 0.6 + offset * 0.45;
+      const baseX = walkwayMoteBasePositions[baseIndex];
+      const baseY = walkwayMoteBasePositions[baseIndex + 1];
+      const baseZ = walkwayMoteBasePositions[baseIndex + 2];
+      const radius = walkwayMoteOrbitRadii[i];
+      const verticalAmplitude = walkwayMoteVerticalAmplitudes[i];
+      const x =
+        baseX +
+        Math.cos(wrapAngle) * radius +
+        Math.sin(phase * 0.42 + offset) * radius * 0.18;
+      const y =
+        baseY +
+        Math.sin(phase * 1.18 + offset * 0.8) * verticalAmplitude +
+        Math.cos(phase * 0.34 + offset) * 0.05;
+      const z =
+        baseZ +
+        Math.sin(wrapAngle) * radius * 0.58 +
+        Math.sin(phase * 0.72 + offset * 0.5) * radius * 0.24;
+      walkwayMotePositionsAttribute.setXYZ(i, x, y, z);
+      const swirlContribution = MathUtils.clamp(0.5 + swirl * 0.5, 0.1, 0.98);
+      swirlAccumulator += swirlContribution;
+    }
+
+    walkwayMotePositionsAttribute.needsUpdate = true;
+
+    const swirlAverage = MathUtils.clamp(
+      swirlAccumulator / walkwayMoteCount,
+      0.2,
+      0.98
+    );
+    const opacityTarget = MathUtils.lerp(0.55, 1.12, swirlAverage);
+    walkwayMoteMaterial.opacity = MathUtils.lerp(
+      baseWalkwayMoteOpacity * 0.62,
+      baseWalkwayMoteOpacity * opacityTarget,
+      flickerScale
+    );
+    const sizeTarget = MathUtils.lerp(0.9, 1.18, swirlAverage);
+    walkwayMoteMaterial.size = MathUtils.lerp(
+      baseWalkwayMoteSize * 0.84,
+      baseWalkwayMoteSize * sizeTarget,
+      pulseScale
+    );
+  });
+
   interface WalkwayGuideAnimationTarget {
     material: MeshStandardMaterial;
     baseEmissiveIntensity: number;
