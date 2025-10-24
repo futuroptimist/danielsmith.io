@@ -233,6 +233,20 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes Node.js and Go HTTP clients to text mode', () => {
+    const userAgents = ['Go-http-client/1.1', 'node-fetch/1.0', 'axios/1.6.0'];
+    for (const userAgent of userAgents) {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+        getUserAgent: () => userAgent,
+      });
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    }
+  });
+
   it('routes low hardware concurrency devices to text mode', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,

@@ -1,17 +1,17 @@
+import { getModeToggleStrings } from '../../assets/i18n';
+import type { ModeToggleResolvedStrings } from '../../assets/i18n';
+
 export interface ManualModeToggleOptions {
   container: HTMLElement;
   onToggle: () => void | Promise<void>;
   getIsFallbackActive: () => boolean;
   windowTarget?: Window;
-  label?: string;
-  description?: string;
-  keyHint?: string;
-  activeLabel?: string;
-  activeDescription?: string;
+  strings?: ModeToggleResolvedStrings;
 }
 
 export interface ManualModeToggleHandle {
   readonly element: HTMLButtonElement;
+  setStrings(strings: ModeToggleResolvedStrings): void;
   dispose(): void;
 }
 
@@ -29,11 +29,7 @@ export function createManualModeToggle({
   onToggle,
   getIsFallbackActive,
   windowTarget = window,
-  label = 'Text mode · Press T',
-  description = 'Switch to the text-only portfolio',
-  keyHint = 'T',
-  activeLabel = 'Text mode active',
-  activeDescription = 'Text mode already active.',
+  strings: providedStrings,
 }: ManualModeToggleOptions): ManualModeToggleHandle {
   const button = document.createElement('button');
   button.type = 'button';
@@ -42,63 +38,104 @@ export function createManualModeToggle({
 
   let pending = false;
 
+  const DEFAULT_STRINGS = getModeToggleStrings();
+
+  const cloneStrings = (
+    value: ModeToggleResolvedStrings
+  ): ModeToggleResolvedStrings => ({ ...value });
+
+  let strings = cloneStrings(providedStrings ?? DEFAULT_STRINGS);
+
   const normalizeKeyHint = (value: string) =>
     value.length === 1 ? value.toUpperCase() : value;
 
-  const normalizedKeyHint = normalizeKeyHint(keyHint);
-
-  const idleTitle = normalizedKeyHint
-    ? `${description} (${normalizedKeyHint})`
-    : description;
-
-  const appendClause = (base: string, clause: string) => {
-    const trimmedBase = base.trim();
-    const trimmedClause = clause.trim();
-    if (!trimmedClause) {
-      return trimmedBase;
-    }
-    if (!trimmedBase) {
-      return trimmedClause;
-    }
-    const separator = /[.!?]\s*$/.test(trimmedBase) ? ' ' : '. ';
-    return `${trimmedBase}${separator}${trimmedClause}`;
+  const withFallback = (value: string, fallback: string) => {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : fallback;
   };
+
+  const getIdleTitle = () => {
+    const title = strings.idleTitle.trim();
+    if (title) {
+      return title;
+    }
+    const description = withFallback(
+      strings.idleDescription,
+      DEFAULT_STRINGS.idleDescription
+    );
+    const normalizedKeyHint = normalizeKeyHint(strings.keyHint);
+    return normalizedKeyHint
+      ? `${description} (${normalizedKeyHint})`
+      : description;
+  };
+
+  const getIdleAnnouncement = () =>
+    withFallback(
+      strings.idleHudAnnouncement,
+      withFallback(strings.idleDescription, DEFAULT_STRINGS.idleHudAnnouncement)
+    );
+
+  const getPendingAnnouncement = () =>
+    withFallback(strings.pendingHudAnnouncement, getIdleAnnouncement());
+
+  const getActiveAnnouncement = () =>
+    withFallback(
+      strings.activeHudAnnouncement,
+      withFallback(
+        strings.activeDescription,
+        DEFAULT_STRINGS.activeHudAnnouncement
+      )
+    );
 
   const refreshState = () => {
     const fallbackActive = getIsFallbackActive();
     if (pending) {
       button.disabled = true;
       button.dataset.state = 'pending';
-      button.textContent = 'Switching to text mode…';
-      button.setAttribute('aria-pressed', 'false');
-      button.setAttribute('aria-label', description);
-      button.title = idleTitle;
-      button.dataset.hudAnnounce = appendClause(
-        description,
-        'Switching to text mode…'
+      button.textContent = withFallback(
+        strings.pendingLabel,
+        DEFAULT_STRINGS.pendingLabel
       );
+      button.setAttribute('aria-pressed', 'false');
+      button.setAttribute(
+        'aria-label',
+        withFallback(strings.idleDescription, DEFAULT_STRINGS.idleDescription)
+      );
+      button.title = getIdleTitle();
+      button.dataset.hudAnnounce = getPendingAnnouncement();
       return;
     }
     if (fallbackActive) {
       button.disabled = true;
       button.dataset.state = 'active';
-      button.textContent = activeLabel;
+      button.textContent = withFallback(
+        strings.activeLabel,
+        DEFAULT_STRINGS.activeLabel
+      );
       button.setAttribute('aria-pressed', 'true');
+      const activeDescription = withFallback(
+        strings.activeDescription,
+        DEFAULT_STRINGS.activeDescription
+      );
       button.setAttribute('aria-label', activeDescription);
       button.title = activeDescription;
-      button.dataset.hudAnnounce = activeDescription;
+      button.dataset.hudAnnounce = getActiveAnnouncement();
       return;
     }
     button.disabled = false;
     button.dataset.state = 'idle';
-    button.textContent = label;
+    button.textContent = withFallback(
+      strings.idleLabel,
+      DEFAULT_STRINGS.idleLabel
+    );
     button.setAttribute('aria-pressed', 'false');
-    button.setAttribute('aria-label', description);
-    button.title = idleTitle;
-    const keyPrompt = normalizedKeyHint
-      ? `Press ${normalizedKeyHint} to activate.`
-      : 'Use this button to activate text mode.';
-    button.dataset.hudAnnounce = appendClause(description, keyPrompt);
+    const idleDescription = withFallback(
+      strings.idleDescription,
+      DEFAULT_STRINGS.idleDescription
+    );
+    button.setAttribute('aria-label', idleDescription);
+    button.title = getIdleTitle();
+    button.dataset.hudAnnounce = getIdleAnnouncement();
   };
 
   const setPendingState = (next: boolean) => {
@@ -142,6 +179,7 @@ export function createManualModeToggle({
   };
 
   const handleKeydown = (event: KeyboardEvent) => {
+    const keyHint = strings.keyHint;
     if (event.key !== keyHint && event.key !== keyHint.toLowerCase()) {
       return;
     }
@@ -163,6 +201,10 @@ export function createManualModeToggle({
 
   return {
     element: button,
+    setStrings(nextStrings: ModeToggleResolvedStrings) {
+      strings = cloneStrings(nextStrings ?? DEFAULT_STRINGS);
+      refreshState();
+    },
     dispose() {
       button.removeEventListener('click', handleClick);
       windowTarget.removeEventListener('keydown', handleKeydown);
