@@ -269,6 +269,41 @@ describe('createBackyardEnvironment', () => {
     expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
   });
 
+  it('adds walkway fiber arcs that shimmer above the path', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const arcGroup = environment.group.getObjectByName(
+      'BackyardWalkwayFiberArcs'
+    );
+    expect(arcGroup).toBeInstanceOf(Group);
+
+    const arcs = (arcGroup as Group).children.filter((child) =>
+      child.name.startsWith('BackyardWalkwayFiberArc-')
+    );
+    expect(arcs.length).toBeGreaterThan(0);
+
+    const firstArc = arcs[0] as Mesh | undefined;
+    expect(firstArc).toBeInstanceOf(Mesh);
+    const arcMaterial = (firstArc!.material as MeshStandardMaterial)!;
+    const baseEmissive = arcMaterial.emissiveIntensity;
+    const baseOpacity = arcMaterial.opacity ?? 1;
+
+    environment.update({ elapsed: 0.7, delta: 0.016 });
+
+    expect(arcMaterial.emissiveIntensity).not.toBeCloseTo(baseEmissive, 5);
+    expect(arcMaterial.opacity).not.toBeCloseTo(baseOpacity, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    arcMaterial.emissiveIntensity = baseEmissive;
+    arcMaterial.opacity = baseOpacity;
+
+    environment.update({ elapsed: 1.6, delta: 0.016 });
+
+    expect(arcMaterial.emissiveIntensity).toBeCloseTo(baseEmissive * 0.55, 5);
+    expect(arcMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+  });
+
   it('retints walkway lanterns and preserves seasonal baselines', () => {
     const preset: SeasonalLightingPreset = {
       id: 'aurora-backyard',
@@ -335,6 +370,56 @@ describe('createBackyardEnvironment', () => {
       1.18 * dampingScale
     );
     expect(light!.intensity).toBeGreaterThan(0.85 * dampingScale);
+  });
+
+  it('retints walkway fiber arcs with seasonal baselines intact', () => {
+    const preset: SeasonalLightingPreset = {
+      id: 'aurora-backyard',
+      label: 'Aurora Backyard',
+      start: { month: 11, day: 1 },
+      end: { month: 11, day: 30 },
+      tintHex: '#88ccff',
+      tintStrength: 0.4,
+      emissiveIntensityScale: 1.2,
+      fillIntensityScale: 1.3,
+      roomOverrides: {
+        backyard: {
+          tintStrength: 0.7,
+          emissiveIntensityScale: 1.5,
+          fillIntensityScale: 1.6,
+        },
+      },
+    };
+
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS, {
+      seasonalPreset: preset,
+    });
+    const arcGroup = environment.group.getObjectByName(
+      'BackyardWalkwayFiberArcs'
+    ) as Group | null;
+    expect(arcGroup).toBeInstanceOf(Group);
+
+    const arc = arcGroup?.getObjectByName(
+      'BackyardWalkwayFiberArc-0'
+    ) as Mesh | null;
+    expect(arc).toBeInstanceOf(Mesh);
+    const arcMaterial = (arc!.material as MeshStandardMaterial)!;
+
+    const baseColor = new Color(0x5fe8ff);
+    const expectedTint = baseColor.clone().lerp(new Color('#88ccff'), 0.7);
+    expect(arcMaterial.emissive.getHexString()).toBe(
+      expectedTint.getHexString()
+    );
+
+    const tintedBaseline = 1.18 * 1.5;
+    expect(arcMaterial.emissiveIntensity).toBeCloseTo(tintedBaseline, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    environment.update({ elapsed: 0.9, delta: 0.016 });
+
+    expect(arcMaterial.emissiveIntensity).toBeCloseTo(tintedBaseline * 0.55, 5);
   });
 
   it('reapplies seasonal presets to walkway lanterns on demand', () => {
