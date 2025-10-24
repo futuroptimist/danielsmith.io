@@ -18,12 +18,14 @@ import {
   PlaneGeometry,
   PointLight,
   Points,
+  QuadraticBezierCurve3,
   Quaternion,
   PointsMaterial,
   ShaderMaterial,
   SphereGeometry,
   SRGBColorSpace,
   Texture,
+  TubeGeometry,
   Vector3,
 } from 'three';
 import type { IUniform } from 'three';
@@ -396,6 +398,8 @@ export function createBackyardEnvironment(
   const walkwayGuideSeasonalTargets: SeasonalLightingTarget[] = [];
   const walkwayGuideGroup = new Group();
   walkwayGuideGroup.name = 'BackyardWalkwayGuides';
+  const walkwayFiberArcGroup = new Group();
+  walkwayFiberArcGroup.name = 'BackyardWalkwayFiberArcs';
 
   const walkwayGuideSegments = 5;
   const walkwayGuideWidth = Math.min(0.22, walkwayWidth * 0.16);
@@ -470,10 +474,69 @@ export function createBackyardEnvironment(
         fillLights: [],
       });
     });
+
+    const arcStartX =
+      walkway.position.x -
+      walkwayWidth / 2 +
+      walkwayGuideEdgeInset +
+      walkwayGuideWidth * 0.6;
+    const arcEndX =
+      walkway.position.x +
+      walkwayWidth / 2 -
+      walkwayGuideEdgeInset -
+      walkwayGuideWidth * 0.6;
+    if (arcEndX > arcStartX) {
+      const arcHeight = Math.max(walkwayDepth * 0.26, 0.42);
+      const arcBaseY = walkway.position.y + walkwayGuideHeight + 0.06;
+      const controlPointHeight = arcBaseY + arcHeight;
+
+      const curve = new QuadraticBezierCurve3(
+        new Vector3(arcStartX, arcBaseY, segmentCenterZ),
+        new Vector3(walkway.position.x, controlPointHeight, segmentCenterZ),
+        new Vector3(arcEndX, arcBaseY, segmentCenterZ)
+      );
+
+      const arcGeometry = new TubeGeometry(curve, 36, 0.028, 12, false);
+      const arcMaterial = new MeshStandardMaterial({
+        color: new Color(0x0a1d29),
+        emissive: new Color(0x5fe8ff),
+        emissiveIntensity: 1.18,
+        roughness: 0.22,
+        metalness: 0.48,
+        transparent: true,
+        opacity: 0.74,
+      });
+
+      const arc = new Mesh(arcGeometry, arcMaterial);
+      arc.name = `BackyardWalkwayFiberArc-${segmentIndex}`;
+      arc.castShadow = false;
+      arc.receiveShadow = false;
+      arc.renderOrder = 6;
+      walkwayFiberArcGroup.add(arc);
+
+      walkwayGuideAnimationTargets.push({
+        material: arcMaterial,
+        baseEmissiveIntensity: arcMaterial.emissiveIntensity,
+        baseOpacity: arcMaterial.opacity ?? 1,
+        offset: segmentIndex * 0.78 + 0.36,
+      });
+
+      walkwayGuideSeasonalTargets.push({
+        roomId: 'backyard',
+        material: arcMaterial,
+        baseEmissiveColor: arcMaterial.emissive.clone(),
+        baseEmissiveIntensity: arcMaterial.emissiveIntensity,
+        fillLights: [],
+      });
+    }
   }
 
   if (walkwayGuideGroup.children.length > 0) {
     group.add(walkwayGuideGroup);
+  }
+
+  if (walkwayFiberArcGroup.children.length > 0) {
+    group.add(walkwayFiberArcGroup);
   }
 
   if (walkwayGuideAnimationTargets.length > 0) {
