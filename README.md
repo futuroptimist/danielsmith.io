@@ -125,6 +125,8 @@ lightweight.
 
 - **Vitest unit suites** – [`src/tests/`](src/tests/) run via `npm run test:ci`. Export `CI=1` locally to mirror pipeline behaviour and disable watch mode.
 - **Playwright end-to-end specs** – [`playwright/`](playwright/) run with `npm run test:e2e` (alias: `npm run screenshot`). `CI=1` forces a single worker for deterministic WebGL bootstrapping.
+  Install browsers once with `npx playwright install --with-deps chromium-headless-shell` so the suite can
+  launch the headless shell build locally.
 - **Visual smoke thresholds** – [`playwright.config.ts`](playwright.config.ts) loads [`VISUAL_SMOKE_DIFF_BUDGET`](src/assets/performance.ts#L37-L45) so `expect().toHaveScreenshot` allows at most a 0.015 diff ratio or 1,200 differing pixels.
 - **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) touches every POI and HUD overlay using keyboard-only input. Use `npm run test:e2e -- --grep traversal` to run just that macro when iterating.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
