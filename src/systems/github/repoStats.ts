@@ -43,9 +43,37 @@ const sanitizeNumber = (value: unknown): number => {
 const makeCacheKey = ({ owner, repo }: GitHubRepoIdentifier): string =>
   `${owner.toLowerCase()}/${repo.toLowerCase()}`;
 
+const shouldAttemptLiveFetch = (() => {
+  const globalScope = globalThis as Partial<
+    Window & { __ENABLE_LIVE_GITHUB_METRICS__?: boolean }
+  >;
+  if (globalScope.__ENABLE_LIVE_GITHUB_METRICS__) {
+    return true;
+  }
+  const { location } = globalScope;
+  if (!location) {
+    return false;
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.get('enableLiveGitHubMetrics') === '1') {
+    return true;
+  }
+  const hostname = location.hostname.toLowerCase();
+  if (hostname === 'danielsmith.io' || hostname.endsWith('.danielsmith.io')) {
+    return true;
+  }
+  return false;
+})();
+
+export interface GitHubRepoStatsServiceOptions {
+  allowLiveFetch?: boolean;
+}
+
 export function createGitHubRepoStatsService(
-  fetchImpl: typeof fetch | undefined = globalThis.fetch
+  fetchImpl: typeof fetch | undefined = globalThis.fetch,
+  options: GitHubRepoStatsServiceOptions = {}
 ): GitHubRepoStatsService {
+  const allowLiveFetch = options.allowLiveFetch ?? shouldAttemptLiveFetch;
   const cache = new Map<string, GitHubRepoStats>();
   const listeners = new Map<string, Set<GitHubRepoStatsListener>>();
   const inFlight = new Map<string, Promise<GitHubRepoStats | null>>();
@@ -112,7 +140,7 @@ export function createGitHubRepoStatsService(
     if (existing) {
       return existing;
     }
-    if (!fetchImpl) {
+    if (!fetchImpl || !allowLiveFetch) {
       return null;
     }
 

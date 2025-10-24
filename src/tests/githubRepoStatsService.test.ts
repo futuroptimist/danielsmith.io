@@ -16,7 +16,8 @@ describe('GitHub repo stats service', () => {
     });
 
     const service = createGitHubRepoStatsService(
-      fetch as unknown as typeof globalThis.fetch
+      fetch as unknown as typeof globalThis.fetch,
+      { allowLiveFetch: true }
     );
 
     const listener = vi.fn();
@@ -49,7 +50,8 @@ describe('GitHub repo stats service', () => {
   it('returns null without caching when fetch fails', async () => {
     const fetch = vi.fn().mockRejectedValue(new Error('network unreachable'));
     const service = createGitHubRepoStatsService(
-      fetch as unknown as typeof globalThis.fetch
+      fetch as unknown as typeof globalThis.fetch,
+      { allowLiveFetch: true }
     );
 
     const stats = await service.requestStats({ owner: 'foo', repo: 'bar' });
@@ -68,7 +70,8 @@ describe('GitHub repo stats service', () => {
       }),
     });
     const service = createGitHubRepoStatsService(
-      fetch as unknown as typeof globalThis.fetch
+      fetch as unknown as typeof globalThis.fetch,
+      { allowLiveFetch: true }
     );
 
     await service.requestStats({ owner: 'foo', repo: 'baz' });
