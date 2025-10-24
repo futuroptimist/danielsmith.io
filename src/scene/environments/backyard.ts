@@ -385,6 +385,136 @@ export function createBackyardEnvironment(
     falloffCurve: 'smoothstep',
   });
 
+  interface WalkwayGuideAnimationTarget {
+    material: MeshStandardMaterial;
+    baseEmissiveIntensity: number;
+    baseOpacity: number;
+    offset: number;
+  }
+
+  const walkwayGuideAnimationTargets: WalkwayGuideAnimationTarget[] = [];
+  const walkwayGuideSeasonalTargets: SeasonalLightingTarget[] = [];
+  const walkwayGuideGroup = new Group();
+  walkwayGuideGroup.name = 'BackyardWalkwayGuides';
+
+  const walkwayGuideSegments = 5;
+  const walkwayGuideWidth = Math.min(0.22, walkwayWidth * 0.16);
+  const walkwayGuideHeight = 0.02;
+  const walkwayGuideDepth =
+    walkwayGuideSegments > 0
+      ? (walkwayDepth / walkwayGuideSegments) * 0.86
+      : walkwayDepth * 0.86;
+  const walkwayGuideGeometry = new BoxGeometry(
+    walkwayGuideWidth,
+    walkwayGuideHeight,
+    walkwayGuideDepth
+  );
+  const walkwayGuideEdgeInset = Math.max(walkwayWidth * 0.08, 0.06);
+  const walkwayGuideBaseZ = walkway.position.z - walkwayDepth / 2;
+  const walkwayGuideSides: Array<{
+    label: 'Left' | 'Right';
+    direction: -1 | 1;
+  }> = [
+    { label: 'Left', direction: -1 },
+    { label: 'Right', direction: 1 },
+  ];
+
+  for (
+    let segmentIndex = 0;
+    segmentIndex < walkwayGuideSegments;
+    segmentIndex += 1
+  ) {
+    const segmentCenterZ =
+      walkwayGuideBaseZ +
+      walkwayGuideDepth / 2 +
+      segmentIndex * walkwayGuideDepth * 1.08;
+
+    walkwayGuideSides.forEach(({ label, direction }) => {
+      const material = new MeshStandardMaterial({
+        color: new Color(0x152330),
+        emissive: new Color(0x5cd4ff),
+        emissiveIntensity: 0.9,
+        roughness: 0.42,
+        metalness: 0.58,
+        transparent: true,
+        opacity: 0.58,
+      });
+      material.depthWrite = false;
+
+      const guide = new Mesh(walkwayGuideGeometry, material);
+      guide.name = `BackyardWalkwayGuide-${label}-${segmentIndex}`;
+      guide.position.set(
+        walkway.position.x +
+          direction *
+            (walkwayWidth / 2 - walkwayGuideEdgeInset - walkwayGuideWidth / 2),
+        walkway.position.y + walkwayGuideHeight / 2 + 0.01,
+        segmentCenterZ
+      );
+      guide.castShadow = false;
+      guide.receiveShadow = false;
+      guide.renderOrder = 6;
+      walkwayGuideGroup.add(guide);
+
+      walkwayGuideAnimationTargets.push({
+        material,
+        baseEmissiveIntensity: material.emissiveIntensity,
+        baseOpacity: material.opacity ?? 1,
+        offset: segmentIndex * 0.85 + (direction > 0 ? 0.4 : 0),
+      });
+
+      walkwayGuideSeasonalTargets.push({
+        roomId: 'backyard',
+        material,
+        baseEmissiveColor: material.emissive.clone(),
+        baseEmissiveIntensity: material.emissiveIntensity,
+        fillLights: [],
+      });
+    });
+  }
+
+  if (walkwayGuideGroup.children.length > 0) {
+    group.add(walkwayGuideGroup);
+  }
+
+  if (walkwayGuideAnimationTargets.length > 0) {
+    updates.push(({ elapsed }) => {
+      const flickerScale = getFlickerScale();
+      const pulseScale = getPulseScale();
+
+      walkwayGuideAnimationTargets.forEach((target) => {
+        const wave = Math.sin(elapsed * 1.35 + target.offset);
+        const sparkle = Math.sin(elapsed * 2.8 + target.offset * 1.4) * 0.24;
+        const baseline = Math.max(
+          target.baseEmissiveIntensity * 0.55,
+          target.baseEmissiveIntensity * (0.85 + wave * 0.35 + sparkle * 0.18)
+        );
+        const intensity = MathUtils.lerp(
+          target.baseEmissiveIntensity * 0.55,
+          baseline,
+          flickerScale
+        );
+        target.material.emissiveIntensity = MathUtils.clamp(
+          intensity,
+          0,
+          target.baseEmissiveIntensity * 1.75
+        );
+
+        const opacityWave = Math.sin(elapsed * 0.85 + target.offset * 0.9);
+        const opacityTarget = MathUtils.clamp(
+          target.baseOpacity * (0.7 + opacityWave * 0.4),
+          target.baseOpacity * 0.35,
+          1
+        );
+        target.material.opacity = MathUtils.lerp(
+          target.baseOpacity * 0.55,
+          opacityTarget,
+          pulseScale
+        );
+        target.material.needsUpdate = true;
+      });
+    });
+  }
+
   const barrierZ = bounds.maxZ - 1.2;
 
   const fenceGroup = new Group();
@@ -598,30 +728,49 @@ export function createBackyardEnvironment(
 
   group.add(lanternGroup);
 
-  const applyLanternSeasonalPreset: (
+  const applyBackyardSeasonalPreset: (
     preset: SeasonalLightingPreset | null
   ) => void =
-    lanternSeasonalTargets.length > 0
+    lanternSeasonalTargets.length > 0 || walkwayGuideSeasonalTargets.length > 0
       ? (preset) => {
-          applySeasonalLightingPreset({
-            preset,
-            targets: lanternSeasonalTargets,
-          });
-          lanternSeasonalTargets.forEach((target, index) => {
-            const animationTarget = lanternAnimationTargets[index];
-            if (!animationTarget) {
-              return;
-            }
-            animationTarget.baseIntensity = target.material.emissiveIntensity;
-            const firstLight = target.fillLights[0]?.light;
-            if (firstLight) {
-              animationTarget.baseLightIntensity = firstLight.intensity;
-            }
-          });
+          if (lanternSeasonalTargets.length > 0) {
+            applySeasonalLightingPreset({
+              preset,
+              targets: lanternSeasonalTargets,
+            });
+            lanternSeasonalTargets.forEach((target, index) => {
+              const animationTarget = lanternAnimationTargets[index];
+              if (!animationTarget) {
+                return;
+              }
+              animationTarget.baseIntensity = target.material.emissiveIntensity;
+              const firstLight = target.fillLights[0]?.light;
+              if (firstLight) {
+                animationTarget.baseLightIntensity = firstLight.intensity;
+              }
+            });
+          }
+
+          if (walkwayGuideSeasonalTargets.length > 0) {
+            applySeasonalLightingPreset({
+              preset,
+              targets: walkwayGuideSeasonalTargets,
+            });
+            walkwayGuideSeasonalTargets.forEach((target, index) => {
+              const animationTarget = walkwayGuideAnimationTargets[index];
+              if (!animationTarget) {
+                return;
+              }
+              animationTarget.baseEmissiveIntensity =
+                target.material.emissiveIntensity;
+              target.material.opacity = animationTarget.baseOpacity;
+              target.material.needsUpdate = true;
+            });
+          }
         }
       : () => {};
 
-  applyLanternSeasonalPreset(seasonalPreset ?? null);
+  applyBackyardSeasonalPreset(seasonalPreset ?? null);
 
   const shrubGeometry = new SphereGeometry(1.05, 20, 20);
   const shrubMaterial = new MeshStandardMaterial({
@@ -908,6 +1057,6 @@ export function createBackyardEnvironment(
     colliders,
     update,
     ambientAudioBeds,
-    applySeasonalPreset: applyLanternSeasonalPreset,
+    applySeasonalPreset: applyBackyardSeasonalPreset,
   };
 }

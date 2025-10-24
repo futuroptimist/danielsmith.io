@@ -233,6 +233,42 @@ describe('createBackyardEnvironment', () => {
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
   });
 
+  it('adds walkway fiber guides that pulse with seasonal-aware damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const guidesGroup = environment.group.getObjectByName(
+      'BackyardWalkwayGuides'
+    );
+    expect(guidesGroup).toBeInstanceOf(Group);
+
+    const guides = (guidesGroup as Group).children.filter((child) =>
+      child.name.startsWith('BackyardWalkwayGuide-')
+    );
+    expect(guides.length).toBeGreaterThan(0);
+    expect(guides.length % 2).toBe(0);
+
+    const firstGuide = guides[0] as Mesh | undefined;
+    expect(firstGuide).toBeInstanceOf(Mesh);
+    const guideMaterial = (firstGuide!.material as MeshStandardMaterial)!;
+    const baseEmissive = guideMaterial.emissiveIntensity;
+    const baseOpacity = guideMaterial.opacity ?? 1;
+
+    environment.update({ elapsed: 0.9, delta: 0.016 });
+
+    expect(guideMaterial.emissiveIntensity).not.toBeCloseTo(baseEmissive, 5);
+    expect(guideMaterial.opacity).not.toBeCloseTo(baseOpacity, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    guideMaterial.emissiveIntensity = baseEmissive;
+    guideMaterial.opacity = baseOpacity;
+
+    environment.update({ elapsed: 1.6, delta: 0.016 });
+
+    expect(guideMaterial.emissiveIntensity).toBeCloseTo(baseEmissive * 0.55, 5);
+    expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+  });
+
   it('retints walkway lanterns and preserves seasonal baselines', () => {
     const preset: SeasonalLightingPreset = {
       id: 'aurora-backyard',
@@ -433,6 +469,84 @@ describe('createBackyardEnvironment', () => {
       5
     );
     expect(light!.intensity).toBeCloseTo(springLightBaseline * dampingScale, 5);
+  });
+
+  it('reapplies seasonal presets to walkway guides and restores baselines', () => {
+    const preset: SeasonalLightingPreset = {
+      id: 'aurora-backyard-guides',
+      label: 'Aurora Backyard Guides',
+      start: { month: 10, day: 1 },
+      end: { month: 10, day: 31 },
+      tintHex: '#88ccff',
+      tintStrength: 0.4,
+      emissiveIntensityScale: 1.2,
+      fillIntensityScale: 1.1,
+      roomOverrides: {
+        backyard: {
+          tintStrength: 0.7,
+          emissiveIntensityScale: 1.5,
+        },
+      },
+    };
+
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS, {
+      seasonalPreset: preset,
+    });
+    const guidesGroup = environment.group.getObjectByName(
+      'BackyardWalkwayGuides'
+    ) as Group | null;
+    expect(guidesGroup).toBeInstanceOf(Group);
+
+    const firstGuide = guidesGroup?.children.find((child) =>
+      child.name.startsWith('BackyardWalkwayGuide-')
+    ) as Mesh | undefined;
+    expect(firstGuide).toBeInstanceOf(Mesh);
+    const guideMaterial = (firstGuide!.material as MeshStandardMaterial)!;
+
+    const baseColor = new Color(0x5cd4ff);
+    const expectedTint = baseColor.clone().lerp(new Color('#88ccff'), 0.7);
+    expect(guideMaterial.emissive.getHexString()).toBe(
+      expectedTint.getHexString()
+    );
+
+    const expectedBaseline = 0.9 * 1.5;
+    expect(guideMaterial.emissiveIntensity).toBeCloseTo(expectedBaseline, 5);
+    const baseOpacity = guideMaterial.opacity ?? 1;
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    guideMaterial.emissiveIntensity = expectedBaseline;
+    guideMaterial.opacity = baseOpacity;
+
+    environment.update({ elapsed: 1.2, delta: 0.016 });
+
+    expect(guideMaterial.emissiveIntensity).toBeCloseTo(
+      expectedBaseline * 0.55,
+      5
+    );
+    expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+
+    environment.applySeasonalPreset(null);
+
+    expect(guideMaterial.emissive.getHexString()).toBe(
+      baseColor.getHexString()
+    );
+    expect(guideMaterial.emissiveIntensity).toBeCloseTo(0.9, 5);
+
+    guideMaterial.emissiveIntensity = 0.9;
+    guideMaterial.opacity = baseOpacity;
+
+    environment.update({ elapsed: 2.2, delta: 0.016 });
+
+    expect(guideMaterial.emissiveIntensity).toBeCloseTo(0.9 * 0.55, 5);
+    expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+
+    environment.applySeasonalPreset(preset);
+
+    const retint = baseColor.clone().lerp(new Color('#88ccff'), 0.7);
+    expect(guideMaterial.emissive.getHexString()).toBe(retint.getHexString());
+    expect(guideMaterial.emissiveIntensity).toBeCloseTo(expectedBaseline, 5);
   });
 
   it('animates fireflies around the greenhouse walkway with accessibility damping', () => {
