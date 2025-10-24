@@ -8,6 +8,7 @@ import {
   getSiteStrings,
   resolveLocale,
 } from '../../assets/i18n';
+import { createTextModeUrl } from '../../ui/immersiveUrl';
 
 import type { PoiDefinition } from './types';
 
@@ -17,7 +18,6 @@ const TEXT_SCRIPT_ELEMENT_ID = 'danielsmith-portfolio-text-structured-data';
 const ITEM_LIST_FRAGMENT = '#immersive-poi-list';
 const PAGE_FRAGMENT = '#immersive-poi-page';
 const TEXT_COLLECTION_FRAGMENT = '#text-tour';
-const TEXT_MODE_QUERY = '?mode=text';
 const IMMERSIVE_OVERRIDE_QUERY = '?mode=immersive&disablePerformanceFailover=1';
 
 const stripFragmentAndQuery = (value: string): string => {
@@ -204,10 +204,6 @@ const createSiteEntry = (
     inLanguage: locale,
     isAccessibleForFree: true,
   };
-};
-
-const createTextModeUrl = (canonical: string): string => {
-  return `${canonical}${TEXT_MODE_QUERY}`;
 };
 
 const createImmersiveOverrideUrl = (canonical: string): string => {
@@ -568,7 +564,6 @@ export const _testables = {
   ensureTrailingSlash,
   normalizeCanonicalUrl,
   createPoiUrl,
-  createTextModeUrl,
   createImmersiveOverrideUrl,
   SCRIPT_ELEMENT_ID,
   TEXT_SCRIPT_ELEMENT_ID,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createImmersiveModeUrl,
+  createTextModeUrl,
   hasImmersiveOverride,
   hasPerformanceFailoverBypass,
   shouldDisablePerformanceFailover,
@@ -39,6 +40,42 @@ describe('createImmersiveModeUrl', () => {
     expect(url).toBe(
       '/space?mode=immersive&feature=preview&disablePerformanceFailover=1'
     );
+  });
+});
+
+describe('createTextModeUrl', () => {
+  it('appends mode=text to relative paths while preserving fragments', () => {
+    expect(
+      createTextModeUrl({
+        pathname: '/portfolio',
+        search: '',
+        hash: '#text',
+      })
+    ).toBe('/portfolio?mode=text#text');
+  });
+
+  it('replaces existing mode values and strips performance bypass flags', () => {
+    const url = createTextModeUrl({
+      pathname: '/portfolio',
+      search: '?mode=immersive&feature=demo&disablePerformanceFailover=1',
+      hash: '',
+    });
+    expect(url).toBe('/portfolio?mode=text&feature=demo');
+  });
+
+  it('supports absolute canonical URLs with existing query and hash', () => {
+    const url = createTextModeUrl('https://example.com/app?ref=promo#hero');
+    expect(url).toBe('https://example.com/app?ref=promo&mode=text#hero');
+  });
+
+  it('appends query separator when canonical URL lacks params', () => {
+    const url = createTextModeUrl('https://example.com/app/');
+    expect(url).toBe('https://example.com/app/?mode=text');
+  });
+
+  it('falls back to root path when pathname is empty', () => {
+    const url = createTextModeUrl({ pathname: '', search: '', hash: '' });
+    expect(url).toBe('/?mode=text');
   });
 });
 
