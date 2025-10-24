@@ -1,6 +1,7 @@
 import {
   AdditiveBlending,
   BufferAttribute,
+  BufferGeometry,
   Color,
   EquirectangularReflectionMapping,
   Group,
@@ -267,6 +268,44 @@ describe('createBackyardEnvironment', () => {
 
     expect(guideMaterial.emissiveIntensity).toBeCloseTo(baseEmissive * 0.55, 5);
     expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+  });
+
+  it('adds drifting walkway motes that respond to accessibility damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const motes = environment.group.getObjectByName('BackyardWalkwayMotes');
+    expect(motes).toBeInstanceOf(Points);
+
+    const geometry = (motes as Points).geometry;
+    expect(geometry).toBeDefined();
+    const positions = (geometry as BufferGeometry).getAttribute(
+      'position'
+    ) as BufferAttribute;
+    const baseX = positions.getX(0);
+    const baseY = positions.getY(0);
+    const baseZ = positions.getZ(0);
+    const material = (motes as Points).material as PointsMaterial;
+    const baseOpacity = material.opacity;
+    const baseSize = material.size;
+
+    environment.update({ elapsed: 1.4, delta: 0.016 });
+
+    expect(positions.getX(0)).not.toBeCloseTo(baseX, 5);
+    expect(positions.getY(0)).not.toBeCloseTo(baseY, 5);
+    expect(positions.getZ(0)).not.toBeCloseTo(baseZ, 5);
+    expect(material.opacity).not.toBeCloseTo(baseOpacity, 5);
+    expect(material.size).not.toBeCloseTo(baseSize, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    material.opacity = baseOpacity;
+    material.size = baseSize;
+    positions.setXYZ(0, baseX, baseY, baseZ);
+
+    environment.update({ elapsed: 2.1, delta: 0.016 });
+
+    expect(material.opacity).toBeCloseTo(baseOpacity * 0.62, 5);
+    expect(material.size).toBeCloseTo(baseSize * 0.84, 5);
   });
 
   it('retints walkway lanterns and preserves seasonal baselines', () => {
