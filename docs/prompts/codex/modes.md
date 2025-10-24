@@ -38,6 +38,8 @@ Include summary, automated tests, and manual verification checklist.
 - Low-end detection now considers hardware concurrency ≤2 and legacy mobile user agents.
   Use `?mode=immersive&disablePerformanceFailover=1` when validating on constrained
   dev environments. A `<noscript>` text tour keeps scrapers and no-JS browsers covered.
+- Use `createImmersiveModeUrl(...)` and `createTextModeUrl(...)` helpers to add mode
+  overrides without clobbering existing query parameters or hashes.
 
 ## Upgrade Prompt
 

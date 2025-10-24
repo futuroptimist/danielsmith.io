@@ -8,6 +8,7 @@ import {
   injectTextPortfolioStructuredData,
 } from '../scene/poi/structuredData';
 import type { PoiDefinition } from '../scene/poi/types';
+import { createTextModeUrl } from '../ui/immersiveUrl';
 
 const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   id: 'futuroptimist-living-room-tv',
@@ -33,7 +34,6 @@ const {
   ITEM_LIST_FRAGMENT,
   PAGE_FRAGMENT,
   TEXT_COLLECTION_FRAGMENT,
-  createTextModeUrl,
   createImmersiveOverrideUrl,
 } = _testables;
 

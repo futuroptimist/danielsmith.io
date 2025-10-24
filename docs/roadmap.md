@@ -228,6 +228,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      crawlers understand language coverage and free access guarantees.
    - ✅ Text fallback links back to immersive mode with the override URL so returns bypass
      automatic failover heuristics.
+   - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
+     cleanly even when queries or hash fragments already exist.
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
