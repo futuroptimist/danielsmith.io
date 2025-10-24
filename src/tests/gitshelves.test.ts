@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshStandardMaterial } from 'three';
+import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createGitshelvesInstallation } from '../scene/structures/gitshelves';
@@ -76,7 +76,7 @@ describe('createGitshelvesInstallation', () => {
     expect(collider.maxZ).toBeGreaterThan(-3.1);
   });
 
-  it('animates commit cells and header intensity based on emphasis', () => {
+  it('animates commit cells, glow columns, and signage based on emphasis', () => {
     const build = createGitshelvesInstallation({
       position: { x: 0, z: 0 },
     });
@@ -103,5 +103,23 @@ describe('createGitshelvesInstallation', () => {
     const headerBase = headerMaterial.emissiveIntensity;
     build.update({ elapsed: 2.1, delta: 0.016, emphasis: 0.5 });
     expect(headerMaterial.emissiveIntensity).not.toBe(headerBase);
+
+    const glowColumn = build.group.getObjectByName(
+      'GitshelvesGlowColumn-Left'
+    ) as Mesh;
+    expect(glowColumn).toBeTruthy();
+    const glowMaterial = glowColumn.material as MeshStandardMaterial;
+    const glowBaseIntensity = glowMaterial.emissiveIntensity;
+    const glowBaseOpacity = glowMaterial.opacity;
+    build.update({ elapsed: 3.6, delta: 0.016, emphasis: 1 });
+    expect(glowMaterial.emissiveIntensity).not.toBe(glowBaseIntensity);
+    expect(glowMaterial.opacity).not.toBe(glowBaseOpacity);
+
+    const syncSign = build.group.getObjectByName('GitshelvesSyncSign') as Mesh;
+    expect(syncSign).toBeTruthy();
+    const syncMaterial = syncSign.material as MeshBasicMaterial;
+    const syncBaseOpacity = syncMaterial.opacity;
+    build.update({ elapsed: 5.2, delta: 0.016, emphasis: 0.8 });
+    expect(syncMaterial.opacity).not.toBe(syncBaseOpacity);
   });
 });

@@ -35,6 +35,17 @@ interface CommitCell {
   offset: number;
 }
 
+interface GlowColumn {
+  material: MeshStandardMaterial;
+  baseIntensity: number;
+  phase: number;
+}
+
+interface SyncSign {
+  material: MeshBasicMaterial;
+  baseOpacity: number;
+}
+
 function createLabelTexture(): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
@@ -71,6 +82,37 @@ function createLabelTexture(): CanvasTexture {
   context.fillStyle = '#4cbbff';
   context.font = '44px "JetBrains Mono", "Fira Code", monospace';
   context.fillText('sync: github.com/futuroptimist/gitshelves', 64, 360);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createSyncStatusTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('Failed to create gitshelves sync status texture.');
+  }
+
+  context.fillStyle = '#051120';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = '#16334a';
+  context.fillRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+  context.fillStyle = '#4cd4ff';
+  context.font = '600 88px "Inter", "Segoe UI", sans-serif';
+  context.textAlign = 'left';
+  context.fillText('Nightly sync status', 48, 120);
+
+  context.fillStyle = '#9be8ff';
+  context.font = '48px "JetBrains Mono", "Fira Code", monospace';
+  context.fillText('Next sweep: 02:00 UTC · Commits queued: 128', 48, 188);
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -127,6 +169,8 @@ export function createGitshelvesInstallation(
 
   const colliders: RectCollider[] = [];
   const commitCells: CommitCell[] = [];
+  const glowColumns: GlowColumn[] = [];
+  let syncSign: SyncSign | null = null;
 
   const baseHeight = 0.22;
   const baseWidth = Math.max(2.2, columns * 0.34 + 0.8);
@@ -244,6 +288,33 @@ export function createGitshelvesInstallation(
   label.renderOrder = 10;
   group.add(label);
 
+  const glowColumnGeometry = new BoxGeometry(0.22, panelHeight * 0.88, 0.12);
+  const glowColumnMaterial = new MeshStandardMaterial({
+    color: new Color(0x10314a),
+    emissive: new Color(0x4ed8ff),
+    emissiveIntensity: 0.55,
+    roughness: 0.22,
+    metalness: 0.42,
+    transparent: true,
+    opacity: 0.78,
+  });
+
+  ['Left', 'Right'].forEach((labelSuffix, index) => {
+    const column = new Mesh(glowColumnGeometry, glowColumnMaterial.clone());
+    column.name = `GitshelvesGlowColumn-${labelSuffix}`;
+    const offsetX = (panelWidth / 2 - 0.26) * (index === 0 ? -1 : 1);
+    column.position.set(offsetX, panel.position.y, railZ + 0.01);
+    column.castShadow = false;
+    column.receiveShadow = false;
+    group.add(column);
+    const material = column.material as MeshStandardMaterial;
+    glowColumns.push({
+      material,
+      baseIntensity: material.emissiveIntensity,
+      phase: index * Math.PI * 0.6 + panelHeight * 0.15,
+    });
+  });
+
   const shelfMaterial = new MeshStandardMaterial({
     color: new Color(0x152132),
     roughness: 0.4,
@@ -304,6 +375,26 @@ export function createGitshelvesInstallation(
   spotlight.position.set(0, baseHeight + 0.26, railZ + 0.05);
   group.add(spotlight);
 
+  const syncStatusTexture = createSyncStatusTexture();
+  const syncStatusMaterial = new MeshBasicMaterial({
+    map: syncStatusTexture,
+    transparent: true,
+    opacity: 0.85,
+    side: DoubleSide,
+  });
+  const syncStatus = new Mesh(
+    new PlaneGeometry(panelWidth * 0.74, 0.52),
+    syncStatusMaterial
+  );
+  syncStatus.name = 'GitshelvesSyncSign';
+  syncStatus.position.set(0, baseHeight + 0.48, railZ + 0.11);
+  syncStatus.renderOrder = 12;
+  group.add(syncStatus);
+  syncSign = {
+    material: syncStatusMaterial,
+    baseOpacity: syncStatusMaterial.opacity,
+  };
+
   colliders.push(
     createOrientedCollider(
       basePosition,
@@ -341,6 +432,22 @@ export function createGitshelvesInstallation(
     spotlightMaterial.emissiveIntensity =
       MathUtils.lerp(0.28, 0.95, (Math.sin(elapsed * 2.5 + 0.6) + 1) / 2) *
       MathUtils.lerp(1, 1.4, emphasis);
+
+    glowColumns.forEach((column) => {
+      const wave = (Math.sin(elapsed * 2.1 + column.phase) + 1) / 2;
+      column.material.emissiveIntensity =
+        column.baseIntensity *
+        MathUtils.lerp(0.45, 1.35, wave) *
+        MathUtils.lerp(0.6, 1.25, MathUtils.clamp(emphasis, 0, 1));
+      column.material.opacity = MathUtils.lerp(0.5, 0.95, wave);
+    });
+
+    if (syncSign) {
+      const signBeat = (Math.sin(elapsed * 1.2) + 1) / 2;
+      syncSign.material.opacity =
+        syncSign.baseOpacity *
+        MathUtils.lerp(0.65, 1.1, MathUtils.lerp(signBeat, 1, emphasis));
+    }
   };
 
   return { group, colliders, update };

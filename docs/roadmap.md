@@ -153,7 +153,7 @@ Focus: anchor each highlighted project with an interactive artifact.
        echoing the HUD analytics glow rhythm.
    - ✨ Axel quest navigator tabletop now charts backlog quests with holographic rings and
      momentum beacons around the studio tracker POI.
-   - ✨ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
+   - ✅ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
      columns and nightly sync signage.
 3. **Backyard Exhibits**
    - ✅ Launch-ready model rocket for `DSPACE`, complete with illuminated launch pad, pulsing
