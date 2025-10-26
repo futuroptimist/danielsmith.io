@@ -434,6 +434,59 @@ export function createBackyardEnvironment(
   group.add(walkwayMotes);
   const baseWalkwayMoteOpacity = walkwayMoteMaterial.opacity;
   const baseWalkwayMoteSize = walkwayMoteMaterial.size;
+  const walkwayMoteBaseColor = walkwayMoteMaterial.color.clone();
+  const walkwayMoteTintColor = new Color();
+
+  const clamp01 = (value: number | undefined, fallback = 0): number => {
+    const source = Number.isFinite(value) ? (value as number) : fallback;
+    if (!Number.isFinite(source)) {
+      return 0;
+    }
+    if (source <= 0) {
+      return 0;
+    }
+    if (source >= 1) {
+      return 1;
+    }
+    return source;
+  };
+
+  const HEX_COLOR_PATTERN = /^#?[0-9a-fA-F]{6}$/;
+
+  const applyWalkwayMoteSeasonalTint = (
+    preset: SeasonalLightingPreset | null
+  ) => {
+    walkwayMoteMaterial.color.copy(walkwayMoteBaseColor);
+    if (!preset) {
+      walkwayMoteMaterial.needsUpdate = true;
+      return;
+    }
+
+    const override = preset.roomOverrides?.backyard;
+    const tintStrength = clamp01(
+      override?.tintStrength,
+      preset.tintStrength ?? 0
+    );
+    if (tintStrength <= 0) {
+      walkwayMoteMaterial.needsUpdate = true;
+      return;
+    }
+
+    const tintHex = override?.tintHex ?? preset.tintHex;
+    if (!tintHex || !HEX_COLOR_PATTERN.test(tintHex)) {
+      walkwayMoteMaterial.needsUpdate = true;
+      return;
+    }
+
+    const normalizedTint = tintHex.startsWith('#') ? tintHex : `#${tintHex}`;
+    walkwayMoteTintColor.set(normalizedTint);
+    walkwayMoteMaterial.color.lerpColors(
+      walkwayMoteBaseColor,
+      walkwayMoteTintColor,
+      tintStrength
+    );
+    walkwayMoteMaterial.needsUpdate = true;
+  };
 
   updates.push(({ elapsed }) => {
     const flickerScale = getFlickerScale();
@@ -872,8 +925,12 @@ export function createBackyardEnvironment(
               target.material.needsUpdate = true;
             });
           }
+
+          applyWalkwayMoteSeasonalTint(preset);
         }
-      : () => {};
+      : (preset) => {
+          applyWalkwayMoteSeasonalTint(preset);
+        };
 
   applyBackyardSeasonalPreset(seasonalPreset ?? null);
 
