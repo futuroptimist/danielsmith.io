@@ -170,6 +170,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      caution-lit walkways, and log review surfaces.
      - ✅ Caution-lit walkway now pulses with triage emphasis cues and honors accessibility
        motion dampening scales.
+     - ✅ Incident console log displays now stream Codex triage updates with emphasis-aware
+       glow and calm-mode ticker damping.
 
 ## Phase 3 – Interface & Modes
 

@@ -1,14 +1,17 @@
 import {
   BoxGeometry,
+  CanvasTexture,
   Color,
   CylinderGeometry,
   DoubleSide,
   Group,
+  LinearFilter,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  RepeatWrapping,
   TorusGeometry,
   Vector3,
 } from 'three';
@@ -25,6 +28,157 @@ export interface PrReaperConsoleBuild {
 export interface PrReaperConsoleOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
+}
+
+interface LogSurface {
+  material: MeshBasicMaterial;
+  axis: 'x' | 'y';
+  speed: number;
+  baseOpacity: number;
+}
+
+interface IncidentLogEntry {
+  code: string;
+  status: 'stable' | 'investigating' | 'escalated';
+  summary: string;
+}
+
+const INCIDENT_COLORS: Record<IncidentLogEntry['status'], string> = {
+  stable: 'rgba(102, 212, 255, 0.92)',
+  investigating: 'rgba(255, 198, 102, 0.95)',
+  escalated: 'rgba(255, 112, 102, 0.95)',
+};
+
+function createIncidentLogTexture(entries: IncidentLogEntry[]): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 768;
+  canvas.height = 768;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create PR Reaper incident log texture.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  const background = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+  background.addColorStop(0, 'rgba(10, 22, 34, 0.92)');
+  background.addColorStop(1, 'rgba(18, 40, 58, 0.88)');
+  context.fillStyle = background;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = 'rgba(85, 207, 255, 0.22)';
+  context.fillRect(
+    canvas.width * 0.05,
+    canvas.height * 0.09,
+    canvas.width * 0.9,
+    4
+  );
+
+  context.font = '600 48px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = 'rgba(158, 224, 255, 0.92)';
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+  context.fillText(
+    'Incident review queue',
+    canvas.width * 0.08,
+    canvas.height * 0.16
+  );
+
+  context.font = '500 30px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = 'rgba(112, 178, 220, 0.9)';
+  context.fillText(
+    'Auto-triage highlights • Recent Codex signals',
+    canvas.width * 0.08,
+    canvas.height * 0.22
+  );
+
+  const rowHeight = canvas.height * 0.14;
+  const rowLeft = canvas.width * 0.06;
+  const rowWidth = canvas.width * 0.88;
+  entries.forEach((entry, index) => {
+    const top = canvas.height * 0.26 + index * rowHeight;
+    const bottom = top + rowHeight * 0.88;
+    context.fillStyle =
+      index % 2 === 0 ? 'rgba(20, 44, 68, 0.38)' : 'rgba(26, 56, 82, 0.42)';
+    context.fillRect(rowLeft, top, rowWidth, bottom - top);
+
+    context.fillStyle = INCIDENT_COLORS[entry.status];
+    context.font = '600 38px "Inter", "Segoe UI", sans-serif';
+    const badgeX = rowLeft + 24;
+    const badgeY = top + (bottom - top) / 2 + 10;
+    context.fillText(entry.code, badgeX, badgeY);
+
+    context.font = '500 26px "Inter", "Segoe UI", sans-serif';
+    context.fillStyle = 'rgba(173, 219, 255, 0.86)';
+    context.fillText(entry.summary, badgeX + 140, badgeY);
+
+    context.font = '500 24px "Inter", "Segoe UI", sans-serif';
+    context.fillStyle = INCIDENT_COLORS[entry.status];
+    context.textAlign = 'right';
+    context.fillText(
+      entry.status.toUpperCase(),
+      rowLeft + rowWidth - 20,
+      badgeY
+    );
+    context.textAlign = 'left';
+  });
+
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createIncidentTickerTexture(messages: string[]): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create PR Reaper ticker texture.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  const gradient = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+  gradient.addColorStop(0, 'rgba(12, 32, 54, 0.92)');
+  gradient.addColorStop(1, 'rgba(18, 52, 80, 0.85)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.font = '600 48px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = 'rgba(105, 223, 255, 0.94)';
+  context.textAlign = 'left';
+  context.textBaseline = 'middle';
+
+  const laneY = canvas.height / 2;
+  const segment = canvas.width / Math.max(messages.length, 1);
+  messages.forEach((message, index) => {
+    const x = 24 + index * segment;
+    context.fillText(message, x, laneY);
+  });
+
+  context.fillText(messages[0] ?? '', 24 + messages.length * segment, laneY);
+
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 function createCollider(
@@ -99,6 +253,7 @@ export function createPrReaperConsole(
   );
 
   const colliders: RectCollider[] = [];
+  const logSurfaces: LogSurface[] = [];
 
   const deckWidth = 2.6;
   const deckDepth = 1.6;
@@ -220,6 +375,68 @@ export function createPrReaperConsole(
   logTable.name = 'PrReaperConsoleLogTable';
   logTable.position.set(0, deckHeight + 0.36, -0.86);
   group.add(logTable);
+
+  const incidentEntries: IncidentLogEntry[] = [
+    {
+      code: 'PR-187',
+      status: 'investigating',
+      summary: 'Codex queue spike flagged by console budget monitor.',
+    },
+    {
+      code: 'INF-042',
+      status: 'stable',
+      summary: 'Telemetry sweep confirms guided tour reset is healthy.',
+    },
+    {
+      code: 'OPS-311',
+      status: 'escalated',
+      summary: 'Nightly release triage stalled — awaiting maintainer signoff.',
+    },
+  ];
+  const logTexture = createIncidentLogTexture(incidentEntries);
+  const logMaterial = new MeshBasicMaterial({
+    map: logTexture,
+    transparent: true,
+    opacity: 0.82,
+    depthWrite: false,
+  });
+  logTexture.repeat.set(1, 1.1);
+  const logPanel = new Mesh(new PlaneGeometry(1.18, 0.64), logMaterial);
+  logPanel.name = 'PrReaperConsoleLogPanel';
+  logPanel.position.set(0.12, deckHeight + 0.78, logTable.position.z + 0.04);
+  logPanel.rotation.x = -Math.PI / 11;
+  logPanel.rotation.y = Math.PI * 0.03;
+  group.add(logPanel);
+  logSurfaces.push({
+    material: logMaterial,
+    axis: 'y',
+    speed: 0.055,
+    baseOpacity: logMaterial.opacity,
+  });
+
+  const tickerTexture = createIncidentTickerTexture([
+    '[ops] PR backlog triage sync running',
+    '[alerts] 0 blocking incidents • 3 informational pings',
+    '[automation] Codex pass rate steady at 99.4%',
+  ]);
+  const tickerMaterial = new MeshBasicMaterial({
+    map: tickerTexture,
+    transparent: true,
+    opacity: 0.74,
+    depthWrite: false,
+  });
+  tickerTexture.repeat.set(1.6, 1);
+  const ticker = new Mesh(new PlaneGeometry(1.72, 0.18), tickerMaterial);
+  ticker.name = 'PrReaperConsoleLogTicker';
+  ticker.position.set(0, deckHeight + 0.5, logTable.position.z + 0.28);
+  ticker.rotation.x = -Math.PI / 2.15;
+  group.add(ticker);
+  logSurfaces.push({
+    material: tickerMaterial,
+    axis: 'x',
+    speed: 0.12,
+    baseOpacity: tickerMaterial.opacity,
+  });
 
   const intakeMaterial = new MeshStandardMaterial({
     color: new Color(0x182330),
@@ -343,6 +560,29 @@ export function createPrReaperConsole(
       1
     );
     sweep.rotation.z = elapsed * MathUtils.lerp(1, 2.4, clampedEmphasis + 0.2);
+
+    const logScrollScale = MathUtils.lerp(0.35, 1, pulseScale);
+    logSurfaces.forEach((surface) => {
+      const map = surface.material.map;
+      if (map) {
+        const offset = (elapsed * surface.speed * logScrollScale) % 1;
+        if (surface.axis === 'x') {
+          map.offset.x = 1 - offset;
+        } else {
+          map.offset.y = offset;
+        }
+      }
+
+      const emphasisMix = Math.max(clampedEmphasis, pulseScale * 0.6);
+      const brightness = 0.55 + pulse * 0.45;
+      const targetOpacity = MathUtils.clamp(
+        surface.baseOpacity + emphasisMix * 0.35 * brightness,
+        surface.baseOpacity * 0.85,
+        1
+      );
+      surface.material.opacity = targetOpacity;
+      surface.material.needsUpdate = true;
+    });
   };
 
   return { group, colliders, update };
