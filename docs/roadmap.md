@@ -98,6 +98,8 @@ Focus: expand the environment while keeping navigation smooth.
      that honor accessibility damping scales.
    - ✨ Dusk pollen motes now drift along the greenhouse walkway with accessibility-aware swirl
      damping for calm-mode visitors.
+   - ✅ Seasonal presets now retint the dusk pollen motes so backyard event palettes stay in sync
+     with ambient lighting.
    - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
 
 ## Phase 2 – Points of Interest (POIs)

@@ -308,6 +308,92 @@ describe('createBackyardEnvironment', () => {
     expect(material.size).toBeCloseTo(baseSize * 0.84, 5);
   });
 
+  it('retints walkway motes when seasonal presets provide backyard tints', () => {
+    const baseline = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const baselineMotes = baseline.group.getObjectByName(
+      'BackyardWalkwayMotes'
+    );
+    expect(baselineMotes).toBeInstanceOf(Points);
+    const baselineMaterial = (baselineMotes as Points)
+      .material as PointsMaterial;
+    const baseColor = baselineMaterial.color.clone();
+
+    const preset: SeasonalLightingPreset = {
+      id: 'backyard-festival',
+      label: 'Backyard Festival',
+      start: { month: 6, day: 1 },
+      end: { month: 6, day: 30 },
+      tintHex: '#86c5ff',
+      tintStrength: 0.4,
+      roomOverrides: {
+        backyard: {
+          tintHex: '#ff88cc',
+          tintStrength: 0.65,
+        },
+      },
+    };
+
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS, {
+      seasonalPreset: preset,
+    });
+    const motes = environment.group.getObjectByName('BackyardWalkwayMotes');
+    expect(motes).toBeInstanceOf(Points);
+    const material = (motes as Points).material as PointsMaterial;
+
+    const expectedTint = baseColor.clone().lerp(new Color('#ff88cc'), 0.65);
+    expect(material.color.r).toBeCloseTo(expectedTint.r, 5);
+    expect(material.color.g).toBeCloseTo(expectedTint.g, 5);
+    expect(material.color.b).toBeCloseTo(expectedTint.b, 5);
+
+    environment.applySeasonalPreset(null);
+    expect(material.color.r).toBeCloseTo(baseColor.r, 5);
+    expect(material.color.g).toBeCloseTo(baseColor.g, 5);
+    expect(material.color.b).toBeCloseTo(baseColor.b, 5);
+
+    const zeroStrengthPreset: SeasonalLightingPreset = {
+      ...preset,
+      tintHex: '#223344',
+      tintStrength: Number.NaN,
+      roomOverrides: {
+        backyard: { tintStrength: 0 },
+      },
+    };
+    environment.applySeasonalPreset(zeroStrengthPreset);
+    expect(material.color.r).toBeCloseTo(baseColor.r, 5);
+    expect(material.color.g).toBeCloseTo(baseColor.g, 5);
+    expect(material.color.b).toBeCloseTo(baseColor.b, 5);
+
+    const invalidTintPreset: SeasonalLightingPreset = {
+      ...preset,
+      tintHex: 'zzzzzz',
+      tintStrength: 0.5,
+      roomOverrides: {},
+    };
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    environment.applySeasonalPreset(invalidTintPreset);
+    warnSpy.mockRestore();
+    expect(material.color.r).toBeCloseTo(baseColor.r, 5);
+    expect(material.color.g).toBeCloseTo(baseColor.g, 5);
+    expect(material.color.b).toBeCloseTo(baseColor.b, 5);
+
+    environment.applySeasonalPreset(preset);
+    expect(material.color.r).toBeCloseTo(expectedTint.r, 5);
+    expect(material.color.g).toBeCloseTo(expectedTint.g, 5);
+    expect(material.color.b).toBeCloseTo(expectedTint.b, 5);
+
+    const highStrengthPreset: SeasonalLightingPreset = {
+      ...preset,
+      tintHex: '#ff88cc',
+      tintStrength: 1.5,
+      roomOverrides: {},
+    };
+    environment.applySeasonalPreset(highStrengthPreset);
+    const saturatedTint = baseColor.clone().lerp(new Color('#ff88cc'), 1);
+    expect(material.color.r).toBeCloseTo(saturatedTint.r, 5);
+    expect(material.color.g).toBeCloseTo(saturatedTint.g, 5);
+    expect(material.color.b).toBeCloseTo(saturatedTint.b, 5);
+  });
+
   it('retints walkway lanterns and preserves seasonal baselines', () => {
     const preset: SeasonalLightingPreset = {
       id: 'aurora-backyard',
