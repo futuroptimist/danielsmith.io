@@ -393,6 +393,7 @@ export function createBackyardEnvironment(
   const walkwayMoteVerticalAmplitudes = new Float32Array(walkwayMoteCount);
   const walkwayMoteSpeeds = new Float32Array(walkwayMoteCount);
   const walkwayMotePhaseOffsets = new Float32Array(walkwayMoteCount);
+  const walkwayMotePhaseStates = new Float32Array(walkwayMoteCount);
   for (let i = 0; i < walkwayMoteCount; i += 1) {
     const ratio = (i + 0.5) / walkwayMoteCount;
     const baseIndex = i * 3;
@@ -412,7 +413,9 @@ export function createBackyardEnvironment(
       walkwayWidth * 0.18 * (0.68 + Math.cos(ratio * Math.PI * 1.2) * 0.22);
     walkwayMoteVerticalAmplitudes[i] = 0.12 + Math.sin(ratio * Math.PI) * 0.16;
     walkwayMoteSpeeds[i] = 0.85 + ratio * 0.75;
-    walkwayMotePhaseOffsets[i] = ratio * Math.PI * 2.6 + i * 0.12;
+    const phaseOffset = ratio * Math.PI * 2.6 + i * 0.12;
+    walkwayMotePhaseOffsets[i] = phaseOffset;
+    walkwayMotePhaseStates[i] = phaseOffset;
   }
   const walkwayMotePositionsAttribute = new BufferAttribute(
     walkwayMotePositions,
@@ -435,7 +438,7 @@ export function createBackyardEnvironment(
   const baseWalkwayMoteOpacity = walkwayMoteMaterial.opacity;
   const baseWalkwayMoteSize = walkwayMoteMaterial.size;
 
-  updates.push(({ elapsed }) => {
+  updates.push(({ delta }) => {
     const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
     const motionPreference = Math.min(flickerScale, Math.max(pulseScale, 0.35));
@@ -447,7 +450,9 @@ export function createBackyardEnvironment(
       const baseIndex = i * 3;
       const offset = walkwayMotePhaseOffsets[i];
       const speed = walkwayMoteSpeeds[i] * speedScale;
-      const phase = elapsed * speed + offset;
+      const nextPhase = walkwayMotePhaseStates[i] + delta * speed;
+      walkwayMotePhaseStates[i] = MathUtils.euclideanModulo(nextPhase, Math.PI * 2);
+      const phase = walkwayMotePhaseStates[i];
       const swirl = Math.sin(phase);
       const wrapAngle = phase * 0.6 * swirlMotionScale + offset * 0.45;
       const baseX = walkwayMoteBasePositions[baseIndex];
