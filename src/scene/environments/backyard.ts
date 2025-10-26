@@ -436,36 +436,47 @@ export function createBackyardEnvironment(
   const baseWalkwayMoteSize = walkwayMoteMaterial.size;
 
   updates.push(({ elapsed }) => {
-    const flickerScale = getFlickerScale();
-    const pulseScale = getPulseScale();
+    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const motionPreference = Math.min(flickerScale, Math.max(pulseScale, 0.35));
+    const swirlMotionScale = MathUtils.lerp(0.2, 1, motionPreference);
+    const speedScale = MathUtils.lerp(0.35, 1, motionPreference);
     let swirlAccumulator = 0;
 
     for (let i = 0; i < walkwayMoteCount; i += 1) {
       const baseIndex = i * 3;
       const offset = walkwayMotePhaseOffsets[i];
-      const speed = walkwayMoteSpeeds[i];
+      const speed = walkwayMoteSpeeds[i] * speedScale;
       const phase = elapsed * speed + offset;
       const swirl = Math.sin(phase);
-      const wrapAngle = phase * 0.6 + offset * 0.45;
+      const wrapAngle = phase * 0.6 * swirlMotionScale + offset * 0.45;
       const baseX = walkwayMoteBasePositions[baseIndex];
       const baseY = walkwayMoteBasePositions[baseIndex + 1];
       const baseZ = walkwayMoteBasePositions[baseIndex + 2];
-      const radius = walkwayMoteOrbitRadii[i];
-      const verticalAmplitude = walkwayMoteVerticalAmplitudes[i];
+      const radius = walkwayMoteOrbitRadii[i] * swirlMotionScale;
+      const verticalAmplitude =
+        walkwayMoteVerticalAmplitudes[i] * swirlMotionScale;
       const x =
         baseX +
         Math.cos(wrapAngle) * radius +
-        Math.sin(phase * 0.42 + offset) * radius * 0.18;
+        Math.sin(phase * 0.42 + offset) * radius * 0.18 * swirlMotionScale;
       const y =
         baseY +
         Math.sin(phase * 1.18 + offset * 0.8) * verticalAmplitude +
-        Math.cos(phase * 0.34 + offset) * 0.05;
+        Math.cos(phase * 0.34 + offset) * 0.05 * swirlMotionScale;
       const z =
         baseZ +
         Math.sin(wrapAngle) * radius * 0.58 +
-        Math.sin(phase * 0.72 + offset * 0.5) * radius * 0.24;
+        Math.sin(phase * 0.72 + offset * 0.5) *
+          radius *
+          0.24 *
+          swirlMotionScale;
       walkwayMotePositionsAttribute.setXYZ(i, x, y, z);
-      const swirlContribution = MathUtils.clamp(0.5 + swirl * 0.5, 0.1, 0.98);
+      const swirlContribution = MathUtils.clamp(
+        0.5 + swirl * 0.5 * swirlMotionScale,
+        0.1,
+        0.98
+      );
       swirlAccumulator += swirlContribution;
     }
 

@@ -304,8 +304,15 @@ describe('createBackyardEnvironment', () => {
 
     environment.update({ elapsed: 2.1, delta: 0.016 });
 
+    const dampedDeltaX = Math.abs(positions.getX(0) - baseX);
+    const dampedDeltaY = Math.abs(positions.getY(0) - baseY);
+    const dampedDeltaZ = Math.abs(positions.getZ(0) - baseZ);
+
     expect(material.opacity).toBeCloseTo(baseOpacity * 0.62, 5);
     expect(material.size).toBeCloseTo(baseSize * 0.84, 5);
+    expect(dampedDeltaX).toBeLessThan(0.12);
+    expect(dampedDeltaY).toBeLessThan(0.05);
+    expect(dampedDeltaZ).toBeLessThan(0.12);
   });
 
   it('retints walkway lanterns and preserves seasonal baselines', () => {
