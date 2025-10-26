@@ -581,7 +581,6 @@ export function createPrReaperConsole(
         1
       );
       surface.material.opacity = targetOpacity;
-      surface.material.needsUpdate = true;
     });
   };
 
