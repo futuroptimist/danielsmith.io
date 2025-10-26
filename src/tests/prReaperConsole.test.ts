@@ -1,9 +1,69 @@
 import { Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
-import { describe, expect, it } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+  type SpyInstance,
+} from 'vitest';
 
 import { createPrReaperConsole } from '../scene/structures/prReaperConsole';
 
+const gradientStub = { addColorStop: vi.fn() };
+
+function createMockContext(this: HTMLCanvasElement): CanvasRenderingContext2D {
+  const context = {
+    clearRect: vi.fn(),
+    fillRect: vi.fn(),
+    fillText: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    save: vi.fn(),
+    restore: vi.fn(),
+    createLinearGradient: vi.fn(() => gradientStub),
+    createRadialGradient: vi.fn(() => gradientStub),
+    fillStyle: '',
+    strokeStyle: '',
+    font: '',
+    globalAlpha: 1,
+    textAlign: 'left',
+    textBaseline: 'alphabetic',
+  } as Partial<CanvasRenderingContext2D>;
+  Object.defineProperty(context, 'canvas', { value: this });
+  return context as CanvasRenderingContext2D;
+}
+
 describe('createPrReaperConsole', () => {
+  let getContextSpy: SpyInstance<
+    [contextId: string, ...args: unknown[]],
+    RenderingContext | null
+  >;
+
+  beforeAll(() => {
+    getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockImplementation(function (this: HTMLCanvasElement, type: string) {
+        if (type !== '2d') {
+          return null;
+        }
+        return createMockContext.call(this);
+      });
+  });
+
+  afterEach(() => {
+    getContextSpy.mockClear();
+    delete document.documentElement.dataset.accessibilityPulseScale;
+  });
+
+  afterAll(() => {
+    getContextSpy.mockRestore();
+  });
+
   it('builds the console with expected structure and colliders respecting rotation', () => {
     const position = { x: 6.6, z: 19.6 };
     const orientation = Math.PI * 0.35;
@@ -21,6 +81,12 @@ describe('createPrReaperConsole', () => {
     ).toBeInstanceOf(Mesh);
     expect(
       console.group.getObjectByName('PrReaperConsoleWalkway')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleLogPanel')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleLogTicker')
     ).toBeInstanceOf(Mesh);
 
     expect(console.colliders).toHaveLength(2);
@@ -107,5 +173,47 @@ describe('createPrReaperConsole', () => {
     expect(sweep.rotation.z).not.toBe(0);
     expect(walkwayMaterial.emissiveIntensity).toBeGreaterThan(dampenedWalkway);
     expect(cautionMaterial.opacity).toBeGreaterThan(dampenedCaution);
+  });
+
+  it('animates log review surfaces with ticker scroll and emphasis glow', () => {
+    const console = createPrReaperConsole({ position: { x: 0, z: 0 } });
+    const panel = console.group.getObjectByName(
+      'PrReaperConsoleLogPanel'
+    ) as Mesh;
+    const ticker = console.group.getObjectByName(
+      'PrReaperConsoleLogTicker'
+    ) as Mesh;
+
+    const panelMaterial = panel.material as MeshBasicMaterial;
+    const tickerMaterial = ticker.material as MeshBasicMaterial;
+
+    expect(panelMaterial.map).toBeDefined();
+    expect(tickerMaterial.map).toBeDefined();
+
+    const initialPanelOffset = panelMaterial.map?.offset.y ?? 0;
+    const initialTickerOffset = tickerMaterial.map?.offset.x ?? 0;
+    const basePanelOpacity = panelMaterial.opacity;
+    const baseTickerOpacity = tickerMaterial.opacity;
+
+    console.update({ elapsed: 0.6, delta: 0.016, emphasis: 0.1 });
+    const midPanelOffset = panelMaterial.map?.offset.y ?? 0;
+    const midTickerOffset = tickerMaterial.map?.offset.x ?? 0;
+    expect(midPanelOffset).not.toBeCloseTo(initialPanelOffset);
+    expect(midTickerOffset).not.toBeCloseTo(initialTickerOffset);
+
+    console.update({ elapsed: 1.6, delta: 0.016, emphasis: 0.85 });
+    const emphasizedPanelOpacity = panelMaterial.opacity;
+    const emphasizedTickerOpacity = tickerMaterial.opacity;
+    expect(emphasizedPanelOpacity).toBeGreaterThan(basePanelOpacity);
+    expect(emphasizedTickerOpacity).toBeGreaterThan(baseTickerOpacity);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    console.update({ elapsed: 2.6, delta: 0.016, emphasis: 0.15 });
+    const calmPanelOffset = panelMaterial.map?.offset.y ?? 0;
+    const calmTickerOffset = tickerMaterial.map?.offset.x ?? 0;
+    expect(calmPanelOffset).not.toBeCloseTo(midPanelOffset);
+    expect(calmTickerOffset).not.toBeCloseTo(midTickerOffset);
+    expect(panelMaterial.opacity).toBeLessThanOrEqual(emphasizedPanelOpacity);
+    expect(tickerMaterial.opacity).toBeLessThanOrEqual(emphasizedTickerOpacity);
   });
 });
