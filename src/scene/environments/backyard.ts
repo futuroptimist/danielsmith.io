@@ -451,7 +451,10 @@ export function createBackyardEnvironment(
       const offset = walkwayMotePhaseOffsets[i];
       const speed = walkwayMoteSpeeds[i] * speedScale;
       const nextPhase = walkwayMotePhaseStates[i] + delta * speed;
-      walkwayMotePhaseStates[i] = MathUtils.euclideanModulo(nextPhase, Math.PI * 2);
+      walkwayMotePhaseStates[i] = MathUtils.euclideanModulo(
+        nextPhase,
+        Math.PI * 2
+      );
       const phase = walkwayMotePhaseStates[i];
       const swirl = Math.sin(phase);
       const wrapAngle = phase * 0.6 * swirlMotionScale + offset * 0.45;
