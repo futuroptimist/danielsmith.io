@@ -16,6 +16,8 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  Shape,
+  ShapeGeometry,
   OrthographicCamera,
   PointLight,
   Scene,
