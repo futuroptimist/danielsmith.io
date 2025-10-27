@@ -440,6 +440,67 @@ export function createBackyardEnvironment(
   const walkwayMoteBaseColor = walkwayMoteMaterial.color.clone();
   const walkwayMoteTintColor = new Color();
 
+  const pollenCount = 42;
+  const pollenGeometry = new BufferGeometry();
+  const pollenPositions = new Float32Array(pollenCount * 3);
+  const pollenBasePositions = new Float32Array(pollenCount * 3);
+  const pollenOrbitRadii = new Float32Array(pollenCount);
+  const pollenVerticalAmplitudes = new Float32Array(pollenCount);
+  const pollenSpeeds = new Float32Array(pollenCount);
+  const pollenPhaseOffsets = new Float32Array(pollenCount);
+  const pollenPhaseStates = new Float32Array(pollenCount);
+  for (let i = 0; i < pollenCount; i += 1) {
+    const ratio = (i + 0.5) / pollenCount;
+    const layer = Math.floor(ratio * 3);
+    const layerRatio = ratio * 3 - layer;
+    const baseIndex = i * 3;
+    const baseX =
+      walkway.position.x +
+      (Math.cos(ratio * Math.PI * 1.4 + layer * 0.35) * walkwayWidth) / 3.4;
+    const baseZ =
+      walkway.position.z -
+      walkwayDepth * 0.5 +
+      walkwayDepth * ratio +
+      layer * 0.12;
+    const baseY =
+      walkway.position.y +
+      0.62 +
+      layer * 0.22 +
+      Math.sin((layerRatio + ratio) * Math.PI) * 0.28;
+    pollenBasePositions[baseIndex] = baseX;
+    pollenBasePositions[baseIndex + 1] = baseY;
+    pollenBasePositions[baseIndex + 2] = baseZ;
+    pollenPositions[baseIndex] = baseX;
+    pollenPositions[baseIndex + 1] = baseY;
+    pollenPositions[baseIndex + 2] = baseZ;
+    pollenOrbitRadii[i] =
+      walkwayWidth * 0.14 * (0.55 + Math.sin(ratio * Math.PI * 1.6) * 0.35);
+    pollenVerticalAmplitudes[i] =
+      0.18 + Math.sin(ratio * Math.PI) * 0.22 + layer * 0.04;
+    pollenSpeeds[i] = 0.52 + ratio * 0.48 + layer * 0.05;
+    const phaseOffset = ratio * Math.PI * 2.2 + layer * 0.9;
+    pollenPhaseOffsets[i] = phaseOffset;
+    pollenPhaseStates[i] = phaseOffset;
+  }
+  const pollenPositionsAttribute = new BufferAttribute(pollenPositions, 3);
+  pollenGeometry.setAttribute('position', pollenPositionsAttribute);
+  const pollenMaterial = new PointsMaterial({
+    color: 0xffcda4,
+    size: 0.085,
+    transparent: true,
+    opacity: 0.58,
+    depthWrite: false,
+    sizeAttenuation: true,
+    blending: AdditiveBlending,
+  });
+  const pollenMotes = new Points(pollenGeometry, pollenMaterial);
+  pollenMotes.name = 'BackyardPollenMotes';
+  pollenMotes.renderOrder = 8;
+  group.add(pollenMotes);
+  const basePollenOpacity = pollenMaterial.opacity;
+  const basePollenSize = pollenMaterial.size;
+  const pollenBaseColor = pollenMaterial.color.clone();
+
   const clamp01 = (value: number | undefined, fallback = 0): number => {
     const source = Number.isFinite(value) ? (value as number) : fallback;
     if (!Number.isFinite(source)) {
@@ -460,8 +521,10 @@ export function createBackyardEnvironment(
     preset: SeasonalLightingPreset | null
   ) => {
     walkwayMoteMaterial.color.copy(walkwayMoteBaseColor);
+    pollenMaterial.color.copy(pollenBaseColor);
     if (!preset) {
       walkwayMoteMaterial.needsUpdate = true;
+      pollenMaterial.needsUpdate = true;
       return;
     }
 
@@ -472,12 +535,14 @@ export function createBackyardEnvironment(
     );
     if (tintStrength <= 0) {
       walkwayMoteMaterial.needsUpdate = true;
+      pollenMaterial.needsUpdate = true;
       return;
     }
 
     const tintHex = override?.tintHex ?? preset.tintHex;
     if (!tintHex || !HEX_COLOR_PATTERN.test(tintHex)) {
       walkwayMoteMaterial.needsUpdate = true;
+      pollenMaterial.needsUpdate = true;
       return;
     }
 
@@ -488,7 +553,13 @@ export function createBackyardEnvironment(
       walkwayMoteTintColor,
       tintStrength
     );
+    pollenMaterial.color.lerpColors(
+      pollenBaseColor,
+      walkwayMoteTintColor,
+      tintStrength
+    );
     walkwayMoteMaterial.needsUpdate = true;
+    pollenMaterial.needsUpdate = true;
   };
 
   updates.push(({ delta }) => {
@@ -558,6 +629,65 @@ export function createBackyardEnvironment(
     walkwayMoteMaterial.size = MathUtils.lerp(
       baseWalkwayMoteSize * 0.84,
       baseWalkwayMoteSize * sizeTarget,
+      pulseScale
+    );
+  });
+
+  updates.push(({ delta }) => {
+    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const motionPreference = Math.min(flickerScale, Math.max(pulseScale, 0.28));
+    const swirlScale = MathUtils.lerp(0.22, 1, motionPreference);
+    const liftScale = MathUtils.lerp(0.28, 1, motionPreference);
+    const speedScale = MathUtils.lerp(0.32, 1, motionPreference);
+    let shimmerAccumulator = 0;
+
+    for (let i = 0; i < pollenCount; i += 1) {
+      const baseIndex = i * 3;
+      const offset = pollenPhaseOffsets[i];
+      const speed = pollenSpeeds[i] * speedScale;
+      const nextPhase = pollenPhaseStates[i] + delta * speed;
+      const phase = MathUtils.euclideanModulo(nextPhase, Math.PI * 2);
+      pollenPhaseStates[i] = phase;
+      const swirl = Math.sin(phase + offset * 0.35);
+      const baseX = pollenBasePositions[baseIndex];
+      const baseY = pollenBasePositions[baseIndex + 1];
+      const baseZ = pollenBasePositions[baseIndex + 2];
+      const radius = pollenOrbitRadii[i] * swirlScale;
+      const verticalAmplitude = pollenVerticalAmplitudes[i] * liftScale;
+      const x =
+        baseX +
+        Math.cos(phase + offset * 0.58) * radius +
+        Math.sin(phase * 0.42 + offset) * radius * 0.18 * swirlScale;
+      const y =
+        baseY +
+        Math.sin(phase * 1.05 + offset * 0.6) * verticalAmplitude +
+        Math.sin(phase * 0.32 + offset * 0.3) * 0.05 * swirlScale;
+      const z =
+        baseZ +
+        Math.sin(phase + offset * 0.44) * radius * 0.52 +
+        Math.cos(phase * 0.58 + offset * 0.5) * radius * 0.18 * swirlScale;
+      pollenPositionsAttribute.setXYZ(i, x, y, z);
+      shimmerAccumulator += MathUtils.clamp(0.5 + swirl * 0.5, 0.12, 0.98);
+    }
+
+    pollenPositionsAttribute.needsUpdate = true;
+
+    const shimmerAverage = MathUtils.clamp(
+      shimmerAccumulator / pollenCount,
+      0.18,
+      0.96
+    );
+    const opacityTarget = MathUtils.lerp(0.6, 1.15, shimmerAverage);
+    pollenMaterial.opacity = MathUtils.lerp(
+      basePollenOpacity * 0.6,
+      basePollenOpacity * opacityTarget,
+      flickerScale
+    );
+    const sizeTarget = MathUtils.lerp(0.85, 1.18, shimmerAverage);
+    pollenMaterial.size = MathUtils.lerp(
+      basePollenSize * 0.8,
+      basePollenSize * sizeTarget,
       pulseScale
     );
   });
