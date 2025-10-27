@@ -19,8 +19,6 @@ import {
   OrthographicCamera,
   PointLight,
   Scene,
-  Shape,
-  ShapeGeometry,
   SRGBColorSpace,
   Vector2,
   Vector3,
@@ -171,6 +169,7 @@ import {
   createF2ClipboardConsole,
   type F2ClipboardConsoleBuild,
 } from './scene/structures/f2ClipboardConsole';
+import { createRoomFloorTiles } from './scene/structures/floorTiles';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -919,21 +918,17 @@ function initializeImmersiveScene(
     );
   }
 
-  const floorMaterial = new MeshStandardMaterial({ color: 0x2a3547 });
-  const floorShape = new Shape();
-  const [firstX, firstZ] = FLOOR_PLAN.outline[0];
-  floorShape.moveTo(firstX, firstZ);
-  for (let i = 1; i < FLOOR_PLAN.outline.length; i += 1) {
-    const [x, z] = FLOOR_PLAN.outline[i];
-    floorShape.lineTo(x, z);
-  }
-  floorShape.closePath();
-  const floorGeometry = new ShapeGeometry(floorShape);
-  applyLightmapUv2(floorGeometry);
-  floorGeometry.rotateX(-Math.PI / 2);
-  const floor = new Mesh(floorGeometry, floorMaterial);
-  floor.position.y = 0;
-  scene.add(floor);
+  const floorMaterial = new MeshStandardMaterial({
+    color: 0x2a3547,
+    roughness: 0.58,
+    metalness: 0.18,
+  });
+  const floorTiles = createRoomFloorTiles(FLOOR_PLAN.rooms, {
+    material: floorMaterial,
+    elevation: 0,
+    groupName: 'GroundFloorTiles',
+  });
+  scene.add(floorTiles.group);
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
