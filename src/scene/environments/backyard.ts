@@ -633,6 +633,81 @@ export function createBackyardEnvironment(
     );
   });
 
+  updates.push(({ delta }) => {
+    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const motionPreference = Math.min(flickerScale, Math.max(pulseScale, 0.35));
+    const swirlMotionScale = MathUtils.lerp(0.3, 1, motionPreference);
+    const motionScale = MathUtils.lerp(0.22, 1, motionPreference);
+    const speedScale = MathUtils.lerp(0.4, 1, motionPreference);
+
+    let swirlAccumulator = 0;
+
+    for (let i = 0; i < pollenCount; i += 1) {
+      const baseIndex = i * 3;
+      const offset = pollenPhaseOffsets[i];
+      const nextPhase =
+        pollenPhaseStates[i] + delta * pollenSpeeds[i] * speedScale;
+      const phase = MathUtils.euclideanModulo(nextPhase, Math.PI * 2);
+      pollenPhaseStates[i] = phase;
+
+      const baseX = pollenBasePositions[baseIndex];
+      const baseY = pollenBasePositions[baseIndex + 1];
+      const baseZ = pollenBasePositions[baseIndex + 2];
+
+      const radius = pollenOrbitRadii[i] * motionScale;
+      const verticalAmplitude = pollenVerticalAmplitudes[i] * motionScale;
+      const swirl = Math.sin(phase * 0.9 + offset * 0.6);
+      const drift = Math.cos(phase * 0.45 + offset * 0.35);
+
+      const x =
+        baseX +
+        Math.cos(phase + offset * 0.55) * radius * 0.75 +
+        drift * radius * 0.25 * swirlMotionScale;
+      const y =
+        baseY +
+        Math.sin(phase * 1.25 + offset * 0.5) * verticalAmplitude +
+        Math.cos(phase * 0.62 + offset * 0.3) * 0.04 * swirlMotionScale;
+      const z =
+        baseZ +
+        Math.sin(phase * 0.8 + offset * 0.4) * radius * 0.62 +
+        Math.cos(phase * 0.52 + offset * 0.25) *
+          radius *
+          0.18 *
+          swirlMotionScale;
+
+      pollenPositionsAttribute.setXYZ(i, x, y, z);
+
+      const swirlContribution = MathUtils.clamp(
+        0.45 + swirl * 0.35 * swirlMotionScale,
+        0.12,
+        0.95
+      );
+      swirlAccumulator += swirlContribution;
+    }
+
+    pollenPositionsAttribute.needsUpdate = true;
+
+    const swirlAverage = MathUtils.clamp(
+      swirlAccumulator / pollenCount,
+      0.18,
+      0.92
+    );
+    const opacityTarget = MathUtils.lerp(0.9, 1.18, swirlAverage);
+    pollenMaterial.opacity = MathUtils.lerp(
+      basePollenOpacity * 0.6,
+      basePollenOpacity * opacityTarget,
+      flickerScale
+    );
+    const sizeTarget = MathUtils.lerp(0.88, 1.16, swirlAverage);
+    pollenMaterial.size = MathUtils.lerp(
+      basePollenSize * 0.8,
+      basePollenSize * sizeTarget,
+      pulseScale
+    );
+    pollenMaterial.needsUpdate = true;
+  });
+
   interface WalkwayFiberAnimationTarget {
     material: MeshStandardMaterial;
     baseEmissiveIntensity: number;
