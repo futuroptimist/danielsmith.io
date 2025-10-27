@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+
 import { BoxGeometry, MeshStandardMaterial, Texture } from 'three';
 
 import type { RoomDefinition } from '../assets/floorPlan';
