@@ -636,61 +636,203 @@ export function createBackyardEnvironment(
   updates.push(({ delta }) => {
     const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
-    const motionPreference = Math.min(flickerScale, Math.max(pulseScale, 0.28));
-    const swirlScale = MathUtils.lerp(0.22, 1, motionPreference);
-    const liftScale = MathUtils.lerp(0.28, 1, motionPreference);
-    const speedScale = MathUtils.lerp(0.32, 1, motionPreference);
-    let shimmerAccumulator = 0;
+    const motionPreference = Math.min(flickerScale, Math.max(pulseScale, 0.35));
+    const swirlMotionScale = MathUtils.lerp(0.3, 1, motionPreference);
+    const motionScale = MathUtils.lerp(0.22, 1, motionPreference);
+    const speedScale = MathUtils.lerp(0.4, 1, motionPreference);
+
+    let swirlAccumulator = 0;
 
     for (let i = 0; i < pollenCount; i += 1) {
       const baseIndex = i * 3;
       const offset = pollenPhaseOffsets[i];
-      const speed = pollenSpeeds[i] * speedScale;
-      const nextPhase = pollenPhaseStates[i] + delta * speed;
+      const nextPhase =
+        pollenPhaseStates[i] + delta * pollenSpeeds[i] * speedScale;
       const phase = MathUtils.euclideanModulo(nextPhase, Math.PI * 2);
       pollenPhaseStates[i] = phase;
-      const swirl = Math.sin(phase + offset * 0.35);
+
       const baseX = pollenBasePositions[baseIndex];
       const baseY = pollenBasePositions[baseIndex + 1];
       const baseZ = pollenBasePositions[baseIndex + 2];
-      const radius = pollenOrbitRadii[i] * swirlScale;
-      const verticalAmplitude = pollenVerticalAmplitudes[i] * liftScale;
+
+      const radius = pollenOrbitRadii[i] * motionScale;
+      const verticalAmplitude = pollenVerticalAmplitudes[i] * motionScale;
+      const swirl = Math.sin(phase * 0.9 + offset * 0.6);
+      const drift = Math.cos(phase * 0.45 + offset * 0.35);
+
       const x =
         baseX +
-        Math.cos(phase + offset * 0.58) * radius +
-        Math.sin(phase * 0.42 + offset) * radius * 0.18 * swirlScale;
+        Math.cos(phase + offset * 0.55) * radius * 0.75 +
+        drift * radius * 0.25 * swirlMotionScale;
       const y =
         baseY +
-        Math.sin(phase * 1.05 + offset * 0.6) * verticalAmplitude +
-        Math.sin(phase * 0.32 + offset * 0.3) * 0.05 * swirlScale;
+        Math.sin(phase * 1.25 + offset * 0.5) * verticalAmplitude +
+        Math.cos(phase * 0.62 + offset * 0.3) * 0.04 * swirlMotionScale;
       const z =
         baseZ +
-        Math.sin(phase + offset * 0.44) * radius * 0.52 +
-        Math.cos(phase * 0.58 + offset * 0.5) * radius * 0.18 * swirlScale;
+        Math.sin(phase * 0.8 + offset * 0.4) * radius * 0.62 +
+        Math.cos(phase * 0.52 + offset * 0.25) *
+          radius *
+          0.18 *
+          swirlMotionScale;
+
       pollenPositionsAttribute.setXYZ(i, x, y, z);
-      shimmerAccumulator += MathUtils.clamp(0.5 + swirl * 0.5, 0.12, 0.98);
+
+      const swirlContribution = MathUtils.clamp(
+        0.45 + swirl * 0.35 * swirlMotionScale,
+        0.12,
+        0.95
+      );
+      swirlAccumulator += swirlContribution;
     }
 
     pollenPositionsAttribute.needsUpdate = true;
 
-    const shimmerAverage = MathUtils.clamp(
-      shimmerAccumulator / pollenCount,
+    const swirlAverage = MathUtils.clamp(
+      swirlAccumulator / pollenCount,
       0.18,
-      0.96
+      0.92
     );
-    const opacityTarget = MathUtils.lerp(0.6, 1.15, shimmerAverage);
+    const opacityTarget = MathUtils.lerp(0.9, 1.18, swirlAverage);
     pollenMaterial.opacity = MathUtils.lerp(
       basePollenOpacity * 0.6,
       basePollenOpacity * opacityTarget,
       flickerScale
     );
-    const sizeTarget = MathUtils.lerp(0.85, 1.18, shimmerAverage);
+    const sizeTarget = MathUtils.lerp(0.88, 1.16, swirlAverage);
     pollenMaterial.size = MathUtils.lerp(
       basePollenSize * 0.8,
       basePollenSize * sizeTarget,
       pulseScale
     );
+    pollenMaterial.needsUpdate = true;
   });
+
+  interface WalkwayFiberAnimationTarget {
+    material: MeshStandardMaterial;
+    baseEmissiveIntensity: number;
+    baseOpacity: number;
+    offset: number;
+  }
+
+  const walkwayFiberAnimationTargets: WalkwayFiberAnimationTarget[] = [];
+  const walkwayFiberSeasonalTargets: SeasonalLightingTarget[] = [];
+  const walkwayFiberGroup = new Group();
+  walkwayFiberGroup.name = 'BackyardWalkwayFiberGuides';
+
+  const walkwayFiberSegments = 8;
+  const walkwayFiberWidth = Math.min(0.1, walkwayWidth * 0.08);
+  const walkwayFiberHeight = 0.012;
+  const walkwayFiberDepth =
+    walkwayFiberSegments > 0
+      ? (walkwayDepth / walkwayFiberSegments) * 0.9
+      : walkwayDepth * 0.9;
+  const walkwayFiberGeometry = new BoxGeometry(
+    walkwayFiberWidth,
+    walkwayFiberHeight,
+    walkwayFiberDepth
+  );
+  const walkwayFiberEdgeInset = Math.max(walkwayWidth * 0.12, 0.08);
+  const walkwayFiberBaseZ = walkway.position.z - walkwayDepth / 2;
+  const walkwayFiberSides: Array<{
+    label: 'Left' | 'Right';
+    direction: -1 | 1;
+  }> = [
+    { label: 'Left', direction: -1 },
+    { label: 'Right', direction: 1 },
+  ];
+
+  for (
+    let segmentIndex = 0;
+    segmentIndex < walkwayFiberSegments;
+    segmentIndex += 1
+  ) {
+    const segmentCenterZ =
+      walkwayFiberBaseZ +
+      walkwayFiberDepth / 2 +
+      segmentIndex * walkwayFiberDepth * 1.02;
+
+    walkwayFiberSides.forEach(({ label, direction }) => {
+      const material = new MeshStandardMaterial({
+        color: new Color(0x0f1720),
+        emissive: new Color(0x5ae0ff),
+        emissiveIntensity: 1.1,
+        roughness: 0.28,
+        metalness: 0.62,
+        transparent: true,
+        opacity: 0.72,
+      });
+      material.depthWrite = false;
+
+      const segment = new Mesh(walkwayFiberGeometry, material);
+      segment.name = `BackyardWalkwayFiberSegment-${label}-${segmentIndex}`;
+      segment.position.set(
+        walkway.position.x +
+          direction *
+            (walkwayWidth / 2 - walkwayFiberEdgeInset - walkwayFiberWidth / 2),
+        walkway.position.y + walkwayFiberHeight / 2 + 0.018,
+        segmentCenterZ
+      );
+      segment.castShadow = false;
+      segment.receiveShadow = false;
+      segment.renderOrder = 7;
+      walkwayFiberGroup.add(segment);
+
+      walkwayFiberAnimationTargets.push({
+        material,
+        baseEmissiveIntensity: material.emissiveIntensity,
+        baseOpacity: material.opacity ?? 1,
+        offset: segmentIndex * 0.8 + (direction > 0 ? 0.35 : 0),
+      });
+
+      walkwayFiberSeasonalTargets.push({
+        roomId: 'backyard',
+        material,
+        baseEmissiveColor: material.emissive.clone(),
+        baseEmissiveIntensity: material.emissiveIntensity,
+        fillLights: [],
+      });
+    });
+  }
+
+  if (walkwayFiberGroup.children.length > 0) {
+    group.add(walkwayFiberGroup);
+  }
+
+  if (walkwayFiberAnimationTargets.length > 0) {
+    updates.push(({ elapsed }) => {
+      const flickerScale = getFlickerScale();
+      const pulseScale = getPulseScale();
+
+      walkwayFiberAnimationTargets.forEach((target) => {
+        const travel = MathUtils.euclideanModulo(
+          elapsed * 0.55 + target.offset,
+          Math.PI * 2
+        );
+        const pulse = Math.max(0, Math.sin(travel));
+        const envelope = Math.pow(pulse, 1.4);
+
+        const intensityBaseline = MathUtils.lerp(
+          target.baseEmissiveIntensity * 0.45,
+          target.baseEmissiveIntensity * (1.05 + envelope * 0.85),
+          flickerScale
+        );
+        target.material.emissiveIntensity = MathUtils.clamp(
+          intensityBaseline,
+          0,
+          target.baseEmissiveIntensity * 2.1
+        );
+
+        const opacityTarget = MathUtils.lerp(
+          target.baseOpacity * 0.45,
+          target.baseOpacity * (0.82 + envelope * 0.48),
+          pulseScale
+        );
+        target.material.opacity = MathUtils.clamp(opacityTarget, 0, 1);
+        target.material.needsUpdate = true;
+      });
+    });
+  }
 
   interface WalkwayGuideAnimationTarget {
     material: MeshStandardMaterial;
@@ -1038,7 +1180,9 @@ export function createBackyardEnvironment(
   const applyBackyardSeasonalPreset: (
     preset: SeasonalLightingPreset | null
   ) => void =
-    lanternSeasonalTargets.length > 0 || walkwayGuideSeasonalTargets.length > 0
+    lanternSeasonalTargets.length > 0 ||
+    walkwayGuideSeasonalTargets.length > 0 ||
+    walkwayFiberSeasonalTargets.length > 0
       ? (preset) => {
           if (lanternSeasonalTargets.length > 0) {
             applySeasonalLightingPreset({
@@ -1071,6 +1215,24 @@ export function createBackyardEnvironment(
               animationTarget.baseEmissiveIntensity =
                 target.material.emissiveIntensity;
               target.material.opacity = animationTarget.baseOpacity;
+              target.material.needsUpdate = true;
+            });
+          }
+
+          if (walkwayFiberSeasonalTargets.length > 0) {
+            applySeasonalLightingPreset({
+              preset,
+              targets: walkwayFiberSeasonalTargets,
+            });
+            walkwayFiberSeasonalTargets.forEach((target, index) => {
+              const animationTarget = walkwayFiberAnimationTargets[index];
+              if (!animationTarget) {
+                return;
+              }
+              animationTarget.baseEmissiveIntensity =
+                target.material.emissiveIntensity;
+              animationTarget.baseOpacity =
+                target.material.opacity ?? animationTarget.baseOpacity;
               target.material.needsUpdate = true;
             });
           }
