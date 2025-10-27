@@ -126,6 +126,10 @@ import {
 } from './scene/lighting/ledPulsePrograms';
 import { createRoomLedStrips } from './scene/lighting/ledStrips';
 import {
+  createLightmapBounceAnimator,
+  type LightmapBounceAnimator,
+} from './scene/lighting/lightmapBounceAnimator';
+import {
   applySeasonalLightingPreset,
   createSeasonallyAdjustedPrograms,
   resolveSeasonalLightingSchedule,
@@ -556,6 +560,7 @@ let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
 const ledFillLightsList: PointLight[] = [];
 let ledAnimator: LedAnimator | null = null;
+let lightmapAnimator: LightmapBounceAnimator | null = null;
 let environmentLightAnimator: EnvironmentLightAnimator | null = null;
 let ambientAudioController: AmbientAudioController | null = null;
 let footstepAudioController: FootstepAudioControllerHandle | null = null;
@@ -1234,6 +1239,10 @@ function initializeImmersiveScene(
     upper: upperFloorColliders,
   };
 
+  const seasonalPrograms = Array.from(
+    createSeasonallyAdjustedPrograms(ROOM_LED_PULSE_PROGRAMS, seasonalPreset)
+  );
+
   if (LIGHTING_OPTIONS.enableLedStrips) {
     const ledBuild = createRoomLedStrips({
       plan: FLOOR_PLAN,
@@ -1266,10 +1275,6 @@ function initializeImmersiveScene(
       })
     );
 
-    const seasonalPrograms = createSeasonallyAdjustedPrograms(
-      ROOM_LED_PULSE_PROGRAMS,
-      seasonalPreset
-    );
     ledAnimator = createLedAnimator({
       programs: seasonalPrograms,
       targets: ledTargets,
@@ -1287,6 +1292,15 @@ function initializeImmersiveScene(
       documentElement: document.documentElement,
     });
   }
+
+  lightmapAnimator = createLightmapBounceAnimator({
+    floorMaterial,
+    wallMaterial,
+    fenceMaterial,
+    ceilingPanels: ceilings.panels,
+    programs: seasonalPrograms,
+  });
+  lightmapAnimator.captureBaseline();
 
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides);
   builtPoiInstances.forEach((poi) => {
@@ -3437,6 +3451,7 @@ function initializeImmersiveScene(
     }
     immersiveDisposed = true;
     ledAnimator = null;
+    lightmapAnimator = null;
     environmentLightAnimator = null;
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
@@ -3830,6 +3845,9 @@ function initializeImmersiveScene(
       }
       if (ledAnimator) {
         ledAnimator.update(elapsedTime);
+      }
+      if (lightmapAnimator) {
+        lightmapAnimator.update(elapsedTime);
       }
       if (selfieMirror) {
         selfieMirror.render(renderer, scene);

@@ -350,6 +350,59 @@ describe('createBackyardEnvironment', () => {
     expect(dampedDeltaZ).toBeLessThan(0.12);
   });
 
+  it('adds elevated pollen motes that swirl with calm-mode damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const pollen = environment.group.getObjectByName('BackyardPollenMotes');
+    expect(pollen).toBeInstanceOf(Points);
+
+    const geometry = (pollen as Points).geometry as BufferGeometry;
+    const positions = geometry.getAttribute('position') as BufferAttribute;
+    const baseX = positions.getX(0);
+    const baseY = positions.getY(0);
+    const baseZ = positions.getZ(0);
+    const material = (pollen as Points).material as PointsMaterial;
+    const baseOpacity = material.opacity;
+    const baseSize = material.size;
+
+    environment.update({ elapsed: 0.9, delta: 0.016 });
+
+    const animatedX = positions.getX(0);
+    const animatedY = positions.getY(0);
+    const animatedZ = positions.getZ(0);
+    expect(animatedX).not.toBeCloseTo(baseX, 5);
+    expect(animatedY).not.toBeCloseTo(baseY, 5);
+    expect(animatedZ).not.toBeCloseTo(baseZ, 5);
+    expect(material.opacity).not.toBeCloseTo(baseOpacity, 5);
+    expect(material.size).not.toBeCloseTo(baseSize, 5);
+
+    const animatedDelta =
+      Math.abs(animatedX - baseX) +
+      Math.abs(animatedY - baseY) +
+      Math.abs(animatedZ - baseZ);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    material.opacity = baseOpacity;
+    material.size = baseSize;
+    positions.setXYZ(0, baseX, baseY, baseZ);
+
+    environment.update({ elapsed: 1.8, delta: 0.016 });
+
+    const dampedX = positions.getX(0);
+    const dampedY = positions.getY(0);
+    const dampedZ = positions.getZ(0);
+    const dampedDelta =
+      Math.abs(dampedX - baseX) +
+      Math.abs(dampedY - baseY) +
+      Math.abs(dampedZ - baseZ);
+
+    expect(dampedDelta).toBeGreaterThan(0);
+    expect(dampedDelta).toBeLessThan(animatedDelta);
+    expect(material.opacity).toBeCloseTo(baseOpacity * 0.6, 5);
+    expect(material.size).toBeCloseTo(baseSize * 0.8, 5);
+  });
+
   it('retints walkway motes when seasonal presets provide backyard tints', () => {
     const baseline = createBackyardEnvironment(BACKYARD_BOUNDS);
     const baselineMotes = baseline.group.getObjectByName(
@@ -359,6 +412,13 @@ describe('createBackyardEnvironment', () => {
     const baselineMaterial = (baselineMotes as Points)
       .material as PointsMaterial;
     const baseColor = baselineMaterial.color.clone();
+    const baselinePollen = baseline.group.getObjectByName(
+      'BackyardPollenMotes'
+    );
+    expect(baselinePollen).toBeInstanceOf(Points);
+    const baselinePollenMaterial = (baselinePollen as Points)
+      .material as PointsMaterial;
+    const basePollenColor = baselinePollenMaterial.color.clone();
 
     const preset: SeasonalLightingPreset = {
       id: 'backyard-festival',
@@ -387,10 +447,23 @@ describe('createBackyardEnvironment', () => {
     expect(material.color.g).toBeCloseTo(expectedTint.g, 5);
     expect(material.color.b).toBeCloseTo(expectedTint.b, 5);
 
+    const pollen = environment.group.getObjectByName('BackyardPollenMotes');
+    expect(pollen).toBeInstanceOf(Points);
+    const pollenMaterial = (pollen as Points).material as PointsMaterial;
+    const expectedPollenTint = basePollenColor
+      .clone()
+      .lerp(new Color('#ff88cc'), 0.65);
+    expect(pollenMaterial.color.r).toBeCloseTo(expectedPollenTint.r, 5);
+    expect(pollenMaterial.color.g).toBeCloseTo(expectedPollenTint.g, 5);
+    expect(pollenMaterial.color.b).toBeCloseTo(expectedPollenTint.b, 5);
+
     environment.applySeasonalPreset(null);
     expect(material.color.r).toBeCloseTo(baseColor.r, 5);
     expect(material.color.g).toBeCloseTo(baseColor.g, 5);
     expect(material.color.b).toBeCloseTo(baseColor.b, 5);
+    expect(pollenMaterial.color.r).toBeCloseTo(basePollenColor.r, 5);
+    expect(pollenMaterial.color.g).toBeCloseTo(basePollenColor.g, 5);
+    expect(pollenMaterial.color.b).toBeCloseTo(basePollenColor.b, 5);
 
     const zeroStrengthPreset: SeasonalLightingPreset = {
       ...preset,
@@ -404,6 +477,9 @@ describe('createBackyardEnvironment', () => {
     expect(material.color.r).toBeCloseTo(baseColor.r, 5);
     expect(material.color.g).toBeCloseTo(baseColor.g, 5);
     expect(material.color.b).toBeCloseTo(baseColor.b, 5);
+    expect(pollenMaterial.color.r).toBeCloseTo(basePollenColor.r, 5);
+    expect(pollenMaterial.color.g).toBeCloseTo(basePollenColor.g, 5);
+    expect(pollenMaterial.color.b).toBeCloseTo(basePollenColor.b, 5);
 
     const invalidTintPreset: SeasonalLightingPreset = {
       ...preset,
@@ -417,11 +493,17 @@ describe('createBackyardEnvironment', () => {
     expect(material.color.r).toBeCloseTo(baseColor.r, 5);
     expect(material.color.g).toBeCloseTo(baseColor.g, 5);
     expect(material.color.b).toBeCloseTo(baseColor.b, 5);
+    expect(pollenMaterial.color.r).toBeCloseTo(basePollenColor.r, 5);
+    expect(pollenMaterial.color.g).toBeCloseTo(basePollenColor.g, 5);
+    expect(pollenMaterial.color.b).toBeCloseTo(basePollenColor.b, 5);
 
     environment.applySeasonalPreset(preset);
     expect(material.color.r).toBeCloseTo(expectedTint.r, 5);
     expect(material.color.g).toBeCloseTo(expectedTint.g, 5);
     expect(material.color.b).toBeCloseTo(expectedTint.b, 5);
+    expect(pollenMaterial.color.r).toBeCloseTo(expectedPollenTint.r, 5);
+    expect(pollenMaterial.color.g).toBeCloseTo(expectedPollenTint.g, 5);
+    expect(pollenMaterial.color.b).toBeCloseTo(expectedPollenTint.b, 5);
 
     const highStrengthPreset: SeasonalLightingPreset = {
       ...preset,
@@ -434,6 +516,12 @@ describe('createBackyardEnvironment', () => {
     expect(material.color.r).toBeCloseTo(saturatedTint.r, 5);
     expect(material.color.g).toBeCloseTo(saturatedTint.g, 5);
     expect(material.color.b).toBeCloseTo(saturatedTint.b, 5);
+    const saturatedPollenTint = basePollenColor
+      .clone()
+      .lerp(new Color('#ff88cc'), 1);
+    expect(pollenMaterial.color.r).toBeCloseTo(saturatedPollenTint.r, 5);
+    expect(pollenMaterial.color.g).toBeCloseTo(saturatedPollenTint.g, 5);
+    expect(pollenMaterial.color.b).toBeCloseTo(saturatedPollenTint.b, 5);
   });
 
   it('retints walkway lanterns and preserves seasonal baselines', () => {

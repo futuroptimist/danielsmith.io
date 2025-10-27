@@ -440,6 +440,67 @@ export function createBackyardEnvironment(
   const walkwayMoteBaseColor = walkwayMoteMaterial.color.clone();
   const walkwayMoteTintColor = new Color();
 
+  const pollenCount = 42;
+  const pollenGeometry = new BufferGeometry();
+  const pollenPositions = new Float32Array(pollenCount * 3);
+  const pollenBasePositions = new Float32Array(pollenCount * 3);
+  const pollenOrbitRadii = new Float32Array(pollenCount);
+  const pollenVerticalAmplitudes = new Float32Array(pollenCount);
+  const pollenSpeeds = new Float32Array(pollenCount);
+  const pollenPhaseOffsets = new Float32Array(pollenCount);
+  const pollenPhaseStates = new Float32Array(pollenCount);
+  for (let i = 0; i < pollenCount; i += 1) {
+    const ratio = (i + 0.5) / pollenCount;
+    const layer = Math.floor(ratio * 3);
+    const layerRatio = ratio * 3 - layer;
+    const baseIndex = i * 3;
+    const baseX =
+      walkway.position.x +
+      (Math.cos(ratio * Math.PI * 1.4 + layer * 0.35) * walkwayWidth) / 3.4;
+    const baseZ =
+      walkway.position.z -
+      walkwayDepth * 0.5 +
+      walkwayDepth * ratio +
+      layer * 0.12;
+    const baseY =
+      walkway.position.y +
+      0.62 +
+      layer * 0.22 +
+      Math.sin((layerRatio + ratio) * Math.PI) * 0.28;
+    pollenBasePositions[baseIndex] = baseX;
+    pollenBasePositions[baseIndex + 1] = baseY;
+    pollenBasePositions[baseIndex + 2] = baseZ;
+    pollenPositions[baseIndex] = baseX;
+    pollenPositions[baseIndex + 1] = baseY;
+    pollenPositions[baseIndex + 2] = baseZ;
+    pollenOrbitRadii[i] =
+      walkwayWidth * 0.14 * (0.55 + Math.sin(ratio * Math.PI * 1.6) * 0.35);
+    pollenVerticalAmplitudes[i] =
+      0.18 + Math.sin(ratio * Math.PI) * 0.22 + layer * 0.04;
+    pollenSpeeds[i] = 0.52 + ratio * 0.48 + layer * 0.05;
+    const phaseOffset = ratio * Math.PI * 2.2 + layer * 0.9;
+    pollenPhaseOffsets[i] = phaseOffset;
+    pollenPhaseStates[i] = phaseOffset;
+  }
+  const pollenPositionsAttribute = new BufferAttribute(pollenPositions, 3);
+  pollenGeometry.setAttribute('position', pollenPositionsAttribute);
+  const pollenMaterial = new PointsMaterial({
+    color: 0xffcda4,
+    size: 0.085,
+    transparent: true,
+    opacity: 0.58,
+    depthWrite: false,
+    sizeAttenuation: true,
+    blending: AdditiveBlending,
+  });
+  const pollenMotes = new Points(pollenGeometry, pollenMaterial);
+  pollenMotes.name = 'BackyardPollenMotes';
+  pollenMotes.renderOrder = 8;
+  group.add(pollenMotes);
+  const basePollenOpacity = pollenMaterial.opacity;
+  const basePollenSize = pollenMaterial.size;
+  const pollenBaseColor = pollenMaterial.color.clone();
+
   const clamp01 = (value: number | undefined, fallback = 0): number => {
     const source = Number.isFinite(value) ? (value as number) : fallback;
     if (!Number.isFinite(source)) {
@@ -460,8 +521,10 @@ export function createBackyardEnvironment(
     preset: SeasonalLightingPreset | null
   ) => {
     walkwayMoteMaterial.color.copy(walkwayMoteBaseColor);
+    pollenMaterial.color.copy(pollenBaseColor);
     if (!preset) {
       walkwayMoteMaterial.needsUpdate = true;
+      pollenMaterial.needsUpdate = true;
       return;
     }
 
@@ -472,12 +535,14 @@ export function createBackyardEnvironment(
     );
     if (tintStrength <= 0) {
       walkwayMoteMaterial.needsUpdate = true;
+      pollenMaterial.needsUpdate = true;
       return;
     }
 
     const tintHex = override?.tintHex ?? preset.tintHex;
     if (!tintHex || !HEX_COLOR_PATTERN.test(tintHex)) {
       walkwayMoteMaterial.needsUpdate = true;
+      pollenMaterial.needsUpdate = true;
       return;
     }
 
@@ -488,7 +553,13 @@ export function createBackyardEnvironment(
       walkwayMoteTintColor,
       tintStrength
     );
+    pollenMaterial.color.lerpColors(
+      pollenBaseColor,
+      walkwayMoteTintColor,
+      tintStrength
+    );
     walkwayMoteMaterial.needsUpdate = true;
+    pollenMaterial.needsUpdate = true;
   };
 
   updates.push(({ delta }) => {
