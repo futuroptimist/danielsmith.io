@@ -234,7 +234,7 @@ describe('createBackyardEnvironment', () => {
     expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
   });
 
-  it('adds walkway fiber guides that pulse with seasonal-aware damping', () => {
+  it('adds walkway guides that pulse with seasonal-aware damping', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const guidesGroup = environment.group.getObjectByName(
       'BackyardWalkwayGuides'
@@ -268,6 +268,41 @@ describe('createBackyardEnvironment', () => {
 
     expect(guideMaterial.emissiveIntensity).toBeCloseTo(baseEmissive * 0.55, 5);
     expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+  });
+
+  it('adds fiber optic walkway segments that sweep toward the greenhouse', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const fiberGroup = environment.group.getObjectByName(
+      'BackyardWalkwayFiberGuides'
+    );
+    expect(fiberGroup).toBeInstanceOf(Group);
+
+    const segments = (fiberGroup as Group).children.filter((child) =>
+      child.name.startsWith('BackyardWalkwayFiberSegment-')
+    );
+    expect(segments.length).toBeGreaterThan(0);
+    expect(segments.length % 2).toBe(0);
+
+    const firstSegment = segments[0] as Mesh | undefined;
+    expect(firstSegment).toBeInstanceOf(Mesh);
+    const material = (firstSegment!.material as MeshStandardMaterial)!;
+    const baseEmissive = material.emissiveIntensity;
+    const baseOpacity = material.opacity ?? 1;
+
+    environment.update({ elapsed: 0.6, delta: 0.016 });
+    expect(material.emissiveIntensity).not.toBeCloseTo(baseEmissive, 5);
+    expect(material.opacity).not.toBeCloseTo(baseOpacity, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    material.emissiveIntensity = baseEmissive;
+    material.opacity = baseOpacity;
+
+    environment.update({ elapsed: 1.3, delta: 0.016 });
+
+    expect(material.emissiveIntensity).toBeCloseTo(baseEmissive * 0.45, 5);
+    expect(material.opacity).toBeCloseTo(baseOpacity * 0.45, 5);
   });
 
   it('adds drifting walkway motes that respond to accessibility damping', () => {
@@ -679,6 +714,91 @@ describe('createBackyardEnvironment', () => {
     const retint = baseColor.clone().lerp(new Color('#88ccff'), 0.7);
     expect(guideMaterial.emissive.getHexString()).toBe(retint.getHexString());
     expect(guideMaterial.emissiveIntensity).toBeCloseTo(expectedBaseline, 5);
+  });
+
+  it('retints fiber optic walkway segments and refreshes animation baselines', () => {
+    const baseline = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const baselineFiberGroup = baseline.group.getObjectByName(
+      'BackyardWalkwayFiberGuides'
+    ) as Group | null;
+    expect(baselineFiberGroup).toBeInstanceOf(Group);
+
+    const baselineSegment = baselineFiberGroup?.children.find((child) =>
+      child.name.startsWith('BackyardWalkwayFiberSegment-')
+    ) as Mesh | undefined;
+    expect(baselineSegment).toBeInstanceOf(Mesh);
+    const baselineMaterial = (baselineSegment!
+      .material as MeshStandardMaterial)!;
+    const baseColor = baselineMaterial.emissive.clone();
+    const baseIntensity = baselineMaterial.emissiveIntensity;
+    const baseOpacity = baselineMaterial.opacity ?? 1;
+
+    const preset: SeasonalLightingPreset = {
+      id: 'spring-fiber-guides',
+      label: 'Spring Fiber Guides',
+      start: { month: 3, day: 1 },
+      end: { month: 3, day: 31 },
+      tintHex: '#7ce7ff',
+      tintStrength: 0.45,
+      emissiveIntensityScale: 1.15,
+      roomOverrides: {
+        backyard: {
+          tintHex: '#ff9ad6',
+          tintStrength: 0.6,
+          emissiveIntensityScale: 1.4,
+        },
+      },
+    };
+
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS, {
+      seasonalPreset: preset,
+    });
+    const fiberGroup = environment.group.getObjectByName(
+      'BackyardWalkwayFiberGuides'
+    ) as Group | null;
+    expect(fiberGroup).toBeInstanceOf(Group);
+
+    const tintedSegment = fiberGroup?.children.find((child) =>
+      child.name.startsWith('BackyardWalkwayFiberSegment-')
+    ) as Mesh | undefined;
+    expect(tintedSegment).toBeInstanceOf(Mesh);
+    const tintedMaterial = (tintedSegment!.material as MeshStandardMaterial)!;
+
+    const expectedTint = baseColor.clone().lerp(new Color('#ff9ad6'), 0.6);
+    expect(tintedMaterial.emissive.getHexString()).toBe(
+      expectedTint.getHexString()
+    );
+    const expectedBaseline = baseIntensity * 1.4;
+    expect(tintedMaterial.emissiveIntensity).toBeCloseTo(expectedBaseline, 5);
+    const expectedOpacity = tintedMaterial.opacity ?? 1;
+
+    environment.applySeasonalPreset(null);
+    expect(tintedMaterial.emissive.getHexString()).toBe(
+      baseColor.getHexString()
+    );
+    expect(tintedMaterial.emissiveIntensity).toBeCloseTo(baseIntensity, 5);
+    expect(tintedMaterial.opacity).toBeCloseTo(baseOpacity, 5);
+
+    environment.applySeasonalPreset(preset);
+    expect(tintedMaterial.emissive.getHexString()).toBe(
+      expectedTint.getHexString()
+    );
+    expect(tintedMaterial.emissiveIntensity).toBeCloseTo(expectedBaseline, 5);
+    expect(tintedMaterial.opacity).toBeCloseTo(expectedOpacity, 5);
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+
+    tintedMaterial.emissiveIntensity = expectedBaseline;
+    tintedMaterial.opacity = expectedOpacity;
+
+    environment.update({ elapsed: 1.5, delta: 0.016 });
+
+    expect(tintedMaterial.emissiveIntensity).toBeCloseTo(
+      expectedBaseline * 0.45,
+      5
+    );
+    expect(tintedMaterial.opacity).toBeCloseTo(expectedOpacity * 0.45, 5);
   });
 
   it('animates fireflies around the greenhouse walkway with accessibility damping', () => {
