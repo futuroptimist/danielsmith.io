@@ -71,6 +71,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ LED pulse programs now drive per-room emissive and fill intensities via data timelines.
      - Timeline data in `ROOM_LED_TIMELINES` powers the animator so lighting palettes stay editable without code changes.
    - ✨ Baked dusk lightmaps now bathe floors and walls in a gradient bounce wash that pairs with the LED strips.
+     - ✅ Lightmap bounce animator now syncs baked intensities with LED pulse programs while
+       honoring accessibility pulse damping preferences.
    - ✨ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
 2. **House Footprint Layout**
    - Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
