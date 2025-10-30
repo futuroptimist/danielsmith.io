@@ -140,7 +140,8 @@ test.describe('immersive experience', () => {
     await expect(modeToggle).toBeVisible();
 
     await page.evaluate(() => {
-      const button = document.querySelector<HTMLButtonElement>('.help-modal__close');
+      const button =
+        document.querySelector<HTMLButtonElement>('.help-modal__close');
       button?.click();
     });
     await expect(backdrop).toBeHidden();
