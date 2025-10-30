@@ -200,11 +200,20 @@ export function createMultiplayerProjection(
   group.position.copy(basePosition);
   group.rotation.y = orientation;
 
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const orientationCos = Math.cos(orientation);
+  const orientationSin = Math.sin(orientation);
+  const extentX =
+    Math.abs(orientationCos) * halfWidth + Math.abs(orientationSin) * halfDepth;
+  const extentZ =
+    Math.abs(orientationSin) * halfWidth + Math.abs(orientationCos) * halfDepth;
+
   const collider: RectCollider = {
-    minX: basePosition.x - width / 2,
-    maxX: basePosition.x + width / 2,
-    minZ: basePosition.z - depth / 2,
-    maxZ: basePosition.z + depth / 2,
+    minX: basePosition.x - extentX,
+    maxX: basePosition.x + extentX,
+    minZ: basePosition.z - extentZ,
+    maxZ: basePosition.z + extentZ,
   };
 
   const daisGeometry = new BoxGeometry(width, 0.16, depth);
