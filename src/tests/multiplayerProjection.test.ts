@@ -109,9 +109,15 @@ describe('createMultiplayerProjection', () => {
     const oscillatedGlowOpacity = glow.material.opacity;
     const oscillatedHaloOpacity = halo.material.opacity;
 
-    expect(Math.abs(oscillatedScreenOpacity - animatedScreenOpacity)).toBeGreaterThan(0);
-    expect(Math.abs(oscillatedGlowOpacity - animatedGlowOpacity)).toBeGreaterThan(0);
-    expect(Math.abs(oscillatedHaloOpacity - animatedHaloOpacity)).toBeGreaterThan(0);
+    expect(
+      Math.abs(oscillatedScreenOpacity - animatedScreenOpacity)
+    ).toBeGreaterThan(0);
+    expect(
+      Math.abs(oscillatedGlowOpacity - animatedGlowOpacity)
+    ).toBeGreaterThan(0);
+    expect(
+      Math.abs(oscillatedHaloOpacity - animatedHaloOpacity)
+    ).toBeGreaterThan(0);
 
     const intermediateSnapshot = fullMotion.getCurrentTour();
     expect(intermediateSnapshot.id).toBe(initialSnapshot.id);
