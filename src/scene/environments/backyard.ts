@@ -1465,7 +1465,7 @@ export function createBackyardEnvironment(
   updates.push(({ elapsed }) => {
     const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
-    const motionPreference = Math.max(flickerScale, pulseScale);
+    const motionPreference = Math.min(flickerScale, pulseScale);
     const amplitudeScale = MathUtils.lerp(0.4, 1, motionPreference);
     const swirlScale = MathUtils.lerp(0.38, 1, pulseScale);
     const verticalScale = MathUtils.lerp(
