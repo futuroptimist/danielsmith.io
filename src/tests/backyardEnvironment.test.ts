@@ -56,6 +56,7 @@ describe('createBackyardEnvironment', () => {
               .fn()
               .mockReturnValue({ addColorStop: vi.fn() }),
             fillRect: vi.fn(),
+            fill: vi.fn(),
             fillText: vi.fn(),
             beginPath: vi.fn(),
             moveTo: vi.fn(),
@@ -1147,6 +1148,49 @@ describe('createBackyardEnvironment', () => {
       walkwayBed?.innerRadius ?? 0
     );
     expect(walkwayBed?.baseVolume).toBeGreaterThan(0);
+  });
+
+  it('adds holographic walkway arrows that pulse toward the greenhouse and honor calm-mode damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const arrowGroup = environment.group.getObjectByName(
+      'BackyardWalkwayArrows'
+    );
+    expect(arrowGroup).toBeInstanceOf(Group);
+
+    const arrows = (arrowGroup as Group).children.filter(
+      (child): child is Mesh => child instanceof Mesh
+    );
+    expect(arrows.length).toBeGreaterThanOrEqual(1);
+
+    const firstArrow = arrows[0];
+    const walkway = environment.group.getObjectByName(
+      'BackyardGreenhouseWalkway'
+    ) as Mesh | null;
+    expect(walkway).toBeInstanceOf(Mesh);
+    expect(firstArrow.position.x).toBeCloseTo(walkway!.position.x, 5);
+    const firstMaterial = firstArrow.material as MeshBasicMaterial;
+    expect(firstMaterial.transparent).toBe(true);
+    expect(firstMaterial.blending).toBe(AdditiveBlending);
+    expect(firstMaterial.map).toBeInstanceOf(Texture);
+    const calmArrow = arrows[1] ?? firstArrow;
+    const calmMaterial = calmArrow.material as MeshBasicMaterial;
+    const calmScaleBaseline = calmArrow.scale.z;
+    const calmOpacityBaseline = calmMaterial.opacity;
+    const baseScale = firstArrow.scale.z;
+    const baseOpacity = firstMaterial.opacity;
+
+    environment.update({ elapsed: 0.9, delta: 0.016 });
+
+    expect(firstArrow.scale.z).not.toBeCloseTo(baseScale, 5);
+    expect(firstMaterial.opacity).not.toBeCloseTo(baseOpacity, 5);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+
+    environment.update({ elapsed: 2.4, delta: 0.016 });
+
+    expect(calmArrow.scale.z).toBeCloseTo(calmScaleBaseline, 5);
+    expect(calmMaterial.opacity).toBeCloseTo(calmOpacityBaseline, 5);
   });
 
   it('layers dusk reflections and a light probe across the backyard materials', () => {
