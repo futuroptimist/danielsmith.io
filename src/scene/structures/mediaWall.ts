@@ -12,6 +12,10 @@ import {
 } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
 const SCREEN_WIDTH = 2048;
@@ -292,6 +296,10 @@ export interface LivingRoomMediaWallPoiBindings {
     screenMaterial: MeshBasicMaterial;
     glow: Mesh;
     glowMaterial: MeshBasicMaterial;
+    halo: Mesh;
+    haloMaterial: MeshStandardMaterial;
+    shelfLight: Mesh;
+    shelfLightMaterial: MeshStandardMaterial;
   };
 }
 
@@ -311,15 +319,23 @@ export interface LivingRoomMediaWallBuild {
 interface MediaWallControllerOptions {
   screenRenderer: MediaWallScreenRenderer;
   glowMaterial: MeshBasicMaterial;
+  haloMaterial: MeshStandardMaterial;
+  shelfLightMaterial: MeshStandardMaterial;
 }
 
 function createMediaWallController({
   screenRenderer,
   glowMaterial,
+  haloMaterial,
+  shelfLightMaterial,
 }: MediaWallControllerOptions): LivingRoomMediaWallController {
   let highlight = 0;
+  const baseHaloIntensity = haloMaterial.emissiveIntensity;
+  const baseShelfIntensity = shelfLightMaterial.emissiveIntensity;
+  let haloIntensity = baseHaloIntensity;
+  let shelfIntensity = baseShelfIntensity;
   return {
-    update({ delta, emphasis }) {
+    update({ elapsed, delta, emphasis }) {
       const target = MathUtils.clamp(emphasis, 0, 1);
       highlight = MathUtils.damp(highlight, target, 5.5, delta);
       const opacity = MathUtils.lerp(
@@ -330,6 +346,37 @@ function createMediaWallController({
       if (Math.abs(glowMaterial.opacity - opacity) > 1e-3) {
         glowMaterial.opacity = opacity;
         glowMaterial.needsUpdate = true;
+      }
+
+      const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+      const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+      const highlightWeight = 0.3 + highlight * 0.7;
+      const waveStrength =
+        Math.sin(elapsed * 1.1 + highlight * 0.6) * 0.5 +
+        Math.sin(elapsed * 0.45 + target * 1.4) * 0.5;
+      const scaledWave = waveStrength * pulseScale * highlightWeight * 0.4;
+      const flickerWave =
+        Math.max(0, Math.sin(elapsed * 5.2 + highlight)) * 0.16 * flickerScale;
+      const shelfTarget = MathUtils.clamp(
+        baseShelfIntensity + highlight * 0.55 + scaledWave + flickerWave,
+        0.05,
+        baseShelfIntensity + 0.85
+      );
+      shelfIntensity = MathUtils.damp(shelfIntensity, shelfTarget, 4.6, delta);
+      if (
+        Math.abs(shelfLightMaterial.emissiveIntensity - shelfIntensity) > 1e-3
+      ) {
+        shelfLightMaterial.emissiveIntensity = shelfIntensity;
+      }
+
+      const haloTarget = MathUtils.clamp(
+        baseHaloIntensity + highlight * 0.6 + scaledWave * 0.45,
+        0.05,
+        baseHaloIntensity + 0.55
+      );
+      haloIntensity = MathUtils.damp(haloIntensity, haloTarget, 4.4, delta);
+      if (Math.abs(haloMaterial.emissiveIntensity - haloIntensity) > 1e-3) {
+        haloMaterial.emissiveIntensity = haloIntensity;
       }
       screenRenderer.updateHighlight(highlight);
     },
@@ -497,6 +544,46 @@ export function createLivingRoomMediaWall(
   halo.position.set(wallInteriorX + boardDepth + 0.37, 1.02, anchorZ);
   group.add(halo);
 
+  const shelfLightMaterial = new MeshStandardMaterial({
+    color: new Color(0x14243a),
+    emissive: new Color(0x2f7dff),
+    emissiveIntensity: 0.58,
+    roughness: 0.22,
+    metalness: 0.12,
+  });
+  const shelfLightGeometry = new BoxGeometry(0.04, 0.08, shelfWidth * 0.88);
+  const shelfLight = new Mesh(shelfLightGeometry, shelfLightMaterial);
+  shelfLight.name = 'LivingRoomMediaWallShelfLight';
+  shelfLight.position.set(
+    wallInteriorX + boardDepth + shelfDepth - 0.02,
+    0.44,
+    anchorZ
+  );
+  group.add(shelfLight);
+
+  const wiringMaterial = new MeshStandardMaterial({
+    color: new Color(0x0d151f),
+    emissive: new Color(0x04121f),
+    emissiveIntensity: 0.05,
+    roughness: 0.56,
+    metalness: 0.08,
+  });
+  const wiringGeometry = new BoxGeometry(0.05, 0.72, 0.09);
+  const wiringGroup = new Group();
+  wiringGroup.name = 'LivingRoomMediaWallWiring';
+  const wiringOffsets = [-shelfWidth * 0.3, shelfWidth * 0.3];
+  wiringOffsets.forEach((offsetZ, index) => {
+    const conduit = new Mesh(wiringGeometry, wiringMaterial);
+    conduit.name = `LivingRoomMediaWallConduit-${index}`;
+    conduit.position.set(
+      wallInteriorX + boardDepth + shelfDepth - 0.08,
+      0.1,
+      anchorZ + offsetZ
+    );
+    wiringGroup.add(conduit);
+  });
+  group.add(wiringGroup);
+
   colliders.push({
     minX: wallInteriorX + boardDepth,
     maxX: wallInteriorX + boardDepth + shelfDepth,
@@ -510,12 +597,18 @@ export function createLivingRoomMediaWall(
       screenMaterial,
       glow: screenGlow,
       glowMaterial: screenGlowMaterial,
+      halo,
+      haloMaterial,
+      shelfLight,
+      shelfLightMaterial,
     },
   };
 
   const controller = createMediaWallController({
     screenRenderer: screen,
     glowMaterial: screenGlowMaterial,
+    haloMaterial,
+    shelfLightMaterial,
   });
   controller.setStarCount(1280);
 

@@ -154,6 +154,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      kitchen Wove POI with a tactile robotics vignette.
    - ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
+     - ✅ Undershelf LED wash now breathes with POI emphasis while calm/photosensitive presets
+       dampen pulses and flicker spikes.
    - ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
      orbitals, and an activation-driven tech stack + docs callout panel.
    - ✅ Studio Jobbot terminal desk now projects live automation telemetry via orbiting data
