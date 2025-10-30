@@ -96,6 +96,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
+     - Lantern beacons now ripple toward the greenhouse in a traveling wave that honors
+       calm-mode damping.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
      - ✅ Firefly calm-mode presets now ease orbital amplitude and glow for sensitive players.
    - ✅ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
