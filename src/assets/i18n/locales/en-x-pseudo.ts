@@ -11,6 +11,15 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.'
       ),
     },
+    textFallback: {
+      heading: wrap('Explore the highlights'),
+      intro: wrap(
+        'The text portfolio keeps every exhibit accessible with quick summaries, outcomes, and metrics while immersive mode is unavailable.'
+      ),
+      roomHeadingTemplate: wrap('{roomName} exhibits'),
+      metricsHeading: wrap('Key metrics'),
+      linksHeading: wrap('Further reading'),
+    },
   },
   hud: {
     controlOverlay: {

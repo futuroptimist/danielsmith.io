@@ -19,6 +19,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
         name: 'Daniel Smith',
       },
     },
+    textFallback: {
+      heading: 'أبرز المعارض',
+      intro:
+        'يبقي هذا العرض النصي جميع المعارض متاحة مع ملخصات سريعة ونتائج ومؤشرات أساسية عندما يتعذر تشغيل الوضع الغامر.',
+      roomHeadingTemplate: 'معارض {roomName}',
+      metricsHeading: 'مؤشرات أساسية',
+      linksHeading: 'روابط إضافية',
+    },
   },
   hud: {
     controlOverlay: {

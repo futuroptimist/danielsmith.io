@@ -215,7 +215,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Mobile HUD layout now lifts instructional overlays above the joystick
      safe zone so touch movement remains unobstructed.
 2. **Experience Toggle**
-   - Mode switch between immersive 3D view and a fast-loading text portfolio.
+   - ✅ Mode switch between immersive 3D view and a fast-loading text portfolio.
+     - Text portfolio now mirrors every exhibit with summaries, outcomes, metrics, and links grouped by room.
      - ✅ Manual text mode selections now persist across visits so returning players stay in their preferred experience.
      - ✅ Automated heuristics now catch Node.js fetch/axios and Go HTTP clients so scripted
        crawlers land on the text tour reliably.
@@ -236,14 +237,16 @@ Focus: unify user controls and ensure graceful fallback experiences.
      unless immersive mode is explicitly forced.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
-   - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
-     update immediately when visitors switch locales.
-   - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
-     crawlers understand language coverage and free access guarantees.
-   - ✅ Text fallback links back to immersive mode with the override URL so returns bypass
-     automatic failover heuristics.
-   - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
-     cleanly even when queries or hash fragments already exist.
+
+- ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
+  update immediately when visitors switch locales.
+- ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
+  crawlers understand language coverage and free access guarantees.
+- ✅ Text fallback links back to immersive mode with the override URL so returns bypass
+  automatic failover heuristics.
+- ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
+  cleanly even when queries or hash fragments already exist.
+
 3. **Progression & State**
    - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.

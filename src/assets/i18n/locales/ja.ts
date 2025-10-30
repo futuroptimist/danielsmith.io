@@ -19,6 +19,14 @@ export const JA_OVERRIDES: LocaleOverrides = {
         name: 'Daniel Smith',
       },
     },
+    textFallback: {
+      heading: 'ハイライトをテキストで確認',
+      intro:
+        '没入モードが利用できない場合でも、すべての展示を短い概要・成果・主要指標で素早く確認できます。',
+      roomHeadingTemplate: '{roomName}の展示',
+      metricsHeading: '主要指標',
+      linksHeading: '関連リンク',
+    },
   },
   hud: {
     controlOverlay: {
