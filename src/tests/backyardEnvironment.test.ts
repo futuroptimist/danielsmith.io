@@ -291,6 +291,65 @@ describe('createBackyardEnvironment', () => {
     expect(guideMaterial.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
   });
 
+  it('installs the multiplayer projection marquee with animated telemetry', () => {
+    document.documentElement.dataset.accessibilityPulseScale = '1';
+    document.documentElement.dataset.accessibilityFlickerScale = '1';
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const projectionGroup = environment.group.getObjectByName(
+      'BackyardMultiplayerProjection'
+    );
+    expect(projectionGroup).toBeInstanceOf(Group);
+
+    const screen = projectionGroup?.getObjectByName(
+      'MultiplayerProjectionScreen'
+    ) as Mesh<MeshBasicMaterial> | null;
+    const glow = projectionGroup?.getObjectByName(
+      'MultiplayerProjectionGlow'
+    ) as Mesh<MeshBasicMaterial> | null;
+    const halo = projectionGroup?.getObjectByName(
+      'MultiplayerProjectionHalo'
+    ) as Mesh<MeshBasicMaterial> | null;
+
+    expect(screen).toBeInstanceOf(Mesh);
+    expect(glow).toBeInstanceOf(Mesh);
+    expect(halo).toBeInstanceOf(Mesh);
+
+    const screenMaterial = (screen!.material as MeshBasicMaterial)!;
+    const glowMaterial = (glow!.material as MeshBasicMaterial)!;
+    const haloMaterial = (halo!.material as MeshBasicMaterial)!;
+
+    const baselineScreenOpacity = screenMaterial.opacity;
+    const baselineGlowOpacity = glowMaterial.opacity;
+    const baselineHaloOpacity = haloMaterial.opacity;
+
+    environment.update({ elapsed: 0.6, delta: 0.016 });
+    const midScreenOpacity = screenMaterial.opacity;
+    const midGlowOpacity = glowMaterial.opacity;
+    const midHaloOpacity = haloMaterial.opacity;
+
+    expect(midScreenOpacity).not.toBeCloseTo(baselineScreenOpacity, 5);
+    expect(midGlowOpacity).not.toBeCloseTo(baselineGlowOpacity, 5);
+    expect(midHaloOpacity).not.toBeCloseTo(baselineHaloOpacity, 5);
+
+    environment.update({ elapsed: 8.6, delta: 0.016 });
+    expect(screenMaterial.opacity).not.toBeCloseTo(midScreenOpacity, 5);
+    expect(glowMaterial.opacity).not.toBeCloseTo(midGlowOpacity, 5);
+    expect(haloMaterial.opacity).not.toBeCloseTo(midHaloOpacity, 5);
+
+    const projectionPosition = projectionGroup!.position.clone();
+    const collider = environment.colliders.find(
+      (candidate) =>
+        projectionPosition.x >= candidate.minX &&
+        projectionPosition.x <= candidate.maxX &&
+        projectionPosition.z >= candidate.minZ &&
+        projectionPosition.z <= candidate.maxZ
+    );
+
+    expect(collider).toBeDefined();
+    expect(collider?.maxX).toBeGreaterThan(collider!.minX);
+    expect(collider?.maxZ).toBeGreaterThan(collider!.minZ);
+  });
+
   it('adds fiber optic walkway segments that sweep toward the greenhouse', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const fiberGroup = environment.group.getObjectByName(

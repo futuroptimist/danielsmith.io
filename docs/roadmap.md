@@ -357,7 +357,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 Ideas to evaluate after the core experience is stable:
 
-- Multiplayer showroom tours or live streams as ambient projections.
+- ✅ Multiplayer showroom tours now beam remote sessions as a greenhouse-side projection marquee.
+  - Holographic display cycles visitor counts, latency telemetry, and upcoming hosts with accessibility-aware pulses.
 - ✅ Seasonal lighting presets (holiday dusk, spring bloom, summer aurora, autumn harvest)
   now rotate via calendar and expose HUD dataset hooks for the upcoming transition window.
 - ✅ Seasonal lighting scheduler now retints LED strips and fill lights for holiday and spring
