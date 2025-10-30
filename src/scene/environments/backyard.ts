@@ -42,6 +42,7 @@ import {
 } from '../lighting/seasonalPresets';
 import { createGreenhouse } from '../structures/greenhouse';
 import { createModelRocket } from '../structures/modelRocket';
+import { createMultiplayerProjection } from '../structures/multiplayerProjection';
 
 export interface BackyardEnvironmentBuild {
   group: Group;
@@ -502,6 +503,19 @@ export function createBackyardEnvironment(
     });
   }
   group.add(walkwayArrowGroup);
+
+  const projectionBase = new Vector3(
+    walkway.position.x - walkwayWidth * 0.62,
+    0,
+    walkway.position.z + walkwayDepth * 0.18
+  );
+  const projection = createMultiplayerProjection({
+    basePosition: projectionBase,
+    orientationRadians: -Math.PI / 9,
+  });
+  group.add(projection.group);
+  colliders.push(projection.collider);
+  updates.push(projection.update);
 
   const walkwayMoteCount = 36;
   const walkwayMoteGeometry = new BufferGeometry();
