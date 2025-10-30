@@ -198,4 +198,36 @@ describe('JobbotTerminal structure', () => {
     );
     expect(shardMaterial.opacity).toBeCloseTo(steadyShardOpacity, 5);
   });
+
+  it('syncs data shard emissive sweeps with analytics glow rhythm', () => {
+    const build = createJobbotTerminal({ position: { x: 0, z: 0 } });
+    const shard = build.group.getObjectByName(
+      'JobbotTerminalDataShard-2'
+    ) as Mesh;
+
+    expect(shard).toBeInstanceOf(Mesh);
+    const shardMaterial = shard.material as MeshStandardMaterial;
+
+    build.update({ elapsed: 0.5, delta: 0.5, emphasis: 0.35 });
+    const baselineIntensity = shardMaterial.emissiveIntensity;
+    const baselineHeight = shard.position.y;
+
+    build.update({
+      elapsed: 1,
+      delta: 0.5,
+      emphasis: 0.35,
+      analyticsGlow: 1,
+      analyticsWave: 0.2,
+    });
+    build.update({
+      elapsed: 1.5,
+      delta: 0.5,
+      emphasis: 0.35,
+      analyticsGlow: 1,
+      analyticsWave: 0.7,
+    });
+
+    expect(shardMaterial.emissiveIntensity).toBeGreaterThan(baselineIntensity);
+    expect(Math.abs(shard.position.y - baselineHeight)).toBeGreaterThan(0.001);
+  });
 });

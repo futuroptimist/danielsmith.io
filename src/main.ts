@@ -294,6 +294,10 @@ import {
 import { writeModePreference } from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
 import { createGitHubRepoStatsService } from './systems/github/repoStats';
+import {
+  createAnalyticsGlowRhythm,
+  type AnalyticsGlowRhythmHandle,
+} from './systems/hud/analyticsGlowRhythm';
 import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
@@ -316,6 +320,7 @@ import {
   createAvatarAccessoryProgression,
   type AvatarAccessoryProgressionHandle,
 } from './systems/progression/avatarAccessoryProgression';
+import { getPulseScale } from './ui/accessibility/animationPreferences';
 import {
   createHudFocusAnnouncer,
   type HudFocusAnnouncerHandle,
@@ -1905,6 +1910,10 @@ function initializeImmersiveScene(
   if (controlOverlay) {
     applyControlOverlayStrings(controlOverlay, controlOverlayStrings);
   }
+  const analyticsGlow: AnalyticsGlowRhythmHandle = createAnalyticsGlowRhythm({
+    element: controlOverlay ?? null,
+    getPulseScale: () => getPulseScale(),
+  });
   const keyBindings = new KeyBindings();
   const KEY_BINDINGS_STORAGE_KEY = 'danielsmith.io:keyBindings';
   const bindingActions: KeyBindingAction[] = [
@@ -2343,6 +2352,7 @@ function initializeImmersiveScene(
     if (controlOverlay) {
       applyControlOverlayStrings(controlOverlay, controlOverlayStrings);
     }
+    analyticsGlow.setElement(controlOverlay ?? null);
     responsiveControlOverlay?.setStrings(controlOverlayStrings.mobileToggle);
     responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
@@ -3246,6 +3256,7 @@ function initializeImmersiveScene(
       delta > 0 ? 1 - Math.exp(-delta * POI_ACTIVATION_RESPONSE) : 1;
     let closestPoi: PoiInstance | null = null;
     let highestActivation = 0;
+    let highestEmphasis = 0;
     for (const poi of poiInstances) {
       const floatOffset = Math.sin(
         elapsedTime * poi.floatSpeed + poi.floatPhase
@@ -3296,6 +3307,10 @@ function initializeImmersiveScene(
       if (poi.activation > highestActivation) {
         highestActivation = poi.activation;
         closestPoi = poi;
+      }
+
+      if (emphasis > highestEmphasis) {
+        highestEmphasis = emphasis;
       }
 
       if (poi.label && poi.labelMaterial) {
@@ -3391,6 +3406,7 @@ function initializeImmersiveScene(
         }
       }
     }
+    analyticsGlow.setTargetEmphasis(highestEmphasis);
     if (closestPoi && highestActivation >= 0.6) {
       setInteractablePoi(closestPoi);
     } else {
@@ -3634,6 +3650,7 @@ function initializeImmersiveScene(
       helpModalController.dispose();
       helpModalController = null;
     }
+    analyticsGlow.dispose();
     helpModal.dispose();
     if (hudFocusAnnouncer) {
       hudFocusAnnouncer.dispose();
@@ -3722,6 +3739,7 @@ function initializeImmersiveScene(
         });
       }
       updatePois(elapsedTime, delta);
+      analyticsGlow.update(delta);
       poiWorldTooltip.update(delta);
       handleInteractionInput();
       handleHelpInput();
@@ -3784,6 +3802,8 @@ function initializeImmersiveScene(
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
+          analyticsGlow: analyticsGlow.getValue(),
+          analyticsWave: analyticsGlow.getWave(),
         });
       }
       if (axelNavigator) {
