@@ -4,6 +4,7 @@ import {
 } from '../../systems/guidedTour/preference';
 import type { InteractionTimeline } from '../../ui/accessibility/interactionTimeline';
 
+import type { PoiSelectionContext } from './interactionManager';
 import type { PoiDefinition } from './types';
 
 type DiscoveryFormatter = (poi: PoiDefinition) => string;
@@ -38,6 +39,7 @@ export class PoiTooltipOverlay {
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
   private readonly guidedTourPreference: GuidedTourPreference;
+  private readonly instanceId: string;
   private discoveryFormatter: DiscoveryFormatter;
   private discoveryPoliteness: 'polite' | 'assertive';
   private readonly discoveredPoiIds = new Set<string>();
@@ -48,6 +50,7 @@ export class PoiTooltipOverlay {
   private visitedPoiIds: ReadonlySet<string> = new Set();
   private guidedTourEnabled = true;
   private unsubscribeGuidedTour: (() => void) | null = null;
+  private focusOnNextUpdate = false;
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
@@ -63,12 +66,14 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
+    this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
     this.root.className = 'poi-tooltip-overlay';
+    this.root.id = `${this.instanceId}-region`;
     this.root.setAttribute('role', 'region');
     this.root.setAttribute('aria-live', 'polite');
-    this.root.setAttribute('aria-label', 'Point of interest details');
+    this.root.setAttribute('aria-labelledby', `${this.instanceId}-title`);
     this.root.setAttribute('aria-hidden', 'true');
     this.root.tabIndex = -1;
 
@@ -77,7 +82,7 @@ export class PoiTooltipOverlay {
 
     this.title = documentTarget.createElement('h2');
     this.title.className = 'poi-tooltip-overlay__title';
-    this.title.id = 'poi-tooltip-title';
+    this.title.id = `${this.instanceId}-title`;
     this.root.appendChild(headingRow);
     headingRow.appendChild(this.title);
 
@@ -100,10 +105,12 @@ export class PoiTooltipOverlay {
 
     this.summary = documentTarget.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';
+    this.summary.id = `${this.instanceId}-summary`;
     this.root.appendChild(this.summary);
 
     this.outcome = documentTarget.createElement('p');
     this.outcome.className = 'poi-tooltip-overlay__outcome';
+    this.outcome.id = `${this.instanceId}-outcome`;
     this.outcome.hidden = true;
     this.outcomeLabel = documentTarget.createElement('span');
     this.outcomeLabel.className = 'poi-tooltip-overlay__outcome-label';
@@ -120,11 +127,13 @@ export class PoiTooltipOverlay {
 
     this.metricsList = documentTarget.createElement('ul');
     this.metricsList.className = 'poi-tooltip-overlay__metrics';
+    this.metricsList.id = `${this.instanceId}-metrics`;
     this.root.appendChild(this.metricsList);
 
     this.linksList = documentTarget.createElement('ul');
     this.linksList.className = 'poi-tooltip-overlay__links';
-    this.linksList.id = 'poi-tooltip-links';
+    this.linksList.id = `${this.instanceId}-links`;
+    this.linksList.setAttribute('aria-label', 'Related case studies');
     this.root.appendChild(this.linksList);
 
     container.appendChild(this.root);
@@ -152,8 +161,16 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
-  setSelected(poi: PoiDefinition | null) {
+  setSelected(poi: PoiDefinition | null, context?: PoiSelectionContext) {
     this.selected = poi;
+    if (context?.inputMethod === 'keyboard' && poi) {
+      this.focusOnNextUpdate = true;
+    } else if (context?.inputMethod) {
+      this.focusOnNextUpdate = false;
+    }
+    if (!poi) {
+      this.focusOnNextUpdate = false;
+    }
     if (poi && !this.discoveredPoiIds.has(poi.id)) {
       this.announceDiscovery(poi);
     }
@@ -203,10 +220,12 @@ export class PoiTooltipOverlay {
       this.root.classList.remove('poi-tooltip-overlay--visible');
       this.root.dataset.state = 'hidden';
       this.root.setAttribute('aria-hidden', 'true');
+      this.root.removeAttribute('aria-describedby');
       this.renderState.poiId = null;
       this.visitedBadge.hidden = true;
       this.recommendationBadge.hidden = true;
       this.liveRegion.textContent = '';
+      this.focusOnNextUpdate = false;
       return;
     }
 
@@ -232,10 +251,45 @@ export class PoiTooltipOverlay {
       this.renderMetrics(poi);
     }
 
-    if (state === 'selected' && !this.linksList.hidden) {
-      this.root.setAttribute('aria-describedby', this.linksList.id);
+    const describedByIds = [this.summary.id];
+    if (!this.outcome.hidden) {
+      describedByIds.push(this.outcome.id);
+    }
+    if (!this.metricsList.hidden) {
+      describedByIds.push(this.metricsList.id);
+    }
+    if (!this.linksList.hidden) {
+      describedByIds.push(this.linksList.id);
+    }
+    if (describedByIds.length > 0) {
+      this.root.setAttribute('aria-describedby', describedByIds.join(' '));
     } else {
       this.root.removeAttribute('aria-describedby');
+    }
+
+    if (state === 'selected' && this.focusOnNextUpdate) {
+      this.focusOnNextUpdate = false;
+      this.focusRoot();
+    } else if (state !== 'selected') {
+      this.focusOnNextUpdate = false;
+    }
+  }
+
+  private focusRoot() {
+    if (!this.root.isConnected) {
+      return;
+    }
+    const ownerDocument = this.root.ownerDocument ?? document;
+    if (ownerDocument.activeElement === this.root) {
+      return;
+    }
+    if (typeof this.root.focus !== 'function') {
+      return;
+    }
+    try {
+      this.root.focus({ preventScroll: true });
+    } catch {
+      this.root.focus();
     }
   }
 
@@ -369,4 +423,11 @@ function applyVisuallyHiddenStyles(element: HTMLElement): void {
 function defaultDiscoveryFormatter(poi: PoiDefinition): string {
   const summary = poi.summary ? ` ${poi.summary}` : '';
   return `${poi.title} discovered.${summary}`;
+}
+
+let tooltipInstanceCounter = 0;
+
+function generateTooltipInstanceId(): string {
+  tooltipInstanceCounter += 1;
+  return `poi-tooltip-${tooltipInstanceCounter}`;
 }

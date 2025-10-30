@@ -3,6 +3,12 @@ import { Camera, Raycaster, Vector2 } from 'three';
 import type { PoiInstance } from './markers';
 import type { PoiAnalytics, PoiDefinition } from './types';
 
+export type PoiSelectionInputMethod = 'keyboard' | 'pointer' | 'touch';
+
+export interface PoiSelectionContext {
+  inputMethod: PoiSelectionInputMethod;
+}
+
 function isPoiAnalyticsCandidate(value: unknown): value is PoiAnalytics {
   if (!value || typeof value !== 'object') {
     return false;
@@ -16,9 +22,15 @@ function isPoiAnalyticsCandidate(value: unknown): value is PoiAnalytics {
   );
 }
 
-export type PoiSelectionListener = (poi: PoiDefinition) => void;
+export type PoiSelectionListener = (
+  poi: PoiDefinition,
+  context?: PoiSelectionContext
+) => void;
 export type PoiHoverListener = (poi: PoiDefinition | null) => void;
-export type PoiSelectionStateListener = (poi: PoiDefinition | null) => void;
+export type PoiSelectionStateListener = (
+  poi: PoiDefinition | null,
+  context?: PoiSelectionContext
+) => void;
 
 type ListenerTarget = Pick<
   HTMLElement,
@@ -46,6 +58,7 @@ export class PoiInteractionManager {
   private usingKeyboard = false;
   private touchPointerId: number | null = null;
   private suppressSyntheticClickUntil = 0;
+  private lastSelectionInput: PoiSelectionInputMethod = 'pointer';
 
   private static readonly syntheticClickSuppressionMs = 500;
 
@@ -152,7 +165,7 @@ export class PoiInteractionManager {
     this.usingKeyboard = true;
     this.keyboardIndex = this.poiInstances.indexOf(poi);
     this.setHovered(poi);
-    this.setSelected(poi);
+    this.setSelected(poi, 'keyboard');
     this.dispatchSelection(poi.definition);
   }
 
@@ -189,10 +202,10 @@ export class PoiInteractionManager {
     this.usingKeyboard = false;
     const poi = this.pickPoi();
     if (!poi) {
-      this.setSelected(null);
+      this.setSelected(null, 'pointer');
       return;
     }
-    this.setSelected(poi);
+    this.setSelected(poi, 'pointer');
     this.dispatchSelection(poi.definition);
   }
 
@@ -248,13 +261,13 @@ export class PoiInteractionManager {
     }
     const poi = this.pickPoi();
     if (!poi) {
-      this.setSelected(null);
+      this.setSelected(null, 'touch');
       this.setHovered(null);
       this.suppressSyntheticClickUntil = 0;
       return;
     }
     this.setHovered(poi);
-    this.setSelected(poi);
+    this.setSelected(poi, 'touch');
     this.dispatchSelection(poi.definition);
     this.suppressSyntheticClickUntil =
       Date.now() + PoiInteractionManager.syntheticClickSuppressionMs;
@@ -308,7 +321,7 @@ export class PoiInteractionManager {
         if (this.hovered) {
           event.preventDefault();
           this.usingKeyboard = true;
-          this.setSelected(this.hovered);
+          this.setSelected(this.hovered, 'keyboard');
           this.dispatchSelection(this.hovered.definition);
         }
         break;
@@ -316,7 +329,7 @@ export class PoiInteractionManager {
       case 'escape':
         if (this.selected) {
           event.preventDefault();
-          this.setSelected(null);
+          this.setSelected(null, 'keyboard');
         }
         break;
       default:
@@ -410,7 +423,13 @@ export class PoiInteractionManager {
     this.notifyHoverListeners(poi?.definition ?? null);
   }
 
-  private setSelected(poi: PoiInstance | null) {
+  private setSelected(
+    poi: PoiInstance | null,
+    inputMethod: PoiSelectionInputMethod | null = null
+  ) {
+    if (inputMethod) {
+      this.lastSelectionInput = inputMethod;
+    }
     if (this.selected === poi) {
       return;
     }
@@ -428,16 +447,22 @@ export class PoiInteractionManager {
     if (poi && previous !== poi) {
       this.analytics?.selected?.(poi.definition);
     }
-    this.notifySelectionStateListeners(poi?.definition ?? null);
+    this.notifySelectionStateListeners(
+      poi?.definition ?? null,
+      this.createSelectionContext()
+    );
   }
 
   private dispatchSelection(definition: PoiDefinition) {
+    const context = this.createSelectionContext();
     for (const listener of this.listeners) {
-      listener(definition);
+      listener(definition, context);
     }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
-        new CustomEvent('poi:selected', { detail: { poi: definition } })
+        new CustomEvent('poi:selected', {
+          detail: { poi: definition, inputMethod: context.inputMethod },
+        })
       );
     }
   }
@@ -448,10 +473,17 @@ export class PoiInteractionManager {
     }
   }
 
-  private notifySelectionStateListeners(poi: PoiDefinition | null) {
+  private notifySelectionStateListeners(
+    poi: PoiDefinition | null,
+    context: PoiSelectionContext
+  ) {
     for (const listener of this.selectionStateListeners) {
-      listener(poi);
+      listener(poi, context);
     }
+  }
+
+  private createSelectionContext(): PoiSelectionContext {
+    return { inputMethod: this.lastSelectionInput };
   }
 
   private getActiveTouch(touches: TouchList): Touch | null {

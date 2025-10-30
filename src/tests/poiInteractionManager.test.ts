@@ -236,10 +236,19 @@ describe('PoiInteractionManager', () => {
       new MouseEvent('click', { clientX: 200, clientY: 200 })
     );
 
-    expect(listener).toHaveBeenCalledWith(definition);
+    expect(listener).toHaveBeenCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
     expect(customEventHandler).toHaveBeenCalledTimes(1);
+    const customEvent = customEventHandler.mock.calls[0]?.[0] as CustomEvent;
+    expect(customEvent.detail).toEqual({
+      poi: definition,
+      inputMethod: 'pointer',
+    });
     expect(poi.focusTarget).toBe(1);
-    expect(selectionState).toHaveBeenLastCalledWith(definition);
+    expect(selectionState).toHaveBeenLastCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
 
     domElement.dispatchEvent(new MouseEvent('mouseleave'));
     expect(poi.focusTarget).toBe(1);
@@ -275,7 +284,9 @@ describe('PoiInteractionManager', () => {
     dispatchTouchEvent(domElement, 'touchend', [
       { clientX: 210, clientY: 210, identifier: 42 },
     ]);
-    expect(selection).toHaveBeenCalledWith(definition);
+    expect(selection).toHaveBeenCalledWith(definition, {
+      inputMethod: 'touch',
+    });
     expect(poi.focusTarget).toBe(1);
 
     dispatchTouchEvent(domElement, 'touchend', []);
@@ -386,8 +397,13 @@ describe('PoiInteractionManager', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
-    expect(listener).toHaveBeenCalledWith(definition);
+    expect(listener).toHaveBeenNthCalledWith(1, definition, {
+      inputMethod: 'keyboard',
+    });
     expect(customEventHandler).toHaveBeenCalledTimes(1);
+    const keyboardSelectionEvent = customEventHandler.mock
+      .calls[0]?.[0] as CustomEvent;
+    expect(keyboardSelectionEvent.detail.inputMethod).toBe('keyboard');
     expect(poi.focusTarget).toBe(1);
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -395,6 +411,9 @@ describe('PoiInteractionManager', () => {
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
     expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenNthCalledWith(2, definition, {
+      inputMethod: 'keyboard',
+    });
 
     window.removeEventListener('poi:selected', customEventHandler);
   });
@@ -406,7 +425,9 @@ describe('PoiInteractionManager', () => {
 
     manager.selectPoiById(definition.id);
 
-    expect(listener).toHaveBeenCalledWith(definition);
+    expect(listener).toHaveBeenCalledWith(definition, {
+      inputMethod: 'keyboard',
+    });
     expect(poi.focusTarget).toBe(1);
   });
 
@@ -418,10 +439,14 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('click', { clientX: 200, clientY: 200 })
     );
-    expect(selectionState).toHaveBeenLastCalledWith(definition);
+    expect(selectionState).toHaveBeenLastCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(selectionState).toHaveBeenLastCalledWith(null);
+    expect(selectionState).toHaveBeenLastCalledWith(null, {
+      inputMethod: 'keyboard',
+    });
   });
 
   it('ignores keyboard input when disabled', () => {
