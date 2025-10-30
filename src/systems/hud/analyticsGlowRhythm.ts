@@ -45,7 +45,7 @@ export interface AnalyticsGlowRhythmHandle {
    */
   getValue(): number;
   /**
-   * Returns the normalized pulse wave (0–1) that other systems can sync to.
+   * Returns the normalized pulse phase (0–1) that other systems can sync to.
    */
   getWave(): number;
   /**
@@ -99,6 +99,7 @@ export function createAnalyticsGlowRhythm(
   let pulsePhase = 0;
   let glowValue = 0;
   let waveValue = 0;
+  let normalizedPhase = 0;
 
   const updateGlow = () => {
     applyGlow(element, glowValue);
@@ -130,6 +131,8 @@ export function createAnalyticsGlowRhythm(
         pulsePhase %= Math.PI * 2;
       }
 
+      normalizedPhase = pulsePhase / (Math.PI * 2);
+
       const pulseScale = clamp01(readPulseScale());
       const baseWave = Math.sin(pulsePhase) * 0.5 + 0.5;
       const scaledWave = baseWave * pulseScale;
@@ -156,7 +159,7 @@ export function createAnalyticsGlowRhythm(
       return glowValue;
     },
     getWave() {
-      return waveValue;
+      return normalizedPhase;
     },
     setElement(next: HTMLElement | null) {
       if (element && element !== next) {
@@ -172,6 +175,7 @@ export function createAnalyticsGlowRhythm(
       emphasisState = 0;
       glowValue = 0;
       waveValue = 0;
+      normalizedPhase = 0;
     },
   };
 }

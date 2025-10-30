@@ -31,8 +31,10 @@ describe('createAnalyticsGlowRhythm', () => {
     rhythm.update(0.2);
     rhythm.update(10);
 
+    const phaseAfterReset = rhythm.getWave();
     expect(rhythm.getValue()).toBeLessThanOrEqual(0.001);
-    expect(rhythm.getWave()).toBeLessThanOrEqual(0.001);
+    expect(phaseAfterReset).toBeGreaterThanOrEqual(0);
+    expect(phaseAfterReset).toBeLessThan(1);
     expect(
       Number.parseFloat(
         element.style.getPropertyValue('--hud-analytics-glow') || '0'
@@ -48,21 +50,19 @@ describe('createAnalyticsGlowRhythm', () => {
       getPulseScale,
       pulseFrequency: 2,
       pulseStrength: 1,
+      smoothing: 0,
     });
 
     rhythm.setTargetEmphasis(1);
     rhythm.update(0.1);
     const firstValue = rhythm.getValue();
-    const firstWave = rhythm.getWave();
-    const minGlow = 0.08;
-    const glowRange = 0.92;
-    expect(firstValue).toBeCloseTo(minGlow + glowRange * firstWave, 6);
+    const firstPhase = rhythm.getWave();
 
-    rhythm.update(0.5);
+    rhythm.update(0.3);
     const secondValue = rhythm.getValue();
-    const secondWave = rhythm.getWave();
-    expect(secondValue).toBeCloseTo(minGlow + glowRange * secondWave, 6);
-    expect(secondWave).toBeGreaterThanOrEqual(firstWave);
+    const secondPhase = rhythm.getWave();
+    expect(secondValue).toBeCloseTo(firstValue, 6);
+    expect(secondPhase).not.toBeCloseTo(firstPhase, 6);
   });
 
   it('rebinds elements and clears styles on dispose', () => {
