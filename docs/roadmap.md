@@ -99,6 +99,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
    - ✅ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
      that sweep toward the greenhouse while honoring accessibility damping scales.
+   - ✅ Holographic walkway arrows now sweep visitors toward the greenhouse while calm-mode
+     pulses keep motion gentle for sensitive players.
    - ✅ Dusk pollen motes now drift along the greenhouse walkway with accessibility-aware swirl
      damping for calm-mode visitors.
    - ✅ Seasonal presets now retint the dusk pollen motes so backyard event palettes stay in sync

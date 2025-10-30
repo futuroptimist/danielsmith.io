@@ -60,6 +60,14 @@ export interface BackyardAmbientAudioBed {
   falloffCurve?: AmbientAudioFalloffCurve;
 }
 
+interface WalkwayArrowTarget {
+  mesh: Mesh;
+  baseOpacity: number;
+  baseScaleZ: number;
+  baseHeight: number;
+  phase: number;
+}
+
 function createSignageTexture(title: string, subtitle: string): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -97,6 +105,74 @@ function createSignageTexture(title: string, subtitle: string): CanvasTexture {
   context.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 18);
 
   const texture = new CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createWalkwayGuideTexture(): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Failed to create walkway guide texture.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  const outerGradient = context.createLinearGradient(
+    canvas.width / 2,
+    canvas.height * 0.12,
+    canvas.width / 2,
+    canvas.height * 0.92
+  );
+  outerGradient.addColorStop(0, 'rgba(95, 210, 255, 0)');
+  outerGradient.addColorStop(0.42, 'rgba(95, 210, 255, 0.18)');
+  outerGradient.addColorStop(0.72, 'rgba(95, 210, 255, 0.68)');
+  outerGradient.addColorStop(1, 'rgba(165, 240, 255, 0.92)');
+  context.fillStyle = outerGradient;
+  context.beginPath();
+  context.moveTo(canvas.width / 2, canvas.height * 0.08);
+  context.lineTo(canvas.width * 0.18, canvas.height * 0.92);
+  context.lineTo(canvas.width * 0.82, canvas.height * 0.92);
+  context.closePath();
+  context.fill();
+
+  const innerGradient = context.createLinearGradient(
+    canvas.width / 2,
+    canvas.height * 0.18,
+    canvas.width / 2,
+    canvas.height * 0.92
+  );
+  innerGradient.addColorStop(0, 'rgba(185, 245, 255, 0.05)');
+  innerGradient.addColorStop(0.46, 'rgba(185, 245, 255, 0.32)');
+  innerGradient.addColorStop(1, 'rgba(255, 255, 255, 0.78)');
+  context.fillStyle = innerGradient;
+  context.beginPath();
+  context.moveTo(canvas.width / 2, canvas.height * 0.16);
+  context.lineTo(canvas.width * 0.28, canvas.height * 0.88);
+  context.lineTo(canvas.width * 0.72, canvas.height * 0.88);
+  context.closePath();
+  context.fill();
+
+  const trailGradient = context.createLinearGradient(
+    canvas.width / 2,
+    canvas.height * 0.46,
+    canvas.width / 2,
+    canvas.height * 0.92
+  );
+  trailGradient.addColorStop(0, 'rgba(255, 255, 255, 0.62)');
+  trailGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  context.fillStyle = trailGradient;
+  context.fillRect(
+    canvas.width * 0.46,
+    canvas.height * 0.46,
+    canvas.width * 0.08,
+    canvas.height * 0.46
+  );
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
   return texture;
 }
@@ -384,6 +460,48 @@ export function createBackyardEnvironment(
     baseVolume: 0.42,
     falloffCurve: 'smoothstep',
   });
+
+  const walkwayArrowTexture = createWalkwayGuideTexture();
+  const walkwayArrowGeometry = new PlaneGeometry(1, 1, 1, 1);
+  walkwayArrowGeometry.rotateX(-Math.PI / 2);
+  const walkwayArrowGroup = new Group();
+  walkwayArrowGroup.name = 'BackyardWalkwayArrows';
+  const walkwayArrowTargets: WalkwayArrowTarget[] = [];
+  const walkwayArrowCount = 3;
+  const arrowBaseWidth = walkwayWidth * 0.26;
+  const arrowBaseLength = walkwayDepth * 0.28;
+  for (let i = 0; i < walkwayArrowCount; i += 1) {
+    const material = new MeshBasicMaterial({
+      map: walkwayArrowTexture,
+      transparent: true,
+      opacity: 0.68,
+      color: new Color(0x81d8ff),
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+    });
+    const arrow = new Mesh(walkwayArrowGeometry, material);
+    arrow.name = `BackyardWalkwayArrow-${i}`;
+    const ratio = (i + 1) / (walkwayArrowCount + 1);
+    arrow.position.set(
+      walkway.position.x,
+      walkway.position.y + 0.04 + Math.sin((i + 1) * 0.6) * 0.01,
+      walkway.position.z - walkwayDepth / 2 + walkwayDepth * ratio
+    );
+    const widthScale = arrowBaseWidth * (0.9 + ratio * 0.2);
+    const lengthScale =
+      arrowBaseLength * (0.84 + Math.cos(ratio * Math.PI) * 0.12);
+    arrow.scale.set(widthScale, 1, lengthScale);
+    walkwayArrowGroup.add(arrow);
+    walkwayArrowTargets.push({
+      mesh: arrow,
+      baseOpacity: material.opacity ?? 0.68,
+      baseScaleZ: lengthScale,
+      baseHeight: arrow.position.y,
+      phase: ratio * Math.PI * 1.2,
+    });
+  }
+  group.add(walkwayArrowGroup);
 
   const walkwayMoteCount = 36;
   const walkwayMoteGeometry = new BufferGeometry();
@@ -707,6 +825,37 @@ export function createBackyardEnvironment(
     );
     pollenMaterial.needsUpdate = true;
   });
+
+  if (walkwayArrowTargets.length > 0) {
+    updates.push(({ elapsed }) => {
+      const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+      const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+      walkwayArrowTargets.forEach((target) => {
+        if (pulseScale === 0 && flickerScale === 0) {
+          target.mesh.scale.z = target.baseScaleZ;
+          target.mesh.position.y = target.baseHeight;
+          const material = target.mesh.material as MeshBasicMaterial;
+          material.opacity = target.baseOpacity;
+          return;
+        }
+        const cycle = elapsed * 0.9 + target.phase;
+        const lengthPulse = 1 + Math.sin(cycle) * 0.28 * pulseScale;
+        target.mesh.scale.z = target.baseScaleZ * lengthPulse;
+        target.mesh.position.y =
+          target.baseHeight + Math.sin(cycle * 1.6) * 0.012 * pulseScale;
+        const shimmer = MathUtils.clamp(
+          0.64 +
+            (Math.sin(cycle * 1.8) * 0.22 + Math.cos(cycle * 0.78) * 0.16) *
+              pulseScale *
+              (0.6 + 0.4 * flickerScale),
+          0.2,
+          1.6
+        );
+        const material = target.mesh.material as MeshBasicMaterial;
+        material.opacity = MathUtils.clamp(target.baseOpacity * shimmer, 0, 1);
+      });
+    });
+  }
 
   interface WalkwayFiberAnimationTarget {
     material: MeshStandardMaterial;
