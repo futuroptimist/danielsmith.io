@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshBasicMaterial } from 'three';
+import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
@@ -228,6 +228,63 @@ describe('createFlywheelShowpiece', () => {
     materials.forEach((material) => {
       expect(material.opacity).toBeGreaterThan(0.3);
     });
+
+    build.group.dispatchEvent({ type: 'removed' } as Event);
+  });
+
+  it('highlights automation pillars as emphasis and selection increase', () => {
+    const build = createFlywheelShowpiece({
+      centerX: 0,
+      centerZ: 0,
+      roomBounds,
+    });
+
+    const pillarGroup = build.group.getObjectByName(
+      'FlywheelAutomationPillars'
+    ) as Group;
+    expect(pillarGroup).toBeInstanceOf(Group);
+
+    const pillarMeshes = pillarGroup.children as Mesh[];
+    expect(pillarMeshes.length).toBeGreaterThan(0);
+
+    const initialHeights = pillarMeshes.map((mesh) => mesh.position.y);
+    const materials = pillarMeshes.map(
+      (mesh) => mesh.material as MeshStandardMaterial
+    );
+
+    build.update({ elapsed: 0.2, delta: 0.2, emphasis: 0.1 });
+
+    materials.forEach((material) => {
+      expect(material.opacity).toBeLessThan(0.3);
+    });
+
+    window.dispatchEvent(
+      new CustomEvent('poi:selected', {
+        detail: { poi: { id: 'flywheel-studio-flywheel' } },
+      })
+    );
+
+    build.update({ elapsed: 0.9, delta: 0.7, emphasis: 1 });
+    build.update({ elapsed: 1.6, delta: 0.7, emphasis: 1 });
+
+    const finalHeights = pillarMeshes.map((mesh) => mesh.position.y);
+    const heightChanged = finalHeights.some(
+      (height, index) => Math.abs(height - initialHeights[index]) > 1e-4
+    );
+    expect(heightChanged).toBe(true);
+
+    materials.forEach((material) => {
+      expect(material.opacity).toBeGreaterThan(0.4);
+      expect(material.emissiveIntensity).toBeGreaterThan(0.5);
+    });
+
+    expect(pillarMeshes.every((mesh) => mesh.visible)).toBe(true);
+
+    window.dispatchEvent(
+      new CustomEvent('poi:selection-cleared', {
+        detail: { poi: { id: 'flywheel-studio-flywheel' } },
+      })
+    );
 
     build.group.dispatchEvent({ type: 'removed' } as Event);
   });

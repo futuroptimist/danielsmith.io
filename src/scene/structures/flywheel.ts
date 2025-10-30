@@ -34,6 +34,13 @@ export interface FlywheelShowpieceOptions {
   orientationRadians?: number;
 }
 
+interface AutomationPillar {
+  mesh: Mesh;
+  material: MeshStandardMaterial;
+  baseHeight: number;
+  phase: number;
+}
+
 export function createFlywheelShowpiece(
   options: FlywheelShowpieceOptions
 ): FlywheelShowpieceBuild {
@@ -295,6 +302,44 @@ export function createFlywheelShowpiece(
   orbitGroup.position.copy(rotorGroup.position);
   group.add(orbitGroup);
 
+  const automationPillars: AutomationPillar[] = [];
+  const automationPillarGroup = new Group();
+  automationPillarGroup.name = 'FlywheelAutomationPillars';
+  automationPillarGroup.position.copy(rotorGroup.position);
+  group.add(automationPillarGroup);
+
+  const pillarCount = 4;
+  const pillarHeight = Math.min(1.05, pedestalHeight * 1.5);
+  const pillarRadius = rotorRingRadius * 0.94;
+  const pillarGeometry = new CylinderGeometry(0.12, 0.18, pillarHeight, 18);
+  for (let index = 0; index < pillarCount; index += 1) {
+    const pillarMaterial = new MeshStandardMaterial({
+      color: new Color(0x102133),
+      emissive: new Color(0x3aaaff),
+      emissiveIntensity: 0.28,
+      roughness: 0.28,
+      metalness: 0.46,
+      transparent: true,
+      opacity: 0.12,
+    });
+    const pillar = new Mesh(pillarGeometry, pillarMaterial);
+    pillar.name = `FlywheelAutomationPillar-${index}`;
+    const angle = (Math.PI * 2 * index) / pillarCount;
+    const pillarBase = daisHeight + 0.04;
+    pillar.position.set(
+      Math.cos(angle) * pillarRadius,
+      pillarBase + pillarHeight / 2,
+      Math.sin(angle) * pillarRadius
+    );
+    automationPillarGroup.add(pillar);
+    automationPillars.push({
+      mesh: pillar,
+      material: pillarMaterial,
+      baseHeight: pillar.position.y,
+      phase: angle,
+    });
+  }
+
   const orbitRadius = rotorRingRadius * 1.12;
   const orbitGeometry = new SphereGeometry(0.08, 24, 24);
   const orbitMaterial = new MeshStandardMaterial({
@@ -536,6 +581,28 @@ export function createFlywheelShowpiece(
         MathUtils.lerp(0, 0.42, selectionInfluence),
       smoothing
     );
+
+    const pillarEmphasis = Math.max(context.emphasis, selectionInfluence);
+    const pillarMotionScale = MathUtils.lerp(0.2, 1, pillarEmphasis);
+    automationPillars.forEach((pillar) => {
+      const bob =
+        Math.sin(context.elapsed * 1.1 + pillar.phase) *
+        0.08 *
+        pillarMotionScale;
+      pillar.mesh.position.y = pillar.baseHeight + bob;
+      pillar.material.emissiveIntensity = MathUtils.lerp(
+        pillar.material.emissiveIntensity,
+        MathUtils.lerp(0.35, 1.7, pillarEmphasis) +
+          MathUtils.lerp(0, 0.9, selectionInfluence),
+        smoothing
+      );
+      pillar.material.opacity = MathUtils.lerp(
+        pillar.material.opacity,
+        MathUtils.lerp(0.18, 0.75, pillarEmphasis),
+        smoothing
+      );
+      pillar.mesh.visible = pillar.material.opacity > 0.02;
+    });
 
     infoReveal = MathUtils.lerp(
       infoReveal,
