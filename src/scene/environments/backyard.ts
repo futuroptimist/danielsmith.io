@@ -1463,8 +1463,21 @@ export function createBackyardEnvironment(
   const baseFireflySize = fireflyMaterial.size;
 
   updates.push(({ elapsed }) => {
-    const flickerScale = getFlickerScale();
-    const pulseScale = getPulseScale();
+    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const motionPreference = Math.min(flickerScale, pulseScale);
+    const amplitudeScale = MathUtils.lerp(0.4, 1, motionPreference);
+    const swirlScale = MathUtils.lerp(0.38, 1, pulseScale);
+    const verticalScale = MathUtils.lerp(
+      0.55,
+      1,
+      Math.max(pulseScale, flickerScale * 0.5)
+    );
+    const twinkleInfluence = MathUtils.lerp(
+      0.18,
+      0.38,
+      Math.max(flickerScale, 0.1)
+    );
     let twinkleSum = 0;
 
     for (let i = 0; i < fireflyCount; i += 1) {
@@ -1479,15 +1492,22 @@ export function createBackyardEnvironment(
       const baseZ = fireflyBasePositions[baseIndex + 2];
       const x =
         baseX +
-        sinPhase * fireflyXAxisAmplitudes[i] +
-        Math.sin(phase * 0.35 + offset) * fireflyXAxisAmplitudes[i] * 0.18;
+        sinPhase * fireflyXAxisAmplitudes[i] * amplitudeScale +
+        Math.sin(phase * 0.35 + offset) *
+          fireflyXAxisAmplitudes[i] *
+          0.18 *
+          amplitudeScale *
+          swirlScale;
       const y =
         baseY +
-        Math.sin(phase * 1.6 + offset * 0.5) * fireflyYAxisAmplitudes[i] +
-        Math.sin(phase * 0.45 + offset) * 0.06;
-      const z = baseZ + cosPhase * fireflyZAxisAmplitudes[i];
+        Math.sin(phase * 1.6 + offset * 0.5) *
+          fireflyYAxisAmplitudes[i] *
+          verticalScale +
+        Math.sin(phase * 0.45 + offset) * 0.06 * verticalScale * swirlScale;
+      const z = baseZ + cosPhase * fireflyZAxisAmplitudes[i] * amplitudeScale;
       fireflyPositionsAttribute.setXYZ(i, x, y, z);
-      const localTwinkle = 0.72 + Math.sin(phase * 1.7 + offset * 0.6) * 0.38;
+      const localTwinkle =
+        0.72 + Math.sin(phase * 1.7 + offset * 0.6) * twinkleInfluence;
       twinkleSum += localTwinkle;
     }
 
@@ -1498,11 +1518,27 @@ export function createBackyardEnvironment(
       0.45,
       1.25
     );
-    const opacityScale = MathUtils.lerp(0.55, averageTwinkle, flickerScale);
-    const sizeTarget = MathUtils.lerp(0.45, averageTwinkle, pulseScale);
-    const sizeScale = MathUtils.lerp(0.82, 1.16, sizeTarget);
-    fireflyMaterial.opacity = baseFireflyOpacity * opacityScale;
-    fireflyMaterial.size = baseFireflySize * sizeScale;
+    const brightnessScale = MathUtils.clamp(
+      averageTwinkle * MathUtils.lerp(0.6, 1, flickerScale),
+      0.35,
+      1.1
+    );
+    const opacityFloor = MathUtils.lerp(0.4, 0.68, flickerScale);
+    fireflyMaterial.opacity =
+      baseFireflyOpacity * Math.min(1, Math.max(opacityFloor, brightnessScale));
+
+    const sizeFloor = MathUtils.lerp(0.8, 0.96, pulseScale);
+    const sizeDriver = MathUtils.clamp(
+      averageTwinkle * MathUtils.lerp(0.72, 1, pulseScale),
+      0.45,
+      1.1
+    );
+    const sizeTarget = MathUtils.lerp(
+      sizeFloor,
+      MathUtils.lerp(0.82, 1.16, sizeDriver),
+      Math.max(pulseScale, 0.25)
+    );
+    fireflyMaterial.size = baseFireflySize * sizeTarget;
   });
 
   const duskLight = new PointLight(

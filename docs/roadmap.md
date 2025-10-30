@@ -97,6 +97,7 @@ Focus: expand the environment while keeping navigation smooth.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
+     - ✅ Firefly calm-mode presets now ease orbital amplitude and glow for sensitive players.
    - ✅ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
      that sweep toward the greenhouse while honoring accessibility damping scales.
    - ✅ Holographic walkway arrows now sweep visitors toward the greenhouse while calm-mode

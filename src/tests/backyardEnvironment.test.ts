@@ -37,6 +37,26 @@ const BACKYARD_BOUNDS = {
   maxZ: 16,
 };
 
+function clonePositions(attribute: BufferAttribute): Float32Array {
+  return new Float32Array(attribute.array as Float32Array);
+}
+
+function averageDisplacement(
+  attribute: BufferAttribute,
+  base: Float32Array
+): number {
+  const positions = attribute.array as Float32Array;
+  let total = 0;
+  for (let index = 0; index < attribute.count; index += 1) {
+    const baseIndex = index * 3;
+    const dx = positions[baseIndex] - base[baseIndex];
+    const dy = positions[baseIndex + 1] - base[baseIndex + 1];
+    const dz = positions[baseIndex + 2] - base[baseIndex + 2];
+    total += Math.sqrt(dx * dx + dy * dy + dz * dz);
+  }
+  return total / attribute.count;
+}
+
 describe('createBackyardEnvironment', () => {
   let randomSpy: SpyInstance<[], number>;
   let getContextSpy: SpyInstance<
@@ -902,7 +922,7 @@ describe('createBackyardEnvironment', () => {
     expect(positions).toBeInstanceOf(BufferAttribute);
     expect(positions.count).toBeGreaterThan(0);
 
-    const baselinePositions = Array.from(positions.array);
+    const baselinePositions = clonePositions(positions);
     const baseVersion = positions.version;
     const material = points.material as PointsMaterial;
     expect(material.blending).toBe(AdditiveBlending);
@@ -911,11 +931,11 @@ describe('createBackyardEnvironment', () => {
 
     environment.update({ elapsed: 0.7, delta: 0.016 });
 
-    const moved = baselinePositions.some((value, index) => {
-      const updated = positions.array[index];
-      return Math.abs(updated - value) > 1e-6;
-    });
-    expect(moved).toBe(true);
+    const animatedDisplacement = averageDisplacement(
+      positions,
+      baselinePositions
+    );
+    expect(animatedDisplacement).toBeGreaterThan(0);
     expect(positions.version).toBeGreaterThan(baseVersion);
 
     const animatedOpacity = material.opacity;
@@ -929,10 +949,53 @@ describe('createBackyardEnvironment', () => {
     environment.update({ elapsed: 1.8, delta: 0.016 });
 
     expect(material.opacity).toBeLessThan(animatedOpacity);
-    expect(material.opacity).toBeCloseTo(baseOpacity * 0.55, 5);
+    expect(material.opacity).toBeLessThan(baseOpacity * 0.5);
+    expect(material.opacity).toBeGreaterThan(baseOpacity * 0.35);
     expect(material.size).toBeLessThan(animatedSize);
-    const dampedSizeScale = 0.82 + (1.16 - 0.82) * 0.45;
-    expect(material.size).toBeCloseTo(baseSize * dampedSizeScale, 5);
+    expect(material.size).toBeLessThan(baseSize * 0.9);
+    expect(material.size).toBeGreaterThan(baseSize * 0.8);
+  });
+
+  it('damps firefly orbit amplitude when accessibility presets request calm mode', () => {
+    document.documentElement.dataset.accessibilityFlickerScale = '1';
+    document.documentElement.dataset.accessibilityPulseScale = '1';
+    const vibrantEnvironment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const vibrantFireflies =
+      vibrantEnvironment.group.getObjectByName('BackyardFireflies');
+    expect(vibrantFireflies).toBeInstanceOf(Points);
+    const vibrantPositions = (vibrantFireflies as Points).geometry.getAttribute(
+      'position'
+    ) as BufferAttribute;
+    const vibrantBase = clonePositions(vibrantPositions);
+    vibrantEnvironment.update({ elapsed: 2.4, delta: 0.016 });
+    const vibrantDisplacement = averageDisplacement(
+      vibrantPositions,
+      vibrantBase
+    );
+    expect(vibrantDisplacement).toBeGreaterThan(0);
+    const vibrantMaterial = (vibrantFireflies as Points)
+      .material as PointsMaterial;
+    const vibrantOpacity = vibrantMaterial.opacity;
+    const vibrantSize = vibrantMaterial.size;
+
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    const calmEnvironment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const calmFireflies =
+      calmEnvironment.group.getObjectByName('BackyardFireflies');
+    expect(calmFireflies).toBeInstanceOf(Points);
+    const calmPositions = (calmFireflies as Points).geometry.getAttribute(
+      'position'
+    ) as BufferAttribute;
+    const calmBase = clonePositions(calmPositions);
+    calmEnvironment.update({ elapsed: 2.4, delta: 0.016 });
+    const calmDisplacement = averageDisplacement(calmPositions, calmBase);
+    expect(calmDisplacement).toBeGreaterThan(0);
+    const calmMaterial = (calmFireflies as Points).material as PointsMaterial;
+
+    expect(calmDisplacement).toBeLessThan(vibrantDisplacement * 0.6);
+    expect(calmMaterial.opacity).toBeLessThan(vibrantOpacity);
+    expect(calmMaterial.size).toBeLessThan(vibrantSize);
   });
 
   it('wraps the backyard exhibits with a perimeter fence and matching colliders', () => {
