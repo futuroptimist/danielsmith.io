@@ -57,6 +57,14 @@ function averageDisplacement(
   return total / attribute.count;
 }
 
+function areColorsRoughlyEqual(a: Color, b: Color, epsilon = 1e-3): boolean {
+  return (
+    Math.abs(a.r - b.r) <= epsilon &&
+    Math.abs(a.g - b.g) <= epsilon &&
+    Math.abs(a.b - b.b) <= epsilon
+  );
+}
+
 describe('createBackyardEnvironment', () => {
   let randomSpy: SpyInstance<[], number>;
   let getContextSpy: SpyInstance<
@@ -219,6 +227,8 @@ describe('createBackyardEnvironment', () => {
   });
 
   it('adds walkway lanterns that glow and pulse along the greenhouse approach', () => {
+    document.documentElement.dataset.accessibilityPulseScale = '1';
+    document.documentElement.dataset.accessibilityFlickerScale = '1';
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const lanternGroup = environment.group.getObjectByName(
       'BackyardWalkwayLanterns'
@@ -234,8 +244,9 @@ describe('createBackyardEnvironment', () => {
       'BackyardWalkwayLanternGlass-0'
     );
     expect(firstGlass).toBeInstanceOf(Mesh);
-    const glassMaterial = (firstGlass as Mesh).material as MeshStandardMaterial;
-    const baselineEmissive = glassMaterial.emissiveIntensity;
+    const firstGlassMaterial = (firstGlass as Mesh)
+      .material as MeshStandardMaterial;
+    const baseFirstColor = firstGlassMaterial.emissive.clone();
 
     const firstLight = (lanternGroup as Group).getObjectByName(
       'BackyardWalkwayLanternLight-0'
@@ -243,16 +254,50 @@ describe('createBackyardEnvironment', () => {
     expect(firstLight).toBeInstanceOf(PointLight);
     const baselineLightIntensity = (firstLight as PointLight).intensity;
 
-    environment.update({ elapsed: 0.5, delta: 0.016 });
-    const midEmissive = glassMaterial.emissiveIntensity;
-    const midLightIntensity = (firstLight as PointLight).intensity;
+    const oppositeGlass = (lanternGroup as Group).getObjectByName(
+      'BackyardWalkwayLanternGlass-5'
+    );
+    expect(oppositeGlass).toBeInstanceOf(Mesh);
+    const oppositeMaterial = (oppositeGlass as Mesh)
+      .material as MeshStandardMaterial;
+    const baseOppositeColor = oppositeMaterial.emissive.clone();
 
-    environment.update({ elapsed: 1.2, delta: 0.016 });
+    environment.update({ elapsed: 0.6, delta: 0.016 });
+    const firstColorAfterFirstUpdate = firstGlassMaterial.emissive.clone();
+    const oppositeColorAfterFirstUpdate = oppositeMaterial.emissive.clone();
+    const intensityAfterFirstUpdate = (firstLight as PointLight).intensity;
 
-    expect(midEmissive).not.toBe(baselineEmissive);
-    expect(glassMaterial.emissiveIntensity).not.toBe(midEmissive);
-    expect(midLightIntensity).not.toBe(baselineLightIntensity);
-    expect((firstLight as PointLight).intensity).not.toBe(midLightIntensity);
+    expect(
+      areColorsRoughlyEqual(firstColorAfterFirstUpdate, baseFirstColor)
+    ).toBe(false);
+    expect(
+      areColorsRoughlyEqual(
+        firstColorAfterFirstUpdate,
+        oppositeColorAfterFirstUpdate
+      )
+    ).toBe(false);
+    expect(intensityAfterFirstUpdate).not.toBeCloseTo(
+      baselineLightIntensity,
+      5
+    );
+
+    environment.update({ elapsed: 1.6, delta: 0.016 });
+
+    expect((firstLight as PointLight).intensity).not.toBeCloseTo(
+      intensityAfterFirstUpdate,
+      5
+    );
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    environment.update({ elapsed: 2.4, delta: 0.016 });
+
+    expect(
+      areColorsRoughlyEqual(firstGlassMaterial.emissive, baseFirstColor, 1e-4)
+    ).toBe(true);
+    expect(
+      areColorsRoughlyEqual(oppositeMaterial.emissive, baseOppositeColor, 1e-4)
+    ).toBe(true);
   });
 
   it('adds walkway guides that pulse with seasonal-aware damping', () => {
