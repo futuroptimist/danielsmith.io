@@ -1698,8 +1698,8 @@ function initializeImmersiveScene(
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
   });
   const removeSelectionStateListener =
-    poiInteractionManager.addSelectionStateListener((poi) => {
-      poiTooltipOverlay.setSelected(poi);
+    poiInteractionManager.addSelectionStateListener((poi, context) => {
+      poiTooltipOverlay.setSelected(poi, context);
       poiWorldTooltip.setSelected(resolveWorldTooltipTarget(poi));
     });
   const removeSelectionListener = poiInteractionManager.addSelectionListener(

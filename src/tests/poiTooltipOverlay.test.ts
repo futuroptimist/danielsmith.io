@@ -136,11 +136,16 @@ describe('PoiTooltipOverlay', () => {
     expect(root.getAttribute('aria-hidden')).toBe('false');
     expect(root.dataset.state).toBe('hovered');
 
-    const title = root.querySelector('.poi-tooltip-overlay__title');
-    expect(title?.textContent).toBe(basePoi.title);
+    const title = root.querySelector(
+      '.poi-tooltip-overlay__title'
+    ) as HTMLHeadingElement;
+    expect(title.textContent).toBe(basePoi.title);
+    expect(root.getAttribute('aria-labelledby')).toBe(title.id);
 
-    const summary = root.querySelector('.poi-tooltip-overlay__summary');
-    expect(summary?.textContent).toContain('editing');
+    const summary = root.querySelector(
+      '.poi-tooltip-overlay__summary'
+    ) as HTMLParagraphElement;
+    expect(summary.textContent).toContain('editing');
 
     const outcomeLabel = root.querySelector(
       '.poi-tooltip-overlay__outcome-label'
@@ -162,6 +167,23 @@ describe('PoiTooltipOverlay', () => {
     );
     expect(links).toHaveLength(2);
     expect(links[0]?.href).toBe(basePoi.links?.[0]?.href ?? '');
+
+    const describedBy = root.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    const describedIds = describedBy?.split(' ') ?? [];
+    expect(describedIds).toContain(summary.id);
+    const outcomeElement = root.querySelector(
+      '.poi-tooltip-overlay__outcome'
+    ) as HTMLElement;
+    expect(describedIds).toContain(outcomeElement.id);
+    const metricsList = root.querySelector(
+      '.poi-tooltip-overlay__metrics'
+    ) as HTMLElement;
+    expect(describedIds).toContain(metricsList.id);
+    const linksList = root.querySelector(
+      '.poi-tooltip-overlay__links'
+    ) as HTMLElement;
+    expect(describedIds).toContain(linksList.id);
   });
 
   it('prefers hovered metadata over selected and hides when cleared', () => {
@@ -200,6 +222,7 @@ describe('PoiTooltipOverlay', () => {
     overlay.setSelected(null);
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
     expect(root.getAttribute('aria-hidden')).toBe('true');
+    expect(root.getAttribute('aria-describedby')).toBeNull();
   });
 
   it('refreshes metric values when notified about updates', () => {
@@ -237,6 +260,10 @@ describe('PoiTooltipOverlay', () => {
       '.poi-tooltip-overlay__outcome'
     ) as HTMLElement;
     expect(outcome.hidden).toBe(true);
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const describedIds =
+      root.getAttribute('aria-describedby')?.split(' ') ?? [];
+    expect(describedIds).not.toContain(outcome.id);
   });
 
   it('surfaces visited badge when POI is marked as visited', () => {
@@ -285,6 +312,25 @@ describe('PoiTooltipOverlay', () => {
 
     timelineHarness.advance(1);
     expect(liveRegion.textContent).toContain(`${nextPoi.title} discovered.`);
+  });
+
+  it('moves keyboard focus to the overlay when selection is keyboard-driven', () => {
+    document.body.focus();
+    overlay.setSelected(basePoi, { inputMethod: 'keyboard' });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(document.activeElement).toBe(root);
+  });
+
+  it('preserves existing focus when selection comes from pointer input', () => {
+    const sentinel = document.createElement('button');
+    sentinel.type = 'button';
+    container.appendChild(sentinel);
+    sentinel.focus();
+
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    expect(document.activeElement).toBe(sentinel);
   });
 
   it('supports custom discovery formatter and politeness levels', () => {

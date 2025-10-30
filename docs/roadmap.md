@@ -113,7 +113,7 @@ Focus: anchor each highlighted project with an interactive artifact.
 
 - ✅ Each POI card includes a one-line outcome metric (e.g., "Reduced p95 render 28%"), backed by
   links in `docs/case-studies/`.
-- Tooltips overlay passes axe CI and keyboard focus audit.
+- ✅ Tooltips overlay passes axe CI and keyboard focus audit.
 - Release tag `phase-2-pois` ships with gallery screenshots + metrics table entry.
 
 1. **POI Framework**
