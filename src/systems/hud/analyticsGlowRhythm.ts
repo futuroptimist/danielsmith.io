@@ -41,7 +41,7 @@ export interface AnalyticsGlowRhythmHandle {
    */
   update(deltaSeconds: number): void;
   /**
-   * Returns the current glow intensity in the 0–1 range.
+   * Returns the current normalized intensity (after emphasis and pulse blending).
    */
   getValue(): number;
   /**
@@ -156,7 +156,7 @@ export function createAnalyticsGlowRhythm(
       updateGlow();
     },
     getValue() {
-      return glowValue;
+      return waveValue;
     },
     getWave() {
       return normalizedPhase;

@@ -65,6 +65,44 @@ describe('createAnalyticsGlowRhythm', () => {
     expect(secondPhase).not.toBeCloseTo(firstPhase, 6);
   });
 
+  it('exposes normalized phase separately from the blended glow intensity', () => {
+    const element = document.createElement('div');
+    const rhythm = createAnalyticsGlowRhythm({
+      element,
+      smoothing: 0,
+      pulseFrequency: 0.25,
+      pulseStrength: 1,
+      minGlow: 0.3,
+      maxGlow: 0.9,
+    });
+
+    rhythm.setTargetEmphasis(1);
+    rhythm.update(0.1);
+
+    const firstIntensity = rhythm.getValue();
+    const firstPhase = rhythm.getWave();
+    const cssValueAfterFirst = Number.parseFloat(
+      element.style.getPropertyValue('--hud-analytics-glow')
+    );
+
+    expect(firstPhase).toBeGreaterThanOrEqual(0);
+    expect(firstPhase).toBeLessThan(1);
+    expect(cssValueAfterFirst).toBeCloseTo(0.3 + 0.6 * firstIntensity, 4);
+
+    rhythm.setTargetEmphasis(0.2);
+    rhythm.update(0.1);
+
+    const secondIntensity = rhythm.getValue();
+    const secondPhase = rhythm.getWave();
+    const cssValueAfterSecond = Number.parseFloat(
+      element.style.getPropertyValue('--hud-analytics-glow')
+    );
+
+    expect(secondPhase).toBeGreaterThan(firstPhase);
+    expect(secondIntensity).not.toBeCloseTo(firstIntensity, 4);
+    expect(cssValueAfterSecond).toBeCloseTo(0.3 + 0.6 * secondIntensity, 4);
+  });
+
   it('rebinds elements and clears styles on dispose', () => {
     const first = document.createElement('div');
     const second = document.createElement('div');
