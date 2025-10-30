@@ -241,23 +241,6 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     }
   };
 
-  const handleKeydown = (event: KeyboardEvent) => {
-    if (!open) {
-      return;
-    }
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      close();
-    }
-    trapFocus(event);
-  };
-
-  const handleBackdropClick = (event: MouseEvent) => {
-    if (event.target === backdrop) {
-      close();
-    }
-  };
-
   const openModal = () => {
     if (open) {
       return;
@@ -273,7 +256,7 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     focusModal();
   };
 
-  function close() {
+  const closeModal = () => {
     if (!open) {
       return;
     }
@@ -285,35 +268,61 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
       previouslyFocused.focus();
     }
     previouslyFocused = null;
-  }
+  };
 
-  const toggle = (force?: boolean) => {
+  const toggleModal = (force?: boolean) => {
     const shouldOpen = force ?? !open;
     if (shouldOpen) {
       openModal();
     } else {
-      close();
+      closeModal();
     }
   };
 
-  const handleCloseClick = () => close();
+  let handle: HelpModalHandle | null = null;
 
-  backdrop.addEventListener('click', handleBackdropClick);
-  closeButton.addEventListener('click', handleCloseClick);
+  const invokeClose = () => {
+    if (handle) {
+      handle.close();
+    } else {
+      closeModal();
+    }
+  };
+
+  function handleKeydown(event: KeyboardEvent) {
+    if (!open) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      invokeClose();
+    }
+    trapFocus(event);
+  }
+
+  function handleBackdropClick(event: MouseEvent) {
+    if (event.target === backdrop) {
+      invokeClose();
+    }
+  }
+
+  function handleCloseClick() {
+    invokeClose();
+  }
 
   const dispose = () => {
-    close();
+    invokeClose();
     backdrop.removeEventListener('click', handleBackdropClick);
     closeButton.removeEventListener('click', handleCloseClick);
     backdrop.remove();
   };
 
-  return {
+  const handleResult: HelpModalHandle = {
     element: modal,
     settingsContainer,
     open: openModal,
-    close,
-    toggle,
+    close: closeModal,
+    toggle: toggleModal,
     isOpen: () => open,
     setContent(nextContent) {
       title.textContent = nextContent.heading;
@@ -357,4 +366,11 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     },
     dispose,
   };
+
+  handle = handleResult;
+
+  backdrop.addEventListener('click', handleBackdropClick);
+  closeButton.addEventListener('click', handleCloseClick);
+
+  return handleResult;
 }
