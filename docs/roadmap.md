@@ -98,6 +98,8 @@ Focus: expand the environment while keeping navigation smooth.
    - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
      - Lantern beacons now ripple toward the greenhouse in a traveling wave that honors
        calm-mode damping.
+     - ✅ Lantern chime ambient beds now trail the light wave so audio sweeps follow the
+       greenhouse approach.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
      - ✅ Firefly calm-mode presets now ease orbital amplitude and glow for sensitive players.
    - ✅ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses

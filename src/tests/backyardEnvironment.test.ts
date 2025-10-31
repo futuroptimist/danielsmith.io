@@ -1,5 +1,6 @@
 import {
   AdditiveBlending,
+  BoxGeometry,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -1315,6 +1316,24 @@ describe('createBackyardEnvironment', () => {
       walkwayBed?.innerRadius ?? 0
     );
     expect(walkwayBed?.baseVolume).toBeGreaterThan(0);
+
+    const walkwayGeometry = walkway!.geometry as BoxGeometry;
+    const walkwayDepth = walkwayGeometry.parameters.depth ?? 0;
+    const lanternBed = environment.ambientAudioBeds.find(
+      (bed) => bed.id === 'backyard-lantern-wave'
+    );
+    expect(lanternBed).toBeDefined();
+    expect(lanternBed?.center.x).toBeCloseTo(walkway!.position.x, 5);
+    expect(lanternBed?.center.z).toBeCloseTo(
+      walkway!.position.z - walkwayDepth * 0.18,
+      5
+    );
+    expect(lanternBed?.innerRadius).toBeGreaterThan(0);
+    expect(lanternBed?.outerRadius).toBeGreaterThan(
+      lanternBed?.innerRadius ?? 0
+    );
+    expect(lanternBed?.baseVolume).toBeGreaterThan(0);
+    expect(lanternBed?.falloffCurve).toBe('smoothstep');
   });
 
   it('adds holographic walkway arrows that pulse toward the greenhouse and honor calm-mode damping', () => {
