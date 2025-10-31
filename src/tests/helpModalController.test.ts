@@ -110,12 +110,12 @@ describe('attachHelpModalController', () => {
     events.length = 0;
     context.setOpenState(true);
     context.handle.toggle();
-    expect(events).toEqual(['onClose', 'toggle:close', 'announce:closed']);
+    expect(events).toEqual(['toggle:close', 'onClose', 'announce:closed']);
 
     events.length = 0;
     context.setOpenState(true);
     context.handle.toggle(false);
-    expect(events).toEqual(['onClose', 'toggle:close', 'announce:closed']);
+    expect(events).toEqual(['toggle:close', 'onClose', 'announce:closed']);
 
     controller.dispose();
   });
@@ -142,6 +142,84 @@ describe('attachHelpModalController', () => {
     controller.setAnnouncements(null);
     context.handle.open();
     expect(announcer.announce).not.toHaveBeenLastCalledWith('first open');
+
+    controller.dispose();
+  });
+
+  it('avoids duplicate announcements when state is unchanged', () => {
+    const events: string[] = [];
+    const context = createHelpModalStub();
+    context.openSpy.mockImplementation(() => {
+      events.push('open');
+      context.setOpenState(true);
+    });
+    context.closeSpy.mockImplementation(() => {
+      events.push('close');
+      context.setOpenState(false);
+    });
+    const controller = attachHelpModalController({
+      helpModal: context.handle,
+      onOpen: () => events.push('onOpen'),
+      onClose: () => events.push('onClose'),
+      hudFocusAnnouncer: {
+        announce: (message: string) => events.push(`announce:${message}`),
+      },
+      announcements: { open: 'opened', close: 'closed' },
+    });
+
+    context.handle.open();
+    expect(events).toEqual(['onOpen', 'open', 'announce:opened']);
+
+    events.length = 0;
+    context.handle.open();
+    expect(events).toEqual(['open']);
+
+    events.length = 0;
+    context.handle.close();
+    expect(events).toEqual(['close', 'onClose', 'announce:closed']);
+
+    events.length = 0;
+    context.handle.close();
+    expect(events).toEqual(['close']);
+
+    controller.dispose();
+  });
+
+  it('restores HUD state when the modal fails to open', () => {
+    const events: string[] = [];
+    const context = createHelpModalStub();
+    context.openSpy.mockImplementation(() => {
+      events.push('open');
+      // Intentionally leave the open state unchanged to simulate a failure.
+    });
+    context.closeSpy.mockImplementation(() => {
+      events.push('close');
+      context.setOpenState(false);
+    });
+    const controller = attachHelpModalController({
+      helpModal: context.handle,
+      onOpen: () => events.push('onOpen'),
+      onClose: () => events.push('onClose'),
+      hudFocusAnnouncer: {
+        announce: (message: string) => events.push(`announce:${message}`),
+      },
+      announcements: { open: 'opened', close: 'closed' },
+    });
+
+    context.handle.open();
+    expect(events).toEqual(['onOpen', 'open', 'onClose']);
+    expect(context.getOpenState()).toBe(false);
+
+    events.length = 0;
+    context.toggleSpy.mockImplementation((force?: boolean) => {
+      const shouldOpen = force ?? !context.getOpenState();
+      events.push(`toggle:${shouldOpen ? 'open' : 'close'}`);
+      // Leave state unchanged to simulate a failed toggle.
+    });
+
+    context.handle.toggle(true);
+    expect(events).toEqual(['onOpen', 'toggle:open', 'onClose']);
+    expect(context.getOpenState()).toBe(false);
 
     controller.dispose();
   });

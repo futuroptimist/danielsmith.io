@@ -44,6 +44,12 @@ export function attachHelpModalController({
   const originalToggle = helpModal.toggle;
 
   let activeAnnouncements = sanitizeAnnouncements(announcements);
+  let isOpen = helpModal.isOpen();
+
+  const refreshState = () => {
+    isOpen = helpModal.isOpen();
+    return isOpen;
+  };
 
   const announce = (message: string | null) => {
     if (!message) {
@@ -53,26 +59,57 @@ export function attachHelpModalController({
   };
 
   helpModal.open = () => {
+    const wasOpen = refreshState();
+    if (wasOpen) {
+      originalOpen.call(helpModal);
+      refreshState();
+      return;
+    }
     onOpen?.();
     originalOpen.call(helpModal);
+    const nextIsOpen = refreshState();
+    if (!nextIsOpen) {
+      onClose?.();
+      return;
+    }
     announce(activeAnnouncements.open);
   };
 
   helpModal.close = () => {
+    const wasOpen = refreshState();
+    if (!wasOpen) {
+      originalClose.call(helpModal);
+      refreshState();
+      return;
+    }
     originalClose.call(helpModal);
-    onClose?.();
-    announce(activeAnnouncements.close);
+    const nextIsOpen = refreshState();
+    if (!nextIsOpen) {
+      onClose?.();
+      announce(activeAnnouncements.close);
+    }
   };
 
   helpModal.toggle = (force?: boolean) => {
-    const shouldOpen = force ?? !helpModal.isOpen();
-    if (shouldOpen) {
+    const wasOpen = refreshState();
+    const targetOpen = force ?? !wasOpen;
+    if (targetOpen && !wasOpen) {
       onOpen?.();
-    } else {
-      onClose?.();
     }
     originalToggle.call(helpModal, force);
-    announce(shouldOpen ? activeAnnouncements.open : activeAnnouncements.close);
+    const nextIsOpen = refreshState();
+    if (!wasOpen && nextIsOpen) {
+      announce(activeAnnouncements.open);
+      return;
+    }
+    if (!wasOpen && !nextIsOpen && targetOpen) {
+      onClose?.();
+      return;
+    }
+    if (wasOpen && !nextIsOpen) {
+      onClose?.();
+      announce(activeAnnouncements.close);
+    }
   };
 
   return {

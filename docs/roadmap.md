@@ -210,6 +210,9 @@ Focus: unify user controls and ensure graceful fallback experiences.
      accessibility tips, and failover guidance.
    - ✅ Help modal open and close events now announce their state to screen readers so
      keyboard visitors know when the panel is active.
+   - ✅ Help modal controller now suppresses duplicate announcements and restores HUD
+     visibility if an open attempt fails, preventing repeated screen reader chatter and
+     keeping the settings stack in sync with modal state.
    - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
      that soften bloom, ease emissives, duck ambient audio, and boost HUD contrast.
      - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes
