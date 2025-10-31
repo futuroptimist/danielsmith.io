@@ -19,7 +19,13 @@ import type { RectCollider } from '../collision';
 export interface JobbotTerminalBuild {
   group: Group;
   colliders: RectCollider[];
-  update(context: { elapsed: number; delta: number; emphasis: number }): void;
+  update(context: {
+    elapsed: number;
+    delta: number;
+    emphasis: number;
+    analyticsGlow?: number;
+    analyticsWave?: number;
+  }): void;
 }
 
 export interface JobbotTerminalOptions {
@@ -540,11 +546,23 @@ export function createJobbotTerminal(
   return {
     group,
     colliders,
-    update({ elapsed, emphasis }) {
+    update({ elapsed, emphasis, analyticsGlow, analyticsWave }) {
       const delta = Math.max(0, elapsed - lastElapsed);
       lastElapsed = elapsed;
       const smoothing = delta > 0 ? 1 - Math.exp(-delta * 3.8) : 1;
       const pulseScale = getPulseScale();
+      const analyticsGlowValue = MathUtils.clamp(analyticsGlow ?? 0, 0, 1);
+      const analyticsWaveValue = MathUtils.clamp(
+        analyticsWave ?? analyticsGlowValue,
+        0,
+        1
+      );
+      const combinedEmphasis = Math.max(emphasis, analyticsGlowValue);
+      const analyticsBlend =
+        pulseScale <= 0
+          ? 0
+          : Math.min(1, analyticsGlowValue * pulseScale * 0.85);
+      const analyticsPhase = analyticsWaveValue * Math.PI * 2;
       const bobAmplitude = MathUtils.lerp(0.012, 0.08, pulseScale);
       const spinScale = MathUtils.lerp(0.15, 1, pulseScale);
       const bob = Math.sin(elapsed * 2.1 * spinScale) * bobAmplitude;
@@ -573,7 +591,7 @@ export function createJobbotTerminal(
 
       const glowDriver = MathUtils.lerp(
         0.24,
-        Math.max(emphasis, 0.35),
+        Math.max(combinedEmphasis, 0.35),
         pulseScale
       );
       const glowIntensity = MathUtils.lerp(0.32, 0.78, glowDriver);
@@ -582,14 +600,14 @@ export function createJobbotTerminal(
       const tickerPulse = (Math.sin(elapsed * 3.4 * spinScale) + 1) / 2;
       const tickerDriver = MathUtils.lerp(
         0.2,
-        Math.max(emphasis, tickerPulse * 0.7),
+        Math.max(combinedEmphasis, tickerPulse * 0.7),
         pulseScale
       );
       tickerMaterial.opacity = MathUtils.lerp(0.35, 0.95, tickerDriver);
       screenMaterial.opacity = MathUtils.lerp(
         0.82,
         MathUtils.lerp(0.92, 1, pulseScale),
-        Math.max(emphasis, 0.4)
+        Math.max(combinedEmphasis, 0.4)
       );
 
       beacons.forEach((beacon, index) => {
@@ -597,7 +615,7 @@ export function createJobbotTerminal(
         const pulse = (Math.sin(elapsed * 2.3 * spinScale + index) + 1) / 2;
         const beaconDriver = MathUtils.lerp(
           0.3,
-          Math.max(emphasis, pulse),
+          Math.max(combinedEmphasis, pulse),
           pulseScale
         );
         material.emissiveIntensity = MathUtils.lerp(0.4, 1.25, beaconDriver);
@@ -608,19 +626,16 @@ export function createJobbotTerminal(
           Math.sin(elapsed * 1.6 * spinScale + index) * 0.05 * pulseScale;
       });
 
-      const shardOrbitDriver = MathUtils.lerp(0.42, 1.25, emphasis);
-      const shardEmissiveDriver = MathUtils.lerp(
-        MathUtils.lerp(0.38, 0.6, pulseScale),
-        Math.max(emphasis, 0.65),
-        pulseScale
-      );
+      const shardOrbitDriver = MathUtils.lerp(0.42, 1.25, combinedEmphasis);
       const shardSpinScale = pulseScale <= 0 ? 0 : Math.max(spinScale, 0.15);
       const shardAmplitudeScale =
-        pulseScale <= 0 ? 0 : MathUtils.lerp(0.4, 1, emphasis);
+        pulseScale <= 0 ? 0 : MathUtils.lerp(0.4, 1, combinedEmphasis);
       dataShards.forEach((shard, index) => {
         shard.orbitAngle +=
           delta * shard.orbitSpeed * shardOrbitDriver * shardSpinScale;
-        const wave = Math.sin(elapsed * 2.4 * spinScale + index);
+        const baseWave = Math.sin(elapsed * 2.4 * spinScale + index);
+        const syncedWave = Math.sin(analyticsPhase + index * 0.9);
+        const wave = MathUtils.lerp(baseWave, syncedWave, analyticsBlend);
         const altitude =
           shard.baseHeight + wave * shard.bobAmplitude * shardAmplitudeScale;
         shard.mesh.position.set(
@@ -632,15 +647,34 @@ export function createJobbotTerminal(
         shard.mesh.rotation.z =
           MathUtils.degToRad(12) * Math.sin(elapsed * 1.7 + index);
         const shardMaterial = shard.mesh.material as MeshStandardMaterial;
-        shardMaterial.emissiveIntensity = MathUtils.lerp(
+        const emissiveBase = MathUtils.lerp(
           0.4,
-          1.5,
-          shardEmissiveDriver
+          1.35,
+          Math.max(combinedEmphasis, pulseScale * 0.55)
         );
+        const glowWave =
+          analyticsBlend > 0
+            ? ((Math.sin(analyticsPhase + index * 0.9) + 1) / 2) *
+              combinedEmphasis *
+              analyticsBlend
+            : 0;
+        const targetIntensity = MathUtils.clamp(
+          emissiveBase + MathUtils.lerp(0, 0.55, glowWave),
+          0,
+          2
+        );
+        shardMaterial.emissiveIntensity =
+          pulseScale <= 0
+            ? emissiveBase
+            : MathUtils.lerp(
+                shardMaterial.emissiveIntensity,
+                targetIntensity,
+                smoothing
+              );
         const targetOpacity = MathUtils.lerp(
           0.5,
           0.92,
-          Math.max(emphasis, pulseScale)
+          Math.max(combinedEmphasis, pulseScale)
         );
         shardMaterial.opacity =
           pulseScale <= 0
@@ -648,7 +682,8 @@ export function createJobbotTerminal(
             : MathUtils.lerp(shardMaterial.opacity, targetOpacity, smoothing);
       });
 
-      const telemetrySpeed = MathUtils.lerp(0.42, 1.3, emphasis) * spinScale;
+      const telemetrySpeed =
+        MathUtils.lerp(0.42, 1.3, combinedEmphasis) * spinScale;
       telemetryRotation += delta * telemetrySpeed;
       telemetryGroup.rotation.y = telemetryRotation;
       telemetryGroup.position.y =
@@ -658,7 +693,7 @@ export function createJobbotTerminal(
         const wave = (Math.sin(elapsed * 2.6 + index) + 1) / 2;
         const driver = MathUtils.lerp(
           0.24,
-          Math.max(emphasis, wave),
+          Math.max(combinedEmphasis, wave),
           pulseScale
         );
         const targetOpacity = MathUtils.lerp(0.08, 0.9, driver);
@@ -668,7 +703,7 @@ export function createJobbotTerminal(
             : MathUtils.lerp(material.opacity, targetOpacity, smoothing);
       });
 
-      const auraTargetIntensity = MathUtils.lerp(0.34, 1.1, emphasis);
+      const auraTargetIntensity = MathUtils.lerp(0.34, 1.1, combinedEmphasis);
       telemetryAuraMaterial.emissiveIntensity = MathUtils.lerp(
         telemetryAuraMaterial.emissiveIntensity,
         auraTargetIntensity,

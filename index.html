@@ -8,6 +8,7 @@
     <style>
       :root {
         color-scheme: dark;
+        --hud-analytics-glow: 0;
         font-family:
           'Inter',
           -apple-system,
@@ -55,6 +56,24 @@
         transition:
           opacity 200ms ease,
           transform 200ms ease;
+        overflow: visible;
+      }
+
+      .overlay::after {
+        content: '';
+        position: absolute;
+        inset: -0.9rem;
+        border-radius: inherit;
+        background: radial-gradient(
+          circle at center,
+          rgba(94, 210, 255, 0.55) 0%,
+          rgba(94, 210, 255, 0) 70%
+        );
+        opacity: calc(var(--hud-analytics-glow, 0) * 0.85);
+        pointer-events: none;
+        filter: blur(22px);
+        z-index: -1;
+        transition: opacity 160ms ease;
       }
 
       .overlay__item[data-mobile-collapsed='true'] {

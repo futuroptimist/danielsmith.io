@@ -1,5 +1,6 @@
 :root {
   color-scheme: dark;
+  --hud-analytics-glow: 0;
   font-family:
     'Inter',
     'Noto Sans Arabic',
@@ -1144,6 +1145,24 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   max-width: 20rem;
   border: 1px solid rgba(86, 184, 255, 0.28);
   box-shadow: 0 20px 48px rgba(3, 9, 18, 0.55);
+  overflow: visible;
+}
+
+.overlay::after {
+  content: '';
+  position: absolute;
+  inset: -0.9rem;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at center,
+    rgba(94, 210, 255, 0.55) 0%,
+    rgba(94, 210, 255, 0) 70%
+  );
+  opacity: calc(var(--hud-analytics-glow, 0) * 0.85);
+  pointer-events: none;
+  filter: blur(22px);
+  z-index: -1;
+  transition: opacity 160ms ease;
 }
 
 .overlay__heading {
