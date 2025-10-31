@@ -1,9 +1,8 @@
 import type { BackyardAmbientAudioBed } from '../../scene/environments/backyard';
 
-import type { AudioBufferLike, BufferContext } from './proceduralBuffers';
 import { createLanternChimeBuffer } from './proceduralBuffers';
 
-type BufferFactory = (context: BufferContext) => AudioBufferLike;
+type BufferFactory = (context: AudioContext) => AudioBuffer;
 
 export interface BackyardAmbientBedDescriptor {
   caption: string;
