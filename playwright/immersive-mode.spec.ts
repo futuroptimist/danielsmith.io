@@ -138,7 +138,7 @@ test.describe('immersive experience', () => {
     await expect(accessibilityControl).toBeVisible();
     await expect(modeToggle).toBeVisible();
 
-    await page.keyboard.press('Escape');
+    await menuButton.click();
     await expect(backdrop).toBeHidden();
     await expect(audioHud).toBeHidden();
     await expect(graphicsControl).toBeHidden();
