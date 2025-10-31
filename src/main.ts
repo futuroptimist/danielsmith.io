@@ -227,6 +227,7 @@ import {
   type AmbientAudioSource,
 } from './systems/audio/ambientAudio';
 import { AmbientCaptionBridge } from './systems/audio/ambientCaptionBridge';
+import { getBackyardAmbientBedDescriptor } from './systems/audio/backyardAmbientCatalog';
 import {
   createFootstepAudioController,
   type FootstepAudioControllerHandle,
@@ -235,7 +236,6 @@ import {
   createCricketChorusBuffer,
   createDistantHumBuffer,
   createFootstepBuffer,
-  createLanternChimeBuffer,
 } from './systems/audio/proceduralBuffers';
 import { collidesWithColliders, type RectCollider } from './systems/collision';
 import {
@@ -2741,15 +2741,16 @@ function initializeImmersiveScene(
 
       if (backyardEnvironment) {
         backyardEnvironment.ambientAudioBeds.forEach((bed) => {
-          if (bed.id !== 'backyard-greenhouse-chimes') {
+          const descriptor = getBackyardAmbientBedDescriptor(bed);
+          if (!descriptor) {
             return;
           }
           audioBeds.push({
             ...bed,
-            caption: 'Greenhouse chimes shimmer around the lantern-lined path.',
-            source: createLoopingSource(bed.id, (context) =>
-              createLanternChimeBuffer(context)
-            ),
+            caption: descriptor.caption,
+            captionPriority: descriptor.captionPriority,
+            captionThreshold: descriptor.captionThreshold,
+            source: createLoopingSource(bed.id, descriptor.bufferFactory),
           });
         });
       }

@@ -462,6 +462,24 @@ export function createBackyardEnvironment(
     falloffCurve: 'smoothstep',
   });
 
+  const walkwayLanternOffset = walkwayDepth * 0.18;
+  const walkwayLanternInnerRadius = Math.max(0.85, walkwayDepth * 0.24);
+  const walkwayLanternOuterRadius = Math.max(
+    walkwayLanternInnerRadius + 0.9,
+    walkwayDepth * 0.62
+  );
+  ambientAudioBeds.push({
+    id: 'backyard-lantern-wave',
+    center: {
+      x: walkway.position.x,
+      z: walkway.position.z - walkwayLanternOffset,
+    },
+    innerRadius: walkwayLanternInnerRadius,
+    outerRadius: walkwayLanternOuterRadius,
+    baseVolume: 0.34,
+    falloffCurve: 'smoothstep',
+  });
+
   const walkwayArrowTexture = createWalkwayGuideTexture();
   const walkwayArrowGeometry = new PlaneGeometry(1, 1, 1, 1);
   walkwayArrowGeometry.rotateX(-Math.PI / 2);
