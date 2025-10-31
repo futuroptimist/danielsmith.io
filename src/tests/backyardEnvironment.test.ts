@@ -1360,6 +1360,60 @@ describe('createBackyardEnvironment', () => {
     expect(calmMaterial.opacity).toBeCloseTo(calmOpacityBaseline, 5);
   });
 
+  it('adds greenhouse walkway mist ribbons that respond to accessibility damping', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const mistGroup = environment.group.getObjectByName('BackyardWalkwayMist');
+    expect(mistGroup).toBeInstanceOf(Group);
+
+    const layers = (mistGroup as Group).children.filter(
+      (child): child is Mesh => child instanceof Mesh
+    );
+    expect(layers.length).toBeGreaterThan(0);
+
+    const firstLayer = layers[0];
+    const material = firstLayer.material as ShaderMaterial;
+    expect(material).toBeInstanceOf(ShaderMaterial);
+    expect(material.transparent).toBe(true);
+    expect(material.blending).toBe(AdditiveBlending);
+
+    const opacityUniform = material.uniforms.opacity;
+    const timeUniform = material.uniforms.time;
+    expect(opacityUniform).toBeDefined();
+    expect(timeUniform).toBeDefined();
+
+    const baseHeight = firstLayer.position.y;
+    const baseOpacity = opacityUniform?.value as number;
+    expect(baseOpacity).toBeGreaterThan(0);
+
+    environment.update({ elapsed: 0.8, delta: 0.016 });
+    const timeAfterFirstUpdate = timeUniform?.value as number;
+    expect(timeAfterFirstUpdate).toBeCloseTo(0.8, 5);
+    const animatedHeightDelta = Math.abs(firstLayer.position.y - baseHeight);
+    const animatedOpacityDelta = Math.abs(
+      (opacityUniform?.value as number) - baseOpacity
+    );
+    expect(animatedHeightDelta).toBeGreaterThan(0);
+    expect(animatedOpacityDelta).toBeGreaterThan(0);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    firstLayer.position.y = baseHeight;
+    if (opacityUniform) {
+      opacityUniform.value = baseOpacity;
+    }
+
+    environment.update({ elapsed: 1.6, delta: 0.016 });
+    const timeAfterCalmUpdate = timeUniform?.value as number;
+    expect(timeAfterCalmUpdate).toBeCloseTo(1.6, 5);
+
+    const calmHeightDelta = Math.abs(firstLayer.position.y - baseHeight);
+    const calmOpacityDelta = Math.abs(
+      (opacityUniform?.value as number) - baseOpacity
+    );
+    expect(calmHeightDelta).toBeLessThan(animatedHeightDelta);
+    expect(calmOpacityDelta).toBeLessThan(animatedOpacityDelta);
+  });
+
   it('layers dusk reflections and a light probe across the backyard materials', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const walkway = environment.group.getObjectByName(

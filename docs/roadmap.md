@@ -108,6 +108,8 @@ Focus: expand the environment while keeping navigation smooth.
      damping for calm-mode visitors.
    - ✅ Seasonal presets now retint the dusk pollen motes so backyard event palettes stay in sync
      with ambient lighting.
+   - ✅ Dusk mist ribbons now drift above the greenhouse walkway with seasonal retints and
+     calm-mode damping.
    - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
 
 ## Phase 2 – Points of Interest (POIs)
