@@ -1249,7 +1249,23 @@ export function createBackyardEnvironment(
     light: PointLight;
     baseIntensity: number;
     baseLightIntensity: number;
+    baseEmissiveColor: Color;
+    accentColor: Color;
+    mixColor: Color;
     offset: number;
+    progression: number;
+  }
+
+  const lanternAccentHsl = { h: 0, s: 0, l: 0 };
+
+  function refreshLanternAccentColor(target: LanternAnimationTarget): void {
+    target.accentColor.copy(target.baseEmissiveColor);
+    target.accentColor.getHSL(lanternAccentHsl);
+    target.accentColor.setHSL(
+      lanternAccentHsl.h,
+      MathUtils.clamp(lanternAccentHsl.s + 0.18, 0, 1),
+      MathUtils.clamp(lanternAccentHsl.l + 0.22, 0, 1)
+    );
   }
 
   const lanternAnimationTargets: LanternAnimationTarget[] = [];
@@ -1313,6 +1329,7 @@ export function createBackyardEnvironment(
       const light = new PointLight(0xffd9a2, 0.85, 4.4, 2.6);
       light.name = `BackyardWalkwayLanternLight-${lanternIndex}`;
       light.position.y = 1.05;
+      light.color.copy(glassMaterial.emissive);
       lantern.add(light);
 
       lanternGroup.add(lantern);
@@ -1328,13 +1345,19 @@ export function createBackyardEnvironment(
           },
         ],
       });
-      lanternAnimationTargets.push({
+      const animationTarget: LanternAnimationTarget = {
         glassMaterial,
         light,
         baseIntensity: glassMaterial.emissiveIntensity,
         baseLightIntensity: light.intensity,
+        baseEmissiveColor: glassMaterial.emissive.clone(),
+        accentColor: glassMaterial.emissive.clone(),
+        mixColor: glassMaterial.emissive.clone(),
         offset: i * 1.1 + (direction < 0 ? 0 : Math.PI / 3),
-      });
+        progression,
+      };
+      refreshLanternAccentColor(animationTarget);
+      lanternAnimationTargets.push(animationTarget);
     });
   }
 
@@ -1358,9 +1381,13 @@ export function createBackyardEnvironment(
                 return;
               }
               animationTarget.baseIntensity = target.material.emissiveIntensity;
+              animationTarget.baseEmissiveColor.copy(target.material.emissive);
+              refreshLanternAccentColor(animationTarget);
+              animationTarget.mixColor.copy(animationTarget.baseEmissiveColor);
               const firstLight = target.fillLights[0]?.light;
               if (firstLight) {
                 animationTarget.baseLightIntensity = firstLight.intensity;
+                animationTarget.light.color.copy(firstLight.color);
               }
             });
           }
@@ -1700,10 +1727,13 @@ export function createBackyardEnvironment(
   if (lanternAnimationTargets.length > 0) {
     updates.push(({ elapsed }) => {
       const baseWave = Math.sin(elapsed * 0.9) * 0.12;
-      const flickerScale = getFlickerScale();
-      const pulseScale = getPulseScale();
+      const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+      const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
       const steadyBase = MathUtils.lerp(0.6, 1, flickerScale);
       const rotationScale = MathUtils.lerp(0.2, 1, pulseScale);
+      const waveSpeed = MathUtils.lerp(0.12, 0.22, pulseScale);
+      const waveSharpness = MathUtils.lerp(2.6, 4.4, Math.max(pulseScale, 0.2));
+      const waveProgress = MathUtils.euclideanModulo(elapsed * waveSpeed, 1);
       lanternAnimationTargets.forEach((target) => {
         const flicker =
           0.84 +
@@ -1711,15 +1741,55 @@ export function createBackyardEnvironment(
           Math.sin(elapsed * 1.7 + target.offset) * 0.16 +
           Math.sin(elapsed * 2.4 + target.offset * 0.8) * 0.08;
         const clampedFlicker = Math.max(0.4, flicker);
-        const intensityScale = MathUtils.lerp(
+        const flickerBlend = MathUtils.lerp(
           steadyBase,
           clampedFlicker,
           flickerScale
         );
+        const offsetProgression = MathUtils.euclideanModulo(
+          target.offset * 0.03,
+          1
+        );
+        const anchorProgression = MathUtils.euclideanModulo(
+          target.progression + offsetProgression,
+          1
+        );
+        let distance = Math.abs(anchorProgression - waveProgress);
+        if (distance > 0.5) {
+          distance = 1 - distance;
+        }
+        const beaconStrength = Math.max(0, 1 - distance * waveSharpness);
+        const waveContribution = beaconStrength * pulseScale;
+        const intensityBoost =
+          1 +
+          waveContribution *
+            MathUtils.lerp(0.18, 0.6, Math.max(pulseScale, flickerScale));
+        const finalIntensityScale = MathUtils.clamp(
+          flickerBlend * intensityBoost,
+          0.35,
+          2.2
+        );
         target.glassMaterial.emissiveIntensity =
-          target.baseIntensity * intensityScale;
-        target.light.intensity = target.baseLightIntensity * intensityScale;
-        target.light.distance = 4.4 * MathUtils.lerp(0.7, 1, rotationScale);
+          target.baseIntensity * finalIntensityScale;
+        target.light.intensity =
+          target.baseLightIntensity * finalIntensityScale;
+        target.light.distance =
+          4.4 *
+          MathUtils.lerp(0.7, 1, rotationScale) *
+          MathUtils.lerp(1, 1.1, waveContribution);
+
+        const accentStrength = MathUtils.lerp(
+          0.15,
+          0.82,
+          Math.max(pulseScale, flickerScale)
+        );
+        const accentBlend = Math.min(1, waveContribution * accentStrength);
+        target.mixColor.copy(target.baseEmissiveColor);
+        if (accentBlend > 0.001) {
+          target.mixColor.lerp(target.accentColor, accentBlend);
+        }
+        target.glassMaterial.emissive.copy(target.mixColor);
+        target.light.color.copy(target.mixColor);
       });
     });
   }

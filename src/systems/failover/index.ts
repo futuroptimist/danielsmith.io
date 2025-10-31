@@ -1,4 +1,14 @@
-import { getLocaleDirection, getLocaleScript } from '../../assets/i18n';
+import { FLOOR_PLAN } from '../../assets/floorPlan';
+import {
+  formatMessage,
+  getLocaleDirection,
+  getLocaleScript,
+  getPoiCopy,
+  getPoiNarrativeLogStrings,
+  getSiteStrings,
+} from '../../assets/i18n';
+import { getPoiDefinitions } from '../../scene/poi/registry';
+import type { PoiLink } from '../../scene/poi/types';
 import { initializeModeAnnouncementObserver } from '../../ui/accessibility/modeAnnouncer';
 import { createImmersiveModeUrl } from '../../ui/immersiveUrl';
 
@@ -29,6 +39,27 @@ type NetworkInformationReader = () =>
 interface NetworkInformationSnapshot {
   saveData?: boolean;
   effectiveType?: string | null;
+}
+
+type TextPortfolioMetric = {
+  label: string;
+  value: string;
+};
+
+interface TextPortfolioPoi {
+  id: string;
+  title: string;
+  summary: string;
+  outcomeLabel?: string;
+  outcomeValue?: string;
+  metrics: TextPortfolioMetric[];
+  links: PoiLink[];
+}
+
+interface TextPortfolioRoomGroup {
+  roomId: string;
+  roomLabel: string;
+  pois: TextPortfolioPoi[];
 }
 
 export type FallbackReason =
@@ -329,6 +360,179 @@ export interface RenderTextFallbackOptions {
   githubUrl?: string;
 }
 
+function buildTextPortfolioGroups(
+  localeHint?: string
+): TextPortfolioRoomGroup[] {
+  const poiDefinitions = getPoiDefinitions();
+  const poiCopy = getPoiCopy(localeHint);
+  const narrativeRooms = getPoiNarrativeLogStrings(localeHint).rooms;
+  const roomLookup = new Map(
+    FLOOR_PLAN.rooms.map((room) => [room.id, room.name])
+  );
+  const groups = new Map<string, TextPortfolioRoomGroup>();
+
+  FLOOR_PLAN.rooms.forEach((room) => {
+    const label = narrativeRooms?.[room.id]?.label ?? room.name;
+    groups.set(room.id, { roomId: room.id, roomLabel: label, pois: [] });
+  });
+
+  poiDefinitions.forEach((definition) => {
+    let group = groups.get(definition.roomId);
+    if (!group) {
+      const fallbackLabel =
+        narrativeRooms?.[definition.roomId]?.label ??
+        roomLookup.get(definition.roomId) ??
+        definition.roomId;
+      group = { roomId: definition.roomId, roomLabel: fallbackLabel, pois: [] };
+      groups.set(definition.roomId, group);
+    }
+
+    const copy = poiCopy[definition.id];
+    const metricsSource = copy?.metrics ?? definition.metrics ?? [];
+    const linksSource = copy?.links ?? definition.links ?? [];
+
+    group.pois.push({
+      id: definition.id,
+      title: copy?.title ?? definition.title,
+      summary: copy?.summary ?? definition.summary,
+      outcomeLabel: copy?.outcome?.label ?? definition.outcome?.label,
+      outcomeValue: copy?.outcome?.value ?? definition.outcome?.value,
+      metrics: metricsSource.map((metric) => ({
+        label: metric.label,
+        value: metric.value,
+      })),
+      links: linksSource.map((link) => ({
+        label: link.label,
+        href: link.href,
+      })),
+    });
+  });
+
+  return Array.from(groups.values())
+    .filter((group) => group.pois.length > 0)
+    .map((group) => ({
+      ...group,
+      pois: group.pois.sort((a, b) =>
+        a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
+      ),
+    }));
+}
+
+function createTextPortfolioSection(
+  documentTarget: Document,
+  localeHint?: string
+): HTMLElement | null {
+  const groups = buildTextPortfolioGroups(localeHint);
+  if (groups.length === 0) {
+    return null;
+  }
+
+  const siteStrings = getSiteStrings(localeHint).textFallback;
+  const section = documentTarget.createElement('section');
+  section.className = 'text-fallback__exhibits';
+  section.dataset.section = 'portfolio';
+
+  const heading = documentTarget.createElement('h2');
+  heading.className = 'text-fallback__exhibits-heading';
+  heading.textContent = siteStrings.heading;
+  section.appendChild(heading);
+
+  const intro = documentTarget.createElement('p');
+  intro.className = 'text-fallback__exhibits-intro';
+  intro.textContent = siteStrings.intro;
+  section.appendChild(intro);
+
+  groups.forEach((group) => {
+    const roomSection = documentTarget.createElement('section');
+    roomSection.className = 'text-fallback__room';
+    roomSection.dataset.roomId = group.roomId;
+
+    const roomHeading = documentTarget.createElement('h3');
+    roomHeading.className = 'text-fallback__room-heading';
+    roomHeading.textContent = formatMessage(siteStrings.roomHeadingTemplate, {
+      roomName: group.roomLabel,
+    });
+    roomSection.appendChild(roomHeading);
+
+    const list = documentTarget.createElement('div');
+    list.className = 'text-fallback__poi-list';
+
+    group.pois.forEach((poi) => {
+      const article = documentTarget.createElement('article');
+      article.className = 'text-fallback__poi';
+      article.dataset.poiId = poi.id;
+
+      const title = documentTarget.createElement('h4');
+      title.className = 'text-fallback__poi-title';
+      title.textContent = poi.title;
+      article.appendChild(title);
+
+      const summary = documentTarget.createElement('p');
+      summary.className = 'text-fallback__poi-summary';
+      summary.textContent = poi.summary;
+      article.appendChild(summary);
+
+      if (poi.outcomeLabel && poi.outcomeValue) {
+        const outcome = documentTarget.createElement('p');
+        outcome.className = 'text-fallback__poi-outcome';
+        outcome.textContent = `${poi.outcomeLabel}: ${poi.outcomeValue}`;
+        article.appendChild(outcome);
+      }
+
+      if (poi.metrics.length > 0) {
+        const metricsHeading = documentTarget.createElement('h5');
+        metricsHeading.className = 'text-fallback__poi-metrics-heading';
+        metricsHeading.textContent = siteStrings.metricsHeading;
+        article.appendChild(metricsHeading);
+
+        const metrics = documentTarget.createElement('dl');
+        metrics.className = 'text-fallback__poi-metrics';
+        poi.metrics.forEach((metric) => {
+          const term = documentTarget.createElement('dt');
+          term.className = 'text-fallback__poi-metric-label';
+          term.textContent = metric.label;
+          metrics.appendChild(term);
+
+          const value = documentTarget.createElement('dd');
+          value.className = 'text-fallback__poi-metric-value';
+          value.textContent = metric.value;
+          metrics.appendChild(value);
+        });
+        article.appendChild(metrics);
+      }
+
+      if (poi.links.length > 0) {
+        const linksHeading = documentTarget.createElement('h5');
+        linksHeading.className = 'text-fallback__poi-links-heading';
+        linksHeading.textContent = siteStrings.linksHeading;
+        article.appendChild(linksHeading);
+
+        const links = documentTarget.createElement('ul');
+        links.className = 'text-fallback__poi-links';
+        poi.links.forEach((link) => {
+          const item = documentTarget.createElement('li');
+          item.className = 'text-fallback__poi-link';
+          const anchor = documentTarget.createElement('a');
+          anchor.className = 'text-fallback__link';
+          anchor.href = link.href;
+          anchor.rel = 'noopener';
+          anchor.textContent = link.label;
+          item.appendChild(anchor);
+          links.appendChild(item);
+        });
+        article.appendChild(links);
+      }
+
+      list.appendChild(article);
+    });
+
+    roomSection.appendChild(list);
+    section.appendChild(roomSection);
+  });
+
+  return section;
+}
+
 export function renderTextFallback(
   container: HTMLElement,
   options: RenderTextFallbackOptions
@@ -436,5 +640,12 @@ export function renderTextFallback(
   list.appendChild(githubItem);
 
   section.appendChild(list);
+  const portfolioSection = createTextPortfolioSection(
+    documentTarget,
+    localeHint
+  );
+  if (portfolioSection) {
+    section.appendChild(portfolioSection);
+  }
   container.appendChild(section);
 }
