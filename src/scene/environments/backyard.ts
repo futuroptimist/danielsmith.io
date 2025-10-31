@@ -69,6 +69,28 @@ interface WalkwayArrowTarget {
   phase: number;
 }
 
+interface WalkwayMistLayer {
+  mesh: Mesh;
+  uniforms: {
+    time: IUniform<number>;
+    color: IUniform<Color>;
+    opacity: IUniform<number>;
+    swirlStrength: IUniform<number>;
+    flowStrength: IUniform<number>;
+    intensity: IUniform<number>;
+    phase: IUniform<number>;
+  };
+  baseColor: Color;
+  baseOpacity: number;
+  baseHeight: number;
+  verticalRange: number;
+  opacityRange: number;
+  speed: number;
+  waveOffset: number;
+  baseSwirlStrength: number;
+  baseFlowStrength: number;
+}
+
 function createSignageTexture(title: string, subtitle: string): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -504,6 +526,104 @@ export function createBackyardEnvironment(
   }
   group.add(walkwayArrowGroup);
 
+  const walkwayMistGroup = new Group();
+  walkwayMistGroup.name = 'BackyardWalkwayMist';
+  const walkwayMistLayers: WalkwayMistLayer[] = [];
+  const walkwayMistBaseColor = new Color(0x6fa6ff);
+  const walkwayMistGeometry = new PlaneGeometry(
+    walkwayWidth * 0.92,
+    walkwayDepth * 0.94,
+    1,
+    1
+  );
+  walkwayMistGeometry.rotateX(-Math.PI / 2);
+  const walkwayMistLayerCount = 3;
+  for (let i = 0; i < walkwayMistLayerCount; i += 1) {
+    const ratio = (i + 1) / (walkwayMistLayerCount + 1);
+    const baseOpacity = MathUtils.lerp(0.24, 0.38, ratio);
+    const baseHeight = walkway.position.y + 0.05 + ratio * 0.05;
+    const verticalRange = MathUtils.lerp(0.02, 0.05, ratio);
+    const opacityRange = MathUtils.lerp(0.08, 0.16, ratio);
+    const speed = MathUtils.lerp(0.4, 0.58, ratio);
+    const waveOffset = ratio * Math.PI * 1.7;
+    const baseSwirlStrength = MathUtils.lerp(2.2, 3, ratio);
+    const baseFlowStrength = MathUtils.lerp(1.25, 1.65, ratio);
+    const baseColor = walkwayMistBaseColor
+      .clone()
+      .lerp(new Color(0xffffff), ratio * 0.18);
+    const uniforms: WalkwayMistLayer['uniforms'] = {
+      time: { value: 0 },
+      color: { value: baseColor.clone() },
+      opacity: { value: baseOpacity },
+      swirlStrength: { value: baseSwirlStrength },
+      flowStrength: { value: baseFlowStrength },
+      intensity: { value: 1 },
+      phase: { value: waveOffset },
+    };
+    const material = new ShaderMaterial({
+      uniforms,
+      vertexShader: `
+        varying vec2 vUv;
+
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        uniform float opacity;
+        uniform float time;
+        uniform float swirlStrength;
+        uniform float flowStrength;
+        uniform float intensity;
+        uniform float phase;
+        varying vec2 vUv;
+
+        void main() {
+          float flow = sin(vUv.y * 5.2 + time * flowStrength + phase) * 0.5 + 0.5;
+          float swirl = sin((vUv.x + vUv.y) * 4.0 + time * swirlStrength + phase) * 0.5 + 0.5;
+          float ribbons = sin(vUv.x * 9.0 + time * (flowStrength * 0.7) + phase) * 0.5 + 0.5;
+          float density = mix(flow, swirl, 0.6);
+          density = mix(density, ribbons, 0.35);
+          density = pow(density, 1.8);
+          float fadeY = smoothstep(0.08, 0.28, vUv.y) * (1.0 - smoothstep(0.72, 0.92, vUv.y));
+          float fadeX = smoothstep(0.05, 0.2, vUv.x) * (1.0 - smoothstep(0.78, 0.95, vUv.x));
+          float alpha = density * fadeX * fadeY * opacity;
+          if (alpha <= 0.001) {
+            discard;
+          }
+          gl_FragColor = vec4(color * intensity, alpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      side: DoubleSide,
+    });
+    const mist = new Mesh(walkwayMistGeometry, material);
+    mist.name = `BackyardWalkwayMistLayer-${i}`;
+    mist.position.set(walkway.position.x, baseHeight, walkway.position.z);
+    mist.renderOrder = 5 + i;
+    walkwayMistGroup.add(mist);
+    walkwayMistLayers.push({
+      mesh: mist,
+      uniforms,
+      baseColor,
+      baseOpacity,
+      baseHeight,
+      verticalRange,
+      opacityRange,
+      speed,
+      waveOffset,
+      baseSwirlStrength,
+      baseFlowStrength,
+    });
+  }
+  if (walkwayMistGroup.children.length > 0) {
+    group.add(walkwayMistGroup);
+  }
+
   const projectionBase = new Vector3(
     walkway.position.x - walkwayWidth * 0.62,
     0,
@@ -654,6 +774,9 @@ export function createBackyardEnvironment(
   ) => {
     walkwayMoteMaterial.color.copy(walkwayMoteBaseColor);
     pollenMaterial.color.copy(pollenBaseColor);
+    walkwayMistLayers.forEach((layer) => {
+      layer.uniforms.color.value.copy(layer.baseColor);
+    });
     if (!preset) {
       walkwayMoteMaterial.needsUpdate = true;
       pollenMaterial.needsUpdate = true;
@@ -690,6 +813,13 @@ export function createBackyardEnvironment(
       walkwayMoteTintColor,
       tintStrength
     );
+    walkwayMistLayers.forEach((layer) => {
+      layer.uniforms.color.value.lerpColors(
+        layer.baseColor,
+        walkwayMoteTintColor,
+        tintStrength
+      );
+    });
     walkwayMoteMaterial.needsUpdate = true;
     pollenMaterial.needsUpdate = true;
   };
@@ -764,6 +894,41 @@ export function createBackyardEnvironment(
       pulseScale
     );
   });
+
+  if (walkwayMistLayers.length > 0) {
+    updates.push(({ elapsed }) => {
+      const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+      const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+      const motionPreference = Math.min(
+        flickerScale,
+        Math.max(pulseScale, 0.3)
+      );
+      const motionScale = MathUtils.lerp(0.18, 1, motionPreference);
+      const swirlScale = MathUtils.lerp(0.35, 1, flickerScale);
+      walkwayMistLayers.forEach((layer) => {
+        const cycle = elapsed * layer.speed + layer.waveOffset;
+        const wave = Math.sin(cycle);
+        const heightRange = layer.verticalRange * motionScale;
+        layer.mesh.position.y = layer.baseHeight + wave * heightRange;
+        const opacityPulse = MathUtils.clamp(
+          layer.baseOpacity + layer.opacityRange * wave * 0.3 * motionScale,
+          0,
+          1
+        );
+        layer.uniforms.opacity.value = opacityPulse;
+        layer.uniforms.time.value = elapsed;
+        layer.uniforms.flowStrength.value =
+          layer.baseFlowStrength * MathUtils.lerp(0.45, 1, motionScale);
+        layer.uniforms.swirlStrength.value =
+          layer.baseSwirlStrength * MathUtils.lerp(0.4, 1, swirlScale);
+        layer.uniforms.intensity.value = MathUtils.lerp(
+          0.7,
+          1.18,
+          Math.max(flickerScale, 0.05)
+        );
+      });
+    });
+  }
 
   updates.push(({ delta }) => {
     const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
