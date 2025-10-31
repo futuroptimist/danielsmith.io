@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createAxelNavigator } from '../axelNavigator';
+import { createAxelNavigator, QUEST_MOMENTUM_PRESETS } from '../axelNavigator';
 
 describe('createAxelNavigator', () => {
   it('builds the quest navigator showpiece with colliders', () => {
@@ -56,5 +56,50 @@ describe('createAxelNavigator', () => {
 
     expect(ringMaterial.opacity).toBeLessThanOrEqual(opacityAfterActivation);
     expect(beaconMaterial.emissiveIntensity).toBeGreaterThan(0);
+  });
+
+  it('projects quest backlog indicators with orbiting holographic beacons', () => {
+    const build = createAxelNavigator({ position: { x: 0, z: 0 } });
+
+    const momentumGroup = build.group.getObjectByName(
+      'AxelNavigatorQuestMomentum'
+    ) as Group;
+    expect(momentumGroup).toBeInstanceOf(Group);
+
+    const sampleQuest = QUEST_MOMENTUM_PRESETS[0];
+    const indicator = momentumGroup.getObjectByName(
+      `AxelNavigatorQuestIndicator-${sampleQuest.id}`
+    ) as Mesh;
+    const halo = momentumGroup.getObjectByName(
+      `AxelNavigatorQuestHalo-${sampleQuest.id}`
+    ) as Mesh;
+
+    expect(indicator).toBeInstanceOf(Mesh);
+    expect(halo).toBeInstanceOf(Mesh);
+
+    const indicators = QUEST_MOMENTUM_PRESETS.map((quest) =>
+      momentumGroup.getObjectByName(`AxelNavigatorQuestIndicator-${quest.id}`)
+    ).filter(Boolean);
+
+    expect(indicators).toHaveLength(QUEST_MOMENTUM_PRESETS.length);
+
+    const indicatorMaterial = indicator.material as MeshStandardMaterial;
+    const haloMaterial = halo.material as MeshBasicMaterial;
+
+    const initialPosition = indicator.position.clone();
+    const initialIntensity = indicatorMaterial.emissiveIntensity;
+    const initialOpacity = indicatorMaterial.opacity;
+    const initialHaloOpacity = haloMaterial.opacity;
+
+    build.update({ elapsed: 0.8, delta: 0.32, emphasis: 0.75 });
+
+    expect(indicator.position.x).not.toBeCloseTo(initialPosition.x);
+    expect(indicator.position.z).not.toBeCloseTo(initialPosition.z);
+    expect(indicatorMaterial.emissiveIntensity).toBeGreaterThan(
+      initialIntensity
+    );
+    expect(indicatorMaterial.opacity).toBeGreaterThan(initialOpacity);
+    expect(haloMaterial.opacity).toBeGreaterThan(initialHaloOpacity);
+    expect(halo.position.y).toBeLessThan(indicator.position.y);
   });
 });
