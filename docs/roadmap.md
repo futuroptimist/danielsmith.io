@@ -168,8 +168,10 @@ Focus: anchor each highlighted project with an interactive artifact.
      and diagnostics beacons.
    - ✅ Orbiting data shards now sync their emissive sweeps with visitor
      emphasis pulses, echoing the HUD analytics glow rhythm.
-   - ✨ Axel quest navigator tabletop now charts backlog quests with holographic rings and
+   - ✅ Axel quest navigator tabletop now charts backlog quests with holographic rings and
      momentum beacons around the studio tracker POI.
+     - Quest backlog indicators now orbit the hologram in real time, pulsing halo beacons as
+       sprints accelerate toward completion.
    - ✅ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
      columns and nightly sync signage.
 3. **Backyard Exhibits**
