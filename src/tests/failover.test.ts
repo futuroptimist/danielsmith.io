@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { getSiteStrings } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import {
   evaluateFailoverDecision,
   isWebglSupported,
@@ -409,6 +411,24 @@ describe('renderTextFallback', () => {
     const container = render('automated-client');
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/automated client/i);
+  });
+
+  it('renders a text portfolio entry for every POI', () => {
+    const container = render('manual');
+    const portfolio = container.querySelector('.text-fallback__exhibits');
+    expect(portfolio).toBeTruthy();
+    const rooms = portfolio?.querySelectorAll('.text-fallback__room') ?? [];
+    expect(rooms.length).toBeGreaterThan(0);
+    const articles = portfolio?.querySelectorAll('.text-fallback__poi') ?? [];
+    expect(articles.length).toBe(getPoiDefinitions().length);
+    const metricsHeading = portfolio?.querySelector(
+      '.text-fallback__poi-metrics-heading'
+    );
+    expect(metricsHeading?.textContent).toBe(
+      getSiteStrings().textFallback.metricsHeading
+    );
+    const linkList = portfolio?.querySelector('.text-fallback__poi-links');
+    expect(linkList?.querySelectorAll('a').length).toBeGreaterThan(0);
   });
 
   it('describes low-end device fallback messaging', () => {

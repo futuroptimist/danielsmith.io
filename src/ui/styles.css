@@ -113,6 +113,117 @@ canvas {
   text-decoration: underline;
 }
 
+.text-fallback__exhibits {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(143, 214, 255, 0.2);
+}
+
+.text-fallback__exhibits-heading {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.text-fallback__exhibits-intro {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.text-fallback__room {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.text-fallback__room-heading {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.text-fallback__poi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.text-fallback__poi {
+  padding: 1.1rem 1rem;
+  border-radius: 1rem;
+  background: rgba(8, 16, 28, 0.75);
+  border: 1px solid rgba(90, 203, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.text-fallback__poi-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.text-fallback__poi-summary {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.text-fallback__poi-outcome {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #b6f3ff;
+}
+
+.text-fallback__poi-metrics-heading,
+.text-fallback__poi-links-heading {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.text-fallback__poi-metrics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.75rem;
+  row-gap: 0.3rem;
+  font-size: 0.88rem;
+}
+
+.text-fallback__poi-metric-label {
+  margin: 0;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.text-fallback__poi-metric-value {
+  margin: 0;
+  opacity: 0.88;
+}
+
+.text-fallback__poi-links {
+  margin: 0;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.text-fallback__poi-link {
+  list-style: disc;
+}
+
 .lighting-debug-indicator {
   position: fixed;
   top: 1.5rem;

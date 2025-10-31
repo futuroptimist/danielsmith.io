@@ -156,9 +156,18 @@ export interface SiteStructuredDataStrings {
   author: SiteStructuredDataEntityStrings;
 }
 
+export interface SiteTextFallbackStrings {
+  heading: string;
+  intro: string;
+  roomHeadingTemplate: string;
+  metricsHeading: string;
+  linksHeading: string;
+}
+
 export interface SiteStrings {
   name: string;
   structuredData: SiteStructuredDataStrings;
+  textFallback: SiteTextFallbackStrings;
 }
 
 export interface PoiCopy {

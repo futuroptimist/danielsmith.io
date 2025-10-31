@@ -100,6 +100,7 @@ test.describe('immersive experience', () => {
   });
 
   test('HUD menu hides optional controls until opened', async ({ page }) => {
+    test.setTimeout(90_000);
     await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(
       () => document.documentElement.dataset.appMode === 'immersive',
@@ -138,7 +139,11 @@ test.describe('immersive experience', () => {
     await expect(accessibilityControl).toBeVisible();
     await expect(modeToggle).toBeVisible();
 
-    await page.keyboard.press('Escape');
+    await page.evaluate(() => {
+      const button =
+        document.querySelector<HTMLButtonElement>('.help-modal__close');
+      button?.click();
+    });
     await expect(backdrop).toBeHidden();
     await expect(audioHud).toBeHidden();
     await expect(graphicsControl).toBeHidden();

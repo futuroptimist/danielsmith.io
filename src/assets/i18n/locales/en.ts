@@ -24,6 +24,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         type: 'Person',
       },
     },
+    textFallback: {
+      heading: 'Explore the highlights',
+      intro:
+        'The text portfolio keeps every exhibit accessible with quick summaries, outcomes, and metrics while immersive mode is unavailable.',
+      roomHeadingTemplate: '{roomName} exhibits',
+      metricsHeading: 'Key metrics',
+      linksHeading: 'Further reading',
+    },
   },
   hud: {
     controlOverlay: {
