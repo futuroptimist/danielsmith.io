@@ -171,6 +171,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
      - ✅ Undershelf LED wash now breathes with POI emphasis while calm/photosensitive presets
        dampen pulses and flicker spikes.
+     - ✅ Live GitHub star telemetry now feeds the media wall badge so the display mirrors the
+       latest repo metrics alongside the POI overlays.
    - ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
      orbitals, and an activation-driven tech stack + docs callout panel.
    - ✅ Studio Jobbot terminal desk now projects live automation telemetry via

@@ -1,4 +1,7 @@
-import type { GitHubRepoStatsService } from '../../systems/github/repoStats';
+import type {
+  GitHubRepoStats,
+  GitHubRepoStatsService,
+} from '../../systems/github/repoStats';
 
 import type {
   PoiDefinition,
@@ -17,12 +20,18 @@ interface MetricEntry {
 interface RepoBucket {
   identifier: { owner: string; repo: string };
   entries: MetricEntry[];
+  lastStars?: number;
 }
 
 export interface WireGitHubRepoMetricsOptions {
   definitions: PoiDefinition[];
   service: GitHubRepoStatsService;
   onMetricsUpdated?(poiId: PoiId): void;
+  onRepoStatsUpdated?(update: {
+    poiId: PoiId;
+    source: PoiMetricGitHubStarsSource;
+    stats: GitHubRepoStats;
+  }): void;
 }
 
 export interface GitHubRepoMetricsController {
@@ -71,6 +80,7 @@ export function wireGitHubRepoMetrics({
   definitions,
   service,
   onMetricsUpdated,
+  onRepoStatsUpdated,
 }: WireGitHubRepoMetricsOptions): GitHubRepoMetricsController {
   const repoMap = new Map<string, RepoBucket>();
   const disposables: Array<() => void> = [];
@@ -105,16 +115,28 @@ export function wireGitHubRepoMetrics({
       const cached = service.getCachedStats(bucket.identifier);
       if (cached) {
         metric.value = formatStars(cached.stars, metric.source);
+        bucket.lastStars = cached.stars;
+        onRepoStatsUpdated?.({
+          poiId: poi.id,
+          source: metric.source,
+          stats: cached,
+        });
       }
     });
   });
 
   repoMap.forEach((bucket) => {
     const unsubscribe = service.subscribe(bucket.identifier, (stats) => {
+      const previousStars = bucket.lastStars;
+      bucket.lastStars = stats.stars;
+      const starChanged = previousStars !== stats.stars;
       const updated = new Set<PoiId>();
       bucket.entries.forEach(({ poi, metric, source }) => {
         metric.value = formatStars(stats.stars, source);
         updated.add(poi.id);
+        if (starChanged) {
+          onRepoStatsUpdated?.({ poiId: poi.id, source, stats });
+        }
       });
       if (onMetricsUpdated) {
         updated.forEach((poiId) => onMetricsUpdated(poiId));

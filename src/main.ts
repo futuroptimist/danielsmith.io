@@ -196,6 +196,7 @@ import {
   createLivingRoomMediaWall,
   type LivingRoomMediaWallBuild,
 } from './scene/structures/mediaWall';
+import { createMediaWallStarBridge } from './scene/structures/mediaWallStarBridge';
 import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
@@ -560,6 +561,7 @@ let tokenPlaceRack: TokenPlaceRackBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
+const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
@@ -1028,6 +1030,7 @@ function initializeImmersiveScene(
     scene.add(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
+    mediaWallStarBridge.attach(mediaWall.controller);
 
     const tvBinding = mediaWall.poiBindings.futuroptimistTv;
     const tvHitArea = tvBinding.screen.clone();
@@ -1339,6 +1342,11 @@ function initializeImmersiveScene(
     onMetricsUpdated: (poiId) => {
       poiTooltipOverlay.notifyPoiUpdated(poiId);
       poiWorldTooltip.notifyPoiUpdated(poiId);
+    },
+    onRepoStatsUpdated: ({ poiId, stats }) => {
+      if (poiId === 'futuroptimist-living-room-tv') {
+        mediaWallStarBridge.updateStarCount(stats.stars);
+      }
     },
   });
   githubRepoMetrics.refreshAll().catch(() => {
@@ -3676,6 +3684,7 @@ function initializeImmersiveScene(
     controls.dispose();
     if (livingRoomMediaWall) {
       livingRoomMediaWall.controller.dispose();
+      mediaWallStarBridge.detach();
       livingRoomMediaWall = null;
     }
     if (selfieMirror) {
