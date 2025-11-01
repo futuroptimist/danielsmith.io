@@ -160,8 +160,10 @@ Focus: anchor each highlighted project with an interactive artifact.
      holographic log ticker, clipboard callouts, and ambient halo lighting.
    - ✅ Sigma fabrication bench now anchors the kitchen Sigma POI with a glowing ESP32 AI pin,
      holographic spec sheet, and animated print arm choreography.
-   - ✨ Wove tactile loom now weaves animated warp threads and a glowing shuttle to anchor the
+   - ✅ Wove tactile loom now weaves animated warp threads and a glowing shuttle to anchor the
      kitchen Wove POI with a tactile robotics vignette.
+     - Warp ripples now sync to emphasis pulses while the shuttle projects a warm glow wash
+       across the loom table as it slides.
    - ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
      - ✅ Undershelf LED wash now breathes with POI emphasis while calm/photosensitive presets
