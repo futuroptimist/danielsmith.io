@@ -175,6 +175,55 @@ describe('createPrReaperConsole', () => {
     expect(cautionMaterial.opacity).toBeGreaterThan(dampenedCaution);
   });
 
+  it('drives the severity indicator ring with emphasis and calm-mode damping', () => {
+    const console = createPrReaperConsole({ position: { x: 0, z: 0 } });
+    const segments = [0, 1, 2].map((index) => {
+      const segment = console.group.getObjectByName(
+        `PrReaperSeveritySegment-${index}`
+      );
+      expect(segment).toBeInstanceOf(Mesh);
+      return segment as Mesh;
+    });
+
+    const materials = segments.map(
+      (mesh) => mesh.material as MeshStandardMaterial
+    );
+    const baseIntensities = materials.map((material) => {
+      return material.emissiveIntensity;
+    });
+    const baseOpacities = materials.map((material) => material.opacity ?? 0);
+
+    console.update({ elapsed: 0.6, delta: 0.016, emphasis: 0.6 });
+    const activeIntensities = materials.map(
+      (material) => material.emissiveIntensity
+    );
+    activeIntensities.forEach((value, index) => {
+      expect(value).toBeGreaterThan(baseIntensities[index]);
+      expect(materials[index].opacity ?? 0).toBeGreaterThan(
+        baseOpacities[index]
+      );
+    });
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    console.update({ elapsed: 1.6, delta: 0.016, emphasis: 0.6 });
+    const dampedIntensities = materials.map(
+      (material) => material.emissiveIntensity
+    );
+    dampedIntensities.forEach((value, index) => {
+      expect(value).toBeLessThanOrEqual(activeIntensities[index]);
+    });
+
+    delete document.documentElement.dataset.accessibilityPulseScale;
+    console.update({ elapsed: 2.6, delta: 0.016, emphasis: 0.9 });
+    const restoredIntensities = materials.map(
+      (material) => material.emissiveIntensity
+    );
+    restoredIntensities.forEach((value, index) => {
+      expect(value).toBeGreaterThan(dampedIntensities[index]);
+    });
+    expect(restoredIntensities[2]).toBeGreaterThan(baseIntensities[2]);
+  });
+
   it('animates log review surfaces with ticker scroll and emphasis glow', () => {
     const console = createPrReaperConsole({ position: { x: 0, z: 0 } });
     const panel = console.group.getObjectByName(

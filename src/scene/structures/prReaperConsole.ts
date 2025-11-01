@@ -12,6 +12,7 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   RepeatWrapping,
+  RingGeometry,
   TorusGeometry,
   Vector3,
 } from 'three';
@@ -43,10 +44,23 @@ interface IncidentLogEntry {
   summary: string;
 }
 
+interface SeveritySegment {
+  material: MeshStandardMaterial;
+  baseIntensity: number;
+  baseOpacity: number;
+  threshold: number;
+}
+
 const INCIDENT_COLORS: Record<IncidentLogEntry['status'], string> = {
   stable: 'rgba(102, 212, 255, 0.92)',
   investigating: 'rgba(255, 198, 102, 0.95)',
   escalated: 'rgba(255, 112, 102, 0.95)',
+};
+
+const INCIDENT_SEVERITY: Record<IncidentLogEntry['status'], number> = {
+  stable: 0.3,
+  investigating: 0.65,
+  escalated: 1,
 };
 
 function createIncidentLogTexture(entries: IncidentLogEntry[]): CanvasTexture {
@@ -254,6 +268,7 @@ export function createPrReaperConsole(
 
   const colliders: RectCollider[] = [];
   const logSurfaces: LogSurface[] = [];
+  const severitySegments: SeveritySegment[] = [];
 
   const deckWidth = 2.6;
   const deckDepth = 1.6;
@@ -364,6 +379,57 @@ export function createPrReaperConsole(
   sweep.rotation.x = Math.PI / 2;
   group.add(sweep);
 
+  const severityDefinitions: Array<{
+    color: number;
+    emissive: number;
+    threshold: number;
+  }> = [
+    { color: 0x1f7aff, emissive: 0x39c5ff, threshold: 0.25 },
+    { color: 0xffc24f, emissive: 0xffd67f, threshold: 0.55 },
+    { color: 0xff6b6b, emissive: 0xff8a8a, threshold: 0.85 },
+  ];
+  const severityRadius = 0.74;
+  const severityThickness = 0.06;
+  const segmentArc = Math.PI / 3.2;
+  const segmentGap = Math.PI / 20;
+  const totalArc =
+    segmentArc * severityDefinitions.length +
+    segmentGap * (severityDefinitions.length - 1);
+  const segmentStart = -totalArc / 2;
+  severityDefinitions.forEach((definition, index) => {
+    const geometry = new RingGeometry(
+      severityRadius - severityThickness,
+      severityRadius,
+      48,
+      1,
+      segmentStart + index * (segmentArc + segmentGap),
+      segmentArc
+    );
+    const material = new MeshStandardMaterial({
+      color: new Color(definition.color),
+      emissive: new Color(definition.emissive),
+      emissiveIntensity: 0.38 + index * 0.08,
+      roughness: 0.38,
+      metalness: 0.28,
+      transparent: true,
+      opacity: 0.32 + index * 0.04,
+      side: DoubleSide,
+    });
+    const segment = new Mesh(geometry, material);
+    segment.name = `PrReaperSeveritySegment-${index}`;
+    segment.position.copy(holoRing.position);
+    segment.position.y += 0.02;
+    segment.rotation.x = Math.PI / 2;
+    segment.renderOrder = 12 + index;
+    group.add(segment);
+    severitySegments.push({
+      material,
+      baseIntensity: material.emissiveIntensity ?? 0,
+      baseOpacity: material.opacity ?? 0,
+      threshold: definition.threshold,
+    });
+  });
+
   const logTableMaterial = new MeshStandardMaterial({
     color: new Color(0x233645),
     emissive: new Color(0x114488),
@@ -393,6 +459,9 @@ export function createPrReaperConsole(
       summary: 'Nightly release triage stalled — awaiting maintainer signoff.',
     },
   ];
+  const highestIncidentSeverity = incidentEntries.reduce((max, entry) => {
+    return Math.max(max, INCIDENT_SEVERITY[entry.status]);
+  }, 0);
   const logTexture = createIncidentLogTexture(incidentEntries);
   const logMaterial = new MeshBasicMaterial({
     map: logTexture,
@@ -560,6 +629,39 @@ export function createPrReaperConsole(
       1
     );
     sweep.rotation.z = elapsed * MathUtils.lerp(1, 2.4, clampedEmphasis + 0.2);
+
+    const severityLevel = highestIncidentSeverity;
+    severitySegments.forEach((segment) => {
+      const severityActivation = MathUtils.clamp(
+        (severityLevel - segment.threshold) / 0.34,
+        0,
+        1
+      );
+      const severityBase =
+        segment.baseIntensity +
+        severityActivation * MathUtils.lerp(0.22, 0.82, clampedEmphasis);
+      const pulseContribution =
+        severityActivation *
+        MathUtils.lerp(0, 0.62, pulseScale) *
+        (0.5 + pulse * 0.5);
+      segment.material.emissiveIntensity = Math.max(
+        segment.baseIntensity,
+        severityBase + pulseContribution
+      );
+
+      const baseOpacityTarget =
+        segment.baseOpacity +
+        severityActivation * MathUtils.lerp(0.1, 0.42, clampedEmphasis);
+      const pulseOpacity =
+        severityActivation *
+        MathUtils.lerp(0, 0.22, pulseScale) *
+        (0.4 + pulse * 0.6);
+      segment.material.opacity = MathUtils.clamp(
+        baseOpacityTarget + pulseOpacity,
+        segment.baseOpacity * 0.85,
+        1
+      );
+    });
 
     const logScrollScale = MathUtils.lerp(0.35, 1, pulseScale);
     logSurfaces.forEach((surface) => {
