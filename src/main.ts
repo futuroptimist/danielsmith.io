@@ -757,15 +757,24 @@ function initializeImmersiveScene(
     markAppReady: markDocumentReady,
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
     minimumDurationMs: PERFORMANCE_FAILOVER_DURATION_MS,
-    onTrigger: ({ averageFps, durationMs, p95Fps, sampleCount, minFps }) => {
+    onTrigger: ({
+      averageFps,
+      durationMs,
+      p95Fps,
+      sampleCount,
+      minFps,
+      medianFps,
+    }) => {
       const roundedDuration = Math.round(durationMs);
       const averaged = averageFps.toFixed(1);
       const percentile = p95Fps.toFixed(1);
       const floor = minFps.toFixed(1);
+      const median = medianFps.toFixed(1);
       console.warn(
         `Switching to text fallback after ${roundedDuration}ms below ` +
           `${PERFORMANCE_FAILOVER_FPS_THRESHOLD} FPS (avg ${averaged} FPS, ` +
-          `p95 ${percentile} FPS, min ${floor} FPS across ${sampleCount} samples).`
+          `median ${median} FPS, p95 ${percentile} FPS, min ${floor} FPS across ` +
+          `${sampleCount} samples).`
       );
     },
     onBeforeFallback: () => {

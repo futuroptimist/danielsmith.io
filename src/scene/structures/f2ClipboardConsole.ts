@@ -40,6 +40,15 @@ interface FloatingLog {
   baseRotation: number;
 }
 
+interface ClipboardCallout {
+  mesh: Mesh;
+  material: MeshBasicMaterial;
+  baseY: number;
+  baseRotationY: number;
+  amplitude: number;
+  phaseOffset: number;
+}
+
 export function createF2ClipboardConsole(
   options: F2ClipboardConsoleOptions
 ): F2ClipboardConsoleBuild {
@@ -55,6 +64,7 @@ export function createF2ClipboardConsole(
   group.rotation.y = orientationRadians;
 
   const colliders: RectCollider[] = [];
+  const clipboardCallouts: ClipboardCallout[] = [];
 
   const daisRadius = Math.max(deckWidth, deckDepth) * 0.75;
   const daisHeight = 0.16;
@@ -165,6 +175,95 @@ export function createF2ClipboardConsole(
   hologramGroup.position.set(0, deckHeight + 0.54, deckDepth * 0.16);
   group.add(hologramGroup);
 
+  const clipboardGroup = new Group();
+  clipboardGroup.name = 'F2ClipboardClipboardGroup';
+  clipboardGroup.position.set(
+    deckWidth * 0.28,
+    deckHeight + 0.24,
+    deckDepth * 0.28
+  );
+  clipboardGroup.rotation.y = Math.PI * 0.18;
+  group.add(clipboardGroup);
+
+  const clipboardPivot = new Group();
+  clipboardPivot.name = 'F2ClipboardClipboardPivot';
+  clipboardPivot.rotation.z = -Math.PI / 10;
+  clipboardGroup.add(clipboardPivot);
+
+  const clipboardMaterial = new MeshStandardMaterial({
+    color: new Color(0x1a2738),
+    emissive: new Color(0x284f7d),
+    emissiveIntensity: 0.22,
+    roughness: 0.38,
+    metalness: 0.18,
+  });
+  const clipboardGeometry = new BoxGeometry(0.34, 0.48, 0.02);
+  const clipboardBoard = new Mesh(clipboardGeometry, clipboardMaterial);
+  clipboardBoard.name = 'F2ClipboardClipboardBoard';
+  clipboardBoard.position.set(0, 0.34, 0);
+  clipboardPivot.add(clipboardBoard);
+
+  const clipMaterial = new MeshStandardMaterial({
+    color: new Color(0x3ec5ff),
+    emissive: new Color(0x6bdfff),
+    emissiveIntensity: 0.58,
+    roughness: 0.22,
+    metalness: 0.32,
+  });
+  const clipGeometry = new BoxGeometry(0.18, 0.06, 0.04);
+  const clip = new Mesh(clipGeometry, clipMaterial);
+  clip.name = 'F2ClipboardClipboardClip';
+  clip.position.set(0, 0.56, 0.02);
+  clipboardPivot.add(clip);
+
+  const calloutGlowGeometry = new PlaneGeometry(0.42, 0.36);
+  const calloutGlowMaterial = new MeshBasicMaterial({
+    color: new Color(0x52d0ff),
+    transparent: true,
+    opacity: 0.06,
+    depthWrite: false,
+  });
+  const calloutGlow = new Mesh(calloutGlowGeometry, calloutGlowMaterial);
+  calloutGlow.name = 'F2ClipboardClipboardGlow';
+  calloutGlow.rotation.y = Math.PI;
+  calloutGlow.position.set(0, 0.34, -0.015);
+  calloutGlow.renderOrder = 15;
+  clipboardPivot.add(calloutGlow);
+
+  const clipboardCalloutEntries: Array<{ title: string; detail: string }> = [
+    { title: 'Queue synced', detail: 'Codex diffs summarised' },
+    { title: 'Clipboard ready', detail: '3 incidents triaged' },
+  ];
+
+  clipboardCalloutEntries.forEach((entry, index) => {
+    const texture = createClipboardCalloutTexture(entry.title, entry.detail);
+    const material = new MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      opacity: 0.14,
+      depthWrite: false,
+    });
+    const geometry = new PlaneGeometry(0.36, 0.22);
+    const callout = new Mesh(geometry, material);
+    callout.name = `F2ClipboardCallout-${index}`;
+    callout.position.set(
+      0.06 + index * 0.04,
+      0.26 + index * 0.14,
+      0.04 + index * 0.02
+    );
+    callout.rotation.y = Math.PI * 0.14 * (index % 2 === 0 ? 1 : -1);
+    callout.renderOrder = 16 + index;
+    clipboardPivot.add(callout);
+    clipboardCallouts.push({
+      mesh: callout,
+      material,
+      baseY: callout.position.y,
+      baseRotationY: callout.rotation.y,
+      amplitude: 0.05 + index * 0.018,
+      phaseOffset: index * 0.65,
+    });
+  });
+
   const beamGeometry = new CylinderGeometry(0.12, 0.12, 0.8, 24);
   const beamMaterial = new MeshStandardMaterial({
     color: new Color(0x1f6bff),
@@ -273,6 +372,7 @@ export function createF2ClipboardConsole(
       context.delta > 0 ? 1 - Math.exp(-context.delta * 4.2) : 1;
     const emphasis = MathUtils.clamp(context.emphasis, 0, 1);
     const pulseScale = getPulseScale();
+    const elapsed = context.elapsed;
 
     screenMaterial.opacity = MathUtils.lerp(
       screenMaterial.opacity,
@@ -288,6 +388,22 @@ export function createF2ClipboardConsole(
     daisGlowMaterial.opacity = MathUtils.lerp(
       daisGlowMaterial.opacity,
       MathUtils.lerp(0.08, 0.32, emphasis) * pulseScale,
+      smoothing
+    );
+
+    clipboardMaterial.emissiveIntensity = MathUtils.lerp(
+      clipboardMaterial.emissiveIntensity,
+      MathUtils.lerp(0.22, 0.46, emphasis),
+      smoothing
+    );
+    clipMaterial.emissiveIntensity = MathUtils.lerp(
+      clipMaterial.emissiveIntensity,
+      MathUtils.lerp(0.58, 1.12, emphasis) * MathUtils.lerp(0.6, 1, pulseScale),
+      smoothing
+    );
+    calloutGlowMaterial.opacity = MathUtils.lerp(
+      calloutGlowMaterial.opacity,
+      MathUtils.lerp(0.06, 0.32, emphasis) * MathUtils.lerp(0.4, 1, pulseScale),
       smoothing
     );
 
@@ -336,6 +452,39 @@ export function createF2ClipboardConsole(
       material.opacity = MathUtils.lerp(
         material.opacity,
         MathUtils.lerp(0.14, 0.66, emphasis),
+        smoothing
+      );
+    });
+
+    clipboardCallouts.forEach((callout) => {
+      const floatScale =
+        MathUtils.lerp(0.35, 1, emphasis) * MathUtils.lerp(0.4, 1, pulseScale);
+      const targetY =
+        callout.baseY +
+        Math.sin(elapsed * 0.9 + callout.phaseOffset) *
+          callout.amplitude *
+          floatScale;
+      callout.mesh.position.y = MathUtils.lerp(
+        callout.mesh.position.y,
+        targetY,
+        smoothing
+      );
+      const rotationTarget =
+        callout.baseRotationY +
+        Math.sin(elapsed * 0.7 + callout.phaseOffset) *
+          0.08 *
+          MathUtils.lerp(0.3, 1, emphasis);
+      callout.mesh.rotation.y = MathUtils.lerp(
+        callout.mesh.rotation.y,
+        rotationTarget,
+        smoothing
+      );
+      const opacityTarget =
+        MathUtils.lerp(0.16, 0.8, emphasis) *
+        MathUtils.lerp(0.4, 1, pulseScale);
+      callout.material.opacity = MathUtils.lerp(
+        callout.material.opacity,
+        MathUtils.clamp(opacityTarget, 0.08, 0.9),
         smoothing
       );
     });
@@ -411,6 +560,49 @@ function createConsoleScreenTexture(): CanvasTexture {
   context.font = '36px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#9edfff';
   context.fillText('Clipboard primed', canvas.width - 80, canvas.height - 70);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+export function createClipboardCalloutTexture(
+  title: string,
+  detail: string
+): CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create f2clipboard callout texture.');
+  }
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  const background = context.createLinearGradient(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+  background.addColorStop(0, 'rgba(18, 46, 76, 0.85)');
+  background.addColorStop(1, 'rgba(14, 30, 52, 0.6)');
+  context.fillStyle = background;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = 'rgba(94, 226, 255, 0.8)';
+  context.fillRect(24, 24, 12, canvas.height - 48);
+
+  context.fillStyle = '#9adfff';
+  context.font = '600 68px "Inter", "Segoe UI", sans-serif';
+  context.textAlign = 'left';
+  context.textBaseline = 'top';
+  context.fillText(title, 56, 48);
+
+  context.fillStyle = '#d9f6ff';
+  context.font = '36px "Inter", "Segoe UI", sans-serif';
+  context.fillText(detail, 56, 140);
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

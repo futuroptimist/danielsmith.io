@@ -16,7 +16,10 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { createF2ClipboardConsole } from '../scene/structures/f2ClipboardConsole';
+import {
+  createClipboardCalloutTexture,
+  createF2ClipboardConsole,
+} from '../scene/structures/f2ClipboardConsole';
 
 interface CapturedContext extends CanvasRenderingContext2D {
   fillTextCalls: string[];
@@ -127,6 +130,8 @@ describe('createF2ClipboardConsole', () => {
     expect(capturedText).toContain('f2clipboard');
     expect(capturedText).toContain('Incident digest pipeline');
     expect(capturedText).toContain('Queue synced');
+    expect(capturedText).toContain('Codex diffs summarised');
+    expect(capturedText).toContain('3 incidents triaged');
   });
 
   it('animates hologram and ticker with emphasis changes', () => {
@@ -161,6 +166,27 @@ describe('createF2ClipboardConsole', () => {
     expect(logCard.position.y).not.toBeCloseTo(initialLogY);
   });
 
+  it('animates clipboard callouts with emphasis changes', () => {
+    const build = createF2ClipboardConsole({ position: { x: 0, z: 0 } });
+    const callout = build.group.getObjectByName('F2ClipboardCallout-0') as Mesh;
+    const calloutMaterial = callout.material as MeshBasicMaterial;
+    const initialOpacity = calloutMaterial.opacity;
+    const initialY = callout.position.y;
+    const initialRotation = callout.rotation.y;
+
+    build.update({ elapsed: 0.4, delta: 0.4, emphasis: 0 });
+    const baselineOpacity = calloutMaterial.opacity;
+    const baselineY = callout.position.y;
+
+    build.update({ elapsed: 1.2, delta: 0.4, emphasis: 1 });
+
+    expect(calloutMaterial.opacity).toBeGreaterThan(baselineOpacity);
+    expect(calloutMaterial.opacity).toBeGreaterThan(initialOpacity);
+    expect(callout.position.y).not.toBeCloseTo(baselineY);
+    expect(callout.position.y).not.toBeCloseTo(initialY);
+    expect(callout.rotation.y).not.toBeCloseTo(initialRotation);
+  });
+
   it('dampens hover motion when pulse scale is zero', () => {
     document.documentElement.dataset.accessibilityPulseScale = '0';
     const build = createF2ClipboardConsole({ position: { x: 0, z: 0 } });
@@ -171,11 +197,15 @@ describe('createF2ClipboardConsole', () => {
     };
     const beam = build.group.getObjectByName('F2ClipboardBeam') as Mesh;
     const beamMaterial = beam.material as MeshStandardMaterial;
+    const callout = build.group.getObjectByName('F2ClipboardCallout-1') as Mesh;
+    const calloutMaterial = callout.material as MeshBasicMaterial;
 
     build.update({ elapsed: 0.4, delta: 0.016, emphasis: 0.6 });
     const baseY = logCard.position.y;
     const baseOpacity = tickerMaterial.opacity;
     const baseIntensity = beamMaterial.emissiveIntensity;
+    const calloutBaseY = callout.position.y;
+    const calloutBaseOpacity = calloutMaterial.opacity;
 
     build.update({ elapsed: 0.8, delta: 0.016, emphasis: 0.6 });
 
@@ -184,6 +214,10 @@ describe('createF2ClipboardConsole', () => {
     expect(
       Math.abs(beamMaterial.emissiveIntensity - baseIntensity)
     ).toBeLessThan(0.02);
+    expect(Math.abs(callout.position.y - calloutBaseY)).toBeLessThan(0.002);
+    expect(Math.abs(calloutMaterial.opacity - calloutBaseOpacity)).toBeLessThan(
+      0.01
+    );
   });
 
   it('throws when canvas context is unavailable', () => {
@@ -191,5 +225,12 @@ describe('createF2ClipboardConsole', () => {
     expect(() =>
       createF2ClipboardConsole({ position: { x: 0, z: 0 } })
     ).toThrowError('Unable to create f2clipboard screen texture.');
+  });
+
+  it('throws when clipboard callout texture helper cannot create a context', () => {
+    getContextSpy.mockImplementationOnce(() => null);
+    expect(() =>
+      createClipboardCalloutTexture('Test callout', 'Detail copy')
+    ).toThrowError('Unable to create f2clipboard callout texture.');
   });
 });
