@@ -271,8 +271,10 @@ Focus: unify user controls and ensure graceful fallback experiences.
   cleanly even when queries or hash fragments already exist.
 
 3. **Progression & State**
-   - Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
+   - ✅ Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
+     - ✅ Ambient audio mute preference now persists with localStorage + sessionStorage fallback
+       and auto-resumes after the next pointer/key interaction to respect autoplay policies.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
    - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.

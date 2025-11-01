@@ -226,6 +226,11 @@ import {
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
 } from './systems/audio/ambientAudio';
+import {
+  AmbientAudioPreference,
+  bindAmbientAudioPreference,
+  type AmbientAudioPreferenceBindingHandle,
+} from './systems/audio/ambientAudioPreference';
 import { AmbientCaptionBridge } from './systems/audio/ambientCaptionBridge';
 import { getBackyardAmbientBedDescriptor } from './systems/audio/backyardAmbientCatalog';
 import {
@@ -569,6 +574,9 @@ let ledAnimator: LedAnimator | null = null;
 let lightmapAnimator: LightmapBounceAnimator | null = null;
 let environmentLightAnimator: EnvironmentLightAnimator | null = null;
 let ambientAudioController: AmbientAudioController | null = null;
+let ambientAudioPreference: AmbientAudioPreference | null = null;
+let ambientAudioPreferenceBinding: AmbientAudioPreferenceBindingHandle | null =
+  null;
 let footstepAudioController: FootstepAudioControllerHandle | null = null;
 let footstepAudio: Audio | null = null;
 let avatarInteractionAnimator: AvatarInteractionAnimatorHandle | null = null;
@@ -699,6 +707,17 @@ function initializeImmersiveScene(
     guidedTourStorage = window.localStorage;
   } catch {
     guidedTourStorage = undefined;
+  }
+
+  let ambientAudioStorage: Storage | undefined;
+  try {
+    ambientAudioStorage = window.localStorage;
+  } catch {
+    try {
+      ambientAudioStorage = window.sessionStorage;
+    } catch {
+      ambientAudioStorage = undefined;
+    }
   }
 
   const readGuidedTourEnabled = (): boolean => {
@@ -2774,6 +2793,23 @@ function initializeImmersiveScene(
       },
     });
 
+    if (!ambientAudioPreference) {
+      ambientAudioPreference = new AmbientAudioPreference({
+        storage: ambientAudioStorage ?? null,
+        windowTarget: window,
+      });
+    }
+    if (ambientAudioPreferenceBinding) {
+      ambientAudioPreferenceBinding.dispose();
+      ambientAudioPreferenceBinding = null;
+    }
+    ambientAudioPreferenceBinding = bindAmbientAudioPreference({
+      controller: ambientAudioController,
+      preference: ambientAudioPreference,
+      windowTarget: window,
+      logger: console,
+    });
+
     if (!ambientCaptionBridge && audioSubtitles) {
       ambientCaptionBridge = new AmbientCaptionBridge({
         controller: ambientAudioController,
@@ -2791,11 +2827,13 @@ function initializeImmersiveScene(
         if (enabled) {
           try {
             await ambientAudioController.enable();
+            ambientAudioPreference?.setEnabled(true, 'control');
           } catch (error) {
             console.warn('Ambient audio failed to start', error);
           }
         } else {
           ambientAudioController.disable();
+          ambientAudioPreference?.setEnabled(false, 'control');
         }
       },
       getVolume: () => getAmbientAudioVolume(),
@@ -3518,6 +3556,10 @@ function initializeImmersiveScene(
     if (tourResetControl) {
       tourResetControl.dispose();
       tourResetControl = null;
+    }
+    if (ambientAudioPreferenceBinding) {
+      ambientAudioPreferenceBinding.dispose();
+      ambientAudioPreferenceBinding = null;
     }
     if (ambientAudioController) {
       ambientAudioController.dispose();
