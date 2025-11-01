@@ -1297,6 +1297,175 @@ describe('createBackyardEnvironment', () => {
     expect(laterHsl.l).not.toBeCloseTo(afterHsl.l);
   });
 
+  it('retints the dusk sky dome when seasonal presets include backyard tint overrides', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const sky = environment.group.getObjectByName(
+      'BackyardSkyDome'
+    ) as Mesh | null;
+    expect(sky).toBeInstanceOf(Mesh);
+
+    const material = (sky as Mesh).material as ShaderMaterial;
+    const topColor = material.uniforms.topColor.value as Color;
+    const midColor = material.uniforms.midColor.value as Color;
+    const horizonColor = material.uniforms.horizonColor.value as Color;
+
+    const baseTop = topColor.clone();
+    const baseMid = midColor.clone();
+    const baseHorizon = horizonColor.clone();
+
+    const preset: SeasonalLightingPreset = {
+      id: 'seasonal-sky',
+      label: 'Seasonal Sky',
+      start: { month: 6, day: 1 },
+      end: { month: 6, day: 30 },
+      roomOverrides: {
+        backyard: {
+          tintHex: '77ccff',
+          tintStrength: 0.65,
+          cycleScale: 1.4,
+        },
+      },
+    };
+
+    environment.applySeasonalPreset(preset);
+
+    const tintColor = new Color('#77ccff');
+    const expectedTop = baseTop.clone().lerp(tintColor, 0.65);
+    const expectedMid = baseMid.clone().lerp(tintColor, 0.65);
+    const expectedHorizon = baseHorizon.clone().lerp(tintColor, 0.65);
+
+    expect(areColorsRoughlyEqual(topColor, expectedTop, 1e-4)).toBe(true);
+    expect(areColorsRoughlyEqual(midColor, expectedMid, 1e-4)).toBe(true);
+    expect(areColorsRoughlyEqual(horizonColor, expectedHorizon, 1e-4)).toBe(
+      true
+    );
+
+    environment.applySeasonalPreset(null);
+
+    expect(areColorsRoughlyEqual(topColor, baseTop)).toBe(true);
+    expect(areColorsRoughlyEqual(midColor, baseMid)).toBe(true);
+    expect(areColorsRoughlyEqual(horizonColor, baseHorizon)).toBe(true);
+  });
+
+  it('falls back to the base sky palette when seasonal tint data is invalid or muted', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const sky = environment.group.getObjectByName(
+      'BackyardSkyDome'
+    ) as Mesh | null;
+    expect(sky).toBeInstanceOf(Mesh);
+
+    const material = (sky as Mesh).material as ShaderMaterial;
+    const topColor = material.uniforms.topColor.value as Color;
+    const midColor = material.uniforms.midColor.value as Color;
+    const horizonColor = material.uniforms.horizonColor.value as Color;
+
+    const baseTop = topColor.clone();
+    const baseMid = midColor.clone();
+    const baseHorizon = horizonColor.clone();
+
+    const invalidPreset: SeasonalLightingPreset = {
+      id: 'invalid-sky',
+      label: 'Invalid Sky',
+      start: { month: 1, day: 1 },
+      end: { month: 1, day: 2 },
+      tintHex: 'zzzzzz',
+      tintStrength: 1.2,
+    };
+
+    environment.applySeasonalPreset(invalidPreset);
+    expect(areColorsRoughlyEqual(topColor, baseTop)).toBe(true);
+    expect(areColorsRoughlyEqual(midColor, baseMid)).toBe(true);
+    expect(areColorsRoughlyEqual(horizonColor, baseHorizon)).toBe(true);
+
+    const mutedPreset: SeasonalLightingPreset = {
+      id: 'muted-sky',
+      label: 'Muted Sky',
+      start: { month: 2, day: 1 },
+      end: { month: 2, day: 2 },
+      roomOverrides: {
+        backyard: {
+          tintHex: '#123456',
+          tintStrength: -0.4,
+          cycleScale: -1,
+        },
+      },
+    };
+
+    environment.applySeasonalPreset(mutedPreset);
+    expect(areColorsRoughlyEqual(topColor, baseTop)).toBe(true);
+    expect(areColorsRoughlyEqual(midColor, baseMid)).toBe(true);
+    expect(areColorsRoughlyEqual(horizonColor, baseHorizon)).toBe(true);
+  });
+
+  it('scales the sky horizon glow using seasonal cycle overrides', () => {
+    const baseEnvironment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const cycleEnvironment = createBackyardEnvironment(BACKYARD_BOUNDS);
+
+    const peakElapsed = Math.PI / (2 * 0.12);
+
+    const baseSky = baseEnvironment.group.getObjectByName(
+      'BackyardSkyDome'
+    ) as Mesh;
+    const baseMaterial = baseSky.material as ShaderMaterial;
+    const baseHorizon = baseMaterial.uniforms.horizonColor.value as Color;
+    const baseBefore = { h: 0, s: 0, l: 0 };
+    baseHorizon.getHSL(baseBefore);
+    baseEnvironment.update({ elapsed: peakElapsed, delta: 0.016 });
+    const baseAfter = { h: 0, s: 0, l: 0 };
+    baseHorizon.getHSL(baseAfter);
+    const baseDelta = baseAfter.l - baseBefore.l;
+
+    const cycleSky = cycleEnvironment.group.getObjectByName(
+      'BackyardSkyDome'
+    ) as Mesh;
+    const cycleMaterial = cycleSky.material as ShaderMaterial;
+    const boostedPreset: SeasonalLightingPreset = {
+      id: 'cycle-boost',
+      label: 'Cycle Boost',
+      start: { month: 6, day: 1 },
+      end: { month: 6, day: 30 },
+      roomOverrides: {
+        backyard: {
+          cycleScale: 1.8,
+        },
+      },
+    };
+
+    cycleEnvironment.applySeasonalPreset(boostedPreset);
+    const cycleHorizon = cycleMaterial.uniforms.horizonColor.value as Color;
+    const cycleBefore = { h: 0, s: 0, l: 0 };
+    cycleHorizon.getHSL(cycleBefore);
+    cycleEnvironment.update({ elapsed: peakElapsed, delta: 0.016 });
+    const cycleAfter = { h: 0, s: 0, l: 0 };
+    cycleHorizon.getHSL(cycleAfter);
+    const cycleDelta = cycleAfter.l - cycleBefore.l;
+
+    expect(cycleDelta).toBeGreaterThan(baseDelta);
+    expect(cycleDelta).toBeCloseTo(baseDelta * 1.8, 5);
+
+    const zeroPreset: SeasonalLightingPreset = {
+      id: 'cycle-zero',
+      label: 'Cycle Zero',
+      start: { month: 7, day: 1 },
+      end: { month: 7, day: 2 },
+      roomOverrides: {
+        backyard: {
+          cycleScale: 0,
+        },
+      },
+    };
+
+    cycleEnvironment.applySeasonalPreset(zeroPreset);
+    const zeroBefore = { h: 0, s: 0, l: 0 };
+    cycleHorizon.getHSL(zeroBefore);
+    cycleEnvironment.update({ elapsed: peakElapsed, delta: 0.016 });
+    const zeroAfter = { h: 0, s: 0, l: 0 };
+    cycleHorizon.getHSL(zeroAfter);
+    const zeroDelta = zeroAfter.l - zeroBefore.l;
+
+    expect(Math.abs(zeroDelta)).toBeLessThan(1e-6);
+  });
+
   it('exposes ambient audio beds centered on the greenhouse walkway', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     expect(environment.ambientAudioBeds.length).toBeGreaterThan(0);

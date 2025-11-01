@@ -91,6 +91,41 @@ interface WalkwayMistLayer {
   baseFlowStrength: number;
 }
 
+const HEX_COLOR_PATTERN = /^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+const clampUnit = (value: number | undefined): number => {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  if (value >= 1) {
+    return 1;
+  }
+  return value;
+};
+
+const resolveCycleScale = (value: number | undefined): number => {
+  if (!Number.isFinite(value)) {
+    return 1;
+  }
+  if (value <= 0) {
+    return 0;
+  }
+  return value;
+};
+
+const setColorFromHex = (target: Color, hex: string | undefined): boolean => {
+  if (!hex || !HEX_COLOR_PATTERN.test(hex)) {
+    return false;
+  }
+  target.set(hex.startsWith('#') ? hex : `#${hex}`);
+  return true;
+};
+
+const tintScratchColor = new Color();
+
 function createSignageTexture(title: string, subtitle: string): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -299,6 +334,44 @@ export function createBackyardEnvironment(
     verticalExtent: { value: verticalExtent },
   };
 
+  const baseSkyColors = {
+    top: skyUniforms.topColor.value.clone(),
+    mid: skyUniforms.midColor.value.clone(),
+    horizon: baseHorizonColor.clone(),
+  };
+  const activeHorizonHsl = { ...baseHorizonHsl };
+  let seasonalDuskCycleScale = 1;
+
+  const applySkySeasonalPreset = (preset: SeasonalLightingPreset | null) => {
+    const override = preset?.roomOverrides?.backyard;
+    const tintHex = override?.tintHex ?? preset?.tintHex;
+    const tintStrength = clampUnit(
+      override?.tintStrength ?? preset?.tintStrength
+    );
+
+    if (
+      tintHex &&
+      tintStrength > 0 &&
+      setColorFromHex(tintScratchColor, tintHex)
+    ) {
+      skyUniforms.topColor.value.copy(baseSkyColors.top);
+      skyUniforms.midColor.value.copy(baseSkyColors.mid);
+      skyUniforms.horizonColor.value.copy(baseSkyColors.horizon);
+      skyUniforms.topColor.value.lerp(tintScratchColor, tintStrength);
+      skyUniforms.midColor.value.lerp(tintScratchColor, tintStrength);
+      skyUniforms.horizonColor.value.lerp(tintScratchColor, tintStrength);
+    } else {
+      skyUniforms.topColor.value.copy(baseSkyColors.top);
+      skyUniforms.midColor.value.copy(baseSkyColors.mid);
+      skyUniforms.horizonColor.value.copy(baseSkyColors.horizon);
+    }
+
+    skyUniforms.horizonColor.value.getHSL(activeHorizonHsl);
+
+    const cycleScale = override?.cycleScale ?? preset?.cycleScale;
+    seasonalDuskCycleScale = resolveCycleScale(cycleScale);
+  };
+
   const skyMaterial = new ShaderMaterial({
     uniforms: skyUniforms,
     vertexShader: `
@@ -339,16 +412,18 @@ export function createBackyardEnvironment(
 
   updates.push(({ elapsed }) => {
     skyUniforms.time.value = elapsed;
-    const pulseScale = getPulseScale();
-    const duskAmplitude = MathUtils.lerp(0.015, 0.08, pulseScale);
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const baseDuskAmplitude = MathUtils.lerp(0.015, 0.08, pulseScale);
+    const duskAmplitude = baseDuskAmplitude * seasonalDuskCycleScale;
     const duskWave = Math.sin(elapsed * 0.12) * duskAmplitude;
-    const adjustedLightness = Math.min(
-      1,
-      Math.max(0, baseHorizonHsl.l + duskWave * 0.6)
+    const adjustedLightness = MathUtils.clamp(
+      activeHorizonHsl.l + duskWave * 0.6,
+      0,
+      1
     );
     skyUniforms.horizonColor.value.setHSL(
-      baseHorizonHsl.h,
-      baseHorizonHsl.s,
+      activeHorizonHsl.h,
+      activeHorizonHsl.s,
       adjustedLightness
     );
   });
@@ -1546,75 +1621,80 @@ export function createBackyardEnvironment(
 
   group.add(lanternGroup);
 
-  const applyBackyardSeasonalPreset: (
+  const applyBackyardSeasonalPreset = (
     preset: SeasonalLightingPreset | null
-  ) => void =
-    lanternSeasonalTargets.length > 0 ||
-    walkwayGuideSeasonalTargets.length > 0 ||
-    walkwayFiberSeasonalTargets.length > 0
-      ? (preset) => {
-          if (lanternSeasonalTargets.length > 0) {
-            applySeasonalLightingPreset({
-              preset,
-              targets: lanternSeasonalTargets,
-            });
-            lanternSeasonalTargets.forEach((target, index) => {
-              const animationTarget = lanternAnimationTargets[index];
-              if (!animationTarget) {
-                return;
-              }
-              animationTarget.baseIntensity = target.material.emissiveIntensity;
-              animationTarget.baseEmissiveColor.copy(target.material.emissive);
-              refreshLanternAccentColor(animationTarget);
-              animationTarget.mixColor.copy(animationTarget.baseEmissiveColor);
-              const firstLight = target.fillLights[0]?.light;
-              if (firstLight) {
-                animationTarget.baseLightIntensity = firstLight.intensity;
-                animationTarget.light.color.copy(firstLight.color);
-              }
-            });
-          }
+  ): void => {
+    applySkySeasonalPreset(preset);
 
-          if (walkwayGuideSeasonalTargets.length > 0) {
-            applySeasonalLightingPreset({
-              preset,
-              targets: walkwayGuideSeasonalTargets,
-            });
-            walkwayGuideSeasonalTargets.forEach((target, index) => {
-              const animationTarget = walkwayGuideAnimationTargets[index];
-              if (!animationTarget) {
-                return;
-              }
-              animationTarget.baseEmissiveIntensity =
-                target.material.emissiveIntensity;
-              target.material.opacity = animationTarget.baseOpacity;
-              target.material.needsUpdate = true;
-            });
-          }
+    const hasLightingTargets =
+      lanternSeasonalTargets.length > 0 ||
+      walkwayGuideSeasonalTargets.length > 0 ||
+      walkwayFiberSeasonalTargets.length > 0;
 
-          if (walkwayFiberSeasonalTargets.length > 0) {
-            applySeasonalLightingPreset({
-              preset,
-              targets: walkwayFiberSeasonalTargets,
-            });
-            walkwayFiberSeasonalTargets.forEach((target, index) => {
-              const animationTarget = walkwayFiberAnimationTargets[index];
-              if (!animationTarget) {
-                return;
-              }
-              animationTarget.baseEmissiveIntensity =
-                target.material.emissiveIntensity;
-              animationTarget.baseOpacity =
-                target.material.opacity ?? animationTarget.baseOpacity;
-              target.material.needsUpdate = true;
-            });
-          }
+    if (!hasLightingTargets) {
+      applyWalkwayMoteSeasonalTint(preset);
+      return;
+    }
 
-          applyWalkwayMoteSeasonalTint(preset);
+    if (lanternSeasonalTargets.length > 0) {
+      applySeasonalLightingPreset({
+        preset,
+        targets: lanternSeasonalTargets,
+      });
+      lanternSeasonalTargets.forEach((target, index) => {
+        const animationTarget = lanternAnimationTargets[index];
+        if (!animationTarget) {
+          return;
         }
-      : (preset) => {
-          applyWalkwayMoteSeasonalTint(preset);
-        };
+        animationTarget.baseIntensity = target.material.emissiveIntensity;
+        animationTarget.baseEmissiveColor.copy(target.material.emissive);
+        refreshLanternAccentColor(animationTarget);
+        animationTarget.mixColor.copy(animationTarget.baseEmissiveColor);
+        const firstLight = target.fillLights[0]?.light;
+        if (firstLight) {
+          animationTarget.baseLightIntensity = firstLight.intensity;
+          animationTarget.light.color.copy(firstLight.color);
+        }
+      });
+    }
+
+    if (walkwayGuideSeasonalTargets.length > 0) {
+      applySeasonalLightingPreset({
+        preset,
+        targets: walkwayGuideSeasonalTargets,
+      });
+      walkwayGuideSeasonalTargets.forEach((target, index) => {
+        const animationTarget = walkwayGuideAnimationTargets[index];
+        if (!animationTarget) {
+          return;
+        }
+        animationTarget.baseEmissiveIntensity =
+          target.material.emissiveIntensity;
+        target.material.opacity = animationTarget.baseOpacity;
+        target.material.needsUpdate = true;
+      });
+    }
+
+    if (walkwayFiberSeasonalTargets.length > 0) {
+      applySeasonalLightingPreset({
+        preset,
+        targets: walkwayFiberSeasonalTargets,
+      });
+      walkwayFiberSeasonalTargets.forEach((target, index) => {
+        const animationTarget = walkwayFiberAnimationTargets[index];
+        if (!animationTarget) {
+          return;
+        }
+        animationTarget.baseEmissiveIntensity =
+          target.material.emissiveIntensity;
+        animationTarget.baseOpacity =
+          target.material.opacity ?? animationTarget.baseOpacity;
+        target.material.needsUpdate = true;
+      });
+    }
+
+    applyWalkwayMoteSeasonalTint(preset);
+  };
 
   applyBackyardSeasonalPreset(seasonalPreset ?? null);
 

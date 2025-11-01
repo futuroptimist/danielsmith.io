@@ -112,7 +112,8 @@ Focus: expand the environment while keeping navigation smooth.
      with ambient lighting.
    - ✅ Dusk mist ribbons now drift above the greenhouse walkway with seasonal retints and
      calm-mode damping.
-   - ✨ Gradient dusk sky dome now envelopes the backyard and animates the horizon glow.
+   - ✅ Gradient dusk sky dome now envelopes the backyard, animates the horizon glow, and
+     retints with seasonal presets.
 
 ## Phase 2 – Points of Interest (POIs)
 
