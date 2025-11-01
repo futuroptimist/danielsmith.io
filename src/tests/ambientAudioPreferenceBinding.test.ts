@@ -87,7 +87,9 @@ describe('bindAmbientAudioPreference', () => {
     expect(controller.isEnabled()).toBe(false);
 
     windowStub.dispatchEvent(new Event('pointerdown'));
-    await vi.waitFor(() => expect(controller.enableMock).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() =>
+      expect(controller.enableMock).toHaveBeenCalledTimes(2)
+    );
     expect(controller.isEnabled()).toBe(true);
 
     binding.dispose();
