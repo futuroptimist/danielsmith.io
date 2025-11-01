@@ -69,6 +69,11 @@ interface WalkwayArrowTarget {
   phase: number;
 }
 
+interface WalkwayArrowSeasonalTarget {
+  material: MeshBasicMaterial;
+  baseColor: Color;
+}
+
 interface WalkwayMistLayer {
   mesh: Mesh;
   uniforms: {
@@ -583,6 +588,7 @@ export function createBackyardEnvironment(
   const walkwayArrowGroup = new Group();
   walkwayArrowGroup.name = 'BackyardWalkwayArrows';
   const walkwayArrowTargets: WalkwayArrowTarget[] = [];
+  const walkwayArrowSeasonalTargets: WalkwayArrowSeasonalTarget[] = [];
   const walkwayArrowCount = 3;
   const arrowBaseWidth = walkwayWidth * 0.26;
   const arrowBaseLength = walkwayDepth * 0.28;
@@ -609,6 +615,10 @@ export function createBackyardEnvironment(
       arrowBaseLength * (0.84 + Math.cos(ratio * Math.PI) * 0.12);
     arrow.scale.set(widthScale, 1, lengthScale);
     walkwayArrowGroup.add(arrow);
+    walkwayArrowSeasonalTargets.push({
+      material,
+      baseColor: material.color.clone(),
+    });
     walkwayArrowTargets.push({
       mesh: arrow,
       baseOpacity: material.opacity ?? 0.68,
@@ -870,6 +880,10 @@ export function createBackyardEnvironment(
     walkwayMistLayers.forEach((layer) => {
       layer.uniforms.color.value.copy(layer.baseColor);
     });
+    walkwayArrowSeasonalTargets.forEach((target) => {
+      target.material.color.copy(target.baseColor);
+      target.material.needsUpdate = true;
+    });
     if (!preset) {
       walkwayMoteMaterial.needsUpdate = true;
       pollenMaterial.needsUpdate = true;
@@ -912,6 +926,14 @@ export function createBackyardEnvironment(
         walkwayMoteTintColor,
         tintStrength
       );
+    });
+    walkwayArrowSeasonalTargets.forEach((target) => {
+      target.material.color.lerpColors(
+        target.baseColor,
+        walkwayMoteTintColor,
+        tintStrength
+      );
+      target.material.needsUpdate = true;
     });
     walkwayMoteMaterial.needsUpdate = true;
     pollenMaterial.needsUpdate = true;

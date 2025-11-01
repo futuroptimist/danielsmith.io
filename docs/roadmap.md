@@ -106,6 +106,8 @@ Focus: expand the environment while keeping navigation smooth.
      that sweep toward the greenhouse while honoring accessibility damping scales.
    - ✅ Holographic walkway arrows now sweep visitors toward the greenhouse while calm-mode
      pulses keep motion gentle for sensitive players.
+     - ✅ Seasonal retints now sync the walkway arrow holograms with the dusk mote palette so
+       backyard lighting presets keep signage, mist, and pollen in the same tint family.
    - ✅ Dusk pollen motes now drift along the greenhouse walkway with accessibility-aware swirl
      damping for calm-mode visitors.
    - ✅ Seasonal presets now retint the dusk pollen motes so backyard event palettes stay in sync
