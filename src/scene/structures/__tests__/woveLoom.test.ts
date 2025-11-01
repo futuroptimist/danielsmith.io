@@ -1,4 +1,4 @@
-import { Mesh, MeshStandardMaterial } from 'three';
+import { Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { createWoveLoom } from '../woveLoom';
@@ -27,7 +27,7 @@ describe('createWoveLoom', () => {
     );
   });
 
-  it('animates spool rotation, thread glow, and shuttle motion', () => {
+  it('animates spool rotation, warp weaving, glow intensity, and shuttle motion', () => {
     const build = createWoveLoom({ position: { x: 0, z: 0 } });
     const spool = build.group.getObjectByName('WoveLoomSpool') as Mesh | null;
     const thread = build.group.getObjectByName(
@@ -36,23 +36,33 @@ describe('createWoveLoom', () => {
     const shuttle = build.group.getObjectByName(
       'WoveLoomShuttle'
     ) as Mesh | null;
+    const shuttleGlow = build.group.getObjectByName(
+      'WoveLoomShuttleGlow'
+    ) as Mesh | null;
 
-    if (!spool || !thread || !shuttle) {
+    if (!spool || !thread || !shuttle || !shuttleGlow) {
       throw new Error('Expected loom components to be present.');
     }
 
     const threadMaterial = thread.material as MeshStandardMaterial;
+    const shuttleGlowMaterial = shuttleGlow.material as MeshBasicMaterial;
     const initialRotation = spool.rotation.x;
 
     build.update({ elapsed: 0.6, delta: 0.12, emphasis: 0.1 });
     const rotationAfterLow = spool.rotation.x;
     const intensityAfterLow = threadMaterial.emissiveIntensity;
     const shuttleAfterLow = shuttle.position.x;
+    const threadWeaveLow = thread.position.x;
+    const threadScaleLow = thread.scale.y;
+    const glowOpacityLow = shuttleGlowMaterial.opacity;
 
     build.update({ elapsed: 1.2, delta: 0.12, emphasis: 0.95 });
     const rotationAfterHigh = spool.rotation.x;
     const intensityAfterHigh = threadMaterial.emissiveIntensity;
     const shuttleAfterHigh = shuttle.position.x;
+    const threadWeaveHigh = thread.position.x;
+    const threadScaleHigh = thread.scale.y;
+    const glowOpacityHigh = shuttleGlowMaterial.opacity;
 
     const lowDelta = rotationAfterLow - initialRotation;
     const highDelta = rotationAfterHigh - rotationAfterLow;
@@ -61,5 +71,8 @@ describe('createWoveLoom', () => {
     expect(highDelta).toBeGreaterThan(lowDelta);
     expect(intensityAfterHigh).toBeGreaterThan(intensityAfterLow);
     expect(shuttleAfterHigh).not.toBe(shuttleAfterLow);
+    expect(Math.abs(threadWeaveHigh - threadWeaveLow)).toBeGreaterThan(1e-4);
+    expect(threadScaleHigh).not.toBe(threadScaleLow);
+    expect(glowOpacityHigh).toBeGreaterThan(glowOpacityLow);
   });
 });

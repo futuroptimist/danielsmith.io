@@ -24,14 +24,20 @@ export interface WoveLoomOptions {
   orientationRadians?: number;
 }
 
-interface AnimatedThreadMaterial {
+interface GlowPanel {
+  material: MeshBasicMaterial;
+  baseOpacity: number;
+}
+
+interface EmissiveSurface {
   material: MeshStandardMaterial;
   baseIntensity: number;
 }
 
-interface GlowPanel {
-  material: MeshBasicMaterial;
-  baseOpacity: number;
+interface WarpThreadState {
+  mesh: Mesh;
+  baseX: number;
+  phaseOffset: number;
 }
 
 interface ShuttleState {
@@ -87,8 +93,9 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
   group.rotation.y = orientationRadians;
 
   const colliders: RectCollider[] = [];
-  const threads: AnimatedThreadMaterial[] = [];
+  const emissiveSurfaces: EmissiveSurface[] = [];
   const glowPanels: GlowPanel[] = [];
+  const warpThreads: WarpThreadState[] = [];
 
   const daisHeight = 0.14;
   const tableHeight = 0.26;
@@ -256,7 +263,15 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
     thread.position.set(offsetX, warpHeight / 2, 0.06);
     frameGroup.add(thread);
     const material = thread.material as MeshStandardMaterial;
-    threads.push({ material, baseIntensity: material.emissiveIntensity ?? 1 });
+    emissiveSurfaces.push({
+      material,
+      baseIntensity: material.emissiveIntensity ?? 1,
+    });
+    warpThreads.push({
+      mesh: thread,
+      baseX: thread.position.x,
+      phaseOffset: i * 0.55,
+    });
   }
 
   const clothMaterial = new MeshStandardMaterial({
@@ -275,7 +290,7 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
   cloth.position.set(0, daisHeight + tableHeight + 0.36, 0.32);
   cloth.renderOrder = 6;
   group.add(cloth);
-  threads.push({
+  emissiveSurfaces.push({
     material: cloth.material as MeshStandardMaterial,
     baseIntensity:
       (cloth.material as MeshStandardMaterial).emissiveIntensity ?? 1,
@@ -312,6 +327,33 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
   shuttle.position.set(0, daisHeight + tableHeight + 0.26, 0.18);
   shuttle.castShadow = false;
   group.add(shuttle);
+  emissiveSurfaces.push({
+    material: shuttleMaterial,
+    baseIntensity: shuttleMaterial.emissiveIntensity ?? 1,
+  });
+
+  const shuttleGlow = new Mesh(
+    new PlaneGeometry(0.72, 0.32),
+    new MeshBasicMaterial({
+      color: new Color(0xffd9a1),
+      transparent: true,
+      opacity: 0.16,
+      depthWrite: false,
+    })
+  );
+  shuttleGlow.name = 'WoveLoomShuttleGlow';
+  shuttleGlow.rotation.x = -Math.PI / 2;
+  shuttleGlow.position.set(
+    shuttle.position.x,
+    shuttle.position.y - 0.04,
+    shuttle.position.z
+  );
+  shuttleGlow.renderOrder = 9;
+  group.add(shuttleGlow);
+  glowPanels.push({
+    material: shuttleGlow.material as MeshBasicMaterial,
+    baseOpacity: (shuttleGlow.material as MeshBasicMaterial).opacity ?? 0,
+  });
 
   const shuttleState: ShuttleState = {
     mesh: shuttle,
@@ -352,8 +394,18 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
         0.1,
         2
       );
-      threads.forEach(({ material, baseIntensity }) => {
+      emissiveSurfaces.forEach(({ material, baseIntensity }) => {
         material.emissiveIntensity = baseIntensity * threadIntensity;
+      });
+
+      const weaveSpeed = MathUtils.lerp(1.05, 2.4, clampedEmphasis);
+      const weavePhase = elapsed * weaveSpeed;
+      const weaveAmplitude = MathUtils.lerp(0.02, 0.07, clampedEmphasis);
+      const weaveScale = MathUtils.lerp(0.02, 0.14, clampedEmphasis);
+      warpThreads.forEach(({ mesh, baseX, phaseOffset }) => {
+        const phase = weavePhase + phaseOffset;
+        mesh.position.x = baseX + Math.sin(phase) * weaveAmplitude;
+        mesh.scale.y = 1 + Math.sin(phase * 1.6) * weaveScale;
       });
 
       const glowOpacity = MathUtils.clamp(
