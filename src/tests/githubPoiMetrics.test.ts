@@ -60,6 +60,10 @@ class MockRepoStatsService implements GitHubRepoStatsService {
     };
   }
 
+  primeCache(identifier: GitHubRepoIdentifier, stats: GitHubRepoStats) {
+    this.cache.set(this.key(identifier), stats);
+  }
+
   emit(identifier: GitHubRepoIdentifier, stats: GitHubRepoStats) {
     const key = this.key(identifier);
     this.cache.set(key, stats);
@@ -217,5 +221,112 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 2000, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(updated).toHaveLength(previousUpdates);
+  });
+
+  it('notifies repo stats updates for each POI entry', async () => {
+    const identifier = { owner: 'futuroptimist', repo: 'danielsmith.io' };
+    const definitions: PoiDefinition[] = [
+      createPoi({
+        id: 'futuroptimist-living-room-tv',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Fallback',
+            source: {
+              type: 'githubStars',
+              owner: identifier.owner,
+              repo: identifier.repo,
+              format: 'compact',
+              template: '{value} stars',
+              fallback: 'Fallback',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'gitshelves-living-room-installation',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Fallback',
+            source: {
+              type: 'githubStars',
+              owner: identifier.owner,
+              repo: identifier.repo,
+              format: 'standard',
+              template: '{value} stars',
+              fallback: 'Fallback',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'private-stars-poi',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Hidden',
+            source: {
+              type: 'githubStars',
+              owner: identifier.owner,
+              repo: identifier.repo,
+              visibility: 'private',
+              fallback: 'Hidden',
+            },
+          },
+        ],
+      }),
+    ];
+
+    const service = new MockRepoStatsService();
+    service.primeCache(identifier, {
+      stars: 1280,
+      watchers: 12,
+      forks: 4,
+      openIssues: 2,
+      pushedAt: '2024-01-01T00:00:00Z',
+    });
+
+    const updates: Array<{ poiId: string; stars: number }> = [];
+    const controller = wireGitHubRepoMetrics({
+      definitions,
+      service,
+      onRepoStatsUpdated: ({ poiId, stats }) => {
+        updates.push({ poiId, stars: stats.stars });
+      },
+    });
+
+    expect(updates).toEqual([
+      { poiId: 'futuroptimist-living-room-tv', stars: 1280 },
+      { poiId: 'gitshelves-living-room-installation', stars: 1280 },
+    ]);
+
+    await Promise.resolve();
+    expect(updates).toHaveLength(2);
+
+    service.emit(identifier, {
+      stars: 1280,
+      watchers: 15,
+      forks: 5,
+      openIssues: 1,
+      pushedAt: '2024-02-02T00:00:00Z',
+    });
+    await Promise.resolve();
+    expect(updates).toHaveLength(2);
+
+    service.emit(identifier, {
+      stars: 1425,
+      watchers: 18,
+      forks: 6,
+      openIssues: 1,
+      pushedAt: '2024-03-03T00:00:00Z',
+    });
+    await Promise.resolve();
+    expect(updates.slice(-2)).toEqual([
+      { poiId: 'futuroptimist-living-room-tv', stars: 1425 },
+      { poiId: 'gitshelves-living-room-installation', stars: 1425 },
+    ]);
+
+    controller.dispose();
   });
 });
