@@ -545,6 +545,17 @@ describe('createBackyardEnvironment', () => {
     const baselinePollenMaterial = (baselinePollen as Points)
       .material as PointsMaterial;
     const basePollenColor = baselinePollenMaterial.color.clone();
+    const baselineArrowGroup = baseline.group.getObjectByName(
+      'BackyardWalkwayArrows'
+    );
+    expect(baselineArrowGroup).toBeInstanceOf(Group);
+    const baselineArrow = (baselineArrowGroup as Group).children.find((child) =>
+      child.name.startsWith('BackyardWalkwayArrow-')
+    ) as Mesh | undefined;
+    expect(baselineArrow).toBeInstanceOf(Mesh);
+    const baselineArrowMaterial = (baselineArrow!
+      .material as MeshBasicMaterial)!;
+    const baseArrowColor = baselineArrowMaterial.color.clone();
 
     const preset: SeasonalLightingPreset = {
       id: 'backyard-festival',
@@ -573,6 +584,22 @@ describe('createBackyardEnvironment', () => {
     expect(material.color.g).toBeCloseTo(expectedTint.g, 5);
     expect(material.color.b).toBeCloseTo(expectedTint.b, 5);
 
+    const arrowGroup = environment.group.getObjectByName(
+      'BackyardWalkwayArrows'
+    );
+    expect(arrowGroup).toBeInstanceOf(Group);
+    const tintedArrow = (arrowGroup as Group).children.find((child) =>
+      child.name.startsWith('BackyardWalkwayArrow-')
+    ) as Mesh | undefined;
+    expect(tintedArrow).toBeInstanceOf(Mesh);
+    const tintedArrowMaterial = (tintedArrow!.material as MeshBasicMaterial)!;
+    const expectedArrowTint = baseArrowColor
+      .clone()
+      .lerp(new Color('#ff88cc'), 0.65);
+    expect(tintedArrowMaterial.color.r).toBeCloseTo(expectedArrowTint.r, 5);
+    expect(tintedArrowMaterial.color.g).toBeCloseTo(expectedArrowTint.g, 5);
+    expect(tintedArrowMaterial.color.b).toBeCloseTo(expectedArrowTint.b, 5);
+
     const pollen = environment.group.getObjectByName('BackyardPollenMotes');
     expect(pollen).toBeInstanceOf(Points);
     const pollenMaterial = (pollen as Points).material as PointsMaterial;
@@ -590,6 +617,9 @@ describe('createBackyardEnvironment', () => {
     expect(pollenMaterial.color.r).toBeCloseTo(basePollenColor.r, 5);
     expect(pollenMaterial.color.g).toBeCloseTo(basePollenColor.g, 5);
     expect(pollenMaterial.color.b).toBeCloseTo(basePollenColor.b, 5);
+    expect(tintedArrowMaterial.color.r).toBeCloseTo(baseArrowColor.r, 5);
+    expect(tintedArrowMaterial.color.g).toBeCloseTo(baseArrowColor.g, 5);
+    expect(tintedArrowMaterial.color.b).toBeCloseTo(baseArrowColor.b, 5);
 
     const zeroStrengthPreset: SeasonalLightingPreset = {
       ...preset,
@@ -606,6 +636,9 @@ describe('createBackyardEnvironment', () => {
     expect(pollenMaterial.color.r).toBeCloseTo(basePollenColor.r, 5);
     expect(pollenMaterial.color.g).toBeCloseTo(basePollenColor.g, 5);
     expect(pollenMaterial.color.b).toBeCloseTo(basePollenColor.b, 5);
+    expect(tintedArrowMaterial.color.r).toBeCloseTo(baseArrowColor.r, 5);
+    expect(tintedArrowMaterial.color.g).toBeCloseTo(baseArrowColor.g, 5);
+    expect(tintedArrowMaterial.color.b).toBeCloseTo(baseArrowColor.b, 5);
 
     const invalidTintPreset: SeasonalLightingPreset = {
       ...preset,
@@ -630,6 +663,9 @@ describe('createBackyardEnvironment', () => {
     expect(pollenMaterial.color.r).toBeCloseTo(expectedPollenTint.r, 5);
     expect(pollenMaterial.color.g).toBeCloseTo(expectedPollenTint.g, 5);
     expect(pollenMaterial.color.b).toBeCloseTo(expectedPollenTint.b, 5);
+    expect(tintedArrowMaterial.color.r).toBeCloseTo(expectedArrowTint.r, 5);
+    expect(tintedArrowMaterial.color.g).toBeCloseTo(expectedArrowTint.g, 5);
+    expect(tintedArrowMaterial.color.b).toBeCloseTo(expectedArrowTint.b, 5);
 
     const highStrengthPreset: SeasonalLightingPreset = {
       ...preset,
@@ -648,6 +684,12 @@ describe('createBackyardEnvironment', () => {
     expect(pollenMaterial.color.r).toBeCloseTo(saturatedPollenTint.r, 5);
     expect(pollenMaterial.color.g).toBeCloseTo(saturatedPollenTint.g, 5);
     expect(pollenMaterial.color.b).toBeCloseTo(saturatedPollenTint.b, 5);
+    const saturatedArrowTint = baseArrowColor
+      .clone()
+      .lerp(new Color('#ff88cc'), 1);
+    expect(tintedArrowMaterial.color.r).toBeCloseTo(saturatedArrowTint.r, 5);
+    expect(tintedArrowMaterial.color.g).toBeCloseTo(saturatedArrowTint.g, 5);
+    expect(tintedArrowMaterial.color.b).toBeCloseTo(saturatedArrowTint.b, 5);
   });
 
   it('retints walkway lanterns and preserves seasonal baselines', () => {
