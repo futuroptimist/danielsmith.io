@@ -135,3 +135,44 @@ export const predictStairFloorId = (
 
   return 'ground';
 };
+
+export interface StairSurfaceSampleOptions {
+  geometry: StairGeometry;
+  behavior: StairBehavior;
+  x: number;
+  z: number;
+  currentFloor: FloorId;
+  upperFloorElevation: number;
+}
+
+export const sampleStairSurfaceHeight = ({
+  geometry,
+  behavior,
+  x,
+  z,
+  currentFloor,
+  upperFloorElevation,
+}: StairSurfaceSampleOptions): number => {
+  const rampHeight = computeRampHeight(geometry, behavior, x, z);
+  const clampedRamp = MathUtils.clamp(rampHeight, 0, upperFloorElevation);
+  const predictedFloor = predictStairFloorId(
+    geometry,
+    behavior,
+    x,
+    z,
+    currentFloor
+  );
+  if (predictedFloor === 'upper') {
+    const withinStairWidth = isWithinStairWidth(
+      geometry,
+      x,
+      behavior.transitionMargin
+    );
+    const onLanding = isWithinLanding(geometry, x, z);
+    if (!withinStairWidth || onLanding) {
+      return upperFloorElevation;
+    }
+  }
+
+  return clampedRamp;
+};

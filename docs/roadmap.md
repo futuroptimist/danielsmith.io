@@ -369,6 +369,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
      responding to POI selections with a controller-synced gesture.
    - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
    - ✅ IK adjustments to align feet with uneven terrain/stairs.
+     - ✅ Landing samples now respect the upper floor slab thickness so feet rest flush on the
+       loft landing.
 
 3. **Self-Representation Touches**
    - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the

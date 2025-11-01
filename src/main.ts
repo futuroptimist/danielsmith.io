@@ -311,6 +311,7 @@ import { computeStairLayout } from './systems/movement/stairLayout';
 import {
   computeRampHeight as computeStairRampHeight,
   predictStairFloorId,
+  sampleStairSurfaceHeight,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
@@ -3715,21 +3716,14 @@ function initializeImmersiveScene(
         avatarFootIkController.update({
           delta,
           sampleHeight({ x, y }) {
-            const rampHeight = computeRampHeight(x, y);
-            const predictedFloor = predictFloorId(x, y, activeFloorId);
-            if (predictedFloor === 'upper') {
-              if (rampHeight >= upperFloorElevation - 1e-3) {
-                return upperFloorElevation;
-              }
-              const withinStairWidth =
-                Math.abs(x - stairGeometry.centerX) <=
-                stairGeometry.halfWidth + stairBehavior.transitionMargin;
-              if (withinStairWidth) {
-                return Math.min(upperFloorElevation, Math.max(rampHeight, 0));
-              }
-              return upperFloorElevation;
-            }
-            return Math.min(Math.max(rampHeight, 0), upperFloorElevation);
+            return sampleStairSurfaceHeight({
+              geometry: stairGeometry,
+              behavior: stairBehavior,
+              x,
+              z: y,
+              currentFloor: activeFloorId,
+              upperFloorElevation,
+            });
           },
         });
       }
