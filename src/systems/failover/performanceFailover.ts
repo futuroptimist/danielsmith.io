@@ -24,6 +24,7 @@ export interface PerformanceFailoverTriggerContext {
   minFps: number;
   maxFps: number;
   p95Fps: number;
+  medianFps: number;
 }
 
 export interface PerformanceFailoverHandlerOptions {
@@ -110,6 +111,7 @@ class PerformanceFailoverMonitor {
           minFps: summary?.minFps ?? fps,
           maxFps: summary?.maxFps ?? fps,
           p95Fps: summary?.p95Fps ?? fps,
+          medianFps: summary?.medianFps ?? fps,
         });
       }
       return;

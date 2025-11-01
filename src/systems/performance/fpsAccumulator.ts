@@ -4,6 +4,7 @@ export interface FpsSampleSummary {
   minFps: number;
   maxFps: number;
   p95Fps: number;
+  medianFps: number;
 }
 
 export interface FpsAccumulator {
@@ -61,6 +62,11 @@ export function createFpsAccumulator(): FpsAccumulator {
       Math.max(0, Math.ceil(sorted.length * 0.95) - 1)
     );
     const p95Fps = sorted[percentileIndex];
+    const midIndex = Math.floor(sorted.length / 2);
+    const medianFps =
+      sorted.length % 2 === 0
+        ? (sorted[midIndex - 1] + sorted[midIndex]) / 2
+        : sorted[midIndex];
     return {
       count: samples.length,
       averageFps,
@@ -68,6 +74,7 @@ export function createFpsAccumulator(): FpsAccumulator {
       maxFps:
         max === Number.NEGATIVE_INFINITY ? sorted[sorted.length - 1] : max,
       p95Fps,
+      medianFps,
     } satisfies FpsSampleSummary;
   };
 

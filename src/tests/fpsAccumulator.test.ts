@@ -19,6 +19,7 @@ describe('createFpsAccumulator', () => {
     expect(summary?.maxFps).toBeCloseTo(24);
     expect(summary?.averageFps).toBeCloseTo((0 + 12 + 18 + 24) / 4, 5);
     expect(summary?.p95Fps).toBeCloseTo(24);
+    expect(summary?.medianFps).toBeCloseTo((12 + 18) / 2, 5);
   });
 
   it('computes percentile using ceiling semantics and resets state', () => {
@@ -30,6 +31,7 @@ describe('createFpsAccumulator', () => {
 
     const summaryBeforeReset = accumulator.getSummary();
     expect(summaryBeforeReset?.p95Fps).toBeCloseTo(30);
+    expect(summaryBeforeReset?.medianFps).toBeCloseTo((20 + 28) / 2, 5);
 
     accumulator.reset();
     expect(accumulator.getSummary()).toBeNull();
@@ -43,5 +45,6 @@ describe('createFpsAccumulator', () => {
     expect(summaryAfterReset?.maxFps).toBeCloseTo(26);
     expect(summaryAfterReset?.averageFps).toBeCloseTo((22 + 26 + 24) / 3, 5);
     expect(summaryAfterReset?.p95Fps).toBeCloseTo(26);
+    expect(summaryAfterReset?.medianFps).toBeCloseTo(24);
   });
 });

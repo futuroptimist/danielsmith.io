@@ -37,7 +37,7 @@ captures; keep artifacts in `docs/metrics/`.
     to the text experience while honoring `?mode=immersive&disablePerformanceFailover=1`
     overrides.
   - ✅ Runtime performance monitor now auto-switches to text mode after 5 s below 30 FPS.
-  - ✅ Low-performance failover logs now surface min/p95 FPS and sample counts for telemetry handoff.
+  - ✅ Low-performance failover logs now surface min/median/p95 FPS and sample counts for telemetry handoff.
 
 ## Phase 0 – Foundations (Shipped)
 
@@ -156,8 +156,11 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ Docs callout glow now locks to POI selection, syncing rotor surges with interaction
      intent and spotlighting the flywheel docs CTA.
    - ✅ Studio desk with holographic terminal referencing `jobbot3000` automation lineage.
-   - ✨ f2clipboard incident console now elevates the kitchen diagnostics POI with a
+
+   - ✅ f2clipboard incident console now elevates the kitchen diagnostics POI with a
      holographic log ticker, clipboard callouts, and ambient halo lighting.
+     - Clipboard panel now floats animated summary cards that glow brighter with POI
+       emphasis so diagnostics feel alive as triage intensity climbs.
    - ✅ Sigma fabrication bench now anchors the kitchen Sigma POI with a glowing ESP32 AI pin,
      holographic spec sheet, and animated print arm choreography.
    - ✅ Wove tactile loom now weaves animated warp threads and a glowing shuttle to anchor the
@@ -181,6 +184,7 @@ Focus: anchor each highlighted project with an interactive artifact.
        sprints accelerate toward completion.
    - ✅ Gitshelves living room array now tessellates commit shelves with streak-reactive glow
      columns and nightly sync signage.
+
 3. **Backyard Exhibits**
    - ✅ Launch-ready model rocket for `DSPACE`, complete with illuminated launch pad, pulsing
      caution halo, countdown-ready stance, and an interactive POI that links to the mission log.
