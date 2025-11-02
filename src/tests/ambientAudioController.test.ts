@@ -4,6 +4,7 @@ import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
+  type AmbientAudioVolumeModulator,
   _computeAttenuation,
   _smoothingFactor,
 } from '../systems/audio/ambientAudio';
@@ -42,6 +43,7 @@ describe('AmbientAudioController', () => {
       captionThreshold: overrides.captionThreshold,
       captionPriority: overrides.captionPriority,
       source,
+      volumeModulator: overrides.volumeModulator,
     };
     return { bed, source };
   };
@@ -176,6 +178,15 @@ describe('AmbientAudioController', () => {
     expect(snapshot.targetVolume).toBeCloseTo(0.42, 5);
     snapshot.definition.center.x = 999;
     expect(controller.getBedSnapshots()[0].definition.center.x).not.toBe(999);
+  });
+
+  it('scales base volume using the configured volume modulator', () => {
+    const modulator: AmbientAudioVolumeModulator = () => 0.5;
+    const { bed, source } = createBed({ volumeModulator: modulator });
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+    controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.1, { elapsed: 2 });
+    expect(source.volumes.at(-1)).toBeCloseTo(bed.baseVolume * 0.5, 5);
   });
 });
 

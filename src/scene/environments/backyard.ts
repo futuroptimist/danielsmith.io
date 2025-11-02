@@ -29,7 +29,11 @@ import {
 import type { IUniform } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
-import type { AmbientAudioFalloffCurve } from '../../systems/audio/ambientAudio';
+import type {
+  AmbientAudioFalloffCurve,
+  AmbientAudioVolumeModulator,
+} from '../../systems/audio/ambientAudio';
+import { createLanternWaveVolumeModulator } from '../../systems/audio/lanternWaveVolumeModulator';
 import {
   getFlickerScale,
   getPulseScale,
@@ -59,6 +63,7 @@ export interface BackyardAmbientAudioBed {
   outerRadius: number;
   baseVolume: number;
   falloffCurve?: AmbientAudioFalloffCurve;
+  volumeModulator?: AmbientAudioVolumeModulator | null;
 }
 
 interface WalkwayArrowTarget {
@@ -570,7 +575,8 @@ export function createBackyardEnvironment(
     walkwayLanternInnerRadius + 0.9,
     walkwayDepth * 0.62
   );
-  ambientAudioBeds.push({
+  const lanternWaveSamples: Array<{ progression: number; offset: number }> = [];
+  const lanternWaveBed: BackyardAmbientAudioBed = {
     id: 'backyard-lantern-wave',
     center: {
       x: walkway.position.x,
@@ -580,7 +586,9 @@ export function createBackyardEnvironment(
     outerRadius: walkwayLanternOuterRadius,
     baseVolume: 0.34,
     falloffCurve: 'smoothstep',
-  });
+    volumeModulator: null,
+  };
+  ambientAudioBeds.push(lanternWaveBed);
 
   const walkwayArrowTexture = createWalkwayGuideTexture();
   const walkwayArrowGeometry = new PlaneGeometry(1, 1, 1, 1);
@@ -1625,6 +1633,7 @@ export function createBackyardEnvironment(
           },
         ],
       });
+      const offset = i * 1.1 + (direction < 0 ? 0 : Math.PI / 3);
       const animationTarget: LanternAnimationTarget = {
         glassMaterial,
         light,
@@ -1633,13 +1642,18 @@ export function createBackyardEnvironment(
         baseEmissiveColor: glassMaterial.emissive.clone(),
         accentColor: glassMaterial.emissive.clone(),
         mixColor: glassMaterial.emissive.clone(),
-        offset: i * 1.1 + (direction < 0 ? 0 : Math.PI / 3),
+        offset,
         progression,
       };
       refreshLanternAccentColor(animationTarget);
       lanternAnimationTargets.push(animationTarget);
+      lanternWaveSamples.push({ progression, offset });
     });
   }
+
+  lanternWaveBed.volumeModulator = createLanternWaveVolumeModulator({
+    samples: lanternWaveSamples,
+  });
 
   group.add(lanternGroup);
 

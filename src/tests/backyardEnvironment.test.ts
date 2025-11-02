@@ -1545,6 +1545,15 @@ describe('createBackyardEnvironment', () => {
     );
     expect(lanternBed?.baseVolume).toBeGreaterThan(0);
     expect(lanternBed?.falloffCurve).toBe('smoothstep');
+    expect(typeof lanternBed?.volumeModulator).toBe('function');
+
+    const sampleScale = lanternBed?.volumeModulator?.({
+      elapsed: 1.2,
+      delta: 0.016,
+      listenerPosition: { x: walkway!.position.x, z: walkway!.position.z },
+      baseVolume: lanternBed!.baseVolume,
+    });
+    expect(sampleScale).toBeGreaterThan(0);
   });
 
   it('adds holographic walkway arrows that pulse toward the greenhouse and honor calm-mode damping', () => {

@@ -100,6 +100,8 @@ Focus: expand the environment while keeping navigation smooth.
        calm-mode damping.
      - ✅ Lantern chime ambient beds now trail the light wave so audio sweeps follow the
        greenhouse approach.
+       - ✅ Lantern wave volume modulator now mirrors the beacon pulse timings so audio
+         intensity glides down the path while honoring calm-mode damping.
    - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
      - ✅ Firefly calm-mode presets now ease orbital amplitude and glow for sensitive players.
    - ✅ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
