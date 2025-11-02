@@ -109,11 +109,13 @@ npm run docs:check
 npm run smoke
 ```
 
-Or use the convenience command:
+Or use the convenience command (runs lint, test:ci, and docs:check):
 
 ```bash
 npm run check
 ```
+
+Note: The `smoke` test is separate and should be run individually when needed.
 
 ## Documentation Standards
 
@@ -189,13 +191,13 @@ Always load the immersive scene with query parameters:
 http://localhost:5173/?mode=immersive&disablePerformanceFailover=1
 ```
 
-Use `createImmersiveModeUrl(...)` from `src/immersiveUrl.ts` to append additional parameters.
+Use `createImmersiveModeUrl(...)` from `src/ui/immersiveUrl.ts` to append additional parameters.
 
 ## Commit Standards
 
 When Copilot suggests commit messages:
 
-- Use pattern: `{emoji} : – <summary>`
+- Use pattern: `{emoji} : – <summary>` (space, colon, space, en dash, space)
 - Keep body under 72 characters per line
 - Focus on concise **what/why** and **how to test**
 - Reference issues with `Refs: #<id>` when applicable
