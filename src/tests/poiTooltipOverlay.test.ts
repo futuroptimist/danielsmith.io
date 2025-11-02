@@ -360,12 +360,22 @@ describe('PoiTooltipOverlay', () => {
     );
   });
 
-  it('keeps the overlay hidden when only a recommendation is available', () => {
+  it('surfaces the recommendation overlay when idle', () => {
     overlay.setRecommendation(basePoi);
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.dataset.state).toBe('hidden');
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('recommended');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.getAttribute('aria-hidden')).toBe('false');
+
+    const title = root.querySelector('.poi-tooltip-overlay__title');
+    expect(title?.textContent).toBe(basePoi.title);
+
+    const badge = root.querySelector(
+      '.poi-tooltip-overlay__recommendation'
+    ) as HTMLSpanElement;
+    expect(badge.hidden).toBe(false);
+    expect(badge.textContent).toBe('Next highlight');
   });
 
   it('shows a badge when the recommended POI is selected', () => {
@@ -383,15 +393,18 @@ describe('PoiTooltipOverlay', () => {
     expect(recommendationBadge.textContent).toBe('Next highlight');
 
     overlay.setSelected(null);
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('recommended');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
   });
 
   it('hides recommendation badges when guided tour mode is disabled', () => {
     preference.setEnabled(false, 'test');
     overlay.setRecommendation(basePoi);
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+
     overlay.setSelected(basePoi);
 
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.dataset.guidedTour).toBe('off');
     const badge = root.querySelector(
       '.poi-tooltip-overlay__recommendation'
