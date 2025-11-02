@@ -88,6 +88,12 @@ describe('createPrReaperConsole', () => {
     expect(
       console.group.getObjectByName('PrReaperConsoleLogTicker')
     ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleBeacon-0')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleBeaconHalo-0')
+    ).toBeInstanceOf(Mesh);
 
     expect(console.colliders).toHaveLength(2);
     const [deckCollider, walkwayCollider] = console.colliders;
@@ -106,6 +112,46 @@ describe('createPrReaperConsole', () => {
     expect(walkwayCenterZ).toBeCloseTo(expectedWalkwayZ, 6);
     expect(walkwayCenterX).not.toBeCloseTo(deckCenterX, 6);
     expect(walkwayCenterZ).not.toBeCloseTo(deckCenterZ, 6);
+  });
+
+  it('elevates walkway beacons with emphasis pulses and calm-mode damping', () => {
+    const console = createPrReaperConsole({ position: { x: 0, z: 0 } });
+    const beacon = console.group.getObjectByName(
+      'PrReaperConsoleBeacon-0'
+    ) as Mesh;
+    const halo = console.group.getObjectByName(
+      'PrReaperConsoleBeaconHalo-0'
+    ) as Mesh;
+
+    expect(beacon).toBeInstanceOf(Mesh);
+    expect(halo).toBeInstanceOf(Mesh);
+
+    const beaconMaterial = beacon.material as MeshStandardMaterial;
+    const haloMaterial = halo.material as MeshBasicMaterial;
+    const baseIntensity = beaconMaterial.emissiveIntensity;
+    const baseOpacity = haloMaterial.opacity;
+    const baseScale = halo.scale.x;
+
+    console.update({ elapsed: 0.4, delta: 0.016, emphasis: 0.75 });
+    const activeIntensity = beaconMaterial.emissiveIntensity;
+    const activeOpacity = haloMaterial.opacity;
+    const activeScale = halo.scale.x;
+    const activeRotation = halo.rotation.z;
+
+    expect(activeIntensity).toBeGreaterThan(baseIntensity);
+    expect(activeOpacity).toBeGreaterThan(baseOpacity);
+    expect(activeScale).toBeGreaterThan(baseScale);
+    expect(activeRotation).toBeGreaterThan(0);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    console.update({ elapsed: 1.4, delta: 0.016, emphasis: 0.75 });
+
+    expect(beaconMaterial.emissiveIntensity).toBeLessThanOrEqual(
+      activeIntensity
+    );
+    expect(haloMaterial.opacity).toBeLessThanOrEqual(activeOpacity);
+    expect(halo.scale.x).toBeLessThanOrEqual(activeScale);
+    expect(halo.rotation.z).toBeGreaterThan(activeRotation);
   });
 
   it('animates hologram elements and emissive surfaces based on emphasis', () => {
