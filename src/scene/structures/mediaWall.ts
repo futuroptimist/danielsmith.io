@@ -2,6 +2,7 @@ import {
   BoxGeometry,
   CanvasTexture,
   Color,
+  DoubleSide,
   Group,
   MathUtils,
   Mesh,
@@ -22,6 +23,10 @@ const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
 const BASE_GLOW_OPACITY = 0.18;
 const EMPHASISED_GLOW_OPACITY = 0.62;
+const CLEARANCE_BASE_OPACITY = 0.16;
+const CLEARANCE_MAX_OPACITY = 0.52;
+const CLEARANCE_BASE_COLOR = 0x10283b;
+const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
 
 interface MediaWallScreenRendererOptions {
   starCount: number;
@@ -300,6 +305,8 @@ export interface LivingRoomMediaWallPoiBindings {
     haloMaterial: MeshStandardMaterial;
     shelfLight: Mesh;
     shelfLightMaterial: MeshStandardMaterial;
+    clearance: Mesh;
+    clearanceMaterial: MeshBasicMaterial;
   };
 }
 
@@ -321,6 +328,9 @@ interface MediaWallControllerOptions {
   glowMaterial: MeshBasicMaterial;
   haloMaterial: MeshStandardMaterial;
   shelfLightMaterial: MeshStandardMaterial;
+  clearanceMaterial: MeshBasicMaterial;
+  clearanceBaseColor: Color;
+  clearanceHighlightColor: Color;
 }
 
 function createMediaWallController({
@@ -328,12 +338,18 @@ function createMediaWallController({
   glowMaterial,
   haloMaterial,
   shelfLightMaterial,
+  clearanceMaterial,
+  clearanceBaseColor,
+  clearanceHighlightColor,
 }: MediaWallControllerOptions): LivingRoomMediaWallController {
   let highlight = 0;
   const baseHaloIntensity = haloMaterial.emissiveIntensity;
   const baseShelfIntensity = shelfLightMaterial.emissiveIntensity;
   let haloIntensity = baseHaloIntensity;
   let shelfIntensity = baseShelfIntensity;
+  let clearanceOpacity = CLEARANCE_BASE_OPACITY;
+  let clearanceColorMix = 0;
+  const clearanceColor = clearanceBaseColor.clone();
   return {
     update({ elapsed, delta, emphasis }) {
       const target = MathUtils.clamp(emphasis, 0, 1);
@@ -377,6 +393,45 @@ function createMediaWallController({
       haloIntensity = MathUtils.damp(haloIntensity, haloTarget, 4.4, delta);
       if (Math.abs(haloMaterial.emissiveIntensity - haloIntensity) > 1e-3) {
         haloMaterial.emissiveIntensity = haloIntensity;
+      }
+      const clearanceWave =
+        Math.sin(elapsed * 0.85 + highlight * 1.1) *
+        pulseScale *
+        highlightWeight *
+        0.25;
+      const clearanceTarget = MathUtils.clamp(
+        CLEARANCE_BASE_OPACITY +
+          highlight * (CLEARANCE_MAX_OPACITY - CLEARANCE_BASE_OPACITY) +
+          clearanceWave,
+        CLEARANCE_BASE_OPACITY,
+        CLEARANCE_MAX_OPACITY
+      );
+      clearanceOpacity = MathUtils.damp(
+        clearanceOpacity,
+        clearanceTarget,
+        5.1,
+        delta
+      );
+      if (Math.abs(clearanceMaterial.opacity - clearanceOpacity) > 1e-3) {
+        clearanceMaterial.opacity = clearanceOpacity;
+      }
+      const clearanceColorTarget = MathUtils.clamp(
+        highlight * (0.75 + pulseScale * 0.2),
+        0,
+        1
+      );
+      clearanceColorMix = MathUtils.damp(
+        clearanceColorMix,
+        clearanceColorTarget,
+        3.6,
+        delta
+      );
+      clearanceColor
+        .copy(clearanceBaseColor)
+        .lerp(clearanceHighlightColor, clearanceColorMix);
+      if (!clearanceMaterial.color.equals(clearanceColor)) {
+        clearanceMaterial.color.copy(clearanceColor);
+        clearanceMaterial.needsUpdate = true;
       }
       screenRenderer.updateHighlight(highlight);
     },
@@ -584,6 +639,31 @@ export function createLivingRoomMediaWall(
   });
   group.add(wiringGroup);
 
+  const clearanceBaseColor = new Color(CLEARANCE_BASE_COLOR);
+  const clearanceHighlightColor = new Color(CLEARANCE_HIGHLIGHT_COLOR);
+  const clearanceMaterial = new MeshBasicMaterial({
+    color: clearanceBaseColor.clone(),
+    transparent: true,
+    opacity: CLEARANCE_BASE_OPACITY,
+    toneMapped: false,
+    side: DoubleSide,
+    depthWrite: false,
+  });
+  const clearanceGeometry = new PlaneGeometry(
+    shelfWidth * 0.96,
+    shelfDepth * 1.4
+  );
+  const clearance = new Mesh(clearanceGeometry, clearanceMaterial);
+  clearance.name = 'LivingRoomMediaWallClearance';
+  clearance.rotation.x = -Math.PI / 2;
+  clearance.position.set(
+    wallInteriorX + boardDepth + shelfDepth * 0.5,
+    0.025,
+    anchorZ
+  );
+  clearance.renderOrder = 4;
+  group.add(clearance);
+
   colliders.push({
     minX: wallInteriorX + boardDepth,
     maxX: wallInteriorX + boardDepth + shelfDepth,
@@ -601,6 +681,8 @@ export function createLivingRoomMediaWall(
       haloMaterial,
       shelfLight,
       shelfLightMaterial,
+      clearance,
+      clearanceMaterial,
     },
   };
 
@@ -609,6 +691,9 @@ export function createLivingRoomMediaWall(
     glowMaterial: screenGlowMaterial,
     haloMaterial,
     shelfLightMaterial,
+    clearanceMaterial,
+    clearanceBaseColor,
+    clearanceHighlightColor,
   });
   controller.setStarCount(1280);
 

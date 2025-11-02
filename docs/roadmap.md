@@ -167,12 +167,14 @@ Focus: anchor each highlighted project with an interactive artifact.
      kitchen Wove POI with a tactile robotics vignette.
      - Warp ripples now sync to emphasis pulses while the shuttle projects a warm glow wash
        across the loom table as it slides.
-   - ✨ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
+   - ✅ Wall-mounted Futuroptimist media wall now frames the living room POI with a branded
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
      - ✅ Undershelf LED wash now breathes with POI emphasis while calm/photosensitive presets
        dampen pulses and flicker spikes.
      - ✅ Live GitHub star telemetry now feeds the media wall badge so the display mirrors the
        latest repo metrics alongside the POI overlays.
+     - ✅ Floor-level clearance halo now pulses with POI focus to keep walkable space obvious
+       while accessibility presets soften its bloom and tint transitions.
    - ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
      orbitals, and an activation-driven tech stack + docs callout panel.
    - ✅ Studio Jobbot terminal desk now projects live automation telemetry via

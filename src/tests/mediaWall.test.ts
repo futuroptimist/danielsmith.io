@@ -89,11 +89,17 @@ describe('createLivingRoomMediaWall', () => {
     expect(build.poiBindings.futuroptimistTv.glow).toBeTruthy();
     expect(build.poiBindings.futuroptimistTv.halo).toBeTruthy();
     expect(build.poiBindings.futuroptimistTv.shelfLight).toBeTruthy();
+    expect(build.poiBindings.futuroptimistTv.clearance).toBeTruthy();
 
     const shelfLight = build.group.getObjectByName(
       'LivingRoomMediaWallShelfLight'
     );
     expect(shelfLight).toBeTruthy();
+
+    const clearance = build.group.getObjectByName(
+      'LivingRoomMediaWallClearance'
+    );
+    expect(clearance).toBeTruthy();
 
     const screenContext = contexts[0];
     expect(screenContext).toBeDefined();
@@ -108,6 +114,10 @@ describe('createLivingRoomMediaWall', () => {
       build.poiBindings.futuroptimistTv.shelfLightMaterial;
     const baseHaloIntensity = haloMaterial.emissiveIntensity;
     const baseShelfIntensity = shelfLightMaterial.emissiveIntensity;
+    const clearanceMaterial =
+      build.poiBindings.futuroptimistTv.clearanceMaterial;
+    const baseClearanceOpacity = clearanceMaterial.opacity;
+    const baseClearanceColor = clearanceMaterial.color.clone();
 
     build.controller.setStarCount(1536);
     const updatedTexts = screenContext.fillTextCalls.map((call) => call.text);
@@ -130,6 +140,8 @@ describe('createLivingRoomMediaWall', () => {
     expect(shelfLightMaterial.emissiveIntensity).toBeGreaterThan(
       baseShelfIntensity
     );
+    expect(clearanceMaterial.opacity).toBeGreaterThan(baseClearanceOpacity);
+    expect(clearanceMaterial.color.equals(baseClearanceColor)).toBe(false);
 
     document.documentElement.dataset.accessibilityPulseScale = '0';
     document.documentElement.dataset.accessibilityFlickerScale = '0';
@@ -146,6 +158,14 @@ describe('createLivingRoomMediaWall', () => {
     expect(
       Math.abs(shelfLightMaterial.emissiveIntensity - baseShelfIntensity)
     ).toBeLessThan(0.1);
+    expect(
+      Math.abs(clearanceMaterial.opacity - baseClearanceOpacity)
+    ).toBeLessThan(0.05);
+    const clearanceColorDelta =
+      Math.abs(clearanceMaterial.color.r - baseClearanceColor.r) +
+      Math.abs(clearanceMaterial.color.g - baseClearanceColor.g) +
+      Math.abs(clearanceMaterial.color.b - baseClearanceColor.b);
+    expect(clearanceColorDelta).toBeLessThan(0.12);
 
     expect(() => build.controller.dispose()).not.toThrow();
   });
