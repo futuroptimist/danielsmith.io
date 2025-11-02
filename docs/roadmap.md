@@ -196,8 +196,8 @@ Focus: anchor each highlighted project with an interactive artifact.
      - ✅ Sugarkube greenhouse POI now surfaces automation metrics and dual CTAs in the registry.
        - ✅ Ambient audio beds (crickets, greenhouse chimes) now use smoothstep falloff so volume
          eases in based on player proximity.
-   - ✨ PR Reaper triage console now anchors the backyard ops POI with holographic sweeps,
-     caution-lit walkways, and log review surfaces.
+   - ✅ PR Reaper triage console now anchors the backyard ops POI with holographic sweeps,
+     caution-lit walkways, beaconed approaches, and log review surfaces.
      - ✅ Caution-lit walkway now pulses with triage emphasis cues and honors accessibility
        motion dampening scales.
    - ✅ Incident console log displays now stream Codex triage updates with emphasis-aware

@@ -51,6 +51,14 @@ interface SeveritySegment {
   threshold: number;
 }
 
+interface CautionBeacon {
+  coreMaterial: MeshStandardMaterial;
+  halo: Mesh;
+  haloMaterial: MeshBasicMaterial;
+  baseIntensity: number;
+  baseOpacity: number;
+}
+
 const INCIDENT_COLORS: Record<IncidentLogEntry['status'], string> = {
   stable: 'rgba(102, 212, 255, 0.92)',
   investigating: 'rgba(255, 198, 102, 0.95)',
@@ -269,6 +277,7 @@ export function createPrReaperConsole(
   const colliders: RectCollider[] = [];
   const logSurfaces: LogSurface[] = [];
   const severitySegments: SeveritySegment[] = [];
+  const cautionBeacons: CautionBeacon[] = [];
 
   const deckWidth = 2.6;
   const deckDepth = 1.6;
@@ -550,6 +559,54 @@ export function createPrReaperConsole(
   cautionStrip.position.set(0, walkway.position.y + 0.07, walkway.position.z);
   group.add(cautionStrip);
 
+  const beaconGeometry = new CylinderGeometry(0.16, 0.22, 0.46, 14);
+  const beaconMaterial = new MeshStandardMaterial({
+    color: new Color(0x132031),
+    emissive: new Color(0x1f8cff),
+    emissiveIntensity: 0.32,
+    roughness: 0.42,
+    metalness: 0.28,
+  });
+  const beaconHaloGeometry = new RingGeometry(0.28, 0.4, 40);
+  const beaconHaloMaterial = new MeshBasicMaterial({
+    color: new Color(0x5cd4ff),
+    transparent: true,
+    opacity: 0.36,
+    side: DoubleSide,
+  });
+  const beaconForward = deckDepth / 2 + walkwayDepth - 0.05;
+  const beaconOffsets = [-0.58, 0.58];
+  beaconOffsets.forEach((offset, index) => {
+    const center = offsetLocal(
+      basePosition,
+      right,
+      forward,
+      offset,
+      beaconForward
+    );
+    const coreMaterial = beaconMaterial.clone();
+    const beacon = new Mesh(beaconGeometry, coreMaterial);
+    beacon.name = `PrReaperConsoleBeacon-${index}`;
+    beacon.position.set(center.x, 0.23, center.z);
+    group.add(beacon);
+
+    const haloMaterial = beaconHaloMaterial.clone();
+    const halo = new Mesh(beaconHaloGeometry, haloMaterial);
+    halo.name = `PrReaperConsoleBeaconHalo-${index}`;
+    halo.position.set(center.x, 0.48, center.z);
+    halo.rotation.x = -Math.PI / 2;
+    halo.renderOrder = 14 + index;
+    group.add(halo);
+
+    cautionBeacons.push({
+      coreMaterial,
+      halo,
+      haloMaterial,
+      baseIntensity: coreMaterial.emissiveIntensity ?? 0,
+      baseOpacity: haloMaterial.opacity ?? 0,
+    });
+  });
+
   const deckCollider = createCollider(
     basePosition,
     deckWidth,
@@ -683,6 +740,42 @@ export function createPrReaperConsole(
         1
       );
       surface.material.opacity = targetOpacity;
+    });
+
+    cautionBeacons.forEach((beacon, index) => {
+      const activation = MathUtils.clamp(
+        clampedEmphasis + 0.25 + index * 0.08,
+        0,
+        1
+      );
+      const intensityBase =
+        beacon.baseIntensity +
+        MathUtils.lerp(0.22, 0.72, clampedEmphasis) * activation;
+      const intensityPulse =
+        MathUtils.lerp(0, 0.85, pulseScale) *
+        (0.45 + pulse * 0.55) *
+        activation;
+      beacon.coreMaterial.emissiveIntensity = Math.max(
+        beacon.baseIntensity,
+        intensityBase + intensityPulse
+      );
+
+      const haloBase = beacon.baseOpacity + Math.min(1, activation) * 0.42;
+      const haloPulse =
+        MathUtils.lerp(0, 0.5, pulseScale) * (0.4 + pulse * 0.6) * activation;
+      beacon.haloMaterial.opacity = MathUtils.clamp(
+        haloBase + haloPulse,
+        beacon.baseOpacity,
+        1
+      );
+
+      const haloScale =
+        1 +
+        activation * 0.3 +
+        MathUtils.lerp(0, 0.32, pulseScale) * (0.4 + pulse * 0.6);
+      beacon.halo.scale.setScalar(haloScale);
+      beacon.halo.rotation.z =
+        elapsed * MathUtils.lerp(0.6, 1.3, Math.min(1, clampedEmphasis + 0.2));
     });
   };
 
