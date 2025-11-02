@@ -8,6 +8,17 @@ export interface AmbientAudioSource {
 
 export type AmbientAudioFalloffCurve = 'linear' | 'smoothstep';
 
+export interface AmbientAudioModulatorContext {
+  readonly elapsed: number;
+  readonly delta: number;
+  readonly listenerPosition: { x: number; z: number };
+  readonly baseVolume: number;
+}
+
+export type AmbientAudioVolumeModulator = (
+  context: AmbientAudioModulatorContext
+) => number | null | undefined;
+
 export interface AmbientAudioBedDefinition {
   id: string;
   center: { x: number; z: number };
@@ -16,6 +27,11 @@ export interface AmbientAudioBedDefinition {
   baseVolume: number;
   falloffCurve?: AmbientAudioFalloffCurve;
   source: AmbientAudioSource;
+  /**
+   * Optional callback that returns a multiplier applied to {@link baseVolume} each frame.
+   * Values outside the 0–1 range are clamped before spatial attenuation.
+   */
+  volumeModulator?: AmbientAudioVolumeModulator | null;
   /** Optional caption surfaced when the bed becomes audible. */
   caption?: string;
   /** Minimum rendered volume before the caption is considered audible. Defaults to 0.18. */
@@ -108,6 +124,8 @@ export class AmbientAudioController {
 
   private hasListenerPosition = false;
 
+  private elapsedTime = 0;
+
   constructor(
     beds: AmbientAudioBedDefinition[],
     options: AmbientAudioControllerOptions = {}
@@ -150,6 +168,7 @@ export class AmbientAudioController {
       return;
     }
     this.enabled = false;
+    this.elapsedTime = 0;
     this.beds.forEach((bed) => {
       bed.currentVolume = 0;
       bed.definition.source.setVolume(0);
@@ -167,9 +186,19 @@ export class AmbientAudioController {
       }
     });
     this.enabled = false;
+    this.elapsedTime = 0;
   }
 
-  update(listenerPosition: { x: number; z: number }, delta: number): void {
+  update(
+    listenerPosition: { x: number; z: number },
+    delta: number,
+    options: { elapsed?: number } = {}
+  ): void {
+    if (Number.isFinite(options.elapsed)) {
+      this.elapsedTime = options.elapsed as number;
+    } else if (Number.isFinite(delta)) {
+      this.elapsedTime += delta;
+    }
     this.lastListenerPosition = {
       x: listenerPosition.x,
       z: listenerPosition.z,
@@ -187,12 +216,22 @@ export class AmbientAudioController {
         bed.definition.outerRadius,
         bed.definition.falloffCurve
       );
+      const baseVolume = bed.definition.baseVolume;
+      let modulatedBaseVolume = baseVolume;
+      if (bed.definition.volumeModulator) {
+        const scale = bed.definition.volumeModulator({
+          elapsed: this.elapsedTime,
+          delta,
+          listenerPosition,
+          baseVolume,
+        });
+        if (Number.isFinite(scale ?? NaN)) {
+          const normalizedScale = Math.max(scale ?? 0, 0);
+          modulatedBaseVolume = clamp(baseVolume * normalizedScale, 0, 1);
+        }
+      }
       const targetVolume = this.enabled
-        ? clamp(
-            bed.definition.baseVolume * attenuation * this.masterVolume,
-            0,
-            1
-          )
+        ? clamp(modulatedBaseVolume * attenuation * this.masterVolume, 0, 1)
         : 0;
       bed.targetVolume = targetVolume;
       const nextVolume =

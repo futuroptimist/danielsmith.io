@@ -3802,7 +3802,9 @@ function initializeImmersiveScene(
         avatarAccessorySuite.update({ elapsed: elapsedTime, delta });
       }
       if (ambientAudioController) {
-        ambientAudioController.update(player.position, delta);
+        ambientAudioController.update(player.position, delta, {
+          elapsed: elapsedTime,
+        });
         ambientCaptionBridge?.update();
       }
       if (livingRoomMediaWall) {
