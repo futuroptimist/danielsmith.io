@@ -150,6 +150,7 @@ test.describe('immersive experience', () => {
     await expect(graphicsControl).toBeHidden();
     await expect(accessibilityControl).toBeHidden();
     await expect(modeToggle).toBeHidden();
-    await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
+    // After closing help modal, overlay returns to recommended state
+    await expect(poiOverlay).toHaveAttribute('data-state', 'recommended');
   });
 });
