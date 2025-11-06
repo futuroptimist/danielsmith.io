@@ -241,6 +241,8 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /insomnia/i,
   /python-requests/i,
   /httpx/i,
+  /reqwest\//i,
+  /okhttp\//i,
 ];
 
 function shouldForceTextModeForUserAgent(userAgent: string): boolean {
