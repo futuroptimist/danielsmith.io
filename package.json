@@ -26,11 +26,13 @@
     "three": "^0.161.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.44.0",
     "@types/jszip": "^3.4.0",
     "@types/node": "^20.11.17",
     "@types/three": "^0.161.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "axe-core": "^4.11.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -42,7 +44,6 @@
     "tsx": "^4.7.0",
     "typescript": "~5.3.3",
     "vite": "^5.0.12",
-    "vitest": "^1.2.1",
-    "@playwright/test": "^1.44.0"
+    "vitest": "^1.2.1"
   }
 }
