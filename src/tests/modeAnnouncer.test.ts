@@ -29,6 +29,10 @@ describe('createModeAnnouncer', () => {
     expect(announcer.element.textContent).toMatch(
       /lightweight device profile/i
     );
+    announcer.announceFallback('data-saver');
+    expect(announcer.element.textContent).toMatch(/data-saver experience/i);
+    announcer.announceFallback('console-error');
+    expect(announcer.element.textContent).toMatch(/runtime error/i);
     announcer.announceImmersiveReady();
     expect(announcer.element.textContent).toMatch(/immersive mode ready/i);
   });
@@ -77,6 +81,22 @@ describe('initializeModeAnnouncementObserver', () => {
       '[data-mode-announcer="true"]'
     );
     expect(region?.textContent).toMatch(/frame rates dipped/i);
+  });
+
+  it('announces data-saver failover reasons surfaced by the fallback view', async () => {
+    initializeModeAnnouncementObserver();
+    const container = document.createElement('div');
+    document.body.append(container);
+    renderTextFallback(container, {
+      reason: 'data-saver',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.dataset.appMode = 'fallback';
+    await flushObserver();
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/data-saver experience/i);
   });
 
   it('announces immersive transitions when the mode changes back', async () => {
