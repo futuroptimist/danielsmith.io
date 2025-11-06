@@ -235,8 +235,14 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
-  it('routes Node.js and Go HTTP clients to text mode', () => {
-    const userAgents = ['Go-http-client/1.1', 'node-fetch/1.0', 'axios/1.6.0'];
+  it('routes Node.js, Go, Rust, and Android HTTP clients to text mode', () => {
+    const userAgents = [
+      'Go-http-client/1.1',
+      'node-fetch/1.0',
+      'axios/1.6.0',
+      'reqwest/0.11.4',
+      'okhttp/4.12.0',
+    ];
     for (const userAgent of userAgents) {
       const decision = evaluateFailoverDecision({
         createCanvas: canvasFactory,
