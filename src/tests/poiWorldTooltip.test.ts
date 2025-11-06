@@ -225,6 +225,7 @@ describe('PoiWorldTooltip', () => {
     const recommendedPoi = createPoiDefinition({
       id: 'sugarkube-backyard-greenhouse',
     });
+    tooltip.setIdleState(true);
     tooltip.setRecommendation(
       createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
     );
@@ -244,6 +245,7 @@ describe('PoiWorldTooltip', () => {
     const recommendedPoi = createPoiDefinition({
       id: 'pr-reaper-backyard-console',
     });
+    tooltip.setIdleState(true);
     preference.setEnabled(false, 'test');
     tooltip.setRecommendation(
       createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
@@ -258,6 +260,31 @@ describe('PoiWorldTooltip', () => {
     tooltip.update(0.016);
     const enabledState = tooltip.getState();
     expect(enabledState.mode).toBe('recommended');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('hides recommendation visuals until idle mode is reached', () => {
+    const { tooltip, preference } = createTooltip();
+    const recommendedPoi = createPoiDefinition({
+      id: 'dspace-backyard-rocket',
+    });
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    const activeState = tooltip.getState();
+    expect(activeState.mode).toBeNull();
+    expect(activeState.visible).toBe(false);
+
+    tooltip.setIdleState(true);
+    tooltip.update(0.016);
+
+    const idleState = tooltip.getState();
+    expect(idleState.mode).toBe('recommended');
+    expect(idleState.poiId).toBe(recommendedPoi.id);
 
     tooltip.dispose();
     preference.dispose();
