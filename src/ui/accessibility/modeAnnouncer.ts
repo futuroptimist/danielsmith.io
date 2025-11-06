@@ -33,6 +33,10 @@ const DEFAULT_FALLBACK_MESSAGES: Record<FallbackReason, string> = {
     'Detected an automated client. Presenting the text portfolio for reliable previews.',
   'low-end-device':
     'Detected a lightweight device profile. Running the text portfolio for a smoother tour.',
+  'console-error':
+    'We detected a runtime error. Presenting the resilient text tour while the scene resets.',
+  'data-saver':
+    'Your browser requested a data-saver experience, so the lightweight text tour is active.',
 };
 
 function applyVisuallyHiddenStyles(element: HTMLElement): void {
