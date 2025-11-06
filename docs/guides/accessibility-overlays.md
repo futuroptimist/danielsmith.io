@@ -43,3 +43,11 @@ screen-reader visitors receive the same metadata as 3D players.
 - During smoke tests, run the keyboard traversal macro (see
   [`playwright/keyboard-traversal.spec.ts`](../../playwright/keyboard-traversal.spec.ts))
   to verify the overlay announces each POI in the expected order.
+
+## Automated audits
+
+- `npm run test:ci` now includes
+  [`textFallbackAccessibility.test.ts`](../../src/tests/textFallbackAccessibility.test.ts),
+  an axe-core sweep that checks the text fallback portfolio for WCAG 2.0 A/AA
+  violations. Extend the suite with additional contexts when new overlays or
+  fallback layouts ship so accessibility regressions are caught automatically.
