@@ -49,6 +49,7 @@ export class PoiTooltipOverlay {
   private renderState: RenderState = { poiId: null };
   private visitedPoiIds: ReadonlySet<string> = new Set();
   private guidedTourEnabled = true;
+  private isIdle = false;
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
 
@@ -156,6 +157,14 @@ export class PoiTooltipOverlay {
     );
   }
 
+  setIdleState(idle: boolean) {
+    if (this.isIdle === idle) {
+      return;
+    }
+    this.isIdle = idle;
+    this.update();
+  }
+
   setHovered(poi: PoiDefinition | null) {
     this.hovered = poi;
     this.update();
@@ -212,10 +221,10 @@ export class PoiTooltipOverlay {
       return;
     }
 
-    const activeRecommendation = this.guidedTourEnabled
-      ? this.recommendation
-      : null;
-    const poi = this.hovered ?? this.selected ?? activeRecommendation;
+    const recommendation = this.recommendation;
+    const idleRecommendation =
+      this.guidedTourEnabled && this.isIdle ? recommendation : null;
+    const poi = this.hovered ?? this.selected ?? idleRecommendation;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
       this.root.dataset.state = 'hidden';
@@ -241,8 +250,10 @@ export class PoiTooltipOverlay {
     const visited = this.visitedPoiIds.has(poi.id);
     this.visitedBadge.hidden = !visited;
     const showRecommendationBadge =
-      state === 'recommended' ||
-      (state === 'selected' && activeRecommendation?.id === poi.id);
+      (state === 'recommended' && Boolean(idleRecommendation)) ||
+      (state === 'selected' &&
+        this.guidedTourEnabled &&
+        recommendation?.id === poi.id);
     this.recommendationBadge.hidden = !showRecommendationBadge;
 
     const previousPoiId = this.renderState.poiId;

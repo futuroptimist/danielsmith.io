@@ -101,6 +101,8 @@ export class PoiWorldTooltip {
 
   private guidedTourEnabled = true;
 
+  private idle = false;
+
   private unsubscribeGuidedTour: (() => void) | null = null;
 
   private readonly targetPosition = new Vector3();
@@ -185,11 +187,22 @@ export class PoiWorldTooltip {
     this.recommendation = target;
   }
 
+  setIdleState(idle: boolean): void {
+    if (this.idle === idle) {
+      return;
+    }
+    this.idle = idle;
+    if (!idle && !this.hovered && !this.selected) {
+      this.fadeOut(0);
+    }
+  }
+
   update(delta: number): void {
     if (this.disposed) {
       return;
     }
-    const recommendation = this.guidedTourEnabled ? this.recommendation : null;
+    const recommendation =
+      this.guidedTourEnabled && this.idle ? this.recommendation : null;
     const active = this.selected ?? this.hovered ?? recommendation;
     const mode: PoiWorldTooltipMode | null = this.selected
       ? 'selected'

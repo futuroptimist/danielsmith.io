@@ -304,6 +304,7 @@ import {
   createAnalyticsGlowRhythm,
   type AnalyticsGlowRhythmHandle,
 } from './systems/hud/analyticsGlowRhythm';
+import { IdleMonitor } from './systems/idle/idleMonitor';
 import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
@@ -690,6 +691,8 @@ function initializeImmersiveScene(
   let proceduralNarrator: ProceduralNarrator | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
   let guidedTourChannel: GuidedTourChannel | null = null;
+  let idleMonitor: IdleMonitor | null = null;
+  let removeIdleSubscription: (() => void) | null = null;
   let removeGuidedTourSubscription: (() => void) | null = null;
   let githubRepoMetrics: GitHubRepoMetricsController | null = null;
   let getAmbientAudioVolume = () =>
@@ -1354,6 +1357,14 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  idleMonitor = new IdleMonitor({
+    windowTarget: window,
+    elementTargets: [renderer.domElement],
+  });
+  removeIdleSubscription = idleMonitor.subscribe((idle) => {
+    poiTooltipOverlay.setIdleState(idle);
+    poiWorldTooltip.setIdleState(idle);
+  });
   const githubRepoStatsService = createGitHubRepoStatsService();
   githubRepoMetrics = wireGitHubRepoMetrics({
     definitions: poiDefinitions,
@@ -1746,6 +1757,7 @@ function initializeImmersiveScene(
     });
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
+      idleMonitor?.reportActivity();
       poiVisitedState.markVisited(poi.id);
       if (poi.narration?.caption && audioSubtitles) {
         audioSubtitles.show({
@@ -3136,6 +3148,10 @@ function initializeImmersiveScene(
     const planarInputLengthSq =
       combinedRight * combinedRight + combinedForward * combinedForward;
 
+    if (planarInputLengthSq > 0.001) {
+      idleMonitor?.reportActivity();
+    }
+
     getCameraRelativeMovementVector(
       camera,
       combinedRight,
@@ -3498,6 +3514,7 @@ function initializeImmersiveScene(
   function handleInteractionInput() {
     const pressed = keyBindings.isActionActive('interact', keyPressSource);
     if (pressed && !interactKeyWasPressed && interactablePoi) {
+      idleMonitor?.reportActivity();
       poiInteractionManager.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
@@ -3710,6 +3727,14 @@ function initializeImmersiveScene(
     if (helpModalController) {
       helpModalController.dispose();
       helpModalController = null;
+    }
+    if (removeIdleSubscription) {
+      removeIdleSubscription();
+      removeIdleSubscription = null;
+    }
+    if (idleMonitor) {
+      idleMonitor.dispose();
+      idleMonitor = null;
     }
     analyticsGlow.dispose();
     helpModal.dispose();

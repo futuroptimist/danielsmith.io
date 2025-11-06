@@ -361,6 +361,7 @@ describe('PoiTooltipOverlay', () => {
   });
 
   it('surfaces the recommendation overlay when idle', () => {
+    overlay.setIdleState(true);
     overlay.setRecommendation(basePoi);
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
@@ -379,6 +380,7 @@ describe('PoiTooltipOverlay', () => {
   });
 
   it('shows a badge when the recommended POI is selected', () => {
+    overlay.setIdleState(true);
     overlay.setRecommendation(basePoi);
     overlay.setSelected(basePoi);
 
@@ -398,6 +400,7 @@ describe('PoiTooltipOverlay', () => {
   });
 
   it('hides recommendation badges when guided tour mode is disabled', () => {
+    overlay.setIdleState(true);
     preference.setEnabled(false, 'test');
     overlay.setRecommendation(basePoi);
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
@@ -414,6 +417,19 @@ describe('PoiTooltipOverlay', () => {
     preference.setEnabled(true, 'test');
     expect(root.dataset.guidedTour).toBe('on');
     expect(badge.hidden).toBe(false);
+  });
+
+  it('suppresses recommendation overlays until the player becomes idle', () => {
+    overlay.setRecommendation(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('hidden');
+
+    overlay.setIdleState(true);
+
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.dataset.state).toBe('recommended');
   });
 
   it('ignores updates after disposal', () => {
