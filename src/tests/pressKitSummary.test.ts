@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -47,7 +49,7 @@ describe('buildPressKitSummary', () => {
         type: asset.type,
         relativePath: asset.relativePath,
       });
-      expect(entry.filename).toBe(asset.relativePath.split('/').at(-1));
+      expect(entry.filename).toBe(path.basename(asset.relativePath));
     });
 
     const firstPoi = summary.poiCatalog[0];
