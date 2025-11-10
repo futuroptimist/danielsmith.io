@@ -8,6 +8,10 @@ import {
   type PerformanceBudget,
   type ScenePerformanceSnapshot,
 } from '../assets/performance';
+import {
+  PRESS_KIT_MEDIA_ASSETS,
+  type PressKitMediaAsset,
+} from '../assets/pressKitMedia';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import type {
   PoiCategory,
@@ -50,6 +54,10 @@ export interface PressKitTotals {
   categories: Record<PoiCategory, number>;
 }
 
+export interface PressKitMediaEntry extends PressKitMediaAsset {
+  filename: string;
+}
+
 export interface PressKitSummary {
   generatedAtIso: string;
   performance: {
@@ -58,6 +66,7 @@ export interface PressKitSummary {
   };
   totals: PressKitTotals;
   poiCatalog: PressKitPoiEntry[];
+  media: PressKitMediaEntry[];
 }
 
 export interface BuildPressKitSummaryOptions {
@@ -122,6 +131,11 @@ export function buildPressKitSummary(
 
   const roomsRepresented = new Set(poiCatalog.map((poi) => poi.room.id)).size;
 
+  const media: PressKitMediaEntry[] = PRESS_KIT_MEDIA_ASSETS.map((asset) => ({
+    ...asset,
+    filename: path.basename(asset.relativePath),
+  }));
+
   return {
     generatedAtIso,
     performance: {
@@ -134,6 +148,7 @@ export function buildPressKitSummary(
       categories: categoryTotals,
     },
     poiCatalog,
+    media,
   };
 }
 

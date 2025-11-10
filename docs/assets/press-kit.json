@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2025-10-17T08:00:59.728Z",
+  "generatedAtIso": "2025-11-10T07:07:37.029Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -37,7 +37,15 @@
       "metrics": [
         {
           "label": "Stars",
-          "value": "1,280+"
+          "value": "1,280+",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "danielsmith.io",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "1,280+"
+          }
         },
         {
           "label": "Workflow",
@@ -77,6 +85,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "token.place",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Cluster",
           "value": "12× Pi 5 nodes in modular bays"
         },
@@ -114,6 +134,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "gabriel",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Focus",
           "value": "360° lidar sweep + local heuristics"
         },
@@ -146,6 +178,18 @@
         "name": "Studio"
       },
       "metrics": [
+        {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "flywheel",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
         {
           "label": "Automation",
           "value": "CI scaffolds · typed prompts · QA loops"
@@ -184,6 +228,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "jobbot3000",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Ops savings",
           "value": "Recovered 6h weekly toil"
         },
@@ -221,6 +277,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "axel",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Guidance",
           "value": "Auto-prioritised quests from repo scans"
         },
@@ -254,6 +322,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "gitshelves",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Material",
           "value": "42 mm Gridfinity compatible blocks"
         },
@@ -286,6 +366,18 @@
         "name": "Living Room"
       },
       "metrics": [
+        {
+          "label": "Stars",
+          "value": "1,280+",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "danielsmith.io",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "1,280+"
+          }
+        },
         {
           "label": "Stack",
           "value": "Vite · Three.js · accessibility HUD"
@@ -324,6 +416,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "f2clipboard",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Speed",
           "value": "Copy failing logs in under 3 s"
         },
@@ -356,6 +460,18 @@
         "name": "Kitchen"
       },
       "metrics": [
+        {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "sigma",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
         {
           "label": "Hardware",
           "value": "ESP32 · on-device speech stack"
@@ -390,6 +506,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "wove",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Craft",
           "value": "Loom calibrates from CAD stitch maps"
         },
@@ -422,6 +550,19 @@
         "name": "Backyard"
       },
       "metrics": [
+        {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "dspace",
+            "visibility": "private",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
         {
           "label": "Countdown",
           "value": "Autonomous T-0 sequencing"
@@ -460,6 +601,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "pr-reaper",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Sweep",
           "value": "Bulk-close stale PRs with preview mode"
         },
@@ -493,6 +646,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "sugarkube",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Automation",
           "value": "Sugarkube schedules solar tilt + irrigation"
         },
@@ -516,6 +681,35 @@
         "depth": 6.4
       },
       "interactionRadius": 4.2
+    }
+  ],
+  "media": [
+    {
+      "id": "immersive-launch-screenshot",
+      "label": "Immersive launch capture",
+      "description": "Launch pose inside the living room highlighting the dusk lighting pass and holographic POIs.",
+      "altText": "Isometric view of the living room with the mannequin facing the holographic exhibits.",
+      "type": "screenshot",
+      "relativePath": "docs/assets/game-launch.png",
+      "filename": "game-launch.png"
+    },
+    {
+      "id": "floorplan-ground-diagram",
+      "label": "Ground floor plan",
+      "description": "Ground floor diagram showing the living room, studio, kitchen, and backyard layout used for POI placement.",
+      "altText": "Top-down architectural diagram of the ground floor with labelled rooms.",
+      "type": "diagram",
+      "relativePath": "docs/assets/floorplan-ground.svg",
+      "filename": "floorplan-ground.svg"
+    },
+    {
+      "id": "floorplan-upper-diagram",
+      "label": "Upper floor plan",
+      "description": "Upper landing diagram for the loft library and focus pods.",
+      "altText": "Top-down architectural diagram of the upper floor landing and pods.",
+      "type": "diagram",
+      "relativePath": "docs/assets/floorplan-upper.svg",
+      "filename": "floorplan-upper.svg"
     }
   ]
 }
