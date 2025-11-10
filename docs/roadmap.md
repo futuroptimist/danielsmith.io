@@ -415,7 +415,7 @@ Ideas to evaluate after the core experience is stable:
   - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
 - ✅ Integration with GitHub API for live repo stats and contribution heatmaps.
   - ✅ Live GitHub star counts now stream into POI metric panels via the repo stats service.
-- Exportable "press kit" mode that packages screenshots, POI blurbs, and metrics.
+- ✅ Exportable "press kit" mode now packages screenshots, POI blurbs, and metrics for media kits.
   - ✅ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
 
 ## Delivery Principles

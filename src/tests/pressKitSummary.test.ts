@@ -4,6 +4,7 @@ import {
   IMMERSIVE_PERFORMANCE_BUDGET,
   IMMERSIVE_SCENE_BASELINE,
 } from '../assets/performance';
+import { PRESS_KIT_MEDIA_ASSETS } from '../assets/pressKitMedia';
 import * as registry from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
 import { buildPressKitSummary, writePressKitSummary } from '../tools/pressKit';
@@ -35,6 +36,19 @@ describe('buildPressKitSummary', () => {
     expect(summary.totals.poiCount).toBe(definitions.length);
     expect(summary.totals.roomsRepresented).toBe(expectedRooms);
     expect(summary.totals.categories).toEqual(expectedCategoryCounts);
+    expect(summary.media).toHaveLength(PRESS_KIT_MEDIA_ASSETS.length);
+    summary.media.forEach((entry, index) => {
+      const asset = PRESS_KIT_MEDIA_ASSETS[index];
+      expect(entry).toMatchObject({
+        id: asset.id,
+        label: asset.label,
+        description: asset.description,
+        altText: asset.altText,
+        type: asset.type,
+        relativePath: asset.relativePath,
+      });
+      expect(entry.filename).toBe(asset.relativePath.split('/').at(-1));
+    });
 
     const firstPoi = summary.poiCatalog[0];
     expect(firstPoi.room.id).toBeTruthy();
