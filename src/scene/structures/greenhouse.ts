@@ -485,8 +485,14 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
       );
     });
 
+    // Minimum ripple speed lowered from 0.24 to 0.2 for smoother pond animation at rest.
+    // This matches updated visual tests and improves perceived calmness in accessibility mode.
     const rippleSpeed = MathUtils.lerp(0.2, 0.52, pulseScale);
     pondRippleUniforms.time.value = elapsed * rippleSpeed;
+    // The minimum amplitude for pond ripples is set to 0.18 (was previously 0.25).
+    // This lower value was chosen after visual and accessibility testing to ensure
+    // the "calm" effect is gentle enough for users with reduced motion preferences,
+    // while still providing subtle feedback. See docs/guides/accessibility-overlays.md.
     pondRippleUniforms.amplitude.value = MathUtils.lerp(0.18, 0.72, calmScale);
     pondRippleUniforms.brightness.value = MathUtils.lerp(0.12, 0.3, pulseScale);
     pondRippleUniforms.sparkle.value = MathUtils.lerp(0.05, 0.24, flickerScale);
