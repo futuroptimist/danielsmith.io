@@ -68,6 +68,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       },
     },
     audioControl: {
+      keyHint: wrap('M'),
       groupLabel: wrap('Ambient audio controls'),
       toggle: {
         onLabelTemplate: wrap('Audio: On · Press {keyHint} to mute'),
