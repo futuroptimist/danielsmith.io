@@ -1,3 +1,9 @@
+import {
+  formatMessage,
+  getAudioHudControlStrings,
+  type AudioHudControlStrings,
+} from '../../assets/i18n';
+
 export interface AudioHudControlOptions {
   container: HTMLElement;
   getEnabled: () => boolean;
@@ -7,13 +13,13 @@ export interface AudioHudControlOptions {
   windowTarget?: Window;
   toggleKey?: string;
   volumeStep?: number;
-  toggleLabelOn?: string;
-  toggleLabelOff?: string;
+  strings?: AudioHudControlStrings;
 }
 
 export interface AudioHudControlHandle {
   readonly element: HTMLDivElement;
   refresh(): void;
+  setStrings(strings: AudioHudControlStrings): void;
   dispose(): void;
 }
 
@@ -43,20 +49,29 @@ interface VolumeUiState {
 
 function getVolumeUiState(
   enabled: boolean,
-  formattedVolume: string
+  formattedVolume: string,
+  strings: AudioHudControlStrings['slider']
 ): VolumeUiState {
   if (enabled) {
     return {
       valueDisplay: formattedVolume,
       ariaValueText: formattedVolume,
-      announce: `Ambient audio volume ${formattedVolume}.`,
+      announce: formatMessage(strings.valueAnnouncementTemplate, {
+        volume: formattedVolume,
+      }),
     };
   }
 
   return {
-    valueDisplay: `Muted · ${formattedVolume}`,
-    ariaValueText: `Muted (${formattedVolume})`,
-    announce: `Ambient audio muted. Volume set to ${formattedVolume}.`,
+    valueDisplay: formatMessage(strings.mutedValueTemplate, {
+      volume: formattedVolume,
+    }),
+    ariaValueText: formatMessage(strings.mutedAriaValueTemplate, {
+      volume: formattedVolume,
+    }),
+    announce: formatMessage(strings.mutedAnnouncementTemplate, {
+      volume: formattedVolume,
+    }),
   };
 }
 
@@ -69,18 +84,15 @@ export function createAudioHudControl({
   windowTarget = window,
   toggleKey = 'm',
   volumeStep = 0.05,
-  toggleLabelOn = 'Audio: On · Press M to mute',
-  toggleLabelOff = 'Audio: Off · Press M to unmute',
+  strings: providedStrings,
 }: AudioHudControlOptions): AudioHudControlHandle {
   const wrapper = document.createElement('div');
   wrapper.className = 'audio-hud';
   wrapper.setAttribute('role', 'group');
-  wrapper.setAttribute('aria-label', 'Ambient audio controls');
 
   const toggleButton = document.createElement('button');
   toggleButton.type = 'button';
   toggleButton.className = 'audio-toggle';
-  toggleButton.title = 'Toggle ambient audio';
   toggleButton.setAttribute('aria-pressed', 'false');
 
   const volumeLabel = document.createElement('label');
@@ -88,7 +100,6 @@ export function createAudioHudControl({
   volumeLabel.htmlFor = 'audio-volume-slider';
   const labelText = document.createElement('span');
   labelText.className = 'audio-volume__label';
-  labelText.textContent = 'Ambient volume';
 
   const slider = document.createElement('input');
   slider.type = 'range';
@@ -98,10 +109,8 @@ export function createAudioHudControl({
   slider.min = '0';
   slider.max = '1';
   slider.step = volumeStep.toString();
-  slider.setAttribute('aria-label', 'Ambient audio volume');
   slider.setAttribute('aria-valuemin', '0');
   slider.setAttribute('aria-valuemax', '1');
-  slider.dataset.hudAnnounce = 'Ambient audio volume slider.';
 
   const valueText = document.createElement('span');
   valueText.className = 'audio-volume__value';
@@ -115,26 +124,85 @@ export function createAudioHudControl({
   wrapper.appendChild(volumeLabel);
   container.appendChild(wrapper);
 
+  const cloneStrings = (
+    value: AudioHudControlStrings
+  ): AudioHudControlStrings => ({
+    keyHint: value.keyHint,
+    groupLabel: value.groupLabel,
+    toggle: { ...value.toggle },
+    slider: { ...value.slider },
+  });
+
+  let strings = cloneStrings(providedStrings ?? getAudioHudControlStrings());
   let pending = false;
   let lastKnownEnabled = false;
 
-  const normalizeKey = (value: string) =>
-    value.length === 1 ? value.toUpperCase() : value;
-  const normalizedToggleKey = normalizeKey(toggleKey);
+  const normalizeKeyHint = (value: string | undefined) => {
+    if (!value) {
+      return '';
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return '';
+    }
+    return trimmed.length === 1 ? trimmed.toUpperCase() : trimmed;
+  };
+
+  const DEFAULT_KEY_HINT = 'M';
+
+  const resolveKeyHint = () => {
+    const explicit = normalizeKeyHint(toggleKey);
+    if (explicit) {
+      return explicit;
+    }
+    const fromStrings = normalizeKeyHint(strings.keyHint);
+    if (fromStrings) {
+      return fromStrings;
+    }
+    return DEFAULT_KEY_HINT;
+  };
+
+  let keyHint = resolveKeyHint();
+  let toggleLabels = {
+    on: formatMessage(strings.toggle.onLabelTemplate, { keyHint }),
+    off: formatMessage(strings.toggle.offLabelTemplate, { keyHint }),
+  };
+  let toggleAnnouncements = {
+    on: formatMessage(strings.toggle.announcementOnTemplate, { keyHint }),
+    off: formatMessage(strings.toggle.announcementOffTemplate, { keyHint }),
+  };
+  let toggleTitle = formatMessage(strings.toggle.titleTemplate, { keyHint });
+
+  const applyStrings = () => {
+    keyHint = resolveKeyHint();
+    toggleLabels = {
+      on: formatMessage(strings.toggle.onLabelTemplate, { keyHint }),
+      off: formatMessage(strings.toggle.offLabelTemplate, { keyHint }),
+    };
+    toggleAnnouncements = {
+      on: formatMessage(strings.toggle.announcementOnTemplate, { keyHint }),
+      off: formatMessage(strings.toggle.announcementOffTemplate, { keyHint }),
+    };
+    toggleTitle = formatMessage(strings.toggle.titleTemplate, { keyHint });
+    wrapper.setAttribute('aria-label', strings.groupLabel);
+    toggleButton.title = toggleTitle;
+    labelText.textContent = strings.slider.label;
+    slider.setAttribute('aria-label', strings.slider.ariaLabel);
+    slider.dataset.hudAnnounce = strings.slider.hudLabel;
+  };
 
   const updateToggle = () => {
     const enabled = getEnabled();
     lastKnownEnabled = enabled;
-    const nextLabel = enabled ? toggleLabelOn : toggleLabelOff;
+    const nextLabel = enabled ? toggleLabels.on : toggleLabels.off;
     toggleButton.dataset.state = enabled ? 'on' : 'off';
     toggleButton.textContent = nextLabel;
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
     wrapper.dataset.pending = pending ? 'true' : 'false';
-    const toggleMessage = enabled
-      ? `Ambient audio on. Press ${normalizedToggleKey} to toggle.`
-      : `Ambient audio off. Press ${normalizedToggleKey} to toggle.`;
-    toggleButton.dataset.hudAnnounce = toggleMessage;
+    toggleButton.dataset.hudAnnounce = enabled
+      ? toggleAnnouncements.on
+      : toggleAnnouncements.off;
     updateVolume(enabled);
   };
 
@@ -143,7 +211,7 @@ export function createAudioHudControl({
     slider.value = volume.toString();
     slider.setAttribute('aria-valuenow', volume.toFixed(2));
     const formatted = formatVolume(volume);
-    const uiState = getVolumeUiState(enabled, formatted);
+    const uiState = getVolumeUiState(enabled, formatted, strings.slider);
     slider.setAttribute('aria-valuetext', uiState.ariaValueText);
     slider.dataset.hudAnnounce = uiState.announce;
     valueText.textContent = uiState.valueDisplay;
@@ -206,11 +274,17 @@ export function createAudioHudControl({
   slider.addEventListener('input', handleSliderInput);
   windowTarget.addEventListener('keydown', handleKeydown);
 
+  applyStrings();
   updateToggle();
 
   return {
     element: wrapper,
     refresh() {
+      updateToggle();
+    },
+    setStrings(nextStrings) {
+      strings = cloneStrings(nextStrings);
+      applyStrings();
       updateToggle();
     },
     dispose() {

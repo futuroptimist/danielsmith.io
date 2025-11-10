@@ -347,6 +347,8 @@ Focus: make the experience inclusive and globally friendly.
   guards would normally delay the ambient line.
 - ✅ Ambient audio HUD now announces mute state and current levels so screen readers surface
   volume changes with or without sound enabled.
+- ✅ Ambient audio HUD strings now pull from the i18n catalog so toggle copy and announcements
+  follow locale switches in real time.
 
 3. **Localization Pipeline**
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.
