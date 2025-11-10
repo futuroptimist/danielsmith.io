@@ -1859,7 +1859,6 @@ export function createBackyardEnvironment(
   fireflies.name = 'BackyardFireflies';
   group.add(fireflies);
   fireflyMaterialTarget = fireflyMaterial;
-  fireflyBaseColor.copy(fireflyMaterial.color);
   applyWalkwayMoteSeasonalTint(activeSeasonalPreset);
   const baseFireflyOpacity = fireflyMaterial.opacity;
   const baseFireflySize = fireflyMaterial.size;
