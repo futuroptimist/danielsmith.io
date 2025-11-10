@@ -107,7 +107,8 @@ Focus: expand the environment while keeping navigation smooth.
        greenhouse approach.
        - ✅ Lantern wave volume modulator now mirrors the beacon pulse timings so audio
          intensity glides down the path while honoring calm-mode damping.
-   - ✨ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
+   - ✅ Firefly swarms now orbit the greenhouse walkway with accessibility-aware twinkle damping.
+     - ✅ Seasonal retints now sync their glow to dusk palettes so backyard VFX stay unified.
      - ✅ Firefly calm-mode presets now ease orbital amplitude and glow for sensitive players.
    - ✅ Fiber-optic pathway guides now trace the greenhouse approach with seasonal-aware pulses
      that sweep toward the greenhouse while honoring accessibility damping scales.
