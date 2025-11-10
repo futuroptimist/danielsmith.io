@@ -297,4 +297,40 @@ describe('audio subtitles overlay', () => {
     );
     handle.dispose();
   });
+
+  it('upgrades aria-live to assertive for high-priority captions and resets after hide', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-critical',
+      text: 'Critical narration demands immediate attention.',
+      source: 'poi',
+      priority: 6,
+      durationMs: 1200,
+    });
+
+    const element = document.querySelector('.audio-subtitles');
+    expect(element?.getAttribute('aria-live')).toBe('assertive');
+
+    vi.advanceTimersByTime(1200);
+
+    expect(element?.getAttribute('aria-live')).toBe('polite');
+    handle.dispose();
+  });
+
+  it('honours custom assertive thresholds when provided', () => {
+    const handle = createAudioSubtitles({
+      assertivePriorityThreshold: Number.POSITIVE_INFINITY,
+    });
+    handle.show({
+      id: 'poi-critical',
+      text: 'Critical narration would normally elevate priority.',
+      source: 'poi',
+      priority: 6,
+      durationMs: 1000,
+    });
+
+    const element = document.querySelector('.audio-subtitles');
+    expect(element?.getAttribute('aria-live')).toBe('polite');
+    handle.dispose();
+  });
 });
