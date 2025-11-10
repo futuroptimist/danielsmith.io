@@ -767,6 +767,42 @@ describe('createBackyardEnvironment', () => {
     expect(tintedArrowMaterial.color.b).toBeCloseTo(saturatedArrowTint.b, 5);
   });
 
+  it('retints firefly swarms with seasonal backyard palettes', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const fireflies = environment.group.getObjectByName('BackyardFireflies');
+    expect(fireflies).toBeInstanceOf(Points);
+    const fireflyMaterial = (fireflies as Points).material as PointsMaterial;
+    const baseFireflyColor = fireflyMaterial.color.clone();
+
+    const preset: SeasonalLightingPreset = {
+      id: 'firefly-spring-wave',
+      label: 'Firefly Spring Wave',
+      start: { month: 4, day: 1 },
+      end: { month: 4, day: 30 },
+      tintHex: '#88ccff',
+      tintStrength: 0.4,
+      roomOverrides: {
+        backyard: {
+          tintHex: '#88ccff',
+          tintStrength: 0.65,
+        },
+      },
+    };
+
+    environment.applySeasonalPreset(preset);
+    const expectedTint = baseFireflyColor
+      .clone()
+      .lerp(new Color('#88ccff'), 0.65);
+    expect(fireflyMaterial.color.r).toBeCloseTo(expectedTint.r, 5);
+    expect(fireflyMaterial.color.g).toBeCloseTo(expectedTint.g, 5);
+    expect(fireflyMaterial.color.b).toBeCloseTo(expectedTint.b, 5);
+
+    environment.applySeasonalPreset(null);
+    expect(fireflyMaterial.color.r).toBeCloseTo(baseFireflyColor.r, 5);
+    expect(fireflyMaterial.color.g).toBeCloseTo(baseFireflyColor.g, 5);
+    expect(fireflyMaterial.color.b).toBeCloseTo(baseFireflyColor.b, 5);
+  });
+
   it('retints walkway lanterns and preserves seasonal baselines', () => {
     const preset: SeasonalLightingPreset = {
       id: 'aurora-backyard',

@@ -803,6 +803,8 @@ export function createBackyardEnvironment(
   const baseWalkwayMoteSize = walkwayMoteMaterial.size;
   const walkwayMoteBaseColor = walkwayMoteMaterial.color.clone();
   const walkwayMoteTintColor = new Color();
+  const fireflyBaseColor = new Color(0xffcfa6);
+  let fireflyMaterialTarget: PointsMaterial | null = null;
 
   const pollenCount = 42;
   const pollenGeometry = new BufferGeometry();
@@ -893,9 +895,15 @@ export function createBackyardEnvironment(
       target.material.color.copy(target.baseColor);
       target.material.needsUpdate = true;
     });
+    if (fireflyMaterialTarget) {
+      fireflyMaterialTarget.color.copy(fireflyBaseColor);
+    }
     if (!preset) {
       walkwayMoteMaterial.needsUpdate = true;
       pollenMaterial.needsUpdate = true;
+      if (fireflyMaterialTarget) {
+        fireflyMaterialTarget.needsUpdate = true;
+      }
       return;
     }
 
@@ -907,6 +915,9 @@ export function createBackyardEnvironment(
     if (tintStrength <= 0) {
       walkwayMoteMaterial.needsUpdate = true;
       pollenMaterial.needsUpdate = true;
+      if (fireflyMaterialTarget) {
+        fireflyMaterialTarget.needsUpdate = true;
+      }
       return;
     }
 
@@ -914,6 +925,9 @@ export function createBackyardEnvironment(
     if (!tintHex || !HEX_COLOR_PATTERN.test(tintHex)) {
       walkwayMoteMaterial.needsUpdate = true;
       pollenMaterial.needsUpdate = true;
+      if (fireflyMaterialTarget) {
+        fireflyMaterialTarget.needsUpdate = true;
+      }
       return;
     }
 
@@ -944,6 +958,14 @@ export function createBackyardEnvironment(
       );
       target.material.needsUpdate = true;
     });
+    if (fireflyMaterialTarget) {
+      fireflyMaterialTarget.color.lerpColors(
+        fireflyBaseColor,
+        walkwayMoteTintColor,
+        tintStrength
+      );
+      fireflyMaterialTarget.needsUpdate = true;
+    }
     walkwayMoteMaterial.needsUpdate = true;
     pollenMaterial.needsUpdate = true;
   };
@@ -1687,9 +1709,13 @@ export function createBackyardEnvironment(
 
   group.add(lanternGroup);
 
+  let activeSeasonalPreset: SeasonalLightingPreset | null =
+    seasonalPreset ?? null;
+
   const applyBackyardSeasonalPreset = (
     preset: SeasonalLightingPreset | null
   ): void => {
+    activeSeasonalPreset = preset;
     applySkySeasonalPreset(preset);
 
     const hasLightingTargets =
@@ -1821,7 +1847,7 @@ export function createBackyardEnvironment(
   const fireflyPositionsAttribute = new BufferAttribute(fireflyPositions, 3);
   fireflyGeometry.setAttribute('position', fireflyPositionsAttribute);
   const fireflyMaterial = new PointsMaterial({
-    color: 0xffcfa6,
+    color: fireflyBaseColor.clone(),
     size: 0.18,
     transparent: true,
     opacity: 0.82,
@@ -1832,6 +1858,8 @@ export function createBackyardEnvironment(
   const fireflies = new Points(fireflyGeometry, fireflyMaterial);
   fireflies.name = 'BackyardFireflies';
   group.add(fireflies);
+  fireflyMaterialTarget = fireflyMaterial;
+  applyWalkwayMoteSeasonalTint(activeSeasonalPreset);
   const baseFireflyOpacity = fireflyMaterial.opacity;
   const baseFireflySize = fireflyMaterial.size;
 
