@@ -23,9 +23,17 @@ export interface AudioSubtitlesOptions {
   ariaLive?: 'polite' | 'assertive';
   labels?: Partial<Record<AudioSubtitleSource, string>>;
   documentTarget?: Document;
+  /**
+   * Messages at or above this priority temporarily upgrade the live region to
+   * assertive so screen readers announce critical narration immediately.
+   * Defaults to 5 to match POI narration priority levels.
+   */
+  assertivePriorityThreshold?: number;
 }
 
 const DEFAULT_DURATION_MS = 5000;
+
+const DEFAULT_ASSERTIVE_PRIORITY_THRESHOLD = 5;
 
 interface NormalizedAudioSubtitleMessage extends AudioSubtitleMessage {
   priority: number;
@@ -41,11 +49,11 @@ export function createAudioSubtitles({
   ariaLive = 'polite',
   labels: providedLabels,
   documentTarget = document,
+  assertivePriorityThreshold,
 }: AudioSubtitlesOptions = {}): AudioSubtitlesHandle {
   const root = documentTarget.createElement('div');
   root.className = 'audio-subtitles';
   root.setAttribute('role', 'log');
-  root.setAttribute('aria-live', ariaLive);
   root.dataset.visible = 'false';
 
   const label = documentTarget.createElement('div');
@@ -65,6 +73,20 @@ export function createAudioSubtitles({
   let hideTimeout: number | null = null;
   let current: NormalizedAudioSubtitleMessage | null = null;
   let currentToken: symbol | null = null;
+
+  const baseAriaLive = ariaLive;
+  const resolvedAssertiveThreshold = resolveAssertivePriorityThreshold(
+    assertivePriorityThreshold
+  );
+
+  const applyAriaLive = (value: 'polite' | 'assertive') => {
+    if (root.getAttribute('aria-live') === value) {
+      return;
+    }
+    root.setAttribute('aria-live', value);
+  };
+
+  applyAriaLive(baseAriaLive);
 
   const clearTimer = () => {
     if (hideTimeout !== null) {
@@ -149,6 +171,7 @@ export function createAudioSubtitles({
     current = null;
     currentToken = null;
     root.dataset.visible = 'false';
+    applyAriaLive(baseAriaLive);
     caption.textContent = '';
     if (advance) {
       void showNextQueued();
@@ -162,6 +185,11 @@ export function createAudioSubtitles({
     label.textContent =
       labels[message.source] ?? DEFAULT_LABELS[message.source];
     caption.textContent = message.text;
+    if (message.priority >= resolvedAssertiveThreshold) {
+      applyAriaLive('assertive');
+    } else {
+      applyAriaLive(baseAriaLive);
+    }
     scheduleHide(message, currentToken);
   };
 
@@ -225,4 +253,11 @@ export function createAudioSubtitles({
       return current;
     },
   };
+}
+
+function resolveAssertivePriorityThreshold(value: number | undefined): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return DEFAULT_ASSERTIVE_PRIORITY_THRESHOLD;
+  }
+  return value;
 }

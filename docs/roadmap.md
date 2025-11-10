@@ -341,6 +341,8 @@ Focus: make the experience inclusive and globally friendly.
   - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
   - ✅ Subtitle queue now sequences overlapping ambient and narration clips so lower-priority
     callouts surface once higher-priority events finish.
+  - ✅ High-priority narration captions now temporarily escalate the subtitles live region to
+    `aria-live="assertive"`, ensuring screen readers announce urgent clips before returning to polite mode.
 - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
 - ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
   gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
