@@ -4,6 +4,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  CylinderGeometry,
   EquirectangularReflectionMapping,
   Group,
   LightProbe,
@@ -195,6 +196,22 @@ describe('createBackyardEnvironment', () => {
     );
     expect(pondRipple).toBeInstanceOf(Mesh);
     expect((pondRipple as Mesh).material).toBeInstanceOf(ShaderMaterial);
+    const rippleMaterial = (pondRipple as Mesh).material as ShaderMaterial;
+    const baseAmplitude = rippleMaterial.uniforms.amplitude.value as number;
+    const baseSparkle = rippleMaterial.uniforms.sparkle.value as number;
+
+    const pondPlinth = environment.group.getObjectByName(
+      'BackyardGreenhousePondPlinth'
+    );
+    expect(pondPlinth).toBeInstanceOf(Mesh);
+    const pond = environment.group.getObjectByName('BackyardGreenhousePond');
+    expect(pond).toBeInstanceOf(Mesh);
+    const pondGeometry = (pond as Mesh).geometry as CylinderGeometry;
+    const plinthGeometry = (pondPlinth as Mesh).geometry as CylinderGeometry;
+    expect(plinthGeometry.parameters.radiusTop).toBeGreaterThan(
+      pondGeometry.parameters.radiusTop
+    );
+    expect(plinthGeometry.parameters.height).toBeGreaterThan(0);
 
     const solarPivot = (greenhouse as Group).getObjectByName(
       'BackyardGreenhouseSolarPanels'
@@ -204,6 +221,11 @@ describe('createBackyardEnvironment', () => {
     environment.update({ elapsed: 1.4, delta: 0.016 });
     expect((solarPivot as Group).rotation.x).not.toBe(initialSolarRotation);
 
+    const livelyAmplitude = rippleMaterial.uniforms.amplitude.value as number;
+    const livelySparkle = rippleMaterial.uniforms.sparkle.value as number;
+    expect(livelyAmplitude).toBeGreaterThan(baseAmplitude);
+    expect(livelySparkle).toBeGreaterThan(baseSparkle);
+
     const growLight = environment.group.getObjectByName(
       'BackyardGreenhouseGrowLight-1'
     );
@@ -212,6 +234,19 @@ describe('createBackyardEnvironment', () => {
     const baseline = growMaterial.emissiveIntensity;
     environment.update({ elapsed: 2.8, delta: 0.016 });
     expect(growMaterial.emissiveIntensity).not.toBe(baseline);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    environment.update({ elapsed: 4.8, delta: 0.016 });
+
+    const calmAmplitude = rippleMaterial.uniforms.amplitude.value as number;
+    const calmSparkle = rippleMaterial.uniforms.sparkle.value as number;
+    const calmFactor = rippleMaterial.uniforms.calm.value as number;
+    expect(calmAmplitude).toBeGreaterThan(0);
+    expect(calmAmplitude).toBeLessThan(livelyAmplitude);
+    expect(calmSparkle).toBeLessThan(livelySparkle);
+    expect(calmFactor).toBeGreaterThan(0);
+    expect(calmFactor).toBeLessThan(1);
 
     const greenhousePosition = (greenhouse as Group).position.clone();
     const greenhouseCollider = environment.colliders.find(
