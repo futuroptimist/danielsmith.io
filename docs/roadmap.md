@@ -199,6 +199,8 @@ Focus: anchor each highlighted project with an interactive artifact.
    - ✅ Aluminum extrusion greenhouse inspired by `sugarkube`, complete with animated solar
      trackers, pulsing grow lights, interior planter beds, and a koi pond plinth with shimmering
      ripple shaders.
+     - ✅ Koi pond ripple shaders now layer caustic sparkles that damp with calm-mode presets
+       while the plinth anchors the installation with a raised stone base.
      - ✅ Sugarkube greenhouse POI now surfaces automation metrics and dual CTAs in the registry.
        - ✅ Ambient audio beds (crickets, greenhouse chimes) now use smoothstep falloff so volume
          eases in based on player proximity.

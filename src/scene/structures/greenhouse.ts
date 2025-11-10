@@ -1,4 +1,5 @@
 import {
+  AdditiveBlending,
   BoxGeometry,
   Color,
   CylinderGeometry,
@@ -14,7 +15,10 @@ import {
   type IUniform,
 } from 'three';
 
-import { getPulseScale } from '../../ui/accessibility/animationPreferences';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
 export interface GreenhouseConfig {
@@ -272,9 +276,32 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     group.add(foliage);
   });
 
+  const pondPlinthRadius = depth * 0.24;
+  const pondPlinthHeight = 0.16;
+  const pondPlinthGeometry = new CylinderGeometry(
+    pondPlinthRadius,
+    pondPlinthRadius,
+    pondPlinthHeight,
+    40
+  );
+  const pondPlinthMaterial = new MeshStandardMaterial({
+    color: new Color(0x2b343c),
+    roughness: 0.6,
+    metalness: 0.22,
+  });
+  applyEnvironmentMap(pondPlinthMaterial);
+  const pondPlinth = new Mesh(pondPlinthGeometry, pondPlinthMaterial);
+  pondPlinth.name = 'BackyardGreenhousePondPlinth';
+  pondPlinth.position.set(
+    0,
+    BASE_HEIGHT + pondPlinthHeight / 2 - 0.02,
+    depth * 0.18
+  );
+  group.add(pondPlinth);
+
   const pondGeometry = new CylinderGeometry(
-    depth * 0.18,
-    depth * 0.18,
+    depth * 0.17,
+    depth * 0.17,
     0.12,
     32
   );
@@ -285,6 +312,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     emissive: new Color(0x0c95d4),
     emissiveIntensity: 0.26,
   });
+  applyEnvironmentMap(pondMaterial);
   const pond = new Mesh(pondGeometry, pondMaterial);
   pond.name = 'BackyardGreenhousePond';
   pond.position.set(0, BASE_HEIGHT + 0.06, depth * 0.18);
@@ -295,18 +323,23 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     time: IUniform<number>;
     amplitude: IUniform<number>;
     brightness: IUniform<number>;
+    sparkle: IUniform<number>;
+    calm: IUniform<number>;
     innerColor: IUniform<Color>;
     outerColor: IUniform<Color>;
   } = {
     time: { value: 0 },
     amplitude: { value: 0.38 },
     brightness: { value: 0.22 },
+    sparkle: { value: 0.18 },
+    calm: { value: 1 },
     innerColor: { value: new Color(0x33cff5) },
     outerColor: { value: new Color(0x082b3e) },
   };
 
   const pondRippleMaterial = new ShaderMaterial({
     uniforms: pondRippleUniforms,
+    blending: AdditiveBlending,
     transparent: true,
     depthWrite: false,
     vertexShader: `
@@ -321,6 +354,8 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
       uniform float time;
       uniform float amplitude;
       uniform float brightness;
+      uniform float sparkle;
+      uniform float calm;
       uniform vec3 innerColor;
       uniform vec3 outerColor;
       varying vec2 vUv;
@@ -336,13 +371,24 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
 
         float wavePrimary = ripple(centered, 22.0, time * 0.35);
         float waveSecondary = ripple(centered + vec2(0.08, -0.04), 14.0, time * 0.22);
-        float wave = mix(wavePrimary, waveSecondary, 0.45);
+        float swirl = sin((centered.x + centered.y) * 6.5 + time * 0.8);
+        float koiWake = sin(centered.y * 9.5 - time * 1.4 + sin(time * 0.6) * 0.3);
+        float combined = mix(wavePrimary, waveSecondary, 0.45);
+        float shimmer = combined * 0.6 + swirl * 0.25 + koiWake * 0.15;
 
-        float rimFade = smoothstep(0.52, 0.18, dist);
-        float alpha = clamp(0.28 + amplitude * 0.45, 0.0, 1.0) * rimFade;
+        float rimFade = 1.0 - smoothstep(0.22, 0.52, dist);
+        rimFade = pow(rimFade, 1.4);
+        float alpha = clamp(0.25 + amplitude * 0.45 * calm, 0.0, 1.0) * rimFade;
 
-        vec3 baseColor = mix(outerColor, innerColor, smoothstep(0.48, 0.0, dist));
-        baseColor += wave * brightness * amplitude;
+        float depthBlend = smoothstep(0.0, 0.46, dist);
+        vec3 baseColor = mix(outerColor, innerColor, 1.0 - depthBlend);
+        baseColor += combined * brightness * amplitude;
+
+        float sparkleMask = 1.0 - smoothstep(0.18, 0.48, dist);
+        float sparkleWave = max(0.0, shimmer);
+        float sparkleStrength = pow(sparkleWave, 2.0) * sparkleMask * sparkle;
+        vec3 causticColor = mix(vec3(1.0, 0.96, 0.78), innerColor, 0.6);
+        baseColor = mix(baseColor, causticColor, clamp(sparkleStrength * 1.4, 0.0, 1.0));
 
         gl_FragColor = vec4(baseColor, alpha);
       }
@@ -419,7 +465,9 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   });
 
   const update = ({ elapsed }: { elapsed: number; delta: number }) => {
-    const pulseScale = getPulseScale();
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
+    const calmScale = Math.min(pulseScale, flickerScale);
     const swayAmplitude = MathUtils.lerp(0.8, 6, pulseScale);
     const sway = Math.sin(elapsed * 0.4) * MathUtils.degToRad(swayAmplitude);
     solarPanelPivot.rotation.x = SOLAR_BASE_TILT + sway;
@@ -437,14 +485,12 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
       );
     });
 
-    const rippleSpeed = MathUtils.lerp(0.24, 0.52, pulseScale);
+    const rippleSpeed = MathUtils.lerp(0.2, 0.52, pulseScale);
     pondRippleUniforms.time.value = elapsed * rippleSpeed;
-    pondRippleUniforms.amplitude.value = MathUtils.lerp(0.25, 0.75, pulseScale);
-    pondRippleUniforms.brightness.value = MathUtils.lerp(
-      0.14,
-      0.32,
-      pulseScale
-    );
+    pondRippleUniforms.amplitude.value = MathUtils.lerp(0.18, 0.72, calmScale);
+    pondRippleUniforms.brightness.value = MathUtils.lerp(0.12, 0.3, pulseScale);
+    pondRippleUniforms.sparkle.value = MathUtils.lerp(0.05, 0.24, flickerScale);
+    pondRippleUniforms.calm.value = MathUtils.lerp(0.55, 1, calmScale);
   };
 
   return { group, colliders, update };
