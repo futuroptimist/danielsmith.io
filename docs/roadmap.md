@@ -97,9 +97,12 @@ Focus: expand the environment while keeping navigation smooth.
      zones stage future exhibits.
    - ✅ Sculpted dusk backyard terrain with terraced pathing, perimeter fencing, and a gradient skybox.
    - ✅ Installed hologram barrier and signage to stage future backyard exhibits.
-   - ✨ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
+
+   - ✅ Lantern-lined walkway now guides the greenhouse approach with pulsing dusk beacons.
      - Lantern beacons now ripple toward the greenhouse in a traveling wave that honors
        calm-mode damping.
+     - ✅ Ground halo discs now bloom beneath each lantern, scaling with the traveling wave
+       so calm-mode visitors receive gentle guidance without harsh flashes.
      - ✅ Lantern chime ambient beds now trail the light wave so audio sweeps follow the
        greenhouse approach.
        - ✅ Lantern wave volume modulator now mirrors the beacon pulse timings so audio
@@ -398,7 +401,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 Ideas to evaluate after the core experience is stable:
 
 - ✅ Multiplayer showroom tours now beam remote sessions as a greenhouse-side projection marquee.
-  - Holographic display cycles visitor counts, latency telemetry, and upcoming hosts with accessibility-aware pulses.
+- ✅ Holographic display now cycles visitor counts and latency telemetry,
+  broadcasting upcoming hosts with accessibility-aware pulses.
 - ✅ Seasonal lighting presets (holiday dusk, spring bloom, summer aurora, autumn harvest)
   now rotate via calendar and expose HUD dataset hooks for the upcoming transition window.
 - ✅ Seasonal lighting scheduler now retints LED strips and fill lights for holiday and spring

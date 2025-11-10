@@ -39,9 +39,12 @@ export interface MultiplayerProjectionTourSnapshot {
   concurrentVisitors: number;
   region: string;
   latencyMs: number;
+  latencyP95Ms: number;
+  host: string;
   transition: number;
   nextId: string;
   nextTitle: string;
+  nextHost: string;
 }
 
 interface TourDefinition {
@@ -50,6 +53,8 @@ interface TourDefinition {
   concurrentVisitors: number;
   region: string;
   latencyMs: number;
+  latencyP95Ms: number;
+  host: string;
 }
 
 const TOUR_ROTATION: TourDefinition[] = [
@@ -59,6 +64,8 @@ const TOUR_ROTATION: TourDefinition[] = [
     concurrentVisitors: 128,
     region: 'NA-East',
     latencyMs: 74,
+    latencyP95Ms: 118,
+    host: 'Aveline (Automation)',
   },
   {
     id: 'aurora-showcase',
@@ -66,6 +73,8 @@ const TOUR_ROTATION: TourDefinition[] = [
     concurrentVisitors: 96,
     region: 'EU-North',
     latencyMs: 112,
+    latencyP95Ms: 168,
+    host: 'Milo (Ops)',
   },
   {
     id: 'pacific-lab',
@@ -73,6 +82,8 @@ const TOUR_ROTATION: TourDefinition[] = [
     concurrentVisitors: 142,
     region: 'APAC-Singapore',
     latencyMs: 128,
+    latencyP95Ms: 186,
+    host: 'Sana (Realtime)',
   },
   {
     id: 'midnight-sprint',
@@ -80,12 +91,20 @@ const TOUR_ROTATION: TourDefinition[] = [
     concurrentVisitors: 84,
     region: 'NA-West',
     latencyMs: 63,
+    latencyP95Ms: 104,
+    host: 'Jules (Experience)',
   },
 ];
 
 const TOTAL_ROTATION_SECONDS = 28;
 const TEXTURE_REFRESH_INTERVAL = 0.12;
 const SCAN_BAND_WIDTH = 0.16;
+const LATENCY_PANEL_WIDTH = 168;
+const LATENCY_PANEL_HEIGHT = 216;
+const LATENCY_BAR_WIDTH = 44;
+const MIN_LATENCY_BAR_HEIGHT = 10;
+const LATENCY_MEDIAN_RANGE = 220;
+const LATENCY_P95_RANGE = 320;
 
 interface ProjectionTexture {
   canvas: HTMLCanvasElement;
@@ -139,29 +158,115 @@ function renderProjection(
   context.fillStyle = 'rgba(255, 255, 255, 0.94)';
   context.fillText(tour.title, 48, 168);
 
-  context.font = '700 112px "Inter", "Segoe UI", sans-serif';
+  context.font = '700 108px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = 'rgba(110, 240, 255, 0.95)';
-  context.fillText(`${tour.concurrentVisitors} visitors`, 48, 280);
+  context.fillText(`${tour.concurrentVisitors} visitors`, 48, 260);
 
   context.font = '600 36px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = 'rgba(150, 230, 255, 0.8)';
-  context.fillText(`Region: ${tour.region}`, 48, 330);
-  context.fillText(`Median latency: ${tour.latencyMs} ms`, 48, 372);
+  const hostLabel = `Host: ${tour.host}`;
+  const hostPulse = MathUtils.lerp(
+    0.32,
+    0.72,
+    MathUtils.clamp(pulseScale, 0, 1)
+  );
+  const hostHighlight = `rgba(32, 80, 118, ${hostPulse.toFixed(3)})`;
+  const hostTextWidth =
+    typeof context.measureText === 'function'
+      ? Math.max(0, context.measureText(hostLabel).width)
+      : hostLabel.length * 16;
+  const hostBoxWidth = Math.max(0, hostTextWidth + 32);
+  context.fillStyle = hostHighlight;
+  context.fillRect(40, 276, hostBoxWidth, 44);
+  context.fillStyle = 'rgba(160, 236, 255, 0.88)';
+  context.fillText(hostLabel, 48, 310);
+
+  context.fillStyle = 'rgba(150, 230, 255, 0.82)';
+  context.fillText(`Region: ${tour.region}`, 48, 346);
+  context.fillText(`Median latency: ${tour.latencyMs} ms`, 48, 382);
+  context.fillText(`p95 latency: ${tour.latencyP95Ms} ms`, 48, 418);
 
   const progressWidth = canvas.width - 96;
-  const progressHeight = 26;
+  const progressHeight = 24;
   const remaining = 1 - MathUtils.clamp(transition, 0, 1);
   context.fillStyle = 'rgba(42, 98, 145, 0.8)';
-  context.fillRect(48, 392, progressWidth, progressHeight);
+  context.fillRect(48, 440, progressWidth, progressHeight);
   context.fillStyle = 'rgba(120, 248, 255, 0.9)';
-  context.fillRect(48, 392, progressWidth * remaining, progressHeight);
+  context.fillRect(48, 440, progressWidth * remaining, progressHeight);
 
-  context.fillStyle = 'rgba(170, 235, 255, 0.75)';
-  context.font = '600 34px "Inter", "Segoe UI", sans-serif';
-  context.fillText('Next up', 48, 450);
-  context.font = '600 40px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = 'rgba(205, 245, 255, 0.85)';
-  context.fillText(`${nextTour.title} · ${nextTour.region}`, 48, 492);
+  const nextLabel = `Next: ${nextTour.title} · Host: ${nextTour.host} · ${nextTour.region}`;
+  const nextPulse = MathUtils.lerp(
+    0.24,
+    0.58,
+    MathUtils.clamp(pulseScale, 0, 1)
+  );
+  context.fillStyle = `rgba(205, 245, 255, ${nextPulse.toFixed(3)})`;
+  context.font = '600 32px "Inter", "Segoe UI", sans-serif';
+  const nextTextWidth =
+    typeof context.measureText === 'function'
+      ? Math.max(0, context.measureText(nextLabel).width)
+      : nextLabel.length * 14;
+  const nextBoxWidth = Math.max(0, nextTextWidth + 28);
+  context.fillRect(40, 450, nextBoxWidth, 40);
+  context.fillStyle = 'rgba(230, 250, 255, 0.92)';
+  context.fillText(nextLabel, 48, 482);
+
+  const telemetryPanelX = canvas.width - LATENCY_PANEL_WIDTH - 48;
+  const telemetryPanelY = 140;
+  context.fillStyle = 'rgba(18, 52, 86, 0.78)';
+  context.fillRect(
+    telemetryPanelX,
+    telemetryPanelY,
+    LATENCY_PANEL_WIDTH,
+    LATENCY_PANEL_HEIGHT
+  );
+
+  const medianBarX = telemetryPanelX + 20;
+  const p95BarX = medianBarX + LATENCY_BAR_WIDTH + 20;
+  const medianNormalized = MathUtils.clamp(
+    tour.latencyMs / LATENCY_MEDIAN_RANGE,
+    0,
+    1
+  );
+  const p95Normalized = MathUtils.clamp(
+    tour.latencyP95Ms / LATENCY_P95_RANGE,
+    0,
+    1
+  );
+  const medianHeight = Math.max(
+    MIN_LATENCY_BAR_HEIGHT,
+    LATENCY_PANEL_HEIGHT * medianNormalized
+  );
+  const p95Height = Math.max(
+    MIN_LATENCY_BAR_HEIGHT,
+    LATENCY_PANEL_HEIGHT * p95Normalized
+  );
+  const medianTop = telemetryPanelY + LATENCY_PANEL_HEIGHT - medianHeight;
+  const p95Top = telemetryPanelY + LATENCY_PANEL_HEIGHT - p95Height;
+
+  context.fillStyle = 'rgba(110, 240, 255, 0.88)';
+  context.fillRect(medianBarX, medianTop, LATENCY_BAR_WIDTH, medianHeight);
+
+  const p95Pulse = MathUtils.lerp(
+    0.28,
+    0.66,
+    MathUtils.clamp(pulseScale, 0, 1)
+  );
+  context.fillStyle = `rgba(192, 168, 255, ${p95Pulse.toFixed(3)})`;
+  context.fillRect(p95BarX, p95Top, LATENCY_BAR_WIDTH, p95Height);
+
+  context.fillStyle = 'rgba(185, 235, 255, 0.8)';
+  context.font = '600 28px "Inter", "Segoe UI", sans-serif';
+  context.fillText('Latency (ms)', telemetryPanelX - 8, telemetryPanelY - 16);
+  context.font = '600 26px "Inter", "Segoe UI", sans-serif';
+  context.fillText(`${tour.latencyMs}`, medianBarX, medianTop - 12);
+  context.fillText(`${tour.latencyP95Ms}`, p95BarX, p95Top - 12);
+  context.font = '600 24px "Inter", "Segoe UI", sans-serif';
+  context.fillText(
+    'Median',
+    medianBarX,
+    telemetryPanelY + LATENCY_PANEL_HEIGHT + 24
+  );
+  context.fillText('p95', p95BarX, telemetryPanelY + LATENCY_PANEL_HEIGHT + 24);
 
   const scanWidth = canvas.width * SCAN_BAND_WIDTH;
   const scanX =
@@ -296,9 +401,12 @@ export function createMultiplayerProjection(
     concurrentVisitors: tours[0].concurrentVisitors,
     region: tours[0].region,
     latencyMs: tours[0].latencyMs,
+    latencyP95Ms: tours[0].latencyP95Ms,
+    host: tours[0].host,
     transition: 0,
     nextId: tours[1 % tours.length].id,
     nextTitle: tours[1 % tours.length].title,
+    nextHost: tours[1 % tours.length].host,
   };
 
   const update = ({ elapsed, delta }: { elapsed: number; delta: number }) => {
@@ -319,9 +427,12 @@ export function createMultiplayerProjection(
       concurrentVisitors: tours[activeIndex].concurrentVisitors,
       region: tours[activeIndex].region,
       latencyMs: tours[activeIndex].latencyMs,
+      latencyP95Ms: tours[activeIndex].latencyP95Ms,
+      host: tours[activeIndex].host,
       transition,
       nextId: tours[nextIndex].id,
       nextTitle: tours[nextIndex].title,
+      nextHost: tours[nextIndex].host,
     };
 
     const opacityBase = 0.78;

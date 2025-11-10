@@ -22,17 +22,26 @@ describe('createMultiplayerProjection', () => {
       .spyOn(HTMLCanvasElement.prototype, 'getContext')
       .mockImplementation((type) => {
         if (type === '2d') {
+          const fillRect = vi.fn();
+          const fillText = vi.fn();
+          const measureText = vi.fn().mockImplementation(
+            (text: string) =>
+              ({
+                width: text.length * 10,
+              }) as TextMetrics
+          );
           return {
             clearRect: vi.fn(),
             createLinearGradient: vi
               .fn()
               .mockReturnValue({ addColorStop: vi.fn() }),
-            fillRect: vi.fn(),
-            fillText: vi.fn(),
+            fillRect,
+            fillText,
             fillStyle: '',
             font: '',
             textAlign: 'left',
             textBaseline: 'alphabetic',
+            measureText,
           } as unknown as CanvasRenderingContext2D;
         }
         return null;
@@ -72,12 +81,44 @@ describe('createMultiplayerProjection', () => {
     expect(snapshot.title.length).toBeGreaterThan(0);
     expect(snapshot.id).not.toBe(snapshot.nextId);
     expect(snapshot.transition).toBeCloseTo(0);
+    expect(snapshot.host.length).toBeGreaterThan(0);
+    expect(snapshot.nextHost.length).toBeGreaterThan(0);
+    expect(snapshot.latencyP95Ms).toBeGreaterThan(snapshot.latencyMs);
 
     const { collider } = build;
     expect(collider.minX).toBeLessThan(collider.maxX);
     expect(collider.minZ).toBeLessThan(collider.maxZ);
     expect(collider.minX).toBeLessThanOrEqual(build.group.position.x);
     expect(collider.maxX).toBeGreaterThanOrEqual(build.group.position.x);
+
+    build.update({ elapsed: 0.24, delta: 0.016 });
+    const contextResult = getContextSpy.mock.results[0]?.value as
+      | (CanvasRenderingContext2D & {
+          fillText: vi.Mock;
+          fillRect: vi.Mock;
+        })
+      | undefined;
+    expect(contextResult).toBeDefined();
+    const context = contextResult!;
+    const fillTextCalls = context.fillText.mock.calls.map((call) => call[0]);
+    expect(
+      fillTextCalls.some(
+        (value) => typeof value === 'string' && value.includes('Host: ')
+      )
+    ).toBe(true);
+    expect(
+      fillTextCalls.some(
+        (value) => typeof value === 'string' && value.startsWith('Next: ')
+      )
+    ).toBe(true);
+    const fillRectCalls = context.fillRect.mock.calls;
+    const latencyBarCall = fillRectCalls.find(([, , width]) => {
+      if (typeof width !== 'number') {
+        return false;
+      }
+      return Math.abs(width - 44) < 1e-6;
+    });
+    expect(latencyBarCall).toBeDefined();
   });
 
   it('animates screen brightness, halo glow, and tour rotation with accessibility scaling', () => {

@@ -301,6 +301,46 @@ describe('createBackyardEnvironment', () => {
     ).toBe(true);
   });
 
+  it('adds walkway lantern halos that ripple toward the greenhouse with accessibility damping', () => {
+    document.documentElement.dataset.accessibilityPulseScale = '1';
+    document.documentElement.dataset.accessibilityFlickerScale = '1';
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const lanternGroup = environment.group.getObjectByName(
+      'BackyardWalkwayLanterns'
+    );
+    expect(lanternGroup).toBeInstanceOf(Group);
+
+    const halo = (lanternGroup as Group).getObjectByName(
+      'BackyardWalkwayLanternHalo-0'
+    );
+    expect(halo).toBeInstanceOf(Mesh);
+    const haloMesh = halo as Mesh;
+    const haloMaterial = haloMesh.material as MeshBasicMaterial;
+    const baseHaloOpacity = haloMaterial.opacity;
+    const baseHaloScale = haloMesh.scale.x;
+
+    const glass = (lanternGroup as Group).getObjectByName(
+      'BackyardWalkwayLanternGlass-0'
+    );
+    expect(glass).toBeInstanceOf(Mesh);
+    const glassMaterial = (glass as Mesh).material as MeshStandardMaterial;
+
+    environment.update({ elapsed: 0.8, delta: 0.016 });
+
+    expect(haloMaterial.opacity).not.toBeCloseTo(baseHaloOpacity, 5);
+    expect(haloMesh.scale.x).not.toBeCloseTo(baseHaloScale, 4);
+    expect(
+      areColorsRoughlyEqual(haloMaterial.color, glassMaterial.emissive, 1e-4)
+    ).toBe(true);
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    environment.update({ elapsed: 1.6, delta: 0.016 });
+
+    expect(haloMaterial.opacity).toBeCloseTo(baseHaloOpacity, 3);
+    expect(haloMesh.scale.x).toBeCloseTo(baseHaloScale, 3);
+  });
+
   it('adds walkway guides that pulse with seasonal-aware damping', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const guidesGroup = environment.group.getObjectByName(

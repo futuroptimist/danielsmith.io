@@ -6,6 +6,7 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
+  CircleGeometry,
   CylinderGeometry,
   DoubleSide,
   EquirectangularReflectionMapping,
@@ -1535,9 +1536,13 @@ export function createBackyardEnvironment(
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;
     light: PointLight;
+    haloMesh: Mesh;
+    haloMaterial: MeshBasicMaterial;
     baseIntensity: number;
     baseLightIntensity: number;
     baseEmissiveColor: Color;
+    baseHaloOpacity: number;
+    baseHaloScale: number;
     accentColor: Color;
     mixColor: Color;
     offset: number;
@@ -1554,6 +1559,8 @@ export function createBackyardEnvironment(
       MathUtils.clamp(lanternAccentHsl.s + 0.18, 0, 1),
       MathUtils.clamp(lanternAccentHsl.l + 0.22, 0, 1)
     );
+    target.haloMaterial.color.copy(target.accentColor);
+    target.haloMaterial.needsUpdate = true;
   }
 
   const lanternAnimationTargets: LanternAnimationTarget[] = [];
@@ -1574,6 +1581,10 @@ export function createBackyardEnvironment(
     roughness: 0.64,
     metalness: 0.4,
   });
+
+  const haloRadius = Math.min(0.75, walkwayWidth * 0.24);
+  const lanternHaloGeometry = new CircleGeometry(haloRadius, 32);
+  lanternHaloGeometry.rotateX(-Math.PI / 2);
 
   const lateralOffset = walkwayWidth / 2 + 0.32;
   const lanternPairs = 3;
@@ -1620,6 +1631,21 @@ export function createBackyardEnvironment(
       light.color.copy(glassMaterial.emissive);
       lantern.add(light);
 
+      const haloMaterial = new MeshBasicMaterial({
+        color: glassMaterial.emissive.clone(),
+        transparent: true,
+        opacity: 0.26,
+        depthWrite: false,
+        blending: AdditiveBlending,
+        toneMapped: false,
+      });
+      const halo = new Mesh(lanternHaloGeometry, haloMaterial);
+      halo.name = `BackyardWalkwayLanternHalo-${lanternIndex}`;
+      halo.position.set(0, 0.02, 0);
+      halo.renderOrder = 6;
+      halo.scale.setScalar(1);
+      lantern.add(halo);
+
       lanternGroup.add(lantern);
       lanternSeasonalTargets.push({
         roomId: 'backyard',
@@ -1637,9 +1663,13 @@ export function createBackyardEnvironment(
       const animationTarget: LanternAnimationTarget = {
         glassMaterial,
         light,
+        haloMesh: halo,
+        haloMaterial,
         baseIntensity: glassMaterial.emissiveIntensity,
         baseLightIntensity: light.intensity,
         baseEmissiveColor: glassMaterial.emissive.clone(),
+        baseHaloOpacity: haloMaterial.opacity,
+        baseHaloScale: halo.scale.x,
         accentColor: glassMaterial.emissive.clone(),
         mixColor: glassMaterial.emissive.clone(),
         offset,
@@ -1686,6 +1716,9 @@ export function createBackyardEnvironment(
         animationTarget.baseEmissiveColor.copy(target.material.emissive);
         refreshLanternAccentColor(animationTarget);
         animationTarget.mixColor.copy(animationTarget.baseEmissiveColor);
+        animationTarget.haloMaterial.opacity = animationTarget.baseHaloOpacity;
+        animationTarget.haloMaterial.needsUpdate = true;
+        animationTarget.haloMesh.scale.setScalar(animationTarget.baseHaloScale);
         const firstLight = target.fillLights[0]?.light;
         if (firstLight) {
           animationTarget.baseLightIntensity = firstLight.intensity;
@@ -2077,6 +2110,37 @@ export function createBackyardEnvironment(
           MathUtils.lerp(0.7, 1, rotationScale) *
           MathUtils.lerp(1, 1.1, waveContribution);
 
+        const haloMotionScale = Math.max(pulseScale, flickerScale);
+        const haloBoost =
+          1 + waveContribution * MathUtils.lerp(0.4, 1.1, pulseScale);
+        const haloOpacityTarget =
+          target.baseHaloOpacity * MathUtils.clamp(haloBoost, 0.2, 3);
+        const haloFloor =
+          target.baseHaloOpacity * MathUtils.lerp(0.5, 0.82, flickerScale);
+        const haloOpacity = Math.min(
+          1,
+          Math.max(
+            haloFloor,
+            MathUtils.lerp(
+              target.baseHaloOpacity,
+              haloOpacityTarget,
+              haloMotionScale
+            )
+          )
+        );
+        target.haloMaterial.opacity = haloOpacity;
+        target.haloMaterial.needsUpdate = true;
+
+        const flickerScaleFactor = MathUtils.lerp(1, 1.08, flickerScale);
+        const pulseScaleFactor = MathUtils.lerp(
+          1,
+          MathUtils.lerp(1.08, 1.52, waveContribution),
+          pulseScale
+        );
+        const haloScale =
+          target.baseHaloScale * flickerScaleFactor * pulseScaleFactor;
+        target.haloMesh.scale.setScalar(haloScale);
+
         const accentStrength = MathUtils.lerp(
           0.15,
           0.82,
@@ -2089,6 +2153,8 @@ export function createBackyardEnvironment(
         }
         target.glassMaterial.emissive.copy(target.mixColor);
         target.light.color.copy(target.mixColor);
+        target.haloMaterial.color.copy(target.mixColor);
+        target.haloMaterial.needsUpdate = true;
       });
     });
   }
