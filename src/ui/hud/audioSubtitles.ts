@@ -182,14 +182,14 @@ export function createAudioSubtitles({
     current = message;
     currentToken = Symbol('audio-subtitle');
     root.dataset.visible = 'true';
-    label.textContent =
-      labels[message.source] ?? DEFAULT_LABELS[message.source];
-    caption.textContent = message.text;
     if (message.priority >= resolvedAssertiveThreshold) {
       applyAriaLive('assertive');
     } else {
       applyAriaLive(baseAriaLive);
     }
+    label.textContent =
+      labels[message.source] ?? DEFAULT_LABELS[message.source];
+    caption.textContent = message.text;
     scheduleHide(message, currentToken);
   };
 
