@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
+  createStairNavAreaRect,
   predictStairFloorId,
   type FloorId,
   type StairBehavior,
@@ -173,5 +174,40 @@ describe('stair floor transitions (positive Z ascent)', () => {
     );
 
     expect(result).toBe('ground');
+  });
+});
+
+describe('createStairNavAreaRect', () => {
+  it('expands the stair footprint with margins', () => {
+    const marginX = toWorldUnits(0.25);
+    const marginZ = toWorldUnits(0.5);
+    const rect = createStairNavAreaRect(NEGATIVE_Z_STAIRS, {
+      marginX,
+      marginZ,
+    });
+
+    const expectedMinZ = Math.min(
+      NEGATIVE_Z_STAIRS.bottomZ,
+      NEGATIVE_Z_STAIRS.topZ,
+      NEGATIVE_Z_STAIRS.landingMinZ,
+      NEGATIVE_Z_STAIRS.landingMaxZ
+    );
+    const expectedMaxZ = Math.max(
+      NEGATIVE_Z_STAIRS.bottomZ,
+      NEGATIVE_Z_STAIRS.topZ,
+      NEGATIVE_Z_STAIRS.landingMinZ,
+      NEGATIVE_Z_STAIRS.landingMaxZ
+    );
+
+    expect(rect.minX).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.centerX - NEGATIVE_Z_STAIRS.halfWidth - marginX,
+      6
+    );
+    expect(rect.maxX).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.centerX + NEGATIVE_Z_STAIRS.halfWidth + marginX,
+      6
+    );
+    expect(rect.minZ).toBeCloseTo(expectedMinZ - marginZ, 6);
+    expect(rect.maxZ).toBeCloseTo(expectedMaxZ + marginZ, 6);
   });
 });

@@ -36,7 +36,6 @@ import {
   UPPER_FLOOR_PLAN,
   getFloorBounds,
   WALL_THICKNESS,
-  type FloorPlanDefinition,
   type RoomCategory,
 } from './assets/floorPlan';
 import { createWallSegmentInstances } from './assets/floorPlan/wallSegments';
@@ -317,11 +316,13 @@ import {
   computeRampHeight as computeStairRampHeight,
   predictStairFloorId,
   sampleStairSurfaceHeight,
+  createStairNavAreaRect,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
 import { ProceduralNarrator } from './systems/narrative/proceduralNarrator';
+import { createNavMesh, type NavMesh } from './systems/navigation/navMesh';
 import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
@@ -440,7 +441,6 @@ const MAX_CAMERA_ZOOM = 12;
 const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
-const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
 const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
@@ -596,20 +596,6 @@ const roomDefinitions = new Map(
 function getRoomCategory(roomId: string): RoomCategory {
   const room = roomDefinitions.get(roomId);
   return room?.category ?? 'interior';
-}
-
-function isInsideAnyRoom(
-  plan: FloorPlanDefinition,
-  x: number,
-  z: number
-): boolean {
-  return plan.rooms.some(
-    (room) =>
-      x >= room.bounds.minX - POSITION_EPSILON &&
-      x <= room.bounds.maxX + POSITION_EPSILON &&
-      z >= room.bounds.minZ - POSITION_EPSILON &&
-      z <= room.bounds.maxZ + POSITION_EPSILON
-  );
 }
 
 const container = document.getElementById('app');
@@ -1150,6 +1136,10 @@ function initializeImmersiveScene(
     landingTriggerMargin: stairLandingTriggerMargin,
     stepRise: STAIRCASE_CONFIG.step.rise,
   };
+  const stairNavArea = createStairNavAreaRect(stairGeometry, {
+    marginX: PLAYER_RADIUS * 0.5,
+    marginZ: PLAYER_RADIUS,
+  });
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1269,14 +1259,25 @@ function initializeImmersiveScene(
     upperFloorColliders.push(instance.collider);
   });
 
-  const floorPlansById: Record<FloorId, FloorPlanDefinition> = {
-    ground: FLOOR_PLAN,
-    upper: UPPER_FLOOR_PLAN,
-  };
-
   const floorColliders: Record<FloorId, RectCollider[]> = {
     ground: groundColliders,
     upper: upperFloorColliders,
+  };
+
+  const doorwayPadding = PLAYER_RADIUS * 0.6;
+  const doorwayDepth = WALL_THICKNESS + PLAYER_RADIUS * 2;
+
+  const navMeshes: Record<FloorId, NavMesh> = {
+    ground: createNavMesh(FLOOR_PLAN, {
+      padding: doorwayPadding,
+      depth: doorwayDepth,
+      extraZones: [stairNavArea],
+    }),
+    upper: createNavMesh(UPPER_FLOOR_PLAN, {
+      padding: doorwayPadding,
+      depth: doorwayDepth,
+      extraZones: [stairNavArea],
+    }),
   };
 
   const seasonalPrograms = Array.from(
@@ -2482,8 +2483,8 @@ function initializeImmersiveScene(
     z: number,
     floorId: FloorId
   ): boolean => {
-    const inside = isInsideAnyRoom(floorPlansById[floorId], x, z);
-    if (!inside) {
+    const navMesh = navMeshes[floorId];
+    if (!navMesh.contains(x, z)) {
       return false;
     }
 
