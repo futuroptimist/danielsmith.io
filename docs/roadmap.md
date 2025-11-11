@@ -57,7 +57,7 @@ Focus: expand the environment while keeping navigation smooth.
 
 - Traversal GIF + release tag published (`phase-1-alpha`).
 - Perf sample captured (desktop + Pixel-class) meeting the global budgets.
-- Lighting experiments documented in `docs/metrics/lighting.md` with before/after screenshots.
+- ✅ Lighting experiments documented in `docs/metrics/lighting.md` with before/after screenshots.
 - Text fallback auto-trigger verified via scripted run (see failover criteria).
 
 1. **Lighting Pass Alpha**
@@ -311,7 +311,7 @@ Focus: make the experience inclusive and globally friendly.
 - ✅ CI axe run + screen reader smoke test logged with 0 critical issues.
 - Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
 - ✅ Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
-- Accessibility presets documented with metrics (contrast ratios, motion reduction) and tied to
+- ✅ Accessibility presets documented with metrics (contrast ratios, motion reduction) and tied to
   acceptance prompts.
 
 1. **Input Accessibility**

@@ -5,6 +5,8 @@ const path = require('path');
 const requiredFiles = [
   path.join(__dirname, '..', 'docs', 'prompts', 'codex', 'baseline.md'),
   path.join(__dirname, '..', 'docs', 'prompts', 'codex', 'polish.md'),
+  path.join(__dirname, '..', 'docs', 'metrics', 'lighting.md'),
+  path.join(__dirname, '..', 'docs', 'metrics', 'accessibility.md'),
 ];
 
 (async () => {
