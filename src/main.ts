@@ -1275,6 +1275,7 @@ function initializeImmersiveScene(
     upper: createNavMesh(UPPER_FLOOR_PLAN, {
       padding: doorwayPadding,
       depth: doorwayDepth,
+      extraZones: [stairNavArea],
     }),
   };
 
