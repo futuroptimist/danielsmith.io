@@ -53,7 +53,9 @@ export function createWallSegmentMeshes(
       instance.center.z
     );
 
-    mesh.userData.segment = instance.segment;
+    // Store a compact identifier instead of the full segment object to avoid
+    // retaining large or circular references in Three.js metadata.
+    mesh.userData.segmentId = instance.segmentId;
     mesh.userData.isFence = instance.isFence;
     mesh.userData.isSharedInterior = instance.isSharedInterior;
     mesh.userData.thickness = instance.thickness;

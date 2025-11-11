@@ -14,6 +14,7 @@ function createWallInstance(
       end: { x: 4, z: 0 },
       rooms: [{ id: 'livingRoom', wall: 'north' }],
     },
+    segmentId: 'segment-default',
     center: { x: 2, y: 3, z: 0 },
     dimensions: { width: 4, height: 6, depth: 0.5 },
     collider: { minX: 0, maxX: 4, minZ: -0.25, maxZ: 0.25 },
@@ -31,6 +32,7 @@ describe('createWallSegmentMeshes', () => {
     const instances: WallSegmentInstance[] = [
       createWallInstance({
         center: { x: -2, y: 3, z: 1 },
+        segmentId: 'segment-vertical',
         segment: {
           orientation: 'vertical',
           start: { x: -3, z: 0 },
@@ -45,6 +47,7 @@ describe('createWallSegmentMeshes', () => {
         dimensions: { width: 0.28, height: 2.4, depth: 3 },
         isFence: true,
         thickness: 0.28,
+        segmentId: 'segment-horizontal',
         segment: {
           orientation: 'horizontal',
           start: { x: 4.5, z: -5.5 },
@@ -81,6 +84,7 @@ describe('createWallSegmentMeshes', () => {
         instances[index]?.isSharedInterior ?? false
       );
       expect(mesh.userData.thickness).toBe(instances[index]?.thickness);
+      expect(mesh.userData.segmentId).toBe(instances[index]?.segmentId);
       expect(mesh.name).toBe(
         instances[index]?.isFence ? 'FenceSegment' : 'WallSegment'
       );

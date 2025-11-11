@@ -9,6 +9,8 @@ import {
 
 export interface WallSegmentInstance {
   segment: CombinedWallSegment;
+  /** Stable identifier for correlating generated meshes with the source segment. */
+  segmentId: string;
   center: { x: number; y: number; z: number };
   dimensions: { width: number; height: number; depth: number };
   collider: RectCollider;
@@ -67,13 +69,13 @@ export function createWallSegmentInstances(
   const segments = getCombinedWallSegments(plan);
   const instances: WallSegmentInstance[] = [];
 
-  for (const segment of segments) {
+  segments.forEach((segment, index) => {
     const length =
       segment.orientation === 'horizontal'
         ? Math.abs(segment.end.x - segment.start.x)
         : Math.abs(segment.end.z - segment.start.z);
     if (length <= LENGTH_EPSILON) {
-      continue;
+      return;
     }
 
     const roomCategories = segment.rooms.map((roomInfo) =>
@@ -133,6 +135,7 @@ export function createWallSegmentInstances(
 
     instances.push({
       segment,
+      segmentId: createSegmentId(segment, index),
       center,
       dimensions: { width, height, depth },
       collider,
@@ -140,7 +143,24 @@ export function createWallSegmentInstances(
       isSharedInterior,
       thickness,
     });
-  }
+  });
 
   return instances;
+}
+
+function formatPoint(point: { x: number; z: number }): string {
+  return `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
+}
+
+function createSegmentId(
+  segment: CombinedWallSegment,
+  index: number
+): string {
+  const start = formatPoint(segment.start);
+  const end = formatPoint(segment.end);
+  const rooms = segment.rooms
+    .map((room) => `${room.id}:${room.wall}`)
+    .sort()
+    .join('|');
+  return [segment.orientation, start, end, rooms || 'none', index].join('|');
 }
