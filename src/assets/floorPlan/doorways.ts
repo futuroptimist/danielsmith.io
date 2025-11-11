@@ -7,6 +7,14 @@ import {
   WALL_THICKNESS,
 } from '../floorPlan';
 
+export type DoorwayAxis = 'horizontal' | 'vertical';
+
+export interface NormalizedDoorway {
+  axis: DoorwayAxis;
+  width: number;
+  center: { x: number; z: number };
+}
+
 export interface DoorwayClearanceZone {
   roomId: string;
   wall: RoomWall;
@@ -31,6 +39,127 @@ const DEFAULT_OPTIONS: Required<DoorwayClearanceOptions> = {
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
+
+const DOOR_KEY_PRECISION = 3;
+
+const toDoorwayAxis = (wall: RoomWall): DoorwayAxis =>
+  wall === 'north' || wall === 'south' ? 'horizontal' : 'vertical';
+
+function normalizeDoorway(
+  roomBounds: RoomDefinition['bounds'],
+  doorway: DoorwayDefinition
+): NormalizedDoorway {
+  const axis = toDoorwayAxis(doorway.wall);
+  const width = Math.abs(doorway.end - doorway.start);
+
+  if (axis === 'horizontal') {
+    const centerX = (doorway.start + doorway.end) / 2;
+    const centerZ =
+      doorway.wall === 'north' ? roomBounds.maxZ : roomBounds.minZ;
+    return { axis, width, center: { x: centerX, z: centerZ } };
+  }
+
+  const centerZ = (doorway.start + doorway.end) / 2;
+  const centerX = doorway.wall === 'east' ? roomBounds.maxX : roomBounds.minX;
+  return { axis, width, center: { x: centerX, z: centerZ } };
+}
+
+const doorwayKey = (doorway: NormalizedDoorway): string =>
+  [
+    doorway.axis,
+    doorway.center.x.toFixed(DOOR_KEY_PRECISION),
+    doorway.center.z.toFixed(DOOR_KEY_PRECISION),
+    doorway.width.toFixed(DOOR_KEY_PRECISION),
+  ].join('|');
+
+const sortDoorways = (doorways: NormalizedDoorway[]): NormalizedDoorway[] =>
+  [...doorways].sort((a, b) => {
+    if (a.axis !== b.axis) {
+      return a.axis === 'horizontal' ? -1 : 1;
+    }
+    if (a.center.z !== b.center.z) {
+      return a.center.z - b.center.z;
+    }
+    if (a.center.x !== b.center.x) {
+      return a.center.x - b.center.x;
+    }
+    return a.width - b.width;
+  });
+
+export function getNormalizedDoorways(
+  plan: FloorPlanDefinition
+): NormalizedDoorway[] {
+  const accumulator = new Map<string, NormalizedDoorway>();
+  plan.rooms.forEach((room) => {
+    room.doorways?.forEach((doorway) => {
+      const normalized = normalizeDoorway(room.bounds, doorway);
+      const key = doorwayKey(normalized);
+      if (!accumulator.has(key)) {
+        accumulator.set(key, normalized);
+      }
+    });
+  });
+  return sortDoorways(Array.from(accumulator.values()));
+}
+
+export interface DoorwayPassageZone {
+  doorway: NormalizedDoorway;
+  bounds: RectCollider;
+}
+
+export interface DoorwayPassageZoneOptions {
+  depth?: number;
+  padding?: number;
+  epsilon?: number;
+}
+
+const DEFAULT_PASSAGE_OPTIONS: Required<DoorwayPassageZoneOptions> = {
+  depth: WALL_THICKNESS * 2,
+  padding: 0.9,
+  epsilon: 1e-4,
+};
+
+export function getDoorwayPassageZones(
+  plan: FloorPlanDefinition,
+  options: DoorwayPassageZoneOptions = {}
+): DoorwayPassageZone[] {
+  const { depth, padding, epsilon } = {
+    ...DEFAULT_PASSAGE_OPTIONS,
+    ...options,
+  };
+  const halfDepth = depth / 2;
+
+  return getNormalizedDoorways(plan)
+    .map((doorway) => {
+      const halfWidth = doorway.width / 2;
+      if (doorway.axis === 'horizontal') {
+        const minX = doorway.center.x - halfWidth - padding;
+        const maxX = doorway.center.x + halfWidth + padding;
+        const minZ = doorway.center.z - halfDepth - epsilon;
+        const maxZ = doorway.center.z + halfDepth + epsilon;
+        if (maxX <= minX || maxZ <= minZ) {
+          return null;
+        }
+        return {
+          doorway,
+          bounds: { minX, maxX, minZ, maxZ },
+        } satisfies DoorwayPassageZone;
+      }
+
+      const minX = doorway.center.x - halfDepth - epsilon;
+      const maxX = doorway.center.x + halfDepth + epsilon;
+      const minZ = doorway.center.z - halfWidth - padding;
+      const maxZ = doorway.center.z + halfWidth + padding;
+      if (maxX <= minX || maxZ <= minZ) {
+        return null;
+      }
+      return {
+        doorway,
+        bounds: { minX, maxX, minZ, maxZ },
+      } satisfies DoorwayPassageZone;
+    })
+    .filter((zone): zone is DoorwayPassageZone => zone !== null);
+}
 
 export function getDoorwayClearanceZones(
   plan: FloorPlanDefinition,

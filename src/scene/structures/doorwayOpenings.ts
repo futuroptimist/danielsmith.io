@@ -1,18 +1,7 @@
 import { BoxGeometry, Color, Group, Mesh, MeshStandardMaterial } from 'three';
 
-import {
-  type DoorwayDefinition,
-  type FloorPlanDefinition,
-  type RoomWall,
-} from '../../assets/floorPlan';
-
-type DoorAxis = 'horizontal' | 'vertical';
-
-interface DoorwayInstance {
-  axis: DoorAxis;
-  width: number;
-  center: { x: number; z: number };
-}
+import type { FloorPlanDefinition } from '../../assets/floorPlan';
+import { getNormalizedDoorways } from '../../assets/floorPlan/doorways';
 
 export interface DoorwayOpeningsOptions {
   wallHeight: number;
@@ -27,13 +16,6 @@ export interface DoorwayOpeningsOptions {
 export interface DoorwayOpeningsBuild {
   group: Group;
 }
-
-const AXIS_FROM_WALL: Record<RoomWall, DoorAxis> = {
-  north: 'horizontal',
-  south: 'horizontal',
-  east: 'vertical',
-  west: 'vertical',
-};
 
 const DEFAULT_DOOR_HEIGHT_RATIO = 0.72;
 const DEFAULT_JAMB_THICKNESS = 0.36;
@@ -50,51 +32,6 @@ const createDefaultMaterial = () =>
     roughness: 0.44,
     metalness: 0.28,
   });
-
-function normalizeDoorway(
-  roomBounds: FloorPlanDefinition['rooms'][number]['bounds'],
-  doorway: DoorwayDefinition
-): DoorwayInstance {
-  const axis = AXIS_FROM_WALL[doorway.wall];
-  const width = Math.abs(doorway.end - doorway.start);
-
-  if (axis === 'horizontal') {
-    const centerX = (doorway.start + doorway.end) / 2;
-    const centerZ =
-      doorway.wall === 'north' ? roomBounds.maxZ : roomBounds.minZ;
-    return {
-      axis,
-      width,
-      center: { x: centerX, z: centerZ },
-    };
-  }
-
-  const centerZ = (doorway.start + doorway.end) / 2;
-  const centerX = doorway.wall === 'east' ? roomBounds.maxX : roomBounds.minX;
-  return {
-    axis,
-    width,
-    center: { x: centerX, z: centerZ },
-  };
-}
-
-const getAccumulatorKey = ({ axis, center, width }: DoorwayInstance): string =>
-  `${axis}|${center.x.toFixed(3)}|${center.z.toFixed(3)}|${width.toFixed(3)}`;
-
-const sortDoorways = (doorways: DoorwayInstance[]): DoorwayInstance[] => {
-  return [...doorways].sort((a, b) => {
-    if (a.axis !== b.axis) {
-      return a.axis === 'horizontal' ? -1 : 1;
-    }
-    if (a.center.z !== b.center.z) {
-      return a.center.z - b.center.z;
-    }
-    if (a.center.x !== b.center.x) {
-      return a.center.x - b.center.x;
-    }
-    return a.width - b.width;
-  });
-};
 
 export function createDoorwayOpenings(
   plan: FloorPlanDefinition,
@@ -114,19 +51,7 @@ export function createDoorwayOpenings(
       : wallHeight * DEFAULT_DOOR_HEIGHT_RATIO;
   const material = providedMaterial ?? createDefaultMaterial();
 
-  const accumulator = new Map<string, DoorwayInstance>();
-
-  plan.rooms.forEach((room) => {
-    room.doorways?.forEach((doorway) => {
-      const instance = normalizeDoorway(room.bounds, doorway);
-      const key = getAccumulatorKey(instance);
-      if (!accumulator.has(key)) {
-        accumulator.set(key, instance);
-      }
-    });
-  });
-
-  const uniqueDoorways = sortDoorways(Array.from(accumulator.values()));
+  const uniqueDoorways = getNormalizedDoorways(plan);
 
   const root = new Group();
   root.name = DOOR_NAME;
@@ -205,10 +130,3 @@ export function createDoorwayOpenings(
 
   return { group: root };
 }
-
-export const _testables = {
-  createDefaultMaterial,
-  normalizeDoorway,
-  getAccumulatorKey,
-  sortDoorways,
-};

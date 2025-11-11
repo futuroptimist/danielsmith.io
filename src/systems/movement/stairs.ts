@@ -1,5 +1,7 @@
 import { MathUtils } from 'three';
 
+import type { RectCollider } from '../collision';
+
 export type FloorId = 'ground' | 'upper';
 
 export interface StairGeometry {
@@ -175,4 +177,33 @@ export const sampleStairSurfaceHeight = ({
   }
 
   return clampedRamp;
+};
+
+export interface StairNavAreaOptions {
+  marginX?: number;
+  marginZ?: number;
+}
+
+export const createStairNavAreaRect = (
+  geometry: StairGeometry,
+  { marginX = 0, marginZ = 0 }: StairNavAreaOptions = {}
+): RectCollider => {
+  const minX = geometry.centerX - geometry.halfWidth - marginX;
+  const maxX = geometry.centerX + geometry.halfWidth + marginX;
+  const minZ =
+    Math.min(
+      geometry.bottomZ,
+      geometry.topZ,
+      geometry.landingMinZ,
+      geometry.landingMaxZ
+    ) - marginZ;
+  const maxZ =
+    Math.max(
+      geometry.bottomZ,
+      geometry.topZ,
+      geometry.landingMinZ,
+      geometry.landingMaxZ
+    ) + marginZ;
+
+  return { minX, maxX, minZ, maxZ };
 };
