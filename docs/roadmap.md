@@ -77,7 +77,7 @@ Focus: expand the environment while keeping navigation smooth.
    - ✨ Baked dusk lightmaps now bathe floors and walls in a gradient bounce wash that pairs with the LED strips.
      - ✅ Lightmap bounce animator now syncs baked intensities with LED pulse programs while
        honoring accessibility pulse damping preferences.
-   - ✨ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
+   - ✅ Interior walls and fences now expose dedicated UV2 channels so future bakes stay artifact-free.
 2. **House Footprint Layout**
    - ✅ Block out multiple rooms on the ground floor using modular wall/floor/ceiling pieces.
      - Room floor tiles now instantiate per room with a modular builder that mirrors the ceiling system.

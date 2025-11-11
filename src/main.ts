@@ -5,7 +5,6 @@ import {
   AnimationMixer,
   Audio,
   AudioListener,
-  BoxGeometry,
   Clock,
   Color,
   DirectionalLight,
@@ -108,10 +107,7 @@ import {
   createGraphicsQualityManager,
   type GraphicsQualityManager,
 } from './scene/graphics/qualityManager';
-import {
-  applyLightmapUv2,
-  createInteriorLightmapTextures,
-} from './scene/lighting/bakedLightmaps';
+import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
   type LightingMode,
@@ -219,6 +215,7 @@ import {
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
 import { createUpperLandingStub } from './scene/structures/upperLandingStub';
+import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,
   type WoveLoomBuild,
@@ -1013,7 +1010,6 @@ function initializeImmersiveScene(
   wallMaterial.lightMapIntensity = 0.68;
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
-  const wallGroup = new Group();
   const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
@@ -1022,22 +1018,17 @@ function initializeImmersiveScene(
     fenceThickness: FENCE_THICKNESS,
     getRoomCategory,
   });
+  const groundWallMeshes = createWallSegmentMeshes({
+    instances: groundWallInstances,
+    groupName: 'GroundWallSegments',
+    getMaterial(instance) {
+      return instance.isFence ? fenceMaterial : wallMaterial;
+    },
+  });
+  scene.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
-    const geometry = new BoxGeometry(
-      instance.dimensions.width,
-      instance.dimensions.height,
-      instance.dimensions.depth
-    );
-    applyLightmapUv2(geometry);
-    const material = instance.isFence ? fenceMaterial : wallMaterial;
-    const wall = new Mesh(geometry, material);
-    wall.position.set(instance.center.x, instance.center.y, instance.center.z);
-    wallGroup.add(wall);
-
     groundColliders.push(instance.collider);
   });
-
-  scene.add(wallGroup);
 
   const doorwayOpenings = createDoorwayOpenings(FLOOR_PLAN, {
     wallHeight: WALL_HEIGHT,
@@ -1257,8 +1248,6 @@ function initializeImmersiveScene(
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
-  const upperWallGroup = new Group();
-  upperFloorGroup.add(upperWallGroup);
   const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
     baseElevation: upperFloorElevation,
     wallHeight: WALL_HEIGHT,
@@ -1268,16 +1257,15 @@ function initializeImmersiveScene(
     getRoomCategory,
   });
 
+  const upperWallMeshes = createWallSegmentMeshes({
+    instances: upperWallInstances,
+    groupName: 'UpperWallSegments',
+    getMaterial() {
+      return upperWallMaterial;
+    },
+  });
+  upperFloorGroup.add(upperWallMeshes.group);
   upperWallInstances.forEach((instance) => {
-    const geometry = new BoxGeometry(
-      instance.dimensions.width,
-      instance.dimensions.height,
-      instance.dimensions.depth
-    );
-    const wall = new Mesh(geometry, upperWallMaterial);
-    wall.position.set(instance.center.x, instance.center.y, instance.center.z);
-    upperWallGroup.add(wall);
-
     upperFloorColliders.push(instance.collider);
   });
 
