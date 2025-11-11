@@ -15,6 +15,9 @@ and the Vitest assertions when measurable changes land.
   `IMMERSIVE_SCENE_BASELINE`).
 - **Assertion** – [`src/tests/performanceBudget.test.ts`](../../src/tests/performanceBudget.test.ts)
   enforces the headroom values so regressions fail fast in CI.
+- **Runtime telemetry** – [`createInputLatencyTelemetry`](../../src/systems/performance/inputLatencyTelemetry.ts)
+  monitors keyboard and pointer interactions, logging median/p95/max latency against the 200 ms
+  INP budget whenever the session hides, unloads, or performance failover triggers.
 - **Workflow** – Capture metrics via the Three.js inspector: open devtools,
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
