@@ -152,10 +152,7 @@ function formatPoint(point: { x: number; z: number }): string {
   return `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
 }
 
-function createSegmentId(
-  segment: CombinedWallSegment,
-  index: number
-): string {
+function createSegmentId(segment: CombinedWallSegment, index: number): string {
   const start = formatPoint(segment.start);
   const end = formatPoint(segment.end);
   const rooms = segment.rooms
