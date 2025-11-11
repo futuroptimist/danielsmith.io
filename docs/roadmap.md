@@ -24,6 +24,8 @@ captures; keep artifacts in `docs/metrics/`.
 
 - **Performance budgets** – p95 FPS ≥90 on desktop class hardware and ≥60 on mid-range mobile;
   p95 INP <200 ms; LCP <2.5 s on fast 4G; initial interactive payload ≤1.5–2.0 MB gzipped.
+  - ✅ Input latency telemetry now records keyboard and pointer lag, logging median, p95,
+    and max values against the 200 ms INP budget whenever sessions end or failover triggers.
 - **Accessibility gates** – axe CI reports 0 critical violations; full keyboard/touch parity;
   HUD controls expose ARIA labels and 48 px touch targets.
 - **Stability** – smoke build succeeds; console error budget stays at 0; Sentry (or console

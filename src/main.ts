@@ -326,6 +326,10 @@ import {
 } from './systems/movement/stairs';
 import { ProceduralNarrator } from './systems/narrative/proceduralNarrator';
 import {
+  createInputLatencyTelemetry,
+  type InputLatencyTelemetryHandle,
+} from './systems/performance/inputLatencyTelemetry';
+import {
   createAvatarAccessoryProgression,
   type AvatarAccessoryProgressionHandle,
 } from './systems/progression/avatarAccessoryProgression';
@@ -443,6 +447,7 @@ const POSITION_EPSILON = 1e-4;
 const BACKYARD_ROOM_ID = 'backyard';
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
 const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
+const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
@@ -657,6 +662,7 @@ function initializeImmersiveScene(
   ledAnimator = null;
   environmentLightAnimator = null;
 
+  let inputLatencyTelemetry: InputLatencyTelemetryHandle | null = null;
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
   let tourResetControl: TourResetControlHandle | null = null;
@@ -727,6 +733,12 @@ function initializeImmersiveScene(
     }
   }
 
+  inputLatencyTelemetry = createInputLatencyTelemetry({
+    windowTarget: window,
+    documentTarget: document,
+    budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
+  });
+
   const readGuidedTourEnabled = (): boolean => {
     const stored = guidedTourStorage?.getItem(GUIDED_TOUR_STORAGE_KEY);
     if (stored === 'false') {
@@ -792,6 +804,7 @@ function initializeImmersiveScene(
       minFps,
       medianFps,
     }) => {
+      inputLatencyTelemetry?.report('performance-failover');
       const roundedDuration = Math.round(durationMs);
       const averaged = averageFps.toFixed(1);
       const percentile = p95Fps.toFixed(1);
@@ -1774,6 +1787,7 @@ function initializeImmersiveScene(
   );
   poiInteractionManager.start();
   beforeUnloadHandler = () => {
+    inputLatencyTelemetry?.report('beforeunload');
     disposeImmersiveResources();
   };
   window.addEventListener('beforeunload', beforeUnloadHandler);
@@ -3540,6 +3554,11 @@ function initializeImmersiveScene(
   function disposeImmersiveResources() {
     if (immersiveDisposed) {
       return;
+    }
+    if (inputLatencyTelemetry) {
+      inputLatencyTelemetry.report('dispose');
+      inputLatencyTelemetry.dispose();
+      inputLatencyTelemetry = null;
     }
     immersiveDisposed = true;
     ledAnimator = null;
