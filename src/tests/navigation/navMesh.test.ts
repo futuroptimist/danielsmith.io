@@ -32,9 +32,9 @@ describe('createNavMesh', () => {
       return;
     }
     const halfDepth = doorwayDepth / 2 - 0.05;
-    expect(navMesh.contains(livingKitchen.center.x, livingKitchen.center.z)).toBe(
-      true
-    );
+    expect(
+      navMesh.contains(livingKitchen.center.x, livingKitchen.center.z)
+    ).toBe(true);
     expect(
       navMesh.contains(
         livingKitchen.center.x,

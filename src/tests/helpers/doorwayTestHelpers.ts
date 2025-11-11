@@ -8,7 +8,9 @@ import { getNormalizedDoorways } from '../../assets/floorPlan/doorways';
 
 export const DOOR_EPSILON = 1e-6;
 
-export type NormalizedDoorway = ReturnType<typeof getNormalizedDoorways>[number];
+export type NormalizedDoorway = ReturnType<
+  typeof getNormalizedDoorways
+>[number];
 
 export function findSharedDoorway(
   first: readonly DoorwayDefinition[] | undefined,
@@ -63,14 +65,14 @@ export function resolveNormalizedDoorway({
     wallA === 'north'
       ? roomA.bounds.maxZ
       : wallA === 'south'
-      ? roomA.bounds.minZ
-      : centerValue;
+        ? roomA.bounds.minZ
+        : centerValue;
   const centerX =
     wallA === 'east'
       ? roomA.bounds.maxX
       : wallA === 'west'
-      ? roomA.bounds.minX
-      : centerValue;
+        ? roomA.bounds.minX
+        : centerValue;
 
   return doorways.find(
     (doorway) =>
