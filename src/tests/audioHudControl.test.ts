@@ -1,6 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { formatMessage, getAudioHudControlStrings } from '../assets/i18n';
 import { createAudioHudControl } from '../systems/controls/audioHudControl';
+
+const resolveKeyHint = (
+  strings: ReturnType<typeof getAudioHudControlStrings>,
+  toggleKey = 'm'
+) => {
+  const normalize = (value: string | undefined) => {
+    if (!value) {
+      return '';
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return '';
+    }
+    return trimmed.length === 1 ? trimmed.toUpperCase() : trimmed;
+  };
+  return normalize(toggleKey) || normalize(strings.keyHint) || 'M';
+};
 
 describe('createAudioHudControl', () => {
   it('renders controls, syncs state, and handles async toggles', async () => {
@@ -34,18 +52,34 @@ describe('createAudioHudControl', () => {
       '.audio-volume__slider'
     );
     const valueText = container.querySelector('.audio-volume__value');
+    const wrapper = container.querySelector<HTMLDivElement>('.audio-hud');
+    const label = container.querySelector('.audio-volume__label');
+    const strings = getAudioHudControlStrings();
+    const keyHint = resolveKeyHint(strings);
+    const formatMutedAnnouncement = (volume: string) =>
+      formatMessage(strings.slider.mutedAnnouncementTemplate, { volume });
+    const formatMutedValue = (volume: string) =>
+      formatMessage(strings.slider.mutedValueTemplate, { volume });
+    const formatMutedAria = (volume: string) =>
+      formatMessage(strings.slider.mutedAriaValueTemplate, { volume });
+    const formatVolumeAnnouncement = (volume: string) =>
+      formatMessage(strings.slider.valueAnnouncementTemplate, { volume });
+
     expect(button).toBeTruthy();
     expect(slider).toBeTruthy();
-    expect(valueText?.textContent).toBe('Muted · 60%');
+    expect(wrapper?.getAttribute('aria-label')).toBe(strings.groupLabel);
+    expect(label?.textContent).toBe(strings.slider.label);
+    expect(button?.title).toBe(
+      formatMessage(strings.toggle.titleTemplate, { keyHint })
+    );
+    expect(valueText?.textContent).toBe(formatMutedValue('60%'));
     expect(slider?.getAttribute('aria-valuemin')).toBe('0');
     expect(slider?.getAttribute('aria-valuemax')).toBe('1');
-    expect(slider?.getAttribute('aria-valuetext')).toBe('Muted (60%)');
+    expect(slider?.getAttribute('aria-valuetext')).toBe(formatMutedAria('60%'));
     expect(button?.dataset.hudAnnounce).toBe(
-      'Ambient audio off. Press M to toggle.'
+      formatMessage(strings.toggle.announcementOffTemplate, { keyHint })
     );
-    expect(slider?.dataset.hudAnnounce).toBe(
-      'Ambient audio muted. Volume set to 60%.'
-    );
+    expect(slider?.dataset.hudAnnounce).toBe(formatMutedAnnouncement('60%'));
 
     button?.dispatchEvent(new Event('click'));
     expect(toggleCallCount).toBe(1);
@@ -62,38 +96,34 @@ describe('createAudioHudControl', () => {
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
     expect(button?.dataset.hudAnnounce).toBe(
-      'Ambient audio on. Press M to toggle.'
+      formatMessage(strings.toggle.announcementOnTemplate, { keyHint })
     );
     expect(valueText?.textContent).toBe('60%');
     expect(slider?.getAttribute('aria-valuetext')).toBe('60%');
-    expect(slider?.dataset.hudAnnounce).toBe('Ambient audio volume 60%.');
+    expect(slider?.dataset.hudAnnounce).toBe(formatVolumeAnnouncement('60%'));
 
     slider!.value = '0.82';
     slider?.dispatchEvent(new Event('input'));
     expect(volume).toBeCloseTo(0.82, 5);
     expect(valueText?.textContent).toBe('82%');
-    expect(slider?.dataset.hudAnnounce).toBe('Ambient audio volume 82%.');
+    expect(slider?.dataset.hudAnnounce).toBe(formatVolumeAnnouncement('82%'));
 
     volume = 0.25;
     enabled = false;
     handle.refresh();
     expect(button?.dataset.state).toBe('off');
-    expect(valueText?.textContent).toBe('Muted · 25%');
+    expect(valueText?.textContent).toBe(formatMutedValue('25%'));
     expect(button?.dataset.hudAnnounce).toBe(
-      'Ambient audio off. Press M to toggle.'
+      formatMessage(strings.toggle.announcementOffTemplate, { keyHint })
     );
-    expect(slider?.getAttribute('aria-valuetext')).toBe('Muted (25%)');
-    expect(slider?.dataset.hudAnnounce).toBe(
-      'Ambient audio muted. Volume set to 25%.'
-    );
+    expect(slider?.getAttribute('aria-valuetext')).toBe(formatMutedAria('25%'));
+    expect(slider?.dataset.hudAnnounce).toBe(formatMutedAnnouncement('25%'));
 
     slider!.value = '1.6';
     slider?.dispatchEvent(new Event('input'));
     expect(volume).toBe(1);
-    expect(valueText?.textContent).toBe('Muted · 100%');
-    expect(slider?.dataset.hudAnnounce).toBe(
-      'Ambient audio muted. Volume set to 100%.'
-    );
+    expect(valueText?.textContent).toBe(formatMutedValue('100%'));
+    expect(slider?.dataset.hudAnnounce).toBe(formatMutedAnnouncement('100%'));
 
     handle.dispose();
     expect(container.querySelector('.audio-hud')).toBeNull();
@@ -122,6 +152,9 @@ describe('createAudioHudControl', () => {
       toggleKey: 'm',
     });
 
+    const strings = getAudioHudControlStrings();
+    const keyHint = resolveKeyHint(strings, 'm');
+
     window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'm', ctrlKey: true })
     );
@@ -139,27 +172,86 @@ describe('createAudioHudControl', () => {
       'button.audio-toggle'
     );
     expect(button?.dataset.hudAnnounce).toBe(
-      'Ambient audio off. Press M to toggle.'
+      formatMessage(strings.toggle.announcementOffTemplate, { keyHint })
     );
     const volumeSlider = container.querySelector<HTMLInputElement>(
       '.audio-volume__slider'
     );
     expect(volumeSlider?.dataset.hudAnnounce).toBe(
-      'Ambient audio muted. Volume set to 40%.'
+      formatMessage(strings.slider.mutedAnnouncementTemplate, {
+        volume: '40%',
+      })
     );
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
     expect(warnSpy).toHaveBeenCalledTimes(1);
 
     expect(button?.dataset.hudAnnounce).toBe(
-      'Ambient audio on. Press M to toggle.'
+      formatMessage(strings.toggle.announcementOnTemplate, { keyHint })
     );
-    expect(volumeSlider?.dataset.hudAnnounce).toBe('Ambient audio volume 40%.');
+    expect(volumeSlider?.dataset.hudAnnounce).toBe(
+      formatMessage(strings.slider.valueAnnouncementTemplate, {
+        volume: '40%',
+      })
+    );
 
     handle.dispose();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
     expect(warnSpy).toHaveBeenCalledTimes(1);
 
     warnSpy.mockRestore();
+  });
+
+  it('updates localized strings when setStrings is invoked', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const handle = createAudioHudControl({
+      container,
+      getEnabled: () => false,
+      setEnabled: vi.fn(),
+      getVolume: () => 0.6,
+      setVolume: vi.fn(),
+      strings: getAudioHudControlStrings('en'),
+    });
+
+    const button = container.querySelector<HTMLButtonElement>('.audio-toggle');
+    const slider = container.querySelector<HTMLInputElement>(
+      '.audio-volume__slider'
+    );
+    const label = container.querySelector('.audio-volume__label');
+    const wrapper = container.querySelector('.audio-hud');
+    const valueText = container.querySelector('.audio-volume__value');
+
+    const pseudoStrings = getAudioHudControlStrings('en-x-pseudo');
+    const keyHint = resolveKeyHint(pseudoStrings);
+    handle.setStrings(pseudoStrings);
+
+    expect(wrapper?.getAttribute('aria-label')).toBe(pseudoStrings.groupLabel);
+    expect(button?.title).toBe(
+      formatMessage(pseudoStrings.toggle.titleTemplate, { keyHint })
+    );
+    expect(button?.textContent).toBe(
+      formatMessage(pseudoStrings.toggle.offLabelTemplate, { keyHint })
+    );
+    expect(button?.dataset.hudAnnounce).toBe(
+      formatMessage(pseudoStrings.toggle.announcementOffTemplate, { keyHint })
+    );
+    expect(label?.textContent).toBe(pseudoStrings.slider.label);
+    expect(slider?.getAttribute('aria-label')).toBe(
+      pseudoStrings.slider.ariaLabel
+    );
+    expect(slider?.dataset.hudAnnounce).toBe(
+      formatMessage(pseudoStrings.slider.mutedAnnouncementTemplate, {
+        volume: '60%',
+      })
+    );
+    expect(valueText?.textContent).toBe(
+      formatMessage(pseudoStrings.slider.mutedValueTemplate, {
+        volume: '60%',
+      })
+    );
+
+    handle.dispose();
+    expect(container.querySelector('.audio-hud')).toBeNull();
   });
 });

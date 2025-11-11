@@ -67,6 +67,32 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         gamepad: wrap('Press {label} to {prompt}'),
       },
     },
+    audioControl: {
+      keyHint: wrap('M'),
+      groupLabel: wrap('Ambient audio controls'),
+      toggle: {
+        onLabelTemplate: wrap('Audio: On · Press {keyHint} to mute'),
+        offLabelTemplate: wrap('Audio: Off · Press {keyHint} to unmute'),
+        titleTemplate: wrap('Toggle ambient audio ({keyHint})'),
+        announcementOnTemplate: wrap(
+          'Ambient audio on. Press {keyHint} to toggle.'
+        ),
+        announcementOffTemplate: wrap(
+          'Ambient audio off. Press {keyHint} to toggle.'
+        ),
+      },
+      slider: {
+        label: wrap('Ambient volume'),
+        ariaLabel: wrap('Ambient audio volume'),
+        hudLabel: wrap('Ambient audio volume slider.'),
+        valueAnnouncementTemplate: wrap('Ambient audio volume {volume}.'),
+        mutedAnnouncementTemplate: wrap(
+          'Ambient audio muted. Volume set to {volume}.'
+        ),
+        mutedValueTemplate: wrap('Muted · {volume}'),
+        mutedAriaValueTemplate: wrap('Muted ({volume})'),
+      },
+    },
     modeToggle: {
       idleLabelTemplate: wrap('Text mode · Press {keyHint}'),
       idleDescriptionTemplate: wrap('Switch to the text-only portfolio'),

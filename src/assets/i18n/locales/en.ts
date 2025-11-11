@@ -105,6 +105,28 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         gamepad: 'Press {label} to {prompt}',
       },
     },
+    audioControl: {
+      keyHint: 'M',
+      groupLabel: 'Ambient audio controls',
+      toggle: {
+        onLabelTemplate: 'Audio: On · Press {keyHint} to mute',
+        offLabelTemplate: 'Audio: Off · Press {keyHint} to unmute',
+        titleTemplate: 'Toggle ambient audio ({keyHint})',
+        announcementOnTemplate: 'Ambient audio on. Press {keyHint} to toggle.',
+        announcementOffTemplate:
+          'Ambient audio off. Press {keyHint} to toggle.',
+      },
+      slider: {
+        label: 'Ambient volume',
+        ariaLabel: 'Ambient audio volume',
+        hudLabel: 'Ambient audio volume slider.',
+        valueAnnouncementTemplate: 'Ambient audio volume {volume}.',
+        mutedAnnouncementTemplate:
+          'Ambient audio muted. Volume set to {volume}.',
+        mutedValueTemplate: 'Muted · {volume}',
+        mutedAriaValueTemplate: 'Muted ({volume})',
+      },
+    },
     modeToggle: {
       keyHint: 'T',
       idleLabelTemplate: 'Text mode · Press {keyHint}',

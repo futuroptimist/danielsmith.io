@@ -51,6 +51,27 @@ export interface MovementLegendStrings {
   interactPromptTemplates: Record<InputMethod | 'default', string>;
 }
 
+export interface AudioHudControlStrings {
+  keyHint: string;
+  groupLabel: string;
+  toggle: {
+    onLabelTemplate: string;
+    offLabelTemplate: string;
+    titleTemplate: string;
+    announcementOnTemplate: string;
+    announcementOffTemplate: string;
+  };
+  slider: {
+    label: string;
+    ariaLabel: string;
+    hudLabel: string;
+    valueAnnouncementTemplate: string;
+    mutedAnnouncementTemplate: string;
+    mutedValueTemplate: string;
+    mutedAriaValueTemplate: string;
+  };
+}
+
 export interface ModeToggleStrings {
   keyHint: string;
   idleLabelTemplate: string;
@@ -190,6 +211,7 @@ export interface LocaleStrings {
   hud: {
     controlOverlay: ControlOverlayStrings;
     movementLegend: MovementLegendStrings;
+    audioControl: AudioHudControlStrings;
     modeToggle: ModeToggleStrings;
     helpModal: HelpModalStrings;
     narrativeLog: PoiNarrativeLogStrings;

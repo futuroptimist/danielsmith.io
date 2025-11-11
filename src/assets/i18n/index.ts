@@ -5,6 +5,7 @@ import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
 import { JA_OVERRIDES } from './locales/ja';
 import type {
+  AudioHudControlStrings,
   ControlOverlayStrings,
   DeepPartial,
   HelpModalStrings,
@@ -242,6 +243,13 @@ export function getMovementLegendStrings(
   input?: LocaleInput
 ): MovementLegendStrings {
   return getLocaleStrings(input).hud.movementLegend;
+}
+
+export function getAudioHudControlStrings(
+  input?: LocaleInput
+): AudioHudControlStrings {
+  const strings = getLocaleStrings(input).hud.audioControl;
+  return cloneValue(strings);
 }
 
 export function getModeToggleStrings(

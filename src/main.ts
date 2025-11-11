@@ -43,6 +43,7 @@ import {
 import { createWallSegmentInstances } from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
+  getAudioHudControlStrings,
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
@@ -761,6 +762,7 @@ function initializeImmersiveScene(
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
   let modeToggleStrings = getModeToggleStrings(locale);
+  let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let siteStrings = getSiteStrings(locale);
   let narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -2388,6 +2390,7 @@ function initializeImmersiveScene(
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
     modeToggleStrings = getModeToggleStrings(locale);
+    audioHudStrings = getAudioHudControlStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     siteStrings = getSiteStrings(locale);
@@ -2412,6 +2415,7 @@ function initializeImmersiveScene(
       movementLegend.setKeyboardInteractLabel(keyboardLabel);
     }
     manualModeToggle?.setStrings(modeToggleStrings);
+    audioHudHandle?.setStrings(audioHudStrings);
     helpModal.setContent(helpModalStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     updateHelpButtonLabel();
@@ -2861,6 +2865,7 @@ function initializeImmersiveScene(
       setVolume: (volume) => {
         setAmbientAudioVolume(volume);
       },
+      strings: audioHudStrings,
     });
     registerHudControlElement(audioHudHandle?.element);
 
