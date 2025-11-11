@@ -657,17 +657,12 @@ function initializeImmersiveScene(
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
 
-  inputLatencyTelemetry = createInputLatencyTelemetry({
-    windowTarget: window,
-    documentTarget: document,
-    budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
-  });
-
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
   ledAnimator = null;
   environmentLightAnimator = null;
 
+  let inputLatencyTelemetry: InputLatencyTelemetryHandle | null = null;
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
   let tourResetControl: TourResetControlHandle | null = null;
@@ -679,7 +674,6 @@ function initializeImmersiveScene(
   let motionBlurControl: MotionBlurControlHandle | null = null;
   let audioSubtitles: AudioSubtitlesHandle | null = null;
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
-  let inputLatencyTelemetry: InputLatencyTelemetryHandle | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
@@ -738,6 +732,12 @@ function initializeImmersiveScene(
       ambientAudioStorage = undefined;
     }
   }
+
+  inputLatencyTelemetry = createInputLatencyTelemetry({
+    windowTarget: window,
+    documentTarget: document,
+    budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
+  });
 
   const readGuidedTourEnabled = (): boolean => {
     const stored = guidedTourStorage?.getItem(GUIDED_TOUR_STORAGE_KEY);
