@@ -311,7 +311,7 @@ Focus: make the experience inclusive and globally friendly.
 - ✅ CI axe run + screen reader smoke test logged with 0 critical issues.
 - Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
 - ✅ Locale toggle demonstrates EN + RTL sample; fallback fonts cover CJK sample copy.
-- Accessibility presets documented with metrics (contrast ratios, motion reduction) and tied to
+- ✅ Accessibility presets documented with metrics (contrast ratios, motion reduction) and tied to
   acceptance prompts.
 
 1. **Input Accessibility**
