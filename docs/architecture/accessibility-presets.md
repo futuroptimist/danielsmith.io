@@ -202,7 +202,7 @@ the `calm` preset can further reduce volume to 0.5 by setting `baseAudioVolume =
 2. **Expected**:
    - Bloom strength reduced (softer glow around LEDs and POIs).
    - Pulse animations slower and less pronounced (65% of standard intensity).
-   - Motion blur reduced (25% of standard intensity).
+   - Motion blur reduced to approximately 42% of standard intensity.
    - Ambient audio 20% quieter than standard.
    - HUD text remains readable with standard contrast.
 3. **Verification**:
@@ -231,7 +231,7 @@ the `calm` preset can further reduce volume to 0.5 by setting `baseAudioVolume =
    - Bloom post-processing **completely disabled** (no glow around LEDs or POIs).
    - No animation pulses or flickers (pulseScale and flickerScale both 0).
    - Motion blur completely disabled.
-   - LED emissives and light intensities significantly reduced (45–55% of standard).
+   - LED emissives and light intensities significantly reduced (55–60% of standard, or 40–45% reduction from standard).
    - Ambient audio 30% quieter than standard.
    - HUD text readable with high-contrast styling (approximately 10:1 ratio).
 3. **Verification**:
