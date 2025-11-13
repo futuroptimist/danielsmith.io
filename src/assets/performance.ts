@@ -31,6 +31,8 @@ export interface PerformanceBudgetUsage {
   overBudgetBy: number;
   /** Ratio of used resources versus the limit (values >1 mean over budget). */
   percentUsed: number;
+  /** Indicates the snapshot or budget value was invalid when recorded. */
+  hasInvalidMeasurements: boolean;
 }
 
 export interface PerformanceBudgetReport {
@@ -62,37 +64,52 @@ export const VISUAL_SMOKE_DIFF_BUDGET = {
   maxDiffPixels: 1_200,
 };
 
-const sanitizeUsage = (value: number): number => {
-  if (!Number.isFinite(value) || value < 0) {
-    return 0;
-  }
-  return value;
-};
+interface NormalizedValue {
+  value: number;
+  isInvalid: boolean;
+}
 
-const sanitizeLimit = (value: number): number => {
+const normalizeValue = (value: number): NormalizedValue => {
   if (!Number.isFinite(value) || value < 0) {
-    return 0;
+    return { value: 0, isInvalid: true };
   }
-  return value;
+  return { value, isInvalid: false };
 };
 
 const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
-  const normalizedUsed = sanitizeUsage(used);
-  const normalizedLimit = sanitizeLimit(limit);
-  const remaining = Math.max(0, normalizedLimit - normalizedUsed);
-  const overBudgetBy = Math.max(0, normalizedUsed - normalizedLimit);
+  const normalizedUsed = normalizeValue(used);
+  const normalizedLimit = normalizeValue(limit);
+  const remaining = Math.max(0, normalizedLimit.value - normalizedUsed.value);
+  const overBudgetBy = Math.max(0, normalizedUsed.value - normalizedLimit.value);
   const percentUsed =
-    normalizedLimit === 0
-      ? normalizedUsed > 0
+    normalizedLimit.value === 0
+      ? normalizedUsed.value > 0
         ? 1
         : 0
-      : normalizedUsed / normalizedLimit;
+      : normalizedUsed.value / normalizedLimit.value;
+  const hasInvalidMeasurements =
+    normalizedUsed.isInvalid || normalizedLimit.isInvalid;
+
+  if (hasInvalidMeasurements) {
+    const fallbackOverBudget =
+      normalizedLimit.value > 0 ? normalizedLimit.value : 1;
+    return {
+      used: normalizedUsed.value,
+      limit: normalizedLimit.value,
+      remaining: 0,
+      overBudgetBy:
+        overBudgetBy > 0 ? overBudgetBy : fallbackOverBudget,
+      percentUsed: 1,
+      hasInvalidMeasurements,
+    };
+  }
   return {
-    used: normalizedUsed,
-    limit: normalizedLimit,
+    used: normalizedUsed.value,
+    limit: normalizedLimit.value,
     remaining,
     overBudgetBy,
     percentUsed,
+    hasInvalidMeasurements,
   };
 };
 

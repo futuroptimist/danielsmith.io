@@ -23,6 +23,7 @@ describe('createPerformanceBudgetReport', () => {
         IMMERSIVE_PERFORMANCE_BUDGET.maxMaterials -
         IMMERSIVE_SCENE_BASELINE.materialCount,
       overBudgetBy: 0,
+      hasInvalidMeasurements: false,
     });
     expect(report.materials.percentUsed).toBeCloseTo(
       IMMERSIVE_SCENE_BASELINE.materialCount /
@@ -36,6 +37,7 @@ describe('createPerformanceBudgetReport', () => {
         IMMERSIVE_PERFORMANCE_BUDGET.maxDrawCalls -
         IMMERSIVE_SCENE_BASELINE.drawCallCount,
       overBudgetBy: 0,
+      hasInvalidMeasurements: false,
     });
     expect(report.drawCalls.percentUsed).toBeCloseTo(
       IMMERSIVE_SCENE_BASELINE.drawCallCount /
@@ -49,6 +51,7 @@ describe('createPerformanceBudgetReport', () => {
         IMMERSIVE_PERFORMANCE_BUDGET.maxTextureBytes -
         IMMERSIVE_SCENE_BASELINE.textureBytes,
       overBudgetBy: 0,
+      hasInvalidMeasurements: false,
     });
     expect(report.textureBytes.percentUsed).toBeCloseTo(
       IMMERSIVE_SCENE_BASELINE.textureBytes /
@@ -76,6 +79,7 @@ describe('createPerformanceBudgetReport', () => {
       limit: 36,
       remaining: 0,
       overBudgetBy: 4,
+      hasInvalidMeasurements: false,
     });
     expect(report.materials.percentUsed).toBeCloseTo(40 / 36);
     expect(report.drawCalls).toMatchObject({
@@ -83,6 +87,7 @@ describe('createPerformanceBudgetReport', () => {
       limit: 150,
       remaining: 0,
       overBudgetBy: 60,
+      hasInvalidMeasurements: false,
     });
     expect(report.drawCalls.percentUsed).toBeCloseTo(210 / 150);
     expect(report.textureBytes).toMatchObject({
@@ -90,6 +95,7 @@ describe('createPerformanceBudgetReport', () => {
       limit: 24 * 1024 * 1024,
       remaining: 0,
       overBudgetBy: 6 * 1024 * 1024,
+      hasInvalidMeasurements: false,
     });
     expect(report.textureBytes.percentUsed).toBeCloseTo(30 / 24);
   });
@@ -112,8 +118,9 @@ describe('createPerformanceBudgetReport', () => {
       used: 0,
       limit: 0,
       remaining: 0,
-      overBudgetBy: 0,
-      percentUsed: 0,
+      overBudgetBy: 1,
+      percentUsed: 1,
+      hasInvalidMeasurements: true,
     });
     expect(report.drawCalls).toEqual({
       used: 5,
@@ -121,13 +128,15 @@ describe('createPerformanceBudgetReport', () => {
       remaining: 0,
       overBudgetBy: 5,
       percentUsed: 1,
+      hasInvalidMeasurements: false,
     });
     expect(report.textureBytes).toEqual({
       used: 0,
       limit: 0,
       remaining: 0,
-      overBudgetBy: 0,
-      percentUsed: 0,
+      overBudgetBy: 1,
+      percentUsed: 1,
+      hasInvalidMeasurements: true,
     });
     expect(report.isWithinBudget).toBe(false);
   });
