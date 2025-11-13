@@ -26,6 +26,9 @@ captures; keep artifacts in `docs/metrics/`.
   p95 INP <200 ms; LCP <2.5 s on fast 4G; initial interactive payload ≤1.5–2.0 MB gzipped.
   - ✅ Input latency telemetry now records keyboard and pointer lag, logging median, p95,
     and max values against the 200 ms INP budget whenever sessions end or failover triggers.
+  - ✅ Press kit exports now include a performance budget report that captures headroom for
+    materials, draw calls, and texture memory so marketing snapshots surface remaining
+    capacity alongside the baseline metrics.
 - **Accessibility gates** – axe CI reports 0 critical violations; full keyboard/touch parity;
   HUD controls expose ARIA labels and 48 px touch targets.
 - **Stability** – smoke build succeeds; console error budget stays at 0; Sentry (or console

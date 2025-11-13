@@ -5,6 +5,8 @@ import { FLOOR_PLAN } from '../assets/floorPlan';
 import {
   IMMERSIVE_PERFORMANCE_BUDGET,
   IMMERSIVE_SCENE_BASELINE,
+  createPerformanceBudgetReport,
+  type PerformanceBudgetReport,
   type PerformanceBudget,
   type ScenePerformanceSnapshot,
 } from '../assets/performance';
@@ -63,6 +65,7 @@ export interface PressKitSummary {
   performance: {
     budget: PerformanceBudget;
     baseline: ScenePerformanceSnapshot;
+    report: PerformanceBudgetReport;
   };
   totals: PressKitTotals;
   poiCatalog: PressKitPoiEntry[];
@@ -141,6 +144,10 @@ export function buildPressKitSummary(
     performance: {
       budget: { ...IMMERSIVE_PERFORMANCE_BUDGET },
       baseline: { ...IMMERSIVE_SCENE_BASELINE },
+      report: createPerformanceBudgetReport(
+        IMMERSIVE_SCENE_BASELINE,
+        IMMERSIVE_PERFORMANCE_BUDGET
+      ),
     },
     totals: {
       poiCount: poiCatalog.length,

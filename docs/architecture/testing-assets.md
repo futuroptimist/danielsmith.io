@@ -35,3 +35,8 @@ coverage remains comprehensive.
 
 Regenerate affected assets locally before committing so diffs stay deterministic.
 Document the update in commit messages when budgets or captures shift.
+
+`npm run press-kit` now emits a `performance.report` payload that mirrors the
+headroom calculations from `createPerformanceBudgetReport(...)`, making it easy
+to audit remaining materials, draw calls, and texture budgets in distribution
+artifacts.
