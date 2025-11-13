@@ -388,7 +388,12 @@ describe('createPrReaperConsole', () => {
     });
     expect(calmEscalationCall).toBe(false);
     const calmRefreshGlow = logGlowMaterial.opacity;
-    expect(calmRefreshGlow).toBeGreaterThanOrEqual(glowAfterCalm * 0.95);
+    // The calm mode glow should not decay more than 5% between updates.
+    // This threshold ensures the damping effect is working as intended.
+    const CALM_MODE_GLOW_DECAY_THRESHOLD = 0.95;
+    expect(calmRefreshGlow).toBeGreaterThanOrEqual(
+      glowAfterCalm * CALM_MODE_GLOW_DECAY_THRESHOLD
+    );
 
     delete document.documentElement.dataset.accessibilityPulseScale;
     const calmTickerCalls = tickerContext.fillText.mock.calls.length;

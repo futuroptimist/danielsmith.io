@@ -166,6 +166,8 @@ const INCIDENT_FEED: IncidentFeedFrame[] = [
   },
 ];
 
+// Base interval between incident feed rotations (in seconds).
+// If calm-mode is enabled elsewhere, this may be multiplied (e.g., 1x normal, 1.9x calm).
 const INCIDENT_FEED_INTERVAL_SECONDS = 9.5;
 
 function drawIncidentLog(
@@ -769,6 +771,7 @@ export function createPrReaperConsole(
     const pulse = (Math.sin(elapsed * 2.2) + 1) / 2;
     const deltaTime = Math.max(delta, 0);
 
+    // Calm-mode slows feed updates: 1.9x slower (pulseScale=0) to 1x normal (pulseScale=1)
     const calmIntervalMultiplier = MathUtils.lerp(1.9, 1, pulseScale);
     const feedInterval =
       INCIDENT_FEED_INTERVAL_SECONDS * calmIntervalMultiplier;
@@ -782,6 +785,7 @@ export function createPrReaperConsole(
       lastFeedSwapTime = elapsed;
     }
 
+    // Decay rate: 0.18/s (calm-mode) to 0.46/s (normal) - slower fade in calm mode
     const refreshDamping = MathUtils.lerp(0.18, 0.46, pulseScale);
     logRefreshGlow = Math.max(0, logRefreshGlow - deltaTime * refreshDamping);
     const walkwayBase = MathUtils.lerp(
@@ -889,6 +893,8 @@ export function createPrReaperConsole(
       surface.material.opacity = targetOpacity;
     });
 
+    // Base glow scales with emphasis (0.12-0.42), dampened in calm-mode (0.4x-1x),
+    // plus refresh boost on feed swap (0.24-0.62 based on pulseScale)
     const glowBase = MathUtils.lerp(0.12, 0.42, clampedEmphasis);
     const calmGlowScale = MathUtils.lerp(0.4, 1, pulseScale);
     const refreshBoost =
