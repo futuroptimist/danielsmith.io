@@ -353,6 +353,9 @@ Focus: make the experience inclusive and globally friendly.
   volume changes with or without sound enabled.
 - ✅ Ambient audio HUD strings now pull from the i18n catalog so toggle copy and announcements
   follow locale switches in real time.
+- ✅ Ambient audio HUD now flags pending toggles with an `aria-busy` hint and links its
+  volume value readout so assistive tech narrates asynchronous state changes without
+  losing context.
 
 3. **Localization Pipeline**
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.

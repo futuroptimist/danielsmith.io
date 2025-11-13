@@ -41,6 +41,8 @@ function isPromiseLike(value: unknown): value is PromiseLike<void> {
 
 const formatVolume = (volume: number) => `${Math.round(volume * 100)}%`;
 
+let audioHudInstanceCounter = 0;
+
 interface VolumeUiState {
   readonly valueDisplay: string;
   readonly ariaValueText: string;
@@ -89,6 +91,7 @@ export function createAudioHudControl({
   const wrapper = document.createElement('div');
   wrapper.className = 'audio-hud';
   wrapper.setAttribute('role', 'group');
+  wrapper.setAttribute('aria-busy', 'false');
 
   const toggleButton = document.createElement('button');
   toggleButton.type = 'button';
@@ -97,13 +100,15 @@ export function createAudioHudControl({
 
   const volumeLabel = document.createElement('label');
   volumeLabel.className = 'audio-volume';
-  volumeLabel.htmlFor = 'audio-volume-slider';
+  const instanceId = (audioHudInstanceCounter += 1);
+  const sliderId = `audio-volume-slider-${instanceId}`;
+  volumeLabel.htmlFor = sliderId;
   const labelText = document.createElement('span');
   labelText.className = 'audio-volume__label';
 
   const slider = document.createElement('input');
   slider.type = 'range';
-  slider.id = 'audio-volume-slider';
+  slider.id = sliderId;
   slider.className = 'audio-volume__slider';
   slider.name = 'ambient-audio-volume';
   slider.min = '0';
@@ -115,6 +120,9 @@ export function createAudioHudControl({
   const valueText = document.createElement('span');
   valueText.className = 'audio-volume__value';
   valueText.setAttribute('aria-live', 'polite');
+  const valueTextId = `audio-volume-value-${instanceId}`;
+  valueText.id = valueTextId;
+  slider.setAttribute('aria-describedby', valueTextId);
 
   volumeLabel.appendChild(labelText);
   volumeLabel.appendChild(slider);
@@ -200,6 +208,7 @@ export function createAudioHudControl({
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
     wrapper.dataset.pending = pending ? 'true' : 'false';
+    wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
     toggleButton.dataset.hudAnnounce = enabled
       ? toggleAnnouncements.on
       : toggleAnnouncements.off;

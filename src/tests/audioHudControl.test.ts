@@ -54,6 +54,8 @@ describe('createAudioHudControl', () => {
     const valueText = container.querySelector('.audio-volume__value');
     const wrapper = container.querySelector<HTMLDivElement>('.audio-hud');
     const label = container.querySelector('.audio-volume__label');
+    const labelElement =
+      container.querySelector<HTMLLabelElement>('label.audio-volume');
     const strings = getAudioHudControlStrings();
     const keyHint = resolveKeyHint(strings);
     const formatMutedAnnouncement = (volume: string) =>
@@ -67,7 +69,10 @@ describe('createAudioHudControl', () => {
 
     expect(button).toBeTruthy();
     expect(slider).toBeTruthy();
+    expect(labelElement?.htmlFor).toBe(slider?.id ?? null);
+    expect(slider?.id).toMatch(/^audio-volume-slider-\d+$/);
     expect(wrapper?.getAttribute('aria-label')).toBe(strings.groupLabel);
+    expect(wrapper?.getAttribute('aria-busy')).toBe('false');
     expect(label?.textContent).toBe(strings.slider.label);
     expect(button?.title).toBe(
       formatMessage(strings.toggle.titleTemplate, { keyHint })
@@ -76,6 +81,9 @@ describe('createAudioHudControl', () => {
     expect(slider?.getAttribute('aria-valuemin')).toBe('0');
     expect(slider?.getAttribute('aria-valuemax')).toBe('1');
     expect(slider?.getAttribute('aria-valuetext')).toBe(formatMutedAria('60%'));
+    expect(slider?.getAttribute('aria-describedby')).toBe(
+      valueText?.id ?? null
+    );
     expect(button?.dataset.hudAnnounce).toBe(
       formatMessage(strings.toggle.announcementOffTemplate, { keyHint })
     );
@@ -84,6 +92,7 @@ describe('createAudioHudControl', () => {
     button?.dispatchEvent(new Event('click'));
     expect(toggleCallCount).toBe(1);
     expect(button?.disabled).toBe(true);
+    expect(wrapper?.getAttribute('aria-busy')).toBe('true');
 
     // Second click while pending should be ignored.
     button?.dispatchEvent(new Event('click'));
@@ -95,6 +104,7 @@ describe('createAudioHudControl', () => {
 
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
+    expect(wrapper?.getAttribute('aria-busy')).toBe('false');
     expect(button?.dataset.hudAnnounce).toBe(
       formatMessage(strings.toggle.announcementOnTemplate, { keyHint })
     );
@@ -219,6 +229,8 @@ describe('createAudioHudControl', () => {
       '.audio-volume__slider'
     );
     const label = container.querySelector('.audio-volume__label');
+    const labelElement =
+      container.querySelector<HTMLLabelElement>('label.audio-volume');
     const wrapper = container.querySelector('.audio-hud');
     const valueText = container.querySelector('.audio-volume__value');
 
@@ -227,6 +239,7 @@ describe('createAudioHudControl', () => {
     handle.setStrings(pseudoStrings);
 
     expect(wrapper?.getAttribute('aria-label')).toBe(pseudoStrings.groupLabel);
+    expect(wrapper?.getAttribute('aria-busy')).toBe('false');
     expect(button?.title).toBe(
       formatMessage(pseudoStrings.toggle.titleTemplate, { keyHint })
     );
@@ -239,6 +252,10 @@ describe('createAudioHudControl', () => {
     expect(label?.textContent).toBe(pseudoStrings.slider.label);
     expect(slider?.getAttribute('aria-label')).toBe(
       pseudoStrings.slider.ariaLabel
+    );
+    expect(labelElement?.htmlFor).toBe(slider?.id ?? null);
+    expect(slider?.getAttribute('aria-describedby')).toBe(
+      valueText?.id ?? null
     );
     expect(slider?.dataset.hudAnnounce).toBe(
       formatMessage(pseudoStrings.slider.mutedAnnouncementTemplate, {
