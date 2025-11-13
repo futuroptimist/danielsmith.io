@@ -3,6 +3,7 @@ import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   it,
@@ -13,6 +14,8 @@ import {
 import { createPrReaperConsole } from '../scene/structures/prReaperConsole';
 
 const gradientStub = { addColorStop: vi.fn() };
+
+const mockContexts: CanvasRenderingContext2D[] = [];
 
 function createMockContext(this: HTMLCanvasElement): CanvasRenderingContext2D {
   const context = {
@@ -35,7 +38,18 @@ function createMockContext(this: HTMLCanvasElement): CanvasRenderingContext2D {
     textBaseline: 'alphabetic',
   } as Partial<CanvasRenderingContext2D>;
   Object.defineProperty(context, 'canvas', { value: this });
+  mockContexts.push(context as CanvasRenderingContext2D);
   return context as CanvasRenderingContext2D;
+}
+
+function getMockContextBySize(
+  width: number,
+  height: number
+): (CanvasRenderingContext2D & { fillText: SpyInstance }) | undefined {
+  return mockContexts.find((context) => {
+    const canvas = context.canvas as HTMLCanvasElement | undefined;
+    return canvas?.width === width && canvas?.height === height;
+  }) as (CanvasRenderingContext2D & { fillText: SpyInstance }) | undefined;
 }
 
 describe('createPrReaperConsole', () => {
@@ -53,6 +67,11 @@ describe('createPrReaperConsole', () => {
         }
         return createMockContext.call(this);
       });
+  });
+
+  beforeEach(() => {
+    mockContexts.length = 0;
+    gradientStub.addColorStop.mockClear();
   });
 
   afterEach(() => {
@@ -93,6 +112,9 @@ describe('createPrReaperConsole', () => {
     ).toBeInstanceOf(Mesh);
     expect(
       console.group.getObjectByName('PrReaperConsoleBeaconHalo-0')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      console.group.getObjectByName('PrReaperConsoleLogGlow')
     ).toBeInstanceOf(Mesh);
 
     expect(console.colliders).toHaveLength(2);
@@ -310,5 +332,75 @@ describe('createPrReaperConsole', () => {
     expect(calmTickerOffset).not.toBeCloseTo(midTickerOffset);
     expect(panelMaterial.opacity).toBeLessThanOrEqual(emphasizedPanelOpacity);
     expect(tickerMaterial.opacity).toBeLessThanOrEqual(emphasizedTickerOpacity);
+  });
+
+  it('streams triage feed updates with calm-mode ticker damping', () => {
+    const console = createPrReaperConsole({ position: { x: 0, z: 0 } });
+    const logContext = getMockContextBySize(768, 768);
+    const tickerContext = getMockContextBySize(1024, 256);
+    expect(logContext).toBeDefined();
+    expect(tickerContext).toBeDefined();
+    if (!logContext || !tickerContext) {
+      throw new Error('Expected log and ticker contexts to be created.');
+    }
+
+    const queueUpdateString = 'Queue health check streaming updates';
+    const escalationCode = 'OPS-404';
+    const initialQueueCall = tickerContext.fillText.mock.calls.some((call) => {
+      return String(call?.[0] ?? '').includes(queueUpdateString);
+    });
+    expect(initialQueueCall).toBe(false);
+    const initialEscalationCall = logContext.fillText.mock.calls.some(
+      (call) => {
+        return String(call?.[0] ?? '').includes(escalationCode);
+      }
+    );
+    expect(initialEscalationCall).toBe(false);
+
+    const logGlow = console.group.getObjectByName(
+      'PrReaperConsoleLogGlow'
+    ) as Mesh;
+    const logGlowMaterial = logGlow.material as MeshBasicMaterial;
+    const baseGlow = logGlowMaterial.opacity;
+
+    console.update({ elapsed: 10, delta: 0.016, emphasis: 0.6 });
+
+    expect(
+      tickerContext.fillText.mock.calls.some((call) => {
+        return String(call?.[0] ?? '').includes(queueUpdateString);
+      })
+    ).toBe(true);
+    const glowAfterFirst = logGlowMaterial.opacity;
+    expect(glowAfterFirst).toBeGreaterThan(baseGlow);
+    const tickerCallsAfterFirst = tickerContext.fillText.mock.calls.length;
+
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    console.update({ elapsed: 19, delta: 0.016, emphasis: 0.6 });
+    expect(tickerContext.fillText.mock.calls.length).toBe(
+      tickerCallsAfterFirst
+    );
+    const glowAfterCalm = logGlowMaterial.opacity;
+    expect(glowAfterCalm).toBeLessThanOrEqual(glowAfterFirst);
+
+    console.update({ elapsed: 27, delta: 0.016, emphasis: 0.6 });
+    const calmEscalationCall = logContext.fillText.mock.calls.some((call) => {
+      return String(call?.[0] ?? '').includes(escalationCode);
+    });
+    expect(calmEscalationCall).toBe(false);
+    const calmRefreshGlow = logGlowMaterial.opacity;
+    expect(calmRefreshGlow).toBeGreaterThanOrEqual(glowAfterCalm * 0.95);
+
+    delete document.documentElement.dataset.accessibilityPulseScale;
+    const calmTickerCalls = tickerContext.fillText.mock.calls.length;
+    console.update({ elapsed: 29, delta: 0.016, emphasis: 0.85 });
+    expect(
+      logContext.fillText.mock.calls.some((call) => {
+        return String(call?.[0] ?? '').includes(escalationCode);
+      })
+    ).toBe(true);
+    expect(tickerContext.fillText.mock.calls.length).toBeGreaterThanOrEqual(
+      calmTickerCalls
+    );
+    expect(logGlowMaterial.opacity).toBeGreaterThanOrEqual(calmRefreshGlow);
   });
 });

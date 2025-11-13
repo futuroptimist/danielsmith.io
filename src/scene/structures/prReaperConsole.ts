@@ -44,6 +44,21 @@ interface IncidentLogEntry {
   summary: string;
 }
 
+interface IncidentFeedFrame {
+  entries: IncidentLogEntry[];
+  tickerMessages: string[];
+}
+
+interface IncidentLogRenderer {
+  texture: CanvasTexture;
+  setEntries(entries: IncidentLogEntry[]): void;
+}
+
+interface IncidentTickerRenderer {
+  texture: CanvasTexture;
+  setMessages(messages: string[]): void;
+}
+
 interface SeveritySegment {
   material: MeshStandardMaterial;
   baseIntensity: number;
@@ -71,59 +86,126 @@ const INCIDENT_SEVERITY: Record<IncidentLogEntry['status'], number> = {
   escalated: 1,
 };
 
-function createIncidentLogTexture(entries: IncidentLogEntry[]): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 768;
-  canvas.height = 768;
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('Unable to create PR Reaper incident log texture.');
-  }
+const INCIDENT_FEED: IncidentFeedFrame[] = [
+  {
+    entries: [
+      {
+        code: 'PR-187',
+        status: 'investigating',
+        summary: 'Codex queue spike flagged by console budget monitor.',
+      },
+      {
+        code: 'INF-042',
+        status: 'stable',
+        summary: 'Telemetry sweep confirms guided tour reset is healthy.',
+      },
+      {
+        code: 'OPS-311',
+        status: 'escalated',
+        summary:
+          'Nightly release triage stalled — awaiting maintainer signoff.',
+      },
+    ],
+    tickerMessages: [
+      '[ops] PR backlog triage sync running',
+      '[alerts] 0 blocking incidents • 3 informational pings',
+      '[automation] Codex pass rate steady at 99.4%',
+    ],
+  },
+  {
+    entries: [
+      {
+        code: 'OPS-372',
+        status: 'investigating',
+        summary: 'Queue health check routing Codex follow-ups to async triage.',
+      },
+      {
+        code: 'ENG-127',
+        status: 'stable',
+        summary:
+          'Canary deploys clean — observability beacons green across stack.',
+      },
+      {
+        code: 'PR-245',
+        status: 'escalated',
+        summary:
+          'Review gating automation flagged stale approvals for maintainer eyes.',
+      },
+    ],
+    tickerMessages: [
+      '[codex] Queue health check streaming updates in real time',
+      '[signals] Calm-mode damping active across triage feeds',
+      '[status] Automation cadence steady • 1 follow-up pending',
+    ],
+  },
+  {
+    entries: [
+      {
+        code: 'OPS-404',
+        status: 'investigating',
+        summary:
+          'Night shift rerouted backlog through PR Reaper async pairing bay.',
+      },
+      {
+        code: 'INF-221',
+        status: 'stable',
+        summary:
+          'Guided tour instrumentation confirms console budget baseline.',
+      },
+      {
+        code: 'PR-512',
+        status: 'escalated',
+        summary: 'Urgent hotfix requires maintainer pairing within SLA window.',
+      },
+    ],
+    tickerMessages: [
+      '[triage] Async pairing bay cleared remaining backlog wave',
+      '[ops] Queue health check signal receded below alert threshold',
+      '[automation] Codex KPIs holding • zero regressions detected',
+    ],
+  },
+];
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
+const INCIDENT_FEED_INTERVAL_SECONDS = 9.5;
 
-  const background = context.createLinearGradient(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
+function drawIncidentLog(
+  context: CanvasRenderingContext2D,
+  entries: IncidentLogEntry[]
+): void {
+  const canvas = context.canvas as HTMLCanvasElement | undefined;
+  const width = canvas?.width ?? 768;
+  const height = canvas?.height ?? 768;
+
+  context.clearRect(0, 0, width, height);
+
+  const background = context.createLinearGradient(0, 0, width, height);
   background.addColorStop(0, 'rgba(10, 22, 34, 0.92)');
   background.addColorStop(1, 'rgba(18, 40, 58, 0.88)');
   context.fillStyle = background;
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, width, height);
 
   context.fillStyle = 'rgba(85, 207, 255, 0.22)';
-  context.fillRect(
-    canvas.width * 0.05,
-    canvas.height * 0.09,
-    canvas.width * 0.9,
-    4
-  );
+  context.fillRect(width * 0.05, height * 0.09, width * 0.9, 4);
 
   context.font = '600 48px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = 'rgba(158, 224, 255, 0.92)';
   context.textAlign = 'left';
   context.textBaseline = 'alphabetic';
-  context.fillText(
-    'Incident review queue',
-    canvas.width * 0.08,
-    canvas.height * 0.16
-  );
+  context.fillText('Incident review queue', width * 0.08, height * 0.16);
 
   context.font = '500 30px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = 'rgba(112, 178, 220, 0.9)';
   context.fillText(
     'Auto-triage highlights • Recent Codex signals',
-    canvas.width * 0.08,
-    canvas.height * 0.22
+    width * 0.08,
+    height * 0.22
   );
 
-  const rowHeight = canvas.height * 0.14;
-  const rowLeft = canvas.width * 0.06;
-  const rowWidth = canvas.width * 0.88;
+  const rowHeight = height * 0.14;
+  const rowLeft = width * 0.06;
+  const rowWidth = width * 0.88;
   entries.forEach((entry, index) => {
-    const top = canvas.height * 0.26 + index * rowHeight;
+    const top = height * 0.26 + index * rowHeight;
     const bottom = top + rowHeight * 0.88;
     context.fillStyle =
       index % 2 === 0 ? 'rgba(20, 44, 68, 0.38)' : 'rgba(26, 56, 82, 0.42)';
@@ -149,6 +231,56 @@ function createIncidentLogTexture(entries: IncidentLogEntry[]): CanvasTexture {
     );
     context.textAlign = 'left';
   });
+}
+
+function drawIncidentTicker(
+  context: CanvasRenderingContext2D,
+  messages: string[]
+): void {
+  const canvas = context.canvas as HTMLCanvasElement | undefined;
+  const width = canvas?.width ?? 1024;
+  const height = canvas?.height ?? 256;
+
+  context.clearRect(0, 0, width, height);
+  const gradient = context.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, 'rgba(12, 32, 54, 0.92)');
+  gradient.addColorStop(1, 'rgba(18, 52, 80, 0.85)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, width, height);
+
+  context.font = '600 48px "Inter", "Segoe UI", sans-serif';
+  context.fillStyle = 'rgba(105, 223, 255, 0.94)';
+  context.textAlign = 'left';
+  context.textBaseline = 'middle';
+
+  const laneY = height / 2;
+  const segment = width / Math.max(messages.length, 1);
+  messages.forEach((message, index) => {
+    const x = 24 + index * segment;
+    context.fillText(message, x, laneY);
+  });
+
+  context.fillText(messages[0] ?? '', 24 + messages.length * segment, laneY);
+}
+
+function resolveHighestSeverity(entries: IncidentLogEntry[]): number {
+  return entries.reduce((max, entry) => {
+    return Math.max(max, INCIDENT_SEVERITY[entry.status]);
+  }, 0);
+}
+
+function createIncidentLogRenderer(
+  entries: IncidentLogEntry[]
+): IncidentLogRenderer {
+  const canvas = document.createElement('canvas');
+  canvas.width = 768;
+  canvas.height = 768;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to create PR Reaper incident log texture.');
+  }
+
+  drawIncidentLog(context, entries);
 
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
@@ -156,10 +288,19 @@ function createIncidentLogTexture(entries: IncidentLogEntry[]): CanvasTexture {
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.needsUpdate = true;
-  return texture;
+
+  return {
+    texture,
+    setEntries(nextEntries) {
+      drawIncidentLog(context, nextEntries);
+      texture.needsUpdate = true;
+    },
+  };
 }
 
-function createIncidentTickerTexture(messages: string[]): CanvasTexture {
+function createIncidentTickerRenderer(
+  messages: string[]
+): IncidentTickerRenderer {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
   canvas.height = 256;
@@ -168,31 +309,7 @@ function createIncidentTickerTexture(messages: string[]): CanvasTexture {
     throw new Error('Unable to create PR Reaper ticker texture.');
   }
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  const gradient = context.createLinearGradient(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-  gradient.addColorStop(0, 'rgba(12, 32, 54, 0.92)');
-  gradient.addColorStop(1, 'rgba(18, 52, 80, 0.85)');
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  context.font = '600 48px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = 'rgba(105, 223, 255, 0.94)';
-  context.textAlign = 'left';
-  context.textBaseline = 'middle';
-
-  const laneY = canvas.height / 2;
-  const segment = canvas.width / Math.max(messages.length, 1);
-  messages.forEach((message, index) => {
-    const x = 24 + index * segment;
-    context.fillText(message, x, laneY);
-  });
-
-  context.fillText(messages[0] ?? '', 24 + messages.length * segment, laneY);
+  drawIncidentTicker(context, messages);
 
   const texture = new CanvasTexture(canvas);
   texture.wrapS = RepeatWrapping;
@@ -200,7 +317,14 @@ function createIncidentTickerTexture(messages: string[]): CanvasTexture {
   texture.minFilter = LinearFilter;
   texture.magFilter = LinearFilter;
   texture.needsUpdate = true;
-  return texture;
+
+  return {
+    texture,
+    setMessages(nextMessages) {
+      drawIncidentTicker(context, nextMessages);
+      texture.needsUpdate = true;
+    },
+  };
 }
 
 function createCollider(
@@ -451,27 +575,10 @@ export function createPrReaperConsole(
   logTable.position.set(0, deckHeight + 0.36, -0.86);
   group.add(logTable);
 
-  const incidentEntries: IncidentLogEntry[] = [
-    {
-      code: 'PR-187',
-      status: 'investigating',
-      summary: 'Codex queue spike flagged by console budget monitor.',
-    },
-    {
-      code: 'INF-042',
-      status: 'stable',
-      summary: 'Telemetry sweep confirms guided tour reset is healthy.',
-    },
-    {
-      code: 'OPS-311',
-      status: 'escalated',
-      summary: 'Nightly release triage stalled — awaiting maintainer signoff.',
-    },
-  ];
-  const highestIncidentSeverity = incidentEntries.reduce((max, entry) => {
-    return Math.max(max, INCIDENT_SEVERITY[entry.status]);
-  }, 0);
-  const logTexture = createIncidentLogTexture(incidentEntries);
+  const incidentFeed = INCIDENT_FEED;
+  const initialFrame = incidentFeed[0];
+  const logRenderer = createIncidentLogRenderer(initialFrame.entries);
+  const logTexture = logRenderer.texture;
   const logMaterial = new MeshBasicMaterial({
     map: logTexture,
     transparent: true,
@@ -484,6 +591,7 @@ export function createPrReaperConsole(
   logPanel.position.set(0.12, deckHeight + 0.78, logTable.position.z + 0.04);
   logPanel.rotation.x = -Math.PI / 11;
   logPanel.rotation.y = Math.PI * 0.03;
+  logPanel.renderOrder = 15;
   group.add(logPanel);
   logSurfaces.push({
     material: logMaterial,
@@ -492,11 +600,32 @@ export function createPrReaperConsole(
     baseOpacity: logMaterial.opacity,
   });
 
-  const tickerTexture = createIncidentTickerTexture([
-    '[ops] PR backlog triage sync running',
-    '[alerts] 0 blocking incidents • 3 informational pings',
-    '[automation] Codex pass rate steady at 99.4%',
-  ]);
+  const logGlowMaterial = new MeshBasicMaterial({
+    color: new Color(0x65d9ff),
+    transparent: true,
+    opacity: 0.18,
+    depthWrite: false,
+    side: DoubleSide,
+  });
+  const logGlow = new Mesh(new PlaneGeometry(1.22, 0.68), logGlowMaterial);
+  logGlow.name = 'PrReaperConsoleLogGlow';
+  logGlow.position.copy(logPanel.position);
+  logGlow.position.x -= 0.02;
+  logGlow.position.y += 0.01;
+  logGlow.position.z += 0.015;
+  logGlow.rotation.copy(logPanel.rotation);
+  logGlow.renderOrder = logPanel.renderOrder + 1;
+  group.add(logGlow);
+
+  let highestIncidentSeverity = resolveHighestSeverity(initialFrame.entries);
+  let activeFeedIndex = 0;
+  let lastFeedSwapTime = 0;
+  let logRefreshGlow = 0;
+
+  const tickerRenderer = createIncidentTickerRenderer(
+    initialFrame.tickerMessages
+  );
+  const tickerTexture = tickerRenderer.texture;
   const tickerMaterial = new MeshBasicMaterial({
     map: tickerTexture,
     transparent: true,
@@ -628,6 +757,7 @@ export function createPrReaperConsole(
 
   const update = ({
     elapsed,
+    delta,
     emphasis,
   }: {
     elapsed: number;
@@ -635,8 +765,25 @@ export function createPrReaperConsole(
     emphasis: number;
   }) => {
     const clampedEmphasis = MathUtils.clamp(emphasis, 0, 1);
-    const pulse = (Math.sin(elapsed * 2.2) + 1) / 2;
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const pulse = (Math.sin(elapsed * 2.2) + 1) / 2;
+    const deltaTime = Math.max(delta, 0);
+
+    const calmIntervalMultiplier = MathUtils.lerp(1.9, 1, pulseScale);
+    const feedInterval =
+      INCIDENT_FEED_INTERVAL_SECONDS * calmIntervalMultiplier;
+    if (elapsed - lastFeedSwapTime >= feedInterval) {
+      activeFeedIndex = (activeFeedIndex + 1) % incidentFeed.length;
+      const frame = incidentFeed[activeFeedIndex];
+      logRenderer.setEntries(frame.entries);
+      tickerRenderer.setMessages(frame.tickerMessages);
+      highestIncidentSeverity = resolveHighestSeverity(frame.entries);
+      logRefreshGlow = 1;
+      lastFeedSwapTime = elapsed;
+    }
+
+    const refreshDamping = MathUtils.lerp(0.18, 0.46, pulseScale);
+    logRefreshGlow = Math.max(0, logRefreshGlow - deltaTime * refreshDamping);
     const walkwayBase = MathUtils.lerp(
       0.2,
       0.68,
@@ -741,6 +888,16 @@ export function createPrReaperConsole(
       );
       surface.material.opacity = targetOpacity;
     });
+
+    const glowBase = MathUtils.lerp(0.12, 0.42, clampedEmphasis);
+    const calmGlowScale = MathUtils.lerp(0.4, 1, pulseScale);
+    const refreshBoost =
+      logRefreshGlow * MathUtils.lerp(0.24, 0.62, pulseScale);
+    logGlowMaterial.opacity = MathUtils.clamp(
+      glowBase * calmGlowScale + refreshBoost,
+      0.06,
+      0.9
+    );
 
     cautionBeacons.forEach((beacon, index) => {
       const activation = MathUtils.clamp(
