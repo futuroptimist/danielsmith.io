@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   IMMERSIVE_PERFORMANCE_BUDGET,
   IMMERSIVE_SCENE_BASELINE,
+  createPerformanceBudgetReport,
 } from '../assets/performance';
 import { PRESS_KIT_MEDIA_ASSETS } from '../assets/pressKitMedia';
 import * as registry from '../scene/poi/registry';
@@ -34,6 +35,12 @@ describe('buildPressKitSummary', () => {
     expect(summary.generatedAtIso).toBe('2024-06-01T12:34:56.000Z');
     expect(summary.performance.budget).toEqual(IMMERSIVE_PERFORMANCE_BUDGET);
     expect(summary.performance.baseline).toEqual(IMMERSIVE_SCENE_BASELINE);
+    expect(summary.performance.report).toEqual(
+      createPerformanceBudgetReport(
+        IMMERSIVE_SCENE_BASELINE,
+        IMMERSIVE_PERFORMANCE_BUDGET
+      )
+    );
     expect(summary.poiCatalog).toHaveLength(definitions.length);
     expect(summary.totals.poiCount).toBe(definitions.length);
     expect(summary.totals.roomsRepresented).toBe(expectedRooms);
