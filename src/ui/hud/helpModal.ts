@@ -57,6 +57,28 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+const applyVisuallyHiddenStyles = (element: HTMLElement) => {
+  element.style.position = 'absolute';
+  element.style.width = '1px';
+  element.style.height = '1px';
+  element.style.padding = '0';
+  element.style.margin = '-1px';
+  element.style.overflow = 'hidden';
+  element.style.clip = 'rect(0, 0, 0, 0)';
+  element.style.whiteSpace = 'nowrap';
+  element.style.border = '0';
+};
+
+const sanitizeAnnouncement = (value?: string | null): string | null => {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : null;
+};
+
+const resolveAnnouncements = (content: HelpModalContent) => ({
+  open: sanitizeAnnouncement(content.announcements?.open),
+  close: sanitizeAnnouncement(content.announcements?.close),
+});
+
 function createList(
   section: HelpModalSection,
   container: HTMLElement
@@ -104,6 +126,8 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     closeAriaLabel,
     settings,
   } = content;
+  let announcements = resolveAnnouncements(content);
+  let lastAnnouncement: string | null = null;
 
   const backdrop = document.createElement('div');
   backdrop.className = 'help-modal-backdrop';
@@ -204,6 +228,25 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   backdrop.appendChild(modal);
   container.appendChild(backdrop);
 
+  const liveRegion = document.createElement('div');
+  liveRegion.dataset.helpModalAnnouncer = 'true';
+  liveRegion.setAttribute('role', 'status');
+  liveRegion.setAttribute('aria-live', 'polite');
+  liveRegion.setAttribute('aria-atomic', 'true');
+  applyVisuallyHiddenStyles(liveRegion);
+  container.appendChild(liveRegion);
+
+  const announce = (message: string | null) => {
+    if (!message || message === lastAnnouncement) {
+      return;
+    }
+    liveRegion.textContent = '';
+    setTimeout(() => {
+      liveRegion.textContent = message;
+      lastAnnouncement = message;
+    }, 50);
+  };
+
   let open = false;
   let previouslyFocused: HTMLElement | null = null;
 
@@ -254,6 +297,7 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     backdrop.dataset.state = 'open';
     document.addEventListener('keydown', handleKeydown);
     focusModal();
+    announce(announcements.open);
   };
 
   const closeModal = () => {
@@ -264,6 +308,7 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     backdrop.hidden = true;
     delete backdrop.dataset.state;
     document.removeEventListener('keydown', handleKeydown);
+    announce(announcements.close);
     if (previouslyFocused && document.contains(previouslyFocused)) {
       previouslyFocused.focus();
     }
@@ -314,6 +359,9 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     invokeClose();
     backdrop.removeEventListener('click', handleBackdropClick);
     closeButton.removeEventListener('click', handleCloseClick);
+    if (liveRegion.parentElement) {
+      liveRegion.remove();
+    }
     backdrop.remove();
   };
 
@@ -363,6 +411,8 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
           target.description.textContent = item.description;
         });
       });
+      announcements = resolveAnnouncements(nextContent);
+      lastAnnouncement = null;
     },
     dispose,
   };

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
 import { getHelpModalStrings } from '../assets/i18n';
 import { createHelpModal } from '../ui/hud/helpModal';
@@ -32,6 +32,10 @@ function cloneContent() {
 describe('createHelpModal', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('is hidden by default and toggles visibility when opened', () => {
@@ -151,6 +155,69 @@ describe('createHelpModal', () => {
 
     handle.close();
     expect(document.activeElement).toBe(before);
+  });
+
+  it('announces open and close states through a live region', () => {
+    vi.useFakeTimers();
+    const content = cloneContent();
+    const handle = createHelpModal({
+      container: document.body,
+      content,
+    });
+
+    const announcer = document.querySelector(
+      '[data-help-modal-announcer="true"]'
+    );
+    expect(announcer).toBeInstanceOf(HTMLElement);
+    expect(announcer?.getAttribute('aria-live')).toBe('polite');
+
+    handle.open();
+    vi.runOnlyPendingTimers();
+    expect(announcer?.textContent).toBe(content.announcements.open);
+
+    handle.close();
+    vi.runOnlyPendingTimers();
+    expect(announcer?.textContent).toBe(content.announcements.close);
+
+    handle.dispose();
+  });
+
+  it('refreshes announcements when content updates and ignores empty values', () => {
+    vi.useFakeTimers();
+    const content = cloneContent();
+    content.announcements = { open: '', close: 'close-now' };
+    const handle = createHelpModal({
+      container: document.body,
+      content,
+    });
+
+    const announcer = document.querySelector(
+      '[data-help-modal-announcer="true"]'
+    );
+    expect(announcer).toBeInstanceOf(HTMLElement);
+
+    handle.open();
+    vi.runOnlyPendingTimers();
+    expect(announcer?.textContent).toBe('');
+
+    handle.close();
+    vi.runOnlyPendingTimers();
+    expect(announcer?.textContent).toBe('close-now');
+
+    const nextContent = cloneContent();
+    nextContent.announcements.open = 'open-next';
+    nextContent.announcements.close = 'close-next';
+    handle.setContent(nextContent);
+
+    handle.open();
+    vi.runOnlyPendingTimers();
+    expect(announcer?.textContent).toBe('open-next');
+
+    handle.close();
+    vi.runOnlyPendingTimers();
+    expect(announcer?.textContent).toBe('close-next');
+
+    handle.dispose();
   });
 
   it('disposes elements and listeners on dispose', () => {
