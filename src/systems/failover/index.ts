@@ -10,7 +10,12 @@ import {
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
 import { initializeModeAnnouncementObserver } from '../../ui/accessibility/modeAnnouncer';
-import { createImmersiveModeUrl } from '../../ui/immersiveUrl';
+import {
+  createImmersiveModeUrl,
+  getModeFromSearch,
+  IMMERSIVE_MODE_VALUE,
+  TEXT_MODE_VALUE,
+} from '../../ui/immersiveUrl';
 
 import {
   readModePreference as readStoredModePreference,
@@ -274,8 +279,7 @@ export function evaluateFailoverDecision(
   const search =
     options.search ??
     (typeof window !== 'undefined' ? window.location.search : '');
-  const params = new URLSearchParams(search);
-  const mode = params.get('mode');
+  const mode = getModeFromSearch(search);
 
   let storedPreference: ModePreference | null = null;
   const readPreference = options.getModePreference ?? readStoredModePreference;
@@ -320,15 +324,15 @@ export function evaluateFailoverDecision(
   const hasSlowConnection =
     normalizedEffectiveType === 'slow-2g' || normalizedEffectiveType === '2g';
 
-  if (mode === 'text') {
+  if (mode === TEXT_MODE_VALUE) {
     return { shouldUseFallback: true, reason: 'manual' };
   }
 
-  if (mode === 'immersive') {
+  if (mode === IMMERSIVE_MODE_VALUE) {
     return { shouldUseFallback: false };
   }
 
-  if ((!mode || mode.length === 0) && storedPreference === 'text') {
+  if (!mode && storedPreference === TEXT_MODE_VALUE) {
     return { shouldUseFallback: true, reason: 'manual' };
   }
 
