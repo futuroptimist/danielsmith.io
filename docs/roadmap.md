@@ -45,6 +45,8 @@ captures; keep artifacts in `docs/metrics/`.
   - ✅ Low-performance failover logs now surface min/median/p95 FPS and sample counts for telemetry handoff.
   - ✅ Data-saver and console-error failovers now narrate their reason through the mode announcer
     so assistive tech users understand why the text tour launched.
+  - ✅ Link preview scrapers (Slack, Twitter, Discord, LinkedIn) now force the text portfolio via
+    user-agent heuristics so social shares render consistently without JavaScript.
 
 ## Phase 0 – Foundations (Shipped)
 
