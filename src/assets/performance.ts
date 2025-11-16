@@ -80,7 +80,10 @@ const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
   const normalizedUsed = normalizeValue(used);
   const normalizedLimit = normalizeValue(limit);
   const remaining = Math.max(0, normalizedLimit.value - normalizedUsed.value);
-  const overBudgetBy = Math.max(0, normalizedUsed.value - normalizedLimit.value);
+  const overBudgetBy = Math.max(
+    0,
+    normalizedUsed.value - normalizedLimit.value
+  );
   const percentUsed =
     normalizedLimit.value === 0
       ? normalizedUsed.value > 0
@@ -97,8 +100,7 @@ const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
       used: normalizedUsed.value,
       limit: normalizedLimit.value,
       remaining: 0,
-      overBudgetBy:
-        overBudgetBy > 0 ? overBudgetBy : fallbackOverBudget,
+      overBudgetBy: overBudgetBy > 0 ? overBudgetBy : fallbackOverBudget,
       percentUsed: 1,
       hasInvalidMeasurements,
     };
