@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createImmersiveModeUrl,
   createTextModeUrl,
+  getModeFromSearch,
   hasImmersiveOverride,
   hasPerformanceFailoverBypass,
   shouldDisablePerformanceFailover,
@@ -109,6 +110,14 @@ describe('createTextModeUrl', () => {
 });
 
 describe('immersive flag helpers', () => {
+  it('reads mode selections from search strings and param instances', () => {
+    expect(getModeFromSearch('?mode=immersive&feature=preview')).toBe(
+      'immersive'
+    );
+    expect(getModeFromSearch(new URLSearchParams('mode=text'))).toBe('text');
+    expect(getModeFromSearch('mode=unknown')).toBeNull();
+  });
+
   it('detects immersive override and bypass params independently', () => {
     expect(hasImmersiveOverride('mode=immersive')).toBe(true);
     expect(hasPerformanceFailoverBypass('disablePerformanceFailover=1')).toBe(

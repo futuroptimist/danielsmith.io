@@ -3,6 +3,10 @@ export const IMMERSIVE_MODE_VALUE = 'immersive';
 export const DISABLE_PERFORMANCE_FAILOVER_PARAM = 'disablePerformanceFailover';
 export const DISABLE_PERFORMANCE_FAILOVER_VALUE = '1';
 export const TEXT_MODE_VALUE = 'text';
+export type ModeSelection =
+  | typeof IMMERSIVE_MODE_VALUE
+  | typeof TEXT_MODE_VALUE
+  | null;
 
 type QueryParamValue = string | number | boolean | null | undefined;
 
@@ -142,6 +146,20 @@ export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>
 
 const toSearchParams = (value: string | URLSearchParams): URLSearchParams =>
   typeof value === 'string' ? new URLSearchParams(value) : value;
+
+export const getModeFromSearch = (
+  value: string | URLSearchParams
+): ModeSelection => {
+  const params = toSearchParams(value);
+  const mode = params.get(IMMERSIVE_MODE_PARAM);
+  if (mode === IMMERSIVE_MODE_VALUE) {
+    return IMMERSIVE_MODE_VALUE;
+  }
+  if (mode === TEXT_MODE_VALUE) {
+    return TEXT_MODE_VALUE;
+  }
+  return null;
+};
 
 export const hasImmersiveOverride = (value: string | URLSearchParams) => {
   const params = toSearchParams(value);
