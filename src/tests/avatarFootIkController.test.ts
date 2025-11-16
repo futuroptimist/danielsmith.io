@@ -48,7 +48,7 @@ describe('createAvatarFootIkController', () => {
     expect(pelvis.position.y).toBeCloseTo(1, 6);
   });
 
-  it('tilts feet to follow sampled slope along their forward axis', () => {
+  it('tilts feet to follow sampled slopes sampled ahead and behind', () => {
     const pelvis = new Group();
     const leftFoot = new Group();
     leftFoot.position.set(-0.2, 0, 0);
@@ -79,16 +79,87 @@ describe('createAvatarFootIkController', () => {
       delta: 1 / 60,
       sampleHeight({ y }, foot) {
         if (foot === 'right') {
-          return y >= 0.4 ? 0.3 : 0.15;
+          return y * 0.8;
         }
-        return 0.1;
+        return 0.05;
       },
     });
 
     const rotationDiff = rightFoot.rotation.x - baseRotation;
-    expect(rotationDiff).toBeGreaterThan(0.3);
+    expect(rotationDiff).toBeGreaterThan(0.6);
     expect(rotationDiff).toBeLessThanOrEqual(Math.PI / 4 + 1e-6);
     expect(Math.abs(leftFoot.rotation.x)).toBeLessThan(1e-6);
+  });
+
+  it('keeps feet stable when the forward sample drops off a stair edge', () => {
+    const pelvis = new Group();
+    const leftFoot = new Group();
+    const rightFoot = new Group();
+    rightFoot.position.set(0.2, 0, 0);
+    pelvis.add(leftFoot);
+    pelvis.add(rightFoot);
+
+    const controller = createAvatarFootIkController({
+      leftFoot,
+      rightFoot,
+      pelvis,
+      maxFootOffset: 1,
+      maxFootPitch: Math.PI / 4,
+      slopeSampleDistance: 0.4,
+      smoothing: {
+        foot: Number.POSITIVE_INFINITY,
+        rotation: Number.POSITIVE_INFINITY,
+        pelvis: Number.POSITIVE_INFINITY,
+      },
+      pelvisWeight: 0,
+    });
+
+    const baseRotation = rightFoot.rotation.x;
+
+    controller.update({
+      delta: 1 / 60,
+      sampleHeight({ y }, foot) {
+        if (foot === 'right') {
+          if (y > 0.25) {
+            return 0;
+          }
+          return 0.3;
+        }
+        return 0;
+      },
+    });
+
+    const rotationDiff = rightFoot.rotation.x - baseRotation;
+    expect(rotationDiff).toBeLessThan(-0.15);
+    expect(rotationDiff).toBeGreaterThan(-0.5);
+  });
+
+  it('avoids NaN slopes when the sample distance is zero', () => {
+    const leftFoot = new Group();
+    const rightFoot = new Group();
+    rightFoot.position.set(0.2, 0, 0.1);
+
+    const controller = createAvatarFootIkController({
+      leftFoot,
+      rightFoot,
+      maxFootOffset: 0.6,
+      slopeSampleDistance: 0,
+      smoothing: {
+        foot: Number.POSITIVE_INFINITY,
+        rotation: Number.POSITIVE_INFINITY,
+      },
+    });
+
+    controller.update({
+      delta: 1 / 60,
+      sampleHeight({ x, y }) {
+        return (x + y) * 0.5;
+      },
+    });
+
+    expect(Number.isFinite(rightFoot.rotation.x)).toBe(true);
+    expect(Math.abs(rightFoot.rotation.x)).toBeLessThan(1e-3);
+    controller.dispose();
   });
 
   it('falls back to default forward axis when foot orientation points upward', () => {
@@ -128,7 +199,7 @@ describe('createAvatarFootIkController', () => {
     });
 
     const fallbackDiff = rightFoot.rotation.x - baseRotation;
-    expect(fallbackDiff).toBeGreaterThan(0.25);
+    expect(fallbackDiff).toBeGreaterThan(0.12);
     expect(fallbackDiff).toBeLessThanOrEqual(Math.PI / 4 + 1e-6);
   });
 

@@ -400,6 +400,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
    - ✅ IK adjustments to align feet with uneven terrain/stairs.
      - ✅ Landing samples now respect the upper floor slab thickness so feet rest flush on the
        loft landing.
+     - ✅ Foot IK now samples ahead and behind each step so feet stay level on stair edges and
+       uneven walkways.
 
 3. **Self-Representation Touches**
    - ✅ Selfie mirror kiosk now renders a live avatar preview on a holographic panel near the

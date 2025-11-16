@@ -128,6 +128,7 @@ export function createAvatarFootIkController({
 
   const footWorldPosition = new Vector3();
   const aheadPosition = new Vector3();
+  const behindPosition = new Vector3();
   const footForward = new Vector3();
   const sampleVector = new Vector2();
   const footQuaternion = new Quaternion();
@@ -181,9 +182,14 @@ export function createAvatarFootIkController({
 
     aheadPosition.copy(footWorldPosition);
     aheadPosition.addScaledVector(footForward, slopeSampleDistance);
+    behindPosition.copy(footWorldPosition);
+    behindPosition.addScaledVector(footForward, -slopeSampleDistance);
+
     const aheadHeight = sampleHeight(aheadPosition, state.label, context);
-    const slope = aheadHeight - targetHeight;
-    const slopeAngle = Math.atan2(slope, slopeSampleDistance);
+    const behindHeight = sampleHeight(behindPosition, state.label, context);
+    const safeSampleDistance = Math.max(Math.abs(slopeSampleDistance), 1e-3);
+    const slopeDelta = aheadHeight - behindHeight;
+    const slopeAngle = Math.atan2(slopeDelta, safeSampleDistance * 2);
     const clampedAngle = MathUtils.clamp(
       slopeAngle,
       -Math.abs(maxFootPitch),
