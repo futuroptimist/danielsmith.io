@@ -237,13 +237,15 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   container.appendChild(liveRegion);
 
   const announce = (message: string | null) => {
-    const trimmed = message?.trim();
-    if (!trimmed || trimmed === lastAnnouncement) {
+    const sanitized = sanitizeAnnouncement(message);
+    if (!sanitized || sanitized === lastAnnouncement) {
       return;
     }
     liveRegion.textContent = '';
-    liveRegion.textContent = trimmed;
-    lastAnnouncement = trimmed;
+    setTimeout(() => {
+      liveRegion.textContent = sanitized;
+      lastAnnouncement = sanitized;
+    }, 50);
   };
 
   let open = false;
