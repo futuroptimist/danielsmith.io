@@ -235,7 +235,7 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
-  it('routes social and chat link expanders to text mode', () => {
+  it('routes social and chat link expanders to text mode when mode is not forced', () => {
     const userAgents = [
       'facebookexternalhit/1.1',
       'Twitterbot/1.0',
@@ -259,7 +259,7 @@ describe('evaluateFailoverDecision', () => {
     }
   });
 
-  it('routes Node.js, Go, Rust, and Android HTTP clients to text mode', () => {
+  it('routes Node.js, Go, Rust, and Android HTTP clients to text mode when mode is not forced', () => {
     const userAgents = [
       'Go-http-client/1.1',
       'node-fetch/1.0',
