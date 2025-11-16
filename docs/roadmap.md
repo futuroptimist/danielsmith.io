@@ -281,6 +281,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
      unless immersive mode is explicitly forced.
    - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
      announces when the text tour is engaged.
+   - ✅ Manual mode toggle now flags pending activation with `aria-busy` so screen readers
+     announce when a toggle is in progress.
 
 - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
   update immediately when visitors switch locales.

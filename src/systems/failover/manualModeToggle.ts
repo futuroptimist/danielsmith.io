@@ -92,6 +92,7 @@ export function createManualModeToggle({
     if (pending) {
       button.disabled = true;
       button.dataset.state = 'pending';
+      button.setAttribute('aria-busy', 'true');
       button.textContent = withFallback(
         strings.pendingLabel,
         DEFAULT_STRINGS.pendingLabel
@@ -108,6 +109,7 @@ export function createManualModeToggle({
     if (fallbackActive) {
       button.disabled = true;
       button.dataset.state = 'active';
+      button.setAttribute('aria-busy', 'false');
       button.textContent = withFallback(
         strings.activeLabel,
         DEFAULT_STRINGS.activeLabel
@@ -124,6 +126,7 @@ export function createManualModeToggle({
     }
     button.disabled = false;
     button.dataset.state = 'idle';
+    button.setAttribute('aria-busy', 'false');
     button.textContent = withFallback(
       strings.idleLabel,
       DEFAULT_STRINGS.idleLabel
