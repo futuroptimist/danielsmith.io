@@ -4,6 +4,8 @@ export const DISABLE_PERFORMANCE_FAILOVER_PARAM = 'disablePerformanceFailover';
 export const DISABLE_PERFORMANCE_FAILOVER_VALUE = '1';
 export const TEXT_MODE_VALUE = 'text';
 
+type QueryParamValue = string | number | boolean | null | undefined;
+
 interface LocationLike {
   pathname: string;
   search?: string;
@@ -74,9 +76,28 @@ const normalizeUrlParts = (input: UrlLike): UrlParts => {
 const toParams = (search: string): URLSearchParams =>
   new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
 
+type ExtraParams = Record<string, QueryParamValue> | undefined;
+
 interface BuildModeUrlOptions {
   includePerformanceBypass: boolean;
+  extraParams?: ExtraParams;
 }
+
+const applyExtraParams = (
+  params: URLSearchParams,
+  extraParams?: ExtraParams
+) => {
+  if (!extraParams) {
+    return;
+  }
+  for (const [key, value] of Object.entries(extraParams)) {
+    if (value === null || value === undefined) {
+      params.delete(key);
+      continue;
+    }
+    params.set(key, String(value));
+  }
+};
 
 const buildModeUrl = (
   input: UrlLike,
@@ -85,27 +106,39 @@ const buildModeUrl = (
 ) => {
   const { base, search, hash } = normalizeUrlParts(input);
   const params = toParams(search);
-  params.set(IMMERSIVE_MODE_PARAM, modeValue);
-  if (options.includePerformanceBypass) {
-    params.set(
-      DISABLE_PERFORMANCE_FAILOVER_PARAM,
-      DISABLE_PERFORMANCE_FAILOVER_VALUE
-    );
-  } else {
-    params.delete(DISABLE_PERFORMANCE_FAILOVER_PARAM);
-  }
+  const enforceModeParams = () => {
+    params.set(IMMERSIVE_MODE_PARAM, modeValue);
+    if (options.includePerformanceBypass) {
+      params.set(
+        DISABLE_PERFORMANCE_FAILOVER_PARAM,
+        DISABLE_PERFORMANCE_FAILOVER_VALUE
+      );
+    } else {
+      params.delete(DISABLE_PERFORMANCE_FAILOVER_PARAM);
+    }
+  };
+
+  enforceModeParams();
+  applyExtraParams(params, options.extraParams);
+  enforceModeParams();
   const query = params.toString();
   return `${base}${query ? `?${query}` : ''}${hash ?? ''}`;
 };
 
-export const createImmersiveModeUrl = (location?: LocationLike) => {
-  return buildModeUrl(location, IMMERSIVE_MODE_VALUE, {
+export const createImmersiveModeUrl = (
+  location?: LocationLike,
+  extraParams?: ExtraParams
+) =>
+  buildModeUrl(location, IMMERSIVE_MODE_VALUE, {
     includePerformanceBypass: true,
+    extraParams,
   });
-};
 
-export const createTextModeUrl = (input?: UrlLike) =>
-  buildModeUrl(input, TEXT_MODE_VALUE, { includePerformanceBypass: false });
+export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>
+  buildModeUrl(input, TEXT_MODE_VALUE, {
+    includePerformanceBypass: false,
+    extraParams,
+  });
 
 const toSearchParams = (value: string | URLSearchParams): URLSearchParams =>
   typeof value === 'string' ? new URLSearchParams(value) : value;

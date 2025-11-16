@@ -40,6 +40,8 @@ Include summary, automated tests, and manual verification checklist.
   dev environments. A `<noscript>` text tour keeps scrapers and no-JS browsers covered.
 - Use `createImmersiveModeUrl(...)` and `createTextModeUrl(...)` helpers to add mode
   overrides without clobbering existing query parameters or hashes.
+  - Both helpers now accept an optional extra params map so you can append UTM/debug flags
+    while the required mode + performance bypass parameters remain intact.
 
 ## Upgrade Prompt
 

@@ -41,6 +41,26 @@ describe('createImmersiveModeUrl', () => {
       '/space?mode=immersive&feature=preview&disablePerformanceFailover=1'
     );
   });
+
+  it('merges extra params without letting them clobber immersive overrides', () => {
+    const url = createImmersiveModeUrl(
+      {
+        pathname: '/demo',
+        search: '?foo=bar',
+        hash: '',
+      },
+      {
+        utm_campaign: 'launch',
+        mode: 'text',
+        disablePerformanceFailover: 0,
+        feature: null,
+      }
+    );
+
+    expect(url).toBe(
+      '/demo?foo=bar&mode=immersive&disablePerformanceFailover=1&utm_campaign=launch'
+    );
+  });
 });
 
 describe('createTextModeUrl', () => {
@@ -76,6 +96,15 @@ describe('createTextModeUrl', () => {
   it('falls back to root path when pathname is empty', () => {
     const url = createTextModeUrl({ pathname: '', search: '', hash: '' });
     expect(url).toBe('/?mode=text');
+  });
+
+  it('respects extra params while stripping conflicting or null entries', () => {
+    const url = createTextModeUrl(
+      { pathname: '/portfolio', search: '?mode=immersive&foo=keep', hash: '' },
+      { disablePerformanceFailover: true, foo: null, bar: 'baz' }
+    );
+
+    expect(url).toBe('/portfolio?mode=text&bar=baz');
   });
 });
 
