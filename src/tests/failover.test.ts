@@ -235,7 +235,31 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
-  it('routes Node.js, Go, Rust, and Android HTTP clients to text mode', () => {
+  it('routes social and chat link expanders to text mode when mode is not forced', () => {
+    const userAgents = [
+      'facebookexternalhit/1.1',
+      'Twitterbot/1.0',
+      'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+      'Discordbot/2.0; +https://discordapp.com',
+      'WhatsApp/2.19.81 A',
+      'LinkedInBot/1.0 (+https://www.linkedin.com)',
+      'SkypeUriPreview Preview',
+    ];
+
+    for (const userAgent of userAgents) {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+        getUserAgent: () => userAgent,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    }
+  });
+
+  it('routes Node.js, Go, Rust, and Android HTTP clients to text mode when mode is not forced', () => {
     const userAgents = [
       'Go-http-client/1.1',
       'node-fetch/1.0',
