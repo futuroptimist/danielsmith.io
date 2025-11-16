@@ -241,6 +241,7 @@ describe('evaluateFailoverDecision', () => {
       'Twitterbot/1.0',
       'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
       'Discordbot/2.0; +https://discordapp.com',
+      'TelegramBot (like TwitterBot)',
       'WhatsApp/2.19.81 A',
       'LinkedInBot/1.0 (+https://www.linkedin.com)',
       'SkypeUriPreview Preview',
