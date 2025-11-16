@@ -230,6 +230,7 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /twitterbot/i,
   /slackbot/i,
   /discordbot/i,
+  /telegrambot/i,
   /whatsapp/i,
   /linkedinbot/i,
   /skypeuripreview/i,

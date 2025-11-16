@@ -132,6 +132,9 @@ lightweight.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
 - **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage.
 - **Launch smoke** – `npm run smoke` builds the project once and asserts `dist/index.html` exists before heavier suites run.
+- **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers (Facebook,
+  Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype previews, and more) to the text tour
+  so share cards render without WebGL.
 
 ## Auto-generated assets
 
