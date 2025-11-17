@@ -286,12 +286,14 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
   update immediately when visitors switch locales.
-- ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
-  crawlers understand language coverage and free access guarantees.
-- ✅ Text fallback links back to immersive mode with the override URL so returns bypass
-  automatic failover heuristics.
-- ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
-  cleanly even when queries or hash fragments already exist.
+  - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
+    crawlers understand language coverage and free access guarantees.
+  - ✅ Text fallback links back to immersive mode with the override URL so returns bypass
+    automatic failover heuristics.
+  - ✅ Mode announcer now replays the current fallback reason on load so screen readers catch
+    prerendered text tours.
+  - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
+    cleanly even when queries or hash fragments already exist.
 
 3. **Progression & State**
    - ✅ Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).

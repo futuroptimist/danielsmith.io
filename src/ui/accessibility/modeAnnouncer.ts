@@ -158,6 +158,7 @@ export function initializeModeAnnouncementObserver(
     attributes: true,
     attributeFilter: ['data-app-mode'],
   });
+  handleModeChange(documentTarget);
   observers.set(documentTarget, observer);
 }
 
