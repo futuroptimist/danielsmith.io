@@ -60,6 +60,28 @@ interface PerformanceFailoverMonitorOptions {
   onTrigger: (context: PerformanceFailoverTriggerContext) => void;
 }
 
+const logPerformanceFailover = (
+  context: PerformanceFailoverTriggerContext,
+  logger: Pick<Console, 'warn'> = console
+) => {
+  try {
+    logger.warn(
+      '[performance-failover] Low FPS detected; switching to text experience.',
+      {
+        averageFps: context.averageFps,
+        minFps: context.minFps,
+        medianFps: context.medianFps,
+        p95Fps: context.p95Fps,
+        maxFps: context.maxFps,
+        sampleCount: context.sampleCount,
+        durationMs: context.durationMs,
+      }
+    );
+  } catch (error) {
+    console.warn('Failed to log performance failover summary.', error);
+  }
+};
+
 class PerformanceFailoverMonitor {
   private readonly fpsThreshold: number;
 
@@ -157,6 +179,11 @@ export function createPerformanceFailoverHandler(
   let transitioned = false;
   let consoleMonitor: ConsoleBudgetMonitorHandle | null = null;
 
+  const handlePerformanceTrigger =
+    onTrigger ??
+    ((context: PerformanceFailoverTriggerContext) =>
+      logPerformanceFailover(context));
+
   const transitionToFallback = (
     reason: FallbackReason,
     context?: PerformanceFailoverTriggerContext
@@ -169,8 +196,8 @@ export function createPerformanceFailoverHandler(
       consoleMonitor.dispose();
       consoleMonitor = null;
     }
-    if (context && onTrigger) {
-      onTrigger(context);
+    if (context) {
+      handlePerformanceTrigger(context);
     }
     try {
       onBeforeFallback?.(reason);
