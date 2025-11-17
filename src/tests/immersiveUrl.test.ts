@@ -62,6 +62,20 @@ describe('createImmersiveModeUrl', () => {
       '/demo?foo=bar&mode=immersive&disablePerformanceFailover=1&utm_campaign=launch'
     );
   });
+
+  it('normalizes canonical URLs passed as strings while enforcing overrides', () => {
+    const url = createImmersiveModeUrl(
+      'https://example.com/app?foo=bar#scene',
+      {
+        feature: 'preview',
+        disablePerformanceFailover: 0,
+      }
+    );
+
+    expect(url).toBe(
+      'https://example.com/app?foo=bar&mode=immersive&disablePerformanceFailover=1&feature=preview#scene'
+    );
+  });
 });
 
 describe('createTextModeUrl', () => {
