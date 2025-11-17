@@ -37,6 +37,7 @@ export interface PoiWorldTooltipOptions {
   minScale?: number;
   maxScale?: number;
   guidedTourPreference?: GuidedTourPreference;
+  minimumFacingDot?: number;
 }
 
 interface RenderState {
@@ -85,6 +86,8 @@ export class PoiWorldTooltip {
 
   private readonly maxScale: number;
 
+  private readonly minimumFacingDot: number;
+
   private readonly guidedTourPreference: GuidedTourPreference;
 
   private readonly opacityByMode: Record<PoiWorldTooltipMode, number> = {
@@ -113,6 +116,10 @@ export class PoiWorldTooltip {
 
   private readonly lookScratch = new Vector3();
 
+  private readonly cameraDirection = new Vector3();
+
+  private readonly viewDirection = new Vector3();
+
   private opacity = 0;
 
   private renderState: RenderState = { poiId: null, mode: null };
@@ -129,6 +136,7 @@ export class PoiWorldTooltip {
     this.scaleDistance = options.scaleDistance ?? 14;
     this.minScale = options.minScale ?? 0.75;
     this.maxScale = options.maxScale ?? 1.85;
+    this.minimumFacingDot = options.minimumFacingDot ?? 0.05;
     this.guidedTourPreference =
       options.guidedTourPreference ?? defaultGuidedTourPreference;
 
@@ -232,6 +240,16 @@ export class PoiWorldTooltip {
     } else {
       this.currentPosition.lerp(this.targetPosition, smoothing);
     }
+
+    if (!this.isFacingCamera(this.targetPosition)) {
+      this.currentPosition.copy(this.targetPosition);
+      this.opacity = 0;
+      this.mesh.material.opacity = 0;
+      this.group.visible = false;
+      this.renderState = { poiId: null, mode: null };
+      return;
+    }
+
     this.group.position.copy(this.currentPosition);
 
     this.lookScratch.set(
@@ -310,6 +328,16 @@ export class PoiWorldTooltip {
       visible: this.group.visible,
       opacity: this.mesh.material.opacity,
     };
+  }
+
+  private isFacingCamera(target: Vector3): boolean {
+    this.viewDirection.subVectors(target, this.camera.position);
+    if (this.viewDirection.lengthSq() === 0) {
+      return true;
+    }
+    this.viewDirection.normalize();
+    const cameraForward = this.camera.getWorldDirection(this.cameraDirection);
+    return cameraForward.dot(this.viewDirection) >= this.minimumFacingDot;
   }
 
   private fadeOut(delta: number) {
