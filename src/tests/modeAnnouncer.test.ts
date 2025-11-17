@@ -111,6 +111,23 @@ describe('initializeModeAnnouncementObserver', () => {
     expect(region?.textContent).toMatch(/immersive mode ready/i);
   });
 
+  it('announces the current mode immediately when already set', () => {
+    const container = document.createElement('div');
+    document.body.append(container);
+    renderTextFallback(container, {
+      reason: 'console-error',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.dataset.appMode = 'fallback';
+
+    initializeModeAnnouncementObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/runtime error/i);
+  });
+
   it('reuses a single announcer instance per document', () => {
     initializeModeAnnouncementObserver();
     const first = getModeAnnouncer();
