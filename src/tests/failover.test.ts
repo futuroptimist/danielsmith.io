@@ -396,7 +396,10 @@ describe('renderTextFallback', () => {
       '[data-action="immersive"]'
     );
     expect(immersiveLink?.href).toBe(
-      new URL(createImmersiveModeUrl(customUrl), window.location.origin).toString()
+      new URL(
+        createImmersiveModeUrl(customUrl),
+        window.location.origin
+      ).toString()
     );
   });
 
