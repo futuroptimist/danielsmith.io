@@ -42,7 +42,8 @@ captures; keep artifacts in `docs/metrics/`.
     to the text experience while honoring `?mode=immersive&disablePerformanceFailover=1`
     overrides.
   - ✅ Runtime performance monitor now auto-switches to text mode after 5 s below 30 FPS.
-  - ✅ Low-performance failover logs now surface min/median/p95 FPS and sample counts for telemetry handoff.
+  - ✅ Low-performance failover logs now surface min/median/p95 FPS and sample counts for telemetry
+    handoff, with a default console summary emitted whenever low-FPS fallback triggers.
   - ✅ Data-saver and console-error failovers now narrate their reason through the mode announcer
     so assistive tech users understand why the text tour launched.
   - ✅ Social and chat link preview scrapers now force the text portfolio via user-agent

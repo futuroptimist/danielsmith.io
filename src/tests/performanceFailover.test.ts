@@ -102,6 +102,49 @@ describe('createPerformanceFailoverHandler', () => {
     expect(context.medianFps).toBeLessThanOrEqual(context.maxFps);
   });
 
+  it('logs metrics when low-FPS fallback triggers without a custom handler', () => {
+    const { renderer, canvas, setAnimationLoop, dispose } = createRenderer();
+    const removeSpy = vi.spyOn(canvas, 'remove');
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+    });
+
+    for (let i = 0; i < 120; i += 1) {
+      handler.update(1 / 20);
+    }
+
+    expect(handler.hasTriggered()).toBe(true);
+    expect(renderFallback).toHaveBeenCalled();
+    expect(setAnimationLoop).toHaveBeenCalledWith(null);
+    expect(dispose).toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalled();
+    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(warnSpy).toHaveBeenCalled();
+    const [message, payload] = warnSpy.mock.calls[0];
+    expect(message).toContain('performance-failover');
+    expect(payload).toMatchObject({
+      averageFps: expect.any(Number),
+      minFps: expect.any(Number),
+      medianFps: expect.any(Number),
+      p95Fps: expect.any(Number),
+      maxFps: expect.any(Number),
+      sampleCount: expect.any(Number),
+      durationMs: expect.any(Number),
+    });
+
+    warnSpy.mockRestore();
+  });
+
   it('ignores sporadic low FPS frames', () => {
     const { renderer } = createRenderer();
     const container = createContainer();
