@@ -158,6 +158,28 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('culls tooltips positioned behind the camera view', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({ id: 'behind-camera-poi' });
+
+    tooltip.setHovered(createTarget(poi, new Vector3(0, 1, 0)));
+    tooltip.update(0.016);
+    expect(tooltip.getState().visible).toBe(true);
+
+    const behindCamera = new Vector3(24, 28, 32);
+    tooltip.setHovered(createTarget(poi, behindCamera));
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.visible).toBe(false);
+    expect(state.mode).toBeNull();
+    expect(state.poiId).toBeNull();
+    expect(state.opacity).toBe(0);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('prefers the selected state over hover when both are set', () => {
     const { tooltip, preference } = createTooltip();
     const hoveredPoi = createPoiDefinition({ id: 'flywheel-studio-flywheel' });
