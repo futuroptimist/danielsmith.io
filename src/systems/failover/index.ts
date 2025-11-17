@@ -559,9 +559,9 @@ export function renderTextFallback(
     immersiveUrl: providedImmersiveUrl,
   } = options;
   const documentTarget = container.ownerDocument ?? document;
-  const immersiveUrl =
-    providedImmersiveUrl ??
-    createImmersiveModeUrl(documentTarget.defaultView?.location ?? undefined);
+  const immersiveUrl = createImmersiveModeUrl(
+    providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
+  );
   const localeHint =
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);

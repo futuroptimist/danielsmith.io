@@ -78,4 +78,21 @@ describe('text fallback accessibility', () => {
       expect(results.passes.length).toBeGreaterThan(0);
     });
   }
+
+  it('normalizes provided immersive URLs to enforce preview overrides', () => {
+    const container = document.createElement('div');
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: 'https://danielsmith.io/portfolio',
+    });
+
+    const immersiveLink = container.querySelector(
+      '[data-action="immersive"]'
+    ) as HTMLAnchorElement | null;
+
+    expect(immersiveLink?.href).toBe(
+      'https://danielsmith.io/portfolio?mode=immersive&disablePerformanceFailover=1'
+    );
+  });
 });

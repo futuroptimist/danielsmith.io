@@ -130,10 +130,10 @@ const buildModeUrl = (
 };
 
 export const createImmersiveModeUrl = (
-  location?: LocationLike,
+  input?: UrlLike,
   extraParams?: ExtraParams
 ) =>
-  buildModeUrl(location, IMMERSIVE_MODE_VALUE, {
+  buildModeUrl(input, IMMERSIVE_MODE_VALUE, {
     includePerformanceBypass: true,
     extraParams,
   });

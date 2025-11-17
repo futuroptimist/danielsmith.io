@@ -48,6 +48,10 @@ Avatar facing is computed from the camera-relative movement vector; see
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
   `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
+- **Preview overrides** – Use [`createImmersiveModeUrl`](src/ui/immersiveUrl.ts) to build
+  immersive links. It now accepts canonical URLs and always injects
+  `mode=immersive&disablePerformanceFailover=1` so manual previews keep both overrides even when
+  you append debugging or UTM flags.
 
 ## Map of the repo
 

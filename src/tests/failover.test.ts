@@ -395,7 +395,12 @@ describe('renderTextFallback', () => {
     const immersiveLink = container.querySelector<HTMLAnchorElement>(
       '[data-action="immersive"]'
     );
-    expect(immersiveLink?.href).toBe(customUrl);
+    expect(immersiveLink?.href).toBe(
+      new URL(
+        createImmersiveModeUrl(customUrl),
+        window.location.origin
+      ).toString()
+    );
   });
 
   it('indicates WebGL unsupported reason', () => {
