@@ -9,7 +9,10 @@ import {
 } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
-import { initializeModeAnnouncementObserver } from '../../ui/accessibility/modeAnnouncer';
+import {
+  getModeAnnouncer,
+  initializeModeAnnouncementObserver,
+} from '../../ui/accessibility/modeAnnouncer';
 import {
   createImmersiveModeUrl,
   getModeFromSearch,
@@ -663,4 +666,10 @@ export function renderTextFallback(
     section.appendChild(portfolioSection);
   }
   container.appendChild(section);
+
+  try {
+    getModeAnnouncer(documentTarget).announceFallback(reason);
+  } catch (error) {
+    console.warn('Failed to announce fallback mode.', error);
+  }
 }

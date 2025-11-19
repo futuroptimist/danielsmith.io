@@ -134,4 +134,40 @@ describe('initializeModeAnnouncementObserver', () => {
     const second = getModeAnnouncer();
     expect(second).toBe(first);
   });
+
+  it('announces prerendered fallback views even when the mode attribute is missing', () => {
+    const container = document.createElement('div');
+    document.body.append(container);
+    renderTextFallback(container, {
+      reason: 'webgl-unsupported',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.removeAttribute('data-app-mode');
+
+    initializeModeAnnouncementObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/webgl is unavailable/i);
+  });
+
+  it('responds when a fallback view is injected without changing the mode attribute', async () => {
+    initializeModeAnnouncementObserver();
+    document.documentElement.removeAttribute('data-app-mode');
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    renderTextFallback(container, {
+      reason: 'low-end-device',
+      immersiveUrl: '/immersive',
+    });
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/lightweight device profile/i);
+  });
 });

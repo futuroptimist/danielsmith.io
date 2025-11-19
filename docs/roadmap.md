@@ -294,6 +294,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
     automatic failover heuristics.
   - ✅ Mode announcer now replays the current fallback reason on load so screen readers catch
     prerendered text tours.
+  - ✅ Mode announcer now reads prerendered fallback markup even when `data-app-mode` has not
+    been set yet, ensuring prerendered text tours still announce their context on startup.
   - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
     cleanly even when queries or hash fragments already exist.
 

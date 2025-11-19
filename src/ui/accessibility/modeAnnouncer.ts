@@ -117,11 +117,27 @@ function readFallbackReason(documentTarget: Document): FallbackReason {
   return 'manual';
 }
 
-function handleModeChange(documentTarget: Document): void {
-  const mode = documentTarget.documentElement.dataset.appMode as
+const resolveActiveMode = (
+  documentTarget: Document
+): 'immersive' | 'fallback' | null => {
+  const declaredMode = documentTarget.documentElement.dataset.appMode as
     | 'immersive'
     | 'fallback'
     | undefined;
+  if (declaredMode === 'immersive' || declaredMode === 'fallback') {
+    return declaredMode;
+  }
+
+  const fallbackView = documentTarget.querySelector('.text-fallback');
+  if (fallbackView) {
+    return 'fallback';
+  }
+
+  return null;
+};
+
+function handleModeChange(documentTarget: Document): void {
+  const mode = resolveActiveMode(documentTarget);
   if (!mode) {
     return;
   }
