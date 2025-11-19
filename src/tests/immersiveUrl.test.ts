@@ -76,6 +76,17 @@ describe('createImmersiveModeUrl', () => {
       'https://example.com/app?foo=bar&mode=immersive&disablePerformanceFailover=1&feature=preview#scene'
     );
   });
+
+  it('accepts URL instances and preserves origin, path, search, and hash', () => {
+    const url = createImmersiveModeUrl(
+      new URL('https://example.com/demo/scene?foo=bar#view'),
+      { utm_source: 'test-harness' }
+    );
+
+    expect(url).toBe(
+      'https://example.com/demo/scene?foo=bar&mode=immersive&disablePerformanceFailover=1&utm_source=test-harness#view'
+    );
+  });
 });
 
 describe('createTextModeUrl', () => {
@@ -111,6 +122,11 @@ describe('createTextModeUrl', () => {
   it('falls back to root path when pathname is empty', () => {
     const url = createTextModeUrl({ pathname: '', search: '', hash: '' });
     expect(url).toBe('/?mode=text');
+  });
+
+  it('handles URL instances with empty path segments', () => {
+    const url = createTextModeUrl(new URL('https://example.com'));
+    expect(url).toBe('https://example.com/?mode=text');
   });
 
   it('respects extra params while stripping conflicting or null entries', () => {

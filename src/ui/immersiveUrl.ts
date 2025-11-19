@@ -16,7 +16,7 @@ interface LocationLike {
   hash?: string | null;
 }
 
-type UrlLike = string | LocationLike | undefined;
+type UrlLike = string | LocationLike | URL | undefined;
 
 const normalizeLocation = (location?: LocationLike) => {
   if (location) {
@@ -67,6 +67,13 @@ const splitSearch = (value: string): { base: string; search: string } => {
 };
 
 const normalizeUrlParts = (input: UrlLike): UrlParts => {
+  if (input instanceof URL) {
+    return {
+      base: `${input.origin}${input.pathname || '/'}`,
+      search: input.search,
+      hash: input.hash,
+    };
+  }
   if (typeof input === 'string') {
     const { withoutHash, hash } = splitHash(input);
     const { base, search } = splitSearch(withoutHash);
