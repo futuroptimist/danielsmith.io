@@ -323,7 +323,9 @@ export function evaluateFailoverDecision(
   const normalizedEffectiveType =
     typeof effectiveType === 'string' ? effectiveType.toLowerCase() : undefined;
   const hasSlowConnection =
-    normalizedEffectiveType === 'slow-2g' || normalizedEffectiveType === '2g';
+    normalizedEffectiveType === 'slow-2g' ||
+    normalizedEffectiveType === '2g' ||
+    normalizedEffectiveType === '3g';
 
   if (mode === TEXT_MODE_VALUE) {
     return { shouldUseFallback: true, reason: 'manual' };

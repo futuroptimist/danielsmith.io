@@ -204,6 +204,18 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('treats 3G effective type as slow for data-saver routing', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ effectiveType: '3g' }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
   it('allows immersive override when memory is low but WebGL works', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
