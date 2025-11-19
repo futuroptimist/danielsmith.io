@@ -69,7 +69,7 @@ const splitSearch = (value: string): { base: string; search: string } => {
 const normalizeUrlParts = (input: UrlLike): UrlParts => {
   if (input instanceof URL) {
     return {
-      base: `${input.origin}${input.pathname || '/'}`,
+      base: `${input.origin}${input.pathname}`,
       search: input.search,
       hash: input.hash,
     };
