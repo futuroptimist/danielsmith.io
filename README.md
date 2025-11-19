@@ -139,6 +139,8 @@ lightweight.
 - **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, and others) to
   the text tour so share cards render without WebGL.
+- **Data-saver heuristics** – Save-Data requests or `effectiveType` values of slow-2G/2G/3G trigger
+  the text tour unless `mode=immersive&disablePerformanceFailover=1` is present.
 
 ## Auto-generated assets
 
