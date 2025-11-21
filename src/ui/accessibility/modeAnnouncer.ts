@@ -39,6 +39,9 @@ const DEFAULT_FALLBACK_MESSAGES: Record<FallbackReason, string> = {
     'Your browser requested a data-saver experience, so the lightweight text tour is active.',
 };
 
+const isValidFallbackReason = (value: unknown): value is FallbackReason =>
+  typeof value === 'string' && value in DEFAULT_FALLBACK_MESSAGES;
+
 function applyVisuallyHiddenStyles(element: HTMLElement): void {
   element.style.position = 'absolute';
   element.style.width = '1px';
@@ -106,7 +109,12 @@ export function createModeAnnouncer({
 }
 
 const announcers = new WeakMap<Document, ModeAnnouncer>();
-const observers = new WeakMap<Document, MutationObserver>();
+type ModeAnnouncementObservers = {
+  readonly mode: MutationObserver;
+  readonly fallback: MutationObserver;
+};
+
+const observers = new WeakMap<Document, ModeAnnouncementObservers>();
 
 function readFallbackReason(documentTarget: Document): FallbackReason {
   const datasetReason = documentTarget.documentElement.dataset
@@ -141,14 +149,36 @@ const resolveActiveMode = (
   return null;
 };
 
-function handleModeChange(documentTarget: Document): void {
+const syncDocumentFallbackReason = (
+  documentTarget: Document,
+  reason: FallbackReason
+): boolean => {
+  const currentReason = documentTarget.documentElement.dataset
+    .fallbackReason as FallbackReason | undefined;
+
+  if (currentReason === reason) {
+    return false;
+  }
+
+  documentTarget.documentElement.dataset.fallbackReason = reason;
+  return true;
+};
+
+function handleModeChange(
+  documentTarget: Document,
+  options?: { skipFallbackSync?: boolean }
+): void {
   const mode = resolveActiveMode(documentTarget);
   if (!mode) {
     return;
   }
   const announcer = getModeAnnouncer(documentTarget);
   if (mode === 'fallback') {
-    announcer.announceFallback(readFallbackReason(documentTarget));
+    const reason = readFallbackReason(documentTarget);
+    if (!options?.skipFallbackSync) {
+      syncDocumentFallbackReason(documentTarget, reason);
+    }
+    announcer.announceFallback(reason);
   } else if (mode === 'immersive') {
     announcer.announceImmersiveReady();
   }
@@ -172,15 +202,132 @@ export function initializeModeAnnouncementObserver(
   if (observers.has(documentTarget)) {
     return;
   }
-  const observer = new MutationObserver(() => {
-    handleModeChange(documentTarget);
+
+  const triggerAnnouncement = (options?: { skipFallbackSync?: boolean }) => {
+    handleModeChange(documentTarget, options);
+  };
+
+  const modeObserver = new MutationObserver((mutations) => {
+    const fallbackReasonMutation = mutations.find(
+      (mutation) =>
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'data-fallback-reason'
+    );
+
+    if (fallbackReasonMutation) {
+      const target = fallbackReasonMutation.target as HTMLElement;
+      if (fallbackReasonMutation.oldValue === target.dataset.fallbackReason) {
+        return;
+      }
+    }
+
+    triggerAnnouncement({
+      skipFallbackSync: Boolean(fallbackReasonMutation),
+    });
   });
-  observer.observe(documentTarget.documentElement, {
+  modeObserver.observe(documentTarget.documentElement, {
     attributes: true,
-    attributeFilter: ['data-app-mode'],
+    attributeOldValue: true,
+    attributeFilter: ['data-app-mode', 'data-fallback-reason'],
   });
+
+  const fallbackObserver = new MutationObserver((mutations) => {
+    const hasRelevantMutation = mutations.some((mutation) => {
+      if (mutation.type === 'attributes') {
+        return (
+          mutation.attributeName === 'data-reason' &&
+          (mutation.target as Element).classList.contains('text-fallback')
+        );
+      }
+
+      if (mutation.type === 'childList') {
+        return Array.from(mutation.addedNodes).some((node) => {
+          if (!(node instanceof Element)) {
+            return false;
+          }
+          return (
+            node.classList.contains('text-fallback') ||
+            Boolean(node.querySelector('.text-fallback'))
+          );
+        });
+      }
+
+      return false;
+    });
+
+    if (!hasRelevantMutation) {
+      return;
+    }
+
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes') {
+        const target = mutation.target as Element;
+        if (
+          mutation.attributeName === 'data-reason' &&
+          target.classList.contains('text-fallback')
+        ) {
+          const updatedReason = (target as HTMLElement).dataset.reason;
+          if (
+            isValidFallbackReason(updatedReason) &&
+            syncDocumentFallbackReason(documentTarget, updatedReason)
+          ) {
+            triggerAnnouncement({ skipFallbackSync: true });
+          }
+          return;
+        }
+      }
+
+      if (mutation.type === 'childList') {
+        const addedNodes = Array.from(mutation.addedNodes);
+        let hasValidFallbackReasonUpdate = false;
+        const addedFallback = addedNodes.some((node) => {
+          if (!(node instanceof Element)) {
+            return false;
+          }
+
+          const fallbackNode = node.classList.contains('text-fallback')
+            ? (node as HTMLElement)
+            : node.querySelector<HTMLElement>('.text-fallback');
+
+          if (!fallbackNode) {
+            return false;
+          }
+
+          const updatedReason = fallbackNode.dataset.reason;
+          if (
+            isValidFallbackReason(updatedReason) &&
+            syncDocumentFallbackReason(documentTarget, updatedReason)
+          ) {
+            hasValidFallbackReasonUpdate = true;
+          }
+
+          return isValidFallbackReason(updatedReason);
+        });
+
+        if (addedFallback && hasValidFallbackReasonUpdate) {
+          triggerAnnouncement({ skipFallbackSync: true });
+          return;
+        }
+      }
+    }
+  });
+
+  fallbackObserver.observe(
+    documentTarget.body ?? documentTarget.documentElement,
+    {
+      attributes: true,
+      attributeFilter: ['data-reason'],
+      childList: true,
+      subtree: true,
+    }
+  );
+
   handleModeChange(documentTarget);
-  observers.set(documentTarget, observer);
+
+  observers.set(documentTarget, {
+    mode: modeObserver,
+    fallback: fallbackObserver,
+  });
 }
 
 export function __resetModeAnnouncementForTests(
@@ -191,9 +338,10 @@ export function __resetModeAnnouncementForTests(
     announcer.dispose();
     announcers.delete(documentTarget);
   }
-  const observer = observers.get(documentTarget);
-  if (observer) {
-    observer.disconnect();
+  const observerSet = observers.get(documentTarget);
+  if (observerSet) {
+    observerSet.mode.disconnect();
+    observerSet.fallback.disconnect();
     observers.delete(documentTarget);
   }
   const region = documentTarget.querySelector<HTMLElement>(
