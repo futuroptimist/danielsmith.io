@@ -128,6 +128,19 @@ describe('initializeModeAnnouncementObserver', () => {
     expect(region?.textContent).toMatch(/runtime error/i);
   });
 
+  it('announces fallback reasons stored on the document root', () => {
+    document.documentElement.dataset.appMode = 'fallback';
+    document.documentElement.dataset.fallbackReason = 'data-saver';
+    document.body.innerHTML = '';
+
+    initializeModeAnnouncementObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/data-saver experience/i);
+  });
+
   it('reuses a single announcer instance per document', () => {
     initializeModeAnnouncementObserver();
     const first = getModeAnnouncer();

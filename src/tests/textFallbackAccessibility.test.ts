@@ -95,4 +95,21 @@ describe('text fallback accessibility', () => {
       'https://danielsmith.io/portfolio?mode=immersive&disablePerformanceFailover=1'
     );
   });
+
+  it('marks the document with the active fallback mode and reason', () => {
+    const container = document.createElement('div');
+
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: 'https://danielsmith.io/immersive',
+    });
+
+    expect(document.documentElement.dataset.appMode).toBe('fallback');
+    expect(document.documentElement.dataset.fallbackReason).toBe(
+      'low-performance'
+    );
+    expect(document.documentElement.hasAttribute('data-app-loading')).toBe(
+      false
+    );
+  });
 });

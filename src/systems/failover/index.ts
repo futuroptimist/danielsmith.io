@@ -575,6 +575,9 @@ export function renderTextFallback(
   documentTarget.documentElement.dir = direction;
   documentTarget.documentElement.dataset.localeDirection = direction;
   documentTarget.documentElement.dataset.localeScript = script;
+  documentTarget.documentElement.dataset.appMode = 'fallback';
+  documentTarget.documentElement.dataset.fallbackReason = reason;
+  documentTarget.documentElement.removeAttribute('data-app-loading');
 
   container.innerHTML = '';
   container.setAttribute('data-mode', 'text');

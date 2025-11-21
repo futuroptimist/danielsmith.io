@@ -31,7 +31,10 @@ export interface PerformanceFailoverHandlerOptions {
   renderer: ImmersiveRendererHandle;
   container: HTMLElement;
   immersiveUrl: string;
-  markAppReady: (mode: 'immersive' | 'fallback') => void;
+  markAppReady: (
+    mode: 'immersive' | 'fallback',
+    reason?: FallbackReason
+  ) => void;
   fpsThreshold?: number;
   minimumDurationMs?: number;
   maxFrameDeltaMs?: number;
@@ -232,7 +235,7 @@ export function createPerformanceFailoverHandler(
         error
       );
     }
-    markAppReady('fallback');
+    markAppReady('fallback', reason);
   };
 
   const monitor = disabled

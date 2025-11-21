@@ -289,6 +289,7 @@ import { VirtualJoystick } from './systems/controls/VirtualJoystick';
 import {
   evaluateFailoverDecision,
   renderTextFallback,
+  type FallbackReason,
 } from './systems/failover';
 import {
   createManualModeToggle,
@@ -449,9 +450,14 @@ const INPUT_LATENCY_P95_BUDGET_MS = 200;
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
 type AppMode = 'immersive' | 'fallback';
-const markDocumentReady = (mode: AppMode) => {
+const markDocumentReady = (mode: AppMode, fallbackReason?: FallbackReason) => {
   const root = document.documentElement;
   root.dataset.appMode = mode;
+  if (mode === 'fallback') {
+    root.dataset.fallbackReason = fallbackReason ?? 'manual';
+  } else {
+    delete root.dataset.fallbackReason;
+  }
   root.removeAttribute('data-app-loading');
 };
 
@@ -502,7 +508,7 @@ const handleImmersiveFailure = (
     console.error('Failed to render fallback experience:', fallbackError);
   }
 
-  markDocumentReady('fallback');
+  markDocumentReady('fallback', 'immersive-init-error');
 };
 
 const STAIRCASE_CONFIG = {
@@ -612,7 +618,7 @@ if (failoverDecision.shouldUseFallback) {
     reason: failoverDecision.reason ?? 'manual',
     immersiveUrl,
   });
-  markDocumentReady('fallback');
+  markDocumentReady('fallback', failoverDecision.reason ?? 'manual');
 } else {
   const failImmersive = (
     error: unknown,
