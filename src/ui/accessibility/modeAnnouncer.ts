@@ -157,7 +157,9 @@ function handleModeChange(documentTarget: Document): void {
   const announcer = getModeAnnouncer(documentTarget);
   if (mode === 'fallback') {
     const reason = readFallbackReason(documentTarget);
-    documentTarget.documentElement.dataset.fallbackReason = reason;
+    if (documentTarget.documentElement.dataset.fallbackReason !== reason) {
+      documentTarget.documentElement.dataset.fallbackReason = reason;
+    }
     announcer.announceFallback(reason);
   } else if (mode === 'immersive') {
     announcer.announceImmersiveReady();
@@ -204,8 +206,8 @@ export function initializeModeAnnouncementObserver(
           const updatedReason = (target as HTMLElement).dataset.reason;
           if (isValidFallbackReason(updatedReason)) {
             documentTarget.documentElement.dataset.fallbackReason = updatedReason;
+            triggerAnnouncement();
           }
-          triggerAnnouncement();
           return;
         }
       }
@@ -215,11 +217,21 @@ export function initializeModeAnnouncementObserver(
         if (
           addedNodes.some(
             (node) => {
-              if (
-                node instanceof HTMLElement &&
-                node.classList.contains('text-fallback')
-              ) {
-                const updatedReason = node.dataset.reason;
+              if (!(node instanceof Element)) {
+                return false;
+              }
+              if (node.classList.contains('text-fallback')) {
+                const updatedReason = (node as HTMLElement).dataset.reason;
+                if (isValidFallbackReason(updatedReason)) {
+                  documentTarget.documentElement.dataset.fallbackReason = updatedReason;
+                }
+                return true;
+              }
+              const fallbackDescendant = node.querySelector<HTMLElement>(
+                '.text-fallback'
+              );
+              if (fallbackDescendant) {
+                const updatedReason = fallbackDescendant.dataset.reason;
                 if (isValidFallbackReason(updatedReason)) {
                   documentTarget.documentElement.dataset.fallbackReason = updatedReason;
                 }
