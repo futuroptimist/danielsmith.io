@@ -298,6 +298,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
     prerendered text tours.
   - ✅ Mode announcer now reads prerendered fallback markup even when `data-app-mode` has not
     been set yet, ensuring prerendered text tours still announce their context on startup.
+  - ✅ Mode announcer now re-announces when fallback reasons change mid-session so updated
+    failover contexts stay audible for assistive tech users.
   - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
     cleanly even when queries or hash fragments already exist.
 

@@ -183,4 +183,51 @@ describe('initializeModeAnnouncementObserver', () => {
     );
     expect(region?.textContent).toMatch(/lightweight device profile/i);
   });
+
+  it('re-announces when the fallback reason on the document root changes', async () => {
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.dataset.appMode = 'fallback';
+
+    initializeModeAnnouncementObserver();
+
+    document.documentElement.dataset.fallbackReason = 'low-performance';
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/frame rates dipped/i);
+  });
+
+  it('re-announces when the rendered fallback view updates its reason', async () => {
+    initializeModeAnnouncementObserver();
+
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    renderTextFallback(container, {
+      reason: 'automated-client',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.dataset.appMode = 'fallback';
+
+    await flushObserver();
+
+    const fallbackView = document.querySelector<HTMLElement>('.text-fallback');
+    fallbackView?.setAttribute('data-reason', 'webgl-unsupported');
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/webgl is unavailable/i);
+  });
 });

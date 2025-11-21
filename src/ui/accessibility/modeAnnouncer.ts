@@ -39,6 +39,9 @@ const DEFAULT_FALLBACK_MESSAGES: Record<FallbackReason, string> = {
     'Your browser requested a data-saver experience, so the lightweight text tour is active.',
 };
 
+const isValidFallbackReason = (value: unknown): value is FallbackReason =>
+  typeof value === 'string' && value in DEFAULT_FALLBACK_MESSAGES;
+
 function applyVisuallyHiddenStyles(element: HTMLElement): void {
   element.style.position = 'absolute';
   element.style.width = '1px';
@@ -106,7 +109,12 @@ export function createModeAnnouncer({
 }
 
 const announcers = new WeakMap<Document, ModeAnnouncer>();
-const observers = new WeakMap<Document, MutationObserver>();
+type ModeAnnouncementObservers = {
+  readonly mode: MutationObserver;
+  readonly fallback: MutationObserver;
+};
+
+const observers = new WeakMap<Document, ModeAnnouncementObservers>();
 
 function readFallbackReason(documentTarget: Document): FallbackReason {
   const datasetReason = documentTarget.documentElement.dataset
@@ -148,7 +156,9 @@ function handleModeChange(documentTarget: Document): void {
   }
   const announcer = getModeAnnouncer(documentTarget);
   if (mode === 'fallback') {
-    announcer.announceFallback(readFallbackReason(documentTarget));
+    const reason = readFallbackReason(documentTarget);
+    documentTarget.documentElement.dataset.fallbackReason = reason;
+    announcer.announceFallback(reason);
   } else if (mode === 'immersive') {
     announcer.announceImmersiveReady();
   }
@@ -172,15 +182,76 @@ export function initializeModeAnnouncementObserver(
   if (observers.has(documentTarget)) {
     return;
   }
-  const observer = new MutationObserver(() => {
+
+  const triggerAnnouncement = () => {
     handleModeChange(documentTarget);
-  });
-  observer.observe(documentTarget.documentElement, {
+  };
+
+  const modeObserver = new MutationObserver(triggerAnnouncement);
+  modeObserver.observe(documentTarget.documentElement, {
     attributes: true,
-    attributeFilter: ['data-app-mode'],
+    attributeFilter: ['data-app-mode', 'data-fallback-reason'],
   });
+
+  const fallbackObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes') {
+        const target = mutation.target as Element;
+        if (
+          mutation.attributeName === 'data-reason' &&
+          target.classList.contains('text-fallback')
+        ) {
+          const updatedReason = (target as HTMLElement).dataset.reason;
+          if (isValidFallbackReason(updatedReason)) {
+            documentTarget.documentElement.dataset.fallbackReason = updatedReason;
+          }
+          triggerAnnouncement();
+          return;
+        }
+      }
+
+      if (mutation.type === 'childList') {
+        const addedNodes = Array.from(mutation.addedNodes);
+        if (
+          addedNodes.some(
+            (node) => {
+              if (
+                node instanceof HTMLElement &&
+                node.classList.contains('text-fallback')
+              ) {
+                const updatedReason = node.dataset.reason;
+                if (isValidFallbackReason(updatedReason)) {
+                  documentTarget.documentElement.dataset.fallbackReason = updatedReason;
+                }
+                return true;
+              }
+              return false;
+            }
+          )
+        ) {
+          triggerAnnouncement();
+          return;
+        }
+      }
+    }
+  });
+
+  fallbackObserver.observe(
+    documentTarget.body ?? documentTarget.documentElement,
+    {
+      attributes: true,
+      attributeFilter: ['data-reason'],
+      childList: true,
+      subtree: true,
+    }
+  );
+
   handleModeChange(documentTarget);
-  observers.set(documentTarget, observer);
+
+  observers.set(documentTarget, {
+    mode: modeObserver,
+    fallback: fallbackObserver,
+  });
 }
 
 export function __resetModeAnnouncementForTests(
@@ -191,9 +262,10 @@ export function __resetModeAnnouncementForTests(
     announcer.dispose();
     announcers.delete(documentTarget);
   }
-  const observer = observers.get(documentTarget);
-  if (observer) {
-    observer.disconnect();
+  const observerSet = observers.get(documentTarget);
+  if (observerSet) {
+    observerSet.mode.disconnect();
+    observerSet.fallback.disconnect();
     observers.delete(documentTarget);
   }
   const region = documentTarget.querySelector<HTMLElement>(
