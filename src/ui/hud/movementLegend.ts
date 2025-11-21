@@ -16,6 +16,8 @@ export interface MovementLegendOptions {
   interactLabels?: Partial<Record<InputMethod, string>>;
   defaultInteractDescription?: string;
   locale?: LocaleInput;
+  focusTarget?: HTMLElement | null;
+  focusLabel?: string;
 }
 
 export interface MovementLegendHandle {
@@ -61,7 +63,9 @@ const composeInteractAnnouncement = (
 
 const applyHudAnnouncement = (
   context: MovementLegendContext,
-  message: string | null
+  message: string | null,
+  focusTarget?: HTMLElement | null,
+  focusLabel?: string
 ) => {
   if (!context.interactItem) {
     return;
@@ -71,6 +75,18 @@ const applyHudAnnouncement = (
     context.interactItem.dataset.hudAnnounce = trimmed;
   } else {
     delete context.interactItem.dataset.hudAnnounce;
+  }
+
+  if (!focusTarget) {
+    return;
+  }
+
+  if (trimmed) {
+    focusTarget.dataset.hudAnnounce = focusLabel
+      ? `${focusLabel}. ${trimmed}`
+      : trimmed;
+  } else {
+    delete focusTarget.dataset.hudAnnounce;
   }
 };
 
@@ -325,6 +341,8 @@ export function createMovementLegend(
     interactLabels,
     defaultInteractDescription,
     locale,
+    focusTarget,
+    focusLabel,
   } = options;
 
   const navigatorLanguage =
@@ -401,13 +419,13 @@ export function createMovementLegend(
       return;
     }
     if (context.interactItem.hidden) {
-      applyHudAnnouncement(context, null);
+      applyHudAnnouncement(context, null, focusTarget, focusLabel);
       return;
     }
     const description = getInteractDescription();
     const label = getInteractLabel(activeMethod);
     const message = composeInteractAnnouncement(label, description);
-    applyHudAnnouncement(context, message);
+    applyHudAnnouncement(context, message, focusTarget, focusLabel);
   };
 
   if (context.interactDescription) {
@@ -629,7 +647,7 @@ export function createMovementLegend(
           context.defaultInteractDescription;
       }
       activePrompt = null;
-      applyHudAnnouncement(context, null);
+      applyHudAnnouncement(context, null, focusTarget, focusLabel);
       (Object.keys(labels) as InputMethod[]).forEach((method) => {
         labels[method] = defaultLabels[method];
       });

@@ -286,11 +286,13 @@ export class PoiInteractionManager {
 
     const activeElement = (this.domElement.ownerDocument ?? document)
       .activeElement;
+    const hasHudFocus = activeElement?.id === 'control-overlay';
     if (
       activeElement &&
       activeElement !== this.domElement &&
       activeElement !== activeElement.ownerDocument?.body &&
-      !this.domElement.contains(activeElement)
+      !this.domElement.contains(activeElement) &&
+      !hasHudFocus
     ) {
       return;
     }

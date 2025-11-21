@@ -348,6 +348,7 @@ import {
   type AudioSubtitlesHandle,
 } from './ui/hud/audioSubtitles';
 import { applyControlOverlayStrings } from './ui/hud/controlOverlay';
+import { applyControlOverlayAccessibility } from './ui/hud/controlOverlayAccessibility';
 import { createHelpModal } from './ui/hud/helpModal';
 import {
   attachHelpModalController,
@@ -2195,6 +2196,9 @@ function initializeImmersiveScene(
   const interactDescription = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact-description"]'
   );
+  const controlOverlayHeading = controlOverlay?.querySelector<HTMLElement>(
+    '[data-control-text="heading"]'
+  );
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
@@ -2210,8 +2214,19 @@ function initializeImmersiveScene(
             formatKeyLabel(keyBindings.getPrimaryBinding('interact')) ||
             interactLabelFallback,
         },
+        focusTarget: controlOverlay,
+        focusLabel: controlOverlayStrings.heading,
       })
     : null;
+  if (controlOverlay) {
+    applyControlOverlayAccessibility({
+      container: controlOverlay,
+      heading: controlOverlayHeading,
+      helpButton,
+      documentTarget: document,
+      focusOnInit: true,
+    });
+  }
   responsiveControlOverlay = controlOverlay
     ? createResponsiveControlOverlay({
         container: controlOverlay,
