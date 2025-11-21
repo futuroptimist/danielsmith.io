@@ -335,6 +335,8 @@ Focus: make the experience inclusive and globally friendly.
     via the new remapping service.
   - ✅ Gamepad activity monitor now drives the HUD movement legend so controller
     players see the A-button interact prompt the moment a pad is used.
+  - ✅ Movement legend region now receives initial focus with a dialog-labelled help
+    button so screen readers announce the active input prompt before navigation.
 
 - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
   - ✅ Screen reader announcements now trigger when players discover a new POI, narrating the

@@ -403,4 +403,29 @@ describe('createMovementLegend', () => {
 
     legend.dispose();
   });
+
+  it('surfaces announcements on a focus target with an optional prefix', () => {
+    const container = createOverlayContainer();
+    const focusTarget = document.createElement('div');
+
+    const legend = createMovementLegend({
+      container,
+      focusTarget,
+      focusLabel: 'Controls',
+    });
+
+    expect(focusTarget.dataset.hudAnnounce).toBeUndefined();
+
+    legend.setInteractPrompt('Inspect Exhibit');
+
+    expect(focusTarget.dataset.hudAnnounce).toBe(
+      'Controls. F — Inspect Exhibit'
+    );
+
+    legend.setInteractPrompt(null);
+
+    expect(focusTarget.dataset.hudAnnounce).toBeUndefined();
+
+    legend.dispose();
+  });
 });
