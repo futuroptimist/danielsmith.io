@@ -109,6 +109,11 @@ const announcers = new WeakMap<Document, ModeAnnouncer>();
 const observers = new WeakMap<Document, MutationObserver>();
 
 function readFallbackReason(documentTarget: Document): FallbackReason {
+  const datasetReason = documentTarget.documentElement.dataset
+    .fallbackReason as FallbackReason | undefined;
+  if (datasetReason && datasetReason in DEFAULT_FALLBACK_MESSAGES) {
+    return datasetReason;
+  }
   const fallback = documentTarget.querySelector<HTMLElement>('.text-fallback');
   const reason = fallback?.dataset.reason as FallbackReason | undefined;
   if (reason && reason in DEFAULT_FALLBACK_MESSAGES) {

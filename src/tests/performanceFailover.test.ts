@@ -89,7 +89,7 @@ describe('createPerformanceFailoverHandler', () => {
       resumeUrl: undefined,
       githubUrl: undefined,
     });
-    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(markAppReady).toHaveBeenCalledWith('fallback', 'low-performance');
     expect(onTrigger).toHaveBeenCalled();
     const context = onTrigger.mock
       .calls[0][0] as PerformanceFailoverTriggerContext;
@@ -128,7 +128,7 @@ describe('createPerformanceFailoverHandler', () => {
     expect(setAnimationLoop).toHaveBeenCalledWith(null);
     expect(dispose).toHaveBeenCalled();
     expect(removeSpy).toHaveBeenCalled();
-    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(markAppReady).toHaveBeenCalledWith('fallback', 'low-performance');
     expect(warnSpy).toHaveBeenCalled();
     const [message, payload] = warnSpy.mock.calls[0];
     expect(message).toContain('performance-failover');
@@ -228,7 +228,7 @@ describe('createPerformanceFailoverHandler', () => {
       resumeUrl: undefined,
       githubUrl: undefined,
     });
-    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(markAppReady).toHaveBeenCalledWith('fallback', 'manual');
   });
 
   it('can disable automated fallback while keeping manual toggles available', () => {
@@ -268,7 +268,7 @@ describe('createPerformanceFailoverHandler', () => {
       resumeUrl: undefined,
       githubUrl: undefined,
     });
-    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(markAppReady).toHaveBeenCalledWith('fallback', 'manual');
   });
 
   it('triggers fallback when console error budget is exceeded', () => {
@@ -316,7 +316,7 @@ describe('createPerformanceFailoverHandler', () => {
       resumeUrl: undefined,
       githubUrl: undefined,
     });
-    expect(markAppReady).toHaveBeenCalledWith('fallback');
+    expect(markAppReady).toHaveBeenCalledWith('fallback', 'console-error');
     expect(consoleTarget.error).toBe(originalError);
   });
 });
