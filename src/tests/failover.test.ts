@@ -257,6 +257,12 @@ describe('evaluateFailoverDecision', () => {
       'WhatsApp/2.19.81 A',
       'LinkedInBot/1.0 (+https://www.linkedin.com)',
       'SkypeUriPreview Preview',
+      'Pinterest/0.2 (+https://www.pinterest.com/bot.html)',
+      'Embedly/0.2 (+https://support.embed.ly/)',
+      'ia_archiver (+http://www.alexa.com/site/help/webmasters)',
+      'Applebot/0.1; +http://www.apple.com/go/applebot',
+      'TeamsBot-LinkPreview',
+      'ZoominfoBot (zoominfobot at zoominfo dot com)',
     ];
 
     for (const userAgent of userAgents) {
