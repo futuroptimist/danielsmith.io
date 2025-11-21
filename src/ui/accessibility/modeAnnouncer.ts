@@ -149,7 +149,25 @@ const resolveActiveMode = (
   return null;
 };
 
-function handleModeChange(documentTarget: Document): void {
+const syncDocumentFallbackReason = (
+  documentTarget: Document,
+  reason: FallbackReason
+): boolean => {
+  const currentReason = documentTarget.documentElement.dataset
+    .fallbackReason as FallbackReason | undefined;
+
+  if (currentReason === reason) {
+    return false;
+  }
+
+  documentTarget.documentElement.dataset.fallbackReason = reason;
+  return true;
+};
+
+function handleModeChange(
+  documentTarget: Document,
+  options?: { skipFallbackSync?: boolean }
+): void {
   const mode = resolveActiveMode(documentTarget);
   if (!mode) {
     return;
@@ -157,8 +175,8 @@ function handleModeChange(documentTarget: Document): void {
   const announcer = getModeAnnouncer(documentTarget);
   if (mode === 'fallback') {
     const reason = readFallbackReason(documentTarget);
-    if (documentTarget.documentElement.dataset.fallbackReason !== reason) {
-      documentTarget.documentElement.dataset.fallbackReason = reason;
+    if (!options?.skipFallbackSync) {
+      syncDocumentFallbackReason(documentTarget, reason);
     }
     announcer.announceFallback(reason);
   } else if (mode === 'immersive') {
@@ -185,17 +203,62 @@ export function initializeModeAnnouncementObserver(
     return;
   }
 
-  const triggerAnnouncement = () => {
-    handleModeChange(documentTarget);
+  const triggerAnnouncement = (options?: { skipFallbackSync?: boolean }) => {
+    handleModeChange(documentTarget, options);
   };
 
-  const modeObserver = new MutationObserver(triggerAnnouncement);
+  const modeObserver = new MutationObserver((mutations) => {
+    const fallbackReasonMutation = mutations.find(
+      (mutation) =>
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'data-fallback-reason'
+    );
+
+    if (fallbackReasonMutation) {
+      const target = fallbackReasonMutation.target as HTMLElement;
+      if (fallbackReasonMutation.oldValue === target.dataset.fallbackReason) {
+        return;
+      }
+    }
+
+    triggerAnnouncement({
+      skipFallbackSync: Boolean(fallbackReasonMutation),
+    });
+  });
   modeObserver.observe(documentTarget.documentElement, {
     attributes: true,
+    attributeOldValue: true,
     attributeFilter: ['data-app-mode', 'data-fallback-reason'],
   });
 
   const fallbackObserver = new MutationObserver((mutations) => {
+    const hasRelevantMutation = mutations.some((mutation) => {
+      if (mutation.type === 'attributes') {
+        return (
+          mutation.attributeName === 'data-reason' &&
+          (mutation.target as Element).classList.contains('text-fallback')
+        );
+      }
+
+      if (mutation.type === 'childList') {
+        return Array.from(mutation.addedNodes).some((node) => {
+          if (!(node instanceof Element)) {
+            return false;
+          }
+          return (
+            node.classList.contains('text-fallback') ||
+            Boolean(node.querySelector('.text-fallback'))
+          );
+        });
+      }
+
+      return false;
+    });
+
+    if (!hasRelevantMutation) {
+      return;
+    }
+
     for (const mutation of mutations) {
       if (mutation.type === 'attributes') {
         const target = mutation.target as Element;
@@ -204,9 +267,11 @@ export function initializeModeAnnouncementObserver(
           target.classList.contains('text-fallback')
         ) {
           const updatedReason = (target as HTMLElement).dataset.reason;
-          if (isValidFallbackReason(updatedReason)) {
-            documentTarget.documentElement.dataset.fallbackReason = updatedReason;
-            triggerAnnouncement();
+          if (
+            isValidFallbackReason(updatedReason) &&
+            syncDocumentFallbackReason(documentTarget, updatedReason)
+          ) {
+            triggerAnnouncement({ skipFallbackSync: true });
           }
           return;
         }
@@ -214,34 +279,33 @@ export function initializeModeAnnouncementObserver(
 
       if (mutation.type === 'childList') {
         const addedNodes = Array.from(mutation.addedNodes);
-        if (
-          addedNodes.some(
-            (node) => {
-              if (!(node instanceof Element)) {
-                return false;
-              }
-              if (node.classList.contains('text-fallback')) {
-                const updatedReason = (node as HTMLElement).dataset.reason;
-                if (isValidFallbackReason(updatedReason)) {
-                  documentTarget.documentElement.dataset.fallbackReason = updatedReason;
-                }
-                return true;
-              }
-              const fallbackDescendant = node.querySelector<HTMLElement>(
-                '.text-fallback'
-              );
-              if (fallbackDescendant) {
-                const updatedReason = fallbackDescendant.dataset.reason;
-                if (isValidFallbackReason(updatedReason)) {
-                  documentTarget.documentElement.dataset.fallbackReason = updatedReason;
-                }
-                return true;
-              }
-              return false;
-            }
-          )
-        ) {
-          triggerAnnouncement();
+        let hasValidFallbackReasonUpdate = false;
+        const addedFallback = addedNodes.some((node) => {
+          if (!(node instanceof Element)) {
+            return false;
+          }
+
+          const fallbackNode = node.classList.contains('text-fallback')
+            ? (node as HTMLElement)
+            : node.querySelector<HTMLElement>('.text-fallback');
+
+          if (!fallbackNode) {
+            return false;
+          }
+
+          const updatedReason = fallbackNode.dataset.reason;
+          if (
+            isValidFallbackReason(updatedReason) &&
+            syncDocumentFallbackReason(documentTarget, updatedReason)
+          ) {
+            hasValidFallbackReasonUpdate = true;
+          }
+
+          return isValidFallbackReason(updatedReason);
+        });
+
+        if (addedFallback && hasValidFallbackReasonUpdate) {
+          triggerAnnouncement({ skipFallbackSync: true });
           return;
         }
       }
