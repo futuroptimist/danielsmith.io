@@ -85,14 +85,23 @@ export function createModeAnnouncer({
   applyVisuallyHiddenStyles(region);
   host.appendChild(region);
 
+  let lastAnnouncement: string | null = null;
+  let lastReason: FallbackReason | null = null;
+
   const announce = (message: string) => {
+    const normalized = message.trim();
+    if (lastAnnouncement === normalized) {
+      return;
+    }
+    lastAnnouncement = normalized;
     region.textContent = '';
-    region.textContent = message;
+    region.textContent = normalized;
   };
 
   return {
     element: region,
     announceImmersiveReady() {
+      lastReason = null;
       announce(immersiveMessage);
     },
     announceFallback(reason) {
@@ -100,6 +109,10 @@ export function createModeAnnouncer({
         fallbackMessages[reason] ??
         DEFAULT_FALLBACK_MESSAGES[reason] ??
         DEFAULT_FALLBACK_MESSAGES.manual;
+      if (lastReason === reason && lastAnnouncement === resolved.trim()) {
+        return;
+      }
+      lastReason = reason;
       announce(resolved);
     },
     dispose() {

@@ -300,6 +300,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
     been set yet, ensuring prerendered text tours still announce their context on startup.
   - ✅ Mode announcer now re-announces when fallback reasons change mid-session so updated
     failover contexts stay audible for assistive tech users.
+  - ✅ Duplicate fallback announcements are now suppressed so screen readers avoid repeated
+    chatter while still announcing new failover reasons as they occur.
   - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
     cleanly even when queries or hash fragments already exist.
 

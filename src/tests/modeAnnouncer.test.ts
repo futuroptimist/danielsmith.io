@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderTextFallback } from '../systems/failover';
 import {
@@ -49,6 +49,33 @@ describe('createModeAnnouncer', () => {
     announcer.announceImmersiveReady();
     expect(announcer.element.textContent).toBe('Custom immersive');
     announcer.dispose();
+  });
+
+  it('suppresses duplicate fallback announcements while handling updates', async () => {
+    const announcer = createModeAnnouncer();
+    const region = announcer.element;
+    const setSpy = vi.spyOn(region, 'textContent', 'set');
+
+    announcer.announceFallback('manual');
+    await flushObserver();
+    const initialSetCount = setSpy.mock.calls.length;
+    expect(initialSetCount).toBeGreaterThanOrEqual(1);
+    const firstMessage = region.textContent;
+
+    announcer.announceFallback('manual');
+    await flushObserver();
+    expect(setSpy.mock.calls.length).toBe(initialSetCount);
+    expect(region.textContent).toBe(firstMessage);
+
+    announcer.announceFallback('console-error');
+    await flushObserver();
+    expect(setSpy.mock.calls.length).toBeGreaterThan(initialSetCount);
+    const lastCall = setSpy.mock.calls.at(-1);
+    const finalAnnouncement =
+      (lastCall && lastCall[0]) ?? region.textContent ?? '';
+    expect(finalAnnouncement).toMatch(/runtime error/i);
+
+    setSpy.mockRestore();
   });
 });
 
