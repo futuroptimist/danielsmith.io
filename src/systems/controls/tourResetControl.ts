@@ -76,6 +76,7 @@ export function createTourResetControl({
   const wrapper = document.createElement('section');
   wrapper.className = 'guided-tour-control';
   wrapper.dataset.pending = 'false';
+  wrapper.setAttribute('aria-busy', 'false');
 
   const heading = document.createElement('h2');
   heading.className = 'guided-tour-control__title';
@@ -99,6 +100,7 @@ export function createTourResetControl({
   resetButton.className = 'tour-reset';
   resetButton.dataset.state = 'empty';
   resetButton.setAttribute('aria-label', description);
+  resetButton.setAttribute('aria-busy', 'false');
   wrapper.appendChild(resetButton);
 
   container.appendChild(wrapper);
@@ -168,6 +170,8 @@ export function createTourResetControl({
         'Resetting the guided tour…'
       );
       wrapper.dataset.pending = 'true';
+      wrapper.setAttribute('aria-busy', 'true');
+      resetButton.setAttribute('aria-busy', 'true');
       return;
     }
     if (!hasVisited) {
@@ -178,6 +182,8 @@ export function createTourResetControl({
       resetButton.setAttribute('aria-label', emptyDescription);
       resetButton.dataset.hudAnnounce = emptyDescription;
       wrapper.dataset.pending = 'false';
+      wrapper.setAttribute('aria-busy', 'false');
+      resetButton.setAttribute('aria-busy', 'false');
       return;
     }
     resetButton.disabled = false;
@@ -187,6 +193,8 @@ export function createTourResetControl({
     resetButton.setAttribute('aria-label', description);
     resetButton.dataset.hudAnnounce = buildHudAnnouncement(description, true);
     wrapper.dataset.pending = 'false';
+    wrapper.setAttribute('aria-busy', 'false');
+    resetButton.setAttribute('aria-busy', 'false');
   };
 
   const finalizeReset = () => {
