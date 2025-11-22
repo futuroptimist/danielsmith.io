@@ -375,6 +375,8 @@ Focus: make the experience inclusive and globally friendly.
 - ✅ Ambient audio HUD now flags pending toggles with an `aria-busy` hint and links its
   volume value readout so assistive tech narrates asynchronous state changes without
   losing context.
+  - Pending states also disable the volume slider and expose `aria-busy` on the control so
+    adjustments pause until toggles settle.
 
 3. **Localization Pipeline**
    - ✅ Extract UI + POI copy into i18n catalog with English baseline.
