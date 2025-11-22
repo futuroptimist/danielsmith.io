@@ -45,6 +45,10 @@ export interface PerformanceFailoverHandlerOptions {
   ) => void;
   fallbackLinks?: Pick<RenderTextFallbackOptions, 'resumeUrl' | 'githubUrl'>;
   onBeforeFallback?: (reason: FallbackReason) => void;
+  onFallback?: (
+    reason: FallbackReason,
+    context?: PerformanceFailoverTriggerContext
+  ) => void;
   disabled?: boolean;
   consoleFailover?: ConsoleFailoverOptions;
 }
@@ -175,6 +179,7 @@ export function createPerformanceFailoverHandler(
     renderFallback: render = renderTextFallback,
     fallbackLinks,
     onBeforeFallback,
+    onFallback,
     disabled = false,
     consoleFailover,
   } = options;
@@ -201,6 +206,11 @@ export function createPerformanceFailoverHandler(
     }
     if (context) {
       handlePerformanceTrigger(context);
+    }
+    try {
+      onFallback?.(reason, context);
+    } catch (error) {
+      console.warn('Fallback callback failed:', error);
     }
     try {
       onBeforeFallback?.(reason);
