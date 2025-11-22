@@ -90,9 +90,6 @@ export function createModeAnnouncer({
 
   const announce = (message: string) => {
     const normalized = message.trim();
-    if (lastAnnouncement === normalized) {
-      return;
-    }
     lastAnnouncement = normalized;
     region.textContent = '';
     region.textContent = normalized;

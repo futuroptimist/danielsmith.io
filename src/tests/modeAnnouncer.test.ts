@@ -77,6 +77,30 @@ describe('createModeAnnouncer', () => {
 
     setSpy.mockRestore();
   });
+
+  it('re-announces when the fallback reason changes even with matching text', async () => {
+    const announcer = createModeAnnouncer({
+      fallbackMessages: {
+        manual: 'Shared announcement',
+        'low-memory': 'Shared announcement',
+      },
+    });
+    const region = announcer.element;
+    const setSpy = vi.spyOn(region, 'textContent', 'set');
+
+    announcer.announceFallback('manual');
+    await flushObserver();
+    const initialCallCount = setSpy.mock.calls.length;
+
+    announcer.announceFallback('low-memory');
+    await flushObserver();
+
+    expect(setSpy.mock.calls.length).toBeGreaterThan(initialCallCount);
+    const lastAnnouncement = setSpy.mock.calls.at(-1)?.at(0);
+    expect(lastAnnouncement).toBe('Shared announcement');
+
+    setSpy.mockRestore();
+  });
 });
 
 describe('initializeModeAnnouncementObserver', () => {
