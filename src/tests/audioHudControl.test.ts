@@ -93,6 +93,8 @@ describe('createAudioHudControl', () => {
     expect(toggleCallCount).toBe(1);
     expect(button?.disabled).toBe(true);
     expect(wrapper?.getAttribute('aria-busy')).toBe('true');
+    expect(slider?.disabled).toBe(true);
+    expect(slider?.getAttribute('aria-busy')).toBe('true');
 
     // Second click while pending should be ignored.
     button?.dispatchEvent(new Event('click'));
@@ -105,6 +107,8 @@ describe('createAudioHudControl', () => {
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
     expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(slider?.disabled).toBe(false);
+    expect(slider?.getAttribute('aria-busy')).toBe('false');
     expect(button?.dataset.hudAnnounce).toBe(
       formatMessage(strings.toggle.announcementOnTemplate, { keyHint })
     );

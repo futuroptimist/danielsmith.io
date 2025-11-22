@@ -209,6 +209,8 @@ export function createAudioHudControl({
     toggleButton.disabled = pending;
     wrapper.dataset.pending = pending ? 'true' : 'false';
     wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
+    slider.disabled = pending;
+    slider.setAttribute('aria-busy', pending ? 'true' : 'false');
     toggleButton.dataset.hudAnnounce = enabled
       ? toggleAnnouncements.on
       : toggleAnnouncements.off;
