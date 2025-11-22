@@ -318,6 +318,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
    - ✅ Guided tour reset utility now lets the HUD restart the curated path on demand so
      visitors can replay the experience during sessions or demos.
+     - ✅ Guided tour reset control now flags pending resets with `aria-busy` so screen readers
+       announce progress while the tour refreshes.
 
 ## Phase 4 – Accessibility & Internationalization
 

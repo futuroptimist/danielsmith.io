@@ -63,6 +63,8 @@ describe('createTourResetControl', () => {
       '.tour-reset'
     ) as HTMLButtonElement;
     expect(resetButton).toBeTruthy();
+    expect(wrapper.getAttribute('aria-busy')).toBe('false');
+    expect(resetButton.getAttribute('aria-busy')).toBe('false');
     expect(resetButton.disabled).toBe(true);
     expect(resetButton.dataset.state).toBe('empty');
     expect(resetButton.textContent).toBe('Guided tour ready');
@@ -75,6 +77,8 @@ describe('createTourResetControl', () => {
     expect(resetButton.dataset.state).toBe('ready');
     expect(resetButton.textContent).toBe('Restart guided tour');
     expect(resetButton.dataset.hudAnnounce).toContain('Press G to restart.');
+    expect(wrapper.getAttribute('aria-busy')).toBe('false');
+    expect(resetButton.getAttribute('aria-busy')).toBe('false');
 
     handle.dispose();
     expect(subscription.unsubscribe).toHaveBeenCalledTimes(1);
@@ -109,18 +113,25 @@ describe('createTourResetControl', () => {
     expect(reset).toHaveBeenCalledTimes(1);
     expect(resetButton.dataset.state).toBe('pending');
     expect(resetButton.disabled).toBe(true);
+    expect(handle.element.getAttribute('aria-busy')).toBe('true');
+    expect(resetButton.getAttribute('aria-busy')).toBe('true');
 
     await flushPromises();
     subscription.emit([]);
     await flushPromises();
     expect(resetButton.dataset.state).toBe('empty');
     expect(resetButton.disabled).toBe(true);
+    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(resetButton.getAttribute('aria-busy')).toBe('false');
 
     subscription.emit(['next']);
     const event = new KeyboardEvent('keydown', { key: 'r' });
     window.dispatchEvent(event);
     expect(reset).toHaveBeenCalledTimes(2);
     await flushPromises();
+    await flushPromises();
+    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(resetButton.getAttribute('aria-busy')).toBe('false');
 
     handle.dispose();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
@@ -159,6 +170,8 @@ describe('createTourResetControl', () => {
     await flushPromises();
     expect(resetButton.dataset.state).toBe('ready');
     expect(resetButton.disabled).toBe(false);
+    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(resetButton.getAttribute('aria-busy')).toBe('false');
 
     handle.dispose();
     preference.dispose();
