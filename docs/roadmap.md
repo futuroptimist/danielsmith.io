@@ -26,6 +26,8 @@ captures; keep artifacts in `docs/metrics/`.
   p95 INP <200 ms; LCP <2.5 s on fast 4G; initial interactive payload ≤1.5–2.0 MB gzipped.
   - ✅ Input latency telemetry now records keyboard and pointer lag, logging median, p95,
     and max values against the 200 ms INP budget whenever sessions end or failover triggers.
+  - ✅ Manual and console-triggered failovers now emit input latency summaries so HUD toggles and
+    console budget fallbacks keep telemetry coverage aligned with automated performance switches.
   - ✅ Press kit exports now include a performance budget report that captures headroom for
     materials, draw calls, and texture memory so marketing snapshots surface remaining
     capacity alongside the baseline metrics.

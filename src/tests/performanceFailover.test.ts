@@ -63,6 +63,7 @@ describe('createPerformanceFailoverHandler', () => {
     const markAppReady = vi.fn();
     const renderFallback = vi.fn();
     const onTrigger = vi.fn();
+    const onFallback = vi.fn();
 
     const handler = createPerformanceFailoverHandler({
       renderer,
@@ -71,6 +72,7 @@ describe('createPerformanceFailoverHandler', () => {
       markAppReady,
       renderFallback,
       onTrigger,
+      onFallback,
     });
 
     const frameDelta = 1 / 20; // 20 FPS
@@ -100,6 +102,7 @@ describe('createPerformanceFailoverHandler', () => {
     expect(context.maxFps).toBeGreaterThanOrEqual(context.p95Fps);
     expect(context.medianFps).toBeGreaterThanOrEqual(context.minFps);
     expect(context.medianFps).toBeLessThanOrEqual(context.maxFps);
+    expect(onFallback).toHaveBeenCalledWith('low-performance', context);
   });
 
   it('logs metrics when low-FPS fallback triggers without a custom handler', () => {
@@ -203,6 +206,7 @@ describe('createPerformanceFailoverHandler', () => {
     const renderFallback = vi.fn();
     const onTrigger = vi.fn();
     const onBeforeFallback = vi.fn();
+    const onFallback = vi.fn();
 
     const handler = createPerformanceFailoverHandler({
       renderer,
@@ -212,6 +216,7 @@ describe('createPerformanceFailoverHandler', () => {
       renderFallback,
       onTrigger,
       onBeforeFallback,
+      onFallback,
     });
 
     handler.triggerFallback('manual');
@@ -229,6 +234,7 @@ describe('createPerformanceFailoverHandler', () => {
       githubUrl: undefined,
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback', 'manual');
+    expect(onFallback).toHaveBeenCalledWith('manual', undefined);
   });
 
   it('can disable automated fallback while keeping manual toggles available', () => {
@@ -283,6 +289,7 @@ describe('createPerformanceFailoverHandler', () => {
     const windowTarget = new FakeWindowTarget();
     const eventTarget = new EventTarget();
     const onExceeded = vi.fn();
+    const onFallback = vi.fn();
 
     const handler = createPerformanceFailoverHandler({
       renderer,
@@ -298,6 +305,7 @@ describe('createPerformanceFailoverHandler', () => {
         eventName: 'test:console-budget',
         onExceeded,
       },
+      onFallback,
     });
 
     const instrumented = consoleTarget.error;
@@ -317,6 +325,7 @@ describe('createPerformanceFailoverHandler', () => {
       githubUrl: undefined,
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback', 'console-error');
+    expect(onFallback).toHaveBeenCalledWith('console-error', undefined);
     expect(consoleTarget.error).toBe(originalError);
   });
 });

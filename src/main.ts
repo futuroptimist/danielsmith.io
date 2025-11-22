@@ -794,7 +794,6 @@ function initializeImmersiveScene(
       minFps,
       medianFps,
     }) => {
-      inputLatencyTelemetry?.report('performance-failover');
       const roundedDuration = Math.round(durationMs);
       const averaged = averageFps.toFixed(1);
       const percentile = p95Fps.toFixed(1);
@@ -809,6 +808,9 @@ function initializeImmersiveScene(
     },
     onBeforeFallback: () => {
       disposeImmersiveResources();
+    },
+    onFallback: (reason) => {
+      inputLatencyTelemetry?.report(`failover-${reason}`);
     },
     disabled: disablePerformanceFailover,
     consoleFailover: {
