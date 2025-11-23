@@ -11,6 +11,7 @@ export interface InputLatencyTelemetryOptions {
   eventTypes?: ReadonlyArray<string>;
   now?: () => number;
   logger?: Pick<Console, 'info' | 'warn'>;
+  onReport?: (reason: string, summary: InputLatencySummary) => void;
 }
 
 export interface InputLatencyTelemetryHandle {
@@ -33,6 +34,7 @@ export function createInputLatencyTelemetry(
     eventTypes,
     now,
     logger = console,
+    onReport,
   } = options;
 
   const monitor: InputLatencyMonitor = createInputLatencyMonitor({
@@ -45,6 +47,11 @@ export function createInputLatencyTelemetry(
     const summary = monitor.getSummary();
     if (!summary || summary.count === 0) {
       return;
+    }
+    try {
+      onReport?.(reason, summary);
+    } catch (error) {
+      logger.warn('Input latency onReport callback failed:', error);
     }
     const median = formatNumber(summary.medianLatencyMs);
     const p95 = formatNumber(summary.p95LatencyMs);

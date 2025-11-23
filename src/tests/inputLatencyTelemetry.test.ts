@@ -18,7 +18,9 @@ const createInputEvent = (type: string, timeStamp: number): Event => {
 };
 
 describe('createInputLatencyTelemetry', () => {
-  const setup = () => {
+  const setup = (
+    overrides: Partial<Parameters<typeof createInputLatencyTelemetry>[0]> = {}
+  ) => {
     const windowTarget = new FakeEventTarget();
     const documentTarget = new FakeDocument();
     let now = 0;
@@ -30,6 +32,7 @@ describe('createInputLatencyTelemetry', () => {
       eventTypes: ['pointerdown'],
       now: () => now,
       logger,
+      ...overrides,
     });
 
     const recordLatency = (latency: number) => {
@@ -45,6 +48,7 @@ describe('createInputLatencyTelemetry', () => {
       telemetry,
       logger,
       recordLatency,
+      now: () => now,
     };
   };
 
@@ -87,5 +91,24 @@ describe('createInputLatencyTelemetry', () => {
     telemetry.dispose();
     expect(windowTarget.listenerCount('pagehide')).toBe(0);
     expect(documentTarget.listenerCount('visibilitychange')).toBe(0);
+  });
+
+  it('invokes onReport with the most recent summary before reset', () => {
+    const onReport = vi.fn();
+    const { telemetry, recordLatency } = setup({ onReport });
+
+    recordLatency(18);
+    recordLatency(26);
+    telemetry.report('failover-console');
+
+    expect(onReport).toHaveBeenCalledTimes(1);
+    const [reason, summary] = onReport.mock.calls[0];
+    expect(reason).toBe('failover-console');
+    expect(summary.count).toBe(2);
+    expect(summary.medianLatencyMs).toBeGreaterThan(17);
+    expect(summary.p95LatencyMs).toBeGreaterThanOrEqual(
+      summary.medianLatencyMs
+    );
+    expect(telemetry.getSummary()).toBeNull();
   });
 });
