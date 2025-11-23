@@ -281,4 +281,30 @@ describe('initializeModeAnnouncementObserver', () => {
     );
     expect(region?.textContent).toMatch(/webgl is unavailable/i);
   });
+
+  it('defaults to manual announcements when fallback reasons are cleared', async () => {
+    initializeModeAnnouncementObserver();
+
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.dataset.appMode = 'fallback';
+
+    await flushObserver();
+
+    const fallbackView = document.querySelector<HTMLElement>('.text-fallback');
+    fallbackView?.removeAttribute('data-reason');
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toMatch(/text mode enabled/i);
+    expect(document.documentElement.dataset.fallbackReason).toBe('manual');
+  });
 });
