@@ -309,6 +309,25 @@ describe('createMovementLegend', () => {
     legend.dispose();
   });
 
+  it('falls back to the last non-gamepad method when the controller disconnects', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+
+    legend.setActiveMethod('pointer');
+    stubWindow.dispatchEvent(new Event('gamepadconnected'));
+    expect(legend.getActiveMethod()).toBe('gamepad');
+
+    stubWindow.dispatchEvent(new Event('gamepaddisconnected'));
+    expect(legend.getActiveMethod()).toBe('pointer');
+
+    legend.dispose();
+  });
+
   it('cleans up listeners and restores defaults on dispose', () => {
     const container = createOverlayContainer();
     const legend = createMovementLegend({
