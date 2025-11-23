@@ -444,9 +444,15 @@ export function createMovementLegend(
     windowTarget,
   });
 
+  let lastNonGamepadMethod: InputMethod =
+    activeMethod === 'gamepad' ? 'keyboard' : activeMethod;
+
   const applyMethod = (method: InputMethod) => {
     if (activeMethod === method) {
       return;
+    }
+    if (method !== 'gamepad') {
+      lastNonGamepadMethod = method;
     }
     activeMethod = method;
     if (container.dataset.activeInput !== method) {
@@ -613,6 +619,12 @@ export function createMovementLegend(
 
     addListener('gamepadconnected', () => {
       applyMethod('gamepad');
+    });
+
+    addListener('gamepaddisconnected', () => {
+      if (activeMethod === 'gamepad') {
+        applyMethod(lastNonGamepadMethod);
+      }
     });
   }
 

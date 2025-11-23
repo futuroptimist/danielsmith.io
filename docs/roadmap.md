@@ -345,6 +345,8 @@ Focus: make the experience inclusive and globally friendly.
     players see the A-button interact prompt the moment a pad is used.
   - ✅ Movement legend region now receives initial focus with a dialog-labelled help
     button so screen readers announce the active input prompt before navigation.
+  - ✅ Movement legend now falls back to the last non-gamepad method when controllers
+    disconnect so keyboard and touch hints stay accurate.
 
 - Screen reader announcements for mode switches, POI discovery, and HUD focus changes.
   - ✅ Screen reader announcements now trigger when players discover a new POI, narrating the
