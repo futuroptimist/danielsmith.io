@@ -612,4 +612,30 @@ describe('renderTextFallback', () => {
       delete document.documentElement.dataset.localeScript;
     }
   });
+
+  it('propagates resolved locale metadata to lang attributes', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'ja-JP';
+    const container = render('manual');
+    const section = container.querySelector<HTMLElement>('.text-fallback');
+
+    expect(document.documentElement.lang).toBe('ja');
+    expect(container.lang).toBe('ja');
+    expect(section?.lang).toBe('ja');
+
+    document.documentElement.lang = originalLang;
+  });
+
+  it('maps pseudo locale to en for lang attributes', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'en-x-pseudo';
+    const container = render('manual');
+    const section = container.querySelector<HTMLElement>('.text-fallback');
+
+    expect(document.documentElement.lang).toBe('en');
+    expect(container.lang).toBe('en');
+    expect(section?.lang).toBe('en');
+
+    document.documentElement.lang = originalLang;
+  });
 });
