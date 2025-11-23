@@ -612,4 +612,17 @@ describe('renderTextFallback', () => {
       delete document.documentElement.dataset.localeScript;
     }
   });
+
+  it('propagates resolved locale metadata to lang attributes', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'ja-JP';
+    const container = render('manual');
+    const section = container.querySelector<HTMLElement>('.text-fallback');
+
+    expect(document.documentElement.lang).toBe('ja');
+    expect(container.lang).toBe('ja');
+    expect(section?.lang).toBe('ja');
+
+    document.documentElement.lang = originalLang;
+  });
 });

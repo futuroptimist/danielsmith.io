@@ -3,6 +3,7 @@ import {
   formatMessage,
   getLocaleDirection,
   getLocaleScript,
+  resolveLocale,
   getPoiCopy,
   getPoiNarrativeLogStrings,
   getSiteStrings,
@@ -570,14 +571,16 @@ export function renderTextFallback(
     immersiveUrl: providedImmersiveUrl,
   } = options;
   const documentTarget = container.ownerDocument ?? document;
-  const immersiveUrl = createImmersiveModeUrl(
-    providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
-  );
   const localeHint =
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
+  const immersiveUrl = createImmersiveModeUrl(
+    providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
+  );
+  const resolvedLocale = resolveLocale(localeHint);
   const direction = getLocaleDirection(localeHint);
   const script = getLocaleScript(localeHint);
+  documentTarget.documentElement.lang = resolvedLocale;
   documentTarget.documentElement.dir = direction;
   documentTarget.documentElement.dataset.localeDirection = direction;
   documentTarget.documentElement.dataset.localeScript = script;
@@ -587,12 +590,14 @@ export function renderTextFallback(
 
   container.innerHTML = '';
   container.setAttribute('data-mode', 'text');
+  container.lang = resolvedLocale;
   container.dataset.localeDirection = direction;
   container.dataset.localeScript = script;
 
   const section = documentTarget.createElement('section');
   section.className = 'text-fallback';
   section.setAttribute('data-reason', reason);
+  section.lang = resolvedLocale;
   section.dir = direction;
   section.dataset.localeDirection = direction;
   section.dataset.localeScript = script;
