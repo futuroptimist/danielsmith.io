@@ -578,9 +578,10 @@ export function renderTextFallback(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
   );
   const resolvedLocale = resolveLocale(localeHint);
+  const langValue = resolvedLocale === 'en-x-pseudo' ? 'en' : resolvedLocale;
   const direction = getLocaleDirection(localeHint);
   const script = getLocaleScript(localeHint);
-  documentTarget.documentElement.lang = resolvedLocale;
+  documentTarget.documentElement.lang = langValue;
   documentTarget.documentElement.dir = direction;
   documentTarget.documentElement.dataset.localeDirection = direction;
   documentTarget.documentElement.dataset.localeScript = script;
@@ -590,14 +591,14 @@ export function renderTextFallback(
 
   container.innerHTML = '';
   container.setAttribute('data-mode', 'text');
-  container.lang = resolvedLocale;
+  container.lang = langValue;
   container.dataset.localeDirection = direction;
   container.dataset.localeScript = script;
 
   const section = documentTarget.createElement('section');
   section.className = 'text-fallback';
   section.setAttribute('data-reason', reason);
-  section.lang = resolvedLocale;
+  section.lang = langValue;
   section.dir = direction;
   section.dataset.localeDirection = direction;
   section.dataset.localeScript = script;
