@@ -229,6 +229,13 @@ export function initializeModeAnnouncementObserver(
       if (fallbackReasonMutation.oldValue === target.dataset.fallbackReason) {
         return;
       }
+
+      if (!target.dataset.fallbackReason) {
+        if (syncDocumentFallbackReason(documentTarget, 'manual')) {
+          triggerAnnouncement({ skipFallbackSync: true });
+        }
+        return;
+      }
     }
 
     triggerAnnouncement({
@@ -277,10 +284,11 @@ export function initializeModeAnnouncementObserver(
           target.classList.contains('text-fallback')
         ) {
           const updatedReason = (target as HTMLElement).dataset.reason;
-          if (
-            isValidFallbackReason(updatedReason) &&
-            syncDocumentFallbackReason(documentTarget, updatedReason)
-          ) {
+          const nextReason = isValidFallbackReason(updatedReason)
+            ? updatedReason
+            : 'manual';
+
+          if (syncDocumentFallbackReason(documentTarget, nextReason)) {
             triggerAnnouncement({ skipFallbackSync: true });
           }
           return;
@@ -304,10 +312,11 @@ export function initializeModeAnnouncementObserver(
           }
 
           const updatedReason = fallbackNode.dataset.reason;
-          if (
-            isValidFallbackReason(updatedReason) &&
-            syncDocumentFallbackReason(documentTarget, updatedReason)
-          ) {
+          const nextReason = isValidFallbackReason(updatedReason)
+            ? updatedReason
+            : 'manual';
+
+          if (syncDocumentFallbackReason(documentTarget, nextReason)) {
             hasValidFallbackReasonUpdate = true;
           }
 
