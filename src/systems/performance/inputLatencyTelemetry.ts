@@ -51,7 +51,7 @@ export function createInputLatencyTelemetry(
     try {
       onReport?.(reason, summary);
     } catch (error) {
-      console.warn('Input latency onReport callback failed:', error);
+      logger.warn('Input latency onReport callback failed:', error);
     }
     const median = formatNumber(summary.medianLatencyMs);
     const p95 = formatNumber(summary.p95LatencyMs);
