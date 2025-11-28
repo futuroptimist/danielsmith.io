@@ -29,18 +29,34 @@ describe('buildPressKitSummary', () => {
       { project: 0, environment: 0 }
     );
     const expectedRooms = new Set(definitions.map((poi) => poi.roomId)).size;
+    const expectedReport = createPerformanceBudgetReport(
+      IMMERSIVE_SCENE_BASELINE,
+      IMMERSIVE_PERFORMANCE_BUDGET
+    );
 
     const summary = buildPressKitSummary({ now: fixedNow });
 
     expect(summary.generatedAtIso).toBe('2024-06-01T12:34:56.000Z');
     expect(summary.performance.budget).toEqual(IMMERSIVE_PERFORMANCE_BUDGET);
     expect(summary.performance.baseline).toEqual(IMMERSIVE_SCENE_BASELINE);
-    expect(summary.performance.report).toEqual(
-      createPerformanceBudgetReport(
-        IMMERSIVE_SCENE_BASELINE,
-        IMMERSIVE_PERFORMANCE_BUDGET
-      )
-    );
+    expect(summary.performance.report).toEqual(expectedReport);
+    expect(summary.performance.headroom).toEqual({
+      materials: {
+        remaining: expectedReport.materials.remaining,
+        percentUsed: expectedReport.materials.percentUsed,
+        overBudgetBy: expectedReport.materials.overBudgetBy,
+      },
+      drawCalls: {
+        remaining: expectedReport.drawCalls.remaining,
+        percentUsed: expectedReport.drawCalls.percentUsed,
+        overBudgetBy: expectedReport.drawCalls.overBudgetBy,
+      },
+      textureBytes: {
+        remaining: expectedReport.textureBytes.remaining,
+        percentUsed: expectedReport.textureBytes.percentUsed,
+        overBudgetBy: expectedReport.textureBytes.overBudgetBy,
+      },
+    });
     expect(summary.poiCatalog).toHaveLength(definitions.length);
     expect(summary.totals.poiCount).toBe(definitions.length);
     expect(summary.totals.roomsRepresented).toBe(expectedRooms);

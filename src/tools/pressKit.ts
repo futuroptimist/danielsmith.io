@@ -7,6 +7,7 @@ import {
   IMMERSIVE_SCENE_BASELINE,
   createPerformanceBudgetReport,
   type PerformanceBudgetReport,
+  type PerformanceBudgetUsage,
   type PerformanceBudget,
   type ScenePerformanceSnapshot,
 } from '../assets/performance';
@@ -56,17 +57,30 @@ export interface PressKitTotals {
   categories: Record<PoiCategory, number>;
 }
 
+export interface PressKitPerformanceHeadroomEntry {
+  remaining: number;
+  percentUsed: number;
+  overBudgetBy: number;
+}
+
+export interface PressKitPerformanceSummary {
+  budget: PerformanceBudget;
+  baseline: ScenePerformanceSnapshot;
+  report: PerformanceBudgetReport;
+  headroom: {
+    materials: PressKitPerformanceHeadroomEntry;
+    drawCalls: PressKitPerformanceHeadroomEntry;
+    textureBytes: PressKitPerformanceHeadroomEntry;
+  };
+}
+
 export interface PressKitMediaEntry extends PressKitMediaAsset {
   filename: string;
 }
 
 export interface PressKitSummary {
   generatedAtIso: string;
-  performance: {
-    budget: PerformanceBudget;
-    baseline: ScenePerformanceSnapshot;
-    report: PerformanceBudgetReport;
-  };
+  performance: PressKitPerformanceSummary;
   totals: PressKitTotals;
   poiCatalog: PressKitPoiEntry[];
   media: PressKitMediaEntry[];
@@ -96,6 +110,14 @@ const normalizeLinks = (links: PoiLink[] | undefined): PressKitPoiLink[] => {
   }
   return links.map((link) => ({ label: link.label, href: link.href }));
 };
+
+const createPerformanceHeadroom = (
+  usage: PerformanceBudgetUsage
+): PressKitPerformanceHeadroomEntry => ({
+  remaining: usage.remaining,
+  percentUsed: usage.percentUsed,
+  overBudgetBy: usage.overBudgetBy,
+});
 
 export function buildPressKitSummary(
   options: BuildPressKitSummaryOptions = {}
@@ -139,15 +161,22 @@ export function buildPressKitSummary(
     filename: path.basename(asset.relativePath),
   }));
 
+  const performanceReport = createPerformanceBudgetReport(
+    IMMERSIVE_SCENE_BASELINE,
+    IMMERSIVE_PERFORMANCE_BUDGET
+  );
+
   return {
     generatedAtIso,
     performance: {
       budget: { ...IMMERSIVE_PERFORMANCE_BUDGET },
       baseline: { ...IMMERSIVE_SCENE_BASELINE },
-      report: createPerformanceBudgetReport(
-        IMMERSIVE_SCENE_BASELINE,
-        IMMERSIVE_PERFORMANCE_BUDGET
-      ),
+      report: performanceReport,
+      headroom: {
+        materials: createPerformanceHeadroom(performanceReport.materials),
+        drawCalls: createPerformanceHeadroom(performanceReport.drawCalls),
+        textureBytes: createPerformanceHeadroom(performanceReport.textureBytes),
+      },
     },
     totals: {
       poiCount: poiCatalog.length,
