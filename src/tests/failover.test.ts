@@ -263,6 +263,9 @@ describe('evaluateFailoverDecision', () => {
       'Applebot/0.1; +http://www.apple.com/go/applebot',
       'TeamsBot-LinkPreview',
       'ZoominfoBot (zoominfobot at zoominfo dot com)',
+      'Bytespider (compatible; bytespider;)',
+      'Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)',
+      'Mozilla/5.0 (compatible; ClaudeBot/1.0)',
     ];
 
     for (const userAgent of userAgents) {
