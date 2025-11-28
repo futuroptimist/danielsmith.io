@@ -48,6 +48,8 @@ captures; keep artifacts in `docs/metrics/`.
   - ✅ Runtime performance monitor now auto-switches to text mode after 5 s below 30 FPS.
   - ✅ Low-performance failover logs now surface min/median/p95 FPS and sample counts for telemetry
     handoff, with a default console summary emitted whenever low-FPS fallback triggers.
+    - ✅ A `performancefailover` CustomEvent now broadcasts the fallback reason and FPS summary so
+      analytics hooks can forward the telemetry payload without coupling to the renderer.
   - ✅ Data-saver and console-error failovers now narrate their reason through the mode announcer
     so assistive tech users understand why the text tour launched.
   - ✅ Social and chat link preview scrapers now force the text portfolio via user-agent
