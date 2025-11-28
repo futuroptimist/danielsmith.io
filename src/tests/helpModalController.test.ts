@@ -146,6 +146,35 @@ describe('attachHelpModalController', () => {
     controller.dispose();
   });
 
+  it('syncs help button aria state with modal visibility', () => {
+    const context = createHelpModalStub();
+    const button = document.createElement('button');
+
+    const controller = attachHelpModalController({
+      helpModal: context.handle,
+      helpButton: button,
+    });
+
+    expect(button.getAttribute('aria-controls')).toBe(
+      context.handle.element.id
+    );
+    expect(button.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+
+    context.handle.open();
+
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+
+    context.handle.close();
+
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+
+    controller.dispose();
+  });
+
   it('avoids duplicate announcements when state is unchanged', () => {
     const events: string[] = [];
     const context = createHelpModalStub();
