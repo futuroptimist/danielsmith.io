@@ -2331,6 +2331,7 @@ function initializeImmersiveScene(
   });
   helpModalController = attachHelpModalController({
     helpModal,
+    helpButton,
     onOpen: showHudControlElements,
     onClose: hideHudControlElements,
     hudFocusAnnouncer,

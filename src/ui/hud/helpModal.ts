@@ -138,6 +138,9 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   modal.setAttribute('role', 'dialog');
   modal.setAttribute('aria-modal', 'true');
   modal.tabIndex = -1;
+  if (!modal.id) {
+    modal.id = 'help-modal';
+  }
 
   const titleId = 'help-modal-title';
   modal.setAttribute('aria-labelledby', titleId);

@@ -9,6 +9,7 @@ export interface HelpModalAnnouncements {
 
 export interface HelpModalControllerOptions {
   helpModal: HelpModalHandle;
+  helpButton?: HTMLButtonElement | null;
   onOpen?: () => void;
   onClose?: () => void;
   hudFocusAnnouncer?: Pick<HudFocusAnnouncerHandle, 'announce'> | null;
@@ -34,6 +35,7 @@ const sanitizeAnnouncements = (
 
 export function attachHelpModalController({
   helpModal,
+  helpButton,
   onOpen,
   onClose,
   hudFocusAnnouncer,
@@ -46,8 +48,23 @@ export function attachHelpModalController({
   let activeAnnouncements = sanitizeAnnouncements(announcements);
   let isOpen = helpModal.isOpen();
 
+  const applyButtonState = () => {
+    if (!helpButton) {
+      return;
+    }
+    const modalId = helpModal.element.id || 'help-modal';
+    helpModal.element.id = modalId;
+    helpButton.setAttribute('aria-controls', modalId);
+    helpButton.setAttribute('aria-haspopup', 'dialog');
+    helpButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    helpButton.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
+  };
+
+  applyButtonState();
+
   const refreshState = () => {
     isOpen = helpModal.isOpen();
+    applyButtonState();
     return isOpen;
   };
 
