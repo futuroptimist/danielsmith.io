@@ -51,6 +51,12 @@ export interface PerformanceFailoverHandlerOptions {
   ) => void;
   disabled?: boolean;
   consoleFailover?: ConsoleFailoverOptions;
+  eventTarget?: EventTarget | null;
+}
+
+export interface PerformanceFailoverEventDetail {
+  reason: FallbackReason;
+  context?: PerformanceFailoverTriggerContext;
 }
 
 export interface ConsoleFailoverOptions
@@ -182,10 +188,30 @@ export function createPerformanceFailoverHandler(
     onFallback,
     disabled = false,
     consoleFailover,
+    eventTarget = typeof window !== 'undefined' && 'dispatchEvent' in window
+      ? window
+      : null,
   } = options;
 
   let transitioned = false;
   let consoleMonitor: ConsoleBudgetMonitorHandle | null = null;
+
+  const dispatchFailoverEvent = (
+    detail: PerformanceFailoverEventDetail
+  ): void => {
+    if (!eventTarget || typeof eventTarget.dispatchEvent !== 'function') {
+      return;
+    }
+    try {
+      eventTarget.dispatchEvent(
+        new CustomEvent<PerformanceFailoverEventDetail>('performancefailover', {
+          detail,
+        })
+      );
+    } catch (error) {
+      console.warn('Failed to dispatch performance failover event.', error);
+    }
+  };
 
   const handlePerformanceTrigger =
     onTrigger ??
@@ -207,6 +233,7 @@ export function createPerformanceFailoverHandler(
     if (context) {
       handlePerformanceTrigger(context);
     }
+    dispatchFailoverEvent({ reason, context });
     try {
       onFallback?.(reason, context);
     } catch (error) {

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createPerformanceFailoverHandler,
   type ImmersiveRendererHandle,
+  type PerformanceFailoverEventDetail,
   type PerformanceFailoverTriggerContext,
 } from '../systems/failover/performanceFailover';
 import { createImmersiveModeUrl } from '../ui/immersiveUrl';
@@ -53,6 +54,16 @@ describe('createPerformanceFailoverHandler', () => {
   const createContainer = () => {
     const container = document.createElement('div');
     return container;
+  };
+
+  const collectFailoverEvents = (
+    target: EventTarget
+  ): Array<CustomEvent<PerformanceFailoverEventDetail>> => {
+    const events: Array<CustomEvent<PerformanceFailoverEventDetail>> = [];
+    target.addEventListener('performancefailover', (event) => {
+      events.push(event as CustomEvent<PerformanceFailoverEventDetail>);
+    });
+    return events;
   };
 
   it('triggers fallback after sustained low FPS and cleans up renderer', () => {
@@ -148,6 +159,37 @@ describe('createPerformanceFailoverHandler', () => {
     warnSpy.mockRestore();
   });
 
+  it('emits performance failover events with context payloads', () => {
+    const { renderer, canvas } = createRenderer();
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let i = 0; i < 160; i += 1) {
+      handler.update(1 / 20);
+    }
+
+    expect(events).toHaveLength(1);
+    const detail = events[0].detail;
+    expect(detail.reason).toBe('low-performance');
+    expect(detail.context).toMatchObject({
+      sampleCount: expect.any(Number),
+      p95Fps: expect.any(Number),
+    });
+  });
+
   it('ignores sporadic low FPS frames', () => {
     const { renderer } = createRenderer();
     const container = createContainer();
@@ -235,6 +277,37 @@ describe('createPerformanceFailoverHandler', () => {
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback', 'manual');
     expect(onFallback).toHaveBeenCalledWith('manual', undefined);
+  });
+
+  it('warns when failover event dispatch fails', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const failingTarget = {
+      dispatchEvent: vi.fn(() => {
+        throw new Error('dispatch failed');
+      }),
+    } as unknown as EventTarget;
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget: failingTarget,
+    });
+
+    handler.triggerFallback('manual');
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Failed to dispatch performance failover event.',
+      expect.any(Error)
+    );
+
+    warnSpy.mockRestore();
   });
 
   it('can disable automated fallback while keeping manual toggles available', () => {
