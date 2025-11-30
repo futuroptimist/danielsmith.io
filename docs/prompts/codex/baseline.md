@@ -26,7 +26,8 @@ USER:
    `npm run smoke`.
 6. Open the immersive preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (append params with `&`
-   or `createImmersiveModeUrl(...)`) so text fallback never triggers during validation.
+   or `createImmersiveModeUrl(...)` from `src/ui/immersiveUrl.ts`) so text fallback never
+   triggers during validation.
 7. Capture before/after metrics or screenshots when tuning visuals or performance.
 8. Summarize the work, list manual verification (if any), and surface follow-up ideas.
 
