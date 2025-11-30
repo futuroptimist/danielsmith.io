@@ -57,10 +57,17 @@ export interface PressKitTotals {
   categories: Record<PoiCategory, number>;
 }
 
+export type PressKitPerformanceStatus =
+  | 'within-budget'
+  | 'over-budget'
+  | 'invalid';
+
 export interface PressKitPerformanceHeadroomEntry {
   remaining: number;
   percentUsed: number;
+  remainingPercent: number;
   overBudgetBy: number;
+  status: PressKitPerformanceStatus;
 }
 
 export interface PressKitPerformanceSummary {
@@ -111,13 +118,28 @@ const normalizeLinks = (links: PoiLink[] | undefined): PressKitPoiLink[] => {
   return links.map((link) => ({ label: link.label, href: link.href }));
 };
 
+const resolvePerformanceStatus = (
+  usage: PerformanceBudgetUsage
+): PressKitPerformanceStatus => {
+  if (usage.hasInvalidMeasurements) {
+    return 'invalid';
+  }
+  return usage.overBudgetBy > 0 ? 'over-budget' : 'within-budget';
+};
+
 const createPerformanceHeadroom = (
   usage: PerformanceBudgetUsage
-): PressKitPerformanceHeadroomEntry => ({
-  remaining: usage.remaining,
-  percentUsed: usage.percentUsed,
-  overBudgetBy: usage.overBudgetBy,
-});
+): PressKitPerformanceHeadroomEntry => {
+  const percentUsed = Math.max(0, usage.percentUsed);
+  const remainingPercent = Math.max(0, 1 - percentUsed);
+  return {
+    remaining: usage.remaining,
+    percentUsed,
+    remainingPercent,
+    overBudgetBy: usage.overBudgetBy,
+    status: resolvePerformanceStatus(usage),
+  };
+};
 
 export function buildPressKitSummary(
   options: BuildPressKitSummaryOptions = {}
