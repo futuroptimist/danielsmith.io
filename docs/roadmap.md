@@ -30,6 +30,8 @@ captures; keep artifacts in `docs/metrics/`.
     latency summaries into analytics pipelines alongside console and manual toggles.
   - ✅ Manual and console-triggered failovers now emit input latency summaries so HUD toggles and
     console budget fallbacks keep telemetry coverage aligned with automated performance switches.
+  - ✅ Telemetry accumulators now cache sorted samples between polls to reduce GC churn during
+    performance monitoring and keep FPS tracking stable under load.
   - ✅ Press kit exports now include a performance budget report that captures headroom for
     materials, draw calls, and texture memory so marketing snapshots surface remaining
     capacity alongside the baseline metrics.
