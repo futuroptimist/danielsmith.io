@@ -54,8 +54,9 @@ captures; keep artifacts in `docs/metrics/`.
     so assistive tech users understand why the text tour launched.
   - ✅ Social and chat link preview scrapers now force the text portfolio via user-agent
     heuristics so social shares render consistently without JavaScript.
-    - ✅ Coverage now includes Pinterest, Embedly, Applebot, Teams, and ZoomInfo bots to avoid
-      loading WebGL during link previews.
+    - ✅ Coverage now includes Pinterest, Embedly, Applebot, Teams, ZoomInfo, DuckDuckBot,
+      Google InspectionTool, BingPreview, and PetalBot crawlers to avoid loading WebGL during
+      link previews.
 
 ## Phase 0 – Foundations (Shipped)
 
