@@ -10,6 +10,7 @@ import {
 } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
+import type { FallbackReason } from '../../types/failover';
 import {
   getModeAnnouncer,
   initializeModeAnnouncementObserver,
@@ -25,6 +26,8 @@ import {
   readModePreference as readStoredModePreference,
   type ModePreference,
 } from './modePreference';
+
+export type { FallbackReason } from '../../types/failover';
 
 if (
   typeof document !== 'undefined' &&
@@ -70,17 +73,6 @@ interface TextPortfolioRoomGroup {
   roomLabel: string;
   pois: TextPortfolioPoi[];
 }
-
-export type FallbackReason =
-  | 'webgl-unsupported'
-  | 'manual'
-  | 'low-memory'
-  | 'low-performance'
-  | 'immersive-init-error'
-  | 'automated-client'
-  | 'low-end-device'
-  | 'console-error'
-  | 'data-saver';
 
 export interface WebglSupportOptions {
   createCanvas?: () => HTMLCanvasElement;
@@ -578,6 +570,7 @@ export function renderTextFallback(
   const localeHint =
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
+  const siteStrings = getSiteStrings(localeHint).textFallback;
   const immersiveUrl = createImmersiveModeUrl(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
   );
@@ -618,28 +611,9 @@ export function renderTextFallback(
 
   const description = documentTarget.createElement('p');
   description.className = 'text-fallback__description';
-  description.textContent = (() => {
-    switch (reason) {
-      case 'webgl-unsupported':
-        return "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light.";
-      case 'low-memory':
-        return 'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.';
-      case 'low-end-device':
-        return 'We detected a lightweight device profile, so we loaded the fast text tour to keep navigation responsive.';
-      case 'low-performance':
-        return 'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.';
-      case 'immersive-init-error':
-        return 'Something went wrong starting the immersive scene, so we brought you the text overview instead.';
-      case 'automated-client':
-        return 'We detected an automated client, so we surfaced the fast-loading text portfolio for reliable previews and crawlers.';
-      case 'console-error':
-        return 'We detected a runtime error and switched to the resilient text tour while the immersive scene recovers.';
-      case 'data-saver':
-        return 'Your browser requested a data-saver experience, so we launched the lightweight text tour to minimize bandwidth while keeping the highlights accessible.';
-      default:
-        return 'You requested the lightweight portfolio view. The immersive scene stays just a click away.';
-    }
-  })();
+  const descriptionStrings = siteStrings.reasonDescriptions;
+  description.textContent =
+    descriptionStrings[reason] ?? descriptionStrings.manual;
   section.appendChild(description);
 
   const list = documentTarget.createElement('ul');

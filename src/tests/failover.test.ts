@@ -475,6 +475,22 @@ describe('renderTextFallback', () => {
     expect(description?.textContent).toMatch(/automated client/i);
   });
 
+  it('localizes fallback descriptions using the active locale', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'en-x-pseudo';
+
+    const container = render('low-memory');
+    const description = container.querySelector('.text-fallback__description');
+    const localized =
+      getSiteStrings('en-x-pseudo').textFallback.reasonDescriptions[
+        'low-memory'
+      ];
+
+    expect(description?.textContent).toBe(localized);
+
+    document.documentElement.lang = originalLang;
+  });
+
   it('renders a text portfolio entry for every POI', () => {
     const container = render('manual');
     const portfolio = container.querySelector('.text-fallback__exhibits');

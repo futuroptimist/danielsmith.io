@@ -297,6 +297,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
 
 - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
   update immediately when visitors switch locales.
+  - ✅ Text fallback reason messaging now pulls from the i18n catalog so locale switches update
+    accessibility narratives alongside the mode toggle.
   - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
     crawlers understand language coverage and free access guarantees.
   - ✅ Text fallback links back to immersive mode with the override URL so returns bypass

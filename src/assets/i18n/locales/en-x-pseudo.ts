@@ -19,6 +19,35 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: wrap('{roomName} exhibits'),
       metricsHeading: wrap('Key metrics'),
       linksHeading: wrap('Further reading'),
+      reasonDescriptions: {
+        manual: wrap(
+          'You requested the lightweight portfolio view. The immersive scene stays just a click away.'
+        ),
+        'webgl-unsupported': wrap(
+          "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light."
+        ),
+        'low-memory': wrap(
+          'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.'
+        ),
+        'low-end-device': wrap(
+          'We detected a lightweight device profile, so we loaded the fast text tour to keep navigation responsive.'
+        ),
+        'low-performance': wrap(
+          'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.'
+        ),
+        'immersive-init-error': wrap(
+          'Something went wrong starting the immersive scene, so we brought you the text overview instead.'
+        ),
+        'automated-client': wrap(
+          'We detected an automated client, so we surfaced the fast-loading text portfolio for reliable previews and crawlers.'
+        ),
+        'console-error': wrap(
+          'We detected a runtime error and switched to the resilient text tour while the immersive scene recovers.'
+        ),
+        'data-saver': wrap(
+          'Your browser requested a data-saver experience, so we launched the lightweight text tour to minimize bandwidth while keeping the highlights accessible.'
+        ),
+      },
     },
   },
   hud: {
