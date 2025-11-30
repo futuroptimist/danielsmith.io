@@ -89,7 +89,15 @@ export function createManualModeToggle({
 
   const refreshState = () => {
     const fallbackActive = getIsFallbackActive();
+    const setContainerState = (state: 'idle' | 'pending' | 'active') => {
+      container.dataset.modeToggleState = state;
+      container.setAttribute(
+        'aria-busy',
+        state === 'pending' ? 'true' : 'false'
+      );
+    };
     if (pending) {
+      setContainerState('pending');
       button.disabled = true;
       button.dataset.state = 'pending';
       button.setAttribute('aria-busy', 'true');
@@ -107,6 +115,7 @@ export function createManualModeToggle({
       return;
     }
     if (fallbackActive) {
+      setContainerState('active');
       button.disabled = true;
       button.dataset.state = 'active';
       button.setAttribute('aria-busy', 'false');
@@ -124,6 +133,7 @@ export function createManualModeToggle({
       button.dataset.hudAnnounce = getActiveAnnouncement();
       return;
     }
+    setContainerState('idle');
     button.disabled = false;
     button.dataset.state = 'idle';
     button.setAttribute('aria-busy', 'false');
@@ -212,6 +222,8 @@ export function createManualModeToggle({
       button.removeEventListener('click', handleClick);
       windowTarget.removeEventListener('keydown', handleKeydown);
       button.removeEventListener('focus', refreshState);
+      container.removeAttribute('aria-busy');
+      delete container.dataset.modeToggleState;
       if (button.parentElement) {
         button.remove();
       }

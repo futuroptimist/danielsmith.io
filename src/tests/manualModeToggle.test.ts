@@ -34,6 +34,8 @@ describe('createManualModeToggle', () => {
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Press T to activate.'
     );
+    expect(container.dataset.modeToggleState).toBe('idle');
+    expect(container.getAttribute('aria-busy')).toBe('false');
     expect(handle.element.dataset.state).toBe('idle');
     expect(handle.element.textContent).toBe('Text mode · Press T');
     expect(handle.element.getAttribute('aria-pressed')).toBe('false');
@@ -43,6 +45,8 @@ describe('createManualModeToggle', () => {
 
     expect(onToggle).toHaveBeenCalledTimes(1);
     expect(handle.element.disabled).toBe(true);
+    expect(container.dataset.modeToggleState).toBe('pending');
+    expect(container.getAttribute('aria-busy')).toBe('true');
     expect(handle.element.dataset.state).toBe('pending');
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Switching to text mode…'
@@ -53,6 +57,8 @@ describe('createManualModeToggle', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(handle.element.dataset.state).toBe('active');
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(container.getAttribute('aria-busy')).toBe('false');
     expect(handle.element.textContent).toBe('Text mode active');
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Text mode already active.'
@@ -77,6 +83,8 @@ describe('createManualModeToggle', () => {
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Text mode already active.'
     );
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(container.getAttribute('aria-busy')).toBe('false');
     expect(handle.element.dataset.state).toBe('active');
     expect(handle.element.textContent).toBe('Text mode active');
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
@@ -108,6 +116,8 @@ describe('createManualModeToggle', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(handle.element.disabled).toBe(false);
+    expect(container.dataset.modeToggleState).toBe('idle');
+    expect(container.getAttribute('aria-busy')).toBe('false');
     expect(handle.element.dataset.state).toBe('idle');
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Press T to activate.'
@@ -187,6 +197,8 @@ describe('createManualModeToggle', () => {
     handle.dispose();
 
     expect(container.contains(handle.element)).toBe(false);
+    expect(container.dataset.modeToggleState).toBeUndefined();
+    expect(container.hasAttribute('aria-busy')).toBe(false);
 
     handle.element.click();
     expect(onToggle).not.toHaveBeenCalled();
