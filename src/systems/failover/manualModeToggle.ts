@@ -91,7 +91,10 @@ export function createManualModeToggle({
     const fallbackActive = getIsFallbackActive();
     const setContainerState = (state: 'idle' | 'pending' | 'active') => {
       container.dataset.modeToggleState = state;
-      container.setAttribute('aria-busy', state === 'pending' ? 'true' : 'false');
+      container.setAttribute(
+        'aria-busy',
+        state === 'pending' ? 'true' : 'false'
+      );
     };
     if (pending) {
       setContainerState('pending');
