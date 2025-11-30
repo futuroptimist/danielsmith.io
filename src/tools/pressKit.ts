@@ -130,7 +130,7 @@ const resolvePerformanceStatus = (
 const createPerformanceHeadroom = (
   usage: PerformanceBudgetUsage
 ): PressKitPerformanceHeadroomEntry => {
-  const percentUsed = Math.max(0, usage.percentUsed);
+  const percentUsed = Math.min(1, Math.max(0, usage.percentUsed));
   const remainingPercent = Math.max(0, 1 - percentUsed);
   return {
     remaining: usage.remaining,

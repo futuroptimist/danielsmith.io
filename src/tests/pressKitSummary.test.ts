@@ -145,6 +145,26 @@ describe('buildPressKitSummary', () => {
     expect(summary.performance.headroom.drawCalls.status).toBe('over-budget');
     expect(summary.performance.headroom.drawCalls.remainingPercent).toBe(0);
   });
+
+  it('caps percentUsed at 1 when over budget', () => {
+    const report = performance.createPerformanceBudgetReport(
+      {
+        materialCount: 50,
+        drawCallCount: 210,
+        textureBytes: 30_000_000,
+      },
+      performance.IMMERSIVE_PERFORMANCE_BUDGET
+    );
+
+    vi.spyOn(performance, 'createPerformanceBudgetReport').mockReturnValue(report);
+
+    const summary = buildPressKitSummary({ now: fixedNow });
+
+    expect(summary.performance.headroom.drawCalls.percentUsed).toBe(1);
+    expect(summary.performance.headroom.drawCalls.remainingPercent).toBe(0);
+    expect(summary.performance.headroom.drawCalls.overBudgetBy).toBeGreaterThan(0);
+    expect(summary.performance.headroom.drawCalls.status).toBe('over-budget');
+  });
 });
 
 describe('writePressKitSummary', () => {
