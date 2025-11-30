@@ -13,11 +13,29 @@ export interface SampleAccumulator {
   getSummary(): SampleSummary | null;
 }
 
-export function createSampleAccumulator(): SampleAccumulator {
+export interface SampleAccumulatorOptions {
+  onSort?: (values: ReadonlyArray<number>) => void;
+}
+
+export function createSampleAccumulator(
+  options: SampleAccumulatorOptions = {}
+): SampleAccumulator {
   let sum = 0;
   let min = Number.POSITIVE_INFINITY;
   let max = Number.NEGATIVE_INFINITY;
   const samples: number[] = [];
+  let sortedCache: number[] | null = null;
+  let isDirty = true;
+
+  const computeSorted = (): number[] => {
+    if (!isDirty && sortedCache) {
+      return sortedCache;
+    }
+    sortedCache = [...samples].sort((a, b) => a - b);
+    options.onSort?.(sortedCache);
+    isDirty = false;
+    return sortedCache;
+  };
 
   const record = (value: number) => {
     samples.push(value);
@@ -28,6 +46,7 @@ export function createSampleAccumulator(): SampleAccumulator {
     if (value > max) {
       max = value;
     }
+    isDirty = true;
   };
 
   const reset = () => {
@@ -35,6 +54,8 @@ export function createSampleAccumulator(): SampleAccumulator {
     min = Number.POSITIVE_INFINITY;
     max = Number.NEGATIVE_INFINITY;
     samples.length = 0;
+    sortedCache = null;
+    isDirty = true;
   };
 
   const getSummary = (): SampleSummary | null => {
@@ -42,7 +63,7 @@ export function createSampleAccumulator(): SampleAccumulator {
       return null;
     }
     const average = sum / samples.length;
-    const sorted = [...samples].sort((a, b) => a - b);
+    const sorted = computeSorted();
     const percentileIndex = Math.min(
       sorted.length - 1,
       Math.max(0, Math.ceil(sorted.length * 0.95) - 1)
