@@ -266,6 +266,7 @@ describe('evaluateFailoverDecision', () => {
       'Bytespider (compatible; bytespider;)',
       'Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) ' +
         'Chrome/114.0.5735.60 Mobile Safari/537.36 Google-InspectionTool',
+      'DuckDuckBot/1.0; (+https://duckduckgo.com/duckduckbot)',
       'BingPreview/1.0b',
       'PetalBot (compatible; PetalBot; +https://webmaster.petalsearch.com/site/petalbot)',
       'Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)',
