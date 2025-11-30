@@ -13,6 +13,12 @@ describe('createSampleAccumulator', () => {
 
     const summary = accumulator.getSummary();
     expect(summary).not.toBeNull();
+    expect(summary?.count).toBe(3);
+    expect(summary?.average).toBe(3);
+    expect(summary?.median).toBe(3);
+    expect(summary?.p95).toBe(5);
+    expect(summary?.min).toBe(1);
+    expect(summary?.max).toBe(5);
     accumulator.getSummary();
 
     expect(onSort).toHaveBeenCalledTimes(1);
@@ -35,9 +41,16 @@ describe('createSampleAccumulator', () => {
     expect(onSort).toHaveBeenCalledTimes(1);
 
     accumulator.reset();
+    expect(accumulator.getSummary()).toBeNull();
     accumulator.record(1);
     accumulator.getSummary();
 
     expect(onSort).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns null for an empty accumulator', () => {
+    const accumulator = createSampleAccumulator();
+
+    expect(accumulator.getSummary()).toBeNull();
   });
 });
