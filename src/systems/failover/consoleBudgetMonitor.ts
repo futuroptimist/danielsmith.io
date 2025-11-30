@@ -9,6 +9,7 @@ export interface ConsoleBudgetExceededDetail {
   remaining: number;
   source: ConsoleBudgetSource;
   detail?: unknown;
+  sourceCounts: Record<ConsoleBudgetSource, number>;
 }
 
 export interface ConsoleBudgetMonitorOptions {
@@ -63,6 +64,11 @@ export function createConsoleBudgetMonitor(
   const budget = sanitizeBudget(rawBudget);
   let count = 0;
   let triggered = false;
+  const sourceCounts: Record<ConsoleBudgetSource, number> = {
+    'console-error': 0,
+    'window-error': 0,
+    unhandledrejection: 0,
+  };
 
   const originalConsoleError = consoleTarget.error;
 
@@ -73,6 +79,7 @@ export function createConsoleBudgetMonitor(
     if (triggered) {
       return null;
     }
+    sourceCounts[source] += 1;
     count += 1;
     if (count <= budget) {
       return null;
@@ -84,6 +91,7 @@ export function createConsoleBudgetMonitor(
       remaining: 0,
       source,
       detail,
+      sourceCounts: { ...sourceCounts },
     };
     if (eventTarget && typeof eventTarget.dispatchEvent === 'function') {
       try {
