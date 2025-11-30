@@ -2,11 +2,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  IMMERSIVE_PERFORMANCE_BUDGET,
-  IMMERSIVE_SCENE_BASELINE,
-  createPerformanceBudgetReport,
-} from '../assets/performance';
+import * as performance from '../assets/performance';
 import { PRESS_KIT_MEDIA_ASSETS } from '../assets/pressKitMedia';
 import * as registry from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -29,34 +25,57 @@ describe('buildPressKitSummary', () => {
       { project: 0, environment: 0 }
     );
     const expectedRooms = new Set(definitions.map((poi) => poi.roomId)).size;
-    const expectedReport = createPerformanceBudgetReport(
-      IMMERSIVE_SCENE_BASELINE,
-      IMMERSIVE_PERFORMANCE_BUDGET
+    const expectedReport = performance.createPerformanceBudgetReport(
+      performance.IMMERSIVE_SCENE_BASELINE,
+      performance.IMMERSIVE_PERFORMANCE_BUDGET
     );
 
     const summary = buildPressKitSummary({ now: fixedNow });
 
     expect(summary.generatedAtIso).toBe('2024-06-01T12:34:56.000Z');
-    expect(summary.performance.budget).toEqual(IMMERSIVE_PERFORMANCE_BUDGET);
-    expect(summary.performance.baseline).toEqual(IMMERSIVE_SCENE_BASELINE);
+    expect(summary.performance.budget).toEqual(
+      performance.IMMERSIVE_PERFORMANCE_BUDGET
+    );
+    expect(summary.performance.baseline).toEqual(
+      performance.IMMERSIVE_SCENE_BASELINE
+    );
     expect(summary.performance.report).toEqual(expectedReport);
-    expect(summary.performance.headroom).toEqual({
-      materials: {
-        remaining: expectedReport.materials.remaining,
-        percentUsed: expectedReport.materials.percentUsed,
-        overBudgetBy: expectedReport.materials.overBudgetBy,
-      },
-      drawCalls: {
-        remaining: expectedReport.drawCalls.remaining,
-        percentUsed: expectedReport.drawCalls.percentUsed,
-        overBudgetBy: expectedReport.drawCalls.overBudgetBy,
-      },
-      textureBytes: {
-        remaining: expectedReport.textureBytes.remaining,
-        percentUsed: expectedReport.textureBytes.percentUsed,
-        overBudgetBy: expectedReport.textureBytes.overBudgetBy,
-      },
+    const headroom = summary.performance.headroom;
+    expect(headroom.materials).toMatchObject({
+      remaining: expectedReport.materials.remaining,
+      overBudgetBy: expectedReport.materials.overBudgetBy,
+      status: 'within-budget',
     });
+    expect(headroom.materials.percentUsed).toBeCloseTo(
+      expectedReport.materials.percentUsed
+    );
+    expect(headroom.materials.remainingPercent).toBeCloseTo(
+      1 - expectedReport.materials.percentUsed
+    );
+
+    expect(headroom.drawCalls).toMatchObject({
+      remaining: expectedReport.drawCalls.remaining,
+      overBudgetBy: expectedReport.drawCalls.overBudgetBy,
+      status: 'within-budget',
+    });
+    expect(headroom.drawCalls.percentUsed).toBeCloseTo(
+      expectedReport.drawCalls.percentUsed
+    );
+    expect(headroom.drawCalls.remainingPercent).toBeCloseTo(
+      1 - expectedReport.drawCalls.percentUsed
+    );
+
+    expect(headroom.textureBytes).toMatchObject({
+      remaining: expectedReport.textureBytes.remaining,
+      overBudgetBy: expectedReport.textureBytes.overBudgetBy,
+      status: 'within-budget',
+    });
+    expect(headroom.textureBytes.percentUsed).toBeCloseTo(
+      expectedReport.textureBytes.percentUsed
+    );
+    expect(headroom.textureBytes.remainingPercent).toBeCloseTo(
+      1 - expectedReport.textureBytes.percentUsed
+    );
     expect(summary.poiCatalog).toHaveLength(definitions.length);
     expect(summary.totals.poiCount).toBe(definitions.length);
     expect(summary.totals.roomsRepresented).toBe(expectedRooms);
@@ -103,6 +122,52 @@ describe('buildPressKitSummary', () => {
     expect(summary.poiCatalog[0].metrics).toEqual([]);
     expect(summary.poiCatalog[0].links).toEqual([]);
     expect(summary.totals.categories).toEqual({ project: 1, environment: 0 });
+  });
+
+  it('marks headroom entries as invalid when measurements are malformed', () => {
+    const report = performance.createPerformanceBudgetReport(
+      {
+        materialCount: Number.NaN,
+        drawCallCount: 12,
+        textureBytes: Number.POSITIVE_INFINITY,
+      },
+      { maxMaterials: -1, maxDrawCalls: 0, maxTextureBytes: 0 }
+    );
+
+    vi.spyOn(performance, 'createPerformanceBudgetReport').mockReturnValue(
+      report
+    );
+
+    const summary = buildPressKitSummary({ now: fixedNow });
+
+    expect(summary.performance.headroom.materials.status).toBe('invalid');
+    expect(summary.performance.headroom.textureBytes.status).toBe('invalid');
+    expect(summary.performance.headroom.drawCalls.status).toBe('over-budget');
+    expect(summary.performance.headroom.drawCalls.remainingPercent).toBe(0);
+  });
+
+  it('caps percentUsed at 1 when over budget', () => {
+    const report = performance.createPerformanceBudgetReport(
+      {
+        materialCount: 50,
+        drawCallCount: 210,
+        textureBytes: 30_000_000,
+      },
+      performance.IMMERSIVE_PERFORMANCE_BUDGET
+    );
+
+    vi.spyOn(performance, 'createPerformanceBudgetReport').mockReturnValue(
+      report
+    );
+
+    const summary = buildPressKitSummary({ now: fixedNow });
+
+    expect(summary.performance.headroom.drawCalls.percentUsed).toBe(1);
+    expect(summary.performance.headroom.drawCalls.remainingPercent).toBe(0);
+    expect(summary.performance.headroom.drawCalls.overBudgetBy).toBeGreaterThan(
+      0
+    );
+    expect(summary.performance.headroom.drawCalls.status).toBe('over-budget');
   });
 });
 
