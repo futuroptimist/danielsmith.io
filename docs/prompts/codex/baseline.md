@@ -24,8 +24,11 @@ USER:
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Run `npm run format:write`, `npm run lint`, `npm run test:ci`, `npm run docs:check`, and
    `npm run smoke`.
-6. Capture before/after metrics or screenshots when tuning visuals or performance.
-7. Summarize the work, list manual verification (if any), and surface follow-up ideas.
+6. Open the immersive preview at
+   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (append params with `&`
+   or `createImmersiveModeUrl(...)`) so text fallback never triggers during validation.
+7. Capture before/after metrics or screenshots when tuning visuals or performance.
+8. Summarize the work, list manual verification (if any), and surface follow-up ideas.
 
 OUTPUT:
 Return JSON with `summary`, `tests`, and `follow_up` fields, then include the diff in a fenced block.
