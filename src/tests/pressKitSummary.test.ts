@@ -156,13 +156,17 @@ describe('buildPressKitSummary', () => {
       performance.IMMERSIVE_PERFORMANCE_BUDGET
     );
 
-    vi.spyOn(performance, 'createPerformanceBudgetReport').mockReturnValue(report);
+    vi.spyOn(performance, 'createPerformanceBudgetReport').mockReturnValue(
+      report
+    );
 
     const summary = buildPressKitSummary({ now: fixedNow });
 
     expect(summary.performance.headroom.drawCalls.percentUsed).toBe(1);
     expect(summary.performance.headroom.drawCalls.remainingPercent).toBe(0);
-    expect(summary.performance.headroom.drawCalls.overBudgetBy).toBeGreaterThan(0);
+    expect(summary.performance.headroom.drawCalls.overBudgetBy).toBeGreaterThan(
+      0
+    );
     expect(summary.performance.headroom.drawCalls.status).toBe('over-budget');
   });
 });
