@@ -26,6 +26,26 @@ export const JA_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: '{roomName}の展示',
       metricsHeading: '主要指標',
       linksHeading: '関連リンク',
+      reasonDescriptions: {
+        manual:
+          'テキストビューをリクエストしました。没入シーンはワンクリックで戻せます。',
+        'webgl-unsupported':
+          'ブラウザまたはデバイスで WebGL を起動できなかったため、軽量なテキスト概要を表示します。',
+        'low-memory':
+          'デバイスのメモリが限られているため、滑らかさを保つテキストツアーを開始しました。',
+        'low-end-device':
+          '軽量なデバイスプロファイルを検出したため、レスポンスを保つために高速なテキストツアーを読み込みました。',
+        'low-performance':
+          'フレームレートの低下を検知したため、応答性を維持するテキストツアーに切り替えました。',
+        'immersive-init-error':
+          '没入シーンの起動で問題が発生したため、代わりにテキスト概要を表示します。',
+        'automated-client':
+          '自動化クライアントを検出したため、プレビューしやすい軽量なテキストポートフォリオを表示します。',
+        'console-error':
+          '実行時エラーを検出したため、シーン復旧中は堅牢なテキストツアーに切り替えました。',
+        'data-saver':
+          'ブラウザがデータセーバーを要求したため、帯域を抑えるテキストツアーを有効にしました。',
+      },
     },
   },
   hud: {

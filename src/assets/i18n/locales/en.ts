@@ -31,6 +31,26 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       roomHeadingTemplate: '{roomName} exhibits',
       metricsHeading: 'Key metrics',
       linksHeading: 'Further reading',
+      reasonDescriptions: {
+        manual:
+          'You requested the lightweight portfolio view. The immersive scene stays just a click away.',
+        'webgl-unsupported':
+          "Your browser or device couldn't start the WebGL renderer. Enjoy the quick text overview while we keep the immersive scene light.",
+        'low-memory':
+          'Your device reported limited memory, so we launched the lightweight text tour to keep things smooth.',
+        'low-end-device':
+          'We detected a lightweight device profile, so we loaded the fast text tour to keep navigation responsive.',
+        'low-performance':
+          'We detected sustained low frame rates, so we switched to the responsive text tour to keep the experience snappy.',
+        'immersive-init-error':
+          'Something went wrong starting the immersive scene, so we brought you the text overview instead.',
+        'automated-client':
+          'We detected an automated client, so we surfaced the fast-loading text portfolio for reliable previews and crawlers.',
+        'console-error':
+          'We detected a runtime error and switched to the resilient text tour while the immersive scene recovers.',
+        'data-saver':
+          'Your browser requested a data-saver experience, so we launched the lightweight text tour to minimize bandwidth while keeping the highlights accessible.',
+      },
     },
   },
   hud: {

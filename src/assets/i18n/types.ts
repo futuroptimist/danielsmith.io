@@ -1,3 +1,4 @@
+import type { FallbackReason } from '../../types/failover';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 import type {
   PoiId,
@@ -183,6 +184,7 @@ export interface SiteTextFallbackStrings {
   roomHeadingTemplate: string;
   metricsHeading: string;
   linksHeading: string;
+  reasonDescriptions: Record<FallbackReason, string>;
 }
 
 export interface SiteStrings {
