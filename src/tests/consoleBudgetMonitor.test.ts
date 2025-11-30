@@ -69,10 +69,20 @@ describe('createConsoleBudgetMonitor', () => {
     ];
     expect(detail.source).toBe('console-error');
     expect(detail.count).toBe(1);
+    expect(detail.sourceCounts).toEqual({
+      'console-error': 1,
+      'window-error': 0,
+      unhandledrejection: 0,
+    });
     expect(events).toHaveLength(1);
     expect(events[0].detail).toMatchObject({
       source: 'console-error',
       count: 1,
+      sourceCounts: {
+        'console-error': 1,
+        'window-error': 0,
+        unhandledrejection: 0,
+      },
     });
   });
 
@@ -95,6 +105,11 @@ describe('createConsoleBudgetMonitor', () => {
     expect(onExceeded).toHaveBeenCalledTimes(1);
     const detail = onExceeded.mock.calls[0][0];
     expect(detail.source).toBe('window-error');
+    expect(detail.sourceCounts).toEqual({
+      'console-error': 1,
+      'window-error': 1,
+      unhandledrejection: 0,
+    });
 
     onExceeded.mockClear();
     windowTarget.dispatch('unhandledrejection', {
