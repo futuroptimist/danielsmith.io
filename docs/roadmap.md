@@ -434,12 +434,14 @@ Focus: replace the placeholder sphere with a stylized protagonist.
 
 2. **Locomotion Polish**
    - Blend tree for idle/walk/run/turn animations aligned to physics controller speed.
-     - ✅ Locomotion blend tree now normalizes idle, walk, run, and turn clip weights from the
-       controller velocity profile while matching animation playback speed to the player's
-       movement rate.
+   - ✅ Locomotion blend tree now normalizes idle, walk, run, and turn clip weights from the
+     controller velocity profile while matching animation playback speed to the player's
+     movement rate.
+
    - ✅ Interaction animation set now pulses the mannequin arms when POIs are activated,
      responding to POI selections with a controller-synced gesture.
    - ✅ Footstep audio now syncs to avatar speed with subtle stereo sway.
+     - ✅ Footstep cadence now resyncs after long frame gaps to avoid burst audio when resuming.
    - ✅ IK adjustments to align feet with uneven terrain/stairs.
      - ✅ Landing samples now respect the upper floor slab thickness so feet rest flush on the
        loft landing.

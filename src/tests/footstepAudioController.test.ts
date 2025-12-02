@@ -42,12 +42,14 @@ describe('footstep audio controller', () => {
 
   it('plays alternating stereo hits as the avatar moves', () => {
     const player = new StubFootstepPlayer();
-    const controller = createController(player);
+    const controller = createController(player, { random: () => 0.5 });
 
     controller.update({ delta: Number.NaN, linearSpeed: 3 });
-    controller.update({ delta: 0.4, linearSpeed: 3 });
-    controller.update({ delta: 0.4, linearSpeed: 3 });
-    controller.update({ delta: 1, linearSpeed: 3 });
+    controller.update({ delta: 0.3, linearSpeed: 3 });
+    controller.update({ delta: 0.3, linearSpeed: 3 });
+    controller.update({ delta: 0.3, linearSpeed: 3 });
+    controller.update({ delta: 0.3, linearSpeed: 3 });
+    controller.update({ delta: 0.3, linearSpeed: 3 });
 
     expect(player.calls.length).toBeGreaterThanOrEqual(3);
     for (const call of player.calls) {
@@ -151,5 +153,21 @@ describe('footstep audio controller', () => {
     controller.update({ delta: 0.2, linearSpeed: 3, isGrounded: false });
     controller.notifyFootfall('right');
     expect(player.calls.length).toBe(initialCalls + 2);
+  });
+
+  it('reschedules cadence after long frame gaps instead of emitting bursts', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player, { random: () => 0.5 });
+
+    controller.update({ delta: 0.2, linearSpeed: 3 });
+    controller.update({ delta: 1.2, linearSpeed: 3 });
+
+    expect(player.calls).toHaveLength(0);
+
+    controller.update({ delta: 0.5, linearSpeed: 3 });
+
+    expect(player.calls).toHaveLength(1);
+
+    controller.dispose();
   });
 });
