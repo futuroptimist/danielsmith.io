@@ -71,6 +71,7 @@ const MIN_PITCH = 0.25;
 const MAX_PITCH = 4;
 const MIN_VOLUME = 0;
 const MAX_VOLUME = 1;
+const CADENCE_RESYNC_THRESHOLD = 0.75;
 
 export function createFootstepAudioController(
   options: FootstepControllerOptions
@@ -187,6 +188,16 @@ export function createFootstepAudioController(
       }
       const masterVolume = clamp(update.masterVolume ?? 1, 0, 1);
       const surfaceMultiplier = clamp(update.surfaceMultiplier ?? 1, 0, 2);
+
+      if (delta > CADENCE_RESYNC_THRESHOLD) {
+        timeUntilNextStep = computeBaseInterval(normalizedSpeed);
+        lastNormalizedSpeed = normalizedSpeed;
+        lastMasterVolume = masterVolume;
+        lastSurfaceMultiplier = surfaceMultiplier;
+        lastGrounded = isGrounded;
+        return;
+      }
+
       if (timeUntilNextStep <= 0) {
         scheduleNextStep(normalizedSpeed);
       }
