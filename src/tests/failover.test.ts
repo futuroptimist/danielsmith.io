@@ -269,6 +269,7 @@ describe('evaluateFailoverDecision', () => {
       'DuckDuckBot/1.0; (+https://duckduckgo.com/duckduckbot)',
       'BingPreview/1.0b',
       'PetalBot (compatible; PetalBot; +https://webmaster.petalsearch.com/site/petalbot)',
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleOther/1.0)',
       'Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)',
       'Mozilla/5.0 (compatible; ClaudeBot/1.0)',
     ];
