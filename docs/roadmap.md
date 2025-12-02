@@ -59,11 +59,11 @@ captures; keep artifacts in `docs/metrics/`.
       analytics hooks can forward the telemetry payload without coupling to the renderer.
   - ✅ Data-saver and console-error failovers now narrate their reason through the mode announcer
     so assistive tech users understand why the text tour launched.
-  - ✅ Social and chat link preview scrapers now force the text portfolio via user-agent
-    heuristics so social shares render consistently without JavaScript.
-    - ✅ Coverage now includes Pinterest, Embedly, Applebot, Teams, ZoomInfo, DuckDuckBot,
-      Google InspectionTool, BingPreview, and PetalBot crawlers to avoid loading WebGL during
-      link previews.
+    - ✅ Social and chat link preview scrapers now force the text portfolio via user-agent
+      heuristics so social shares render consistently without JavaScript.
+      - ✅ Coverage now includes Pinterest, Embedly, Applebot, Teams, ZoomInfo, DuckDuckBot,
+        Google InspectionTool, GoogleOther, BingPreview, and PetalBot crawlers to avoid loading
+        WebGL during link previews.
 
 ## Phase 0 – Foundations (Shipped)
 

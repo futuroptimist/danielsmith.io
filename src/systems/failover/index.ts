@@ -247,6 +247,7 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /duckduckbot/i,
   /petalbot/i,
   /google-?inspectiontool/i,
+  /googleother/i,
   /bingpreview/i,
   /axios\//i,
   /playwright/i,
