@@ -363,6 +363,17 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('honors performance bypass for low-end user agent heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: '?disablePerformanceFailover=1',
+      getUserAgent: () =>
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15',
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('does not force fallback for low hardware concurrency when immersive override is present', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
