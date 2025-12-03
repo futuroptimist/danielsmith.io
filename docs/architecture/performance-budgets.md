@@ -15,6 +15,9 @@ and the Vitest assertions when measurable changes land.
   `IMMERSIVE_SCENE_BASELINE`).
 - **Assertion** – [`src/tests/performanceBudget.test.ts`](../../src/tests/performanceBudget.test.ts)
   enforces the headroom values so regressions fail fast in CI.
+- **Headroom labels** – `createPerformanceBudgetReport(...)` now adds a `status` label
+  (`within-budget`, `over-budget`, or `invalid`) plus a clamped `remainingPercent` so
+  press-kit exports and dashboards surface budget health without recomputing ratios.
 - **Runtime telemetry** – [`createInputLatencyTelemetry`](../../src/systems/performance/inputLatencyTelemetry.ts)
   monitors keyboard and pointer interactions, logging median/p95/max latency against the 200 ms
   INP budget whenever the session hides, unloads, or performance failover triggers.

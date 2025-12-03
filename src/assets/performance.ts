@@ -31,9 +31,18 @@ export interface PerformanceBudgetUsage {
   overBudgetBy: number;
   /** Ratio of used resources versus the limit (values >1 mean over budget). */
   percentUsed: number;
+  /** Percentage of budget remaining, clamped between 0 and 1. */
+  remainingPercent: number;
+  /** Indicates whether usage is within budget, over budget, or invalid. */
+  status: PerformanceBudgetStatus;
   /** Indicates the snapshot or budget value was invalid when recorded. */
   hasInvalidMeasurements: boolean;
 }
+
+export type PerformanceBudgetStatus =
+  | 'within-budget'
+  | 'over-budget'
+  | 'invalid';
 
 export interface PerformanceBudgetReport {
   materials: PerformanceBudgetUsage;
@@ -93,6 +102,13 @@ const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
   const hasInvalidMeasurements =
     normalizedUsed.isInvalid || normalizedLimit.isInvalid;
 
+  const cappedPercentUsed = Math.min(1, Math.max(0, percentUsed));
+  const status: PerformanceBudgetStatus = hasInvalidMeasurements
+    ? 'invalid'
+    : overBudgetBy > 0
+      ? 'over-budget'
+      : 'within-budget';
+
   if (hasInvalidMeasurements) {
     const fallbackOverBudget =
       normalizedLimit.value > 0 ? normalizedLimit.value : 1;
@@ -102,6 +118,8 @@ const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
       remaining: 0,
       overBudgetBy: overBudgetBy > 0 ? overBudgetBy : fallbackOverBudget,
       percentUsed: 1,
+      remainingPercent: 0,
+      status,
       hasInvalidMeasurements,
     };
   }
@@ -111,6 +129,8 @@ const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
     remaining,
     overBudgetBy,
     percentUsed,
+    remainingPercent: Math.max(0, 1 - cappedPercentUsed),
+    status,
     hasInvalidMeasurements,
   };
 };
