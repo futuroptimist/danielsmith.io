@@ -131,6 +131,17 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('honors performance bypass for low-memory heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: '?disablePerformanceFailover=1',
+      getDeviceMemory: () => 0.5,
+      minimumDeviceMemory: 1,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('routes data-saver clients to text mode when mode is not forced', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
@@ -140,6 +151,16 @@ describe('evaluateFailoverDecision', () => {
       shouldUseFallback: true,
       reason: 'data-saver',
     });
+  });
+
+  it('honors performance bypass for data-saver heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: '?disablePerformanceFailover=1',
+      getNetworkInformation: () => ({ saveData: true }),
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
   });
 
   it('reads save-data hints from navigator.connection when available', () => {
@@ -319,6 +340,17 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('honors performance bypass for low-end hardware heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: '?disablePerformanceFailover=1',
+      getHardwareConcurrency: () => 2,
+      minimumHardwareConcurrency: 3,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('routes low-end user agents to text mode', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
@@ -329,6 +361,17 @@ describe('evaluateFailoverDecision', () => {
       shouldUseFallback: true,
       reason: 'low-end-device',
     });
+  });
+
+  it('honors performance bypass for low-end user agent heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: '?disablePerformanceFailover=1',
+      getUserAgent: () =>
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 12_1 like Mac OS X) AppleWebKit/605.1.15',
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
   });
 
   it('does not force fallback for low hardware concurrency when immersive override is present', () => {

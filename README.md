@@ -141,7 +141,9 @@ lightweight.
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
   WebGL.
 - **Data-saver heuristics** – Save-Data requests or `effectiveType` values of slow-2G/2G/3G trigger
-  the text tour unless `mode=immersive&disablePerformanceFailover=1` is present.
+  the text tour unless `mode=immersive&disablePerformanceFailover=1` is present. The same
+  override bypasses low-memory and low-end hardware heuristics when WebGL is available so
+  manual immersive validation can proceed on constrained devices.
 
 ## Auto-generated assets
 
