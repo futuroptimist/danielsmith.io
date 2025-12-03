@@ -6,6 +6,7 @@ import {
   IMMERSIVE_PERFORMANCE_BUDGET,
   IMMERSIVE_SCENE_BASELINE,
   createPerformanceBudgetReport,
+  type PerformanceBudgetStatus,
   type PerformanceBudgetReport,
   type PerformanceBudgetUsage,
   type PerformanceBudget,
@@ -57,17 +58,12 @@ export interface PressKitTotals {
   categories: Record<PoiCategory, number>;
 }
 
-export type PressKitPerformanceStatus =
-  | 'within-budget'
-  | 'over-budget'
-  | 'invalid';
-
 export interface PressKitPerformanceHeadroomEntry {
   remaining: number;
   percentUsed: number;
   remainingPercent: number;
   overBudgetBy: number;
-  status: PressKitPerformanceStatus;
+  status: PerformanceBudgetStatus;
 }
 
 export interface PressKitPerformanceSummary {
@@ -118,26 +114,16 @@ const normalizeLinks = (links: PoiLink[] | undefined): PressKitPoiLink[] => {
   return links.map((link) => ({ label: link.label, href: link.href }));
 };
 
-const resolvePerformanceStatus = (
-  usage: PerformanceBudgetUsage
-): PressKitPerformanceStatus => {
-  if (usage.hasInvalidMeasurements) {
-    return 'invalid';
-  }
-  return usage.overBudgetBy > 0 ? 'over-budget' : 'within-budget';
-};
-
 const createPerformanceHeadroom = (
   usage: PerformanceBudgetUsage
 ): PressKitPerformanceHeadroomEntry => {
   const percentUsed = Math.min(1, Math.max(0, usage.percentUsed));
-  const remainingPercent = Math.max(0, 1 - percentUsed);
   return {
     remaining: usage.remaining,
     percentUsed,
-    remainingPercent,
+    remainingPercent: usage.remainingPercent,
     overBudgetBy: usage.overBudgetBy,
-    status: resolvePerformanceStatus(usage),
+    status: usage.status,
   };
 };
 
