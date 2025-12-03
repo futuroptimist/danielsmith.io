@@ -15,6 +15,7 @@ import type {
   LocaleStrings,
   LocaleDirection,
   LocaleScript,
+  ModeAnnouncerStrings,
   ModeToggleResolvedStrings,
   MovementLegendStrings,
   PoiCopy,
@@ -278,6 +279,20 @@ export function getModeToggleStrings(
       localeStrings.activeAnnouncementTemplate
     ),
   } satisfies ModeToggleResolvedStrings;
+}
+
+export function getModeAnnouncerStrings(
+  input?: LocaleInput
+): ModeAnnouncerStrings {
+  const localeStrings = getLocaleStrings(input);
+  const modeToggle = getModeToggleStrings(localeStrings.locale);
+
+  return {
+    immersiveReady: modeToggle.idleHudAnnouncement,
+    fallbackReasons: cloneValue(
+      localeStrings.site.textFallback.reasonDescriptions
+    ),
+  } satisfies ModeAnnouncerStrings;
 }
 
 export function getPoiNarrativeLogStrings(

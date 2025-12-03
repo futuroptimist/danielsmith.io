@@ -51,6 +51,25 @@ describe('createModeAnnouncer', () => {
     announcer.dispose();
   });
 
+  it('updates message catalogs and re-announces the active fallback when requested', () => {
+    const announcer = createModeAnnouncer({
+      fallbackMessages: { manual: 'Initial manual' },
+      immersiveMessage: 'Initial immersive',
+    });
+    announcer.announceFallback('manual');
+    announcer.setMessages(
+      { fallbackMessages: { manual: 'Localized manual' } },
+      { reannounce: true }
+    );
+    expect(announcer.element.textContent).toBe('Localized manual');
+
+    announcer.announceImmersiveReady();
+    announcer.setMessages({ immersiveReady: 'Localized immersive' });
+    announcer.announceImmersiveReady();
+    expect(announcer.element.textContent).toBe('Localized immersive');
+    announcer.dispose();
+  });
+
   it('suppresses duplicate fallback announcements while handling updates', async () => {
     const announcer = createModeAnnouncer();
     const region = announcer.element;

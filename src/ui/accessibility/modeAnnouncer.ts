@@ -4,6 +4,13 @@ export interface ModeAnnouncer {
   readonly element: HTMLElement;
   announceImmersiveReady(): void;
   announceFallback(reason: FallbackReason): void;
+  setMessages(
+    messages: Partial<{
+      immersiveReady: string;
+      fallbackMessages: Partial<Record<FallbackReason, string>>;
+    }>,
+    options?: { reannounce?: boolean }
+  ): void;
   dispose(): void;
 }
 
@@ -38,6 +45,13 @@ const DEFAULT_FALLBACK_MESSAGES: Record<FallbackReason, string> = {
   'data-saver':
     'Your browser requested a data-saver experience, so the lightweight text tour is active.',
 };
+
+const mergeFallbackMessages = (
+  custom?: Partial<Record<FallbackReason, string>>
+): Record<FallbackReason, string> => ({
+  ...DEFAULT_FALLBACK_MESSAGES,
+  ...custom,
+});
 
 const isValidFallbackReason = (value: unknown): value is FallbackReason =>
   typeof value === 'string' && value in DEFAULT_FALLBACK_MESSAGES;
@@ -87,6 +101,8 @@ export function createModeAnnouncer({
 
   let lastAnnouncement: string | null = null;
   let lastReason: FallbackReason | null = null;
+  let activeFallbackMessages = mergeFallbackMessages(fallbackMessages);
+  let activeImmersiveMessage = immersiveMessage;
 
   const announce = (message: string) => {
     const normalized = message.trim();
@@ -99,11 +115,11 @@ export function createModeAnnouncer({
     element: region,
     announceImmersiveReady() {
       lastReason = null;
-      announce(immersiveMessage);
+      announce(activeImmersiveMessage);
     },
     announceFallback(reason) {
       const resolved =
-        fallbackMessages[reason] ??
+        activeFallbackMessages[reason] ??
         DEFAULT_FALLBACK_MESSAGES[reason] ??
         DEFAULT_FALLBACK_MESSAGES.manual;
       if (lastReason === reason && lastAnnouncement === resolved.trim()) {
@@ -111,6 +127,24 @@ export function createModeAnnouncer({
       }
       lastReason = reason;
       announce(resolved);
+    },
+    setMessages(nextMessages, options) {
+      if (nextMessages.fallbackMessages) {
+        activeFallbackMessages = mergeFallbackMessages(
+          nextMessages.fallbackMessages
+        );
+      }
+
+      if (nextMessages.immersiveReady) {
+        activeImmersiveMessage = nextMessages.immersiveReady;
+      }
+
+      if (options?.reannounce) {
+        lastAnnouncement = null;
+        if (lastReason) {
+          this.announceFallback(lastReason);
+        }
+      }
     },
     dispose() {
       region.remove();
