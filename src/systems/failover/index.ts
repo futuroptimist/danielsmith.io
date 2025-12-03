@@ -19,6 +19,7 @@ import {
   createImmersiveModeUrl,
   getModeFromSearch,
   IMMERSIVE_MODE_VALUE,
+  shouldDisablePerformanceFailover,
   TEXT_MODE_VALUE,
 } from '../../ui/immersiveUrl';
 
@@ -288,6 +289,7 @@ export function evaluateFailoverDecision(
     options.search ??
     (typeof window !== 'undefined' ? window.location.search : '');
   const mode = getModeFromSearch(search);
+  const disablePerformanceFailover = shouldDisablePerformanceFailover(search);
 
   let storedPreference: ModePreference | null = null;
   const readPreference = options.getModePreference ?? readStoredModePreference;
@@ -350,6 +352,7 @@ export function evaluateFailoverDecision(
 
   if (
     (!mode || mode.length === 0) &&
+    !disablePerformanceFailover &&
     (hasLowHardwareConcurrency || lowEndByUserAgent)
   ) {
     return { shouldUseFallback: true, reason: 'low-end-device' };
@@ -363,12 +366,13 @@ export function evaluateFailoverDecision(
     return { shouldUseFallback: true, reason: 'webgl-unsupported' };
   }
 
-  if (hasLowMemory) {
+  if (!disablePerformanceFailover && hasLowMemory) {
     return { shouldUseFallback: true, reason: 'low-memory' };
   }
 
   if (
     (!mode || mode.length === 0) &&
+    !disablePerformanceFailover &&
     (prefersReducedData || hasSlowConnection)
   ) {
     return { shouldUseFallback: true, reason: 'data-saver' };
