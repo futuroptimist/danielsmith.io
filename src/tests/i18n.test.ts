@@ -6,6 +6,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getModeAnnouncerStrings,
   getModeToggleStrings,
   getLocaleScript,
   getPoiNarrativeLogStrings,
@@ -111,6 +112,24 @@ describe('i18n utilities', () => {
     expect(pseudo.pendingHudAnnouncement).toBe(
       '⟦Switch to the text-only portfolio. Switching to text mode…⟧'
     );
+  });
+
+  it('builds mode announcer messages from localized HUD and fallback copy', () => {
+    const english = getModeAnnouncerStrings('en');
+    expect(english.immersiveReady).toBe(
+      'Switch to the text-only portfolio. Press T to activate.'
+    );
+    expect(english.fallbackReasons['data-saver']).toContain('data-saver');
+
+    const arabic = getModeAnnouncerStrings('ar');
+    expect(arabic.fallbackReasons['low-performance']).toContain(
+      'انخفاضًا مستمرًا في معدل الإطارات'
+    );
+
+    english.fallbackReasons.manual = 'Mutated';
+    expect(
+      getSiteStrings('en').textFallback.reasonDescriptions.manual
+    ).not.toBe('Mutated');
   });
 
   it('exposes narrative log strings with localized announcements', () => {

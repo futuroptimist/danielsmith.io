@@ -45,6 +45,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getModeAnnouncerStrings,
   getModeToggleStrings,
   getPoiNarrativeLogStrings,
   getSiteStrings,
@@ -338,6 +339,7 @@ import {
   type HudFocusAnnouncerHandle,
 } from './ui/accessibility/hudFocusAnnouncer';
 import { InteractionTimeline } from './ui/accessibility/interactionTimeline';
+import { getModeAnnouncer } from './ui/accessibility/modeAnnouncer';
 import {
   ACCESSIBILITY_PRESETS,
   createAccessibilityPresetManager,
@@ -767,6 +769,17 @@ function initializeImmersiveScene(
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let siteStrings = getSiteStrings(locale);
+  const syncModeAnnouncerStrings = () => {
+    const announcerStrings = getModeAnnouncerStrings(locale);
+    getModeAnnouncer().setMessages(
+      {
+        immersiveReady: announcerStrings.immersiveReady,
+        fallbackMessages: announcerStrings.fallbackReasons,
+      },
+      { reannounce: true }
+    );
+  };
+  syncModeAnnouncerStrings();
   let narrativeTimeFormatter = new Intl.DateTimeFormat(
     locale === 'en-x-pseudo' ? 'en' : locale,
     {
@@ -2421,6 +2434,7 @@ function initializeImmersiveScene(
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     siteStrings = getSiteStrings(locale);
+    syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
       locale === 'en-x-pseudo' ? 'en' : locale,
       { hour: 'numeric', minute: '2-digit' }

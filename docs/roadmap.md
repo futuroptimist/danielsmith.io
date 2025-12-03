@@ -286,40 +286,43 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Share canonical content via structured data (JSON-LD) for SEO and bots.
    - ✅ CollectionPage metadata now declares the immersive ItemList as the page's main
      entity so crawlers index the exhibit tour accurately.
-   - ✅ JSON-LD ItemList now advertises canonical site URLs plus publisher/author metadata.
-     Logo references ensure search surfaces attribute exhibits correctly.
-   - ✅ JSON-LD structured data now mirrors the POI registry so bots and scrapers receive the
-     same exhibit catalog as players.
-   - ✅ HUD toggle + `T` keybinding now trigger the text portfolio without a page reload.
-   - ✅ Automated user-agent heuristics now route crawlers and headless previews to the text
-     portfolio while honoring manual immersive overrides.
-   - ✅ WebDriver automation heuristics now check `navigator.webdriver` and steer scripted
-     browsers to the text experience unless the immersive override is set.
-   - ✅ Data-saver detection now honors Save-Data and slow 2G hints by launching the text tour
-     unless immersive mode is explicitly forced.
-   - ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
-     announces when the text tour is engaged.
-   - ✅ Manual mode toggle now flags pending activation with `aria-busy` so screen readers
-     announce when a toggle is in progress.
+
+- ✅ JSON-LD ItemList now advertises canonical site URLs plus publisher/author metadata.
+  Logo references ensure search surfaces attribute exhibits correctly.
+- ✅ JSON-LD structured data now mirrors the POI registry so bots and scrapers receive the
+  same exhibit catalog as players.
+- ✅ HUD toggle + `T` keybinding now trigger the text portfolio without a page reload.
+- ✅ Automated user-agent heuristics now route crawlers and headless previews to the text
+  portfolio while honoring manual immersive overrides.
+- ✅ WebDriver automation heuristics now check `navigator.webdriver` and steer scripted
+  browsers to the text experience unless the immersive override is set.
+- ✅ Data-saver detection now honors Save-Data and slow 2G hints by launching the text tour
+  unless immersive mode is explicitly forced.
+- ✅ Manual mode toggle now exposes an active state with aria-pressed so assistive tech
+  announces when the text tour is engaged.
+- ✅ Manual mode toggle now flags pending activation with `aria-busy` so screen readers
+  announce when a toggle is in progress.
 
 - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
   update immediately when visitors switch locales.
-  - ✅ Text fallback reason messaging now pulls from the i18n catalog so locale switches update
-    accessibility narratives alongside the mode toggle.
-  - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
-    crawlers understand language coverage and free access guarantees.
-  - ✅ Text fallback links back to immersive mode with the override URL so returns bypass
-    automatic failover heuristics.
-  - ✅ Mode announcer now replays the current fallback reason on load so screen readers catch
-    prerendered text tours.
-  - ✅ Mode announcer now reads prerendered fallback markup even when `data-app-mode` has not
-    been set yet, ensuring prerendered text tours still announce their context on startup.
-  - ✅ Mode announcer now re-announces when fallback reasons change mid-session so updated
-    failover contexts stay audible for assistive tech users.
-  - ✅ Duplicate fallback announcements are now suppressed so screen readers avoid repeated
-    chatter while still announcing new failover reasons as they occur.
-  - ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
-    cleanly even when queries or hash fragments already exist.
+- ✅ Text fallback reason messaging now pulls from the i18n catalog so locale switches update
+  accessibility narratives alongside the mode toggle.
+- ✅ Mode announcer now uses localized fallback reasons and refreshes announcements when the
+  active locale changes.
+- ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
+  crawlers understand language coverage and free access guarantees.
+- ✅ Text fallback links back to immersive mode with the override URL so returns bypass
+  automatic failover heuristics.
+- ✅ Mode announcer now replays the current fallback reason on load so screen readers catch
+  prerendered text tours.
+- ✅ Mode announcer now reads prerendered fallback markup even when `data-app-mode` has not
+  been set yet, ensuring prerendered text tours still announce their context on startup.
+- ✅ Mode announcer now re-announces when fallback reasons change mid-session so updated
+  failover contexts stay audible for assistive tech users.
+- ✅ Duplicate fallback announcements are now suppressed so screen readers avoid repeated
+  chatter while still announcing new failover reasons as they occur.
+- ✅ Text mode URL builder now normalizes canonical share links so `?mode=text` appends
+  cleanly even when queries or hash fragments already exist.
 
 3. **Progression & State**
    - ✅ Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).

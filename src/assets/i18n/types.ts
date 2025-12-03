@@ -99,6 +99,11 @@ export interface ModeToggleResolvedStrings {
   activeHudAnnouncement: string;
 }
 
+export interface ModeAnnouncerStrings {
+  immersiveReady: string;
+  fallbackReasons: Record<FallbackReason, string>;
+}
+
 export interface HelpModalItemStrings {
   label: string;
   description: string;
