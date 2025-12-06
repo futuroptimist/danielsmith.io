@@ -46,6 +46,12 @@ export type AvatarLocomotionAnimatorOptions = {
     /** Speed where we should start blending from walk to run. */
     walkToRun?: number;
   };
+  deadZones?: {
+    /** Speeds below this threshold are treated as idle to suppress jitter. */
+    linear?: number;
+    /** Angular speeds below this threshold do not trigger turn overlays. */
+    angular?: number;
+  };
   smoothing?: {
     /** Smoothing factor passed to MathUtils.damp for idle/walk/run weights. */
     linear?: number;
@@ -165,6 +171,15 @@ export function createAvatarLocomotionAnimator(
     0
   );
 
+  const linearDeadZone = Math.max(
+    options.deadZones?.linear ?? idleToWalk * 0.2,
+    0
+  );
+  const angularDeadZone = Math.max(
+    options.deadZones?.angular ?? turnThreshold * 0.5,
+    0
+  );
+
   const idleAction = mixer.clipAction(idleClip);
   const walkAction = mixer.clipAction(walkClip);
   const runAction = mixer.clipAction(runClip);
@@ -256,11 +271,14 @@ export function createAvatarLocomotionAnimator(
     angularSpeed,
   }: AvatarLocomotionAnimatorUpdate) => {
     const clampedDelta = Math.max(0, delta);
-    const planarSpeed = Math.max(0, Math.min(linearSpeed, maxLinearSpeed));
-    const absAngularSpeed = Math.abs(angularSpeed);
+    const rawPlanarSpeed = Math.max(0, Math.min(linearSpeed, maxLinearSpeed));
+    const planarSpeed = rawPlanarSpeed < linearDeadZone ? 0 : rawPlanarSpeed;
+    const rawAngularSpeed =
+      Math.abs(angularSpeed) < angularDeadZone ? 0 : angularSpeed;
+    const absAngularSpeed = Math.abs(rawAngularSpeed);
 
     state.snapshot.linearSpeed = planarSpeed;
-    state.snapshot.angularSpeed = angularSpeed;
+    state.snapshot.angularSpeed = rawAngularSpeed;
 
     const idleRampStart = idleToWalk * 0.4;
     let idleContribution =
@@ -283,9 +301,9 @@ export function createAvatarLocomotionAnimator(
         turnMax
       );
       if (turnMix > 0) {
-        if (angularSpeed > 0 && turnLeftAction) {
+        if (rawAngularSpeed > 0 && turnLeftAction) {
           turnLeftWeightTarget = turnMix;
-        } else if (angularSpeed < 0 && turnRightAction) {
+        } else if (rawAngularSpeed < 0 && turnRightAction) {
           turnRightWeightTarget = turnMix;
         }
         const overlay = Math.max(turnLeftWeightTarget, turnRightWeightTarget);

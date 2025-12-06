@@ -123,4 +123,26 @@ describe('createAvatarLocomotionAnimator', () => {
 
     animator.dispose();
   });
+
+  it('suppresses jitter with linear and angular dead zones', () => {
+    const animator = createHandle();
+
+    animator.update({ delta: 1 / 60, linearSpeed: 0.05, angularSpeed: 0.3 });
+    const suppressed = animator.getSnapshot();
+    expect(suppressed.linearSpeed).toBe(0);
+    expect(suppressed.angularSpeed).toBe(0);
+    expect(suppressed.turning).toBe('none');
+    expect(suppressed.weights.walk).toBeCloseTo(0, 6);
+    expect(suppressed.weights.turnLeft).toBeCloseTo(0, 6);
+
+    animator.update({ delta: 1 / 60, linearSpeed: 0.3, angularSpeed: 1.1 });
+    const engaged = animator.getSnapshot();
+    expect(engaged.linearSpeed).toBeCloseTo(0.3, 6);
+    expect(engaged.angularSpeed).toBeCloseTo(1.1, 6);
+    expect(engaged.turning).toBe('left');
+    expect(engaged.weights.turnLeft).toBeGreaterThan(0.1);
+    expect(engaged.weights.walk).toBeGreaterThan(0);
+
+    animator.dispose();
+  });
 });

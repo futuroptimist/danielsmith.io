@@ -440,6 +440,8 @@ Focus: replace the placeholder sphere with a stylized protagonist.
    - ✅ Locomotion blend tree now normalizes idle, walk, run, and turn clip weights from the
      controller velocity profile while matching animation playback speed to the player's
      movement rate.
+   - ✅ Linear and angular dead zones now filter controller jitter so idle stances stay steady
+     while deliberate turning overlays still fade in smoothly.
 
    - ✅ Interaction animation set now pulses the mannequin arms when POIs are activated,
      responding to POI selections with a controller-synced gesture.
