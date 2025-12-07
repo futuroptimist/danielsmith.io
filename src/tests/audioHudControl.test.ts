@@ -66,6 +66,8 @@ describe('createAudioHudControl', () => {
       formatMessage(strings.slider.mutedAriaValueTemplate, { volume });
     const formatVolumeAnnouncement = (volume: string) =>
       formatMessage(strings.slider.valueAnnouncementTemplate, { volume });
+    const formatPendingAnnouncement = () =>
+      formatMessage(strings.toggle.pendingAnnouncementTemplate, { keyHint });
 
     expect(button).toBeTruthy();
     expect(slider).toBeTruthy();
@@ -95,6 +97,8 @@ describe('createAudioHudControl', () => {
     expect(wrapper?.getAttribute('aria-busy')).toBe('true');
     expect(slider?.disabled).toBe(true);
     expect(slider?.getAttribute('aria-busy')).toBe('true');
+    expect(button?.dataset.hudAnnounce).toBe(formatPendingAnnouncement());
+    expect(slider?.dataset.hudAnnounce).toBe(formatPendingAnnouncement());
 
     // Second click while pending should be ignored.
     button?.dispatchEvent(new Event('click'));

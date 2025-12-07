@@ -61,6 +61,7 @@ export interface AudioHudControlStrings {
     titleTemplate: string;
     announcementOnTemplate: string;
     announcementOffTemplate: string;
+    pendingAnnouncementTemplate: string;
   };
   slider: {
     label: string;

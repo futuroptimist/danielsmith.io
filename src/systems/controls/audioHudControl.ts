@@ -178,6 +178,9 @@ export function createAudioHudControl({
   let toggleAnnouncements = {
     on: formatMessage(strings.toggle.announcementOnTemplate, { keyHint }),
     off: formatMessage(strings.toggle.announcementOffTemplate, { keyHint }),
+    pending: formatMessage(strings.toggle.pendingAnnouncementTemplate, {
+      keyHint,
+    }),
   };
   let toggleTitle = formatMessage(strings.toggle.titleTemplate, { keyHint });
 
@@ -190,6 +193,9 @@ export function createAudioHudControl({
     toggleAnnouncements = {
       on: formatMessage(strings.toggle.announcementOnTemplate, { keyHint }),
       off: formatMessage(strings.toggle.announcementOffTemplate, { keyHint }),
+      pending: formatMessage(strings.toggle.pendingAnnouncementTemplate, {
+        keyHint,
+      }),
     };
     toggleTitle = formatMessage(strings.toggle.titleTemplate, { keyHint });
     wrapper.setAttribute('aria-label', strings.groupLabel);
@@ -211,9 +217,11 @@ export function createAudioHudControl({
     wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
     slider.disabled = pending;
     slider.setAttribute('aria-busy', pending ? 'true' : 'false');
-    toggleButton.dataset.hudAnnounce = enabled
-      ? toggleAnnouncements.on
-      : toggleAnnouncements.off;
+    toggleButton.dataset.hudAnnounce = pending
+      ? toggleAnnouncements.pending
+      : enabled
+        ? toggleAnnouncements.on
+        : toggleAnnouncements.off;
     updateVolume(enabled);
   };
 
@@ -224,7 +232,9 @@ export function createAudioHudControl({
     const formatted = formatVolume(volume);
     const uiState = getVolumeUiState(enabled, formatted, strings.slider);
     slider.setAttribute('aria-valuetext', uiState.ariaValueText);
-    slider.dataset.hudAnnounce = uiState.announce;
+    slider.dataset.hudAnnounce = pending
+      ? toggleAnnouncements.pending
+      : uiState.announce;
     valueText.textContent = uiState.valueDisplay;
   };
 

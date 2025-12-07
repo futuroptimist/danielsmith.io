@@ -135,6 +135,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         announcementOnTemplate: 'Ambient audio on. Press {keyHint} to toggle.',
         announcementOffTemplate:
           'Ambient audio off. Press {keyHint} to toggle.',
+        pendingAnnouncementTemplate:
+          'Switching ambient audio state. Please wait…',
       },
       slider: {
         label: 'Ambient volume',
