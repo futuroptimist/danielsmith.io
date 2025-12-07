@@ -527,6 +527,48 @@ describe('renderTextFallback', () => {
     expect(description?.textContent).toMatch(/runtime error/i);
   });
 
+  it('renders bio, skills, timeline, and contact information from site strings', () => {
+    const container = render('manual');
+    const strings = getSiteStrings(container.lang).textFallback;
+
+    const aboutSummary = container.querySelector(
+      '.text-fallback__about-summary'
+    );
+    expect(aboutSummary?.textContent).toBe(strings.about.summary);
+    const highlights = Array.from(
+      container.querySelectorAll('.text-fallback__highlight')
+    ).map((item) => item.textContent);
+    expect(highlights).toEqual(strings.about.highlights);
+
+    const skills = Array.from(
+      container.querySelectorAll('.text-fallback__skills-item')
+    ).map((item) => item.textContent?.trim());
+    expect(skills).toEqual(
+      strings.skills.items.map((item) => `${item.label}: ${item.value}`)
+    );
+
+    const timeline = Array.from(
+      container.querySelectorAll('.text-fallback__timeline-entry')
+    ).map((entry) => entry.textContent?.replace(/\s+/g, ' ').trim());
+    expect(timeline).toEqual(
+      strings.timeline.entries.map(
+        (entry) =>
+          `${entry.role} · ${entry.org} ${entry.period} · ${entry.location} ${entry.summary}`
+      )
+    );
+
+    const contactLinks = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(
+        '.text-fallback__contact-list .text-fallback__link'
+      )
+    );
+    expect(contactLinks.map((link) => link.href)).toEqual([
+      `mailto:${strings.contact.email}`,
+      'https://example.com/',
+      new URL('/resume.pdf', window.location.origin).toString(),
+    ]);
+  });
+
   it('announces performance-triggered fallback messaging', () => {
     const container = render('low-performance');
     const section = container.querySelector('.text-fallback');
@@ -565,7 +607,29 @@ describe('renderTextFallback', () => {
     document.documentElement.lang = originalLang;
   });
 
+  it('localizes action links using site strings for the active locale', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'ar';
+
+    const container = render('manual');
+    const actions = getSiteStrings('ar').textFallback.actions;
+    const actionLinks = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(
+        '.text-fallback__actions .text-fallback__link'
+      )
+    );
+
+    expect(actionLinks.map((link) => link.textContent)).toEqual([
+      actions.immersiveLink,
+      actions.resumeLink,
+      actions.githubLink,
+    ]);
+
+    document.documentElement.lang = originalLang;
+  });
+
   it('renders a text portfolio entry for every POI', () => {
+    document.documentElement.lang = 'en';
     const container = render('manual');
     const portfolio = container.querySelector('.text-fallback__exhibits');
     expect(portfolio).toBeTruthy();
@@ -577,16 +641,19 @@ describe('renderTextFallback', () => {
       '.text-fallback__poi-metrics-heading'
     );
     expect(metricsHeading?.textContent).toBe(
-      getSiteStrings().textFallback.metricsHeading
+      getSiteStrings(container.lang).textFallback.metricsHeading
     );
     const linkList = portfolio?.querySelector('.text-fallback__poi-links');
     expect(linkList?.querySelectorAll('a').length).toBeGreaterThan(0);
   });
 
   it('describes low-end device fallback messaging', () => {
+    document.documentElement.lang = 'en';
     const container = render('low-end-device');
     const description = container.querySelector('.text-fallback__description');
-    expect(description?.textContent).toMatch(/lightweight device/i);
+    const reason = getSiteStrings(container.lang).textFallback
+      .reasonDescriptions['low-end-device'];
+    expect(description?.textContent).toBe(reason);
   });
 
   it('applies rtl direction metadata based on document language', () => {

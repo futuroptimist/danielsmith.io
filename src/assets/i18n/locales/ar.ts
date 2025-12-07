@@ -26,6 +26,79 @@ export const AR_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: 'معارض {roomName}',
       metricsHeading: 'مؤشرات أساسية',
       linksHeading: 'روابط إضافية',
+      about: {
+        heading: 'عن دانيال',
+        summary:
+          'مهندس موثوقية مواقع بخبرة ست سنوات في YouTube يركز على الأتمتة والرصد وإطلاقات مستقرة.',
+        highlights: [
+          'يبني منصات مطورين وأدوات معتمدة على العوامل لتسريع الشحن بأمان.',
+          'يدرب الفرق على اتفاقيات مستوى الخدمة، الاستجابة للحوادث، ومراجعات الموثوقية.',
+          'يستكشف سرد WebGL غامر مع دعم نصي يمكن الوصول إليه دائماً.',
+        ],
+      },
+      skills: {
+        heading: 'المهارات باختصار',
+        items: [
+          {
+            label: 'اللغات',
+            value:
+              'Python, Go, SQL, C++, TypeScript/JavaScript, Ruby, Objective-C',
+          },
+          {
+            label: 'البنية والأدوات',
+            value:
+              'Kubernetes, Docker, Google Cloud (BigQuery), GitHub Actions, WebGL/Three.js, React/Next.js, Astro',
+          },
+          {
+            label: 'الممارسات',
+            value:
+              'SRE (اتفاقيات مستوى الخدمة، الاستجابة للحوادث، السعة), الرصد، CI/CD، الاختبارات، وثائق المحفزات والبرمجة المعتمدة على العوامل',
+          },
+        ],
+      },
+      timeline: {
+        heading: 'الجدول الزمني للعمل',
+        entries: [
+          {
+            period: 'سبتمبر 2018 — مايو 2025',
+            location: 'سان برونو، كاليفورنيا',
+            role: 'مهندس موثوقية مواقع (L4)',
+            org: 'YouTube (Google)',
+            summary:
+              'إشراف على النوبات، أتمتة المراقبة باستخدام Python/Go/SQL/C++، وتوجيه مراجعات الموثوقية للقيادة.',
+          },
+          {
+            period: 'يناير 2017 — سبتمبر 2018',
+            location: 'مركز ستينيس الفضائي، مسيسيبي',
+            role: 'مهندس برمجيات',
+            org: 'مختبر الأبحاث البحرية',
+            summary:
+              'شحن تطبيقات معالجة بيانات C++/Qt وعروض عن بُعد ضمن دورات Scrum.',
+          },
+          {
+            period: 'مارس 2014 — ديسمبر 2016',
+            location: 'هاتيسبيرغ، مسيسيبي',
+            role: 'مطوّر برمجيات',
+            org: 'جامعة جنوب مسيسيبي',
+            summary:
+              'بناء أطر Objective-C لتسليم المحتوى المباشر في تطبيقات iOS الجامعية.',
+          },
+        ],
+      },
+      contact: {
+        heading: 'التواصل',
+        emailLabel: 'البريد الإلكتروني',
+        email: 'daniel@danielsmith.io',
+        githubLabel: 'GitHub',
+        githubUrl: 'https://github.com/futuroptimist',
+        resumeLabel: 'السيرة الذاتية (PDF)',
+        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+      },
+      actions: {
+        immersiveLink: 'تشغيل الوضع الغامر',
+        resumeLink: 'تحميل أحدث سيرة ذاتية',
+        githubLink: 'استكشاف المشاريع على GitHub',
+      },
       reasonDescriptions: {
         manual:
           'طلبت العرض النصي الخفيف. يمكنك العودة إلى المشهد الغامر بنقرة واحدة.',
