@@ -5,8 +5,9 @@ import {
   type ManualModeToggleHandle,
 } from '../systems/failover/manualModeToggle';
 
-const flushMicrotasks = async () =>
-  new Promise<void>((resolve) => queueMicrotask(resolve));
+const flushMicrotasks = async () => {
+  await new Promise<void>((resolve) => queueMicrotask(resolve));
+};
 
 const createContainer = () => {
   const container = document.createElement('div');
@@ -47,9 +48,6 @@ describe('createManualModeToggle', () => {
     expect(handle.element.getAttribute('aria-busy')).toBe('false');
 
     handle.element.click();
-    const togglePromise = onToggle.mock.results[0]?.value as
-      | Promise<void>
-      | undefined;
 
     expect(onToggle).toHaveBeenCalledTimes(1);
     expect(handle.element.disabled).toBe(true);
