@@ -328,6 +328,26 @@ describe('evaluateFailoverDecision', () => {
     }
   });
 
+  it('routes social preview and chat crawlers to text mode', () => {
+    const userAgents = [
+      'redditbot/1.0',
+      'Quora Link Preview/1.0',
+      'BitlyBot/3.0',
+    ];
+
+    for (const userAgent of userAgents) {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+        getUserAgent: () => userAgent,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    }
+  });
+
   it('routes low hardware concurrency devices to text mode', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
