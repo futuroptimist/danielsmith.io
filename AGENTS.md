@@ -48,7 +48,7 @@ npm run smoke
   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (swap the host/port if
   previewing elsewhere).
 - If you need to add extra query parameters, append them with `&` or call
-  `createImmersiveModeUrl(...)` from `src/immersiveUrl.ts` so both `mode=immersive` and
+  `createImmersiveModeUrl(...)` from `src/ui/immersiveUrl.ts` so both `mode=immersive` and
   `disablePerformanceFailover=1` remain intact.
 - Never share preview links without those overrides—headless and low-FPS heuristics will otherwise
   fall back to the text mode.
