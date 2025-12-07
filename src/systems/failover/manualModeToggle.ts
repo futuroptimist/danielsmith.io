@@ -49,6 +49,12 @@ export function createManualModeToggle({
   const normalizeKeyHint = (value: string) =>
     value.length === 1 ? value.toUpperCase() : value;
 
+  const setDisabledState = (disabled: boolean) => {
+    button.disabled = disabled;
+    button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    container.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+  };
+
   const withFallback = (value: string, fallback: string) => {
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : fallback;
@@ -98,7 +104,7 @@ export function createManualModeToggle({
     };
     if (pending) {
       setContainerState('pending');
-      button.disabled = true;
+      setDisabledState(true);
       button.dataset.state = 'pending';
       button.setAttribute('aria-busy', 'true');
       button.textContent = withFallback(
@@ -116,7 +122,7 @@ export function createManualModeToggle({
     }
     if (fallbackActive) {
       setContainerState('active');
-      button.disabled = true;
+      setDisabledState(true);
       button.dataset.state = 'active';
       button.setAttribute('aria-busy', 'false');
       button.textContent = withFallback(
@@ -134,7 +140,7 @@ export function createManualModeToggle({
       return;
     }
     setContainerState('idle');
-    button.disabled = false;
+    setDisabledState(false);
     button.dataset.state = 'idle';
     button.setAttribute('aria-busy', 'false');
     button.textContent = withFallback(
@@ -223,6 +229,7 @@ export function createManualModeToggle({
       windowTarget.removeEventListener('keydown', handleKeydown);
       button.removeEventListener('focus', refreshState);
       container.removeAttribute('aria-busy');
+      container.removeAttribute('aria-disabled');
       delete container.dataset.modeToggleState;
       if (button.parentElement) {
         button.remove();
