@@ -64,6 +64,7 @@ export interface PressKitPerformanceHeadroomEntry {
   remainingPercent: number;
   overBudgetBy: number;
   status: PerformanceBudgetStatus;
+  label: string;
 }
 
 export interface PressKitPerformanceSummary {
@@ -114,6 +115,24 @@ const normalizeLinks = (links: PoiLink[] | undefined): PressKitPoiLink[] => {
   return links.map((link) => ({ label: link.label, href: link.href }));
 };
 
+export function formatHeadroomLabel(
+  usage: PerformanceBudgetUsage,
+  formatter: Intl.NumberFormat = new Intl.NumberFormat('en-US')
+): string {
+  const usedPercent = Math.round(Math.max(0, usage.percentUsed) * 100);
+  if (usage.hasInvalidMeasurements || usage.status === 'invalid') {
+    return 'Invalid measurements – refresh the performance snapshot.';
+  }
+  if (usage.overBudgetBy > 0 || usage.status === 'over-budget') {
+    const overBudget = formatter.format(Math.max(usage.overBudgetBy, 0));
+    return `Over budget by ${overBudget} (${usedPercent}% used).`;
+  }
+  const remainingPercent = Math.round(
+    Math.max(usage.remainingPercent, 0) * 100
+  );
+  return `Within budget · ${usedPercent}% used · ${remainingPercent}% remaining.`;
+}
+
 const createPerformanceHeadroom = (
   usage: PerformanceBudgetUsage
 ): PressKitPerformanceHeadroomEntry => {
@@ -124,6 +143,7 @@ const createPerformanceHeadroom = (
     remainingPercent: usage.remainingPercent,
     overBudgetBy: usage.overBudgetBy,
     status: usage.status,
+    label: formatHeadroomLabel(usage),
   };
 };
 

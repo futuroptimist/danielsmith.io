@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2025-11-10T07:07:37.029Z",
+  "generatedAtIso": "2025-12-06T08:41:16.687Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -12,6 +12,65 @@
       "textureBytes": 18874368,
       "capturedAtIso": "2024-05-17T00:00:00.000Z",
       "notes": "Captured with Chrome 124 WebGL inspector at launch pose after camera settle."
+    },
+    "report": {
+      "materials": {
+        "used": 28,
+        "limit": 36,
+        "remaining": 8,
+        "overBudgetBy": 0,
+        "percentUsed": 0.7777777777777778,
+        "remainingPercent": 0.2222222222222222,
+        "status": "within-budget",
+        "hasInvalidMeasurements": false
+      },
+      "drawCalls": {
+        "used": 132,
+        "limit": 150,
+        "remaining": 18,
+        "overBudgetBy": 0,
+        "percentUsed": 0.88,
+        "remainingPercent": 0.12,
+        "status": "within-budget",
+        "hasInvalidMeasurements": false
+      },
+      "textureBytes": {
+        "used": 18874368,
+        "limit": 25165824,
+        "remaining": 6291456,
+        "overBudgetBy": 0,
+        "percentUsed": 0.75,
+        "remainingPercent": 0.25,
+        "status": "within-budget",
+        "hasInvalidMeasurements": false
+      },
+      "isWithinBudget": true
+    },
+    "headroom": {
+      "materials": {
+        "remaining": 8,
+        "percentUsed": 0.7777777777777778,
+        "remainingPercent": 0.2222222222222222,
+        "overBudgetBy": 0,
+        "status": "within-budget",
+        "label": "Within budget · 78% used · 22% remaining."
+      },
+      "drawCalls": {
+        "remaining": 18,
+        "percentUsed": 0.88,
+        "remainingPercent": 0.12,
+        "overBudgetBy": 0,
+        "status": "within-budget",
+        "label": "Within budget · 88% used · 12% remaining."
+      },
+      "textureBytes": {
+        "remaining": 6291456,
+        "percentUsed": 0.75,
+        "remainingPercent": 0.25,
+        "overBudgetBy": 0,
+        "status": "within-budget",
+        "label": "Within budget · 75% used · 25% remaining."
+      }
     }
   },
   "totals": {
