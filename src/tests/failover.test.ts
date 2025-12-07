@@ -329,7 +329,11 @@ describe('evaluateFailoverDecision', () => {
   });
 
   it('routes social preview and chat crawlers to text mode', () => {
-    const userAgents = ['redditbot/1.0', 'Quora Link Preview/1.0', 'BitlyBot/3.0'];
+    const userAgents = [
+      'redditbot/1.0',
+      'Quora Link Preview/1.0',
+      'BitlyBot/3.0',
+    ];
 
     for (const userAgent of userAgents) {
       const decision = evaluateFailoverDecision({
