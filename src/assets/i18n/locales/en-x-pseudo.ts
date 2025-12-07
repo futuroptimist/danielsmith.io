@@ -19,6 +19,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: wrap('{roomName} exhibits'),
       metricsHeading: wrap('Key metrics'),
       linksHeading: wrap('Further reading'),
+      actions: {
+        immersiveLink: wrap('Launch immersive mode'),
+        resumeLink: wrap('Download the latest résumé'),
+        githubLink: wrap('Explore projects on GitHub'),
+      },
       reasonDescriptions: {
         manual: wrap(
           'You requested the lightweight portfolio view. The immersive scene stays just a click away.'

@@ -578,7 +578,8 @@ export function renderTextFallback(
   const localeHint =
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
-  const siteStrings = getSiteStrings(localeHint).textFallback;
+  const textFallbackStrings = getSiteStrings(localeHint).textFallback;
+  const actionStrings = textFallbackStrings.actions;
   const immersiveUrl = createImmersiveModeUrl(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
   );
@@ -619,7 +620,7 @@ export function renderTextFallback(
 
   const description = documentTarget.createElement('p');
   description.className = 'text-fallback__description';
-  const descriptionStrings = siteStrings.reasonDescriptions;
+  const descriptionStrings = textFallbackStrings.reasonDescriptions;
   description.textContent =
     descriptionStrings[reason] ?? descriptionStrings.manual;
   section.appendChild(description);
@@ -632,7 +633,7 @@ export function renderTextFallback(
   const immersiveLink = documentTarget.createElement('a');
   immersiveLink.href = immersiveUrl;
   immersiveLink.className = 'text-fallback__link';
-  immersiveLink.textContent = 'Launch immersive mode';
+  immersiveLink.textContent = actionStrings.immersiveLink;
   immersiveLink.rel = 'noopener';
   immersiveLink.dataset.action = 'immersive';
   immersiveItem.appendChild(immersiveLink);
@@ -643,7 +644,7 @@ export function renderTextFallback(
   const resumeLink = documentTarget.createElement('a');
   resumeLink.href = resumeUrl;
   resumeLink.className = 'text-fallback__link';
-  resumeLink.textContent = 'Download the latest résumé';
+  resumeLink.textContent = actionStrings.resumeLink;
   resumeLink.rel = 'noopener';
   resumeLink.dataset.action = 'resume';
   resumeItem.appendChild(resumeLink);
@@ -654,7 +655,7 @@ export function renderTextFallback(
   const githubLink = documentTarget.createElement('a');
   githubLink.href = githubUrl;
   githubLink.className = 'text-fallback__link';
-  githubLink.textContent = 'Explore projects on GitHub';
+  githubLink.textContent = actionStrings.githubLink;
   githubLink.rel = 'noopener';
   githubLink.dataset.action = 'github';
   githubItem.appendChild(githubLink);

@@ -26,6 +26,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: '{roomName}の展示',
       metricsHeading: '主要指標',
       linksHeading: '関連リンク',
+      actions: {
+        immersiveLink: '没入モードを起動',
+        resumeLink: '最新の履歴書をダウンロード',
+        githubLink: 'GitHubでプロジェクトを見る',
+      },
       reasonDescriptions: {
         manual:
           'テキストビューをリクエストしました。没入シーンはワンクリックで戻せます。',

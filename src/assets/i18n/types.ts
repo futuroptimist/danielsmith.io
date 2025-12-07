@@ -189,6 +189,11 @@ export interface SiteTextFallbackStrings {
   roomHeadingTemplate: string;
   metricsHeading: string;
   linksHeading: string;
+  actions: {
+    immersiveLink: string;
+    resumeLink: string;
+    githubLink: string;
+  };
   reasonDescriptions: Record<FallbackReason, string>;
 }
 

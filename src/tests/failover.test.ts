@@ -555,7 +555,29 @@ describe('renderTextFallback', () => {
     document.documentElement.lang = originalLang;
   });
 
+  it('localizes action links using site strings for the active locale', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'ar';
+
+    const container = render('manual');
+    const actions = getSiteStrings('ar').textFallback.actions;
+    const actionLinks = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(
+        '.text-fallback__actions .text-fallback__link'
+      )
+    );
+
+    expect(actionLinks.map((link) => link.textContent)).toEqual([
+      actions.immersiveLink,
+      actions.resumeLink,
+      actions.githubLink,
+    ]);
+
+    document.documentElement.lang = originalLang;
+  });
+
   it('renders a text portfolio entry for every POI', () => {
+    document.documentElement.lang = 'en';
     const container = render('manual');
     const portfolio = container.querySelector('.text-fallback__exhibits');
     expect(portfolio).toBeTruthy();
@@ -567,16 +589,20 @@ describe('renderTextFallback', () => {
       '.text-fallback__poi-metrics-heading'
     );
     expect(metricsHeading?.textContent).toBe(
-      getSiteStrings().textFallback.metricsHeading
+      getSiteStrings(container.lang).textFallback.metricsHeading
     );
     const linkList = portfolio?.querySelector('.text-fallback__poi-links');
     expect(linkList?.querySelectorAll('a').length).toBeGreaterThan(0);
   });
 
   it('describes low-end device fallback messaging', () => {
+    document.documentElement.lang = 'en';
     const container = render('low-end-device');
     const description = container.querySelector('.text-fallback__description');
-    expect(description?.textContent).toMatch(/lightweight device/i);
+    const reason = getSiteStrings(container.lang).textFallback.reasonDescriptions[
+      'low-end-device'
+    ];
+    expect(description?.textContent).toBe(reason);
   });
 
   it('applies rtl direction metadata based on document language', () => {

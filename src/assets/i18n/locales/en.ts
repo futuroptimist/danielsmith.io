@@ -31,6 +31,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       roomHeadingTemplate: '{roomName} exhibits',
       metricsHeading: 'Key metrics',
       linksHeading: 'Further reading',
+      actions: {
+        immersiveLink: 'Launch immersive mode',
+        resumeLink: 'Download the latest résumé',
+        githubLink: 'Explore projects on GitHub',
+      },
       reasonDescriptions: {
         manual:
           'You requested the lightweight portfolio view. The immersive scene stays just a click away.',

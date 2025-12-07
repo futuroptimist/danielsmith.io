@@ -26,6 +26,11 @@ export const AR_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: 'معارض {roomName}',
       metricsHeading: 'مؤشرات أساسية',
       linksHeading: 'روابط إضافية',
+      actions: {
+        immersiveLink: 'تشغيل الوضع الغامر',
+        resumeLink: 'تحميل أحدث سيرة ذاتية',
+        githubLink: 'استكشاف المشاريع على GitHub',
+      },
       reasonDescriptions: {
         manual:
           'طلبت العرض النصي الخفيف. يمكنك العودة إلى المشهد الغامر بنقرة واحدة.',
