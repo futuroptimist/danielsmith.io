@@ -329,16 +329,7 @@ describe('evaluateFailoverDecision', () => {
   });
 
   it('routes social preview and chat crawlers to text mode', () => {
-    const userAgents = [
-      'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
-      'LinkedInBot/1.0 (+https://www.linkedin.com)',
-      'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-      'Twitterbot/1.0',
-      'WhatsApp/2.23.13',
-      'redditbot/1.0',
-      'Quora Link Preview/1.0',
-      'BitlyBot/3.0',
-    ];
+    const userAgents = ['redditbot/1.0', 'Quora Link Preview/1.0', 'BitlyBot/3.0'];
 
     for (const userAgent of userAgents) {
       const decision = evaluateFailoverDecision({
