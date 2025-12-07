@@ -284,6 +284,9 @@ describe('evaluateFailoverDecision', () => {
       'Applebot/0.1; +http://www.apple.com/go/applebot',
       'TeamsBot-LinkPreview',
       'ZoominfoBot (zoominfobot at zoominfo dot com)',
+      'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+        'Line/14.2.0 Mobile Safari/537.36',
+      'LineBot/1.0',
       'Bytespider (compatible; bytespider;)',
       'Mozilla/5.0 (Linux; Android 12; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) ' +
         'Chrome/114.0.5735.60 Mobile Safari/537.36 Google-InspectionTool',
@@ -293,6 +296,13 @@ describe('evaluateFailoverDecision', () => {
       'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleOther/1.0)',
       'Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)',
       'Mozilla/5.0 (compatible; ClaudeBot/1.0)',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 ' +
+        '(KHTML, like Gecko) Mobile/15E148 Instagram 317.0.0.0.115 (iPhone15,3; iOS 17_3; ' +
+        'en_US; scale=3.00; 1290x2796; 535159400)',
+      'Snapchat/12.78.0.36 (iPhone15,3; iOS 17.3; gzip)',
+      'Viber/21.7.0 iPad6,11 iOS17.3',
+      'ViberBot/1.0',
+      'vkShare; (+http://vk.com/dev/Share)',
     ];
 
     for (const userAgent of userAgents) {
