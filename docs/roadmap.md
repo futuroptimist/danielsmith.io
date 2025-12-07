@@ -63,8 +63,9 @@ captures; keep artifacts in `docs/metrics/`.
       heuristics so social shares render consistently without JavaScript.
       - ✅ Coverage now includes Pinterest, Embedly, Slackbot, LinkedInBot, FacebookExternalHit,
         Twitterbot, WhatsApp, RedditBot, Quora Link Preview, BitlyBot, Applebot, Teams, ZoomInfo,
-        DuckDuckBot, Google InspectionTool, GoogleOther, BingPreview, and PetalBot crawlers to
-        avoid loading WebGL during link previews.
+        DuckDuckBot, Google InspectionTool, GoogleOther, BingPreview, PetalBot, Line,
+        Instagram, Snapchat, Viber, and VKShare crawlers to avoid loading WebGL during link
+        previews.
 
 ## Phase 0 – Foundations (Shipped)
 
