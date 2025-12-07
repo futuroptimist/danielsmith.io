@@ -238,7 +238,7 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /skypeuripreview/i,
   /line\//i,
   /linebot/i,
-  /instagram\s+([0-9]+\.?)+/i,
+  /instagram/i,
   /snapchat/i,
   /viber\/|viberbot/i,
   /vkshare/i,
