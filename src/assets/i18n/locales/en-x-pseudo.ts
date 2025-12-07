@@ -109,6 +109,9 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         announcementOffTemplate: wrap(
           'Ambient audio off. Press {keyHint} to toggle.'
         ),
+        pendingAnnouncementTemplate: wrap(
+          'Switching ambient audio state. Please wait…'
+        ),
       },
       slider: {
         label: wrap('Ambient volume'),
