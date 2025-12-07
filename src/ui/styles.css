@@ -94,6 +94,74 @@ canvas {
   opacity: 0.88;
 }
 
+.text-fallback__section-heading {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.text-fallback__about,
+.text-fallback__skills,
+.text-fallback__timeline,
+.text-fallback__contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.text-fallback__about-summary {
+  margin: 0;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.text-fallback__highlights,
+.text-fallback__skills-list,
+.text-fallback__timeline-list,
+.text-fallback__contact-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.text-fallback__highlight,
+.text-fallback__skills-item,
+.text-fallback__timeline-entry,
+.text-fallback__contact-item {
+  line-height: 1.5;
+}
+
+.text-fallback__skills-label,
+.text-fallback__contact-label,
+.text-fallback__timeline-title,
+.text-fallback__timeline-meta {
+  font-weight: 600;
+}
+
+.text-fallback__skills-value,
+.text-fallback__timeline-meta {
+  margin-left: 0.35rem;
+}
+
+.text-fallback__timeline-meta,
+.text-fallback__timeline-summary {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.text-fallback__timeline-summary {
+  font-weight: 400;
+}
+
+.text-fallback__contact-item {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
 .text-fallback__actions {
   margin: 0;
   padding: 0;

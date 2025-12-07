@@ -19,6 +19,87 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: wrap('{roomName} exhibits'),
       metricsHeading: wrap('Key metrics'),
       linksHeading: wrap('Further reading'),
+      about: {
+        heading: wrap('About Daniel'),
+        summary: wrap(
+          'Site Reliability Engineer with six years at YouTube focused on automation, observability, and steady releases.'
+        ),
+        highlights: [
+          wrap(
+            'Built developer platforms and agentic tooling to speed up shipping safely.'
+          ),
+          wrap(
+            'Mentors teams on SLOs, incident response, and reliability reviews.'
+          ),
+          wrap(
+            'Explores immersive WebGL storytelling that always falls back to accessible text.'
+          ),
+        ],
+      },
+      skills: {
+        heading: wrap('Skills at a glance'),
+        items: [
+          {
+            label: wrap('Languages'),
+            value: wrap(
+              'Python, Go, SQL, C++, TypeScript/JavaScript, Ruby, Objective-C'
+            ),
+          },
+          {
+            label: wrap('Infra & tools'),
+            value: wrap(
+              'Kubernetes, Docker, Google Cloud (BigQuery), GitHub Actions, WebGL/Three.js, React/Next.js, Astro'
+            ),
+          },
+          {
+            label: wrap('Practices'),
+            value: wrap(
+              'SRE (SLOs, incident response, capacity), observability, CI/CD, testing, prompt docs & agentic coding'
+            ),
+          },
+        ],
+      },
+      timeline: {
+        heading: wrap('Work timeline'),
+        entries: [
+          {
+            period: wrap('Sep 2018 — May 2025'),
+            location: wrap('San Bruno, CA'),
+            role: wrap('Site Reliability Engineer (L4)'),
+            org: wrap('YouTube (Google)'),
+            summary: wrap(
+              'Ran on-call across multiple surfaces, automated monitoring in Python/Go/SQL/C++, and guided reliability reviews for leadership.'
+            ),
+          },
+          {
+            period: wrap('Jan 2017 — Sep 2018'),
+            location: wrap('Stennis Space Center, MS'),
+            role: wrap('Software Engineer'),
+            org: wrap('Naval Research Laboratory'),
+            summary: wrap(
+              'Shipped C++/Qt data-processing applications and remote demos inside Scrum sprints.'
+            ),
+          },
+          {
+            period: wrap('Mar 2014 — Dec 2016'),
+            location: wrap('Hattiesburg, MS'),
+            role: wrap('Software Developer'),
+            org: wrap('The University of Southern Mississippi'),
+            summary: wrap(
+              'Built Objective-C frameworks for live content delivery in university iOS apps.'
+            ),
+          },
+        ],
+      },
+      contact: {
+        heading: wrap('Contact'),
+        emailLabel: wrap('Email'),
+        email: wrap('daniel@danielsmith.io'),
+        githubLabel: wrap('GitHub'),
+        githubUrl: wrap('https://github.com/futuroptimist'),
+        resumeLabel: wrap('Résumé (PDF)'),
+        resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
+      },
       actions: {
         immersiveLink: wrap('Launch immersive mode'),
         resumeLink: wrap('Download the latest résumé'),

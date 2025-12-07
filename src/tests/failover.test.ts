@@ -517,6 +517,48 @@ describe('renderTextFallback', () => {
     expect(description?.textContent).toMatch(/runtime error/i);
   });
 
+  it('renders bio, skills, timeline, and contact information from site strings', () => {
+    const container = render('manual');
+    const strings = getSiteStrings(container.lang).textFallback;
+
+    const aboutSummary = container.querySelector(
+      '.text-fallback__about-summary'
+    );
+    expect(aboutSummary?.textContent).toBe(strings.about.summary);
+    const highlights = Array.from(
+      container.querySelectorAll('.text-fallback__highlight')
+    ).map((item) => item.textContent);
+    expect(highlights).toEqual(strings.about.highlights);
+
+    const skills = Array.from(
+      container.querySelectorAll('.text-fallback__skills-item')
+    ).map((item) => item.textContent?.trim());
+    expect(skills).toEqual(
+      strings.skills.items.map((item) => `${item.label}: ${item.value}`)
+    );
+
+    const timeline = Array.from(
+      container.querySelectorAll('.text-fallback__timeline-entry')
+    ).map((entry) => entry.textContent?.replace(/\s+/g, ' ').trim());
+    expect(timeline).toEqual(
+      strings.timeline.entries.map(
+        (entry) =>
+          `${entry.role} · ${entry.org} ${entry.period} · ${entry.location} ${entry.summary}`
+      )
+    );
+
+    const contactLinks = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>(
+        '.text-fallback__contact-list .text-fallback__link'
+      )
+    );
+    expect(contactLinks.map((link) => link.href)).toEqual([
+      `mailto:${strings.contact.email}`,
+      'https://example.com/',
+      new URL('/resume.pdf', window.location.origin).toString(),
+    ]);
+  });
+
   it('announces performance-triggered fallback messaging', () => {
     const container = render('low-performance');
     const section = container.querySelector('.text-fallback');
@@ -599,9 +641,8 @@ describe('renderTextFallback', () => {
     document.documentElement.lang = 'en';
     const container = render('low-end-device');
     const description = container.querySelector('.text-fallback__description');
-    const reason = getSiteStrings(container.lang).textFallback.reasonDescriptions[
-      'low-end-device'
-    ];
+    const reason = getSiteStrings(container.lang).textFallback
+      .reasonDescriptions['low-end-device'];
     expect(description?.textContent).toBe(reason);
   });
 

@@ -31,6 +31,74 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       roomHeadingTemplate: '{roomName} exhibits',
       metricsHeading: 'Key metrics',
       linksHeading: 'Further reading',
+      about: {
+        heading: 'About Daniel',
+        summary:
+          'Site Reliability Engineer with six years at YouTube focused on automation, observability, and steady releases.',
+        highlights: [
+          'Built developer platforms and agentic tooling to speed up shipping safely.',
+          'Mentors teams on SLOs, incident response, and reliability reviews.',
+          'Explores immersive WebGL storytelling that always falls back to accessible text.',
+        ],
+      },
+      skills: {
+        heading: 'Skills at a glance',
+        items: [
+          {
+            label: 'Languages',
+            value:
+              'Python, Go, SQL, C++, TypeScript/JavaScript, Ruby, Objective-C',
+          },
+          {
+            label: 'Infra & tools',
+            value:
+              'Kubernetes, Docker, Google Cloud (BigQuery), GitHub Actions, WebGL/Three.js, React/Next.js, Astro',
+          },
+          {
+            label: 'Practices',
+            value:
+              'SRE (SLOs, incident response, capacity), observability, CI/CD, testing, prompt docs & agentic coding',
+          },
+        ],
+      },
+      timeline: {
+        heading: 'Work timeline',
+        entries: [
+          {
+            period: 'Sep 2018 — May 2025',
+            location: 'San Bruno, CA',
+            role: 'Site Reliability Engineer (L4)',
+            org: 'YouTube (Google)',
+            summary:
+              'Ran on-call across multiple surfaces, automated monitoring in Python/Go/SQL/C++, and guided reliability reviews for leadership.',
+          },
+          {
+            period: 'Jan 2017 — Sep 2018',
+            location: 'Stennis Space Center, MS',
+            role: 'Software Engineer',
+            org: 'Naval Research Laboratory',
+            summary:
+              'Shipped C++/Qt data-processing applications and remote demos inside Scrum sprints.',
+          },
+          {
+            period: 'Mar 2014 — Dec 2016',
+            location: 'Hattiesburg, MS',
+            role: 'Software Developer',
+            org: 'The University of Southern Mississippi',
+            summary:
+              'Built Objective-C frameworks for live content delivery in university iOS apps.',
+          },
+        ],
+      },
+      contact: {
+        heading: 'Contact',
+        emailLabel: 'Email',
+        email: 'daniel@danielsmith.io',
+        githubLabel: 'GitHub',
+        githubUrl: 'https://github.com/futuroptimist',
+        resumeLabel: 'Résumé (PDF)',
+        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+      },
       actions: {
         immersiveLink: 'Launch immersive mode',
         resumeLink: 'Download the latest résumé',
@@ -309,11 +377,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'futuroptimist-living-room-tv': {
       title: 'Futuroptimist Creator Desk',
       summary:
-        'Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.',
+        'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.',
       outcome: {
         label: 'Outcome',
         value:
-          'Published 120+ weekly highlight reels with zero deadline slips.',
+          'Keeps weekly highlight scripts flowing from the automation pipeline without manual formatting.',
       },
       metrics: [
         {
@@ -346,10 +414,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'tokenplace-studio-cluster': {
       title: 'token.place Compute Rack',
       summary:
-        '3D-printed Raspberry Pi lattice orchestrating the token.place volunteer compute mesh with pulsing status beacons.',
+        'Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.',
       outcome: {
         label: 'Outcome',
-        value: 'Cut volunteer job queue times from 40 min to under 9.',
+        value:
+          'Quickstart scripts bring up the relay, server, and mock LLM stack locally for testing.',
       },
       metrics: [
         {
@@ -378,10 +447,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'gabriel-studio-sentry': {
       title: 'Gabriel Sentinel Rover',
       summary:
-        'Autonomous sentry robot with a rotating scanner that sweeps the studio and fires a red perimeter pulse every second.',
+        'Privacy-first "guardian angel" LLM that delivers local security coaching and integrates with token.place or offline inference.',
       outcome: {
         label: 'Outcome',
-        value: 'Eliminated overnight perimeter false alarms across the studio.',
+        value:
+          'Modular ingestion, analysis, notification, and UI stacks stay aligned through typed interfaces.',
       },
       metrics: [
         {
@@ -406,12 +476,12 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'flywheel-studio-flywheel': {
       title: 'Flywheel Kinetic Hub',
       summary: [
-        'Kinetic automation hub that accelerates with approach, revealing tech stack glow',
-        'and docs callouts.',
+        'GitHub template and automation hub that bundles linting, tests, docs, and Codex prompts for fast repo bootstrapping.',
       ].join(' '),
       outcome: {
         label: 'Outcome',
-        value: 'Reduced CI prompt wiring time 68% for new automation repos.',
+        value:
+          'Ships repeatable CI (lint, tests, docs) and prompt libraries so new repos start healthy.',
       },
       metrics: [
         {
@@ -448,26 +518,22 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'jobbot-studio-terminal': {
       title: 'Jobbot Holographic Terminal',
       summary:
-        'Holographic command desk broadcasting live telemetry from the Jobbot3000 automation mesh.',
+        'Self-hosted job search copilot with CLI and experimental web UI for ingesting outreach and tracking applications.',
       outcome: {
         label: 'Outcome',
-        value: 'Recovered 6 hours of weekly release triage through automation.',
+        value:
+          'End-to-end workflows mirror docs and tests so recruiter outreach flows stay covered.',
       },
       metrics: [
+        { label: 'Status', value: 'Local-first CLI with preview web UI' },
         {
-          label: 'Stars',
-          value: 'Syncing from GitHub…',
-          source: {
-            type: 'githubStars',
-            owner: 'futuroptimist',
-            repo: 'jobbot3000',
-            format: 'compact',
-            template: '{value} stars',
-            fallback: 'Syncing from GitHub…',
-          },
+          label: 'Stack',
+          value: 'Node.js 20+ · npm scripts · Playwright preview',
         },
-        { label: 'Ops savings', value: 'Recovered 6h weekly toil' },
-        { label: 'Reliability', value: '99.98% SLA self-healing loops' },
+        {
+          label: 'Flows',
+          value: 'Recruiter outreach ingestion and lifecycle tracking',
+        },
       ],
       links: [
         {
@@ -487,29 +553,22 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'axel-studio-tracker': {
       title: 'Axel Quest Navigator',
       summary:
-        'Tabletop command slate where Axel curates next-step quests, projecting repo insights and backlog momentum rings.',
+        'Goal and quest tracker that organizes repos with agentic LLMs, analytics helpers, and a pipx-friendly CLI.',
       outcome: {
         label: 'Outcome',
-        value: 'Drove 95% on-time sprint commits with auto-prioritised quests.',
+        value:
+          'Alpha releases keep README, FAQ, and threat model coverage in sync with the pytest suite.',
       },
       metrics: [
+        { label: 'Status', value: 'Alpha · pipx install axel' },
         {
-          label: 'Stars',
-          value: 'Syncing from GitHub…',
-          source: {
-            type: 'githubStars',
-            owner: 'futuroptimist',
-            repo: 'axel',
-            format: 'compact',
-            template: '{value} stars',
-            fallback: 'Syncing from GitHub…',
-          },
+          label: 'Repo analytics',
+          value: 'Quest planning from repo lists and scans',
         },
         {
-          label: 'Guidance',
-          value: 'Auto-prioritised quests from repo scans',
+          label: 'Docs',
+          value: 'FAQ · known issues · threat model kept with tests',
         },
-        { label: 'Modes', value: 'Focus · explore toggles per sprint' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/axel' },
@@ -518,11 +577,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'gitshelves-living-room-installation': {
       title: 'Gitshelves Living Room Array',
       summary:
-        'Modular wall of 3D-printed commit blocks that transform GitHub streaks into physical shelving mosaics.',
+        'CLI that turns GitHub contribution data into OpenSCAD and STL models for 3D-printed Gridfinity shelves.',
       outcome: {
         label: 'Outcome',
         value:
-          'Translated 700+ days of GitHub streaks into tangible showcases.',
+          'Exports SCAD/STL pairs with metadata so printed shelves mirror contribution timelines.',
       },
       metrics: [
         {
@@ -550,7 +609,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'danielsmith-portfolio-table': {
       title: 'danielsmith.io Holographic Map',
       summary:
-        'Holotable overview of danielsmith.io with layered navigation routes, accessibility presets, and deploy targets.',
+        'Orthographic Three.js/WebGL portfolio with keyboard navigation and a resilient text fallback for accessibility.',
       outcome: {
         label: 'Outcome',
         value: 'Keeps immersive and text deploys aligned across every release.',
@@ -582,11 +641,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'f2clipboard-kitchen-console': {
       title: 'f2clipboard Incident Console',
       summary:
-        'Kitchen-side diagnostics station where f2clipboard parses Codex logs and pipes concise summaries straight to the clipboard.',
+        'CLI that ingests Codex task pages and GitHub logs, redacts secrets, and emits ready-to-paste Markdown summaries.',
       outcome: {
         label: 'Outcome',
         value:
-          'Shortened log triage from minutes to instant clipboard capture.',
+          'Automates CI log collection and summarization for quick debugging handoff.',
       },
       metrics: [
         {
@@ -614,10 +673,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'sigma-kitchen-workbench': {
       title: 'Sigma Fabrication Bench',
       summary:
-        'Workbench showcasing the Sigma ESP32 AI pin with on-device speech, local inference, and 3D-printed shells.',
+        'ESP32 "AI pin" that streams push-to-talk audio to Whisper and returns TTS in a 3D-printed OpenSCAD enclosure.',
       outcome: {
         label: 'Outcome',
-        value: 'Unlocked on-device voice demos without relying on the cloud.',
+        value:
+          'Includes firmware, enclosure CAD, STL exports, and assembly docs kept fresh by CI.',
       },
       metrics: [
         {
@@ -640,13 +700,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'wove-kitchen-loom': {
-      title: 'Wove Loom Atelier',
+      title: 'Wove Fiber Loom',
       summary:
-        'Soft robotics loom where Wove bridges CAD workflows with textiles while teaching knit and crochet fundamentals.',
+        'Open-source toolkit for learning knitting and crochet while building toward a robotic loom with OpenSCAD hardware.',
       outcome: {
         label: 'Outcome',
         value:
-          'Piloted robotic weaving curriculum across three community workshops.',
+          'Docs cover gauge calculators, planner exports, and tension profiles across yarn weights.',
       },
       metrics: [
         {
@@ -671,11 +731,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'dspace-backyard-rocket': {
       title: 'DSPACE Launch Pad',
       summary:
-        'Backyard launch gantry staging the DSPACE model rocket with telemetry-guided countdown cues.',
+        'Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.',
       outcome: {
         label: 'Outcome',
         value:
-          'Logged 12 flawless rehearsal countdowns with telemetry playback.',
+          'Maintains countdown sequencing notes alongside GitHub and mission log links while the repo remains private.',
       },
       metrics: [
         {
@@ -711,11 +771,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'pr-reaper-backyard-console': {
       title: 'PR Reaper Automation Gate',
       summary:
-        'Backyard control gate that visualises pr-reaper sweeping stale pull requests with safe dry-runs and audit logs.',
+        'GitHub Actions workflow that bulk-closes stale pull requests with dry-run previews and optional branch cleanup.',
       outcome: {
         label: 'Outcome',
         value:
-          'Cleared 100% of stale pull requests in one audit-friendly sweep.',
+          'One-button workflow documents inputs, safety model, and audit outputs in the README.',
       },
       metrics: [
         {
@@ -740,30 +800,26 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'sugarkube-backyard-greenhouse': {
       title: 'Sugarkube Solar Greenhouse',
       summary:
-        'Adaptive greenhouse showcasing Sugarkube automation with responsive grow lights and solar tracking.',
+        'k3s-on-Raspberry-Pi platform paired with an off-grid solar cube installation documented with CAD, Pi images, and field guides.',
       outcome: {
         label: 'Outcome',
         value:
-          'Maintains 3× daily harvest cadence with autonomous light ramps.',
+          'Step-by-step docs cover solar hardware, Pi provisioning, and Kubernetes helpers for resilient homelabs.',
       },
       metrics: [
         {
-          label: 'Stars',
-          value: 'Syncing from GitHub…',
-          source: {
-            type: 'githubStars',
-            owner: 'futuroptimist',
-            repo: 'sugarkube',
-            format: 'compact',
-            template: '{value} stars',
-            fallback: 'Syncing from GitHub…',
-          },
+          label: 'Platform',
+          value:
+            'k3s, Kubernetes helpers, Cloudflare tunnels, and solar tilt/irrigation notes',
         },
         {
-          label: 'Automation',
-          value: 'Sugarkube schedules solar tilt + irrigation',
+          label: 'Hardware',
+          value: 'Solar cube CAD, Pi carrier plates, electronics docs',
         },
-        { label: 'Throughput', value: '3× daily harvest cadence maintained' },
+        {
+          label: 'Guides',
+          value: 'Field guides for Pi images and headless provisioning',
+        },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sugarkube' },

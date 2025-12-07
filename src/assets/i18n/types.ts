@@ -189,6 +189,37 @@ export interface SiteTextFallbackStrings {
   roomHeadingTemplate: string;
   metricsHeading: string;
   linksHeading: string;
+  about: {
+    heading: string;
+    summary: string;
+    highlights: string[];
+  };
+  skills: {
+    heading: string;
+    items: {
+      label: string;
+      value: string;
+    }[];
+  };
+  timeline: {
+    heading: string;
+    entries: {
+      period: string;
+      location: string;
+      role: string;
+      org: string;
+      summary: string;
+    }[];
+  };
+  contact: {
+    heading: string;
+    emailLabel: string;
+    email: string;
+    githubLabel: string;
+    githubUrl: string;
+    resumeLabel: string;
+    resumeUrl: string;
+  };
   actions: {
     immersiveLink: string;
     resumeLink: string;

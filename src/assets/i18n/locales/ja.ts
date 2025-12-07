@@ -26,6 +26,74 @@ export const JA_OVERRIDES: LocaleOverrides = {
       roomHeadingTemplate: '{roomName}の展示',
       metricsHeading: '主要指標',
       linksHeading: '関連リンク',
+      about: {
+        heading: 'Daniel について',
+        summary:
+          'YouTube で 6 年間 SRE を務め、自動化、可観測性、安定したリリースに注力しています。',
+        highlights: [
+          '開発者向けプラットフォームとエージェントツールで安全なリリースを加速。',
+          'SLO、インシデント対応、信頼性レビューをチームに指導。',
+          'アクセス可能なテキストを常に備えた没入型 WebGL 体験を探求。',
+        ],
+      },
+      skills: {
+        heading: 'スキル概要',
+        items: [
+          {
+            label: '言語',
+            value:
+              'Python, Go, SQL, C++, TypeScript/JavaScript, Ruby, Objective-C',
+          },
+          {
+            label: 'インフラ・ツール',
+            value:
+              'Kubernetes, Docker, Google Cloud (BigQuery), GitHub Actions, WebGL/Three.js, React/Next.js, Astro',
+          },
+          {
+            label: 'プラクティス',
+            value:
+              'SRE（SLO、インシデント対応、キャパシティ）、可観測性、CI/CD、テスト、プロンプトドキュメントとエージェント開発',
+          },
+        ],
+      },
+      timeline: {
+        heading: '職務経歴',
+        entries: [
+          {
+            period: '2018年9月 — 2025年5月',
+            location: 'カリフォルニア州サンブルーノ',
+            role: 'サイトリライアビリティエンジニア (L4)',
+            org: 'YouTube (Google)',
+            summary:
+              '複数面のオンコールを担当し、Python/Go/SQL/C++ で監視を自動化し、リーダー向けの信頼性レビューをリード。',
+          },
+          {
+            period: '2017年1月 — 2018年9月',
+            location: 'ミシシッピ州ステニス宇宙センター',
+            role: 'ソフトウェアエンジニア',
+            org: '海軍研究所',
+            summary:
+              'Scrum サイクルで C++/Qt データ処理アプリとリモートデモを提供。',
+          },
+          {
+            period: '2014年3月 — 2016年12月',
+            location: 'ミシシッピ州ハティスバーグ',
+            role: 'ソフトウェアデベロッパー',
+            org: 'サザンミシシッピ大学',
+            summary:
+              '大学向け iOS アプリのライブ配信のため Objective-C フレームワークを構築。',
+          },
+        ],
+      },
+      contact: {
+        heading: '連絡先',
+        emailLabel: 'メール',
+        email: 'daniel@danielsmith.io',
+        githubLabel: 'GitHub',
+        githubUrl: 'https://github.com/futuroptimist',
+        resumeLabel: '履歴書 (PDF)',
+        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+      },
       actions: {
         immersiveLink: '没入モードを起動',
         resumeLink: '最新の履歴書をダウンロード',

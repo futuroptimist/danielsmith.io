@@ -564,6 +564,179 @@ function createTextPortfolioSection(
   return section;
 }
 
+function createAboutSection(
+  documentTarget: Document,
+  textFallbackStrings: SiteTextFallbackStrings
+): HTMLElement {
+  const section = documentTarget.createElement('section');
+  section.className = 'text-fallback__about';
+  section.dataset.section = 'about';
+
+  const heading = documentTarget.createElement('h2');
+  heading.className = 'text-fallback__section-heading';
+  heading.textContent = textFallbackStrings.about.heading;
+  section.appendChild(heading);
+
+  const summary = documentTarget.createElement('p');
+  summary.className = 'text-fallback__about-summary';
+  summary.textContent = textFallbackStrings.about.summary;
+  section.appendChild(summary);
+
+  if (textFallbackStrings.about.highlights.length > 0) {
+    const list = documentTarget.createElement('ul');
+    list.className = 'text-fallback__highlights';
+    textFallbackStrings.about.highlights.forEach((highlight) => {
+      const item = documentTarget.createElement('li');
+      item.className = 'text-fallback__highlight';
+      item.textContent = highlight;
+      list.appendChild(item);
+    });
+    section.appendChild(list);
+  }
+
+  return section;
+}
+
+function createSkillsSection(
+  documentTarget: Document,
+  textFallbackStrings: SiteTextFallbackStrings
+): HTMLElement {
+  const section = documentTarget.createElement('section');
+  section.className = 'text-fallback__skills';
+  section.dataset.section = 'skills';
+
+  const heading = documentTarget.createElement('h2');
+  heading.className = 'text-fallback__section-heading';
+  heading.textContent = textFallbackStrings.skills.heading;
+  section.appendChild(heading);
+
+  const list = documentTarget.createElement('ul');
+  list.className = 'text-fallback__skills-list';
+  textFallbackStrings.skills.items.forEach((item) => {
+    const entry = documentTarget.createElement('li');
+    entry.className = 'text-fallback__skills-item';
+
+    const label = documentTarget.createElement('span');
+    label.className = 'text-fallback__skills-label';
+    label.textContent = `${item.label}: `;
+    entry.appendChild(label);
+
+    const value = documentTarget.createElement('span');
+    value.className = 'text-fallback__skills-value';
+    value.textContent = item.value;
+    entry.appendChild(value);
+
+    list.appendChild(entry);
+  });
+
+  section.appendChild(list);
+  return section;
+}
+
+function createTimelineSection(
+  documentTarget: Document,
+  textFallbackStrings: SiteTextFallbackStrings
+): HTMLElement {
+  const section = documentTarget.createElement('section');
+  section.className = 'text-fallback__timeline';
+  section.dataset.section = 'timeline';
+
+  const heading = documentTarget.createElement('h2');
+  heading.className = 'text-fallback__section-heading';
+  heading.textContent = textFallbackStrings.timeline.heading;
+  section.appendChild(heading);
+
+  const list = documentTarget.createElement('ul');
+  list.className = 'text-fallback__timeline-list';
+  textFallbackStrings.timeline.entries.forEach((entry) => {
+    const item = documentTarget.createElement('li');
+    item.className = 'text-fallback__timeline-entry';
+
+    const title = documentTarget.createElement('div');
+    title.className = 'text-fallback__timeline-title';
+    title.textContent = `${entry.role} · ${entry.org}`;
+    item.appendChild(title);
+
+    const meta = documentTarget.createElement('div');
+    meta.className = 'text-fallback__timeline-meta';
+    meta.textContent = ` ${entry.period} · ${entry.location}`;
+    item.appendChild(meta);
+
+    const summary = documentTarget.createElement('p');
+    summary.className = 'text-fallback__timeline-summary';
+    summary.textContent = ` ${entry.summary}`;
+    item.appendChild(summary);
+
+    list.appendChild(item);
+  });
+
+  section.appendChild(list);
+  return section;
+}
+
+function createContactSection(
+  documentTarget: Document,
+  textFallbackStrings: SiteTextFallbackStrings,
+  resumeUrl: string,
+  githubUrl: string
+): HTMLElement {
+  const section = documentTarget.createElement('section');
+  section.className = 'text-fallback__contact';
+  section.dataset.section = 'contact';
+
+  const heading = documentTarget.createElement('h2');
+  heading.className = 'text-fallback__section-heading';
+  heading.textContent = textFallbackStrings.contact.heading;
+  section.appendChild(heading);
+
+  const list = documentTarget.createElement('ul');
+  list.className = 'text-fallback__contact-list';
+
+  const emailItem = documentTarget.createElement('li');
+  emailItem.className = 'text-fallback__contact-item';
+  const emailLabel = documentTarget.createElement('span');
+  emailLabel.className = 'text-fallback__contact-label';
+  emailLabel.textContent = `${textFallbackStrings.contact.emailLabel}:`;
+  emailItem.appendChild(emailLabel);
+  const emailLink = documentTarget.createElement('a');
+  emailLink.className = 'text-fallback__link';
+  emailLink.href = `mailto:${textFallbackStrings.contact.email}`;
+  emailLink.textContent = textFallbackStrings.contact.email;
+  emailItem.appendChild(emailLink);
+  list.appendChild(emailItem);
+
+  const githubItem = documentTarget.createElement('li');
+  githubItem.className = 'text-fallback__contact-item';
+  const githubLabel = documentTarget.createElement('span');
+  githubLabel.className = 'text-fallback__contact-label';
+  githubLabel.textContent = `${textFallbackStrings.contact.githubLabel}:`;
+  githubItem.appendChild(githubLabel);
+  const githubLink = documentTarget.createElement('a');
+  githubLink.className = 'text-fallback__link';
+  githubLink.href = githubUrl;
+  githubLink.textContent = textFallbackStrings.contact.githubUrl;
+  githubLink.rel = 'noopener';
+  githubItem.appendChild(githubLink);
+  list.appendChild(githubItem);
+
+  const resumeItem = documentTarget.createElement('li');
+  resumeItem.className = 'text-fallback__contact-item';
+  const resumeLabel = documentTarget.createElement('span');
+  resumeLabel.className = 'text-fallback__contact-label';
+  resumeLabel.textContent = `${textFallbackStrings.contact.resumeLabel}:`;
+  resumeItem.appendChild(resumeLabel);
+  const resumeLink = documentTarget.createElement('a');
+  resumeLink.className = 'text-fallback__link';
+  resumeLink.href = resumeUrl;
+  resumeLink.textContent = textFallbackStrings.contact.resumeUrl;
+  resumeLink.rel = 'noopener';
+  resumeItem.appendChild(resumeLink);
+  list.appendChild(resumeItem);
+
+  section.appendChild(list);
+  return section;
+}
+
 export function renderTextFallback(
   container: HTMLElement,
   options: RenderTextFallbackOptions
@@ -580,6 +753,11 @@ export function renderTextFallback(
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
   const textFallbackStrings = getSiteStrings(localeHint).textFallback;
   const actionStrings = textFallbackStrings.actions;
+  const resolvedResumeUrl =
+    resumeUrl ??
+    textFallbackStrings.contact.resumeUrl ??
+    'docs/resume/2025-09/resume.pdf';
+  const resolvedGithubUrl = githubUrl ?? textFallbackStrings.contact.githubUrl;
   const immersiveUrl = createImmersiveModeUrl(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
   );
@@ -625,6 +803,20 @@ export function renderTextFallback(
     descriptionStrings[reason] ?? descriptionStrings.manual;
   section.appendChild(description);
 
+  section.appendChild(createAboutSection(documentTarget, textFallbackStrings));
+  section.appendChild(createSkillsSection(documentTarget, textFallbackStrings));
+  section.appendChild(
+    createTimelineSection(documentTarget, textFallbackStrings)
+  );
+  section.appendChild(
+    createContactSection(
+      documentTarget,
+      textFallbackStrings,
+      resolvedResumeUrl,
+      resolvedGithubUrl
+    )
+  );
+
   const list = documentTarget.createElement('ul');
   list.className = 'text-fallback__actions';
 
@@ -642,7 +834,7 @@ export function renderTextFallback(
   const resumeItem = documentTarget.createElement('li');
   resumeItem.className = 'text-fallback__action';
   const resumeLink = documentTarget.createElement('a');
-  resumeLink.href = resumeUrl;
+  resumeLink.href = resolvedResumeUrl;
   resumeLink.className = 'text-fallback__link';
   resumeLink.textContent = actionStrings.resumeLink;
   resumeLink.rel = 'noopener';
@@ -653,7 +845,7 @@ export function renderTextFallback(
   const githubItem = documentTarget.createElement('li');
   githubItem.className = 'text-fallback__action';
   const githubLink = documentTarget.createElement('a');
-  githubLink.href = githubUrl;
+  githubLink.href = resolvedGithubUrl;
   githubLink.className = 'text-fallback__link';
   githubLink.textContent = actionStrings.githubLink;
   githubLink.rel = 'noopener';
