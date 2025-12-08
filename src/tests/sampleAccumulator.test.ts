@@ -30,6 +30,32 @@ describe('createSampleAccumulator', () => {
     expect(onSort).toHaveBeenCalledTimes(2);
   });
 
+  it('reuses the sorted cache array between recomputations', () => {
+    const onSort = vi.fn();
+    const accumulator = createSampleAccumulator({ onSort });
+
+    accumulator.record(4);
+    accumulator.record(2);
+
+    accumulator.getSummary();
+    const firstSorted = onSort.mock.calls[0][0] as ReadonlyArray<number>;
+
+    accumulator.record(8);
+    accumulator.getSummary();
+    const secondSorted = onSort.mock.calls[1][0] as ReadonlyArray<number>;
+
+    expect(secondSorted).toBe(firstSorted);
+    expect([...secondSorted]).toEqual([2, 4, 8]);
+
+    accumulator.reset();
+    accumulator.record(1);
+    accumulator.getSummary();
+    const thirdSorted = onSort.mock.calls[2][0] as ReadonlyArray<number>;
+
+    expect(thirdSorted).toBe(secondSorted);
+    expect([...thirdSorted]).toEqual([1]);
+  });
+
   it('invalidates the cache after reset', () => {
     const onSort = vi.fn();
     const accumulator = createSampleAccumulator({ onSort });
