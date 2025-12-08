@@ -18,7 +18,8 @@ USER:
 3. Add automated benchmarks or metrics dashboards when practical.
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Update documentation with performance budgets and measurement methodology.
-6. Run `npm run build`, `npm run test:ci`, and share perf before/after notes.
+6. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`, and
+   `npm run build`; capture perf before/after notes alongside test output.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
    needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
