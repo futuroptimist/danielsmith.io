@@ -51,6 +51,15 @@ export interface PerformanceBudgetReport {
   isWithinBudget: boolean;
 }
 
+export interface PerformanceBudgetLabelOptions {
+  /**
+   * Formatter for numeric values in the label. Defaults to `Intl.NumberFormat('en-US')`.
+   */
+  formatter?: Intl.NumberFormat;
+  /** Optional unit label appended to formatted values (e.g., `MB`, `draw calls`). */
+  unitLabel?: string;
+}
+
 export const IMMERSIVE_PERFORMANCE_BUDGET: PerformanceBudget = {
   maxMaterials: 36,
   maxDrawCalls: 150,
@@ -150,6 +159,36 @@ export function createPerformanceBudgetReport(
     drawCalls.overBudgetBy === 0 &&
     textureBytes.overBudgetBy === 0;
   return { materials, drawCalls, textureBytes, isWithinBudget };
+}
+
+export function describePerformanceBudgetUsage(
+  usage: PerformanceBudgetUsage,
+  options: PerformanceBudgetLabelOptions = {}
+): string {
+  const formatter =
+    options.formatter ??
+    new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+  const formatValue = (value: number) => formatter.format(Math.max(0, value));
+  const suffix = options.unitLabel ? ` ${options.unitLabel}` : '';
+  const usedPercent = Math.round(
+    Math.min(1, Math.max(0, usage.percentUsed)) * 100
+  );
+
+  if (usage.hasInvalidMeasurements || usage.status === 'invalid') {
+    return 'Invalid measurements – refresh the performance snapshot.';
+  }
+
+  if (usage.overBudgetBy > 0 || usage.status === 'over-budget') {
+    const overBudget = formatValue(usage.overBudgetBy);
+    return `Over budget by ${overBudget}${suffix} (${usedPercent}% used).`;
+  }
+
+  const remainingPercent = Math.round(
+    Math.min(1, Math.max(0, usage.remainingPercent)) * 100
+  );
+  const remainingValue = formatValue(usage.remaining);
+
+  return `Within budget · ${usedPercent}% used · ${remainingPercent}% remaining (${remainingValue}${suffix} headroom).`;
 }
 
 export function isWithinBudget(

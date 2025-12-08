@@ -6,6 +6,7 @@ import {
   IMMERSIVE_PERFORMANCE_BUDGET,
   IMMERSIVE_SCENE_BASELINE,
   createPerformanceBudgetReport,
+  describePerformanceBudgetUsage,
   type PerformanceBudgetStatus,
   type PerformanceBudgetReport,
   type PerformanceBudgetUsage,
@@ -115,26 +116,9 @@ const normalizeLinks = (links: PoiLink[] | undefined): PressKitPoiLink[] => {
   return links.map((link) => ({ label: link.label, href: link.href }));
 };
 
-export function formatHeadroomLabel(
-  usage: PerformanceBudgetUsage,
-  formatter: Intl.NumberFormat = new Intl.NumberFormat('en-US')
-): string {
-  const usedPercent = Math.round(Math.max(0, usage.percentUsed) * 100);
-  if (usage.hasInvalidMeasurements || usage.status === 'invalid') {
-    return 'Invalid measurements – refresh the performance snapshot.';
-  }
-  if (usage.overBudgetBy > 0 || usage.status === 'over-budget') {
-    const overBudget = formatter.format(Math.max(usage.overBudgetBy, 0));
-    return `Over budget by ${overBudget} (${usedPercent}% used).`;
-  }
-  const remainingPercent = Math.round(
-    Math.max(usage.remainingPercent, 0) * 100
-  );
-  return `Within budget · ${usedPercent}% used · ${remainingPercent}% remaining.`;
-}
-
 const createPerformanceHeadroom = (
-  usage: PerformanceBudgetUsage
+  usage: PerformanceBudgetUsage,
+  labelOptions?: Parameters<typeof describePerformanceBudgetUsage>[1]
 ): PressKitPerformanceHeadroomEntry => {
   const percentUsed = Math.min(1, Math.max(0, usage.percentUsed));
   return {
@@ -143,7 +127,7 @@ const createPerformanceHeadroom = (
     remainingPercent: usage.remainingPercent,
     overBudgetBy: usage.overBudgetBy,
     status: usage.status,
-    label: formatHeadroomLabel(usage),
+    label: describePerformanceBudgetUsage(usage, labelOptions),
   };
 };
 
@@ -201,9 +185,21 @@ export function buildPressKitSummary(
       baseline: { ...IMMERSIVE_SCENE_BASELINE },
       report: performanceReport,
       headroom: {
-        materials: createPerformanceHeadroom(performanceReport.materials),
-        drawCalls: createPerformanceHeadroom(performanceReport.drawCalls),
-        textureBytes: createPerformanceHeadroom(performanceReport.textureBytes),
+        materials: createPerformanceHeadroom(performanceReport.materials, {
+          unitLabel: 'materials',
+          formatter: new Intl.NumberFormat('en-US'),
+        }),
+        drawCalls: createPerformanceHeadroom(performanceReport.drawCalls, {
+          unitLabel: 'draw calls',
+          formatter: new Intl.NumberFormat('en-US'),
+        }),
+        textureBytes: createPerformanceHeadroom(
+          performanceReport.textureBytes,
+          {
+            unitLabel: 'bytes',
+            formatter: new Intl.NumberFormat('en-US'),
+          }
+        ),
       },
     },
     totals: {
