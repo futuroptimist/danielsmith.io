@@ -12,10 +12,16 @@ function createClip(name: string): AnimationClip {
 
 describe('createAvatarLocomotionAnimator', () => {
   const createHandle = (
-    overrides: Partial<{
-      clips: Parameters<typeof createAvatarLocomotionAnimator>[0]['clips'];
-      maxLinearSpeed: number;
-    }> = {}
+    overrides: Partial<
+      Omit<
+        Parameters<typeof createAvatarLocomotionAnimator>[0],
+        'mixer' | 'clips' | 'maxLinearSpeed'
+      >
+    > &
+      Partial<{
+        clips: Parameters<typeof createAvatarLocomotionAnimator>[0]['clips'];
+        maxLinearSpeed: number;
+      }> = {}
   ): AvatarLocomotionAnimatorHandle => {
     const group = new Group();
     const mixer = new AnimationMixer(group);
@@ -40,6 +46,7 @@ describe('createAvatarLocomotionAnimator', () => {
       smoothing: {
         linear: Number.POSITIVE_INFINITY,
         turn: Number.POSITIVE_INFINITY,
+        speed: overrides.smoothing?.speed,
       },
       timeScale: {
         min: 0.35,
@@ -53,6 +60,7 @@ describe('createAvatarLocomotionAnimator', () => {
         max: 3,
         linearSpeedLimit: 0.4,
       },
+      ...overrides,
     });
   };
 
@@ -142,6 +150,38 @@ describe('createAvatarLocomotionAnimator', () => {
     expect(engaged.turning).toBe('left');
     expect(engaged.weights.turnLeft).toBeGreaterThan(0.1);
     expect(engaged.weights.walk).toBeGreaterThan(0);
+
+    animator.dispose();
+  });
+
+  it('smooths animation speed playback toward controller velocity', () => {
+    const animator = createHandle({
+      smoothing: {
+        linear: Number.POSITIVE_INFINITY,
+        turn: Number.POSITIVE_INFINITY,
+        speed: { linear: 4, angular: 6 },
+      },
+      turn: {
+        threshold: 0.6,
+        max: 2.4,
+        linearSpeedLimit: 10,
+      },
+    });
+
+    animator.update({ delta: 1 / 60, linearSpeed: 4, angularSpeed: 2 });
+    const initial = animator.getSnapshot();
+    expect(initial.linearSpeed).toBeGreaterThan(0);
+    expect(initial.linearSpeed).toBeLessThan(4);
+    expect(initial.angularSpeed).toBeGreaterThan(0);
+    expect(initial.angularSpeed).toBeLessThan(2);
+    expect(initial.timeScales.walk).toBeCloseTo(0.35, 2);
+
+    animator.update({ delta: 0.5, linearSpeed: 6, angularSpeed: 2 });
+    const accelerated = animator.getSnapshot();
+    expect(accelerated.linearSpeed).toBeGreaterThan(initial.linearSpeed);
+    expect(accelerated.angularSpeed).toBeGreaterThan(initial.angularSpeed);
+    expect(accelerated.linearState).toBe('run');
+    expect(accelerated.turning).toBe('left');
 
     animator.dispose();
   });

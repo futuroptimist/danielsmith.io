@@ -57,6 +57,12 @@ export type AvatarLocomotionAnimatorOptions = {
     linear?: number;
     /** Smoothing factor passed to MathUtils.damp for turn weights. */
     turn?: number;
+    speed?: {
+      /** Smoothing factor used when tracking linear speed changes. */
+      linear?: number;
+      /** Smoothing factor used when tracking angular speed changes. */
+      angular?: number;
+    };
   };
   timeScale?: {
     /** Linear speed where the walk clip feels natural. */
@@ -93,6 +99,10 @@ type InternalState = {
   weights: BlendWeights;
   timeScales: TimeScales;
   snapshot: AvatarLocomotionBlendSnapshot;
+  smoothedSpeeds: {
+    linear: number;
+    angular: number;
+  };
 };
 
 function normalizedProgress(value: number, start: number, end: number): number {
@@ -148,6 +158,10 @@ export function createAvatarLocomotionAnimator(
 
   const linearSmoothing = options.smoothing?.linear ?? 6;
   const turnSmoothing = options.smoothing?.turn ?? 8;
+  const linearSpeedSmoothing =
+    options.smoothing?.speed?.linear ?? Number.POSITIVE_INFINITY;
+  const angularSpeedSmoothing =
+    options.smoothing?.speed?.angular ?? Number.POSITIVE_INFINITY;
 
   const minTimeScale = Math.max(options.timeScale?.min ?? 0.4, 0.01);
   const maxTimeScale = Math.max(options.timeScale?.max ?? 2.5, minTimeScale);
@@ -208,6 +222,10 @@ export function createAvatarLocomotionAnimator(
       run: 1,
       turnLeft: 1,
       turnRight: 1,
+    },
+    smoothedSpeeds: {
+      linear: 0,
+      angular: 0,
     },
     snapshot: {
       linearState: 'idle',
@@ -275,16 +293,43 @@ export function createAvatarLocomotionAnimator(
     const planarSpeed = rawPlanarSpeed < linearDeadZone ? 0 : rawPlanarSpeed;
     const rawAngularSpeed =
       Math.abs(angularSpeed) < angularDeadZone ? 0 : angularSpeed;
-    const absAngularSpeed = Math.abs(rawAngularSpeed);
 
-    state.snapshot.linearSpeed = planarSpeed;
-    state.snapshot.angularSpeed = rawAngularSpeed;
+    const smoothSpeed = (current: number, target: number, factor: number) => {
+      if (!Number.isFinite(target)) {
+        return current;
+      }
+      if (clampedDelta <= 0 || !Number.isFinite(factor)) {
+        return target;
+      }
+      return MathUtils.damp(current, target, factor, clampedDelta);
+    };
+
+    state.smoothedSpeeds.linear = smoothSpeed(
+      state.smoothedSpeeds.linear,
+      planarSpeed,
+      linearSpeedSmoothing
+    );
+    state.smoothedSpeeds.angular = smoothSpeed(
+      state.smoothedSpeeds.angular,
+      rawAngularSpeed,
+      angularSpeedSmoothing
+    );
+
+    const absAngularSpeed = Math.abs(state.smoothedSpeeds.angular);
+
+    state.snapshot.linearSpeed = state.smoothedSpeeds.linear;
+    state.snapshot.angularSpeed = state.smoothedSpeeds.angular;
 
     const idleRampStart = idleToWalk * 0.4;
     let idleContribution =
-      1 - normalizedProgress(planarSpeed, idleRampStart, idleToWalk);
+      1 -
+      normalizedProgress(
+        state.smoothedSpeeds.linear,
+        idleRampStart,
+        idleToWalk
+      );
     let runContribution = normalizedProgress(
-      planarSpeed,
+      state.smoothedSpeeds.linear,
       walkToRun,
       maxLinearSpeed
     );
@@ -293,7 +338,7 @@ export function createAvatarLocomotionAnimator(
 
     let turnLeftWeightTarget = 0;
     let turnRightWeightTarget = 0;
-    const allowTurning = planarSpeed <= turnLinearLimit + 1e-3;
+    const allowTurning = state.smoothedSpeeds.linear <= turnLinearLimit + 1e-3;
     if (allowTurning && (turnLeftAction || turnRightAction)) {
       const turnMix = normalizedProgress(
         absAngularSpeed,
@@ -351,12 +396,12 @@ export function createAvatarLocomotionAnimator(
     );
 
     const walkTimeScale = MathUtils.clamp(
-      planarSpeed / walkReferenceSpeed,
+      state.smoothedSpeeds.linear / walkReferenceSpeed,
       minTimeScale,
       maxTimeScale
     );
     const runTimeScale = MathUtils.clamp(
-      planarSpeed / runReferenceSpeed,
+      state.smoothedSpeeds.linear / runReferenceSpeed,
       minTimeScale,
       maxTimeScale
     );
@@ -405,7 +450,11 @@ export function createAvatarLocomotionAnimator(
     turnRightAction?.stop();
   };
 
-  const getSnapshot = () => state.snapshot;
+  const getSnapshot = () => ({
+    ...state.snapshot,
+    weights: { ...state.snapshot.weights },
+    timeScales: { ...state.snapshot.timeScales },
+  });
 
   return {
     update,
