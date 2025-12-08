@@ -31,8 +31,14 @@ export function createSampleAccumulator(
     if (!isDirty && sortedCache) {
       return sortedCache;
     }
-    sortedCache = [...samples].sort((a, b) => a - b);
-    options.onSort?.(sortedCache);
+    const target = sortedCache ?? [];
+    target.length = 0;
+    for (let index = 0; index < samples.length; index += 1) {
+      target[index] = samples[index];
+    }
+    target.sort((a, b) => a - b);
+    sortedCache = target;
+    options.onSort?.(target);
     isDirty = false;
     return sortedCache;
   };
@@ -54,7 +60,9 @@ export function createSampleAccumulator(
     min = Number.POSITIVE_INFINITY;
     max = Number.NEGATIVE_INFINITY;
     samples.length = 0;
-    sortedCache = null;
+    if (sortedCache) {
+      sortedCache.length = 0;
+    }
     isDirty = true;
   };
 
