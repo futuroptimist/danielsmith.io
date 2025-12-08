@@ -1,7 +1,15 @@
 // eslint-disable-next-line import/no-named-as-default-member
 import axe from 'axe-core';
 import type { AxeResults, RunOptions } from 'axe-core';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import { type FallbackReason, renderTextFallback } from '../systems/failover';
 
