@@ -58,6 +58,13 @@ let artifacts: ResumeArtifacts | null = null;
 let setupError: Error | null = null;
 
 beforeAll(async () => {
+  if (process.env.CI === 'true') {
+    setupError = new Error(
+      'Skipping resume artifact checks in CI to avoid long-running downloads.'
+    );
+    return;
+  }
+
   try {
     artifacts = await buildLatestResumeArtifacts();
   } catch (error) {
