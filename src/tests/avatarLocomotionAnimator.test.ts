@@ -174,7 +174,7 @@ describe('createAvatarLocomotionAnimator', () => {
     expect(initial.linearSpeed).toBeLessThan(4);
     expect(initial.angularSpeed).toBeGreaterThan(0);
     expect(initial.angularSpeed).toBeLessThan(2);
-    expect(initial.timeScales.walk).toBeCloseTo(0.35, 2);
+    expect(initial.timeScales.walk).toBeCloseTo(0.35, 6);
 
     animator.update({ delta: 0.5, linearSpeed: 6, angularSpeed: 2 });
     const accelerated = animator.getSnapshot();
