@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PerformanceBudgetUsage } from '../assets/performance';
-import { buildPressKitSummary, formatHeadroomLabel } from '../tools/pressKit';
+import {
+  describePerformanceBudgetUsage,
+  type PerformanceBudgetUsage,
+} from '../assets/performance';
+import { buildPressKitSummary } from '../tools/pressKit';
 
-const formatUsage = (usage: PerformanceBudgetUsage) =>
-  formatHeadroomLabel(usage, new Intl.NumberFormat('en-US'));
+const formatUsage = (usage: PerformanceBudgetUsage, unitLabel?: string) =>
+  describePerformanceBudgetUsage(usage, {
+    formatter: new Intl.NumberFormat('en-US'),
+    unitLabel,
+  });
 
 describe('press kit summary', () => {
   it('annotates performance headroom with human-readable labels', () => {
@@ -37,25 +43,31 @@ describe('formatHeadroomLabel', () => {
       ...baseUsage,
       used: 72,
       limit: 100,
+      remaining: 28,
       percentUsed: 0.72,
       remainingPercent: 0.28,
     });
 
-    expect(label).toBe('Within budget · 72% used · 28% remaining.');
+    expect(label).toBe(
+      'Within budget · 72% used · 28% remaining (28 headroom).'
+    );
   });
 
   it('flags over-budget usage with formatted overage', () => {
-    const label = formatUsage({
-      ...baseUsage,
-      used: 180,
-      limit: 120,
-      overBudgetBy: 60,
-      percentUsed: 1.5,
-      remainingPercent: 0,
-      status: 'over-budget',
-    });
+    const label = formatUsage(
+      {
+        ...baseUsage,
+        used: 180,
+        limit: 120,
+        overBudgetBy: 60,
+        percentUsed: 1.5,
+        remainingPercent: 0,
+        status: 'over-budget',
+      },
+      'draw calls'
+    );
 
-    expect(label).toBe('Over budget by 60 (150% used).');
+    expect(label).toBe('Over budget by 60 draw calls (100% used).');
   });
 
   it('returns an invalid measurement warning when data is unreliable', () => {

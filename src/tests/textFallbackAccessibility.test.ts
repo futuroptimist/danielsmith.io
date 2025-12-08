@@ -1,7 +1,15 @@
 // eslint-disable-next-line import/no-named-as-default-member
 import axe from 'axe-core';
 import type { AxeResults, RunOptions } from 'axe-core';
-import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import { type FallbackReason, renderTextFallback } from '../systems/failover';
 
@@ -36,9 +44,26 @@ async function runAxe(
 }
 
 describe('text fallback accessibility', () => {
+  let getContextSpy: ReturnType<typeof vi.spyOn> | undefined;
+
+  beforeAll(() => {
+    const mockContext = {
+      measureText: vi.fn(() => ({ width: 0 })),
+      getImageData: vi.fn(() => ({ data: new Uint8ClampedArray() })),
+    } as unknown as CanvasRenderingContext2D;
+
+    getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(mockContext);
+  });
+
   beforeEach(() => {
     document.body.innerHTML = '';
     document.documentElement.lang = 'en';
+  });
+
+  afterAll(() => {
+    getContextSpy?.mockRestore();
   });
 
   for (const reason of FALLBACK_REASONS) {

@@ -18,6 +18,9 @@ and the Vitest assertions when measurable changes land.
 - **Headroom labels** – `createPerformanceBudgetReport(...)` now adds a `status` label
   (`within-budget`, `over-budget`, or `invalid`) plus a clamped `remainingPercent` so
   press-kit exports and dashboards surface budget health without recomputing ratios.
+- **Narrative summaries** – `describePerformanceBudgetUsage(...)` formats the headroom
+  into unit-aware labels (materials, draw calls, bytes) for press-kit output without
+  duplicating formatter logic.
 - **Runtime telemetry** – [`createInputLatencyTelemetry`](../../src/systems/performance/inputLatencyTelemetry.ts)
   monitors keyboard and pointer interactions, logging median/p95/max latency against the 200 ms
   INP budget whenever the session hides, unloads, or performance failover triggers.
