@@ -157,7 +157,7 @@ describe('createAudioHudControl', () => {
     let throwNext = false;
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    createAudioHudControl({
+    const handle = createAudioHudControl({
       container,
       getEnabled: () => enabled,
       setEnabled: () => undefined,
@@ -249,6 +249,8 @@ describe('createAudioHudControl', () => {
     );
     expect(slider?.disabled).toBe(false);
 
+    handle.dispose();
+    
     warnSpy.mockRestore();
   });
 
