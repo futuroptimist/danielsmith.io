@@ -293,7 +293,9 @@ describe('evaluateFailoverDecision', () => {
       'DuckDuckBot/1.0; (+https://duckduckgo.com/duckduckbot)',
       'BingPreview/1.0b',
       'PetalBot (compatible; PetalBot; +https://webmaster.petalsearch.com/site/petalbot)',
+      'Mozilla/5.0 (compatible; Qwantify/2.4; +https://www.qwant.com/)',
       'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleOther/1.0)',
+      'Mozilla/5.0 (compatible; Yeti/1.1; +http://naver.me/bot)',
       'Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)',
       'Mozilla/5.0 (compatible; ClaudeBot/1.0)',
       'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 ' +
@@ -303,25 +305,6 @@ describe('evaluateFailoverDecision', () => {
       'Viber/21.7.0 iPad6,11 iOS17.3',
       'ViberBot/1.0',
       'vkShare; (+http://vk.com/dev/Share)',
-    ];
-
-    for (const userAgent of userAgents) {
-      const decision = evaluateFailoverDecision({
-        createCanvas: canvasFactory,
-        getUserAgent: () => userAgent,
-      });
-
-      expect(decision).toEqual({
-        shouldUseFallback: true,
-        reason: 'automated-client',
-      });
-    }
-  });
-
-  it('routes additional crawler user agents to text mode for link previews', () => {
-    const userAgents = [
-      'Mozilla/5.0 (compatible; Qwantify/2.4; +https://www.qwant.com/)',
-      'Mozilla/5.0 (compatible; Yeti/1.1; +http://naver.me/bot)',
     ];
 
     for (const userAgent of userAgents) {
