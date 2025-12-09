@@ -70,6 +70,21 @@ describe('createModeAnnouncer', () => {
     announcer.dispose();
   });
 
+  it('re-announces the immersive message when reannounce is requested', () => {
+    const announcer = createModeAnnouncer({
+      immersiveMessage: 'Initial immersive',
+    });
+
+    announcer.announceImmersiveReady();
+    announcer.setMessages(
+      { immersiveReady: 'Localized immersive' },
+      { reannounce: true }
+    );
+
+    expect(announcer.element.textContent).toBe('Localized immersive');
+    announcer.dispose();
+  });
+
   it('suppresses duplicate fallback announcements while handling updates', async () => {
     const announcer = createModeAnnouncer();
     const region = announcer.element;
