@@ -1052,6 +1052,38 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   width: 100%;
 }
 
+.hud-customization {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.85rem;
+  background: rgba(5, 12, 21, 0.82);
+  border: 1px solid rgba(86, 184, 255, 0.3);
+  box-shadow: 0 12px 32px rgba(3, 9, 18, 0.48);
+}
+
+.hud-customization__heading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f7f9fc;
+}
+
+.hud-customization__description {
+  margin: 0;
+  color: rgba(214, 231, 255, 0.86);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.hud-customization__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
 .guided-tour-control {
   position: relative;
   display: flex;

@@ -20,6 +20,7 @@ import type {
   MovementLegendStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
+  HudCustomizationStrings,
   SiteStrings,
 } from './types';
 
@@ -251,6 +252,12 @@ export function getAudioHudControlStrings(
 ): AudioHudControlStrings {
   const strings = getLocaleStrings(input).hud.audioControl;
   return cloneValue(strings);
+}
+
+export function getHudCustomizationStrings(
+  input?: LocaleInput
+): HudCustomizationStrings {
+  return getLocaleStrings(input).hud.customization;
 }
 
 export function getModeToggleStrings(

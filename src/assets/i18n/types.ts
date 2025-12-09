@@ -134,6 +134,13 @@ export interface HelpModalStrings {
   };
 }
 
+export interface HudCustomizationStrings {
+  heading: string;
+  description?: string;
+  variants: { title: string; description: string };
+  accessories: { title: string; description: string };
+}
+
 export interface PoiNarrativeLogStrings {
   heading: string;
   visitedHeading: string;
@@ -258,6 +265,7 @@ export interface LocaleStrings {
     audioControl: AudioHudControlStrings;
     modeToggle: ModeToggleStrings;
     helpModal: HelpModalStrings;
+    customization: HudCustomizationStrings;
     narrativeLog: PoiNarrativeLogStrings;
   };
   poi: Record<PoiId, PoiCopy>;

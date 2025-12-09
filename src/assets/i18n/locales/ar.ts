@@ -189,6 +189,18 @@ export const AR_OVERRIDES: LocaleOverrides = {
         gamepad: 'اضغط {label} لـ {prompt}',
       },
     },
+    customization: {
+      heading: 'التخصيص',
+      description: 'اضبط نمط الشخصية ومرافقيها حسب المهمة الحالية.',
+      variants: {
+        title: 'أسلوب الشخصية',
+        description: 'بدّل بين أنماط مستكشف المعرض.',
+      },
+      accessories: {
+        title: 'الإكسسوارات',
+        description: 'فعّل سوار المعصم أو الطائرة الهولوغرافية.',
+      },
+    },
     narrativeLog: {
       heading: 'سجل القصة',
       visitedHeading: 'المعارض التي تمت زيارتها',

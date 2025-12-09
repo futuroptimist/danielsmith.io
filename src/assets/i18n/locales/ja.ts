@@ -188,6 +188,19 @@ export const JA_OVERRIDES: LocaleOverrides = {
         gamepad: '{label} ボタンで {prompt}',
       },
     },
+    customization: {
+      heading: 'カスタマイズ',
+      description: 'アバターのスタイルと相棒ギアを調整します。',
+      variants: {
+        title: 'アバタースタイル',
+        description: 'マネキン探索者の装いを切り替えます。',
+      },
+      accessories: {
+        title: 'アクセサリー',
+        description:
+          'リストコンソールやホログラフィックドローンを切り替えます。',
+      },
+    },
     narrativeLog: {
       heading: 'クリエイターストーリーログ',
       visitedHeading: '訪問した展示',
