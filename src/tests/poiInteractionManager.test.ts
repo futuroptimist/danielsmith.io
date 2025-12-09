@@ -222,6 +222,48 @@ describe('PoiInteractionManager', () => {
     removeHover();
   });
 
+  it('emits hover custom events with the last input method', () => {
+    manager.start();
+    const hoveredEvents: CustomEvent[] = [];
+    const eventRecorder = (event: Event) =>
+      hoveredEvents.push(event as CustomEvent);
+    window.addEventListener('poi:hovered', eventRecorder);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(hoveredEvents).toHaveLength(1);
+    expect(hoveredEvents[0]?.detail).toEqual({
+      poi: definition,
+      inputMethod: 'pointer',
+    });
+
+    domElement.dispatchEvent(new MouseEvent('mouseleave'));
+    expect(hoveredEvents).toHaveLength(2);
+    expect(hoveredEvents[1]?.detail).toEqual({
+      poi: null,
+      inputMethod: 'pointer',
+    });
+
+    dispatchTouchEvent(domElement, 'touchstart', [
+      { clientX: 200, clientY: 200, identifier: 3 },
+    ]);
+    expect(hoveredEvents).toHaveLength(3);
+    expect(hoveredEvents[2]?.detail).toEqual({
+      poi: definition,
+      inputMethod: 'touch',
+    });
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(hoveredEvents).toHaveLength(4);
+    expect(hoveredEvents[3]?.detail).toEqual({
+      poi: definition,
+      inputMethod: 'keyboard',
+    });
+
+    window.removeEventListener('poi:hovered', eventRecorder);
+  });
+
   it('persists focus on selected POIs and emits selection events', () => {
     manager.start();
     const listener = vi.fn();

@@ -59,6 +59,7 @@ export class PoiInteractionManager {
   private touchPointerId: number | null = null;
   private suppressSyntheticClickUntil = 0;
   private lastSelectionInput: PoiSelectionInputMethod = 'pointer';
+  private lastHoverInput: PoiSelectionInputMethod = 'pointer';
 
   private static readonly syntheticClickSuppressionMs = 500;
 
@@ -164,13 +165,14 @@ export class PoiInteractionManager {
     }
     this.usingKeyboard = true;
     this.keyboardIndex = this.poiInstances.indexOf(poi);
-    this.setHovered(poi);
+    this.setHovered(poi, 'keyboard');
     this.setSelected(poi, 'keyboard');
     this.dispatchSelection(poi.definition);
   }
 
   private handleMouseMove(event: MouseEvent) {
     this.suppressSyntheticClickUntil = 0;
+    this.lastHoverInput = 'pointer';
     if (!this.updatePointer(event)) {
       return;
     }
@@ -182,7 +184,7 @@ export class PoiInteractionManager {
   private handleMouseLeave() {
     this.suppressSyntheticClickUntil = 0;
     this.usingKeyboard = false;
-    this.setHovered(null);
+    this.setHovered(null, 'pointer');
   }
 
   private handleClick(event: MouseEvent) {
@@ -216,6 +218,7 @@ export class PoiInteractionManager {
     const touch = event.changedTouches[0];
     this.touchPointerId = touch.identifier;
     this.usingKeyboard = false;
+    this.lastHoverInput = 'touch';
     if (!this.updatePointerFromTouch(touch)) {
       return;
     }
@@ -238,6 +241,7 @@ export class PoiInteractionManager {
     ) {
       this.touchPointerId = touch.identifier;
     }
+    this.lastHoverInput = 'touch';
     if (!this.updatePointerFromTouch(touch)) {
       return;
     }
@@ -250,11 +254,12 @@ export class PoiInteractionManager {
     this.usingKeyboard = false;
     if (!touch) {
       this.touchPointerId = null;
-      this.setHovered(null);
+      this.setHovered(null, 'touch');
       this.suppressSyntheticClickUntil = 0;
       return;
     }
     this.touchPointerId = null;
+    this.lastHoverInput = 'touch';
     if (!this.updatePointerFromTouch(touch)) {
       this.suppressSyntheticClickUntil = 0;
       return;
@@ -276,7 +281,7 @@ export class PoiInteractionManager {
   private handleTouchCancel() {
     this.touchPointerId = null;
     this.usingKeyboard = false;
-    this.setHovered(null);
+    this.setHovered(null, 'touch');
   }
 
   private handleKeyDown(event: KeyboardEvent) {
@@ -350,7 +355,7 @@ export class PoiInteractionManager {
     const nextIndex = (currentIndex + direction + count) % count;
     this.keyboardIndex = nextIndex;
     const poi = this.poiInstances[nextIndex];
-    this.setHovered(poi);
+    this.setHovered(poi, 'keyboard');
   }
 
   private updatePointer(event: MouseEvent): boolean {
@@ -394,8 +399,19 @@ export class PoiInteractionManager {
     return this.poiInstances.find((poi) => poi.hitArea === target) ?? null;
   }
 
-  private setHovered(poi: PoiInstance | null) {
+  private setHovered(
+    poi: PoiInstance | null,
+    inputMethod: PoiSelectionInputMethod | null = null
+  ) {
+    const inputChanged =
+      inputMethod !== null && inputMethod !== this.lastHoverInput;
+    if (inputMethod) {
+      this.lastHoverInput = inputMethod;
+    }
     if (this.hovered === poi) {
+      if (inputChanged) {
+        this.dispatchHoverEvent(poi?.definition ?? null);
+      }
       return;
     }
     const previous = this.hovered;
@@ -423,6 +439,7 @@ export class PoiInteractionManager {
       this.analytics?.hoverStarted?.(poi.definition);
     }
     this.notifyHoverListeners(poi?.definition ?? null);
+    this.dispatchHoverEvent(poi?.definition ?? null);
   }
 
   private setSelected(
@@ -473,6 +490,17 @@ export class PoiInteractionManager {
     for (const listener of this.hoverListeners) {
       listener(poi);
     }
+  }
+
+  private dispatchHoverEvent(poi: PoiDefinition | null) {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.dispatchEvent(
+      new CustomEvent('poi:hovered', {
+        detail: { poi, inputMethod: this.lastHoverInput },
+      })
+    );
   }
 
   private notifySelectionStateListeners(
