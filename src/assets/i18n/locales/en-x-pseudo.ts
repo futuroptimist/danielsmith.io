@@ -193,6 +193,22 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         gamepad: wrap('Press {label} to {prompt}'),
       },
     },
+    customization: {
+      heading: wrap('Customization'),
+      description: wrap(
+        'Tune the mannequin style and companion gear for the current mission.'
+      ),
+      variants: {
+        title: wrap('Avatar style'),
+        description: wrap('Switch outfits for the mannequin explorer.'),
+      },
+      accessories: {
+        title: wrap('Accessories'),
+        description: wrap(
+          'Toggle the wrist console or holographic drone companions.'
+        ),
+      },
+    },
     audioControl: {
       keyHint: wrap('M'),
       groupLabel: wrap('Ambient audio controls'),

@@ -209,6 +209,20 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         gamepad: 'Press {label} to {prompt}',
       },
     },
+    customization: {
+      heading: 'Customization',
+      description:
+        'Tune the mannequin style and companion gear for the current mission.',
+      variants: {
+        title: 'Avatar style',
+        description: 'Switch outfits for the mannequin explorer.',
+      },
+      accessories: {
+        title: 'Accessories',
+        description:
+          'Toggle the wrist console or holographic drone companions.',
+      },
+    },
     audioControl: {
       keyHint: 'M',
       groupLabel: 'Ambient audio controls',

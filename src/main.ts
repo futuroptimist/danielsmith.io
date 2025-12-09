@@ -44,6 +44,7 @@ import {
   getAudioHudControlStrings,
   getControlOverlayStrings,
   getHelpModalStrings,
+  getHudCustomizationStrings,
   getLocaleDirection,
   getModeAnnouncerStrings,
   getModeToggleStrings,
@@ -250,14 +251,8 @@ import {
   createAudioHudControl,
   type AudioHudControlHandle,
 } from './systems/controls/audioHudControl';
-import {
-  createAvatarAccessoryControl,
-  type AvatarAccessoryControlHandle,
-} from './systems/controls/avatarAccessoryControl';
-import {
-  createAvatarVariantControl,
-  type AvatarVariantControlHandle,
-} from './systems/controls/avatarVariantControl';
+import { createAvatarAccessoryControl } from './systems/controls/avatarAccessoryControl';
+import { createAvatarVariantControl } from './systems/controls/avatarVariantControl';
 import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
@@ -351,6 +346,10 @@ import {
 } from './ui/hud/audioSubtitles';
 import { applyControlOverlayStrings } from './ui/hud/controlOverlay';
 import { applyControlOverlayAccessibility } from './ui/hud/controlOverlayAccessibility';
+import {
+  createHudCustomizationSection,
+  type HudCustomizationHandle,
+} from './ui/hud/customizationSection';
 import { createHelpModal } from './ui/hud/helpModal';
 import {
   attachHelpModalController,
@@ -674,11 +673,10 @@ function initializeImmersiveScene(
     null;
   let unsubscribeAccessibility: (() => void) | null = null;
   let avatarVariantManager: AvatarVariantManager | null = null;
-  let avatarVariantControl: AvatarVariantControlHandle | null = null;
+  let hudCustomizationSection: HudCustomizationHandle | null = null;
   let unsubscribeAvatarVariant: (() => void) | null = null;
   let avatarAccessorySuite: AvatarAccessorySuite | null = null;
   let avatarAccessoryManager: AvatarAccessoryManager | null = null;
-  let avatarAccessoryControl: AvatarAccessoryControlHandle | null = null;
   let unsubscribeAvatarAccessories: (() => void) | null = null;
   let unsubscribeAvatarAccessoryPresets: (() => void) | null = null;
   let avatarAccessoryProgression: AvatarAccessoryProgressionHandle | null =
@@ -765,6 +763,7 @@ function initializeImmersiveScene(
   document.documentElement.dataset.localeDirection = htmlDirection;
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
+  let hudCustomizationStrings = getHudCustomizationStrings(locale);
   let modeToggleStrings = getModeToggleStrings(locale);
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
@@ -2297,44 +2296,63 @@ function initializeImmersiveScene(
     log: poiNarrativeLog,
     definitions: poiDefinitions,
   });
-  if (avatarVariantManager) {
-    avatarVariantControl = createAvatarVariantControl({
+  const hasVariantControl = Boolean(avatarVariantManager);
+  const hasAccessoryControl = Boolean(
+    avatarAccessoryManager && avatarAccessorySuite
+  );
+  if (hasVariantControl || hasAccessoryControl) {
+    hudCustomizationSection = createHudCustomizationSection({
       container: hudSettingsStack,
-      options: AVATAR_VARIANTS,
-      getActiveVariant: () =>
-        avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
-      setActiveVariant: (variant) => {
-        avatarVariantManager?.setVariant(variant);
-      },
+      strings: hudCustomizationStrings,
+      createVariantControl: hasVariantControl
+        ? ({ container: customizationContainer, title, description }) =>
+            createAvatarVariantControl({
+              container: customizationContainer,
+              options: AVATAR_VARIANTS,
+              getActiveVariant: () =>
+                avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
+              setActiveVariant: (variant) => {
+                avatarVariantManager?.setVariant(variant);
+              },
+              title,
+              description,
+            })
+        : undefined,
+      createAccessoryControl: hasAccessoryControl
+        ? ({ container: customizationContainer, title, description }) =>
+            createAvatarAccessoryControl({
+              container: customizationContainer,
+              options: avatarAccessorySuite!.definitions,
+              isAccessoryEnabled: (id) =>
+                avatarAccessoryManager?.isEnabled(id) ?? false,
+              setAccessoryEnabled: (id, enabled) => {
+                avatarAccessoryManager?.setEnabled(id, enabled);
+              },
+              title,
+              description,
+              presets: {
+                getPresets: () => avatarAccessoryManager?.listPresets() ?? [],
+                applyPreset: (presetId) => {
+                  avatarAccessoryManager?.applyPreset(presetId);
+                },
+              },
+            })
+        : undefined,
     });
-    registerHudControlElement(avatarVariantControl.element);
+    registerHudControlElement(hudCustomizationSection.element);
+  }
+  if (avatarVariantManager) {
     unsubscribeAvatarVariant = avatarVariantManager.onChange(() => {
-      avatarVariantControl?.refresh();
+      hudCustomizationSection?.refresh();
     });
   }
-  if (avatarAccessoryManager && avatarAccessorySuite) {
-    avatarAccessoryControl = createAvatarAccessoryControl({
-      container: hudSettingsStack,
-      options: avatarAccessorySuite.definitions,
-      isAccessoryEnabled: (id) =>
-        avatarAccessoryManager?.isEnabled(id) ?? false,
-      setAccessoryEnabled: (id, enabled) => {
-        avatarAccessoryManager?.setEnabled(id, enabled);
-      },
-      presets: {
-        getPresets: () => avatarAccessoryManager?.listPresets() ?? [],
-        applyPreset: (presetId) => {
-          avatarAccessoryManager?.applyPreset(presetId);
-        },
-      },
-    });
-    registerHudControlElement(avatarAccessoryControl.element);
+  if (avatarAccessoryManager) {
     unsubscribeAvatarAccessories = avatarAccessoryManager.onChange(() => {
-      avatarAccessoryControl?.refresh();
+      hudCustomizationSection?.refresh();
     });
     unsubscribeAvatarAccessoryPresets = avatarAccessoryManager.onPresetChange(
       () => {
-        avatarAccessoryControl?.refresh();
+        hudCustomizationSection?.refresh();
       }
     );
   }
@@ -2429,6 +2447,7 @@ function initializeImmersiveScene(
 
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
+    hudCustomizationStrings = getHudCustomizationStrings(locale);
     modeToggleStrings = getModeToggleStrings(locale);
     audioHudStrings = getAudioHudControlStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
@@ -2458,6 +2477,7 @@ function initializeImmersiveScene(
     manualModeToggle?.setStrings(modeToggleStrings);
     audioHudHandle?.setStrings(audioHudStrings);
     helpModal.setContent(helpModalStrings);
+    hudCustomizationSection?.setStrings(hudCustomizationStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
@@ -3676,13 +3696,9 @@ function initializeImmersiveScene(
       footstepAudio.parent?.remove(footstepAudio);
       footstepAudio = null;
     }
-    if (avatarVariantControl) {
-      avatarVariantControl.dispose();
-      avatarVariantControl = null;
-    }
-    if (avatarAccessoryControl) {
-      avatarAccessoryControl.dispose();
-      avatarAccessoryControl = null;
+    if (hudCustomizationSection) {
+      hudCustomizationSection.dispose();
+      hudCustomizationSection = null;
     }
     ambientCaptionBridge = null;
     if (audioSubtitles) {
