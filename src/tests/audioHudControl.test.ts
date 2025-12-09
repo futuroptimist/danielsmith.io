@@ -250,7 +250,7 @@ describe('createAudioHudControl', () => {
     expect(slider?.disabled).toBe(false);
 
     handle.dispose();
-    
+
     warnSpy.mockRestore();
   });
 
