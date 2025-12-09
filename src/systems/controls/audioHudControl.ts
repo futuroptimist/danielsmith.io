@@ -9,7 +9,7 @@ export interface AudioHudControlOptions {
   getEnabled: () => boolean;
   setEnabled: (enabled: boolean) => void | Promise<void>;
   getVolume: () => number;
-  setVolume: (volume: number) => void;
+  setVolume: (volume: number) => void | Promise<void>;
   windowTarget?: Window;
   toggleKey?: string;
   volumeStep?: number;
@@ -144,6 +144,7 @@ export function createAudioHudControl({
   let strings = cloneStrings(providedStrings ?? getAudioHudControlStrings());
   let pending = false;
   let lastKnownEnabled = false;
+  let pendingVolumeOverride: number | null = null;
 
   const normalizeKeyHint = (value: string | undefined) => {
     if (!value) {
@@ -226,7 +227,11 @@ export function createAudioHudControl({
   };
 
   const updateVolume = (enabled = lastKnownEnabled) => {
-    const volume = clamp(getVolume(), 0, 1);
+    const volume = clamp(
+      pendingVolumeOverride !== null ? pendingVolumeOverride : getVolume(),
+      0,
+      1
+    );
     slider.value = volume.toString();
     slider.setAttribute('aria-valuenow', volume.toFixed(2));
     const formatted = formatVolume(volume);
@@ -271,9 +276,41 @@ export function createAudioHudControl({
   };
 
   const handleSliderInput = () => {
+    if (pending) {
+      return;
+    }
     const value = clamp(Number.parseFloat(slider.value), 0, 1);
-    setVolume(value);
-    updateVolume();
+    let result: void | Promise<void>;
+    try {
+      result = setVolume(value);
+    } catch (error) {
+      console.warn('Failed to set ambient audio volume:', error);
+      pendingVolumeOverride = null;
+      updateVolume(lastKnownEnabled);
+      return;
+    }
+    pendingVolumeOverride = value;
+    const finalizeVolume = () => {
+      pendingVolumeOverride = null;
+      pending = false;
+      updateToggle();
+    };
+
+    if (isPromiseLike(result)) {
+      pending = true;
+      updateToggle();
+      result
+        .catch((error) => {
+          console.warn('Failed to set ambient audio volume:', error);
+        })
+        .finally(() => {
+          finalizeVolume();
+        });
+      return;
+    }
+
+    pendingVolumeOverride = null;
+    updateVolume(lastKnownEnabled);
   };
 
   const handleToggleClick = () => {
