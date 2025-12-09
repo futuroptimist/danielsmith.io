@@ -99,6 +99,17 @@ export const JA_OVERRIDES: LocaleOverrides = {
         resumeLink: '最新の履歴書をダウンロード',
         githubLink: 'GitHubでプロジェクトを見る',
       },
+      reasonHeadings: {
+        manual: 'テキストモードを表示中',
+        'webgl-unsupported': 'このデバイスでは没入モードを利用できません',
+        'low-memory': '低メモリ環境を検出',
+        'low-end-device': '軽量デバイスを検出',
+        'low-performance': 'パフォーマンス低下のためテキストに切替',
+        'immersive-init-error': '没入シーンの起動でエラーが発生しました',
+        'automated-client': '自動クライアントを検出しました',
+        'console-error': '実行時エラーを検出しました',
+        'data-saver': 'データセーバーが有効です',
+      },
       reasonDescriptions: {
         manual:
           'テキストビューをリクエストしました。没入シーンはワンクリックで戻せます。',

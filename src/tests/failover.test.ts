@@ -607,6 +607,20 @@ describe('renderTextFallback', () => {
     document.documentElement.lang = originalLang;
   });
 
+  it('localizes fallback headings using the active locale', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'en-x-pseudo';
+
+    const container = render('data-saver');
+    const heading = container.querySelector('.text-fallback__title');
+    const localized =
+      getSiteStrings('en-x-pseudo').textFallback.reasonHeadings['data-saver'];
+
+    expect(heading?.textContent).toBe(localized);
+
+    document.documentElement.lang = originalLang;
+  });
+
   it('localizes action links using site strings for the active locale', () => {
     const originalLang = document.documentElement.lang;
     document.documentElement.lang = 'ar';

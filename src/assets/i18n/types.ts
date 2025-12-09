@@ -226,6 +226,7 @@ export interface SiteTextFallbackStrings {
     resumeLink: string;
     githubLink: string;
   };
+  reasonHeadings: Record<FallbackReason, string>;
   reasonDescriptions: Record<FallbackReason, string>;
 }
 
