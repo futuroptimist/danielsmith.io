@@ -264,6 +264,34 @@ describe('PoiInteractionManager', () => {
     window.removeEventListener('poi:hovered', eventRecorder);
   });
 
+  it('emits hover events when switching between pointer and touch on the same POI', () => {
+    manager.start();
+    const hoveredEvents: CustomEvent[] = [];
+    const recordHover = (event: Event) =>
+      hoveredEvents.push(event as CustomEvent);
+    window.addEventListener('poi:hovered', recordHover);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+
+    dispatchTouchEvent(domElement, 'touchstart', [
+      { clientX: 200, clientY: 200, identifier: 11 },
+    ]);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+
+    expect(hoveredEvents.map((event) => event.detail)).toEqual([
+      { poi: definition, inputMethod: 'pointer' },
+      { poi: definition, inputMethod: 'touch' },
+      { poi: definition, inputMethod: 'pointer' },
+    ]);
+
+    window.removeEventListener('poi:hovered', recordHover);
+  });
+
   it('persists focus on selected POIs and emits selection events', () => {
     manager.start();
     const listener = vi.fn();

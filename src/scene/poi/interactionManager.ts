@@ -172,13 +172,12 @@ export class PoiInteractionManager {
 
   private handleMouseMove(event: MouseEvent) {
     this.suppressSyntheticClickUntil = 0;
-    this.lastHoverInput = 'pointer';
     if (!this.updatePointer(event)) {
       return;
     }
     this.usingKeyboard = false;
     const poi = this.pickPoi();
-    this.setHovered(poi);
+    this.setHovered(poi, 'pointer');
   }
 
   private handleMouseLeave() {
@@ -218,12 +217,11 @@ export class PoiInteractionManager {
     const touch = event.changedTouches[0];
     this.touchPointerId = touch.identifier;
     this.usingKeyboard = false;
-    this.lastHoverInput = 'touch';
     if (!this.updatePointerFromTouch(touch)) {
       return;
     }
     const poi = this.pickPoi();
-    this.setHovered(poi);
+    this.setHovered(poi, 'touch');
   }
 
   private handleTouchMove(event: TouchEvent) {
@@ -241,12 +239,11 @@ export class PoiInteractionManager {
     ) {
       this.touchPointerId = touch.identifier;
     }
-    this.lastHoverInput = 'touch';
     if (!this.updatePointerFromTouch(touch)) {
       return;
     }
     const poi = this.pickPoi();
-    this.setHovered(poi);
+    this.setHovered(poi, 'touch');
   }
 
   private handleTouchEnd(event: TouchEvent) {
@@ -259,7 +256,6 @@ export class PoiInteractionManager {
       return;
     }
     this.touchPointerId = null;
-    this.lastHoverInput = 'touch';
     if (!this.updatePointerFromTouch(touch)) {
       this.suppressSyntheticClickUntil = 0;
       return;
@@ -267,11 +263,11 @@ export class PoiInteractionManager {
     const poi = this.pickPoi();
     if (!poi) {
       this.setSelected(null, 'touch');
-      this.setHovered(null);
+      this.setHovered(null, 'touch');
       this.suppressSyntheticClickUntil = 0;
       return;
     }
-    this.setHovered(poi);
+    this.setHovered(poi, 'touch');
     this.setSelected(poi, 'touch');
     this.dispatchSelection(poi.definition);
     this.suppressSyntheticClickUntil =
