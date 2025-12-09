@@ -101,6 +101,7 @@ export function createModeAnnouncer({
 
   let lastAnnouncement: string | null = null;
   let lastReason: FallbackReason | null = null;
+  let lastMode: 'immersive' | 'fallback' | null = null;
   let activeFallbackMessages = mergeFallbackMessages(fallbackMessages);
   let activeImmersiveMessage = immersiveMessage;
 
@@ -115,6 +116,7 @@ export function createModeAnnouncer({
     element: region,
     announceImmersiveReady() {
       lastReason = null;
+      lastMode = 'immersive';
       announce(activeImmersiveMessage);
     },
     announceFallback(reason) {
@@ -126,6 +128,7 @@ export function createModeAnnouncer({
         return;
       }
       lastReason = reason;
+      lastMode = 'fallback';
       announce(resolved);
     },
     setMessages(nextMessages, options) {
@@ -141,8 +144,10 @@ export function createModeAnnouncer({
 
       if (options?.reannounce) {
         lastAnnouncement = null;
-        if (lastReason) {
+        if (lastMode === 'fallback' && lastReason) {
           this.announceFallback(lastReason);
+        } else if (lastMode === 'immersive') {
+          this.announceImmersiveReady();
         }
       }
     },
