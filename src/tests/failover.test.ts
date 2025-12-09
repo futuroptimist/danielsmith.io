@@ -293,7 +293,9 @@ describe('evaluateFailoverDecision', () => {
       'DuckDuckBot/1.0; (+https://duckduckgo.com/duckduckbot)',
       'BingPreview/1.0b',
       'PetalBot (compatible; PetalBot; +https://webmaster.petalsearch.com/site/petalbot)',
+      'Mozilla/5.0 (compatible; Qwantify/2.4; +https://www.qwant.com/)',
       'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GoogleOther/1.0)',
+      'Mozilla/5.0 (compatible; Yeti/1.1; +http://naver.me/bot)',
       'Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)',
       'Mozilla/5.0 (compatible; ClaudeBot/1.0)',
       'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 ' +

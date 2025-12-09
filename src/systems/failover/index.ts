@@ -256,6 +256,8 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /zoominfo\b/i,
   /duckduckbot/i,
   /petalbot/i,
+  /qwantify/i,
+  /yeti\b/i,
   /google-?inspectiontool/i,
   /googleother/i,
   /bingpreview/i,
