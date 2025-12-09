@@ -368,7 +368,9 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toBe(englishModeAnnouncements.fallbackReasons.manual);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons.manual
+    );
     expect(document.documentElement.dataset.fallbackReason).toBe('manual');
   });
 });
