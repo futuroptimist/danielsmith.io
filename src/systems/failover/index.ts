@@ -3,6 +3,7 @@ import {
   formatMessage,
   getLocaleDirection,
   getLocaleScript,
+  getModeAnnouncerStrings,
   resolveLocale,
   getPoiCopy,
   getPoiNarrativeLogStrings,
@@ -868,6 +869,11 @@ export function renderTextFallback(
   container.appendChild(section);
 
   try {
+    const announcerStrings = getModeAnnouncerStrings(resolvedLocale);
+    getModeAnnouncer(documentTarget).setMessages({
+      immersiveReady: announcerStrings.immersiveReady,
+      fallbackMessages: announcerStrings.fallbackReasons,
+    });
     getModeAnnouncer(documentTarget).announceFallback(reason);
   } catch (error) {
     console.warn('Failed to announce fallback mode.', error);
