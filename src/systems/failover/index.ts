@@ -796,10 +796,8 @@ export function renderTextFallback(
 
   const heading = documentTarget.createElement('h1');
   heading.className = 'text-fallback__title';
-  heading.textContent =
-    reason === 'manual'
-      ? 'Text-only mode enabled'
-      : 'Immersive mode unavailable';
+  const reasonHeadings = textFallbackStrings.reasonHeadings;
+  heading.textContent = reasonHeadings?.[reason] ?? textFallbackStrings.heading;
   section.appendChild(heading);
 
   const description = documentTarget.createElement('p');

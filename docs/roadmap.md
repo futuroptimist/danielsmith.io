@@ -311,6 +311,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
   update immediately when visitors switch locales.
 - ✅ Text fallback reason messaging now pulls from the i18n catalog so locale switches update
   accessibility narratives alongside the mode toggle.
+  - ✅ Text fallback headings now pull localized reason titles so screen readers and
+    translations stay aligned with the active language.
 - ✅ Text fallback action links now source i18n CTA copy so resume and GitHub links mirror the
   active locale alongside the immersive relaunch button.
 - ✅ Mode announcer now uses localized fallback reasons and refreshes announcements when the

@@ -99,6 +99,17 @@ export const AR_OVERRIDES: LocaleOverrides = {
         resumeLink: 'تحميل أحدث سيرة ذاتية',
         githubLink: 'استكشاف المشاريع على GitHub',
       },
+      reasonHeadings: {
+        manual: 'تم تفعيل الوضع النصي',
+        'webgl-unsupported': 'الوضع الغامر غير متاح على هذا الجهاز',
+        'low-memory': 'تم الكشف عن جهاز بذاكرة منخفضة',
+        'low-end-device': 'تم التعرف على جهاز خفيف',
+        'low-performance': 'تفعيل وضع الأداء المنخفض',
+        'immersive-init-error': 'حدث خطأ في تشغيل الوضع الغامر',
+        'automated-client': 'تم اكتشاف عميل مؤتمت',
+        'console-error': 'تم رصد أخطاء وقت التشغيل',
+        'data-saver': 'تم تفعيل توفير البيانات',
+      },
       reasonDescriptions: {
         manual:
           'طلبت العرض النصي الخفيف. يمكنك العودة إلى المشهد الغامر بنقرة واحدة.',

@@ -105,6 +105,17 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         resumeLink: wrap('Download the latest résumé'),
         githubLink: wrap('Explore projects on GitHub'),
       },
+      reasonHeadings: {
+        manual: wrap('Text-only mode enabled'),
+        'webgl-unsupported': wrap('Immersive mode unavailable on this device'),
+        'low-memory': wrap('Low-memory device detected'),
+        'low-end-device': wrap('Lightweight device detected'),
+        'low-performance': wrap('Performance fallback active'),
+        'immersive-init-error': wrap('Immersive scene encountered an error'),
+        'automated-client': wrap('Automated client detected'),
+        'data-saver': wrap('Data-saver mode enabled'),
+        'console-error': wrap('Runtime errors detected'),
+      },
       reasonDescriptions: {
         manual: wrap(
           'You requested the lightweight portfolio view. The immersive scene stays just a click away.'

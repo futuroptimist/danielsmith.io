@@ -104,6 +104,17 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         resumeLink: 'Download the latest résumé',
         githubLink: 'Explore projects on GitHub',
       },
+      reasonHeadings: {
+        manual: 'Text-only mode enabled',
+        'webgl-unsupported': 'Immersive mode unavailable on this device',
+        'low-memory': 'Low-memory device detected',
+        'low-end-device': 'Lightweight device detected',
+        'low-performance': 'Performance fallback active',
+        'immersive-init-error': 'Immersive scene encountered an error',
+        'automated-client': 'Automated client detected',
+        'data-saver': 'Data-saver mode enabled',
+        'console-error': 'Runtime errors detected',
+      },
       reasonDescriptions: {
         manual:
           'You requested the lightweight portfolio view. The immersive scene stays just a click away.',
