@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getModeAnnouncerStrings } from '../assets/i18n';
 import { renderTextFallback } from '../systems/failover';
 import {
   __resetModeAnnouncementForTests,
@@ -152,6 +153,8 @@ describe('initializeModeAnnouncementObserver', () => {
     __resetModeAnnouncementForTests();
   });
 
+  const englishModeAnnouncements = getModeAnnouncerStrings('en');
+
   it('announces fallback transitions using the rendered reason', async () => {
     initializeModeAnnouncementObserver();
     const container = document.createElement('div');
@@ -165,7 +168,28 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toMatch(/frame rates dipped/i);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons['low-performance']
+    );
+  });
+
+  it('localizes fallback announcements based on the document language', () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'ar';
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    renderTextFallback(container, {
+      reason: 'data-saver',
+      immersiveUrl: '/immersive',
+    });
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toContain('تجربة موفّرة للبيانات');
+
+    document.documentElement.lang = originalLang;
   });
 
   it('announces data-saver failover reasons surfaced by the fallback view', async () => {
@@ -247,7 +271,9 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toMatch(/webgl is unavailable/i);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons['webgl-unsupported']
+    );
   });
 
   it('responds when a fallback view is injected without changing the mode attribute', async () => {
@@ -288,7 +314,9 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toMatch(/frame rates dipped/i);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons['low-performance']
+    );
   });
 
   it('re-announces when the rendered fallback view updates its reason', async () => {
@@ -313,7 +341,9 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toMatch(/webgl is unavailable/i);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons['webgl-unsupported']
+    );
   });
 
   it('defaults to manual announcements when fallback reasons are cleared', async () => {
@@ -338,7 +368,9 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toMatch(/text mode enabled/i);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons.manual
+    );
     expect(document.documentElement.dataset.fallbackReason).toBe('manual');
   });
 });
