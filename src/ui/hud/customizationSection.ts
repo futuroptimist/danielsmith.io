@@ -57,7 +57,7 @@ export function createHudCustomizationSection({
   const wrapper = document.createElement('section');
   wrapper.className = 'hud-customization';
 
-  const heading = document.createElement('h3');
+  const heading = document.createElement('h2');
   heading.className = 'hud-customization__heading';
   heading.textContent = strings.heading;
 
