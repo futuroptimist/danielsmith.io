@@ -318,6 +318,25 @@ describe('evaluateFailoverDecision', () => {
     }
   });
 
+  it('routes additional crawler user agents to text mode for link previews', () => {
+    const userAgents = [
+      'Mozilla/5.0 (compatible; Qwantify/2.4; +https://www.qwant.com/)',
+      'Mozilla/5.0 (compatible; Yeti/1.1; +http://naver.me/bot)',
+    ];
+
+    for (const userAgent of userAgents) {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+        getUserAgent: () => userAgent,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    }
+  });
+
   it('routes Node.js, Go, Rust, and Android HTTP clients to text mode when mode is not forced', () => {
     const userAgents = [
       'Go-http-client/1.1',
