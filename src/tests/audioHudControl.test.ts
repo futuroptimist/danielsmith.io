@@ -147,6 +147,111 @@ describe('createAudioHudControl', () => {
     expect(container.querySelector('.audio-hud')).toBeNull();
   });
 
+  it('handles pending async volume updates with announcements and error recovery', async () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const enabled = true;
+    let volume = 0.4;
+    let resolveVolume: (() => void) | null = null;
+    let rejectNext = false;
+    let throwNext = false;
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    createAudioHudControl({
+      container,
+      getEnabled: () => enabled,
+      setEnabled: () => undefined,
+      getVolume: () => volume,
+      setVolume: (value) => {
+        if (throwNext) {
+          throwNext = false;
+          throw new Error('volume-throw');
+        }
+        return new Promise<void>((resolve, reject) => {
+          resolveVolume = () => {
+            if (rejectNext) {
+              rejectNext = false;
+              reject(new Error('volume-fail'));
+              return;
+            }
+            volume = value;
+            resolve();
+          };
+        });
+      },
+    });
+
+    const wrapper = container.querySelector<HTMLDivElement>('.audio-hud');
+    const slider = container.querySelector<HTMLInputElement>(
+      '.audio-volume__slider'
+    );
+    const button = container.querySelector<HTMLButtonElement>(
+      'button.audio-toggle'
+    );
+    const strings = getAudioHudControlStrings();
+    const keyHint = resolveKeyHint(strings);
+    const pendingAnnouncement = formatMessage(
+      strings.toggle.pendingAnnouncementTemplate,
+      { keyHint }
+    );
+
+    expect(slider?.disabled).toBe(false);
+    slider!.value = '0.75';
+    slider?.dispatchEvent(new Event('input'));
+    expect(slider?.disabled).toBe(true);
+    expect(button?.disabled).toBe(true);
+    expect(wrapper?.dataset.pending).toBe('true');
+    expect(slider?.dataset.hudAnnounce).toBe(pendingAnnouncement);
+    expect(button?.dataset.hudAnnounce).toBe(pendingAnnouncement);
+
+    resolveVolume?.();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(wrapper?.dataset.pending).toBe('false');
+    expect(slider?.disabled).toBe(false);
+    expect(button?.disabled).toBe(false);
+    expect(slider?.value).toBe('0.75');
+    expect(slider?.dataset.hudAnnounce).toBe(
+      formatMessage(strings.slider.valueAnnouncementTemplate, { volume: '75%' })
+    );
+
+    rejectNext = true;
+    slider!.value = '0.25';
+    slider?.dispatchEvent(new Event('input'));
+    expect(wrapper?.dataset.pending).toBe('true');
+    resolveVolume?.();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Failed to set ambient audio volume:',
+      expect.any(Error)
+    );
+    expect(wrapper?.dataset.pending).toBe('false');
+    expect(slider?.value).toBe('0.75');
+    expect(slider?.dataset.hudAnnounce).toBe(
+      formatMessage(strings.slider.valueAnnouncementTemplate, { volume: '75%' })
+    );
+
+    warnSpy.mockClear();
+    throwNext = true;
+    slider!.value = '0.5';
+    slider?.dispatchEvent(new Event('input'));
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Failed to set ambient audio volume:',
+      expect.any(Error)
+    );
+    expect(wrapper?.dataset.pending).toBe('false');
+    expect(slider?.value).toBe('0.75');
+    expect(slider?.dataset.hudAnnounce).toBe(
+      formatMessage(strings.slider.valueAnnouncementTemplate, { volume: '75%' })
+    );
+    expect(slider?.disabled).toBe(false);
+
+    warnSpy.mockRestore();
+  });
+
   it('responds to keyboard toggles and recovers from failures', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
