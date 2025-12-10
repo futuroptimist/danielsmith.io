@@ -92,7 +92,7 @@ describe('createSampleAccumulator', () => {
     expect(summary?.average).toBeCloseTo((8 + 12 + 20) / 3, 6);
   });
 
-  it('ignores invalid maxSamples values and keeps accumulating', () => {
+  it('treats zero or negative maxSamples as unbounded accumulation and keeps accumulating', () => {
     const accumulator = createSampleAccumulator({ maxSamples: 0 });
 
     accumulator.record(1);
