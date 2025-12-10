@@ -73,6 +73,7 @@ export function createAudioSubtitles({
   let hideTimeout: number | null = null;
   let current: NormalizedAudioSubtitleMessage | null = null;
   let currentToken: symbol | null = null;
+  let announcementSequence = 0;
 
   const baseAriaLive = ariaLive;
   const resolvedAssertiveThreshold = resolveAssertivePriorityThreshold(
@@ -189,7 +190,10 @@ export function createAudioSubtitles({
     }
     label.textContent =
       labels[message.source] ?? DEFAULT_LABELS[message.source];
+    caption.textContent = '';
     caption.textContent = message.text;
+    announcementSequence += 1;
+    root.dataset.announcementSeq = `${announcementSequence}`;
     scheduleHide(message, currentToken);
   };
 
