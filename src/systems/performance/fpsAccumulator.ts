@@ -19,6 +19,8 @@ export interface FpsAccumulator {
   getSummary(): FpsSampleSummary | null;
 }
 
+const MAX_SAMPLES = 600;
+
 const clampNonNegative = (value: number): number | null => {
   if (!Number.isFinite(value)) {
     return null;
@@ -39,7 +41,9 @@ const mapSummary = (summary: SampleSummary): FpsSampleSummary => ({
 });
 
 export function createFpsAccumulator(): FpsAccumulator {
-  const accumulator: SampleAccumulator = createSampleAccumulator();
+  const accumulator: SampleAccumulator = createSampleAccumulator({
+    maxSamples: MAX_SAMPLES,
+  });
 
   const record = (fps: number) => {
     const normalized = clampNonNegative(fps);

@@ -15,17 +15,33 @@ export interface SampleAccumulator {
 
 export interface SampleAccumulatorOptions {
   onSort?: (values: ReadonlyArray<number>) => void;
+  /** Maximum number of samples to retain; older entries are evicted first. */
+  maxSamples?: number;
 }
 
 export function createSampleAccumulator(
   options: SampleAccumulatorOptions = {}
 ): SampleAccumulator {
   let sum = 0;
-  let min = Number.POSITIVE_INFINITY;
-  let max = Number.NEGATIVE_INFINITY;
   const samples: number[] = [];
   let sortedCache: number[] | null = null;
   let isDirty = true;
+
+  const normalizedMaxSamples = Number.isFinite(options.maxSamples)
+    ? Math.max(0, Math.floor(options.maxSamples as number))
+    : 0;
+
+  const trimOldestSamples = () => {
+    if (normalizedMaxSamples <= 0) {
+      return;
+    }
+    while (samples.length >= normalizedMaxSamples) {
+      const removed = samples.shift();
+      if (typeof removed === 'number') {
+        sum -= removed;
+      }
+    }
+  };
 
   const computeSorted = (): number[] => {
     if (!isDirty && sortedCache) {
@@ -44,21 +60,14 @@ export function createSampleAccumulator(
   };
 
   const record = (value: number) => {
+    trimOldestSamples();
     samples.push(value);
     sum += value;
-    if (value < min) {
-      min = value;
-    }
-    if (value > max) {
-      max = value;
-    }
     isDirty = true;
   };
 
   const reset = () => {
     sum = 0;
-    min = Number.POSITIVE_INFINITY;
-    max = Number.NEGATIVE_INFINITY;
     samples.length = 0;
     if (sortedCache) {
       sortedCache.length = 0;
@@ -85,8 +94,8 @@ export function createSampleAccumulator(
     return {
       count: samples.length,
       average,
-      min: min === Number.POSITIVE_INFINITY ? sorted[0] : min,
-      max: max === Number.NEGATIVE_INFINITY ? sorted[sorted.length - 1] : max,
+      min: sorted[0],
+      max: sorted[sorted.length - 1],
       p95,
       median,
     } satisfies SampleSummary;

@@ -24,6 +24,8 @@ and the Vitest assertions when measurable changes land.
 - **Runtime telemetry** – [`createInputLatencyTelemetry`](../../src/systems/performance/inputLatencyTelemetry.ts)
   monitors keyboard and pointer interactions, logging median/p95/max latency against the 200 ms
   INP budget whenever the session hides, unloads, or performance failover triggers.
+  - Telemetry accumulators now cap rolling windows (360 latency events, 600 FPS samples) so long
+    play sessions cannot inflate memory while percentiles stay accurate.
 - **Workflow** – Capture metrics via the Three.js inspector: open devtools,
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
