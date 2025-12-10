@@ -97,6 +97,7 @@ export function createAudioHudControl({
   toggleButton.type = 'button';
   toggleButton.className = 'audio-toggle';
   toggleButton.setAttribute('aria-pressed', 'false');
+  toggleButton.setAttribute('aria-busy', 'false');
 
   const volumeLabel = document.createElement('label');
   volumeLabel.className = 'audio-volume';
@@ -214,6 +215,7 @@ export function createAudioHudControl({
     toggleButton.textContent = nextLabel;
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
+    toggleButton.setAttribute('aria-busy', pending ? 'true' : 'false');
     wrapper.dataset.pending = pending ? 'true' : 'false';
     wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
     slider.disabled = pending;
