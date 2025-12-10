@@ -41,6 +41,8 @@ const DEFAULT_EVENT_TYPES = [
   'keyup',
 ] as const;
 
+const MAX_SAMPLES = 360;
+
 const clampLatency = (value: number): number | null => {
   if (!Number.isFinite(value)) {
     return null;
@@ -74,7 +76,9 @@ const resolveTimeStamp = (event: Event): number | null => {
 export function createInputLatencyMonitor(
   options: InputLatencyMonitorOptions
 ): InputLatencyMonitor {
-  const accumulator: SampleAccumulator = createSampleAccumulator();
+  const accumulator: SampleAccumulator = createSampleAccumulator({
+    maxSamples: MAX_SAMPLES,
+  });
   const target = options.target;
   const now = options.now ?? (() => performance.now());
   const listenerOptions = options.listenerOptions ?? { passive: true };

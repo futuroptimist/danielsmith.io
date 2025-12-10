@@ -74,6 +74,38 @@ describe('createSampleAccumulator', () => {
     expect(onSort).toHaveBeenCalledTimes(2);
   });
 
+  it('evicts the oldest samples when a maxSamples cap is provided', () => {
+    const accumulator = createSampleAccumulator({ maxSamples: 3 });
+
+    accumulator.record(4);
+    accumulator.record(8);
+    accumulator.record(12);
+    accumulator.record(20);
+
+    const summary = accumulator.getSummary();
+
+    expect(summary).not.toBeNull();
+    expect(summary?.count).toBe(3);
+    expect(summary?.min).toBe(8);
+    expect(summary?.max).toBe(20);
+    expect(summary?.median).toBe(12);
+    expect(summary?.average).toBeCloseTo((8 + 12 + 20) / 3, 6);
+  });
+
+  it('treats zero or negative maxSamples as unbounded accumulation and keeps accumulating', () => {
+    const accumulator = createSampleAccumulator({ maxSamples: 0 });
+
+    accumulator.record(1);
+    accumulator.record(2);
+    accumulator.record(3);
+    accumulator.record(4);
+
+    const summary = accumulator.getSummary();
+
+    expect(summary?.count).toBe(4);
+    expect(summary?.min).toBe(1);
+  });
+
   it('returns null for an empty accumulator', () => {
     const accumulator = createSampleAccumulator();
 
