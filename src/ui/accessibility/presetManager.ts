@@ -16,6 +16,47 @@ export type AccessibilityPresetId =
 type MotionSetting = 'default' | 'reduced';
 type ContrastSetting = 'standard' | 'high';
 
+const HUD_CONTRAST_VARIABLE_KEYS = [
+  '--hud-surface-bg',
+  '--hud-surface-raised-bg',
+  '--hud-surface-border',
+  '--hud-surface-raised-border',
+  '--hud-surface-text',
+  '--hud-surface-muted-text',
+  '--hud-surface-heading',
+  '--hud-surface-accent',
+  '--hud-surface-shadow',
+] as const;
+
+type HudContrastVariableKey = (typeof HUD_CONTRAST_VARIABLE_KEYS)[number];
+
+type HudContrastTokens = Record<HudContrastVariableKey, string>;
+
+const HUD_CONTRAST_TOKENS: Record<ContrastSetting, HudContrastTokens> = {
+  standard: {
+    '--hud-surface-bg': 'rgba(8, 12, 20, 0.78)',
+    '--hud-surface-raised-bg': 'rgba(8, 16, 28, 0.95)',
+    '--hud-surface-border': 'rgba(86, 184, 255, 0.28)',
+    '--hud-surface-raised-border': 'rgba(86, 184, 255, 0.35)',
+    '--hud-surface-text': '#f5f7fa',
+    '--hud-surface-muted-text': 'rgba(239, 245, 255, 0.88)',
+    '--hud-surface-heading': 'rgba(196, 228, 255, 0.82)',
+    '--hud-surface-accent': 'rgba(143, 214, 255, 0.75)',
+    '--hud-surface-shadow': '0 20px 48px rgba(3, 9, 18, 0.55)',
+  },
+  high: {
+    '--hud-surface-bg': 'rgba(4, 10, 18, 0.92)',
+    '--hud-surface-raised-bg': 'rgba(10, 18, 30, 0.96)',
+    '--hud-surface-border': 'rgba(214, 238, 255, 0.5)',
+    '--hud-surface-raised-border': 'rgba(174, 238, 255, 0.6)',
+    '--hud-surface-text': '#f5f9ff',
+    '--hud-surface-muted-text': 'rgba(240, 250, 255, 0.9)',
+    '--hud-surface-heading': '#f4fbff',
+    '--hud-surface-accent': 'rgba(174, 238, 255, 0.7)',
+    '--hud-surface-shadow': '0 14px 36px rgba(2, 6, 12, 0.7)',
+  },
+};
+
 type BooleanLike = boolean | undefined;
 
 export interface AccessibilityPresetDefinition {
@@ -218,6 +259,17 @@ function isAccessibilityPresetId(
   );
 }
 
+function applyHudContrastTokens(
+  documentElement: HTMLElement,
+  contrast: ContrastSetting
+) {
+  const tokens = HUD_CONTRAST_TOKENS[contrast] ?? HUD_CONTRAST_TOKENS.standard;
+
+  HUD_CONTRAST_VARIABLE_KEYS.forEach((key) => {
+    documentElement.style.setProperty(key, tokens[key]);
+  });
+}
+
 function parseStoredPayload(
   raw: string | null
 ): AccessibilityPresetStoragePayload {
@@ -347,6 +399,7 @@ export function createAccessibilityPresetManager({
     documentElement.dataset.accessibilityMotionBlur = String(
       resolveMotionBlurIntensity(definition)
     );
+    applyHudContrastTokens(documentElement, definition.contrast);
   };
 
   const applyBloomAndLighting = (definition: AccessibilityPresetDefinition) => {
