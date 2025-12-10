@@ -97,6 +97,7 @@ export function createAudioHudControl({
   toggleButton.type = 'button';
   toggleButton.className = 'audio-toggle';
   toggleButton.setAttribute('aria-pressed', 'false');
+  toggleButton.setAttribute('aria-busy', 'false');
 
   const volumeLabel = document.createElement('label');
   volumeLabel.className = 'audio-volume';
