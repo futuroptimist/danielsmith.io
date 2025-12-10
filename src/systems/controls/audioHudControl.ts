@@ -214,6 +214,7 @@ export function createAudioHudControl({
     toggleButton.textContent = nextLabel;
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
+    toggleButton.setAttribute('aria-busy', pending ? 'true' : 'false');
     wrapper.dataset.pending = pending ? 'true' : 'false';
     wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
     slider.disabled = pending;

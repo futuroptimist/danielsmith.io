@@ -75,6 +75,7 @@ describe('createAudioHudControl', () => {
     expect(slider?.id).toMatch(/^audio-volume-slider-\d+$/);
     expect(wrapper?.getAttribute('aria-label')).toBe(strings.groupLabel);
     expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.getAttribute('aria-busy')).toBe('false');
     expect(label?.textContent).toBe(strings.slider.label);
     expect(button?.title).toBe(
       formatMessage(strings.toggle.titleTemplate, { keyHint })
@@ -94,6 +95,7 @@ describe('createAudioHudControl', () => {
     button?.dispatchEvent(new Event('click'));
     expect(toggleCallCount).toBe(1);
     expect(button?.disabled).toBe(true);
+    expect(button?.getAttribute('aria-busy')).toBe('true');
     expect(wrapper?.getAttribute('aria-busy')).toBe('true');
     expect(slider?.disabled).toBe(true);
     expect(slider?.getAttribute('aria-busy')).toBe('true');
@@ -110,6 +112,7 @@ describe('createAudioHudControl', () => {
 
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
+    expect(button?.getAttribute('aria-busy')).toBe('false');
     expect(wrapper?.getAttribute('aria-busy')).toBe('false');
     expect(slider?.disabled).toBe(false);
     expect(slider?.getAttribute('aria-busy')).toBe('false');
@@ -200,6 +203,7 @@ describe('createAudioHudControl', () => {
     slider?.dispatchEvent(new Event('input'));
     expect(slider?.disabled).toBe(true);
     expect(button?.disabled).toBe(true);
+    expect(button?.getAttribute('aria-busy')).toBe('true');
     expect(wrapper?.dataset.pending).toBe('true');
     expect(slider?.dataset.hudAnnounce).toBe(pendingAnnouncement);
     expect(button?.dataset.hudAnnounce).toBe(pendingAnnouncement);
@@ -211,6 +215,7 @@ describe('createAudioHudControl', () => {
     expect(wrapper?.dataset.pending).toBe('false');
     expect(slider?.disabled).toBe(false);
     expect(button?.disabled).toBe(false);
+    expect(button?.getAttribute('aria-busy')).toBe('false');
     expect(slider?.value).toBe('0.75');
     expect(slider?.dataset.hudAnnounce).toBe(
       formatMessage(strings.slider.valueAnnouncementTemplate, { volume: '75%' })
