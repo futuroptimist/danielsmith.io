@@ -393,7 +393,9 @@ Focus: make the experience inclusive and globally friendly.
 - ✅ High contrast accessibility preset now boosts HUD readability without disabling cinematic
   lighting cues.
 
-- Subtitle/captions system for ambient audio callouts and POI narration.
+- ✅ Subtitle/captions system for ambient audio callouts and POI narration.
+  - Repeated captions now refresh their live region sequence so screen readers re-announce
+    identical lines instead of treating them as stale updates.
   - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
   - ✅ Subtitle queue now sequences overlapping ambient and narration clips so lower-priority
     callouts surface once higher-priority events finish.

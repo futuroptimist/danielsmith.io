@@ -333,4 +333,43 @@ describe('audio subtitles overlay', () => {
     expect(element?.getAttribute('aria-live')).toBe('polite');
     handle.dispose();
   });
+
+  it('forces live region updates even when caption text repeats', () => {
+    const handle = createAudioSubtitles();
+
+    handle.show({
+      id: 'ambient-repeat',
+      text: 'Echoed caption for emphasis.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 1000,
+    });
+
+    const element = document.querySelector(
+      '.audio-subtitles'
+    ) as HTMLElement | null;
+    const caption = element?.querySelector(
+      '.audio-subtitles__caption'
+    ) as HTMLElement | null;
+
+    expect(element?.dataset.announcementSeq).toBeDefined();
+    expect(caption?.textContent).toBe('Echoed caption for emphasis.');
+
+    const firstSequence = element?.dataset.announcementSeq;
+
+    handle.show({
+      id: 'ambient-repeat',
+      text: 'Echoed caption for emphasis.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 1000,
+    });
+
+    const secondSequence = element?.dataset.announcementSeq;
+
+    expect(secondSequence).not.toBe(firstSequence);
+    expect(caption?.textContent).toBe('Echoed caption for emphasis.');
+
+    handle.dispose();
+  });
 });
