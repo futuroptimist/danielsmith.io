@@ -50,6 +50,7 @@ describe('createAccessibilityPresetManager', () => {
     delete document.documentElement.dataset.accessibilityPulseScale;
     delete document.documentElement.dataset.accessibilityFlickerScale;
     delete document.documentElement.dataset.accessibilityMotionBlur;
+    document.documentElement.style.cssText = '';
   };
 
   it('applies stored preset, scales lighting, and adjusts audio', () => {
@@ -273,6 +274,42 @@ describe('createAccessibilityPresetManager', () => {
     expect(ledMaterial.emissiveIntensity).toBeCloseTo(0.92, 5);
     expect(ledLight.intensity).toBeCloseTo(0.99, 5);
     expect(masterVolume).toBeCloseTo(0.7, 5);
+
+    manager.dispose();
+    restoreDataset();
+  });
+
+  it('applies HUD contrast tokens when switching contrast presets', () => {
+    const graphicsManager = createStubGraphicsQualityManager(() => {
+      /* baseline noop */
+    });
+
+    const manager = createAccessibilityPresetManager({
+      documentElement: document.documentElement,
+      graphicsQualityManager: graphicsManager,
+    });
+
+    expect(
+      document.documentElement.style.getPropertyValue('--hud-surface-bg')
+    ).toBe('rgba(8, 12, 20, 0.78)');
+    expect(
+      document.documentElement.style.getPropertyValue('--hud-surface-border')
+    ).toBe('rgba(86, 184, 255, 0.28)');
+
+    manager.setPreset('high-contrast');
+
+    expect(
+      document.documentElement.style.getPropertyValue('--hud-surface-bg')
+    ).toBe('rgba(4, 10, 18, 0.92)');
+    expect(
+      document.documentElement.style.getPropertyValue('--hud-surface-accent')
+    ).toBe('rgba(174, 238, 255, 0.7)');
+
+    manager.setPreset('standard');
+
+    expect(
+      document.documentElement.style.getPropertyValue('--hud-surface-border')
+    ).toBe('rgba(86, 184, 255, 0.28)');
 
     manager.dispose();
     restoreDataset();
