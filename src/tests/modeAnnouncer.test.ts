@@ -86,6 +86,22 @@ describe('createModeAnnouncer', () => {
     announcer.dispose();
   });
 
+  it('increments the announcement sequence when re-announcing identical text', () => {
+    const announcer = createModeAnnouncer({
+      fallbackMessages: { manual: 'Shared announcement' },
+    });
+    const region = announcer.element;
+
+    announcer.announceFallback('manual');
+    const firstSequence = region.dataset.announcementSeq;
+
+    announcer.setMessages({}, { reannounce: true });
+
+    expect(region.dataset.announcementSeq).not.toBe(firstSequence);
+    expect(region.textContent).toBe('Shared announcement');
+    announcer.dispose();
+  });
+
   it('suppresses duplicate fallback announcements while handling updates', async () => {
     const announcer = createModeAnnouncer();
     const region = announcer.element;
