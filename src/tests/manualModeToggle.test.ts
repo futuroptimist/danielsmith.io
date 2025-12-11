@@ -35,17 +35,17 @@ describe('createManualModeToggle', () => {
       getIsFallbackActive: () => fallbackActive,
     });
 
-    expect(handle.element.getAttribute('aria-disabled')).toBe('false');
-    expect(container.getAttribute('aria-disabled')).toBe('false');
+    expect(handle.element.getAttribute('aria-disabled')).toBeNull();
+    expect(container.getAttribute('aria-disabled')).toBeNull();
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Press T to activate.'
     );
     expect(container.dataset.modeToggleState).toBe('idle');
-    expect(container.getAttribute('aria-busy')).toBe('false');
+    expect(container.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.dataset.state).toBe('idle');
     expect(handle.element.textContent).toBe('Text mode · Press T');
     expect(handle.element.getAttribute('aria-pressed')).toBe('false');
-    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(handle.element.getAttribute('aria-busy')).toBeNull();
 
     handle.element.click();
 
@@ -67,13 +67,13 @@ describe('createManualModeToggle', () => {
     expect(handle.element.dataset.state).toBe('active');
     expect(container.dataset.modeToggleState).toBe('active');
     expect(container.getAttribute('aria-disabled')).toBe('true');
-    expect(container.getAttribute('aria-busy')).toBe('false');
+    expect(container.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.textContent).toBe('Text mode active');
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Text mode already active.'
     );
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
-    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(handle.element.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.disabled).toBe(true);
 
     cleanupHandle(handle);
@@ -110,9 +110,9 @@ describe('createManualModeToggle', () => {
     await togglePromise;
     await flushMicrotasks();
 
-    expect(handle.element.getAttribute('aria-busy')).toBe('false');
-    expect(handle.element.getAttribute('aria-disabled')).toBe('false');
-    expect(container.getAttribute('aria-disabled')).toBe('false');
+    expect(handle.element.getAttribute('aria-busy')).toBeNull();
+    expect(handle.element.getAttribute('aria-disabled')).toBeNull();
+    expect(container.getAttribute('aria-disabled')).toBeNull();
     expect(container.dataset.modeToggleState).toBe('idle');
 
     cleanupHandle(handle);
@@ -134,11 +134,11 @@ describe('createManualModeToggle', () => {
       'Text mode already active.'
     );
     expect(container.dataset.modeToggleState).toBe('active');
-    expect(container.getAttribute('aria-busy')).toBe('false');
+    expect(container.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.dataset.state).toBe('active');
     expect(handle.element.textContent).toBe('Text mode active');
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
-    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(handle.element.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.disabled).toBe(true);
 
     handle.element.click();
@@ -171,15 +171,15 @@ describe('createManualModeToggle', () => {
     await flushMicrotasks();
 
     expect(handle.element.disabled).toBe(false);
-    expect(handle.element.getAttribute('aria-disabled')).toBe('false');
-    expect(container.getAttribute('aria-disabled')).toBe('false');
+    expect(handle.element.getAttribute('aria-disabled')).toBeNull();
+    expect(container.getAttribute('aria-disabled')).toBeNull();
     expect(container.dataset.modeToggleState).toBe('idle');
-    expect(container.getAttribute('aria-busy')).toBe('false');
+    expect(container.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.dataset.state).toBe('idle');
     expect(handle.element.dataset.hudAnnounce).toBe(
       'Switch to the text-only portfolio. Press T to activate.'
     );
-    expect(handle.element.getAttribute('aria-busy')).toBe('false');
+    expect(handle.element.getAttribute('aria-busy')).toBeNull();
 
     cleanupHandle(handle);
     container.remove();

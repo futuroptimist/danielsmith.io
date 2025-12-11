@@ -51,8 +51,14 @@ export function createManualModeToggle({
 
   const setDisabledState = (disabled: boolean) => {
     button.disabled = disabled;
-    button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-    container.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    if (disabled) {
+      button.setAttribute('aria-disabled', 'true');
+      container.setAttribute('aria-disabled', 'true');
+      return;
+    }
+
+    button.removeAttribute('aria-disabled');
+    container.removeAttribute('aria-disabled');
   };
 
   const withFallback = (value: string, fallback: string) => {
@@ -97,10 +103,11 @@ export function createManualModeToggle({
     const fallbackActive = getIsFallbackActive();
     const setContainerState = (state: 'idle' | 'pending' | 'active') => {
       container.dataset.modeToggleState = state;
-      container.setAttribute(
-        'aria-busy',
-        state === 'pending' ? 'true' : 'false'
-      );
+      if (state === 'pending') {
+        container.setAttribute('aria-busy', 'true');
+      } else {
+        container.removeAttribute('aria-busy');
+      }
     };
     if (pending) {
       setContainerState('pending');
@@ -124,7 +131,7 @@ export function createManualModeToggle({
       setContainerState('active');
       setDisabledState(true);
       button.dataset.state = 'active';
-      button.setAttribute('aria-busy', 'false');
+      button.removeAttribute('aria-busy');
       button.textContent = withFallback(
         strings.activeLabel,
         DEFAULT_STRINGS.activeLabel
@@ -142,7 +149,7 @@ export function createManualModeToggle({
     setContainerState('idle');
     setDisabledState(false);
     button.dataset.state = 'idle';
-    button.setAttribute('aria-busy', 'false');
+    button.removeAttribute('aria-busy');
     button.textContent = withFallback(
       strings.idleLabel,
       DEFAULT_STRINGS.idleLabel
