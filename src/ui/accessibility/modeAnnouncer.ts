@@ -104,10 +104,13 @@ export function createModeAnnouncer({
   let lastMode: 'immersive' | 'fallback' | null = null;
   let activeFallbackMessages = mergeFallbackMessages(fallbackMessages);
   let activeImmersiveMessage = immersiveMessage;
+  let announcementSequence = 0;
 
   const announce = (message: string) => {
     const normalized = message.trim();
     lastAnnouncement = normalized;
+    announcementSequence += 1;
+    region.dataset.announcementSeq = `${announcementSequence}`;
     region.textContent = '';
     region.textContent = normalized;
   };
