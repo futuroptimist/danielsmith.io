@@ -209,9 +209,7 @@ export function createAudioSubtitles({
     announcementSequence += 1;
     root.dataset.announcementSeq = `${announcementSequence}`;
     captionSequence.textContent =
-      announcementSequence % 2 === 0
-        ? ZERO_WIDTH_SPACE
-        : ZERO_WIDTH_NON_JOINER;
+      announcementSequence % 2 === 0 ? ZERO_WIDTH_SPACE : ZERO_WIDTH_NON_JOINER;
     scheduleHide(message, currentToken);
   };
 
