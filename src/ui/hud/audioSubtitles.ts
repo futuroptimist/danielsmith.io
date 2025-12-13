@@ -205,8 +205,7 @@ export function createAudioSubtitles({
     captionText.textContent = message.text;
     announcementSequence += 1;
     root.dataset.announcementSeq = `${announcementSequence}`;
-    captionSequence.textContent =
-      announcementSequence % 2 === 0 ? '\u200b' : '\u200c';
+    captionSequence.textContent = announcementSequence % 2 === 0 ? '​' : '‌';
     scheduleHide(message, currentToken);
   };
 
