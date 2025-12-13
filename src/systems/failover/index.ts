@@ -262,6 +262,8 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /google-?inspectiontool/i,
   /googleother/i,
   /bingpreview/i,
+  /microsoft\s?teams/i,
+  /\bteams\//i,
   /axios\//i,
   /playwright/i,
   /puppeteer/i,

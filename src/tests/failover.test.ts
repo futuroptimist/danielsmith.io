@@ -345,6 +345,9 @@ describe('evaluateFailoverDecision', () => {
       'redditbot/1.0',
       'Quora Link Preview/1.0',
       'BitlyBot/3.0',
+      'Mozilla/5.0 (Linux; Android 13; SM-S906N) AppleWebKit/537.36 ' +
+        '(KHTML, like Gecko) Teams/1416 Chrome/102.0.5005.148 Mobile Safari/537.36',
+      'ZoominfoBot (http://zoominfo.com)',
     ];
 
     for (const userAgent of userAgents) {
