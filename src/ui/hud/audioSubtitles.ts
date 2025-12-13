@@ -63,6 +63,16 @@ export function createAudioSubtitles({
 
   const caption = documentTarget.createElement('p');
   caption.className = 'audio-subtitles__caption';
+
+  const captionText = documentTarget.createElement('span');
+  captionText.className = 'audio-subtitles__text';
+  caption.appendChild(captionText);
+
+  const captionSequence = documentTarget.createElement('span');
+  captionSequence.className = 'audio-subtitles__sequence';
+  captionSequence.setAttribute('aria-hidden', 'true');
+  caption.appendChild(captionSequence);
+
   root.appendChild(caption);
 
   container.appendChild(root);
@@ -173,7 +183,8 @@ export function createAudioSubtitles({
     currentToken = null;
     root.dataset.visible = 'false';
     applyAriaLive(baseAriaLive);
-    caption.textContent = '';
+    captionText.textContent = '';
+    captionSequence.textContent = '';
     if (advance) {
       void showNextQueued();
     }
@@ -190,10 +201,12 @@ export function createAudioSubtitles({
     }
     label.textContent =
       labels[message.source] ?? DEFAULT_LABELS[message.source];
-    caption.textContent = '';
-    caption.textContent = message.text;
+    captionText.textContent = '';
+    captionText.textContent = message.text;
     announcementSequence += 1;
     root.dataset.announcementSeq = `${announcementSequence}`;
+    captionSequence.textContent =
+      announcementSequence % 2 === 0 ? '\u200b' : '\u200c';
     scheduleHide(message, currentToken);
   };
 

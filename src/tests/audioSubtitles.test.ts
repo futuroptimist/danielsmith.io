@@ -12,6 +12,18 @@ describe('audio subtitles overlay', () => {
     document.body.innerHTML = '';
   });
 
+  const getCaptionText = (): string | null => {
+    const caption = document.querySelector('.audio-subtitles__caption');
+    if (!caption) {
+      return null;
+    }
+    const text = caption.textContent;
+    if (text === null) {
+      return null;
+    }
+    return text.replace(/[\u200b\u200c]/g, '');
+  };
+
   it('shows captions with labels and auto-hides after the configured duration', () => {
     const handle = createAudioSubtitles();
     handle.show({
@@ -28,9 +40,7 @@ describe('audio subtitles overlay', () => {
     expect(element?.querySelector('.audio-subtitles__label')?.textContent).toBe(
       'Ambient audio'
     );
-    expect(
-      element?.querySelector('.audio-subtitles__caption')?.textContent
-    ).toBe('Soft interior hum envelopes the living room.');
+    expect(getCaptionText()).toBe('Soft interior hum envelopes the living room.');
 
     vi.advanceTimersByTime(1199);
     expect(element?.dataset.visible).toBe('true');
@@ -58,8 +68,7 @@ describe('audio subtitles overlay', () => {
       durationMs: 2000,
     });
 
-    let caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe(
+    expect(getCaptionText()).toBe(
       'Flywheel hub spins up with automation prompts.'
     );
 
@@ -73,20 +82,18 @@ describe('audio subtitles overlay', () => {
       durationMs: 2000,
     });
 
-    caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe(
+    expect(getCaptionText()).toBe(
       'Flywheel hub spins up with automation prompts.'
     );
     vi.advanceTimersByTime(1999);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'true'
     );
-    expect(
-      document.querySelector('.audio-subtitles__caption')?.textContent
-    ).toBe('Flywheel hub spins up with automation prompts.');
+    expect(getCaptionText()).toBe(
+      'Flywheel hub spins up with automation prompts.'
+    );
     vi.advanceTimersByTime(1);
-    caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe(
+    expect(getCaptionText()).toBe(
       'Interior hum lingers in the background.'
     );
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
@@ -140,13 +147,13 @@ describe('audio subtitles overlay', () => {
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'true'
     );
-    expect(
-      document.querySelector('.audio-subtitles__caption')?.textContent
-    ).toBe('Second ambient cue');
+    expect(getCaptionText()).toBe(
+      'Second ambient cue'
+    );
     vi.advanceTimersByTime(1);
-    expect(
-      document.querySelector('.audio-subtitles__caption')?.textContent
-    ).toBe('First ambient cue');
+    expect(getCaptionText()).toBe(
+      'First ambient cue'
+    );
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'true'
     );
@@ -175,12 +182,10 @@ describe('audio subtitles overlay', () => {
       durationMs: 800,
     });
 
-    let caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe('Ambient baseline cushions the room.');
+    expect(getCaptionText()).toBe('Ambient baseline cushions the room.');
 
     vi.advanceTimersByTime(1000);
-    caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe(
+    expect(getCaptionText()).toBe(
       'Flywheel hub spins with narrated highlights.'
     );
 
@@ -211,14 +216,12 @@ describe('audio subtitles overlay', () => {
       durationMs: 600,
     });
 
-    let caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe(
+    expect(getCaptionText()).toBe(
       'Narration cuts through with project stats.'
     );
 
     vi.advanceTimersByTime(600);
-    caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe('Ambient hum steadies the space.');
+    expect(getCaptionText()).toBe('Ambient hum steadies the space.');
 
     vi.advanceTimersByTime(1200);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
@@ -253,12 +256,10 @@ describe('audio subtitles overlay', () => {
       durationMs: 700,
     });
 
-    let caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe('Narration takes the stage.');
+    expect(getCaptionText()).toBe('Narration takes the stage.');
 
     vi.advanceTimersByTime(500);
-    caption = document.querySelector('.audio-subtitles__caption');
-    expect(caption?.textContent).toBe('Updated ambient copy after narration.');
+    expect(getCaptionText()).toBe('Updated ambient copy after narration.');
 
     vi.advanceTimersByTime(700);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
@@ -348,12 +349,13 @@ describe('audio subtitles overlay', () => {
     const element = document.querySelector(
       '.audio-subtitles'
     ) as HTMLElement | null;
-    const caption = element?.querySelector(
-      '.audio-subtitles__caption'
+    const sequence = element?.querySelector(
+      '.audio-subtitles__sequence'
     ) as HTMLElement | null;
 
     expect(element?.dataset.announcementSeq).toBeDefined();
-    expect(caption?.textContent).toBe('Echoed caption for emphasis.');
+    expect(getCaptionText()).toBe('Echoed caption for emphasis.');
+    expect(sequence?.textContent).toBe('\u200c');
 
     const firstSequence = element?.dataset.announcementSeq;
 
@@ -368,7 +370,8 @@ describe('audio subtitles overlay', () => {
     const secondSequence = element?.dataset.announcementSeq;
 
     expect(secondSequence).not.toBe(firstSequence);
-    expect(caption?.textContent).toBe('Echoed caption for emphasis.');
+    expect(getCaptionText()).toBe('Echoed caption for emphasis.');
+    expect(sequence?.textContent).toBe('\u200b');
 
     handle.dispose();
   });

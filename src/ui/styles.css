@@ -498,6 +498,17 @@ canvas {
   color: rgba(230, 243, 255, 0.95);
 }
 
+.audio-subtitles__text {
+  display: inline;
+}
+
+.audio-subtitles__sequence {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 html[data-hudLayout='mobile'] .audio-subtitles {
   bottom: 6.5rem;
   padding: 0.85rem 1.05rem;
