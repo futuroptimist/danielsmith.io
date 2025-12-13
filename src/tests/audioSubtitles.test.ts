@@ -2,6 +2,9 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 import { createAudioSubtitles } from '../ui/hud/audioSubtitles';
 
+const ZERO_WIDTH_SPACE = '\u200b';
+const ZERO_WIDTH_NON_JOINER = '\u200c';
+
 describe('audio subtitles overlay', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -21,7 +24,10 @@ describe('audio subtitles overlay', () => {
     if (text === null) {
       return null;
     }
-    return text.replace(/[\u200b\u200c]/g, '');
+    return text.replace(
+      new RegExp(`[${ZERO_WIDTH_SPACE}${ZERO_WIDTH_NON_JOINER}]`, 'g'),
+      ''
+    );
   };
 
   it('shows captions with labels and auto-hides after the configured duration', () => {
@@ -355,7 +361,7 @@ describe('audio subtitles overlay', () => {
 
     expect(element?.dataset.announcementSeq).toBeDefined();
     expect(getCaptionText()).toBe('Echoed caption for emphasis.');
-    expect(sequence?.textContent).toBe('\u200c');
+    expect(sequence?.textContent).toBe(ZERO_WIDTH_NON_JOINER);
 
     const firstSequence = element?.dataset.announcementSeq;
 
@@ -371,7 +377,7 @@ describe('audio subtitles overlay', () => {
 
     expect(secondSequence).not.toBe(firstSequence);
     expect(getCaptionText()).toBe('Echoed caption for emphasis.');
-    expect(sequence?.textContent).toBe('\u200b');
+    expect(sequence?.textContent).toBe(ZERO_WIDTH_SPACE);
 
     handle.dispose();
   });

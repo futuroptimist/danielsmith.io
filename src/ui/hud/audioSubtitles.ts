@@ -35,6 +35,9 @@ const DEFAULT_DURATION_MS = 5000;
 
 const DEFAULT_ASSERTIVE_PRIORITY_THRESHOLD = 5;
 
+const ZERO_WIDTH_SPACE = '\u200b';
+const ZERO_WIDTH_NON_JOINER = '\u200c';
+
 interface NormalizedAudioSubtitleMessage extends AudioSubtitleMessage {
   priority: number;
 }
@@ -205,7 +208,10 @@ export function createAudioSubtitles({
     captionText.textContent = message.text;
     announcementSequence += 1;
     root.dataset.announcementSeq = `${announcementSequence}`;
-    captionSequence.textContent = announcementSequence % 2 === 0 ? '​' : '‌';
+    captionSequence.textContent =
+      announcementSequence % 2 === 0
+        ? ZERO_WIDTH_SPACE
+        : ZERO_WIDTH_NON_JOINER;
     scheduleHide(message, currentToken);
   };
 
