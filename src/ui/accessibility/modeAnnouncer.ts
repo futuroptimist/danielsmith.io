@@ -3,7 +3,7 @@ import type { FallbackReason } from '../../types/failover';
 export interface ModeAnnouncer {
   readonly element: HTMLElement;
   announceImmersiveReady(): void;
-  announceFallback(reason: FallbackReason): void;
+  announceFallback(reason: FallbackReason, options?: { force?: boolean }): void;
   setMessages(
     messages: Partial<{
       immersiveReady: string;
@@ -122,12 +122,16 @@ export function createModeAnnouncer({
       lastMode = 'immersive';
       announce(activeImmersiveMessage);
     },
-    announceFallback(reason) {
+    announceFallback(reason, options) {
       const resolved =
         activeFallbackMessages[reason] ??
         DEFAULT_FALLBACK_MESSAGES[reason] ??
         DEFAULT_FALLBACK_MESSAGES.manual;
-      if (lastReason === reason && lastAnnouncement === resolved.trim()) {
+      if (
+        !options?.force &&
+        lastReason === reason &&
+        lastAnnouncement === resolved.trim()
+      ) {
         return;
       }
       lastReason = reason;
@@ -218,7 +222,7 @@ const syncDocumentFallbackReason = (
 
 function handleModeChange(
   documentTarget: Document,
-  options?: { skipFallbackSync?: boolean }
+  options?: { skipFallbackSync?: boolean; forceReannounce?: boolean }
 ): void {
   const mode = resolveActiveMode(documentTarget);
   if (!mode) {
@@ -230,7 +234,7 @@ function handleModeChange(
     if (!options?.skipFallbackSync) {
       syncDocumentFallbackReason(documentTarget, reason);
     }
-    announcer.announceFallback(reason);
+    announcer.announceFallback(reason, { force: options?.forceReannounce });
   } else if (mode === 'immersive') {
     announcer.announceImmersiveReady();
   }
@@ -255,7 +259,10 @@ export function initializeModeAnnouncementObserver(
     return;
   }
 
-  const triggerAnnouncement = (options?: { skipFallbackSync?: boolean }) => {
+  const triggerAnnouncement = (options?: {
+    skipFallbackSync?: boolean;
+    forceReannounce?: boolean;
+  }) => {
     handleModeChange(documentTarget, options);
   };
 
@@ -367,6 +374,14 @@ export function initializeModeAnnouncementObserver(
 
         if (addedFallback && hasValidFallbackReasonUpdate) {
           triggerAnnouncement({ skipFallbackSync: true });
+          return;
+        }
+
+        if (addedFallback) {
+          triggerAnnouncement({
+            skipFallbackSync: true,
+            forceReannounce: true,
+          });
           return;
         }
       }

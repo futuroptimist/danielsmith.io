@@ -362,6 +362,40 @@ describe('initializeModeAnnouncementObserver', () => {
     );
   });
 
+  it('refreshes announcements when the fallback view re-renders with the same reason', async () => {
+    initializeModeAnnouncementObserver();
+
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: '/immersive',
+    });
+    document.documentElement.dataset.appMode = 'fallback';
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    const initialSequence = region?.dataset.announcementSeq;
+
+    container.innerHTML = '';
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: '/immersive',
+    });
+
+    await flushObserver();
+
+    expect(region?.dataset.announcementSeq).not.toBe(initialSequence);
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons.manual
+    );
+  });
+
   it('defaults to manual announcements when fallback reasons are cleared', async () => {
     initializeModeAnnouncementObserver();
 
