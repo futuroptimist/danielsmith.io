@@ -264,22 +264,26 @@ Focus: unify user controls and ensure graceful fallback experiences.
      refreshes the interact prompt copy so players always see the relevant control hint.
    - ✅ Contextual interact prompts now pull localized action copy into the HUD legend and
      on-screen controls so exhibits advertise the right verb (inspect vs activate).
-   - ✅ Movement legend now updates HUD screen reader announcements whenever interact prompts
-     change, keeping keyboard and assistive tech guidance aligned with on-screen cues.
-   - ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
-     accessibility tips, and failover guidance.
-   - ✅ Help modal open and close events now announce their state to screen readers so
-     keyboard visitors know when the panel is active.
-   - ✅ Help modal controller now suppresses duplicate announcements and restores HUD
-     visibility if an open attempt fails, preventing repeated screen reader chatter and
-     keeping the settings stack in sync with modal state.
-   - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
-     that soften bloom, ease emissives, duck ambient audio, and boost HUD contrast.
-     - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes
-       that retune bloom, LED lighting, and pixel ratio for their device.
-   - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
-   - ✅ Mobile HUD layout now lifts instructional overlays above the joystick
-     safe zone so touch movement remains unobstructed.
+
+- ✅ Movement legend now updates HUD screen reader announcements whenever interact prompts
+  change, keeping keyboard and assistive tech guidance aligned with on-screen cues.
+- ✅ Gamepad monitor now pauses its polling loop when the tab is hidden to conserve CPU
+  without dropping controller readiness when visitors return.
+- ✅ Help modal opens from the HUD button or `H`/`?` hotkeys and surfaces controls,
+  accessibility tips, and failover guidance.
+- ✅ Help modal open and close events now announce their state to screen readers so
+  keyboard visitors know when the panel is active.
+- ✅ Help modal controller now suppresses duplicate announcements and restores HUD
+  visibility if an open attempt fails, preventing repeated screen reader chatter and
+  keeping the settings stack in sync with modal state.
+- ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
+  that soften bloom, ease emissives, duck ambient audio, and boost HUD contrast.
+  - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes
+    that retune bloom, LED lighting, and pixel ratio for their device.
+- ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
+- ✅ Mobile HUD layout now lifts instructional overlays above the joystick
+  safe zone so touch movement remains unobstructed.
+
 2. **Experience Toggle**
    - ✅ Mode switch between immersive 3D view and a fast-loading text portfolio.
      - Text portfolio now mirrors every exhibit with summaries, outcomes, metrics, and links grouped by room.

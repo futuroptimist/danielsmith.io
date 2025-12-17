@@ -249,9 +249,21 @@ const createGamepadMonitor = (
   const cancel = windowTarget.cancelAnimationFrame?.bind(windowTarget);
   let disposed = false;
   let rafId: number | null = null;
+  const documentTarget = windowTarget.document;
+
+  const isVisible = () =>
+    !documentTarget || documentTarget.visibilityState !== 'hidden';
+
+  const stop = () => {
+    if (rafId !== null && typeof cancel === 'function') {
+      cancel(rafId);
+    }
+    rafId = null;
+  };
 
   const tick = () => {
-    if (disposed) {
+    if (disposed || !isVisible()) {
+      stop();
       return;
     }
     const pads = readGamepads();
@@ -261,12 +273,35 @@ const createGamepadMonitor = (
     rafId = request(tick);
   };
 
-  rafId = request(tick);
+  const start = () => {
+    if (rafId !== null || disposed || !isVisible()) {
+      return;
+    }
+    rafId = request(tick);
+  };
+
+  const visibilityListener = () => {
+    if (!isVisible()) {
+      stop();
+      return;
+    }
+    start();
+  };
+
+  if (documentTarget?.addEventListener) {
+    documentTarget.addEventListener('visibilitychange', visibilityListener);
+  }
+
+  start();
 
   return () => {
     disposed = true;
-    if (rafId !== null && typeof cancel === 'function') {
-      cancel(rafId);
+    stop();
+    if (documentTarget?.removeEventListener) {
+      documentTarget.removeEventListener(
+        'visibilitychange',
+        visibilityListener
+      );
     }
   };
 };
