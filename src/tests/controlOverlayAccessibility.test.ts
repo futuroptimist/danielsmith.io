@@ -46,7 +46,9 @@ describe('applyControlOverlayAccessibility', () => {
     );
     expect(helpButton.getAttribute('aria-haspopup')).toBe('dialog');
     expect(helpButton.id).toBe('control-overlay-help');
-    expect(container.getAttribute('aria-describedby')).toBe('control-overlay-help');
+    expect(container.getAttribute('aria-describedby')).toBe(
+      'control-overlay-help'
+    );
     expect(document.activeElement).toBe(preFocused);
   });
 

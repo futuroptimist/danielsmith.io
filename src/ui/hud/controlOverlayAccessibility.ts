@@ -16,7 +16,10 @@ const ensureHeadingId = (heading: HTMLElement, fallbackId: string) => {
   return heading.id;
 };
 
-const ensureHelpButtonId = (helpButton: HTMLButtonElement, fallbackId: string) => {
+const ensureHelpButtonId = (
+  helpButton: HTMLButtonElement,
+  fallbackId: string
+) => {
   if (!helpButton.id) {
     helpButton.id = fallbackId;
   }
