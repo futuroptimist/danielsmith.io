@@ -4,7 +4,11 @@ import {
   describePerformanceBudgetUsage,
   type PerformanceBudgetUsage,
 } from '../assets/performance';
-import { buildPressKitSummary } from '../tools/pressKit';
+import {
+  buildPressKitSummary,
+  describeHeadroomStatus,
+  formatRemainingPercentLabel,
+} from '../tools/pressKit';
 
 const formatUsage = (usage: PerformanceBudgetUsage, unitLabel?: string) =>
   describePerformanceBudgetUsage(usage, {
@@ -23,6 +27,12 @@ describe('press kit summary', () => {
     );
     expect(summary.performance.headroom.drawCalls.label).toMatch(/used/i);
     expect(summary.performance.headroom.textureBytes.label).toContain('%');
+    expect(summary.performance.headroom.materials.statusLabel).toBe(
+      'Within budget'
+    );
+    expect(
+      summary.performance.headroom.textureBytes.remainingPercentLabel
+    ).toMatch(/% remaining$/);
   });
 });
 
@@ -84,5 +94,50 @@ describe('formatHeadroomLabel', () => {
     expect(label).toBe(
       'Invalid measurements – refresh the performance snapshot.'
     );
+  });
+});
+
+describe('describeHeadroomStatus', () => {
+  const usage: PerformanceBudgetUsage = {
+    used: 0,
+    limit: 0,
+    remaining: 0,
+    overBudgetBy: 0,
+    percentUsed: 0,
+    remainingPercent: 0,
+    status: 'within-budget',
+    hasInvalidMeasurements: false,
+  };
+
+  it('returns within-budget labels by default', () => {
+    expect(describeHeadroomStatus(usage)).toBe('Within budget');
+  });
+
+  it('flags over-budget usage', () => {
+    expect(
+      describeHeadroomStatus({
+        ...usage,
+        status: 'over-budget',
+        overBudgetBy: 1,
+      })
+    ).toBe('Over budget');
+  });
+
+  it('reports invalid measurements when telemetry is missing', () => {
+    expect(
+      describeHeadroomStatus({
+        ...usage,
+        hasInvalidMeasurements: true,
+        status: 'invalid',
+      })
+    ).toBe('Invalid measurements');
+  });
+});
+
+describe('formatRemainingPercentLabel', () => {
+  it('clamps and rounds remaining percentages', () => {
+    expect(formatRemainingPercentLabel(0.284)).toBe('28% remaining');
+    expect(formatRemainingPercentLabel(1.8)).toBe('100% remaining');
+    expect(formatRemainingPercentLabel(-0.5)).toBe('0% remaining');
   });
 });

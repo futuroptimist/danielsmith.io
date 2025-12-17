@@ -36,7 +36,8 @@ captures; keep artifacts in `docs/metrics/`.
     materials, draw calls, and texture memory so marketing snapshots surface remaining
     capacity alongside the baseline metrics.
     - Headroom entries now label whether metrics sit within budget, over budget, or invalid and
-      surface remaining percentages for quick press reviews.
+      surface remaining percentages for quick press reviews, exposing status and remaining labels
+      directly in the press kit export.
 - **Accessibility gates** – axe CI reports 0 critical violations; full keyboard/touch parity;
   HUD controls expose ARIA labels and 48 px touch targets.
 - **Stability** – smoke build succeeds; console error budget stays at 0; Sentry (or console

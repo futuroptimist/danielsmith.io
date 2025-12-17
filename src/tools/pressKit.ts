@@ -66,6 +66,8 @@ export interface PressKitPerformanceHeadroomEntry {
   overBudgetBy: number;
   status: PerformanceBudgetStatus;
   label: string;
+  statusLabel: string;
+  remainingPercentLabel: string;
 }
 
 export interface PressKitPerformanceSummary {
@@ -95,6 +97,23 @@ export interface BuildPressKitSummaryOptions {
   now?: () => Date;
 }
 
+export const describeHeadroomStatus = (
+  usage: PerformanceBudgetUsage
+): string => {
+  if (usage.hasInvalidMeasurements) {
+    return 'Invalid measurements';
+  }
+  if (usage.status === 'over-budget') {
+    return 'Over budget';
+  }
+  return 'Within budget';
+};
+
+export const formatRemainingPercentLabel = (value: number): string => {
+  const remainingPercent = Math.min(1, Math.max(0, value));
+  return `${Math.round(remainingPercent * 100)}% remaining`;
+};
+
 const getRoomName = (roomId: string): string => {
   const room = FLOOR_PLAN.rooms.find((entry) => entry.id === roomId);
   return room?.name ?? roomId;
@@ -121,13 +140,17 @@ const createPerformanceHeadroom = (
   labelOptions?: Parameters<typeof describePerformanceBudgetUsage>[1]
 ): PressKitPerformanceHeadroomEntry => {
   const percentUsed = Math.min(1, Math.max(0, usage.percentUsed));
+  const remainingPercent = Math.min(1, Math.max(0, usage.remainingPercent));
+  const statusLabel = describeHeadroomStatus(usage);
   return {
     remaining: usage.remaining,
     percentUsed,
-    remainingPercent: usage.remainingPercent,
+    remainingPercent,
     overBudgetBy: usage.overBudgetBy,
     status: usage.status,
     label: describePerformanceBudgetUsage(usage, labelOptions),
+    statusLabel,
+    remainingPercentLabel: formatRemainingPercentLabel(remainingPercent),
   };
 };
 
