@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createMovementLegend } from '../ui/hud/movementLegend';
 
@@ -121,6 +121,95 @@ class GamepadStubWindow extends EventTarget {
       callback(id);
     });
   }
+}
+
+function createVisibilityMockWindow() {
+  let scheduled: FrameRequestCallback | null = null;
+  let activeId: number | null = null;
+  let nextId = 1;
+  let visibility: Document['visibilityState'] = 'visible';
+  let gamepads: Array<{ connected: boolean; buttons: [{ pressed: boolean }] }> =
+    [{ connected: true, buttons: [{ pressed: true }] }];
+
+  const visibilityListeners = new Set<EventListener>();
+  const listenerMap = new Map<
+    EventListenerOrEventListenerObject,
+    EventListener
+  >();
+
+  const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
+    scheduled = callback;
+    activeId = nextId;
+    nextId += 1;
+    return activeId;
+  });
+
+  const cancelAnimationFrame = vi.fn((id: number) => {
+    if (id === activeId) {
+      scheduled = null;
+      activeId = null;
+    }
+  });
+
+  const documentTarget: Document = {
+    get visibilityState() {
+      return visibility;
+    },
+    addEventListener: (_type, listener) => {
+      const normalized =
+        typeof listener === 'function'
+          ? listener
+          : listener.handleEvent.bind(listener);
+      listenerMap.set(listener, normalized);
+      visibilityListeners.add(normalized);
+    },
+    removeEventListener: (_type, listener) => {
+      const normalized = listenerMap.get(listener);
+      if (normalized) {
+        visibilityListeners.delete(normalized);
+        listenerMap.delete(listener);
+      }
+    },
+  } as Document;
+
+  const triggerFrame = () => {
+    const callback = scheduled;
+    if (!callback) {
+      return;
+    }
+    scheduled = null;
+    callback(0);
+  };
+
+  const setVisibility = (state: Document['visibilityState']) => {
+    visibility = state;
+    visibilityListeners.forEach((listener) =>
+      listener(new Event('visibility'))
+    );
+  };
+
+  const windowTarget: Window = {
+    navigator: {
+      getGamepads: () => gamepads,
+    } as Navigator,
+    document: documentTarget,
+    requestAnimationFrame,
+    cancelAnimationFrame,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  } as unknown as Window;
+
+  return {
+    windowTarget,
+    requestAnimationFrame,
+    cancelAnimationFrame,
+    triggerFrame,
+    setVisibility,
+    setGamepads: (next: typeof gamepads) => {
+      gamepads = next;
+    },
+    hasScheduledFrame: () => scheduled !== null,
+  };
 }
 
 describe('createMovementLegend', () => {
@@ -326,6 +415,38 @@ describe('createMovementLegend', () => {
     expect(legend.getActiveMethod()).toBe('pointer');
 
     legend.dispose();
+  });
+
+  it('pauses gamepad polling when the tab is hidden and resumes on show', () => {
+    const container = createOverlayContainer();
+    const mockWindow = createVisibilityMockWindow();
+
+    const legend = createMovementLegend({
+      container,
+      windowTarget: mockWindow.windowTarget,
+    });
+
+    const initialCalls = mockWindow.requestAnimationFrame.mock.calls.length;
+    mockWindow.triggerFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
+
+    mockWindow.setVisibility('hidden');
+    expect(mockWindow.cancelAnimationFrame).toHaveBeenCalled();
+    expect(mockWindow.hasScheduledFrame()).toBe(false);
+
+    mockWindow.setGamepads([{ connected: true, buttons: [{ pressed: true }] }]);
+    mockWindow.setVisibility('visible');
+    expect(mockWindow.requestAnimationFrame.mock.calls.length).toBeGreaterThan(
+      initialCalls
+    );
+    expect(mockWindow.hasScheduledFrame()).toBe(true);
+
+    mockWindow.triggerFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
+
+    legend.dispose();
+    expect(mockWindow.cancelAnimationFrame).toHaveBeenCalled();
+    container.remove();
   });
 
   it('cleans up listeners and restores defaults on dispose', () => {
