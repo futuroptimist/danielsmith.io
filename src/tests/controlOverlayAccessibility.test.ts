@@ -66,7 +66,9 @@ describe('applyControlOverlayAccessibility', () => {
     });
 
     const describedBy = container.getAttribute('aria-describedby');
-    expect(describedBy?.split(/\s+/)).toEqual(
+    const describedByIds = describedBy?.split(/\s+/) ?? [];
+    expect(describedByIds).toHaveLength(2);
+    expect(describedByIds).toEqual(
       expect.arrayContaining(['existing-id', 'custom-help'])
     );
   });
