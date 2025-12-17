@@ -28,6 +28,7 @@ describe('applyControlOverlayAccessibility', () => {
     document.body.appendChild(container);
     const heading = document.createElement('p');
     const helpButton = document.createElement('button');
+    helpButton.textContent = 'Help';
     const preFocused = document.createElement('button');
     document.body.append(preFocused);
     preFocused.focus();
@@ -44,7 +45,30 @@ describe('applyControlOverlayAccessibility', () => {
       'control-overlay-heading'
     );
     expect(helpButton.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(helpButton.id).toBe('control-overlay-help');
+    expect(container.getAttribute('aria-describedby')).toBe('control-overlay-help');
     expect(document.activeElement).toBe(preFocused);
+  });
+
+  it('appends the help button id to existing aria-describedby content', () => {
+    const container = document.createElement('div');
+    container.setAttribute('aria-describedby', 'existing-id');
+    const heading = document.createElement('p');
+    const helpButton = document.createElement('button');
+    helpButton.id = 'custom-help';
+
+    applyControlOverlayAccessibility({
+      container,
+      heading,
+      helpButton,
+      documentTarget: document,
+      focusOnInit: false,
+    });
+
+    const describedBy = container.getAttribute('aria-describedby');
+    expect(describedBy?.split(/\s+/)).toEqual(
+      expect.arrayContaining(['existing-id', 'custom-help'])
+    );
   });
 
   it('focuses the overlay when no other target is active', () => {
