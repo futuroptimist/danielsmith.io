@@ -281,6 +281,9 @@ const createGamepadMonitor = (
   };
 
   const visibilityListener = () => {
+    if (disposed) {
+      return;
+    }
     if (!isVisible()) {
       stop();
       return;
