@@ -66,6 +66,9 @@ const splitSearch = (value: string): { base: string; search: string } => {
   };
 };
 
+const normalizeBasePath = (base: string): string =>
+  base && base.length > 0 ? base : '/';
+
 const normalizeUrlParts = (input: UrlLike): UrlParts => {
   if (input instanceof URL) {
     return {
@@ -77,10 +80,10 @@ const normalizeUrlParts = (input: UrlLike): UrlParts => {
   if (typeof input === 'string') {
     const { withoutHash, hash } = splitHash(input);
     const { base, search } = splitSearch(withoutHash);
-    return { base, search, hash };
+    return { base: normalizeBasePath(base), search, hash };
   }
   const { pathname, search, hash } = normalizeLocation(input);
-  const base = pathname && pathname.length > 0 ? pathname : '/';
+  const base = normalizeBasePath(pathname);
   return { base, search, hash };
 };
 
