@@ -66,11 +66,10 @@ describe('applyControlOverlayAccessibility', () => {
     });
 
     const describedBy = container.getAttribute('aria-describedby');
-    const describedByIds = describedBy?.split(/\s+/) ?? [];
-    expect(describedByIds).toHaveLength(2);
-    expect(describedByIds).toEqual(
-      expect.arrayContaining(['existing-id', 'custom-help'])
-    );
+    const describedByIds = describedBy?.split(/\s+/).filter(Boolean) ?? [];
+    const expectedIds = ['custom-help', 'existing-id'];
+    expect(describedByIds).toHaveLength(expectedIds.length);
+    expect([...describedByIds].sort()).toEqual(expectedIds.sort());
   });
 
   it('focuses the overlay when no other target is active', () => {
