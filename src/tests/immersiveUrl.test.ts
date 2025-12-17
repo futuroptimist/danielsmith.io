@@ -77,6 +77,13 @@ describe('createImmersiveModeUrl', () => {
     );
   });
 
+  it('adds a base path when only search and hash fragments are provided', () => {
+    const url = createImmersiveModeUrl('?foo=bar#scene');
+    expect(url).toBe(
+      '/?foo=bar&mode=immersive&disablePerformanceFailover=1#scene'
+    );
+  });
+
   it('accepts URL instances and preserves origin, path, search, and hash', () => {
     const url = createImmersiveModeUrl(
       new URL('https://example.com/demo/scene?foo=bar#view'),
@@ -117,6 +124,11 @@ describe('createTextModeUrl', () => {
   it('appends query separator when canonical URL lacks params', () => {
     const url = createTextModeUrl('https://example.com/app/');
     expect(url).toBe('https://example.com/app/?mode=text');
+  });
+
+  it('defaults to a root path when only search and hash are provided', () => {
+    const url = createTextModeUrl('?feature=promo#hero');
+    expect(url).toBe('/?feature=promo&mode=text#hero');
   });
 
   it('falls back to root path when pathname is empty', () => {
