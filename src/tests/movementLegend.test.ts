@@ -132,7 +132,10 @@ function createVisibilityMockWindow() {
     [{ connected: true, buttons: [{ pressed: true }] }];
 
   const visibilityListeners = new Set<EventListener>();
-  const listenerMap = new Map<EventListenerOrEventListenerObject, EventListener>();
+  const listenerMap = new Map<
+    EventListenerOrEventListenerObject,
+    EventListener
+  >();
 
   const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
     scheduled = callback;
@@ -180,7 +183,9 @@ function createVisibilityMockWindow() {
 
   const setVisibility = (state: Document['visibilityState']) => {
     visibility = state;
-    visibilityListeners.forEach((listener) => listener(new Event('visibility')));
+    visibilityListeners.forEach((listener) =>
+      listener(new Event('visibility'))
+    );
   };
 
   const windowTarget: Window = {
