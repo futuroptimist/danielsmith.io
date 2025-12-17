@@ -100,10 +100,10 @@ export interface BuildPressKitSummaryOptions {
 export const describeHeadroomStatus = (
   usage: PerformanceBudgetUsage
 ): string => {
-  if (usage.hasInvalidMeasurements) {
+  if (usage.hasInvalidMeasurements || usage.status === 'invalid') {
     return 'Invalid measurements';
   }
-  if (usage.status === 'over-budget') {
+  if (usage.status === 'over-budget' && usage.overBudgetBy > 0) {
     return 'Over budget';
   }
   return 'Within budget';

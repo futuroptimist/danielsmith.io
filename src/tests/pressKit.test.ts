@@ -127,10 +127,29 @@ describe('describeHeadroomStatus', () => {
     expect(
       describeHeadroomStatus({
         ...usage,
-        hasInvalidMeasurements: true,
         status: 'invalid',
       })
     ).toBe('Invalid measurements');
+  });
+
+  it('treats invalid measurement flags as invalid regardless of status', () => {
+    expect(
+      describeHeadroomStatus({
+        ...usage,
+        hasInvalidMeasurements: true,
+        status: 'within-budget',
+      })
+    ).toBe('Invalid measurements');
+  });
+
+  it('treats inconsistent over-budget states as within budget defensively', () => {
+    expect(
+      describeHeadroomStatus({
+        ...usage,
+        status: 'over-budget',
+        overBudgetBy: 0,
+      })
+    ).toBe('Within budget');
   });
 });
 
