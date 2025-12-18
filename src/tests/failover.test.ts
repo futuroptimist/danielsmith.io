@@ -237,6 +237,38 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes low-downlink connections to text mode when mode is not forced', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ downlink: 0.5 }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
+  it('honors performance bypass for low-downlink heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: '?disablePerformanceFailover=1',
+      getNetworkInformation: () => ({ downlink: 0.25 }),
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('respects custom downlink thresholds', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      minimumDownlinkMbps: 0.25,
+      getNetworkInformation: () => ({ downlink: 0.4 }),
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('allows immersive override when memory is low but WebGL works', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
