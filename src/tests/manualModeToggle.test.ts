@@ -247,6 +247,44 @@ describe('createManualModeToggle', () => {
     container.remove();
   });
 
+  it('retries via keyboard from the error state', async () => {
+    const container = createContainer();
+    let fallbackActive = false;
+    const onToggle = vi
+      .fn()
+      .mockImplementationOnce(() => Promise.reject(new Error('fail')))
+      .mockImplementationOnce(() => {
+        fallbackActive = true;
+      });
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => fallbackActive,
+    });
+
+    handle.element.click();
+    const rejectedToggle = onToggle.mock.results[0]?.value as
+      | Promise<void>
+      | undefined;
+    await expect(rejectedToggle).rejects.toThrow('fail');
+    await flushMicrotasks();
+
+    expect(container.dataset.modeToggleState).toBe('error');
+    expect(handle.element.dataset.state).toBe('error');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+    await flushMicrotasks();
+
+    expect(onToggle).toHaveBeenCalledTimes(2);
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
+
+    cleanupHandle(handle);
+    container.remove();
+  });
+
   it('updates localized copy and key hint when strings change', () => {
     const container = createContainer();
     const onToggle = vi.fn();
