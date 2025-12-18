@@ -67,15 +67,36 @@ export function createLocaleToggleControl({
   wrapper.append(heading, descriptionParagraph, optionsList, status);
   container.appendChild(wrapper);
 
+  const setStatusMessage = (message: string) => {
+    status.textContent = message;
+  };
+
   const buttons = new Map<Locale, HTMLButtonElement>();
   let pending = false;
 
-  const setPending = (value: boolean) => {
+  const setPendingAttributes = (value: boolean) => {
+    const pendingValue = value ? 'true' : 'false';
     pending = value;
-    wrapper.dataset.pending = value ? 'true' : 'false';
+    wrapper.dataset.pending = pendingValue;
+    wrapper.setAttribute('aria-busy', pendingValue);
     buttons.forEach((button) => {
       button.disabled = value;
+      button.setAttribute('aria-busy', pendingValue);
     });
+  };
+
+  const getLocaleLabel = (locale: Locale) =>
+    buttons.get(locale)?.textContent ?? locale;
+
+  const setPending = (value: boolean) => {
+    setPendingAttributes(value);
+  };
+
+  const announceFailure = (targetLabel: string) => {
+    const currentLabel = getLocaleLabel(getActiveLocale());
+    setStatusMessage(
+      `Unable to switch to ${targetLabel}. Staying on ${currentLabel} locale.`
+    );
   };
 
   const updateActiveState = () => {
@@ -85,7 +106,7 @@ export function createLocaleToggleControl({
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       button.dataset.state = isActive ? 'active' : 'idle';
       if (isActive) {
-        status.textContent = `${button.textContent} locale selected.`;
+        setStatusMessage(`${button.textContent} locale selected.`);
       }
     });
   };
@@ -99,6 +120,8 @@ export function createLocaleToggleControl({
       updateActiveState();
       return;
     }
+    const pendingLabel = getLocaleLabel(locale);
+    setStatusMessage(`Switching to ${pendingLabel} locale…`);
     setPending(true);
     try {
       const result = setActiveLocale(locale);
@@ -112,6 +135,7 @@ export function createLocaleToggleControl({
             console.warn('Failed to change locale', error);
             setPending(false);
             updateActiveState();
+            announceFailure(pendingLabel);
           });
       } else {
         setPending(false);
@@ -121,6 +145,7 @@ export function createLocaleToggleControl({
       console.warn('Failed to change locale', error);
       setPending(false);
       updateActiveState();
+      announceFailure(pendingLabel);
     }
   };
 
