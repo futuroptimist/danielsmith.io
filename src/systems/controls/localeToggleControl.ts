@@ -88,6 +88,9 @@ export function createLocaleToggleControl({
   const getLocaleLabel = (locale: Locale) =>
     buttons.get(locale)?.textContent ?? locale;
 
+  // Wrapper kept as the public "pending state" API for this control.
+  // If pending behavior needs to change, update logic in setPendingAttributes
+  // without affecting call sites that use setPending.
   const setPending = (value: boolean) => {
     setPendingAttributes(value);
   };
@@ -99,13 +102,13 @@ export function createLocaleToggleControl({
     );
   };
 
-  const updateActiveState = () => {
+  const updateActiveState = ({ preserveStatus = false } = {}) => {
     const active = getActiveLocale();
     buttons.forEach((button, locale) => {
       const isActive = locale === active;
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       button.dataset.state = isActive ? 'active' : 'idle';
-      if (isActive) {
+      if (isActive && !preserveStatus) {
         setStatusMessage(`${button.textContent} locale selected.`);
       }
     });
@@ -134,8 +137,8 @@ export function createLocaleToggleControl({
           .catch((error) => {
             console.warn('Failed to change locale', error);
             setPending(false);
-            updateActiveState();
             announceFailure(pendingLabel);
+            updateActiveState({ preserveStatus: true });
           });
       } else {
         setPending(false);
@@ -144,8 +147,8 @@ export function createLocaleToggleControl({
     } catch (error) {
       console.warn('Failed to change locale', error);
       setPending(false);
-      updateActiveState();
       announceFailure(pendingLabel);
+      updateActiveState({ preserveStatus: true });
     }
   };
 

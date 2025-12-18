@@ -20,8 +20,8 @@ const createContainer = () => {
 };
 
 const flushMicrotasks = async () => {
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise<void>((resolve) => queueMicrotask(resolve));
+  await new Promise<void>((resolve) => queueMicrotask(resolve));
 };
 
 const expectPendingCleared = async (element: HTMLElement) => {
