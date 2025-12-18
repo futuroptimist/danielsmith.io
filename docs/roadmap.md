@@ -313,6 +313,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
   announce when a toggle is in progress.
 - ✅ Manual mode toggle now mirrors disabled states on both the button and wrapper so
   assistive tech announces locked or pending transitions without ambiguity.
+- ✅ Manual mode toggle now surfaces retry announcements when a toggle attempt fails,
+  keeping HUD users informed while allowing immediate reactivation.
 
 - ✅ Text mode toggle copy now sources localized strings from the i18n catalog so HUD labels
   update immediately when visitors switch locales.

@@ -102,6 +102,13 @@ describe('i18n utilities', () => {
     expect(english.pendingHudAnnouncement).toBe(
       'Switch to the text-only portfolio. Switching to text mode…'
     );
+    expect(english.errorLabel).toBe('Retry text mode · Press T');
+    expect(english.errorHudAnnouncement).toBe(
+      'Text mode toggle failed. Press T to try again.'
+    );
+    expect(english.errorTitle).toBe(
+      'Text mode toggle failed. Press T to retry text mode.'
+    );
 
     const pseudo = getModeToggleStrings('en-x-pseudo');
     expect(pseudo.keyHint).toBe('T');
@@ -111,6 +118,13 @@ describe('i18n utilities', () => {
     );
     expect(pseudo.pendingHudAnnouncement).toBe(
       '⟦Switch to the text-only portfolio. Switching to text mode…⟧'
+    );
+    expect(pseudo.errorLabel).toBe('⟦Retry text mode · Press T⟧');
+    expect(pseudo.errorHudAnnouncement).toBe(
+      '⟦Text mode toggle failed. Press T to try again.⟧'
+    );
+    expect(pseudo.errorTitle).toBe(
+      '⟦Text mode toggle failed. Press T to retry text mode.⟧'
     );
   });
 

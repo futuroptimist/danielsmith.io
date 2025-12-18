@@ -260,6 +260,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       activeLabelTemplate: 'Text mode active',
       activeDescriptionTemplate: 'Text mode already active.',
       activeAnnouncementTemplate: 'Text mode already active.',
+      errorLabelTemplate: 'Retry text mode · Press {keyHint}',
+      errorDescriptionTemplate:
+        'Text mode toggle failed. Try again or use the immersive link.',
+      errorAnnouncementTemplate:
+        'Text mode toggle failed. Press {keyHint} to try again.',
+      errorTitleTemplate:
+        'Text mode toggle failed. Press {keyHint} to retry text mode.',
     },
     narrativeLog: {
       heading: 'Creator story log',

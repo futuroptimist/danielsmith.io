@@ -37,6 +37,7 @@ export function createManualModeToggle({
   container.appendChild(button);
 
   let pending = false;
+  let errored = false;
 
   const DEFAULT_STRINGS = getModeToggleStrings();
 
@@ -101,7 +102,9 @@ export function createManualModeToggle({
 
   const refreshState = () => {
     const fallbackActive = getIsFallbackActive();
-    const setContainerState = (state: 'idle' | 'pending' | 'active') => {
+    const setContainerState = (
+      state: 'idle' | 'pending' | 'active' | 'error'
+    ) => {
       container.dataset.modeToggleState = state;
       if (state === 'pending') {
         container.setAttribute('aria-busy', 'true');
@@ -128,6 +131,7 @@ export function createManualModeToggle({
       return;
     }
     if (fallbackActive) {
+      errored = false;
       setContainerState('active');
       setDisabledState(true);
       button.dataset.state = 'active';
@@ -144,6 +148,32 @@ export function createManualModeToggle({
       button.setAttribute('aria-label', activeDescription);
       button.title = activeDescription;
       button.dataset.hudAnnounce = getActiveAnnouncement();
+      return;
+    }
+    if (errored) {
+      setContainerState('error');
+      setDisabledState(false);
+      button.dataset.state = 'error';
+      button.removeAttribute('aria-busy');
+      button.textContent = withFallback(
+        strings.errorLabel,
+        DEFAULT_STRINGS.errorLabel
+      );
+      button.setAttribute('aria-pressed', 'false');
+      const errorDescription = withFallback(
+        strings.errorDescription,
+        DEFAULT_STRINGS.errorDescription
+      );
+      const errorTitle = withFallback(
+        strings.errorTitle,
+        DEFAULT_STRINGS.errorTitle
+      );
+      button.setAttribute('aria-label', errorDescription);
+      button.title = errorTitle;
+      button.dataset.hudAnnounce = withFallback(
+        strings.errorHudAnnouncement,
+        DEFAULT_STRINGS.errorHudAnnouncement
+      );
       return;
     }
     setContainerState('idle');
@@ -169,11 +199,22 @@ export function createManualModeToggle({
     refreshState();
   };
 
+  const setErroredState = () => {
+    pending = false;
+    errored = true;
+    refreshState();
+  };
+
+  const clearErrorState = () => {
+    errored = false;
+  };
+
   const activate = () => {
     refreshState();
     if (pending || getIsFallbackActive()) {
       return;
     }
+    clearErrorState();
     setPendingState(true);
     const finalize = () => {
       queueMicrotask(() => {
@@ -189,14 +230,14 @@ export function createManualModeToggle({
           })
           .catch((error) => {
             console.warn('Manual mode toggle failed:', error);
-            finalize();
+            setErroredState();
           });
       } else {
         finalize();
       }
     } catch (error) {
       console.warn('Manual mode toggle failed:', error);
-      finalize();
+      setErroredState();
     }
   };
 

@@ -1054,6 +1054,14 @@ html[data-hudLayout='mobile'] .audio-subtitles {
   opacity: 0.78;
 }
 
+.mode-toggle[data-state='error'] {
+  border-color: rgba(255, 140, 140, 0.85);
+  color: #ffd8d8;
+  box-shadow:
+    0 0 0 1px rgba(255, 140, 140, 0.35),
+    var(--hud-surface-shadow);
+}
+
 .tour-reset[data-state='empty'] {
   cursor: not-allowed;
   opacity: 0.7;

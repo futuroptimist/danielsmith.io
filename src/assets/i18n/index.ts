@@ -270,6 +270,15 @@ export function getModeToggleStrings(
   const formatWithHint = (template: string) =>
     formatMessage(template, { keyHint: normalizedKeyHint });
 
+  const resolveTitle = (template: string | undefined, fallback: string) => {
+    const formatted = template ? formatWithHint(template) : '';
+    const normalized = formatted.trim();
+    if (normalized.length > 0) {
+      return normalized;
+    }
+    return fallback;
+  };
+
   return {
     keyHint: rawKeyHint,
     idleLabel: formatWithHint(localeStrings.idleLabelTemplate),
@@ -284,6 +293,15 @@ export function getModeToggleStrings(
     activeDescription: formatWithHint(localeStrings.activeDescriptionTemplate),
     activeHudAnnouncement: formatWithHint(
       localeStrings.activeAnnouncementTemplate
+    ),
+    errorLabel: formatWithHint(localeStrings.errorLabelTemplate),
+    errorDescription: formatWithHint(localeStrings.errorDescriptionTemplate),
+    errorHudAnnouncement: formatWithHint(
+      localeStrings.errorAnnouncementTemplate
+    ),
+    errorTitle: resolveTitle(
+      localeStrings.errorTitleTemplate,
+      formatWithHint(localeStrings.errorDescriptionTemplate)
     ),
   } satisfies ModeToggleResolvedStrings;
 }

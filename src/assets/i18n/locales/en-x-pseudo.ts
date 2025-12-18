@@ -239,6 +239,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       },
     },
     modeToggle: {
+      keyHint: 'T',
       idleLabelTemplate: wrap('Text mode · Press {keyHint}'),
       idleDescriptionTemplate: wrap('Switch to the text-only portfolio'),
       idleAnnouncementTemplate: wrap(
@@ -252,6 +253,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       activeLabelTemplate: wrap('Text mode active'),
       activeDescriptionTemplate: wrap('Text mode already active.'),
       activeAnnouncementTemplate: wrap('Text mode already active.'),
+      errorLabelTemplate: wrap('Retry text mode · Press {keyHint}'),
+      errorDescriptionTemplate: wrap(
+        'Text mode toggle failed. Try again or use the immersive link.'
+      ),
+      errorAnnouncementTemplate: wrap(
+        'Text mode toggle failed. Press {keyHint} to try again.'
+      ),
+      errorTitleTemplate: wrap(
+        'Text mode toggle failed. Press {keyHint} to retry text mode.'
+      ),
     },
     narrativeLog: {
       heading: wrap('Creator story log'),
