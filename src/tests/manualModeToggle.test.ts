@@ -152,7 +152,7 @@ describe('createManualModeToggle', () => {
     container.remove();
   });
 
-  it('re-enables the control if onToggle rejects', async () => {
+  it('shows an error state when onToggle rejects', async () => {
     const container = createContainer();
     const onToggle = vi
       .fn()
@@ -173,12 +173,17 @@ describe('createManualModeToggle', () => {
     expect(handle.element.disabled).toBe(false);
     expect(handle.element.getAttribute('aria-disabled')).toBeNull();
     expect(container.getAttribute('aria-disabled')).toBeNull();
-    expect(container.dataset.modeToggleState).toBe('idle');
+    expect(container.dataset.modeToggleState).toBe('error');
     expect(container.getAttribute('aria-busy')).toBeNull();
-    expect(handle.element.dataset.state).toBe('idle');
+    expect(handle.element.dataset.state).toBe('error');
+    expect(handle.element.textContent).toBe('Retry text mode · Press T');
     expect(handle.element.dataset.hudAnnounce).toBe(
-      'Switch to the text-only portfolio. Press T to activate.'
+      'Text mode toggle failed. Press T to try again.'
     );
+    expect(handle.element.getAttribute('aria-label')).toBe(
+      'Text mode toggle failed. Try again or use the immersive link.'
+    );
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
     expect(handle.element.getAttribute('aria-busy')).toBeNull();
 
     cleanupHandle(handle);
@@ -199,6 +204,44 @@ describe('createManualModeToggle', () => {
     await flushMicrotasks();
 
     expect(onToggle).toHaveBeenCalledTimes(1);
+
+    cleanupHandle(handle);
+    container.remove();
+  });
+
+  it('clears error state on retry and updates to active when fallback triggers', async () => {
+    const container = createContainer();
+    let fallbackActive = false;
+    const onToggle = vi
+      .fn()
+      .mockImplementationOnce(() => Promise.reject(new Error('fail')))
+      .mockImplementationOnce(() => {
+        fallbackActive = true;
+      });
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => fallbackActive,
+    });
+
+    handle.element.click();
+    const rejectedToggle = onToggle.mock.results[0]?.value as
+      | Promise<void>
+      | undefined;
+    await expect(rejectedToggle).rejects.toThrow('fail');
+    await flushMicrotasks();
+
+    expect(container.dataset.modeToggleState).toBe('error');
+    expect(handle.element.dataset.state).toBe('error');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
+
+    handle.element.click();
+    await flushMicrotasks();
+
+    expect(onToggle).toHaveBeenCalledTimes(2);
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
 
     cleanupHandle(handle);
     container.remove();
@@ -225,6 +268,11 @@ describe('createManualModeToggle', () => {
       activeLabel: 'Modo texto activo',
       activeDescription: 'El modo texto ya está activo.',
       activeHudAnnouncement: 'El modo texto ya está activo.',
+      errorLabel: 'Reintentar modo texto · Pulsa Y',
+      errorDescription: 'El modo texto falló. Intenta de nuevo.',
+      errorHudAnnouncement:
+        'El modo texto falló. Pulsa Y para intentarlo otra vez.',
+      errorTitle: 'El modo texto falló. Pulsa Y para reintentar.',
     };
 
     handle.setStrings(customStrings);

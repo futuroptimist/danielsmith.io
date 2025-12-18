@@ -85,6 +85,10 @@ export interface ModeToggleStrings {
   activeLabelTemplate: string;
   activeDescriptionTemplate: string;
   activeAnnouncementTemplate: string;
+  errorLabelTemplate: string;
+  errorDescriptionTemplate: string;
+  errorAnnouncementTemplate: string;
+  errorTitleTemplate?: string;
 }
 
 export interface ModeToggleResolvedStrings {
@@ -98,6 +102,10 @@ export interface ModeToggleResolvedStrings {
   activeLabel: string;
   activeDescription: string;
   activeHudAnnouncement: string;
+  errorLabel: string;
+  errorDescription: string;
+  errorHudAnnouncement: string;
+  errorTitle: string;
 }
 
 export interface ModeAnnouncerStrings {
