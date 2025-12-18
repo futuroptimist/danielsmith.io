@@ -140,10 +140,11 @@ lightweight.
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, GPTBot,
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
   WebGL.
-- **Data-saver heuristics** – Save-Data requests or `effectiveType` values of slow-2G/2G/3G trigger
-  the text tour unless `mode=immersive&disablePerformanceFailover=1` is present. The same
-  override bypasses low-memory and low-end hardware heuristics when WebGL is available so
-  manual immersive validation can proceed on constrained devices.
+- **Data-saver heuristics** – Save-Data requests, `effectiveType` values of slow-2G/2G/3G, or
+  `downlink` readings at or below 1.5 Mbps trigger the text tour unless
+  `mode=immersive&disablePerformanceFailover=1` is present. The same override bypasses
+  low-memory and low-end hardware heuristics when WebGL is available so manual immersive
+  validation can proceed on constrained devices.
 
 ## Auto-generated assets
 

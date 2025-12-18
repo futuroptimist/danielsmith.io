@@ -53,6 +53,7 @@ type NetworkInformationReader = () =>
 interface NetworkInformationSnapshot {
   saveData?: boolean;
   effectiveType?: string | null;
+  downlink?: number;
 }
 
 type TextPortfolioMetric = {
@@ -121,6 +122,7 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   getIsWebDriver?: WebDriverReader;
   getHardwareConcurrency?: () => number | undefined;
   minimumHardwareConcurrency?: number;
+  minimumDownlinkMbps?: number;
   getNetworkInformation?: NetworkInformationReader;
   getModePreference?: () => ModePreference | null;
 }
@@ -148,6 +150,7 @@ type NavigatorWithConnection = Navigator & {
 type NetworkInformationLike = {
   saveData?: boolean;
   effectiveType?: string | null;
+  downlink?: number | null;
 } | null;
 
 function getNavigatorDeviceMemory(): number | undefined {
@@ -200,12 +203,19 @@ function normalizeNetworkInformation(
     typeof info.effectiveType === 'string' && info.effectiveType.length > 0
       ? info.effectiveType
       : undefined;
-  if (!saveData && !effectiveType) {
+  const downlink =
+    typeof info.downlink === 'number' &&
+    Number.isFinite(info.downlink) &&
+    info.downlink >= 0
+      ? info.downlink
+      : undefined;
+  if (!saveData && !effectiveType && downlink === undefined) {
     return undefined;
   }
   return {
     saveData,
     effectiveType,
+    downlink,
   } satisfies NetworkInformationSnapshot;
 }
 
@@ -349,6 +359,12 @@ export function evaluateFailoverDecision(
     normalizedEffectiveType === 'slow-2g' ||
     normalizedEffectiveType === '2g' ||
     normalizedEffectiveType === '3g';
+  const minimumDownlinkMbps = options.minimumDownlinkMbps ?? 1.5;
+  const downlink = networkInformation?.downlink;
+  const hasLowDownlink =
+    typeof downlink === 'number' &&
+    downlink >= 0 &&
+    downlink <= minimumDownlinkMbps;
 
   if (mode === TEXT_MODE_VALUE) {
     return { shouldUseFallback: true, reason: 'manual' };
@@ -387,7 +403,7 @@ export function evaluateFailoverDecision(
   if (
     (!mode || mode.length === 0) &&
     !disablePerformanceFailover &&
-    (prefersReducedData || hasSlowConnection)
+    (prefersReducedData || hasSlowConnection || hasLowDownlink)
   ) {
     return { shouldUseFallback: true, reason: 'data-saver' };
   }
