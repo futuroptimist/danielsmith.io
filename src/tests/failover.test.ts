@@ -280,6 +280,7 @@ describe('evaluateFailoverDecision', () => {
       'SkypeUriPreview Preview',
       'Pinterest/0.2 (+https://www.pinterest.com/bot.html)',
       'Embedly/0.2 (+https://support.embed.ly/)',
+      'Iframely/1.3.0 (+https://iframely.com/)',
       'ia_archiver (+http://www.alexa.com/site/help/webmasters)',
       'Applebot/0.1; +http://www.apple.com/go/applebot',
       'TeamsBot-LinkPreview',
@@ -305,6 +306,7 @@ describe('evaluateFailoverDecision', () => {
       'Viber/21.7.0 iPad6,11 iOS17.3',
       'ViberBot/1.0',
       'vkShare; (+http://vk.com/dev/Share)',
+      'Prerender (+https://prerender.io)',
     ];
 
     for (const userAgent of userAgents) {

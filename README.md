@@ -138,8 +138,8 @@ lightweight.
 - **Launch smoke** – `npm run smoke` builds the project once and asserts `dist/index.html` exists before heavier suites run.
 - **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, GPTBot,
-  ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
-  WebGL.
+  ClaudeBot, ByteSpider, Iframely, Prerender, and others) to the text tour so share
+  cards render without WebGL.
 - **Data-saver heuristics** – Save-Data requests or `effectiveType` values of slow-2G/2G/3G trigger
   the text tour unless `mode=immersive&disablePerformanceFailover=1` is present. The same
   override bypasses low-memory and low-end hardware heuristics when WebGL is available so

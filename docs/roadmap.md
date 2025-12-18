@@ -63,10 +63,10 @@ captures; keep artifacts in `docs/metrics/`.
     - ✅ Social and chat link preview scrapers now force the text portfolio via user-agent
       heuristics so social shares render consistently without JavaScript.
       - ✅ Coverage now includes Pinterest, Embedly, Slackbot, LinkedInBot, FacebookExternalHit,
-        Twitterbot, WhatsApp, RedditBot, Quora Link Preview, BitlyBot, Applebot, Teams, ZoomInfo,
-        DuckDuckBot, Google InspectionTool, GoogleOther, BingPreview, PetalBot, Line,
-        Instagram, Snapchat, Viber, VKShare, Qwantify, and Naver Yeti crawlers to avoid loading
-        WebGL during link previews.
+        Twitterbot, WhatsApp, RedditBot, Quora Link Preview, BitlyBot, Applebot, Teams,
+        ZoomInfo, DuckDuckBot, Google InspectionTool, GoogleOther, BingPreview, PetalBot, Line,
+        Iframely, Prerender, Instagram, Snapchat, Viber, VKShare, Qwantify, and Naver Yeti
+        crawlers to avoid loading WebGL during link previews.
 
 ## Phase 0 – Foundations (Shipped)
 
