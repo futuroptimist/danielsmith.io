@@ -226,8 +226,8 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
   Automatic detection now covers missing WebGL support, sustained frame rates below 30 FPS,
   low-memory and low-core devices, data-saver preferences, slow 2G network hints,
-  and automated crawlers. A `<noscript>` fallback now routes no-JS clients
-  and scrapers to the static tour immediately. Share preview links as
+  high-latency connections, and automated crawlers. A `<noscript>` fallback now routes no-JS
+  clients and scrapers to the static tour immediately. Share preview links as
   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`
   (swap host/port as needed) to force the full scene even on throttled preview clients.
   Screen readers now announce each switch so assistive technology users
