@@ -27,6 +27,7 @@ const CONTROL_ITEM_SELECTOR = '[data-control-item]';
 const CONTROL_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
 const CONTROL_COLLAPSED_KEY = 'controlCollapsed';
 const MOBILE_COLLAPSED_KEY = 'mobileCollapsed';
+const CONTROL_LIST_ID = 'control-overlay-list';
 
 const INPUT_METHODS: ReadonlyArray<InputMethod> = [
   'keyboard',
@@ -108,21 +109,21 @@ const applyContainerState = (
 
 const applyCollapsedState = (
   container: HTMLElement,
-  list: HTMLElement,
+  items: ReadonlyArray<HTMLElement>,
+  initialHiddenStates: WeakMap<HTMLElement, boolean>,
   layout: HudLayout,
   collapsed: boolean
 ) => {
   const activeMethod = getActiveMethod(container);
-  const items = Array.from(
-    list.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
-  );
   const shouldCollapse = layout === 'mobile' && collapsed;
 
   for (const item of items) {
+    const baseHidden = initialHiddenStates.get(item) ?? false;
     if (!shouldCollapse) {
       delete (item.dataset as Record<string, string | undefined>)[
         MOBILE_COLLAPSED_KEY
       ];
+      item.hidden = baseHidden;
       continue;
     }
     const controlId = item.dataset.controlItem ?? '';
@@ -130,6 +131,7 @@ const applyCollapsedState = (
       delete (item.dataset as Record<string, string | undefined>)[
         MOBILE_COLLAPSED_KEY
       ];
+      item.hidden = baseHidden;
       continue;
     }
     const methods = parseInputMethods(item.dataset.inputMethods);
@@ -137,10 +139,20 @@ const applyCollapsedState = (
       delete (item.dataset as Record<string, string | undefined>)[
         MOBILE_COLLAPSED_KEY
       ];
+      item.hidden = baseHidden;
       continue;
     }
     item.dataset[MOBILE_COLLAPSED_KEY] = 'true';
+    item.hidden = true;
   }
+};
+
+const ensureControlListId = (list: HTMLElement): string => {
+  if (list.id) {
+    return list.id;
+  }
+  list.id = CONTROL_LIST_ID;
+  return list.id;
 };
 
 export function createResponsiveControlOverlay(
@@ -177,6 +189,17 @@ export function createResponsiveControlOverlay(
     };
   }
 
+  const controlItems = Array.from(
+    list.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
+  );
+  const initialHiddenStates = new WeakMap<HTMLElement, boolean>();
+  controlItems.forEach((item) => {
+    initialHiddenStates.set(item, item.hidden);
+  });
+
+  const listId = ensureControlListId(list);
+  toggle.setAttribute('aria-controls', listId);
+
   let layout: HudLayout = initialLayout;
   let collapsed = defaultCollapsed ?? layout === 'mobile';
   let currentStrings: ResponsiveControlOverlayStrings = { ...strings };
@@ -187,7 +210,13 @@ export function createResponsiveControlOverlay(
       return;
     }
     applyContainerState(container, layout, collapsed);
-    applyCollapsedState(container, list, layout, collapsed);
+    applyCollapsedState(
+      container,
+      controlItems,
+      initialHiddenStates,
+      layout,
+      collapsed
+    );
     if (layout === 'mobile') {
       toggle.hidden = false;
       applyToggleLabel(toggle, currentStrings, collapsed);
@@ -224,7 +253,13 @@ export function createResponsiveControlOverlay(
           mutation.attributeName === 'data-active-input'
       )
     ) {
-      applyCollapsedState(container, list, layout, collapsed);
+      applyCollapsedState(
+        container,
+        controlItems,
+        initialHiddenStates,
+        layout,
+        collapsed
+      );
     }
   });
 
@@ -272,13 +307,11 @@ export function createResponsiveControlOverlay(
       delete (container.dataset as Record<string, string | undefined>)[
         CONTROL_COLLAPSED_KEY
       ];
-      const items = Array.from(
-        list.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
-      );
-      for (const item of items) {
+      for (const item of controlItems) {
         delete (item.dataset as Record<string, string | undefined>)[
           MOBILE_COLLAPSED_KEY
         ];
+        item.hidden = initialHiddenStates.get(item) ?? false;
       }
     },
   };
