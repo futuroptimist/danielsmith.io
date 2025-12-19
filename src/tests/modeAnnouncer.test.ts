@@ -311,6 +311,29 @@ describe('initializeModeAnnouncementObserver', () => {
     expect(region?.textContent).toMatch(/lightweight device profile/i);
   });
 
+  it('announces manual fallbacks when injected markup omits valid reasons', async () => {
+    initializeModeAnnouncementObserver();
+    document.documentElement.removeAttribute('data-app-mode');
+
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    const fallback = document.createElement('section');
+    fallback.className = 'text-fallback';
+    fallback.dataset.reason = 'unknown-reason';
+    container.appendChild(fallback);
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons.manual
+    );
+    expect(document.documentElement.dataset.fallbackReason).toBe('manual');
+  });
+
   it('re-announces when the fallback reason on the document root changes', async () => {
     const container = document.createElement('div');
     document.body.append(container);
