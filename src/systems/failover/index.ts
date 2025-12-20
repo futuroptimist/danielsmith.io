@@ -54,6 +54,7 @@ interface NetworkInformationSnapshot {
   saveData?: boolean;
   effectiveType?: string | null;
   downlink?: number;
+  rtt?: number;
 }
 
 type TextPortfolioMetric = {
@@ -123,6 +124,7 @@ export interface FailoverDecisionOptions extends WebglSupportOptions {
   getHardwareConcurrency?: () => number | undefined;
   minimumHardwareConcurrency?: number;
   minimumDownlinkMbps?: number;
+  minimumRttMs?: number;
   getNetworkInformation?: NetworkInformationReader;
   getModePreference?: () => ModePreference | null;
 }
@@ -151,6 +153,7 @@ type NetworkInformationLike = {
   saveData?: boolean;
   effectiveType?: string | null;
   downlink?: number | null;
+  rtt?: number | null;
 } | null;
 
 function getNavigatorDeviceMemory(): number | undefined {
@@ -209,13 +212,23 @@ function normalizeNetworkInformation(
     info.downlink >= 0
       ? info.downlink
       : undefined;
-  if (!saveData && !effectiveType && downlink === undefined) {
+  const rtt =
+    typeof info.rtt === 'number' && Number.isFinite(info.rtt) && info.rtt >= 0
+      ? info.rtt
+      : undefined;
+  if (
+    !saveData &&
+    !effectiveType &&
+    downlink === undefined &&
+    rtt === undefined
+  ) {
     return undefined;
   }
   return {
     saveData,
     effectiveType,
     downlink,
+    rtt,
   } satisfies NetworkInformationSnapshot;
 }
 
@@ -365,6 +378,9 @@ export function evaluateFailoverDecision(
     typeof downlink === 'number' &&
     downlink >= 0 &&
     downlink <= minimumDownlinkMbps;
+  const rtt = networkInformation?.rtt;
+  const minimumRttMs = options.minimumRttMs ?? 800;
+  const hasHighRtt = typeof rtt === 'number' && rtt >= 0 && rtt >= minimumRttMs;
 
   if (mode === TEXT_MODE_VALUE) {
     return { shouldUseFallback: true, reason: 'manual' };
@@ -403,7 +419,7 @@ export function evaluateFailoverDecision(
   if (
     (!mode || mode.length === 0) &&
     !disablePerformanceFailover &&
-    (prefersReducedData || hasSlowConnection || hasLowDownlink)
+    (prefersReducedData || hasSlowConnection || hasLowDownlink || hasHighRtt)
   ) {
     return { shouldUseFallback: true, reason: 'data-saver' };
   }

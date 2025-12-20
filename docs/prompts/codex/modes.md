@@ -38,6 +38,9 @@ Include summary, automated tests, and manual verification checklist.
 - Low-end detection now considers hardware concurrency ≤2 and legacy mobile user agents.
   Use `?mode=immersive&disablePerformanceFailover=1` when validating on constrained
   dev environments. A `<noscript>` text tour keeps scrapers and no-JS browsers covered.
+- Network throttling heuristics treat Save-Data, slow-2g/2g/3g effective types,
+  low downlink, and high RTT (≥800 ms) as triggers for text mode unless immersive overrides
+  or performance bypass flags are present.
 - Use `createImmersiveModeUrl(...)` and `createTextModeUrl(...)` helpers to add mode
   overrides without clobbering existing query parameters or hashes.
   - Both helpers now accept an optional extra params map so you can append UTM/debug flags
