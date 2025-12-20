@@ -281,10 +281,32 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes connections at the default RTT threshold to text mode', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ rtt: 800 }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
   it('honors performance bypass for high-latency heuristics', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
       search: '?disablePerformanceFailover=1',
+      getNetworkInformation: () => ({ rtt: 1200 }),
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('respects immersive override even when latency is high', () => {
+    const decision = evaluateFailoverDecision({
+      search: IMMERSIVE_SEARCH,
+      createCanvas: canvasFactory,
       getNetworkInformation: () => ({ rtt: 1200 }),
     });
 
