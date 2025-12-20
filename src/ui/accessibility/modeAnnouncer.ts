@@ -1,3 +1,4 @@
+import { getModeAnnouncerStrings } from '../../assets/i18n';
 import type { FallbackReason } from '../../types/failover';
 
 export interface ModeAnnouncer {
@@ -259,6 +260,13 @@ export function initializeModeAnnouncementObserver(
     return;
   }
 
+  const announcerStrings = getModeAnnouncerStrings(
+    documentTarget.documentElement.lang
+  );
+  getModeAnnouncer(documentTarget).setMessages({
+    fallbackMessages: announcerStrings.fallbackReasons,
+  });
+
   const triggerAnnouncement = (options?: {
     skipFallbackSync?: boolean;
     forceReannounce?: boolean;
@@ -325,6 +333,8 @@ export function initializeModeAnnouncementObserver(
       return;
     }
 
+    let shouldTriggerFallbackAnnouncement = false;
+
     for (const mutation of mutations) {
       if (mutation.type === 'attributes') {
         const target = mutation.target as Element;
@@ -346,10 +356,11 @@ export function initializeModeAnnouncementObserver(
 
       if (mutation.type === 'childList') {
         const addedNodes = Array.from(mutation.addedNodes);
-        let hasValidFallbackReasonUpdate = false;
-        const addedFallback = addedNodes.some((node) => {
+        let addedFallback = false;
+
+        for (const node of addedNodes) {
           if (!(node instanceof Element)) {
-            return false;
+            continue;
           }
 
           const fallbackNode = node.classList.contains('text-fallback')
@@ -357,34 +368,29 @@ export function initializeModeAnnouncementObserver(
             : node.querySelector<HTMLElement>('.text-fallback');
 
           if (!fallbackNode) {
-            return false;
+            continue;
           }
+
+          addedFallback = true;
 
           const updatedReason = fallbackNode.dataset.reason;
           const nextReason = isValidFallbackReason(updatedReason)
             ? updatedReason
             : 'manual';
-
-          if (syncDocumentFallbackReason(documentTarget, nextReason)) {
-            hasValidFallbackReasonUpdate = true;
-          }
-
-          return isValidFallbackReason(updatedReason);
-        });
-
-        if (addedFallback && hasValidFallbackReasonUpdate) {
-          triggerAnnouncement({ skipFallbackSync: true });
-          return;
+          syncDocumentFallbackReason(documentTarget, nextReason);
         }
 
         if (addedFallback) {
-          triggerAnnouncement({
-            skipFallbackSync: true,
-            forceReannounce: true,
-          });
-          return;
+          shouldTriggerFallbackAnnouncement = true;
         }
       }
+    }
+
+    if (shouldTriggerFallbackAnnouncement) {
+      triggerAnnouncement({
+        skipFallbackSync: true,
+        forceReannounce: true,
+      });
     }
   });
 
