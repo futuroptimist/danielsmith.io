@@ -110,37 +110,39 @@ const applyContainerState = (
 const applyCollapsedState = (
   container: HTMLElement,
   items: ReadonlyArray<HTMLElement>,
-  initialHiddenStates: WeakMap<HTMLElement, boolean>,
+  collapsedHiddenStates: WeakMap<HTMLElement, boolean>,
   layout: HudLayout,
   collapsed: boolean
 ) => {
   const activeMethod = getActiveMethod(container);
   const shouldCollapse = layout === 'mobile' && collapsed;
 
+  const restoreCollapsedState = (item: HTMLElement) => {
+    delete (item.dataset as Record<string, string | undefined>)[
+      MOBILE_COLLAPSED_KEY
+    ];
+    const previousHidden = collapsedHiddenStates.get(item);
+    if (previousHidden !== undefined) {
+      item.hidden = previousHidden;
+      collapsedHiddenStates.delete(item);
+    }
+  };
+
   for (const item of items) {
-    const baseHidden = initialHiddenStates.get(item) ?? false;
-    if (!shouldCollapse) {
-      delete (item.dataset as Record<string, string | undefined>)[
-        MOBILE_COLLAPSED_KEY
-      ];
-      item.hidden = baseHidden;
-      continue;
-    }
-    const controlId = item.dataset.controlItem ?? '';
-    if (controlId === 'interact') {
-      delete (item.dataset as Record<string, string | undefined>)[
-        MOBILE_COLLAPSED_KEY
-      ];
-      item.hidden = baseHidden;
-      continue;
-    }
     const methods = parseInputMethods(item.dataset.inputMethods);
-    if (matchActiveMethod(methods, activeMethod)) {
-      delete (item.dataset as Record<string, string | undefined>)[
-        MOBILE_COLLAPSED_KEY
-      ];
-      item.hidden = baseHidden;
+    if (!shouldCollapse) {
+      restoreCollapsedState(item);
       continue;
+    }
+
+    const controlId = item.dataset.controlItem ?? '';
+    if (controlId === 'interact' || matchActiveMethod(methods, activeMethod)) {
+      restoreCollapsedState(item);
+      continue;
+    }
+
+    if (!collapsedHiddenStates.has(item)) {
+      collapsedHiddenStates.set(item, item.hidden);
     }
     item.dataset[MOBILE_COLLAPSED_KEY] = 'true';
     item.hidden = true;
@@ -193,6 +195,8 @@ export function createResponsiveControlOverlay(
     list.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
   );
   const initialHiddenStates = new WeakMap<HTMLElement, boolean>();
+  const collapsedHiddenStates = new WeakMap<HTMLElement, boolean>();
+
   controlItems.forEach((item) => {
     initialHiddenStates.set(item, item.hidden);
   });
@@ -213,7 +217,7 @@ export function createResponsiveControlOverlay(
     applyCollapsedState(
       container,
       controlItems,
-      initialHiddenStates,
+      collapsedHiddenStates,
       layout,
       collapsed
     );
@@ -256,7 +260,7 @@ export function createResponsiveControlOverlay(
       applyCollapsedState(
         container,
         controlItems,
-        initialHiddenStates,
+        collapsedHiddenStates,
         layout,
         collapsed
       );
