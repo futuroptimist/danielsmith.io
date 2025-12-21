@@ -129,6 +129,14 @@ export interface HelpModalSettingsStrings {
   description?: string;
 }
 
+export interface LocaleToggleStrings {
+  title: string;
+  description: string;
+  switchingAnnouncementTemplate: string;
+  selectedAnnouncementTemplate: string;
+  failureAnnouncementTemplate: string;
+}
+
 export interface HelpModalStrings {
   heading: string;
   description: string;
@@ -273,6 +281,7 @@ export interface LocaleStrings {
     movementLegend: MovementLegendStrings;
     audioControl: AudioHudControlStrings;
     modeToggle: ModeToggleStrings;
+    localeToggle: LocaleToggleStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
     narrativeLog: PoiNarrativeLogStrings;

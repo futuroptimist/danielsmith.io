@@ -46,6 +46,7 @@ import {
   getHelpModalStrings,
   getHudCustomizationStrings,
   getLocaleDirection,
+  getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getPoiNarrativeLogStrings,
@@ -764,6 +765,7 @@ function initializeImmersiveScene(
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
+  let localeToggleStrings = getLocaleToggleStrings(locale);
   let modeToggleStrings = getModeToggleStrings(locale);
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
@@ -2448,6 +2450,7 @@ function initializeImmersiveScene(
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
     hudCustomizationStrings = getHudCustomizationStrings(locale);
+    localeToggleStrings = getLocaleToggleStrings(locale);
     modeToggleStrings = getModeToggleStrings(locale);
     audioHudStrings = getAudioHudControlStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
@@ -2478,6 +2481,7 @@ function initializeImmersiveScene(
     audioHudHandle?.setStrings(audioHudStrings);
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
+    localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
@@ -2511,8 +2515,7 @@ function initializeImmersiveScene(
     setActiveLocale: (nextLocale) => {
       applyLocaleUpdate(nextLocale);
     },
-    title: 'Language',
-    description: 'Choose language and direction for the HUD.',
+    strings: localeToggleStrings,
   });
   registerHudControlElement(localeToggleControl?.element ?? null);
 

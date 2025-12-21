@@ -1,4 +1,9 @@
-import type { Locale } from '../../assets/i18n';
+import {
+  getLocaleToggleStrings,
+  formatMessage,
+  type Locale,
+  type LocaleToggleResolvedStrings,
+} from '../../assets/i18n';
 
 export interface LocaleToggleOption {
   id: Locale;
@@ -11,12 +16,12 @@ export interface LocaleToggleControlOptions {
   options: ReadonlyArray<LocaleToggleOption>;
   getActiveLocale: () => Locale;
   setActiveLocale: (locale: Locale) => void | Promise<void>;
-  title?: string;
-  description?: string;
+  strings?: LocaleToggleResolvedStrings;
 }
 
 export interface LocaleToggleControlHandle {
   readonly element: HTMLElement;
+  setStrings(strings: LocaleToggleResolvedStrings): void;
   refresh(): void;
   dispose(): void;
 }
@@ -35,12 +40,17 @@ export function createLocaleToggleControl({
   options,
   getActiveLocale,
   setActiveLocale,
-  title = 'Language',
-  description = 'Switch the HUD language and direction.',
+  strings: providedStrings,
 }: LocaleToggleControlOptions): LocaleToggleControlHandle {
   if (!options.length) {
     throw new Error('Locale toggle requires at least one option.');
   }
+
+  const DEFAULT_STRINGS = getLocaleToggleStrings();
+  let strings: LocaleToggleResolvedStrings = {
+    ...DEFAULT_STRINGS,
+    ...providedStrings,
+  };
 
   const wrapper = document.createElement('section');
   wrapper.className = 'locale-toggle';
@@ -48,16 +58,16 @@ export function createLocaleToggleControl({
 
   const heading = document.createElement('h2');
   heading.className = 'locale-toggle__title';
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'locale-toggle__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const optionsList = document.createElement('div');
   optionsList.className = 'locale-toggle__options';
   optionsList.setAttribute('role', 'radiogroup');
-  optionsList.setAttribute('aria-label', title);
+  optionsList.setAttribute('aria-label', strings.title);
 
   const status = document.createElement('div');
   status.className = 'locale-toggle__status';
@@ -98,7 +108,10 @@ export function createLocaleToggleControl({
   const announceFailure = (targetLabel: string) => {
     const currentLabel = getLocaleLabel(getActiveLocale());
     setStatusMessage(
-      `Unable to switch to ${targetLabel}. Staying on ${currentLabel} locale.`
+      formatMessage(strings.failureAnnouncementTemplate, {
+        target: targetLabel,
+        current: currentLabel,
+      })
     );
   };
 
@@ -109,7 +122,11 @@ export function createLocaleToggleControl({
       button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       button.dataset.state = isActive ? 'active' : 'idle';
       if (isActive && !preserveStatus) {
-        setStatusMessage(`${button.textContent} locale selected.`);
+        setStatusMessage(
+          formatMessage(strings.selectedAnnouncementTemplate, {
+            label: button.textContent ?? locale,
+          })
+        );
       }
     });
   };
@@ -124,7 +141,11 @@ export function createLocaleToggleControl({
       return;
     }
     const pendingLabel = getLocaleLabel(locale);
-    setStatusMessage(`Switching to ${pendingLabel} locale…`);
+    setStatusMessage(
+      formatMessage(strings.switchingAnnouncementTemplate, {
+        target: pendingLabel,
+      })
+    );
     setPending(true);
     try {
       const result = setActiveLocale(locale);
@@ -170,6 +191,13 @@ export function createLocaleToggleControl({
 
   return {
     element: wrapper,
+    setStrings(nextStrings: LocaleToggleResolvedStrings) {
+      strings = { ...DEFAULT_STRINGS, ...nextStrings };
+      heading.textContent = strings.title;
+      descriptionParagraph.textContent = strings.description;
+      optionsList.setAttribute('aria-label', strings.title);
+      updateActiveState();
+    },
     refresh: updateActiveState,
     dispose() {
       buttons.forEach((button) => {

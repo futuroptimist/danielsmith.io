@@ -238,6 +238,15 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         mutedAriaValueTemplate: wrap('Muted ({volume})'),
       },
     },
+    localeToggle: {
+      title: wrap('Language'),
+      description: wrap('Switch the HUD language and direction.'),
+      switchingAnnouncementTemplate: wrap('Switching to {target} locale…'),
+      selectedAnnouncementTemplate: wrap('{label} locale selected.'),
+      failureAnnouncementTemplate: wrap(
+        'Unable to switch to {target}. Staying on {current} locale.'
+      ),
+    },
     modeToggle: {
       keyHint: 'T',
       idleLabelTemplate: wrap('Text mode · Press {keyHint}'),
