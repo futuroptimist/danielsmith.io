@@ -80,6 +80,15 @@ describe('evaluateFailoverDecision', () => {
     expect(decision).toEqual({ shouldUseFallback: false });
   });
 
+  it('accepts URLSearchParams for mode overrides', () => {
+    const decision = evaluateFailoverDecision({
+      search: new URLSearchParams('mode=immersive'),
+      createCanvas: canvasFactory,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('allows immersive override even when WebGL detection fails', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
@@ -135,6 +144,17 @@ describe('evaluateFailoverDecision', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
       search: '?disablePerformanceFailover=1',
+      getDeviceMemory: () => 0.5,
+      minimumDeviceMemory: 1,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('accepts URLSearchParams for performance bypass overrides', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: new URLSearchParams('disablePerformanceFailover=1'),
       getDeviceMemory: () => 0.5,
       minimumDeviceMemory: 1,
     });
