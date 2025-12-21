@@ -1,5 +1,6 @@
 import {
   getLocaleToggleStrings,
+  formatMessage,
   type Locale,
   type LocaleToggleResolvedStrings,
 } from '../../assets/i18n';
@@ -80,15 +81,6 @@ export function createLocaleToggleControl({
     status.textContent = message;
   };
 
-  const formatTemplate = (
-    template: string,
-    replacements: { label?: string; target?: string; current?: string }
-  ) =>
-    template.replace(
-      /\{(label|target|current)\}/g,
-      (match, key: 'label' | 'target' | 'current') => replacements[key] ?? match
-    );
-
   const buttons = new Map<Locale, HTMLButtonElement>();
   let pending = false;
 
@@ -116,7 +108,7 @@ export function createLocaleToggleControl({
   const announceFailure = (targetLabel: string) => {
     const currentLabel = getLocaleLabel(getActiveLocale());
     setStatusMessage(
-      formatTemplate(strings.failureAnnouncementTemplate, {
+      formatMessage(strings.failureAnnouncementTemplate, {
         target: targetLabel,
         current: currentLabel,
       })
@@ -131,7 +123,7 @@ export function createLocaleToggleControl({
       button.dataset.state = isActive ? 'active' : 'idle';
       if (isActive && !preserveStatus) {
         setStatusMessage(
-          formatTemplate(strings.selectedAnnouncementTemplate, {
+          formatMessage(strings.selectedAnnouncementTemplate, {
             label: button.textContent ?? locale,
           })
         );
@@ -150,7 +142,7 @@ export function createLocaleToggleControl({
     }
     const pendingLabel = getLocaleLabel(locale);
     setStatusMessage(
-      formatTemplate(strings.switchingAnnouncementTemplate, {
+      formatMessage(strings.switchingAnnouncementTemplate, {
         target: pendingLabel,
       })
     );
@@ -200,7 +192,7 @@ export function createLocaleToggleControl({
   return {
     element: wrapper,
     setStrings(nextStrings: LocaleToggleResolvedStrings) {
-      strings = { ...DEFAULT_STRINGS, ...(nextStrings ?? DEFAULT_STRINGS) };
+      strings = { ...DEFAULT_STRINGS, ...nextStrings };
       heading.textContent = strings.title;
       descriptionParagraph.textContent = strings.description;
       optionsList.setAttribute('aria-label', strings.title);
