@@ -116,7 +116,7 @@ export function isWebglSupported(options: WebglSupportOptions = {}): boolean {
 }
 
 export interface FailoverDecisionOptions extends WebglSupportOptions {
-  search?: string;
+  search?: string | URLSearchParams;
   getDeviceMemory?: DeviceMemoryReader;
   minimumDeviceMemory?: number;
   getUserAgent?: UserAgentReader;

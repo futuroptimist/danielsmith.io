@@ -80,6 +80,19 @@ describe('evaluateFailoverDecision', () => {
     expect(decision).toEqual({ shouldUseFallback: false });
   });
 
+  it('accepts URLSearchParams for mode overrides', () => {
+    const decision = evaluateFailoverDecision({
+      search: new URLSearchParams('mode=immersive'),
+      createCanvas: () =>
+        ({
+          getContext: () => null,
+        }) as unknown as HTMLCanvasElement,
+      getDeviceMemory: () => 0.5,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
   it('allows immersive override even when WebGL detection fails', () => {
     const decision = evaluateFailoverDecision({
       search: IMMERSIVE_SEARCH,
