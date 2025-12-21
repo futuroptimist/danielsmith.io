@@ -83,11 +83,7 @@ describe('evaluateFailoverDecision', () => {
   it('accepts URLSearchParams for mode overrides', () => {
     const decision = evaluateFailoverDecision({
       search: new URLSearchParams('mode=immersive'),
-      createCanvas: () =>
-        ({
-          getContext: () => null,
-        }) as unknown as HTMLCanvasElement,
-      getDeviceMemory: () => 0.5,
+      createCanvas: canvasFactory,
     });
 
     expect(decision).toEqual({ shouldUseFallback: false });
@@ -148,6 +144,17 @@ describe('evaluateFailoverDecision', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
       search: '?disablePerformanceFailover=1',
+      getDeviceMemory: () => 0.5,
+      minimumDeviceMemory: 1,
+    });
+
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('accepts URLSearchParams for performance bypass overrides', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      search: new URLSearchParams('disablePerformanceFailover=1'),
       getDeviceMemory: () => 0.5,
       minimumDeviceMemory: 1,
     });
