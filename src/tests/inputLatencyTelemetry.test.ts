@@ -62,6 +62,9 @@ describe('createInputLatencyTelemetry', () => {
     expect(logger.warn).toHaveBeenCalledTimes(1);
     expect(logger.warn.mock.calls[0][0]).toContain('p95 210.0 ms');
     expect(logger.warn.mock.calls[0][0]).toContain('(budget 200 ms)');
+    expect(logger.warn.mock.calls[0][0]).toContain(
+      'Event types: pointerdown×3'
+    );
     expect(telemetry.getSummary()).toBeNull();
 
     recordLatency(40);
@@ -109,6 +112,7 @@ describe('createInputLatencyTelemetry', () => {
     expect(summary.p95LatencyMs).toBeGreaterThanOrEqual(
       summary.medianLatencyMs
     );
+    expect(summary.eventTypeCounts).toEqual({ pointerdown: 2 });
     expect(telemetry.getSummary()).toBeNull();
   });
 });
