@@ -160,6 +160,12 @@ describe('immersive flag helpers', () => {
     expect(getModeFromSearch('mode=unknown')).toBeNull();
   });
 
+  it('treats mode selections as case-insensitive and trims extra spacing', () => {
+    expect(getModeFromSearch('mode=IMMERSIVE')).toBe('immersive');
+    expect(getModeFromSearch('mode= text ')).toBe('text');
+    expect(hasImmersiveOverride('mode= immersive ')).toBe(true);
+  });
+
   it('detects immersive override and bypass params independently', () => {
     expect(hasImmersiveOverride('mode=immersive')).toBe(true);
     expect(hasPerformanceFailoverBypass('disablePerformanceFailover=1')).toBe(
@@ -172,6 +178,20 @@ describe('immersive flag helpers', () => {
       false
     );
     expect(hasPerformanceFailoverBypass('mode=immersive')).toBe(false);
+  });
+
+  it('accepts truthy performance bypass flags regardless of casing', () => {
+    expect(
+      hasPerformanceFailoverBypass('disablePerformanceFailover=true')
+    ).toBe(true);
+    expect(
+      hasPerformanceFailoverBypass('disablePerformanceFailover=TRUE')
+    ).toBe(true);
+    expect(
+      shouldDisablePerformanceFailover(
+        'mode=IMMERSIVE&disablePerformanceFailover=TRUE'
+      )
+    ).toBe(true);
   });
 
   it('disables performance failover when either override or bypass is present', () => {

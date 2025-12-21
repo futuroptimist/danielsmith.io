@@ -18,6 +18,13 @@ interface LocationLike {
 
 type UrlLike = string | LocationLike | URL | undefined;
 
+const normalizeParamValue = (value: string | null): string | null => {
+  if (!value) {
+    return null;
+  }
+  return value.trim().toLowerCase();
+};
+
 const normalizeLocation = (location?: LocationLike) => {
   if (location) {
     return {
@@ -157,15 +164,28 @@ export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>
 const toSearchParams = (value: string | URLSearchParams): URLSearchParams =>
   typeof value === 'string' ? new URLSearchParams(value) : value;
 
+const isImmersiveMode = (value: string | null) =>
+  normalizeParamValue(value) === IMMERSIVE_MODE_VALUE;
+
+const isTextMode = (value: string | null) =>
+  normalizeParamValue(value) === TEXT_MODE_VALUE;
+
+const isPerformanceBypass = (value: string | null) => {
+  const normalized = normalizeParamValue(value);
+  return (
+    normalized === DISABLE_PERFORMANCE_FAILOVER_VALUE || normalized === 'true'
+  );
+};
+
 export const getModeFromSearch = (
   value: string | URLSearchParams
 ): ModeSelection => {
   const params = toSearchParams(value);
   const mode = params.get(IMMERSIVE_MODE_PARAM);
-  if (mode === IMMERSIVE_MODE_VALUE) {
+  if (isImmersiveMode(mode)) {
     return IMMERSIVE_MODE_VALUE;
   }
-  if (mode === TEXT_MODE_VALUE) {
+  if (isTextMode(mode)) {
     return TEXT_MODE_VALUE;
   }
   return null;
@@ -173,17 +193,14 @@ export const getModeFromSearch = (
 
 export const hasImmersiveOverride = (value: string | URLSearchParams) => {
   const params = toSearchParams(value);
-  return params.get(IMMERSIVE_MODE_PARAM) === IMMERSIVE_MODE_VALUE;
+  return isImmersiveMode(params.get(IMMERSIVE_MODE_PARAM));
 };
 
 export const hasPerformanceFailoverBypass = (
   value: string | URLSearchParams
 ) => {
   const params = toSearchParams(value);
-  return (
-    params.get(DISABLE_PERFORMANCE_FAILOVER_PARAM) ===
-    DISABLE_PERFORMANCE_FAILOVER_VALUE
-  );
+  return isPerformanceBypass(params.get(DISABLE_PERFORMANCE_FAILOVER_PARAM));
 };
 
 export const shouldDisablePerformanceFailover = (
