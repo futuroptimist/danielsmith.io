@@ -41,6 +41,7 @@ describe('createInputLatencyMonitor', () => {
     expect(summary?.maxLatencyMs).toBeCloseTo(50, 6);
     expect(summary?.medianLatencyMs).toBeCloseTo(40, 6);
     expect(summary?.p95LatencyMs).toBeCloseTo(50, 6);
+    expect(summary?.eventTypeCounts).toEqual({ keydown: 3 });
 
     monitor.dispose();
     expect(target.listenerCount('keydown')).toBe(0);
@@ -66,6 +67,7 @@ describe('createInputLatencyMonitor', () => {
     const summary = monitor.getSummary();
     expect(summary?.count).toBe(1);
     expect(summary?.maxLatencyMs).toBeCloseTo(45.2, 6);
+    expect(summary?.eventTypeCounts).toEqual({ custom: 1 });
     expect(onSample).toHaveBeenCalledTimes(1);
     expect(onSample.mock.calls[0][0]).toEqual({
       eventType: 'custom',

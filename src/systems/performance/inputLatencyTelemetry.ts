@@ -23,6 +23,19 @@ export interface InputLatencyTelemetryHandle {
 const DEFAULT_BUDGET_MS = 200;
 
 const formatNumber = (value: number): string => value.toFixed(1);
+const formatEventTypeCounts = (counts: Record<string, number>): string => {
+  const entries = Object.entries(counts);
+  if (entries.length === 0) {
+    return 'no events recorded';
+  }
+  const sorted = [...entries].sort((left, right) => {
+    if (left[1] === right[1]) {
+      return left[0].localeCompare(right[0]);
+    }
+    return right[1] - left[1];
+  });
+  return sorted.map(([type, count]) => `${type}×${count}`).join(', ');
+};
 
 export function createInputLatencyTelemetry(
   options: InputLatencyTelemetryOptions
@@ -57,10 +70,11 @@ export function createInputLatencyTelemetry(
     const p95 = formatNumber(summary.p95LatencyMs);
     const max = formatNumber(summary.maxLatencyMs);
     const average = formatNumber(summary.averageLatencyMs);
+    const eventBreakdown = formatEventTypeCounts(summary.eventTypeCounts);
     const message =
       `Input latency summary (${reason}): median ${median} ms, p95 ${p95} ms ` +
       `(budget ${budgetMs} ms), max ${max} ms across ${summary.count} ` +
-      `interactions (avg ${average} ms).`;
+      `interactions (avg ${average} ms). Event types: ${eventBreakdown}.`;
     const logMethod =
       summary.p95LatencyMs > budgetMs ? logger.warn : logger.info;
     logMethod.call(logger, message);

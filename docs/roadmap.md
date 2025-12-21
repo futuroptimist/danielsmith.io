@@ -28,6 +28,8 @@ captures; keep artifacts in `docs/metrics/`.
     and max values against the 200 ms INP budget whenever sessions end or failover triggers.
   - ✅ Input latency telemetry now exposes onReport callbacks so failover triggers can forward
     latency summaries into analytics pipelines alongside console and manual toggles.
+  - ✅ Input latency summaries now include per-event type counts so analytics can separate
+    keyboard, pointer, and manual interaction latency drivers.
   - ✅ Manual and console-triggered failovers now emit input latency summaries so HUD toggles and
     console budget fallbacks keep telemetry coverage aligned with automated performance switches.
   - ✅ Telemetry accumulators now cache sorted samples between polls to reduce GC churn during

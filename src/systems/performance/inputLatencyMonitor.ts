@@ -11,6 +11,7 @@ export interface InputLatencySummary {
   maxLatencyMs: number;
   p95LatencyMs: number;
   medianLatencyMs: number;
+  eventTypeCounts: Record<string, number>;
 }
 
 export interface InputLatencySample {
@@ -53,13 +54,17 @@ const clampLatency = (value: number): number | null => {
   return value;
 };
 
-const mapSummary = (summary: SampleSummary): InputLatencySummary => ({
+const mapSummary = (
+  summary: SampleSummary,
+  eventTypeCounts: Map<string, number>
+): InputLatencySummary => ({
   count: summary.count,
   averageLatencyMs: summary.average,
   minLatencyMs: summary.min,
   maxLatencyMs: summary.max,
   p95LatencyMs: summary.p95,
   medianLatencyMs: summary.median,
+  eventTypeCounts: Object.fromEntries(eventTypeCounts.entries()),
 });
 
 const resolveTimeStamp = (event: Event): number | null => {
@@ -79,6 +84,7 @@ export function createInputLatencyMonitor(
   const accumulator: SampleAccumulator = createSampleAccumulator({
     maxSamples: MAX_SAMPLES,
   });
+  const eventTypeCounts = new Map<string, number>();
   const target = options.target;
   const now = options.now ?? (() => performance.now());
   const listenerOptions = options.listenerOptions ?? { passive: true };
@@ -90,6 +96,7 @@ export function createInputLatencyMonitor(
 
   const recordSample = (latency: number, eventType: string) => {
     accumulator.record(latency);
+    eventTypeCounts.set(eventType, (eventTypeCounts.get(eventType) ?? 0) + 1);
     options.onSample?.({ latencyMs: latency, eventType });
   };
 
@@ -130,11 +137,12 @@ export function createInputLatencyMonitor(
     if (!summary) {
       return null;
     }
-    return mapSummary(summary);
+    return mapSummary(summary, eventTypeCounts);
   };
 
   const reset = () => {
     accumulator.reset();
+    eventTypeCounts.clear();
   };
 
   const dispose = () => {
@@ -142,7 +150,7 @@ export function createInputLatencyMonitor(
       target.removeEventListener(eventType, listener, listenerOptions);
     });
     listeners.clear();
-    accumulator.reset();
+    reset();
   };
 
   return {
