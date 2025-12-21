@@ -328,6 +328,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
   active locale alongside the immersive relaunch button.
 - ✅ Mode announcer now uses localized fallback reasons and refreshes announcements when the
   active locale changes.
+- ✅ Immersive ready announcements now honor the active locale even when observers bootstrap from
+  prerendered pages, keeping mode cues localized for returning visitors.
 - ✅ JSON-LD exhibit feeds now include `inLanguage` and `isAccessibleForFree` metadata so
   crawlers understand language coverage and free access guarantees.
 - ✅ Text fallback links back to immersive mode with the override URL so returns bypass

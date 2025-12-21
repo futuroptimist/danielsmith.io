@@ -208,6 +208,24 @@ describe('initializeModeAnnouncementObserver', () => {
     document.documentElement.lang = originalLang;
   });
 
+  it('localizes immersive announcements when the document language is set', async () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'ar';
+
+    initializeModeAnnouncementObserver();
+
+    document.documentElement.dataset.appMode = 'immersive';
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    const arabic = getModeAnnouncerStrings('ar');
+    expect(region?.textContent).toBe(arabic.immersiveReady);
+
+    document.documentElement.lang = originalLang;
+  });
+
   it('announces data-saver failover reasons surfaced by the fallback view', async () => {
     initializeModeAnnouncementObserver();
     const container = document.createElement('div');
@@ -233,7 +251,8 @@ describe('initializeModeAnnouncementObserver', () => {
     const region = document.querySelector<HTMLElement>(
       '[data-mode-announcer="true"]'
     );
-    expect(region?.textContent).toMatch(/immersive mode ready/i);
+    const localized = getModeAnnouncerStrings(document.documentElement.lang);
+    expect(region?.textContent).toBe(localized.immersiveReady);
   });
 
   it('announces the current mode immediately when already set', () => {

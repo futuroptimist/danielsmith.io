@@ -264,6 +264,7 @@ export function initializeModeAnnouncementObserver(
     documentTarget.documentElement.lang
   );
   getModeAnnouncer(documentTarget).setMessages({
+    immersiveReady: announcerStrings.immersiveReady,
     fallbackMessages: announcerStrings.fallbackReasons,
   });
 
