@@ -49,7 +49,7 @@ export function createLocaleToggleControl({
   const DEFAULT_STRINGS = getLocaleToggleStrings();
   let strings: LocaleToggleResolvedStrings = {
     ...DEFAULT_STRINGS,
-    ...(providedStrings ?? {}),
+    ...providedStrings,
   };
 
   const wrapper = document.createElement('section');
