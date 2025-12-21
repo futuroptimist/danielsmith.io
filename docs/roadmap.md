@@ -388,6 +388,8 @@ Focus: make the experience inclusive and globally friendly.
   - ✅ Mode transitions now fire polite announcements describing immersive and text fallback states.
   - ✅ HUD controls now announce focus changes through a dedicated live region tied to overlay and
     control focus events.
+  - ✅ HUD locale toggle now uses localized copy and announcements so language switches stay
+    consistent with the selected locale.
   - ✅ Interaction timeline now staggers POI discovery calls so prompts never stack.
 
 2. **Visual & Audio Accessibility**

@@ -6,6 +6,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getLocaleScript,
@@ -125,6 +126,27 @@ describe('i18n utilities', () => {
     );
     expect(pseudo.errorTitle).toBe(
       '⟦Text mode toggle failed. Press T to retry text mode.⟧'
+    );
+  });
+
+  it('returns localized locale toggle strings for HUD controls', () => {
+    const english = getLocaleToggleStrings('en');
+    expect(english.title).toBe('Language');
+    expect(english.description).toBe('Switch the HUD language and direction.');
+    expect(english.switchingAnnouncementTemplate).toBe(
+      'Switching to {target} locale…'
+    );
+    expect(english.selectedAnnouncementTemplate).toBe(
+      '{label} locale selected.'
+    );
+    expect(english.failureAnnouncementTemplate).toBe(
+      'Unable to switch to {target}. Staying on {current} locale.'
+    );
+
+    const pseudo = getLocaleToggleStrings('en-x-pseudo');
+    expect(pseudo.title).toBe('⟦Language⟧');
+    expect(pseudo.switchingAnnouncementTemplate).toBe(
+      '⟦Switching to {target} locale…⟧'
     );
   });
 

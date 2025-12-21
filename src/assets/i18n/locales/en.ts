@@ -247,6 +247,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         mutedAriaValueTemplate: 'Muted ({volume})',
       },
     },
+    localeToggle: {
+      title: 'Language',
+      description: 'Switch the HUD language and direction.',
+      switchingAnnouncementTemplate: 'Switching to {target} locale…',
+      selectedAnnouncementTemplate: '{label} locale selected.',
+      failureAnnouncementTemplate:
+        'Unable to switch to {target}. Staying on {current} locale.',
+    },
     modeToggle: {
       keyHint: 'T',
       idleLabelTemplate: 'Text mode · Press {keyHint}',

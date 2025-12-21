@@ -15,6 +15,7 @@ import type {
   LocaleStrings,
   LocaleDirection,
   LocaleScript,
+  LocaleToggleStrings,
   ModeAnnouncerStrings,
   ModeToggleResolvedStrings,
   MovementLegendStrings,
@@ -23,6 +24,8 @@ import type {
   HudCustomizationStrings,
   SiteStrings,
 } from './types';
+
+export type LocaleToggleResolvedStrings = LocaleToggleStrings;
 
 export * from './types';
 
@@ -252,6 +255,12 @@ export function getAudioHudControlStrings(
 ): AudioHudControlStrings {
   const strings = getLocaleStrings(input).hud.audioControl;
   return cloneValue(strings);
+}
+
+export function getLocaleToggleStrings(
+  input?: LocaleInput
+): LocaleToggleResolvedStrings {
+  return cloneValue(getLocaleStrings(input).hud.localeToggle);
 }
 
 export function getHudCustomizationStrings(

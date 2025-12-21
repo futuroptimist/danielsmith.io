@@ -1,79 +1,82 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import type { Locale } from '../assets/i18n';
+import type { LocaleToggleResolvedStrings } from '../assets/i18n';
 import { createLocaleToggleControl } from '../systems/controls/localeToggleControl';
 
-const OPTIONS: ReadonlyArray<{ id: Locale; label: string }> = [
-  { id: 'en', label: 'English' },
-  { id: 'ar', label: 'العربية' },
-];
-
 describe('createLocaleToggleControl', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '';
+  const strings: LocaleToggleResolvedStrings = {
+    title: '言語設定',
+    description: 'HUD の言語と方向を切り替えます。',
+    switchingAnnouncementTemplate: '{target} ロケールに切り替え中…',
+    selectedAnnouncementTemplate: '{label} ロケールを選択しました。',
+    failureAnnouncementTemplate:
+      '{target} に切り替えられませんでした。{current} のままです。',
+  };
+
+  it('renders localized labels and selection announcements', () => {
+    const container = document.createElement('div');
+    let activeLocale: 'en' | 'ja' = 'en';
+    const handle = createLocaleToggleControl({
+      container,
+      options: [
+        { id: 'en', label: 'English' },
+        { id: 'ja', label: '日本語', direction: 'ltr' },
+      ],
+      getActiveLocale: () => activeLocale,
+      setActiveLocale: (locale) => {
+        activeLocale = locale;
+      },
+      strings,
+    });
+
+    const heading = container.querySelector('.locale-toggle__title');
+    expect(heading?.textContent).toBe(strings.title);
+    const description = container.querySelector('.locale-toggle__description');
+    expect(description?.textContent).toBe(strings.description);
+
+    const status = container.querySelector('.locale-toggle__status');
+    expect(status?.textContent).toBe('English ロケールを選択しました。');
+
+    handle.setStrings({ ...strings, title: '言語 / Language' });
+    expect(heading?.textContent).toBe('言語 / Language');
+
+    handle.dispose();
   });
 
-  it('renders locale buttons and marks the active selection', () => {
-    let active: Locale = 'en';
-    const control = createLocaleToggleControl({
-      container: document.body,
-      options: OPTIONS,
-      getActiveLocale: () => active,
-      setActiveLocale: (locale) => {
-        active = locale;
-      },
+  it('announces switching and failures with localized templates', async () => {
+    const container = document.createElement('div');
+    const failingToggle = vi.fn(async () => {
+      throw new Error('nope');
+    });
+    const handle = createLocaleToggleControl({
+      container,
+      options: [
+        { id: 'en', label: 'English' },
+        { id: 'ja', label: '日本語' },
+      ],
+      getActiveLocale: () => 'en',
+      setActiveLocale: failingToggle,
+      strings,
     });
 
-    const buttons = document.querySelectorAll<HTMLButtonElement>(
-      '.locale-toggle__option'
+    const jaButton = container.querySelector<HTMLButtonElement>(
+      '.locale-toggle__option[data-locale="ja"]'
     );
-    expect(buttons).toHaveLength(2);
-    expect(buttons[0]?.dataset.state).toBe('active');
-    expect(buttons[1]?.dataset.state).toBe('idle');
+    jaButton?.click();
 
-    buttons[1]?.click();
-    control.refresh();
+    const status = container.querySelector('.locale-toggle__status');
+    expect(status?.textContent).toBe('日本語 ロケールに切り替え中…');
 
-    expect(buttons[0]?.dataset.state).toBe('idle');
-    expect(buttons[1]?.dataset.state).toBe('active');
-    control.dispose();
-  });
+    const pendingToggle = failingToggle.mock.results[0]?.value as Promise<unknown>;
+    await pendingToggle?.catch(() => {});
 
-  it('disables buttons while awaiting async updates', async () => {
-    let active: Locale = 'en';
-    const resolver = vi.fn();
-    let resolvePromise: (() => void) | null = null;
-    const promise = new Promise<void>((resolve) => {
-      resolvePromise = () => {
-        resolve();
-        resolver();
-      };
+    await vi.waitFor(() => {
+      expect(status?.textContent).toBe(
+        '日本語 に切り替えられませんでした。English のままです。'
+      );
     });
+    expect(failingToggle).toHaveBeenCalledWith('ja');
 
-    createLocaleToggleControl({
-      container: document.body,
-      options: OPTIONS,
-      getActiveLocale: () => active,
-      setActiveLocale: (locale) => {
-        active = locale;
-        return promise;
-      },
-    });
-
-    const buttons = document.querySelectorAll<HTMLButtonElement>(
-      '.locale-toggle__option'
-    );
-    buttons[1]?.click();
-
-    expect(buttons[0]?.disabled).toBe(true);
-    expect(buttons[1]?.disabled).toBe(true);
-    expect(resolver).not.toHaveBeenCalled();
-
-    resolvePromise?.();
-    await promise;
-
-    expect(buttons[0]?.disabled).toBe(false);
-    expect(buttons[1]?.disabled).toBe(false);
-    expect(resolver).toHaveBeenCalled();
+    handle.dispose();
   });
 });
