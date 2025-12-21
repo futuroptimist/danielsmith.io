@@ -67,7 +67,8 @@ describe('createLocaleToggleControl', () => {
     const status = container.querySelector('.locale-toggle__status');
     expect(status?.textContent).toBe('日本語 ロケールに切り替え中…');
 
-    const pendingToggle = failingToggle.mock.results[0]?.value as Promise<unknown>;
+    const pendingToggle = failingToggle.mock.results[0]
+      ?.value as Promise<unknown>;
     await pendingToggle?.catch(() => {});
 
     await vi.waitFor(() => {
