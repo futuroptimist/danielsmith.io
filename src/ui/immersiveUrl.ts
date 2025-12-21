@@ -18,8 +18,10 @@ interface LocationLike {
 
 type UrlLike = string | LocationLike | URL | undefined;
 
-const normalizeParamValue = (value: string | null): string | null => {
-  if (!value) {
+const normalizeParamValue = (
+  value: string | null | undefined
+): string | null => {
+  if (value === null || value === undefined) {
     return null;
   }
   return value.trim().toLowerCase();

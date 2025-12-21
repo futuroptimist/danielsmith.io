@@ -166,6 +166,16 @@ describe('immersive flag helpers', () => {
     expect(hasImmersiveOverride('mode= immersive ')).toBe(true);
   });
 
+  it('treats empty or whitespace-only params as missing', () => {
+    expect(getModeFromSearch('mode=')).toBeNull();
+    expect(getModeFromSearch('mode=   ')).toBeNull();
+    expect(hasPerformanceFailoverBypass('disablePerformanceFailover=   ')).toBe(
+      false
+    );
+    expect(shouldDisablePerformanceFailover('')).toBe(false);
+    expect(shouldDisablePerformanceFailover(new URLSearchParams())).toBe(false);
+  });
+
   it('detects immersive override and bypass params independently', () => {
     expect(hasImmersiveOverride('mode=immersive')).toBe(true);
     expect(hasPerformanceFailoverBypass('disablePerformanceFailover=1')).toBe(
@@ -191,6 +201,15 @@ describe('immersive flag helpers', () => {
       shouldDisablePerformanceFailover(
         'mode=IMMERSIVE&disablePerformanceFailover=TRUE'
       )
+    ).toBe(true);
+  });
+
+  it('recognizes the canonical numeric performance bypass flag', () => {
+    expect(hasPerformanceFailoverBypass('disablePerformanceFailover=1')).toBe(
+      true
+    );
+    expect(
+      shouldDisablePerformanceFailover('mode=immersive&disablePerformanceFailover=1')
     ).toBe(true);
   });
 
