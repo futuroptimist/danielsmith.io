@@ -48,6 +48,8 @@ Include summary, automated tests, and manual verification checklist.
   overrides without clobbering existing query parameters or hashes.
   - Both helpers now accept an optional extra params map so you can append UTM/debug flags
     while the required mode + performance bypass parameters remain intact.
+  - Mode helpers treat `mode` and `disablePerformanceFailover` flags as case-insensitive,
+    accepting `true`/`1` values so crawler and CMS links stay resilient.
 
 ## Upgrade Prompt
 
