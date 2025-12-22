@@ -209,14 +209,16 @@ describe('immersive flag helpers', () => {
       true
     );
     expect(
-      shouldDisablePerformanceFailover('mode=immersive&disablePerformanceFailover=1')
+      shouldDisablePerformanceFailover(
+        'mode=immersive&disablePerformanceFailover=1'
+      )
     ).toBe(true);
   });
 
   it('treats canonical numeric bypass flags as resilient to whitespace', () => {
-    expect(
-      hasPerformanceFailoverBypass('disablePerformanceFailover= 1 ')
-    ).toBe(true);
+    expect(hasPerformanceFailoverBypass('disablePerformanceFailover= 1 ')).toBe(
+      true
+    );
     expect(
       hasPerformanceFailoverBypass('disablePerformanceFailover=\t1\n')
     ).toBe(true);
