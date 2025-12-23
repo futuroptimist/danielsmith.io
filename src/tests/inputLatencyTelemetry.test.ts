@@ -60,11 +60,11 @@ describe('createInputLatencyTelemetry', () => {
 
     telemetry.report('manual');
     expect(logger.warn).toHaveBeenCalledTimes(1);
-    expect(logger.warn.mock.calls[0][0]).toContain('p95 210.0 ms');
-    expect(logger.warn.mock.calls[0][0]).toContain('(budget 200 ms)');
-    expect(logger.warn.mock.calls[0][0]).toContain(
-      'Event types: pointerdown×3'
-    );
+    const warningMessage = logger.warn.mock.calls[0][0] as string;
+    expect(warningMessage).toContain('p95 210.0 ms');
+    expect(warningMessage).toContain('(budget 200 ms)');
+    expect(warningMessage).toContain('Event types: pointerdown×3');
+    expect(warningMessage).toContain('pointer: 3');
     expect(telemetry.getSummary()).toBeNull();
 
     recordLatency(40);
@@ -94,6 +94,22 @@ describe('createInputLatencyTelemetry', () => {
     telemetry.dispose();
     expect(windowTarget.listenerCount('pagehide')).toBe(0);
     expect(documentTarget.listenerCount('visibilitychange')).toBe(0);
+  });
+
+  it('summarizes event categories for analytics pipelines', () => {
+    const { telemetry, logger, windowTarget, recordLatency } = setup({
+      eventTypes: ['pointerdown', 'keydown'],
+    });
+
+    recordLatency(42);
+    windowTarget.dispatchEvent(createInputEvent('keydown', 0));
+    telemetry.report('analytics-snapshot');
+
+    const infoMessage = logger.info.mock.calls[0][0] as string;
+    expect(infoMessage).toContain('pointerdown×1');
+    expect(infoMessage).toContain('keydown×1');
+    expect(infoMessage).toMatch(/pointer: 1/);
+    expect(infoMessage).toMatch(/keyboard: 1/);
   });
 
   it('invokes onReport with the most recent summary before reset', () => {
