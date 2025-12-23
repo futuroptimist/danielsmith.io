@@ -3,7 +3,7 @@ export const IMMERSIVE_MODE_VALUE = 'immersive';
 export const DISABLE_PERFORMANCE_FAILOVER_PARAM = 'disablePerformanceFailover';
 export const DISABLE_PERFORMANCE_FAILOVER_VALUE = '1';
 export const TEXT_MODE_VALUE = 'text';
-export const IMMERSIVE_PREVIEW_BASE_URL = 'http://localhost:5173/';
+export const IMMERSIVE_PREVIEW_BASE_URL = 'http://127.0.0.1:5173/';
 export type ModeSelection =
   | typeof IMMERSIVE_MODE_VALUE
   | typeof TEXT_MODE_VALUE
