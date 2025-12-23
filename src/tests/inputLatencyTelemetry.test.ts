@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createInputLatencyTelemetry } from '../systems/performance/inputLatencyTelemetry';
+import {
+  categorizeEventType,
+  createInputLatencyTelemetry,
+} from '../systems/performance/inputLatencyTelemetry';
 
 import { FakeEventTarget } from './helpers/fakeEventTarget';
 
@@ -97,12 +100,13 @@ describe('createInputLatencyTelemetry', () => {
   });
 
   it('summarizes event categories for analytics pipelines', () => {
-    const { telemetry, logger, windowTarget, recordLatency } = setup({
+    const { telemetry, logger, windowTarget, recordLatency, now } = setup({
       eventTypes: ['pointerdown', 'keydown'],
     });
 
     recordLatency(42);
-    windowTarget.dispatchEvent(createInputEvent('keydown', 0));
+    const currentTime = now();
+    windowTarget.dispatchEvent(createInputEvent('keydown', currentTime - 42));
     telemetry.report('analytics-snapshot');
 
     const infoMessage = logger.info.mock.calls[0][0] as string;
@@ -130,5 +134,27 @@ describe('createInputLatencyTelemetry', () => {
     );
     expect(summary.eventTypeCounts).toEqual({ pointerdown: 2 });
     expect(telemetry.getSummary()).toBeNull();
+  });
+
+  describe('categorizeEventType', () => {
+    it('categorizes pointer, keyboard, manual, and other events', () => {
+      expect(categorizeEventType('pointerenter')).toBe('pointer');
+      expect(categorizeEventType('keyup')).toBe('keyboard');
+      expect(categorizeEventType('manual')).toBe('manual');
+      expect(categorizeEventType('mouseenter')).toBe('other');
+      expect(categorizeEventType('focus')).toBe('other');
+      expect(categorizeEventType('blur')).toBe('other');
+    });
+
+    it('normalizes case and whitespace', () => {
+      expect(categorizeEventType(' KEYDOWN ')).toBe('keyboard');
+      expect(categorizeEventType('PointerDown')).toBe('pointer');
+      expect(categorizeEventType(' manual ')).toBe('manual');
+    });
+
+    it('handles uncommon but valid event types as other', () => {
+      expect(categorizeEventType('gesturestart')).toBe('other');
+      expect(categorizeEventType('compositionstart')).toBe('other');
+    });
   });
 });

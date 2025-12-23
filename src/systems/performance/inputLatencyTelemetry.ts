@@ -25,7 +25,7 @@ const DEFAULT_BUDGET_MS = 200;
 const formatNumber = (value: number): string => value.toFixed(1);
 type EventCategory = 'pointer' | 'keyboard' | 'manual' | 'other';
 
-const categorizeEventType = (eventType: string): EventCategory => {
+export const categorizeEventType = (eventType: string): EventCategory => {
   const normalized = eventType.trim().toLowerCase();
   if (
     normalized === 'pointerdown' ||
