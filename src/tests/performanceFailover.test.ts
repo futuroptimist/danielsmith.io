@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { type ConsoleBudgetExceededDetail } from '../systems/failover/consoleBudgetMonitor';
 import {
   createPerformanceFailoverHandler,
   type ImmersiveRendererHandle,
@@ -361,6 +362,7 @@ describe('createPerformanceFailoverHandler', () => {
     const originalError = consoleTarget.error;
     const windowTarget = new FakeWindowTarget();
     const eventTarget = new EventTarget();
+    const failoverEvents = collectFailoverEvents(eventTarget);
     const onExceeded = vi.fn();
     const onFallback = vi.fn();
 
@@ -379,12 +381,16 @@ describe('createPerformanceFailoverHandler', () => {
         onExceeded,
       },
       onFallback,
+      eventTarget,
     });
 
     const instrumented = consoleTarget.error;
     expect(instrumented).not.toBe(originalError);
 
     consoleTarget.error('runtime failure');
+
+    const consoleDetail = onExceeded.mock
+      .calls[0][0] as ConsoleBudgetExceededDetail;
 
     expect(handler.hasTriggered()).toBe(true);
     expect(onExceeded).toHaveBeenCalledTimes(1);
@@ -398,7 +404,12 @@ describe('createPerformanceFailoverHandler', () => {
       githubUrl: undefined,
     });
     expect(markAppReady).toHaveBeenCalledWith('fallback', 'console-error');
-    expect(onFallback).toHaveBeenCalledWith('console-error', undefined);
+    expect(onFallback).toHaveBeenCalledWith('console-error', consoleDetail);
+    expect(consoleDetail.count).toBe(1);
+    expect(consoleDetail.sourceCounts['console-error']).toBe(1);
+    expect(failoverEvents).toHaveLength(1);
+    expect(failoverEvents[0].detail.reason).toBe('console-error');
+    expect(failoverEvents[0].detail.context).toEqual(consoleDetail);
     expect(consoleTarget.error).toBe(originalError);
   });
 });

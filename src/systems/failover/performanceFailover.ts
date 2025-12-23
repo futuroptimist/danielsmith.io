@@ -27,6 +27,10 @@ export interface PerformanceFailoverTriggerContext {
   medianFps: number;
 }
 
+export type PerformanceFailoverContext =
+  | PerformanceFailoverTriggerContext
+  | ConsoleBudgetExceededDetail;
+
 export interface PerformanceFailoverHandlerOptions {
   renderer: ImmersiveRendererHandle;
   container: HTMLElement;
@@ -47,7 +51,7 @@ export interface PerformanceFailoverHandlerOptions {
   onBeforeFallback?: (reason: FallbackReason) => void;
   onFallback?: (
     reason: FallbackReason,
-    context?: PerformanceFailoverTriggerContext
+    context?: PerformanceFailoverContext
   ) => void;
   disabled?: boolean;
   consoleFailover?: ConsoleFailoverOptions;
@@ -56,7 +60,7 @@ export interface PerformanceFailoverHandlerOptions {
 
 export interface PerformanceFailoverEventDetail {
   reason: FallbackReason;
-  context?: PerformanceFailoverTriggerContext;
+  context?: PerformanceFailoverContext;
 }
 
 export interface ConsoleFailoverOptions
@@ -220,7 +224,8 @@ export function createPerformanceFailoverHandler(
 
   const transitionToFallback = (
     reason: FallbackReason,
-    context?: PerformanceFailoverTriggerContext
+    context?: PerformanceFailoverTriggerContext,
+    consoleDetail?: ConsoleBudgetExceededDetail
   ) => {
     if (transitioned) {
       return;
@@ -233,9 +238,9 @@ export function createPerformanceFailoverHandler(
     if (context) {
       handlePerformanceTrigger(context);
     }
-    dispatchFailoverEvent({ reason, context });
+    dispatchFailoverEvent({ reason, context: context ?? consoleDetail });
     try {
-      onFallback?.(reason, context);
+      onFallback?.(reason, context ?? consoleDetail);
     } catch (error) {
       console.warn('Fallback callback failed:', error);
     }
@@ -305,7 +310,7 @@ export function createPerformanceFailoverHandler(
           } catch (error) {
             console.warn('Console failover callback failed:', error);
           }
-          transitionToFallback('console-error');
+          transitionToFallback('console-error', undefined, detail);
         },
       });
     }
