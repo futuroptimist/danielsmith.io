@@ -49,6 +49,8 @@ captures; keep artifacts in `docs/metrics/`.
     - ✅ Telemetry payloads now summarize error counts per source (console errors, window
       errors, unhandled rejections) so downstream analytics can trace failover drivers without
       querying logs.
+    - ✅ Performance failover events now include console budget payloads so HUD/analytics hooks
+      can surface the triggering source and counts alongside low-FPS summaries.
 - **Failover** – auto redirect to text-only portfolio if WebGL is unavailable, memory
   heuristics fail (<1 GB), or FPS drops below 30 for 5s; provide manual toggle in HUD.
   - ✅ WebGL capability detection now routes unsupported browsers to the lightweight text view (also available via `?mode=text`)
