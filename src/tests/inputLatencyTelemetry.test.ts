@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createInputLatencyTelemetry } from '../systems/performance/inputLatencyTelemetry';
+import {
+  categorizeEventType,
+  createInputLatencyTelemetry,
+} from '../systems/performance/inputLatencyTelemetry';
 
 import { FakeEventTarget } from './helpers/fakeEventTarget';
 
@@ -60,11 +63,11 @@ describe('createInputLatencyTelemetry', () => {
 
     telemetry.report('manual');
     expect(logger.warn).toHaveBeenCalledTimes(1);
-    expect(logger.warn.mock.calls[0][0]).toContain('p95 210.0 ms');
-    expect(logger.warn.mock.calls[0][0]).toContain('(budget 200 ms)');
-    expect(logger.warn.mock.calls[0][0]).toContain(
-      'Event types: pointerdown×3'
-    );
+    const warningMessage = logger.warn.mock.calls[0][0] as string;
+    expect(warningMessage).toContain('p95 210.0 ms');
+    expect(warningMessage).toContain('(budget 200 ms)');
+    expect(warningMessage).toContain('Event types: pointerdown×3');
+    expect(warningMessage).toContain('pointer: 3');
     expect(telemetry.getSummary()).toBeNull();
 
     recordLatency(40);
@@ -96,6 +99,23 @@ describe('createInputLatencyTelemetry', () => {
     expect(documentTarget.listenerCount('visibilitychange')).toBe(0);
   });
 
+  it('summarizes event categories for analytics pipelines', () => {
+    const { telemetry, logger, windowTarget, recordLatency, now } = setup({
+      eventTypes: ['pointerdown', 'keydown'],
+    });
+
+    recordLatency(42);
+    const currentTime = now();
+    windowTarget.dispatchEvent(createInputEvent('keydown', currentTime - 42));
+    telemetry.report('analytics-snapshot');
+
+    const infoMessage = logger.info.mock.calls[0][0] as string;
+    expect(infoMessage).toContain('pointerdown×1');
+    expect(infoMessage).toContain('keydown×1');
+    expect(infoMessage).toMatch(/pointer: 1/);
+    expect(infoMessage).toMatch(/keyboard: 1/);
+  });
+
   it('invokes onReport with the most recent summary before reset', () => {
     const onReport = vi.fn();
     const { telemetry, recordLatency } = setup({ onReport });
@@ -114,5 +134,27 @@ describe('createInputLatencyTelemetry', () => {
     );
     expect(summary.eventTypeCounts).toEqual({ pointerdown: 2 });
     expect(telemetry.getSummary()).toBeNull();
+  });
+
+  describe('categorizeEventType', () => {
+    it('categorizes pointer, keyboard, manual, and other events', () => {
+      expect(categorizeEventType('pointerenter')).toBe('pointer');
+      expect(categorizeEventType('keyup')).toBe('keyboard');
+      expect(categorizeEventType('manual')).toBe('manual');
+      expect(categorizeEventType('mouseenter')).toBe('other');
+      expect(categorizeEventType('focus')).toBe('other');
+      expect(categorizeEventType('blur')).toBe('other');
+    });
+
+    it('normalizes case and whitespace', () => {
+      expect(categorizeEventType(' KEYDOWN ')).toBe('keyboard');
+      expect(categorizeEventType('PointerDown')).toBe('pointer');
+      expect(categorizeEventType(' manual ')).toBe('manual');
+    });
+
+    it('handles uncommon but valid event types as other', () => {
+      expect(categorizeEventType('gesturestart')).toBe('other');
+      expect(categorizeEventType('compositionstart')).toBe('other');
+    });
   });
 });
