@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createImmersiveModeUrl,
+  createImmersivePreviewUrl,
   createTextModeUrl,
   getModeFromSearch,
   hasImmersiveOverride,
   hasPerformanceFailoverBypass,
+  IMMERSIVE_PREVIEW_BASE_URL,
   shouldDisablePerformanceFailover,
 } from '../ui/immersiveUrl';
 
@@ -92,6 +94,25 @@ describe('createImmersiveModeUrl', () => {
 
     expect(url).toBe(
       'https://example.com/demo/scene?foo=bar&mode=immersive&disablePerformanceFailover=1&utm_source=test-harness#view'
+    );
+  });
+});
+
+describe('createImmersivePreviewUrl', () => {
+  it('builds a preview link using the default immersive preview base', () => {
+    expect(createImmersivePreviewUrl()).toBe(
+      `${IMMERSIVE_PREVIEW_BASE_URL}?mode=immersive&disablePerformanceFailover=1`
+    );
+  });
+
+  it('appends extra params without overriding required preview flags', () => {
+    const url = createImmersivePreviewUrl({
+      utm_source: 'readme',
+      mode: 'text',
+    });
+
+    expect(url).toBe(
+      `${IMMERSIVE_PREVIEW_BASE_URL}?mode=immersive&disablePerformanceFailover=1&utm_source=readme`
     );
   });
 });
