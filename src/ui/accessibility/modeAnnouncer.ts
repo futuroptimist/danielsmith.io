@@ -428,7 +428,6 @@ export function initializeModeAnnouncementObserver(
     }
     lastLang = nextLang;
     applyLocalizedMessages({ reannounce: true });
-    triggerAnnouncement({ forceReannounce: true });
   });
 
   languageObserver.observe(documentTarget.documentElement, {
