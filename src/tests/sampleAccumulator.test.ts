@@ -106,6 +106,25 @@ describe('createSampleAccumulator', () => {
     expect(summary?.min).toBe(1);
   });
 
+  it('compacts backing storage after many evictions to reduce churn', () => {
+    const onCompact = vi.fn();
+    const accumulator = createSampleAccumulator({
+      maxSamples: 2,
+      onCompact,
+    });
+
+    for (let value = 0; value < 1100; value += 1) {
+      accumulator.record(value);
+    }
+
+    const summary = accumulator.getSummary();
+
+    expect(summary?.count).toBe(2);
+    expect(summary?.min).toBe(1098);
+    expect(summary?.max).toBe(1099);
+    expect(onCompact).toHaveBeenCalled();
+  });
+
   it('returns null for an empty accumulator', () => {
     const accumulator = createSampleAccumulator();
 
