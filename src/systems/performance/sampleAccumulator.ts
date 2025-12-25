@@ -15,6 +15,7 @@ export interface SampleAccumulator {
 
 export interface SampleAccumulatorOptions {
   onSort?: (values: ReadonlyArray<number>) => void;
+  onCompact?: (values: ReadonlyArray<number>) => void;
   /** Maximum number of samples to retain; older entries are evicted first. */
   maxSamples?: number;
 }
@@ -23,7 +24,8 @@ export function createSampleAccumulator(
   options: SampleAccumulatorOptions = {}
 ): SampleAccumulator {
   let sum = 0;
-  const samples: number[] = [];
+  let samples: number[] = [];
+  let startIndex = 0;
   let sortedCache: number[] | null = null;
   let isDirty = true;
 
@@ -31,16 +33,41 @@ export function createSampleAccumulator(
     ? Math.max(0, Math.floor(options.maxSamples as number))
     : 0;
 
+  const getActiveCount = () => samples.length - startIndex;
+
+  const compactSamples = () => {
+    if (startIndex === 0) {
+      return;
+    }
+    const activeCount = getActiveCount();
+    if (activeCount === 0) {
+      samples.length = 0;
+      startIndex = 0;
+      return;
+    }
+    if (startIndex < 1024 && startIndex < samples.length / 2) {
+      return;
+    }
+    samples = samples.slice(startIndex);
+    startIndex = 0;
+    if (options.onCompact) {
+      options.onCompact(samples);
+    }
+  };
+
   const trimOldestSamples = () => {
     if (normalizedMaxSamples <= 0) {
       return;
     }
-    while (samples.length >= normalizedMaxSamples) {
-      const removed = samples.shift();
+    while (getActiveCount() >= normalizedMaxSamples) {
+      const removed = samples[startIndex];
       if (typeof removed === 'number') {
         sum -= removed;
       }
+      startIndex += 1;
+      isDirty = true;
     }
+    compactSamples();
   };
 
   const computeSorted = (): number[] => {
@@ -49,8 +76,9 @@ export function createSampleAccumulator(
     }
     const target = sortedCache ?? [];
     target.length = 0;
-    for (let index = 0; index < samples.length; index += 1) {
-      target[index] = samples[index];
+    const activeCount = getActiveCount();
+    for (let index = 0; index < activeCount; index += 1) {
+      target[index] = samples[startIndex + index];
     }
     target.sort((a, b) => a - b);
     sortedCache = target;
@@ -69,6 +97,7 @@ export function createSampleAccumulator(
   const reset = () => {
     sum = 0;
     samples.length = 0;
+    startIndex = 0;
     if (sortedCache) {
       sortedCache.length = 0;
     }
@@ -76,10 +105,11 @@ export function createSampleAccumulator(
   };
 
   const getSummary = (): SampleSummary | null => {
-    if (samples.length === 0) {
+    const activeCount = getActiveCount();
+    if (activeCount === 0) {
       return null;
     }
-    const average = sum / samples.length;
+    const average = sum / activeCount;
     const sorted = computeSorted();
     const percentileIndex = Math.min(
       sorted.length - 1,
@@ -92,7 +122,7 @@ export function createSampleAccumulator(
         ? (sorted[midIndex - 1] + sorted[midIndex]) / 2
         : sorted[midIndex];
     return {
-      count: samples.length,
+      count: activeCount,
       average,
       min: sorted[0],
       max: sorted[sorted.length - 1],

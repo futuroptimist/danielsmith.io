@@ -19,6 +19,14 @@ Playwright screenshot assertions inherit tolerances from
 (1.5%) and `maxDiffPixels` (1,200) balance bloom noise against meaningful scene
 changes. Update both the asset and this doc if thresholds move.
 
+## Telemetry sampling
+
+Input latency and FPS monitors reuse the shared `createSampleAccumulator(...)`
+utility to keep percentiles and averages cached between polls. The accumulator
+now compacts its rolling buffer after long eviction streaks so long-running
+sessions do not hold onto trimmed samples or churn the GC. Use the optional
+`onCompact` hook in tests when validating max sample caps or memory behavior.
+
 ## Keyboard traversal macro
 
 [`playwright/keyboard-traversal.spec.ts`](../../playwright/keyboard-traversal.spec.ts)
