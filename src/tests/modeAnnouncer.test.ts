@@ -242,6 +242,63 @@ describe('initializeModeAnnouncementObserver', () => {
     expect(region?.textContent).toMatch(/data-saver experience/i);
   });
 
+  it('re-localizes fallback announcements when the document language changes', async () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'en';
+
+    initializeModeAnnouncementObserver();
+
+    const container = document.createElement('div');
+    document.body.append(container);
+    renderTextFallback(container, {
+      reason: 'data-saver',
+      immersiveUrl: '/immersive',
+    });
+
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toBe(
+      englishModeAnnouncements.fallbackReasons['data-saver']
+    );
+
+    document.documentElement.lang = 'ar';
+    await flushObserver();
+
+    const arabicAnnouncements = getModeAnnouncerStrings('ar');
+    expect(region?.textContent).toBe(
+      arabicAnnouncements.fallbackReasons['data-saver']
+    );
+
+    container.remove();
+    document.documentElement.lang = originalLang;
+  });
+
+  it('re-announces immersive ready messaging when the locale changes', async () => {
+    const originalLang = document.documentElement.lang;
+    document.documentElement.lang = 'en';
+
+    initializeModeAnnouncementObserver();
+
+    document.documentElement.dataset.appMode = 'immersive';
+    await flushObserver();
+
+    const region = document.querySelector<HTMLElement>(
+      '[data-mode-announcer="true"]'
+    );
+    expect(region?.textContent).toBe(englishModeAnnouncements.immersiveReady);
+
+    document.documentElement.lang = 'ar';
+    await flushObserver();
+
+    const arabicAnnouncements = getModeAnnouncerStrings('ar');
+    expect(region?.textContent).toBe(arabicAnnouncements.immersiveReady);
+
+    document.documentElement.lang = originalLang;
+  });
+
   it('announces immersive transitions when the mode changes back', async () => {
     initializeModeAnnouncementObserver();
     const announcer = getModeAnnouncer();

@@ -169,6 +169,7 @@ const announcers = new WeakMap<Document, ModeAnnouncer>();
 type ModeAnnouncementObservers = {
   readonly mode: MutationObserver;
   readonly fallback: MutationObserver;
+  readonly language: MutationObserver;
 };
 
 const observers = new WeakMap<Document, ModeAnnouncementObservers>();
@@ -260,13 +261,20 @@ export function initializeModeAnnouncementObserver(
     return;
   }
 
-  const announcerStrings = getModeAnnouncerStrings(
-    documentTarget.documentElement.lang
-  );
-  getModeAnnouncer(documentTarget).setMessages({
-    immersiveReady: announcerStrings.immersiveReady,
-    fallbackMessages: announcerStrings.fallbackReasons,
-  });
+  const applyLocalizedMessages = (options?: { reannounce?: boolean }) => {
+    const announcerStrings = getModeAnnouncerStrings(
+      documentTarget.documentElement.lang
+    );
+    getModeAnnouncer(documentTarget).setMessages(
+      {
+        immersiveReady: announcerStrings.immersiveReady,
+        fallbackMessages: announcerStrings.fallbackReasons,
+      },
+      options
+    );
+  };
+
+  applyLocalizedMessages();
 
   const triggerAnnouncement = (options?: {
     skipFallbackSync?: boolean;
@@ -405,11 +413,34 @@ export function initializeModeAnnouncementObserver(
     }
   );
 
+  let lastLang = documentTarget.documentElement.lang;
+  const languageObserver = new MutationObserver((mutations) => {
+    const langMutation = mutations.some(
+      (mutation) =>
+        mutation.type === 'attributes' && mutation.attributeName === 'lang'
+    );
+    if (!langMutation) {
+      return;
+    }
+    const nextLang = documentTarget.documentElement.lang;
+    if (nextLang === lastLang) {
+      return;
+    }
+    lastLang = nextLang;
+    applyLocalizedMessages({ reannounce: true });
+  });
+
+  languageObserver.observe(documentTarget.documentElement, {
+    attributes: true,
+    attributeFilter: ['lang'],
+  });
+
   handleModeChange(documentTarget);
 
   observers.set(documentTarget, {
     mode: modeObserver,
     fallback: fallbackObserver,
+    language: languageObserver,
   });
 }
 
@@ -425,6 +456,7 @@ export function __resetModeAnnouncementForTests(
   if (observerSet) {
     observerSet.mode.disconnect();
     observerSet.fallback.disconnect();
+    observerSet.language.disconnect();
     observers.delete(documentTarget);
   }
   const region = documentTarget.querySelector<HTMLElement>(
