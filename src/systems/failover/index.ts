@@ -95,8 +95,14 @@ function safeGetContext(
 }
 
 export function isWebglSupported(options: WebglSupportOptions = {}): boolean {
+  const hasDocument = typeof document !== 'undefined';
   const createCanvas =
-    options.createCanvas ?? (() => document.createElement('canvas'));
+    options.createCanvas ??
+    (hasDocument ? () => document.createElement('canvas') : null);
+
+  if (!createCanvas) {
+    return false;
+  }
 
   let canvas: HTMLCanvasElement;
   try {

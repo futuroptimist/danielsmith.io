@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { getSiteStrings } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
@@ -39,6 +39,26 @@ describe('isWebglSupported', () => {
         }) as unknown as HTMLCanvasElement,
     });
     expect(supported).toBe(false);
+  });
+
+  it('returns false when no document is available without warnings', () => {
+    const warnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+    vi.stubGlobal('document', undefined as unknown as Document);
+
+    try {
+      expect(isWebglSupported()).toBe(false);
+      const decision = evaluateFailoverDecision();
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'webgl-unsupported',
+      });
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+      warnSpy.mockRestore();
+    }
   });
 });
 
