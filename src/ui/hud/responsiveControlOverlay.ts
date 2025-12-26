@@ -288,8 +288,6 @@ export function createResponsiveControlOverlay(
     );
     if (layout === 'mobile') {
       persistCollapsed(storage, collapsed);
-    }
-    if (layout === 'mobile') {
       toggle.hidden = false;
       applyToggleLabel(toggle, currentStrings, collapsed);
     } else {
