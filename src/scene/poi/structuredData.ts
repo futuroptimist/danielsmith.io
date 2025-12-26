@@ -191,6 +191,46 @@ const createEntityReference = (
   return undefined;
 };
 
+const createAdditionalProperties = (
+  poi: PoiDefinition
+): ReadonlyArray<PropertyValue> => {
+  const additionalProperty: PropertyValue[] = [
+    {
+      '@type': 'PropertyValue',
+      name: 'Category',
+      value: poi.category,
+    },
+  ];
+
+  if (poi.outcome && poi.outcome.value.trim()) {
+    additionalProperty.push({
+      '@type': 'PropertyValue',
+      name: poi.outcome.label?.trim() || 'Outcome',
+      value: poi.outcome.value.trim(),
+    });
+  }
+
+  if (poi.metrics && poi.metrics.length > 0) {
+    poi.metrics.forEach((metric) => {
+      additionalProperty.push({
+        '@type': 'PropertyValue',
+        name: metric.label.trim(),
+        value: metric.value.trim(),
+      });
+    });
+  }
+
+  if (poi.status) {
+    additionalProperty.push({
+      '@type': 'PropertyValue',
+      name: 'Status',
+      value: poi.status,
+    });
+  }
+
+  return additionalProperty;
+};
+
 const createSiteEntry = (
   canonical: string,
   siteName: string,
@@ -208,6 +248,52 @@ const createSiteEntry = (
 
 const createImmersiveOverrideUrl = (canonical: string): string => {
   return `${canonical}${IMMERSIVE_OVERRIDE_QUERY}`;
+};
+
+interface PoiCreativeWorkOptions {
+  canonical: string;
+  locale: string;
+  listId: string;
+  publisherReference?: Record<string, string>;
+  authorReference?: Record<string, string>;
+}
+
+const createPoiCreativeWork = (
+  poi: PoiDefinition,
+  options: PoiCreativeWorkOptions
+): Record<string, unknown> => {
+  const poiUrl = createPoiUrl(options.canonical, poi.id);
+  const additionalProperty = createAdditionalProperties(poi);
+  const sameAs = poi.links?.map((link) => link.href).filter(Boolean) ?? [];
+
+  const item: Record<string, unknown> = {
+    '@type': 'CreativeWork',
+    '@id': poiUrl,
+    url: poiUrl,
+    name: poi.title,
+    description: poi.summary,
+    identifier: poi.id,
+    keywords: [poi.category, poi.roomId],
+    inLanguage: options.locale,
+    isAccessibleForFree: true,
+    additionalProperty,
+    isPartOf: { '@type': 'ItemList', '@id': options.listId },
+  };
+
+  if (sameAs.length > 0) {
+    item.sameAs = sameAs;
+  }
+
+  if (options.publisherReference) {
+    item.publisher = options.publisherReference;
+    item.provider = options.publisherReference;
+  }
+  if (options.authorReference) {
+    item.author = options.authorReference;
+    item.creator = options.authorReference;
+  }
+
+  return item;
 };
 
 export const buildPoiStructuredData = (
@@ -268,74 +354,18 @@ export const buildPoiStructuredData = (
   };
 
   const itemListElement: ListItem[] = pois.map((poi, index) => {
-    const poiUrl = createPoiUrl(canonical, poi.id);
-    const additionalProperty: PropertyValue[] = [
-      {
-        '@type': 'PropertyValue',
-        name: 'Category',
-        value: poi.category,
-      },
-    ];
-
-    if (poi.outcome && poi.outcome.value.trim()) {
-      additionalProperty.push({
-        '@type': 'PropertyValue',
-        name: poi.outcome.label?.trim() || 'Outcome',
-        value: poi.outcome.value.trim(),
-      });
-    }
-
-    if (poi.metrics && poi.metrics.length > 0) {
-      poi.metrics.forEach((metric) => {
-        additionalProperty.push({
-          '@type': 'PropertyValue',
-          name: metric.label,
-          value: metric.value,
-        });
-      });
-    }
-
-    if (poi.status) {
-      additionalProperty.push({
-        '@type': 'PropertyValue',
-        name: 'Status',
-        value: poi.status,
-      });
-    }
-
-    const sameAs = poi.links?.map((link) => link.href).filter(Boolean) ?? [];
-
-    const item: Record<string, unknown> = {
-      '@type': 'CreativeWork',
-      '@id': poiUrl,
-      url: poiUrl,
-      name: poi.title,
-      description: poi.summary,
-      identifier: poi.id,
-      keywords: [poi.category, poi.roomId],
-      inLanguage: locale,
-      isAccessibleForFree: true,
-      additionalProperty,
-    };
-
-    if (sameAs.length > 0) {
-      item.sameAs = sameAs;
-    }
-
-    if (publisherReference) {
-      item.publisher = publisherReference;
-      item.provider = publisherReference;
-    }
-    if (authorReference) {
-      item.author = authorReference;
-      item.creator = authorReference;
-    }
-    item.isPartOf = { '@type': 'ItemList', '@id': listId };
+    const item = createPoiCreativeWork(poi, {
+      canonical,
+      locale,
+      listId,
+      publisherReference,
+      authorReference,
+    });
 
     return {
       '@type': 'ListItem',
       position: index + 1,
-      url: poiUrl,
+      url: item.url as string,
       item,
     } satisfies ListItem;
   });
@@ -422,13 +452,15 @@ export const buildTextPortfolioStructuredData = (
     : null;
   const publisherReference = createEntityReference(publisherEntity);
   const authorReference = createEntityReference(authorEntity);
-
-  const hasPart = pois.map((poi) => ({
-    '@type': 'CreativeWork',
-    '@id': createPoiUrl(canonical, poi.id),
-    inLanguage: locale,
-    isAccessibleForFree: true,
-  }));
+  const hasPart = pois.map((poi) =>
+    createPoiCreativeWork(poi, {
+      canonical,
+      locale,
+      listId,
+      publisherReference,
+      authorReference,
+    })
+  );
 
   const structuredData: Record<string, unknown> = {
     '@context': 'https://schema.org',
