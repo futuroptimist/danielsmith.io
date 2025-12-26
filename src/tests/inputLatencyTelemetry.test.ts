@@ -132,6 +132,12 @@ describe('createInputLatencyTelemetry', () => {
     expect(summary.p95LatencyMs).toBeGreaterThanOrEqual(
       summary.medianLatencyMs
     );
+    expect(summary.eventCategoryCounts).toEqual({
+      keyboard: 0,
+      manual: 0,
+      other: 0,
+      pointer: 2,
+    });
     expect(summary.eventTypeCounts).toEqual({ pointerdown: 2 });
     expect(telemetry.getSummary()).toBeNull();
   });

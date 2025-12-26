@@ -1,8 +1,12 @@
 import {
   createInputLatencyMonitor,
+  type EventCategory,
   type InputLatencyMonitor,
   type InputLatencySummary,
 } from './inputLatencyMonitor';
+
+export { categorizeEventType } from './inputLatencyMonitor';
+export type { EventCategory } from './inputLatencyMonitor';
 
 export interface InputLatencyTelemetryOptions {
   windowTarget: Window;
@@ -23,34 +27,11 @@ export interface InputLatencyTelemetryHandle {
 const DEFAULT_BUDGET_MS = 200;
 
 const formatNumber = (value: number): string => value.toFixed(1);
-type EventCategory = 'pointer' | 'keyboard' | 'manual' | 'other';
 
-export const categorizeEventType = (eventType: string): EventCategory => {
-  const normalized = eventType.trim().toLowerCase();
-  if (
-    normalized === 'pointerdown' ||
-    normalized === 'pointerup' ||
-    normalized === 'pointermove' ||
-    normalized === 'pointerenter' ||
-    normalized === 'pointerleave' ||
-    normalized === 'click'
-  ) {
-    return 'pointer';
-  }
-  if (
-    normalized === 'keydown' ||
-    normalized === 'keyup' ||
-    normalized === 'keypress'
-  ) {
-    return 'keyboard';
-  }
-  if (normalized === 'manual') {
-    return 'manual';
-  }
-  return 'other';
-};
-
-const formatEventTypeCounts = (counts: Record<string, number>): string => {
+const formatEventTypeCounts = (
+  counts: Record<string, number>,
+  categoryCounts: Record<EventCategory, number>
+): string => {
   const entries = Object.entries(counts);
   if (entries.length === 0) {
     return 'no events recorded';
@@ -62,19 +43,7 @@ const formatEventTypeCounts = (counts: Record<string, number>): string => {
     return right[1] - left[1];
   });
 
-  const categoryTotals: Record<EventCategory, number> = {
-    pointer: 0,
-    keyboard: 0,
-    manual: 0,
-    other: 0,
-  };
-
-  for (const [eventType, count] of sorted) {
-    const category = categorizeEventType(eventType);
-    categoryTotals[category] += count;
-  }
-
-  const categoryBreakdown = Object.entries(categoryTotals)
+  const categoryBreakdown = Object.entries(categoryCounts)
     .filter(([, count]) => count > 0)
     .map(([category, count]) => `${category}: ${count}`)
     .join(', ');
@@ -121,7 +90,10 @@ export function createInputLatencyTelemetry(
     const p95 = formatNumber(summary.p95LatencyMs);
     const max = formatNumber(summary.maxLatencyMs);
     const average = formatNumber(summary.averageLatencyMs);
-    const eventBreakdown = formatEventTypeCounts(summary.eventTypeCounts);
+    const eventBreakdown = formatEventTypeCounts(
+      summary.eventTypeCounts,
+      summary.eventCategoryCounts
+    );
     const message =
       `Input latency summary (${reason}): median ${median} ms, p95 ${p95} ms ` +
       `(budget ${budgetMs} ms), max ${max} ms across ${summary.count} ` +

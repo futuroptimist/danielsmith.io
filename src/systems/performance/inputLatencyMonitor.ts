@@ -11,6 +11,7 @@ export interface InputLatencySummary {
   maxLatencyMs: number;
   p95LatencyMs: number;
   medianLatencyMs: number;
+  eventCategoryCounts: Record<EventCategory, number>;
   eventTypeCounts: Record<string, number>;
 }
 
@@ -18,6 +19,35 @@ export interface InputLatencySample {
   eventType: string;
   latencyMs: number;
 }
+
+const EVENT_CATEGORIES = ['pointer', 'keyboard', 'manual', 'other'] as const;
+
+export type EventCategory = (typeof EVENT_CATEGORIES)[number];
+
+export const categorizeEventType = (eventType: string): EventCategory => {
+  const normalized = eventType.trim().toLowerCase();
+  if (
+    normalized === 'pointerdown' ||
+    normalized === 'pointerup' ||
+    normalized === 'pointermove' ||
+    normalized === 'pointerenter' ||
+    normalized === 'pointerleave' ||
+    normalized === 'click'
+  ) {
+    return 'pointer';
+  }
+  if (
+    normalized === 'keydown' ||
+    normalized === 'keyup' ||
+    normalized === 'keypress'
+  ) {
+    return 'keyboard';
+  }
+  if (normalized === 'manual') {
+    return 'manual';
+  }
+  return 'other';
+};
 
 export interface InputLatencyMonitor {
   record(latencyMs: number, eventType?: string): void;
@@ -56,7 +86,8 @@ const clampLatency = (value: number): number | null => {
 
 const mapSummary = (
   summary: SampleSummary,
-  eventTypeCounts: Map<string, number>
+  eventTypeCounts: Map<string, number>,
+  eventCategoryCounts: Map<EventCategory, number>
 ): InputLatencySummary => ({
   count: summary.count,
   averageLatencyMs: summary.average,
@@ -64,6 +95,12 @@ const mapSummary = (
   maxLatencyMs: summary.max,
   p95LatencyMs: summary.p95,
   medianLatencyMs: summary.median,
+  eventCategoryCounts: Object.fromEntries(
+    EVENT_CATEGORIES.map((category) => [
+      category,
+      eventCategoryCounts.get(category) ?? 0,
+    ])
+  ),
   eventTypeCounts: Object.fromEntries(eventTypeCounts.entries()),
 });
 
@@ -85,6 +122,9 @@ export function createInputLatencyMonitor(
     maxSamples: MAX_SAMPLES,
   });
   const eventTypeCounts = new Map<string, number>();
+  const eventCategoryCounts = new Map<EventCategory, number>(
+    EVENT_CATEGORIES.map((category) => [category, 0])
+  );
   const target = options.target;
   const now = options.now ?? (() => performance.now());
   const listenerOptions = options.listenerOptions ?? { passive: true };
@@ -97,6 +137,11 @@ export function createInputLatencyMonitor(
   const recordSample = (latency: number, eventType: string) => {
     accumulator.record(latency);
     eventTypeCounts.set(eventType, (eventTypeCounts.get(eventType) ?? 0) + 1);
+    const category = categorizeEventType(eventType);
+    eventCategoryCounts.set(
+      category,
+      (eventCategoryCounts.get(category) ?? 0) + 1
+    );
     options.onSample?.({ latencyMs: latency, eventType });
   };
 
@@ -137,12 +182,15 @@ export function createInputLatencyMonitor(
     if (!summary) {
       return null;
     }
-    return mapSummary(summary, eventTypeCounts);
+    return mapSummary(summary, eventTypeCounts, eventCategoryCounts);
   };
 
   const reset = () => {
     accumulator.reset();
     eventTypeCounts.clear();
+    eventCategoryCounts.forEach((_, category) => {
+      eventCategoryCounts.set(category, 0);
+    });
   };
 
   const dispose = () => {
