@@ -53,8 +53,8 @@ describe('buildPoiStructuredData', () => {
       summary: 'Highlights automation systems.',
       outcome: { label: 'Outcome', value: 'Reduced toil 42%' },
       metrics: [
-        { label: 'Impact', value: 'Reduced toil 42%' },
-        { label: 'Stack', value: 'TypeScript · Three.js' },
+        { label: ' Impact ', value: ' Reduced toil 42% ' },
+        { label: ' Stack ', value: ' TypeScript · Three.js ' },
       ],
       links: [{ label: 'GitHub', href: 'https://example.com/repo' }],
       status: 'prototype',
@@ -259,8 +259,8 @@ describe('buildTextPortfolioStructuredData', () => {
         summary: 'Highlights automation systems.',
         outcome: { label: 'Outcome', value: 'Reduced toil 42%' },
         metrics: [
-          { label: 'Impact', value: 'Reduced toil 42%' },
-          { label: 'Stack', value: 'TypeScript · Three.js' },
+          { label: ' Impact ', value: ' Reduced toil 42% ' },
+          { label: ' Stack ', value: ' TypeScript · Three.js ' },
         ],
         links: [{ label: 'GitHub', href: 'https://example.com/repo' }],
       }),

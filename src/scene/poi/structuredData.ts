@@ -214,8 +214,8 @@ const createAdditionalProperties = (
     poi.metrics.forEach((metric) => {
       additionalProperty.push({
         '@type': 'PropertyValue',
-        name: metric.label,
-        value: metric.value,
+        name: metric.label.trim(),
+        value: metric.value.trim(),
       });
     });
   }
