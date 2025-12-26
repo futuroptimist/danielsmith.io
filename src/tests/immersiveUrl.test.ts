@@ -106,13 +106,23 @@ describe('createImmersivePreviewUrl', () => {
   });
 
   it('appends extra params without overriding required preview flags', () => {
-    const url = createImmersivePreviewUrl({
+    const url = createImmersivePreviewUrl(undefined, {
       utm_source: 'readme',
       mode: 'text',
     });
 
     expect(url).toBe(
       `${IMMERSIVE_PREVIEW_BASE_URL}?mode=immersive&disablePerformanceFailover=1&utm_source=readme`
+    );
+  });
+
+  it('accepts a custom preview base URL and preserves overrides', () => {
+    const url = createImmersivePreviewUrl('https://example.com/app/', {
+      utm_campaign: 'docs',
+    });
+
+    expect(url).toBe(
+      'https://example.com/app/?mode=immersive&disablePerformanceFailover=1&utm_campaign=docs'
     );
   });
 });
