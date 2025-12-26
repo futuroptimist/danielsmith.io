@@ -115,6 +115,17 @@ describe('createImmersivePreviewUrl', () => {
       `${IMMERSIVE_PREVIEW_BASE_URL}?mode=immersive&disablePerformanceFailover=1&utm_source=readme`
     );
   });
+
+  it('accepts a custom preview base URL and preserves overrides', () => {
+    const url = createImmersivePreviewUrl(
+      { utm_campaign: 'docs' },
+      'https://example.com/app/'
+    );
+
+    expect(url).toBe(
+      'https://example.com/app/?mode=immersive&disablePerformanceFailover=1&utm_campaign=docs'
+    );
+  });
 });
 
 describe('createTextModeUrl', () => {

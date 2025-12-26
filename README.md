@@ -16,10 +16,11 @@ keeps the familiar conventions while focusing purely on the web stack.
 
 **Play the immersive preview locally:**
 
-- [Launch demo](http://127.0.0.1:5173/?mode=immersive&disablePerformanceFailover=1) – keeps
+- [Launch demo](http://localhost:5173/?mode=immersive&disablePerformanceFailover=1) – keeps
   the immersive mode and performance bypass flags intact so the preview never falls back to
-  the text tour. If your host/port differ, use
-  [`createImmersivePreviewUrl`](src/ui/immersiveUrl.ts) to generate a compliant link.
+  the text tour. If your host/port differ, call
+  [`createImmersivePreviewUrl`](src/ui/immersiveUrl.ts) with `extraParams?` and an optional
+  `baseUrl` to generate a compliant link.
 - The text fallback remains available via `?mode=text` if you need a low-capability tour or
   want to validate failover paths alongside the immersive build.
 
