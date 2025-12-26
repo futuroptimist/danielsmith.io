@@ -26,8 +26,9 @@ and the Vitest assertions when measurable changes land.
   INP budget whenever the session hides, unloads, or performance failover triggers.
   - Telemetry accumulators now cap rolling windows (360 latency events, 600 FPS samples) so long
     play sessions cannot inflate memory while percentiles stay accurate.
-  - Event summaries now group counts by pointer, keyboard, manual, and other sources so analytics
-    pipelines can separate coarse interaction drivers without reprocessing raw events.
+  - Event summaries now group counts by pointer, keyboard, manual, and other sources via the
+    `eventCategoryCounts` field so analytics pipelines can separate coarse interaction drivers
+    without reprocessing raw events.
 - **Workflow** – Capture metrics via the Three.js inspector: open devtools,
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.

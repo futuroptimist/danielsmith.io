@@ -41,6 +41,12 @@ describe('createInputLatencyMonitor', () => {
     expect(summary?.maxLatencyMs).toBeCloseTo(50, 6);
     expect(summary?.medianLatencyMs).toBeCloseTo(40, 6);
     expect(summary?.p95LatencyMs).toBeCloseTo(50, 6);
+    expect(summary?.eventCategoryCounts).toEqual({
+      keyboard: 3,
+      manual: 0,
+      other: 0,
+      pointer: 0,
+    });
     expect(summary?.eventTypeCounts).toEqual({ keydown: 3 });
 
     monitor.dispose();
@@ -68,6 +74,12 @@ describe('createInputLatencyMonitor', () => {
     expect(summary?.count).toBe(1);
     expect(summary?.maxLatencyMs).toBeCloseTo(45.2, 6);
     expect(summary?.eventTypeCounts).toEqual({ custom: 1 });
+    expect(summary?.eventCategoryCounts).toEqual({
+      keyboard: 0,
+      manual: 0,
+      other: 1,
+      pointer: 0,
+    });
     expect(onSample).toHaveBeenCalledTimes(1);
     expect(onSample.mock.calls[0][0]).toEqual({
       eventType: 'custom',
