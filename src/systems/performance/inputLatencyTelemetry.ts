@@ -1,5 +1,4 @@
 import {
-  categorizeEventType,
   createInputLatencyMonitor,
   type EventCategory,
   type InputLatencyMonitor,
@@ -7,6 +6,7 @@ import {
 } from './inputLatencyMonitor';
 
 export { categorizeEventType } from './inputLatencyMonitor';
+export type { EventCategory } from './inputLatencyMonitor';
 
 export interface InputLatencyTelemetryOptions {
   windowTarget: Window;
@@ -43,21 +43,7 @@ const formatEventTypeCounts = (
     return right[1] - left[1];
   });
 
-  const categoryTotals: Record<EventCategory, number> = {
-    pointer: 0,
-    keyboard: 0,
-    manual: 0,
-    other: 0,
-  };
-
-  for (const [eventType, count] of sorted) {
-    const category = categorizeEventType(eventType);
-    categoryTotals[category] += count;
-  }
-
-  const mergedCategoryTotals = { ...categoryTotals, ...categoryCounts };
-
-  const categoryBreakdown = Object.entries(mergedCategoryTotals)
+  const categoryBreakdown = Object.entries(categoryCounts)
     .filter(([, count]) => count > 0)
     .map(([category, count]) => `${category}: ${count}`)
     .join(', ');
