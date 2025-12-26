@@ -159,8 +159,8 @@ export const createImmersiveModeUrl = (
   });
 
 export const createImmersivePreviewUrl = (
-  extraParams?: ExtraParams,
-  baseUrl: UrlLike = IMMERSIVE_PREVIEW_BASE_URL
+  baseUrl: UrlLike = IMMERSIVE_PREVIEW_BASE_URL,
+  extraParams?: ExtraParams
 ): string => createImmersiveModeUrl(baseUrl, extraParams);
 
 export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>

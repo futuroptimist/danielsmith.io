@@ -106,7 +106,7 @@ describe('createImmersivePreviewUrl', () => {
   });
 
   it('appends extra params without overriding required preview flags', () => {
-    const url = createImmersivePreviewUrl({
+    const url = createImmersivePreviewUrl(undefined, {
       utm_source: 'readme',
       mode: 'text',
     });
@@ -117,10 +117,9 @@ describe('createImmersivePreviewUrl', () => {
   });
 
   it('accepts a custom preview base URL and preserves overrides', () => {
-    const url = createImmersivePreviewUrl(
-      { utm_campaign: 'docs' },
-      'https://example.com/app/'
-    );
+    const url = createImmersivePreviewUrl('https://example.com/app/', {
+      utm_campaign: 'docs',
+    });
 
     expect(url).toBe(
       'https://example.com/app/?mode=immersive&disablePerformanceFailover=1&utm_campaign=docs'

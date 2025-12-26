@@ -19,8 +19,8 @@ keeps the familiar conventions while focusing purely on the web stack.
 - [Launch demo](http://localhost:5173/?mode=immersive&disablePerformanceFailover=1) – keeps
   the immersive mode and performance bypass flags intact so the preview never falls back to
   the text tour. If your host/port differ, call
-  [`createImmersivePreviewUrl`](src/ui/immersiveUrl.ts) with `extraParams?` and an optional
-  `baseUrl` to generate a compliant link.
+  [`createImmersivePreviewUrl`](src/ui/immersiveUrl.ts) with an optional `baseUrl` and
+  `extraParams?` to generate a compliant link.
 - The text fallback remains available via `?mode=text` if you need a low-capability tour or
   want to validate failover paths alongside the immersive build.
 
@@ -238,7 +238,7 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
   low-memory and low-core devices, data-saver preferences, slow 2G network hints,
   high-latency connections, and automated crawlers. A `<noscript>` fallback now routes no-JS
   clients and scrapers to the static tour immediately. Share preview links as
-  `http://127.0.0.1:5173/?mode=immersive&disablePerformanceFailover=1`
+  `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`
   (swap host/port as needed) to force the full scene even on throttled preview clients.
   Screen readers now announce each switch so assistive technology users
   know which mode is active.
