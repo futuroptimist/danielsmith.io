@@ -20,6 +20,8 @@ export interface ResponsiveControlOverlayOptions {
   strings: ResponsiveControlOverlayStrings;
   initialLayout?: HudLayout;
   defaultCollapsed?: boolean;
+  storage?: Pick<Storage, 'getItem' | 'setItem'> | null;
+  windowTarget?: Window;
 }
 
 const CONTROL_LIST_SELECTOR = '[data-role="control-list"]';
@@ -28,6 +30,7 @@ const CONTROL_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
 const CONTROL_COLLAPSED_KEY = 'controlCollapsed';
 const MOBILE_COLLAPSED_KEY = 'mobileCollapsed';
 const CONTROL_LIST_ID = 'control-overlay-list';
+const COLLAPSE_STORAGE_KEY = 'hud:control-overlay-collapsed';
 
 const INPUT_METHODS: ReadonlyArray<InputMethod> = [
   'keyboard',
@@ -157,6 +160,60 @@ const ensureControlListId = (list: HTMLElement): string => {
   return list.id;
 };
 
+const getStorage = (
+  windowTarget?: Window,
+  storage?: Pick<Storage, 'getItem' | 'setItem'> | null
+): Pick<Storage, 'getItem' | 'setItem'> | null => {
+  if (storage === null) {
+    return null;
+  }
+  if (storage) {
+    return storage;
+  }
+  if (!windowTarget) {
+    return null;
+  }
+  try {
+    return windowTarget.localStorage ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const readPersistedCollapsed = (
+  storage: Pick<Storage, 'getItem'> | null
+): boolean | null => {
+  if (!storage) {
+    return null;
+  }
+  try {
+    const value = storage.getItem(COLLAPSE_STORAGE_KEY);
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const persistCollapsed = (
+  storage: Pick<Storage, 'setItem'> | null,
+  collapsed: boolean
+) => {
+  if (!storage) {
+    return;
+  }
+  try {
+    storage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? 'true' : 'false');
+  } catch {
+    /* ignore storage errors */
+  }
+};
+
 export function createResponsiveControlOverlay(
   options: ResponsiveControlOverlayOptions
 ): ResponsiveControlOverlayHandle {
@@ -165,6 +222,8 @@ export function createResponsiveControlOverlay(
     strings,
     initialLayout = 'desktop',
     defaultCollapsed,
+    windowTarget = typeof window !== 'undefined' ? window : undefined,
+    storage: providedStorage,
   } = options;
 
   const list = options.list ?? container.querySelector(CONTROL_LIST_SELECTOR);
@@ -204,8 +263,14 @@ export function createResponsiveControlOverlay(
   const listId = ensureControlListId(list);
   toggle.setAttribute('aria-controls', listId);
 
+  const storage = getStorage(windowTarget, providedStorage);
+  const readStoredCollapsed = () => readPersistedCollapsed(storage);
+
+  const resolveMobileCollapsed = () =>
+    readStoredCollapsed() ?? defaultCollapsed ?? true;
+
   let layout: HudLayout = initialLayout;
-  let collapsed = defaultCollapsed ?? layout === 'mobile';
+  let collapsed = layout === 'mobile' ? resolveMobileCollapsed() : false;
   let currentStrings: ResponsiveControlOverlayStrings = { ...strings };
   let disposed = false;
 
@@ -221,6 +286,9 @@ export function createResponsiveControlOverlay(
       layout,
       collapsed
     );
+    if (layout === 'mobile') {
+      persistCollapsed(storage, collapsed);
+    }
     if (layout === 'mobile') {
       toggle.hidden = false;
       applyToggleLabel(toggle, currentStrings, collapsed);
@@ -282,7 +350,7 @@ export function createResponsiveControlOverlay(
       }
       layout = nextLayout;
       if (layout === 'mobile') {
-        collapsed = true;
+        collapsed = resolveMobileCollapsed();
       } else {
         collapsed = false;
       }

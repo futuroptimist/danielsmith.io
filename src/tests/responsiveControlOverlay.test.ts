@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createResponsiveControlOverlay } from '../ui/hud/responsiveControlOverlay';
 
@@ -12,6 +12,12 @@ const createStrings = () => ({
 const flushMicrotasks = async () => {
   await new Promise((resolve) => queueMicrotask(resolve));
 };
+
+const COLLAPSE_STORAGE_KEY = 'hud:control-overlay-collapsed';
+
+beforeEach(() => {
+  localStorage.removeItem(COLLAPSE_STORAGE_KEY);
+});
 
 describe('createResponsiveControlOverlay', () => {
   it('collapses mobile controls and toggles expanded state', async () => {
@@ -246,6 +252,187 @@ describe('createResponsiveControlOverlay', () => {
     expect(container.dataset.controlCollapsed).toBe('true');
     expect(interactItem?.hidden).toBe(false);
     expect(interactItem?.dataset.mobileCollapsed).toBeUndefined();
+
+    handle.dispose();
+  });
+
+  it('persists mobile collapse preference across layout changes', () => {
+    const container = document.createElement('div');
+    container.dataset.activeInput = 'keyboard';
+    container.innerHTML = `
+      <ul class="overlay__list" data-role="control-list">
+        <li
+          class="overlay__item"
+          data-control-item="keyboardMove"
+          data-input-methods="keyboard"
+        ></li>
+        <li
+          class="overlay__item"
+          data-control-item="pointerDrag"
+          data-input-methods="pointer"
+        ></li>
+      </ul>
+      <button type="button" data-role="control-toggle">Toggle</button>
+    `;
+
+    const store = new Map<string, string>([
+      ['hud:control-overlay-collapsed', 'false'],
+    ]);
+    const storage = {
+      getItem: vi.fn((key: string) => store.get(key) ?? null),
+      setItem: vi.fn((key: string, value: string) => {
+        store.set(key, value);
+      }),
+    };
+
+    const list = container.querySelector('[data-role="control-list"]');
+    const toggle = container.querySelector('[data-role="control-toggle"]');
+    const handle = createResponsiveControlOverlay({
+      container,
+      list: list as HTMLElement,
+      toggle: toggle as HTMLButtonElement,
+      strings: createStrings(),
+      initialLayout: 'mobile',
+      storage,
+      defaultCollapsed: true,
+      windowTarget: undefined,
+    });
+
+    expect(storage.getItem).toHaveBeenCalledWith(
+      'hud:control-overlay-collapsed'
+    );
+    expect(container.dataset.controlCollapsed).toBe('false');
+    expect(toggle?.getAttribute('aria-expanded')).toBe('true');
+
+    (toggle as HTMLButtonElement).click();
+
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'hud:control-overlay-collapsed',
+      'true'
+    );
+    expect(container.dataset.controlCollapsed).toBe('true');
+
+    handle.setLayout('desktop');
+    expect(container.dataset.controlCollapsed).toBeUndefined();
+
+    handle.setLayout('mobile');
+    expect(container.dataset.controlCollapsed).toBe('true');
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false');
+
+    handle.dispose();
+  });
+
+  it('ignores storage access errors while updating collapse state', () => {
+    const container = document.createElement('div');
+    container.dataset.activeInput = 'keyboard';
+    container.innerHTML = `
+      <ul class="overlay__list" data-role="control-list">
+        <li
+          class="overlay__item"
+          data-control-item="keyboardMove"
+          data-input-methods="keyboard"
+        ></li>
+      </ul>
+      <button type="button" data-role="control-toggle">Toggle</button>
+    `;
+
+    const storageError = new Error('denied');
+    const storage = {
+      getItem: vi.fn(() => {
+        throw storageError;
+      }),
+      setItem: vi.fn(() => {
+        throw storageError;
+      }),
+    };
+
+    const list = container.querySelector('[data-role="control-list"]');
+    const toggle = container.querySelector('[data-role="control-toggle"]');
+    const handle = createResponsiveControlOverlay({
+      container,
+      list: list as HTMLElement,
+      toggle: toggle as HTMLButtonElement,
+      strings: createStrings(),
+      initialLayout: 'mobile',
+      storage,
+    });
+
+    expect(container.dataset.controlCollapsed).toBe('true');
+
+    expect(() => (toggle as HTMLButtonElement).click()).not.toThrow();
+    expect(container.dataset.controlCollapsed).toBe('false');
+    expect(storage.setItem).toHaveBeenCalled();
+
+    handle.dispose();
+  });
+
+  it('falls back gracefully when localStorage is unavailable', () => {
+    const container = document.createElement('div');
+    container.dataset.activeInput = 'keyboard';
+    container.innerHTML = `
+      <ul class="overlay__list" data-role="control-list">
+        <li
+          class="overlay__item"
+          data-control-item="keyboardMove"
+          data-input-methods="keyboard"
+        ></li>
+      </ul>
+      <button type="button" data-role="control-toggle">Toggle</button>
+    `;
+
+    const windowTarget = Object.defineProperty({}, 'localStorage', {
+      get() {
+        throw new Error('blocked');
+      },
+    });
+
+    const list = container.querySelector('[data-role="control-list"]');
+    const toggle = container.querySelector('[data-role="control-toggle"]');
+    const handle = createResponsiveControlOverlay({
+      container,
+      list: list as HTMLElement,
+      toggle: toggle as HTMLButtonElement,
+      strings: createStrings(),
+      initialLayout: 'mobile',
+      storage: null,
+      windowTarget: windowTarget as unknown as Window,
+    });
+
+    expect(container.dataset.controlCollapsed).toBe('true');
+    (toggle as HTMLButtonElement).click();
+    expect(container.dataset.controlCollapsed).toBe('false');
+
+    handle.dispose();
+  });
+
+  it('initializes when no storage or window target are available', () => {
+    const container = document.createElement('div');
+    container.dataset.activeInput = 'keyboard';
+    container.innerHTML = `
+      <ul class="overlay__list" data-role="control-list">
+        <li
+          class="overlay__item"
+          data-control-item="keyboardMove"
+          data-input-methods="keyboard"
+        ></li>
+      </ul>
+      <button type="button" data-role="control-toggle">Toggle</button>
+    `;
+
+    const list = container.querySelector('[data-role="control-list"]');
+    const toggle = container.querySelector('[data-role="control-toggle"]');
+    const handle = createResponsiveControlOverlay({
+      container,
+      list: list as HTMLElement,
+      toggle: toggle as HTMLButtonElement,
+      strings: createStrings(),
+      initialLayout: 'mobile',
+      windowTarget: undefined,
+    });
+
+    expect(container.dataset.controlCollapsed).toBe('true');
+    (toggle as HTMLButtonElement).click();
+    expect(container.dataset.controlCollapsed).toBe('false');
 
     handle.dispose();
   });
