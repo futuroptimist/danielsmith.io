@@ -253,8 +253,23 @@ describe('buildPoiStructuredData', () => {
 describe('buildTextPortfolioStructuredData', () => {
   it('emits collection metadata that references the immersive ItemList', () => {
     const pois = [
-      createPoi({ id: 'tokenplace-studio-cluster', roomId: 'studio' }),
-      createPoi({ id: 'gabriel-studio-sentry', roomId: 'backyard' }),
+      createPoi({
+        id: 'tokenplace-studio-cluster',
+        roomId: 'studio',
+        summary: 'Highlights automation systems.',
+        outcome: { label: 'Outcome', value: 'Reduced toil 42%' },
+        metrics: [
+          { label: 'Impact', value: 'Reduced toil 42%' },
+          { label: 'Stack', value: 'TypeScript · Three.js' },
+        ],
+        links: [{ label: 'GitHub', href: 'https://example.com/repo' }],
+      }),
+      createPoi({
+        id: 'gabriel-studio-sentry',
+        roomId: 'backyard',
+        summary: 'Focuses on storytelling pipelines.',
+        status: 'prototype',
+      }),
     ];
     const canonicalBase = 'https://example.com/portfolio/';
     const data = buildTextPortfolioStructuredData(pois, {
@@ -286,19 +301,60 @@ describe('buildTextPortfolioStructuredData', () => {
       '@type': 'ItemList',
       '@id': canonicalBase + ITEM_LIST_FRAGMENT,
     });
-    expect(data.hasPart).toEqual([
-      {
-        '@type': 'CreativeWork',
-        '@id': `${canonicalBase}#poi-tokenplace-studio-cluster`,
-        inLanguage: 'en',
-        isAccessibleForFree: true,
+    const hasPart = data.hasPart as Array<Record<string, unknown>>;
+    expect(hasPart).toHaveLength(2);
+    expect(hasPart[0]).toMatchObject({
+      '@type': 'CreativeWork',
+      '@id': `${canonicalBase}#poi-tokenplace-studio-cluster`,
+      url: `${canonicalBase}#poi-tokenplace-studio-cluster`,
+      name: 'Test Exhibit',
+      description: 'Highlights automation systems.',
+      identifier: 'tokenplace-studio-cluster',
+      keywords: ['project', 'studio'],
+      sameAs: ['https://example.com/repo'],
+      inLanguage: 'en',
+      isAccessibleForFree: true,
+      isPartOf: {
+        '@type': 'ItemList',
+        '@id': canonicalBase + ITEM_LIST_FRAGMENT,
       },
+      publisher: { '@id': 'https://danielsmith.io/' },
+      provider: { '@id': 'https://danielsmith.io/' },
+      author: { '@id': 'https://danielsmith.io/' },
+      creator: { '@id': 'https://danielsmith.io/' },
+    });
+    expect(hasPart[0]?.additionalProperty).toEqual([
+      { '@type': 'PropertyValue', name: 'Category', value: 'project' },
+      { '@type': 'PropertyValue', name: 'Outcome', value: 'Reduced toil 42%' },
+      { '@type': 'PropertyValue', name: 'Impact', value: 'Reduced toil 42%' },
       {
-        '@type': 'CreativeWork',
-        '@id': `${canonicalBase}#poi-gabriel-studio-sentry`,
-        inLanguage: 'en',
-        isAccessibleForFree: true,
+        '@type': 'PropertyValue',
+        name: 'Stack',
+        value: 'TypeScript · Three.js',
       },
+    ]);
+    expect(hasPart[1]).toMatchObject({
+      '@type': 'CreativeWork',
+      '@id': `${canonicalBase}#poi-gabriel-studio-sentry`,
+      url: `${canonicalBase}#poi-gabriel-studio-sentry`,
+      name: 'Test Exhibit',
+      description: 'Focuses on storytelling pipelines.',
+      identifier: 'gabriel-studio-sentry',
+      keywords: ['project', 'backyard'],
+      inLanguage: 'en',
+      isAccessibleForFree: true,
+      isPartOf: {
+        '@type': 'ItemList',
+        '@id': canonicalBase + ITEM_LIST_FRAGMENT,
+      },
+      publisher: { '@id': 'https://danielsmith.io/' },
+      provider: { '@id': 'https://danielsmith.io/' },
+      author: { '@id': 'https://danielsmith.io/' },
+      creator: { '@id': 'https://danielsmith.io/' },
+    });
+    expect(hasPart[1]?.additionalProperty).toEqual([
+      { '@type': 'PropertyValue', name: 'Category', value: 'project' },
+      { '@type': 'PropertyValue', name: 'Status', value: 'prototype' },
     ]);
     expect(data.potentialAction).toEqual({
       '@type': 'Action',
