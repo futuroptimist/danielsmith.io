@@ -16,6 +16,8 @@ export interface InputLatencyTelemetryOptions {
   now?: () => number;
   logger?: Pick<Console, 'info' | 'warn'>;
   onReport?: (reason: string, summary: InputLatencySummary) => void;
+  eventTarget?: Pick<EventTarget, 'dispatchEvent'> | null;
+  eventName?: string;
 }
 
 export interface InputLatencyTelemetryHandle {
@@ -25,6 +27,12 @@ export interface InputLatencyTelemetryHandle {
 }
 
 const DEFAULT_BUDGET_MS = 200;
+const DEFAULT_EVENT_NAME = 'portfolio:input-latency-summary';
+
+export interface InputLatencySummaryEventDetail {
+  reason: string;
+  summary: InputLatencySummary;
+}
 
 const formatNumber = (value: number): string => value.toFixed(1);
 
@@ -68,6 +76,8 @@ export function createInputLatencyTelemetry(
     now,
     logger = console,
     onReport,
+    eventTarget = windowTarget,
+    eventName = DEFAULT_EVENT_NAME,
   } = options;
 
   const monitor: InputLatencyMonitor = createInputLatencyMonitor({
@@ -101,6 +111,18 @@ export function createInputLatencyTelemetry(
     const logMethod =
       summary.p95LatencyMs > budgetMs ? logger.warn : logger.info;
     logMethod.call(logger, message);
+    if (eventTarget && typeof eventTarget.dispatchEvent === 'function') {
+      try {
+        const detail: InputLatencySummaryEventDetail = { reason, summary };
+        const event =
+          typeof CustomEvent === 'function'
+            ? new CustomEvent(eventName, { detail })
+            : Object.assign(new Event(eventName), { detail });
+        eventTarget.dispatchEvent(event);
+      } catch (error) {
+        logger.warn('Failed to dispatch input latency summary event:', error);
+      }
+    }
     monitor.reset();
   };
 

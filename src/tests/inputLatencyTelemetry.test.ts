@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   categorizeEventType,
   createInputLatencyTelemetry,
+  type InputLatencySummaryEventDetail,
 } from '../systems/performance/inputLatencyTelemetry';
 
 import { FakeEventTarget } from './helpers/fakeEventTarget';
@@ -140,6 +141,51 @@ describe('createInputLatencyTelemetry', () => {
     });
     expect(summary.eventTypeCounts).toEqual({ pointerdown: 2 });
     expect(telemetry.getSummary()).toBeNull();
+  });
+
+  it('dispatches analytics-friendly summary events with reason payloads', () => {
+    const eventTarget = new FakeEventTarget();
+    const events: InputLatencySummaryEventDetail[] = [];
+    eventTarget.addEventListener('custom-latency', (event) => {
+      events.push(
+        (event as CustomEvent<InputLatencySummaryEventDetail>).detail
+      );
+    });
+    const { telemetry, recordLatency } = setup({
+      eventTarget,
+      eventName: 'custom-latency',
+    });
+
+    recordLatency(30);
+    recordLatency(34);
+    telemetry.report('failover-latency');
+
+    expect(events).toHaveLength(1);
+    const [detail] = events;
+    expect(detail.reason).toBe('failover-latency');
+    expect(detail.summary.count).toBe(2);
+    expect(detail.summary.medianLatencyMs).toBeGreaterThan(29);
+    expect(detail.summary.eventCategoryCounts.pointer).toBe(2);
+  });
+
+  it('logs dispatch failures without dropping summaries', () => {
+    const dispatchError = new Error('dispatch failed');
+    const failingEventTarget = {
+      dispatchEvent: () => {
+        throw dispatchError;
+      },
+    };
+    const { telemetry, logger, recordLatency } = setup({
+      eventTarget: failingEventTarget as unknown as EventTarget,
+    });
+
+    recordLatency(20);
+    telemetry.report('analytics');
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Failed to dispatch input latency summary event:',
+      dispatchError
+    );
   });
 
   describe('categorizeEventType', () => {
