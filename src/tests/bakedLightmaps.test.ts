@@ -87,6 +87,7 @@ describe('createInteriorLightmapTextures', () => {
 
     expect(edgeBoosted).toBeGreaterThan(edge);
     expect(edgeDelta).toBeGreaterThan(centerDelta);
+    expect(centerDelta).toBeLessThan(edgeDelta * 0.6);
 
     const wallEdge = sampleLuminance(baseline.wall, 0.12, 0.86);
     const wallEdgeBoosted = sampleLuminance(boosted.wall, 0.12, 0.86);
@@ -98,6 +99,17 @@ describe('createInteriorLightmapTextures', () => {
 
     expect(wallEdgeBoosted).toBeGreaterThan(wallEdge);
     expect(wallEdgeDelta).toBeGreaterThan(wallCenterDelta);
+
+    const ceilingEdge = sampleLuminance(baseline.ceiling, 0.1, 0.5);
+    const ceilingEdgeBoosted = sampleLuminance(boosted.ceiling, 0.1, 0.5);
+    const ceilingCenter = sampleLuminance(baseline.ceiling, 0.5, 0.5);
+    const ceilingCenterBoosted = sampleLuminance(boosted.ceiling, 0.5, 0.5);
+
+    const ceilingEdgeDelta = ceilingEdgeBoosted - ceilingEdge;
+    const ceilingCenterDelta = ceilingCenterBoosted - ceilingCenter;
+
+    expect(ceilingEdgeBoosted).toBeGreaterThan(ceilingEdge);
+    expect(ceilingEdgeDelta).toBeGreaterThan(ceilingCenterDelta);
   });
 });
 

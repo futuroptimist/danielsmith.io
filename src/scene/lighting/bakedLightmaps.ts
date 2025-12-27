@@ -103,7 +103,7 @@ function sampleFloorLightmap(
     Math.min(uv.y, 1 - uv.y)
   );
   const edgeBlend = smoothstep(0.08, 0.25, edgeDistance);
-  const edgeGlow = smoothstep(0.04, 0.22, 1 - edgeDistance) * edgeWarmth;
+  const edgeGlow = (1 - smoothstep(0.08, 0.28, edgeDistance)) * edgeWarmth;
 
   const walkwayWarmth = smoothstep(0.55, 0.98, uv.y);
   const easternGlow = smoothstep(0.45, 1, uv.x);
