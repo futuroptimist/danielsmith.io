@@ -71,6 +71,8 @@ captures; keep artifacts in `docs/metrics/`.
         DuckDuckBot, Google InspectionTool, GoogleOther, BingPreview, PetalBot, Line,
         Instagram, Snapchat, Viber, VKShare, Qwantify, and Naver Yeti crawlers to avoid loading
         WebGL during link previews.
+      - ✅ Reduced user agent strings now fall back to `userAgentData` brands (e.g., HeadlessChrome)
+        so headless automation continues to route to the text portfolio.
 
 ## Phase 0 – Foundations (Shipped)
 

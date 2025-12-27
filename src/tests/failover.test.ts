@@ -394,6 +394,55 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('falls back to userAgentData when user agent strings are reduced', () => {
+    const stubNavigator = {
+      userAgent: '',
+      userAgentData: {
+        brands: [
+          { brand: 'Not A(Brand)', version: '99' },
+          { brand: 'HeadlessChrome', version: '123.0.0.0' },
+        ],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('uses user agent data lists when brand entries are unavailable', () => {
+    const stubNavigator = {
+      userAgent: '',
+      userAgentData: {
+        uaList: ['HeadlessChrome/124.0.0.0', 'Not A(Brand)/99'],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('routes social and chat link expanders to text mode when mode is not forced', () => {
     const userAgents = [
       'facebookexternalhit/1.1',
