@@ -154,6 +154,12 @@ type NavigatorWithConnection = Navigator & {
   mozConnection?: NetworkInformationLike;
   webkitConnection?: NetworkInformationLike;
 };
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: {
+    brands?: ReadonlyArray<{ brand?: string; version?: string }>;
+    uaList?: string[];
+  };
+};
 
 type NetworkInformationLike = {
   saveData?: boolean;
@@ -172,14 +178,60 @@ function getNavigatorDeviceMemory(): number | undefined {
     : undefined;
 }
 
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;
+
+const formatUserAgentFromBrands = (
+  brands?: ReadonlyArray<{ brand?: string; version?: string }>
+): string | undefined => {
+  if (!brands?.length) {
+    return undefined;
+  }
+
+  const parts = brands
+    .map(({ brand, version }) => {
+      if (!isNonEmptyString(brand)) {
+        return null;
+      }
+      const normalizedBrand = brand.trim();
+      const normalizedVersion = isNonEmptyString(version)
+        ? version.trim()
+        : undefined;
+      return normalizedVersion
+        ? `${normalizedBrand}/${normalizedVersion}`
+        : normalizedBrand;
+    })
+    .filter((entry): entry is string => isNonEmptyString(entry));
+
+  return parts.length > 0 ? parts.join(' ') : undefined;
+};
+
+const formatUserAgentFromList = (entries?: string[]): string | undefined => {
+  if (!entries?.length) {
+    return undefined;
+  }
+  const parts = entries.filter(isNonEmptyString).map((entry) => entry.trim());
+  return parts.length > 0 ? parts.join(' ') : undefined;
+};
+
 function getNavigatorUserAgent(): string | undefined {
   if (typeof navigator === 'undefined') {
     return undefined;
   }
   const reported = (navigator as NavigatorWithUserAgent).userAgent;
-  return typeof reported === 'string' && reported.length > 0
-    ? reported
+  const uaData = (navigator as NavigatorWithUserAgentData).userAgentData;
+  const formattedHints =
+    formatUserAgentFromBrands(uaData?.brands) ??
+    formatUserAgentFromList(uaData?.uaList);
+  const normalizedReported = isNonEmptyString(reported)
+    ? reported.trim()
     : undefined;
+
+  if (normalizedReported && formattedHints) {
+    return `${normalizedReported} ${formattedHints}`;
+  }
+
+  return normalizedReported ?? formattedHints;
 }
 
 function getNavigatorWebDriver(): boolean | undefined {
