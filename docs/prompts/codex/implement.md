@@ -8,6 +8,8 @@ slug: 'codex-implement'
 Type: evergreen · One-click: yes
 
 Use this prompt to tackle incremental roadmap items for the immersive portfolio.
+Start from a `codex/<feature>` branch and follow the repo commit format when
+shipping.
 
 ```text
 SYSTEM:
@@ -21,8 +23,8 @@ USER:
 2. Implement the change with production-quality TypeScript/Three.js code.
 3. Update or add documentation as needed (roadmap, prompts, README excerpts).
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
-5. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`, and any
-   task-specific scripts.
+5. Run `npm run format:write` before `npm run lint`, `npm run test:ci`,
+   `npm run docs:check`, `npm run smoke`, and any task-specific scripts.
 6. Produce a concise summary and list of manual verification steps, if any.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
