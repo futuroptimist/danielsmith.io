@@ -115,31 +115,30 @@ const applyCollapsedState = (
   items: ReadonlyArray<HTMLElement>,
   collapsedHiddenStates: WeakMap<HTMLElement, boolean>,
   layout: HudLayout,
-  collapsed: boolean
+  collapsed: boolean,
+  collapsibleTargets: ReadonlyArray<HTMLElement>
 ) => {
-  const activeMethod = getActiveMethod(container);
-  const shouldCollapse = layout === 'mobile' && collapsed;
+  const collapsibleSet =
+    collapsibleTargets.length > 0 ? new Set(collapsibleTargets) : null;
+  const shouldCollapse =
+    layout === 'mobile' && collapsed && collapsibleTargets.length > 0;
 
   const restoreCollapsedState = (item: HTMLElement) => {
     delete (item.dataset as Record<string, string | undefined>)[
       MOBILE_COLLAPSED_KEY
     ];
+    if (!collapsedHiddenStates.has(item)) {
+      return;
+    }
     const previousHidden = collapsedHiddenStates.get(item);
+    collapsedHiddenStates.delete(item);
     if (previousHidden !== undefined) {
       item.hidden = previousHidden;
-      collapsedHiddenStates.delete(item);
     }
   };
 
   for (const item of items) {
-    const methods = parseInputMethods(item.dataset.inputMethods);
-    if (!shouldCollapse) {
-      restoreCollapsedState(item);
-      continue;
-    }
-
-    const controlId = item.dataset.controlItem ?? '';
-    if (controlId === 'interact' || matchActiveMethod(methods, activeMethod)) {
+    if (!shouldCollapse || !collapsibleSet?.has(item)) {
       restoreCollapsedState(item);
       continue;
     }
@@ -150,6 +149,21 @@ const applyCollapsedState = (
     item.dataset[MOBILE_COLLAPSED_KEY] = 'true';
     item.hidden = true;
   }
+};
+
+const getCollapsibleItems = (
+  container: HTMLElement,
+  items: ReadonlyArray<HTMLElement>
+): ReadonlyArray<HTMLElement> => {
+  const activeMethod = getActiveMethod(container);
+  return items.filter((item) => {
+    const methods = parseInputMethods(item.dataset.inputMethods);
+    const controlId = item.dataset.controlItem ?? '';
+    if (controlId === 'interact') {
+      return false;
+    }
+    return !matchActiveMethod(methods, activeMethod);
+  });
 };
 
 const ensureControlListId = (list: HTMLElement): string => {
@@ -278,18 +292,23 @@ export function createResponsiveControlOverlay(
     if (disposed) {
       return;
     }
-    applyContainerState(container, layout, collapsed);
+    const collapsibleItems = getCollapsibleItems(container, controlItems);
+    const canCollapse = layout === 'mobile' && collapsibleItems.length > 0;
+    const effectiveCollapsed = canCollapse ? collapsed : false;
+
+    applyContainerState(container, layout, effectiveCollapsed);
     applyCollapsedState(
       container,
       controlItems,
       collapsedHiddenStates,
       layout,
-      collapsed
+      effectiveCollapsed,
+      collapsibleItems
     );
-    if (layout === 'mobile') {
+    if (layout === 'mobile' && canCollapse) {
       persistCollapsed(storage, collapsed);
       toggle.hidden = false;
-      applyToggleLabel(toggle, currentStrings, collapsed);
+      applyToggleLabel(toggle, currentStrings, effectiveCollapsed);
     } else {
       toggle.hidden = true;
       toggle.removeAttribute('aria-expanded');
@@ -323,13 +342,7 @@ export function createResponsiveControlOverlay(
           mutation.attributeName === 'data-active-input'
       )
     ) {
-      applyCollapsedState(
-        container,
-        controlItems,
-        collapsedHiddenStates,
-        layout,
-        collapsed
-      );
+      update();
     }
   });
 

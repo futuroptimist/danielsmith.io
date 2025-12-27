@@ -109,7 +109,18 @@ describe('createResponsiveControlOverlay', () => {
     const container = document.createElement('div');
     container.dataset.activeInput = 'keyboard';
     container.innerHTML = `
-      <ul class="overlay__list" data-role="control-list"></ul>
+      <ul class="overlay__list" data-role="control-list">
+        <li
+          class="overlay__item"
+          data-control-item="keyboardMove"
+          data-input-methods="keyboard"
+        ></li>
+        <li
+          class="overlay__item"
+          data-control-item="pointerDrag"
+          data-input-methods="pointer"
+        ></li>
+      </ul>
       <button type="button" data-role="control-toggle">Toggle</button>
     `;
 
@@ -147,7 +158,7 @@ describe('createResponsiveControlOverlay', () => {
 
   it('respects baseline hidden states while collapsing and disposing', () => {
     const container = document.createElement('div');
-    container.dataset.activeInput = 'keyboard';
+    container.dataset.activeInput = 'pointer';
     container.innerHTML = `
       <ul class="overlay__list" data-role="control-list">
         <li
@@ -182,7 +193,7 @@ describe('createResponsiveControlOverlay', () => {
       '[data-control-item="interact"]'
     );
 
-    expect(keyboardItem?.hidden).toBe(false);
+    expect(keyboardItem?.hidden).toBe(true);
     expect(interactItem?.hidden).toBe(true);
     expect(interactItem?.dataset.mobileCollapsed).toBeUndefined();
 
@@ -200,7 +211,7 @@ describe('createResponsiveControlOverlay', () => {
 
   it('preserves runtime visibility for interact prompt after collapsing', () => {
     const container = document.createElement('div');
-    container.dataset.activeInput = 'keyboard';
+    container.dataset.activeInput = 'pointer';
     container.innerHTML = `
       <ul class="overlay__list" data-role="control-list">
         <li
@@ -241,6 +252,7 @@ describe('createResponsiveControlOverlay', () => {
     handle.refresh();
 
     expect(interactItem?.hidden).toBe(false);
+    expect(container.dataset.controlCollapsed).toBe('true');
 
     (toggle as HTMLButtonElement).click();
 
@@ -357,11 +369,13 @@ describe('createResponsiveControlOverlay', () => {
       storage,
     });
 
-    expect(container.dataset.controlCollapsed).toBe('true');
+    expect(container.dataset.controlCollapsed).toBe('false');
+    expect(toggle?.hidden).toBe(true);
+    expect(toggle?.getAttribute('aria-expanded')).toBeNull();
 
     expect(() => (toggle as HTMLButtonElement).click()).not.toThrow();
     expect(container.dataset.controlCollapsed).toBe('false');
-    expect(storage.setItem).toHaveBeenCalled();
+    expect(storage.setItem).not.toHaveBeenCalled();
 
     handle.dispose();
   });
@@ -398,8 +412,10 @@ describe('createResponsiveControlOverlay', () => {
       windowTarget: windowTarget as unknown as Window,
     });
 
-    expect(container.dataset.controlCollapsed).toBe('true');
-    (toggle as HTMLButtonElement).click();
+    expect(container.dataset.controlCollapsed).toBe('false');
+    expect(toggle?.hidden).toBe(true);
+    expect(toggle?.getAttribute('aria-expanded')).toBeNull();
+    expect(() => (toggle as HTMLButtonElement).click()).not.toThrow();
     expect(container.dataset.controlCollapsed).toBe('false');
 
     handle.dispose();
@@ -430,9 +446,58 @@ describe('createResponsiveControlOverlay', () => {
       windowTarget: undefined,
     });
 
-    expect(container.dataset.controlCollapsed).toBe('true');
-    (toggle as HTMLButtonElement).click();
     expect(container.dataset.controlCollapsed).toBe('false');
+    expect(toggle?.hidden).toBe(true);
+    expect(toggle?.getAttribute('aria-expanded')).toBeNull();
+    expect(() => (toggle as HTMLButtonElement).click()).not.toThrow();
+    expect(container.dataset.controlCollapsed).toBe('false');
+
+    handle.dispose();
+  });
+
+  it('hides the collapse toggle when no controls need collapsing', () => {
+    const container = document.createElement('div');
+    container.dataset.activeInput = 'keyboard';
+    container.innerHTML = `
+      <ul class="overlay__list" data-role="control-list">
+        <li
+          class="overlay__item"
+          data-control-item="keyboardMove"
+          data-input-methods="keyboard"
+        ></li>
+        <li
+          class="overlay__item"
+          data-control-item="interact"
+          data-input-methods="keyboard pointer"
+        ></li>
+      </ul>
+      <button type="button" data-role="control-toggle">Toggle</button>
+    `;
+
+    const list = container.querySelector('[data-role="control-list"]');
+    const toggle = container.querySelector('[data-role="control-toggle"]');
+    const handle = createResponsiveControlOverlay({
+      container,
+      list: list as HTMLElement,
+      toggle: toggle as HTMLButtonElement,
+      strings: createStrings(),
+      initialLayout: 'mobile',
+    });
+
+    const keyboardItem = container.querySelector<HTMLElement>(
+      '[data-control-item="keyboardMove"]'
+    );
+    const interactItem = container.querySelector<HTMLElement>(
+      '[data-control-item="interact"]'
+    );
+
+    expect(toggle?.hidden).toBe(true);
+    expect(toggle?.hasAttribute('aria-expanded')).toBe(false);
+    expect(container.dataset.controlCollapsed).toBe('false');
+    expect(keyboardItem?.hidden).toBe(false);
+    expect(interactItem?.hidden).toBe(false);
+    expect(keyboardItem?.dataset.mobileCollapsed).toBeUndefined();
+    expect(interactItem?.dataset.mobileCollapsed).toBeUndefined();
 
     handle.dispose();
   });
