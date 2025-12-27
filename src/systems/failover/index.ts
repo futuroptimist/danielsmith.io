@@ -425,15 +425,11 @@ export function evaluateFailoverDecision(
     options.getNetworkInformation ?? getNavigatorNetworkInformation;
   const networkInformation = readNetworkInformation() ?? undefined;
   const prefersReducedData = networkInformation?.saveData === true;
-  const effectiveType = networkInformation?.effectiveType;
-  const normalizedEffectiveType =
-    typeof effectiveType === 'string'
-      ? effectiveType.trim().toLowerCase()
-      : undefined;
+  const effectiveType = networkInformation?.effectiveType ?? undefined;
   const hasSlowConnection =
-    normalizedEffectiveType === 'slow-2g' ||
-    normalizedEffectiveType === '2g' ||
-    normalizedEffectiveType === '3g';
+    effectiveType === 'slow-2g' ||
+    effectiveType === '2g' ||
+    effectiveType === '3g';
   const minimumDownlinkMbps = options.minimumDownlinkMbps ?? 1.5;
   const downlink = networkInformation?.downlink;
   const hasLowDownlink =
