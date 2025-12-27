@@ -443,6 +443,127 @@ describe('evaluateFailoverDecision', () => {
     }
   });
 
+  it('combines reduced user agents with userAgentData brands', () => {
+    const stubNavigator = {
+      userAgent:
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+        'Chrome/124.0.0.0 Safari/537.36',
+      userAgentData: {
+        brands: [{ brand: 'HeadlessChrome', version: '124.0.0.0' }],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('filters blank brand entries when formatting userAgentData', () => {
+    const stubNavigator = {
+      userAgent: '',
+      userAgentData: {
+        brands: [
+          { brand: '   ', version: '123.0.0.0' },
+          { brand: 'HeadlessChrome', version: '124.0.0.0' },
+        ],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('ignores userAgentData brand entries missing brand values', () => {
+    const stubNavigator = {
+      userAgent: '',
+      userAgentData: {
+        brands: [
+          { brand: undefined, version: '123.0.0.0' },
+          { brand: 'HeadlessChrome', version: '124.0.0.0' },
+        ],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('ignores empty userAgentData list entries', () => {
+    const stubNavigator = {
+      userAgent: '',
+      userAgentData: {
+        uaList: ['   ', 'HeadlessChrome/124.0.0.0'],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({
+        shouldUseFallback: true,
+        reason: 'automated-client',
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('returns undefined user agents when client hints contain no valid entries', () => {
+    const stubNavigator = {
+      userAgent: '',
+      userAgentData: {
+        brands: [{ brand: '   ', version: '123.0.0.0' }],
+        uaList: ['   '],
+      },
+    };
+    vi.stubGlobal('navigator', stubNavigator as unknown as Navigator);
+
+    try {
+      const decision = evaluateFailoverDecision({
+        createCanvas: canvasFactory,
+      });
+
+      expect(decision).toEqual({ shouldUseFallback: false });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('routes social and chat link expanders to text mode when mode is not forced', () => {
     const userAgents = [
       'facebookexternalhit/1.1',

@@ -219,15 +219,19 @@ function getNavigatorUserAgent(): string | undefined {
     return undefined;
   }
   const reported = (navigator as NavigatorWithUserAgent).userAgent;
-  if (isNonEmptyString(reported)) {
-    return reported;
-  }
   const uaData = (navigator as NavigatorWithUserAgentData).userAgentData;
-  const fromBrands = formatUserAgentFromBrands(uaData?.brands);
-  if (fromBrands) {
-    return fromBrands;
+  const formattedHints =
+    formatUserAgentFromBrands(uaData?.brands) ??
+    formatUserAgentFromList(uaData?.uaList);
+  const normalizedReported = isNonEmptyString(reported)
+    ? reported.trim()
+    : undefined;
+
+  if (normalizedReported && formattedHints) {
+    return `${normalizedReported} ${formattedHints}`;
   }
-  return formatUserAgentFromList(uaData?.uaList);
+
+  return normalizedReported ?? formattedHints;
 }
 
 function getNavigatorWebDriver(): boolean | undefined {
