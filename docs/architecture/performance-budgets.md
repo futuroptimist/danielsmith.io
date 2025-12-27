@@ -29,6 +29,9 @@ and the Vitest assertions when measurable changes land.
   - Event summaries now group counts by pointer, keyboard, manual, and other sources via the
     `eventCategoryCounts` field so analytics pipelines can separate coarse interaction drivers
     without reprocessing raw events.
+  - Summary snapshots dispatch a `portfolio:input-latency-summary` CustomEvent containing the
+    reason and raw summary payload so dashboards and failover hooks can consume telemetry
+    without re-implementing monitor plumbing.
 - **Workflow** – Capture metrics via the Three.js inspector: open devtools,
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
