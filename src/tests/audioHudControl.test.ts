@@ -75,7 +75,9 @@ describe('createAudioHudControl', () => {
     expect(slider?.id).toMatch(/^audio-volume-slider-\d+$/);
     expect(wrapper?.getAttribute('aria-label')).toBe(strings.groupLabel);
     expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(wrapper?.getAttribute('aria-disabled')).toBeNull();
     expect(button?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.getAttribute('aria-disabled')).toBeNull();
     expect(label?.textContent).toBe(strings.slider.label);
     expect(button?.title).toBe(
       formatMessage(strings.toggle.titleTemplate, { keyHint })
@@ -96,9 +98,12 @@ describe('createAudioHudControl', () => {
     expect(toggleCallCount).toBe(1);
     expect(button?.disabled).toBe(true);
     expect(button?.getAttribute('aria-busy')).toBe('true');
+    expect(button?.getAttribute('aria-disabled')).toBe('true');
     expect(wrapper?.getAttribute('aria-busy')).toBe('true');
+    expect(wrapper?.getAttribute('aria-disabled')).toBe('true');
     expect(slider?.disabled).toBe(true);
     expect(slider?.getAttribute('aria-busy')).toBe('true');
+    expect(slider?.getAttribute('aria-disabled')).toBe('true');
     expect(button?.dataset.hudAnnounce).toBe(formatPendingAnnouncement());
     expect(slider?.dataset.hudAnnounce).toBe(formatPendingAnnouncement());
 
@@ -113,9 +118,12 @@ describe('createAudioHudControl', () => {
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
     expect(button?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.getAttribute('aria-disabled')).toBeNull();
     expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(wrapper?.getAttribute('aria-disabled')).toBeNull();
     expect(slider?.disabled).toBe(false);
     expect(slider?.getAttribute('aria-busy')).toBe('false');
+    expect(slider?.getAttribute('aria-disabled')).toBeNull();
     expect(button?.dataset.hudAnnounce).toBe(
       formatMessage(strings.toggle.announcementOnTemplate, { keyHint })
     );
@@ -202,9 +210,12 @@ describe('createAudioHudControl', () => {
     slider!.value = '0.75';
     slider?.dispatchEvent(new Event('input'));
     expect(slider?.disabled).toBe(true);
+    expect(slider?.getAttribute('aria-disabled')).toBe('true');
     expect(button?.disabled).toBe(true);
     expect(button?.getAttribute('aria-busy')).toBe('true');
+    expect(button?.getAttribute('aria-disabled')).toBe('true');
     expect(wrapper?.dataset.pending).toBe('true');
+    expect(wrapper?.getAttribute('aria-disabled')).toBe('true');
     expect(slider?.dataset.hudAnnounce).toBe(pendingAnnouncement);
     expect(button?.dataset.hudAnnounce).toBe(pendingAnnouncement);
 
@@ -216,6 +227,9 @@ describe('createAudioHudControl', () => {
     expect(slider?.disabled).toBe(false);
     expect(button?.disabled).toBe(false);
     expect(button?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.getAttribute('aria-disabled')).toBeNull();
+    expect(wrapper?.getAttribute('aria-disabled')).toBeNull();
+    expect(slider?.getAttribute('aria-disabled')).toBeNull();
     expect(slider?.value).toBe('0.75');
     expect(slider?.dataset.hudAnnounce).toBe(
       formatMessage(strings.slider.valueAnnouncementTemplate, { volume: '75%' })
@@ -253,6 +267,7 @@ describe('createAudioHudControl', () => {
       formatMessage(strings.slider.valueAnnouncementTemplate, { volume: '75%' })
     );
     expect(slider?.disabled).toBe(false);
+    expect(slider?.getAttribute('aria-disabled')).toBeNull();
 
     handle.dispose();
 

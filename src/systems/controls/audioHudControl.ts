@@ -147,6 +147,14 @@ export function createAudioHudControl({
   let lastKnownEnabled = false;
   let pendingVolumeOverride: number | null = null;
 
+  const setAriaDisabled = (element: HTMLElement, disabled: boolean) => {
+    if (disabled) {
+      element.setAttribute('aria-disabled', 'true');
+      return;
+    }
+    element.removeAttribute('aria-disabled');
+  };
+
   const normalizeKeyHint = (value: string | undefined) => {
     if (!value) {
       return '';
@@ -216,10 +224,13 @@ export function createAudioHudControl({
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
     toggleButton.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaDisabled(toggleButton, pending);
     wrapper.dataset.pending = pending ? 'true' : 'false';
     wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaDisabled(wrapper, pending);
     slider.disabled = pending;
     slider.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaDisabled(slider, pending);
     toggleButton.dataset.hudAnnounce = pending
       ? toggleAnnouncements.pending
       : enabled
