@@ -35,6 +35,7 @@ import type {
   AmbientAudioVolumeModulator,
 } from '../../systems/audio/ambientAudio';
 import { createLanternWaveVolumeModulator } from '../../systems/audio/lanternWaveVolumeModulator';
+import { computeLanternWaveState } from '../../systems/lighting/lanternWave';
 import {
   getFlickerScale,
   getPulseScale,
@@ -2086,40 +2087,24 @@ export function createBackyardEnvironment(
 
   if (lanternAnimationTargets.length > 0) {
     updates.push(({ elapsed }) => {
-      const baseWave = Math.sin(elapsed * 0.9) * 0.12;
       const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
       const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
       const steadyBase = MathUtils.lerp(0.6, 1, flickerScale);
       const rotationScale = MathUtils.lerp(0.2, 1, pulseScale);
-      const waveSpeed = MathUtils.lerp(0.12, 0.22, pulseScale);
-      const waveSharpness = MathUtils.lerp(2.6, 4.4, Math.max(pulseScale, 0.2));
-      const waveProgress = MathUtils.euclideanModulo(elapsed * waveSpeed, 1);
       lanternAnimationTargets.forEach((target) => {
-        const flicker =
-          0.84 +
-          baseWave +
-          Math.sin(elapsed * 1.7 + target.offset) * 0.16 +
-          Math.sin(elapsed * 2.4 + target.offset * 0.8) * 0.08;
-        const clampedFlicker = Math.max(0.4, flicker);
+        const waveState = computeLanternWaveState({
+          elapsed,
+          progression: target.progression,
+          offset: target.offset,
+          pulseScale,
+          flickerScale,
+        });
         const flickerBlend = MathUtils.lerp(
           steadyBase,
-          clampedFlicker,
+          waveState.flickerBlend,
           flickerScale
         );
-        const offsetProgression = MathUtils.euclideanModulo(
-          target.offset * 0.03,
-          1
-        );
-        const anchorProgression = MathUtils.euclideanModulo(
-          target.progression + offsetProgression,
-          1
-        );
-        let distance = Math.abs(anchorProgression - waveProgress);
-        if (distance > 0.5) {
-          distance = 1 - distance;
-        }
-        const beaconStrength = Math.max(0, 1 - distance * waveSharpness);
-        const waveContribution = beaconStrength * pulseScale;
+        const waveContribution = waveState.waveContribution;
         const intensityBoost =
           1 +
           waveContribution *

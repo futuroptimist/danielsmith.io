@@ -1,9 +1,6 @@
 import { MathUtils } from 'three';
 
-import {
-  getFlickerScale,
-  getPulseScale,
-} from '../../ui/accessibility/animationPreferences';
+import { computeLanternWaveState } from '../lighting/lanternWave';
 
 import type { AmbientAudioVolumeModulator } from './ambientAudio';
 
@@ -65,49 +62,28 @@ export function createLanternWaveVolumeModulator({
   const clampedMaximum = Math.max(clampedMinimum, maximumScale);
 
   return ({ elapsed }) => {
-    const time = Number.isFinite(elapsed) ? elapsed : 0;
-    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
-    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
-    const waveSpeed = MathUtils.lerp(0.12, 0.22, pulseScale);
-    const waveSharpness = MathUtils.lerp(2.6, 4.4, Math.max(pulseScale, 0.2));
-    const steadyBase = MathUtils.lerp(0.6, 1, flickerScale);
-    const waveProgress = MathUtils.euclideanModulo(time * waveSpeed, 1);
-    const baseWave = Math.sin(time * 0.9) * 0.12;
-
     let flickerAccumulator = 0;
     let beaconAccumulator = 0;
 
     sanitizedSamples.forEach(({ progression, offset }) => {
-      let distance = Math.abs(progression - waveProgress);
-      if (distance > 0.5) {
-        distance = 1 - distance;
-      }
-      const beaconStrength = Math.max(0, 1 - distance * waveSharpness);
-      beaconAccumulator += beaconStrength;
-
-      const flicker =
-        0.84 +
-        baseWave +
-        Math.sin(time * 1.7 + offset) * 0.16 +
-        Math.sin(time * 2.4 + offset * 0.8) * 0.08;
-      flickerAccumulator += Math.max(0.4, flicker);
+      const waveState = computeLanternWaveState({
+        elapsed,
+        progression,
+        offset,
+      });
+      flickerAccumulator += waveState.flickerBlend;
+      beaconAccumulator += waveState.waveContribution;
     });
 
     const sampleCount = sanitizedSamples.length;
     const averageBeacon = beaconAccumulator / sampleCount;
     const averageFlicker = flickerAccumulator / sampleCount;
 
-    const intensityBoost =
-      1 +
-      averageBeacon *
-        MathUtils.lerp(0.18, 0.6, Math.max(pulseScale, flickerScale));
-    const flickerBlend = MathUtils.lerp(
-      steadyBase,
-      averageFlicker,
-      flickerScale
-    );
     const scale = MathUtils.clamp(
-      flickerBlend * intensityBoost,
+      averageFlicker *
+        (1 +
+          averageBeacon *
+            MathUtils.lerp(0.18, 0.6, Math.max(averageBeacon, 0))),
       clampedMinimum,
       clampedMaximum
     );
