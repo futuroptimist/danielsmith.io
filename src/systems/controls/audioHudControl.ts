@@ -92,12 +92,14 @@ export function createAudioHudControl({
   wrapper.className = 'audio-hud';
   wrapper.setAttribute('role', 'group');
   wrapper.setAttribute('aria-busy', 'false');
+  wrapper.setAttribute('aria-disabled', 'false');
 
   const toggleButton = document.createElement('button');
   toggleButton.type = 'button';
   toggleButton.className = 'audio-toggle';
   toggleButton.setAttribute('aria-pressed', 'false');
   toggleButton.setAttribute('aria-busy', 'false');
+  toggleButton.setAttribute('aria-disabled', 'false');
 
   const volumeLabel = document.createElement('label');
   volumeLabel.className = 'audio-volume';
@@ -117,6 +119,7 @@ export function createAudioHudControl({
   slider.step = volumeStep.toString();
   slider.setAttribute('aria-valuemin', '0');
   slider.setAttribute('aria-valuemax', '1');
+  slider.setAttribute('aria-disabled', 'false');
 
   const valueText = document.createElement('span');
   valueText.className = 'audio-volume__value';
@@ -146,6 +149,14 @@ export function createAudioHudControl({
   let pending = false;
   let lastKnownEnabled = false;
   let pendingVolumeOverride: number | null = null;
+
+  const setAriaDisabled = (element: HTMLElement, disabled: boolean) => {
+    if (disabled) {
+      element.setAttribute('aria-disabled', 'true');
+      return;
+    }
+    element.removeAttribute('aria-disabled');
+  };
 
   const normalizeKeyHint = (value: string | undefined) => {
     if (!value) {
@@ -216,10 +227,13 @@ export function createAudioHudControl({
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
     toggleButton.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaDisabled(toggleButton, pending);
     wrapper.dataset.pending = pending ? 'true' : 'false';
     wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaDisabled(wrapper, pending);
     slider.disabled = pending;
     slider.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaDisabled(slider, pending);
     toggleButton.dataset.hudAnnounce = pending
       ? toggleAnnouncements.pending
       : enabled
