@@ -18,6 +18,7 @@ export interface LanternWaveState {
   beaconStrength: number;
   waveContribution: number;
   flickerBlend: number;
+  waveProgress: number;
 }
 
 const sanitizeTime = (value: number): number => {
@@ -71,22 +72,13 @@ export function computeLanternWaveState({
   );
   const travelDirection = direction === 'reverse' ? -1 : 1;
   const waveProgress = MathUtils.euclideanModulo(safeTime * waveSpeed, 1);
-
-  const forwardDistance = MathUtils.euclideanModulo(
-    travelDirection > 0
-      ? normalizedProgression - waveProgress
-      : waveProgress - normalizedProgression,
-    1
-  );
-  const trailingDistance = MathUtils.euclideanModulo(1 - forwardDistance, 1);
-  const forwardStrength = Math.max(0, 1 - forwardDistance * waveSharpness);
-  const trailingStrength =
-    Math.max(0, 1 - trailingDistance * waveSharpness * 0.68) *
-    MathUtils.lerp(0.35, 0.75, clampedPulseScale);
-  const beaconStrength = Math.min(
-    1,
-    Math.max(forwardStrength, trailingStrength)
-  );
+  const anchorProgression =
+    travelDirection > 0 ? normalizedProgression : 1 - normalizedProgression;
+  let distance = Math.abs(anchorProgression - waveProgress);
+  if (distance > 0.5) {
+    distance = 1 - distance;
+  }
+  const beaconStrength = Math.max(0, 1 - distance * waveSharpness);
 
   const baseWave = Math.sin(safeTime * 0.9) * 0.12;
   const flicker =
@@ -104,5 +96,6 @@ export function computeLanternWaveState({
     beaconStrength,
     waveContribution: beaconStrength * clampedPulseScale,
     flickerBlend,
+    waveProgress,
   };
 }

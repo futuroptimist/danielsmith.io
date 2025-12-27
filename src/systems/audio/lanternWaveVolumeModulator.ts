@@ -1,5 +1,9 @@
 import { MathUtils } from 'three';
 
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import { computeLanternWaveState } from '../lighting/lanternWave';
 
 import type { AmbientAudioVolumeModulator } from './ambientAudio';
@@ -62,6 +66,8 @@ export function createLanternWaveVolumeModulator({
   const clampedMaximum = Math.max(clampedMinimum, maximumScale);
 
   return ({ elapsed }) => {
+    const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
+    const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
     let flickerAccumulator = 0;
     let beaconAccumulator = 0;
 
@@ -70,20 +76,23 @@ export function createLanternWaveVolumeModulator({
         elapsed,
         progression,
         offset,
+        pulseScale,
+        flickerScale,
       });
       flickerAccumulator += waveState.flickerBlend;
-      beaconAccumulator += waveState.waveContribution;
+      beaconAccumulator += waveState.beaconStrength;
     });
 
     const sampleCount = sanitizedSamples.length;
     const averageBeacon = beaconAccumulator / sampleCount;
     const averageFlicker = flickerAccumulator / sampleCount;
 
+    const intensityBoost =
+      1 +
+      averageBeacon *
+        MathUtils.lerp(0.18, 0.6, Math.max(pulseScale, flickerScale));
     const scale = MathUtils.clamp(
-      averageFlicker *
-        (1 +
-          averageBeacon *
-            MathUtils.lerp(0.18, 0.6, Math.max(averageBeacon, 0))),
+      averageFlicker * intensityBoost,
       clampedMinimum,
       clampedMaximum
     );

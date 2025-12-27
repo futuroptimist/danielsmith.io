@@ -2089,21 +2089,24 @@ export function createBackyardEnvironment(
     updates.push(({ elapsed }) => {
       const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
       const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
-      const steadyBase = MathUtils.lerp(0.6, 1, flickerScale);
       const rotationScale = MathUtils.lerp(0.2, 1, pulseScale);
       lanternAnimationTargets.forEach((target) => {
+        const offsetProgression = MathUtils.euclideanModulo(
+          target.offset * 0.03,
+          1
+        );
+        const anchorProgression = MathUtils.euclideanModulo(
+          target.progression + offsetProgression,
+          1
+        );
         const waveState = computeLanternWaveState({
           elapsed,
-          progression: target.progression,
+          progression: anchorProgression,
           offset: target.offset,
           pulseScale,
           flickerScale,
         });
-        const flickerBlend = MathUtils.lerp(
-          steadyBase,
-          waveState.flickerBlend,
-          flickerScale
-        );
+        const flickerBlend = waveState.flickerBlend;
         const waveContribution = waveState.waveContribution;
         const intensityBoost =
           1 +
