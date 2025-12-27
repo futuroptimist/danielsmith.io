@@ -265,6 +265,18 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('normalizes effective type casing and whitespace for data-saver heuristics', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ effectiveType: '  Slow-2G ' }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
   it('treats 3G effective type as slow for data-saver routing', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
