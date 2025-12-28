@@ -259,11 +259,13 @@ function normalizeNetworkInformation(
   if (!info || typeof info !== 'object') {
     return undefined;
   }
-  const saveData = info.saveData === true;
-  const effectiveType =
-    typeof info.effectiveType === 'string' && info.effectiveType.length > 0
-      ? info.effectiveType
+  const effectiveTypeValue =
+    typeof info.effectiveType === 'string' ? info.effectiveType.trim() : '';
+  const normalizedEffectiveType =
+    effectiveTypeValue.length > 0
+      ? effectiveTypeValue.toLowerCase()
       : undefined;
+  const saveData = info.saveData === true;
   const downlink =
     typeof info.downlink === 'number' &&
     Number.isFinite(info.downlink) &&
@@ -276,7 +278,7 @@ function normalizeNetworkInformation(
       : undefined;
   if (
     !saveData &&
-    !effectiveType &&
+    !normalizedEffectiveType &&
     downlink === undefined &&
     rtt === undefined
   ) {
@@ -284,7 +286,7 @@ function normalizeNetworkInformation(
   }
   return {
     saveData,
-    effectiveType,
+    effectiveType: normalizedEffectiveType,
     downlink,
     rtt,
   } satisfies NetworkInformationSnapshot;
@@ -423,13 +425,11 @@ export function evaluateFailoverDecision(
     options.getNetworkInformation ?? getNavigatorNetworkInformation;
   const networkInformation = readNetworkInformation() ?? undefined;
   const prefersReducedData = networkInformation?.saveData === true;
-  const effectiveType = networkInformation?.effectiveType;
-  const normalizedEffectiveType =
-    typeof effectiveType === 'string' ? effectiveType.toLowerCase() : undefined;
+  const effectiveType = networkInformation?.effectiveType ?? undefined;
   const hasSlowConnection =
-    normalizedEffectiveType === 'slow-2g' ||
-    normalizedEffectiveType === '2g' ||
-    normalizedEffectiveType === '3g';
+    effectiveType === 'slow-2g' ||
+    effectiveType === '2g' ||
+    effectiveType === '3g';
   const minimumDownlinkMbps = options.minimumDownlinkMbps ?? 1.5;
   const downlink = networkInformation?.downlink;
   const hasLowDownlink =
