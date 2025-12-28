@@ -193,6 +193,18 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('routes data-saver clients when Save-Data hints arrive as strings', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ saveData: 'on' }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
   it('honors performance bypass for data-saver heuristics', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
@@ -304,6 +316,18 @@ describe('evaluateFailoverDecision', () => {
     });
   });
 
+  it('treats numeric strings as valid downlink hints for data-saver routing', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ downlink: '0.5' }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
   it('routes low-downlink connections to text mode when mode is not forced', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
@@ -340,6 +364,18 @@ describe('evaluateFailoverDecision', () => {
     const decision = evaluateFailoverDecision({
       createCanvas: canvasFactory,
       getNetworkInformation: () => ({ rtt: 900 }),
+    });
+
+    expect(decision).toEqual({
+      shouldUseFallback: true,
+      reason: 'data-saver',
+    });
+  });
+
+  it('routes high-latency connections when RTT hints are stringified', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ rtt: '900' }),
     });
 
     expect(decision).toEqual({
@@ -777,6 +813,16 @@ describe('evaluateFailoverDecision', () => {
       createCanvas: canvasFactory,
       getUserAgent: () => undefined,
     });
+    expect(decision).toEqual({ shouldUseFallback: false });
+  });
+
+  it('ignores malformed string downlink hints when no other heuristics apply', () => {
+    const decision = evaluateFailoverDecision({
+      createCanvas: canvasFactory,
+      getNetworkInformation: () => ({ downlink: 'fast' }),
+      getUserAgent: () => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
+    });
+
     expect(decision).toEqual({ shouldUseFallback: false });
   });
 });
