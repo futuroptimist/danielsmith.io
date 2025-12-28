@@ -245,6 +245,10 @@ export function createManualModeToggle({
     activate();
   };
 
+  const handlePerformanceFailover = () => {
+    refreshState();
+  };
+
   const handleKeydown = (event: KeyboardEvent) => {
     const keyHint = strings.keyHint;
     if (event.key !== keyHint && event.key !== keyHint.toLowerCase()) {
@@ -263,6 +267,10 @@ export function createManualModeToggle({
   button.addEventListener('click', handleClick);
   windowTarget.addEventListener('keydown', handleKeydown);
   button.addEventListener('focus', refreshState);
+  windowTarget.addEventListener(
+    'performancefailover',
+    handlePerformanceFailover
+  );
 
   refreshState();
 
@@ -276,6 +284,10 @@ export function createManualModeToggle({
       button.removeEventListener('click', handleClick);
       windowTarget.removeEventListener('keydown', handleKeydown);
       button.removeEventListener('focus', refreshState);
+      windowTarget.removeEventListener(
+        'performancefailover',
+        handlePerformanceFailover
+      );
       container.removeAttribute('aria-busy');
       container.removeAttribute('aria-disabled');
       delete container.dataset.modeToggleState;
