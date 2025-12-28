@@ -45,10 +45,7 @@ type WebglContextName = (typeof WEBGL_CONTEXT_NAMES)[number];
 type DeviceMemoryReader = () => number | undefined;
 type UserAgentReader = () => string | undefined;
 type WebDriverReader = () => boolean | undefined;
-type NetworkInformationReader = () =>
-  | NetworkInformationSnapshot
-  | null
-  | undefined;
+type NetworkInformationReader = () => NetworkInformationLike | null | undefined;
 
 interface NetworkInformationSnapshot {
   saveData?: boolean;
@@ -56,6 +53,13 @@ interface NetworkInformationSnapshot {
   downlink?: number;
   rtt?: number;
 }
+
+type NetworkInformationLike = {
+  saveData?: boolean | string;
+  effectiveType?: string | null;
+  downlink?: number | string | null;
+  rtt?: number | string | null;
+} | null;
 
 type TextPortfolioMetric = {
   label: string;
@@ -161,13 +165,6 @@ type NavigatorWithUserAgentData = Navigator & {
   };
 };
 
-type NetworkInformationLike = {
-  saveData?: boolean;
-  effectiveType?: string | null;
-  downlink?: number | null;
-  rtt?: number | null;
-} | null;
-
 function getNavigatorDeviceMemory(): number | undefined {
   if (typeof navigator === 'undefined') {
     return undefined;
@@ -177,6 +174,48 @@ function getNavigatorDeviceMemory(): number | undefined {
     ? reported
     : undefined;
 }
+
+const normalizeBooleanFlag = (value: unknown): boolean | undefined => {
+  if (value === true) {
+    return true;
+  }
+  if (value === false) {
+    return false;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (
+      normalized === 'true' ||
+      normalized === '1' ||
+      normalized === 'on' ||
+      normalized === 'yes'
+    ) {
+      return true;
+    }
+    if (
+      normalized === 'false' ||
+      normalized === '0' ||
+      normalized === 'off' ||
+      normalized === 'no'
+    ) {
+      return false;
+    }
+  }
+  return undefined;
+};
+
+const normalizeNonNegativeNumber = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value.trim());
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return parsed;
+    }
+  }
+  return undefined;
+};
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0;
@@ -265,17 +304,9 @@ function normalizeNetworkInformation(
     effectiveTypeValue.length > 0
       ? effectiveTypeValue.toLowerCase()
       : undefined;
-  const saveData = info.saveData === true;
-  const downlink =
-    typeof info.downlink === 'number' &&
-    Number.isFinite(info.downlink) &&
-    info.downlink >= 0
-      ? info.downlink
-      : undefined;
-  const rtt =
-    typeof info.rtt === 'number' && Number.isFinite(info.rtt) && info.rtt >= 0
-      ? info.rtt
-      : undefined;
+  const saveData = normalizeBooleanFlag(info.saveData) === true;
+  const downlink = normalizeNonNegativeNumber(info.downlink);
+  const rtt = normalizeNonNegativeNumber(info.rtt);
   if (
     !saveData &&
     !normalizedEffectiveType &&
@@ -423,7 +454,9 @@ export function evaluateFailoverDecision(
 
   const readNetworkInformation =
     options.getNetworkInformation ?? getNavigatorNetworkInformation;
-  const networkInformation = readNetworkInformation() ?? undefined;
+  const networkInformation = normalizeNetworkInformation(
+    readNetworkInformation()
+  );
   const prefersReducedData = networkInformation?.saveData === true;
   const effectiveType = networkInformation?.effectiveType ?? undefined;
   const hasSlowConnection =
