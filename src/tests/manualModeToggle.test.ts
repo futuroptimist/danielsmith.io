@@ -329,6 +329,36 @@ describe('createManualModeToggle', () => {
     container.remove();
   });
 
+  it('syncs its state when performance failover events fire', () => {
+    const container = createContainer();
+    let fallbackActive = false;
+    const onToggle = vi.fn();
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => fallbackActive,
+    });
+
+    expect(container.dataset.modeToggleState).toBe('idle');
+    expect(handle.element.dataset.state).toBe('idle');
+
+    fallbackActive = true;
+    window.dispatchEvent(new CustomEvent('performancefailover'));
+
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.disabled).toBe(true);
+
+    handle.dispose();
+    fallbackActive = false;
+    window.dispatchEvent(new CustomEvent('performancefailover'));
+
+    expect(container.dataset.modeToggleState).toBeUndefined();
+    expect(handle.element.isConnected).toBe(false);
+
+    container.remove();
+  });
+
   it('removes listeners and element on dispose', () => {
     const container = createContainer();
     const onToggle = vi.fn();
