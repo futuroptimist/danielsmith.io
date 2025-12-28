@@ -91,13 +91,11 @@ export function createAudioHudControl({
   const wrapper = document.createElement('div');
   wrapper.className = 'audio-hud';
   wrapper.setAttribute('role', 'group');
-  wrapper.setAttribute('aria-busy', 'false');
 
   const toggleButton = document.createElement('button');
   toggleButton.type = 'button';
   toggleButton.className = 'audio-toggle';
   toggleButton.setAttribute('aria-pressed', 'false');
-  toggleButton.setAttribute('aria-busy', 'false');
 
   const volumeLabel = document.createElement('label');
   volumeLabel.className = 'audio-volume';
@@ -146,6 +144,14 @@ export function createAudioHudControl({
   let pending = false;
   let lastKnownEnabled = false;
   let pendingVolumeOverride: number | null = null;
+
+  const setAriaBusy = (element: HTMLElement, busy: boolean) => {
+    if (busy) {
+      element.setAttribute('aria-busy', 'true');
+      return;
+    }
+    element.removeAttribute('aria-busy');
+  };
 
   const setAriaDisabled = (element: HTMLElement, disabled: boolean) => {
     if (disabled) {
@@ -223,13 +229,13 @@ export function createAudioHudControl({
     toggleButton.textContent = nextLabel;
     toggleButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     toggleButton.disabled = pending;
-    toggleButton.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaBusy(toggleButton, pending);
     setAriaDisabled(toggleButton, pending);
     wrapper.dataset.pending = pending ? 'true' : 'false';
-    wrapper.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaBusy(wrapper, pending);
     setAriaDisabled(wrapper, pending);
     slider.disabled = pending;
-    slider.setAttribute('aria-busy', pending ? 'true' : 'false');
+    setAriaBusy(slider, pending);
     setAriaDisabled(slider, pending);
     toggleButton.dataset.hudAnnounce = pending
       ? toggleAnnouncements.pending

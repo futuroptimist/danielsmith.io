@@ -74,9 +74,9 @@ describe('createAudioHudControl', () => {
     expect(labelElement?.htmlFor).toBe(slider?.id ?? null);
     expect(slider?.id).toMatch(/^audio-volume-slider-\d+$/);
     expect(wrapper?.getAttribute('aria-label')).toBe(strings.groupLabel);
-    expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(wrapper?.hasAttribute('aria-busy')).toBe(false);
     expect(wrapper?.getAttribute('aria-disabled')).toBeNull();
-    expect(button?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.hasAttribute('aria-busy')).toBe(false);
     expect(button?.getAttribute('aria-disabled')).toBeNull();
     expect(label?.textContent).toBe(strings.slider.label);
     expect(button?.title).toBe(
@@ -117,12 +117,12 @@ describe('createAudioHudControl', () => {
 
     expect(button?.disabled).toBe(false);
     expect(button?.dataset.state).toBe('on');
-    expect(button?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.hasAttribute('aria-busy')).toBe(false);
     expect(button?.getAttribute('aria-disabled')).toBeNull();
-    expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(wrapper?.hasAttribute('aria-busy')).toBe(false);
     expect(wrapper?.getAttribute('aria-disabled')).toBeNull();
     expect(slider?.disabled).toBe(false);
-    expect(slider?.getAttribute('aria-busy')).toBe('false');
+    expect(slider?.hasAttribute('aria-busy')).toBe(false);
     expect(slider?.getAttribute('aria-disabled')).toBeNull();
     expect(button?.dataset.hudAnnounce).toBe(
       formatMessage(strings.toggle.announcementOnTemplate, { keyHint })
@@ -226,7 +226,7 @@ describe('createAudioHudControl', () => {
     expect(wrapper?.dataset.pending).toBe('false');
     expect(slider?.disabled).toBe(false);
     expect(button?.disabled).toBe(false);
-    expect(button?.getAttribute('aria-busy')).toBe('false');
+    expect(button?.hasAttribute('aria-busy')).toBe(false);
     expect(button?.getAttribute('aria-disabled')).toBeNull();
     expect(wrapper?.getAttribute('aria-disabled')).toBeNull();
     expect(slider?.getAttribute('aria-disabled')).toBeNull();
@@ -374,7 +374,7 @@ describe('createAudioHudControl', () => {
     handle.setStrings(pseudoStrings);
 
     expect(wrapper?.getAttribute('aria-label')).toBe(pseudoStrings.groupLabel);
-    expect(wrapper?.getAttribute('aria-busy')).toBe('false');
+    expect(wrapper?.hasAttribute('aria-busy')).toBe(false);
     expect(button?.title).toBe(
       formatMessage(pseudoStrings.toggle.titleTemplate, { keyHint })
     );
