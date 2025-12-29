@@ -35,8 +35,8 @@ test.describe('keyboard traversal macro', () => {
     const firstTitle = (await tooltipTitle.textContent())?.trim() ?? '';
     expect(firstTitle.length).toBeGreaterThan(0);
 
-    // Interact with the active POI using the default F binding.
-    await page.keyboard.press('KeyF');
+    // Interact with the active POI using the default Enter binding.
+    await page.keyboard.press('Enter');
     await expect(visitedBadge).toHaveJSProperty('hidden', false);
 
     // Move to the next POI and confirm the overlay updates.

@@ -166,7 +166,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
         },
       },
       interact: {
-        defaultLabel: 'F',
+        defaultLabel: 'Enter',
         description: 'インタラクト',
       },
       helpButton: {
@@ -186,7 +186,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
     movementLegend: {
       defaultDescription: 'インタラクト',
       labels: {
-        keyboard: 'F',
+        keyboard: 'Enter',
         pointer: 'クリック',
         touch: 'タップ',
         gamepad: 'A',
@@ -299,7 +299,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
             {
               label: '光る POI に近づく',
               description:
-                'インタラクトキー (既定 F)、タップ、またはクリックで展示を開きます。',
+                'インタラクトキー (既定 Enter・スペース・F)、タップ、またはクリックで展示を開きます。',
             },
             {
               label: 'Q / E または ← / →',

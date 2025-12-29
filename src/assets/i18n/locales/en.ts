@@ -171,7 +171,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
       },
       interact: {
-        defaultLabel: 'F',
+        defaultLabel: 'Enter',
         description: 'Interact',
         promptTemplates: {
           default: 'Interact with {title}',
@@ -196,7 +196,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     movementLegend: {
       defaultDescription: 'Interact',
       labels: {
-        keyboard: 'F',
+        keyboard: 'Enter',
         pointer: 'Click',
         touch: 'Tap',
         gamepad: 'A',
@@ -365,7 +365,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             {
               label: 'Approach glowing POIs',
               description:
-                'Press your interact key (default F), tap, or click to open the exhibit overlay.',
+                'Press your interact key (Enter/Space/F), tap, or click to open the exhibit overlay.',
             },
             {
               label: 'Q / E or ← / →',
