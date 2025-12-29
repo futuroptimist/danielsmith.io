@@ -15,6 +15,16 @@ describe('KeyBindings', () => {
     expect(bindings.getBindings('interact')).toEqual(['f', ' ']);
   });
 
+  it('surfaces multi-key defaults for the interact binding', () => {
+    const bindings = new KeyBindings();
+
+    expect(bindings.getBindings('interact')).toEqual(['Enter', 'f', ' ']);
+    expect(bindings.getPrimaryBinding('interact')).toBe('Enter');
+
+    bindings.reset('interact');
+    expect(bindings.getBindings('interact')).toEqual(['Enter', 'f', ' ']);
+  });
+
   it('reports action state via a key press source', () => {
     const bindings = new KeyBindings();
     const pressed = new Set(['w']);

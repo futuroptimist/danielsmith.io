@@ -28,7 +28,7 @@ function createOverlayContainer(): HTMLElement {
         data-input-methods="keyboard pointer touch gamepad"
         hidden
       >
-        <span class="overlay__keys" data-role="interact-label">F</span>
+        <span class="overlay__keys" data-role="interact-label">Enter</span>
         <span class="overlay__description" data-role="interact-description">
           Interact
         </span>
@@ -252,10 +252,12 @@ describe('createMovementLegend', () => {
     legend.setInteractPrompt('Inspect Futuroptimist');
     expect(interactItem?.hidden).toBe(false);
     expect(interactDescription?.textContent).toBe(
-      'Press F to Inspect Futuroptimist'
+      'Press Enter to Inspect Futuroptimist'
     );
-    expect(interactLabel?.textContent).toBe('F');
-    expect(interactItem?.dataset.hudAnnounce).toBe('F — Inspect Futuroptimist');
+    expect(interactLabel?.textContent).toBe('Enter');
+    expect(interactItem?.dataset.hudAnnounce).toBe(
+      'Enter — Inspect Futuroptimist'
+    );
 
     legend.setActiveMethod('touch');
     expect(interactLabel?.textContent).toBe('Tap');
@@ -314,7 +316,7 @@ describe('createMovementLegend', () => {
     expect(interactDescription?.textContent).toBe('Press X to Inspect Exhibit');
 
     legend.dispose();
-    expect(interactLabel?.textContent).toBe('F');
+    expect(interactLabel?.textContent).toBe('Enter');
   });
 
   it('reacts to runtime input signals from window events', () => {
@@ -533,10 +535,10 @@ describe('createMovementLegend', () => {
     );
 
     legend.setInteractPrompt('Inspect Exhibit');
-    expect(description?.textContent).toBe('Press F to Inspect Exhibit');
+    expect(description?.textContent).toBe('Press Enter to Inspect Exhibit');
 
     legend.setLocale('ar');
-    expect(description?.textContent).toBe('اضغط F لـ Inspect Exhibit');
+    expect(description?.textContent).toBe('اضغط Enter لـ Inspect Exhibit');
 
     legend.setActiveMethod('touch');
     expect(description?.textContent).toBe('المس لـ Inspect Exhibit');
@@ -559,7 +561,7 @@ describe('createMovementLegend', () => {
     legend.setInteractPrompt('Inspect Exhibit');
 
     expect(focusTarget.dataset.hudAnnounce).toBe(
-      'Controls. F — Inspect Exhibit'
+      'Controls. Enter — Inspect Exhibit'
     );
 
     legend.setInteractPrompt(null);

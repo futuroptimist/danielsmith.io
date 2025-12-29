@@ -166,7 +166,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
         },
       },
       interact: {
-        defaultLabel: 'F',
+        defaultLabel: 'Enter',
         description: 'تفاعل',
       },
       helpButton: {
@@ -187,7 +187,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
     movementLegend: {
       defaultDescription: 'تفاعل',
       labels: {
-        keyboard: 'F',
+        keyboard: 'Enter',
         pointer: 'انقر',
         touch: 'المس',
         gamepad: 'A',
@@ -300,7 +300,8 @@ export const AR_OVERRIDES: LocaleOverrides = {
           items: [
             {
               label: 'اقترب من نقاط الاهتمام المضيئة',
-              description: 'اضغط مفتاح التفاعل أو المس/انقر لفتح بطاقة المعرض.',
+              description:
+                'اضغط Enter/Space/F للتفاعل، أو المس/انقر لفتح بطاقة المعرض.',
             },
             {
               label: 'Q / E أو ← / →',

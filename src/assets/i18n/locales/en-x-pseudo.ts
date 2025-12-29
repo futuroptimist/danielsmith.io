@@ -151,7 +151,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     controlOverlay: {
       heading: wrap('Controls'),
       interact: {
-        defaultLabel: wrap('F'),
+        defaultLabel: wrap('Enter'),
         description: wrap('Interact'),
         promptTemplates: {
           default: wrap('Interact with {title}'),
@@ -180,7 +180,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     movementLegend: {
       defaultDescription: wrap('Interact'),
       labels: {
-        keyboard: wrap('F'),
+        keyboard: wrap('Enter'),
         pointer: wrap('Click'),
         touch: wrap('Tap'),
         gamepad: wrap('A'),

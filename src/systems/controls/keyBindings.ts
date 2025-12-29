@@ -27,13 +27,16 @@ export const DEFAULT_KEY_BINDINGS: Record<KeyBindingAction, readonly string[]> =
     moveBackward: ['s', 'ArrowDown'],
     moveLeft: ['a', 'ArrowLeft'],
     moveRight: ['d', 'ArrowRight'],
-    interact: ['f'],
+    interact: ['Enter', 'f', ' '],
     help: ['h', '?'],
   };
 
 type ActionEntries = [KeyBindingAction, readonly string[]];
 
 function normalizeKey(raw: string): string {
+  if (raw === ' ') {
+    return ' ';
+  }
   const trimmed = raw.trim();
   if (!trimmed) {
     return '';
