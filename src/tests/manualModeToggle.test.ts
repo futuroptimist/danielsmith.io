@@ -145,8 +145,11 @@ describe('createManualModeToggle', () => {
 
     expect(container.dataset.modeToggleState).toBe('active');
     expect(container.getAttribute('aria-busy')).toBeNull();
+    expect(container.getAttribute('aria-disabled')).toBe('true');
     expect(handle.element.dataset.state).toBe('active');
     expect(handle.element.getAttribute('aria-busy')).toBeNull();
+    expect(handle.element.getAttribute('aria-disabled')).toBe('true');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
     expect(handle.element.disabled).toBe(true);
 
     resolveToggle?.();
