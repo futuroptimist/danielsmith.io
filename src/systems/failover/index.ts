@@ -921,6 +921,8 @@ export function renderTextFallback(
   section.dataset.localeDirection = direction;
   section.dataset.localeScript = script;
   section.style.textAlign = direction === 'rtl' ? 'right' : 'left';
+  section.role = 'main';
+  section.tabIndex = -1;
 
   const heading = documentTarget.createElement('h1');
   heading.className = 'text-fallback__title';
@@ -994,6 +996,7 @@ export function renderTextFallback(
     section.appendChild(portfolioSection);
   }
   container.appendChild(section);
+  section.focus({ preventScroll: true });
 
   try {
     const announcerStrings = getModeAnnouncerStrings(resolvedLocale);

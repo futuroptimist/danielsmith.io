@@ -137,4 +137,21 @@ describe('text fallback accessibility', () => {
       false
     );
   });
+
+  it('focuses the fallback content and marks it as the main landmark', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: 'https://danielsmith.io/immersive',
+    });
+
+    const section = container.querySelector(
+      '.text-fallback'
+    ) as HTMLElement | null;
+    expect(section?.getAttribute('role')).toBe('main');
+    expect(section?.tabIndex).toBe(-1);
+    expect(document.activeElement).toBe(section);
+  });
 });
