@@ -13,11 +13,19 @@ type QueryParamValue = string | number | boolean | null | undefined;
 
 interface LocationLike {
   pathname: string;
-  search?: string;
+  search?: string | URLSearchParams;
   hash?: string | null;
 }
 
-type UrlLike = string | LocationLike | URL | undefined;
+type UrlLike = string | LocationLike | URL | URLSearchParams | undefined;
+
+const normalizeSearchValue = (search?: string | URLSearchParams): string => {
+  if (search instanceof URLSearchParams) {
+    const serialized = search.toString();
+    return serialized ? `?${serialized}` : '';
+  }
+  return search ?? '';
+};
 
 const normalizeParamValue = (
   value: string | null | undefined
@@ -32,7 +40,7 @@ const normalizeLocation = (location?: LocationLike) => {
   if (location) {
     return {
       pathname: location.pathname,
-      search: location.search ?? '',
+      search: normalizeSearchValue(location.search),
       hash: location.hash ?? '',
     };
   }
@@ -85,6 +93,13 @@ const normalizeUrlParts = (input: UrlLike): UrlParts => {
       base: `${input.origin}${input.pathname}`,
       search: input.search,
       hash: input.hash,
+    };
+  }
+  if (input instanceof URLSearchParams) {
+    return {
+      base: '/',
+      search: normalizeSearchValue(input),
+      hash: '',
     };
   }
   if (typeof input === 'string') {
