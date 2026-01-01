@@ -96,6 +96,26 @@ describe('createImmersiveModeUrl', () => {
       'https://example.com/demo/scene?foo=bar&mode=immersive&disablePerformanceFailover=1&utm_source=test-harness#view'
     );
   });
+
+  it('supports URLSearchParams inputs for SSR-friendly helper usage', () => {
+    const url = createImmersiveModeUrl(
+      new URLSearchParams('foo=bar&mode=text')
+    );
+
+    expect(url).toBe('/?foo=bar&mode=immersive&disablePerformanceFailover=1');
+  });
+
+  it('accepts URLSearchParams inside location-like inputs', () => {
+    const url = createImmersiveModeUrl({
+      pathname: '/demo',
+      search: new URLSearchParams({ foo: 'bar', feature: 'preview' }),
+      hash: '#scene',
+    });
+
+    expect(url).toBe(
+      '/demo?foo=bar&feature=preview&mode=immersive&disablePerformanceFailover=1#scene'
+    );
+  });
 });
 
 describe('createImmersivePreviewUrl', () => {
@@ -179,6 +199,14 @@ describe('createTextModeUrl', () => {
     );
 
     expect(url).toBe('/portfolio?mode=text&bar=baz');
+  });
+
+  it('accepts URLSearchParams inputs while stripping bypass flags', () => {
+    const url = createTextModeUrl(
+      new URLSearchParams('mode=immersive&disablePerformanceFailover=1')
+    );
+
+    expect(url).toBe('/?mode=text');
   });
 });
 

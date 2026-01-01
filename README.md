@@ -20,7 +20,8 @@ keeps the familiar conventions while focusing purely on the web stack.
   the immersive mode and performance bypass flags intact so the preview never falls back to
   the text tour. If your host/port differ, call
   [`createImmersivePreviewUrl`](src/ui/immersiveUrl.ts) with an optional `baseUrl` and
-  `extraParams?` to generate a compliant link.
+  `extraParams?` to generate a compliant link. The helper also accepts `URLSearchParams`
+  so server-rendered routes can reuse parsed query state when producing preview links.
 - The text fallback remains available via `?mode=text` if you need a low-capability tour or
   want to validate failover paths alongside the immersive build.
 
