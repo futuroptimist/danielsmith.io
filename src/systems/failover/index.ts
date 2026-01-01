@@ -921,7 +921,7 @@ export function renderTextFallback(
   section.dataset.localeDirection = direction;
   section.dataset.localeScript = script;
   section.style.textAlign = direction === 'rtl' ? 'right' : 'left';
-  section.role = 'main';
+  section.setAttribute('role', 'main');
   section.tabIndex = -1;
 
   const heading = documentTarget.createElement('h1');
