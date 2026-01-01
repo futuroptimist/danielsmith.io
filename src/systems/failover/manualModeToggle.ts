@@ -102,6 +102,9 @@ export function createManualModeToggle({
 
   const refreshState = () => {
     const fallbackActive = getIsFallbackActive();
+    if (pending && fallbackActive) {
+      pending = false;
+    }
     const setContainerState = (
       state: 'idle' | 'pending' | 'active' | 'error'
     ) => {

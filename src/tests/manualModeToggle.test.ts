@@ -119,6 +119,49 @@ describe('createManualModeToggle', () => {
     container.remove();
   });
 
+  it('promotes pending toggles to active when failover fires mid-transition', async () => {
+    const container = createContainer();
+    let fallbackActive = false;
+    let resolveToggle: (() => void) | null = null;
+    const onToggle = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveToggle = resolve;
+        })
+    );
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => fallbackActive,
+    });
+
+    handle.element.click();
+    expect(container.dataset.modeToggleState).toBe('pending');
+    expect(handle.element.getAttribute('aria-busy')).toBe('true');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
+
+    fallbackActive = true;
+    window.dispatchEvent(new CustomEvent('performancefailover'));
+
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(container.getAttribute('aria-busy')).toBeNull();
+    expect(container.getAttribute('aria-disabled')).toBe('true');
+    expect(handle.element.dataset.state).toBe('active');
+    expect(handle.element.getAttribute('aria-busy')).toBeNull();
+    expect(handle.element.getAttribute('aria-disabled')).toBe('true');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
+    expect(handle.element.disabled).toBe(true);
+
+    resolveToggle?.();
+    await flushMicrotasks();
+
+    expect(container.dataset.modeToggleState).toBe('active');
+    expect(handle.element.dataset.state).toBe('active');
+
+    cleanupHandle(handle);
+    container.remove();
+  });
+
   it('ignores activation when fallback already active', () => {
     const container = createContainer();
     const onToggle = vi.fn();
