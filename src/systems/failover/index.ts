@@ -384,7 +384,7 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /phantomjs/i,
   /go-http-client/i,
   /curl\//i,
-  /node-fetch/i,
+  /node-fetch\//i,
   /undici\//i,
   /\bbun\//i,
   /wget/i,
