@@ -22,7 +22,8 @@ screen-reader visitors receive the same metadata as 3D players.
    movement legend in DOM order and ensure `aria-haspopup="dialog"` is present.
 3. When a POI is selected, focus shifts to `.poi-tooltip-overlay`; the close
    button (if present) should be first in the overlay’s tab order.
-4. Trap focus inside modal dialogs (`help-modal`) until dismissed.
+4. Trap focus inside modal dialogs (`help-modal`) until dismissed, redirecting
+   any stray tabbing back into the dialog content.
 5. Announce help menu open/close transitions through the HUD focus announcer so
    assistive tech users know when the dialog state changes.
 

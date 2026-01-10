@@ -281,7 +281,7 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
       }
       return;
     }
-    if (!active || active === last) {
+    if (!active || active === last || !modal.contains(active)) {
       event.preventDefault();
       first.focus();
     }
