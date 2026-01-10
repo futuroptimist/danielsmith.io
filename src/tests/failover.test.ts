@@ -683,6 +683,8 @@ describe('evaluateFailoverDecision', () => {
     const userAgents = [
       'Go-http-client/1.1',
       'node-fetch/1.0',
+      'undici/5.28.0',
+      'Bun/1.1.0',
       'axios/1.6.0',
       'reqwest/0.11.4',
       'okhttp/4.12.0',

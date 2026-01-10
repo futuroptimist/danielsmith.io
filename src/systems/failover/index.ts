@@ -385,6 +385,8 @@ const AUTOMATED_CLIENT_PATTERNS: ReadonlyArray<RegExp> = [
   /go-http-client/i,
   /curl\//i,
   /node-fetch/i,
+  /undici\//i,
+  /\bbun\//i,
   /wget/i,
   /httpclient/i,
   /postmanruntime/i,

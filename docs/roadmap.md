@@ -298,8 +298,8 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Mode switch between immersive 3D view and a fast-loading text portfolio.
      - Text portfolio now mirrors every exhibit with summaries, outcomes, metrics, and links grouped by room.
      - ✅ Manual text mode selections now persist across visits so returning players stay in their preferred experience.
-     - ✅ Automated heuristics now catch Node.js fetch/axios, Go HTTP clients, Rust reqwest,
-       and Android OkHttp callers so scripted crawlers land on the text tour reliably.
+     - ✅ Automated heuristics now catch Node.js fetch/undici, Bun, axios, Go HTTP clients,
+       Rust reqwest, and Android OkHttp callers so scripted crawlers land on the text tour reliably.
    - ✅ Detect low-end/no-JS/scraper clients and auto-route to static mode.
    - ✅ Share canonical content via structured data (JSON-LD) for SEO and bots.
    - ✅ CollectionPage metadata now declares the immersive ItemList as the page's main
