@@ -157,6 +157,53 @@ describe('createHelpModal', () => {
     expect(document.activeElement).toBe(before);
   });
 
+  it('returns focus to the modal when tabbing from outside elements', () => {
+    const outside = document.createElement('button');
+    outside.textContent = 'outside';
+    document.body.appendChild(outside);
+
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
+    handle.open();
+
+    const closeButton =
+      document.querySelector<HTMLButtonElement>('.help-modal__close');
+    expect(closeButton).toBeTruthy();
+
+    outside.focus();
+    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab' });
+    document.dispatchEvent(tabEvent);
+
+    expect(document.activeElement).toBe(closeButton);
+  });
+
+  it('returns focus to the modal when shift-tabbing from outside elements', () => {
+    const outside = document.createElement('button');
+    outside.textContent = 'outside';
+    document.body.appendChild(outside);
+
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
+    handle.open();
+
+    const closeButton =
+      document.querySelector<HTMLButtonElement>('.help-modal__close');
+    expect(closeButton).toBeTruthy();
+
+    outside.focus();
+    const shiftTabEvent = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+    });
+    document.dispatchEvent(shiftTabEvent);
+
+    expect(document.activeElement).toBe(closeButton);
+  });
+
   it('announces open and close states through a live region', () => {
     vi.useFakeTimers();
     const content = cloneContent();
