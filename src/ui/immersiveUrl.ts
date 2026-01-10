@@ -184,7 +184,7 @@ export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>
     extraParams,
   });
 
-const stripHash = (value: string): string => value.split('#')[0] ?? '';
+const stripHash = (value: string): string => splitHash(value).withoutHash;
 
 const normalizeSearchInput = (value: string): string => {
   const trimmed = value.trim();
