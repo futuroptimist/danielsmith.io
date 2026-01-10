@@ -8,6 +8,7 @@ import {
 import { scalePoiValue } from './constants';
 import { applyManualPoiPlacements } from './placements';
 import type {
+  PoiCategory,
   PoiDefinition,
   PoiId,
   PoiPedestalConfig,
@@ -285,6 +286,7 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
     metrics: definition.metrics?.map((metric) => ({ ...metric })),
     links: definition.links?.map((link) => ({ ...link })),
     narration: definition.narration ? { ...definition.narration } : undefined,
+    pedestal: definition.pedestal ? { ...definition.pedestal } : undefined,
   } satisfies PoiDefinition;
 }
 
@@ -293,9 +295,12 @@ class StaticPoiRegistry implements PoiRegistry {
 
   private readonly roomIndex: Map<string, PoiId[]>;
 
+  private readonly categoryIndex: Map<string, PoiId[]>;
+
   constructor(initial: PoiDefinition[]) {
     this.pois = new Map();
     this.roomIndex = new Map();
+    this.categoryIndex = new Map();
 
     initial.forEach((definition) => {
       const stored = clonePoi(definition);
@@ -305,6 +310,12 @@ class StaticPoiRegistry implements PoiRegistry {
         ids.push(stored.id);
       } else {
         this.roomIndex.set(stored.roomId, [stored.id]);
+      }
+      const categoryIds = this.categoryIndex.get(stored.category);
+      if (categoryIds) {
+        categoryIds.push(stored.id);
+      } else {
+        this.categoryIndex.set(stored.category, [stored.id]);
       }
     });
   }
@@ -329,6 +340,14 @@ class StaticPoiRegistry implements PoiRegistry {
     }
     return ids.map((id) => this.clone(this.pois.get(id)!));
   }
+
+  getByCategory(category: PoiCategory): PoiDefinition[] {
+    const ids = this.categoryIndex.get(category);
+    if (!ids) {
+      return [];
+    }
+    return ids.map((id) => this.clone(this.pois.get(id)!));
+  }
 }
 
 export const poiRegistry: PoiRegistry = new StaticPoiRegistry(definitions);
@@ -339,6 +358,12 @@ export function getPoiDefinitions(): PoiDefinition[] {
 
 export function getPoiDefinitionsByRoom(roomId: string): PoiDefinition[] {
   return poiRegistry.getByRoom(roomId);
+}
+
+export function getPoiDefinitionsByCategory(
+  category: PoiCategory
+): PoiDefinition[] {
+  return poiRegistry.getByCategory(category);
 }
 
 export function isPoiInsideRoom(poi: PoiDefinition): boolean {

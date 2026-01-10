@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FLOOR_PLAN } from '../assets/floorPlan';
 import {
   getPoiDefinitions,
+  getPoiDefinitionsByCategory,
   getPoiDefinitionsByRoom,
   isPoiInsideRoom,
 } from '../scene/poi/registry';
@@ -183,5 +184,26 @@ describe('POI registry', () => {
 
   it('returns an empty array when a room has no registered POIs', () => {
     expect(getPoiDefinitionsByRoom('loft')).toEqual([]);
+  });
+
+  it('exposes category-level ordering with defensive copies', () => {
+    const firstCall = getPoiDefinitionsByCategory('project');
+    const secondCall = getPoiDefinitionsByCategory('project');
+
+    expect(firstCall.length).toBe(pois.length);
+    expect(firstCall.every((poi) => poi.category === 'project')).toBe(true);
+
+    expect(firstCall).not.toBe(secondCall);
+    expect(firstCall[0]).not.toBe(secondCall[0]);
+
+    const originalTitle = secondCall[0].title;
+    firstCall[0].title = 'Mutated';
+
+    const refreshed = getPoiDefinitionsByCategory('project');
+    expect(refreshed[0].title).toBe(originalTitle);
+  });
+
+  it('returns an empty array when a category has no registered POIs', () => {
+    expect(getPoiDefinitionsByCategory('environment')).toEqual([]);
   });
 });

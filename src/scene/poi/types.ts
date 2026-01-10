@@ -135,4 +135,5 @@ export interface PoiRegistry {
   all(): PoiDefinition[];
   getById(id: PoiId): PoiDefinition | undefined;
   getByRoom(roomId: string): PoiDefinition[];
+  getByCategory(category: PoiCategory): PoiDefinition[];
 }
