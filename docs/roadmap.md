@@ -175,6 +175,8 @@ Focus: anchor each highlighted project with an interactive artifact.
 1. **POI Framework**
    - ✅ Create a data-driven registry for POIs (id, asset, interaction type, metadata).
      - ✅ Room-aware registry queries now expose `getByRoom(...)` for pedestals and HUD overlays.
+     - ✅ Category queries now expose `getByCategory(...)` so HUD filters can separate project and
+       environment exhibits cleanly.
    - ✅ 3D tooltip cards anchor POIs in world space, billboard to the camera, and reuse overlay copy.
      - ✅ World-space POI tooltips now cull when anchored behind the camera to reduce overdraw.
    - ✅ Desktop pointer + keyboard selection loops share accessible focus targets and emit POI
