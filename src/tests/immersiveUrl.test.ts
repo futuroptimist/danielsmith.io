@@ -219,6 +219,16 @@ describe('immersive flag helpers', () => {
     expect(getModeFromSearch('mode=unknown')).toBeNull();
   });
 
+  it('parses mode overrides from full URLs or paths with query strings', () => {
+    expect(getModeFromSearch('https://example.com/app?mode=text#hero')).toBe(
+      'text'
+    );
+    expect(getModeFromSearch('/scene?mode=immersive&debug=1')).toBe(
+      'immersive'
+    );
+    expect(getModeFromSearch('https://example.com/app#hero')).toBeNull();
+  });
+
   it('treats mode selections as case-insensitive and trims extra spacing', () => {
     expect(getModeFromSearch('mode=IMMERSIVE')).toBe('immersive');
     expect(getModeFromSearch('mode= text ')).toBe('text');

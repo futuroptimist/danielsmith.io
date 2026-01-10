@@ -184,8 +184,31 @@ export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>
     extraParams,
   });
 
+const stripHash = (value: string): string => splitHash(value).withoutHash;
+
+const normalizeSearchInput = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  const withoutHash = stripHash(trimmed);
+  const queryIndex = withoutHash.indexOf('?');
+  if (queryIndex >= 0) {
+    return withoutHash.slice(queryIndex);
+  }
+
+  if (withoutHash.includes('://') || withoutHash.startsWith('/')) {
+    return '';
+  }
+
+  return withoutHash;
+};
+
 const toSearchParams = (value: string | URLSearchParams): URLSearchParams =>
-  typeof value === 'string' ? new URLSearchParams(value) : value;
+  typeof value === 'string'
+    ? new URLSearchParams(normalizeSearchInput(value))
+    : value;
 
 const isImmersiveMode = (value: string | null) =>
   normalizeParamValue(value) === IMMERSIVE_MODE_VALUE;
