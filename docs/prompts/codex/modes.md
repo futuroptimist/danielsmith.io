@@ -41,9 +41,9 @@ Include summary, automated tests, and manual verification checklist.
 - Network throttling heuristics treat Save-Data, slow-2g/2g/3g effective types,
   low downlink, and high RTT (≥800 ms) as triggers for text mode unless immersive overrides
   or performance bypass flags are present.
-- `evaluateFailoverDecision` accepts `URLSearchParams` or raw search strings so SSR hooks
-  and client-side routers can share the same mode detection logic without manual
-  serialization.
+- `evaluateFailoverDecision` accepts `URLSearchParams`, raw search strings, or full URLs
+  so SSR hooks and client-side routers can share the same mode detection logic without
+  manual serialization.
 - Use `createImmersiveModeUrl(...)` and `createTextModeUrl(...)` helpers to add mode
   overrides without clobbering existing query parameters or hashes.
   - Both helpers now accept an optional extra params map so you can append UTM/debug flags
