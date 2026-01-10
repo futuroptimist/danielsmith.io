@@ -286,6 +286,7 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
     metrics: definition.metrics?.map((metric) => ({ ...metric })),
     links: definition.links?.map((link) => ({ ...link })),
     narration: definition.narration ? { ...definition.narration } : undefined,
+    pedestal: definition.pedestal ? { ...definition.pedestal } : undefined,
   } satisfies PoiDefinition;
 }
 
