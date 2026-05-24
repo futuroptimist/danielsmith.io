@@ -12,10 +12,10 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "danielsmith.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
+{{ toYaml . | nindent 8 }}
         {{- end }}
+        {{- include "danielsmith.selectorLabels" . | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -60,6 +60,7 @@ spec:
               mountPath: /var/cache/nginx
             - name: var-run
               mountPath: /var/run
+          {{- if or .Values.env .Values.extraEnv }}
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
@@ -68,6 +69,7 @@ spec:
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- end }}
           {{- with .Values.envFrom }}
           envFrom:
             {{- toYaml . | nindent 12 }}
