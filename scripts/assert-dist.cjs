@@ -7,6 +7,7 @@ const {
 } = require('./static-asset-expectations.cjs');
 
 const projectRoot = path.join(__dirname, '..');
+const publicRoot = path.join(projectRoot, 'public');
 const distRoot = path.join(projectRoot, 'dist');
 const distIndexPath = path.join(distRoot, 'index.html');
 const strictManualAssetMode = process.env.REQUIRE_MANUAL_STATIC_ASSETS === '1';
@@ -18,6 +19,13 @@ const absolutePathRegex =
 
 const isHttpUrl = (value) => /^(?:https?:)?\/\//i.test(value);
 const stripQuery = (value) => value.split('?')[0].split('#')[0];
+const normalizeToRuntimeAbsolute = (value) => {
+  const cleaned = stripQuery(value);
+  if (cleaned.startsWith('./')) {
+    return `/${cleaned.slice(2)}`;
+  }
+  return cleaned.startsWith('/') ? cleaned : `/${cleaned}`;
+};
 const toRelativeFromRoot = (absolutePath) =>
   stripQuery(absolutePath).replace(/^\//, '');
 
@@ -58,12 +66,10 @@ const formatPaths = (paths) =>
       continue;
     }
 
-    const cleanedReference = stripQuery(reference);
-    if (
-      cleanedReference.startsWith('/assets/') ||
-      cleanedReference.startsWith('./assets/')
-    ) {
-      bundledAssetReferences.add(cleanedReference.replace(/^\.\//, '/'));
+    const normalizedReference = normalizeToRuntimeAbsolute(reference);
+    if (normalizedReference.includes('/assets/')) {
+      const assetsIndex = normalizedReference.indexOf('/assets/');
+      bundledAssetReferences.add(normalizedReference.slice(assetsIndex));
     }
   }
 
@@ -106,7 +112,7 @@ const formatPaths = (paths) =>
   const runtimeChecks = [];
   for (const runtimePath of [...runtimeAbsoluteReferences].sort()) {
     const relativePath = toRelativeFromRoot(runtimePath);
-    const sourcePath = path.join(projectRoot, relativePath);
+    const sourcePath = path.join(publicRoot, relativePath);
     const distPath = path.join(distRoot, relativePath);
 
     const sourceExists = await access(sourcePath)

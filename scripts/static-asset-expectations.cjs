@@ -1,5 +1,6 @@
 const manualBinaryExtensions = new Set([
   '.pdf',
+  '.docx',
   '.png',
   '.jpg',
   '.jpeg',
