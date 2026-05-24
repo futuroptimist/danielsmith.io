@@ -1,0 +1,34 @@
+# Dependencies and local build outputs
+node_modules
+dist
+
+# Git metadata
+.git
+.gitignore
+
+# Logs and caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.eslintcache
+.vite
+
+# Editor / OS files
+.DS_Store
+.vscode
+.idea
+
+# Test artifacts and screenshots
+playwright-report
+test-results
+coverage
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Local env
+.env
+.env.*
+!.env.example
