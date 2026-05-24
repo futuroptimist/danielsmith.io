@@ -1,0 +1,6 @@
+apiVersion: v2
+name: danielsmith
+description: Canonical Helm chart for danielsmith.io static web app
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
