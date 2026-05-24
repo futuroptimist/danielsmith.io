@@ -150,7 +150,7 @@ const formatPaths = (paths) =>
     if (manualBinary && (!sourceExists || !distExists)) {
       const message =
         `Manual static asset missing for ${runtimePath} ` +
-        `(source: ${sourceExists ? 'present' : 'missing'}: ${relativePath}, ` +
+        `(source: ${sourceExists ? 'present' : 'missing'}: public/${relativePath}, ` +
         `dist: ${distExists ? 'present' : 'missing'}: dist/${relativePath}).`;
       if (strictManualAssetMode) {
         failures.push(message);
@@ -170,7 +170,7 @@ const formatPaths = (paths) =>
       if (!sourceExists || !distExists) {
         failures.push(
           `Missing first-party runtime static asset for ${runtimePath} ` +
-            `(source: ${sourceExists ? 'present' : 'missing'}: ${relativePath}, ` +
+            `(source: ${sourceExists ? 'present' : 'missing'}: public/${relativePath}, ` +
             `dist: ${distExists ? 'present' : 'missing'}: dist/${relativePath}).`
         );
       }
