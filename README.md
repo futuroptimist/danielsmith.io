@@ -117,7 +117,7 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                              |
 | `npm run typecheck`                             | Type-check with TypeScript without emitting files.                     |
 | `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.                  |
-| `npm run smoke`                                 | Build and assert that `dist/index.html` exists.                        |
+| `npm run smoke`                                 | Build and verify dist bundles + runtime static path references.        |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
 
@@ -146,7 +146,8 @@ lightweight.
 - **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) touches every POI and HUD overlay using keyboard-only input. Use `npm run test:e2e -- --grep traversal` to run just that macro when iterating.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
 - **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage.
-- **Launch smoke** – `npm run smoke` builds the project once and asserts `dist/index.html` exists before heavier suites run.
+- **Launch smoke** – `npm run smoke` builds once, validates bundled JS/CSS references, and
+  reports runtime absolute static paths (manual binary assets warn by default, fail in strict mode).
 - **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, GPTBot,
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
@@ -159,12 +160,24 @@ lightweight.
 
 ## Auto-generated assets
 
-| Script                      | Output                        | Refresh trigger                                                                                     |
-| --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
-| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges.   |
-| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run whenever lighting, camera, or HUD composition shifts. CI captures a fresh image post-merge.     |
-| `npm run smoke`             | `dist/index.html` (assert)    | Ensures the production build succeeds before visual diffs or E2E suites rely on generated assets.   |
+| Script                      | Output                        | Refresh trigger                                                                                        |
+| --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges.      |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run whenever lighting, camera, or HUD composition shifts. CI captures a fresh image post-merge.        |
+| `npm run smoke`             | `dist/**` runtime checks      | Ensures production bundle refs resolve and absolute static paths are reviewed before downstream tests. |
 | `npm run press-kit`         | `docs/assets/press-kit.json`  | Refresh after updating POI copy, performance budgets, or media listings to keep the export current. |
+
+### Manual static binaries for deployment
+
+Some runtime absolute links depend on manually managed binary assets (for
+example `/favicon.ico` and `/docs/resume/2025-09/resume.pdf`).
+
+- Default smoke mode warns for missing manual binaries but does not fail.
+- Strict smoke mode fails if manual binaries are missing from source or `dist/`:
+
+```bash
+REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke
+```
 
 Keep pipelines deterministic by regenerating assets immediately after touching geometry, lighting, or HUD composition so CI diffs stay tidy.
 

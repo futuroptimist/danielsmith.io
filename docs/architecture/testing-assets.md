@@ -9,7 +9,7 @@ auto-generated artifacts stay up to date.
 | ------------------------ | ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                        |
 | End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot. |
-| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds and that `dist/index.html` exists.                                                |
+| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds, bundled refs resolve in `dist/`, and runtime absolute static paths are reported. |
 | Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | Linting runs ESLint; `npm run check` chains lint, tests, and docs validation.                                      |
 
 ### Visual diff budgets
@@ -43,6 +43,18 @@ coverage remains comprehensive.
 
 Regenerate affected assets locally before committing so diffs stay deterministic.
 Document the update in commit messages when budgets or captures shift.
+
+## Manual binary runtime assets
+
+Smoke checks track first-party absolute runtime paths such as `/favicon.ico`
+and `/docs/resume/2025-09/resume.pdf`.
+
+- Default mode warns when those manual binary assets are missing.
+- Strict mode enforces their presence in source and built artifacts:
+
+```bash
+REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke
+```
 
 `npm run press-kit` now emits a `performance.report` payload that mirrors the
 headroom calculations from `createPerformanceBudgetReport(...)`, including
