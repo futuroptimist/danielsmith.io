@@ -28,6 +28,8 @@ const normalizeToRuntimeAbsolute = (value) => {
 };
 const toRelativeFromRoot = (absolutePath) =>
   stripQuery(absolutePath).replace(/^\//, '');
+const hasStaticFileExtension = (runtimePath) =>
+  Boolean(path.extname(stripQuery(runtimePath)));
 
 const isManualBinaryAsset = (assetPath) => {
   const extension = path.extname(stripQuery(assetPath)).toLowerCase();
@@ -128,12 +130,28 @@ const formatPaths = (paths) =>
     if (manualBinary && (!sourceExists || !distExists)) {
       const message =
         `Manual static asset missing for ${runtimePath} ` +
-        `(source: ${sourceExists ? 'present' : 'missing'}, dist: ${distExists ? 'present' : 'missing'}).`;
+        `(source: ${sourceExists ? 'present' : 'missing'}: ${relativePath}, ` +
+        `dist: ${distExists ? 'present' : 'missing'}: dist/${relativePath}).`;
       if (strictManualAssetMode) {
         failures.push(message);
       } else {
         warnings.push(
           `${message} Run REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke after adding it.`
+        );
+      }
+      continue;
+    }
+
+    if (
+      !manualBinary &&
+      hasStaticFileExtension(runtimePath) &&
+      !runtimePath.startsWith('/assets/')
+    ) {
+      if (!sourceExists || !distExists) {
+        failures.push(
+          `Missing first-party runtime static asset for ${runtimePath} ` +
+            `(source: ${sourceExists ? 'present' : 'missing'}: ${relativePath}, ` +
+            `dist: ${distExists ? 'present' : 'missing'}: dist/${relativePath}).`
         );
       }
     }
