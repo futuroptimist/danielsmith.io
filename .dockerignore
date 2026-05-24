@@ -17,6 +17,13 @@ yarn-error.log*
 .idea
 *.swp
 *.swo
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+*.crt
 
 # Docs and generated artifacts not needed for image build context
 README.md
