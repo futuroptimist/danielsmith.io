@@ -26,6 +26,13 @@ const normalizeToRuntimeAbsolute = (value) => {
   }
   return cleaned.startsWith('/') ? cleaned : `/${cleaned}`;
 };
+const normalizeRuntimePathForBase = (runtimePath, basePrefix) => {
+  if (!basePrefix || !runtimePath.startsWith(`${basePrefix}/`)) {
+    return runtimePath;
+  }
+  const withoutBase = runtimePath.slice(basePrefix.length);
+  return withoutBase.startsWith('/') ? withoutBase : `/${withoutBase}`;
+};
 const toRelativeFromRoot = (absolutePath) =>
   stripQuery(absolutePath).replace(/^\//, '');
 const hasStaticFileExtension = (runtimePath) =>
@@ -62,6 +69,7 @@ const formatPaths = (paths) =>
 
   const distIndexHtml = await readFile(distIndexPath, 'utf8');
   const bundledAssetReferences = new Set();
+  const bundledAssetBasePrefixes = new Set();
   for (const match of distIndexHtml.matchAll(assetReferenceRegex)) {
     const reference = match[3];
     if (!reference || isHttpUrl(reference)) {
@@ -71,6 +79,10 @@ const formatPaths = (paths) =>
     const normalizedReference = normalizeToRuntimeAbsolute(reference);
     if (normalizedReference.includes('/assets/')) {
       const assetsIndex = normalizedReference.indexOf('/assets/');
+      const basePrefix = normalizedReference.slice(0, assetsIndex);
+      if (basePrefix) {
+        bundledAssetBasePrefixes.add(basePrefix);
+      }
       bundledAssetReferences.add(normalizedReference.slice(assetsIndex));
     }
   }
@@ -99,12 +111,20 @@ const formatPaths = (paths) =>
   }
 
   const runtimeAbsoluteReferences = new Set();
+  const bundledBasePrefixesByLength = [...bundledAssetBasePrefixes].sort(
+    (a, b) => b.length - a.length
+  );
   for (const match of distIndexHtml.matchAll(absolutePathRegex)) {
     const reference = stripQuery(match[1]);
     if (!reference || isHttpUrl(reference) || reference === '/src/main.ts') {
       continue;
     }
-    runtimeAbsoluteReferences.add(reference);
+    const normalizedReference = bundledBasePrefixesByLength.reduce(
+      (currentPath, basePrefix) =>
+        normalizeRuntimePathForBase(currentPath, basePrefix),
+      reference
+    );
+    runtimeAbsoluteReferences.add(normalizedReference);
   }
 
   for (const expectation of runtimeAssetExpectations) {
