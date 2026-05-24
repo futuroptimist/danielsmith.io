@@ -9,7 +9,7 @@ auto-generated artifacts stay up to date.
 | ------------------------ | ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                        |
 | End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot. |
-| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds and that `dist/index.html` exists.                                                |
+| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds, `dist/index.html` exists, and built JS/CSS references resolve in `dist/`.        |
 | Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | Linting runs ESLint; `npm run check` chains lint, tests, and docs validation.                                      |
 
 ### Visual diff budgets
@@ -43,6 +43,22 @@ coverage remains comprehensive.
 
 Regenerate affected assets locally before committing so diffs stay deterministic.
 Document the update in commit messages when budgets or captures shift.
+
+## Manual binary runtime assets
+
+Static runtime binaries (for example `favicon.ico`, resume PDFs, and similar
+media artifacts) are Daniel-managed and may be absent during automation updates.
+`npm run smoke` reports missing manual binaries as warnings by default so
+text/code-only changes stay unblocked.
+
+After those binary assets are added manually, run:
+
+```bash
+REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke
+```
+
+Strict mode fails when required binary runtime assets are missing from either
+the source path or final `dist/` artifact.
 
 `npm run press-kit` now emits a `performance.report` payload that mirrors the
 headroom calculations from `createPerformanceBudgetReport(...)`, including
