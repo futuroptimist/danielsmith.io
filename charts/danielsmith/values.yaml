@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/futuroptimist/danielsmith.io
-  tag: ""
-  digest: ""
+  tag: ''
+  digest: ''
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -16,7 +16,7 @@ serviceAccount:
   create: true
   automountServiceAccountToken: false
   annotations: {}
-  name: ""
+  name: ''
 
 podAnnotations: {}
 podLabels: {}
@@ -44,34 +44,34 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-livenessProbe:
-  path: /livez
-  initialDelaySeconds: 10
-  periodSeconds: 10
-  timeoutSeconds: 2
-  failureThreshold: 3
+probes:
+  liveness:
+    path: /livez
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  readiness:
+    path: /healthz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
 
-readinessProbe:
-  path: /healthz
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  timeoutSeconds: 2
-  failureThreshold: 3
-
-env: {}
+env: []
 extraEnv: []
 envFrom: []
 
 ingress:
   enabled: false
-  className: ""
+  className: ''
   annotations: {}
-  host: ""
+  host: ''
   path: /
   pathType: Prefix
   tls:
     enabled: false
-    secretName: ""
+    secretName: ''
 
 nodeSelector: {}
 tolerations: []
