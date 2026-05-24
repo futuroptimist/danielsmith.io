@@ -165,7 +165,7 @@ const formatPaths = (paths) =>
     if (
       !manualBinary &&
       hasStaticFileExtension(runtimePath) &&
-      !runtimePath.startsWith('/assets/')
+      !runtimePath.includes('/assets/')
     ) {
       if (!sourceExists || !distExists) {
         failures.push(
