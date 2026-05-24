@@ -5,12 +5,12 @@ auto-generated artifacts stay up to date.
 
 ## Test suites
 
-| Suite                    | Location                     | Command                             | Notes                                                                                                              |
-| ------------------------ | ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                        |
-| End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot. |
-| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds and that `dist/index.html` exists.                                                |
-| Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | Linting runs ESLint; `npm run check` chains lint, tests, and docs validation.                                      |
+| Suite                    | Location                     | Command                             | Notes                                                                                                                                                  |
+| ------------------------ | ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                                                            |
+| End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot.                                     |
+| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds, `dist/index.html` exists, generated `/assets/*` bundles resolve, and first-party root-relative links are summarized. |
+| Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | Linting runs ESLint; `npm run check` chains lint, tests, and docs validation.                                                                          |
 
 ### Visual diff budgets
 
@@ -48,3 +48,19 @@ Document the update in commit messages when budgets or captures shift.
 headroom calculations from `createPerformanceBudgetReport(...)`, including
 `status` labels and clamped `remainingPercent` values so distribution artifacts
 call out budget health at a glance.
+
+## Static deployment binary preconditions
+
+`npm run smoke` reports first-party root-relative references found in `dist/index.html`.
+Manual binaries (for example `favicon.ico`, résumé PDFs, and image formats such as
+PNG/JPG/WEBP) are warning-only in default mode so container/static preparation can continue
+without committing binaries from automation.
+
+After Daniel manually adds or updates these assets, run strict verification:
+
+```bash
+REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke
+```
+
+Strict mode fails when a manual binary asset referenced by the app is missing from source or
+from the built `dist/` artifact.
