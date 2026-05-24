@@ -22,3 +22,67 @@ jobs:
         run: npm run test:ci
       - name: Smoke test
         run: npm run smoke
+
+  docker-runtime-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t danielsmith-io:local .
+
+      - name: Smoke test Docker runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          container_name="danielsmith-io-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          cleanup() {
+            docker rm -f "${container_name}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          docker run -d --name "${container_name}" \
+            -p 127.0.0.1:8080:8080 \
+            danielsmith-io:local
+
+          ready=0
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null && \
+              curl -fsS http://127.0.0.1:8080/healthz >/dev/null && \
+              curl -fsS http://127.0.0.1:8080/livez >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "${ready}" = 1
+
+          curl -fsSI http://127.0.0.1:8080/healthz | \
+            grep -i 'content-type: application/json'
+          curl -fsSI http://127.0.0.1:8080/healthz | \
+            grep -i 'cache-control: no-store'
+          curl -fsS http://127.0.0.1:8080/studio | grep -qi '<html'
+
+          test "$(curl -s -o /dev/null -w '%{http_code}' \
+            http://127.0.0.1:8080/definitely-missing.pdf)" = "404"
+
+          test "$(curl -s -o /dev/null -w '%{http_code}' \
+            http://127.0.0.1:8080/assets/definitely-missing.js.map)" = "404"
+
+          docker exec "${container_name}" sh -lc '! command -v node'
+          docker exec "${container_name}" sh -lc \
+            '! find /usr/share/nginx/html -type f -name "*.map" -print -quit | grep .'
+
+          asset="$(
+            docker exec "${container_name}" sh -lc \
+              "find /usr/share/nginx/html/assets -maxdepth 1 -type f ! -name '*.map' | head -n 1" | \
+              sed 's#^/usr/share/nginx/html##'
+          )"
+          test -n "${asset}"
+
+          curl -fsSI "http://127.0.0.1:8080${asset}" | \
+            grep -i 'cache-control: public, max-age=31536000, immutable'
+
+          docker logs "${container_name}"
