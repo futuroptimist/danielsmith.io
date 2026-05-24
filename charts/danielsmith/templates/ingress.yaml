@@ -25,7 +25,7 @@ spec:
                 port:
                   number: {{ .Values.service.port }}
   {{- if .Values.ingress.tls.enabled }}
-    tls:
+  tls:
     - hosts:
         - {{ required "ingress.host is required when ingress.enabled=true" .Values.ingress.host | quote }}
       secretName: {{ required "ingress.tls.secretName is required when ingress.tls.enabled=true" .Values.ingress.tls.secretName | quote }}

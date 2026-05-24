@@ -62,9 +62,16 @@ spec:
               mountPath: /var/run
           {{- if or (gt (len .Values.env) 0) (gt (len .Values.extraEnv) 0) }}
           env:
+            {{- if kindIs "map" .Values.env }}
+            {{- range $name, $value := .Values.env }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- else }}
             {{- range .Values.env }}
             - name: {{ .name }}
               value: {{ .value | quote }}
+            {{- end }}
             {{- end }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
