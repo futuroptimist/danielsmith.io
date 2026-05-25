@@ -117,7 +117,7 @@ jobs:
           ' charts/danielsmith/values.yaml)
           test -n "$default_image_tag"
           case "$default_image_tag" in
-            main-latest|main-*)
+            main|main-latest|main-*)
               echo "Default image.tag is publish-eligible: $default_image_tag"
               ;;
             *)
