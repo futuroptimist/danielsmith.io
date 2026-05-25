@@ -1,0 +1,127 @@
+name: Publish Helm chart
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (branch, tag, or SHA) to publish from
+        required: false
+        default: main
+
+jobs:
+  helm-validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      chart_version: ${{ steps.chart_meta.outputs.chart_version }}
+      package_path: ${{ steps.package.outputs.package_path }}
+    steps:
+      - name: Checkout triggering commit
+        if: github.event_name != 'workflow_dispatch'
+        uses: actions/checkout@v4
+
+      - name: Checkout selected ref
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Build chart dependencies when present
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q '^dependencies:' charts/danielsmith/Chart.yaml; then
+            helm dependency build charts/danielsmith
+          else
+            echo "No chart dependencies detected; skipping helm dependency build."
+          fi
+
+      - name: Helm lint
+        run: helm lint charts/danielsmith
+
+      - name: Template smoke render (staging-like)
+        run: |
+          helm template danielsmith charts/danielsmith \
+            --namespace danielsmith \
+            --set ingress.enabled=true \
+            --set ingress.host=staging.danielsmith.io \
+            --set image.tag=main-deadbee
+
+      - name: Read chart version
+        id: chart_meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_version=$(sed -n 's/^version:[[:space:]]*//p' charts/danielsmith/Chart.yaml | head -n1)
+          test -n "$chart_version"
+          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
+
+      - name: Package Helm chart
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          helm package charts/danielsmith --destination dist
+          package_path="dist/danielsmith-${{ steps.chart_meta.outputs.chart_version }}.tgz"
+          test -f "$package_path"
+          echo "package_path=$package_path" >> "$GITHUB_OUTPUT"
+
+      - name: Upload chart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: danielsmith-chart
+          path: ${{ steps.package.outputs.package_path }}
+
+  publish-chart:
+    if: |
+      github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    needs: helm-validate
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download packaged chart
+        uses: actions/download-artifact@v4
+        with:
+          name: danielsmith-chart
+          path: dist
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Authenticate to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Publish OCI chart
+        id: publish
+        shell: bash
+        env:
+          HELM_REGISTRY: oci://ghcr.io/futuroptimist/charts
+        run: |
+          set -euo pipefail
+          package_path="${{ needs.helm-validate.outputs.package_path }}"
+          helm push "$package_path" "$HELM_REGISTRY"
+
+          chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
+          echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize published chart
+        run: |
+          echo "Published chart reference:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${{ steps.publish.outputs.chart_ref }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Published chart version:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${{ needs.helm-validate.outputs.chart_version }}\`" >> "$GITHUB_STEP_SUMMARY"
