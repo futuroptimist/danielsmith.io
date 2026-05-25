@@ -71,7 +71,8 @@ jobs:
           helm template danielsmith charts/danielsmith \
             --namespace danielsmith \
             --set ingress.enabled=true \
-            --set ingress.host=staging.danielsmith.io
+            --set ingress.host=staging.danielsmith.io \
+            --set image.tag=main-deadbee
 
       - name: Package Helm chart
         id: package
@@ -105,6 +106,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Smoke render intentionally uses a staging-like image.tag override per
+          # prompt requirements; this separate guard validates default image.tag.
           default_image_tag=$(awk '
             /^image:[[:space:]]*$/ { in_image=1; next }
             in_image && /^[^[:space:]]/ { in_image=0 }
@@ -159,20 +162,27 @@ jobs:
       - name: Publish OCI chart
         id: publish
         shell: bash
-        env:
-          HELM_REGISTRY: oci://ghcr.io/futuroptimist/charts
         run: |
           set -euo pipefail
-          package_path="${{ needs.helm-validate.outputs.package_path }}"
-          package_path="${package_path#dist/}"
-          if [ ! -f "$package_path" ]; then
-            echo "Expected chart package not found at: $package_path" >&2
+          chart_ref="${{ needs.helm-validate.outputs.chart_ref }}"
+          chart_registry="${chart_ref%/*}"
+          chart_version="${{ needs.helm-validate.outputs.chart_version }}"
+
+          if helm show chart "${chart_ref}" --version "${chart_version}" >/dev/null 2>&1; then
+            echo "Chart version already exists at ${chart_ref}:${chart_version}." >&2
+            echo "Please bump charts/danielsmith/Chart.yaml version before publishing again." >&2
             exit 1
           fi
-          helm push "$package_path" "$HELM_REGISTRY"
 
-          chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
-          chart_version="${{ needs.helm-validate.outputs.chart_version }}"
+          mapfile -t packages < <(find . -maxdepth 2 -type f -name "danielsmith-*.tgz" | sort)
+          if [ "${#packages[@]}" -ne 1 ]; then
+            echo "Expected exactly one downloaded chart package, found ${#packages[@]}." >&2
+            printf -- "- %s\n" "${packages[@]}" >&2
+            exit 1
+          fi
+          package_path="${packages[0]}"
+          helm push "$package_path" "$chart_registry"
+
           echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
           echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
 
