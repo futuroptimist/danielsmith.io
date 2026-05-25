@@ -46,23 +46,19 @@ just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr
 ### First production install
 
 ```bash
-just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
 ### Existing production upgrade
 
 ```bash
-just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
-> Note: This prompt intentionally follows the current Sugarkube helper
-> convention by layering `docs/examples/danielsmith.values.dev.yaml` as the
-> shared/base values file and
-> `docs/examples/danielsmith.values.prod.yaml` as the production override.
-> Production host/TLS/debug/resource settings must be explicitly overridden by
-> the prod file before rollout. If the current dev-base layer has unsafe shared
-> keys, treat that as a blocker and follow up in Sugarkube with a neutral
-> production-safe common/base rename in a separate PR.
+> Note: Production commands intentionally use only
+> `docs/examples/danielsmith.values.prod.yaml`. Ensure this prod values file is
+> standalone and complete for required chart inputs before rollout so
+> production does not inherit dev-only settings.
 
 Sugarkube-specific wrapper commands are expected after Sugarkube onboarding prompts land.
 
