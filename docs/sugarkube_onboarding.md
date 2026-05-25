@@ -57,7 +57,8 @@ just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr
 
 > Note: Production commands intentionally use only
 > `docs/examples/danielsmith.values.prod.yaml` so production does not inherit
-> any settings from development values files.
+> development settings. This production values file must be standalone and
+> complete for required shared chart inputs.
 
 Sugarkube-specific wrapper commands are expected after Sugarkube onboarding prompts land.
 

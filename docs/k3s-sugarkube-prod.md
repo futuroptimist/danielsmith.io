@@ -25,6 +25,10 @@ Use:
 
 - `docs/examples/danielsmith.values.prod.yaml`
 
+This production values file must be standalone and complete for required shared
+chart inputs. If shared defaults move to a neutral base/common file in Sugarkube,
+layer that base before the production override in a dedicated follow-up update.
+
 Use immutable `main-<shortsha>` tags for rollout and sign-off. Reserve `main-latest` for
 non-signoff convenience.
 
