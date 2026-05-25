@@ -19,7 +19,7 @@ jobs:
       contents: read
     outputs:
       short_sha: ${{ steps.meta.outputs.short_sha }}
-      revision: ${{ steps.meta.outputs.revision }}
+      full_sha: ${{ steps.meta.outputs.full_sha }}
       created: ${{ steps.meta.outputs.created }}
     steps:
       - name: Checkout triggering commit
@@ -40,8 +40,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "short_sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
-          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "full_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
           echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       - name: Build local smoke-test image
@@ -57,7 +57,7 @@ jobs:
           cache-to: type=gha,mode=max
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ steps.meta.outputs.revision }}
+            org.opencontainers.image.revision=${{ steps.meta.outputs.full_sha }}
             org.opencontainers.image.created=${{ steps.meta.outputs.created }}
 
       - name: Smoke test local image
@@ -139,7 +139,7 @@ jobs:
           cache-to: type=gha,mode=max
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ needs.build-and-smoke.outputs.revision }}
+            org.opencontainers.image.revision=${{ needs.build-and-smoke.outputs.full_sha }}
             org.opencontainers.image.created=${{ needs.build-and-smoke.outputs.created }}
 
       - name: Summarize published immutable tag
