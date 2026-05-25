@@ -39,11 +39,17 @@ just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr
 just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.staging.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
-### Production upgrade/install profile
+### First production install
 
-Use the same helper commands with production values:
+```bash
+just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+```
 
-- `docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml`
+### Existing production upgrade
+
+```bash
+just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+```
 
 Sugarkube-specific wrapper commands are expected after Sugarkube onboarding prompts land.
 
