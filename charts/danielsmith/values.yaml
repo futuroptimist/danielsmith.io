@@ -1,0 +1,82 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/futuroptimist/danielsmith.io
+  # Keep this non-empty so default `helm lint`/`helm template` work, while
+  # avoiding an implicit fallback to Chart.AppVersion (for example `0.1.0`),
+  # which may not exist as a published image tag. Sugarkube overlays should
+  # override this with an environment-specific tag or set image.digest.
+  tag: main
+  digest: ''
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+
+serviceAccount:
+  create: true
+  automountServiceAccountToken: false
+  annotations: {}
+  name: ''
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+probes:
+  liveness:
+    path: /livez
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  readiness:
+    path: /healthz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+
+env: []
+extraEnv: []
+envFrom: []
+
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  host: ''
+  path: /
+  pathType: Prefix
+  tls:
+    enabled: false
+    secretName: ''
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
