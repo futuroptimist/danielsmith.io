@@ -23,11 +23,13 @@ This guide covers production deployment for `danielsmith.io` on Sugarkube.
 
 Use:
 
-- `docs/examples/danielsmith.values.prod.yaml`
+- `docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml`
 
-This production values file must be standalone and complete for required shared
-chart inputs. If shared defaults move to a neutral base/common file in Sugarkube,
-layer that base before the production override in a dedicated follow-up update.
+This prompt intentionally follows the current Sugarkube helper convention: use
+`docs/examples/danielsmith.values.dev.yaml` as the shared/base layer and
+`docs/examples/danielsmith.values.prod.yaml` as the production override. Ensure
+production host/TLS/debug/resource settings are overridden in the prod file; any
+neutral common/base values rename belongs in a separate Sugarkube follow-up PR.
 
 Use immutable `main-<shortsha>` tags for rollout and sign-off. Reserve `main-latest` for
 non-signoff convenience.
@@ -41,13 +43,13 @@ before running the helpers below (or update `version_file`/`values` to existing 
 First install:
 
 ```bash
-just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
 Upgrade:
 
 ```bash
-just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
 Sugarkube wrapper commands can be adopted after the Sugarkube onboarding prompt sequence lands.
