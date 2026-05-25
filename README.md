@@ -59,6 +59,10 @@ Avatar facing is computed from the camera-relative movement vector; see
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
   `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
+- **Sugarkube deployment docs** – Static-site deployment onboarding and runbooks live in
+  [`docs/sugarkube_onboarding.md`](docs/sugarkube_onboarding.md),
+  [`docs/k3s-sugarkube-staging.md`](docs/k3s-sugarkube-staging.md), and
+  [`docs/k3s-sugarkube-prod.md`](docs/k3s-sugarkube-prod.md).
 - **Preview overrides** – Use [`createImmersiveModeUrl`](src/ui/immersiveUrl.ts) to build
   immersive links. It now accepts canonical URLs or `URL` instances and always injects
   `mode=immersive&disablePerformanceFailover=1` so manual previews keep both overrides even
