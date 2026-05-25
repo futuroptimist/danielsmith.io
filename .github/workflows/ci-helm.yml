@@ -18,8 +18,9 @@ jobs:
     permissions:
       contents: read
     outputs:
-      chart_version: ${{ steps.chart_meta.outputs.chart_version }}
+      chart_version: ${{ steps.package.outputs.chart_version }}
       package_path: ${{ steps.package.outputs.package_path }}
+      chart_ref: ${{ steps.chart_meta.outputs.chart_ref }}
     steps:
       - name: Checkout triggering commit
         if: github.event_name != 'workflow_dispatch'
@@ -33,6 +34,26 @@ jobs:
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
+
+      - name: Set expected chart reference
+        id: chart_meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
+          chart_version="${{ needs.helm-validate.outputs.chart_version }}"
+          echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
+          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
+
+      - name: Guard chart identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_name=$(helm show chart charts/danielsmith | sed -n "s/^name:[[:space:]]*//p" | head -n1)
+          if [ "$chart_name" != "danielsmith" ]; then
+            echo "Chart name must be danielsmith, got: $chart_name" >&2
+            exit 1
+          fi
 
       - name: Build chart dependencies when present
         shell: bash
@@ -54,14 +75,6 @@ jobs:
             --set ingress.enabled=true \
             --set ingress.host=staging.danielsmith.io
 
-      - name: Read chart version
-        id: chart_meta
-        shell: bash
-        run: |
-          set -euo pipefail
-          chart_version=$(sed -n 's/^version:[[:space:]]*//p' charts/danielsmith/Chart.yaml | head -n1)
-          test -n "$chart_version"
-          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
 
       - name: Package Helm chart
         id: package
@@ -70,9 +83,20 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           helm package charts/danielsmith --destination dist
-          package_path="dist/danielsmith-${{ steps.chart_meta.outputs.chart_version }}.tgz"
-          test -f "$package_path"
+
+          mapfile -t packages < <(find dist -maxdepth 1 -type f -name "danielsmith-*.tgz" | sort)
+          if [ "${#packages[@]}" -ne 1 ]; then
+            echo "Expected exactly one chart package, found ${#packages[@]}" >&2
+            printf "- %s\n" "${packages[@]}" >&2
+            exit 1
+          fi
+
+          package_path="${packages[0]}"
+          chart_version=$(helm show chart "$package_path" | sed -n "s/^version:[[:space:]]*//p" | head -n1)
+          test -n "$chart_version"
+
           echo "package_path=$package_path" >> "$GITHUB_OUTPUT"
+          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
 
       - name: Upload chart artifact
         uses: actions/upload-artifact@v4
@@ -103,11 +127,18 @@ jobs:
               exit 1
               ;;
           esac
+      - name: Summarize validated chart
+        run: |
+          echo "Validated chart reference:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ steps.chart_meta.outputs.chart_ref }}`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Validated chart version:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ steps.package.outputs.chart_version }}`" >> "$GITHUB_STEP_SUMMARY"
+
 
   publish-chart:
     if: |
-      github.event_name == 'push' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'workflow_dispatch' && (inputs.ref == 'main' || inputs.ref == 'refs/heads/main')
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.ref == 'main' || inputs.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     needs: helm-validate
     permissions:
@@ -144,11 +175,13 @@ jobs:
           helm push "$package_path" "$HELM_REGISTRY"
 
           chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
+          chart_version="${{ needs.helm-validate.outputs.chart_version }}"
           echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
+          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
 
       - name: Summarize published chart
         run: |
           echo "Published chart reference:" >> "$GITHUB_STEP_SUMMARY"
           echo "\`${{ steps.publish.outputs.chart_ref }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "Published chart version:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${{ needs.helm-validate.outputs.chart_version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${{ steps.publish.outputs.chart_version }}\`" >> "$GITHUB_STEP_SUMMARY"
