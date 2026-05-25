@@ -23,7 +23,7 @@ This guide covers production deployment for `danielsmith.io` on Sugarkube.
 
 Use:
 
-- `docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml`
+- `docs/examples/danielsmith.values.prod.yaml`
 
 Use immutable `main-<shortsha>` tags for rollout and sign-off. Reserve `main-latest` for
 non-signoff convenience.
@@ -37,21 +37,14 @@ before running the helpers below (or update `version_file`/`values` to existing 
 First install:
 
 ```bash
-just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
 Upgrade:
 
 ```bash
-just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
-
-
-> Note: This values list intentionally includes `docs/examples/danielsmith.values.dev.yaml`
-> first for the current Sugarkube helper convention required by this prompt. Ensure all
-> production-specific settings are overridden by `docs/examples/danielsmith.values.prod.yaml`.
-> Any future rename to a neutral common/base values file should be handled in a separate
-> Sugarkube follow-up PR.
 
 Sugarkube wrapper commands can be adopted after the Sugarkube onboarding prompt sequence lands.
 

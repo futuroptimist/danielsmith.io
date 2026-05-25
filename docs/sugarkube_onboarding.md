@@ -46,20 +46,18 @@ just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr
 ### First production install
 
 ```bash
-just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-install release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
 ### Existing production upgrade
 
 ```bash
-just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
+just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr.io/futuroptimist/charts/danielsmith values=docs/examples/danielsmith.values.prod.yaml version_file=docs/apps/danielsmith.version default_tag=main-REPLACE_SHORTSHA
 ```
 
-> Note: The production values list intentionally includes
-> `docs/examples/danielsmith.values.dev.yaml` first for the current Sugarkube helper
-> convention required by this prompt. Production-specific settings must be overridden
-> by `docs/examples/danielsmith.values.prod.yaml`. If Sugarkube later renames the shared
-> values layer to a neutral common/base file, track that as a separate Sugarkube follow-up PR.
+> Note: Production commands intentionally use only
+> `docs/examples/danielsmith.values.prod.yaml` so production does not inherit
+> any settings from development values files.
 
 Sugarkube-specific wrapper commands are expected after Sugarkube onboarding prompts land.
 
