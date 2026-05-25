@@ -73,7 +73,6 @@ jobs:
             --set ingress.enabled=true \
             --set ingress.host=staging.danielsmith.io
 
-
       - name: Package Helm chart
         id: package
         shell: bash
@@ -131,7 +130,6 @@ jobs:
           echo "`${{ steps.chart_meta.outputs.chart_ref }}`" >> "$GITHUB_STEP_SUMMARY"
           echo "Validated chart version:" >> "$GITHUB_STEP_SUMMARY"
           echo "`${{ steps.package.outputs.chart_version }}`" >> "$GITHUB_STEP_SUMMARY"
-
 
   publish-chart:
     if: |
