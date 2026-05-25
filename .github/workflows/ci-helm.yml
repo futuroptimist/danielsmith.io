@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Git ref (branch, tag, or SHA) to publish from
+        description: Git ref to validate (publishing allowed only for main)
         required: false
         default: main
 
@@ -52,8 +52,7 @@ jobs:
           helm template danielsmith charts/danielsmith \
             --namespace danielsmith \
             --set ingress.enabled=true \
-            --set ingress.host=staging.danielsmith.io \
-            --set image.tag=main-deadbee
+            --set ingress.host=staging.danielsmith.io
 
       - name: Read chart version
         id: chart_meta
@@ -79,12 +78,28 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: danielsmith-chart
-          path: ${{ steps.package.outputs.package_path }}
+          path: dist/
+
+      - name: Enforce publish-eligible default image tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          default_image_tag=$(sed -n 's/^tag:[[:space:]]*//p' charts/danielsmith/values.yaml | head -n1)
+          test -n "$default_image_tag"
+          case "$default_image_tag" in
+            main-latest|main-*)
+              echo "Default image.tag is publish-eligible: $default_image_tag"
+              ;;
+            *)
+              echo "Default image.tag is not publish-eligible: $default_image_tag" >&2
+              exit 1
+              ;;
+          esac
 
   publish-chart:
     if: |
       github.event_name == 'push' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' && (inputs.ref == 'main' || inputs.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     needs: helm-validate
     permissions:
@@ -95,7 +110,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: danielsmith-chart
-          path: dist
+          path: .
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -114,6 +129,10 @@ jobs:
         run: |
           set -euo pipefail
           package_path="${{ needs.helm-validate.outputs.package_path }}"
+          if [ ! -f "$package_path" ]; then
+            echo "Expected chart package not found at: $package_path" >&2
+            exit 1
+          fi
           helm push "$package_path" "$HELM_REGISTRY"
 
           chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
