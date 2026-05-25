@@ -84,7 +84,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          default_image_tag=$(sed -n 's/^tag:[[:space:]]*//p' charts/danielsmith/values.yaml | head -n1)
+          default_image_tag=$(awk '
+            /^image:[[:space:]]*$/ { in_image=1; next }
+            in_image && /^[^[:space:]]/ { in_image=0 }
+            in_image && /^[[:space:]]+tag:[[:space:]]*/ {
+              sub(/^[[:space:]]+tag:[[:space:]]*/, "")
+              print
+              exit
+            }
+          ' charts/danielsmith/values.yaml)
           test -n "$default_image_tag"
           case "$default_image_tag" in
             main-latest|main-*)
