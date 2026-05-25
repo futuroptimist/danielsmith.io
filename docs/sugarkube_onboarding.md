@@ -27,6 +27,10 @@ This runbook documents how to deploy `danielsmith.io` to Sugarkube as a static w
 
 Run the following commands from a Sugarkube repository checkout (not from this repo).
 
+Prerequisite: before running these commands, ensure the Sugarkube checkout contains
+`docs/apps/danielsmith.version` and the referenced values files under `docs/examples/`
+(or update `version_file`/`values` to paths that exist in that checkout).
+
 ### First staging install
 
 ```bash

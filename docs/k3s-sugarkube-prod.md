@@ -30,6 +30,10 @@ non-signoff convenience.
 
 ## Command examples (run in Sugarkube repo)
 
+Prerequisite: ensure the Sugarkube checkout contains
+`docs/apps/danielsmith.version` and the referenced values files under `docs/examples/`
+before running the helpers below (or update `version_file`/`values` to existing paths).
+
 First install:
 
 ```bash
