@@ -41,9 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
-          chart_version="${{ needs.helm-validate.outputs.chart_version }}"
           echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
-          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
 
       - name: Guard chart identity
         shell: bash
@@ -176,8 +174,8 @@ jobs:
 
           chart_ref="oci://ghcr.io/futuroptimist/charts/danielsmith"
           chart_version="${{ needs.helm-validate.outputs.chart_version }}"
-          echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
           echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
+          echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
 
       - name: Summarize published chart
         run: |
