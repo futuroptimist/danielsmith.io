@@ -59,8 +59,10 @@ just helm-oci-upgrade release=danielsmith namespace=danielsmith chart=oci://ghcr
 > convention by layering `docs/examples/danielsmith.values.dev.yaml` as the
 > shared/base values file and
 > `docs/examples/danielsmith.values.prod.yaml` as the production override.
-> Production host/TLS/debug/resource settings must be overridden by the prod
-> file; a neutral common/base rename belongs in a separate Sugarkube follow-up.
+> Production host/TLS/debug/resource settings must be explicitly overridden by
+> the prod file before rollout. If the current dev-base layer has unsafe shared
+> keys, treat that as a blocker and follow up in Sugarkube with a neutral
+> production-safe common/base rename in a separate PR.
 
 Sugarkube-specific wrapper commands are expected after Sugarkube onboarding prompts land.
 

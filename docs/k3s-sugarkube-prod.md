@@ -27,11 +27,7 @@ Use:
 
 This prompt intentionally follows the current Sugarkube helper convention: use
 `docs/examples/danielsmith.values.dev.yaml` as the shared/base layer and
-`docs/examples/danielsmith.values.prod.yaml` as the production override. Ensure
-production host/TLS/debug/resource settings are overridden in the prod file. If any
-shared key is not safe from the dev base, make `docs/examples/danielsmith.values.prod.yaml`
-standalone and complete for production-required settings; any neutral common/base values
-rename belongs in a separate Sugarkube follow-up PR.
+`docs/examples/danielsmith.values.prod.yaml` as the production override. Ensure production host/TLS/debug/resource settings are explicitly overridden in the prod file before production rollout. If the current dev-base layer contains unsafe shared keys, treat that as a blocker and follow up in Sugarkube with a neutral production-safe common/base file rename in a separate PR.
 
 Use immutable `main-<shortsha>` tags for rollout and sign-off. Reserve `main-latest` for
 non-signoff convenience.
