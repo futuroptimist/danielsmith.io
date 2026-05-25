@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/futuroptimist/danielsmith.io
-  tag: ''
+  tag: main
   digest: ''
   pullPolicy: IfNotPresent
 
