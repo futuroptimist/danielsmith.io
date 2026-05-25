@@ -26,8 +26,9 @@ Use:
 - `docs/examples/danielsmith.values.prod.yaml`
 
 Use only `docs/examples/danielsmith.values.prod.yaml` for production commands.
-Treat this production values file as standalone and complete for all required
-chart inputs before rollout so production does not inherit dev-only settings.
+Treat this production values file as standalone, present in the Sugarkube checkout,
+and complete for all required chart inputs (including shared/base settings) before
+rollout so production does not inherit dev-only settings or chart defaults.
 
 Use immutable `main-<shortsha>` tags for rollout and sign-off. Reserve `main-latest` for
 non-signoff convenience.
