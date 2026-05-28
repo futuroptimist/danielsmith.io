@@ -42,9 +42,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/*
 Resolve the container image. Digest wins for immutable deploys. Otherwise a tag
-is required; values.yaml intentionally supplies `main` so default lint/template
-commands work without falling back to Chart.AppVersion, which is the chart/app
-version and may not correspond to a published container tag.
+is required; values.yaml intentionally supplies `main-latest` as a mutable
+convenience default for local lint/template rendering without falling back to
+Chart.AppVersion, which is the chart/app version and may not correspond to a
+published container tag. Sugarkube staging/prod sign-off must still use an
+immutable `main-<shortsha>` tag or `image.digest`.
 */}}
 {{- define "danielsmith.image" -}}
 {{- if .Values.image.digest -}}
