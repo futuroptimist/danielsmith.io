@@ -143,22 +143,74 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Checkout triggering commit
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect chart-relevant changes
+        id: chart_changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed=false
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            before="${{ github.event.before }}"
+            after="${{ github.sha }}"
+
+            if [[ "$before" =~ ^0+$ ]]; then
+              mapfile -t changed_files < <(git diff-tree --no-commit-id --name-only -r "$after")
+            else
+              mapfile -t changed_files < <(git diff --name-only "$before" "$after")
+            fi
+
+            for changed_file in "${changed_files[@]}"; do
+              case "$changed_file" in
+                charts/danielsmith/*|.github/workflows/ci-helm.yml)
+                  changed=true
+                  break
+                  ;;
+              esac
+            done
+          fi
+
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "Chart-relevant files changed: $changed"
+
+      - name: Summarize skipped unchanged chart
+        if: github.event_name == 'push' && steps.chart_changes.outputs.changed != 'true'
+        run: |
+          echo "Chart publication status:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`skipped`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart publication reason:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`no chart-relevant files changed on this main push`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart reference:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ needs.helm-validate.outputs.chart_ref }}`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart version:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ needs.helm-validate.outputs.chart_version }}`" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Download packaged chart
+        if: github.event_name != 'push' || steps.chart_changes.outputs.changed == 'true'
         uses: actions/download-artifact@v4
         with:
           name: danielsmith-chart
           path: .
 
       - name: Set up Helm
+        if: github.event_name != 'push' || steps.chart_changes.outputs.changed == 'true'
         uses: azure/setup-helm@v4
 
       - name: Authenticate to GHCR
+        if: github.event_name != 'push' || steps.chart_changes.outputs.changed == 'true'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
             --username "${{ github.actor }}" \
             --password-stdin
 
-      - name: Publish OCI chart
+      - name: Publish or skip OCI chart
+        if: github.event_name != 'push' || steps.chart_changes.outputs.changed == 'true'
         id: publish
         shell: bash
         run: |
@@ -166,10 +218,23 @@ jobs:
           chart_ref="${{ needs.helm-validate.outputs.chart_ref }}"
           chart_registry="${chart_ref%/*}"
           chart_version="${{ needs.helm-validate.outputs.chart_version }}"
+          event_name="${{ github.event_name }}"
+
+          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
+          echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
 
           if helm show chart "${chart_ref}" --version "${chart_version}" >/dev/null 2>&1; then
+            if [ "$event_name" = "workflow_dispatch" ]; then
+              echo "status=skipped" >> "$GITHUB_OUTPUT"
+              echo "reason=chart version already exists in GHCR" >> "$GITHUB_OUTPUT"
+              echo "Chart version already exists at ${chart_ref}:${chart_version}; skipping."
+              exit 0
+            fi
+
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            echo "reason=chart version already exists in GHCR" >> "$GITHUB_OUTPUT"
             echo "Chart version already exists at ${chart_ref}:${chart_version}." >&2
-            echo "Please bump charts/danielsmith/Chart.yaml version before publishing again." >&2
+            echo "Bump charts/danielsmith/Chart.yaml version before publishing changed chart content." >&2
             exit 1
           fi
 
@@ -182,12 +247,17 @@ jobs:
           package_path="${packages[0]}"
           helm push "$package_path" "$chart_registry"
 
-          echo "chart_version=$chart_version" >> "$GITHUB_OUTPUT"
-          echo "chart_ref=$chart_ref" >> "$GITHUB_OUTPUT"
+          echo "status=published" >> "$GITHUB_OUTPUT"
+          echo "reason=chart version was missing in GHCR" >> "$GITHUB_OUTPUT"
 
-      - name: Summarize published chart
+      - name: Summarize chart publication
+        if: always() && (github.event_name != 'push' || steps.chart_changes.outputs.changed == 'true')
         run: |
-          echo "Published chart reference:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${{ steps.publish.outputs.chart_ref }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Published chart version:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${{ steps.publish.outputs.chart_version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart publication status:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ steps.publish.outputs.status || 'failed' }}`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart publication reason:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ steps.publish.outputs.reason || 'publish step failed before recording a reason' }}`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart reference:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ needs.helm-validate.outputs.chart_ref }}`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Chart version:" >> "$GITHUB_STEP_SUMMARY"
+          echo "`${{ needs.helm-validate.outputs.chart_version }}`" >> "$GITHUB_STEP_SUMMARY"
