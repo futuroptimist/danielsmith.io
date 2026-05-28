@@ -119,8 +119,12 @@ jobs:
           ' charts/danielsmith/values.yaml)
           test -n "$default_image_tag"
           case "$default_image_tag" in
-            main|main-latest|main-*)
+            main-latest|main-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*)
               echo "Default image.tag is publish-eligible: $default_image_tag"
+              ;;
+            main)
+              echo "Default image.tag must not use the unpublished bare main tag." >&2
+              exit 1
               ;;
             *)
               echo "Default image.tag is not publish-eligible: $default_image_tag" >&2
