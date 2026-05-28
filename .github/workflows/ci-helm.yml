@@ -118,15 +118,14 @@ jobs:
             }
           ' charts/danielsmith/values.yaml)
           test -n "$default_image_tag"
-          case "$default_image_tag" in
-            main|main-latest|main-*)
-              echo "Default image.tag is publish-eligible: $default_image_tag"
-              ;;
-            *)
-              echo "Default image.tag is not publish-eligible: $default_image_tag" >&2
-              exit 1
-              ;;
-          esac
+          if [ "$default_image_tag" = "main-latest" ] || \
+            [[ "$default_image_tag" =~ ^main-[0-9a-f]{7,40}$ ]]; then
+            echo "Default image.tag is publish-eligible: $default_image_tag"
+          else
+            echo "Default image.tag is not publish-eligible: $default_image_tag" >&2
+            echo "Use main-latest for local defaults or main-<shortsha> for sign-off." >&2
+            exit 1
+          fi
       - name: Summarize validated chart
         run: |
           echo "Validated chart reference:" >> "$GITHUB_STEP_SUMMARY"
