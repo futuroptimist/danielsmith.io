@@ -23,6 +23,11 @@ This runbook documents how to deploy `danielsmith.io` to Sugarkube as a static w
   - `main-<shortsha>` for immutable staging/prod validation and sign-off.
   - `main-latest` only for convenience and non-signoff checks.
 
+The Helm chart publishing workflow treats OCI chart versions as immutable. Main
+pushes that do not touch chart-relevant files validate the chart and skip
+publishing; chart changes must bump `charts/danielsmith/Chart.yaml` before the
+workflow publishes a new OCI chart version.
+
 ## Sugarkube command flow
 
 Run the following commands from a Sugarkube repository checkout (not from this repo).
