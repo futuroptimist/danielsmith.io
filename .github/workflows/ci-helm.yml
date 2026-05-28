@@ -23,11 +23,15 @@ jobs:
       chart_ref: ${{ steps.chart_meta.outputs.chart_ref }}
       chart_changed: ${{ steps.chart_changes.outputs.chart_changed }}
     steps:
-      - name: Checkout triggering commit
-        if: github.event_name != 'workflow_dispatch'
+      - name: Checkout push commit
+        if: github.event_name == 'push'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Checkout pull request commit
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
 
       - name: Checkout selected ref
         if: github.event_name == 'workflow_dispatch'
@@ -48,12 +52,15 @@ jobs:
 
             if [[ "$before" =~ ^0+$ ]]; then
               changed_files=$(git ls-tree -r --name-only "$after")
-            else
+            elif git cat-file -e "$before^{commit}"; then
               changed_files=$(git diff --name-only "$before" "$after")
+            else
+              echo "Before commit $before is unavailable; assuming chart content changed."
+              chart_changed=true
+              changed_files=""
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq \
-              '^(charts/danielsmith/|\.github/workflows/ci-helm\.yml$)'; then
+            if printf '%s\n' "$changed_files" | grep -Eq '^charts/danielsmith/'; then
               chart_changed=true
             fi
           fi
@@ -223,12 +230,6 @@ jobs:
           fi
 
           if [ "$chart_exists" = "true" ]; then
-            if [ "$chart_changed" = "true" ]; then
-              echo "Chart version already exists at ${chart_ref}:${chart_version}." >&2
-              echo "Bump charts/danielsmith/Chart.yaml version for chart changes." >&2
-              exit 1
-            fi
-
             published_archive_dir=$(mktemp -d)
             packaged_extract_dir=$(mktemp -d)
             published_extract_dir=$(mktemp -d)
@@ -239,7 +240,9 @@ jobs:
 
             if ! diff -qr "$packaged_extract_dir" "$published_extract_dir"; then
               echo "Chart version exists at ${chart_ref}:${chart_version} with different content." >&2
-              echo "Bump charts/danielsmith/Chart.yaml version for chart changes." >&2
+              echo "Bump charts/danielsmith/Chart.yaml version for chart content changes." >&2
+              echo "publish_status=failed" >> "$GITHUB_OUTPUT"
+              echo "publish_reason=chart version exists with different content" >> "$GITHUB_OUTPUT"
               exit 1
             fi
 
@@ -264,7 +267,7 @@ jobs:
           echo "Chart publication status:" >> "$GITHUB_STEP_SUMMARY"
           echo "\`${{ steps.publish.outputs.publish_status || 'failed' }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "Chart publication reason:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${{ steps.publish.outputs.publish_reason || 'chart version reuse after changes' }}\`" \
+          echo "\`${{ steps.publish.outputs.publish_reason || 'publish step failed before reporting a reason' }}\`" \
             >> "$GITHUB_STEP_SUMMARY"
           echo "Chart reference:" >> "$GITHUB_STEP_SUMMARY"
           echo "\`${{ needs.helm-validate.outputs.chart_ref }}\`" >> "$GITHUB_STEP_SUMMARY"
