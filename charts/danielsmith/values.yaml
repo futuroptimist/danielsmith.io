@@ -2,11 +2,11 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/futuroptimist/danielsmith.io
-  # Keep this non-empty so default `helm lint`/`helm template` work, while
-  # avoiding an implicit fallback to Chart.AppVersion (for example `0.1.0`),
-  # which may not exist as a published image tag. Sugarkube overlays should
-  # override this with an environment-specific tag or set image.digest.
-  tag: main
+  # Keep this non-empty so default `helm lint`/`helm template` work with a
+  # tag published by CI. `main-latest` is only a local rendering/linting
+  # convenience; Sugarkube staging/prod sign-off must override it with an
+  # immutable `main-<shortsha>` tag or set image.digest.
+  tag: main-latest
   digest: ''
   pullPolicy: IfNotPresent
 
