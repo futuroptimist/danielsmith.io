@@ -52,15 +52,23 @@ jobs:
 
             if [[ "$before" =~ ^0+$ ]]; then
               changed_files=$(git ls-tree -r --name-only "$after")
-            elif git cat-file -e "$before^{commit}"; then
-              changed_files=$(git diff --name-only "$before" "$after")
             else
-              echo "Before commit $before is unavailable; assuming chart content changed."
-              chart_changed=true
-              changed_files=""
+              if ! git cat-file -e "$before^{commit}" 2>/dev/null; then
+                echo "Before commit $before is unavailable locally; fetching it."
+                git fetch --no-tags --depth=1 origin "$before" || true
+              fi
+
+              if git cat-file -e "$before^{commit}" 2>/dev/null; then
+                changed_files=$(git diff --name-only "$before" "$after")
+              else
+                echo "Before commit $before is still unavailable; assuming chart changed."
+                chart_changed=true
+                changed_files=""
+              fi
             fi
 
-            if printf '%s\n' "$changed_files" | grep -Eq '^charts/danielsmith/'; then
+            if printf '%s\n' "$changed_files" | grep -Eq \
+              '^(charts/danielsmith/|\.github/workflows/ci-helm\.yml$)'; then
               chart_changed=true
             fi
           fi
@@ -220,6 +228,8 @@ jobs:
           if [ "${#packages[@]}" -ne 1 ]; then
             echo "Expected exactly one downloaded chart package, found ${#packages[@]}." >&2
             printf -- "- %s\n" "${packages[@]}" >&2
+            echo "publish_status=failed" >> "$GITHUB_OUTPUT"
+            echo "publish_reason=downloaded chart artifact count was not one" >> "$GITHUB_OUTPUT"
             exit 1
           fi
           package_path="${packages[0]}"
@@ -233,7 +243,12 @@ jobs:
             published_archive_dir=$(mktemp -d)
             packaged_extract_dir=$(mktemp -d)
             published_extract_dir=$(mktemp -d)
-            helm pull "$chart_ref" --version "$chart_version" --destination "$published_archive_dir"
+            if ! helm pull "$chart_ref" --version "$chart_version" --destination "$published_archive_dir"; then
+              echo "Failed to pull existing chart ${chart_ref}:${chart_version}." >&2
+              echo "publish_status=failed" >> "$GITHUB_OUTPUT"
+              echo "publish_reason=failed to pull existing chart version" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
             tar -xzf "$package_path" -C "$packaged_extract_dir"
             tar -xzf "$published_archive_dir/danielsmith-${chart_version}.tgz" \
               -C "$published_extract_dir"
@@ -254,7 +269,12 @@ jobs:
             exit 0
           fi
 
-          helm push "$package_path" "$chart_registry"
+          if ! helm push "$package_path" "$chart_registry"; then
+            echo "Failed to push chart ${chart_ref}:${chart_version}." >&2
+            echo "publish_status=failed" >> "$GITHUB_OUTPUT"
+            echo "publish_reason=helm push failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
 
           echo "publish_status=published" >> "$GITHUB_OUTPUT"
           echo "publish_reason=chart version was missing" >> "$GITHUB_OUTPUT"
