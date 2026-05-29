@@ -43,6 +43,9 @@ export interface PerformanceFailoverHandlerOptions {
   minimumDurationMs?: number;
   maxFrameDeltaMs?: number;
   onTrigger?: (context: PerformanceFailoverTriggerContext) => void;
+  onLowFpsBeforeFallback?: (
+    context: PerformanceFailoverTriggerContext
+  ) => boolean;
   renderFallback?: (
     container: HTMLElement,
     options: RenderTextFallbackOptions
@@ -74,7 +77,7 @@ interface PerformanceFailoverMonitorOptions {
   fpsThreshold: number;
   minimumDurationMs: number;
   maxFrameDeltaMs: number;
-  onTrigger: (context: PerformanceFailoverTriggerContext) => void;
+  onTrigger: (context: PerformanceFailoverTriggerContext) => boolean | void;
 }
 
 const logPerformanceFailover = (
@@ -108,7 +111,7 @@ class PerformanceFailoverMonitor {
 
   private readonly onTrigger: (
     context: PerformanceFailoverTriggerContext
-  ) => void;
+  ) => boolean | void;
 
   private lowFpsDurationMs = 0;
 
@@ -143,7 +146,7 @@ class PerformanceFailoverMonitor {
         this.triggered = true;
         const summary = this.fpsAccumulator.getSummary();
         const averageFps = summary?.averageFps ?? fps;
-        this.onTrigger({
+        const handled = this.onTrigger({
           averageFps,
           durationMs: this.lowFpsDurationMs,
           sampleCount: summary?.count ?? 1,
@@ -152,6 +155,10 @@ class PerformanceFailoverMonitor {
           p95Fps: summary?.p95Fps ?? fps,
           medianFps: summary?.medianFps ?? fps,
         });
+        if (handled === true) {
+          this.triggered = false;
+          this.resetLowFpsSamples();
+        }
       }
       return;
     }
@@ -186,6 +193,7 @@ export function createPerformanceFailoverHandler(
     minimumDurationMs = 5000,
     maxFrameDeltaMs = 1000,
     onTrigger,
+    onLowFpsBeforeFallback,
     renderFallback: render = renderTextFallback,
     fallbackLinks,
     onBeforeFallback,
@@ -287,7 +295,11 @@ export function createPerformanceFailoverHandler(
         minimumDurationMs,
         maxFrameDeltaMs,
         onTrigger: (context) => {
+          if (onLowFpsBeforeFallback?.(context) === true) {
+            return true;
+          }
           transitionToFallback('low-performance', context);
+          return false;
         },
       });
 

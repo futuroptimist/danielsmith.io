@@ -511,4 +511,40 @@ describe('createPerformanceFailoverHandler', () => {
     expect(failoverEvents[0].detail.context).toEqual(consoleDetail);
     expect(consoleTarget.error).toBe(originalError);
   });
+
+  it('runs adaptive downgrade callback before falling back and does not flap immediately', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const onLowFpsBeforeFallback = vi.fn(() => true);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      minimumDurationMs: 1000,
+      onLowFpsBeforeFallback,
+    });
+
+    for (let i = 0; i < 25; i += 1) {
+      handler.update(1 / 20);
+    }
+
+    expect(onLowFpsBeforeFallback).toHaveBeenCalledTimes(1);
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+
+    for (let i = 0; i < 10; i += 1) {
+      handler.update(1 / 60);
+    }
+    for (let i = 0; i < 25; i += 1) {
+      handler.update(1 / 20);
+    }
+
+    expect(onLowFpsBeforeFallback).toHaveBeenCalledTimes(2);
+    expect(handler.hasTriggered()).toBe(false);
+  });
 });

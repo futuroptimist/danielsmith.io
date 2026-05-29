@@ -1,0 +1,24 @@
+{
+  "title": "adaptive quality gap root cause",
+  "date": "2026-05-29",
+  "overview": "outages/2026-05-29-danielsmith-staging-performance-overview.md",
+  "symptomSlice": "Sustained low FPS could go straight to text fallback without first trying cheaper quality settings.",
+  "evidence": "The failover monitor previously only accumulated low-FPS samples and transitioned to fallback; diagnostics lacked downgrade count/reason.",
+  "impactedFiles": [
+    "src/systems/failover/performanceFailover.ts",
+    "src/systems/performance/performanceDiagnostics.ts",
+    "src/main.ts",
+    "src/tests/performanceFailover.test.ts",
+    "src/tests/performanceDiagnostics.test.ts"
+  ],
+  "fixSummary": "Added a pre-fallback adaptive callback and non-flapping downgrade ladder to performance quality, then additional DPR reductions, before fallback.",
+  "interactionWithOtherFixes": "The ladder reuses the cheaper DPR, postprocessing, and mirror policies introduced by the other root-cause fixes.",
+  "regressionTests": [
+    "Performance-failover adaptive callback tests",
+    "diagnostics adaptive state tests"
+  ],
+  "validationCommands": [
+    "npm run test:ci -- src/tests/performanceFailover.test.ts src/tests/performanceDiagnostics.test.ts",
+    "npm run test:e2e -- --grep \"adaptive\""
+  ]
+}

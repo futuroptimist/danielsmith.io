@@ -1,0 +1,42 @@
+{
+  "title": "staging.danielsmith.io immersive performance overview",
+  "date": "2026-05-29",
+  "environment": "staging.danielsmith.io; Chrome desktop including hardware-acceleration-disabled software WebGL",
+  "status": "corrective patch prepared for deployment validation",
+  "symptoms": [
+    "After zoom trails were fixed, immersive staging still showed roughly 5 FPS by user observation and fell back after a few seconds.",
+    "Reproduction included Chrome with hardware acceleration disabled."
+  ],
+  "relatedIncidents": [
+    "outages/2026-05-28-danielsmith-staging-zoom-fallback.md"
+  ],
+  "confirmedRootCauses": [
+    "outages/2026-05-29-danielsmith-software-renderer-quality.md",
+    "outages/2026-05-29-danielsmith-postprocessing-pixel-cost.md",
+    "outages/2026-05-29-danielsmith-selfie-mirror-render-cost.md",
+    "outages/2026-05-29-danielsmith-adaptive-quality-gap.md"
+  ],
+  "disprovenOrUnconfirmed": [
+    "Per-frame JS update work was not confirmed as the primary root cause in this patch; broad phase diagnostics were added for future evidence."
+  ],
+  "correctiveAction": [
+    "Added window.portfolio.performance diagnostics.",
+    "Classified software renderers and started them in performance quality.",
+    "Made DPR caps explicit by renderer tier and quality.",
+    "Skipped composer when bloom and motion blur are inactive.",
+    "Throttled or disabled SelfieMirror rendering by quality, renderer tier, and distance.",
+    "Added an adaptive downgrade ladder before text fallback."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ],
+  "manualBenchmark": [
+    "Chrome hardware acceleration enabled: open /?mode=immersive, inspect window.portfolio.performance.getSnapshot(), zoom and pan for 10 seconds, confirm immersive remains active.",
+    "Chrome hardware acceleration disabled: repeat and confirm software/performance policy reduces DPR/postprocessing/mirror work before fallback."
+  ]
+}

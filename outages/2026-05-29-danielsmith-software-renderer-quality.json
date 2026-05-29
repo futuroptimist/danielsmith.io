@@ -1,0 +1,24 @@
+{
+  "title": "software renderer quality root cause",
+  "date": "2026-05-29",
+  "overview": "outages/2026-05-29-danielsmith-staging-performance-overview.md",
+  "symptomSlice": "Hardware acceleration disabled routes WebGL through software paths where expensive default quality is catastrophic.",
+  "evidence": "Renderer diagnostics classify WEBGL_debug_renderer_info strings such as SwiftShader and llvmpipe; Playwright software override verifies performance policy.",
+  "impactedFiles": [
+    "src/scene/graphics/rendererCapabilities.ts",
+    "src/scene/graphics/performancePolicy.ts",
+    "src/main.ts",
+    "src/tests/rendererPerformancePolicy.test.ts",
+    "playwright/adaptive-quality.spec.ts"
+  ],
+  "fixSummary": "Known software renderers start in performance quality with aggressive DPR, no bloom/composer extras, and disabled mirror rendering.",
+  "interactionWithOtherFixes": "Renderer tier feeds DPR, postprocessing, mirror, and adaptive policies.",
+  "regressionTests": [
+    "renderer performance policy unit tests",
+    "adaptive quality Playwright software override"
+  ],
+  "validationCommands": [
+    "npm run test:ci -- src/tests/rendererPerformancePolicy.test.ts",
+    "npm run test:e2e -- --grep \"adaptive quality\""
+  ]
+}

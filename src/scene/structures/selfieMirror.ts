@@ -39,6 +39,12 @@ export interface SelfieMirrorBuild {
   renderTarget: WebGLRenderTarget;
   update(context: SelfieMirrorUpdateContext): void;
   render(renderer: WebGLRenderer, scene: Scene): void;
+  setRenderTargetSize(size: number): void;
+  getState(): {
+    playerDistance: number;
+    renderTargetSize: number;
+    renderCount: number;
+  };
   dispose(): void;
 }
 
@@ -160,9 +166,17 @@ export function createSelfieMirror(
   accent.position.set(0, BASE_HEIGHT + height - 0.28, depth * -0.08);
   group.add(accent);
 
-  const renderTarget = new WebGLRenderTarget(512, 512, {
-    generateMipmaps: false,
-  });
+  let renderTargetSize = 512;
+  let renderCount = 0;
+  let lastPlayerDistance = Number.POSITIVE_INFINITY;
+
+  const renderTarget = new WebGLRenderTarget(
+    renderTargetSize,
+    renderTargetSize,
+    {
+      generateMipmaps: false,
+    }
+  );
   renderTarget.texture.colorSpace = SRGBColorSpace;
 
   const displayMaterial = new MeshBasicMaterial({
@@ -247,6 +261,7 @@ export function createSelfieMirror(
       playerPosition.z - basePosition.z
     );
     const planarDistance = planarOffset.length();
+    lastPlayerDistance = planarDistance;
     const emphasis = MathUtils.clamp(1 - planarDistance / GLOW_RADIUS, 0, 1);
     glowMaterial.opacity = MathUtils.lerp(
       GLOW_BASE_OPACITY,
@@ -272,7 +287,23 @@ export function createSelfieMirror(
     glow.visible = previousGlowVisible;
     renderer.setRenderTarget(previousTarget);
     renderer.autoClear = previousAutoClear;
+    renderCount += 1;
   };
+
+  const setRenderTargetSize = (size: number) => {
+    const nextSize = Math.max(64, Math.min(512, Math.round(size)));
+    if (nextSize === renderTargetSize) {
+      return;
+    }
+    renderTargetSize = nextSize;
+    renderTarget.setSize(nextSize, nextSize);
+  };
+
+  const getState = () => ({
+    playerDistance: lastPlayerDistance,
+    renderTargetSize,
+    renderCount,
+  });
 
   const dispose = () => {
     renderTarget.dispose();
@@ -295,6 +326,8 @@ export function createSelfieMirror(
     renderTarget,
     update,
     render,
+    setRenderTargetSize,
+    getState,
     dispose,
   };
 }
