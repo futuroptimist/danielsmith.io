@@ -47,16 +47,31 @@ body {
   background: #04070d;
 }
 
+html[data-app-mode='fallback'],
+html[data-app-mode='fallback'] body {
+  min-height: 100%;
+  height: auto;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
 #app {
   width: 100%;
   height: 100%;
 }
 
 #app[data-mode='text'] {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  justify-content: flex-start;
+  padding: calc(2rem + env(safe-area-inset-top, 0px))
+    calc(2rem + env(safe-area-inset-right, 0px))
+    calc(2rem + env(safe-area-inset-bottom, 0px))
+    calc(2rem + env(safe-area-inset-left, 0px));
+  overflow: visible;
 }
 
 canvas {
@@ -68,14 +83,16 @@ canvas {
 }
 
 .text-fallback {
-  margin: 0 auto;
+  width: min(32rem, 100%);
+  margin-inline: auto;
   padding: 3rem 1.75rem;
-  max-width: 32rem;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   color: #ecf4ff;
   text-align: left;
+  overflow-wrap: anywhere;
   background:
     linear-gradient(140deg, rgba(11, 18, 30, 0.95), rgba(13, 31, 46, 0.85)),
     rgba(6, 12, 22, 0.9);
@@ -87,6 +104,19 @@ canvas {
 
 .text-fallback[data-locale-script='cjk'] {
   letter-spacing: 0.02em;
+}
+
+@media (max-width: 480px) {
+  #app[data-mode='text'] {
+    padding: calc(1rem + env(safe-area-inset-top, 0px))
+      calc(1rem + env(safe-area-inset-right, 0px))
+      calc(1rem + env(safe-area-inset-bottom, 0px))
+      calc(1rem + env(safe-area-inset-left, 0px));
+  }
+
+  .text-fallback {
+    padding: 2rem 1.1rem;
+  }
 }
 
 .text-fallback__title {
@@ -182,6 +212,7 @@ canvas {
 
 .text-fallback__link {
   color: #8fd6ff;
+  overflow-wrap: anywhere;
   text-decoration: none;
   font-weight: 600;
 }
@@ -272,7 +303,7 @@ canvas {
 .text-fallback__poi-metrics {
   margin: 0;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   column-gap: 0.75rem;
   row-gap: 0.3rem;
   font-size: 0.88rem;

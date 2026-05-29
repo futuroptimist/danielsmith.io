@@ -11,7 +11,9 @@ orthographic camera caused prior full-scene frames to remain visible. Visitors
 could see stacked or duplicated room geometry and trails from old camera
 projections instead of a clean scale change. In production-like staging sessions
 with runtime performance failover enabled, normal zoom eventually switched the
-immersive scene into the text fallback after roughly 5–10 seconds.
+immersive scene into the text fallback after roughly 5–10 seconds. When the text
+fallback rendered, its content could be clipped above the viewport and visitors
+could not scroll upward to reach the title or introductory description.
 
 A key field observation was that setting the in-app motion blur slider to zero
 did **not** eliminate the artifact on staging.
@@ -21,7 +23,10 @@ did **not** eliminate the artifact on staging.
 The staging immersive experience looked corrupted during normal zoom/pan
 interactions and could exit to the text fallback during otherwise ordinary
 browser input. The issue risked confusing validation because graphics corruption
-could be mistaken for a broader WebGL or performance-failover problem.
+could be mistaken for a broader WebGL or performance-failover problem. The
+fallback clipping also made the accessible, text-only portfolio incomplete for
+visitors who intentionally selected text mode or were routed there by supported
+failover paths.
 
 ## Detection
 
@@ -48,6 +53,12 @@ missing zero-intensity no-op/disable behavior. The observed text fallback was
 likely a secondary reaction to sustained low FPS caused by the rendering bug,
 not evidence that the runtime failover feature should be removed or weakened.
 
+The fallback clipping was a separate layout bug: `html`, `body`, and `#app`
+used fixed `height: 100%`, while `#app[data-mode='text']` vertically centered
+the fallback card with flexbox. Once the portfolio/exhibits card grew taller
+than the viewport, centering placed the top of that flex item above the
+scrollable range.
+
 ## Corrective action
 
 - Default immersive rendering now creates the motion blur controller at zero
@@ -68,6 +79,10 @@ not evidence that the runtime failover feature should be removed or weakened.
 - Runtime performance failover remains enabled for genuine sustained low FPS,
   unsupported WebGL, automated clients, explicit text mode, and related
   low-capability cases.
+- Text fallback mode now opts `html`, `body`, and `#app[data-mode='text']` into
+  normal document-flow scrolling, top-aligns the fallback card, preserves the
+  horizontally centered card width, respects safe-area padding, and wraps long
+  fallback links/metrics to prevent horizontal overflow.
 
 ## Regression tests
 
@@ -86,6 +101,10 @@ not evidence that the runtime failover feature should be removed or weakened.
   production-like `/?mode=immersive` session, which bypasses only preflight
   routing heuristics while leaving runtime failover enabled, and asserts normal
   wheel zoom/pan remains immersive for longer than the 5-second low-FPS window.
+- Playwright `text fallback layout` covers explicit `/?mode=text` at 1280×720
+  and 390×844, plus automated-client fallback at 1280×720. It asserts the title
+  starts inside the viewport at scroll position 0, the document scrolls to the
+  final portfolio POI, and the document has no horizontal overflow.
 
 ## Deployment and validation notes
 
@@ -95,7 +114,10 @@ and `https://staging.danielsmith.io/?mode=immersive`. Confirm the initial
 render is clean, wheel zooming does not stack previous camera projections, the
 motion blur slider at zero remains clean, returning from nonzero blur to zero
 clears residual trails, and normal zoom does not reveal the text fallback while
-runtime failover remains available for genuine low-performance cases.
+runtime failover remains available for genuine low-performance cases. Also
+validate `https://staging.danielsmith.io/?mode=text` at desktop and mobile-ish
+viewport widths to confirm the title is visible at scroll position 0 and the
+last fallback portfolio content is reachable by normal scrolling.
 
 Expected validation commands:
 
@@ -106,5 +128,6 @@ npm run typecheck
 npm run test:ci
 npm run test:e2e -- --grep "zoom"
 npm run test:e2e -- --grep "performance failover"
+npm run test:e2e -- --grep "text fallback"
 npm run smoke
 ```
