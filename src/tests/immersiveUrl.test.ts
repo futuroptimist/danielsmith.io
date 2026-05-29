@@ -293,8 +293,8 @@ describe('immersive flag helpers', () => {
     ).toBe(true);
   });
 
-  it('disables performance failover when either override or bypass is present', () => {
-    expect(shouldDisablePerformanceFailover('mode=immersive')).toBe(true);
+  it('disables performance failover only when the explicit bypass is present', () => {
+    expect(shouldDisablePerformanceFailover('mode=immersive')).toBe(false);
     expect(
       shouldDisablePerformanceFailover('disablePerformanceFailover=1')
     ).toBe(true);

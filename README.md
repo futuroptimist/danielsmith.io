@@ -160,10 +160,10 @@ lightweight.
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
   WebGL.
 - **Data-saver heuristics** – Save-Data requests, `effectiveType` values of slow-2G/2G/3G, or
-  `downlink` readings at or below 1.5 Mbps trigger the text tour unless
-  `mode=immersive&disablePerformanceFailover=1` is present. The same override bypasses
-  low-memory and low-end hardware heuristics when WebGL is available so manual immersive
-  validation can proceed on constrained devices.
+  `downlink` readings at or below 1.5 Mbps trigger the text tour unless `mode=immersive`
+  is present. Add `disablePerformanceFailover=1` for manual previews that also need to
+  bypass runtime FPS monitoring plus low-memory and low-end hardware heuristics when
+  WebGL is available.
 
 ## Auto-generated assets
 
