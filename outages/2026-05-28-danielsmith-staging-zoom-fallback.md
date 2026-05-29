@@ -14,14 +14,18 @@ with runtime performance failover enabled, normal zoom eventually switched the
 immersive scene into the text fallback after roughly 5–10 seconds.
 
 A key field observation was that setting the in-app motion blur slider to zero
-did **not** eliminate the artifact on staging.
+did **not** eliminate the artifact on staging. When fallback did appear, the
+text page started mid-content: its title and introductory copy were clipped
+above the viewport, and normal scrolling could not move farther upward.
 
 ## Impact
 
 The staging immersive experience looked corrupted during normal zoom/pan
 interactions and could exit to the text fallback during otherwise ordinary
-browser input. The issue risked confusing validation because graphics corruption
-could be mistaken for a broader WebGL or performance-failover problem.
+browser input. When fallback appeared, visitors could miss the opening context
+and start the portfolio in the middle of the exhibit list. The issue risked
+confusing validation because graphics corruption and fallback layout clipping
+could be mistaken for broader WebGL or performance-failover problems.
 
 ## Detection
 
@@ -48,8 +52,16 @@ missing zero-intensity no-op/disable behavior. The observed text fallback was
 likely a secondary reaction to sustained low FPS caused by the rendering bug,
 not evidence that the runtime failover feature should be removed or weakened.
 
+The fallback clipping had a separate layout root cause: the fallback reused the
+full-height `#app` shell and centered `.text-fallback` as a flex item. Once the
+full portfolio/exhibit card became taller than the viewport, vertical centering
+produced negative-Y overflow outside the scrollable range.
+
 ## Corrective action
 
+- Text mode now uses a normal document-flow layout: the fallback shell is
+  height-auto, min-viewport-height, top-aligned, and padded with safe-area-aware
+  spacing while the card remains horizontally centered.
 - Default immersive rendering now creates the motion blur controller at zero
   intensity so scene-wide afterimage is not active by default.
 - Intensity zero now disables the `AfterimagePass`, maps to clearing damp `0`,
@@ -86,6 +98,9 @@ not evidence that the runtime failover feature should be removed or weakened.
   production-like `/?mode=immersive` session, which bypasses only preflight
   routing heuristics while leaving runtime failover enabled, and asserts normal
   wheel zoom/pan remains immersive for longer than the 5-second low-FPS window.
+- Playwright `text fallback layout` covers `/?mode=text` at 1280×720 and
+  390×844, asserting title visibility at scroll position zero, reachability of
+  the final fallback POI after scrolling, and no horizontal overflow.
 
 ## Deployment and validation notes
 
@@ -95,7 +110,10 @@ and `https://staging.danielsmith.io/?mode=immersive`. Confirm the initial
 render is clean, wheel zooming does not stack previous camera projections, the
 motion blur slider at zero remains clean, returning from nonzero blur to zero
 clears residual trails, and normal zoom does not reveal the text fallback while
-runtime failover remains available for genuine low-performance cases.
+runtime failover remains available for genuine low-performance cases. Also
+validate `/?mode=text` at desktop and mobile widths to confirm the title is
+visible at scroll position zero and the last fallback POI is reachable by normal
+scrolling.
 
 Expected validation commands:
 
@@ -106,5 +124,6 @@ npm run typecheck
 npm run test:ci
 npm run test:e2e -- --grep "zoom"
 npm run test:e2e -- --grep "performance failover"
+npm run test:e2e -- --grep "text fallback"
 npm run smoke
 ```

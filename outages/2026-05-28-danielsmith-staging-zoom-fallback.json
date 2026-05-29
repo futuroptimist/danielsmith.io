@@ -7,12 +7,14 @@
     "Initial immersive render looked normal.",
     "Mouse-wheel orthographic zoom left prior full-scene frames visible as duplicated geometry/trails.",
     "Production-like staging sessions with runtime performance failover enabled switched from immersive mode to text fallback after roughly 5-10 seconds of normal zooming.",
-    "Setting the in-app motion blur slider to zero on staging did not eliminate the bug."
+    "Setting the in-app motion blur slider to zero on staging did not eliminate the bug.",
+    "Text fallback content could start mid-page with the title clipped above the viewport and no way to scroll upward to it."
   ],
-  "impact": "Staging immersive validation showed corrupted zoom/pan rendering and could exit to the text fallback during ordinary browser input, risking confusion with broader WebGL or performance-failover behavior.",
+  "impact": "Staging immersive validation showed corrupted zoom/pan rendering and could exit to the text fallback during ordinary browser input. When fallback appeared, visitors could miss the opening context because the text card was clipped above the scrollable viewport, risking confusion with broader WebGL or performance-failover behavior.",
   "detection": "Manual staging validation of /?mode=immersive&disablePerformanceFailover=1 followed by wheel zooming, then production-like /?mode=immersive validation where only preflight routing is bypassed and runtime failover remains enabled; now covered by Playwright zoom and performance failover regression tests.",
-  "rootCause": "The postprocessing chain always ran Three.js AfterimagePass. The controller mapped intensity 0 to damp 1 even though AfterimagePass preserves more old pixels as damp approaches 1 and clears history at damp 0. The pass also remained enabled at zero, allowing stale feedback buffers across orthographic projection changes. The observed text fallback was likely a secondary reaction to sustained low FPS caused by the rendering bug, not evidence that runtime failover should be removed or weakened.",
+  "rootCause": "The postprocessing chain always ran Three.js AfterimagePass. The controller mapped intensity 0 to damp 1 even though AfterimagePass preserves more old pixels as damp approaches 1 and clears history at damp 0. The pass also remained enabled at zero, allowing stale feedback buffers across orthographic projection changes. The observed text fallback was likely a secondary reaction to sustained low FPS caused by the rendering bug, not evidence that runtime failover should be removed or weakened. The fallback clipping had a separate layout root cause: fixed-height #app plus vertical flex centering of a .text-fallback card taller than the viewport produced negative-Y overflow outside the scrollable range.",
   "correctiveAction": [
+    "Text mode now uses a normal document-flow fallback layout: height-auto shell, min-viewport-height, top-aligned scrolling, safe-area-aware padding, and a horizontally centered card.",
     "Default motion blur intensity changed to zero so scene-wide afterimage is not active by default.",
     "Intensity zero disables AfterimagePass, maps to damp 0, and schedules feedback-history reset.",
     "Nonzero intensity now maps upward toward max damp.",
@@ -25,7 +27,8 @@
     "Vitest coverage for zero no-op/disable behavior, invalid clamping, corrected damp mapping, history resets, and disposal.",
     "Vitest performance-failover coverage proves normal FPS for more than five seconds never triggers, intermittent low FPS resets when performance recovers, sustained very-low FPS triggers, and low-performance transitions dispatch a performancefailover event with reason low-performance.",
     "Playwright immersive zoom coverage for one canvas, no text fallback, repeated wheel zoom, zero blur, motion-blur reset telemetry for stale/duplicated-frame symptoms, and nonzero-to-zero toggling.",
-    "Playwright performance failover runtime zoom coverage loads /?mode=immersive, which bypasses only preflight routing heuristics and omits disablePerformanceFailover=1, then asserts ordinary zoom remains immersive while runtime failover is active."
+    "Playwright performance failover runtime zoom coverage loads /?mode=immersive, which bypasses only preflight routing heuristics and omits disablePerformanceFailover=1, then asserts ordinary zoom remains immersive while runtime failover is active.",
+    "Playwright text fallback layout coverage loads /?mode=text at 1280x720 and 390x844, then asserts the title is visible at scroll position zero, the final fallback POI is reachable after scrolling, and horizontal overflow is absent."
   ],
   "validationCommands": [
     "npm run format:write",
@@ -34,7 +37,8 @@
     "npm run test:ci",
     "npm run test:e2e -- --grep \"zoom\"",
     "npm run test:e2e -- --grep \"performance failover\"",
+    "npm run test:e2e -- --grep \"text fallback\"",
     "npm run smoke"
   ],
-  "deploymentValidation": "After deployment, validate https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 for clean initial render, clean wheel zoom, clean zero motion blur, and cleared trails after toggling nonzero blur back to zero. Also validate https://staging.danielsmith.io/?mode=immersive to confirm normal zoom does not reveal the text fallback while runtime failover remains available for genuine low-performance cases."
+  "deploymentValidation": "After deployment, validate https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 for clean initial render, clean wheel zoom, clean zero motion blur, and cleared trails after toggling nonzero blur back to zero. Also validate https://staging.danielsmith.io/?mode=immersive to confirm normal zoom does not reveal the text fallback while runtime failover remains available for genuine low-performance cases. Also validate /?mode=text at desktop and mobile widths to confirm the title is visible at scroll position zero and the last fallback POI is reachable by normal scrolling."
 }
