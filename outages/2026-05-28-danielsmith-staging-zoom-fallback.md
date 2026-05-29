@@ -28,9 +28,11 @@ could be mistaken for a broader WebGL or performance-failover problem.
 The bug was detected by manual staging validation of
 `/?mode=immersive&disablePerformanceFailover=1` followed by mouse-wheel zooming,
 then reproduced as an immersive-to-text transition in `/?mode=immersive` sessions
-where runtime performance failover remained enabled. Regression coverage now
-exercises both the clean-render zoom flow and a production-like failover-enabled
-zoom flow in Playwright.
+where runtime performance failover remained enabled. The URL helper now keeps
+`mode=immersive` scoped to the initial immersive routing override; only the
+explicit `disablePerformanceFailover=1` flag disables the runtime failover
+monitor. Regression coverage now exercises both the clean-render zoom flow and a
+production-like failover-enabled zoom flow in Playwright.
 
 ## Root cause
 
@@ -59,9 +61,10 @@ not evidence that the runtime failover feature should be removed or weakened.
 - A narrow `window.portfolio.graphics` test hook exposes motion-blur state and a
   production-safe setter for browser regression tests.
 - Production-like regression coverage now loads `/?mode=immersive` without the
-  failover bypass, drives wheel zoom longer than the 5-second low-FPS window,
-  and fails on `performancefailover`, `html[data-app-mode="fallback"]`,
-  `#app[data-mode="text"]`, console fallback warnings, or duplicate canvases.
+  explicit `disablePerformanceFailover=1` bypass, drives wheel zoom longer than
+  the 5-second low-FPS window, and fails on `performancefailover`,
+  `html[data-app-mode="fallback"]`, `#app[data-mode="text"]`, console
+  fallback warnings, or duplicate canvases.
 - Runtime performance failover remains enabled for genuine sustained low FPS,
   unsupported WebGL, automated clients, explicit text mode, and related
   low-capability cases.
@@ -80,9 +83,9 @@ not evidence that the runtime failover feature should be removed or weakened.
   reset telemetry for the stale/duplicated-frame symptom, and toggling nonzero
   blur back to zero without revealing the text fallback.
 - Playwright `performance failover runtime zoom coverage` covers a
-  production-like `/?mode=immersive` session with runtime failover enabled and
-  asserts normal wheel zoom/pan remains immersive for longer than the 5-second
-  low-FPS window.
+  production-like `/?mode=immersive` session, which bypasses only preflight
+  routing heuristics while leaving runtime failover enabled, and asserts normal
+  wheel zoom/pan remains immersive for longer than the 5-second low-FPS window.
 
 ## Deployment and validation notes
 

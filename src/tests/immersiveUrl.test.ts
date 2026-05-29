@@ -296,8 +296,15 @@ describe('immersive flag helpers', () => {
   it('disables performance failover only when the explicit bypass is present', () => {
     expect(shouldDisablePerformanceFailover('mode=immersive')).toBe(false);
     expect(
+      shouldDisablePerformanceFailover(
+        'mode=immersive&disablePerformanceFailover=1'
+      )
+    ).toBe(true);
+    expect(
       shouldDisablePerformanceFailover('disablePerformanceFailover=1')
     ).toBe(true);
-    expect(shouldDisablePerformanceFailover('feature=preview')).toBe(false);
+    expect(
+      shouldDisablePerformanceFailover('feature=preview&zoom=ordinary')
+    ).toBe(false);
   });
 });
