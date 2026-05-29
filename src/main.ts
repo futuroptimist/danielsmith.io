@@ -410,6 +410,15 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
+      graphics?: {
+        getMotionBlurIntensity(): number;
+        setMotionBlurIntensity(intensity: number): void;
+        getMotionBlurDebugState(): {
+          enabled: boolean;
+          damp: number;
+          intensity: number;
+        };
+      };
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
@@ -2995,9 +3004,35 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
-  motionBlurController = createMotionBlurController({ intensity: 0.6 });
+  motionBlurController = createMotionBlurController({ intensity: 0 });
   composer.addPass(motionBlurController.pass);
   motionBlurController.pass.renderToScreen = true;
+
+  const ensureGraphicsApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.graphics = {
+      getMotionBlurIntensity() {
+        return motionBlurController?.getIntensity() ?? 0;
+      },
+      setMotionBlurIntensity(intensity: number) {
+        motionBlurController?.setIntensity(intensity);
+        motionBlurControl?.refresh();
+      },
+      getMotionBlurDebugState() {
+        const pass = motionBlurController?.pass;
+        return {
+          enabled: pass?.enabled ?? false,
+          damp: Number(pass?.uniforms.damp.value ?? 0),
+          intensity: motionBlurController?.getIntensity() ?? 0,
+        };
+      },
+    };
+  };
+
+  ensureGraphicsApi();
 
   let qualityStorage: Storage | undefined;
   try {
@@ -3063,7 +3098,6 @@ function initializeImmersiveScene(
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
     audioHudHandle?.refresh();
-    motionBlurControl?.refresh();
   }
 
   motionBlurControl = createMotionBlurControl({
@@ -3181,6 +3215,7 @@ function initializeImmersiveScene(
   function onResize() {
     const nextAspect = window.innerWidth / window.innerHeight;
     updateCameraProjection(nextAspect);
+    motionBlurController?.reset(renderer);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
     const nextPixelRatio = Math.min(window.devicePixelRatio ?? 1, 2);
@@ -3331,6 +3366,9 @@ function initializeImmersiveScene(
 
   function updateCamera(delta: number) {
     const previousZoom = cameraZoom;
+    const previousPanX = cameraPan.x;
+    const previousPanZ = cameraPan.z;
+    let cameraProjectionChanged = false;
     cameraZoom = MathUtils.damp(
       cameraZoom,
       cameraZoomTarget,
@@ -3343,6 +3381,7 @@ function initializeImmersiveScene(
     }
     if (Math.abs(cameraZoom - previousZoom) > 1e-4) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
+      cameraProjectionChanged = true;
     }
 
     const cameraInput =
@@ -3376,6 +3415,14 @@ function initializeImmersiveScene(
       -cameraPanLimitZ,
       cameraPanLimitZ
     );
+
+    if (
+      cameraProjectionChanged ||
+      Math.abs(cameraPan.x - previousPanX) > 1e-4 ||
+      Math.abs(cameraPan.z - previousPanZ) > 1e-4
+    ) {
+      motionBlurController?.reset(renderer);
+    }
 
     cameraCenter.set(
       player.position.x + cameraPan.x,

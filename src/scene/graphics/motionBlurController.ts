@@ -1,4 +1,4 @@
-import { MathUtils } from 'three';
+import { MathUtils, type WebGLRenderer, type WebGLRenderTarget } from 'three';
 import { AfterimagePass } from 'three/examples/jsm/postprocessing/AfterimagePass.js';
 
 export interface MotionBlurControllerOptions {
@@ -8,8 +8,7 @@ export interface MotionBlurControllerOptions {
   readonly intensity?: number;
   /**
    * Upper bound for the Afterimage dampening uniform. Defaults to 0.92 which
-   * matches the effect's stock configuration while leaving room for presets to
-   * disable trails entirely.
+   * keeps optional trails below the shader's fully persistent feedback state.
    */
   readonly maxDamp?: number;
 }
@@ -20,6 +19,8 @@ export interface MotionBlurController {
   getIntensity(): number;
   /** Updates the motion blur intensity and corresponding pass uniforms. */
   setIntensity(intensity: number): void;
+  /** Clears the afterimage feedback targets before the next active render. */
+  reset(renderer?: WebGLRenderer): void;
   /** Disposes the underlying pass resources. */
   dispose(): void;
 }
@@ -41,20 +42,56 @@ function clamp01(value: number): number {
 
 function resolveDampValue(intensity: number, maxDamp: number): number {
   const clamped = clamp01(intensity);
-  // Damp of 1 disables trails entirely; lower values extend the afterimage.
-  return MathUtils.lerp(1, maxDamp, clamped);
+  // AfterimageShader multiplies old pixels by damp, so 0 fully clears history
+  // and larger values retain longer trails. Never map intensity 0 to damp 1.
+  return MathUtils.lerp(0, maxDamp, clamped);
+}
+
+function clearRenderTarget(renderer: WebGLRenderer, target: WebGLRenderTarget) {
+  renderer.setRenderTarget(target);
+  renderer.clear(true, true, true);
 }
 
 export function createMotionBlurController({
-  intensity = 0.6,
+  intensity = 0,
   maxDamp = DEFAULT_MAX_DAMP,
 }: MotionBlurControllerOptions = {}): MotionBlurController {
-  const pass = new AfterimagePass(maxDamp);
+  const safeMaxDamp = clamp01(maxDamp);
+  const pass = new AfterimagePass(safeMaxDamp);
+  const render = pass.render.bind(pass);
   let currentIntensity = 0;
+  let pendingReset = true;
+
+  const clearHistory = (renderer: WebGLRenderer) => {
+    const previousTarget = renderer.getRenderTarget();
+    clearRenderTarget(renderer, pass.textureOld);
+    clearRenderTarget(renderer, pass.textureComp);
+    renderer.setRenderTarget(previousTarget);
+    pendingReset = false;
+  };
+
+  pass.render = (
+    renderer: WebGLRenderer,
+    writeBuffer: WebGLRenderTarget,
+    readBuffer: WebGLRenderTarget,
+    deltaTime: number,
+    maskActive: boolean
+  ) => {
+    if (pendingReset) {
+      clearHistory(renderer);
+    }
+    render(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
+  };
 
   const applyIntensity = (value: number) => {
-    currentIntensity = clamp01(value);
-    pass.uniforms.damp.value = resolveDampValue(currentIntensity, maxDamp);
+    const nextIntensity = clamp01(value);
+    const wasEnabled = pass.enabled;
+    currentIntensity = nextIntensity;
+    pass.uniforms.damp.value = resolveDampValue(currentIntensity, safeMaxDamp);
+    pass.enabled = currentIntensity > 0;
+    if (!pass.enabled || wasEnabled !== pass.enabled) {
+      pendingReset = true;
+    }
   };
 
   applyIntensity(intensity);
@@ -66,6 +103,12 @@ export function createMotionBlurController({
     },
     setIntensity(value) {
       applyIntensity(value);
+    },
+    reset(renderer) {
+      pendingReset = true;
+      if (renderer) {
+        clearHistory(renderer);
+      }
     },
     dispose() {
       pass.dispose();
