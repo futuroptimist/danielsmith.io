@@ -8,10 +8,18 @@ export interface MotionBlurControllerOptions {
   readonly intensity?: number;
   /**
    * Upper bound for the Afterimage dampening uniform. Defaults to 0.92 which
-   * matches the effect's stock configuration while leaving room for presets to
-   * disable trails entirely.
+   * matches a restrained afterimage while avoiding unbounded frame feedback.
    */
   readonly maxDamp?: number;
+}
+
+export interface MotionBlurControllerHistoryState {
+  /** True when the next afterimage render will clear retained feedback. */
+  readonly pendingReset: boolean;
+  /** Number of times feedback clearing has been requested. */
+  readonly resetRequestCount: number;
+  /** Last damp value queued for clearing retained feedback. */
+  readonly lastResetDamp: number | null;
 }
 
 export interface MotionBlurController {
@@ -20,11 +28,16 @@ export interface MotionBlurController {
   getIntensity(): number;
   /** Updates the motion blur intensity and corresponding pass uniforms. */
   setIntensity(intensity: number): void;
+  /** Clears the afterimage feedback history on the next rendered pass. */
+  resetHistory(): void;
+  /** Returns renderer-level state for regression tests and diagnostics. */
+  getHistoryState(): MotionBlurControllerHistoryState;
   /** Disposes the underlying pass resources. */
   dispose(): void;
 }
 
 const DEFAULT_MAX_DAMP = 0.92;
+const CLEAR_HISTORY_DAMP = 0;
 
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
@@ -39,22 +52,70 @@ function clamp01(value: number): number {
   return value;
 }
 
+function resolveMaxDamp(value: number): number {
+  if (!Number.isFinite(value)) {
+    return DEFAULT_MAX_DAMP;
+  }
+  return clamp01(value);
+}
+
 function resolveDampValue(intensity: number, maxDamp: number): number {
   const clamped = clamp01(intensity);
-  // Damp of 1 disables trails entirely; lower values extend the afterimage.
-  return MathUtils.lerp(1, maxDamp, clamped);
+  if (clamped === 0) {
+    return CLEAR_HISTORY_DAMP;
+  }
+
+  // AfterimagePass preserves older frames longer as damp approaches 1. Intensity
+  // therefore scales up from a clearing damp value instead of mapping 0 to 1.
+  return MathUtils.lerp(CLEAR_HISTORY_DAMP, maxDamp, clamped);
 }
 
 export function createMotionBlurController({
-  intensity = 0.6,
+  intensity = 0,
   maxDamp = DEFAULT_MAX_DAMP,
 }: MotionBlurControllerOptions = {}): MotionBlurController {
-  const pass = new AfterimagePass(maxDamp);
+  const resolvedMaxDamp = resolveMaxDamp(maxDamp);
+  const pass = new AfterimagePass(CLEAR_HISTORY_DAMP);
+  const renderWithAfterimage = pass.render.bind(pass);
   let currentIntensity = 0;
+  let shouldResetHistory = true;
+  let resetRequestCount = 0;
+  let lastResetDamp: number | null = null;
+
+  pass.render = (...args: Parameters<AfterimagePass['render']>) => {
+    if (!shouldResetHistory) {
+      renderWithAfterimage(...args);
+      return;
+    }
+
+    const previousDamp = pass.uniforms.damp.value;
+    pass.uniforms.damp.value = CLEAR_HISTORY_DAMP;
+    try {
+      renderWithAfterimage(...args);
+    } finally {
+      pass.uniforms.damp.value = previousDamp;
+      shouldResetHistory = false;
+    }
+  };
+
+  const resetHistory = () => {
+    shouldResetHistory = true;
+    resetRequestCount += 1;
+    lastResetDamp = CLEAR_HISTORY_DAMP;
+  };
 
   const applyIntensity = (value: number) => {
+    const previousIntensity = currentIntensity;
     currentIntensity = clamp01(value);
-    pass.uniforms.damp.value = resolveDampValue(currentIntensity, maxDamp);
+    pass.uniforms.damp.value = resolveDampValue(
+      currentIntensity,
+      resolvedMaxDamp
+    );
+    pass.enabled = currentIntensity > 0;
+
+    if (currentIntensity === 0 || previousIntensity === 0) {
+      resetHistory();
+    }
   };
 
   applyIntensity(intensity);
@@ -66,6 +127,14 @@ export function createMotionBlurController({
     },
     setIntensity(value) {
       applyIntensity(value);
+    },
+    resetHistory,
+    getHistoryState() {
+      return {
+        pendingReset: shouldResetHistory,
+        resetRequestCount,
+        lastResetDamp,
+      };
     },
     dispose() {
       pass.dispose();

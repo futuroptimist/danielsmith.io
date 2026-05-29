@@ -410,6 +410,20 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
+      graphics?: {
+        getMotionBlurIntensity(): number;
+        setMotionBlurIntensity(intensity: number): void;
+        getMotionBlurState(): {
+          enabled: boolean;
+          damp: number;
+          intensity: number;
+          pendingHistoryReset: boolean;
+          historyResetRequestCount: number;
+          lastHistoryResetDamp: number | null;
+        };
+        resetMotionBlurHistory(): void;
+        setCameraPanForTest?(input: { x: number; y: number }): void;
+      };
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
@@ -885,6 +899,7 @@ function initializeImmersiveScene(
   const baseCameraSize = largestHalfExtent + CAMERA_MARGIN;
   let cameraZoom = 1;
   let cameraZoomTarget = 1;
+  let resetMotionBlurHistory: (() => void) | null = null;
 
   const aspect = window.innerWidth / window.innerHeight;
   const camera = new OrthographicCamera(
@@ -2395,6 +2410,7 @@ function initializeImmersiveScene(
   let mannequinRelativeYawTarget = 0;
   const cameraPan = new Vector3();
   const cameraPanTarget = new Vector3();
+  let wasCameraPanInputActive = false;
   const poiLabelLookTarget = new Vector3();
   const poiPlayerOffset = new Vector2();
   let cameraPanLimitX = 0;
@@ -2623,6 +2639,7 @@ function initializeImmersiveScene(
     camera.zoom = cameraZoom;
     camera.updateProjectionMatrix();
     updateCameraPanLimits(aspect);
+    resetMotionBlurHistory?.();
   };
 
   const getPinchDistance = () => {
@@ -2995,9 +3012,9 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
-  motionBlurController = createMotionBlurController({ intensity: 0.6 });
+  motionBlurController = createMotionBlurController({ intensity: 0 });
+  resetMotionBlurHistory = () => motionBlurController?.resetHistory();
   composer.addPass(motionBlurController.pass);
-  motionBlurController.pass.renderToScreen = true;
 
   let qualityStorage: Storage | undefined;
   try {
@@ -3063,7 +3080,6 @@ function initializeImmersiveScene(
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
     audioHudHandle?.refresh();
-    motionBlurControl?.refresh();
   }
 
   motionBlurControl = createMotionBlurControl({
@@ -3089,6 +3105,64 @@ function initializeImmersiveScene(
       manualModeToggle.element
     );
   }
+
+  const ensureGraphicsApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.graphics = {
+      getMotionBlurIntensity() {
+        return motionBlurController?.getIntensity() ?? 0;
+      },
+      setMotionBlurIntensity(intensity: number) {
+        const clamped = MathUtils.clamp(
+          Number.isFinite(intensity) ? intensity : 0,
+          0,
+          1
+        );
+        if (accessibilityPresetManager) {
+          accessibilityPresetManager.setBaseMotionBlurIntensity(clamped);
+          motionBlurControl?.refresh();
+          return;
+        }
+        motionBlurController?.setIntensity(clamped);
+        document.documentElement.dataset.accessibilityMotionBlur =
+          String(clamped);
+        motionBlurControl?.refresh();
+      },
+      getMotionBlurState() {
+        const historyState = motionBlurController?.getHistoryState();
+        return {
+          enabled: motionBlurController?.pass.enabled ?? false,
+          damp: motionBlurController?.pass.uniforms.damp.value ?? 0,
+          intensity: motionBlurController?.getIntensity() ?? 0,
+          pendingHistoryReset: historyState?.pendingReset ?? false,
+          historyResetRequestCount: historyState?.resetRequestCount ?? 0,
+          lastHistoryResetDamp: historyState?.lastResetDamp ?? null,
+        };
+      },
+      resetMotionBlurHistory() {
+        motionBlurController?.resetHistory();
+      },
+      setCameraPanForTest(input: { x: number; y: number }) {
+        const x = MathUtils.clamp(
+          Number.isFinite(input.x) ? input.x : 0,
+          -1,
+          1
+        );
+        const y = MathUtils.clamp(
+          Number.isFinite(input.y) ? input.y : 0,
+          -1,
+          1
+        );
+        mouseCameraPointerId =
+          Math.abs(x) > 1e-3 || Math.abs(y) > 1e-3 ? -1 : null;
+        mouseCameraInput.set(x, y);
+      },
+    };
+  };
+  ensureGraphicsApi();
 
   accessibilityControlHandle = createAccessibilityPresetControl({
     container: hudSettingsStack,
@@ -3352,6 +3426,12 @@ function initializeImmersiveScene(
       0,
       cameraInput.y * cameraPanLimitZ
     );
+    const cameraPanInputActive =
+      Math.abs(cameraInput.x) > 1e-3 || Math.abs(cameraInput.y) > 1e-3;
+    if (cameraPanInputActive !== wasCameraPanInputActive) {
+      resetMotionBlurHistory?.();
+      wasCameraPanInputActive = cameraPanInputActive;
+    }
 
     cameraPan.x = MathUtils.damp(
       cameraPan.x,
@@ -3776,6 +3856,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.avatar) {
       delete window.portfolio.avatar;
+    }
+    if (window.portfolio?.graphics) {
+      delete window.portfolio.graphics;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);
