@@ -9,7 +9,9 @@
 The immersive portfolio initially rendered normally, but mouse-wheel zooming the
 orthographic camera caused prior full-scene frames to remain visible. Visitors
 could see stacked or duplicated room geometry and trails from old camera
-projections instead of a clean scale change.
+projections instead of a clean scale change. After roughly 5-10 seconds of
+normal zoom/pan interaction, staging could also switch from immersive mode into
+the text fallback.
 
 A key field observation was that setting the in-app motion blur slider to zero
 did **not** eliminate the artifact on staging.
@@ -17,14 +19,18 @@ did **not** eliminate the artifact on staging.
 ## Impact
 
 The staging immersive experience looked corrupted during normal zoom/pan
-interactions. The issue risked confusing validation because graphics corruption
-could be mistaken for a broader WebGL or performance-failover problem.
+interactions and could become unavailable when runtime failover replaced the
+canvas with the text experience. The issue risked confusing validation because
+graphics corruption could be mistaken for unsupported WebGL or a broken
+failover policy.
 
 ## Detection
 
 The bug was detected by manual staging validation of
-`/?mode=immersive&disablePerformanceFailover=1` followed by mouse-wheel zooming.
-Regression coverage now exercises the same flow in Playwright.
+`/?mode=immersive&disablePerformanceFailover=1` followed by mouse-wheel zooming
+and by observing production-like staging sessions fall back to text after the
+zoom corruption persisted. Regression coverage now exercises both the bypassed
+zoom path and `/?mode=immersive` with runtime failover enabled in Playwright.
 
 ## Root cause
 
@@ -36,7 +42,9 @@ zero setting retained stale full-scene feedback instead of disabling motion
 blur. The pass also stayed enabled at zero intensity, so it could continue
 rendering stale feedback buffers across orthographic camera projection changes.
 This confirmed the root cause was the AfterimagePass `damp` mapping and the
-missing zero-intensity no-op/disable behavior, not a separate staging fallback.
+missing zero-intensity no-op/disable behavior. The text fallback was likely a
+secondary reaction to sustained low FPS caused by the rendering bug rather than
+a reason to remove or weaken genuine performance failover.
 
 ## Corrective action
 
@@ -50,16 +58,30 @@ missing zero-intensity no-op/disable behavior, not a separate staging fallback.
   boundaries so continuous pan does not clear every frame.
 - A narrow `window.portfolio.graphics` test hook exposes motion-blur state and a
   production-safe setter for browser regression tests.
+- Production-like regression coverage now loads `/?mode=immersive` without the
+  failover bypass, drives wheel zoom longer than the 5000 ms low-FPS window,
+  and fails on `performancefailover`, fallback mode, text mode, or duplicate
+  canvases.
+- Runtime failover remains enabled for genuine low performance, unsupported
+  WebGL, automated clients, and explicit text mode.
 
 ## Regression tests
 
 - Vitest covers disabled zero intensity, invalid/nonfinite clamping, corrected
   damp mapping, toggle-to-zero history clearing, explicit history reset, and
   disposal.
-- Playwright covers immersive startup with exactly one canvas, repeated wheel
-  zoom in/out with failover disabled, setting motion blur to zero, motion-blur
-  reset telemetry for the stale/duplicated-frame symptom, and toggling nonzero
-  blur back to zero without revealing the text fallback.
+- `src/tests/performanceFailover.test.ts` proves normal FPS for more than five
+  seconds never triggers failover, intermittent low FPS resets the timer,
+  sustained very-low FPS triggers fallback, and low-performance transitions
+  dispatch a `performancefailover` event with reason `low-performance`.
+- `playwright/performance-failover-zoom.spec.ts` covers immersive startup with
+  runtime performance failover enabled, zoom in/out for longer than the 5000 ms
+  failover window, no `performancefailover` event, no fallback/text mode, and
+  exactly one canvas.
+- Existing Playwright zoom coverage still checks repeated wheel zoom in/out with
+  failover disabled, setting motion blur to zero, motion-blur reset telemetry
+  for the stale/duplicated-frame symptom, and toggling nonzero blur back to zero
+  without revealing the text fallback.
 
 ## Deployment and validation notes
 
@@ -76,6 +98,7 @@ npm run format:write
 npm run lint
 npm run typecheck
 npm run test:ci
+npm run test:e2e -- --grep "performance failover"
 npm run test:e2e -- --grep "zoom"
 npm run smoke
 ```
