@@ -121,5 +121,6 @@ npm run typecheck
 npm run test:ci
 npm run test:e2e -- --grep "zoom"
 npm run test:e2e -- --grep "performance failover"
+npm run test:e2e -- --grep "text fallback"
 npm run smoke
 ```
