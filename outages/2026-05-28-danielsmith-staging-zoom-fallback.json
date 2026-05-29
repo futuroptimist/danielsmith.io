@@ -1,0 +1,37 @@
+{
+  "title": "staging.danielsmith.io zoom afterimage and fallback incident",
+  "date": "2026-05-28",
+  "environment": "staging.danielsmith.io on Sugarkube",
+  "status": "corrective patch prepared",
+  "symptoms": [
+    "Initial immersive render looked normal.",
+    "Mouse-wheel zoom or camera pan left prior full-scene frames visible as duplicated geometry/trails."
+  ],
+  "impact": "Staging visitors could not reliably validate normal immersive zoom/pan navigation.",
+  "detection": "Manual staging validation reproduced the corruption during wheel zoom.",
+  "keyObservation": "Setting the in-app motion blur slider to zero did not eliminate the bug.",
+  "rootCause": "The postprocessing chain kept AfterimagePass enabled and mapped intensity 0 to damp 1. Three's AfterimageShader retains more previous-frame history as damp increases, so zero intensity preserved stale feedback buffers across orthographic zoom/projection changes.",
+  "correctiveActions": [
+    "Map intensity 0 to damp 0 and disable AfterimagePass at zero intensity.",
+    "Reset/clear afterimage history when toggling intensity to or from zero.",
+    "Reset/clear afterimage history on camera zoom/projection/pan changes when the optional pass is active.",
+    "Start the default immersive experience with motion blur off while preserving the slider as opt-in."
+  ],
+  "regressionTests": [
+    "Vitest coverage for damp mapping, zero no-op behavior, invalid input clamping, and history clearing.",
+    "Playwright zoom test for immersive mode, single canvas, repeated wheel zoom, motion blur zero toggle, and no text fallback."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"zoom\"",
+    "npm run smoke"
+  ],
+  "deploymentValidation": [
+    "Open https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 after deployment.",
+    "Wheel zoom in and out and confirm no duplicated scene geometry remains visible.",
+    "Set motion blur to zero and repeat zooming while confirming the app stays immersive."
+  ]
+}

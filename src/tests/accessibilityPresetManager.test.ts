@@ -114,9 +114,7 @@ describe('createAccessibilityPresetManager', () => {
     expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
       '0.55'
     );
-    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe(
-      '0.25'
-    );
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe('0');
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(0.9, 5);
     expect(bloomPass.radius).toBeCloseTo(0.81, 5);
@@ -124,7 +122,7 @@ describe('createAccessibilityPresetManager', () => {
     expect(ledMaterial.emissiveIntensity).toBeCloseTo(0.75, 5);
     expect(ledLight.intensity).toBeCloseTo(0.8, 5);
     expect(masterVolume).toBeCloseTo(0.8, 5);
-    expect(motionBlur.setIntensity).toHaveBeenCalledWith(0.25);
+    expect(motionBlur.setIntensity).toHaveBeenCalledWith(0);
 
     manager.dispose();
     restoreDataset();
@@ -181,7 +179,7 @@ describe('createAccessibilityPresetManager', () => {
       JSON.stringify({
         presetId: 'photosensitive',
         baseAudioVolume: 0.5,
-        baseMotionBlurIntensity: 1,
+        baseMotionBlurIntensity: 0,
       })
     );
     expect(document.documentElement.dataset.accessibilityContrast).toBe('high');
@@ -204,7 +202,7 @@ describe('createAccessibilityPresetManager', () => {
       JSON.stringify({
         presetId: 'photosensitive',
         baseAudioVolume: 0.9,
-        baseMotionBlurIntensity: 1,
+        baseMotionBlurIntensity: 0,
       })
     );
 
@@ -264,9 +262,7 @@ describe('createAccessibilityPresetManager', () => {
     expect(document.documentElement.dataset.accessibilityFlickerScale).toBe(
       '1'
     );
-    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe(
-      '0.6'
-    );
+    expect(document.documentElement.dataset.accessibilityMotionBlur).toBe('0');
     expect(bloomPass.enabled).toBe(true);
     expect(bloomPass.strength).toBeCloseTo(1.32, 5);
     expect(bloomPass.radius).toBeCloseTo(0.95, 5);
