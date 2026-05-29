@@ -410,6 +410,16 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
+      graphics?: {
+        getMotionBlurIntensity(): number;
+        setMotionBlurIntensity(intensity: number): void;
+        getMotionBlurState(): {
+          enabled: boolean;
+          damp: number;
+          intensity: number;
+        };
+        resetMotionBlurHistory(): void;
+      };
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
@@ -885,6 +895,7 @@ function initializeImmersiveScene(
   const baseCameraSize = largestHalfExtent + CAMERA_MARGIN;
   let cameraZoom = 1;
   let cameraZoomTarget = 1;
+  let resetMotionBlurHistory: (() => void) | null = null;
 
   const aspect = window.innerWidth / window.innerHeight;
   const camera = new OrthographicCamera(
@@ -2623,6 +2634,7 @@ function initializeImmersiveScene(
     camera.zoom = cameraZoom;
     camera.updateProjectionMatrix();
     updateCameraPanLimits(aspect);
+    resetMotionBlurHistory?.();
   };
 
   const getPinchDistance = () => {
@@ -2995,9 +3007,9 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
-  motionBlurController = createMotionBlurController({ intensity: 0.6 });
+  motionBlurController = createMotionBlurController({ intensity: 0 });
+  resetMotionBlurHistory = () => motionBlurController?.resetHistory();
   composer.addPass(motionBlurController.pass);
-  motionBlurController.pass.renderToScreen = true;
 
   let qualityStorage: Storage | undefined;
   try {
@@ -3063,7 +3075,6 @@ function initializeImmersiveScene(
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
     audioHudHandle?.refresh();
-    motionBlurControl?.refresh();
   }
 
   motionBlurControl = createMotionBlurControl({
@@ -3089,6 +3100,45 @@ function initializeImmersiveScene(
       manualModeToggle.element
     );
   }
+
+  const ensureGraphicsApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.graphics = {
+      getMotionBlurIntensity() {
+        return motionBlurController?.getIntensity() ?? 0;
+      },
+      setMotionBlurIntensity(intensity: number) {
+        const clamped = MathUtils.clamp(
+          Number.isFinite(intensity) ? intensity : 0,
+          0,
+          1
+        );
+        if (accessibilityPresetManager) {
+          accessibilityPresetManager.setBaseMotionBlurIntensity(clamped);
+          motionBlurControl?.refresh();
+          return;
+        }
+        motionBlurController?.setIntensity(clamped);
+        document.documentElement.dataset.accessibilityMotionBlur =
+          String(clamped);
+        motionBlurControl?.refresh();
+      },
+      getMotionBlurState() {
+        return {
+          enabled: motionBlurController?.pass.enabled ?? false,
+          damp: motionBlurController?.pass.uniforms.damp.value ?? 0,
+          intensity: motionBlurController?.getIntensity() ?? 0,
+        };
+      },
+      resetMotionBlurHistory() {
+        motionBlurController?.resetHistory();
+      },
+    };
+  };
+  ensureGraphicsApi();
 
   accessibilityControlHandle = createAccessibilityPresetControl({
     container: hudSettingsStack,
@@ -3331,6 +3381,8 @@ function initializeImmersiveScene(
 
   function updateCamera(delta: number) {
     const previousZoom = cameraZoom;
+    const previousPanX = cameraPan.x;
+    const previousPanZ = cameraPan.z;
     cameraZoom = MathUtils.damp(
       cameraZoom,
       cameraZoomTarget,
@@ -3382,6 +3434,13 @@ function initializeImmersiveScene(
       player.position.y,
       player.position.z + cameraPan.z
     );
+
+    if (
+      Math.abs(cameraPan.x - previousPanX) > 1e-4 ||
+      Math.abs(cameraPan.z - previousPanZ) > 1e-4
+    ) {
+      resetMotionBlurHistory?.();
+    }
 
     camera.position.set(
       cameraCenter.x + cameraBaseOffset.x,
@@ -3776,6 +3835,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.avatar) {
       delete window.portfolio.avatar;
+    }
+    if (window.portfolio?.graphics) {
+      delete window.portfolio.graphics;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);

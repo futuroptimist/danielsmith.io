@@ -1,0 +1,34 @@
+{
+  "title": "staging.danielsmith.io zoom afterimage and fallback incident",
+  "date": "2026-05-28",
+  "environment": "staging.danielsmith.io on Sugarkube",
+  "status": "corrective patch prepared for deployment validation",
+  "symptoms": [
+    "Initial immersive render looked normal.",
+    "Mouse-wheel orthographic zoom left prior full-scene frames visible as duplicated geometry/trails.",
+    "Setting the in-app motion blur slider to zero on staging did not eliminate the bug."
+  ],
+  "impact": "Staging immersive validation showed corrupted zoom/pan rendering and risked confusion with performance-failover behavior.",
+  "detection": "Manual staging validation of /?mode=immersive&disablePerformanceFailover=1 followed by wheel zooming; now covered by Playwright zoom regression tests.",
+  "rootCause": "The postprocessing chain always ran Three.js AfterimagePass. The controller mapped intensity 0 to damp 1 even though AfterimagePass preserves more old pixels as damp approaches 1 and clears history at damp 0. The pass also remained enabled at zero, allowing stale feedback buffers across orthographic projection changes.",
+  "correctiveAction": [
+    "Default motion blur intensity changed to zero so scene-wide afterimage is not active by default.",
+    "Intensity zero disables AfterimagePass, maps to damp 0, and schedules feedback-history reset.",
+    "Nonzero intensity now maps upward toward max damp.",
+    "History resets when toggling motion blur to/from zero and when camera zoom/projection or pan changes.",
+    "A narrow window.portfolio.graphics hook supports production-safe browser regression tests."
+  ],
+  "regressionTests": [
+    "Vitest coverage for zero no-op/disable behavior, invalid clamping, corrected damp mapping, history resets, and disposal.",
+    "Playwright immersive zoom coverage for one canvas, no text fallback, repeated wheel zoom, zero blur, and nonzero-to-zero toggling."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"zoom\"",
+    "npm run smoke"
+  ],
+  "deploymentValidation": "After deployment, validate https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 for clean initial render, clean wheel zoom, clean zero motion blur, and cleared trails after toggling nonzero blur back to zero."
+}
