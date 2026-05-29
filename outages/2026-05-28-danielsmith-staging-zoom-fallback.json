@@ -1,0 +1,34 @@
+{
+  "id": "2026-05-28-danielsmith-staging-zoom-fallback",
+  "title": "staging.danielsmith.io zoom afterimage and fallback incident",
+  "date": "2026-05-28",
+  "environment": "staging.danielsmith.io on Sugarkube",
+  "component": "webapp",
+  "symptoms": [
+    "Mouse-wheel zoom caused visible frame persistence and duplicated immersive scene geometry.",
+    "Prior full-scene orthographic projections remained visible as stacked afterimage trails."
+  ],
+  "impact": "Staging visitors validating the immersive preview could see corrupted zoom/pan frames and confuse the artifact with performance fallback behavior.",
+  "detection": "Manual staging validation of /?mode=immersive&disablePerformanceFailover=1 reproduced the trails during repeated wheel zooming.",
+  "keyObservation": "Setting the in-app motion blur slider to zero did not eliminate the bug on staging.",
+  "rootCause": "The motion blur controller inverted Three.js AfterimagePass damp semantics: intensity 0 mapped to damp 1 and left the pass enabled, which preserved old full-screen frames instead of clearing them.",
+  "correctiveAction": [
+    "Map intensity directly to damp so zero clears history.",
+    "Disable AfterimagePass at intensity zero.",
+    "Clear feedback render targets when intensity changes to zero, when re-enabled, and on camera resize/zoom/pan projection changes.",
+    "Default the base motion blur preference to off while keeping optional trails available through the control."
+  ],
+  "regressionTests": [
+    "src/tests/motionBlurController.test.ts",
+    "playwright/immersive-zoom.spec.ts"
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"zoom\"",
+    "npm run smoke"
+  ],
+  "deploymentNotes": "Deploy to staging, open https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1, repeat wheel zooms before and after setting motion blur to zero, and confirm the scene remains immersive without retained prior projections."
+}
