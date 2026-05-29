@@ -100,6 +100,7 @@ import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
+import { clampDprForQuality } from './scene/graphics/dprPolicy';
 import {
   createMotionBlurController,
   type MotionBlurController,
@@ -107,8 +108,10 @@ import {
 import {
   GRAPHICS_QUALITY_PRESETS,
   createGraphicsQualityManager,
+  type GraphicsQualityLevel,
   type GraphicsQualityManager,
 } from './scene/graphics/qualityManager';
+import { readRendererInfo } from './scene/graphics/rendererCapabilities';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -204,6 +207,7 @@ import {
   createSelfieMirror,
   type SelfieMirrorBuild,
 } from './scene/structures/selfieMirror';
+import { getSelfieMirrorPolicy } from './scene/structures/selfieMirrorPolicy';
 import {
   createSigmaWorkbench,
   type SigmaWorkbenchBuild,
@@ -325,6 +329,7 @@ import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
 } from './systems/performance/inputLatencyTelemetry';
+import { createPerformanceDiagnostics } from './systems/performance/performanceDiagnostics';
 import {
   createAvatarAccessoryProgression,
   type AvatarAccessoryProgressionHandle,
@@ -409,6 +414,14 @@ declare global {
           description?: string;
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
+      };
+      performance?: {
+        getSnapshot(): unknown;
+        getFrameStats(): unknown;
+        getRendererInfo(): unknown;
+        getQualityState(): unknown;
+        getFeatureState(): unknown;
+        getLastFailoverReason(): string | null;
       };
       graphics?: {
         getMotionBlurIntensity(): number;
@@ -655,12 +668,19 @@ function initializeImmersiveScene(
 ) {
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
+  const rendererInfo = readRendererInfo(renderer.getContext());
+  const initialDpr = clampDprForQuality({
+    devicePixelRatio: window.devicePixelRatio ?? 1,
+    capabilityClass: rendererInfo.capabilityClass,
+  });
+  const performanceDiagnostics = createPerformanceDiagnostics();
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMappingExposure = 1.02;
+  renderer.setPixelRatio(initialDpr);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
+  performanceDiagnostics.setRendererInfo(rendererInfo);
   container.appendChild(renderer.domElement);
 
   ledStripMaterials.length = 0;
@@ -838,8 +858,11 @@ function initializeImmersiveScene(
       disposeImmersiveResources();
     },
     onFallback: (reason) => {
+      performanceDiagnostics.setLastFailoverReason(reason);
       inputLatencyTelemetry?.report(`failover-${reason}`);
     },
+    onLowPerformanceBeforeFallback: () =>
+      applyAdaptiveDowngrade('runtime-low-fps-before-fallback'),
     disabled: disablePerformanceFailover,
     consoleFailover: {
       budget: 0,
@@ -3028,7 +3051,7 @@ function initializeImmersiveScene(
     bloomPass: bloomPass ?? undefined,
     ledStripMaterials,
     ledFillLights: ledFillLightsList,
-    basePixelRatio: Math.min(window.devicePixelRatio ?? 1, 2),
+    basePixelRatio: initialDpr,
     baseBloom: {
       strength: LIGHTING_OPTIONS.bloomStrength,
       radius: LIGHTING_OPTIONS.bloomRadius,
@@ -3039,6 +3062,7 @@ function initializeImmersiveScene(
       lightIntensity: LIGHTING_OPTIONS.ledLightIntensity,
     },
     storage: qualityStorage,
+    defaultLevel: rendererInfo.softwareRenderer ? 'performance' : 'balanced',
   });
   ledAnimator?.captureBaseline();
   environmentLightAnimator?.captureBaseline();
@@ -3111,6 +3135,15 @@ function initializeImmersiveScene(
     if (!portfolioWindow.portfolio) {
       portfolioWindow.portfolio = {};
     }
+    portfolioWindow.portfolio.performance = {
+      getSnapshot: () => performanceDiagnostics.getSnapshot(),
+      getFrameStats: () => performanceDiagnostics.getFrameStats(),
+      getRendererInfo: () => performanceDiagnostics.getRendererInfo(),
+      getQualityState: () => performanceDiagnostics.getQualityState(),
+      getFeatureState: () => performanceDiagnostics.getFeatureState(),
+      getLastFailoverReason: () =>
+        performanceDiagnostics.getLastFailoverReason(),
+    };
     portfolioWindow.portfolio.graphics = {
       getMotionBlurIntensity() {
         return motionBlurController?.getIntensity() ?? 0;
@@ -3198,11 +3231,77 @@ function initializeImmersiveScene(
   });
   registerHudControlElement(graphicsQualityControl?.element ?? null);
 
+  let adaptiveDowngradeCount = 0;
+  let lastAdaptiveReason: string | null = rendererInfo.softwareRenderer
+    ? 'software-renderer-initial-quality'
+    : null;
+  let adaptiveDprLimit = rendererInfo.softwareRenderer ? 1 : initialDpr;
+  let sustainedLowFpsMs = 0;
+  let adaptiveRecoveryGraceCount = 0;
+
+  const syncQualityDiagnostics = () => {
+    performanceDiagnostics.setQualityState({
+      level: graphicsQualityManager?.getLevel() ?? 'unknown',
+      adaptiveDowngradeCount,
+      lastAdaptiveReason,
+    });
+  };
+
+  const applyAdaptiveDowngrade = (reason: string) => {
+    if (!graphicsQualityManager) {
+      return false;
+    }
+    const level = graphicsQualityManager.getLevel();
+    let changed = false;
+    if (level !== 'performance') {
+      graphicsQualityManager.setLevel('performance');
+      changed = true;
+    }
+    if (adaptiveDprLimit > 0.75) {
+      adaptiveDprLimit = 0.75;
+      graphicsQualityManager.setBasePixelRatio(
+        clampDprForQuality({
+          devicePixelRatio: window.devicePixelRatio ?? 1,
+          capabilityClass: rendererInfo.capabilityClass,
+          adaptiveLimit: adaptiveDprLimit,
+        })
+      );
+      changed = true;
+    } else if (adaptiveDprLimit > 0.5) {
+      adaptiveDprLimit = 0.5;
+      graphicsQualityManager.setBasePixelRatio(
+        clampDprForQuality({
+          devicePixelRatio: window.devicePixelRatio ?? 1,
+          capabilityClass: rendererInfo.capabilityClass,
+          adaptiveLimit: adaptiveDprLimit,
+        })
+      );
+      changed = true;
+    }
+    if (changed) {
+      adaptiveDowngradeCount += 1;
+      lastAdaptiveReason = reason;
+      sustainedLowFpsMs = 0;
+      syncQualityDiagnostics();
+      return true;
+    }
+    if (adaptiveRecoveryGraceCount < 2) {
+      adaptiveRecoveryGraceCount += 1;
+      lastAdaptiveReason = `${reason}-recovery-grace-${adaptiveRecoveryGraceCount}`;
+      sustainedLowFpsMs = 0;
+      syncQualityDiagnostics();
+      return true;
+    }
+    return false;
+  };
+
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
     graphicsQualityControl?.refresh();
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
+    syncQualityDiagnostics();
   });
+  syncQualityDiagnostics();
 
   const lightingDebugController = createLightingDebugController({
     renderer,
@@ -3257,7 +3356,13 @@ function initializeImmersiveScene(
     updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    const nextPixelRatio = Math.min(window.devicePixelRatio ?? 1, 2);
+    const nextPixelRatio = clampDprForQuality({
+      devicePixelRatio: window.devicePixelRatio ?? 1,
+      capabilityClass: rendererInfo.capabilityClass,
+      userRequestedCinematic:
+        graphicsQualityManager?.getLevel() === 'cinematic',
+      adaptiveLimit: adaptiveDprLimit,
+    });
     if (graphicsQualityManager) {
       graphicsQualityManager.setBasePixelRatio(nextPixelRatio);
     } else {
@@ -3860,6 +3965,9 @@ function initializeImmersiveScene(
     if (window.portfolio?.graphics) {
       delete window.portfolio.graphics;
     }
+    if (window.portfolio?.performance) {
+      delete window.portfolio.performance;
+    }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);
       helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
@@ -3924,15 +4032,45 @@ function initializeImmersiveScene(
   }
 
   let hasPresentedFirstFrame = false;
+  let mirrorRenderCount = 0;
+  let mirrorSkippedCount = 0;
+  let lastMirrorRenderMs = 0;
+
+  const updateRendererDiagnostics = (composerEnabled: boolean) => {
+    const drawingBuffer = new Vector2();
+    renderer.getDrawingBufferSize(drawingBuffer);
+    performanceDiagnostics.setRendererState({
+      dpr: renderer.getPixelRatio(),
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      drawingBuffer: { width: drawingBuffer.x, height: drawingBuffer.y },
+      composerEnabled,
+      bloomEnabled: bloomPass?.enabled === true,
+      activePostprocessingPassCount:
+        (bloomPass?.enabled ? 1 : 0) +
+        (motionBlurController?.pass.enabled ? 1 : 0),
+    });
+  };
 
   renderer.setAnimationLoop(() => {
     try {
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
+      performanceDiagnostics.recordFrame(delta);
+      const fps = delta > 0 ? 1 / delta : Number.POSITIVE_INFINITY;
+      if (fps < PERFORMANCE_FAILOVER_FPS_THRESHOLD) {
+        sustainedLowFpsMs += delta * 1000;
+        if (sustainedLowFpsMs >= 1500) {
+          applyAdaptiveDowngrade('sustained-low-fps-before-failover');
+        }
+      } else {
+        sustainedLowFpsMs = 0;
+      }
       performanceFailover.update(delta);
       if (performanceFailover.hasTriggered()) {
         return;
       }
+      const shouldSampleTimings = performanceDiagnostics.shouldSampleFrame();
+      let phaseStart = shouldSampleTimings ? performance.now() : 0;
       updateMovement(delta);
       if (locomotionAnimator) {
         locomotionAnimator.update({
@@ -3964,6 +4102,19 @@ function initializeImmersiveScene(
         });
       }
       updateCamera(delta);
+      if (shouldSampleTimings) {
+        const now = performance.now();
+        performanceDiagnostics.recordPhase(
+          'inputMovementCamera',
+          now - phaseStart
+        );
+        phaseStart = now;
+      }
+      if (shouldSampleTimings) {
+        const now = performance.now();
+        performanceDiagnostics.recordPhase('avatarIkAudio', now - phaseStart);
+        phaseStart = now;
+      }
       if (selfieMirror) {
         selfieMirror.update({
           playerPosition: player.position,
@@ -3976,6 +4127,11 @@ function initializeImmersiveScene(
       poiWorldTooltip.update(delta);
       handleInteractionInput();
       handleHelpInput();
+      if (shouldSampleTimings) {
+        const now = performance.now();
+        performanceDiagnostics.recordPhase('poiHudTooltips', now - phaseStart);
+        phaseStart = now;
+      }
       if (avatarAccessorySuite) {
         avatarAccessorySuite.update({ elapsed: elapsedTime, delta });
       }
@@ -4086,6 +4242,14 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
+      if (shouldSampleTimings) {
+        const now = performance.now();
+        performanceDiagnostics.recordPhase(
+          'decorativeStructures',
+          now - phaseStart
+        );
+        phaseStart = now;
+      }
       if (backyardEnvironment) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
       }
@@ -4101,13 +4265,66 @@ function initializeImmersiveScene(
       if (lightmapAnimator) {
         lightmapAnimator.update(elapsedTime);
       }
-      if (selfieMirror) {
-        selfieMirror.render(renderer, scene);
+      if (shouldSampleTimings) {
+        const now = performance.now();
+        performanceDiagnostics.recordPhase(
+          'lightingLedLightmap',
+          now - phaseStart
+        );
+        phaseStart = now;
       }
-      if (composer) {
+      if (selfieMirror) {
+        const distanceToMirror = player.position.distanceTo(
+          selfieMirror.group.position
+        );
+        const policy = getSelfieMirrorPolicy({
+          qualityLevel:
+            graphicsQualityManager?.getLevel() ??
+            ('balanced' as GraphicsQualityLevel),
+          capabilityClass: rendererInfo.capabilityClass,
+          distanceToMirror,
+          visible: selfieMirror.group.visible,
+        });
+        selfieMirror.setRenderTargetSize(policy.targetSize);
+        const intervalMs =
+          policy.updateRate > 0 ? 1000 / policy.updateRate : Infinity;
+        if (
+          policy.enabled &&
+          elapsedTime * 1000 - lastMirrorRenderMs >= intervalMs
+        ) {
+          selfieMirror.render(renderer, scene);
+          lastMirrorRenderMs = elapsedTime * 1000;
+          mirrorRenderCount += 1;
+        } else {
+          mirrorSkippedCount += 1;
+        }
+        performanceDiagnostics.setMirrorState({
+          enabled: policy.enabled,
+          targetSize: selfieMirror.getRenderTargetSize(),
+          updateRate: policy.updateRate,
+          renderCount: mirrorRenderCount,
+          skippedCount: mirrorSkippedCount,
+        });
+      }
+      if (shouldSampleTimings) {
+        const now = performance.now();
+        performanceDiagnostics.recordPhase('mirror', now - phaseStart);
+        phaseStart = now;
+      }
+      const hasActivePostprocessing =
+        bloomPass?.enabled === true ||
+        motionBlurController?.pass.enabled === true;
+      if (composer && hasActivePostprocessing) {
         composer.render();
       } else {
         renderer.render(scene, camera);
+      }
+      updateRendererDiagnostics(composer !== null && hasActivePostprocessing);
+      if (shouldSampleTimings) {
+        performanceDiagnostics.recordPhase(
+          'mainRenderComposer',
+          performance.now() - phaseStart
+        );
       }
       if (!hasPresentedFirstFrame) {
         hasPresentedFirstFrame = true;

@@ -1,0 +1,33 @@
+{
+  "date": "2026-05-29",
+  "title": "Daniel Smith Adaptive quality gap",
+  "overview": "2026-05-29-danielsmith-staging-performance-overview",
+  "symptomSlice": "Immersive scene remained below the runtime failover FPS threshold during ordinary desktop interaction, especially with Chrome hardware acceleration disabled.",
+  "evidence": "Diagnostics now expose renderer strings, DPR, drawing buffer, postprocessing, mirror, quality, frame, and phase state from window.portfolio.performance.getSnapshot().",
+  "impactedFiles": [
+    "src/main.ts",
+    "src/scene/graphics/qualityManager.ts",
+    "src/scene/graphics/rendererCapabilities.ts",
+    "src/scene/graphics/dprPolicy.ts",
+    "src/scene/structures/selfieMirror.ts",
+    "src/scene/structures/selfieMirrorPolicy.ts",
+    "src/systems/performance/performanceDiagnostics.ts"
+  ],
+  "fixSummary": "Targeted quality, DPR, postprocessing, mirror, and adaptive downgrade optimizations reduce real rendering cost before text fallback.",
+  "interactionWithOtherFixes": "Renderer classification, DPR caps, composer skipping, mirror policy, and adaptive quality are complementary and non-flapping.",
+  "regressionTests": [
+    "renderer capability classification",
+    "DPR clamping",
+    "performance diagnostics aggregation",
+    "SelfieMirror policy",
+    "immersive Playwright performance telemetry"
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ]
+}
