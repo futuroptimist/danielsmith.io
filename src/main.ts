@@ -410,6 +410,14 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
+      graphics?: {
+        getMotionBlurState(): {
+          intensity: number;
+          damp: number;
+          enabled: boolean;
+          resetCount: number;
+        };
+      };
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
@@ -2584,8 +2592,15 @@ function initializeImmersiveScene(
   updatePlayerVerticalPosition();
   document.documentElement.dataset.activeFloor = activeFloorId;
 
+  let resetMotionBlurHistoryForCameraChange = () => {};
+  let resumeMotionBlurAfterCameraChange = () => {};
+
   const setCameraZoomTarget = (next: number) => {
-    cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    const clamped = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    if (Math.abs(clamped - cameraZoomTarget) > 1e-4) {
+      resetMotionBlurHistoryForCameraChange();
+    }
+    cameraZoomTarget = clamped;
   };
 
   const updateCameraPanLimits = (aspect: number) => {
@@ -2622,6 +2637,7 @@ function initializeImmersiveScene(
     camera.bottom = -baseCameraSize;
     camera.zoom = cameraZoom;
     camera.updateProjectionMatrix();
+    resetMotionBlurHistoryForCameraChange();
     updateCameraPanLimits(aspect);
   };
 
@@ -2995,9 +3011,47 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
-  motionBlurController = createMotionBlurController({ intensity: 0.6 });
-  composer.addPass(motionBlurController.pass);
-  motionBlurController.pass.renderToScreen = true;
+  motionBlurController = createMotionBlurController();
+  let motionBlurResumeDeadline = 0;
+  let lastCameraMotionBlurReset = 0;
+  resetMotionBlurHistoryForCameraChange = () => {
+    if (!motionBlurController || motionBlurController.getIntensity() <= 0) {
+      return;
+    }
+    const now = window.performance.now();
+    if (now - lastCameraMotionBlurReset > 120) {
+      motionBlurController.resetHistory();
+      lastCameraMotionBlurReset = now;
+    }
+    motionBlurController.pass.enabled = false;
+    motionBlurResumeDeadline = now + 180;
+  };
+  resumeMotionBlurAfterCameraChange = () => {
+    if (!motionBlurController || motionBlurController.getIntensity() <= 0) {
+      return;
+    }
+    if (motionBlurController.pass.enabled !== false) {
+      return;
+    }
+    if (window.performance.now() < motionBlurResumeDeadline) {
+      return;
+    }
+    motionBlurController.resetHistory();
+    motionBlurController.pass.enabled = true;
+  };
+  if (!window.portfolio) {
+    window.portfolio = {};
+  }
+  window.portfolio.graphics = {
+    getMotionBlurState() {
+      return {
+        intensity: motionBlurController?.getIntensity() ?? 0,
+        damp: motionBlurController?.pass.uniforms.damp.value ?? 0,
+        enabled: motionBlurController?.isEnabled() ?? false,
+        resetCount: motionBlurController?.getResetCount() ?? 0,
+      };
+    },
+  };
 
   let qualityStorage: Storage | undefined;
   try {
@@ -3353,6 +3407,9 @@ function initializeImmersiveScene(
       cameraInput.y * cameraPanLimitZ
     );
 
+    const previousPanX = cameraPan.x;
+    const previousPanZ = cameraPan.z;
+
     cameraPan.x = MathUtils.damp(
       cameraPan.x,
       cameraPanTarget.x,
@@ -3376,6 +3433,13 @@ function initializeImmersiveScene(
       -cameraPanLimitZ,
       cameraPanLimitZ
     );
+
+    if (
+      Math.abs(cameraPan.x - previousPanX) > 1e-4 ||
+      Math.abs(cameraPan.z - previousPanZ) > 1e-4
+    ) {
+      resetMotionBlurHistoryForCameraChange();
+    }
 
     cameraCenter.set(
       player.position.x + cameraPan.x,
@@ -3691,6 +3755,9 @@ function initializeImmersiveScene(
     if (motionBlurControl) {
       motionBlurControl.dispose();
       motionBlurControl = null;
+    }
+    if (window.portfolio?.graphics) {
+      delete window.portfolio.graphics;
     }
     if (footstepAudio) {
       if (footstepAudio.isPlaying) {
@@ -4021,6 +4088,7 @@ function initializeImmersiveScene(
       if (selfieMirror) {
         selfieMirror.render(renderer, scene);
       }
+      resumeMotionBlurAfterCameraChange();
       if (composer) {
         composer.render();
       } else {

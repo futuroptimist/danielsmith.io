@@ -1,0 +1,35 @@
+{
+  "id": "2026-05-28-danielsmith-staging-zoom-fallback",
+  "title": "staging.danielsmith.io zoom afterimage and fallback incident",
+  "date": "2026-05-28",
+  "environment": "staging.danielsmith.io on Sugarkube",
+  "component": "immersive Three.js renderer and postprocessing chain",
+  "symptoms": [
+    "Mouse-wheel zoom caused visible frame persistence and duplicated scene geometry.",
+    "Old orthographic camera projections appeared stacked over the current scene."
+  ],
+  "impact": "Staging immersive zoom and pan interactions were visually corrupted and could make the experience appear broken.",
+  "detection": "A user reproduced the issue during normal staging zoom testing.",
+  "keyObservation": "Setting the in-app motion blur slider to zero did not eliminate the bug.",
+  "rootCause": "AfterimagePass remained in the default composer path and the controller mapped intensity 0 to damp 1. Three.js AfterimageShader preserves old frame pixels at higher damp values, so the zero setting kept stale feedback instead of clearing it.",
+  "correctiveActions": [
+    "Map zero intensity to damp 0 and disable the pass at zero.",
+    "Reset afterimage feedback history when disabling or re-enabling the effect.",
+    "Invalidate feedback history on camera zoom, pan, and projection changes.",
+    "Remove AfterimagePass from the default composer path while preserving bloom and the accessibility UI.",
+    "Default base motion blur intensity to 0 unless a persisted user preference says otherwise."
+  ],
+  "regressionTests": [
+    "src/tests/motionBlurController.test.ts verifies no-op zero intensity, clamping, damp mapping, and history resets.",
+    "playwright/immersive-zoom.spec.ts verifies immersive mode remains active during wheel zoom with disablePerformanceFailover=1 and zero motion blur stays clean."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"zoom\"",
+    "npm run smoke"
+  ],
+  "deploymentNotes": "Deploy the patch to staging, then validate https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 with repeated wheel zoom in/out and the motion blur slider at zero."
+}
