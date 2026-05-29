@@ -50,6 +50,19 @@ describe('createMotionBlurController', () => {
     controller.dispose();
   });
 
+  it('allows maxDamp zero as an explicit no-history upper bound', () => {
+    const controller = createMotionBlurController({
+      intensity: 1,
+      maxDamp: 0,
+    });
+
+    expect(controller.getIntensity()).toBe(1);
+    expect(controller.pass.enabled).toBe(true);
+    expect(controller.pass.uniforms.damp.value).toBe(0);
+
+    controller.dispose();
+  });
+
   it('clears history on the next render after toggling to or from zero', () => {
     const controller = createMotionBlurController({ intensity: 0.6 });
     const observedDampValues: number[] = [];
@@ -77,6 +90,10 @@ describe('createMotionBlurController', () => {
 
     expect(observedDampValues[0]).toBe(0);
     expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.46, 5);
+    expect(controller.getHistoryState()).toMatchObject({
+      pendingReset: false,
+      lastResetDamp: 0,
+    });
 
     controller.dispose();
   });
@@ -84,6 +101,8 @@ describe('createMotionBlurController', () => {
   it('clears history on demand for camera projection changes', () => {
     const controller = createMotionBlurController({ intensity: 0.4 });
     const observedDampValues: number[] = [];
+
+    const requestsBeforeReset = controller.getHistoryState().resetRequestCount;
 
     controller.resetHistory();
     const renderer = {
@@ -105,6 +124,11 @@ describe('createMotionBlurController', () => {
 
     expect(observedDampValues[0]).toBe(0);
     expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.368, 5);
+    expect(controller.getHistoryState()).toMatchObject({
+      pendingReset: false,
+      resetRequestCount: requestsBeforeReset + 1,
+      lastResetDamp: 0,
+    });
 
     controller.dispose();
   });

@@ -13,6 +13,15 @@ export interface MotionBlurControllerOptions {
   readonly maxDamp?: number;
 }
 
+export interface MotionBlurControllerHistoryState {
+  /** True when the next afterimage render will clear retained feedback. */
+  readonly pendingReset: boolean;
+  /** Number of times feedback clearing has been requested. */
+  readonly resetRequestCount: number;
+  /** Last damp value queued for clearing retained feedback. */
+  readonly lastResetDamp: number | null;
+}
+
 export interface MotionBlurController {
   readonly pass: AfterimagePass;
   /** Returns the currently applied intensity between 0 and 1. */
@@ -21,6 +30,8 @@ export interface MotionBlurController {
   setIntensity(intensity: number): void;
   /** Clears the afterimage feedback history on the next rendered pass. */
   resetHistory(): void;
+  /** Returns renderer-level state for regression tests and diagnostics. */
+  getHistoryState(): MotionBlurControllerHistoryState;
   /** Disposes the underlying pass resources. */
   dispose(): void;
 }
@@ -42,8 +53,10 @@ function clamp01(value: number): number {
 }
 
 function resolveMaxDamp(value: number): number {
-  const clamped = clamp01(value);
-  return clamped > 0 ? clamped : DEFAULT_MAX_DAMP;
+  if (!Number.isFinite(value)) {
+    return DEFAULT_MAX_DAMP;
+  }
+  return clamp01(value);
 }
 
 function resolveDampValue(intensity: number, maxDamp: number): number {
@@ -66,6 +79,8 @@ export function createMotionBlurController({
   const renderWithAfterimage = pass.render.bind(pass);
   let currentIntensity = 0;
   let shouldResetHistory = true;
+  let resetRequestCount = 0;
+  let lastResetDamp: number | null = null;
 
   pass.render = (...args: Parameters<AfterimagePass['render']>) => {
     if (!shouldResetHistory) {
@@ -85,6 +100,8 @@ export function createMotionBlurController({
 
   const resetHistory = () => {
     shouldResetHistory = true;
+    resetRequestCount += 1;
+    lastResetDamp = CLEAR_HISTORY_DAMP;
   };
 
   const applyIntensity = (value: number) => {
@@ -112,6 +129,13 @@ export function createMotionBlurController({
       applyIntensity(value);
     },
     resetHistory,
+    getHistoryState() {
+      return {
+        pendingReset: shouldResetHistory,
+        resetRequestCount,
+        lastResetDamp,
+      };
+    },
     dispose() {
       pass.dispose();
     },

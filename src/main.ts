@@ -417,8 +417,12 @@ declare global {
           enabled: boolean;
           damp: number;
           intensity: number;
+          pendingHistoryReset: boolean;
+          historyResetRequestCount: number;
+          lastHistoryResetDamp: number | null;
         };
         resetMotionBlurHistory(): void;
+        setCameraPanForTest?(input: { x: number; y: number }): void;
       };
       world?: {
         getActiveFloor(): FloorId;
@@ -2406,6 +2410,7 @@ function initializeImmersiveScene(
   let mannequinRelativeYawTarget = 0;
   const cameraPan = new Vector3();
   const cameraPanTarget = new Vector3();
+  let wasCameraPanInputActive = false;
   const poiLabelLookTarget = new Vector3();
   const poiPlayerOffset = new Vector2();
   let cameraPanLimitX = 0;
@@ -3127,14 +3132,33 @@ function initializeImmersiveScene(
         motionBlurControl?.refresh();
       },
       getMotionBlurState() {
+        const historyState = motionBlurController?.getHistoryState();
         return {
           enabled: motionBlurController?.pass.enabled ?? false,
           damp: motionBlurController?.pass.uniforms.damp.value ?? 0,
           intensity: motionBlurController?.getIntensity() ?? 0,
+          pendingHistoryReset: historyState?.pendingReset ?? false,
+          historyResetRequestCount: historyState?.resetRequestCount ?? 0,
+          lastHistoryResetDamp: historyState?.lastResetDamp ?? null,
         };
       },
       resetMotionBlurHistory() {
         motionBlurController?.resetHistory();
+      },
+      setCameraPanForTest(input: { x: number; y: number }) {
+        const x = MathUtils.clamp(
+          Number.isFinite(input.x) ? input.x : 0,
+          -1,
+          1
+        );
+        const y = MathUtils.clamp(
+          Number.isFinite(input.y) ? input.y : 0,
+          -1,
+          1
+        );
+        mouseCameraPointerId =
+          Math.abs(x) > 1e-3 || Math.abs(y) > 1e-3 ? -1 : null;
+        mouseCameraInput.set(x, y);
       },
     };
   };
@@ -3381,8 +3405,6 @@ function initializeImmersiveScene(
 
   function updateCamera(delta: number) {
     const previousZoom = cameraZoom;
-    const previousPanX = cameraPan.x;
-    const previousPanZ = cameraPan.z;
     cameraZoom = MathUtils.damp(
       cameraZoom,
       cameraZoomTarget,
@@ -3404,6 +3426,12 @@ function initializeImmersiveScene(
       0,
       cameraInput.y * cameraPanLimitZ
     );
+    const cameraPanInputActive =
+      Math.abs(cameraInput.x) > 1e-3 || Math.abs(cameraInput.y) > 1e-3;
+    if (cameraPanInputActive !== wasCameraPanInputActive) {
+      resetMotionBlurHistory?.();
+      wasCameraPanInputActive = cameraPanInputActive;
+    }
 
     cameraPan.x = MathUtils.damp(
       cameraPan.x,
@@ -3434,13 +3462,6 @@ function initializeImmersiveScene(
       player.position.y,
       player.position.z + cameraPan.z
     );
-
-    if (
-      Math.abs(cameraPan.x - previousPanX) > 1e-4 ||
-      Math.abs(cameraPan.z - previousPanZ) > 1e-4
-    ) {
-      resetMotionBlurHistory?.();
-    }
 
     camera.position.set(
       cameraCenter.x + cameraBaseOffset.x,

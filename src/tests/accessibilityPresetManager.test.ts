@@ -38,6 +38,12 @@ function createMotionBlurStub(): MotionBlurController {
     setIntensity: vi.fn((value: number) => {
       intensity = value;
     }),
+    resetHistory: vi.fn(),
+    getHistoryState: vi.fn(() => ({
+      pendingReset: false,
+      resetRequestCount: 0,
+      lastResetDamp: null,
+    })),
     dispose: vi.fn(),
   };
 }
