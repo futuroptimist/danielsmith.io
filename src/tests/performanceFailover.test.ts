@@ -67,6 +67,102 @@ describe('createPerformanceFailoverHandler', () => {
     return events;
   };
 
+  it('keeps normal FPS immersive beyond the low-performance window', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let i = 0; i < 390; i += 1) {
+      handler.update(1 / 60);
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(events).toEqual([]);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+  });
+
+  it('resets the low-FPS timer after intermittent recovery', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+    });
+
+    for (let i = 0; i < 40; i += 1) {
+      handler.update(1 / 20);
+    }
+    for (let i = 0; i < 60; i += 1) {
+      handler.update(1 / 60);
+    }
+    for (let i = 0; i < 80; i += 1) {
+      handler.update(1 / 20);
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+  });
+
+  it('emits a low-performance event after sustained very-low FPS', () => {
+    const { renderer, canvas } = createRenderer();
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+    const onTrigger = vi.fn();
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+      onTrigger,
+    });
+
+    for (let i = 0; i < 61; i += 1) {
+      handler.update(1 / 10);
+    }
+
+    expect(handler.hasTriggered()).toBe(true);
+    expect(events).toHaveLength(1);
+    expect(events[0].detail.reason).toBe('low-performance');
+    expect(events[0].detail.context).toMatchObject({
+      averageFps: expect.any(Number),
+      durationMs: expect.any(Number),
+      sampleCount: expect.any(Number),
+    });
+    expect(renderFallback).toHaveBeenCalledWith(container, {
+      reason: 'low-performance',
+      immersiveUrl: IMMERSIVE_URL,
+      resumeUrl: undefined,
+      githubUrl: undefined,
+    });
+  });
+
   it('triggers fallback after sustained low FPS and cleans up renderer', () => {
     const { renderer, canvas, setAnimationLoop, dispose } = createRenderer();
     const removeSpy = vi.spyOn(canvas, 'remove');
