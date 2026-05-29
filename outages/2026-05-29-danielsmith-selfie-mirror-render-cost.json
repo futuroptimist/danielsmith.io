@@ -1,0 +1,25 @@
+{
+  "title": "SelfieMirror render-cost root cause",
+  "date": "2026-05-29",
+  "overview": "outages/2026-05-29-danielsmith-staging-performance-overview.md",
+  "symptomSlice": "SelfieMirror rendered the full scene to a 512x512 target every animation frame before the main render.",
+  "evidence": "Code inspection confirmed per-frame mirror.render; diagnostics expose mirror target size, update rate, enabled state, and render count.",
+  "impactedFiles": [
+    "src/scene/structures/selfieMirror.ts",
+    "src/scene/graphics/performancePolicy.ts",
+    "src/systems/performance/performanceDiagnostics.ts",
+    "src/main.ts",
+    "src/tests/selfieMirror.test.ts",
+    "src/tests/rendererPerformancePolicy.test.ts"
+  ],
+  "fixSummary": "Mirror updates are throttled in cinematic/balanced, disabled in performance/software, lower resolution outside cinematic, and skipped when distant.",
+  "interactionWithOtherFixes": "Quality and renderer policies drive mirror cost, and adaptive performance downgrades disable the extra render.",
+  "regressionTests": [
+    "SelfieMirror diagnostics tests",
+    "mirror policy unit tests"
+  ],
+  "validationCommands": [
+    "npm run test:ci -- src/tests/selfieMirror.test.ts src/tests/rendererPerformancePolicy.test.ts",
+    "npm run test:e2e -- --grep \"performance|adaptive\""
+  ]
+}

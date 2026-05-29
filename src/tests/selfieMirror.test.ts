@@ -106,3 +106,30 @@ describe('SelfieMirror structure', () => {
     mirror.dispose();
   });
 });
+
+it('tracks render target size and render count for diagnostics', () => {
+  const mirror = createSelfieMirror({ position: { x: 0, z: 0 } });
+  const scene = new Scene();
+  const renderer = {
+    autoClear: false,
+    getRenderTarget: vi.fn(() => null),
+    setRenderTarget: vi.fn(),
+    render: vi.fn(),
+  } as unknown as WebGLRenderer;
+
+  mirror.setRenderTargetSize(256);
+  mirror.update({
+    playerPosition: { x: 1, y: 0, z: 1 },
+    playerRotationY: 0,
+    playerHeight: 1.8,
+  });
+  mirror.render(renderer, scene);
+
+  expect(mirror.getState()).toMatchObject({
+    renderTargetSize: 256,
+    renderCount: 1,
+  });
+  expect(mirror.getState().playerDistance).toBeGreaterThan(0);
+
+  mirror.dispose();
+});

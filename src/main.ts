@@ -105,10 +105,22 @@ import {
   type MotionBlurController,
 } from './scene/graphics/motionBlurController';
 import {
+  clampDpr,
+  getActivePostprocessingPassCount,
+  selectInitialGraphicsQuality,
+  selectMirrorPolicy,
+  shouldUseComposer,
+} from './scene/graphics/performancePolicy';
+import {
   GRAPHICS_QUALITY_PRESETS,
   createGraphicsQualityManager,
+  type GraphicsQualityLevel,
   type GraphicsQualityManager,
 } from './scene/graphics/qualityManager';
+import {
+  readRendererInfo,
+  type RendererInfoSnapshot,
+} from './scene/graphics/rendererCapabilities';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -326,6 +338,11 @@ import {
   type InputLatencyTelemetryHandle,
 } from './systems/performance/inputLatencyTelemetry';
 import {
+  createPerformanceDiagnostics,
+  type PerformanceDiagnostics,
+  type PerformancePhase,
+} from './systems/performance/performanceDiagnostics';
+import {
   createAvatarAccessoryProgression,
   type AvatarAccessoryProgressionHandle,
 } from './systems/progression/avatarAccessoryProgression';
@@ -410,6 +427,7 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
+      performance?: PerformanceDiagnostics;
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -445,6 +463,7 @@ declare global {
         getPlayerYaw?(): number;
       };
     };
+    __portfolioRendererInfoOverride?: RendererInfoSnapshot;
   }
 }
 
@@ -655,10 +674,19 @@ function initializeImmersiveScene(
 ) {
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
+  const rendererInfo =
+    window.__portfolioRendererInfoOverride ??
+    readRendererInfo(renderer.getContext());
+  const initialQuality = selectInitialGraphicsQuality(rendererInfo);
+  const initialDpr = clampDpr({
+    devicePixelRatio: window.devicePixelRatio ?? 1,
+    rendererTier: rendererInfo.tier,
+    quality: initialQuality,
+  });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(initialDpr);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
@@ -834,10 +862,13 @@ function initializeImmersiveScene(
           `${sampleCount} samples).`
       );
     },
-    onBeforeFallback: () => {
+    onLowFpsBeforeFallback: () => applyAdaptiveDowngrade('sustained low FPS'),
+    onBeforeFallback: (reason) => {
+      lastFailoverReason = reason;
       disposeImmersiveResources();
     },
     onFallback: (reason) => {
+      lastFailoverReason = reason;
       inputLatencyTelemetry?.report(`failover-${reason}`);
     },
     disabled: disablePerformanceFailover,
@@ -2986,6 +3017,14 @@ function initializeImmersiveScene(
   let composer: EffectComposer | null = null;
   let bloomPass: UnrealBloomPass | null = null;
   let motionBlurController: MotionBlurController | null = null;
+  let performanceDiagnostics: PerformanceDiagnostics | null = null;
+  let adaptiveDowngradeCount = 0;
+  let adaptiveDprStep = 0;
+  let lastAdaptiveDowngradeReason: string | null = null;
+  let lastFailoverReason: string | null = null;
+  let mirrorUpdateRateFps = 0;
+  let mirrorEnabled = false;
+  let lastMirrorRenderAtMs = 0;
 
   hudLayoutManager = createHudLayoutManager({
     root: document.documentElement,
@@ -3016,9 +3055,16 @@ function initializeImmersiveScene(
   resetMotionBlurHistory = () => motionBlurController?.resetHistory();
   composer.addPass(motionBlurController.pass);
 
-  let qualityStorage: Storage | undefined;
+  let qualityStorage: Pick<Storage, 'getItem' | 'setItem'> | undefined;
   try {
-    qualityStorage = window.localStorage;
+    const localQualityStorage = window.localStorage;
+    qualityStorage =
+      rendererInfo.tier === 'software'
+        ? {
+            getItem: () => null,
+            setItem: (key, value) => localQualityStorage.setItem(key, value),
+          }
+        : localQualityStorage;
   } catch {
     qualityStorage = undefined;
   }
@@ -3028,7 +3074,7 @@ function initializeImmersiveScene(
     bloomPass: bloomPass ?? undefined,
     ledStripMaterials,
     ledFillLights: ledFillLightsList,
-    basePixelRatio: Math.min(window.devicePixelRatio ?? 1, 2),
+    basePixelRatio: initialDpr,
     baseBloom: {
       strength: LIGHTING_OPTIONS.bloomStrength,
       radius: LIGHTING_OPTIONS.bloomRadius,
@@ -3039,7 +3085,107 @@ function initializeImmersiveScene(
       lightIntensity: LIGHTING_OPTIONS.ledLightIntensity,
     },
     storage: qualityStorage,
+    defaultLevel: initialQuality,
   });
+
+  const applyDprPolicy = () => {
+    if (!graphicsQualityManager) {
+      return;
+    }
+    graphicsQualityManager.setBasePixelRatio(
+      clampDpr({
+        devicePixelRatio: window.devicePixelRatio ?? 1,
+        rendererTier: rendererInfo.tier,
+        quality: graphicsQualityManager.getLevel(),
+        adaptiveStep: adaptiveDprStep,
+      })
+    );
+  };
+
+  const getPostprocessingState = () => ({
+    bloomEnabled: bloomPass?.enabled === true,
+    motionBlurEnabled: motionBlurController?.pass.enabled === true,
+  });
+
+  const shouldRenderWithComposer = () =>
+    shouldUseComposer(getPostprocessingState());
+
+  const refreshMirrorPolicy = () => {
+    const mirrorState = selfieMirror?.getState();
+    const policy = selectMirrorPolicy({
+      quality: graphicsQualityManager?.getLevel() ?? initialQuality,
+      rendererTier: rendererInfo.tier,
+      playerDistance: mirrorState?.playerDistance,
+    });
+    mirrorEnabled = policy.enabled;
+    mirrorUpdateRateFps = policy.updateRateFps;
+    selfieMirror?.setRenderTargetSize(policy.targetSize);
+    return policy;
+  };
+
+  function applyAdaptiveDowngrade(reason: string): boolean {
+    if (!graphicsQualityManager) {
+      return false;
+    }
+    if (adaptiveDowngradeCount >= 6) {
+      return false;
+    }
+    const currentLevel = graphicsQualityManager.getLevel();
+    if (currentLevel !== 'performance') {
+      graphicsQualityManager.setLevel('performance');
+    } else {
+      adaptiveDprStep += 1;
+      applyDprPolicy();
+    }
+    adaptiveDowngradeCount += 1;
+    lastAdaptiveDowngradeReason = reason;
+    refreshMirrorPolicy();
+    return true;
+  }
+
+  applyDprPolicy();
+  refreshMirrorPolicy();
+
+  performanceDiagnostics = createPerformanceDiagnostics({
+    rendererInfo,
+    getQualityLevel: () =>
+      graphicsQualityManager?.getLevel() ??
+      (initialQuality as GraphicsQualityLevel),
+    getDpr: () => renderer.getPixelRatio(),
+    getViewport: () => ({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    }),
+    getDrawingBuffer: () => ({
+      width: renderer.getContext().drawingBufferWidth,
+      height: renderer.getContext().drawingBufferHeight,
+    }),
+    getFeatureState: () => {
+      const postprocessingState = getPostprocessingState();
+      const mirrorState = selfieMirror?.getState();
+      return {
+        bloomEnabled: postprocessingState.bloomEnabled,
+        composerEnabled: shouldRenderWithComposer(),
+        activePostprocessingPassCount:
+          getActivePostprocessingPassCount(postprocessingState),
+        mirrorEnabled,
+        mirrorRenderTargetSize: mirrorState?.renderTargetSize ?? 0,
+        mirrorUpdateRateFps,
+        mirrorRenderCount: mirrorState?.renderCount ?? 0,
+      };
+    },
+    getAdaptiveState: () => ({
+      downgradeCount: adaptiveDowngradeCount,
+      lastDowngradeReason: lastAdaptiveDowngradeReason,
+      lastFailoverReason,
+    }),
+  });
+
+  const portfolioWindow = window as Window;
+  if (!portfolioWindow.portfolio) {
+    portfolioWindow.portfolio = {};
+  }
+  portfolioWindow.portfolio.performance = performanceDiagnostics;
   ledAnimator?.captureBaseline();
   environmentLightAnimator?.captureBaseline();
 
@@ -3199,6 +3345,8 @@ function initializeImmersiveScene(
   registerHudControlElement(graphicsQualityControl?.element ?? null);
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
+    applyDprPolicy();
+    refreshMirrorPolicy();
     graphicsQualityControl?.refresh();
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
@@ -3259,9 +3407,15 @@ function initializeImmersiveScene(
     renderer.setSize(window.innerWidth, window.innerHeight);
     const nextPixelRatio = Math.min(window.devicePixelRatio ?? 1, 2);
     if (graphicsQualityManager) {
-      graphicsQualityManager.setBasePixelRatio(nextPixelRatio);
+      applyDprPolicy();
     } else {
-      renderer.setPixelRatio(nextPixelRatio);
+      renderer.setPixelRatio(
+        clampDpr({
+          devicePixelRatio: nextPixelRatio,
+          rendererTier: rendererInfo.tier,
+          quality: initialQuality,
+        })
+      );
     }
 
     if (composer) {
@@ -3860,6 +4014,9 @@ function initializeImmersiveScene(
     if (window.portfolio?.graphics) {
       delete window.portfolio.graphics;
     }
+    if (window.portfolio?.performance) {
+      delete window.portfolio.performance;
+    }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);
       helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
@@ -3925,190 +4082,220 @@ function initializeImmersiveScene(
 
   let hasPresentedFirstFrame = false;
 
+  const measurePhase = (phase: PerformancePhase, work: () => void) => {
+    const startedAt = performance.now();
+    work();
+    performanceDiagnostics?.recordPhase(phase, performance.now() - startedAt);
+  };
+
   renderer.setAnimationLoop(() => {
     try {
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
+      performanceDiagnostics?.recordFrame(delta);
       performanceFailover.update(delta);
       if (performanceFailover.hasTriggered()) {
         return;
       }
-      updateMovement(delta);
-      if (locomotionAnimator) {
-        locomotionAnimator.update({
-          delta,
-          linearSpeed: locomotionLinearSpeed,
-          angularSpeed: locomotionAngularSpeed,
-        });
-      }
-      if (avatarFootIkController) {
-        avatarFootIkController.update({
-          delta,
-          sampleHeight({ x, y }) {
-            return sampleStairSurfaceHeight({
-              geometry: stairGeometry,
-              behavior: stairBehavior,
-              x,
-              z: y,
-              currentFloor: activeFloorId,
-              upperFloorElevation,
-            });
-          },
-        });
-      }
-      if (footstepAudioController) {
-        footstepAudioController.update({
-          delta,
-          linearSpeed: locomotionLinearSpeed,
-          masterVolume: getAmbientAudioVolume(),
-        });
-      }
-      updateCamera(delta);
-      if (selfieMirror) {
-        selfieMirror.update({
-          playerPosition: player.position,
-          playerRotationY: player.rotation.y,
-          playerHeight: mannequinHeight,
-        });
-      }
-      updatePois(elapsedTime, delta);
-      analyticsGlow.update(delta);
-      poiWorldTooltip.update(delta);
-      handleInteractionInput();
-      handleHelpInput();
-      if (avatarAccessorySuite) {
-        avatarAccessorySuite.update({ elapsed: elapsedTime, delta });
-      }
-      if (ambientAudioController) {
-        ambientAudioController.update(player.position, delta, {
-          elapsed: elapsedTime,
-        });
-        ambientCaptionBridge?.update();
-      }
-      if (livingRoomMediaWall) {
-        const activation = futuroptimistPoi?.activation ?? 0;
-        const focus = futuroptimistPoi?.focus ?? 0;
-        livingRoomMediaWall.controller.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (flywheelShowpiece) {
-        const activation = flywheelPoi?.activation ?? 0;
-        const focus = flywheelPoi?.focus ?? 0;
-        flywheelShowpiece.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (f2ClipboardConsole) {
-        const activation = f2ClipboardPoi?.activation ?? 0;
-        const focus = f2ClipboardPoi?.focus ?? 0;
-        f2ClipboardConsole.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (sigmaWorkbench) {
-        const activation = sigmaPoi?.activation ?? 0;
-        const focus = sigmaPoi?.focus ?? 0;
-        sigmaWorkbench.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (woveLoom) {
-        const activation = wovePoi?.activation ?? 0;
-        const focus = wovePoi?.focus ?? 0;
-        woveLoom.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (jobbotTerminal) {
-        const activation = jobbotPoi?.activation ?? 0;
-        const focus = jobbotPoi?.focus ?? 0;
-        jobbotTerminal.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-          analyticsGlow: analyticsGlow.getValue(),
-          analyticsWave: analyticsGlow.getWave(),
-        });
-      }
-      if (axelNavigator) {
-        const activation = axelPoi?.activation ?? 0;
-        const focus = axelPoi?.focus ?? 0;
-        axelNavigator.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (tokenPlaceRack) {
-        const activation = tokenPlacePoi?.activation ?? 0;
-        const focus = tokenPlacePoi?.focus ?? 0;
-        tokenPlaceRack.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (gabrielSentry) {
-        const activation = gabrielPoi?.activation ?? 0;
-        const focus = gabrielPoi?.focus ?? 0;
-        gabrielSentry.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (gitshelvesInstallation) {
-        const activation = gitshelvesPoi?.activation ?? 0;
-        const focus = gitshelvesPoi?.focus ?? 0;
-        gitshelvesInstallation.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (prReaperConsole) {
-        const activation = prReaperPoi?.activation ?? 0;
-        const focus = prReaperPoi?.focus ?? 0;
-        prReaperConsole.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
-      }
-      if (backyardEnvironment) {
-        backyardEnvironment.update({ elapsed: elapsedTime, delta });
-      }
-      if (
-        environmentLightAnimator &&
-        lightingDebugController.getMode() === 'cinematic'
-      ) {
-        environmentLightAnimator.update(elapsedTime);
-      }
-      if (ledAnimator) {
-        ledAnimator.update(elapsedTime);
-      }
-      if (lightmapAnimator) {
-        lightmapAnimator.update(elapsedTime);
-      }
-      if (selfieMirror) {
-        selfieMirror.render(renderer, scene);
-      }
-      if (composer) {
-        composer.render();
-      } else {
-        renderer.render(scene, camera);
-      }
+      measurePhase('inputMovementCamera', () => {
+        updateMovement(delta);
+        updateCamera(delta);
+        if (selfieMirror) {
+          selfieMirror.update({
+            playerPosition: player.position,
+            playerRotationY: player.rotation.y,
+            playerHeight: mannequinHeight,
+          });
+        }
+      });
+      measurePhase('avatarIkAudio', () => {
+        if (locomotionAnimator) {
+          locomotionAnimator.update({
+            delta,
+            linearSpeed: locomotionLinearSpeed,
+            angularSpeed: locomotionAngularSpeed,
+          });
+        }
+        if (avatarFootIkController) {
+          avatarFootIkController.update({
+            delta,
+            sampleHeight({ x, y }) {
+              return sampleStairSurfaceHeight({
+                geometry: stairGeometry,
+                behavior: stairBehavior,
+                x,
+                z: y,
+                currentFloor: activeFloorId,
+                upperFloorElevation,
+              });
+            },
+          });
+        }
+        if (footstepAudioController) {
+          footstepAudioController.update({
+            delta,
+            linearSpeed: locomotionLinearSpeed,
+            masterVolume: getAmbientAudioVolume(),
+          });
+        }
+        if (avatarAccessorySuite) {
+          avatarAccessorySuite.update({ elapsed: elapsedTime, delta });
+        }
+        if (ambientAudioController) {
+          ambientAudioController.update(player.position, delta, {
+            elapsed: elapsedTime,
+          });
+          ambientCaptionBridge?.update();
+        }
+      });
+      measurePhase('poiHudTooltips', () => {
+        updatePois(elapsedTime, delta);
+        analyticsGlow.update(delta);
+        poiWorldTooltip.update(delta);
+        handleInteractionInput();
+        handleHelpInput();
+      });
+      measurePhase('decorativeStructures', () => {
+        if (livingRoomMediaWall) {
+          const activation = futuroptimistPoi?.activation ?? 0;
+          const focus = futuroptimistPoi?.focus ?? 0;
+          livingRoomMediaWall.controller.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (flywheelShowpiece) {
+          const activation = flywheelPoi?.activation ?? 0;
+          const focus = flywheelPoi?.focus ?? 0;
+          flywheelShowpiece.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (f2ClipboardConsole) {
+          const activation = f2ClipboardPoi?.activation ?? 0;
+          const focus = f2ClipboardPoi?.focus ?? 0;
+          f2ClipboardConsole.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (sigmaWorkbench) {
+          const activation = sigmaPoi?.activation ?? 0;
+          const focus = sigmaPoi?.focus ?? 0;
+          sigmaWorkbench.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (woveLoom) {
+          const activation = wovePoi?.activation ?? 0;
+          const focus = wovePoi?.focus ?? 0;
+          woveLoom.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (jobbotTerminal) {
+          const activation = jobbotPoi?.activation ?? 0;
+          const focus = jobbotPoi?.focus ?? 0;
+          jobbotTerminal.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+            analyticsGlow: analyticsGlow.getValue(),
+            analyticsWave: analyticsGlow.getWave(),
+          });
+        }
+        if (axelNavigator) {
+          const activation = axelPoi?.activation ?? 0;
+          const focus = axelPoi?.focus ?? 0;
+          axelNavigator.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (tokenPlaceRack) {
+          const activation = tokenPlacePoi?.activation ?? 0;
+          const focus = tokenPlacePoi?.focus ?? 0;
+          tokenPlaceRack.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (gabrielSentry) {
+          const activation = gabrielPoi?.activation ?? 0;
+          const focus = gabrielPoi?.focus ?? 0;
+          gabrielSentry.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (gitshelvesInstallation) {
+          const activation = gitshelvesPoi?.activation ?? 0;
+          const focus = gitshelvesPoi?.focus ?? 0;
+          gitshelvesInstallation.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+        if (prReaperConsole) {
+          const activation = prReaperPoi?.activation ?? 0;
+          const focus = prReaperPoi?.focus ?? 0;
+          prReaperConsole.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
+      });
+      measurePhase('lightingLedLightmap', () => {
+        if (backyardEnvironment) {
+          backyardEnvironment.update({ elapsed: elapsedTime, delta });
+        }
+        if (
+          environmentLightAnimator &&
+          lightingDebugController.getMode() === 'cinematic'
+        ) {
+          environmentLightAnimator.update(elapsedTime);
+        }
+        if (ledAnimator) {
+          ledAnimator.update(elapsedTime);
+        }
+        if (lightmapAnimator) {
+          lightmapAnimator.update(elapsedTime);
+        }
+      });
+      measurePhase('mirror', () => {
+        const policy = refreshMirrorPolicy();
+        const now = performance.now();
+        const intervalMs =
+          policy.updateRateFps > 0 ? 1000 / policy.updateRateFps : Infinity;
+        if (
+          selfieMirror &&
+          policy.enabled &&
+          now - lastMirrorRenderAtMs >= intervalMs
+        ) {
+          selfieMirror.render(renderer, scene);
+          lastMirrorRenderAtMs = now;
+        }
+      });
+      measurePhase('mainRenderComposer', () => {
+        if (composer && shouldRenderWithComposer()) {
+          composer.render();
+        } else {
+          renderer.render(scene, camera);
+        }
+      });
       if (!hasPresentedFirstFrame) {
         hasPresentedFirstFrame = true;
         writeModePreference('immersive');
