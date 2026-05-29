@@ -1,0 +1,28 @@
+{
+  "title": "nonessential per-frame update work had no performance mode throttle",
+  "date": "2026-05-29",
+  "overview": "2026-05-29-danielsmith-staging-performance-overview.json",
+  "status": "corrective patch prepared for deployment validation",
+  "symptomSlice": "Decorative systems, POI/HUD work, lighting, mirror, avatar, audio, and rendering all ran every frame regardless of current quality pressure.",
+  "evidence": "Main-loop inspection showed many decorative structure updates running every frame even when performance mode was needed. The new sampled phase buckets expose broad update costs for input/camera, avatar/audio, POI/HUD, decorative structures, lighting, mirror, and render.",
+  "impactedFiles": [
+    "src/main.ts",
+    "src/systems/performance/immersiveDiagnostics.ts",
+    "src/systems/performance/adaptiveQuality.ts"
+  ],
+  "fixSummary": "Adaptive quality can throttle decorative updates, and diagnostics record phase timings every tenth frame to identify future bottlenecks without heavy allocation.",
+  "interactionWithOtherFixes": "Decorative throttling is intentionally later in the ladder so gameplay-relevant movement/camera remains responsive and visual reductions happen before update-rate reductions.",
+  "regressionTests": [
+    "src/tests/adaptiveQuality.test.ts",
+    "src/tests/immersiveDiagnostics.test.ts",
+    "playwright/immersive-performance.spec.ts"
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ]
+}

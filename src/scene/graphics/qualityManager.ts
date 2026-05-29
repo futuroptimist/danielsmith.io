@@ -101,6 +101,8 @@ export interface GraphicsQualityManagerOptions {
   ledStripMaterials?: Iterable<LedMaterialLike>;
   ledFillLights?: Iterable<LedLightLike>;
   basePixelRatio: number;
+  initialLevel?: GraphicsQualityLevel;
+  persistInitialLevel?: boolean;
   baseBloom: {
     strength: number;
     radius: number;
@@ -147,6 +149,8 @@ export function createGraphicsQualityManager({
   ledStripMaterials,
   ledFillLights,
   basePixelRatio,
+  initialLevel,
+  persistInitialLevel = true,
   baseBloom,
   baseLed,
   storage,
@@ -172,8 +176,8 @@ export function createGraphicsQualityManager({
 
   const listeners = new Set<(level: GraphicsQualityLevel) => void>();
 
-  let currentLevel: GraphicsQualityLevel = 'cinematic';
-  if (storage?.getItem) {
+  let currentLevel: GraphicsQualityLevel = initialLevel ?? 'balanced';
+  if (!initialLevel && storage?.getItem) {
     try {
       const stored = storage.getItem(storageKey);
       if (isGraphicsQualityLevel(stored)) {
@@ -185,6 +189,9 @@ export function createGraphicsQualityManager({
   }
 
   applyPreset(currentLevel);
+  if (initialLevel && persistInitialLevel) {
+    persist(currentLevel);
+  }
 
   function sanitizePixelRatio(value: number): number {
     if (!Number.isFinite(value) || value <= 0) {
@@ -257,10 +264,16 @@ export function createGraphicsQualityManager({
     },
     refresh() {
       applyPreset(currentLevel);
+      if (initialLevel && persistInitialLevel) {
+        persist(currentLevel);
+      }
     },
     setBasePixelRatio(pixelRatio: number) {
       currentBasePixelRatio = sanitizePixelRatio(pixelRatio);
       applyPreset(currentLevel);
+      if (initialLevel && persistInitialLevel) {
+        persist(currentLevel);
+      }
     },
     onChange(listener) {
       listeners.add(listener);

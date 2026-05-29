@@ -33,6 +33,9 @@ describe('SelfieMirror structure', () => {
 
     expect(mirror.collider.minX).toBeLessThan(mirror.collider.maxX);
     expect(mirror.collider.minZ).toBeLessThan(mirror.collider.maxZ);
+    expect(mirror.getRenderTargetSize()).toBe(512);
+    mirror.setRenderTargetSize(256);
+    expect(mirror.getRenderTargetSize()).toBe(256);
     mirror.dispose();
   });
 
