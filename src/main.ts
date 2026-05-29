@@ -427,6 +427,11 @@ declare global {
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
+        getCameraZoom(): number;
+        getCameraZoomTarget(): number;
+        getMotionBlurIntensity(): number;
+        getMotionBlurPassEnabled(): boolean;
+        setMotionBlurIntensity(intensity: number): void;
         // Test-only helper: current player yaw in radians
         getPlayerYaw?(): number;
       };
@@ -667,6 +672,9 @@ function initializeImmersiveScene(
   let audioSubtitles: AudioSubtitlesHandle | null = null;
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
+  let composer: EffectComposer | null = null;
+  let bloomPass: UnrealBloomPass | null = null;
+  let motionBlurController: MotionBlurController | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let unsubscribeGraphicsQuality: (() => void) | null = null;
   let accessibilityPresetManager: AccessibilityPresetManager | null = null;
@@ -2130,6 +2138,26 @@ function initializeImmersiveScene(
           return material.opacity;
         });
       },
+      getCameraZoom() {
+        return cameraZoom;
+      },
+      getCameraZoomTarget() {
+        return cameraZoomTarget;
+      },
+      getMotionBlurIntensity() {
+        return motionBlurController?.getIntensity() ?? 0;
+      },
+      getMotionBlurPassEnabled() {
+        return motionBlurController?.pass.enabled ?? false;
+      },
+      setMotionBlurIntensity(intensity: number) {
+        if (accessibilityPresetManager) {
+          accessibilityPresetManager.setBaseMotionBlurIntensity(intensity);
+        } else {
+          motionBlurController?.setIntensity(intensity);
+        }
+        motionBlurControl?.refresh();
+      },
     };
   };
   ensureWorldApi();
@@ -2623,6 +2651,7 @@ function initializeImmersiveScene(
     camera.zoom = cameraZoom;
     camera.updateProjectionMatrix();
     updateCameraPanLimits(aspect);
+    motionBlurController?.resetHistory(renderer);
   };
 
   const getPinchDistance = () => {
@@ -2966,10 +2995,6 @@ function initializeImmersiveScene(
     registerHudControlElement(tourResetControl?.element ?? null);
   }
 
-  let composer: EffectComposer | null = null;
-  let bloomPass: UnrealBloomPass | null = null;
-  let motionBlurController: MotionBlurController | null = null;
-
   hudLayoutManager = createHudLayoutManager({
     root: document.documentElement,
     windowTarget: window,
@@ -2995,7 +3020,7 @@ function initializeImmersiveScene(
     composer.addPass(bloomPass);
   }
 
-  motionBlurController = createMotionBlurController({ intensity: 0.6 });
+  motionBlurController = createMotionBlurController({ intensity: 0 });
   composer.addPass(motionBlurController.pass);
   motionBlurController.pass.renderToScreen = true;
 
@@ -3063,7 +3088,6 @@ function initializeImmersiveScene(
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
     audioHudHandle?.refresh();
-    motionBlurControl?.refresh();
   }
 
   motionBlurControl = createMotionBlurControl({
@@ -3108,7 +3132,6 @@ function initializeImmersiveScene(
   unsubscribeAccessibility = accessibilityPresetManager.onChange(() => {
     accessibilityControlHandle?.refresh();
     audioHudHandle?.refresh();
-    motionBlurControl?.refresh();
     ledAnimator?.captureBaseline();
     environmentLightAnimator?.captureBaseline();
   });
@@ -3353,6 +3376,9 @@ function initializeImmersiveScene(
       cameraInput.y * cameraPanLimitZ
     );
 
+    const previousPanX = cameraPan.x;
+    const previousPanZ = cameraPan.z;
+
     cameraPan.x = MathUtils.damp(
       cameraPan.x,
       cameraPanTarget.x,
@@ -3376,6 +3402,13 @@ function initializeImmersiveScene(
       -cameraPanLimitZ,
       cameraPanLimitZ
     );
+
+    if (
+      Math.abs(cameraPan.x - previousPanX) > 1e-4 ||
+      Math.abs(cameraPan.z - previousPanZ) > 1e-4
+    ) {
+      motionBlurController?.resetHistory(renderer);
+    }
 
     cameraCenter.set(
       player.position.x + cameraPan.x,
@@ -3840,6 +3873,10 @@ function initializeImmersiveScene(
     gitshelvesInstallation = null;
   }
 
+  const pauseAnimationAfterFirstFrameForTests =
+    new URLSearchParams(window.location.search).get(
+      'pauseImmersiveAnimationForTests'
+    ) === '1';
   let hasPresentedFirstFrame = false;
 
   renderer.setAnimationLoop(() => {
@@ -4030,6 +4067,9 @@ function initializeImmersiveScene(
         hasPresentedFirstFrame = true;
         writeModePreference('immersive');
         markDocumentReady('immersive');
+        if (pauseAnimationAfterFirstFrameForTests) {
+          renderer.setAnimationLoop(null);
+        }
       }
     } catch (error) {
       handleFatalError(error);
