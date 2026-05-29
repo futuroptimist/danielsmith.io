@@ -324,20 +324,23 @@ export function createSelfieMirror(
     renderCount += 1;
     const previousTarget = renderer.getRenderTarget();
     const previousAutoClear = renderer.autoClear;
-    renderer.setRenderTarget(renderTarget);
-    renderer.autoClear = true;
     const previousGroupVisible = group.visible;
     const previousDisplayVisible = display.visible;
     const previousGlowVisible = glow.visible;
-    group.visible = false;
-    display.visible = false;
-    glow.visible = false;
-    renderer.render(scene, camera);
-    group.visible = previousGroupVisible;
-    display.visible = previousDisplayVisible;
-    glow.visible = previousGlowVisible;
-    renderer.setRenderTarget(previousTarget);
-    renderer.autoClear = previousAutoClear;
+    try {
+      renderer.setRenderTarget(renderTarget);
+      renderer.autoClear = true;
+      group.visible = false;
+      display.visible = false;
+      glow.visible = false;
+      renderer.render(scene, camera);
+    } finally {
+      group.visible = previousGroupVisible;
+      display.visible = previousDisplayVisible;
+      glow.visible = previousGlowVisible;
+      renderer.setRenderTarget(previousTarget);
+      renderer.autoClear = previousAutoClear;
+    }
     return true;
   };
 

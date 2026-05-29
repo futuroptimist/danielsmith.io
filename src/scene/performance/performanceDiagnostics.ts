@@ -99,10 +99,10 @@ function summarize(values: readonly number[]): {
   average: number;
   median: number;
   p95: number;
-  min: number;
+  max: number;
 } {
   if (values.length === 0) {
-    return { average: 0, median: 0, p95: 0, min: 0 };
+    return { average: 0, median: 0, p95: 0, max: 0 };
   }
   const sorted = [...values].sort((a, b) => a - b);
   const total = values.reduce((sum, value) => sum + value, 0);
@@ -110,7 +110,7 @@ function summarize(values: readonly number[]): {
     average: total / values.length,
     median: percentile(sorted, 50),
     p95: percentile(sorted, 95),
-    min: sorted[0] ?? 0,
+    max: sorted[sorted.length - 1] ?? 0,
   };
 }
 
@@ -163,7 +163,7 @@ export function createPerformanceDiagnostics({
         averageFps: frameSummary.average > 0 ? 1000 / frameSummary.average : 0,
         medianFps: frameSummary.median > 0 ? 1000 / frameSummary.median : 0,
         p95FrameMs: frameSummary.p95,
-        minFps: frameSummary.p95 > 0 ? 1000 / frameSummary.p95 : 0,
+        minFps: frameSummary.max > 0 ? 1000 / frameSummary.max : 0,
         sampleCount: frameMsSamples.length,
         phases,
       };

@@ -106,6 +106,39 @@ describe('SelfieMirror structure', () => {
     mirror.dispose();
   });
 
+  it('restores render state when the offscreen render throws', () => {
+    const mirror = createSelfieMirror({
+      position: { x: 0, z: 0 },
+    });
+    const scene = new Scene();
+    scene.add(mirror.group);
+
+    const previousTarget = {};
+    const renderError = new Error('context lost');
+    const setRenderTarget = vi.fn();
+    const renderer = {
+      getRenderTarget: vi.fn(() => previousTarget),
+      setRenderTarget,
+      render: vi.fn(() => {
+        throw renderError;
+      }),
+      autoClear: false,
+    } as unknown as WebGLRenderer;
+
+    const display = mirror.group.getObjectByName('SelfieMirrorDisplay') as Mesh;
+    const glow = mirror.group.getObjectByName('SelfieMirrorGlow') as Mesh;
+
+    expect(() => mirror.render(renderer, scene)).toThrow(renderError);
+    expect(setRenderTarget).toHaveBeenNthCalledWith(1, mirror.renderTarget);
+    expect(setRenderTarget).toHaveBeenNthCalledWith(2, previousTarget);
+    expect(renderer.autoClear).toBe(false);
+    expect(mirror.group.visible).toBe(true);
+    expect(display.visible).toBe(true);
+    expect(glow.visible).toBe(true);
+
+    mirror.dispose();
+  });
+
   it('throttles and disables expensive offscreen renders by policy', () => {
     const mirror = createSelfieMirror({
       position: { x: 0, z: 0 },

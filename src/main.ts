@@ -3363,7 +3363,10 @@ function initializeImmersiveScene(
     updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    basePixelRatio = Math.min(window.devicePixelRatio ?? 1, basePixelRatio);
+    basePixelRatio = clampDevicePixelRatio(
+      window.devicePixelRatio ?? 1,
+      initialQualityPolicy.basePixelRatioCap
+    );
     if (graphicsQualityManager) {
       graphicsQualityManager.setBasePixelRatio(basePixelRatio);
     } else {
@@ -4092,7 +4095,7 @@ function initializeImmersiveScene(
         });
       }
       performanceDiagnostics?.recordPhase(
-        'avatarIkAudio',
+        'mirror',
         performance.now() - phaseStart
       );
       phaseStart = performance.now();
@@ -4222,17 +4225,7 @@ function initializeImmersiveScene(
         });
       }
       if (backyardEnvironment) {
-        const ambientInterval = getQualityFeaturePolicy(
-          graphicsQualityManager?.getLevel() ??
-            initialQualityPolicy.initialLevel,
-          rendererInfo.isSoftwareRenderer
-        ).ambientUpdateIntervalMs;
-        const shouldUpdateAmbient =
-          ambientInterval <= 16 ||
-          Math.floor(elapsedTime * 1000) % ambientInterval < delta * 1000;
-        if (shouldUpdateAmbient) {
-          backyardEnvironment.update({ elapsed: elapsedTime, delta });
-        }
+        backyardEnvironment.update({ elapsed: elapsedTime, delta });
       }
       performanceDiagnostics?.recordPhase(
         'decorativeStructures',

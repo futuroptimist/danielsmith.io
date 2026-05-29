@@ -38,12 +38,14 @@ describe('performance diagnostics', () => {
 
     diagnostics.recordFrame(1 / 60);
     diagnostics.recordFrame(1 / 30);
+    diagnostics.recordFrame(1 / 10);
     diagnostics.recordPhase('mainRender', 8);
     diagnostics.recordPhase('mainRender', 16);
 
     const snapshot = diagnostics.methods.getSnapshot();
-    expect(snapshot.averageFps).toBeCloseTo(40, 0);
-    expect(snapshot.sampleCount).toBe(2);
+    expect(snapshot.averageFps).toBeCloseTo(20, 0);
+    expect(snapshot.minFps).toBeCloseTo(10, 0);
+    expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
