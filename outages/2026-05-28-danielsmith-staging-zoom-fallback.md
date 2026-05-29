@@ -35,6 +35,8 @@ clears old pixels when `damp` is `0`. That inverted mapping meant the slider's
 zero setting retained stale full-scene feedback instead of disabling motion
 blur. The pass also stayed enabled at zero intensity, so it could continue
 rendering stale feedback buffers across orthographic camera projection changes.
+This confirmed the root cause was the AfterimagePass `damp` mapping and the
+missing zero-intensity no-op/disable behavior, not a separate staging fallback.
 
 ## Corrective action
 
@@ -43,8 +45,9 @@ rendering stale feedback buffers across orthographic camera projection changes.
 - Intensity zero now disables the `AfterimagePass`, maps to clearing damp `0`,
   and schedules feedback-history reset.
 - Nonzero intensity maps upward toward the configured maximum damp.
-- History reset is scheduled when motion blur toggles to/from zero and when the
-  orthographic camera zoom/projection or pan changes.
+- History reset is scheduled when motion blur toggles to/from zero, when the
+  orthographic camera zoom/projection changes, and at camera-pan start/release
+  boundaries so continuous pan does not clear every frame.
 - A narrow `window.portfolio.graphics` test hook exposes motion-blur state and a
   production-safe setter for browser regression tests.
 
@@ -54,8 +57,9 @@ rendering stale feedback buffers across orthographic camera projection changes.
   damp mapping, toggle-to-zero history clearing, explicit history reset, and
   disposal.
 - Playwright covers immersive startup with exactly one canvas, repeated wheel
-  zoom in/out with failover disabled, setting motion blur to zero, and toggling
-  nonzero blur back to zero without revealing the text fallback.
+  zoom in/out with failover disabled, setting motion blur to zero, motion-blur
+  reset telemetry for the stale/duplicated-frame symptom, and toggling nonzero
+  blur back to zero without revealing the text fallback.
 
 ## Deployment and validation notes
 

@@ -3,12 +3,24 @@ import { describe, expect, it, vi } from 'vitest';
 import { createMotionBlurController } from '../scene/graphics/motionBlurController';
 
 describe('createMotionBlurController', () => {
-  it('defaults to a disabled afterimage pass so fresh renders are clean', () => {
+  it('disables the afterimage pass at zero intensity so it no-ops in the composer', () => {
     const controller = createMotionBlurController();
 
     expect(controller.getIntensity()).toBe(0);
     expect(controller.pass.enabled).toBe(false);
     expect(controller.pass.uniforms.damp.value).toBe(0);
+
+    controller.setIntensity(0.7);
+    expect(controller.pass.enabled).toBe(true);
+
+    controller.setIntensity(0);
+    expect(controller.getIntensity()).toBe(0);
+    expect(controller.pass.enabled).toBe(false);
+    expect(controller.pass.uniforms.damp.value).toBe(0);
+    expect(controller.getHistoryState()).toMatchObject({
+      pendingReset: true,
+      lastResetDamp: 0,
+    });
 
     controller.dispose();
   });
@@ -41,6 +53,11 @@ describe('createMotionBlurController', () => {
     expect(controller.getIntensity()).toBe(1);
     expect(controller.pass.enabled).toBe(true);
     expect(controller.pass.uniforms.damp.value).toBeCloseTo(0.8, 5);
+
+    controller.setIntensity(Number.NEGATIVE_INFINITY);
+    expect(controller.getIntensity()).toBe(0);
+    expect(controller.pass.enabled).toBe(false);
+    expect(controller.pass.uniforms.damp.value).toBe(0);
 
     controller.setIntensity(Number.POSITIVE_INFINITY);
     expect(controller.getIntensity()).toBe(0);

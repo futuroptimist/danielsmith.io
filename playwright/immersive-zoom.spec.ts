@@ -12,6 +12,16 @@ interface MotionBlurState {
   lastHistoryResetDamp: number | null;
 }
 
+interface PortfolioWindow extends Window {
+  portfolio?: {
+    graphics?: {
+      getMotionBlurState(): MotionBlurState;
+      setMotionBlurIntensity(intensity: number): void;
+      setCameraPanForTest?(input: { x: number; y: number }): void;
+    };
+  };
+}
+
 async function waitForImmersive(page: Page) {
   await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
@@ -29,7 +39,7 @@ async function waitForImmersive(page: Page) {
 
 async function getMotionBlurState(page: Page): Promise<MotionBlurState> {
   const state = await page.evaluate(() =>
-    window.portfolio?.graphics?.getMotionBlurState()
+    (window as PortfolioWindow).portfolio?.graphics?.getMotionBlurState()
   );
   expect(state).toBeDefined();
   return state as MotionBlurState;
@@ -57,11 +67,13 @@ async function setCameraPanInputAndWaitForReset(
   const previousCount = (await getMotionBlurState(page))
     .historyResetRequestCount;
   await page.evaluate((nextInput) => {
-    window.portfolio?.graphics?.setCameraPanForTest?.(nextInput);
+    (window as PortfolioWindow).portfolio?.graphics?.setCameraPanForTest?.(
+      nextInput
+    );
   }, input);
   await page.waitForFunction(
     (count) =>
-      (window.portfolio?.graphics?.getMotionBlurState()
+      ((window as PortfolioWindow).portfolio?.graphics?.getMotionBlurState()
         .historyResetRequestCount ?? 0) > count,
     previousCount
   );
@@ -70,6 +82,31 @@ async function setCameraPanInputAndWaitForReset(
 async function dragCameraPan(page: Page) {
   await setCameraPanInputAndWaitForReset(page, { x: 0.5, y: 0.35 });
   await setCameraPanInputAndWaitForReset(page, { x: 0, y: 0 });
+}
+
+async function assertNoFallbackOrAfterimageSymptom(page: Page) {
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-app-mode',
+    'immersive'
+  );
+  await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
+  await expect(page.locator('#app canvas')).toHaveCount(1);
+
+  await page.waitForFunction(() => {
+    const state = (
+      window as PortfolioWindow
+    ).portfolio?.graphics?.getMotionBlurState();
+    return state ? !state.enabled || !state.pendingHistoryReset : false;
+  });
+
+  const state = await getMotionBlurState(page);
+  expect(state.lastHistoryResetDamp).toBe(0);
+  if (state.enabled) {
+    expect(state.pendingHistoryReset).toBe(false);
+    expect(state.damp).toBeGreaterThan(0);
+  } else {
+    expect(state.damp).toBe(0);
+  }
 }
 
 test.describe('immersive orthographic zoom', () => {
@@ -89,8 +126,7 @@ test.describe('immersive orthographic zoom', () => {
 
     const resetRequestsBeforeZoom = initialMotionBlur.historyResetRequestCount;
     await wheelZoom(page);
-    await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
-    await expect(page.locator('#app canvas')).toHaveCount(1);
+    await assertNoFallbackOrAfterimageSymptom(page);
     const zoomedMotionBlur = await getMotionBlurState(page);
     expect(zoomedMotionBlur.historyResetRequestCount).toBeGreaterThan(
       resetRequestsBeforeZoom
@@ -98,7 +134,9 @@ test.describe('immersive orthographic zoom', () => {
     expect(zoomedMotionBlur.lastHistoryResetDamp).toBe(0);
 
     await page.evaluate(() => {
-      window.portfolio?.graphics?.setMotionBlurIntensity(0);
+      (window as PortfolioWindow).portfolio?.graphics?.setMotionBlurIntensity(
+        0
+      );
     });
     await expect(page.locator('html')).toHaveAttribute(
       'data-accessibility-motion-blur',
@@ -112,8 +150,7 @@ test.describe('immersive orthographic zoom', () => {
       damp: 0,
       intensity: 0,
     });
-    await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
-    await expect(page.locator('#app canvas')).toHaveCount(1);
+    await assertNoFallbackOrAfterimageSymptom(page);
   });
 
   test('clears afterimage history when nonzero blur returns to zero', async ({
@@ -122,18 +159,27 @@ test.describe('immersive orthographic zoom', () => {
     await waitForImmersive(page);
 
     await page.evaluate(() => {
-      window.portfolio?.graphics?.setMotionBlurIntensity(0.5);
+      (window as PortfolioWindow).portfolio?.graphics?.setMotionBlurIntensity(
+        0.5
+      );
     });
     await page.waitForFunction(
-      () => window.portfolio?.graphics?.getMotionBlurState().enabled === true
+      () =>
+        (window as PortfolioWindow).portfolio?.graphics?.getMotionBlurState()
+          .enabled === true
     );
     await wheelZoom(page);
+    await assertNoFallbackOrAfterimageSymptom(page);
 
     await page.evaluate(() => {
-      window.portfolio?.graphics?.setMotionBlurIntensity(0);
+      (window as PortfolioWindow).portfolio?.graphics?.setMotionBlurIntensity(
+        0
+      );
     });
     await page.waitForFunction(
-      () => window.portfolio?.graphics?.getMotionBlurState().enabled === false
+      () =>
+        (window as PortfolioWindow).portfolio?.graphics?.getMotionBlurState()
+          .enabled === false
     );
     await wheelZoom(page);
 
@@ -143,8 +189,7 @@ test.describe('immersive orthographic zoom', () => {
       damp: 0,
       intensity: 0,
     });
-    await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
-    await expect(page.locator('#app canvas')).toHaveCount(1);
+    await assertNoFallbackOrAfterimageSymptom(page);
   });
 
   test('clears history for camera pan only at pan start and release', async ({
@@ -152,10 +197,14 @@ test.describe('immersive orthographic zoom', () => {
   }) => {
     await waitForImmersive(page);
     await page.evaluate(() => {
-      window.portfolio?.graphics?.setMotionBlurIntensity(0.5);
+      (window as PortfolioWindow).portfolio?.graphics?.setMotionBlurIntensity(
+        0.5
+      );
     });
     await page.waitForFunction(
-      () => window.portfolio?.graphics?.getMotionBlurState().enabled === true
+      () =>
+        (window as PortfolioWindow).portfolio?.graphics?.getMotionBlurState()
+          .enabled === true
     );
 
     const beforePan = await getMotionBlurState(page);
