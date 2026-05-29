@@ -191,6 +191,65 @@ describe('createPerformanceFailoverHandler', () => {
     });
   });
 
+  it('keeps immersive active when normal FPS stays above threshold for more than five seconds', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let i = 0; i < 390; i += 1) {
+      handler.update(1 / 60);
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+    expect(events).toHaveLength(0);
+  });
+
+  it('resets the low-FPS timer when intermittent slow frames recover', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let cycle = 0; cycle < 4; cycle += 1) {
+      for (let i = 0; i < 50; i += 1) {
+        handler.update(1 / 20);
+      }
+      for (let i = 0; i < 15; i += 1) {
+        handler.update(1 / 60);
+      }
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+    expect(events).toHaveLength(0);
+  });
+
   it('ignores sporadic low FPS frames', () => {
     const { renderer } = createRenderer();
     const container = createContainer();
