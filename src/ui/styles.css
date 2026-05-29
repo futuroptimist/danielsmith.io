@@ -47,16 +47,30 @@ body {
   background: #04070d;
 }
 
+html[data-app-mode='fallback'],
+html[data-app-mode='fallback'] body {
+  min-height: 100%;
+  height: auto;
+  overflow-y: auto;
+}
+
 #app {
   width: 100%;
   height: 100%;
 }
 
 #app[data-mode='text'] {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  justify-content: flex-start;
+  padding: calc(2rem + env(safe-area-inset-top, 0px))
+    calc(clamp(1rem, 4vw, 2rem) + env(safe-area-inset-right, 0px))
+    calc(2rem + env(safe-area-inset-bottom, 0px))
+    calc(clamp(1rem, 4vw, 2rem) + env(safe-area-inset-left, 0px));
+  overflow: visible;
 }
 
 canvas {
@@ -68,6 +82,7 @@ canvas {
 }
 
 .text-fallback {
+  width: min(32rem, 100%);
   margin: 0 auto;
   padding: 3rem 1.75rem;
   max-width: 32rem;
