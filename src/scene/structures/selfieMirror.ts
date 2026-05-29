@@ -24,6 +24,7 @@ export interface SelfieMirrorOptions {
   height?: number;
   depth?: number;
   cameraDistance?: number;
+  renderTargetSize?: number;
 }
 
 export interface SelfieMirrorUpdateContext {
@@ -32,13 +33,25 @@ export interface SelfieMirrorUpdateContext {
   playerHeight?: number;
 }
 
+export interface SelfieMirrorRenderPolicy {
+  enabled: boolean;
+  updateRateFps: number;
+  renderTargetSize: number;
+}
+
 export interface SelfieMirrorBuild {
   group: Group;
   collider: RectCollider;
   camera: PerspectiveCamera;
   renderTarget: WebGLRenderTarget;
   update(context: SelfieMirrorUpdateContext): void;
-  render(renderer: WebGLRenderer, scene: Scene): void;
+  setRenderPolicy(policy: Partial<SelfieMirrorRenderPolicy>): void;
+  getRenderState(): SelfieMirrorRenderPolicy & { renderCount: number };
+  render(
+    renderer: WebGLRenderer,
+    scene: Scene,
+    elapsedSeconds?: number
+  ): boolean;
   dispose(): void;
 }
 
@@ -57,6 +70,7 @@ const PLAYER_HEIGHT_FALLBACK = 1.8;
 const GLOW_BASE_OPACITY = 0.16;
 const GLOW_FOCUS_OPACITY = 0.45;
 const GLOW_RADIUS = 5.5;
+const DEFAULT_RENDER_TARGET_SIZE = 512;
 
 function createFootprintCollider(
   center: Vector3,
@@ -160,9 +174,24 @@ export function createSelfieMirror(
   accent.position.set(0, BASE_HEIGHT + height - 0.28, depth * -0.08);
   group.add(accent);
 
-  const renderTarget = new WebGLRenderTarget(512, 512, {
-    generateMipmaps: false,
-  });
+  let renderPolicy: SelfieMirrorRenderPolicy = {
+    enabled: true,
+    updateRateFps: 15,
+    renderTargetSize: Math.max(
+      64,
+      Math.floor(options.renderTargetSize ?? DEFAULT_RENDER_TARGET_SIZE)
+    ),
+  };
+  let lastRenderElapsedSeconds = Number.NEGATIVE_INFINITY;
+  let renderCount = 0;
+
+  const renderTarget = new WebGLRenderTarget(
+    renderPolicy.renderTargetSize,
+    renderPolicy.renderTargetSize,
+    {
+      generateMipmaps: false,
+    }
+  );
   renderTarget.texture.colorSpace = SRGBColorSpace;
 
   const displayMaterial = new MeshBasicMaterial({
@@ -255,7 +284,44 @@ export function createSelfieMirror(
     );
   };
 
-  const render = (renderer: WebGLRenderer, scene: Scene) => {
+  const setRenderPolicy = (policy: Partial<SelfieMirrorRenderPolicy>) => {
+    renderPolicy = {
+      ...renderPolicy,
+      ...policy,
+      updateRateFps: Math.max(
+        0,
+        policy.updateRateFps ?? renderPolicy.updateRateFps
+      ),
+      renderTargetSize: Math.max(
+        64,
+        Math.floor(policy.renderTargetSize ?? renderPolicy.renderTargetSize)
+      ),
+    };
+    const currentSize = renderTarget.width;
+    if (renderPolicy.renderTargetSize !== currentSize) {
+      renderTarget.setSize(
+        renderPolicy.renderTargetSize,
+        renderPolicy.renderTargetSize
+      );
+    }
+  };
+
+  const getRenderState = () => ({ ...renderPolicy, renderCount });
+
+  const render = (
+    renderer: WebGLRenderer,
+    scene: Scene,
+    elapsedSeconds = 0
+  ) => {
+    if (!renderPolicy.enabled || renderPolicy.updateRateFps <= 0) {
+      return false;
+    }
+    const minIntervalSeconds = 1 / renderPolicy.updateRateFps;
+    if (elapsedSeconds - lastRenderElapsedSeconds < minIntervalSeconds) {
+      return false;
+    }
+    lastRenderElapsedSeconds = elapsedSeconds;
+    renderCount += 1;
     const previousTarget = renderer.getRenderTarget();
     const previousAutoClear = renderer.autoClear;
     renderer.setRenderTarget(renderTarget);
@@ -272,6 +338,7 @@ export function createSelfieMirror(
     glow.visible = previousGlowVisible;
     renderer.setRenderTarget(previousTarget);
     renderer.autoClear = previousAutoClear;
+    return true;
   };
 
   const dispose = () => {
@@ -294,6 +361,8 @@ export function createSelfieMirror(
     camera,
     renderTarget,
     update,
+    setRenderPolicy,
+    getRenderState,
     render,
     dispose,
   };

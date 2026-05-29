@@ -92,7 +92,7 @@ describe('SelfieMirror structure', () => {
     const pillar = mirror.group.getObjectByName('SelfieMirrorFrame') as Mesh;
     const pillarMaterial = pillar.material as MeshStandardMaterial;
 
-    mirror.render(renderer, scene);
+    expect(mirror.render(renderer, scene)).toBe(true);
 
     expect(setRenderTarget).toHaveBeenNthCalledWith(1, mirror.renderTarget);
     expect(setRenderTarget).toHaveBeenNthCalledWith(2, null);
@@ -102,6 +102,30 @@ describe('SelfieMirror structure', () => {
     expect(glow.visible).toBe(true);
     expect(displayMaterial.map).toBe(mirror.renderTarget.texture);
     expect(pillarMaterial).toBeInstanceOf(MeshStandardMaterial);
+
+    mirror.dispose();
+  });
+
+  it('throttles and disables expensive offscreen renders by policy', () => {
+    const mirror = createSelfieMirror({
+      position: { x: 0, z: 0 },
+      renderTargetSize: 320,
+    });
+    const scene = new Scene();
+    const renderer = {
+      getRenderTarget: vi.fn(() => null),
+      setRenderTarget: vi.fn(),
+      render: vi.fn(),
+      autoClear: false,
+    } as unknown as WebGLRenderer;
+
+    mirror.setRenderPolicy({ updateRateFps: 5, renderTargetSize: 192 });
+    expect(mirror.getRenderState().renderTargetSize).toBe(192);
+    expect(mirror.render(renderer, scene, 0)).toBe(true);
+    expect(mirror.render(renderer, scene, 0.1)).toBe(false);
+    mirror.setRenderPolicy({ enabled: false });
+    expect(mirror.render(renderer, scene, 1)).toBe(false);
+    expect(mirror.getRenderState().renderCount).toBe(1);
 
     mirror.dispose();
   });

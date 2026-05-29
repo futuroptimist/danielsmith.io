@@ -112,6 +112,8 @@ export interface GraphicsQualityManagerOptions {
   };
   storage?: Pick<Storage, 'getItem' | 'setItem'> | null;
   storageKey?: string;
+  initialLevel?: GraphicsQualityLevel;
+  preferInitialLevel?: boolean;
 }
 
 export interface GraphicsQualityManager {
@@ -151,6 +153,8 @@ export function createGraphicsQualityManager({
   baseLed,
   storage,
   storageKey = DEFAULT_STORAGE_KEY,
+  initialLevel = 'balanced',
+  preferInitialLevel = false,
 }: GraphicsQualityManagerOptions): GraphicsQualityManager {
   let currentBasePixelRatio = sanitizePixelRatio(basePixelRatio);
   const ledMaterialEntries: LedMaterialEntry[] = ledStripMaterials
@@ -172,8 +176,10 @@ export function createGraphicsQualityManager({
 
   const listeners = new Set<(level: GraphicsQualityLevel) => void>();
 
-  let currentLevel: GraphicsQualityLevel = 'cinematic';
-  if (storage?.getItem) {
+  let currentLevel: GraphicsQualityLevel = isGraphicsQualityLevel(initialLevel)
+    ? initialLevel
+    : 'balanced';
+  if (!preferInitialLevel && storage?.getItem) {
     try {
       const stored = storage.getItem(storageKey);
       if (isGraphicsQualityLevel(stored)) {

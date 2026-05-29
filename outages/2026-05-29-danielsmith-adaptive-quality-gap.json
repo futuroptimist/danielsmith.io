@@ -1,0 +1,18 @@
+{
+  "id": "2026-05-29-danielsmith-adaptive-quality-gap",
+  "date": "2026-05-29",
+  "overview": "2026-05-29-danielsmith-staging-performance-overview",
+  "title": "Low FPS went straight to fallback without adaptive downgrade",
+  "symptomSlice": "Performance failover watched sustained low FPS, but graphics quality did not automatically step down before text fallback.",
+  "evidence": "Diagnostics expose adaptive downgrade count and last adaptive reason; unit coverage drives slow-frame updates without requiring real SwiftShader in CI.",
+  "fixSummary": "An adaptive ladder now lowers quality from cinematic to balanced to performance, then reduces base DPR, resetting failover samples after each downgrade to prevent premature fallback or flapping.",
+  "regressionTests": "src/tests/performanceOptimization.test.ts covers the downgrade ladder and no-flap behavior; performanceFailover reset support keeps fallback available after adaptive steps are exhausted.",
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ]
+}

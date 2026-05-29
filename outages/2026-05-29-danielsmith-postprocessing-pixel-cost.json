@@ -1,0 +1,18 @@
+{
+  "id": "2026-05-29-danielsmith-postprocessing-pixel-cost",
+  "date": "2026-05-29",
+  "overview": "2026-05-29-danielsmith-staging-performance-overview",
+  "title": "Postprocessing and DPR multiplied pixel cost",
+  "symptomSlice": "The renderer capped DPR at 2, cinematic quality used full scale, and EffectComposer stayed active even when no visual pass was needed.",
+  "evidence": "Diagnostics expose DPR, drawing-buffer size, bloom state, composer state, and active pass count. Tests assert DPR policy and feature state expectations.",
+  "fixSummary": "The default desktop path now starts balanced with a 1.25 DPR cap. Performance quality disables bloom, and the main loop bypasses composer entirely when bloom and motion blur are inactive.",
+  "regressionTests": "src/tests/performanceOptimization.test.ts covers DPR clamping; playwright/immersive-performance.spec.ts asserts the runtime DPR cap and composer/bloom state.",
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ]
+}

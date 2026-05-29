@@ -1,0 +1,18 @@
+{
+  "id": "2026-05-29-danielsmith-selfie-mirror-render-cost",
+  "date": "2026-05-29",
+  "overview": "2026-05-29-danielsmith-staging-performance-overview",
+  "title": "SelfieMirror doubled scene rendering work",
+  "symptomSlice": "SelfieMirror rendered the full scene into a 512x512 render target on every animation frame before the main scene render.",
+  "evidence": "Diagnostics expose mirror enabled state, render target size, update rate, and render count so captures can compare mirror cost by quality tier.",
+  "fixSummary": "SelfieMirror now has a render policy. It is 512px/15 FPS only in cinematic, 320px/8 FPS in balanced, and disabled in performance or software mode.",
+  "regressionTests": "src/tests/selfieMirror.test.ts covers throttling, disabling, render target resizing, and render count behavior.",
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ]
+}
