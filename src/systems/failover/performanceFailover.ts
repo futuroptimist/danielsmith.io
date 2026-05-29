@@ -53,6 +53,9 @@ export interface PerformanceFailoverHandlerOptions {
     reason: FallbackReason,
     context?: PerformanceFailoverContext
   ) => void;
+  onLowPerformanceBeforeFallback?: (
+    context: PerformanceFailoverTriggerContext
+  ) => boolean;
   disabled?: boolean;
   consoleFailover?: ConsoleFailoverOptions;
   eventTarget?: EventTarget | null;
@@ -162,6 +165,11 @@ class PerformanceFailoverMonitor {
     return this.triggered;
   }
 
+  reset(): void {
+    this.triggered = false;
+    this.resetLowFpsSamples();
+  }
+
   private resetLowFpsSamples(): void {
     this.lowFpsDurationMs = 0;
     this.fpsAccumulator.reset();
@@ -190,6 +198,7 @@ export function createPerformanceFailoverHandler(
     fallbackLinks,
     onBeforeFallback,
     onFallback,
+    onLowPerformanceBeforeFallback,
     disabled = false,
     consoleFailover,
     eventTarget = typeof window !== 'undefined' && 'dispatchEvent' in window
@@ -287,6 +296,16 @@ export function createPerformanceFailoverHandler(
         minimumDurationMs,
         maxFrameDeltaMs,
         onTrigger: (context) => {
+          let recovered = false;
+          try {
+            recovered = onLowPerformanceBeforeFallback?.(context) === true;
+          } catch (error) {
+            console.warn('Low-performance recovery callback failed:', error);
+          }
+          if (recovered) {
+            monitor?.reset();
+            return;
+          }
           transitionToFallback('low-performance', context);
         },
       });

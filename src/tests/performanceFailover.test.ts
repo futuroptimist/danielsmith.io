@@ -511,4 +511,27 @@ describe('createPerformanceFailoverHandler', () => {
     expect(failoverEvents[0].detail.context).toEqual(consoleDetail);
     expect(consoleTarget.error).toBe(originalError);
   });
+
+  it('allows adaptive recovery to reset low-FPS samples before fallback', () => {
+    const renderer = createRenderer();
+    const container = document.createElement('div');
+    const onLowPerformanceBeforeFallback = vi.fn(() => true);
+    const onFallback = vi.fn();
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: '/?mode=immersive',
+      markAppReady: vi.fn(),
+      onLowPerformanceBeforeFallback,
+      onFallback,
+    });
+
+    for (let index = 0; index < 100; index += 1) {
+      handler.update(0.05);
+    }
+
+    expect(onLowPerformanceBeforeFallback).toHaveBeenCalledTimes(1);
+    expect(onFallback).not.toHaveBeenCalled();
+    expect(handler.hasTriggered()).toBe(false);
+  });
 });

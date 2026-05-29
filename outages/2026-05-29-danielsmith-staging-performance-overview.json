@@ -1,0 +1,29 @@
+{
+  "date": "2026-05-29",
+  "title": "Daniel Smith staging immersive performance overview",
+  "symptom": "Immersive scene remained extremely slow, around 5 FPS observed, and fell back after a few seconds after zoom trails were fixed.",
+  "environment": [
+    "staging.danielsmith.io",
+    "Chrome with hardware acceleration disabled",
+    "Normal hardware-accelerated desktop Chrome for expected path"
+  ],
+  "rootCauses": [
+    "2026-05-29-danielsmith-software-renderer-quality",
+    "2026-05-29-danielsmith-postprocessing-pixel-cost",
+    "2026-05-29-danielsmith-selfie-mirror-render-cost",
+    "2026-05-29-danielsmith-adaptive-quality-gap"
+  ],
+  "disprovenOrUnconfirmed": [
+    "Per-frame JS update cost is instrumented but not confirmed as a dominant root cause.",
+    "Motion blur slider alone was not the root of the prior zoom trails; see the 2026-05-28 zoom-fallback incident."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ],
+  "manualBenchmark": "Capture window.portfolio.performance.getSnapshot() with Chrome hardware acceleration enabled and disabled while zooming/panning for at least 10 seconds."
+}
