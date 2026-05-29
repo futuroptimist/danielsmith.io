@@ -251,7 +251,4 @@ export const hasPerformanceFailoverBypass = (
 
 export const shouldDisablePerformanceFailover = (
   value: string | URLSearchParams
-) => {
-  const params = toSearchParams(value);
-  return hasImmersiveOverride(params) || hasPerformanceFailoverBypass(params);
-};
+) => hasPerformanceFailoverBypass(value);
