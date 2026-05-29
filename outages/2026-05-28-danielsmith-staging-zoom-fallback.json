@@ -7,7 +7,8 @@
     "Initial immersive render looked normal.",
     "Mouse-wheel orthographic zoom left prior full-scene frames visible as duplicated geometry/trails.",
     "Production-like staging sessions with runtime performance failover enabled switched from immersive mode to text fallback after roughly 5-10 seconds of normal zooming.",
-    "Setting the in-app motion blur slider to zero on staging did not eliminate the bug."
+    "Setting the in-app motion blur slider to zero on staging did not eliminate the bug.",
+    "Related 2026-05-29 follow-up: text fallback content was clipped above the viewport and impossible to scroll back to the title when the fallback card exceeded viewport height."
   ],
   "impact": "Staging immersive validation showed corrupted zoom/pan rendering and could exit to the text fallback during ordinary browser input, risking confusion with broader WebGL or performance-failover behavior.",
   "detection": "Manual staging validation of /?mode=immersive&disablePerformanceFailover=1 followed by wheel zooming, then production-like /?mode=immersive validation where only preflight routing is bypassed and runtime failover remains enabled; now covered by Playwright zoom and performance failover regression tests.",
@@ -19,13 +20,15 @@
     "History resets when toggling motion blur to/from zero, when camera zoom/projection changes, and at camera-pan start/release boundaries so continuous pan does not clear every frame.",
     "A narrow window.portfolio.graphics hook supports production-safe browser regression tests.",
     "Production-like /?mode=immersive Playwright coverage now omits the explicit disablePerformanceFailover=1 bypass, keeps runtime failover enabled during wheel zoom for longer than the 5-second low-FPS window, and fails on performancefailover events, fallback mode, text mode, console fallback warnings, or duplicate canvases.",
-    "Runtime performance failover remains enabled for genuine sustained low FPS, unsupported WebGL, automated clients, explicit text mode, and related low-capability cases."
+    "Runtime performance failover remains enabled for genuine sustained low FPS, unsupported WebGL, automated clients, explicit text mode, and related low-capability cases.",
+    "Text fallback layout now uses top-aligned normal document flow with root document scrolling, centered card width, and safe-area-aware padding instead of vertically centering a tall card inside fixed-height #app."
   ],
   "regressionTests": [
     "Vitest coverage for zero no-op/disable behavior, invalid clamping, corrected damp mapping, history resets, and disposal.",
     "Vitest performance-failover coverage proves normal FPS for more than five seconds never triggers, intermittent low FPS resets when performance recovers, sustained very-low FPS triggers, and low-performance transitions dispatch a performancefailover event with reason low-performance.",
     "Playwright immersive zoom coverage for one canvas, no text fallback, repeated wheel zoom, zero blur, motion-blur reset telemetry for stale/duplicated-frame symptoms, and nonzero-to-zero toggling.",
-    "Playwright performance failover runtime zoom coverage loads /?mode=immersive, which bypasses only preflight routing heuristics and omits disablePerformanceFailover=1, then asserts ordinary zoom remains immersive while runtime failover is active."
+    "Playwright performance failover runtime zoom coverage loads /?mode=immersive, which bypasses only preflight routing heuristics and omits disablePerformanceFailover=1, then asserts ordinary zoom remains immersive while runtime failover is active.",
+    "Playwright text fallback layout coverage verifies 1280x720 and 390x844 viewports keep the title visible at scroll top, scroll to the final exhibit card, and avoid horizontal overflow."
   ],
   "validationCommands": [
     "npm run format:write",
@@ -34,7 +37,20 @@
     "npm run test:ci",
     "npm run test:e2e -- --grep \"zoom\"",
     "npm run test:e2e -- --grep \"performance failover\"",
+    "npm run test:e2e -- --grep \"text fallback\"",
     "npm run smoke"
   ],
-  "deploymentValidation": "After deployment, validate https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 for clean initial render, clean wheel zoom, clean zero motion blur, and cleared trails after toggling nonzero blur back to zero. Also validate https://staging.danielsmith.io/?mode=immersive to confirm normal zoom does not reveal the text fallback while runtime failover remains available for genuine low-performance cases."
+  "deploymentValidation": "After deployment, validate https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1 for clean initial render, clean wheel zoom, clean zero motion blur, and cleared trails after toggling nonzero blur back to zero. Also validate https://staging.danielsmith.io/?mode=immersive to confirm normal zoom does not reveal the text fallback while runtime failover remains available for genuine low-performance cases.",
+  "textFallbackClippingFollowUp": {
+    "date": "2026-05-29",
+    "symptom": "Text fallback content was clipped above the viewport and impossible to scroll to the title/description at document scroll position 0.",
+    "impact": "Explicit text mode, runtime performance fallback, automated-client fallback, and related rendered fallback paths could hide the beginning of the recovery content on short viewports.",
+    "rootCause": "Fixed-height html/body/#app shell plus vertically centered #app[data-mode=text] flex layout placed a tall .text-fallback card partly above the document scroll range.",
+    "correctiveAction": "Allow fallback html/body and #app[data-mode=text] to grow in normal document flow, top-align the card, preserve horizontal centering, and use safe-area-aware padding with document-level scrolling.",
+    "regressionTests": [
+      "playwright/text-fallback-layout.spec.ts at 1280x720",
+      "playwright/text-fallback-layout.spec.ts at 390x844"
+    ],
+    "validation": "npm run test:e2e -- --grep \"text fallback\""
+  }
 }

@@ -87,6 +87,27 @@ not evidence that the runtime failover feature should be removed or weakened.
   routing heuristics while leaving runtime failover enabled, and asserts normal
   wheel zoom/pan remains immersive for longer than the 5-second low-FPS window.
 
+## Related text fallback clipping follow-up (2026-05-29)
+
+When the staging session fell through to text mode, the fallback page itself had
+a separate layout defect: the top of the text card was clipped above the
+viewport and normal scrolling could not reach the title or introductory copy.
+The impact was limited to rendered text fallback paths (`?mode=text`, runtime
+performance fallback, automated-client fallback, and related low-capability
+routes), but it made the recovery experience feel broken when the prior zoom
+incident exposed fallback mode.
+
+The root cause was the fixed-height document/app shell combined with
+`#app[data-mode='text']` vertically centering a `.text-fallback` card that can
+be taller than short viewports. The corrective action top-aligns text mode in
+normal document flow, allows fallback pages to grow and scroll from the
+document root, preserves the centered card width, and applies logical/safe-area
+padding to avoid horizontal overflow. Playwright regression coverage now checks
+1280×720 and 390×844 viewports for a visible title at scroll top, scrollability
+to the final exhibit card, and no horizontal overflow. Validate with
+`npm run test:e2e -- --grep "text fallback"` in addition to the existing zoom
+and performance-failover checks.
+
 ## Deployment and validation notes
 
 Validate the deployed staging build at
@@ -106,5 +127,6 @@ npm run typecheck
 npm run test:ci
 npm run test:e2e -- --grep "zoom"
 npm run test:e2e -- --grep "performance failover"
+npm run test:e2e -- --grep "text fallback"
 npm run smoke
 ```
