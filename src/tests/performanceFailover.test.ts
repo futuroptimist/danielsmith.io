@@ -191,6 +191,105 @@ describe('createPerformanceFailoverHandler', () => {
     });
   });
 
+  it('keeps normal FPS above the threshold for more than five seconds immersive', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let i = 0; i < 390; i += 1) {
+      handler.update(1 / 60);
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+    expect(events).toEqual([]);
+  });
+
+  it('resets the sustained low-FPS timer when performance recovers', () => {
+    const { renderer } = createRenderer();
+    const container = createContainer();
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let i = 0; i < 80; i += 1) {
+      handler.update(1 / 20);
+    }
+    for (let i = 0; i < 30; i += 1) {
+      handler.update(1 / 60);
+    }
+    for (let i = 0; i < 80; i += 1) {
+      handler.update(1 / 20);
+    }
+
+    expect(handler.hasTriggered()).toBe(false);
+    expect(renderFallback).not.toHaveBeenCalled();
+    expect(markAppReady).not.toHaveBeenCalled();
+    expect(events).toEqual([]);
+  });
+
+  it('triggers low-performance failover after sustained very-low FPS', () => {
+    const { renderer, canvas } = createRenderer();
+    const container = createContainer();
+    container.appendChild(canvas);
+    const markAppReady = vi.fn();
+    const renderFallback = vi.fn();
+    const eventTarget = new EventTarget();
+    const events = collectFailoverEvents(eventTarget);
+
+    const handler = createPerformanceFailoverHandler({
+      renderer,
+      container,
+      immersiveUrl: IMMERSIVE_URL,
+      markAppReady,
+      renderFallback,
+      eventTarget,
+    });
+
+    for (let i = 0; i < 55; i += 1) {
+      handler.update(1 / 10);
+    }
+
+    expect(handler.hasTriggered()).toBe(true);
+    expect(renderFallback).toHaveBeenCalledWith(container, {
+      reason: 'low-performance',
+      immersiveUrl: IMMERSIVE_URL,
+      resumeUrl: undefined,
+      githubUrl: undefined,
+    });
+    expect(markAppReady).toHaveBeenCalledWith('fallback', 'low-performance');
+    expect(events).toHaveLength(1);
+    expect(events[0].detail.reason).toBe('low-performance');
+    expect(events[0].detail.context).toMatchObject({
+      averageFps: expect.any(Number),
+      durationMs: expect.any(Number),
+      sampleCount: expect.any(Number),
+    });
+  });
+
   it('ignores sporadic low FPS frames', () => {
     const { renderer } = createRenderer();
     const container = createContainer();
