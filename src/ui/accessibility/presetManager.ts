@@ -352,7 +352,7 @@ export function createAccessibilityPresetManager({
   let baseAudioVolume = clamp01(
     ambientAudioController?.getMasterVolume?.() ?? 1
   );
-  let baseMotionBlurIntensity = 1;
+  let baseMotionBlurIntensity = 0;
   let presetId: AccessibilityPresetId = 'standard';
 
   if (storage?.getItem) {
