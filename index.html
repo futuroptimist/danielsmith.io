@@ -404,10 +404,13 @@
 
         .noscript-fallback {
           min-height: 100vh;
+          min-height: 100dvh;
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          padding: 3rem clamp(1.5rem, 4vw, 4rem);
+          justify-content: flex-start;
+          padding-block-start: max(3rem, env(safe-area-inset-top));
+          padding-block-end: max(3rem, env(safe-area-inset-bottom));
+          padding-inline: clamp(1.5rem, 4vw, 4rem);
           gap: 1.5rem;
           background: linear-gradient(180deg, #0a111c 0%, #020408 100%);
           color: rgba(224, 236, 255, 0.9);

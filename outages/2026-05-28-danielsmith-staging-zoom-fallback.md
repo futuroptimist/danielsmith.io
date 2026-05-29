@@ -87,6 +87,21 @@ not evidence that the runtime failover feature should be removed or weakened.
   routing heuristics while leaving runtime failover enabled, and asserts normal
   wheel zoom/pan remains immersive for longer than the 5-second low-FPS window.
 
+### Text fallback clipping follow-up (2026-05-29)
+
+When the same staging fallback paths rendered the full text portfolio, the card
+could start mid-page with the title and description clipped above the viewport.
+Visitors could scroll down, but could not scroll upward to the missing top
+content. The root cause was the fixed-height `#app` combined with vertical flex
+centering of a `.text-fallback` card that had grown taller than the viewport.
+Text mode now restores normal document-flow scrolling with a top-aligned
+`min-height: 100dvh` fallback root, visible overflow, centered inline card
+sizing, and safe-area-aware padding. Regression coverage in
+`playwright/text-fallback-layout.spec.ts` verifies 1280×720 desktop, 390×844
+mobile, and automated-client runtime fallback paths keep the title/description
+visible at scroll position 0, scroll to the final portfolio POI, and avoid
+horizontal overflow.
+
 ## Deployment and validation notes
 
 Validate the deployed staging build at
