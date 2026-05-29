@@ -56,3 +56,28 @@ and the Vitest assertions when measurable changes land.
 4. Verify in the immersive build by launching
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` and
    toggling `Shift+L` to compare debug vs. cinematic passes.
+
+## Outage notes
+
+### 2026-05-29 text fallback clipping
+
+- **Symptoms** – Staging visitors who were routed to text mode saw the fallback content start
+  mid-page. The title and description were clipped above the viewport, and scrolling could not
+  reach them.
+- **Impact** – Explicit `?mode=text`, runtime performance failover, automated-client failover,
+  and other fallback paths could hide the page introduction whenever the full portfolio/exhibits
+  copy made the fallback card taller than the viewport.
+- **Root cause** – The document and `#app` were fixed to `height: 100%`, while
+  `#app[data-mode='text']` vertically centered the tall `.text-fallback` flex item. Once the
+  card exceeded the viewport height, flex centering pushed the top into negative-Y overflow that
+  was outside the scroll range.
+- **Corrective action** – Text mode now switches the fallback document back to normal top-aligned
+  flow: the fallback root uses `min-height: 100dvh`, `height: auto`, visible overflow, centered
+  inline card sizing, and safe-area-aware padding so all content begins within the scrollable
+  range.
+- **Regression tests** – `playwright/text-fallback-layout.spec.ts` covers 1280×720 desktop,
+  390×844 mobile, and automated-client runtime fallback. Each path asserts the title/description
+  are visible at scroll position 0, the page scrolls to the final portfolio POI, and horizontal
+  overflow stays within a 1 px tolerance.
+- **Validation notes** – Run `npm run test:e2e -- --grep "text fallback"` alongside the standard
+  format, lint, typecheck, Vitest, docs, and smoke checks before promoting the fallback layout.
