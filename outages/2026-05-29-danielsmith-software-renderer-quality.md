@@ -1,0 +1,43 @@
+# software renderer starts on expensive quality path
+
+- **Date:** 2026-05-29
+- **Overview:** [staging performance overview](./2026-05-29-danielsmith-staging-performance-overview.md)
+- **Status:** Corrective patch prepared for deployment validation
+
+## Symptom slice
+
+Chrome with hardware acceleration disabled can use SwiftShader or another software renderer, making full-resolution WebGL and postprocessing far more expensive than hardware rendering.
+
+## Evidence
+
+Code inspection showed the renderer previously capped DPR at 2 and the quality manager defaulted to cinematic unless a user preference existed. The new WEBGL_debug_renderer_info classifier flags SwiftShader, llvmpipe, softpipe, lavapipe, WARP, and related software paths before the first quality preset is chosen.
+
+## Impacted files
+
+- `src/systems/performance/rendererCapabilities.ts`
+- `src/main.ts`
+- `src/scene/graphics/qualityManager.ts`
+
+## Fix summary
+
+Software renderers now start in performance quality, receive a 0.75 base DPR cap, disable bloom/composer extras through performance quality, and expose renderer classification in diagnostics.
+
+## Interaction with other fixes
+
+This is the earliest optimization. It feeds the DPR policy, composer decisions, mirror policy, adaptive quality state, and diagnostics snapshot used by the other fixes.
+
+## Regression tests
+
+- `src/tests/rendererCapabilities.test.ts`
+- `playwright/adaptive-quality.spec.ts`
+
+## Validation commands
+
+```bash
+npm run format:write
+npm run lint
+npm run typecheck
+npm run test:ci
+npm run test:e2e -- --grep "performance|adaptive|immersive"
+npm run smoke
+```

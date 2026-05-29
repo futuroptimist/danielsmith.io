@@ -37,6 +37,8 @@ export interface SelfieMirrorBuild {
   collider: RectCollider;
   camera: PerspectiveCamera;
   renderTarget: WebGLRenderTarget;
+  setRenderTargetSize(size: number): void;
+  getRenderTargetSize(): number;
   update(context: SelfieMirrorUpdateContext): void;
   render(renderer: WebGLRenderer, scene: Scene): void;
   dispose(): void;
@@ -160,9 +162,14 @@ export function createSelfieMirror(
   accent.position.set(0, BASE_HEIGHT + height - 0.28, depth * -0.08);
   group.add(accent);
 
-  const renderTarget = new WebGLRenderTarget(512, 512, {
-    generateMipmaps: false,
-  });
+  let renderTargetSize = 512;
+  const renderTarget = new WebGLRenderTarget(
+    renderTargetSize,
+    renderTargetSize,
+    {
+      generateMipmaps: false,
+    }
+  );
   renderTarget.texture.colorSpace = SRGBColorSpace;
 
   const displayMaterial = new MeshBasicMaterial({
@@ -274,6 +281,15 @@ export function createSelfieMirror(
     renderer.autoClear = previousAutoClear;
   };
 
+  const setRenderTargetSize = (size: number) => {
+    const nextSize = Math.max(128, Math.min(512, Math.round(size)));
+    if (nextSize === renderTargetSize) {
+      return;
+    }
+    renderTargetSize = nextSize;
+    renderTarget.setSize(renderTargetSize, renderTargetSize);
+  };
+
   const dispose = () => {
     renderTarget.dispose();
     display.geometry.dispose();
@@ -293,6 +309,10 @@ export function createSelfieMirror(
     collider,
     camera,
     renderTarget,
+    setRenderTargetSize,
+    getRenderTargetSize() {
+      return renderTargetSize;
+    },
     update,
     render,
     dispose,

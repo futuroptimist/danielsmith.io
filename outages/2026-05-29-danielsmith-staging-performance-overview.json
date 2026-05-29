@@ -1,0 +1,39 @@
+{
+  "title": "staging.danielsmith.io immersive performance overview",
+  "date": "2026-05-29",
+  "environment": "staging.danielsmith.io, Chrome desktop, including Chrome with hardware acceleration disabled",
+  "status": "corrective patch prepared for deployment validation",
+  "symptom": "After zoom trails were fixed, the immersive scene remained extremely slow, around 5 FPS by user observation, and fell back after a few seconds.",
+  "rootCauses": [
+    "2026-05-29-danielsmith-software-renderer-quality.json",
+    "2026-05-29-danielsmith-postprocessing-pixel-cost.json",
+    "2026-05-29-danielsmith-selfie-mirror-render-cost.json",
+    "2026-05-29-danielsmith-per-frame-update-cost.json",
+    "2026-05-29-danielsmith-adaptive-quality-gap.json"
+  ],
+  "disprovenTheories": [
+    "Removing text fallback is not acceptable because unsupported and truly low-capability paths still need it.",
+    "Lowering or disabling the failover threshold is not a fix; the 30 FPS threshold remains and real work is reduced first.",
+    "Motion blur was not the only remaining cause because slow sessions persisted after the May 28 afterimage fix."
+  ],
+  "optimizations": [
+    "Classify software/risky WebGL renderers and expose renderer strings in diagnostics.",
+    "Default hardware to balanced quality and software to performance quality with explicit DPR caps.",
+    "Skip EffectComposer when bloom and motion blur are inactive.",
+    "Throttle, resize, or disable SelfieMirror rendering by quality and distance.",
+    "Sample broad phase timings and expose them through window.portfolio.performance.",
+    "Run an adaptive downgrade ladder before allowing runtime text fallback."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ],
+  "manualBenchmark": [
+    "Validate /?mode=immersive with hardware acceleration enabled, capture window.portfolio.performance.getSnapshot(), zoom/pan for at least 10 seconds, and confirm immersive mode remains active above the failover threshold.",
+    "Repeat with hardware acceleration disabled and confirm DPR/postprocessing/mirror work degrades before any final fallback."
+  ]
+}

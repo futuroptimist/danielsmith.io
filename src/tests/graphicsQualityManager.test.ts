@@ -130,8 +130,8 @@ describe('createGraphicsQualityManager', () => {
       storage,
     });
 
-    expect(manager.getLevel()).toBe('cinematic');
-    expect(renderer.getPixelRatio()).toBeCloseTo(1, 3);
+    expect(manager.getLevel()).toBe('balanced');
+    expect(renderer.getPixelRatio()).toBeCloseTo(0.85, 3);
 
     manager.setLevel('balanced');
     expect(renderer.getPixelRatio()).toBeCloseTo(0.85, 3);
@@ -162,7 +162,7 @@ describe('createGraphicsQualityManager', () => {
       storage,
     });
 
-    expect(manager.getLevel()).toBe('cinematic');
+    expect(manager.getLevel()).toBe('balanced');
     expect(storage.getItem).toHaveBeenCalledWith(
       'danielsmith:graphics-quality-level'
     );
