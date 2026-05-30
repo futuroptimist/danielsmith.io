@@ -134,6 +134,7 @@ import {
   resolveSeasonalLightingSchedule,
 } from './scene/lighting/seasonalPresets';
 import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
+import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
 import {
   createPerformanceDiagnostics,
   type PerformanceDiagnosticsApi,
@@ -144,6 +145,12 @@ import {
   resolveInitialQualityPolicy,
 } from './scene/performance/qualityPolicy';
 import { getRendererInfo } from './scene/performance/rendererCapabilities';
+import {
+  SOFTWARE_RENDERER_CONTINUOUS_MODE,
+  SOFTWARE_RENDERER_MODE_PARAM,
+  resolveSoftwareRendererPolicy,
+  shouldRenderSoftwareSafeFrame,
+} from './scene/performance/softwareRendererMode';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import {
   computePoiEmphasis,
@@ -390,6 +397,7 @@ import {
 import {
   createImmersiveModeUrl,
   createImmersiveRecoveryUrl,
+  createTextModeUrl,
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
 import './ui/styles.css';
@@ -426,7 +434,11 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
-      performance?: PerformanceDiagnosticsApi;
+      performance?: PerformanceDiagnosticsApi & {
+        exportCrashLog(): unknown;
+        exportCrashLogJson(): string;
+        copyCrashLog(): Promise<string>;
+      };
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -676,13 +688,29 @@ function initializeImmersiveScene(
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   const rendererInfo = getRendererInfo(renderer);
+  const softwareRendererPolicy = resolveSoftwareRendererPolicy(
+    rendererInfo,
+    window.location.search
+  );
+  const crashBreadcrumbs = createCrashBreadcrumbStore();
+  crashBreadcrumbs.setRendererInfo(rendererInfo);
+  crashBreadcrumbs.setSoftwareRendererPolicy(softwareRendererPolicy);
   const initialQualityPolicy = resolveInitialQualityPolicy(
     rendererInfo,
     window.devicePixelRatio ?? 1
   );
-  const maxPolicyPixelRatioCap = rendererInfo.isSoftwareRenderer ? 1 : 1.25;
+  const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
+    ? 0.4
+    : rendererInfo.isSoftwareRenderer
+      ? 1
+      : 1.25;
   let adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
-  let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
+  let basePixelRatio = softwareRendererPolicy.pixelRatioCap
+    ? Math.min(
+        initialQualityPolicy.basePixelRatioCap,
+        softwareRendererPolicy.pixelRatioCap
+      )
+    : initialQualityPolicy.basePixelRatioCap;
   renderer.setPixelRatio(basePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
@@ -886,6 +914,11 @@ function initializeImmersiveScene(
   });
 
   const handleFatalError = (error: unknown) => {
+    crashBreadcrumbs.record({
+      kind: 'fatal-error',
+      message: error instanceof Error ? error.message : String(error),
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+    });
     disposeImmersiveResources();
     onFatalError(error, { renderer });
   };
@@ -3092,6 +3125,7 @@ function initializeImmersiveScene(
     },
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
     isSoftwareRenderer: rendererInfo.isSoftwareRenderer,
+    minBasePixelRatio: rendererInfo.isDangerousSoftwareRenderer ? 0.35 : 0.75,
     getSelectionSource: () =>
       graphicsQualityManager?.getSelectionSource() ?? 'initial',
     onAction: (event) => {
@@ -3261,7 +3295,8 @@ function initializeImmersiveScene(
   const applyFeaturePolicy = () => {
     const policy = getQualityFeaturePolicy(
       graphicsQualityManager?.getLevel() ?? initialQualityPolicy.initialLevel,
-      rendererInfo.isSoftwareRenderer
+      rendererInfo.isSoftwareRenderer,
+      rendererInfo.isDangerousSoftwareRenderer
     );
     selfieMirror?.setRenderPolicy({
       enabled: policy.mirrorEnabled,
@@ -3328,13 +3363,77 @@ function initializeImmersiveScene(
         mirrorRenderCount: mirrorState?.renderCount ?? 0,
       };
     },
+    getSoftwareRendererPolicy: () => softwareRendererPolicy,
     getLastFailoverReason: () => lastFailoverReason,
   });
   const portfolioWindow = window as Window;
   if (!portfolioWindow.portfolio) {
     portfolioWindow.portfolio = {};
   }
-  portfolioWindow.portfolio.performance = performanceDiagnostics.methods;
+  portfolioWindow.portfolio.performance = {
+    ...performanceDiagnostics.methods,
+    exportCrashLog: crashBreadcrumbs.exportCrashLog,
+    exportCrashLogJson: crashBreadcrumbs.exportCrashLogJson,
+    copyCrashLog: crashBreadcrumbs.copyCrashLog,
+  };
+
+  let softwareRendererWarning: HTMLElement | null = null;
+  const showSoftwareRendererWarning = () => {
+    if (!softwareRendererPolicy.dangerousRenderer) {
+      return;
+    }
+    const warning = document.createElement('aside');
+    warning.className = 'software-renderer-warning';
+    warning.setAttribute('role', 'status');
+    warning.dataset.softwareSafeMode = String(
+      softwareRendererPolicy.softwareSafeMode
+    );
+    const rendererLabel =
+      rendererInfo.unmaskedRenderer ??
+      rendererInfo.renderer ??
+      'software renderer';
+    const message =
+      'Chrome is using software rendering (' +
+      rendererLabel +
+      '). Enable browser hardware acceleration for smooth immersive mode.';
+    warning.innerHTML = '';
+    const title = document.createElement('strong');
+    title.textContent = 'Software renderer safe mode';
+    const body = document.createElement('p');
+    body.textContent = message;
+    const actions = document.createElement('div');
+    actions.className = 'software-renderer-warning__actions';
+    const continueButton = document.createElement('button');
+    continueButton.type = 'button';
+    continueButton.textContent = 'Continue in safe immersive';
+    continueButton.addEventListener('click', () => {
+      warning.hidden = true;
+      softwareSafeRenderDirty = true;
+      crashBreadcrumbs.setLastUserVisibleMessage('continued in safe immersive');
+      crashBreadcrumbs.record({
+        kind: 'mode-change',
+        message: 'continued in safe immersive',
+      });
+    });
+    const continuousLink = document.createElement('a');
+    continuousLink.href = createImmersiveModeUrl(window.location, {
+      [SOFTWARE_RENDERER_MODE_PARAM]: SOFTWARE_RENDERER_CONTINUOUS_MODE,
+    });
+    continuousLink.textContent = 'Enable continuous immersive anyway';
+    continuousLink.rel = 'noopener';
+    const textLink = document.createElement('a');
+    textLink.href = createTextModeUrl(window.location);
+    textLink.textContent = 'Use text mode';
+    textLink.rel = 'noopener';
+    actions.append(continueButton, continuousLink, textLink);
+    warning.append(title, body, actions);
+    container.appendChild(warning);
+    softwareRendererWarning = warning;
+    crashBreadcrumbs.setLastUserVisibleMessage(message);
+    crashBreadcrumbs.record({ kind: 'renderer-warning', message });
+  };
+
+  showSoftwareRendererWarning();
 
   const lightingDebugController = createLightingDebugController({
     renderer,
@@ -3392,7 +3491,8 @@ function initializeImmersiveScene(
     basePixelRatio = resolveResizedBasePixelRatio(
       window.devicePixelRatio ?? 1,
       maxPolicyPixelRatioCap,
-      adaptivePixelRatioCap
+      adaptivePixelRatioCap,
+      rendererInfo.isDangerousSoftwareRenderer ? 0.35 : 0.75
     );
     if (graphicsQualityManager) {
       graphicsQualityManager.setBasePixelRatio(basePixelRatio);
@@ -3983,6 +4083,14 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    window.removeEventListener('keydown', markSoftwareSafeRenderDirty);
+    window.removeEventListener('pointerdown', markSoftwareSafeRenderDirty);
+    window.removeEventListener('pointermove', markSoftwareSafeRenderDirty);
+    window.removeEventListener('wheel', markSoftwareSafeRenderDirty);
+    if (softwareRendererWarning) {
+      softwareRendererWarning.remove();
+      softwareRendererWarning = null;
+    }
     while (keyBindingUnsubscribes.length > 0) {
       const unsubscribe = keyBindingUnsubscribes.pop();
       unsubscribe?.();
@@ -4063,12 +4171,52 @@ function initializeImmersiveScene(
   }
 
   let hasPresentedFirstFrame = false;
+  let softwareSafeLastRenderMs: number | null = null;
+  let softwareSafeRenderDirty = true;
+  let crashSnapshotFrameCount = 0;
+  function markSoftwareSafeRenderDirty() {
+    softwareSafeRenderDirty = true;
+  }
+  if (softwareRendererPolicy.softwareSafeMode) {
+    window.addEventListener('keydown', markSoftwareSafeRenderDirty, {
+      passive: true,
+    });
+    window.addEventListener('pointerdown', markSoftwareSafeRenderDirty, {
+      passive: true,
+    });
+    window.addEventListener('pointermove', markSoftwareSafeRenderDirty, {
+      passive: true,
+    });
+    window.addEventListener('wheel', markSoftwareSafeRenderDirty, {
+      passive: true,
+    });
+  }
 
   renderer.setAnimationLoop(() => {
     try {
-      const delta = clock.getDelta();
+      const nowMs = performance.now();
+      if (
+        !shouldRenderSoftwareSafeFrame({
+          nowMs,
+          lastRenderMs: softwareSafeLastRenderMs,
+          cadenceFps: softwareRendererPolicy.renderCadenceFps,
+          dirty: softwareSafeRenderDirty,
+        })
+      ) {
+        return;
+      }
+      softwareSafeLastRenderMs = nowMs;
+      softwareSafeRenderDirty = false;
+      const delta = Math.min(clock.getDelta(), 1 / 12);
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);
+      crashSnapshotFrameCount += 1;
+      if (performanceDiagnostics && crashSnapshotFrameCount % 60 === 0) {
+        crashBreadcrumbs.record({
+          kind: 'performance-snapshot',
+          snapshot: performanceDiagnostics.methods.getSnapshot(),
+        });
+      }
       const adaptiveAction = adaptiveQualityController?.update(delta);
       if (adaptiveAction) {
         applyFeaturePolicy();
@@ -4305,6 +4453,12 @@ function initializeImmersiveScene(
 
   renderer.domElement.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
-    handleFatalError(new Error('WebGL context lost during initialization.'));
+    crashBreadcrumbs.record({
+      kind: 'webgl-context-lost',
+      message: 'WebGL context lost; switching to recoverable text fallback.',
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+    });
+    lastFailoverReason = 'webgl-context-lost';
+    performanceFailover.triggerFallback('webgl-context-lost');
   });
 }

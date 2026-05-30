@@ -28,11 +28,13 @@ export function clampDevicePixelRatio(
 export function resolveResizedBasePixelRatio(
   devicePixelRatio: number,
   maxPolicyCap: number,
-  adaptivePixelRatioCap = Number.POSITIVE_INFINITY
+  adaptivePixelRatioCap = Number.POSITIVE_INFINITY,
+  floor = 0.75
 ): number {
   const resizedPixelRatio = clampDevicePixelRatio(
     devicePixelRatio,
-    maxPolicyCap
+    maxPolicyCap,
+    floor
   );
   const safeAdaptiveCap =
     Number.isFinite(adaptivePixelRatioCap) && adaptivePixelRatioCap > 0
@@ -42,9 +44,22 @@ export function resolveResizedBasePixelRatio(
 }
 
 export function resolveInitialQualityPolicy(
-  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'>,
+  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'> &
+    Partial<Pick<RendererInfoSnapshot, 'isDangerousSoftwareRenderer'>>,
   devicePixelRatio: number
 ): QualityPolicyState {
+  if (rendererInfo.isDangerousSoftwareRenderer) {
+    return {
+      initialLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.4, 0.35),
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 250,
+      reason: 'dangerous software renderer starts in ultra-low safe mode',
+    };
+  }
+
   if (rendererInfo.isSoftwareRenderer) {
     return {
       initialLevel: 'performance',
@@ -70,7 +85,8 @@ export function resolveInitialQualityPolicy(
 
 export function getQualityFeaturePolicy(
   level: GraphicsQualityLevel,
-  isSoftwareRenderer = false
+  isSoftwareRenderer = false,
+  isDangerousSoftwareRenderer = false
 ): Pick<
   QualityPolicyState,
   | 'mirrorEnabled'
@@ -78,6 +94,15 @@ export function getQualityFeaturePolicy(
   | 'mirrorUpdateRateFps'
   | 'ambientUpdateIntervalMs'
 > {
+  if (isDangerousSoftwareRenderer) {
+    return {
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 250,
+    };
+  }
+
   if (isSoftwareRenderer || level === 'performance') {
     return {
       mirrorEnabled: false,

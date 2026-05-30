@@ -11,6 +11,7 @@ describe('performance diagnostics', () => {
         unmaskedVendor: 'NVIDIA',
         unmaskedRenderer: 'ANGLE NVIDIA',
         isSoftwareRenderer: false,
+        isDangerousSoftwareRenderer: false,
         riskLevel: 'normal',
         reason: 'test',
       },
@@ -60,6 +61,14 @@ describe('performance diagnostics', () => {
         mirrorUpdateRateFps: 8,
         mirrorRenderCount: 3,
       }),
+      getSoftwareRendererPolicy: () => ({
+        dangerousRenderer: false,
+        softwareSafeMode: false,
+        continuousRendering: true,
+        renderCadenceFps: null,
+        pixelRatioCap: null,
+        reason: 'hardware renderer path',
+      }),
       getLastFailoverReason: () => null,
     });
 
@@ -78,6 +87,9 @@ describe('performance diagnostics', () => {
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
+    expect(snapshot.dangerousRenderer).toBe(false);
+    expect(snapshot.softwareSafeMode).toBe(false);
+    expect(snapshot.softwareRendererPolicy.continuousRendering).toBe(true);
     expect(snapshot.quality.selectionSource).toBe('adaptive');
     expect(snapshot.quality.adaptiveRecoveryCount).toBe(1);
     expect(snapshot.quality.adaptivePolicy).toMatchObject({
@@ -98,6 +110,7 @@ describe('performance diagnostics', () => {
         unmaskedVendor: 'NVIDIA',
         unmaskedRenderer: 'ANGLE NVIDIA',
         isSoftwareRenderer: false,
+        isDangerousSoftwareRenderer: false,
         riskLevel: 'normal',
         reason: 'test',
       },
@@ -124,6 +137,14 @@ describe('performance diagnostics', () => {
         mirrorRenderTargetSize: 192,
         mirrorUpdateRateFps: 0,
         mirrorRenderCount: 0,
+      }),
+      getSoftwareRendererPolicy: () => ({
+        dangerousRenderer: false,
+        softwareSafeMode: false,
+        continuousRendering: true,
+        renderCadenceFps: null,
+        pixelRatioCap: null,
+        reason: 'hardware renderer path',
       }),
       getLastFailoverReason: () => null,
     });

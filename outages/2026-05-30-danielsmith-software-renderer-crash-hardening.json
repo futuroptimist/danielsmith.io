@@ -1,0 +1,26 @@
+{
+  "id": "2026-05-30-danielsmith-software-renderer-crash-hardening",
+  "date": "2026-05-30",
+  "title": "Software renderer crash hardening",
+  "symptomSlice": "Chrome tabs crashed after several seconds when hardware acceleration was disabled and WebGL reported ANGLE Microsoft Basic Render Driver, while the hardware-accelerated NVIDIA path stayed stable near 60 FPS.",
+  "evidence": "Forced immersive debug runs showed performance mode, reduced DPR, disabled bloom/composer/mirror, small JS timings, mainRender-dominated frame cost, and no clear monotonic JS heap leak before the tab crash.",
+  "rootCauseClass": "Dangerous software renderer instability under continuous WebGL animation.",
+  "mitigation": "Dangerous software renderers use safe immersive guardrails by default, expose an explicit softwareRendererMode=continuous override, show a visible renderer warning, and persist bounded crash breadcrumbs with context-loss events.",
+  "manualValidation": [
+    "Open http://localhost:5173/?mode=immersive&disablePerformanceFailover=1 with Chrome hardware acceleration disabled.",
+    "Confirm the software-renderer warning and safe immersive mode are active.",
+    "Verify window.portfolio.performance.getSnapshot() reports dangerousRenderer and softwareSafeMode as true.",
+    "Verify window.portfolio.performance.exportCrashLogJson() returns bounded renderer-warning breadcrumbs.",
+    "Use softwareRendererMode=continuous only for explicit continuous-rendering debugging.",
+    "Re-enable hardware acceleration and confirm the NVIDIA path is not software-safe."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"software|crash|renderer|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}

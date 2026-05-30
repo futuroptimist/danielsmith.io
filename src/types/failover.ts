@@ -7,4 +7,5 @@ export type FallbackReason =
   | 'automated-client'
   | 'low-end-device'
   | 'console-error'
-  | 'data-saver';
+  | 'data-saver'
+  | 'webgl-context-lost';

@@ -45,6 +45,8 @@ const DEFAULT_FALLBACK_MESSAGES: Record<FallbackReason, string> = {
     'We detected a runtime error. Presenting the resilient text tour while the scene resets.',
   'data-saver':
     'Your browser requested a data-saver experience, so the lightweight text tour is active.',
+  'webgl-context-lost':
+    'WebGL context was lost. Showing the text tour with a link to try immersive again.',
 };
 
 const mergeFallbackMessages = (

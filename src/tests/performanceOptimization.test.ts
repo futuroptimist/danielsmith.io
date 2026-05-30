@@ -12,6 +12,10 @@ import {
   resolveResizedBasePixelRatio,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
+import {
+  resolveSoftwareRendererPolicy,
+  shouldRenderSoftwareSafeFrame,
+} from '../scene/performance/softwareRendererMode';
 
 function createPolicyHarness({
   level = 'balanced',
@@ -300,5 +304,89 @@ describe('immersive performance optimization policy', () => {
     expect(harness.controller.update(1.1)).toBeNull();
     expect(harness.controller.isExhausted()).toBe(true);
     expect(harness.onAction).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('dangerous software renderer guardrails', () => {
+  it('classifies Basic Render Driver, SwiftShader, WARP, and llvmpipe as dangerous', () => {
+    const renderers = [
+      'ANGLE (Microsoft, Microsoft Basic Render Driver Direct3D11 vs_5_0 ps_5_0)',
+      'Google SwiftShader',
+      'ANGLE (Microsoft, WARP D3D11)',
+      'llvmpipe (LLVM 17.0.6, 256 bits)',
+    ];
+
+    for (const unmaskedRenderer of renderers) {
+      const info = classifyRendererInfo({ unmaskedRenderer });
+      expect(info.isSoftwareRenderer).toBe(true);
+      expect(info.isDangerousSoftwareRenderer).toBe(true);
+      expect(info.riskLevel).toBe('dangerous-software');
+    }
+
+    const nvidia = classifyRendererInfo({
+      unmaskedRenderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4090, D3D11)',
+    });
+    expect(nvidia.isSoftwareRenderer).toBe(false);
+    expect(nvidia.isDangerousSoftwareRenderer).toBe(false);
+  });
+
+  it('uses ultra-low quality policy for dangerous software renderers', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: true, isDangerousSoftwareRenderer: true },
+      2
+    );
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.basePixelRatioCap).toBe(0.4);
+    expect(policy.mirrorEnabled).toBe(false);
+    expect(policy.mirrorTargetSize).toBe(128);
+
+    expect(getQualityFeaturePolicy('cinematic', true, true)).toMatchObject({
+      mirrorEnabled: false,
+      mirrorUpdateRateFps: 0,
+      mirrorTargetSize: 128,
+    });
+  });
+
+  it('caps render cadence unless continuous rendering is explicitly requested', () => {
+    const rendererInfo = classifyRendererInfo({
+      unmaskedRenderer: 'ANGLE (Microsoft, Microsoft Basic Render Driver)',
+    });
+    const safe = resolveSoftwareRendererPolicy(rendererInfo, '?mode=immersive');
+    expect(safe.softwareSafeMode).toBe(true);
+    expect(safe.renderCadenceFps).toBe(12);
+    expect(safe.pixelRatioCap).toBe(0.4);
+
+    const continuous = resolveSoftwareRendererPolicy(
+      rendererInfo,
+      '?mode=immersive&softwareRendererMode=continuous'
+    );
+    expect(continuous.softwareSafeMode).toBe(false);
+    expect(continuous.continuousRendering).toBe(true);
+    expect(continuous.renderCadenceFps).toBeNull();
+
+    expect(
+      shouldRenderSoftwareSafeFrame({
+        nowMs: 100,
+        lastRenderMs: null,
+        cadenceFps: safe.renderCadenceFps,
+        dirty: false,
+      })
+    ).toBe(true);
+    expect(
+      shouldRenderSoftwareSafeFrame({
+        nowMs: 110,
+        lastRenderMs: 100,
+        cadenceFps: safe.renderCadenceFps,
+        dirty: false,
+      })
+    ).toBe(false);
+    expect(
+      shouldRenderSoftwareSafeFrame({
+        nowMs: 110,
+        lastRenderMs: 100,
+        cadenceFps: safe.renderCadenceFps,
+        dirty: true,
+      })
+    ).toBe(true);
   });
 });
