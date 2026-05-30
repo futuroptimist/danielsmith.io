@@ -95,7 +95,9 @@ export const AR_OVERRIDES: LocaleOverrides = {
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
       actions: {
-        immersiveLink: 'تشغيل الوضع الغامر',
+        immersiveLink: 'حاول تشغيل الوضع الغامر مرة أخرى',
+        immersiveDebugLink: 'فرض وضع التصحيح الغامر',
+        clearModePreference: 'مسح تفضيل الوضع المحفوظ',
         resumeLink: 'تحميل أحدث سيرة ذاتية',
         githubLink: 'استكشاف المشاريع على GitHub',
       },

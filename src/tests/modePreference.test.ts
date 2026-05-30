@@ -4,6 +4,7 @@ import {
   MODE_PREFERENCE_KEY,
   clearModePreference,
   readModePreference,
+  shouldPersistTextPreferenceForFallback,
   writeModePreference,
 } from '../systems/failover/modePreference';
 
@@ -127,5 +128,29 @@ describe('clearModePreference', () => {
 
     expect(storage.removeItem).toHaveBeenCalledWith(MODE_PREFERENCE_KEY);
     expect(storage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+  });
+});
+
+describe('shouldPersistTextPreferenceForFallback', () => {
+  it('persists only explicit manual text-mode choices', () => {
+    expect(shouldPersistTextPreferenceForFallback('manual')).toBe(true);
+    expect(shouldPersistTextPreferenceForFallback('low-performance')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallback('low-end-device')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallback('low-memory')).toBe(false);
+    expect(shouldPersistTextPreferenceForFallback('webgl-unsupported')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallback('automated-client')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallback('data-saver')).toBe(false);
+    expect(shouldPersistTextPreferenceForFallback('console-error')).toBe(false);
+    expect(shouldPersistTextPreferenceForFallback('immersive-init-error')).toBe(
+      false
+    );
   });
 });

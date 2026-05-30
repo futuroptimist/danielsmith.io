@@ -9,7 +9,10 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
-import { createImmersiveModeUrl } from '../ui/immersiveUrl';
+import {
+  createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
+} from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',
@@ -861,7 +864,7 @@ describe('renderTextFallback', () => {
       '[data-action="immersive"]'
     );
     expect(immersiveLink?.href).toBe(
-      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+      new URL(createImmersiveRecoveryUrl(), window.location.origin).toString()
     );
   });
 
@@ -873,7 +876,7 @@ describe('renderTextFallback', () => {
     );
     expect(immersiveLink?.href).toBe(
       new URL(
-        createImmersiveModeUrl(customUrl),
+        createImmersiveRecoveryUrl(customUrl),
         window.location.origin
       ).toString()
     );
@@ -951,6 +954,19 @@ describe('renderTextFallback', () => {
     expect(section?.getAttribute('data-reason')).toBe('low-performance');
     const description = container.querySelector('.text-fallback__description');
     expect(description?.textContent).toMatch(/frame/);
+    expect(
+      container.querySelector<HTMLAnchorElement>('[data-action="immersive"]')
+        ?.href
+    ).toBe(
+      new URL(createImmersiveRecoveryUrl(), window.location.origin).toString()
+    );
+    expect(
+      container.querySelector<HTMLAnchorElement>(
+        '[data-action="immersive-debug"]'
+      )?.href
+    ).toBe(
+      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+    );
   });
 
   it('highlights data-saver fallback messaging', () => {
@@ -1011,6 +1027,7 @@ describe('renderTextFallback', () => {
 
     expect(actionLinks.map((link) => link.textContent)).toEqual([
       actions.immersiveLink,
+      actions.clearModePreference,
       actions.resumeLink,
       actions.githubLink,
     ]);

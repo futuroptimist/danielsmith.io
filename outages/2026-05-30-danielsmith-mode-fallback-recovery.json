@@ -1,0 +1,10 @@
+{
+  "id": "2026-05-30-danielsmith-mode-fallback-recovery",
+  "date": "2026-05-30",
+  "overview": "2026-05-29-danielsmith-staging-performance-overview",
+  "title": "Text fallback recovery was one-way and sticky",
+  "symptomSlice": "Text mode and runtime fallback could block immersive debugging because T only entered fallback and stored text preference could win on refresh.",
+  "rootCause": "The mode toggle disabled itself while fallback was active, and recovery UI did not clearly separate explicit text preference from runtime failover.",
+  "fixSummary": "Mode toggling is bidirectional, fallback pages include Try immersive again, debug force links remain available, and runtime failover no longer writes sticky text preference.",
+  "regressionTests": "Vitest covers recovery URL helpers and persistence rules; Playwright covers T toggling, text recovery links, immersive override precedence, and debug URL validity."
+}

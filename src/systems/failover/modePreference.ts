@@ -1,3 +1,5 @@
+import type { FallbackReason } from '../../types/failover';
+
 export type ModePreference = 'immersive' | 'text';
 
 const MODE_PREFERENCE_STORAGE_KEY = 'danielsmith.io:mode-preference';
@@ -75,5 +77,9 @@ export const clearModePreference = (
 ): void => {
   writeModePreference(null, options);
 };
+
+export const shouldPersistTextPreferenceForFallback = (
+  reason: FallbackReason
+): boolean => reason === 'manual';
 
 export const MODE_PREFERENCE_KEY = MODE_PREFERENCE_STORAGE_KEY;

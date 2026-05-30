@@ -233,8 +233,10 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
   the mapping persists locally.
 - **Touch** – Drag the on-screen joysticks (left: movement, right: camera pan) on touch devices.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
-- **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
-  lightweight portfolio view at any time.
+- **Mode toggle** – Press `T` or select the mode overlay button to move between the
+  immersive scene and the lightweight portfolio view. Text fallback pages also include
+  a "Try immersive again" action plus a clear-preference control so saved text-mode
+  choices never become traps.
 - **Accessibility presets** – Pick Standard, Calm, High contrast, or Photosensitive-safe modes
   from the HUD to soften bloom, boost readability, reduce motion cues, and tune emissive
   lighting. The Photosensitive-safe preset now also smooths greenhouse grow lights, walkway
@@ -243,7 +245,9 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 - **Help** – Use the help key (default `H` or `?`), or tap the HUD Help button to
   open a modal with controls, accessibility tips, and failover guidance.
 - **Failover** – Append `?mode=text` to the URL to load the lightweight text view.
-  Automatic detection now covers missing WebGL support, sustained frame rates below 30 FPS,
+  Append `?mode=immersive` to bypass a saved text preference, or use
+  `?mode=immersive&disablePerformanceFailover=1` when collecting debug evidence and
+  runtime low-FPS fallback must stay disabled. Automatic detection now covers missing WebGL support, sustained frame rates below 30 FPS,
   low-memory and low-core devices, data-saver preferences, slow 2G network hints,
   high-latency connections, and automated crawlers. A `<noscript>` fallback now routes no-JS
   clients and scrapers to the static tour immediately. Share preview links as
