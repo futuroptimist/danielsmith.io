@@ -49,9 +49,14 @@ interface PerformanceSnapshot {
   };
   renderer: {
     isSoftwareRenderer: boolean;
-    riskLevel: 'normal' | 'software' | 'unknown';
+    riskLevel: 'normal' | 'software' | 'dangerous-software' | 'unknown';
+    isDangerousSoftwareRenderer: boolean;
   };
   lastFailoverReason: string | null;
+  dangerousRenderer: boolean;
+  softwareSafeMode: 'off' | 'safe' | 'continuous';
+  continuousRendering: boolean;
+  maxRenderFps: number | null;
 }
 
 interface PortfolioWindow extends Window {
@@ -59,6 +64,7 @@ interface PortfolioWindow extends Window {
   portfolio?: {
     performance?: {
       getSnapshot(): PerformanceSnapshot;
+      exportCrashLog(): string;
     };
     graphics?: {
       setCameraPanForTest?(input: { x: number; y: number }): void;
@@ -101,6 +107,41 @@ async function installProductionLikeHints(page: Page) {
     defineNavigatorGetter('webdriver', false);
     defineNavigatorGetter('hardwareConcurrency', 8);
     defineNavigatorGetter('deviceMemory', 8);
+  });
+}
+
+async function mockDangerousRenderer(page: Page) {
+  await page.addInitScript(() => {
+    const dangerousRenderer =
+      'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)';
+    const patchPrototype = (prototype: WebGLRenderingContext) => {
+      const originalGetExtension = prototype.getExtension;
+      const originalGetParameter = prototype.getParameter;
+      prototype.getExtension = function getExtension(name: string) {
+        if (name === 'WEBGL_debug_renderer_info') {
+          return {
+            UNMASKED_VENDOR_WEBGL: 0x9245,
+            UNMASKED_RENDERER_WEBGL: 0x9246,
+          } as WEBGL_debug_renderer_info;
+        }
+        return originalGetExtension.call(this, name);
+      };
+      prototype.getParameter = function getParameter(parameter: number) {
+        if (parameter === 0x9245) {
+          return 'Microsoft';
+        }
+        if (parameter === 0x9246) {
+          return dangerousRenderer;
+        }
+        return originalGetParameter.call(this, parameter);
+      };
+    };
+    patchPrototype(WebGLRenderingContext.prototype);
+    if (typeof WebGL2RenderingContext !== 'undefined') {
+      patchPrototype(
+        WebGL2RenderingContext.prototype as unknown as WebGLRenderingContext
+      );
+    }
   });
 }
 
@@ -225,6 +266,35 @@ test.describe('immersive performance diagnostics', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
       expect(snapshot.quality.adaptivePolicy).toBeDefined();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('shows safe-mode warning for mocked dangerous software renderer', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await mockDangerousRenderer(page);
+
+    try {
+      await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
+      await expect(page.locator('.software-renderer-warning')).toContainText(
+        'Software renderer safe mode'
+      );
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.renderer.isDangerousSoftwareRenderer).toBe(true);
+      expect(snapshot.dangerousRenderer).toBe(true);
+      expect(snapshot.softwareSafeMode).toBe('safe');
+      expect(snapshot.maxRenderFps).toBe(15);
+      expect(snapshot.rendererSize.pixelRatio).toBeLessThanOrEqual(0.5);
+      const crashLog = await page.evaluate(() =>
+        (window as PortfolioWindow).portfolio?.performance?.exportCrashLog()
+      );
+      expect(crashLog).toContain('renderer-warning');
+      expect(crashLog?.length ?? 0).toBeLessThan(70_000);
     } finally {
       await context.close();
     }

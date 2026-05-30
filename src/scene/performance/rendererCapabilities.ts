@@ -1,6 +1,10 @@
 import type { WebGLRenderer } from 'three';
 
-export type RendererRiskLevel = 'normal' | 'software' | 'unknown';
+export type RendererRiskLevel =
+  | 'normal'
+  | 'software'
+  | 'dangerous-software'
+  | 'unknown';
 
 export interface RendererInfoSnapshot {
   vendor: string | null;
@@ -8,9 +12,20 @@ export interface RendererInfoSnapshot {
   unmaskedVendor: string | null;
   unmaskedRenderer: string | null;
   isSoftwareRenderer: boolean;
+  isDangerousSoftwareRenderer: boolean;
   riskLevel: RendererRiskLevel;
   reason: string;
 }
+
+const DANGEROUS_SOFTWARE_RENDERER_PATTERNS = [
+  /microsoft basic render(?:er| driver)?/i,
+  /swiftshader/i,
+  /\bwarp\b/i,
+  /llvmpipe/i,
+  /softpipe/i,
+  /mesa offscreen/i,
+  /angle.*(swiftshader|software|warp|microsoft basic render)/i,
+] as const;
 
 const SOFTWARE_RENDERER_PATTERNS = [
   /swiftshader/i,
@@ -36,9 +51,12 @@ export function classifyRendererInfo(input: {
   const haystack = [vendor, renderer, unmaskedVendor, unmaskedRenderer]
     .filter((value): value is string => typeof value === 'string')
     .join(' ');
-  const matchedPattern = SOFTWARE_RENDERER_PATTERNS.find((pattern) =>
-    pattern.test(haystack)
+  const dangerousPattern = DANGEROUS_SOFTWARE_RENDERER_PATTERNS.find(
+    (pattern) => pattern.test(haystack)
   );
+  const matchedPattern =
+    dangerousPattern ??
+    SOFTWARE_RENDERER_PATTERNS.find((pattern) => pattern.test(haystack));
 
   if (matchedPattern) {
     return {
@@ -47,7 +65,8 @@ export function classifyRendererInfo(input: {
       unmaskedVendor,
       unmaskedRenderer,
       isSoftwareRenderer: true,
-      riskLevel: 'software',
+      isDangerousSoftwareRenderer: dangerousPattern !== undefined,
+      riskLevel: dangerousPattern ? 'dangerous-software' : 'software',
       reason: `matched ${matchedPattern.source}`,
     };
   }
@@ -58,6 +77,7 @@ export function classifyRendererInfo(input: {
     unmaskedVendor,
     unmaskedRenderer,
     isSoftwareRenderer: false,
+    isDangerousSoftwareRenderer: false,
     riskLevel: haystack.length > 0 ? 'normal' : 'unknown',
     reason:
       haystack.length > 0
