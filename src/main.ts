@@ -303,7 +303,10 @@ import {
   createManualModeToggle,
   type ManualModeToggleHandle,
 } from './systems/failover/manualModeToggle';
-import { writeModePreference } from './systems/failover/modePreference';
+import {
+  clearModePreference,
+  writeModePreference,
+} from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
 import { createGitHubRepoStatsService } from './systems/github/repoStats';
 import {
@@ -384,7 +387,7 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import {
-  createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
 import './ui/styles.css';
@@ -531,7 +534,7 @@ const handleImmersiveFailure = (
   try {
     renderTextFallback(container, {
       reason: 'immersive-init-error',
-      immersiveUrl: createImmersiveModeUrl(),
+      immersiveUrl: createImmersiveRecoveryUrl(),
     });
   } catch (fallbackError) {
     console.error('Failed to render fallback experience:', fallbackError);
@@ -642,7 +645,7 @@ if (!container) {
 const failoverDecision = evaluateFailoverDecision();
 
 if (failoverDecision.shouldUseFallback) {
-  const immersiveUrl = createImmersiveModeUrl();
+  const immersiveUrl = createImmersiveRecoveryUrl();
   renderTextFallback(container, {
     reason: failoverDecision.reason ?? 'manual',
     immersiveUrl,
@@ -665,7 +668,7 @@ function initializeImmersiveScene(
   container: HTMLElement,
   onFatalError: (error: unknown, options: { renderer?: WebGLRenderer }) => void
 ) {
-  const immersiveUrl = createImmersiveModeUrl();
+  const immersiveUrl = createImmersiveRecoveryUrl();
   const renderer = new WebGLRenderer({ antialias: true });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
@@ -2983,10 +2986,13 @@ function initializeImmersiveScene(
       strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
       onToggle: () => {
-        writeModePreference('text');
-        if (!performanceFailover.hasTriggered()) {
-          performanceFailover.triggerFallback('manual');
+        if (performanceFailover.hasTriggered()) {
+          clearModePreference();
+          window.location.assign(createImmersiveRecoveryUrl(window.location));
+          return;
         }
+        writeModePreference('text');
+        performanceFailover.triggerFallback('manual');
       },
     });
     registerHudControlElement(manualModeToggle?.element ?? null);

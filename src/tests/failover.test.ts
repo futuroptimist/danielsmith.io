@@ -9,7 +9,16 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
-import { createImmersiveModeUrl } from '../ui/immersiveUrl';
+import {
+  clearModePreference,
+  readModePreference,
+  shouldPersistTextPreferenceForFallbackReason,
+  writeModePreference,
+} from '../systems/failover/modePreference';
+import {
+  createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
+} from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',
@@ -829,6 +838,19 @@ describe('evaluateFailoverDecision', () => {
   });
 });
 
+describe('mode preference persistence rules', () => {
+  it('persists explicit manual text preference only', () => {
+    expect(shouldPersistTextPreferenceForFallbackReason('manual')).toBe(true);
+    expect(
+      shouldPersistTextPreferenceForFallbackReason('low-performance')
+    ).toBe(false);
+    expect(shouldPersistTextPreferenceForFallbackReason('console-error')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallbackReason(undefined)).toBe(false);
+  });
+});
+
 describe('renderTextFallback', () => {
   const render = (
     reason: FallbackReason,
@@ -861,7 +883,7 @@ describe('renderTextFallback', () => {
       '[data-action="immersive"]'
     );
     expect(immersiveLink?.href).toBe(
-      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+      new URL(createImmersiveRecoveryUrl(), window.location.origin).toString()
     );
   });
 
@@ -873,10 +895,44 @@ describe('renderTextFallback', () => {
     );
     expect(immersiveLink?.href).toBe(
       new URL(
-        createImmersiveModeUrl(customUrl),
+        createImmersiveRecoveryUrl(customUrl),
         window.location.origin
       ).toString()
     );
+  });
+
+  it('adds a debug immersive link for runtime fallback reasons', () => {
+    const container = render('low-performance');
+    const debugLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive-debug"]'
+    );
+    expect(debugLink?.href).toContain('mode=immersive');
+    expect(debugLink?.href).toContain('disablePerformanceFailover=1');
+  });
+
+  it('omits the debug immersive link for manual text mode', () => {
+    const container = render('manual');
+    expect(
+      container.querySelector('[data-action="immersive-debug"]')
+    ).toBeNull();
+  });
+
+  it('clears the saved mode preference before retrying immersive mode', () => {
+    writeModePreference('text');
+    const container = render('manual');
+    const retryLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+
+    retryLink?.addEventListener('click', (event) => event.preventDefault(), {
+      once: true,
+    });
+    retryLink?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true })
+    );
+
+    expect(readModePreference()).toBeNull();
+    clearModePreference();
   });
 
   it('indicates WebGL unsupported reason', () => {
@@ -1011,6 +1067,7 @@ describe('renderTextFallback', () => {
 
     expect(actionLinks.map((link) => link.textContent)).toEqual([
       actions.immersiveLink,
+      actions.clearPreferenceLink,
       actions.resumeLink,
       actions.githubLink,
     ]);

@@ -100,7 +100,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
       actions: {
-        immersiveLink: 'Launch immersive mode',
+        immersiveLink: 'Try immersive again',
+        immersiveDebugLink:
+          'Debug: force immersive without performance failover',
+        clearPreferenceLink: 'Clear saved mode preference',
         resumeLink: 'Download the latest résumé',
         githubLink: 'Explore projects on GitHub',
       },
@@ -258,16 +261,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     modeToggle: {
       keyHint: 'T',
       idleLabelTemplate: 'Text mode · Press {keyHint}',
-      idleDescriptionTemplate: 'Switch to the text-only portfolio',
+      idleDescriptionTemplate:
+        'Toggle to the text-only portfolio. Press again from text mode to try immersive.',
       idleAnnouncementTemplate:
-        'Switch to the text-only portfolio. Press {keyHint} to activate.',
-      idleTitleTemplate: 'Switch to the text-only portfolio ({keyHint})',
-      pendingLabelTemplate: 'Switching to text mode…',
-      pendingAnnouncementTemplate:
-        'Switch to the text-only portfolio. Switching to text mode…',
-      activeLabelTemplate: 'Text mode active',
-      activeDescriptionTemplate: 'Text mode already active.',
-      activeAnnouncementTemplate: 'Text mode already active.',
+        'Toggle to the text-only portfolio. Press {keyHint} to activate.',
+      idleTitleTemplate: 'Toggle between immersive and text mode ({keyHint})',
+      pendingLabelTemplate: 'Switching modes…',
+      pendingAnnouncementTemplate: 'Mode toggle requested. Switching modes…',
+      activeLabelTemplate: 'Try immersive again · Press {keyHint}',
+      activeDescriptionTemplate:
+        'Text mode is active. Activate to try immersive mode again.',
+      activeAnnouncementTemplate:
+        'Text mode is active. Press {keyHint} to try immersive mode again.',
       errorLabelTemplate: 'Retry text mode · Press {keyHint}',
       errorDescriptionTemplate:
         'Text mode toggle failed. Try again or use the immersive link.',
@@ -375,7 +380,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             {
               label: 'T',
               description:
-                'Toggle between immersive mode and the text fallback.',
+                'Toggle between immersive mode and the text fallback; from text mode, T tries immersive again.',
             },
             {
               label: 'Shift + L',
@@ -395,7 +400,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             {
               label: 'Manual toggle',
               description:
-                'Use the on-screen Text mode button or press T at any time.',
+                'Use the on-screen mode button or press T at any time to switch both ways.',
             },
             {
               label: 'Motion blur slider',

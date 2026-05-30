@@ -164,6 +164,15 @@ const buildModeUrl = (
   return `${base}${query ? `?${query}` : ''}${hash ?? ''}`;
 };
 
+export const createImmersiveRecoveryUrl = (
+  input?: UrlLike,
+  extraParams?: ExtraParams
+) =>
+  buildModeUrl(input, IMMERSIVE_MODE_VALUE, {
+    includePerformanceBypass: false,
+    extraParams,
+  });
+
 export const createImmersiveModeUrl = (
   input?: UrlLike,
   extraParams?: ExtraParams

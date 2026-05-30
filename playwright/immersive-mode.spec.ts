@@ -47,6 +47,75 @@ test.describe('immersive experience', () => {
     expect.soft(pageErrors).toHaveLength(0);
   });
 
+  test('toggles between immersive and text mode with the T shortcut', async ({
+    page,
+  }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    await page.keyboard.press('t');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'fallback'
+    );
+    await expect(
+      page.locator('#app[data-mode="text"] .text-fallback')
+    ).toBeVisible();
+
+    await page.keyboard.press('t');
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
+  });
+
+  test('text fallback recovery controls bypass stored text preference', async ({
+    page,
+  }) => {
+    await page.goto('/?mode=text', { waitUntil: 'domcontentloaded' });
+    await expect(
+      page.locator('#app[data-mode="text"] .text-fallback')
+    ).toBeVisible();
+
+    await page.getByRole('link', { name: /try immersive again/i }).click();
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    await page.evaluate(() => {
+      window.localStorage.setItem('danielsmith.io:mode-preference', 'text');
+    });
+    await page.goto('/?mode=immersive', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+  });
+
+  test('debug immersive URL remains valid for forced collection', async ({
+    page,
+  }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    expect(
+      new URL(page.url()).searchParams.get('disablePerformanceFailover')
+    ).toBe('1');
+  });
+
   test('upper floor shows only when ascending stairs; ceilings are translucent', async ({
     page,
   }) => {

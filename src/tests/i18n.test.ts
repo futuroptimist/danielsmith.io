@@ -97,11 +97,13 @@ describe('i18n utilities', () => {
     expect(english.keyHint).toBe('T');
     expect(english.idleLabel).toBe('Text mode · Press T');
     expect(english.idleHudAnnouncement).toBe(
-      'Switch to the text-only portfolio. Press T to activate.'
+      'Toggle to the text-only portfolio. Press T to activate.'
     );
-    expect(english.idleTitle).toBe('Switch to the text-only portfolio (T)');
+    expect(english.idleTitle).toBe(
+      'Toggle between immersive and text mode (T)'
+    );
     expect(english.pendingHudAnnouncement).toBe(
-      'Switch to the text-only portfolio. Switching to text mode…'
+      'Mode toggle requested. Switching modes…'
     );
     expect(english.errorLabel).toBe('Retry text mode · Press T');
     expect(english.errorHudAnnouncement).toBe(
@@ -115,10 +117,10 @@ describe('i18n utilities', () => {
     expect(pseudo.keyHint).toBe('T');
     expect(pseudo.idleLabel).toBe('⟦Text mode · Press T⟧');
     expect(pseudo.idleHudAnnouncement).toBe(
-      '⟦Switch to the text-only portfolio. Press T to activate.⟧'
+      '⟦Toggle to the text-only portfolio. Press T to activate.⟧'
     );
     expect(pseudo.pendingHudAnnouncement).toBe(
-      '⟦Switch to the text-only portfolio. Switching to text mode…⟧'
+      '⟦Mode toggle requested. Switching modes…⟧'
     );
     expect(pseudo.errorLabel).toBe('⟦Retry text mode · Press T⟧');
     expect(pseudo.errorHudAnnouncement).toBe(
@@ -153,7 +155,7 @@ describe('i18n utilities', () => {
   it('builds mode announcer messages from localized HUD and fallback copy', () => {
     const english = getModeAnnouncerStrings('en');
     expect(english.immersiveReady).toBe(
-      'Switch to the text-only portfolio. Press T to activate.'
+      'Toggle to the text-only portfolio. Press T to activate.'
     );
     expect(english.fallbackReasons['data-saver']).toContain('data-saver');
 
