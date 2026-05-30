@@ -3,6 +3,10 @@ export const IMMERSIVE_MODE_VALUE = 'immersive';
 export const DISABLE_PERFORMANCE_FAILOVER_PARAM = 'disablePerformanceFailover';
 export const DISABLE_PERFORMANCE_FAILOVER_VALUE = '1';
 export const TEXT_MODE_VALUE = 'text';
+export const SOFTWARE_RENDERER_MODE_PARAM = 'softwareRendererMode';
+export const SOFTWARE_RENDERER_SAFE_VALUE = 'safe';
+export const SOFTWARE_RENDERER_CONTINUOUS_VALUE = 'continuous';
+export const FORCE_CONTINUOUS_RENDERING_PARAM = 'forceContinuousRendering';
 export const IMMERSIVE_PREVIEW_BASE_URL = 'http://localhost:5173/';
 export type ModeSelection =
   | typeof IMMERSIVE_MODE_VALUE
@@ -186,6 +190,26 @@ export const createImmersivePreviewUrl = (
   baseUrl: UrlLike = IMMERSIVE_PREVIEW_BASE_URL,
   extraParams?: ExtraParams
 ): string => createImmersiveModeUrl(baseUrl, extraParams);
+
+export const createSoftwareSafeImmersiveUrl = (
+  input?: UrlLike,
+  extraParams?: ExtraParams
+) =>
+  createImmersiveModeUrl(input, {
+    ...extraParams,
+    [SOFTWARE_RENDERER_MODE_PARAM]: SOFTWARE_RENDERER_SAFE_VALUE,
+    [FORCE_CONTINUOUS_RENDERING_PARAM]: null,
+  });
+
+export const createContinuousSoftwareImmersiveUrl = (
+  input?: UrlLike,
+  extraParams?: ExtraParams
+) =>
+  createImmersiveModeUrl(input, {
+    ...extraParams,
+    [SOFTWARE_RENDERER_MODE_PARAM]: SOFTWARE_RENDERER_CONTINUOUS_VALUE,
+    [FORCE_CONTINUOUS_RENDERING_PARAM]: DISABLE_PERFORMANCE_FAILOVER_VALUE,
+  });
 
 export const createTextModeUrl = (input?: UrlLike, extraParams?: ExtraParams) =>
   buildModeUrl(input, TEXT_MODE_VALUE, {

@@ -4,6 +4,7 @@ import type {
 } from '../graphics/qualityManager';
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
+import type { SoftwareRendererPolicyState } from './qualityPolicy';
 import type { RendererInfoSnapshot } from './rendererCapabilities';
 
 export type PhaseName =
@@ -56,6 +57,7 @@ export interface FrameStatsSnapshot {
 
 export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   renderer: RendererInfoSnapshot;
+  softwareRendererPolicy: SoftwareRendererPolicyState;
   rendererSize: RendererSizeSnapshot;
   quality: QualityStateSnapshot;
   features: FeatureStateSnapshot;
@@ -69,6 +71,8 @@ export interface PerformanceDiagnosticsApi {
   getQualityState(): QualityStateSnapshot;
   getFeatureState(): FeatureStateSnapshot;
   getLastFailoverReason(): string | null;
+  exportCrashLog?(): string;
+  copyCrashLog?(): Promise<boolean>;
 }
 
 interface PerformanceDiagnosticsOptions {
@@ -77,6 +81,9 @@ interface PerformanceDiagnosticsOptions {
   getQualityState: () => QualityStateSnapshot;
   getFeatureState: () => FeatureStateSnapshot;
   getLastFailoverReason: () => string | null;
+  getSoftwareRendererPolicy?: () => SoftwareRendererPolicyState;
+  exportCrashLog?: () => string;
+  copyCrashLog?: () => Promise<boolean>;
   maxSamples?: number;
 }
 
@@ -129,6 +136,14 @@ export function createPerformanceDiagnostics({
   getQualityState,
   getFeatureState,
   getLastFailoverReason,
+  getSoftwareRendererPolicy = () => ({
+    mode: 'continuous',
+    safeMode: false,
+    renderCadenceFps: null,
+    reason: 'software renderer policy unavailable',
+  }),
+  exportCrashLog,
+  copyCrashLog,
   maxSamples = 180,
 }: PerformanceDiagnosticsOptions) {
   const frameMsSamples: number[] = [];
@@ -150,6 +165,7 @@ export function createPerformanceDiagnostics({
       return {
         ...diagnosticsMethods.getFrameStats(),
         renderer: diagnosticsMethods.getRendererInfo(),
+        softwareRendererPolicy: getSoftwareRendererPolicy(),
         rendererSize: getRendererSize(),
         quality: diagnosticsMethods.getQualityState(),
         features: diagnosticsMethods.getFeatureState(),
@@ -189,6 +205,8 @@ export function createPerformanceDiagnostics({
     getLastFailoverReason() {
       return getLastFailoverReason();
     },
+    exportCrashLog,
+    copyCrashLog,
   };
 
   return {

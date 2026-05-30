@@ -134,6 +134,7 @@ import {
   resolveSeasonalLightingSchedule,
 } from './scene/lighting/seasonalPresets';
 import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
+import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
 import {
   createPerformanceDiagnostics,
   type PerformanceDiagnosticsApi,
@@ -142,6 +143,7 @@ import {
   getQualityFeaturePolicy,
   resolveResizedBasePixelRatio,
   resolveInitialQualityPolicy,
+  resolveSoftwareRendererPolicy,
 } from './scene/performance/qualityPolicy';
 import { getRendererInfo } from './scene/performance/rendererCapabilities';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
@@ -388,10 +390,14 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import {
+  createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
+  createSoftwareSafeImmersiveUrl,
   createImmersiveRecoveryUrl,
+  createTextModeUrl,
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
+import { createSoftwareRendererWarning } from './ui/softwareRendererWarning';
 import './ui/styles.css';
 
 const WALL_HEIGHT = 6;
@@ -676,11 +682,39 @@ function initializeImmersiveScene(
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   const rendererInfo = getRendererInfo(renderer);
+  const softwareRendererPolicy = resolveSoftwareRendererPolicy(
+    rendererInfo,
+    window.location.search
+  );
   const initialQualityPolicy = resolveInitialQualityPolicy(
     rendererInfo,
-    window.devicePixelRatio ?? 1
+    window.devicePixelRatio ?? 1,
+    softwareRendererPolicy
   );
-  const maxPolicyPixelRatioCap = rendererInfo.isSoftwareRenderer ? 1 : 1.25;
+  const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
+    ? initialQualityPolicy.basePixelRatioCap
+    : rendererInfo.isSoftwareRenderer
+      ? 0.75
+      : 1.25;
+  document.documentElement.dataset.softwareRendererMode =
+    softwareRendererPolicy.mode;
+  document.documentElement.dataset.dangerousRenderer = String(
+    rendererInfo.isDangerousSoftwareRenderer
+  );
+
+  const crashBreadcrumbs = createCrashBreadcrumbStore({
+    storage: (() => {
+      try {
+        return window.localStorage;
+      } catch {
+        try {
+          return window.sessionStorage;
+        } catch {
+          return undefined;
+        }
+      }
+    })(),
+  });
   let adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
   let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
   renderer.setPixelRatio(basePixelRatio);
@@ -728,6 +762,38 @@ function initializeImmersiveScene(
   let avatarAccessoryProgression: AvatarAccessoryProgressionHandle | null =
     null;
   let avatarAssetPipeline: AvatarAssetPipeline | null = null;
+  let softwareRendererWarning: ReturnType<
+    typeof createSoftwareRendererWarning
+  > | null = null;
+  let softwareSafeRenderRequested = true;
+  const softwareSafeRenderEvents = [
+    'keydown',
+    'pointerdown',
+    'pointermove',
+    'wheel',
+    'resize',
+  ] as const;
+  const requestSoftwareSafeRender = () => {
+    softwareSafeRenderRequested = true;
+  };
+  const recordRendererWarning = (message: string) => {
+    crashBreadcrumbs.record({
+      type: 'renderer-warning',
+      message,
+      renderer: rendererInfo,
+      softwareRendererPolicy,
+    });
+  };
+  if (rendererInfo.isDangerousSoftwareRenderer) {
+    softwareRendererWarning = createSoftwareRendererWarning({
+      rendererInfo,
+      safeUrl: createSoftwareSafeImmersiveUrl(),
+      continuousUrl: createContinuousSoftwareImmersiveUrl(),
+      textUrl: createTextModeUrl(),
+      onContinueSafe: requestSoftwareSafeRender,
+      onVisible: recordRendererWarning,
+    });
+  }
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
@@ -886,6 +952,13 @@ function initializeImmersiveScene(
   });
 
   const handleFatalError = (error: unknown) => {
+    crashBreadcrumbs.record({
+      type: 'fatal-error',
+      message: error instanceof Error ? error.message : String(error),
+      renderer: rendererInfo,
+      softwareRendererPolicy,
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+    });
     disposeImmersiveResources();
     onFatalError(error, { renderer });
   };
@@ -3281,7 +3354,8 @@ function initializeImmersiveScene(
     return count;
   };
 
-  const shouldUseComposer = () => getActivePostprocessingPassCount() > 0;
+  const shouldUseComposer = () =>
+    !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
     applyFeaturePolicy();
@@ -3329,6 +3403,9 @@ function initializeImmersiveScene(
       };
     },
     getLastFailoverReason: () => lastFailoverReason,
+    getSoftwareRendererPolicy: () => softwareRendererPolicy,
+    exportCrashLog: () => crashBreadcrumbs.exportCrashLog(),
+    copyCrashLog: () => crashBreadcrumbs.copyCrashLog(),
   });
   const portfolioWindow = window as Window;
   if (!portfolioWindow.portfolio) {
@@ -3826,6 +3903,11 @@ function initializeImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    softwareSafeRenderEvents.forEach((eventName) => {
+      window.removeEventListener(eventName, requestSoftwareSafeRender);
+    });
+    softwareRendererWarning?.dispose();
+    softwareRendererWarning = null;
     immersiveDisposed = true;
     ledAnimator = null;
     lightmapAnimator = null;
@@ -4062,13 +4144,44 @@ function initializeImmersiveScene(
     gitshelvesInstallation = null;
   }
 
+  const softwareSafeRenderIntervalMs = softwareRendererPolicy.renderCadenceFps
+    ? 1000 / softwareRendererPolicy.renderCadenceFps
+    : 0;
   let hasPresentedFirstFrame = false;
+  let lastSoftwareSafeRenderMs = 0;
+  let lastCrashBreadcrumbSnapshotMs = 0;
+  softwareSafeRenderEvents.forEach((eventName) => {
+    window.addEventListener(eventName, requestSoftwareSafeRender, {
+      passive: true,
+    });
+  });
 
   renderer.setAnimationLoop(() => {
     try {
+      const frameStartMs = performance.now();
+      if (softwareRendererPolicy.safeMode && hasPresentedFirstFrame) {
+        const hasCadenceElapsed =
+          softwareSafeRenderIntervalMs > 0 &&
+          frameStartMs - lastSoftwareSafeRenderMs >=
+            softwareSafeRenderIntervalMs;
+        if (!softwareSafeRenderRequested && !hasCadenceElapsed) {
+          return;
+        }
+      }
+      softwareSafeRenderRequested = false;
+      lastSoftwareSafeRenderMs = frameStartMs;
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);
+      if (
+        performanceDiagnostics &&
+        frameStartMs - lastCrashBreadcrumbSnapshotMs >= 1000
+      ) {
+        lastCrashBreadcrumbSnapshotMs = frameStartMs;
+        crashBreadcrumbs.recordSnapshot(
+          performanceDiagnostics.methods.getSnapshot()
+        );
+      }
       const adaptiveAction = adaptiveQualityController?.update(delta);
       if (adaptiveAction) {
         applyFeaturePolicy();
@@ -4305,6 +4418,15 @@ function initializeImmersiveScene(
 
   renderer.domElement.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
-    handleFatalError(new Error('WebGL context lost during initialization.'));
+    crashBreadcrumbs.record({
+      type: 'webgl-context-lost',
+      message: 'WebGL context lost; switching to a recoverable fallback.',
+      renderer: rendererInfo,
+      softwareRendererPolicy,
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+    });
+    handleFatalError(
+      new Error('WebGL context lost; try immersive again after recovery.')
+    );
   });
 }

@@ -11,6 +11,7 @@ describe('performance diagnostics', () => {
         unmaskedVendor: 'NVIDIA',
         unmaskedRenderer: 'ANGLE NVIDIA',
         isSoftwareRenderer: false,
+        isDangerousSoftwareRenderer: false,
         riskLevel: 'normal',
         reason: 'test',
       },
@@ -76,6 +77,7 @@ describe('performance diagnostics', () => {
     expect(snapshot.minFps).toBeCloseTo(10, 0);
     expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
+    expect(snapshot.softwareRendererPolicy.safeMode).toBe(false);
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
     expect(snapshot.quality.selectionSource).toBe('adaptive');
@@ -98,6 +100,7 @@ describe('performance diagnostics', () => {
         unmaskedVendor: 'NVIDIA',
         unmaskedRenderer: 'ANGLE NVIDIA',
         isSoftwareRenderer: false,
+        isDangerousSoftwareRenderer: false,
         riskLevel: 'normal',
         reason: 'test',
       },

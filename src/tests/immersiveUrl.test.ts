@@ -331,3 +331,19 @@ describe('immersive flag helpers', () => {
     ).toBe(false);
   });
 });
+
+describe('software renderer immersive URLs', () => {
+  it('adds explicit safe and continuous software renderer modes', async () => {
+    const {
+      createSoftwareSafeImmersiveUrl,
+      createContinuousSoftwareImmersiveUrl,
+    } = await import('../ui/immersiveUrl');
+
+    expect(createSoftwareSafeImmersiveUrl('/debug?foo=bar')).toBe(
+      '/debug?foo=bar&mode=immersive&disablePerformanceFailover=1&softwareRendererMode=safe'
+    );
+    expect(createContinuousSoftwareImmersiveUrl('/debug')).toBe(
+      '/debug?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous&forceContinuousRendering=1'
+    );
+  });
+});

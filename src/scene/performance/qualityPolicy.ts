@@ -2,6 +2,72 @@ import type { GraphicsQualityLevel } from '../graphics/qualityManager';
 
 import type { RendererInfoSnapshot } from './rendererCapabilities';
 
+export type SoftwareRendererMode = 'safe' | 'continuous';
+
+export interface SoftwareRendererPolicyState {
+  mode: SoftwareRendererMode;
+  safeMode: boolean;
+  renderCadenceFps: number | null;
+  reason: string;
+}
+
+const SOFTWARE_RENDERER_MODE_PARAM = 'softwareRendererMode';
+const FORCE_CONTINUOUS_RENDERING_PARAM = 'forceContinuousRendering';
+const SOFTWARE_SAFE_RENDER_CADENCE_FPS = 12;
+
+const isTruthyParam = (value: string | null): boolean => {
+  const normalized = value?.trim().toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes';
+};
+
+export function resolveSoftwareRendererPolicy(
+  rendererInfo: Pick<RendererInfoSnapshot, 'isDangerousSoftwareRenderer'>,
+  search: string | URLSearchParams = typeof window !== 'undefined'
+    ? window.location.search
+    : ''
+): SoftwareRendererPolicyState {
+  const params =
+    search instanceof URLSearchParams
+      ? search
+      : new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+  const requestedMode = params
+    .get(SOFTWARE_RENDERER_MODE_PARAM)
+    ?.trim()
+    .toLowerCase();
+  const forceContinuous = isTruthyParam(
+    params.get(FORCE_CONTINUOUS_RENDERING_PARAM)
+  );
+
+  if (
+    rendererInfo.isDangerousSoftwareRenderer &&
+    (requestedMode === 'continuous' || forceContinuous)
+  ) {
+    return {
+      mode: 'continuous',
+      safeMode: false,
+      renderCadenceFps: null,
+      reason:
+        'dangerous software renderer continuous rendering override requested',
+    };
+  }
+
+  if (rendererInfo.isDangerousSoftwareRenderer) {
+    return {
+      mode: 'safe',
+      safeMode: true,
+      renderCadenceFps: SOFTWARE_SAFE_RENDER_CADENCE_FPS,
+      reason: 'dangerous software renderer uses software-safe capped rendering',
+    };
+  }
+
+  return {
+    mode: 'continuous',
+    safeMode: false,
+    renderCadenceFps: null,
+    reason: 'hardware renderer uses continuous rendering',
+  };
+}
+
 export interface QualityPolicyState {
   initialLevel: GraphicsQualityLevel;
   basePixelRatioCap: number;
@@ -9,6 +75,8 @@ export interface QualityPolicyState {
   mirrorTargetSize: number;
   mirrorUpdateRateFps: number;
   ambientUpdateIntervalMs: number;
+  softwareSafeMode: boolean;
+  renderCadenceFps: number | null;
   reason: string;
 }
 
@@ -42,17 +110,43 @@ export function resolveResizedBasePixelRatio(
 }
 
 export function resolveInitialQualityPolicy(
-  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'>,
-  devicePixelRatio: number
+  rendererInfo: Pick<
+    RendererInfoSnapshot,
+    'isSoftwareRenderer' | 'isDangerousSoftwareRenderer'
+  >,
+  devicePixelRatio: number,
+  softwareRendererPolicy: SoftwareRendererPolicyState = resolveSoftwareRendererPolicy(
+    rendererInfo
+  )
 ): QualityPolicyState {
+  if (
+    rendererInfo.isDangerousSoftwareRenderer &&
+    softwareRendererPolicy.safeMode
+  ) {
+    return {
+      initialLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.45, 0.35),
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 250,
+      softwareSafeMode: true,
+      renderCadenceFps: softwareRendererPolicy.renderCadenceFps,
+      reason:
+        'dangerous software renderer starts in software-safe performance mode',
+    };
+  }
+
   if (rendererInfo.isSoftwareRenderer) {
     return {
       initialLevel: 'performance',
-      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 1, 0.75),
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.75, 0.5),
       mirrorEnabled: false,
       mirrorTargetSize: 192,
       mirrorUpdateRateFps: 0,
       ambientUpdateIntervalMs: 100,
+      softwareSafeMode: false,
+      renderCadenceFps: null,
       reason: 'software renderer starts in performance mode',
     };
   }
@@ -64,6 +158,8 @@ export function resolveInitialQualityPolicy(
     mirrorTargetSize: 320,
     mirrorUpdateRateFps: 8,
     ambientUpdateIntervalMs: 33,
+    softwareSafeMode: false,
+    renderCadenceFps: null,
     reason: 'default desktop path balances fidelity with pixel cost',
   };
 }
