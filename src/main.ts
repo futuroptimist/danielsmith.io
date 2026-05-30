@@ -139,6 +139,7 @@ import {
   type PerformanceDiagnosticsApi,
 } from './scene/performance/performanceDiagnostics';
 import {
+  clampDevicePixelRatio,
   getQualityFeaturePolicy,
   resolveInitialQualityPolicy,
 } from './scene/performance/qualityPolicy';

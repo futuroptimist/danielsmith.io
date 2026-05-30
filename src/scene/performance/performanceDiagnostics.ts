@@ -136,7 +136,7 @@ export function createPerformanceDiagnostics({
     }
   };
 
-  const diagnosticsMethods = {
+  const diagnosticsMethods: PerformanceDiagnosticsApi = {
     getSnapshot() {
       return {
         ...diagnosticsMethods.getFrameStats(),
@@ -180,7 +180,7 @@ export function createPerformanceDiagnostics({
     getLastFailoverReason() {
       return getLastFailoverReason();
     },
-  } satisfies PerformanceDiagnosticsApi;
+  };
 
   return {
     methods: diagnosticsMethods,
