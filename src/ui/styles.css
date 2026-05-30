@@ -204,6 +204,21 @@ canvas {
   font-weight: 600;
 }
 
+.text-fallback__button-link {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: inherit;
+}
+
+.text-fallback__button-link:disabled {
+  color: #b8c7d6;
+  cursor: default;
+}
+
 .text-fallback__link:hover,
 .text-fallback__link:focus {
   text-decoration: underline;

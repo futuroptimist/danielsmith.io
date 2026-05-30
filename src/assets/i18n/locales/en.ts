@@ -100,7 +100,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
       actions: {
-        immersiveLink: 'Launch immersive mode',
+        immersiveLink: 'Try immersive again',
+        immersiveDebugLink: 'Force immersive debug mode',
+        clearModePreference: 'Clear saved mode preference',
+        clearModePreferenceDone: 'Saved mode preference cleared',
         resumeLink: 'Download the latest résumé',
         githubLink: 'Explore projects on GitHub',
       },
@@ -261,13 +264,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       idleDescriptionTemplate: 'Switch to the text-only portfolio',
       idleAnnouncementTemplate:
         'Switch to the text-only portfolio. Press {keyHint} to activate.',
-      idleTitleTemplate: 'Switch to the text-only portfolio ({keyHint})',
-      pendingLabelTemplate: 'Switching to text mode…',
-      pendingAnnouncementTemplate:
-        'Switch to the text-only portfolio. Switching to text mode…',
-      activeLabelTemplate: 'Text mode active',
-      activeDescriptionTemplate: 'Text mode already active.',
-      activeAnnouncementTemplate: 'Text mode already active.',
+      idleTitleTemplate: 'Toggle between immersive and text mode ({keyHint})',
+      pendingLabelTemplate: 'Switching modes…',
+      pendingAnnouncementTemplate: 'Switching between immersive and text mode…',
+      activeLabelTemplate: 'Immersive mode · Press {keyHint}',
+      activeDescriptionTemplate: 'Switch back to immersive mode',
+      activeAnnouncementTemplate:
+        'Text mode active. Press {keyHint} to try immersive again.',
       errorLabelTemplate: 'Retry text mode · Press {keyHint}',
       errorDescriptionTemplate:
         'Text mode toggle failed. Try again or use the immersive link.',

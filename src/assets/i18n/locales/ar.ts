@@ -96,6 +96,9 @@ export const AR_OVERRIDES: LocaleOverrides = {
       },
       actions: {
         immersiveLink: 'تشغيل الوضع الغامر',
+        immersiveDebugLink: 'فرض وضع التصحيح الغامر',
+        clearModePreference: 'مسح تفضيل الوضع المحفوظ',
+        clearModePreferenceDone: 'تم مسح تفضيل الوضع المحفوظ',
         resumeLink: 'تحميل أحدث سيرة ذاتية',
         githubLink: 'استكشاف المشاريع على GitHub',
       },
