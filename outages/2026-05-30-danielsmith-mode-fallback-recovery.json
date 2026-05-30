@@ -1,0 +1,27 @@
+{
+  "id": "2026-05-30-danielsmith-mode-fallback-recovery",
+  "date": "2026-05-30",
+  "status": "mitigated",
+  "symptom": "Text mode and runtime fallback could block immersive debugging or recovery without the force-immersive debug URL.",
+  "rootCause": "The T shortcut was one-way and fallback UI conflated normal immersive recovery with the performance-failover bypass URL.",
+  "fixes": [
+    "Make T a bidirectional mode toggle that navigates from fallback to a clean immersive URL.",
+    "Add Try immersive again and clear-preference recovery actions to the text fallback.",
+    "Expose disablePerformanceFailover=1 only as an advanced debug fallback link for runtime fallback reasons.",
+    "Keep runtime low-performance fallback from writing sticky text-mode preference."
+  ],
+  "debugUrls": [
+    "/?mode=immersive",
+    "/?mode=immersive&disablePerformanceFailover=1",
+    "/?mode=text"
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"mode|fallback|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}

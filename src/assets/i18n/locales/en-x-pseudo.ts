@@ -101,7 +101,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
       },
       actions: {
-        immersiveLink: wrap('Launch immersive mode'),
+        immersiveLink: wrap('Try immersive again'),
+        immersiveDebugLink: wrap(
+          'Debug: force immersive without performance failover'
+        ),
+        clearPreferenceLink: wrap('Clear saved mode preference'),
         resumeLink: wrap('Download the latest résumé'),
         githubLink: wrap('Explore projects on GitHub'),
       },
@@ -250,18 +254,26 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     modeToggle: {
       keyHint: 'T',
       idleLabelTemplate: wrap('Text mode · Press {keyHint}'),
-      idleDescriptionTemplate: wrap('Switch to the text-only portfolio'),
+      idleDescriptionTemplate: wrap(
+        'Toggle to the text-only portfolio. Press again from text mode to try immersive.'
+      ),
       idleAnnouncementTemplate: wrap(
-        'Switch to the text-only portfolio. Press {keyHint} to activate.'
+        'Toggle to the text-only portfolio. Press {keyHint} to activate.'
       ),
-      idleTitleTemplate: wrap('Switch to the text-only portfolio ({keyHint})'),
-      pendingLabelTemplate: wrap('Switching to text mode…'),
+      idleTitleTemplate: wrap(
+        'Toggle between immersive and text mode ({keyHint})'
+      ),
+      pendingLabelTemplate: wrap('Switching modes…'),
       pendingAnnouncementTemplate: wrap(
-        'Switch to the text-only portfolio. Switching to text mode…'
+        'Mode toggle requested. Switching modes…'
       ),
-      activeLabelTemplate: wrap('Text mode active'),
-      activeDescriptionTemplate: wrap('Text mode already active.'),
-      activeAnnouncementTemplate: wrap('Text mode already active.'),
+      activeLabelTemplate: wrap('Try immersive again · Press {keyHint}'),
+      activeDescriptionTemplate: wrap(
+        'Text mode is active. Activate to try immersive mode again.'
+      ),
+      activeAnnouncementTemplate: wrap(
+        'Text mode is active. Press {keyHint} to try immersive mode again.'
+      ),
       errorLabelTemplate: wrap('Retry text mode · Press {keyHint}'),
       errorDescriptionTemplate: wrap(
         'Text mode toggle failed. Try again or use the immersive link.'

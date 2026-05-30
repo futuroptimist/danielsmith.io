@@ -23,6 +23,10 @@ software WebGL.
   main render so future captures can confirm or disprove specific JS buckets.
   The targeted changes focused on confirmed render/pixel/mirror waste.
 
+## Related follow-up
+
+- [Mode fallback recovery UX made text mode reversible and debug-friendly](./2026-05-30-danielsmith-mode-fallback-recovery.md).
+
 ## Optimization summary
 
 The fix starts risky software renderers in performance mode, defaults normal

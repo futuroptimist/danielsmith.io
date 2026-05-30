@@ -18,6 +18,7 @@ import {
 } from '../../ui/accessibility/modeAnnouncer';
 import {
   createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
   getModeFromSearch,
   IMMERSIVE_MODE_VALUE,
   shouldDisablePerformanceFailover,
@@ -25,6 +26,7 @@ import {
 } from '../../ui/immersiveUrl';
 
 import {
+  clearModePreference,
   readModePreference as readStoredModePreference,
   type ModePreference,
 } from './modePreference';
@@ -894,7 +896,10 @@ export function renderTextFallback(
     textFallbackStrings.contact.resumeUrl ??
     'docs/resume/2025-09/resume.pdf';
   const resolvedGithubUrl = githubUrl ?? textFallbackStrings.contact.githubUrl;
-  const immersiveUrl = createImmersiveModeUrl(
+  const immersiveUrl = createImmersiveRecoveryUrl(
+    providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
+  );
+  const debugImmersiveUrl = createImmersiveModeUrl(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
   );
   const resolvedLocale = resolveLocale(localeHint);
@@ -956,6 +961,15 @@ export function renderTextFallback(
   const list = documentTarget.createElement('ul');
   list.className = 'text-fallback__actions';
 
+  const navigateToImmersive = (url: string) => {
+    clearModePreference();
+    const view = documentTarget.defaultView;
+    if (!view) {
+      return;
+    }
+    view.location.assign(url);
+  };
+
   const immersiveItem = documentTarget.createElement('li');
   immersiveItem.className = 'text-fallback__action';
   const immersiveLink = documentTarget.createElement('a');
@@ -964,8 +978,53 @@ export function renderTextFallback(
   immersiveLink.textContent = actionStrings.immersiveLink;
   immersiveLink.rel = 'noopener';
   immersiveLink.dataset.action = 'immersive';
+  immersiveLink.addEventListener('click', () => {
+    clearModePreference();
+  });
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
+
+  if (reason !== 'manual') {
+    const debugItem = documentTarget.createElement('li');
+    debugItem.className = 'text-fallback__action';
+    const debugLink = documentTarget.createElement('a');
+    debugLink.href = debugImmersiveUrl;
+    debugLink.className = 'text-fallback__link';
+    debugLink.textContent = actionStrings.immersiveDebugLink;
+    debugLink.rel = 'noopener';
+    debugLink.dataset.action = 'immersive-debug';
+    debugLink.addEventListener('click', () => {
+      clearModePreference();
+    });
+    debugItem.appendChild(debugLink);
+    list.appendChild(debugItem);
+  }
+
+  const clearPreferenceItem = documentTarget.createElement('li');
+  clearPreferenceItem.className = 'text-fallback__action';
+  const clearPreferenceLink = documentTarget.createElement('a');
+  clearPreferenceLink.href = immersiveUrl;
+  clearPreferenceLink.className = 'text-fallback__link';
+  clearPreferenceLink.textContent = actionStrings.clearPreferenceLink;
+  clearPreferenceLink.rel = 'noopener';
+  clearPreferenceLink.dataset.action = 'clear-mode-preference';
+  clearPreferenceLink.addEventListener('click', () => {
+    clearModePreference();
+  });
+  clearPreferenceItem.appendChild(clearPreferenceLink);
+  list.appendChild(clearPreferenceItem);
+
+  const view = documentTarget.defaultView;
+  view?.addEventListener('keydown', (event) => {
+    if (event.key !== 'T' && event.key !== 't') {
+      return;
+    }
+    if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+      return;
+    }
+    event.preventDefault();
+    navigateToImmersive(immersiveUrl);
+  });
 
   const resumeItem = documentTarget.createElement('li');
   resumeItem.className = 'text-fallback__action';

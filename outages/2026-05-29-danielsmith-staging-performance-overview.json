@@ -32,5 +32,6 @@
     "2026-05-30: docs:check and smoke completed successfully after updating validation evidence.",
     "2026-05-30: npm run typecheck still fails before targeted immersive performance files, with representative repo-wide errors in i18n ../poi/types imports, src/main.ts PoiId/audio/API typing, GLTF loader typing, backyard/LED sample guards, POI registry interactionPrompt requirements, and existing DOM/Canvas/PoiId test mocks.",
     "2026-05-30: git fetch origin main failed because this checkout has no origin remote, so base comparison could not run."
-  ]
+  ],
+  "followUps": ["2026-05-30-danielsmith-mode-fallback-recovery"]
 }
