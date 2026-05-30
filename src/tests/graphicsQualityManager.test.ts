@@ -64,6 +64,7 @@ describe('createGraphicsQualityManager', () => {
     });
 
     expect(manager.getLevel()).toBe('balanced');
+    expect(manager.getSelectionSource()).toBe('user');
     expect(renderer.getPixelRatio()).toBeCloseTo(2 * 0.85, 3);
     expect(renderer.toneMappingExposure).toBeCloseTo(1.02, 3);
     expect(bloom.enabled).toBe(true);
@@ -80,6 +81,7 @@ describe('createGraphicsQualityManager', () => {
     const unsubscribe = manager.onChange(listener);
 
     manager.setLevel('performance');
+    expect(manager.getSelectionSource()).toBe('user');
     expect(listener).toHaveBeenCalledWith('performance');
     expect(renderer.getPixelRatio()).toBeCloseTo(2 * 0.7, 3);
     expect(renderer.toneMappingExposure).toBeCloseTo(0.96, 3);
@@ -108,6 +110,42 @@ describe('createGraphicsQualityManager', () => {
     expect(listener).not.toHaveBeenCalled();
     expect(renderer.getPixelRatio()).toBeCloseTo(2, 3);
     expect(renderer.toneMappingExposure).toBeCloseTo(1.1, 3);
+  });
+
+  it('applies adaptive selections without persisting over user choices', () => {
+    const { renderer } = createRenderer();
+    const storage = {
+      getItem: vi.fn<[], string | null>().mockReturnValue(null),
+      setItem: vi.fn<[string, string], void>(),
+    };
+
+    const manager = createGraphicsQualityManager({
+      renderer,
+      basePixelRatio: 1,
+      baseBloom,
+      baseLed,
+      storage,
+    });
+
+    expect(manager.getSelectionSource()).toBe('initial');
+    manager.setLevel('performance', { source: 'adaptive' });
+
+    expect(manager.getLevel()).toBe('performance');
+    expect(manager.getSelectionSource()).toBe('adaptive');
+    expect(storage.setItem).not.toHaveBeenCalled();
+
+    manager.setLevel('performance', { source: 'adaptive' });
+
+    expect(manager.getSelectionSource()).toBe('adaptive');
+    expect(storage.setItem).not.toHaveBeenCalled();
+
+    manager.setLevel('balanced');
+
+    expect(manager.getSelectionSource()).toBe('user');
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'danielsmith:graphics-quality-level',
+      'balanced'
+    );
   });
 
   it('handles storage failures and optional bloom/lights gracefully', () => {

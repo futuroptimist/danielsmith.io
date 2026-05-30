@@ -1,5 +1,9 @@
-import type { GraphicsQualityLevel } from '../graphics/qualityManager';
+import type {
+  GraphicsQualityLevel,
+  GraphicsQualitySelectionSource,
+} from '../graphics/qualityManager';
 
+import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
 import type { RendererInfoSnapshot } from './rendererCapabilities';
 
 export type PhaseName =
@@ -19,8 +23,13 @@ export interface RendererSizeSnapshot {
 
 export interface QualityStateSnapshot {
   level: GraphicsQualityLevel;
+  selectionSource: GraphicsQualitySelectionSource;
   adaptiveDowngradeCount: number;
+  adaptiveRecoveryCount: number;
   lastAdaptiveReason: string | null;
+  lastAdaptiveDowngradeReason: string | null;
+  lastAdaptiveRecoveryReason: string | null;
+  adaptivePolicy: AdaptiveQualityPolicySnapshot | null;
 }
 
 export interface FeatureStateSnapshot {

@@ -3091,9 +3091,14 @@ function initializeImmersiveScene(
       basePixelRatio = value;
     },
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
-    onDowngrade: (event) => {
-      console.info('[performance] adaptive quality downgrade', event);
-      performanceFailover.resetLowFpsSamples();
+    isSoftwareRenderer: rendererInfo.isSoftwareRenderer,
+    getSelectionSource: () =>
+      graphicsQualityManager?.getSelectionSource() ?? 'initial',
+    onAction: (event) => {
+      console.info('[performance] adaptive quality action', event);
+      if (event.action === 'downgrade') {
+        performanceFailover.resetLowFpsSamples();
+      }
       graphicsQualityControl?.refresh();
     },
   });
@@ -3300,9 +3305,16 @@ function initializeImmersiveScene(
     }),
     getQualityState: () => ({
       level: graphicsQualityManager!.getLevel(),
+      selectionSource: graphicsQualityManager!.getSelectionSource(),
       adaptiveDowngradeCount:
         adaptiveQualityController?.getDowngradeCount() ?? 0,
+      adaptiveRecoveryCount: adaptiveQualityController?.getRecoveryCount() ?? 0,
       lastAdaptiveReason: adaptiveQualityController?.getLastReason() ?? null,
+      lastAdaptiveDowngradeReason:
+        adaptiveQualityController?.getLastDowngradeReason() ?? null,
+      lastAdaptiveRecoveryReason:
+        adaptiveQualityController?.getLastRecoveryReason() ?? null,
+      adaptivePolicy: adaptiveQualityController?.getSnapshot() ?? null,
     }),
     getFeatureState: () => {
       const mirrorState = selfieMirror?.getRenderState();
@@ -4057,8 +4069,8 @@ function initializeImmersiveScene(
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);
-      const adaptiveDowngrade = adaptiveQualityController?.update(delta);
-      if (adaptiveDowngrade) {
+      const adaptiveAction = adaptiveQualityController?.update(delta);
+      if (adaptiveAction) {
         applyFeaturePolicy();
       }
       performanceFailover.update(delta);

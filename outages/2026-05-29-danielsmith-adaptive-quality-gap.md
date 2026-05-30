@@ -4,11 +4,18 @@
 
 ## Symptom slice
 
-Performance failover watched sustained low FPS, but graphics quality did not automatically step down before text fallback.
+Performance failover originally watched sustained low FPS, but graphics quality did
+not automatically step down before text fallback. Follow-up staging on May 29,
+2026 showed the opposite edge case on good hardware: `ANGLE (NVIDIA, NVIDIA
+GeForce RTX 4090 ..., D3D11)` stabilized near 60 FPS after startup, while the
+adaptive ladder still reacted to warmup spikes and could leave the session in
+performance mode.
 
 ## Evidence
 
-Diagnostics expose adaptive downgrade count and last adaptive reason; unit coverage drives slow-frame updates without requiring real SwiftShader in CI.
+Diagnostics expose adaptive warmup state, selection source, downgrade/recovery
+counts, and the last adaptive action reason; unit coverage drives slow-frame and
+recovery updates without requiring real SwiftShader in CI.
 
 ## Impacted files
 
@@ -20,7 +27,13 @@ Diagnostics expose adaptive downgrade count and last adaptive reason; unit cover
 
 ## Fix summary
 
-An adaptive ladder now lowers quality from cinematic to balanced to performance, then reduces base DPR, resetting failover samples after each downgrade to prevent premature fallback or flapping.
+An adaptive ladder lowers quality from cinematic to balanced to performance,
+then reduces base DPR, resetting failover samples after each downgrade. Normal
+renderers now get a 2.5-second warmup grace period plus sustained-frame
+hysteresis before downgrades, keeping the adaptive ladder ahead of the
+5-second low-FPS text failover. They can recover from performance to balanced
+after a stable near-60-FPS window. Software renderers stay conservative and do
+not auto-upshift.
 
 ## Interaction with other fixes
 
@@ -31,7 +44,10 @@ last-failover reason.
 
 ## Regression tests
 
-src/tests/performanceOptimization.test.ts covers the downgrade ladder and no-flap behavior; performanceFailover reset support keeps fallback available after adaptive steps are exhausted.
+src/tests/performanceOptimization.test.ts covers warmup suppression, sustained
+downgrade, stable recovery, software-renderer conservatism, user-selected
+quality, and no-flap behavior; performanceFailover reset support keeps fallback
+available after adaptive steps are exhausted.
 
 ## Validation commands
 
