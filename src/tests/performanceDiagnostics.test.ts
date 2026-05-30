@@ -41,6 +41,8 @@ describe('performance diagnostics', () => {
     diagnostics.recordFrame(1 / 10);
     diagnostics.recordPhase('mainRender', 8);
     diagnostics.recordPhase('mainRender', 16);
+    diagnostics.recordPhase('mirror', 4);
+    diagnostics.recordPhase('avatarIkAudio', 2);
 
     const snapshot = diagnostics.methods.getSnapshot();
     expect(snapshot.averageFps).toBeCloseTo(20, 0);
@@ -50,5 +52,50 @@ describe('performance diagnostics', () => {
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
     expect(snapshot.phases.mainRender.sampleCount).toBe(2);
+    expect(snapshot.phases.mirror.averageMs).toBe(4);
+    expect(snapshot.phases.avatarIkAudio.averageMs).toBe(2);
+  });
+
+  it('reports minimum FPS from the slowest sampled frame instead of p95', () => {
+    const diagnostics = createPerformanceDiagnostics({
+      rendererInfo: {
+        vendor: 'Google Inc.',
+        renderer: 'WebGL',
+        unmaskedVendor: 'NVIDIA',
+        unmaskedRenderer: 'ANGLE NVIDIA',
+        isSoftwareRenderer: false,
+        riskLevel: 'normal',
+        reason: 'test',
+      },
+      getRendererSize: () => ({
+        pixelRatio: 1,
+        viewport: { width: 1280, height: 720 },
+        drawingBuffer: { width: 1280, height: 720 },
+      }),
+      getQualityState: () => ({
+        level: 'balanced',
+        adaptiveDowngradeCount: 0,
+        lastAdaptiveReason: null,
+      }),
+      getFeatureState: () => ({
+        bloomEnabled: false,
+        composerEnabled: false,
+        activePostprocessingPassCount: 0,
+        mirrorEnabled: false,
+        mirrorRenderTargetSize: 192,
+        mirrorUpdateRateFps: 0,
+        mirrorRenderCount: 0,
+      }),
+      getLastFailoverReason: () => null,
+    });
+
+    for (let index = 0; index < 19; index += 1) {
+      diagnostics.recordFrame(0.016);
+    }
+    diagnostics.recordFrame(0.1);
+
+    const stats = diagnostics.methods.getFrameStats();
+    expect(stats.p95FrameMs).toBe(16);
+    expect(stats.minFps).toBe(10);
   });
 });
