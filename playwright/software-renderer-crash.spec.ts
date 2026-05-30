@@ -92,6 +92,33 @@ test.describe('software renderer crash hardening', () => {
     expect(crashLog).toContain('Basic Render Driver');
   });
 
+  test('context loss records a breadcrumb before recoverable fallback', async ({
+    page,
+  }) => {
+    await mockDangerousRenderer(page);
+    await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+      waitUntil: 'domcontentloaded',
+    });
+    await waitForImmersive(page);
+
+    await page.locator('#app canvas').dispatchEvent('webglcontextlost');
+
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'fallback'
+    );
+    await expect(
+      page.getByRole('link', { name: 'Try immersive again' })
+    ).toBeVisible();
+
+    const crashLog = await page.evaluate(() =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).portfolio.performance.exportCrashLog()
+    );
+    expect(crashLog).toContain('webgl-context-lost');
+    expect(crashLog).toContain('recoverable fallback');
+  });
+
   test('explicit continuous override bypasses the safe cadence cap', async ({
     page,
   }) => {

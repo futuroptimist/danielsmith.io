@@ -18,7 +18,7 @@
     "llvmpipe",
     "softpipe",
     "Mesa offscreen",
-    "other existing software/CPU WebGL classifier matches"
+    "software/CPU WebGL strings that match the dangerous classifier only"
   ],
   "mitigation": [
     "Dangerous software renderers are classified separately from hardware and unknown renderers.",
@@ -26,14 +26,14 @@
     "Software-safe immersive starts with ultra-low DPR, disables expensive post-processing and mirror rendering, and caps render cadence to 12 FPS while keeping first-frame and input-driven rendering available.",
     "Visible warning UI explains software rendering / Basic Render Driver risk and offers safe immersive, explicit continuous immersive, and text-mode choices.",
     "Continuous software rendering requires ?softwareRendererMode=continuous or ?forceContinuousRendering=1.",
-    "Bounded crash breadcrumbs persist renderer info, performance snapshots, quality/adaptive state, memory when available, warning/mode events, URL, and timestamps.",
+    "Bounded crash breadcrumbs persist to browser localStorage with sessionStorage fallback, including renderer info, performance snapshots, quality/adaptive state, memory when available, warning/mode events, URL, and timestamps.",
     "window.portfolio.performance.exportCrashLog() and copyCrashLog() expose the bounded crash log.",
-    "webglcontextlost records an immediate breadcrumb and switches to recoverable fallback UI."
+    "webglcontextlost records an immediate breadcrumb and switches to recoverable fallback UI while preserving the crash-log export helper."
   ],
   "manualValidation": [
     "Disable browser hardware acceleration and open /?mode=immersive&disablePerformanceFailover=1.",
     "Confirm immersive mode remains active, warning UI is visible, and getSnapshot().softwareRendererPolicy.safeMode is true.",
-    "Export window.portfolio.performance.exportCrashLog() and verify renderer info, software-safe state, snapshots, URL, and timestamps.",
+    "Export window.portfolio.performance.exportCrashLog(), verify renderer info, software-safe state, snapshots, URL, and timestamps, then reload and confirm the bounded browser-storage log remains available.",
     "Open /?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous only for short debugging runs and verify continuous mode is reported.",
     "Re-enable hardware acceleration and verify the NVIDIA path remains continuous and is not forced into software-safe mode."
   ],

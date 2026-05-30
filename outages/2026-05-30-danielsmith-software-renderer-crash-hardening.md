@@ -43,11 +43,13 @@ covered by the software-renderer classifier.
   text mode.
 - Continuous software rendering is available only through an explicit debug
   override: `?softwareRendererMode=continuous` or `?forceContinuousRendering=1`.
-- Crash breadcrumbs persist to bounded storage and are exported from
+- Crash breadcrumbs persist to bounded browser storage (`localStorage`, with
+  `sessionStorage` as the browser fallback) and are exported from
   `window.portfolio.performance.exportCrashLog()`; `copyCrashLog()` copies the
   same bounded JSON when Clipboard API access is available.
 - `webglcontextlost` records an immediate breadcrumb before switching to the
-  recoverable text fallback with the existing “Try immersive again” path.
+  recoverable text fallback, while preserving the existing “Try immersive
+  again” path and crash-log export helper after cleanup.
 
 ## Manual validation
 
@@ -57,7 +59,8 @@ covered by the software-renderer classifier.
    reports `softwareRendererPolicy.safeMode === true` from
    `window.portfolio.performance.getSnapshot()`.
 4. Export `window.portfolio.performance.exportCrashLog()` and confirm it includes
-   renderer info, software-safe state, snapshots, URL, and timestamps.
+   renderer info, software-safe state, snapshots, URL, and timestamps; reload and
+   confirm the bounded log can still be exported from browser storage.
 5. Open `/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous`
    only for short debugging runs and confirm the snapshot reports continuous
    mode.

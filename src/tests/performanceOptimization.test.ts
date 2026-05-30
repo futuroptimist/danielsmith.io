@@ -11,6 +11,7 @@ import {
   resolveInitialQualityPolicy,
   resolveResizedBasePixelRatio,
   resolveSoftwareRendererPolicy,
+  resolveSoftwareSafeRenderCadence,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
 
@@ -181,6 +182,69 @@ describe('immersive performance optimization policy', () => {
       mode: 'continuous',
       renderCadenceFps: null,
     });
+  });
+
+  it('enforces the dangerous software safe render cadence deterministically', () => {
+    const intervalMs = 1000 / 12;
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: false,
+        renderRequested: false,
+        lastRenderMs: 0,
+        nowMs: 0,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: true, lastRenderMs: 0 });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: true,
+        renderRequested: false,
+        lastRenderMs: 0,
+        nowMs: 16,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: false, lastRenderMs: 0 });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: true,
+        renderRequested: true,
+        lastRenderMs: 0,
+        nowMs: 20,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({
+      shouldRender: true,
+      renderRequested: false,
+      lastRenderMs: 20,
+    });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: true,
+        renderRequested: false,
+        lastRenderMs: 0,
+        nowMs: intervalMs,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: true, lastRenderMs: intervalMs });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: false,
+        hasPresentedFirstFrame: true,
+        renderRequested: false,
+        lastRenderMs: 20,
+        nowMs: 32,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: true, lastRenderMs: 32 });
   });
 
   it('clamps DPR and disables expensive features in performance mode', () => {

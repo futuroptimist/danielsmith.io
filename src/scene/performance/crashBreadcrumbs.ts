@@ -77,6 +77,22 @@ const getMemorySnapshot = () => {
   };
 };
 
+const getDefaultBrowserStorage = (): StorageProvider | undefined => {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  try {
+    return window.localStorage;
+  } catch {
+    try {
+      return window.sessionStorage;
+    } catch {
+      return undefined;
+    }
+  }
+};
+
 const safeParse = (value: string | null): CrashBreadcrumbLog => {
   if (!value) {
     return emptyLog();
@@ -131,7 +147,7 @@ export function createCrashBreadcrumbStore({
   maxSerializedBytes?: number;
 } = {}): CrashBreadcrumbStore {
   const fallbackStorage = new Map<string, string>();
-  const safeStorage: StorageProvider = storage ?? {
+  const memoryStorage: StorageProvider = {
     getItem: (key) => fallbackStorage.get(key) ?? null,
     setItem: (key, value) => {
       fallbackStorage.set(key, value);
@@ -140,6 +156,8 @@ export function createCrashBreadcrumbStore({
       fallbackStorage.delete(key);
     },
   };
+  const safeStorage: StorageProvider =
+    storage ?? getDefaultBrowserStorage() ?? memoryStorage;
 
   const read = () => {
     try {

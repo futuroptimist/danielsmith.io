@@ -145,6 +145,7 @@ import {
   resolveResizedBasePixelRatio,
   resolveInitialQualityPolicy,
   resolveSoftwareRendererPolicy,
+  resolveSoftwareSafeRenderCadence,
 } from './scene/performance/qualityPolicy';
 import { getRendererInfo } from './scene/performance/rendererCapabilities';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
@@ -4167,17 +4168,19 @@ function initializeImmersiveScene(
   renderer.setAnimationLoop(() => {
     try {
       const frameStartMs = performance.now();
-      if (softwareRendererPolicy.safeMode && hasPresentedFirstFrame) {
-        const hasCadenceElapsed =
-          softwareSafeRenderIntervalMs > 0 &&
-          frameStartMs - lastSoftwareSafeRenderMs >=
-            softwareSafeRenderIntervalMs;
-        if (!softwareSafeRenderRequested && !hasCadenceElapsed) {
-          return;
-        }
+      const cadenceDecision = resolveSoftwareSafeRenderCadence({
+        safeMode: softwareRendererPolicy.safeMode,
+        hasPresentedFirstFrame,
+        renderRequested: softwareSafeRenderRequested,
+        lastRenderMs: lastSoftwareSafeRenderMs,
+        nowMs: frameStartMs,
+        renderIntervalMs: softwareSafeRenderIntervalMs,
+      });
+      if (!cadenceDecision.shouldRender) {
+        return;
       }
-      softwareSafeRenderRequested = false;
-      lastSoftwareSafeRenderMs = frameStartMs;
+      softwareSafeRenderRequested = cadenceDecision.renderRequested;
+      lastSoftwareSafeRenderMs = cadenceDecision.lastRenderMs;
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);

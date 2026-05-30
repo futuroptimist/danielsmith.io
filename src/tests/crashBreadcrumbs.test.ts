@@ -41,6 +41,81 @@ describe('crash breadcrumbs', () => {
     expect(store.read().entries).toEqual([]);
   });
 
+  it('defaults to browser storage so exports survive a reload', () => {
+    const storage = createMemoryStorage();
+    const originalLocalStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'localStorage'
+    );
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get: () => storage,
+    });
+
+    try {
+      createCrashBreadcrumbStore().record({
+        type: 'mode-change',
+        message: 'persisted in browser storage',
+      });
+      const reloadedStore = createCrashBreadcrumbStore();
+      const exported = JSON.parse(reloadedStore.exportCrashLog()) as ReturnType<
+        typeof reloadedStore.read
+      >;
+
+      expect(exported.entries).toHaveLength(1);
+      expect(exported.entries[0]).toMatchObject({
+        type: 'mode-change',
+        message: 'persisted in browser storage',
+      });
+    } finally {
+      if (originalLocalStorage) {
+        Object.defineProperty(window, 'localStorage', originalLocalStorage);
+      } else {
+        Reflect.deleteProperty(window, 'localStorage');
+      }
+    }
+  });
+
+  it('persists breadcrumbs across fresh stores on the same browser storage', () => {
+    const storage = createMemoryStorage();
+    const firstStore = createCrashBreadcrumbStore({ storage });
+
+    firstStore.record({
+      type: 'webgl-context-lost',
+      message: 'simulated context loss before reload',
+      renderer: {
+        vendor: 'Google Inc.',
+        renderer: 'WebGL',
+        unmaskedVendor: 'Microsoft',
+        unmaskedRenderer:
+          'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
+        isSoftwareRenderer: true,
+        isDangerousSoftwareRenderer: true,
+        riskLevel: 'dangerous-software',
+        reason: 'test',
+      },
+      softwareRendererPolicy: {
+        mode: 'safe',
+        safeMode: true,
+        renderCadenceFps: 12,
+        reason: 'test',
+      },
+    });
+
+    const reloadedStore = createCrashBreadcrumbStore({ storage });
+    const exported = JSON.parse(reloadedStore.exportCrashLog()) as ReturnType<
+      typeof reloadedStore.read
+    >;
+
+    expect(exported.entries).toHaveLength(1);
+    expect(exported.entries[0]).toMatchObject({
+      type: 'webgl-context-lost',
+      message: 'simulated context loss before reload',
+      renderer: { isDangerousSoftwareRenderer: true },
+      softwareRendererPolicy: { safeMode: true, renderCadenceFps: 12 },
+    });
+  });
+
   it('keeps snapshot recording and clipboard copy destructure-safe', async () => {
     const store = createCrashBreadcrumbStore({
       storage: createMemoryStorage(),

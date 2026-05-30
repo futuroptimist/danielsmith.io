@@ -71,6 +71,54 @@ export function resolveSoftwareRendererPolicy(
   };
 }
 
+export interface SoftwareSafeRenderCadenceInput {
+  safeMode: boolean;
+  hasPresentedFirstFrame: boolean;
+  renderRequested: boolean;
+  lastRenderMs: number;
+  nowMs: number;
+  renderIntervalMs: number;
+}
+
+export interface SoftwareSafeRenderCadenceDecision {
+  shouldRender: boolean;
+  renderRequested: boolean;
+  lastRenderMs: number;
+}
+
+export function resolveSoftwareSafeRenderCadence({
+  safeMode,
+  hasPresentedFirstFrame,
+  renderRequested,
+  lastRenderMs,
+  nowMs,
+  renderIntervalMs,
+}: SoftwareSafeRenderCadenceInput): SoftwareSafeRenderCadenceDecision {
+  if (!safeMode || !hasPresentedFirstFrame) {
+    return {
+      shouldRender: true,
+      renderRequested: false,
+      lastRenderMs: nowMs,
+    };
+  }
+
+  const hasCadenceElapsed =
+    renderIntervalMs > 0 && nowMs - lastRenderMs >= renderIntervalMs;
+  if (!renderRequested && !hasCadenceElapsed) {
+    return {
+      shouldRender: false,
+      renderRequested,
+      lastRenderMs,
+    };
+  }
+
+  return {
+    shouldRender: true,
+    renderRequested: false,
+    lastRenderMs: nowMs,
+  };
+}
+
 export interface QualityPolicyState {
   initialLevel: GraphicsQualityLevel;
   basePixelRatioCap: number;
