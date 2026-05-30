@@ -104,7 +104,7 @@ describe('text fallback accessibility', () => {
     });
   }
 
-  it('normalizes provided immersive URLs to enforce preview overrides', () => {
+  it('normalizes provided immersive URLs without disabling failover for normal recovery', () => {
     const container = document.createElement('div');
 
     renderTextFallback(container, {
@@ -117,6 +117,23 @@ describe('text fallback accessibility', () => {
     ) as HTMLAnchorElement | null;
 
     expect(immersiveLink?.href).toBe(
+      'https://danielsmith.io/portfolio?mode=immersive'
+    );
+  });
+
+  it('exposes a force-immersive debug URL for low-performance fallback', () => {
+    const container = document.createElement('div');
+
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: 'https://danielsmith.io/portfolio',
+    });
+
+    const debugLink = container.querySelector(
+      '[data-action="debug-immersive"]'
+    ) as HTMLAnchorElement | null;
+
+    expect(debugLink?.href).toBe(
       'https://danielsmith.io/portfolio?mode=immersive&disablePerformanceFailover=1'
     );
   });

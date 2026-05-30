@@ -303,7 +303,11 @@ import {
   createManualModeToggle,
   type ManualModeToggleHandle,
 } from './systems/failover/manualModeToggle';
-import { writeModePreference } from './systems/failover/modePreference';
+import {
+  clearModePreference,
+  shouldPersistTextPreferenceForFallback,
+  writeModePreference,
+} from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
 import { createGitHubRepoStatsService } from './systems/github/repoStats';
 import {
@@ -385,6 +389,7 @@ import {
 } from './ui/hud/responsiveControlOverlay';
 import {
   createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
 import './ui/styles.css';
@@ -2983,10 +2988,15 @@ function initializeImmersiveScene(
       strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
       onToggle: () => {
-        writeModePreference('text');
-        if (!performanceFailover.hasTriggered()) {
-          performanceFailover.triggerFallback('manual');
+        if (performanceFailover.hasTriggered()) {
+          clearModePreference();
+          window.location.assign(createImmersiveRecoveryUrl());
+          return;
         }
+        if (shouldPersistTextPreferenceForFallback('manual')) {
+          writeModePreference('text');
+        }
+        performanceFailover.triggerFallback('manual');
       },
     });
     registerHudControlElement(manualModeToggle?.element ?? null);

@@ -136,7 +136,7 @@ export function createManualModeToggle({
     if (fallbackActive) {
       errored = false;
       setContainerState('active');
-      setDisabledState(true);
+      setDisabledState(false);
       button.dataset.state = 'active';
       button.removeAttribute('aria-busy');
       button.textContent = withFallback(
@@ -214,7 +214,7 @@ export function createManualModeToggle({
 
   const activate = () => {
     refreshState();
-    if (pending || getIsFallbackActive()) {
+    if (pending) {
       return;
     }
     clearErrorState();
@@ -260,7 +260,7 @@ export function createManualModeToggle({
     if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
       return;
     }
-    if (pending || getIsFallbackActive()) {
+    if (pending) {
       return;
     }
     event.preventDefault();

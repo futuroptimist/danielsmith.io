@@ -9,7 +9,10 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
-import { createImmersiveModeUrl } from '../ui/immersiveUrl';
+import {
+  createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
+} from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',
@@ -861,7 +864,7 @@ describe('renderTextFallback', () => {
       '[data-action="immersive"]'
     );
     expect(immersiveLink?.href).toBe(
-      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+      new URL(createImmersiveRecoveryUrl(), window.location.origin).toString()
     );
   });
 
@@ -873,10 +876,42 @@ describe('renderTextFallback', () => {
     );
     expect(immersiveLink?.href).toBe(
       new URL(
+        createImmersiveRecoveryUrl(customUrl),
+        window.location.origin
+      ).toString()
+    );
+  });
+
+  it('adds a debug immersive bypass link for runtime performance fallbacks', () => {
+    const customUrl = 'https://portfolio.test/demo?mode=text';
+    const container = render('low-performance', { immersiveUrl: customUrl });
+    const immersiveLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+    const debugLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="debug-immersive"]'
+    );
+
+    expect(immersiveLink?.href).toBe(
+      new URL(
+        createImmersiveRecoveryUrl(customUrl),
+        window.location.origin
+      ).toString()
+    );
+    expect(debugLink?.href).toBe(
+      new URL(
         createImmersiveModeUrl(customUrl),
         window.location.origin
       ).toString()
     );
+  });
+
+  it('does not add a debug bypass link for manual text mode', () => {
+    const container = render('manual');
+
+    expect(
+      container.querySelector('[data-action="debug-immersive"]')
+    ).toBeNull();
   });
 
   it('indicates WebGL unsupported reason', () => {
@@ -1011,6 +1046,7 @@ describe('renderTextFallback', () => {
 
     expect(actionLinks.map((link) => link.textContent)).toEqual([
       actions.immersiveLink,
+      actions.clearPreferenceButton,
       actions.resumeLink,
       actions.githubLink,
     ]);

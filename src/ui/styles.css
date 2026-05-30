@@ -204,6 +204,14 @@ canvas {
   font-weight: 600;
 }
 
+.text-fallback__button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
 .text-fallback__link:hover,
 .text-fallback__link:focus {
   text-decoration: underline;

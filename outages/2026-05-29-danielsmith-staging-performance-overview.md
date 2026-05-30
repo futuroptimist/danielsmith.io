@@ -14,6 +14,7 @@ software WebGL.
 - [Postprocessing and DPR multiplied full-screen pixel cost](./2026-05-29-danielsmith-postprocessing-pixel-cost.md).
 - [SelfieMirror rendered the full scene every frame](./2026-05-29-danielsmith-selfie-mirror-render-cost.md).
 - [Adaptive quality did not downgrade before text fallback](./2026-05-29-danielsmith-adaptive-quality-gap.md).
+- [Text fallback recovery trapped immersive debugging](./2026-05-30-danielsmith-mode-fallback-recovery.md).
 
 ## Disproven or unconfirmed theories
 

@@ -66,15 +66,15 @@ describe('createManualModeToggle', () => {
 
     expect(handle.element.dataset.state).toBe('active');
     expect(container.dataset.modeToggleState).toBe('active');
-    expect(container.getAttribute('aria-disabled')).toBe('true');
+    expect(container.getAttribute('aria-disabled')).toBeNull();
     expect(container.getAttribute('aria-busy')).toBeNull();
-    expect(handle.element.textContent).toBe('Text mode active');
+    expect(handle.element.textContent).toBe('Try immersive again · Press T');
     expect(handle.element.dataset.hudAnnounce).toBe(
-      'Text mode already active.'
+      'Text mode active. Press T to try immersive again.'
     );
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
     expect(handle.element.getAttribute('aria-busy')).toBeNull();
-    expect(handle.element.disabled).toBe(true);
+    expect(handle.element.disabled).toBe(false);
 
     cleanupHandle(handle);
     container.remove();
@@ -145,12 +145,12 @@ describe('createManualModeToggle', () => {
 
     expect(container.dataset.modeToggleState).toBe('active');
     expect(container.getAttribute('aria-busy')).toBeNull();
-    expect(container.getAttribute('aria-disabled')).toBe('true');
+    expect(container.getAttribute('aria-disabled')).toBeNull();
     expect(handle.element.dataset.state).toBe('active');
     expect(handle.element.getAttribute('aria-busy')).toBeNull();
-    expect(handle.element.getAttribute('aria-disabled')).toBe('true');
+    expect(handle.element.getAttribute('aria-disabled')).toBeNull();
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
-    expect(handle.element.disabled).toBe(true);
+    expect(handle.element.disabled).toBe(false);
 
     resolveToggle?.();
     await flushMicrotasks();
@@ -162,7 +162,7 @@ describe('createManualModeToggle', () => {
     container.remove();
   });
 
-  it('ignores activation when fallback already active', () => {
+  it('activates recovery when fallback already active', () => {
     const container = createContainer();
     const onToggle = vi.fn();
     const handle = createManualModeToggle({
@@ -171,23 +171,23 @@ describe('createManualModeToggle', () => {
       getIsFallbackActive: () => true,
     });
 
-    expect(handle.element.getAttribute('aria-disabled')).toBe('true');
-    expect(container.getAttribute('aria-disabled')).toBe('true');
+    expect(handle.element.getAttribute('aria-disabled')).toBeNull();
+    expect(container.getAttribute('aria-disabled')).toBeNull();
     expect(handle.element.dataset.hudAnnounce).toBe(
-      'Text mode already active.'
+      'Text mode active. Press T to try immersive again.'
     );
     expect(container.dataset.modeToggleState).toBe('active');
     expect(container.getAttribute('aria-busy')).toBeNull();
     expect(handle.element.dataset.state).toBe('active');
-    expect(handle.element.textContent).toBe('Text mode active');
+    expect(handle.element.textContent).toBe('Try immersive again · Press T');
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
     expect(handle.element.getAttribute('aria-busy')).toBeNull();
-    expect(handle.element.disabled).toBe(true);
+    expect(handle.element.disabled).toBe(false);
 
     handle.element.click();
 
-    expect(onToggle).not.toHaveBeenCalled();
-    expect(handle.element.disabled).toBe(true);
+    expect(onToggle).toHaveBeenCalledTimes(1);
+    expect(handle.element.disabled).toBe(false);
     expect(handle.element.dataset.state).toBe('active');
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
 
@@ -390,7 +390,7 @@ describe('createManualModeToggle', () => {
 
     expect(container.dataset.modeToggleState).toBe('active');
     expect(handle.element.dataset.state).toBe('active');
-    expect(handle.element.disabled).toBe(true);
+    expect(handle.element.disabled).toBe(false);
 
     handle.dispose();
     fallbackActive = false;
