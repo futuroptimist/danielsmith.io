@@ -1927,3 +1927,48 @@ html[data-hudLayout='mobile'] .audio-subtitles {
 .poi-tooltip-overlay[data-state='recommended'] {
   border-color: rgba(255, 207, 129, 0.42);
 }
+
+.software-renderer-warning {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 30;
+  max-width: min(44rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid rgba(252, 211, 77, 0.5);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.35);
+}
+
+.software-renderer-warning h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.software-renderer-warning p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.software-renderer-warning__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.software-renderer-warning__actions button {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  cursor: pointer;
+}
+
+.software-renderer-warning__actions button:first-child {
+  background: #facc15;
+  color: #111827;
+}

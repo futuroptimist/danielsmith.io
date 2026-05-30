@@ -134,6 +134,7 @@ import {
   resolveSeasonalLightingSchedule,
 } from './scene/lighting/seasonalPresets';
 import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
+import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
 import {
   createPerformanceDiagnostics,
   type PerformanceDiagnosticsApi,
@@ -143,7 +144,11 @@ import {
   resolveResizedBasePixelRatio,
   resolveInitialQualityPolicy,
 } from './scene/performance/qualityPolicy';
-import { getRendererInfo } from './scene/performance/rendererCapabilities';
+import {
+  classifyRendererInfo,
+  getRendererInfo,
+} from './scene/performance/rendererCapabilities';
+import { resolveSoftwareRendererMode } from './scene/performance/softwareRendererMode';
 import { createWindowPoiAnalytics } from './scene/poi/analytics';
 import {
   computePoiEmphasis,
@@ -390,6 +395,7 @@ import {
 import {
   createImmersiveModeUrl,
   createImmersiveRecoveryUrl,
+  createTextModeUrl,
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
 import './ui/styles.css';
@@ -493,6 +499,66 @@ const markDocumentReady = (mode: AppMode, fallbackReason?: FallbackReason) => {
     delete root.dataset.fallbackReason;
   }
   root.removeAttribute('data-app-loading');
+};
+
+const createStorageSafe = (kind: 'localStorage' | 'sessionStorage') => {
+  try {
+    return window[kind];
+  } catch {
+    return undefined;
+  }
+};
+
+const showDangerousRendererWarning = ({
+  container,
+  rendererLabel,
+  onContinueSafe,
+  onContinuous,
+  onTextMode,
+}: {
+  container: HTMLElement;
+  rendererLabel: string;
+  onContinueSafe: () => void;
+  onContinuous: () => void;
+  onTextMode: () => void;
+}) => {
+  const documentTarget = container.ownerDocument;
+  const panel = documentTarget.createElement('section');
+  panel.className = 'software-renderer-warning';
+  panel.setAttribute('role', 'status');
+  panel.setAttribute('aria-live', 'polite');
+
+  const heading = documentTarget.createElement('h2');
+  heading.textContent = 'Software renderer safe mode';
+  panel.appendChild(heading);
+
+  const message = documentTarget.createElement('p');
+  message.textContent =
+    `Chrome is using software rendering (${rendererLabel}). ` +
+    'Enable browser hardware acceleration for smooth immersive mode. ' +
+    'Safe immersive keeps WebGL available for debugging and screenshots with a capped cadence.';
+  panel.appendChild(message);
+
+  const actions = documentTarget.createElement('div');
+  actions.className = 'software-renderer-warning__actions';
+
+  const addButton = (label: string, onClick: () => void) => {
+    const button = documentTarget.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.addEventListener('click', onClick);
+    actions.appendChild(button);
+  };
+
+  addButton('Continue in safe immersive', () => {
+    panel.remove();
+    onContinueSafe();
+  });
+  addButton('Enable continuous immersive anyway', onContinuous);
+  addButton('Use text mode', onTextMode);
+  panel.appendChild(actions);
+  container.appendChild(panel);
+  return panel;
 };
 
 let immersiveFailureHandled = false;
@@ -675,18 +741,84 @@ function initializeImmersiveScene(
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
-  const rendererInfo = getRendererInfo(renderer);
+  const rendererInfo =
+    new URLSearchParams(window.location.search).get('debugRenderer') ===
+    'microsoft-basic-render-driver'
+      ? classifyRendererInfo({
+          vendor: 'Google Inc.',
+          renderer: 'WebGL',
+          unmaskedVendor: 'Microsoft',
+          unmaskedRenderer:
+            'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
+        })
+      : getRendererInfo(renderer);
   const initialQualityPolicy = resolveInitialQualityPolicy(
     rendererInfo,
     window.devicePixelRatio ?? 1
   );
-  const maxPolicyPixelRatioCap = rendererInfo.isSoftwareRenderer ? 1 : 1.25;
+  const softwareRendererMode = resolveSoftwareRendererMode(
+    window.location.search,
+    rendererInfo.isDangerousSoftwareRenderer,
+    initialQualityPolicy.renderCadenceFps ?? 15
+  );
+  const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
+    ? 0.5
+    : rendererInfo.isSoftwareRenderer
+      ? 1
+      : 1.25;
   let adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
   let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
+  const crashBreadcrumbs = createCrashBreadcrumbStore({
+    storage: createStorageSafe('localStorage'),
+    sessionStorage: createStorageSafe('sessionStorage'),
+  });
+  crashBreadcrumbs.record({
+    type: rendererInfo.isDangerousSoftwareRenderer
+      ? 'renderer-warning'
+      : 'snapshot',
+    renderer: rendererInfo,
+    message: rendererInfo.isDangerousSoftwareRenderer
+      ? 'Dangerous software renderer entered immersive safe-mode policy.'
+      : 'Immersive renderer initialized.',
+    detail: {
+      softwareSafeMode: softwareRendererMode.safeMode,
+      renderCadenceFps: softwareRendererMode.renderCadenceFps,
+      qualityPolicy: initialQualityPolicy.reason,
+    },
+  });
   renderer.setPixelRatio(basePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
+
+  let softwareRenderRequested = true;
+  let lastSoftwareRenderMs = 0;
+  let lastSoftwareRenderSkipped = false;
+  const requestSoftwareSafeRender = () => {
+    softwareRenderRequested = true;
+  };
+
+  if (rendererInfo.isDangerousSoftwareRenderer) {
+    const rendererLabel =
+      rendererInfo.unmaskedRenderer ??
+      rendererInfo.renderer ??
+      'a CPU-backed WebGL renderer';
+    showDangerousRendererWarning({
+      container,
+      rendererLabel,
+      onContinueSafe: requestSoftwareSafeRender,
+      onContinuous: () => {
+        window.location.assign(
+          createImmersiveModeUrl(undefined, {
+            softwareRendererMode: 'continuous',
+          })
+        );
+      },
+      onTextMode: () => {
+        window.location.assign(createTextModeUrl());
+      },
+    });
+  }
 
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
@@ -705,6 +837,12 @@ function initializeImmersiveScene(
   let motionBlurControl: MotionBlurControlHandle | null = null;
   let audioSubtitles: AudioSubtitlesHandle | null = null;
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
+  const softwareSafeInputEvents = ['keydown', 'pointerdown', 'wheel'] as const;
+  softwareSafeInputEvents.forEach((eventName) => {
+    window.addEventListener(eventName, requestSoftwareSafeRender, {
+      passive: true,
+    });
+  });
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
   let adaptiveQualityController: ReturnType<
@@ -1848,6 +1986,12 @@ function initializeImmersiveScene(
   poiInteractionManager.start();
   beforeUnloadHandler = () => {
     inputLatencyTelemetry?.report('beforeunload');
+    crashBreadcrumbs.record({
+      type: 'snapshot',
+      renderer: rendererInfo,
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+      message: 'Page unloading while immersive scene was active.',
+    });
     disposeImmersiveResources();
   };
   window.addEventListener('beforeunload', beforeUnloadHandler);
@@ -3261,7 +3405,8 @@ function initializeImmersiveScene(
   const applyFeaturePolicy = () => {
     const policy = getQualityFeaturePolicy(
       graphicsQualityManager?.getLevel() ?? initialQualityPolicy.initialLevel,
-      rendererInfo.isSoftwareRenderer
+      rendererInfo.isSoftwareRenderer,
+      rendererInfo.isDangerousSoftwareRenderer
     );
     selfieMirror?.setRenderPolicy({
       enabled: policy.mirrorEnabled,
@@ -3329,6 +3474,22 @@ function initializeImmersiveScene(
       };
     },
     getLastFailoverReason: () => lastFailoverReason,
+    getSoftwareRendererState: () => ({
+      dangerousRenderer: rendererInfo.isDangerousSoftwareRenderer,
+      softwareSafeMode: softwareRendererMode.safeMode,
+      renderCadenceFps: softwareRendererMode.renderCadenceFps,
+      lastRenderSkipped: lastSoftwareRenderSkipped,
+    }),
+    exportCrashLog: () => crashBreadcrumbs.exportCrashLog(),
+    copyCrashLog: async () => {
+      const serialized = crashBreadcrumbs.serialize();
+      try {
+        await navigator.clipboard?.writeText(serialized);
+        return true;
+      } catch {
+        return false;
+      }
+    },
   });
   const portfolioWindow = window as Window;
   if (!portfolioWindow.portfolio) {
@@ -3983,6 +4144,9 @@ function initializeImmersiveScene(
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;
     }
+    softwareSafeInputEvents.forEach((eventName) => {
+      window.removeEventListener(eventName, requestSoftwareSafeRender);
+    });
     while (keyBindingUnsubscribes.length > 0) {
       const unsubscribe = keyBindingUnsubscribes.pop();
       unsubscribe?.();
@@ -4063,9 +4227,33 @@ function initializeImmersiveScene(
   }
 
   let hasPresentedFirstFrame = false;
+  let lastCrashBreadcrumbMs = 0;
+
+  const shouldSkipSoftwareSafeFrame = (nowMs: number) => {
+    if (
+      !softwareRendererMode.safeMode ||
+      !softwareRendererMode.renderCadenceFps
+    ) {
+      lastSoftwareRenderSkipped = false;
+      return false;
+    }
+    const minFrameSpacingMs = 1000 / softwareRendererMode.renderCadenceFps;
+    const shouldRender =
+      !hasPresentedFirstFrame ||
+      softwareRenderRequested ||
+      nowMs - lastSoftwareRenderMs >= minFrameSpacingMs;
+    lastSoftwareRenderSkipped = !shouldRender;
+    return !shouldRender;
+  };
 
   renderer.setAnimationLoop(() => {
     try {
+      const frameStartMs = performance.now();
+      if (shouldSkipSoftwareSafeFrame(frameStartMs)) {
+        return;
+      }
+      softwareRenderRequested = false;
+      lastSoftwareRenderMs = frameStartMs;
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);
@@ -4297,14 +4485,49 @@ function initializeImmersiveScene(
         hasPresentedFirstFrame = true;
         writeModePreference('immersive');
         markDocumentReady('immersive');
+        crashBreadcrumbs.record({
+          type: 'mode-change',
+          renderer: rendererInfo,
+          snapshot: performanceDiagnostics?.methods.getSnapshot(),
+          message: 'Immersive first frame presented.',
+          detail: { softwareSafeMode: softwareRendererMode.safeMode },
+        });
+      }
+      if (frameStartMs - lastCrashBreadcrumbMs >= 1000) {
+        lastCrashBreadcrumbMs = frameStartMs;
+        crashBreadcrumbs.record({
+          type: 'snapshot',
+          renderer: rendererInfo,
+          snapshot: performanceDiagnostics?.methods.getSnapshot(),
+          detail: {
+            jsHeapUsed: (
+              performance as Performance & {
+                memory?: { usedJSHeapSize?: number };
+              }
+            ).memory?.usedJSHeapSize,
+          },
+        });
       }
     } catch (error) {
+      crashBreadcrumbs.record({
+        type: 'fatal-error',
+        renderer: rendererInfo,
+        snapshot: performanceDiagnostics?.methods.getSnapshot(),
+        message: error instanceof Error ? error.message : String(error),
+      });
       handleFatalError(error);
     }
   });
 
   renderer.domElement.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
-    handleFatalError(new Error('WebGL context lost during initialization.'));
+    crashBreadcrumbs.record({
+      type: 'context-lost',
+      renderer: rendererInfo,
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+      message: 'WebGL context lost; switching to recoverable text fallback.',
+    });
+    lastFailoverReason = 'webgl-unsupported';
+    performanceFailover.triggerFallback('webgl-unsupported');
   });
 }

@@ -9,6 +9,8 @@ export interface QualityPolicyState {
   mirrorTargetSize: number;
   mirrorUpdateRateFps: number;
   ambientUpdateIntervalMs: number;
+  softwareSafeMode: boolean;
+  renderCadenceFps: number | null;
   reason: string;
 }
 
@@ -42,9 +44,25 @@ export function resolveResizedBasePixelRatio(
 }
 
 export function resolveInitialQualityPolicy(
-  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'>,
+  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'> &
+    Partial<Pick<RendererInfoSnapshot, 'isDangerousSoftwareRenderer'>>,
   devicePixelRatio: number
 ): QualityPolicyState {
+  if (rendererInfo.isDangerousSoftwareRenderer === true) {
+    return {
+      initialLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.5, 0.35),
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 250,
+      softwareSafeMode: true,
+      renderCadenceFps: 15,
+      reason:
+        'dangerous software renderer starts with software-safe guardrails',
+    };
+  }
+
   if (rendererInfo.isSoftwareRenderer) {
     return {
       initialLevel: 'performance',
@@ -53,6 +71,8 @@ export function resolveInitialQualityPolicy(
       mirrorTargetSize: 192,
       mirrorUpdateRateFps: 0,
       ambientUpdateIntervalMs: 100,
+      softwareSafeMode: false,
+      renderCadenceFps: null,
       reason: 'software renderer starts in performance mode',
     };
   }
@@ -64,13 +84,16 @@ export function resolveInitialQualityPolicy(
     mirrorTargetSize: 320,
     mirrorUpdateRateFps: 8,
     ambientUpdateIntervalMs: 33,
+    softwareSafeMode: false,
+    renderCadenceFps: null,
     reason: 'default desktop path balances fidelity with pixel cost',
   };
 }
 
 export function getQualityFeaturePolicy(
   level: GraphicsQualityLevel,
-  isSoftwareRenderer = false
+  isSoftwareRenderer = false,
+  isDangerousSoftwareRenderer = false
 ): Pick<
   QualityPolicyState,
   | 'mirrorEnabled'
@@ -78,6 +101,14 @@ export function getQualityFeaturePolicy(
   | 'mirrorUpdateRateFps'
   | 'ambientUpdateIntervalMs'
 > {
+  if (isDangerousSoftwareRenderer) {
+    return {
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 250,
+    };
+  }
   if (isSoftwareRenderer || level === 'performance') {
     return {
       mirrorEnabled: false,
