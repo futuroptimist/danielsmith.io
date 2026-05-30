@@ -64,6 +64,7 @@ describe('createGraphicsQualityManager', () => {
     });
 
     expect(manager.getLevel()).toBe('balanced');
+    expect(manager.getSource()).toBe('stored');
     expect(renderer.getPixelRatio()).toBeCloseTo(2 * 0.85, 3);
     expect(renderer.toneMappingExposure).toBeCloseTo(1.02, 3);
     expect(bloom.enabled).toBe(true);
@@ -80,6 +81,7 @@ describe('createGraphicsQualityManager', () => {
     const unsubscribe = manager.onChange(listener);
 
     manager.setLevel('performance');
+    expect(manager.getSource()).toBe('user');
     expect(listener).toHaveBeenCalledWith('performance');
     expect(renderer.getPixelRatio()).toBeCloseTo(2 * 0.7, 3);
     expect(renderer.toneMappingExposure).toBeCloseTo(0.96, 3);
@@ -103,6 +105,14 @@ describe('createGraphicsQualityManager', () => {
       'performance'
     );
 
+    manager.setLevel('balanced', 'adaptive');
+    expect(manager.getSource()).toBe('adaptive');
+    expect(storage.setItem).not.toHaveBeenCalledWith(
+      'danielsmith:graphics-quality-level',
+      'balanced'
+    );
+
+    listener.mockClear();
     unsubscribe();
     manager.setLevel('cinematic');
     expect(listener).not.toHaveBeenCalled();

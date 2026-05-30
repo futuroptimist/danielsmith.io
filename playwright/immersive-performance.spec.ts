@@ -23,7 +23,21 @@ interface PerformanceSnapshot {
   };
   quality: {
     level: 'cinematic' | 'balanced' | 'performance';
+    source: 'initial' | 'stored' | 'user' | 'adaptive';
     adaptiveDowngradeCount: number;
+    adaptiveRecoveryCount: number;
+    lastAdaptiveReason: string | null;
+    lastAdaptiveDowngradeReason: string | null;
+    lastAdaptiveRecoveryReason: string | null;
+    adaptivePolicy: {
+      warmupActive: boolean;
+      warmupMs: number;
+      lastAction: 'downgrade' | 'recovery' | null;
+      qualitySource: 'initial' | 'stored' | 'user' | 'adaptive';
+      medianFps: number;
+      p95FrameMs: number;
+      isSoftwareRenderer: boolean;
+    } | null;
   };
   features: {
     bloomEnabled: boolean;
@@ -181,6 +195,15 @@ test.describe('immersive performance diagnostics', () => {
       expect(snapshot.lastFailoverReason).toBeNull();
       expect(snapshot.rendererSize.pixelRatio).toBeLessThanOrEqual(1.25);
       expect(snapshot.quality.level).not.toBe('cinematic');
+      expect(snapshot.quality.adaptivePolicy).toMatchObject({
+        isSoftwareRenderer: snapshot.renderer.isSoftwareRenderer,
+        qualitySource: snapshot.quality.source,
+      });
+      if (!snapshot.renderer.isSoftwareRenderer) {
+        expect(snapshot.quality.adaptivePolicy?.warmupMs ?? 0).toBeGreaterThan(
+          0
+        );
+      }
       expect(snapshot.features.mirrorRenderTargetSize).toBeLessThanOrEqual(320);
       if (snapshot.quality.level === 'performance') {
         expect(snapshot.features.bloomEnabled).toBe(false);
@@ -207,6 +230,10 @@ test.describe('immersive performance diagnostics', () => {
         snapshot.features.activePostprocessingPassCount
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
+      expect(snapshot.quality.adaptivePolicy).toBeDefined();
+      expect(snapshot.quality.adaptivePolicy?.qualitySource).toBe(
+        snapshot.quality.source
+      );
     } finally {
       await context.close();
     }

@@ -4,11 +4,11 @@
 
 ## Symptom slice
 
-Performance failover watched sustained low FPS, but graphics quality did not automatically step down before text fallback.
+Performance failover watched sustained low FPS, while the adaptive policy either failed to step down before fallback or stepped down too eagerly during startup. Hardware-accelerated staging evidence showed an NVIDIA RTX path stabilized near 60 FPS after warmup, yet transient shader/asset spikes could leave it stuck in performance mode.
 
 ## Evidence
 
-Diagnostics expose adaptive downgrade count and last adaptive reason; unit coverage drives slow-frame updates without requiring real SwiftShader in CI.
+Diagnostics expose warmup state, adaptive downgrade/recovery counters, last downgrade/recovery reasons, quality source, renderer classification, and recent median/p95 policy samples. Unit coverage drives warmup, sustained low-FPS, recovery, software-renderer, user-choice, and no-flap paths without requiring real SwiftShader in CI.
 
 ## Impacted files
 
@@ -20,18 +20,19 @@ Diagnostics expose adaptive downgrade count and last adaptive reason; unit cover
 
 ## Fix summary
 
-An adaptive ladder now lowers quality from cinematic to balanced to performance, then reduces base DPR, resetting failover samples after each downgrade to prevent premature fallback or flapping.
+The adaptive ladder now applies a finite warmup grace period for normal hardware, requires sustained median/p95 low-FPS evidence before downgrading, ignores isolated low-min-FPS outliers, and recovers an adaptive performance downgrade back to balanced after sustained near-60-FPS stability. Software renderers remain conservative, start in performance mode, and do not auto-upshift unless the user explicitly chooses a higher quality level.
 
 ## Interaction with other fixes
 
 This fix works with DPR, postprocessing, mirror throttling, diagnostics, and the
 adaptive ladder rather than hiding low FPS. If the environment remains too slow
 after the cheaper path is applied, normal text fallback still occurs with a clear
-last-failover reason.
+last-failover reason. The Microsoft Basic Render Driver / SwiftShader crash path
+remains a separate crash-hardening follow-up.
 
 ## Regression tests
 
-src/tests/performanceOptimization.test.ts covers the downgrade ladder and no-flap behavior; performanceFailover reset support keeps fallback available after adaptive steps are exhausted.
+src/tests/performanceOptimization.test.ts covers startup warmup, sustained downgrades, normal-hardware recovery, conservative software renderers, explicit user performance choices, and no-flap boundary behavior; performanceFailover reset support keeps fallback available after adaptive steps are exhausted. src/tests/performanceDiagnostics.test.ts covers the expanded adaptive snapshot fields.
 
 ## Validation commands
 

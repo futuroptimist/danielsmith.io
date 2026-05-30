@@ -33,5 +33,9 @@
     "2026-05-30: docs:check and smoke completed successfully after updating validation evidence.",
     "2026-05-30: npm run typecheck still fails before targeted immersive performance files, with representative repo-wide errors in i18n ../poi/types imports, src/main.ts PoiId/audio/API typing, GLTF loader typing, backyard/LED sample guards, POI registry interactionPrompt requirements, and existing DOM/Canvas/PoiId test mocks.",
     "2026-05-30: git fetch origin main failed because this checkout has no origin remote, so base comparison could not run."
+  ],
+  "optimizationSummary": "Risky software renderers start in performance mode while normal hardware uses warmup-aware hysteresis, can recover adaptive performance downgrades back to balanced after sustained near-60-FPS stability, and still falls back after adaptive steps are exhausted.",
+  "followUpEvidence": [
+    "2026-05-30: NVIDIA RTX staging path stabilized near 60 FPS after warmup; adaptive startup downgrades were too eager and are now gated by warmup, hysteresis, and recovery policy. Software-renderer crash hardening remains separate."
   ]
 }

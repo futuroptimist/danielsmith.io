@@ -81,3 +81,20 @@ and the Vitest assertions when measurable changes land.
   overflow stays within a 1 px tolerance.
 - **Validation notes** – Run `npm run test:e2e -- --grep "text fallback"` alongside the standard
   format, lint, typecheck, Vitest, docs, and smoke checks before promoting the fallback layout.
+
+### 2026-05-30 adaptive quality warmup and recovery
+
+- **Evidence** – Staging comparisons split into two renderer classes: the NVIDIA RTX hardware
+  path settled near 60 FPS after shader/asset warmup, while the Microsoft Basic Render Driver
+  software path stayed conservative and remained a separate crash-hardening follow-up.
+- **Bug** – The adaptive controller reacted to startup/transient low-FPS samples too eagerly,
+  so capable hardware could be downgraded from balanced to performance before main render time
+  warmed down toward steady-state 1–2 ms frames.
+- **Corrective action** – Normal renderers now get a finite warmup grace window, downgrade only
+  after sustained median/p95 low-FPS evidence, ignore isolated min-FPS outliers, and recover an
+  adaptive performance downgrade back to balanced after sustained near-60-FPS stability. Software
+  renderers keep their conservative performance start and do not auto-upshift unless the user
+  manually selects a higher quality level.
+- **Diagnostics** – `window.portfolio.performance.getSnapshot()` exposes quality source,
+  warmup state, adaptive policy counters, last downgrade/recovery reasons, and the latest
+  adaptive action so staging captures can distinguish user choices from controller decisions.

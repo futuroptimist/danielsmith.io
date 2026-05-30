@@ -1,4 +1,5 @@
 export type GraphicsQualityLevel = 'cinematic' | 'balanced' | 'performance';
+export type GraphicsQualitySource = 'initial' | 'stored' | 'user' | 'adaptive';
 
 export interface GraphicsQualityPresetDefinition {
   id: GraphicsQualityLevel;
@@ -118,7 +119,8 @@ export interface GraphicsQualityManagerOptions {
 
 export interface GraphicsQualityManager {
   getLevel(): GraphicsQualityLevel;
-  setLevel(level: GraphicsQualityLevel): void;
+  setLevel(level: GraphicsQualityLevel, source?: GraphicsQualitySource): void;
+  getSource(): GraphicsQualitySource;
   refresh(): void;
   setBasePixelRatio(pixelRatio: number): void;
   onChange(listener: (level: GraphicsQualityLevel) => void): () => void;
@@ -179,11 +181,13 @@ export function createGraphicsQualityManager({
   let currentLevel: GraphicsQualityLevel = isGraphicsQualityLevel(initialLevel)
     ? initialLevel
     : 'balanced';
+  let currentSource: GraphicsQualitySource = 'initial';
   if (!preferInitialLevel && storage?.getItem) {
     try {
       const stored = storage.getItem(storageKey);
       if (isGraphicsQualityLevel(stored)) {
         currentLevel = stored;
+        currentSource = 'stored';
       }
     } catch (error) {
       console.warn('Failed to read persisted graphics quality level:', error);
@@ -248,18 +252,27 @@ export function createGraphicsQualityManager({
     getLevel() {
       return currentLevel;
     },
-    setLevel(level) {
+    setLevel(level, source = 'user') {
       if (!isGraphicsQualityLevel(level)) {
         throw new Error(`Unsupported graphics quality level: ${level}`);
       }
       if (level === currentLevel) {
-        persist(level);
+        currentSource = source;
+        if (source === 'user') {
+          persist(level);
+        }
         return;
       }
       currentLevel = level;
-      persist(level);
+      currentSource = source;
+      if (source === 'user') {
+        persist(level);
+      }
       applyPreset(level);
       notify();
+    },
+    getSource() {
+      return currentSource;
     },
     refresh() {
       applyPreset(currentLevel);
