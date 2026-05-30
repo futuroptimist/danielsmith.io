@@ -6,6 +6,7 @@ import {
   clampDevicePixelRatio,
   getQualityFeaturePolicy,
   resolveInitialQualityPolicy,
+  resolveResizedBasePixelRatio,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
 describe('immersive performance optimization policy', () => {
@@ -51,6 +52,12 @@ describe('immersive performance optimization policy', () => {
       mirrorUpdateRateFps: 15,
       mirrorTargetSize: 512,
     });
+  });
+
+  it('resizes DPR up to the device cap without undoing adaptive downgrades', () => {
+    expect(resolveResizedBasePixelRatio(2, 1.25)).toBe(1.25);
+    expect(resolveResizedBasePixelRatio(2, 1.25, 1)).toBe(1);
+    expect(resolveResizedBasePixelRatio(0.9, 1.25, 1)).toBe(0.9);
   });
 
   it('downgrades quality once per cooldown without flapping back upward', () => {

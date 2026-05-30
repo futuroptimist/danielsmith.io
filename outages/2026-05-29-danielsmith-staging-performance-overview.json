@@ -21,7 +21,14 @@
     "npm run lint",
     "npm run typecheck",
     "npm run test:ci",
+    "npx playwright install --with-deps chromium",
     "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
     "npm run smoke"
+  ],
+  "localVerificationNotes": [
+    "2026-05-30: format:write, lint, test:ci, Playwright chromium install, targeted Playwright grep, docs:check, and smoke completed locally.",
+    "2026-05-30: targeted Playwright grep reported 9 passed and 2 skipped because the container exposes software WebGL for hardware-only normal-desktop failover coverage.",
+    "2026-05-30: npm run typecheck still fails in unrelated repo-wide i18n, POI registry, GLTF loader, backyard/LED sample, and test mock typing areas; no changed performance policy type errors were reported.",
+    "2026-05-30: base comparison command could not be completed because this checkout has no origin remote."
   ]
 }

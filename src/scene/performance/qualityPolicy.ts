@@ -25,6 +25,22 @@ export function clampDevicePixelRatio(
   return Math.max(floor, Math.min(safeRatio, safeCap));
 }
 
+export function resolveResizedBasePixelRatio(
+  devicePixelRatio: number,
+  maxPolicyCap: number,
+  adaptivePixelRatioCap = Number.POSITIVE_INFINITY
+): number {
+  const resizedPixelRatio = clampDevicePixelRatio(
+    devicePixelRatio,
+    maxPolicyCap
+  );
+  const safeAdaptiveCap =
+    Number.isFinite(adaptivePixelRatioCap) && adaptivePixelRatioCap > 0
+      ? adaptivePixelRatioCap
+      : Number.POSITIVE_INFINITY;
+  return Math.min(resizedPixelRatio, safeAdaptiveCap);
+}
+
 export function resolveInitialQualityPolicy(
   rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'>,
   devicePixelRatio: number

@@ -61,5 +61,24 @@ window.portfolio.performance.getLastFailoverReason();
 - `npm run lint`
 - `npm run typecheck`
 - `npm run test:ci`
+- `npx playwright install --with-deps chromium`
 - `npm run test:e2e -- --grep "performance|adaptive|immersive"`
 - `npm run smoke`
+
+## 2026-05-30 local verification note
+
+- `npm run format:write`, `npm run lint`, `npm run test:ci`,
+  `npx playwright install --with-deps chromium`,
+  `npm run test:e2e -- --grep "performance|adaptive|immersive"`,
+  `npm run docs:check`, and `npm run smoke` completed locally.
+- The Playwright grep run reported 9 passed and 2 skipped because this container
+  exposes software WebGL for hardware-only normal-desktop failover coverage; the
+  diagnostics path with `disablePerformanceFailover=1` still ran.
+- `npm run typecheck` still fails in unrelated repo-wide areas, including the
+  existing i18n `../poi/types` import, POI registry `interactionPrompt`
+  requirements, GLTF loader typing, backyard/LED possibly-undefined samples, and
+  multiple test mock DOM/Canvas/PoiId typings. The resize-DPR performance change
+  has targeted unit coverage and does not introduce new typecheck errors in the
+  changed performance policy module.
+- `git fetch origin main && git checkout origin/main && npm run typecheck` could
+  not be completed in this checkout because no `origin` remote is configured.

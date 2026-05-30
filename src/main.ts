@@ -139,8 +139,8 @@ import {
   type PerformanceDiagnosticsApi,
 } from './scene/performance/performanceDiagnostics';
 import {
-  clampDevicePixelRatio,
   getQualityFeaturePolicy,
+  resolveResizedBasePixelRatio,
   resolveInitialQualityPolicy,
 } from './scene/performance/qualityPolicy';
 import { getRendererInfo } from './scene/performance/rendererCapabilities';
@@ -675,6 +675,8 @@ function initializeImmersiveScene(
     rendererInfo,
     window.devicePixelRatio ?? 1
   );
+  const maxPolicyPixelRatioCap = rendererInfo.isSoftwareRenderer ? 1 : 1.25;
+  let adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
   let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
   renderer.setPixelRatio(basePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -3075,6 +3077,7 @@ function initializeImmersiveScene(
     qualityManager: graphicsQualityManager,
     getBasePixelRatio: () => basePixelRatio,
     setBasePixelRatio: (value) => {
+      adaptivePixelRatioCap = value;
       basePixelRatio = value;
     },
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
@@ -3364,9 +3367,10 @@ function initializeImmersiveScene(
     updateCameraProjection(nextAspect);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    basePixelRatio = clampDevicePixelRatio(
+    basePixelRatio = resolveResizedBasePixelRatio(
       window.devicePixelRatio ?? 1,
-      initialQualityPolicy.basePixelRatioCap
+      maxPolicyPixelRatioCap,
+      adaptivePixelRatioCap
     );
     if (graphicsQualityManager) {
       graphicsQualityManager.setBasePixelRatio(basePixelRatio);
