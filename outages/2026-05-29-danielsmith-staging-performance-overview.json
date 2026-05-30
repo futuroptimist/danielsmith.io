@@ -1,0 +1,36 @@
+{
+  "id": "2026-05-29-danielsmith-staging-performance-overview",
+  "date": "2026-05-29",
+  "status": "mitigated",
+  "symptom": "Immersive scene remained around 5 FPS by observation and fell back after zoom trails were fixed.",
+  "environment": "staging.danielsmith.io, including Chrome with hardware acceleration disabled",
+  "rootCauses": [
+    "2026-05-29-danielsmith-software-renderer-quality",
+    "2026-05-29-danielsmith-postprocessing-pixel-cost",
+    "2026-05-29-danielsmith-selfie-mirror-render-cost",
+    "2026-05-29-danielsmith-adaptive-quality-gap"
+  ],
+  "disprovenOrUnconfirmed": [
+    {
+      "theory": "Broad per-frame JS update loop was the primary bottleneck",
+      "evidence": "Phase diagnostics were added, but confirmed waste was render pixel cost, postprocessing, mirror rendering, and missing adaptive downgrades."
+    }
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npx playwright install --with-deps chromium",
+    "npm run test:e2e -- --grep \"performance|adaptive|immersive\"",
+    "npm run smoke"
+  ],
+  "localVerificationNotes": [
+    "2026-05-30: format:write completed with no file changes; lint completed successfully.",
+    "2026-05-30: test:ci completed with 128 test files and 841 tests passing.",
+    "2026-05-30: Playwright chromium install completed; targeted Playwright grep reported 9 passed and 2 skipped because the container exposes software WebGL for hardware-only normal-desktop failover coverage, while disablePerformanceFailover diagnostics still ran.",
+    "2026-05-30: docs:check and smoke completed successfully after updating validation evidence.",
+    "2026-05-30: npm run typecheck still fails before targeted immersive performance files, with representative repo-wide errors in i18n ../poi/types imports, src/main.ts PoiId/audio/API typing, GLTF loader typing, backyard/LED sample guards, POI registry interactionPrompt requirements, and existing DOM/Canvas/PoiId test mocks.",
+    "2026-05-30: git fetch origin main failed because this checkout has no origin remote, so base comparison could not run."
+  ]
+}

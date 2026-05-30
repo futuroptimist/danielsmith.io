@@ -162,6 +162,13 @@ class PerformanceFailoverMonitor {
     return this.triggered;
   }
 
+  reset(): void {
+    if (this.triggered) {
+      return;
+    }
+    this.resetLowFpsSamples();
+  }
+
   private resetLowFpsSamples(): void {
     this.lowFpsDurationMs = 0;
     this.fpsAccumulator.reset();
@@ -172,6 +179,7 @@ export interface PerformanceFailoverHandler {
   update(deltaSeconds: number): void;
   hasTriggered(): boolean;
   triggerFallback(reason: FallbackReason): void;
+  resetLowFpsSamples(): void;
 }
 
 export function createPerformanceFailoverHandler(
@@ -328,6 +336,9 @@ export function createPerformanceFailoverHandler(
     },
     triggerFallback(reason: FallbackReason) {
       transitionToFallback(reason);
+    },
+    resetLowFpsSamples() {
+      monitor?.reset();
     },
   };
 }

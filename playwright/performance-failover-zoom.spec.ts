@@ -15,6 +15,16 @@ interface PerformanceFailoverProbe {
   events: Array<unknown>;
 }
 
+interface PortfolioPerformanceWindow extends Window {
+  portfolio?: {
+    performance?: {
+      getSnapshot(): {
+        renderer: { isSoftwareRenderer: boolean };
+      };
+    };
+  };
+}
+
 declare global {
   interface Window {
     __performanceFailoverProbe?: PerformanceFailoverProbe;
@@ -152,6 +162,17 @@ test.describe('performance failover runtime zoom coverage', () => {
 
     try {
       await waitForProductionLikeImmersive(page);
+      const isSoftwareRenderer = await page.evaluate(
+        () =>
+          (
+            window as PortfolioPerformanceWindow
+          ).portfolio?.performance?.getSnapshot().renderer.isSoftwareRenderer ??
+          false
+      );
+      test.skip(
+        isSoftwareRenderer,
+        'normal desktop failover coverage requires a hardware WebGL renderer'
+      );
       await wheelZoomForLongerThanFailoverWindow(page);
 
       await failoverProbe.expectNoFailover();
