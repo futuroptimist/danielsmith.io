@@ -164,26 +164,50 @@ describe('immersive performance optimization policy', () => {
     expect(harness.controller.getRecoveryCount()).toBe(1);
   });
 
-  it('starts recovery hysteresis fresh after entering performance mode', () => {
+  it('does not bank recovery time while balanced or cinematic', () => {
+    const balancedHarness = createPolicyHarness({ level: 'balanced' });
+    const cinematicHarness = createPolicyHarness({ level: 'cinematic' });
+
+    for (let index = 0; index < 240; index += 1) {
+      balancedHarness.controller.update(1 / 60);
+      cinematicHarness.controller.update(1 / 60);
+    }
+
+    expect(balancedHarness.controller.getSnapshot().stableDurationMs).toBe(0);
+    expect(cinematicHarness.controller.getSnapshot().stableDurationMs).toBe(0);
+  });
+
+  it('starts recovery hysteresis fresh after a balanced to performance downgrade', () => {
     const harness = createPolicyHarness({ level: 'balanced' });
 
-    for (let index = 0; index < 190; index += 1) {
+    for (let index = 0; index < 240; index += 1) {
       harness.controller.update(1 / 60);
     }
 
     expect(harness.controller.getSnapshot().stableDurationMs).toBe(0);
 
-    harness.setLevel('performance');
-
-    expect(harness.controller.update(1 / 60)).toBeNull();
-    expect(harness.level).toBe('performance');
-
-    let event = null;
-    for (let index = 0; index < 180; index += 1) {
-      event = harness.controller.update(1 / 60) ?? event;
+    let downgradeEvent = null;
+    for (let index = 0; index < 6; index += 1) {
+      downgradeEvent = harness.controller.update(0.4) ?? downgradeEvent;
     }
 
-    expect(event?.action).toBe('recover');
+    expect(downgradeEvent?.step).toBe('quality-performance');
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.getSnapshot().stableDurationMs).toBe(0);
+
+    let recoveryEvent = null;
+    for (let index = 0; index < 179; index += 1) {
+      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    }
+
+    expect(recoveryEvent).toBeNull();
+    expect(harness.level).toBe('performance');
+
+    for (let index = 0; index < 180; index += 1) {
+      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    }
+
+    expect(recoveryEvent?.action).toBe('recover');
     expect(harness.level).toBe('balanced');
   });
 
@@ -216,7 +240,36 @@ describe('immersive performance optimization policy', () => {
     }
 
     expect(harness.level).toBe('performance');
-    expect(harness.controller.getSnapshot().autoRecoveryEnabled).toBe(false);
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      autoRecoveryEnabled: false,
+      stableDurationMs: 0,
+    });
+  });
+
+  it('clears accrued recovery when the selection source switches to user', () => {
+    const harness = createPolicyHarness({ level: 'performance' });
+
+    for (let index = 0; index < 90; index += 1) {
+      harness.controller.update(1 / 60);
+    }
+
+    expect(harness.controller.getSnapshot().stableDurationMs).toBeGreaterThan(
+      0
+    );
+
+    harness.setSelectionSource('user');
+    expect(harness.controller.update(1 / 60)).toBeNull();
+
+    for (let index = 0; index < 240; index += 1) {
+      harness.controller.update(1 / 60);
+    }
+
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      autoRecoveryEnabled: false,
+      stableDurationMs: 0,
+      recoveryCount: 0,
+    });
   });
 
   it('requires hysteresis so boundary frames do not oscillate quality', () => {

@@ -133,6 +133,11 @@ export function createAdaptiveQualityController({
   const isWarmingUp = () => getWarmupRemainingMs() > 0;
   const autoRecoveryEnabled = () =>
     !isSoftwareRenderer && getSelectionSource() !== 'user';
+  const canAccrueRecovery = () =>
+    qualityManager.getLevel() === 'performance' && autoRecoveryEnabled();
+  const resetRecoveryState = () => {
+    stableDurationMs = 0;
+  };
 
   const emit = (
     action: AdaptiveQualityAction,
@@ -143,13 +148,13 @@ export function createAdaptiveQualityController({
       downgradeCount += 1;
       lastDowngradeReason = reason;
       lowFpsDurationMs = 0;
-      stableDurationMs = 0;
+      resetRecoveryState();
       cooldownRemainingMs = cooldownMs;
       recoveryCooldownRemainingMs = cooldownMs * RECOVERY_COOLDOWN_MULTIPLIER;
     } else {
       recoveryCount += 1;
       lastRecoveryReason = reason;
-      stableDurationMs = 0;
+      resetRecoveryState();
       lowFpsDurationMs = 0;
       cooldownRemainingMs = cooldownMs;
       recoveryCooldownRemainingMs = cooldownMs;
@@ -210,7 +215,7 @@ export function createAdaptiveQualityController({
   };
 
   const recover = (): AdaptiveQualityEvent | null => {
-    if (!autoRecoveryEnabled() || qualityManager.getLevel() !== 'performance') {
+    if (!canAccrueRecovery()) {
       return null;
     }
     qualityManager.setLevel('balanced', { source: 'adaptive' });
@@ -242,16 +247,16 @@ export function createAdaptiveQualityController({
   };
 
   const shouldRecover = (frameMs: number) => {
-    if (qualityManager.getLevel() !== 'performance') {
-      stableDurationMs = 0;
+    if (!canAccrueRecovery()) {
+      resetRecoveryState();
       return false;
     }
     const fps = frameMs > 0 ? 1000 / frameMs : Number.POSITIVE_INFINITY;
     const { p95FrameMs } = summarizeFrameWindow(frameMsSamples);
     const isStable =
       fps >= recoveryFpsThreshold && p95FrameMs <= recoveryP95FrameMs;
-    if (!isStable || !autoRecoveryEnabled()) {
-      stableDurationMs = 0;
+    if (!isStable) {
+      resetRecoveryState();
       return false;
     }
     stableDurationMs += frameMs;
@@ -278,6 +283,9 @@ export function createAdaptiveQualityController({
           0,
           recoveryCooldownRemainingMs - frameMs
         );
+      }
+      if (recoveryCooldownRemainingMs > 0 || !canAccrueRecovery()) {
+        resetRecoveryState();
       }
 
       if (cooldownRemainingMs <= 0 && shouldDowngrade(frameMs)) {

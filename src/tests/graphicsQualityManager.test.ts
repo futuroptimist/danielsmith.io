@@ -134,6 +134,11 @@ describe('createGraphicsQualityManager', () => {
     expect(manager.getSelectionSource()).toBe('adaptive');
     expect(storage.setItem).not.toHaveBeenCalled();
 
+    manager.setLevel('performance', { source: 'adaptive' });
+
+    expect(manager.getSelectionSource()).toBe('adaptive');
+    expect(storage.setItem).not.toHaveBeenCalled();
+
     manager.setLevel('balanced');
 
     expect(manager.getSelectionSource()).toBe('user');
