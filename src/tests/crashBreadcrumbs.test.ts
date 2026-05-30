@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createCrashBreadcrumbStore } from '../scene/performance/crashBreadcrumbs';
+import {
+  CRASH_LOG_KEY,
+  createCrashBreadcrumbStore,
+} from '../scene/performance/crashBreadcrumbs';
 
 function createMemoryStorage() {
   const values = new Map<string, string>();
@@ -72,6 +75,64 @@ describe('crash breadcrumbs', () => {
         Object.defineProperty(window, 'localStorage', originalLocalStorage);
       } else {
         Reflect.deleteProperty(window, 'localStorage');
+      }
+    }
+  });
+
+  it('retries sessionStorage when localStorage writes fail', () => {
+    const localFallbackStorage = createMemoryStorage();
+    const sessionFallbackStorage = createMemoryStorage();
+    const originalLocalStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'localStorage'
+    );
+    const originalSessionStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'sessionStorage'
+    );
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get: () => ({
+        ...localFallbackStorage,
+        setItem: () => {
+          throw new Error('quota exceeded');
+        },
+      }),
+    });
+    Object.defineProperty(window, 'sessionStorage', {
+      configurable: true,
+      get: () => sessionFallbackStorage,
+    });
+
+    try {
+      createCrashBreadcrumbStore().record({
+        type: 'mode-change',
+        message: 'persisted in session fallback',
+      });
+      const reloadedStore = createCrashBreadcrumbStore();
+      const exported = JSON.parse(reloadedStore.exportCrashLog()) as ReturnType<
+        typeof reloadedStore.read
+      >;
+
+      expect(exported.entries).toHaveLength(1);
+      expect(exported.entries[0]).toMatchObject({
+        type: 'mode-change',
+        message: 'persisted in session fallback',
+      });
+      expect(localFallbackStorage.getItem(CRASH_LOG_KEY)).toBeNull();
+      expect(sessionFallbackStorage.getItem(CRASH_LOG_KEY)).toContain(
+        'persisted in session fallback'
+      );
+    } finally {
+      if (originalLocalStorage) {
+        Object.defineProperty(window, 'localStorage', originalLocalStorage);
+      } else {
+        Reflect.deleteProperty(window, 'localStorage');
+      }
+      if (originalSessionStorage) {
+        Object.defineProperty(window, 'sessionStorage', originalSessionStorage);
+      } else {
+        Reflect.deleteProperty(window, 'sessionStorage');
       }
     }
   });

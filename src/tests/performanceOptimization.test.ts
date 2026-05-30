@@ -107,6 +107,7 @@ describe('immersive performance optimization policy', () => {
       'Generic Software Renderer',
       'CPU Rasterizer',
       'Chromium Software Compositor',
+      'ANGLE (Generic, Software Renderer, D3D11)',
     ];
 
     genericSoftwareRenderers.forEach((renderer) => {

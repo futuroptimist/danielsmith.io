@@ -26,7 +26,7 @@
     "Software-safe immersive starts with ultra-low DPR, disables expensive post-processing and mirror rendering, and caps render cadence to 12 FPS while keeping first-frame and input-driven rendering available.",
     "Visible warning UI explains software rendering / Basic Render Driver risk and offers safe immersive, explicit continuous immersive, and text-mode choices.",
     "Continuous software rendering requires ?softwareRendererMode=continuous or ?forceContinuousRendering=1.",
-    "Bounded crash breadcrumbs persist to browser localStorage with sessionStorage fallback, including renderer info, performance snapshots, quality/adaptive state, memory when available, warning/mode events, URL, and timestamps.",
+    "Bounded crash breadcrumbs persist to browser localStorage with sessionStorage fallback when local writes fail, including renderer info, performance snapshots, quality/adaptive state, memory when available, warning/mode events, URL, and timestamps.",
     "window.portfolio.performance.exportCrashLog() and copyCrashLog() expose the bounded crash log.",
     "webglcontextlost records an immediate breadcrumb and switches to recoverable fallback UI while preserving the crash-log export helper."
   ],

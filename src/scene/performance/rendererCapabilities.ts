@@ -24,7 +24,7 @@ const DANGEROUS_SOFTWARE_RENDERER_PATTERNS = [
   /llvmpipe/i,
   /softpipe/i,
   /mesa offscreen/i,
-  /angle.*(swiftshader|software|warp|microsoft basic render)/i,
+  /angle.*(swiftshader|warp|microsoft basic render)/i,
 ] as const;
 
 const SOFTWARE_RENDERER_PATTERNS = [

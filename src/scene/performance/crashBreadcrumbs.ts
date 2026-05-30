@@ -77,20 +77,28 @@ const getMemorySnapshot = () => {
   };
 };
 
-const getDefaultBrowserStorage = (): StorageProvider | undefined => {
+const getDefaultBrowserStorageCandidates = (): StorageProvider[] => {
   if (typeof window === 'undefined') {
-    return undefined;
+    return [];
+  }
+
+  const candidates: StorageProvider[] = [];
+  try {
+    candidates.push(window.localStorage);
+  } catch {
+    // Fall through to sessionStorage when localStorage access is blocked.
   }
 
   try {
-    return window.localStorage;
-  } catch {
-    try {
-      return window.sessionStorage;
-    } catch {
-      return undefined;
+    const sessionStorage = window.sessionStorage;
+    if (!candidates.includes(sessionStorage)) {
+      candidates.push(sessionStorage);
     }
+  } catch {
+    // Storage access can throw in private or locked-down browser contexts.
   }
+
+  return candidates;
 };
 
 const safeParse = (value: string | null): CrashBreadcrumbLog => {
@@ -156,24 +164,40 @@ export function createCrashBreadcrumbStore({
       fallbackStorage.delete(key);
     },
   };
-  const safeStorage: StorageProvider =
-    storage ?? getDefaultBrowserStorage() ?? memoryStorage;
+  const storageCandidates = storage
+    ? [storage]
+    : [...getDefaultBrowserStorageCandidates(), memoryStorage];
+  let activeStorageIndex = 0;
+
+  const candidateOrder = () => [
+    ...storageCandidates.slice(activeStorageIndex),
+    ...storageCandidates.slice(0, activeStorageIndex),
+  ];
 
   const read = () => {
-    try {
-      return safeParse(safeStorage.getItem(CRASH_LOG_KEY));
-    } catch {
-      return emptyLog();
+    for (const candidate of candidateOrder()) {
+      try {
+        const serializedLog = candidate.getItem(CRASH_LOG_KEY);
+        if (serializedLog) {
+          activeStorageIndex = storageCandidates.indexOf(candidate);
+          return safeParse(serializedLog);
+        }
+      } catch {
+        // Try the next storage provider before dropping to an empty log.
+      }
     }
+    return emptyLog();
   };
   const write = (log: CrashBreadcrumbLog) => {
-    try {
-      safeStorage.setItem(
-        CRASH_LOG_KEY,
-        serializeBounded(log, maxEntries, maxSerializedBytes)
-      );
-    } catch {
-      // Breadcrumbs are best-effort diagnostics and must never break rendering.
+    const serializedLog = serializeBounded(log, maxEntries, maxSerializedBytes);
+    for (const candidate of candidateOrder()) {
+      try {
+        candidate.setItem(CRASH_LOG_KEY, serializedLog);
+        activeStorageIndex = storageCandidates.indexOf(candidate);
+        return;
+      } catch {
+        // Retry the next provider so sessionStorage can back up localStorage.
+      }
     }
   };
   const record: CrashBreadcrumbStore['record'] = (entry) => {
@@ -220,10 +244,12 @@ export function createCrashBreadcrumbStore({
     },
     read,
     clear() {
-      try {
-        safeStorage.removeItem(CRASH_LOG_KEY);
-      } catch {
-        // Ignore storage failures when clearing best-effort breadcrumbs.
+      for (const candidate of storageCandidates) {
+        try {
+          candidate.removeItem(CRASH_LOG_KEY);
+        } catch {
+          // Ignore storage failures when clearing best-effort breadcrumbs.
+        }
       }
     },
   };
