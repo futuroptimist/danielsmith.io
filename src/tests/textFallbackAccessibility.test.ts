@@ -117,7 +117,7 @@ describe('text fallback accessibility', () => {
     ) as HTMLAnchorElement | null;
 
     expect(immersiveLink?.href).toBe(
-      'https://danielsmith.io/portfolio?mode=immersive&disablePerformanceFailover=1'
+      'https://danielsmith.io/portfolio?mode=immersive'
     );
   });
 

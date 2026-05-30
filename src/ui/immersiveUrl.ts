@@ -173,6 +173,15 @@ export const createImmersiveModeUrl = (
     extraParams,
   });
 
+export const createImmersiveRecoveryUrl = (
+  input?: UrlLike,
+  extraParams?: ExtraParams
+) =>
+  buildModeUrl(input, IMMERSIVE_MODE_VALUE, {
+    includePerformanceBypass: false,
+    extraParams,
+  });
+
 export const createImmersivePreviewUrl = (
   baseUrl: UrlLike = IMMERSIVE_PREVIEW_BASE_URL,
   extraParams?: ExtraParams

@@ -97,36 +97,34 @@ describe('i18n utilities', () => {
     expect(english.keyHint).toBe('T');
     expect(english.idleLabel).toBe('Text mode · Press T');
     expect(english.idleHudAnnouncement).toBe(
-      'Switch to the text-only portfolio. Press T to activate.'
+      'Switch between immersive mode and the text portfolio. Press T to activate.'
     );
     expect(english.idleTitle).toBe('Switch to the text-only portfolio (T)');
     expect(english.pendingHudAnnouncement).toBe(
-      'Switch to the text-only portfolio. Switching to text mode…'
+      'Switching between immersive mode and the text portfolio…'
     );
-    expect(english.errorLabel).toBe('Retry text mode · Press T');
+    expect(english.activeLabel).toBe('Try immersive · Press T');
+    expect(english.activeDescription).toBe('Return to immersive mode');
+    expect(english.errorLabel).toBe('Retry mode switch · Press T');
     expect(english.errorHudAnnouncement).toBe(
-      'Text mode toggle failed. Press T to try again.'
+      'Mode switch failed. Press T to try again.'
     );
-    expect(english.errorTitle).toBe(
-      'Text mode toggle failed. Press T to retry text mode.'
-    );
+    expect(english.errorTitle).toBe('Mode switch failed. Press T to retry.');
 
     const pseudo = getModeToggleStrings('en-x-pseudo');
     expect(pseudo.keyHint).toBe('T');
     expect(pseudo.idleLabel).toBe('⟦Text mode · Press T⟧');
     expect(pseudo.idleHudAnnouncement).toBe(
-      '⟦Switch to the text-only portfolio. Press T to activate.⟧'
+      '⟦Switch between immersive mode and the text portfolio. Press T to activate.⟧'
     );
     expect(pseudo.pendingHudAnnouncement).toBe(
-      '⟦Switch to the text-only portfolio. Switching to text mode…⟧'
+      '⟦Switching between immersive mode and the text portfolio…⟧'
     );
-    expect(pseudo.errorLabel).toBe('⟦Retry text mode · Press T⟧');
+    expect(pseudo.errorLabel).toBe('⟦Retry mode switch · Press T⟧');
     expect(pseudo.errorHudAnnouncement).toBe(
-      '⟦Text mode toggle failed. Press T to try again.⟧'
+      '⟦Mode switch failed. Press T to try again.⟧'
     );
-    expect(pseudo.errorTitle).toBe(
-      '⟦Text mode toggle failed. Press T to retry text mode.⟧'
-    );
+    expect(pseudo.errorTitle).toBe('⟦Mode switch failed. Press T to retry.⟧');
   });
 
   it('returns localized locale toggle strings for HUD controls', () => {
@@ -153,7 +151,7 @@ describe('i18n utilities', () => {
   it('builds mode announcer messages from localized HUD and fallback copy', () => {
     const english = getModeAnnouncerStrings('en');
     expect(english.immersiveReady).toBe(
-      'Switch to the text-only portfolio. Press T to activate.'
+      'Switch between immersive mode and the text portfolio. Press T to activate.'
     );
     expect(english.fallbackReasons['data-saver']).toContain('data-saver');
 

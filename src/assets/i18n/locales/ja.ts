@@ -95,7 +95,9 @@ export const JA_OVERRIDES: LocaleOverrides = {
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
       actions: {
-        immersiveLink: '没入モードを起動',
+        immersiveLink: 'もう一度没入モードを試す',
+        immersiveDebugLink: '没入デバッグモードを強制',
+        clearModePreference: '保存済みモード設定をクリア',
         resumeLink: '最新の履歴書をダウンロード',
         githubLink: 'GitHubでプロジェクトを見る',
       },

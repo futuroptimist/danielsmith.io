@@ -18,6 +18,7 @@ import {
 } from '../../ui/accessibility/modeAnnouncer';
 import {
   createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
   getModeFromSearch,
   IMMERSIVE_MODE_VALUE,
   shouldDisablePerformanceFailover,
@@ -25,6 +26,7 @@ import {
 } from '../../ui/immersiveUrl';
 
 import {
+  clearModePreference,
   readModePreference as readStoredModePreference,
   type ModePreference,
 } from './modePreference';
@@ -873,6 +875,66 @@ function createContactSection(
   return section;
 }
 
+const ADVANCED_IMMERSIVE_DEBUG_REASONS = new Set<FallbackReason>([
+  'low-performance',
+  'low-end-device',
+  'low-memory',
+  'console-error',
+  'immersive-init-error',
+]);
+
+const shouldShowAdvancedImmersiveDebugLink = (
+  reason: FallbackReason
+): boolean => ADVANCED_IMMERSIVE_DEBUG_REASONS.has(reason);
+
+const installTextFallbackRecoveryHandlers = (
+  section: HTMLElement,
+  options: {
+    immersiveUrl: string;
+    documentTarget: Document;
+  }
+): void => {
+  const { immersiveUrl, documentTarget } = options;
+  const windowTarget = documentTarget.defaultView;
+  const clearPreference = () => {
+    clearModePreference();
+  };
+  const navigateToImmersive = () => {
+    clearPreference();
+    if (windowTarget) {
+      windowTarget.location.assign(immersiveUrl);
+    }
+  };
+
+  section.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+    const action = target.closest<HTMLElement>('[data-action]')?.dataset.action;
+    if (action === 'immersive') {
+      clearPreference();
+      return;
+    }
+    if (action === 'clear-mode-preference') {
+      event.preventDefault();
+      clearPreference();
+      target.setAttribute('aria-pressed', 'true');
+    }
+  });
+
+  windowTarget?.addEventListener('keydown', (event) => {
+    if (event.key !== 'T' && event.key !== 't') {
+      return;
+    }
+    if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+      return;
+    }
+    event.preventDefault();
+    navigateToImmersive();
+  });
+};
+
 export function renderTextFallback(
   container: HTMLElement,
   options: RenderTextFallbackOptions
@@ -894,9 +956,10 @@ export function renderTextFallback(
     textFallbackStrings.contact.resumeUrl ??
     'docs/resume/2025-09/resume.pdf';
   const resolvedGithubUrl = githubUrl ?? textFallbackStrings.contact.githubUrl;
-  const immersiveUrl = createImmersiveModeUrl(
-    providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
-  );
+  const recoveryUrlInput =
+    providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined;
+  const immersiveUrl = createImmersiveRecoveryUrl(recoveryUrlInput);
+  const immersiveDebugUrl = createImmersiveModeUrl(recoveryUrlInput);
   const resolvedLocale = resolveLocale(localeHint);
   const langValue = resolvedLocale === 'en-x-pseudo' ? 'en' : resolvedLocale;
   const direction = getLocaleDirection(localeHint);
@@ -967,6 +1030,30 @@ export function renderTextFallback(
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
 
+  if (shouldShowAdvancedImmersiveDebugLink(reason)) {
+    const debugItem = documentTarget.createElement('li');
+    debugItem.className = 'text-fallback__action';
+    const debugLink = documentTarget.createElement('a');
+    debugLink.href = immersiveDebugUrl;
+    debugLink.className = 'text-fallback__link';
+    debugLink.textContent = actionStrings.immersiveDebugLink;
+    debugLink.rel = 'noopener';
+    debugLink.dataset.action = 'immersive-debug';
+    debugItem.appendChild(debugLink);
+    list.appendChild(debugItem);
+  }
+
+  const clearPreferenceItem = documentTarget.createElement('li');
+  clearPreferenceItem.className = 'text-fallback__action';
+  const clearPreferenceButton = documentTarget.createElement('button');
+  clearPreferenceButton.type = 'button';
+  clearPreferenceButton.className = 'text-fallback__link text-fallback__button';
+  clearPreferenceButton.textContent = actionStrings.clearModePreference;
+  clearPreferenceButton.dataset.action = 'clear-mode-preference';
+  clearPreferenceButton.setAttribute('aria-pressed', 'false');
+  clearPreferenceItem.appendChild(clearPreferenceButton);
+  list.appendChild(clearPreferenceItem);
+
   const resumeItem = documentTarget.createElement('li');
   resumeItem.className = 'text-fallback__action';
   const resumeLink = documentTarget.createElement('a');
@@ -998,6 +1085,10 @@ export function renderTextFallback(
     section.appendChild(portfolioSection);
   }
   container.appendChild(section);
+  installTextFallbackRecoveryHandlers(section, {
+    immersiveUrl,
+    documentTarget,
+  });
   section.focus({ preventScroll: true });
 
   try {

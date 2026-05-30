@@ -100,7 +100,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
       actions: {
-        immersiveLink: 'Launch immersive mode',
+        immersiveLink: 'Try immersive again',
+        immersiveDebugLink: 'Force immersive debug mode',
+        clearModePreference: 'Clear saved mode preference',
         resumeLink: 'Download the latest résumé',
         githubLink: 'Explore projects on GitHub',
       },
@@ -260,21 +262,21 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       idleLabelTemplate: 'Text mode · Press {keyHint}',
       idleDescriptionTemplate: 'Switch to the text-only portfolio',
       idleAnnouncementTemplate:
-        'Switch to the text-only portfolio. Press {keyHint} to activate.',
+        'Switch between immersive mode and the text portfolio. Press {keyHint} to activate.',
       idleTitleTemplate: 'Switch to the text-only portfolio ({keyHint})',
-      pendingLabelTemplate: 'Switching to text mode…',
+      pendingLabelTemplate: 'Switching modes…',
       pendingAnnouncementTemplate:
-        'Switch to the text-only portfolio. Switching to text mode…',
-      activeLabelTemplate: 'Text mode active',
-      activeDescriptionTemplate: 'Text mode already active.',
-      activeAnnouncementTemplate: 'Text mode already active.',
-      errorLabelTemplate: 'Retry text mode · Press {keyHint}',
+        'Switching between immersive mode and the text portfolio…',
+      activeLabelTemplate: 'Try immersive · Press {keyHint}',
+      activeDescriptionTemplate: 'Return to immersive mode',
+      activeAnnouncementTemplate:
+        'Return to immersive mode. Press {keyHint} to activate.',
+      errorLabelTemplate: 'Retry mode switch · Press {keyHint}',
       errorDescriptionTemplate:
-        'Text mode toggle failed. Try again or use the immersive link.',
+        'Mode switch failed. Try again or use the recovery link.',
       errorAnnouncementTemplate:
-        'Text mode toggle failed. Press {keyHint} to try again.',
-      errorTitleTemplate:
-        'Text mode toggle failed. Press {keyHint} to retry text mode.',
+        'Mode switch failed. Press {keyHint} to try again.',
+      errorTitleTemplate: 'Mode switch failed. Press {keyHint} to retry.',
     },
     narrativeLog: {
       heading: 'Creator story log',

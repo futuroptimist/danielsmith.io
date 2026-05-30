@@ -101,7 +101,9 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
       },
       actions: {
-        immersiveLink: wrap('Launch immersive mode'),
+        immersiveLink: wrap('Try immersive again'),
+        immersiveDebugLink: wrap('Force immersive debug mode'),
+        clearModePreference: wrap('Clear saved mode preference'),
         resumeLink: wrap('Download the latest résumé'),
         githubLink: wrap('Explore projects on GitHub'),
       },
@@ -252,26 +254,26 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       idleLabelTemplate: wrap('Text mode · Press {keyHint}'),
       idleDescriptionTemplate: wrap('Switch to the text-only portfolio'),
       idleAnnouncementTemplate: wrap(
-        'Switch to the text-only portfolio. Press {keyHint} to activate.'
+        'Switch between immersive mode and the text portfolio. Press {keyHint} to activate.'
       ),
       idleTitleTemplate: wrap('Switch to the text-only portfolio ({keyHint})'),
-      pendingLabelTemplate: wrap('Switching to text mode…'),
+      pendingLabelTemplate: wrap('Switching modes…'),
       pendingAnnouncementTemplate: wrap(
-        'Switch to the text-only portfolio. Switching to text mode…'
+        'Switching between immersive mode and the text portfolio…'
       ),
-      activeLabelTemplate: wrap('Text mode active'),
-      activeDescriptionTemplate: wrap('Text mode already active.'),
-      activeAnnouncementTemplate: wrap('Text mode already active.'),
-      errorLabelTemplate: wrap('Retry text mode · Press {keyHint}'),
+      activeLabelTemplate: wrap('Try immersive · Press {keyHint}'),
+      activeDescriptionTemplate: wrap('Return to immersive mode'),
+      activeAnnouncementTemplate: wrap(
+        'Return to immersive mode. Press {keyHint} to activate.'
+      ),
+      errorLabelTemplate: wrap('Retry mode switch · Press {keyHint}'),
       errorDescriptionTemplate: wrap(
-        'Text mode toggle failed. Try again or use the immersive link.'
+        'Mode switch failed. Try again or use the recovery link.'
       ),
       errorAnnouncementTemplate: wrap(
-        'Text mode toggle failed. Press {keyHint} to try again.'
+        'Mode switch failed. Press {keyHint} to try again.'
       ),
-      errorTitleTemplate: wrap(
-        'Text mode toggle failed. Press {keyHint} to retry text mode.'
-      ),
+      errorTitleTemplate: wrap('Mode switch failed. Press {keyHint} to retry.'),
     },
     narrativeLog: {
       heading: wrap('Creator story log'),

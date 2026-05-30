@@ -246,6 +246,8 @@ export interface SiteTextFallbackStrings {
   };
   actions: {
     immersiveLink: string;
+    immersiveDebugLink: string;
+    clearModePreference: string;
     resumeLink: string;
     githubLink: string;
   };
