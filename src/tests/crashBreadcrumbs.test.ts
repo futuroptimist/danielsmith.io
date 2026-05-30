@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createCrashBreadcrumbStore } from '../scene/performance/crashBreadcrumbs';
 
@@ -16,6 +16,102 @@ function createMemoryStorage() {
 }
 
 describe('crash breadcrumbs', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('treats storage failures as best-effort diagnostics', () => {
+    const failingStorage = {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('quota exceeded');
+      },
+      removeItem: () => {
+        throw new Error('blocked');
+      },
+    };
+    const store = createCrashBreadcrumbStore({ storage: failingStorage });
+
+    expect(() =>
+      store.record({ type: 'mode-change', message: 'should not throw' })
+    ).not.toThrow();
+    expect(() => store.clear()).not.toThrow();
+    expect(store.read().entries).toEqual([]);
+  });
+
+  it('keeps snapshot recording and clipboard copy destructure-safe', async () => {
+    const store = createCrashBreadcrumbStore({
+      storage: createMemoryStorage(),
+    });
+    const { copyCrashLog, recordSnapshot } = store;
+    const writeText = vi.fn().mockRejectedValue(new Error('not focused'));
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+
+    recordSnapshot({
+      averageFps: 12,
+      medianFps: 12,
+      p95FrameMs: 90,
+      minFps: 8,
+      sampleCount: 5,
+      phases: {
+        inputMovementCamera: { averageMs: 1, p95Ms: 2, sampleCount: 1 },
+        avatarIkAudio: { averageMs: 1, p95Ms: 2, sampleCount: 1 },
+        poiHudTooltips: { averageMs: 1, p95Ms: 2, sampleCount: 1 },
+        decorativeStructures: { averageMs: 1, p95Ms: 2, sampleCount: 1 },
+        lightingLedLightmap: { averageMs: 1, p95Ms: 2, sampleCount: 1 },
+        mirror: { averageMs: 0, p95Ms: 0, sampleCount: 0 },
+        mainRender: { averageMs: 80, p95Ms: 90, sampleCount: 5 },
+      },
+      renderer: {
+        vendor: 'Google Inc.',
+        renderer: 'WebGL',
+        unmaskedVendor: 'Microsoft',
+        unmaskedRenderer: 'ANGLE (Microsoft, WARP, D3D11)',
+        isSoftwareRenderer: true,
+        isDangerousSoftwareRenderer: true,
+        riskLevel: 'dangerous-software',
+        reason: 'test',
+      },
+      softwareRendererPolicy: {
+        mode: 'safe',
+        safeMode: true,
+        renderCadenceFps: 12,
+        reason: 'test',
+      },
+      rendererSize: {
+        pixelRatio: 0.5,
+        viewport: { width: 1280, height: 720 },
+        drawingBuffer: { width: 640, height: 360 },
+      },
+      quality: {
+        level: 'performance',
+        selectionSource: 'initial',
+        adaptiveDowngradeCount: 0,
+        adaptiveRecoveryCount: 0,
+        lastAdaptiveReason: null,
+        lastAdaptiveDowngradeReason: null,
+        lastAdaptiveRecoveryReason: null,
+        adaptivePolicy: null,
+      },
+      features: {
+        bloomEnabled: false,
+        composerEnabled: false,
+        activePostprocessingPassCount: 0,
+        mirrorEnabled: false,
+        mirrorRenderTargetSize: 0,
+        mirrorUpdateRateFps: 0,
+        mirrorRenderCount: 0,
+      },
+      lastFailoverReason: null,
+    });
+
+    expect(store.read().entries).toHaveLength(1);
+    await expect(copyCrashLog()).resolves.toBe(false);
+    expect(writeText).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps a bounded serializable ring buffer', () => {
     const store = createCrashBreadcrumbStore({
       storage: createMemoryStorage(),

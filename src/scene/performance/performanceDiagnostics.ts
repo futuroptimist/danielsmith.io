@@ -64,6 +64,15 @@ export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   lastFailoverReason: string | null;
 }
 
+export interface PerformanceCrashLogApi {
+  exportCrashLog(): string;
+  copyCrashLog(): Promise<boolean>;
+}
+
+export interface PerformanceCrashBreadcrumbApi extends PerformanceCrashLogApi {
+  recordSnapshot(snapshot: PerformanceDiagnosticsSnapshot): void;
+}
+
 export interface PerformanceDiagnosticsApi {
   getSnapshot(): PerformanceDiagnosticsSnapshot;
   getFrameStats(): FrameStatsSnapshot;
@@ -73,6 +82,7 @@ export interface PerformanceDiagnosticsApi {
   getLastFailoverReason(): string | null;
   exportCrashLog?(): string;
   copyCrashLog?(): Promise<boolean>;
+  recordSnapshot?(snapshot: PerformanceDiagnosticsSnapshot): void;
 }
 
 interface PerformanceDiagnosticsOptions {
@@ -84,6 +94,7 @@ interface PerformanceDiagnosticsOptions {
   getSoftwareRendererPolicy?: () => SoftwareRendererPolicyState;
   exportCrashLog?: () => string;
   copyCrashLog?: () => Promise<boolean>;
+  recordSnapshot?: (snapshot: PerformanceDiagnosticsSnapshot) => void;
   maxSamples?: number;
 }
 
@@ -144,6 +155,7 @@ export function createPerformanceDiagnostics({
   }),
   exportCrashLog,
   copyCrashLog,
+  recordSnapshot,
   maxSamples = 180,
 }: PerformanceDiagnosticsOptions) {
   const frameMsSamples: number[] = [];
@@ -207,6 +219,7 @@ export function createPerformanceDiagnostics({
     },
     exportCrashLog,
     copyCrashLog,
+    recordSnapshot,
   };
 
   return {

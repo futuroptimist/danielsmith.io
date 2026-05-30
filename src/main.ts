@@ -137,6 +137,7 @@ import { createAdaptiveQualityController } from './scene/performance/adaptiveQua
 import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
 import {
   createPerformanceDiagnostics,
+  type PerformanceCrashBreadcrumbApi,
   type PerformanceDiagnosticsApi,
 } from './scene/performance/performanceDiagnostics';
 import {
@@ -432,7 +433,7 @@ declare global {
         }>;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
-      performance?: PerformanceDiagnosticsApi;
+      performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -3367,6 +3368,12 @@ function initializeImmersiveScene(
   });
   applyFeaturePolicy();
 
+  const crashLogAccess: PerformanceCrashBreadcrumbApi = {
+    exportCrashLog: () => crashBreadcrumbs.exportCrashLog(),
+    copyCrashLog: () => crashBreadcrumbs.copyCrashLog(),
+    recordSnapshot: (snapshot) => crashBreadcrumbs.recordSnapshot(snapshot),
+  };
+
   performanceDiagnostics = createPerformanceDiagnostics({
     rendererInfo,
     getRendererSize: () => ({
@@ -3404,8 +3411,9 @@ function initializeImmersiveScene(
     },
     getLastFailoverReason: () => lastFailoverReason,
     getSoftwareRendererPolicy: () => softwareRendererPolicy,
-    exportCrashLog: () => crashBreadcrumbs.exportCrashLog(),
-    copyCrashLog: () => crashBreadcrumbs.copyCrashLog(),
+    exportCrashLog: crashLogAccess.exportCrashLog,
+    copyCrashLog: crashLogAccess.copyCrashLog,
+    recordSnapshot: crashLogAccess.recordSnapshot,
   });
   const portfolioWindow = window as Window;
   if (!portfolioWindow.portfolio) {
@@ -4079,7 +4087,7 @@ function initializeImmersiveScene(
       delete window.portfolio.graphics;
     }
     if (window.portfolio?.performance) {
-      delete window.portfolio.performance;
+      window.portfolio.performance = crashLogAccess;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);

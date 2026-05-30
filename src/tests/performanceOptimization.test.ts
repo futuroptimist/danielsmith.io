@@ -101,6 +101,22 @@ describe('immersive performance optimization policy', () => {
     });
   });
 
+  it('keeps generic software renderers out of dangerous safe mode', () => {
+    const genericSoftwareRenderers = [
+      'Generic Software Renderer',
+      'CPU Rasterizer',
+      'Chromium Software Compositor',
+    ];
+
+    genericSoftwareRenderers.forEach((renderer) => {
+      expect(classifyRendererInfo({ renderer })).toMatchObject({
+        isSoftwareRenderer: true,
+        isDangerousSoftwareRenderer: false,
+        riskLevel: 'software',
+      });
+    });
+  });
+
   it('starts software renderers in low-cost performance mode', () => {
     const software = resolveInitialQualityPolicy(
       { isSoftwareRenderer: true, isDangerousSoftwareRenderer: false },

@@ -74,10 +74,19 @@ test.describe('software renderer crash hardening', () => {
       page.locator('[data-action="continuous-immersive"]')
     ).toHaveAttribute('href', /softwareRendererMode=continuous/);
 
-    const crashLog = await page.evaluate(() =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).portfolio.performance.exportCrashLog()
-    );
+    const crashLog = await page.evaluate(() => {
+      const performanceDiagnostics =
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).portfolio.performance;
+      for (let index = 0; index < 80; index += 1) {
+        performanceDiagnostics.recordSnapshot?.(
+          performanceDiagnostics.getSnapshot()
+        );
+      }
+      return performanceDiagnostics.exportCrashLog();
+    });
+    const parsedCrashLog = JSON.parse(crashLog) as { entries: unknown[] };
+    expect(parsedCrashLog.entries.length).toBeLessThanOrEqual(40);
     expect(crashLog.length).toBeLessThan(100_000);
     expect(crashLog).toContain('renderer-warning');
     expect(crashLog).toContain('Basic Render Driver');

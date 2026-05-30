@@ -30,9 +30,13 @@ export function createSoftwareRendererWarning({
   const documentTarget = document;
   const element = documentTarget.createElement('aside');
   element.className = 'software-renderer-warning';
-  element.setAttribute('role', 'alertdialog');
-  element.setAttribute('aria-live', 'assertive');
+  element.setAttribute('role', 'alert');
+  element.setAttribute('aria-atomic', 'true');
   element.dataset.softwareRendererWarning = 'true';
+
+  const dispose = () => {
+    element.remove();
+  };
 
   const title = documentTarget.createElement('h2');
   title.className = 'software-renderer-warning__title';
@@ -62,7 +66,7 @@ export function createSoftwareRendererWarning({
   safeButton.dataset.action = 'continue-safe-immersive';
   safeButton.textContent = 'Continue in safe immersive';
   safeButton.addEventListener('click', () => {
-    element.remove();
+    dispose();
     onContinueSafe?.();
   });
   actions.appendChild(safeButton);
@@ -94,8 +98,6 @@ export function createSoftwareRendererWarning({
 
   return {
     element,
-    dispose() {
-      element.remove();
-    },
+    dispose,
   };
 }

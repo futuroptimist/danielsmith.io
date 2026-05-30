@@ -1,3 +1,8 @@
+import {
+  FORCE_CONTINUOUS_RENDERING_PARAM,
+  SOFTWARE_RENDERER_CONTINUOUS_VALUE,
+  SOFTWARE_RENDERER_MODE_PARAM,
+} from '../../ui/immersiveUrl';
 import type { GraphicsQualityLevel } from '../graphics/qualityManager';
 
 import type { RendererInfoSnapshot } from './rendererCapabilities';
@@ -11,8 +16,6 @@ export interface SoftwareRendererPolicyState {
   reason: string;
 }
 
-const SOFTWARE_RENDERER_MODE_PARAM = 'softwareRendererMode';
-const FORCE_CONTINUOUS_RENDERING_PARAM = 'forceContinuousRendering';
 const SOFTWARE_SAFE_RENDER_CADENCE_FPS = 12;
 
 const isTruthyParam = (value: string | null): boolean => {
@@ -40,7 +43,7 @@ export function resolveSoftwareRendererPolicy(
 
   if (
     rendererInfo.isDangerousSoftwareRenderer &&
-    (requestedMode === 'continuous' || forceContinuous)
+    (requestedMode === SOFTWARE_RENDERER_CONTINUOUS_VALUE || forceContinuous)
   ) {
     return {
       mode: 'continuous',

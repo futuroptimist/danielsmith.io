@@ -74,8 +74,8 @@ export function classifyRendererInfo(input: {
       unmaskedVendor,
       unmaskedRenderer,
       isSoftwareRenderer: true,
-      isDangerousSoftwareRenderer: true,
-      riskLevel: 'dangerous-software',
+      isDangerousSoftwareRenderer: false,
+      riskLevel: 'software',
       reason: `matched software renderer pattern ${matchedSoftwarePattern.source}`,
     };
   }

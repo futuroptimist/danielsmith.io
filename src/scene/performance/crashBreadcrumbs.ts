@@ -141,54 +141,72 @@ export function createCrashBreadcrumbStore({
     },
   };
 
-  const read = () => safeParse(safeStorage.getItem(CRASH_LOG_KEY));
-  const write = (log: CrashBreadcrumbLog) => {
-    safeStorage.setItem(
-      CRASH_LOG_KEY,
-      serializeBounded(log, maxEntries, maxSerializedBytes)
-    );
+  const read = () => {
+    try {
+      return safeParse(safeStorage.getItem(CRASH_LOG_KEY));
+    } catch {
+      return emptyLog();
+    }
   };
+  const write = (log: CrashBreadcrumbLog) => {
+    try {
+      safeStorage.setItem(
+        CRASH_LOG_KEY,
+        serializeBounded(log, maxEntries, maxSerializedBytes)
+      );
+    } catch {
+      // Breadcrumbs are best-effort diagnostics and must never break rendering.
+    }
+  };
+  const record: CrashBreadcrumbStore['record'] = (entry) => {
+    const timestamp = new Date().toISOString();
+    const log = read();
+    write({
+      version: 1,
+      updatedAt: timestamp,
+      entries: [
+        ...log.entries,
+        {
+          ...entry,
+          timestamp,
+          pageUrl: getPageUrl(),
+          memory: getMemorySnapshot(),
+        },
+      ],
+    });
+  };
+  const recordSnapshot: CrashBreadcrumbStore['recordSnapshot'] = (snapshot) => {
+    record({
+      type: 'snapshot',
+      snapshot,
+      renderer: snapshot.renderer,
+      softwareRendererPolicy: snapshot.softwareRendererPolicy,
+    });
+  };
+  const exportCrashLog = () => JSON.stringify(read(), null, 2);
 
   return {
-    record(entry) {
-      const timestamp = new Date().toISOString();
-      const log = read();
-      write({
-        version: 1,
-        updatedAt: timestamp,
-        entries: [
-          ...log.entries,
-          {
-            ...entry,
-            timestamp,
-            pageUrl: getPageUrl(),
-            memory: getMemorySnapshot(),
-          },
-        ],
-      });
-    },
-    recordSnapshot(snapshot) {
-      this.record({
-        type: 'snapshot',
-        snapshot,
-        renderer: snapshot.renderer,
-        softwareRendererPolicy: snapshot.softwareRendererPolicy,
-      });
-    },
-    exportCrashLog() {
-      return JSON.stringify(read(), null, 2);
-    },
+    record,
+    recordSnapshot,
+    exportCrashLog,
     async copyCrashLog() {
-      const text = this.exportCrashLog();
       if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
         return false;
       }
-      await navigator.clipboard.writeText(text);
-      return true;
+      try {
+        await navigator.clipboard.writeText(exportCrashLog());
+        return true;
+      } catch {
+        return false;
+      }
     },
     read,
     clear() {
-      safeStorage.removeItem(CRASH_LOG_KEY);
+      try {
+        safeStorage.removeItem(CRASH_LOG_KEY);
+      } catch {
+        // Ignore storage failures when clearing best-effort breadcrumbs.
+      }
     },
   };
 }
