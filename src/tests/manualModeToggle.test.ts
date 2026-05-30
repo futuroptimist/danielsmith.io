@@ -264,7 +264,11 @@ describe('createManualModeToggle', () => {
     });
 
     input.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 't', bubbles: true })
+      new KeyboardEvent('keydown', {
+        key: 't',
+        bubbles: true,
+        cancelable: true,
+      })
     );
     await flushMicrotasks();
 
@@ -272,6 +276,34 @@ describe('createManualModeToggle', () => {
 
     cleanupHandle(handle);
     input.remove();
+    container.remove();
+  });
+
+  it('ignores contenteditable targets for the global keyboard shortcut', async () => {
+    const container = createContainer();
+    const editable = document.createElement('div');
+    editable.setAttribute('contenteditable', 'true');
+    document.body.appendChild(editable);
+    const onToggle = vi.fn();
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => false,
+    });
+
+    editable.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 't',
+        bubbles: true,
+        cancelable: true,
+      })
+    );
+    await flushMicrotasks();
+
+    expect(onToggle).not.toHaveBeenCalled();
+
+    cleanupHandle(handle);
+    editable.remove();
     container.remove();
   });
 

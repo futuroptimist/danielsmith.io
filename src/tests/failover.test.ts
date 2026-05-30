@@ -914,6 +914,62 @@ describe('renderTextFallback', () => {
     ).toBeNull();
   });
 
+  it('replaces fallback T recovery handlers between repeated renders', () => {
+    const container = document.createElement('div');
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: '/first',
+      resumeUrl: '/resume.pdf',
+      githubUrl: 'https://example.com',
+    });
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: '/second',
+      resumeUrl: '/resume.pdf',
+      githubUrl: 'https://example.com',
+    });
+
+    const event = new KeyboardEvent('keydown', {
+      key: 't',
+      bubbles: true,
+      cancelable: true,
+    });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('ignores fallback T recovery shortcuts from contenteditable text targets', () => {
+    const container = render('low-performance');
+    const editable = document.createElement('div');
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    editable.setAttribute('contenteditable', 'true');
+    document.body.appendChild(editable);
+
+    const event = new KeyboardEvent('keydown', {
+      key: 't',
+      bubbles: true,
+      cancelable: true,
+    });
+    editable.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+    editable.remove();
+    container.remove();
+  });
+
   it('indicates WebGL unsupported reason', () => {
     const container = render('webgl-unsupported');
     const section = container.querySelector('.text-fallback');

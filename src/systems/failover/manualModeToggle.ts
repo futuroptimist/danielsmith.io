@@ -31,6 +31,8 @@ function isTextEntryTarget(target: EventTarget | null): boolean {
   const tagName = target.tagName.toLowerCase();
   return (
     target.isContentEditable ||
+    target.hasAttribute('contenteditable') ||
+    target.closest('[contenteditable]') !== null ||
     tagName === 'input' ||
     tagName === 'textarea' ||
     tagName === 'select'

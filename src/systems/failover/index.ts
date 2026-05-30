@@ -549,6 +549,8 @@ const isTextInputTarget = (target: EventTarget | null): boolean => {
   const tagName = target.tagName.toLowerCase();
   return (
     target.isContentEditable ||
+    target.hasAttribute('contenteditable') ||
+    target.closest('[contenteditable]') !== null ||
     tagName === 'input' ||
     tagName === 'textarea' ||
     tagName === 'select'
@@ -575,6 +577,9 @@ const installFallbackRecoveryShortcuts = (
   }
   const normalizedKey = keyHint.length === 1 ? keyHint.toLowerCase() : keyHint;
   const handleKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return;
+    }
     const eventKey = keyHint.length === 1 ? event.key.toLowerCase() : event.key;
     if (eventKey !== normalizedKey) {
       return;
