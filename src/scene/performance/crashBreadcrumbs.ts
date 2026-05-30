@@ -101,6 +101,13 @@ const getDefaultBrowserStorageCandidates = (): StorageProvider[] => {
   return candidates;
 };
 
+const getLogUpdatedAtMs = (log: CrashBreadcrumbLog) => {
+  const updatedAtMs = Date.parse(log.updatedAt);
+  return Number.isFinite(updatedAtMs) ? updatedAtMs : 0;
+};
+
+const hasEntries = (log: CrashBreadcrumbLog) => log.entries.length > 0;
+
 const safeParse = (value: string | null): CrashBreadcrumbLog => {
   if (!value) {
     return emptyLog();
@@ -201,16 +208,29 @@ export function createCrashBreadcrumbStore({
   ];
 
   const read = () => {
+    let newestReadableLog: CrashBreadcrumbLog | null = null;
+    let newestReadableStorageIndex = -1;
+
     for (const candidate of candidateOrder()) {
       try {
         const serializedLog = candidate.getItem(CRASH_LOG_KEY);
-        if (serializedLog) {
-          activeStorageIndex = storageCandidates.indexOf(candidate);
-          return safeParse(serializedLog);
+        const parsedLog = safeParse(serializedLog);
+        if (
+          hasEntries(parsedLog) &&
+          (!newestReadableLog ||
+            getLogUpdatedAtMs(parsedLog) > getLogUpdatedAtMs(newestReadableLog))
+        ) {
+          newestReadableLog = parsedLog;
+          newestReadableStorageIndex = storageCandidates.indexOf(candidate);
         }
       } catch {
         // Try the next storage provider before dropping to an empty log.
       }
+    }
+
+    if (newestReadableLog) {
+      activeStorageIndex = newestReadableStorageIndex;
+      return newestReadableLog;
     }
     return emptyLog();
   };

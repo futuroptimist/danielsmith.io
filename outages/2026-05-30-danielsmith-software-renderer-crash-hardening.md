@@ -45,9 +45,10 @@ covered by the software-renderer classifier.
   override: `?softwareRendererMode=continuous` or `?forceContinuousRendering=1`.
 - Crash breadcrumbs persist to bounded browser storage (`localStorage`, with
   `sessionStorage` as the browser fallback when local writes fail, even when
-  `localStorage` is passed explicitly) and are exported from
-  `window.portfolio.performance.exportCrashLog()`; `copyCrashLog()` copies the
-  same bounded JSON when Clipboard API access is available.
+  `localStorage` is passed explicitly). Exports choose the newest readable log
+  across providers so stale local entries cannot hide newer fallback writes.
+  `window.portfolio.performance.exportCrashLog()` exports that bounded JSON;
+  `copyCrashLog()` copies it when Clipboard API access is available.
 - `webglcontextlost` records an immediate breadcrumb before switching to the
   recoverable text fallback, while preserving the existing “Try immersive
   again” path and crash-log export helper after cleanup.

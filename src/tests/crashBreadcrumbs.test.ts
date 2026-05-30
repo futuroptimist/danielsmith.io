@@ -143,6 +143,80 @@ describe('crash breadcrumbs', () => {
     }
   });
 
+  it('exports the newest fallback log when stale localStorage remains readable', () => {
+    const localFallbackStorage = createMemoryStorage();
+    const sessionFallbackStorage = createMemoryStorage();
+    const oldTimestamp = '2026-05-30T20:00:00.000Z';
+    localFallbackStorage.setItem(
+      CRASH_LOG_KEY,
+      JSON.stringify({
+        version: 1,
+        updatedAt: oldTimestamp,
+        entries: [
+          {
+            type: 'mode-change',
+            timestamp: oldTimestamp,
+            pageUrl: 'https://example.test/?mode=immersive',
+            message: 'stale local breadcrumb',
+            memory: null,
+          },
+        ],
+      })
+    );
+    const originalLocalStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'localStorage'
+    );
+    const originalSessionStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'sessionStorage'
+    );
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get: () => ({
+        ...localFallbackStorage,
+        setItem: () => {
+          throw new Error('quota exceeded');
+        },
+      }),
+    });
+    Object.defineProperty(window, 'sessionStorage', {
+      configurable: true,
+      get: () => sessionFallbackStorage,
+    });
+
+    try {
+      createCrashBreadcrumbStore().record({
+        type: 'mode-change',
+        message: 'newer session fallback breadcrumb',
+      });
+      const reloadedStore = createCrashBreadcrumbStore();
+      const exported = JSON.parse(reloadedStore.exportCrashLog()) as ReturnType<
+        typeof reloadedStore.read
+      >;
+
+      expect(exported.entries).toHaveLength(2);
+      expect(exported.entries.map((entry) => entry.message)).toEqual([
+        'stale local breadcrumb',
+        'newer session fallback breadcrumb',
+      ]);
+      expect(sessionFallbackStorage.getItem(CRASH_LOG_KEY)).toContain(
+        'newer session fallback breadcrumb'
+      );
+    } finally {
+      if (originalLocalStorage) {
+        Object.defineProperty(window, 'localStorage', originalLocalStorage);
+      } else {
+        Reflect.deleteProperty(window, 'localStorage');
+      }
+      if (originalSessionStorage) {
+        Object.defineProperty(window, 'sessionStorage', originalSessionStorage);
+      } else {
+        Reflect.deleteProperty(window, 'sessionStorage');
+      }
+    }
+  });
+
   it('retries sessionStorage when an explicit localStorage provider cannot write', () => {
     const localFallbackStorage = createMemoryStorage();
     const sessionFallbackStorage = createMemoryStorage();
