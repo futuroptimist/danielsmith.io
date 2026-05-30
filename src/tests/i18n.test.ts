@@ -103,6 +103,10 @@ describe('i18n utilities', () => {
     expect(english.pendingHudAnnouncement).toBe(
       'Switch to the text-only portfolio. Switching to text mode…'
     );
+    expect(english.activeLabel).toBe('Try immersive again · Press T');
+    expect(english.activeHudAnnouncement).toBe(
+      'Text mode active. Press T to try immersive again.'
+    );
     expect(english.errorLabel).toBe('Retry text mode · Press T');
     expect(english.errorHudAnnouncement).toBe(
       'Text mode toggle failed. Press T to try again.'
@@ -119,6 +123,10 @@ describe('i18n utilities', () => {
     );
     expect(pseudo.pendingHudAnnouncement).toBe(
       '⟦Switch to the text-only portfolio. Switching to text mode…⟧'
+    );
+    expect(pseudo.activeLabel).toBe('⟦Try immersive again · Press T⟧');
+    expect(pseudo.activeHudAnnouncement).toBe(
+      '⟦Text mode active. Press T to try immersive again.⟧'
     );
     expect(pseudo.errorLabel).toBe('⟦Retry text mode · Press T⟧');
     expect(pseudo.errorHudAnnouncement).toBe(

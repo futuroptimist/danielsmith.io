@@ -101,7 +101,10 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
       },
       actions: {
-        immersiveLink: wrap('Launch immersive mode'),
+        immersiveLink: wrap('Try immersive again'),
+        debugImmersiveLink: wrap('Debug: force immersive mode'),
+        clearPreferenceButton: wrap('Clear saved mode preference'),
+        clearPreferenceSuccess: wrap('Saved mode preference cleared'),
         resumeLink: wrap('Download the latest résumé'),
         githubLink: wrap('Explore projects on GitHub'),
       },
@@ -259,9 +262,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       pendingAnnouncementTemplate: wrap(
         'Switch to the text-only portfolio. Switching to text mode…'
       ),
-      activeLabelTemplate: wrap('Text mode active'),
-      activeDescriptionTemplate: wrap('Text mode already active.'),
-      activeAnnouncementTemplate: wrap('Text mode already active.'),
+      activeLabelTemplate: wrap('Try immersive again · Press {keyHint}'),
+      activeDescriptionTemplate: wrap('Return to the immersive portfolio.'),
+      activeAnnouncementTemplate: wrap(
+        'Text mode active. Press {keyHint} to try immersive again.'
+      ),
       errorLabelTemplate: wrap('Retry text mode · Press {keyHint}'),
       errorDescriptionTemplate: wrap(
         'Text mode toggle failed. Try again or use the immersive link.'

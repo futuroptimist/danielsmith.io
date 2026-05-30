@@ -9,7 +9,10 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
-import { createImmersiveModeUrl } from '../ui/immersiveUrl';
+import {
+  createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
+} from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',
@@ -861,7 +864,7 @@ describe('renderTextFallback', () => {
       '[data-action="immersive"]'
     );
     expect(immersiveLink?.href).toBe(
-      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+      new URL(createImmersiveRecoveryUrl(), window.location.origin).toString()
     );
   });
 
@@ -873,10 +876,98 @@ describe('renderTextFallback', () => {
     );
     expect(immersiveLink?.href).toBe(
       new URL(
+        createImmersiveRecoveryUrl(customUrl),
+        window.location.origin
+      ).toString()
+    );
+  });
+
+  it('adds a debug immersive bypass link for runtime performance fallbacks', () => {
+    const customUrl = 'https://portfolio.test/demo?mode=text';
+    const container = render('low-performance', { immersiveUrl: customUrl });
+    const immersiveLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+    const debugLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="debug-immersive"]'
+    );
+
+    expect(immersiveLink?.href).toBe(
+      new URL(
+        createImmersiveRecoveryUrl(customUrl),
+        window.location.origin
+      ).toString()
+    );
+    expect(debugLink?.href).toBe(
+      new URL(
         createImmersiveModeUrl(customUrl),
         window.location.origin
       ).toString()
     );
+  });
+
+  it('does not add a debug bypass link for manual text mode', () => {
+    const container = render('manual');
+
+    expect(
+      container.querySelector('[data-action="debug-immersive"]')
+    ).toBeNull();
+  });
+
+  it('replaces fallback T recovery handlers between repeated renders', () => {
+    const container = document.createElement('div');
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: '/first',
+      resumeUrl: '/resume.pdf',
+      githubUrl: 'https://example.com',
+    });
+    renderTextFallback(container, {
+      reason: 'low-performance',
+      immersiveUrl: '/second',
+      resumeUrl: '/resume.pdf',
+      githubUrl: 'https://example.com',
+    });
+
+    const event = new KeyboardEvent('keydown', {
+      key: 't',
+      bubbles: true,
+      cancelable: true,
+    });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('ignores fallback T recovery shortcuts from contenteditable text targets', () => {
+    const container = render('low-performance');
+    const editable = document.createElement('div');
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    editable.setAttribute('contenteditable', 'true');
+    document.body.appendChild(editable);
+
+    const event = new KeyboardEvent('keydown', {
+      key: 't',
+      bubbles: true,
+      cancelable: true,
+    });
+    editable.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+    editable.remove();
+    container.remove();
   });
 
   it('indicates WebGL unsupported reason', () => {
@@ -1011,6 +1102,7 @@ describe('renderTextFallback', () => {
 
     expect(actionLinks.map((link) => link.textContent)).toEqual([
       actions.immersiveLink,
+      actions.clearPreferenceButton,
       actions.resumeLink,
       actions.githubLink,
     ]);

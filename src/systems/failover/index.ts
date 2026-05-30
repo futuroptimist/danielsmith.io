@@ -4,6 +4,7 @@ import {
   getLocaleDirection,
   getLocaleScript,
   getModeAnnouncerStrings,
+  getModeToggleStrings,
   resolveLocale,
   getPoiCopy,
   getPoiNarrativeLogStrings,
@@ -18,6 +19,7 @@ import {
 } from '../../ui/accessibility/modeAnnouncer';
 import {
   createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
   getModeFromSearch,
   IMMERSIVE_MODE_VALUE,
   shouldDisablePerformanceFailover,
@@ -25,6 +27,7 @@ import {
 } from '../../ui/immersiveUrl';
 
 import {
+  clearModePreference,
   readModePreference as readStoredModePreference,
   type ModePreference,
 } from './modePreference';
@@ -523,9 +526,79 @@ export function evaluateFailoverDecision(
 export interface RenderTextFallbackOptions {
   reason: FallbackReason;
   immersiveUrl?: string;
+  debugImmersiveUrl?: string;
   resumeUrl?: string;
   githubUrl?: string;
 }
+
+const FALLBACK_REASONS_WITH_DEBUG_BYPASS = new Set<FallbackReason>([
+  'low-performance',
+  'low-memory',
+  'low-end-device',
+  'data-saver',
+  'immersive-init-error',
+  'console-error',
+]);
+
+const fallbackRecoveryCleanup = new WeakMap<Document, () => void>();
+
+const isTextInputTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  const tagName = target.tagName.toLowerCase();
+  return (
+    target.isContentEditable ||
+    target.hasAttribute('contenteditable') ||
+    target.closest('[contenteditable]') !== null ||
+    tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select'
+  );
+};
+
+const clearStoredModePreference = () => {
+  try {
+    clearModePreference();
+  } catch {
+    // Ignore storage failures; explicit immersive URLs still override preference.
+  }
+};
+
+const installFallbackRecoveryShortcuts = (
+  documentTarget: Document,
+  immersiveUrl: string,
+  keyHint = 'T'
+) => {
+  fallbackRecoveryCleanup.get(documentTarget)?.();
+  const windowTarget = documentTarget.defaultView;
+  if (!windowTarget) {
+    return;
+  }
+  const normalizedKey = keyHint.length === 1 ? keyHint.toLowerCase() : keyHint;
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return;
+    }
+    const eventKey = keyHint.length === 1 ? event.key.toLowerCase() : event.key;
+    if (eventKey !== normalizedKey) {
+      return;
+    }
+    if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+      return;
+    }
+    if (isTextInputTarget(event.target)) {
+      return;
+    }
+    event.preventDefault();
+    clearStoredModePreference();
+    windowTarget.location.assign(immersiveUrl);
+  };
+  windowTarget.addEventListener('keydown', handleKeydown);
+  fallbackRecoveryCleanup.set(documentTarget, () => {
+    windowTarget.removeEventListener('keydown', handleKeydown);
+  });
+};
 
 function buildTextPortfolioGroups(
   localeHint?: string
@@ -882,6 +955,7 @@ export function renderTextFallback(
     resumeUrl = 'docs/resume/2025-09/resume.pdf',
     githubUrl = 'https://github.com/futuroptimist',
     immersiveUrl: providedImmersiveUrl,
+    debugImmersiveUrl: providedDebugImmersiveUrl,
   } = options;
   const documentTarget = container.ownerDocument ?? document;
   const localeHint =
@@ -889,13 +963,20 @@ export function renderTextFallback(
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
   const textFallbackStrings = getSiteStrings(localeHint).textFallback;
   const actionStrings = textFallbackStrings.actions;
+  const modeToggleStrings = getModeToggleStrings(localeHint);
   const resolvedResumeUrl =
     resumeUrl ??
     textFallbackStrings.contact.resumeUrl ??
     'docs/resume/2025-09/resume.pdf';
   const resolvedGithubUrl = githubUrl ?? textFallbackStrings.contact.githubUrl;
-  const immersiveUrl = createImmersiveModeUrl(
+  const immersiveUrl = createImmersiveRecoveryUrl(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined
+  );
+  const debugImmersiveUrl = createImmersiveModeUrl(
+    providedDebugImmersiveUrl ??
+      providedImmersiveUrl ??
+      documentTarget.defaultView?.location ??
+      undefined
   );
   const resolvedLocale = resolveLocale(localeHint);
   const langValue = resolvedLocale === 'en-x-pseudo' ? 'en' : resolvedLocale;
@@ -964,8 +1045,45 @@ export function renderTextFallback(
   immersiveLink.textContent = actionStrings.immersiveLink;
   immersiveLink.rel = 'noopener';
   immersiveLink.dataset.action = 'immersive';
+  immersiveLink.addEventListener('click', clearStoredModePreference);
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
+
+  if (FALLBACK_REASONS_WITH_DEBUG_BYPASS.has(reason)) {
+    const debugItem = documentTarget.createElement('li');
+    debugItem.className = 'text-fallback__action';
+    const debugLink = documentTarget.createElement('a');
+    debugLink.href = debugImmersiveUrl;
+    debugLink.className = 'text-fallback__link';
+    debugLink.textContent = actionStrings.debugImmersiveLink;
+    debugLink.rel = 'noopener';
+    debugLink.dataset.action = 'debug-immersive';
+    debugLink.addEventListener('click', clearStoredModePreference);
+    debugItem.appendChild(debugLink);
+    list.appendChild(debugItem);
+  }
+
+  const clearPreferenceItem = documentTarget.createElement('li');
+  clearPreferenceItem.className = 'text-fallback__action';
+  const clearPreferenceButton = documentTarget.createElement('button');
+  clearPreferenceButton.type = 'button';
+  clearPreferenceButton.className = 'text-fallback__link text-fallback__button';
+  clearPreferenceButton.textContent = actionStrings.clearPreferenceButton;
+  clearPreferenceButton.dataset.action = 'clear-mode-preference';
+  clearPreferenceButton.addEventListener('click', () => {
+    clearStoredModePreference();
+    clearPreferenceButton.textContent =
+      actionStrings.clearPreferenceSuccess ??
+      actionStrings.clearPreferenceButton;
+  });
+  clearPreferenceItem.appendChild(clearPreferenceButton);
+  list.appendChild(clearPreferenceItem);
+
+  installFallbackRecoveryShortcuts(
+    documentTarget,
+    immersiveUrl,
+    modeToggleStrings.keyHint
+  );
 
   const resumeItem = documentTarget.createElement('li');
   resumeItem.className = 'text-fallback__action';
