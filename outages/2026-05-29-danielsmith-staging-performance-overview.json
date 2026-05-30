@@ -26,9 +26,11 @@
     "npm run smoke"
   ],
   "localVerificationNotes": [
-    "2026-05-30: format:write, lint, test:ci, Playwright chromium install, targeted Playwright grep, docs:check, and smoke completed locally.",
-    "2026-05-30: targeted Playwright grep reported 9 passed and 2 skipped because the container exposes software WebGL for hardware-only normal-desktop failover coverage.",
-    "2026-05-30: npm run typecheck still fails in unrelated repo-wide i18n, POI registry, GLTF loader, backyard/LED sample, and test mock typing areas; no changed performance policy type errors were reported.",
-    "2026-05-30: base comparison command could not be completed because this checkout has no origin remote."
+    "2026-05-30: format:write completed with no file changes; lint completed successfully.",
+    "2026-05-30: test:ci completed with 128 test files and 841 tests passing.",
+    "2026-05-30: Playwright chromium install completed; targeted Playwright grep reported 9 passed and 2 skipped because the container exposes software WebGL for hardware-only normal-desktop failover coverage, while disablePerformanceFailover diagnostics still ran.",
+    "2026-05-30: docs:check and smoke completed successfully after updating validation evidence.",
+    "2026-05-30: npm run typecheck still fails before targeted immersive performance files, with representative repo-wide errors in i18n ../poi/types imports, src/main.ts PoiId/audio/API typing, GLTF loader typing, backyard/LED sample guards, POI registry interactionPrompt requirements, and existing DOM/Canvas/PoiId test mocks.",
+    "2026-05-30: git fetch origin main failed because this checkout has no origin remote, so base comparison could not run."
   ]
 }

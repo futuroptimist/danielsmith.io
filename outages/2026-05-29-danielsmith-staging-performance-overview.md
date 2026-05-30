@@ -67,18 +67,24 @@ window.portfolio.performance.getLastFailoverReason();
 
 ## 2026-05-30 local verification note
 
-- `npm run format:write`, `npm run lint`, `npm run test:ci`,
-  `npx playwright install --with-deps chromium`,
-  `npm run test:e2e -- --grep "performance|adaptive|immersive"`,
-  `npm run docs:check`, and `npm run smoke` completed locally.
-- The Playwright grep run reported 9 passed and 2 skipped because this container
-  exposes software WebGL for hardware-only normal-desktop failover coverage; the
+- `npm run format:write` completed with no file changes, and `npm run lint`
+  completed successfully.
+- `npm run test:ci` completed with 128 test files and 841 tests passing.
+- `npx playwright install --with-deps chromium` completed, then
+  `npm run test:e2e -- --grep "performance|adaptive|immersive"` completed with
+  9 passing and 2 skipped tests. The skips are hardware-only normal-desktop
+  failover assertions because this container exposes software WebGL; the
   diagnostics path with `disablePerformanceFailover=1` still ran.
-- `npm run typecheck` still fails in unrelated repo-wide areas, including the
-  existing i18n `../poi/types` import, POI registry `interactionPrompt`
-  requirements, GLTF loader typing, backyard/LED possibly-undefined samples, and
-  multiple test mock DOM/Canvas/PoiId typings. The resize-DPR performance change
-  has targeted unit coverage and does not introduce new typecheck errors in the
-  changed performance policy module.
-- `git fetch origin main && git checkout origin/main && npm run typecheck` could
-  not be completed in this checkout because no `origin` remote is configured.
+- `npm run docs:check` and `npm run smoke` completed successfully after the
+  verification note was updated.
+- `npm run typecheck` still fails before reaching this PR's targeted immersive
+  performance files. Representative unchanged repo-wide errors include the i18n
+  `../poi/types` import, `src/main.ts` string-to-`PoiId` calls,
+  `src/main.ts` nullable audio node wiring, avatar accessory API shape, GLTF
+  loader typing, backyard/LED possibly-undefined samples, POI registry
+  `interactionPrompt` requirements, and existing DOM/Canvas/PoiId test mock
+  typings. No `src/scene/performance/*`, `src/scene/structures/selfieMirror.ts`,
+  or `playwright/immersive-performance.spec.ts` typecheck errors were reported.
+- `git fetch origin main` could not run the requested base comparison in this
+  checkout because no `origin` remote is configured; the command failed before
+  any branch switch or base typecheck could occur.
