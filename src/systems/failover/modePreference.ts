@@ -77,3 +77,7 @@ export const clearModePreference = (
 };
 
 export const MODE_PREFERENCE_KEY = MODE_PREFERENCE_STORAGE_KEY;
+
+export const shouldPersistTextPreferenceForFallbackReason = (
+  reason: string | null | undefined
+): boolean => reason === 'manual';

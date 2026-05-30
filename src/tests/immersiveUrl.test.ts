@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createImmersiveModeUrl,
   createImmersivePreviewUrl,
+  createImmersiveRecoveryUrl,
   createTextModeUrl,
   getModeFromSearch,
   hasImmersiveOverride,
@@ -115,6 +116,24 @@ describe('createImmersiveModeUrl', () => {
     expect(url).toBe(
       '/demo?foo=bar&feature=preview&mode=immersive&disablePerformanceFailover=1#scene'
     );
+  });
+});
+
+describe('createImmersiveRecoveryUrl', () => {
+  it('forces immersive mode without disabling performance failover', () => {
+    const url = createImmersiveRecoveryUrl({
+      pathname: '/',
+      search: '?mode=text&disablePerformanceFailover=1',
+      hash: '',
+    });
+
+    expect(url).toBe('/?mode=immersive');
+  });
+
+  it('preserves unrelated params and hash fragments', () => {
+    const url = createImmersiveRecoveryUrl('/portfolio?ref=text#contact');
+
+    expect(url).toBe('/portfolio?ref=text&mode=immersive#contact');
   });
 });
 

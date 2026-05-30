@@ -96,6 +96,9 @@ export const JA_OVERRIDES: LocaleOverrides = {
       },
       actions: {
         immersiveLink: '没入モードを起動',
+        immersiveDebugLink: '没入デバッグモードを強制',
+        clearModePreference: '保存済みモード設定をクリア',
+        clearModePreferenceDone: '保存済みモード設定をクリアしました',
         resumeLink: '最新の履歴書をダウンロード',
         githubLink: 'GitHubでプロジェクトを見る',
       },

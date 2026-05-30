@@ -153,4 +153,79 @@ test.describe('immersive experience', () => {
     // After closing help modal, overlay returns to recommended state
     await expect(poiOverlay).toHaveAttribute('data-state', 'recommended');
   });
+  test('toggles between immersive and text modes with the T key', async ({
+    page,
+  }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    await page.keyboard.press('T');
+    await expect(
+      page.locator('#app[data-mode="text"] .text-fallback')
+    ).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'fallback'
+    );
+
+    await page.keyboard.press('T');
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
+  });
+
+  test('lets manual text mode recover with the Try immersive again link', async ({
+    page,
+  }) => {
+    await page.goto('/?mode=text', { waitUntil: 'domcontentloaded' });
+    await expect(
+      page.locator('#app[data-mode="text"] .text-fallback')
+    ).toBeVisible();
+
+    await page.getByRole('link', { name: /try immersive again/i }).click();
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    expect(new URL(page.url()).searchParams.get('mode')).toBe('immersive');
+    expect(
+      new URL(page.url()).searchParams.has('disablePerformanceFailover')
+    ).toBe(false);
+  });
+
+  test('immersive URL overrides stored text preference', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('danielsmith.io:mode-preference', 'text');
+    });
+
+    await page.goto('/?mode=immersive', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
+  });
+
+  test('keeps force immersive debug URL valid for collection', async ({
+    page,
+  }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    const params = new URL(page.url()).searchParams;
+    expect(params.get('mode')).toBe('immersive');
+    expect(params.get('disablePerformanceFailover')).toBe('1');
+  });
 });

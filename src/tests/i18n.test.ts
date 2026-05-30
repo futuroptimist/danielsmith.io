@@ -99,9 +99,15 @@ describe('i18n utilities', () => {
     expect(english.idleHudAnnouncement).toBe(
       'Switch to the text-only portfolio. Press T to activate.'
     );
-    expect(english.idleTitle).toBe('Switch to the text-only portfolio (T)');
+    expect(english.idleTitle).toBe(
+      'Toggle between immersive and text mode (T)'
+    );
     expect(english.pendingHudAnnouncement).toBe(
-      'Switch to the text-only portfolio. Switching to text mode…'
+      'Switching between immersive and text mode…'
+    );
+    expect(english.activeLabel).toBe('Immersive mode · Press T');
+    expect(english.activeHudAnnouncement).toBe(
+      'Text mode active. Press T to try immersive again.'
     );
     expect(english.errorLabel).toBe('Retry text mode · Press T');
     expect(english.errorHudAnnouncement).toBe(

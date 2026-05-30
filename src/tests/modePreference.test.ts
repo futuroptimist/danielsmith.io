@@ -4,6 +4,7 @@ import {
   MODE_PREFERENCE_KEY,
   clearModePreference,
   readModePreference,
+  shouldPersistTextPreferenceForFallbackReason,
   writeModePreference,
 } from '../systems/failover/modePreference';
 
@@ -127,5 +128,23 @@ describe('clearModePreference', () => {
 
     expect(storage.removeItem).toHaveBeenCalledWith(MODE_PREFERENCE_KEY);
     expect(storage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+  });
+});
+
+describe('shouldPersistTextPreferenceForFallbackReason', () => {
+  it('persists only explicit manual text-mode choices', () => {
+    expect(shouldPersistTextPreferenceForFallbackReason('manual')).toBe(true);
+    expect(
+      shouldPersistTextPreferenceForFallbackReason('low-performance')
+    ).toBe(false);
+    expect(shouldPersistTextPreferenceForFallbackReason('low-memory')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallbackReason('low-end-device')).toBe(
+      false
+    );
+    expect(shouldPersistTextPreferenceForFallbackReason('console-error')).toBe(
+      false
+    );
   });
 });

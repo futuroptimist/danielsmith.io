@@ -101,7 +101,10 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
       },
       actions: {
-        immersiveLink: wrap('Launch immersive mode'),
+        immersiveLink: wrap('Try immersive again'),
+        immersiveDebugLink: wrap('Force immersive debug mode'),
+        clearModePreference: wrap('Clear saved mode preference'),
+        clearModePreferenceDone: wrap('Saved mode preference cleared'),
         resumeLink: wrap('Download the latest résumé'),
         githubLink: wrap('Explore projects on GitHub'),
       },

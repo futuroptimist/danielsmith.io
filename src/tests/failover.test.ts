@@ -9,7 +9,10 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
-import { createImmersiveModeUrl } from '../ui/immersiveUrl';
+import {
+  createImmersiveModeUrl,
+  createImmersiveRecoveryUrl,
+} from '../ui/immersiveUrl';
 
 const IMMERSIVE_URL = createImmersiveModeUrl({
   pathname: '/',
@@ -855,13 +858,13 @@ describe('renderTextFallback', () => {
     expect(links.map((link) => link.href)).toContain('https://example.com/');
   });
 
-  it('defaults immersive link to the override-enforced URL when unspecified', () => {
+  it('defaults immersive link to the recovery URL when unspecified', () => {
     const container = render('manual');
     const immersiveLink = container.querySelector<HTMLAnchorElement>(
       '[data-action="immersive"]'
     );
     expect(immersiveLink?.href).toBe(
-      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+      new URL(createImmersiveRecoveryUrl(), window.location.origin).toString()
     );
   });
 
@@ -873,10 +876,36 @@ describe('renderTextFallback', () => {
     );
     expect(immersiveLink?.href).toBe(
       new URL(
-        createImmersiveModeUrl(customUrl),
+        createImmersiveRecoveryUrl(customUrl),
         window.location.origin
       ).toString()
     );
+  });
+
+  it('adds a debug immersive link for runtime fallback reasons', () => {
+    const container = render('low-performance');
+    const debugLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive-debug"]'
+    );
+
+    expect(debugLink?.href).toBe(
+      new URL(createImmersiveModeUrl(), window.location.origin).toString()
+    );
+  });
+
+  it('clears stored mode preference from the fallback action', () => {
+    const container = render('manual');
+    window.localStorage.setItem('danielsmith.io:mode-preference', 'text');
+    const clearButton = container.querySelector<HTMLButtonElement>(
+      '[data-action="clear-mode-preference"]'
+    );
+
+    clearButton?.click();
+
+    expect(
+      window.localStorage.getItem('danielsmith.io:mode-preference')
+    ).toBeNull();
+    expect(clearButton?.disabled).toBe(true);
   });
 
   it('indicates WebGL unsupported reason', () => {
@@ -1005,7 +1034,7 @@ describe('renderTextFallback', () => {
     const actions = getSiteStrings('ar').textFallback.actions;
     const actionLinks = Array.from(
       container.querySelectorAll<HTMLAnchorElement>(
-        '.text-fallback__actions .text-fallback__link'
+        '.text-fallback__actions a.text-fallback__link'
       )
     );
 
