@@ -24,6 +24,19 @@ function isPromiseLike(value: unknown): value is PromiseLike<void> {
   );
 }
 
+function isTextEntryTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  const tagName = target.tagName.toLowerCase();
+  return (
+    target.isContentEditable ||
+    tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select'
+  );
+}
+
 export function createManualModeToggle({
   container,
   onToggle,
@@ -38,6 +51,7 @@ export function createManualModeToggle({
 
   let pending = false;
   let errored = false;
+  let shortcutActive = false;
 
   const DEFAULT_STRINGS = getModeToggleStrings();
 
@@ -102,6 +116,11 @@ export function createManualModeToggle({
 
   const refreshState = () => {
     const fallbackActive = getIsFallbackActive();
+    if (fallbackActive) {
+      removeShortcutListener();
+    } else {
+      addShortcutListener();
+    }
     if (pending && fallbackActive) {
       pending = false;
     }
@@ -254,6 +273,9 @@ export function createManualModeToggle({
 
   const handleKeydown = (event: KeyboardEvent) => {
     const keyHint = strings.keyHint;
+    if (event.defaultPrevented) {
+      return;
+    }
     if (event.key !== keyHint && event.key !== keyHint.toLowerCase()) {
       return;
     }
@@ -263,12 +285,31 @@ export function createManualModeToggle({
     if (pending) {
       return;
     }
+    if (getIsFallbackActive() || isTextEntryTarget(event.target)) {
+      return;
+    }
     event.preventDefault();
     activate();
   };
 
+  const addShortcutListener = () => {
+    if (shortcutActive) {
+      return;
+    }
+    windowTarget.addEventListener('keydown', handleKeydown);
+    shortcutActive = true;
+  };
+
+  const removeShortcutListener = () => {
+    if (!shortcutActive) {
+      return;
+    }
+    windowTarget.removeEventListener('keydown', handleKeydown);
+    shortcutActive = false;
+  };
+
   button.addEventListener('click', handleClick);
-  windowTarget.addEventListener('keydown', handleKeydown);
+  addShortcutListener();
   button.addEventListener('focus', refreshState);
   windowTarget.addEventListener(
     'performancefailover',
@@ -285,7 +326,7 @@ export function createManualModeToggle({
     },
     dispose() {
       button.removeEventListener('click', handleClick);
-      windowTarget.removeEventListener('keydown', handleKeydown);
+      removeShortcutListener();
       button.removeEventListener('focus', refreshState);
       windowTarget.removeEventListener(
         'performancefailover',

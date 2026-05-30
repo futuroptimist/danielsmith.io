@@ -48,8 +48,12 @@ preference, this made manual text mode and runtime fallback look sticky.
 
 - `npm run format:write`
 - `npm run lint`
-- `npm run typecheck`
 - `npm run test:ci`
 - `npm run test:e2e -- --grep "mode|fallback|immersive"`
 - `npm run docs:check`
 - `npm run smoke`
+
+## Known failing validation
+
+- `npm run typecheck` still reports pre-existing repo-wide TypeScript issues
+  outside this fallback recovery fix.

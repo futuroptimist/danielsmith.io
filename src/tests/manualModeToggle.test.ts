@@ -252,6 +252,29 @@ describe('createManualModeToggle', () => {
     container.remove();
   });
 
+  it('ignores text entry targets for the global keyboard shortcut', async () => {
+    const container = createContainer();
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    const onToggle = vi.fn();
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => false,
+    });
+
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 't', bubbles: true })
+    );
+    await flushMicrotasks();
+
+    expect(onToggle).not.toHaveBeenCalled();
+
+    cleanupHandle(handle);
+    input.remove();
+    container.remove();
+  });
+
   it('clears error state on retry and updates to active when fallback triggers', async () => {
     const container = createContainer();
     let fallbackActive = false;
@@ -399,6 +422,31 @@ describe('createManualModeToggle', () => {
     expect(container.dataset.modeToggleState).toBeUndefined();
     expect(handle.element.isConnected).toBe(false);
 
+    container.remove();
+  });
+
+  it('removes its keyboard shortcut after performance failover activates', () => {
+    const container = createContainer();
+    let fallbackActive = false;
+    const onToggle = vi.fn();
+    const handle = createManualModeToggle({
+      container,
+      onToggle,
+      getIsFallbackActive: () => fallbackActive,
+    });
+
+    fallbackActive = true;
+    window.dispatchEvent(new CustomEvent('performancefailover'));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+
+    expect(handle.element.dataset.state).toBe('active');
+    expect(onToggle).not.toHaveBeenCalled();
+
+    handle.element.click();
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
+
+    cleanupHandle(handle);
     container.remove();
   });
 
