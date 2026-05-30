@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
+import type {
+  GraphicsQualityLevel,
+  GraphicsQualitySource,
+} from '../scene/graphics/qualityManager';
 import { createAdaptiveQualityController } from '../scene/performance/adaptiveQuality';
 import {
   clampDevicePixelRatio,
@@ -9,6 +12,70 @@ import {
   resolveResizedBasePixelRatio,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
+
+function createAdaptiveHarness({
+  level = 'balanced',
+  source = 'initial',
+  basePixelRatio = 1.25,
+  isSoftwareRenderer = false,
+  riskLevel = 'normal',
+  warmupMs = 0,
+  downgradeAfterMs = 1000,
+  recoveryAfterMs = 3000,
+}: {
+  level?: GraphicsQualityLevel;
+  source?: GraphicsQualitySource;
+  basePixelRatio?: number;
+  isSoftwareRenderer?: boolean;
+  riskLevel?: 'normal' | 'software' | 'unknown';
+  warmupMs?: number;
+  downgradeAfterMs?: number;
+  recoveryAfterMs?: number;
+} = {}) {
+  let currentLevel = level;
+  let currentSource = source;
+  let currentBasePixelRatio = basePixelRatio;
+  const onDowngrade = vi.fn();
+  const controller = createAdaptiveQualityController({
+    qualityManager: {
+      getLevel: () => currentLevel,
+      setLevel: (next, nextSource = 'user') => {
+        currentLevel = next;
+        currentSource = nextSource;
+      },
+      getSource: () => currentSource,
+      setBasePixelRatio: (next) => {
+        currentBasePixelRatio = next;
+      },
+    },
+    getBasePixelRatio: () => currentBasePixelRatio,
+    setBasePixelRatio: (next) => {
+      currentBasePixelRatio = next;
+    },
+    rendererInfo: { isSoftwareRenderer, riskLevel },
+    cooldownMs: 0,
+    downgradeAfterMs,
+    warmupMs,
+    recoveryAfterMs,
+    sampleWindowMs: 2000,
+    onDowngrade,
+  });
+
+  return {
+    controller,
+    onDowngrade,
+    get level() {
+      return currentLevel;
+    },
+    get source() {
+      return currentSource;
+    },
+    get basePixelRatio() {
+      return currentBasePixelRatio;
+    },
+  };
+}
+
 describe('immersive performance optimization policy', () => {
   it('classifies known software renderers as risky', () => {
     expect(
@@ -60,38 +127,129 @@ describe('immersive performance optimization policy', () => {
     expect(resolveResizedBasePixelRatio(0.9, 1.25, 1)).toBe(0.9);
   });
 
-  it('downgrades quality once per cooldown without flapping back upward', () => {
-    let level: GraphicsQualityLevel = 'cinematic';
-    let basePixelRatio = 1.25;
-    const onDowngrade = vi.fn();
-    const controller = createAdaptiveQualityController({
-      qualityManager: {
-        getLevel: () => level,
-        setLevel: (next) => {
-          level = next;
-        },
-        setBasePixelRatio: (next) => {
-          basePixelRatio = next;
-        },
-      },
-      getBasePixelRatio: () => basePixelRatio,
-      setBasePixelRatio: (next) => {
-        basePixelRatio = next;
-      },
-      cooldownMs: 0,
-      downgradeAfterMs: 1000,
-      onDowngrade,
+  it('does not downgrade normal hardware for transient startup spikes during warmup', () => {
+    const harness = createAdaptiveHarness({ warmupMs: 5000 });
+
+    for (let index = 0; index < 4; index += 1) {
+      expect(harness.controller.update(0.5)).toBeNull();
+    }
+
+    expect(harness.level).toBe('balanced');
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      warmupActive: true,
+      downgradeCount: 0,
+    });
+  });
+
+  it('downgrades normal hardware only after sustained low FPS after warmup', () => {
+    const harness = createAdaptiveHarness({
+      warmupMs: 1000,
+      downgradeAfterMs: 1200,
     });
 
-    expect(controller.update(0.5)).toBeNull();
-    expect(controller.update(0.6)?.step).toBe('quality-balanced');
-    expect(level).toBe('balanced');
-    expect(controller.update(1.1)?.step).toBe('quality-performance');
-    expect(level).toBe('performance');
-    expect(controller.update(1.1)?.step).toBe('pixel-ratio');
-    expect(basePixelRatio).toBeCloseTo(1);
-    expect(controller.update(1.1)).toBeNull();
-    expect(controller.isExhausted()).toBe(true);
-    expect(onDowngrade).toHaveBeenCalledTimes(3);
+    expect(harness.controller.update(0.5)).toBeNull();
+    expect(harness.controller.update(0.5)).toBeNull();
+    expect(harness.controller.update(0.6)).toBeNull();
+    const event = harness.controller.update(0.6);
+
+    expect(event?.step).toBe('quality-performance');
+    expect(event?.action).toBe('downgrade');
+    expect(harness.level).toBe('performance');
+    expect(harness.source).toBe('adaptive');
+  });
+
+  it('recovers normal hardware from performance to balanced after sustained stable FPS', () => {
+    const harness = createAdaptiveHarness({
+      level: 'performance',
+      source: 'adaptive',
+      recoveryAfterMs: 1000,
+    });
+
+    for (let index = 0; index < 90; index += 1) {
+      const event = harness.controller.update(1 / 60);
+      if (event) {
+        expect(event).toMatchObject({
+          action: 'recovery',
+          step: 'quality-balanced',
+        });
+      }
+    }
+
+    expect(harness.level).toBe('balanced');
+    expect(harness.controller.getRecoveryCount()).toBe(1);
+    expect(harness.controller.getLastRecoveryReason()).toContain('recovered');
+  });
+
+  it('keeps software renderers conservative and does not auto-upshift', () => {
+    const harness = createAdaptiveHarness({
+      level: 'performance',
+      source: 'initial',
+      isSoftwareRenderer: true,
+      riskLevel: 'software',
+      recoveryAfterMs: 1000,
+    });
+
+    for (let index = 0; index < 120; index += 1) {
+      expect(harness.controller.update(1 / 60)).toBeNull();
+    }
+
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.getRecoveryCount()).toBe(0);
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      canAutoRecover: false,
+      isSoftwareRenderer: true,
+    });
+  });
+
+  it('does not auto-upshift against an explicit user performance choice', () => {
+    const harness = createAdaptiveHarness({
+      level: 'performance',
+      source: 'user',
+      recoveryAfterMs: 1000,
+    });
+
+    for (let index = 0; index < 120; index += 1) {
+      harness.controller.update(1 / 60);
+    }
+
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.getSnapshot().qualitySource).toBe('user');
+    expect(harness.controller.getRecoveryCount()).toBe(0);
+  });
+
+  it('ignores isolated low-min-FPS outliers and avoids boundary flapping', () => {
+    const harness = createAdaptiveHarness({
+      level: 'balanced',
+      source: 'initial',
+      downgradeAfterMs: 500,
+      recoveryAfterMs: 500,
+    });
+
+    for (let index = 0; index < 60; index += 1) {
+      harness.controller.update(index % 15 === 0 ? 0.2 : 1 / 60);
+    }
+
+    expect(harness.level).toBe('balanced');
+    expect(harness.controller.getDowngradeCount()).toBe(0);
+    expect(harness.controller.getRecoveryCount()).toBe(0);
+  });
+
+  it('downgrades quality once per cooldown until adaptive steps are exhausted', () => {
+    const harness = createAdaptiveHarness({
+      level: 'cinematic',
+      basePixelRatio: 1.25,
+      downgradeAfterMs: 1000,
+    });
+
+    expect(harness.controller.update(0.5)).toBeNull();
+    expect(harness.controller.update(0.6)?.step).toBe('quality-balanced');
+    expect(harness.level).toBe('balanced');
+    expect(harness.controller.update(1.1)?.step).toBe('quality-performance');
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.update(1.1)?.step).toBe('pixel-ratio');
+    expect(harness.basePixelRatio).toBeCloseTo(1);
+    expect(harness.controller.update(1.1)).toBeNull();
+    expect(harness.controller.isExhausted()).toBe(true);
+    expect(harness.onDowngrade).toHaveBeenCalledTimes(3);
   });
 });

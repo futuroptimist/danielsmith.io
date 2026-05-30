@@ -16,6 +16,10 @@ software WebGL.
 - [Adaptive quality did not downgrade before text fallback](./2026-05-29-danielsmith-adaptive-quality-gap.md).
 - [Text fallback recovery trapped immersive debugging](./2026-05-30-danielsmith-mode-fallback-recovery.md).
 
+## Follow-up evidence
+
+- Hardware-accelerated staging captures on an NVIDIA RTX path stabilized near 60 FPS after warmup with no monotonic memory leak, but the original adaptive controller could still downgrade it to performance due to startup shader/asset spikes. The adaptive-quality sub-entry records the warmup, hysteresis, and recovery fix while preserving the separate software-renderer crash-hardening follow-up.
+
 ## Disproven or unconfirmed theories
 
 - Broad per-frame JavaScript update cost remains unconfirmed as the primary
@@ -30,7 +34,7 @@ The fix starts risky software renderers in performance mode, defaults normal
 desktop rendering to balanced quality, caps DPR to an explicit lower bound, skips
 EffectComposer when bloom and motion blur are inactive, disables bloom in
 performance mode, throttles or disables SelfieMirror work by quality tier, and
-adds a non-flapping adaptive downgrade ladder before low-FPS fallback.
+adds a warmup-aware, hysteretic adaptive ladder before low-FPS fallback. Normal hardware now ignores startup spikes, can recover an adaptive performance downgrade back to balanced after sustained near-60-FPS stability, and still leaves runtime failover available after adaptive steps are exhausted.
 
 Diagnostics are available in DevTools at:
 

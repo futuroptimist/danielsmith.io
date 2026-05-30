@@ -21,8 +21,38 @@ describe('performance diagnostics', () => {
       }),
       getQualityState: () => ({
         level: 'balanced',
+        source: 'adaptive',
         adaptiveDowngradeCount: 1,
-        lastAdaptiveReason: 'low FPS downgraded cinematic to balanced',
+        adaptiveRecoveryCount: 1,
+        lastAdaptiveReason:
+          'sustained stable FPS recovered performance to balanced',
+        lastAdaptiveDowngradeReason:
+          'sustained low FPS downgraded cinematic to balanced',
+        lastAdaptiveRecoveryReason:
+          'sustained stable FPS recovered performance to balanced',
+        adaptivePolicy: {
+          elapsedMs: 9000,
+          warmupMs: 5000,
+          warmupActive: false,
+          lowFpsDurationMs: 0,
+          stableFpsDurationMs: 3000,
+          cooldownRemainingMs: 0,
+          downgradeCount: 1,
+          recoveryCount: 1,
+          lastReason: 'sustained stable FPS recovered performance to balanced',
+          lastDowngradeReason:
+            'sustained low FPS downgraded cinematic to balanced',
+          lastRecoveryReason:
+            'sustained stable FPS recovered performance to balanced',
+          lastAction: 'recovery',
+          qualitySource: 'adaptive',
+          canAutoRecover: true,
+          sampleCount: 120,
+          medianFps: 60,
+          p95FrameMs: 18,
+          isSoftwareRenderer: false,
+          riskLevel: 'normal',
+        },
       }),
       getFeatureState: () => ({
         bloomEnabled: true,
@@ -50,6 +80,14 @@ describe('performance diagnostics', () => {
     expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
     expect(snapshot.quality.level).toBe('balanced');
+    expect(snapshot.quality.source).toBe('adaptive');
+    expect(snapshot.quality.adaptiveRecoveryCount).toBe(1);
+    expect(snapshot.quality.lastAdaptiveRecoveryReason).toContain('recovered');
+    expect(snapshot.quality.adaptivePolicy).toMatchObject({
+      warmupActive: false,
+      qualitySource: 'adaptive',
+      lastAction: 'recovery',
+    });
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
     expect(snapshot.phases.mainRender.sampleCount).toBe(2);
     expect(snapshot.phases.mirror.averageMs).toBe(4);
@@ -74,8 +112,13 @@ describe('performance diagnostics', () => {
       }),
       getQualityState: () => ({
         level: 'balanced',
+        source: 'initial',
         adaptiveDowngradeCount: 0,
+        adaptiveRecoveryCount: 0,
         lastAdaptiveReason: null,
+        lastAdaptiveDowngradeReason: null,
+        lastAdaptiveRecoveryReason: null,
+        adaptivePolicy: null,
       }),
       getFeatureState: () => ({
         bloomEnabled: false,

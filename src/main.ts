@@ -3090,10 +3090,13 @@ function initializeImmersiveScene(
       adaptivePixelRatioCap = value;
       basePixelRatio = value;
     },
+    rendererInfo,
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
-    onDowngrade: (event) => {
-      console.info('[performance] adaptive quality downgrade', event);
+    onDowngrade: () => {
       performanceFailover.resetLowFpsSamples();
+    },
+    onAction: (event) => {
+      console.info(`[performance] adaptive quality ${event.action}`, event);
       graphicsQualityControl?.refresh();
     },
   });
@@ -3300,9 +3303,16 @@ function initializeImmersiveScene(
     }),
     getQualityState: () => ({
       level: graphicsQualityManager!.getLevel(),
+      source: graphicsQualityManager!.getSource(),
       adaptiveDowngradeCount:
         adaptiveQualityController?.getDowngradeCount() ?? 0,
+      adaptiveRecoveryCount: adaptiveQualityController?.getRecoveryCount() ?? 0,
       lastAdaptiveReason: adaptiveQualityController?.getLastReason() ?? null,
+      lastAdaptiveDowngradeReason:
+        adaptiveQualityController?.getLastDowngradeReason() ?? null,
+      lastAdaptiveRecoveryReason:
+        adaptiveQualityController?.getLastRecoveryReason() ?? null,
+      adaptivePolicy: adaptiveQualityController?.getSnapshot() ?? null,
     }),
     getFeatureState: () => {
       const mirrorState = selfieMirror?.getRenderState();
