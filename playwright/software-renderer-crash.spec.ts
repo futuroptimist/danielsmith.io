@@ -87,7 +87,7 @@ test.describe('software renderer crash hardening', () => {
     });
     const parsedCrashLog = JSON.parse(crashLog) as { entries: unknown[] };
     expect(parsedCrashLog.entries.length).toBeLessThanOrEqual(40);
-    expect(crashLog.length).toBeLessThan(100_000);
+    expect(new Blob([crashLog]).size).toBeLessThan(100_000);
     expect(crashLog).toContain('renderer-warning');
     expect(crashLog).toContain('Basic Render Driver');
   });

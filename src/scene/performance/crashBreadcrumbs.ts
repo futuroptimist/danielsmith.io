@@ -128,18 +128,40 @@ const safeParse = (value: string | null): CrashBreadcrumbLog => {
   return emptyLog();
 };
 
+const removeOldestSnapshotOrEntry = (
+  entries: CrashBreadcrumbEntry[]
+): CrashBreadcrumbEntry[] => {
+  if (entries.length <= 1) {
+    return entries;
+  }
+
+  const oldestSnapshotIndex = entries.findIndex(
+    (entry, index) => entry.type === 'snapshot' && index < entries.length - 1
+  );
+  const removeIndex = oldestSnapshotIndex >= 0 ? oldestSnapshotIndex : 0;
+  return entries.filter((_, index) => index !== removeIndex);
+};
+
 const serializeBounded = (
   log: CrashBreadcrumbLog,
   maxEntries: number,
   maxSerializedBytes: number
 ): string => {
+  let entries = [...log.entries];
+  while (entries.length > maxEntries) {
+    entries = removeOldestSnapshotOrEntry(entries);
+  }
+
   let bounded: CrashBreadcrumbLog = {
     ...log,
-    entries: log.entries.slice(-maxEntries),
+    entries,
   };
   let serialized = JSON.stringify(bounded);
   while (serialized.length > maxSerializedBytes && bounded.entries.length > 1) {
-    bounded = { ...bounded, entries: bounded.entries.slice(1) };
+    bounded = {
+      ...bounded,
+      entries: removeOldestSnapshotOrEntry(bounded.entries),
+    };
     serialized = JSON.stringify(bounded);
   }
   return serialized;
@@ -225,7 +247,8 @@ export function createCrashBreadcrumbStore({
       softwareRendererPolicy: snapshot.softwareRendererPolicy,
     });
   };
-  const exportCrashLog = () => JSON.stringify(read(), null, 2);
+  const exportCrashLog = () =>
+    serializeBounded(read(), maxEntries, maxSerializedBytes);
 
   return {
     record,

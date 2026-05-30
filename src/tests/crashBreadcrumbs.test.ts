@@ -271,6 +271,50 @@ describe('crash breadcrumbs', () => {
     expect(() => JSON.stringify(exported)).not.toThrow();
   });
 
+  it('keeps exported crash logs under the serialized byte budget', () => {
+    const store = createCrashBreadcrumbStore({
+      storage: createMemoryStorage(),
+      maxEntries: 40,
+      maxSerializedBytes: 1_200,
+    });
+
+    for (let index = 0; index < 12; index += 1) {
+      store.record({
+        type: 'mode-change',
+        message: `entry-${index}-${'x'.repeat(400)}`,
+      });
+    }
+
+    const exported = store.exportCrashLog();
+    const parsed = JSON.parse(exported) as ReturnType<typeof store.read>;
+    expect(new Blob([exported]).size).toBeLessThanOrEqual(1_200);
+    expect(parsed.entries.at(-1)?.message).toContain('entry-11');
+  });
+
+  it('preserves critical warning breadcrumbs before trimming old snapshots', () => {
+    const store = createCrashBreadcrumbStore({
+      storage: createMemoryStorage(),
+      maxEntries: 5,
+      maxSerializedBytes: 1_800,
+    });
+
+    store.record({ type: 'renderer-warning', message: 'Basic Render Driver' });
+    for (let index = 0; index < 12; index += 1) {
+      store.record({ type: 'snapshot', message: `snapshot-${index}` });
+    }
+
+    const exported = store.exportCrashLog();
+    const parsed = JSON.parse(exported) as ReturnType<typeof store.read>;
+    expect(new Blob([exported]).size).toBeLessThanOrEqual(1_800);
+    expect(parsed.entries).toContainEqual(
+      expect.objectContaining({
+        type: 'renderer-warning',
+        message: 'Basic Render Driver',
+      })
+    );
+    expect(parsed.entries.at(-1)).toMatchObject({ message: 'snapshot-11' });
+  });
+
   it('exports recent snapshots with renderer and software-safe state', () => {
     const store = createCrashBreadcrumbStore({
       storage: createMemoryStorage(),

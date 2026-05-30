@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
-const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
+const IMMERSIVE_PREVIEW_URL =
+  '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous';
 
 interface MotionBlurState {
   enabled: boolean;

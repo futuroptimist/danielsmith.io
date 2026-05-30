@@ -95,6 +95,7 @@ export function createMotionBlurController({
     } finally {
       pass.uniforms.damp.value = previousDamp;
       shouldResetHistory = false;
+      pass.enabled = currentIntensity > 0;
     }
   };
 
@@ -111,7 +112,9 @@ export function createMotionBlurController({
       currentIntensity,
       resolvedMaxDamp
     );
-    pass.enabled = currentIntensity > 0;
+    const transitionedAcrossDisabledState =
+      (currentIntensity === 0) !== (previousIntensity === 0);
+    pass.enabled = currentIntensity > 0 || transitionedAcrossDisabledState;
 
     if (currentIntensity === 0 || previousIntensity === 0) {
       resetHistory();

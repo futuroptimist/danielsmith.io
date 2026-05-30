@@ -15,12 +15,27 @@ describe('createMotionBlurController', () => {
 
     controller.setIntensity(0);
     expect(controller.getIntensity()).toBe(0);
-    expect(controller.pass.enabled).toBe(false);
+    expect(controller.pass.enabled).toBe(true);
     expect(controller.pass.uniforms.damp.value).toBe(0);
     expect(controller.getHistoryState()).toMatchObject({
       pendingReset: true,
       lastResetDamp: 0,
     });
+
+    const renderer = {
+      setRenderTarget: vi.fn(),
+      render: vi.fn(),
+      clear: vi.fn(),
+    };
+    const buffer = { texture: {} };
+    controller.pass.render(
+      renderer as never,
+      buffer as never,
+      buffer as never,
+      0,
+      false
+    );
+    expect(controller.pass.enabled).toBe(false);
 
     controller.dispose();
   });
@@ -56,8 +71,23 @@ describe('createMotionBlurController', () => {
 
     controller.setIntensity(Number.NEGATIVE_INFINITY);
     expect(controller.getIntensity()).toBe(0);
-    expect(controller.pass.enabled).toBe(false);
+    expect(controller.pass.enabled).toBe(true);
     expect(controller.pass.uniforms.damp.value).toBe(0);
+
+    const renderer = {
+      setRenderTarget: vi.fn(),
+      render: vi.fn(),
+      clear: vi.fn(),
+    };
+    const buffer = { texture: {} };
+    controller.pass.render(
+      renderer as never,
+      buffer as never,
+      buffer as never,
+      0,
+      false
+    );
+    expect(controller.pass.enabled).toBe(false);
 
     controller.setIntensity(Number.POSITIVE_INFINITY);
     expect(controller.getIntensity()).toBe(0);
