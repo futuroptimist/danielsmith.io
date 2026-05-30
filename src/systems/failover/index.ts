@@ -538,6 +538,7 @@ const FALLBACK_REASONS_WITH_DEBUG_BYPASS = new Set<FallbackReason>([
   'data-saver',
   'immersive-init-error',
   'console-error',
+  'webgl-context-lost',
 ]);
 
 const fallbackRecoveryCleanup = new WeakMap<Document, () => void>();

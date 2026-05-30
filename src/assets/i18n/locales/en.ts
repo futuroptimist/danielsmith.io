@@ -117,6 +117,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'automated-client': 'Automated client detected',
         'data-saver': 'Data-saver mode enabled',
         'console-error': 'Runtime errors detected',
+        'webgl-context-lost': 'WebGL context lost',
       },
       reasonDescriptions: {
         manual:
@@ -137,6 +138,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'We detected a runtime error and switched to the resilient text tour while the immersive scene recovers.',
         'data-saver':
           'Your browser requested a data-saver experience, so we launched the lightweight text tour to minimize bandwidth while keeping the highlights accessible.',
+        'webgl-context-lost':
+          'The browser reported a lost WebGL context, so we preserved diagnostics and opened the recoverable text tour.',
       },
     },
   },

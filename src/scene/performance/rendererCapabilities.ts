@@ -1,6 +1,10 @@
 import type { WebGLRenderer } from 'three';
 
-export type RendererRiskLevel = 'normal' | 'software' | 'unknown';
+export type RendererRiskLevel =
+  | 'normal'
+  | 'software'
+  | 'dangerous-software'
+  | 'unknown';
 
 export interface RendererInfoSnapshot {
   vendor: string | null;
@@ -8,6 +12,7 @@ export interface RendererInfoSnapshot {
   unmaskedVendor: string | null;
   unmaskedRenderer: string | null;
   isSoftwareRenderer: boolean;
+  isDangerousSoftwareRenderer: boolean;
   riskLevel: RendererRiskLevel;
   reason: string;
 }
@@ -20,6 +25,17 @@ const SOFTWARE_RENDERER_PATTERNS = [
   /mesa offscreen/i,
   /warp/i,
   /microsoft basic render/i,
+  /angle.*(swiftshader|software|warp)/i,
+] as const;
+
+const DANGEROUS_SOFTWARE_RENDERER_PATTERNS = [
+  /microsoft basic render/i,
+  /swiftshader/i,
+  /\bwarp\b/i,
+  /llvmpipe/i,
+  /softpipe/i,
+  /mesa offscreen/i,
+  /software rasterizer/i,
   /angle.*(swiftshader|software|warp)/i,
 ] as const;
 
@@ -36,9 +52,12 @@ export function classifyRendererInfo(input: {
   const haystack = [vendor, renderer, unmaskedVendor, unmaskedRenderer]
     .filter((value): value is string => typeof value === 'string')
     .join(' ');
-  const matchedPattern = SOFTWARE_RENDERER_PATTERNS.find((pattern) =>
-    pattern.test(haystack)
+  const matchedDangerousPattern = DANGEROUS_SOFTWARE_RENDERER_PATTERNS.find(
+    (pattern) => pattern.test(haystack)
   );
+  const matchedPattern =
+    matchedDangerousPattern ??
+    SOFTWARE_RENDERER_PATTERNS.find((pattern) => pattern.test(haystack));
 
   if (matchedPattern) {
     return {
@@ -47,7 +66,11 @@ export function classifyRendererInfo(input: {
       unmaskedVendor,
       unmaskedRenderer,
       isSoftwareRenderer: true,
-      riskLevel: 'software',
+      isDangerousSoftwareRenderer: matchedDangerousPattern !== undefined,
+      riskLevel:
+        matchedDangerousPattern !== undefined
+          ? 'dangerous-software'
+          : 'software',
       reason: `matched ${matchedPattern.source}`,
     };
   }
@@ -58,6 +81,7 @@ export function classifyRendererInfo(input: {
     unmaskedVendor,
     unmaskedRenderer,
     isSoftwareRenderer: false,
+    isDangerousSoftwareRenderer: false,
     riskLevel: haystack.length > 0 ? 'normal' : 'unknown',
     reason:
       haystack.length > 0

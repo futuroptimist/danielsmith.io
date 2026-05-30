@@ -4,6 +4,8 @@ const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_URL = '/?mode=immersive';
 const IMMERSIVE_DIAGNOSTICS_URL =
   '/?mode=immersive&disablePerformanceFailover=1';
+const SOFTWARE_SAFE_DEBUG_URL =
+  '/?mode=immersive&disablePerformanceFailover=1&mockRenderer=basic';
 const SOFTWARE_RENDERER_ZOOM_PAN_MS = 600;
 const HARDWARE_RENDERER_ZOOM_PAN_MS = 4_000;
 
@@ -49,7 +51,16 @@ interface PerformanceSnapshot {
   };
   renderer: {
     isSoftwareRenderer: boolean;
-    riskLevel: 'normal' | 'software' | 'unknown';
+    isDangerousSoftwareRenderer: boolean;
+    riskLevel: 'normal' | 'software' | 'dangerous-software' | 'unknown';
+  };
+  dangerousRenderer: boolean;
+  softwareSafeMode: boolean;
+  softwareRendererPolicy: {
+    softwareSafeMode: boolean;
+    continuousRendering: boolean;
+    renderCadenceFps: number | null;
+    pixelRatioCap: number | null;
   };
   lastFailoverReason: string | null;
 }
@@ -59,6 +70,8 @@ interface PortfolioWindow extends Window {
   portfolio?: {
     performance?: {
       getSnapshot(): PerformanceSnapshot;
+      exportCrashLog(): unknown;
+      exportCrashLogJson(): string;
     };
     graphics?: {
       setCameraPanForTest?(input: { x: number; y: number }): void;
@@ -139,6 +152,41 @@ async function exerciseZoomPan(
       x: 0,
       y: 0,
     });
+  });
+}
+
+async function installDangerousRendererMock(page: Page) {
+  await page.addInitScript(() => {
+    const rendererString =
+      'ANGLE (Microsoft, Microsoft Basic Render Driver Direct3D11 vs_5_0 ps_5_0)';
+    const patchPrototype = (prototype: WebGLRenderingContext) => {
+      const originalGetExtension = prototype.getExtension;
+      const originalGetParameter = prototype.getParameter;
+      prototype.getExtension = function getExtension(name: string) {
+        if (name === 'WEBGL_debug_renderer_info') {
+          return {
+            UNMASKED_VENDOR_WEBGL: 0x9245,
+            UNMASKED_RENDERER_WEBGL: 0x9246,
+          } as unknown as WEBGL_debug_renderer_info;
+        }
+        return originalGetExtension.call(this, name);
+      };
+      prototype.getParameter = function getParameter(parameter: number) {
+        if (parameter === 0x9245) {
+          return 'Microsoft';
+        }
+        if (parameter === 0x9246) {
+          return rendererString;
+        }
+        return originalGetParameter.call(this, parameter);
+      };
+    };
+    patchPrototype(WebGLRenderingContext.prototype);
+    if (typeof WebGL2RenderingContext !== 'undefined') {
+      patchPrototype(
+        WebGL2RenderingContext.prototype as unknown as WebGLRenderingContext
+      );
+    }
   });
 }
 
@@ -225,6 +273,36 @@ test.describe('immersive performance diagnostics', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
       expect(snapshot.quality.adaptivePolicy).toBeDefined();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('shows safe immersive warning for dangerous software renderers', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await installDangerousRendererMock(page);
+
+    try {
+      await waitForImmersive(page, SOFTWARE_SAFE_DEBUG_URL);
+      await expect(page.locator('.software-renderer-warning')).toContainText(
+        'Software renderer safe mode'
+      );
+      await expect(page.locator('.software-renderer-warning')).toContainText(
+        'Microsoft Basic Render Driver'
+      );
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.renderer.isDangerousSoftwareRenderer).toBe(true);
+      expect(snapshot.softwareSafeMode).toBe(true);
+      expect(snapshot.softwareRendererPolicy.renderCadenceFps).toBe(12);
+      expect(snapshot.rendererSize.pixelRatio).toBeLessThanOrEqual(0.5);
+      const crashLog = await page.evaluate(() =>
+        (window as PortfolioWindow).portfolio?.performance?.exportCrashLogJson()
+      );
+      expect(crashLog).toContain('renderer-warning');
     } finally {
       await context.close();
     }

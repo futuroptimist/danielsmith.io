@@ -118,6 +118,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'automated-client': wrap('Automated client detected'),
         'data-saver': wrap('Data-saver mode enabled'),
         'console-error': wrap('Runtime errors detected'),
+        'webgl-context-lost': wrap('WebGL context lost'),
       },
       reasonDescriptions: {
         manual: wrap(
@@ -146,6 +147,9 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         ),
         'data-saver': wrap(
           'Your browser requested a data-saver experience, so we launched the lightweight text tour to minimize bandwidth while keeping the highlights accessible.'
+        ),
+        'webgl-context-lost': wrap(
+          'The browser reported a lost WebGL context, so we preserved diagnostics and opened the recoverable text tour.'
         ),
       },
     },

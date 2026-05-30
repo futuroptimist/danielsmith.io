@@ -5,6 +5,7 @@ import type {
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
 import type { RendererInfoSnapshot } from './rendererCapabilities';
+import type { SoftwareRendererPolicyState } from './softwareRendererMode';
 
 export type PhaseName =
   | 'inputMovementCamera'
@@ -59,6 +60,9 @@ export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   rendererSize: RendererSizeSnapshot;
   quality: QualityStateSnapshot;
   features: FeatureStateSnapshot;
+  softwareRendererPolicy: SoftwareRendererPolicyState;
+  dangerousRenderer: boolean;
+  softwareSafeMode: boolean;
   lastFailoverReason: string | null;
 }
 
@@ -68,6 +72,7 @@ export interface PerformanceDiagnosticsApi {
   getRendererInfo(): RendererInfoSnapshot;
   getQualityState(): QualityStateSnapshot;
   getFeatureState(): FeatureStateSnapshot;
+  getSoftwareRendererPolicy(): SoftwareRendererPolicyState;
   getLastFailoverReason(): string | null;
 }
 
@@ -76,6 +81,7 @@ interface PerformanceDiagnosticsOptions {
   getRendererSize: () => RendererSizeSnapshot;
   getQualityState: () => QualityStateSnapshot;
   getFeatureState: () => FeatureStateSnapshot;
+  getSoftwareRendererPolicy: () => SoftwareRendererPolicyState;
   getLastFailoverReason: () => string | null;
   maxSamples?: number;
 }
@@ -128,6 +134,7 @@ export function createPerformanceDiagnostics({
   getRendererSize,
   getQualityState,
   getFeatureState,
+  getSoftwareRendererPolicy,
   getLastFailoverReason,
   maxSamples = 180,
 }: PerformanceDiagnosticsOptions) {
@@ -153,6 +160,10 @@ export function createPerformanceDiagnostics({
         rendererSize: getRendererSize(),
         quality: diagnosticsMethods.getQualityState(),
         features: diagnosticsMethods.getFeatureState(),
+        softwareRendererPolicy: diagnosticsMethods.getSoftwareRendererPolicy(),
+        dangerousRenderer: rendererInfo.isDangerousSoftwareRenderer,
+        softwareSafeMode:
+          diagnosticsMethods.getSoftwareRendererPolicy().softwareSafeMode,
         lastFailoverReason: diagnosticsMethods.getLastFailoverReason(),
       };
     },
@@ -185,6 +196,9 @@ export function createPerformanceDiagnostics({
     },
     getFeatureState() {
       return getFeatureState();
+    },
+    getSoftwareRendererPolicy() {
+      return getSoftwareRendererPolicy();
     },
     getLastFailoverReason() {
       return getLastFailoverReason();
