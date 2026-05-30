@@ -1,0 +1,31 @@
+{
+  "date": "2026-05-30",
+  "title": "Software renderer crash hardening",
+  "status": "mitigated",
+  "symptom": "Chrome tabs crashed after several seconds when immersive mode ran continuously on Microsoft Basic Render Driver with browser hardware acceleration disabled.",
+  "evidence": [
+    "Software path: ANGLE (Microsoft, Microsoft Basic Render Driver ..., D3D11) reached performance mode with reduced DPR and disabled bloom/composer/mirror before crashing.",
+    "Hardware path: ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 ..., D3D11) stayed stable around 60 FPS."
+  ],
+  "rootCauseClass": "Dangerous software renderer instability under continuous WebGL animation.",
+  "dangerousRenderers": [
+    "Microsoft Basic Render Driver",
+    "SwiftShader",
+    "WARP",
+    "llvmpipe",
+    "softpipe",
+    "Mesa offscreen"
+  ],
+  "mitigations": [
+    "Default dangerous renderers to software-safe immersive mode with ultra-low DPR and 15 FPS render cadence.",
+    "Keep bloom, composer, and mirror disabled on dangerous software renderers.",
+    "Show visible warning with safe immersive, continuous override, and text mode choices.",
+    "Persist bounded crash breadcrumbs to localStorage/sessionStorage and expose export/copy helpers.",
+    "Capture WebGL context loss and switch to a recoverable text fallback."
+  ],
+  "debugOverrides": [
+    "softwareRendererMode=safe",
+    "softwareRendererMode=continuous",
+    "forceContinuousRendering=1"
+  ]
+}

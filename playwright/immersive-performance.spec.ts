@@ -49,7 +49,14 @@ interface PerformanceSnapshot {
   };
   renderer: {
     isSoftwareRenderer: boolean;
-    riskLevel: 'normal' | 'software' | 'unknown';
+    riskLevel: 'normal' | 'software' | 'dangerous-software' | 'unknown';
+    isDangerousSoftwareRenderer: boolean;
+  };
+  softwareRenderer: {
+    dangerousRenderer: boolean;
+    softwareSafeMode: boolean;
+    renderCadenceFps: number | null;
+    lastRenderSkipped: boolean;
   };
   lastFailoverReason: string | null;
 }
@@ -59,6 +66,7 @@ interface PortfolioWindow extends Window {
   portfolio?: {
     performance?: {
       getSnapshot(): PerformanceSnapshot;
+      exportCrashLog?(): { events: unknown[]; renderer: unknown };
     };
     graphics?: {
       setCameraPanForTest?(input: { x: number; y: number }): void;
@@ -204,6 +212,68 @@ test.describe('immersive performance diagnostics', () => {
         expect(snapshot.features.composerEnabled).toBe(false);
         expect(snapshot.features.mirrorEnabled).toBe(false);
       }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('shows warning and safe diagnostics for mocked dangerous software renderer', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+
+    try {
+      await waitForImmersive(
+        page,
+        `${IMMERSIVE_DIAGNOSTICS_URL}&debugRenderer=microsoft-basic-render-driver`
+      );
+      await expect(page.locator('.software-renderer-warning')).toBeVisible();
+      await expect(page.locator('.software-renderer-warning')).toContainText(
+        'software rendering'
+      );
+      await expect(page.locator('.software-renderer-warning')).toContainText(
+        'Basic Render Driver'
+      );
+
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.renderer.isDangerousSoftwareRenderer).toBe(true);
+      expect(snapshot.softwareRenderer).toMatchObject({
+        dangerousRenderer: true,
+        softwareSafeMode: true,
+        renderCadenceFps: 15,
+      });
+      expect(snapshot.features.bloomEnabled).toBe(false);
+      expect(snapshot.features.composerEnabled).toBe(false);
+      expect(snapshot.features.mirrorEnabled).toBe(false);
+
+      const crashLog = await page.evaluate(() =>
+        (window as PortfolioWindow).portfolio?.performance?.exportCrashLog?.()
+      );
+      expect(crashLog?.events.length).toBeGreaterThan(0);
+      expect(crashLog?.renderer).toBeDefined();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('allows explicit continuous override for mocked dangerous renderer', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+
+    try {
+      await waitForImmersive(
+        page,
+        `${IMMERSIVE_DIAGNOSTICS_URL}&debugRenderer=microsoft-basic-render-driver&softwareRendererMode=continuous`
+      );
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.renderer.isDangerousSoftwareRenderer).toBe(true);
+      expect(snapshot.softwareRenderer.softwareSafeMode).toBe(false);
+      expect(snapshot.softwareRenderer.renderCadenceFps).toBeNull();
     } finally {
       await context.close();
     }

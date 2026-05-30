@@ -302,3 +302,47 @@ describe('immersive performance optimization policy', () => {
     expect(harness.onAction).toHaveBeenCalledTimes(3);
   });
 });
+
+describe('dangerous software renderer safe mode', () => {
+  it('classifies Basic Render Driver, SwiftShader, WARP, and llvmpipe as dangerous', () => {
+    for (const unmaskedRenderer of [
+      'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
+      'Google SwiftShader',
+      'ANGLE (Microsoft, WARP, D3D11)',
+      'Mesa llvmpipe (LLVM 17.0.6, 256 bits)',
+    ]) {
+      const snapshot = classifyRendererInfo({ unmaskedRenderer });
+      expect(snapshot.isSoftwareRenderer).toBe(true);
+      expect(snapshot.isDangerousSoftwareRenderer).toBe(true);
+      expect(snapshot.riskLevel).toBe('dangerous-software');
+    }
+  });
+
+  it('keeps hardware renderers out of dangerous safe mode', () => {
+    const snapshot = classifyRendererInfo({
+      unmaskedRenderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4090, D3D11)',
+    });
+
+    expect(snapshot.isSoftwareRenderer).toBe(false);
+    expect(snapshot.isDangerousSoftwareRenderer).toBe(false);
+    expect(snapshot.riskLevel).toBe('normal');
+  });
+
+  it('chooses ultra-low DPR, no mirror, and capped cadence for dangerous renderers', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: true, isDangerousSoftwareRenderer: true },
+      2
+    );
+
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.basePixelRatioCap).toBe(0.5);
+    expect(policy.softwareSafeMode).toBe(true);
+    expect(policy.renderCadenceFps).toBe(15);
+    expect(policy.mirrorEnabled).toBe(false);
+    expect(getQualityFeaturePolicy('cinematic', true, true)).toMatchObject({
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+    });
+  });
+});

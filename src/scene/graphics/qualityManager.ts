@@ -204,7 +204,7 @@ export function createGraphicsQualityManager({
     if (!Number.isFinite(value) || value <= 0) {
       return 1;
     }
-    return Math.max(0.5, Math.min(value, 3));
+    return Math.max(0.25, Math.min(value, 3));
   }
 
   function applyPreset(level: GraphicsQualityLevel) {
