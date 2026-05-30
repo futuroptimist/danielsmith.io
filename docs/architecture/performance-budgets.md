@@ -50,8 +50,10 @@ adaptive-quality behavior:
   30–40 FPS with DPR reduced, bloom/composer and the mirror disabled, and still
   needs the separate crash-hardening follow-up.
 
-Normal renderers now collect warmup metrics before adaptive downgrades, require
-sustained low FPS/high frame time hysteresis before stepping down, and recover
+Normal renderers now collect warmup metrics during a 2.5-second grace window
+before adaptive downgrades, leaving time for the sustained-low-FPS ladder to act
+before the 5-second text failover. They require sustained low FPS/high frame
+time hysteresis before stepping down, and recover
 from performance to balanced after a sustained stable window near 60 FPS. The
 recovery path is disabled for software renderers and for explicit user-selected
 quality so manual performance choices are not silently upshifted. Diagnostics

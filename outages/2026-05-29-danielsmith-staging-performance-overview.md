@@ -30,10 +30,10 @@ The fix starts risky software renderers in performance mode, defaults normal
 desktop rendering to balanced quality, caps DPR to an explicit lower bound, skips
 EffectComposer when bloom and motion blur are inactive, disables bloom in
 performance mode, throttles or disables SelfieMirror work by quality tier, and
-adds a warmup-aware, non-flapping adaptive downgrade ladder before low-FPS
-fallback. Hardware-accelerated staging evidence from `ANGLE (NVIDIA, NVIDIA
-GeForce RTX 4090 ..., D3D11)` showed stable near-60-FPS behavior after startup,
-so normal renderers now require sustained low-FPS/high-frame-time evidence
+adds a 2.5-second warmup-aware, non-flapping adaptive downgrade ladder before
+low-FPS fallback. Hardware-accelerated staging evidence from `ANGLE (NVIDIA,
+NVIDIA GeForce RTX 4090 ..., D3D11)` showed stable near-60-FPS behavior
+after startup, so normal renderers now require sustained low-FPS/high-frame-time evidence
 before downgrading and can recover from performance to balanced after a stable
 window. Software renderer crash hardening remains a separate follow-up.
 

@@ -63,6 +63,9 @@ function createPolicyHarness({
     get basePixelRatio() {
       return currentBasePixelRatio;
     },
+    setLevel(next: GraphicsQualityLevel) {
+      currentLevel = next;
+    },
     setSelectionSource(next: AdaptiveQualitySelectionSource) {
       currentSelectionSource = next;
     },
@@ -159,6 +162,29 @@ describe('immersive performance optimization policy', () => {
     expect(event?.step).toBe('quality-balanced');
     expect(harness.level).toBe('balanced');
     expect(harness.controller.getRecoveryCount()).toBe(1);
+  });
+
+  it('starts recovery hysteresis fresh after entering performance mode', () => {
+    const harness = createPolicyHarness({ level: 'balanced' });
+
+    for (let index = 0; index < 190; index += 1) {
+      harness.controller.update(1 / 60);
+    }
+
+    expect(harness.controller.getSnapshot().stableDurationMs).toBe(0);
+
+    harness.setLevel('performance');
+
+    expect(harness.controller.update(1 / 60)).toBeNull();
+    expect(harness.level).toBe('performance');
+
+    let event = null;
+    for (let index = 0; index < 180; index += 1) {
+      event = harness.controller.update(1 / 60) ?? event;
+    }
+
+    expect(event?.action).toBe('recover');
+    expect(harness.level).toBe('balanced');
   });
 
   it('keeps software renderers conservative and does not auto-upshift', () => {

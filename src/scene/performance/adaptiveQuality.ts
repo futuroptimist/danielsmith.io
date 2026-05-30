@@ -72,7 +72,7 @@ export interface AdaptiveQualityController {
   isExhausted(): boolean;
 }
 
-const DEFAULT_NORMAL_WARMUP_MS = 5000;
+const DEFAULT_NORMAL_WARMUP_MS = 2500;
 const FRAME_SAMPLE_WINDOW = 60;
 const RECOVERY_COOLDOWN_MULTIPLIER = 2;
 
@@ -242,6 +242,10 @@ export function createAdaptiveQualityController({
   };
 
   const shouldRecover = (frameMs: number) => {
+    if (qualityManager.getLevel() !== 'performance') {
+      stableDurationMs = 0;
+      return false;
+    }
     const fps = frameMs > 0 ? 1000 / frameMs : Number.POSITIVE_INFINITY;
     const { p95FrameMs } = summarizeFrameWindow(frameMsSamples);
     const isStable =

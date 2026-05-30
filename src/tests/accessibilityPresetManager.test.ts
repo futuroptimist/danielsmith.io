@@ -21,6 +21,7 @@ function createStubGraphicsQualityManager(
       applyBaseline();
     },
     setBasePixelRatio: vi.fn(),
+    getSelectionSource: () => 'initial',
     onChange: (listener: (level: GraphicsQualityLevel) => void) => {
       listeners.add(listener);
       return () => {

@@ -29,9 +29,11 @@ recovery updates without requiring real SwiftShader in CI.
 
 An adaptive ladder lowers quality from cinematic to balanced to performance,
 then reduces base DPR, resetting failover samples after each downgrade. Normal
-renderers now get a warmup grace period plus sustained-frame hysteresis before
-downgrades, and can recover from performance to balanced after a stable
-near-60-FPS window. Software renderers stay conservative and do not auto-upshift.
+renderers now get a 2.5-second warmup grace period plus sustained-frame
+hysteresis before downgrades, keeping the adaptive ladder ahead of the
+5-second low-FPS text failover. They can recover from performance to balanced
+after a stable near-60-FPS window. Software renderers stay conservative and do
+not auto-upshift.
 
 ## Interaction with other fixes
 
