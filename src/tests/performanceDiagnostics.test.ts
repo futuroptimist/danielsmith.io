@@ -22,7 +22,37 @@ describe('performance diagnostics', () => {
       getQualityState: () => ({
         level: 'balanced',
         adaptiveDowngradeCount: 1,
-        lastAdaptiveReason: 'low FPS downgraded cinematic to balanced',
+        adaptiveRecoveryCount: 1,
+        lastAdaptiveReason:
+          'sustained stable FPS recovered performance to balanced',
+        lastAdaptiveDowngradeReason:
+          'sustained low FPS downgraded cinematic to balanced',
+        lastAdaptiveRecoveryReason:
+          'sustained stable FPS recovered performance to balanced',
+        adaptivePolicy: {
+          rendererRiskLevel: 'normal',
+          qualitySource: 'adaptive',
+          inWarmup: false,
+          warmupElapsedMs: 5000,
+          warmupGraceMs: 5000,
+          lowFpsDurationMs: 0,
+          stableDurationMs: 1200,
+          cooldownRemainingMs: 0,
+          downgradeCount: 1,
+          recoveryCount: 1,
+          lastAction: 'recovery',
+          lastDowngradeReason:
+            'sustained low FPS downgraded cinematic to balanced',
+          lastRecoveryReason:
+            'sustained stable FPS recovered performance to balanced',
+          lastAdaptiveReason:
+            'sustained stable FPS recovered performance to balanced',
+          medianFps: 60,
+          p95FrameMs: 18,
+          minFps: 55,
+          sampleCount: 120,
+          canAutoRecover: true,
+        },
       }),
       getFeatureState: () => ({
         bloomEnabled: true,
@@ -50,6 +80,12 @@ describe('performance diagnostics', () => {
     expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
     expect(snapshot.quality.level).toBe('balanced');
+    expect(snapshot.quality.adaptivePolicy).toMatchObject({
+      warmupGraceMs: 5000,
+      recoveryCount: 1,
+      lastAction: 'recovery',
+      qualitySource: 'adaptive',
+    });
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
     expect(snapshot.phases.mainRender.sampleCount).toBe(2);
     expect(snapshot.phases.mirror.averageMs).toBe(4);
@@ -75,7 +111,11 @@ describe('performance diagnostics', () => {
       getQualityState: () => ({
         level: 'balanced',
         adaptiveDowngradeCount: 0,
+        adaptiveRecoveryCount: 0,
         lastAdaptiveReason: null,
+        lastAdaptiveDowngradeReason: null,
+        lastAdaptiveRecoveryReason: null,
+        adaptivePolicy: null,
       }),
       getFeatureState: () => ({
         bloomEnabled: false,

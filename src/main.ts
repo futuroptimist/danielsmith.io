@@ -3091,8 +3091,9 @@ function initializeImmersiveScene(
       basePixelRatio = value;
     },
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
-    onDowngrade: (event) => {
-      console.info('[performance] adaptive quality downgrade', event);
+    rendererRiskLevel: rendererInfo.riskLevel,
+    onAction: (event) => {
+      console.info(`[performance] adaptive quality ${event.action}`, event);
       performanceFailover.resetLowFpsSamples();
       graphicsQualityControl?.refresh();
     },
@@ -3249,6 +3250,7 @@ function initializeImmersiveScene(
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
     setActiveLevel: (level) => {
       graphicsQualityManager?.setLevel(level);
+      adaptiveQualityController?.markUserSelectedLevel(level);
     },
   });
   registerHudControlElement(graphicsQualityControl?.element ?? null);
@@ -3302,7 +3304,13 @@ function initializeImmersiveScene(
       level: graphicsQualityManager!.getLevel(),
       adaptiveDowngradeCount:
         adaptiveQualityController?.getDowngradeCount() ?? 0,
+      adaptiveRecoveryCount: adaptiveQualityController?.getRecoveryCount() ?? 0,
       lastAdaptiveReason: adaptiveQualityController?.getLastReason() ?? null,
+      lastAdaptiveDowngradeReason:
+        adaptiveQualityController?.getLastDowngradeReason() ?? null,
+      lastAdaptiveRecoveryReason:
+        adaptiveQualityController?.getLastRecoveryReason() ?? null,
+      adaptivePolicy: adaptiveQualityController?.getSnapshot() ?? null,
     }),
     getFeatureState: () => {
       const mirrorState = selfieMirror?.getRenderState();
@@ -4057,8 +4065,8 @@ function initializeImmersiveScene(
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);
-      const adaptiveDowngrade = adaptiveQualityController?.update(delta);
-      if (adaptiveDowngrade) {
+      const adaptiveQualityEvent = adaptiveQualityController?.update(delta);
+      if (adaptiveQualityEvent) {
         applyFeaturePolicy();
       }
       performanceFailover.update(delta);

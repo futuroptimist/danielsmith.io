@@ -36,6 +36,26 @@ and the Vitest assertions when measurable changes land.
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
 
+### 2026-05-30 adaptive quality warmup tuning
+
+- **Evidence** – Staging compared two renderer classes: the software path reported
+  `ANGLE (Microsoft, Microsoft Basic Render Driver ..., D3D11)` and stayed near
+  30–40 FPS before later tab instability, while the hardware path reported
+  `ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 ..., D3D11)` and settled near 60 FPS with
+  main render time warming down toward 1–2 ms.
+- **Bug** – The adaptive quality controller treated startup shader/asset warmup spikes like
+  steady-state overload. Normal hardware could be downgraded from balanced to performance and
+  remain there even after the frame budget recovered.
+- **Corrective action** – Normal renderers now get a finite warmup grace period, rolling-window
+  median/p95 hysteresis before downgrades, and stable-FPS recovery from performance back to
+  balanced. Software or unknown-risk renderers skip warmup optimism and do not auto-upshift.
+- **Diagnostics** – `window.portfolio.performance.getSnapshot().quality` now exposes adaptive
+  warmup, recovery, source, renderer risk, and last-action state so captures can distinguish
+  transient startup behavior from sustained overload.
+- **Follow-up** – Software renderer crash-hardening remains separate: the Basic Render Driver,
+  SwiftShader, WARP, and llvmpipe paths still need safer immersive/debug handling and persisted
+  crash breadcrumbs.
+
 ## Heavy assets & lazy loading
 
 | Asset                                                      | Size            | Strategy                                                                                                                                          |

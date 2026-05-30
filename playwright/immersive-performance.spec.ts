@@ -24,6 +24,21 @@ interface PerformanceSnapshot {
   quality: {
     level: 'cinematic' | 'balanced' | 'performance';
     adaptiveDowngradeCount: number;
+    adaptiveRecoveryCount: number;
+    lastAdaptiveReason: string | null;
+    lastAdaptiveDowngradeReason: string | null;
+    lastAdaptiveRecoveryReason: string | null;
+    adaptivePolicy: {
+      rendererRiskLevel: 'normal' | 'software' | 'unknown';
+      qualitySource: 'initial' | 'adaptive' | 'manual';
+      inWarmup: boolean;
+      warmupElapsedMs: number;
+      warmupGraceMs: number;
+      lowFpsDurationMs: number;
+      stableDurationMs: number;
+      lastAction: 'downgrade' | 'recovery' | null;
+      canAutoRecover: boolean;
+    } | null;
   };
   features: {
     bloomEnabled: boolean;
@@ -181,6 +196,15 @@ test.describe('immersive performance diagnostics', () => {
       expect(snapshot.lastFailoverReason).toBeNull();
       expect(snapshot.rendererSize.pixelRatio).toBeLessThanOrEqual(1.25);
       expect(snapshot.quality.level).not.toBe('cinematic');
+      expect(snapshot.quality.adaptivePolicy).toBeDefined();
+      expect(snapshot.quality.adaptivePolicy).toMatchObject({
+        rendererRiskLevel: snapshot.renderer.riskLevel,
+      });
+      if (!snapshot.renderer.isSoftwareRenderer) {
+        expect(
+          snapshot.quality.adaptivePolicy?.warmupGraceMs ?? 0
+        ).toBeGreaterThan(0);
+      }
       expect(snapshot.features.mirrorRenderTargetSize).toBeLessThanOrEqual(320);
       if (snapshot.quality.level === 'performance') {
         expect(snapshot.features.bloomEnabled).toBe(false);
