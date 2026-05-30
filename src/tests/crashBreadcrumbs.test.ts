@@ -40,6 +40,12 @@ describe('crash breadcrumbs', () => {
     expect(() =>
       store.record({ type: 'mode-change', message: 'should not throw' })
     ).not.toThrow();
+    expect(store.read().entries).toContainEqual(
+      expect.objectContaining({
+        type: 'mode-change',
+        message: 'should not throw',
+      })
+    );
     expect(() => store.clear()).not.toThrow();
     expect(store.read().entries).toEqual([]);
   });
@@ -122,6 +128,65 @@ describe('crash breadcrumbs', () => {
       expect(localFallbackStorage.getItem(CRASH_LOG_KEY)).toBeNull();
       expect(sessionFallbackStorage.getItem(CRASH_LOG_KEY)).toContain(
         'persisted in session fallback'
+      );
+    } finally {
+      if (originalLocalStorage) {
+        Object.defineProperty(window, 'localStorage', originalLocalStorage);
+      } else {
+        Reflect.deleteProperty(window, 'localStorage');
+      }
+      if (originalSessionStorage) {
+        Object.defineProperty(window, 'sessionStorage', originalSessionStorage);
+      } else {
+        Reflect.deleteProperty(window, 'sessionStorage');
+      }
+    }
+  });
+
+  it('retries sessionStorage when an explicit localStorage provider cannot write', () => {
+    const localFallbackStorage = createMemoryStorage();
+    const sessionFallbackStorage = createMemoryStorage();
+    const explicitLocalStorage = {
+      ...localFallbackStorage,
+      setItem: () => {
+        throw new Error('quota exceeded');
+      },
+    };
+    const originalLocalStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'localStorage'
+    );
+    const originalSessionStorage = Object.getOwnPropertyDescriptor(
+      window,
+      'sessionStorage'
+    );
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get: () => explicitLocalStorage,
+    });
+    Object.defineProperty(window, 'sessionStorage', {
+      configurable: true,
+      get: () => sessionFallbackStorage,
+    });
+
+    try {
+      createCrashBreadcrumbStore({ storage: explicitLocalStorage }).record({
+        type: 'mode-change',
+        message: 'explicit local falls back to session',
+      });
+      const reloadedStore = createCrashBreadcrumbStore();
+      const exported = JSON.parse(reloadedStore.exportCrashLog()) as ReturnType<
+        typeof reloadedStore.read
+      >;
+
+      expect(exported.entries).toHaveLength(1);
+      expect(exported.entries[0]).toMatchObject({
+        type: 'mode-change',
+        message: 'explicit local falls back to session',
+      });
+      expect(localFallbackStorage.getItem(CRASH_LOG_KEY)).toBeNull();
+      expect(sessionFallbackStorage.getItem(CRASH_LOG_KEY)).toContain(
+        'explicit local falls back to session'
       );
     } finally {
       if (originalLocalStorage) {

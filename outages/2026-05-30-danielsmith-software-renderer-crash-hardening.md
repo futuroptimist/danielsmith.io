@@ -44,7 +44,8 @@ covered by the software-renderer classifier.
 - Continuous software rendering is available only through an explicit debug
   override: `?softwareRendererMode=continuous` or `?forceContinuousRendering=1`.
 - Crash breadcrumbs persist to bounded browser storage (`localStorage`, with
-  `sessionStorage` as the browser fallback when local writes fail) and are exported from
+  `sessionStorage` as the browser fallback when local writes fail, even when
+  `localStorage` is passed explicitly) and are exported from
   `window.portfolio.performance.exportCrashLog()`; `copyCrashLog()` copies the
   same bounded JSON when Clipboard API access is available.
 - `webglcontextlost` records an immediate breadcrumb before switching to the

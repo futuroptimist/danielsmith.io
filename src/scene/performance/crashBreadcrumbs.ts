@@ -186,9 +186,13 @@ export function createCrashBreadcrumbStore({
       fallbackStorage.delete(key);
     },
   };
-  const storageCandidates = storage
-    ? [storage]
-    : [...getDefaultBrowserStorageCandidates(), memoryStorage];
+  const storageCandidates = [
+    ...(storage ? [storage] : []),
+    ...getDefaultBrowserStorageCandidates(),
+    memoryStorage,
+  ].filter(
+    (candidate, index, candidates) => candidates.indexOf(candidate) === index
+  );
   let activeStorageIndex = 0;
 
   const candidateOrder = () => [
