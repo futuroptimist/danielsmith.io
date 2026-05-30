@@ -81,3 +81,22 @@ and the Vitest assertions when measurable changes land.
   overflow stays within a 1 px tolerance.
 - **Validation notes** – Run `npm run test:e2e -- --grep "text fallback"` alongside the standard
   format, lint, typecheck, Vitest, docs, and smoke checks before promoting the fallback layout.
+
+### 2026-05-30 adaptive quality warmup/recovery
+
+- **Symptoms** – Staging diagnostics showed a hardware-accelerated NVIDIA RTX path settling near
+  60 FPS with no monotonic memory growth, but adaptive quality could still demote the normal
+  renderer from balanced to performance after startup spikes.
+- **Impact** – Capable hardware could remain in the low-cost performance preset for the rest of
+  the session even after shader and asset warmup ended. The separate Microsoft Basic Render
+  Driver / software-renderer crash path remains intentionally conservative and needs dedicated
+  crash hardening.
+- **Root cause** – Adaptive quality treated short startup frame-time spikes the same as steady
+  overload and had no recovery path once performance mode was selected.
+- **Corrective action** – Normal renderers now get a bounded warmup grace period, downgrade only
+  after sustained low median/p95 frame windows, and recover from performance to balanced after a
+  sustained stable window. Software renderers keep the performance-first policy and do not
+  auto-upshift unless future explicit user controls choose otherwise.
+- **Diagnostics** – `window.portfolio.performance.getSnapshot().quality` now exposes adaptive
+  warmup, hysteresis, recovery counts, last action/reasons, source (`initial`, `manual`, or
+  `adaptive`), and renderer risk state via the nested `adaptivePolicy` payload.

@@ -64,6 +64,7 @@ describe('createGraphicsQualityManager', () => {
     });
 
     expect(manager.getLevel()).toBe('balanced');
+    expect(manager.getInitialSource()).toBe('stored');
     expect(renderer.getPixelRatio()).toBeCloseTo(2 * 0.85, 3);
     expect(renderer.toneMappingExposure).toBeCloseTo(1.02, 3);
     expect(bloom.enabled).toBe(true);
@@ -131,6 +132,7 @@ describe('createGraphicsQualityManager', () => {
     });
 
     expect(manager.getLevel()).toBe('balanced');
+    expect(manager.getInitialSource()).toBe('initial');
     expect(renderer.getPixelRatio()).toBeCloseTo(0.85, 3);
 
     manager.setLevel('balanced');

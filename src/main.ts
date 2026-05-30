@@ -707,6 +707,7 @@ function initializeImmersiveScene(
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
+  let graphicsQualitySource: 'initial' | 'manual' | 'adaptive' = 'initial';
   let adaptiveQualityController: ReturnType<
     typeof createAdaptiveQualityController
   > | null = null;
@@ -3080,6 +3081,10 @@ function initializeImmersiveScene(
     },
     storage: qualityStorage,
   });
+  graphicsQualitySource =
+    graphicsQualityManager.getInitialSource() === 'stored'
+      ? 'manual'
+      : 'initial';
   ledAnimator?.captureBaseline();
   environmentLightAnimator?.captureBaseline();
 
@@ -3091,8 +3096,17 @@ function initializeImmersiveScene(
       basePixelRatio = value;
     },
     fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
+    isSoftwareRenderer: rendererInfo.isSoftwareRenderer,
+    hasManualQualitySelection: () => graphicsQualitySource === 'manual',
     onDowngrade: (event) => {
+      graphicsQualitySource = 'adaptive';
       console.info('[performance] adaptive quality downgrade', event);
+      performanceFailover.resetLowFpsSamples();
+      graphicsQualityControl?.refresh();
+    },
+    onRecover: (event) => {
+      graphicsQualitySource = 'adaptive';
+      console.info('[performance] adaptive quality recovery', event);
       performanceFailover.resetLowFpsSamples();
       graphicsQualityControl?.refresh();
     },
@@ -3248,6 +3262,7 @@ function initializeImmersiveScene(
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
     setActiveLevel: (level) => {
+      graphicsQualitySource = 'manual';
       graphicsQualityManager?.setLevel(level);
     },
   });
@@ -3302,7 +3317,15 @@ function initializeImmersiveScene(
       level: graphicsQualityManager!.getLevel(),
       adaptiveDowngradeCount:
         adaptiveQualityController?.getDowngradeCount() ?? 0,
+      adaptiveRecoveryCount: adaptiveQualityController?.getRecoveryCount() ?? 0,
+      lastAdaptiveAction: adaptiveQualityController?.getLastAction() ?? null,
       lastAdaptiveReason: adaptiveQualityController?.getLastReason() ?? null,
+      lastAdaptiveDowngradeReason:
+        adaptiveQualityController?.getLastDowngradeReason() ?? null,
+      lastAdaptiveRecoveryReason:
+        adaptiveQualityController?.getLastRecoveryReason() ?? null,
+      adaptivePolicy: adaptiveQualityController?.getSnapshot() ?? null,
+      source: graphicsQualitySource,
     }),
     getFeatureState: () => {
       const mirrorState = selfieMirror?.getRenderState();
@@ -4057,8 +4080,8 @@ function initializeImmersiveScene(
       const delta = clock.getDelta();
       const elapsedTime = clock.elapsedTime;
       performanceDiagnostics?.recordFrame(delta);
-      const adaptiveDowngrade = adaptiveQualityController?.update(delta);
-      if (adaptiveDowngrade) {
+      const adaptiveAction = adaptiveQualityController?.update(delta);
+      if (adaptiveAction) {
         applyFeaturePolicy();
       }
       performanceFailover.update(delta);
