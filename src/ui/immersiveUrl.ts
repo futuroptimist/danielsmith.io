@@ -2,11 +2,18 @@ export const IMMERSIVE_MODE_PARAM = 'mode';
 export const IMMERSIVE_MODE_VALUE = 'immersive';
 export const DISABLE_PERFORMANCE_FAILOVER_PARAM = 'disablePerformanceFailover';
 export const DISABLE_PERFORMANCE_FAILOVER_VALUE = '1';
+export const SOFTWARE_RENDERER_MODE_PARAM = 'softwareRendererMode';
+export const SOFTWARE_RENDERER_MODE_SAFE = 'safe';
+export const SOFTWARE_RENDERER_MODE_CONTINUOUS = 'continuous';
 export const TEXT_MODE_VALUE = 'text';
 export const IMMERSIVE_PREVIEW_BASE_URL = 'http://localhost:5173/';
 export type ModeSelection =
   | typeof IMMERSIVE_MODE_VALUE
   | typeof TEXT_MODE_VALUE
+  | null;
+export type SoftwareRendererUrlMode =
+  | typeof SOFTWARE_RENDERER_MODE_SAFE
+  | typeof SOFTWARE_RENDERER_MODE_CONTINUOUS
   | null;
 
 type QueryParamValue = string | number | boolean | null | undefined;
@@ -256,6 +263,22 @@ export const hasPerformanceFailoverBypass = (
 ) => {
   const params = toSearchParams(value);
   return isPerformanceBypass(params.get(DISABLE_PERFORMANCE_FAILOVER_PARAM));
+};
+
+export const getSoftwareRendererModeFromSearch = (
+  value: string | URLSearchParams
+): SoftwareRendererUrlMode => {
+  const params = toSearchParams(value);
+  const normalized = normalizeParamValue(
+    params.get(SOFTWARE_RENDERER_MODE_PARAM)
+  );
+  if (normalized === SOFTWARE_RENDERER_MODE_SAFE) {
+    return SOFTWARE_RENDERER_MODE_SAFE;
+  }
+  if (normalized === SOFTWARE_RENDERER_MODE_CONTINUOUS) {
+    return SOFTWARE_RENDERER_MODE_CONTINUOUS;
+  }
+  return null;
 };
 
 export const shouldDisablePerformanceFailover = (

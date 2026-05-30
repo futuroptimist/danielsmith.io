@@ -5,6 +5,7 @@ import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
 } from '../scene/performance/adaptiveQuality';
+import { createCrashBreadcrumbStore } from '../scene/performance/crashBreadcrumbs';
 import {
   clampDevicePixelRatio,
   getQualityFeaturePolicy,
@@ -12,6 +13,7 @@ import {
   resolveResizedBasePixelRatio,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
+import { resolveSoftwareRendererModeState } from '../scene/performance/softwareRendererMode';
 
 function createPolicyHarness({
   level = 'balanced',
@@ -73,15 +75,29 @@ function createPolicyHarness({
 }
 
 describe('immersive performance optimization policy', () => {
-  it('classifies known software renderers as risky', () => {
-    expect(
-      classifyRendererInfo({ unmaskedRenderer: 'Google SwiftShader' })
-        .isSoftwareRenderer
-    ).toBe(true);
+  it('classifies known dangerous software renderers as high risk', () => {
+    for (const renderer of [
+      'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
+      'Google SwiftShader',
+      'ANGLE (Microsoft, WARP, D3D11)',
+      'llvmpipe (LLVM 15.0.7, 256 bits)',
+    ]) {
+      expect(
+        classifyRendererInfo({ unmaskedRenderer: renderer })
+      ).toMatchObject({
+        isSoftwareRenderer: true,
+        isDangerousSoftwareRenderer: true,
+        riskLevel: 'dangerous-software',
+      });
+    }
+
     expect(
       classifyRendererInfo({ renderer: 'ANGLE (NVIDIA GeForce RTX)' })
-        .isSoftwareRenderer
-    ).toBe(false);
+    ).toMatchObject({
+      isSoftwareRenderer: false,
+      isDangerousSoftwareRenderer: false,
+      riskLevel: 'normal',
+    });
   });
 
   it('starts software renderers in low-cost performance mode', () => {
@@ -100,6 +116,81 @@ describe('immersive performance optimization policy', () => {
     expect(normal.initialLevel).toBe('balanced');
     expect(normal.basePixelRatioCap).toBe(1.25);
     expect(normal.mirrorEnabled).toBe(true);
+  });
+
+  it('uses ultra-low DPR and capped cadence for dangerous software safe mode', () => {
+    const mode = resolveSoftwareRendererModeState(
+      { isDangerousSoftwareRenderer: true },
+      null
+    );
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: true, isDangerousSoftwareRenderer: true },
+      2,
+      mode
+    );
+
+    expect(mode).toMatchObject({
+      dangerousRenderer: true,
+      softwareSafeMode: 'safe',
+      continuousRendering: false,
+      maxRenderFps: 15,
+    });
+    expect(policy).toMatchObject({
+      initialLevel: 'performance',
+      basePixelRatioCap: 0.35,
+      mirrorEnabled: false,
+      mirrorUpdateRateFps: 0,
+      maxRenderFps: 15,
+      softwareSafeMode: 'safe',
+    });
+  });
+
+  it('allows continuous software rendering only with explicit override', () => {
+    const safe = resolveSoftwareRendererModeState(
+      { isDangerousSoftwareRenderer: true },
+      'safe'
+    );
+    const continuous = resolveSoftwareRendererModeState(
+      { isDangerousSoftwareRenderer: true },
+      'continuous'
+    );
+
+    expect(safe.maxRenderFps).toBe(15);
+    expect(safe.continuousRendering).toBe(false);
+    expect(continuous.maxRenderFps).toBeNull();
+    expect(continuous.continuousRendering).toBe(true);
+  });
+
+  it('keeps crash breadcrumb logs bounded and serializable', () => {
+    const storage = new Map<string, string>();
+    const fakeStorage = {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+      removeItem: (key: string) => storage.delete(key),
+      clear: () => storage.clear(),
+      key: (index: number) => Array.from(storage.keys())[index] ?? null,
+      get length() {
+        return storage.size;
+      },
+    } as Storage;
+    const store = createCrashBreadcrumbStore({
+      maxEvents: 3,
+      localStorage: fakeStorage,
+      sessionStorage: fakeStorage,
+      now: () => new Date('2026-05-30T00:00:00.000Z'),
+      getPageUrl: () => 'https://example.test/?mode=immersive',
+    });
+
+    for (let index = 0; index < 5; index += 1) {
+      store.record({ type: 'snapshot', message: `snapshot ${index}` });
+    }
+
+    const parsed = JSON.parse(store.exportJson()) as {
+      events: Array<{ message?: string }>;
+    };
+    expect(parsed.events).toHaveLength(3);
+    expect(parsed.events[0]?.message).toBe('snapshot 2');
+    expect(store.exportJson()).toContain('https://example.test/');
   });
 
   it('clamps DPR and disables expensive features in performance mode', () => {

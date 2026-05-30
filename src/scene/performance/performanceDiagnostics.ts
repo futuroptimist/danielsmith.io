@@ -5,6 +5,7 @@ import type {
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
 import type { RendererInfoSnapshot } from './rendererCapabilities';
+import type { SoftwareRendererModeState } from './softwareRendererMode';
 
 export type PhaseName =
   | 'inputMovementCamera'
@@ -60,6 +61,10 @@ export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   quality: QualityStateSnapshot;
   features: FeatureStateSnapshot;
   lastFailoverReason: string | null;
+  dangerousRenderer: boolean;
+  softwareSafeMode: SoftwareRendererModeState['softwareSafeMode'];
+  continuousRendering: boolean;
+  maxRenderFps: number | null;
 }
 
 export interface PerformanceDiagnosticsApi {
@@ -69,6 +74,9 @@ export interface PerformanceDiagnosticsApi {
   getQualityState(): QualityStateSnapshot;
   getFeatureState(): FeatureStateSnapshot;
   getLastFailoverReason(): string | null;
+  getSoftwareRendererState(): SoftwareRendererModeState;
+  exportCrashLog?(): string;
+  copyCrashLog?(): Promise<boolean>;
 }
 
 interface PerformanceDiagnosticsOptions {
@@ -77,6 +85,7 @@ interface PerformanceDiagnosticsOptions {
   getQualityState: () => QualityStateSnapshot;
   getFeatureState: () => FeatureStateSnapshot;
   getLastFailoverReason: () => string | null;
+  getSoftwareRendererState: () => SoftwareRendererModeState;
   maxSamples?: number;
 }
 
@@ -129,6 +138,7 @@ export function createPerformanceDiagnostics({
   getQualityState,
   getFeatureState,
   getLastFailoverReason,
+  getSoftwareRendererState,
   maxSamples = 180,
 }: PerformanceDiagnosticsOptions) {
   const frameMsSamples: number[] = [];
@@ -154,6 +164,14 @@ export function createPerformanceDiagnostics({
         quality: diagnosticsMethods.getQualityState(),
         features: diagnosticsMethods.getFeatureState(),
         lastFailoverReason: diagnosticsMethods.getLastFailoverReason(),
+        dangerousRenderer:
+          diagnosticsMethods.getSoftwareRendererState().dangerousRenderer,
+        softwareSafeMode:
+          diagnosticsMethods.getSoftwareRendererState().softwareSafeMode,
+        continuousRendering:
+          diagnosticsMethods.getSoftwareRendererState().continuousRendering,
+        maxRenderFps:
+          diagnosticsMethods.getSoftwareRendererState().maxRenderFps,
       };
     },
     getFrameStats() {
@@ -188,6 +206,9 @@ export function createPerformanceDiagnostics({
     },
     getLastFailoverReason() {
       return getLastFailoverReason();
+    },
+    getSoftwareRendererState() {
+      return getSoftwareRendererState();
     },
   };
 

@@ -1,6 +1,7 @@
 import type { GraphicsQualityLevel } from '../graphics/qualityManager';
 
 import type { RendererInfoSnapshot } from './rendererCapabilities';
+import type { SoftwareRendererModeState } from './softwareRendererMode';
 
 export interface QualityPolicyState {
   initialLevel: GraphicsQualityLevel;
@@ -9,6 +10,9 @@ export interface QualityPolicyState {
   mirrorTargetSize: number;
   mirrorUpdateRateFps: number;
   ambientUpdateIntervalMs: number;
+  pixelRatioFloor: number;
+  maxRenderFps: number | null;
+  softwareSafeMode: SoftwareRendererModeState['softwareSafeMode'];
   reason: string;
 }
 
@@ -28,11 +32,13 @@ export function clampDevicePixelRatio(
 export function resolveResizedBasePixelRatio(
   devicePixelRatio: number,
   maxPolicyCap: number,
-  adaptivePixelRatioCap = Number.POSITIVE_INFINITY
+  adaptivePixelRatioCap = Number.POSITIVE_INFINITY,
+  floor = 0.75
 ): number {
   const resizedPixelRatio = clampDevicePixelRatio(
     devicePixelRatio,
-    maxPolicyCap
+    maxPolicyCap,
+    floor
   );
   const safeAdaptiveCap =
     Number.isFinite(adaptivePixelRatioCap) && adaptivePixelRatioCap > 0
@@ -42,9 +48,31 @@ export function resolveResizedBasePixelRatio(
 }
 
 export function resolveInitialQualityPolicy(
-  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'>,
-  devicePixelRatio: number
+  rendererInfo: Pick<RendererInfoSnapshot, 'isSoftwareRenderer'> &
+    Partial<Pick<RendererInfoSnapshot, 'isDangerousSoftwareRenderer'>>,
+  devicePixelRatio: number,
+  softwareRendererMode?: SoftwareRendererModeState
 ): QualityPolicyState {
+  if (softwareRendererMode?.dangerousRenderer) {
+    const continuous = softwareRendererMode.continuousRendering;
+    return {
+      initialLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(
+        devicePixelRatio,
+        continuous ? 0.5 : 0.35,
+        0.35
+      ),
+      mirrorEnabled: false,
+      mirrorTargetSize: 128,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 150,
+      pixelRatioFloor: 0.35,
+      maxRenderFps: softwareRendererMode.maxRenderFps,
+      softwareSafeMode: softwareRendererMode.softwareSafeMode,
+      reason: softwareRendererMode.reason,
+    };
+  }
+
   if (rendererInfo.isSoftwareRenderer) {
     return {
       initialLevel: 'performance',
@@ -53,6 +81,9 @@ export function resolveInitialQualityPolicy(
       mirrorTargetSize: 192,
       mirrorUpdateRateFps: 0,
       ambientUpdateIntervalMs: 100,
+      pixelRatioFloor: 0.75,
+      maxRenderFps: null,
+      softwareSafeMode: 'off',
       reason: 'software renderer starts in performance mode',
     };
   }
@@ -64,6 +95,9 @@ export function resolveInitialQualityPolicy(
     mirrorTargetSize: 320,
     mirrorUpdateRateFps: 8,
     ambientUpdateIntervalMs: 33,
+    pixelRatioFloor: 0.75,
+    maxRenderFps: null,
+    softwareSafeMode: 'off',
     reason: 'default desktop path balances fidelity with pixel cost',
   };
 }

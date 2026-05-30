@@ -11,6 +11,7 @@ describe('performance diagnostics', () => {
         unmaskedVendor: 'NVIDIA',
         unmaskedRenderer: 'ANGLE NVIDIA',
         isSoftwareRenderer: false,
+        isDangerousSoftwareRenderer: false,
         riskLevel: 'normal',
         reason: 'test',
       },
@@ -61,6 +62,13 @@ describe('performance diagnostics', () => {
         mirrorRenderCount: 3,
       }),
       getLastFailoverReason: () => null,
+      getSoftwareRendererState: () => ({
+        dangerousRenderer: false,
+        softwareSafeMode: 'off',
+        continuousRendering: true,
+        maxRenderFps: null,
+        reason: 'test',
+      }),
     });
 
     diagnostics.recordFrame(1 / 60);
@@ -78,6 +86,8 @@ describe('performance diagnostics', () => {
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
+    expect(snapshot.dangerousRenderer).toBe(false);
+    expect(snapshot.softwareSafeMode).toBe('off');
     expect(snapshot.quality.selectionSource).toBe('adaptive');
     expect(snapshot.quality.adaptiveRecoveryCount).toBe(1);
     expect(snapshot.quality.adaptivePolicy).toMatchObject({
@@ -98,6 +108,7 @@ describe('performance diagnostics', () => {
         unmaskedVendor: 'NVIDIA',
         unmaskedRenderer: 'ANGLE NVIDIA',
         isSoftwareRenderer: false,
+        isDangerousSoftwareRenderer: false,
         riskLevel: 'normal',
         reason: 'test',
       },
@@ -126,6 +137,13 @@ describe('performance diagnostics', () => {
         mirrorRenderCount: 0,
       }),
       getLastFailoverReason: () => null,
+      getSoftwareRendererState: () => ({
+        dangerousRenderer: false,
+        softwareSafeMode: 'off',
+        continuousRendering: true,
+        maxRenderFps: null,
+        reason: 'test',
+      }),
     });
 
     for (let index = 0; index < 19; index += 1) {

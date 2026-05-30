@@ -1,0 +1,39 @@
+{
+  "id": "2026-05-30-danielsmith-software-renderer-crash-hardening",
+  "date": "2026-05-30",
+  "title": "Software renderer crash hardening",
+  "severity": "medium",
+  "status": "mitigated",
+  "symptom": "Chrome tab crashed after several seconds on Microsoft Basic Render Driver with hardware acceleration disabled.",
+  "evidence": [
+    "Software renderer path reached performance quality with DPR around 0.56 and expensive effects disabled.",
+    "mainRender dominated frame time while JavaScript phase timings were small.",
+    "NVIDIA hardware renderer on the same machine remained stable near 60 FPS."
+  ],
+  "rootCauseClass": "Dangerous software-renderer instability under continuous WebGL animation.",
+  "dangerousRenderers": [
+    "Microsoft Basic Render Driver",
+    "SwiftShader",
+    "WARP",
+    "llvmpipe",
+    "softpipe",
+    "Mesa offscreen"
+  ],
+  "mitigations": [
+    "Classify dangerous software renderers separately from normal software renderer risk.",
+    "Start dangerous renderers in software-safe immersive mode with ultra-low DPR and no expensive effects.",
+    "Cap safe-mode rendering cadence unless softwareRendererMode=continuous is explicitly present.",
+    "Persist bounded crash breadcrumbs to localStorage/sessionStorage and expose export/copy helpers.",
+    "Record WebGL context loss and transition to a recoverable fallback when possible."
+  ],
+  "debugOptions": {
+    "safe": "?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=safe",
+    "continuous": "?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous"
+  },
+  "manualValidation": [
+    "Open forced immersive with Chrome hardware acceleration disabled and confirm the safe-mode warning.",
+    "Confirm exportCrashLog() contains renderer-warning and snapshot events.",
+    "Append softwareRendererMode=continuous only for deliberate high-risk debugging.",
+    "Re-enable hardware acceleration and confirm NVIDIA is not marked dangerous."
+  ]
+}

@@ -1927,3 +1927,59 @@ html[data-hudLayout='mobile'] .audio-subtitles {
 .poi-tooltip-overlay[data-state='recommended'] {
   border-color: rgba(255, 207, 129, 0.42);
 }
+
+.software-renderer-warning {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 30;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid rgba(255, 205, 111, 0.6);
+  border-radius: 1rem;
+  background: rgba(13, 18, 28, 0.92);
+  color: #f8fafc;
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+}
+
+.software-renderer-warning h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+
+.software-renderer-warning p {
+  margin: 0 0 0.85rem;
+  color: rgba(248, 250, 252, 0.86);
+  line-height: 1.45;
+}
+
+.software-renderer-warning__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.software-renderer-warning button,
+.software-renderer-warning a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.software-renderer-warning button:hover,
+.software-renderer-warning a:hover,
+.software-renderer-warning button:focus-visible,
+.software-renderer-warning a:focus-visible {
+  border-color: rgba(255, 205, 111, 0.85);
+  background: rgba(255, 205, 111, 0.18);
+  outline: none;
+}

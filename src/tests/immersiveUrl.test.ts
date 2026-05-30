@@ -6,6 +6,7 @@ import {
   createImmersiveRecoveryUrl,
   createTextModeUrl,
   getModeFromSearch,
+  getSoftwareRendererModeFromSearch,
   hasImmersiveOverride,
   hasPerformanceFailoverBypass,
   IMMERSIVE_PREVIEW_BASE_URL,
@@ -64,6 +65,24 @@ describe('createImmersiveModeUrl', () => {
     expect(url).toBe(
       '/demo?foo=bar&mode=immersive&disablePerformanceFailover=1&utm_campaign=launch'
     );
+  });
+
+  it('preserves explicit software renderer debug modes as extra params', () => {
+    const safeUrl = createImmersiveModeUrl(baseLocation, {
+      softwareRendererMode: 'safe',
+    });
+    const continuousUrl = createImmersiveModeUrl(baseLocation, {
+      softwareRendererMode: 'continuous',
+    });
+
+    expect(safeUrl).toBe(
+      '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=safe'
+    );
+    expect(continuousUrl).toBe(
+      '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous'
+    );
+    expect(getSoftwareRendererModeFromSearch(safeUrl)).toBe('safe');
+    expect(getSoftwareRendererModeFromSearch(continuousUrl)).toBe('continuous');
   });
 
   it('normalizes canonical URLs passed as strings while enforcing overrides', () => {
