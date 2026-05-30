@@ -116,8 +116,11 @@ export interface GraphicsQualityManagerOptions {
   preferInitialLevel?: boolean;
 }
 
+export type GraphicsQualityInitialSource = 'initial' | 'stored';
+
 export interface GraphicsQualityManager {
   getLevel(): GraphicsQualityLevel;
+  getInitialSource(): GraphicsQualityInitialSource;
   setLevel(level: GraphicsQualityLevel): void;
   refresh(): void;
   setBasePixelRatio(pixelRatio: number): void;
@@ -179,11 +182,13 @@ export function createGraphicsQualityManager({
   let currentLevel: GraphicsQualityLevel = isGraphicsQualityLevel(initialLevel)
     ? initialLevel
     : 'balanced';
+  let initialSource: GraphicsQualityInitialSource = 'initial';
   if (!preferInitialLevel && storage?.getItem) {
     try {
       const stored = storage.getItem(storageKey);
       if (isGraphicsQualityLevel(stored)) {
         currentLevel = stored;
+        initialSource = 'stored';
       }
     } catch (error) {
       console.warn('Failed to read persisted graphics quality level:', error);
@@ -247,6 +252,9 @@ export function createGraphicsQualityManager({
   return {
     getLevel() {
       return currentLevel;
+    },
+    getInitialSource() {
+      return initialSource;
     },
     setLevel(level) {
       if (!isGraphicsQualityLevel(level)) {

@@ -22,7 +22,37 @@ describe('performance diagnostics', () => {
       getQualityState: () => ({
         level: 'balanced',
         adaptiveDowngradeCount: 1,
-        lastAdaptiveReason: 'low FPS downgraded cinematic to balanced',
+        adaptiveRecoveryCount: 1,
+        lastAdaptiveAction: 'recovery',
+        lastAdaptiveReason:
+          'sustained stable FPS recovered performance to balanced',
+        lastAdaptiveDowngradeReason:
+          'sustained low FPS downgraded cinematic to balanced',
+        lastAdaptiveRecoveryReason:
+          'sustained stable FPS recovered performance to balanced',
+        adaptivePolicy: {
+          warmupElapsedMs: 5000,
+          warmupDurationMs: 5000,
+          isWarmingUp: false,
+          lowFpsDurationMs: 0,
+          stableDurationMs: 8000,
+          cooldownRemainingMs: 0,
+          downgradeCount: 1,
+          recoveryCount: 1,
+          lastAdaptiveAction: 'recovery',
+          lastDowngradeReason:
+            'sustained low FPS downgraded cinematic to balanced',
+          lastRecoveryReason:
+            'sustained stable FPS recovered performance to balanced',
+          lastAdaptiveReason:
+            'sustained stable FPS recovered performance to balanced',
+          isRecoveryAllowed: true,
+          isSoftwareRenderer: false,
+          sampleCount: 120,
+          medianFps: 60,
+          p95FrameMs: 18,
+        },
+        source: 'adaptive',
       }),
       getFeatureState: () => ({
         bloomEnabled: true,
@@ -50,6 +80,10 @@ describe('performance diagnostics', () => {
     expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
     expect(snapshot.quality.level).toBe('balanced');
+    expect(snapshot.quality.adaptiveRecoveryCount).toBe(1);
+    expect(snapshot.quality.lastAdaptiveAction).toBe('recovery');
+    expect(snapshot.quality.adaptivePolicy?.isWarmingUp).toBe(false);
+    expect(snapshot.quality.source).toBe('adaptive');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);
     expect(snapshot.phases.mainRender.sampleCount).toBe(2);
     expect(snapshot.phases.mirror.averageMs).toBe(4);
@@ -75,7 +109,13 @@ describe('performance diagnostics', () => {
       getQualityState: () => ({
         level: 'balanced',
         adaptiveDowngradeCount: 0,
+        adaptiveRecoveryCount: 0,
+        lastAdaptiveAction: null,
         lastAdaptiveReason: null,
+        lastAdaptiveDowngradeReason: null,
+        lastAdaptiveRecoveryReason: null,
+        adaptivePolicy: null,
+        source: 'initial',
       }),
       getFeatureState: () => ({
         bloomEnabled: false,
