@@ -30,7 +30,12 @@ The fix starts risky software renderers in performance mode, defaults normal
 desktop rendering to balanced quality, caps DPR to an explicit lower bound, skips
 EffectComposer when bloom and motion blur are inactive, disables bloom in
 performance mode, throttles or disables SelfieMirror work by quality tier, and
-adds a non-flapping adaptive downgrade ladder before low-FPS fallback.
+adds a warmup-aware adaptive downgrade ladder before low-FPS fallback. Normal
+hardware evidence now includes an NVIDIA RTX 4090 path that settled near 60 FPS
+after startup warmup; adaptive quality therefore requires sustained rolling
+median/p95 pressure before downgrading and can recover performance back to
+balanced after sustained stable FPS. Software-renderer crash-hardening remains a
+separate follow-up.
 
 Diagnostics are available in DevTools at:
 
