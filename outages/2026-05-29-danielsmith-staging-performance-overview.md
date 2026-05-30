@@ -13,7 +13,7 @@ software WebGL.
 - [Software renderer used the expensive default quality path](./2026-05-29-danielsmith-software-renderer-quality.md).
 - [Postprocessing and DPR multiplied full-screen pixel cost](./2026-05-29-danielsmith-postprocessing-pixel-cost.md).
 - [SelfieMirror rendered the full scene every frame](./2026-05-29-danielsmith-selfie-mirror-render-cost.md).
-- [Adaptive quality did not downgrade before text fallback](./2026-05-29-danielsmith-adaptive-quality-gap.md).
+- [Adaptive quality needed both pre-fallback downgrades and warmup-aware recovery](./2026-05-29-danielsmith-adaptive-quality-gap.md).
 - [Text fallback recovery trapped immersive debugging](./2026-05-30-danielsmith-mode-fallback-recovery.md).
 
 ## Disproven or unconfirmed theories
@@ -30,7 +30,12 @@ The fix starts risky software renderers in performance mode, defaults normal
 desktop rendering to balanced quality, caps DPR to an explicit lower bound, skips
 EffectComposer when bloom and motion blur are inactive, disables bloom in
 performance mode, throttles or disables SelfieMirror work by quality tier, and
-adds a non-flapping adaptive downgrade ladder before low-FPS fallback.
+adds a warmup-aware, non-flapping adaptive downgrade ladder before low-FPS
+fallback. Hardware-accelerated staging evidence from `ANGLE (NVIDIA, NVIDIA
+GeForce RTX 4090 ..., D3D11)` showed stable near-60-FPS behavior after startup,
+so normal renderers now require sustained low-FPS/high-frame-time evidence
+before downgrading and can recover from performance to balanced after a stable
+window. Software renderer crash hardening remains a separate follow-up.
 
 Diagnostics are available in DevTools at:
 

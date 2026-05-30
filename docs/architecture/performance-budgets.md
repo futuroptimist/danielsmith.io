@@ -36,6 +36,29 @@ and the Vitest assertions when measurable changes land.
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
 
+## Adaptive quality warmup and recovery
+
+Staging on May 29, 2026 showed two renderer classes that need different
+adaptive-quality behavior:
+
+- Hardware acceleration (`ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 ..., D3D11)`)
+  stabilized near 60 FPS with main render time warming down toward roughly
+  1–2 ms after startup. The previous policy could still downgrade balanced
+  quality to performance during shader/asset warmup and leave capable hardware
+  permanently reduced.
+- Software rendering (`ANGLE (Microsoft Basic Render Driver)`) remained around
+  30–40 FPS with DPR reduced, bloom/composer and the mirror disabled, and still
+  needs the separate crash-hardening follow-up.
+
+Normal renderers now collect warmup metrics before adaptive downgrades, require
+sustained low FPS/high frame time hysteresis before stepping down, and recover
+from performance to balanced after a sustained stable window near 60 FPS. The
+recovery path is disabled for software renderers and for explicit user-selected
+quality so manual performance choices are not silently upshifted. Diagnostics
+from `window.portfolio.performance.getSnapshot()` include warmup state,
+selection source, downgrade/recovery counts, and the last adaptive action reason
+so staging can distinguish startup spikes from steady-state overload.
+
 ## Heavy assets & lazy loading
 
 | Asset                                                      | Size            | Strategy                                                                                                                                          |

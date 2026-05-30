@@ -116,9 +116,15 @@ export interface GraphicsQualityManagerOptions {
   preferInitialLevel?: boolean;
 }
 
+export type GraphicsQualitySelectionSource = 'initial' | 'adaptive' | 'user';
+
 export interface GraphicsQualityManager {
   getLevel(): GraphicsQualityLevel;
-  setLevel(level: GraphicsQualityLevel): void;
+  getSelectionSource(): GraphicsQualitySelectionSource;
+  setLevel(
+    level: GraphicsQualityLevel,
+    options?: { source?: GraphicsQualitySelectionSource }
+  ): void;
   refresh(): void;
   setBasePixelRatio(pixelRatio: number): void;
   onChange(listener: (level: GraphicsQualityLevel) => void): () => void;
@@ -179,11 +185,13 @@ export function createGraphicsQualityManager({
   let currentLevel: GraphicsQualityLevel = isGraphicsQualityLevel(initialLevel)
     ? initialLevel
     : 'balanced';
+  let selectionSource: GraphicsQualitySelectionSource = 'initial';
   if (!preferInitialLevel && storage?.getItem) {
     try {
       const stored = storage.getItem(storageKey);
       if (isGraphicsQualityLevel(stored)) {
         currentLevel = stored;
+        selectionSource = 'user';
       }
     } catch (error) {
       console.warn('Failed to read persisted graphics quality level:', error);
@@ -248,16 +256,25 @@ export function createGraphicsQualityManager({
     getLevel() {
       return currentLevel;
     },
-    setLevel(level) {
+    getSelectionSource() {
+      return selectionSource;
+    },
+    setLevel(level, options = {}) {
       if (!isGraphicsQualityLevel(level)) {
         throw new Error(`Unsupported graphics quality level: ${level}`);
       }
+      const source = options.source ?? 'user';
+      selectionSource = source;
       if (level === currentLevel) {
-        persist(level);
+        if (source === 'user') {
+          persist(level);
+        }
         return;
       }
       currentLevel = level;
-      persist(level);
+      if (source === 'user') {
+        persist(level);
+      }
       applyPreset(level);
       notify();
     },
