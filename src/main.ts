@@ -313,7 +313,10 @@ import {
   writeModePreference,
 } from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
-import { createGitHubRepoStatsService } from './systems/github/repoStats';
+import {
+  createGitHubRepoStatsService,
+  type GitHubRepoStatsDiagnostics,
+} from './systems/github/repoStats';
 import {
   createAnalyticsGlowRhythm,
   type AnalyticsGlowRhythmHandle,
@@ -435,6 +438,9 @@ declare global {
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
+      github?: {
+        getRepoMetricsDiagnostics(): GitHubRepoStatsDiagnostics;
+      };
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -1516,6 +1522,13 @@ function initializeImmersiveScene(
     poiWorldTooltip.setIdleState(idle);
   });
   const githubRepoStatsService = createGitHubRepoStatsService();
+  const githubPortfolioWindow = window as Window;
+  if (!githubPortfolioWindow.portfolio) {
+    githubPortfolioWindow.portfolio = {};
+  }
+  githubPortfolioWindow.portfolio.github = {
+    getRepoMetricsDiagnostics: () => githubRepoStatsService.getDiagnostics(),
+  };
   githubRepoMetrics = wireGitHubRepoMetrics({
     definitions: poiDefinitions,
     service: githubRepoStatsService,
@@ -4089,6 +4102,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
+    }
+    if (window.portfolio?.github) {
+      delete window.portfolio.github;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);
