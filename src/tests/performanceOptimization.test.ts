@@ -10,6 +10,8 @@ import {
   getQualityFeaturePolicy,
   resolveInitialQualityPolicy,
   resolveResizedBasePixelRatio,
+  resolveSoftwareRendererPolicy,
+  resolveSoftwareSafeRenderCadence,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
 
@@ -73,33 +75,177 @@ function createPolicyHarness({
 }
 
 describe('immersive performance optimization policy', () => {
-  it('classifies known software renderers as risky', () => {
-    expect(
-      classifyRendererInfo({ unmaskedRenderer: 'Google SwiftShader' })
-        .isSoftwareRenderer
-    ).toBe(true);
+  it('classifies known dangerous software renderers separately from hardware', () => {
+    const dangerousRenderers = [
+      'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
+      'Google SwiftShader',
+      'ANGLE (Microsoft, WARP, D3D11)',
+      'llvmpipe (LLVM 17.0.0, 256 bits)',
+    ];
+
+    dangerousRenderers.forEach((renderer) => {
+      expect(
+        classifyRendererInfo({ unmaskedRenderer: renderer })
+      ).toMatchObject({
+        isSoftwareRenderer: true,
+        isDangerousSoftwareRenderer: true,
+        riskLevel: 'dangerous-software',
+      });
+    });
+
     expect(
       classifyRendererInfo({ renderer: 'ANGLE (NVIDIA GeForce RTX)' })
-        .isSoftwareRenderer
-    ).toBe(false);
+    ).toMatchObject({
+      isSoftwareRenderer: false,
+      isDangerousSoftwareRenderer: false,
+      riskLevel: 'normal',
+    });
+  });
+
+  it('keeps generic software renderers out of dangerous safe mode', () => {
+    const genericSoftwareRenderers = [
+      'Generic Software Renderer',
+      'CPU Rasterizer',
+      'Chromium Software Compositor',
+      'ANGLE (Generic, Software Renderer, D3D11)',
+    ];
+
+    genericSoftwareRenderers.forEach((renderer) => {
+      expect(classifyRendererInfo({ renderer })).toMatchObject({
+        isSoftwareRenderer: true,
+        isDangerousSoftwareRenderer: false,
+        riskLevel: 'software',
+      });
+    });
   });
 
   it('starts software renderers in low-cost performance mode', () => {
     const software = resolveInitialQualityPolicy(
-      { isSoftwareRenderer: true },
+      { isSoftwareRenderer: true, isDangerousSoftwareRenderer: false },
       2
     );
     expect(software.initialLevel).toBe('performance');
-    expect(software.basePixelRatioCap).toBe(1);
+    expect(software.basePixelRatioCap).toBe(0.75);
     expect(software.mirrorEnabled).toBe(false);
 
     const normal = resolveInitialQualityPolicy(
-      { isSoftwareRenderer: false },
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
       2
     );
     expect(normal.initialLevel).toBe('balanced');
     expect(normal.basePixelRatioCap).toBe(1.25);
     expect(normal.mirrorEnabled).toBe(true);
+  });
+
+  it('chooses ultra-low DPR and capped cadence for dangerous software safe mode', () => {
+    const policy = resolveSoftwareRendererPolicy(
+      { isDangerousSoftwareRenderer: true },
+      '?mode=immersive&disablePerformanceFailover=1'
+    );
+    const quality = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: true, isDangerousSoftwareRenderer: true },
+      2,
+      policy
+    );
+
+    expect(policy).toMatchObject({
+      safeMode: true,
+      mode: 'safe',
+      renderCadenceFps: 12,
+    });
+    expect(quality).toMatchObject({
+      initialLevel: 'performance',
+      basePixelRatioCap: 0.45,
+      mirrorEnabled: false,
+      softwareSafeMode: true,
+      renderCadenceFps: 12,
+    });
+  });
+
+  it('allows continuous rendering only with an explicit software override', () => {
+    expect(
+      resolveSoftwareRendererPolicy(
+        { isDangerousSoftwareRenderer: true },
+        '?softwareRendererMode=continuous'
+      )
+    ).toMatchObject({
+      safeMode: false,
+      mode: 'continuous',
+      renderCadenceFps: null,
+    });
+    expect(
+      resolveSoftwareRendererPolicy(
+        { isDangerousSoftwareRenderer: true },
+        '?forceContinuousRendering=1'
+      )
+    ).toMatchObject({
+      safeMode: false,
+      mode: 'continuous',
+      renderCadenceFps: null,
+    });
+  });
+
+  it('enforces the dangerous software safe render cadence deterministically', () => {
+    const intervalMs = 1000 / 12;
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: false,
+        renderRequested: false,
+        lastRenderMs: 0,
+        nowMs: 0,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: true, lastRenderMs: 0 });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: true,
+        renderRequested: false,
+        lastRenderMs: 0,
+        nowMs: 16,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: false, lastRenderMs: 0 });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: true,
+        renderRequested: true,
+        lastRenderMs: 0,
+        nowMs: 20,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({
+      shouldRender: true,
+      renderRequested: false,
+      lastRenderMs: 20,
+    });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: true,
+        hasPresentedFirstFrame: true,
+        renderRequested: false,
+        lastRenderMs: 0,
+        nowMs: intervalMs,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: true, lastRenderMs: intervalMs });
+
+    expect(
+      resolveSoftwareSafeRenderCadence({
+        safeMode: false,
+        hasPresentedFirstFrame: true,
+        renderRequested: false,
+        lastRenderMs: 20,
+        nowMs: 32,
+        renderIntervalMs: intervalMs,
+      })
+    ).toMatchObject({ shouldRender: true, lastRenderMs: 32 });
   });
 
   it('clamps DPR and disables expensive features in performance mode', () => {

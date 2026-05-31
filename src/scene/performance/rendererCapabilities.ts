@@ -1,6 +1,10 @@
 import type { WebGLRenderer } from 'three';
 
-export type RendererRiskLevel = 'normal' | 'software' | 'unknown';
+export type RendererRiskLevel =
+  | 'normal'
+  | 'software'
+  | 'dangerous-software'
+  | 'unknown';
 
 export interface RendererInfoSnapshot {
   vendor: string | null;
@@ -8,19 +12,26 @@ export interface RendererInfoSnapshot {
   unmaskedVendor: string | null;
   unmaskedRenderer: string | null;
   isSoftwareRenderer: boolean;
+  isDangerousSoftwareRenderer: boolean;
   riskLevel: RendererRiskLevel;
   reason: string;
 }
 
-const SOFTWARE_RENDERER_PATTERNS = [
+const DANGEROUS_SOFTWARE_RENDERER_PATTERNS = [
+  /microsoft basic render(?:er| driver)?/i,
   /swiftshader/i,
-  /software/i,
+  /\bwarp\b/i,
   /llvmpipe/i,
   /softpipe/i,
   /mesa offscreen/i,
-  /warp/i,
-  /microsoft basic render/i,
-  /angle.*(swiftshader|software|warp)/i,
+  /angle.*(swiftshader|warp|microsoft basic render)/i,
+] as const;
+
+const SOFTWARE_RENDERER_PATTERNS = [
+  ...DANGEROUS_SOFTWARE_RENDERER_PATTERNS,
+  /software/i,
+  /cpu raster/i,
+  /chromium.*software/i,
 ] as const;
 
 export function classifyRendererInfo(input: {
@@ -36,19 +47,36 @@ export function classifyRendererInfo(input: {
   const haystack = [vendor, renderer, unmaskedVendor, unmaskedRenderer]
     .filter((value): value is string => typeof value === 'string')
     .join(' ');
-  const matchedPattern = SOFTWARE_RENDERER_PATTERNS.find((pattern) =>
-    pattern.test(haystack)
+  const matchedDangerousPattern = DANGEROUS_SOFTWARE_RENDERER_PATTERNS.find(
+    (pattern) => pattern.test(haystack)
   );
+  const matchedSoftwarePattern =
+    matchedDangerousPattern ??
+    SOFTWARE_RENDERER_PATTERNS.find((pattern) => pattern.test(haystack));
 
-  if (matchedPattern) {
+  if (matchedDangerousPattern) {
     return {
       vendor,
       renderer,
       unmaskedVendor,
       unmaskedRenderer,
       isSoftwareRenderer: true,
+      isDangerousSoftwareRenderer: true,
+      riskLevel: 'dangerous-software',
+      reason: `matched dangerous software renderer pattern ${matchedDangerousPattern.source}`,
+    };
+  }
+
+  if (matchedSoftwarePattern) {
+    return {
+      vendor,
+      renderer,
+      unmaskedVendor,
+      unmaskedRenderer,
+      isSoftwareRenderer: true,
+      isDangerousSoftwareRenderer: false,
       riskLevel: 'software',
-      reason: `matched ${matchedPattern.source}`,
+      reason: `matched software renderer pattern ${matchedSoftwarePattern.source}`,
     };
   }
 
@@ -58,6 +86,7 @@ export function classifyRendererInfo(input: {
     unmaskedVendor,
     unmaskedRenderer,
     isSoftwareRenderer: false,
+    isDangerousSoftwareRenderer: false,
     riskLevel: haystack.length > 0 ? 'normal' : 'unknown',
     reason:
       haystack.length > 0

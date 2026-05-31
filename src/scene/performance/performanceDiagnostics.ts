@@ -4,6 +4,7 @@ import type {
 } from '../graphics/qualityManager';
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
+import type { SoftwareRendererPolicyState } from './qualityPolicy';
 import type { RendererInfoSnapshot } from './rendererCapabilities';
 
 export type PhaseName =
@@ -56,10 +57,20 @@ export interface FrameStatsSnapshot {
 
 export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   renderer: RendererInfoSnapshot;
+  softwareRendererPolicy: SoftwareRendererPolicyState;
   rendererSize: RendererSizeSnapshot;
   quality: QualityStateSnapshot;
   features: FeatureStateSnapshot;
   lastFailoverReason: string | null;
+}
+
+export interface PerformanceCrashLogApi {
+  exportCrashLog(): string;
+  copyCrashLog(): Promise<boolean>;
+}
+
+export interface PerformanceCrashBreadcrumbApi extends PerformanceCrashLogApi {
+  recordSnapshot(snapshot: PerformanceDiagnosticsSnapshot): void;
 }
 
 export interface PerformanceDiagnosticsApi {
@@ -69,6 +80,9 @@ export interface PerformanceDiagnosticsApi {
   getQualityState(): QualityStateSnapshot;
   getFeatureState(): FeatureStateSnapshot;
   getLastFailoverReason(): string | null;
+  exportCrashLog?(): string;
+  copyCrashLog?(): Promise<boolean>;
+  recordSnapshot?(snapshot: PerformanceDiagnosticsSnapshot): void;
 }
 
 interface PerformanceDiagnosticsOptions {
@@ -77,6 +91,10 @@ interface PerformanceDiagnosticsOptions {
   getQualityState: () => QualityStateSnapshot;
   getFeatureState: () => FeatureStateSnapshot;
   getLastFailoverReason: () => string | null;
+  getSoftwareRendererPolicy?: () => SoftwareRendererPolicyState;
+  exportCrashLog?: () => string;
+  copyCrashLog?: () => Promise<boolean>;
+  recordSnapshot?: (snapshot: PerformanceDiagnosticsSnapshot) => void;
   maxSamples?: number;
 }
 
@@ -129,6 +147,15 @@ export function createPerformanceDiagnostics({
   getQualityState,
   getFeatureState,
   getLastFailoverReason,
+  getSoftwareRendererPolicy = () => ({
+    mode: 'continuous',
+    safeMode: false,
+    renderCadenceFps: null,
+    reason: 'software renderer policy unavailable',
+  }),
+  exportCrashLog,
+  copyCrashLog,
+  recordSnapshot,
   maxSamples = 180,
 }: PerformanceDiagnosticsOptions) {
   const frameMsSamples: number[] = [];
@@ -150,6 +177,7 @@ export function createPerformanceDiagnostics({
       return {
         ...diagnosticsMethods.getFrameStats(),
         renderer: diagnosticsMethods.getRendererInfo(),
+        softwareRendererPolicy: getSoftwareRendererPolicy(),
         rendererSize: getRendererSize(),
         quality: diagnosticsMethods.getQualityState(),
         features: diagnosticsMethods.getFeatureState(),
@@ -189,6 +217,9 @@ export function createPerformanceDiagnostics({
     getLastFailoverReason() {
       return getLastFailoverReason();
     },
+    exportCrashLog,
+    copyCrashLog,
+    recordSnapshot,
   };
 
   return {

@@ -1,0 +1,49 @@
+{
+  "title": "danielsmith.io software-renderer crash hardening",
+  "date": "2026-05-30",
+  "environment": "local forced-immersive Chrome with hardware acceleration off",
+  "status": "mitigation prepared for deployment validation",
+  "symptoms": [
+    "Chrome with hardware acceleration disabled selected ANGLE (Microsoft, Microsoft Basic Render Driver ..., D3D11).",
+    "The app classified the renderer as software and reduced cost through performance quality, lower DPR, disabled bloom/composer, and disabled mirror rendering.",
+    "JavaScript timings and heap movement did not indicate a clear application memory leak.",
+    "The tab still crashed after several seconds on Basic Render Driver.",
+    "The same machine with ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 ..., D3D11) stayed near 60 FPS and did not crash."
+  ],
+  "rootCauseClass": "Dangerous software/CPU WebGL renderer instability under continuous animation, not a general memory leak or normal hardware GPU path bug.",
+  "dangerousRendererClass": [
+    "Microsoft Basic Render Driver",
+    "SwiftShader",
+    "WARP",
+    "llvmpipe",
+    "softpipe",
+    "Mesa offscreen",
+    "software/CPU WebGL strings that match the dangerous classifier only"
+  ],
+  "mitigation": [
+    "Dangerous software renderers are classified separately from hardware and unknown renderers.",
+    "Forced immersive debug URLs still load immersive mode but apply software-safe guardrails by default on dangerous renderers.",
+    "Software-safe immersive starts with ultra-low DPR, disables expensive post-processing and mirror rendering, and caps render cadence to 12 FPS while keeping first-frame and input-driven rendering available.",
+    "Visible warning UI explains software rendering / Basic Render Driver risk and offers safe immersive, explicit continuous immersive, and text-mode choices.",
+    "Continuous software rendering requires ?softwareRendererMode=continuous or ?forceContinuousRendering=1.",
+    "Bounded crash breadcrumbs persist to browser localStorage with sessionStorage fallback when local writes fail, and exports choose the newest readable provider so stale local entries cannot hide newer fallback writes.",
+    "window.portfolio.performance.exportCrashLog() and copyCrashLog() expose the bounded crash log.",
+    "webglcontextlost records an immediate breadcrumb and switches to recoverable fallback UI while preserving the crash-log export helper."
+  ],
+  "manualValidation": [
+    "Disable browser hardware acceleration and open /?mode=immersive&disablePerformanceFailover=1.",
+    "Confirm immersive mode remains active, warning UI is visible, and getSnapshot().softwareRendererPolicy.safeMode is true.",
+    "Export window.portfolio.performance.exportCrashLog(), verify renderer info, software-safe state, snapshots, URL, and timestamps, then reload and confirm the bounded browser-storage log remains available.",
+    "Open /?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous only for short debugging runs and verify continuous mode is reported.",
+    "Re-enable hardware acceleration and verify the NVIDIA path remains continuous and is not forced into software-safe mode."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"software|crash|renderer|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}

@@ -49,7 +49,14 @@ interface PerformanceSnapshot {
   };
   renderer: {
     isSoftwareRenderer: boolean;
-    riskLevel: 'normal' | 'software' | 'unknown';
+    isDangerousSoftwareRenderer: boolean;
+    riskLevel: 'normal' | 'software' | 'dangerous-software' | 'unknown';
+  };
+  softwareRendererPolicy: {
+    mode: 'safe' | 'continuous';
+    safeMode: boolean;
+    renderCadenceFps: number | null;
+    reason: string;
   };
   lastFailoverReason: string | null;
 }
