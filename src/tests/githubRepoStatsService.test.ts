@@ -191,7 +191,64 @@ describe('GitHub repo stats service', () => {
     expect(service.getDiagnostics()).toMatchObject({
       suppressedRequestCount: 2,
       requestCount: 0,
+      lastErrorStatus: 403,
+      lastErrorAt: '1970-01-01T00:00:01.000Z',
       backoffExpiresAt: '1970-01-01T00:01:00.000Z',
+    });
+  });
+
+  it('rejects future-dated cache records before using live stats', async () => {
+    const localStorage = new MemoryStorage();
+    localStorage.setItem(
+      'danielsmith.io:github-repo-stats:futuroptimist/flywheel',
+      JSON.stringify({
+        stats: {
+          stars: 999,
+          watchers: 1,
+          forks: 1,
+          openIssues: 1,
+          pushedAt: null,
+        },
+        cachedAt: 60_000,
+      })
+    );
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        stargazers_count: 42,
+        watchers_count: 7,
+        forks_count: 0,
+        open_issues_count: 0,
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({ localStorage, now: () => 1_000 })
+    );
+
+    const stats = await service.requestStats({
+      owner: 'futuroptimist',
+      repo: 'flywheel',
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(stats?.stars).toBe(42);
+    expect(service.getDiagnostics().source).toBe('live');
+  });
+
+  it('honors explicit null storage and logger options', async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: false, status: 403 });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({ localStorage: null, sessionStorage: null, logger: null })
+    );
+
+    await service.requestStats({ owner: 'foo', repo: 'bar' });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(service.getDiagnostics()).toMatchObject({
+      lastErrorStatus: 403,
+      warningCount: 0,
     });
   });
 
@@ -221,6 +278,34 @@ describe('GitHub repo stats service', () => {
     );
     await nextService.requestStats({ owner: 'foo', repo: 'three' });
     expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips cached subscriber callbacks after unsubscribe', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        stargazers_count: 42,
+        watchers_count: 7,
+        forks_count: 0,
+        open_issues_count: 0,
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions()
+    );
+
+    await service.requestStats({ owner: 'foo', repo: 'baz' });
+
+    const listener = vi.fn();
+    const unsubscribe = service.subscribe(
+      { owner: 'Foo', repo: 'Baz' },
+      listener
+    );
+    unsubscribe();
+
+    await Promise.resolve();
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('delivers cached stats to new subscribers immediately', async () => {

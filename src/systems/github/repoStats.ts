@@ -181,7 +181,12 @@ const normalizeCachedRecord = (
     return null;
   }
   const { stats, cachedAt } = record;
-  if (!stats || typeof cachedAt !== 'number' || !Number.isFinite(cachedAt)) {
+  if (
+    !stats ||
+    typeof cachedAt !== 'number' ||
+    !Number.isFinite(cachedAt) ||
+    cachedAt > now
+  ) {
     return null;
   }
   return {
@@ -222,10 +227,14 @@ export function createGitHubRepoStatsService(
 ): GitHubRepoStatsService {
   const allowLiveFetch = options.allowLiveFetch ?? shouldAttemptLiveFetch;
   const localStorage =
-    options.localStorage ?? getBrowserStorage('localStorage');
+    options.localStorage === undefined
+      ? getBrowserStorage('localStorage')
+      : options.localStorage;
   const sessionStorage =
-    options.sessionStorage ?? getBrowserStorage('sessionStorage');
-  const logger = options.logger ?? console;
+    options.sessionStorage === undefined
+      ? getBrowserStorage('sessionStorage')
+      : options.sessionStorage;
+  const logger = options.logger === undefined ? console : options.logger;
   const now = options.now ?? (() => Date.now());
   const successCacheTtlMs =
     options.successCacheTtlMs ?? DEFAULT_SUCCESS_CACHE_TTL_MS;
@@ -249,6 +258,9 @@ export function createGitHubRepoStatsService(
   let backoff = safeReadJson<BackoffRecord>(localStorage, BACKOFF_STORAGE_KEY);
   if (!isBackoffActive(backoff, now())) {
     backoff = null;
+  } else {
+    diagnostics.lastErrorStatus = backoff.status;
+    diagnostics.lastErrorAt = backoff.lastErrorAt;
   }
   let warnedThisService = false;
 
@@ -368,7 +380,11 @@ export function createGitHubRepoStatsService(
 
     const cached = readCachedEntry(identifier)?.stats;
     if (cached) {
-      queueMicrotask(() => listener(cached));
+      queueMicrotask(() => {
+        if (listeners.get(key)?.has(listener)) {
+          listener(cached);
+        }
+      });
     }
 
     return () => {

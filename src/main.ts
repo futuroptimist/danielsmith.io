@@ -4099,6 +4099,9 @@ function initializeImmersiveScene(
     if (window.portfolio?.graphics) {
       delete window.portfolio.graphics;
     }
+    if (window.portfolio?.githubMetrics) {
+      delete window.portfolio.githubMetrics;
+    }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
     }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { wireGitHubRepoMetrics } from '../scene/poi/githubMetrics';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -13,6 +13,12 @@ class MockRepoStatsService implements GitHubRepoStatsService {
   private readonly listeners = new Map<string, GitHubRepoStatsListener[]>();
   private readonly cache = new Map<string, GitHubRepoStats>();
   readonly requested: string[] = [];
+  backoffExpiresAt: string | null = null;
+  enterBackoffAfterFirstRequest = false;
+  requestImplementation?: (
+    identifier: GitHubRepoIdentifier,
+    key: string
+  ) => Promise<GitHubRepoStats | null>;
 
   private key(identifier: GitHubRepoIdentifier): string {
     return `${identifier.owner}/${identifier.repo}`.toLowerCase();
@@ -27,6 +33,12 @@ class MockRepoStatsService implements GitHubRepoStatsService {
   ): Promise<GitHubRepoStats | null> {
     const key = this.key(identifier);
     this.requested.push(key);
+    if (this.enterBackoffAfterFirstRequest && this.requested.length === 1) {
+      this.backoffExpiresAt = '1970-01-01T00:15:01.000Z';
+    }
+    if (this.requestImplementation) {
+      return this.requestImplementation(identifier, key);
+    }
     return Promise.resolve(this.cache.get(key) ?? null);
   }
 
@@ -37,7 +49,7 @@ class MockRepoStatsService implements GitHubRepoStatsService {
       suppressedRequestCount: 0,
       lastErrorStatus: null,
       lastErrorAt: null,
-      backoffExpiresAt: null,
+      backoffExpiresAt: this.backoffExpiresAt,
       cachedRepoCount: this.cache.size,
       warningCount: 0,
     };
@@ -234,6 +246,129 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 2000, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(updated).toHaveLength(previousUpdates);
+  });
+
+  it('stops refreshes when the probe request restores backoff', async () => {
+    const definitions: PoiDefinition[] = [
+      createPoi({
+        id: 'flywheel-studio-flywheel',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Fallback',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'flywheel',
+              fallback: 'Fallback',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'axel-studio-tracker',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Awaiting',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'axel',
+              fallback: 'Awaiting',
+            },
+          },
+        ],
+      }),
+    ];
+    const service = new MockRepoStatsService();
+    service.enterBackoffAfterFirstRequest = true;
+    const controller = wireGitHubRepoMetrics({ definitions, service });
+
+    await controller.refreshAll();
+
+    expect(service.requested).toEqual(['futuroptimist/flywheel']);
+    controller.dispose();
+  });
+
+  it('refreshes remaining repos in parallel after the first probe succeeds', async () => {
+    const definitions: PoiDefinition[] = [
+      createPoi({
+        id: 'flywheel-studio-flywheel',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Fallback',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'flywheel',
+              fallback: 'Fallback',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'axel-studio-tracker',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Awaiting',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'axel',
+              fallback: 'Awaiting',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'gabriel-studio-sentry',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Pending',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'gabriel',
+              fallback: 'Pending',
+            },
+          },
+        ],
+      }),
+    ];
+    const service = new MockRepoStatsService();
+    const resolveRemaining = vi.fn();
+    const pending = new Map<string, () => void>();
+    service.requestImplementation = (_identifier, key) => {
+      if (key === 'futuroptimist/flywheel') {
+        return Promise.resolve(null);
+      }
+      return new Promise((resolve) => {
+        pending.set(key, () => {
+          resolveRemaining(key);
+          resolve(null);
+        });
+      });
+    };
+    const controller = wireGitHubRepoMetrics({ definitions, service });
+
+    const refreshPromise = controller.refreshAll();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(service.requested).toEqual([
+      'futuroptimist/flywheel',
+      'futuroptimist/axel',
+      'futuroptimist/gabriel',
+    ]);
+
+    pending.forEach((resolve) => resolve());
+    await refreshPromise;
+    expect(resolveRemaining).toHaveBeenCalledTimes(2);
+    controller.dispose();
   });
 
   it('notifies repo stats updates for each POI entry', async () => {
