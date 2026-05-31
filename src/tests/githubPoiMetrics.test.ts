@@ -30,6 +30,19 @@ class MockRepoStatsService implements GitHubRepoStatsService {
     return Promise.resolve(this.cache.get(key) ?? null);
   }
 
+  getDiagnostics() {
+    return {
+      source: 'static-fallback' as const,
+      requestCount: this.requested.length,
+      suppressedRequestCount: 0,
+      lastErrorStatus: null,
+      lastErrorAt: null,
+      backoffExpiresAt: null,
+      cachedRepoCount: this.cache.size,
+      warningCount: 0,
+    };
+  }
+
   subscribe(
     identifier: GitHubRepoIdentifier,
     listener: GitHubRepoStatsListener
