@@ -250,7 +250,7 @@ function createPedestalPoiInstance(
     depthWrite: false,
   });
   labelMaterial.side = DoubleSide;
-  const labelHeight = scalePoiValue(1.2);
+  const labelHeight = scalePoiValue(0.76);
   const labelWidth = scalePoiValue(2.7);
   const labelGeometry = new PlaneGeometry(labelWidth, labelHeight, 1, 1);
   const label = new Mesh(labelGeometry, labelMaterial);
@@ -442,10 +442,12 @@ function createDisplayPoiInstance(
   };
 }
 
-function createPoiLabelTexture(definition: PoiDefinition): CanvasTexture {
+export function createPoiLabelTexture(
+  definition: PoiDefinition
+): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 640;
-  canvas.height = 320;
+  canvas.height = 180;
   const context = canvas.getContext('2d');
   if (!context) {
     throw new Error('Unable to acquire 2D context for POI label.');
@@ -477,76 +479,14 @@ function createPoiLabelTexture(definition: PoiDefinition): CanvasTexture {
   context.stroke();
 
   context.fillStyle = gradient;
-  context.font = 'bold 64px "Inter", "Segoe UI", sans-serif';
-  context.textAlign = 'left';
-  context.textBaseline = 'top';
-  context.fillText(definition.title, padding * 1.5, padding * 1.35);
-
-  const summaryY = padding * 1.35 + 84;
-  context.font = '28px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = 'rgba(220, 245, 255, 0.92)';
-  wrapText(
-    context,
-    definition.summary,
-    padding * 1.5,
-    summaryY,
-    canvas.width - padding * 3,
-    40
-  );
-
-  if (definition.metrics && definition.metrics.length > 0) {
-    const metricsY = canvas.height - padding * 2.1;
-    const metricText = definition.metrics
-      .slice(0, 2)
-      .map((metric) => `${metric.label}: ${metric.value}`)
-      .join('   •   ');
-    context.font = '26px "Inter", "Segoe UI", sans-serif';
-    context.fillStyle = 'rgba(160, 226, 255, 0.95)';
-    context.fillText(metricText, padding * 1.5, metricsY);
-  }
-
-  if (definition.status) {
-    const statusText = definition.status === 'prototype' ? 'Prototype' : 'Live';
-    context.font = '24px "Inter", "Segoe UI", sans-serif';
-    context.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    const textWidth = context.measureText(statusText).width;
-    context.fillText(
-      statusText,
-      canvas.width - padding * 1.5 - textWidth,
-      padding * 1.4
-    );
-  }
+  context.font = 'bold 62px "Inter", "Segoe UI", sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(definition.title, canvas.width / 2, canvas.height / 2);
 
   const texture = new CanvasTexture(canvas);
   texture.needsUpdate = true;
   return texture;
-}
-
-function wrapText(
-  context: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number
-) {
-  const words = text.split(' ');
-  let line = '';
-  let cursorY = y;
-  for (const word of words) {
-    const nextLine = line ? `${line} ${word}` : word;
-    const metrics = context.measureText(nextLine);
-    if (metrics.width > maxWidth && line) {
-      context.fillText(line, x, cursorY);
-      line = word;
-      cursorY += lineHeight;
-    } else {
-      line = nextLine;
-    }
-  }
-  if (line) {
-    context.fillText(line, x, cursorY);
-  }
 }
 
 function roundRect(

@@ -1,0 +1,36 @@
+{
+  "title": "danielsmith.io duplicate POI tooltip cleanup",
+  "date": "2026-05-30",
+  "environment": "staging forced-immersive POI hover validation",
+  "status": "mitigation prepared for deployment validation",
+  "symptoms": [
+    "Hovering a POI could show the expected 2D viewport details card plus two overlapping in-world 3D cards above the POI.",
+    "The duplicate 3D cards repeated summary, outcome, metrics, status, and helper copy that should live only in the 2D overlay.",
+    "Gitshelves was a representative staging repro for the stacked in-world cards."
+  ],
+  "rootCauseClass": "Duplicate in-world POI information surfaces, with pedestal marker labels and the camera-facing world tooltip both carrying rich metadata while the 2D overlay also rendered details.",
+  "correctiveAction": [
+    "Preserve the bottom-right 2D POI overlay as the only rich details surface.",
+    "Simplify the camera-facing in-world POI cue to title-only copy.",
+    "Simplify pedestal marker textures to title-only copy for inactive nearby labels.",
+    "Hide the active POI pedestal label while the camera-facing world cue is active so only one active in-world POI surface remains.",
+    "Expose window.portfolio.poi.getTooltipState() as a read-only browser test hook for active in-world surface counts."
+  ],
+  "validation": [
+    "Open /?mode=immersive&disablePerformanceFailover=1.",
+    "Hover or keyboard-focus a POI such as Gitshelves.",
+    "Confirm the bottom-right 2D overlay remains visible and still contains title, status, summary, outcome, metrics, links, and badges.",
+    "Confirm exactly one in-world surface is visible for the active POI.",
+    "Confirm the in-world surface contains only the POI title and no summary, outcome, metrics, status, links, or helper copy.",
+    "Confirm selected and guided-tour recommendation states do not create duplicate in-world POI cards."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"tooltip|POI|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}
