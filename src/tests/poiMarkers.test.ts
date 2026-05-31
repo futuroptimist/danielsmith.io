@@ -147,6 +147,19 @@ describe('createPoiInstances', () => {
     expect(renderedText).not.toContain('Prototype');
   });
 
+  it('fits existing long title-only labels without ellipsizing them', () => {
+    for (const title of [
+      'Gitshelves Living Room Array',
+      'danielsmith.io Holographic Map',
+    ]) {
+      fillTextLog = [];
+      createPoiLabelTexture(createDefinition({ title }));
+
+      expect(fillTextLog.join(' ')).toBe(title);
+      expect(fillTextLog.join(' ')).not.toContain('…');
+    }
+  });
+
   it('adds an ellipsis when long marker titles exceed the two-line cap', () => {
     fillTextLog = [];
     const definition = createDefinition({

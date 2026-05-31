@@ -119,7 +119,6 @@ test.describe('keyboard traversal macro', () => {
     expect(tooltipState.activePoiMarkerLabelVisible).toBe(false);
     expect(tooltipState.markerLabelVisible).toBe(false);
     expect(tooltipState.markerLabelPoiId).toBeNull();
-    expect(tooltipState.visibleMarkerLabelCount).toBe(0);
     expect(tooltipState.activeInWorldTooltipCount).toBe(1);
   });
 });

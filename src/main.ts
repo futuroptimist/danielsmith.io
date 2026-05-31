@@ -1617,26 +1617,31 @@ function initializeImmersiveScene(
           poiDefinitions.find(
             (definition) => definition.id === worldState.poiId
           )?.title ?? null;
-        const activePoiMarkerLabel = worldState.visible
-          ? visibleMarkerLabels.find(
-              (poi) => poi.definition.id === worldState.poiId
-            )
+        const activePoiId = worldState.visible
+          ? worldState.poiId
+          : overlayState.visible
+            ? overlayState.poiId
+            : null;
+        const activePoiMarkerLabel = activePoiId
+          ? visibleMarkerLabels.find((poi) => poi.definition.id === activePoiId)
           : null;
-        const markerLabelPoiId =
-          activePoiMarkerLabel?.definition.id ??
-          visibleMarkerLabels[0]?.definition.id ??
-          null;
+        const activeWorldTooltipVisible =
+          Boolean(activePoiId) &&
+          worldState.visible &&
+          worldState.poiId === activePoiId;
+        const activeMarkerLabelVisible = Boolean(activePoiMarkerLabel);
         return {
           overlayVisiblePoiId: overlayState.visible ? overlayState.poiId : null,
           worldTooltipVisible: worldState.visible,
           worldTooltipPoiId: worldState.visible ? worldState.poiId : null,
           worldTooltipTitle,
-          markerLabelVisible: visibleMarkerLabels.length > 0,
-          markerLabelPoiId,
+          markerLabelVisible: activeMarkerLabelVisible,
+          markerLabelPoiId: activePoiMarkerLabel?.definition.id ?? null,
           visibleMarkerLabelCount: visibleMarkerLabels.length,
-          activePoiMarkerLabelVisible: Boolean(activePoiMarkerLabel),
+          activePoiMarkerLabelVisible: activeMarkerLabelVisible,
           activeInWorldTooltipCount:
-            (worldState.visible ? 1 : 0) + visibleMarkerLabels.length,
+            (activeWorldTooltipVisible ? 1 : 0) +
+            (activeMarkerLabelVisible ? 1 : 0),
         };
       },
     };

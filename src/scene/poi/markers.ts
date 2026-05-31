@@ -522,6 +522,13 @@ function wrapText(
         truncated = true;
         break;
       }
+    } else if (metrics.width > maxWidth) {
+      lines.push(fitTextWithEllipsis(context, word, maxWidth));
+      line = '';
+      if (lines.length >= maxLines || index < words.length - 1) {
+        truncated = index < words.length - 1;
+        break;
+      }
     } else {
       line = nextLine;
     }
@@ -539,6 +546,12 @@ function wrapText(
       lines[lines.length - 1],
       maxWidth
     );
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (context.measureText(lines[index]).width > maxWidth) {
+      lines[index] = fitTextWithEllipsis(context, lines[index], maxWidth);
+    }
   }
 
   const firstLineY = y - ((lines.length - 1) * lineHeight) / 2;
