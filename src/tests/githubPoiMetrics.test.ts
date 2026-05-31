@@ -5,6 +5,7 @@ import type { PoiDefinition } from '../scene/poi/types';
 import type {
   GitHubRepoIdentifier,
   GitHubRepoStats,
+  GitHubRepoStatsDiagnostics,
   GitHubRepoStatsListener,
   GitHubRepoStatsService,
 } from '../systems/github/repoStats';
@@ -20,6 +21,16 @@ class MockRepoStatsService implements GitHubRepoStatsService {
 
   getCachedStats(identifier: GitHubRepoIdentifier): GitHubRepoStats | null {
     return this.cache.get(this.key(identifier)) ?? null;
+  }
+
+  getDiagnostics(): GitHubRepoStatsDiagnostics {
+    return {
+      source: 'static-fallback',
+      lastErrorStatus: null,
+      requestCount: this.requested.length,
+      backoffExpiresAt: null,
+      suppressedRequestCount: 0,
+    };
   }
 
   requestStats(

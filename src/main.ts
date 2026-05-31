@@ -435,6 +435,11 @@ declare global {
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
+      github?: {
+        getRepoMetricsDiagnostics(): ReturnType<
+          GitHubRepoMetricsController['getDiagnostics']
+        >;
+      };
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -1532,6 +1537,13 @@ function initializeImmersiveScene(
   githubRepoMetrics.refreshAll().catch(() => {
     /* GitHub may be unreachable; metrics will remain on fallback values. */
   });
+  const githubPortfolioWindow = window as Window;
+  if (!githubPortfolioWindow.portfolio) {
+    githubPortfolioWindow.portfolio = {};
+  }
+  githubPortfolioWindow.portfolio.github = {
+    getRepoMetricsDiagnostics: () => githubRepoStatsService.getDiagnostics(),
+  };
   const poiVisitedState = new PoiVisitedState();
   if (avatarAccessoryManager) {
     avatarAccessoryProgression = createAvatarAccessoryProgression({
@@ -4086,6 +4098,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.graphics) {
       delete window.portfolio.graphics;
+    }
+    if (window.portfolio?.github) {
+      delete window.portfolio.github;
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
