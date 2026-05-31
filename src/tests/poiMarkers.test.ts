@@ -147,6 +147,19 @@ describe('createPoiInstances', () => {
     expect(renderedText).not.toContain('Prototype');
   });
 
+  it('adds an ellipsis when long marker titles exceed the two-line cap', () => {
+    fillTextLog = [];
+    const definition = createDefinition({
+      title:
+        'Extremely Detailed Portfolio Installation With Localization Friendly Title Copy That Keeps Going Beyond Two Lines',
+    });
+
+    createPoiLabelTexture(definition);
+
+    expect(fillTextLog).toHaveLength(2);
+    expect(fillTextLog.at(-1)).toMatch(/…$/);
+  });
+
   it('applies hologram pedestal styling when configured', () => {
     const pedestalHeight = 1.6;
     const orbColorHex = 0x1355aa;

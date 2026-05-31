@@ -506,30 +506,68 @@ function wrapText(
   lineHeight: number,
   maxLines = Number.POSITIVE_INFINITY
 ) {
-  const words = text.split(' ');
+  const words = text.trim().split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let line = '';
-  for (const word of words) {
+  let truncated = false;
+
+  for (let index = 0; index < words.length; index += 1) {
+    const word = words[index];
     const nextLine = line ? `${line} ${word}` : word;
     const metrics = context.measureText(nextLine);
     if (metrics.width > maxWidth && line) {
       lines.push(line);
       line = word;
       if (lines.length >= maxLines) {
+        truncated = true;
         break;
       }
     } else {
       line = nextLine;
     }
   }
+
   if (line && lines.length < maxLines) {
     lines.push(line);
+  } else if (line) {
+    truncated = true;
+  }
+
+  if (truncated && lines.length > 0) {
+    lines[lines.length - 1] = fitTextWithEllipsis(
+      context,
+      lines[lines.length - 1],
+      maxWidth
+    );
   }
 
   const firstLineY = y - ((lines.length - 1) * lineHeight) / 2;
   lines.forEach((wrappedLine, index) => {
     context.fillText(wrappedLine, x, firstLineY + index * lineHeight);
   });
+}
+
+function fitTextWithEllipsis(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string {
+  const ellipsis = '…';
+  let candidate = `${text}${ellipsis}`;
+  if (context.measureText(candidate).width <= maxWidth) {
+    return candidate;
+  }
+
+  candidate = text;
+  while (candidate.length > 0) {
+    candidate = candidate.slice(0, -1).trimEnd();
+    const truncated = `${candidate}${ellipsis}`;
+    if (context.measureText(truncated).width <= maxWidth) {
+      return truncated;
+    }
+  }
+
+  return ellipsis;
 }
 
 function roundRect(

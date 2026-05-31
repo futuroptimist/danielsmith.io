@@ -141,7 +141,9 @@ export class PoiWorldTooltip {
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = 1024;
-    this.canvas.height = 576;
+    this.canvas.height = Math.round(
+      this.canvas.width * (this.cardHeight / this.cardWidth)
+    );
     const context = this.canvas.getContext('2d');
     if (!context) {
       throw new Error('Unable to acquire 2D context for POI world tooltip.');
@@ -414,6 +416,8 @@ export class PoiWorldTooltip {
       lineHeight: 96,
       maxLines: 2,
       font: 'bold 92px "Inter", "Segoe UI", sans-serif',
+      textAlign: 'center',
+      textBaseline: 'middle',
     });
     context.textAlign = 'left';
     context.textBaseline = 'alphabetic';
@@ -478,35 +482,45 @@ export class PoiWorldTooltip {
       lineHeight: number;
       maxLines?: number;
       font: string;
+      textAlign?: CanvasTextAlign;
+      textBaseline?: CanvasTextBaseline;
     }
   ): number {
     const { context } = this;
-    const words = text.split(/\s+/);
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    const lines: string[] = [];
     let line = '';
-    let lineCount = 0;
-    let cursorY = options.y;
     context.font = options.font;
-    context.textAlign = 'left';
-    context.textBaseline = 'alphabetic';
+
     for (const word of words) {
       const candidate = line ? `${line} ${word}` : word;
       const { width } = context.measureText(candidate);
       if (width > options.maxWidth && line) {
-        context.fillText(line, options.x, cursorY);
+        lines.push(line);
         line = word;
-        cursorY += options.lineHeight;
-        lineCount += 1;
-        if (options.maxLines && lineCount >= options.maxLines - 1) {
+        if (options.maxLines && lines.length >= options.maxLines) {
           break;
         }
       } else {
         line = candidate;
       }
     }
-    if (line) {
-      context.fillText(line, options.x, cursorY);
-      cursorY += options.lineHeight;
+
+    if (line && (!options.maxLines || lines.length < options.maxLines)) {
+      lines.push(line);
     }
-    return cursorY;
+
+    context.textAlign = options.textAlign ?? context.textAlign;
+    context.textBaseline = options.textBaseline ?? context.textBaseline;
+    const baselineOffset = ((lines.length - 1) * options.lineHeight) / 2;
+    lines.forEach((wrappedLine, index) => {
+      context.fillText(
+        wrappedLine,
+        options.x,
+        options.y - baselineOffset + index * options.lineHeight
+      );
+    });
+
+    return options.y - baselineOffset + lines.length * options.lineHeight;
   }
 }

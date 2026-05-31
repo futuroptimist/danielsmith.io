@@ -457,6 +457,8 @@ declare global {
           worldTooltipTitle: string | null;
           markerLabelVisible: boolean;
           markerLabelPoiId: string | null;
+          visibleMarkerLabelCount: number;
+          activePoiMarkerLabelVisible: boolean;
           activeInWorldTooltipCount: number;
         };
       };
@@ -1605,7 +1607,7 @@ function initializeImmersiveScene(
       getTooltipState() {
         const overlayState = poiTooltipOverlay.getState();
         const worldState = poiWorldTooltip.getState();
-        const markerLabel = poiInstances.find(
+        const visibleMarkerLabels = poiInstances.filter(
           (poi) =>
             poi.label?.visible &&
             poi.labelMaterial &&
@@ -1615,16 +1617,26 @@ function initializeImmersiveScene(
           poiDefinitions.find(
             (definition) => definition.id === worldState.poiId
           )?.title ?? null;
-        const markerLabelPoiId = markerLabel?.definition.id ?? null;
+        const activePoiMarkerLabel = worldState.visible
+          ? visibleMarkerLabels.find(
+              (poi) => poi.definition.id === worldState.poiId
+            )
+          : null;
+        const markerLabelPoiId =
+          activePoiMarkerLabel?.definition.id ??
+          visibleMarkerLabels[0]?.definition.id ??
+          null;
         return {
           overlayVisiblePoiId: overlayState.visible ? overlayState.poiId : null,
           worldTooltipVisible: worldState.visible,
           worldTooltipPoiId: worldState.visible ? worldState.poiId : null,
           worldTooltipTitle,
-          markerLabelVisible: Boolean(markerLabel),
+          markerLabelVisible: visibleMarkerLabels.length > 0,
           markerLabelPoiId,
+          visibleMarkerLabelCount: visibleMarkerLabels.length,
+          activePoiMarkerLabelVisible: Boolean(activePoiMarkerLabel),
           activeInWorldTooltipCount:
-            (worldState.visible ? 1 : 0) + (markerLabel ? 1 : 0),
+            (worldState.visible ? 1 : 0) + visibleMarkerLabels.length,
         };
       },
     };
@@ -4305,9 +4317,9 @@ function initializeImmersiveScene(
         performance.now() - phaseStart
       );
       phaseStart = performance.now();
+      poiWorldTooltip.update(delta);
       updatePois(elapsedTime, delta);
       analyticsGlow.update(delta);
-      poiWorldTooltip.update(delta);
       handleInteractionInput();
       handleHelpInput();
       performanceDiagnostics?.recordPhase(

@@ -1,4 +1,4 @@
-import { OrthographicCamera, Scene, Vector3 } from 'three';
+import { CanvasTexture, OrthographicCamera, Scene, Vector3 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { PoiDefinition } from '../scene/poi/types';
@@ -10,6 +10,8 @@ import { GuidedTourPreference } from '../systems/guidedTour/preference';
 
 let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
 let latestFillTextLog: string[] = [];
+let latestFillTextAlignLog: CanvasTextAlign[] = [];
+let latestTextBaselineLog: CanvasTextBaseline[] = [];
 
 beforeAll(() => {
   originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -24,7 +26,11 @@ afterAll(() => {
 
 function createMockCanvasContext(): CanvasRenderingContext2D {
   const fillTextLog: string[] = [];
+  const fillTextAlignLog: CanvasTextAlign[] = [];
+  const textBaselineLog: CanvasTextBaseline[] = [];
   latestFillTextLog = fillTextLog;
+  latestFillTextAlignLog = fillTextAlignLog;
+  latestTextBaselineLog = textBaselineLog;
   const context = {
     canvas: document.createElement('canvas'),
     fillStyle: '',
@@ -49,6 +55,8 @@ function createMockCanvasContext(): CanvasRenderingContext2D {
     measureText: (text: string) => ({ width: text.length * 12 }),
     fillText: (text: string) => {
       fillTextLog.push(text);
+      fillTextAlignLog.push(context.textAlign);
+      textBaselineLog.push(context.textBaseline);
     },
   };
   (context as { __fillTextLog?: string[] }).__fillTextLog = fillTextLog;
@@ -128,6 +136,40 @@ function createTarget(
 }
 
 describe('PoiWorldTooltip', () => {
+  it('matches the canvas backing ratio to the title-only plane', () => {
+    const { tooltip, preference } = createTooltip();
+    const mesh = tooltip.group.children[0] as {
+      material: { map: CanvasTexture };
+    };
+    const canvas = mesh.material.map.image as HTMLCanvasElement;
+
+    expect(canvas.width / canvas.height).toBeCloseTo(2.2 / 0.55, 4);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('keeps wrapped title lines centered on the card', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      title: 'Flywheel Studio Automation Showcase',
+    });
+
+    tooltip.setHovered(createTarget(poi, new Vector3(0, 1, 0)));
+    tooltip.update(0.016);
+
+    expect(latestFillTextLog.length).toBeGreaterThan(0);
+    expect(latestFillTextAlignLog).toEqual(
+      Array.from({ length: latestFillTextLog.length }, () => 'center')
+    );
+    expect(latestTextBaselineLog).toEqual(
+      Array.from({ length: latestFillTextLog.length }, () => 'middle')
+    );
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('shows hovered tooltip anchored to the provided world position', () => {
     const { tooltip, camera, preference } = createTooltip();
     const poi = createPoiDefinition({ status: 'prototype' });

@@ -97,7 +97,13 @@ test.describe('keyboard traversal macro', () => {
 
     const state = await page.waitForFunction(() => {
       const tooltipState = window.portfolio?.poi?.getTooltipState?.();
-      if (!tooltipState || tooltipState.activeInWorldTooltipCount !== 1) {
+      if (!tooltipState || !tooltipState.worldTooltipVisible) {
+        return null;
+      }
+      if (tooltipState.activePoiMarkerLabelVisible) {
+        return null;
+      }
+      if (tooltipState.activeInWorldTooltipCount !== 1) {
         return null;
       }
       return tooltipState;
@@ -110,7 +116,10 @@ test.describe('keyboard traversal macro', () => {
       tooltipState.overlayVisiblePoiId
     );
     expect(tooltipState.worldTooltipTitle).toBe(title);
+    expect(tooltipState.activePoiMarkerLabelVisible).toBe(false);
     expect(tooltipState.markerLabelVisible).toBe(false);
+    expect(tooltipState.markerLabelPoiId).toBeNull();
+    expect(tooltipState.visibleMarkerLabelCount).toBe(0);
     expect(tooltipState.activeInWorldTooltipCount).toBe(1);
   });
 });
