@@ -5,6 +5,7 @@ import type { PoiDefinition } from '../scene/poi/types';
 import type {
   GitHubRepoIdentifier,
   GitHubRepoStats,
+  GitHubRepoStatsDiagnostics,
   GitHubRepoStatsListener,
   GitHubRepoStatsService,
 } from '../systems/github/repoStats';
@@ -28,6 +29,19 @@ class MockRepoStatsService implements GitHubRepoStatsService {
     const key = this.key(identifier);
     this.requested.push(key);
     return Promise.resolve(this.cache.get(key) ?? null);
+  }
+
+  getDiagnostics(): GitHubRepoStatsDiagnostics {
+    return {
+      source: 'static-fallback',
+      lastErrorStatus: null,
+      lastErrorMessage: null,
+      requestCount: this.requested.length,
+      suppressedRequestCount: 0,
+      backoffUntil: null,
+      backoffReason: null,
+      warningCount: 0,
+    };
   }
 
   subscribe(

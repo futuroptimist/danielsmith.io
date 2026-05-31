@@ -1,0 +1,38 @@
+{
+  "title": "danielsmith.io GitHub API 403 console-noise cleanup",
+  "date": "2026-05-30",
+  "environment": "hardware-accelerated staging performance validation",
+  "status": "mitigation prepared for deployment validation",
+  "symptoms": [
+    "Hardware-accelerated immersive validation showed repeated api.github.com/repos/futuroptimist/* HTTP 403 entries in the browser Network panel.",
+    "Affected repos included gabriel, token.place, flywheel, danielsmith.io, pr-reaper, gitshelves, wove, sigma, and f2clipboard.",
+    "The failures were not the main FPS bottleneck but made performance-investigation logs noisy and could confuse fallback triage."
+  ],
+  "rootCauseClass": "Unauthenticated client-side GitHub API fan-out for optional repo metrics can hit rate-limit, forbidden, unavailable, or access responses in a static browser app.",
+  "mitigation": [
+    "Project metric cards keep static fallback values unless live GitHub stats are available.",
+    "Successful live stats are cached in browser storage and reused as stale data when later live requests fail.",
+    "HTTP 403 and 429 responses enter bounded backoff and suppress subsequent repo metric requests.",
+    "Persisted backoff prevents repeated hard refreshes from immediately retrying unauthenticated fan-out.",
+    "Metric failures use one concise warning/diagnostic path per app session and never console.error.",
+    "window.portfolio.githubMetrics.getDiagnostics() exposes source, last status, request count, suppressed count, and backoff expiry.",
+    "GitHub metric availability is not coupled to renderer health, adaptive quality, or performance/text failover policy."
+  ],
+  "validationSteps": [
+    "Open /?mode=immersive&disablePerformanceFailover=1&enableLiveGitHubMetrics=1.",
+    "Mock or reproduce GitHub API HTTP 403/429 for api.github.com/repos/**.",
+    "Confirm immersive mode remains active and no performancefailover event is emitted.",
+    "Confirm project cards and POIs keep static or cached metric text.",
+    "Confirm diagnostics report static-fallback or cached source, last status, counts, and backoff expiration.",
+    "Hard-refresh during the backoff TTL and confirm the app does not fan out to every repo again."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"github|metrics|fallback|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}
