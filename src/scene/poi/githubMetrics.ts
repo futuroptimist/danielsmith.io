@@ -155,13 +155,12 @@ export function wireGitHubRepoMetrics({
     }
 
     await service.requestStats(firstBucket.identifier);
-    if (hasActiveBackoff() || remainingBuckets.length === 0) {
-      return;
+    for (const bucket of remainingBuckets) {
+      if (hasActiveBackoff()) {
+        return;
+      }
+      await service.requestStats(bucket.identifier);
     }
-
-    await Promise.all(
-      remainingBuckets.map((bucket) => service.requestStats(bucket.identifier))
-    );
   };
 
   const dispose = () => {

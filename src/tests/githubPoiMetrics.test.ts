@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { wireGitHubRepoMetrics } from '../scene/poi/githubMetrics';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -291,7 +291,7 @@ describe('wireGitHubRepoMetrics', () => {
     controller.dispose();
   });
 
-  it('refreshes remaining repos in parallel after the first probe succeeds', async () => {
+  it('checks backoff before each remaining repo refresh', async () => {
     const definitions: PoiDefinition[] = [
       createPoi({
         id: 'flywheel-studio-flywheel',
@@ -340,34 +340,20 @@ describe('wireGitHubRepoMetrics', () => {
       }),
     ];
     const service = new MockRepoStatsService();
-    const resolveRemaining = vi.fn();
-    const pending = new Map<string, () => void>();
     service.requestImplementation = (_identifier, key) => {
-      if (key === 'futuroptimist/flywheel') {
-        return Promise.resolve(null);
+      if (key === 'futuroptimist/axel') {
+        service.backoffExpiresAt = '1970-01-01T00:15:01.000Z';
       }
-      return new Promise((resolve) => {
-        pending.set(key, () => {
-          resolveRemaining(key);
-          resolve(null);
-        });
-      });
+      return Promise.resolve(null);
     };
     const controller = wireGitHubRepoMetrics({ definitions, service });
 
-    const refreshPromise = controller.refreshAll();
-    await Promise.resolve();
-    await Promise.resolve();
+    await controller.refreshAll();
 
     expect(service.requested).toEqual([
       'futuroptimist/flywheel',
       'futuroptimist/axel',
-      'futuroptimist/gabriel',
     ]);
-
-    pending.forEach((resolve) => resolve());
-    await refreshPromise;
-    expect(resolveRemaining).toHaveBeenCalledTimes(2);
     controller.dispose();
   });
 
