@@ -1,0 +1,18 @@
+{
+  "id": "2026-05-30-danielsmith-github-api-403-noise",
+  "date": "2026-05-30",
+  "title": "GitHub API 403 noise during repo metrics fetches",
+  "symptomSlice": "Unauthenticated GitHub repo metrics fanned out across POIs and produced repeated 403 noise during performance validation.",
+  "rootCause": "The static browser app treated live GitHub metrics as best-effort but still attempted every repo on each page load after unauthenticated API failures or rate-limit responses.",
+  "fixSummary": "Repo metrics now use stale cached or static fallback values, enter bounded backoff after 403/404/429/network failures, suppress additional requests during backoff, and expose one grouped diagnostic path without failover coupling.",
+  "regressionTests": "Vitest covers 403 and 429 backoff, stale cached success reuse, persisted backoff suppression, and grouped warnings. Playwright mocks GitHub 403s and verifies immersive mode, fallback UI, diagnostics, and absence of performance failover.",
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"github|metrics|fallback|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}

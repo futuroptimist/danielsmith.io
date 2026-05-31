@@ -146,11 +146,9 @@ export function wireGitHubRepoMetrics({
   });
 
   const refreshAll = async () => {
-    await Promise.all(
-      Array.from(repoMap.values()).map((bucket) =>
-        service.requestStats(bucket.identifier)
-      )
-    );
+    for (const bucket of repoMap.values()) {
+      await service.requestStats(bucket.identifier);
+    }
   };
 
   const dispose = () => {
