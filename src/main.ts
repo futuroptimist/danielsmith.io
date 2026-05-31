@@ -449,6 +449,16 @@ declare global {
         resetMotionBlurHistory(): void;
         setCameraPanForTest?(input: { x: number; y: number }): void;
       };
+      poi?: {
+        getTooltipState(): {
+          overlayPoiId: string | null;
+          worldTooltipVisible: boolean;
+          worldTooltipPoiId: string | null;
+          worldTooltipTitle: string | null;
+          activeMarkerLabelVisible: boolean;
+          activeInWorldTooltipCount: number;
+        };
+      };
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
@@ -970,9 +980,6 @@ function initializeImmersiveScene(
 
   const poiOverrides: PoiInstanceOverrides = {};
   const poiDefinitions = getPoiDefinitions();
-  const poiDefinitionsById = new Map(
-    poiDefinitions.map((definition) => [definition.id, definition] as const)
-  );
   injectPoiStructuredData(poiDefinitions, {
     siteName: siteStrings.name,
     locale,
@@ -1585,6 +1592,60 @@ function initializeImmersiveScene(
     };
   };
 
+  const getPoiOverlayPoiId = () => {
+    const overlayRoot = container.querySelector<HTMLElement>(
+      '.poi-tooltip-overlay'
+    );
+    if (!overlayRoot || overlayRoot.getAttribute('aria-hidden') === 'true') {
+      return null;
+    }
+    const title = overlayRoot
+      .querySelector<HTMLElement>('.poi-tooltip-overlay__title')
+      ?.textContent?.trim();
+    return poiDefinitions.find((poi) => poi.title === title)?.id ?? null;
+  };
+
+  const getActiveWorldTooltipMarkerLabelState = () => {
+    const worldTooltipState = poiWorldTooltip.getState();
+    const activeInstance = worldTooltipState.poiId
+      ? poiInstances.find(
+          (poi) => poi.definition.id === worldTooltipState.poiId
+        )
+      : null;
+    const activeMarkerLabelVisible = Boolean(
+      activeInstance?.label?.visible &&
+        (activeInstance.labelMaterial?.opacity ?? 0) > 0.05
+    );
+    return { worldTooltipState, activeMarkerLabelVisible };
+  };
+
+  const poiPortfolioWindow = window as Window;
+  if (!poiPortfolioWindow.portfolio) {
+    poiPortfolioWindow.portfolio = {};
+  }
+  poiPortfolioWindow.portfolio.poi = {
+    getTooltipState: () => {
+      const { worldTooltipState, activeMarkerLabelVisible } =
+        getActiveWorldTooltipMarkerLabelState();
+      const worldTooltipVisible = Boolean(
+        worldTooltipState.visible && worldTooltipState.poiId
+      );
+      const worldTooltipPoi = worldTooltipState.poiId
+        ? poiDefinitions.find((poi) => poi.id === worldTooltipState.poiId)
+        : null;
+      return {
+        overlayPoiId: getPoiOverlayPoiId(),
+        worldTooltipVisible,
+        worldTooltipPoiId: worldTooltipState.poiId,
+        worldTooltipTitle:
+          worldTooltipVisible && worldTooltipPoi ? worldTooltipPoi.title : null,
+        activeMarkerLabelVisible,
+        activeInWorldTooltipCount:
+          (worldTooltipVisible ? 1 : 0) + (activeMarkerLabelVisible ? 1 : 0),
+      };
+    },
+  };
+
   let visitedInitialized = false;
   let previousVisited = new Set<string>();
 
@@ -1605,7 +1666,7 @@ function initializeImmersiveScene(
     }
     if (poiNarrativeLog) {
       const visitedDefinitions = Array.from(visited)
-        .map((id) => poiDefinitionsById.get(id))
+        .map((id) => poiDefinitions.find((poi) => poi.id === id))
         .filter((definition): definition is PoiDefinition =>
           Boolean(definition)
         );
@@ -1625,7 +1686,7 @@ function initializeImmersiveScene(
           if (previousVisited.has(id)) {
             continue;
           }
-          const definition = poiDefinitionsById.get(id);
+          const definition = poiDefinitions.find((poi) => poi.id === id);
           if (!definition) {
             continue;
           }
@@ -2612,7 +2673,7 @@ function initializeImmersiveScene(
 
     const visitedSnapshot = poiVisitedState.snapshot();
     const visitedDefinitions = Array.from(visitedSnapshot)
-      .map((id) => poiDefinitionsById.get(id))
+      .map((id) => poiDefinitions.find((poi) => poi.id === id))
       .filter((definition): definition is PoiDefinition => Boolean(definition));
     if (visitedDefinitions.length > 0 && poiNarrativeLog) {
       poiNarrativeLog.syncVisited(visitedDefinitions, {
@@ -3758,7 +3819,14 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const labelOpacity = computePoiLabelOpacity(emphasis, visitedEmphasis);
+        const { worldTooltipState } = getActiveWorldTooltipMarkerLabelState();
+        const hasActiveWorldCue =
+          (worldTooltipState.visible &&
+            worldTooltipState.poiId === poi.definition.id) ||
+          poi.focusTarget > 0;
+        const labelOpacity = hasActiveWorldCue
+          ? 0
+          : computePoiLabelOpacity(emphasis, visitedEmphasis);
         poi.labelMaterial.opacity = labelOpacity;
         poi.label.visible = labelOpacity > 0.05;
       }
@@ -4089,6 +4157,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
+    }
+    if (window.portfolio?.poi) {
+      delete window.portfolio.poi;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);

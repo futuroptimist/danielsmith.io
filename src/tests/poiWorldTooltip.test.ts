@@ -203,14 +203,50 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
-  it('re-renders the active card when metrics change', () => {
+  it('renders only the POI title in the world cue', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({
       id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Kinetic Hub',
+      summary: 'Rich summary copy belongs in the 2D overlay.',
+      outcome: { label: 'Outcome', value: 'Accelerated deploys 24%' },
       metrics: [
         { label: 'Stars', value: 'Fallback' },
         { label: 'Impact', value: 'Launch-ready' },
       ],
+      status: 'prototype',
+    });
+    const target = createTarget(poi, new Vector3(0, 1, 0));
+
+    tooltip.setSelected(target);
+    tooltip.update(0.016);
+
+    const context = (
+      tooltip as unknown as {
+        context: CanvasRenderingContext2D & { __fillTextLog: string[] };
+      }
+    ).context;
+
+    expect(context.__fillTextLog).toContain(poi.title);
+    expect(context.__fillTextLog).not.toContain(poi.summary);
+    expect(
+      context.__fillTextLog.some((entry) => entry.includes('Accelerated'))
+    ).toBe(false);
+    expect(
+      context.__fillTextLog.some((entry) => entry.includes('Fallback'))
+    ).toBe(false);
+    expect(context.__fillTextLog).not.toContain('Prototype');
+    expect(context.__fillTextLog).not.toContain('Selected exhibit');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('re-renders the active title cue when notified about POI updates', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel',
     });
     const target = createTarget(poi, new Vector3(0, 1, 0));
 
@@ -224,19 +260,13 @@ describe('PoiWorldTooltip', () => {
     ).context;
     const initialLength = context.__fillTextLog.length;
 
-    if (poi.metrics?.[0]) {
-      poi.metrics[0].value = 'Live 2,000';
-    }
-
+    poi.title = 'Flywheel Updated';
     tooltip.notifyPoiUpdated(poi.id);
 
     expect(context.__fillTextLog.length).toBeGreaterThan(initialLength);
-    const newEntries = context.__fillTextLog.slice(initialLength);
-    const metricEntry = newEntries.find((entry) =>
-      entry.includes('Live 2,000')
+    expect(context.__fillTextLog.slice(initialLength)).toContain(
+      'Flywheel Updated'
     );
-    expect(metricEntry).toBeDefined();
-    expect(metricEntry).toContain('Impact');
 
     tooltip.dispose();
     preference.dispose();
