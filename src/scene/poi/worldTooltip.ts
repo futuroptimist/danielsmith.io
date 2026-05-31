@@ -53,9 +53,10 @@ interface TooltipStateSnapshot {
 }
 
 /**
- * Renders an in-world tooltip card that anchors to a POI and always faces the
- * active camera. The card mirrors the accessible overlay metadata while
- * keeping the content grounded inside the immersive scene.
+ * Renders a lightweight in-world POI cue that anchors to a POI and always
+ * faces the active camera. Rich POI metadata stays in PoiTooltipOverlay; this
+ * surface intentionally renders the title only to avoid duplicate detail cards
+ * in the WebGL scene.
  */
 export class PoiWorldTooltip {
   public readonly group: Group;
@@ -128,8 +129,8 @@ export class PoiWorldTooltip {
 
   constructor(options: PoiWorldTooltipOptions) {
     this.camera = options.camera;
-    this.cardWidth = options.width ?? 2.6;
-    this.cardHeight = options.height ?? 1.35;
+    this.cardWidth = options.width ?? 2.4;
+    this.cardHeight = options.height ?? 0.58;
     this.verticalOffset = options.verticalOffset ?? 0.6;
     this.fadeResponse = options.fadeResponse ?? 10;
     this.positionResponse = options.positionResponse ?? 12;
@@ -142,7 +143,7 @@ export class PoiWorldTooltip {
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = 1024;
-    this.canvas.height = 576;
+    this.canvas.height = 256;
     const context = this.canvas.getContext('2d');
     if (!context) {
       throw new Error('Unable to acquire 2D context for POI world tooltip.');
@@ -367,8 +368,8 @@ export class PoiWorldTooltip {
 
     context.clearRect(0, 0, width, height);
 
-    const padding = 72;
-    const radius = 36;
+    const padding = 40;
+    const radius = 34;
     const outline =
       mode === 'selected'
         ? 'rgba(170, 255, 255, 0.95)'
@@ -376,8 +377,16 @@ export class PoiWorldTooltip {
           ? 'rgba(132, 238, 255, 0.85)'
           : 'rgba(114, 224, 255, 0.68)';
 
+    const fillGradient = context.createLinearGradient(
+      0,
+      padding,
+      width,
+      height
+    );
+    fillGradient.addColorStop(0, 'rgba(9, 25, 42, 0.94)');
+    fillGradient.addColorStop(1, 'rgba(11, 45, 68, 0.88)');
     this.drawCardBackground({
-      fill: 'rgba(8, 22, 38, 0.94)',
+      fill: fillGradient,
       outline,
       x: padding,
       y: padding,
@@ -386,99 +395,20 @@ export class PoiWorldTooltip {
       radius,
     });
 
-    const accentGradient = context.createLinearGradient(
-      0,
-      padding,
-      0,
-      padding + 96
-    );
-    accentGradient.addColorStop(0, 'rgba(33, 116, 255, 0.75)');
-    accentGradient.addColorStop(1, 'rgba(21, 192, 255, 0.35)');
-    context.fillStyle = accentGradient;
-    this.drawRoundedRect(
-      padding + 4,
-      padding + 4,
-      width - padding * 2 - 8,
-      96,
-      radius * 0.6
-    );
-    context.fill();
-
-    context.fillStyle = 'rgba(223, 246, 255, 0.92)';
-    context.font = 'bold 88px "Inter", "Segoe UI", sans-serif';
+    const titleX = padding + 48;
+    const titleY = padding + 88;
+    context.fillStyle = 'rgba(229, 249, 255, 0.96)';
+    context.font = 'bold 76px "Inter", "Segoe UI", sans-serif';
     context.textAlign = 'left';
     context.textBaseline = 'alphabetic';
-    const titleX = padding + 48;
-    const titleY = padding + 96;
     this.fillWrappedText(poi.title, {
       x: titleX,
       y: titleY,
-      maxWidth: width - padding * 3,
-      lineHeight: 92,
+      maxWidth: width - padding * 3.2,
+      lineHeight: 78,
       maxLines: 2,
-      font: 'bold 88px "Inter", "Segoe UI", sans-serif',
+      font: 'bold 76px "Inter", "Segoe UI", sans-serif',
     });
-
-    context.font = '36px "Inter", "Segoe UI", sans-serif';
-    context.fillStyle = 'rgba(210, 236, 255, 0.92)';
-    const summaryY = titleY + 96;
-    const summaryBottom = this.fillWrappedText(poi.summary, {
-      x: titleX,
-      y: summaryY,
-      maxWidth: width - padding * 3,
-      lineHeight: 54,
-      maxLines: 3,
-      font: '36px "Inter", "Segoe UI", sans-serif',
-    });
-
-    let contentBottom = summaryBottom;
-
-    if (poi.outcome && poi.outcome.value.trim()) {
-      const outcomeLabel = poi.outcome.label?.trim() || 'Outcome';
-      const outcomeText = `${outcomeLabel}: ${poi.outcome.value.trim()}`;
-      context.font = '34px "Inter", "Segoe UI", sans-serif';
-      context.fillStyle = 'rgba(172, 234, 255, 0.96)';
-      contentBottom = this.fillWrappedText(outcomeText, {
-        x: titleX,
-        y: summaryBottom + 54,
-        maxWidth: width - padding * 3,
-        lineHeight: 48,
-        maxLines: 2,
-        font: '34px "Inter", "Segoe UI", sans-serif',
-      });
-    }
-
-    if (poi.metrics && poi.metrics.length > 0) {
-      const metricText = poi.metrics
-        .slice(0, 2)
-        .map((metric) => `${metric.label}: ${metric.value}`)
-        .join('   •   ');
-      context.font = '34px "Inter", "Segoe UI", sans-serif';
-      context.fillStyle = 'rgba(164, 232, 255, 0.95)';
-      const metricsY = Math.max(contentBottom + 54, height - padding * 1.6);
-      context.fillText(metricText, titleX, metricsY);
-    }
-
-    if (poi.status) {
-      const statusLabel = poi.status === 'prototype' ? 'Prototype' : 'Live';
-      context.font = '34px "Inter", "Segoe UI", sans-serif';
-      context.textAlign = 'right';
-      context.fillStyle = 'rgba(220, 242, 255, 0.88)';
-      const badgeX = width - padding - 32;
-      const badgeY = padding + 64;
-      context.fillText(statusLabel, badgeX, badgeY);
-      context.textAlign = 'left';
-    }
-
-    context.font = '28px "Inter", "Segoe UI", sans-serif';
-    context.fillStyle = 'rgba(148, 230, 255, 0.88)';
-    const modeLabel =
-      mode === 'selected'
-        ? 'Selected exhibit'
-        : mode === 'hovered'
-          ? 'Interact to inspect'
-          : 'Next highlight';
-    context.fillText(modeLabel, titleX, padding + 48);
 
     this.texture.needsUpdate = true;
   }

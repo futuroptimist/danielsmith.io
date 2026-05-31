@@ -172,7 +172,7 @@ import {
 } from './scene/poi/structuredData';
 import { PoiTooltipOverlay } from './scene/poi/tooltipOverlay';
 import { PoiTourGuide } from './scene/poi/tourGuide';
-import type { PoiDefinition } from './scene/poi/types';
+import type { PoiDefinition, PoiId } from './scene/poi/types';
 import { updateVisitedBadge } from './scene/poi/visitedBadge';
 import { PoiVisitedState } from './scene/poi/visitedState';
 import {
@@ -435,6 +435,17 @@ declare global {
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
+      poi?: {
+        getTooltipState(): {
+          overlayPoiId: string | null;
+          worldTooltipVisible: boolean;
+          worldTooltipPoiId: string | null;
+          worldTooltipTitle: string | null;
+          markerLabelVisible: boolean;
+          markerLabelPoiId: string | null;
+          activeInWorldTooltipCount: number;
+        };
+      };
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -1507,11 +1518,26 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+
+  let hoveredPoiId: PoiId | null = null;
+  let selectedPoiId: PoiId | null = null;
+  let recommendedPoiId: PoiId | null = null;
+  let poiTooltipIdle = false;
+  let activeWorldTooltipPoiId: PoiId | null = null;
+
+  const syncActiveWorldTooltipPoiId = () => {
+    activeWorldTooltipPoiId =
+      selectedPoiId ??
+      hoveredPoiId ??
+      (poiTooltipIdle ? recommendedPoiId : null);
+  };
   idleMonitor = new IdleMonitor({
     windowTarget: window,
     elementTargets: [renderer.domElement],
   });
   removeIdleSubscription = idleMonitor.subscribe((idle) => {
+    poiTooltipIdle = idle;
+    syncActiveWorldTooltipPoiId();
     poiTooltipOverlay.setIdleState(idle);
     poiWorldTooltip.setIdleState(idle);
   });
@@ -1654,6 +1680,8 @@ function initializeImmersiveScene(
   });
   removeGuidedTourSubscription = guidedTourChannel.subscribe(
     (recommendation) => {
+      recommendedPoiId = recommendation?.id ?? null;
+      syncActiveWorldTooltipPoiId();
       poiTooltipOverlay.setRecommendation(recommendation);
       poiWorldTooltip.setRecommendation(
         resolveWorldTooltipTarget(recommendation)
@@ -1897,11 +1925,15 @@ function initializeImmersiveScene(
     poiAnalytics
   );
   const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
+    hoveredPoiId = poi?.id ?? null;
+    syncActiveWorldTooltipPoiId();
     poiTooltipOverlay.setHovered(poi);
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
   });
   const removeSelectionStateListener =
     poiInteractionManager.addSelectionStateListener((poi, context) => {
+      selectedPoiId = poi?.id ?? null;
+      syncActiveWorldTooltipPoiId();
       poiTooltipOverlay.setSelected(poi, context);
       poiWorldTooltip.setSelected(resolveWorldTooltipTarget(poi));
     });
@@ -2256,6 +2288,47 @@ function initializeImmersiveScene(
     };
   };
   ensureWorldApi();
+  const ensurePoiTooltipApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.poi = {
+      getTooltipState: () => {
+        const overlayRoot = container.querySelector<HTMLElement>(
+          '.poi-tooltip-overlay'
+        );
+        const overlayPoiId = overlayRoot?.getAttribute('data-poi-id') ?? null;
+        const worldState = poiWorldTooltip.getState();
+        const activeMarker = activeWorldTooltipPoiId
+          ? (poiInstances.find(
+              (poi) => poi.definition.id === activeWorldTooltipPoiId
+            ) ?? null)
+          : null;
+        const markerLabelVisible = Boolean(activeMarker?.label?.visible);
+        const markerLabelPoiId = markerLabelVisible
+          ? (activeMarker?.definition.id ?? null)
+          : null;
+        const worldTooltipVisible = worldState.visible;
+        return {
+          overlayPoiId,
+          worldTooltipVisible,
+          worldTooltipPoiId: worldTooltipVisible ? worldState.poiId : null,
+          worldTooltipTitle:
+            worldTooltipVisible && worldState.poiId
+              ? (poiDefinitionsById.get(worldState.poiId as PoiId)?.title ??
+                null)
+              : null,
+          markerLabelVisible,
+          markerLabelPoiId,
+          activeInWorldTooltipCount:
+            Number(worldTooltipVisible) + Number(markerLabelVisible),
+        };
+      },
+    };
+  };
+  ensurePoiTooltipApi();
+
   const getAvatarAssetPipeline = () => {
     if (!avatarAssetPipeline) {
       avatarAssetPipeline = createAvatarAssetPipeline({
@@ -3758,7 +3831,11 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const labelOpacity = computePoiLabelOpacity(emphasis, visitedEmphasis);
+        const isActiveWorldTooltipPoi =
+          activeWorldTooltipPoiId === poi.definition.id;
+        const labelOpacity = isActiveWorldTooltipPoi
+          ? 0
+          : computePoiLabelOpacity(emphasis, visitedEmphasis);
         poi.labelMaterial.opacity = labelOpacity;
         poi.label.visible = labelOpacity > 0.05;
       }
@@ -4089,6 +4166,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
+    }
+    if (window.portfolio?.poi) {
+      delete window.portfolio.poi;
     }
     if (helpButton) {
       helpButton.textContent = buildHelpButtonText(helpLabelFallback);

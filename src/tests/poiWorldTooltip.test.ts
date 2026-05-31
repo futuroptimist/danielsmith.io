@@ -203,7 +203,42 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
-  it('re-renders the active card when metrics change', () => {
+  it('renders only the POI title in the in-world canvas', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Kinetic Hub',
+      summary: 'Summary copy belongs in the viewport overlay only.',
+      outcome: { label: 'Outcome', value: 'Accelerated deploys 24%' },
+      metrics: [
+        { label: 'Stars', value: 'Fallback' },
+        { label: 'Impact', value: 'Launch-ready' },
+      ],
+      status: 'prototype',
+    });
+    const target = createTarget(poi, new Vector3(0, 1, 0));
+
+    tooltip.setSelected(target);
+    tooltip.update(0.016);
+
+    const context = (
+      tooltip as unknown as {
+        context: CanvasRenderingContext2D & { __fillTextLog: string[] };
+      }
+    ).context;
+
+    expect(context.__fillTextLog).toContain('Flywheel Kinetic Hub');
+    expect(context.__fillTextLog.join(' ')).not.toContain('Summary copy');
+    expect(context.__fillTextLog.join(' ')).not.toContain('Accelerated');
+    expect(context.__fillTextLog.join(' ')).not.toContain('Stars');
+    expect(context.__fillTextLog.join(' ')).not.toContain('Prototype');
+    expect(context.__fillTextLog.join(' ')).not.toContain('Selected exhibit');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('re-renders title-only content when active POI metrics change', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({
       id: 'flywheel-studio-flywheel',
@@ -232,11 +267,9 @@ describe('PoiWorldTooltip', () => {
 
     expect(context.__fillTextLog.length).toBeGreaterThan(initialLength);
     const newEntries = context.__fillTextLog.slice(initialLength);
-    const metricEntry = newEntries.find((entry) =>
-      entry.includes('Live 2,000')
-    );
-    expect(metricEntry).toBeDefined();
-    expect(metricEntry).toContain('Impact');
+    expect(newEntries).toContain(poi.title);
+    expect(newEntries.join(' ')).not.toContain('Live 2,000');
+    expect(newEntries.join(' ')).not.toContain('Impact');
 
     tooltip.dispose();
     preference.dispose();

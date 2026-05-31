@@ -1,0 +1,35 @@
+{
+  "title": "danielsmith.io duplicate POI tooltip surfaces",
+  "date": "2026-05-30",
+  "environment": "staging forced-immersive preview",
+  "status": "mitigation prepared for deployment validation",
+  "symptoms": [
+    "Hovering a POI could show the intended bottom-right 2D overlay plus two overlapping in-world POI cards.",
+    "The duplicate 3D surfaces repeated details that were already present in the 2D overlay.",
+    "The stacked cards were especially noisy on exhibits such as Gitshelves."
+  ],
+  "rootCauseClass": "Duplicate in-world POI information surfaces rendered rich metadata that should be reserved for the viewport overlay.",
+  "correctiveAction": [
+    "Keep the 2D POI overlay as the only rich detail surface.",
+    "Render PoiWorldTooltip as a compact title-only in-world cue.",
+    "Render pedestal marker label textures as title-only copy.",
+    "Suppress the active POI pedestal marker label while the world tooltip owns the active hovered, selected, or guided recommendation cue.",
+    "Expose window.portfolio.poi.getTooltipState() as a narrow read-only validation hook for active overlay and in-world tooltip counts."
+  ],
+  "manualValidation": [
+    "Open https://staging.danielsmith.io/?mode=immersive&disablePerformanceFailover=1.",
+    "Hover Gitshelves or cycle to it with keyboard traversal.",
+    "Confirm the bottom-right 2D overlay remains rich and visible.",
+    "Confirm exactly one in-world surface appears near the active POI.",
+    "Confirm the in-world surface contains only the POI title and no summary, outcome, metrics, status, links, or helper copy."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"tooltip|POI|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}
