@@ -2,11 +2,15 @@ import { CylinderGeometry, MeshStandardMaterial, Color } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { scalePoiValue } from '../scene/poi/constants';
-import { createPoiInstances } from '../scene/poi/markers';
+import {
+  createPoiInstances,
+  createPoiLabelTexture,
+} from '../scene/poi/markers';
 import type { PoiDefinition } from '../scene/poi/types';
 
 describe('createPoiInstances', () => {
   const baseSummary = 'Automation-ready showcase artifact.';
+  let fillTextLog: string[] = [];
 
   let originalGetContext:
     | ((
@@ -61,8 +65,8 @@ describe('createPoiInstances', () => {
           stroke: () => {
             /* noop */
           },
-          fillText: () => {
-            /* noop */
+          fillText: (text: string) => {
+            fillTextLog.push(text);
           },
           measureText: (text: string) => ({ width: text.length * 10 }),
           createLinearGradient: () => gradient as CanvasGradient,
@@ -122,6 +126,25 @@ describe('createPoiInstances', () => {
     interactionRadius: 2.4,
     footprint: { width: 2.8, depth: 2.2 },
     ...definition,
+  });
+
+  it('draws marker label textures as title-only in-world cues', () => {
+    fillTextLog = [];
+    const definition = createDefinition({
+      title: 'Gitshelves Living Room Array',
+      summary: 'Dense implementation notes remain in the 2D overlay.',
+      status: 'prototype',
+      outcome: { label: 'Outcome', value: 'Reduced shelf drift 42%' },
+      metrics: [{ label: 'Impact', value: 'Cataloged 200 repos' }],
+    });
+
+    createPoiLabelTexture(definition);
+    expect(fillTextLog).toEqual(['Gitshelves Living Room Array']);
+    const renderedText = fillTextLog.join(' ');
+    expect(renderedText).not.toContain(definition.summary);
+    expect(renderedText).not.toContain('Reduced shelf drift');
+    expect(renderedText).not.toContain('Cataloged 200 repos');
+    expect(renderedText).not.toContain('Prototype');
   });
 
   it('applies hologram pedestal styling when configured', () => {

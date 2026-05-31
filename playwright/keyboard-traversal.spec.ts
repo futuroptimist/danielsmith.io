@@ -74,4 +74,43 @@ test.describe('keyboard traversal macro', () => {
     await page.keyboard.press('Escape');
     await expect(helpBackdrop).toBeHidden();
   });
+  test('keeps POI tooltip details in overlay and one title-only in-world cue', async ({
+    page,
+  }) => {
+    test.slow();
+    await waitForImmersiveReady(page);
+
+    const tooltip = page.locator('.poi-tooltip-overlay');
+    await page.keyboard.press('KeyE');
+    await expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+
+    const title = (
+      await tooltip.locator('.poi-tooltip-overlay__title').textContent()
+    )?.trim();
+    expect(title?.length).toBeGreaterThan(0);
+    await expect(
+      tooltip.locator('.poi-tooltip-overlay__summary')
+    ).not.toBeEmpty();
+    await expect(
+      tooltip.locator('.poi-tooltip-overlay__metrics')
+    ).not.toBeEmpty();
+
+    const state = await page.waitForFunction(() => {
+      const tooltipState = window.portfolio?.poi?.getTooltipState?.();
+      if (!tooltipState || tooltipState.activeInWorldTooltipCount !== 1) {
+        return null;
+      }
+      return tooltipState;
+    });
+    const tooltipState = await state.jsonValue();
+
+    expect(tooltipState.overlayVisiblePoiId).toBeTruthy();
+    expect(tooltipState.worldTooltipVisible).toBe(true);
+    expect(tooltipState.worldTooltipPoiId).toBe(
+      tooltipState.overlayVisiblePoiId
+    );
+    expect(tooltipState.worldTooltipTitle).toBe(title);
+    expect(tooltipState.markerLabelVisible).toBe(false);
+    expect(tooltipState.activeInWorldTooltipCount).toBe(1);
+  });
 });
