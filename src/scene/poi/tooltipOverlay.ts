@@ -230,6 +230,7 @@ export class PoiTooltipOverlay {
       this.root.dataset.state = 'hidden';
       this.root.setAttribute('aria-hidden', 'true');
       this.root.removeAttribute('aria-describedby');
+      delete this.root.dataset.poiId;
       this.renderState.poiId = null;
       this.visitedBadge.hidden = true;
       this.recommendationBadge.hidden = true;
@@ -244,6 +245,7 @@ export class PoiTooltipOverlay {
         ? 'selected'
         : 'recommended';
     this.root.dataset.state = state;
+    this.root.dataset.poiId = poi.id;
     this.root.classList.add('poi-tooltip-overlay--visible');
     this.root.setAttribute('aria-hidden', 'false');
 

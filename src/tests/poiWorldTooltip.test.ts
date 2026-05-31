@@ -158,6 +158,39 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('renders only the POI title in the in-world canvas', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      title: 'Gitshelves Living Room Array',
+      summary: 'Full detail summary belongs in the viewport overlay.',
+      outcome: { label: 'Outcome', value: 'Catalogued 200 shelves' },
+      metrics: [{ label: 'Impact', value: 'Title-only cue' }],
+      status: 'prototype',
+    });
+
+    tooltip.setHovered(createTarget(poi, new Vector3(0, 1, 0)));
+    tooltip.update(0.016);
+
+    const context = (
+      tooltip as unknown as {
+        context: CanvasRenderingContext2D & { __fillTextLog: string[] };
+      }
+    ).context;
+
+    expect(context.__fillTextLog).toContain(poi.title);
+    expect(context.__fillTextLog).not.toContain(poi.summary);
+    expect(context.__fillTextLog).not.toContain(
+      'Outcome: Catalogued 200 shelves'
+    );
+    expect(context.__fillTextLog).not.toContain('Impact: Title-only cue');
+    expect(context.__fillTextLog).not.toContain('Prototype');
+    expect(context.__fillTextLog).not.toContain('Interact to inspect');
+    expect(tooltip.getState().title).toBe(poi.title);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('culls tooltips positioned behind the camera view', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({ id: 'behind-camera-poi' });
@@ -203,7 +236,7 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
-  it('re-renders the active card when metrics change', () => {
+  it('re-renders the active title cue without drawing changed metrics', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({
       id: 'flywheel-studio-flywheel',
@@ -232,11 +265,11 @@ describe('PoiWorldTooltip', () => {
 
     expect(context.__fillTextLog.length).toBeGreaterThan(initialLength);
     const newEntries = context.__fillTextLog.slice(initialLength);
-    const metricEntry = newEntries.find((entry) =>
-      entry.includes('Live 2,000')
+    expect(newEntries).toContain(poi.title);
+    expect(newEntries.some((entry) => entry.includes('Live 2,000'))).toBe(
+      false
     );
-    expect(metricEntry).toBeDefined();
-    expect(metricEntry).toContain('Impact');
+    expect(newEntries.some((entry) => entry.includes('Impact'))).toBe(false);
 
     tooltip.dispose();
     preference.dispose();

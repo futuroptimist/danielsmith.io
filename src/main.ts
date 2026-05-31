@@ -435,6 +435,23 @@ declare global {
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
+      poi?: {
+        getTooltipState(): {
+          overlayPoiId: string | null;
+          overlayVisible: boolean;
+          overlayState: string | null;
+          overlayTitle: string;
+          overlaySummary: string;
+          overlayOutcome: string;
+          overlayMetrics: string[];
+          worldTooltipPoiId: string | null;
+          worldTooltipVisible: boolean;
+          worldTooltipMode: string | null;
+          worldTooltipTitle: string | null;
+          activeMarkerLabelVisible: boolean;
+          activeInWorldTooltipCount: number;
+        };
+      };
       graphics?: {
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
@@ -1507,11 +1524,20 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  let currentHoveredPoi: PoiDefinition | null = null;
+  let currentSelectedPoi: PoiDefinition | null = null;
+  let currentRecommendedPoi: PoiDefinition | null = null;
+  let poiIdle = false;
+  const getActiveWorldTooltipPoi = () =>
+    currentSelectedPoi ??
+    currentHoveredPoi ??
+    (poiIdle ? currentRecommendedPoi : null);
   idleMonitor = new IdleMonitor({
     windowTarget: window,
     elementTargets: [renderer.domElement],
   });
   removeIdleSubscription = idleMonitor.subscribe((idle) => {
+    poiIdle = idle;
     poiTooltipOverlay.setIdleState(idle);
     poiWorldTooltip.setIdleState(idle);
   });
@@ -1654,6 +1680,7 @@ function initializeImmersiveScene(
   });
   removeGuidedTourSubscription = guidedTourChannel.subscribe(
     (recommendation) => {
+      currentRecommendedPoi = recommendation;
       poiTooltipOverlay.setRecommendation(recommendation);
       poiWorldTooltip.setRecommendation(
         resolveWorldTooltipTarget(recommendation)
@@ -1897,11 +1924,13 @@ function initializeImmersiveScene(
     poiAnalytics
   );
   const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
+    currentHoveredPoi = poi;
     poiTooltipOverlay.setHovered(poi);
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
   });
   const removeSelectionStateListener =
     poiInteractionManager.addSelectionStateListener((poi, context) => {
+      currentSelectedPoi = poi;
       poiTooltipOverlay.setSelected(poi, context);
       poiWorldTooltip.setSelected(resolveWorldTooltipTarget(poi));
     });
@@ -2256,6 +2285,56 @@ function initializeImmersiveScene(
     };
   };
   ensureWorldApi();
+  const ensurePoiApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.poi = {
+      getTooltipState() {
+        const overlayRoot = container.querySelector<HTMLElement>(
+          '.poi-tooltip-overlay'
+        );
+        const worldState = poiWorldTooltip.getState();
+        const activePoi = getActiveWorldTooltipPoi();
+        const activeMarkerLabelVisible = poiInstances.some(
+          (poi) =>
+            poi.definition.id === activePoi?.id && poi.label?.visible === true
+        );
+        const overlayMetrics = Array.from(
+          container.querySelectorAll<HTMLElement>(
+            '.poi-tooltip-overlay__metric'
+          )
+        ).map((metric) => metric.textContent?.trim() ?? '');
+        const overlayOutcome = container
+          .querySelector<HTMLElement>('.poi-tooltip-overlay__outcome-value')
+          ?.textContent?.trim();
+        return {
+          overlayPoiId: overlayRoot?.dataset.poiId ?? null,
+          overlayVisible: overlayRoot?.dataset.state !== 'hidden',
+          overlayState: overlayRoot?.dataset.state ?? null,
+          overlayTitle:
+            container
+              .querySelector<HTMLElement>('.poi-tooltip-overlay__title')
+              ?.textContent?.trim() ?? '',
+          overlaySummary:
+            container
+              .querySelector<HTMLElement>('.poi-tooltip-overlay__summary')
+              ?.textContent?.trim() ?? '',
+          overlayOutcome: overlayOutcome ?? '',
+          overlayMetrics,
+          worldTooltipPoiId: worldState.poiId,
+          worldTooltipVisible: worldState.visible,
+          worldTooltipMode: worldState.mode,
+          worldTooltipTitle: worldState.title,
+          activeMarkerLabelVisible,
+          activeInWorldTooltipCount:
+            (worldState.visible ? 1 : 0) + (activeMarkerLabelVisible ? 1 : 0),
+        };
+      },
+    };
+  };
+  ensurePoiApi();
   const getAvatarAssetPipeline = () => {
     if (!avatarAssetPipeline) {
       avatarAssetPipeline = createAvatarAssetPipeline({
@@ -3758,7 +3837,12 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const labelOpacity = computePoiLabelOpacity(emphasis, visitedEmphasis);
+        const activeWorldTooltipPoi = getActiveWorldTooltipPoi();
+        const shouldYieldToWorldTooltip =
+          activeWorldTooltipPoi?.id === poi.definition.id;
+        const labelOpacity = shouldYieldToWorldTooltip
+          ? 0
+          : computePoiLabelOpacity(emphasis, visitedEmphasis);
         poi.labelMaterial.opacity = labelOpacity;
         poi.label.visible = labelOpacity > 0.05;
       }

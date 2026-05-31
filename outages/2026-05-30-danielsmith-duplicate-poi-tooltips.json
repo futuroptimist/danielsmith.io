@@ -1,0 +1,18 @@
+{
+  "id": "2026-05-30-danielsmith-duplicate-poi-tooltips",
+  "date": "2026-05-30",
+  "title": "Duplicate POI tooltips cluttered immersive hover states",
+  "symptomSlice": "The bottom-right 2D overlay appeared alongside two overlapping in-world POI detail cards on hover.",
+  "rootCause": "Pedestal marker labels and PoiWorldTooltip both rendered rich in-world metadata for the same active POI.",
+  "fixSummary": "Reserve rich POI details for the 2D overlay, render only title text in in-world canvases, and hide the active marker label while the anchored world tooltip is visible.",
+  "regressionTests": "Vitest covers title-only world tooltip and marker label canvases plus rich overlay details; Playwright covers one active in-world tooltip count with rich overlay content in immersive mode.",
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"tooltip|POI|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}
