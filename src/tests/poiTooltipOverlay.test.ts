@@ -135,6 +135,7 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
     expect(root.getAttribute('aria-hidden')).toBe('false');
     expect(root.dataset.state).toBe('hovered');
+    expect(root.dataset.poiId).toBe(basePoi.id);
 
     const title = root.querySelector(
       '.poi-tooltip-overlay__title'
@@ -223,6 +224,7 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
     expect(root.getAttribute('aria-hidden')).toBe('true');
     expect(root.getAttribute('aria-describedby')).toBeNull();
+    expect(root.dataset.poiId).toBeUndefined();
   });
 
   it('refreshes metric values when notified about updates', () => {
