@@ -145,12 +145,22 @@ export function wireGitHubRepoMetrics({
     disposables.push(unsubscribe);
   });
 
+  const hasActiveBackoff = (): boolean =>
+    service.getDiagnostics().backoffExpiresAt !== null;
+
   const refreshAll = async () => {
-    await Promise.all(
-      Array.from(repoMap.values()).map((bucket) =>
-        service.requestStats(bucket.identifier)
-      )
-    );
+    const [firstBucket, ...remainingBuckets] = Array.from(repoMap.values());
+    if (!firstBucket) {
+      return;
+    }
+
+    await service.requestStats(firstBucket.identifier);
+    for (const bucket of remainingBuckets) {
+      if (hasActiveBackoff()) {
+        return;
+      }
+      await service.requestStats(bucket.identifier);
+    }
   };
 
   const dispose = () => {

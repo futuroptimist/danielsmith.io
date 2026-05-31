@@ -1,0 +1,37 @@
+{
+  "title": "danielsmith.io GitHub API 403 noise during repo metrics fetches",
+  "date": "2026-05-30",
+  "environment": "hardware-accelerated staging validation with immersive mode",
+  "status": "mitigation prepared for deployment validation",
+  "symptoms": [
+    "Staging validation showed repeated HTTP 403 network failures for unauthenticated GitHub API repo metric requests.",
+    "Failures included repositories such as gabriel, token.place, flywheel, danielsmith.io, pr-reaper, gitshelves, wove, sigma, and f2clipboard.",
+    "The repeated failures created noise during performance investigation and risked confusing console-budget based fallback triage."
+  ],
+  "rootCauseClass": "Unauthenticated browser fan-out to GitHub REST API for nice-to-have live repo metrics, subject to rate limits, access behavior, and transient network failures.",
+  "mitigation": [
+    "Keep static project fallback metric values whenever live metrics are unavailable.",
+    "Cache successful live metrics in browser storage and reuse stale data when later requests fail.",
+    "Enter bounded backoff after HTTP 403, HTTP 429, or network failures so one failure suppresses additional unauthenticated fan-out.",
+    "Group HTTP failures into at most one concise app-level warning per browser session.",
+    "Expose window.portfolio.githubMetrics.getDiagnostics() with source, request counts, last error status, cache size, and backoff expiration.",
+    "Keep GitHub metric availability independent from renderer diagnostics, adaptive quality, and text-mode failover criteria."
+  ],
+  "manualValidation": [
+    "Open /?mode=immersive&disablePerformanceFailover=1&enableLiveGitHubMetrics=1 with https://api.github.com/repos/** mocked to return 403 or 429.",
+    "Confirm immersive mode loads and no performancefailover event is emitted.",
+    "Confirm project and POI content remains usable with fallback metric text.",
+    "Confirm diagnostics report static-fallback or cached source, last error status, one live request, suppressed follow-up requests, and backoff expiration.",
+    "Hard refresh during the backoff TTL and confirm additional repo requests are suppressed.",
+    "Clear the backoff and remove the API mock to confirm successful live metrics still render and cache."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"github|metrics|fallback|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}
