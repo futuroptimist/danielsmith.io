@@ -77,7 +77,7 @@ test.describe('GitHub repo metrics fallback', () => {
       requestCount: 1,
       lastErrorStatus: 403,
     });
-    expect(diagnostics.suppressedRequestCount).toBeGreaterThan(0);
+    expect(diagnostics.suppressedRequestCount).toBe(0);
     expect(diagnostics.backoffExpiresAt).toEqual(expect.any(String));
     await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
     await expect(page.locator('.poi-tooltip-overlay')).toHaveCount(1);

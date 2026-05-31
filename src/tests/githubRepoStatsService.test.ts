@@ -184,6 +184,14 @@ describe('GitHub repo stats service', () => {
       createOptions({ localStorage, now: () => 2_000 })
     );
 
+    expect(service.getDiagnostics()).toMatchObject({
+      suppressedRequestCount: 0,
+      requestCount: 0,
+      lastErrorStatus: 403,
+      lastErrorAt: '1970-01-01T00:00:01.000Z',
+      backoffExpiresAt: '1970-01-01T00:01:00.000Z',
+    });
+
     await service.requestStats({ owner: 'foo', repo: 'one' });
     await service.requestStats({ owner: 'foo', repo: 'two' });
 
