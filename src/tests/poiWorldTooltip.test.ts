@@ -1,4 +1,4 @@
-import { OrthographicCamera, Scene, Vector3 } from 'three';
+import { CanvasTexture, OrthographicCamera, Scene, Vector3 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { PoiDefinition } from '../scene/poi/types';
@@ -9,6 +9,9 @@ import {
 import { GuidedTourPreference } from '../systems/guidedTour/preference';
 
 let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
+let latestFillTextLog: string[] = [];
+let latestFillTextAlignLog: CanvasTextAlign[] = [];
+let latestTextBaselineLog: CanvasTextBaseline[] = [];
 
 beforeAll(() => {
   originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -23,6 +26,11 @@ afterAll(() => {
 
 function createMockCanvasContext(): CanvasRenderingContext2D {
   const fillTextLog: string[] = [];
+  const fillTextAlignLog: CanvasTextAlign[] = [];
+  const textBaselineLog: CanvasTextBaseline[] = [];
+  latestFillTextLog = fillTextLog;
+  latestFillTextAlignLog = fillTextAlignLog;
+  latestTextBaselineLog = textBaselineLog;
   const context = {
     canvas: document.createElement('canvas'),
     fillStyle: '',
@@ -47,6 +55,8 @@ function createMockCanvasContext(): CanvasRenderingContext2D {
     measureText: (text: string) => ({ width: text.length * 12 }),
     fillText: (text: string) => {
       fillTextLog.push(text);
+      fillTextAlignLog.push(context.textAlign);
+      textBaselineLog.push(context.textBaseline);
     },
   };
   (context as { __fillTextLog?: string[] }).__fillTextLog = fillTextLog;
@@ -126,6 +136,40 @@ function createTarget(
 }
 
 describe('PoiWorldTooltip', () => {
+  it('matches the canvas backing ratio to the title-only plane', () => {
+    const { tooltip, preference } = createTooltip();
+    const mesh = tooltip.group.children[0] as {
+      material: { map: CanvasTexture };
+    };
+    const canvas = mesh.material.map.image as HTMLCanvasElement;
+
+    expect(canvas.width / canvas.height).toBeCloseTo(2.2 / 0.55, 4);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('keeps wrapped title lines centered on the card', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      title: 'Flywheel Studio Automation Showcase',
+    });
+
+    tooltip.setHovered(createTarget(poi, new Vector3(0, 1, 0)));
+    tooltip.update(0.016);
+
+    expect(latestFillTextLog.length).toBeGreaterThan(0);
+    expect(latestFillTextAlignLog).toEqual(
+      Array.from({ length: latestFillTextLog.length }, () => 'center')
+    );
+    expect(latestTextBaselineLog).toEqual(
+      Array.from({ length: latestFillTextLog.length }, () => 'middle')
+    );
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('shows hovered tooltip anchored to the provided world position', () => {
     const { tooltip, camera, preference } = createTooltip();
     const poi = createPoiDefinition({ status: 'prototype' });
@@ -203,26 +247,32 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
-  it('re-renders the active card when metrics change', () => {
+  it('renders only the POI title in the in-world card', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({
       id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Showcase',
+      summary: 'Summary copy belongs in the 2D overlay only.',
+      outcome: { label: 'Outcome', value: 'Accelerated deploys 24%' },
       metrics: [
         { label: 'Stars', value: 'Fallback' },
         { label: 'Impact', value: 'Launch-ready' },
       ],
+      status: 'live',
     });
     const target = createTarget(poi, new Vector3(0, 1, 0));
 
     tooltip.setSelected(target);
     tooltip.update(0.016);
 
-    const context = (
-      tooltip as unknown as {
-        context: CanvasRenderingContext2D & { __fillTextLog: string[] };
-      }
-    ).context;
-    const initialLength = context.__fillTextLog.length;
+    expect(latestFillTextLog).toEqual(['Flywheel Showcase']);
+    expect(latestFillTextLog).not.toContain(
+      'Summary copy belongs in the 2D overlay only.'
+    );
+    expect(latestFillTextLog.join(' ')).not.toContain('Accelerated deploys');
+    expect(latestFillTextLog.join(' ')).not.toContain('Fallback');
+    expect(latestFillTextLog.join(' ')).not.toContain('Live');
+    expect(latestFillTextLog.join(' ')).not.toContain('Selected exhibit');
 
     if (poi.metrics?.[0]) {
       poi.metrics[0].value = 'Live 2,000';
@@ -230,13 +280,11 @@ describe('PoiWorldTooltip', () => {
 
     tooltip.notifyPoiUpdated(poi.id);
 
-    expect(context.__fillTextLog.length).toBeGreaterThan(initialLength);
-    const newEntries = context.__fillTextLog.slice(initialLength);
-    const metricEntry = newEntries.find((entry) =>
-      entry.includes('Live 2,000')
-    );
-    expect(metricEntry).toBeDefined();
-    expect(metricEntry).toContain('Impact');
+    expect(latestFillTextLog).toEqual([
+      'Flywheel Showcase',
+      'Flywheel Showcase',
+    ]);
+    expect(latestFillTextLog.join(' ')).not.toContain('Live 2,000');
 
     tooltip.dispose();
     preference.dispose();
@@ -312,17 +360,20 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
-  it('skips outcome rendering when the value is blank', () => {
+  it('omits helper copy from recommendation cards', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({
       id: 'danielsmith-portfolio-table',
-      outcome: { label: 'Outcome', value: '   ' },
+      title: 'Portfolio Table',
     });
 
-    tooltip.setHovered(createTarget(poi, new Vector3(0, 0.4, 0)));
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(createTarget(poi, new Vector3(0, 0.4, 0)));
     tooltip.update(0.016);
 
     expect(tooltip.getState().poiId).toBe(poi.id);
+    expect(latestFillTextLog).toEqual(['Portfolio Table']);
+    expect(latestFillTextLog.join(' ')).not.toContain('Next highlight');
 
     tooltip.dispose();
     preference.dispose();

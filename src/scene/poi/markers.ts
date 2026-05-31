@@ -250,7 +250,7 @@ function createPedestalPoiInstance(
     depthWrite: false,
   });
   labelMaterial.side = DoubleSide;
-  const labelHeight = scalePoiValue(1.2);
+  const labelHeight = scalePoiValue(0.78);
   const labelWidth = scalePoiValue(2.7);
   const labelGeometry = new PlaneGeometry(labelWidth, labelHeight, 1, 1);
   const label = new Mesh(labelGeometry, labelMaterial);
@@ -442,10 +442,12 @@ function createDisplayPoiInstance(
   };
 }
 
-function createPoiLabelTexture(definition: PoiDefinition): CanvasTexture {
+export function createPoiLabelTexture(
+  definition: PoiDefinition
+): CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = 640;
-  canvas.height = 320;
+  canvas.height = 192;
   const context = canvas.getContext('2d');
   if (!context) {
     throw new Error('Unable to acquire 2D context for POI label.');
@@ -478,44 +480,17 @@ function createPoiLabelTexture(definition: PoiDefinition): CanvasTexture {
 
   context.fillStyle = gradient;
   context.font = 'bold 64px "Inter", "Segoe UI", sans-serif';
-  context.textAlign = 'left';
-  context.textBaseline = 'top';
-  context.fillText(definition.title, padding * 1.5, padding * 1.35);
-
-  const summaryY = padding * 1.35 + 84;
-  context.font = '28px "Inter", "Segoe UI", sans-serif';
-  context.fillStyle = 'rgba(220, 245, 255, 0.92)';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
   wrapText(
     context,
-    definition.summary,
-    padding * 1.5,
-    summaryY,
+    definition.title,
+    canvas.width / 2,
+    canvas.height / 2,
     canvas.width - padding * 3,
-    40
+    68,
+    2
   );
-
-  if (definition.metrics && definition.metrics.length > 0) {
-    const metricsY = canvas.height - padding * 2.1;
-    const metricText = definition.metrics
-      .slice(0, 2)
-      .map((metric) => `${metric.label}: ${metric.value}`)
-      .join('   •   ');
-    context.font = '26px "Inter", "Segoe UI", sans-serif';
-    context.fillStyle = 'rgba(160, 226, 255, 0.95)';
-    context.fillText(metricText, padding * 1.5, metricsY);
-  }
-
-  if (definition.status) {
-    const statusText = definition.status === 'prototype' ? 'Prototype' : 'Live';
-    context.font = '24px "Inter", "Segoe UI", sans-serif';
-    context.fillStyle = 'rgba(255, 255, 255, 0.75)';
-    const textWidth = context.measureText(statusText).width;
-    context.fillText(
-      statusText,
-      canvas.width - padding * 1.5 - textWidth,
-      padding * 1.4
-    );
-  }
 
   const texture = new CanvasTexture(canvas);
   texture.needsUpdate = true;
@@ -528,25 +503,84 @@ function wrapText(
   x: number,
   y: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
+  maxLines = Number.POSITIVE_INFINITY
 ) {
-  const words = text.split(' ');
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
   let line = '';
-  let cursorY = y;
-  for (const word of words) {
+  let truncated = false;
+
+  for (let index = 0; index < words.length; index += 1) {
+    const word = words[index];
     const nextLine = line ? `${line} ${word}` : word;
     const metrics = context.measureText(nextLine);
     if (metrics.width > maxWidth && line) {
-      context.fillText(line, x, cursorY);
+      lines.push(line);
       line = word;
-      cursorY += lineHeight;
+      if (lines.length >= maxLines) {
+        truncated = true;
+        break;
+      }
+    } else if (metrics.width > maxWidth) {
+      lines.push(fitTextWithEllipsis(context, word, maxWidth));
+      line = '';
+      if (lines.length >= maxLines || index < words.length - 1) {
+        truncated = index < words.length - 1;
+        break;
+      }
     } else {
       line = nextLine;
     }
   }
-  if (line) {
-    context.fillText(line, x, cursorY);
+
+  if (line && lines.length < maxLines) {
+    lines.push(line);
+  } else if (line) {
+    truncated = true;
   }
+
+  if (truncated && lines.length > 0) {
+    lines[lines.length - 1] = fitTextWithEllipsis(
+      context,
+      lines[lines.length - 1],
+      maxWidth
+    );
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (context.measureText(lines[index]).width > maxWidth) {
+      lines[index] = fitTextWithEllipsis(context, lines[index], maxWidth);
+    }
+  }
+
+  const firstLineY = y - ((lines.length - 1) * lineHeight) / 2;
+  lines.forEach((wrappedLine, index) => {
+    context.fillText(wrappedLine, x, firstLineY + index * lineHeight);
+  });
+}
+
+function fitTextWithEllipsis(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string {
+  const ellipsis = '…';
+  let candidate = `${text}${ellipsis}`;
+  if (context.measureText(candidate).width <= maxWidth) {
+    return candidate;
+  }
+
+  candidate = text;
+  while (candidate.length > 0) {
+    candidate = candidate.slice(0, -1).trimEnd();
+    const truncated = `${candidate}${ellipsis}`;
+    if (context.measureText(truncated).width <= maxWidth) {
+      return truncated;
+    }
+  }
+
+  return ellipsis;
 }
 
 function roundRect(

@@ -207,6 +207,14 @@ export class PoiTooltipOverlay {
     }
   }
 
+  getState(): { poiId: string | null; state: string; visible: boolean } {
+    return {
+      poiId: this.renderState.poiId,
+      state: this.root.dataset.state ?? 'hidden',
+      visible: this.root.classList.contains('poi-tooltip-overlay--visible'),
+    };
+  }
+
   dispose() {
     this.root.remove();
     this.liveRegion.remove();
