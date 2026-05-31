@@ -106,6 +106,12 @@ test.describe('keyboard traversal macro', () => {
       if (tooltipState.activeInWorldTooltipCount !== 1) {
         return null;
       }
+      if (tooltipState.visibleMarkerLabelCount !== 0) {
+        return null;
+      }
+      if (tooltipState.totalInWorldTooltipCount !== 1) {
+        return null;
+      }
       return tooltipState;
     });
     const tooltipState = await state.jsonValue();
@@ -119,6 +125,9 @@ test.describe('keyboard traversal macro', () => {
     expect(tooltipState.activePoiMarkerLabelVisible).toBe(false);
     expect(tooltipState.markerLabelVisible).toBe(false);
     expect(tooltipState.markerLabelPoiId).toBeNull();
+    expect(tooltipState.visibleMarkerLabelCount).toBe(0);
+    expect(tooltipState.visibleMarkerLabelPoiIds).toEqual([]);
     expect(tooltipState.activeInWorldTooltipCount).toBe(1);
+    expect(tooltipState.totalInWorldTooltipCount).toBe(1);
   });
 });

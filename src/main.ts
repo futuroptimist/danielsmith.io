@@ -458,8 +458,10 @@ declare global {
           markerLabelVisible: boolean;
           markerLabelPoiId: string | null;
           visibleMarkerLabelCount: number;
+          visibleMarkerLabelPoiIds: string[];
           activePoiMarkerLabelVisible: boolean;
           activeInWorldTooltipCount: number;
+          totalInWorldTooltipCount: number;
         };
       };
       world?: {
@@ -1613,6 +1615,9 @@ function initializeImmersiveScene(
             poi.labelMaterial &&
             poi.labelMaterial.opacity > 0.05
         );
+        const visibleMarkerLabelPoiIds = visibleMarkerLabels.map(
+          (poi) => poi.definition.id
+        );
         const worldTooltipTitle =
           poiDefinitions.find(
             (definition) => definition.id === worldState.poiId
@@ -1630,6 +1635,8 @@ function initializeImmersiveScene(
           worldState.visible &&
           worldState.poiId === activePoiId;
         const activeMarkerLabelVisible = Boolean(activePoiMarkerLabel);
+        const totalInWorldTooltipCount =
+          (worldState.visible ? 1 : 0) + visibleMarkerLabels.length;
         return {
           overlayVisiblePoiId: overlayState.visible ? overlayState.poiId : null,
           worldTooltipVisible: worldState.visible,
@@ -1638,10 +1645,12 @@ function initializeImmersiveScene(
           markerLabelVisible: activeMarkerLabelVisible,
           markerLabelPoiId: activePoiMarkerLabel?.definition.id ?? null,
           visibleMarkerLabelCount: visibleMarkerLabels.length,
+          visibleMarkerLabelPoiIds,
           activePoiMarkerLabelVisible: activeMarkerLabelVisible,
           activeInWorldTooltipCount:
             (activeWorldTooltipVisible ? 1 : 0) +
             (activeMarkerLabelVisible ? 1 : 0),
+          totalInWorldTooltipCount,
         };
       },
     };
@@ -3764,6 +3773,9 @@ function initializeImmersiveScene(
     let closestPoi: PoiInstance | null = null;
     let highestActivation = 0;
     let highestEmphasis = 0;
+    const worldTooltipState = poiWorldTooltip.getState();
+    const worldTooltipVisible = worldTooltipState.visible;
+
     for (const poi of poiInstances) {
       const floatOffset = Math.sin(
         elapsedTime * poi.floatSpeed + poi.floatPhase
@@ -3821,11 +3833,7 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const worldTooltipState = poiWorldTooltip.getState();
-        const worldTooltipOwnsPoi =
-          worldTooltipState.visible &&
-          worldTooltipState.poiId === poi.definition.id;
-        const labelOpacity = worldTooltipOwnsPoi
+        const labelOpacity = worldTooltipVisible
           ? 0
           : computePoiLabelOpacity(emphasis, visitedEmphasis);
         poi.labelMaterial.opacity = labelOpacity;
