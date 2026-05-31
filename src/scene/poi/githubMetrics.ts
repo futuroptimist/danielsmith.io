@@ -1,5 +1,6 @@
 import type {
   GitHubRepoStats,
+  GitHubRepoStatsDiagnostics,
   GitHubRepoStatsService,
 } from '../../systems/github/repoStats';
 
@@ -35,6 +36,7 @@ export interface WireGitHubRepoMetricsOptions {
 }
 
 export interface GitHubRepoMetricsController {
+  getDiagnostics(): GitHubRepoStatsDiagnostics;
   refreshAll(): Promise<void>;
   dispose(): void;
 }
@@ -146,12 +148,12 @@ export function wireGitHubRepoMetrics({
   });
 
   const refreshAll = async () => {
-    await Promise.all(
-      Array.from(repoMap.values()).map((bucket) =>
-        service.requestStats(bucket.identifier)
-      )
-    );
+    for (const bucket of repoMap.values()) {
+      await service.requestStats(bucket.identifier);
+    }
   };
+
+  const getDiagnostics = () => service.getDiagnostics();
 
   const dispose = () => {
     disposables.splice(0).forEach((fn) => {
@@ -164,6 +166,7 @@ export function wireGitHubRepoMetrics({
   };
 
   return {
+    getDiagnostics,
     refreshAll,
     dispose,
   };

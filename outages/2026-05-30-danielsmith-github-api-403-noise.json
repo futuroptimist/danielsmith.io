@@ -1,0 +1,38 @@
+{
+  "title": "danielsmith.io GitHub API 403 metrics noise",
+  "date": "2026-05-30",
+  "environment": "hardware-accelerated staging validation with live GitHub repo metrics enabled",
+  "status": "mitigation prepared for deployment validation",
+  "symptoms": [
+    "Repeated browser console/network entries appeared for unauthenticated api.github.com/repos/futuroptimist/* requests during performance validation.",
+    "Affected repositories included gabriel, token.place, flywheel, danielsmith.io, pr-reaper, gitshelves, wove, sigma, and f2clipboard.",
+    "The messages were not the primary FPS bottleneck, but they made performance investigations noisy and could be confused with console-budget or runtime failover signals."
+  ],
+  "rootCauseClass": "Unauthenticated browser GitHub REST API fan-out encountering rate-limit, forbidden, or access-policy behavior while fetching optional project-card metrics.",
+  "mitigation": [
+    "GitHub repo metrics remain optional browser-only enhancements with no token, secret, proxy, or backend.",
+    "Successful live metrics are cached in browser storage and reused as stale values on later loads.",
+    "403 and 429 responses enter bounded browser-storage backoff so remaining repo requests are suppressed during the TTL.",
+    "Network failures and timeouts also enter bounded backoff to avoid repeated unavailable API attempts during a session.",
+    "Project cards continue rendering static fallback metrics when live metrics are unavailable.",
+    "Diagnostics expose metrics source, last error status, request count, suppressed request count, and backoff expiration.",
+    "App-level logging is grouped into at most one console.warn per metrics service instance and never uses console.error, keeping GitHub metric failures independent of performance failover."
+  ],
+  "validationSteps": [
+    "Open /?mode=immersive&disablePerformanceFailover=1&enableLiveGitHubMetrics=1 with GitHub API requests mocked to return 403.",
+    "Confirm immersive mode loads and no performancefailover event fires.",
+    "Confirm only the first GitHub repo request is attempted before backoff suppresses remaining fan-out.",
+    "Confirm POI overlay/project content still shows fallback metric values.",
+    "Inspect window.portfolio.github.getRepoMetricsDiagnostics() for static-fallback source, lastErrorStatus 403, one request, and a backoff expiration.",
+    "Repeat with a successful GitHub API response and confirm live values cache and render."
+  ],
+  "validationCommands": [
+    "npm run format:write",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:ci",
+    "npm run test:e2e -- --grep \"github|metrics|fallback|immersive\"",
+    "npm run docs:check",
+    "npm run smoke"
+  ]
+}
