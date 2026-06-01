@@ -2620,7 +2620,11 @@ function initializeImmersiveScene(
     performanceFailover.triggerFallback('manual');
   };
   const toggleHelpMenu = (force?: boolean) => {
-    hudPanelCoordinator?.toggleSettings(force) ?? helpModal.toggle(force);
+    if (hudPanelCoordinator) {
+      hudPanelCoordinator.toggleSettings(force);
+      return;
+    }
+    helpModal.toggle(force);
   };
   const isTextEntryTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof HTMLElement)) {
@@ -2679,7 +2683,11 @@ function initializeImmersiveScene(
       return;
     }
     event.preventDefault();
-    hudPanelCoordinator?.toggleControls() ?? responsiveControlOverlay?.toggle();
+    if (hudPanelCoordinator) {
+      hudPanelCoordinator.toggleControls();
+      return;
+    }
+    responsiveControlOverlay?.toggle();
   };
   window.addEventListener('keydown', handleControlsKeydown);
   hudPanelCoordinator = createHudPanelCoordinator({
