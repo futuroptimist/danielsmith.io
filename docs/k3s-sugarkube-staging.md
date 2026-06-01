@@ -1,5 +1,9 @@
 # K3s Sugarkube staging runbook (danielsmith.io)
 
+> Current staging release commands live in
+> [docs/ops/sugarkube-release.md](ops/sugarkube-release.md). Keep this page for
+> staging service profile and legacy Helm helper context.
+
 This guide covers staging deployment of the static `danielsmith.io` site on Sugarkube.
 
 ## Service profile

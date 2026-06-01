@@ -103,6 +103,26 @@ jobs:
           test -n "${asset_path}"
           curl -fsS "http://127.0.0.1:8080${asset_path}" >/dev/null
 
+      - name: Summarize image contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          immutable_tag="ghcr.io/futuroptimist/danielsmith.io:main-${{ steps.meta.outputs.short_sha }}"
+          echo "Immutable deploy tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${immutable_tag}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Publish behavior:" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "push" ] && \
+            [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "\`push to main publishes main-<shortsha>, main-latest, and sha-<shortsha>.\`" \
+              >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "\`workflow_dispatch validates the selected ref without publishing image tags.\`" \
+              >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "\`pull_request builds and smoke-tests without publishing image tags.\`" \
+              >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

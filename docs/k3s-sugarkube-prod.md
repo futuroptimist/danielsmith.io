@@ -1,5 +1,9 @@
 # K3s Sugarkube production runbook (danielsmith.io)
 
+> Current production promotion commands live in
+> [docs/ops/sugarkube-release.md](ops/sugarkube-release.md). Keep this page for
+> production service profile and legacy Helm helper context.
+
 This guide covers production deployment for `danielsmith.io` on Sugarkube.
 
 ## Service profile

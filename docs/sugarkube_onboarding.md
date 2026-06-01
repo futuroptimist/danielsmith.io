@@ -1,5 +1,9 @@
 # Sugarkube onboarding (danielsmith.io)
 
+> Current copy-paste release commands live in
+> [docs/ops/sugarkube-release.md](ops/sugarkube-release.md). Keep this page for
+> static-site service profile and legacy Helm helper context.
+
 This runbook documents how to deploy `danielsmith.io` to Sugarkube as a static web app.
 
 ## Architecture
