@@ -130,15 +130,18 @@ describe('createResponsiveControlOverlay', () => {
     expect(handle.isOpen()).toBe(true);
     expect(popover.hidden).toBe(false);
     expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
 
     handle.toggle();
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
+    expect(button.getAttribute('aria-pressed')).toBe('false');
 
     handle.open();
     closeButton.click();
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
+    expect(button.getAttribute('aria-pressed')).toBe('false');
     expect(document.activeElement).toBe(button);
 
     handle.dispose();
@@ -218,6 +221,29 @@ describe('createResponsiveControlOverlay', () => {
     expect(pointer?.hidden).toBe(false);
     expect(keyboard?.dataset.activeMethod).toBe('false');
     expect(pointer?.dataset.activeMethod).toBe('true');
+
+    handle.dispose();
+  });
+
+  it('keeps menu shortcut metadata aligned with remapped Controls bindings', () => {
+    const { container, button, popover, list } = createOverlay();
+    button.innerHTML = `
+      <span data-hud-menu-label="controls">Controls</span>
+      <kbd data-hud-menu-key="controls">C</kbd>
+    `;
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: createStrings(),
+    });
+
+    handle.setControlsShortcutLabel('K');
+
+    expect(button.querySelector('[data-hud-menu-key]')?.textContent).toBe('K');
+    expect(button.getAttribute('aria-label')).toBe('Open controls (K)');
+    expect(button.title).toBe('Open controls (K)');
 
     handle.dispose();
   });

@@ -2481,6 +2481,18 @@ function initializeImmersiveScene(
         manageButtonClick: false,
       })
     : null;
+  const formatMenuButtonTitle = (
+    item: { keyHint: string; title: string },
+    shortcut: string
+  ): string =>
+    item.keyHint ? item.title.split(item.keyHint).join(shortcut) : item.title;
+  const updateControlsButtonLabel = () => {
+    const label =
+      formatKeyLabel(keyBindings.getPrimaryBinding('toggleControls')) ||
+      controlOverlayStrings.menu.controls.keyHint;
+    responsiveControlOverlay?.setControlsShortcutLabel(label);
+  };
+  updateControlsButtonLabel();
   const helpModal = createHelpModal({
     container: document.body,
     content: helpModalStrings,
@@ -2742,6 +2754,12 @@ function initializeImmersiveScene(
     if (settingsKey instanceof HTMLElement) {
       settingsKey.textContent = label;
     }
+    const title = formatMenuButtonTitle(
+      controlOverlayStrings.menu.settings,
+      label
+    );
+    helpButton.setAttribute('aria-label', title);
+    helpButton.title = title;
     helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
   };
   updateHelpButtonLabel();
@@ -2785,6 +2803,7 @@ function initializeImmersiveScene(
     }
     analyticsGlow.setElement(controlOverlay ?? null);
     responsiveControlOverlay?.setStrings(controlOverlayStrings);
+    updateControlsButtonLabel();
     responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
     if (movementLegend) {
@@ -2844,6 +2863,9 @@ function initializeImmersiveScene(
       }
       if (action === 'help') {
         updateHelpButtonLabel();
+      }
+      if (action === 'toggleControls') {
+        updateControlsButtonLabel();
       }
       saveKeyBindings();
     })

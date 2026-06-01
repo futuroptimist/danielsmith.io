@@ -10,6 +10,7 @@ export interface ResponsiveControlOverlayHandle {
   isOpen(): boolean;
   setLayout(layout: HudLayout): void;
   setStrings(strings: ControlOverlayStrings): void;
+  setControlsShortcutLabel(label: string): void;
   refresh(): void;
   dispose(): void;
 }
@@ -36,6 +37,14 @@ const CONTROL_POPOVER_ID = 'control-overlay-popover';
 const CONTROL_OPEN_KEY = 'controlsOpen';
 const ACTIVE_INPUT_KEY = 'activeInput';
 const ACTIVE_METHOD_KEY = 'activeMethod';
+
+const formatMenuButtonTitle = (
+  item: ControlOverlayStrings['menu']['controls'],
+  shortcutLabel: string
+): string =>
+  item.keyHint
+    ? item.title.split(item.keyHint).join(shortcutLabel)
+    : item.title;
 
 const INPUT_METHODS: ReadonlyArray<InputMethod> = [
   'keyboard',
@@ -106,6 +115,9 @@ const createNoopResponsiveControlOverlay =
     setStrings() {
       /* noop */
     },
+    setControlsShortcutLabel() {
+      /* noop */
+    },
     refresh() {
       /* noop */
     },
@@ -124,6 +136,7 @@ const setOpenState = (
   popover.hidden = !open;
   container.dataset[CONTROL_OPEN_KEY] = open ? 'true' : 'false';
   button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  button.setAttribute('aria-pressed', open ? 'true' : 'false');
   button.dataset.hudAnnounce = open
     ? strings.mobileToggle.collapseAnnouncement
     : strings.mobileToggle.expandAnnouncement;
@@ -178,6 +191,7 @@ export function createResponsiveControlOverlay(
   popover.setAttribute('aria-labelledby', labelId);
 
   let currentStrings: ControlOverlayStrings = { ...strings };
+  let controlsShortcutLabel = currentStrings.menu.controls.keyHint;
   let layout: HudLayout = initialLayout;
   let open = false;
   let disposed = false;
@@ -191,10 +205,14 @@ export function createResponsiveControlOverlay(
       menuLabel.textContent = currentStrings.menu.controls.label;
       const menuKey = button.querySelector('[data-hud-menu-key]');
       if (menuKey instanceof HTMLElement) {
-        menuKey.textContent = currentStrings.menu.controls.keyHint;
+        menuKey.textContent = controlsShortcutLabel;
       }
-      button.setAttribute('aria-label', currentStrings.menu.controls.title);
-      button.title = currentStrings.menu.controls.title;
+      const title = formatMenuButtonTitle(
+        currentStrings.menu.controls,
+        controlsShortcutLabel
+      );
+      button.setAttribute('aria-label', title);
+      button.title = title;
     } else {
       button.textContent = currentStrings.heading;
       button.setAttribute('aria-label', currentStrings.heading);
@@ -323,7 +341,15 @@ export function createResponsiveControlOverlay(
       update();
     },
     setStrings(nextStrings: ControlOverlayStrings) {
+      const previousDefaultShortcut = currentStrings.menu.controls.keyHint;
       currentStrings = { ...nextStrings };
+      if (controlsShortcutLabel === previousDefaultShortcut) {
+        controlsShortcutLabel = currentStrings.menu.controls.keyHint;
+      }
+      applyStrings();
+    },
+    setControlsShortcutLabel(label: string) {
+      controlsShortcutLabel = label || currentStrings.menu.controls.keyHint;
       applyStrings();
     },
     refresh() {
@@ -346,6 +372,7 @@ export function createResponsiveControlOverlay(
       documentTarget?.removeEventListener('keydown', handleDocumentKeydown);
       popover.hidden = true;
       button.removeAttribute('aria-expanded');
+      button.removeAttribute('aria-pressed');
       button.removeAttribute('aria-controls');
       button.removeAttribute('aria-haspopup');
       button.dataset.hudAnnounce = '';
