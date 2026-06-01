@@ -44,6 +44,24 @@ jobs:
           echo "short_sha=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_OUTPUT"
           echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
+      - name: Summarize build contract
+        shell: bash
+        run: |
+          deploy_tag="ghcr.io/futuroptimist/danielsmith.io:main-${{ steps.meta.outputs.short_sha }}"
+          {
+            echo "Sugarkube image contract:"
+            echo "- Immutable deploy tag: \`${deploy_tag}\`"
+            echo "- Event: \`${{ github.event_name }}\`"
+            if [ "${{ github.event_name }}" = "push" ] && \
+              [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              echo "- Publish behavior: multi-arch image publishes after smoke tests pass."
+            elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "- Publish behavior: manual dispatch builds and smokes only; no image publish."
+            else
+              echo "- Publish behavior: pull requests build and smoke only; no image publish."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build local smoke-test image
         uses: docker/build-push-action@v6
         with:
