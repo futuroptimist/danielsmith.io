@@ -2423,6 +2423,9 @@ function initializeImmersiveScene(
   const controlOverlayHeading = controlOverlay?.querySelector<HTMLElement>(
     '[data-control-text="heading"]'
   );
+  const controlsButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="controls-button"]'
+  );
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
@@ -2446,6 +2449,7 @@ function initializeImmersiveScene(
     applyControlOverlayAccessibility({
       container: controlOverlay,
       heading: controlOverlayHeading,
+      controlsButton,
       helpButton,
       documentTarget: document,
       focusOnInit: true,
@@ -2457,9 +2461,7 @@ function initializeImmersiveScene(
         list: controlOverlay.querySelector<HTMLElement>(
           '[data-role="control-list"]'
         ),
-        button: controlOverlay.querySelector<HTMLButtonElement>(
-          '[data-role="controls-button"]'
-        ),
+        button: controlsButton,
         popover: controlOverlay.querySelector<HTMLElement>(
           '[data-role="controls-popover"]'
         ),
@@ -2604,17 +2606,31 @@ function initializeImmersiveScene(
       tagName === 'select'
     );
   };
+  const normalizeKeyboardEventKey = (event: KeyboardEvent): string =>
+    event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  const normalizeBindingKey = (binding: string): string =>
+    binding.length === 1 ? binding.toLowerCase() : binding;
   const matchesKeyBinding = (
     event: KeyboardEvent,
     action: KeyBindingAction
   ): boolean => {
-    const normalizedKey =
-      event.key.length === 1 ? event.key.toLowerCase() : event.key;
-    return keyBindings.getBindings(action).some((binding) => {
-      const normalizedBinding =
-        binding.length === 1 ? binding.toLowerCase() : binding;
-      return normalizedBinding === normalizedKey;
-    });
+    const normalizedKey = normalizeKeyboardEventKey(event);
+    return keyBindings
+      .getBindings(action)
+      .some((binding) => normalizeBindingKey(binding) === normalizedKey);
+  };
+  const hasConflictingKeyBinding = (
+    event: KeyboardEvent,
+    action: KeyBindingAction
+  ): boolean => {
+    const normalizedKey = normalizeKeyboardEventKey(event);
+    return bindingActions.some(
+      (candidate) =>
+        candidate !== action &&
+        keyBindings
+          .getBindings(candidate)
+          .some((binding) => normalizeBindingKey(binding) === normalizedKey)
+    );
   };
   const handleControlsKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.repeat) {
@@ -2626,7 +2642,10 @@ function initializeImmersiveScene(
     if (isTextEntryTarget(event.target)) {
       return;
     }
-    if (!matchesKeyBinding(event, 'toggleControls')) {
+    if (
+      !matchesKeyBinding(event, 'toggleControls') ||
+      hasConflictingKeyBinding(event, 'toggleControls')
+    ) {
       return;
     }
     event.preventDefault();

@@ -255,6 +255,57 @@ describe('createResponsiveControlOverlay', () => {
     expect(popover.hidden).toBe(true);
   });
 
+  it('keeps legacy mobile collapse behavior when no popover is present', () => {
+    const container = document.createElement('div');
+    container.dataset.activeInput = 'keyboard';
+    container.innerHTML = `
+      <button type="button" data-role="control-toggle">Show all controls</button>
+      <ul data-role="control-list">
+        <li data-control-item="keyboardMove" data-input-methods="keyboard"></li>
+        <li data-control-item="pointerDrag" data-input-methods="pointer"></li>
+        <li data-control-item="interact" data-input-methods="keyboard pointer touch" hidden></li>
+      </ul>
+    `;
+    document.body.append(container);
+    const toggle = container.querySelector<HTMLButtonElement>(
+      '[data-role="control-toggle"]'
+    );
+    const list = container.querySelector<HTMLElement>(
+      '[data-role="control-list"]'
+    );
+    const pointer = container.querySelector<HTMLElement>(
+      '[data-control-item="pointerDrag"]'
+    );
+
+    if (!toggle || !list || !pointer) {
+      throw new Error('Failed to create legacy control overlay fixture.');
+    }
+
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      toggle,
+      strings: createStrings(),
+      initialLayout: 'mobile',
+      storage: null,
+    });
+
+    expect(handle.isOpen()).toBe(false);
+    expect(toggle.hidden).toBe(false);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(pointer.hidden).toBe(true);
+    expect(pointer.dataset.mobileCollapsed).toBe('true');
+
+    toggle.click();
+
+    expect(handle.isOpen()).toBe(true);
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(pointer.hidden).toBe(false);
+    expect(pointer.dataset.mobileCollapsed).toBeUndefined();
+
+    handle.dispose();
+  });
+
   it('represents the controls popover shortcut in the key binding model', () => {
     expect(DEFAULT_KEY_BINDINGS.toggleControls).toEqual(['c']);
   });
