@@ -1532,11 +1532,49 @@ function initializeImmersiveScene(
 
   const poiAnalytics = createWindowPoiAnalytics();
   const interactionTimeline = new InteractionTimeline();
+  let currentHoveredPoi: PoiDefinition | null = null;
+  let currentSelectedPoi: PoiDefinition | null = null;
+  let poiInteractionManager: PoiInteractionManager | null = null;
+  const isMobilePoiLayout = (layoutOverride?: HudLayout): boolean =>
+    (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
     interactionTimeline,
+    onDismiss: () => {
+      dismissActivePoiDetail();
+    },
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
+    (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
+    (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
+  const syncPoiDetailOverlay = (layoutOverride?: HudLayout) => {
+    const canShowDetail = canShowPoiDetailOverlay(layoutOverride);
+    const showHover =
+      canShowDetail && !isMobilePoiLayout(layoutOverride)
+        ? currentHoveredPoi
+        : null;
+    const showSelected = canShowDetail ? currentSelectedPoi : null;
+    poiTooltipOverlay.setHovered(showHover);
+    poiTooltipOverlay.setSelected(showSelected);
+    poiWorldTooltip.setHovered(resolveWorldTooltipTarget(showHover));
+    poiWorldTooltip.setSelected(resolveWorldTooltipTarget(showSelected));
+  };
+  const clearPoiDetailState = (
+    inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
+  ) => {
+    currentHoveredPoi = null;
+    currentSelectedPoi = null;
+    poiInteractionManager?.clearHover(inputMethod);
+    poiInteractionManager?.clearSelection(inputMethod);
+    syncPoiDetailOverlay();
+  };
+  const dismissActivePoiDetail = (
+    inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
+  ) => {
+    clearPoiDetailState(inputMethod);
+    hudPanelCoordinator?.closeAllPanels();
+  };
   const updatePassivePoiRecommendationPolicy = (layoutOverride?: HudLayout) => {
     const activeHudPanel = hudPanelCoordinator?.getActivePanel() ?? null;
     const hudLayout = layoutOverride ?? hudLayoutManager?.getLayout();
@@ -1546,8 +1584,8 @@ function initializeImmersiveScene(
       activeHudPanel === null;
     poiTooltipOverlay.setPassiveRecommendationsEnabled(enabled);
     poiWorldTooltip.setPassiveRecommendationsEnabled(enabled);
+    syncPoiDetailOverlay(layoutOverride);
   };
-  updatePassivePoiRecommendationPolicy();
   idleMonitor = new IdleMonitor({
     windowTarget: window,
     elementTargets: [renderer.domElement],
@@ -1631,6 +1669,8 @@ function initializeImmersiveScene(
       },
     };
   };
+
+  updatePassivePoiRecommendationPolicy();
 
   const ensurePoiApi = () => {
     const portfolioWindow = window as Window;
@@ -1994,20 +2034,32 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
-  const poiInteractionManager = new PoiInteractionManager(
+  poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,
     camera,
     poiInstances,
     poiAnalytics
   );
   const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
-    poiTooltipOverlay.setHovered(poi);
-    poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
+    currentHoveredPoi = poi;
+    syncPoiDetailOverlay();
   });
   const removeSelectionStateListener =
     poiInteractionManager.addSelectionStateListener((poi, context) => {
-      poiTooltipOverlay.setSelected(poi, context);
-      poiWorldTooltip.setSelected(resolveWorldTooltipTarget(poi));
+      currentSelectedPoi = poi;
+      if (poi) {
+        hudPanelCoordinator?.closeAllPanels();
+      }
+      poiTooltipOverlay.setSelected(
+        canShowPoiDetailOverlay() ? currentSelectedPoi : null,
+        context
+      );
+      poiWorldTooltip.setSelected(
+        resolveWorldTooltipTarget(
+          canShowPoiDetailOverlay() ? currentSelectedPoi : null
+        )
+      );
+      syncPoiDetailOverlay();
     });
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
@@ -2025,6 +2077,21 @@ function initializeImmersiveScene(
     }
   );
   poiInteractionManager.start();
+  const handlePoiDetailEscape = (event: KeyboardEvent) => {
+    if (
+      event.key !== 'Escape' ||
+      event.defaultPrevented ||
+      !poiTooltipOverlay.getState().visible
+    ) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    dismissActivePoiDetail('keyboard');
+  };
+  document.addEventListener('keydown', handlePoiDetailEscape, {
+    capture: true,
+  });
   beforeUnloadHandler = () => {
     inputLatencyTelemetry?.report('beforeunload');
     disposeImmersiveResources();
@@ -2714,7 +2781,12 @@ function initializeImmersiveScene(
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
-    onActivePanelChange: () => updatePassivePoiRecommendationPolicy(),
+    onActivePanelChange: (panel) => {
+      if (panel !== null) {
+        clearPoiDetailState();
+      }
+      updatePassivePoiRecommendationPolicy();
+    },
   });
   let interactablePoi: PoiInstance | null = null;
 
@@ -4110,7 +4182,7 @@ function initializeImmersiveScene(
     const pressed = keyBindings.isActionActive('interact', keyPressSource);
     if (pressed && !interactKeyWasPressed && interactablePoi) {
       idleMonitor?.reportActivity();
-      poiInteractionManager.selectPoiById(interactablePoi.definition.id);
+      poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
   }
@@ -4157,7 +4229,11 @@ function initializeImmersiveScene(
       avatarFootIkController.dispose();
       avatarFootIkController = null;
     }
-    poiInteractionManager.dispose();
+    document.removeEventListener('keydown', handlePoiDetailEscape, {
+      capture: true,
+    });
+    poiInteractionManager?.dispose();
+    poiInteractionManager = null;
     removeHoverListener();
     removeSelectionStateListener();
     removeSelectionListener();

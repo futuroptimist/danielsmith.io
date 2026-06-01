@@ -11,6 +11,7 @@ type DiscoveryFormatter = (poi: PoiDefinition) => string;
 
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
+  onDismiss?: () => void;
   discoveryAnnouncer?: {
     format?: DiscoveryFormatter;
     politeness?: 'polite' | 'assertive';
@@ -36,6 +37,7 @@ export class PoiTooltipOverlay {
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
+  private readonly closeButton: HTMLButtonElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
   private readonly guidedTourPreference: GuidedTourPreference;
@@ -53,10 +55,12 @@ export class PoiTooltipOverlay {
   private isIdle = false;
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
+  private readonly onDismiss: (() => void) | null;
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
       container,
+      onDismiss,
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
@@ -68,6 +72,7 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
+    this.onDismiss = onDismiss ?? null;
     this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
@@ -104,6 +109,16 @@ export class PoiTooltipOverlay {
     this.recommendationBadge.textContent = 'Next highlight';
     this.recommendationBadge.hidden = true;
     headingRow.appendChild(this.recommendationBadge);
+
+    this.closeButton = documentTarget.createElement('button');
+    this.closeButton.className = 'poi-tooltip-overlay__close';
+    this.closeButton.type = 'button';
+    this.closeButton.setAttribute('aria-label', 'Close POI details');
+    this.closeButton.textContent = '×';
+    this.closeButton.addEventListener('click', () => {
+      this.onDismiss?.();
+    });
+    headingRow.appendChild(this.closeButton);
 
     this.summary = documentTarget.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';
