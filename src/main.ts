@@ -277,6 +277,7 @@ import {
   KeyBindings,
   createKeyBindingAwareSource,
   formatKeyLabel,
+  shouldIgnoreShortcutEvent,
   type KeyBindingAction,
   type KeyBindingConfig,
 } from './systems/controls/keyBindings';
@@ -2207,6 +2208,7 @@ function initializeImmersiveScene(
     'moveRight',
     'interact',
     'help',
+    'toggleControls',
   ];
   const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
 
@@ -2463,6 +2465,22 @@ function initializeImmersiveScene(
         initialLayout: 'desktop',
       })
     : null;
+  const normalizeShortcutKey = (key: string) =>
+    key.length === 1 ? key.toLowerCase() : key;
+  const controlsToggleKeydownHandler = (event: KeyboardEvent) => {
+    if (
+      event.repeat ||
+      shouldIgnoreShortcutEvent(event) ||
+      !keyBindings
+        .getBindings('toggleControls')
+        .includes(normalizeShortcutKey(event.key))
+    ) {
+      return;
+    }
+    event.preventDefault();
+    responsiveControlOverlay?.toggle();
+  };
+  window.addEventListener('keydown', controlsToggleKeydownHandler);
   const helpModal = createHelpModal({
     container: document.body,
     content: helpModalStrings,
@@ -4159,6 +4177,7 @@ function initializeImmersiveScene(
       unsubscribeGraphicsQuality = null;
     }
     graphicsQualityManager = null;
+    window.removeEventListener('keydown', controlsToggleKeydownHandler);
     if (beforeUnloadHandler) {
       window.removeEventListener('beforeunload', beforeUnloadHandler);
       beforeUnloadHandler = null;

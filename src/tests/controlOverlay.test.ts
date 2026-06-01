@@ -28,12 +28,13 @@ describe('applyControlOverlayStrings', () => {
         </li>
       </ul>
       <button
-        class="overlay__collapse-toggle"
+        class="overlay__controls-button"
         type="button"
         data-role="control-toggle"
       >
         Toggle
       </button>
+      <button type="button" data-role="control-close">Close</button>
     `;
     const strings = getControlOverlayStrings('en');
     applyControlOverlayStrings(container, strings);
@@ -58,11 +59,7 @@ describe('applyControlOverlayStrings', () => {
     const toggle = container.querySelector<HTMLButtonElement>(
       '[data-role="control-toggle"]'
     );
-    expect(toggle?.textContent).toBe(strings.mobileToggle.expandLabel);
-    expect(toggle?.dataset.expandLabel).toBe(strings.mobileToggle.expandLabel);
-    expect(toggle?.dataset.collapseLabel).toBe(
-      strings.mobileToggle.collapseLabel
-    );
+    expect(toggle?.textContent).toBe(strings.heading);
     expect(toggle?.dataset.expandAnnouncement).toBe(
       strings.mobileToggle.expandAnnouncement
     );
@@ -71,6 +68,14 @@ describe('applyControlOverlayStrings', () => {
     );
     expect(toggle?.dataset.hudAnnounce).toBe(
       strings.mobileToggle.expandAnnouncement
+    );
+
+    const closeButton = container.querySelector<HTMLButtonElement>(
+      '[data-role="control-close"]'
+    );
+    expect(closeButton?.textContent).toBe(strings.mobileToggle.collapseLabel);
+    expect(closeButton?.dataset.hudAnnounce).toBe(
+      strings.mobileToggle.collapseAnnouncement
     );
   });
 });

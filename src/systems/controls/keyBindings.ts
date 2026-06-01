@@ -6,7 +6,8 @@ export type KeyBindingAction =
   | 'moveLeft'
   | 'moveRight'
   | 'interact'
-  | 'help';
+  | 'help'
+  | 'toggleControls';
 
 export type KeyBindingConfig = Partial<
   Record<KeyBindingAction, readonly string[]>
@@ -29,6 +30,7 @@ export const DEFAULT_KEY_BINDINGS: Record<KeyBindingAction, readonly string[]> =
     moveRight: ['d', 'ArrowRight'],
     interact: ['Enter', 'f', ' '],
     help: ['h', '?'],
+    toggleControls: ['c'],
   };
 
 type ActionEntries = [KeyBindingAction, readonly string[]];
@@ -184,6 +186,49 @@ export function formatKeyLabel(key: string | null | undefined): string {
     return `Arrow ${direction}`;
   }
   return key;
+}
+
+export function isTextEntryKeyEventTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  if (target.isContentEditable) {
+    return true;
+  }
+  const tagName = target.tagName.toLowerCase();
+  if (tagName === 'textarea' || tagName === 'select') {
+    return true;
+  }
+  if (tagName !== 'input') {
+    return Boolean(
+      target.closest(
+        '[contenteditable="true"], [data-keybinding-editing="true"]'
+      )
+    );
+  }
+  const input = target as HTMLInputElement;
+  const type = input.type.toLowerCase();
+  return ![
+    'button',
+    'checkbox',
+    'color',
+    'file',
+    'radio',
+    'range',
+    'reset',
+    'submit',
+  ].includes(type);
+}
+
+export function shouldIgnoreShortcutEvent(event: KeyboardEvent): boolean {
+  return (
+    event.defaultPrevented ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.shiftKey ||
+    isTextEntryKeyEventTarget(event.target)
+  );
 }
 
 export function createKeyBindingAwareSource(

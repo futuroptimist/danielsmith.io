@@ -42,24 +42,89 @@
 
       .overlay {
         position: fixed;
-        bottom: 1.5rem;
-        left: 1.5rem;
-        padding: 1rem 1.25rem;
-        border-radius: 0.75rem;
-        background: rgba(8, 12, 20, 0.78);
-        color: inherit;
-        border: 1px solid rgba(86, 184, 255, 0.28);
-        box-shadow: 0 20px 48px rgba(3, 9, 18, 0.55);
+        top: calc(env(safe-area-inset-top, 0px) + 1rem);
+        right: calc(env(safe-area-inset-right, 0px) + 1rem);
+        z-index: 40;
+        color: var(--hud-surface-text);
         font-size: 0.9rem;
         line-height: 1.4;
-        max-width: 20rem;
-        transition:
-          opacity 200ms ease,
-          transform 200ms ease;
-        overflow: visible;
       }
 
-      .overlay::after {
+      .overlay__actions {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+
+      .overlay__controls-button,
+      .overlay__help-button,
+      .overlay__close {
+        border: 1px solid rgba(123, 209, 255, 0.4);
+        background:
+          linear-gradient(
+            140deg,
+            rgba(12, 25, 39, 0.92),
+            rgba(16, 43, 70, 0.78)
+          ),
+          rgba(9, 18, 28, 0.88);
+        color: #e7f4ff;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          box-shadow 140ms ease,
+          transform 120ms ease;
+      }
+
+      .overlay__controls-button:hover,
+      .overlay__controls-button:focus-visible,
+      .overlay__help-button:hover,
+      .overlay__help-button:focus-visible,
+      .overlay__close:hover,
+      .overlay__close:focus-visible {
+        border-color: rgba(158, 232, 255, 0.8);
+        box-shadow: 0 18px 38px rgba(8, 20, 32, 0.35);
+        outline: none;
+        transform: translateY(-1px);
+      }
+
+      .overlay__controls-button:active,
+      .overlay__help-button:active,
+      .overlay__close:active {
+        transform: translateY(0);
+      }
+
+      .overlay__controls-button,
+      .overlay__help-button {
+        padding: 0.65rem 0.9rem;
+        border-radius: 999px;
+        backdrop-filter: blur(12px);
+      }
+
+      .overlay__popover {
+        position: absolute;
+        top: calc(100% + 0.7rem);
+        right: 0;
+        width: min(22rem, calc(100vw - 2rem - env(safe-area-inset-left, 0px)));
+        max-height: min(70vh, 32rem);
+        padding: 1rem 1.05rem;
+        overflow: auto;
+        overscroll-behavior: contain;
+        border-radius: 0.9rem;
+        background: var(--hud-surface-bg);
+        border: 1px solid var(--hud-surface-border);
+        box-shadow: var(--hud-surface-shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .overlay__popover[hidden] {
+        display: none;
+      }
+
+      .overlay__popover::after {
         content: '';
         position: absolute;
         inset: -0.9rem;
@@ -76,52 +141,28 @@
         transition: opacity 160ms ease;
       }
 
-      .overlay__item[data-mobile-collapsed='true'] {
-        display: none;
-      }
-
-      html[data-hudLayout='mobile'] .overlay {
-        top: calc(env(safe-area-inset-top, 0) + 1rem);
-        bottom: auto;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        width: min(24rem, calc(100% - 2rem));
-        padding: 0.9rem 1.05rem;
-        font-size: 0.95rem;
-        line-height: 1.5;
-        z-index: 40;
-      }
-
-      html[data-hudLayout='mobile'] .overlay__heading {
-        margin-bottom: 0.6rem;
-        font-size: 0.7rem;
-      }
-
-      html[data-hudLayout='mobile'] .overlay__list {
-        gap: 0.35rem;
-      }
-
-      html[data-hudLayout='mobile'] .overlay__item {
-        padding: 0.35rem 0.45rem;
-        gap: 0.6rem;
-      }
-
-      html[data-hudLayout='mobile'] .overlay__keys {
-        min-width: 5.75rem;
-      }
-
-      html[data-hudLayout='mobile'] .overlay__help-button {
-        margin-top: 0.65rem;
+      .overlay__popover-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
       }
 
       .overlay__heading {
-        margin: 0 0 0.75rem;
+        margin: 0;
         font-size: 0.75rem;
         font-weight: 600;
-        letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: rgba(196, 228, 255, 0.82);
+        letter-spacing: 0.12em;
+        color: var(--hud-surface-heading);
+      }
+
+      .overlay__close {
+        flex: none;
+        padding: 0.4rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.76rem;
       }
 
       .overlay__list {
@@ -155,10 +196,11 @@
       }
 
       .overlay__keys {
+        display: inline-block;
         min-width: 7rem;
         font-weight: 600;
         letter-spacing: 0.02em;
-        color: rgba(143, 214, 255, 0.9);
+        color: var(--hud-surface-accent);
       }
 
       .overlay__item[data-state='active'] .overlay__keys {
@@ -167,7 +209,7 @@
 
       .overlay__description {
         flex: 1;
-        color: rgba(239, 245, 255, 0.88);
+        color: var(--hud-surface-muted-text);
       }
 
       .overlay__item[data-state='active'] .overlay__description {
@@ -188,76 +230,44 @@
         }
       }
 
-      .overlay__collapse-toggle {
-        margin-top: 0.6rem;
-        width: 100%;
-        padding: 0.55rem 0.9rem;
-        border-radius: 0.6rem;
-        border: 1px solid rgba(123, 209, 255, 0.32);
-        background:
-          linear-gradient(
-            140deg,
-            rgba(12, 25, 39, 0.88),
-            rgba(16, 43, 70, 0.72)
-          ),
-          rgba(9, 18, 28, 0.82);
-        color: rgba(231, 244, 255, 0.95);
-        font-size: 0.82rem;
-        font-weight: 600;
-        letter-spacing: 0.01em;
-        cursor: pointer;
-        transition:
-          border-color 140ms ease,
-          box-shadow 140ms ease,
-          transform 120ms ease;
+      :root[data-hud-layout='mobile'],
+      :root[data-hudLayout='mobile'] {
+        --hud-mobile-safe-zone: calc(8.5rem + env(safe-area-inset-bottom, 0px));
       }
 
-      .overlay__collapse-toggle:hover,
-      .overlay__collapse-toggle:focus-visible {
-        border-color: rgba(158, 232, 255, 0.75);
-        box-shadow: 0 14px 32px rgba(8, 20, 32, 0.32);
-        outline: none;
-        transform: translateY(-1px);
+      :root[data-hud-layout='mobile'] .overlay,
+      :root[data-hudLayout='mobile'] .overlay {
+        top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+        right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+        left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+        font-size: 0.85rem;
       }
 
-      .overlay__collapse-toggle:active {
-        transform: translateY(0);
+      :root[data-hud-layout='mobile'] .overlay__actions,
+      :root[data-hudLayout='mobile'] .overlay__actions {
+        flex-wrap: wrap;
       }
 
-      .overlay__help-button {
-        margin-top: 0.85rem;
-        width: 100%;
-        padding: 0.65rem 0.9rem;
-        border-radius: 0.6rem;
-        border: 1px solid rgba(123, 209, 255, 0.4);
-        background:
-          linear-gradient(
-            140deg,
-            rgba(12, 25, 39, 0.92),
-            rgba(16, 43, 70, 0.78)
-          ),
-          rgba(9, 18, 28, 0.88);
-        color: #e7f4ff;
-        font-size: 0.86rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        cursor: pointer;
-        transition:
-          border-color 140ms ease,
-          box-shadow 140ms ease,
-          transform 120ms ease;
+      :root[data-hud-layout='mobile'] .overlay__popover,
+      :root[data-hudLayout='mobile'] .overlay__popover {
+        width: auto;
+        left: 0;
+        max-height: min(62vh, 28rem);
+        padding: 0.85rem 0.9rem;
       }
 
-      .overlay__help-button:hover,
-      .overlay__help-button:focus-visible {
-        border-color: rgba(158, 232, 255, 0.8);
-        box-shadow: 0 18px 38px rgba(8, 20, 32, 0.35);
-        outline: none;
-        transform: translateY(-1px);
+      :root[data-hud-layout='mobile'] .overlay__keys,
+      :root[data-hudLayout='mobile'] .overlay__keys {
+        min-width: 5.75rem;
       }
 
-      .overlay__help-button:active {
-        transform: translateY(0);
+      :root[data-hud-layout='mobile'] .poi-tooltip-overlay,
+      :root[data-hudLayout='mobile'] .poi-tooltip-overlay {
+        bottom: calc(var(--hud-mobile-safe-zone) + 1rem);
+        left: 1rem;
+        right: 1rem;
+        max-width: none;
+        width: auto;
       }
 
       .help-modal-backdrop {
@@ -488,100 +498,126 @@
     </noscript>
     <div id="app"></div>
     <div class="overlay" id="control-overlay">
-      <p class="overlay__heading" data-control-text="heading">Controls</p>
-      <ul class="overlay__list" data-role="control-list">
-        <li
-          class="overlay__item"
-          data-input-methods="keyboard"
-          data-control-item="keyboardMove"
+      <div class="overlay__actions">
+        <button
+          class="overlay__controls-button"
+          type="button"
+          data-role="control-toggle"
+          data-control-text="toggle"
         >
-          <span class="overlay__keys">WASD / Arrow keys</span>
-          <span class="overlay__description">Move</span>
-        </li>
-        <li
-          class="overlay__item overlay__item--desktop"
-          data-input-methods="pointer"
-          data-control-item="pointerDrag"
+          Controls
+        </button>
+        <button
+          class="overlay__help-button"
+          type="button"
+          data-control="help"
+          data-hud-announce="Open settings and help. Press H to review controls and accessibility tips."
         >
-          <span class="overlay__keys">Left mouse button</span>
-          <span class="overlay__description">Drag to pan</span>
-        </li>
-        <li
-          class="overlay__item overlay__item--desktop"
-          data-input-methods="pointer"
-          data-control-item="pointerZoom"
-        >
-          <span class="overlay__keys">Scroll wheel</span>
-          <span class="overlay__description">Zoom</span>
-        </li>
-        <li
-          class="overlay__item overlay__item--touch"
-          data-input-methods="touch"
-          data-control-item="touchDrag"
-        >
-          <span class="overlay__keys">Touch</span>
-          <span class="overlay__description">
-            Drag the left half to move and the right half to pan
-          </span>
-        </li>
-        <li
-          class="overlay__item overlay__item--touch"
-          data-input-methods="touch"
-          data-control-item="touchPinch"
-        >
-          <span class="overlay__keys">Pinch</span>
-          <span class="overlay__description">Zoom</span>
-        </li>
-        <li
-          class="overlay__item"
-          data-input-methods="keyboard"
-          data-control-item="cyclePoi"
-        >
-          <span class="overlay__keys">Q / E</span>
-          <span class="overlay__description">Cycle POIs</span>
-        </li>
-        <li
-          class="overlay__item"
-          data-input-methods="keyboard"
-          data-control-item="toggleTextMode"
-        >
-          <span class="overlay__keys">T</span>
-          <span class="overlay__description">Switch to text mode</span>
-        </li>
-        <li
-          class="overlay__item"
-          data-control="interact"
-          data-role="interact"
-          data-input-methods="keyboard pointer touch"
-          data-control-item="interact"
-          hidden
-        >
-          <span class="overlay__keys" data-role="interact-label">F</span>
-          <span
-            class="overlay__description"
-            data-control="interact-description"
-            data-role="interact-description"
-          >
-            Interact
-          </span>
-        </li>
-      </ul>
-      <button
-        class="overlay__collapse-toggle"
-        type="button"
-        data-role="control-toggle"
+          Open menu · Press H
+        </button>
+      </div>
+      <div
+        class="overlay__popover"
+        data-role="control-popover"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="control-overlay-heading"
         hidden
       >
-        Show controls
-      </button>
-      <button
-        class="overlay__help-button"
-        type="button"
-        data-control="help"
-        data-hud-announce="Open settings and help. Press H to review controls and accessibility tips."
-      >
-        Open menu · Press H
-      </button>
+        <div class="overlay__popover-header">
+          <p
+            class="overlay__heading"
+            data-control-text="heading"
+            id="control-overlay-heading"
+          >
+            Controls
+          </p>
+          <button
+            class="overlay__close"
+            type="button"
+            data-role="control-close"
+          >
+            Close
+          </button>
+        </div>
+        <ul class="overlay__list" data-role="control-list">
+          <li
+            class="overlay__item"
+            data-input-methods="keyboard"
+            data-control-item="keyboardMove"
+          >
+            <span class="overlay__keys">WASD / Arrow keys</span>
+            <span class="overlay__description">Move</span>
+          </li>
+          <li
+            class="overlay__item overlay__item--desktop"
+            data-input-methods="pointer"
+            data-control-item="pointerDrag"
+          >
+            <span class="overlay__keys">Left mouse button</span>
+            <span class="overlay__description">Drag to pan</span>
+          </li>
+          <li
+            class="overlay__item overlay__item--desktop"
+            data-input-methods="pointer"
+            data-control-item="pointerZoom"
+          >
+            <span class="overlay__keys">Scroll wheel</span>
+            <span class="overlay__description">Zoom</span>
+          </li>
+          <li
+            class="overlay__item overlay__item--touch"
+            data-input-methods="touch"
+            data-control-item="touchDrag"
+          >
+            <span class="overlay__keys">Touch</span>
+            <span class="overlay__description">
+              Drag the left half to move and the right half to pan
+            </span>
+          </li>
+          <li
+            class="overlay__item overlay__item--touch"
+            data-input-methods="touch"
+            data-control-item="touchPinch"
+          >
+            <span class="overlay__keys">Pinch</span>
+            <span class="overlay__description">Zoom</span>
+          </li>
+          <li
+            class="overlay__item"
+            data-input-methods="keyboard"
+            data-control-item="cyclePoi"
+          >
+            <span class="overlay__keys">Q / E</span>
+            <span class="overlay__description">Cycle POIs</span>
+          </li>
+          <li
+            class="overlay__item"
+            data-input-methods="keyboard"
+            data-control-item="toggleTextMode"
+          >
+            <span class="overlay__keys">T</span>
+            <span class="overlay__description">Switch to text mode</span>
+          </li>
+          <li
+            class="overlay__item"
+            data-control="interact"
+            data-role="interact"
+            data-input-methods="keyboard pointer touch"
+            data-control-item="interact"
+            hidden
+          >
+            <span class="overlay__keys" data-role="interact-label">F</span>
+            <span
+              class="overlay__description"
+              data-control="interact-description"
+              data-role="interact-description"
+            >
+              Interact
+            </span>
+          </li>
+        </ul>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
