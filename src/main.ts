@@ -387,6 +387,7 @@ import {
 } from './ui/hud/hudPanelCoordinator';
 import {
   createHudLayoutManager,
+  type HudLayout,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
 import {
@@ -1536,11 +1537,13 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
-  const updatePassivePoiRecommendationPolicy = () => {
+  const updatePassivePoiRecommendationPolicy = (layoutOverride?: HudLayout) => {
     const activeHudPanel = hudPanelCoordinator?.getActivePanel() ?? null;
-    const hudLayout = hudLayoutManager?.getLayout() ?? null;
+    const hudLayout = layoutOverride ?? hudLayoutManager?.getLayout();
     const enabled =
-      hudLayout !== null && hudLayout !== 'mobile' && activeHudPanel === null;
+      hudLayout !== undefined &&
+      hudLayout !== 'mobile' &&
+      activeHudPanel === null;
     poiTooltipOverlay.setPassiveRecommendationsEnabled(enabled);
     poiWorldTooltip.setPassiveRecommendationsEnabled(enabled);
   };
@@ -2491,7 +2494,7 @@ function initializeImmersiveScene(
         strings: controlOverlayStrings,
         initialLayout: 'desktop',
         manageButtonClick: false,
-        onOpenChange: updatePassivePoiRecommendationPolicy,
+        onOpenChange: () => updatePassivePoiRecommendationPolicy(),
       })
     : null;
   const updateControlsButtonLabel = () => {
@@ -2612,7 +2615,7 @@ function initializeImmersiveScene(
     helpButton,
     onOpen: showHudControlElements,
     onClose: hideHudControlElements,
-    onOpenChange: updatePassivePoiRecommendationPolicy,
+    onOpenChange: () => updatePassivePoiRecommendationPolicy(),
     hudFocusAnnouncer,
     announcements: helpModalStrings.announcements,
   });
@@ -2711,7 +2714,7 @@ function initializeImmersiveScene(
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
-    onActivePanelChange: updatePassivePoiRecommendationPolicy,
+    onActivePanelChange: () => updatePassivePoiRecommendationPolicy(),
   });
   let interactablePoi: PoiInstance | null = null;
 
@@ -3318,12 +3321,13 @@ function initializeImmersiveScene(
     windowTarget: window,
     onLayoutChange: (layout) => {
       responsiveControlOverlay?.setLayout(layout);
-      updatePassivePoiRecommendationPolicy();
+      updatePassivePoiRecommendationPolicy(layout);
     },
   });
   if (hudLayoutManager) {
-    responsiveControlOverlay?.setLayout(hudLayoutManager.getLayout());
-    updatePassivePoiRecommendationPolicy();
+    const initialHudLayout = hudLayoutManager.getLayout();
+    responsiveControlOverlay?.setLayout(initialHudLayout);
+    updatePassivePoiRecommendationPolicy(initialHudLayout);
   }
 
   composer = new EffectComposer(renderer);
