@@ -103,6 +103,30 @@ jobs:
           test -n "${asset_path}"
           curl -fsS "http://127.0.0.1:8080${asset_path}" >/dev/null
 
+      - name: Summarize image build contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_tag="main-${{ steps.meta.outputs.short_sha }}"
+          image_ref="ghcr.io/futuroptimist/danielsmith.io:${image_tag}"
+
+          echo "Immutable image tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${image_ref}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Sugarkube deploy tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${image_tag}\`" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ github.event_name }}" = "push" ] && \
+            [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Publish behavior:" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`main-${{ steps.meta.outputs.short_sha }}\`, \`main-latest\`, and " \
+              "\`sha-${{ steps.meta.outputs.short_sha }}\` will be published by the publish job." \
+              >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Publish behavior:" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`${{ github.event_name }}\` runs build and smoke-test only; no GHCR tags are published." \
+              >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -147,3 +171,5 @@ jobs:
           echo "Published immutable image tag:" >> "$GITHUB_STEP_SUMMARY"
           echo "\`ghcr.io/futuroptimist/danielsmith.io:main-${{ needs.build-and-smoke.outputs.short_sha }}\`" \
             >> "$GITHUB_STEP_SUMMARY"
+          echo "Sugarkube deploy tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`main-${{ needs.build-and-smoke.outputs.short_sha }}\`" >> "$GITHUB_STEP_SUMMARY"
