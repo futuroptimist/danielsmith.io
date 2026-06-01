@@ -2207,6 +2207,7 @@ function initializeImmersiveScene(
     'moveRight',
     'interact',
     'help',
+    'toggleControls',
   ];
   const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
 
@@ -2422,6 +2423,9 @@ function initializeImmersiveScene(
   const controlOverlayHeading = controlOverlay?.querySelector<HTMLElement>(
     '[data-control-text="heading"]'
   );
+  const controlsButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="controls-button"]'
+  );
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
@@ -2445,6 +2449,7 @@ function initializeImmersiveScene(
     applyControlOverlayAccessibility({
       container: controlOverlay,
       heading: controlOverlayHeading,
+      controlsButton,
       helpButton,
       documentTarget: document,
       focusOnInit: true,
@@ -2456,10 +2461,14 @@ function initializeImmersiveScene(
         list: controlOverlay.querySelector<HTMLElement>(
           '[data-role="control-list"]'
         ),
-        toggle: controlOverlay.querySelector<HTMLButtonElement>(
-          '[data-role="control-toggle"]'
+        button: controlsButton,
+        popover: controlOverlay.querySelector<HTMLElement>(
+          '[data-role="controls-popover"]'
         ),
-        strings: controlOverlayStrings.mobileToggle,
+        closeButton: controlOverlay.querySelector<HTMLButtonElement>(
+          '[data-role="controls-close"]'
+        ),
+        strings: controlOverlayStrings,
         initialLayout: 'desktop',
       })
     : null;
@@ -2583,6 +2592,66 @@ function initializeImmersiveScene(
   const toggleHelpMenu = (force?: boolean) => {
     helpModal.toggle(force);
   };
+  const isTextEntryTarget = (target: EventTarget | null): boolean => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+    const tagName = target.tagName.toLowerCase();
+    return (
+      target.isContentEditable ||
+      target.hasAttribute('contenteditable') ||
+      target.closest('[contenteditable]') !== null ||
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      tagName === 'select'
+    );
+  };
+  const normalizeKeyboardEventKey = (event: KeyboardEvent): string =>
+    event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  const normalizeBindingKey = (binding: string): string =>
+    binding.length === 1 ? binding.toLowerCase() : binding;
+  const matchesKeyBinding = (
+    event: KeyboardEvent,
+    action: KeyBindingAction
+  ): boolean => {
+    const normalizedKey = normalizeKeyboardEventKey(event);
+    return keyBindings
+      .getBindings(action)
+      .some((binding) => normalizeBindingKey(binding) === normalizedKey);
+  };
+  const hasConflictingKeyBinding = (
+    event: KeyboardEvent,
+    action: KeyBindingAction
+  ): boolean => {
+    const normalizedKey = normalizeKeyboardEventKey(event);
+    return bindingActions.some(
+      (candidate) =>
+        candidate !== action &&
+        keyBindings
+          .getBindings(candidate)
+          .some((binding) => normalizeBindingKey(binding) === normalizedKey)
+    );
+  };
+  const handleControlsKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || event.repeat) {
+      return;
+    }
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return;
+    }
+    if (isTextEntryTarget(event.target)) {
+      return;
+    }
+    if (
+      !matchesKeyBinding(event, 'toggleControls') ||
+      hasConflictingKeyBinding(event, 'toggleControls')
+    ) {
+      return;
+    }
+    event.preventDefault();
+    responsiveControlOverlay?.toggle();
+  };
+  window.addEventListener('keydown', handleControlsKeydown);
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
     helpButtonClickHandler = () => openHelpMenu();
@@ -2676,7 +2745,7 @@ function initializeImmersiveScene(
       applyControlOverlayStrings(controlOverlay, controlOverlayStrings);
     }
     analyticsGlow.setElement(controlOverlay ?? null);
-    responsiveControlOverlay?.setStrings(controlOverlayStrings.mobileToggle);
+    responsiveControlOverlay?.setStrings(controlOverlayStrings);
     responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
     if (movementLegend) {
@@ -4108,6 +4177,7 @@ function initializeImmersiveScene(
       hudLayoutManager.dispose();
       hudLayoutManager = null;
     }
+    window.removeEventListener('keydown', handleControlsKeydown);
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;

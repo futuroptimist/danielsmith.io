@@ -52,6 +52,21 @@ describe('applyControlOverlayAccessibility', () => {
     expect(document.activeElement).toBe(preFocused);
   });
 
+  it('uses the visible controls button as the overlay region label when available', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    heading.id = 'hidden-heading';
+    const controlsButton = document.createElement('button');
+    controlsButton.textContent = 'Controls';
+
+    applyControlOverlayAccessibility({ container, heading, controlsButton });
+
+    expect(container.getAttribute('aria-labelledby')).toBe(
+      'control-overlay-controls'
+    );
+    expect(controlsButton.id).toBe('control-overlay-controls');
+  });
+
   it('appends the help button id to existing aria-describedby content', () => {
     const container = document.createElement('div');
     container.setAttribute('aria-describedby', 'existing-id');

@@ -5,7 +5,8 @@ const CONTROL_KEYS_SELECTOR = '.overlay__keys';
 const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
-const COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
+const CONTROLS_BUTTON_SELECTOR = '[data-role="controls-button"]';
+const LEGACY_COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
 
 function setTextContent(
   element: Element | null | undefined,
@@ -62,21 +63,30 @@ export function applyControlOverlayStrings(
     );
   }
 
-  const collapseToggle = container.querySelector<HTMLButtonElement>(
-    COLLAPSE_TOGGLE_SELECTOR
+  const controlsButton = container.querySelector<HTMLButtonElement>(
+    CONTROLS_BUTTON_SELECTOR
   );
-  if (collapseToggle) {
+  if (controlsButton) {
+    setTextContent(controlsButton, strings.heading);
+    controlsButton.dataset.hudAnnounce =
+      strings.mobileToggle.expandAnnouncement;
+  }
+
+  const legacyCollapseToggle = container.querySelector<HTMLButtonElement>(
+    LEGACY_COLLAPSE_TOGGLE_SELECTOR
+  );
+  if (legacyCollapseToggle) {
     const {
       expandLabel,
       collapseLabel,
       expandAnnouncement,
       collapseAnnouncement,
     } = strings.mobileToggle;
-    setTextContent(collapseToggle, expandLabel);
-    collapseToggle.dataset.expandLabel = expandLabel;
-    collapseToggle.dataset.collapseLabel = collapseLabel;
-    collapseToggle.dataset.expandAnnouncement = expandAnnouncement;
-    collapseToggle.dataset.collapseAnnouncement = collapseAnnouncement;
-    collapseToggle.dataset.hudAnnounce = expandAnnouncement;
+    setTextContent(legacyCollapseToggle, expandLabel);
+    legacyCollapseToggle.dataset.expandLabel = expandLabel;
+    legacyCollapseToggle.dataset.collapseLabel = collapseLabel;
+    legacyCollapseToggle.dataset.expandAnnouncement = expandAnnouncement;
+    legacyCollapseToggle.dataset.collapseAnnouncement = collapseAnnouncement;
+    legacyCollapseToggle.dataset.hudAnnounce = expandAnnouncement;
   }
 }
