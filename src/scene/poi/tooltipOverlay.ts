@@ -11,6 +11,7 @@ type DiscoveryFormatter = (poi: PoiDefinition) => string;
 
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
+  onDismiss?: () => void;
   discoveryAnnouncer?: {
     format?: DiscoveryFormatter;
     politeness?: 'polite' | 'assertive';
@@ -36,6 +37,7 @@ export class PoiTooltipOverlay {
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
+  private readonly dismissButton: HTMLButtonElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
   private readonly guidedTourPreference: GuidedTourPreference;
@@ -53,10 +55,12 @@ export class PoiTooltipOverlay {
   private isIdle = false;
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
+  private readonly onDismiss: (() => void) | null;
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
       container,
+      onDismiss,
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
@@ -67,6 +71,7 @@ export class PoiTooltipOverlay {
     this.discoveryFormatter =
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
+    this.onDismiss = onDismiss ?? null;
     this.guidedTourPreference = guidedTourPreference;
     this.instanceId = generateTooltipInstanceId();
 
@@ -78,6 +83,8 @@ export class PoiTooltipOverlay {
     this.root.setAttribute('aria-labelledby', `${this.instanceId}-title`);
     this.root.setAttribute('aria-hidden', 'true');
     this.root.tabIndex = -1;
+
+    this.handleDismissClick = this.handleDismissClick.bind(this);
 
     const headingRow = documentTarget.createElement('div');
     headingRow.className = 'poi-tooltip-overlay__heading-row';
@@ -104,6 +111,14 @@ export class PoiTooltipOverlay {
     this.recommendationBadge.textContent = 'Next highlight';
     this.recommendationBadge.hidden = true;
     headingRow.appendChild(this.recommendationBadge);
+
+    this.dismissButton = documentTarget.createElement('button');
+    this.dismissButton.type = 'button';
+    this.dismissButton.className = 'poi-tooltip-overlay__dismiss';
+    this.dismissButton.setAttribute('aria-label', 'Close POI details');
+    this.dismissButton.textContent = '×';
+    this.dismissButton.addEventListener('click', this.handleDismissClick);
+    headingRow.appendChild(this.dismissButton);
 
     this.summary = documentTarget.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';
@@ -225,12 +240,17 @@ export class PoiTooltipOverlay {
   }
 
   dispose() {
+    this.dismissButton.removeEventListener('click', this.handleDismissClick);
     this.root.remove();
     this.liveRegion.remove();
     if (this.unsubscribeGuidedTour) {
       this.unsubscribeGuidedTour();
       this.unsubscribeGuidedTour = null;
     }
+  }
+
+  private handleDismissClick() {
+    this.onDismiss?.();
   }
 
   private update() {

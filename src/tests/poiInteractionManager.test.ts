@@ -519,6 +519,35 @@ describe('PoiInteractionManager', () => {
     });
   });
 
+  it('clearSelection notifies state listeners and analytics with null state', () => {
+    const selectionCleared = vi.fn();
+    manager.dispose();
+    manager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {},
+      { selectionCleared }
+    );
+    manager.start();
+    const selectionState = vi.fn();
+    manager.addSelectionStateListener(selectionState);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+    expect(selectionState).toHaveBeenLastCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
+
+    manager.clearSelection();
+
+    expect(selectionState).toHaveBeenLastCalledWith(null, {
+      inputMethod: 'pointer',
+    });
+    expect(selectionCleared).toHaveBeenCalledWith(definition);
+  });
+
   it('ignores keyboard input when disabled', () => {
     const disabledManager = new PoiInteractionManager(
       domElement,

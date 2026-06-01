@@ -156,6 +156,16 @@ export class PoiInteractionManager {
     };
   }
 
+  clearSelection(
+    inputMethod: PoiSelectionInputMethod = this.lastSelectionInput
+  ): void {
+    this.setSelected(null, inputMethod);
+  }
+
+  clearHover(inputMethod: PoiSelectionInputMethod = this.lastHoverInput): void {
+    this.setHovered(null, inputMethod);
+  }
+
   selectPoiById(poiId: string): void {
     const poi = this.poiInstances.find(
       (instance) => instance.definition.id === poiId

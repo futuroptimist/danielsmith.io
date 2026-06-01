@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -223,6 +223,49 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
     expect(root.getAttribute('aria-hidden')).toBe('true');
     expect(root.getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('renders selected POI details with a focusable dismiss button', () => {
+    overlay.setSelected(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const dismissButton = root.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__dismiss'
+    );
+
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      basePoi.title
+    );
+    expect(dismissButton).toBeTruthy();
+    expect(dismissButton?.type).toBe('button');
+    expect(dismissButton?.getAttribute('aria-label')).toBe('Close POI details');
+    dismissButton?.focus();
+    expect(document.activeElement).toBe(dismissButton);
+  });
+
+  it('emits a dismiss callback from the close button', () => {
+    const onDismiss = vi.fn();
+    overlay.dispose();
+    timelineHarness.dispose();
+    preference.dispose();
+    timelineHarness = new TimelineHarness();
+    preference = createPreference();
+    overlay = new PoiTooltipOverlay({
+      container,
+      onDismiss,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+    });
+
+    overlay.setSelected(basePoi);
+    const dismissButton = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__dismiss'
+    );
+
+    dismissButton?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('refreshes metric values when notified about updates', () => {
