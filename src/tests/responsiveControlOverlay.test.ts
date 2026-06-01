@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { ControlOverlayStrings } from '../assets/i18n/types';
@@ -99,6 +101,11 @@ describe('createResponsiveControlOverlay', () => {
     expect(button.getAttribute('aria-controls')).toBe(popover.id);
     expect(container.dataset.controlsOpen).toBe('false');
     expect(container.dataset.hudLayout).toBe('mobile');
+    expect(container.getAttribute('aria-label')).toBe('Controls');
+    expect(container.getAttribute('aria-labelledby')).toBeNull();
+    expect(popover.getAttribute('aria-labelledby')).toBe(
+      container.querySelector('[data-control-text="heading"]')?.id
+    );
 
     handle.dispose();
   });
@@ -127,6 +134,7 @@ describe('createResponsiveControlOverlay', () => {
     closeButton.click();
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
+    expect(document.activeElement).toBe(button);
 
     handle.dispose();
   });
@@ -147,6 +155,7 @@ describe('createResponsiveControlOverlay', () => {
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
     expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(button);
 
     handle.dispose();
   });
@@ -255,7 +264,7 @@ describe('createResponsiveControlOverlay', () => {
     expect(popover.hidden).toBe(true);
   });
 
-  it('keeps legacy mobile collapse behavior when no popover is present', () => {
+  it('requires the popover contract instead of reviving legacy collapse markup', () => {
     const container = document.createElement('div');
     container.dataset.activeInput = 'keyboard';
     container.innerHTML = `
@@ -263,7 +272,6 @@ describe('createResponsiveControlOverlay', () => {
       <ul data-role="control-list">
         <li data-control-item="keyboardMove" data-input-methods="keyboard"></li>
         <li data-control-item="pointerDrag" data-input-methods="pointer"></li>
-        <li data-control-item="interact" data-input-methods="keyboard pointer touch" hidden></li>
       </ul>
     `;
     document.body.append(container);
@@ -284,26 +292,41 @@ describe('createResponsiveControlOverlay', () => {
     const handle = createResponsiveControlOverlay({
       container,
       list,
-      toggle,
       strings: createStrings(),
       initialLayout: 'mobile',
-      storage: null,
     });
 
     expect(handle.isOpen()).toBe(false);
-    expect(toggle.hidden).toBe(false);
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(pointer.hidden).toBe(true);
-    expect(pointer.dataset.mobileCollapsed).toBe('true');
-
-    toggle.click();
-
-    expect(handle.isOpen()).toBe(true);
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(toggle.getAttribute('aria-expanded')).toBeNull();
     expect(pointer.hidden).toBe(false);
     expect(pointer.dataset.mobileCollapsed).toBeUndefined();
 
+    toggle.click();
+    handle.toggle();
+
+    expect(handle.isOpen()).toBe(false);
+    expect(pointer.hidden).toBe(false);
+    expect(container.dataset.controlCollapsed).toBeUndefined();
+
     handle.dispose();
+  });
+
+  it('keeps reduced-motion HUD selectors wired for popover controls', () => {
+    const styles = readFileSync('src/ui/styles.css', 'utf8');
+
+    expect(styles).toContain(
+      ":root[data-accessibility-motion='reduced'] .overlay__controls-button"
+    );
+    expect(styles).toContain(
+      ":root[data-accessibility-motion='reduced'] .overlay__help-button"
+    );
+    expect(styles).toContain(
+      ":root[data-accessibility-motion='reduced'] .overlay__popover"
+    );
+    expect(styles).toContain(
+      ":root[data-accessibility-motion='reduced'] .overlay__popover-close"
+    );
+    expect(styles).toContain('transform: none;');
   });
 
   it('represents the controls popover shortcut in the key binding model', () => {
