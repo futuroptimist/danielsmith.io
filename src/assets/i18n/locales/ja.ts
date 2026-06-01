@@ -178,6 +178,20 @@ export const JA_OVERRIDES: LocaleOverrides = {
           '設定とヘルプを開きます。ショートカット {shortcut} で操作方法とアクセシビリティのヒントを確認できます。',
         shortcutFallback: 'H',
       },
+      hudMenu: {
+        label: 'ポートフォリオHUDメニュー',
+        controlsLabel: '操作',
+        controlsTitleTemplate: '操作を表示します。{shortcut} を押します。',
+        controlsKeyHint: 'C',
+        textLabel: 'テキスト',
+        textTitleTemplate:
+          'テキストモードに切り替えます。{shortcut} を押します。',
+        textKeyHint: 'T',
+        settingsLabel: '設定',
+        settingsTitleTemplate:
+          '設定とヘルプを開きます。{shortcut} を押します。',
+        settingsKeyHint: 'H',
+      },
       mobileToggle: {
         expandLabel: 'すべての操作を表示',
         collapseLabel: '追加の操作を隠す',

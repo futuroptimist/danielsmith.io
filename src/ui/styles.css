@@ -1321,8 +1321,20 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   transition: opacity 160ms ease;
 }
 
-.overlay__controls-button,
-.overlay__help-button {
+.overlay__menu {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(123, 209, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(5, 12, 22, 0.58);
+  box-shadow: var(--hud-surface-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.overlay__menu-button {
   width: auto;
   min-height: 2.45rem;
   padding: 0.65rem 0.9rem;
@@ -1344,19 +1356,47 @@ html[data-hud-layout='mobile'] .audio-subtitles {
     transform 120ms ease;
 }
 
-.overlay__controls-button:hover,
-.overlay__controls-button:focus-visible,
-.overlay__help-button:hover,
-.overlay__help-button:focus-visible {
+.overlay__menu-button:hover,
+.overlay__menu-button:focus-visible {
   border-color: rgba(158, 232, 255, 0.8);
   box-shadow: 0 18px 38px rgba(8, 20, 32, 0.35);
   outline: none;
   transform: translateY(-1px);
 }
 
-.overlay__controls-button:active,
-.overlay__help-button:active {
+.overlay__menu-button:active {
   transform: translateY(0);
+}
+
+.overlay__menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.overlay__menu-button[aria-expanded='true'],
+.overlay__menu-button[aria-pressed='true'] {
+  border-color: rgba(158, 232, 255, 0.88);
+  background:
+    linear-gradient(140deg, rgba(18, 56, 86, 0.96), rgba(19, 72, 106, 0.84)),
+    rgba(9, 30, 46, 0.92);
+}
+
+.overlay__menu-label {
+  white-space: nowrap;
+}
+
+.overlay__key-hint {
+  min-width: 1.35rem;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid rgba(158, 232, 255, 0.36);
+  border-radius: 999px;
+  background: rgba(203, 239, 255, 0.1);
+  color: var(--hud-surface-accent);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .overlay__popover {
@@ -1461,6 +1501,21 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   line-height: 1.5;
 }
 
+:root[data-hud-layout='mobile'] .overlay__menu {
+  gap: 0.2rem;
+}
+
+:root[data-hud-layout='mobile'] .overlay__menu-button {
+  min-height: 2.6rem;
+  padding: 0.55rem 0.62rem;
+  font-size: 0.78rem;
+}
+
+:root[data-hud-layout='mobile'] .overlay__key-hint {
+  min-width: 1.15rem;
+  padding-inline: 0.25rem;
+}
+
 :root[data-hud-layout='mobile'] .overlay__popover {
   width: min(20rem, calc(100vw - 1.5rem));
   max-height: min(26rem, calc(100vh - 7rem - env(safe-area-inset-top, 0px)));
@@ -1484,8 +1539,8 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 :root[data-accessibility-motion='reduced'] .mode-toggle,
 :root[data-accessibility-motion='reduced'] .overlay,
 :root[data-accessibility-motion='reduced'] .overlay::after,
-:root[data-accessibility-motion='reduced'] .overlay__controls-button,
-:root[data-accessibility-motion='reduced'] .overlay__help-button,
+:root[data-accessibility-motion='reduced'] .overlay__menu,
+:root[data-accessibility-motion='reduced'] .overlay__menu-button,
 :root[data-accessibility-motion='reduced'] .overlay__popover,
 :root[data-accessibility-motion='reduced'] .overlay__popover-close,
 :root[data-accessibility-motion='reduced'] .poi-tooltip-overlay,
@@ -1494,16 +1549,12 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   animation: none !important;
 }
 
-:root[data-accessibility-motion='reduced'] .overlay__controls-button:hover,
-:root[data-accessibility-motion='reduced']
-  .overlay__controls-button:focus-visible,
-:root[data-accessibility-motion='reduced'] .overlay__help-button:hover,
-:root[data-accessibility-motion='reduced'] .overlay__help-button:focus-visible,
+:root[data-accessibility-motion='reduced'] .overlay__menu-button:hover,
+:root[data-accessibility-motion='reduced'] .overlay__menu-button:focus-visible,
 :root[data-accessibility-motion='reduced'] .overlay__popover-close:hover,
 :root[data-accessibility-motion='reduced']
   .overlay__popover-close:focus-visible,
-:root[data-accessibility-motion='reduced'] .overlay__controls-button:active,
-:root[data-accessibility-motion='reduced'] .overlay__help-button:active {
+:root[data-accessibility-motion='reduced'] .overlay__menu-button:active {
   transform: none;
 }
 

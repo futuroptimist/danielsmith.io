@@ -188,6 +188,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Open settings and help. Press {shortcut} to review controls and accessibility tips.',
         shortcutFallback: 'H',
       },
+      hudMenu: {
+        label: 'Portfolio HUD menu',
+        controlsLabel: 'Controls',
+        controlsTitleTemplate: 'Show controls. Press {shortcut}.',
+        controlsKeyHint: 'C',
+        textLabel: 'Text',
+        textTitleTemplate: 'Switch to text mode. Press {shortcut}.',
+        textKeyHint: 'T',
+        settingsLabel: 'Settings',
+        settingsTitleTemplate: 'Open settings and help. Press {shortcut}.',
+        settingsKeyHint: 'H',
+      },
       mobileToggle: {
         expandLabel: 'Show all controls',
         collapseLabel: 'Hide extra controls',

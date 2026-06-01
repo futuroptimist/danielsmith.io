@@ -23,6 +23,8 @@ export interface ResponsiveControlOverlayOptions {
   strings: ControlOverlayStrings;
   initialLayout?: HudLayout;
   documentTarget?: Document;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
 const CONTROL_LIST_SELECTOR = '[data-role="control-list"]';
@@ -136,6 +138,8 @@ export function createResponsiveControlOverlay(
     strings,
     initialLayout = 'desktop',
     documentTarget = typeof document !== 'undefined' ? document : undefined,
+    onOpen,
+    onClose,
   } = options;
 
   const list = options.list ?? container.querySelector(CONTROL_LIST_SELECTOR);
@@ -184,7 +188,14 @@ export function createResponsiveControlOverlay(
     if (ownsContainerLabel) {
       container.setAttribute('aria-label', currentStrings.heading);
     }
-    button.textContent = currentStrings.heading;
+    const labelTarget = button.querySelector<HTMLElement>(
+      '[data-role="controls-button-label"]'
+    );
+    if (labelTarget) {
+      labelTarget.textContent = currentStrings.heading;
+    } else {
+      button.textContent = currentStrings.heading;
+    }
     button.setAttribute('aria-label', currentStrings.heading);
     if (closeButton instanceof HTMLButtonElement) {
       closeButton.setAttribute(
@@ -221,6 +232,7 @@ export function createResponsiveControlOverlay(
     }
     open = false;
     update();
+    onClose?.();
   };
 
   const openPopover = () => {
@@ -230,6 +242,7 @@ export function createResponsiveControlOverlay(
     }
     open = true;
     update();
+    onOpen?.();
   };
 
   const togglePopover = () => {

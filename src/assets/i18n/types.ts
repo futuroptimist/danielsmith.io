@@ -38,6 +38,18 @@ export interface ControlOverlayStrings {
     announcementTemplate: string;
     shortcutFallback: string;
   };
+  hudMenu: {
+    label: string;
+    controlsLabel: string;
+    controlsTitleTemplate: string;
+    controlsKeyHint: string;
+    textLabel: string;
+    textTitleTemplate: string;
+    textKeyHint: string;
+    settingsLabel: string;
+    settingsTitleTemplate: string;
+    settingsKeyHint: string;
+  };
   mobileToggle: {
     expandLabel: string;
     collapseLabel: string;

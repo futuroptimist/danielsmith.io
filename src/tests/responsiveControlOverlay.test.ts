@@ -31,6 +31,18 @@ const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
     announcementTemplate: 'Open help with {shortcut}',
     shortcutFallback: 'H',
   },
+  hudMenu: {
+    label: 'Portfolio HUD menu',
+    controlsLabel: 'Controls',
+    controlsTitleTemplate: 'Show controls. Press {shortcut}.',
+    controlsKeyHint: 'C',
+    textLabel: 'Text',
+    textTitleTemplate: 'Switch to text mode. Press {shortcut}.',
+    textKeyHint: 'T',
+    settingsLabel: 'Settings',
+    settingsTitleTemplate: 'Open settings and help. Press {shortcut}.',
+    settingsKeyHint: 'H',
+  },
   mobileToggle: {
     expandLabel: 'Show all controls',
     collapseLabel: 'Close controls',
@@ -315,10 +327,10 @@ describe('createResponsiveControlOverlay', () => {
     const styles = readFileSync('src/ui/styles.css', 'utf8');
 
     expect(styles).toContain(
-      ":root[data-accessibility-motion='reduced'] .overlay__controls-button"
+      ":root[data-accessibility-motion='reduced'] .overlay__menu-button"
     );
     expect(styles).toContain(
-      ":root[data-accessibility-motion='reduced'] .overlay__help-button"
+      ":root[data-accessibility-motion='reduced'] .overlay__menu"
     );
     expect(styles).toContain(
       ":root[data-accessibility-motion='reduced'] .overlay__popover"

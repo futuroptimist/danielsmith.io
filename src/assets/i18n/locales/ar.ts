@@ -178,6 +178,18 @@ export const AR_OVERRIDES: LocaleOverrides = {
           'افتح الإعدادات والمساعدة. اضغط {shortcut} لمراجعة الاختصارات والنصائح.',
         shortcutFallback: 'H',
       },
+      hudMenu: {
+        label: 'قائمة واجهة المحفظة',
+        controlsLabel: 'عناصر التحكم',
+        controlsTitleTemplate: 'إظهار عناصر التحكم. اضغط {shortcut}.',
+        controlsKeyHint: 'C',
+        textLabel: 'النص',
+        textTitleTemplate: 'التحويل إلى العرض النصي. اضغط {shortcut}.',
+        textKeyHint: 'T',
+        settingsLabel: 'الإعدادات',
+        settingsTitleTemplate: 'فتح الإعدادات والمساعدة. اضغط {shortcut}.',
+        settingsKeyHint: 'H',
+      },
       mobileToggle: {
         expandLabel: 'إظهار كل عناصر التحكم',
         collapseLabel: 'إخفاء عناصر التحكم الإضافية',

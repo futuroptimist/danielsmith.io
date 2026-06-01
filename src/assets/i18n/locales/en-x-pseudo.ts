@@ -169,6 +169,20 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         ),
         shortcutFallback: wrap('H'),
       },
+      hudMenu: {
+        label: wrap('Portfolio HUD menu'),
+        controlsLabel: wrap('Controls'),
+        controlsTitleTemplate: wrap('Show controls. Press {shortcut}.'),
+        controlsKeyHint: wrap('C'),
+        textLabel: wrap('Text'),
+        textTitleTemplate: wrap('Switch to text mode. Press {shortcut}.'),
+        textKeyHint: wrap('T'),
+        settingsLabel: wrap('Settings'),
+        settingsTitleTemplate: wrap(
+          'Open settings and help. Press {shortcut}.'
+        ),
+        settingsKeyHint: wrap('H'),
+      },
       mobileToggle: {
         expandLabel: wrap('Show all controls'),
         collapseLabel: wrap('Hide extra controls'),

@@ -379,6 +379,10 @@ import {
   type HelpModalControllerHandle,
 } from './ui/hud/helpModalController';
 import {
+  createHudPanelCoordinator,
+  type HudPanelCoordinatorHandle,
+} from './ui/hud/hudPanelCoordinator';
+import {
   createHudLayoutManager,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
@@ -819,6 +823,7 @@ function initializeImmersiveScene(
   }
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
+  let hudPanelCoordinator: HudPanelCoordinatorHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
   let proceduralNarrator: ProceduralNarrator | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
@@ -2429,6 +2434,9 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const textModeButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="text-mode-button"]'
+  );
   let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   const interactDescriptionFallback =
     controlOverlayStrings.interact.description;
@@ -2470,6 +2478,8 @@ function initializeImmersiveScene(
         ),
         strings: controlOverlayStrings,
         initialLayout: 'desktop',
+        onOpen: () => hudPanelCoordinator?.noteControlsOpen(),
+        onClose: () => hudPanelCoordinator?.noteControlsClosed(),
       })
     : null;
   const helpModal = createHelpModal({
@@ -2578,19 +2588,51 @@ function initializeImmersiveScene(
     documentTarget: document,
     container: document.body,
   });
+  const activateTextMode = () => {
+    if (performanceFailover.hasTriggered()) {
+      clearModePreference();
+      window.location.assign(createImmersiveRecoveryUrl());
+      return;
+    }
+    if (shouldPersistTextPreferenceForFallback('manual')) {
+      writeModePreference('text');
+    }
+    performanceFailover.triggerFallback('manual');
+  };
+
   helpModalController = attachHelpModalController({
     helpModal,
     helpButton,
-    onOpen: showHudControlElements,
-    onClose: hideHudControlElements,
+    onOpen: () => {
+      showHudControlElements();
+      hudPanelCoordinator?.noteSettingsOpen();
+    },
+    onClose: () => {
+      hideHudControlElements();
+      hudPanelCoordinator?.noteSettingsClosed();
+    },
     hudFocusAnnouncer,
     announcements: helpModalStrings.announcements,
   });
-  const openHelpMenu = () => {
-    helpModal.open();
-  };
+
+  hudPanelCoordinator = createHudPanelCoordinator({
+    controls: responsiveControlOverlay ?? {
+      open() {
+        /* noop */
+      },
+      close() {
+        /* noop */
+      },
+      isOpen() {
+        return false;
+      },
+    },
+    settings: helpModal,
+    onTextAction: activateTextMode,
+  });
+
   const toggleHelpMenu = (force?: boolean) => {
-    helpModal.toggle(force);
+    hudPanelCoordinator?.toggleSettings(force);
   };
   const isTextEntryTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof HTMLElement)) {
@@ -2649,13 +2691,45 @@ function initializeImmersiveScene(
       return;
     }
     event.preventDefault();
-    responsiveControlOverlay?.toggle();
+    hudPanelCoordinator?.toggleControls();
+  };
+  const handleTextModeKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || event.repeat) {
+      return;
+    }
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return;
+    }
+    if (isTextEntryTarget(event.target)) {
+      return;
+    }
+    const keyHint = modeToggleStrings.keyHint;
+    if (event.key !== keyHint && event.key !== keyHint.toLowerCase()) {
+      return;
+    }
+    event.preventDefault();
+    hudPanelCoordinator?.activateText();
+  };
+  const handleHudEscapeKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || event.key !== 'Escape') {
+      return;
+    }
+    if (hudPanelCoordinator?.closeActivePanel()) {
+      event.preventDefault();
+    }
   };
   window.addEventListener('keydown', handleControlsKeydown);
+  window.addEventListener('keydown', handleTextModeKeydown);
+  window.addEventListener('keydown', handleHudEscapeKeydown);
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
-    helpButtonClickHandler = () => openHelpMenu();
+    helpButtonClickHandler = () => toggleHelpMenu();
     helpButton.addEventListener('click', helpButtonClickHandler);
+  }
+  let textModeButtonClickHandler: (() => void) | null = null;
+  if (textModeButton) {
+    textModeButtonClickHandler = () => hudPanelCoordinator?.activateText();
+    textModeButton.addEventListener('click', textModeButtonClickHandler);
   }
   let interactablePoi: PoiInstance | null = null;
 
@@ -2687,25 +2761,68 @@ function initializeImmersiveScene(
   let activeFloorId: FloorId = 'ground';
   let helpKeyWasPressed = false;
   let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
-  const buildHelpButtonText = (shortcut: string) =>
-    formatMessage(controlOverlayStrings.helpButton.labelTemplate, {
-      shortcut,
-    });
   const buildHelpAnnouncement = (shortcut: string) =>
     formatMessage(controlOverlayStrings.helpButton.announcementTemplate, {
       shortcut,
     });
-  const updateHelpButtonLabel = () => {
-    if (!helpButton) {
-      return;
+  const setButtonLabel = (button: HTMLButtonElement, label: string) => {
+    const labelElement = button.querySelector<HTMLElement>(
+      '.overlay__menu-label'
+    );
+    if (labelElement) {
+      labelElement.textContent = label;
+    } else {
+      button.textContent = label;
     }
-    const label =
+  };
+  const setButtonKeyHint = (button: HTMLButtonElement, keyHint: string) => {
+    const keyHintElement =
+      button.querySelector<HTMLElement>('.overlay__key-hint');
+    if (keyHintElement) {
+      keyHintElement.textContent = keyHint;
+    }
+  };
+  const updateHudMenuLabels = () => {
+    const menuStrings = controlOverlayStrings.hudMenu;
+    const controlsShortcut =
+      formatKeyLabel(keyBindings.getPrimaryBinding('toggleControls')) ||
+      menuStrings.controlsKeyHint;
+    const textShortcut = modeToggleStrings.keyHint || menuStrings.textKeyHint;
+    const settingsShortcut =
       formatKeyLabel(keyBindings.getPrimaryBinding('help')) ||
       helpLabelFallback;
-    helpButton.textContent = buildHelpButtonText(label);
-    helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
+
+    controlOverlay?.setAttribute('aria-label', menuStrings.label);
+    controlOverlay
+      ?.querySelector<HTMLElement>('[data-role="hud-menu"]')
+      ?.setAttribute('aria-label', menuStrings.label);
+
+    if (controlsButton) {
+      setButtonLabel(controlsButton, menuStrings.controlsLabel);
+      setButtonKeyHint(controlsButton, controlsShortcut);
+      controlsButton.title = formatMessage(menuStrings.controlsTitleTemplate, {
+        shortcut: controlsShortcut,
+      });
+    }
+    if (textModeButton) {
+      setButtonLabel(textModeButton, menuStrings.textLabel);
+      setButtonKeyHint(textModeButton, textShortcut);
+      textModeButton.setAttribute('aria-label', menuStrings.textLabel);
+      textModeButton.title = formatMessage(menuStrings.textTitleTemplate, {
+        shortcut: textShortcut,
+      });
+    }
+    if (helpButton) {
+      setButtonLabel(helpButton, menuStrings.settingsLabel);
+      setButtonKeyHint(helpButton, settingsShortcut);
+      helpButton.setAttribute('aria-label', menuStrings.settingsLabel);
+      helpButton.title = formatMessage(menuStrings.settingsTitleTemplate, {
+        shortcut: settingsShortcut,
+      });
+      helpButton.dataset.hudAnnounce = buildHelpAnnouncement(settingsShortcut);
+    }
   };
-  updateHelpButtonLabel();
+  updateHudMenuLabels();
 
   const applyLocaleUpdate = (nextLocale: Locale) => {
     if (locale === nextLocale) {
@@ -2760,7 +2877,7 @@ function initializeImmersiveScene(
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
-    updateHelpButtonLabel();
+    updateHudMenuLabels();
     localeToggleControl?.refresh();
 
     const visitedSnapshot = poiVisitedState.snapshot();
@@ -2804,7 +2921,7 @@ function initializeImmersiveScene(
         movementLegend.setKeyboardInteractLabel(label);
       }
       if (action === 'help') {
-        updateHelpButtonLabel();
+        updateHudMenuLabels();
       }
       saveKeyBindings();
     })
@@ -3216,15 +3333,7 @@ function initializeImmersiveScene(
       strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
       onToggle: () => {
-        if (performanceFailover.hasTriggered()) {
-          clearModePreference();
-          window.location.assign(createImmersiveRecoveryUrl());
-          return;
-        }
-        if (shouldPersistTextPreferenceForFallback('manual')) {
-          writeModePreference('text');
-        }
-        performanceFailover.triggerFallback('manual');
+        activateTextMode();
       },
     });
     registerHudControlElement(manualModeToggle?.element ?? null);
@@ -4178,6 +4287,9 @@ function initializeImmersiveScene(
       hudLayoutManager = null;
     }
     window.removeEventListener('keydown', handleControlsKeydown);
+    window.removeEventListener('keydown', handleTextModeKeydown);
+    window.removeEventListener('keydown', handleHudEscapeKeydown);
+    hudPanelCoordinator = null;
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;
@@ -4256,8 +4368,15 @@ function initializeImmersiveScene(
       window.portfolio.performance = crashLogAccess;
     }
     if (helpButton) {
-      helpButton.textContent = buildHelpButtonText(helpLabelFallback);
       helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
+      if (helpButtonClickHandler) {
+        helpButton.removeEventListener('click', helpButtonClickHandler);
+        helpButtonClickHandler = null;
+      }
+    }
+    if (textModeButton && textModeButtonClickHandler) {
+      textModeButton.removeEventListener('click', textModeButtonClickHandler);
+      textModeButtonClickHandler = null;
     }
     if (localeToggleControl) {
       localeToggleControl.dispose();
