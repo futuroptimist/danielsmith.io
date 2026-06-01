@@ -6,6 +6,8 @@ const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
 const CONTROLS_BUTTON_SELECTOR = '[data-role="controls-button"]';
+const TEXT_BUTTON_SELECTOR = '[data-control="text-mode"]';
+const HELP_BUTTON_SELECTOR = '[data-control="help"]';
 const LEGACY_COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
 
 function setTextContent(
@@ -15,6 +17,33 @@ function setTextContent(
   if (element instanceof HTMLElement) {
     element.textContent = value;
   }
+}
+
+function setMenuButtonContent(
+  button: HTMLButtonElement | null,
+  label: string,
+  keyHint: string
+): void {
+  if (!button) {
+    return;
+  }
+  const labelElement = button.querySelector<HTMLElement>(
+    '[data-role="menu-label"], [data-role="controls-label"]'
+  );
+  const keyHintElement = button.querySelector<HTMLElement>(
+    '[data-role="menu-key-hint"], [data-role="controls-key-hint"]'
+  );
+  if (labelElement) {
+    labelElement.textContent = label;
+  } else {
+    button.textContent = label;
+  }
+  if (keyHintElement) {
+    keyHintElement.textContent = keyHint;
+  }
+  const ariaLabel = `${label} (${keyHint})`;
+  button.setAttribute('aria-label', ariaLabel);
+  button.title = ariaLabel;
 }
 
 export function applyControlOverlayStrings(
@@ -67,10 +96,25 @@ export function applyControlOverlayStrings(
     CONTROLS_BUTTON_SELECTOR
   );
   if (controlsButton) {
-    setTextContent(controlsButton, strings.heading);
+    setMenuButtonContent(
+      controlsButton,
+      strings.menu.controlsLabel,
+      strings.menu.controlsKeyHint
+    );
     controlsButton.dataset.hudAnnounce =
       strings.mobileToggle.expandAnnouncement;
   }
+
+  setMenuButtonContent(
+    container.querySelector<HTMLButtonElement>(TEXT_BUTTON_SELECTOR),
+    strings.menu.textLabel,
+    strings.menu.textKeyHint
+  );
+  setMenuButtonContent(
+    container.querySelector<HTMLButtonElement>(HELP_BUTTON_SELECTOR),
+    strings.menu.settingsLabel,
+    strings.menu.settingsKeyHint
+  );
 
   const legacyCollapseToggle = container.querySelector<HTMLButtonElement>(
     LEGACY_COLLAPSE_TOGGLE_SELECTOR

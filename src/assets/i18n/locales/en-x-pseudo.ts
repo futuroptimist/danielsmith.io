@@ -153,6 +153,14 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: wrap('Controls'),
+      menu: {
+        controlsLabel: wrap('Controls'),
+        controlsKeyHint: 'C',
+        textLabel: wrap('Text'),
+        textKeyHint: 'T',
+        settingsLabel: wrap('Settings'),
+        settingsKeyHint: 'H',
+      },
       interact: {
         defaultLabel: wrap('Enter'),
         description: wrap('Interact'),

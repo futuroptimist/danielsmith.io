@@ -56,6 +56,19 @@
         overflow: visible;
       }
 
+      .overlay__menu-strip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.35rem;
+        padding: 0.25rem;
+        border: 1px solid rgba(123, 209, 255, 0.28);
+        border-radius: 999px;
+        background: rgba(8, 16, 28, 0.58);
+        box-shadow: 0 20px 48px rgba(3, 9, 18, 0.55);
+        backdrop-filter: blur(12px);
+      }
+
       .overlay::after {
         content: '';
         position: absolute;
@@ -76,11 +89,13 @@
         transition: opacity 160ms ease;
       }
 
-      .overlay__controls-button,
-      .overlay__help-button {
+      .overlay__menu-button {
         width: auto;
         min-height: 2.45rem;
-        padding: 0.65rem 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 0.72rem;
         border-radius: 999px;
         border: 1px solid rgba(123, 209, 255, 0.4);
         background:
@@ -102,19 +117,28 @@
           transform 120ms ease;
       }
 
-      .overlay__controls-button:hover,
-      .overlay__controls-button:focus-visible,
-      .overlay__help-button:hover,
-      .overlay__help-button:focus-visible {
+      .overlay__menu-button:hover,
+      .overlay__menu-button:focus-visible {
         border-color: rgba(158, 232, 255, 0.8);
         box-shadow: 0 18px 38px rgba(8, 20, 32, 0.35);
         outline: none;
         transform: translateY(-1px);
       }
 
-      .overlay__controls-button:active,
-      .overlay__help-button:active {
+      .overlay__menu-button:active {
         transform: translateY(0);
+      }
+
+      .overlay__menu-key {
+        min-width: 1.35rem;
+        padding: 0.1rem 0.35rem;
+        border-radius: 999px;
+        background: rgba(143, 214, 255, 0.16);
+        color: rgba(143, 214, 255, 0.75);
+        font: inherit;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-align: center;
       }
 
       .overlay__popover {
@@ -207,6 +231,16 @@
         max-width: min(20rem, calc(100vw - 1.5rem));
         font-size: 0.85rem;
         line-height: 1.5;
+      }
+
+      html[data-hud-layout='mobile'] .overlay__menu-strip {
+        gap: 0.25rem;
+      }
+
+      html[data-hud-layout='mobile'] .overlay__menu-button {
+        min-height: 2.75rem;
+        padding: 0.55rem 0.6rem;
+        font-size: 0.8rem;
       }
 
       html[data-hud-layout='mobile'] .overlay__popover {
@@ -446,14 +480,42 @@
     </noscript>
     <div id="app"></div>
     <div class="overlay" id="control-overlay" aria-label="Controls">
-      <button
-        class="overlay__controls-button"
-        type="button"
-        data-role="controls-button"
-        aria-expanded="false"
+      <div
+        class="overlay__menu-strip"
+        data-role="hud-menu"
+        aria-label="HUD menu"
       >
-        Controls
-      </button>
+        <button
+          class="overlay__menu-button overlay__controls-button"
+          type="button"
+          data-role="controls-button"
+          aria-expanded="false"
+          aria-pressed="false"
+        >
+          <span data-role="controls-label">Controls</span>
+          <kbd class="overlay__menu-key" data-role="controls-key-hint">C</kbd>
+        </button>
+        <button
+          class="overlay__menu-button"
+          type="button"
+          data-control="text-mode"
+          data-hud-announce="Switch to text mode. Press T to activate."
+        >
+          <span data-role="menu-label">Text</span>
+          <kbd class="overlay__menu-key" data-role="menu-key-hint">T</kbd>
+        </button>
+        <button
+          class="overlay__menu-button overlay__help-button"
+          type="button"
+          data-control="help"
+          data-hud-announce="Open settings and help. Press H to review controls and accessibility tips."
+          aria-expanded="false"
+          aria-pressed="false"
+        >
+          <span data-role="menu-label">Settings</span>
+          <kbd class="overlay__menu-key" data-role="menu-key-hint">H</kbd>
+        </button>
+      </div>
       <div class="overlay__popover" data-role="controls-popover" hidden>
         <div class="overlay__popover-header">
           <p class="overlay__heading" data-control-text="heading">Controls</p>
@@ -544,14 +606,6 @@
           </li>
         </ul>
       </div>
-      <button
-        class="overlay__help-button"
-        type="button"
-        data-control="help"
-        data-hud-announce="Open settings and help. Press H to review controls and accessibility tips."
-      >
-        Open menu · Press H
-      </button>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

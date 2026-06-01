@@ -143,6 +143,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
   hud: {
     controlOverlay: {
       heading: 'Controls',
+      menu: {
+        controlsLabel: 'Controls',
+        controlsKeyHint: 'C',
+        textLabel: 'Text',
+        textKeyHint: 'T',
+        settingsLabel: 'Settings',
+        settingsKeyHint: 'H',
+      },
       items: {
         keyboardMove: {
           keys: 'WASD / Arrow keys',

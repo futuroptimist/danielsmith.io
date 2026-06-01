@@ -379,6 +379,10 @@ import {
   type HelpModalControllerHandle,
 } from './ui/hud/helpModalController';
 import {
+  createHudPanelCoordinator,
+  type HudPanelCoordinatorHandle,
+} from './ui/hud/hudPanelCoordinator';
+import {
   createHudLayoutManager,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
@@ -2429,6 +2433,9 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const textModeButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-control="text-mode"]'
+  );
   let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   const interactDescriptionFallback =
     controlOverlayStrings.interact.description;
@@ -2455,6 +2462,7 @@ function initializeImmersiveScene(
       focusOnInit: true,
     });
   }
+  let hudPanelCoordinator: HudPanelCoordinatorHandle | null = null;
   responsiveControlOverlay = controlOverlay
     ? createResponsiveControlOverlay({
         container: controlOverlay,
@@ -2470,6 +2478,9 @@ function initializeImmersiveScene(
         ),
         strings: controlOverlayStrings,
         initialLayout: 'desktop',
+        onBeforeOpen: () => hudPanelCoordinator?.closePanel('settings'),
+        onOpen: () => hudPanelCoordinator?.notifyOpened('controls'),
+        onClose: () => hudPanelCoordinator?.notifyClosed('controls'),
       })
     : null;
   const helpModal = createHelpModal({
@@ -2578,19 +2589,46 @@ function initializeImmersiveScene(
     documentTarget: document,
     container: document.body,
   });
+  const activateTextMode = () => {
+    if (performanceFailover.hasTriggered()) {
+      clearModePreference();
+      window.location.assign(createImmersiveRecoveryUrl());
+      return;
+    }
+    if (shouldPersistTextPreferenceForFallback('manual')) {
+      writeModePreference('text');
+    }
+    performanceFailover.triggerFallback('manual');
+  };
+
+  const settingsPanelHandle = {
+    open: () => helpModal.open(),
+    close: () => helpModal.close(),
+    toggle: (force?: boolean) => helpModal.toggle(force),
+    isOpen: () => helpModal.isOpen(),
+  };
+  hudPanelCoordinator = createHudPanelCoordinator({
+    controls: responsiveControlOverlay,
+    settings: settingsPanelHandle,
+    onTextAction: activateTextMode,
+  });
+
   helpModalController = attachHelpModalController({
     helpModal,
     helpButton,
-    onOpen: showHudControlElements,
-    onClose: hideHudControlElements,
+    onOpen: () => {
+      showHudControlElements();
+      hudPanelCoordinator?.notifyOpened('settings');
+    },
+    onClose: () => {
+      hideHudControlElements();
+      hudPanelCoordinator?.notifyClosed('settings');
+    },
     hudFocusAnnouncer,
     announcements: helpModalStrings.announcements,
   });
-  const openHelpMenu = () => {
-    helpModal.open();
-  };
-  const toggleHelpMenu = (force?: boolean) => {
-    helpModal.toggle(force);
+  const toggleHelpMenu = () => {
+    hudPanelCoordinator?.toggleSettings();
   };
   const isTextEntryTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof HTMLElement)) {
@@ -2649,13 +2687,29 @@ function initializeImmersiveScene(
       return;
     }
     event.preventDefault();
-    responsiveControlOverlay?.toggle();
+    hudPanelCoordinator?.toggleControls();
   };
   window.addEventListener('keydown', handleControlsKeydown);
+  const handleHudEscapeKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || event.key !== 'Escape') {
+      return;
+    }
+    if (!hudPanelCoordinator?.closeActivePanel()) {
+      return;
+    }
+    event.preventDefault();
+  };
+  window.addEventListener('keydown', handleHudEscapeKeydown, true);
   let helpButtonClickHandler: (() => void) | null = null;
   if (helpButton) {
-    helpButtonClickHandler = () => openHelpMenu();
+    helpButtonClickHandler = () => toggleHelpMenu();
     helpButton.addEventListener('click', helpButtonClickHandler);
+  }
+  let textModeButtonClickHandler: (() => void) | null = null;
+  if (textModeButton) {
+    textModeButtonClickHandler = () =>
+      hudPanelCoordinator?.activateTextAction();
+    textModeButton.addEventListener('click', textModeButtonClickHandler);
   }
   let interactablePoi: PoiInstance | null = null;
 
@@ -2702,7 +2756,23 @@ function initializeImmersiveScene(
     const label =
       formatKeyLabel(keyBindings.getPrimaryBinding('help')) ||
       helpLabelFallback;
-    helpButton.textContent = buildHelpButtonText(label);
+    const labelElement = helpButton.querySelector<HTMLElement>(
+      '[data-role="menu-label"]'
+    );
+    const keyHintElement = helpButton.querySelector<HTMLElement>(
+      '[data-role="menu-key-hint"]'
+    );
+    if (labelElement) {
+      labelElement.textContent = controlOverlayStrings.menu.settingsLabel;
+    } else {
+      helpButton.textContent = buildHelpButtonText(label);
+    }
+    if (keyHintElement) {
+      keyHintElement.textContent = label;
+    }
+    const ariaLabel = `${controlOverlayStrings.menu.settingsLabel} (${label})`;
+    helpButton.setAttribute('aria-label', ariaLabel);
+    helpButton.title = ariaLabel;
     helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
   };
   updateHelpButtonLabel();
@@ -3215,17 +3285,7 @@ function initializeImmersiveScene(
       container: hudSettingsStack,
       strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
-      onToggle: () => {
-        if (performanceFailover.hasTriggered()) {
-          clearModePreference();
-          window.location.assign(createImmersiveRecoveryUrl());
-          return;
-        }
-        if (shouldPersistTextPreferenceForFallback('manual')) {
-          writeModePreference('text');
-        }
-        performanceFailover.triggerFallback('manual');
-      },
+      onToggle: activateTextMode,
     });
     registerHudControlElement(manualModeToggle?.element ?? null);
 
@@ -4178,6 +4238,15 @@ function initializeImmersiveScene(
       hudLayoutManager = null;
     }
     window.removeEventListener('keydown', handleControlsKeydown);
+    window.removeEventListener('keydown', handleHudEscapeKeydown, true);
+    if (helpButton && helpButtonClickHandler) {
+      helpButton.removeEventListener('click', helpButtonClickHandler);
+      helpButtonClickHandler = null;
+    }
+    if (textModeButton && textModeButtonClickHandler) {
+      textModeButton.removeEventListener('click', textModeButtonClickHandler);
+      textModeButtonClickHandler = null;
+    }
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;

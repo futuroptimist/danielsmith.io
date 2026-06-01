@@ -8,6 +8,14 @@ import { createResponsiveControlOverlay } from '../ui/hud/responsiveControlOverl
 
 const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
   heading,
+  menu: {
+    controlsLabel: heading,
+    controlsKeyHint: 'C',
+    textLabel: 'Text',
+    textKeyHint: 'T',
+    settingsLabel: 'Settings',
+    settingsKeyHint: 'H',
+  },
   items: {
     keyboardMove: { keys: 'WASD / Arrow keys', description: 'Move' },
     pointerDrag: { keys: 'Left mouse button', description: 'Drag to pan' },
@@ -43,7 +51,10 @@ const createOverlay = () => {
   const container = document.createElement('div');
   container.dataset.activeInput = 'keyboard';
   container.innerHTML = `
-    <button type="button" data-role="controls-button">Controls</button>
+    <button type="button" data-role="controls-button">
+      <span data-role="controls-label">Controls</span>
+      <kbd data-role="controls-key-hint">C</kbd>
+    </button>
     <div data-role="controls-popover">
       <div>
         <p data-control-text="heading">Controls</p>
@@ -96,7 +107,7 @@ describe('createResponsiveControlOverlay', () => {
 
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
-    expect(button.textContent).toBe('Controls');
+    expect(button.textContent?.replace(/\s+/g, ' ').trim()).toBe('Controls C');
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(button.getAttribute('aria-controls')).toBe(popover.id);
     expect(container.dataset.controlsOpen).toBe('false');
@@ -230,8 +241,10 @@ describe('createResponsiveControlOverlay', () => {
 
     handle.setStrings(createStrings('Controls menu'));
 
-    expect(button.textContent).toBe('Controls menu');
-    expect(button.getAttribute('aria-label')).toBe('Controls menu');
+    expect(button.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Controls menu C'
+    );
+    expect(button.getAttribute('aria-label')).toBe('Controls menu (C)');
     expect(closeButton.getAttribute('aria-label')).toBe('Close controls');
 
     handle.dispose();
@@ -256,6 +269,7 @@ describe('createResponsiveControlOverlay', () => {
 
     expect(popover.hidden).toBe(true);
     expect(button.getAttribute('aria-expanded')).toBeNull();
+    expect(button.getAttribute('aria-pressed')).toBeNull();
     expect(container.dataset.controlsOpen).toBeUndefined();
     expect(interact?.hidden).toBe(true);
 

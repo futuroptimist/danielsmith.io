@@ -23,6 +23,9 @@ export interface ResponsiveControlOverlayOptions {
   strings: ControlOverlayStrings;
   initialLayout?: HudLayout;
   documentTarget?: Document;
+  onBeforeOpen?: () => void;
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
 const CONTROL_LIST_SELECTOR = '[data-role="control-list"]';
@@ -123,6 +126,7 @@ const setOpenState = (
   popover.hidden = !open;
   container.dataset[CONTROL_OPEN_KEY] = open ? 'true' : 'false';
   button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  button.setAttribute('aria-pressed', open ? 'true' : 'false');
   button.dataset.hudAnnounce = open
     ? strings.mobileToggle.collapseAnnouncement
     : strings.mobileToggle.expandAnnouncement;
@@ -136,6 +140,9 @@ export function createResponsiveControlOverlay(
     strings,
     initialLayout = 'desktop',
     documentTarget = typeof document !== 'undefined' ? document : undefined,
+    onBeforeOpen,
+    onOpen,
+    onClose,
   } = options;
 
   const list = options.list ?? container.querySelector(CONTROL_LIST_SELECTOR);
@@ -184,8 +191,23 @@ export function createResponsiveControlOverlay(
     if (ownsContainerLabel) {
       container.setAttribute('aria-label', currentStrings.heading);
     }
-    button.textContent = currentStrings.heading;
-    button.setAttribute('aria-label', currentStrings.heading);
+    const label = button.querySelector<HTMLElement>(
+      '[data-role="controls-label"]'
+    );
+    const keyHint = button.querySelector<HTMLElement>(
+      '[data-role="controls-key-hint"]'
+    );
+    if (label) {
+      label.textContent = currentStrings.menu.controlsLabel;
+    } else {
+      button.textContent = currentStrings.menu.controlsLabel;
+    }
+    if (keyHint) {
+      keyHint.textContent = currentStrings.menu.controlsKeyHint;
+    }
+    const buttonLabel = `${currentStrings.menu.controlsLabel} (${currentStrings.menu.controlsKeyHint})`;
+    button.setAttribute('aria-label', buttonLabel);
+    button.title = buttonLabel;
     if (closeButton instanceof HTMLButtonElement) {
       closeButton.setAttribute(
         'aria-label',
@@ -221,6 +243,7 @@ export function createResponsiveControlOverlay(
     }
     open = false;
     update();
+    onClose?.();
   };
 
   const openPopover = () => {
@@ -228,8 +251,10 @@ export function createResponsiveControlOverlay(
       update();
       return;
     }
+    onBeforeOpen?.();
     open = true;
     update();
+    onOpen?.();
   };
 
   const togglePopover = () => {
@@ -329,6 +354,7 @@ export function createResponsiveControlOverlay(
       documentTarget?.removeEventListener('keydown', handleDocumentKeydown);
       popover.hidden = true;
       button.removeAttribute('aria-expanded');
+      button.removeAttribute('aria-pressed');
       button.removeAttribute('aria-controls');
       button.removeAttribute('aria-haspopup');
       button.dataset.hudAnnounce = '';

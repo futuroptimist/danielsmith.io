@@ -138,6 +138,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: 'عناصر التحكم',
+      menu: {
+        controlsLabel: 'التحكم',
+        controlsKeyHint: 'C',
+        textLabel: 'النص',
+        textKeyHint: 'T',
+        settingsLabel: 'الإعدادات',
+        settingsKeyHint: 'H',
+      },
       items: {
         keyboardMove: {
           keys: 'WASD / الأسهم',
