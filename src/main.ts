@@ -2081,6 +2081,7 @@ function initializeImmersiveScene(
     if (
       event.key !== 'Escape' ||
       event.defaultPrevented ||
+      currentSelectedPoi === null ||
       !poiTooltipOverlay.getState().visible
     ) {
       return;

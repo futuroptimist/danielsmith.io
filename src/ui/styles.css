@@ -1862,11 +1862,13 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   border: 1px solid var(--hud-surface-border);
   backdrop-filter: blur(16px);
   opacity: 0;
+  visibility: hidden;
   transform: translateY(12px);
   pointer-events: none;
   transition:
     opacity 160ms ease,
-    transform 180ms ease;
+    transform 180ms ease,
+    visibility 0s linear 180ms;
   z-index: 30;
 }
 
@@ -1880,8 +1882,10 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 
 .poi-tooltip-overlay--visible {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .poi-tooltip-overlay__heading-row {
