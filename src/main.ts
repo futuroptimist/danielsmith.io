@@ -1536,6 +1536,13 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const refreshPassivePoiRecommendationPolicy = () => {
+    const isMobileLayout = hudLayoutManager?.getLayout() === 'mobile';
+    const hasOpenHudPanel = hudPanelCoordinator?.getActivePanel() !== null;
+    const enabled = !isMobileLayout && !hasOpenHudPanel;
+    poiTooltipOverlay.setPassiveRecommendationsEnabled(enabled);
+    poiWorldTooltip.setPassiveRecommendationsEnabled(enabled);
+  };
   idleMonitor = new IdleMonitor({
     windowTarget: window,
     elementTargets: [renderer.domElement],
@@ -2482,6 +2489,7 @@ function initializeImmersiveScene(
         strings: controlOverlayStrings,
         initialLayout: 'desktop',
         manageButtonClick: false,
+        onOpenChange: refreshPassivePoiRecommendationPolicy,
       })
     : null;
   const updateControlsButtonLabel = () => {
@@ -2600,8 +2608,14 @@ function initializeImmersiveScene(
   helpModalController = attachHelpModalController({
     helpModal,
     helpButton,
-    onOpen: showHudControlElements,
-    onClose: hideHudControlElements,
+    onOpen: () => {
+      showHudControlElements();
+      refreshPassivePoiRecommendationPolicy();
+    },
+    onClose: () => {
+      hideHudControlElements();
+      refreshPassivePoiRecommendationPolicy();
+    },
     hudFocusAnnouncer,
     announcements: helpModalStrings.announcements,
   });
@@ -2700,7 +2714,9 @@ function initializeImmersiveScene(
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
+    onPanelChange: refreshPassivePoiRecommendationPolicy,
   });
+  refreshPassivePoiRecommendationPolicy();
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
@@ -3306,10 +3322,12 @@ function initializeImmersiveScene(
     windowTarget: window,
     onLayoutChange: (layout) => {
       responsiveControlOverlay?.setLayout(layout);
+      refreshPassivePoiRecommendationPolicy();
     },
   });
   if (hudLayoutManager) {
     responsiveControlOverlay?.setLayout(hudLayoutManager.getLayout());
+    refreshPassivePoiRecommendationPolicy();
   }
 
   composer = new EffectComposer(renderer);

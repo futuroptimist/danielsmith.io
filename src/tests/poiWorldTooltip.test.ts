@@ -310,6 +310,34 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('suppresses idle recommendation rendering when passive recommendations are disabled', () => {
+    const { tooltip, preference } = createTooltip();
+    const recommendedPoi = createPoiDefinition({
+      id: 'f2clipboard-kitchen-console',
+    });
+    tooltip.setIdleState(true);
+    tooltip.setPassiveRecommendationsEnabled(false);
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    const disabledState = tooltip.getState();
+    expect(disabledState.mode).toBeNull();
+    expect(disabledState.visible).toBe(false);
+
+    tooltip.setSelected(createTarget(recommendedPoi, new Vector3(-1, 0.5, 2)));
+    tooltip.update(0.016);
+
+    const selectedState = tooltip.getState();
+    expect(selectedState.mode).toBe('selected');
+    expect(selectedState.poiId).toBe(recommendedPoi.id);
+    expect(selectedState.visible).toBe(true);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('suppresses recommendation rendering when guided tour is disabled', () => {
     const { tooltip, preference } = createTooltip();
     const recommendedPoi = createPoiDefinition({

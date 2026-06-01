@@ -26,6 +26,7 @@ export interface ResponsiveControlOverlayOptions {
   initialLayout?: HudLayout;
   documentTarget?: Document;
   manageButtonClick?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const CONTROL_LIST_SELECTOR = '[data-role="control-list"]';
@@ -144,6 +145,7 @@ export function createResponsiveControlOverlay(
     initialLayout = 'desktop',
     documentTarget = typeof document !== 'undefined' ? document : undefined,
     manageButtonClick = true,
+    onOpenChange,
   } = options;
 
   const list = options.list ?? container.querySelector(CONTROL_LIST_SELECTOR);
@@ -240,6 +242,7 @@ export function createResponsiveControlOverlay(
     }
     open = false;
     update();
+    onOpenChange?.(open);
   };
 
   const openPopover = () => {
@@ -249,6 +252,7 @@ export function createResponsiveControlOverlay(
     }
     open = true;
     update();
+    onOpenChange?.(open);
   };
 
   const togglePopover = () => {
