@@ -110,22 +110,26 @@ jobs:
           image_tag="main-${{ steps.meta.outputs.short_sha }}"
           image_ref="ghcr.io/futuroptimist/danielsmith.io:${image_tag}"
 
-          echo "Immutable image tag:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${image_ref}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Sugarkube deploy tag:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${image_tag}\`" >> "$GITHUB_STEP_SUMMARY"
+          {
+            printf '%s\n' \
+              "Image tag candidate:" \
+              "\`${image_ref}\`" \
+              "Sugarkube deploy tag candidate:" \
+              "\`${image_tag}\`" \
+              "Publish behavior:"
 
-          if [ "${{ github.event_name }}" = "push" ] && \
-            [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "Publish behavior:" >> "$GITHUB_STEP_SUMMARY"
-            echo "\`main-${{ steps.meta.outputs.short_sha }}\`, \`main-latest\`, and " \
-              "\`sha-${{ steps.meta.outputs.short_sha }}\` will be published by the publish job." \
-              >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Publish behavior:" >> "$GITHUB_STEP_SUMMARY"
-            echo "\`${{ github.event_name }}\` runs build and smoke-test only; no GHCR tags are published." \
-              >> "$GITHUB_STEP_SUMMARY"
-          fi
+            if [ "${{ github.event_name }}" = "push" ] && \
+              [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              printf \
+                '`main-%s`, `main-latest`, and `sha-%s` will be published by the publish job.\n' \
+                "${{ steps.meta.outputs.short_sha }}" \
+                "${{ steps.meta.outputs.short_sha }}"
+            else
+              printf \
+                '`%s` runs build and smoke-test only; no GHCR tags are published.\n' \
+                "${{ github.event_name }}"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -168,8 +172,11 @@ jobs:
 
       - name: Summarize published immutable tag
         run: |
-          echo "Published immutable image tag:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`ghcr.io/futuroptimist/danielsmith.io:main-${{ needs.build-and-smoke.outputs.short_sha }}\`" \
-            >> "$GITHUB_STEP_SUMMARY"
-          echo "Sugarkube deploy tag:" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`main-${{ needs.build-and-smoke.outputs.short_sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          image_tag="main-${{ needs.build-and-smoke.outputs.short_sha }}"
+          image_ref="ghcr.io/futuroptimist/danielsmith.io:${image_tag}"
+
+          printf '%s\n' \
+            "Published immutable image tag:" \
+            "\`${image_ref}\`" \
+            "Sugarkube deploy tag:" \
+            "\`${image_tag}\`" >> "$GITHUB_STEP_SUMMARY"

@@ -36,7 +36,7 @@ outside this app repo before expecting the public hostnames to resolve.
    main-REPLACE_SHORTSHA
    ```
 
-`pull_request` and `workflow_dispatch` runs build and smoke-test the static image but do not publish
+`pull_request` and `workflow_dispatch` run build and smoke-test the static image but do not publish
 deployable tags. Only `push` runs on `main` publish `main-<shortsha>`, `main-latest`, and
 `sha-<shortsha>`.
 
@@ -60,16 +60,32 @@ that ref is `main`/`refs/heads/main`.
 Run deployment commands from the Sugarkube repository checkout, not from this app repository.
 Replace `main-REPLACE_SHORTSHA` with the immutable tag copied from `ci-image.yml`.
 
-Current app-specific command:
+Prerequisite: ensure the Sugarkube checkout contains `docs/apps/danielsmith.version` and the
+referenced values files under `docs/examples/` before running the helpers below. If that checkout
+uses different paths, update `version_file` and `values` to match the files present there.
+
+First install:
 
 ```bash
-just danielsmith-oci-deploy env=staging tag=main-REPLACE_SHORTSHA
+just helm-oci-install \
+  release=danielsmith \
+  namespace=danielsmith \
+  chart=oci://ghcr.io/futuroptimist/charts/danielsmith \
+  values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.staging.yaml \
+  version_file=docs/apps/danielsmith.version \
+  default_tag=main-REPLACE_SHORTSHA
 ```
 
-Future generic command after the Sugarkube generic app recipes land:
+Upgrade an existing release:
 
 ```bash
-just app-deploy app=danielsmith env=staging tag=main-REPLACE_SHORTSHA
+just helm-oci-upgrade \
+  release=danielsmith \
+  namespace=danielsmith \
+  chart=oci://ghcr.io/futuroptimist/charts/danielsmith \
+  values=docs/examples/danielsmith.values.dev.yaml,docs/examples/danielsmith.values.staging.yaml \
+  version_file=docs/apps/danielsmith.version \
+  default_tag=main-REPLACE_SHORTSHA
 ```
 
 ## 4. Validate staging
@@ -89,16 +105,18 @@ tag and redeploy it.
 After staging sign-off, promote the same immutable image tag to production from the Sugarkube
 repository checkout.
 
-Current app-specific command:
+Use only the production values file for production promotion so production does not inherit
+dev-only settings or chart defaults. If the production release has not been installed yet, run the
+same command with `helm-oci-install` instead of `helm-oci-upgrade`.
 
 ```bash
-just danielsmith-oci-promote-prod tag=main-REPLACE_SHORTSHA
-```
-
-Future generic command after the Sugarkube generic app recipes land:
-
-```bash
-just app-promote-prod app=danielsmith tag=main-REPLACE_SHORTSHA
+just helm-oci-upgrade \
+  release=danielsmith \
+  namespace=danielsmith \
+  chart=oci://ghcr.io/futuroptimist/charts/danielsmith \
+  values=docs/examples/danielsmith.values.prod.yaml \
+  version_file=docs/apps/danielsmith.version \
+  default_tag=main-REPLACE_SHORTSHA
 ```
 
 ## 6. Validate production
