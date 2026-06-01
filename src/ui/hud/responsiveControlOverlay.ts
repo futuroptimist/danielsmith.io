@@ -3,7 +3,11 @@ import type { ControlOverlayStrings } from '../../assets/i18n/types';
 import type { HudLayout } from './layoutManager';
 import type { InputMethod } from './movementLegend';
 
-export type ResponsiveControlOverlayStrings = ControlOverlayStrings;
+export type LegacyResponsiveControlOverlayStrings =
+  ControlOverlayStrings['mobileToggle'];
+export type ResponsiveControlOverlayStrings =
+  | ControlOverlayStrings
+  | LegacyResponsiveControlOverlayStrings;
 
 export interface ResponsiveControlOverlayHandle {
   open(): void;
@@ -25,6 +29,8 @@ export interface ResponsiveControlOverlayOptions {
   closeButton?: HTMLButtonElement | null;
   strings: ResponsiveControlOverlayStrings;
   initialLayout?: HudLayout;
+  defaultCollapsed?: boolean;
+  storage?: Pick<Storage, 'getItem' | 'setItem'> | null;
   documentTarget?: Document;
   windowTarget?: Window;
 }
@@ -39,6 +45,9 @@ const CONTROL_HEADING_SELECTOR = '[data-control-text="heading"]';
 const CONTROL_LIST_ID = 'control-overlay-list';
 const CONTROL_POPOVER_ID = 'control-overlay-popover';
 const CONTROL_OPEN_KEY = 'controlsOpen';
+const CONTROL_COLLAPSED_KEY = 'controlCollapsed';
+const MOBILE_COLLAPSED_KEY = 'mobileCollapsed';
+const COLLAPSE_STORAGE_KEY = 'hud:control-overlay-collapsed';
 const ACTIVE_INPUT_KEY = 'activeInput';
 const ACTIVE_METHOD_KEY = 'activeMethod';
 
@@ -91,6 +100,312 @@ const ensureId = (element: HTMLElement, fallback: string): string => {
   return element.id;
 };
 
+const getToggleStrings = (
+  strings: ResponsiveControlOverlayStrings
+): LegacyResponsiveControlOverlayStrings =>
+  'mobileToggle' in strings ? strings.mobileToggle : strings;
+
+const legacyMatchActiveMethod = (
+  methods: ReadonlyArray<InputMethod>,
+  active: InputMethod | null
+): boolean => !active || matchActiveMethod(methods, active);
+
+const getLegacyCollapsibleItems = (
+  container: HTMLElement,
+  items: ReadonlyArray<HTMLElement>
+): ReadonlyArray<HTMLElement> => {
+  const activeMethod = getActiveMethod(container);
+  return items.filter((item) => {
+    const methods = parseInputMethods(item.dataset.inputMethods);
+    const controlId = item.dataset.controlItem ?? '';
+    if (controlId === 'interact') {
+      return false;
+    }
+    return !legacyMatchActiveMethod(methods, activeMethod);
+  });
+};
+
+const applyLegacyToggleLabel = (
+  toggle: HTMLButtonElement,
+  strings: LegacyResponsiveControlOverlayStrings,
+  collapsed: boolean
+) => {
+  toggle.textContent = collapsed ? strings.expandLabel : strings.collapseLabel;
+  toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  toggle.dataset.hudAnnounce = collapsed
+    ? strings.expandAnnouncement
+    : strings.collapseAnnouncement;
+};
+
+const applyLegacyContainerState = (
+  container: HTMLElement,
+  layout: HudLayout,
+  collapsed: boolean
+) => {
+  if (layout !== 'mobile') {
+    delete (container.dataset as Record<string, string | undefined>)[
+      CONTROL_COLLAPSED_KEY
+    ];
+    return;
+  }
+  container.dataset[CONTROL_COLLAPSED_KEY] = collapsed ? 'true' : 'false';
+};
+
+const applyLegacyCollapsedState = (
+  items: ReadonlyArray<HTMLElement>,
+  collapsedHiddenStates: WeakMap<HTMLElement, boolean>,
+  layout: HudLayout,
+  collapsed: boolean,
+  collapsibleTargets: ReadonlyArray<HTMLElement>
+) => {
+  const collapsibleSet =
+    collapsibleTargets.length > 0 ? new Set(collapsibleTargets) : null;
+  const shouldCollapse =
+    layout === 'mobile' && collapsed && collapsibleTargets.length > 0;
+
+  const restoreCollapsedState = (item: HTMLElement) => {
+    delete (item.dataset as Record<string, string | undefined>)[
+      MOBILE_COLLAPSED_KEY
+    ];
+    if (!collapsedHiddenStates.has(item)) {
+      return;
+    }
+    const previousHidden = collapsedHiddenStates.get(item);
+    collapsedHiddenStates.delete(item);
+    if (previousHidden !== undefined) {
+      item.hidden = previousHidden;
+    }
+  };
+
+  for (const item of items) {
+    if (!shouldCollapse || !collapsibleSet?.has(item)) {
+      restoreCollapsedState(item);
+      continue;
+    }
+
+    if (!collapsedHiddenStates.has(item)) {
+      collapsedHiddenStates.set(item, item.hidden);
+    }
+    item.dataset[MOBILE_COLLAPSED_KEY] = 'true';
+    item.hidden = true;
+  }
+};
+
+const getStorage = (
+  windowTarget?: Window,
+  storage?: Pick<Storage, 'getItem' | 'setItem'> | null
+): Pick<Storage, 'getItem' | 'setItem'> | null => {
+  if (storage === null) {
+    return null;
+  }
+  if (storage) {
+    return storage;
+  }
+  if (!windowTarget) {
+    return null;
+  }
+  try {
+    return windowTarget.localStorage ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const readPersistedCollapsed = (
+  storage: Pick<Storage, 'getItem'> | null
+): boolean | null => {
+  if (!storage) {
+    return null;
+  }
+  try {
+    const value = storage.getItem(COLLAPSE_STORAGE_KEY);
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const persistCollapsed = (
+  storage: Pick<Storage, 'setItem'> | null,
+  collapsed: boolean
+) => {
+  if (!storage) {
+    return;
+  }
+  try {
+    storage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? 'true' : 'false');
+  } catch {
+    /* ignore storage errors */
+  }
+};
+
+const createLegacyResponsiveControlOverlay = (
+  options: ResponsiveControlOverlayOptions,
+  list: HTMLElement,
+  toggle: HTMLButtonElement
+): ResponsiveControlOverlayHandle => {
+  const {
+    container,
+    strings,
+    initialLayout = 'desktop',
+    defaultCollapsed,
+    windowTarget = typeof window !== 'undefined' ? window : undefined,
+    storage: providedStorage,
+  } = options;
+  const controlItems = Array.from(
+    list.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
+  );
+  const initialHiddenStates = new WeakMap<HTMLElement, boolean>();
+  const collapsedHiddenStates = new WeakMap<HTMLElement, boolean>();
+  controlItems.forEach((item) => {
+    initialHiddenStates.set(item, item.hidden);
+  });
+
+  const listId = ensureId(list, CONTROL_LIST_ID);
+  toggle.setAttribute('aria-controls', listId);
+
+  const storage = getStorage(windowTarget, providedStorage);
+  const readStoredCollapsed = () => readPersistedCollapsed(storage);
+  const resolveMobileCollapsed = () =>
+    readStoredCollapsed() ?? defaultCollapsed ?? true;
+
+  let layout: HudLayout = initialLayout;
+  let collapsed = layout === 'mobile' ? resolveMobileCollapsed() : false;
+  let currentStrings = getToggleStrings(strings);
+  let disposed = false;
+  let canCollapse = false;
+
+  const update = () => {
+    if (disposed) {
+      return;
+    }
+    const collapsibleItems = getLegacyCollapsibleItems(container, controlItems);
+    canCollapse = layout === 'mobile' && collapsibleItems.length > 0;
+    const effectiveCollapsed = canCollapse ? collapsed : false;
+
+    applyLegacyContainerState(container, layout, effectiveCollapsed);
+    applyLegacyCollapsedState(
+      controlItems,
+      collapsedHiddenStates,
+      layout,
+      effectiveCollapsed,
+      collapsibleItems
+    );
+    if (layout === 'mobile' && canCollapse) {
+      persistCollapsed(storage, collapsed);
+      toggle.hidden = false;
+      applyLegacyToggleLabel(toggle, currentStrings, effectiveCollapsed);
+    } else {
+      toggle.hidden = true;
+      toggle.removeAttribute('aria-expanded');
+      toggle.dataset.hudAnnounce = '';
+    }
+  };
+
+  const setCollapsed = (next: boolean) => {
+    const normalized = layout === 'mobile' ? next : false;
+    if (collapsed === normalized) {
+      update();
+      return;
+    }
+    collapsed = normalized;
+    update();
+  };
+
+  const handleToggleClick = () => {
+    if (layout !== 'mobile') {
+      return;
+    }
+    setCollapsed(!collapsed);
+  };
+
+  toggle.addEventListener('click', handleToggleClick);
+
+  const observer = new MutationObserver((mutations) => {
+    if (
+      mutations.some(
+        (mutation) =>
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'data-active-input'
+      )
+    ) {
+      update();
+    }
+  });
+
+  observer.observe(container, {
+    attributes: true,
+    attributeFilter: ['data-active-input'],
+  });
+
+  update();
+
+  return {
+    open() {
+      setCollapsed(false);
+    },
+    close() {
+      setCollapsed(true);
+    },
+    toggle() {
+      handleToggleClick();
+    },
+    isOpen() {
+      return layout === 'mobile' && canCollapse ? !collapsed : false;
+    },
+    setLayout(nextLayout: HudLayout) {
+      if (layout === nextLayout) {
+        update();
+        return;
+      }
+      layout = nextLayout;
+      if (layout === 'mobile') {
+        collapsed = resolveMobileCollapsed();
+      } else {
+        collapsed = false;
+      }
+      update();
+    },
+    setStrings(nextStrings: ResponsiveControlOverlayStrings) {
+      currentStrings = getToggleStrings(nextStrings);
+      if (layout === 'mobile') {
+        applyLegacyToggleLabel(toggle, currentStrings, collapsed);
+      }
+    },
+    refresh() {
+      update();
+    },
+    dispose() {
+      if (disposed) {
+        return;
+      }
+      disposed = true;
+      observer.disconnect();
+      toggle.removeEventListener('click', handleToggleClick);
+      toggle.hidden = true;
+      toggle.removeAttribute('aria-expanded');
+      toggle.removeAttribute('aria-controls');
+      toggle.dataset.hudAnnounce = '';
+      toggle.textContent = currentStrings.expandLabel;
+      delete (container.dataset as Record<string, string | undefined>)[
+        CONTROL_COLLAPSED_KEY
+      ];
+      for (const item of controlItems) {
+        delete (item.dataset as Record<string, string | undefined>)[
+          MOBILE_COLLAPSED_KEY
+        ];
+        item.hidden = initialHiddenStates.get(item) ?? false;
+      }
+    },
+  };
+};
+
 const setOpenState = (
   container: HTMLElement,
   popover: HTMLElement,
@@ -126,6 +441,14 @@ export function createResponsiveControlOverlay(
     options.popover ?? container.querySelector(CONTROL_POPOVER_SELECTOR);
   const closeButton =
     options.closeButton ?? container.querySelector(CONTROL_CLOSE_SELECTOR);
+
+  if (
+    list instanceof HTMLElement &&
+    button instanceof HTMLButtonElement &&
+    !(popover instanceof HTMLElement)
+  ) {
+    return createLegacyResponsiveControlOverlay(options, list, button);
+  }
 
   if (
     !(list instanceof HTMLElement) ||
@@ -178,7 +501,10 @@ export function createResponsiveControlOverlay(
   popover.setAttribute('aria-modal', 'false');
   popover.setAttribute('aria-labelledby', labelId);
 
-  let currentStrings: ResponsiveControlOverlayStrings = { ...strings };
+  let currentStrings: ControlOverlayStrings =
+    'mobileToggle' in strings
+      ? { ...strings }
+      : ({ mobileToggle: strings } as ControlOverlayStrings);
   let layout: HudLayout = initialLayout;
   let open = false;
   let disposed = false;
@@ -308,7 +634,10 @@ export function createResponsiveControlOverlay(
       update();
     },
     setStrings(nextStrings: ResponsiveControlOverlayStrings) {
-      currentStrings = { ...nextStrings };
+      currentStrings =
+        'mobileToggle' in nextStrings
+          ? { ...nextStrings }
+          : ({ mobileToggle: nextStrings } as ControlOverlayStrings);
       applyStrings();
     },
     refresh() {

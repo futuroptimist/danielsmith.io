@@ -1436,6 +1436,18 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   display: none;
 }
 
+.overlay__item--touch {
+  display: none;
+}
+
+:root[data-hud-layout='mobile'] .overlay__item--touch {
+  display: flex;
+}
+
+:root[data-hud-layout='mobile'] .overlay__item--desktop {
+  display: none;
+}
+
 .overlay__keys {
   display: inline-block;
   width: 11rem;
@@ -1476,6 +1488,30 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   right: 1rem;
   max-width: none;
   width: auto;
+}
+
+:root[data-accessibility-motion='reduced'] .audio-hud,
+:root[data-accessibility-motion='reduced'] .motion-blur-control,
+:root[data-accessibility-motion='reduced'] .graphics-quality,
+:root[data-accessibility-motion='reduced'] .mode-toggle,
+:root[data-accessibility-motion='reduced'] .overlay,
+:root[data-accessibility-motion='reduced'] .overlay__controls-button,
+:root[data-accessibility-motion='reduced'] .overlay__help-button,
+:root[data-accessibility-motion='reduced'] .overlay__popover-close,
+:root[data-accessibility-motion='reduced'] .poi-tooltip-overlay,
+:root[data-accessibility-motion='reduced'] .accessibility-presets {
+  transition: none !important;
+  animation: none !important;
+}
+
+:root[data-accessibility-motion='reduced'] .overlay__controls-button:hover,
+:root[data-accessibility-motion='reduced']
+  .overlay__controls-button:focus-visible,
+:root[data-accessibility-motion='reduced'] .overlay__help-button:hover,
+:root[data-accessibility-motion='reduced'] .overlay__help-button:focus-visible,
+:root[data-accessibility-motion='reduced'] .overlay__controls-button:active,
+:root[data-accessibility-motion='reduced'] .overlay__help-button:active {
+  transform: none;
 }
 
 .help-modal-backdrop {

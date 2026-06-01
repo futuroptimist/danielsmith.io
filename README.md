@@ -230,7 +230,8 @@ Keep pipelines deterministic by regenerating assets immediately after touching g
 - **Movement** – Use `WASD` or arrow keys to guide the mannequin.
 - **Key remapping** – Use `portfolio.input.keyBindings.setBinding('interact', ['e'])`
   in the browser console to try alternate bindings. HUD prompts update instantly and
-  the mapping persists locally.
+  the mapping persists locally. The controls popover shortcut defaults to `C`; if you
+  bind that key to another action, the popover shortcut yields to the action binding.
 - **Touch** – Drag the on-screen joysticks (left: movement, right: camera pan) on touch devices.
 - **Lighting debug** – Press `Shift` + `L` to toggle bloom and LED strips for comparison captures.
 - **Mode toggle** – Press `T` or select the "Text mode" overlay button to jump into the
