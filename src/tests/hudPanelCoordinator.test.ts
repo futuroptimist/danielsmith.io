@@ -147,4 +147,26 @@ describe('createHudPanelCoordinator', () => {
 
     coordinator.dispose();
   });
+
+  it('notifies when the active HUD panel changes', () => {
+    const controls = createPanel();
+    const settings = createPanel();
+    const onActivePanelChange = vi.fn();
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      onTextMode: vi.fn(),
+      onActivePanelChange,
+    });
+
+    coordinator.openControls();
+    coordinator.openSettings();
+    coordinator.closeActivePanel();
+
+    expect(onActivePanelChange).toHaveBeenNthCalledWith(1, 'controls');
+    expect(onActivePanelChange).toHaveBeenNthCalledWith(2, 'settings');
+    expect(onActivePanelChange).toHaveBeenNthCalledWith(3, null);
+
+    coordinator.dispose();
+  });
 });

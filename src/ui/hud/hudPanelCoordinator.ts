@@ -14,6 +14,7 @@ export interface HudPanelCoordinatorOptions {
   settingsButton?: HTMLButtonElement | null;
   textButton?: HTMLButtonElement | null;
   onTextMode: () => void;
+  onActivePanelChange?: (panel: HudPanel | null) => void;
   documentTarget?: Document;
 }
 
@@ -47,12 +48,14 @@ export function createHudPanelCoordinator({
   settingsButton,
   textButton,
   onTextMode,
+  onActivePanelChange,
   documentTarget = typeof document !== 'undefined' ? document : undefined,
 }: HudPanelCoordinatorOptions): HudPanelCoordinatorHandle {
   let activePanel: HudPanel | null = null;
   let disposed = false;
 
   const syncState = () => {
+    const previousPanel = activePanel;
     if (controls.isOpen()) {
       activePanel = 'controls';
     } else if (settings.isOpen()) {
@@ -62,6 +65,9 @@ export function createHudPanelCoordinator({
     }
     updateButtonState(controlsButton, activePanel === 'controls');
     updateButtonState(settingsButton, activePanel === 'settings');
+    if (previousPanel !== activePanel) {
+      onActivePanelChange?.(activePanel);
+    }
   };
 
   const closeControls = () => {
