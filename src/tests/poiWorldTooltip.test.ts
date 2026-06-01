@@ -15,9 +15,9 @@ let latestTextBaselineLog: CanvasTextBaseline[] = [];
 
 beforeAll(() => {
   originalGetContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function () {
-    return createMockCanvasContext();
-  };
+  const mockGetContext = () => createMockCanvasContext();
+  HTMLCanvasElement.prototype.getContext =
+    mockGetContext as unknown as typeof HTMLCanvasElement.prototype.getContext;
 });
 
 afterAll(() => {
@@ -138,7 +138,7 @@ function createTarget(
 describe('PoiWorldTooltip', () => {
   it('matches the canvas backing ratio to the title-only plane', () => {
     const { tooltip, preference } = createTooltip();
-    const mesh = tooltip.group.children[0] as {
+    const mesh = tooltip.group.children[0] as unknown as {
       material: { map: CanvasTexture };
     };
     const canvas = mesh.material.map.image as HTMLCanvasElement;
@@ -204,7 +204,7 @@ describe('PoiWorldTooltip', () => {
 
   it('culls tooltips positioned behind the camera view', () => {
     const { tooltip, preference } = createTooltip();
-    const poi = createPoiDefinition({ id: 'behind-camera-poi' });
+    const poi = createPoiDefinition({ id: 'flywheel-studio-flywheel' });
 
     tooltip.setHovered(createTarget(poi, new Vector3(0, 1, 0)));
     tooltip.update(0.016);
@@ -310,13 +310,61 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('does not render idle recommendations when passive recommendations are disabled', () => {
+    const { tooltip, preference } = createTooltip();
+    const recommendedPoi = createPoiDefinition({
+      id: 'sugarkube-backyard-greenhouse',
+    });
+
+    tooltip.setPassiveRecommendationsEnabled(false);
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.mode).toBeNull();
+    expect(state.visible).toBe(false);
+    expect(state.poiId).toBeNull();
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('still renders selected POIs when passive recommendations are disabled', () => {
+    const { tooltip, preference } = createTooltip();
+    const selectedPoi = createPoiDefinition({
+      id: 'flywheel-studio-flywheel',
+    });
+
+    tooltip.setPassiveRecommendationsEnabled(false);
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(
+      createTarget(
+        createPoiDefinition({ id: 'pr-reaper-backyard-console' }),
+        new Vector3(1, 1, 1)
+      )
+    );
+    tooltip.setSelected(createTarget(selectedPoi, new Vector3(0, 1, 0)));
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.mode).toBe('selected');
+    expect(state.poiId).toBe(selectedPoi.id);
+    expect(state.visible).toBe(true);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('suppresses recommendation rendering when guided tour is disabled', () => {
     const { tooltip, preference } = createTooltip();
     const recommendedPoi = createPoiDefinition({
       id: 'pr-reaper-backyard-console',
     });
     tooltip.setIdleState(true);
-    preference.setEnabled(false, 'test');
+    preference.setEnabled(false, 'control');
     tooltip.setRecommendation(
       createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
     );
@@ -326,7 +374,7 @@ describe('PoiWorldTooltip', () => {
     expect(disabledState.mode).toBeNull();
     expect(disabledState.visible).toBe(false);
 
-    preference.setEnabled(true, 'test');
+    preference.setEnabled(true, 'control');
     tooltip.update(0.016);
     const enabledState = tooltip.getState();
     expect(enabledState.mode).toBe('recommended');

@@ -1536,6 +1536,19 @@ function initializeImmersiveScene(
     interactionTimeline,
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const refreshPassivePoiRecommendations = () => {
+    const hudLayout = hudLayoutManager?.getLayout() ?? 'desktop';
+    const activeHudPanel = hudPanelCoordinator?.getActivePanel() ?? null;
+    const passiveRecommendationsAllowed =
+      hudLayout !== 'mobile' && activeHudPanel === null;
+
+    poiTooltipOverlay.setPassiveRecommendationsEnabled(
+      passiveRecommendationsAllowed
+    );
+    poiWorldTooltip.setPassiveRecommendationsEnabled(
+      passiveRecommendationsAllowed
+    );
+  };
   idleMonitor = new IdleMonitor({
     windowTarget: window,
     elementTargets: [renderer.domElement],
@@ -2700,7 +2713,9 @@ function initializeImmersiveScene(
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
+    onActivePanelChange: refreshPassivePoiRecommendations,
   });
+  refreshPassivePoiRecommendations();
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
@@ -3306,10 +3321,12 @@ function initializeImmersiveScene(
     windowTarget: window,
     onLayoutChange: (layout) => {
       responsiveControlOverlay?.setLayout(layout);
+      refreshPassivePoiRecommendations();
     },
   });
   if (hudLayoutManager) {
     responsiveControlOverlay?.setLayout(hudLayoutManager.getLayout());
+    refreshPassivePoiRecommendations();
   }
 
   composer = new EffectComposer(renderer);

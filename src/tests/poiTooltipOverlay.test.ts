@@ -297,7 +297,7 @@ describe('PoiTooltipOverlay', () => {
 
     const nextPoi: PoiDefinition = {
       ...basePoi,
-      id: 'futuroptimist-living-room-tv-variant',
+      id: 'tokenplace-studio-cluster',
       title: 'Futuroptimist Creator Desk Alt',
       interactionPrompt: 'Inspect Futuroptimist Creator Desk Alt',
     };
@@ -360,7 +360,7 @@ describe('PoiTooltipOverlay', () => {
     );
   });
 
-  it('surfaces the recommendation overlay when idle', () => {
+  it('surfaces the recommendation overlay when idle and passive recommendations are enabled', () => {
     overlay.setIdleState(true);
     overlay.setRecommendation(basePoi);
 
@@ -377,6 +377,37 @@ describe('PoiTooltipOverlay', () => {
     ) as HTMLSpanElement;
     expect(badge.hidden).toBe(false);
     expect(badge.textContent).toBe('Next highlight');
+  });
+
+  it('does not show idle recommendations when passive recommendations are disabled', () => {
+    overlay.setPassiveRecommendationsEnabled(false);
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('hidden');
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+
+    overlay.setPassiveRecommendationsEnabled(true);
+
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.dataset.state).toBe('recommended');
+  });
+
+  it('still shows explicitly selected POIs when passive recommendations are disabled', () => {
+    overlay.setPassiveRecommendationsEnabled(false);
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.dataset.state).toBe('selected');
+    expect(root.getAttribute('aria-hidden')).toBe('false');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      basePoi.title
+    );
   });
 
   it('shows a badge when the recommended POI is selected', () => {
@@ -401,7 +432,7 @@ describe('PoiTooltipOverlay', () => {
 
   it('hides recommendation badges when guided tour mode is disabled', () => {
     overlay.setIdleState(true);
-    preference.setEnabled(false, 'test');
+    preference.setEnabled(false, 'control');
     overlay.setRecommendation(basePoi);
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
@@ -414,7 +445,7 @@ describe('PoiTooltipOverlay', () => {
     ) as HTMLSpanElement;
     expect(badge.hidden).toBe(true);
 
-    preference.setEnabled(true, 'test');
+    preference.setEnabled(true, 'control');
     expect(root.dataset.guidedTour).toBe('on');
     expect(badge.hidden).toBe(false);
   });
@@ -469,7 +500,7 @@ describe('PoiTooltipOverlay', () => {
       guidedTourPreference: preference,
     });
 
-    overlay.setSelected({ ...basePoi, summary: undefined });
+    overlay.setSelected(basePoi);
 
     const liveRegion = container.querySelector(
       '.poi-tooltip-overlay__live-region'
