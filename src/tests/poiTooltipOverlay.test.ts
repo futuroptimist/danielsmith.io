@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -223,6 +223,62 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
     expect(root.getAttribute('aria-hidden')).toBe('true');
     expect(root.getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('emits a dismiss callback from the focusable close button', () => {
+    const onDismiss = vi.fn();
+    overlay.dispose();
+    timelineHarness.dispose();
+    preference.dispose();
+    timelineHarness = new TimelineHarness();
+    preference = createPreference();
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+      onDismiss,
+    });
+
+    overlay.setSelected(basePoi);
+
+    const closeButton = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__close'
+    );
+    expect(closeButton).toBeTruthy();
+    expect(closeButton?.tagName).toBe('BUTTON');
+    expect(closeButton?.getAttribute('aria-label')).toBe('Close POI details');
+    expect(closeButton?.tabIndex).toBe(0);
+
+    closeButton?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('can hide selected POI details after a dismiss callback clears state', () => {
+    const onDismiss = vi.fn(() => overlay.setSelected(null));
+    overlay.dispose();
+    timelineHarness.dispose();
+    preference.dispose();
+    timelineHarness = new TimelineHarness();
+    preference = createPreference();
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+      onDismiss,
+    });
+
+    overlay.setSelected(basePoi);
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+
+    container
+      .querySelector<HTMLButtonElement>('.poi-tooltip-overlay__close')
+      ?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('refreshes metric values when notified about updates', () => {

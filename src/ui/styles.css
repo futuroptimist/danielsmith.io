@@ -1509,11 +1509,15 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 }
 
 :root[data-hud-layout='mobile'] .poi-tooltip-overlay {
+  top: auto;
   bottom: calc(var(--hud-mobile-safe-zone) + 1rem);
-  left: 1rem;
-  right: 1rem;
+  left: max(0.75rem, env(safe-area-inset-left, 0px));
+  right: max(0.75rem, env(safe-area-inset-right, 0px));
   max-width: none;
+  max-height: min(52vh, calc(100vh - var(--hud-mobile-safe-zone) - 6rem));
   width: auto;
+  overflow: auto;
+  padding: 0.9rem 1rem;
 }
 
 :root[data-accessibility-motion='reduced'] .audio-hud,
@@ -1526,6 +1530,7 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 :root[data-accessibility-motion='reduced'] .overlay__popover,
 :root[data-accessibility-motion='reduced'] .overlay__popover-close,
 :root[data-accessibility-motion='reduced'] .poi-tooltip-overlay,
+:root[data-accessibility-motion='reduced'] .poi-tooltip-overlay__close,
 :root[data-accessibility-motion='reduced'] .accessibility-presets {
   transition: none !important;
   animation: none !important;
@@ -1536,6 +1541,9 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 :root[data-accessibility-motion='reduced'] .overlay__popover-close:hover,
 :root[data-accessibility-motion='reduced']
   .overlay__popover-close:focus-visible,
+:root[data-accessibility-motion='reduced'] .poi-tooltip-overlay__close:hover,
+:root[data-accessibility-motion='reduced']
+  .poi-tooltip-overlay__close:focus-visible,
 :root[data-accessibility-motion='reduced'] .overlay__menu-button:active {
   transform: none;
 }
@@ -1874,6 +1882,38 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.poi-tooltip-overlay__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.85rem;
+  min-height: 1.85rem;
+  margin-left: auto;
+  border: 1px solid rgba(143, 214, 255, 0.36);
+  border-radius: 999px;
+  background: rgba(8, 19, 34, 0.72);
+  color: rgba(232, 248, 255, 0.94);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.poi-tooltip-overlay__close:hover,
+.poi-tooltip-overlay__close:focus-visible {
+  border-color: rgba(255, 219, 142, 0.72);
+  background: rgba(255, 205, 94, 0.18);
+  color: #fff7db;
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .poi-tooltip-overlay__title {

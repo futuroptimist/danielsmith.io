@@ -17,6 +17,7 @@ export interface PoiTooltipOverlayOptions {
   };
   interactionTimeline?: InteractionTimeline;
   guidedTourPreference?: GuidedTourPreference;
+  onDismiss?: () => void;
 }
 
 interface RenderState {
@@ -36,6 +37,7 @@ export class PoiTooltipOverlay {
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
+  private readonly closeButton: HTMLButtonElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
   private readonly guidedTourPreference: GuidedTourPreference;
@@ -60,6 +62,7 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
+      onDismiss,
     } = options;
     const documentTarget = container.ownerDocument ?? document;
 
@@ -104,6 +107,16 @@ export class PoiTooltipOverlay {
     this.recommendationBadge.textContent = 'Next highlight';
     this.recommendationBadge.hidden = true;
     headingRow.appendChild(this.recommendationBadge);
+
+    this.closeButton = documentTarget.createElement('button');
+    this.closeButton.type = 'button';
+    this.closeButton.className = 'poi-tooltip-overlay__close';
+    this.closeButton.setAttribute('aria-label', 'Close POI details');
+    this.closeButton.textContent = '×';
+    this.closeButton.addEventListener('click', () => {
+      onDismiss?.();
+    });
+    headingRow.appendChild(this.closeButton);
 
     this.summary = documentTarget.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';

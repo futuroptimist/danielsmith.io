@@ -1532,11 +1532,48 @@ function initializeImmersiveScene(
 
   const poiAnalytics = createWindowPoiAnalytics();
   const interactionTimeline = new InteractionTimeline();
+  let poiInteractionManager: PoiInteractionManager | null = null;
+  let currentPoiHover: PoiDefinition | null = null;
+  let currentPoiSelection: PoiDefinition | null = null;
+  const shouldShowPoiHoverPreview = () =>
+    hudLayoutManager?.getLayout() !== 'mobile' &&
+    (hudPanelCoordinator?.getActivePanel() ?? null) === null;
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
     interactionTimeline,
+    onDismiss: () => {
+      dismissPoiDetail();
+    },
   });
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const syncPoiTooltipHoverPreview = () => {
+    poiTooltipOverlay.setHovered(
+      shouldShowPoiHoverPreview() ? currentPoiHover : null
+    );
+  };
+  const dismissPoiDetail = ({
+    closeHudPanels = true,
+  }: { closeHudPanels?: boolean } = {}) => {
+    const selectedPoiId = currentPoiSelection?.id ?? null;
+    const hoveredPoiId = currentPoiHover?.id ?? null;
+    poiInteractionManager?.clearSelection();
+    poiInteractionManager?.clearHover();
+    currentPoiSelection = null;
+    currentPoiHover = null;
+    poiTooltipOverlay.setSelected(null);
+    poiTooltipOverlay.setHovered(null);
+    if (
+      selectedPoiId === null ||
+      hoveredPoiId === null ||
+      selectedPoiId === hoveredPoiId
+    ) {
+      poiWorldTooltip.setSelected(null);
+      poiWorldTooltip.setHovered(null);
+    }
+    if (closeHudPanels) {
+      hudPanelCoordinator?.closeAllPanels();
+    }
+  };
   const updatePassivePoiRecommendationPolicy = (layoutOverride?: HudLayout) => {
     const activeHudPanel = hudPanelCoordinator?.getActivePanel() ?? null;
     const hudLayout = layoutOverride ?? hudLayoutManager?.getLayout();
@@ -1994,18 +2031,23 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
-  const poiInteractionManager = new PoiInteractionManager(
+  poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,
     camera,
     poiInstances,
     poiAnalytics
   );
   const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
-    poiTooltipOverlay.setHovered(poi);
+    currentPoiHover = poi;
+    syncPoiTooltipHoverPreview();
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
   });
   const removeSelectionStateListener =
     poiInteractionManager.addSelectionStateListener((poi, context) => {
+      currentPoiSelection = poi;
+      if (poi) {
+        hudPanelCoordinator?.closeAllPanels();
+      }
       poiTooltipOverlay.setSelected(poi, context);
       poiWorldTooltip.setSelected(resolveWorldTooltipTarget(poi));
     });
@@ -2678,6 +2720,22 @@ function initializeImmersiveScene(
           .some((binding) => normalizeBindingKey(binding) === normalizedKey)
     );
   };
+  const handlePoiDismissKeydown = (event: KeyboardEvent) => {
+    if (
+      event.key !== 'Escape' ||
+      event.defaultPrevented ||
+      !poiTooltipOverlay.getState().visible
+    ) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    dismissPoiDetail();
+  };
+  window.addEventListener('keydown', handlePoiDismissKeydown, {
+    capture: true,
+  });
+
   const handleControlsKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.repeat) {
       return;
@@ -2714,7 +2772,12 @@ function initializeImmersiveScene(
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
-    onActivePanelChange: () => updatePassivePoiRecommendationPolicy(),
+    onActivePanelChange: (panel) => {
+      if (panel !== null) {
+        dismissPoiDetail({ closeHudPanels: false });
+      }
+      updatePassivePoiRecommendationPolicy();
+    },
   });
   let interactablePoi: PoiInstance | null = null;
 
@@ -3322,6 +3385,7 @@ function initializeImmersiveScene(
     onLayoutChange: (layout) => {
       responsiveControlOverlay?.setLayout(layout);
       updatePassivePoiRecommendationPolicy(layout);
+      syncPoiTooltipHoverPreview();
     },
   });
   if (hudLayoutManager) {
@@ -4110,7 +4174,7 @@ function initializeImmersiveScene(
     const pressed = keyBindings.isActionActive('interact', keyPressSource);
     if (pressed && !interactKeyWasPressed && interactablePoi) {
       idleMonitor?.reportActivity();
-      poiInteractionManager.selectPoiById(interactablePoi.definition.id);
+      poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
   }
@@ -4157,7 +4221,7 @@ function initializeImmersiveScene(
       avatarFootIkController.dispose();
       avatarFootIkController = null;
     }
-    poiInteractionManager.dispose();
+    poiInteractionManager?.dispose();
     removeHoverListener();
     removeSelectionStateListener();
     removeSelectionListener();
@@ -4243,6 +4307,9 @@ function initializeImmersiveScene(
       hudLayoutManager.dispose();
       hudLayoutManager = null;
     }
+    window.removeEventListener('keydown', handlePoiDismissKeydown, {
+      capture: true,
+    });
     window.removeEventListener('keydown', handleControlsKeydown);
     if (hudPanelCoordinator) {
       hudPanelCoordinator.dispose();
