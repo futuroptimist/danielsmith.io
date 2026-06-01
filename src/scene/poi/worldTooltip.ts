@@ -103,6 +103,8 @@ export class PoiWorldTooltip {
 
   private guidedTourEnabled = true;
 
+  private passiveRecommendationsEnabled = true;
+
   private idle = false;
 
   private unsubscribeGuidedTour: (() => void) | null = null;
@@ -196,6 +198,16 @@ export class PoiWorldTooltip {
     this.recommendation = target;
   }
 
+  setPassiveRecommendationsEnabled(enabled: boolean): void {
+    if (this.passiveRecommendationsEnabled === enabled) {
+      return;
+    }
+    this.passiveRecommendationsEnabled = enabled;
+    if (!enabled && !this.hovered && !this.selected) {
+      this.fadeOut(0);
+    }
+  }
+
   setIdleState(idle: boolean): void {
     if (this.idle === idle) {
       return;
@@ -211,7 +223,9 @@ export class PoiWorldTooltip {
       return;
     }
     const recommendation =
-      this.guidedTourEnabled && this.idle ? this.recommendation : null;
+      this.guidedTourEnabled && this.passiveRecommendationsEnabled && this.idle
+        ? this.recommendation
+        : null;
     const active = this.selected ?? this.hovered ?? recommendation;
     const mode: PoiWorldTooltipMode | null = this.selected
       ? 'selected'
@@ -290,7 +304,10 @@ export class PoiWorldTooltip {
     if (this.disposed) {
       return;
     }
-    const recommendation = this.guidedTourEnabled ? this.recommendation : null;
+    const recommendation =
+      this.guidedTourEnabled && this.passiveRecommendationsEnabled && this.idle
+        ? this.recommendation
+        : null;
     const activeTarget = this.selected ?? this.hovered ?? recommendation;
     const mode: PoiWorldTooltipMode | null = this.selected
       ? 'selected'

@@ -310,6 +310,48 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('does not render passive recommendations when disabled', () => {
+    const { tooltip, preference } = createTooltip();
+    const recommendedPoi = createPoiDefinition({
+      id: 'dspace-backyard-rocket',
+    });
+    tooltip.setPassiveRecommendationsEnabled(false);
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.mode).toBeNull();
+    expect(state.poiId).toBeNull();
+    expect(state.visible).toBe(false);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('keeps selected world tooltips visible when passive recommendations are disabled', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      id: 'jobbot-studio-terminal',
+    });
+    const target = createTarget(poi, new Vector3(0, 1, 0));
+    tooltip.setPassiveRecommendationsEnabled(false);
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(target);
+    tooltip.setSelected(target);
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.mode).toBe('selected');
+    expect(state.poiId).toBe(poi.id);
+    expect(state.visible).toBe(true);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('suppresses recommendation rendering when guided tour is disabled', () => {
     const { tooltip, preference } = createTooltip();
     const recommendedPoi = createPoiDefinition({

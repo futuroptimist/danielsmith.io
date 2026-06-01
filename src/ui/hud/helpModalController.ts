@@ -12,6 +12,7 @@ export interface HelpModalControllerOptions {
   helpButton?: HTMLButtonElement | null;
   onOpen?: () => void;
   onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
   hudFocusAnnouncer?: Pick<HudFocusAnnouncerHandle, 'announce'> | null;
   announcements?: HelpModalAnnouncements | null;
 }
@@ -38,6 +39,7 @@ export function attachHelpModalController({
   helpButton,
   onOpen,
   onClose,
+  onOpenChange,
   hudFocusAnnouncer,
   announcements,
 }: HelpModalControllerOptions): HelpModalControllerHandle {
@@ -85,6 +87,7 @@ export function attachHelpModalController({
     onOpen?.();
     originalOpen.call(helpModal);
     const nextIsOpen = refreshState();
+    onOpenChange?.(nextIsOpen);
     if (!nextIsOpen) {
       onClose?.();
       return;
@@ -101,6 +104,7 @@ export function attachHelpModalController({
     }
     originalClose.call(helpModal);
     const nextIsOpen = refreshState();
+    onOpenChange?.(nextIsOpen);
     if (!nextIsOpen) {
       onClose?.();
       announce(activeAnnouncements.close);
@@ -115,6 +119,9 @@ export function attachHelpModalController({
     }
     originalToggle.call(helpModal, force);
     const nextIsOpen = refreshState();
+    if (wasOpen !== nextIsOpen) {
+      onOpenChange?.(nextIsOpen);
+    }
     if (!wasOpen && nextIsOpen) {
       announce(activeAnnouncements.open);
       return;
