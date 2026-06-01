@@ -138,6 +138,14 @@ export const JA_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: '操作',
+      menu: {
+        controlsLabel: '操作',
+        controlsTitleTemplate: '操作（{keyHint}）',
+        textLabel: 'テキスト',
+        textTitleTemplate: 'テキストモードに切り替え（{keyHint}）',
+        settingsLabel: '設定',
+        settingsTitleTemplate: '設定とヘルプ（{keyHint}）',
+      },
       items: {
         keyboardMove: {
           keys: 'WASD / 矢印キー',

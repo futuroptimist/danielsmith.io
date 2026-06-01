@@ -1321,7 +1321,22 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   transition: opacity 160ms ease;
 }
 
+.overlay__menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(123, 209, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(8, 18, 30, 0.52);
+  box-shadow: var(--hud-surface-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.overlay__menu-button,
 .overlay__controls-button,
+.overlay__text-button,
 .overlay__help-button {
   width: auto;
   min-height: 2.45rem;
@@ -1344,8 +1359,12 @@ html[data-hud-layout='mobile'] .audio-subtitles {
     transform 120ms ease;
 }
 
+.overlay__menu-button:hover,
+.overlay__menu-button:focus-visible,
 .overlay__controls-button:hover,
 .overlay__controls-button:focus-visible,
+.overlay__text-button:hover,
+.overlay__text-button:focus-visible,
 .overlay__help-button:hover,
 .overlay__help-button:focus-visible {
   border-color: rgba(158, 232, 255, 0.8);
@@ -1354,9 +1373,46 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   transform: translateY(-1px);
 }
 
+.overlay__menu-button:active,
 .overlay__controls-button:active,
+.overlay__text-button:active,
 .overlay__help-button:active {
   transform: translateY(0);
+}
+
+.overlay__menu-button::after {
+  content: attr(data-key-hint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  margin-left: 0.45rem;
+  padding: 0 0.28rem;
+  border-radius: 0.38rem;
+  border: 1px solid rgba(158, 232, 255, 0.36);
+  background: rgba(3, 9, 18, 0.38);
+  color: var(--hud-surface-accent);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+:root[data-hud-layout='mobile'] .overlay__menu {
+  gap: 0.25rem;
+  max-width: calc(100vw - 1.5rem);
+}
+
+:root[data-hud-layout='mobile'] .overlay__menu-button {
+  min-height: 2.6rem;
+  padding: 0.55rem 0.62rem;
+  font-size: 0.78rem;
+}
+
+:root[data-hud-layout='mobile'] .overlay__menu-button::after {
+  min-width: 1.1rem;
+  min-height: 1.1rem;
+  margin-left: 0.28rem;
+  font-size: 0.68rem;
 }
 
 .overlay__popover {

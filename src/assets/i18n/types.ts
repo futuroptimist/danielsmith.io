@@ -19,6 +19,14 @@ export interface ControlOverlayItemStrings {
 
 export interface ControlOverlayStrings {
   heading: string;
+  menu: {
+    controlsLabel: string;
+    controlsTitleTemplate: string;
+    textLabel: string;
+    textTitleTemplate: string;
+    settingsLabel: string;
+    settingsTitleTemplate: string;
+  };
   items: {
     keyboardMove: ControlOverlayItemStrings;
     pointerDrag: ControlOverlayItemStrings;

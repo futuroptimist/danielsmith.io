@@ -8,6 +8,14 @@ import { createResponsiveControlOverlay } from '../ui/hud/responsiveControlOverl
 
 const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
   heading,
+  menu: {
+    controlsLabel: heading,
+    controlsTitleTemplate: 'Controls ({keyHint})',
+    textLabel: 'Text',
+    textTitleTemplate: 'Switch to text mode ({keyHint})',
+    settingsLabel: 'Settings',
+    settingsTitleTemplate: 'Settings and help ({keyHint})',
+  },
   items: {
     keyboardMove: { keys: 'WASD / Arrow keys', description: 'Move' },
     pointerDrag: { keys: 'Left mouse button', description: 'Drag to pan' },
