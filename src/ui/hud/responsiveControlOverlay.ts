@@ -1,7 +1,7 @@
 import type { ControlOverlayStrings } from '../../assets/i18n/types';
 
+import { applyHudMenuButtonMetadata } from './controlOverlay';
 import type { HudLayout } from './layoutManager';
-import { formatMenuButtonTitle } from './menuButtonTitle';
 import type { InputMethod } from './movementLegend';
 
 export interface ResponsiveControlOverlayHandle {
@@ -196,16 +196,11 @@ export function createResponsiveControlOverlay(
     const menuLabel = button.querySelector('[data-hud-menu-label]');
     if (menuLabel instanceof HTMLElement) {
       menuLabel.textContent = currentStrings.menu.controls.label;
-      const menuKey = button.querySelector('[data-hud-menu-key]');
-      if (menuKey instanceof HTMLElement) {
-        menuKey.textContent = controlsShortcutLabel;
-      }
-      const title = formatMenuButtonTitle(
+      applyHudMenuButtonMetadata(
+        button,
         currentStrings.menu.controls,
         controlsShortcutLabel
       );
-      button.setAttribute('aria-label', title);
-      button.title = title;
     } else {
       button.textContent = currentStrings.heading;
       button.setAttribute('aria-label', currentStrings.heading);

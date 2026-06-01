@@ -367,7 +367,10 @@ import {
   createAudioSubtitles,
   type AudioSubtitlesHandle,
 } from './ui/hud/audioSubtitles';
-import { applyControlOverlayStrings } from './ui/hud/controlOverlay';
+import {
+  applyControlOverlayStrings,
+  applyHudMenuButtonMetadata,
+} from './ui/hud/controlOverlay';
 import { applyControlOverlayAccessibility } from './ui/hud/controlOverlayAccessibility';
 import {
   createHudCustomizationSection,
@@ -386,7 +389,6 @@ import {
   createHudLayoutManager,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
-import { formatMenuButtonTitle } from './ui/hud/menuButtonTitle';
 import {
   createMovementLegend,
   type MovementLegendHandle,
@@ -2747,24 +2749,15 @@ function initializeImmersiveScene(
     const settingsLabel = helpButton.querySelector(
       '[data-hud-menu-label="settings"]'
     );
-    const settingsKey = helpButton.querySelector(
-      '[data-hud-menu-key="settings"]'
-    );
-    if (settingsLabel instanceof HTMLElement) {
-      settingsLabel.textContent = controlOverlayStrings.menu.settings.label;
-    } else {
+    if (!(settingsLabel instanceof HTMLElement)) {
       helpButton.textContent = buildHelpButtonText(label);
     }
-    if (settingsKey instanceof HTMLElement) {
-      settingsKey.textContent = label;
-    }
-    const title = formatMenuButtonTitle(
+    applyHudMenuButtonMetadata(
+      helpButton,
       controlOverlayStrings.menu.settings,
-      label
+      label,
+      buildHelpAnnouncement(label)
     );
-    helpButton.setAttribute('aria-label', title);
-    helpButton.title = title;
-    helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
   };
   updateHelpButtonLabel();
 
