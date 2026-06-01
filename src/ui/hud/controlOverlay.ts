@@ -1,11 +1,15 @@
 import type { ControlOverlayStrings } from '../../assets/i18n';
 
+import { formatMenuButtonTitle } from './menuButtonTitle';
+
 const CONTROL_HEADING_SELECTOR = '[data-control-text="heading"]';
 const CONTROL_KEYS_SELECTOR = '.overlay__keys';
 const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
 const CONTROLS_BUTTON_SELECTOR = '[data-role="controls-button"]';
+const TEXT_MODE_BUTTON_SELECTOR = '[data-role="text-mode-button"]';
+const SETTINGS_BUTTON_SELECTOR = '[data-role="settings-button"]';
 const LEGACY_COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
 
 function setTextContent(
@@ -14,6 +18,23 @@ function setTextContent(
 ): void {
   if (element instanceof HTMLElement) {
     element.textContent = value;
+  }
+}
+
+export function applyHudMenuButtonMetadata(
+  button: HTMLButtonElement,
+  item: ControlOverlayStrings['menu'][keyof ControlOverlayStrings['menu']],
+  shortcutLabel: string,
+  announcement?: string
+): void {
+  setTextContent(button.querySelector('[data-hud-menu-label]'), item.label);
+  setTextContent(button.querySelector('[data-hud-menu-key]'), shortcutLabel);
+
+  const title = formatMenuButtonTitle(item, shortcutLabel);
+  button.setAttribute('aria-label', title);
+  button.title = title;
+  if (announcement !== undefined) {
+    button.dataset.hudAnnounce = announcement;
   }
 }
 
@@ -63,11 +84,26 @@ export function applyControlOverlayStrings(
     );
   }
 
+  const applyMenuButton = (
+    selector: string,
+    key: keyof ControlOverlayStrings['menu']
+  ) => {
+    const button = container.querySelector<HTMLButtonElement>(selector);
+    if (!button) {
+      return;
+    }
+    const item = strings.menu[key];
+    applyHudMenuButtonMetadata(button, item, item.keyHint);
+  };
+
+  applyMenuButton(CONTROLS_BUTTON_SELECTOR, 'controls');
+  applyMenuButton(TEXT_MODE_BUTTON_SELECTOR, 'text');
+  applyMenuButton(SETTINGS_BUTTON_SELECTOR, 'settings');
+
   const controlsButton = container.querySelector<HTMLButtonElement>(
     CONTROLS_BUTTON_SELECTOR
   );
   if (controlsButton) {
-    setTextContent(controlsButton, strings.heading);
     controlsButton.dataset.hudAnnounce =
       strings.mobileToggle.expandAnnouncement;
   }

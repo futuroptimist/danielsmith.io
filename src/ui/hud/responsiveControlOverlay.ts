@@ -1,5 +1,6 @@
 import type { ControlOverlayStrings } from '../../assets/i18n/types';
 
+import { applyHudMenuButtonMetadata } from './controlOverlay';
 import type { HudLayout } from './layoutManager';
 import type { InputMethod } from './movementLegend';
 
@@ -10,6 +11,7 @@ export interface ResponsiveControlOverlayHandle {
   isOpen(): boolean;
   setLayout(layout: HudLayout): void;
   setStrings(strings: ControlOverlayStrings): void;
+  setControlsShortcutLabel(label: string): void;
   refresh(): void;
   dispose(): void;
 }
@@ -23,6 +25,7 @@ export interface ResponsiveControlOverlayOptions {
   strings: ControlOverlayStrings;
   initialLayout?: HudLayout;
   documentTarget?: Document;
+  manageButtonClick?: boolean;
 }
 
 const CONTROL_LIST_SELECTOR = '[data-role="control-list"]';
@@ -105,6 +108,9 @@ const createNoopResponsiveControlOverlay =
     setStrings() {
       /* noop */
     },
+    setControlsShortcutLabel() {
+      /* noop */
+    },
     refresh() {
       /* noop */
     },
@@ -123,6 +129,7 @@ const setOpenState = (
   popover.hidden = !open;
   container.dataset[CONTROL_OPEN_KEY] = open ? 'true' : 'false';
   button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  button.setAttribute('aria-pressed', open ? 'true' : 'false');
   button.dataset.hudAnnounce = open
     ? strings.mobileToggle.collapseAnnouncement
     : strings.mobileToggle.expandAnnouncement;
@@ -136,6 +143,7 @@ export function createResponsiveControlOverlay(
     strings,
     initialLayout = 'desktop',
     documentTarget = typeof document !== 'undefined' ? document : undefined,
+    manageButtonClick = true,
   } = options;
 
   const list = options.list ?? container.querySelector(CONTROL_LIST_SELECTOR);
@@ -176,6 +184,7 @@ export function createResponsiveControlOverlay(
   popover.setAttribute('aria-labelledby', labelId);
 
   let currentStrings: ControlOverlayStrings = { ...strings };
+  let controlsShortcutLabel = currentStrings.menu.controls.keyHint;
   let layout: HudLayout = initialLayout;
   let open = false;
   let disposed = false;
@@ -184,8 +193,18 @@ export function createResponsiveControlOverlay(
     if (ownsContainerLabel) {
       container.setAttribute('aria-label', currentStrings.heading);
     }
-    button.textContent = currentStrings.heading;
-    button.setAttribute('aria-label', currentStrings.heading);
+    const menuLabel = button.querySelector('[data-hud-menu-label]');
+    if (menuLabel instanceof HTMLElement) {
+      menuLabel.textContent = currentStrings.menu.controls.label;
+      applyHudMenuButtonMetadata(
+        button,
+        currentStrings.menu.controls,
+        controlsShortcutLabel
+      );
+    } else {
+      button.textContent = currentStrings.heading;
+      button.setAttribute('aria-label', currentStrings.heading);
+    }
     if (closeButton instanceof HTMLButtonElement) {
       closeButton.setAttribute(
         'aria-label',
@@ -271,7 +290,9 @@ export function createResponsiveControlOverlay(
     }
   };
 
-  button.addEventListener('click', handleButtonClick);
+  if (manageButtonClick) {
+    button.addEventListener('click', handleButtonClick);
+  }
   closeButton?.addEventListener('click', handleCloseClick);
   documentTarget?.addEventListener('pointerdown', handleDocumentPointerDown);
   documentTarget?.addEventListener('keydown', handleDocumentKeydown);
@@ -308,7 +329,15 @@ export function createResponsiveControlOverlay(
       update();
     },
     setStrings(nextStrings: ControlOverlayStrings) {
+      const previousDefaultShortcut = currentStrings.menu.controls.keyHint;
       currentStrings = { ...nextStrings };
+      if (controlsShortcutLabel === previousDefaultShortcut) {
+        controlsShortcutLabel = currentStrings.menu.controls.keyHint;
+      }
+      applyStrings();
+    },
+    setControlsShortcutLabel(label: string) {
+      controlsShortcutLabel = label || currentStrings.menu.controls.keyHint;
       applyStrings();
     },
     refresh() {
@@ -320,7 +349,9 @@ export function createResponsiveControlOverlay(
       }
       disposed = true;
       observer.disconnect();
-      button.removeEventListener('click', handleButtonClick);
+      if (manageButtonClick) {
+        button.removeEventListener('click', handleButtonClick);
+      }
       closeButton?.removeEventListener('click', handleCloseClick);
       documentTarget?.removeEventListener(
         'pointerdown',
@@ -329,6 +360,7 @@ export function createResponsiveControlOverlay(
       documentTarget?.removeEventListener('keydown', handleDocumentKeydown);
       popover.hidden = true;
       button.removeAttribute('aria-expanded');
+      button.removeAttribute('aria-pressed');
       button.removeAttribute('aria-controls');
       button.removeAttribute('aria-haspopup');
       button.dataset.hudAnnounce = '';

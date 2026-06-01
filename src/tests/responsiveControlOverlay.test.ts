@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { ControlOverlayStrings } from '../assets/i18n/types';
 import { DEFAULT_KEY_BINDINGS } from '../systems/controls/keyBindings';
+import { applyHudMenuButtonMetadata } from '../ui/hud/controlOverlay';
 import { createResponsiveControlOverlay } from '../ui/hud/responsiveControlOverlay';
 
 const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
@@ -30,6 +31,11 @@ const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
     labelTemplate: 'Open menu · Press {shortcut}',
     announcementTemplate: 'Open help with {shortcut}',
     shortcutFallback: 'H',
+  },
+  menu: {
+    controls: { label: 'Controls', keyHint: 'C', title: 'Open controls (C)' },
+    text: { label: 'Text', keyHint: 'T', title: 'Switch to text mode (T)' },
+    settings: { label: 'Settings', keyHint: 'H', title: 'Open settings (H)' },
   },
   mobileToggle: {
     expandLabel: 'Show all controls',
@@ -125,15 +131,18 @@ describe('createResponsiveControlOverlay', () => {
     expect(handle.isOpen()).toBe(true);
     expect(popover.hidden).toBe(false);
     expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
 
     handle.toggle();
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
+    expect(button.getAttribute('aria-pressed')).toBe('false');
 
     handle.open();
     closeButton.click();
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
+    expect(button.getAttribute('aria-pressed')).toBe('false');
     expect(document.activeElement).toBe(button);
 
     handle.dispose();
@@ -215,6 +224,108 @@ describe('createResponsiveControlOverlay', () => {
     expect(pointer?.dataset.activeMethod).toBe('true');
 
     handle.dispose();
+  });
+
+  it('keeps menu shortcut metadata aligned with remapped Controls bindings', () => {
+    const { container, button, popover, list } = createOverlay();
+    button.innerHTML = `
+      <span data-hud-menu-label="controls">Controls</span>
+      <kbd data-hud-menu-key="controls">C</kbd>
+    `;
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: createStrings(),
+    });
+
+    handle.setControlsShortcutLabel('K');
+
+    expect(button.querySelector('[data-hud-menu-key]')?.textContent).toBe('K');
+    expect(button.getAttribute('aria-label')).toBe('Open controls (K)');
+    expect(button.title).toBe('Open controls (K)');
+
+    handle.dispose();
+  });
+
+  it('keeps pseudo-locale Controls titles aligned with remapped bindings', () => {
+    const { container, button, popover, list } = createOverlay();
+    button.innerHTML = `
+      <span data-hud-menu-label="controls">⟦Controls⟧</span>
+      <kbd data-hud-menu-key="controls">⟦C⟧</kbd>
+    `;
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: {
+        ...createStrings('⟦Controls⟧'),
+        menu: {
+          ...createStrings().menu,
+          controls: {
+            label: '⟦Controls⟧',
+            keyHint: '⟦C⟧',
+            title: '⟦Open controls (C)⟧',
+          },
+        },
+      },
+    });
+
+    handle.setControlsShortcutLabel('K');
+
+    expect(button.querySelector('[data-hud-menu-key]')?.textContent).toBe('K');
+    expect(button.getAttribute('aria-label')).toBe('⟦Open controls (K)⟧');
+    expect(button.title).toBe('⟦Open controls (K)⟧');
+
+    handle.dispose();
+  });
+
+  it('keeps Settings shortcut metadata aligned with remapped Help bindings', () => {
+    const button = document.createElement('button');
+    button.innerHTML = `
+      <span data-hud-menu-label="settings">Settings</span>
+      <kbd data-hud-menu-key="settings">H</kbd>
+    `;
+
+    applyHudMenuButtonMetadata(
+      button,
+      createStrings().menu.settings,
+      '?',
+      'Open help with ?'
+    );
+
+    expect(button.querySelector('[data-hud-menu-key]')?.textContent).toBe('?');
+    expect(button.getAttribute('aria-label')).toBe('Open settings (?)');
+    expect(button.title).toBe('Open settings (?)');
+    expect(button.dataset.hudAnnounce).toBe('Open help with ?');
+  });
+
+  it('keeps pseudo-locale Settings titles aligned with remapped Help bindings', () => {
+    const button = document.createElement('button');
+    button.innerHTML = `
+      <span data-hud-menu-label="settings">⟦Settings⟧</span>
+      <kbd data-hud-menu-key="settings">⟦H⟧</kbd>
+    `;
+
+    applyHudMenuButtonMetadata(
+      button,
+      {
+        label: '⟦Settings⟧',
+        keyHint: '⟦H⟧',
+        title: '⟦Open settings and help (H)⟧',
+      },
+      '?',
+      '⟦Open help with ?⟧'
+    );
+
+    expect(button.querySelector('[data-hud-menu-key]')?.textContent).toBe('?');
+    expect(button.getAttribute('aria-label')).toBe(
+      '⟦Open settings and help (?)⟧'
+    );
+    expect(button.title).toBe('⟦Open settings and help (?)⟧');
+    expect(button.dataset.hudAnnounce).toBe('⟦Open help with ?⟧');
   });
 
   it('updates button and close labels when strings refresh', () => {
@@ -315,10 +426,7 @@ describe('createResponsiveControlOverlay', () => {
     const styles = readFileSync('src/ui/styles.css', 'utf8');
 
     expect(styles).toContain(
-      ":root[data-accessibility-motion='reduced'] .overlay__controls-button"
-    );
-    expect(styles).toContain(
-      ":root[data-accessibility-motion='reduced'] .overlay__help-button"
+      ":root[data-accessibility-motion='reduced'] .overlay__menu-button"
     );
     expect(styles).toContain(
       ":root[data-accessibility-motion='reduced'] .overlay__popover"

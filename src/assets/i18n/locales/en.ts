@@ -188,6 +188,23 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Open settings and help. Press {shortcut} to review controls and accessibility tips.',
         shortcutFallback: 'H',
       },
+      menu: {
+        controls: {
+          label: 'Controls',
+          keyHint: 'C',
+          title: 'Open controls (C)',
+        },
+        text: {
+          label: 'Text',
+          keyHint: 'T',
+          title: 'Switch to text mode (T)',
+        },
+        settings: {
+          label: 'Settings',
+          keyHint: 'H',
+          title: 'Open settings and help (H)',
+        },
+      },
       mobileToggle: {
         expandLabel: 'Show all controls',
         collapseLabel: 'Hide extra controls',
