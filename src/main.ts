@@ -416,6 +416,34 @@ const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
 const AVATAR_ASSET_SCALE_TOLERANCE = 0.02;
 type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 
+function isTextEntryOrControlEditingTarget(
+  target: EventTarget | null
+): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  const tagName = target.tagName.toLowerCase();
+  return (
+    target.isContentEditable ||
+    target.hasAttribute('contenteditable') ||
+    target.closest('[contenteditable]') !== null ||
+    tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select'
+  );
+}
+
+function shouldHandleControlsToggleKeyEvent(event: KeyboardEvent): boolean {
+  return (
+    !event.defaultPrevented &&
+    !event.altKey &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.shiftKey &&
+    !isTextEntryOrControlEditingTarget(event.target)
+  );
+}
+
 declare global {
   interface Window {
     portfolio?: {
@@ -2592,6 +2620,32 @@ function initializeImmersiveScene(
 
   const controls = new KeyboardControls();
   const keyPressSource = createKeyBindingAwareSource(controls);
+  let controlsToggleKeyWasPressed = false;
+  let controlsToggleKeyAllowed = false;
+  const normalizeEventKey = (key: string) =>
+    key.length === 1 ? key.toLowerCase() : key;
+  const controlsToggleKeydownHandler = (event: KeyboardEvent) => {
+    if (
+      !keyBindings
+        .getBindings('toggleControls')
+        .includes(normalizeEventKey(event.key))
+    ) {
+      return;
+    }
+    controlsToggleKeyAllowed = shouldHandleControlsToggleKeyEvent(event);
+  };
+  const controlsToggleKeyupHandler = (event: KeyboardEvent) => {
+    if (
+      !keyBindings
+        .getBindings('toggleControls')
+        .includes(normalizeEventKey(event.key))
+    ) {
+      return;
+    }
+    controlsToggleKeyAllowed = false;
+  };
+  window.addEventListener('keydown', controlsToggleKeydownHandler);
+  window.addEventListener('keyup', controlsToggleKeyupHandler);
   const joystick = new VirtualJoystick(renderer.domElement);
   const clock = new Clock();
   const targetVelocity = new Vector3();
@@ -2736,6 +2790,9 @@ function initializeImmersiveScene(
       }
       if (action === 'help') {
         updateHelpButtonLabel();
+      }
+      if (action === 'toggleControls') {
+        controlsToggleKeyAllowed = false;
       }
       saveKeyBindings();
     })
@@ -3980,6 +4037,24 @@ function initializeImmersiveScene(
     interactKeyWasPressed = pressed;
   }
 
+  function handleControlsToggleInput() {
+    const pressed = keyBindings.isActionActive(
+      'toggleControls',
+      keyPressSource
+    );
+    if (immersiveDisposed) {
+      controlsToggleKeyWasPressed = pressed;
+      return;
+    }
+    if (pressed && !controlsToggleKeyWasPressed && controlsToggleKeyAllowed) {
+      responsiveControlOverlay?.toggle();
+    }
+    controlsToggleKeyWasPressed = pressed;
+    if (!pressed) {
+      controlsToggleKeyAllowed = false;
+    }
+  }
+
   function handleHelpInput() {
     const pressed = keyBindings.isActionActive('help', keyPressSource);
     if (immersiveDisposed) {
@@ -4167,6 +4242,8 @@ function initializeImmersiveScene(
       const unsubscribe = keyBindingUnsubscribes.pop();
       unsubscribe?.();
     }
+    window.removeEventListener('keydown', controlsToggleKeydownHandler);
+    window.removeEventListener('keyup', controlsToggleKeyupHandler);
     if (window.portfolio?.input?.keyBindings) {
       delete window.portfolio.input.keyBindings;
     }
@@ -4349,6 +4426,7 @@ function initializeImmersiveScene(
       updatePois(elapsedTime, delta);
       analyticsGlow.update(delta);
       handleInteractionInput();
+      handleControlsToggleInput();
       handleHelpInput();
       performanceDiagnostics?.recordPhase(
         'poiHudTooltips',

@@ -58,7 +58,8 @@ describe('applyControlOverlayStrings', () => {
     const toggle = container.querySelector<HTMLButtonElement>(
       '[data-role="control-toggle"]'
     );
-    expect(toggle?.textContent).toBe(strings.mobileToggle.expandLabel);
+    expect(toggle?.textContent).toBe(strings.heading);
+    expect(toggle?.dataset.controlLabel).toBe(strings.heading);
     expect(toggle?.dataset.expandLabel).toBe(strings.mobileToggle.expandLabel);
     expect(toggle?.dataset.collapseLabel).toBe(
       strings.mobileToggle.collapseLabel

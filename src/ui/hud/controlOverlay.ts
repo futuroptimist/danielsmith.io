@@ -5,7 +5,8 @@ const CONTROL_KEYS_SELECTOR = '.overlay__keys';
 const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
-const COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
+const CONTROL_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
+const CONTROL_CLOSE_SELECTOR = '[data-role="control-close"]';
 
 function setTextContent(
   element: Element | null | undefined,
@@ -63,7 +64,7 @@ export function applyControlOverlayStrings(
   }
 
   const collapseToggle = container.querySelector<HTMLButtonElement>(
-    COLLAPSE_TOGGLE_SELECTOR
+    CONTROL_TOGGLE_SELECTOR
   );
   if (collapseToggle) {
     const {
@@ -72,11 +73,20 @@ export function applyControlOverlayStrings(
       expandAnnouncement,
       collapseAnnouncement,
     } = strings.mobileToggle;
-    setTextContent(collapseToggle, expandLabel);
+    setTextContent(collapseToggle, strings.heading);
+    collapseToggle.dataset.controlLabel = strings.heading;
     collapseToggle.dataset.expandLabel = expandLabel;
     collapseToggle.dataset.collapseLabel = collapseLabel;
     collapseToggle.dataset.expandAnnouncement = expandAnnouncement;
     collapseToggle.dataset.collapseAnnouncement = collapseAnnouncement;
     collapseToggle.dataset.hudAnnounce = expandAnnouncement;
+  }
+
+  const closeButton = container.querySelector<HTMLButtonElement>(
+    CONTROL_CLOSE_SELECTOR
+  );
+  if (closeButton) {
+    setTextContent(closeButton, strings.mobileToggle.collapseLabel);
+    closeButton.dataset.hudAnnounce = strings.mobileToggle.collapseAnnouncement;
   }
 }

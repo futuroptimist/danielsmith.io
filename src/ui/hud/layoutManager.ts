@@ -57,6 +57,9 @@ function setDatasetValue(
   value: string
 ): void {
   (element.dataset as Record<string, string>)[key] = value;
+  if (key === DEFAULT_DATA_ATTRIBUTE) {
+    element.setAttribute('data-hud-layout', value);
+  }
 }
 
 export function createHudLayoutManager({
@@ -162,6 +165,9 @@ export function createHudLayoutManager({
         delete (root.dataset as Record<string, string | undefined>)[
           dataAttribute
         ];
+        if (dataAttribute === DEFAULT_DATA_ATTRIBUTE) {
+          root.removeAttribute('data-hud-layout');
+        }
       }
     },
   };

@@ -15,14 +15,19 @@ describe('KeyBindings', () => {
     expect(bindings.getBindings('interact')).toEqual(['f', ' ']);
   });
 
-  it('surfaces multi-key defaults for the interact binding', () => {
+  it('surfaces defaults for interact and controls toggles', () => {
     const bindings = new KeyBindings();
 
     expect(bindings.getBindings('interact')).toEqual(['Enter', 'f', ' ']);
     expect(bindings.getPrimaryBinding('interact')).toBe('Enter');
 
+    expect(bindings.getBindings('toggleControls')).toEqual(['c']);
+    expect(bindings.getPrimaryBinding('toggleControls')).toBe('c');
+
     bindings.reset('interact');
     expect(bindings.getBindings('interact')).toEqual(['Enter', 'f', ' ']);
+    bindings.reset('toggleControls');
+    expect(bindings.getBindings('toggleControls')).toEqual(['c']);
   });
 
   it('reports action state via a key press source', () => {
