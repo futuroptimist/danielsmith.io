@@ -386,6 +386,7 @@ import {
   createHudLayoutManager,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
+import { formatMenuButtonTitle } from './ui/hud/menuButtonTitle';
 import {
   createMovementLegend,
   type MovementLegendHandle,
@@ -2481,11 +2482,6 @@ function initializeImmersiveScene(
         manageButtonClick: false,
       })
     : null;
-  const formatMenuButtonTitle = (
-    item: { keyHint: string; title: string },
-    shortcut: string
-  ): string =>
-    item.keyHint ? item.title.split(item.keyHint).join(shortcut) : item.title;
   const updateControlsButtonLabel = () => {
     const label =
       formatKeyLabel(keyBindings.getPrimaryBinding('toggleControls')) ||

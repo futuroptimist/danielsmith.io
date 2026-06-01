@@ -1,6 +1,7 @@
 import type { ControlOverlayStrings } from '../../assets/i18n/types';
 
 import type { HudLayout } from './layoutManager';
+import { formatMenuButtonTitle } from './menuButtonTitle';
 import type { InputMethod } from './movementLegend';
 
 export interface ResponsiveControlOverlayHandle {
@@ -37,14 +38,6 @@ const CONTROL_POPOVER_ID = 'control-overlay-popover';
 const CONTROL_OPEN_KEY = 'controlsOpen';
 const ACTIVE_INPUT_KEY = 'activeInput';
 const ACTIVE_METHOD_KEY = 'activeMethod';
-
-const formatMenuButtonTitle = (
-  item: ControlOverlayStrings['menu']['controls'],
-  shortcutLabel: string
-): string =>
-  item.keyHint
-    ? item.title.split(item.keyHint).join(shortcutLabel)
-    : item.title;
 
 const INPUT_METHODS: ReadonlyArray<InputMethod> = [
   'keyboard',
