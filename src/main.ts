@@ -2118,6 +2118,9 @@ function initializeImmersiveScene(
     ) {
       return;
     }
+    // Escape intentionally dismisses any visible POI detail state—selected, hovered,
+    // or recommended—because HUD panel opens clear/hide POI detail before their own
+    // Escape handlers run, so this capture listener should not swallow panel Escape.
     event.preventDefault();
     event.stopImmediatePropagation();
     dismissActivePoiDetail('keyboard');

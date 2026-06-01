@@ -248,6 +248,7 @@ describe('PoiTooltipOverlay', () => {
     const closeButton = container.querySelector<HTMLButtonElement>(
       '.poi-tooltip-overlay__close'
     );
+    expect(root.getAttribute('aria-hidden')).toBe('true');
     expect(root.hasAttribute('inert')).toBe(true);
     expect(closeButton?.hidden).toBe(true);
     expect(closeButton?.disabled).toBe(true);
@@ -256,6 +257,7 @@ describe('PoiTooltipOverlay', () => {
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 
     expect(root.dataset.state).toBe('selected');
+    expect(root.getAttribute('aria-hidden')).toBe('false');
     expect(root.hasAttribute('inert')).toBe(false);
     expect(closeButton?.hidden).toBe(false);
     expect(closeButton?.disabled).toBe(false);
@@ -267,6 +269,7 @@ describe('PoiTooltipOverlay', () => {
     overlay.setSelected(null, { inputMethod: 'pointer' });
 
     expect(root.dataset.state).toBe('hidden');
+    expect(root.getAttribute('aria-hidden')).toBe('true');
     expect(root.hasAttribute('inert')).toBe(true);
     expect(closeButton?.hidden).toBe(true);
     expect(closeButton?.disabled).toBe(true);
@@ -282,6 +285,7 @@ describe('PoiTooltipOverlay', () => {
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 
     expect(root.dataset.state).toBe('selected');
+    expect(root.getAttribute('aria-hidden')).toBe('false');
     expect(root.hasAttribute('inert')).toBe(false);
     expect(closeButton?.hidden).toBe(true);
     expect(closeButton?.disabled).toBe(true);
