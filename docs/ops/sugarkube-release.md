@@ -60,9 +60,24 @@ that ref is `main`/`refs/heads/main`.
 Run deployment commands from the Sugarkube repository checkout, not from this app repository.
 Replace `main-REPLACE_SHORTSHA` with the immutable tag copied from `ci-image.yml`.
 
-Prerequisite: ensure the Sugarkube checkout contains `docs/apps/danielsmith.version` and the
-referenced values files under `docs/examples/` before running the helpers below. If that checkout
-uses different paths, update `version_file` and `values` to match the files present there.
+Current app-specific staging command:
+
+```bash
+just danielsmith-oci-deploy env=staging tag=main-REPLACE_SHORTSHA
+```
+
+Future generic staging command:
+
+```bash
+just app-deploy app=danielsmith env=staging tag=main-REPLACE_SHORTSHA
+```
+
+### Legacy staging helper fallback
+
+Older Sugarkube checkouts that do not yet include the wrapper recipes can use the explicit Helm
+OCI helper flow. Ensure the checkout contains `docs/apps/danielsmith.version` and the referenced
+values files under `docs/examples/` before running these helpers. If that checkout uses different
+paths, update `version_file` and `values` to match the files present there.
 
 First install:
 
@@ -105,9 +120,24 @@ tag and redeploy it.
 After staging sign-off, promote the same immutable image tag to production from the Sugarkube
 repository checkout.
 
-Use only the production values file for production promotion so production does not inherit
-dev-only settings or chart defaults. If the production release has not been installed yet, run the
-same command with `helm-oci-install` instead of `helm-oci-upgrade`.
+Current app-specific production promotion command:
+
+```bash
+just danielsmith-oci-promote-prod tag=main-REPLACE_SHORTSHA
+```
+
+Future generic production promotion command:
+
+```bash
+just app-promote-prod app=danielsmith tag=main-REPLACE_SHORTSHA
+```
+
+### Legacy production helper fallback
+
+Older Sugarkube checkouts that do not yet include the promotion wrapper recipes can use the
+explicit Helm OCI helper flow. Use only the production values file for production promotion so
+production does not inherit dev-only settings or chart defaults. If the production release has not
+been installed yet, run the same command with `helm-oci-install` instead of `helm-oci-upgrade`.
 
 ```bash
 just helm-oci-upgrade \
