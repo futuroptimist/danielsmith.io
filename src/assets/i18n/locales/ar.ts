@@ -178,6 +178,23 @@ export const AR_OVERRIDES: LocaleOverrides = {
           'افتح الإعدادات والمساعدة. اضغط {shortcut} لمراجعة الاختصارات والنصائح.',
         shortcutFallback: 'H',
       },
+      menu: {
+        controls: {
+          label: 'التحكم',
+          keyHint: 'C',
+          title: 'فتح عناصر التحكم (C)',
+        },
+        text: {
+          label: 'النص',
+          keyHint: 'T',
+          title: 'التحويل إلى العرض النصي (T)',
+        },
+        settings: {
+          label: 'الإعدادات',
+          keyHint: 'H',
+          title: 'فتح الإعدادات والمساعدة (H)',
+        },
+      },
       mobileToggle: {
         expandLabel: 'إظهار كل عناصر التحكم',
         collapseLabel: 'إخفاء عناصر التحكم الإضافية',

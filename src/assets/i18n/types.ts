@@ -17,6 +17,12 @@ export interface ControlOverlayItemStrings {
   description: string;
 }
 
+export interface ControlOverlayMenuItemStrings {
+  label: string;
+  keyHint: string;
+  title: string;
+}
+
 export interface ControlOverlayStrings {
   heading: string;
   items: {
@@ -37,6 +43,11 @@ export interface ControlOverlayStrings {
     labelTemplate: string;
     announcementTemplate: string;
     shortcutFallback: string;
+  };
+  menu: {
+    controls: ControlOverlayMenuItemStrings;
+    text: ControlOverlayMenuItemStrings;
+    settings: ControlOverlayMenuItemStrings;
   };
   mobileToggle: {
     expandLabel: string;

@@ -23,6 +23,7 @@ export interface ResponsiveControlOverlayOptions {
   strings: ControlOverlayStrings;
   initialLayout?: HudLayout;
   documentTarget?: Document;
+  manageButtonClick?: boolean;
 }
 
 const CONTROL_LIST_SELECTOR = '[data-role="control-list"]';
@@ -136,6 +137,7 @@ export function createResponsiveControlOverlay(
     strings,
     initialLayout = 'desktop',
     documentTarget = typeof document !== 'undefined' ? document : undefined,
+    manageButtonClick = true,
   } = options;
 
   const list = options.list ?? container.querySelector(CONTROL_LIST_SELECTOR);
@@ -184,8 +186,19 @@ export function createResponsiveControlOverlay(
     if (ownsContainerLabel) {
       container.setAttribute('aria-label', currentStrings.heading);
     }
-    button.textContent = currentStrings.heading;
-    button.setAttribute('aria-label', currentStrings.heading);
+    const menuLabel = button.querySelector('[data-hud-menu-label]');
+    if (menuLabel instanceof HTMLElement) {
+      menuLabel.textContent = currentStrings.menu.controls.label;
+      const menuKey = button.querySelector('[data-hud-menu-key]');
+      if (menuKey instanceof HTMLElement) {
+        menuKey.textContent = currentStrings.menu.controls.keyHint;
+      }
+      button.setAttribute('aria-label', currentStrings.menu.controls.title);
+      button.title = currentStrings.menu.controls.title;
+    } else {
+      button.textContent = currentStrings.heading;
+      button.setAttribute('aria-label', currentStrings.heading);
+    }
     if (closeButton instanceof HTMLButtonElement) {
       closeButton.setAttribute(
         'aria-label',
@@ -271,7 +284,9 @@ export function createResponsiveControlOverlay(
     }
   };
 
-  button.addEventListener('click', handleButtonClick);
+  if (manageButtonClick) {
+    button.addEventListener('click', handleButtonClick);
+  }
   closeButton?.addEventListener('click', handleCloseClick);
   documentTarget?.addEventListener('pointerdown', handleDocumentPointerDown);
   documentTarget?.addEventListener('keydown', handleDocumentKeydown);
@@ -320,7 +335,9 @@ export function createResponsiveControlOverlay(
       }
       disposed = true;
       observer.disconnect();
-      button.removeEventListener('click', handleButtonClick);
+      if (manageButtonClick) {
+        button.removeEventListener('click', handleButtonClick);
+      }
       closeButton?.removeEventListener('click', handleCloseClick);
       documentTarget?.removeEventListener(
         'pointerdown',

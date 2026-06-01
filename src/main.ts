@@ -379,6 +379,10 @@ import {
   type HelpModalControllerHandle,
 } from './ui/hud/helpModalController';
 import {
+  createHudPanelCoordinator,
+  type HudPanelCoordinatorHandle,
+} from './ui/hud/hudPanelCoordinator';
+import {
   createHudLayoutManager,
   type HudLayoutManagerHandle,
 } from './ui/hud/layoutManager';
@@ -756,6 +760,7 @@ function initializeImmersiveScene(
   let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let responsiveControlOverlay: ResponsiveControlOverlayHandle | null = null;
+  let hudPanelCoordinator: HudPanelCoordinatorHandle | null = null;
   let immersiveDisposed = false;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
@@ -2429,6 +2434,9 @@ function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const textModeButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="text-mode-button"]'
+  );
   let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   const interactDescriptionFallback =
     controlOverlayStrings.interact.description;
@@ -2470,6 +2478,7 @@ function initializeImmersiveScene(
         ),
         strings: controlOverlayStrings,
         initialLayout: 'desktop',
+        manageButtonClick: false,
       })
     : null;
   const helpModal = createHelpModal({
@@ -2586,11 +2595,20 @@ function initializeImmersiveScene(
     hudFocusAnnouncer,
     announcements: helpModalStrings.announcements,
   });
-  const openHelpMenu = () => {
-    helpModal.open();
+  const activateTextMode = () => {
+    hudPanelCoordinator?.closeAllPanels();
+    if (performanceFailover.hasTriggered()) {
+      clearModePreference();
+      window.location.assign(createImmersiveRecoveryUrl());
+      return;
+    }
+    if (shouldPersistTextPreferenceForFallback('manual')) {
+      writeModePreference('text');
+    }
+    performanceFailover.triggerFallback('manual');
   };
   const toggleHelpMenu = (force?: boolean) => {
-    helpModal.toggle(force);
+    hudPanelCoordinator?.toggleSettings(force) ?? helpModal.toggle(force);
   };
   const isTextEntryTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof HTMLElement)) {
@@ -2649,14 +2667,22 @@ function initializeImmersiveScene(
       return;
     }
     event.preventDefault();
-    responsiveControlOverlay?.toggle();
+    hudPanelCoordinator?.toggleControls() ?? responsiveControlOverlay?.toggle();
   };
   window.addEventListener('keydown', handleControlsKeydown);
-  let helpButtonClickHandler: (() => void) | null = null;
-  if (helpButton) {
-    helpButtonClickHandler = () => openHelpMenu();
-    helpButton.addEventListener('click', helpButtonClickHandler);
-  }
+  hudPanelCoordinator = createHudPanelCoordinator({
+    controls: responsiveControlOverlay ?? {
+      open() {},
+      close() {},
+      toggle() {},
+      isOpen: () => false,
+    },
+    settings: helpModal,
+    controlsButton,
+    settingsButton: helpButton,
+    textButton: textModeButton,
+    onTextMode: activateTextMode,
+  });
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
@@ -2702,7 +2728,20 @@ function initializeImmersiveScene(
     const label =
       formatKeyLabel(keyBindings.getPrimaryBinding('help')) ||
       helpLabelFallback;
-    helpButton.textContent = buildHelpButtonText(label);
+    const settingsLabel = helpButton.querySelector(
+      '[data-hud-menu-label="settings"]'
+    );
+    const settingsKey = helpButton.querySelector(
+      '[data-hud-menu-key="settings"]'
+    );
+    if (settingsLabel instanceof HTMLElement) {
+      settingsLabel.textContent = controlOverlayStrings.menu.settings.label;
+    } else {
+      helpButton.textContent = buildHelpButtonText(label);
+    }
+    if (settingsKey instanceof HTMLElement) {
+      settingsKey.textContent = label;
+    }
     helpButton.dataset.hudAnnounce = buildHelpAnnouncement(label);
   };
   updateHelpButtonLabel();
@@ -3215,17 +3254,7 @@ function initializeImmersiveScene(
       container: hudSettingsStack,
       strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
-      onToggle: () => {
-        if (performanceFailover.hasTriggered()) {
-          clearModePreference();
-          window.location.assign(createImmersiveRecoveryUrl());
-          return;
-        }
-        if (shouldPersistTextPreferenceForFallback('manual')) {
-          writeModePreference('text');
-        }
-        performanceFailover.triggerFallback('manual');
-      },
+      onToggle: activateTextMode,
     });
     registerHudControlElement(manualModeToggle?.element ?? null);
 
@@ -4178,6 +4207,10 @@ function initializeImmersiveScene(
       hudLayoutManager = null;
     }
     window.removeEventListener('keydown', handleControlsKeydown);
+    if (hudPanelCoordinator) {
+      hudPanelCoordinator.dispose();
+      hudPanelCoordinator = null;
+    }
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;
@@ -4254,10 +4287,6 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
-    }
-    if (helpButton) {
-      helpButton.textContent = buildHelpButtonText(helpLabelFallback);
-      helpButton.dataset.hudAnnounce = buildHelpAnnouncement(helpLabelFallback);
     }
     if (localeToggleControl) {
       localeToggleControl.dispose();

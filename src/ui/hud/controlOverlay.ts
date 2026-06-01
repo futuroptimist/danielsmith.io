@@ -6,6 +6,8 @@ const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
 const CONTROLS_BUTTON_SELECTOR = '[data-role="controls-button"]';
+const TEXT_MODE_BUTTON_SELECTOR = '[data-role="text-mode-button"]';
+const SETTINGS_BUTTON_SELECTOR = '[data-role="settings-button"]';
 const LEGACY_COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
 
 function setTextContent(
@@ -63,11 +65,29 @@ export function applyControlOverlayStrings(
     );
   }
 
+  const applyMenuButton = (
+    selector: string,
+    key: keyof ControlOverlayStrings['menu']
+  ) => {
+    const button = container.querySelector<HTMLButtonElement>(selector);
+    if (!button) {
+      return;
+    }
+    const item = strings.menu[key];
+    setTextContent(button.querySelector('[data-hud-menu-label]'), item.label);
+    setTextContent(button.querySelector('[data-hud-menu-key]'), item.keyHint);
+    button.setAttribute('aria-label', item.title);
+    button.title = item.title;
+  };
+
+  applyMenuButton(CONTROLS_BUTTON_SELECTOR, 'controls');
+  applyMenuButton(TEXT_MODE_BUTTON_SELECTOR, 'text');
+  applyMenuButton(SETTINGS_BUTTON_SELECTOR, 'settings');
+
   const controlsButton = container.querySelector<HTMLButtonElement>(
     CONTROLS_BUTTON_SELECTOR
   );
   if (controlsButton) {
-    setTextContent(controlsButton, strings.heading);
     controlsButton.dataset.hudAnnounce =
       strings.mobileToggle.expandAnnouncement;
   }

@@ -178,6 +178,23 @@ export const JA_OVERRIDES: LocaleOverrides = {
           '設定とヘルプを開きます。ショートカット {shortcut} で操作方法とアクセシビリティのヒントを確認できます。',
         shortcutFallback: 'H',
       },
+      menu: {
+        controls: {
+          label: '操作',
+          keyHint: 'C',
+          title: '操作を開く (C)',
+        },
+        text: {
+          label: 'テキスト',
+          keyHint: 'T',
+          title: 'テキストモードに切り替え (T)',
+        },
+        settings: {
+          label: '設定',
+          keyHint: 'H',
+          title: '設定とヘルプを開く (H)',
+        },
+      },
       mobileToggle: {
         expandLabel: 'すべての操作を表示',
         collapseLabel: '追加の操作を隠す',
