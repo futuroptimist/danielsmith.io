@@ -1538,8 +1538,9 @@ function initializeImmersiveScene(
   const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
   const updatePassivePoiRecommendationPolicy = () => {
     const activeHudPanel = hudPanelCoordinator?.getActivePanel() ?? null;
-    const hudLayout = hudLayoutManager?.getLayout() ?? 'desktop';
-    const enabled = hudLayout !== 'mobile' && activeHudPanel === null;
+    const hudLayout = hudLayoutManager?.getLayout() ?? null;
+    const enabled =
+      hudLayout !== null && hudLayout !== 'mobile' && activeHudPanel === null;
     poiTooltipOverlay.setPassiveRecommendationsEnabled(enabled);
     poiWorldTooltip.setPassiveRecommendationsEnabled(enabled);
   };
