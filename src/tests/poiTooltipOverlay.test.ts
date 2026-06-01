@@ -379,6 +379,32 @@ describe('PoiTooltipOverlay', () => {
     expect(badge.textContent).toBe('Next highlight');
   });
 
+  it('does not surface passive recommendations when disabled', () => {
+    overlay.setPassiveRecommendationsEnabled(false);
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('hidden');
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('keeps explicit selection visible when passive recommendations are disabled', () => {
+    overlay.setPassiveRecommendationsEnabled(false);
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+    overlay.setSelected(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.getAttribute('aria-hidden')).toBe('false');
+
+    const title = root.querySelector('.poi-tooltip-overlay__title');
+    expect(title?.textContent).toBe(basePoi.title);
+  });
+
   it('shows a badge when the recommended POI is selected', () => {
     overlay.setIdleState(true);
     overlay.setRecommendation(basePoi);

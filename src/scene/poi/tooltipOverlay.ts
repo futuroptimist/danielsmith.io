@@ -49,6 +49,7 @@ export class PoiTooltipOverlay {
   private renderState: RenderState = { poiId: null };
   private visitedPoiIds: ReadonlySet<string> = new Set();
   private guidedTourEnabled = true;
+  private passiveRecommendationsEnabled = true;
   private isIdle = false;
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
@@ -191,6 +192,14 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
+  setPassiveRecommendationsEnabled(enabled: boolean): void {
+    if (this.passiveRecommendationsEnabled === enabled) {
+      return;
+    }
+    this.passiveRecommendationsEnabled = enabled;
+    this.update();
+  }
+
   setVisitedPoiIds(ids: ReadonlySet<string>) {
     this.visitedPoiIds = ids;
     ids.forEach((id) => this.discoveredPoiIds.add(id));
@@ -231,7 +240,11 @@ export class PoiTooltipOverlay {
 
     const recommendation = this.recommendation;
     const idleRecommendation =
-      this.guidedTourEnabled && this.isIdle ? recommendation : null;
+      this.guidedTourEnabled &&
+      this.passiveRecommendationsEnabled &&
+      this.isIdle
+        ? recommendation
+        : null;
     const poi = this.hovered ?? this.selected ?? idleRecommendation;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
