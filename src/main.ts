@@ -1534,6 +1534,8 @@ function initializeImmersiveScene(
   const interactionTimeline = new InteractionTimeline();
   let currentHoveredPoi: PoiDefinition | null = null;
   let currentSelectedPoi: PoiDefinition | null = null;
+  let currentGuidedTourRecommendation: PoiDefinition | null = null;
+  let dismissedPassiveRecommendationPoiId: string | null = null;
   let poiInteractionManager: PoiInteractionManager | null = null;
   const isMobilePoiLayout = (layoutOverride?: HudLayout): boolean =>
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
@@ -1548,6 +1550,33 @@ function initializeImmersiveScene(
   const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
     (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
     (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
+  const getVisiblePoiRecommendation = (): PoiDefinition | null => {
+    if (
+      currentGuidedTourRecommendation &&
+      currentGuidedTourRecommendation.id !== dismissedPassiveRecommendationPoiId
+    ) {
+      return currentGuidedTourRecommendation;
+    }
+    return null;
+  };
+  const syncPoiRecommendation = () => {
+    const visibleRecommendation = getVisiblePoiRecommendation();
+    poiTooltipOverlay.setRecommendation(visibleRecommendation);
+    poiWorldTooltip.setRecommendation(
+      resolveWorldTooltipTarget(visibleRecommendation)
+    );
+  };
+  const suppressActivePoiRecommendation = (poi: PoiDefinition | null) => {
+    if (
+      poi === null ||
+      currentGuidedTourRecommendation === null ||
+      currentGuidedTourRecommendation.id !== poi.id
+    ) {
+      return;
+    }
+    dismissedPassiveRecommendationPoiId = poi.id;
+    syncPoiRecommendation();
+  };
   const syncPoiDetailOverlay = (layoutOverride?: HudLayout) => {
     const canShowDetail = canShowPoiDetailOverlay(layoutOverride);
     const showHover =
@@ -1572,6 +1601,9 @@ function initializeImmersiveScene(
   const dismissActivePoiDetail = (
     inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
   ) => {
+    const activePoi =
+      currentSelectedPoi ?? currentHoveredPoi ?? getVisiblePoiRecommendation();
+    suppressActivePoiRecommendation(activePoi);
     clearPoiDetailState(inputMethod);
     hudPanelCoordinator?.closeAllPanels();
   };
@@ -1798,10 +1830,11 @@ function initializeImmersiveScene(
   });
   removeGuidedTourSubscription = guidedTourChannel.subscribe(
     (recommendation) => {
-      poiTooltipOverlay.setRecommendation(recommendation);
-      poiWorldTooltip.setRecommendation(
-        resolveWorldTooltipTarget(recommendation)
-      );
+      if (recommendation?.id !== dismissedPassiveRecommendationPoiId) {
+        dismissedPassiveRecommendationPoiId = null;
+      }
+      currentGuidedTourRecommendation = recommendation;
+      syncPoiRecommendation();
     }
   );
 
@@ -2081,7 +2114,6 @@ function initializeImmersiveScene(
     if (
       event.key !== 'Escape' ||
       event.defaultPrevented ||
-      currentSelectedPoi === null ||
       !poiTooltipOverlay.getState().visible
     ) {
       return;

@@ -343,7 +343,7 @@ export class PoiTooltipOverlay {
   private syncCloseButtonState(
     state: 'hovered' | 'selected' | 'recommended' | 'hidden'
   ) {
-    const canDismiss = state === 'selected' && this.onDismiss !== null;
+    const canDismiss = state !== 'hidden' && this.onDismiss !== null;
     this.closeButton.hidden = !canDismiss;
     this.closeButton.disabled = !canDismiss;
     this.closeButton.tabIndex = canDismiss ? 0 : -1;
