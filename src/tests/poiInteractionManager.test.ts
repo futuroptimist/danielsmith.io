@@ -501,6 +501,25 @@ describe('PoiInteractionManager', () => {
     expect(poi.focusTarget).toBe(1);
   });
 
+  it('clearSelection notifies selection state listeners with null', () => {
+    manager.start();
+    const selectionState = vi.fn();
+    manager.addSelectionStateListener(selectionState);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+    expect(selectionState).toHaveBeenLastCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
+
+    manager.clearSelection('touch');
+
+    expect(selectionState).toHaveBeenLastCalledWith(null, {
+      inputMethod: 'touch',
+    });
+  });
+
   it('notifies selection state listeners when selection clears', () => {
     manager.start();
     const selectionState = vi.fn();

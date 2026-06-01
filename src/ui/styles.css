@@ -1514,6 +1514,16 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   right: 1rem;
   max-width: none;
   width: auto;
+  max-height: min(24rem, calc(100vh - 7rem - var(--hud-mobile-safe-zone)));
+  overflow-y: auto;
+}
+
+:root[data-hud-layout='mobile'] .poi-tooltip-overlay__heading-row {
+  align-items: flex-start;
+}
+
+:root[data-hud-layout='mobile'] .poi-tooltip-overlay__close {
+  margin-block-start: -0.2rem;
 }
 
 :root[data-accessibility-motion='reduced'] .audio-hud,
@@ -1526,6 +1536,7 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 :root[data-accessibility-motion='reduced'] .overlay__popover,
 :root[data-accessibility-motion='reduced'] .overlay__popover-close,
 :root[data-accessibility-motion='reduced'] .poi-tooltip-overlay,
+:root[data-accessibility-motion='reduced'] .poi-tooltip-overlay__close,
 :root[data-accessibility-motion='reduced'] .accessibility-presets {
   transition: none !important;
   animation: none !important;
@@ -1536,6 +1547,9 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 :root[data-accessibility-motion='reduced'] .overlay__popover-close:hover,
 :root[data-accessibility-motion='reduced']
   .overlay__popover-close:focus-visible,
+:root[data-accessibility-motion='reduced'] .poi-tooltip-overlay__close:hover,
+:root[data-accessibility-motion='reduced']
+  .poi-tooltip-overlay__close:focus-visible,
 :root[data-accessibility-motion='reduced'] .overlay__menu-button:active {
   transform: none;
 }
@@ -1848,11 +1862,13 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   border: 1px solid var(--hud-surface-border);
   backdrop-filter: blur(16px);
   opacity: 0;
+  visibility: hidden;
   transform: translateY(12px);
   pointer-events: none;
   transition:
     opacity 160ms ease,
-    transform 180ms ease;
+    transform 180ms ease,
+    visibility 0s linear 180ms;
   z-index: 30;
 }
 
@@ -1866,14 +1882,53 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 
 .poi-tooltip-overlay--visible {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .poi-tooltip-overlay__heading-row {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+
+.poi-tooltip-overlay__close {
+  appearance: none;
+  margin: -0.35rem -0.55rem -0.35rem auto;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(143, 214, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(9, 18, 33, 0.62);
+  color: rgba(222, 245, 255, 0.92);
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.poi-tooltip-overlay__close:hover,
+.poi-tooltip-overlay__close:focus-visible {
+  border-color: rgba(212, 242, 255, 0.7);
+  background: rgba(61, 201, 255, 0.18);
+  color: #ffffff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.poi-tooltip-overlay__close:focus-visible {
+  box-shadow: 0 0 0 3px rgba(143, 214, 255, 0.55);
 }
 
 .poi-tooltip-overlay__title {

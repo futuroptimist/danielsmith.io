@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -184,6 +184,167 @@ describe('PoiTooltipOverlay', () => {
       '.poi-tooltip-overlay__links'
     ) as HTMLElement;
     expect(describedIds).toContain(linksList.id);
+  });
+
+  it('renders selected POI metadata without a hover target', () => {
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      basePoi.title
+    );
+  });
+
+  it('emits a dismiss callback from a keyboard-focusable close button', () => {
+    const onDismiss = vi.fn();
+    overlay.dispose();
+    timelineHarness.dispose();
+    preference.dispose();
+    timelineHarness = new TimelineHarness();
+    preference = createPreference();
+    overlay = new PoiTooltipOverlay({
+      container,
+      onDismiss,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+    });
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    const closeButton = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__close'
+    );
+    expect(closeButton).toBeTruthy();
+    expect(closeButton?.tagName).toBe('BUTTON');
+    expect(closeButton?.type).toBe('button');
+    expect(closeButton?.getAttribute('aria-label')).toBe('Close POI details');
+    expect(closeButton?.hidden).toBe(false);
+    expect(closeButton?.disabled).toBe(false);
+    expect(closeButton?.tabIndex).toBe(0);
+
+    closeButton?.focus();
+    expect(document.activeElement).toBe(closeButton);
+    closeButton?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes the hidden close button from keyboard navigation', () => {
+    const onDismiss = vi.fn();
+    overlay.dispose();
+    timelineHarness.dispose();
+    preference.dispose();
+    timelineHarness = new TimelineHarness();
+    preference = createPreference();
+    overlay = new PoiTooltipOverlay({
+      container,
+      onDismiss,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+    });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const closeButton = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__close'
+    );
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+    expect(root.hasAttribute('inert')).toBe(true);
+    expect(closeButton?.hidden).toBe(true);
+    expect(closeButton?.disabled).toBe(true);
+    expect(closeButton?.tabIndex).toBe(-1);
+
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    expect(root.dataset.state).toBe('selected');
+    expect(root.getAttribute('aria-hidden')).toBe('false');
+    expect(root.hasAttribute('inert')).toBe(false);
+    expect(closeButton?.hidden).toBe(false);
+    expect(closeButton?.disabled).toBe(false);
+    expect(closeButton?.tabIndex).toBe(0);
+
+    closeButton?.focus();
+    expect(document.activeElement).toBe(closeButton);
+
+    overlay.setSelected(null, { inputMethod: 'pointer' });
+
+    expect(root.dataset.state).toBe('hidden');
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+    expect(root.hasAttribute('inert')).toBe(true);
+    expect(closeButton?.hidden).toBe(true);
+    expect(closeButton?.disabled).toBe(true);
+    expect(closeButton?.tabIndex).toBe(-1);
+  });
+
+  it('keeps the close button inert when no dismiss handler is available', () => {
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const closeButton = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__close'
+    );
+
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    expect(root.dataset.state).toBe('selected');
+    expect(root.getAttribute('aria-hidden')).toBe('false');
+    expect(root.hasAttribute('inert')).toBe(false);
+    expect(closeButton?.hidden).toBe(true);
+    expect(closeButton?.disabled).toBe(true);
+    expect(closeButton?.tabIndex).toBe(-1);
+  });
+
+  it('enables the close button for hovered and passive recommendations', () => {
+    const onDismiss = vi.fn();
+    overlay.dispose();
+    timelineHarness.dispose();
+    preference.dispose();
+    timelineHarness = new TimelineHarness();
+    preference = createPreference();
+    overlay = new PoiTooltipOverlay({
+      container,
+      onDismiss,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+    });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const closeButton = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__close'
+    );
+
+    overlay.setHovered(basePoi);
+
+    expect(root.dataset.state).toBe('hovered');
+    expect(closeButton?.hidden).toBe(false);
+    expect(closeButton?.disabled).toBe(false);
+    expect(closeButton?.tabIndex).toBe(0);
+
+    closeButton?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+
+    overlay.setHovered(null);
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+
+    expect(root.dataset.state).toBe('recommended');
+    expect(closeButton?.hidden).toBe(false);
+    expect(closeButton?.disabled).toBe(false);
+    expect(closeButton?.tabIndex).toBe(0);
+
+    closeButton?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(2);
+  });
+
+  it('can hide after dismiss clears selected state through the public API', () => {
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+
+    overlay.setSelected(null, { inputMethod: 'pointer' });
+
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('hidden');
   });
 
   it('prefers hovered metadata over selected and hides when cleared', () => {

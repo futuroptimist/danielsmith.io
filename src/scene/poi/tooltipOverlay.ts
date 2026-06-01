@@ -11,6 +11,7 @@ type DiscoveryFormatter = (poi: PoiDefinition) => string;
 
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
+  onDismiss?: () => void;
   discoveryAnnouncer?: {
     format?: DiscoveryFormatter;
     politeness?: 'polite' | 'assertive';
@@ -36,6 +37,7 @@ export class PoiTooltipOverlay {
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
+  private readonly closeButton: HTMLButtonElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
   private readonly guidedTourPreference: GuidedTourPreference;
@@ -53,10 +55,12 @@ export class PoiTooltipOverlay {
   private isIdle = false;
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
+  private readonly onDismiss: (() => void) | null;
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
       container,
+      onDismiss,
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
@@ -68,6 +72,7 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
+    this.onDismiss = onDismiss ?? null;
     this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
@@ -104,6 +109,19 @@ export class PoiTooltipOverlay {
     this.recommendationBadge.textContent = 'Next highlight';
     this.recommendationBadge.hidden = true;
     headingRow.appendChild(this.recommendationBadge);
+
+    this.closeButton = documentTarget.createElement('button');
+    this.closeButton.className = 'poi-tooltip-overlay__close';
+    this.closeButton.type = 'button';
+    this.closeButton.setAttribute('aria-label', 'Close POI details');
+    this.closeButton.textContent = '×';
+    this.closeButton.hidden = true;
+    this.closeButton.disabled = true;
+    this.closeButton.tabIndex = -1;
+    this.closeButton.addEventListener('click', () => {
+      this.onDismiss?.();
+    });
+    headingRow.appendChild(this.closeButton);
 
     this.summary = documentTarget.createElement('p');
     this.summary.className = 'poi-tooltip-overlay__summary';
@@ -148,6 +166,7 @@ export class PoiTooltipOverlay {
     this.liveRegion.dataset.poiAnnouncement = 'discovery';
     applyVisuallyHiddenStyles(this.liveRegion);
     container.appendChild(this.liveRegion);
+    this.setFocusContainment(false);
 
     this.unsubscribeGuidedTour = this.guidedTourPreference.subscribe(
       (enabled) => {
@@ -249,7 +268,7 @@ export class PoiTooltipOverlay {
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
       this.root.dataset.state = 'hidden';
-      this.root.setAttribute('aria-hidden', 'true');
+      this.setFocusContainment(false);
       this.root.removeAttribute('aria-describedby');
       this.renderState.poiId = null;
       this.visitedBadge.hidden = true;
@@ -266,7 +285,8 @@ export class PoiTooltipOverlay {
         : 'recommended';
     this.root.dataset.state = state;
     this.root.classList.add('poi-tooltip-overlay--visible');
-    this.root.setAttribute('aria-hidden', 'false');
+    this.setFocusContainment(true);
+    this.syncCloseButtonState(state);
 
     const visited = this.visitedPoiIds.has(poi.id);
     this.visitedBadge.hidden = !visited;
@@ -310,6 +330,23 @@ export class PoiTooltipOverlay {
     } else if (state !== 'selected') {
       this.focusOnNextUpdate = false;
     }
+  }
+
+  private setFocusContainment(visible: boolean) {
+    this.root.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    this.root.toggleAttribute('inert', !visible);
+    if (!visible) {
+      this.syncCloseButtonState('hidden');
+    }
+  }
+
+  private syncCloseButtonState(
+    state: 'hovered' | 'selected' | 'recommended' | 'hidden'
+  ) {
+    const canDismiss = state !== 'hidden' && this.onDismiss !== null;
+    this.closeButton.hidden = !canDismiss;
+    this.closeButton.disabled = !canDismiss;
+    this.closeButton.tabIndex = canDismiss ? 0 : -1;
   }
 
   private focusRoot() {
