@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
@@ -184,6 +184,43 @@ describe('PoiTooltipOverlay', () => {
       '.poi-tooltip-overlay__links'
     ) as HTMLElement;
     expect(describedIds).toContain(linksList.id);
+  });
+
+  it('renders selected POI metadata with an accessible dismiss button', () => {
+    overlay.setSelected(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      basePoi.title
+    );
+
+    const dismiss = root.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__dismiss'
+    );
+    expect(dismiss).toBeTruthy();
+    expect(dismiss?.type).toBe('button');
+    expect(dismiss?.getAttribute('aria-label')).toBe('Close POI details');
+  });
+
+  it('emits the dismiss callback when the close button is clicked', () => {
+    const onDismiss = vi.fn();
+    overlay.dispose();
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+      onDismiss,
+    });
+    overlay.setSelected(basePoi);
+
+    const dismiss = container.querySelector<HTMLButtonElement>(
+      '.poi-tooltip-overlay__dismiss'
+    );
+    dismiss?.click();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('prefers hovered metadata over selected and hides when cleared', () => {

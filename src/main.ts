@@ -1532,11 +1532,35 @@ function initializeImmersiveScene(
 
   const poiAnalytics = createWindowPoiAnalytics();
   const interactionTimeline = new InteractionTimeline();
+  const poiInteractionManager = new PoiInteractionManager(
+    renderer.domElement,
+    camera,
+    poiInstances,
+    poiAnalytics
+  );
+  const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const isMobileHudLayout = (layoutOverride?: HudLayout) =>
+    (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
+  const shouldShowPoiHoverDetail = (layoutOverride?: HudLayout) =>
+    !isMobileHudLayout(layoutOverride) &&
+    (hudPanelCoordinator?.getActivePanel() ?? null) === null;
+  const clearActivePoiDetail = () => {
+    poiInteractionManager?.clearHover();
+    poiInteractionManager?.clearSelection();
+    poiTooltipOverlay.setHovered(null);
+    poiTooltipOverlay.setSelected(null);
+    poiWorldTooltip.setHovered(null);
+    poiWorldTooltip.setSelected(null);
+  };
+  const dismissActivePoiDetail = () => {
+    hudPanelCoordinator?.closeAllPanels();
+    clearActivePoiDetail();
+  };
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
     interactionTimeline,
+    onDismiss: dismissActivePoiDetail,
   });
-  const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
   const updatePassivePoiRecommendationPolicy = (layoutOverride?: HudLayout) => {
     const activeHudPanel = hudPanelCoordinator?.getActivePanel() ?? null;
     const hudLayout = layoutOverride ?? hudLayoutManager?.getLayout();
@@ -1544,6 +1568,10 @@ function initializeImmersiveScene(
       hudLayout !== undefined &&
       hudLayout !== 'mobile' &&
       activeHudPanel === null;
+    if (!shouldShowPoiHoverDetail(hudLayout)) {
+      poiTooltipOverlay.setHovered(null);
+      poiWorldTooltip.setHovered(null);
+    }
     poiTooltipOverlay.setPassiveRecommendationsEnabled(enabled);
     poiWorldTooltip.setPassiveRecommendationsEnabled(enabled);
   };
@@ -1994,13 +2022,12 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
-  const poiInteractionManager = new PoiInteractionManager(
-    renderer.domElement,
-    camera,
-    poiInstances,
-    poiAnalytics
-  );
   const removeHoverListener = poiInteractionManager.addHoverListener((poi) => {
+    if (!shouldShowPoiHoverDetail()) {
+      poiTooltipOverlay.setHovered(null);
+      poiWorldTooltip.setHovered(null);
+      return;
+    }
     poiTooltipOverlay.setHovered(poi);
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(poi));
   });
@@ -2011,6 +2038,7 @@ function initializeImmersiveScene(
     });
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
+      hudPanelCoordinator?.closeAllPanels();
       idleMonitor?.reportActivity();
       poiVisitedState.markVisited(poi.id);
       if (poi.narration?.caption && audioSubtitles) {
@@ -2025,6 +2053,17 @@ function initializeImmersiveScene(
     }
   );
   poiInteractionManager.start();
+  const handlePoiDetailEscape = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || event.defaultPrevented) {
+      return;
+    }
+    if (!poiTooltipOverlay.getState().visible) {
+      return;
+    }
+    event.preventDefault();
+    dismissActivePoiDetail();
+  };
+  document.addEventListener('keydown', handlePoiDetailEscape);
   beforeUnloadHandler = () => {
     inputLatencyTelemetry?.report('beforeunload');
     disposeImmersiveResources();
@@ -2714,7 +2753,12 @@ function initializeImmersiveScene(
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
-    onActivePanelChange: () => updatePassivePoiRecommendationPolicy(),
+    onActivePanelChange: (panel) => {
+      if (panel !== null) {
+        clearActivePoiDetail();
+      }
+      updatePassivePoiRecommendationPolicy();
+    },
   });
   let interactablePoi: PoiInstance | null = null;
 
@@ -4243,6 +4287,7 @@ function initializeImmersiveScene(
       hudLayoutManager.dispose();
       hudLayoutManager = null;
     }
+    document.removeEventListener('keydown', handlePoiDetailEscape);
     window.removeEventListener('keydown', handleControlsKeydown);
     if (hudPanelCoordinator) {
       hudPanelCoordinator.dispose();

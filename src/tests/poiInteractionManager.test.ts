@@ -537,6 +537,25 @@ describe('PoiInteractionManager', () => {
     disabledManager.dispose();
   });
 
+  it('clearSelection notifies selection state listeners with null', () => {
+    const selectionState = vi.fn();
+    manager.addSelectionStateListener(selectionState);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+    expect(selectionState).toHaveBeenLastCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
+
+    manager.clearSelection();
+    expect(selectionState).toHaveBeenLastCalledWith(null, {
+      inputMethod: 'pointer',
+    });
+    expect(poi.focusTarget).toBe(0);
+  });
+
   it('notifies analytics hooks for hover and selection transitions', () => {
     const hoverStarted = vi.fn();
     const hoverEnded = vi.fn();
