@@ -103,6 +103,28 @@ jobs:
           test -n "${asset_path}"
           curl -fsS "http://127.0.0.1:8080${asset_path}" >/dev/null
 
+      - name: Summarize image contract
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GIT_REF: ${{ github.ref }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+        run: |
+          {
+            echo "Image workflow contract:"
+            echo "- Event: \`${EVENT_NAME}\`"
+            echo "- Candidate immutable deploy tag:"
+            echo "  \`ghcr.io/futuroptimist/danielsmith.io:main-${SHORT_SHA}\`"
+            if [ "${EVENT_NAME}" = "push" ] && [ "${GIT_REF}" = "refs/heads/main" ]; then
+              publish_behavior="this run publishes main-<shortsha>, main-latest, and sha-<shortsha>."
+            elif [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+              publish_behavior="workflow_dispatch validates the selected ref only; it does not publish image tags."
+            else
+              publish_behavior="pull requests build and smoke-test only; they do not publish image tags."
+            fi
+            echo "- Publish behavior: ${publish_behavior}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

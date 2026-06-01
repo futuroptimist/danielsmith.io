@@ -63,7 +63,9 @@ Avatar facing is computed from the camera-relative movement vector; see
   immersive links. It now accepts canonical URLs or `URL` instances and always injects
   `mode=immersive&disablePerformanceFailover=1` so manual previews keep both overrides even
   when you append debugging or UTM flags.
-- **Sugarkube deployment docs** – Static-site Sugarkube onboarding and runbooks live in
+- **Sugarkube deployment docs** – The copy-paste GHCR/Helm release flow lives in
+  [`docs/ops/sugarkube-release.md`](docs/ops/sugarkube-release.md), with supporting
+  static-site onboarding and environment runbooks in
   [`docs/sugarkube_onboarding.md`](docs/sugarkube_onboarding.md),
   [`docs/k3s-sugarkube-staging.md`](docs/k3s-sugarkube-staging.md), and
   [`docs/k3s-sugarkube-prod.md`](docs/k3s-sugarkube-prod.md).
