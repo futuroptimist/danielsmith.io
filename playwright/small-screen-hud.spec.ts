@@ -31,13 +31,22 @@ async function waitForImmersiveReady(page: Page) {
 
 async function getPoiTooltipState(page: Page): Promise<PoiTooltipState> {
   return page.evaluate(() => {
-    const state = (
-      window as PortfolioPoiWindow
-    ).portfolio?.poi?.getTooltipState?.();
-    return {
-      overlayVisiblePoiId: state?.overlayVisiblePoiId ?? null,
-      worldTooltipVisible: state?.worldTooltipVisible ?? false,
-    };
+    const getTooltipState = (window as PortfolioPoiWindow).portfolio?.poi
+      ?.getTooltipState;
+
+    if (!getTooltipState) {
+      throw new Error('window.portfolio.poi.getTooltipState() is unavailable');
+    }
+
+    const state = getTooltipState();
+
+    if (!state) {
+      throw new Error(
+        'window.portfolio.poi.getTooltipState() returned no state'
+      );
+    }
+
+    return state;
   });
 }
 
@@ -104,15 +113,9 @@ test.describe('small-screen HUD regression coverage', () => {
         (popoverBox?.y ?? 0) + (popoverBox?.height ?? 0)
       ).toBeLessThanOrEqual(667);
 
+      await textButton.focus();
       await page.keyboard.press('Tab');
-      expect(
-        await page.evaluate(
-          () =>
-            document.activeElement?.closest(
-              '[data-role="controls-popover"]'
-            ) !== null
-        )
-      ).toBe(false);
+      await expect(settingsButton).toBeFocused();
 
       await settingsButton.tap();
       await expect(controlsPopover).toBeHidden();
@@ -134,9 +137,10 @@ test.describe('small-screen HUD regression coverage', () => {
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'false');
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'false');
 
-      await page.waitForTimeout(POI_IDLE_TIMEOUT_MS + 500);
       await expect
-        .poll(async () => getPoiTooltipState(page))
+        .poll(async () => getPoiTooltipState(page), {
+          timeout: POI_IDLE_TIMEOUT_MS + 1_000,
+        })
         .toMatchObject({
           overlayVisiblePoiId: null,
           worldTooltipVisible: false,
@@ -180,9 +184,10 @@ test.describe('small-screen HUD regression coverage', () => {
 
       await page.keyboard.press('KeyC');
       await expect(controlsPopover).toBeVisible();
-      await page.keyboard.press('KeyH');
+      await page.keyboard.down('KeyH');
       await expect(controlsPopover).toBeHidden();
       await expect(settingsModal).toBeVisible();
+      await page.keyboard.up('KeyH');
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'false');
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'false');
       await expect(settingsButton).toHaveAttribute('aria-expanded', 'true');
