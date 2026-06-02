@@ -178,10 +178,9 @@ test.describe('small-screen HUD regression coverage', () => {
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'false');
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'false');
 
+      await page.waitForTimeout(POI_IDLE_TIMEOUT_MS + 500);
       await expect
-        .poll(async () => getPoiTooltipState(page), {
-          timeout: POI_IDLE_TIMEOUT_MS + 1_000,
-        })
+        .poll(async () => getPoiTooltipState(page), { timeout: 1_000 })
         .toMatchObject({
           overlayVisiblePoiId: null,
           worldTooltipVisible: false,
