@@ -5,6 +5,7 @@ import { getPoiDefinitions } from '../scene/poi/registry';
 import {
   evaluateFailoverDecision,
   isWebglSupported,
+  recoverFromTextFallback,
   renderTextFallback,
   type FallbackReason,
   type RenderTextFallbackOptions,
@@ -833,6 +834,19 @@ describe('evaluateFailoverDecision', () => {
 });
 
 describe('renderTextFallback', () => {
+  it('shares recovery behavior for clearing preference and navigation', () => {
+    const clearPreference = vi.fn();
+    const navigate = vi.fn();
+
+    recoverFromTextFallback('/portfolio?mode=immersive', {
+      clearPreference,
+      navigate,
+    });
+
+    expect(clearPreference).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith('/portfolio?mode=immersive');
+  });
+
   const render = (
     reason: FallbackReason,
     overrides: Partial<RenderTextFallbackOptions> = {}
@@ -856,6 +870,57 @@ describe('renderTextFallback', () => {
       container.querySelectorAll<HTMLAnchorElement>('.text-fallback__link')
     );
     expect(links.map((link) => link.href)).toContain('https://example.com/');
+  });
+
+  it('renders a primary recovery CTA before portfolio content', () => {
+    const container = render('manual');
+    const cta = container.querySelector<HTMLElement>(
+      '.text-fallback__recovery-cta'
+    );
+    const ctaLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive-recovery-cta"]'
+    );
+    const about = container.querySelector('.text-fallback__about');
+
+    expect(cta).toBeTruthy();
+    expect(cta?.textContent).toContain('Try immersive again');
+    expect(ctaLink?.getAttribute('aria-label')).toBe(
+      'Try immersive mode again'
+    );
+    expect(ctaLink?.classList.contains('text-fallback__primary-action')).toBe(
+      true
+    );
+    expect(
+      cta && about
+        ? cta.compareDocumentPosition(about) & Node.DOCUMENT_POSITION_FOLLOWING
+        : 0
+    ).toBeTruthy();
+  });
+
+  it('uses shared recovery behavior when the top CTA is activated', () => {
+    const container = render('manual', { immersiveUrl: '/immersive' });
+    const ctaLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive-recovery-cta"]'
+    );
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    localStorage.setItem('danielsmith.io:mode-preference', 'text');
+    sessionStorage.setItem('danielsmith.io:mode-preference', 'text');
+
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+    ctaLink?.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(localStorage.getItem('danielsmith.io:mode-preference')).toBeNull();
+    expect(sessionStorage.getItem('danielsmith.io:mode-preference')).toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('defaults immersive link to the override-enforced URL when unspecified', () => {

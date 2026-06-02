@@ -94,6 +94,13 @@ export const JA_OVERRIDES: LocaleOverrides = {
         resumeLabel: '履歴書 (PDF)',
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
+      recoveryCta: {
+        title: '没入型ツアーをもう一度開きますか？',
+        description:
+          '保存済みのテキスト設定を消去し、標準の復帰パスで WebGL シーンを再起動します。',
+        actionLabel: '没入モードをもう一度試す',
+        ariaLabel: '没入モードをもう一度試す',
+      },
       actions: {
         immersiveLink: '没入モードをもう一度試す',
         debugImmersiveLink: 'デバッグ: 没入モードを強制',

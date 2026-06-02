@@ -9,6 +9,7 @@ import {
   getPoiCopy,
   getPoiNarrativeLogStrings,
   getSiteStrings,
+  type SiteTextFallbackStrings,
 } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
@@ -565,6 +566,26 @@ const clearStoredModePreference = () => {
   }
 };
 
+export interface FallbackRecoveryOptions {
+  windowTarget?: Pick<Window, 'location'>;
+  clearPreference?: () => void;
+  navigate?: (immersiveUrl: string) => void;
+}
+
+export function recoverFromTextFallback(
+  immersiveUrl: string,
+  options: FallbackRecoveryOptions = {}
+): void {
+  const {
+    windowTarget = typeof window !== 'undefined' ? window : undefined,
+    clearPreference = clearStoredModePreference,
+    navigate = (targetUrl: string) => windowTarget?.location.assign(targetUrl),
+  } = options;
+
+  clearPreference();
+  navigate(immersiveUrl);
+}
+
 const installFallbackRecoveryShortcuts = (
   documentTarget: Document,
   immersiveUrl: string,
@@ -591,14 +612,64 @@ const installFallbackRecoveryShortcuts = (
       return;
     }
     event.preventDefault();
-    clearStoredModePreference();
-    windowTarget.location.assign(immersiveUrl);
+    recoverFromTextFallback(immersiveUrl, { windowTarget });
   };
   windowTarget.addEventListener('keydown', handleKeydown);
   fallbackRecoveryCleanup.set(documentTarget, () => {
     windowTarget.removeEventListener('keydown', handleKeydown);
   });
 };
+
+const handleFallbackRecoveryClick = (
+  event: MouseEvent,
+  immersiveUrl: string,
+  windowTarget: Window | null
+) => {
+  event.preventDefault();
+  recoverFromTextFallback(immersiveUrl, {
+    windowTarget: windowTarget ?? undefined,
+  });
+};
+
+function createRecoveryCta(
+  documentTarget: Document,
+  textFallbackStrings: SiteTextFallbackStrings,
+  immersiveUrl: string
+): HTMLElement {
+  const ctaStrings = textFallbackStrings.recoveryCta;
+  const section = documentTarget.createElement('section');
+  section.className = 'text-fallback__recovery-cta';
+  section.setAttribute('aria-labelledby', 'text-fallback-recovery-title');
+
+  const heading = documentTarget.createElement('h2');
+  heading.id = 'text-fallback-recovery-title';
+  heading.className = 'text-fallback__recovery-title';
+  heading.textContent = ctaStrings.title;
+  section.appendChild(heading);
+
+  const description = documentTarget.createElement('p');
+  description.className = 'text-fallback__recovery-description';
+  description.textContent = ctaStrings.description;
+  section.appendChild(description);
+
+  const link = documentTarget.createElement('a');
+  link.href = immersiveUrl;
+  link.className = 'text-fallback__primary-action';
+  link.textContent = ctaStrings.actionLabel;
+  link.setAttribute('aria-label', ctaStrings.ariaLabel);
+  link.rel = 'noopener';
+  link.dataset.action = 'immersive-recovery-cta';
+  link.addEventListener('click', (event) => {
+    handleFallbackRecoveryClick(
+      event,
+      immersiveUrl,
+      documentTarget.defaultView
+    );
+  });
+  section.appendChild(link);
+
+  return section;
+}
 
 function buildTextPortfolioGroups(
   localeHint?: string
@@ -1019,6 +1090,9 @@ export function renderTextFallback(
   description.textContent =
     descriptionStrings[reason] ?? descriptionStrings.manual;
   section.appendChild(description);
+  section.appendChild(
+    createRecoveryCta(documentTarget, textFallbackStrings, immersiveUrl)
+  );
 
   section.appendChild(createAboutSection(documentTarget, textFallbackStrings));
   section.appendChild(createSkillsSection(documentTarget, textFallbackStrings));
@@ -1041,11 +1115,18 @@ export function renderTextFallback(
   immersiveItem.className = 'text-fallback__action';
   const immersiveLink = documentTarget.createElement('a');
   immersiveLink.href = immersiveUrl;
-  immersiveLink.className = 'text-fallback__link';
+  immersiveLink.className =
+    'text-fallback__link text-fallback__link--secondary';
   immersiveLink.textContent = actionStrings.immersiveLink;
   immersiveLink.rel = 'noopener';
   immersiveLink.dataset.action = 'immersive';
-  immersiveLink.addEventListener('click', clearStoredModePreference);
+  immersiveLink.addEventListener('click', (event) => {
+    handleFallbackRecoveryClick(
+      event,
+      immersiveUrl,
+      documentTarget.defaultView
+    );
+  });
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
 

@@ -100,6 +100,14 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         resumeLabel: wrap('Résumé (PDF)'),
         resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
       },
+      recoveryCta: {
+        title: wrap('Ready for the full immersive tour?'),
+        description: wrap(
+          'Clear the saved text preference and relaunch the WebGL scene with the standard recovery path.'
+        ),
+        actionLabel: wrap('Try immersive again'),
+        ariaLabel: wrap('Try immersive mode again'),
+      },
       actions: {
         immersiveLink: wrap('Try immersive again'),
         debugImmersiveLink: wrap('Debug: force immersive mode'),
