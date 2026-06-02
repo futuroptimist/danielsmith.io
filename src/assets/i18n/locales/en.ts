@@ -438,7 +438,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
   },
   poi: {
     'futuroptimist-living-room-tv': {
-      title: 'Futuroptimist Creator Desk',
+      title: 'Futuroptimist',
       summary:
         'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.',
       outcome: {
@@ -475,7 +475,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
     },
     'tokenplace-studio-cluster': {
-      title: 'token.place Compute Rack',
+      title: 'token.place',
       summary:
         'Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.',
       outcome: {
@@ -508,7 +508,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'gabriel-studio-sentry': {
-      title: 'Gabriel Sentinel Rover',
+      title: 'Gabriel',
       summary:
         'Privacy-first "guardian angel" LLM that delivers local security coaching and integrates with token.place or offline inference.',
       outcome: {
@@ -537,7 +537,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'flywheel-studio-flywheel': {
-      title: 'Flywheel Kinetic Hub',
+      title: 'Flywheel',
       summary: [
         'GitHub template and automation hub that bundles linting, tests, docs, and Codex prompts for fast repo bootstrapping.',
       ].join(' '),
@@ -579,7 +579,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       interactionPrompt: 'Engage {title} systems',
     },
     'jobbot-studio-terminal': {
-      title: 'Jobbot Holographic Terminal',
+      title: 'Jobbot3000',
       summary:
         'Self-hosted job search copilot with CLI and experimental web UI for ingesting outreach and tracking applications.',
       outcome: {
@@ -614,7 +614,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
     },
     'axel-studio-tracker': {
-      title: 'Axel Quest Navigator',
+      title: 'Axel',
       summary:
         'Goal and quest tracker that organizes repos with agentic LLMs, analytics helpers, and a pipx-friendly CLI.',
       outcome: {
@@ -638,7 +638,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'gitshelves-living-room-installation': {
-      title: 'Gitshelves Living Room Array',
+      title: 'Gitshelves',
       summary:
         'CLI that turns GitHub contribution data into OpenSCAD and STL models for 3D-printed Gridfinity shelves.',
       outcome: {
@@ -670,7 +670,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'danielsmith-portfolio-table': {
-      title: 'danielsmith.io Holographic Map',
+      title: 'danielsmith.io',
       summary:
         'Orthographic Three.js/WebGL portfolio with keyboard navigation and a resilient text fallback for accessibility.',
       outcome: {
@@ -702,7 +702,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'f2clipboard-kitchen-console': {
-      title: 'f2clipboard Incident Console',
+      title: 'f2clipboard',
       summary:
         'CLI that ingests Codex task pages and GitHub logs, redacts secrets, and emits ready-to-paste Markdown summaries.',
       outcome: {
@@ -734,7 +734,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'sigma-kitchen-workbench': {
-      title: 'Sigma Fabrication Bench',
+      title: 'Sigma',
       summary:
         'ESP32 "AI pin" that streams push-to-talk audio to Whisper and returns TTS in a 3D-printed OpenSCAD enclosure.',
       outcome: {
@@ -763,7 +763,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'wove-kitchen-loom': {
-      title: 'Wove Fiber Loom',
+      title: 'Wove',
       summary:
         'Open-source toolkit for learning knitting and crochet while building toward a robotic loom with OpenSCAD hardware.',
       outcome: {
@@ -792,7 +792,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'dspace-backyard-rocket': {
-      title: 'DSPACE Launch Pad',
+      title: 'DSPACE',
       summary:
         'Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.',
       outcome: {
@@ -832,7 +832,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       interactionPrompt: 'Launch {title} countdown',
     },
     'pr-reaper-backyard-console': {
-      title: 'PR Reaper Automation Gate',
+      title: 'PR Reaper',
       summary:
         'GitHub Actions workflow that bulk-closes stale pull requests with dry-run previews and optional branch cleanup.',
       outcome: {
@@ -861,7 +861,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
     },
     'sugarkube-backyard-greenhouse': {
-      title: 'Sugarkube Solar Greenhouse',
+      title: 'Sugarkube',
       summary:
         'k3s-on-Raspberry-Pi platform paired with an off-grid solar cube installation documented with CAD, Pi images, and field guides.',
       outcome: {

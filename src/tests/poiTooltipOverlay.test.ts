@@ -75,10 +75,10 @@ describe('PoiTooltipOverlay', () => {
 
   const basePoi: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist Creator Desk',
+    title: 'Futuroptimist',
     summary:
       'Triple-monitor editing bay capturing Futuroptimist releases with live timeline overlays.',
-    interactionPrompt: 'Inspect Futuroptimist Creator Desk',
+    interactionPrompt: 'Inspect Futuroptimist',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
@@ -351,14 +351,14 @@ describe('PoiTooltipOverlay', () => {
     const selectedPoi: PoiDefinition = {
       ...basePoi,
       id: 'flywheel-studio-flywheel',
-      title: 'Flywheel Kinetic Hub',
+      title: 'Flywheel',
       position: { x: 2, y: 0, z: 4 },
       metrics: [{ label: 'Automation', value: 'CI-ready prompts' }],
       links: [
         { label: 'Flywheel', href: 'https://flywheel.futuroptimist.dev' },
       ],
       status: undefined,
-      interactionPrompt: 'Engage Flywheel Kinetic Hub systems',
+      interactionPrompt: 'Engage Flywheel systems',
     };
 
     overlay.setSelected(selectedPoi);
@@ -410,9 +410,9 @@ describe('PoiTooltipOverlay', () => {
     const poiWithoutOutcome: PoiDefinition = {
       ...basePoi,
       id: 'tokenplace-studio-cluster',
-      title: 'token.place Compute Rack',
+      title: 'token.place',
       outcome: undefined,
-      interactionPrompt: 'Inspect token.place Compute Rack',
+      interactionPrompt: 'Inspect token.place',
     };
 
     overlay.setSelected(poiWithoutOutcome);
@@ -459,8 +459,8 @@ describe('PoiTooltipOverlay', () => {
     const nextPoi: PoiDefinition = {
       ...basePoi,
       id: 'futuroptimist-living-room-tv-variant',
-      title: 'Futuroptimist Creator Desk Alt',
-      interactionPrompt: 'Inspect Futuroptimist Creator Desk Alt',
+      title: 'Futuroptimist Alt',
+      interactionPrompt: 'Inspect Futuroptimist Alt',
     };
 
     overlay.setSelected(nextPoi);

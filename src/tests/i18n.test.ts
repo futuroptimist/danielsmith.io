@@ -210,7 +210,7 @@ describe('i18n utilities', () => {
 
     const pseudoCopy = getPoiCopy('en-x-pseudo');
     expect(pseudoCopy['futuroptimist-living-room-tv'].title).toBe(
-      '⟦Futuroptimist Creator Desk⟧'
+      '⟦Futuroptimist⟧'
     );
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title

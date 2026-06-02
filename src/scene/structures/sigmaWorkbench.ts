@@ -443,7 +443,7 @@ function createWorkSurfaceTexture(): CanvasTexture {
   context.save();
   context.fillStyle = '#8fe9ff';
   context.font = '700 120px "Inter", "Segoe UI", sans-serif';
-  context.fillText('Sigma Fabrication Bench', 96, 200);
+  context.fillText('Sigma', 96, 200);
   context.font = '500 60px "Inter", "Segoe UI", sans-serif';
   context.fillText('ESP32 AI Pin · Local inference demos', 96, 290);
   context.font = '48px "JetBrains Mono", monospace';

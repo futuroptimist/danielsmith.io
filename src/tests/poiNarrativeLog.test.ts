@@ -82,9 +82,9 @@ const AR_STRINGS: PoiNarrativeLogStrings = {
 
 const createPoi = (overrides: Partial<PoiDefinition> = {}): PoiDefinition => ({
   id: 'futuroptimist-living-room-tv',
-  title: 'Futuroptimist Creator Desk',
+  title: 'Futuroptimist',
   summary: 'Default summary',
-  interactionPrompt: `Inspect ${overrides.title ?? 'Futuroptimist Creator Desk'}`,
+  interactionPrompt: `Inspect ${overrides.title ?? 'Futuroptimist'}`,
   category: 'project',
   interaction: 'inspect',
   roomId: 'livingRoom',
@@ -169,12 +169,12 @@ describe('createPoiNarrativeLog', () => {
 
     const fromPoi = createPoi({
       id: 'futuroptimist-living-room-tv',
-      title: 'Futuroptimist Creator Desk',
+      title: 'Futuroptimist',
       roomId: 'livingRoom',
     });
     const toPoi = createPoi({
       id: 'flywheel-studio-flywheel',
-      title: 'Flywheel Kinetic Hub',
+      title: 'Flywheel',
       roomId: 'studio',
     });
 
@@ -232,12 +232,12 @@ describe('createPoiNarrativeLog', () => {
 
     const narrated = createPoi({
       id: 'flywheel-studio-flywheel',
-      title: 'Flywheel Kinetic Hub',
+      title: 'Flywheel',
       narration: { caption: 'Flywheel narration' },
     });
 
     log.recordVisit(narrated);
-    expect(liveRegion?.textContent).toBe('Flywheel Kinetic Hub logged.');
+    expect(liveRegion?.textContent).toBe('Flywheel logged.');
 
     const silent = createPoi({
       id: 'jobbot-studio-terminal',
@@ -369,7 +369,7 @@ describe('createPoiNarrativeLog', () => {
     const fromPoi = createPoi();
     const toPoi = createPoi({
       id: 'flywheel-studio-flywheel',
-      title: 'Flywheel Kinetic Hub',
+      title: 'Flywheel',
       roomId: 'studio',
     });
 
