@@ -16,6 +16,13 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       intro: wrap(
         'The text portfolio keeps every exhibit accessible with quick summaries, outcomes, and metrics while immersive mode is unavailable.'
       ),
+      retryCta: {
+        title: wrap('Want the full 3D room?'),
+        description: wrap(
+          'Clear text-only mode and relaunch the immersive portfolio when your device is ready.'
+        ),
+        ariaLabel: wrap('Try immersive mode again'),
+      },
       roomHeadingTemplate: wrap('{roomName} exhibits'),
       metricsHeading: wrap('Key metrics'),
       linksHeading: wrap('Further reading'),

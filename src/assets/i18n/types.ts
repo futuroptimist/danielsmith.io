@@ -221,6 +221,11 @@ export interface SiteStructuredDataStrings {
 export interface SiteTextFallbackStrings {
   heading: string;
   intro: string;
+  retryCta: {
+    title: string;
+    description: string;
+    ariaLabel: string;
+  };
   roomHeadingTemplate: string;
   metricsHeading: string;
   linksHeading: string;

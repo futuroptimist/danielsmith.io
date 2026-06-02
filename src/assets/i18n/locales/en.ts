@@ -28,6 +28,12 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       heading: 'Explore the highlights',
       intro:
         'The text portfolio keeps every exhibit accessible with quick summaries, outcomes, and metrics while immersive mode is unavailable.',
+      retryCta: {
+        title: 'Want the full 3D room?',
+        description:
+          'Clear text-only mode and relaunch the immersive portfolio when your device is ready.',
+        ariaLabel: 'Try immersive mode again',
+      },
       roomHeadingTemplate: '{roomName} exhibits',
       metricsHeading: 'Key metrics',
       linksHeading: 'Further reading',

@@ -9,6 +9,7 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
+import { MODE_PREFERENCE_KEY } from '../systems/failover/modePreference';
 import {
   createImmersiveModeUrl,
   createImmersiveRecoveryUrl,
@@ -858,6 +859,32 @@ describe('renderTextFallback', () => {
     expect(links.map((link) => link.href)).toContain('https://example.com/');
   });
 
+  it('renders a primary immersive retry CTA before profile content', () => {
+    const container = render('manual');
+    const retry = container.querySelector<HTMLElement>(
+      '[data-action-block="immersive-retry"]'
+    );
+    const retryLink = retry?.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+    const about = container.querySelector<HTMLElement>('.text-fallback__about');
+
+    expect(retry).toBeTruthy();
+    expect(retry?.textContent).toContain('Want the full 3D room?');
+    expect(retryLink?.textContent).toBe('Try immersive again');
+    expect(retryLink?.getAttribute('aria-label')).toBe(
+      'Try immersive mode again'
+    );
+    expect(
+      retry && about
+        ? Boolean(
+            retry.compareDocumentPosition(about) &
+              Node.DOCUMENT_POSITION_FOLLOWING
+          )
+        : false
+    ).toBe(true);
+  });
+
   it('defaults immersive link to the override-enforced URL when unspecified', () => {
     const container = render('manual');
     const immersiveLink = container.querySelector<HTMLAnchorElement>(
@@ -914,6 +941,28 @@ describe('renderTextFallback', () => {
     ).toBeNull();
   });
 
+  it('uses shared fallback recovery for the top CTA and stored text preference', () => {
+    const container = render('manual', { immersiveUrl: '/retry' });
+    const retryLink = container.querySelector<HTMLAnchorElement>(
+      '[data-action-block="immersive-retry"] [data-action="immersive"]'
+    );
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    retryLink?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true })
+    );
+
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('replaces fallback T recovery handlers between repeated renders', () => {
     const container = document.createElement('div');
     const consoleErrorSpy = vi
@@ -933,6 +982,9 @@ describe('renderTextFallback', () => {
       githubUrl: 'https://example.com',
     });
 
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+
     const event = new KeyboardEvent('keydown', {
       key: 't',
       bubbles: true,
@@ -941,6 +993,8 @@ describe('renderTextFallback', () => {
     window.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(true);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
 
     consoleErrorSpy.mockRestore();

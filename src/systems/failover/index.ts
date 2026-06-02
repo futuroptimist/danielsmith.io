@@ -9,6 +9,7 @@ import {
   getPoiCopy,
   getPoiNarrativeLogStrings,
   getSiteStrings,
+  type SiteTextFallbackStrings,
 } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
@@ -565,6 +566,25 @@ const clearStoredModePreference = () => {
   }
 };
 
+export const recoverFromTextFallback = (
+  windowTarget: Window,
+  immersiveUrl: string
+): void => {
+  clearStoredModePreference();
+  windowTarget.location.assign(immersiveUrl);
+};
+
+const createFallbackRecoveryHandler =
+  (documentTarget: Document, immersiveUrl: string) => (event: Event) => {
+    event.preventDefault();
+    const windowTarget = documentTarget.defaultView;
+    if (!windowTarget) {
+      clearStoredModePreference();
+      return;
+    }
+    recoverFromTextFallback(windowTarget, immersiveUrl);
+  };
+
 const installFallbackRecoveryShortcuts = (
   documentTarget: Document,
   immersiveUrl: string,
@@ -591,8 +611,7 @@ const installFallbackRecoveryShortcuts = (
       return;
     }
     event.preventDefault();
-    clearStoredModePreference();
-    windowTarget.location.assign(immersiveUrl);
+    recoverFromTextFallback(windowTarget, immersiveUrl);
   };
   windowTarget.addEventListener('keydown', handleKeydown);
   fallbackRecoveryCleanup.set(documentTarget, () => {
@@ -1020,6 +1039,41 @@ export function renderTextFallback(
     descriptionStrings[reason] ?? descriptionStrings.manual;
   section.appendChild(description);
 
+  const retryCta = documentTarget.createElement('section');
+  retryCta.className = 'text-fallback__retry';
+  retryCta.dataset.actionBlock = 'immersive-retry';
+  const retryTitleId = 'text-fallback-immersive-retry-title';
+  const retryDescriptionId = 'text-fallback-immersive-retry-description';
+  retryCta.setAttribute('aria-labelledby', retryTitleId);
+  retryCta.setAttribute('aria-describedby', retryDescriptionId);
+
+  const retryTitle = documentTarget.createElement('h2');
+  retryTitle.id = retryTitleId;
+  retryTitle.className = 'text-fallback__retry-title';
+  retryTitle.textContent = textFallbackStrings.retryCta.title;
+  retryCta.appendChild(retryTitle);
+
+  const retryDescription = documentTarget.createElement('p');
+  retryDescription.id = retryDescriptionId;
+  retryDescription.className = 'text-fallback__retry-description';
+  retryDescription.textContent = textFallbackStrings.retryCta.description;
+  retryCta.appendChild(retryDescription);
+
+  const retryLink = documentTarget.createElement('a');
+  retryLink.href = immersiveUrl;
+  retryLink.className = 'text-fallback__link text-fallback__primary-action';
+  retryLink.textContent = actionStrings.immersiveLink;
+  retryLink.rel = 'noopener';
+  retryLink.dataset.action = 'immersive';
+  retryLink.setAttribute('aria-label', textFallbackStrings.retryCta.ariaLabel);
+  retryLink.addEventListener(
+    'click',
+    createFallbackRecoveryHandler(documentTarget, immersiveUrl)
+  );
+  retryCta.appendChild(retryLink);
+
+  section.appendChild(retryCta);
+
   section.appendChild(createAboutSection(documentTarget, textFallbackStrings));
   section.appendChild(createSkillsSection(documentTarget, textFallbackStrings));
   section.appendChild(
@@ -1045,7 +1099,10 @@ export function renderTextFallback(
   immersiveLink.textContent = actionStrings.immersiveLink;
   immersiveLink.rel = 'noopener';
   immersiveLink.dataset.action = 'immersive';
-  immersiveLink.addEventListener('click', clearStoredModePreference);
+  immersiveLink.addEventListener(
+    'click',
+    createFallbackRecoveryHandler(documentTarget, immersiveUrl)
+  );
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
 
