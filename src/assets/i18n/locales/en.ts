@@ -99,6 +99,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         resumeLabel: 'Résumé (PDF)',
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
+      recoveryCta: {
+        title: 'Ready for the full room?',
+        description:
+          'Clear the saved text preference and relaunch the immersive portfolio from here.',
+        actionLabel: 'Try immersive again',
+        ariaLabel:
+          'Try immersive mode again and clear the saved text mode preference',
+      },
       actions: {
         immersiveLink: 'Try immersive again',
         debugImmersiveLink: 'Debug: force immersive mode',

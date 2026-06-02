@@ -94,6 +94,13 @@ export const AR_OVERRIDES: LocaleOverrides = {
         resumeLabel: 'السيرة الذاتية (PDF)',
         resumeUrl: 'docs/resume/2025-09/resume.pdf',
       },
+      recoveryCta: {
+        title: 'هل أنت جاهز للغرفة الكاملة؟',
+        description:
+          'امسح تفضيل النص المحفوظ وأعد تشغيل المحفظة الغامرة من هنا.',
+        actionLabel: 'جرّب الوضع الغامر مرة أخرى',
+        ariaLabel: 'جرّب الوضع الغامر مرة أخرى وامسح تفضيل وضع النص المحفوظ',
+      },
       actions: {
         immersiveLink: 'جرّب الوضع الغامر مجددًا',
         debugImmersiveLink: 'تصحيح: فرض الوضع الغامر',
