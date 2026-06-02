@@ -144,7 +144,10 @@
 
       .overlay__popover {
         width: min(22rem, calc(100vw - 2rem));
-        max-height: min(32rem, calc(100vh - 7.5rem));
+        max-height: min(
+          32rem,
+          calc(100vh - 7.5rem - env(safe-area-inset-top, 0px))
+        );
         padding: 0.9rem 1rem;
         border-radius: 0.75rem;
         background: rgba(8, 12, 20, 0.78);
@@ -248,11 +251,14 @@
 
       html[data-hud-layout='mobile'] .overlay__popover {
         width: min(20rem, calc(100vw - 1.5rem));
-        max-height: min(26rem, calc(100vh - 7rem));
+        max-height: min(
+          26rem,
+          calc(100vh - 7rem - env(safe-area-inset-top, 0px))
+        );
       }
 
       html[data-hud-layout='mobile'] .overlay__keys {
-        min-width: 5.75rem;
+        width: 8.5rem;
       }
 
       .help-modal-backdrop {
