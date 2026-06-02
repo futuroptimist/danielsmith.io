@@ -535,7 +535,7 @@ canvas {
   overflow: hidden;
 }
 
-html[data-hud-layout='mobile'] .audio-subtitles {
+:root[data-hud-layout='mobile'] .audio-subtitles {
   bottom: 6.5rem;
   padding: 0.85rem 1.05rem;
   font-size: 0.95rem;
