@@ -59,10 +59,15 @@ Run targeted scripts (e.g., `npm run floorplan:diagram`,
 ## Documentation & assets
 
 - Update the relevant files in `docs/` whenever behavior, prompts, or workflows change.
-- Store generated images as SVG or PNG in `docs/assets/`.
+- Store generated images as SVG or PNG in `docs/assets/`, except for CI-owned outputs noted
+  below.
+- Never manually create, edit, replace, stage, or commit `docs/assets/game-launch.png`. The
+  launch screenshot workflow regenerates it automatically after every merge, and Codex Cloud
+  cannot create or commit binary files.
 - Avoid committing large binaries elsewhere in the repo.
-- For front-end tweaks, capture an updated screenshot via the CI workflow.
-- Use the manual command noted in the README when you need a local capture.
+- For front-end tweaks, capture an updated screenshot via the CI workflow instead of touching
+  `docs/assets/game-launch.png` locally.
+- Use the manual command noted in the README when you need a local capture for review only.
 
 ## Tooling & automation
 
