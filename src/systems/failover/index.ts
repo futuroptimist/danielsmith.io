@@ -10,6 +10,7 @@ import {
   getPoiNarrativeLogStrings,
   getSiteStrings,
 } from '../../assets/i18n';
+import type { SiteTextFallbackStrings } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
 import type { FallbackReason } from '../../types/failover';
@@ -565,6 +566,14 @@ const clearStoredModePreference = () => {
   }
 };
 
+export const recoverFromTextFallback = (
+  documentTarget: Document,
+  immersiveUrl: string
+): void => {
+  clearStoredModePreference();
+  documentTarget.defaultView?.location.assign(immersiveUrl);
+};
+
 const installFallbackRecoveryShortcuts = (
   documentTarget: Document,
   immersiveUrl: string,
@@ -591,8 +600,7 @@ const installFallbackRecoveryShortcuts = (
       return;
     }
     event.preventDefault();
-    clearStoredModePreference();
-    windowTarget.location.assign(immersiveUrl);
+    recoverFromTextFallback(documentTarget, immersiveUrl);
   };
   windowTarget.addEventListener('keydown', handleKeydown);
   fallbackRecoveryCleanup.set(documentTarget, () => {
@@ -883,6 +891,41 @@ function createTimelineSection(
   return section;
 }
 
+function createFallbackRecoveryCta(
+  documentTarget: Document,
+  textFallbackStrings: SiteTextFallbackStrings,
+  immersiveUrl: string
+): HTMLElement {
+  const cta = documentTarget.createElement('section');
+  cta.className = 'text-fallback__recovery-cta';
+  cta.setAttribute('aria-labelledby', 'text-fallback-recovery-title');
+
+  const title = documentTarget.createElement('h2');
+  title.id = 'text-fallback-recovery-title';
+  title.className = 'text-fallback__recovery-title';
+  title.textContent = textFallbackStrings.recoveryCta.title;
+  cta.appendChild(title);
+
+  const description = documentTarget.createElement('p');
+  description.className = 'text-fallback__recovery-description';
+  description.textContent = textFallbackStrings.recoveryCta.description;
+  cta.appendChild(description);
+
+  const action = documentTarget.createElement('a');
+  action.href = immersiveUrl;
+  action.className = 'text-fallback__primary-action';
+  action.textContent = textFallbackStrings.recoveryCta.actionLabel;
+  action.ariaLabel = textFallbackStrings.recoveryCta.ariaLabel;
+  action.dataset.action = 'top-immersive-recovery';
+  action.addEventListener('click', (event) => {
+    event.preventDefault();
+    recoverFromTextFallback(documentTarget, immersiveUrl);
+  });
+  cta.appendChild(action);
+
+  return cta;
+}
+
 function createContactSection(
   documentTarget: Document,
   textFallbackStrings: SiteTextFallbackStrings,
@@ -1019,6 +1062,9 @@ export function renderTextFallback(
   description.textContent =
     descriptionStrings[reason] ?? descriptionStrings.manual;
   section.appendChild(description);
+  section.appendChild(
+    createFallbackRecoveryCta(documentTarget, textFallbackStrings, immersiveUrl)
+  );
 
   section.appendChild(createAboutSection(documentTarget, textFallbackStrings));
   section.appendChild(createSkillsSection(documentTarget, textFallbackStrings));
@@ -1045,7 +1091,10 @@ export function renderTextFallback(
   immersiveLink.textContent = actionStrings.immersiveLink;
   immersiveLink.rel = 'noopener';
   immersiveLink.dataset.action = 'immersive';
-  immersiveLink.addEventListener('click', clearStoredModePreference);
+  immersiveLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    recoverFromTextFallback(documentTarget, immersiveUrl);
+  });
   immersiveItem.appendChild(immersiveLink);
   list.appendChild(immersiveItem);
 

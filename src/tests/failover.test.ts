@@ -5,10 +5,12 @@ import { getPoiDefinitions } from '../scene/poi/registry';
 import {
   evaluateFailoverDecision,
   isWebglSupported,
+  recoverFromTextFallback,
   renderTextFallback,
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
+import { MODE_PREFERENCE_KEY } from '../systems/failover/modePreference';
 import {
   createImmersiveModeUrl,
   createImmersiveRecoveryUrl,
@@ -856,6 +858,61 @@ describe('renderTextFallback', () => {
       container.querySelectorAll<HTMLAnchorElement>('.text-fallback__link')
     );
     expect(links.map((link) => link.href)).toContain('https://example.com/');
+  });
+
+  it('renders an obvious recovery CTA before fallback body content', () => {
+    const container = render('manual');
+    const cta = container.querySelector<HTMLElement>(
+      '.text-fallback__description + .text-fallback__recovery-cta'
+    );
+    const action = cta?.querySelector<HTMLAnchorElement>(
+      '[data-action="top-immersive-recovery"]'
+    );
+
+    expect(cta).toBeTruthy();
+    expect(cta?.textContent).toContain('Ready for the full neon tour?');
+    expect(action?.textContent).toBe('Try immersive again');
+    expect(action?.ariaLabel).toBe(
+      'Try immersive mode again and clear the saved text-mode preference'
+    );
+  });
+
+  it('uses shared recovery behavior for the top CTA', () => {
+    const container = render('manual', {
+      immersiveUrl: '/portfolio?mode=text',
+    });
+    const action = container.querySelector<HTMLAnchorElement>(
+      '[data-action="top-immersive-recovery"]'
+    );
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+    action?.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('clears text preference before shared recovery navigation', () => {
+    const assign = vi.fn();
+    const fakeDocument = {
+      defaultView: { location: { assign } },
+    } as unknown as Document;
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+
+    recoverFromTextFallback(fakeDocument, '/?mode=immersive');
+
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(assign).toHaveBeenCalledWith('/?mode=immersive');
   });
 
   it('defaults immersive link to the override-enforced URL when unspecified', () => {
