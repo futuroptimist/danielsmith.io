@@ -13,11 +13,23 @@ interface MotionBlurState {
   lastHistoryResetDamp: number | null;
 }
 
+interface InitialCameraFraming {
+  targetViewportHeightRatio: number;
+  unclampedZoom: number;
+  zoom: number;
+  minZoom: number;
+  maxZoom: number;
+  effectiveViewportHeightRatio: number;
+}
+
 interface PortfolioWindow extends Window {
   portfolio?: {
     graphics?: {
       getMotionBlurState(): MotionBlurState;
       setMotionBlurIntensity(intensity: number): void;
+      getCameraZoom?(): number;
+      getCameraZoomTarget?(): number;
+      getInitialCameraFraming?(): InitialCameraFraming | undefined;
       setCameraPanForTest?(input: { x: number; y: number }): void;
     };
   };
@@ -36,6 +48,55 @@ async function waitForImmersive(page: Page) {
   );
   await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
   await expect(page.locator('#app canvas')).toHaveCount(1);
+}
+
+async function getInitialCameraFraming(
+  page: Page
+): Promise<InitialCameraFraming> {
+  const framing = await page.evaluate(() =>
+    (window as PortfolioWindow).portfolio?.graphics?.getInitialCameraFraming?.()
+  );
+  expect(framing).toBeDefined();
+  return framing as InitialCameraFraming;
+}
+
+async function getCameraZoomState(page: Page) {
+  const state = await page.evaluate(() => ({
+    zoom: (window as PortfolioWindow).portfolio?.graphics?.getCameraZoom?.(),
+    target: (
+      window as PortfolioWindow
+    ).portfolio?.graphics?.getCameraZoomTarget?.(),
+  }));
+  expect(state.zoom).toBeDefined();
+  expect(state.target).toBeDefined();
+  return state as { zoom: number; target: number };
+}
+
+async function assertInitialZoomFraming(page: Page) {
+  const framing = await getInitialCameraFraming(page);
+  const zoomState = await getCameraZoomState(page);
+
+  expect(framing.targetViewportHeightRatio).toBeCloseTo(0.5, 6);
+  expect(framing.unclampedZoom).toBeGreaterThan(framing.zoom);
+  expect(framing.zoom).toBe(framing.maxZoom);
+  expect(zoomState.zoom).toBeCloseTo(framing.zoom, 6);
+  expect(zoomState.target).toBeCloseTo(framing.zoom, 6);
+  expect(framing.effectiveViewportHeightRatio).toBeGreaterThan(0.2);
+
+  await page.evaluate(() => {
+    const canvas = document.querySelector<HTMLCanvasElement>('#app canvas');
+    canvas?.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: 10_000,
+      })
+    );
+  });
+
+  const zoomedOutState = await getCameraZoomState(page);
+  expect(zoomedOutState.target).toBeLessThan(framing.zoom);
+  expect(zoomedOutState.target).toBeGreaterThanOrEqual(framing.minZoom);
 }
 
 async function getMotionBlurState(page: Page): Promise<MotionBlurState> {
@@ -112,6 +173,25 @@ async function assertNoFallbackOrAfterimageSymptom(page: Page) {
 
 test.describe('immersive orthographic zoom', () => {
   test.setTimeout(150_000);
+
+  test('starts desktop immersive mode zoomed in on the avatar', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await waitForImmersive(page);
+
+    await assertInitialZoomFraming(page);
+  });
+
+  test('starts iPhone SE-sized immersive mode with safe clamped avatar framing', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await waitForImmersive(page);
+
+    await assertInitialZoomFraming(page);
+    await expect(page.locator('[data-role="hud-menu"]')).toBeVisible();
+  });
 
   test('keeps a single clean immersive canvas while zooming with motion blur disabled', async ({
     page,
