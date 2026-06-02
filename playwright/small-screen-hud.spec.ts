@@ -1,12 +1,25 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Locator } from '@playwright/test';
 
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const POI_IDLE_TIMEOUT_MS = 4_000;
+const VIEWPORT_BOUNDS_EPSILON_PX = 1;
 
 type PoiTooltipState = {
   overlayVisiblePoiId: string | null;
   worldTooltipVisible: boolean;
+};
+
+type ViewportBounds = {
+  width: number;
+  height: number;
+};
+
+type ElementBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 type PortfolioPoiWindow = Window & {
@@ -16,6 +29,37 @@ type PortfolioPoiWindow = Window & {
     };
   };
 };
+
+async function pressShortcutUntil(
+  page: Page,
+  key: string,
+  waitForShortcutEffect: () => Promise<void>
+) {
+  await page.keyboard.down(key);
+  try {
+    await waitForShortcutEffect();
+  } finally {
+    await page.keyboard.up(key);
+  }
+}
+
+async function expectWithinViewport(
+  locator: Locator,
+  viewport: ViewportBounds
+) {
+  const bounds = await locator.boundingBox();
+  expect(bounds).not.toBeNull();
+  const { x, y, width, height } = bounds as ElementBounds;
+
+  expect(x).toBeGreaterThanOrEqual(-VIEWPORT_BOUNDS_EPSILON_PX);
+  expect(y).toBeGreaterThanOrEqual(-VIEWPORT_BOUNDS_EPSILON_PX);
+  expect(x + width).toBeLessThanOrEqual(
+    viewport.width + VIEWPORT_BOUNDS_EPSILON_PX
+  );
+  expect(y + height).toBeLessThanOrEqual(
+    viewport.height + VIEWPORT_BOUNDS_EPSILON_PX
+  );
+}
 
 async function waitForImmersiveReady(page: Page) {
   await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
@@ -85,11 +129,7 @@ test.describe('small-screen HUD regression coverage', () => {
         /(?:Open settings|Settings).*H/
       );
 
-      const hudBox = await hud.boundingBox();
-      expect(hudBox).not.toBeNull();
-      expect(hudBox?.x).toBeGreaterThanOrEqual(0);
-      expect(hudBox?.y).toBeGreaterThanOrEqual(0);
-      expect((hudBox?.x ?? 0) + (hudBox?.width ?? 0)).toBeLessThanOrEqual(375);
+      await expectWithinViewport(hud, { width: 375, height: 667 });
 
       await expect(controlsPopover).toBeHidden();
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'false');
@@ -102,18 +142,10 @@ test.describe('small-screen HUD regression coverage', () => {
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'true');
       await expect(settingsModal).toBeHidden();
 
-      const popoverBox = await controlsPopover.boundingBox();
-      expect(popoverBox).not.toBeNull();
-      expect(popoverBox?.x).toBeGreaterThanOrEqual(0);
-      expect(popoverBox?.y).toBeGreaterThanOrEqual(0);
-      expect(
-        (popoverBox?.x ?? 0) + (popoverBox?.width ?? 0)
-      ).toBeLessThanOrEqual(375);
-      expect(
-        (popoverBox?.y ?? 0) + (popoverBox?.height ?? 0)
-      ).toBeLessThanOrEqual(667);
+      await expectWithinViewport(controlsPopover, { width: 375, height: 667 });
 
       await textButton.focus();
+      await expect(textButton).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(settingsButton).toBeFocused();
 
@@ -125,6 +157,15 @@ test.describe('small-screen HUD regression coverage', () => {
       await expect(settingsButton).toHaveAttribute('aria-expanded', 'true');
       await expect(settingsButton).toHaveAttribute('aria-pressed', 'true');
 
+      await page.keyboard.press('Escape');
+      await expect(settingsModal).toBeHidden();
+      await expect(settingsButton).toHaveAttribute('aria-expanded', 'false');
+      await expect(settingsButton).toHaveAttribute('aria-pressed', 'false');
+
+      await pressShortcutUntil(page, 'h', async () => {
+        await expect(settingsModal).toBeVisible();
+        await expect(settingsButton).toHaveAttribute('aria-expanded', 'true');
+      });
       await page.keyboard.press('Escape');
       await expect(settingsModal).toBeHidden();
       await expect(settingsButton).toHaveAttribute('aria-expanded', 'false');
@@ -172,22 +213,22 @@ test.describe('small-screen HUD regression coverage', () => {
       );
 
       await expect(controlsPopover).toBeHidden();
-      await page.keyboard.press('KeyC');
+      await page.keyboard.press('c');
       await expect(controlsPopover).toBeVisible();
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'true');
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'true');
 
-      await page.keyboard.press('KeyC');
+      await page.keyboard.press('c');
       await expect(controlsPopover).toBeHidden();
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'false');
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'false');
 
-      await page.keyboard.press('KeyC');
+      await page.keyboard.press('c');
       await expect(controlsPopover).toBeVisible();
-      await page.keyboard.down('KeyH');
-      await expect(controlsPopover).toBeHidden();
-      await expect(settingsModal).toBeVisible();
-      await page.keyboard.up('KeyH');
+      await pressShortcutUntil(page, 'h', async () => {
+        await expect(controlsPopover).toBeHidden();
+        await expect(settingsModal).toBeVisible();
+      });
       await expect(controlsButton).toHaveAttribute('aria-expanded', 'false');
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'false');
       await expect(settingsButton).toHaveAttribute('aria-expanded', 'true');
