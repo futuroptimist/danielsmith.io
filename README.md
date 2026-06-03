@@ -172,11 +172,14 @@ lightweight.
 | Script                      | Output                        | Refresh trigger                                                                                     |
 | --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
 | `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges.   |
-| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run whenever lighting, camera, or HUD composition shifts. CI captures a fresh image post-merge.     |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Review-only local capture for lighting, camera, or HUD shifts; do not commit this CI-owned output.  |
 | `npm run smoke`             | `dist/index.html` + assets    | Verifies built JS/CSS references resolve and reports missing manual binary runtime assets.          |
 | `npm run press-kit`         | `docs/assets/press-kit.json`  | Refresh after updating POI copy, performance budgets, or media listings to keep the export current. |
 
-Keep pipelines deterministic by regenerating assets immediately after touching geometry, lighting, or HUD composition so CI diffs stay tidy.
+Keep pipelines deterministic by regenerating committable assets immediately after touching geometry
+or layout data. `docs/assets/game-launch.png` is the exception: use
+`npm run launch:screenshot` only for local review, leave the PNG unstaged, and let the
+Launch screenshot workflow refresh and commit it after merge.
 
 ## Performance guardrails
 
