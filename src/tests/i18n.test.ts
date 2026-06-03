@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   AVAILABLE_LOCALES,
@@ -18,6 +18,7 @@ import {
   getPoiOverlayChromeStrings,
   getPoiCopy,
   getSiteStrings,
+  resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
@@ -40,7 +41,38 @@ describe('i18n utilities', () => {
     expect(resolveLocale('ar-EG')).toBe('ar');
     expect(resolveLocale('ja-JP')).toBe('ja');
     expect(resolveLocale('zh-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh_CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-SG')).toBe('zh-Hans');
     expect(resolveLocale('zh-Hans')).toBe('zh-Hans');
+    expect(resolveLocale('zh-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('cmn-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-TW')).toBe('en');
+    expect(resolveLocale('zh-HK')).toBe('en');
+    expect(resolveLocale('zh-Hant')).toBe('en');
+  });
+
+  it('ignores stored pseudo locales outside the i18n debug gate', () => {
+    const clearStoredLocale = vi.fn();
+
+    expect(
+      resolveInitialLocale({
+        storedLocale: 'en-x-pseudo',
+        detectedLanguage: 'zh-CN',
+        exposePseudoLocale: false,
+        clearStoredLocale,
+      })
+    ).toBe('zh-Hans');
+    expect(clearStoredLocale).toHaveBeenCalledTimes(1);
+
+    expect(
+      resolveInitialLocale({
+        storedLocale: 'en-x-pseudo',
+        detectedLanguage: 'zh-CN',
+        exposePseudoLocale: true,
+        clearStoredLocale,
+      })
+    ).toBe('en-x-pseudo');
+    expect(clearStoredLocale).toHaveBeenCalledTimes(1);
   });
 
   it('detects locale direction for RTL and LTR language inputs', () => {

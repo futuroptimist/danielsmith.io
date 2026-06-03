@@ -241,4 +241,60 @@ describe('createTourResetControl', () => {
     preference.dispose();
     container.remove();
   });
+
+  it('preserves deprecated constructor overrides during runtime string refreshes', () => {
+    const container = createContainer();
+    const subscription = createVisitedSubscription();
+    const preference = createPreference();
+    const reset = vi.fn();
+
+    const handle = createTourResetControl({
+      container,
+      subscribeVisited: subscription.subscribe,
+      onReset: reset,
+      resetKey: 'r',
+      label: 'Replay journey',
+      description: 'Replay the visited stops.',
+      windowTarget: window,
+      guidedTourPreference: preference,
+    });
+
+    const resetButton = handle.element.querySelector(
+      '.tour-reset'
+    ) as HTMLButtonElement;
+    subscription.emit(['intro']);
+    handle.setStrings({
+      heading: 'Tour',
+      resetKey: 'g',
+      label: 'Restart guided tour',
+      description: 'Restart the guided tour.',
+      emptyLabel: 'No stops yet',
+      emptyDescription: 'Visit stops before restarting.',
+      pendingLabel: 'Restarting…',
+      pendingDescription: 'Reset is in progress.',
+      restartPromptTemplate: 'Press {key} to restart.',
+      guidedTourDescription: 'Follow recommended stops.',
+      guidedTourLabelOn: 'Guided tour: on',
+      guidedTourLabelOff: 'Guided tour: off',
+      toggleAnnouncementOn: 'Guided tour highlights enabled.',
+      toggleAnnouncementOff: 'Guided tour highlights disabled.',
+      toggleTitleOn: 'Disable guided tour highlights',
+      toggleTitleOff: 'Enable guided tour highlights',
+    });
+
+    expect(resetButton.textContent).toBe('Replay journey');
+    expect(resetButton.dataset.hudAnnounce).toContain('Press R to restart.');
+    expect(resetButton.getAttribute('aria-label')).toBe(
+      'Replay the visited stops.'
+    );
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'g' }));
+    expect(reset).not.toHaveBeenCalled();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
+    expect(reset).toHaveBeenCalledTimes(1);
+
+    handle.dispose();
+    preference.dispose();
+    container.remove();
+  });
 });

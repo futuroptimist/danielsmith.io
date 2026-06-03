@@ -133,6 +133,33 @@ function normalizeLocaleInput(input: LocaleInput): string {
   return `${input}`.toLowerCase().replace(/_/g, '-').trim();
 }
 
+export interface InitialLocaleOptions {
+  storedLocale?: LocaleInput | null;
+  detectedLanguage?: LocaleInput;
+  exposePseudoLocale?: boolean;
+  clearStoredLocale?: () => void;
+}
+
+export function resolveInitialLocale({
+  storedLocale = null,
+  detectedLanguage,
+  exposePseudoLocale = false,
+  clearStoredLocale,
+}: InitialLocaleOptions): Locale {
+  const shouldIgnoreStoredPseudoLocale =
+    !exposePseudoLocale &&
+    storedLocale !== null &&
+    resolveLocale(storedLocale) === 'en-x-pseudo';
+  if (shouldIgnoreStoredPseudoLocale) {
+    clearStoredLocale?.();
+  }
+  return resolveLocale(
+    shouldIgnoreStoredPseudoLocale
+      ? detectedLanguage
+      : (storedLocale ?? detectedLanguage)
+  );
+}
+
 export function resolveLocale(input: LocaleInput): Locale {
   const normalized = normalizeLocaleInput(input);
 
@@ -154,9 +181,13 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (
     normalized === 'zh' ||
-    normalized.startsWith('zh-') ||
-    normalized.startsWith('cmn') ||
-    normalized.startsWith('zh_cn')
+    normalized === 'zh-cn' ||
+    normalized === 'zh-sg' ||
+    normalized === 'zh-hans' ||
+    normalized.startsWith('zh-hans-') ||
+    normalized === 'cmn' ||
+    normalized === 'cmn-hans' ||
+    normalized.startsWith('cmn-hans-')
   ) {
     return 'zh-Hans';
   }

@@ -56,7 +56,7 @@ import {
   getTourGuideToggleStrings,
   getTourResetControlStrings,
   isI18nDebugEnabled,
-  resolveLocale,
+  resolveInitialLocale,
   type Locale,
 } from './assets/i18n';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
@@ -906,8 +906,24 @@ function initializeImmersiveScene(
     typeof navigator !== 'undefined' && navigator.language
       ? navigator.language
       : document.documentElement.lang;
+  const exposePseudoLocale = isI18nDebugEnabled({
+    dev: import.meta.env.DEV,
+    search: window.location.search,
+    storage: localeStorage ?? null,
+  });
   const storedLocale = localeStorage?.getItem(LOCALE_STORAGE_KEY);
-  let locale: Locale = resolveLocale(storedLocale ?? detectedLanguage);
+  let locale: Locale = resolveInitialLocale({
+    storedLocale,
+    detectedLanguage,
+    exposePseudoLocale,
+    clearStoredLocale: () => {
+      try {
+        localeStorage?.removeItem(LOCALE_STORAGE_KEY);
+      } catch {
+        /* ignore storage write failures */
+      }
+    },
+  });
   document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
   const htmlDirection = getLocaleDirection(locale);
   document.documentElement.dir = htmlDirection;
@@ -3046,11 +3062,6 @@ function initializeImmersiveScene(
     }
   };
 
-  const exposePseudoLocale = isI18nDebugEnabled({
-    dev: import.meta.env.DEV,
-    search: window.location.search,
-    storage: localeStorage ?? null,
-  });
   const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
   if (exposePseudoLocale) {
     localeOptionIds.push('en-x-pseudo');

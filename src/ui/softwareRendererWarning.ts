@@ -124,6 +124,7 @@ export function createSoftwareRendererWarning({
     setStrings(nextStrings) {
       strings = { ...getSoftwareRendererWarningStrings(), ...nextStrings };
       applyStrings();
+      onVisible?.(description.textContent ?? strings.title);
     },
     dispose,
   };
