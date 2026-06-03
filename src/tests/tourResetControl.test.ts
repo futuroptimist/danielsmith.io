@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { getTourResetControlStrings } from '../assets/i18n';
 import { createTourResetControl } from '../systems/controls/tourResetControl';
 import { GuidedTourPreference } from '../systems/guidedTour/preference';
 
@@ -136,6 +137,47 @@ describe('createTourResetControl', () => {
     handle.dispose();
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
     expect(reset).toHaveBeenCalledTimes(2);
+    preference.dispose();
+    container.remove();
+  });
+
+  it('preserves deprecated constructor overrides during runtime string refresh', () => {
+    const container = createContainer();
+    const subscription = createVisitedSubscription();
+    const preference = createPreference();
+    const reset = vi.fn();
+
+    const handle = createTourResetControl({
+      container,
+      subscribeVisited: subscription.subscribe,
+      onReset: reset,
+      resetKey: 'r',
+      label: 'Replay tour',
+      description: 'Replay the guided tour.',
+      windowTarget: window,
+      guidedTourPreference: preference,
+    });
+
+    const resetButton = handle.element.querySelector(
+      '.tour-reset'
+    ) as HTMLButtonElement;
+    subscription.emit(['visited']);
+    expect(resetButton.textContent).toBe('Replay tour');
+    expect(resetButton.title).toBe('Replay tour (R)');
+
+    handle.setStrings(getTourResetControlStrings('zh-Hans'));
+
+    expect(resetButton.textContent).toBe('Replay tour');
+    expect(resetButton.title).toBe('Replay tour (R)');
+    expect(resetButton.getAttribute('aria-label')).toBe(
+      'Replay the guided tour.'
+    );
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
+    expect(reset).toHaveBeenCalledTimes(1);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'g' }));
+    expect(reset).toHaveBeenCalledTimes(1);
+
+    handle.dispose();
     preference.dispose();
     container.remove();
   });

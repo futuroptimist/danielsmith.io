@@ -87,9 +87,7 @@ export function createTourResetControl({
   guidedTourPreference = defaultGuidedTourPreference,
 }: TourResetControlOptions): TourResetControlHandle {
   const defaultStrings = getTourResetControlStrings();
-  let strings: TourResetControlStrings = {
-    ...defaultStrings,
-    ...providedStrings,
+  const deprecatedStringOverrides: Partial<TourResetControlStrings> = {
     ...(resetKey ? { resetKey } : {}),
     ...(label ? { label } : {}),
     ...(description ? { description } : {}),
@@ -100,6 +98,13 @@ export function createTourResetControl({
     ...(guidedTourLabelOn ? { guidedTourLabelOn } : {}),
     ...(guidedTourLabelOff ? { guidedTourLabelOff } : {}),
   };
+  const mergeStrings = (nextStrings?: TourResetControlStrings) => ({
+    ...defaultStrings,
+    ...providedStrings,
+    ...nextStrings,
+    ...deprecatedStringOverrides,
+  });
+  let strings: TourResetControlStrings = mergeStrings();
   const wrapper = document.createElement('section');
   wrapper.className = 'guided-tour-control';
   wrapper.dataset.pending = 'false';
@@ -308,7 +313,7 @@ export function createTourResetControl({
     element: wrapper,
     setStrings(nextStrings) {
       const previousResetKey = strings.resetKey;
-      strings = { ...defaultStrings, ...nextStrings };
+      strings = mergeStrings(nextStrings);
       normalizedResetKey = normalizeKey(strings.resetKey);
       heading.textContent = strings.heading;
       descriptionParagraph.textContent = strings.guidedTourDescription;

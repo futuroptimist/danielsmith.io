@@ -906,8 +906,27 @@ function initializeImmersiveScene(
     typeof navigator !== 'undefined' && navigator.language
       ? navigator.language
       : document.documentElement.lang;
+  const exposePseudoLocale = isI18nDebugEnabled({
+    dev: import.meta.env.DEV,
+    search: window.location.search,
+    storage: localeStorage ?? null,
+  });
   const storedLocale = localeStorage?.getItem(LOCALE_STORAGE_KEY);
-  let locale: Locale = resolveLocale(storedLocale ?? detectedLanguage);
+  const resolvedStoredLocale = storedLocale
+    ? resolveLocale(storedLocale)
+    : null;
+  const shouldIgnoreStoredPseudo =
+    resolvedStoredLocale === 'en-x-pseudo' && !exposePseudoLocale;
+  if (shouldIgnoreStoredPseudo) {
+    try {
+      localeStorage?.removeItem(LOCALE_STORAGE_KEY);
+    } catch {
+      /* ignore storage cleanup failures */
+    }
+  }
+  let locale: Locale = shouldIgnoreStoredPseudo
+    ? resolveLocale(detectedLanguage)
+    : (resolvedStoredLocale ?? resolveLocale(detectedLanguage));
   document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
   const htmlDirection = getLocaleDirection(locale);
   document.documentElement.dir = htmlDirection;
@@ -3046,11 +3065,6 @@ function initializeImmersiveScene(
     }
   };
 
-  const exposePseudoLocale = isI18nDebugEnabled({
-    dev: import.meta.env.DEV,
-    search: window.location.search,
-    storage: localeStorage ?? null,
-  });
   const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
   if (exposePseudoLocale) {
     localeOptionIds.push('en-x-pseudo');

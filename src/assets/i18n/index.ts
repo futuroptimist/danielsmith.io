@@ -154,9 +154,13 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (
     normalized === 'zh' ||
-    normalized.startsWith('zh-') ||
-    normalized.startsWith('cmn') ||
-    normalized.startsWith('zh_cn')
+    normalized === 'zh-cn' ||
+    normalized === 'zh-sg' ||
+    normalized === 'zh-hans' ||
+    normalized.startsWith('zh-hans-') ||
+    normalized === 'cmn' ||
+    normalized === 'cmn-hans' ||
+    normalized.startsWith('cmn-hans-')
   ) {
     return 'zh-Hans';
   }

@@ -40,7 +40,14 @@ describe('i18n utilities', () => {
     expect(resolveLocale('ar-EG')).toBe('ar');
     expect(resolveLocale('ja-JP')).toBe('ja');
     expect(resolveLocale('zh-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh_CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-SG')).toBe('zh-Hans');
     expect(resolveLocale('zh-Hans')).toBe('zh-Hans');
+    expect(resolveLocale('zh-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('cmn-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-TW')).toBe('en');
+    expect(resolveLocale('zh-HK')).toBe('en');
+    expect(resolveLocale('zh-Hant')).toBe('en');
   });
 
   it('detects locale direction for RTL and LTR language inputs', () => {
