@@ -443,11 +443,11 @@ function createWorkSurfaceTexture(): CanvasTexture {
   context.save();
   context.fillStyle = '#8fe9ff';
   context.font = '700 120px "Inter", "Segoe UI", sans-serif';
-  context.fillText('Sigma Fabrication Bench', 96, 200);
+  context.fillText('Sigma', 96, 200);
   context.font = '500 60px "Inter", "Segoe UI", sans-serif';
-  context.fillText('ESP32 AI Pin · Local inference demos', 96, 290);
+  context.fillText('ESP32 AI Pin · Whisper + TTS relay', 96, 290);
   context.font = '48px "JetBrains Mono", monospace';
-  context.fillText('Modes: push-to-talk · offline voice agent', 96, 360);
+  context.fillText('Modes: push-to-talk · printed enclosure', 96, 360);
   context.restore();
 
   const texture = new CanvasTexture(canvas);

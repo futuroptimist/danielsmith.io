@@ -102,21 +102,15 @@ describe('POI registry', () => {
 
   it('derives localized interaction prompts for exhibits', () => {
     const flywheel = pois.find((poi) => poi.id === 'flywheel-studio-flywheel');
-    expect(flywheel?.interactionPrompt).toBe(
-      'Engage Flywheel Kinetic Hub systems'
-    );
+    expect(flywheel?.interactionPrompt).toBe('Engage Flywheel systems');
 
     const rocket = pois.find((poi) => poi.id === 'dspace-backyard-rocket');
-    expect(rocket?.interactionPrompt).toBe(
-      'Launch DSPACE Launch Pad countdown'
-    );
+    expect(rocket?.interactionPrompt).toBe('Launch DSPACE countdown');
 
     const gitshelves = pois.find(
       (poi) => poi.id === 'gitshelves-living-room-installation'
     );
-    expect(gitshelves?.interactionPrompt).toBe(
-      'Inspect Gitshelves Living Room Array'
-    );
+    expect(gitshelves?.interactionPrompt).toBe('Inspect Gitshelves');
   });
 
   it('exposes stable room-level ordering with defensive copies', () => {

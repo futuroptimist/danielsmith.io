@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2025-12-06T08:41:16.687Z",
+  "generatedAtIso": "2026-06-02T17:25:49.601Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -53,7 +53,9 @@
         "remainingPercent": 0.2222222222222222,
         "overBudgetBy": 0,
         "status": "within-budget",
-        "label": "Within budget · 78% used · 22% remaining."
+        "label": "Within budget · 78% used · 22% remaining (8 materials headroom).",
+        "statusLabel": "Within budget",
+        "remainingPercentLabel": "22% remaining"
       },
       "drawCalls": {
         "remaining": 18,
@@ -61,7 +63,9 @@
         "remainingPercent": 0.12,
         "overBudgetBy": 0,
         "status": "within-budget",
-        "label": "Within budget · 88% used · 12% remaining."
+        "label": "Within budget · 88% used · 12% remaining (18 draw calls headroom).",
+        "statusLabel": "Within budget",
+        "remainingPercentLabel": "12% remaining"
       },
       "textureBytes": {
         "remaining": 6291456,
@@ -69,7 +73,9 @@
         "remainingPercent": 0.25,
         "overBudgetBy": 0,
         "status": "within-budget",
-        "label": "Within budget · 75% used · 25% remaining."
+        "label": "Within budget · 75% used · 25% remaining (6,291,456 bytes headroom).",
+        "statusLabel": "Within budget",
+        "remainingPercentLabel": "25% remaining"
       }
     }
   },
@@ -84,8 +90,8 @@
   "poiCatalog": [
     {
       "id": "futuroptimist-living-room-tv",
-      "title": "Futuroptimist Creator Desk",
-      "summary": "Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.",
+      "title": "Futuroptimist",
+      "summary": "Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -133,8 +139,8 @@
     },
     {
       "id": "tokenplace-studio-cluster",
-      "title": "token.place Compute Rack",
-      "summary": "3D-printed Raspberry Pi lattice orchestrating the token.place volunteer compute mesh with pulsing status beacons.",
+      "title": "token.place",
+      "summary": "Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -182,8 +188,8 @@
     },
     {
       "id": "gabriel-studio-sentry",
-      "title": "Gabriel Sentinel Rover",
-      "summary": "Autonomous sentry robot with a rotating scanner that sweeps the studio and fires a red perimeter pulse every second.",
+      "title": "Gabriel",
+      "summary": "Privacy-first \"guardian angel\" LLM that delivers local security coaching and integrates with token.place or offline inference.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -227,8 +233,8 @@
     },
     {
       "id": "flywheel-studio-flywheel",
-      "title": "Flywheel Kinetic Hub",
-      "summary": "Kinetic automation hub that accelerates with approach, revealing tech stack glow and docs callouts.",
+      "title": "Flywheel",
+      "summary": "GitHub template and automation hub that bundles linting, tests, docs, and Codex prompts for fast repo bootstrapping.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -276,8 +282,8 @@
     },
     {
       "id": "jobbot-studio-terminal",
-      "title": "Jobbot Holographic Terminal",
-      "summary": "Holographic command desk broadcasting live telemetry from the Jobbot3000 automation mesh.",
+      "title": "Jobbot3000",
+      "summary": "Self-hosted job search copilot with CLI and experimental web UI for ingesting outreach and tracking applications.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -299,12 +305,16 @@
           }
         },
         {
-          "label": "Ops savings",
-          "value": "Recovered 6h weekly toil"
+          "label": "Status",
+          "value": "Local-first CLI with preview web UI"
         },
         {
-          "label": "Reliability",
-          "value": "99.98% SLA self-healing loops"
+          "label": "Stack",
+          "value": "Node.js 20+ · npm scripts · Playwright preview"
+        },
+        {
+          "label": "Flows",
+          "value": "Recruiter outreach ingestion and lifecycle tracking"
         }
       ],
       "links": [
@@ -325,8 +335,8 @@
     },
     {
       "id": "axel-studio-tracker",
-      "title": "Axel Quest Navigator",
-      "summary": "Tabletop command slate where Axel curates next-step quests, projecting repo insights and backlog momentum rings.",
+      "title": "Axel",
+      "summary": "Goal and quest tracker that organizes repos with agentic LLMs, analytics helpers, and a pipx-friendly CLI.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -336,24 +346,16 @@
       },
       "metrics": [
         {
-          "label": "Stars",
-          "value": "Syncing from GitHub…",
-          "source": {
-            "type": "githubStars",
-            "owner": "futuroptimist",
-            "repo": "axel",
-            "format": "compact",
-            "template": "{value} stars",
-            "fallback": "Syncing from GitHub…"
-          }
+          "label": "Status",
+          "value": "Alpha · pipx install axel"
         },
         {
-          "label": "Guidance",
-          "value": "Auto-prioritised quests from repo scans"
+          "label": "Repo analytics",
+          "value": "Quest planning from repo lists and scans"
         },
         {
-          "label": "Modes",
-          "value": "Focus · explore toggles per sprint"
+          "label": "Docs",
+          "value": "FAQ · known issues · threat model kept with tests"
         }
       ],
       "links": [
@@ -370,8 +372,8 @@
     },
     {
       "id": "gitshelves-living-room-installation",
-      "title": "Gitshelves Living Room Array",
-      "summary": "Modular wall of 3D-printed commit blocks that transform GitHub streaks into physical shelving mosaics.",
+      "title": "Gitshelves",
+      "summary": "CLI that turns GitHub contribution data into OpenSCAD and STL models for 3D-printed Gridfinity shelves.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -415,8 +417,8 @@
     },
     {
       "id": "danielsmith-portfolio-table",
-      "title": "danielsmith.io Holographic Map",
-      "summary": "Holotable overview of danielsmith.io with layered navigation routes, accessibility presets, and deploy targets.",
+      "title": "danielsmith.io",
+      "summary": "Orthographic Three.js/WebGL portfolio with keyboard navigation and a resilient text fallback for accessibility.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -464,8 +466,8 @@
     },
     {
       "id": "f2clipboard-kitchen-console",
-      "title": "f2clipboard Incident Console",
-      "summary": "Kitchen-side diagnostics station where f2clipboard parses Codex logs and pipes concise summaries straight to the clipboard.",
+      "title": "f2clipboard",
+      "summary": "CLI that ingests Codex task pages and GitHub logs, redacts secrets, and emits ready-to-paste Markdown summaries.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -509,8 +511,8 @@
     },
     {
       "id": "sigma-kitchen-workbench",
-      "title": "Sigma Fabrication Bench",
-      "summary": "Workbench showcasing the Sigma ESP32 AI pin with on-device speech, local inference, and 3D-printed shells.",
+      "title": "Sigma",
+      "summary": "ESP32 \"AI pin\" that streams push-to-talk audio to Whisper and returns TTS in a 3D-printed OpenSCAD enclosure.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -533,11 +535,11 @@
         },
         {
           "label": "Hardware",
-          "value": "ESP32 · on-device speech stack"
+          "value": "ESP32 · OpenSCAD enclosure"
         },
         {
           "label": "Modes",
-          "value": "Push-to-talk · local inference loops"
+          "value": "Push-to-talk · Whisper + TTS relay"
         }
       ],
       "links": [
@@ -554,8 +556,8 @@
     },
     {
       "id": "wove-kitchen-loom",
-      "title": "Wove Loom Atelier",
-      "summary": "Soft robotics loom where Wove bridges CAD workflows with textiles while teaching knit and crochet fundamentals.",
+      "title": "Wove",
+      "summary": "Open-source toolkit for learning knitting and crochet while building toward a robotic loom with OpenSCAD hardware.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -599,8 +601,8 @@
     },
     {
       "id": "dspace-backyard-rocket",
-      "title": "DSPACE Launch Pad",
-      "summary": "Backyard launch gantry staging the DSPACE model rocket with telemetry-guided countdown cues.",
+      "title": "DSPACE",
+      "summary": "Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -649,8 +651,8 @@
     },
     {
       "id": "pr-reaper-backyard-console",
-      "title": "PR Reaper Automation Gate",
-      "summary": "Backyard control gate that visualises pr-reaper sweeping stale pull requests with safe dry-runs and audit logs.",
+      "title": "PR Reaper",
+      "summary": "GitHub Actions workflow that bulk-closes stale pull requests with dry-run previews and optional branch cleanup.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -694,8 +696,8 @@
     },
     {
       "id": "sugarkube-backyard-greenhouse",
-      "title": "Sugarkube Solar Greenhouse",
-      "summary": "Adaptive greenhouse showcasing Sugarkube automation with responsive grow lights and solar tracking.",
+      "title": "Sugarkube",
+      "summary": "k3s-on-Raspberry-Pi platform paired with an off-grid solar cube installation documented with CAD, Pi images, and field guides.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -705,24 +707,16 @@
       },
       "metrics": [
         {
-          "label": "Stars",
-          "value": "Syncing from GitHub…",
-          "source": {
-            "type": "githubStars",
-            "owner": "futuroptimist",
-            "repo": "sugarkube",
-            "format": "compact",
-            "template": "{value} stars",
-            "fallback": "Syncing from GitHub…"
-          }
+          "label": "Platform",
+          "value": "k3s, Kubernetes helpers, Cloudflare tunnels, and solar tilt/irrigation notes"
         },
         {
-          "label": "Automation",
-          "value": "Sugarkube schedules solar tilt + irrigation"
+          "label": "Hardware",
+          "value": "Solar cube CAD, Pi carrier plates, electronics docs"
         },
         {
-          "label": "Throughput",
-          "value": "3× daily harvest cadence maintained"
+          "label": "Guides",
+          "value": "Field guides for Pi images and headless provisioning"
         }
       ],
       "links": [

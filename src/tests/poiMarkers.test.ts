@@ -131,7 +131,7 @@ describe('createPoiInstances', () => {
   it('draws marker label textures as title-only in-world cues', () => {
     fillTextLog = [];
     const definition = createDefinition({
-      title: 'Gitshelves Living Room Array',
+      title: 'Gitshelves',
       summary: 'Dense implementation notes remain in the 2D overlay.',
       status: 'prototype',
       outcome: { label: 'Outcome', value: 'Reduced shelf drift 42%' },
@@ -139,7 +139,7 @@ describe('createPoiInstances', () => {
     });
 
     createPoiLabelTexture(definition);
-    expect(fillTextLog).toEqual(['Gitshelves Living Room Array']);
+    expect(fillTextLog).toEqual(['Gitshelves']);
     const renderedText = fillTextLog.join(' ');
     expect(renderedText).not.toContain(definition.summary);
     expect(renderedText).not.toContain('Reduced shelf drift');
@@ -147,11 +147,8 @@ describe('createPoiInstances', () => {
     expect(renderedText).not.toContain('Prototype');
   });
 
-  it('fits existing long title-only labels without ellipsizing them', () => {
-    for (const title of [
-      'Gitshelves Living Room Array',
-      'danielsmith.io Holographic Map',
-    ]) {
+  it('preserves existing title-only marker labels without ellipsizing them', () => {
+    for (const title of ['Gitshelves', 'danielsmith.io']) {
       fillTextLog = [];
       createPoiLabelTexture(createDefinition({ title }));
 

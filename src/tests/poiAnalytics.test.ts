@@ -9,10 +9,10 @@ describe('createWindowPoiAnalytics', () => {
   beforeEach(() => {
     poi = {
       id: 'futuroptimist-living-room-tv',
-      title: 'Futuroptimist Creator Desk',
+      title: 'Futuroptimist',
       summary:
         'Triple-monitor editing suite showcasing Futuroptimist workflows.',
-      interactionPrompt: 'Inspect Futuroptimist Creator Desk',
+      interactionPrompt: 'Inspect Futuroptimist',
       category: 'project',
       interaction: 'inspect',
       roomId: 'livingRoom',

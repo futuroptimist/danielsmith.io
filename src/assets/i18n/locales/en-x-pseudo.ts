@@ -368,9 +368,9 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
   },
   poi: {
     'futuroptimist-living-room-tv': {
-      title: wrap('Futuroptimist Creator Desk'),
+      title: wrap('Futuroptimist'),
       summary: wrap(
-        'Triple-monitor editing bay capturing Futuroptimist releases with a live showreel, timeline, and automation overlays.'
+        'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.'
       ),
       metrics: [
         { label: wrap('Stars'), value: wrap('1,280+') },

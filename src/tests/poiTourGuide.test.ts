@@ -7,10 +7,10 @@ import { PoiVisitedState } from '../scene/poi/visitedState';
 const DEFINITIONS: PoiDefinition[] = [
   {
     id: 'futuroptimist-living-room-tv',
-    title: 'Futuroptimist Creator Desk',
+    title: 'Futuroptimist',
     summary:
       'Triple-monitor editing bay capturing Futuroptimist releases with live timeline overlays.',
-    interactionPrompt: 'Inspect Futuroptimist Creator Desk',
+    interactionPrompt: 'Inspect Futuroptimist',
     category: 'project',
     interaction: 'inspect',
     roomId: 'livingRoom',
@@ -20,9 +20,9 @@ const DEFINITIONS: PoiDefinition[] = [
   },
   {
     id: 'flywheel-studio-flywheel',
-    title: 'Flywheel Kinetic Hub',
+    title: 'Flywheel',
     summary: 'Automation centerpiece with responsive rotation.',
-    interactionPrompt: 'Engage Flywheel Kinetic Hub systems',
+    interactionPrompt: 'Engage Flywheel systems',
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
@@ -32,9 +32,9 @@ const DEFINITIONS: PoiDefinition[] = [
   },
   {
     id: 'jobbot-studio-terminal',
-    title: 'Jobbot Holographic Terminal',
+    title: 'Jobbot3000',
     summary: 'Telemetry console broadcasting automation metrics.',
-    interactionPrompt: 'Inspect Jobbot Holographic Terminal',
+    interactionPrompt: 'Inspect Jobbot3000',
     category: 'project',
     interaction: 'inspect',
     roomId: 'studio',
@@ -44,9 +44,9 @@ const DEFINITIONS: PoiDefinition[] = [
   },
   {
     id: 'dspace-backyard-rocket',
-    title: 'DSPACE Launch Pad',
+    title: 'DSPACE',
     summary: 'Backyard launch gantry staging the DSPACE model rocket.',
-    interactionPrompt: 'Launch DSPACE Launch Pad countdown',
+    interactionPrompt: 'Launch DSPACE countdown',
     category: 'project',
     interaction: 'inspect',
     roomId: 'backyard',
