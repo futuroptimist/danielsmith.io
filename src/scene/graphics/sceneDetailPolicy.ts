@@ -166,7 +166,11 @@ export interface SceneDetailController {
   getLevel(): SceneDetailLevel;
   getPolicy(): SceneDetailPolicy;
   setLevel(level: SceneDetailLevel): void;
-  shouldRunDecorativeUpdate(elapsedSeconds: number, emphasis?: number): boolean;
+  shouldRunDecorativeUpdate(
+    elapsedSeconds: number,
+    emphasis?: number,
+    channel?: string
+  ): boolean;
   getSnapshot(): {
     level: SceneDetailLevel;
     policy: SceneDetailPolicy;
@@ -179,7 +183,7 @@ export function createSceneDetailController(
 ): SceneDetailController {
   let level = initialLevel;
   let policy = getSceneDetailPolicy(level);
-  let lastDecorativeUpdateMs = Number.NEGATIVE_INFINITY;
+  const lastDecorativeUpdateMsByChannel = new Map<string, number>();
 
   return {
     getLevel() {
@@ -192,7 +196,11 @@ export function createSceneDetailController(
       level = nextLevel;
       policy = getSceneDetailPolicy(nextLevel);
     },
-    shouldRunDecorativeUpdate(elapsedSeconds, emphasis = 0) {
+    shouldRunDecorativeUpdate(
+      elapsedSeconds,
+      emphasis = 0,
+      channel = 'default'
+    ) {
       if (policy.updates.decorativeThrottleMs <= 0) {
         return true;
       }
@@ -203,13 +211,16 @@ export function createSceneDetailController(
         return false;
       }
       const elapsedMs = elapsedSeconds * 1000;
+      const lastDecorativeUpdateMs =
+        lastDecorativeUpdateMsByChannel.get(channel) ??
+        Number.NEGATIVE_INFINITY;
       if (
         elapsedMs - lastDecorativeUpdateMs <
         policy.updates.decorativeThrottleMs
       ) {
         return false;
       }
-      lastDecorativeUpdateMs = elapsedMs;
+      lastDecorativeUpdateMsByChannel.set(channel, elapsedMs);
       return true;
     },
     getSnapshot() {

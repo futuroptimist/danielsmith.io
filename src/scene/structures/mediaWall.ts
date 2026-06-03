@@ -23,6 +23,8 @@ import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
+const BADGE_WIDTH = 512;
+const BADGE_HEIGHT = 256;
 const BASE_GLOW_OPACITY = 0.18;
 const EMPHASISED_GLOW_OPACITY = 0.62;
 const CLEARANCE_BASE_OPACITY = 0.16;
@@ -67,7 +69,7 @@ class MediaWallScreenRenderer {
     this.texture.colorSpace = SRGBColorSpace;
     this.starCount = options.starCount;
 
-    this.render();
+    this.render({ force: true });
   }
 
   getTexture(): CanvasTexture {
@@ -80,7 +82,7 @@ class MediaWallScreenRenderer {
     } else {
       this.starCount = count;
     }
-    this.render();
+    this.render({ force: true });
   }
 
   updateHighlight(target: number) {
@@ -96,9 +98,10 @@ class MediaWallScreenRenderer {
     this.texture.dispose();
   }
 
-  private render() {
+  private render(options: { force?: boolean } = {}) {
     const now = typeof performance === 'undefined' ? 0 : performance.now();
     if (
+      !options.force &&
       this.redrawThrottleMs > 0 &&
       now - this.lastRenderMs < this.redrawThrottleMs
     ) {
@@ -107,6 +110,10 @@ class MediaWallScreenRenderer {
     this.lastRenderMs = now;
     this.context.save();
     this.context.clearRect(0, 0, this.width, this.height);
+    this.context.scale?.(
+      this.width / SCREEN_WIDTH,
+      this.height / SCREEN_HEIGHT
+    );
     this.drawBase();
     this.drawStarHighlight();
     this.context.restore();
@@ -117,40 +124,40 @@ class MediaWallScreenRenderer {
     const ctx = this.context;
     ctx.save();
     ctx.fillStyle = '#0f1724';
-    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     const baseGradient = ctx.createLinearGradient(
       0,
       0,
-      this.width,
-      this.height
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT
     );
     baseGradient.addColorStop(0, '#182a47');
     baseGradient.addColorStop(0.55, '#0f233c');
     baseGradient.addColorStop(1, '#192339');
     ctx.fillStyle = baseGradient;
-    ctx.fillRect(0, 0, this.width, this.height);
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     ctx.globalAlpha = 0.6;
-    const accentGradient = ctx.createLinearGradient(0, 0, this.width, 0);
+    const accentGradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, 0);
     accentGradient.addColorStop(0, 'rgba(75, 217, 255, 0.8)');
     accentGradient.addColorStop(0.45, 'rgba(83, 146, 255, 0.35)');
     accentGradient.addColorStop(1, 'rgba(255, 82, 82, 0.6)');
     ctx.fillStyle = accentGradient;
 
-    const accentX = this.width * 0.05;
-    const accentY = this.height * 0.16;
-    const accentWidth = this.width * 0.9;
-    const accentHeight = this.height * 0.68;
+    const accentX = SCREEN_WIDTH * 0.05;
+    const accentY = SCREEN_HEIGHT * 0.16;
+    const accentWidth = SCREEN_WIDTH * 0.9;
+    const accentHeight = SCREEN_HEIGHT * 0.68;
     ctx.fillRect(accentX, accentY, accentWidth, accentHeight);
     ctx.globalAlpha = 1;
 
-    const leftTextAnchor = this.width * 0.08;
-    const headerY = this.height * 0.44;
-    const platformY = this.height * 0.62;
-    const taglineY = this.height * 0.74;
-    const episodeY = this.height * 0.84;
-    const rightTextAnchor = this.width * 0.92;
+    const leftTextAnchor = SCREEN_WIDTH * 0.08;
+    const headerY = SCREEN_HEIGHT * 0.44;
+    const platformY = SCREEN_HEIGHT * 0.62;
+    const taglineY = SCREEN_HEIGHT * 0.74;
+    const episodeY = SCREEN_HEIGHT * 0.84;
+    const rightTextAnchor = SCREEN_WIDTH * 0.92;
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 180px "Inter", "Segoe UI", sans-serif';
@@ -181,10 +188,10 @@ class MediaWallScreenRenderer {
 
   private drawStarHighlight() {
     const ctx = this.context;
-    const cardWidth = this.width * 0.26;
-    const cardHeight = this.height * 0.32;
-    const cardX = this.width * 0.62;
-    const cardY = this.height * 0.18;
+    const cardWidth = SCREEN_WIDTH * 0.26;
+    const cardHeight = SCREEN_HEIGHT * 0.32;
+    const cardX = SCREEN_WIDTH * 0.62;
+    const cardY = SCREEN_HEIGHT * 0.18;
     const cardRadius = cardHeight * 0.16;
 
     ctx.save();
@@ -258,7 +265,7 @@ function createScreenRenderer(
   detailPolicy = getSceneDetailPolicy('balanced')
 ): MediaWallScreenRenderer {
   return new MediaWallScreenRenderer({
-    starCount: 1280,
+    starCount: detailPolicy.level === 'performance' ? 128 : 1280,
     width: detailPolicy.textures.mediaWallScreen.width,
     height: detailPolicy.textures.mediaWallScreen.height,
     redrawThrottleMs: detailPolicy.updates.canvasRedrawThrottleMs,
@@ -278,22 +285,24 @@ function createBadgeTexture(
   }
 
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.scale?.(canvas.width / BADGE_WIDTH, canvas.height / BADGE_HEIGHT);
   const radius = 42;
   const badgeColor = '#ff0000';
   context.fillStyle = badgeColor;
   context.beginPath();
   context.moveTo(radius, 0);
-  context.lineTo(canvas.width - radius, 0);
-  context.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-  context.lineTo(canvas.width, canvas.height - radius);
+  context.lineTo(BADGE_WIDTH - radius, 0);
+  context.quadraticCurveTo(BADGE_WIDTH, 0, BADGE_WIDTH, radius);
+  context.lineTo(BADGE_WIDTH, BADGE_HEIGHT - radius);
   context.quadraticCurveTo(
-    canvas.width,
-    canvas.height,
-    canvas.width - radius,
-    canvas.height
+    BADGE_WIDTH,
+    BADGE_HEIGHT,
+    BADGE_WIDTH - radius,
+    BADGE_HEIGHT
   );
-  context.lineTo(radius, canvas.height);
-  context.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+  context.lineTo(radius, BADGE_HEIGHT);
+  context.quadraticCurveTo(0, BADGE_HEIGHT, 0, BADGE_HEIGHT - radius);
   context.lineTo(0, radius);
   context.quadraticCurveTo(0, 0, radius, 0);
   context.closePath();
@@ -301,15 +310,16 @@ function createBadgeTexture(
 
   const playWidth = 120;
   const playHeight = 120;
-  const playOriginX = canvas.width / 2 - playWidth / 4;
-  const playOriginY = canvas.height / 2 - playHeight / 2;
+  const playOriginX = BADGE_WIDTH / 2 - playWidth / 4;
+  const playOriginY = BADGE_HEIGHT / 2 - playHeight / 2;
   context.fillStyle = '#ffffff';
   context.beginPath();
   context.moveTo(playOriginX, playOriginY);
   context.lineTo(playOriginX, playOriginY + playHeight);
-  context.lineTo(canvas.width / 2 + playWidth / 2, canvas.height / 2);
+  context.lineTo(BADGE_WIDTH / 2 + playWidth / 2, BADGE_HEIGHT / 2);
   context.closePath();
   context.fill();
+  context.restore();
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -734,7 +744,6 @@ export function createLivingRoomMediaWall(
     clearanceHighlightColor,
     detailPolicy,
   });
-  controller.setStarCount(detailPolicy.level === 'performance' ? 128 : 1280);
 
   return { group, colliders, poiBindings, controller };
 }

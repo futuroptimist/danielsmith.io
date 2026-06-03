@@ -18,6 +18,11 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
+const JOBBOT_SCREEN_WIDTH = 2048;
+const JOBBOT_SCREEN_HEIGHT = 1024;
+const JOBBOT_TELEMETRY_WIDTH = 1024;
+const JOBBOT_TELEMETRY_HEIGHT = 512;
+
 export interface JobbotTerminalBuild {
   group: Group;
   colliders: RectCollider[];
@@ -58,47 +63,56 @@ function createTerminalScreenTexture(
   const context = canvas.getContext('2d');
 
   if (context) {
+    context.save();
+    context.scale?.(
+      canvas.width / JOBBOT_SCREEN_WIDTH,
+      canvas.height / JOBBOT_SCREEN_HEIGHT
+    );
     context.fillStyle = '#07111f';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, JOBBOT_SCREEN_WIDTH, JOBBOT_SCREEN_HEIGHT);
 
     const background = context.createLinearGradient(
       0,
       0,
-      canvas.width,
-      canvas.height
+      JOBBOT_SCREEN_WIDTH,
+      JOBBOT_SCREEN_HEIGHT
     );
     background.addColorStop(0, '#0d253f');
     background.addColorStop(0.6, '#10203a');
     background.addColorStop(1, '#0c1728');
     context.fillStyle = background;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, JOBBOT_SCREEN_WIDTH, JOBBOT_SCREEN_HEIGHT);
 
     context.fillStyle = '#7cf1ff';
     context.font = 'bold 220px "Inter", "Segoe UI", sans-serif';
     context.textAlign = 'left';
     context.textBaseline = 'alphabetic';
-    context.fillText('jobbot3000', canvas.width * 0.08, canvas.height * 0.46);
+    context.fillText(
+      'jobbot3000',
+      JOBBOT_SCREEN_WIDTH * 0.08,
+      JOBBOT_SCREEN_HEIGHT * 0.46
+    );
 
     context.font = '64px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#9ce9ff';
     context.fillText(
       'Automation orchestrator · live diagnostics stream',
-      canvas.width * 0.08,
-      canvas.height * 0.68
+      JOBBOT_SCREEN_WIDTH * 0.08,
+      JOBBOT_SCREEN_HEIGHT * 0.68
     );
 
     context.font = '52px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#fede72';
     context.fillText(
       'Status: nominal · queue depth 0 · SLA 99.98%',
-      canvas.width * 0.08,
-      canvas.height * 0.82
+      JOBBOT_SCREEN_WIDTH * 0.08,
+      JOBBOT_SCREEN_HEIGHT * 0.82
     );
 
-    const rightColumnX = canvas.width * 0.7;
+    const rightColumnX = JOBBOT_SCREEN_WIDTH * 0.7;
     context.font = '600 56px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#ffffff';
-    context.fillText('Ops timeline', rightColumnX, canvas.height * 0.32);
+    context.fillText('Ops timeline', rightColumnX, JOBBOT_SCREEN_HEIGHT * 0.32);
 
     context.font = '42px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#b6d8ff';
@@ -108,8 +122,13 @@ function createTerminalScreenTexture(
       '• 05:38 · queue drained',
     ];
     logLines.forEach((line, index) => {
-      context.fillText(line, rightColumnX, canvas.height * (0.4 + index * 0.1));
+      context.fillText(
+        line,
+        rightColumnX,
+        JOBBOT_SCREEN_HEIGHT * (0.4 + index * 0.1)
+      );
     });
+    context.restore();
   }
 
   const texture = new CanvasTexture(canvas);
@@ -134,12 +153,27 @@ function createTelemetryPanelTexture(
   }
 
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.scale?.(
+    canvas.width / JOBBOT_TELEMETRY_WIDTH,
+    canvas.height / JOBBOT_TELEMETRY_HEIGHT
+  );
   context.fillStyle = 'rgba(5, 18, 32, 0.9)';
-  context.fillRect(48, 48, canvas.width - 96, canvas.height - 96);
+  context.fillRect(
+    48,
+    48,
+    JOBBOT_TELEMETRY_WIDTH - 96,
+    JOBBOT_TELEMETRY_HEIGHT - 96
+  );
 
   context.strokeStyle = 'rgba(124, 241, 255, 0.4)';
   context.lineWidth = 6;
-  context.strokeRect(48, 48, canvas.width - 96, canvas.height - 96);
+  context.strokeRect(
+    48,
+    48,
+    JOBBOT_TELEMETRY_WIDTH - 96,
+    JOBBOT_TELEMETRY_HEIGHT - 96
+  );
 
   context.textAlign = 'left';
   context.textBaseline = 'alphabetic';
@@ -160,6 +194,7 @@ function createTelemetryPanelTexture(
     context.fillStyle = '#f1fdff';
     context.fillText(metric, 136, y - 6);
   });
+  context.restore();
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
-import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
+import {
+  createSceneDetailController,
+  getSceneDetailPolicy,
+} from '../scene/graphics/sceneDetailPolicy';
 import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
@@ -422,6 +425,19 @@ describe('immersive performance optimization policy', () => {
     expect(sceneDetailChanges).toContain('performance');
     expect(getSceneDetailPolicy(currentLevel).effects.dynamicPointLights).toBe(
       false
+    );
+  });
+
+  it('throttles decorative updates per subsystem channel', () => {
+    const controller = createSceneDetailController('performance');
+
+    expect(controller.shouldRunDecorativeUpdate(1, 1, 'media-wall')).toBe(true);
+    expect(controller.shouldRunDecorativeUpdate(1, 1, 'jobbot')).toBe(true);
+    expect(controller.shouldRunDecorativeUpdate(1.1, 1, 'media-wall')).toBe(
+      false
+    );
+    expect(controller.shouldRunDecorativeUpdate(1.3, 1, 'media-wall')).toBe(
+      true
     );
   });
 

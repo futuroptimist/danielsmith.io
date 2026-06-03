@@ -112,7 +112,9 @@ import {
 import {
   GRAPHICS_QUALITY_PRESETS,
   createGraphicsQualityManager,
+  isGraphicsQualityLevel,
   resolvePersistedGraphicsQualityLevel,
+  type GraphicsQualityLevel,
   type GraphicsQualityManager,
 } from './scene/graphics/qualityManager';
 import {
@@ -528,6 +530,32 @@ const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
+const PENDING_SCENE_DETAIL_RELOAD_KEY =
+  'portfolio::pending-scene-detail-reload-level';
+
+function consumePendingSceneDetailReloadLevel(): GraphicsQualityLevel | null {
+  try {
+    const stored = window.sessionStorage.getItem(
+      PENDING_SCENE_DETAIL_RELOAD_KEY
+    );
+    window.sessionStorage.removeItem(PENDING_SCENE_DETAIL_RELOAD_KEY);
+    return isGraphicsQualityLevel(stored) ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistPendingSceneDetailReloadLevel(
+  level: GraphicsQualityLevel
+): void {
+  try {
+    window.sessionStorage.setItem(PENDING_SCENE_DETAIL_RELOAD_KEY, level);
+  } catch {
+    // If session storage is unavailable, reloading still rebuilds from persisted
+    // user quality or the device-derived initial policy.
+  }
+}
+
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
 const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
 const INPUT_LATENCY_P95_BUDGET_MS = 200;
@@ -764,12 +792,35 @@ function initializeImmersiveScene(
   const persistedQualityLevel = rendererInfo.isSoftwareRenderer
     ? null
     : resolvePersistedGraphicsQualityLevel(qualityStorage);
+  const sceneDetailReloadOverride = consumePendingSceneDetailReloadLevel();
+  const effectiveInitialQualityLevel =
+    sceneDetailReloadOverride ??
+    persistedQualityLevel ??
+    initialQualityPolicy.initialLevel;
   const initialSceneDetailLevel =
-    persistedQualityLevel ?? initialQualityPolicy.initialLevel;
+    sceneDetailReloadOverride ??
+    persistedQualityLevel ??
+    initialQualityPolicy.sceneDetailLevel;
   const sceneDetailController = createSceneDetailController(
     initialSceneDetailLevel
   );
   let activeSceneDetailPolicy = getSceneDetailPolicy(initialSceneDetailLevel);
+  const applySceneDetailLevel = (
+    level: GraphicsQualityLevel,
+    options: { reloadScene?: boolean } = {}
+  ) => {
+    if (level === sceneDetailController.getLevel()) {
+      activeSceneDetailPolicy = sceneDetailController.getPolicy();
+      return;
+    }
+    if (options.reloadScene) {
+      persistPendingSceneDetailReloadLevel(level);
+      window.location.reload();
+      return;
+    }
+    sceneDetailController.setLevel(level);
+    activeSceneDetailPolicy = sceneDetailController.getPolicy();
+  };
   const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
     ? initialQualityPolicy.basePixelRatioCap
     : rendererInfo.isSoftwareRenderer
@@ -3585,8 +3636,9 @@ function initializeImmersiveScene(
     ledStripMaterials,
     ledFillLights: ledFillLightsList,
     basePixelRatio,
-    initialLevel: initialQualityPolicy.initialLevel,
-    preferInitialLevel: rendererInfo.isSoftwareRenderer,
+    initialLevel: effectiveInitialQualityLevel,
+    preferInitialLevel:
+      rendererInfo.isSoftwareRenderer || sceneDetailReloadOverride !== null,
     baseBloom: {
       strength: LIGHTING_OPTIONS.bloomStrength,
       radius: LIGHTING_OPTIONS.bloomRadius,
@@ -3613,8 +3665,7 @@ function initializeImmersiveScene(
     getSelectionSource: () =>
       graphicsQualityManager?.getSelectionSource() ?? 'initial',
     onSceneDetailLevelChange: (level) => {
-      sceneDetailController.setLevel(level);
-      activeSceneDetailPolicy = sceneDetailController.getPolicy();
+      applySceneDetailLevel(level, { reloadScene: true });
     },
     onAction: (event) => {
       console.info('[performance] adaptive quality action', event);
@@ -3800,8 +3851,7 @@ function initializeImmersiveScene(
       renderTargetSize: policy.mirrorTargetSize,
     });
     const level = graphicsQualityManager?.getLevel() ?? initialSceneDetailLevel;
-    sceneDetailController.setLevel(level);
-    activeSceneDetailPolicy = sceneDetailController.getPolicy();
+    applySceneDetailLevel(level, { reloadScene: true });
   };
 
   const getActivePostprocessingPassCount = () => {
@@ -4767,7 +4817,8 @@ function initializeImmersiveScene(
         if (
           sceneDetailController.shouldRunDecorativeUpdate(
             elapsedTime,
-            Math.max(activation, focus)
+            Math.max(activation, focus),
+            'media-wall'
           )
         ) {
           livingRoomMediaWall.controller.update({
@@ -4783,7 +4834,8 @@ function initializeImmersiveScene(
         if (
           sceneDetailController.shouldRunDecorativeUpdate(
             elapsedTime,
-            Math.max(activation, focus)
+            Math.max(activation, focus),
+            'flywheel'
           )
         ) {
           flywheelShowpiece.update({
@@ -4826,7 +4878,8 @@ function initializeImmersiveScene(
         if (
           sceneDetailController.shouldRunDecorativeUpdate(
             elapsedTime,
-            Math.max(activation, focus)
+            Math.max(activation, focus),
+            'jobbot'
           )
         ) {
           jobbotTerminal.update({
@@ -4884,7 +4937,13 @@ function initializeImmersiveScene(
         });
       }
       if (backyardEnvironment) {
-        if (sceneDetailController.shouldRunDecorativeUpdate(elapsedTime, 1)) {
+        if (
+          sceneDetailController.shouldRunDecorativeUpdate(
+            elapsedTime,
+            1,
+            'backyard'
+          )
+        ) {
           backyardEnvironment.update({ elapsed: elapsedTime, delta });
         }
       }
