@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
 import {
+  createSceneDetailController,
+  getSceneDetailPolicy,
+} from '../scene/graphics/sceneDetailPolicy';
+import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
 } from '../scene/performance/adaptiveQuality';
@@ -12,6 +16,7 @@ import {
   resolveResizedBasePixelRatio,
   resolveSoftwareRendererPolicy,
   resolveSoftwareSafeRenderCadence,
+  getQualitySceneDetailPolicy,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
 
@@ -20,11 +25,15 @@ function createPolicyHarness({
   basePixelRatio = 1.25,
   selectionSource = 'adaptive',
   isSoftwareRenderer = false,
+  onSceneDetailLevelChange,
+  initialAdaptivePerformanceRecoveryLocked = false,
 }: {
   level?: GraphicsQualityLevel;
   basePixelRatio?: number;
   selectionSource?: AdaptiveQualitySelectionSource;
   isSoftwareRenderer?: boolean;
+  onSceneDetailLevelChange?: (level: GraphicsQualityLevel) => void;
+  initialAdaptivePerformanceRecoveryLocked?: boolean;
 } = {}) {
   let currentLevel = level;
   let currentBasePixelRatio = basePixelRatio;
@@ -54,6 +63,8 @@ function createPolicyHarness({
     recoveryFpsThreshold: 55,
     recoveryP95FrameMs: 22,
     onAction,
+    onSceneDetailLevelChange,
+    initialAdaptivePerformanceRecoveryLocked,
   });
 
   return {
@@ -263,6 +274,75 @@ describe('immersive performance optimization policy', () => {
     });
   });
 
+  it('maps graphics quality to centralized scene detail budgets', () => {
+    const balanced = getQualitySceneDetailPolicy('balanced');
+    const performance = getQualitySceneDetailPolicy('performance');
+
+    expect(performance.level).toBe('performance');
+    expect(performance.effects.mist).toBe(false);
+    expect(performance.effects.pondRippleShader).toBe(false);
+    expect(performance.effects.dynamicPointLights).toBe(false);
+    expect(performance.textures.jobbotScreen.width).toBeLessThanOrEqual(
+      balanced.textures.jobbotScreen.width / 4
+    );
+    expect(performance.geometry.cylinderSegments).toBeLessThanOrEqual(
+      balanced.geometry.cylinderSegments / 5
+    );
+    expect(performance.geometry.sphereWidthSegments).toBeLessThanOrEqual(
+      balanced.geometry.sphereWidthSegments / 4
+    );
+    expect(performance.budgets.transparentShaderLayers).toBe(0);
+    expect(performance.budgets.dynamicPointLights).toBeLessThan(
+      balanced.budgets.dynamicPointLights
+    );
+  });
+
+  it('starts coarse-pointer constrained hardware in performance without persisted preferences', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }),
+      { coarsePointer: true, tabletLike: true, deviceMemoryGb: 4 }
+    );
+
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.sceneDetailLevel).toBe('performance');
+    expect(policy.mirrorEnabled).toBe(false);
+  });
+
+  it('respects persisted balanced quality on coarse-pointer hardware', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }),
+      {
+        coarsePointer: true,
+        mobileLike: true,
+        tabletLike: true,
+        explicitGraphicsQualityLevel: 'balanced',
+      }
+    );
+
+    expect(policy.initialLevel).toBe('balanced');
+    expect(policy.sceneDetailLevel).toBe('balanced');
+    expect(policy.mirrorEnabled).toBe(true);
+  });
+
+  it('resolves persisted performance scene detail before construction', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }),
+      { explicitGraphicsQualityLevel: 'performance' }
+    );
+
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.sceneDetailLevel).toBe('performance');
+    expect(getQualitySceneDetailPolicy(policy.sceneDetailLevel).level).toBe(
+      'performance'
+    );
+  });
+
   it('resizes DPR up to the device cap without undoing adaptive downgrades', () => {
     expect(resolveResizedBasePixelRatio(2, 1.25)).toBe(1.25);
     expect(resolveResizedBasePixelRatio(2, 1.25, 1)).toBe(1);
@@ -323,8 +403,47 @@ describe('immersive performance optimization policy', () => {
     expect(cinematicHarness.controller.getSnapshot().stableDurationMs).toBe(0);
   });
 
-  it('starts recovery hysteresis fresh after a balanced to performance downgrade', () => {
-    const harness = createPolicyHarness({ level: 'balanced' });
+  it('keeps adaptive performance locked after a scene-detail reload handoff', () => {
+    const harness = createPolicyHarness({
+      level: 'performance',
+      selectionSource: 'initial',
+      initialAdaptivePerformanceRecoveryLocked: true,
+    });
+
+    let recoveryEvent = null;
+    for (let index = 0; index < 420; index += 1) {
+      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    }
+
+    expect(recoveryEvent).toBeNull();
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.getRecoveryCount()).toBe(0);
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      autoRecoveryEnabled: false,
+      stableDurationMs: 0,
+    });
+
+    harness.setLevel('balanced');
+    harness.setSelectionSource('user');
+    harness.controller.update(1 / 60);
+    harness.setLevel('performance');
+    harness.setSelectionSource('adaptive');
+
+    for (let index = 0; index < 420; index += 1) {
+      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    }
+
+    expect(recoveryEvent?.action).toBe('recover');
+    expect(harness.level).toBe('balanced');
+  });
+
+  it('does not auto-recover after adaptive downgrade to performance', () => {
+    const sceneDetailChanges: GraphicsQualityLevel[] = [];
+    const harness = createPolicyHarness({
+      level: 'balanced',
+      selectionSource: 'adaptive',
+      onSceneDetailLevelChange: (level) => sceneDetailChanges.push(level),
+    });
 
     for (let index = 0; index < 240; index += 1) {
       harness.controller.update(1 / 60);
@@ -339,22 +458,68 @@ describe('immersive performance optimization policy', () => {
 
     expect(downgradeEvent?.step).toBe('quality-performance');
     expect(harness.level).toBe('performance');
-    expect(harness.controller.getSnapshot().stableDurationMs).toBe(0);
+    expect(sceneDetailChanges).toEqual(['performance']);
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      autoRecoveryEnabled: false,
+      stableDurationMs: 0,
+    });
 
     let recoveryEvent = null;
-    for (let index = 0; index < 179; index += 1) {
+    for (let index = 0; index < 420; index += 1) {
       recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
     }
 
     expect(recoveryEvent).toBeNull();
     expect(harness.level).toBe('performance');
+    expect(harness.controller.getRecoveryCount()).toBe(0);
 
-    for (let index = 0; index < 180; index += 1) {
-      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    harness.setLevel('balanced');
+    harness.setSelectionSource('user');
+
+    expect(harness.level).toBe('balanced');
+  });
+
+  it('notifies scene detail policy when adaptive downgrade reaches performance', () => {
+    let currentLevel: GraphicsQualityLevel = 'balanced';
+    const sceneDetailChanges: GraphicsQualityLevel[] = [];
+    const controller = createAdaptiveQualityController({
+      qualityManager: {
+        getLevel: () => currentLevel,
+        setLevel: (next) => {
+          currentLevel = next;
+        },
+        setBasePixelRatio: () => undefined,
+      },
+      getBasePixelRatio: () => 1,
+      setBasePixelRatio: () => undefined,
+      cooldownMs: 0,
+      downgradeAfterMs: 1000,
+      warmupMs: 0,
+      onSceneDetailLevelChange: (level) => sceneDetailChanges.push(level),
+    });
+
+    for (let index = 0; index < 4; index += 1) {
+      controller.update(0.4);
     }
 
-    expect(recoveryEvent?.action).toBe('recover');
-    expect(harness.level).toBe('balanced');
+    expect(currentLevel).toBe('performance');
+    expect(sceneDetailChanges).toContain('performance');
+    expect(getSceneDetailPolicy(currentLevel).effects.dynamicPointLights).toBe(
+      false
+    );
+  });
+
+  it('throttles decorative updates per subsystem channel', () => {
+    const controller = createSceneDetailController('performance');
+
+    expect(controller.shouldRunDecorativeUpdate(1, 1, 'media-wall')).toBe(true);
+    expect(controller.shouldRunDecorativeUpdate(1, 1, 'jobbot')).toBe(true);
+    expect(controller.shouldRunDecorativeUpdate(1.1, 1, 'media-wall')).toBe(
+      false
+    );
+    expect(controller.shouldRunDecorativeUpdate(1.3, 1, 'media-wall')).toBe(
+      true
+    );
   });
 
   it('keeps software renderers conservative and does not auto-upshift', () => {

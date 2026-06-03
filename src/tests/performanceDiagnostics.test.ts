@@ -62,6 +62,14 @@ describe('performance diagnostics', () => {
         mirrorRenderCount: 3,
       }),
       getLastFailoverReason: () => null,
+      getRendererCounters: () => ({
+        calls: 7,
+        triangles: 1234,
+        points: 2,
+        lines: 3,
+        memoryGeometries: 42,
+        memoryTextures: 9,
+      }),
     });
 
     diagnostics.recordFrame(1 / 60);
@@ -77,6 +85,12 @@ describe('performance diagnostics', () => {
     expect(snapshot.minFps).toBeCloseTo(10, 0);
     expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
+    expect(snapshot.rendererCounters).toMatchObject({
+      calls: 7,
+      triangles: 1234,
+      memoryGeometries: 42,
+      memoryTextures: 9,
+    });
     expect(snapshot.softwareRendererPolicy.safeMode).toBe(false);
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);

@@ -36,6 +36,33 @@ and the Vitest assertions when measurable changes land.
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
 
+## Performance scene detail mode
+
+Performance graphics quality now applies a centralized scene detail policy in
+addition to DPR, bloom, exposure, mirror, and LED reductions. The intent is a
+roughly 10× theoretical workload reduction on constrained tablets and mobile
+GPUs; real FPS gains still depend on browser, thermal, and driver behavior.
+Balanced and Cinematic continue to share the original high-detail scene policy.
+
+When Performance is selected or reached adaptively, the low-detail policy:
+
+- lowers procedural cylinder/sphere/ring/torus segments used by POI markers,
+  the avatar mannequin, and major decorative structures;
+- reduces Jobbot and media-wall canvas texture dimensions from 2048×1024 to
+  512×256, and throttles performance-mode canvas redraws;
+- disables nonessential transparent shader/overdraw effects such as backyard
+  walkway mist, greenhouse pond ripples, flywheel glass/halo details, Jobbot
+  data shards and telemetry panels, and media-wall glow planes;
+- disables or hides nonessential point lights and skips/throttles unfocused
+  decorative update loops;
+- exposes renderer counters (`calls`, `triangles`, `points`, `lines`,
+  `memory.geometries`, and `memory.textures`) plus the active scene-detail
+  budget through `window.portfolio.performance.getSnapshot()`.
+
+Fresh sessions on coarse-pointer, mobile/tablet-like, or constrained-memory/CPU
+hardware start in Performance when no explicit graphics-quality preference is
+persisted. Explicit user selections remain authoritative.
+
 ## Adaptive quality warmup and recovery
 
 Staging on May 29, 2026 showed two renderer classes that need different

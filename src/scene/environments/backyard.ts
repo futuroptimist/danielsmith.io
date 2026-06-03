@@ -41,6 +41,8 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import {
   applySeasonalLightingPreset,
   type SeasonalLightingPreset,
@@ -106,7 +108,7 @@ interface WalkwayMistLayer {
 const HEX_COLOR_PATTERN = /^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 const clampUnit = (value: number | undefined): number => {
-  if (!Number.isFinite(value)) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 0;
   }
   if (value <= 0) {
@@ -119,7 +121,7 @@ const clampUnit = (value: number | undefined): number => {
 };
 
 const resolveCycleScale = (value: number | undefined): number => {
-  if (!Number.isFinite(value)) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 1;
   }
   if (value <= 0) {
@@ -299,12 +301,17 @@ function createDuskLightProbe(): LightProbe {
 
 export interface BackyardEnvironmentOptions {
   seasonalPreset?: SeasonalLightingPreset | null;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export function createBackyardEnvironment(
   bounds: Bounds2D,
-  { seasonalPreset = null }: BackyardEnvironmentOptions = {}
+  {
+    seasonalPreset = null,
+    detailPolicy = getSceneDetailPolicy('balanced'),
+  }: BackyardEnvironmentOptions = {}
 ): BackyardEnvironmentBuild {
+  const isPerformance = detailPolicy.level === 'performance';
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
@@ -324,7 +331,11 @@ export function createBackyardEnvironment(
   group.add(duskLightProbe);
 
   const skyRadius = Math.max(width, depth) * 1.32;
-  const skyGeometry = new SphereGeometry(skyRadius, 48, 48);
+  const skyGeometry = new SphereGeometry(
+    skyRadius,
+    detailPolicy.geometry.sphereWidthSegments,
+    detailPolicy.geometry.sphereHeightSegments
+  );
   skyGeometry.scale(1, 0.62, 1);
   const verticalExtent = skyRadius * 0.62;
 
@@ -498,6 +509,7 @@ export function createBackyardEnvironment(
   const rocket = createModelRocket({
     basePosition: rocketBase,
     orientationRadians: -Math.PI / 10,
+    detailPolicy,
   });
   group.add(rocket.group);
   colliders.push(rocket.collider);
@@ -537,6 +549,7 @@ export function createBackyardEnvironment(
     depth: greenhouseDepth,
     environmentMap: duskReflectionMap,
     environmentIntensity: 0.62,
+    detailPolicy,
   });
   group.add(greenhouse.group);
   greenhouse.colliders.forEach((collider) => colliders.push(collider));
@@ -733,7 +746,7 @@ export function createBackyardEnvironment(
       baseFlowStrength,
     });
   }
-  if (walkwayMistGroup.children.length > 0) {
+  if (!isPerformance && walkwayMistGroup.children.length > 0) {
     group.add(walkwayMistGroup);
   }
 
@@ -1042,7 +1055,7 @@ export function createBackyardEnvironment(
     );
   });
 
-  if (walkwayMistLayers.length > 0) {
+  if (!isPerformance && walkwayMistLayers.length > 0) {
     updates.push(({ elapsed }) => {
       const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
       const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
@@ -1652,6 +1665,7 @@ export function createBackyardEnvironment(
       light.name = `BackyardWalkwayLanternLight-${lanternIndex}`;
       light.position.y = 1.05;
       light.color.copy(glassMaterial.emissive);
+      light.visible = detailPolicy.effects.dynamicPointLights;
       lantern.add(light);
 
       const haloMaterial = new MeshBasicMaterial({
@@ -1951,6 +1965,7 @@ export function createBackyardEnvironment(
   );
   duskLight.position.set(centerX - width * 0.18, 2.6, centerZ + depth * 0.18);
   duskLight.castShadow = false;
+  duskLight.visible = detailPolicy.effects.dynamicPointLights;
   group.add(duskLight);
 
   const barrierWidth = Math.min(width * 0.68, 6.5);

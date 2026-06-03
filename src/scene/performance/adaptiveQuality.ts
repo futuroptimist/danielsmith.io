@@ -28,6 +28,8 @@ export interface AdaptiveQualityControllerOptions {
   getSelectionSource?: () => AdaptiveQualitySelectionSource;
   onAction?: (event: AdaptiveQualityEvent) => void;
   onDowngrade?: (event: AdaptiveQualityEvent) => void;
+  onSceneDetailLevelChange?: (level: GraphicsQualityLevel) => void;
+  initialAdaptivePerformanceRecoveryLocked?: boolean;
 }
 
 export interface AdaptiveQualityEvent {
@@ -114,6 +116,8 @@ export function createAdaptiveQualityController({
   getSelectionSource = () => 'adaptive',
   onAction,
   onDowngrade,
+  onSceneDetailLevelChange,
+  initialAdaptivePerformanceRecoveryLocked = false,
 }: AdaptiveQualityControllerOptions): AdaptiveQualityController {
   let elapsedMs = 0;
   let lowFpsDurationMs = 0;
@@ -127,16 +131,31 @@ export function createAdaptiveQualityController({
   let lastRecoveryReason: string | null = null;
   let lastAdaptiveReason: string | null = null;
   let pixelRatioStepApplied = false;
+  let adaptivePerformanceRecoveryLocked =
+    initialAdaptivePerformanceRecoveryLocked &&
+    qualityManager.getLevel() === 'performance';
   const frameMsSamples: number[] = [];
 
   const getWarmupRemainingMs = () => Math.max(0, warmupMs - elapsedMs);
   const isWarmingUp = () => getWarmupRemainingMs() > 0;
   const autoRecoveryEnabled = () =>
-    !isSoftwareRenderer && getSelectionSource() !== 'user';
+    !isSoftwareRenderer &&
+    getSelectionSource() !== 'user' &&
+    !adaptivePerformanceRecoveryLocked;
   const canAccrueRecovery = () =>
     qualityManager.getLevel() === 'performance' && autoRecoveryEnabled();
   const resetRecoveryState = () => {
     stableDurationMs = 0;
+  };
+  const syncExplicitUserOverride = () => {
+    if (
+      adaptivePerformanceRecoveryLocked &&
+      getSelectionSource() === 'user' &&
+      qualityManager.getLevel() !== 'performance'
+    ) {
+      adaptivePerformanceRecoveryLocked = false;
+      resetRecoveryState();
+    }
   };
 
   const emit = (
@@ -184,6 +203,7 @@ export function createAdaptiveQualityController({
     const currentLevel = qualityManager.getLevel();
     if (currentLevel === 'cinematic') {
       qualityManager.setLevel('balanced', { source: 'adaptive' });
+      onSceneDetailLevelChange?.('balanced');
       return emit(
         'downgrade',
         'quality-balanced',
@@ -191,7 +211,9 @@ export function createAdaptiveQualityController({
       );
     }
     if (currentLevel === 'balanced') {
+      adaptivePerformanceRecoveryLocked = true;
       qualityManager.setLevel('performance', { source: 'adaptive' });
+      onSceneDetailLevelChange?.('performance');
       return emit(
         'downgrade',
         'quality-performance',
@@ -219,6 +241,7 @@ export function createAdaptiveQualityController({
       return null;
     }
     qualityManager.setLevel('balanced', { source: 'adaptive' });
+    onSceneDetailLevelChange?.('balanced');
     return emit(
       'recover',
       'quality-balanced',
@@ -268,6 +291,7 @@ export function createAdaptiveQualityController({
       if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
         return null;
       }
+      syncExplicitUserOverride();
       const frameMs = deltaSeconds * 1000;
       elapsedMs += frameMs;
       frameMsSamples.push(frameMs);

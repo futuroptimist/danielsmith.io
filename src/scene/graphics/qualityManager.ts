@@ -130,13 +130,32 @@ export interface GraphicsQualityManager {
   onChange(listener: (level: GraphicsQualityLevel) => void): () => void;
 }
 
-const DEFAULT_STORAGE_KEY = 'danielsmith:graphics-quality-level';
+export const DEFAULT_GRAPHICS_QUALITY_STORAGE_KEY =
+  'danielsmith:graphics-quality-level';
 
-function isGraphicsQualityLevel(value: unknown): value is GraphicsQualityLevel {
+export function isGraphicsQualityLevel(
+  value: unknown
+): value is GraphicsQualityLevel {
   return (
     typeof value === 'string' &&
     GRAPHICS_QUALITY_PRESETS.some((preset) => preset.id === value)
   );
+}
+
+export function resolvePersistedGraphicsQualityLevel(
+  storage?: Pick<Storage, 'getItem'> | null,
+  storageKey = DEFAULT_GRAPHICS_QUALITY_STORAGE_KEY
+): GraphicsQualityLevel | null {
+  if (!storage?.getItem) {
+    return null;
+  }
+  try {
+    const stored = storage.getItem(storageKey);
+    return isGraphicsQualityLevel(stored) ? stored : null;
+  } catch (error) {
+    console.warn('Failed to read persisted graphics quality level:', error);
+    return null;
+  }
 }
 
 interface LedMaterialEntry {
@@ -158,7 +177,7 @@ export function createGraphicsQualityManager({
   baseBloom,
   baseLed,
   storage,
-  storageKey = DEFAULT_STORAGE_KEY,
+  storageKey = DEFAULT_GRAPHICS_QUALITY_STORAGE_KEY,
   initialLevel = 'balanced',
   preferInitialLevel = false,
 }: GraphicsQualityManagerOptions): GraphicsQualityManager {
@@ -186,15 +205,11 @@ export function createGraphicsQualityManager({
     ? initialLevel
     : 'balanced';
   let selectionSource: GraphicsQualitySelectionSource = 'initial';
-  if (!preferInitialLevel && storage?.getItem) {
-    try {
-      const stored = storage.getItem(storageKey);
-      if (isGraphicsQualityLevel(stored)) {
-        currentLevel = stored;
-        selectionSource = 'user';
-      }
-    } catch (error) {
-      console.warn('Failed to read persisted graphics quality level:', error);
+  if (!preferInitialLevel) {
+    const stored = resolvePersistedGraphicsQualityLevel(storage, storageKey);
+    if (stored) {
+      currentLevel = stored;
+      selectionSource = 'user';
     }
   }
 

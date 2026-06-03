@@ -17,6 +17,9 @@ import {
   Vector3,
 } from 'three';
 
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+
 import {
   scalePoiValue,
   POI_ORB_VERTICAL_OFFSET,
@@ -42,6 +45,10 @@ export type PoiInstanceOverride = {
 };
 
 export type PoiInstanceOverrides = Partial<Record<PoiId, PoiInstanceOverride>>;
+
+export interface PoiInstanceOptions {
+  detailPolicy?: SceneDetailPolicy;
+}
 
 export interface PoiInstance {
   definition: PoiDefinition;
@@ -84,14 +91,19 @@ export interface PoiInstance {
 
 export function createPoiInstances(
   definitions: PoiDefinition[],
-  overrides: PoiInstanceOverrides = {}
+  overrides: PoiInstanceOverrides = {},
+  options: PoiInstanceOptions = {}
 ): PoiInstance[] {
   return definitions.map((definition, index) => {
     const override = overrides[definition.id];
     if (override?.mode === 'display') {
       return createDisplayPoiInstance(definition, override);
     }
-    return createPedestalPoiInstance(definition, index * Math.PI * 0.37);
+    return createPedestalPoiInstance(
+      definition,
+      index * Math.PI * 0.37,
+      options.detailPolicy
+    );
   });
 }
 
@@ -110,7 +122,8 @@ export function updatePoiInstanceDefinition(
 
 function createPedestalPoiInstance(
   definition: PoiDefinition,
-  phaseOffset: number
+  phaseOffset: number,
+  detailPolicy: SceneDetailPolicy = getSceneDetailPolicy('balanced')
 ): PoiInstance {
   const group = new Group();
   group.name = `POI:${definition.id}`;
@@ -135,11 +148,22 @@ function createPedestalPoiInstance(
         MathUtils.clamp(hologramConfig?.radiusScale ?? 0.75, 0.3, 1.25)
       : 0;
 
+  const isPerformance = detailPolicy.level === 'performance';
+  const cylinderSegments = detailPolicy.geometry.cylinderSegments;
+  const sphereWidthSegments = detailPolicy.geometry.sphereWidthSegments;
+  const sphereHeightSegments = detailPolicy.geometry.sphereHeightSegments;
+  const ringSegments = detailPolicy.geometry.ringSegments;
+
   let accentMaterial: MeshStandardMaterial | undefined;
   let accentBaseColor: Color | undefined;
   let accentFocusColor: Color | undefined;
 
-  if (pedestalHeight > 0 && pedestalRadius > 0) {
+  const rendersPedestal =
+    !isPerformance && pedestalHeight > 0 && pedestalRadius > 0;
+  const effectivePedestalHeight = rendersPedestal ? pedestalHeight : 0;
+  const effectivePedestalRadius = rendersPedestal ? pedestalRadius : 0;
+
+  if (rendersPedestal) {
     const bodyMaterial = new MeshStandardMaterial({
       color: new Color(hologramConfig?.bodyColor ?? 0x101c2a),
       emissive: new Color(hologramConfig?.emissiveColor ?? 0x2f8aff),
@@ -158,7 +182,7 @@ function createPedestalPoiInstance(
       pedestalRadius,
       pedestalRadius,
       pedestalHeight,
-      48,
+      cylinderSegments,
       1,
       true
     );
@@ -194,7 +218,7 @@ function createPedestalPoiInstance(
       pedestalRadius * 1.02,
       pedestalRadius * 1.02,
       accentHeight,
-      48,
+      cylinderSegments,
       1,
       true
     );
@@ -220,7 +244,7 @@ function createPedestalPoiInstance(
     const ringGeometry = new RingGeometry(
       pedestalRadius * 0.55,
       pedestalRadius * 1.08,
-      64,
+      ringSegments,
       1
     );
     const ring = new Mesh(ringGeometry, ringMaterial);
@@ -232,8 +256,14 @@ function createPedestalPoiInstance(
   }
 
   const orbRadius =
-    Math.max(baseRadius, pedestalRadius) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
-  const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
+    Math.max(baseRadius, effectivePedestalRadius) *
+    0.45 *
+    POI_ORB_DIAMETER_MULTIPLIER;
+  const orbGeometry = new SphereGeometry(
+    orbRadius,
+    sphereWidthSegments,
+    sphereHeightSegments
+  );
   const orbColor = new Color(hologramConfig?.orbColor ?? 0xb8f3ff);
   const orbEmissiveBase = new Color(
     hologramConfig?.orbEmissiveColor ?? 0x3de1ff
@@ -250,7 +280,7 @@ function createPedestalPoiInstance(
   });
   const orb = new Mesh(orbGeometry, orbMaterial);
   const orbBaseHeight =
-    pedestalHeight +
+    effectivePedestalHeight +
     (baseHeight + orbRadius + scalePoiValue(POI_ORB_VERTICAL_OFFSET)) *
       POI_ORB_HEIGHT_MULTIPLIER;
   orb.position.y = orbBaseHeight;
@@ -281,13 +311,13 @@ function createPedestalPoiInstance(
 
   // Size the ground ring proportionally to the underlying model footprint.
   // Use the smaller half-extent to keep a conservative footprint and avoid overlaps.
-  const modelRadius = Math.max(baseRadius, pedestalRadius);
+  const modelRadius = Math.max(baseRadius, effectivePedestalRadius);
   const haloInnerRadius = modelRadius * 0.62; // tighter than the platform base
   const haloOuterRadius = haloInnerRadius + scalePoiValue(0.22);
   const haloGeometry = new RingGeometry(
     haloInnerRadius,
     haloOuterRadius,
-    48,
+    ringSegments,
     1
   );
   const haloBaseColor = new Color(0x4bd8ff);
@@ -309,7 +339,7 @@ function createPedestalPoiInstance(
   const visitedRingGeometry = new RingGeometry(
     haloInnerRadius * 0.92,
     haloOuterRadius * 1.05,
-    60,
+    ringSegments,
     1
   );
   const visitedRingMaterial = new MeshBasicMaterial({
@@ -328,13 +358,14 @@ function createPedestalPoiInstance(
   visitedRing.scale.setScalar(1);
   group.add(visitedRing);
 
-  const hitAreaHeight = baseHeight + pedestalHeight + scalePoiValue(0.24);
-  const hitAreaRadius = Math.max(baseRadiusX, pedestalRadius);
+  const hitAreaHeight =
+    baseHeight + effectivePedestalHeight + scalePoiValue(0.24);
+  const hitAreaRadius = Math.max(baseRadiusX, effectivePedestalRadius);
   const hitAreaGeometry = new CylinderGeometry(
     hitAreaRadius,
     hitAreaRadius,
     hitAreaHeight,
-    32
+    cylinderSegments
   );
   const hitAreaMaterial = new MeshBasicMaterial({
     transparent: true,
@@ -347,8 +378,8 @@ function createPedestalPoiInstance(
   hitArea.name = `POI_HIT:${definition.id}`;
   group.add(hitArea);
 
-  const colliderRadiusX = Math.max(baseRadiusX, pedestalRadius);
-  const colliderRadiusZ = Math.max(baseRadiusZ, pedestalRadius);
+  const colliderRadiusX = Math.max(baseRadiusX, effectivePedestalRadius);
+  const colliderRadiusZ = Math.max(baseRadiusZ, effectivePedestalRadius);
   const collider = {
     minX: definition.position.x - colliderRadiusX,
     maxX: definition.position.x + colliderRadiusX,

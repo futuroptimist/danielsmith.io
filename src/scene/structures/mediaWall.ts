@@ -18,9 +18,13 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
+const BADGE_WIDTH = 512;
+const BADGE_HEIGHT = 256;
 const BASE_GLOW_OPACITY = 0.18;
 const EMPHASISED_GLOW_OPACITY = 0.62;
 const CLEARANCE_BASE_OPACITY = 0.16;
@@ -30,6 +34,9 @@ const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
 
 interface MediaWallScreenRendererOptions {
   starCount: number;
+  width?: number;
+  height?: number;
+  redrawThrottleMs?: number;
 }
 
 class MediaWallScreenRenderer {
@@ -38,11 +45,18 @@ class MediaWallScreenRenderer {
   private readonly texture: CanvasTexture;
   private highlight = 0;
   private starCount: number;
+  private width: number;
+  private height: number;
+  private redrawThrottleMs: number;
+  private lastRenderMs = Number.NEGATIVE_INFINITY;
 
   constructor(options: MediaWallScreenRendererOptions) {
     const canvas = document.createElement('canvas');
-    canvas.width = SCREEN_WIDTH;
-    canvas.height = SCREEN_HEIGHT;
+    this.width = options.width ?? SCREEN_WIDTH;
+    this.height = options.height ?? SCREEN_HEIGHT;
+    this.redrawThrottleMs = options.redrawThrottleMs ?? 0;
+    canvas.width = this.width;
+    canvas.height = this.height;
     const context = canvas.getContext('2d');
 
     if (!context) {
@@ -55,7 +69,7 @@ class MediaWallScreenRenderer {
     this.texture.colorSpace = SRGBColorSpace;
     this.starCount = options.starCount;
 
-    this.render();
+    this.render({ force: true });
   }
 
   getTexture(): CanvasTexture {
@@ -68,7 +82,7 @@ class MediaWallScreenRenderer {
     } else {
       this.starCount = count;
     }
-    this.render();
+    this.render({ force: true });
   }
 
   updateHighlight(target: number) {
@@ -84,9 +98,22 @@ class MediaWallScreenRenderer {
     this.texture.dispose();
   }
 
-  private render() {
+  private render(options: { force?: boolean } = {}) {
+    const now = typeof performance === 'undefined' ? 0 : performance.now();
+    if (
+      !options.force &&
+      this.redrawThrottleMs > 0 &&
+      now - this.lastRenderMs < this.redrawThrottleMs
+    ) {
+      return;
+    }
+    this.lastRenderMs = now;
     this.context.save();
-    this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    this.context.clearRect(0, 0, this.width, this.height);
+    this.context.scale?.(
+      this.width / SCREEN_WIDTH,
+      this.height / SCREEN_HEIGHT
+    );
     this.drawBase();
     this.drawStarHighlight();
     this.context.restore();
@@ -234,14 +261,23 @@ interface MediaWallTextures {
   badge: CanvasTexture;
 }
 
-function createScreenRenderer(): MediaWallScreenRenderer {
-  return new MediaWallScreenRenderer({ starCount: 1280 });
+function createScreenRenderer(
+  detailPolicy = getSceneDetailPolicy('balanced')
+): MediaWallScreenRenderer {
+  return new MediaWallScreenRenderer({
+    starCount: detailPolicy.level === 'performance' ? 128 : 1280,
+    width: detailPolicy.textures.mediaWallScreen.width,
+    height: detailPolicy.textures.mediaWallScreen.height,
+    redrawThrottleMs: detailPolicy.updates.canvasRedrawThrottleMs,
+  });
 }
 
-function createBadgeTexture(): CanvasTexture {
+function createBadgeTexture(
+  detailPolicy = getSceneDetailPolicy('balanced')
+): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 256;
+  canvas.width = detailPolicy.textures.mediaWallBadge.width;
+  canvas.height = detailPolicy.textures.mediaWallBadge.height;
   const context = canvas.getContext('2d');
 
   if (!context) {
@@ -249,22 +285,24 @@ function createBadgeTexture(): CanvasTexture {
   }
 
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.scale?.(canvas.width / BADGE_WIDTH, canvas.height / BADGE_HEIGHT);
   const radius = 42;
   const badgeColor = '#ff0000';
   context.fillStyle = badgeColor;
   context.beginPath();
   context.moveTo(radius, 0);
-  context.lineTo(canvas.width - radius, 0);
-  context.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-  context.lineTo(canvas.width, canvas.height - radius);
+  context.lineTo(BADGE_WIDTH - radius, 0);
+  context.quadraticCurveTo(BADGE_WIDTH, 0, BADGE_WIDTH, radius);
+  context.lineTo(BADGE_WIDTH, BADGE_HEIGHT - radius);
   context.quadraticCurveTo(
-    canvas.width,
-    canvas.height,
-    canvas.width - radius,
-    canvas.height
+    BADGE_WIDTH,
+    BADGE_HEIGHT,
+    BADGE_WIDTH - radius,
+    BADGE_HEIGHT
   );
-  context.lineTo(radius, canvas.height);
-  context.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+  context.lineTo(radius, BADGE_HEIGHT);
+  context.quadraticCurveTo(0, BADGE_HEIGHT, 0, BADGE_HEIGHT - radius);
   context.lineTo(0, radius);
   context.quadraticCurveTo(0, 0, radius, 0);
   context.closePath();
@@ -272,15 +310,16 @@ function createBadgeTexture(): CanvasTexture {
 
   const playWidth = 120;
   const playHeight = 120;
-  const playOriginX = canvas.width / 2 - playWidth / 4;
-  const playOriginY = canvas.height / 2 - playHeight / 2;
+  const playOriginX = BADGE_WIDTH / 2 - playWidth / 4;
+  const playOriginY = BADGE_HEIGHT / 2 - playHeight / 2;
   context.fillStyle = '#ffffff';
   context.beginPath();
   context.moveTo(playOriginX, playOriginY);
   context.lineTo(playOriginX, playOriginY + playHeight);
-  context.lineTo(canvas.width / 2 + playWidth / 2, canvas.height / 2);
+  context.lineTo(BADGE_WIDTH / 2 + playWidth / 2, BADGE_HEIGHT / 2);
   context.closePath();
   context.fill();
+  context.restore();
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -288,10 +327,12 @@ function createBadgeTexture(): CanvasTexture {
   return texture;
 }
 
-function getMediaWallTextures(): MediaWallTextures {
+function getMediaWallTextures(
+  detailPolicy = getSceneDetailPolicy('balanced')
+): MediaWallTextures {
   return {
-    screen: createScreenRenderer(),
-    badge: createBadgeTexture(),
+    screen: createScreenRenderer(detailPolicy),
+    badge: createBadgeTexture(detailPolicy),
   };
 }
 
@@ -331,6 +372,7 @@ interface MediaWallControllerOptions {
   clearanceMaterial: MeshBasicMaterial;
   clearanceBaseColor: Color;
   clearanceHighlightColor: Color;
+  detailPolicy: SceneDetailPolicy;
 }
 
 function createMediaWallController({
@@ -341,6 +383,7 @@ function createMediaWallController({
   clearanceMaterial,
   clearanceBaseColor,
   clearanceHighlightColor,
+  detailPolicy,
 }: MediaWallControllerOptions): LivingRoomMediaWallController {
   let highlight = 0;
   const baseHaloIntensity = haloMaterial.emissiveIntensity;
@@ -433,7 +476,9 @@ function createMediaWallController({
         clearanceMaterial.color.copy(clearanceColor);
         clearanceMaterial.needsUpdate = true;
       }
-      screenRenderer.updateHighlight(highlight);
+      if (detailPolicy.level !== 'performance' || highlight > 0.05) {
+        screenRenderer.updateHighlight(highlight);
+      }
     },
     setStarCount(count) {
       screenRenderer.setStarCount(count);
@@ -445,7 +490,8 @@ function createMediaWallController({
 }
 
 export function createLivingRoomMediaWall(
-  bounds: Bounds2D
+  bounds: Bounds2D,
+  detailPolicy: SceneDetailPolicy = getSceneDetailPolicy('balanced')
 ): LivingRoomMediaWallBuild {
   const group = new Group();
   group.name = 'LivingRoomMediaWall';
@@ -487,7 +533,7 @@ export function createLivingRoomMediaWall(
   );
   group.add(trim);
 
-  const { screen, badge } = getMediaWallTextures();
+  const { screen, badge } = getMediaWallTextures(detailPolicy);
 
   const screenMaterial = new MeshBasicMaterial({
     map: screen.getTexture(),
@@ -520,6 +566,7 @@ export function createLivingRoomMediaWall(
   screenGlow.position.set(wallInteriorX + boardDepth + 0.015, 2.36, anchorZ);
   screenGlow.rotation.y = Math.PI / 2;
   screenGlow.renderOrder = 9;
+  screenGlow.visible = detailPolicy.effects.decorativeHalos;
   group.add(screenGlow);
 
   const badgeMaterial = new MeshBasicMaterial({
@@ -597,6 +644,7 @@ export function createLivingRoomMediaWall(
   const haloGeometry = new BoxGeometry(0.06, 0.24, shelfWidth * 0.85);
   const halo = new Mesh(haloGeometry, haloMaterial);
   halo.position.set(wallInteriorX + boardDepth + 0.37, 1.02, anchorZ);
+  halo.visible = detailPolicy.effects.decorativeHalos;
   group.add(halo);
 
   const shelfLightMaterial = new MeshStandardMaterial({
@@ -694,8 +742,8 @@ export function createLivingRoomMediaWall(
     clearanceMaterial,
     clearanceBaseColor,
     clearanceHighlightColor,
+    detailPolicy,
   });
-  controller.setStarCount(1280);
 
   return { group, colliders, poiBindings, controller };
 }
