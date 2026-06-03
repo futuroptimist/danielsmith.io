@@ -297,7 +297,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       nextHighlight: '下一个亮点',
       prototype: '原型',
       live: '已上线',
-      closeDetails: '关闭 POI 详情',
+      closeDetails: '关闭兴趣点详情',
       relatedCaseStudies: '相关案例研究',
       outcomeFallbackLabel: '成果',
       discoveryAnnouncementTemplate: '已发现 {title}。{summary}',

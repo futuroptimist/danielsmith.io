@@ -124,23 +124,25 @@ describe('i18n utilities', () => {
 
   it('localizes zh-Hans GitHub star metric copy without English fallback', () => {
     const definitions = getPoiDefinitions('zh-Hans');
-    const poi = definitions.find((definition) =>
-      definition.metrics?.some(
-        (metric) => metric.source?.type === 'githubStars'
-      )
+    const tokenplace = definitions.find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
     );
-    const starMetric = poi?.metrics?.find(
+    const starMetric = tokenplace?.metrics?.find(
       (metric) => metric.source?.type === 'githubStars'
     );
 
-    expect(poi?.id).toBe('tokenplace-studio-cluster');
+    expect(tokenplace?.id).toBe('tokenplace-studio-cluster');
     expect(starMetric?.label).toBe('星标');
     expect(starMetric?.value).toBe('正在从 GitHub 同步…');
     expect(starMetric?.source).toMatchObject({
       type: 'githubStars',
+      owner: 'futuroptimist',
+      repo: 'token.place',
       template: '{value} 个星标',
       fallback: '正在从 GitHub 同步…',
     });
+    expect(starMetric?.label).not.toMatch(/stars/i);
+    expect(starMetric?.source?.template).not.toMatch(/stars/i);
   });
 
   it('deep-clones localized POI metric sources per call', () => {
