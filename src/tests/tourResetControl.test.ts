@@ -45,6 +45,34 @@ describe('createTourResetControl', () => {
       defaultEnabled: true,
     });
 
+  it('shows the guided tour toggle as off by default', () => {
+    const container = createContainer();
+    const subscription = createVisitedSubscription();
+    const preference = new GuidedTourPreference({
+      storage: null,
+      windowTarget: window,
+    });
+
+    const handle = createTourResetControl({
+      container,
+      subscribeVisited: subscription.subscribe,
+      onReset: vi.fn(),
+      guidedTourPreference: preference,
+    });
+
+    const toggle = handle.element.querySelector(
+      '.guided-tour-control__toggle'
+    ) as HTMLButtonElement;
+
+    expect(preference.isEnabled()).toBe(false);
+    expect(toggle.dataset.state).toBe('off');
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+
+    handle.dispose();
+    preference.dispose();
+    container.remove();
+  });
+
   it('renders disabled state until POIs are visited', () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();

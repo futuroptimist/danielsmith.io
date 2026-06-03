@@ -327,6 +327,7 @@ import {
   createGitHubRepoStatsService,
   type GitHubRepoStatsDiagnostics,
 } from './systems/github/repoStats';
+import { defaultGuidedTourPreference } from './systems/guidedTour/preference';
 import {
   createAnalyticsGlowRhythm,
   type AnalyticsGlowRhythmHandle,
@@ -888,7 +889,7 @@ function initializeImmersiveScene(
     if (stored === 'true') {
       return true;
     }
-    return true;
+    return defaultGuidedTourPreference.isEnabled();
   };
 
   const writeGuidedTourEnabled = (enabled: boolean) => {
@@ -1889,6 +1890,7 @@ function initializeImmersiveScene(
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
   const initialGuidedTourEnabled = readGuidedTourEnabled();
+  defaultGuidedTourPreference.setEnabled(initialGuidedTourEnabled, 'api');
   guidedTourChannel = new GuidedTourChannel({
     source: poiTourGuide,
     enabled: initialGuidedTourEnabled,
@@ -1902,6 +1904,12 @@ function initializeImmersiveScene(
       syncPoiRecommendation();
     }
   );
+  const removeGuidedTourPreferenceSubscription =
+    defaultGuidedTourPreference.subscribe((enabled) => {
+      guidedTourChannel?.setEnabled(enabled);
+      tourGuideToggleControl?.setEnabled(enabled);
+      writeGuidedTourEnabled(enabled);
+    });
 
   const futuroptimistPoi = poiInstances.find(
     (poi) => poi.definition.id === 'futuroptimist-living-room-tv'
@@ -3512,8 +3520,7 @@ function initializeImmersiveScene(
       container: hudSettingsStack,
       initialEnabled: initialGuidedTourEnabled,
       onToggle: (enabled) => {
-        guidedTourChannel?.setEnabled(enabled);
-        writeGuidedTourEnabled(enabled);
+        defaultGuidedTourPreference.setEnabled(enabled, 'control');
       },
       strings: tourGuideToggleStrings,
     });
@@ -4400,6 +4407,7 @@ function initializeImmersiveScene(
       removeGuidedTourSubscription();
       removeGuidedTourSubscription = null;
     }
+    removeGuidedTourPreferenceSubscription();
     guidedTourChannel?.dispose();
     guidedTourChannel = null;
     if (githubRepoMetrics) {

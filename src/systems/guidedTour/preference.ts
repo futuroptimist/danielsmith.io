@@ -84,7 +84,7 @@ export class GuidedTourPreference {
         ? getDefaultStorage(this.windowTarget)
         : options.storage;
     this.storageKey = options.storageKey ?? DEFAULT_STORAGE_KEY;
-    this.enabled = this.loadInitialState(options.defaultEnabled ?? true);
+    this.enabled = this.loadInitialState(options.defaultEnabled ?? false);
 
     if (this.windowTarget) {
       this.windowTarget.addEventListener('storage', this.handleStorageEvent);

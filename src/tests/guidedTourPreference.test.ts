@@ -6,6 +6,60 @@ import {
 } from '../systems/guidedTour/preference';
 
 describe('GuidedTourPreference', () => {
+  it('defaults to disabled when no stored preference exists', () => {
+    const storage = new Map<string, string>();
+    const preference = new GuidedTourPreference({
+      storage: {
+        getItem: (key) => storage.get(key) ?? null,
+        setItem: (key, value) => {
+          storage.set(key, value);
+        },
+      },
+      storageKey: 'test-guided-tour-default',
+      windowTarget: window,
+    });
+
+    expect(preference.isEnabled()).toBe(false);
+
+    preference.dispose();
+  });
+
+  it('restores explicit stored enabled and disabled preferences', () => {
+    const enabledStorage = new Map<string, string>([
+      ['test-guided-tour-enabled', '1'],
+    ]);
+    const disabledStorage = new Map<string, string>([
+      ['test-guided-tour-disabled', '0'],
+    ]);
+
+    const enabledPreference = new GuidedTourPreference({
+      storage: {
+        getItem: (key) => enabledStorage.get(key) ?? null,
+        setItem: (key, value) => {
+          enabledStorage.set(key, value);
+        },
+      },
+      storageKey: 'test-guided-tour-enabled',
+      windowTarget: window,
+    });
+    const disabledPreference = new GuidedTourPreference({
+      storage: {
+        getItem: (key) => disabledStorage.get(key) ?? null,
+        setItem: (key, value) => {
+          disabledStorage.set(key, value);
+        },
+      },
+      storageKey: 'test-guided-tour-disabled',
+      windowTarget: window,
+    });
+
+    expect(enabledPreference.isEnabled()).toBe(true);
+    expect(disabledPreference.isEnabled()).toBe(false);
+
+    enabledPreference.dispose();
+    disabledPreference.dispose();
+  });
+
   let storage: Map<string, string>;
   let preference: GuidedTourPreference;
   const storageKey = 'test-guided-tour';

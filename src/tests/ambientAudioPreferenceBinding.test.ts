@@ -32,6 +32,32 @@ class FakeAmbientAudioController {
 }
 
 describe('bindAmbientAudioPreference', () => {
+  it('does not enable ambient audio after a gesture when no preference is stored', async () => {
+    const windowStub = new EventTarget();
+    const preference = new AmbientAudioPreference({
+      windowTarget: windowStub as unknown as Window,
+      storage: null,
+    });
+    const controller = new FakeAmbientAudioController();
+
+    const binding = bindAmbientAudioPreference({
+      controller,
+      preference,
+      windowTarget: windowStub as unknown as Window,
+      logger: { warn: vi.fn() },
+    });
+
+    windowStub.dispatchEvent(new Event('pointerdown'));
+    windowStub.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
+    await Promise.resolve();
+
+    expect(preference.isEnabled()).toBe(false);
+    expect(controller.enableMock).not.toHaveBeenCalled();
+    expect(controller.isEnabled()).toBe(false);
+
+    binding.dispose();
+  });
+
   it('enables ambient audio after pointer interaction when preference is stored', async () => {
     const windowStub = new EventTarget();
     const preference = new AmbientAudioPreference({
