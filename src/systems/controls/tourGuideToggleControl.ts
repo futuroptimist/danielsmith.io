@@ -1,34 +1,32 @@
+import type { GuidedTourControlStrings } from '../../assets/i18n/types';
+
 export interface TourGuideToggleControlOptions {
   container: HTMLElement;
   initialEnabled?: boolean;
   onToggle?: (enabled: boolean) => void;
-  labelEnabled?: string;
-  labelDisabled?: string;
-  descriptionEnabled?: string;
-  descriptionDisabled?: string;
+  strings: Pick<
+    GuidedTourControlStrings,
+    | 'toggleLabelOn'
+    | 'toggleLabelOff'
+    | 'toggleTitleOn'
+    | 'toggleTitleOff'
+    | 'toggleAnnouncementOn'
+    | 'toggleAnnouncementOff'
+  >;
 }
 
 export interface TourGuideToggleControlHandle {
   readonly element: HTMLButtonElement;
   setEnabled(enabled: boolean): void;
+  setStrings(strings: TourGuideToggleControlOptions['strings']): void;
   dispose(): void;
 }
-
-const defaultEnabledLabel = 'Guided tour on';
-const defaultDisabledLabel = 'Guided tour off';
-const defaultEnabledDescription =
-  'Highlights the next recommended exhibit in the immersive tour.';
-const defaultDisabledDescription =
-  'Guided tour highlights are hidden until you turn them back on.';
 
 export function createTourGuideToggleControl({
   container,
   initialEnabled = true,
   onToggle,
-  labelEnabled = defaultEnabledLabel,
-  labelDisabled = defaultDisabledLabel,
-  descriptionEnabled = defaultEnabledDescription,
-  descriptionDisabled = defaultDisabledDescription,
+  strings: initialStrings,
 }: TourGuideToggleControlOptions): TourGuideToggleControlHandle {
   const button = document.createElement('button');
   button.type = 'button';
@@ -36,10 +34,14 @@ export function createTourGuideToggleControl({
   container.appendChild(button);
 
   let enabled = Boolean(initialEnabled);
+  let strings = initialStrings;
 
-  const getLabel = () => (enabled ? labelEnabled : labelDisabled);
+  const getLabel = () =>
+    enabled ? strings.toggleLabelOn : strings.toggleLabelOff;
   const getDescription = () =>
-    enabled ? descriptionEnabled : descriptionDisabled;
+    enabled ? strings.toggleTitleOn : strings.toggleTitleOff;
+  const getAnnouncement = () =>
+    enabled ? strings.toggleAnnouncementOn : strings.toggleAnnouncementOff;
 
   const refresh = () => {
     const label = getLabel();
@@ -49,7 +51,7 @@ export function createTourGuideToggleControl({
     button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     button.setAttribute('aria-label', description);
     button.title = description;
-    button.dataset.hudAnnounce = `${label}. ${description}`;
+    button.dataset.hudAnnounce = getAnnouncement();
   };
 
   const toggle = () => {
@@ -68,6 +70,10 @@ export function createTourGuideToggleControl({
         return;
       }
       enabled = next;
+      refresh();
+    },
+    setStrings(nextStrings) {
+      strings = nextStrings;
       refresh();
     },
     dispose() {

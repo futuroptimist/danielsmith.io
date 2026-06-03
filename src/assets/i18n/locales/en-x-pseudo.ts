@@ -283,6 +283,43 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         mutedAriaValueTemplate: wrap('Muted ({volume})'),
       },
     },
+    guidedTour: {
+      heading: wrap('Guided tour'),
+      description: wrap('Show recommended exhibits when idle.'),
+      toggleLabelOn: wrap('Guided tour highlights: On'),
+      toggleLabelOff: wrap('Guided tour highlights: Off'),
+      toggleTitleOn: wrap('Disable guided tour highlights'),
+      toggleTitleOff: wrap('Enable guided tour highlights'),
+      toggleAnnouncementOn: wrap(
+        'Guided tour highlights enabled. Activate to disable recommendations.'
+      ),
+      toggleAnnouncementOff: wrap(
+        'Guided tour highlights disabled. Activate to enable recommendations.'
+      ),
+      resetLabel: wrap('Restart guided tour'),
+      resetDescription: wrap('Clear visited POIs and replay the curated path.'),
+      resetEmptyLabel: wrap('Guided tour ready'),
+      resetEmptyDescription: wrap(
+        'Explore exhibits to unlock the guided tour reset.'
+      ),
+      resetPendingLabel: wrap('Resetting tour…'),
+      resetPendingDescription: wrap('Resetting the guided tour…'),
+      resetShortcutTemplate: wrap('Press {key} to restart.'),
+    },
+    softwareRendererWarning: {
+      title: wrap('Software rendering detected'),
+      rendererFallbackLabel: wrap('software WebGL renderer'),
+      descriptionTemplate: wrap(
+        'Chrome is using {renderer} instead of hardware acceleration. Basic Render Driver, SwiftShader, WARP, and llvmpipe can crash under continuous WebGL animation.'
+      ),
+      recommendation: wrap(
+        'Enable browser hardware acceleration for the smooth immersive portfolio. Safe immersive mode keeps screenshots and debugging available at a capped frame rate.'
+      ),
+      continueSafeLabel: wrap('Continue in safe immersive'),
+      continuousLabel: wrap('Enable continuous immersive anyway'),
+      textModeLabel: wrap('Use text mode'),
+      safeUrlLabel: wrap('Reload this safe immersive URL'),
+    },
     localeToggle: {
       title: wrap('Language'),
       description: wrap('Switch the HUD language and direction.'),

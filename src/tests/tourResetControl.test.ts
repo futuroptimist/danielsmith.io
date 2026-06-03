@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { getGuidedTourControlStrings } from '../assets/i18n';
+import type { PoiId } from '../scene/poi/types';
 import { createTourResetControl } from '../systems/controls/tourResetControl';
 import { GuidedTourPreference } from '../systems/guidedTour/preference';
 
@@ -16,19 +18,19 @@ describe('createTourResetControl', () => {
   };
 
   const createVisitedSubscription = () => {
-    let listener: ((visited: ReadonlySet<string>) => void) | null = null;
+    let listener: ((visited: ReadonlySet<PoiId>) => void) | null = null;
     const unsubscribe = vi.fn(() => {
       listener = null;
     });
     const subscribe = (
-      next: (visited: ReadonlySet<string>) => void
+      next: (visited: ReadonlySet<PoiId>) => void
     ): (() => void) => {
       listener = next;
       next(new Set());
       return unsubscribe;
     };
     const emit = (ids: Iterable<string>) => {
-      listener?.(new Set(ids));
+      listener?.(new Set(ids as Iterable<PoiId>));
     };
     return { subscribe, emit, unsubscribe };
   };
@@ -55,6 +57,7 @@ describe('createTourResetControl', () => {
       subscribeVisited: subscription.subscribe,
       onReset: vi.fn(),
       guidedTourPreference: preference,
+      strings: getGuidedTourControlStrings('en'),
     });
 
     const wrapper = handle.element;
@@ -72,7 +75,10 @@ describe('createTourResetControl', () => {
       'Explore exhibits to unlock the guided tour reset.'
     );
 
-    subscription.emit(['a', 'b']);
+    subscription.emit([
+      'futuroptimist-living-room-tv',
+      'tokenplace-studio-cluster',
+    ]);
     expect(resetButton.disabled).toBe(false);
     expect(resetButton.dataset.state).toBe('ready');
     expect(resetButton.textContent).toBe('Restart guided tour');
@@ -90,7 +96,7 @@ describe('createTourResetControl', () => {
   it('activates via click and keyboard, handling async completion', async () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     const preference = createPreference();
 
     const reset = vi.fn(() => Promise.resolve());
@@ -101,12 +107,13 @@ describe('createTourResetControl', () => {
       resetKey: 'r',
       windowTarget: window,
       guidedTourPreference: preference,
+      strings: getGuidedTourControlStrings('en'),
     });
 
     const resetButton = handle.element.querySelector(
       '.tour-reset'
     ) as HTMLButtonElement;
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     expect(resetButton.disabled).toBe(false);
 
     resetButton.click();
@@ -124,7 +131,7 @@ describe('createTourResetControl', () => {
     expect(handle.element.getAttribute('aria-busy')).toBe('false');
     expect(resetButton.getAttribute('aria-busy')).toBe('false');
 
-    subscription.emit(['next']);
+    subscription.emit(['tokenplace-studio-cluster']);
     const event = new KeyboardEvent('keydown', { key: 'r' });
     window.dispatchEvent(event);
     expect(reset).toHaveBeenCalledTimes(2);
@@ -143,7 +150,7 @@ describe('createTourResetControl', () => {
   it('handles async rejections without leaving pending state', async () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     const preference = createPreference();
 
     const reset = vi.fn(() => Promise.reject(new Error('nope')));
@@ -154,18 +161,19 @@ describe('createTourResetControl', () => {
       resetKey: 'r',
       windowTarget: window,
       guidedTourPreference: preference,
+      strings: getGuidedTourControlStrings('en'),
     });
 
     const resetButton = handle.element.querySelector(
       '.tour-reset'
     ) as HTMLButtonElement;
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     expect(resetButton.disabled).toBe(false);
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }));
     expect(reset).toHaveBeenCalledTimes(1);
     expect(resetButton.dataset.state).toBe('pending');
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     await flushPromises();
     await flushPromises();
     expect(resetButton.dataset.state).toBe('ready');
@@ -181,7 +189,7 @@ describe('createTourResetControl', () => {
   it('recovers from synchronous reset errors', () => {
     const container = createContainer();
     const subscription = createVisitedSubscription();
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     const preference = createPreference();
 
     const reset = vi.fn(() => {
@@ -193,9 +201,10 @@ describe('createTourResetControl', () => {
       subscribeVisited: subscription.subscribe,
       onReset: reset,
       guidedTourPreference: preference,
+      strings: getGuidedTourControlStrings('en'),
     });
 
-    subscription.emit(['seed']);
+    subscription.emit(['futuroptimist-living-room-tv']);
     const resetButton = handle.element.querySelector(
       '.tour-reset'
     ) as HTMLButtonElement;
@@ -219,6 +228,7 @@ describe('createTourResetControl', () => {
       subscribeVisited: subscription.subscribe,
       onReset: vi.fn(),
       guidedTourPreference: preference,
+      strings: getGuidedTourControlStrings('en'),
     });
 
     const wrapper = handle.element;

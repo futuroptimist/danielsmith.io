@@ -258,6 +258,13 @@ Launch screenshot workflow refresh and commit it after merge.
   Screen readers now announce each switch so assistive technology users
   know which mode is active.
 
+## i18n debug mode
+
+The public Settings language picker hides the internal pseudo-locale by default.
+For translation QA, expose it in development, append `?i18nDebug=1`, or set
+`localStorage.setItem('danielsmith.io:i18n-debug', '1')` before loading the
+immersive portfolio.
+
 ## Automation prompts
 
 The canonical Codex automation prompt lives at

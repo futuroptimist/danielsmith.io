@@ -1,3 +1,5 @@
+import { formatMessage } from '../assets/i18n';
+import type { SoftwareRendererWarningStrings } from '../assets/i18n/types';
 import type { RendererInfoSnapshot } from '../scene/performance/rendererCapabilities';
 
 export interface SoftwareRendererWarningOptions {
@@ -7,17 +9,22 @@ export interface SoftwareRendererWarningOptions {
   textUrl: string;
   onContinueSafe?: () => void;
   onVisible?: (message: string) => void;
+  strings: SoftwareRendererWarningStrings;
 }
 
 export interface SoftwareRendererWarningHandle {
   element: HTMLElement;
+  setStrings(strings: SoftwareRendererWarningStrings): void;
   dispose(): void;
 }
 
-const rendererLabel = (rendererInfo: RendererInfoSnapshot) =>
+const rendererLabel = (
+  rendererInfo: RendererInfoSnapshot,
+  strings: SoftwareRendererWarningStrings
+) =>
   rendererInfo.unmaskedRenderer ??
   rendererInfo.renderer ??
-  'software WebGL renderer';
+  strings.rendererFallbackLabel;
 
 export function createSoftwareRendererWarning({
   rendererInfo,
@@ -26,8 +33,10 @@ export function createSoftwareRendererWarning({
   textUrl,
   onContinueSafe,
   onVisible,
+  strings: initialStrings,
 }: SoftwareRendererWarningOptions): SoftwareRendererWarningHandle {
   const documentTarget = document;
+  let strings = initialStrings;
   const element = documentTarget.createElement('aside');
   element.className = 'software-renderer-warning';
   element.setAttribute('role', 'alert');
@@ -40,21 +49,22 @@ export function createSoftwareRendererWarning({
 
   const title = documentTarget.createElement('h2');
   title.className = 'software-renderer-warning__title';
-  title.textContent = 'Software rendering detected';
+  title.textContent = strings.title;
   element.appendChild(title);
 
   const description = documentTarget.createElement('p');
   description.className = 'software-renderer-warning__description';
-  description.textContent =
-    `Chrome is using ${rendererLabel(rendererInfo)} instead of hardware acceleration. ` +
-    'Basic Render Driver, SwiftShader, WARP, and llvmpipe can crash under continuous WebGL animation.';
+  const updateDescription = () => {
+    description.textContent = formatMessage(strings.descriptionTemplate, {
+      renderer: rendererLabel(rendererInfo, strings),
+    });
+  };
+  updateDescription();
   element.appendChild(description);
 
   const recommendation = documentTarget.createElement('p');
   recommendation.className = 'software-renderer-warning__recommendation';
-  recommendation.textContent =
-    'Enable browser hardware acceleration for the smooth immersive portfolio. ' +
-    'Safe immersive mode keeps screenshots and debugging available at a capped frame rate.';
+  recommendation.textContent = strings.recommendation;
   element.appendChild(recommendation);
 
   const actions = documentTarget.createElement('div');
@@ -64,7 +74,7 @@ export function createSoftwareRendererWarning({
   safeButton.type = 'button';
   safeButton.className = 'software-renderer-warning__button';
   safeButton.dataset.action = 'continue-safe-immersive';
-  safeButton.textContent = 'Continue in safe immersive';
+  safeButton.textContent = strings.continueSafeLabel;
   safeButton.addEventListener('click', () => {
     dispose();
     onContinueSafe?.();
@@ -75,7 +85,7 @@ export function createSoftwareRendererWarning({
   continuousLink.className = 'software-renderer-warning__link';
   continuousLink.dataset.action = 'continuous-immersive';
   continuousLink.href = continuousUrl;
-  continuousLink.textContent = 'Enable continuous immersive anyway';
+  continuousLink.textContent = strings.continuousLabel;
   actions.appendChild(continuousLink);
 
   const textLink = documentTarget.createElement('a');
@@ -83,21 +93,31 @@ export function createSoftwareRendererWarning({
     'software-renderer-warning__link software-renderer-warning__link--muted';
   textLink.dataset.action = 'text-mode';
   textLink.href = textUrl;
-  textLink.textContent = 'Use text mode';
+  textLink.textContent = strings.textModeLabel;
   actions.appendChild(textLink);
 
   const safeLink = documentTarget.createElement('a');
   safeLink.className = 'software-renderer-warning__safe-link';
   safeLink.href = safeUrl;
-  safeLink.textContent = 'Reload this safe immersive URL';
+  safeLink.textContent = strings.safeUrlLabel;
   element.appendChild(actions);
   element.appendChild(safeLink);
 
   documentTarget.body.appendChild(element);
-  onVisible?.(description.textContent ?? 'Software rendering detected');
+  onVisible?.(description.textContent ?? strings.title);
 
   return {
     element,
+    setStrings(nextStrings) {
+      strings = nextStrings;
+      title.textContent = strings.title;
+      updateDescription();
+      recommendation.textContent = strings.recommendation;
+      safeButton.textContent = strings.continueSafeLabel;
+      continuousLink.textContent = strings.continuousLabel;
+      textLink.textContent = strings.textModeLabel;
+      safeLink.textContent = strings.safeUrlLabel;
+    },
     dispose,
   };
 }

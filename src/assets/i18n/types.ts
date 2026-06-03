@@ -8,7 +8,7 @@ import type {
 import type { FallbackReason } from '../../types/failover';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 
-export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
+export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja' | 'zh-Hans';
 export type LocaleDirection = 'ltr' | 'rtl';
 export type LocaleScript = 'latin' | 'cjk' | 'rtl';
 
@@ -137,7 +137,7 @@ export interface HelpModalSectionStrings {
 
 export interface HelpModalSettingsStrings {
   heading: string;
-  description?: string;
+  description: string;
 }
 
 export interface LocaleToggleStrings {
@@ -146,6 +146,35 @@ export interface LocaleToggleStrings {
   switchingAnnouncementTemplate: string;
   selectedAnnouncementTemplate: string;
   failureAnnouncementTemplate: string;
+}
+
+export interface GuidedTourControlStrings {
+  heading: string;
+  description: string;
+  toggleLabelOn: string;
+  toggleLabelOff: string;
+  toggleTitleOn: string;
+  toggleTitleOff: string;
+  toggleAnnouncementOn: string;
+  toggleAnnouncementOff: string;
+  resetLabel: string;
+  resetDescription: string;
+  resetEmptyLabel: string;
+  resetEmptyDescription: string;
+  resetPendingLabel: string;
+  resetPendingDescription: string;
+  resetShortcutTemplate: string;
+}
+
+export interface SoftwareRendererWarningStrings {
+  title: string;
+  rendererFallbackLabel: string;
+  descriptionTemplate: string;
+  recommendation: string;
+  continueSafeLabel: string;
+  continuousLabel: string;
+  textModeLabel: string;
+  safeUrlLabel: string;
 }
 
 export interface HelpModalStrings {
@@ -163,7 +192,7 @@ export interface HelpModalStrings {
 
 export interface HudCustomizationStrings {
   heading: string;
-  description?: string;
+  description: string;
   variants: { title: string; description: string };
   accessories: { title: string; description: string };
 }
@@ -326,6 +355,8 @@ export interface LocaleStrings {
     localeToggle: LocaleToggleStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
+    guidedTour: GuidedTourControlStrings;
+    softwareRendererWarning: SoftwareRendererWarningStrings;
     narrativeLog: PoiNarrativeLogStrings;
     poiOverlay: PoiOverlayChromeStrings;
   };

@@ -266,6 +266,38 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Toggle the wrist console or holographic drone companions.',
       },
     },
+    guidedTour: {
+      heading: 'Guided tour',
+      description: 'Show recommended exhibits when idle.',
+      toggleLabelOn: 'Guided tour highlights: On',
+      toggleLabelOff: 'Guided tour highlights: Off',
+      toggleTitleOn: 'Disable guided tour highlights',
+      toggleTitleOff: 'Enable guided tour highlights',
+      toggleAnnouncementOn:
+        'Guided tour highlights enabled. Activate to disable recommendations.',
+      toggleAnnouncementOff:
+        'Guided tour highlights disabled. Activate to enable recommendations.',
+      resetLabel: 'Restart guided tour',
+      resetDescription: 'Clear visited POIs and replay the curated path.',
+      resetEmptyLabel: 'Guided tour ready',
+      resetEmptyDescription:
+        'Explore exhibits to unlock the guided tour reset.',
+      resetPendingLabel: 'Resetting tour…',
+      resetPendingDescription: 'Resetting the guided tour…',
+      resetShortcutTemplate: 'Press {key} to restart.',
+    },
+    softwareRendererWarning: {
+      title: 'Software rendering detected',
+      rendererFallbackLabel: 'software WebGL renderer',
+      descriptionTemplate:
+        'Chrome is using {renderer} instead of hardware acceleration. Basic Render Driver, SwiftShader, WARP, and llvmpipe can crash under continuous WebGL animation.',
+      recommendation:
+        'Enable browser hardware acceleration for the smooth immersive portfolio. Safe immersive mode keeps screenshots and debugging available at a capped frame rate.',
+      continueSafeLabel: 'Continue in safe immersive',
+      continuousLabel: 'Enable continuous immersive anyway',
+      textModeLabel: 'Use text mode',
+      safeUrlLabel: 'Reload this safe immersive URL',
+    },
     audioControl: {
       keyHint: 'M',
       groupLabel: 'Ambient audio controls',

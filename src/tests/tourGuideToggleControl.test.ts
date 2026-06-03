@@ -1,16 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { getGuidedTourControlStrings } from '../assets/i18n';
 import { createTourGuideToggleControl } from '../systems/controls/tourGuideToggleControl';
 
 describe('tourGuideToggleControl', () => {
   it('renders an enabled toggle by default', () => {
     const container = document.createElement('div');
-    const handle = createTourGuideToggleControl({ container });
+    const handle = createTourGuideToggleControl({
+      container,
+      strings: getGuidedTourControlStrings('en'),
+    });
 
     expect(container.querySelector('.tour-toggle')).toBe(handle.element);
     expect(handle.element.dataset.state).toBe('enabled');
     expect(handle.element.getAttribute('aria-pressed')).toBe('true');
-    expect(handle.element.dataset.hudAnnounce).toContain('Guided tour on');
+    expect(handle.element.dataset.hudAnnounce).toContain(
+      'Guided tour highlights enabled'
+    );
 
     handle.dispose();
   });
@@ -22,6 +28,7 @@ describe('tourGuideToggleControl', () => {
       container,
       initialEnabled: true,
       onToggle,
+      strings: getGuidedTourControlStrings('en'),
     });
 
     handle.element.click();
@@ -44,6 +51,7 @@ describe('tourGuideToggleControl', () => {
       container,
       initialEnabled: false,
       onToggle,
+      strings: getGuidedTourControlStrings('en'),
     });
 
     handle.setEnabled(true);
@@ -59,7 +67,10 @@ describe('tourGuideToggleControl', () => {
 
   it('cleans up DOM and listeners on dispose', () => {
     const container = document.createElement('div');
-    const handle = createTourGuideToggleControl({ container });
+    const handle = createTourGuideToggleControl({
+      container,
+      strings: getGuidedTourControlStrings('en'),
+    });
 
     const button = handle.element;
     handle.dispose();
