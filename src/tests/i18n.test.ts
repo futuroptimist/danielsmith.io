@@ -123,26 +123,55 @@ describe('i18n utilities', () => {
   });
 
   it('localizes zh-Hans GitHub star metric copy without English fallback', () => {
+    const englishDefinitions = getPoiDefinitions('en');
     const definitions = getPoiDefinitions('zh-Hans');
-    const tokenplace = definitions.find(
-      (poi) => poi.id === 'tokenplace-studio-cluster'
-    );
-    const starMetric = tokenplace?.metrics?.find(
-      (metric) => metric.source?.type === 'githubStars'
+    const definitionsById = new Map(definitions.map((poi) => [poi.id, poi]));
+    const starBackedPois = englishDefinitions.filter((poi) =>
+      poi.metrics?.some((metric) => metric.source?.type === 'githubStars')
     );
 
-    expect(tokenplace?.id).toBe('tokenplace-studio-cluster');
-    expect(starMetric?.label).toBe('星标');
-    expect(starMetric?.value).toBe('正在从 GitHub 同步…');
-    expect(starMetric?.source).toMatchObject({
-      type: 'githubStars',
-      owner: 'futuroptimist',
-      repo: 'token.place',
-      template: '{value} 个星标',
-      fallback: '正在从 GitHub 同步…',
-    });
-    expect(starMetric?.label).not.toMatch(/stars/i);
-    expect(starMetric?.source?.template).not.toMatch(/stars/i);
+    expect(starBackedPois.map((poi) => poi.id)).toEqual([
+      'futuroptimist-living-room-tv',
+      'tokenplace-studio-cluster',
+      'gabriel-studio-sentry',
+      'flywheel-studio-flywheel',
+      'jobbot-studio-terminal',
+      'gitshelves-living-room-installation',
+      'danielsmith-portfolio-table',
+      'f2clipboard-kitchen-console',
+      'sigma-kitchen-workbench',
+      'wove-kitchen-loom',
+      'dspace-backyard-rocket',
+      'pr-reaper-backyard-console',
+    ]);
+
+    for (const englishPoi of starBackedPois) {
+      const englishStarMetric = englishPoi.metrics?.find(
+        (metric) => metric.source?.type === 'githubStars'
+      );
+      const starMetric = definitionsById
+        .get(englishPoi.id)
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars');
+
+      expect(
+        starMetric,
+        `${englishPoi.id} keeps a zh-Hans star metric`
+      ).toBeDefined();
+      expect(starMetric?.label).toBe('星标');
+      expect(starMetric?.source).toMatchObject({
+        type: 'githubStars',
+        owner: englishStarMetric?.source?.owner,
+        repo: englishStarMetric?.source?.repo,
+        template: '{value} 个星标',
+      });
+      expect(starMetric?.source?.fallback).not.toBe('Syncing from GitHub…');
+      expect(starMetric?.label).not.toMatch(/stars/i);
+      expect(starMetric?.value).not.toMatch(/stars|Syncing from GitHub/i);
+      expect(starMetric?.source?.template).not.toMatch(/stars/i);
+      expect(starMetric?.source?.fallback).not.toMatch(
+        /stars|Syncing from GitHub/i
+      );
+    }
   });
 
   it('deep-clones localized POI metric sources per call', () => {

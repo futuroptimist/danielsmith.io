@@ -423,6 +423,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       outcome: { label: '成果', value: '把创作研究转化为可复用的脚本流水线。' },
       metrics: [
         { label: '状态', value: '自动化内容工作流' },
+        {
+          label: '星标',
+          value: '1,280+',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'danielsmith.io',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '1,280+',
+          },
+        },
         { label: '节奏', value: '研究 → 提纲 → 旁白草稿' },
         { label: '重点', value: '创作者工具与可靠性故事' },
       ],
@@ -469,6 +481,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         { label: '状态', value: '自动化哨兵' },
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'gabriel',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '重点', value: '提醒 · 任务 · 验证' },
         { label: '模式', value: '可审计代理循环' },
       ],
@@ -634,6 +658,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         { label: '状态', value: 'CLI 自动化' },
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'f2clipboard',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '安全', value: '秘密扫描与脱敏' },
         { label: '输出', value: '可粘贴的 Markdown 报告' },
       ],
@@ -653,6 +689,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         { label: '状态', value: '实用工具实验室' },
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'sigma',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '重点', value: '自动化助手和开发者工作流' },
       ],
       links: [
@@ -665,6 +713,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       outcome: { label: '成果', value: '将松散想法编织成可执行的项目线索。' },
       metrics: [
         { label: '状态', value: '规划与编排原型' },
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'wove',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '模式', value: '内容线索 · 任务上下文 · 自动化提示' },
       ],
       links: [
@@ -680,6 +740,19 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         { label: '状态', value: '任务验证和文档门禁' },
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'dspace',
+            visibility: 'private',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '重点', value: '探索路线图 · 技能 · 发布文档' },
         { label: 'QA', value: '链接检查和任务验证' },
       ],
@@ -700,6 +773,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         { label: '状态', value: 'PR 分诊自动化' },
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'pr-reaper',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '重点', value: '冲突检测 · 范围锁定 · 后续评论' },
       ],
       links: [
