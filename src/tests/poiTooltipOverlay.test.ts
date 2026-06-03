@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getPoiOverlayChromeStrings } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
 import { GuidedTourPreference } from '../systems/guidedTour/preference';
@@ -384,6 +386,49 @@ describe('PoiTooltipOverlay', () => {
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
     expect(root.getAttribute('aria-hidden')).toBe('true');
     expect(root.getAttribute('aria-describedby')).toBeNull();
+  });
+
+  it('renders Mandarin POI detail chrome without English fallback copy', () => {
+    const tokenplace = getPoiDefinitions('zh-Hans').find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+
+    expect(tokenplace).toBeTruthy();
+
+    overlay.setStrings(getPoiOverlayChromeStrings('zh-Hans'));
+    overlay.setVisitedPoiIds(new Set([tokenplace?.id ?? '']));
+    overlay.setSelected(tokenplace as PoiDefinition);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toContain('端到端加密');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('成果');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
+    ).toContain('密文和安全路由元数据');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('星标');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('正在从 GitHub 同步…');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+    ).toBe('已访问');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('相关案例研究');
+    expect(
+      root
+        .querySelector<HTMLButtonElement>('.poi-tooltip-overlay__close')
+        ?.getAttribute('aria-label')
+    ).toBe('关闭兴趣点详情');
   });
 
   it('refreshes active selected POI copy and chrome when locale strings change', () => {

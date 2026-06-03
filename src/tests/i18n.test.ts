@@ -122,6 +122,28 @@ describe('i18n utilities', () => {
     expect(englishPoi).not.toBe(pseudoPoi);
   });
 
+  it('localizes nested Mandarin POI GitHub star metric copy', () => {
+    const definitions = getPoiDefinitions('zh-Hans');
+    const tokenplace = definitions.find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+    const starMetric = tokenplace?.metrics?.find(
+      (metric) => metric.source?.type === 'githubStars'
+    );
+
+    expect(starMetric?.label).toBe('星标');
+    expect(starMetric?.value).toBe('正在从 GitHub 同步…');
+    expect(starMetric?.source).toMatchObject({
+      type: 'githubStars',
+      owner: 'futuroptimist',
+      repo: 'token.place',
+      template: '{value} 个星标',
+      fallback: '正在从 GitHub 同步…',
+    });
+    expect(starMetric?.label).not.toMatch(/stars/i);
+    expect(starMetric?.source?.template).not.toMatch(/stars/i);
+  });
+
   it('deep-clones localized POI metric sources per call', () => {
     const firstDefinitions = getPoiDefinitions('en-x-pseudo');
     const firstPoi = firstDefinitions.find(
