@@ -1,4 +1,4 @@
-export const I18N_DEBUG_STORAGE_KEY = 'danielsmith.io:i18nDebug';
+export const I18N_DEBUG_STORAGE_KEY = 'danielsmith.io::i18nDebug::v1';
 
 export interface I18nDebugOptions {
   dev?: boolean;
@@ -24,7 +24,7 @@ export function isI18nDebugEnabled({
 
   try {
     const stored = storage?.getItem(I18N_DEBUG_STORAGE_KEY);
-    return stored === '1' || stored === 'true';
+    return stored === '1';
   } catch {
     return false;
   }

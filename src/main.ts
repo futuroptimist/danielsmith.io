@@ -46,6 +46,7 @@ import {
   getHelpModalStrings,
   getHudCustomizationStrings,
   getLocaleDirection,
+  getLocaleScript,
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
@@ -55,6 +56,7 @@ import {
   getSoftwareRendererWarningStrings,
   getTourGuideToggleStrings,
   getTourResetControlStrings,
+  getSelectableLocales,
   isI18nDebugEnabled,
   resolveInitialLocale,
   type Locale,
@@ -1072,6 +1074,7 @@ function initializeImmersiveScene(
   const htmlDirection = getLocaleDirection(locale);
   document.documentElement.dir = htmlDirection;
   document.documentElement.dataset.localeDirection = htmlDirection;
+  document.documentElement.dataset.localeScript = getLocaleScript(locale);
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
@@ -3127,6 +3130,7 @@ function initializeImmersiveScene(
     const direction = getLocaleDirection(locale);
     document.documentElement.dir = direction;
     document.documentElement.dataset.localeDirection = direction;
+    document.documentElement.dataset.localeScript = getLocaleScript(locale);
     document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
 
     controlOverlayStrings = getControlOverlayStrings(locale);
@@ -3226,10 +3230,7 @@ function initializeImmersiveScene(
     }
   };
 
-  const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
-  if (exposePseudoLocale) {
-    localeOptionIds.push('en-x-pseudo');
-  }
+  const localeOptionIds = getSelectableLocales({ exposePseudoLocale });
   const localeOptions = localeOptionIds.map((id) => ({
     id,
     ...localeToggleStrings.options[id],

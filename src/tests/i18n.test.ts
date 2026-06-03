@@ -17,6 +17,7 @@ import {
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getPoiCopy,
+  getSelectableLocales,
   getSiteStrings,
   resolveInitialLocale,
   resolveLocale,
@@ -30,6 +31,10 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
     expect(AVAILABLE_LOCALES).toContain('zh-Hans');
+    expect(AVAILABLE_LOCALES).toContain('es');
+    expect(AVAILABLE_LOCALES).toContain('pt');
+    expect(AVAILABLE_LOCALES).toContain('de');
+    expect(AVAILABLE_LOCALES).toContain('hu');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -46,6 +51,18 @@ describe('i18n utilities', () => {
     expect(resolveLocale('zh-Hans')).toBe('zh-Hans');
     expect(resolveLocale('zh-Hans-CN')).toBe('zh-Hans');
     expect(resolveLocale('cmn-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('es')).toBe('es');
+    expect(resolveLocale('es-ES')).toBe('es');
+    expect(resolveLocale('es-MX')).toBe('es');
+    expect(resolveLocale('pt')).toBe('pt');
+    expect(resolveLocale('pt-BR')).toBe('pt');
+    expect(resolveLocale('pt-PT')).toBe('pt');
+    expect(resolveLocale('de')).toBe('de');
+    expect(resolveLocale('de-DE')).toBe('de');
+    expect(resolveLocale('de-AT')).toBe('de');
+    expect(resolveLocale('de-CH')).toBe('de');
+    expect(resolveLocale('hu')).toBe('hu');
+    expect(resolveLocale('hu-HU')).toBe('hu');
     expect(resolveLocale('zh-TW')).toBe('en');
     expect(resolveLocale('zh-HK')).toBe('en');
     expect(resolveLocale('zh-Hant')).toBe('en');
@@ -83,6 +100,10 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
     expect(getLocaleDirection('zh-Hans')).toBe('ltr');
+    expect(getLocaleDirection('es-MX')).toBe('ltr');
+    expect(getLocaleDirection('pt-BR')).toBe('ltr');
+    expect(getLocaleDirection('de-AT')).toBe('ltr');
+    expect(getLocaleDirection('hu-HU')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -93,6 +114,10 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('ja')).toBe('cjk');
     expect(getLocaleScript('ko-KR')).toBe('cjk');
     expect(getLocaleScript('ar')).toBe('rtl');
+    expect(getLocaleScript('es')).toBe('latin');
+    expect(getLocaleScript('pt')).toBe('latin');
+    expect(getLocaleScript('de')).toBe('latin');
+    expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
   });
 
@@ -325,12 +350,27 @@ describe('i18n utilities', () => {
 
   it('exposes Mandarin and hides pseudo behind the explicit i18n debug gate', () => {
     const labels = getLocaleToggleStrings('en').options;
-    const publicOptions = (['en', 'ja', 'ar', 'zh-Hans'] as const).map(
-      (id) => labels[id].label
-    );
+    const publicOptions = (
+      ['en', 'zh-Hans', 'ja', 'ar', 'es', 'pt', 'de', 'hu'] as const
+    ).map((id) => labels[id].label);
 
     expect(publicOptions).toContain('中文（简体）');
+    expect(getSelectableLocales()).toEqual([
+      'en',
+      'zh-Hans',
+      'ja',
+      'ar',
+      'es',
+      'pt',
+      'de',
+      'hu',
+    ]);
+    expect(getSelectableLocales()).not.toContain('en-x-pseudo');
+    expect(getSelectableLocales({ exposePseudoLocale: true })).toContain(
+      'en-x-pseudo'
+    );
     expect(publicOptions).not.toContain('Pseudo');
+    expect(isI18nDebugEnabled({ dev: true, search: '' })).toBe(true);
     expect(isI18nDebugEnabled({ dev: false, search: '' })).toBe(false);
     expect(isI18nDebugEnabled({ dev: false, search: '?i18nDebug=1' })).toBe(
       true
@@ -339,9 +379,100 @@ describe('i18n utilities', () => {
       isI18nDebugEnabled({
         dev: false,
         search: '',
-        storage: { getItem: () => 'true' },
+        storage: { getItem: () => '1' },
       })
     ).toBe(true);
+    expect(
+      isI18nDebugEnabled({
+        dev: false,
+        search: '',
+        storage: { getItem: () => 'true' },
+      })
+    ).toBe(false);
+  });
+
+  it('keeps placeholder sets aligned with English templates for every locale', () => {
+    const collectPlaceholders = (
+      value: unknown,
+      path: string,
+      out: Map<string, string>
+    ) => {
+      if (typeof value === 'string') {
+        const placeholders = Array.from(value.matchAll(/\{(\w+)\}/g)).map(
+          (match) => match[1] ?? ''
+        );
+        if (placeholders.length > 0) {
+          out.set(path, placeholders.sort().join(','));
+        }
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item, index) =>
+          collectPlaceholders(item, `${path}[${index}]`, out)
+        );
+        return;
+      }
+      if (value && typeof value === 'object') {
+        Object.entries(value as Record<string, unknown>).forEach(
+          ([key, nested]) => {
+            collectPlaceholders(nested, `${path}.${key}`, out);
+          }
+        );
+      }
+    };
+
+    const english = new Map<string, string>();
+    collectPlaceholders(getLocaleStrings('en'), 'locale', english);
+
+    (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
+      const localized = new Map<string, string>();
+      collectPlaceholders(getLocaleStrings(locale), 'locale', localized);
+      localized.forEach((placeholders, path) => {
+        expect(placeholders, `${locale} ${path}`).toBe(english.get(path));
+      });
+    });
+  });
+
+  it('provides localized public picker and visible runtime copy for new locales', () => {
+    expect(getLocaleToggleStrings('es').options.es).toEqual({
+      label: 'Español',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('pt').options.pt).toEqual({
+      label: 'Português',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('de').options.de).toEqual({
+      label: 'Deutsch',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('hu').options.hu).toEqual({
+      label: 'Magyar',
+      direction: 'ltr',
+    });
+
+    expect(getSiteStrings('es').textFallback.heading).toBe(
+      'Explora los destacados'
+    );
+    expect(getSiteStrings('pt').textFallback.recoveryCta.actionLabel).toBe(
+      'Tentar imersivo novamente'
+    );
+    expect(getHelpModalStrings('de').heading).toBe('Einstellungen & Hilfe');
+    expect(getPoiOverlayChromeStrings('hu').nextHighlight).toBe(
+      'Következő kiemelés'
+    );
+    expect(getPoiCopy('es')['tokenplace-studio-cluster'].summary).toContain(
+      'peer-to-peer'
+    );
+    expect(
+      getPoiCopy('pt')['futuroptimist-living-room-tv'].outcome?.label
+    ).toBe('Resultado');
+    expect(getPoiCopy('de')['danielsmith-portfolio-table'].summary).toContain(
+      'Three.js/WebGL-Portfolio'
+    );
+    expect(getPoiCopy('hu')['pr-reaper-backyard-console'].summary).toContain(
+      'GitHub Actions workflow'
+    );
   });
 
   it('keeps every resolved locale populated with required visible strings', () => {
