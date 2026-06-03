@@ -12,6 +12,21 @@ export const AR_OVERRIDES: LocaleOverrides = {
       textCollectionDescription:
         'ملخصات سريعة قابلة للوصول لكل معرض مع الحفاظ على سرعة التصفح.',
       immersiveActionName: 'تشغيل الوضع الغامر',
+      properties: {
+        labels: {
+          category: 'الفئة',
+          outcome: 'النتيجة',
+          status: 'الحالة',
+        },
+        categories: {
+          project: 'مشروع',
+          environment: 'بيئة',
+        },
+        statuses: {
+          prototype: 'نموذج أولي',
+          live: 'مباشر',
+        },
+      },
       publisher: {
         name: 'Daniel Smith',
       },
@@ -238,6 +253,16 @@ export const AR_OVERRIDES: LocaleOverrides = {
         title: 'الإكسسوارات',
         description: 'فعّل سوار المعصم أو الطائرة الهولوغرافية.',
       },
+    },
+    poiOverlay: {
+      visited: 'تمت الزيارة',
+      nextHighlight: 'المحطة التالية',
+      prototype: 'نموذج أولي',
+      live: 'مباشر',
+      closeDetails: 'إغلاق تفاصيل نقطة الاهتمام',
+      relatedCaseStudies: 'دراسات حالة ذات صلة',
+      outcomeFallbackLabel: 'النتيجة',
+      discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
     },
     narrativeLog: {
       heading: 'سجل القصة',

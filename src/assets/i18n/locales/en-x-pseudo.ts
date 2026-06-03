@@ -10,6 +10,21 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       description: wrap(
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.'
       ),
+      properties: {
+        labels: {
+          category: wrap('Category'),
+          outcome: wrap('Outcome'),
+          status: wrap('Status'),
+        },
+        categories: {
+          project: wrap('Project'),
+          environment: wrap('Environment'),
+        },
+        statuses: {
+          prototype: wrap('Prototype'),
+          live: wrap('Live'),
+        },
+      },
     },
     textFallback: {
       heading: wrap('Explore the highlights'),
@@ -304,6 +319,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       errorTitleTemplate: wrap(
         'Text mode toggle failed. Press {keyHint} to retry text mode.'
       ),
+    },
+    poiOverlay: {
+      visited: wrap('Visited'),
+      nextHighlight: wrap('Next highlight'),
+      prototype: wrap('Prototype'),
+      live: wrap('Live'),
+      closeDetails: wrap('Close POI details'),
+      relatedCaseStudies: wrap('Related case studies'),
+      outcomeFallbackLabel: wrap('Outcome'),
+      discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
     },
     narrativeLog: {
       heading: wrap('Creator story log'),

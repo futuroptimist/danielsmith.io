@@ -30,6 +30,11 @@ export class ProceduralNarrator {
     this.lastVisitedId = last.id;
   }
 
+  setDefinitions(definitions: ReadonlyArray<PoiDefinition>): void {
+    this.definitionsById.clear();
+    definitions.forEach((definition) => this.storeDefinition(definition));
+  }
+
   handleVisit(poi: PoiDefinition): void {
     this.storeDefinition(poi);
     const previousId = this.lastVisitedId;

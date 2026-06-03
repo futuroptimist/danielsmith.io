@@ -42,8 +42,12 @@ export interface PoiWorldTooltipOptions {
 
 interface RenderState {
   poiId: string | null;
+  poiRef: PoiDefinition | null;
   mode: PoiWorldTooltipMode | null;
+  contentKey: string | null;
 }
+
+const getPoiRenderContentKey = (poi: PoiDefinition): string => poi.title;
 
 interface TooltipStateSnapshot {
   poiId: string | null;
@@ -123,7 +127,12 @@ export class PoiWorldTooltip {
 
   private opacity = 0;
 
-  private renderState: RenderState = { poiId: null, mode: null };
+  private renderState: RenderState = {
+    poiId: null,
+    poiRef: null,
+    mode: null,
+    contentKey: null,
+  };
 
   private disposed = false;
 
@@ -240,9 +249,12 @@ export class PoiWorldTooltip {
       return;
     }
 
+    const contentKey = getPoiRenderContentKey(active.poi);
     const targetChanged =
       this.renderState.poiId !== active.poi.id ||
-      this.renderState.mode !== mode;
+      this.renderState.poiRef !== active.poi ||
+      this.renderState.mode !== mode ||
+      this.renderState.contentKey !== contentKey;
 
     const anchor = active.getAnchorPosition(this.anchorScratch);
     this.targetPosition.copy(anchor);
@@ -261,7 +273,12 @@ export class PoiWorldTooltip {
       this.opacity = 0;
       this.mesh.material.opacity = 0;
       this.group.visible = false;
-      this.renderState = { poiId: null, mode: null };
+      this.renderState = {
+        poiId: null,
+        poiRef: null,
+        mode: null,
+        contentKey: null,
+      };
       return;
     }
 
@@ -296,7 +313,12 @@ export class PoiWorldTooltip {
 
     if (targetChanged) {
       this.renderTooltip(active.poi, mode);
-      this.renderState = { poiId: active.poi.id, mode };
+      this.renderState = {
+        poiId: active.poi.id,
+        poiRef: active.poi,
+        mode,
+        contentKey,
+      };
     }
   }
 
@@ -317,7 +339,14 @@ export class PoiWorldTooltip {
           ? 'recommended'
           : null;
     if (activeTarget && mode && activeTarget.poi.id === poiId) {
+      const contentKey = getPoiRenderContentKey(activeTarget.poi);
       this.renderTooltip(activeTarget.poi, mode);
+      this.renderState = {
+        poiId: activeTarget.poi.id,
+        poiRef: activeTarget.poi,
+        mode,
+        contentKey,
+      };
     }
   }
 
@@ -375,7 +404,12 @@ export class PoiWorldTooltip {
     this.mesh.material.opacity = this.opacity;
     if (this.opacity <= 0.01) {
       this.group.visible = false;
-      this.renderState = { poiId: null, mode: null };
+      this.renderState = {
+        poiId: null,
+        poiRef: null,
+        mode: null,
+        contentKey: null,
+      };
     }
   }
 

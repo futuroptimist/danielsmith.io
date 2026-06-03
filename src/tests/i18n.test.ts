@@ -11,10 +11,12 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getPoiNarrativeLogStrings,
+  getPoiOverlayChromeStrings,
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
 } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
@@ -62,6 +64,54 @@ describe('i18n utilities', () => {
     expect(formatMessage('Hold {missing}', {})).toBe('Hold {missing}');
   });
 
+  it('localizes POI definitions per call without mutating previous copies', () => {
+    const englishDefinitions = getPoiDefinitions('en');
+    const pseudoDefinitions = getPoiDefinitions('en-x-pseudo');
+    const englishPoi = englishDefinitions.find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    const pseudoPoi = pseudoDefinitions.find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+
+    expect(englishPoi?.title).toBe('Futuroptimist');
+    expect(pseudoPoi?.title).toBe('⟦Futuroptimist⟧');
+    expect(pseudoPoi?.interactionPrompt).toBe('⟦Inspect ⟦Futuroptimist⟧⟧');
+    expect(englishPoi?.title).toBe('Futuroptimist');
+    expect(englishDefinitions).not.toBe(pseudoDefinitions);
+    expect(englishPoi).not.toBe(pseudoPoi);
+  });
+
+  it('deep-clones localized POI metric sources per call', () => {
+    const firstDefinitions = getPoiDefinitions('en-x-pseudo');
+    const firstPoi = firstDefinitions.find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+    const firstSource = firstPoi?.metrics?.[0]?.source;
+
+    expect(firstSource).toMatchObject({
+      type: 'githubStars',
+      owner: 'futuroptimist',
+      repo: 'token.place',
+    });
+
+    if (firstSource) {
+      firstSource.owner = 'mutated-owner';
+      firstSource.repo = 'mutated-repo';
+    }
+
+    const freshDefinitions = getPoiDefinitions('en-x-pseudo');
+    const freshPoi = freshDefinitions.find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+
+    expect(freshPoi?.metrics?.[0]?.source).toMatchObject({
+      type: 'githubStars',
+      owner: 'futuroptimist',
+      repo: 'token.place',
+    });
+  });
+
   it('returns localized HUD strings and applies pseudo locale overrides', () => {
     const englishOverlay = getControlOverlayStrings('en');
     const pseudoOverlay = getControlOverlayStrings('en-x-pseudo');
@@ -90,6 +140,20 @@ describe('i18n utilities', () => {
     expect(japaneseHelp.announcements.close).toBe(
       'ヘルプメニューを閉じました。'
     );
+  });
+
+  it('returns localized POI overlay chrome strings', () => {
+    const english = getPoiOverlayChromeStrings('en');
+    const pseudo = getPoiOverlayChromeStrings('en-x-pseudo');
+    const arabic = getPoiOverlayChromeStrings('ar');
+    const japanese = getPoiOverlayChromeStrings('ja');
+
+    expect(english.closeDetails).toBe('Close POI details');
+    expect(english.discoveryAnnouncementTemplate).toContain('{title}');
+    expect(pseudo.closeDetails).toBe('⟦Close POI details⟧');
+    expect(pseudo.relatedCaseStudies).toBe('⟦Related case studies⟧');
+    expect(arabic.prototype).toBe('نموذج أولي');
+    expect(japanese.nextHighlight).toBe('次のハイライト');
   });
 
   it('returns localized mode toggle strings with formatted key hints', () => {

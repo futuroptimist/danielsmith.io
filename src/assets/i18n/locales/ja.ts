@@ -12,6 +12,21 @@ export const JA_OVERRIDES: LocaleOverrides = {
       textCollectionDescription:
         '没入型展示の内容を高速に読めるよう最適化した要約を提供します。',
       immersiveActionName: '没入モードを起動',
+      properties: {
+        labels: {
+          category: 'カテゴリー',
+          outcome: '成果',
+          status: 'ステータス',
+        },
+        categories: {
+          project: 'プロジェクト',
+          environment: '環境',
+        },
+        statuses: {
+          prototype: 'プロトタイプ',
+          live: '公開中',
+        },
+      },
       publisher: {
         name: 'Daniel Smith',
       },
@@ -239,6 +254,16 @@ export const JA_OVERRIDES: LocaleOverrides = {
         description:
           'リストコンソールやホログラフィックドローンを切り替えます。',
       },
+    },
+    poiOverlay: {
+      visited: '訪問済み',
+      nextHighlight: '次のハイライト',
+      prototype: 'プロトタイプ',
+      live: '公開中',
+      closeDetails: 'POI の詳細を閉じる',
+      relatedCaseStudies: '関連ケーススタディ',
+      outcomeFallbackLabel: '成果',
+      discoveryAnnouncementTemplate: '{title} を発見しました。{summary}',
     },
     narrativeLog: {
       heading: 'クリエイターストーリーログ',

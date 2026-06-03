@@ -1,6 +1,7 @@
 import type {
   LocaleInput,
   SiteStructuredDataEntityStrings,
+  SiteStructuredDataPropertyStrings,
   StructuredDataEntityType,
 } from '../../assets/i18n';
 import {
@@ -192,20 +193,21 @@ const createEntityReference = (
 };
 
 const createAdditionalProperties = (
-  poi: PoiDefinition
+  poi: PoiDefinition,
+  strings: SiteStructuredDataPropertyStrings
 ): ReadonlyArray<PropertyValue> => {
   const additionalProperty: PropertyValue[] = [
     {
       '@type': 'PropertyValue',
-      name: 'Category',
-      value: poi.category,
+      name: strings.labels.category,
+      value: strings.categories[poi.category],
     },
   ];
 
   if (poi.outcome && poi.outcome.value.trim()) {
     additionalProperty.push({
       '@type': 'PropertyValue',
-      name: poi.outcome.label?.trim() || 'Outcome',
+      name: poi.outcome.label?.trim() || strings.labels.outcome,
       value: poi.outcome.value.trim(),
     });
   }
@@ -223,8 +225,8 @@ const createAdditionalProperties = (
   if (poi.status) {
     additionalProperty.push({
       '@type': 'PropertyValue',
-      name: 'Status',
-      value: poi.status,
+      name: strings.labels.status,
+      value: strings.statuses[poi.status],
     });
   }
 
@@ -256,6 +258,7 @@ interface PoiCreativeWorkOptions {
   listId: string;
   publisherReference?: Record<string, string>;
   authorReference?: Record<string, string>;
+  propertyStrings: SiteStructuredDataPropertyStrings;
 }
 
 const createPoiCreativeWork = (
@@ -263,7 +266,10 @@ const createPoiCreativeWork = (
   options: PoiCreativeWorkOptions
 ): Record<string, unknown> => {
   const poiUrl = createPoiUrl(options.canonical, poi.id);
-  const additionalProperty = createAdditionalProperties(poi);
+  const additionalProperty = createAdditionalProperties(
+    poi,
+    options.propertyStrings
+  );
   const sameAs = poi.links?.map((link) => link.href).filter(Boolean) ?? [];
 
   const item: Record<string, unknown> = {
@@ -360,6 +366,7 @@ export const buildPoiStructuredData = (
       listId,
       publisherReference,
       authorReference,
+      propertyStrings: siteStrings.structuredData.properties,
     });
 
     return {
@@ -459,6 +466,7 @@ export const buildTextPortfolioStructuredData = (
       listId,
       publisherReference,
       authorReference,
+      propertyStrings: siteStrings.structuredData.properties,
     })
   );
 

@@ -183,7 +183,7 @@ describe('buildPoiStructuredData', () => {
       Record<string, unknown>
     >;
     expect(additionalProperty).toEqual([
-      { '@type': 'PropertyValue', name: 'Category', value: 'project' },
+      { '@type': 'PropertyValue', name: 'Category', value: 'Project' },
       { '@type': 'PropertyValue', name: 'Outcome', value: 'Reduced toil 42%' },
       { '@type': 'PropertyValue', name: 'Impact', value: 'Reduced toil 42%' },
       {
@@ -191,7 +191,7 @@ describe('buildPoiStructuredData', () => {
         name: 'Stack',
         value: 'TypeScript · Three.js',
       },
-      { '@type': 'PropertyValue', name: 'Status', value: 'prototype' },
+      { '@type': 'PropertyValue', name: 'Status', value: 'Prototype' },
     ]);
 
     expect(firstItem.isPartOf).toEqual({
@@ -220,7 +220,7 @@ describe('buildPoiStructuredData', () => {
       isAccessibleForFree: true,
     });
     expect(secondItem.additionalProperty).toEqual([
-      { '@type': 'PropertyValue', name: 'Category', value: 'project' },
+      { '@type': 'PropertyValue', name: 'Category', value: 'Project' },
     ]);
     expect(secondItem.isPartOf).toEqual({
       '@type': 'ItemList',
@@ -234,6 +234,28 @@ describe('buildPoiStructuredData', () => {
       '@id': 'https://danielsmith.io/',
     });
     expect(secondItem.creator).toEqual(secondItem.author);
+  });
+
+  it('localizes additional property labels and enum values', () => {
+    const data = buildPoiStructuredData(
+      [
+        createPoi({
+          category: 'environment',
+          outcome: { label: '', value: 'حافظ على السياق' },
+          status: 'live',
+        }),
+      ],
+      { locale: 'ar' }
+    );
+
+    const items = data.itemListElement as Array<Record<string, unknown>>;
+    const item = items[0]?.item as Record<string, unknown>;
+
+    expect(item.additionalProperty).toEqual([
+      { '@type': 'PropertyValue', name: 'الفئة', value: 'بيئة' },
+      { '@type': 'PropertyValue', name: 'النتيجة', value: 'حافظ على السياق' },
+      { '@type': 'PropertyValue', name: 'الحالة', value: 'مباشر' },
+    ]);
   });
 
   it('honors locale overrides when emitting language metadata', () => {
@@ -324,7 +346,7 @@ describe('buildTextPortfolioStructuredData', () => {
       creator: { '@id': 'https://danielsmith.io/' },
     });
     expect(hasPart[0]?.additionalProperty).toEqual([
-      { '@type': 'PropertyValue', name: 'Category', value: 'project' },
+      { '@type': 'PropertyValue', name: 'Category', value: 'Project' },
       { '@type': 'PropertyValue', name: 'Outcome', value: 'Reduced toil 42%' },
       { '@type': 'PropertyValue', name: 'Impact', value: 'Reduced toil 42%' },
       {
@@ -353,8 +375,8 @@ describe('buildTextPortfolioStructuredData', () => {
       creator: { '@id': 'https://danielsmith.io/' },
     });
     expect(hasPart[1]?.additionalProperty).toEqual([
-      { '@type': 'PropertyValue', name: 'Category', value: 'project' },
-      { '@type': 'PropertyValue', name: 'Status', value: 'prototype' },
+      { '@type': 'PropertyValue', name: 'Category', value: 'Project' },
+      { '@type': 'PropertyValue', name: 'Status', value: 'Prototype' },
     ]);
     expect(data.potentialAction).toEqual({
       '@type': 'Action',
