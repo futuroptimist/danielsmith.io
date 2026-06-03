@@ -1,12 +1,12 @@
-import type { FallbackReason } from '../../types/failover';
-import type { InputMethod } from '../../ui/hud/movementLegend';
 import type {
   PoiId,
   PoiInteraction,
   PoiMetricSource,
   PoiNarration,
   PoiOutcome,
-} from '../poi/types';
+} from '../../scene/poi/types';
+import type { FallbackReason } from '../../types/failover';
+import type { InputMethod } from '../../ui/hud/movementLegend';
 
 export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
 export type LocaleDirection = 'ltr' | 'rtl';
@@ -168,6 +168,16 @@ export interface HudCustomizationStrings {
   accessories: { title: string; description: string };
 }
 
+export interface PoiTooltipOverlayStrings {
+  visited: string;
+  nextHighlight: string;
+  status: Record<'prototype' | 'live', string>;
+  closeDetailsLabel: string;
+  relatedCaseStudiesLabel: string;
+  outcomeFallbackLabel: string;
+  discoveryAnnouncementTemplate: string;
+}
+
 export interface PoiNarrativeLogStrings {
   heading: string;
   visitedHeading: string;
@@ -298,6 +308,7 @@ export interface LocaleStrings {
     localeToggle: LocaleToggleStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
+    poiTooltipOverlay: PoiTooltipOverlayStrings;
     narrativeLog: PoiNarrativeLogStrings;
   };
   poi: Record<PoiId, PoiCopy>;

@@ -1,4 +1,4 @@
-import type { PoiId } from '../poi/types';
+import type { PoiId } from '../../scene/poi/types';
 
 import { AR_OVERRIDES } from './locales/ar';
 import { EN_LOCALE_STRINGS } from './locales/en';
@@ -21,6 +21,7 @@ import type {
   MovementLegendStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
+  PoiTooltipOverlayStrings,
   HudCustomizationStrings,
   SiteStrings,
 } from './types';
@@ -327,6 +328,12 @@ export function getModeAnnouncerStrings(
       localeStrings.site.textFallback.reasonDescriptions
     ),
   } satisfies ModeAnnouncerStrings;
+}
+
+export function getPoiTooltipOverlayStrings(
+  input?: LocaleInput
+): PoiTooltipOverlayStrings {
+  return getLocaleStrings(input).hud.poiTooltipOverlay;
 }
 
 export function getPoiNarrativeLogStrings(

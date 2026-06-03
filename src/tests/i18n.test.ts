@@ -11,10 +11,12 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getPoiNarrativeLogStrings,
+  getPoiTooltipOverlayStrings,
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
 } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
@@ -218,6 +220,50 @@ describe('i18n utilities', () => {
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title
     );
+  });
+
+  it('localizes POI definitions without mutating shared base data', () => {
+    const englishDefinitions = getPoiDefinitions('en');
+    const pseudoDefinitions = getPoiDefinitions('en-x-pseudo');
+    const englishFuturoptimist = englishDefinitions.find(
+      (definition) => definition.id === 'futuroptimist-living-room-tv'
+    );
+    const pseudoFuturoptimist = pseudoDefinitions.find(
+      (definition) => definition.id === 'futuroptimist-living-room-tv'
+    );
+
+    expect(englishFuturoptimist?.title).toBe('Futuroptimist');
+    expect(pseudoFuturoptimist?.title).toBe('⟦Futuroptimist⟧');
+    expect(pseudoFuturoptimist?.summary).toContain('⟦Automated');
+    expect(pseudoFuturoptimist?.interactionPrompt).toBe(
+      '⟦Inspect ⟦Futuroptimist⟧⟧'
+    );
+
+    if (!englishFuturoptimist?.metrics?.[0]) {
+      throw new Error('Expected Futuroptimist metric fixture.');
+    }
+    englishFuturoptimist.metrics[0].value = 'Mutated metric';
+    expect(
+      getPoiDefinitions('en').find(
+        (definition) => definition.id === 'futuroptimist-living-room-tv'
+      )?.metrics?.[0]?.value
+    ).toBe('1,280+');
+  });
+
+  it('returns localized POI tooltip overlay chrome strings', () => {
+    const english = getPoiTooltipOverlayStrings('en');
+    expect(english.visited).toBe('Visited');
+    expect(english.status.prototype).toBe('Prototype');
+    expect(
+      formatMessage(english.discoveryAnnouncementTemplate, {
+        title: 'Flywheel',
+        summary: 'Automation hub.',
+      })
+    ).toBe('Flywheel discovered. Automation hub.');
+
+    const pseudo = getPoiTooltipOverlayStrings('en-x-pseudo');
+    expect(pseudo.visited).toBe('⟦Visited⟧');
+    expect(pseudo.relatedCaseStudiesLabel).toBe('⟦Related case studies⟧');
   });
 
   it('falls back to English site metadata when pseudo overrides omit values', () => {

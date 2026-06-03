@@ -406,6 +406,68 @@ describe('PoiTooltipOverlay', () => {
     expect(updatedValues).toContain('Updated workflow');
   });
 
+  it('refreshes selected POI copy and chrome strings at runtime', () => {
+    overlay.setSelected(basePoi);
+    overlay.setVisitedPoiIds(new Set([basePoi.id]));
+
+    const localizedPoi: PoiDefinition = {
+      ...basePoi,
+      title: '⟦Futuroptimist⟧',
+      summary: '⟦Localized immersive summary.⟧',
+      outcome: { label: '', value: '⟦Localized outcome.⟧' },
+      metrics: [{ label: '⟦Workflow⟧', value: '⟦Localized metric.⟧' }],
+      links: [{ label: '⟦Docs⟧', href: 'https://futuroptimist.dev' }],
+    };
+
+    overlay.setStrings({
+      visited: '⟦Visited⟧',
+      nextHighlight: '⟦Next highlight⟧',
+      status: {
+        prototype: '⟦Prototype⟧',
+        live: '⟦Live⟧',
+      },
+      closeDetailsLabel: '⟦Close POI details⟧',
+      relatedCaseStudiesLabel: '⟦Related case studies⟧',
+      outcomeFallbackLabel: '⟦Outcome⟧',
+      discoveryAnnouncementTemplate: '⟦{title} discovered. {summary}⟧',
+    });
+    overlay.setSelected(localizedPoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      '⟦Futuroptimist⟧'
+    );
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toBe('⟦Localized immersive summary.⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('⟦Outcome⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('⟦Workflow⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('⟦Localized metric.⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+    ).toBe('⟦Visited⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__status')?.textContent
+    ).toBe('⟦Prototype⟧');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('⟦Related case studies⟧');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__close')
+        ?.getAttribute('aria-label')
+    ).toBe('⟦Close POI details⟧');
+  });
+
   it('hides the outcome row when a POI omits the outcome field', () => {
     const poiWithoutOutcome: PoiDefinition = {
       ...basePoi,

@@ -232,6 +232,18 @@ export const JA_OVERRIDES: LocaleOverrides = {
           'リストコンソールやホログラフィックドローンを切り替えます。',
       },
     },
+    poiTooltipOverlay: {
+      visited: '訪問済み',
+      nextHighlight: '次のハイライト',
+      status: {
+        prototype: 'プロトタイプ',
+        live: '公開中',
+      },
+      closeDetailsLabel: 'POI 詳細を閉じる',
+      relatedCaseStudiesLabel: '関連ケーススタディ',
+      outcomeFallbackLabel: '成果',
+      discoveryAnnouncementTemplate: '{title} を発見しました。{summary}',
+    },
     narrativeLog: {
       heading: 'クリエイターストーリーログ',
       visitedHeading: '訪問した展示',
