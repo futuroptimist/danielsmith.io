@@ -170,6 +170,26 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('redraws the active title when POI copy changes at runtime', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({ title: 'Flywheel' });
+    tooltip.setSelected(createTarget(poi, new Vector3(0, 1, 0)));
+    tooltip.update(0.016);
+    expect(latestFillTextLog.join(' ')).toContain('Flywheel');
+
+    const localized = createPoiDefinition({
+      ...poi,
+      title: '⟦Flywheel⟧',
+    });
+    tooltip.setSelected(createTarget(localized, new Vector3(0, 1, 0)));
+    tooltip.notifyPoiUpdated(localized.id);
+
+    expect(latestFillTextLog.join(' ')).toContain('⟦Flywheel⟧');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('shows hovered tooltip anchored to the provided world position', () => {
     const { tooltip, camera, preference } = createTooltip();
     const poi = createPoiDefinition({ status: 'prototype' });

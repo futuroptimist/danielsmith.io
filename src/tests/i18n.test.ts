@@ -11,6 +11,7 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getPoiNarrativeLogStrings,
+  getPoiOverlayChromeStrings,
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
@@ -174,6 +175,28 @@ describe('i18n utilities', () => {
     expect(
       getSiteStrings('en').textFallback.reasonDescriptions.manual
     ).not.toBe('Mutated');
+  });
+
+  it('exposes localized POI overlay chrome strings', () => {
+    const english = getPoiOverlayChromeStrings('en');
+    expect(english.visited).toBe('Visited');
+    expect(english.nextHighlight).toBe('Next highlight');
+    expect(english.status.prototype).toBe('Prototype');
+    expect(english.status.live).toBe('Live');
+    expect(english.closeLabel).toBe('Close POI details');
+    expect(english.relatedCaseStudiesLabel).toBe('Related case studies');
+    expect(english.outcomeFallbackLabel).toBe('Outcome');
+    expect(
+      formatMessage(english.discoveryAnnouncementTemplate, {
+        title: 'Flywheel',
+        summary: ' Automation showcase.',
+      })
+    ).toBe('Flywheel discovered. Automation showcase.');
+
+    const pseudo = getPoiOverlayChromeStrings('en-x-pseudo');
+    expect(pseudo.visited).toBe('⟦Visited⟧');
+    expect(pseudo.status.prototype).toBe('⟦Prototype⟧');
+    expect(pseudo.closeLabel).toBe('⟦Close POI details⟧');
   });
 
   it('exposes narrative log strings with localized announcements', () => {

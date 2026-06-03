@@ -186,6 +186,53 @@ describe('PoiTooltipOverlay', () => {
     expect(describedIds).toContain(linksList.id);
   });
 
+  it('updates selected POI copy and chrome when runtime locale strings change', () => {
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+
+    const localizedPoi: PoiDefinition = {
+      ...basePoi,
+      title: '⟦Futuroptimist⟧',
+      summary: '⟦Localized immersive exhibit summary.⟧',
+      outcome: { label: '', value: '⟦Localized outcome value.⟧' },
+      metrics: [{ label: '⟦Workflow⟧', value: '⟦Localized metric⟧' }],
+      links: [{ label: '⟦Case study⟧', href: 'https://example.com/case' }],
+    };
+
+    overlay.setSelected(localizedPoi, { inputMethod: 'pointer' });
+    overlay.setStrings({
+      visited: '⟦Visited⟧',
+      nextHighlight: '⟦Next highlight⟧',
+      status: { prototype: '⟦Prototype⟧', live: '⟦Live⟧' },
+      closeLabel: '⟦Close POI details⟧',
+      relatedCaseStudiesLabel: '⟦Related case studies⟧',
+      outcomeFallbackLabel: '⟦Outcome⟧',
+      discoveryAnnouncementTemplate: '⟦{title} discovered.{summary}⟧',
+    });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      '⟦Futuroptimist⟧'
+    );
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toBe('⟦Localized immersive exhibit summary.⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric')?.textContent
+    ).toContain('⟦Localized metric⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__status')?.textContent
+    ).toBe('⟦Prototype⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('⟦Outcome⟧');
+    expect(
+      root
+        .querySelector<HTMLUListElement>('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('⟦Related case studies⟧');
+  });
+
   it('renders selected POI metadata without a hover target', () => {
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 

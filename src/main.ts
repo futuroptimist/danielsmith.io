@@ -50,6 +50,7 @@ import {
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getPoiNarrativeLogStrings,
+  getPoiOverlayChromeStrings,
   getSiteStrings,
   resolveLocale,
   type Locale,
@@ -166,6 +167,7 @@ import { GuidedTourChannel } from './scene/poi/guidedTourChannel';
 import { PoiInteractionManager } from './scene/poi/interactionManager';
 import {
   createPoiInstances,
+  updatePoiInstanceDefinition,
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
@@ -923,6 +925,7 @@ function initializeImmersiveScene(
   let modeToggleStrings = getModeToggleStrings(locale);
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
+  let poiOverlayChromeStrings = getPoiOverlayChromeStrings(locale);
   let siteStrings = getSiteStrings(locale);
   const syncModeAnnouncerStrings = () => {
     const announcerStrings = getModeAnnouncerStrings(locale);
@@ -1010,8 +1013,8 @@ function initializeImmersiveScene(
   scene.background = createImmersiveGradientTexture();
 
   const poiOverrides: PoiInstanceOverrides = {};
-  const poiDefinitions = getPoiDefinitions();
-  const poiDefinitionsById = new Map(
+  let poiDefinitions = getPoiDefinitions(locale);
+  let poiDefinitionsById = new Map(
     poiDefinitions.map((definition) => [definition.id, definition] as const)
   );
   injectPoiStructuredData(poiDefinitions, {
@@ -1566,6 +1569,7 @@ function initializeImmersiveScene(
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
+    strings: poiOverlayChromeStrings,
     interactionTimeline,
     onDismiss: () => {
       dismissActivePoiDetail();
@@ -1658,20 +1662,27 @@ function initializeImmersiveScene(
   window.portfolio.githubMetrics = {
     getDiagnostics: () => githubRepoStatsService.getDiagnostics(),
   };
-  githubRepoMetrics = wireGitHubRepoMetrics({
-    definitions: poiDefinitions,
-    service: githubRepoStatsService,
-    onMetricsUpdated: (poiId) => {
-      poiTooltipOverlay.notifyPoiUpdated(poiId);
-      poiWorldTooltip.notifyPoiUpdated(poiId);
-    },
-    onRepoStatsUpdated: ({ poiId, stats }) => {
-      if (poiId === 'futuroptimist-living-room-tv') {
-        mediaWallStarBridge.updateStarCount(stats.stars);
-      }
-    },
-  });
-  githubRepoMetrics.refreshAll().catch(() => {
+  const rewireGitHubMetrics = (): GitHubRepoMetricsController => {
+    githubRepoMetrics?.dispose();
+    const controller = wireGitHubRepoMetrics({
+      definitions: poiDefinitions,
+      service: githubRepoStatsService,
+      onMetricsUpdated: (poiId) => {
+        poiTooltipOverlay.notifyPoiUpdated(poiId);
+        poiWorldTooltip.notifyPoiUpdated(poiId);
+      },
+      onRepoStatsUpdated: ({ poiId, stats }) => {
+        if (poiId === 'futuroptimist-living-room-tv') {
+          mediaWallStarBridge.updateStarCount(stats.stars);
+        }
+      },
+    });
+    githubRepoMetrics = controller;
+    return controller;
+  };
+
+  const initialGithubRepoMetrics = rewireGitHubMetrics();
+  initialGithubRepoMetrics?.refreshAll().catch(() => {
     /* GitHub may be unreachable; metrics will remain on fallback values. */
   });
   const poiVisitedState = new PoiVisitedState();
@@ -1748,9 +1759,8 @@ function initializeImmersiveScene(
           (poi) => poi.definition.id
         );
         const worldTooltipTitle =
-          poiDefinitions.find(
-            (definition) => definition.id === worldState.poiId
-          )?.title ?? null;
+          poiDefinitionsById.get(worldState.poiId as PoiDefinition['id'])
+            ?.title ?? null;
         const activePoiId = worldState.visible
           ? worldState.poiId
           : overlayState.visible
@@ -1806,7 +1816,7 @@ function initializeImmersiveScene(
     }
     if (poiNarrativeLog) {
       const visitedDefinitions = Array.from(visited)
-        .map((id) => poiDefinitionsById.get(id))
+        .map((id) => poiDefinitionsById.get(id as PoiDefinition['id']))
         .filter((definition): definition is PoiDefinition =>
           Boolean(definition)
         );
@@ -1826,7 +1836,7 @@ function initializeImmersiveScene(
           if (previousVisited.has(id)) {
             continue;
           }
-          const definition = poiDefinitionsById.get(id);
+          const definition = poiDefinitionsById.get(id as PoiDefinition['id']);
           if (!definition) {
             continue;
           }
@@ -2909,6 +2919,61 @@ function initializeImmersiveScene(
   };
   updateHelpButtonLabel();
 
+  const refreshLocalizedPoiDefinitions = () => {
+    const nextDefinitions = getPoiDefinitions(locale);
+    const nextDefinitionsById = new Map(
+      nextDefinitions.map((definition) => [definition.id, definition] as const)
+    );
+    poiDefinitions = nextDefinitions;
+    poiDefinitionsById = nextDefinitionsById;
+
+    poiInstances.forEach((instance) => {
+      const localized = nextDefinitionsById.get(instance.definition.id);
+      if (localized) {
+        updatePoiInstanceDefinition(instance, localized);
+      }
+    });
+
+    currentHoveredPoi = currentHoveredPoi
+      ? (nextDefinitionsById.get(currentHoveredPoi.id) ?? null)
+      : null;
+    currentSelectedPoi = currentSelectedPoi
+      ? (nextDefinitionsById.get(currentSelectedPoi.id) ?? null)
+      : null;
+    currentGuidedTourRecommendation = currentGuidedTourRecommendation
+      ? (nextDefinitionsById.get(currentGuidedTourRecommendation.id) ?? null)
+      : null;
+
+    poiTourGuide.setDefinitions(nextDefinitions);
+    proceduralNarrator?.primeVisited(
+      Array.from(poiVisitedState.snapshot())
+        .map((id) => nextDefinitionsById.get(id))
+        .filter((definition): definition is PoiDefinition =>
+          Boolean(definition)
+        )
+    );
+    syncPoiDetailOverlay();
+    syncPoiRecommendation();
+    [currentHoveredPoi, currentSelectedPoi, currentGuidedTourRecommendation]
+      .filter((poi): poi is PoiDefinition => Boolean(poi))
+      .forEach((poi) => {
+        poiTooltipOverlay.notifyPoiUpdated(poi.id);
+        poiWorldTooltip.notifyPoiUpdated(poi.id);
+      });
+    const localizedGithubRepoMetrics = rewireGitHubMetrics();
+    localizedGithubRepoMetrics.refreshAll().catch(() => {
+      /* GitHub may be unreachable; metrics will remain on fallback values. */
+    });
+    injectPoiStructuredData(nextDefinitions, {
+      siteName: siteStrings.name,
+      locale,
+    });
+    injectTextPortfolioStructuredData(nextDefinitions, {
+      siteName: siteStrings.name,
+      locale,
+    });
+  };
+
   const applyLocaleUpdate = (nextLocale: Locale) => {
     if (locale === nextLocale) {
       return;
@@ -2934,6 +2999,7 @@ function initializeImmersiveScene(
     audioHudStrings = getAudioHudControlStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
+    poiOverlayChromeStrings = getPoiOverlayChromeStrings(locale);
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -2963,12 +3029,14 @@ function initializeImmersiveScene(
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
+    refreshLocalizedPoiDefinitions();
+    poiTooltipOverlay.setStrings(poiOverlayChromeStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
 
     const visitedSnapshot = poiVisitedState.snapshot();
     const visitedDefinitions = Array.from(visitedSnapshot)
-      .map((id) => poiDefinitionsById.get(id))
+      .map((id) => poiDefinitionsById.get(id as PoiDefinition['id']))
       .filter((definition): definition is PoiDefinition => Boolean(definition));
     if (visitedDefinitions.length > 0 && poiNarrativeLog) {
       poiNarrativeLog.syncVisited(visitedDefinitions, {

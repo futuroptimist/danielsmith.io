@@ -11,6 +11,35 @@ import {
 describe('POI registry', () => {
   const pois = getPoiDefinitions();
 
+  it('returns locale-specific defensive copies without mutating English definitions', () => {
+    const english = getPoiDefinitions('en').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    const pseudo = getPoiDefinitions('en-x-pseudo').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+
+    expect(english?.title).toBe('Futuroptimist');
+    expect(pseudo?.title).toBe('⟦Futuroptimist⟧');
+    expect(pseudo?.interactionPrompt).toBe('⟦Inspect ⟦Futuroptimist⟧⟧');
+
+    if (pseudo?.metrics?.[0]) {
+      pseudo.metrics[0].value = 'Mutated pseudo metric';
+    }
+
+    const refreshedPseudo = getPoiDefinitions('en-x-pseudo').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    const refreshedEnglish = getPoiDefinitions('en').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+
+    expect(refreshedPseudo?.metrics?.[0]?.value).not.toBe(
+      'Mutated pseudo metric'
+    );
+    expect(refreshedEnglish?.title).toBe('Futuroptimist');
+  });
+
   it('uses unique identifiers', () => {
     const ids = pois.map((poi) => poi.id);
     const uniqueIds = new Set(ids);

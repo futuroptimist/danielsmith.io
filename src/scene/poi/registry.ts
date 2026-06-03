@@ -3,6 +3,7 @@ import {
   formatMessage,
   getControlOverlayStrings,
   getPoiCopy,
+  type LocaleInput,
 } from '../../assets/i18n';
 
 import { scalePoiValue } from './constants';
@@ -27,6 +28,7 @@ type PoiStaticDefinition = Omit<
   | 'links'
   | 'narration'
   | 'pedestal'
+  | 'interactionPrompt'
 > & { pedestal?: PoiPedestalStaticConfig };
 
 const baseDefinitions: PoiStaticDefinition[] = [
@@ -225,57 +227,67 @@ const baseDefinitions: PoiStaticDefinition[] = [
   },
 ];
 
-const poiCopy = getPoiCopy();
-const controlOverlayStrings = getControlOverlayStrings();
+function buildScaledDefinitions(locale?: LocaleInput): PoiDefinition[] {
+  const poiCopy = getPoiCopy(locale);
+  const controlOverlayStrings = getControlOverlayStrings(locale);
 
-const scaled: PoiDefinition[] = baseDefinitions.map((base) => {
-  const copy = poiCopy[base.id];
-  if (!copy) {
-    throw new Error(`Missing localized POI copy for ${base.id}`);
-  }
-  const footprintWidth = scalePoiValue(base.footprint.width);
-  const footprintDepth = scalePoiValue(base.footprint.depth);
-  const baseMaxHalf = Math.max(base.footprint.width, base.footprint.depth) / 2;
-  const scaledMaxHalf = Math.max(footprintWidth, footprintDepth) / 2;
-  const preservedMargin = Math.max(0, base.interactionRadius - baseMaxHalf);
-  const scaledInteractionRadius = scaledMaxHalf + preservedMargin;
-  const pedestal: PoiPedestalConfig | undefined = base.pedestal
-    ? {
-        ...base.pedestal,
-        height:
-          typeof base.pedestal.height === 'number'
-            ? scalePoiValue(base.pedestal.height)
-            : undefined,
-      }
-    : undefined;
-  const template =
-    copy.interactionPrompt ??
-    controlOverlayStrings.interact.promptTemplates[base.interaction] ??
-    controlOverlayStrings.interact.promptTemplates.default;
-  const interactionPrompt = formatMessage(template, { title: copy.title });
-  return {
-    ...base,
-    interactionRadius: scaledInteractionRadius,
-    footprint: {
-      width: footprintWidth,
-      depth: footprintDepth,
-    },
-    pedestal,
-    title: copy.title,
-    summary: copy.summary,
-    outcome: copy.outcome ? { ...copy.outcome } : undefined,
-    metrics: copy.metrics?.map((metric) => ({ ...metric })),
-    links: copy.links?.map((link) => ({ ...link })),
-    narration: copy.narration ? { ...copy.narration } : undefined,
-    interactionPrompt,
-  } satisfies PoiDefinition;
-});
+  return baseDefinitions.map((base) => {
+    const copy = poiCopy[base.id];
+    if (!copy) {
+      throw new Error(`Missing localized POI copy for ${base.id}`);
+    }
+    const footprintWidth = scalePoiValue(base.footprint.width);
+    const footprintDepth = scalePoiValue(base.footprint.depth);
+    const baseMaxHalf =
+      Math.max(base.footprint.width, base.footprint.depth) / 2;
+    const scaledMaxHalf = Math.max(footprintWidth, footprintDepth) / 2;
+    const preservedMargin = Math.max(0, base.interactionRadius - baseMaxHalf);
+    const scaledInteractionRadius = scaledMaxHalf + preservedMargin;
+    const pedestal: PoiPedestalConfig | undefined = base.pedestal
+      ? {
+          ...base.pedestal,
+          height:
+            typeof base.pedestal.height === 'number'
+              ? scalePoiValue(base.pedestal.height)
+              : undefined,
+        }
+      : undefined;
+    const template =
+      copy.interactionPrompt ??
+      controlOverlayStrings.interact.promptTemplates[base.interaction] ??
+      controlOverlayStrings.interact.promptTemplates.default;
+    const interactionPrompt = formatMessage(template, { title: copy.title });
+    return {
+      ...base,
+      position: { ...base.position },
+      footprint: {
+        width: footprintWidth,
+        depth: footprintDepth,
+      },
+      interactionRadius: scaledInteractionRadius,
+      pedestal,
+      title: copy.title,
+      summary: copy.summary,
+      outcome: copy.outcome ? { ...copy.outcome } : undefined,
+      metrics: copy.metrics?.map((metric) => ({
+        ...metric,
+        source: metric.source ? { ...metric.source } : undefined,
+      })),
+      links: copy.links?.map((link) => ({ ...link })),
+      narration: copy.narration ? { ...copy.narration } : undefined,
+      interactionPrompt,
+    } satisfies PoiDefinition;
+  });
+}
 
-// Deterministically lay out indoor POIs across downstairs rooms.
-// Apply only manual placements for downstairs. Simple, explicit, and easy to tweak.
-const definitions: PoiDefinition[] = applyManualPoiPlacements(scaled);
-
-assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
+function buildDefinitions(locale?: LocaleInput): PoiDefinition[] {
+  const scaled = buildScaledDefinitions(locale);
+  // Deterministically lay out indoor POIs across downstairs rooms. Apply only
+  // manual placements for downstairs. Simple, explicit, and easy to tweak.
+  const definitions = applyManualPoiPlacements(scaled);
+  assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
+  return definitions;
+}
 
 function clonePoi(definition: PoiDefinition): PoiDefinition {
   return {
@@ -283,7 +295,10 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
     position: { ...definition.position },
     footprint: { ...definition.footprint },
     outcome: definition.outcome ? { ...definition.outcome } : undefined,
-    metrics: definition.metrics?.map((metric) => ({ ...metric })),
+    metrics: definition.metrics?.map((metric) => ({
+      ...metric,
+      source: metric.source ? { ...metric.source } : undefined,
+    })),
     links: definition.links?.map((link) => ({ ...link })),
     narration: definition.narration ? { ...definition.narration } : undefined,
     pedestal: definition.pedestal ? { ...definition.pedestal } : undefined,
@@ -350,20 +365,39 @@ class StaticPoiRegistry implements PoiRegistry {
   }
 }
 
-export const poiRegistry: PoiRegistry = new StaticPoiRegistry(definitions);
+export const poiRegistry: PoiRegistry = new StaticPoiRegistry(
+  buildDefinitions()
+);
 
-export function getPoiDefinitions(): PoiDefinition[] {
-  return poiRegistry.all();
+export function getPoiDefinitions(locale?: LocaleInput): PoiDefinition[] {
+  if (locale === undefined) {
+    return poiRegistry.all();
+  }
+  return buildDefinitions(locale).map((definition) => clonePoi(definition));
 }
 
-export function getPoiDefinitionsByRoom(roomId: string): PoiDefinition[] {
-  return poiRegistry.getByRoom(roomId);
+export function localizePoiDefinitions(locale?: LocaleInput): PoiDefinition[] {
+  return getPoiDefinitions(locale);
+}
+
+export function getPoiDefinitionsByRoom(
+  roomId: string,
+  locale?: LocaleInput
+): PoiDefinition[] {
+  if (locale === undefined) {
+    return poiRegistry.getByRoom(roomId);
+  }
+  return getPoiDefinitions(locale).filter((poi) => poi.roomId === roomId);
 }
 
 export function getPoiDefinitionsByCategory(
-  category: PoiCategory
+  category: PoiCategory,
+  locale?: LocaleInput
 ): PoiDefinition[] {
-  return poiRegistry.getByCategory(category);
+  if (locale === undefined) {
+    return poiRegistry.getByCategory(category);
+  }
+  return getPoiDefinitions(locale).filter((poi) => poi.category === category);
 }
 
 export function isPoiInsideRoom(poi: PoiDefinition): boolean {

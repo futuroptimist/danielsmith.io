@@ -75,7 +75,7 @@ export class PoiTourGuide {
     this.listeners.clear();
   }
 
-  private setDefinitions(definitions: PoiDefinition[]) {
+  setDefinitions(definitions: PoiDefinition[]) {
     this.allDefinitions = definitions.slice();
     this.definitionsById.clear();
     for (const definition of definitions) {
