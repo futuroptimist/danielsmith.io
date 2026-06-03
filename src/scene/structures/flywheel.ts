@@ -18,6 +18,11 @@ import {
 
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 const FLYWHEEL_POI_ID = 'flywheel-studio-flywheel';
 
@@ -32,6 +37,8 @@ export interface FlywheelShowpieceOptions {
   centerZ: number;
   roomBounds: Bounds2D;
   orientationRadians?: number;
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 interface AutomationPillar {
@@ -44,6 +51,9 @@ interface AutomationPillar {
 export function createFlywheelShowpiece(
   options: FlywheelShowpieceOptions
 ): FlywheelShowpieceBuild {
+  const detailPolicy =
+    options.detailPolicy ??
+    getSceneDetailPolicy(options.detailLevel ?? 'balanced');
   const group = new Group();
   group.name = 'FlywheelShowpiece';
 
@@ -102,6 +112,71 @@ export function createFlywheelShowpiece(
       group.removeEventListener('removed', handleRemoval);
     };
     group.addEventListener('removed', handleRemoval);
+  }
+
+  if (detailPolicy.level === 'performance') {
+    const proxyRadius = 1.1;
+    const proxyHeight = 0.2;
+    const proxy = new Mesh(
+      new CylinderGeometry(
+        proxyRadius,
+        proxyRadius,
+        proxyHeight,
+        detailPolicy.geometry.cylinderSegments
+      ),
+      new MeshStandardMaterial({
+        color: new Color(0x14202c),
+        emissive: new Color(0x153a4f),
+        emissiveIntensity: 0.35,
+        roughness: 0.62,
+        metalness: 0.12,
+      })
+    );
+    proxy.name = 'FlywheelPerformanceProxy';
+    proxy.position.set(options.centerX, proxyHeight / 2, options.centerZ);
+    proxy.rotation.y = options.orientationRadians ?? 0;
+    group.add(proxy);
+    const rotor = new Mesh(
+      new TorusGeometry(
+        0.56,
+        0.04,
+        detailPolicy.geometry.torusRadialSegments,
+        detailPolicy.geometry.torusTubularSegments
+      ),
+      new MeshStandardMaterial({
+        color: new Color(0x4cd0ff),
+        emissive: new Color(0x1a8bb5),
+        emissiveIntensity: 0.55,
+        roughness: 0.34,
+        metalness: 0.38,
+      })
+    );
+    rotor.name = 'FlywheelPerformanceRotor';
+    rotor.position.set(options.centerX, 0.72, options.centerZ);
+    rotor.rotation.x = Math.PI / 2;
+    group.add(rotor);
+    colliders.push({
+      minX: options.centerX - proxyRadius,
+      maxX: options.centerX + proxyRadius,
+      minZ: options.centerZ - proxyRadius,
+      maxZ: options.centerZ + proxyRadius,
+    });
+    return {
+      group,
+      colliders,
+      update(context) {
+        const smoothing =
+          context.delta > 0 ? 1 - Math.exp(-context.delta * 3.8) : 1;
+        selectionStrength = MathUtils.lerp(
+          selectionStrength,
+          selectionTarget,
+          smoothing
+        );
+        if (Math.max(context.emphasis, selectionStrength) > 0.4) {
+          rotor.rotation.z += context.delta * 0.4;
+        }
+      },
+    } satisfies FlywheelShowpieceBuild;
   }
 
   const daisRadius = 1.45;

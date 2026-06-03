@@ -16,11 +16,18 @@ import {
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 export interface ModelRocketConfig {
   basePosition: Vector3;
   orientationRadians?: number;
   scale?: number;
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export interface ModelRocketBuild {
@@ -33,6 +40,11 @@ const DEFAULT_SCALE = 1;
 const FIN_COUNT = 3;
 
 export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
+  const detailPolicy =
+    config.detailPolicy ??
+    getSceneDetailPolicy(config.detailLevel ?? 'balanced');
+  const isPerformance = detailPolicy.level === 'performance';
+  const segments = detailPolicy.geometry.cylinderSegments;
   const scale = config.scale ?? DEFAULT_SCALE;
   const orientation = config.orientationRadians ?? 0;
   const basePosition = config.basePosition.clone();
@@ -48,7 +60,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     standRadius,
     standRadius,
     standHeight,
-    32
+    segments
   );
   const standMaterial = new MeshStandardMaterial({
     color: new Color(0x2c3442),
@@ -64,7 +76,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     standRadius * 0.98,
     standRadius * 1.04,
     standHeight * 0.38,
-    32
+    segments
   );
   const standTrimMaterial = new MeshStandardMaterial({
     color: new Color(0x39475b),
@@ -84,7 +96,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 1.02,
     bodyRadius * 0.94,
     bodyHeight,
-    40
+    segments
   );
   const bodyMaterial = new MeshStandardMaterial({
     color: new Color(0xe7eefc),
@@ -103,7 +115,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 1.06,
     bodyRadius * 1.06,
     stripeHeight,
-    40
+    segments
   );
   const stripeMaterial = new MeshStandardMaterial({
     color: new Color(0xff6b6b),
@@ -118,7 +130,11 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   group.add(stripe);
 
   const noseHeight = 1.1 * scale;
-  const noseGeometry = new ConeGeometry(bodyRadius * 0.92, noseHeight, 40);
+  const noseGeometry = new ConeGeometry(
+    bodyRadius * 0.92,
+    noseHeight,
+    segments
+  );
   const noseMaterial = new MeshStandardMaterial({
     color: new Color(0xff8976),
     emissive: new Color(0xb33a2d),
@@ -159,7 +175,9 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   );
   thrusterLight.name = 'ModelRocketThrusterLight';
   thrusterLight.position.set(0, standHeight + thrusterHeight * 0.24, 0);
-  group.add(thrusterLight);
+  if (detailPolicy.effects.dynamicPointLights) {
+    group.add(thrusterLight);
+  }
 
   const flameGeometry = new ConeGeometry(
     bodyRadius * 0.42,
@@ -259,6 +277,9 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   const thrusterLightBaseDistance = thrusterLight.distance;
 
   const update = ({ elapsed }: { elapsed: number; delta: number }) => {
+    if (isPerformance) {
+      return;
+    }
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
     const thrusterPulse =
       ((Math.sin(elapsed * 2.1) + 1) / 2) * MathUtils.lerp(0.45, 1, pulseScale);

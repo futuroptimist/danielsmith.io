@@ -18,6 +18,11 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
@@ -30,6 +35,8 @@ const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
 
 interface MediaWallScreenRendererOptions {
   starCount: number;
+  textureScale?: number;
+  redrawThrottleMs?: number;
 }
 
 class MediaWallScreenRenderer {
@@ -38,11 +45,18 @@ class MediaWallScreenRenderer {
   private readonly texture: CanvasTexture;
   private highlight = 0;
   private starCount: number;
+  private readonly logicalWidth = SCREEN_WIDTH;
+  private readonly logicalHeight = SCREEN_HEIGHT;
+  private readonly textureScale: number;
+  private readonly redrawThrottleMs: number;
+  private lastRenderMs = Number.NEGATIVE_INFINITY;
 
   constructor(options: MediaWallScreenRendererOptions) {
     const canvas = document.createElement('canvas');
-    canvas.width = SCREEN_WIDTH;
-    canvas.height = SCREEN_HEIGHT;
+    this.textureScale = MathUtils.clamp(options.textureScale ?? 1, 0.25, 1);
+    this.redrawThrottleMs = Math.max(0, options.redrawThrottleMs ?? 0);
+    canvas.width = Math.round(SCREEN_WIDTH * this.textureScale);
+    canvas.height = Math.round(SCREEN_HEIGHT * this.textureScale);
     const context = canvas.getContext('2d');
 
     if (!context) {
@@ -55,7 +69,7 @@ class MediaWallScreenRenderer {
     this.texture.colorSpace = SRGBColorSpace;
     this.starCount = options.starCount;
 
-    this.render();
+    this.render(true);
   }
 
   getTexture(): CanvasTexture {
@@ -68,7 +82,7 @@ class MediaWallScreenRenderer {
     } else {
       this.starCount = count;
     }
-    this.render();
+    this.render(true);
   }
 
   updateHighlight(target: number) {
@@ -77,16 +91,24 @@ class MediaWallScreenRenderer {
       return;
     }
     this.highlight = clamped;
-    this.render();
+    this.render(true);
   }
 
   dispose() {
     this.texture.dispose();
   }
 
-  private render() {
+  private render(force = false) {
+    const now = typeof performance === 'undefined' ? 0 : performance.now();
+    if (!force && now - this.lastRenderMs < this.redrawThrottleMs) {
+      return;
+    }
+    this.lastRenderMs = now;
     this.context.save();
-    this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (typeof this.context.scale === 'function') {
+      this.context.scale(this.textureScale, this.textureScale);
+    }
+    this.context.clearRect(0, 0, this.logicalWidth, this.logicalHeight);
     this.drawBase();
     this.drawStarHighlight();
     this.context.restore();
@@ -444,9 +466,18 @@ function createMediaWallController({
   };
 }
 
+export interface LivingRoomMediaWallOptions {
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
+}
+
 export function createLivingRoomMediaWall(
-  bounds: Bounds2D
+  bounds: Bounds2D,
+  options: LivingRoomMediaWallOptions = {}
 ): LivingRoomMediaWallBuild {
+  const detailPolicy =
+    options.detailPolicy ??
+    getSceneDetailPolicy(options.detailLevel ?? 'balanced');
   const group = new Group();
   group.name = 'LivingRoomMediaWall';
   const colliders: RectCollider[] = [];
@@ -695,7 +726,7 @@ export function createLivingRoomMediaWall(
     clearanceBaseColor,
     clearanceHighlightColor,
   });
-  controller.setStarCount(1280);
+  controller.setStarCount(detailPolicy.level === 'performance' ? 160 : 1280);
 
   return { group, colliders, poiBindings, controller };
 }

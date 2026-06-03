@@ -29,6 +29,12 @@ interface PerformanceSnapshot {
     lastAdaptiveReason: string | null;
     lastAdaptiveDowngradeReason: string | null;
     lastAdaptiveRecoveryReason: string | null;
+    sceneDetail?: {
+      level: 'cinematic' | 'balanced' | 'performance';
+      textures: { canvasScale: number };
+      effects: { transparentShaders: boolean; dynamicPointLights: boolean };
+      budget: { texturePixels: number; shaderEffectWeight: number };
+    };
     adaptivePolicy: {
       isWarmingUp: boolean;
       warmupElapsedMs: number;
@@ -46,6 +52,13 @@ interface PerformanceSnapshot {
     mirrorRenderTargetSize: number;
     mirrorUpdateRateFps: number;
     mirrorRenderCount: number;
+  };
+  rendererRuntime?: {
+    calls: number;
+    triangles: number;
+    points: number;
+    lines: number;
+    memory: { geometries: number; textures: number };
   };
   renderer: {
     isSoftwareRenderer: boolean;
@@ -232,6 +245,56 @@ test.describe('immersive performance diagnostics', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
       expect(snapshot.quality.adaptivePolicy).toBeDefined();
+      expect(snapshot.rendererRuntime?.calls).toBeGreaterThanOrEqual(0);
+      expect(snapshot.rendererRuntime?.triangles).toBeGreaterThanOrEqual(0);
+      expect(
+        snapshot.rendererRuntime?.memory.geometries
+      ).toBeGreaterThanOrEqual(0);
+      expect(snapshot.quality.sceneDetail).toBeDefined();
+      expect(
+        snapshot.quality.sceneDetail?.budget.texturePixels
+      ).toBeGreaterThan(0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('caps scene detail budgets when performance quality is persisted', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await page.addInitScript(() => {
+      try {
+        window.localStorage.setItem(
+          'danielsmith:graphics-quality-level',
+          'performance'
+        );
+      } catch {
+        // Ignore inaccessible storage in hardened browser contexts.
+      }
+    });
+
+    try {
+      await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.quality.level).toBe('performance');
+      expect(snapshot.quality.sceneDetail?.level).toBe('performance');
+      expect(
+        snapshot.quality.sceneDetail?.textures.canvasScale
+      ).toBeLessThanOrEqual(0.25);
+      expect(snapshot.quality.sceneDetail?.effects.transparentShaders).toBe(
+        false
+      );
+      expect(snapshot.quality.sceneDetail?.effects.dynamicPointLights).toBe(
+        false
+      );
+      expect(
+        snapshot.quality.sceneDetail?.budget.texturePixels
+      ).toBeLessThanOrEqual(512 * 256);
+      expect(snapshot.rendererRuntime?.calls).toBeGreaterThanOrEqual(0);
+      expect(snapshot.rendererRuntime?.triangles).toBeGreaterThanOrEqual(0);
     } finally {
       await context.close();
     }

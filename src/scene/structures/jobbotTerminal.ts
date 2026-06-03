@@ -15,6 +15,11 @@ import {
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 export interface JobbotTerminalBuild {
   group: Group;
@@ -35,6 +40,8 @@ export interface JobbotTerminalOptions {
     width?: number;
     depth?: number;
   };
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 interface DataShardState {
@@ -46,54 +53,59 @@ interface DataShardState {
   orbitSpeed: number;
 }
 
-function createTerminalScreenTexture(): CanvasTexture {
+function createTerminalScreenTexture(textureScale = 1): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 1024;
+  const logicalWidth = 2048;
+  const logicalHeight = 1024;
+  canvas.width = Math.round(logicalWidth * textureScale);
+  canvas.height = Math.round(logicalHeight * textureScale);
   const context = canvas.getContext('2d');
 
   if (context) {
+    if (typeof context.scale === 'function') {
+      context.scale(textureScale, textureScale);
+    }
     context.fillStyle = '#07111f';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, logicalWidth, logicalHeight);
 
     const background = context.createLinearGradient(
       0,
       0,
-      canvas.width,
-      canvas.height
+      logicalWidth,
+      logicalHeight
     );
     background.addColorStop(0, '#0d253f');
     background.addColorStop(0.6, '#10203a');
     background.addColorStop(1, '#0c1728');
     context.fillStyle = background;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, logicalWidth, logicalHeight);
 
     context.fillStyle = '#7cf1ff';
     context.font = 'bold 220px "Inter", "Segoe UI", sans-serif';
     context.textAlign = 'left';
     context.textBaseline = 'alphabetic';
-    context.fillText('jobbot3000', canvas.width * 0.08, canvas.height * 0.46);
+    context.fillText('jobbot3000', logicalWidth * 0.08, logicalHeight * 0.46);
 
     context.font = '64px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#9ce9ff';
     context.fillText(
       'Automation orchestrator · live diagnostics stream',
-      canvas.width * 0.08,
-      canvas.height * 0.68
+      logicalWidth * 0.08,
+      logicalHeight * 0.68
     );
 
     context.font = '52px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#fede72';
     context.fillText(
       'Status: nominal · queue depth 0 · SLA 99.98%',
-      canvas.width * 0.08,
-      canvas.height * 0.82
+      logicalWidth * 0.08,
+      logicalHeight * 0.82
     );
 
-    const rightColumnX = canvas.width * 0.7;
+    const rightColumnX = logicalWidth * 0.7;
     context.font = '600 56px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#ffffff';
-    context.fillText('Ops timeline', rightColumnX, canvas.height * 0.32);
+    context.fillText('Ops timeline', rightColumnX, logicalHeight * 0.32);
 
     context.font = '42px "Inter", "Segoe UI", sans-serif';
     context.fillStyle = '#b6d8ff';
@@ -103,7 +115,7 @@ function createTerminalScreenTexture(): CanvasTexture {
       '• 05:38 · queue drained',
     ];
     logLines.forEach((line, index) => {
-      context.fillText(line, rightColumnX, canvas.height * (0.4 + index * 0.1));
+      context.fillText(line, rightColumnX, logicalHeight * (0.4 + index * 0.1));
     });
   }
 
@@ -116,18 +128,24 @@ function createTerminalScreenTexture(): CanvasTexture {
 function createTelemetryPanelTexture(
   heading: string,
   primary: string,
-  metrics: string[]
+  metrics: string[],
+  textureScale = 1
 ): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 512;
+  const logicalWidth = 1024;
+  const logicalHeight = 512;
+  canvas.width = Math.round(logicalWidth * textureScale);
+  canvas.height = Math.round(logicalHeight * textureScale);
   const context = canvas.getContext('2d');
 
   if (!context) {
     throw new Error('Unable to create telemetry panel canvas.');
   }
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (typeof context.scale === 'function') {
+    context.scale(textureScale, textureScale);
+  }
+  context.clearRect(0, 0, logicalWidth, logicalHeight);
   context.fillStyle = 'rgba(5, 18, 32, 0.9)';
   context.fillRect(48, 48, canvas.width - 96, canvas.height - 96);
 
@@ -205,6 +223,14 @@ export function createJobbotTerminal(
   options: JobbotTerminalOptions
 ): JobbotTerminalBuild {
   const { position, orientationRadians = 0, desk } = options;
+  const detailPolicy =
+    options.detailPolicy ??
+    getSceneDetailPolicy(options.detailLevel ?? 'balanced');
+  const isPerformance = detailPolicy.level === 'performance';
+  const cylinderSegments = detailPolicy.geometry.cylinderSegments;
+  const sphereWidthSegments = detailPolicy.geometry.sphereWidthSegments;
+  const sphereHeightSegments = detailPolicy.geometry.sphereHeightSegments;
+  const textureScale = detailPolicy.textures.canvasScale;
   const baseY = position.y ?? 0;
   const deskWidth = desk?.width ?? 3.6;
   const deskDepth = desk?.depth ?? 1.6;
@@ -283,7 +309,7 @@ export function createJobbotTerminal(
   );
   group.add(accent);
 
-  const screenTexture = createTerminalScreenTexture();
+  const screenTexture = createTerminalScreenTexture(textureScale);
   const screenMaterial = new MeshBasicMaterial({
     map: screenTexture,
     transparent: true,
@@ -335,7 +361,12 @@ export function createJobbotTerminal(
   ticker.renderOrder = 7;
   group.add(ticker);
 
-  const hologramBaseGeometry = new CylinderGeometry(0.42, 0.5, 0.18, 48);
+  const hologramBaseGeometry = new CylinderGeometry(
+    0.42,
+    0.5,
+    0.18,
+    cylinderSegments
+  );
   const hologramBaseMaterial = new MeshStandardMaterial({
     color: new Color(0x152335),
     emissive: new Color(0x1b5dff),
@@ -365,7 +396,14 @@ export function createJobbotTerminal(
     depthWrite: false,
     toneMapped: false,
   });
-  const hologramGeometry = new CylinderGeometry(0.12, 0.4, 0.8, 36, 1, true);
+  const hologramGeometry = new CylinderGeometry(
+    0.12,
+    0.4,
+    0.8,
+    cylinderSegments,
+    1,
+    true
+  );
   const hologram = new Mesh(hologramGeometry, hologramMaterial);
   hologram.position.y = 0.3;
   hologramGroup.add(hologram);
@@ -377,7 +415,11 @@ export function createJobbotTerminal(
     roughness: 0.2,
     metalness: 0.45,
   });
-  const hologramCoreGeometry = new SphereGeometry(0.18, 32, 32);
+  const hologramCoreGeometry = new SphereGeometry(
+    0.18,
+    sphereWidthSegments,
+    sphereHeightSegments
+  );
   const hologramCore = new Mesh(hologramCoreGeometry, hologramCoreMaterial);
   hologramCore.name = 'JobbotTerminalCore';
   hologramCore.position.set(0, 0.55, 0);
@@ -461,7 +503,8 @@ export function createJobbotTerminal(
     const texture = createTelemetryPanelTexture(
       descriptor.heading,
       descriptor.primary,
-      descriptor.metrics
+      descriptor.metrics,
+      textureScale
     );
     const material = new MeshBasicMaterial({
       map: texture,
@@ -509,7 +552,11 @@ export function createJobbotTerminal(
   telemetryAura.renderOrder = 2;
   group.add(telemetryAura);
 
-  const statusBeaconGeometry = new SphereGeometry(0.08, 24, 24);
+  const statusBeaconGeometry = new SphereGeometry(
+    0.08,
+    sphereWidthSegments,
+    sphereHeightSegments
+  );
   const statusBeaconMaterial = new MeshStandardMaterial({
     color: new Color(0x1a2f40),
     emissive: new Color(0x3cb6ff),
@@ -630,6 +677,9 @@ export function createJobbotTerminal(
       const shardSpinScale = pulseScale <= 0 ? 0 : Math.max(spinScale, 0.15);
       const shardAmplitudeScale =
         pulseScale <= 0 ? 0 : MathUtils.lerp(0.4, 1, combinedEmphasis);
+      if (isPerformance && combinedEmphasis < 0.35) {
+        return;
+      }
       dataShards.forEach((shard, index) => {
         shard.orbitAngle +=
           delta * shard.orbitSpeed * shardOrbitDriver * shardSpinScale;
@@ -689,6 +739,9 @@ export function createJobbotTerminal(
       telemetryGroup.position.y =
         telemetryBaseHeight + bob * MathUtils.lerp(0.26, 0.6, pulseScale);
 
+      if (isPerformance && combinedEmphasis < 0.35) {
+        return;
+      }
       telemetryPanelMaterials.forEach((material, index) => {
         const wave = (Math.sin(elapsed * 2.6 + index) + 1) / 2;
         const driver = MathUtils.lerp(

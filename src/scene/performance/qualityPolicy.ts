@@ -119,6 +119,14 @@ export function resolveSoftwareSafeRenderCadence({
   };
 }
 
+export interface QualityPolicyDeviceHints {
+  coarsePointer?: boolean;
+  mobileLike?: boolean;
+  tabletLike?: boolean;
+  deviceMemoryGb?: number | null;
+  hardwareConcurrency?: number | null;
+}
+
 export interface QualityPolicyState {
   initialLevel: GraphicsQualityLevel;
   basePixelRatioCap: number;
@@ -168,7 +176,8 @@ export function resolveInitialQualityPolicy(
   devicePixelRatio: number,
   softwareRendererPolicy: SoftwareRendererPolicyState = resolveSoftwareRendererPolicy(
     rendererInfo
-  )
+  ),
+  deviceHints: QualityPolicyDeviceHints = {}
 ): QualityPolicyState {
   if (
     rendererInfo.isDangerousSoftwareRenderer &&
@@ -199,6 +208,34 @@ export function resolveInitialQualityPolicy(
       softwareSafeMode: false,
       renderCadenceFps: null,
       reason: 'software renderer starts in performance mode',
+    };
+  }
+
+  const isConstrainedMobileOrTablet =
+    Boolean(
+      deviceHints.coarsePointer ||
+        deviceHints.mobileLike ||
+        deviceHints.tabletLike
+    ) ||
+    (typeof deviceHints.deviceMemoryGb === 'number' &&
+      deviceHints.deviceMemoryGb > 0 &&
+      deviceHints.deviceMemoryGb <= 4) ||
+    (typeof deviceHints.hardwareConcurrency === 'number' &&
+      deviceHints.hardwareConcurrency > 0 &&
+      deviceHints.hardwareConcurrency <= 4);
+
+  if (isConstrainedMobileOrTablet) {
+    return {
+      initialLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.9, 0.6),
+      mirrorEnabled: false,
+      mirrorTargetSize: 192,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 100,
+      softwareSafeMode: false,
+      renderCadenceFps: null,
+      reason:
+        'coarse-pointer or constrained mobile/tablet hardware starts in performance mode',
     };
   }
 

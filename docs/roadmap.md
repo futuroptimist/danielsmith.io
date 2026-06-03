@@ -291,7 +291,9 @@ Focus: unify user controls and ensure graceful fallback experiences.
 - ✅ Accessibility HUD presets now expose Standard, Calm, and Photosensitive-safe modes
   that soften bloom, ease emissives, duck ambient audio, and boost HUD contrast.
   - ✅ Graphics HUD presets let players choose Cinematic, Balanced, or Performance modes
-    that retune bloom, LED lighting, and pixel ratio for their device.
+    that retune bloom, LED lighting, and pixel ratio for their device. Performance
+    also activates aggressive low-poly/low-effect scene detail budgets that target
+    theoretical workload reduction rather than a guaranteed FPS multiplier on every GPU.
 - ✅ Ambient audio HUD now exposes a mute toggle and keyboard-friendly volume slider.
 - ✅ Mobile HUD layout now lifts instructional overlays above the joystick
   safe zone so touch movement remains unobstructed.

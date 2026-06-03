@@ -42,6 +42,11 @@ import {
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
+import {
   applySeasonalLightingPreset,
   type SeasonalLightingPreset,
   type SeasonalLightingTarget,
@@ -79,6 +84,12 @@ interface WalkwayArrowTarget {
 interface WalkwayArrowSeasonalTarget {
   material: MeshBasicMaterial;
   baseColor: Color;
+}
+
+export interface BackyardEnvironmentOptions {
+  seasonalPreset?: SeasonalLightingPreset | null;
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 interface WalkwayMistLayer {
@@ -297,14 +308,16 @@ function createDuskLightProbe(): LightProbe {
   return probe;
 }
 
-export interface BackyardEnvironmentOptions {
-  seasonalPreset?: SeasonalLightingPreset | null;
-}
-
 export function createBackyardEnvironment(
   bounds: Bounds2D,
-  { seasonalPreset = null }: BackyardEnvironmentOptions = {}
+  {
+    seasonalPreset = null,
+    detailLevel = 'balanced',
+    detailPolicy,
+  }: BackyardEnvironmentOptions = {}
 ): BackyardEnvironmentBuild {
+  const sceneDetail = detailPolicy ?? getSceneDetailPolicy(detailLevel);
+  const isPerformance = sceneDetail.level === 'performance';
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
@@ -324,7 +337,11 @@ export function createBackyardEnvironment(
   group.add(duskLightProbe);
 
   const skyRadius = Math.max(width, depth) * 1.32;
-  const skyGeometry = new SphereGeometry(skyRadius, 48, 48);
+  const skyGeometry = new SphereGeometry(
+    skyRadius,
+    sceneDetail.geometry.sphereWidthSegments,
+    sceneDetail.geometry.sphereHeightSegments
+  );
   skyGeometry.scale(1, 0.62, 1);
   const verticalExtent = skyRadius * 0.62;
 
@@ -440,7 +457,7 @@ export function createBackyardEnvironment(
     );
   });
 
-  const terrainSegments = 32;
+  const terrainSegments = sceneDetail.geometry.terrainSegments;
   const terrainGeometry = new PlaneGeometry(
     width,
     depth,
@@ -498,6 +515,7 @@ export function createBackyardEnvironment(
   const rocket = createModelRocket({
     basePosition: rocketBase,
     orientationRadians: -Math.PI / 10,
+    detailPolicy: sceneDetail,
   });
   group.add(rocket.group);
   colliders.push(rocket.collider);
@@ -537,6 +555,7 @@ export function createBackyardEnvironment(
     depth: greenhouseDepth,
     environmentMap: duskReflectionMap,
     environmentIntensity: 0.62,
+    detailPolicy: sceneDetail,
   });
   group.add(greenhouse.group);
   greenhouse.colliders.forEach((collider) => colliders.push(collider));
@@ -650,7 +669,7 @@ export function createBackyardEnvironment(
     1
   );
   walkwayMistGeometry.rotateX(-Math.PI / 2);
-  const walkwayMistLayerCount = 3;
+  const walkwayMistLayerCount = sceneDetail.effects.transparentShaders ? 3 : 0;
   for (let i = 0; i < walkwayMistLayerCount; i += 1) {
     const ratio = (i + 1) / (walkwayMistLayerCount + 1);
     const baseOpacity = MathUtils.lerp(0.24, 0.38, ratio);
@@ -1648,7 +1667,12 @@ export function createBackyardEnvironment(
       glass.position.y = 1.05;
       lantern.add(glass);
 
-      const light = new PointLight(0xffd9a2, 0.85, 4.4, 2.6);
+      const light = new PointLight(
+        0xffd9a2,
+        sceneDetail.effects.dynamicPointLights ? 0.85 : 0,
+        4.4,
+        2.6
+      );
       light.name = `BackyardWalkwayLanternLight-${lanternIndex}`;
       light.position.y = 1.05;
       light.color.copy(glassMaterial.emissive);
@@ -1945,7 +1969,7 @@ export function createBackyardEnvironment(
 
   const duskLight = new PointLight(
     0x8fb8ff,
-    0.065,
+    sceneDetail.effects.dynamicPointLights ? 0.065 : 0,
     Math.max(width, depth) * 0.9,
     2.4
   );
@@ -2082,6 +2106,9 @@ export function createBackyardEnvironment(
   });
 
   const update = (context: { elapsed: number; delta: number }) => {
+    if (isPerformance) {
+      return;
+    }
     updates.forEach((fn) => fn(context));
   };
 

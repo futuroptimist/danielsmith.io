@@ -12,6 +12,12 @@ import {
   TorusGeometry,
 } from 'three';
 
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
+
 // Deterministic floor-to-crest height used by initial camera framing before assets load.
 export const PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT = 2.6;
 
@@ -32,6 +38,8 @@ export interface PortfolioMannequinOptions {
    * Head and glove color used to suggest skin or fabric contrast.
    */
   trimColor?: string;
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export interface PortfolioMannequinPalette {
@@ -84,6 +92,14 @@ function createStandardMaterial(
 export function createPortfolioMannequin(
   options: PortfolioMannequinOptions = {}
 ): PortfolioMannequinBuild {
+  const detailPolicy =
+    options.detailPolicy ??
+    getSceneDetailPolicy(options.detailLevel ?? 'balanced');
+  const cylinderSegments = detailPolicy.geometry.cylinderSegments;
+  const sphereWidthSegments = detailPolicy.geometry.sphereWidthSegments;
+  const sphereHeightSegments = detailPolicy.geometry.sphereHeightSegments;
+  const torusRadialSegments = detailPolicy.geometry.torusRadialSegments;
+  const torusTubularSegments = detailPolicy.geometry.torusTubularSegments;
   const collisionRadius = options.collisionRadius ?? 0.75;
   const initialPalette: PortfolioMannequinPalette = {
     base: options.baseColor ?? '#283347',
@@ -95,7 +111,11 @@ export function createPortfolioMannequin(
   group.name = 'PortfolioMannequin';
 
   const collisionProxy = new Mesh(
-    new SphereGeometry(collisionRadius, 32, 32),
+    new SphereGeometry(
+      collisionRadius,
+      sphereWidthSegments,
+      sphereHeightSegments
+    ),
     new MeshBasicMaterial({ color: 0xffffff })
   );
   collisionProxy.name = 'PortfolioMannequinCollisionProxy';
@@ -116,7 +136,7 @@ export function createPortfolioMannequin(
   );
   const platformHeight = 0.08;
   const platform = new Mesh(
-    new CylinderGeometry(0.58, 0.58, platformHeight, 48),
+    new CylinderGeometry(0.58, 0.58, platformHeight, cylinderSegments),
     platformMaterial
   );
   platform.name = 'PortfolioMannequinPlatform';
@@ -128,7 +148,7 @@ export function createPortfolioMannequin(
   const legMaterial = createStandardMaterial(new Color(initialPalette.base));
   const legHeight = 0.92;
   const legs = new Mesh(
-    new CylinderGeometry(0.26, 0.3, legHeight, 32),
+    new CylinderGeometry(0.26, 0.3, legHeight, cylinderSegments),
     legMaterial
   );
   legs.name = 'PortfolioMannequinLegs';
@@ -170,7 +190,7 @@ export function createPortfolioMannequin(
   rightFoot.add(rightFootMesh);
 
   const accentBand = new Mesh(
-    new TorusGeometry(0.34, 0.05, 20, 48),
+    new TorusGeometry(0.34, 0.05, torusRadialSegments, torusTubularSegments),
     platformMaterial.clone()
   );
   accentBand.name = 'PortfolioMannequinWaistBand';
@@ -184,7 +204,7 @@ export function createPortfolioMannequin(
 
   const torsoMaterial = createStandardMaterial(new Color(initialPalette.base));
   const torso = new Mesh(
-    new CylinderGeometry(0.46, 0.36, 0.86, 32),
+    new CylinderGeometry(0.46, 0.36, 0.86, cylinderSegments),
     torsoMaterial
   );
   torso.name = 'PortfolioMannequinTorso';
@@ -196,7 +216,7 @@ export function createPortfolioMannequin(
   const shoulderMaterial = createStandardMaterial(
     new Color(initialPalette.base)
   );
-  const armGeometry = new CylinderGeometry(0.16, 0.18, 0.82, 24);
+  const armGeometry = new CylinderGeometry(0.16, 0.18, 0.82, cylinderSegments);
 
   const leftArm = new Mesh(armGeometry, shoulderMaterial);
   leftArm.name = 'PortfolioMannequinArmLeft';
@@ -222,7 +242,7 @@ export function createPortfolioMannequin(
     }
   );
   const leftCuff = new Mesh(
-    new TorusGeometry(0.16, 0.035, 14, 32),
+    new TorusGeometry(0.16, 0.035, torusRadialSegments, torusTubularSegments),
     cuffMaterial
   );
   leftCuff.name = 'PortfolioMannequinCuffLeft';
@@ -236,7 +256,12 @@ export function createPortfolioMannequin(
   mannequinRoot.add(rightCuff);
 
   const trimMaterial = createStandardMaterial(new Color(initialPalette.trim));
-  const gloveGeometry = new CylinderGeometry(0.18, 0.18, 0.22, 18);
+  const gloveGeometry = new CylinderGeometry(
+    0.18,
+    0.18,
+    0.22,
+    cylinderSegments
+  );
   const leftGlove = new Mesh(gloveGeometry, trimMaterial);
   leftGlove.name = 'PortfolioMannequinGloveLeft';
   leftGlove.position.set(
@@ -265,7 +290,7 @@ export function createPortfolioMannequin(
     }
   );
   const collar = new Mesh(
-    new TorusGeometry(0.3, 0.045, 16, 36),
+    new TorusGeometry(0.3, 0.045, torusRadialSegments, torusTubularSegments),
     collarMaterial
   );
   collar.name = 'PortfolioMannequinCollar';
@@ -274,7 +299,10 @@ export function createPortfolioMannequin(
   mannequinRoot.add(collar);
 
   const headMaterial = createStandardMaterial(new Color(initialPalette.trim));
-  const head = new Mesh(new SphereGeometry(0.28, 32, 32), headMaterial);
+  const head = new Mesh(
+    new SphereGeometry(0.28, sphereWidthSegments, sphereHeightSegments),
+    headMaterial
+  );
   head.name = 'PortfolioMannequinHead';
   head.position.y = collar.position.y + 0.32;
   head.castShadow = true;
@@ -283,7 +311,11 @@ export function createPortfolioMannequin(
 
   // Add a simple smiley face marker to the front of the head for directionality.
   const faceMaterial = new MeshBasicMaterial({ color: 0x000000 });
-  const eyeGeometry = new SphereGeometry(0.03, 12, 12);
+  const eyeGeometry = new SphereGeometry(
+    0.03,
+    Math.min(12, sphereWidthSegments),
+    Math.min(12, sphereHeightSegments)
+  );
   const leftEye = new Mesh(eyeGeometry, faceMaterial);
   leftEye.name = 'PortfolioMannequinFaceLeftEye';
   leftEye.position.set(-0.08, head.position.y + 0.06, 0.25);
@@ -296,7 +328,13 @@ export function createPortfolioMannequin(
 
   // Mouth as a thin torus segment to suggest a smile on the front side.
   const mouth = new Mesh(
-    new TorusGeometry(0.09, 0.012, 8, 24, Math.PI),
+    new TorusGeometry(
+      0.09,
+      0.012,
+      Math.min(8, torusRadialSegments),
+      torusTubularSegments,
+      Math.PI
+    ),
     faceMaterial
   );
   mouth.name = 'PortfolioMannequinFaceMouth';
@@ -315,7 +353,7 @@ export function createPortfolioMannequin(
   visorMaterial.opacity = 0.72;
   visorMaterial.side = DoubleSide;
   const visor = new Mesh(
-    new CylinderGeometry(0.27, 0.27, 0.16, 32, 1, true),
+    new CylinderGeometry(0.27, 0.27, 0.16, cylinderSegments, 1, true),
     visorMaterial
   );
   visor.name = 'PortfolioMannequinVisor';

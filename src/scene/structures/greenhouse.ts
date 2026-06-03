@@ -6,6 +6,7 @@ import {
   Group,
   MathUtils,
   Mesh,
+  MeshBasicMaterial,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
@@ -20,6 +21,11 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 export interface GreenhouseConfig {
   basePosition: Vector3;
@@ -28,6 +34,8 @@ export interface GreenhouseConfig {
   depth?: number;
   environmentMap?: Texture | null;
   environmentIntensity?: number;
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export interface GreenhouseBuild {
@@ -46,6 +54,10 @@ const BASE_HEIGHT = 0.18;
 const SOLAR_BASE_TILT = -MathUtils.degToRad(18);
 
 export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
+  const detailPolicy =
+    config.detailPolicy ??
+    getSceneDetailPolicy(config.detailLevel ?? 'balanced');
+  const isPerformance = detailPolicy.level === 'performance';
   const width = config.width ?? DEFAULT_WIDTH;
   const depth = config.depth ?? DEFAULT_DEPTH;
   const orientation = config.orientationRadians ?? 0;
@@ -193,15 +205,23 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   roofBeamRight.rotation.z = -roofBeamLeft.rotation.z;
   frameGroup.add(roofBeamRight);
 
-  const glassMaterial = new MeshPhysicalMaterial({
-    color: new Color(0x9cd6ff),
-    transparent: true,
-    opacity: 0.28,
-    roughness: 0.1,
-    metalness: 0.0,
-    transmission: 0.86,
-    thickness: 0.18,
-  });
+  const glassMaterial = detailPolicy.effects.physicalGlass
+    ? new MeshPhysicalMaterial({
+        color: new Color(0x9cd6ff),
+        transparent: true,
+        opacity: 0.28,
+        roughness: 0.1,
+        metalness: 0.0,
+        transmission: 0.86,
+        thickness: 0.18,
+      })
+    : new MeshStandardMaterial({
+        color: new Color(0x9cd6ff),
+        transparent: true,
+        opacity: 0.18,
+        roughness: 0.55,
+        metalness: 0.0,
+      });
   applyEnvironmentMap(glassMaterial);
 
   const wallGeometry = new PlaneGeometry(
@@ -337,12 +357,13 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     outerColor: { value: new Color(0x082b3e) },
   };
 
-  const pondRippleMaterial = new ShaderMaterial({
-    uniforms: pondRippleUniforms,
-    blending: AdditiveBlending,
-    transparent: true,
-    depthWrite: false,
-    vertexShader: `
+  const pondRippleMaterial = detailPolicy.effects.transparentShaders
+    ? new ShaderMaterial({
+        uniforms: pondRippleUniforms,
+        blending: AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+        vertexShader: `
       varying vec2 vUv;
 
       void main() {
@@ -350,7 +371,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
-    fragmentShader: `
+        fragmentShader: `
       uniform float time;
       uniform float amplitude;
       uniform float brightness;
@@ -393,7 +414,13 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
         gl_FragColor = vec4(baseColor, alpha);
       }
     `,
-  });
+      })
+    : new MeshBasicMaterial({
+        color: new Color(0x155266),
+        transparent: true,
+        opacity: 0.28,
+        depthWrite: false,
+      });
 
   const pondRipple = new Mesh(
     new PlaneGeometry(depth * 0.36, depth * 0.36),
@@ -446,7 +473,12 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   });
 
   const growLightMaterials: MeshStandardMaterial[] = [];
-  const growLightGeometry = new CylinderGeometry(0.05, 0.05, width * 0.32, 12);
+  const growLightGeometry = new CylinderGeometry(
+    0.05,
+    0.05,
+    width * 0.32,
+    detailPolicy.geometry.cylinderSegments
+  );
   const growLightSpacing = depth * 0.38;
   [-growLightSpacing, 0, growLightSpacing].forEach((offsetZ, index) => {
     const lightMaterial = new MeshStandardMaterial({
@@ -465,6 +497,9 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   });
 
   const update = ({ elapsed }: { elapsed: number; delta: number }) => {
+    if (isPerformance) {
+      return;
+    }
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
     const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
     const calmScale = Math.min(pulseScale, flickerScale);

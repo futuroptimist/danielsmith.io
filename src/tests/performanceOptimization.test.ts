@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
@@ -137,6 +138,19 @@ describe('immersive performance optimization policy', () => {
     expect(normal.mirrorEnabled).toBe(true);
   });
 
+  it('starts constrained coarse-pointer tablet sessions in performance when no preference exists', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }, ''),
+      { coarsePointer: true, tabletLike: true, deviceMemoryGb: 4 }
+    );
+
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.mirrorEnabled).toBe(false);
+    expect(policy.reason).toContain('mobile/tablet');
+  });
+
   it('chooses ultra-low DPR and capped cadence for dangerous software safe mode', () => {
     const policy = resolveSoftwareRendererPolicy(
       { isDangerousSoftwareRenderer: true },
@@ -261,6 +275,28 @@ describe('immersive performance optimization policy', () => {
       mirrorUpdateRateFps: 15,
       mirrorTargetSize: 512,
     });
+  });
+
+  it('maps graphics quality levels to centralized scene detail budgets', () => {
+    const balanced = getSceneDetailPolicy('balanced');
+    const performance = getSceneDetailPolicy('performance');
+
+    expect(performance.level).toBe('performance');
+    expect(performance.effects.transparentShaders).toBe(false);
+    expect(performance.effects.dynamicPointLights).toBe(false);
+    expect(performance.textures.canvasScale).toBeLessThanOrEqual(0.25);
+    expect(performance.budget.texturePixels).toBeLessThanOrEqual(
+      balanced.budget.texturePixels / 16
+    );
+    expect(performance.budget.shaderEffectWeight).toBeLessThan(
+      balanced.budget.shaderEffectWeight / 10
+    );
+    expect(performance.geometry.cylinderSegments).toBeLessThanOrEqual(
+      balanced.geometry.cylinderSegments / 5
+    );
+    expect(performance.geometry.sphereWidthSegments).toBeLessThanOrEqual(
+      balanced.geometry.sphereWidthSegments / 4
+    );
   });
 
   it('resizes DPR up to the device cap without undoing adaptive downgrades', () => {

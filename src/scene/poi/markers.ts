@@ -18,6 +18,12 @@ import {
 } from 'three';
 
 import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
+
+import {
   scalePoiValue,
   POI_ORB_VERTICAL_OFFSET,
   POI_ORB_HEIGHT_MULTIPLIER,
@@ -82,16 +88,29 @@ export interface PoiInstance {
   visitedBadge?: PoiVisitedBadge;
 }
 
+export interface PoiInstanceDetailOptions {
+  detailLevel?: SceneDetailLevel;
+  detailPolicy?: SceneDetailPolicy;
+}
+
 export function createPoiInstances(
   definitions: PoiDefinition[],
-  overrides: PoiInstanceOverrides = {}
+  overrides: PoiInstanceOverrides = {},
+  detailOptions: PoiInstanceDetailOptions = {}
 ): PoiInstance[] {
+  const detailPolicy =
+    detailOptions.detailPolicy ??
+    getSceneDetailPolicy(detailOptions.detailLevel ?? 'balanced');
   return definitions.map((definition, index) => {
     const override = overrides[definition.id];
     if (override?.mode === 'display') {
       return createDisplayPoiInstance(definition, override);
     }
-    return createPedestalPoiInstance(definition, index * Math.PI * 0.37);
+    return createPedestalPoiInstance(
+      definition,
+      index * Math.PI * 0.37,
+      detailPolicy
+    );
   });
 }
 
@@ -110,8 +129,10 @@ export function updatePoiInstanceDefinition(
 
 function createPedestalPoiInstance(
   definition: PoiDefinition,
-  phaseOffset: number
+  phaseOffset: number,
+  detailPolicy: SceneDetailPolicy
 ): PoiInstance {
+  const isPerformance = detailPolicy.level === 'performance';
   const group = new Group();
   group.name = `POI:${definition.id}`;
   group.position.set(
@@ -158,7 +179,7 @@ function createPedestalPoiInstance(
       pedestalRadius,
       pedestalRadius,
       pedestalHeight,
-      48,
+      detailPolicy.geometry.cylinderSegments,
       1,
       true
     );
@@ -194,7 +215,7 @@ function createPedestalPoiInstance(
       pedestalRadius * 1.02,
       pedestalRadius * 1.02,
       accentHeight,
-      48,
+      detailPolicy.geometry.cylinderSegments,
       1,
       true
     );
@@ -220,7 +241,7 @@ function createPedestalPoiInstance(
     const ringGeometry = new RingGeometry(
       pedestalRadius * 0.55,
       pedestalRadius * 1.08,
-      64,
+      detailPolicy.geometry.ringSegments,
       1
     );
     const ring = new Mesh(ringGeometry, ringMaterial);
@@ -228,12 +249,18 @@ function createPedestalPoiInstance(
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = pedestalHeight + scalePoiValue(0.02);
     ring.renderOrder = 12;
-    group.add(ring);
+    if (detailPolicy.effects.decorativeHalos) {
+      group.add(ring);
+    }
   }
 
   const orbRadius =
     Math.max(baseRadius, pedestalRadius) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
-  const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
+  const orbGeometry = new SphereGeometry(
+    orbRadius,
+    detailPolicy.geometry.sphereWidthSegments,
+    detailPolicy.geometry.sphereHeightSegments
+  );
   const orbColor = new Color(hologramConfig?.orbColor ?? 0xb8f3ff);
   const orbEmissiveBase = new Color(
     hologramConfig?.orbEmissiveColor ?? 0x3de1ff
@@ -256,7 +283,9 @@ function createPedestalPoiInstance(
   orb.position.y = orbBaseHeight;
   group.add(orb);
 
-  const labelTexture = createPoiLabelTexture(definition);
+  const labelTexture = createPoiLabelTexture(definition, {
+    textureScale: detailPolicy.textures.poiLabelScale,
+  });
   const labelMaterial = new MeshBasicMaterial({
     map: labelTexture,
     transparent: true,
@@ -287,7 +316,7 @@ function createPedestalPoiInstance(
   const haloGeometry = new RingGeometry(
     haloInnerRadius,
     haloOuterRadius,
-    48,
+    detailPolicy.geometry.ringSegments,
     1
   );
   const haloBaseColor = new Color(0x4bd8ff);
@@ -304,12 +333,14 @@ function createPedestalPoiInstance(
   halo.rotation.x = -Math.PI / 2;
   halo.position.y = scalePoiValue(0.08);
   halo.renderOrder = 11;
-  group.add(halo);
+  if (detailPolicy.effects.decorativeHalos) {
+    group.add(halo);
+  }
 
   const visitedRingGeometry = new RingGeometry(
     haloInnerRadius * 0.92,
     haloOuterRadius * 1.05,
-    60,
+    detailPolicy.geometry.ringSegments,
     1
   );
   const visitedRingMaterial = new MeshBasicMaterial({
@@ -326,7 +357,9 @@ function createPedestalPoiInstance(
   visitedRing.renderOrder = 10;
   visitedRing.visible = false;
   visitedRing.scale.setScalar(1);
-  group.add(visitedRing);
+  if (detailPolicy.effects.decorativeHalos) {
+    group.add(visitedRing);
+  }
 
   const hitAreaHeight = baseHeight + pedestalHeight + scalePoiValue(0.24);
   const hitAreaRadius = Math.max(baseRadiusX, pedestalRadius);
@@ -334,7 +367,7 @@ function createPedestalPoiInstance(
     hitAreaRadius,
     hitAreaRadius,
     hitAreaHeight,
-    32
+    Math.max(8, detailPolicy.geometry.cylinderSegments)
   );
   const hitAreaMaterial = new MeshBasicMaterial({
     transparent: true,
@@ -367,8 +400,10 @@ function createPedestalPoiInstance(
     labelBaseHeight,
     labelWorldPosition: new Vector3(),
     floatPhase: phaseOffset,
-    floatSpeed: MathUtils.randFloat(0.8, 1.1),
-    floatAmplitude: MathUtils.randFloat(0.12, 0.18) * scalePoiValue(1),
+    floatSpeed: isPerformance ? 0 : MathUtils.randFloat(0.8, 1.1),
+    floatAmplitude: isPerformance
+      ? 0
+      : MathUtils.randFloat(0.12, 0.18) * scalePoiValue(1),
     halo,
     haloMaterial,
     accentMaterial,
@@ -456,22 +491,29 @@ function createDisplayPoiInstance(
 }
 
 export function createPoiLabelTexture(
-  definition: PoiDefinition
+  definition: PoiDefinition,
+  options: { textureScale?: number } = {}
 ): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 640;
-  canvas.height = 192;
+  const textureScale = MathUtils.clamp(options.textureScale ?? 1, 0.25, 1);
+  const logicalWidth = 640;
+  const logicalHeight = 192;
+  canvas.width = Math.round(logicalWidth * textureScale);
+  canvas.height = Math.round(logicalHeight * textureScale);
   const context = canvas.getContext('2d');
   if (!context) {
     throw new Error('Unable to acquire 2D context for POI label.');
   }
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (typeof context.scale === 'function') {
+    context.scale(textureScale, textureScale);
+  }
+  context.clearRect(0, 0, logicalWidth, logicalHeight);
   const gradient = context.createLinearGradient(
     0,
     0,
-    canvas.width,
-    canvas.height
+    logicalWidth,
+    logicalHeight
   );
   gradient.addColorStop(0, 'rgba(33, 108, 255, 0.92)');
   gradient.addColorStop(1, 'rgba(20, 188, 255, 0.55)');
@@ -484,8 +526,8 @@ export function createPoiLabelTexture(
     context,
     padding,
     padding,
-    canvas.width - padding * 2,
-    canvas.height - padding * 2,
+    logicalWidth - padding * 2,
+    logicalHeight - padding * 2,
     18
   );
   context.fill();
@@ -498,9 +540,9 @@ export function createPoiLabelTexture(
   wrapText(
     context,
     definition.title,
-    canvas.width / 2,
-    canvas.height / 2,
-    canvas.width - padding * 3,
+    logicalWidth / 2,
+    logicalHeight / 2,
+    logicalWidth - padding * 3,
     68,
     2
   );

@@ -2,6 +2,7 @@ import type {
   GraphicsQualityLevel,
   GraphicsQualitySelectionSource,
 } from '../graphics/qualityManager';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
 import type { SoftwareRendererPolicyState } from './qualityPolicy';
@@ -15,6 +16,14 @@ export type PhaseName =
   | 'lightingLedLightmap'
   | 'mirror'
   | 'mainRender';
+
+export interface RendererRuntimeInfoSnapshot {
+  calls: number;
+  triangles: number;
+  points: number;
+  lines: number;
+  memory: { geometries: number; textures: number };
+}
 
 export interface RendererSizeSnapshot {
   pixelRatio: number;
@@ -31,6 +40,7 @@ export interface QualityStateSnapshot {
   lastAdaptiveDowngradeReason: string | null;
   lastAdaptiveRecoveryReason: string | null;
   adaptivePolicy: AdaptiveQualityPolicySnapshot | null;
+  sceneDetail?: SceneDetailPolicy;
 }
 
 export interface FeatureStateSnapshot {
@@ -59,6 +69,7 @@ export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   renderer: RendererInfoSnapshot;
   softwareRendererPolicy: SoftwareRendererPolicyState;
   rendererSize: RendererSizeSnapshot;
+  rendererRuntime: RendererRuntimeInfoSnapshot;
   quality: QualityStateSnapshot;
   features: FeatureStateSnapshot;
   lastFailoverReason: string | null;
@@ -88,6 +99,7 @@ export interface PerformanceDiagnosticsApi {
 interface PerformanceDiagnosticsOptions {
   rendererInfo: RendererInfoSnapshot;
   getRendererSize: () => RendererSizeSnapshot;
+  getRendererRuntimeInfo?: () => RendererRuntimeInfoSnapshot;
   getQualityState: () => QualityStateSnapshot;
   getFeatureState: () => FeatureStateSnapshot;
   getLastFailoverReason: () => string | null;
@@ -144,6 +156,13 @@ function summarize(values: readonly number[]): {
 export function createPerformanceDiagnostics({
   rendererInfo,
   getRendererSize,
+  getRendererRuntimeInfo = () => ({
+    calls: 0,
+    triangles: 0,
+    points: 0,
+    lines: 0,
+    memory: { geometries: 0, textures: 0 },
+  }),
   getQualityState,
   getFeatureState,
   getLastFailoverReason,
@@ -179,6 +198,7 @@ export function createPerformanceDiagnostics({
         renderer: diagnosticsMethods.getRendererInfo(),
         softwareRendererPolicy: getSoftwareRendererPolicy(),
         rendererSize: getRendererSize(),
+        rendererRuntime: getRendererRuntimeInfo(),
         quality: diagnosticsMethods.getQualityState(),
         features: diagnosticsMethods.getFeatureState(),
         lastFailoverReason: diagnosticsMethods.getLastFailoverReason(),

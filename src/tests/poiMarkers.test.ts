@@ -14,11 +14,7 @@ describe('createPoiInstances', () => {
   let fillTextLog: string[] = [];
 
   let originalGetContext:
-    | ((
-        this: HTMLCanvasElement,
-        contextId: string,
-        ...args: unknown[]
-      ) => CanvasRenderingContext2D | null)
+    | typeof HTMLCanvasElement.prototype.getContext
     | undefined;
 
   beforeAll(() => {
@@ -27,7 +23,7 @@ describe('createPoiInstances', () => {
       this: HTMLCanvasElement,
       contextId: string,
       ...args: unknown[]
-    ): CanvasRenderingContext2D | null {
+    ) {
       if (contextId === '2d') {
         const gradient = {
           addColorStop: () => {
@@ -69,8 +65,9 @@ describe('createPoiInstances', () => {
           fillText: (text: string) => {
             fillTextLog.push(text);
           },
-          measureText: (text: string) => ({ width: text.length * 10 }),
-          createLinearGradient: () => gradient as CanvasGradient,
+          measureText: (text: string) =>
+            ({ width: text.length * 10 }) as TextMetrics,
+          createLinearGradient: () => gradient as unknown as CanvasGradient,
           set lineWidth(_value: number) {
             /* noop */
           },
@@ -93,9 +90,13 @@ describe('createPoiInstances', () => {
         return context as CanvasRenderingContext2D;
       }
       return originalGetContext
-        ? originalGetContext.call(this, contextId, ...args)
+        ? originalGetContext.call(
+            this,
+            contextId as Parameters<typeof originalGetContext>[0],
+            ...(args as [])
+          )
         : null;
-    };
+    } as typeof HTMLCanvasElement.prototype.getContext;
   });
 
   afterAll(() => {
@@ -103,9 +104,7 @@ describe('createPoiInstances', () => {
       HTMLCanvasElement.prototype.getContext = originalGetContext;
     } else {
       delete (
-        HTMLCanvasElement.prototype as {
-          getContext?: typeof originalGetContext;
-        }
+        HTMLCanvasElement.prototype as unknown as { getContext?: unknown }
       ).getContext;
     }
   });
@@ -242,7 +241,7 @@ describe('createPoiInstances', () => {
       5
     );
     expect(instance.orbBaseHeight).toBeGreaterThan(pedestalHeight);
-    expect(instance.labelBaseHeight).toBeGreaterThan(instance.orbBaseHeight);
+    expect(instance.labelBaseHeight).toBeGreaterThan(instance.orbBaseHeight!);
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {
@@ -258,6 +257,40 @@ describe('createPoiInstances', () => {
     const hitGeometry = instance.hitArea.geometry as CylinderGeometry;
     expect(hitGeometry.parameters.height).toBeCloseTo(
       scalePoiValue(0.32) + scalePoiValue(0.24),
+      5
+    );
+  });
+  it('uses low-segment performance geometry while preserving hit area colliders', () => {
+    const definition = createDefinition({
+      id: 'flywheel-studio-flywheel',
+      footprint: { width: 2.8, depth: 2.2 },
+      pedestal: {
+        type: 'hologram',
+        height: 1.6,
+        radiusScale: 0.88,
+      },
+    });
+
+    const [balanced] = createPoiInstances(
+      [definition],
+      {},
+      { detailLevel: 'balanced' }
+    );
+    const [performance] = createPoiInstances(
+      [definition],
+      {},
+      { detailLevel: 'performance' }
+    );
+    const balancedHit = balanced.hitArea.geometry as CylinderGeometry;
+    const performanceHit = performance.hitArea.geometry as CylinderGeometry;
+
+    expect(performanceHit.parameters.radialSegments).toBeLessThanOrEqual(8);
+    expect(performanceHit.parameters.radialSegments).toBeLessThan(
+      balancedHit.parameters.radialSegments / 3
+    );
+    expect(performance.collider).toEqual(balanced.collider);
+    expect(performance.hitArea.position.y).toBeCloseTo(
+      balanced.hitArea.position.y,
       5
     );
   });
