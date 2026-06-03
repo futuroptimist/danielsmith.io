@@ -129,12 +129,15 @@ export function createAdaptiveQualityController({
   let lastRecoveryReason: string | null = null;
   let lastAdaptiveReason: string | null = null;
   let pixelRatioStepApplied = false;
+  let adaptivePerformanceRecoveryLocked = false;
   const frameMsSamples: number[] = [];
 
   const getWarmupRemainingMs = () => Math.max(0, warmupMs - elapsedMs);
   const isWarmingUp = () => getWarmupRemainingMs() > 0;
   const autoRecoveryEnabled = () =>
-    !isSoftwareRenderer && getSelectionSource() !== 'user';
+    !isSoftwareRenderer &&
+    getSelectionSource() !== 'user' &&
+    !adaptivePerformanceRecoveryLocked;
   const canAccrueRecovery = () =>
     qualityManager.getLevel() === 'performance' && autoRecoveryEnabled();
   const resetRecoveryState = () => {
@@ -194,6 +197,7 @@ export function createAdaptiveQualityController({
       );
     }
     if (currentLevel === 'balanced') {
+      adaptivePerformanceRecoveryLocked = true;
       qualityManager.setLevel('performance', { source: 'adaptive' });
       onSceneDetailLevelChange?.('performance');
       return emit(

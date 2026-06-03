@@ -775,6 +775,9 @@ function initializeImmersiveScene(
   const navigatorWithMemory = navigator as Navigator & {
     deviceMemory?: number;
   };
+  const persistedQualityLevel = rendererInfo.isSoftwareRenderer
+    ? null
+    : resolvePersistedGraphicsQualityLevel(qualityStorage);
   const initialQualityPolicy = resolveInitialQualityPolicy(
     rendererInfo,
     window.devicePixelRatio ?? 1,
@@ -787,11 +790,9 @@ function initializeImmersiveScene(
         (coarsePointer && window.innerWidth >= 700),
       deviceMemoryGb: navigatorWithMemory.deviceMemory ?? null,
       hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+      explicitGraphicsQualityLevel: persistedQualityLevel,
     }
   );
-  const persistedQualityLevel = rendererInfo.isSoftwareRenderer
-    ? null
-    : resolvePersistedGraphicsQualityLevel(qualityStorage);
   const sceneDetailReloadOverride = consumePendingSceneDetailReloadLevel();
   const effectiveInitialQualityLevel =
     sceneDetailReloadOverride ??

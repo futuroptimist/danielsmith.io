@@ -168,6 +168,7 @@ export interface InitialQualityDeviceHints {
   tabletLike?: boolean;
   deviceMemoryGb?: number | null;
   hardwareConcurrency?: number | null;
+  explicitGraphicsQualityLevel?: GraphicsQualityLevel | null;
 }
 
 function shouldStartInPerformanceFromDeviceHints(
@@ -233,6 +234,22 @@ export function resolveInitialQualityPolicy(
       softwareSafeMode: false,
       renderCadenceFps: null,
       reason: 'software renderer starts in performance mode',
+    };
+  }
+
+  if (deviceHints.explicitGraphicsQualityLevel) {
+    const featurePolicy = getQualityFeaturePolicy(
+      deviceHints.explicitGraphicsQualityLevel,
+      false
+    );
+    return {
+      initialLevel: deviceHints.explicitGraphicsQualityLevel,
+      sceneDetailLevel: deviceHints.explicitGraphicsQualityLevel,
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 1.25, 0.75),
+      ...featurePolicy,
+      softwareSafeMode: false,
+      renderCadenceFps: null,
+      reason: 'explicit graphics quality preference controls initial policy',
     };
   }
 

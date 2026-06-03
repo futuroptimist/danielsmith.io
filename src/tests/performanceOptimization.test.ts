@@ -25,11 +25,13 @@ function createPolicyHarness({
   basePixelRatio = 1.25,
   selectionSource = 'adaptive',
   isSoftwareRenderer = false,
+  onSceneDetailLevelChange,
 }: {
   level?: GraphicsQualityLevel;
   basePixelRatio?: number;
   selectionSource?: AdaptiveQualitySelectionSource;
   isSoftwareRenderer?: boolean;
+  onSceneDetailLevelChange?: (level: GraphicsQualityLevel) => void;
 } = {}) {
   let currentLevel = level;
   let currentBasePixelRatio = basePixelRatio;
@@ -59,6 +61,7 @@ function createPolicyHarness({
     recoveryFpsThreshold: 55,
     recoveryP95FrameMs: 22,
     onAction,
+    onSceneDetailLevelChange,
   });
 
   return {
@@ -304,6 +307,39 @@ describe('immersive performance optimization policy', () => {
     expect(policy.mirrorEnabled).toBe(false);
   });
 
+  it('respects persisted balanced quality on coarse-pointer hardware', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }),
+      {
+        coarsePointer: true,
+        mobileLike: true,
+        tabletLike: true,
+        explicitGraphicsQualityLevel: 'balanced',
+      }
+    );
+
+    expect(policy.initialLevel).toBe('balanced');
+    expect(policy.sceneDetailLevel).toBe('balanced');
+    expect(policy.mirrorEnabled).toBe(true);
+  });
+
+  it('resolves persisted performance scene detail before construction', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }),
+      { explicitGraphicsQualityLevel: 'performance' }
+    );
+
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.sceneDetailLevel).toBe('performance');
+    expect(getQualitySceneDetailPolicy(policy.sceneDetailLevel).level).toBe(
+      'performance'
+    );
+  });
+
   it('resizes DPR up to the device cap without undoing adaptive downgrades', () => {
     expect(resolveResizedBasePixelRatio(2, 1.25)).toBe(1.25);
     expect(resolveResizedBasePixelRatio(2, 1.25, 1)).toBe(1);
@@ -364,8 +400,13 @@ describe('immersive performance optimization policy', () => {
     expect(cinematicHarness.controller.getSnapshot().stableDurationMs).toBe(0);
   });
 
-  it('starts recovery hysteresis fresh after a balanced to performance downgrade', () => {
-    const harness = createPolicyHarness({ level: 'balanced' });
+  it('does not auto-recover after adaptive downgrade to performance', () => {
+    const sceneDetailChanges: GraphicsQualityLevel[] = [];
+    const harness = createPolicyHarness({
+      level: 'balanced',
+      selectionSource: 'adaptive',
+      onSceneDetailLevelChange: (level) => sceneDetailChanges.push(level),
+    });
 
     for (let index = 0; index < 240; index += 1) {
       harness.controller.update(1 / 60);
@@ -380,21 +421,24 @@ describe('immersive performance optimization policy', () => {
 
     expect(downgradeEvent?.step).toBe('quality-performance');
     expect(harness.level).toBe('performance');
-    expect(harness.controller.getSnapshot().stableDurationMs).toBe(0);
+    expect(sceneDetailChanges).toEqual(['performance']);
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      autoRecoveryEnabled: false,
+      stableDurationMs: 0,
+    });
 
     let recoveryEvent = null;
-    for (let index = 0; index < 179; index += 1) {
+    for (let index = 0; index < 420; index += 1) {
       recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
     }
 
     expect(recoveryEvent).toBeNull();
     expect(harness.level).toBe('performance');
+    expect(harness.controller.getRecoveryCount()).toBe(0);
 
-    for (let index = 0; index < 180; index += 1) {
-      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
-    }
+    harness.setLevel('balanced');
+    harness.setSelectionSource('user');
 
-    expect(recoveryEvent?.action).toBe('recover');
     expect(harness.level).toBe('balanced');
   });
 
