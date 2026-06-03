@@ -5,6 +5,7 @@ import { scalePoiValue } from '../scene/poi/constants';
 import {
   createPoiInstances,
   createPoiLabelTexture,
+  updatePoiInstanceDefinition,
 } from '../scene/poi/markers';
 import type { PoiDefinition } from '../scene/poi/types';
 
@@ -155,6 +156,23 @@ describe('createPoiInstances', () => {
       expect(fillTextLog.join(' ')).toBe(title);
       expect(fillTextLog.join(' ')).not.toContain('…');
     }
+  });
+
+  it('refreshes existing marker label textures when definitions are localized', () => {
+    fillTextLog = [];
+    const [instance] = createPoiInstances([
+      createDefinition({ title: 'Gitshelves' }),
+    ]);
+    expect(fillTextLog).toContain('Gitshelves');
+
+    fillTextLog = [];
+    updatePoiInstanceDefinition(
+      instance,
+      createDefinition({ title: '⟦Gitshelves⟧' })
+    );
+
+    expect(instance.definition.title).toBe('⟦Gitshelves⟧');
+    expect(fillTextLog).toContain('⟦Gitshelves⟧');
   });
 
   it('adds an ellipsis when long marker titles exceed the two-line cap', () => {

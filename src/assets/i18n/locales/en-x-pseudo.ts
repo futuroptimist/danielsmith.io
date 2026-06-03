@@ -347,6 +347,18 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         },
       },
     },
+    poiOverlay: {
+      visited: wrap('Visited'),
+      nextHighlight: wrap('Next highlight'),
+      status: {
+        prototype: wrap('Prototype'),
+        live: wrap('Live'),
+      },
+      closeDetails: wrap('Close POI details'),
+      relatedCaseStudies: wrap('Related case studies'),
+      outcomeFallbackLabel: wrap('Outcome'),
+      discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
+    },
     helpModal: {
       heading: wrap('Settings & Help'),
       closeLabel: wrap('Close'),

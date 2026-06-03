@@ -247,6 +247,30 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('rerenders the selected title when localized POI definitions are swapped in place', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel',
+    });
+    const target = createTarget(poi, new Vector3(0, 1, 0));
+
+    tooltip.setSelected(target);
+    tooltip.update(0.016);
+    expect(latestFillTextLog).toEqual(['Flywheel']);
+
+    target.poi = createPoiDefinition({
+      id: 'flywheel-studio-flywheel',
+      title: '⟦Flywheel⟧',
+    });
+    tooltip.notifyPoiUpdated(target.poi.id);
+
+    expect(latestFillTextLog).toEqual(['Flywheel', '⟦Flywheel⟧']);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('renders only the POI title in the in-world card', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({

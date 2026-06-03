@@ -1,4 +1,10 @@
 import {
+  formatMessage,
+  getPoiOverlayStrings,
+  type LocaleInput,
+  type PoiOverlayStrings,
+} from '../../assets/i18n';
+import {
   GuidedTourPreference,
   defaultGuidedTourPreference,
 } from '../../systems/guidedTour/preference';
@@ -18,6 +24,8 @@ export interface PoiTooltipOverlayOptions {
   };
   interactionTimeline?: InteractionTimeline;
   guidedTourPreference?: GuidedTourPreference;
+  locale?: LocaleInput;
+  strings?: PoiOverlayStrings;
 }
 
 interface RenderState {
@@ -55,6 +63,7 @@ export class PoiTooltipOverlay {
   private isIdle = false;
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
+  private strings: PoiOverlayStrings;
   private readonly onDismiss: (() => void) | null;
 
   constructor(options: PoiTooltipOverlayOptions) {
@@ -64,6 +73,8 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
+      locale,
+      strings,
     } = options;
     const documentTarget = container.ownerDocument ?? document;
 
@@ -73,6 +84,7 @@ export class PoiTooltipOverlay {
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
     this.onDismiss = onDismiss ?? null;
+    this.strings = strings ?? getPoiOverlayStrings(locale);
     this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
@@ -100,20 +112,20 @@ export class PoiTooltipOverlay {
 
     this.visitedBadge = documentTarget.createElement('span');
     this.visitedBadge.className = 'poi-tooltip-overlay__visited';
-    this.visitedBadge.textContent = 'Visited';
+    this.visitedBadge.textContent = this.strings.visited;
     this.visitedBadge.hidden = true;
     headingRow.appendChild(this.visitedBadge);
 
     this.recommendationBadge = documentTarget.createElement('span');
     this.recommendationBadge.className = 'poi-tooltip-overlay__recommendation';
-    this.recommendationBadge.textContent = 'Next highlight';
+    this.recommendationBadge.textContent = this.strings.nextHighlight;
     this.recommendationBadge.hidden = true;
     headingRow.appendChild(this.recommendationBadge);
 
     this.closeButton = documentTarget.createElement('button');
     this.closeButton.className = 'poi-tooltip-overlay__close';
     this.closeButton.type = 'button';
-    this.closeButton.setAttribute('aria-label', 'Close POI details');
+    this.closeButton.setAttribute('aria-label', this.strings.closeDetails);
     this.closeButton.textContent = '×';
     this.closeButton.hidden = true;
     this.closeButton.disabled = true;
@@ -153,7 +165,7 @@ export class PoiTooltipOverlay {
     this.linksList = documentTarget.createElement('ul');
     this.linksList.className = 'poi-tooltip-overlay__links';
     this.linksList.id = `${this.instanceId}-links`;
-    this.linksList.setAttribute('aria-label', 'Related case studies');
+    this.linksList.setAttribute('aria-label', this.strings.relatedCaseStudies);
     this.root.appendChild(this.linksList);
 
     container.appendChild(this.root);
@@ -175,6 +187,20 @@ export class PoiTooltipOverlay {
         this.update();
       }
     );
+  }
+
+  setStrings(strings: PoiOverlayStrings): void {
+    this.strings = strings;
+    this.visitedBadge.textContent = strings.visited;
+    this.recommendationBadge.textContent = strings.nextHighlight;
+    this.closeButton.setAttribute('aria-label', strings.closeDetails);
+    this.linksList.setAttribute('aria-label', strings.relatedCaseStudies);
+    this.renderState.poiId = null;
+    this.update();
+  }
+
+  setLocale(locale: LocaleInput): void {
+    this.setStrings(getPoiOverlayStrings(locale));
   }
 
   setIdleState(idle: boolean) {
@@ -271,6 +297,7 @@ export class PoiTooltipOverlay {
       this.setFocusContainment(false);
       this.root.removeAttribute('aria-describedby');
       this.renderState.poiId = null;
+      this.syncCloseButtonState('hidden');
       this.visitedBadge.hidden = true;
       this.recommendationBadge.hidden = true;
       this.liveRegion.textContent = '';
@@ -297,16 +324,8 @@ export class PoiTooltipOverlay {
         recommendation?.id === poi.id);
     this.recommendationBadge.hidden = !showRecommendationBadge;
 
-    const previousPoiId = this.renderState.poiId;
-
-    if (previousPoiId !== poi.id) {
-      this.renderPoi(poi);
-      this.renderState.poiId = poi.id;
-    } else {
-      this.updateStatus(poi);
-      this.renderOutcome(poi);
-      this.renderMetrics(poi);
-    }
+    this.renderPoi(poi);
+    this.renderState.poiId = poi.id;
 
     const describedByIds = [this.summary.id];
     if (!this.outcome.hidden) {
@@ -387,7 +406,7 @@ export class PoiTooltipOverlay {
       return;
     }
 
-    const label = outcome.label?.trim() || 'Outcome';
+    const label = outcome.label?.trim() || this.strings.outcomeFallbackLabel;
     this.outcomeLabel.textContent = label;
     this.outcomeLabel.hidden = false;
     this.outcomeValue.textContent = outcome.value.trim();
@@ -397,7 +416,10 @@ export class PoiTooltipOverlay {
 
   private updateStatus(poi: PoiDefinition) {
     if (poi.status) {
-      const statusLabel = poi.status === 'prototype' ? 'Prototype' : 'Live';
+      const statusLabel =
+        poi.status === 'prototype'
+          ? this.strings.status.prototype
+          : this.strings.status.live;
       this.statusBadge.textContent = statusLabel;
       this.statusBadge.hidden = false;
     } else {
@@ -458,7 +480,10 @@ export class PoiTooltipOverlay {
   }
 
   private announceDiscovery(poi: PoiDefinition) {
-    const message = this.discoveryFormatter(poi).trim();
+    const message =
+      this.discoveryFormatter === defaultDiscoveryFormatter
+        ? defaultDiscoveryFormatter(poi, this.strings)
+        : this.discoveryFormatter(poi).trim();
     if (!message) {
       return;
     }
@@ -494,9 +519,14 @@ function applyVisuallyHiddenStyles(element: HTMLElement): void {
   element.style.pointerEvents = 'none';
 }
 
-function defaultDiscoveryFormatter(poi: PoiDefinition): string {
-  const summary = poi.summary ? ` ${poi.summary}` : '';
-  return `${poi.title} discovered.${summary}`;
+function defaultDiscoveryFormatter(
+  poi: PoiDefinition,
+  strings = getPoiOverlayStrings()
+): string {
+  return formatMessage(strings.discoveryAnnouncementTemplate, {
+    title: poi.title,
+    summary: poi.summary ?? '',
+  }).trim();
 }
 
 let tooltipInstanceCounter = 0;

@@ -279,6 +279,18 @@ export const AR_OVERRIDES: LocaleOverrides = {
         },
       },
     },
+    poiOverlay: {
+      visited: 'تمت الزيارة',
+      nextHighlight: 'التمييز التالي',
+      status: {
+        prototype: 'نموذج أولي',
+        live: 'مباشر',
+      },
+      closeDetails: 'إغلاق تفاصيل نقطة الاهتمام',
+      relatedCaseStudies: 'دراسات حالة ذات صلة',
+      outcomeFallbackLabel: 'النتيجة',
+      discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
+    },
     helpModal: {
       heading: 'الإعدادات والمساعدة',
       description:

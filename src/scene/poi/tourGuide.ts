@@ -34,7 +34,7 @@ export class PoiTourGuide {
 
   constructor(options: PoiTourGuideOptions) {
     this.visitedState = options.visitedState;
-    this.setDefinitions(options.definitions);
+    this.replaceDefinitions(options.definitions);
     this.priorityOrder = this.normalizePriority(
       options.priorityOrder ??
         options.definitions.map((definition) => definition.id)
@@ -58,6 +58,13 @@ export class PoiTourGuide {
     };
   }
 
+  setDefinitions(definitions: PoiDefinition[]): void {
+    const previousRecommendationId = this.recommendation?.id ?? null;
+    this.replaceDefinitions(definitions);
+    this.priorityOrder = this.normalizePriority(this.priorityOrder);
+    this.refreshRecommendation({ forceEmitForId: previousRecommendationId });
+  }
+
   setPriorityOrder(order: PoiId[]): void {
     const normalized = this.normalizePriority(order);
     if (this.areOrdersEqual(normalized, this.priorityOrder)) {
@@ -75,7 +82,7 @@ export class PoiTourGuide {
     this.listeners.clear();
   }
 
-  private setDefinitions(definitions: PoiDefinition[]) {
+  private replaceDefinitions(definitions: PoiDefinition[]) {
     this.allDefinitions = definitions.slice();
     this.definitionsById.clear();
     for (const definition of definitions) {
@@ -96,10 +103,18 @@ export class PoiTourGuide {
     return unique;
   }
 
-  private refreshRecommendation() {
+  private refreshRecommendation(
+    options: { forceEmitForId?: PoiId | null } = {}
+  ) {
     const visited = this.visitedState.snapshot();
     const next = this.computeRecommendation(visited);
-    if (next?.id === this.recommendation?.id) {
+    const nextId = next?.id ?? null;
+    if (nextId === (this.recommendation?.id ?? null)) {
+      this.recommendation = next;
+      if (options.forceEmitForId !== nextId) {
+        return;
+      }
+      this.emit(next);
       return;
     }
     this.recommendation = next;

@@ -345,6 +345,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
       },
     },
+    poiOverlay: {
+      visited: 'Visited',
+      nextHighlight: 'Next highlight',
+      status: {
+        prototype: 'Prototype',
+        live: 'Live',
+      },
+      closeDetails: 'Close POI details',
+      relatedCaseStudies: 'Related case studies',
+      outcomeFallbackLabel: 'Outcome',
+      discoveryAnnouncementTemplate: '{title} discovered. {summary}',
+    },
     helpModal: {
       heading: 'Settings & Help',
       description: [

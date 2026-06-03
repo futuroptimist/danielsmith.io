@@ -11,10 +11,12 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getPoiNarrativeLogStrings,
+  getPoiOverlayStrings,
   getPoiCopy,
   getSiteStrings,
   resolveLocale,
 } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
@@ -203,6 +205,28 @@ describe('i18n utilities', () => {
     ).toBe('15:30 に訪問');
   });
 
+  it('returns localized POI overlay chrome strings', () => {
+    const english = getPoiOverlayStrings('en');
+    expect(english.visited).toBe('Visited');
+    expect(english.status.prototype).toBe('Prototype');
+    expect(
+      formatMessage(english.discoveryAnnouncementTemplate, {
+        title: 'Flywheel',
+        summary: 'Automation lab.',
+      })
+    ).toBe('Flywheel discovered. Automation lab.');
+
+    const pseudo = getPoiOverlayStrings('en-x-pseudo');
+    expect(pseudo.visited).toBe('⟦Visited⟧');
+    expect(pseudo.closeDetails).toBe('⟦Close POI details⟧');
+
+    const arabic = getPoiOverlayStrings('ar');
+    expect(arabic.visited).toBe('تمت الزيارة');
+
+    const japanese = getPoiOverlayStrings('ja');
+    expect(japanese.relatedCaseStudies).toBe('関連ケーススタディ');
+  });
+
   it('provides localized copy for POIs with English fallback', () => {
     const copy = getPoiCopy();
     expect(copy['futuroptimist-living-room-tv'].title).toMatch(/Futuroptimist/);
@@ -218,6 +242,36 @@ describe('i18n utilities', () => {
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title
     );
+  });
+
+  it('localizes POI definitions per locale without mutating shared base data', () => {
+    const english = getPoiDefinitions('en');
+    const pseudo = getPoiDefinitions('en-x-pseudo');
+    const englishAgain = getPoiDefinitions('en');
+
+    const englishPoi = english.find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    const pseudoPoi = pseudo.find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    const englishAgainPoi = englishAgain.find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+
+    expect(englishPoi?.title).toBe('Futuroptimist');
+    expect(pseudoPoi?.title).toBe('⟦Futuroptimist⟧');
+    expect(pseudoPoi?.interactionPrompt).toContain('⟦Futuroptimist⟧');
+    expect(englishAgainPoi?.title).toBe('Futuroptimist');
+
+    if (pseudoPoi?.metrics?.[0]) {
+      pseudoPoi.metrics[0].value = 'mutated';
+    }
+
+    const freshPseudo = getPoiDefinitions('en-x-pseudo').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    expect(freshPseudo?.metrics?.[0]?.value).not.toBe('mutated');
   });
 
   it('falls back to English site metadata when pseudo overrides omit values', () => {

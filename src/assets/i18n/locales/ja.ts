@@ -280,6 +280,18 @@ export const JA_OVERRIDES: LocaleOverrides = {
         },
       },
     },
+    poiOverlay: {
+      visited: '訪問済み',
+      nextHighlight: '次のハイライト',
+      status: {
+        prototype: 'プロトタイプ',
+        live: '公開中',
+      },
+      closeDetails: 'POI 詳細を閉じる',
+      relatedCaseStudies: '関連ケーススタディ',
+      outcomeFallbackLabel: '成果',
+      discoveryAnnouncementTemplate: '{title} を発見しました。{summary}',
+    },
     helpModal: {
       heading: '設定とヘルプ',
       description:

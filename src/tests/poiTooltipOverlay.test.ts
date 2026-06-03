@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getPoiOverlayStrings } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
 import { GuidedTourPreference } from '../systems/guidedTour/preference';
@@ -404,6 +406,46 @@ describe('PoiTooltipOverlay', () => {
       container.querySelectorAll<HTMLSpanElement>(metricSelector)
     ).map((node) => node.textContent);
     expect(updatedValues).toContain('Updated workflow');
+  });
+
+  it('rerenders active POI copy and overlay chrome during runtime locale switching', () => {
+    const englishPoi = getPoiDefinitions('en').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    const pseudoPoi = getPoiDefinitions('en-x-pseudo').find(
+      (poi) => poi.id === 'futuroptimist-living-room-tv'
+    );
+    expect(englishPoi).toBeTruthy();
+    expect(pseudoPoi).toBeTruthy();
+
+    overlay.setSelected(englishPoi!);
+    overlay.setVisitedPoiIds(new Set([englishPoi!.id]));
+
+    overlay.setStrings(getPoiOverlayStrings('en-x-pseudo'));
+    overlay.setSelected(pseudoPoi!);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      '⟦Futuroptimist⟧'
+    );
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toContain('⟦Automated Futuroptimist');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('⟦Stars⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+    ).toBe('⟦Visited⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__status')?.textContent
+    ).toBe('⟦Prototype⟧');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('⟦Related case studies⟧');
   });
 
   it('hides the outcome row when a POI omits the outcome field', () => {
