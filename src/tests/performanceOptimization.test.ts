@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
 import {
+  getSceneDetailMetrics,
+  getSceneDetailPolicy,
+} from '../scene/graphics/sceneDetailPolicy';
+import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
 } from '../scene/performance/adaptiveQuality';
@@ -75,6 +79,43 @@ function createPolicyHarness({
 }
 
 describe('immersive performance optimization policy', () => {
+  it('maps performance quality to aggressive low-effect scene detail budgets', () => {
+    const balanced = getSceneDetailPolicy('balanced');
+    const performance = getSceneDetailPolicy('performance');
+
+    expect(performance.level).toBe('performance');
+    expect(performance.effects.shaderMist).toBe(false);
+    expect(performance.effects.shaderPond).toBe(false);
+    expect(performance.effects.dynamicPointLights).toBe(false);
+    expect(
+      performance.textures.jobbotScreenWidth *
+        performance.textures.jobbotScreenHeight
+    ).toBeLessThanOrEqual(
+      (balanced.textures.jobbotScreenWidth *
+        balanced.textures.jobbotScreenHeight) /
+        16
+    );
+    expect(performance.geometry.poiCylinderSegments).toBeLessThanOrEqual(
+      balanced.geometry.poiCylinderSegments / 5
+    );
+  });
+
+  it('reports a roughly 10x theoretical workload target for performance detail', () => {
+    const balanced = getSceneDetailMetrics('balanced');
+    const performance = getSceneDetailMetrics('performance');
+
+    expect(performance.theoreticalWorkScale).toBeLessThanOrEqual(0.1);
+    expect(performance.texturePixelBudget).toBeLessThanOrEqual(
+      balanced.texturePixelBudget / 16
+    );
+    expect(performance.poiTriangleBudget).toBeLessThan(
+      balanced.poiTriangleBudget / 5
+    );
+    expect(performance.shaderEffectsEnabled).toBeLessThan(
+      balanced.shaderEffectsEnabled
+    );
+  });
+
   it('classifies known dangerous software renderers separately from hardware', () => {
     const dangerousRenderers = [
       'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
@@ -135,6 +176,35 @@ describe('immersive performance optimization policy', () => {
     expect(normal.initialLevel).toBe('balanced');
     expect(normal.basePixelRatioCap).toBe(1.25);
     expect(normal.mirrorEnabled).toBe(true);
+  });
+
+  it('starts constrained coarse-pointer mobile hardware in performance without overriding explicit preferences', () => {
+    const constrained = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      undefined,
+      {
+        coarsePointer: true,
+        mobileLike: true,
+        deviceMemoryGb: 4,
+        hasExplicitPreference: false,
+      }
+    );
+    expect(constrained.initialLevel).toBe('performance');
+    expect(constrained.sceneDetailLevel).toBe('performance');
+
+    const explicitPreference = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      undefined,
+      {
+        coarsePointer: true,
+        mobileLike: true,
+        deviceMemoryGb: 4,
+        hasExplicitPreference: true,
+      }
+    );
+    expect(explicitPreference.initialLevel).toBe('balanced');
   });
 
   it('chooses ultra-low DPR and capped cadence for dangerous software safe mode', () => {

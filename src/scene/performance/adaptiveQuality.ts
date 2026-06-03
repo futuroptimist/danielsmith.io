@@ -28,6 +28,7 @@ export interface AdaptiveQualityControllerOptions {
   getSelectionSource?: () => AdaptiveQualitySelectionSource;
   onAction?: (event: AdaptiveQualityEvent) => void;
   onDowngrade?: (event: AdaptiveQualityEvent) => void;
+  lockRecoveryAfterPerformanceDowngrade?: boolean;
 }
 
 export interface AdaptiveQualityEvent {
@@ -114,6 +115,7 @@ export function createAdaptiveQualityController({
   getSelectionSource = () => 'adaptive',
   onAction,
   onDowngrade,
+  lockRecoveryAfterPerformanceDowngrade = false,
 }: AdaptiveQualityControllerOptions): AdaptiveQualityController {
   let elapsedMs = 0;
   let lowFpsDurationMs = 0;
@@ -127,6 +129,7 @@ export function createAdaptiveQualityController({
   let lastRecoveryReason: string | null = null;
   let lastAdaptiveReason: string | null = null;
   let pixelRatioStepApplied = false;
+  let lockedInPerformanceByDowngrade = false;
   const frameMsSamples: number[] = [];
 
   const getWarmupRemainingMs = () => Math.max(0, warmupMs - elapsedMs);
@@ -134,7 +137,9 @@ export function createAdaptiveQualityController({
   const autoRecoveryEnabled = () =>
     !isSoftwareRenderer && getSelectionSource() !== 'user';
   const canAccrueRecovery = () =>
-    qualityManager.getLevel() === 'performance' && autoRecoveryEnabled();
+    qualityManager.getLevel() === 'performance' &&
+    autoRecoveryEnabled() &&
+    (!lockedInPerformanceByDowngrade || !lockRecoveryAfterPerformanceDowngrade);
   const resetRecoveryState = () => {
     stableDurationMs = 0;
   };
@@ -192,6 +197,7 @@ export function createAdaptiveQualityController({
     }
     if (currentLevel === 'balanced') {
       qualityManager.setLevel('performance', { source: 'adaptive' });
+      lockedInPerformanceByDowngrade = true;
       return emit(
         'downgrade',
         'quality-performance',

@@ -18,6 +18,10 @@ import {
 
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 const FLYWHEEL_POI_ID = 'flywheel-studio-flywheel';
 
@@ -32,6 +36,7 @@ export interface FlywheelShowpieceOptions {
   centerZ: number;
   roomBounds: Bounds2D;
   orientationRadians?: number;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 interface AutomationPillar {
@@ -44,6 +49,8 @@ interface AutomationPillar {
 export function createFlywheelShowpiece(
   options: FlywheelShowpieceOptions
 ): FlywheelShowpieceBuild {
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const isPerformance = detailPolicy.level === 'performance';
   const group = new Group();
   group.name = 'FlywheelShowpiece';
 
@@ -110,7 +117,7 @@ export function createFlywheelShowpiece(
     daisRadius,
     daisRadius,
     daisHeight,
-    32
+    detailPolicy.geometry.structureCylinderSegments
   );
   const daisMaterial = new MeshStandardMaterial({
     color: new Color(0x14202c),
@@ -128,7 +135,7 @@ export function createFlywheelShowpiece(
     pedestalRadius,
     pedestalRadius,
     pedestalHeight,
-    48
+    detailPolicy.geometry.structureCylinderSegments
   );
   const pedestalMaterial = new MeshStandardMaterial({
     color: new Color(0x182634),
@@ -143,6 +150,18 @@ export function createFlywheelShowpiece(
     options.centerZ
   );
   group.add(pedestal);
+
+  if (isPerformance) {
+    colliders.push({
+      minX: options.centerX - daisRadius,
+      maxX: options.centerX + daisRadius,
+      minZ: options.centerZ - daisRadius,
+      maxZ: options.centerZ + daisRadius,
+    });
+    // Performance mode intentionally keeps only the interaction silhouette.
+    // This targets theoretical workload reduction, not guaranteed 10x FPS on every GPU.
+    return { group, colliders, update() {} };
+  }
 
   const accentHeight = 0.12;
   const accentGeometry = new CylinderGeometry(

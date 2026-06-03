@@ -42,6 +42,10 @@ import {
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
+import {
   applySeasonalLightingPreset,
   type SeasonalLightingPreset,
   type SeasonalLightingTarget,
@@ -299,12 +303,17 @@ function createDuskLightProbe(): LightProbe {
 
 export interface BackyardEnvironmentOptions {
   seasonalPreset?: SeasonalLightingPreset | null;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export function createBackyardEnvironment(
   bounds: Bounds2D,
-  { seasonalPreset = null }: BackyardEnvironmentOptions = {}
+  {
+    seasonalPreset = null,
+    detailPolicy = getSceneDetailPolicy('balanced'),
+  }: BackyardEnvironmentOptions = {}
 ): BackyardEnvironmentBuild {
+  const isPerformance = detailPolicy.level === 'performance';
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
@@ -324,7 +333,11 @@ export function createBackyardEnvironment(
   group.add(duskLightProbe);
 
   const skyRadius = Math.max(width, depth) * 1.32;
-  const skyGeometry = new SphereGeometry(skyRadius, 48, 48);
+  const skyGeometry = new SphereGeometry(
+    skyRadius,
+    detailPolicy.geometry.structureCylinderSegments,
+    detailPolicy.geometry.structureCylinderSegments
+  );
   skyGeometry.scale(1, 0.62, 1);
   const verticalExtent = skyRadius * 0.62;
 
@@ -498,10 +511,13 @@ export function createBackyardEnvironment(
   const rocket = createModelRocket({
     basePosition: rocketBase,
     orientationRadians: -Math.PI / 10,
+    detailPolicy,
   });
   group.add(rocket.group);
   colliders.push(rocket.collider);
-  updates.push(rocket.update);
+  if (!isPerformance) {
+    updates.push(rocket.update);
+  }
 
   const steppingStoneGeometry = new BoxGeometry(pathWidth * 0.32, 0.12, 0.9);
   const steppingStoneMaterial = new MeshStandardMaterial({
@@ -537,10 +553,13 @@ export function createBackyardEnvironment(
     depth: greenhouseDepth,
     environmentMap: duskReflectionMap,
     environmentIntensity: 0.62,
+    detailPolicy,
   });
   group.add(greenhouse.group);
   greenhouse.colliders.forEach((collider) => colliders.push(collider));
-  updates.push(greenhouse.update);
+  if (!isPerformance) {
+    updates.push(greenhouse.update);
+  }
 
   const walkwayWidth = greenhouseWidth * 0.68;
   const walkwayDepth = greenhouseDepth * 0.72;
@@ -650,7 +669,7 @@ export function createBackyardEnvironment(
     1
   );
   walkwayMistGeometry.rotateX(-Math.PI / 2);
-  const walkwayMistLayerCount = 3;
+  const walkwayMistLayerCount = isPerformance ? 0 : 3;
   for (let i = 0; i < walkwayMistLayerCount; i += 1) {
     const ratio = (i + 1) / (walkwayMistLayerCount + 1);
     const baseOpacity = MathUtils.lerp(0.24, 0.38, ratio);

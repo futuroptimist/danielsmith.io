@@ -18,6 +18,11 @@ import {
 } from 'three';
 
 import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
+
+import {
   scalePoiValue,
   POI_ORB_VERTICAL_OFFSET,
   POI_ORB_HEIGHT_MULTIPLIER,
@@ -82,16 +87,26 @@ export interface PoiInstance {
   visitedBadge?: PoiVisitedBadge;
 }
 
+export interface PoiInstanceDetailOptions {
+  detailPolicy?: SceneDetailPolicy;
+}
+
 export function createPoiInstances(
   definitions: PoiDefinition[],
-  overrides: PoiInstanceOverrides = {}
+  overrides: PoiInstanceOverrides = {},
+  options: PoiInstanceDetailOptions = {}
 ): PoiInstance[] {
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
   return definitions.map((definition, index) => {
     const override = overrides[definition.id];
     if (override?.mode === 'display') {
       return createDisplayPoiInstance(definition, override);
     }
-    return createPedestalPoiInstance(definition, index * Math.PI * 0.37);
+    return createPedestalPoiInstance(
+      definition,
+      index * Math.PI * 0.37,
+      detailPolicy
+    );
   });
 }
 
@@ -110,8 +125,10 @@ export function updatePoiInstanceDefinition(
 
 function createPedestalPoiInstance(
   definition: PoiDefinition,
-  phaseOffset: number
+  phaseOffset: number,
+  detailPolicy: SceneDetailPolicy
 ): PoiInstance {
+  const isPerformance = detailPolicy.level === 'performance';
   const group = new Group();
   group.name = `POI:${definition.id}`;
   group.position.set(
@@ -158,7 +175,7 @@ function createPedestalPoiInstance(
       pedestalRadius,
       pedestalRadius,
       pedestalHeight,
-      48,
+      detailPolicy.geometry.poiCylinderSegments,
       1,
       true
     );
@@ -194,7 +211,7 @@ function createPedestalPoiInstance(
       pedestalRadius * 1.02,
       pedestalRadius * 1.02,
       accentHeight,
-      48,
+      detailPolicy.geometry.poiCylinderSegments,
       1,
       true
     );
@@ -220,7 +237,7 @@ function createPedestalPoiInstance(
     const ringGeometry = new RingGeometry(
       pedestalRadius * 0.55,
       pedestalRadius * 1.08,
-      64,
+      detailPolicy.geometry.poiRingSegments,
       1
     );
     const ring = new Mesh(ringGeometry, ringMaterial);
@@ -228,12 +245,17 @@ function createPedestalPoiInstance(
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = pedestalHeight + scalePoiValue(0.02);
     ring.renderOrder = 12;
+    ring.visible = !isPerformance;
     group.add(ring);
   }
 
   const orbRadius =
     Math.max(baseRadius, pedestalRadius) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
-  const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
+  const orbGeometry = new SphereGeometry(
+    orbRadius,
+    detailPolicy.geometry.poiOrbWidthSegments,
+    detailPolicy.geometry.poiOrbHeightSegments
+  );
   const orbColor = new Color(hologramConfig?.orbColor ?? 0xb8f3ff);
   const orbEmissiveBase = new Color(
     hologramConfig?.orbEmissiveColor ?? 0x3de1ff
@@ -287,7 +309,7 @@ function createPedestalPoiInstance(
   const haloGeometry = new RingGeometry(
     haloInnerRadius,
     haloOuterRadius,
-    48,
+    detailPolicy.geometry.poiRingSegments,
     1
   );
   const haloBaseColor = new Color(0x4bd8ff);
@@ -304,12 +326,13 @@ function createPedestalPoiInstance(
   halo.rotation.x = -Math.PI / 2;
   halo.position.y = scalePoiValue(0.08);
   halo.renderOrder = 11;
+  halo.visible = !isPerformance;
   group.add(halo);
 
   const visitedRingGeometry = new RingGeometry(
     haloInnerRadius * 0.92,
     haloOuterRadius * 1.05,
-    60,
+    detailPolicy.geometry.poiRingSegments,
     1
   );
   const visitedRingMaterial = new MeshBasicMaterial({
@@ -326,6 +349,7 @@ function createPedestalPoiInstance(
   visitedRing.renderOrder = 10;
   visitedRing.visible = false;
   visitedRing.scale.setScalar(1);
+  visitedRing.visible = false;
   group.add(visitedRing);
 
   const hitAreaHeight = baseHeight + pedestalHeight + scalePoiValue(0.24);
@@ -334,7 +358,7 @@ function createPedestalPoiInstance(
     hitAreaRadius,
     hitAreaRadius,
     hitAreaHeight,
-    32
+    detailPolicy.geometry.poiHitSegments
   );
   const hitAreaMaterial = new MeshBasicMaterial({
     transparent: true,

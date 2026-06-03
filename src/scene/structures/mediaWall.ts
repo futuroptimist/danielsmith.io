@@ -18,9 +18,11 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
-const SCREEN_WIDTH = 2048;
-const SCREEN_HEIGHT = 1024;
 const BASE_GLOW_OPACITY = 0.18;
 const EMPHASISED_GLOW_OPACITY = 0.62;
 const CLEARANCE_BASE_OPACITY = 0.16;
@@ -30,6 +32,7 @@ const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
 
 interface MediaWallScreenRendererOptions {
   starCount: number;
+  detailPolicy: SceneDetailPolicy;
 }
 
 class MediaWallScreenRenderer {
@@ -38,11 +41,18 @@ class MediaWallScreenRenderer {
   private readonly texture: CanvasTexture;
   private highlight = 0;
   private starCount: number;
+  private readonly width: number;
+  private readonly height: number;
+  private readonly redrawThrottleMs: number;
+  private lastRenderMs = -Number.POSITIVE_INFINITY;
 
   constructor(options: MediaWallScreenRendererOptions) {
     const canvas = document.createElement('canvas');
-    canvas.width = SCREEN_WIDTH;
-    canvas.height = SCREEN_HEIGHT;
+    this.width = options.detailPolicy.textures.mediaWallWidth;
+    this.height = options.detailPolicy.textures.mediaWallHeight;
+    this.redrawThrottleMs = options.detailPolicy.textures.redrawThrottleMs;
+    canvas.width = this.width;
+    canvas.height = this.height;
     const context = canvas.getContext('2d');
 
     if (!context) {
@@ -55,7 +65,7 @@ class MediaWallScreenRenderer {
     this.texture.colorSpace = SRGBColorSpace;
     this.starCount = options.starCount;
 
-    this.render();
+    this.render(true);
   }
 
   getTexture(): CanvasTexture {
@@ -68,7 +78,7 @@ class MediaWallScreenRenderer {
     } else {
       this.starCount = count;
     }
-    this.render();
+    this.render(true);
   }
 
   updateHighlight(target: number) {
@@ -77,74 +87,87 @@ class MediaWallScreenRenderer {
       return;
     }
     this.highlight = clamped;
-    this.render();
+    this.render(false);
   }
 
   dispose() {
     this.texture.dispose();
   }
 
-  private render() {
+  private render(force = false) {
+    const now = typeof performance === 'undefined' ? 0 : performance.now();
+    if (!force && now - this.lastRenderMs < this.redrawThrottleMs) {
+      return;
+    }
+    this.lastRenderMs = now;
     this.context.save();
-    this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    this.context.clearRect(0, 0, this.width, this.height);
     this.drawBase();
     this.drawStarHighlight();
     this.context.restore();
     this.texture.needsUpdate = true;
   }
 
+  private get textScale() {
+    return this.width / 2048;
+  }
+
+  private font(size: number, weight = '') {
+    return `${weight}${Math.max(10, size * this.textScale)}px "Inter", "Segoe UI", sans-serif`;
+  }
+
   private drawBase() {
     const ctx = this.context;
     ctx.save();
     ctx.fillStyle = '#0f1724';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, this.width, this.height);
 
     const baseGradient = ctx.createLinearGradient(
       0,
       0,
-      SCREEN_WIDTH,
-      SCREEN_HEIGHT
+      this.width,
+      this.height
     );
     baseGradient.addColorStop(0, '#182a47');
     baseGradient.addColorStop(0.55, '#0f233c');
     baseGradient.addColorStop(1, '#192339');
     ctx.fillStyle = baseGradient;
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, this.width, this.height);
 
     ctx.globalAlpha = 0.6;
-    const accentGradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, 0);
+    const accentGradient = ctx.createLinearGradient(0, 0, this.width, 0);
     accentGradient.addColorStop(0, 'rgba(75, 217, 255, 0.8)');
     accentGradient.addColorStop(0.45, 'rgba(83, 146, 255, 0.35)');
     accentGradient.addColorStop(1, 'rgba(255, 82, 82, 0.6)');
     ctx.fillStyle = accentGradient;
 
-    const accentX = SCREEN_WIDTH * 0.05;
-    const accentY = SCREEN_HEIGHT * 0.16;
-    const accentWidth = SCREEN_WIDTH * 0.9;
-    const accentHeight = SCREEN_HEIGHT * 0.68;
+    const accentX = this.width * 0.05;
+    const accentY = this.height * 0.16;
+    const accentWidth = this.width * 0.9;
+    const accentHeight = this.height * 0.68;
     ctx.fillRect(accentX, accentY, accentWidth, accentHeight);
     ctx.globalAlpha = 1;
 
-    const leftTextAnchor = SCREEN_WIDTH * 0.08;
-    const headerY = SCREEN_HEIGHT * 0.44;
-    const platformY = SCREEN_HEIGHT * 0.62;
-    const taglineY = SCREEN_HEIGHT * 0.74;
-    const episodeY = SCREEN_HEIGHT * 0.84;
-    const rightTextAnchor = SCREEN_WIDTH * 0.92;
+    const leftTextAnchor = this.width * 0.08;
+    const headerY = this.height * 0.44;
+    const platformY = this.height * 0.62;
+    const taglineY = this.height * 0.74;
+    const episodeY = this.height * 0.84;
+    const rightTextAnchor = this.width * 0.92;
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 180px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(180, 'bold ');
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.fillText('Futuroptimist', leftTextAnchor, headerY);
 
-    ctx.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(120, 'bold ');
     ctx.fillStyle = '#ff4c4c';
     ctx.fillText('YouTube', leftTextAnchor, platformY);
 
     const tagline =
       'Designing resilient automation, live devlogs, and deep dives.';
-    ctx.font = '48px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(48);
     ctx.fillStyle = '#dbe7ff';
     ctx.fillText(tagline, leftTextAnchor, taglineY);
 
@@ -152,7 +175,7 @@ class MediaWallScreenRenderer {
     ctx.fillStyle = '#9ddcff';
     ctx.fillText(latestEpisode, leftTextAnchor, episodeY);
 
-    ctx.font = '600 72px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(72, '600 ');
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'right';
     ctx.fillText('Watch now →', rightTextAnchor, episodeY);
@@ -161,10 +184,10 @@ class MediaWallScreenRenderer {
 
   private drawStarHighlight() {
     const ctx = this.context;
-    const cardWidth = SCREEN_WIDTH * 0.26;
-    const cardHeight = SCREEN_HEIGHT * 0.32;
-    const cardX = SCREEN_WIDTH * 0.62;
-    const cardY = SCREEN_HEIGHT * 0.18;
+    const cardWidth = this.width * 0.26;
+    const cardHeight = this.height * 0.32;
+    const cardX = this.width * 0.62;
+    const cardY = this.height * 0.18;
     const cardRadius = cardHeight * 0.16;
 
     ctx.save();
@@ -190,7 +213,7 @@ class MediaWallScreenRenderer {
 
     const glowStrength = 0.25 + this.highlight * 0.45;
     ctx.shadowColor = `rgba(74, 210, 255, ${glowStrength})`;
-    ctx.shadowBlur = 120 * (0.35 + this.highlight * 0.55);
+    ctx.shadowBlur = 120 * this.textScale * (0.35 + this.highlight * 0.55);
     ctx.fillStyle = `rgba(74, 210, 255, ${glowStrength})`;
     ctx.fill();
     ctx.shadowColor = 'transparent';
@@ -203,16 +226,16 @@ class MediaWallScreenRenderer {
     const labelY = y + h * 0.86;
 
     ctx.fillStyle = '#ffdd63';
-    ctx.font = 'bold 92px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(92, 'bold ');
     ctx.textAlign = 'left';
     ctx.fillText('★', iconX, iconY);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 160px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(160, 'bold ');
     ctx.fillText(this.formatStarCount(), valueX, valueY);
 
     ctx.fillStyle = '#a7c5ff';
-    ctx.font = '48px "Inter", "Segoe UI", sans-serif';
+    ctx.font = this.font(48);
     ctx.fillText('GitHub stars', iconX, labelY);
 
     ctx.restore();
@@ -234,8 +257,10 @@ interface MediaWallTextures {
   badge: CanvasTexture;
 }
 
-function createScreenRenderer(): MediaWallScreenRenderer {
-  return new MediaWallScreenRenderer({ starCount: 1280 });
+function createScreenRenderer(
+  detailPolicy: SceneDetailPolicy
+): MediaWallScreenRenderer {
+  return new MediaWallScreenRenderer({ starCount: 1280, detailPolicy });
 }
 
 function createBadgeTexture(): CanvasTexture {
@@ -288,9 +313,11 @@ function createBadgeTexture(): CanvasTexture {
   return texture;
 }
 
-function getMediaWallTextures(): MediaWallTextures {
+function getMediaWallTextures(
+  detailPolicy: SceneDetailPolicy
+): MediaWallTextures {
   return {
-    screen: createScreenRenderer(),
+    screen: createScreenRenderer(detailPolicy),
     badge: createBadgeTexture(),
   };
 }
@@ -445,8 +472,11 @@ function createMediaWallController({
 }
 
 export function createLivingRoomMediaWall(
-  bounds: Bounds2D
+  bounds: Bounds2D,
+  options: { detailPolicy?: SceneDetailPolicy } = {}
 ): LivingRoomMediaWallBuild {
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const isPerformance = detailPolicy.level === 'performance';
   const group = new Group();
   group.name = 'LivingRoomMediaWall';
   const colliders: RectCollider[] = [];
@@ -487,7 +517,7 @@ export function createLivingRoomMediaWall(
   );
   group.add(trim);
 
-  const { screen, badge } = getMediaWallTextures();
+  const { screen, badge } = getMediaWallTextures(detailPolicy);
 
   const screenMaterial = new MeshBasicMaterial({
     map: screen.getTexture(),
@@ -520,6 +550,7 @@ export function createLivingRoomMediaWall(
   screenGlow.position.set(wallInteriorX + boardDepth + 0.015, 2.36, anchorZ);
   screenGlow.rotation.y = Math.PI / 2;
   screenGlow.renderOrder = 9;
+  screenGlow.visible = !isPerformance;
   group.add(screenGlow);
 
   const badgeMaterial = new MeshBasicMaterial({
@@ -597,6 +628,7 @@ export function createLivingRoomMediaWall(
   const haloGeometry = new BoxGeometry(0.06, 0.24, shelfWidth * 0.85);
   const halo = new Mesh(haloGeometry, haloMaterial);
   halo.position.set(wallInteriorX + boardDepth + 0.37, 1.02, anchorZ);
+  halo.visible = !isPerformance;
   group.add(halo);
 
   const shelfLightMaterial = new MeshStandardMaterial({
@@ -662,6 +694,7 @@ export function createLivingRoomMediaWall(
     anchorZ
   );
   clearance.renderOrder = 4;
+  clearance.visible = !isPerformance;
   group.add(clearance);
 
   colliders.push({

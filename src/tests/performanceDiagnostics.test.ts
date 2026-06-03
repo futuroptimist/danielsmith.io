@@ -20,6 +20,14 @@ describe('performance diagnostics', () => {
         viewport: { width: 1280, height: 720 },
         drawingBuffer: { width: 1600, height: 900 },
       }),
+      getRendererRuntimeInfo: () => ({
+        calls: 12,
+        triangles: 3456,
+        points: 7,
+        lines: 8,
+        geometries: 9,
+        textures: 10,
+      }),
       getQualityState: () => ({
         level: 'balanced',
         selectionSource: 'adaptive',
@@ -77,6 +85,14 @@ describe('performance diagnostics', () => {
     expect(snapshot.minFps).toBeCloseTo(10, 0);
     expect(snapshot.sampleCount).toBe(3);
     expect(snapshot.rendererSize.pixelRatio).toBe(1.25);
+    expect(snapshot.rendererRuntime).toMatchObject({
+      calls: 12,
+      triangles: 3456,
+      points: 7,
+      lines: 8,
+      geometries: 9,
+      textures: 10,
+    });
     expect(snapshot.softwareRendererPolicy.safeMode).toBe(false);
     expect(snapshot.quality.level).toBe('balanced');
     expect(snapshot.features.activePostprocessingPassCount).toBe(1);

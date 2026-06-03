@@ -2,6 +2,7 @@ import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { createPortfolioMannequin } from '../scene/avatar/mannequin';
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 
 describe('createPortfolioMannequin', () => {
   it('creates a mannequin with a hidden collision proxy aligned to the controller radius', () => {
@@ -99,6 +100,33 @@ describe('createPortfolioMannequin', () => {
       trim.getHSL(trimHsl);
       expect(headHsl.h).toBeCloseTo(trimHsl.h, 1);
       expect(headHsl.l).toBeGreaterThan(trimHsl.l);
+    }
+  });
+
+  it('lowers performance geometry detail without changing controller dimensions', () => {
+    const balanced = createPortfolioMannequin({
+      detailPolicy: getSceneDetailPolicy('balanced'),
+    });
+    const performance = createPortfolioMannequin({
+      detailPolicy: getSceneDetailPolicy('performance'),
+    });
+    const balancedHead = balanced.group.getObjectByName(
+      'PortfolioMannequinHead'
+    );
+    const performanceHead = performance.group.getObjectByName(
+      'PortfolioMannequinHead'
+    );
+    expect(performance.collisionRadius).toBeCloseTo(balanced.collisionRadius);
+    expect(performance.height).toBeCloseTo(balanced.height);
+    expect(performance.group.userData.boundingRadius).toBeCloseTo(
+      balanced.group.userData.boundingRadius
+    );
+    expect(balancedHead).toBeInstanceOf(Mesh);
+    expect(performanceHead).toBeInstanceOf(Mesh);
+    if (balancedHead instanceof Mesh && performanceHead instanceof Mesh) {
+      expect(performanceHead.geometry.attributes.position.count).toBeLessThan(
+        balancedHead.geometry.attributes.position.count / 5
+      );
     }
   });
 

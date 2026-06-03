@@ -1,6 +1,12 @@
-import { CylinderGeometry, MeshStandardMaterial, Color } from 'three';
+import {
+  Color,
+  CylinderGeometry,
+  MeshStandardMaterial,
+  SphereGeometry,
+} from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import { scalePoiValue } from '../scene/poi/constants';
 import {
   createPoiInstances,
@@ -243,6 +249,46 @@ describe('createPoiInstances', () => {
     );
     expect(instance.orbBaseHeight).toBeGreaterThan(pedestalHeight);
     expect(instance.labelBaseHeight).toBeGreaterThan(instance.orbBaseHeight);
+  });
+
+  it('uses low-segment performance geometry while preserving hit area dimensions', () => {
+    const definition = createDefinition({
+      id: 'flywheel-studio-flywheel',
+      roomId: 'studio',
+      pedestal: { type: 'hologram', height: 1.6, radiusScale: 0.88 },
+    });
+    const [balanced] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('balanced'),
+      }
+    );
+    const [performance] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('performance'),
+      }
+    );
+
+    const balancedOrb = balanced.orb?.geometry as SphereGeometry;
+    const performanceOrb = performance.orb?.geometry as SphereGeometry;
+    const balancedHit = balanced.hitArea.geometry as CylinderGeometry;
+    const performanceHit = performance.hitArea.geometry as CylinderGeometry;
+
+    expect(performanceOrb.parameters.widthSegments).toBeLessThanOrEqual(8);
+    expect(performanceOrb.parameters.widthSegments).toBeLessThan(
+      balancedOrb.parameters.widthSegments / 3
+    );
+    expect(performanceHit.parameters.radialSegments).toBeLessThan(
+      balancedHit.parameters.radialSegments / 3
+    );
+    expect(performanceHit.parameters.height).toBeCloseTo(
+      balancedHit.parameters.height,
+      5
+    );
+    expect(performance.collider).toEqual(balanced.collider);
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {

@@ -15,6 +15,10 @@ import {
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 export interface JobbotTerminalBuild {
   group: Group;
@@ -35,6 +39,7 @@ export interface JobbotTerminalOptions {
     width?: number;
     depth?: number;
   };
+  detailPolicy?: SceneDetailPolicy;
 }
 
 interface DataShardState {
@@ -46,10 +51,21 @@ interface DataShardState {
   orbitSpeed: number;
 }
 
-function createTerminalScreenTexture(): CanvasTexture {
+function canvasFont(
+  canvas: HTMLCanvasElement,
+  baselineWidth: number,
+  size: number,
+  weight = ''
+) {
+  return `${weight}${Math.max(10, size * (canvas.width / baselineWidth))}px "Inter", "Segoe UI", sans-serif`;
+}
+
+function createTerminalScreenTexture(
+  detailPolicy: SceneDetailPolicy
+): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 1024;
+  canvas.width = detailPolicy.textures.jobbotScreenWidth;
+  canvas.height = detailPolicy.textures.jobbotScreenHeight;
   const context = canvas.getContext('2d');
 
   if (context) {
@@ -69,12 +85,12 @@ function createTerminalScreenTexture(): CanvasTexture {
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     context.fillStyle = '#7cf1ff';
-    context.font = 'bold 220px "Inter", "Segoe UI", sans-serif';
+    context.font = canvasFont(canvas, 2048, 220, 'bold ');
     context.textAlign = 'left';
     context.textBaseline = 'alphabetic';
     context.fillText('jobbot3000', canvas.width * 0.08, canvas.height * 0.46);
 
-    context.font = '64px "Inter", "Segoe UI", sans-serif';
+    context.font = canvasFont(canvas, 2048, 64, '');
     context.fillStyle = '#9ce9ff';
     context.fillText(
       'Automation orchestrator · live diagnostics stream',
@@ -82,7 +98,7 @@ function createTerminalScreenTexture(): CanvasTexture {
       canvas.height * 0.68
     );
 
-    context.font = '52px "Inter", "Segoe UI", sans-serif';
+    context.font = canvasFont(canvas, 2048, 52, '');
     context.fillStyle = '#fede72';
     context.fillText(
       'Status: nominal · queue depth 0 · SLA 99.98%',
@@ -91,11 +107,11 @@ function createTerminalScreenTexture(): CanvasTexture {
     );
 
     const rightColumnX = canvas.width * 0.7;
-    context.font = '600 56px "Inter", "Segoe UI", sans-serif';
+    context.font = canvasFont(canvas, 2048, 56, '600 ');
     context.fillStyle = '#ffffff';
     context.fillText('Ops timeline', rightColumnX, canvas.height * 0.32);
 
-    context.font = '42px "Inter", "Segoe UI", sans-serif';
+    context.font = canvasFont(canvas, 2048, 42, '');
     context.fillStyle = '#b6d8ff';
     const logLines = [
       '• 05:32 · cron sync complete',
@@ -116,11 +132,12 @@ function createTerminalScreenTexture(): CanvasTexture {
 function createTelemetryPanelTexture(
   heading: string,
   primary: string,
-  metrics: string[]
+  metrics: string[],
+  detailPolicy: SceneDetailPolicy
 ): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 512;
+  canvas.width = detailPolicy.textures.jobbotTelemetryWidth;
+  canvas.height = detailPolicy.textures.jobbotTelemetryHeight;
   const context = canvas.getContext('2d');
 
   if (!context) {
@@ -139,14 +156,14 @@ function createTelemetryPanelTexture(
   context.textBaseline = 'alphabetic';
 
   context.fillStyle = '#7cf1ff';
-  context.font = 'bold 156px "Inter", "Segoe UI", sans-serif';
+  context.font = canvasFont(canvas, 1024, 156, 'bold ');
   context.fillText(heading, 88, 220);
 
-  context.font = '600 94px "Inter", "Segoe UI", sans-serif';
+  context.font = canvasFont(canvas, 1024, 94, '600 ');
   context.fillStyle = '#d9fbff';
   context.fillText(primary, 88, 320);
 
-  context.font = '52px "Inter", "Segoe UI", sans-serif';
+  context.font = canvasFont(canvas, 2048, 52, '');
   metrics.forEach((metric, index) => {
     const y = 380 + index * 64;
     context.fillStyle = 'rgba(124, 241, 255, 0.65)';
@@ -205,6 +222,8 @@ export function createJobbotTerminal(
   options: JobbotTerminalOptions
 ): JobbotTerminalBuild {
   const { position, orientationRadians = 0, desk } = options;
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const isPerformance = detailPolicy.level === 'performance';
   const baseY = position.y ?? 0;
   const deskWidth = desk?.width ?? 3.6;
   const deskDepth = desk?.depth ?? 1.6;
@@ -283,7 +302,7 @@ export function createJobbotTerminal(
   );
   group.add(accent);
 
-  const screenTexture = createTerminalScreenTexture();
+  const screenTexture = createTerminalScreenTexture(detailPolicy);
   const screenMaterial = new MeshBasicMaterial({
     map: screenTexture,
     transparent: true,
@@ -436,6 +455,7 @@ export function createJobbotTerminal(
   telemetryGroup.name = 'JobbotTerminalTelemetryGroup';
   const telemetryBaseHeight = deskHeight + deskThickness + 0.58;
   telemetryGroup.position.set(0, telemetryBaseHeight, 0);
+  telemetryGroup.visible = !isPerformance;
   group.add(telemetryGroup);
 
   const telemetryDescriptors = [
@@ -461,7 +481,8 @@ export function createJobbotTerminal(
     const texture = createTelemetryPanelTexture(
       descriptor.heading,
       descriptor.primary,
-      descriptor.metrics
+      descriptor.metrics,
+      detailPolicy
     );
     const material = new MeshBasicMaterial({
       map: texture,
@@ -499,7 +520,7 @@ export function createJobbotTerminal(
       telemetryRadius * 1.06,
       telemetryRadius * 1.06,
       0.04,
-      48
+      detailPolicy.geometry.structureCylinderSegments
     ),
     telemetryAuraMaterial
   );
@@ -507,9 +528,14 @@ export function createJobbotTerminal(
   telemetryAura.rotation.x = Math.PI / 2;
   telemetryAura.position.set(0, telemetryBaseHeight - 0.16, 0);
   telemetryAura.renderOrder = 2;
+  telemetryAura.visible = !isPerformance;
   group.add(telemetryAura);
 
-  const statusBeaconGeometry = new SphereGeometry(0.08, 24, 24);
+  const statusBeaconGeometry = new SphereGeometry(
+    0.08,
+    detailPolicy.geometry.structureCylinderSegments,
+    Math.max(6, detailPolicy.geometry.structureCylinderSegments / 2)
+  );
   const statusBeaconMaterial = new MeshStandardMaterial({
     color: new Color(0x1a2f40),
     emissive: new Color(0x3cb6ff),
@@ -558,6 +584,10 @@ export function createJobbotTerminal(
         1
       );
       const combinedEmphasis = Math.max(emphasis, analyticsGlowValue);
+      if (isPerformance && combinedEmphasis < 0.05) {
+        screenGlowMaterial.emissiveIntensity = 0.24;
+        return;
+      }
       const analyticsBlend =
         pulseScale <= 0
           ? 0

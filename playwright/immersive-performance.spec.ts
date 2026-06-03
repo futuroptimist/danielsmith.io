@@ -29,6 +29,13 @@ interface PerformanceSnapshot {
     lastAdaptiveReason: string | null;
     lastAdaptiveDowngradeReason: string | null;
     lastAdaptiveRecoveryReason: string | null;
+    sceneDetailLevel?: 'cinematic' | 'balanced' | 'performance';
+    sceneDetailMetrics?: {
+      theoreticalWorkScale: number;
+      texturePixelBudget: number;
+      poiTriangleBudget: number;
+      shaderEffectsEnabled: number;
+    };
     adaptivePolicy: {
       isWarmingUp: boolean;
       warmupElapsedMs: number;
@@ -211,6 +218,35 @@ test.describe('immersive performance diagnostics', () => {
         expect(snapshot.features.composerEnabled).toBe(false);
         expect(snapshot.features.mirrorEnabled).toBe(false);
       }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('caps theoretical scene work when performance graphics mode is selected', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'danielsmith:graphics-quality-level',
+        'performance'
+      );
+    });
+
+    try {
+      await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.quality.level).toBe('performance');
+      expect(snapshot.quality.sceneDetailLevel).toBe('performance');
+      expect(
+        snapshot.quality.sceneDetailMetrics?.theoreticalWorkScale
+      ).toBeLessThanOrEqual(0.1);
+      expect(snapshot.quality.sceneDetailMetrics?.shaderEffectsEnabled).toBe(0);
+      expect(snapshot.features.bloomEnabled).toBe(false);
+      expect(snapshot.features.mirrorEnabled).toBe(false);
     } finally {
       await context.close();
     }
