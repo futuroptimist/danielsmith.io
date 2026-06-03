@@ -11,6 +11,7 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getLocaleStrings,
+  getSelectableLocaleIds,
   getTourGuideToggleStrings,
   getTourResetControlStrings,
   isI18nDebugEnabled,
@@ -30,6 +31,10 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
     expect(AVAILABLE_LOCALES).toContain('zh-Hans');
+    expect(AVAILABLE_LOCALES).toContain('es');
+    expect(AVAILABLE_LOCALES).toContain('pt');
+    expect(AVAILABLE_LOCALES).toContain('de');
+    expect(AVAILABLE_LOCALES).toContain('hu');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -49,6 +54,13 @@ describe('i18n utilities', () => {
     expect(resolveLocale('zh-TW')).toBe('en');
     expect(resolveLocale('zh-HK')).toBe('en');
     expect(resolveLocale('zh-Hant')).toBe('en');
+    expect(resolveLocale('es-ES')).toBe('es');
+    expect(resolveLocale('es-MX')).toBe('es');
+    expect(resolveLocale('pt-BR')).toBe('pt');
+    expect(resolveLocale('pt-PT')).toBe('pt');
+    expect(resolveLocale('de-AT')).toBe('de');
+    expect(resolveLocale('de-CH')).toBe('de');
+    expect(resolveLocale('hu-HU')).toBe('hu');
   });
 
   it('ignores stored pseudo locales outside the i18n debug gate', () => {
@@ -83,6 +95,10 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
     expect(getLocaleDirection('zh-Hans')).toBe('ltr');
+    expect(getLocaleDirection('es-MX')).toBe('ltr');
+    expect(getLocaleDirection('pt-BR')).toBe('ltr');
+    expect(getLocaleDirection('de-AT')).toBe('ltr');
+    expect(getLocaleDirection('hu-HU')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -93,6 +109,10 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('ja')).toBe('cjk');
     expect(getLocaleScript('ko-KR')).toBe('cjk');
     expect(getLocaleScript('ar')).toBe('rtl');
+    expect(getLocaleScript('es')).toBe('latin');
+    expect(getLocaleScript('pt')).toBe('latin');
+    expect(getLocaleScript('de')).toBe('latin');
+    expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
   });
 
@@ -323,14 +343,75 @@ describe('i18n utilities', () => {
     expect(chinese.options['zh-Hans'].label).toBe('中文（简体）');
   });
 
+  it('provides first-class localized UI and POI copy for Latin-script locales', () => {
+    const expectations = [
+      {
+        locale: 'es',
+        languageTitle: 'Idioma',
+        fallbackHeading: 'Explora los destacados',
+        poiSummary: 'guiones de Futuroptimist',
+      },
+      {
+        locale: 'pt',
+        languageTitle: 'Idioma',
+        fallbackHeading: 'Explore os destaques',
+        poiSummary: 'roteiros da Futuroptimist',
+      },
+      {
+        locale: 'de',
+        languageTitle: 'Sprache',
+        fallbackHeading: 'Highlights erkunden',
+        poiSummary: 'Futuroptimist-Skripttisch',
+      },
+      {
+        locale: 'hu',
+        languageTitle: 'Nyelv',
+        fallbackHeading: 'Fedezd fel a kiemeléseket',
+        poiSummary: 'Futuroptimist szkriptasztal',
+      },
+    ] as const;
+
+    for (const {
+      locale,
+      languageTitle,
+      fallbackHeading,
+      poiSummary,
+    } of expectations) {
+      expect(getLocaleToggleStrings(locale).title).toBe(languageTitle);
+      expect(getSiteStrings(locale).textFallback.heading).toBe(fallbackHeading);
+      expect(
+        getPoiOverlayChromeStrings(locale).discoveryAnnouncementTemplate
+      ).toContain('{title}');
+      expect(
+        getPoiCopy(locale)['futuroptimist-living-room-tv'].summary
+      ).toContain(poiSummary);
+      expect(getLocaleDirection(locale)).toBe('ltr');
+      expect(getLocaleScript(locale)).toBe('latin');
+    }
+  });
+
   it('exposes Mandarin and hides pseudo behind the explicit i18n debug gate', () => {
     const labels = getLocaleToggleStrings('en').options;
-    const publicOptions = (['en', 'ja', 'ar', 'zh-Hans'] as const).map(
-      (id) => labels[id].label
-    );
+    const publicIds = getSelectableLocaleIds(false);
+    const publicOptions = publicIds.map((id) => labels[id].label);
 
+    expect(publicIds).toEqual([
+      'en',
+      'zh-Hans',
+      'ja',
+      'ar',
+      'es',
+      'pt',
+      'de',
+      'hu',
+    ]);
     expect(publicOptions).toContain('中文（简体）');
+    expect(publicOptions).toContain('Español');
+    expect(publicOptions).toContain('Português');
+    expect(publicOptions).toContain('Deutsch');
+    expect(publicOptions).toContain('Magyar');
     expect(publicOptions).not.toContain('Pseudo');
+    expect(getSelectableLocaleIds(true)).toContain('en-x-pseudo');
     expect(isI18nDebugEnabled({ dev: false, search: '' })).toBe(false);
     expect(isI18nDebugEnabled({ dev: false, search: '?i18nDebug=1' })).toBe(
       true
@@ -339,9 +420,56 @@ describe('i18n utilities', () => {
       isI18nDebugEnabled({
         dev: false,
         search: '',
-        storage: { getItem: () => 'true' },
+        storage: {
+          getItem: (key: string) => (key.includes('::') ? '1' : null),
+        },
       })
     ).toBe(true);
+  });
+
+  it('keeps placeholder sets aligned with English templates', () => {
+    const placeholders = (value: string) =>
+      Array.from(value.matchAll(/\{(\w+)\}/g), (match) => match[1]).sort();
+
+    const compareStrings = (
+      english: unknown,
+      localized: unknown,
+      path: string
+    ) => {
+      if (typeof english === 'string') {
+        expect(typeof localized, path).toBe('string');
+        expect(placeholders(localized as string), path).toEqual(
+          placeholders(english)
+        );
+        return;
+      }
+      if (Array.isArray(english)) {
+        english.forEach((item, index) =>
+          compareStrings(
+            item,
+            (localized as unknown[])[index],
+            `${path}[${index}]`
+          )
+        );
+        return;
+      }
+      if (english && typeof english === 'object') {
+        if (localized === undefined) {
+          return;
+        }
+        const localizedRecord = localized as Record<string, unknown>;
+        for (const [key, nested] of Object.entries(
+          english as Record<string, unknown>
+        )) {
+          compareStrings(nested, localizedRecord[key], `${path}.${key}`);
+        }
+      }
+    };
+
+    const english = getLocaleStrings('en');
+    AVAILABLE_LOCALES.forEach((locale) => {
+      compareStrings(english, getLocaleStrings(locale), locale);
+    });
   });
 
   it('keeps every resolved locale populated with required visible strings', () => {

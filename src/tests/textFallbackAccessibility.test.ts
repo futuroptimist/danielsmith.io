@@ -138,6 +138,35 @@ describe('text fallback accessibility', () => {
     );
   });
 
+  it.each([
+    ['es-MX', 'es', '¿Listo para la sala completa?', 'Explora los destacados'],
+    ['pt-BR', 'pt', 'Pronto para a sala completa?', 'Explore os destaques'],
+    ['de-AT', 'de', 'Bereit für den ganzen Raum?', 'Highlights erkunden'],
+    [
+      'hu-HU',
+      'hu',
+      'Készen állsz a teljes szobára?',
+      'Fedezd fel a kiemeléseket',
+    ],
+  ])(
+    'renders %s text fallback copy and updates document language',
+    (requestedLang, resolvedLang, recoveryTitle, heading) => {
+      const container = document.createElement('div');
+      document.documentElement.lang = requestedLang;
+
+      renderTextFallback(container, {
+        reason: 'manual',
+        immersiveUrl: 'https://danielsmith.io/immersive',
+      });
+
+      expect(document.documentElement.lang).toBe(resolvedLang);
+      expect(
+        container.querySelector('.text-fallback__recovery-title')?.textContent
+      ).toBe(recoveryTitle);
+      expect(container.textContent).toContain(heading);
+    }
+  );
+
   it('renders Mandarin text fallback copy and updates document language', () => {
     const container = document.createElement('div');
     document.documentElement.lang = 'zh-CN';

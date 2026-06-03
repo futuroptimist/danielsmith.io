@@ -1,9 +1,13 @@
 import type { PoiId } from '../../scene/poi/types';
 
 import { AR_OVERRIDES } from './locales/ar';
+import { DE_OVERRIDES } from './locales/de';
 import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
+import { ES_OVERRIDES } from './locales/es';
+import { HU_OVERRIDES } from './locales/hu';
 import { JA_OVERRIDES } from './locales/ja';
+import { PT_OVERRIDES } from './locales/pt';
 import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
   AudioHudControlStrings,
@@ -113,6 +117,10 @@ const ZH_HANS_LOCALE = buildLocale(
   ZH_HANS_OVERRIDES,
   'zh-Hans'
 );
+const ES_LOCALE = buildLocale(EN_LOCALE_STRINGS, ES_OVERRIDES, 'es');
+const PT_LOCALE = buildLocale(EN_LOCALE_STRINGS, PT_OVERRIDES, 'pt');
+const DE_LOCALE = buildLocale(EN_LOCALE_STRINGS, DE_OVERRIDES, 'de');
+const HU_LOCALE = buildLocale(EN_LOCALE_STRINGS, HU_OVERRIDES, 'hu');
 
 const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
@@ -120,11 +128,34 @@ const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   ar: AR_LOCALE,
   ja: JA_LOCALE,
   'zh-Hans': ZH_HANS_LOCALE,
+  es: ES_LOCALE,
+  pt: PT_LOCALE,
+  de: DE_LOCALE,
+  hu: HU_LOCALE,
 });
 
 export const AVAILABLE_LOCALES = Object.freeze(
   Object.keys(localeCatalog) as ReadonlyArray<Locale>
 );
+
+export const PUBLIC_LOCALES = Object.freeze([
+  'en',
+  'zh-Hans',
+  'ja',
+  'ar',
+  'es',
+  'pt',
+  'de',
+  'hu',
+] as const satisfies ReadonlyArray<Locale>);
+
+export function getSelectableLocaleIds(
+  exposePseudoLocale = false
+): ReadonlyArray<Locale> {
+  return exposePseudoLocale
+    ? Object.freeze([...PUBLIC_LOCALES, 'en-x-pseudo'] as Locale[])
+    : PUBLIC_LOCALES;
+}
 
 function normalizeLocaleInput(input: LocaleInput): string {
   if (!input) {
@@ -194,6 +225,22 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (normalized.startsWith('ja')) {
     return 'ja';
+  }
+
+  if (normalized.startsWith('es')) {
+    return 'es';
+  }
+
+  if (normalized.startsWith('pt')) {
+    return 'pt';
+  }
+
+  if (normalized.startsWith('de')) {
+    return 'de';
+  }
+
+  if (normalized.startsWith('hu')) {
+    return 'hu';
   }
 
   return 'en';

@@ -482,6 +482,34 @@ describe('PoiTooltipOverlay', () => {
     ).toBe('⟦Related case studies⟧');
   });
 
+  it.each([
+    ['es', 'Cerrar detalles del POI', 'guiones de Futuroptimist'],
+    ['pt', 'Fechar detalhes do POI', 'roteiros da Futuroptimist'],
+    ['de', 'POI-Details schließen', 'Futuroptimist-Skripttisch'],
+    ['hu', 'POI-részletek bezárása', 'Futuroptimist szkriptasztal'],
+  ])(
+    'renders %s POI tooltip copy and chrome',
+    (locale, closeLabel, summary) => {
+      const poi = getPoiDefinitions(locale).find(
+        (definition) => definition.id === 'futuroptimist-living-room-tv'
+      );
+      expect(poi).toBeDefined();
+
+      overlay.setStrings(getPoiOverlayChromeStrings(locale));
+      overlay.setHovered(poi ?? basePoi);
+
+      const root = container.querySelector(
+        '.poi-tooltip-overlay'
+      ) as HTMLElement;
+      expect(root.textContent).toContain(summary);
+      expect(
+        root
+          .querySelector<HTMLButtonElement>('.poi-tooltip-overlay__close')
+          ?.getAttribute('aria-label')
+      ).toBe(closeLabel);
+    }
+  );
+
   it('renders zh-Hans POI detail copy and overlay chrome without English fallback', () => {
     const poi = getPoiDefinitions('zh-Hans').find(
       (definition) => definition.id === 'tokenplace-studio-cluster'

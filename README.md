@@ -217,7 +217,7 @@ Launch screenshot workflow refresh and commit it after merge.
   locales load structured strings while keeping Vitest coverage in
   `src/tests/i18n.test.ts` to guard against regressions. HUD overlays and the
   text fallback now tag their containers with locale direction metadata so RTL
-  languages flow correctly even before full translations land. Mandarin Chinese (`zh-Hans`) is available in the public language picker; the pseudo locale remains internal and only appears in development, with `?i18nDebug=1`, or after setting `localStorage['danielsmith.io:i18nDebug']='true'` for translation QA.
+  languages flow correctly even before full translations land. Mandarin Chinese (`zh-Hans`), Japanese (`ja`), Arabic (`ar`), Spanish (`es`), Portuguese (`pt`), German (`de`), and Hungarian (`hu`) are available in the public language picker; the pseudo locale remains internal and only appears in development, with `?i18nDebug=1`, or after setting `localStorage['danielsmith.io::i18nDebug::v1']='1'` for translation QA. Translations are AI-assisted and community-reviewable. If you speak one of the supported languages and spot awkward phrasing, corrections are welcome through issues or pull requests.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
   story beats.
