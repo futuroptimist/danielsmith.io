@@ -82,6 +82,36 @@ describe('i18n utilities', () => {
     expect(englishPoi).not.toBe(pseudoPoi);
   });
 
+  it('deep-clones localized POI metric sources per call', () => {
+    const firstDefinitions = getPoiDefinitions('en-x-pseudo');
+    const firstPoi = firstDefinitions.find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+    const firstSource = firstPoi?.metrics?.[0]?.source;
+
+    expect(firstSource).toMatchObject({
+      type: 'githubStars',
+      owner: 'futuroptimist',
+      repo: 'token.place',
+    });
+
+    if (firstSource) {
+      firstSource.owner = 'mutated-owner';
+      firstSource.repo = 'mutated-repo';
+    }
+
+    const freshDefinitions = getPoiDefinitions('en-x-pseudo');
+    const freshPoi = freshDefinitions.find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+
+    expect(freshPoi?.metrics?.[0]?.source).toMatchObject({
+      type: 'githubStars',
+      owner: 'futuroptimist',
+      repo: 'token.place',
+    });
+  });
+
   it('returns localized HUD strings and applies pseudo locale overrides', () => {
     const englishOverlay = getControlOverlayStrings('en');
     const pseudoOverlay = getControlOverlayStrings('en-x-pseudo');

@@ -268,7 +268,10 @@ function localizeBaseDefinitions(input?: LocaleInput): PoiDefinition[] {
       title: copy.title,
       summary: copy.summary,
       outcome: copy.outcome ? { ...copy.outcome } : undefined,
-      metrics: copy.metrics?.map((metric) => ({ ...metric })),
+      metrics: copy.metrics?.map((metric) => ({
+        ...metric,
+        source: metric.source ? { ...metric.source } : undefined,
+      })),
       links: copy.links?.map((link) => ({ ...link })),
       narration: copy.narration ? { ...copy.narration } : undefined,
       interactionPrompt,
@@ -293,7 +296,10 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
     position: { ...definition.position },
     footprint: { ...definition.footprint },
     outcome: definition.outcome ? { ...definition.outcome } : undefined,
-    metrics: definition.metrics?.map((metric) => ({ ...metric })),
+    metrics: definition.metrics?.map((metric) => ({
+      ...metric,
+      source: metric.source ? { ...metric.source } : undefined,
+    })),
     links: definition.links?.map((link) => ({ ...link })),
     narration: definition.narration ? { ...definition.narration } : undefined,
     pedestal: definition.pedestal ? { ...definition.pedestal } : undefined,

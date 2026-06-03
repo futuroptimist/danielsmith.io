@@ -2596,8 +2596,7 @@ function initializeImmersiveScene(
     '[data-role="text-mode-button"]'
   );
   let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
-  const interactDescriptionFallback =
-    controlOverlayStrings.interact.description;
+  let interactDescriptionFallback = controlOverlayStrings.interact.description;
   const movementLegend: MovementLegendHandle | null = controlOverlay
     ? createMovementLegend({
         container: controlOverlay,
@@ -2957,6 +2956,7 @@ function initializeImmersiveScene(
       { hour: 'numeric', minute: '2-digit' }
     );
     interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
+    interactDescriptionFallback = controlOverlayStrings.interact.description;
     helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
 
     const selectedId = currentSelectedPoi?.id ?? null;
@@ -3018,9 +3018,7 @@ function initializeImmersiveScene(
     localeToggleControl?.refresh();
     syncPoiRecommendation();
     syncPoiDetailOverlay();
-    if (interactablePoi) {
-      setInteractablePoi(interactablePoi);
-    }
+    refreshInteractablePoiPrompt();
 
     const visitedSnapshot = poiVisitedState.snapshot();
     const visitedDefinitions = Array.from(visitedSnapshot)
@@ -4280,29 +4278,31 @@ function initializeImmersiveScene(
     }
   }
 
-  function setInteractablePoi(poi: PoiInstance | null) {
-    const samePoi = interactablePoi === poi;
-    interactablePoi = poi;
-    if (samePoi && !poi) {
-      return;
-    }
+  function refreshInteractablePoiPrompt() {
     if (movementLegend) {
-      if (poi) {
-        movementLegend.setInteractPrompt(poi.definition.interactionPrompt);
-      } else {
-        movementLegend.setInteractPrompt(null);
-      }
+      movementLegend.setInteractPrompt(
+        interactablePoi?.definition.interactionPrompt ?? null
+      );
     }
     if (!interactControl || !interactDescription) {
       return;
     }
-    if (poi) {
+    if (interactablePoi) {
       interactControl.hidden = false;
-      interactDescription.textContent = poi.definition.interactionPrompt;
+      interactDescription.textContent =
+        interactablePoi.definition.interactionPrompt;
     } else {
       interactControl.hidden = true;
       interactDescription.textContent = interactDescriptionFallback;
     }
+  }
+
+  function setInteractablePoi(poi: PoiInstance | null) {
+    if (interactablePoi === poi) {
+      return;
+    }
+    interactablePoi = poi;
+    refreshInteractablePoiPrompt();
   }
 
   function handleInteractionInput() {
