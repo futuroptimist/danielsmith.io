@@ -1,6 +1,12 @@
-import { CylinderGeometry, MeshStandardMaterial, Color } from 'three';
+import {
+  Color,
+  CylinderGeometry,
+  MeshStandardMaterial,
+  SphereGeometry,
+} from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import { scalePoiValue } from '../scene/poi/constants';
 import {
   createPoiInstances,
@@ -13,13 +19,7 @@ describe('createPoiInstances', () => {
   const baseSummary = 'Automation-ready showcase artifact.';
   let fillTextLog: string[] = [];
 
-  let originalGetContext:
-    | ((
-        this: HTMLCanvasElement,
-        contextId: string,
-        ...args: unknown[]
-      ) => CanvasRenderingContext2D | null)
-    | undefined;
+  let originalGetContext: typeof HTMLCanvasElement.prototype.getContext;
 
   beforeAll(() => {
     originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -27,7 +27,7 @@ describe('createPoiInstances', () => {
       this: HTMLCanvasElement,
       contextId: string,
       ...args: unknown[]
-    ): CanvasRenderingContext2D | null {
+    ) {
       if (contextId === '2d') {
         const gradient = {
           addColorStop: () => {
@@ -69,7 +69,8 @@ describe('createPoiInstances', () => {
           fillText: (text: string) => {
             fillTextLog.push(text);
           },
-          measureText: (text: string) => ({ width: text.length * 10 }),
+          measureText: (text: string) =>
+            ({ width: text.length * 10 }) as TextMetrics,
           createLinearGradient: () => gradient as CanvasGradient,
           set lineWidth(_value: number) {
             /* noop */
@@ -92,22 +93,16 @@ describe('createPoiInstances', () => {
         };
         return context as CanvasRenderingContext2D;
       }
-      return originalGetContext
-        ? originalGetContext.call(this, contextId, ...args)
-        : null;
-    };
+      return originalGetContext.call(
+        this,
+        contextId as Parameters<typeof originalGetContext>[0],
+        ...(args as [])
+      );
+    } as typeof HTMLCanvasElement.prototype.getContext;
   });
 
   afterAll(() => {
-    if (originalGetContext) {
-      HTMLCanvasElement.prototype.getContext = originalGetContext;
-    } else {
-      delete (
-        HTMLCanvasElement.prototype as {
-          getContext?: typeof originalGetContext;
-        }
-      ).getContext;
-    }
+    HTMLCanvasElement.prototype.getContext = originalGetContext;
   });
 
   const createDefinition = (
@@ -242,7 +237,9 @@ describe('createPoiInstances', () => {
       5
     );
     expect(instance.orbBaseHeight).toBeGreaterThan(pedestalHeight);
-    expect(instance.labelBaseHeight).toBeGreaterThan(instance.orbBaseHeight);
+    expect(instance.labelBaseHeight ?? 0).toBeGreaterThan(
+      instance.orbBaseHeight ?? 0
+    );
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {
@@ -260,5 +257,40 @@ describe('createPoiInstances', () => {
       scalePoiValue(0.32) + scalePoiValue(0.24),
       5
     );
+  });
+
+  it('uses low-poly performance marker geometry without changing hit collider bounds', () => {
+    const definition = createDefinition({
+      id: 'flywheel-studio-flywheel',
+      footprint: { width: 2.6, depth: 2.2 },
+      pedestal: {
+        type: 'hologram',
+        height: 1.6,
+        radiusScale: 0.88,
+      },
+    });
+    const [balanced] = createPoiInstances([definition]);
+    const [performance] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('performance'),
+      }
+    );
+
+    const balancedHitGeometry = balanced.hitArea.geometry as CylinderGeometry;
+    const performanceHitGeometry = performance.hitArea
+      .geometry as CylinderGeometry;
+    const balancedOrbGeometry = balanced.orb?.geometry as SphereGeometry;
+    const performanceOrbGeometry = performance.orb?.geometry as SphereGeometry;
+
+    expect(performanceHitGeometry.parameters.radialSegments).toBeLessThan(
+      balancedHitGeometry.parameters.radialSegments / 3
+    );
+    expect(performanceOrbGeometry.parameters.widthSegments).toBeLessThan(
+      balancedOrbGeometry.parameters.widthSegments / 3
+    );
+    expect(performance.collider).toEqual(balanced.collider);
+    expect(performance.hitArea.name).toBe(`POI_HIT:${definition.id}`);
   });
 });

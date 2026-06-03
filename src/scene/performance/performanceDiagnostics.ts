@@ -2,6 +2,7 @@ import type {
   GraphicsQualityLevel,
   GraphicsQualitySelectionSource,
 } from '../graphics/qualityManager';
+import type { SceneDetailController } from '../graphics/sceneDetailPolicy';
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
 import type { SoftwareRendererPolicyState } from './qualityPolicy';
@@ -31,6 +32,7 @@ export interface QualityStateSnapshot {
   lastAdaptiveDowngradeReason: string | null;
   lastAdaptiveRecoveryReason: string | null;
   adaptivePolicy: AdaptiveQualityPolicySnapshot | null;
+  sceneDetail?: ReturnType<SceneDetailController['getSnapshot']>;
 }
 
 export interface FeatureStateSnapshot {
@@ -55,8 +57,18 @@ export interface FrameStatsSnapshot {
   >;
 }
 
+export interface RendererCountersSnapshot {
+  calls: number;
+  triangles: number;
+  points: number;
+  lines: number;
+  memoryGeometries: number;
+  memoryTextures: number;
+}
+
 export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   renderer: RendererInfoSnapshot;
+  rendererCounters: RendererCountersSnapshot;
   softwareRendererPolicy: SoftwareRendererPolicyState;
   rendererSize: RendererSizeSnapshot;
   quality: QualityStateSnapshot;
@@ -92,6 +104,7 @@ interface PerformanceDiagnosticsOptions {
   getFeatureState: () => FeatureStateSnapshot;
   getLastFailoverReason: () => string | null;
   getSoftwareRendererPolicy?: () => SoftwareRendererPolicyState;
+  getRendererCounters?: () => RendererCountersSnapshot;
   exportCrashLog?: () => string;
   copyCrashLog?: () => Promise<boolean>;
   recordSnapshot?: (snapshot: PerformanceDiagnosticsSnapshot) => void;
@@ -156,6 +169,14 @@ export function createPerformanceDiagnostics({
   exportCrashLog,
   copyCrashLog,
   recordSnapshot,
+  getRendererCounters = () => ({
+    calls: 0,
+    triangles: 0,
+    points: 0,
+    lines: 0,
+    memoryGeometries: 0,
+    memoryTextures: 0,
+  }),
   maxSamples = 180,
 }: PerformanceDiagnosticsOptions) {
   const frameMsSamples: number[] = [];
@@ -177,6 +198,7 @@ export function createPerformanceDiagnostics({
       return {
         ...diagnosticsMethods.getFrameStats(),
         renderer: diagnosticsMethods.getRendererInfo(),
+        rendererCounters: getRendererCounters(),
         softwareRendererPolicy: getSoftwareRendererPolicy(),
         rendererSize: getRendererSize(),
         quality: diagnosticsMethods.getQualityState(),

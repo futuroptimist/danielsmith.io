@@ -20,6 +20,8 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 export interface GreenhouseConfig {
   basePosition: Vector3;
@@ -28,6 +30,7 @@ export interface GreenhouseConfig {
   depth?: number;
   environmentMap?: Texture | null;
   environmentIntensity?: number;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export interface GreenhouseBuild {
@@ -46,6 +49,9 @@ const BASE_HEIGHT = 0.18;
 const SOLAR_BASE_TILT = -MathUtils.degToRad(18);
 
 export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
+  const detailPolicy = config.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const isPerformance = detailPolicy.level === 'performance';
+  const cylinderSegments = detailPolicy.geometry.cylinderSegments;
   const width = config.width ?? DEFAULT_WIDTH;
   const depth = config.depth ?? DEFAULT_DEPTH;
   const orientation = config.orientationRadians ?? 0;
@@ -193,15 +199,23 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   roofBeamRight.rotation.z = -roofBeamLeft.rotation.z;
   frameGroup.add(roofBeamRight);
 
-  const glassMaterial = new MeshPhysicalMaterial({
-    color: new Color(0x9cd6ff),
-    transparent: true,
-    opacity: 0.28,
-    roughness: 0.1,
-    metalness: 0.0,
-    transmission: 0.86,
-    thickness: 0.18,
-  });
+  const glassMaterial = isPerformance
+    ? new MeshStandardMaterial({
+        color: new Color(0x6ba6c7),
+        transparent: true,
+        opacity: 0.38,
+        roughness: 0.42,
+        metalness: 0.05,
+      })
+    : new MeshPhysicalMaterial({
+        color: new Color(0x9cd6ff),
+        transparent: true,
+        opacity: 0.28,
+        roughness: 0.1,
+        metalness: 0.0,
+        transmission: 0.86,
+        thickness: 0.18,
+      });
   applyEnvironmentMap(glassMaterial);
 
   const wallGeometry = new PlaneGeometry(
@@ -282,7 +296,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     pondPlinthRadius,
     pondPlinthRadius,
     pondPlinthHeight,
-    40
+    cylinderSegments
   );
   const pondPlinthMaterial = new MeshStandardMaterial({
     color: new Color(0x2b343c),
@@ -303,7 +317,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     depth * 0.17,
     depth * 0.17,
     0.12,
-    32
+    cylinderSegments
   );
   const pondMaterial = new MeshStandardMaterial({
     color: new Color(0x1a4a5e),
@@ -407,6 +421,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   );
   pondRipple.rotation.x = -Math.PI / 2;
   pondRipple.renderOrder = 6;
+  pondRipple.visible = detailPolicy.effects.pondRippleShader;
   group.add(pondRipple);
 
   const solarPanelPivot = new Group();
@@ -446,7 +461,12 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   });
 
   const growLightMaterials: MeshStandardMaterial[] = [];
-  const growLightGeometry = new CylinderGeometry(0.05, 0.05, width * 0.32, 12);
+  const growLightGeometry = new CylinderGeometry(
+    0.05,
+    0.05,
+    width * 0.32,
+    cylinderSegments
+  );
   const growLightSpacing = depth * 0.38;
   [-growLightSpacing, 0, growLightSpacing].forEach((offsetZ, index) => {
     const lightMaterial = new MeshStandardMaterial({
@@ -465,6 +485,9 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   });
 
   const update = ({ elapsed }: { elapsed: number; delta: number }) => {
+    if (isPerformance) {
+      return;
+    }
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
     const flickerScale = MathUtils.clamp(getFlickerScale(), 0, 1);
     const calmScale = Math.min(pulseScale, flickerScale);

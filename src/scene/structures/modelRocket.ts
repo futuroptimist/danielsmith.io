@@ -16,11 +16,14 @@ import {
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 export interface ModelRocketConfig {
   basePosition: Vector3;
   orientationRadians?: number;
   scale?: number;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export interface ModelRocketBuild {
@@ -33,6 +36,10 @@ const DEFAULT_SCALE = 1;
 const FIN_COUNT = 3;
 
 export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
+  const detailPolicy = config.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const isPerformance = detailPolicy.level === 'performance';
+  const cylinderSegments = detailPolicy.geometry.cylinderSegments;
+  const ringSegments = detailPolicy.geometry.ringSegments;
   const scale = config.scale ?? DEFAULT_SCALE;
   const orientation = config.orientationRadians ?? 0;
   const basePosition = config.basePosition.clone();
@@ -48,7 +55,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     standRadius,
     standRadius,
     standHeight,
-    32
+    cylinderSegments
   );
   const standMaterial = new MeshStandardMaterial({
     color: new Color(0x2c3442),
@@ -64,7 +71,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     standRadius * 0.98,
     standRadius * 1.04,
     standHeight * 0.38,
-    32
+    cylinderSegments
   );
   const standTrimMaterial = new MeshStandardMaterial({
     color: new Color(0x39475b),
@@ -84,7 +91,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 1.02,
     bodyRadius * 0.94,
     bodyHeight,
-    40
+    cylinderSegments
   );
   const bodyMaterial = new MeshStandardMaterial({
     color: new Color(0xe7eefc),
@@ -103,7 +110,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 1.06,
     bodyRadius * 1.06,
     stripeHeight,
-    40
+    cylinderSegments
   );
   const stripeMaterial = new MeshStandardMaterial({
     color: new Color(0xff6b6b),
@@ -118,7 +125,11 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   group.add(stripe);
 
   const noseHeight = 1.1 * scale;
-  const noseGeometry = new ConeGeometry(bodyRadius * 0.92, noseHeight, 40);
+  const noseGeometry = new ConeGeometry(
+    bodyRadius * 0.92,
+    noseHeight,
+    cylinderSegments
+  );
   const noseMaterial = new MeshStandardMaterial({
     color: new Color(0xff8976),
     emissive: new Color(0xb33a2d),
@@ -136,7 +147,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 0.78,
     bodyRadius * 0.62,
     thrusterHeight,
-    32
+    cylinderSegments
   );
   const thrusterMaterial = new MeshStandardMaterial({
     color: new Color(0x1f2734),
@@ -159,12 +170,13 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   );
   thrusterLight.name = 'ModelRocketThrusterLight';
   thrusterLight.position.set(0, standHeight + thrusterHeight * 0.24, 0);
+  thrusterLight.visible = detailPolicy.effects.dynamicPointLights;
   group.add(thrusterLight);
 
   const flameGeometry = new ConeGeometry(
     bodyRadius * 0.42,
     0.88 * scale,
-    24,
+    cylinderSegments,
     1,
     true
   );
@@ -179,6 +191,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   flame.position.set(0, standHeight - thrusterHeight * 0.32, 0);
   flame.rotation.x = Math.PI;
   flame.scale.set(0.75, 0.5, 0.75);
+  flame.visible = !isPerformance;
   group.add(flame);
 
   const finHeight = 0.78 * scale;
@@ -209,7 +222,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   const safetyRingGeometry = new RingGeometry(
     standRadius * 1.18,
     standRadius * 1.52,
-    48
+    ringSegments
   );
   const safetyRingMaterial = new MeshBasicMaterial({
     color: new Color(0xffd166),
@@ -221,6 +234,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   safetyRing.name = 'ModelRocketSafetyRing';
   safetyRing.rotation.x = -Math.PI / 2;
   safetyRing.position.y = 0.02 * scale;
+  safetyRing.visible = !isPerformance;
   group.add(safetyRing);
 
   const countdownPanelMaterial = new MeshBasicMaterial({
@@ -240,6 +254,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius + 0.12 * scale
   );
   countdownPanel.rotation.y = Math.PI;
+  countdownPanel.visible = !isPerformance;
   group.add(countdownPanel);
 
   const footprintRadius = standRadius * 1.45;
@@ -259,6 +274,9 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   const thrusterLightBaseDistance = thrusterLight.distance;
 
   const update = ({ elapsed }: { elapsed: number; delta: number }) => {
+    if (isPerformance) {
+      return;
+    }
     const pulseScale = MathUtils.clamp(getPulseScale(), 0, 1);
     const thrusterPulse =
       ((Math.sin(elapsed * 2.1) + 1) / 2) * MathUtils.lerp(0.45, 1, pulseScale);

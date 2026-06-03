@@ -18,6 +18,8 @@ import {
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
@@ -30,6 +32,9 @@ const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
 
 interface MediaWallScreenRendererOptions {
   starCount: number;
+  width?: number;
+  height?: number;
+  redrawThrottleMs?: number;
 }
 
 class MediaWallScreenRenderer {
@@ -38,11 +43,18 @@ class MediaWallScreenRenderer {
   private readonly texture: CanvasTexture;
   private highlight = 0;
   private starCount: number;
+  private width: number;
+  private height: number;
+  private redrawThrottleMs: number;
+  private lastRenderMs = Number.NEGATIVE_INFINITY;
 
   constructor(options: MediaWallScreenRendererOptions) {
     const canvas = document.createElement('canvas');
-    canvas.width = SCREEN_WIDTH;
-    canvas.height = SCREEN_HEIGHT;
+    this.width = options.width ?? SCREEN_WIDTH;
+    this.height = options.height ?? SCREEN_HEIGHT;
+    this.redrawThrottleMs = options.redrawThrottleMs ?? 0;
+    canvas.width = this.width;
+    canvas.height = this.height;
     const context = canvas.getContext('2d');
 
     if (!context) {
@@ -85,8 +97,16 @@ class MediaWallScreenRenderer {
   }
 
   private render() {
+    const now = typeof performance === 'undefined' ? 0 : performance.now();
+    if (
+      this.redrawThrottleMs > 0 &&
+      now - this.lastRenderMs < this.redrawThrottleMs
+    ) {
+      return;
+    }
+    this.lastRenderMs = now;
     this.context.save();
-    this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    this.context.clearRect(0, 0, this.width, this.height);
     this.drawBase();
     this.drawStarHighlight();
     this.context.restore();
@@ -97,40 +117,40 @@ class MediaWallScreenRenderer {
     const ctx = this.context;
     ctx.save();
     ctx.fillStyle = '#0f1724';
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, this.width, this.height);
 
     const baseGradient = ctx.createLinearGradient(
       0,
       0,
-      SCREEN_WIDTH,
-      SCREEN_HEIGHT
+      this.width,
+      this.height
     );
     baseGradient.addColorStop(0, '#182a47');
     baseGradient.addColorStop(0.55, '#0f233c');
     baseGradient.addColorStop(1, '#192339');
     ctx.fillStyle = baseGradient;
-    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillRect(0, 0, this.width, this.height);
 
     ctx.globalAlpha = 0.6;
-    const accentGradient = ctx.createLinearGradient(0, 0, SCREEN_WIDTH, 0);
+    const accentGradient = ctx.createLinearGradient(0, 0, this.width, 0);
     accentGradient.addColorStop(0, 'rgba(75, 217, 255, 0.8)');
     accentGradient.addColorStop(0.45, 'rgba(83, 146, 255, 0.35)');
     accentGradient.addColorStop(1, 'rgba(255, 82, 82, 0.6)');
     ctx.fillStyle = accentGradient;
 
-    const accentX = SCREEN_WIDTH * 0.05;
-    const accentY = SCREEN_HEIGHT * 0.16;
-    const accentWidth = SCREEN_WIDTH * 0.9;
-    const accentHeight = SCREEN_HEIGHT * 0.68;
+    const accentX = this.width * 0.05;
+    const accentY = this.height * 0.16;
+    const accentWidth = this.width * 0.9;
+    const accentHeight = this.height * 0.68;
     ctx.fillRect(accentX, accentY, accentWidth, accentHeight);
     ctx.globalAlpha = 1;
 
-    const leftTextAnchor = SCREEN_WIDTH * 0.08;
-    const headerY = SCREEN_HEIGHT * 0.44;
-    const platformY = SCREEN_HEIGHT * 0.62;
-    const taglineY = SCREEN_HEIGHT * 0.74;
-    const episodeY = SCREEN_HEIGHT * 0.84;
-    const rightTextAnchor = SCREEN_WIDTH * 0.92;
+    const leftTextAnchor = this.width * 0.08;
+    const headerY = this.height * 0.44;
+    const platformY = this.height * 0.62;
+    const taglineY = this.height * 0.74;
+    const episodeY = this.height * 0.84;
+    const rightTextAnchor = this.width * 0.92;
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 180px "Inter", "Segoe UI", sans-serif';
@@ -161,10 +181,10 @@ class MediaWallScreenRenderer {
 
   private drawStarHighlight() {
     const ctx = this.context;
-    const cardWidth = SCREEN_WIDTH * 0.26;
-    const cardHeight = SCREEN_HEIGHT * 0.32;
-    const cardX = SCREEN_WIDTH * 0.62;
-    const cardY = SCREEN_HEIGHT * 0.18;
+    const cardWidth = this.width * 0.26;
+    const cardHeight = this.height * 0.32;
+    const cardX = this.width * 0.62;
+    const cardY = this.height * 0.18;
     const cardRadius = cardHeight * 0.16;
 
     ctx.save();
@@ -234,14 +254,23 @@ interface MediaWallTextures {
   badge: CanvasTexture;
 }
 
-function createScreenRenderer(): MediaWallScreenRenderer {
-  return new MediaWallScreenRenderer({ starCount: 1280 });
+function createScreenRenderer(
+  detailPolicy = getSceneDetailPolicy('balanced')
+): MediaWallScreenRenderer {
+  return new MediaWallScreenRenderer({
+    starCount: 1280,
+    width: detailPolicy.textures.mediaWallScreen.width,
+    height: detailPolicy.textures.mediaWallScreen.height,
+    redrawThrottleMs: detailPolicy.updates.canvasRedrawThrottleMs,
+  });
 }
 
-function createBadgeTexture(): CanvasTexture {
+function createBadgeTexture(
+  detailPolicy = getSceneDetailPolicy('balanced')
+): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 256;
+  canvas.width = detailPolicy.textures.mediaWallBadge.width;
+  canvas.height = detailPolicy.textures.mediaWallBadge.height;
   const context = canvas.getContext('2d');
 
   if (!context) {
@@ -288,10 +317,12 @@ function createBadgeTexture(): CanvasTexture {
   return texture;
 }
 
-function getMediaWallTextures(): MediaWallTextures {
+function getMediaWallTextures(
+  detailPolicy = getSceneDetailPolicy('balanced')
+): MediaWallTextures {
   return {
-    screen: createScreenRenderer(),
-    badge: createBadgeTexture(),
+    screen: createScreenRenderer(detailPolicy),
+    badge: createBadgeTexture(detailPolicy),
   };
 }
 
@@ -331,6 +362,7 @@ interface MediaWallControllerOptions {
   clearanceMaterial: MeshBasicMaterial;
   clearanceBaseColor: Color;
   clearanceHighlightColor: Color;
+  detailPolicy: SceneDetailPolicy;
 }
 
 function createMediaWallController({
@@ -341,6 +373,7 @@ function createMediaWallController({
   clearanceMaterial,
   clearanceBaseColor,
   clearanceHighlightColor,
+  detailPolicy,
 }: MediaWallControllerOptions): LivingRoomMediaWallController {
   let highlight = 0;
   const baseHaloIntensity = haloMaterial.emissiveIntensity;
@@ -433,7 +466,9 @@ function createMediaWallController({
         clearanceMaterial.color.copy(clearanceColor);
         clearanceMaterial.needsUpdate = true;
       }
-      screenRenderer.updateHighlight(highlight);
+      if (detailPolicy.level !== 'performance' || highlight > 0.05) {
+        screenRenderer.updateHighlight(highlight);
+      }
     },
     setStarCount(count) {
       screenRenderer.setStarCount(count);
@@ -445,7 +480,8 @@ function createMediaWallController({
 }
 
 export function createLivingRoomMediaWall(
-  bounds: Bounds2D
+  bounds: Bounds2D,
+  detailPolicy: SceneDetailPolicy = getSceneDetailPolicy('balanced')
 ): LivingRoomMediaWallBuild {
   const group = new Group();
   group.name = 'LivingRoomMediaWall';
@@ -487,7 +523,7 @@ export function createLivingRoomMediaWall(
   );
   group.add(trim);
 
-  const { screen, badge } = getMediaWallTextures();
+  const { screen, badge } = getMediaWallTextures(detailPolicy);
 
   const screenMaterial = new MeshBasicMaterial({
     map: screen.getTexture(),
@@ -520,6 +556,7 @@ export function createLivingRoomMediaWall(
   screenGlow.position.set(wallInteriorX + boardDepth + 0.015, 2.36, anchorZ);
   screenGlow.rotation.y = Math.PI / 2;
   screenGlow.renderOrder = 9;
+  screenGlow.visible = detailPolicy.effects.decorativeHalos;
   group.add(screenGlow);
 
   const badgeMaterial = new MeshBasicMaterial({
@@ -597,6 +634,7 @@ export function createLivingRoomMediaWall(
   const haloGeometry = new BoxGeometry(0.06, 0.24, shelfWidth * 0.85);
   const halo = new Mesh(haloGeometry, haloMaterial);
   halo.position.set(wallInteriorX + boardDepth + 0.37, 1.02, anchorZ);
+  halo.visible = detailPolicy.effects.decorativeHalos;
   group.add(halo);
 
   const shelfLightMaterial = new MeshStandardMaterial({
@@ -694,8 +732,9 @@ export function createLivingRoomMediaWall(
     clearanceMaterial,
     clearanceBaseColor,
     clearanceHighlightColor,
+    detailPolicy,
   });
-  controller.setStarCount(1280);
+  controller.setStarCount(detailPolicy.level === 'performance' ? 128 : 1280);
 
   return { group, colliders, poiBindings, controller };
 }

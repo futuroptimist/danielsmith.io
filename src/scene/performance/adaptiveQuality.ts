@@ -28,6 +28,7 @@ export interface AdaptiveQualityControllerOptions {
   getSelectionSource?: () => AdaptiveQualitySelectionSource;
   onAction?: (event: AdaptiveQualityEvent) => void;
   onDowngrade?: (event: AdaptiveQualityEvent) => void;
+  onSceneDetailLevelChange?: (level: GraphicsQualityLevel) => void;
 }
 
 export interface AdaptiveQualityEvent {
@@ -114,6 +115,7 @@ export function createAdaptiveQualityController({
   getSelectionSource = () => 'adaptive',
   onAction,
   onDowngrade,
+  onSceneDetailLevelChange,
 }: AdaptiveQualityControllerOptions): AdaptiveQualityController {
   let elapsedMs = 0;
   let lowFpsDurationMs = 0;
@@ -184,6 +186,7 @@ export function createAdaptiveQualityController({
     const currentLevel = qualityManager.getLevel();
     if (currentLevel === 'cinematic') {
       qualityManager.setLevel('balanced', { source: 'adaptive' });
+      onSceneDetailLevelChange?.('balanced');
       return emit(
         'downgrade',
         'quality-balanced',
@@ -192,6 +195,7 @@ export function createAdaptiveQualityController({
     }
     if (currentLevel === 'balanced') {
       qualityManager.setLevel('performance', { source: 'adaptive' });
+      onSceneDetailLevelChange?.('performance');
       return emit(
         'downgrade',
         'quality-performance',
@@ -219,6 +223,7 @@ export function createAdaptiveQualityController({
       return null;
     }
     qualityManager.setLevel('balanced', { source: 'adaptive' });
+    onSceneDetailLevelChange?.('balanced');
     return emit(
       'recover',
       'quality-balanced',

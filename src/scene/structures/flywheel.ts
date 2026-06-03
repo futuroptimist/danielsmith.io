@@ -18,6 +18,8 @@ import {
 
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 const FLYWHEEL_POI_ID = 'flywheel-studio-flywheel';
 
@@ -32,6 +34,7 @@ export interface FlywheelShowpieceOptions {
   centerZ: number;
   roomBounds: Bounds2D;
   orientationRadians?: number;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 interface AutomationPillar {
@@ -44,6 +47,15 @@ interface AutomationPillar {
 export function createFlywheelShowpiece(
   options: FlywheelShowpieceOptions
 ): FlywheelShowpieceBuild {
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const isPerformance = detailPolicy.level === 'performance';
+  const cylinderSegments = detailPolicy.geometry.cylinderSegments;
+  const sphereWidthSegments = detailPolicy.geometry.sphereWidthSegments;
+  const sphereHeightSegments = detailPolicy.geometry.sphereHeightSegments;
+  const torusRadialSegments = detailPolicy.geometry.torusRadialSegments;
+  const torusTubularSegments = detailPolicy.geometry.torusTubularSegments;
+  const ringSegments = detailPolicy.geometry.ringSegments;
+
   const group = new Group();
   group.name = 'FlywheelShowpiece';
 
@@ -110,7 +122,7 @@ export function createFlywheelShowpiece(
     daisRadius,
     daisRadius,
     daisHeight,
-    32
+    cylinderSegments
   );
   const daisMaterial = new MeshStandardMaterial({
     color: new Color(0x14202c),
@@ -128,7 +140,7 @@ export function createFlywheelShowpiece(
     pedestalRadius,
     pedestalRadius,
     pedestalHeight,
-    48
+    cylinderSegments
   );
   const pedestalMaterial = new MeshStandardMaterial({
     color: new Color(0x182634),
@@ -149,7 +161,7 @@ export function createFlywheelShowpiece(
     pedestalRadius * 1.02,
     pedestalRadius * 1.02,
     accentHeight,
-    48
+    cylinderSegments
   );
   const accentMaterial = new MeshStandardMaterial({
     color: new Color(0x5ad1ff),
@@ -173,7 +185,7 @@ export function createFlywheelShowpiece(
     glassRadius,
     glassRadius,
     glassHeight,
-    32,
+    cylinderSegments,
     1,
     true
   );
@@ -191,6 +203,7 @@ export function createFlywheelShowpiece(
     daisHeight + pedestalHeight + glassHeight / 2,
     options.centerZ
   );
+  glass.visible = detailPolicy.effects.glassTransmission;
   group.add(glass);
 
   const rotorGroup = new Group();
@@ -207,8 +220,8 @@ export function createFlywheelShowpiece(
   const rotorRingGeometry = new TorusGeometry(
     rotorRingRadius,
     rotorRingTube,
-    24,
-    64
+    torusRadialSegments,
+    torusTubularSegments
   );
   const rotorRingMaterial = new MeshStandardMaterial({
     color: new Color(0x2c95ff),
@@ -222,7 +235,12 @@ export function createFlywheelShowpiece(
   rotorRing.rotation.x = Math.PI / 2;
   rotorGroup.add(rotorRing);
 
-  const innerDiscGeometry = new CylinderGeometry(0.38, 0.38, 0.06, 48);
+  const innerDiscGeometry = new CylinderGeometry(
+    0.38,
+    0.38,
+    0.06,
+    cylinderSegments
+  );
   const innerDiscMaterial = new MeshStandardMaterial({
     color: new Color(0x101822),
     roughness: 0.34,
@@ -264,8 +282,8 @@ export function createFlywheelShowpiece(
   const counterRingGeometry = new TorusGeometry(
     rotorRingRadius * 0.72,
     0.07,
-    20,
-    64
+    torusRadialSegments,
+    torusTubularSegments
   );
   const counterRingMaterial = new MeshStandardMaterial({
     color: new Color(0x1f88ff),
@@ -282,7 +300,7 @@ export function createFlywheelShowpiece(
   const glyphRingGeometry = new RingGeometry(
     rotorRingRadius * 0.58,
     rotorRingRadius * 0.72,
-    64,
+    ringSegments,
     1
   );
   const glyphRingMaterial = new MeshBasicMaterial({
@@ -300,18 +318,25 @@ export function createFlywheelShowpiece(
   const orbitGroup = new Group();
   orbitGroup.name = 'FlywheelOrbitGroup';
   orbitGroup.position.copy(rotorGroup.position);
+  orbitGroup.visible = !isPerformance;
   group.add(orbitGroup);
 
   const automationPillars: AutomationPillar[] = [];
   const automationPillarGroup = new Group();
   automationPillarGroup.name = 'FlywheelAutomationPillars';
   automationPillarGroup.position.copy(rotorGroup.position);
+  automationPillarGroup.visible = !isPerformance;
   group.add(automationPillarGroup);
 
   const pillarCount = 4;
   const pillarHeight = Math.min(1.05, pedestalHeight * 1.5);
   const pillarRadius = rotorRingRadius * 0.94;
-  const pillarGeometry = new CylinderGeometry(0.12, 0.18, pillarHeight, 18);
+  const pillarGeometry = new CylinderGeometry(
+    0.12,
+    0.18,
+    pillarHeight,
+    cylinderSegments
+  );
   for (let index = 0; index < pillarCount; index += 1) {
     const pillarMaterial = new MeshStandardMaterial({
       color: new Color(0x102133),
@@ -341,7 +366,11 @@ export function createFlywheelShowpiece(
   }
 
   const orbitRadius = rotorRingRadius * 1.12;
-  const orbitGeometry = new SphereGeometry(0.08, 24, 24);
+  const orbitGeometry = new SphereGeometry(
+    0.08,
+    sphereWidthSegments,
+    sphereHeightSegments
+  );
   const orbitMaterial = new MeshStandardMaterial({
     color: new Color(0xffffff),
     emissive: new Color(0x7be9ff),
@@ -362,6 +391,7 @@ export function createFlywheelShowpiece(
   const techStackGroup = new Group();
   techStackGroup.name = 'FlywheelTechStackGroup';
   techStackGroup.position.copy(rotorGroup.position);
+  techStackGroup.visible = !isPerformance;
   group.add(techStackGroup);
 
   const techStackItems = [
@@ -549,6 +579,13 @@ export function createFlywheelShowpiece(
       smoothing
     );
     const selectionInfluence = MathUtils.clamp(selectionStrength, 0, 1);
+    if (
+      isPerformance &&
+      Math.max(context.emphasis, selectionInfluence) < 0.02
+    ) {
+      rotorGroup.rotation.y += 0.12 * context.delta;
+      return;
+    }
     const targetVelocity =
       MathUtils.lerp(0.55, 2.4, context.emphasis) +
       MathUtils.lerp(0, 1.1, selectionInfluence);

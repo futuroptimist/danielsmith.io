@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
@@ -12,6 +13,7 @@ import {
   resolveResizedBasePixelRatio,
   resolveSoftwareRendererPolicy,
   resolveSoftwareSafeRenderCadence,
+  getQualitySceneDetailPolicy,
 } from '../scene/performance/qualityPolicy';
 import { classifyRendererInfo } from '../scene/performance/rendererCapabilities';
 
@@ -263,6 +265,42 @@ describe('immersive performance optimization policy', () => {
     });
   });
 
+  it('maps graphics quality to centralized scene detail budgets', () => {
+    const balanced = getQualitySceneDetailPolicy('balanced');
+    const performance = getQualitySceneDetailPolicy('performance');
+
+    expect(performance.level).toBe('performance');
+    expect(performance.effects.mist).toBe(false);
+    expect(performance.effects.pondRippleShader).toBe(false);
+    expect(performance.effects.dynamicPointLights).toBe(false);
+    expect(performance.textures.jobbotScreen.width).toBeLessThanOrEqual(
+      balanced.textures.jobbotScreen.width / 4
+    );
+    expect(performance.geometry.cylinderSegments).toBeLessThanOrEqual(
+      balanced.geometry.cylinderSegments / 5
+    );
+    expect(performance.geometry.sphereWidthSegments).toBeLessThanOrEqual(
+      balanced.geometry.sphereWidthSegments / 4
+    );
+    expect(performance.budgets.transparentShaderLayers).toBe(0);
+    expect(performance.budgets.dynamicPointLights).toBeLessThan(
+      balanced.budgets.dynamicPointLights
+    );
+  });
+
+  it('starts coarse-pointer constrained hardware in performance without persisted preferences', () => {
+    const policy = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      resolveSoftwareRendererPolicy({ isDangerousSoftwareRenderer: false }),
+      { coarsePointer: true, tabletLike: true, deviceMemoryGb: 4 }
+    );
+
+    expect(policy.initialLevel).toBe('performance');
+    expect(policy.sceneDetailLevel).toBe('performance');
+    expect(policy.mirrorEnabled).toBe(false);
+  });
+
   it('resizes DPR up to the device cap without undoing adaptive downgrades', () => {
     expect(resolveResizedBasePixelRatio(2, 1.25)).toBe(1.25);
     expect(resolveResizedBasePixelRatio(2, 1.25, 1)).toBe(1);
@@ -355,6 +393,36 @@ describe('immersive performance optimization policy', () => {
 
     expect(recoveryEvent?.action).toBe('recover');
     expect(harness.level).toBe('balanced');
+  });
+
+  it('notifies scene detail policy when adaptive downgrade reaches performance', () => {
+    let currentLevel: GraphicsQualityLevel = 'balanced';
+    const sceneDetailChanges: GraphicsQualityLevel[] = [];
+    const controller = createAdaptiveQualityController({
+      qualityManager: {
+        getLevel: () => currentLevel,
+        setLevel: (next) => {
+          currentLevel = next;
+        },
+        setBasePixelRatio: () => undefined,
+      },
+      getBasePixelRatio: () => 1,
+      setBasePixelRatio: () => undefined,
+      cooldownMs: 0,
+      downgradeAfterMs: 1000,
+      warmupMs: 0,
+      onSceneDetailLevelChange: (level) => sceneDetailChanges.push(level),
+    });
+
+    for (let index = 0; index < 4; index += 1) {
+      controller.update(0.4);
+    }
+
+    expect(currentLevel).toBe('performance');
+    expect(sceneDetailChanges).toContain('performance');
+    expect(getSceneDetailPolicy(currentLevel).effects.dynamicPointLights).toBe(
+      false
+    );
   });
 
   it('keeps software renderers conservative and does not auto-upshift', () => {

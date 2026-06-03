@@ -29,6 +29,22 @@ interface PerformanceSnapshot {
     lastAdaptiveReason: string | null;
     lastAdaptiveDowngradeReason: string | null;
     lastAdaptiveRecoveryReason: string | null;
+    sceneDetail?: {
+      level: 'cinematic' | 'balanced' | 'performance';
+      theoreticalBudget: {
+        transparentShaderLayers: number;
+        dynamicPointLights: number;
+        decorativeDrawCalls: number;
+        poiTriangleScale: number;
+        structureTriangleScale: number;
+      };
+      policy: {
+        textures: {
+          jobbotScreen: { width: number; height: number };
+          mediaWallScreen: { width: number; height: number };
+        };
+      };
+    };
     adaptivePolicy: {
       isWarmingUp: boolean;
       warmupElapsedMs: number;
@@ -46,6 +62,14 @@ interface PerformanceSnapshot {
     mirrorRenderTargetSize: number;
     mirrorUpdateRateFps: number;
     mirrorRenderCount: number;
+  };
+  rendererCounters: {
+    calls: number;
+    triangles: number;
+    points: number;
+    lines: number;
+    memoryGeometries: number;
+    memoryTextures: number;
   };
   renderer: {
     isSoftwareRenderer: boolean;
@@ -211,6 +235,50 @@ test.describe('immersive performance diagnostics', () => {
         expect(snapshot.features.composerEnabled).toBe(false);
         expect(snapshot.features.mirrorEnabled).toBe(false);
       }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('reports aggressive performance scene detail budgets when forced by user preference', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'danielsmith:graphics-quality-level',
+        'performance'
+      );
+    });
+
+    try {
+      await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.quality.level).toBe('performance');
+      expect(snapshot.quality.sceneDetail?.level).toBe('performance');
+      expect(snapshot.quality.sceneDetail?.theoreticalBudget).toMatchObject({
+        transparentShaderLayers: 0,
+        dynamicPointLights: 1,
+      });
+      expect(
+        snapshot.quality.sceneDetail?.theoreticalBudget.poiTriangleScale
+      ).toBeLessThanOrEqual(0.2);
+      expect(
+        snapshot.quality.sceneDetail?.theoreticalBudget.structureTriangleScale
+      ).toBeLessThanOrEqual(0.2);
+      expect(
+        snapshot.quality.sceneDetail?.policy.textures.jobbotScreen.width
+      ).toBeLessThanOrEqual(512);
+      expect(
+        snapshot.quality.sceneDetail?.policy.textures.mediaWallScreen.width
+      ).toBeLessThanOrEqual(512);
+      expect(snapshot.rendererCounters.calls).toBeGreaterThanOrEqual(0);
+      expect(snapshot.rendererCounters.triangles).toBeGreaterThanOrEqual(0);
+      expect(snapshot.rendererCounters.memoryGeometries).toBeGreaterThanOrEqual(
+        0
+      );
     } finally {
       await context.close();
     }

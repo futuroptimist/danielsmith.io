@@ -4,6 +4,7 @@ import {
   SOFTWARE_RENDERER_MODE_PARAM,
 } from '../../ui/immersiveUrl';
 import type { GraphicsQualityLevel } from '../graphics/qualityManager';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 import type { RendererInfoSnapshot } from './rendererCapabilities';
 
@@ -128,6 +129,7 @@ export interface QualityPolicyState {
   ambientUpdateIntervalMs: number;
   softwareSafeMode: boolean;
   renderCadenceFps: number | null;
+  sceneDetailLevel: GraphicsQualityLevel;
   reason: string;
 }
 
@@ -160,6 +162,35 @@ export function resolveResizedBasePixelRatio(
   return Math.min(resizedPixelRatio, safeAdaptiveCap);
 }
 
+export interface InitialQualityDeviceHints {
+  coarsePointer?: boolean;
+  mobileLike?: boolean;
+  tabletLike?: boolean;
+  deviceMemoryGb?: number | null;
+  hardwareConcurrency?: number | null;
+}
+
+function shouldStartInPerformanceFromDeviceHints(
+  hints: InitialQualityDeviceHints = {}
+): boolean {
+  const constrainedMemory =
+    typeof hints.deviceMemoryGb === 'number' && hints.deviceMemoryGb > 0
+      ? hints.deviceMemoryGb <= 4
+      : false;
+  const constrainedCpu =
+    typeof hints.hardwareConcurrency === 'number' &&
+    hints.hardwareConcurrency > 0
+      ? hints.hardwareConcurrency <= 4
+      : false;
+  return Boolean(
+    hints.coarsePointer ||
+      hints.mobileLike ||
+      hints.tabletLike ||
+      constrainedMemory ||
+      constrainedCpu
+  );
+}
+
 export function resolveInitialQualityPolicy(
   rendererInfo: Pick<
     RendererInfoSnapshot,
@@ -168,7 +199,8 @@ export function resolveInitialQualityPolicy(
   devicePixelRatio: number,
   softwareRendererPolicy: SoftwareRendererPolicyState = resolveSoftwareRendererPolicy(
     rendererInfo
-  )
+  ),
+  deviceHints: InitialQualityDeviceHints = {}
 ): QualityPolicyState {
   if (
     rendererInfo.isDangerousSoftwareRenderer &&
@@ -176,6 +208,7 @@ export function resolveInitialQualityPolicy(
   ) {
     return {
       initialLevel: 'performance',
+      sceneDetailLevel: 'performance',
       basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.45, 0.35),
       mirrorEnabled: false,
       mirrorTargetSize: 128,
@@ -191,6 +224,7 @@ export function resolveInitialQualityPolicy(
   if (rendererInfo.isSoftwareRenderer) {
     return {
       initialLevel: 'performance',
+      sceneDetailLevel: 'performance',
       basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.75, 0.5),
       mirrorEnabled: false,
       mirrorTargetSize: 192,
@@ -202,8 +236,25 @@ export function resolveInitialQualityPolicy(
     };
   }
 
+  if (shouldStartInPerformanceFromDeviceHints(deviceHints)) {
+    return {
+      initialLevel: 'performance',
+      sceneDetailLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.85, 0.5),
+      mirrorEnabled: false,
+      mirrorTargetSize: 192,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 100,
+      softwareSafeMode: false,
+      renderCadenceFps: null,
+      reason:
+        'coarse-pointer or constrained mobile/tablet hardware starts in performance mode',
+    };
+  }
+
   return {
     initialLevel: 'balanced',
+    sceneDetailLevel: 'balanced',
     basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 1.25, 0.75),
     mirrorEnabled: true,
     mirrorTargetSize: 320,
@@ -247,4 +298,8 @@ export function getQualityFeaturePolicy(
     mirrorUpdateRateFps: 15,
     ambientUpdateIntervalMs: 16,
   };
+}
+
+export function getQualitySceneDetailPolicy(level: GraphicsQualityLevel) {
+  return getSceneDetailPolicy(level);
 }
