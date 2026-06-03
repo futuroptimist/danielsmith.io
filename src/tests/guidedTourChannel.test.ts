@@ -44,9 +44,21 @@ const createSource = () => {
 };
 
 describe('GuidedTourChannel', () => {
+  it('starts disabled by default', () => {
+    const { source } = createSource();
+    const channel = new GuidedTourChannel({ source });
+    const listener = vi.fn();
+
+    channel.subscribe(listener);
+
+    expect(channel.getEnabled()).toBe(false);
+    expect(listener).toHaveBeenLastCalledWith(null);
+    channel.dispose();
+  });
+
   it('forwards recommendations when enabled', () => {
     const { source, emit } = createSource();
-    const channel = new GuidedTourChannel({ source });
+    const channel = new GuidedTourChannel({ source, enabled: true });
     const updates: Array<string | null> = [];
 
     channel.subscribe((recommendation) => {
@@ -87,7 +99,7 @@ describe('GuidedTourChannel', () => {
 
   it('unsubscribes from the source on dispose', () => {
     const { source, emit, listeners } = createSource();
-    const channel = new GuidedTourChannel({ source });
+    const channel = new GuidedTourChannel({ source, enabled: true });
     const listener = vi.fn();
     channel.subscribe(listener);
 

@@ -17,7 +17,7 @@ export interface TourGuideToggleControlHandle {
 
 export function createTourGuideToggleControl({
   container,
-  initialEnabled = true,
+  initialEnabled = false,
   onToggle,
   strings: providedStrings,
 }: TourGuideToggleControlOptions): TourGuideToggleControlHandle {

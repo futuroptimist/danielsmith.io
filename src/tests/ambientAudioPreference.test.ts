@@ -69,6 +69,19 @@ describe('AmbientAudioPreference', () => {
     expect(preference.isEnabled()).toBe(true);
   });
 
+  it('loads a persisted disabled state even if a caller supplies a true fallback', () => {
+    const storage = new MemoryStorage();
+    storage.setItem('test::preference', '0');
+
+    const preference = new AmbientAudioPreference({
+      storage,
+      storageKey: 'test::preference',
+      defaultEnabled: true,
+    });
+
+    expect(preference.isEnabled()).toBe(false);
+  });
+
   it('persists toggled states back to storage', () => {
     const storage = new MemoryStorage();
     const preference = new AmbientAudioPreference({

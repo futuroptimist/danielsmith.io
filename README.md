@@ -220,7 +220,8 @@ Launch screenshot workflow refresh and commit it after merge.
   languages flow correctly even before full translations land. Mandarin Chinese (`zh-Hans`) is available in the public language picker; the pseudo locale remains internal and only appears in development, with `?i18nDebug=1`, or after setting `localStorage['danielsmith.io:i18nDebug']='true'` for translation QA.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
-  story beats.
+  story beats. Ambient audio remains off for fresh sessions until visitors explicitly
+  opt in from the HUD, and that preference persists across reloads.
 - **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.

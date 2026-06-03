@@ -358,15 +358,15 @@ Focus: unify user controls and ensure graceful fallback experiences.
    - ✅ Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
      - ✅ Ambient audio mute preference now persists with localStorage + sessionStorage fallback
-       and auto-resumes after the next pointer/key interaction to respect autoplay policies.
+       and only auto-resumes after the next pointer/key interaction when a visitor explicitly opted in, preventing fresh-session autoplay surprises.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.
+   - ✅ Guided tour toggle lets players opt into or pause highlight recommendations while keeping reset tools.
      - ✅ Idle monitor now waits roughly four seconds of inactivity before surfacing the next
        highlight so overlays stay quiet while the player is actively moving or interacting.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
-   - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
+   - ✅ Guided tour overlay surfaces the next recommended POI whenever an opted-in player is idle.
    - ✅ Guided tour reset utility now lets the HUD restart the curated path on demand so
      visitors can replay the experience during sessions or demos.
      - ✅ Guided tour reset control now flags pending resets with `aria-busy` so screen readers

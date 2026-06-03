@@ -702,6 +702,33 @@ describe('PoiTooltipOverlay', () => {
     expect(root.getAttribute('aria-hidden')).toBe('true');
   });
 
+  it('does not surface idle recommendations for a fresh opt-in preference', () => {
+    overlay.dispose();
+    preference.dispose();
+    preference = new GuidedTourPreference({
+      storage: {
+        getItem: () => null,
+        setItem: () => {
+          /* noop */
+        },
+      },
+      windowTarget: window,
+    });
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+    });
+
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('hidden');
+    expect(root.getAttribute('aria-hidden')).toBe('true');
+  });
+
   it('keeps explicit selection visible when passive recommendations are disabled', () => {
     overlay.setPassiveRecommendationsEnabled(false);
     overlay.setIdleState(true);
@@ -739,7 +766,7 @@ describe('PoiTooltipOverlay', () => {
 
   it('hides recommendation badges when guided tour mode is disabled', () => {
     overlay.setIdleState(true);
-    preference.setEnabled(false, 'test');
+    preference.setEnabled(false, 'api');
     overlay.setRecommendation(basePoi);
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
@@ -752,7 +779,7 @@ describe('PoiTooltipOverlay', () => {
     ) as HTMLSpanElement;
     expect(badge.hidden).toBe(true);
 
-    preference.setEnabled(true, 'test');
+    preference.setEnabled(true, 'api');
     expect(root.dataset.guidedTour).toBe('on');
     expect(badge.hidden).toBe(false);
   });

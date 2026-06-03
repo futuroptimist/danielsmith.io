@@ -95,7 +95,7 @@ function createPoiDefinition(
   } as PoiDefinition;
 }
 
-function createTooltip() {
+function createTooltip(defaultEnabled = true) {
   const scene = new Scene();
   const camera = new OrthographicCamera(-10, 10, 10, -10, 0.1, 100);
   camera.position.set(12, 14, 16);
@@ -109,7 +109,7 @@ function createTooltip() {
       },
     },
     windowTarget: window,
-    defaultEnabled: true,
+    defaultEnabled,
   });
   const tooltip = new PoiWorldTooltip({
     parent: scene,
@@ -397,7 +397,7 @@ describe('PoiWorldTooltip', () => {
       id: 'pr-reaper-backyard-console',
     });
     tooltip.setIdleState(true);
-    preference.setEnabled(false, 'test');
+    preference.setEnabled(false, 'api');
     tooltip.setRecommendation(
       createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
     );
@@ -407,10 +407,30 @@ describe('PoiWorldTooltip', () => {
     expect(disabledState.mode).toBeNull();
     expect(disabledState.visible).toBe(false);
 
-    preference.setEnabled(true, 'test');
+    preference.setEnabled(true, 'api');
     tooltip.update(0.016);
     const enabledState = tooltip.getState();
     expect(enabledState.mode).toBe('recommended');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
+  it('does not render idle recommendations before guided tour opt-in', () => {
+    const { tooltip, preference } = createTooltip(false);
+    const recommendedPoi = createPoiDefinition({
+      id: 'dspace-backyard-rocket',
+    });
+
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.mode).toBeNull();
+    expect(state.visible).toBe(false);
 
     tooltip.dispose();
     preference.dispose();
