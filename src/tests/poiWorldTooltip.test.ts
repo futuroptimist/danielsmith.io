@@ -290,6 +290,48 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('does not render fresh idle recommendations until guided tour is enabled', () => {
+    const scene = new Scene();
+    const camera = new OrthographicCamera(-10, 10, 10, -10, 0.1, 100);
+    camera.position.set(12, 14, 16);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    const preference = new GuidedTourPreference({
+      storage: {
+        getItem: () => null,
+        setItem: () => {
+          /* noop */
+        },
+      },
+      windowTarget: window,
+    });
+    const tooltip = new PoiWorldTooltip({
+      parent: scene,
+      camera,
+      guidedTourPreference: preference,
+      minimumFacingDot: -1,
+    });
+    const recommendedPoi = createPoiDefinition({
+      id: 'sugarkube-backyard-greenhouse',
+    });
+
+    tooltip.setIdleState(true);
+    tooltip.setRecommendation(
+      createTarget(recommendedPoi, new Vector3(-1, 0.5, 2))
+    );
+    tooltip.update(0.016);
+
+    expect(preference.isEnabled()).toBe(false);
+    expect(tooltip.getState().mode).toBeNull();
+
+    preference.setEnabled(true, 'api');
+    tooltip.update(0.016);
+    expect(tooltip.getState().mode).toBe('recommended');
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('falls back to the recommendation when no hover or selection is active', () => {
     const { tooltip, preference } = createTooltip();
     const recommendedPoi = createPoiDefinition({

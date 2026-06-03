@@ -691,6 +691,37 @@ describe('PoiTooltipOverlay', () => {
     expect(badge.textContent).toBe('Next highlight');
   });
 
+  it('keeps fresh idle sessions hidden until guided tour is enabled', () => {
+    overlay.dispose();
+    preference.dispose();
+    preference = new GuidedTourPreference({
+      storage: {
+        getItem: () => null,
+        setItem: () => {
+          /* noop */
+        },
+      },
+      windowTarget: window,
+    });
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+    });
+
+    overlay.setIdleState(true);
+    overlay.setRecommendation(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(preference.isEnabled()).toBe(false);
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
+    expect(root.dataset.state).toBe('hidden');
+
+    preference.setEnabled(true, 'api');
+    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
+    expect(root.dataset.state).toBe('recommended');
+  });
+
   it('does not surface passive recommendations when disabled', () => {
     overlay.setPassiveRecommendationsEnabled(false);
     overlay.setIdleState(true);

@@ -30,7 +30,7 @@ export class GuidedTourChannel {
 
   private lastBroadcast: PoiDefinition | null = null;
 
-  constructor({ source, enabled = true }: GuidedTourChannelOptions) {
+  constructor({ source, enabled = false }: GuidedTourChannelOptions) {
     this.source = source;
     this.enabled = enabled;
     this.unsubscribeSource = this.source.subscribe((recommendation) => {
