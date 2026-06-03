@@ -437,6 +437,16 @@ describe('PoiTooltipOverlay', () => {
     ).toBe('⟦Related case studies⟧');
   });
 
+  it('skips rebuilding active POI content when updates do not change copy', () => {
+    overlay.setHovered(basePoi);
+    const metricSelector = '.poi-tooltip-overlay__metric';
+    const initialMetric = container.querySelector(metricSelector);
+
+    overlay.notifyPoiUpdated(basePoi.id);
+
+    expect(container.querySelector(metricSelector)).toBe(initialMetric);
+  });
+
   it('refreshes metric values when notified about updates', () => {
     overlay.setHovered(basePoi);
     const metricSelector = '.poi-tooltip-overlay__metric-value';

@@ -10,6 +10,21 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       description: wrap(
         'Interactive exhibits within the Daniel Smith immersive portfolio experience.'
       ),
+      properties: {
+        labels: {
+          category: wrap('Category'),
+          outcome: wrap('Outcome'),
+          status: wrap('Status'),
+        },
+        categories: {
+          project: wrap('Project'),
+          environment: wrap('Environment'),
+        },
+        statuses: {
+          prototype: wrap('Prototype'),
+          live: wrap('Live'),
+        },
+      },
     },
     textFallback: {
       heading: wrap('Explore the highlights'),

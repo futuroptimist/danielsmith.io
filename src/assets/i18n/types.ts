@@ -219,12 +219,23 @@ export interface SiteStructuredDataEntityStrings {
   logoUrl?: string;
 }
 
+export interface SiteStructuredDataPropertyStrings {
+  labels: {
+    category: string;
+    outcome: string;
+    status: string;
+  };
+  categories: Record<'project' | 'environment', string>;
+  statuses: Record<'prototype' | 'live', string>;
+}
+
 export interface SiteStructuredDataStrings {
   description: string;
   listNameTemplate: string;
   textCollectionNameTemplate: string;
   textCollectionDescription: string;
   immersiveActionName: string;
+  properties: SiteStructuredDataPropertyStrings;
   publisher: SiteStructuredDataEntityStrings;
   author: SiteStructuredDataEntityStrings;
 }

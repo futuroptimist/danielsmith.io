@@ -12,6 +12,21 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       textCollectionDescription:
         'Fast-loading summaries of every immersive exhibit tuned for accessible and crawler-friendly reading.',
       immersiveActionName: 'Launch immersive mode',
+      properties: {
+        labels: {
+          category: 'Category',
+          outcome: 'Outcome',
+          status: 'Status',
+        },
+        categories: {
+          project: 'Project',
+          environment: 'Environment',
+        },
+        statuses: {
+          prototype: 'Prototype',
+          live: 'Live',
+        },
+      },
       publisher: {
         name: 'Daniel Smith',
         url: 'https://danielsmith.io/',

@@ -12,6 +12,21 @@ export const JA_OVERRIDES: LocaleOverrides = {
       textCollectionDescription:
         '没入型展示の内容を高速に読めるよう最適化した要約を提供します。',
       immersiveActionName: '没入モードを起動',
+      properties: {
+        labels: {
+          category: 'カテゴリー',
+          outcome: '成果',
+          status: 'ステータス',
+        },
+        categories: {
+          project: 'プロジェクト',
+          environment: '環境',
+        },
+        statuses: {
+          prototype: 'プロトタイプ',
+          live: '公開中',
+        },
+      },
       publisher: {
         name: 'Daniel Smith',
       },

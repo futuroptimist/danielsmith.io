@@ -30,7 +30,19 @@ export interface PoiTooltipOverlayOptions {
 
 interface RenderState {
   poiId: string | null;
+  poiRef: PoiDefinition | null;
+  contentKey: string | null;
 }
+
+const getPoiRenderContentKey = (poi: PoiDefinition): string =>
+  JSON.stringify({
+    title: poi.title,
+    summary: poi.summary,
+    status: poi.status ?? null,
+    outcome: poi.outcome ?? null,
+    metrics: poi.metrics ?? [],
+    links: poi.links ?? [],
+  });
 
 export class PoiTooltipOverlay {
   private readonly root: HTMLElement;
@@ -56,7 +68,11 @@ export class PoiTooltipOverlay {
   private hovered: PoiDefinition | null = null;
   private selected: PoiDefinition | null = null;
   private recommendation: PoiDefinition | null = null;
-  private renderState: RenderState = { poiId: null };
+  private renderState: RenderState = {
+    poiId: null,
+    poiRef: null,
+    contentKey: null,
+  };
   private visitedPoiIds: ReadonlySet<string> = new Set();
   private guidedTourEnabled = true;
   private passiveRecommendationsEnabled = true;
@@ -193,7 +209,7 @@ export class PoiTooltipOverlay {
     this.recommendationBadge.textContent = strings.nextHighlight;
     this.closeButton.setAttribute('aria-label', strings.closeDetails);
     this.linksList.setAttribute('aria-label', strings.relatedCaseStudies);
-    this.renderState.poiId = null;
+    this.renderState = { poiId: null, poiRef: null, contentKey: null };
     this.update();
   }
 
@@ -290,7 +306,7 @@ export class PoiTooltipOverlay {
       this.root.dataset.state = 'hidden';
       this.setFocusContainment(false);
       this.root.removeAttribute('aria-describedby');
-      this.renderState.poiId = null;
+      this.renderState = { poiId: null, poiRef: null, contentKey: null };
       this.visitedBadge.hidden = true;
       this.recommendationBadge.hidden = true;
       this.liveRegion.textContent = '';
@@ -317,12 +333,20 @@ export class PoiTooltipOverlay {
         recommendation?.id === poi.id);
     this.recommendationBadge.hidden = !showRecommendationBadge;
 
-    const previousPoiId = this.renderState.poiId;
+    const nextContentKey = getPoiRenderContentKey(poi);
+    const shouldRenderPoi =
+      this.renderState.poiId !== poi.id ||
+      this.renderState.poiRef !== poi ||
+      this.renderState.contentKey !== nextContentKey;
 
-    if (previousPoiId !== poi.id) {
-      this.renderState.poiId = poi.id;
+    if (shouldRenderPoi) {
+      this.renderState = {
+        poiId: poi.id,
+        poiRef: poi,
+        contentKey: nextContentKey,
+      };
+      this.renderPoi(poi);
     }
-    this.renderPoi(poi);
 
     const describedByIds = [this.summary.id];
     if (!this.outcome.hidden) {
