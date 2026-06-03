@@ -114,4 +114,38 @@ describe('GuidedTourPreference', () => {
     expect(preference.isEnabled()).toBe(true);
     expect(listener).toHaveBeenCalledWith(true);
   });
+
+  it('treats removed stored values as disabled across contexts', () => {
+    preference.setEnabled(true, 'control');
+    const listener = vi.fn();
+    preference.subscribe(listener);
+    listener.mockClear();
+
+    const storageEvent = new StorageEvent('storage', {
+      key: storageKey,
+      newValue: null,
+    });
+
+    window.dispatchEvent(storageEvent);
+
+    expect(preference.isEnabled()).toBe(false);
+    expect(listener).toHaveBeenCalledWith(false);
+  });
+
+  it('treats cleared storage as disabled across contexts', () => {
+    preference.setEnabled(true, 'control');
+    const listener = vi.fn();
+    preference.subscribe(listener);
+    listener.mockClear();
+
+    const storageEvent = new StorageEvent('storage', {
+      key: null,
+      newValue: null,
+    });
+
+    window.dispatchEvent(storageEvent);
+
+    expect(preference.isEnabled()).toBe(false);
+    expect(listener).toHaveBeenCalledWith(false);
+  });
 });

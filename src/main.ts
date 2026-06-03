@@ -882,25 +882,6 @@ function initializeImmersiveScene(
     budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
   });
 
-  const readGuidedTourEnabled = (): boolean => {
-    const stored = guidedTourStorage?.getItem(GUIDED_TOUR_STORAGE_KEY);
-    if (stored === 'false' || stored === '0') {
-      return false;
-    }
-    if (stored === 'true' || stored === '1') {
-      return true;
-    }
-    return false;
-  };
-
-  const writeGuidedTourEnabled = (enabled: boolean) => {
-    try {
-      guidedTourStorage?.setItem(GUIDED_TOUR_STORAGE_KEY, enabled ? '1' : '0');
-    } catch {
-      /* ignore storage write failures */
-    }
-  };
-
   const guidedTourPreference = new GuidedTourPreference({
     storage: guidedTourStorage ?? null,
     storageKey: GUIDED_TOUR_STORAGE_KEY,
@@ -1899,23 +1880,15 @@ function initializeImmersiveScene(
 
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
-  const initialGuidedTourEnabled = readGuidedTourEnabled();
-  if (guidedTourPreference.isEnabled() !== initialGuidedTourEnabled) {
-    guidedTourPreference.setEnabled(initialGuidedTourEnabled, 'storage');
-  }
+  const initialGuidedTourEnabled = guidedTourPreference.isEnabled();
   guidedTourChannel = new GuidedTourChannel({
     source: poiTourGuide,
     enabled: initialGuidedTourEnabled,
   });
-  let guidedTourPreferenceInitialized = false;
   removeGuidedTourPreferenceSubscription = guidedTourPreference.subscribe(
     (enabled) => {
       guidedTourChannel?.setEnabled(enabled);
       tourGuideToggleControl?.setEnabled(enabled);
-      if (guidedTourPreferenceInitialized) {
-        writeGuidedTourEnabled(enabled);
-      }
-      guidedTourPreferenceInitialized = true;
     }
   );
   removeGuidedTourSubscription = guidedTourChannel.subscribe(

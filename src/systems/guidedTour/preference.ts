@@ -174,10 +174,11 @@ export class GuidedTourPreference {
   }
 
   private handleStorageEvent = (event: StorageEvent) => {
-    if (!event.key || event.key !== this.storageKey) {
+    if (event.key !== null && event.key !== this.storageKey) {
       return;
     }
-    const parsed = parseStoredValue(event.newValue ?? null);
+    const parsed =
+      event.newValue === null ? false : parseStoredValue(event.newValue);
     if (parsed === null || parsed === this.enabled) {
       return;
     }
