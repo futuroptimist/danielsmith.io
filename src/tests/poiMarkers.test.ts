@@ -1,6 +1,7 @@
 import { CylinderGeometry, MeshStandardMaterial, Color } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import { scalePoiValue } from '../scene/poi/constants';
 import {
   createPoiInstances,
@@ -243,6 +244,50 @@ describe('createPoiInstances', () => {
     );
     expect(instance.orbBaseHeight).toBeGreaterThan(pedestalHeight);
     expect(instance.labelBaseHeight).toBeGreaterThan(instance.orbBaseHeight);
+  });
+
+  it('uses low-segment performance marker geometry while preserving hit collider behavior', () => {
+    const definition = createDefinition({
+      id: 'flywheel-studio-flywheel',
+      roomId: 'studio',
+      footprint: { width: 2.6, depth: 2.2 },
+      pedestal: {
+        type: 'hologram',
+        height: 1.6,
+      },
+    });
+
+    const [balanced] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('balanced'),
+      }
+    );
+    const [performance] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('performance'),
+      }
+    );
+
+    const balancedHitGeometry = balanced.hitArea.geometry as CylinderGeometry;
+    const performanceHitGeometry = performance.hitArea
+      .geometry as CylinderGeometry;
+
+    expect(
+      performanceHitGeometry.parameters.radialSegments
+    ).toBeLessThanOrEqual(balancedHitGeometry.parameters.radialSegments / 4);
+    expect(
+      performance.group.getObjectByName(`POI_PedestalBody:${definition.id}`)
+    ).toBeUndefined();
+    expect(performance.hitArea.name).toBe(balanced.hitArea.name);
+    expect(performance.collider).toEqual(balanced.collider);
+    expect(performance.orbBaseHeight).toBeCloseTo(
+      balanced.orbBaseHeight ?? 0,
+      5
+    );
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {

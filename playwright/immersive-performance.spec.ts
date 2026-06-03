@@ -29,6 +29,20 @@ interface PerformanceSnapshot {
     lastAdaptiveReason: string | null;
     lastAdaptiveDowngradeReason: string | null;
     lastAdaptiveRecoveryReason: string | null;
+    sceneDetail?: {
+      level: 'cinematic' | 'balanced' | 'performance';
+      theoreticalWorkloadScale: number;
+      segments: { cylinder: number; ring: number; sphereWidth: number };
+      textures: {
+        jobbotScreen: { width: number; height: number };
+        mediaWallScreen: { width: number; height: number };
+      };
+      effects: {
+        shaderMist: boolean;
+        shaderPond: boolean;
+        dynamicPointLights: boolean;
+      };
+    };
     adaptivePolicy: {
       isWarmingUp: boolean;
       warmupElapsedMs: number;
@@ -211,6 +225,46 @@ test.describe('immersive performance diagnostics', () => {
         expect(snapshot.features.composerEnabled).toBe(false);
         expect(snapshot.features.mirrorEnabled).toBe(false);
       }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('reports capped scene detail budgets when performance mode is forced', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'danielsmith:graphics-quality-level',
+        'performance'
+      );
+    });
+
+    try {
+      await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
+      const snapshot = await getSnapshot(page);
+      expect(snapshot.quality.level).toBe('performance');
+      expect(snapshot.quality.sceneDetail?.level).toBe('performance');
+      expect(
+        snapshot.quality.sceneDetail?.theoreticalWorkloadScale
+      ).toBeLessThanOrEqual(0.1);
+      expect(
+        snapshot.quality.sceneDetail?.segments.cylinder
+      ).toBeLessThanOrEqual(8);
+      expect(
+        snapshot.quality.sceneDetail?.textures.jobbotScreen.width
+      ).toBeLessThanOrEqual(512);
+      expect(
+        snapshot.quality.sceneDetail?.textures.mediaWallScreen.width
+      ).toBeLessThanOrEqual(512);
+      expect(snapshot.quality.sceneDetail?.effects.shaderMist).toBe(false);
+      expect(snapshot.quality.sceneDetail?.effects.shaderPond).toBe(false);
+      expect(snapshot.quality.sceneDetail?.effects.dynamicPointLights).toBe(
+        false
+      );
     } finally {
       await context.close();
     }

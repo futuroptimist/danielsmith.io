@@ -114,6 +114,7 @@ import {
   createGraphicsQualityManager,
   type GraphicsQualityManager,
 } from './scene/graphics/qualityManager';
+import { createSceneDetailController } from './scene/graphics/sceneDetailController';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -733,7 +734,14 @@ function initializeImmersiveScene(
   const initialQualityPolicy = resolveInitialQualityPolicy(
     rendererInfo,
     window.devicePixelRatio ?? 1,
-    softwareRendererPolicy
+    softwareRendererPolicy,
+    {
+      coarsePointer: window.matchMedia?.('(pointer: coarse)').matches ?? false,
+      maxTouchPoints: navigator.maxTouchPoints ?? 0,
+      deviceMemory: (navigator as Navigator & { deviceMemory?: number })
+        .deviceMemory,
+      userAgent: navigator.userAgent,
+    }
   );
   const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
     ? initialQualityPolicy.basePixelRatioCap
@@ -786,6 +794,9 @@ function initializeImmersiveScene(
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
+  const sceneDetailController = createSceneDetailController(
+    initialQualityPolicy.initialLevel
+  );
   let adaptiveQualityController: ReturnType<
     typeof createAdaptiveQualityController
   > | null = null;
@@ -1152,8 +1163,10 @@ function initializeImmersiveScene(
   if (backyardRoom) {
     backyardEnvironment = createBackyardEnvironment(backyardRoom.bounds, {
       seasonalPreset,
+      detailPolicy: sceneDetailController.getPolicy(),
     });
     scene.add(backyardEnvironment.group);
+    sceneDetailController.register(backyardEnvironment.group);
     // Remove the enclosing sky dome to avoid a bright circular spheroid.
     // We want a dark void beyond the property in runtime.
     const skyDome =
@@ -1244,8 +1257,11 @@ function initializeImmersiveScene(
 
   const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
   if (livingRoom) {
-    const mediaWall = createLivingRoomMediaWall(livingRoom.bounds);
+    const mediaWall = createLivingRoomMediaWall(livingRoom.bounds, {
+      detailPolicy: sceneDetailController.getPolicy(),
+    });
     scene.add(mediaWall.group);
+    sceneDetailController.register(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
     mediaWallStarBridge.attach(mediaWall.controller);
@@ -1547,7 +1563,9 @@ function initializeImmersiveScene(
   });
   lightmapAnimator.captureBaseline();
 
-  const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides);
+  const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides, {
+    detailPolicy: sceneDetailController.getPolicy(),
+  });
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
       scene.add(poi.group);
@@ -1926,8 +1944,10 @@ function initializeImmersiveScene(
       centerZ,
       roomBounds: studioRoom.bounds,
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
+      detailPolicy: sceneDetailController.getPolicy(),
     });
     scene.add(showpiece.group);
+    sceneDetailController.register(showpiece.group);
     showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
@@ -1945,8 +1965,10 @@ function initializeImmersiveScene(
     const terminal = createJobbotTerminal({
       position: { x: terminalX, y: 0, z: terminalZ },
       orientationRadians: terminalOrientation,
+      detailPolicy: sceneDetailController.getPolicy(),
     });
     scene.add(terminal.group);
+    sceneDetailController.register(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
 
@@ -2176,6 +2198,7 @@ function initializeImmersiveScene(
 
   const mannequin = createPortfolioMannequin({
     collisionRadius: PLAYER_RADIUS,
+    detailPolicy: sceneDetailController.getPolicy(),
   });
   const player = mannequin.group;
   const mannequinHeight = mannequin.height;
@@ -3774,7 +3797,8 @@ function initializeImmersiveScene(
   const shouldUseComposer = () =>
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
-  unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
+  unsubscribeGraphicsQuality = graphicsQualityManager.onChange((level) => {
+    sceneDetailController.setLevel(level);
     applyFeaturePolicy();
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
@@ -3812,7 +3836,9 @@ function initializeImmersiveScene(
       lastAdaptiveRecoveryReason:
         adaptiveQualityController?.getLastRecoveryReason() ?? null,
       adaptivePolicy: adaptiveQualityController?.getSnapshot() ?? null,
+      sceneDetail: sceneDetailController.getPolicy(),
     }),
+    getRendererInfoCounters: () => renderer.info,
     getFeatureState: () => {
       const mirrorState = selfieMirror?.getRenderState();
       return {
@@ -4708,7 +4734,9 @@ function initializeImmersiveScene(
         performance.now() - phaseStart
       );
       phaseStart = performance.now();
-      if (livingRoomMediaWall) {
+      const runDecorativeUpdate =
+        sceneDetailController.shouldRunDecorativeUpdate(elapsedTime);
+      if (livingRoomMediaWall && runDecorativeUpdate) {
         const activation = futuroptimistPoi?.activation ?? 0;
         const focus = futuroptimistPoi?.focus ?? 0;
         livingRoomMediaWall.controller.update({
@@ -4717,7 +4745,7 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
-      if (flywheelShowpiece) {
+      if (flywheelShowpiece && runDecorativeUpdate) {
         const activation = flywheelPoi?.activation ?? 0;
         const focus = flywheelPoi?.focus ?? 0;
         flywheelShowpiece.update({
@@ -4753,7 +4781,7 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
-      if (jobbotTerminal) {
+      if (jobbotTerminal && runDecorativeUpdate) {
         const activation = jobbotPoi?.activation ?? 0;
         const focus = jobbotPoi?.focus ?? 0;
         jobbotTerminal.update({
@@ -4809,7 +4837,7 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
-      if (backyardEnvironment) {
+      if (backyardEnvironment && runDecorativeUpdate) {
         backyardEnvironment.update({ elapsed: elapsedTime, delta });
       }
       performanceDiagnostics?.recordPhase(

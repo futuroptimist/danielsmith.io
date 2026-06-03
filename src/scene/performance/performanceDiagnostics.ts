@@ -2,6 +2,7 @@ import type {
   GraphicsQualityLevel,
   GraphicsQualitySelectionSource,
 } from '../graphics/qualityManager';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 import type { AdaptiveQualityPolicySnapshot } from './adaptiveQuality';
 import type { SoftwareRendererPolicyState } from './qualityPolicy';
@@ -22,6 +23,15 @@ export interface RendererSizeSnapshot {
   drawingBuffer: { width: number; height: number };
 }
 
+export interface RendererInfoCountersSnapshot {
+  calls: number | null;
+  triangles: number | null;
+  points: number | null;
+  lines: number | null;
+  geometries: number | null;
+  textures: number | null;
+}
+
 export interface QualityStateSnapshot {
   level: GraphicsQualityLevel;
   selectionSource: GraphicsQualitySelectionSource;
@@ -31,6 +41,7 @@ export interface QualityStateSnapshot {
   lastAdaptiveDowngradeReason: string | null;
   lastAdaptiveRecoveryReason: string | null;
   adaptivePolicy: AdaptiveQualityPolicySnapshot | null;
+  sceneDetail?: SceneDetailPolicy;
 }
 
 export interface FeatureStateSnapshot {
@@ -57,6 +68,7 @@ export interface FrameStatsSnapshot {
 
 export interface PerformanceDiagnosticsSnapshot extends FrameStatsSnapshot {
   renderer: RendererInfoSnapshot;
+  rendererInfoCounters: RendererInfoCountersSnapshot;
   softwareRendererPolicy: SoftwareRendererPolicyState;
   rendererSize: RendererSizeSnapshot;
   quality: QualityStateSnapshot;
@@ -88,6 +100,7 @@ export interface PerformanceDiagnosticsApi {
 interface PerformanceDiagnosticsOptions {
   rendererInfo: RendererInfoSnapshot;
   getRendererSize: () => RendererSizeSnapshot;
+  getRendererInfoCounters?: () => unknown;
   getQualityState: () => QualityStateSnapshot;
   getFeatureState: () => FeatureStateSnapshot;
   getLastFailoverReason: () => string | null;
@@ -96,6 +109,35 @@ interface PerformanceDiagnosticsOptions {
   copyCrashLog?: () => Promise<boolean>;
   recordSnapshot?: (snapshot: PerformanceDiagnosticsSnapshot) => void;
   maxSamples?: number;
+}
+
+function readCounter(input: unknown, key: string): number | null {
+  if (!input || typeof input !== 'object') {
+    return null;
+  }
+  const value = (input as Record<string, unknown>)[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function getRendererInfoCountersSnapshot(
+  rendererInfoCounters: unknown
+): RendererInfoCountersSnapshot {
+  const render =
+    rendererInfoCounters && typeof rendererInfoCounters === 'object'
+      ? (rendererInfoCounters as { render?: unknown }).render
+      : null;
+  const memory =
+    rendererInfoCounters && typeof rendererInfoCounters === 'object'
+      ? (rendererInfoCounters as { memory?: unknown }).memory
+      : null;
+  return {
+    calls: readCounter(render, 'calls'),
+    triangles: readCounter(render, 'triangles'),
+    points: readCounter(render, 'points'),
+    lines: readCounter(render, 'lines'),
+    geometries: readCounter(memory, 'geometries'),
+    textures: readCounter(memory, 'textures'),
+  };
 }
 
 const PHASES: readonly PhaseName[] = [
@@ -144,6 +186,7 @@ function summarize(values: readonly number[]): {
 export function createPerformanceDiagnostics({
   rendererInfo,
   getRendererSize,
+  getRendererInfoCounters,
   getQualityState,
   getFeatureState,
   getLastFailoverReason,
@@ -177,6 +220,9 @@ export function createPerformanceDiagnostics({
       return {
         ...diagnosticsMethods.getFrameStats(),
         renderer: diagnosticsMethods.getRendererInfo(),
+        rendererInfoCounters: getRendererInfoCountersSnapshot(
+          getRendererInfoCounters?.()
+        ),
         softwareRendererPolicy: getSoftwareRendererPolicy(),
         rendererSize: getRendererSize(),
         quality: diagnosticsMethods.getQualityState(),

@@ -36,6 +36,29 @@ and the Vitest assertions when measurable changes land.
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
 
+## Performance scene detail mode
+
+Performance graphics mode now applies a separate scene-detail policy in addition to DPR,
+bloom, mirror, and LED reductions. The intent is a roughly 10× theoretical workload cut on
+weak tablets and coarse-pointer mobile hardware; it is a budget target for shader/fill-rate,
+texture upload, draw-call, dynamic-light, and triangle pressure, not a guaranteed FPS multiplier
+on every browser or GPU.
+
+The policy is centralized in
+[`getSceneDetailPolicy(...)`](../../src/scene/graphics/sceneDetailPolicy.ts) and wired through
+[`createSceneDetailController(...)`](../../src/scene/graphics/sceneDetailController.ts). Balanced
+and Cinematic keep the original high-detail segment counts, shader effects, transparent auras,
+large canvas textures, and decorative update cadence. Performance mode lowers POI/avatar
+segments, uses smaller Jobbot/media wall canvases, disables backyard mist and greenhouse pond
+ripple shaders, swaps greenhouse transmission glass to cheaper material settings, hides
+nonessential glow/halo groups, disables nonessential point lights, and throttles decorative
+updates.
+
+Diagnostics from `window.portfolio.performance.getSnapshot()` include `rendererInfoCounters`
+for `renderer.info.render` and `renderer.info.memory` values when supported, plus the active
+`quality.sceneDetail` policy so field reports can compare balanced/cinematic complexity against
+Performance-mode budgets.
+
 ## Adaptive quality warmup and recovery
 
 Staging on May 29, 2026 showed two renderer classes that need different

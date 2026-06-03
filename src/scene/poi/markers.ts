@@ -17,6 +17,9 @@ import {
   Vector3,
 } from 'three';
 
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+
 import {
   scalePoiValue,
   POI_ORB_VERTICAL_OFFSET,
@@ -82,16 +85,26 @@ export interface PoiInstance {
   visitedBadge?: PoiVisitedBadge;
 }
 
+export interface PoiInstancesOptions {
+  detailPolicy?: SceneDetailPolicy;
+}
+
 export function createPoiInstances(
   definitions: PoiDefinition[],
-  overrides: PoiInstanceOverrides = {}
+  overrides: PoiInstanceOverrides = {},
+  options: PoiInstancesOptions = {}
 ): PoiInstance[] {
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
   return definitions.map((definition, index) => {
     const override = overrides[definition.id];
     if (override?.mode === 'display') {
       return createDisplayPoiInstance(definition, override);
     }
-    return createPedestalPoiInstance(definition, index * Math.PI * 0.37);
+    return createPedestalPoiInstance(
+      definition,
+      index * Math.PI * 0.37,
+      detailPolicy
+    );
   });
 }
 
@@ -110,7 +123,8 @@ export function updatePoiInstanceDefinition(
 
 function createPedestalPoiInstance(
   definition: PoiDefinition,
-  phaseOffset: number
+  phaseOffset: number,
+  detailPolicy: SceneDetailPolicy
 ): PoiInstance {
   const group = new Group();
   group.name = `POI:${definition.id}`;
@@ -139,7 +153,7 @@ function createPedestalPoiInstance(
   let accentBaseColor: Color | undefined;
   let accentFocusColor: Color | undefined;
 
-  if (pedestalHeight > 0 && pedestalRadius > 0) {
+  if (pedestalHeight > 0 && pedestalRadius > 0 && !detailPolicy.isPerformance) {
     const bodyMaterial = new MeshStandardMaterial({
       color: new Color(hologramConfig?.bodyColor ?? 0x101c2a),
       emissive: new Color(hologramConfig?.emissiveColor ?? 0x2f8aff),
@@ -233,7 +247,11 @@ function createPedestalPoiInstance(
 
   const orbRadius =
     Math.max(baseRadius, pedestalRadius) * 0.45 * POI_ORB_DIAMETER_MULTIPLIER;
-  const orbGeometry = new SphereGeometry(orbRadius, 32, 32);
+  const orbGeometry = new SphereGeometry(
+    orbRadius,
+    detailPolicy.segments.sphereWidth,
+    detailPolicy.segments.sphereHeight
+  );
   const orbColor = new Color(hologramConfig?.orbColor ?? 0xb8f3ff);
   const orbEmissiveBase = new Color(
     hologramConfig?.orbEmissiveColor ?? 0x3de1ff
@@ -256,7 +274,10 @@ function createPedestalPoiInstance(
   orb.position.y = orbBaseHeight;
   group.add(orb);
 
-  const labelTexture = createPoiLabelTexture(definition);
+  const labelTexture = createPoiLabelTexture(
+    definition,
+    detailPolicy.textures.poiLabelScale
+  );
   const labelMaterial = new MeshBasicMaterial({
     map: labelTexture,
     transparent: true,
@@ -287,7 +308,7 @@ function createPedestalPoiInstance(
   const haloGeometry = new RingGeometry(
     haloInnerRadius,
     haloOuterRadius,
-    48,
+    detailPolicy.isPerformance ? 8 : 48,
     1
   );
   const haloBaseColor = new Color(0x4bd8ff);
@@ -309,7 +330,7 @@ function createPedestalPoiInstance(
   const visitedRingGeometry = new RingGeometry(
     haloInnerRadius * 0.92,
     haloOuterRadius * 1.05,
-    60,
+    detailPolicy.isPerformance ? 8 : 60,
     1
   );
   const visitedRingMaterial = new MeshBasicMaterial({
@@ -334,7 +355,7 @@ function createPedestalPoiInstance(
     hitAreaRadius,
     hitAreaRadius,
     hitAreaHeight,
-    32
+    detailPolicy.isPerformance ? 8 : 32
   );
   const hitAreaMaterial = new MeshBasicMaterial({
     transparent: true,
@@ -456,11 +477,13 @@ function createDisplayPoiInstance(
 }
 
 export function createPoiLabelTexture(
-  definition: PoiDefinition
+  definition: PoiDefinition,
+  textureScale = 1
 ): CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 640;
-  canvas.height = 192;
+  const scale = MathUtils.clamp(textureScale, 0.25, 1);
+  canvas.width = Math.round(640 * scale);
+  canvas.height = Math.round(192 * scale);
   const context = canvas.getContext('2d');
   if (!context) {
     throw new Error('Unable to acquire 2D context for POI label.');
@@ -492,7 +515,7 @@ export function createPoiLabelTexture(
   context.stroke();
 
   context.fillStyle = gradient;
-  context.font = 'bold 64px "Inter", "Segoe UI", sans-serif';
+  context.font = `bold ${Math.round(64 * scale)}px "Inter", "Segoe UI", sans-serif`;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   wrapText(
@@ -501,7 +524,7 @@ export function createPoiLabelTexture(
     canvas.width / 2,
     canvas.height / 2,
     canvas.width - padding * 3,
-    68,
+    68 * scale,
     2
   );
 

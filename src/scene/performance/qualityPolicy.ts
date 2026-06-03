@@ -160,6 +160,13 @@ export function resolveResizedBasePixelRatio(
   return Math.min(resizedPixelRatio, safeAdaptiveCap);
 }
 
+export interface InitialQualityDeviceHints {
+  coarsePointer?: boolean;
+  maxTouchPoints?: number;
+  deviceMemory?: number;
+  userAgent?: string;
+}
+
 export function resolveInitialQualityPolicy(
   rendererInfo: Pick<
     RendererInfoSnapshot,
@@ -168,7 +175,8 @@ export function resolveInitialQualityPolicy(
   devicePixelRatio: number,
   softwareRendererPolicy: SoftwareRendererPolicyState = resolveSoftwareRendererPolicy(
     rendererInfo
-  )
+  ),
+  deviceHints: InitialQualityDeviceHints = {}
 ): QualityPolicyState {
   if (
     rendererInfo.isDangerousSoftwareRenderer &&
@@ -199,6 +207,33 @@ export function resolveInitialQualityPolicy(
       softwareSafeMode: false,
       renderCadenceFps: null,
       reason: 'software renderer starts in performance mode',
+    };
+  }
+
+  const userAgent = deviceHints.userAgent ?? '';
+  const isTabletLike = /ipad|tablet|sm-t|galaxy tab|android(?!.*mobile)/i.test(
+    userAgent
+  );
+  const isTouchMobileLike =
+    deviceHints.coarsePointer === true ||
+    (deviceHints.maxTouchPoints ?? 0) >= 2 ||
+    /android|iphone|mobile/i.test(userAgent);
+  const hasConstrainedMemory =
+    typeof deviceHints.deviceMemory === 'number' &&
+    deviceHints.deviceMemory <= 4;
+
+  if (isTabletLike || (isTouchMobileLike && hasConstrainedMemory)) {
+    return {
+      initialLevel: 'performance',
+      basePixelRatioCap: clampDevicePixelRatio(devicePixelRatio, 0.85, 0.5),
+      mirrorEnabled: false,
+      mirrorTargetSize: 192,
+      mirrorUpdateRateFps: 0,
+      ambientUpdateIntervalMs: 100,
+      softwareSafeMode: false,
+      renderCadenceFps: null,
+      reason:
+        'coarse-pointer mobile/tablet hardware starts in performance mode',
     };
   }
 

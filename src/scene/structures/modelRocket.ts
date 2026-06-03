@@ -16,11 +16,14 @@ import {
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 export interface ModelRocketConfig {
   basePosition: Vector3;
   orientationRadians?: number;
   scale?: number;
+  detailPolicy?: SceneDetailPolicy;
 }
 
 export interface ModelRocketBuild {
@@ -33,6 +36,8 @@ const DEFAULT_SCALE = 1;
 const FIN_COUNT = 3;
 
 export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
+  const detailPolicy = config.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const cylinderSegments = detailPolicy.segments.cylinder;
   const scale = config.scale ?? DEFAULT_SCALE;
   const orientation = config.orientationRadians ?? 0;
   const basePosition = config.basePosition.clone();
@@ -48,7 +53,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     standRadius,
     standRadius,
     standHeight,
-    32
+    cylinderSegments
   );
   const standMaterial = new MeshStandardMaterial({
     color: new Color(0x2c3442),
@@ -64,7 +69,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     standRadius * 0.98,
     standRadius * 1.04,
     standHeight * 0.38,
-    32
+    cylinderSegments
   );
   const standTrimMaterial = new MeshStandardMaterial({
     color: new Color(0x39475b),
@@ -84,7 +89,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 1.02,
     bodyRadius * 0.94,
     bodyHeight,
-    40
+    detailPolicy.isPerformance ? 8 : 40
   );
   const bodyMaterial = new MeshStandardMaterial({
     color: new Color(0xe7eefc),
@@ -103,7 +108,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 1.06,
     bodyRadius * 1.06,
     stripeHeight,
-    40
+    detailPolicy.isPerformance ? 8 : 40
   );
   const stripeMaterial = new MeshStandardMaterial({
     color: new Color(0xff6b6b),
@@ -118,7 +123,11 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   group.add(stripe);
 
   const noseHeight = 1.1 * scale;
-  const noseGeometry = new ConeGeometry(bodyRadius * 0.92, noseHeight, 40);
+  const noseGeometry = new ConeGeometry(
+    bodyRadius * 0.92,
+    noseHeight,
+    detailPolicy.isPerformance ? 8 : 40
+  );
   const noseMaterial = new MeshStandardMaterial({
     color: new Color(0xff8976),
     emissive: new Color(0xb33a2d),
@@ -136,7 +145,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
     bodyRadius * 0.78,
     bodyRadius * 0.62,
     thrusterHeight,
-    32
+    cylinderSegments
   );
   const thrusterMaterial = new MeshStandardMaterial({
     color: new Color(0x1f2734),
@@ -159,12 +168,17 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   );
   thrusterLight.name = 'ModelRocketThrusterLight';
   thrusterLight.position.set(0, standHeight + thrusterHeight * 0.24, 0);
+  thrusterLight.userData.sceneDetailDynamicLight = true;
+  if (!detailPolicy.effects.dynamicPointLights) {
+    thrusterLight.intensity = 0;
+    thrusterLight.visible = false;
+  }
   group.add(thrusterLight);
 
   const flameGeometry = new ConeGeometry(
     bodyRadius * 0.42,
     0.88 * scale,
-    24,
+    detailPolicy.isPerformance ? 8 : 24,
     1,
     true
   );
@@ -280,8 +294,9 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
       haloPulse
     );
 
-    thrusterLight.intensity =
-      thrusterLightBaseIntensity * MathUtils.lerp(0.78, 1.62, thrusterPulse);
+    thrusterLight.intensity = detailPolicy.effects.dynamicPointLights
+      ? thrusterLightBaseIntensity * MathUtils.lerp(0.78, 1.62, thrusterPulse)
+      : 0;
     thrusterLight.distance =
       thrusterLightBaseDistance * MathUtils.lerp(0.82, 1.24, thrusterPulse);
 
@@ -297,6 +312,9 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
       flameScale
     );
 
+    if (detailPolicy.isPerformance && pulseScale < 0.2) {
+      return;
+    }
     safetyRingMaterial.opacity = MathUtils.clamp(
       safetyRingBaseOpacity * (0.62 + haloPulse * 0.55),
       0.12,

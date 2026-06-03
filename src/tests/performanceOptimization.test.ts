@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { createPortfolioMannequin } from '../scene/avatar/mannequin';
 import type { GraphicsQualityLevel } from '../scene/graphics/qualityManager';
+import { createSceneDetailController } from '../scene/graphics/sceneDetailController';
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import {
   createAdaptiveQualityController,
   type AdaptiveQualitySelectionSource,
@@ -75,6 +78,87 @@ function createPolicyHarness({
 }
 
 describe('immersive performance optimization policy', () => {
+  it('maps performance graphics quality to aggressive scene detail budgets', () => {
+    const balanced = getSceneDetailPolicy('balanced');
+    const cinematic = getSceneDetailPolicy('cinematic');
+    const performance = getSceneDetailPolicy('performance');
+
+    expect(performance.isPerformance).toBe(true);
+    expect(performance.theoreticalWorkloadScale).toBeLessThanOrEqual(0.1);
+    expect(performance.segments.cylinder).toBeLessThanOrEqual(
+      balanced.segments.cylinder / 5
+    );
+    expect(performance.segments.sphereWidth).toBeLessThanOrEqual(
+      balanced.segments.sphereWidth / 4
+    );
+    expect(performance.textures.jobbotScreen.width).toBeLessThanOrEqual(
+      balanced.textures.jobbotScreen.width / 4
+    );
+    expect(performance.textures.mediaWallScreen.width).toBeLessThanOrEqual(
+      cinematic.textures.mediaWallScreen.width / 4
+    );
+    expect(performance.effects.shaderMist).toBe(false);
+    expect(performance.effects.shaderPond).toBe(false);
+    expect(performance.effects.glassTransmission).toBe(false);
+    expect(performance.effects.dynamicPointLights).toBe(false);
+    expect(balanced.effects.shaderMist).toBe(true);
+    expect(cinematic.effects.glassTransmission).toBe(true);
+  });
+
+  it('starts coarse pointer tablet-like sessions in performance without overriding desktops', () => {
+    const tablet = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      undefined,
+      {
+        coarsePointer: true,
+        maxTouchPoints: 5,
+        deviceMemory: 4,
+        userAgent: 'Mozilla/5.0 (Linux; Android 13; SAMSUNG SM-T870)',
+      }
+    );
+    expect(tablet.initialLevel).toBe('performance');
+    expect(tablet.mirrorEnabled).toBe(false);
+
+    const desktop = resolveInitialQualityPolicy(
+      { isSoftwareRenderer: false, isDangerousSoftwareRenderer: false },
+      2,
+      undefined,
+      { coarsePointer: false, maxTouchPoints: 0, deviceMemory: 16 }
+    );
+    expect(desktop.initialLevel).toBe('balanced');
+  });
+
+  it('preserves mannequin dimensions while lowering performance-mode geometry detail', () => {
+    const balanced = createPortfolioMannequin({
+      collisionRadius: 0.75,
+      detailPolicy: getSceneDetailPolicy('balanced'),
+    });
+    const performance = createPortfolioMannequin({
+      collisionRadius: 0.75,
+      detailPolicy: getSceneDetailPolicy('performance'),
+    });
+    const balancedProxy = balanced.group.getObjectByName(
+      'PortfolioMannequinCollisionProxy'
+    );
+    const performanceProxy = performance.group.getObjectByName(
+      'PortfolioMannequinCollisionProxy'
+    );
+
+    expect(performance.height).toBe(balanced.height);
+    expect(performance.collisionRadius).toBe(balanced.collisionRadius);
+    expect(
+      (
+        performanceProxy as {
+          geometry: { parameters: { widthSegments: number } };
+        }
+      ).geometry.parameters.widthSegments
+    ).toBeLessThan(
+      (balancedProxy as { geometry: { parameters: { widthSegments: number } } })
+        .geometry.parameters.widthSegments
+    );
+  });
+
   it('classifies known dangerous software renderers separately from hardware', () => {
     const dangerousRenderers = [
       'ANGLE (Microsoft, Microsoft Basic Render Driver, D3D11)',
@@ -446,5 +530,37 @@ describe('immersive performance optimization policy', () => {
     expect(harness.controller.update(1.1)).toBeNull();
     expect(harness.controller.isExhausted()).toBe(true);
     expect(harness.onAction).toHaveBeenCalledTimes(3);
+  });
+
+  it('applies scene detail performance policy when adaptive downgrade reaches performance', () => {
+    let currentLevel: GraphicsQualityLevel = 'balanced';
+    const detailController = createSceneDetailController(currentLevel);
+    const controller = createAdaptiveQualityController({
+      qualityManager: {
+        getLevel: () => currentLevel,
+        setLevel: (next) => {
+          currentLevel = next;
+          detailController.setLevel(next);
+        },
+        setBasePixelRatio: () => {
+          /* noop */
+        },
+      },
+      getBasePixelRatio: () => 1,
+      setBasePixelRatio: () => {
+        /* noop */
+      },
+      cooldownMs: 0,
+      downgradeAfterMs: 100,
+      warmupMs: 0,
+      getSelectionSource: () => 'adaptive',
+    });
+
+    for (let index = 0; index < 8; index += 1) {
+      controller.update(0.05);
+    }
+
+    expect(detailController.getPolicy().level).toBe('performance');
+    expect(detailController.getPolicy().effects.shaderMist).toBe(false);
   });
 });
