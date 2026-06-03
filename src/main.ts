@@ -858,13 +858,6 @@ function initializeImmersiveScene(
     localeStorage = undefined;
   }
 
-  let guidedTourStorage: Storage | undefined;
-  try {
-    guidedTourStorage = window.localStorage;
-  } catch {
-    guidedTourStorage = undefined;
-  }
-
   let ambientAudioStorage: Storage | undefined;
   try {
     ambientAudioStorage = window.localStorage;
@@ -883,7 +876,6 @@ function initializeImmersiveScene(
   });
 
   const guidedTourPreference = new GuidedTourPreference({
-    storage: guidedTourStorage ?? null,
     storageKey: GUIDED_TOUR_STORAGE_KEY,
     windowTarget: window,
     defaultEnabled: false,
@@ -3508,7 +3500,7 @@ function initializeImmersiveScene(
 
     tourGuideToggleControl = createTourGuideToggleControl({
       container: hudSettingsStack,
-      initialEnabled: initialGuidedTourEnabled,
+      initialEnabled: guidedTourPreference.isEnabled(),
       onToggle: (enabled) => {
         guidedTourPreference.setEnabled(enabled, 'control');
       },

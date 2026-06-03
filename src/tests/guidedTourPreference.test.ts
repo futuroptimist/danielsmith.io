@@ -99,6 +99,39 @@ describe('GuidedTourPreference', () => {
     expect(disabledPreference.isEnabled()).toBe(false);
   });
 
+  it('falls back to sessionStorage when localStorage is blocked', () => {
+    const sessionStorage = new Map<string, string>();
+    const sessionStorageLike = {
+      getItem: (key: string) => sessionStorage.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        sessionStorage.set(key, value);
+      },
+    };
+    const windowTarget = {
+      get localStorage() {
+        throw new Error('localStorage unavailable');
+      },
+      get sessionStorage() {
+        return sessionStorageLike;
+      },
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    } as unknown as Window;
+    const fallbackPreference = new GuidedTourPreference({
+      storageKey,
+      windowTarget,
+    });
+
+    expect(fallbackPreference.isEnabled()).toBe(false);
+
+    fallbackPreference.setEnabled(true, 'control');
+
+    expect(sessionStorage.get(storageKey)).toBe('1');
+
+    fallbackPreference.dispose();
+  });
+
   it('reacts to storage events from other contexts', () => {
     const listener = vi.fn();
     preference.subscribe(listener);
