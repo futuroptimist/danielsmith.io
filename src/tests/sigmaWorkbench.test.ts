@@ -77,6 +77,8 @@ describe('createSigmaWorkbench', () => {
 
     const printedText = contexts.flatMap((ctx) => ctx.fillTextCalls);
     expect(printedText).toContain('Sigma');
+    expect(printedText).toContain('ESP32 AI Pin · Whisper + TTS relay');
+    expect(printedText).toContain('Modes: push-to-talk · printed enclosure');
     expect(printedText).toContain('Sigma AI Pin');
   });
 

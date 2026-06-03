@@ -588,7 +588,22 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'End-to-end workflows mirror docs and tests so recruiter outreach flows stay covered.',
       },
       metrics: [
-        { label: 'Status', value: 'Local-first CLI with preview web UI' },
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'jobbot3000',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
+        {
+          label: 'Status',
+          value: 'Local-first CLI with preview web UI',
+        },
         {
           label: 'Stack',
           value: 'Node.js 20+ · npm scripts · Playwright preview',
@@ -755,8 +770,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Hardware', value: 'ESP32 · on-device speech stack' },
-        { label: 'Modes', value: 'Push-to-talk · local inference loops' },
+        { label: 'Hardware', value: 'ESP32 · OpenSCAD enclosure' },
+        { label: 'Modes', value: 'Push-to-talk · Whisper + TTS relay' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sigma' },

@@ -212,6 +212,9 @@ describe('i18n utilities', () => {
     expect(pseudoCopy['futuroptimist-living-room-tv'].title).toBe(
       '⟦Futuroptimist⟧'
     );
+    expect(pseudoCopy['futuroptimist-living-room-tv'].summary).toBe(
+      '⟦Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.⟧'
+    );
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title
     );

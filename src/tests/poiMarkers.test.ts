@@ -147,7 +147,7 @@ describe('createPoiInstances', () => {
     expect(renderedText).not.toContain('Prototype');
   });
 
-  it('fits existing long title-only labels without ellipsizing them', () => {
+  it('preserves existing title-only marker labels without ellipsizing them', () => {
     for (const title of ['Gitshelves', 'danielsmith.io']) {
       fillTextLog = [];
       createPoiLabelTexture(createDefinition({ title }));
