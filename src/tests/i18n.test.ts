@@ -6,6 +6,7 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getLocaleStrings,
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
@@ -14,6 +15,7 @@ import {
   getPoiOverlayChromeStrings,
   getPoiCopy,
   getSiteStrings,
+  isI18nDebugEnabled,
   resolveLocale,
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
@@ -24,6 +26,7 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('en-x-pseudo');
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
+    expect(AVAILABLE_LOCALES).toContain('zh-Hans');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -34,6 +37,8 @@ describe('i18n utilities', () => {
     expect(resolveLocale('en_x_pseudo')).toBe('en-x-pseudo');
     expect(resolveLocale('ar-EG')).toBe('ar');
     expect(resolveLocale('ja-JP')).toBe('ja');
+    expect(resolveLocale('zh-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-Hans')).toBe('zh-Hans');
   });
 
   it('detects locale direction for RTL and LTR language inputs', () => {
@@ -50,6 +55,7 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('en')).toBe('latin');
     expect(getLocaleScript('en-x-pseudo')).toBe('latin');
     expect(getLocaleScript('zh-CN')).toBe('cjk');
+    expect(getLocaleScript('zh-Hans')).toBe('cjk');
     expect(getLocaleScript('ja')).toBe('cjk');
     expect(getLocaleScript('ko-KR')).toBe('cjk');
     expect(getLocaleScript('ar')).toBe('rtl');
@@ -117,10 +123,12 @@ describe('i18n utilities', () => {
     const pseudoOverlay = getControlOverlayStrings('en-x-pseudo');
     const arabicOverlay = getControlOverlayStrings('ar');
     const japaneseOverlay = getControlOverlayStrings('ja');
+    const chineseOverlay = getControlOverlayStrings('zh-Hans');
     expect(englishOverlay.heading).toBe('Controls');
     expect(pseudoOverlay.heading).toBe('⟦Controls⟧');
     expect(arabicOverlay.heading).toBe('عناصر التحكم');
     expect(japaneseOverlay.heading).toBe('操作');
+    expect(chineseOverlay.heading).toBe('控制');
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(
       englishOverlay.items.keyboardMove.keys
     );
@@ -135,6 +143,11 @@ describe('i18n utilities', () => {
     expect(arabicHelp.announcements.open).toBe(
       'تم فتح قائمة المساعدة. راجع عناصر التحكم والإعدادات.'
     );
+    const chineseHelp = getHelpModalStrings('zh-Hans');
+    expect(chineseHelp.heading).toBe('设置与帮助');
+    expect(chineseHelp.announcements.open).toBe(
+      '帮助菜单已打开。请查看控制和设置。'
+    );
     const japaneseHelp = getHelpModalStrings('ja');
     expect(japaneseHelp.heading).toBe('設定とヘルプ');
     expect(japaneseHelp.announcements.close).toBe(
@@ -147,6 +160,7 @@ describe('i18n utilities', () => {
     const pseudo = getPoiOverlayChromeStrings('en-x-pseudo');
     const arabic = getPoiOverlayChromeStrings('ar');
     const japanese = getPoiOverlayChromeStrings('ja');
+    const chinese = getPoiOverlayChromeStrings('zh-Hans');
 
     expect(english.closeDetails).toBe('Close POI details');
     expect(english.discoveryAnnouncementTemplate).toContain('{title}');
@@ -154,6 +168,7 @@ describe('i18n utilities', () => {
     expect(pseudo.relatedCaseStudies).toBe('⟦Related case studies⟧');
     expect(arabic.prototype).toBe('نموذج أولي');
     expect(japanese.nextHighlight).toBe('次のハイライト');
+    expect(chinese.closeDetails).toBe('关闭兴趣点详情');
   });
 
   it('returns localized mode toggle strings with formatted key hints', () => {
@@ -215,6 +230,11 @@ describe('i18n utilities', () => {
       'Unable to switch to {target}. Staying on {current} locale.'
     );
 
+    const chinese = getLocaleToggleStrings('zh-Hans');
+    expect(chinese.title).toBe('语言');
+    expect(chinese.options['zh-Hans']).toBe('简体中文');
+    expect(chinese.options['en-x-pseudo']).toBe('Pseudo');
+
     const pseudo = getLocaleToggleStrings('en-x-pseudo');
     expect(pseudo.title).toBe('⟦Language⟧');
     expect(pseudo.switchingAnnouncementTemplate).toBe(
@@ -260,6 +280,12 @@ describe('i18n utilities', () => {
       'تمت الزيارة في ٣:٣٠ م'
     );
 
+    const chinese = getPoiNarrativeLogStrings('zh-Hans');
+    expect(chinese.heading).toBe('创作者故事日志');
+    expect(formatMessage(chinese.visitedLabelTemplate, { time: '15:30' })).toBe(
+      '15:30 访问'
+    );
+
     const japanese = getPoiNarrativeLogStrings('ja');
     expect(japanese.heading).toBe('クリエイターストーリーログ');
     expect(
@@ -272,6 +298,11 @@ describe('i18n utilities', () => {
     expect(copy['futuroptimist-living-room-tv'].title).toMatch(/Futuroptimist/);
     expect(copy['dspace-backyard-rocket'].metrics?.length).toBeGreaterThan(0);
 
+    const chineseCopy = getPoiCopy('zh-Hans');
+    expect(chineseCopy['futuroptimist-living-room-tv'].summary).toContain(
+      '脚本工作台'
+    );
+
     const pseudoCopy = getPoiCopy('en-x-pseudo');
     expect(pseudoCopy['futuroptimist-living-room-tv'].title).toBe(
       '⟦Futuroptimist⟧'
@@ -282,6 +313,64 @@ describe('i18n utilities', () => {
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title
     );
+  });
+
+  it('keeps visible locale catalogs structurally complete', () => {
+    const english = getLocaleStrings('en');
+    const assertNoMissingStrings = (value: unknown, path: string): void => {
+      if (typeof value === 'string') {
+        expect(value.trim(), path).not.toBe('');
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item, index) =>
+          assertNoMissingStrings(item, `${path}[${index}]`)
+        );
+        return;
+      }
+      if (value && typeof value === 'object') {
+        Object.entries(value as Record<string, unknown>).forEach(
+          ([key, nested]) => {
+            assertNoMissingStrings(nested, `${path}.${key}`);
+          }
+        );
+      }
+    };
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const strings = getLocaleStrings(locale);
+      expect(Object.keys(strings.poi).sort()).toEqual(
+        Object.keys(english.poi).sort()
+      );
+      assertNoMissingStrings(strings.hud, `${locale}.hud`);
+      assertNoMissingStrings(
+        strings.site.textFallback,
+        `${locale}.site.textFallback`
+      );
+    }
+  });
+
+  it('gates pseudo-locale visibility behind explicit i18n debug mode', () => {
+    expect(
+      isI18nDebugEnabled({ isDev: false, search: '', storage: null })
+    ).toBe(false);
+    expect(isI18nDebugEnabled({ isDev: true, search: '', storage: null })).toBe(
+      true
+    );
+    expect(
+      isI18nDebugEnabled({
+        isDev: false,
+        search: '?i18nDebug=1',
+        storage: null,
+      })
+    ).toBe(true);
+    expect(
+      isI18nDebugEnabled({
+        isDev: false,
+        search: '',
+        storage: { getItem: () => 'true' },
+      })
+    ).toBe(true);
   });
 
   it('falls back to English site metadata when pseudo overrides omit values', () => {

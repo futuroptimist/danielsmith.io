@@ -8,7 +8,7 @@ import type {
 import type { FallbackReason } from '../../types/failover';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 
-export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
+export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja' | 'zh-Hans';
 export type LocaleDirection = 'ltr' | 'rtl';
 export type LocaleScript = 'latin' | 'cjk' | 'rtl';
 
@@ -137,12 +137,13 @@ export interface HelpModalSectionStrings {
 
 export interface HelpModalSettingsStrings {
   heading: string;
-  description?: string;
+  description: string;
 }
 
 export interface LocaleToggleStrings {
   title: string;
   description: string;
+  options: Record<Locale, string>;
   switchingAnnouncementTemplate: string;
   selectedAnnouncementTemplate: string;
   failureAnnouncementTemplate: string;
@@ -163,9 +164,45 @@ export interface HelpModalStrings {
 
 export interface HudCustomizationStrings {
   heading: string;
-  description?: string;
+  description: string;
   variants: { title: string; description: string };
   accessories: { title: string; description: string };
+}
+
+export interface TourGuideToggleStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
+export interface TourResetControlStrings {
+  heading: string;
+  label: string;
+  description: string;
+  emptyLabel: string;
+  emptyDescription: string;
+  pendingLabel: string;
+  pendingDescription: string;
+  restartPromptTemplate: string;
+  guidedTourDescription: string;
+  guidedTourLabelOn: string;
+  guidedTourLabelOff: string;
+  guidedTourAnnouncementOn: string;
+  guidedTourAnnouncementOff: string;
+  guidedTourTitleOn: string;
+  guidedTourTitleOff: string;
+}
+
+export interface SoftwareRendererWarningStrings {
+  fallbackRendererLabel: string;
+  title: string;
+  descriptionTemplate: string;
+  recommendation: string;
+  continueSafeLabel: string;
+  continuousLabel: string;
+  textModeLabel: string;
+  safeUrlLabel: string;
 }
 
 export interface PoiOverlayChromeStrings {
@@ -325,6 +362,9 @@ export interface LocaleStrings {
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
     helpModal: HelpModalStrings;
+    tourGuideToggle: TourGuideToggleStrings;
+    tourReset: TourResetControlStrings;
+    softwareRendererWarning: SoftwareRendererWarningStrings;
     customization: HudCustomizationStrings;
     narrativeLog: PoiNarrativeLogStrings;
     poiOverlay: PoiOverlayChromeStrings;

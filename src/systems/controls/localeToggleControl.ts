@@ -17,6 +17,10 @@ export interface LocaleToggleControlOptions {
   getActiveLocale: () => Locale;
   setActiveLocale: (locale: Locale) => void | Promise<void>;
   strings?: LocaleToggleResolvedStrings;
+  /** @deprecated Pass strings.title instead. */
+  title?: string;
+  /** @deprecated Pass strings.description instead. */
+  description?: string;
 }
 
 export interface LocaleToggleControlHandle {
@@ -41,6 +45,8 @@ export function createLocaleToggleControl({
   getActiveLocale,
   setActiveLocale,
   strings: providedStrings,
+  title,
+  description,
 }: LocaleToggleControlOptions): LocaleToggleControlHandle {
   if (!options.length) {
     throw new Error('Locale toggle requires at least one option.');
@@ -50,6 +56,8 @@ export function createLocaleToggleControl({
   let strings: LocaleToggleResolvedStrings = {
     ...DEFAULT_STRINGS,
     ...providedStrings,
+    ...(title ? { title } : {}),
+    ...(description ? { description } : {}),
   };
 
   const wrapper = document.createElement('section');
@@ -196,6 +204,9 @@ export function createLocaleToggleControl({
       heading.textContent = strings.title;
       descriptionParagraph.textContent = strings.description;
       optionsList.setAttribute('aria-label', strings.title);
+      buttons.forEach((button, locale) => {
+        button.textContent = strings.options[locale];
+      });
       updateActiveState();
     },
     refresh: updateActiveState,

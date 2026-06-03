@@ -217,7 +217,10 @@ Launch screenshot workflow refresh and commit it after merge.
   locales load structured strings while keeping Vitest coverage in
   `src/tests/i18n.test.ts` to guard against regressions. HUD overlays and the
   text fallback now tag their containers with locale direction metadata so RTL
-  languages flow correctly even before full translations land.
+  and CJK languages flow correctly. The public Settings language picker exposes
+  English, Japanese, Arabic, and Simplified Mandarin Chinese; the pseudo-locale
+  remains available only in development, with `?i18nDebug=1`, or after setting
+  `localStorage.setItem('danielsmith:i18n-debug', 'true')` for translation QA.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
   story beats.

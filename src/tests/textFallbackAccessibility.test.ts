@@ -104,6 +104,25 @@ describe('text fallback accessibility', () => {
     });
   }
 
+  it('renders Mandarin Chinese text fallback CTA and lang metadata', () => {
+    const container = document.createElement('div');
+    document.documentElement.lang = 'zh-Hans';
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: 'https://danielsmith.io/immersive',
+    });
+
+    expect(document.documentElement.lang).toBe('zh-Hans');
+    expect(document.documentElement.dataset.localeScript).toBe('cjk');
+    expect(
+      container.querySelector('.text-fallback__recovery-title')?.textContent
+    ).toBe('准备进入完整房间了吗？');
+    expect(
+      container.querySelector('.text-fallback__primary-action')?.textContent
+    ).toBe('再次尝试沉浸模式');
+  });
+
   it('normalizes provided immersive URLs without disabling failover for normal recovery', () => {
     const container = document.createElement('div');
 

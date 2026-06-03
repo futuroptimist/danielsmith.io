@@ -52,6 +52,10 @@ import {
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getSiteStrings,
+  getSoftwareRendererWarningStrings,
+  getTourGuideToggleStrings,
+  getTourResetControlStrings,
+  isI18nDebugEnabled,
   resolveLocale,
   type Locale,
 } from './assets/i18n';
@@ -829,16 +833,6 @@ function initializeImmersiveScene(
       softwareRendererPolicy,
     });
   };
-  if (rendererInfo.isDangerousSoftwareRenderer) {
-    softwareRendererWarning = createSoftwareRendererWarning({
-      rendererInfo,
-      safeUrl: createSoftwareSafeImmersiveUrl(),
-      continuousUrl: createContinuousSoftwareImmersiveUrl(),
-      textUrl: createTextModeUrl(),
-      onContinueSafe: requestSoftwareSafeRender,
-      onVisible: recordRendererWarning,
-    });
-  }
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
@@ -926,7 +920,22 @@ function initializeImmersiveScene(
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+  let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
+  let tourResetControlStrings = getTourResetControlStrings(locale);
+  let softwareRendererWarningStrings =
+    getSoftwareRendererWarningStrings(locale);
   let siteStrings = getSiteStrings(locale);
+  if (rendererInfo.isDangerousSoftwareRenderer) {
+    softwareRendererWarning = createSoftwareRendererWarning({
+      rendererInfo,
+      safeUrl: createSoftwareSafeImmersiveUrl(),
+      continuousUrl: createContinuousSoftwareImmersiveUrl(),
+      textUrl: createTextModeUrl(),
+      onContinueSafe: requestSoftwareSafeRender,
+      onVisible: recordRendererWarning,
+      strings: softwareRendererWarningStrings,
+    });
+  }
   const syncModeAnnouncerStrings = () => {
     const announcerStrings = getModeAnnouncerStrings(locale);
     getModeAnnouncer().setMessages(
@@ -2949,6 +2958,9 @@ function initializeImmersiveScene(
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+    tourGuideToggleStrings = getTourGuideToggleStrings(locale);
+    tourResetControlStrings = getTourResetControlStrings(locale);
+    softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -3012,6 +3024,9 @@ function initializeImmersiveScene(
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
+    tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
+    tourResetControl?.setStrings(tourResetControlStrings);
+    softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
     updateHelpButtonLabel();
@@ -3031,16 +3046,24 @@ function initializeImmersiveScene(
     }
   };
 
+  const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
+  if (
+    isI18nDebugEnabled({
+      search: window.location.search,
+      storage: localeStorage,
+    })
+  ) {
+    localeOptionIds.push('en-x-pseudo');
+  }
   const localeOptions: Array<{
     id: Locale;
     label: string;
     direction: 'ltr' | 'rtl';
-  }> = [
-    { id: 'en', label: 'English', direction: 'ltr' },
-    { id: 'ja', label: '日本語', direction: 'ltr' },
-    { id: 'ar', label: 'العربية', direction: 'rtl' },
-    { id: 'en-x-pseudo', label: 'Pseudo', direction: 'ltr' },
-  ];
+  }> = localeOptionIds.map((id) => ({
+    id,
+    label: localeToggleStrings.options[id],
+    direction: getLocaleDirection(id),
+  }));
 
   localeToggleControl = createLocaleToggleControl({
     container: hudSettingsStack,
@@ -3482,6 +3505,7 @@ function initializeImmersiveScene(
     tourGuideToggleControl = createTourGuideToggleControl({
       container: hudSettingsStack,
       initialEnabled: initialGuidedTourEnabled,
+      strings: tourGuideToggleStrings,
       onToggle: (enabled) => {
         guidedTourChannel?.setEnabled(enabled);
         writeGuidedTourEnabled(enabled);
@@ -3491,6 +3515,7 @@ function initializeImmersiveScene(
 
     tourResetControl = createTourResetControl({
       container: hudSettingsStack,
+      strings: tourResetControlStrings,
       subscribeVisited: (listener) => poiVisitedState.subscribe(listener),
       onReset: () => {
         poiVisitedState.reset();
