@@ -1,4 +1,4 @@
-import type { PoiId } from '../poi/types';
+import type { PoiId } from '../../scene/poi/types';
 
 import { AR_OVERRIDES } from './locales/ar';
 import { EN_LOCALE_STRINGS } from './locales/en';
@@ -21,6 +21,7 @@ import type {
   MovementLegendStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
+  PoiOverlayChromeStrings,
   HudCustomizationStrings,
   SiteStrings,
 } from './types';
@@ -222,6 +223,12 @@ export function getPoiCopy(
   input?: LocaleInput
 ): Readonly<Record<PoiId, PoiCopy>> {
   return getLocaleStrings(input).poi;
+}
+
+export function getPoiOverlayChromeStrings(
+  input?: LocaleInput
+): PoiOverlayChromeStrings {
+  return getLocaleStrings(input).hud.poiOverlay;
 }
 
 export function formatMessage(

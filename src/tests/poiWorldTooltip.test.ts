@@ -331,6 +331,24 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('redraws the active world tooltip when POI copy is localized', () => {
+    const { tooltip } = createTooltip();
+    const poi = createPoiDefinition({ title: 'Flywheel' });
+    const target = createTarget(poi, new Vector3(0, 0, 0));
+
+    tooltip.setSelected(target);
+    tooltip.update(0.016);
+    expect(latestFillTextLog).toContain('Flywheel');
+
+    poi.title = '⟦Flywheel⟧';
+    latestFillTextLog.length = 0;
+    tooltip.notifyPoiUpdated(poi.id);
+
+    expect(latestFillTextLog).toContain('⟦Flywheel⟧');
+    expect(tooltip.getState().poiId).toBe(poi.id);
+    tooltip.dispose();
+  });
+
   it('keeps selected world tooltips visible when passive recommendations are disabled', () => {
     const { tooltip, preference } = createTooltip();
     const poi = createPoiDefinition({

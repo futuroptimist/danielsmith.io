@@ -232,6 +232,16 @@ export const AR_OVERRIDES: LocaleOverrides = {
         description: 'فعّل سوار المعصم أو الطائرة الهولوغرافية.',
       },
     },
+    poiOverlay: {
+      visited: 'تمت الزيارة',
+      nextHighlight: 'المحطة التالية',
+      prototype: 'نموذج أولي',
+      live: 'مباشر',
+      closeDetails: 'إغلاق تفاصيل نقطة الاهتمام',
+      relatedCaseStudies: 'دراسات حالة ذات صلة',
+      outcomeFallbackLabel: 'النتيجة',
+      discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
+    },
     narrativeLog: {
       heading: 'سجل القصة',
       visitedHeading: 'المعارض التي تمت زيارتها',

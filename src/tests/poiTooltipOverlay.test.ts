@@ -386,6 +386,57 @@ describe('PoiTooltipOverlay', () => {
     expect(root.getAttribute('aria-describedby')).toBeNull();
   });
 
+  it('refreshes active selected POI copy and chrome when locale strings change', () => {
+    overlay.setSelected(basePoi);
+
+    const localizedPoi: PoiDefinition = {
+      ...basePoi,
+      title: '⟦Futuroptimist⟧',
+      summary: '⟦Localized summary for the active exhibit.⟧',
+      outcome: { label: '', value: '⟦Localized outcome.⟧' },
+      metrics: [{ label: '⟦Workflow⟧', value: '⟦Localized metric.⟧' }],
+      links: [{ label: '⟦Docs⟧', href: 'https://futuroptimist.dev' }],
+    };
+
+    overlay.setStrings({
+      visited: '⟦Visited⟧',
+      nextHighlight: '⟦Next highlight⟧',
+      prototype: '⟦Prototype⟧',
+      live: '⟦Live⟧',
+      closeDetails: '⟦Close POI details⟧',
+      relatedCaseStudies: '⟦Related case studies⟧',
+      outcomeFallbackLabel: '⟦Outcome⟧',
+      discoveryAnnouncementTemplate: '⟦{title} discovered. {summary}⟧',
+    });
+    overlay.setSelected(localizedPoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('.poi-tooltip-overlay__title')?.textContent).toBe(
+      localizedPoi.title
+    );
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toBe(localizedPoi.summary);
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('⟦Outcome⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('⟦Workflow⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('⟦Localized metric.⟧');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__status')?.textContent
+    ).toBe('⟦Prototype⟧');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('⟦Related case studies⟧');
+  });
+
   it('refreshes metric values when notified about updates', () => {
     overlay.setHovered(basePoi);
     const metricSelector = '.poi-tooltip-overlay__metric-value';

@@ -1,4 +1,9 @@
 import {
+  formatMessage,
+  getPoiOverlayChromeStrings,
+  type PoiOverlayChromeStrings,
+} from '../../assets/i18n';
+import {
   GuidedTourPreference,
   defaultGuidedTourPreference,
 } from '../../systems/guidedTour/preference';
@@ -7,7 +12,10 @@ import type { InteractionTimeline } from '../../ui/accessibility/interactionTime
 import type { PoiSelectionContext } from './interactionManager';
 import type { PoiDefinition } from './types';
 
-type DiscoveryFormatter = (poi: PoiDefinition) => string;
+type DiscoveryFormatter = (
+  poi: PoiDefinition,
+  strings: PoiOverlayChromeStrings
+) => string;
 
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
@@ -56,6 +64,7 @@ export class PoiTooltipOverlay {
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
   private readonly onDismiss: (() => void) | null;
+  private strings: PoiOverlayChromeStrings;
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
@@ -67,6 +76,7 @@ export class PoiTooltipOverlay {
     } = options;
     const documentTarget = container.ownerDocument ?? document;
 
+    this.strings = getPoiOverlayChromeStrings();
     this.discoveryPoliteness = discoveryAnnouncer?.politeness ?? 'polite';
     this.discoveryFormatter =
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
@@ -100,20 +110,20 @@ export class PoiTooltipOverlay {
 
     this.visitedBadge = documentTarget.createElement('span');
     this.visitedBadge.className = 'poi-tooltip-overlay__visited';
-    this.visitedBadge.textContent = 'Visited';
+    this.visitedBadge.textContent = this.strings.visited;
     this.visitedBadge.hidden = true;
     headingRow.appendChild(this.visitedBadge);
 
     this.recommendationBadge = documentTarget.createElement('span');
     this.recommendationBadge.className = 'poi-tooltip-overlay__recommendation';
-    this.recommendationBadge.textContent = 'Next highlight';
+    this.recommendationBadge.textContent = this.strings.nextHighlight;
     this.recommendationBadge.hidden = true;
     headingRow.appendChild(this.recommendationBadge);
 
     this.closeButton = documentTarget.createElement('button');
     this.closeButton.className = 'poi-tooltip-overlay__close';
     this.closeButton.type = 'button';
-    this.closeButton.setAttribute('aria-label', 'Close POI details');
+    this.closeButton.setAttribute('aria-label', this.strings.closeDetails);
     this.closeButton.textContent = '×';
     this.closeButton.hidden = true;
     this.closeButton.disabled = true;
@@ -153,7 +163,7 @@ export class PoiTooltipOverlay {
     this.linksList = documentTarget.createElement('ul');
     this.linksList.className = 'poi-tooltip-overlay__links';
     this.linksList.id = `${this.instanceId}-links`;
-    this.linksList.setAttribute('aria-label', 'Related case studies');
+    this.linksList.setAttribute('aria-label', this.strings.relatedCaseStudies);
     this.root.appendChild(this.linksList);
 
     container.appendChild(this.root);
@@ -175,6 +185,16 @@ export class PoiTooltipOverlay {
         this.update();
       }
     );
+  }
+
+  setStrings(strings: PoiOverlayChromeStrings): void {
+    this.strings = strings;
+    this.visitedBadge.textContent = strings.visited;
+    this.recommendationBadge.textContent = strings.nextHighlight;
+    this.closeButton.setAttribute('aria-label', strings.closeDetails);
+    this.linksList.setAttribute('aria-label', strings.relatedCaseStudies);
+    this.renderState.poiId = null;
+    this.update();
   }
 
   setIdleState(idle: boolean) {
@@ -300,13 +320,9 @@ export class PoiTooltipOverlay {
     const previousPoiId = this.renderState.poiId;
 
     if (previousPoiId !== poi.id) {
-      this.renderPoi(poi);
       this.renderState.poiId = poi.id;
-    } else {
-      this.updateStatus(poi);
-      this.renderOutcome(poi);
-      this.renderMetrics(poi);
     }
+    this.renderPoi(poi);
 
     const describedByIds = [this.summary.id];
     if (!this.outcome.hidden) {
@@ -387,7 +403,7 @@ export class PoiTooltipOverlay {
       return;
     }
 
-    const label = outcome.label?.trim() || 'Outcome';
+    const label = outcome.label?.trim() || this.strings.outcomeFallbackLabel;
     this.outcomeLabel.textContent = label;
     this.outcomeLabel.hidden = false;
     this.outcomeValue.textContent = outcome.value.trim();
@@ -397,7 +413,8 @@ export class PoiTooltipOverlay {
 
   private updateStatus(poi: PoiDefinition) {
     if (poi.status) {
-      const statusLabel = poi.status === 'prototype' ? 'Prototype' : 'Live';
+      const statusLabel =
+        poi.status === 'prototype' ? this.strings.prototype : this.strings.live;
       this.statusBadge.textContent = statusLabel;
       this.statusBadge.hidden = false;
     } else {
@@ -458,7 +475,7 @@ export class PoiTooltipOverlay {
   }
 
   private announceDiscovery(poi: PoiDefinition) {
-    const message = this.discoveryFormatter(poi).trim();
+    const message = this.discoveryFormatter(poi, this.strings).trim();
     if (!message) {
       return;
     }
@@ -494,9 +511,14 @@ function applyVisuallyHiddenStyles(element: HTMLElement): void {
   element.style.pointerEvents = 'none';
 }
 
-function defaultDiscoveryFormatter(poi: PoiDefinition): string {
-  const summary = poi.summary ? ` ${poi.summary}` : '';
-  return `${poi.title} discovered.${summary}`;
+function defaultDiscoveryFormatter(
+  poi: PoiDefinition,
+  strings: PoiOverlayChromeStrings
+): string {
+  return formatMessage(strings.discoveryAnnouncementTemplate, {
+    title: poi.title,
+    summary: poi.summary ?? '',
+  }).trim();
 }
 
 let tooltipInstanceCounter = 0;

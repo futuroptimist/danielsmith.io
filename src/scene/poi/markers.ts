@@ -95,6 +95,19 @@ export function createPoiInstances(
   });
 }
 
+export function updatePoiInstanceDefinition(
+  instance: PoiInstance,
+  definition: PoiDefinition
+): void {
+  instance.definition = definition;
+  if (instance.labelMaterial) {
+    const previousTexture = instance.labelMaterial.map;
+    instance.labelMaterial.map = createPoiLabelTexture(definition);
+    instance.labelMaterial.needsUpdate = true;
+    previousTexture?.dispose();
+  }
+}
+
 function createPedestalPoiInstance(
   definition: PoiDefinition,
   phaseOffset: number

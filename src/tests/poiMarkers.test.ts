@@ -5,6 +5,7 @@ import { scalePoiValue } from '../scene/poi/constants';
 import {
   createPoiInstances,
   createPoiLabelTexture,
+  updatePoiInstanceDefinition,
 } from '../scene/poi/markers';
 import type { PoiDefinition } from '../scene/poi/types';
 
@@ -145,6 +146,23 @@ describe('createPoiInstances', () => {
     expect(renderedText).not.toContain('Reduced shelf drift');
     expect(renderedText).not.toContain('Cataloged 200 repos');
     expect(renderedText).not.toContain('Prototype');
+  });
+
+  it('updates existing marker label textures when localized definitions change', () => {
+    fillTextLog = [];
+    const [instance] = createPoiInstances([
+      createDefinition({ title: 'Gitshelves' }),
+    ]);
+    expect(fillTextLog.join(' ')).toBe('Gitshelves');
+
+    fillTextLog = [];
+    updatePoiInstanceDefinition(
+      instance,
+      createDefinition({ title: '⟦Gitshelves⟧' })
+    );
+
+    expect(instance.definition.title).toBe('⟦Gitshelves⟧');
+    expect(fillTextLog.join(' ')).toBe('⟦Gitshelves⟧');
   });
 
   it('preserves existing title-only marker labels without ellipsizing them', () => {

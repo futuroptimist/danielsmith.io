@@ -297,6 +297,16 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       errorTitleTemplate:
         'Text mode toggle failed. Press {keyHint} to retry text mode.',
     },
+    poiOverlay: {
+      visited: 'Visited',
+      nextHighlight: 'Next highlight',
+      prototype: 'Prototype',
+      live: 'Live',
+      closeDetails: 'Close POI details',
+      relatedCaseStudies: 'Related case studies',
+      outcomeFallbackLabel: 'Outcome',
+      discoveryAnnouncementTemplate: '{title} discovered. {summary}',
+    },
     narrativeLog: {
       heading: 'Creator story log',
       visitedHeading: 'Visited exhibits',

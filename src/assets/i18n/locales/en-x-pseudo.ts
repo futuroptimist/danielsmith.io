@@ -295,6 +295,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Text mode toggle failed. Press {keyHint} to retry text mode.'
       ),
     },
+    poiOverlay: {
+      visited: wrap('Visited'),
+      nextHighlight: wrap('Next highlight'),
+      prototype: wrap('Prototype'),
+      live: wrap('Live'),
+      closeDetails: wrap('Close POI details'),
+      relatedCaseStudies: wrap('Related case studies'),
+      outcomeFallbackLabel: wrap('Outcome'),
+      discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
+    },
     narrativeLog: {
       heading: wrap('Creator story log'),
       visitedHeading: wrap('Visited exhibits'),

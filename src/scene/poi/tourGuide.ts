@@ -34,7 +34,7 @@ export class PoiTourGuide {
 
   constructor(options: PoiTourGuideOptions) {
     this.visitedState = options.visitedState;
-    this.setDefinitions(options.definitions);
+    this.storeDefinitions(options.definitions);
     this.priorityOrder = this.normalizePriority(
       options.priorityOrder ??
         options.definitions.map((definition) => definition.id)
@@ -75,7 +75,17 @@ export class PoiTourGuide {
     this.listeners.clear();
   }
 
-  private setDefinitions(definitions: PoiDefinition[]) {
+  setDefinitions(definitions: PoiDefinition[]) {
+    this.allDefinitions = definitions.slice();
+    this.definitionsById.clear();
+    for (const definition of definitions) {
+      this.definitionsById.set(definition.id, definition);
+    }
+    this.priorityOrder = this.normalizePriority(this.priorityOrder);
+    this.refreshRecommendation();
+  }
+
+  private storeDefinitions(definitions: PoiDefinition[]) {
     this.allDefinitions = definitions.slice();
     this.definitionsById.clear();
     for (const definition of definitions) {
@@ -99,7 +109,7 @@ export class PoiTourGuide {
   private refreshRecommendation() {
     const visited = this.visitedState.snapshot();
     const next = this.computeRecommendation(visited);
-    if (next?.id === this.recommendation?.id) {
+    if (next?.id === this.recommendation?.id && next === this.recommendation) {
       return;
     }
     this.recommendation = next;
