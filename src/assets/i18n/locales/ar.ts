@@ -237,8 +237,8 @@ export const AR_OVERRIDES: LocaleOverrides = {
       interactPromptTemplates: {
         default: '{prompt}',
         keyboard: 'اضغط {label} لـ {prompt}',
-        pointer: 'انقر لـ {prompt}',
-        touch: 'المس لـ {prompt}',
+        pointer: 'انقر {label} لـ {prompt}',
+        touch: 'المس {label} لـ {prompt}',
         gamepad: 'اضغط {label} لـ {prompt}',
       },
     },

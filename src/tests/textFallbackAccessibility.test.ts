@@ -154,6 +154,40 @@ describe('text fallback accessibility', () => {
     expect(container.textContent).toContain('以文本浏览亮点');
   });
 
+  it.each([
+    [
+      'es-MX',
+      'es',
+      '¿Listo para la sala completa?',
+      'Explora los aspectos destacados',
+    ],
+    ['pt-BR', 'pt', 'Pronto para a sala completa?', 'Explore os destaques'],
+    ['de-AT', 'de', 'Bereit für den ganzen Raum?', 'Highlights erkunden'],
+    [
+      'hu-HU',
+      'hu',
+      'Készen állsz a teljes szobára?',
+      'Fedezd fel a kiemelt részeket',
+    ],
+  ])(
+    'renders %s text fallback copy and updates document language',
+    (requestedLanguage, expectedLanguage, recoveryTitle, heading) => {
+      const container = document.createElement('div');
+      document.documentElement.lang = requestedLanguage;
+
+      renderTextFallback(container, {
+        reason: 'manual',
+        immersiveUrl: 'https://danielsmith.io/immersive',
+      });
+
+      expect(document.documentElement.lang).toBe(expectedLanguage);
+      expect(
+        container.querySelector('.text-fallback__recovery-title')?.textContent
+      ).toBe(recoveryTitle);
+      expect(container.textContent).toContain(heading);
+    }
+  );
+
   it('marks the document with the active fallback mode and reason', () => {
     const container = document.createElement('div');
 

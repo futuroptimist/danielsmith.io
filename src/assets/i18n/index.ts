@@ -1,9 +1,13 @@
 import type { PoiId } from '../../scene/poi/types';
 
 import { AR_OVERRIDES } from './locales/ar';
+import { DE_OVERRIDES } from './locales/de';
 import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
+import { ES_OVERRIDES } from './locales/es';
+import { HU_OVERRIDES } from './locales/hu';
 import { JA_OVERRIDES } from './locales/ja';
+import { PT_OVERRIDES } from './locales/pt';
 import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
   AudioHudControlStrings,
@@ -107,6 +111,10 @@ const MERGED_PSEUDO = buildLocale(
 );
 
 const AR_LOCALE = buildLocale(EN_LOCALE_STRINGS, AR_OVERRIDES, 'ar');
+const ES_LOCALE = buildLocale(EN_LOCALE_STRINGS, ES_OVERRIDES, 'es');
+const PT_LOCALE = buildLocale(EN_LOCALE_STRINGS, PT_OVERRIDES, 'pt');
+const DE_LOCALE = buildLocale(EN_LOCALE_STRINGS, DE_OVERRIDES, 'de');
+const HU_LOCALE = buildLocale(EN_LOCALE_STRINGS, HU_OVERRIDES, 'hu');
 const JA_LOCALE = buildLocale(EN_LOCALE_STRINGS, JA_OVERRIDES, 'ja');
 const ZH_HANS_LOCALE = buildLocale(
   EN_LOCALE_STRINGS,
@@ -120,6 +128,10 @@ const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   ar: AR_LOCALE,
   ja: JA_LOCALE,
   'zh-Hans': ZH_HANS_LOCALE,
+  es: ES_LOCALE,
+  pt: PT_LOCALE,
+  de: DE_LOCALE,
+  hu: HU_LOCALE,
 });
 
 export const AVAILABLE_LOCALES = Object.freeze(
@@ -194,6 +206,22 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (normalized.startsWith('ja')) {
     return 'ja';
+  }
+
+  if (normalized.startsWith('es')) {
+    return 'es';
+  }
+
+  if (normalized.startsWith('pt')) {
+    return 'pt';
+  }
+
+  if (normalized.startsWith('de')) {
+    return 'de';
+  }
+
+  if (normalized.startsWith('hu')) {
+    return 'hu';
   }
 
   return 'en';

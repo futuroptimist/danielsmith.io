@@ -30,6 +30,10 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
     expect(AVAILABLE_LOCALES).toContain('zh-Hans');
+    expect(AVAILABLE_LOCALES).toContain('es');
+    expect(AVAILABLE_LOCALES).toContain('pt');
+    expect(AVAILABLE_LOCALES).toContain('de');
+    expect(AVAILABLE_LOCALES).toContain('hu');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -49,6 +53,18 @@ describe('i18n utilities', () => {
     expect(resolveLocale('zh-TW')).toBe('en');
     expect(resolveLocale('zh-HK')).toBe('en');
     expect(resolveLocale('zh-Hant')).toBe('en');
+    expect(resolveLocale('es')).toBe('es');
+    expect(resolveLocale('es-ES')).toBe('es');
+    expect(resolveLocale('es-MX')).toBe('es');
+    expect(resolveLocale('pt')).toBe('pt');
+    expect(resolveLocale('pt-BR')).toBe('pt');
+    expect(resolveLocale('pt-PT')).toBe('pt');
+    expect(resolveLocale('de')).toBe('de');
+    expect(resolveLocale('de-DE')).toBe('de');
+    expect(resolveLocale('de-AT')).toBe('de');
+    expect(resolveLocale('de-CH')).toBe('de');
+    expect(resolveLocale('hu')).toBe('hu');
+    expect(resolveLocale('hu-HU')).toBe('hu');
   });
 
   it('ignores stored pseudo locales outside the i18n debug gate', () => {
@@ -83,6 +99,10 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
     expect(getLocaleDirection('zh-Hans')).toBe('ltr');
+    expect(getLocaleDirection('es-MX')).toBe('ltr');
+    expect(getLocaleDirection('pt-BR')).toBe('ltr');
+    expect(getLocaleDirection('de-AT')).toBe('ltr');
+    expect(getLocaleDirection('hu-HU')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -93,6 +113,10 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('ja')).toBe('cjk');
     expect(getLocaleScript('ko-KR')).toBe('cjk');
     expect(getLocaleScript('ar')).toBe('rtl');
+    expect(getLocaleScript('es')).toBe('latin');
+    expect(getLocaleScript('pt')).toBe('latin');
+    expect(getLocaleScript('de')).toBe('latin');
+    expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
   });
 
@@ -215,6 +239,10 @@ describe('i18n utilities', () => {
     expect(japaneseOverlay.heading).toBe('操作');
     expect(getControlOverlayStrings('zh-Hans').heading).toBe('控制');
     expect(getHelpModalStrings('zh-Hans').heading).toBe('设置与帮助');
+    expect(getControlOverlayStrings('es').heading).toBe('Controles');
+    expect(getControlOverlayStrings('pt').heading).toBe('Controles');
+    expect(getControlOverlayStrings('de').heading).toBe('Steuerung');
+    expect(getControlOverlayStrings('hu').heading).toBe('Vezérlés');
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(
       englishOverlay.items.keyboardMove.keys
     );
@@ -250,6 +278,18 @@ describe('i18n utilities', () => {
     expect(japanese.nextHighlight).toBe('次のハイライト');
     expect(getPoiOverlayChromeStrings('zh-Hans').nextHighlight).toBe(
       '下一个亮点'
+    );
+    expect(getPoiOverlayChromeStrings('es').nextHighlight).toBe(
+      'Siguiente destaque'
+    );
+    expect(getPoiOverlayChromeStrings('pt').nextHighlight).toBe(
+      'Próximo destaque'
+    );
+    expect(getPoiOverlayChromeStrings('de').nextHighlight).toBe(
+      'Nächstes Highlight'
+    );
+    expect(getPoiOverlayChromeStrings('hu').nextHighlight).toBe(
+      'Következő kiemelés'
     );
   });
 
@@ -321,27 +361,83 @@ describe('i18n utilities', () => {
     const chinese = getLocaleToggleStrings('zh-Hans');
     expect(chinese.title).toBe('语言');
     expect(chinese.options['zh-Hans'].label).toBe('中文（简体）');
+    expect(getLocaleToggleStrings('es').title).toBe('Idioma');
+    expect(getLocaleToggleStrings('pt').title).toBe('Idioma');
+    expect(getLocaleToggleStrings('de').title).toBe('Sprache');
+    expect(getLocaleToggleStrings('hu').title).toBe('Nyelv');
   });
 
-  it('exposes Mandarin and hides pseudo behind the explicit i18n debug gate', () => {
+  it('exposes public locales and hides pseudo behind the explicit i18n debug gate', () => {
     const labels = getLocaleToggleStrings('en').options;
-    const publicOptions = (['en', 'ja', 'ar', 'zh-Hans'] as const).map(
-      (id) => labels[id].label
-    );
+    const publicOptions = (
+      ['en', 'zh-Hans', 'ja', 'ar', 'es', 'pt', 'de', 'hu'] as const
+    ).map((id) => labels[id].label);
 
-    expect(publicOptions).toContain('中文（简体）');
+    expect(publicOptions).toEqual([
+      'English',
+      '中文（简体）',
+      '日本語',
+      'العربية',
+      'Español',
+      'Português',
+      'Deutsch',
+      'Magyar',
+    ]);
     expect(publicOptions).not.toContain('Pseudo');
     expect(isI18nDebugEnabled({ dev: false, search: '' })).toBe(false);
     expect(isI18nDebugEnabled({ dev: false, search: '?i18nDebug=1' })).toBe(
       true
     );
+    expect(isI18nDebugEnabled({ dev: true, search: '' })).toBe(true);
     expect(
       isI18nDebugEnabled({
         dev: false,
         search: '',
-        storage: { getItem: () => 'true' },
+        storage: { getItem: () => '1' },
       })
     ).toBe(true);
+  });
+
+  it('keeps placeholder sets aligned with English templates', () => {
+    const placeholders = (value: string) =>
+      Array.from(value.matchAll(/\{(\w+)\}/g), (match) => match[1]).sort();
+    const assertPlaceholderParity = (
+      english: unknown,
+      localized: unknown,
+      path: string
+    ): void => {
+      if (typeof english === 'string' && typeof localized === 'string') {
+        expect(placeholders(localized), path).toEqual(placeholders(english));
+        return;
+      }
+      if (Array.isArray(english) && Array.isArray(localized)) {
+        english.forEach((item, index) =>
+          assertPlaceholderParity(item, localized[index], `${path}[${index}]`)
+        );
+        return;
+      }
+      if (
+        english &&
+        typeof english === 'object' &&
+        localized &&
+        typeof localized === 'object'
+      ) {
+        Object.entries(english as Record<string, unknown>).forEach(
+          ([key, value]) => {
+            assertPlaceholderParity(
+              value,
+              (localized as Record<string, unknown>)[key],
+              `${path}.${key}`
+            );
+          }
+        );
+      }
+    };
+
+    const english = getLocaleStrings('en');
+    AVAILABLE_LOCALES.forEach((locale) => {
+      assertPlaceholderParity(english, getLocaleStrings(locale), locale);
+    });
   });
 
   it('keeps every resolved locale populated with required visible strings', () => {
@@ -487,6 +583,18 @@ describe('i18n utilities', () => {
     expect(arabicSite.name).toBe('محفظة دانيل سميث الغامرة');
     expect(arabicSite.structuredData.description).toBe(
       'جولة تفاعلية في مشاريع دانيل سميث مع معارض ثلاثية الأبعاد وتعليقات صوتية.'
+    );
+    expect(getSiteStrings('es').textFallback.heading).toBe(
+      'Explora los aspectos destacados'
+    );
+    expect(getSiteStrings('pt').textFallback.recoveryCta.title).toBe(
+      'Pronto para a sala completa?'
+    );
+    expect(getSiteStrings('de').textFallback.heading).toBe(
+      'Highlights erkunden'
+    );
+    expect(getSiteStrings('hu').textFallback.recoveryCta.title).toBe(
+      'Készen állsz a teljes szobára?'
     );
   });
 });

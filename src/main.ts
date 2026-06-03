@@ -3226,7 +3226,16 @@ function initializeImmersiveScene(
     }
   };
 
-  const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
+  const localeOptionIds: Locale[] = [
+    'en',
+    'zh-Hans',
+    'ja',
+    'ar',
+    'es',
+    'pt',
+    'de',
+    'hu',
+  ];
   if (exposePseudoLocale) {
     localeOptionIds.push('en-x-pseudo');
   }
