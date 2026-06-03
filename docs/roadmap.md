@@ -357,11 +357,11 @@ Focus: unify user controls and ensure graceful fallback experiences.
 3. **Progression & State**
    - ✅ Lightweight save of visited POIs and toggled settings (localStorage w/ fallbacks).
      - ✅ SessionStorage fallback now protects POI progress when localStorage is blocked.
-     - ✅ Ambient audio mute preference now persists with localStorage + sessionStorage fallback
-       and auto-resumes after the next pointer/key interaction to respect autoplay policies.
+     - ✅ Ambient audio is opt-in by default; explicit on/off choices persist with localStorage +
+       sessionStorage fallback and only resume after pointer/key interaction when enabled.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.
+   - ✅ Guided tour toggle keeps highlight recommendations opt-in while preserving reset tools.
      - ✅ Idle monitor now waits roughly four seconds of inactivity before surfacing the next
        highlight so overlays stay quiet while the player is actively moving or interacting.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
