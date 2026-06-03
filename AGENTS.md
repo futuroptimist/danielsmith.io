@@ -53,8 +53,9 @@ npm run smoke
 - Never share preview links without those overrides—headless and low-FPS heuristics will otherwise
   fall back to the text mode.
 
-Run targeted scripts (e.g., `npm run floorplan:diagram`,
-`npm run launch:screenshot`) only when your changes impact the related assets.
+Run targeted scripts (e.g., `npm run floorplan:diagram`) only when your changes impact
+the related assets. `npm run launch:screenshot` is review-only because
+`docs/assets/game-launch.png` is CI-owned.
 
 ## Documentation & assets
 

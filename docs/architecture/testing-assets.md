@@ -36,13 +36,15 @@ coverage remains comprehensive.
 
 ## Auto-generated assets
 
-| Script                      | Output path                   | Trigger                                                                                             |
-| --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
-| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after floor geometry or labels change. CI refreshes the diagrams post-merge.                    |
-| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Run after lighting, HUD, or camera framing changes. CI captures a fresh launch pose on every merge. |
+| Script                      | Output path                   | Trigger                                                                                              |
+| --------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after floor geometry or labels change. CI refreshes the diagrams post-merge.                     |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Review-only local capture after lighting, HUD, or camera framing changes; CI owns the committed PNG. |
 
-Regenerate affected assets locally before committing so diffs stay deterministic.
-Document the update in commit messages when budgets or captures shift.
+Regenerate affected committable assets locally before committing so diffs stay deterministic.
+Do not stage or commit `docs/assets/game-launch.png`; use local launch captures only for review,
+then let the Launch screenshot workflow refresh the committed PNG after merge. Document the
+update in commit messages when budgets or captures shift.
 
 ## Manual binary runtime assets
 
