@@ -116,9 +116,9 @@ test.describe('immersive experience', () => {
     const poiOverlay = page.locator('.poi-tooltip-overlay');
     const lightingIndicator = page.locator('.lighting-debug-indicator');
 
-    // When guided tour is enabled and idle, overlay shows recommendations
-    await expect(poiOverlay).toHaveAttribute('data-state', 'recommended');
-    await expect(poiOverlay).toHaveAttribute('aria-hidden', 'false');
+    // Guided tour is opt-in by default, so idle recommendations stay hidden.
+    await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
+    await expect(poiOverlay).toHaveAttribute('aria-hidden', 'true');
     await expect(lightingIndicator).toBeHidden();
 
     await expect(audioHud).toHaveCount(1);
@@ -150,7 +150,7 @@ test.describe('immersive experience', () => {
     await expect(graphicsControl).toBeHidden();
     await expect(accessibilityControl).toBeHidden();
     await expect(modeToggle).toBeHidden();
-    // After closing help modal, overlay returns to recommended state
-    await expect(poiOverlay).toHaveAttribute('data-state', 'recommended');
+    // After closing help modal, overlay remains hidden until the tour is enabled.
+    await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
   });
 });

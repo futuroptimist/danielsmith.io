@@ -25,8 +25,8 @@ test.describe('keyboard traversal macro', () => {
     const helpButton = page.locator('[data-control="help"]');
     const helpBackdrop = page.locator('.help-modal-backdrop');
 
-    // When guided tour is enabled and idle, tooltip shows recommendations
-    await expect(tooltip).toHaveAttribute('data-state', 'recommended');
+    // Guided tour is opt-in by default, so idle recommendations stay hidden.
+    await expect(tooltip).toHaveAttribute('data-state', 'hidden');
 
     // Cycle to the first POI using the keyboard-only binding (E).
     await page.keyboard.press('KeyE');

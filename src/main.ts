@@ -334,6 +334,7 @@ import {
   createGitHubRepoStatsService,
   type GitHubRepoStatsDiagnostics,
 } from './systems/github/repoStats';
+import { GuidedTourPreference } from './systems/guidedTour/preference';
 import {
   createAnalyticsGlowRhythm,
   type AnalyticsGlowRhythmHandle,
@@ -1007,6 +1008,7 @@ function initializeImmersiveScene(
   let idleMonitor: IdleMonitor | null = null;
   let removeIdleSubscription: (() => void) | null = null;
   let removeGuidedTourSubscription: (() => void) | null = null;
+  let removeGuidedTourPreferenceSubscription: (() => void) | null = null;
   let githubRepoMetrics: GitHubRepoMetricsController | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
@@ -1019,13 +1021,6 @@ function initializeImmersiveScene(
     localeStorage = window.localStorage;
   } catch {
     localeStorage = undefined;
-  }
-
-  let guidedTourStorage: Storage | undefined;
-  try {
-    guidedTourStorage = window.localStorage;
-  } catch {
-    guidedTourStorage = undefined;
   }
 
   let ambientAudioStorage: Storage | undefined;
@@ -1045,27 +1040,11 @@ function initializeImmersiveScene(
     budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
   });
 
-  const readGuidedTourEnabled = (): boolean => {
-    const stored = guidedTourStorage?.getItem(GUIDED_TOUR_STORAGE_KEY);
-    if (stored === 'false') {
-      return false;
-    }
-    if (stored === 'true') {
-      return true;
-    }
-    return true;
-  };
-
-  const writeGuidedTourEnabled = (enabled: boolean) => {
-    try {
-      guidedTourStorage?.setItem(
-        GUIDED_TOUR_STORAGE_KEY,
-        enabled ? 'true' : 'false'
-      );
-    } catch {
-      /* ignore storage write failures */
-    }
-  };
+  const guidedTourPreference = new GuidedTourPreference({
+    storageKey: GUIDED_TOUR_STORAGE_KEY,
+    windowTarget: window,
+    defaultEnabled: false,
+  });
 
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
@@ -1766,6 +1745,7 @@ function initializeImmersiveScene(
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
     interactionTimeline,
+    guidedTourPreference,
     discoveryAnnouncer: {
       format: (poi, strings) =>
         formatMessage(strings.discoveryAnnouncementTemplate, {
@@ -1778,7 +1758,11 @@ function initializeImmersiveScene(
     },
   });
   poiTooltipOverlay.setStrings(poiOverlayStrings);
-  const poiWorldTooltip = new PoiWorldTooltip({ parent: scene, camera });
+  const poiWorldTooltip = new PoiWorldTooltip({
+    parent: scene,
+    camera,
+    guidedTourPreference,
+  });
   const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
     (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
     (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
@@ -2059,11 +2043,17 @@ function initializeImmersiveScene(
 
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
-  const initialGuidedTourEnabled = readGuidedTourEnabled();
+  const initialGuidedTourEnabled = guidedTourPreference.isEnabled();
   guidedTourChannel = new GuidedTourChannel({
     source: poiTourGuide,
     enabled: initialGuidedTourEnabled,
   });
+  removeGuidedTourPreferenceSubscription = guidedTourPreference.subscribe(
+    (enabled) => {
+      guidedTourChannel?.setEnabled(enabled);
+      tourGuideToggleControl?.setEnabled(enabled);
+    }
+  );
   removeGuidedTourSubscription = guidedTourChannel.subscribe(
     (recommendation) => {
       if (recommendation?.id !== dismissedPassiveRecommendationPoiId) {
@@ -3684,10 +3674,9 @@ function initializeImmersiveScene(
 
     tourGuideToggleControl = createTourGuideToggleControl({
       container: hudSettingsStack,
-      initialEnabled: initialGuidedTourEnabled,
+      initialEnabled: guidedTourPreference.isEnabled(),
       onToggle: (enabled) => {
-        guidedTourChannel?.setEnabled(enabled);
-        writeGuidedTourEnabled(enabled);
+        guidedTourPreference.setEnabled(enabled, 'control');
       },
       strings: tourGuideToggleStrings,
     });
@@ -3700,6 +3689,7 @@ function initializeImmersiveScene(
         poiVisitedState.reset();
       },
       strings: tourResetControlStrings,
+      guidedTourPreference,
     });
     registerHudControlElement(tourResetControl?.element ?? null);
   }
@@ -4587,8 +4577,13 @@ function initializeImmersiveScene(
       removeGuidedTourSubscription();
       removeGuidedTourSubscription = null;
     }
+    if (removeGuidedTourPreferenceSubscription) {
+      removeGuidedTourPreferenceSubscription();
+      removeGuidedTourPreferenceSubscription = null;
+    }
     guidedTourChannel?.dispose();
     guidedTourChannel = null;
+    guidedTourPreference.dispose();
     if (githubRepoMetrics) {
       githubRepoMetrics.dispose();
       githubRepoMetrics = null;

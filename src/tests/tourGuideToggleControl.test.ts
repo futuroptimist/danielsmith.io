@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { createTourGuideToggleControl } from '../systems/controls/tourGuideToggleControl';
 
 describe('tourGuideToggleControl', () => {
-  it('renders an enabled toggle by default', () => {
+  it('renders a disabled toggle by default', () => {
     const container = document.createElement('div');
     const handle = createTourGuideToggleControl({ container });
 
     expect(container.querySelector('.tour-toggle')).toBe(handle.element);
-    expect(handle.element.dataset.state).toBe('enabled');
-    expect(handle.element.getAttribute('aria-pressed')).toBe('true');
-    expect(handle.element.dataset.hudAnnounce).toContain('Guided tour on');
+    expect(handle.element.dataset.state).toBe('disabled');
+    expect(handle.element.getAttribute('aria-pressed')).toBe('false');
+    expect(handle.element.dataset.hudAnnounce).toContain('Guided tour off');
 
     handle.dispose();
   });
@@ -67,6 +67,6 @@ describe('tourGuideToggleControl', () => {
     expect(container.contains(button)).toBe(false);
 
     button.click();
-    expect(button.dataset.state).toBe('enabled');
+    expect(button.dataset.state).toBe('disabled');
   });
 });

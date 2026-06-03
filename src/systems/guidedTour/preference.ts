@@ -57,10 +57,10 @@ const getDefaultStorage = (target: Window | null): Storage | null => {
 };
 
 const parseStoredValue = (value: string | null): boolean | null => {
-  if (value === '1') {
+  if (value === '1' || value === 'true') {
     return true;
   }
-  if (value === '0') {
+  if (value === '0' || value === 'false') {
     return false;
   }
   return null;
@@ -84,7 +84,7 @@ export class GuidedTourPreference {
         ? getDefaultStorage(this.windowTarget)
         : options.storage;
     this.storageKey = options.storageKey ?? DEFAULT_STORAGE_KEY;
-    this.enabled = this.loadInitialState(options.defaultEnabled ?? true);
+    this.enabled = this.loadInitialState(options.defaultEnabled ?? false);
 
     if (this.windowTarget) {
       this.windowTarget.addEventListener('storage', this.handleStorageEvent);
@@ -174,10 +174,11 @@ export class GuidedTourPreference {
   }
 
   private handleStorageEvent = (event: StorageEvent) => {
-    if (!event.key || event.key !== this.storageKey) {
+    if (event.key !== null && event.key !== this.storageKey) {
       return;
     }
-    const parsed = parseStoredValue(event.newValue ?? null);
+    const parsed =
+      event.newValue === null ? false : parseStoredValue(event.newValue);
     if (parsed === null || parsed === this.enabled) {
       return;
     }
