@@ -70,6 +70,12 @@ Avatar facing is computed from the camera-relative movement vector; see
   [`docs/k3s-sugarkube-staging.md`](docs/k3s-sugarkube-staging.md), and
   [`docs/k3s-sugarkube-prod.md`](docs/k3s-sugarkube-prod.md).
 
+## Localization
+
+Translations are AI-assisted and community-reviewable. If you speak one of the
+supported languages and spot awkward phrasing, corrections are welcome through
+issues or pull requests.
+
 ## Map of the repo
 
 - **Scene data** – [`src/assets/`](src/assets/) collects floor plans, localisation, performance budgets, and theming tokens.

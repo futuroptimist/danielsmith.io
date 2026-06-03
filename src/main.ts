@@ -47,6 +47,7 @@ import {
   getHudCustomizationStrings,
   getLocaleDirection,
   getLocaleToggleStrings,
+  getSelectableLocales,
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getPoiNarrativeLogStrings,
@@ -3226,14 +3227,12 @@ function initializeImmersiveScene(
     }
   };
 
-  const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
-  if (exposePseudoLocale) {
-    localeOptionIds.push('en-x-pseudo');
-  }
-  const localeOptions = localeOptionIds.map((id) => ({
-    id,
-    ...localeToggleStrings.options[id],
-  }));
+  const localeOptions = getSelectableLocales({ exposePseudoLocale }).map(
+    (id) => ({
+      id,
+      ...localeToggleStrings.options[id],
+    })
+  );
 
   localeToggleControl = createLocaleToggleControl({
     container: hudSettingsStack,

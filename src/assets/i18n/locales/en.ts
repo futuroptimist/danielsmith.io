@@ -295,6 +295,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       description: 'Switch the HUD language and direction.',
       options: {
         en: { label: 'English', direction: 'ltr' },
+        es: { label: 'Español', direction: 'ltr' },
+        pt: { label: 'Português', direction: 'ltr' },
+        de: { label: 'Deutsch', direction: 'ltr' },
+        hu: { label: 'Magyar', direction: 'ltr' },
         ja: { label: '日本語', direction: 'ltr' },
         ar: { label: 'العربية', direction: 'rtl' },
         'zh-Hans': { label: '中文（简体）', direction: 'ltr' },

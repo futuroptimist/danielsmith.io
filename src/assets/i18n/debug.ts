@@ -1,4 +1,4 @@
-export const I18N_DEBUG_STORAGE_KEY = 'danielsmith.io:i18nDebug';
+export const I18N_DEBUG_STORAGE_KEY = 'danielsmith.io::i18nDebug::v1';
 
 export interface I18nDebugOptions {
   dev?: boolean;

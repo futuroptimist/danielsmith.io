@@ -8,7 +8,16 @@ import type {
 import type { FallbackReason } from '../../types/failover';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 
-export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja' | 'zh-Hans';
+export type Locale =
+  | 'en'
+  | 'en-x-pseudo'
+  | 'ar'
+  | 'ja'
+  | 'zh-Hans'
+  | 'es'
+  | 'pt'
+  | 'de'
+  | 'hu';
 export type LocaleDirection = 'ltr' | 'rtl';
 export type LocaleScript = 'latin' | 'cjk' | 'rtl';
 

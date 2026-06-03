@@ -288,6 +288,10 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       description: wrap('Switch the HUD language and direction.'),
       options: {
         en: { label: wrap('English'), direction: 'ltr' },
+        es: { label: wrap('Español'), direction: 'ltr' },
+        pt: { label: wrap('Português'), direction: 'ltr' },
+        de: { label: wrap('Deutsch'), direction: 'ltr' },
+        hu: { label: wrap('Magyar'), direction: 'ltr' },
         ja: { label: wrap('日本語'), direction: 'ltr' },
         ar: { label: wrap('العربية'), direction: 'rtl' },
         'zh-Hans': { label: wrap('中文（简体）'), direction: 'ltr' },

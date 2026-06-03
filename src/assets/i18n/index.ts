@@ -1,9 +1,13 @@
 import type { PoiId } from '../../scene/poi/types';
 
 import { AR_OVERRIDES } from './locales/ar';
+import { DE_OVERRIDES } from './locales/de';
 import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
+import { ES_OVERRIDES } from './locales/es';
+import { HU_OVERRIDES } from './locales/hu';
 import { JA_OVERRIDES } from './locales/ja';
+import { PT_OVERRIDES } from './locales/pt';
 import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
   AudioHudControlStrings,
@@ -107,6 +111,10 @@ const MERGED_PSEUDO = buildLocale(
 );
 
 const AR_LOCALE = buildLocale(EN_LOCALE_STRINGS, AR_OVERRIDES, 'ar');
+const DE_LOCALE = buildLocale(EN_LOCALE_STRINGS, DE_OVERRIDES, 'de');
+const ES_LOCALE = buildLocale(EN_LOCALE_STRINGS, ES_OVERRIDES, 'es');
+const HU_LOCALE = buildLocale(EN_LOCALE_STRINGS, HU_OVERRIDES, 'hu');
+const PT_LOCALE = buildLocale(EN_LOCALE_STRINGS, PT_OVERRIDES, 'pt');
 const JA_LOCALE = buildLocale(EN_LOCALE_STRINGS, JA_OVERRIDES, 'ja');
 const ZH_HANS_LOCALE = buildLocale(
   EN_LOCALE_STRINGS,
@@ -118,6 +126,10 @@ const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
   'en-x-pseudo': MERGED_PSEUDO,
   ar: AR_LOCALE,
+  de: DE_LOCALE,
+  es: ES_LOCALE,
+  hu: HU_LOCALE,
+  pt: PT_LOCALE,
   ja: JA_LOCALE,
   'zh-Hans': ZH_HANS_LOCALE,
 });
@@ -125,6 +137,25 @@ const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
 export const AVAILABLE_LOCALES = Object.freeze(
   Object.keys(localeCatalog) as ReadonlyArray<Locale>
 );
+
+export const PUBLIC_LOCALES = Object.freeze([
+  'en',
+  'zh-Hans',
+  'ja',
+  'ar',
+  'es',
+  'pt',
+  'de',
+  'hu',
+] as const satisfies ReadonlyArray<Locale>);
+
+export function getSelectableLocales({
+  exposePseudoLocale = false,
+}: { exposePseudoLocale?: boolean } = {}): ReadonlyArray<Locale> {
+  return exposePseudoLocale
+    ? [...PUBLIC_LOCALES, 'en-x-pseudo']
+    : PUBLIC_LOCALES;
+}
 
 function normalizeLocaleInput(input: LocaleInput): string {
   if (!input) {
@@ -177,6 +208,22 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (normalized.startsWith('ar')) {
     return 'ar';
+  }
+
+  if (normalized.startsWith('es')) {
+    return 'es';
+  }
+
+  if (normalized.startsWith('pt')) {
+    return 'pt';
+  }
+
+  if (normalized.startsWith('de')) {
+    return 'de';
+  }
+
+  if (normalized.startsWith('hu')) {
+    return 'hu';
   }
 
   if (
