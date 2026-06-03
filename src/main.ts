@@ -3230,10 +3230,11 @@ function initializeImmersiveScene(
     }
   };
 
+  const canonicalLocaleOptions = getLocaleToggleStrings('en').options;
   const localeOptionIds = getSelectableLocales({ exposePseudoLocale });
   const localeOptions = localeOptionIds.map((id) => ({
     id,
-    ...localeToggleStrings.options[id],
+    ...(localeToggleStrings.options[id] ?? canonicalLocaleOptions[id]),
   }));
 
   localeToggleControl = createLocaleToggleControl({

@@ -19,6 +19,7 @@ import {
   getPoiCopy,
   getSelectableLocales,
   getSiteStrings,
+  getSoftwareRendererWarningStrings,
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
@@ -427,6 +428,9 @@ describe('i18n utilities', () => {
     (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
       const localized = new Map<string, string>();
       collectPlaceholders(getLocaleStrings(locale), 'locale', localized);
+      english.forEach((placeholders, path) => {
+        expect(localized.get(path), `${locale} ${path}`).toBe(placeholders);
+      });
       localized.forEach((placeholders, path) => {
         expect(placeholders, `${locale} ${path}`).toBe(english.get(path));
       });
@@ -473,6 +477,40 @@ describe('i18n utilities', () => {
     expect(getPoiCopy('hu')['pr-reaper-backyard-console'].summary).toContain(
       'GitHub Actions workflow'
     );
+
+    const portugueseStrings = getLocaleStrings('pt');
+    expect(portugueseStrings.site.textFallback.roomHeadingTemplate).toBe(
+      'Exibições de {roomName}'
+    );
+    expect(
+      portugueseStrings.site.structuredData.textCollectionNameTemplate
+    ).toBe('Portfólio de texto de {siteName}');
+    expect(portugueseStrings.hud.controlOverlay.helpButton.labelTemplate).toBe(
+      'Abrir menu · Pressione {shortcut}'
+    );
+    expect(
+      portugueseStrings.hud.controlOverlay.items.touchDrag.description
+    ).toBe('Arraste à esquerda para mover e à direita para panorâmica');
+    expect(
+      portugueseStrings.hud.audioControl.toggle.pendingAnnouncementTemplate
+    ).toBe('Alterando estado do áudio…');
+
+    const portugueseWarning = getSoftwareRendererWarningStrings('pt');
+    expect(portugueseWarning.descriptionTemplate).toBe(
+      'O Chrome está usando {renderer} em vez da aceleração por hardware.'
+    );
+    expect(
+      new Set([
+        portugueseWarning.continueSafeLabel,
+        portugueseWarning.continuousLabel,
+        portugueseWarning.reloadSafeLabel,
+      ])
+    ).toHaveLength(3);
+    expect(
+      getPoiCopy('de')['tokenplace-studio-cluster'].metrics?.[0]?.source
+    ).toMatchObject({
+      template: '{value} Sterne',
+    });
   });
 
   it('keeps every resolved locale populated with required visible strings', () => {
