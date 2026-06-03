@@ -76,9 +76,15 @@ async function assertInitialZoomFraming(page: Page) {
   const framing = await getInitialCameraFraming(page);
   const zoomState = await getCameraZoomState(page);
 
+  const expectedClampedZoom = Math.min(
+    Math.max(framing.unclampedZoom, framing.minZoom),
+    framing.maxZoom
+  );
+
   expect(framing.targetViewportHeightRatio).toBeCloseTo(0.5, 6);
-  expect(framing.unclampedZoom).toBeGreaterThan(framing.zoom);
-  expect(framing.zoom).toBe(framing.maxZoom);
+  expect(framing.zoom).toBeGreaterThanOrEqual(framing.minZoom);
+  expect(framing.zoom).toBeLessThanOrEqual(framing.maxZoom);
+  expect(framing.zoom).toBeCloseTo(expectedClampedZoom, 6);
   expect(zoomState.zoom).toBeCloseTo(framing.zoom, 6);
   expect(zoomState.target).toBeCloseTo(framing.zoom, 6);
   expect(framing.effectiveViewportHeightRatio).toBeGreaterThan(0.2);

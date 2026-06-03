@@ -527,17 +527,9 @@ const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
-interface InitialCameraFramingDebug {
-  avatarHeight: number;
-  baseCameraSize: number;
-  cameraWorldUpY: number;
-  targetViewportHeightRatio: number;
-  unclampedZoom: number;
-  zoom: number;
-  minZoom: number;
-  maxZoom: number;
-  effectiveViewportHeightRatio: number;
-}
+type InitialCameraFramingDebug = ReturnType<
+  typeof resolveInitialAvatarCameraFraming
+>;
 
 type AppMode = 'immersive' | 'fallback';
 const markDocumentReady = (mode: AppMode, fallbackReason?: FallbackReason) => {
