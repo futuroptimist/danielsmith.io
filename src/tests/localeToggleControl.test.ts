@@ -43,6 +43,34 @@ describe('createLocaleToggleControl', () => {
     handle.dispose();
   });
 
+  it('renders Mandarin as a public option without pseudo by default', () => {
+    const container = document.createElement('div');
+    const handle = createLocaleToggleControl({
+      container,
+      options: [
+        { id: 'en', label: 'English' },
+        { id: 'zh-Hans', label: '简体中文' },
+        { id: 'ja', label: '日本語' },
+        { id: 'ar', label: 'العربية', direction: 'rtl' },
+      ],
+      getActiveLocale: () => 'en',
+      setActiveLocale: () => {},
+      strings,
+    });
+
+    expect(
+      container.querySelector('.locale-toggle__option[data-locale="zh-Hans"]')
+        ?.textContent
+    ).toBe('简体中文');
+    expect(
+      container.querySelector(
+        '.locale-toggle__option[data-locale="en-x-pseudo"]'
+      )
+    ).toBeNull();
+
+    handle.dispose();
+  });
+
   it('announces switching and failures with localized templates', async () => {
     const container = document.createElement('div');
     const failingToggle = vi.fn(async () => {

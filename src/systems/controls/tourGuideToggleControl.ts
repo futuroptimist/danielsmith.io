@@ -1,35 +1,34 @@
+import {
+  getTourGuideToggleStrings,
+  type TourGuideToggleStrings,
+} from '../../assets/i18n';
+
 export interface TourGuideToggleControlOptions {
   container: HTMLElement;
   initialEnabled?: boolean;
   onToggle?: (enabled: boolean) => void;
-  labelEnabled?: string;
-  labelDisabled?: string;
-  descriptionEnabled?: string;
-  descriptionDisabled?: string;
+  strings?: TourGuideToggleStrings;
 }
 
 export interface TourGuideToggleControlHandle {
   readonly element: HTMLButtonElement;
   setEnabled(enabled: boolean): void;
+  setStrings(strings: TourGuideToggleStrings): void;
   dispose(): void;
 }
-
-const defaultEnabledLabel = 'Guided tour on';
-const defaultDisabledLabel = 'Guided tour off';
-const defaultEnabledDescription =
-  'Highlights the next recommended exhibit in the immersive tour.';
-const defaultDisabledDescription =
-  'Guided tour highlights are hidden until you turn them back on.';
 
 export function createTourGuideToggleControl({
   container,
   initialEnabled = true,
   onToggle,
-  labelEnabled = defaultEnabledLabel,
-  labelDisabled = defaultDisabledLabel,
-  descriptionEnabled = defaultEnabledDescription,
-  descriptionDisabled = defaultDisabledDescription,
+  strings: providedStrings,
 }: TourGuideToggleControlOptions): TourGuideToggleControlHandle {
+  const defaultStrings = getTourGuideToggleStrings();
+  let strings: TourGuideToggleStrings = {
+    ...defaultStrings,
+    ...providedStrings,
+  };
+
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'tour-toggle';
@@ -37,9 +36,10 @@ export function createTourGuideToggleControl({
 
   let enabled = Boolean(initialEnabled);
 
-  const getLabel = () => (enabled ? labelEnabled : labelDisabled);
+  const getLabel = () =>
+    enabled ? strings.labelEnabled : strings.labelDisabled;
   const getDescription = () =>
-    enabled ? descriptionEnabled : descriptionDisabled;
+    enabled ? strings.descriptionEnabled : strings.descriptionDisabled;
 
   const refresh = () => {
     const label = getLabel();
@@ -68,6 +68,10 @@ export function createTourGuideToggleControl({
         return;
       }
       enabled = next;
+      refresh();
+    },
+    setStrings(nextStrings) {
+      strings = { ...defaultStrings, ...nextStrings };
       refresh();
     },
     dispose() {

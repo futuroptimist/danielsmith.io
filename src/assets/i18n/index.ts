@@ -4,6 +4,7 @@ import { AR_OVERRIDES } from './locales/ar';
 import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
 import { JA_OVERRIDES } from './locales/ja';
+import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
   AudioHudControlStrings,
   ControlOverlayStrings,
@@ -24,6 +25,9 @@ import type {
   PoiOverlayChromeStrings,
   HudCustomizationStrings,
   SiteStrings,
+  SoftwareRendererWarningStrings,
+  TourGuideToggleStrings,
+  TourResetStrings,
 } from './types';
 
 export type LocaleToggleResolvedStrings = LocaleToggleStrings;
@@ -103,17 +107,51 @@ const MERGED_PSEUDO = buildLocale(
 
 const AR_LOCALE = buildLocale(EN_LOCALE_STRINGS, AR_OVERRIDES, 'ar');
 const JA_LOCALE = buildLocale(EN_LOCALE_STRINGS, JA_OVERRIDES, 'ja');
+const ZH_HANS_LOCALE = buildLocale(
+  EN_LOCALE_STRINGS,
+  ZH_HANS_OVERRIDES,
+  'zh-Hans'
+);
 
 const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
   'en-x-pseudo': MERGED_PSEUDO,
   ar: AR_LOCALE,
   ja: JA_LOCALE,
+  'zh-Hans': ZH_HANS_LOCALE,
 });
 
 export const AVAILABLE_LOCALES = Object.freeze(
   Object.keys(localeCatalog) as ReadonlyArray<Locale>
 );
+
+export const I18N_DEBUG_STORAGE_KEY = 'danielsmith.io:i18n-debug';
+
+export function isI18nDebugEnabled({
+  dev = false,
+  search = '',
+  storage,
+}: {
+  dev?: boolean;
+  search?: string;
+  storage?: Pick<Storage, 'getItem'> | null;
+} = {}): boolean {
+  if (dev) {
+    return true;
+  }
+  const params = new URLSearchParams(
+    search.startsWith('?') ? search : `?${search}`
+  );
+  if (params.get('i18nDebug') === '1') {
+    return true;
+  }
+  try {
+    const stored = storage?.getItem(I18N_DEBUG_STORAGE_KEY);
+    return stored === '1' || stored === 'true';
+  } catch {
+    return false;
+  }
+}
 
 function normalizeLocaleInput(input: LocaleInput): string {
   if (!input) {
@@ -143,6 +181,15 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (normalized.startsWith('ja')) {
     return 'ja';
+  }
+
+  if (
+    normalized === 'zh-hans' ||
+    normalized === 'zh-cn' ||
+    normalized === 'zh-sg' ||
+    normalized.startsWith('zh')
+  ) {
+    return 'zh-Hans';
   }
 
   return 'en';
@@ -274,6 +321,22 @@ export function getHudCustomizationStrings(
   input?: LocaleInput
 ): HudCustomizationStrings {
   return getLocaleStrings(input).hud.customization;
+}
+
+export function getTourGuideToggleStrings(
+  input?: LocaleInput
+): TourGuideToggleStrings {
+  return getLocaleStrings(input).hud.tourGuideToggle;
+}
+
+export function getTourResetStrings(input?: LocaleInput): TourResetStrings {
+  return getLocaleStrings(input).hud.tourReset;
+}
+
+export function getSoftwareRendererWarningStrings(
+  input?: LocaleInput
+): SoftwareRendererWarningStrings {
+  return getLocaleStrings(input).hud.softwareRendererWarning;
 }
 
 export function getModeToggleStrings(

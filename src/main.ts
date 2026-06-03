@@ -45,13 +45,18 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getHudCustomizationStrings,
+  isI18nDebugEnabled,
   getLocaleDirection,
+  getLocaleScript,
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getSiteStrings,
+  getSoftwareRendererWarningStrings,
+  getTourGuideToggleStrings,
+  getTourResetStrings,
   resolveLocale,
   type Locale,
 } from './assets/i18n';
@@ -918,6 +923,7 @@ function initializeImmersiveScene(
   const htmlDirection = getLocaleDirection(locale);
   document.documentElement.dir = htmlDirection;
   document.documentElement.dataset.localeDirection = htmlDirection;
+  document.documentElement.dataset.localeScript = getLocaleScript(locale);
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
@@ -926,6 +932,10 @@ function initializeImmersiveScene(
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+  let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
+  let tourResetStrings = getTourResetStrings(locale);
+  let softwareRendererWarningStrings =
+    getSoftwareRendererWarningStrings(locale);
   let siteStrings = getSiteStrings(locale);
   const syncModeAnnouncerStrings = () => {
     const announcerStrings = getModeAnnouncerStrings(locale);
@@ -2938,6 +2948,7 @@ function initializeImmersiveScene(
     const direction = getLocaleDirection(locale);
     document.documentElement.dir = direction;
     document.documentElement.dataset.localeDirection = direction;
+    document.documentElement.dataset.localeScript = getLocaleScript(locale);
     document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
 
     controlOverlayStrings = getControlOverlayStrings(locale);
@@ -2949,6 +2960,9 @@ function initializeImmersiveScene(
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+    tourGuideToggleStrings = getTourGuideToggleStrings(locale);
+    tourResetStrings = getTourResetStrings(locale);
+    softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -3014,6 +3028,9 @@ function initializeImmersiveScene(
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
+    tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
+    tourResetControl?.setStrings(tourResetStrings);
+    softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
     syncPoiRecommendation();
@@ -3037,10 +3054,24 @@ function initializeImmersiveScene(
     direction: 'ltr' | 'rtl';
   }> = [
     { id: 'en', label: 'English', direction: 'ltr' },
+    { id: 'zh-Hans', label: '简体中文', direction: 'ltr' },
     { id: 'ja', label: '日本語', direction: 'ltr' },
     { id: 'ar', label: 'العربية', direction: 'rtl' },
-    { id: 'en-x-pseudo', label: 'Pseudo', direction: 'ltr' },
   ];
+
+  if (
+    isI18nDebugEnabled({
+      dev: import.meta.env.DEV,
+      search: window.location.search,
+      storage: localeStorage,
+    })
+  ) {
+    localeOptions.push({
+      id: 'en-x-pseudo',
+      label: 'Pseudo',
+      direction: 'ltr',
+    });
+  }
 
   localeToggleControl = createLocaleToggleControl({
     container: hudSettingsStack,
@@ -3486,6 +3517,7 @@ function initializeImmersiveScene(
         guidedTourChannel?.setEnabled(enabled);
         writeGuidedTourEnabled(enabled);
       },
+      strings: tourGuideToggleStrings,
     });
     registerHudControlElement(tourGuideToggleControl?.element ?? null);
 
@@ -3495,6 +3527,7 @@ function initializeImmersiveScene(
       onReset: () => {
         poiVisitedState.reset();
       },
+      strings: tourResetStrings,
     });
     registerHudControlElement(tourResetControl?.element ?? null);
   }

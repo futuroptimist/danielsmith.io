@@ -216,8 +216,10 @@ Launch screenshot workflow refresh and commit it after merge.
 - **Localization** – UI chrome and POI copy are centralized in `src/assets/i18n/index.ts`, letting future
   locales load structured strings while keeping Vitest coverage in
   `src/tests/i18n.test.ts` to guard against regressions. HUD overlays and the
-  text fallback now tag their containers with locale direction metadata so RTL
-  languages flow correctly even before full translations land.
+  text fallback now tag their containers with locale direction/script metadata so RTL
+  and CJK languages flow correctly. The internal pseudo-locale stays hidden from
+  public settings unless Vite dev mode, `?i18nDebug=1`, or
+  `localStorage['danielsmith.io:i18n-debug']='true'` explicitly enables i18n debug mode.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
   story beats.

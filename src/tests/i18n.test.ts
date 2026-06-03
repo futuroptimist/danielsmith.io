@@ -10,9 +10,13 @@ import {
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getLocaleScript,
+  getTourGuideToggleStrings,
+  getTourResetStrings,
+  isI18nDebugEnabled,
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getPoiCopy,
+  getLocaleStrings,
   getSiteStrings,
   resolveLocale,
 } from '../assets/i18n';
@@ -24,6 +28,7 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('en-x-pseudo');
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
+    expect(AVAILABLE_LOCALES).toContain('zh-Hans');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -34,6 +39,8 @@ describe('i18n utilities', () => {
     expect(resolveLocale('en_x_pseudo')).toBe('en-x-pseudo');
     expect(resolveLocale('ar-EG')).toBe('ar');
     expect(resolveLocale('ja-JP')).toBe('ja');
+    expect(resolveLocale('zh-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh_Hans')).toBe('zh-Hans');
   });
 
   it('detects locale direction for RTL and LTR language inputs', () => {
@@ -43,6 +50,7 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('AR_EG')).toBe('rtl');
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
+    expect(getLocaleDirection('zh-Hans')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -50,10 +58,75 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('en')).toBe('latin');
     expect(getLocaleScript('en-x-pseudo')).toBe('latin');
     expect(getLocaleScript('zh-CN')).toBe('cjk');
+    expect(getLocaleScript('zh-Hans')).toBe('cjk');
     expect(getLocaleScript('ja')).toBe('cjk');
     expect(getLocaleScript('ko-KR')).toBe('cjk');
     expect(getLocaleScript('ar')).toBe('rtl');
     expect(getLocaleScript(undefined)).toBe('latin');
+  });
+
+  it('keeps every available locale populated with required visible strings', () => {
+    const assertNonEmptyStrings = (value: unknown, path: string): void => {
+      if (typeof value === 'string') {
+        expect(value.trim(), path).not.toBe('');
+        return;
+      }
+      if (Array.isArray(value)) {
+        expect(value.length, path).toBeGreaterThan(0);
+        value.forEach((item, index) =>
+          assertNonEmptyStrings(item, `${path}[${index}]`)
+        );
+        return;
+      }
+      if (value && typeof value === 'object') {
+        const entries = Object.entries(value);
+        expect(entries.length, path).toBeGreaterThan(0);
+        entries.forEach(([key, nested]) =>
+          assertNonEmptyStrings(nested, `${path}.${key}`)
+        );
+      }
+    };
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const strings = getLocaleStrings(locale);
+      assertNonEmptyStrings(strings.site, `${locale}.site`);
+      assertNonEmptyStrings(strings.hud, `${locale}.hud`);
+      assertNonEmptyStrings(strings.poi, `${locale}.poi`);
+    }
+  });
+
+  it('gates pseudo locale visibility behind explicit i18n debug settings', () => {
+    expect(isI18nDebugEnabled()).toBe(false);
+    expect(isI18nDebugEnabled({ search: '?i18nDebug=1' })).toBe(true);
+    expect(isI18nDebugEnabled({ dev: true })).toBe(true);
+    expect(
+      isI18nDebugEnabled({
+        storage: { getItem: () => 'true' } as Pick<Storage, 'getItem'>,
+      })
+    ).toBe(true);
+  });
+
+  it('provides Mandarin Chinese UI, tour, fallback, and POI strings', () => {
+    const overlay = getControlOverlayStrings('zh-Hans');
+    expect(overlay.heading).toBe('控制');
+    expect(overlay.items.toggleTextMode.description).toBe('切换到文字模式');
+
+    const helpModal = getHelpModalStrings('zh-Hans');
+    expect(helpModal.heading).toBe('帮助与设置');
+    expect(helpModal.sections[0]?.title).toBe('移动与相机');
+
+    const tourToggle = getTourGuideToggleStrings('zh-Hans');
+    expect(tourToggle.labelEnabled).toBe('导览已开启');
+    const tourReset = getTourResetStrings('zh-Hans');
+    expect(tourReset.heading).toBe('引导导览');
+    expect(tourReset.pendingDescription).toContain('重置');
+
+    const site = getSiteStrings('zh-Hans');
+    expect(site.textFallback.recoveryCta.actionLabel).toBe('再次尝试沉浸模式');
+
+    const poi = getPoiCopy('zh-Hans');
+    expect(poi['futuroptimist-living-room-tv'].summary).toContain('脚本工作台');
+    expect(poi['dspace-backyard-rocket'].interactionPrompt).toContain('倒计时');
   });
 
   it('formats template strings with provided values', () => {

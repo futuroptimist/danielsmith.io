@@ -8,7 +8,7 @@ import type {
 import type { FallbackReason } from '../../types/failover';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 
-export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja';
+export type Locale = 'en' | 'en-x-pseudo' | 'ar' | 'ja' | 'zh-Hans';
 export type LocaleDirection = 'ltr' | 'rtl';
 export type LocaleScript = 'latin' | 'cjk' | 'rtl';
 
@@ -122,6 +122,43 @@ export interface ModeToggleResolvedStrings {
 export interface ModeAnnouncerStrings {
   immersiveReady: string;
   fallbackReasons: Record<FallbackReason, string>;
+}
+
+export interface TourGuideToggleStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
+export interface TourResetStrings {
+  heading: string;
+  resetKey: string;
+  label: string;
+  description: string;
+  emptyLabel: string;
+  emptyDescription: string;
+  pendingLabel: string;
+  pendingDescription: string;
+  restartPromptTemplate: string;
+  guidedTourDescription: string;
+  guidedTourLabelOn: string;
+  guidedTourLabelOff: string;
+  toggleAnnouncementOn: string;
+  toggleAnnouncementOff: string;
+  toggleTitleOn: string;
+  toggleTitleOff: string;
+}
+
+export interface SoftwareRendererWarningStrings {
+  title: string;
+  rendererFallbackLabel: string;
+  descriptionTemplate: string;
+  recommendation: string;
+  continueSafeLabel: string;
+  continuousLabel: string;
+  textModeLabel: string;
+  safeUrlLabel: string;
 }
 
 export interface HelpModalItemStrings {
@@ -324,6 +361,9 @@ export interface LocaleStrings {
     audioControl: AudioHudControlStrings;
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
+    tourGuideToggle: TourGuideToggleStrings;
+    tourReset: TourResetStrings;
+    softwareRendererWarning: SoftwareRendererWarningStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
     narrativeLog: PoiNarrativeLogStrings;
