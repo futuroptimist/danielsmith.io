@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Locale } from '../../assets/i18n';
+import type { Locale, LocaleToggleResolvedStrings } from '../../assets/i18n';
 
 import {
   type LocaleToggleOption,
@@ -139,5 +139,47 @@ describe('createLocaleToggleControl', () => {
     expect(status.textContent).toBe(
       'Unable to switch to العربية. Staying on English locale.'
     );
+  });
+
+  it('keeps canonical option labels when refreshed strings omit newer locales', () => {
+    const container = createContainer();
+    const control = createLocaleToggleControl({
+      container,
+      options: [
+        { id: 'en', label: 'English' },
+        { id: 'zh-Hans', label: '中文（简体）' },
+        { id: 'es', label: 'Español' },
+        { id: 'pt', label: 'Português' },
+        { id: 'de', label: 'Deutsch' },
+        { id: 'hu', label: 'Magyar' },
+      ],
+      getActiveLocale: () => 'zh-Hans',
+      setActiveLocale: vi.fn(),
+    });
+
+    control.setStrings({
+      title: '语言',
+      description: '选择 HUD 和文本导览语言。',
+      switchingAnnouncementTemplate: '正在切换到 {target}…',
+      selectedAnnouncementTemplate: '已选择 {label}。',
+      failureAnnouncementTemplate: '无法切换到 {target}。保持 {current}。',
+      options: {
+        en: { label: 'English', direction: 'ltr' },
+        'zh-Hans': { label: '中文（简体）', direction: 'ltr' },
+      } as unknown as LocaleToggleResolvedStrings['options'],
+    });
+
+    expect(
+      control.element.querySelector('[data-locale="es"]')?.textContent
+    ).toBe('Español');
+    expect(
+      control.element.querySelector('[data-locale="pt"]')?.textContent
+    ).toBe('Português');
+    expect(
+      control.element.querySelector('[data-locale="de"]')?.textContent
+    ).toBe('Deutsch');
+    expect(
+      control.element.querySelector('[data-locale="hu"]')?.textContent
+    ).toBe('Magyar');
   });
 });

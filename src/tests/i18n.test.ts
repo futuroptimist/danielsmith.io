@@ -17,7 +17,9 @@ import {
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getPoiCopy,
+  getSelectableLocales,
   getSiteStrings,
+  getSoftwareRendererWarningStrings,
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
@@ -30,6 +32,10 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
     expect(AVAILABLE_LOCALES).toContain('zh-Hans');
+    expect(AVAILABLE_LOCALES).toContain('es');
+    expect(AVAILABLE_LOCALES).toContain('pt');
+    expect(AVAILABLE_LOCALES).toContain('de');
+    expect(AVAILABLE_LOCALES).toContain('hu');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -46,6 +52,18 @@ describe('i18n utilities', () => {
     expect(resolveLocale('zh-Hans')).toBe('zh-Hans');
     expect(resolveLocale('zh-Hans-CN')).toBe('zh-Hans');
     expect(resolveLocale('cmn-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('es')).toBe('es');
+    expect(resolveLocale('es-ES')).toBe('es');
+    expect(resolveLocale('es-MX')).toBe('es');
+    expect(resolveLocale('pt')).toBe('pt');
+    expect(resolveLocale('pt-BR')).toBe('pt');
+    expect(resolveLocale('pt-PT')).toBe('pt');
+    expect(resolveLocale('de')).toBe('de');
+    expect(resolveLocale('de-DE')).toBe('de');
+    expect(resolveLocale('de-AT')).toBe('de');
+    expect(resolveLocale('de-CH')).toBe('de');
+    expect(resolveLocale('hu')).toBe('hu');
+    expect(resolveLocale('hu-HU')).toBe('hu');
     expect(resolveLocale('zh-TW')).toBe('en');
     expect(resolveLocale('zh-HK')).toBe('en');
     expect(resolveLocale('zh-Hant')).toBe('en');
@@ -83,6 +101,10 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
     expect(getLocaleDirection('zh-Hans')).toBe('ltr');
+    expect(getLocaleDirection('es-MX')).toBe('ltr');
+    expect(getLocaleDirection('pt-BR')).toBe('ltr');
+    expect(getLocaleDirection('de-AT')).toBe('ltr');
+    expect(getLocaleDirection('hu-HU')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -93,6 +115,10 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('ja')).toBe('cjk');
     expect(getLocaleScript('ko-KR')).toBe('cjk');
     expect(getLocaleScript('ar')).toBe('rtl');
+    expect(getLocaleScript('es')).toBe('latin');
+    expect(getLocaleScript('pt')).toBe('latin');
+    expect(getLocaleScript('de')).toBe('latin');
+    expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
   });
 
@@ -325,12 +351,27 @@ describe('i18n utilities', () => {
 
   it('exposes Mandarin and hides pseudo behind the explicit i18n debug gate', () => {
     const labels = getLocaleToggleStrings('en').options;
-    const publicOptions = (['en', 'ja', 'ar', 'zh-Hans'] as const).map(
-      (id) => labels[id].label
-    );
+    const publicOptions = (
+      ['en', 'zh-Hans', 'ja', 'ar', 'es', 'pt', 'de', 'hu'] as const
+    ).map((id) => labels[id].label);
 
     expect(publicOptions).toContain('中文（简体）');
+    expect(getSelectableLocales()).toEqual([
+      'en',
+      'zh-Hans',
+      'ja',
+      'ar',
+      'es',
+      'pt',
+      'de',
+      'hu',
+    ]);
+    expect(getSelectableLocales()).not.toContain('en-x-pseudo');
+    expect(getSelectableLocales({ exposePseudoLocale: true })).toContain(
+      'en-x-pseudo'
+    );
     expect(publicOptions).not.toContain('Pseudo');
+    expect(isI18nDebugEnabled({ dev: true, search: '' })).toBe(true);
     expect(isI18nDebugEnabled({ dev: false, search: '' })).toBe(false);
     expect(isI18nDebugEnabled({ dev: false, search: '?i18nDebug=1' })).toBe(
       true
@@ -339,9 +380,197 @@ describe('i18n utilities', () => {
       isI18nDebugEnabled({
         dev: false,
         search: '',
-        storage: { getItem: () => 'true' },
+        storage: { getItem: () => '1' },
       })
     ).toBe(true);
+    expect(
+      isI18nDebugEnabled({
+        dev: false,
+        search: '',
+        storage: { getItem: () => 'true' },
+      })
+    ).toBe(false);
+  });
+
+  it('keeps placeholder sets aligned with English templates for every locale', () => {
+    const collectPlaceholders = (
+      value: unknown,
+      path: string,
+      out: Map<string, string>
+    ) => {
+      if (typeof value === 'string') {
+        const placeholders = Array.from(value.matchAll(/\{(\w+)\}/g)).map(
+          (match) => match[1] ?? ''
+        );
+        if (placeholders.length > 0) {
+          out.set(path, placeholders.sort().join(','));
+        }
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item, index) =>
+          collectPlaceholders(item, `${path}[${index}]`, out)
+        );
+        return;
+      }
+      if (value && typeof value === 'object') {
+        Object.entries(value as Record<string, unknown>).forEach(
+          ([key, nested]) => {
+            collectPlaceholders(nested, `${path}.${key}`, out);
+          }
+        );
+      }
+    };
+
+    const english = new Map<string, string>();
+    collectPlaceholders(getLocaleStrings('en'), 'locale', english);
+
+    (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
+      const localized = new Map<string, string>();
+      collectPlaceholders(getLocaleStrings(locale), 'locale', localized);
+      english.forEach((placeholders, path) => {
+        expect(localized.get(path), `${locale} ${path}`).toBe(placeholders);
+      });
+      localized.forEach((placeholders, path) => {
+        expect(placeholders, `${locale} ${path}`).toBe(english.get(path));
+      });
+    });
+  });
+
+  it('provides localized public picker and visible runtime copy for new locales', () => {
+    expect(getLocaleToggleStrings('es').options.es).toEqual({
+      label: 'Español',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('pt').options.pt).toEqual({
+      label: 'Português',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('de').options.de).toEqual({
+      label: 'Deutsch',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('hu').options.hu).toEqual({
+      label: 'Magyar',
+      direction: 'ltr',
+    });
+    expect(getLocaleToggleStrings('es').title).toBe('Idioma');
+    expect(getLocaleToggleStrings('pt').description).toBe(
+      'Alterne o idioma e a direção do HUD.'
+    );
+    expect(getLocaleToggleStrings('de').title).toBe('Sprache');
+    expect(getLocaleToggleStrings('hu').description).toBe(
+      'Váltsd a HUD nyelvét és irányát.'
+    );
+
+    expect(getSiteStrings('es').textFallback.heading).toBe(
+      'Explora los destacados'
+    );
+    expect(getSiteStrings('pt').textFallback.recoveryCta.actionLabel).toBe(
+      'Tentar imersivo novamente'
+    );
+    expect(getHelpModalStrings('de').heading).toBe('Einstellungen & Hilfe');
+    expect(getPoiOverlayChromeStrings('hu').nextHighlight).toBe(
+      'Következő kiemelés'
+    );
+    expect(getPoiCopy('es')['tokenplace-studio-cluster'].summary).toContain(
+      'peer-to-peer'
+    );
+    expect(
+      getPoiCopy('pt')['futuroptimist-living-room-tv'].outcome?.label
+    ).toBe('Resultado');
+    expect(getPoiCopy('de')['danielsmith-portfolio-table'].summary).toContain(
+      'Three.js/WebGL-Portfolio'
+    );
+    expect(getPoiCopy('hu')['pr-reaper-backyard-console'].summary).toContain(
+      'GitHub Actions workflow'
+    );
+
+    const portugueseStrings = getLocaleStrings('pt');
+    expect(portugueseStrings.site.textFallback.roomHeadingTemplate).toBe(
+      'Exibições de {roomName}'
+    );
+    expect(
+      portugueseStrings.site.structuredData.textCollectionNameTemplate
+    ).toBe('Portfólio de texto de {siteName}');
+    expect(portugueseStrings.hud.controlOverlay.helpButton.labelTemplate).toBe(
+      'Abrir menu · Pressione {shortcut}'
+    );
+    expect(
+      portugueseStrings.hud.controlOverlay.items.touchDrag.description
+    ).toBe('Arraste à esquerda para mover e à direita para panorâmica');
+    expect(
+      portugueseStrings.hud.audioControl.toggle.pendingAnnouncementTemplate
+    ).toBe('Alterando estado do áudio…');
+
+    const portugueseWarning = getSoftwareRendererWarningStrings('pt');
+    expect(portugueseWarning.descriptionTemplate).toBe(
+      'O Chrome está usando {renderer} em vez da aceleração por hardware.'
+    );
+    (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
+      const warning = getSoftwareRendererWarningStrings(locale);
+      expect(
+        new Set([
+          warning.continueSafeLabel,
+          warning.continuousLabel,
+          warning.textModeLabel,
+          warning.reloadSafeLabel,
+        ]),
+        locale
+      ).toHaveLength(4);
+    });
+    expect(
+      getPoiCopy('de')['tokenplace-studio-cluster'].metrics?.[0]?.source
+    ).toMatchObject({
+      template: '{value} Sterne',
+    });
+  });
+
+  it('does not leak Spanish fallthroughs or English templates into Latin locales', () => {
+    const collectStrings = (value: unknown, out: string[] = []): string[] => {
+      if (typeof value === 'string') {
+        out.push(value);
+        return out;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item) => collectStrings(item, out));
+        return out;
+      }
+      if (value && typeof value === 'object') {
+        Object.values(value as Record<string, unknown>).forEach((nested) =>
+          collectStrings(nested, out)
+        );
+      }
+      return out;
+    };
+
+    const portugueseCopy = collectStrings(getLocaleStrings('pt')).join('\n');
+    [
+      'Abrir menú',
+      'Pulsa {shortcut}',
+      'Arrastra a la izquierda',
+      'Cambiando estado de audio',
+      'Chrome está usando {renderer} en lugar de aceleración por hardware.',
+    ].forEach((spanishPhrase) => {
+      expect(portugueseCopy).not.toContain(spanishPhrase);
+    });
+
+    (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
+      const structuredData = getSiteStrings(locale).structuredData;
+      const textFallback = getSiteStrings(locale).textFallback;
+      [
+        structuredData.listNameTemplate,
+        structuredData.textCollectionNameTemplate,
+        textFallback.roomHeadingTemplate,
+      ].forEach((template) => {
+        expect(template.toLowerCase(), `${locale} ${template}`).not.toContain(
+          'exhibits'
+        );
+        expect(template.toLowerCase(), `${locale} ${template}`).not.toContain(
+          'text portfolio'
+        );
+      });
+    });
   });
 
   it('keeps every resolved locale populated with required visible strings', () => {

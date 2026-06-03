@@ -50,10 +50,20 @@ export function createLocaleToggleControl({
     throw new Error('Locale toggle requires at least one option.');
   }
 
-  const DEFAULT_STRINGS = getLocaleToggleStrings();
-  let strings: LocaleToggleResolvedStrings = {
+  const DEFAULT_STRINGS = getLocaleToggleStrings('en');
+  const resolveStrings = (
+    nextStrings?: LocaleToggleResolvedStrings
+  ): LocaleToggleResolvedStrings => ({
     ...DEFAULT_STRINGS,
-    ...providedStrings,
+    ...nextStrings,
+    options: {
+      ...DEFAULT_STRINGS.options,
+      ...nextStrings?.options,
+    },
+  });
+
+  let strings: LocaleToggleResolvedStrings = {
+    ...resolveStrings(providedStrings),
     ...(title ? { title } : {}),
     ...(description ? { description } : {}),
   };
@@ -198,7 +208,7 @@ export function createLocaleToggleControl({
   return {
     element: wrapper,
     setStrings(nextStrings: LocaleToggleResolvedStrings) {
-      strings = { ...DEFAULT_STRINGS, ...nextStrings };
+      strings = resolveStrings(nextStrings);
       heading.textContent = strings.title;
       descriptionParagraph.textContent = strings.description;
       optionsList.setAttribute('aria-label', strings.title);
