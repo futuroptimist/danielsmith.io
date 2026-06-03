@@ -532,16 +532,28 @@ const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
 const PENDING_SCENE_DETAIL_RELOAD_KEY =
   'portfolio::pending-scene-detail-reload-level';
+const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY =
+  'portfolio::pending-scene-detail-adaptive-lock';
 const PENDING_SCENE_DETAIL_RELOAD_PARAM = 'sceneDetailReloadLevel';
+const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM = 'sceneDetailAdaptiveLock';
 
-function consumePendingSceneDetailReloadLevel(): GraphicsQualityLevel | null {
+interface PendingSceneDetailReload {
+  level: GraphicsQualityLevel;
+  adaptivePerformanceRecoveryLocked: boolean;
+}
+
+function consumePendingSceneDetailReload(): PendingSceneDetailReload | null {
   try {
     const stored = window.sessionStorage.getItem(
       PENDING_SCENE_DETAIL_RELOAD_KEY
     );
+    const adaptiveLock =
+      window.sessionStorage.getItem(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY) ===
+      '1';
     window.sessionStorage.removeItem(PENDING_SCENE_DETAIL_RELOAD_KEY);
+    window.sessionStorage.removeItem(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY);
     if (isGraphicsQualityLevel(stored)) {
-      return stored;
+      return { level: stored, adaptivePerformanceRecoveryLocked: adaptiveLock };
     }
   } catch {
     // Fall through to the URL handoff used when sessionStorage is unavailable.
@@ -550,21 +562,36 @@ function consumePendingSceneDetailReloadLevel(): GraphicsQualityLevel | null {
   try {
     const url = new URL(window.location.href);
     const stored = url.searchParams.get(PENDING_SCENE_DETAIL_RELOAD_PARAM);
+    const adaptiveLock =
+      url.searchParams.get(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM) === '1';
     url.searchParams.delete(PENDING_SCENE_DETAIL_RELOAD_PARAM);
+    url.searchParams.delete(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM);
     window.history.replaceState(window.history.state, '', url);
-    return isGraphicsQualityLevel(stored) ? stored : null;
+    return isGraphicsQualityLevel(stored)
+      ? { level: stored, adaptivePerformanceRecoveryLocked: adaptiveLock }
+      : null;
   } catch {
     return null;
   }
 }
 
-function persistPendingSceneDetailReloadLevel(
-  level: GraphicsQualityLevel
+function persistPendingSceneDetailReload(
+  pendingReload: PendingSceneDetailReload
 ): boolean {
   try {
-    window.sessionStorage.setItem(PENDING_SCENE_DETAIL_RELOAD_KEY, level);
+    window.sessionStorage.setItem(
+      PENDING_SCENE_DETAIL_RELOAD_KEY,
+      pendingReload.level
+    );
+    window.sessionStorage.setItem(
+      PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY,
+      pendingReload.adaptivePerformanceRecoveryLocked ? '1' : '0'
+    );
     return (
-      window.sessionStorage.getItem(PENDING_SCENE_DETAIL_RELOAD_KEY) === level
+      window.sessionStorage.getItem(PENDING_SCENE_DETAIL_RELOAD_KEY) ===
+        pendingReload.level &&
+      window.sessionStorage.getItem(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY) ===
+        (pendingReload.adaptivePerformanceRecoveryLocked ? '1' : '0')
     );
   } catch {
     return false;
@@ -572,11 +599,19 @@ function persistPendingSceneDetailReloadLevel(
 }
 
 function reloadWithPendingSceneDetailParam(
-  level: GraphicsQualityLevel
+  pendingReload: PendingSceneDetailReload
 ): boolean {
   try {
     const url = new URL(window.location.href);
-    url.searchParams.set(PENDING_SCENE_DETAIL_RELOAD_PARAM, level);
+    url.searchParams.set(
+      PENDING_SCENE_DETAIL_RELOAD_PARAM,
+      pendingReload.level
+    );
+    if (pendingReload.adaptivePerformanceRecoveryLocked) {
+      url.searchParams.set(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM, '1');
+    } else {
+      url.searchParams.delete(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM);
+    }
     window.location.assign(url.toString());
     return true;
   } catch {
@@ -821,13 +856,13 @@ function initializeImmersiveScene(
       explicitGraphicsQualityLevel: persistedQualityLevel,
     }
   );
-  const sceneDetailReloadOverride = consumePendingSceneDetailReloadLevel();
+  const sceneDetailReloadOverride = consumePendingSceneDetailReload();
   const effectiveInitialQualityLevel =
-    sceneDetailReloadOverride ??
+    sceneDetailReloadOverride?.level ??
     persistedQualityLevel ??
     initialQualityPolicy.initialLevel;
   const initialSceneDetailLevel =
-    sceneDetailReloadOverride ??
+    sceneDetailReloadOverride?.level ??
     persistedQualityLevel ??
     initialQualityPolicy.sceneDetailLevel;
   const sceneDetailController = createSceneDetailController(
@@ -836,18 +871,26 @@ function initializeImmersiveScene(
   let activeSceneDetailPolicy = getSceneDetailPolicy(initialSceneDetailLevel);
   const applySceneDetailLevel = (
     level: GraphicsQualityLevel,
-    options: { reloadScene?: boolean } = {}
+    options: {
+      reloadScene?: boolean;
+      adaptivePerformanceRecoveryLocked?: boolean;
+    } = {}
   ) => {
     if (level === sceneDetailController.getLevel()) {
       activeSceneDetailPolicy = sceneDetailController.getPolicy();
       return;
     }
     if (options.reloadScene) {
-      if (persistPendingSceneDetailReloadLevel(level)) {
+      const pendingReload = {
+        level,
+        adaptivePerformanceRecoveryLocked:
+          options.adaptivePerformanceRecoveryLocked === true,
+      } satisfies PendingSceneDetailReload;
+      if (persistPendingSceneDetailReload(pendingReload)) {
         window.location.reload();
         return;
       }
-      if (reloadWithPendingSceneDetailParam(level)) {
+      if (reloadWithPendingSceneDetailParam(pendingReload)) {
         return;
       }
       console.warn(
@@ -3700,8 +3743,13 @@ function initializeImmersiveScene(
     isSoftwareRenderer: rendererInfo.isSoftwareRenderer,
     getSelectionSource: () =>
       graphicsQualityManager?.getSelectionSource() ?? 'initial',
+    initialAdaptivePerformanceRecoveryLocked:
+      sceneDetailReloadOverride?.adaptivePerformanceRecoveryLocked === true,
     onSceneDetailLevelChange: (level) => {
-      applySceneDetailLevel(level, { reloadScene: true });
+      applySceneDetailLevel(level, {
+        reloadScene: true,
+        adaptivePerformanceRecoveryLocked: level === 'performance',
+      });
     },
     onAction: (event) => {
       console.info('[performance] adaptive quality action', event);

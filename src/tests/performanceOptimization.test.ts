@@ -26,12 +26,14 @@ function createPolicyHarness({
   selectionSource = 'adaptive',
   isSoftwareRenderer = false,
   onSceneDetailLevelChange,
+  initialAdaptivePerformanceRecoveryLocked = false,
 }: {
   level?: GraphicsQualityLevel;
   basePixelRatio?: number;
   selectionSource?: AdaptiveQualitySelectionSource;
   isSoftwareRenderer?: boolean;
   onSceneDetailLevelChange?: (level: GraphicsQualityLevel) => void;
+  initialAdaptivePerformanceRecoveryLocked?: boolean;
 } = {}) {
   let currentLevel = level;
   let currentBasePixelRatio = basePixelRatio;
@@ -62,6 +64,7 @@ function createPolicyHarness({
     recoveryP95FrameMs: 22,
     onAction,
     onSceneDetailLevelChange,
+    initialAdaptivePerformanceRecoveryLocked,
   });
 
   return {
@@ -398,6 +401,40 @@ describe('immersive performance optimization policy', () => {
 
     expect(balancedHarness.controller.getSnapshot().stableDurationMs).toBe(0);
     expect(cinematicHarness.controller.getSnapshot().stableDurationMs).toBe(0);
+  });
+
+  it('keeps adaptive performance locked after a scene-detail reload handoff', () => {
+    const harness = createPolicyHarness({
+      level: 'performance',
+      selectionSource: 'initial',
+      initialAdaptivePerformanceRecoveryLocked: true,
+    });
+
+    let recoveryEvent = null;
+    for (let index = 0; index < 420; index += 1) {
+      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    }
+
+    expect(recoveryEvent).toBeNull();
+    expect(harness.level).toBe('performance');
+    expect(harness.controller.getRecoveryCount()).toBe(0);
+    expect(harness.controller.getSnapshot()).toMatchObject({
+      autoRecoveryEnabled: false,
+      stableDurationMs: 0,
+    });
+
+    harness.setLevel('balanced');
+    harness.setSelectionSource('user');
+    harness.controller.update(1 / 60);
+    harness.setLevel('performance');
+    harness.setSelectionSource('adaptive');
+
+    for (let index = 0; index < 420; index += 1) {
+      recoveryEvent = harness.controller.update(1 / 60) ?? recoveryEvent;
+    }
+
+    expect(recoveryEvent?.action).toBe('recover');
+    expect(harness.level).toBe('balanced');
   });
 
   it('does not auto-recover after adaptive downgrade to performance', () => {
