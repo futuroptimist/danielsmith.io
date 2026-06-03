@@ -9,6 +9,7 @@ import {
   type FallbackReason,
   type RenderTextFallbackOptions,
 } from '../systems/failover';
+import { MODE_PREFERENCE_KEY } from '../systems/failover/modePreference';
 import {
   createImmersiveModeUrl,
   createImmersiveRecoveryUrl,
@@ -868,6 +869,98 @@ describe('renderTextFallback', () => {
     );
   });
 
+  it('renders a prominent top immersive recovery CTA before text content', () => {
+    const container = render('manual');
+    const section = container.querySelector('.text-fallback');
+    const description = container.querySelector('.text-fallback__description');
+    const cta = container.querySelector('.text-fallback__recovery-cta');
+    const action = container.querySelector<HTMLAnchorElement>(
+      '[data-action="top-immersive-recovery"]'
+    );
+    const about = container.querySelector('[data-section="about"]');
+    const strings = getSiteStrings(container.lang).textFallback.recoveryCta;
+
+    expect(cta).toBeTruthy();
+    expect(action?.classList.contains('text-fallback__primary-action')).toBe(
+      true
+    );
+    expect(action?.textContent).toBe(strings.actionLabel);
+    expect(action?.getAttribute('aria-label')).toBe(strings.ariaLabel);
+    expect(
+      Array.from(section?.children ?? []).indexOf(cta as Element)
+    ).toBeGreaterThan(
+      Array.from(section?.children ?? []).indexOf(description as Element)
+    );
+    expect(
+      Array.from(section?.children ?? []).indexOf(cta as Element)
+    ).toBeLessThan(
+      Array.from(section?.children ?? []).indexOf(about as Element)
+    );
+  });
+
+  it('uses shared recovery behavior for top and lower immersive actions', async () => {
+    const container = render('manual', {
+      immersiveUrl: '/portfolio?mode=text',
+    });
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const expectedHref = new URL(
+      createImmersiveRecoveryUrl('/portfolio?mode=text'),
+      window.location.origin
+    ).toString();
+    const topAction = container.querySelector<HTMLAnchorElement>(
+      '[data-action="top-immersive-recovery"]'
+    );
+    const lowerAction = container.querySelector<HTMLAnchorElement>(
+      '[data-action="immersive"]'
+    );
+
+    expect(topAction?.href).toBe(expectedHref);
+    expect(lowerAction?.href).toBe(expectedHref);
+
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    const topEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+    topAction?.dispatchEvent(topEvent);
+
+    expect(topEvent.defaultPrevented).toBe(true);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    const lowerEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    });
+    lowerAction?.dispatchEvent(lowerEvent);
+
+    expect(lowerEvent.defaultPrevented).toBe(true);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    const modifiedEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+    topAction?.dispatchEvent(modifiedEvent);
+
+    expect(modifiedEvent.defaultPrevented).toBe(false);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it('respects custom immersive links when provided', () => {
     const customUrl = 'https://portfolio.test/demo?force=immersive';
     const container = render('manual', { immersiveUrl: customUrl });
@@ -933,6 +1026,8 @@ describe('renderTextFallback', () => {
       githubUrl: 'https://example.com',
     });
 
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
     const event = new KeyboardEvent('keydown', {
       key: 't',
       bubbles: true,
@@ -941,6 +1036,8 @@ describe('renderTextFallback', () => {
     window.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(true);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
 
     consoleErrorSpy.mockRestore();

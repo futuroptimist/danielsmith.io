@@ -255,6 +255,12 @@ export interface SiteTextFallbackStrings {
     resumeLabel: string;
     resumeUrl: string;
   };
+  recoveryCta: {
+    title: string;
+    description: string;
+    actionLabel: string;
+    ariaLabel: string;
+  };
   actions: {
     immersiveLink: string;
     debugImmersiveLink: string;
