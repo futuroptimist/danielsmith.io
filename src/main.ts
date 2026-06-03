@@ -532,6 +532,7 @@ const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
 const PENDING_SCENE_DETAIL_RELOAD_KEY =
   'portfolio::pending-scene-detail-reload-level';
+const PENDING_SCENE_DETAIL_RELOAD_PARAM = 'sceneDetailReloadLevel';
 
 function consumePendingSceneDetailReloadLevel(): GraphicsQualityLevel | null {
   try {
@@ -539,6 +540,18 @@ function consumePendingSceneDetailReloadLevel(): GraphicsQualityLevel | null {
       PENDING_SCENE_DETAIL_RELOAD_KEY
     );
     window.sessionStorage.removeItem(PENDING_SCENE_DETAIL_RELOAD_KEY);
+    if (isGraphicsQualityLevel(stored)) {
+      return stored;
+    }
+  } catch {
+    // Fall through to the URL handoff used when sessionStorage is unavailable.
+  }
+
+  try {
+    const url = new URL(window.location.href);
+    const stored = url.searchParams.get(PENDING_SCENE_DETAIL_RELOAD_PARAM);
+    url.searchParams.delete(PENDING_SCENE_DETAIL_RELOAD_PARAM);
+    window.history.replaceState(window.history.state, '', url);
     return isGraphicsQualityLevel(stored) ? stored : null;
   } catch {
     return null;
@@ -547,12 +560,27 @@ function consumePendingSceneDetailReloadLevel(): GraphicsQualityLevel | null {
 
 function persistPendingSceneDetailReloadLevel(
   level: GraphicsQualityLevel
-): void {
+): boolean {
   try {
     window.sessionStorage.setItem(PENDING_SCENE_DETAIL_RELOAD_KEY, level);
+    return (
+      window.sessionStorage.getItem(PENDING_SCENE_DETAIL_RELOAD_KEY) === level
+    );
   } catch {
-    // If session storage is unavailable, reloading still rebuilds from persisted
-    // user quality or the device-derived initial policy.
+    return false;
+  }
+}
+
+function reloadWithPendingSceneDetailParam(
+  level: GraphicsQualityLevel
+): boolean {
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set(PENDING_SCENE_DETAIL_RELOAD_PARAM, level);
+    window.location.assign(url.toString());
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -815,9 +843,16 @@ function initializeImmersiveScene(
       return;
     }
     if (options.reloadScene) {
-      persistPendingSceneDetailReloadLevel(level);
-      window.location.reload();
-      return;
+      if (persistPendingSceneDetailReloadLevel(level)) {
+        window.location.reload();
+        return;
+      }
+      if (reloadWithPendingSceneDetailParam(level)) {
+        return;
+      }
+      console.warn(
+        '[performance] scene detail reload handoff unavailable; applying policy without reload'
+      );
     }
     sceneDetailController.setLevel(level);
     activeSceneDetailPolicy = sceneDetailController.getPolicy();
