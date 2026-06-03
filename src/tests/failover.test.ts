@@ -898,7 +898,7 @@ describe('renderTextFallback', () => {
     );
   });
 
-  it('uses shared recovery behavior for top and lower immersive actions', () => {
+  it('uses shared recovery behavior for top and lower immersive actions', async () => {
     const container = render('manual', {
       immersiveUrl: '/portfolio?mode=text',
     });
@@ -942,7 +942,21 @@ describe('renderTextFallback', () => {
     expect(lowerEvent.defaultPrevented).toBe(true);
     expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
     expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
+
+    window.localStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    window.sessionStorage.setItem(MODE_PREFERENCE_KEY, 'text');
+    const modifiedEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+    topAction?.dispatchEvent(modifiedEvent);
+
+    expect(modifiedEvent.defaultPrevented).toBe(false);
+    expect(window.localStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+    expect(window.sessionStorage.getItem(MODE_PREFERENCE_KEY)).toBeNull();
+
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
 
     consoleErrorSpy.mockRestore();
   });

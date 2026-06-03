@@ -578,8 +578,19 @@ const handleFallbackRecoveryClick = (
   documentTarget: Document,
   immersiveUrl: string
 ): void => {
+  clearStoredModePreference();
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey
+  ) {
+    return;
+  }
   event.preventDefault();
-  recoverFromTextFallback(documentTarget, immersiveUrl);
+  documentTarget.defaultView?.location.assign(immersiveUrl);
 };
 
 const installFallbackRecoveryShortcuts = (
