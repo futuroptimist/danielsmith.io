@@ -482,6 +482,94 @@ describe('PoiTooltipOverlay', () => {
     ).toBe('⟦Related case studies⟧');
   });
 
+  it.each([
+    [
+      'es',
+      'Plataforma segura de IA generativa',
+      'Resultado',
+      'Prototipo',
+      'Visitado',
+      'Casos relacionados',
+      'Cerrar detalles del POI',
+    ],
+    [
+      'pt',
+      'Plataforma segura de IA generativa',
+      'Resultado',
+      'Protótipo',
+      'Visitado',
+      'Estudos de caso relacionados',
+      'Fechar detalhes do POI',
+    ],
+    [
+      'de',
+      'Sichere Peer-to-Peer-Plattform',
+      'Ergebnis',
+      'Prototyp',
+      'Besucht',
+      'Verwandte Fallstudien',
+      'POI-Details schließen',
+    ],
+    [
+      'hu',
+      'Biztonságos peer-to-peer',
+      'Eredmény',
+      'Prototípus',
+      'Megnézve',
+      'Kapcsolódó esettanulmányok',
+      'POI részletek bezárása',
+    ],
+  ] as const)(
+    'renders %s POI detail copy and overlay chrome without locale fallthrough',
+    (
+      locale,
+      summaryFragment,
+      outcomeLabel,
+      prototypeLabel,
+      visitedLabel,
+      relatedLabel,
+      closeLabel
+    ) => {
+      const poi = getPoiDefinitions(locale).find(
+        (definition) => definition.id === 'tokenplace-studio-cluster'
+      );
+      expect(poi).toBeDefined();
+
+      const localizedPoi = poi!;
+      overlay.setStrings(getPoiOverlayChromeStrings(locale));
+      overlay.setVisitedPoiIds(new Set([localizedPoi.id]));
+      overlay.setRecommendation(localizedPoi);
+      overlay.setSelected(localizedPoi);
+
+      const root = container.querySelector(
+        '.poi-tooltip-overlay'
+      ) as HTMLElement;
+      expect(root.dataset.state).toBe('selected');
+      expect(
+        root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+      ).toContain(summaryFragment);
+      expect(
+        root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+      ).toBe(outcomeLabel);
+      expect(
+        root.querySelector('.poi-tooltip-overlay__status')?.textContent
+      ).toBe(prototypeLabel);
+      expect(
+        root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+      ).toBe(visitedLabel);
+      expect(
+        root
+          .querySelector('.poi-tooltip-overlay__links')
+          ?.getAttribute('aria-label')
+      ).toBe(relatedLabel);
+      expect(
+        root
+          .querySelector<HTMLButtonElement>('.poi-tooltip-overlay__close')
+          ?.getAttribute('aria-label')
+      ).toBe(closeLabel);
+    }
+  );
+
   it('renders zh-Hans POI detail copy and overlay chrome without English fallback', () => {
     const poi = getPoiDefinitions('zh-Hans').find(
       (definition) => definition.id === 'tokenplace-studio-cluster'

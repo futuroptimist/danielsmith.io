@@ -454,6 +454,14 @@ describe('i18n utilities', () => {
       label: 'Magyar',
       direction: 'ltr',
     });
+    expect(getLocaleToggleStrings('es').title).toBe('Idioma');
+    expect(getLocaleToggleStrings('pt').description).toBe(
+      'Alterne o idioma e a direção do HUD.'
+    );
+    expect(getLocaleToggleStrings('de').title).toBe('Sprache');
+    expect(getLocaleToggleStrings('hu').description).toBe(
+      'Váltsd a HUD nyelvét és irányát.'
+    );
 
     expect(getSiteStrings('es').textFallback.heading).toBe(
       'Explora los destacados'
@@ -499,17 +507,69 @@ describe('i18n utilities', () => {
     expect(portugueseWarning.descriptionTemplate).toBe(
       'O Chrome está usando {renderer} em vez da aceleração por hardware.'
     );
-    expect(
-      new Set([
-        portugueseWarning.continueSafeLabel,
-        portugueseWarning.continuousLabel,
-        portugueseWarning.reloadSafeLabel,
-      ])
-    ).toHaveLength(3);
+    (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
+      const warning = getSoftwareRendererWarningStrings(locale);
+      expect(
+        new Set([
+          warning.continueSafeLabel,
+          warning.continuousLabel,
+          warning.textModeLabel,
+          warning.reloadSafeLabel,
+        ]),
+        locale
+      ).toHaveLength(4);
+    });
     expect(
       getPoiCopy('de')['tokenplace-studio-cluster'].metrics?.[0]?.source
     ).toMatchObject({
       template: '{value} Sterne',
+    });
+  });
+
+  it('does not leak Spanish fallthroughs or English templates into Latin locales', () => {
+    const collectStrings = (value: unknown, out: string[] = []): string[] => {
+      if (typeof value === 'string') {
+        out.push(value);
+        return out;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item) => collectStrings(item, out));
+        return out;
+      }
+      if (value && typeof value === 'object') {
+        Object.values(value as Record<string, unknown>).forEach((nested) =>
+          collectStrings(nested, out)
+        );
+      }
+      return out;
+    };
+
+    const portugueseCopy = collectStrings(getLocaleStrings('pt')).join('\n');
+    [
+      'Abrir menú',
+      'Pulsa {shortcut}',
+      'Arrastra a la izquierda',
+      'Cambiando estado de audio',
+      'Chrome está usando {renderer} en lugar de aceleración por hardware.',
+    ].forEach((spanishPhrase) => {
+      expect(portugueseCopy).not.toContain(spanishPhrase);
+    });
+
+    (['es', 'pt', 'de', 'hu'] as const).forEach((locale) => {
+      const structuredData = getSiteStrings(locale).structuredData;
+      const textFallback = getSiteStrings(locale).textFallback;
+      [
+        structuredData.listNameTemplate,
+        structuredData.textCollectionNameTemplate,
+        textFallback.roomHeadingTemplate,
+      ].forEach((template) => {
+        expect(template.toLowerCase(), `${locale} ${template}`).not.toContain(
+          'exhibits'
+        );
+        expect(template.toLowerCase(), `${locale} ${template}`).not.toContain(
+          'text portfolio'
+        );
+      });
     });
   });
 
