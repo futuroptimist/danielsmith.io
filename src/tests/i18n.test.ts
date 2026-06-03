@@ -122,7 +122,7 @@ describe('i18n utilities', () => {
     expect(englishPoi).not.toBe(pseudoPoi);
   });
 
-  it('localizes nested Mandarin POI GitHub star metric copy', () => {
+  it('localizes zh-Hans GitHub star metric copy without English fallback', () => {
     const definitions = getPoiDefinitions('zh-Hans');
     const tokenplace = definitions.find(
       (poi) => poi.id === 'tokenplace-studio-cluster'
@@ -131,6 +131,7 @@ describe('i18n utilities', () => {
       (metric) => metric.source?.type === 'githubStars'
     );
 
+    expect(tokenplace?.id).toBe('tokenplace-studio-cluster');
     expect(starMetric?.label).toBe('星标');
     expect(starMetric?.value).toBe('正在从 GitHub 同步…');
     expect(starMetric?.source).toMatchObject({

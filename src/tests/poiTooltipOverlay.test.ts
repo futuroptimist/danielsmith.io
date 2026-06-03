@@ -482,6 +482,51 @@ describe('PoiTooltipOverlay', () => {
     ).toBe('⟦Related case studies⟧');
   });
 
+  it('renders zh-Hans POI detail copy and overlay chrome without English fallback', () => {
+    const poi = getPoiDefinitions('zh-Hans').find(
+      (definition) => definition.id === 'tokenplace-studio-cluster'
+    );
+    expect(poi).toBeDefined();
+
+    const zhPoi = poi!;
+    overlay.setStrings(getPoiOverlayChromeStrings('zh-Hans'));
+    overlay.setVisitedPoiIds(new Set([zhPoi.id]));
+    overlay.setRecommendation(zhPoi);
+    overlay.setSelected(zhPoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toBe('中继盲的端到端加密令牌中转站，用于安全共享敏感短文本。');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('成果');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
+    ).toBe('保持中继只看到密文和安全路由元数据。');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__status')?.textContent
+    ).toBe('原型');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+    ).toBe('已访问');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__recommendation')?.textContent
+    ).toBe('下一个亮点');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('星标');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('正在从 GitHub 同步…');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('相关案例研究');
+  });
+
   it('skips rebuilding active POI content when updates do not change copy', () => {
     overlay.setHovered(basePoi);
     const metricSelector = '.poi-tooltip-overlay__metric';
