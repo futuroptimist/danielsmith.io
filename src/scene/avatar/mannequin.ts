@@ -12,6 +12,9 @@ import {
   TorusGeometry,
 } from 'three';
 
+// Deterministic floor-to-crest height used by initial camera framing before assets load.
+export const PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT = 2.6;
+
 export interface PortfolioMannequinOptions {
   /**
    * Controls the implicit collision radius used to align the mannequin with the player controller.
@@ -332,7 +335,7 @@ export function createPortfolioMannequin(
   crest.position.y = head.position.y + 0.3;
   mannequinRoot.add(crest);
 
-  const totalHeight = crest.position.y + 0.12; // crest tip sits half the cone height above position
+  const totalHeight = PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT;
 
   group.userData.boundingRadius = collisionRadius;
   group.userData.visualHeight = totalHeight;

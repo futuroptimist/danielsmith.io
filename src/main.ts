@@ -86,7 +86,10 @@ import {
 } from './scene/avatar/interactionAnimator';
 import { createAvatarLocomotionAnimator } from './scene/avatar/locomotionAnimator';
 import type { AvatarLocomotionAnimatorHandle } from './scene/avatar/locomotionAnimator';
-import { createPortfolioMannequin } from './scene/avatar/mannequin';
+import {
+  PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+  createPortfolioMannequin,
+} from './scene/avatar/mannequin';
 import {
   createAvatarVariantManager,
   type AvatarVariantManager,
@@ -96,6 +99,7 @@ import {
   DEFAULT_AVATAR_VARIANT_ID,
   type AvatarVariantId,
 } from './scene/avatar/variants';
+import { resolveInitialAvatarCameraFraming } from './scene/camera/initialFraming';
 import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
@@ -461,6 +465,9 @@ declare global {
           lastHistoryResetDamp: number | null;
         };
         resetMotionBlurHistory(): void;
+        getCameraZoom?(): number;
+        getCameraZoomTarget?(): number;
+        getInitialCameraFraming?(): InitialCameraFramingDebug | undefined;
         setCameraPanForTest?(input: { x: number; y: number }): void;
       };
       poi?: {
@@ -519,6 +526,10 @@ const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
 const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
+
+type InitialCameraFramingDebug = ReturnType<
+  typeof resolveInitialAvatarCameraFraming
+>;
 
 type AppMode = 'immersive' | 'fallback';
 const markDocumentReady = (mode: AppMode, fallbackReason?: FallbackReason) => {
@@ -1037,6 +1048,7 @@ function initializeImmersiveScene(
   const baseCameraSize = largestHalfExtent + CAMERA_MARGIN;
   let cameraZoom = 1;
   let cameraZoomTarget = 1;
+  let initialCameraFraming: InitialCameraFramingDebug | null = null;
   let resetMotionBlurHistory: (() => void) | null = null;
 
   const aspect = window.innerWidth / window.innerHeight;
@@ -1056,10 +1068,23 @@ function initializeImmersiveScene(
     baseCameraSize * 1.06
   );
   const cameraForwardPlanar = new Vector3();
+  const cameraWorldUp = new Vector3();
 
   const cameraCenter = initialPlayerPosition.clone();
   camera.position.copy(cameraCenter).add(cameraBaseOffset);
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
+  initialCameraFraming = resolveInitialAvatarCameraFraming({
+    avatarHeight: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+    baseCameraSize,
+    cameraWorldUpY: cameraWorldUp
+      .set(0, 1, 0)
+      .applyQuaternion(camera.quaternion).y,
+    minZoom: MIN_CAMERA_ZOOM,
+    maxZoom: MAX_CAMERA_ZOOM,
+  });
+  cameraZoom = initialCameraFraming.zoom;
+  cameraZoomTarget = initialCameraFraming.zoom;
+
   camera.getWorldDirection(cameraForwardPlanar);
   cameraForwardPlanar.y = 0;
   if (cameraForwardPlanar.lengthSq() <= 1e-6) {
@@ -3606,6 +3631,15 @@ function initializeImmersiveScene(
       },
       resetMotionBlurHistory() {
         motionBlurController?.resetHistory();
+      },
+      getCameraZoom() {
+        return cameraZoom;
+      },
+      getCameraZoomTarget() {
+        return cameraZoomTarget;
+      },
+      getInitialCameraFraming() {
+        return initialCameraFraming ? { ...initialCameraFraming } : undefined;
       },
       setCameraPanForTest(input: { x: number; y: number }) {
         const x = MathUtils.clamp(
