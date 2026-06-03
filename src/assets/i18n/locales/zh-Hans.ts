@@ -438,14 +438,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       outcome: { label: '成果', value: '保持中继只看到密文和安全路由元数据。' },
       metrics: [
         {
-          label: 'Stars',
+          label: '星标',
           value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'token.place',
             format: 'compact',
-            template: '{value} stars',
+            template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
           },
         },
@@ -486,14 +486,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         {
-          label: 'Stars',
+          label: '星标',
           value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'flywheel',
             format: 'compact',
-            template: '{value} stars',
+            template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
           },
         },
@@ -520,14 +520,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         {
-          label: 'Stars',
+          label: '星标',
           value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'jobbot3000',
             format: 'compact',
-            template: '{value} stars',
+            template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
           },
         },
@@ -571,14 +571,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         {
-          label: 'Stars',
+          label: '星标',
           value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'gitshelves',
             format: 'compact',
-            template: '{value} stars',
+            template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
           },
         },
@@ -602,14 +602,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       metrics: [
         {
-          label: 'Stars',
+          label: '星标',
           value: '1,280+',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
-            template: '{value} stars',
+            template: '{value} 个星标',
             fallback: '1,280+',
           },
         },
