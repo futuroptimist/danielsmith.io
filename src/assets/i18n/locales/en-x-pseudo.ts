@@ -286,11 +286,66 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     localeToggle: {
       title: wrap('Language'),
       description: wrap('Switch the HUD language and direction.'),
+      options: {
+        en: { label: wrap('English'), direction: 'ltr' },
+        ja: { label: wrap('日本語'), direction: 'ltr' },
+        ar: { label: wrap('العربية'), direction: 'rtl' },
+        'zh-Hans': { label: wrap('中文（简体）'), direction: 'ltr' },
+        'en-x-pseudo': { label: wrap('Pseudo'), direction: 'ltr' },
+      },
       switchingAnnouncementTemplate: wrap('Switching to {target} locale…'),
       selectedAnnouncementTemplate: wrap('{label} locale selected.'),
       failureAnnouncementTemplate: wrap(
         'Unable to switch to {target}. Staying on {current} locale.'
       ),
+    },
+    tourGuideToggle: {
+      labelEnabled: wrap('Guided tour on'),
+      labelDisabled: wrap('Guided tour off'),
+      descriptionEnabled: wrap(
+        'Highlights the next recommended exhibit in the immersive tour.'
+      ),
+      descriptionDisabled: wrap(
+        'Guided tour highlights are hidden until you turn them back on.'
+      ),
+    },
+    tourReset: {
+      heading: wrap('Guided tour'),
+      resetKey: 'g',
+      label: wrap('Restart guided tour'),
+      description: wrap('Clear visited POIs and replay the curated path.'),
+      emptyLabel: wrap('Guided tour ready'),
+      emptyDescription: wrap(
+        'Explore exhibits to unlock the guided tour reset.'
+      ),
+      pendingLabel: wrap('Resetting tour…'),
+      pendingDescription: wrap('Resetting the guided tour…'),
+      restartPromptTemplate: wrap('Press {key} to restart.'),
+      guidedTourDescription: wrap('Show recommended exhibits when idle.'),
+      guidedTourLabelOn: wrap('Guided tour highlights: On'),
+      guidedTourLabelOff: wrap('Guided tour highlights: Off'),
+      toggleAnnouncementOn: wrap(
+        'Guided tour highlights enabled. Activate to disable recommendations.'
+      ),
+      toggleAnnouncementOff: wrap(
+        'Guided tour highlights disabled. Activate to enable recommendations.'
+      ),
+      toggleTitleOn: wrap('Disable guided tour highlights'),
+      toggleTitleOff: wrap('Enable guided tour highlights'),
+    },
+    softwareRendererWarning: {
+      fallbackRendererLabel: wrap('software WebGL renderer'),
+      title: wrap('Software rendering detected'),
+      descriptionTemplate: wrap(
+        'Chrome is using {renderer} instead of hardware acceleration. Basic Render Driver, SwiftShader, WARP, and llvmpipe can crash under continuous WebGL animation.'
+      ),
+      recommendation: wrap(
+        'Enable browser hardware acceleration for the smooth immersive portfolio. Safe immersive mode keeps screenshots and debugging available at a capped frame rate.'
+      ),
+      continueSafeLabel: wrap('Continue in safe immersive'),
+      continuousLabel: wrap('Enable continuous immersive anyway'),
+      textModeLabel: wrap('Use text mode'),
+      reloadSafeLabel: wrap('Reload this safe immersive URL'),
     },
     modeToggle: {
       keyHint: 'T',

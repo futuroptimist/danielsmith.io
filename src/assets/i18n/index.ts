@@ -4,6 +4,7 @@ import { AR_OVERRIDES } from './locales/ar';
 import { EN_LOCALE_STRINGS } from './locales/en';
 import { EN_X_PSEUDO_OVERRIDES } from './locales/en-x-pseudo';
 import { JA_OVERRIDES } from './locales/ja';
+import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
   AudioHudControlStrings,
   ControlOverlayStrings,
@@ -24,10 +25,14 @@ import type {
   PoiOverlayChromeStrings,
   HudCustomizationStrings,
   SiteStrings,
+  SoftwareRendererWarningStrings,
+  TourGuideToggleStrings,
+  TourResetControlStrings,
 } from './types';
 
 export type LocaleToggleResolvedStrings = LocaleToggleStrings;
 
+export * from './debug';
 export * from './types';
 
 function cloneValue<T>(value: T): T {
@@ -103,12 +108,18 @@ const MERGED_PSEUDO = buildLocale(
 
 const AR_LOCALE = buildLocale(EN_LOCALE_STRINGS, AR_OVERRIDES, 'ar');
 const JA_LOCALE = buildLocale(EN_LOCALE_STRINGS, JA_OVERRIDES, 'ja');
+const ZH_HANS_LOCALE = buildLocale(
+  EN_LOCALE_STRINGS,
+  ZH_HANS_OVERRIDES,
+  'zh-Hans'
+);
 
 const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
   en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
   'en-x-pseudo': MERGED_PSEUDO,
   ar: AR_LOCALE,
   ja: JA_LOCALE,
+  'zh-Hans': ZH_HANS_LOCALE,
 });
 
 export const AVAILABLE_LOCALES = Object.freeze(
@@ -120,6 +131,33 @@ function normalizeLocaleInput(input: LocaleInput): string {
     return '';
   }
   return `${input}`.toLowerCase().replace(/_/g, '-').trim();
+}
+
+export interface InitialLocaleOptions {
+  storedLocale?: LocaleInput | null;
+  detectedLanguage?: LocaleInput;
+  exposePseudoLocale?: boolean;
+  clearStoredLocale?: () => void;
+}
+
+export function resolveInitialLocale({
+  storedLocale = null,
+  detectedLanguage,
+  exposePseudoLocale = false,
+  clearStoredLocale,
+}: InitialLocaleOptions): Locale {
+  const shouldIgnoreStoredPseudoLocale =
+    !exposePseudoLocale &&
+    storedLocale !== null &&
+    resolveLocale(storedLocale) === 'en-x-pseudo';
+  if (shouldIgnoreStoredPseudoLocale) {
+    clearStoredLocale?.();
+  }
+  return resolveLocale(
+    shouldIgnoreStoredPseudoLocale
+      ? detectedLanguage
+      : (storedLocale ?? detectedLanguage)
+  );
 }
 
 export function resolveLocale(input: LocaleInput): Locale {
@@ -139,6 +177,19 @@ export function resolveLocale(input: LocaleInput): Locale {
 
   if (normalized.startsWith('ar')) {
     return 'ar';
+  }
+
+  if (
+    normalized === 'zh' ||
+    normalized === 'zh-cn' ||
+    normalized === 'zh-sg' ||
+    normalized === 'zh-hans' ||
+    normalized.startsWith('zh-hans-') ||
+    normalized === 'cmn' ||
+    normalized === 'cmn-hans' ||
+    normalized.startsWith('cmn-hans-')
+  ) {
+    return 'zh-Hans';
   }
 
   if (normalized.startsWith('ja')) {
@@ -344,4 +395,22 @@ export function getPoiNarrativeLogStrings(
 
 export function getSiteStrings(input?: LocaleInput): SiteStrings {
   return getLocaleStrings(input).site;
+}
+
+export function getTourGuideToggleStrings(
+  input?: LocaleInput
+): TourGuideToggleStrings {
+  return cloneValue(getLocaleStrings(input).hud.tourGuideToggle);
+}
+
+export function getTourResetControlStrings(
+  input?: LocaleInput
+): TourResetControlStrings {
+  return cloneValue(getLocaleStrings(input).hud.tourReset);
+}
+
+export function getSoftwareRendererWarningStrings(
+  input?: LocaleInput
+): SoftwareRendererWarningStrings {
+  return cloneValue(getLocaleStrings(input).hud.softwareRendererWarning);
 }

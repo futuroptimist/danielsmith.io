@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { LocaleToggleResolvedStrings } from '../assets/i18n';
+import {
+  getLocaleToggleStrings,
+  type Locale,
+  type LocaleToggleResolvedStrings,
+} from '../assets/i18n';
 import { createLocaleToggleControl } from '../systems/controls/localeToggleControl';
 
 describe('createLocaleToggleControl', () => {
@@ -11,11 +15,12 @@ describe('createLocaleToggleControl', () => {
     selectedAnnouncementTemplate: '{label} ロケールを選択しました。',
     failureAnnouncementTemplate:
       '{target} に切り替えられませんでした。{current} のままです。',
+    options: getLocaleToggleStrings('ja').options,
   };
 
   it('renders localized labels and selection announcements', () => {
     const container = document.createElement('div');
-    let activeLocale: 'en' | 'ja' = 'en';
+    let activeLocale: Locale = 'en';
     const handle = createLocaleToggleControl({
       container,
       options: [
@@ -40,6 +45,31 @@ describe('createLocaleToggleControl', () => {
     handle.setStrings({ ...strings, title: '言語 / Language' });
     expect(heading?.textContent).toBe('言語 / Language');
 
+    handle.dispose();
+  });
+
+  it('can select Mandarin and let callers update document language', () => {
+    const container = document.createElement('div');
+    let activeLocale: Locale = 'en';
+    const handle = createLocaleToggleControl({
+      container,
+      options: [
+        { id: 'en', label: 'English' },
+        { id: 'zh-Hans', label: '中文（简体）', direction: 'ltr' },
+      ],
+      getActiveLocale: () => activeLocale,
+      setActiveLocale: (locale) => {
+        activeLocale = locale;
+        document.documentElement.lang = locale;
+      },
+    });
+
+    container
+      .querySelector<HTMLButtonElement>('[data-locale="zh-Hans"]')
+      ?.click();
+
+    expect(activeLocale).toBe('zh-Hans');
+    expect(document.documentElement.lang).toBe('zh-Hans');
     handle.dispose();
   });
 

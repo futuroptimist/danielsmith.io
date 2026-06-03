@@ -293,10 +293,57 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     localeToggle: {
       title: 'Language',
       description: 'Switch the HUD language and direction.',
+      options: {
+        en: { label: 'English', direction: 'ltr' },
+        ja: { label: '日本語', direction: 'ltr' },
+        ar: { label: 'العربية', direction: 'rtl' },
+        'zh-Hans': { label: '中文（简体）', direction: 'ltr' },
+        'en-x-pseudo': { label: 'Pseudo', direction: 'ltr' },
+      },
       switchingAnnouncementTemplate: 'Switching to {target} locale…',
       selectedAnnouncementTemplate: '{label} locale selected.',
       failureAnnouncementTemplate:
         'Unable to switch to {target}. Staying on {current} locale.',
+    },
+    tourGuideToggle: {
+      labelEnabled: 'Guided tour on',
+      labelDisabled: 'Guided tour off',
+      descriptionEnabled:
+        'Highlights the next recommended exhibit in the immersive tour.',
+      descriptionDisabled:
+        'Guided tour highlights are hidden until you turn them back on.',
+    },
+    tourReset: {
+      heading: 'Guided tour',
+      resetKey: 'g',
+      label: 'Restart guided tour',
+      description: 'Clear visited POIs and replay the curated path.',
+      emptyLabel: 'Guided tour ready',
+      emptyDescription: 'Explore exhibits to unlock the guided tour reset.',
+      pendingLabel: 'Resetting tour…',
+      pendingDescription: 'Resetting the guided tour…',
+      restartPromptTemplate: 'Press {key} to restart.',
+      guidedTourDescription: 'Show recommended exhibits when idle.',
+      guidedTourLabelOn: 'Guided tour highlights: On',
+      guidedTourLabelOff: 'Guided tour highlights: Off',
+      toggleAnnouncementOn:
+        'Guided tour highlights enabled. Activate to disable recommendations.',
+      toggleAnnouncementOff:
+        'Guided tour highlights disabled. Activate to enable recommendations.',
+      toggleTitleOn: 'Disable guided tour highlights',
+      toggleTitleOff: 'Enable guided tour highlights',
+    },
+    softwareRendererWarning: {
+      fallbackRendererLabel: 'software WebGL renderer',
+      title: 'Software rendering detected',
+      descriptionTemplate:
+        'Chrome is using {renderer} instead of hardware acceleration. Basic Render Driver, SwiftShader, WARP, and llvmpipe can crash under continuous WebGL animation.',
+      recommendation:
+        'Enable browser hardware acceleration for the smooth immersive portfolio. Safe immersive mode keeps screenshots and debugging available at a capped frame rate.',
+      continueSafeLabel: 'Continue in safe immersive',
+      continuousLabel: 'Enable continuous immersive anyway',
+      textModeLabel: 'Use text mode',
+      reloadSafeLabel: 'Reload this safe immersive URL',
     },
     modeToggle: {
       keyHint: 'T',

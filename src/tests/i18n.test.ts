@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   AVAILABLE_LOCALES,
@@ -10,10 +10,15 @@ import {
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getLocaleScript,
+  getLocaleStrings,
+  getTourGuideToggleStrings,
+  getTourResetControlStrings,
+  isI18nDebugEnabled,
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getPoiCopy,
   getSiteStrings,
+  resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
@@ -24,6 +29,7 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('en-x-pseudo');
     expect(AVAILABLE_LOCALES).toContain('ar');
     expect(AVAILABLE_LOCALES).toContain('ja');
+    expect(AVAILABLE_LOCALES).toContain('zh-Hans');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
@@ -34,6 +40,39 @@ describe('i18n utilities', () => {
     expect(resolveLocale('en_x_pseudo')).toBe('en-x-pseudo');
     expect(resolveLocale('ar-EG')).toBe('ar');
     expect(resolveLocale('ja-JP')).toBe('ja');
+    expect(resolveLocale('zh-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh_CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-SG')).toBe('zh-Hans');
+    expect(resolveLocale('zh-Hans')).toBe('zh-Hans');
+    expect(resolveLocale('zh-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('cmn-Hans-CN')).toBe('zh-Hans');
+    expect(resolveLocale('zh-TW')).toBe('en');
+    expect(resolveLocale('zh-HK')).toBe('en');
+    expect(resolveLocale('zh-Hant')).toBe('en');
+  });
+
+  it('ignores stored pseudo locales outside the i18n debug gate', () => {
+    const clearStoredLocale = vi.fn();
+
+    expect(
+      resolveInitialLocale({
+        storedLocale: 'en-x-pseudo',
+        detectedLanguage: 'zh-CN',
+        exposePseudoLocale: false,
+        clearStoredLocale,
+      })
+    ).toBe('zh-Hans');
+    expect(clearStoredLocale).toHaveBeenCalledTimes(1);
+
+    expect(
+      resolveInitialLocale({
+        storedLocale: 'en-x-pseudo',
+        detectedLanguage: 'zh-CN',
+        exposePseudoLocale: true,
+        clearStoredLocale,
+      })
+    ).toBe('en-x-pseudo');
+    expect(clearStoredLocale).toHaveBeenCalledTimes(1);
   });
 
   it('detects locale direction for RTL and LTR language inputs', () => {
@@ -43,6 +82,7 @@ describe('i18n utilities', () => {
     expect(getLocaleDirection('AR_EG')).toBe('rtl');
     expect(getLocaleDirection('fa-IR')).toBe('rtl');
     expect(getLocaleDirection('ja-JP')).toBe('ltr');
+    expect(getLocaleDirection('zh-Hans')).toBe('ltr');
     expect(getLocaleDirection(undefined)).toBe('ltr');
   });
 
@@ -80,6 +120,58 @@ describe('i18n utilities', () => {
     expect(englishPoi?.title).toBe('Futuroptimist');
     expect(englishDefinitions).not.toBe(pseudoDefinitions);
     expect(englishPoi).not.toBe(pseudoPoi);
+  });
+
+  it('localizes zh-Hans GitHub star metric copy without English fallback', () => {
+    const englishDefinitions = getPoiDefinitions('en');
+    const definitions = getPoiDefinitions('zh-Hans');
+    const definitionsById = new Map(definitions.map((poi) => [poi.id, poi]));
+    const starBackedPois = englishDefinitions.filter((poi) =>
+      poi.metrics?.some((metric) => metric.source?.type === 'githubStars')
+    );
+
+    expect(starBackedPois.map((poi) => poi.id)).toEqual([
+      'futuroptimist-living-room-tv',
+      'tokenplace-studio-cluster',
+      'gabriel-studio-sentry',
+      'flywheel-studio-flywheel',
+      'jobbot-studio-terminal',
+      'gitshelves-living-room-installation',
+      'danielsmith-portfolio-table',
+      'f2clipboard-kitchen-console',
+      'sigma-kitchen-workbench',
+      'wove-kitchen-loom',
+      'dspace-backyard-rocket',
+      'pr-reaper-backyard-console',
+    ]);
+
+    for (const englishPoi of starBackedPois) {
+      const englishStarMetric = englishPoi.metrics?.find(
+        (metric) => metric.source?.type === 'githubStars'
+      );
+      const starMetric = definitionsById
+        .get(englishPoi.id)
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars');
+
+      expect(
+        starMetric,
+        `${englishPoi.id} keeps a zh-Hans star metric`
+      ).toBeDefined();
+      expect(starMetric?.label).toBe('星标');
+      expect(starMetric?.source).toMatchObject({
+        type: 'githubStars',
+        owner: englishStarMetric?.source?.owner,
+        repo: englishStarMetric?.source?.repo,
+        template: '{value} 个星标',
+      });
+      expect(starMetric?.source?.fallback).not.toBe('Syncing from GitHub…');
+      expect(starMetric?.label).not.toMatch(/stars/i);
+      expect(starMetric?.value).not.toMatch(/stars|Syncing from GitHub/i);
+      expect(starMetric?.source?.template).not.toMatch(/stars/i);
+      expect(starMetric?.source?.fallback).not.toMatch(
+        /stars|Syncing from GitHub/i
+      );
+    }
   });
 
   it('deep-clones localized POI metric sources per call', () => {
@@ -121,6 +213,8 @@ describe('i18n utilities', () => {
     expect(pseudoOverlay.heading).toBe('⟦Controls⟧');
     expect(arabicOverlay.heading).toBe('عناصر التحكم');
     expect(japaneseOverlay.heading).toBe('操作');
+    expect(getControlOverlayStrings('zh-Hans').heading).toBe('控制');
+    expect(getHelpModalStrings('zh-Hans').heading).toBe('设置与帮助');
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(
       englishOverlay.items.keyboardMove.keys
     );
@@ -154,6 +248,9 @@ describe('i18n utilities', () => {
     expect(pseudo.relatedCaseStudies).toBe('⟦Related case studies⟧');
     expect(arabic.prototype).toBe('نموذج أولي');
     expect(japanese.nextHighlight).toBe('次のハイライト');
+    expect(getPoiOverlayChromeStrings('zh-Hans').nextHighlight).toBe(
+      '下一个亮点'
+    );
   });
 
   it('returns localized mode toggle strings with formatted key hints', () => {
@@ -220,6 +317,70 @@ describe('i18n utilities', () => {
     expect(pseudo.switchingAnnouncementTemplate).toBe(
       '⟦Switching to {target} locale…⟧'
     );
+
+    const chinese = getLocaleToggleStrings('zh-Hans');
+    expect(chinese.title).toBe('语言');
+    expect(chinese.options['zh-Hans'].label).toBe('中文（简体）');
+  });
+
+  it('exposes Mandarin and hides pseudo behind the explicit i18n debug gate', () => {
+    const labels = getLocaleToggleStrings('en').options;
+    const publicOptions = (['en', 'ja', 'ar', 'zh-Hans'] as const).map(
+      (id) => labels[id].label
+    );
+
+    expect(publicOptions).toContain('中文（简体）');
+    expect(publicOptions).not.toContain('Pseudo');
+    expect(isI18nDebugEnabled({ dev: false, search: '' })).toBe(false);
+    expect(isI18nDebugEnabled({ dev: false, search: '?i18nDebug=1' })).toBe(
+      true
+    );
+    expect(
+      isI18nDebugEnabled({
+        dev: false,
+        search: '',
+        storage: { getItem: () => 'true' },
+      })
+    ).toBe(true);
+  });
+
+  it('keeps every resolved locale populated with required visible strings', () => {
+    const assertNoMissingStrings = (value: unknown, path: string): void => {
+      if (typeof value === 'string') {
+        expect(value.trim(), path).not.toBe('');
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach((item, index) =>
+          assertNoMissingStrings(item, `${path}[${index}]`)
+        );
+        return;
+      }
+      if (value && typeof value === 'object') {
+        Object.entries(value as Record<string, unknown>).forEach(
+          ([key, nested]) => {
+            assertNoMissingStrings(nested, `${path}.${key}`);
+          }
+        );
+      }
+    };
+
+    AVAILABLE_LOCALES.forEach((locale) => {
+      assertNoMissingStrings(getLocaleStrings(locale), locale);
+    });
+  });
+
+  it('localizes guided tour controls for Mandarin and pseudo locale', () => {
+    expect(getTourGuideToggleStrings('zh-Hans').labelEnabled).toBe(
+      '导览已开启'
+    );
+    expect(getTourResetControlStrings('zh-Hans').heading).toBe('导览');
+    expect(getTourGuideToggleStrings('en-x-pseudo').labelEnabled).toBe(
+      '⟦Guided tour on⟧'
+    );
+    expect(getTourResetControlStrings('en-x-pseudo').label).toBe(
+      '⟦Restart guided tour⟧'
+    );
   });
 
   it('builds mode announcer messages from localized HUD and fallback copy', () => {
@@ -265,6 +426,12 @@ describe('i18n utilities', () => {
     expect(
       formatMessage(japanese.visitedLabelTemplate, { time: '15:30' })
     ).toBe('15:30 に訪問');
+
+    const chinese = getPoiNarrativeLogStrings('zh-Hans');
+    expect(chinese.heading).toBe('创作者故事日志');
+    expect(formatMessage(chinese.visitedLabelTemplate, { time: '15:30' })).toBe(
+      '访问时间 15:30'
+    );
   });
 
   it('provides localized copy for POIs with English fallback', () => {
@@ -281,6 +448,11 @@ describe('i18n utilities', () => {
     );
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title
+    );
+
+    const chineseCopy = getPoiCopy('zh-Hans');
+    expect(chineseCopy['tokenplace-studio-cluster'].summary).toContain(
+      '端到端加密'
     );
   });
 

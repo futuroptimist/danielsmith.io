@@ -52,7 +52,11 @@ import {
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getSiteStrings,
-  resolveLocale,
+  getSoftwareRendererWarningStrings,
+  getTourGuideToggleStrings,
+  getTourResetControlStrings,
+  isI18nDebugEnabled,
+  resolveInitialLocale,
   type Locale,
 } from './assets/i18n';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
@@ -829,16 +833,6 @@ function initializeImmersiveScene(
       softwareRendererPolicy,
     });
   };
-  if (rendererInfo.isDangerousSoftwareRenderer) {
-    softwareRendererWarning = createSoftwareRendererWarning({
-      rendererInfo,
-      safeUrl: createSoftwareSafeImmersiveUrl(),
-      continuousUrl: createContinuousSoftwareImmersiveUrl(),
-      textUrl: createTextModeUrl(),
-      onContinueSafe: requestSoftwareSafeRender,
-      onVisible: recordRendererWarning,
-    });
-  }
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
   let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
@@ -912,8 +906,24 @@ function initializeImmersiveScene(
     typeof navigator !== 'undefined' && navigator.language
       ? navigator.language
       : document.documentElement.lang;
+  const exposePseudoLocale = isI18nDebugEnabled({
+    dev: import.meta.env.DEV,
+    search: window.location.search,
+    storage: localeStorage ?? null,
+  });
   const storedLocale = localeStorage?.getItem(LOCALE_STORAGE_KEY);
-  let locale: Locale = resolveLocale(storedLocale ?? detectedLanguage);
+  let locale: Locale = resolveInitialLocale({
+    storedLocale,
+    detectedLanguage,
+    exposePseudoLocale,
+    clearStoredLocale: () => {
+      try {
+        localeStorage?.removeItem(LOCALE_STORAGE_KEY);
+      } catch {
+        /* ignore storage write failures */
+      }
+    },
+  });
   document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
   const htmlDirection = getLocaleDirection(locale);
   document.documentElement.dir = htmlDirection;
@@ -926,7 +936,22 @@ function initializeImmersiveScene(
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+  let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
+  let tourResetControlStrings = getTourResetControlStrings(locale);
+  let softwareRendererWarningStrings =
+    getSoftwareRendererWarningStrings(locale);
   let siteStrings = getSiteStrings(locale);
+  if (rendererInfo.isDangerousSoftwareRenderer) {
+    softwareRendererWarning = createSoftwareRendererWarning({
+      rendererInfo,
+      safeUrl: createSoftwareSafeImmersiveUrl(),
+      continuousUrl: createContinuousSoftwareImmersiveUrl(),
+      textUrl: createTextModeUrl(),
+      strings: softwareRendererWarningStrings,
+      onContinueSafe: requestSoftwareSafeRender,
+      onVisible: recordRendererWarning,
+    });
+  }
   const syncModeAnnouncerStrings = () => {
     const announcerStrings = getModeAnnouncerStrings(locale);
     getModeAnnouncer().setMessages(
@@ -2949,6 +2974,9 @@ function initializeImmersiveScene(
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+    tourGuideToggleStrings = getTourGuideToggleStrings(locale);
+    tourResetControlStrings = getTourResetControlStrings(locale);
+    softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -3009,10 +3037,13 @@ function initializeImmersiveScene(
     }
     manualModeToggle?.setStrings(modeToggleStrings);
     audioHudHandle?.setStrings(audioHudStrings);
+    softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
+    tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
+    tourResetControl?.setStrings(tourResetControlStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
@@ -3031,16 +3062,14 @@ function initializeImmersiveScene(
     }
   };
 
-  const localeOptions: Array<{
-    id: Locale;
-    label: string;
-    direction: 'ltr' | 'rtl';
-  }> = [
-    { id: 'en', label: 'English', direction: 'ltr' },
-    { id: 'ja', label: '日本語', direction: 'ltr' },
-    { id: 'ar', label: 'العربية', direction: 'rtl' },
-    { id: 'en-x-pseudo', label: 'Pseudo', direction: 'ltr' },
-  ];
+  const localeOptionIds: Locale[] = ['en', 'ja', 'ar', 'zh-Hans'];
+  if (exposePseudoLocale) {
+    localeOptionIds.push('en-x-pseudo');
+  }
+  const localeOptions = localeOptionIds.map((id) => ({
+    id,
+    ...localeToggleStrings.options[id],
+  }));
 
   localeToggleControl = createLocaleToggleControl({
     container: hudSettingsStack,
@@ -3486,6 +3515,7 @@ function initializeImmersiveScene(
         guidedTourChannel?.setEnabled(enabled);
         writeGuidedTourEnabled(enabled);
       },
+      strings: tourGuideToggleStrings,
     });
     registerHudControlElement(tourGuideToggleControl?.element ?? null);
 
@@ -3495,6 +3525,7 @@ function initializeImmersiveScene(
       onReset: () => {
         poiVisitedState.reset();
       },
+      strings: tourResetControlStrings,
     });
     registerHudControlElement(tourResetControl?.element ?? null);
   }

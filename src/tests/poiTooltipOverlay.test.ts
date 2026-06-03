@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getPoiOverlayChromeStrings } from '../assets/i18n';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
 import { GuidedTourPreference } from '../systems/guidedTour/preference';
@@ -386,6 +388,49 @@ describe('PoiTooltipOverlay', () => {
     expect(root.getAttribute('aria-describedby')).toBeNull();
   });
 
+  it('renders Mandarin POI detail chrome without English fallback copy', () => {
+    const tokenplace = getPoiDefinitions('zh-Hans').find(
+      (poi) => poi.id === 'tokenplace-studio-cluster'
+    );
+
+    expect(tokenplace).toBeTruthy();
+
+    overlay.setStrings(getPoiOverlayChromeStrings('zh-Hans'));
+    overlay.setVisitedPoiIds(new Set([tokenplace?.id ?? '']));
+    overlay.setSelected(tokenplace as PoiDefinition);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toContain('端到端加密');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('成果');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
+    ).toContain('密文和安全路由元数据');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('星标');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('正在从 GitHub 同步…');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+    ).toBe('已访问');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('相关案例研究');
+    expect(
+      root
+        .querySelector<HTMLButtonElement>('.poi-tooltip-overlay__close')
+        ?.getAttribute('aria-label')
+    ).toBe('关闭兴趣点详情');
+  });
+
   it('refreshes active selected POI copy and chrome when locale strings change', () => {
     overlay.setSelected(basePoi);
 
@@ -435,6 +480,51 @@ describe('PoiTooltipOverlay', () => {
         .querySelector('.poi-tooltip-overlay__links')
         ?.getAttribute('aria-label')
     ).toBe('⟦Related case studies⟧');
+  });
+
+  it('renders zh-Hans POI detail copy and overlay chrome without English fallback', () => {
+    const poi = getPoiDefinitions('zh-Hans').find(
+      (definition) => definition.id === 'tokenplace-studio-cluster'
+    );
+    expect(poi).toBeDefined();
+
+    const zhPoi = poi!;
+    overlay.setStrings(getPoiOverlayChromeStrings('zh-Hans'));
+    overlay.setVisitedPoiIds(new Set([zhPoi.id]));
+    overlay.setRecommendation(zhPoi);
+    overlay.setSelected(zhPoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__summary')?.textContent
+    ).toBe('中继盲的端到端加密令牌中转站，用于安全共享敏感短文本。');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
+    ).toBe('成果');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
+    ).toBe('保持中继只看到密文和安全路由元数据。');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__status')?.textContent
+    ).toBe('原型');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__visited')?.textContent
+    ).toBe('已访问');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__recommendation')?.textContent
+    ).toBe('下一个亮点');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('星标');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('正在从 GitHub 同步…');
+    expect(
+      root
+        .querySelector('.poi-tooltip-overlay__links')
+        ?.getAttribute('aria-label')
+    ).toBe('相关案例研究');
   });
 
   it('skips rebuilding active POI content when updates do not change copy', () => {

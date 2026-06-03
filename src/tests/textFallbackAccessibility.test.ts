@@ -138,6 +138,22 @@ describe('text fallback accessibility', () => {
     );
   });
 
+  it('renders Mandarin text fallback copy and updates document language', () => {
+    const container = document.createElement('div');
+    document.documentElement.lang = 'zh-CN';
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: 'https://danielsmith.io/immersive',
+    });
+
+    expect(document.documentElement.lang).toBe('zh-Hans');
+    expect(
+      container.querySelector('.text-fallback__recovery-title')?.textContent
+    ).toBe('准备进入完整房间了吗？');
+    expect(container.textContent).toContain('以文本浏览亮点');
+  });
+
   it('marks the document with the active fallback mode and reason', () => {
     const container = document.createElement('div');
 
