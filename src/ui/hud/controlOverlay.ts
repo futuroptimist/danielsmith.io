@@ -65,6 +65,7 @@ export function applyControlOverlayStrings(
   applyItem('keyboardMove');
   applyItem('pointerDrag');
   applyItem('pointerZoom');
+  applyItem('keyboardZoom');
   applyItem('touchDrag');
   applyItem('touchPinch');
   applyItem('cyclePoi');

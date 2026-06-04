@@ -337,6 +337,10 @@ export const AR_OVERRIDES: LocaleOverrides = {
             },
             { label: 'عجلة التمرير', description: 'اضبط مستوى التكبير.' },
             {
+              label: 'Shift + = / Shift + -',
+              description: 'كبّر أو صغّر دون عجلة فأرة.',
+            },
+            {
               label: 'عصا اللمس',
               description: 'اسحب اليسار للحركة واليمين للدوران.',
             },

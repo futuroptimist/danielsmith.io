@@ -13,6 +13,7 @@ const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
     keyboardMove: { keys: 'WASD / Arrow keys', description: 'Move' },
     pointerDrag: { keys: 'Left mouse button', description: 'Drag to pan' },
     pointerZoom: { keys: 'Scroll wheel', description: 'Zoom' },
+    keyboardZoom: { keys: 'Shift + = / Shift + -', description: 'Zoom' },
     touchDrag: { keys: 'Touch', description: 'Drag to move and pan' },
     touchPinch: { keys: 'Pinch', description: 'Zoom' },
     cyclePoi: { keys: 'Q / E', description: 'Cycle POIs' },

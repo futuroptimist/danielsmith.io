@@ -199,6 +199,122 @@ test.describe('immersive orthographic zoom', () => {
     await expect(page.locator('[data-role="hud-menu"]')).toBeVisible();
   });
 
+  test('zooms with keyboard shortcuts and ignores text-entry targets', async ({
+    page,
+  }) => {
+    await waitForImmersive(page);
+
+    const initial = await getCameraZoomState(page);
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          code: 'Minus',
+          key: '_',
+          shiftKey: true,
+        })
+      );
+    });
+    const zoomedOut = await getCameraZoomState(page);
+    expect(zoomedOut.target).toBeLessThan(initial.target);
+
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          code: 'Equal',
+          key: '+',
+          shiftKey: true,
+        })
+      );
+    });
+    const zoomedIn = await getCameraZoomState(page);
+    expect(zoomedIn.target).toBeGreaterThan(zoomedOut.target);
+
+    const beforeInput = await getCameraZoomState(page);
+    const inputEventPrevented = await page.evaluate(() => {
+      const input = document.createElement('input');
+      document.body.append(input);
+      input.focus();
+      const event = new KeyboardEvent('keydown', {
+        bubbles: true,
+        cancelable: true,
+        code: 'Equal',
+        key: '+',
+        shiftKey: true,
+      });
+      input.dispatchEvent(event);
+      input.remove();
+      return event.defaultPrevented;
+    });
+    const afterInput = await getCameraZoomState(page);
+    expect(inputEventPrevented).toBe(false);
+    expect(afterInput.target).toBeCloseTo(beforeInput.target, 6);
+  });
+
+  test('keeps touch pinch zoom multiplicative and bounded', async ({
+    page,
+  }) => {
+    await waitForImmersive(page);
+    const framing = await getInitialCameraFraming(page);
+    const initial = await getCameraZoomState(page);
+
+    await page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>('#app canvas');
+      canvas?.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          bubbles: true,
+          clientX: 100,
+          clientY: 100,
+          pointerId: 1,
+          pointerType: 'touch',
+        })
+      );
+      canvas?.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          bubbles: true,
+          clientX: 200,
+          clientY: 100,
+          pointerId: 2,
+          pointerType: 'touch',
+        })
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', {
+          bubbles: true,
+          clientX: 300,
+          clientY: 100,
+          pointerId: 2,
+          pointerType: 'touch',
+        })
+      );
+    });
+
+    const pinched = await getCameraZoomState(page);
+    expect(pinched.target).toBeCloseTo(
+      Math.min(initial.target * 2, framing.maxZoom),
+      5
+    );
+    expect(pinched.target).toBeGreaterThanOrEqual(framing.minZoom);
+    expect(pinched.target).toBeLessThanOrEqual(framing.maxZoom);
+
+    await page.evaluate(() => {
+      window.dispatchEvent(
+        new PointerEvent('pointermove', {
+          bubbles: true,
+          clientX: 10_000,
+          clientY: 100,
+          pointerId: 2,
+          pointerType: 'touch',
+        })
+      );
+    });
+    const clamped = await getCameraZoomState(page);
+    expect(clamped.target).toBe(framing.maxZoom);
+  });
+
   test('keeps a single clean immersive canvas while zooming with motion blur disabled', async ({
     page,
   }) => {

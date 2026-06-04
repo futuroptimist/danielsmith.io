@@ -64,6 +64,20 @@ describe('createHelpModal', () => {
     expect(document.activeElement).toBe(focusAnchor);
   });
 
+  it('documents keyboard zoom shortcuts in the default movement section', () => {
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
+
+    handle.open();
+
+    expect(document.body.textContent).toContain('Shift + = / Shift + -');
+    expect(document.body.textContent).toContain(
+      'Zoom in or out without a mouse wheel.'
+    );
+  });
+
   it('supports custom headings and sections', () => {
     const handle = createHelpModal({
       container: document.body,

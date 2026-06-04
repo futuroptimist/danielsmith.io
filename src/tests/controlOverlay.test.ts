@@ -13,6 +13,10 @@ describe('applyControlOverlayStrings', () => {
           <span class="overlay__keys">Keys</span>
           <span class="overlay__description">Move</span>
         </li>
+        <li class="overlay__item" data-control-item="keyboardZoom">
+          <span class="overlay__keys">Keys</span>
+          <span class="overlay__description">Zoom</span>
+        </li>
         <li
           class="overlay__item"
           data-control-item="interact"
@@ -45,6 +49,11 @@ describe('applyControlOverlayStrings', () => {
       '[data-control-item="keyboardMove"] .overlay__keys'
     );
     expect(keyboardItem?.textContent).toBe(strings.items.keyboardMove.keys);
+
+    const keyboardZoomItem = container.querySelector(
+      '[data-control-item="keyboardZoom"] .overlay__keys'
+    );
+    expect(keyboardZoomItem?.textContent).toBe(strings.items.keyboardZoom.keys);
 
     const interactLabel = container.querySelector(
       '[data-role="interact-label"]'

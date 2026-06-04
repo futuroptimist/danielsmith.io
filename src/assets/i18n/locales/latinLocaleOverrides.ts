@@ -67,6 +67,7 @@ const localizedTemplates: Record<
     roomHeadingTemplate: string;
     keyboardMove: string;
     pointerDrag: string;
+    keyboardZoom: string;
     touchDrag: string;
     cyclePoi: string;
     interactDefault: string;
@@ -111,6 +112,7 @@ const localizedTemplates: Record<
     roomHeadingTemplate: 'Exhibiciones de {roomName}',
     keyboardMove: 'Mover',
     pointerDrag: 'Arrastrar para panorámica',
+    keyboardZoom: 'Zoom',
     touchDrag:
       'Arrastra a la izquierda para mover y a la derecha para panorámica',
     cyclePoi: 'Recorrer POI',
@@ -159,6 +161,7 @@ const localizedTemplates: Record<
     roomHeadingTemplate: 'Exibições de {roomName}',
     keyboardMove: 'Mover',
     pointerDrag: 'Arrastar para panorâmica',
+    keyboardZoom: 'Zoom',
     touchDrag: 'Arraste à esquerda para mover e à direita para panorâmica',
     cyclePoi: 'Percorrer POIs',
     interactDefault: 'Entrar',
@@ -207,6 +210,7 @@ const localizedTemplates: Record<
     roomHeadingTemplate: '{roomName}-Exponate',
     keyboardMove: 'Bewegen',
     pointerDrag: 'Ziehen zum Schwenken',
+    keyboardZoom: 'Zoom',
     touchDrag: 'Links bewegen, rechts schwenken',
     cyclePoi: 'POIs wechseln',
     interactDefault: 'Öffnen',
@@ -254,6 +258,7 @@ const localizedTemplates: Record<
     roomHeadingTemplate: '{roomName} kiállításai',
     keyboardMove: 'Mozgás',
     pointerDrag: 'Húzás a pásztázáshoz',
+    keyboardZoom: 'Nagyítás',
     touchDrag: 'Bal oldalon mozgás, jobb oldalon pásztázás',
     cyclePoi: 'POI-k váltása',
     interactDefault: 'Megnyitás',
@@ -447,6 +452,7 @@ export function buildLatinLocaleOverrides(
             description: templates.pointerDrag,
           },
           pointerZoom: { description: 'Zoom' },
+          keyboardZoom: { description: templates.keyboardZoom },
           touchDrag: {
             description: templates.touchDrag,
           },

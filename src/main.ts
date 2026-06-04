@@ -318,6 +318,11 @@ import {
 } from './systems/controls/tourResetControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
 import {
+  applyCameraZoomStep,
+  computeWheelZoomTarget,
+  isKeyboardZoomShortcut,
+} from './systems/controls/zoomControls';
+import {
   evaluateFailoverDecision,
   renderTextFallback,
   type FallbackReason,
@@ -533,7 +538,6 @@ const CAMERA_ZOOM_SMOOTHING = 6;
 const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 12;
-const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
@@ -3320,6 +3324,17 @@ function initializeImmersiveScene(
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
   };
 
+  const zoomCameraByStep = (direction: 'in' | 'out') => {
+    setCameraZoomTarget(
+      applyCameraZoomStep(
+        cameraZoomTarget,
+        direction,
+        MIN_CAMERA_ZOOM,
+        MAX_CAMERA_ZOOM
+      )
+    );
+  };
+
   const updateCameraPanLimits = (aspect: number) => {
     const effectiveHalfWidth = (baseCameraSize * aspect) / cameraZoom;
     const effectiveHalfHeight = baseCameraSize / cameraZoom;
@@ -3372,8 +3387,25 @@ function initializeImmersiveScene(
   const handleWheelZoom = (event: WheelEvent) => {
     event.preventDefault();
     setCameraZoomTarget(
-      cameraZoomTarget - event.deltaY * CAMERA_ZOOM_WHEEL_SENSITIVITY
+      computeWheelZoomTarget(
+        cameraZoomTarget,
+        event,
+        MIN_CAMERA_ZOOM,
+        MAX_CAMERA_ZOOM
+      )
     );
+  };
+
+  const handleKeyboardZoom = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || isTextEntryTarget(event.target)) {
+      return;
+    }
+    const direction = isKeyboardZoomShortcut(event);
+    if (!direction) {
+      return;
+    }
+    event.preventDefault();
+    zoomCameraByStep(direction);
   };
 
   const handlePointerDownForZoom = (event: PointerEvent) => {
@@ -3499,6 +3531,7 @@ function initializeImmersiveScene(
   renderer.domElement.addEventListener('wheel', handleWheelZoom, {
     passive: false,
   });
+  window.addEventListener('keydown', handleKeyboardZoom);
   renderer.domElement.addEventListener('pointerdown', handlePointerDownForZoom);
   renderer.domElement.addEventListener(
     'pointerdown',
@@ -4619,6 +4652,7 @@ function initializeImmersiveScene(
       footstepAudioController = null;
     }
     renderer.domElement.removeEventListener('wheel', handleWheelZoom);
+    window.removeEventListener('keydown', handleKeyboardZoom);
     renderer.domElement.removeEventListener(
       'pointerdown',
       handlePointerDownForZoom
