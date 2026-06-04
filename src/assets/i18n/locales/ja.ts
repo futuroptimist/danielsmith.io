@@ -171,7 +171,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
           description: 'ドラッグして視点移動',
         },
         pointerZoom: {
-          keys: 'ホイール',
+          keys: 'ホイール / Shift + + / Shift + -',
           description: 'ズーム',
         },
         touchDrag: {
@@ -338,6 +338,10 @@ export const JA_OVERRIDES: LocaleOverrides = {
               description: 'アイソメ視点をパンします。',
             },
             { label: 'ホイール', description: 'ズームレベルを調整します。' },
+            {
+              label: 'Shift + + / Shift + -',
+              description: 'マウスホイールなしでズームします。',
+            },
             {
               label: 'タッチジョイスティック',
               description: '左パッドで移動し、右パッドで視点をパンします。',

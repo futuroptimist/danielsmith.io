@@ -199,6 +199,40 @@ test.describe('immersive orthographic zoom', () => {
     await expect(page.locator('[data-role="hud-menu"]')).toBeVisible();
   });
 
+  test('supports keyboard zoom shortcuts without a mouse wheel', async ({
+    page,
+  }) => {
+    await waitForImmersive(page);
+
+    const initial = await getCameraZoomState(page);
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('-');
+    await page.keyboard.up('Shift');
+
+    const zoomedOut = await getCameraZoomState(page);
+    expect(zoomedOut.target).toBeLessThan(initial.target);
+
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('=');
+    await page.keyboard.up('Shift');
+
+    const zoomedIn = await getCameraZoomState(page);
+    expect(zoomedIn.target).toBeGreaterThan(zoomedOut.target);
+
+    await page.evaluate(() => {
+      const field = document.createElement('input');
+      field.setAttribute('aria-label', 'Zoom shortcut guard');
+      document.body.append(field);
+      field.focus();
+    });
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('-');
+    await page.keyboard.up('Shift');
+
+    const unchanged = await getCameraZoomState(page);
+    expect(unchanged.target).toBeCloseTo(zoomedIn.target, 6);
+  });
+
   test('keeps a single clean immersive canvas while zooming with motion blur disabled', async ({
     page,
   }) => {

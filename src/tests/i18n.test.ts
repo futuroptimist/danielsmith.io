@@ -260,6 +260,21 @@ describe('i18n utilities', () => {
     expect(japaneseHelp.announcements.close).toBe(
       'ヘルプメニューを閉じました。'
     );
+
+    for (const locale of [
+      'en',
+      'en-x-pseudo',
+      'ar',
+      'ja',
+      'zh-Hans',
+    ] as const) {
+      const movementItems = getHelpModalStrings(locale).sections.find(
+        (section) => section.id === 'movement'
+      )?.items;
+      expect(
+        movementItems?.some((item) => item.label.includes('Shift + +'))
+      ).toBe(true);
+    }
   });
 
   it('returns localized POI overlay chrome strings', () => {

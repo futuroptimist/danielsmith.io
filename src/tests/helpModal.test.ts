@@ -64,6 +64,20 @@ describe('createHelpModal', () => {
     expect(document.activeElement).toBe(focusAnchor);
   });
 
+  it('documents keyboard zoom shortcuts in the movement section', () => {
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
+
+    handle.open();
+
+    const labels = Array.from(
+      document.querySelectorAll('.help-modal__item-label')
+    ).map((label) => label.textContent);
+    expect(labels).toContain('Shift + + / Shift + -');
+  });
+
   it('supports custom headings and sections', () => {
     const handle = createHelpModal({
       container: document.body,

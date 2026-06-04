@@ -318,6 +318,12 @@ import {
 } from './systems/controls/tourResetControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
 import {
+  applyCameraZoomStep,
+  applyWheelCameraZoom,
+  isKeyboardZoomShortcut,
+  isTextEntryTarget,
+} from './systems/controls/zoomControls';
+import {
   evaluateFailoverDecision,
   renderTextFallback,
   type FallbackReason,
@@ -533,7 +539,6 @@ const CAMERA_ZOOM_SMOOTHING = 6;
 const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 12;
-const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
@@ -2972,20 +2977,6 @@ function initializeImmersiveScene(
     }
     helpModal.toggle(force);
   };
-  const isTextEntryTarget = (target: EventTarget | null): boolean => {
-    if (!(target instanceof HTMLElement)) {
-      return false;
-    }
-    const tagName = target.tagName.toLowerCase();
-    return (
-      target.isContentEditable ||
-      target.hasAttribute('contenteditable') ||
-      target.closest('[contenteditable]') !== null ||
-      tagName === 'input' ||
-      tagName === 'textarea' ||
-      tagName === 'select'
-    );
-  };
   const normalizeKeyboardEventKey = (event: KeyboardEvent): string =>
     event.key.length === 1 ? event.key.toLowerCase() : event.key;
   const normalizeBindingKey = (binding: string): string =>
@@ -3012,6 +3003,16 @@ function initializeImmersiveScene(
           .some((binding) => normalizeBindingKey(binding) === normalizedKey)
     );
   };
+  const handleKeyboardZoomKeydown = (event: KeyboardEvent) => {
+    const direction = isKeyboardZoomShortcut(event);
+    if (direction === null) {
+      return;
+    }
+    event.preventDefault();
+    idleMonitor?.reportActivity();
+    applyCameraZoomStepToTarget(direction, 'keyboard');
+  };
+
   const handleControlsKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.repeat) {
       return;
@@ -3035,6 +3036,7 @@ function initializeImmersiveScene(
     }
     responsiveControlOverlay?.toggle();
   };
+  window.addEventListener('keydown', handleKeyboardZoomKeydown);
   window.addEventListener('keydown', handleControlsKeydown);
   hudPanelCoordinator = createHudPanelCoordinator({
     controls: responsiveControlOverlay ?? {
@@ -3320,6 +3322,23 @@ function initializeImmersiveScene(
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
   };
 
+  function applyCameraZoomStepToTarget(
+    direction: 1 | -1,
+    source: 'keyboard' | 'wheel' | 'pinch',
+    magnitude = 1
+  ) {
+    setCameraZoomTarget(
+      applyCameraZoomStep({
+        currentTarget: cameraZoomTarget,
+        direction,
+        source,
+        magnitude,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      })
+    );
+  }
+
   const updateCameraPanLimits = (aspect: number) => {
     const effectiveHalfWidth = (baseCameraSize * aspect) / cameraZoom;
     const effectiveHalfHeight = baseCameraSize / cameraZoom;
@@ -3372,7 +3391,13 @@ function initializeImmersiveScene(
   const handleWheelZoom = (event: WheelEvent) => {
     event.preventDefault();
     setCameraZoomTarget(
-      cameraZoomTarget - event.deltaY * CAMERA_ZOOM_WHEEL_SENSITIVITY
+      applyWheelCameraZoom({
+        currentTarget: cameraZoomTarget,
+        deltaY: event.deltaY,
+        deltaMode: event.deltaMode,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      })
     );
   };
 
@@ -4661,6 +4686,7 @@ function initializeImmersiveScene(
       hudLayoutManager.dispose();
       hudLayoutManager = null;
     }
+    window.removeEventListener('keydown', handleKeyboardZoomKeydown);
     window.removeEventListener('keydown', handleControlsKeydown);
     if (hudPanelCoordinator) {
       hudPanelCoordinator.dispose();

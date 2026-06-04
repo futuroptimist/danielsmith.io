@@ -170,7 +170,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
           description: 'اسحب لتحريك الكاميرا',
         },
         pointerZoom: {
-          keys: 'عجلة التمرير',
+          keys: 'عجلة التمرير / Shift + + / Shift + -',
           description: 'تكبير أو تصغير',
         },
         touchDrag: {
@@ -336,6 +336,10 @@ export const AR_OVERRIDES: LocaleOverrides = {
               description: 'قم بتدوير الكاميرا متساوية القياس.',
             },
             { label: 'عجلة التمرير', description: 'اضبط مستوى التكبير.' },
+            {
+              label: 'Shift + + / Shift + -',
+              description: 'كبّر أو صغّر من دون عجلة فأرة.',
+            },
             {
               label: 'عصا اللمس',
               description: 'اسحب اليسار للحركة واليمين للدوران.',
