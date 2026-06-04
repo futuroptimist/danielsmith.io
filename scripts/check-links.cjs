@@ -416,7 +416,10 @@ async function validateLink(link, options) {
 function dedupeLinks(links) {
   const seen = new Map();
   for (const link of links) {
-    const key = `${link.kind}:${link.target}`;
+    const { url } = parseTarget(link.target);
+    const key = url
+      ? `${link.kind}:${link.target}`
+      : `${link.kind}:${link.source}:${link.target}`;
     const existing = seen.get(key);
     if (existing) {
       existing.sources.push(link.source);

@@ -92,6 +92,28 @@ describe('Markdown link extraction', () => {
     ]);
   });
 
+  it('validates repeated local targets relative to each source file', async () => {
+    const results = await linkChecker.validateLinks(
+      [
+        {
+          kind: 'docs',
+          source: 'README.md',
+          target: 'docs/roadmap.md',
+        },
+        {
+          kind: 'docs',
+          source: 'docs/architecture/scene-stack.md',
+          target: 'docs/roadmap.md',
+        },
+      ],
+      { concurrency: 1 }
+    );
+
+    expect(results.failures).toHaveLength(1);
+    expect(results.failures[0]).toContain('missing local link target');
+    expect(results.failures[0]).toContain('docs/architecture/scene-stack.md');
+  });
+
   it('validates local Markdown anchors when hashes are present', async () => {
     const results = await linkChecker.validateLinks(
       [
