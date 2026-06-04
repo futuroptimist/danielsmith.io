@@ -55,12 +55,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     },
     tokenplace: {
       summary:
-        'Sichere Peer-to-Peer-Plattform für generative KI auf einem Raspberry-Pi-Gitter mit verschlüsseltem Relay und Serverknoten.',
+        'Sichere Peer-to-Peer-Plattform für generative KI mit Relay- und Compute-Node-Pfaden, um ungenutzte Rechenleistung als Gemeingut zu teilen.',
       outcome:
         'Quickstart-Skripte starten Relay, Server und Mock-LLM-Stack lokal zum Testen.',
       metrics: [
         'Cluster',
-        '12× Pi-5-Knoten in modularen Einschüben',
+        'Python-Einstiege relay.py und server.py',
         'Netzwerk',
         'Ephemere Tokens · verschlüsselte Bursts',
       ],
@@ -74,7 +74,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Fokus',
         '360°-Lidar-Scan + lokale Heuristiken',
         'Takt',
-        'Roter Alarmblitz alle 1,0 s',
+        'FAQ und Repo-Dokumentation',
       ],
     },
     flywheel: {
@@ -86,7 +86,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Automatisierung',
         'CI-Scaffolds · typisierte Prompts · QA-Schleifen',
         'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Stand, Welle, Adapter und Physik-Dokumente',
       ],
     },
     jobbot: {
@@ -147,9 +147,9 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Automatisiert CI-Log-Sammlung und Zusammenfassung für schnelle Debug-Handoffs.',
       metrics: [
         'Geschwindigkeit',
-        'Fehlerlogs in unter 3 s kopieren',
+        'Codex-Task → GitHub-PR-Checks → Markdown',
         'Formate',
-        'CLI + Zwischenablage + Markdown-Ausgabe',
+        'Secret-Redaktion vor Zusammenfassung oder Ausgabe',
       ],
     },
     sigma: {
@@ -178,14 +178,14 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Startgerüst im Garten für DSPACE mit telemetriegeführten Countdown-Hinweisen und öffentlichem Missionslog.',
+        'DSPACE-Exponat für das Web-Idle-Game Democratized Space mit Ressourcen, Quests, Erkundung und Orbitstarts.',
       outcome:
-        'Pflegt Countdown-Notizen neben GitHub- und Missionslog-Links, während das Repo privat bleibt.',
+        'Verlinkt das öffentliche Repository democratizedspace/dspace und die offiziellen Spieldokumente statt ungeprüfter Missionslogs.',
       metrics: [
         'Countdown',
-        'Autonome T-0-Sequenzierung',
+        'Ressourcenverwaltung · Quests · Erkundung',
         'Stack',
-        'Three.js FX · Spatial Audio',
+        'Öffentliche Docs und Entwicklerleitfaden',
       ],
     },
     prReaper: {

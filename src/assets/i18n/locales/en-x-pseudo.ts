@@ -460,17 +460,17 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     'futuroptimist-living-room-tv': {
       title: wrap('Futuroptimist'),
       summary: wrap(
-        'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.'
+        'Futuroptimist hub for open-source scripts, data pipelines, tests, and YouTube-oriented automation metadata.'
       ),
       metrics: [
-        { label: wrap('Stars'), value: wrap('1,280+') },
+        { label: wrap('Stars'), value: wrap('Syncing from GitHub…') },
         {
           label: wrap('Workflow'),
-          value: wrap('Resolve-style edit suite · triple display'),
+          value: wrap('uv, Make targets, pytest, and GitHub Actions'),
         },
         {
           label: wrap('Focus'),
-          value: wrap('Futuroptimist ecosystem reels in progress'),
+          value: wrap('Scripts, prompt docs, related-project status'),
         },
       ],
     },

@@ -425,14 +425,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         { label: '状态', value: '自动化内容工作流' },
         {
           label: '星标',
-          value: '1,280+',
+          value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} 个星标',
-            fallback: '1,280+',
+            fallback: '正在从 GitHub 同步…',
           },
         },
         { label: '节奏', value: '研究 → 提纲 → 旁白草稿' },
@@ -497,7 +497,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         { label: '模式', value: '可审计代理循环' },
       ],
       links: [
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/Gabriel' },
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/gabriel' },
       ],
     },
     'flywheel-studio-flywheel': {
@@ -521,15 +521,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '自动化', value: 'CI 脚手架 · 类型化提示 · QA 循环' },
-        { label: '文档入口', value: 'flywheel.futuroptimist.dev →' },
+        { label: '自动化', value: 'init/update CLI · 检查 · 提示文档' },
+        { label: 'CAD', value: '飞轮支架、轴、适配器和物理文档' },
       ],
       links: [
         {
           label: 'Flywheel 仓库',
           href: 'https://github.com/futuroptimist/flywheel',
         },
-        { label: '文档', href: 'https://flywheel.futuroptimist.dev' },
       ],
       narration: { caption: 'Flywheel 动能中枢启动，聚焦自动化提示和工具链。' },
       interactionPrompt: '启动 {title} 系统',
@@ -564,7 +563,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
           label: 'GitHub',
           href: 'https://github.com/futuroptimist/jobbot3000',
         },
-        { label: '自动化日志', href: 'https://futuroptimist.dev/automation' },
       ],
       narration: { caption: 'Jobbot 全息终端以闪烁覆盖层流式展示自动化遥测。' },
     },
@@ -627,14 +625,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       metrics: [
         {
           label: '星标',
-          value: '1,280+',
+          value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} 个星标',
-            fallback: '1,280+',
+            fallback: '正在从 GitHub 同步…',
           },
         },
         { label: '技术栈', value: 'Vite · Three.js · 无障碍 HUD' },
@@ -733,36 +731,37 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
     'dspace-backyard-rocket': {
       title: 'Dspace',
-      summary: '民主化空间项目资料与任务体验，围绕探索、技能和路线图组织内容。',
+      summary:
+        'DSPACE 展示 Democratized Space 网页放置游戏，聚焦资源管理、任务、探索和发射入轨进程。',
       outcome: {
         label: '成果',
-        value: '让任务 JSON、技能文档和发布说明保持耦合，便于可靠迭代。',
+        value:
+          '链接到公开的 democratizedspace/dspace 仓库和官方游戏文档，避免未经验证的任务日志。',
       },
       metrics: [
-        { label: '状态', value: '任务验证和文档门禁' },
+        { label: '游戏', value: '资源管理 · 任务 · 探索' },
         {
           label: '星标',
           value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
-            owner: 'futuroptimist',
+            owner: 'democratizedspace',
             repo: 'dspace',
-            visibility: 'private',
             format: 'compact',
             template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '重点', value: '探索路线图 · 技能 · 发布文档' },
-        { label: 'QA', value: '链接检查和任务验证' },
+        { label: '文档', value: '公开文档和开发者指南' },
       ],
       links: [
         {
           label: 'GitHub',
           href: 'https://github.com/democratizedspace/dspace',
         },
+        { label: '文档', href: 'https://democratized.space/docs' },
       ],
-      narration: { caption: '后院火箭投射 Dspace 路线图轨迹。' },
+      narration: { caption: '后院火箭投射 DSPACE 探索路线。' },
     },
     'pr-reaper-backyard-console': {
       title: 'pr-reaper',

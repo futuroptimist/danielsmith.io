@@ -55,52 +55,52 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
     },
     tokenplace: {
       summary:
-        'Plataforma segura de IA generativa peer-to-peer sobre una malla Raspberry Pi con relay cifrado y nodos de servidor.',
+        'Plataforma segura de IA generativa peer-to-peer con rutas de relay y nodo de cómputo para compartir capacidad ociosa como bien público.',
       outcome:
-        'Los scripts de inicio levantan localmente el relay, el servidor y la pila de LLM simulado para pruebas.',
+        'La guía rápida cubre relay Python, servidor de cómputo, Docker Compose, pruebas y guardas E2EE de API v1.',
       metrics: [
         'Clúster',
-        '12× nodos Pi 5 en bahías modulares',
+        'Entrypoints Python relay.py y server.py',
         'Red',
-        'Tokens efímeros · ráfagas cifradas',
+        'Línea base API v1 con E2EE ciego al relay',
       ],
     },
     gabriel: {
       summary:
-        'LLM “ángel guardián” con privacidad primero para coaching local de seguridad e integración con token.place o inferencia offline.',
+        'LLM “ángel guardián” open source centrado en consejos de seguridad privados, locales y monitoreo asistido opcional.',
       outcome:
-        'Las pilas de ingesta, análisis, notificación e interfaz se mantienen alineadas mediante interfaces tipadas.',
+        'El README enfatiza consentimiento, inferencia local, conocimiento del entorno personal y coaching accionable.',
       metrics: [
         'Enfoque',
-        'Barrido lidar 360° + heurísticas locales',
+        'Coaching de seguridad digital con privacidad primero',
         'Cadencia',
-        'Destello rojo cada 1,0 s',
+        'FAQ y documentación en el repositorio',
       ],
     },
     flywheel: {
       summary:
-        'Plantilla de GitHub y centro de automatización con lint, pruebas, docs y prompts de Codex para iniciar repos rápido.',
+        'Boilerplate y CLI opinados para CI reproducible, calidad de código, docs, prompts y auditorías de repos.',
       outcome:
-        'Incluye CI repetible y bibliotecas de prompts para que los repos nuevos arranquen saludables.',
+        'Ofrece comandos init/update, checks, docs de prompts de Codex, auditorías y sugerencias dry-run.',
       metrics: [
         'Automatización',
-        'Andamios CI · prompts tipados · bucles QA',
+        'CLI init/update · checks · docs de prompts',
         'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Soporte, eje, adaptador y docs de física',
       ],
     },
     jobbot: {
       summary:
-        'Copiloto autoalojado de búsqueda laboral con CLI e interfaz web experimental para ingestar contactos y seguir postulaciones.',
+        'Copiloto open source autoalojado de búsqueda laboral con interfaz web local experimental y setup documentado.',
       outcome:
-        'Los flujos de punta a punta reflejan docs y pruebas para cubrir el contacto con recruiters.',
+        'El README advierte que la UI web es solo local mientras las docs cubren setup, arquitectura, configuración y pruebas.',
       metrics: [
         'Estado',
-        'CLI local-first con UI web previa',
+        'Copiloto autoalojado con vista web local',
         'Stack',
-        'Node.js 20+ · scripts npm · vista Playwright',
+        'Node.js 20+ · scripts npm',
         'Flujos',
-        'Ingesta de contactos y seguimiento del ciclo',
+        'Advertencia local sobre secretos y PII',
       ],
     },
     axel: {
@@ -148,9 +148,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
         'Automatiza la recolección y síntesis de logs CI para traspasos de depuración rápidos.',
       metrics: [
         'Velocidad',
-        'Copia logs fallidos en menos de 3 s',
+        'Codex task → checks de PR GitHub → Markdown',
         'Formatos',
-        'CLI + portapapeles + salida Markdown',
+        'Redacción de secretos antes de resumir o emitir',
       ],
     },
     sigma: {
@@ -179,14 +179,14 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Pórtico de lanzamiento de patio para DSPACE con señales de cuenta atrás guiadas por telemetría y bitácora pública.',
+        'Exhibición DSPACE para el juego web idle Democratized Space, enfocada en recursos, quests, exploración y lanzamientos a órbita.',
       outcome:
-        'Mantiene notas de secuencia de cuenta atrás junto a enlaces de GitHub y bitácora mientras el repo sigue privado.',
+        'Enlaza el repositorio público democratizedspace/dspace y la documentación oficial, sin bitácoras no verificadas.',
       metrics: [
         'Cuenta atrás',
-        'Secuencia T-0 autónoma',
+        'Gestión de recursos · quests · exploración',
         'Stack',
-        'Three.js FX · audio espacial',
+        'Docs públicos y guía de desarrollo',
       ],
     },
     prReaper: {

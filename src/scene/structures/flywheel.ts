@@ -812,11 +812,15 @@ function createFlywheelDocsCalloutTexture(): CanvasTexture {
   context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';
   context.textAlign = 'left';
   context.textBaseline = 'alphabetic';
-  context.fillText('Docs', 64, canvas.height * 0.56);
+  context.fillText('README', 64, canvas.height * 0.56);
 
   context.font = '600 56px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#a8eeff';
-  context.fillText('flywheel.futuroptimist.dev', 64, canvas.height * 0.78);
+  context.fillText(
+    'github.com/futuroptimist/flywheel',
+    64,
+    canvas.height * 0.78
+  );
 
   context.textAlign = 'right';
   context.font = 'bold 120px "Inter", "Segoe UI", sans-serif';

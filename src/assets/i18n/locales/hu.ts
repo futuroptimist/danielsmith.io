@@ -50,7 +50,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Munkafolyamat',
         'Resolve-stílusú vágócsomag · három kijelző',
         'Fókusz',
-        'Futuroptimist ökoszisztéma-reels folyamatban',
+        'Szkriptek, prompt-dokumentumok, kapcsolódó projektek állapota',
       ],
     },
     tokenplace: {
@@ -60,9 +60,9 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'A quickstart scriptek helyben indítják a relayt, szervert és mock LLM stacket teszteléshez.',
       metrics: [
         'Klaszter',
-        '12× Pi 5 csomópont moduláris rekeszekben',
+        'Python belépési pontok: relay.py és server.py',
         'Hálózat',
-        'Efemer tokenek · titkosított burstök',
+        'API v1 relay-vak E2EE alapvonal',
       ],
     },
     gabriel: {
@@ -72,7 +72,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'A beviteli, elemzési, értesítési és UI stackek típusos interfészekkel maradnak összhangban.',
       metrics: [
         'Fókusz',
-        '360° lidar pásztázás + helyi heurisztikák',
+        'Adatvédelem-központú digitális biztonsági coaching',
         'Ütem',
         'Piros riasztásvillanás 1,0 s-enként',
       ],
@@ -86,7 +86,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Automatizáció',
         'CI scaffoldok · típusos promptok · QA ciklusok',
         'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Állvány, tengely, adapter és fizika dokumentumok',
       ],
     },
     jobbot: {
@@ -150,7 +150,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Sebesség',
         'Hibás logok másolása 3 s alatt',
         'Formátumok',
-        'CLI + vágólap + Markdown kimenet',
+        'Titkok redakciója összegzés vagy kimenet előtt',
       ],
     },
     sigma: {
@@ -179,14 +179,14 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Hátsókerti indítóállvány a DSPACE projekthez telemetria-vezérelt visszaszámlálási jelzésekkel és nyilvános missziónaplóval.',
+        'DSPACE kiállítás a Democratized Space webes idle játékhoz, erőforrásokra, questekre, felfedezésre és orbitális indításokra fókuszálva.',
       outcome:
-        'Visszaszámlálási jegyzeteket tart GitHub és missziónapló linkek mellett, miközben a repo privát.',
+        'A nyilvános democratizedspace/dspace repót és a hivatalos játékdokumentációt linkeli, ellenőrizetlen napló nélkül.',
       metrics: [
         'Visszaszámlálás',
-        'Autonóm T-0 szekvencia',
+        'Erőforrás-kezelés · questek · felfedezés',
         'Stack',
-        'Three.js FX · térbeli hang',
+        'Nyilvános docs és fejlesztői útmutató',
       ],
     },
     prReaper: {

@@ -357,7 +357,10 @@ describe('PoiTooltipOverlay', () => {
       position: { x: 2, y: 0, z: 4 },
       metrics: [{ label: 'Automation', value: 'CI-ready prompts' }],
       links: [
-        { label: 'Flywheel', href: 'https://flywheel.futuroptimist.dev' },
+        {
+          label: 'Flywheel',
+          href: 'https://github.com/futuroptimist/flywheel',
+        },
       ],
       status: undefined,
       interactionPrompt: 'Engage Flywheel systems',
