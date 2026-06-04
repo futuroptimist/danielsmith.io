@@ -101,6 +101,20 @@ describe('AmbientAudioController', () => {
     expect(source.volumes.at(-1)).toBe(0);
   });
 
+  it('stops playback and zeroes volume when disabled', () => {
+    const { bed, source } = createBed();
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+    controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.1);
+
+    controller.disable();
+
+    expect(source.isPlaying).toBe(false);
+    expect(source.volumes.at(-1)).toBe(0);
+    expect(controller.getBedSnapshots()[0].currentVolume).toBe(0);
+    expect(controller.getBedSnapshots()[0].targetVolume).toBe(0);
+  });
+
   it('stops playback when disposed', () => {
     const { bed, source } = createBed();
     const controller = new AmbientAudioController([bed], { smoothing: 0 });

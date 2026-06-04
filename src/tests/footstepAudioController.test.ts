@@ -9,8 +9,14 @@ import {
 class StubFootstepPlayer {
   public readonly calls: FootstepPlaybackOptions[] = [];
 
+  public stopCount = 0;
+
   play(options: FootstepPlaybackOptions): void {
     this.calls.push(options);
+  }
+
+  stop(): void {
+    this.stopCount += 1;
   }
 }
 
@@ -39,6 +45,24 @@ describe('footstep audio controller', () => {
       random: makeSequenceRandom([0.1, 0.9, 0.3, 0.7, 0.2, 0.8]),
       ...overrides,
     });
+
+  it('starts disabled when requested and stops any active hit on mute', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player, { enabled: false });
+
+    expect(controller.isEnabled()).toBe(false);
+    controller.update({ delta: 1, linearSpeed: 4 });
+    controller.notifyFootfall('left');
+    expect(player.calls).toHaveLength(0);
+
+    controller.setEnabled(true);
+    controller.update({ delta: 0.4, linearSpeed: 4 });
+    controller.update({ delta: 0.4, linearSpeed: 4 });
+    expect(player.calls.length).toBeGreaterThan(0);
+
+    controller.setEnabled(false);
+    expect(player.stopCount).toBe(1);
+  });
 
   it('plays alternating stereo hits as the avatar moves', () => {
     const player = new StubFootstepPlayer();

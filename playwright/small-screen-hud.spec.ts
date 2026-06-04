@@ -22,10 +22,23 @@ type ElementBounds = {
   height: number;
 };
 
+type AudioDebugState = {
+  preferenceEnabled: boolean;
+  ambientEnabled: boolean;
+  ambientSourcesPlayingCount: number;
+  ambientBedVolumes: Array<{ currentVolume: number; targetVolume: number }>;
+  footstepEnabled: boolean;
+  footstepPlaying: boolean;
+  activeStorageKey: string | null;
+};
+
 type PortfolioPoiWindow = Window & {
   portfolio?: {
     poi?: {
       getTooltipState?: () => PoiTooltipState;
+    };
+    audio?: {
+      getState?: () => AudioDebugState;
     };
   };
 };
@@ -71,6 +84,21 @@ async function waitForImmersiveReady(page: Page) {
   await page.waitForFunction(
     () => (window as PortfolioPoiWindow).portfolio?.poi?.getTooltipState
   );
+  await page.waitForFunction(
+    () => (window as PortfolioPoiWindow).portfolio?.audio?.getState
+  );
+}
+
+async function getAudioDebugState(page: Page): Promise<AudioDebugState> {
+  return page.evaluate(() => {
+    const getState = (window as PortfolioPoiWindow).portfolio?.audio?.getState;
+
+    if (!getState) {
+      throw new Error('window.portfolio.audio.getState() is unavailable');
+    }
+
+    return getState();
+  });
 }
 
 async function getPoiTooltipState(page: Page): Promise<PoiTooltipState> {
@@ -190,6 +218,44 @@ test.describe('small-screen HUD regression coverage', () => {
 
   test.describe('desktop viewport', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
+
+    test('keeps audio off by default and ignores legacy v1 opt-in', async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        window.localStorage.setItem(
+          'danielsmith.io::ambientAudioEnabled::v1',
+          '1'
+        );
+        window.localStorage.removeItem(
+          'danielsmith.io::ambientAudioEnabled::v2'
+        );
+      });
+      await waitForImmersiveReady(page);
+      await page.mouse.click(20, 20);
+
+      const settingsButton = page.locator('[data-role="settings-button"]');
+      await settingsButton.click();
+      await expect(page.locator('.audio-toggle')).toContainText(/Off|Muted/i);
+
+      await expect
+        .poll(async () => getAudioDebugState(page), { timeout: 2_000 })
+        .toMatchObject({
+          preferenceEnabled: false,
+          ambientEnabled: false,
+          ambientSourcesPlayingCount: 0,
+          footstepEnabled: false,
+          footstepPlaying: false,
+          activeStorageKey: 'danielsmith.io::ambientAudioEnabled::v2',
+        });
+
+      const state = await getAudioDebugState(page);
+      expect(
+        state.ambientBedVolumes.every(
+          (bed) => bed.currentVolume === 0 && bed.targetVolume === 0
+        )
+      ).toBe(true);
+    });
 
     test('keeps desktop keyboard HUD toggles mutually exclusive', async ({
       page,

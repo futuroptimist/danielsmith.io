@@ -10,6 +10,7 @@ export interface AmbientAudioPreferenceChange {
 export interface AmbientAudioPreferenceOptions {
   storage?: Pick<Storage, 'getItem' | 'setItem'> | null;
   storageKey?: string;
+  legacyStorageKey?: string | null;
   windowTarget?: Window | null;
   defaultEnabled?: boolean;
 }
@@ -25,7 +26,13 @@ export interface AmbientAudioPreferenceBindingHandle {
   dispose(): void;
 }
 
-const DEFAULT_STORAGE_KEY = 'danielsmith.io::ambientAudioEnabled::v1';
+export const AMBIENT_AUDIO_STORAGE_KEY_V1 =
+  'danielsmith.io::ambientAudioEnabled::v1';
+
+export const AMBIENT_AUDIO_STORAGE_KEY_V2 =
+  'danielsmith.io::ambientAudioEnabled::v2';
+
+const DEFAULT_STORAGE_KEY = AMBIENT_AUDIO_STORAGE_KEY_V2;
 
 const parseStoredValue = (value: string | null): boolean | null => {
   if (value === '1' || value === 'true') {
@@ -73,6 +80,8 @@ export class AmbientAudioPreference {
 
   private readonly windowTarget: Window | null;
 
+  private readonly legacyStorageKey: string | null;
+
   private readonly listeners = new Set<
     (change: AmbientAudioPreferenceChange) => void
   >();
@@ -87,6 +96,12 @@ export class AmbientAudioPreference {
         ? getDefaultStorage(this.windowTarget)
         : options.storage;
     this.storageKey = options.storageKey ?? DEFAULT_STORAGE_KEY;
+    this.legacyStorageKey =
+      options.legacyStorageKey === undefined
+        ? this.storageKey === DEFAULT_STORAGE_KEY
+          ? AMBIENT_AUDIO_STORAGE_KEY_V1
+          : null
+        : options.legacyStorageKey;
     this.enabled = this.loadInitialState(options.defaultEnabled ?? false);
 
     if (this.windowTarget) {
@@ -102,12 +117,16 @@ export class AmbientAudioPreference {
     enabled: boolean,
     source: AmbientAudioPreferenceChangeSource = 'control'
   ): void {
-    if (this.enabled === enabled) {
-      return;
-    }
+    const changed = this.enabled !== enabled;
     this.enabled = enabled;
     this.persist();
-    this.notify(source);
+    if (changed) {
+      this.notify(source);
+    }
+  }
+
+  getStorageKey(): string {
+    return this.storageKey;
   }
 
   subscribe(
@@ -134,10 +153,21 @@ export class AmbientAudioPreference {
     try {
       const stored = this.storage.getItem(this.storageKey);
       const parsed = parseStoredValue(stored);
-      if (parsed === null) {
-        return defaultEnabled;
+      if (parsed !== null) {
+        return parsed;
       }
-      return parsed;
+      if (this.legacyStorageKey) {
+        const legacy = parseStoredValue(
+          this.storage.getItem(this.legacyStorageKey)
+        );
+        if (legacy === false) {
+          return false;
+        }
+      }
+      if (this.storageKey === DEFAULT_STORAGE_KEY) {
+        return false;
+      }
+      return defaultEnabled;
     } catch (error) {
       console.warn(
         'Failed to read ambient audio preference from storage.',

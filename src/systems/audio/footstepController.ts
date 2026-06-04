@@ -6,6 +6,7 @@ export interface FootstepPlaybackOptions {
 
 export interface FootstepPlayer {
   play(options: FootstepPlaybackOptions): void;
+  stop?(): void;
 }
 
 export interface FootstepControllerOptions {
@@ -29,6 +30,8 @@ export interface FootstepControllerOptions {
   pitchJitter?: number;
   /** Optional deterministic random generator returning values in [0, 1). */
   random?: () => number;
+  /** Initial enabled state. Defaults to true for standalone controllers. */
+  enabled?: boolean;
 }
 
 export interface FootstepControllerUpdate {
@@ -101,7 +104,7 @@ export function createFootstepAudioController(
     maxLinearSpeed - 1e-3
   );
 
-  let enabled = true;
+  let enabled = options.enabled ?? true;
   let timeUntilNextStep = 0;
   let lastFoot: FootLabel = 'right';
   let lastNormalizedSpeed = 0;
@@ -246,6 +249,7 @@ export function createFootstepAudioController(
         timeUntilNextStep = 0;
         lastNormalizedSpeed = 0;
         lastGrounded = true;
+        options.player.stop?.();
       }
     },
     isEnabled() {
@@ -255,6 +259,7 @@ export function createFootstepAudioController(
       enabled = false;
       timeUntilNextStep = 0;
       lastNormalizedSpeed = 0;
+      options.player.stop?.();
     },
   };
 }
