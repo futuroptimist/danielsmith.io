@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
   AmbientAudioPreference,
+  LEGACY_AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
   type AmbientAudioPreferenceChange,
 } from '../systems/audio/ambientAudioPreference';
 
@@ -54,6 +56,36 @@ describe('AmbientAudioPreference', () => {
     });
 
     expect(preference.isEnabled()).toBe(false);
+  });
+
+  it('uses the v2 storage key by default and ignores legacy enabled consent', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(LEGACY_AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY, '1');
+
+    const preference = new AmbientAudioPreference({ storage });
+
+    expect(preference.getStorageKey()).toBe(
+      AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY
+    );
+    expect(preference.isEnabled()).toBe(false);
+  });
+
+  it('honors explicit opt-in stored under the v2 key', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY, '1');
+
+    const preference = new AmbientAudioPreference({ storage });
+
+    expect(preference.isEnabled()).toBe(true);
+  });
+
+  it('persists false to the v2 key even when already disabled by default', () => {
+    const storage = new MemoryStorage();
+    const preference = new AmbientAudioPreference({ storage });
+
+    preference.setEnabled(false);
+
+    expect(storage.getItem(AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY)).toBe('0');
   });
 
   it('loads a persisted enabled state from storage', () => {

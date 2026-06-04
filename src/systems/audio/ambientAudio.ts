@@ -164,15 +164,15 @@ export class AmbientAudioController {
   }
 
   disable(): void {
-    if (!this.enabled) {
-      return;
-    }
     this.enabled = false;
     this.elapsedTime = 0;
     this.beds.forEach((bed) => {
       bed.currentVolume = 0;
       bed.definition.source.setVolume(0);
       bed.targetVolume = 0;
+      if (bed.definition.source.isPlaying) {
+        bed.definition.source.stop();
+      }
     });
   }
 

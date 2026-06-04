@@ -101,6 +101,27 @@ describe('AmbientAudioController', () => {
     expect(source.volumes.at(-1)).toBe(0);
   });
 
+  it('hard-disables playback by stopping sources and zeroing volumes', async () => {
+    const { bed, source } = createBed();
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+
+    await controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.1);
+    expect(source.isPlaying).toBe(true);
+    expect(source.volumes.at(-1)).toBeGreaterThan(0);
+
+    controller.disable();
+
+    expect(controller.isEnabled()).toBe(false);
+    expect(source.isPlaying).toBe(false);
+    expect(source.volumes.at(-1)).toBe(0);
+    expect(controller.getBedSnapshots()[0].currentVolume).toBe(0);
+    expect(controller.getBedSnapshots()[0].targetVolume).toBe(0);
+
+    await controller.enable();
+    expect(source.isPlaying).toBe(true);
+  });
+
   it('stops playback when disposed', () => {
     const { bed, source } = createBed();
     const controller = new AmbientAudioController([bed], { smoothing: 0 });
