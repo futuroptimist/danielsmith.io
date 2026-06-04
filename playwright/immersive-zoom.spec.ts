@@ -199,6 +199,61 @@ test.describe('immersive orthographic zoom', () => {
     await expect(page.locator('[data-role="hud-menu"]')).toBeVisible();
   });
 
+  test('zooms with keyboard shortcuts and ignores text-entry focus', async ({
+    page,
+  }) => {
+    await waitForImmersive(page);
+
+    const initialState = await getCameraZoomState(page);
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Minus');
+    await page.keyboard.up('Shift');
+    const zoomedOutState = await getCameraZoomState(page);
+    expect(zoomedOutState.target).toBeLessThan(initialState.target);
+
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Equal');
+    await page.keyboard.up('Shift');
+    const zoomedInState = await getCameraZoomState(page);
+    expect(zoomedInState.target).toBeGreaterThan(zoomedOutState.target);
+
+    await page.evaluate(() => {
+      const input = document.createElement('input');
+      input.setAttribute('aria-label', 'Zoom shortcut test input');
+      document.body.appendChild(input);
+      input.focus();
+    });
+    const beforeTextEntryShortcut = await getCameraZoomState(page);
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Equal');
+    await page.keyboard.up('Shift');
+    const afterTextEntryShortcut = await getCameraZoomState(page);
+    expect(afterTextEntryShortcut.target).toBeCloseTo(
+      beforeTextEntryShortcut.target,
+      6
+    );
+
+    await page.evaluate(() => {
+      document
+        .querySelector<HTMLInputElement>(
+          '[aria-label="Zoom shortcut test input"]'
+        )
+        ?.remove();
+      document.body.focus();
+    });
+    await page.keyboard.press('c');
+    await expect(page.locator('[data-role="controls-popover"]')).toBeVisible();
+    const beforePanelShortcut = await getCameraZoomState(page);
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Equal');
+    await page.keyboard.up('Shift');
+    const afterPanelShortcut = await getCameraZoomState(page);
+    expect(afterPanelShortcut.target).toBeCloseTo(
+      beforePanelShortcut.target,
+      6
+    );
+  });
+
   test('keeps a single clean immersive canvas while zooming with motion blur disabled', async ({
     page,
   }) => {

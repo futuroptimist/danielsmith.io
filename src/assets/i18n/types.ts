@@ -38,6 +38,7 @@ export interface ControlOverlayStrings {
     keyboardMove: ControlOverlayItemStrings;
     pointerDrag: ControlOverlayItemStrings;
     pointerZoom: ControlOverlayItemStrings;
+    keyboardZoom: ControlOverlayItemStrings;
     touchDrag: ControlOverlayItemStrings;
     touchPinch: ControlOverlayItemStrings;
     cyclePoi: ControlOverlayItemStrings;
