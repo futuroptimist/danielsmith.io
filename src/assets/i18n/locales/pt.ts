@@ -60,9 +60,9 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Scripts de início sobem localmente o relay, o servidor e a pilha de LLM simulado para testes.',
       metrics: [
         'Cluster',
-        '12× nós Pi 5 em baias modulares',
+        'relay.py · server.py · Docker Compose',
         'Rede',
-        'Tokens efêmeros · rajadas criptografadas',
+        'Inferência criptografada com opções de failover do relay',
       ],
     },
     gabriel: {
@@ -72,9 +72,9 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Pilhas de ingestão, análise, notificação e UI permanecem alinhadas por interfaces tipadas.',
       metrics: [
         'Foco',
-        'Varredura lidar 360° + heurísticas locais',
+        'Ingestão · análise · notificação · interface',
         'Cadência',
-        'Flash vermelho a cada 1,0 s',
+        'Integração token.place ou inferência offline',
       ],
     },
     flywheel: {
@@ -86,7 +86,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Automação',
         'Scaffolds CI · prompts tipados · ciclos QA',
         'CTA docs',
-        'flywheel.futuroptimist.dev →',
+        'init · update · audit · prompt · crawl · runbook',
       ],
     },
     jobbot: {
@@ -147,7 +147,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Automatiza coleta e resumo de logs CI para handoff rápido de depuração.',
       metrics: [
         'Velocidade',
-        'Copia logs com falha em menos de 3 s',
+        'codex-task · chat2prompt · files',
         'Formatos',
         'CLI + área de transferência + Markdown',
       ],
@@ -185,7 +185,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Contagem',
         'Sequenciamento T-0 autônomo',
         'Stack',
-        'Three.js FX · áudio espacial',
+        'Guia de desenvolvimento e testes públicos',
       ],
     },
     prReaper: {
@@ -197,7 +197,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Varredura',
         'Fecha PRs obsoletos em lote com modo preview',
         'Cadência',
-        'Cron + dry-runs manuais',
+        'GitHub CLI com PAT ou GITHUB_TOKEN',
       ],
     },
     sugarkube: {

@@ -706,8 +706,8 @@ function buildPoi(
       metrics: [
         {
           label: githubStars.label,
-          value: '1,280+',
-          source: { ...starSource('danielsmith.io'), fallback: '1,280+' },
+          value: githubStars.value,
+          source: starSource('danielsmith.io'),
         },
         {
           label: poi.futuroptimist.metrics[0],
@@ -809,8 +809,8 @@ function buildPoi(
       metrics: [
         {
           label: githubStars.label,
-          value: '1,280+',
-          source: { ...starSource('danielsmith.io'), fallback: '1,280+' },
+          value: githubStars.value,
+          source: starSource('danielsmith.io'),
         },
         { label: poi.portfolio.metrics[0], value: poi.portfolio.metrics[1] },
         { label: poi.portfolio.metrics[2], value: poi.portfolio.metrics[3] },
@@ -872,7 +872,14 @@ function buildPoi(
         {
           label: githubStars.label,
           value: githubStars.value,
-          source: starSource('dspace', 'private'),
+          source: {
+            type: 'githubStars' as const,
+            owner: 'democratizedspace',
+            repo: 'dspace',
+            format: 'compact' as const,
+            template: githubStars.template,
+            fallback: githubStars.fallback,
+          },
         },
         { label: poi.dspace.metrics[0], value: poi.dspace.metrics[1] },
         { label: poi.dspace.metrics[2], value: poi.dspace.metrics[3] },

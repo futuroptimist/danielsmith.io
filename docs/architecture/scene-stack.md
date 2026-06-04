@@ -61,19 +61,19 @@ layer without guessing where functionality lives.
 
 ### State surfaces & consumers
 
-| Source handle / data surface | Origin                                                                                                       | Consumed by                                                                                         | Notes                                                             |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `FLOOR_PLAN` + POI metadata  | [`src/assets/floorPlan.ts`](../../src/assets/floorPlan.ts)                                                   | Scene POI builders, keyboard traversal macro, HUD tooltip overlay                                   | Canonical IDs power collision bounds and DOM aria-label text.     |
-| `KeyBindingRegistry`         | [`src/systems/controls/keyBindings.ts`](../../src/systems/controls/keyBindings.ts)                           | HUD legend (`src/ui/hud/movementLegend.tsx`), help modal, Playwright macro                          | Emits observable binding changes so overlays update instantly.    |
-| `MovementControllerHandle`   | [`src/systems/movement/createMovementController.ts`](../../src/systems/movement/createMovementController.ts) | Scene avatar rig (`src/scene/avatar/createAvatarRig.ts`), debug helpers on `window.portfolio.world` | Provides camera-relative vectors and collision-clamped positions. |
-| `PoiVisitedState`            | [`src/systems/poi/poiVisitedState.ts`](../../src/systems/poi/poiVisitedState.ts)                             | Scene halo/material toggles, DOM overlay badges, accessibility announcers                           | Persists visited state between HUD and Three.js meshes.           |
-| `HudFocusAnnouncerHandle`    | [`src/systems/accessibility/hudFocusAnnouncer.ts`](../../src/systems/accessibility/hudFocusAnnouncer.ts)     | HUD overlays, subtitles bridge, Playwright assertions                                               | Centralises live-region announcements and aria-live priorities.   |
-| Performance budgets          | [`src/assets/performance.ts`](../../src/assets/performance.ts)                                               | Vitest assertions (`src/tests/performanceBudget.test.ts`), Playwright diff budget, docs             | Keeps render metrics and screenshot tolerances in sync.           |
+| Source handle / data surface | Origin                                                                                                   | Consumed by                                                                                         | Notes                                                             |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `FLOOR_PLAN` + POI metadata  | [`src/assets/floorPlan/index.ts`](../../src/assets/floorPlan/index.ts)                                   | Scene POI builders, keyboard traversal macro, HUD tooltip overlay                                   | Canonical IDs power collision bounds and DOM aria-label text.     |
+| `KeyBindingRegistry`         | [`src/systems/controls/keyBindings.ts`](../../src/systems/controls/keyBindings.ts)                       | HUD legend (`src/ui/hud/movementLegend.tsx`), help modal, Playwright macro                          | Emits observable binding changes so overlays update instantly.    |
+| `MovementControllerHandle`   | [`src/systems/movement/cameraRelativeMovement.ts`](../../src/systems/movement/cameraRelativeMovement.ts) | Scene avatar rig (`src/scene/avatar/createAvatarRig.ts`), debug helpers on `window.portfolio.world` | Provides camera-relative vectors and collision-clamped positions. |
+| `PoiVisitedState`            | [`src/scene/poi/visitedState.ts`](../../src/scene/poi/visitedState.ts)                                   | Scene halo/material toggles, DOM overlay badges, accessibility announcers                           | Persists visited state between HUD and Three.js meshes.           |
+| `HudFocusAnnouncerHandle`    | [`src/ui/accessibility/hudFocusAnnouncer.ts`](../../src/ui/accessibility/hudFocusAnnouncer.ts)           | HUD overlays, subtitles bridge, Playwright assertions                                               | Centralises live-region announcements and aria-live priorities.   |
+| Performance budgets          | [`src/assets/performance.ts`](../../src/assets/performance.ts)                                           | Vitest assertions (`src/tests/performanceBudget.test.ts`), Playwright diff budget, docs             | Keeps render metrics and screenshot tolerances in sync.           |
 
 ### Data flow callouts
 
 - **Camera rig** – `src/main.ts` composes `createCameraRig` from
-  [`src/scene/camera/createCameraRig.ts`](../../src/scene/camera/createCameraRig.ts)
+  [`src/scene/camera/initialFraming.ts`](../../src/scene/camera/initialFraming.ts)
   with the movement controller. The rig reads camera-relative vectors from the
   system handle and exposes `updateCameraOnResize` for UI resize observers.
 - **Avatar loop** – `createMovementController` emits frame-by-frame velocity
@@ -83,11 +83,11 @@ layer without guessing where functionality lives.
   active axis without touching Three.js meshes.
 - **POI orchestration** – The registry
   (`src/scene/poi/registry.ts`) hydrates data from
-  [`src/assets/poi/index.ts`](../../src/assets/poi/index.ts) and now exposes
+  [`src/scene/poi/registry.ts`](../../src/scene/poi/registry.ts) and now exposes
   room-aware lookups via `poiRegistry.getByRoom(...)`. Interaction handlers in
   `src/scene/poi/interactionManager.ts` emit POI selection events. UI layers
   listen via the shared observable to mirror selection state in
-  [`src/ui/poi/tooltipOverlay.tsx`](../../src/ui/poi/tooltipOverlay.tsx), while
+  [`src/scene/poi/tooltipOverlay.ts`](../../src/scene/poi/tooltipOverlay.ts), while
   [`src/scene/poi/githubMetrics.ts`](../../src/scene/poi/githubMetrics.ts)
   wires GitHub star counts into both the in-world tooltip and HUD overlay.
 - **Accessibility overlays** – `HudFocusAnnouncerHandle` flows from systems
@@ -114,7 +114,7 @@ layer without guessing where functionality lives.
   announcers.
 - **HUD overlays** – [`src/ui/hud`](../../src/ui/hud),
   [`src/ui/accessibility`](../../src/ui/accessibility), and
-  [`src/ui/help`](../../src/ui/help) subscribe to key binding, accessibility
+  [`src/ui/hud/helpModal.ts`](../../src/ui/hud/helpModal.ts) subscribe to key binding, accessibility
   preset, and POI selection handles. Each overlay follows the
   [accessibility checklist](../guides/accessibility-overlays.md).
 - **POI orchestration** – The registry at

@@ -60,9 +60,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
         'Los scripts de inicio levantan localmente el relay, el servidor y la pila de LLM simulado para pruebas.',
       metrics: [
         'Clúster',
-        '12× nodos Pi 5 en bahías modulares',
+        'relay.py · server.py · Docker Compose',
         'Red',
-        'Tokens efímeros · ráfagas cifradas',
+        'Inferencia cifrada con opciones de failover de relay',
       ],
     },
     gabriel: {
@@ -72,9 +72,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
         'Las pilas de ingesta, análisis, notificación e interfaz se mantienen alineadas mediante interfaces tipadas.',
       metrics: [
         'Enfoque',
-        'Barrido lidar 360° + heurísticas locales',
+        'Ingesta · análisis · notificación · interfaz',
         'Cadencia',
-        'Destello rojo cada 1,0 s',
+        'Integración token.place o inferencia offline',
       ],
     },
     flywheel: {
@@ -84,9 +84,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
         'Incluye CI repetible y bibliotecas de prompts para que los repos nuevos arranquen saludables.',
       metrics: [
         'Automatización',
-        'Andamios CI · prompts tipados · bucles QA',
+        'Lint · pruebas · docs · prompts de agentes',
         'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'init · update · audit · prompt · crawl · runbook',
       ],
     },
     jobbot: {
@@ -148,9 +148,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
         'Automatiza la recolección y síntesis de logs CI para traspasos de depuración rápidos.',
       metrics: [
         'Velocidad',
-        'Copia logs fallidos en menos de 3 s',
+        'codex-task · chat2prompt · files',
         'Formatos',
-        'CLI + portapapeles + salida Markdown',
+        'Portapapeles y fragmentos Markdown',
       ],
     },
     sigma: {
@@ -179,14 +179,14 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Pórtico de lanzamiento de patio para DSPACE con señales de cuenta atrás guiadas por telemetría y bitácora pública.',
+        'Juego web open source de exploración espacial idle con gestión de recursos, exploración, quests e interacción comunitaria.',
       outcome:
-        'Mantiene notas de secuencia de cuenta atrás junto a enlaces de GitHub y bitácora mientras el repo sigue privado.',
+        'Publica el juego, la documentación, la guía de desarrollo y comandos de prueba/build desde el repo público.',
       metrics: [
         'Cuenta atrás',
-        'Secuencia T-0 autónoma',
+        'Gestión de recursos · exploración · quests',
         'Stack',
-        'Three.js FX · audio espacial',
+        'Guía de desarrollo y pruebas públicas',
       ],
     },
     prReaper: {
@@ -196,9 +196,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
         'El workflow de un botón documenta entradas, modelo de seguridad y salidas de auditoría en el README.',
       metrics: [
         'Barrido',
-        'Cierre masivo de PR obsoletos con modo previo',
+        'Cierra PRs abiertos con vista previa dry-run segura',
         'Cadencia',
-        'Cron + dry-runs manuales',
+        'GitHub CLI con PAT o GITHUB_TOKEN',
       ],
     },
     sugarkube: {

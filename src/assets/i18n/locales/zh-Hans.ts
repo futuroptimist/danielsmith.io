@@ -419,35 +419,39 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     'futuroptimist-living-room-tv': {
       title: 'Futuroptimist',
       summary:
-        '自动化的 Futuroptimist 脚本工作台，将研究、提纲和可配音草稿串联起来，服务新视频制作。',
-      outcome: { label: '成果', value: '把创作研究转化为可复用的脚本流水线。' },
+        'Futuroptimist 组织枢纽，连接 Daniel Smith 的公开项目仓库和自动化实验。',
+      outcome: {
+        label: '成果',
+        value: '让作品集连接到记录各项目事实的公开 GitHub 仓库。',
+      },
       metrics: [
-        { label: '状态', value: '自动化内容工作流' },
+        { label: '来源', value: 'Futuroptimist 公开 GitHub 仓库' },
         {
           label: '星标',
-          value: '1,280+',
+          value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} 个星标',
-            fallback: '1,280+',
+            fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '节奏', value: '研究 → 提纲 → 旁白草稿' },
-        { label: '重点', value: '创作者工具与可靠性故事' },
+        { label: '重点', value: '自动化、homelab、硬件和 WebGL 项目' },
       ],
-      links: [
-        { label: 'YouTube', href: 'https://www.youtube.com/@futuroptimist' },
-      ],
+      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist' }],
       narration: { caption: '客厅电视点亮 Futuroptimist 的脚本时间线。' },
       interactionPrompt: '查看 {title}',
     },
     'tokenplace-studio-cluster': {
       title: 'token.place',
-      summary: '中继盲的端到端加密令牌中转站，用于安全共享敏感短文本。',
-      outcome: { label: '成果', value: '保持中继只看到密文和安全路由元数据。' },
+      summary:
+        '安全的点对点生成式 AI 平台，提供 Python relay/server 入口、加密客户端流程和 OpenAI 兼容 API。',
+      outcome: {
+        label: '成果',
+        value: '快速启动脚本可在本地拉起 relay、server 和模拟 LLM 栈用于测试。',
+      },
       metrics: [
         {
           label: '星标',
@@ -461,8 +465,8 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '安全', value: '中继盲 E2EE · API v1' },
-        { label: '范围', value: '非流式、密文优先的共享工作流' },
+        { label: '入口', value: 'relay.py · server.py · Docker Compose' },
+        { label: '网络', value: '加密推理和 relay failover 选项' },
       ],
       links: [
         {
@@ -474,13 +478,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
     'gabriel-studio-sentry': {
       title: 'Gabriel',
-      summary: '用于追踪个人自动化、提醒和代理任务的哨兵系统。',
+      summary:
+        '注重隐私的“守护天使”LLM，提供本地安全建议，并可集成 token.place 或离线推理。',
       outcome: {
         label: '成果',
-        value: '把提示、提醒和验证循环汇入一个可审计控制台。',
+        value: '通过类型化接口让摄取、分析、通知和 UI 模块保持一致。',
       },
       metrics: [
-        { label: '状态', value: '自动化哨兵' },
+        { label: '模块', value: '摄取 · 分析 · 通知 · UI' },
         {
           label: '星标',
           value: '正在从 GitHub 同步…',
@@ -493,11 +498,10 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '重点', value: '提醒 · 任务 · 验证' },
-        { label: '模式', value: '可审计代理循环' },
+        { label: '隐私', value: 'token.place 集成或离线推理' },
       ],
       links: [
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/Gabriel' },
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/gabriel' },
       ],
     },
     'flywheel-studio-flywheel': {
@@ -521,15 +525,17 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '自动化', value: 'CI 脚手架 · 类型化提示 · QA 循环' },
-        { label: '文档入口', value: 'flywheel.futuroptimist.dev →' },
+        { label: '自动化', value: 'Lint · 测试 · 文档检查 · 代理提示' },
+        {
+          label: 'CLI',
+          value: 'init · update · audit · prompt · crawl · runbook',
+        },
       ],
       links: [
         {
           label: 'Flywheel 仓库',
           href: 'https://github.com/futuroptimist/flywheel',
         },
-        { label: '文档', href: 'https://flywheel.futuroptimist.dev' },
       ],
       narration: { caption: 'Flywheel 动能中枢启动，聚焦自动化提示和工具链。' },
       interactionPrompt: '启动 {title} 系统',
@@ -564,7 +570,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
           label: 'GitHub',
           href: 'https://github.com/futuroptimist/jobbot3000',
         },
-        { label: '自动化日志', href: 'https://futuroptimist.dev/automation' },
       ],
       narration: { caption: 'Jobbot 全息终端以闪烁覆盖层流式展示自动化遥测。' },
     },
@@ -627,14 +632,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       metrics: [
         {
           label: '星标',
-          value: '1,280+',
+          value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} 个星标',
-            fallback: '1,280+',
+            fallback: '正在从 GitHub 同步…',
           },
         },
         { label: '技术栈', value: 'Vite · Three.js · 无障碍 HUD' },
@@ -670,8 +675,8 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '安全', value: '秘密扫描与脱敏' },
-        { label: '输出', value: '可粘贴的 Markdown 报告' },
+        { label: '命令', value: 'codex-task · chat2prompt · files' },
+        { label: '输出', value: '剪贴板和 Markdown 片段' },
       ],
       links: [
         {
@@ -682,13 +687,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
     'sigma-kitchen-workbench': {
       title: 'Sigma',
-      summary: '小型工具仓库，用于实验自动化、剪贴板和代码生成工作流。',
+      summary:
+        '开源 ESP32 “AI pin”，通过按键通话把音频送到 Whisper，并在 3D 打印 OpenSCAD 外壳中播放 TTS。',
       outcome: {
         label: '成果',
-        value: '把实验性辅助工具保持在可测试、可复用的形态。',
+        value: '包含固件、外壳 CAD、STL 导出和装配文档，并由 CI 保持更新。',
       },
       metrics: [
-        { label: '状态', value: '实用工具实验室' },
+        { label: '硬件', value: 'ESP32 · OpenSCAD 外壳' },
         {
           label: '星标',
           value: '正在从 GitHub 同步…',
@@ -701,7 +707,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '重点', value: '自动化助手和开发者工作流' },
+        { label: '模式', value: '按键通话 · Whisper + TTS relay' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sigma' },
@@ -709,10 +715,14 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
     'wove-kitchen-loom': {
       title: 'Wove',
-      summary: '用于编排内容、任务和自动化线索的织机式工作台。',
-      outcome: { label: '成果', value: '将松散想法编织成可执行的项目线索。' },
+      summary:
+        '用于学习针织和钩编的开源工具包，并朝带 OpenSCAD 硬件的机器人针织机推进。',
+      outcome: {
+        label: '成果',
+        value: '文档覆盖 gauge 计算器、planner 导出和不同纱线重量的张力资料。',
+      },
       metrics: [
-        { label: '状态', value: '规划与编排原型' },
+        { label: '手工', value: '针织和钩编文档与 gauge 工具' },
         {
           label: '星标',
           value: '正在从 GitHub 同步…',
@@ -725,54 +735,56 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '模式', value: '内容线索 · 任务上下文 · 自动化提示' },
+        { label: '硬件', value: 'OpenSCAD 零件和 Three.js 装配查看器' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/wove' },
       ],
     },
     'dspace-backyard-rocket': {
-      title: 'Dspace',
-      summary: '民主化空间项目资料与任务体验，围绕探索、技能和路线图组织内容。',
+      title: 'DSPACE',
+      summary:
+        '开源 Web 太空探索 idle 游戏，结合资源管理、探索、任务和社区互动。',
       outcome: {
         label: '成果',
-        value: '让任务 JSON、技能文档和发布说明保持耦合，便于可靠迭代。',
+        value: '公开仓库发布游戏、文档、开发者指南以及测试/build 命令。',
       },
       metrics: [
-        { label: '状态', value: '任务验证和文档门禁' },
+        { label: '游戏', value: '资源管理 · 探索 · 任务' },
         {
           label: '星标',
           value: '正在从 GitHub 同步…',
           source: {
             type: 'githubStars',
-            owner: 'futuroptimist',
+            owner: 'democratizedspace',
             repo: 'dspace',
-            visibility: 'private',
             format: 'compact',
             template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '重点', value: '探索路线图 · 技能 · 发布文档' },
-        { label: 'QA', value: '链接检查和任务验证' },
+        { label: '文档', value: '开发者指南和测试指南公开' },
       ],
       links: [
         {
           label: 'GitHub',
           href: 'https://github.com/democratizedspace/dspace',
         },
+        { label: '游玩', href: 'https://democratized.space/' },
+        { label: '文档', href: 'https://democratized.space/docs' },
       ],
-      narration: { caption: '后院火箭投射 Dspace 路线图轨迹。' },
+      narration: { caption: '后院火箭投射 DSPACE 公开太空 idle 游戏路线图。' },
     },
     'pr-reaper-backyard-console': {
       title: 'pr-reaper',
-      summary: '用于审查、归类和清理 GitHub 拉取请求积压的自动化控制台。',
+      summary:
+        '一键 GitHub Actions workflow，用安全 dry-run 预览批量关闭当前用户创建的开放 PR。',
       outcome: {
         label: '成果',
-        value: '把冲突、可完成缺口和后续范围分开，帮助维护者安全合并。',
+        value: 'README 记录 workflow 输入、安全模型、认证要求和审计输出。',
       },
       metrics: [
-        { label: '状态', value: 'PR 分诊自动化' },
+        { label: '清理', value: '安全 dry-run 预览后关闭开放 PR' },
         {
           label: '星标',
           value: '正在从 GitHub 同步…',
@@ -785,7 +797,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             fallback: '正在从 GitHub 同步…',
           },
         },
-        { label: '重点', value: '冲突检测 · 范围锁定 · 后续评论' },
+        { label: '认证', value: 'GitHub CLI + PAT 或 GITHUB_TOKEN' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/pr-reaper' },

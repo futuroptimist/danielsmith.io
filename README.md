@@ -122,7 +122,8 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting.                                    |
 | `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                              |
 | `npm run typecheck`                             | Type-check with TypeScript without emitting files.                     |
-| `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.                  |
+| `npm run docs:check`                            | Ensure required docs exist and run link validation.                    |
+| `npm run links:check`                           | Validate POI and README/docs Markdown links.                           |
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
@@ -151,7 +152,7 @@ lightweight.
 - **Visual smoke thresholds** – [`playwright.config.ts`](playwright.config.ts) loads [`VISUAL_SMOKE_DIFF_BUDGET`](src/assets/performance.ts#L37-L45) so `expect().toHaveScreenshot` allows at most a 0.015 diff ratio or 1,200 differing pixels.
 - **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) touches every POI and HUD overlay using keyboard-only input. Use `npm run test:e2e -- --grep traversal` to run just that macro when iterating.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
-- **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage.
+- **Docs validation** – `npm run docs:check` enforces prompt coverage and runs `npm run links:check` across POI data plus README/docs Markdown links.
 - **Launch smoke** – `npm run smoke` builds once, validates bundled output references, and reports
   manual static binary assets (resume/favicon) as warnings by default.
 - **Strict manual static verification** – run `REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke` after

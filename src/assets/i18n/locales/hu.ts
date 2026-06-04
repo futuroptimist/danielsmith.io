@@ -62,7 +62,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Klaszter',
         '12× Pi 5 csomópont moduláris rekeszekben',
         'Hálózat',
-        'Efemer tokenek · titkosított burstök',
+        'Titkosított inference relay failover opciókkal',
       ],
     },
     gabriel: {
@@ -86,7 +86,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Automatizáció',
         'CI scaffoldok · típusos promptok · QA ciklusok',
         'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'init · update · audit · prompt · crawl · runbook',
       ],
     },
     jobbot: {
@@ -150,7 +150,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Sebesség',
         'Hibás logok másolása 3 s alatt',
         'Formátumok',
-        'CLI + vágólap + Markdown kimenet',
+        'Vágólap és Markdown-részletek',
       ],
     },
     sigma: {
@@ -184,7 +184,7 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
         'Visszaszámlálási jegyzeteket tart GitHub és missziónapló linkek mellett, miközben a repo privát.',
       metrics: [
         'Visszaszámlálás',
-        'Autonóm T-0 szekvencia',
+        'Erőforrás-kezelés · felfedezés · questek',
         'Stack',
         'Three.js FX · térbeli hang',
       ],

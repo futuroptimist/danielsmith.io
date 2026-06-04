@@ -403,13 +403,13 @@ describe('PoiTooltipOverlay', () => {
     expect(root.dataset.state).toBe('selected');
     expect(
       root.querySelector('.poi-tooltip-overlay__summary')?.textContent
-    ).toContain('端到端加密');
+    ).toContain('加密客户端流程');
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
     ).toBe('成果');
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
-    ).toContain('密文和安全路由元数据');
+    ).toContain('本地拉起 relay、server');
     expect(
       root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
     ).toBe('星标');
@@ -586,13 +586,15 @@ describe('PoiTooltipOverlay', () => {
     expect(root.dataset.state).toBe('selected');
     expect(
       root.querySelector('.poi-tooltip-overlay__summary')?.textContent
-    ).toBe('中继盲的端到端加密令牌中转站，用于安全共享敏感短文本。');
+    ).toBe(
+      '安全的点对点生成式 AI 平台，提供 Python relay/server 入口、加密客户端流程和 OpenAI 兼容 API。'
+    );
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
     ).toBe('成果');
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
-    ).toBe('保持中继只看到密文和安全路由元数据。');
+    ).toBe('快速启动脚本可在本地拉起 relay、server 和模拟 LLM 栈用于测试。');
     expect(
       root.querySelector('.poi-tooltip-overlay__status')?.textContent
     ).toBe('原型');

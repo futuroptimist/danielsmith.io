@@ -62,7 +62,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Cluster',
         '12× Pi-5-Knoten in modularen Einschüben',
         'Netzwerk',
-        'Ephemere Tokens · verschlüsselte Bursts',
+        'Verschlüsselte Inferenz mit Relay-Failover-Optionen',
       ],
     },
     gabriel: {
@@ -74,7 +74,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Fokus',
         '360°-Lidar-Scan + lokale Heuristiken',
         'Takt',
-        'Roter Alarmblitz alle 1,0 s',
+        'token.place-Integration oder Offline-Inferenz',
       ],
     },
     flywheel: {
@@ -86,7 +86,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Automatisierung',
         'CI-Scaffolds · typisierte Prompts · QA-Schleifen',
         'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'init · update · audit · prompt · crawl · runbook',
       ],
     },
     jobbot: {
@@ -147,9 +147,9 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Automatisiert CI-Log-Sammlung und Zusammenfassung für schnelle Debug-Handoffs.',
       metrics: [
         'Geschwindigkeit',
-        'Fehlerlogs in unter 3 s kopieren',
+        'codex-task · chat2prompt · files',
         'Formate',
-        'CLI + Zwischenablage + Markdown-Ausgabe',
+        'Zwischenablage und Markdown-Snippets',
       ],
     },
     sigma: {
@@ -183,7 +183,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
         'Pflegt Countdown-Notizen neben GitHub- und Missionslog-Links, während das Repo privat bleibt.',
       metrics: [
         'Countdown',
-        'Autonome T-0-Sequenzierung',
+        'Ressourcenmanagement · Exploration · Questsierung',
         'Stack',
         'Three.js FX · Spatial Audio',
       ],

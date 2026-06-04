@@ -200,6 +200,43 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('removes the invalid DSPACE Mission Log link from every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspacePoi = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+
+      expect(dspacePoi, `${locale} DSPACE POI exists`).toBeDefined();
+      expect(dspacePoi?.links ?? []).not.toContainEqual({
+        label: 'Mission Log',
+        href: 'https://futuroptimist.dev/projects/dspace',
+      });
+      expect(dspacePoi?.links?.map((link) => link.href)).not.toContain(
+        'https://futuroptimist.dev/projects/dspace'
+      );
+    }
+  });
+
+  it('keeps localized POI links on statically valid schemes', () => {
+    const allowedSchemes = new Set(['https:', 'http:', 'mailto:', 'tel:']);
+
+    for (const locale of AVAILABLE_LOCALES) {
+      for (const poi of getPoiDefinitions(locale)) {
+        for (const link of poi.links ?? []) {
+          const parsed = new URL(link.href);
+
+          expect(
+            allowedSchemes.has(parsed.protocol),
+            `${locale} ${poi.id} ${link.href}`
+          ).toBe(true);
+          expect(parsed.protocol, `${locale} ${poi.id} ${link.href}`).toBe(
+            'https:'
+          );
+        }
+      }
+    }
+  });
+
   it('deep-clones localized POI metric sources per call', () => {
     const firstDefinitions = getPoiDefinitions('en-x-pseudo');
     const firstPoi = firstDefinitions.find(
@@ -673,7 +710,7 @@ describe('i18n utilities', () => {
       '⟦Futuroptimist⟧'
     );
     expect(pseudoCopy['futuroptimist-living-room-tv'].summary).toBe(
-      '⟦Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.⟧'
+      '⟦Futuroptimist organization hub for Daniel Smith’s public project repositories and automation experiments.⟧'
     );
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title
@@ -681,7 +718,7 @@ describe('i18n utilities', () => {
 
     const chineseCopy = getPoiCopy('zh-Hans');
     expect(chineseCopy['tokenplace-studio-cluster'].summary).toContain(
-      '端到端加密'
+      '加密客户端流程'
     );
   });
 
