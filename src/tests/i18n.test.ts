@@ -244,12 +244,26 @@ describe('i18n utilities', () => {
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(
       englishOverlay.items.keyboardMove.keys
     );
+    expect(englishOverlay.items.keyboardZoom.keys).toBe(
+      'Shift + = / Shift + -'
+    );
+    expect(arabicOverlay.items.keyboardZoom.description).toContain(
+      'لوحة المفاتيح'
+    );
+    expect(japaneseOverlay.items.keyboardZoom.description).toContain(
+      'キーボード'
+    );
     const helpModal = getHelpModalStrings('en-x-pseudo');
     expect(helpModal.closeLabel).toBe('⟦Close⟧');
     expect(helpModal.announcements.open).toBe(
       '⟦Help menu opened. Review controls and settings.⟧'
     );
     expect(helpModal.announcements.close).toBe('⟦Help menu closed.⟧');
+    expect(
+      helpModal.sections
+        .find((section) => section.id === 'movement')
+        ?.items.some((item) => item.label.includes('Shift + ='))
+    ).toBe(true);
     const arabicHelp = getHelpModalStrings('ar');
     expect(arabicHelp.heading).toBe('الإعدادات والمساعدة');
     expect(arabicHelp.announcements.open).toBe(

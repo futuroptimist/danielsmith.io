@@ -179,6 +179,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           keys: 'Scroll wheel',
           description: 'Zoom',
         },
+        keyboardZoom: {
+          keys: 'Shift + = / Shift + -',
+          description: 'Zoom in or out',
+        },
         touchDrag: {
           keys: 'Touch',
           description: 'Drag the left half to move and the right half to pan',
@@ -455,6 +459,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             },
             { label: 'Mouse drag', description: 'Pan the isometric camera.' },
             { label: 'Scroll wheel', description: 'Adjust zoom level.' },
+            {
+              label: 'Shift + = / Shift + -',
+              description: 'Zoom in or out without a mouse wheel.',
+            },
             {
               label: 'Touch joysticks',
               description:
