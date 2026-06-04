@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AVAILABLE_LOCALES } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
@@ -73,6 +73,38 @@ describe('link checker collection', () => {
     expect(
       links.some((link) => link.kind === 'docs' && link.source === 'README.md')
     ).toBe(true);
+  });
+});
+
+describe('external link validation', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('falls back to GET when HEAD reports a missing external URL', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(new Response(null, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const results = await linkChecker.validateLinks(
+      [
+        {
+          kind: 'docs',
+          source: 'README.md',
+          target: 'https://example.org/head-404-get-ok',
+        },
+      ],
+      { concurrency: 1, retries: 0 }
+    );
+
+    expect(results.failures).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual([
+      'HEAD',
+      'GET',
+    ]);
   });
 });
 

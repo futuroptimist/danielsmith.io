@@ -353,6 +353,10 @@ async function checkExternalUrl(
           continue;
         }
         if ([404, 410].includes(response.status)) {
+          if (method === 'HEAD') {
+            lastError = new Error(`${target} returned ${response.status}`);
+            continue;
+          }
           return {
             ok: false,
             message: `${target} returned ${response.status}`,
