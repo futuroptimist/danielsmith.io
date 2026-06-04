@@ -182,6 +182,13 @@ This allows fine-grained control without requiring preset switches. For example,
 the `calm` preset can further reduce volume to 0.5 by setting `baseAudioVolume = 0.625`
 (0.625 × 0.8 = 0.5).
 
+Mute state is intentionally separate from base volume. Fresh immersive sessions default to
+`Audio: Off` using the `danielsmith.io::ambientAudioEnabled::v2` key; legacy v1 `true` values are
+not treated as consent. While muted, presets and slider changes may update the remembered base
+volume, but they must not restart ambient beds, footstep audio, or ambient captions. Staging
+verification can inspect `window.portfolio.audio.getState()` for the active storage key, ambient
+source playback, bed volumes, footstep state, master/base volume, and browser audio context state.
+
 ## Acceptance Criteria & Manual Testing
 
 ### Testing Standard Preset

@@ -120,7 +120,7 @@ describe('bindAmbientAudioPreference', () => {
     binding.dispose();
   });
 
-  it('ignores control-sourced changes because the UI already applied them', async () => {
+  it('uses control-sourced changes to drive the same controller path', async () => {
     const windowStub = new EventTarget();
     const preference = new AmbientAudioPreference({
       windowTarget: windowStub as unknown as Window,
@@ -135,16 +135,15 @@ describe('bindAmbientAudioPreference', () => {
       logger: { warn: vi.fn() },
     });
 
-    await controller.enable();
     preference.setEnabled(true, 'control');
-
-    windowStub.dispatchEvent(new Event('pointerdown'));
     await Promise.resolve();
 
     expect(controller.enableMock).toHaveBeenCalledTimes(1);
+    expect(controller.isEnabled()).toBe(true);
 
     preference.setEnabled(false, 'control');
-    expect(controller.disableMock).not.toHaveBeenCalled();
+    expect(controller.disableMock).toHaveBeenCalledTimes(2);
+    expect(controller.isEnabled()).toBe(false);
 
     binding.dispose();
   });
@@ -168,7 +167,7 @@ describe('bindAmbientAudioPreference', () => {
     await controller.enable();
     preference.setEnabled(false, 'storage');
 
-    expect(controller.disableMock).toHaveBeenCalledTimes(1);
+    expect(controller.disableMock).toHaveBeenCalledTimes(2);
 
     binding.dispose();
   });

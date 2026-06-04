@@ -25,7 +25,8 @@ export interface AmbientAudioPreferenceBindingHandle {
   dispose(): void;
 }
 
-const DEFAULT_STORAGE_KEY = 'danielsmith.io::ambientAudioEnabled::v1';
+export const AMBIENT_AUDIO_STORAGE_KEY =
+  'danielsmith.io::ambientAudioEnabled::v2';
 
 const parseStoredValue = (value: string | null): boolean | null => {
   if (value === '1' || value === 'true') {
@@ -86,7 +87,7 @@ export class AmbientAudioPreference {
       options.storage === undefined
         ? getDefaultStorage(this.windowTarget)
         : options.storage;
-    this.storageKey = options.storageKey ?? DEFAULT_STORAGE_KEY;
+    this.storageKey = options.storageKey ?? AMBIENT_AUDIO_STORAGE_KEY;
     this.enabled = this.loadInitialState(options.defaultEnabled ?? false);
 
     if (this.windowTarget) {
@@ -103,6 +104,10 @@ export class AmbientAudioPreference {
     source: AmbientAudioPreferenceChangeSource = 'control'
   ): void {
     if (this.enabled === enabled) {
+      this.persist();
+      if (source === 'control') {
+        this.notify(source);
+      }
       return;
     }
     this.enabled = enabled;
@@ -256,17 +261,19 @@ export const bindAmbientAudioPreference = ({
       return;
     }
     if (change.enabled) {
-      if (change.source === 'control' || controller.isEnabled()) {
+      if (controller.isEnabled()) {
         clearGestureListeners();
+        return;
+      }
+      if (change.source === 'control') {
+        clearGestureListeners();
+        void attemptEnable();
         return;
       }
       scheduleGestureListeners();
       return;
     }
     clearGestureListeners();
-    if (change.source === 'control' || !controller.isEnabled()) {
-      return;
-    }
     controller.disable();
   };
 
