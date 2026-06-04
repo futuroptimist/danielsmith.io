@@ -3362,6 +3362,9 @@ function initializeImmersiveScene(
   updateCameraProjection(aspect);
 
   const handleKeyboardZoom = (event: KeyboardEvent) => {
+    if ((hudPanelCoordinator?.getActivePanel() ?? null) !== null) {
+      return;
+    }
     const direction = getKeyboardZoomDirection(event);
     if (direction === null) {
       return;

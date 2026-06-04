@@ -1,4 +1,8 @@
-import type { Locale, LocaleOverrides } from '../types';
+import type {
+  HelpModalSectionStrings,
+  Locale,
+  LocaleOverrides,
+} from '../types';
 
 type LatinLocale = Extract<Locale, 'es' | 'pt' | 'de' | 'hu'>;
 
@@ -297,6 +301,149 @@ const localizedTemplates: Record<
     dspaceInteractionPrompt: '{title} visszaszámlálás indítása',
   },
 };
+
+function buildLatinHelpSections(
+  locale: LatinLocale
+): readonly HelpModalSectionStrings[] {
+  const copy = {
+    es: {
+      movementTitle: 'Movimiento y cámara',
+      move: 'Mueve al explorador por la casa.',
+      drag: 'Desplaza la cámara isométrica.',
+      wheel: 'Ajusta el nivel de zoom.',
+      keyboardZoom: 'Acerca o aleja sin rueda de ratón.',
+      touch:
+        'Arrastra el pad izquierdo para mover y el derecho para panorámica.',
+      pinch: 'Haz zoom en dispositivos táctiles.',
+      interactionsTitle: 'Interacciones',
+      poi: 'Acércate a los POI luminosos',
+      poiDescription:
+        'Pulsa la tecla de interacción (Enter/Espacio/F), toca o haz clic para abrir la exhibición.',
+      cycle: 'Cambia el foco entre puntos de interés con el teclado.',
+      textMode: 'Alterna entre el modo inmersivo y el respaldo de texto.',
+      lighting:
+        'Compara la iluminación cinematográfica con el pase de depuración.',
+      accessibilityTitle: 'Accesibilidad y respaldo',
+      lowPerformance:
+        'La escena cambia automáticamente al modo texto por debajo de 30 FPS.',
+      manualToggle:
+        'Usa el botón Modo texto en pantalla o pulsa T en cualquier momento.',
+      motionBlur:
+        'Ajusta la intensidad de estelas con Ajustes → Desenfoque de movimiento.',
+      ambientAudio: 'Alterna con el botón Audio o pulsa M.',
+    },
+    pt: {
+      movementTitle: 'Movimento e câmera',
+      move: 'Mova o explorador pela casa.',
+      drag: 'Desloque a câmera isométrica.',
+      wheel: 'Ajuste o nível de zoom.',
+      keyboardZoom: 'Aproxime ou afaste sem roda do mouse.',
+      touch: 'Arraste o pad esquerdo para mover e o direito para panorâmica.',
+      pinch: 'Aplique zoom em dispositivos de toque.',
+      interactionsTitle: 'Interações',
+      poi: 'Aproxime-se dos POIs brilhantes',
+      poiDescription:
+        'Pressione sua tecla de interação (Enter/Espaço/F), toque ou clique para abrir a exibição.',
+      cycle: 'Alterne o foco entre pontos de interesse pelo teclado.',
+      textMode: 'Alterne entre o modo imersivo e o fallback em texto.',
+      lighting:
+        'Compare a iluminação cinematográfica com a passagem de depuração.',
+      accessibilityTitle: 'Acessibilidade e fallback',
+      lowPerformance:
+        'A cena muda automaticamente para o modo texto abaixo de 30 FPS.',
+      manualToggle:
+        'Use o botão Modo texto na tela ou pressione T a qualquer momento.',
+      motionBlur:
+        'Ajuste a força dos rastros em Configurações → Desfoque de movimento.',
+      ambientAudio: 'Alterne com o botão Áudio ou pressione M.',
+    },
+    de: {
+      movementTitle: 'Bewegung & Kamera',
+      move: 'Bewege den Explorer durch das Zuhause.',
+      drag: 'Schwenke die isometrische Kamera.',
+      wheel: 'Passe die Zoomstufe an.',
+      keyboardZoom: 'Zoome ohne Mausrad hinein oder heraus.',
+      touch: 'Ziehe links zum Bewegen und rechts zum Schwenken.',
+      pinch: 'Zoome auf Touch-Geräten per Pinch-Geste.',
+      interactionsTitle: 'Interaktionen',
+      poi: 'Leuchtenden POIs nähern',
+      poiDescription:
+        'Drücke die Interaktionstaste (Enter/Leertaste/F), tippe oder klicke, um das Exponat zu öffnen.',
+      cycle: 'Wechsle den Fokus per Tastatur zwischen Points of Interest.',
+      textMode: 'Wechsle zwischen immersivem Modus und Text-Fallback.',
+      lighting: 'Vergleiche filmische Beleuchtung mit dem Debug-Pass.',
+      accessibilityTitle: 'Barrierefreiheit & Fallback',
+      lowPerformance:
+        'Die Szene wechselt unter 30 FPS automatisch in den Textmodus.',
+      manualToggle: 'Nutze die Schaltfläche Textmodus oder drücke jederzeit T.',
+      motionBlur:
+        'Passe die Spur-Stärke unter Einstellungen → Bewegungsunschärfe an.',
+      ambientAudio: 'Schalte mit der Audio-Schaltfläche um oder drücke M.',
+    },
+    hu: {
+      movementTitle: 'Mozgás és kamera',
+      move: 'Mozgasd a felfedezőt az otthonban.',
+      drag: 'Pásztázd az izometrikus kamerát.',
+      wheel: 'Állítsd a nagyítási szintet.',
+      keyboardZoom: 'Nagyíts vagy kicsinyíts egérgörgő nélkül.',
+      touch: 'A bal paddal mozogj, a jobb paddal pásztázz.',
+      pinch: 'Érintős eszközön csippentéssel nagyíts.',
+      interactionsTitle: 'Interakciók',
+      poi: 'Közelíts a világító POI-khoz',
+      poiDescription:
+        'Nyomd meg az interakciós billentyűt (Enter/Szóköz/F), koppints vagy kattints a kiállítás megnyitásához.',
+      cycle: 'Billentyűzettel válts fókuszt az érdekes pontok között.',
+      textMode: 'Válts az immerzív mód és a szöveges tartalék között.',
+      lighting: 'Hasonlítsd össze a filmes világítást a hibakereső nézettel.',
+      accessibilityTitle: 'Akadálymentesség és tartalék',
+      lowPerformance:
+        'A jelenet 30 FPS alatt automatikusan szöveges módra vált.',
+      manualToggle:
+        'Használd a képernyőn látható Szöveges mód gombot, vagy nyomj T-t.',
+      motionBlur:
+        'Állítsd a csóvák erősségét a Beállítások → Mozgáselmosás vezérlővel.',
+      ambientAudio: 'Kapcsold az Audio gombbal, vagy nyomj M-et.',
+    },
+  }[locale];
+
+  return [
+    {
+      id: 'movement',
+      title: copy.movementTitle,
+      items: [
+        { label: 'WASD / Arrow keys', description: copy.move },
+        { label: 'Mouse drag', description: copy.drag },
+        { label: 'Scroll wheel', description: copy.wheel },
+        {
+          label: 'Shift + = / Shift + -',
+          description: copy.keyboardZoom,
+        },
+        { label: 'Touch joysticks', description: copy.touch },
+        { label: 'Pinch', description: copy.pinch },
+      ],
+    },
+    {
+      id: 'interactions',
+      title: copy.interactionsTitle,
+      items: [
+        { label: copy.poi, description: copy.poiDescription },
+        { label: 'Q / E or ← / →', description: copy.cycle },
+        { label: 'T', description: copy.textMode },
+        { label: 'Shift + L', description: copy.lighting },
+      ],
+    },
+    {
+      id: 'accessibility',
+      title: copy.accessibilityTitle,
+      items: [
+        { label: 'Low performance', description: copy.lowPerformance },
+        { label: 'Manual toggle', description: copy.manualToggle },
+        { label: 'Motion blur slider', description: copy.motionBlur },
+        { label: 'Ambient audio', description: copy.ambientAudio },
+      ],
+    },
+  ];
+}
 
 export function buildLatinLocaleOverrides(
   copy: LatinLocaleCopy
@@ -651,6 +798,7 @@ export function buildLatinLocaleOverrides(
           heading: s.settingsHelp,
           description: s.languageDescription,
         },
+        sections: buildLatinHelpSections(copy.locale),
         announcements: {
           open:
             copy.locale === 'de'

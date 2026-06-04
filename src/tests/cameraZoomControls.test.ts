@@ -4,6 +4,7 @@ import {
   applyCameraZoomStep,
   applyPinchCameraZoom,
   applyWheelCameraZoomStep,
+  clampCameraZoom,
   getKeyboardZoomDirection,
   normalizeWheelDeltaY,
 } from '../systems/camera/zoomControls';
@@ -11,6 +12,12 @@ import {
 const bounds = { minZoom: 0.65, maxZoom: 12 } as const;
 
 describe('camera zoom controls', () => {
+  it('maps non-finite zoom values to safe bounds', () => {
+    expect(clampCameraZoom(Infinity, bounds)).toBe(bounds.maxZoom);
+    expect(clampCameraZoom(-Infinity, bounds)).toBe(bounds.minZoom);
+    expect(clampCameraZoom(Number.NaN, bounds)).toBe(bounds.minZoom);
+  });
+
   it('recognizes Shift+Equal and Shift+Minus from keyboard codes', () => {
     expect(
       getKeyboardZoomDirection(
@@ -27,6 +34,43 @@ describe('camera zoom controls', () => {
           code: 'Minus',
           key: '_',
           shiftKey: true,
+        })
+      )
+    ).toBe(-1);
+  });
+
+  it('recognizes layout-character and numpad zoom shortcuts', () => {
+    expect(
+      getKeyboardZoomDirection(
+        new KeyboardEvent('keydown', {
+          code: 'BracketRight',
+          key: '+',
+          shiftKey: true,
+        })
+      )
+    ).toBe(1);
+    expect(
+      getKeyboardZoomDirection(
+        new KeyboardEvent('keydown', {
+          code: 'Slash',
+          key: '-',
+          shiftKey: true,
+        })
+      )
+    ).toBe(-1);
+    expect(
+      getKeyboardZoomDirection(
+        new KeyboardEvent('keydown', {
+          code: 'NumpadAdd',
+          key: '+',
+        })
+      )
+    ).toBe(1);
+    expect(
+      getKeyboardZoomDirection(
+        new KeyboardEvent('keydown', {
+          code: 'NumpadSubtract',
+          key: '-',
         })
       )
     ).toBe(-1);

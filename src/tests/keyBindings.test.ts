@@ -35,5 +35,13 @@ describe('KeyBindings', () => {
         })
       )
     ).toBe(-1);
+    expect(
+      getKeyboardZoomDirection(
+        new KeyboardEvent('keydown', {
+          code: 'NumpadAdd',
+          key: '+',
+        })
+      )
+    ).toBe(1);
   });
 });

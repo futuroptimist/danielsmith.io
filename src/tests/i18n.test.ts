@@ -274,6 +274,17 @@ describe('i18n utilities', () => {
     expect(japaneseHelp.announcements.close).toBe(
       'ヘルプメニューを閉じました。'
     );
+
+    const spanishHelp = getHelpModalStrings('es');
+    expect(spanishHelp.sections[0]?.title).toBe('Movimiento y cámara');
+    expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
+      'Acerca o aleja sin rueda de ratón.'
+    );
+    const germanHelp = getHelpModalStrings('de');
+    expect(germanHelp.sections[2]?.title).toBe('Barrierefreiheit & Fallback');
+    expect(germanHelp.sections[2]?.items[3]?.description).toBe(
+      'Schalte mit der Audio-Schaltfläche um oder drücke M.'
+    );
   });
 
   it('returns localized POI overlay chrome strings', () => {

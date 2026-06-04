@@ -40,8 +40,12 @@ export function clampCameraZoom(
   value: number,
   bounds: CameraZoomBounds
 ): number {
-  const fallback = bounds.minZoom;
-  const finiteValue = Number.isFinite(value) ? value : fallback;
+  const finiteValue =
+    value === Infinity
+      ? bounds.maxZoom
+      : value === -Infinity || Number.isNaN(value)
+        ? bounds.minZoom
+        : value;
   return MathUtils.clamp(finiteValue, bounds.minZoom, bounds.maxZoom);
 }
 
@@ -149,7 +153,6 @@ export function isTextEntryTarget(target: EventTarget | null): boolean {
 export function getKeyboardZoomDirection(event: KeyboardEvent): 1 | -1 | null {
   if (
     event.defaultPrevented ||
-    !event.shiftKey ||
     event.metaKey ||
     event.ctrlKey ||
     event.altKey ||
@@ -157,10 +160,24 @@ export function getKeyboardZoomDirection(event: KeyboardEvent): 1 | -1 | null {
   ) {
     return null;
   }
-  if (event.code === 'Equal') {
+
+  const isNumpadZoomIn = event.code === 'NumpadAdd' || event.key === 'Add';
+  const isNumpadZoomOut =
+    event.code === 'NumpadSubtract' || event.key === 'Subtract';
+  const isShiftZoomIn =
+    event.shiftKey &&
+    (event.code === 'Equal' || event.key === '+' || event.key === '=');
+  const isShiftZoomOut =
+    event.shiftKey &&
+    (event.code === 'Minus' ||
+      event.key === '-' ||
+      event.key === '_' ||
+      event.key === '−');
+
+  if (isNumpadZoomIn || isShiftZoomIn) {
     return 1;
   }
-  if (event.code === 'Minus') {
+  if (isNumpadZoomOut || isShiftZoomOut) {
     return -1;
   }
   return null;

@@ -232,6 +232,26 @@ test.describe('immersive orthographic zoom', () => {
       beforeTextEntryShortcut.target,
       6
     );
+
+    await page.evaluate(() => {
+      document
+        .querySelector<HTMLInputElement>(
+          '[aria-label="Zoom shortcut test input"]'
+        )
+        ?.remove();
+      document.body.focus();
+    });
+    await page.keyboard.press('c');
+    await expect(page.locator('[data-role="controls-popover"]')).toBeVisible();
+    const beforePanelShortcut = await getCameraZoomState(page);
+    await page.keyboard.down('Shift');
+    await page.keyboard.press('Equal');
+    await page.keyboard.up('Shift');
+    const afterPanelShortcut = await getCameraZoomState(page);
+    expect(afterPanelShortcut.target).toBeCloseTo(
+      beforePanelShortcut.target,
+      6
+    );
   });
 
   test('keeps a single clean immersive canvas while zooming with motion blur disabled', async ({
