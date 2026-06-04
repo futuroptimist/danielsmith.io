@@ -113,19 +113,20 @@ Each floor has its own auto-generated diagram (regenerated locally with
 
 ## Project scripts
 
-| Script                                          | Purpose                                                                |
-| ----------------------------------------------- | ---------------------------------------------------------------------- |
-| `npm run dev`                                   | Start the Vite development server.                                     |
-| `npm run build`                                 | Create a production build (also used by CI smoke tests).               |
-| `npm run preview`                               | Preview the production build locally.                                  |
-| `npm run lint`                                  | Run ESLint on the TypeScript sources.                                  |
-| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting.                                    |
-| `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                              |
-| `npm run typecheck`                             | Type-check with TypeScript without emitting files.                     |
-| `npm run docs:check`                            | Ensure required docs (including Codex prompts) exist.                  |
-| `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
-| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
-| `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
+| Script                                          | Purpose                                                                    |
+| ----------------------------------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`                                   | Start the Vite development server.                                         |
+| `npm run build`                                 | Create a production build (also used by CI smoke tests).                   |
+| `npm run preview`                               | Preview the production build locally.                                      |
+| `npm run lint`                                  | Run ESLint on the TypeScript sources.                                      |
+| `npm run format:check` / `npm run format:write` | Check or apply Prettier formatting.                                        |
+| `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                                  |
+| `npm run typecheck`                             | Type-check with TypeScript without emitting files.                         |
+| `npm run docs:check`                            | Ensure required docs exist and run POI/docs link validation.               |
+| `npm run links:check`                           | Validate POI and README/docs links with HTTP checks and allowlisted skips. |
+| `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs.     |
+| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.                |
+| `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details.     |
 
 ### Local quality gates
 
@@ -151,7 +152,7 @@ lightweight.
 - **Visual smoke thresholds** – [`playwright.config.ts`](playwright.config.ts) loads [`VISUAL_SMOKE_DIFF_BUDGET`](src/assets/performance.ts#L37-L45) so `expect().toHaveScreenshot` allows at most a 0.015 diff ratio or 1,200 differing pixels.
 - **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) touches every POI and HUD overlay using keyboard-only input. Use `npm run test:e2e -- --grep traversal` to run just that macro when iterating.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
-- **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage.
+- **Docs validation** – `npm run docs:check` enforces prompt, roadmap, architecture, and link coverage. `npm run links:check` scans POI locale data plus README/docs Markdown, validates URL syntax/local targets, and probes external HTTP(S) links with HEAD/GET fallback and narrowly documented allowlist skips.
 - **Launch smoke** – `npm run smoke` builds once, validates bundled output references, and reports
   manual static binary assets (resume/favicon) as warnings by default.
 - **Strict manual static verification** – run `REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke` after
@@ -169,12 +170,13 @@ lightweight.
 
 ## Auto-generated assets
 
-| Script                      | Output                        | Refresh trigger                                                                                     |
-| --------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------- |
-| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg` | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges.   |
-| `npm run launch:screenshot` | `docs/assets/game-launch.png` | Review-only local capture for lighting, camera, or HUD shifts; do not commit this CI-owned output.  |
-| `npm run smoke`             | `dist/index.html` + assets    | Verifies built JS/CSS references resolve and reports missing manual binary runtime assets.          |
-| `npm run press-kit`         | `docs/assets/press-kit.json`  | Refresh after updating POI copy, performance budgets, or media listings to keep the export current. |
+| Script                      | Output                                                                     | Refresh trigger                                                                                     |
+| --------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run floorplan:diagram` | `docs/assets/floorplan-*.svg`                                              | Run after editing layout data in `src/assets/floorplan/**`. CI regenerates diagrams after merges.   |
+| `npm run launch:screenshot` | `docs/assets/game-launch.png`                                              | Review-only local capture for lighting, camera, or HUD shifts; do not commit this CI-owned output.  |
+| `npm run links:check`       | Validate POI and README/docs links with HTTP checks and allowlisted skips. |
+| `npm run smoke`             | `dist/index.html` + assets                                                 | Verifies built JS/CSS references resolve and reports missing manual binary runtime assets.          |
+| `npm run press-kit`         | `docs/assets/press-kit.json`                                               | Refresh after updating POI copy, performance budgets, or media listings to keep the export current. |
 
 Keep pipelines deterministic by regenerating committable assets immediately after touching geometry
 or layout data. `docs/assets/game-launch.png` is the exception: use

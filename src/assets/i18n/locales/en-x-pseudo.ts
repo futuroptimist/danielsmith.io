@@ -463,7 +463,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.'
       ),
       metrics: [
-        { label: wrap('Stars'), value: wrap('1,280+') },
+        { label: wrap('Stars'), value: wrap('Syncing from GitHub…') },
         {
           label: wrap('Workflow'),
           value: wrap('Resolve-style edit suite · triple display'),

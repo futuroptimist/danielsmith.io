@@ -524,23 +524,23 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'futuroptimist-living-room-tv': {
       title: 'Futuroptimist',
       summary:
-        'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.',
+        'Futuroptimist organization showcase for Daniel Smith projects and automation experiments.',
       outcome: {
         label: 'Outcome',
         value:
-          'Keeps weekly highlight scripts flowing from the automation pipeline without manual formatting.',
+          'Keeps the public GitHub organization linked without inventing a separate docs site.',
       },
       metrics: [
         {
           label: 'Stars',
-          value: '1,280+',
+          value: 'Syncing from GitHub…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} stars',
-            fallback: '1,280+',
+            fallback: 'Syncing from GitHub…',
           },
         },
         {
@@ -549,10 +549,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         { label: 'Focus', value: 'Futuroptimist ecosystem reels in progress' },
       ],
-      links: [
-        { label: 'GitHub', href: 'https://github.com/futuroptimist' },
-        { label: 'Docs', href: 'https://futuroptimist.dev' },
-      ],
+      links: [{ label: 'GitHub', href: 'https://github.com/futuroptimist' }],
       narration: {
         caption:
           'Futuroptimist media wall radiates highlight reels across the living room.',
@@ -561,7 +558,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'tokenplace-studio-cluster': {
       title: 'token.place',
       summary:
-        'Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.',
+        'Peer-to-peer generative AI platform that matches LLM users with volunteers donating spare compute.',
       outcome: {
         label: 'Outcome',
         value:
@@ -580,8 +577,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Cluster', value: '12× Pi 5 nodes in modular bays' },
-        { label: 'Network', value: 'Ephemeral tokens · encrypted bursts' },
+        {
+          label: 'Network',
+          value: 'Relay and server services for shared compute',
+        },
+        { label: 'Docs', value: 'README covers local and container workflows' },
       ],
       links: [
         { label: 'Site', href: 'https://token.place' },
@@ -594,7 +594,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'gabriel-studio-sentry': {
       title: 'Gabriel',
       summary:
-        'Privacy-first "guardian angel" LLM that delivers local security coaching and integrates with token.place or offline inference.',
+        'Guardian-angel LLM that monitors threat intelligence and nudges safer digital hygiene in real time.',
       outcome: {
         label: 'Outcome',
         value:
@@ -613,8 +613,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Focus', value: '360° lidar sweep + local heuristics' },
-        { label: 'Cadence', value: 'Red alert flash every 1.0 s' },
+        {
+          label: 'Focus',
+          value: 'Threat-intel monitoring and digital-hygiene nudges',
+        },
+        {
+          label: 'Stack',
+          value: 'token.place integration and offline inference paths',
+        },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/gabriel' },
@@ -647,14 +653,13 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           label: 'Automation',
           value: 'CI scaffolds · typed prompts · QA loops',
         },
-        { label: 'Docs CTA', value: 'flywheel.futuroptimist.dev →' },
+        { label: 'Docs', value: 'README and Codex prompt libraries' },
       ],
       links: [
         {
           label: 'Flywheel Repo',
           href: 'https://github.com/futuroptimist/flywheel',
         },
-        { label: 'Docs', href: 'https://flywheel.futuroptimist.dev' },
       ],
       narration: {
         caption:
@@ -701,10 +706,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         {
           label: 'GitHub',
           href: 'https://github.com/futuroptimist/jobbot3000',
-        },
-        {
-          label: 'Automation Log',
-          href: 'https://futuroptimist.dev/automation',
         },
       ],
       narration: {
@@ -758,8 +759,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Material', value: '42 mm Gridfinity compatible blocks' },
-        { label: 'Sync', value: 'Auto generated from GitHub timelines' },
+        { label: 'Output', value: 'OpenSCAD and STL models' },
+        {
+          label: 'Use',
+          value: '3D-printed Gridfinity-style contribution shelves',
+        },
       ],
       links: [
         {
@@ -779,14 +783,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       metrics: [
         {
           label: 'Stars',
-          value: '1,280+',
+          value: 'Syncing from GitHub…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} stars',
-            fallback: '1,280+',
+            fallback: 'Syncing from GitHub…',
           },
         },
         { label: 'Stack', value: 'Vite · Three.js · accessibility HUD' },
@@ -822,8 +826,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Speed', value: 'Copy failing logs in under 3 s' },
-        { label: 'Formats', value: 'CLI + clipboard + Markdown output' },
+        {
+          label: 'Use',
+          value: 'Bulk-paste multi-file prompts into LLM chat UIs',
+        },
+        { label: 'Formats', value: 'Clipboard-ready selected file bundles' },
       ],
       links: [
         {
@@ -893,11 +900,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'dspace-backyard-rocket': {
       title: 'DSPACE',
       summary:
-        'Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.',
+        'Free, open-source web-based space-exploration idle game about building, questing, and reaching orbit.',
       outcome: {
         label: 'Outcome',
         value:
-          'Maintains countdown sequencing notes alongside GitHub and mission log links while the repo remains private.',
+          'Links to the public Democratized Space repository and play/docs site documented in its README.',
       },
       metrics: [
         {
@@ -905,27 +912,27 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           value: 'Syncing from GitHub…',
           source: {
             type: 'githubStars',
-            owner: 'futuroptimist',
+            owner: 'democratizedspace',
             repo: 'dspace',
-            visibility: 'private',
             format: 'compact',
             template: '{value} stars',
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Countdown', value: 'Autonomous T-0 sequencing' },
-        { label: 'Stack', value: 'Three.js FX · Spatial audio' },
+        { label: 'Game', value: 'Resource management · quests · exploration' },
+        { label: 'Docs', value: 'Developer, content, and operations guides' },
       ],
       links: [
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/dspace' },
         {
-          label: 'Mission Log',
-          href: 'https://futuroptimist.dev/projects/dspace',
+          label: 'GitHub',
+          href: 'https://github.com/democratizedspace/dspace',
         },
+        { label: 'Play', href: 'https://democratized.space' },
+        { label: 'Docs', href: 'https://democratized.space/docs' },
       ],
       narration: {
         caption:
-          'dSpace launch pad crackles with countdown energy beside the backyard path.',
+          'DSPACE launch pad crackles with space-exploration energy beside the backyard path.',
         durationMs: 6000,
       },
       interactionPrompt: 'Launch {title} countdown',
@@ -986,8 +993,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sugarkube' },
         {
-          label: 'Greenhouse Log',
-          href: 'https://futuroptimist.dev/projects/sugarkube',
+          label: 'Docs',
+          href: 'https://github.com/futuroptimist/sugarkube/tree/main/docs',
         },
       ],
       narration: {

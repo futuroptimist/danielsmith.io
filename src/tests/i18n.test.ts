@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -24,6 +26,24 @@ import {
   resolveLocale,
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
+
+const require = createRequire(import.meta.url);
+type CollectedLink = { href: string; filePath: string; line: number };
+
+const linkChecker = require('../../scripts/check-links.cjs') as {
+  ALLOWED_SCHEMES: Set<string>;
+  collectLinks: () => CollectedLink[];
+  collectMarkdownLinks: () => CollectedLink[];
+  collectPoiLinks: () => CollectedLink[];
+  validateStaticLink: (link: CollectedLink) => string | null;
+};
+const {
+  ALLOWED_SCHEMES,
+  collectLinks,
+  collectMarkdownLinks,
+  collectPoiLinks,
+  validateStaticLink,
+} = linkChecker;
 
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
@@ -128,6 +148,47 @@ describe('i18n utilities', () => {
       'Open menu'
     );
     expect(formatMessage('Hold {missing}', {})).toBe('Hold {missing}');
+  });
+
+  it('keeps DSPACE POI links grounded without the removed Mission Log URL', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+
+      expect(dspace, `${locale} DSPACE POI exists`).toBeDefined();
+      expect(dspace?.title).toBe('DSPACE');
+      expect(dspace?.links ?? []).not.toContainEqual({
+        label: 'Mission Log',
+        href: 'https://futuroptimist.dev/projects/dspace',
+      });
+      expect(dspace?.links?.map((link) => link.href) ?? []).not.toContain(
+        'https://futuroptimist.dev/projects/dspace'
+      );
+    }
+  });
+
+  it('statically validates all POI link schemes', () => {
+    const poiLinks = collectPoiLinks();
+
+    expect(poiLinks.length).toBeGreaterThan(0);
+    for (const link of poiLinks) {
+      const parsed = new URL(link.href);
+
+      expect(ALLOWED_SCHEMES.has(parsed.protocol), link.href).toBe(true);
+      expect(
+        validateStaticLink(link),
+        `${link.filePath}:${link.line}`
+      ).toBeNull();
+    }
+  });
+
+  it('collects both POI locale links and README/docs links for CI validation', () => {
+    expect(collectPoiLinks().length).toBeGreaterThan(0);
+    expect(collectMarkdownLinks().length).toBeGreaterThan(0);
+    expect(collectLinks().length).toBeGreaterThan(
+      collectPoiLinks().length + collectMarkdownLinks().length - 1
+    );
   });
 
   it('localizes POI definitions per call without mutating previous copies', () => {

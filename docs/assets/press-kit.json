@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2026-06-02T17:25:49.601Z",
+  "generatedAtIso": "2026-06-04T03:18:04.938Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -91,7 +91,7 @@
     {
       "id": "futuroptimist-living-room-tv",
       "title": "Futuroptimist",
-      "summary": "Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.",
+      "summary": "Futuroptimist organization showcase for Daniel Smith projects and automation experiments.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -102,14 +102,14 @@
       "metrics": [
         {
           "label": "Stars",
-          "value": "1,280+",
+          "value": "Syncing from GitHub…",
           "source": {
             "type": "githubStars",
             "owner": "futuroptimist",
             "repo": "danielsmith.io",
             "format": "compact",
             "template": "{value} stars",
-            "fallback": "1,280+"
+            "fallback": "Syncing from GitHub…"
           }
         },
         {
@@ -125,10 +125,6 @@
         {
           "label": "GitHub",
           "href": "https://github.com/futuroptimist"
-        },
-        {
-          "label": "Docs",
-          "href": "https://futuroptimist.dev"
         }
       ],
       "footprint": {
@@ -140,7 +136,7 @@
     {
       "id": "tokenplace-studio-cluster",
       "title": "token.place",
-      "summary": "Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.",
+      "summary": "Peer-to-peer generative AI platform that matches LLM users with volunteers donating spare compute.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -162,12 +158,12 @@
           }
         },
         {
-          "label": "Cluster",
-          "value": "12× Pi 5 nodes in modular bays"
+          "label": "Network",
+          "value": "Relay and server services for shared compute"
         },
         {
-          "label": "Network",
-          "value": "Ephemeral tokens · encrypted bursts"
+          "label": "Docs",
+          "value": "README covers local and container workflows"
         }
       ],
       "links": [
@@ -189,7 +185,7 @@
     {
       "id": "gabriel-studio-sentry",
       "title": "Gabriel",
-      "summary": "Privacy-first \"guardian angel\" LLM that delivers local security coaching and integrates with token.place or offline inference.",
+      "summary": "Guardian-angel LLM that monitors threat intelligence and nudges safer digital hygiene in real time.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -212,11 +208,11 @@
         },
         {
           "label": "Focus",
-          "value": "360° lidar sweep + local heuristics"
+          "value": "Threat-intel monitoring and digital-hygiene nudges"
         },
         {
-          "label": "Cadence",
-          "value": "Red alert flash every 1.0 s"
+          "label": "Stack",
+          "value": "token.place integration and offline inference paths"
         }
       ],
       "links": [
@@ -260,18 +256,14 @@
           "value": "CI scaffolds · typed prompts · QA loops"
         },
         {
-          "label": "Docs CTA",
-          "value": "flywheel.futuroptimist.dev →"
+          "label": "Docs",
+          "value": "README and Codex prompt libraries"
         }
       ],
       "links": [
         {
           "label": "Flywheel Repo",
           "href": "https://github.com/futuroptimist/flywheel"
-        },
-        {
-          "label": "Docs",
-          "href": "https://flywheel.futuroptimist.dev"
         }
       ],
       "footprint": {
@@ -321,10 +313,6 @@
         {
           "label": "GitHub",
           "href": "https://github.com/futuroptimist/jobbot3000"
-        },
-        {
-          "label": "Automation Log",
-          "href": "https://futuroptimist.dev/automation"
         }
       ],
       "footprint": {
@@ -395,12 +383,12 @@
           }
         },
         {
-          "label": "Material",
-          "value": "42 mm Gridfinity compatible blocks"
+          "label": "Output",
+          "value": "OpenSCAD and STL models"
         },
         {
-          "label": "Sync",
-          "value": "Auto generated from GitHub timelines"
+          "label": "Use",
+          "value": "3D-printed Gridfinity-style contribution shelves"
         }
       ],
       "links": [
@@ -429,14 +417,14 @@
       "metrics": [
         {
           "label": "Stars",
-          "value": "1,280+",
+          "value": "Syncing from GitHub…",
           "source": {
             "type": "githubStars",
             "owner": "futuroptimist",
             "repo": "danielsmith.io",
             "format": "compact",
             "template": "{value} stars",
-            "fallback": "1,280+"
+            "fallback": "Syncing from GitHub…"
           }
         },
         {
@@ -489,12 +477,12 @@
           }
         },
         {
-          "label": "Speed",
-          "value": "Copy failing logs in under 3 s"
+          "label": "Use",
+          "value": "Bulk-paste multi-file prompts into LLM chat UIs"
         },
         {
           "label": "Formats",
-          "value": "CLI + clipboard + Markdown output"
+          "value": "Clipboard-ready selected file bundles"
         }
       ],
       "links": [
@@ -602,7 +590,7 @@
     {
       "id": "dspace-backyard-rocket",
       "title": "DSPACE",
-      "summary": "Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.",
+      "summary": "Free, open-source web-based space-exploration idle game about building, questing, and reaching orbit.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -616,31 +604,34 @@
           "value": "Syncing from GitHub…",
           "source": {
             "type": "githubStars",
-            "owner": "futuroptimist",
+            "owner": "democratizedspace",
             "repo": "dspace",
-            "visibility": "private",
             "format": "compact",
             "template": "{value} stars",
             "fallback": "Syncing from GitHub…"
           }
         },
         {
-          "label": "Countdown",
-          "value": "Autonomous T-0 sequencing"
+          "label": "Game",
+          "value": "Resource management · quests · exploration"
         },
         {
-          "label": "Stack",
-          "value": "Three.js FX · Spatial audio"
+          "label": "Docs",
+          "value": "Developer, content, and operations guides"
         }
       ],
       "links": [
         {
           "label": "GitHub",
-          "href": "https://github.com/futuroptimist/dspace"
+          "href": "https://github.com/democratizedspace/dspace"
         },
         {
-          "label": "Mission Log",
-          "href": "https://futuroptimist.dev/projects/dspace"
+          "label": "Play",
+          "href": "https://democratized.space"
+        },
+        {
+          "label": "Docs",
+          "href": "https://democratized.space/docs"
         }
       ],
       "footprint": {
@@ -725,8 +716,8 @@
           "href": "https://github.com/futuroptimist/sugarkube"
         },
         {
-          "label": "Greenhouse Log",
-          "href": "https://futuroptimist.dev/projects/sugarkube"
+          "label": "Docs",
+          "href": "https://github.com/futuroptimist/sugarkube/tree/main/docs"
         }
       ],
       "footprint": {

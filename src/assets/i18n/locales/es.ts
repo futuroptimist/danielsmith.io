@@ -43,9 +43,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
   poi: {
     futuroptimist: {
       summary:
-        'Mesa automatizada de guiones de Futuroptimist que une investigación, esquemas y borradores listos para narración.',
+        'Escaparate de la organización Futuroptimist para proyectos y experimentos de automatización de Daniel Smith.',
       outcome:
-        'Mantiene fluyendo los guiones semanales desde la canalización de automatización sin formato manual.',
+        'Mantiene enlazada la organización pública de GitHub sin inventar un sitio de docs separado.',
       metrics: [
         'Flujo',
         'Suite de edición estilo Resolve · triple pantalla',
@@ -85,8 +85,8 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       metrics: [
         'Automatización',
         'Andamios CI · prompts tipados · bucles QA',
-        'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Docs',
+        'README y bibliotecas de prompts Codex',
       ],
     },
     jobbot: {
@@ -183,10 +183,10 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       outcome:
         'Mantiene notas de secuencia de cuenta atrás junto a enlaces de GitHub y bitácora mientras el repo sigue privado.',
       metrics: [
-        'Cuenta atrás',
+        'Juego',
         'Secuencia T-0 autónoma',
         'Stack',
-        'Three.js FX · audio espacial',
+        'Guías de desarrollo, contenido y operaciones',
       ],
     },
     prReaper: {

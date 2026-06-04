@@ -43,7 +43,7 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
   poi: {
     futuroptimist: {
       summary:
-        'Automatisierter Futuroptimist-Skripttisch, der Recherche, Gliederungen und sprechfertige Entwürfe verbindet.',
+        'Futuroptimist-Organisationsschaufenster für Daniel Smiths Projekte und Automatisierungsexperimente.',
       outcome:
         'Hält wöchentliche Highlight-Skripte ohne manuelle Formatierung in der Automatisierungspipeline.',
       metrics: [
@@ -85,8 +85,8 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       metrics: [
         'Automatisierung',
         'CI-Scaffolds · typisierte Prompts · QA-Schleifen',
-        'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Docs',
+        'README und Codex-Prompt-Bibliotheken',
       ],
     },
     jobbot: {
@@ -178,12 +178,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Startgerüst im Garten für DSPACE mit telemetriegeführten Countdown-Hinweisen und öffentlichem Missionslog.',
+        'Startgerüst im Garten für DSPACE mit telemetriegeführten Spiel-Hinweisen und öffentlichem Missionslog.',
       outcome:
-        'Pflegt Countdown-Notizen neben GitHub- und Missionslog-Links, während das Repo privat bleibt.',
+        'Pflegt Spiel-Notizen neben GitHub- und Missionslog-Links, während das Repo privat bleibt.',
       metrics: [
-        'Countdown',
-        'Autonome T-0-Sequenzierung',
+        'Spiel',
+        'Ressourcenmanagement · Quests · Erkundung',
         'Stack',
         'Three.js FX · Spatial Audio',
       ],
