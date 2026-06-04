@@ -7,7 +7,9 @@ export type KeyBindingAction =
   | 'moveRight'
   | 'interact'
   | 'help'
-  | 'toggleControls';
+  | 'toggleControls'
+  | 'zoomIn'
+  | 'zoomOut';
 
 export type KeyBindingConfig = Partial<
   Record<KeyBindingAction, readonly string[]>
@@ -31,6 +33,8 @@ export const DEFAULT_KEY_BINDINGS: Record<KeyBindingAction, readonly string[]> =
     interact: ['Enter', 'f', ' '],
     help: ['h', '?'],
     toggleControls: ['c'],
+    zoomIn: ['Shift+Equal'],
+    zoomOut: ['Shift+Minus'],
   };
 
 type ActionEntries = [KeyBindingAction, readonly string[]];
@@ -180,6 +184,12 @@ export function formatKeyLabel(key: string | null | undefined): string {
   }
   if (key.length === 1) {
     return key.toUpperCase();
+  }
+  if (key === 'Shift+Equal') {
+    return 'Shift + = / +';
+  }
+  if (key === 'Shift+Minus') {
+    return 'Shift + - / _';
   }
   if (key.startsWith('Arrow')) {
     const direction = key.slice('Arrow'.length);

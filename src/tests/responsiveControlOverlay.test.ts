@@ -13,6 +13,10 @@ const createStrings = (heading = 'Controls'): ControlOverlayStrings => ({
     keyboardMove: { keys: 'WASD / Arrow keys', description: 'Move' },
     pointerDrag: { keys: 'Left mouse button', description: 'Drag to pan' },
     pointerZoom: { keys: 'Scroll wheel', description: 'Zoom' },
+    keyboardZoom: {
+      keys: 'Shift + = / Shift + -',
+      description: 'Keyboard zoom',
+    },
     touchDrag: { keys: 'Touch', description: 'Drag to move and pan' },
     touchPinch: { keys: 'Pinch', description: 'Zoom' },
     cyclePoi: { keys: 'Q / E', description: 'Cycle POIs' },
@@ -439,5 +443,7 @@ describe('createResponsiveControlOverlay', () => {
 
   it('represents the controls popover shortcut in the key binding model', () => {
     expect(DEFAULT_KEY_BINDINGS.toggleControls).toEqual(['c']);
+    expect(DEFAULT_KEY_BINDINGS.zoomIn).toEqual(['Shift+Equal']);
+    expect(DEFAULT_KEY_BINDINGS.zoomOut).toEqual(['Shift+Minus']);
   });
 });

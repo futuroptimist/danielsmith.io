@@ -335,7 +335,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
               label: 'سحب الفأرة',
               description: 'قم بتدوير الكاميرا متساوية القياس.',
             },
-            { label: 'عجلة التمرير', description: 'اضبط مستوى التكبير.' },
+            {
+              label: 'عجلة التمرير / لوحة التتبع',
+              description: 'اضبط مستوى التكبير.',
+            },
+            {
+              label: 'Shift + = / Shift + -',
+              description: 'كبّر أو صغّر باستخدام لوحة المفاتيح.',
+            },
             {
               label: 'عصا اللمس',
               description: 'اسحب اليسار للحركة واليمين للدوران.',

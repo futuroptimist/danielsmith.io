@@ -15,10 +15,12 @@ describe('KeyBindings', () => {
     expect(bindings.getBindings('interact')).toEqual(['f', ' ']);
   });
 
-  it('surfaces multi-key defaults for the interact binding', () => {
+  it('surfaces multi-key defaults for the interact and zoom bindings', () => {
     const bindings = new KeyBindings();
 
     expect(bindings.getBindings('interact')).toEqual(['Enter', 'f', ' ']);
+    expect(bindings.getBindings('zoomIn')).toEqual(['Shift+Equal']);
+    expect(bindings.getBindings('zoomOut')).toEqual(['Shift+Minus']);
     expect(bindings.getPrimaryBinding('interact')).toBe('Enter');
 
     bindings.reset('interact');
@@ -93,6 +95,8 @@ describe('formatKeyLabel', () => {
     expect(formatKeyLabel('ArrowUp')).toBe('Arrow Up');
     expect(formatKeyLabel(' ')).toBe('Space');
     expect(formatKeyLabel('Shift')).toBe('Shift');
+    expect(formatKeyLabel('Shift+Equal')).toBe('Shift + = / +');
+    expect(formatKeyLabel('Shift+Minus')).toBe('Shift + - / _');
     expect(formatKeyLabel(undefined)).toBe('');
   });
 });

@@ -178,6 +178,40 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: wrap('Controls'),
+      items: {
+        keyboardMove: {
+          keys: 'WASD / Arrow keys',
+          description: wrap('Move'),
+        },
+        pointerDrag: {
+          keys: wrap('Left mouse button'),
+          description: wrap('Drag to pan'),
+        },
+        pointerZoom: {
+          keys: wrap('Scroll wheel / trackpad'),
+          description: wrap('Zoom'),
+        },
+        keyboardZoom: {
+          keys: 'Shift + = / Shift + -',
+          description: wrap('Keyboard zoom'),
+        },
+        touchDrag: {
+          keys: wrap('Touch'),
+          description: wrap('Left pad to move · right pad to pan'),
+        },
+        touchPinch: {
+          keys: wrap('Pinch'),
+          description: wrap('Zoom'),
+        },
+        cyclePoi: {
+          keys: 'Q / E',
+          description: wrap('Cycle POIs'),
+        },
+        toggleTextMode: {
+          keys: 'T',
+          description: wrap('Switch to text mode'),
+        },
+      },
       interact: {
         defaultLabel: wrap('Enter'),
         description: wrap('Interact'),

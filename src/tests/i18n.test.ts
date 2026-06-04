@@ -244,6 +244,19 @@ describe('i18n utilities', () => {
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(
       englishOverlay.items.keyboardMove.keys
     );
+    expect(englishOverlay.items.keyboardZoom.keys).toBe(
+      'Shift + = / Shift + -'
+    );
+    expect(pseudoOverlay.items.keyboardZoom.description).toBe(
+      '⟦Keyboard zoom⟧'
+    );
+    const englishHelp = getHelpModalStrings('en');
+    expect(
+      englishHelp.sections
+        .find((section) => section.id === 'movement')
+        ?.items.some((item) => item.label === 'Shift + = / Shift + -')
+    ).toBe(true);
+
     const helpModal = getHelpModalStrings('en-x-pseudo');
     expect(helpModal.closeLabel).toBe('⟦Close⟧');
     expect(helpModal.announcements.open).toBe(

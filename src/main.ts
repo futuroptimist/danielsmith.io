@@ -108,6 +108,13 @@ import {
 } from './scene/avatar/variants';
 import { resolveInitialAvatarCameraFraming } from './scene/camera/initialFraming';
 import {
+  applyCameraPinchZoom,
+  applyCameraWheelZoom,
+  applyCameraZoomStep,
+  clampCameraZoomTarget,
+  type CameraZoomSource,
+} from './scene/camera/zoomControls';
+import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
@@ -533,7 +540,6 @@ const CAMERA_ZOOM_SMOOTHING = 6;
 const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 12;
-const CAMERA_ZOOM_WHEEL_SENSITIVITY = 0.0018;
 const MANNEQUIN_YAW_SMOOTHING = 8;
 const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
@@ -2563,6 +2569,8 @@ function initializeImmersiveScene(
     'interact',
     'help',
     'toggleControls',
+    'zoomIn',
+    'zoomOut',
   ];
   const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
 
@@ -3316,8 +3324,25 @@ function initializeImmersiveScene(
   updatePlayerVerticalPosition();
   document.documentElement.dataset.activeFloor = activeFloorId;
 
+  const cameraZoomBounds = {
+    minZoom: MIN_CAMERA_ZOOM,
+    maxZoom: MAX_CAMERA_ZOOM,
+  };
+
   const setCameraZoomTarget = (next: number) => {
-    cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    cameraZoomTarget = clampCameraZoomTarget(next, cameraZoomBounds);
+  };
+
+  const applyCameraZoomStepTarget = (
+    direction: 1 | -1,
+    source: CameraZoomSource
+  ) => {
+    void source;
+    cameraZoomTarget = applyCameraZoomStep(
+      cameraZoomTarget,
+      direction,
+      cameraZoomBounds
+    );
   };
 
   const updateCameraPanLimits = (aspect: number) => {
@@ -3371,9 +3396,34 @@ function initializeImmersiveScene(
 
   const handleWheelZoom = (event: WheelEvent) => {
     event.preventDefault();
-    setCameraZoomTarget(
-      cameraZoomTarget - event.deltaY * CAMERA_ZOOM_WHEEL_SENSITIVITY
+    cameraZoomTarget = applyCameraWheelZoom(
+      cameraZoomTarget,
+      event,
+      cameraZoomBounds
     );
+  };
+
+  const handleKeyboardZoom = (event: KeyboardEvent) => {
+    if (
+      event.defaultPrevented ||
+      !event.shiftKey ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      isTextEntryTarget(event.target)
+    ) {
+      return;
+    }
+
+    const direction =
+      event.code === 'Equal' ? 1 : event.code === 'Minus' ? -1 : 0;
+    if (direction === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    idleMonitor?.reportActivity();
+    applyCameraZoomStepTarget(direction, 'keyboard');
   };
 
   const handlePointerDownForZoom = (event: PointerEvent) => {
@@ -3416,11 +3466,14 @@ function initializeImmersiveScene(
       pinchStartZoomTarget = cameraZoomTarget;
       return;
     }
-    const scale = distance / pinchStartDistance;
-    if (!isFinite(scale) || scale <= 0) {
-      return;
-    }
-    setCameraZoomTarget(pinchStartZoomTarget * scale);
+    setCameraZoomTarget(
+      applyCameraPinchZoom(
+        pinchStartZoomTarget,
+        pinchStartDistance,
+        distance,
+        cameraZoomBounds
+      )
+    );
   };
 
   const handlePointerEndForZoom = (event: PointerEvent) => {
@@ -3499,6 +3552,7 @@ function initializeImmersiveScene(
   renderer.domElement.addEventListener('wheel', handleWheelZoom, {
     passive: false,
   });
+  window.addEventListener('keydown', handleKeyboardZoom);
   renderer.domElement.addEventListener('pointerdown', handlePointerDownForZoom);
   renderer.domElement.addEventListener(
     'pointerdown',
@@ -4619,6 +4673,7 @@ function initializeImmersiveScene(
       footstepAudioController = null;
     }
     renderer.domElement.removeEventListener('wheel', handleWheelZoom);
+    window.removeEventListener('keydown', handleKeyboardZoom);
     renderer.domElement.removeEventListener(
       'pointerdown',
       handlePointerDownForZoom

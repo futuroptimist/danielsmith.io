@@ -446,7 +446,11 @@ export function buildLatinLocaleOverrides(
           pointerDrag: {
             description: templates.pointerDrag,
           },
-          pointerZoom: { description: 'Zoom' },
+          pointerZoom: { keys: 'Scroll / trackpad', description: 'Zoom' },
+          keyboardZoom: {
+            keys: 'Shift + = / Shift + -',
+            description: 'Keyboard zoom',
+          },
           touchDrag: {
             description: templates.touchDrag,
           },
