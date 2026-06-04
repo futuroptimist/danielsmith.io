@@ -62,6 +62,13 @@ export class AmbientCaptionBridge {
     this.now = now;
   }
 
+  clear(): void {
+    for (const id of this.states.keys()) {
+      this.subtitles.clear(`ambient-${id}`);
+    }
+    this.states.clear();
+  }
+
   update(): void {
     const snapshots = this.controller.getBedSnapshots();
     const snapshotIds = new Set<string>();

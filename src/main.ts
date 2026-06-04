@@ -262,6 +262,7 @@ import {
   type AmbientAudioSource,
 } from './systems/audio/ambientAudio';
 import {
+  AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
   AmbientAudioPreference,
   bindAmbientAudioPreference,
   type AmbientAudioPreferenceBindingHandle,
@@ -475,6 +476,25 @@ declare global {
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
       githubMetrics?: {
         getDiagnostics(): GitHubRepoStatsDiagnostics;
+      };
+      audio?: {
+        getState(): {
+          preferenceEnabled: boolean;
+          ambientEnabled: boolean;
+          ambientSourcesPlaying: { count: number; ids: string[] };
+          ambientBedVolumes: Array<{
+            id: string;
+            currentVolume: number;
+            targetVolume: number;
+          }>;
+          footstepEnabled: boolean;
+          footstepPlaying: boolean;
+          masterVolume: number;
+          baseVolume: number;
+          audioContextState: string | null;
+          storageKeyVersion: 'v2';
+          activeStorageKey: string;
+        };
       };
       graphics?: {
         getMotionBlurIntensity(): number;
@@ -1023,6 +1043,7 @@ function initializeImmersiveScene(
   let setAmbientAudioVolume = (volume: number) => {
     ambientAudioController?.setMasterVolume(volume);
   };
+  let runtimeAudioEnabled = false;
 
   let localeStorage: Storage | undefined;
   try {
@@ -1041,6 +1062,107 @@ function initializeImmersiveScene(
       ambientAudioStorage = undefined;
     }
   }
+
+  const ensureAmbientAudioPreference = (): AmbientAudioPreference => {
+    if (!ambientAudioPreference) {
+      ambientAudioPreference = new AmbientAudioPreference({
+        storage: ambientAudioStorage ?? null,
+        windowTarget: window,
+      });
+    }
+    return ambientAudioPreference;
+  };
+
+  const stopFootstepAudio = () => {
+    if (footstepAudio?.isPlaying) {
+      footstepAudio.stop();
+    }
+    footstepAudio?.setVolume(0);
+  };
+
+  const clearAmbientCaptions = () => {
+    ambientCaptionBridge?.clear();
+    const currentCaption = audioSubtitles?.getCurrent();
+    if (currentCaption?.source === 'ambient') {
+      audioSubtitles?.clear(currentCaption.id);
+    }
+  };
+
+  const disableRuntimeAudio = (persist: boolean) => {
+    ambientAudioController?.disable();
+    footstepAudioController?.setEnabled(false);
+    stopFootstepAudio();
+    clearAmbientCaptions();
+    runtimeAudioEnabled = false;
+    if (persist) {
+      ensureAmbientAudioPreference().setEnabled(false, 'control');
+    }
+    audioHudHandle?.refresh();
+  };
+
+  const setRuntimeAudioEnabled = async (enabled: boolean, persist = true) => {
+    if (!enabled) {
+      disableRuntimeAudio(persist);
+      return;
+    }
+
+    if (!ambientAudioController) {
+      return;
+    }
+
+    try {
+      await ambientAudioController.enable();
+      footstepAudioController?.setEnabled(true);
+      runtimeAudioEnabled = true;
+      if (persist) {
+        ensureAmbientAudioPreference().setEnabled(true, 'control');
+      }
+    } catch (error) {
+      disableRuntimeAudio(false);
+      throw error;
+    } finally {
+      audioHudHandle?.refresh();
+    }
+  };
+
+  const ensureAudioDebugApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.audio = {
+      getState() {
+        const snapshots = ambientAudioController?.getBedSnapshots() ?? [];
+        const playingIds = snapshots
+          .filter((snapshot) => snapshot.definition.source.isPlaying)
+          .map((snapshot) => snapshot.id);
+        const baseVolume =
+          accessibilityPresetManager?.getBaseAudioVolume() ??
+          ambientAudioController?.getMasterVolume() ??
+          1;
+        return {
+          preferenceEnabled: ambientAudioPreference?.isEnabled() ?? false,
+          ambientEnabled: ambientAudioController?.isEnabled() ?? false,
+          ambientSourcesPlaying: {
+            count: playingIds.length,
+            ids: playingIds,
+          },
+          ambientBedVolumes: snapshots.map((snapshot) => ({
+            id: snapshot.id,
+            currentVolume: snapshot.currentVolume,
+            targetVolume: snapshot.targetVolume,
+          })),
+          footstepEnabled: footstepAudioController?.isEnabled() ?? false,
+          footstepPlaying: footstepAudio?.isPlaying ?? false,
+          masterVolume: ambientAudioController?.getMasterVolume() ?? 1,
+          baseVolume,
+          audioContextState: audioListener.context.state ?? null,
+          storageKeyVersion: 'v2' as const,
+          activeStorageKey: AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
+        };
+      },
+    };
+  };
 
   inputLatencyTelemetry = createInputLatencyTelemetry({
     windowTarget: window,
@@ -1243,6 +1365,7 @@ function initializeImmersiveScene(
   );
   const audioListener = new AudioListener();
   camera.add(audioListener);
+  ensureAudioDebugApi();
   const cameraBaseOffset = new Vector3(
     baseCameraSize * 1.06,
     baseCameraSize * 1.08,
@@ -2392,11 +2515,10 @@ function initializeImmersiveScene(
   footstepAudioNode.setBuffer(footstepSample);
   if (footstepStereoPanner) {
     footstepAudioNode.setFilter(footstepStereoPanner);
-  } else {
-    footstepAudioNode.setFilter(null);
   }
   player.add(footstepAudioNode);
   footstepAudio = footstepAudioNode;
+  ensureAmbientAudioPreference();
 
   footstepAudioController = createFootstepAudioController({
     player: {
@@ -2418,7 +2540,14 @@ function initializeImmersiveScene(
         }
         footstepAudioNode.play();
       },
+      stop: () => {
+        if (footstepAudioNode.isPlaying) {
+          footstepAudioNode.stop();
+        }
+        footstepAudioNode.setVolume(0);
+      },
     },
+    enabled: false,
     maxLinearSpeed: PLAYER_SPEED,
     minActivationSpeed: PLAYER_SPEED * 0.12,
     intervalRange: { min: 0.26, max: 0.58 },
@@ -3639,19 +3768,19 @@ function initializeImmersiveScene(
       },
     });
 
-    if (!ambientAudioPreference) {
-      ambientAudioPreference = new AmbientAudioPreference({
-        storage: ambientAudioStorage ?? null,
-        windowTarget: window,
-      });
-    }
+    ensureAmbientAudioPreference();
+    runtimeAudioEnabled = false;
     if (ambientAudioPreferenceBinding) {
       ambientAudioPreferenceBinding.dispose();
       ambientAudioPreferenceBinding = null;
     }
     ambientAudioPreferenceBinding = bindAmbientAudioPreference({
-      controller: ambientAudioController,
-      preference: ambientAudioPreference,
+      controller: {
+        isEnabled: () => runtimeAudioEnabled,
+        enable: () => setRuntimeAudioEnabled(true, false),
+        disable: () => disableRuntimeAudio(false),
+      },
+      preference: ensureAmbientAudioPreference(),
       windowTarget: window,
       logger: console,
     });
@@ -3665,21 +3794,12 @@ function initializeImmersiveScene(
 
     audioHudHandle = createAudioHudControl({
       container: hudSettingsStack,
-      getEnabled: () => ambientAudioController?.isEnabled() ?? false,
+      getEnabled: () => runtimeAudioEnabled,
       setEnabled: async (enabled) => {
-        if (!ambientAudioController) {
-          return;
-        }
-        if (enabled) {
-          try {
-            await ambientAudioController.enable();
-            ambientAudioPreference?.setEnabled(true, 'control');
-          } catch (error) {
-            console.warn('Ambient audio failed to start', error);
-          }
-        } else {
-          ambientAudioController.disable();
-          ambientAudioPreference?.setEnabled(false, 'control');
+        try {
+          await setRuntimeAudioEnabled(enabled, true);
+        } catch (error) {
+          console.warn('Ambient audio failed to start', error);
         }
       },
       getVolume: () => getAmbientAudioVolume(),
@@ -4630,6 +4750,7 @@ function initializeImmersiveScene(
       tourResetControl.dispose();
       tourResetControl = null;
     }
+    runtimeAudioEnabled = false;
     if (ambientAudioPreferenceBinding) {
       ambientAudioPreferenceBinding.dispose();
       ambientAudioPreferenceBinding = null;
@@ -4764,6 +4885,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.githubMetrics) {
       delete window.portfolio.githubMetrics;
+    }
+    if (window.portfolio?.audio) {
+      delete window.portfolio.audio;
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;

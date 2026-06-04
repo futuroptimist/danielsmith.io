@@ -25,7 +25,10 @@ export interface AmbientAudioPreferenceBindingHandle {
   dispose(): void;
 }
 
-const DEFAULT_STORAGE_KEY = 'danielsmith.io::ambientAudioEnabled::v1';
+export const AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY =
+  'danielsmith.io::ambientAudioEnabled::v2';
+
+const DEFAULT_STORAGE_KEY = AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY;
 
 const parseStoredValue = (value: string | null): boolean | null => {
   if (value === '1' || value === 'true') {

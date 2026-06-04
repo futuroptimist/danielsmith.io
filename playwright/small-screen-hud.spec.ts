@@ -22,8 +22,29 @@ type ElementBounds = {
   height: number;
 };
 
+type AudioDebugState = {
+  preferenceEnabled: boolean;
+  ambientEnabled: boolean;
+  ambientSourcesPlaying: { count: number; ids: string[] };
+  ambientBedVolumes: Array<{
+    id: string;
+    currentVolume: number;
+    targetVolume: number;
+  }>;
+  footstepEnabled: boolean;
+  footstepPlaying: boolean;
+  masterVolume: number;
+  baseVolume: number;
+  audioContextState: string | null;
+  storageKeyVersion: 'v2';
+  activeStorageKey: string;
+};
+
 type PortfolioPoiWindow = Window & {
   portfolio?: {
+    audio?: {
+      getState?: () => AudioDebugState;
+    };
     poi?: {
       getTooltipState?: () => PoiTooltipState;
     };
@@ -71,6 +92,21 @@ async function waitForImmersiveReady(page: Page) {
   await page.waitForFunction(
     () => (window as PortfolioPoiWindow).portfolio?.poi?.getTooltipState
   );
+  await page.waitForFunction(
+    () => (window as PortfolioPoiWindow).portfolio?.audio?.getState
+  );
+}
+
+async function getAudioState(page: Page): Promise<AudioDebugState> {
+  return page.evaluate(() => {
+    const getState = (window as PortfolioPoiWindow).portfolio?.audio?.getState;
+
+    if (!getState) {
+      throw new Error('window.portfolio.audio.getState() is unavailable');
+    }
+
+    return getState();
+  });
 }
 
 async function getPoiTooltipState(page: Page): Promise<PoiTooltipState> {
@@ -232,6 +268,73 @@ test.describe('small-screen HUD regression coverage', () => {
       await expect(controlsButton).toHaveAttribute('aria-pressed', 'false');
       await expect(settingsButton).toHaveAttribute('aria-expanded', 'true');
       await expect(settingsButton).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    test('keeps global audio off by default and hard-mutes runtime sources', async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('danielsmith.io::ambientAudioEnabled::v1', '1');
+        localStorage.removeItem('danielsmith.io::ambientAudioEnabled::v2');
+      });
+      await waitForImmersiveReady(page);
+
+      await page.mouse.click(20, 20);
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: false,
+          ambientEnabled: false,
+          footstepEnabled: false,
+          footstepPlaying: false,
+          storageKeyVersion: 'v2',
+        });
+
+      await page.keyboard.press('m');
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: true,
+          ambientEnabled: true,
+          footstepEnabled: true,
+        });
+
+      await page.keyboard.press('m');
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: false,
+          ambientEnabled: false,
+          footstepEnabled: false,
+          footstepPlaying: false,
+          ambientSourcesPlaying: { count: 0 },
+        });
+      const mutedState = await getAudioState(page);
+      expect(mutedState.ambientBedVolumes).not.toHaveLength(0);
+      expect(
+        mutedState.ambientBedVolumes.every(
+          ({ currentVolume, targetVolume }) =>
+            currentVolume === 0 && targetVolume === 0
+        )
+      ).toBe(true);
+
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(
+        () => document.documentElement.dataset.appMode === 'immersive',
+        undefined,
+        { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+      );
+      await page.waitForFunction(
+        () => (window as PortfolioPoiWindow).portfolio?.audio?.getState
+      );
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: false,
+          ambientEnabled: false,
+          footstepEnabled: false,
+          ambientSourcesPlaying: { count: 0 },
+        });
     });
   });
 });

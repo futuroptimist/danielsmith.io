@@ -9,8 +9,14 @@ import {
 class StubFootstepPlayer {
   public readonly calls: FootstepPlaybackOptions[] = [];
 
+  public stopCount = 0;
+
   play(options: FootstepPlaybackOptions): void {
     this.calls.push(options);
+  }
+
+  stop(): void {
+    this.stopCount += 1;
   }
 }
 
@@ -81,6 +87,32 @@ describe('footstep audio controller', () => {
     controller.update({ delta: 0.2, linearSpeed: 4, isGrounded: false });
     controller.update({ delta: 0.4, linearSpeed: 4, isGrounded: true });
     expect(player.calls.length).toBeGreaterThan(callsAfterFirst);
+  });
+
+  it('can start globally disabled and suppresses future play calls', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player, {
+      enabled: false,
+      random: () => 0.5,
+    });
+
+    controller.update({ delta: 0.6, linearSpeed: 4 });
+    controller.notifyFootfall('left');
+
+    expect(controller.isEnabled()).toBe(false);
+    expect(player.calls).toHaveLength(0);
+
+    controller.setEnabled(true);
+    controller.update({ delta: 0.6, linearSpeed: 4 });
+    expect(player.calls.length).toBeGreaterThan(0);
+
+    controller.setEnabled(false);
+    const callsAfterDisable = player.calls.length;
+    controller.update({ delta: 0.6, linearSpeed: 4 });
+    controller.notifyFootfall('right');
+
+    expect(player.calls).toHaveLength(callsAfterDisable);
+    expect(player.stopCount).toBe(1);
   });
 
   it('scales cadence, volume, and pitch with speed and master volume', () => {

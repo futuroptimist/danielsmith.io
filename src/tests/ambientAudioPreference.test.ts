@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
   AmbientAudioPreference,
   type AmbientAudioPreferenceChange,
 } from '../systems/audio/ambientAudioPreference';
@@ -54,6 +55,27 @@ describe('AmbientAudioPreference', () => {
     });
 
     expect(preference.isEnabled()).toBe(false);
+  });
+
+  it('uses a v2 storage key so legacy v1 true does not opt users in', () => {
+    const storage = new MemoryStorage();
+    storage.setItem('danielsmith.io::ambientAudioEnabled::v1', '1');
+
+    const preference = new AmbientAudioPreference({ storage });
+
+    expect(AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY).toBe(
+      'danielsmith.io::ambientAudioEnabled::v2'
+    );
+    expect(preference.isEnabled()).toBe(false);
+  });
+
+  it('honors a v2 stored true value as explicit opt-in', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY, '1');
+
+    const preference = new AmbientAudioPreference({ storage });
+
+    expect(preference.isEnabled()).toBe(true);
   });
 
   it('loads a persisted enabled state from storage', () => {
