@@ -86,7 +86,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Automação',
         'Scaffolds CI · prompts tipados · ciclos QA',
         'CTA docs',
-        'flywheel.futuroptimist.dev →',
+        'README: CI, templates, prompts',
       ],
     },
     jobbot: {
@@ -180,12 +180,12 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
       summary:
         'Pórtico de lançamento no quintal para DSPACE com sinais de contagem regressiva guiados por telemetria e log público.',
       outcome:
-        'Mantém notas de sequência junto a links GitHub e log de missão enquanto o repo segue privado.',
+        'Mantém conteúdo de missões, documentação e fluxos de QA visíveis no repo e docs públicos.',
       metrics: [
-        'Contagem',
+        'Jogo',
         'Sequenciamento T-0 autônomo',
         'Stack',
-        'Three.js FX · áudio espacial',
+        'Guias de missões · testes · implantação',
       ],
     },
     prReaper: {

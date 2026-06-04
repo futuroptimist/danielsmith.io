@@ -85,8 +85,8 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       metrics: [
         'Automatisierung',
         'CI-Scaffolds · typisierte Prompts · QA-Schleifen',
-        'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Docs',
+        'README: CI, templates, prompts',
       ],
     },
     jobbot: {
@@ -178,14 +178,14 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Startgerüst im Garten für DSPACE mit telemetriegeführten Countdown-Hinweisen und öffentlichem Missionslog.',
+        'Öffentliches Democratized-Space-Web-Idle-Game über Ressourcenmanagement, Quests, Erkundung und Orbit.',
       outcome:
-        'Pflegt Countdown-Notizen neben GitHub- und Missionslog-Links, während das Repo privat bleibt.',
+        'Hält Quest-Inhalte, Dokumentation und QA-Workflows über öffentliches Repo und Docs auffindbar.',
       metrics: [
-        'Countdown',
-        'Autonome T-0-Sequenzierung',
+        'Spiel',
+        'Ressourcenmanagement · Quests · Erkundung',
         'Stack',
-        'Three.js FX · Spatial Audio',
+        'Quest-Guides · Tests · Deployment',
       ],
     },
     prReaper: {

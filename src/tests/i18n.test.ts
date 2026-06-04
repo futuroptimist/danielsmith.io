@@ -6,24 +6,39 @@ import {
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
+  getLocaleScript,
+  getLocaleStrings,
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
-  getLocaleScript,
-  getLocaleStrings,
-  getTourGuideToggleStrings,
-  getTourResetControlStrings,
-  isI18nDebugEnabled,
+  getPoiCopy,
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
-  getPoiCopy,
   getSelectableLocales,
   getSiteStrings,
   getSoftwareRendererWarningStrings,
+  getTourGuideToggleStrings,
+  getTourResetControlStrings,
+  isI18nDebugEnabled,
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
+
+const { collectLinks, classifyLink } = (await import(
+  '../../scripts/check-links.cjs'
+)) as {
+  collectLinks: () => Array<{ href: string; source: string; type: string }>;
+  classifyLink: (link: {
+    href: string;
+    source: string;
+    type: string;
+  }) =>
+    | { kind: 'http'; url: URL }
+    | { kind: 'local'; targetPath: string }
+    | { kind: 'allowed-scheme' }
+    | { kind: 'invalid'; message: string };
+};
 
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
@@ -681,8 +696,62 @@ describe('i18n utilities', () => {
 
     const chineseCopy = getPoiCopy('zh-Hans');
     expect(chineseCopy['tokenplace-studio-cluster'].summary).toContain(
-      '端到端加密'
+      '点对点生成式 AI 平台'
     );
+  });
+
+  it('removes the invalid DSPACE Mission Log link from every locale', () => {
+    const invalidMissionLog = 'https://futuroptimist.dev/projects/dspace';
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+      expect(dspace, `${locale} DSPACE POI exists`).toBeDefined();
+      expect(dspace?.links?.map((link) => link.href)).not.toContain(
+        invalidMissionLog
+      );
+      expect(dspace?.links).toContainEqual({
+        label: expect.any(String),
+        href: 'https://github.com/democratizedspace/dspace',
+      });
+    }
+  });
+
+  it('keeps all POI links on statically valid schemes', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      for (const poi of getPoiDefinitions(locale)) {
+        for (const link of poi.links ?? []) {
+          const classification = classifyLink({
+            href: link.href,
+            source: `poi:${locale}:${poi.id}`,
+            type: 'poi',
+          });
+          expect(
+            classification.kind,
+            `${locale} ${poi.id} ${link.href}`
+          ).not.toBe('invalid');
+          if (classification.kind === 'http') {
+            expect(classification.url.protocol).toMatch(/^https?:$/);
+          }
+        }
+      }
+    }
+  });
+
+  it('collects both POI links and docs links for the CI link checker', () => {
+    const links = collectLinks();
+
+    expect(links.some((link) => link.type === 'poi')).toBe(true);
+    expect(links.some((link) => link.type === 'docs')).toBe(true);
+    expect(
+      links.some(
+        (link) =>
+          link.type === 'poi' &&
+          link.href === 'https://github.com/democratizedspace/dspace'
+      )
+    ).toBe(true);
+    expect(links.some((link) => link.source === 'README.md')).toBe(true);
   });
 
   it('falls back to English site metadata when pseudo overrides omit values', () => {

@@ -403,13 +403,13 @@ describe('PoiTooltipOverlay', () => {
     expect(root.dataset.state).toBe('selected');
     expect(
       root.querySelector('.poi-tooltip-overlay__summary')?.textContent
-    ).toContain('端到端加密');
+    ).toContain('点对点生成式 AI 平台');
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
     ).toBe('成果');
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
-    ).toContain('密文和安全路由元数据');
+    ).toContain('relay、server 和本地模拟 LLM');
     expect(
       root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
     ).toBe('星标');
@@ -586,13 +586,15 @@ describe('PoiTooltipOverlay', () => {
     expect(root.dataset.state).toBe('selected');
     expect(
       root.querySelector('.poi-tooltip-overlay__summary')?.textContent
-    ).toBe('中继盲的端到端加密令牌中转站，用于安全共享敏感短文本。');
+    ).toBe(
+      '点对点生成式 AI 平台，用加密中继把 LLM 用户与贡献空闲算力的志愿者相连。'
+    );
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-label')?.textContent
     ).toBe('成果');
     expect(
       root.querySelector('.poi-tooltip-overlay__outcome-value')?.textContent
-    ).toBe('保持中继只看到密文和安全路由元数据。');
+    ).toBe('README 记录 relay、server 和本地模拟 LLM 的开发快速启动流程。');
     expect(
       root.querySelector('.poi-tooltip-overlay__status')?.textContent
     ).toBe('原型');

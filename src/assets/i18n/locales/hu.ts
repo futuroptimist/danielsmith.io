@@ -85,8 +85,8 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
       metrics: [
         'Automatizáció',
         'CI scaffoldok · típusos promptok · QA ciklusok',
-        'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Docs',
+        'README: CI, templates, prompts',
       ],
     },
     jobbot: {
@@ -179,14 +179,14 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Hátsókerti indítóállvány a DSPACE projekthez telemetria-vezérelt visszaszámlálási jelzésekkel és nyilvános missziónaplóval.',
+        'Nyilvános Democratized Space webes idle játék erőforrás-kezelésről, küldetésekről, felfedezésről és pályára állásról.',
       outcome:
-        'Visszaszámlálási jegyzeteket tart GitHub és missziónapló linkek mellett, miközben a repo privát.',
+        'A küldetéstartalmakat, dokumentációt és QA folyamatokat a nyilvános repóban és docsban tartja felfedezhetően.',
       metrics: [
-        'Visszaszámlálás',
-        'Autonóm T-0 szekvencia',
+        'Játék',
+        'Erőforrás-kezelés · küldetések · felfedezés',
         'Stack',
-        'Three.js FX · térbeli hang',
+        'Küldetésútmutatók · tesztek · deployment',
       ],
     },
     prReaper: {

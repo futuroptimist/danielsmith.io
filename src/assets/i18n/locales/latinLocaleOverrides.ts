@@ -241,7 +241,7 @@ const localizedTemplates: Record<
     continuousLabel: 'Kontinuierlichen immersiven Modus trotzdem aktivieren',
     reloadSafeLabel: 'Diese sichere immersive URL neu laden',
     flywheelInteractionPrompt: '{title}-Systeme starten',
-    dspaceInteractionPrompt: '{title}-Countdown starten',
+    dspaceInteractionPrompt: '{title}-Spiel starten',
   },
   hu: {
     githubStarsTemplate: '{value} csillag',
@@ -685,11 +685,14 @@ function buildPoi(
     fallback: string;
   }
 ): LocaleOverrides['poi'] {
-  const starSource = (repo: string, visibility?: 'private') => ({
+  const starSource = (
+    repo: string,
+    options: { owner?: string; visibility?: 'private' } = {}
+  ) => ({
     type: 'githubStars' as const,
-    owner: 'futuroptimist',
+    owner: options.owner ?? 'futuroptimist',
     repo,
-    ...(visibility ? { visibility } : {}),
+    ...(options.visibility ? { visibility: options.visibility } : {}),
     format: 'compact' as const,
     template: githubStars.template,
     fallback: githubStars.fallback,
@@ -706,8 +709,8 @@ function buildPoi(
       metrics: [
         {
           label: githubStars.label,
-          value: '1,280+',
-          source: { ...starSource('danielsmith.io'), fallback: '1,280+' },
+          value: githubStars.value,
+          source: starSource('danielsmith.io'),
         },
         {
           label: poi.futuroptimist.metrics[0],
@@ -809,8 +812,8 @@ function buildPoi(
       metrics: [
         {
           label: githubStars.label,
-          value: '1,280+',
-          source: { ...starSource('danielsmith.io'), fallback: '1,280+' },
+          value: githubStars.value,
+          source: starSource('danielsmith.io'),
         },
         { label: poi.portfolio.metrics[0], value: poi.portfolio.metrics[1] },
         { label: poi.portfolio.metrics[2], value: poi.portfolio.metrics[3] },
@@ -872,7 +875,7 @@ function buildPoi(
         {
           label: githubStars.label,
           value: githubStars.value,
-          source: starSource('dspace', 'private'),
+          source: starSource('dspace', { owner: 'democratizedspace' }),
         },
         { label: poi.dspace.metrics[0], value: poi.dspace.metrics[1] },
         { label: poi.dspace.metrics[2], value: poi.dspace.metrics[3] },

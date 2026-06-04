@@ -77,9 +77,9 @@ describe('POI registry', () => {
     expect(rocket?.interactionRadius).toBeGreaterThan(2);
     expect(rocket?.footprint.width).toBeGreaterThan(3);
     expect(rocket?.links?.[0]?.href).toContain('dspace');
-    expect(
-      rocket?.metrics?.some((metric) => metric.label === 'Countdown')
-    ).toBe(true);
+    expect(rocket?.metrics?.some((metric) => metric.label === 'Game')).toBe(
+      true
+    );
   });
 
   it('registers the greenhouse POI with Sugarkube storytelling hooks', () => {

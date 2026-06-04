@@ -85,8 +85,8 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       metrics: [
         'Automatización',
         'Andamios CI · prompts tipados · bucles QA',
-        'Docs CTA',
-        'flywheel.futuroptimist.dev →',
+        'Docs',
+        'README: CI, templates, prompts',
       ],
     },
     jobbot: {
@@ -183,10 +183,10 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       outcome:
         'Mantiene notas de secuencia de cuenta atrás junto a enlaces de GitHub y bitácora mientras el repo sigue privado.',
       metrics: [
-        'Cuenta atrás',
-        'Secuencia T-0 autónoma',
+        'Juego',
+        'Gestión de recursos · misiones · exploración',
         'Stack',
-        'Three.js FX · audio espacial',
+        'Guías de misiones · pruebas · despliegue',
       ],
     },
     prReaper: {
