@@ -61,26 +61,27 @@ layer without guessing where functionality lives.
 
 ### State surfaces & consumers
 
-| Source handle / data surface | Origin                                                                                                   | Consumed by                                                                                         | Notes                                                             |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `FLOOR_PLAN` + POI metadata  | [`src/assets/floorPlan/index.ts`](../../src/assets/floorPlan/index.ts)                                   | Scene POI builders, keyboard traversal macro, HUD tooltip overlay                                   | Canonical IDs power collision bounds and DOM aria-label text.     |
-| `KeyBindingRegistry`         | [`src/systems/controls/keyBindings.ts`](../../src/systems/controls/keyBindings.ts)                       | HUD legend (`src/ui/hud/movementLegend.tsx`), help modal, Playwright macro                          | Emits observable binding changes so overlays update instantly.    |
-| `MovementControllerHandle`   | [`src/systems/movement/cameraRelativeMovement.ts`](../../src/systems/movement/cameraRelativeMovement.ts) | Scene avatar rig (`src/scene/avatar/createAvatarRig.ts`), debug helpers on `window.portfolio.world` | Provides camera-relative vectors and collision-clamped positions. |
-| `PoiVisitedState`            | [`src/scene/poi/visitedState.ts`](../../src/scene/poi/visitedState.ts)                                   | Scene halo/material toggles, DOM overlay badges, accessibility announcers                           | Persists visited state between HUD and Three.js meshes.           |
-| `HudFocusAnnouncerHandle`    | [`src/ui/accessibility/hudFocusAnnouncer.ts`](../../src/ui/accessibility/hudFocusAnnouncer.ts)           | HUD overlays, subtitles bridge, Playwright assertions                                               | Centralises live-region announcements and aria-live priorities.   |
-| Performance budgets          | [`src/assets/performance.ts`](../../src/assets/performance.ts)                                           | Vitest assertions (`src/tests/performanceBudget.test.ts`), Playwright diff budget, docs             | Keeps render metrics and screenshot tolerances in sync.           |
+| Source handle / data surface      | Origin                                                                                                   | Consumed by                                                                             | Notes                                                           |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `FLOOR_PLAN` + POI metadata       | [`src/assets/floorPlan/index.ts`](../../src/assets/floorPlan/index.ts)                                   | Scene POI builders, keyboard traversal macro, HUD tooltip overlay                       | Canonical IDs power collision bounds and DOM aria-label text.   |
+| `KeyBindingRegistry`              | [`src/systems/controls/keyBindings.ts`](../../src/systems/controls/keyBindings.ts)                       | HUD legend (`src/ui/hud/movementLegend.tsx`), help modal, Playwright macro              | Emits observable binding changes so overlays update instantly.  |
+| `getCameraRelativeMovementVector` | [`src/systems/movement/cameraRelativeMovement.ts`](../../src/systems/movement/cameraRelativeMovement.ts) | `src/main.ts` avatar update loop and movement/facing tests                              | Provides camera-relative planar vectors for movement and yaw.   |
+| `PoiVisitedState`                 | [`src/scene/poi/visitedState.ts`](../../src/scene/poi/visitedState.ts)                                   | Scene halo/material toggles, DOM overlay badges, accessibility announcers               | Persists visited state between HUD and Three.js meshes.         |
+| `HudFocusAnnouncerHandle`         | [`src/ui/accessibility/hudFocusAnnouncer.ts`](../../src/ui/accessibility/hudFocusAnnouncer.ts)           | HUD overlays, subtitles bridge, Playwright assertions                                   | Centralises live-region announcements and aria-live priorities. |
+| Performance budgets               | [`src/assets/performance.ts`](../../src/assets/performance.ts)                                           | Vitest assertions (`src/tests/performanceBudget.test.ts`), Playwright diff budget, docs | Keeps render metrics and screenshot tolerances in sync.         |
 
 ### Data flow callouts
 
-- **Camera rig** – `src/main.ts` composes `createCameraRig` from
-  [`src/scene/camera/initialFraming.ts`](../../src/scene/camera/initialFraming.ts)
-  with the movement controller. The rig reads camera-relative vectors from the
-  system handle and exposes `updateCameraOnResize` for UI resize observers.
-- **Avatar loop** – `createMovementController` emits frame-by-frame velocity
-  updates. `createAvatarRig` listens and applies yaw derived from
-  [`getCameraRelativeMovementVector`](../../src/systems/movement/facing.ts).
-  HUD overlays subscribe to the same controller so WASD prompts highlight the
-  active axis without touching Three.js meshes.
+- **Camera framing** – `src/main.ts` resolves the initial orthographic zoom with
+  [`resolveInitialAvatarCameraFraming`](../../src/scene/camera/initialFraming.ts)
+  after constructing the camera. Resize behavior stays in `src/main.ts` through
+  the local `onResize` handler, which refreshes projection, renderer, and
+  postprocessing dimensions.
+- **Avatar loop** – `src/main.ts` samples key bindings and joystick input each
+  frame, then derives movement via
+  [`getCameraRelativeMovementVector`](../../src/systems/movement/cameraRelativeMovement.ts).
+  The same loop applies velocity, collision clamping, and yaw so HUD prompts can
+  reflect active WASD axes without owning Three.js meshes.
 - **POI orchestration** – The registry
   (`src/scene/poi/registry.ts`) hydrates data from
   [`src/assets/i18n/locales/en.ts`](../../src/assets/i18n/locales/en.ts) and now exposes

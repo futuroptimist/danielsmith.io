@@ -55,7 +55,7 @@ async function listFiles(dir, predicate) {
 
 function addLink(links, source, target, kind) {
   const trimmed = target.trim();
-  if (!trimmed || trimmed.startsWith('#')) {
+  if (!trimmed || trimmed === '#') {
     return;
   }
   links.push({
@@ -65,15 +65,87 @@ function addLink(links, source, target, kind) {
   });
 }
 
-function extractMarkdownLinks(source, text) {
+function findInlineMarkdownDestinationEnd(text, startIndex) {
+  let depth = 0;
+  let escaped = false;
+  let quote = null;
+
+  for (let index = startIndex; index < text.length; index += 1) {
+    const char = text[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (char === '(') {
+      depth += 1;
+      continue;
+    }
+    if (char === ')') {
+      if (depth === 0) {
+        return index;
+      }
+      depth -= 1;
+    }
+  }
+
+  return -1;
+}
+
+function extractDestination(rawDestination) {
+  const trimmed = rawDestination.trim();
+  if (trimmed.startsWith('<')) {
+    const closingIndex = trimmed.indexOf('>');
+    return closingIndex > 0 ? trimmed.slice(1, closingIndex) : null;
+  }
+
+  const titleMatch = trimmed.match(/^(\S+)(?:\s+['"(].*)?$/s);
+  return titleMatch?.[1] ?? null;
+}
+
+function extractInlineMarkdownLinks(source, text) {
   const links = [];
-  const markdownLinkPattern = /!?(?:\[[^\]]*\])\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+  const linkOpenPattern = /!?\[[^\]]*\]\(/g;
+
+  for (const match of text.matchAll(linkOpenPattern)) {
+    const destinationStart = match.index + match[0].length;
+    const destinationEnd = findInlineMarkdownDestinationEnd(
+      text,
+      destinationStart
+    );
+    if (destinationEnd === -1) {
+      continue;
+    }
+
+    const destination = extractDestination(
+      text.slice(destinationStart, destinationEnd)
+    );
+    if (destination) {
+      addLink(links, source, destination, 'docs');
+    }
+  }
+
+  return links;
+}
+
+function extractMarkdownLinks(source, text) {
+  const links = extractInlineMarkdownLinks(source, text);
   const referenceDefinitionPattern = /^\s*\[[^\]]+\]:\s+(\S+)/gm;
   const autolinkPattern = /<((?:https?:|mailto:)[^>\s]+)>/g;
 
-  for (const match of text.matchAll(markdownLinkPattern)) {
-    addLink(links, source, match[1], 'docs');
-  }
   for (const match of text.matchAll(referenceDefinitionPattern)) {
     addLink(links, source, match[1], 'docs');
   }
@@ -149,27 +221,106 @@ function parseTarget(target) {
   }
 }
 
-async function validateLocalLink(link, cleanTarget) {
-  const sourcePath = path.join(repoRoot, link.source);
-  const [withoutHash] = cleanTarget.split('#', 1);
-  const [withoutQuery] = withoutHash.split('?', 1);
-  if (!withoutQuery) {
+function parseLocalTarget(cleanTarget) {
+  const hashIndex = cleanTarget.indexOf('#');
+  const beforeHash =
+    hashIndex === -1 ? cleanTarget : cleanTarget.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? '' : cleanTarget.slice(hashIndex + 1);
+  const queryIndex = beforeHash.indexOf('?');
+  const fileTarget =
+    queryIndex === -1 ? beforeHash : beforeHash.slice(0, queryIndex);
+  return { fileTarget, hash };
+}
+
+function slugifyHeading(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[`*_~[\]()]/g, '')
+    .replace(/&/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+function collectMarkdownAnchors(text) {
+  const anchors = new Set();
+  const headingCounts = new Map();
+  const headingPattern = /^#{1,6}\s+(.+?)\s*#*\s*$/gm;
+  const explicitAnchorPattern =
+    /<a\s+[^>]*(?:id|name)=["']([^"']+)["'][^>]*>/gi;
+
+  for (const match of text.matchAll(headingPattern)) {
+    const baseSlug = slugifyHeading(match[1]);
+    if (!baseSlug) {
+      continue;
+    }
+    const count = headingCounts.get(baseSlug) ?? 0;
+    headingCounts.set(baseSlug, count + 1);
+    anchors.add(count === 0 ? baseSlug : `${baseSlug}-${count}`);
+  }
+  for (const match of text.matchAll(explicitAnchorPattern)) {
+    anchors.add(match[1]);
+  }
+
+  return anchors;
+}
+
+async function validateLocalAnchor(link, resolvedPath, hash) {
+  if (!hash) {
     return { ok: true };
   }
-  const resolvedPath = path.resolve(path.dirname(sourcePath), withoutQuery);
-  if (!resolvedPath.startsWith(repoRoot)) {
+  let decodedHash = hash;
+  try {
+    decodedHash = decodeURIComponent(hash);
+  } catch {
+    return {
+      ok: false,
+      message: `${link.source}: invalid local anchor #${hash} in ${link.target}`,
+    };
+  }
+  const text = await fs.readFile(resolvedPath, 'utf8');
+  const anchors = collectMarkdownAnchors(text);
+  if (anchors.has(decodedHash)) {
+    return { ok: true };
+  }
+  return {
+    ok: false,
+    message: `${link.source}: missing local anchor #${hash} in ${link.target}`,
+  };
+}
+
+async function validateLocalLink(link, cleanTarget) {
+  const sourcePath = path.join(repoRoot, link.source);
+  const { fileTarget, hash } = parseLocalTarget(cleanTarget);
+  const targetPath = fileTarget || link.source;
+  const resolvedPath = path.resolve(path.dirname(sourcePath), targetPath);
+  const repoRootWithSeparator = `${repoRoot}${path.sep}`;
+  if (
+    resolvedPath !== repoRoot &&
+    !resolvedPath.startsWith(repoRootWithSeparator)
+  ) {
     return {
       ok: false,
       message: `${link.source}: local link escapes repo: ${link.target}`,
     };
   }
-  if (await fileExists(resolvedPath)) {
-    return { ok: true };
+  if (!(await fileExists(resolvedPath))) {
+    return {
+      ok: false,
+      message: `${link.source}: missing local link target: ${link.target}`,
+    };
   }
-  return {
-    ok: false,
-    message: `${link.source}: missing local link target: ${link.target}`,
-  };
+  if (!resolvedPath.endsWith('.md')) {
+    return hash
+      ? {
+          ok: true,
+          warning: true,
+          message: `${link.source}: skipped non-Markdown anchor ${link.target}`,
+        }
+      : { ok: true };
+  }
+  return validateLocalAnchor(link, resolvedPath, hash);
 }
 
 async function fetchWithTimeout(url, method, timeoutMs) {
@@ -262,28 +413,56 @@ async function validateLink(link, options) {
   return validateLocalLink(link, cleanTarget);
 }
 
+function dedupeLinks(links) {
+  const seen = new Map();
+  for (const link of links) {
+    const key = `${link.kind}:${link.target}`;
+    const existing = seen.get(key);
+    if (existing) {
+      existing.sources.push(link.source);
+    } else {
+      seen.set(key, { ...link, sources: [link.source] });
+    }
+  }
+  return [...seen.values()];
+}
+
 async function validateLinks(links, options = {}) {
   const failures = [];
   const warnings = [];
   let skipped = 0;
-  for (const link of links) {
-    const result = await validateLink(link, options);
-    if (!result.ok) {
-      failures.push(result.message);
-    } else if (result.warning) {
-      warnings.push(result.message);
-    } else if (result.skipped) {
-      skipped += 1;
+  const concurrency = Math.max(1, options.concurrency ?? 6);
+  const queue = dedupeLinks(links);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < queue.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      const link = queue[index];
+      const result = await validateLink(link, options);
+      if (!result.ok) {
+        failures.push(result.message);
+      } else if (result.warning) {
+        warnings.push(result.message);
+      } else if (result.skipped) {
+        skipped += 1;
+      }
     }
   }
-  return { failures, warnings, skipped };
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, queue.length) }, () => worker())
+  );
+
+  return { failures, warnings, skipped, checked: queue.length };
 }
 
 async function main() {
   const links = await collectLinks();
   const poiCount = links.filter((link) => link.kind === 'poi').length;
   const docsCount = links.filter((link) => link.kind === 'docs').length;
-  const { failures, warnings, skipped } = await validateLinks(links);
+  const { failures, warnings, skipped, checked } = await validateLinks(links);
 
   for (const warning of warnings) {
     console.warn(`Warning: ${warning}`);
@@ -296,8 +475,10 @@ async function main() {
     process.exitCode = 1;
     return;
   }
+  const checkedSummary =
+    checked === links.length ? `${links.length}` : `${checked}/${links.length}`;
   console.log(
-    `Link check passed: ${links.length} links (${poiCount} POI, ${docsCount} docs, ${skipped} allowlisted).`
+    `Link check passed: ${checkedSummary} links checked (${poiCount} POI, ${docsCount} docs, ${skipped} allowlisted).`
   );
 }
 
@@ -319,4 +500,5 @@ module.exports = {
   extractMarkdownLinks,
   extractPoiLinks,
   validateLinks,
+  collectMarkdownAnchors,
 };

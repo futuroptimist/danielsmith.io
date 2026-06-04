@@ -85,7 +85,7 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       metrics: [
         'Automatización',
         'CLI init/update · checks · docs de prompts',
-        'Docs CTA',
+        'CAD',
         'Soporte, eje, adaptador y docs de física',
       ],
     },

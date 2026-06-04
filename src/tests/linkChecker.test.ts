@@ -6,10 +6,15 @@ import { AVAILABLE_LOCALES } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
 
 const require = createRequire(import.meta.url);
+type CollectedLink = { kind: 'poi' | 'docs'; source: string; target: string };
+
 const linkChecker = require('../../scripts/check-links.cjs') as {
-  collectLinks: () => Promise<
-    Array<{ kind: 'poi' | 'docs'; source: string; target: string }>
-  >;
+  collectLinks: () => Promise<CollectedLink[]>;
+  extractMarkdownLinks: (source: string, text: string) => CollectedLink[];
+  validateLinks: (
+    links: CollectedLink[],
+    options?: { concurrency?: number; retries?: number; timeoutMs?: number }
+  ) => Promise<{ failures: string[]; warnings: string[]; skipped: number }>;
 };
 
 const allowedPoiSchemes = new Set(['http:', 'https:', 'mailto:']);
@@ -37,7 +42,7 @@ describe('POI link validation', () => {
     for (const locale of AVAILABLE_LOCALES) {
       for (const poi of getPoiDefinitions(locale)) {
         for (const link of poi.links ?? []) {
-          const url = new URL(link.href, 'https://danielsmith.io/');
+          const url = new URL(link.href);
           expect(
             allowedPoiSchemes.has(url.protocol),
             `${locale} ${poi.id} ${link.href} uses an allowed scheme`
@@ -45,6 +50,10 @@ describe('POI link validation', () => {
         }
       }
     }
+  });
+
+  it('requires localized POI links to be absolute URLs', () => {
+    expect(() => new URL('/docs/foo')).toThrow(TypeError);
   });
 });
 
@@ -64,5 +73,49 @@ describe('link checker collection', () => {
     expect(
       links.some((link) => link.kind === 'docs' && link.source === 'README.md')
     ).toBe(true);
+  });
+});
+
+describe('Markdown link extraction', () => {
+  it('keeps balanced parentheses in inline Markdown link destinations', () => {
+    const links = linkChecker.extractMarkdownLinks(
+      'docs/example.md',
+      '[API](https://example.com/a_(b))'
+    );
+
+    expect(links).toEqual([
+      {
+        kind: 'docs',
+        source: 'docs/example.md',
+        target: 'https://example.com/a_(b)',
+      },
+    ]);
+  });
+
+  it('validates local Markdown anchors when hashes are present', async () => {
+    const results = await linkChecker.validateLinks(
+      [
+        {
+          kind: 'docs',
+          source: 'README.md',
+          target: 'README.md#local-quality-gates',
+        },
+        {
+          kind: 'docs',
+          source: 'README.md',
+          target: '#key-resources',
+        },
+        {
+          kind: 'docs',
+          source: 'README.md',
+          target: 'README.md#missing-section-for-test',
+        },
+      ],
+      { concurrency: 1 }
+    );
+
+    expect(results.failures).toHaveLength(1);
+    expect(results.failures[0]).toContain('missing local anchor');
+    expect(results.failures[0]).toContain('README.md#missing-section-for-test');
   });
 });

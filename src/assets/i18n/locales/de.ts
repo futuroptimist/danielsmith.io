@@ -182,9 +182,9 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       outcome:
         'Verlinkt das öffentliche Repository democratizedspace/dspace und die offiziellen Spieldokumente statt ungeprüfter Missionslogs.',
       metrics: [
-        'Countdown',
+        'Spiel',
         'Ressourcenverwaltung · Quests · Erkundung',
-        'Stack',
+        'Docs',
         'Öffentliche Docs und Entwicklerleitfaden',
       ],
     },

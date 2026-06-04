@@ -178,13 +178,13 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Pórtico de lançamento no quintal para DSPACE com sinais de contagem regressiva guiados por telemetria e log público.',
+        'Exposição DSPACE para o jogo idle web Democratized Space, com recursos, missões, exploração e lançamentos orbitais.',
       outcome:
-        'Aponta para o repositório público democratizedspace/dspace e a documentação oficial, sem logs não verificados.',
+        'Aponta para o repositório público democratizedspace/dspace e a documentação oficial do jogo, sem logs não verificados.',
       metrics: [
-        'Contagem',
-        'Sequenciamento T-0 autônomo',
-        'Stack',
+        'Jogo',
+        'Gestão de recursos · missões · exploração',
+        'Docs',
         'Docs públicos e guia de desenvolvimento',
       ],
     },

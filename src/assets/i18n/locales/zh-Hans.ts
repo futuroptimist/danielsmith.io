@@ -730,7 +730,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       ],
     },
     'dspace-backyard-rocket': {
-      title: 'Dspace',
+      title: 'DSPACE',
       summary:
         'DSPACE 展示 Democratized Space 网页放置游戏，聚焦资源管理、任务、探索和发射入轨进程。',
       outcome: {

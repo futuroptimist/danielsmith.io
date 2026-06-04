@@ -183,9 +183,9 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
       outcome:
         'A nyilvános democratizedspace/dspace repót és a hivatalos játékdokumentációt linkeli, ellenőrizetlen napló nélkül.',
       metrics: [
-        'Visszaszámlálás',
+        'Játék',
         'Erőforrás-kezelés · questek · felfedezés',
-        'Stack',
+        'Docs',
         'Nyilvános docs és fejlesztői útmutató',
       ],
     },
