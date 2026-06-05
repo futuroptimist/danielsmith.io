@@ -4,6 +4,41 @@ const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_GITHUB_METRICS_URL =
   '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=safe';
 
+const RUNTIME_CACHE_REPOS = [
+  'futuroptimist/danielsmith.io',
+  'futuroptimist/token.place',
+  'futuroptimist/gabriel',
+  'futuroptimist/flywheel',
+  'futuroptimist/jobbot3000',
+  'futuroptimist/gitshelves',
+  'futuroptimist/f2clipboard',
+  'futuroptimist/sigma',
+  'futuroptimist/wove',
+  'democratizedspace/dspace',
+  'futuroptimist/pr-reaper',
+] as const;
+
+const createRuntimeCacheRepos = () =>
+  Object.fromEntries(
+    RUNTIME_CACHE_REPOS.map((key, index) => {
+      const [owner, repo] = key.split('/');
+      return [
+        key,
+        {
+          owner,
+          repo,
+          stars: 77 + index,
+          watchers: 1,
+          forks: 2,
+          openIssues: 0,
+          pushedAt: '2026-06-03T00:00:00Z',
+          fetchedAt: '2026-06-03T00:00:00.000Z',
+          htmlUrl: `https://github.com/${key}`,
+        },
+      ];
+    })
+  );
+
 interface GitHubMetricsDiagnostics {
   source:
     | 'runtime-cache'
@@ -55,19 +90,7 @@ test.describe('GitHub repo metrics fallback', () => {
           generatedAt: '2026-06-03T00:00:00.000Z',
           expiresAt: '2999-06-03T01:15:00.000Z',
           source: 'github-api',
-          repos: {
-            'futuroptimist/danielsmith.io': {
-              owner: 'futuroptimist',
-              repo: 'danielsmith.io',
-              stars: 77,
-              watchers: 1,
-              forks: 2,
-              openIssues: 0,
-              pushedAt: '2026-06-03T00:00:00Z',
-              fetchedAt: '2026-06-03T00:00:00.000Z',
-              htmlUrl: 'https://github.com/futuroptimist/danielsmith.io',
-            },
-          },
+          repos: createRuntimeCacheRepos(),
           errors: {},
         }),
       })
@@ -93,11 +116,11 @@ test.describe('GitHub repo metrics fallback', () => {
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
     await page.waitForFunction(
-      () =>
+      (expectedRepoCount) =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).portfolio?.githubMetrics?.getDiagnostics?.()
-          ?.cachedRepoCount === 1,
-      undefined,
+          ?.cachedRepoCount === expectedRepoCount,
+      RUNTIME_CACHE_REPOS.length,
       { timeout: 10_000 }
     );
 
@@ -109,7 +132,7 @@ test.describe('GitHub repo metrics fallback', () => {
     expect(diagnostics).toMatchObject({
       requestCount: 0,
       lastErrorStatus: null,
-      cachedRepoCount: 1,
+      cachedRepoCount: RUNTIME_CACHE_REPOS.length,
     });
     expect(['runtime-cache', 'cached']).toContain(diagnostics.source);
     expect(liveRequests).toEqual([]);
