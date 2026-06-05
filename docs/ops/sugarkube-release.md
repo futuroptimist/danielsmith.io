@@ -16,6 +16,8 @@ components.
 - Helm chart version: immutable; bump `charts/danielsmith/Chart.yaml` when chart content changes
 - Runtime: nginx static-site container listening on port `8080`
 - Health endpoints: `/livez` and `/healthz`
+- Optional runtime GitHub metrics cache: `/runtime/github-metrics.json`, refreshed by an
+  unauthenticated Helm sidecar when `githubMetricsCache.enabled=true`
 
 Cloudflare DNS, tunnel, and route setup are separate from Helm deployment. Confirm those routes
 outside this app repo before expecting the public hostnames to resolve.
@@ -111,6 +113,16 @@ curl -fsS https://staging.danielsmith.io/healthz
 curl -fsS https://staging.danielsmith.io/
 ```
 
+If Sugarkube values enable `githubMetricsCache.enabled=true`, also confirm the sidecar-served
+runtime cache is available and schema-compatible:
+
+```bash
+curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
+```
+
+The cache sidecar uses unauthenticated public GitHub REST requests only. Do not add a PAT, GitHub
+App credential, Kubernetes Secret, or client-visible token for this metrics path.
+
 If these fail, first check the Sugarkube release status and ingress/Cloudflare routing separately.
 Do not rebuild images locally as a release workaround; pick a known-good immutable GitHub Actions
 tag and redeploy it.
@@ -155,6 +167,13 @@ just helm-oci-upgrade \
 curl -fsS https://danielsmith.io/livez
 curl -fsS https://danielsmith.io/healthz
 curl -fsS https://danielsmith.io/
+```
+
+When production values enable the runtime GitHub metrics cache, verify it without supplying any
+GitHub credential:
+
+```bash
+curl -fsS https://danielsmith.io/runtime/github-metrics.json
 ```
 
 ## Rollback

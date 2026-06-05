@@ -55,3 +55,23 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- printf "%s:%s" .Values.image.repository (required "image.tag is required when image.digest is not set" .Values.image.tag) -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "danielsmith.githubMetricsCacheConfigMapName" -}}
+{{- printf "%s-github-metrics-cache" (include "danielsmith.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCacheImage" -}}
+{{- printf "%s:%s" .Values.githubMetricsCache.image.repository .Values.githubMetricsCache.image.tag -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCacheOutputDir" -}}
+{{- dir .Values.githubMetricsCache.outputPath -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCachePublicDir" -}}
+{{- dir .Values.githubMetricsCache.publicPath -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCacheNginxMountPath" -}}
+{{- printf "/usr/share/nginx/html%s" (include "danielsmith.githubMetricsCachePublicDir" .) -}}
+{{- end -}}
