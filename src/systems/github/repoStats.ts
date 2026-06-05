@@ -11,7 +11,7 @@ export interface GitHubRepoStats {
   pushedAt: string | null;
 }
 
-export type GitHubRepoStatsListener = (stats: GitHubRepoStats) => void;
+export type GitHubRepoStatsListener = (stats: GitHubRepoStats | null) => void;
 
 export type GitHubRepoMetricsSource =
   | 'runtime-cache'
@@ -306,7 +306,7 @@ export function createGitHubRepoStatsService(
   }
   let warnedThisService = false;
 
-  const notify = (key: string, stats: GitHubRepoStats) => {
+  const notify = (key: string, stats: GitHubRepoStats | null) => {
     const repoListeners = listeners.get(key);
     if (!repoListeners || repoListeners.size === 0) {
       return;
@@ -329,6 +329,23 @@ export function createGitHubRepoStatsService(
     const key = makeCacheKey(identifier);
     cache.set(key, { stats, cachedAt, freshUntil, source: 'runtime-cache' });
     notify(key, stats);
+  };
+
+  const clearRuntimeCacheState = (notifyListeners: boolean) => {
+    const removedKeys: string[] = [];
+    for (const [key, entry] of cache) {
+      if (entry.source === 'runtime-cache') {
+        cache.delete(key);
+        removedKeys.push(key);
+      }
+    }
+    runtimeCacheRepoKeys.clear();
+    runtimeCacheAvailable = false;
+    runtimeCacheRefreshAfter = 0;
+    if (!notifyListeners) {
+      return;
+    }
+    removedKeys.forEach((key) => notify(key, null));
   };
 
   let runtimeCacheLoadPromise: Promise<boolean> | null = null;
@@ -449,7 +466,7 @@ export function createGitHubRepoStatsService(
     const loaded = await runtimeCacheLoadPromise;
     if (!loaded) {
       runtimeCacheLoadPromise = null;
-      runtimeCacheRefreshAfter = 0;
+      clearRuntimeCacheState(true);
     }
     return loaded;
   };

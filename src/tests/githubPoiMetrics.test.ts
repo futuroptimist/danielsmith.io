@@ -93,9 +93,13 @@ class MockRepoStatsService implements GitHubRepoStatsService {
     this.cache.set(this.key(identifier), stats);
   }
 
-  emit(identifier: GitHubRepoIdentifier, stats: GitHubRepoStats) {
+  emit(identifier: GitHubRepoIdentifier, stats: GitHubRepoStats | null) {
     const key = this.key(identifier);
-    this.cache.set(key, stats);
+    if (stats) {
+      this.cache.set(key, stats);
+    } else {
+      this.cache.delete(key);
+    }
     const listeners = this.listeners.get(key);
     if (!listeners) {
       return;
@@ -425,12 +429,12 @@ describe('wireGitHubRepoMetrics', () => {
       pushedAt: '2024-01-01T00:00:00Z',
     });
 
-    const updates: Array<{ poiId: string; stars: number }> = [];
+    const updates: Array<{ poiId: string; stars: number | null }> = [];
     const controller = wireGitHubRepoMetrics({
       definitions,
       service,
       onRepoStatsUpdated: ({ poiId, stats }) => {
-        updates.push({ poiId, stars: stats.stars });
+        updates.push({ poiId, stars: stats?.stars ?? null });
       },
     });
 
@@ -463,6 +467,15 @@ describe('wireGitHubRepoMetrics', () => {
     expect(updates.slice(-2)).toEqual([
       { poiId: 'futuroptimist-living-room-tv', stars: 1425 },
       { poiId: 'gitshelves-living-room-installation', stars: 1425 },
+    ]);
+
+    service.emit(identifier, null);
+    await Promise.resolve();
+    expect(definitions[0].metrics?.[0]?.value).toBe('Fallback');
+    expect(definitions[1].metrics?.[0]?.value).toBe('Fallback');
+    expect(updates.slice(-2)).toEqual([
+      { poiId: 'futuroptimist-living-room-tv', stars: null },
+      { poiId: 'gitshelves-living-room-installation', stars: null },
     ]);
 
     controller.dispose();

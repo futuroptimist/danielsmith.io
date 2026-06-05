@@ -15,6 +15,7 @@ interface MetricEntry {
   poi: PoiDefinition;
   metric: PoiMetric;
   source: PoiMetricGitHubStarsSource;
+  fallbackValue: string;
 }
 
 interface RepoBucket {
@@ -30,7 +31,7 @@ export interface WireGitHubRepoMetricsOptions {
   onRepoStatsUpdated?(update: {
     poiId: PoiId;
     source: PoiMetricGitHubStarsSource;
-    stats: GitHubRepoStats;
+    stats: GitHubRepoStats | null;
   }): void;
 }
 
@@ -104,14 +105,17 @@ export function wireGitHubRepoMetrics({
         return;
       }
       const fallback = metric.source.fallback ?? metric.value;
-      if (fallback) {
-        metric.value = fallback;
-      }
+      metric.value = fallback;
       if (metric.source.visibility === 'private') {
         return;
       }
       const bucket = getBucket(metric.source);
-      bucket.entries.push({ poi, metric, source: metric.source });
+      bucket.entries.push({
+        poi,
+        metric,
+        source: metric.source,
+        fallbackValue: fallback,
+      });
       const cached = service.getCachedStats(bucket.identifier);
       if (cached) {
         metric.value = formatStars(cached.stars, metric.source);
@@ -128,11 +132,12 @@ export function wireGitHubRepoMetrics({
   repoMap.forEach((bucket) => {
     const unsubscribe = service.subscribe(bucket.identifier, (stats) => {
       const previousStars = bucket.lastStars;
-      bucket.lastStars = stats.stars;
-      const starChanged = previousStars !== stats.stars;
+      const nextStars = stats?.stars;
+      bucket.lastStars = nextStars;
+      const starChanged = previousStars !== nextStars;
       const updated = new Set<PoiId>();
-      bucket.entries.forEach(({ poi, metric, source }) => {
-        metric.value = formatStars(stats.stars, source);
+      bucket.entries.forEach(({ poi, metric, source, fallbackValue }) => {
+        metric.value = stats ? formatStars(stats.stars, source) : fallbackValue;
         updated.add(poi.id);
         if (starChanged) {
           onRepoStatsUpdated?.({ poiId: poi.id, source, stats });

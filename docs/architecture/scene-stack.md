@@ -95,8 +95,9 @@ layer without guessing where functionality lives.
   cache as the normal source of truth. The cache has a modest grace window beyond `expiresAt`
   so an hourly refresh that lands slightly late does not flicker metrics back to neutral copy;
   long-lived sessions retry the runtime file after that cache window instead of pinning the
-  first successful response forever. Stale, invalid, missing, private, or rate-limited data falls
-  back to localized neutral text
+  first successful response forever; failed refreshes clear expired runtime metrics and notify open
+  UI so tooltips and the media wall return to neutral copy. Stale, invalid, missing, private, or
+  rate-limited data falls back to localized neutral text
   such as “Syncing from GitHub…” rather than invented numbers. Browser live GitHub API fetches
   are disabled for normal visitors and require an explicit debug/test flag
   (`?enableLiveGitHubMetrics=1` or `window.__ENABLE_LIVE_GITHUB_METRICS__ = true`). No GitHub

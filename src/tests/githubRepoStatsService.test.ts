@@ -292,6 +292,67 @@ describe('GitHub repo stats service', () => {
     expect(service.getDiagnostics().source).toBe('runtime-cache');
   });
 
+  it('clears expired runtime stats and notifies subscribers after failed refreshes', async () => {
+    let currentTime = Date.parse('2026-06-03T01:20:00.000Z');
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          schemaVersion: 1,
+          generatedAt: '2026-06-03T00:00:00.000Z',
+          expiresAt: '2026-06-03T01:15:00.000Z',
+          repos: {
+            'futuroptimist/flywheel': {
+              owner: 'futuroptimist',
+              repo: 'flywheel',
+              stars: 8,
+              watchers: 2,
+              forks: 1,
+              openIssues: 0,
+              pushedAt: null,
+            },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 404 });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        runtimeCacheGraceMs: 20 * 60 * 1000,
+        now: () => currentTime,
+      })
+    );
+    const listener = vi.fn();
+    service.subscribe({ owner: 'futuroptimist', repo: 'flywheel' }, listener);
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toMatchObject({ stars: 8 });
+
+    currentTime = Date.parse('2026-06-03T01:36:00.000Z');
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toBeNull();
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(listener.mock.calls.map(([stats]) => stats?.stars ?? null)).toEqual([
+      8,
+      null,
+    ]);
+    expect(
+      service.getCachedStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).toBeNull();
+    expect(service.getDiagnostics()).toMatchObject({
+      source: 'static-neutral',
+      cachedRepoCount: 0,
+    });
+  });
+
   it('times out hung runtime cache loads before returning neutral stats', async () => {
     const fetch = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
       return new Promise<Response>((_resolve, reject) => {
