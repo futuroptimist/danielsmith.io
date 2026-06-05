@@ -1988,7 +1988,7 @@ function initializeImmersiveScene(
       },
       onRepoStatsUpdated: ({ poiId, stats }) => {
         if (poiId === 'futuroptimist-living-room-tv') {
-          mediaWallStarBridge.updateStarCount(stats.stars);
+          mediaWallStarBridge.updateStarCount(stats?.stars ?? null);
         }
       },
     });

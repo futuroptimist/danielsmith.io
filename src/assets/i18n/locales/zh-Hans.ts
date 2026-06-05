@@ -744,7 +744,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       outcome: {
         label: '成果',
         value:
-          '链接到公开的 democratizedspace/dspace 仓库和官方游戏文档，避免未经验证的任务日志。',
+          '将私有的 democratizedspace/dspace 仓库指标保持为不可用，同时链接官方游戏文档，避免未经验证的任务日志。',
       },
       metrics: [
         { label: '游戏', value: '资源管理 · 任务 · 探索' },
@@ -755,6 +755,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             type: 'githubStars',
             owner: 'democratizedspace',
             repo: 'dspace',
+            visibility: 'private',
             format: 'compact',
             template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',

@@ -1033,7 +1033,7 @@ function buildPoi(
         {
           label: githubStars.label,
           value: githubStars.value,
-          source: starSource('dspace', undefined, 'democratizedspace'),
+          source: starSource('dspace', 'private', 'democratizedspace'),
         },
         { label: poi.dspace.metrics[0], value: poi.dspace.metrics[1] },
         { label: poi.dspace.metrics[2], value: poi.dspace.metrics[3] },

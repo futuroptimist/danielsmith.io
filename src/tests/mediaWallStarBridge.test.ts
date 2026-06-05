@@ -13,19 +13,19 @@ describe('createMediaWallStarBridge', () => {
     return controller;
   };
 
-  it('applies the initial star count when attaching a controller', () => {
-    const bridge = createMediaWallStarBridge(1280);
+  it('applies a neutral initial state when attaching a controller', () => {
+    const bridge = createMediaWallStarBridge();
     const controller = createController();
 
     bridge.attach(controller);
 
     expect(controller.setStarCount).toHaveBeenCalledTimes(1);
-    expect(controller.setStarCount).toHaveBeenCalledWith(1280);
-    expect(bridge.getStarCount()).toBe(1280);
+    expect(controller.setStarCount).toHaveBeenCalledWith(null);
+    expect(bridge.getStarCount()).toBeNull();
   });
 
   it('updates the controller when live star counts arrive', () => {
-    const bridge = createMediaWallStarBridge(1280);
+    const bridge = createMediaWallStarBridge();
     const controller = createController();
     bridge.attach(controller);
 
@@ -53,17 +53,17 @@ describe('createMediaWallStarBridge', () => {
     expect(firstController.setStarCount).toHaveBeenCalledTimes(2);
   });
 
-  it('sanitizes invalid star counts to zero', () => {
+  it('sanitizes invalid star counts to a neutral state', () => {
     const bridge = createMediaWallStarBridge();
     const controller = createController();
     bridge.attach(controller);
 
     bridge.updateStarCount(Number.NaN);
-    expect(bridge.getStarCount()).toBe(0);
-    expect(controller.setStarCount).toHaveBeenLastCalledWith(0);
+    expect(bridge.getStarCount()).toBeNull();
+    expect(controller.setStarCount).toHaveBeenLastCalledWith(null);
 
     bridge.updateStarCount(-42);
-    expect(bridge.getStarCount()).toBe(0);
-    expect(controller.setStarCount).toHaveBeenLastCalledWith(0);
+    expect(bridge.getStarCount()).toBeNull();
+    expect(controller.setStarCount).toHaveBeenLastCalledWith(null);
   });
 });

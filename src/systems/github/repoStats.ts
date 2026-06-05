@@ -11,9 +11,14 @@ export interface GitHubRepoStats {
   pushedAt: string | null;
 }
 
-export type GitHubRepoStatsListener = (stats: GitHubRepoStats) => void;
+export type GitHubRepoStatsListener = (stats: GitHubRepoStats | null) => void;
 
-export type GitHubRepoMetricsSource = 'live' | 'cached' | 'static-fallback';
+export type GitHubRepoMetricsSource =
+  | 'runtime-cache'
+  | 'runtime-cache-stale'
+  | 'browser-live'
+  | 'cached'
+  | 'static-neutral';
 
 export interface GitHubRepoStatsDiagnostics {
   source: GitHubRepoMetricsSource;
@@ -31,6 +36,7 @@ export interface GitHubRepoStatsService {
   requestStats(
     identifier: GitHubRepoIdentifier
   ): Promise<GitHubRepoStats | null>;
+  loadRuntimeCache(): Promise<boolean>;
   subscribe(
     identifier: GitHubRepoIdentifier,
     listener: GitHubRepoStatsListener
@@ -48,6 +54,8 @@ const BACKOFF_STORAGE_KEY = 'danielsmith.io:github-repo-stats:backoff';
 const DEFAULT_SUCCESS_CACHE_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_FAILURE_BACKOFF_MS = 15 * 60 * 1000;
 const DEFAULT_FETCH_TIMEOUT_MS = 3500;
+const DEFAULT_RUNTIME_CACHE_URL = '/runtime/github-metrics.json';
+const DEFAULT_RUNTIME_CACHE_GRACE_MS = 20 * 60 * 1000;
 const WARNING_SESSION_KEY = 'danielsmith.io:github-repo-stats:warning-shown';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -65,8 +73,11 @@ interface BackoffRecord {
   lastErrorAt: number;
 }
 
+type MemoryCacheSource = 'runtime-cache' | 'browser-live' | 'local-storage';
+
 interface MemoryCacheEntry extends CachedStatsRecord {
   freshUntil: number;
+  source: MemoryCacheSource;
 }
 
 export interface GitHubRepoStatsServiceOptions {
@@ -78,6 +89,9 @@ export interface GitHubRepoStatsServiceOptions {
   successCacheTtlMs?: number;
   failureBackoffMs?: number;
   fetchTimeoutMs?: number;
+  runtimeCacheUrl?: string | null;
+  runtimeCacheGraceMs?: number;
+  loadRuntimeCacheOnCreate?: boolean;
   AbortControllerImpl?: typeof AbortController;
 }
 
@@ -99,7 +113,7 @@ const makeStorageKey = (identifier: GitHubRepoIdentifier): string =>
   `${CACHE_STORAGE_PREFIX}${makeCacheKey(identifier)}`;
 
 const shouldAttemptLiveFetch = (() => {
-  const globalScope = globalThis as Partial<
+  const globalScope = globalThis as unknown as Partial<
     Window & { __ENABLE_LIVE_GITHUB_METRICS__?: boolean }
   >;
   if (globalScope.__ENABLE_LIVE_GITHUB_METRICS__) {
@@ -111,10 +125,6 @@ const shouldAttemptLiveFetch = (() => {
   }
   const params = new URLSearchParams(location.search);
   if (params.get('enableLiveGitHubMetrics') === '1') {
-    return true;
-  }
-  const hostname = location.hostname.toLowerCase();
-  if (hostname === 'danielsmith.io' || hostname.endsWith('.danielsmith.io')) {
     return true;
   }
   return false;
@@ -175,7 +185,8 @@ const safeRemove = (storage: StorageLike | null, key: string): void => {
 const normalizeCachedRecord = (
   record: CachedStatsRecord | null,
   now: number,
-  ttlMs: number
+  ttlMs: number,
+  source: MemoryCacheSource
 ): MemoryCacheEntry | null => {
   if (!record || typeof record !== 'object') {
     return null;
@@ -199,6 +210,7 @@ const normalizeCachedRecord = (
     },
     cachedAt,
     freshUntil: cachedAt + ttlMs,
+    source,
   };
 };
 
@@ -213,6 +225,30 @@ const isBackoffActive = (
 
 const shouldBackoffForStatus = (status: ErrorStatus): boolean =>
   status === 'network' || status === 403 || status === 429;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const parseTimestamp = (value: unknown): number | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : null;
+};
+
+const normalizeRuntimeRepoStats = (value: unknown): GitHubRepoStats | null => {
+  if (!isRecord(value) || !Number.isFinite(value.stars)) {
+    return null;
+  }
+  return {
+    stars: sanitizeNumber(value.stars),
+    watchers: sanitizeNumber(value.watchers),
+    forks: sanitizeNumber(value.forks),
+    openIssues: sanitizeNumber(value.openIssues),
+    pushedAt: typeof value.pushedAt === 'string' ? value.pushedAt : null,
+  };
+};
 
 const toIso = (timestamp: number | null): string | null => {
   if (timestamp === null || !Number.isFinite(timestamp)) {
@@ -241,13 +277,19 @@ export function createGitHubRepoStatsService(
   const failureBackoffMs =
     options.failureBackoffMs ?? DEFAULT_FAILURE_BACKOFF_MS;
   const fetchTimeoutMs = options.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+  const runtimeCacheUrl =
+    options.runtimeCacheUrl === undefined
+      ? DEFAULT_RUNTIME_CACHE_URL
+      : options.runtimeCacheUrl;
+  const runtimeCacheGraceMs =
+    options.runtimeCacheGraceMs ?? DEFAULT_RUNTIME_CACHE_GRACE_MS;
   const AbortControllerTarget =
     options.AbortControllerImpl ?? globalThis.AbortController;
   const cache = new Map<string, MemoryCacheEntry>();
   const listeners = new Map<string, Set<GitHubRepoStatsListener>>();
   const inFlight = new Map<string, Promise<GitHubRepoStats | null>>();
   const diagnostics = {
-    source: 'static-fallback' as GitHubRepoMetricsSource,
+    source: 'static-neutral' as GitHubRepoMetricsSource,
     requestCount: 0,
     suppressedRequestCount: 0,
     lastErrorStatus: null as ErrorStatus | null,
@@ -264,7 +306,7 @@ export function createGitHubRepoStatsService(
   }
   let warnedThisService = false;
 
-  const notify = (key: string, stats: GitHubRepoStats) => {
+  const notify = (key: string, stats: GitHubRepoStats | null) => {
     const repoListeners = listeners.get(key);
     if (!repoListeners || repoListeners.size === 0) {
       return;
@@ -276,6 +318,164 @@ export function createGitHubRepoStatsService(
         // Suppress listener failures so one consumer cannot block updates.
       }
     }
+  };
+
+  const writeMemoryEntry = (
+    identifier: GitHubRepoIdentifier,
+    stats: GitHubRepoStats,
+    cachedAt: number,
+    freshUntil: number
+  ) => {
+    const key = makeCacheKey(identifier);
+    cache.set(key, { stats, cachedAt, freshUntil, source: 'runtime-cache' });
+    notify(key, stats);
+  };
+
+  const clearRuntimeCacheState = (notifyListeners: boolean) => {
+    const removedKeys: string[] = [];
+    for (const [key, entry] of cache) {
+      if (entry.source === 'runtime-cache') {
+        cache.delete(key);
+        removedKeys.push(key);
+      }
+    }
+    runtimeCacheRepoKeys.clear();
+    runtimeCacheAvailable = false;
+    runtimeCacheRefreshAfter = 0;
+    if (!notifyListeners) {
+      return;
+    }
+    removedKeys.forEach((key) => notify(key, null));
+  };
+
+  let runtimeCacheLoadPromise: Promise<boolean> | null = null;
+  let runtimeCacheLoadInFlight = false;
+  let runtimeCacheRefreshAfter = 0;
+  let runtimeCacheAvailable = false;
+  const runtimeCacheRepoKeys = new Set<string>();
+
+  const loadRuntimeCache = async (): Promise<boolean> => {
+    if (!runtimeCacheUrl || !fetchImpl) {
+      return false;
+    }
+    if (runtimeCacheLoadPromise) {
+      if (
+        runtimeCacheLoadInFlight ||
+        runtimeCacheRefreshAfter === 0 ||
+        now() < runtimeCacheRefreshAfter
+      ) {
+        return runtimeCacheLoadPromise;
+      }
+      runtimeCacheLoadPromise = null;
+    }
+
+    runtimeCacheLoadInFlight = true;
+    runtimeCacheLoadPromise = (async () => {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      let controller: AbortController | undefined;
+      try {
+        if (AbortControllerTarget && fetchTimeoutMs > 0) {
+          controller = new AbortControllerTarget();
+          timeoutId = setTimeout(() => controller?.abort(), fetchTimeoutMs);
+        }
+        const requestInit: RequestInit = {
+          headers: { Accept: 'application/json' },
+        };
+        if (controller?.signal) {
+          requestInit.signal = controller.signal;
+        }
+        const response = await fetchImpl(runtimeCacheUrl, requestInit);
+        if (!response.ok) {
+          diagnostics.source = 'static-neutral';
+          return false;
+        }
+        const payload = (await response.json()) as unknown;
+        if (!isRecord(payload) || payload.schemaVersion !== 1) {
+          diagnostics.source = 'static-neutral';
+          return false;
+        }
+        if (payload.source === 'static-neutral-placeholder') {
+          diagnostics.source = 'static-neutral';
+          return false;
+        }
+        const generatedAt = parseTimestamp(payload.generatedAt);
+        const expiresAt = parseTimestamp(payload.expiresAt);
+        if (generatedAt === null || expiresAt === null || generatedAt > now()) {
+          diagnostics.source = 'static-neutral';
+          return false;
+        }
+        if (expiresAt + runtimeCacheGraceMs < now()) {
+          diagnostics.source = 'runtime-cache-stale';
+          return false;
+        }
+        if (!isRecord(payload.repos)) {
+          diagnostics.source = 'static-neutral';
+          return false;
+        }
+
+        const loadedRepoKeys = new Set<string>();
+        let loadedCount = 0;
+        for (const [key, repoStats] of Object.entries(payload.repos)) {
+          const normalized = normalizeRuntimeRepoStats(repoStats);
+          if (!normalized || !isRecord(repoStats)) {
+            continue;
+          }
+          const owner =
+            typeof repoStats.owner === 'string' ? repoStats.owner : null;
+          const repo =
+            typeof repoStats.repo === 'string' ? repoStats.repo : null;
+          if (
+            !owner ||
+            !repo ||
+            key.toLowerCase() !== `${owner}/${repo}`.toLowerCase()
+          ) {
+            continue;
+          }
+          const normalizedKey = makeCacheKey({ owner, repo });
+          loadedRepoKeys.add(normalizedKey);
+          writeMemoryEntry(
+            { owner, repo },
+            normalized,
+            generatedAt,
+            expiresAt + runtimeCacheGraceMs
+          );
+          loadedCount += 1;
+        }
+
+        const removedRepoKeys: string[] = [];
+        for (const [key, entry] of cache) {
+          if (entry.source === 'runtime-cache' && !loadedRepoKeys.has(key)) {
+            cache.delete(key);
+            removedRepoKeys.push(key);
+          }
+        }
+        removedRepoKeys.forEach((key) => notify(key, null));
+        runtimeCacheRepoKeys.clear();
+        for (const key of loadedRepoKeys) {
+          runtimeCacheRepoKeys.add(key);
+        }
+        runtimeCacheRefreshAfter = expiresAt + runtimeCacheGraceMs;
+        runtimeCacheAvailable = true;
+        diagnostics.source =
+          loadedCount > 0 ? 'runtime-cache' : 'static-neutral';
+        return true;
+      } catch {
+        diagnostics.source = 'static-neutral';
+        return false;
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        runtimeCacheLoadInFlight = false;
+      }
+    })();
+
+    const loaded = await runtimeCacheLoadPromise;
+    if (!loaded) {
+      runtimeCacheLoadPromise = null;
+      clearRuntimeCacheState(true);
+    }
+    return loaded;
   };
 
   const warnOnce = (status: ErrorStatus) => {
@@ -294,7 +494,7 @@ export function createGitHubRepoStatsService(
     diagnostics.warningCount += 1;
     safeWriteJson(sessionStorage, WARNING_SESSION_KEY, true);
     logger.warn(
-      '[github-metrics] Live GitHub repo metrics are temporarily unavailable; using cached/static project metrics.',
+      '[github-metrics] Browser live GitHub repo metrics are temporarily unavailable; using cached or neutral project metrics.',
       {
         status,
         backoffExpiresAt: backoff ? toIso(backoff.expiresAt) : null,
@@ -307,15 +507,16 @@ export function createGitHubRepoStatsService(
   ): MemoryCacheEntry | null => {
     const key = makeCacheKey(identifier);
     const cached = cache.get(key);
-    if (cached) {
+    if (cached && canUseCachedEntry(key, cached)) {
       return cached;
     }
     const stored = normalizeCachedRecord(
       safeReadJson<CachedStatsRecord>(localStorage, makeStorageKey(identifier)),
       now(),
-      successCacheTtlMs
+      successCacheTtlMs,
+      'local-storage'
     );
-    if (stored) {
+    if (stored && canUseCachedEntry(key, stored)) {
       cache.set(key, stored);
       return stored;
     }
@@ -332,6 +533,7 @@ export function createGitHubRepoStatsService(
     cache.set(key, {
       ...record,
       freshUntil: cachedAt + successCacheTtlMs,
+      source: 'browser-live',
     });
     safeWriteJson(localStorage, makeStorageKey(identifier), record);
   };
@@ -356,12 +558,25 @@ export function createGitHubRepoStatsService(
     warnOnce(status);
   };
 
+  const canUseCachedEntry = (key: string, entry: MemoryCacheEntry): boolean => {
+    if (!runtimeCacheUrl) {
+      return true;
+    }
+    if (entry.source === 'runtime-cache') {
+      return runtimeCacheRepoKeys.has(key);
+    }
+    if (runtimeCacheAvailable) {
+      return false;
+    }
+    return allowLiveFetch;
+  };
+
   const getCachedStats = (
     identifier: GitHubRepoIdentifier
   ): GitHubRepoStats | null => {
     const entry = readCachedEntry(identifier);
-    if (entry) {
-      diagnostics.source = diagnostics.source === 'live' ? 'live' : 'cached';
+    if (entry && diagnostics.source === 'static-neutral') {
+      diagnostics.source = 'cached';
     }
     return entry?.stats ?? null;
   };
@@ -402,10 +617,17 @@ export function createGitHubRepoStatsService(
   const requestStats = async (
     identifier: GitHubRepoIdentifier
   ): Promise<GitHubRepoStats | null> => {
+    await loadRuntimeCache();
     const key = makeCacheKey(identifier);
+    if (runtimeCacheAvailable && !runtimeCacheRepoKeys.has(key)) {
+      diagnostics.source = 'static-neutral';
+      return null;
+    }
     const cached = readCachedEntry(identifier);
     if (cached && cached.freshUntil > now()) {
-      diagnostics.source = 'cached';
+      if (cached.source !== 'runtime-cache') {
+        diagnostics.source = 'cached';
+      }
       return cached.stats;
     }
     const existing = inFlight.get(key);
@@ -413,12 +635,23 @@ export function createGitHubRepoStatsService(
       return existing;
     }
     if (!fetchImpl || !allowLiveFetch) {
-      diagnostics.source = cached ? 'cached' : 'static-fallback';
-      return cached?.stats ?? null;
+      if (
+        diagnostics.source !== 'runtime-cache' &&
+        diagnostics.source !== 'runtime-cache-stale'
+      ) {
+        diagnostics.source = 'static-neutral';
+      }
+      return null;
     }
     if (isBackoffActive(backoff, now())) {
       diagnostics.suppressedRequestCount += 1;
-      diagnostics.source = cached ? 'cached' : 'static-fallback';
+      if (
+        !cached &&
+        diagnostics.source !== 'runtime-cache' &&
+        diagnostics.source !== 'runtime-cache-stale'
+      ) {
+        diagnostics.source = 'static-neutral';
+      }
       return cached?.stats ?? null;
     }
     if (backoff) {
@@ -441,7 +674,7 @@ export function createGitHubRepoStatsService(
         );
         if (!response.ok) {
           recordFailure(response.status);
-          diagnostics.source = cached ? 'cached' : 'static-fallback';
+          diagnostics.source = cached ? 'cached' : 'static-neutral';
           return cached?.stats ?? null;
         }
         const data = (await response.json()) as Record<string, unknown>;
@@ -455,19 +688,20 @@ export function createGitHubRepoStatsService(
           pushedAt: typeof data.pushed_at === 'string' ? data.pushed_at : null,
         };
         writeCachedEntry(identifier, stats);
-        diagnostics.source = 'live';
+        diagnostics.source = 'browser-live';
         diagnostics.lastErrorStatus = null;
         diagnostics.lastErrorAt = null;
         notify(key, stats);
         return stats;
       } catch {
         recordFailure('network');
-        diagnostics.source = cached ? 'cached' : 'static-fallback';
+        diagnostics.source = cached ? 'cached' : 'static-neutral';
         return cached?.stats ?? null;
       } finally {
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
+        runtimeCacheLoadInFlight = false;
         inFlight.delete(key);
       }
     })();
@@ -489,9 +723,14 @@ export function createGitHubRepoStatsService(
     warningCount: diagnostics.warningCount,
   });
 
+  if (options.loadRuntimeCacheOnCreate !== false) {
+    void loadRuntimeCache();
+  }
+
   return {
     getCachedStats,
     requestStats,
+    loadRuntimeCache,
     subscribe,
     getDiagnostics,
   };

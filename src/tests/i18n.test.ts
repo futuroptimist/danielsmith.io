@@ -240,6 +240,60 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('keeps GitHub star metric metadata and neutral fallback copy in every locale', () => {
+    const fakeFallbackPattern =
+      /(?:\d[\d,.]*\s*(?:\+|k|m)?\s*(?:stars?|estrelas|sterne|星标|スター|نجوم|csillag))/i;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const definitions = getPoiDefinitions(locale);
+      const starMetrics = definitions.flatMap((poi) =>
+        (poi.metrics ?? [])
+          .filter((metric) => metric.source?.type === 'githubStars')
+          .map((metric) => ({ poi, metric, source: metric.source }))
+      );
+
+      expect(starMetrics.length, locale).toBeGreaterThan(0);
+      for (const { poi, metric, source } of starMetrics) {
+        expect(source?.owner, `${locale} ${poi.id}`).toEqual(
+          expect.any(String)
+        );
+        expect(source?.repo, `${locale} ${poi.id}`).toEqual(expect.any(String));
+        expect(metric.value, `${locale} ${poi.id}`).not.toMatch(
+          fakeFallbackPattern
+        );
+        expect(source?.fallback ?? '', `${locale} ${poi.id}`).not.toMatch(
+          fakeFallbackPattern
+        );
+      }
+    }
+  });
+
+  it('marks every localized DSPACE GitHub star metric as private and neutral', () => {
+    const numericFallbackPattern = /\d/;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+      const starMetric = dspace?.metrics?.find(
+        (metric) => metric.source?.type === 'githubStars'
+      );
+
+      expect(dspace, locale).toBeDefined();
+      expect(starMetric, locale).toBeDefined();
+      expect(starMetric?.source, locale).toMatchObject({
+        type: 'githubStars',
+        owner: 'democratizedspace',
+        repo: 'dspace',
+        visibility: 'private',
+      });
+      expect(starMetric?.value, locale).not.toMatch(numericFallbackPattern);
+      expect(starMetric?.source?.fallback ?? '', locale).not.toMatch(
+        numericFallbackPattern
+      );
+    }
+  });
+
   it('deep-clones localized POI metric sources per call', () => {
     const firstDefinitions = getPoiDefinitions('en-x-pseudo');
     const firstPoi = firstDefinitions.find(
