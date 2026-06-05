@@ -62,9 +62,11 @@ the related assets. `npm run launch:screenshot` is review-only because
 - Update the relevant files in `docs/` whenever behavior, prompts, or workflows change.
 - Store generated images as SVG or PNG in `docs/assets/`, except for CI-owned outputs noted
   below.
-- Never manually create, edit, replace, stage, or commit `docs/assets/game-launch.png`. The
-  launch screenshot workflow regenerates it automatically after every merge, and Codex Cloud
-  cannot create or commit binary files.
+- Never manually create, edit, replace, stage, or commit `docs/assets/game-launch.png`
+  in a Codex-authored PR. The launch screenshot workflow regenerates it automatically
+  after every merge, and Codex Cloud cannot create or commit binary files.
+- If `docs/assets/game-launch.png` appears in `git status` or `git diff`, restore it
+  from the PR base/current main before staging so the final PR diff excludes it.
 - Avoid committing large binaries elsewhere in the repo.
 - For front-end tweaks, capture an updated screenshot via the CI workflow instead of touching
   `docs/assets/game-launch.png` locally.
