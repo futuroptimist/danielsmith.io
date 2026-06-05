@@ -81,8 +81,13 @@ test.describe('GitHub repo metrics fallback', () => {
         body: JSON.stringify({ message: 'unexpected browser live fetch' }),
       });
     });
-    await page.route('**/runtime/github-metrics.json', (route) =>
-      route.fulfill({
+    let releaseRuntimeCache!: () => void;
+    const runtimeCacheReady = new Promise<void>((resolve) => {
+      releaseRuntimeCache = resolve;
+    });
+    await page.route('**/runtime/github-metrics.json', async (route) => {
+      await runtimeCacheReady;
+      await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
@@ -93,8 +98,8 @@ test.describe('GitHub repo metrics fallback', () => {
           repos: createRuntimeCacheRepos(),
           errors: {},
         }),
-      })
-    );
+      });
+    });
     await page.addInitScript(() => {
       window.localStorage.removeItem(
         'danielsmith.io:github-repo-stats:backoff'
@@ -115,6 +120,22 @@ test.describe('GitHub repo metrics fallback', () => {
       undefined,
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
+    const tooltip = page.locator('.poi-tooltip-overlay');
+    const starsMetric = tooltip
+      .locator('.poi-tooltip-overlay__metric')
+      .filter({ hasText: 'Stars' })
+      .first();
+
+    await page.keyboard.press('KeyE');
+    await expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+    await expect(tooltip.locator('.poi-tooltip-overlay__title')).toHaveText(
+      'Futuroptimist'
+    );
+    await expect(
+      starsMetric.locator('.poi-tooltip-overlay__metric-value')
+    ).toHaveText('Syncing from GitHub…');
+
+    releaseRuntimeCache();
     await page.waitForFunction(
       (expectedRepoCount) =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +144,9 @@ test.describe('GitHub repo metrics fallback', () => {
       RUNTIME_CACHE_REPOS.length,
       { timeout: 10_000 }
     );
+    await expect(
+      starsMetric.locator('.poi-tooltip-overlay__metric-value')
+    ).toHaveText('77 stars');
 
     const diagnostics = await page.evaluate<GitHubMetricsDiagnostics>(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -137,7 +161,7 @@ test.describe('GitHub repo metrics fallback', () => {
     expect(['runtime-cache', 'cached']).toContain(diagnostics.source);
     expect(liveRequests).toEqual([]);
     await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
-    await expect(page.locator('.poi-tooltip-overlay')).toHaveCount(1);
+    await expect(tooltip).toHaveCount(1);
     await expect(page.locator('html')).not.toHaveAttribute(
       'data-performance-failover-event',
       '1'
