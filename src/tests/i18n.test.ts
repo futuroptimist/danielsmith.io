@@ -200,6 +200,36 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('keeps GitHub star fallbacks neutral and marks DSPACE private', () => {
+    const numericStarFallback =
+      /\b\d[\d,.]*(?:\.\d+)?\s*(?:k|m)?\+?\s*(?:stars?|星标|Sterne|csillag|estrellas|estrelas)\b/i;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      for (const poi of getPoiDefinitions(locale)) {
+        for (const metric of poi.metrics ?? []) {
+          if (metric.source?.type !== 'githubStars') {
+            continue;
+          }
+          expect(metric.value, `${locale}:${poi.id}`).not.toMatch(
+            numericStarFallback
+          );
+          expect(metric.source.fallback, `${locale}:${poi.id}`).not.toMatch(
+            numericStarFallback
+          );
+        }
+      }
+
+      const dspaceStars = getPoiDefinitions(locale)
+        .find((poi) => poi.id === 'dspace-backyard-rocket')
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars');
+      expect(dspaceStars?.source).toMatchObject({
+        owner: 'democratizedspace',
+        repo: 'dspace',
+        visibility: 'private',
+      });
+    }
+  });
+
   it('removes the invalid DSPACE Mission Log link from every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
       const dspace = getPoiDefinitions(locale).find(

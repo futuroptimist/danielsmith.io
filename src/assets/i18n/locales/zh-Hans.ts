@@ -755,6 +755,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             type: 'githubStars',
             owner: 'democratizedspace',
             repo: 'dspace',
+            visibility: 'private',
             format: 'compact',
             template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',

@@ -50,7 +50,7 @@ layer without guessing where functionality lives.
   performance budgets. Also exposes POI copy consumed across systems and UI.
 - [`src/systems/`](../../src/systems/) – keyboard controls, audio pipelines,
   movement prediction, collision detection, mode failover, HUD control handles,
-  and the GitHub repo stats service that streams live metrics into POIs.
+  and the GitHub repo stats service that reads the pod-local runtime cache before updating POIs.
   Systems never import from `src/ui/`.
 - [`src/scene/`](../../src/scene/) – avatar importers, environmental builds,
   POI registries, lighting helpers, and structural meshes. Scene code consumes
@@ -58,6 +58,21 @@ layer without guessing where functionality lives.
 - [`src/ui/`](../../src/ui/) – HUD layout, accessibility bridges, immersive URL
   helpers, and stylesheet entry points. UI reads assets/systems and mirrors
   them for DOM accessibility.
+
+### GitHub POI metrics
+
+Public GitHub star counts are not embedded in locale copy. Deployed pods expose
+`/runtime/github-metrics.json`, refreshed by an unauthenticated sidecar against
+public GitHub repository metadata. The static frontend reads that pod-local JSON
+first and treats invalid or stale data as unavailable, so POIs show localized
+neutral copy such as “Syncing from GitHub…” instead of invented counts. Values may
+drift by up to the sidecar refresh interval plus a small grace window for late
+hourly refreshes.
+
+Normal staging and production browser sessions do not fan out direct GitHub API
+requests. Browser live fetch is reserved for explicit debug/development mode via
+`?enableLiveGitHubMetrics=1` or the test hook, and no GitHub token, PAT, app
+secret, or other credential is required for public star metrics.
 
 ### State surfaces & consumers
 

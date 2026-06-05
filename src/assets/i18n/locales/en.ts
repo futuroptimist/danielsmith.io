@@ -919,6 +919,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             type: 'githubStars',
             owner: 'democratizedspace',
             repo: 'dspace',
+            visibility: 'private',
             format: 'compact',
             template: '{value} stars',
             fallback: 'Syncing from GitHub…',
