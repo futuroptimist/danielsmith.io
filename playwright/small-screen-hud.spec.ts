@@ -26,6 +26,11 @@ type AudioDebugState = {
   preferenceEnabled: boolean;
   ambientEnabled: boolean;
   ambientSourcesPlayingCount: number;
+  ambientBedVolumes: Array<{
+    id: string;
+    currentVolume: number;
+    targetVolume: number;
+  }>;
   footstepEnabled: boolean;
   footstepPlaying: boolean;
   activeStorageKey: string;
@@ -218,7 +223,7 @@ test.describe('small-screen HUD regression coverage', () => {
   test.describe('desktop viewport', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
 
-    test('keeps audio globally muted by default and after legacy storage', async ({
+    test('routes Settings audio and M key toggles through global mute', async ({
       page,
     }) => {
       await page.addInitScript(() => {
@@ -231,8 +236,16 @@ test.describe('small-screen HUD regression coverage', () => {
         );
       });
       await waitForImmersiveReady(page);
-      await page.mouse.click(100, 100);
-      await page.keyboard.press('Space');
+
+      const settingsButton = page.locator('[data-role="settings-button"]');
+      const settingsModal = page.locator('.help-modal-backdrop');
+      await settingsButton.click();
+      await expect(settingsModal).toBeVisible();
+
+      const audioToggle = settingsModal.locator('button.audio-toggle');
+      const audioVolume = settingsModal.locator('.audio-volume__value');
+      await expect(audioToggle).toContainText(/Audio:\s*Off/i);
+      await expect(audioVolume).toContainText(/Muted/i);
 
       await expect
         .poll(async () => getAudioState(page))
@@ -245,7 +258,7 @@ test.describe('small-screen HUD regression coverage', () => {
           activeStorageKey: 'danielsmith.io::ambientAudioEnabled::v2',
         });
 
-      await page.keyboard.press('m');
+      await audioToggle.click();
       await expect
         .poll(async () => getAudioState(page))
         .toMatchObject({
@@ -256,14 +269,20 @@ test.describe('small-screen HUD regression coverage', () => {
 
       await page.keyboard.press('m');
       await expect
-        .poll(async () => getAudioState(page))
-        .toMatchObject({
-          preferenceEnabled: false,
-          ambientEnabled: false,
-          ambientSourcesPlayingCount: 0,
-          footstepEnabled: false,
-          footstepPlaying: false,
-        });
+        .poll(async () => {
+          const state = await getAudioState(page);
+          return (
+            !state.preferenceEnabled &&
+            !state.ambientEnabled &&
+            state.ambientSourcesPlayingCount === 0 &&
+            !state.footstepEnabled &&
+            !state.footstepPlaying &&
+            state.ambientBedVolumes.every(
+              (bed) => bed.currentVolume === 0 && bed.targetVolume === 0
+            )
+          );
+        })
+        .toBe(true);
 
       await page.reload({ waitUntil: 'domcontentloaded' });
       await waitForImmersiveReady(page);

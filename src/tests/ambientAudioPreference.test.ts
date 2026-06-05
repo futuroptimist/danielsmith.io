@@ -79,11 +79,12 @@ describe('AmbientAudioPreference', () => {
     expect(preference.isEnabled()).toBe(true);
   });
 
-  it('persists false to the v2 key even when already disabled by default', () => {
+  it('persists control disables to the v2 key even when already disabled by default', () => {
     const storage = new MemoryStorage();
     const preference = new AmbientAudioPreference({ storage });
 
-    preference.setEnabled(false);
+    preference.setEnabled(false, 'control');
+    preference.setEnabled(false, 'control');
 
     expect(storage.getItem(AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY)).toBe('0');
   });

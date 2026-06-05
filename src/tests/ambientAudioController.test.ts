@@ -131,6 +131,24 @@ describe('AmbientAudioController', () => {
     expect(source.volumes.at(-1)).toBe(0);
   });
 
+  it('keeps disabled beds stopped when master volume changes', async () => {
+    const { bed, source } = createBed();
+    const controller = new AmbientAudioController([bed], { smoothing: 0 });
+
+    await controller.enable();
+    controller.update({ x: 0, z: 0 }, 0.1);
+    controller.disable();
+
+    controller.setMasterVolume(0.5);
+    controller.update({ x: 0, z: 0 }, 0.1);
+
+    expect(controller.isEnabled()).toBe(false);
+    expect(source.isPlaying).toBe(false);
+    expect(source.volumes.at(-1)).toBe(0);
+    expect(controller.getBedSnapshots()[0].currentVolume).toBe(0);
+    expect(controller.getBedSnapshots()[0].targetVolume).toBe(0);
+  });
+
   it('applies master volume scaling and updates immediately', () => {
     const { bed, source } = createBed();
     const controller = new AmbientAudioController([bed], { smoothing: 0 });

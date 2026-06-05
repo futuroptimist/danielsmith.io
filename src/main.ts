@@ -1059,7 +1059,7 @@ function initializeImmersiveScene(
     ambientAudioController?.disable();
     footstepAudioController?.setEnabled(false);
     stopFootstepAudio();
-    audioSubtitles?.clear();
+    ambientCaptionBridge?.clear();
     audioHudHandle?.refresh();
   };
 

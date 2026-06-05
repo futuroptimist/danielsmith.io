@@ -268,6 +268,36 @@ describe('audio subtitles overlay', () => {
     handle.dispose();
   });
 
+  it('clears queued ambient captions by id without dropping active narration', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration remains active while ambient is muted.',
+      source: 'poi',
+      priority: 4,
+      durationMs: 1000,
+    });
+
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Queued ambient bed should be removed.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 600,
+    });
+
+    handle.clear('ambient-hum');
+
+    expect(getCaptionText()).toBe(
+      'Narration remains active while ambient is muted.'
+    );
+    vi.advanceTimersByTime(1000);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
   it('clears the active and queued captions when clear is called without an id', () => {
     const handle = createAudioSubtitles();
     handle.show({
