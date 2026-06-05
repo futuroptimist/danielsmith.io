@@ -53,8 +53,10 @@ githubMetricsCache:
   image:
     repository: python
     tag: '3.12-alpine'
+    digest: ''
     pullPolicy: IfNotPresent
   refreshIntervalSeconds: 3600
+  requestTimeoutSeconds: 5
   startupTimeoutSeconds: 20
   cacheTtlSeconds: 4500
   outputPath: /cache/github-metrics.json

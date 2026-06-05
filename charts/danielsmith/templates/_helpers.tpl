@@ -59,14 +59,43 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{/* Validate GitHub metrics cache values that must line up across mounts. */}}
 {{- define "danielsmith.githubMetricsCache.validate" -}}
 {{- if .Values.githubMetricsCache.enabled -}}
-{{- if ne (base .Values.githubMetricsCache.outputPath) (base .Values.githubMetricsCache.publicPath) -}}
+{{- $outputPath := toString .Values.githubMetricsCache.outputPath -}}
+{{- $publicPath := toString .Values.githubMetricsCache.publicPath -}}
+{{- $outputDir := dir $outputPath -}}
+{{- $publicDir := dir $publicPath -}}
+{{- if not (hasPrefix "/" $outputPath) -}}
+{{- fail "githubMetricsCache.outputPath must be an absolute path" -}}
+{{- end -}}
+{{- if not (hasPrefix "/" $publicPath) -}}
+{{- fail "githubMetricsCache.publicPath must be an absolute path" -}}
+{{- end -}}
+{{- if ne (clean $outputPath) $outputPath -}}
+{{- fail "githubMetricsCache.outputPath must be normalized and must not contain dot segments" -}}
+{{- end -}}
+{{- if ne (clean $publicPath) $publicPath -}}
+{{- fail "githubMetricsCache.publicPath must be normalized and must not contain dot segments" -}}
+{{- end -}}
+{{- if eq $outputDir "/" -}}
+{{- fail "githubMetricsCache.outputPath must include a non-root directory" -}}
+{{- end -}}
+{{- if eq $publicDir "/" -}}
+{{- fail "githubMetricsCache.publicPath must include a non-root directory" -}}
+{{- end -}}
+{{- if not (hasPrefix "/runtime/" $publicPath) -}}
+{{- fail "githubMetricsCache.publicPath must live under /runtime/ so nginx serves it with runtime cache headers" -}}
+{{- end -}}
+{{- if ne (base $outputPath) (base $publicPath) -}}
 {{- fail "githubMetricsCache.outputPath and githubMetricsCache.publicPath must use the same file name" -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}
 
 {{- define "danielsmith.githubMetricsCache.image" -}}
-{{- printf "%s:%s" .Values.githubMetricsCache.image.repository .Values.githubMetricsCache.image.tag -}}
+{{- if .Values.githubMetricsCache.image.digest -}}
+{{- printf "%s@%s" .Values.githubMetricsCache.image.repository .Values.githubMetricsCache.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.githubMetricsCache.image.repository (required "githubMetricsCache.image.tag is required when githubMetricsCache.image.digest is not set" .Values.githubMetricsCache.image.tag) -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "danielsmith.githubMetricsCache.outputDir" -}}

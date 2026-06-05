@@ -136,7 +136,7 @@ data:
                     )
                     failed_count += 1
                     continue
-                remaining_timeout = max(min(timeout, remaining), 1)
+                remaining_timeout = min(timeout, remaining)
             try:
                 data = fetch_repo(owner, repo, remaining_timeout)
                 payload["repos"][key] = repo_record(owner, repo, fetched_at, data)
@@ -183,14 +183,15 @@ data:
         repos_path = os.environ.get("GITHUB_METRICS_REPOS_PATH", "/etc/github-metrics/repos.json")
         output_path = os.environ.get("GITHUB_METRICS_OUTPUT_PATH", "/cache/github-metrics.json")
         refresh_interval = read_int_env("GITHUB_METRICS_REFRESH_INTERVAL_SECONDS", 3600)
-        request_timeout = read_int_env("GITHUB_METRICS_REQUEST_TIMEOUT_SECONDS", 20)
+        request_timeout = read_int_env("GITHUB_METRICS_REQUEST_TIMEOUT_SECONDS", 5)
+        startup_timeout = read_int_env("GITHUB_METRICS_STARTUP_TIMEOUT_SECONDS", 20)
         cache_ttl = read_int_env("GITHUB_METRICS_CACHE_TTL_SECONDS", 4500)
         repos = load_repos(repos_path)
         log(f"loaded {len(repos)} public repo targets; writing {output_path}")
         first_refresh = True
         while True:
             started = time.monotonic()
-            deadline = started + request_timeout if first_refresh else None
+            deadline = started + startup_timeout if first_refresh else None
             try:
                 payload, ok_count, failed_count = build_payload(
                     repos, request_timeout, cache_ttl, deadline

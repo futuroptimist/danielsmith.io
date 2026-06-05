@@ -32,8 +32,12 @@ When enabled, the sidecar uses the public GitHub REST API without a token, GitHu
 or Kubernetes Secret. On startup and then every `githubMetricsCache.refreshIntervalSeconds`
 (default `3600`), it fetches the configured public repositories, writes an atomic JSON cache to a
 shared `emptyDir`, and nginx serves that file at `githubMetricsCache.publicPath` (default
-`/runtime/github-metrics.json`). If GitHub is unavailable during startup, the sidecar writes a valid
-neutral JSON document when no prior cache exists so nginx readiness is not held hostage by GitHub.
+`/runtime/github-metrics.json`) with `Cache-Control: no-store`. Runtime public paths must be
+absolute, normalized, under `/runtime/`, and inside a non-root directory so the shared cache volume
+cannot hide the nginx document root. `githubMetricsCache.requestTimeoutSeconds` caps each GitHub
+request, while `githubMetricsCache.startupTimeoutSeconds` caps only the first whole refresh before a
+neutral cache is written. If GitHub is unavailable during startup, the sidecar writes a valid neutral
+JSON document when no prior cache exists so nginx readiness is not held hostage by GitHub.
 
 After enabling the sidecar in Sugarkube staging or production values, verify the public cache shape
 without adding secrets:

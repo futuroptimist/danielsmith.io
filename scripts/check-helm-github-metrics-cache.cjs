@@ -25,6 +25,23 @@ const assertExcludes = (haystack, needle, message) => {
   }
 };
 
+const assertRenderFails = (args, needle, message) => {
+  try {
+    render(args);
+  } catch (error) {
+    const output = `${error.stdout ?? ''}${error.stderr ?? ''}${error.message ?? ''}`;
+    if (!output.includes(needle)) {
+      throw new Error(
+        `${message}: expected failure to include ${JSON.stringify(needle)}, got ${JSON.stringify(
+          output
+        )}`
+      );
+    }
+    return;
+  }
+  throw new Error(`${message}: expected helm template to fail`);
+};
+
 const defaultRender = render();
 assertExcludes(
   defaultRender,
@@ -66,7 +83,7 @@ assertIncludes(
 assertIncludes(
   enabledRender,
   'mountPath: /usr/share/nginx/html/runtime',
-  'nginx should mount the runtime cache directory'
+  'nginx should mount the runtime cache directory instead of the document root'
 );
 assertIncludes(
   enabledRender,
@@ -77,6 +94,26 @@ assertIncludes(
   enabledRender,
   'mountPath: /cache',
   'sidecar should mount the writable cache directory'
+);
+assertIncludes(
+  enabledRender,
+  'value: "5"',
+  'sidecar should use the separate per-request timeout default'
+);
+assertIncludes(
+  enabledRender,
+  'GITHUB_METRICS_STARTUP_TIMEOUT_SECONDS',
+  'sidecar should render a separate startup deadline env var'
+);
+assertIncludes(
+  enabledRender,
+  'value: "20"',
+  'sidecar should preserve the startup timeout default'
+);
+assertIncludes(
+  enabledRender,
+  'remaining_timeout = min(timeout, remaining)',
+  'startup refresh should use the actual remaining deadline budget'
 );
 assertIncludes(
   enabledRender,
@@ -107,6 +144,91 @@ assertExcludes(
   enabledRender,
   'PERSONAL_ACCESS_TOKEN',
   'cache sidecar must not reference PATs'
+);
+
+const digestRender = render([
+  '--set',
+  'githubMetricsCache.enabled=true',
+  '--set',
+  'githubMetricsCache.image.digest=sha256:abc123',
+  '--set',
+  'githubMetricsCache.image.tag=',
+]);
+assertIncludes(
+  digestRender,
+  'image: "python@sha256:abc123"',
+  'sidecar should support digest-pinned images'
+);
+
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.outputPath=cache/foo.json',
+  ],
+  'githubMetricsCache.outputPath must be an absolute path',
+  'relative output paths should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.publicPath=runtime/github-metrics.json',
+  ],
+  'githubMetricsCache.publicPath must be an absolute path',
+  'relative public paths should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.publicPath=/github-metrics.json',
+  ],
+  'githubMetricsCache.publicPath must include a non-root directory',
+  'root-level public paths should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.publicPath=/runtime/../github-metrics.json',
+  ],
+  'githubMetricsCache.publicPath must be normalized and must not contain dot segments',
+  'public paths with dot segments should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.outputPath=/cache/../github-metrics.json',
+  ],
+  'githubMetricsCache.outputPath must be normalized and must not contain dot segments',
+  'output paths with dot segments should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.publicPath=/metrics/github-metrics.json',
+  ],
+  'githubMetricsCache.publicPath must live under /runtime/',
+  'public paths outside /runtime should be rejected so nginx runtime headers apply'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.image.tag=',
+  ],
+  'githubMetricsCache.image.tag is required when githubMetricsCache.image.digest is not set',
+  'empty sidecar tags without a digest should be rejected'
 );
 
 console.log('Helm GitHub metrics cache render assertions passed.');

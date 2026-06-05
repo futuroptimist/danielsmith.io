@@ -104,6 +104,8 @@ spec:
             - name: GITHUB_METRICS_REFRESH_INTERVAL_SECONDS
               value: {{ .Values.githubMetricsCache.refreshIntervalSeconds | quote }}
             - name: GITHUB_METRICS_REQUEST_TIMEOUT_SECONDS
+              value: {{ .Values.githubMetricsCache.requestTimeoutSeconds | quote }}
+            - name: GITHUB_METRICS_STARTUP_TIMEOUT_SECONDS
               value: {{ .Values.githubMetricsCache.startupTimeoutSeconds | quote }}
             - name: GITHUB_METRICS_CACHE_TTL_SECONDS
               value: {{ .Values.githubMetricsCache.cacheTtlSeconds | quote }}
