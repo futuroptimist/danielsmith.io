@@ -197,7 +197,7 @@ describe('wireGitHubRepoMetrics', () => {
             value: 'Hidden',
             source: {
               type: 'githubStars',
-              owner: 'futuroptimist',
+              owner: 'democratizedspace',
               repo: 'dspace',
               visibility: 'private',
               fallback: 'Hidden',
@@ -241,7 +241,7 @@ describe('wireGitHubRepoMetrics', () => {
     );
     expect(definitions[2].metrics?.[0]?.value).toBe('86 stars');
     expect(
-      service.listenerCount({ owner: 'futuroptimist', repo: 'dspace' })
+      service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
     ).toBe(0);
 
     controller.dispose();
