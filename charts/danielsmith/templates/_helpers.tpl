@@ -55,3 +55,61 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- printf "%s:%s" .Values.image.repository (required "image.tag is required when image.digest is not set" .Values.image.tag) -}}
 {{- end -}}
 {{- end -}}
+
+{{/* Validate GitHub metrics cache values that must line up across mounts. */}}
+{{- define "danielsmith.githubMetricsCache.validate" -}}
+{{- if .Values.githubMetricsCache.enabled -}}
+{{- $outputPath := toString .Values.githubMetricsCache.outputPath -}}
+{{- $publicPath := toString .Values.githubMetricsCache.publicPath -}}
+{{- $outputDir := dir $outputPath -}}
+{{- $publicDir := dir $publicPath -}}
+{{- if not (hasPrefix "/" $outputPath) -}}
+{{- fail "githubMetricsCache.outputPath must be an absolute path" -}}
+{{- end -}}
+{{- if not (hasPrefix "/" $publicPath) -}}
+{{- fail "githubMetricsCache.publicPath must be an absolute path" -}}
+{{- end -}}
+{{- if ne (clean $outputPath) $outputPath -}}
+{{- fail "githubMetricsCache.outputPath must be normalized and must not contain dot segments" -}}
+{{- end -}}
+{{- if ne (clean $publicPath) $publicPath -}}
+{{- fail "githubMetricsCache.publicPath must be normalized and must not contain dot segments" -}}
+{{- end -}}
+{{- if eq $outputDir "/" -}}
+{{- fail "githubMetricsCache.outputPath must include a non-root directory" -}}
+{{- end -}}
+{{- if eq $publicDir "/" -}}
+{{- fail "githubMetricsCache.publicPath must include a non-root directory" -}}
+{{- end -}}
+{{- if ne (base $outputPath) (base $publicPath) -}}
+{{- fail "githubMetricsCache.outputPath and githubMetricsCache.publicPath must use the same file name" -}}
+{{- end -}}
+{{- if ne $publicPath "/runtime/github-metrics.json" -}}
+{{- fail "githubMetricsCache.publicPath must be exactly /runtime/github-metrics.json" -}}
+{{- end -}}
+{{- if eq (len .Values.githubMetricsCache.repos) 0 -}}
+{{- fail "githubMetricsCache.repos must include at least one repository" -}}
+{{- end -}}
+{{- range $index, $repo := .Values.githubMetricsCache.repos -}}
+{{- if or (not $repo.owner) (not $repo.repo) -}}
+{{- fail (printf "githubMetricsCache.repos[%d] must include non-empty owner and repo" $index) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCache.image" -}}
+{{- if .Values.githubMetricsCache.image.digest -}}
+{{- printf "%s@%s" .Values.githubMetricsCache.image.repository .Values.githubMetricsCache.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.githubMetricsCache.image.repository (required "githubMetricsCache.image.tag is required when githubMetricsCache.image.digest is not set" .Values.githubMetricsCache.image.tag) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCache.outputDir" -}}
+{{- dir .Values.githubMetricsCache.outputPath -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCache.publicDir" -}}
+{{- printf "/usr/share/nginx/html/%s" (dir (trimPrefix "/" .Values.githubMetricsCache.publicPath)) | clean -}}
+{{- end -}}

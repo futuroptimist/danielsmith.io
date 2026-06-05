@@ -91,8 +91,9 @@ layer without guessing where functionality lives.
   [`src/scene/poi/tooltipOverlay.ts`](../../src/scene/poi/tooltipOverlay.ts), while
   [`src/scene/poi/githubMetrics.ts`](../../src/scene/poi/githubMetrics.ts)
   wires GitHub star counts into both the in-world tooltip and HUD overlay. Deployed pods serve
-  a sidecar-refreshed `/runtime/github-metrics.json` file, and the static frontend treats that
-  cache as the normal source of truth. The cache has a modest grace window beyond `expiresAt`
+  a sidecar-refreshed `/runtime/github-metrics.json` file with no-store cache headers, and the
+  static frontend treats that cache as the normal source of truth. The cache has a modest grace
+  window beyond `expiresAt`
   so an hourly refresh that lands slightly late does not flicker metrics back to neutral copy;
   long-lived sessions retry the runtime file after that cache window instead of pinning the
   first successful response forever; failed refreshes clear expired runtime metrics and notify open

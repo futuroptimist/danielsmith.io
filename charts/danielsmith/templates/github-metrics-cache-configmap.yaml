@@ -1,0 +1,224 @@
+{{- if .Values.githubMetricsCache.enabled -}}
+{{- include "danielsmith.githubMetricsCache.validate" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "danielsmith.fullname" . }}-github-metrics-cache
+  labels:
+    {{- include "danielsmith.labels" . | nindent 4 }}
+data:
+  repos.json: |
+{{ toPrettyJson .Values.githubMetricsCache.repos | indent 4 }}
+  refresh-github-metrics.py: |
+    #!/usr/bin/env python3
+    """Refresh unauthenticated public GitHub repository metrics into JSON."""
+
+    import datetime as dt
+    import json
+    import os
+    import sys
+    import time
+    import urllib.error
+    import urllib.request
+
+
+    API_ROOT = "https://api.github.com/repos"
+    SOURCE = "github-api"
+    USER_AGENT = "danielsmith.io-github-metrics-cache"
+
+
+    def utc_now():
+        return dt.datetime.now(dt.timezone.utc)
+
+
+    def isoformat(timestamp):
+        return timestamp.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+    def read_int_env(name, default):
+        value = os.environ.get(name, "")
+        try:
+            parsed = int(value)
+        except ValueError:
+            return default
+        return parsed if parsed > 0 else default
+
+
+    def load_repos(path):
+        with open(path, "r", encoding="utf-8") as handle:
+            repos = json.load(handle)
+        if not isinstance(repos, list):
+            raise ValueError("repos config must be a list")
+        normalized = []
+        for item in repos:
+            if not isinstance(item, dict):
+                continue
+            owner = str(item.get("owner", "")).strip()
+            repo = str(item.get("repo", "")).strip()
+            if owner and repo:
+                normalized.append({"owner": owner, "repo": repo})
+        return normalized
+
+
+    def fetch_repo(owner, repo, timeout):
+        url = f"{API_ROOT}/{owner}/{repo}"
+        request = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "User-Agent": USER_AGENT,
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+
+
+    def error_record(owner, repo, fetched_at, exc):
+        status = getattr(exc, "code", "network")
+        reason = getattr(exc, "reason", None) or str(exc)
+        return {
+            "owner": owner,
+            "repo": repo,
+            "status": status,
+            "message": str(reason)[:240],
+            "fetchedAt": fetched_at,
+        }
+
+
+    def repo_record(owner, repo, fetched_at, data):
+        return {
+            "owner": owner,
+            "repo": repo,
+            "stars": data.get("stargazers_count", 0) or 0,
+            "subscribers": data.get("subscribers_count", 0) or 0,
+            "watchers": data.get("subscribers_count", data.get("watchers_count", 0)) or 0,
+            "forks": data.get("forks_count", 0) or 0,
+            "openIssues": data.get("open_issues_count", 0) or 0,
+            "pushedAt": data.get("pushed_at"),
+            "fetchedAt": fetched_at,
+            "htmlUrl": data.get("html_url"),
+        }
+
+
+    def manual_error_record(owner, repo, fetched_at, status, message):
+        return {
+            "owner": owner,
+            "repo": repo,
+            "status": status,
+            "message": message[:240],
+            "fetchedAt": fetched_at,
+        }
+
+
+    def build_payload(repos, timeout, cache_ttl, deadline=None):
+        generated_at = utc_now()
+        fetched_at = isoformat(generated_at)
+        payload = {
+            "schemaVersion": 1,
+            "generatedAt": fetched_at,
+            "expiresAt": isoformat(generated_at + dt.timedelta(seconds=cache_ttl)),
+            "source": SOURCE,
+            "repos": {},
+            "errors": {},
+        }
+        ok_count = 0
+        failed_count = 0
+        for item in repos:
+            owner = item["owner"]
+            repo = item["repo"]
+            key = f"{owner.lower()}/{repo.lower()}"
+            remaining_timeout = timeout
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    payload["errors"][key] = manual_error_record(
+                        owner, repo, fetched_at, "startup-timeout", "startup timeout elapsed"
+                    )
+                    failed_count += 1
+                    continue
+                remaining_timeout = min(timeout, remaining)
+            try:
+                data = fetch_repo(owner, repo, remaining_timeout)
+                payload["repos"][key] = repo_record(owner, repo, fetched_at, data)
+                ok_count += 1
+            except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as exc:
+                payload["errors"][key] = error_record(owner, repo, fetched_at, exc)
+                failed_count += 1
+        return payload, ok_count, failed_count
+
+
+    def atomic_write_json(path, payload):
+        directory = os.path.dirname(path)
+        os.makedirs(directory, exist_ok=True)
+        temp_path = f"{path}.tmp.{os.getpid()}"
+        with open(temp_path, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+        with open(temp_path, "r", encoding="utf-8") as handle:
+            json.load(handle)
+        os.replace(temp_path, path)
+
+
+    def write_neutral_if_missing(path, errors, cache_ttl):
+        if os.path.exists(path):
+            return False
+        generated_at = utc_now()
+        payload = {
+            "schemaVersion": 1,
+            "generatedAt": isoformat(generated_at),
+            "expiresAt": isoformat(generated_at + dt.timedelta(seconds=cache_ttl)),
+            "source": "github-api-unavailable",
+            "repos": {},
+            "errors": errors,
+        }
+        atomic_write_json(path, payload)
+        return True
+
+
+    def log(message):
+        print(f"[github-metrics] {message}", flush=True)
+
+
+    def main():
+        repos_path = os.environ.get("GITHUB_METRICS_REPOS_PATH", "/etc/github-metrics/repos.json")
+        output_path = os.environ.get("GITHUB_METRICS_OUTPUT_PATH", "/cache/github-metrics.json")
+        refresh_interval = read_int_env("GITHUB_METRICS_REFRESH_INTERVAL_SECONDS", 3600)
+        request_timeout = read_int_env("GITHUB_METRICS_REQUEST_TIMEOUT_SECONDS", 5)
+        startup_timeout = read_int_env("GITHUB_METRICS_STARTUP_TIMEOUT_SECONDS", 20)
+        cache_ttl = read_int_env("GITHUB_METRICS_CACHE_TTL_SECONDS", 4500)
+        repos = load_repos(repos_path)
+        log(f"loaded {len(repos)} public repo targets; writing {output_path}")
+        first_refresh = True
+        while True:
+            started = time.monotonic()
+            deadline = started + startup_timeout if first_refresh else None
+            try:
+                payload, ok_count, failed_count = build_payload(
+                    repos, request_timeout, cache_ttl, deadline
+                )
+                if ok_count > 0 or failed_count == 0:
+                    atomic_write_json(output_path, payload)
+                    log(f"refresh complete ok={ok_count} failed={failed_count}; next={refresh_interval}s")
+                else:
+                    wrote_neutral = write_neutral_if_missing(
+                        output_path, payload.get("errors", {}), cache_ttl
+                    )
+                    action = "wrote neutral cache" if wrote_neutral else "kept existing cache"
+                    log(f"refresh failed for all repos; {action}; next={refresh_interval}s")
+            except Exception as exc:
+                wrote_neutral = write_neutral_if_missing(output_path, {}, cache_ttl)
+                action = "wrote neutral cache" if wrote_neutral else "kept existing cache"
+                log(f"refresh error {type(exc).__name__}: {exc}; {action}; next={refresh_interval}s")
+            first_refresh = False
+            elapsed = time.monotonic() - started
+            time.sleep(max(refresh_interval - elapsed, 1))
+
+
+    if __name__ == "__main__":
+        try:
+            main()
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+{{- end }}

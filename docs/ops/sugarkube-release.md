@@ -16,9 +16,40 @@ components.
 - Helm chart version: immutable; bump `charts/danielsmith/Chart.yaml` when chart content changes
 - Runtime: nginx static-site container listening on port `8080`
 - Health endpoints: `/livez` and `/healthz`
+- Optional runtime GitHub metrics cache: `/runtime/github-metrics.json` served by nginx
 
 Cloudflare DNS, tunnel, and route setup are separate from Helm deployment. Confirm those routes
 outside this app repo before expecting the public hostnames to resolve.
+
+## Runtime GitHub metrics cache
+
+The chart includes an optional `githubMetricsCache` sidecar for Sugarkube environments that should
+serve project star/fork metadata without requiring each browser to call GitHub directly. It is off
+by default so local `helm template` and existing releases keep rendering exactly one app container
+unless environment values opt in.
+
+When enabled, the sidecar uses the public GitHub REST API without a token, GitHub App credential,
+or Kubernetes Secret. On startup and then every `githubMetricsCache.refreshIntervalSeconds`
+(default `3600`), it fetches the configured public repositories, writes an atomic JSON cache to a
+shared `emptyDir`, and nginx serves that file at `githubMetricsCache.publicPath` (default
+`/runtime/github-metrics.json`) with `Cache-Control: no-store`. Runtime public paths must be
+absolute, normalized, under `/runtime/`, and inside a non-root directory so the shared cache volume
+cannot hide the nginx document root. `githubMetricsCache.requestTimeoutSeconds` caps each GitHub
+request, while `githubMetricsCache.startupTimeoutSeconds` caps only the first whole refresh before a
+neutral cache is written. If GitHub is unavailable during startup, the sidecar writes a valid neutral
+JSON document when no prior cache exists so nginx readiness is not held hostage by GitHub.
+
+After enabling the sidecar in Sugarkube staging or production values, verify the public cache shape
+without adding secrets:
+
+```bash
+curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
+curl -fsS https://danielsmith.io/runtime/github-metrics.json
+```
+
+The response should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, and
+`errors`. A populated `repos` object indicates successful unauthenticated GitHub refreshes; an empty
+`repos` object with `errors` is a safe neutral state to investigate without rotating credentials.
 
 ## 1. Pick the immutable image tag
 
