@@ -438,11 +438,14 @@ export function createGitHubRepoStatsService(
           loadedCount += 1;
         }
 
+        const removedRepoKeys: string[] = [];
         for (const [key, entry] of cache) {
           if (entry.source === 'runtime-cache' && !loadedRepoKeys.has(key)) {
             cache.delete(key);
+            removedRepoKeys.push(key);
           }
         }
+        removedRepoKeys.forEach((key) => notify(key, null));
         runtimeCacheRepoKeys.clear();
         for (const key of loadedRepoKeys) {
           runtimeCacheRepoKeys.add(key);
