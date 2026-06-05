@@ -113,6 +113,16 @@ describe('footstep audio controller', () => {
     expect(player.calls).toHaveLength(callsAfterDisable);
   });
 
+  it('does not stop playback again when disabled repeatedly', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player);
+
+    controller.setEnabled(false);
+    controller.setEnabled(false);
+
+    expect(player.stopCalls).toBe(1);
+  });
+
   it('scales cadence, volume, and pitch with speed and master volume', () => {
     const player = new StubFootstepPlayer();
     const controller = createFootstepAudioController({

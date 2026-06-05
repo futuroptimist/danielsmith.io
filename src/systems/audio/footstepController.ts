@@ -244,6 +244,9 @@ export function createFootstepAudioController(
       );
     },
     setEnabled(nextEnabled) {
+      if (enabled === nextEnabled) {
+        return;
+      }
       enabled = nextEnabled;
       if (!enabled) {
         timeUntilNextStep = 0;

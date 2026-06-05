@@ -1063,10 +1063,14 @@ function initializeImmersiveScene(
     audioHudHandle?.refresh();
   };
 
+  let globalAudioTransitionId = 0;
+
   const setGlobalAudioEnabled = async (
     enabled: boolean,
     source: 'control' | 'storage' = 'control'
   ) => {
+    const transitionId = ++globalAudioTransitionId;
+
     if (!enabled) {
       hardDisableRuntimeAudio();
       ambientAudioPreference?.setEnabled(false, source);
@@ -1075,18 +1079,31 @@ function initializeImmersiveScene(
     }
 
     if (!ambientAudioController) {
-      ambientAudioPreference?.setEnabled(false, source);
+      if (source === 'control') {
+        ambientAudioPreference?.setEnabled(false, source);
+      }
       audioHudHandle?.refresh();
       return;
     }
 
     try {
       await ambientAudioController.enable();
+      if (
+        transitionId !== globalAudioTransitionId ||
+        (source === 'storage' &&
+          !(ambientAudioPreference?.isEnabled() ?? false))
+      ) {
+        hardDisableRuntimeAudio();
+        audioHudHandle?.refresh();
+        return;
+      }
       footstepAudioController?.setEnabled(true);
       ambientAudioPreference?.setEnabled(true, source);
     } catch (error) {
       hardDisableRuntimeAudio();
-      ambientAudioPreference?.setEnabled(false, source);
+      if (source === 'control') {
+        ambientAudioPreference?.setEnabled(false, source);
+      }
       audioHudHandle?.refresh();
       throw error;
     }
