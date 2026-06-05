@@ -28,6 +28,10 @@ class MockRepoStatsService implements GitHubRepoStatsService {
     return this.cache.get(this.key(identifier)) ?? null;
   }
 
+  loadRuntimeCache(): Promise<void> {
+    return Promise.resolve();
+  }
+
   requestStats(
     identifier: GitHubRepoIdentifier
   ): Promise<GitHubRepoStats | null> {
@@ -44,7 +48,7 @@ class MockRepoStatsService implements GitHubRepoStatsService {
 
   getDiagnostics() {
     return {
-      source: 'static-fallback' as const,
+      source: 'static-neutral' as const,
       requestCount: this.requested.length,
       suppressedRequestCount: 0,
       lastErrorStatus: null,
@@ -204,6 +208,7 @@ describe('wireGitHubRepoMetrics', () => {
     const controller = wireGitHubRepoMetrics({
       definitions,
       service,
+      allowLiveFetch: true,
       onMetricsUpdated: (poiId) => updated.push(poiId),
     });
 
@@ -283,7 +288,11 @@ describe('wireGitHubRepoMetrics', () => {
     ];
     const service = new MockRepoStatsService();
     service.enterBackoffAfterFirstRequest = true;
-    const controller = wireGitHubRepoMetrics({ definitions, service });
+    const controller = wireGitHubRepoMetrics({
+      definitions,
+      service,
+      allowLiveFetch: true,
+    });
 
     await controller.refreshAll();
 
@@ -346,7 +355,11 @@ describe('wireGitHubRepoMetrics', () => {
       }
       return Promise.resolve(null);
     };
-    const controller = wireGitHubRepoMetrics({ definitions, service });
+    const controller = wireGitHubRepoMetrics({
+      definitions,
+      service,
+      allowLiveFetch: true,
+    });
 
     await controller.refreshAll();
 

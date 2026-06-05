@@ -26,6 +26,7 @@ interface RepoBucket {
 export interface WireGitHubRepoMetricsOptions {
   definitions: PoiDefinition[];
   service: GitHubRepoStatsService;
+  allowLiveFetch?: boolean;
   onMetricsUpdated?(poiId: PoiId): void;
   onRepoStatsUpdated?(update: {
     poiId: PoiId;
@@ -79,6 +80,7 @@ const isGitHubStarsSource = (
 export function wireGitHubRepoMetrics({
   definitions,
   service,
+  allowLiveFetch = false,
   onMetricsUpdated,
   onRepoStatsUpdated,
 }: WireGitHubRepoMetricsOptions): GitHubRepoMetricsController {
@@ -149,13 +151,14 @@ export function wireGitHubRepoMetrics({
     service.getDiagnostics().backoffExpiresAt !== null;
 
   const refreshAll = async () => {
-    const [firstBucket, ...remainingBuckets] = Array.from(repoMap.values());
-    if (!firstBucket) {
+    const buckets = Array.from(repoMap.values());
+
+    await service.loadRuntimeCache();
+    if (!allowLiveFetch) {
       return;
     }
 
-    await service.requestStats(firstBucket.identifier);
-    for (const bucket of remainingBuckets) {
+    for (const bucket of buckets) {
       if (hasActiveBackoff()) {
         return;
       }

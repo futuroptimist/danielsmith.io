@@ -27,7 +27,7 @@ export interface PoiMetricGitHubStarsSource {
    * their fallback values to avoid surfacing missing asset errors in the client.
    */
   visibility?: 'public' | 'private';
-  /** Format style for rendering live star counts. */
+  /** Format style for rendering resolved star counts. */
   format?: 'compact' | 'standard';
   /** Optional string template that receives the formatted value via `{value}`. */
   template?: string;

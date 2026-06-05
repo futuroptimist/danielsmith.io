@@ -1851,7 +1851,13 @@ function initializeImmersiveScene(
     poiTooltipOverlay.setIdleState(idle);
     poiWorldTooltip.setIdleState(idle);
   });
-  const githubRepoStatsService = createGitHubRepoStatsService();
+  const liveGitHubMetricsEnabled =
+    new URLSearchParams(window.location.search).get(
+      'enableLiveGitHubMetrics'
+    ) === '1';
+  const githubRepoStatsService = createGitHubRepoStatsService(undefined, {
+    allowLiveFetch: liveGitHubMetricsEnabled,
+  });
   if (!window.portfolio) {
     window.portfolio = {};
   }
@@ -1863,6 +1869,7 @@ function initializeImmersiveScene(
     githubRepoMetrics = wireGitHubRepoMetrics({
       definitions: poiDefinitions,
       service: githubRepoStatsService,
+      allowLiveFetch: liveGitHubMetricsEnabled,
       onMetricsUpdated: (poiId) => {
         poiTooltipOverlay.notifyPoiUpdated(poiId);
         poiWorldTooltip.notifyPoiUpdated(poiId);

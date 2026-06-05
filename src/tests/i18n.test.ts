@@ -200,6 +200,30 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('keeps GitHub star fallbacks neutral and non-numeric in every locale', () => {
+    const fakeNumericFallbackPattern = /\b\d[\d,.\s]*(?:\+)?\b/;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      for (const poi of getPoiDefinitions(locale)) {
+        for (const metric of poi.metrics ?? []) {
+          if (metric.source?.type !== 'githubStars') {
+            continue;
+          }
+          const fallback = metric.source.fallback ?? metric.value;
+          expect(metric.source.owner, `${locale}:${poi.id}`).toBeTruthy();
+          expect(metric.source.repo, `${locale}:${poi.id}`).toBeTruthy();
+          expect(fallback, `${locale}:${poi.id}`).toBeTruthy();
+          expect(fallback, `${locale}:${poi.id}`).not.toMatch(
+            fakeNumericFallbackPattern
+          );
+          expect(metric.value, `${locale}:${poi.id}`).not.toMatch(
+            fakeNumericFallbackPattern
+          );
+        }
+      }
+    }
+  });
+
   it('removes the invalid DSPACE Mission Log link from every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
       const dspace = getPoiDefinitions(locale).find(

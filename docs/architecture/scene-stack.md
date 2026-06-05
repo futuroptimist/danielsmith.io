@@ -50,7 +50,7 @@ layer without guessing where functionality lives.
   performance budgets. Also exposes POI copy consumed across systems and UI.
 - [`src/systems/`](../../src/systems/) – keyboard controls, audio pipelines,
   movement prediction, collision detection, mode failover, HUD control handles,
-  and the GitHub repo stats service that streams live metrics into POIs.
+  and the GitHub repo stats service that streams runtime-cached metrics into POIs.
   Systems never import from `src/ui/`.
 - [`src/scene/`](../../src/scene/) – avatar importers, environmental builds,
   POI registries, lighting helpers, and structural meshes. Scene code consumes
@@ -91,6 +91,13 @@ layer without guessing where functionality lives.
   [`src/scene/poi/tooltipOverlay.ts`](../../src/scene/poi/tooltipOverlay.ts), while
   [`src/scene/poi/githubMetrics.ts`](../../src/scene/poi/githubMetrics.ts)
   wires GitHub star counts into both the in-world tooltip and HUD overlay.
+  Deployed pods expose public repository metrics through the sidecar-populated
+  `/runtime/github-metrics.json` file, which the static app reads before using
+  any browser cache. Normal staging/production sessions do not fan out direct
+  GitHub API calls; the optional `?enableLiveGitHubMetrics=1` debug path keeps
+  browser live fetches available for local diagnostics only. Cache values can
+  drift by the hourly sidecar refresh interval plus a short grace window, and
+  no GitHub token or other secret is required for public star counts.
 - **Accessibility overlays** – `HudFocusAnnouncerHandle` flows from systems
   into DOM overlays: `src/ui/accessibility/ariaBridges.ts` registers live
   regions, while Playwright specs assert emitted announcements against

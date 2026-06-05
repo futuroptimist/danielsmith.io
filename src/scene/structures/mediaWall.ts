@@ -32,8 +32,10 @@ const CLEARANCE_MAX_OPACITY = 0.52;
 const CLEARANCE_BASE_COLOR = 0x10283b;
 const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
 
+type MediaWallStarCount = number | null;
+
 interface MediaWallScreenRendererOptions {
-  starCount: number;
+  starCount: MediaWallStarCount;
   width?: number;
   height?: number;
   redrawThrottleMs?: number;
@@ -44,7 +46,7 @@ class MediaWallScreenRenderer {
   private readonly context: CanvasRenderingContext2D;
   private readonly texture: CanvasTexture;
   private highlight = 0;
-  private starCount: number;
+  private starCount: MediaWallStarCount;
   private width: number;
   private height: number;
   private redrawThrottleMs: number;
@@ -76,9 +78,9 @@ class MediaWallScreenRenderer {
     return this.texture;
   }
 
-  setStarCount(count: number) {
-    if (!Number.isFinite(count) || count < 0) {
-      this.starCount = 0;
+  setStarCount(count: MediaWallStarCount) {
+    if (typeof count !== 'number' || !Number.isFinite(count) || count < 0) {
+      this.starCount = null;
     } else {
       this.starCount = count;
     }
@@ -246,6 +248,9 @@ class MediaWallScreenRenderer {
   }
 
   private formatStarCount(): string {
+    if (this.starCount === null) {
+      return 'Syncing';
+    }
     if (this.starCount >= 1_000_000) {
       return `${(this.starCount / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
     }
@@ -265,7 +270,7 @@ function createScreenRenderer(
   detailPolicy = getSceneDetailPolicy('balanced')
 ): MediaWallScreenRenderer {
   return new MediaWallScreenRenderer({
-    starCount: detailPolicy.level === 'performance' ? 128 : 1280,
+    starCount: null,
     width: detailPolicy.textures.mediaWallScreen.width,
     height: detailPolicy.textures.mediaWallScreen.height,
     redrawThrottleMs: detailPolicy.updates.canvasRedrawThrottleMs,
@@ -353,7 +358,7 @@ export interface LivingRoomMediaWallPoiBindings {
 
 export interface LivingRoomMediaWallController {
   update(options: { elapsed: number; delta: number; emphasis: number }): void;
-  setStarCount(count: number): void;
+  setStarCount(count: MediaWallStarCount): void;
   dispose(): void;
 }
 

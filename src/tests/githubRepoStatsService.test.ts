@@ -31,6 +31,158 @@ const createOptions = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe('GitHub repo stats service', () => {
+  it('loads fresh runtime cache before live fetches', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt: '2026-06-03T00:00:00.000Z',
+        expiresAt: '2026-06-03T01:15:00.000Z',
+        source: 'github-api',
+        repos: {
+          'futuroptimist/token.place': {
+            owner: 'futuroptimist',
+            repo: 'token.place',
+            stars: 6,
+            watchers: 1,
+            forks: 0,
+            openIssues: 0,
+            pushedAt: '2026-06-03T00:00:00Z',
+            fetchedAt: '2026-06-03T00:00:00.000Z',
+            htmlUrl: 'https://github.com/futuroptimist/token.place',
+          },
+        },
+      }),
+    });
+    const listener = vi.fn();
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        now: () => Date.parse('2026-06-03T00:10:00.000Z'),
+      })
+    );
+
+    service.subscribe(
+      { owner: 'futuroptimist', repo: 'token.place' },
+      listener
+    );
+    await service.loadRuntimeCache();
+
+    expect(fetch).toHaveBeenCalledWith('/runtime/github-metrics.json', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    expect(
+      service.getCachedStats({ owner: 'Futuroptimist', repo: 'Token.Place' })
+    ).toEqual({
+      stars: 6,
+      watchers: 1,
+      forks: 0,
+      openIssues: 0,
+      pushedAt: '2026-06-03T00:00:00Z',
+    });
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({ stars: 6, watchers: 1 })
+    );
+    expect(service.getDiagnostics()).toMatchObject({
+      source: 'runtime-cache',
+      requestCount: 0,
+      cachedRepoCount: 1,
+    });
+  });
+
+  it('accepts slightly stale runtime cache inside the grace period', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt: '2026-06-03T00:00:00.000Z',
+        expiresAt: '2026-06-03T01:15:00.000Z',
+        source: 'github-api',
+        repos: {
+          'futuroptimist/flywheel': {
+            owner: 'futuroptimist',
+            repo: 'flywheel',
+            stars: 9,
+            watchers: 2,
+            forks: 1,
+            openIssues: 0,
+            pushedAt: null,
+          },
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        now: () => Date.parse('2026-06-03T01:25:00.000Z'),
+      })
+    );
+
+    await service.loadRuntimeCache();
+
+    expect(service.getDiagnostics().source).toBe('runtime-cache-stale');
+    expect(
+      service.getCachedStats({ owner: 'futuroptimist', repo: 'flywheel' })
+        ?.stars
+    ).toBe(9);
+  });
+
+  it('treats invalid or expired runtime cache as unavailable', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt: '2026-06-03T00:00:00.000Z',
+        expiresAt: '2026-06-03T01:15:00.000Z',
+        repos: {
+          'futuroptimist/flywheel': {
+            owner: 'futuroptimist',
+            repo: 'flywheel',
+            stars: 9,
+          },
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        now: () => Date.parse('2026-06-03T03:00:00.000Z'),
+      })
+    );
+
+    await service.loadRuntimeCache();
+
+    expect(
+      service.getCachedStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).toBeNull();
+    expect(service.getDiagnostics()).toMatchObject({
+      source: 'static-neutral',
+      requestCount: 0,
+      cachedRepoCount: 0,
+    });
+  });
+
+  it('uses neutral fallback instead of browser live fetch by default', async () => {
+    const fetch = vi.fn();
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({ allowLiveFetch: false })
+    );
+
+    const stats = await service.requestStats({ owner: 'foo', repo: 'bar' });
+
+    expect(stats).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(service.getDiagnostics()).toMatchObject({
+      source: 'static-neutral',
+      requestCount: 0,
+    });
+  });
+
   it('fetches stats, caches results, and notifies subscribers', async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -67,7 +219,7 @@ describe('GitHub repo stats service', () => {
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener.mock.calls[0][0]).toEqual(stats);
     expect(service.getDiagnostics()).toMatchObject({
-      source: 'live',
+      source: 'browser-live',
       requestCount: 1,
       lastErrorStatus: null,
     });
@@ -81,7 +233,27 @@ describe('GitHub repo stats service', () => {
     expect(service.getDiagnostics().source).toBe('cached');
   });
 
-  it('returns static fallback and enters backoff for a 403 response', async () => {
+  it('does not use watchers_count as a substitute for stargazers_count', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        watchers_count: 99,
+        forks_count: 0,
+        open_issues_count: 0,
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions()
+    );
+
+    const stats = await service.requestStats({ owner: 'foo', repo: 'bar' });
+
+    expect(stats?.stars).toBe(0);
+    expect(stats?.watchers).toBe(99);
+  });
+
+  it('returns neutral fallback and enters backoff for a 403 response', async () => {
     const logger = { warn: vi.fn() };
     const fetch = vi.fn().mockResolvedValue({ ok: false, status: 403 });
     const service = createGitHubRepoStatsService(
@@ -95,7 +267,7 @@ describe('GitHub repo stats service', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(logger.warn).toHaveBeenCalledTimes(1);
     expect(service.getDiagnostics()).toMatchObject({
-      source: 'static-fallback',
+      source: 'static-neutral',
       requestCount: 1,
       lastErrorStatus: 403,
       warningCount: 1,
@@ -124,7 +296,7 @@ describe('GitHub repo stats service', () => {
       requestCount: 1,
       suppressedRequestCount: 1,
       lastErrorStatus: 429,
-      source: 'static-fallback',
+      source: 'static-neutral',
     });
   });
 
@@ -241,7 +413,7 @@ describe('GitHub repo stats service', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(stats?.stars).toBe(42);
-    expect(service.getDiagnostics().source).toBe('live');
+    expect(service.getDiagnostics().source).toBe('browser-live');
   });
 
   it('honors explicit null storage and logger options', async () => {
