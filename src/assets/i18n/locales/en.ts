@@ -532,34 +532,37 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'futuroptimist-living-room-tv': {
       title: 'Futuroptimist',
       summary:
-        'Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.',
+        'Futuroptimist hub for open-source scripts, data pipelines, tests, and YouTube-oriented automation metadata.',
       outcome: {
         label: 'Outcome',
         value:
-          'Keeps weekly highlight scripts flowing from the automation pipeline without manual formatting.',
+          'Documents setup, tests, prompt automation, and related projects for the Futuroptimist ecosystem.',
       },
       metrics: [
         {
           label: 'Stars',
-          value: '1,280+',
+          value: 'Syncing from GitHub…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} stars',
-            fallback: '1,280+',
+            fallback: 'Syncing from GitHub…',
           },
         },
         {
           label: 'Workflow',
-          value: 'Resolve-style edit suite · triple display',
+          value: 'uv, Make targets, pytest, and GitHub Actions',
         },
-        { label: 'Focus', value: 'Futuroptimist ecosystem reels in progress' },
+        {
+          label: 'Focus',
+          value: 'Scripts, prompt docs, related-project status',
+        },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist' },
-        { label: 'Docs', href: 'https://futuroptimist.dev' },
+        { label: 'YouTube', href: 'https://www.youtube.com/@futuroptimist' },
       ],
       narration: {
         caption:
@@ -569,11 +572,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'tokenplace-studio-cluster': {
       title: 'token.place',
       summary:
-        'Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.',
+        'Secure peer-to-peer generative AI platform with relay and compute-node paths for sharing idle compute as a public-good network.',
       outcome: {
         label: 'Outcome',
         value:
-          'Quickstart scripts bring up the relay, server, and mock LLM stack locally for testing.',
+          'Quickstart docs cover the Python relay, compute server, Docker Compose, tests, and E2EE API v1 guardrails.',
       },
       metrics: [
         {
@@ -588,8 +591,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Cluster', value: '12× Pi 5 nodes in modular bays' },
-        { label: 'Network', value: 'Ephemeral tokens · encrypted bursts' },
+        {
+          label: 'Runtime',
+          value: 'Python relay.py and server.py entrypoints',
+        },
+        { label: 'Security', value: 'API v1 relay-blind E2EE baseline' },
       ],
       links: [
         { label: 'Site', href: 'https://token.place' },
@@ -602,11 +608,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'gabriel-studio-sentry': {
       title: 'Gabriel',
       summary:
-        'Privacy-first "guardian angel" LLM that delivers local security coaching and integrates with token.place or offline inference.',
+        'Open-source "guardian angel" LLM focused on private, local security advice and optional local AI-assisted monitoring.',
       outcome: {
         label: 'Outcome',
         value:
-          'Modular ingestion, analysis, notification, and UI stacks stay aligned through typed interfaces.',
+          'The README emphasizes consent, local inference, personal environment knowledge, and actionable security coaching.',
       },
       metrics: [
         {
@@ -621,8 +627,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Focus', value: '360° lidar sweep + local heuristics' },
-        { label: 'Cadence', value: 'Red alert flash every 1.0 s' },
+        { label: 'Focus', value: 'Privacy-first digital security coaching' },
+        { label: 'Docs', value: 'FAQ and project docs in-repo' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/gabriel' },
@@ -631,12 +637,12 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'flywheel-studio-flywheel': {
       title: 'Flywheel',
       summary: [
-        'GitHub template and automation hub that bundles linting, tests, docs, and Codex prompts for fast repo bootstrapping.',
+        'Opinionated boilerplate and CLI for reproducible CI, code quality, docs, prompts, and repo audits.',
       ].join(' '),
       outcome: {
         label: 'Outcome',
         value:
-          'Ships repeatable CI (lint, tests, docs) and prompt libraries so new repos start healthy.',
+          'Provides init/update commands, checks, Codex prompt docs, audits, and dry-run improvement suggestions.',
       },
       metrics: [
         {
@@ -653,16 +659,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         {
           label: 'Automation',
-          value: 'CI scaffolds · typed prompts · QA loops',
+          value: 'init/update CLI · checks · prompt docs',
         },
-        { label: 'Docs CTA', value: 'flywheel.futuroptimist.dev →' },
+        {
+          label: 'CAD',
+          value: 'Flywheel stand, shaft, adapter, and physics docs',
+        },
       ],
       links: [
         {
           label: 'Flywheel Repo',
           href: 'https://github.com/futuroptimist/flywheel',
         },
-        { label: 'Docs', href: 'https://flywheel.futuroptimist.dev' },
       ],
       narration: {
         caption:
@@ -673,11 +681,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'jobbot-studio-terminal': {
       title: 'Jobbot3000',
       summary:
-        'Self-hosted job search copilot with CLI and experimental web UI for ingesting outreach and tracking applications.',
+        'Self-hosted, open-source job search copilot with a local experimental web interface and documented setup.',
       outcome: {
         label: 'Outcome',
         value:
-          'End-to-end workflows mirror docs and tests so recruiter outreach flows stay covered.',
+          'The README warns the web UI is local-only while docs cover setup, architecture, configuration, and tests.',
       },
       metrics: [
         {
@@ -694,25 +702,15 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         {
           label: 'Status',
-          value: 'Local-first CLI with preview web UI',
+          value: 'Self-hosted copilot with local web preview',
         },
-        {
-          label: 'Stack',
-          value: 'Node.js 20+ · npm scripts · Playwright preview',
-        },
-        {
-          label: 'Flows',
-          value: 'Recruiter outreach ingestion and lifecycle tracking',
-        },
+        { label: 'Stack', value: 'Node.js 20+ · npm scripts' },
+        { label: 'Safety', value: 'Local-only warning for secrets and PII' },
       ],
       links: [
         {
           label: 'GitHub',
           href: 'https://github.com/futuroptimist/jobbot3000',
-        },
-        {
-          label: 'Automation Log',
-          href: 'https://futuroptimist.dev/automation',
         },
       ],
       narration: {
@@ -787,14 +785,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       metrics: [
         {
           label: 'Stars',
-          value: '1,280+',
+          value: 'Syncing from GitHub…',
           source: {
             type: 'githubStars',
             owner: 'futuroptimist',
             repo: 'danielsmith.io',
             format: 'compact',
             template: '{value} stars',
-            fallback: '1,280+',
+            fallback: 'Syncing from GitHub…',
           },
         },
         { label: 'Stack', value: 'Vite · Three.js · accessibility HUD' },
@@ -830,8 +828,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Speed', value: 'Copy failing logs in under 3 s' },
-        { label: 'Formats', value: 'CLI + clipboard + Markdown output' },
+        { label: 'Flow', value: 'Codex task → GitHub PR checks → Markdown' },
+        {
+          label: 'Safety',
+          value: 'Secret redaction before summaries or output',
+        },
       ],
       links: [
         {
@@ -872,11 +873,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'wove-kitchen-loom': {
       title: 'Wove',
       summary:
-        'Open-source toolkit for learning knitting and crochet while building toward a robotic loom with OpenSCAD hardware.',
+        'Open-source toolkit for learning knitting and crochet while building toward robotic knitting hardware with OpenSCAD parts.',
       outcome: {
         label: 'Outcome',
         value:
-          'Docs cover gauge calculators, planner exports, and tension profiles across yarn weights.',
+          'Docs cover hand-craft basics, gauge calculators, pattern translation, and tension profiles.',
       },
       metrics: [
         {
@@ -891,8 +892,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Craft', value: 'Loom calibrates from CAD stitch maps' },
-        { label: 'Roadmap', value: 'Path toward robotic weaving labs' },
+        { label: 'Craft', value: 'Knitting and crochet learning docs' },
+        {
+          label: 'Automation',
+          value: 'Pattern CLI, planner exports, OpenSCAD hardware',
+        },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/wove' },
@@ -901,11 +905,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'dspace-backyard-rocket': {
       title: 'DSPACE',
       summary:
-        'Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.',
+        'Public DSPACE exhibit for the Democratized Space web idle game, focused on quests, resources, exploration, and launch-to-orbit progression.',
       outcome: {
         label: 'Outcome',
         value:
-          'Maintains countdown sequencing notes alongside GitHub and mission log links while the repo remains private.',
+          'Links to the public democratizedspace/dspace repository and official game documentation instead of an unverified mission log.',
       },
       metrics: [
         {
@@ -913,23 +917,22 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           value: 'Syncing from GitHub…',
           source: {
             type: 'githubStars',
-            owner: 'futuroptimist',
+            owner: 'democratizedspace',
             repo: 'dspace',
-            visibility: 'private',
             format: 'compact',
             template: '{value} stars',
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Countdown', value: 'Autonomous T-0 sequencing' },
-        { label: 'Stack', value: 'Three.js FX · Spatial audio' },
+        { label: 'Game', value: 'Resource management · quests · exploration' },
+        { label: 'Docs', value: 'Public docs and developer guide' },
       ],
       links: [
-        { label: 'GitHub', href: 'https://github.com/futuroptimist/dspace' },
         {
-          label: 'Mission Log',
-          href: 'https://futuroptimist.dev/projects/dspace',
+          label: 'GitHub',
+          href: 'https://github.com/democratizedspace/dspace',
         },
+        { label: 'Docs', href: 'https://democratized.space/docs' },
       ],
       narration: {
         caption:
@@ -941,11 +944,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'pr-reaper-backyard-console': {
       title: 'PR Reaper',
       summary:
-        'GitHub Actions workflow that bulk-closes stale pull requests with dry-run previews and optional branch cleanup.',
+        'One-button GitHub Action that closes open pull requests authored by you, with a dry-run preview before reaping.',
       outcome: {
         label: 'Outcome',
         value:
-          'One-button workflow documents inputs, safety model, and audit outputs in the README.',
+          'README documents token setup, workflow dispatch, dry-run summaries, and the gh-powered lookup.',
       },
       metrics: [
         {
@@ -960,8 +963,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             fallback: 'Syncing from GitHub…',
           },
         },
-        { label: 'Sweep', value: 'Bulk-close stale PRs with preview mode' },
-        { label: 'Cadence', value: 'Cron triggers + manual dry-runs' },
+        { label: 'Sweep', value: 'Close your own open PRs in bulk' },
+        { label: 'Safety', value: 'dry_run=true preview and step summary' },
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/pr-reaper' },
@@ -970,11 +973,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     'sugarkube-backyard-greenhouse': {
       title: 'Sugarkube',
       summary:
-        'k3s-on-Raspberry-Pi platform paired with an off-grid solar cube installation documented with CAD, Pi images, and field guides.',
+        'Accessible k3s platform for Raspberry Pis and SBCs integrated with an off-grid solar cube installation.',
       outcome: {
         label: 'Outcome',
         value:
-          'Step-by-step docs cover solar hardware, Pi provisioning, and Kubernetes helpers for resilient homelabs.',
+          'Docs cover the 3-node HA k3s happy path, Raspberry Pi imaging, flashing, verification, and solar hardware notes.',
       },
       metrics: [
         {
@@ -993,10 +996,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sugarkube' },
-        {
-          label: 'Greenhouse Log',
-          href: 'https://futuroptimist.dev/projects/sugarkube',
-        },
       ],
       narration: {
         caption:

@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2026-06-02T17:25:49.601Z",
+  "generatedAtIso": "2026-06-04T03:26:52.636Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -91,7 +91,7 @@
     {
       "id": "futuroptimist-living-room-tv",
       "title": "Futuroptimist",
-      "summary": "Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.",
+      "summary": "Futuroptimist hub for open-source scripts, data pipelines, tests, and YouTube-oriented automation metadata.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -102,23 +102,23 @@
       "metrics": [
         {
           "label": "Stars",
-          "value": "1,280+",
+          "value": "Syncing from GitHub…",
           "source": {
             "type": "githubStars",
             "owner": "futuroptimist",
             "repo": "danielsmith.io",
             "format": "compact",
             "template": "{value} stars",
-            "fallback": "1,280+"
+            "fallback": "Syncing from GitHub…"
           }
         },
         {
           "label": "Workflow",
-          "value": "Resolve-style edit suite · triple display"
+          "value": "uv, Make targets, pytest, and GitHub Actions"
         },
         {
           "label": "Focus",
-          "value": "Futuroptimist ecosystem reels in progress"
+          "value": "Scripts, prompt docs, related-project status"
         }
       ],
       "links": [
@@ -127,8 +127,8 @@
           "href": "https://github.com/futuroptimist"
         },
         {
-          "label": "Docs",
-          "href": "https://futuroptimist.dev"
+          "label": "YouTube",
+          "href": "https://www.youtube.com/@futuroptimist"
         }
       ],
       "footprint": {
@@ -140,7 +140,7 @@
     {
       "id": "tokenplace-studio-cluster",
       "title": "token.place",
-      "summary": "Secure peer-to-peer generative AI platform running on a Raspberry Pi lattice with encrypted relay and server nodes.",
+      "summary": "Secure peer-to-peer generative AI platform with relay and compute-node paths for sharing idle compute as a public-good network.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -162,12 +162,12 @@
           }
         },
         {
-          "label": "Cluster",
-          "value": "12× Pi 5 nodes in modular bays"
+          "label": "Runtime",
+          "value": "Python relay.py and server.py entrypoints"
         },
         {
-          "label": "Network",
-          "value": "Ephemeral tokens · encrypted bursts"
+          "label": "Security",
+          "value": "API v1 relay-blind E2EE baseline"
         }
       ],
       "links": [
@@ -189,7 +189,7 @@
     {
       "id": "gabriel-studio-sentry",
       "title": "Gabriel",
-      "summary": "Privacy-first \"guardian angel\" LLM that delivers local security coaching and integrates with token.place or offline inference.",
+      "summary": "Open-source \"guardian angel\" LLM focused on private, local security advice and optional local AI-assisted monitoring.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -212,11 +212,11 @@
         },
         {
           "label": "Focus",
-          "value": "360° lidar sweep + local heuristics"
+          "value": "Privacy-first digital security coaching"
         },
         {
-          "label": "Cadence",
-          "value": "Red alert flash every 1.0 s"
+          "label": "Docs",
+          "value": "FAQ and project docs in-repo"
         }
       ],
       "links": [
@@ -234,7 +234,7 @@
     {
       "id": "flywheel-studio-flywheel",
       "title": "Flywheel",
-      "summary": "GitHub template and automation hub that bundles linting, tests, docs, and Codex prompts for fast repo bootstrapping.",
+      "summary": "Opinionated boilerplate and CLI for reproducible CI, code quality, docs, prompts, and repo audits.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -257,21 +257,17 @@
         },
         {
           "label": "Automation",
-          "value": "CI scaffolds · typed prompts · QA loops"
+          "value": "init/update CLI · checks · prompt docs"
         },
         {
-          "label": "Docs CTA",
-          "value": "flywheel.futuroptimist.dev →"
+          "label": "CAD",
+          "value": "Flywheel stand, shaft, adapter, and physics docs"
         }
       ],
       "links": [
         {
           "label": "Flywheel Repo",
           "href": "https://github.com/futuroptimist/flywheel"
-        },
-        {
-          "label": "Docs",
-          "href": "https://flywheel.futuroptimist.dev"
         }
       ],
       "footprint": {
@@ -283,7 +279,7 @@
     {
       "id": "jobbot-studio-terminal",
       "title": "Jobbot3000",
-      "summary": "Self-hosted job search copilot with CLI and experimental web UI for ingesting outreach and tracking applications.",
+      "summary": "Self-hosted, open-source job search copilot with a local experimental web interface and documented setup.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -306,25 +302,21 @@
         },
         {
           "label": "Status",
-          "value": "Local-first CLI with preview web UI"
+          "value": "Self-hosted copilot with local web preview"
         },
         {
           "label": "Stack",
-          "value": "Node.js 20+ · npm scripts · Playwright preview"
+          "value": "Node.js 20+ · npm scripts"
         },
         {
-          "label": "Flows",
-          "value": "Recruiter outreach ingestion and lifecycle tracking"
+          "label": "Safety",
+          "value": "Local-only warning for secrets and PII"
         }
       ],
       "links": [
         {
           "label": "GitHub",
           "href": "https://github.com/futuroptimist/jobbot3000"
-        },
-        {
-          "label": "Automation Log",
-          "href": "https://futuroptimist.dev/automation"
         }
       ],
       "footprint": {
@@ -429,14 +421,14 @@
       "metrics": [
         {
           "label": "Stars",
-          "value": "1,280+",
+          "value": "Syncing from GitHub…",
           "source": {
             "type": "githubStars",
             "owner": "futuroptimist",
             "repo": "danielsmith.io",
             "format": "compact",
             "template": "{value} stars",
-            "fallback": "1,280+"
+            "fallback": "Syncing from GitHub…"
           }
         },
         {
@@ -489,12 +481,12 @@
           }
         },
         {
-          "label": "Speed",
-          "value": "Copy failing logs in under 3 s"
+          "label": "Flow",
+          "value": "Codex task → GitHub PR checks → Markdown"
         },
         {
-          "label": "Formats",
-          "value": "CLI + clipboard + Markdown output"
+          "label": "Safety",
+          "value": "Secret redaction before summaries or output"
         }
       ],
       "links": [
@@ -557,7 +549,7 @@
     {
       "id": "wove-kitchen-loom",
       "title": "Wove",
-      "summary": "Open-source toolkit for learning knitting and crochet while building toward a robotic loom with OpenSCAD hardware.",
+      "summary": "Open-source toolkit for learning knitting and crochet while building toward robotic knitting hardware with OpenSCAD parts.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -580,11 +572,11 @@
         },
         {
           "label": "Craft",
-          "value": "Loom calibrates from CAD stitch maps"
+          "value": "Knitting and crochet learning docs"
         },
         {
-          "label": "Roadmap",
-          "value": "Path toward robotic weaving labs"
+          "label": "Automation",
+          "value": "Pattern CLI, planner exports, OpenSCAD hardware"
         }
       ],
       "links": [
@@ -602,7 +594,7 @@
     {
       "id": "dspace-backyard-rocket",
       "title": "DSPACE",
-      "summary": "Backyard launch gantry for the private DSPACE rocket project with telemetry-guided countdown cues and a public mission log.",
+      "summary": "Public DSPACE exhibit for the Democratized Space web idle game, focused on quests, resources, exploration, and launch-to-orbit progression.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -616,31 +608,30 @@
           "value": "Syncing from GitHub…",
           "source": {
             "type": "githubStars",
-            "owner": "futuroptimist",
+            "owner": "democratizedspace",
             "repo": "dspace",
-            "visibility": "private",
             "format": "compact",
             "template": "{value} stars",
             "fallback": "Syncing from GitHub…"
           }
         },
         {
-          "label": "Countdown",
-          "value": "Autonomous T-0 sequencing"
+          "label": "Game",
+          "value": "Resource management · quests · exploration"
         },
         {
-          "label": "Stack",
-          "value": "Three.js FX · Spatial audio"
+          "label": "Docs",
+          "value": "Public docs and developer guide"
         }
       ],
       "links": [
         {
           "label": "GitHub",
-          "href": "https://github.com/futuroptimist/dspace"
+          "href": "https://github.com/democratizedspace/dspace"
         },
         {
-          "label": "Mission Log",
-          "href": "https://futuroptimist.dev/projects/dspace"
+          "label": "Docs",
+          "href": "https://democratized.space/docs"
         }
       ],
       "footprint": {
@@ -652,7 +643,7 @@
     {
       "id": "pr-reaper-backyard-console",
       "title": "PR Reaper",
-      "summary": "GitHub Actions workflow that bulk-closes stale pull requests with dry-run previews and optional branch cleanup.",
+      "summary": "One-button GitHub Action that closes open pull requests authored by you, with a dry-run preview before reaping.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -675,11 +666,11 @@
         },
         {
           "label": "Sweep",
-          "value": "Bulk-close stale PRs with preview mode"
+          "value": "Close your own open PRs in bulk"
         },
         {
-          "label": "Cadence",
-          "value": "Cron triggers + manual dry-runs"
+          "label": "Safety",
+          "value": "dry_run=true preview and step summary"
         }
       ],
       "links": [
@@ -697,7 +688,7 @@
     {
       "id": "sugarkube-backyard-greenhouse",
       "title": "Sugarkube",
-      "summary": "k3s-on-Raspberry-Pi platform paired with an off-grid solar cube installation documented with CAD, Pi images, and field guides.",
+      "summary": "Accessible k3s platform for Raspberry Pis and SBCs integrated with an off-grid solar cube installation.",
       "category": "project",
       "interaction": "inspect",
       "status": "prototype",
@@ -723,10 +714,6 @@
         {
           "label": "GitHub",
           "href": "https://github.com/futuroptimist/sugarkube"
-        },
-        {
-          "label": "Greenhouse Log",
-          "href": "https://futuroptimist.dev/projects/sugarkube"
         }
       ],
       "footprint": {

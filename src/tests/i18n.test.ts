@@ -200,6 +200,46 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('removes the invalid DSPACE Mission Log link from every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+      const links = dspace?.links ?? [];
+
+      expect(links).toEqual(
+        expect.not.arrayContaining([
+          expect.objectContaining({
+            href: 'https://futuroptimist.dev/projects/dspace',
+          }),
+        ])
+      );
+      expect(links.some((link) => /mission log/i.test(link.label))).toBe(false);
+    }
+  });
+
+  it('keeps localized DSPACE game and docs metric labels current', () => {
+    const staleDspaceMetricLabelPattern =
+      /^(countdown|cuenta atrás|visszaszámlálás|contagem|stack)$/i;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+      const groundedMetricLabels =
+        dspace?.metrics
+          ?.filter((metric) => metric.source?.type !== 'githubStars')
+          .map((metric) => metric.label) ?? [];
+
+      expect(groundedMetricLabels, locale).toHaveLength(2);
+      expect(groundedMetricLabels, locale).toEqual(
+        expect.not.arrayContaining([
+          expect.stringMatching(staleDspaceMetricLabelPattern),
+        ])
+      );
+    }
+  });
+
   it('deep-clones localized POI metric sources per call', () => {
     const firstDefinitions = getPoiDefinitions('en-x-pseudo');
     const firstPoi = firstDefinitions.find(
@@ -698,7 +738,7 @@ describe('i18n utilities', () => {
       '⟦Futuroptimist⟧'
     );
     expect(pseudoCopy['futuroptimist-living-room-tv'].summary).toBe(
-      '⟦Automated Futuroptimist scripting desk that stitches research, outlines, and narration-ready drafts for new videos.⟧'
+      '⟦Futuroptimist hub for open-source scripts, data pipelines, tests, and YouTube-oriented automation metadata.⟧'
     );
     expect(pseudoCopy['tokenplace-studio-cluster'].title).toBe(
       copy['tokenplace-studio-cluster'].title

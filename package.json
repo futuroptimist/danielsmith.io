@@ -14,13 +14,14 @@
     "test": "vitest",
     "test:ci": "vitest run",
     "typecheck": "tsc --noEmit",
-    "docs:check": "node scripts/check-docs.cjs",
+    "docs:check": "node scripts/check-docs.cjs && npm run links:check",
     "smoke": "npm run build && node scripts/assert-dist.cjs",
     "press-kit": "tsx scripts/generate-press-kit.ts",
     "check": "npm run lint && npm run test:ci && npm run docs:check",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "links:check": "node scripts/check-links.cjs"
   },
   "dependencies": {
     "three": "^0.161.0"

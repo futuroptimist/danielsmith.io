@@ -84,8 +84,8 @@ describe('createFlywheelShowpiece', () => {
 
     const capturedText = contexts.flatMap((ctx) => ctx.fillTextCalls);
     expect(capturedText).toContain('Flywheel Automation');
-    expect(capturedText).toContain('Docs');
-    expect(capturedText).toContain('flywheel.futuroptimist.dev');
+    expect(capturedText).toContain('README');
+    expect(capturedText).toContain('github.com/futuroptimist/flywheel');
     expect(capturedText).toContain('CI templates');
     expect(capturedText).toContain('Typed prompts');
     expect(capturedText).toContain('Scaffolds');

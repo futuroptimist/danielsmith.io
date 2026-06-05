@@ -60,9 +60,9 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Scripts de início sobem localmente o relay, o servidor e a pilha de LLM simulado para testes.',
       metrics: [
         'Cluster',
-        '12× nós Pi 5 em baias modulares',
+        'Entrypoints Python relay.py e server.py',
         'Rede',
-        'Tokens efêmeros · rajadas criptografadas',
+        'Linha de base API v1 com E2EE cega ao relay',
       ],
     },
     gabriel: {
@@ -72,9 +72,9 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Pilhas de ingestão, análise, notificação e UI permanecem alinhadas por interfaces tipadas.',
       metrics: [
         'Foco',
-        'Varredura lidar 360° + heurísticas locais',
+        'Coaching de segurança digital com privacidade primeiro',
         'Cadência',
-        'Flash vermelho a cada 1,0 s',
+        'FAQ e docs no repositório',
       ],
     },
     flywheel: {
@@ -86,7 +86,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Automação',
         'Scaffolds CI · prompts tipados · ciclos QA',
         'CTA docs',
-        'flywheel.futuroptimist.dev →',
+        'Suporte, eixo, adaptador e docs de física',
       ],
     },
     jobbot: {
@@ -147,7 +147,7 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
         'Automatiza coleta e resumo de logs CI para handoff rápido de depuração.',
       metrics: [
         'Velocidade',
-        'Copia logs com falha em menos de 3 s',
+        'Codex task → checks de PR GitHub → Markdown',
         'Formatos',
         'CLI + área de transferência + Markdown',
       ],
@@ -178,14 +178,14 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
     },
     dspace: {
       summary:
-        'Pórtico de lançamento no quintal para DSPACE com sinais de contagem regressiva guiados por telemetria e log público.',
+        'Exposição DSPACE para o jogo idle web Democratized Space, com recursos, missões, exploração e lançamentos orbitais.',
       outcome:
-        'Mantém notas de sequência junto a links GitHub e log de missão enquanto o repo segue privado.',
+        'Aponta para o repositório público democratizedspace/dspace e a documentação oficial do jogo, sem logs não verificados.',
       metrics: [
-        'Contagem',
-        'Sequenciamento T-0 autônomo',
-        'Stack',
-        'Three.js FX · áudio espacial',
+        'Jogo',
+        'Gestão de recursos · missões · exploração',
+        'Docs',
+        'Docs públicos e guia de desenvolvimento',
       ],
     },
     prReaper: {
