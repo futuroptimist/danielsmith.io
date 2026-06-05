@@ -55,6 +55,28 @@ content changes and the existing version differs, bump `charts/danielsmith/Chart
 publishing. Manual `workflow_dispatch` chart runs validate the selected ref and publish only when
 that ref is `main`/`refs/heads/main`.
 
+## GitHub metrics cache sidecar
+
+The chart includes an optional `githubMetricsCache` sidecar for staging and production. When
+enabled by Sugarkube values, the sidecar uses unauthenticated public GitHub REST API requests on
+startup and then hourly to refresh public repository metadata. It writes an atomic pod-local JSON
+cache to a shared `emptyDir`, and the nginx app container serves that file as
+`/runtime/github-metrics.json`. No Kubernetes Secret, GitHub PAT, GitHub App credential, or client
+secret is required.
+
+Keep the sidecar disabled in the chart defaults; enable it from environment values only after the
+rendered deployment shows the `github-metrics` container and `github-metrics-cache` shared volume.
+Verify the deployed cache with:
+
+```bash
+curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
+curl -fsS https://danielsmith.io/runtime/github-metrics.json
+```
+
+The JSON should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, and
+`errors`. If GitHub is temporarily unavailable, the frontend treats missing, stale, or empty cache
+data as neutral “Syncing from GitHub…” copy instead of displaying invented numbers.
+
 ## 3. Deploy staging from Sugarkube
 
 Run deployment commands from the Sugarkube repository checkout, not from this app repository.

@@ -118,6 +118,9 @@ jobs:
             --set ingress.host=staging.danielsmith.io \
             --set image.tag=main-deadbee
 
+      - name: GitHub metrics cache template assertions
+        run: node scripts/check-helm-github-metrics-cache.cjs
+
       - name: Package Helm chart
         id: package
         shell: bash

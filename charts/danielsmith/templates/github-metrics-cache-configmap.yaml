@@ -1,0 +1,205 @@
+{{- if .Values.githubMetricsCache.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "danielsmith.fullname" . }}-github-metrics-cache
+  labels:
+    {{- include "danielsmith.labels" . | nindent 4 }}
+data:
+  repos.json: |
+{{ .Values.githubMetricsCache.repos | toPrettyJson | nindent 4 }}
+  refresh-github-metrics.py: |
+    #!/usr/bin/env python3
+    import json
+    import os
+    import sys
+    import time
+    import urllib.error
+    import urllib.request
+    from datetime import datetime, timezone, timedelta
+    from pathlib import Path
+
+    SCHEMA_VERSION = 1
+    SOURCE = "github-rest-unauthenticated"
+    USER_AGENT = "danielsmith.io-github-metrics-cache"
+
+
+    def env_int(name, default):
+        raw = os.environ.get(name, "")
+        try:
+            value = int(raw)
+        except ValueError:
+            return default
+        return value if value > 0 else default
+
+
+    REPOS_PATH = Path(
+        os.environ.get("GITHUB_METRICS_REPOS_PATH", "/config/repos.json")
+    )
+    OUTPUT_PATH = Path(
+        os.environ.get("GITHUB_METRICS_OUTPUT_PATH", "/cache/github-metrics.json")
+    )
+    REFRESH_INTERVAL_SECONDS = env_int(
+        "GITHUB_METRICS_REFRESH_INTERVAL_SECONDS",
+        3600,
+    )
+    STARTUP_TIMEOUT_SECONDS = env_int(
+        "GITHUB_METRICS_STARTUP_TIMEOUT_SECONDS",
+        20,
+    )
+    CACHE_TTL_SECONDS = env_int("GITHUB_METRICS_CACHE_TTL_SECONDS", 4500)
+    REQUEST_TIMEOUT_SECONDS = min(max(STARTUP_TIMEOUT_SECONDS, 1), 30)
+
+
+    def request_timeout_seconds(repo_count):
+        repo_count = max(repo_count, 1)
+        per_repo_timeout = STARTUP_TIMEOUT_SECONDS / repo_count
+        return min(max(per_repo_timeout, 1), 10)
+
+
+    def iso_now():
+        return datetime.now(timezone.utc)
+
+
+    def to_iso(value):
+        return value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+    def load_repos():
+        with REPOS_PATH.open("r", encoding="utf-8") as handle:
+            repos = json.load(handle)
+        if not isinstance(repos, list):
+            raise ValueError("repos config must be a list")
+        normalized = []
+        for item in repos:
+            if not isinstance(item, dict):
+                raise ValueError("each repo config entry must be an object")
+            owner = str(item.get("owner", "")).strip()
+            repo = str(item.get("repo", "")).strip()
+            if not owner or not repo:
+                raise ValueError("each repo config entry needs owner and repo")
+            normalized.append({"owner": owner, "repo": repo})
+        return normalized
+
+
+    def fetch_repo(owner, repo):
+        url = f"https://api.github.com/repos/{owner}/{repo}"
+        request = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "User-Agent": USER_AGENT,
+            },
+        )
+        fetched_at = to_iso(iso_now())
+        with urllib.request.urlopen(
+            request,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        ) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        html_url = payload.get("html_url") or f"https://github.com/{owner}/{repo}"
+        return {
+            "owner": owner,
+            "repo": repo,
+            "stars": payload.get("stargazers_count", 0),
+            "watchers": payload.get("watchers_count", 0),
+            "subscribers": payload.get("subscribers_count", 0),
+            "forks": payload.get("forks_count", 0),
+            "openIssues": payload.get("open_issues_count", 0),
+            "pushedAt": payload.get("pushed_at"),
+            "fetchedAt": fetched_at,
+            "htmlUrl": html_url,
+        }
+
+
+    def error_message(error):
+        if isinstance(error, urllib.error.HTTPError):
+            return f"HTTP {error.code}"
+        if isinstance(error, urllib.error.URLError):
+            reason = getattr(error, "reason", "network error")
+            return f"network error: {reason}"
+        return error.__class__.__name__
+
+
+    def build_payload(repos):
+        started_at = iso_now()
+        expires_at = started_at + timedelta(seconds=CACHE_TTL_SECONDS)
+        repo_records = {}
+        errors = {}
+        for item in repos:
+            owner = item["owner"]
+            repo = item["repo"]
+            key = f"{owner}/{repo}".lower()
+            try:
+                repo_records[key] = fetch_repo(owner, repo)
+            except Exception as error:
+                # Keep per-repo failures isolated so one bad response cannot
+                # prevent healthy public repos from refreshing.
+                errors[key] = {
+                    "owner": owner,
+                    "repo": repo,
+                    "message": error_message(error),
+                    "fetchedAt": to_iso(iso_now()),
+                }
+        return {
+            "schemaVersion": SCHEMA_VERSION,
+            "generatedAt": to_iso(started_at),
+            "expiresAt": to_iso(expires_at),
+            "source": SOURCE,
+            "repos": repo_records,
+            "errors": errors,
+        }
+
+
+    def atomic_write_json(payload):
+        OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = OUTPUT_PATH.with_name(f".{OUTPUT_PATH.name}.tmp")
+        with temp_path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, sort_keys=True, separators=(",", ":"))
+            handle.write("\n")
+        with temp_path.open("r", encoding="utf-8") as handle:
+            json.load(handle)
+        os.replace(temp_path, OUTPUT_PATH)
+
+
+    def refresh_once(repos):
+        payload = build_payload(repos)
+        ok_count = len(payload["repos"])
+        failed_count = len(payload["errors"])
+        if ok_count == 0 and failed_count > 0 and OUTPUT_PATH.exists():
+            return ok_count, failed_count, False
+        atomic_write_json(payload)
+        return ok_count, failed_count, True
+
+
+    def main():
+        global REQUEST_TIMEOUT_SECONDS
+        repos = load_repos()
+        REQUEST_TIMEOUT_SECONDS = request_timeout_seconds(len(repos))
+        while True:
+            ok_count, failed_count, wrote_file = refresh_once(repos)
+            next_refresh_epoch = time.time() + REFRESH_INTERVAL_SECONDS
+            next_refresh_time = datetime.fromtimestamp(
+                next_refresh_epoch,
+                timezone.utc,
+            )
+            next_refresh = to_iso(next_refresh_time)
+            action = "wrote" if wrote_file else "preserved existing"
+            print(
+                f"github metrics refresh {action}: ok={ok_count} "
+                f"failed={failed_count} next={next_refresh}",
+                flush=True,
+            )
+            time.sleep(REFRESH_INTERVAL_SECONDS)
+
+
+    if __name__ == "__main__":
+        try:
+            main()
+        except Exception as error:
+            print(
+                f"github metrics sidecar exiting: {error_message(error)}",
+                file=sys.stderr,
+            )
+            raise
+{{- end }}

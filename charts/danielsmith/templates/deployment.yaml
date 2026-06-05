@@ -1,3 +1,5 @@
+{{- $githubMetricsPublicDir := printf "/usr/share/nginx/html%s" (dir .Values.githubMetricsCache.publicPath) -}}
+{{- $githubMetricsImage := printf "%s:%s" .Values.githubMetricsCache.image.repository .Values.githubMetricsCache.image.tag -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,6 +62,11 @@ spec:
               mountPath: /var/cache/nginx
             - name: var-run
               mountPath: /var/run
+            {{- if .Values.githubMetricsCache.enabled }}
+            - name: github-metrics-cache
+              mountPath: {{ $githubMetricsPublicDir | quote }}
+              readOnly: true
+            {{- end }}
           {{- if or (gt (len .Values.env) 0) (gt (len .Values.extraEnv) 0) }}
           env:
             {{- if kindIs "map" .Values.env }}
@@ -81,6 +88,47 @@ spec:
           envFrom:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if .Values.githubMetricsCache.enabled }}
+        - name: github-metrics
+          image: {{ $githubMetricsImage | quote }}
+          imagePullPolicy: {{ .Values.githubMetricsCache.image.pullPolicy }}
+          command:
+            - python
+            - /scripts/refresh-github-metrics.py
+          env:
+            - name: GITHUB_METRICS_REPOS_PATH
+              value: /config/repos.json
+            - name: GITHUB_METRICS_OUTPUT_PATH
+              value: {{ .Values.githubMetricsCache.outputPath | quote }}
+            - name: GITHUB_METRICS_REFRESH_INTERVAL_SECONDS
+              value: {{ .Values.githubMetricsCache.refreshIntervalSeconds | quote }}
+            - name: GITHUB_METRICS_STARTUP_TIMEOUT_SECONDS
+              value: {{ .Values.githubMetricsCache.startupTimeoutSeconds | quote }}
+            - name: GITHUB_METRICS_CACHE_TTL_SECONDS
+              value: {{ .Values.githubMetricsCache.cacheTtlSeconds | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            {{- toYaml .Values.githubMetricsCache.resources | nindent 12 }}
+          volumeMounts:
+            - name: github-metrics-cache-config
+              mountPath: /scripts/refresh-github-metrics.py
+              subPath: refresh-github-metrics.py
+              readOnly: true
+            - name: github-metrics-cache-config
+              mountPath: /config/repos.json
+              subPath: repos.json
+              readOnly: true
+            - name: github-metrics-cache
+              mountPath: {{ dir .Values.githubMetricsCache.outputPath | quote }}
+        {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}
@@ -88,6 +136,14 @@ spec:
           emptyDir: {}
         - name: var-run
           emptyDir: {}
+        {{- if .Values.githubMetricsCache.enabled }}
+        - name: github-metrics-cache
+          emptyDir: {}
+        - name: github-metrics-cache-config
+          configMap:
+            name: {{ include "danielsmith.fullname" . }}-github-metrics-cache
+            defaultMode: 0555
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
