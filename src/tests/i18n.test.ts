@@ -218,6 +218,28 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('keeps localized DSPACE game and docs metric labels current', () => {
+    const staleDspaceMetricLabelPattern =
+      /^(countdown|cuenta atrás|visszaszámlálás|contagem|stack)$/i;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+      const groundedMetricLabels =
+        dspace?.metrics
+          ?.filter((metric) => metric.source?.type !== 'githubStars')
+          .map((metric) => metric.label) ?? [];
+
+      expect(groundedMetricLabels, locale).toHaveLength(2);
+      expect(groundedMetricLabels, locale).toEqual(
+        expect.not.arrayContaining([
+          expect.stringMatching(staleDspaceMetricLabelPattern),
+        ])
+      );
+    }
+  });
+
   it('deep-clones localized POI metric sources per call', () => {
     const firstDefinitions = getPoiDefinitions('en-x-pseudo');
     const firstPoi = firstDefinitions.find(

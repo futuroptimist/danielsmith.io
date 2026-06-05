@@ -183,9 +183,9 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       outcome:
         'Enlaza el repositorio público democratizedspace/dspace y la documentación oficial, sin bitácoras no verificadas.',
       metrics: [
-        'Cuenta atrás',
+        'Juego',
         'Gestión de recursos · quests · exploración',
-        'Stack',
+        'Docs',
         'Docs públicos y guía de desarrollo',
       ],
     },
