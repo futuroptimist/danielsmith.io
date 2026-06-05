@@ -262,6 +262,7 @@ import {
   type AmbientAudioSource,
 } from './systems/audio/ambientAudio';
 import {
+  AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
   AmbientAudioPreference,
   bindAmbientAudioPreference,
   type AmbientAudioPreferenceBindingHandle,
@@ -475,6 +476,26 @@ declare global {
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
       githubMetrics?: {
         getDiagnostics(): GitHubRepoStatsDiagnostics;
+      };
+      audio?: {
+        getState(): {
+          preferenceEnabled: boolean;
+          ambientEnabled: boolean;
+          ambientSourcesPlaying: { id: string; isPlaying: boolean }[];
+          ambientSourcesPlayingCount: number;
+          ambientBedVolumes: {
+            id: string;
+            currentVolume: number;
+            targetVolume: number;
+          }[];
+          footstepEnabled: boolean;
+          footstepPlaying: boolean;
+          masterVolume: number;
+          baseVolume: number;
+          audioContextState: AudioContextState | 'unknown';
+          storageKeyVersion: string;
+          activeStorageKey: string;
+        };
       };
       graphics?: {
         getMotionBlurIntensity(): number;
@@ -1022,6 +1043,101 @@ function initializeImmersiveScene(
     ambientAudioController?.getMasterVolume() ?? 1;
   let setAmbientAudioVolume = (volume: number) => {
     ambientAudioController?.setMasterVolume(volume);
+  };
+
+  const stopFootstepAudio = () => {
+    if (!footstepAudio) {
+      return;
+    }
+    footstepAudio.setVolume(0);
+    if (footstepAudio.isPlaying) {
+      footstepAudio.stop();
+    }
+  };
+
+  const hardDisableRuntimeAudio = () => {
+    ambientAudioController?.disable();
+    footstepAudioController?.setEnabled(false);
+    stopFootstepAudio();
+    ambientCaptionBridge?.clear();
+    audioHudHandle?.refresh();
+  };
+
+  let globalAudioTransitionId = 0;
+
+  const setGlobalAudioEnabled = async (
+    enabled: boolean,
+    source: 'control' | 'storage' = 'control'
+  ) => {
+    const transitionId = ++globalAudioTransitionId;
+
+    if (!enabled) {
+      hardDisableRuntimeAudio();
+      ambientAudioPreference?.setEnabled(false, source);
+      audioHudHandle?.refresh();
+      return;
+    }
+
+    if (!ambientAudioController) {
+      if (source === 'control') {
+        ambientAudioPreference?.setEnabled(false, source);
+      }
+      audioHudHandle?.refresh();
+      return;
+    }
+
+    try {
+      await ambientAudioController.enable();
+      if (
+        transitionId !== globalAudioTransitionId ||
+        (source === 'storage' &&
+          !(ambientAudioPreference?.isEnabled() ?? false))
+      ) {
+        hardDisableRuntimeAudio();
+        audioHudHandle?.refresh();
+        return;
+      }
+      footstepAudioController?.setEnabled(true);
+      ambientAudioPreference?.setEnabled(true, source);
+    } catch (error) {
+      hardDisableRuntimeAudio();
+      if (source === 'control') {
+        ambientAudioPreference?.setEnabled(false, source);
+      }
+      audioHudHandle?.refresh();
+      throw error;
+    }
+    audioHudHandle?.refresh();
+  };
+
+  const getAudioDebugState = () => {
+    const snapshots = ambientAudioController?.getBedSnapshots() ?? [];
+    const ambientSourcesPlaying = snapshots.map((snapshot) => ({
+      id: snapshot.id,
+      isPlaying: snapshot.definition.source.isPlaying,
+    }));
+    return {
+      preferenceEnabled: ambientAudioPreference?.isEnabled() ?? false,
+      ambientEnabled: ambientAudioController?.isEnabled() ?? false,
+      ambientSourcesPlaying,
+      ambientSourcesPlayingCount: ambientSourcesPlaying.filter(
+        (source) => source.isPlaying
+      ).length,
+      ambientBedVolumes: snapshots.map((snapshot) => ({
+        id: snapshot.id,
+        currentVolume: snapshot.currentVolume,
+        targetVolume: snapshot.targetVolume,
+      })),
+      footstepEnabled: footstepAudioController?.isEnabled() ?? false,
+      footstepPlaying: footstepAudio?.isPlaying ?? false,
+      masterVolume: ambientAudioController?.getMasterVolume() ?? 0,
+      baseVolume: getAmbientAudioVolume(),
+      audioContextState: audioListener?.context?.state ?? 'unknown',
+      storageKeyVersion: 'v2',
+      activeStorageKey:
+        ambientAudioPreference?.getStorageKey() ??
+        AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY,
+    };
   };
 
   let localeStorage: Storage | undefined;
@@ -1858,6 +1974,9 @@ function initializeImmersiveScene(
   window.portfolio.githubMetrics = {
     getDiagnostics: () => githubRepoStatsService.getDiagnostics(),
   };
+  window.portfolio.audio = {
+    getState: getAudioDebugState,
+  };
   const wirePoiGitHubMetrics = () => {
     githubRepoMetrics?.dispose();
     githubRepoMetrics = wireGitHubRepoMetrics({
@@ -2401,6 +2520,10 @@ function initializeImmersiveScene(
   footstepAudioController = createFootstepAudioController({
     player: {
       play: ({ volume, playbackRate, pan }) => {
+        if (!(ambientAudioPreference?.isEnabled() ?? false)) {
+          stopFootstepAudio();
+          return;
+        }
         const clampedVolume = MathUtils.clamp(volume, 0, 1);
         const clampedRate = MathUtils.clamp(playbackRate, 0.25, 3);
         if (footstepStereoPanner && typeof pan === 'number') {
@@ -2418,7 +2541,9 @@ function initializeImmersiveScene(
         }
         footstepAudioNode.play();
       },
+      stop: stopFootstepAudio,
     },
+    initialEnabled: ambientAudioPreference?.isEnabled() ?? false,
     maxLinearSpeed: PLAYER_SPEED,
     minActivationSpeed: PLAYER_SPEED * 0.12,
     intervalRange: { min: 0.26, max: 0.58 },
@@ -3650,11 +3775,20 @@ function initializeImmersiveScene(
       ambientAudioPreferenceBinding = null;
     }
     ambientAudioPreferenceBinding = bindAmbientAudioPreference({
-      controller: ambientAudioController,
+      controller: {
+        enable: () => setGlobalAudioEnabled(true, 'storage'),
+        disable: () => {
+          void setGlobalAudioEnabled(false, 'storage');
+        },
+        isEnabled: () => ambientAudioController?.isEnabled() ?? false,
+      },
       preference: ambientAudioPreference,
       windowTarget: window,
       logger: console,
     });
+    if (!ambientAudioPreference.isEnabled()) {
+      hardDisableRuntimeAudio();
+    }
 
     if (!ambientCaptionBridge && audioSubtitles) {
       ambientCaptionBridge = new AmbientCaptionBridge({
@@ -3667,19 +3801,10 @@ function initializeImmersiveScene(
       container: hudSettingsStack,
       getEnabled: () => ambientAudioController?.isEnabled() ?? false,
       setEnabled: async (enabled) => {
-        if (!ambientAudioController) {
-          return;
-        }
-        if (enabled) {
-          try {
-            await ambientAudioController.enable();
-            ambientAudioPreference?.setEnabled(true, 'control');
-          } catch (error) {
-            console.warn('Ambient audio failed to start', error);
-          }
-        } else {
-          ambientAudioController.disable();
-          ambientAudioPreference?.setEnabled(false, 'control');
+        try {
+          await setGlobalAudioEnabled(enabled, 'control');
+        } catch (error) {
+          console.warn('Ambient audio failed to start', error);
         }
       },
       getVolume: () => getAmbientAudioVolume(),
@@ -4764,6 +4889,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.githubMetrics) {
       delete window.portfolio.githubMetrics;
+    }
+    if (window.portfolio?.audio) {
+      delete window.portfolio.audio;
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;

@@ -22,10 +22,27 @@ type ElementBounds = {
   height: number;
 };
 
+type AudioDebugState = {
+  preferenceEnabled: boolean;
+  ambientEnabled: boolean;
+  ambientSourcesPlayingCount: number;
+  ambientBedVolumes: Array<{
+    id: string;
+    currentVolume: number;
+    targetVolume: number;
+  }>;
+  footstepEnabled: boolean;
+  footstepPlaying: boolean;
+  activeStorageKey: string;
+};
+
 type PortfolioPoiWindow = Window & {
   portfolio?: {
     poi?: {
       getTooltipState?: () => PoiTooltipState;
+    };
+    audio?: {
+      getState?: () => AudioDebugState;
     };
   };
 };
@@ -71,6 +88,21 @@ async function waitForImmersiveReady(page: Page) {
   await page.waitForFunction(
     () => (window as PortfolioPoiWindow).portfolio?.poi?.getTooltipState
   );
+  await page.waitForFunction(
+    () => (window as PortfolioPoiWindow).portfolio?.audio?.getState
+  );
+}
+
+async function getAudioState(page: Page): Promise<AudioDebugState> {
+  return page.evaluate(() => {
+    const getState = (window as PortfolioPoiWindow).portfolio?.audio?.getState;
+
+    if (!getState) {
+      throw new Error('window.portfolio.audio.getState() is unavailable');
+    }
+
+    return getState();
+  });
 }
 
 async function getPoiTooltipState(page: Page): Promise<PoiTooltipState> {
@@ -190,6 +222,79 @@ test.describe('small-screen HUD regression coverage', () => {
 
   test.describe('desktop viewport', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
+
+    test('routes Settings audio and M key toggles through global mute', async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        window.localStorage.setItem(
+          'danielsmith.io::ambientAudioEnabled::v1',
+          '1'
+        );
+        window.localStorage.removeItem(
+          'danielsmith.io::ambientAudioEnabled::v2'
+        );
+      });
+      await waitForImmersiveReady(page);
+
+      const settingsButton = page.locator('[data-role="settings-button"]');
+      const settingsModal = page.locator('.help-modal-backdrop');
+      await settingsButton.click();
+      await expect(settingsModal).toBeVisible();
+
+      const audioToggle = settingsModal.locator('button.audio-toggle');
+      const audioVolume = settingsModal.locator('.audio-volume__value');
+      await expect(audioToggle).toContainText(/Audio:\s*Off/i);
+      await expect(audioVolume).toContainText(/Muted/i);
+
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: false,
+          ambientEnabled: false,
+          ambientSourcesPlayingCount: 0,
+          footstepEnabled: false,
+          footstepPlaying: false,
+          activeStorageKey: 'danielsmith.io::ambientAudioEnabled::v2',
+        });
+
+      await audioToggle.click();
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: true,
+          ambientEnabled: true,
+          footstepEnabled: true,
+        });
+
+      await page.keyboard.press('m');
+      await expect
+        .poll(async () => {
+          const state = await getAudioState(page);
+          return (
+            !state.preferenceEnabled &&
+            !state.ambientEnabled &&
+            state.ambientSourcesPlayingCount === 0 &&
+            !state.footstepEnabled &&
+            !state.footstepPlaying &&
+            state.ambientBedVolumes.every(
+              (bed) => bed.currentVolume === 0 && bed.targetVolume === 0
+            )
+          );
+        })
+        .toBe(true);
+
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await waitForImmersiveReady(page);
+      await expect
+        .poll(async () => getAudioState(page))
+        .toMatchObject({
+          preferenceEnabled: false,
+          ambientEnabled: false,
+          ambientSourcesPlayingCount: 0,
+          footstepEnabled: false,
+        });
+    });
 
     test('keeps desktop keyboard HUD toggles mutually exclusive', async ({
       page,
