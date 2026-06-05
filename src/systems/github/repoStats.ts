@@ -394,6 +394,10 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
+        if (payload.source === 'static-neutral-placeholder') {
+          diagnostics.source = 'static-neutral';
+          return false;
+        }
         const generatedAt = parseTimestamp(payload.generatedAt);
         const expiresAt = parseTimestamp(payload.expiresAt);
         if (generatedAt === null || expiresAt === null || generatedAt > now()) {

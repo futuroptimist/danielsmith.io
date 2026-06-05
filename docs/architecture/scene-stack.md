@@ -102,8 +102,9 @@ layer without guessing where functionality lives.
   are disabled for normal visitors and require an explicit debug/test flag
   (`?enableLiveGitHubMetrics=1` or `window.__ENABLE_LIVE_GITHUB_METRICS__ = true`). No GitHub
   token or other secret is required or exposed for public star counts. Local preview builds include
-  `public/runtime/github-metrics.json` as an empty neutral placeholder so normal immersive
-  startup can request the same pod-local path without producing browser 404 console noise.
+  `public/runtime/github-metrics.json` as an expired, non-authoritative neutral placeholder so
+  normal immersive startup can request the same pod-local path without producing browser 404
+  console noise or pinning neutral metrics ahead of a real sidecar refresh.
 - **Accessibility overlays** – `HudFocusAnnouncerHandle` flows from systems
   into DOM overlays: `src/ui/accessibility/ariaBridges.ts` registers live
   regions, while Playwright specs assert emitted announcements against
