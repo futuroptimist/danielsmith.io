@@ -177,6 +177,153 @@ describe('GitHub repo stats service', () => {
     ).resolves.toBeNull();
     expect(invalidService.getDiagnostics().source).toBe('static-neutral');
   });
+
+  it('retries runtime cache after temporary load failures', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 404 })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          schemaVersion: 1,
+          generatedAt: '2026-06-03T00:00:00.000Z',
+          expiresAt: '2026-06-03T01:15:00.000Z',
+          repos: {
+            'futuroptimist/flywheel': {
+              owner: 'futuroptimist',
+              repo: 'flywheel',
+              stars: 8,
+              watchers: 2,
+              forks: 1,
+              openIssues: 0,
+              pushedAt: null,
+            },
+          },
+        }),
+      });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        now: () => Date.parse('2026-06-03T01:20:00.000Z'),
+      })
+    );
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toBeNull();
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toMatchObject({ stars: 8 });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(service.getDiagnostics().source).toBe('runtime-cache');
+  });
+
+  it('times out hung runtime cache loads before returning neutral stats', async () => {
+    const fetch = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => {
+          reject(new DOMException('The operation was aborted.', 'AbortError'));
+        });
+      });
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        fetchTimeoutMs: 1,
+      })
+    );
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toBeNull();
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(service.getDiagnostics().source).toBe('static-neutral');
+  });
+
+  it('keeps runtime-cache-missing repos neutral instead of using old browser cache', async () => {
+    const localStorage = new MemoryStorage();
+    localStorage.setItem(
+      'danielsmith.io:github-repo-stats:futuroptimist/private-repo',
+      JSON.stringify({
+        stats: {
+          stars: 99,
+          watchers: 4,
+          forks: 3,
+          openIssues: 2,
+          pushedAt: null,
+        },
+        cachedAt: Date.parse('2026-06-03T01:00:00.000Z'),
+      })
+    );
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt: '2026-06-03T01:00:00.000Z',
+        expiresAt: '2026-06-03T01:15:00.000Z',
+        repos: {},
+        errors: {
+          'futuroptimist/private-repo': { status: 404, message: 'Not found' },
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        localStorage,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        now: () => Date.parse('2026-06-03T01:10:00.000Z'),
+      })
+    );
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'private-repo' })
+    ).resolves.toBeNull();
+    expect(service.getDiagnostics().source).toBe('static-neutral');
+  });
+
+  it('treats expired local stats as neutral when live fetches are disabled', async () => {
+    const localStorage = new MemoryStorage();
+    localStorage.setItem(
+      'danielsmith.io:github-repo-stats:futuroptimist/flywheel',
+      JSON.stringify({
+        stats: {
+          stars: 77,
+          watchers: 3,
+          forks: 4,
+          openIssues: 5,
+          pushedAt: '2024-01-01T00:00:00Z',
+        },
+        cachedAt: 1,
+      })
+    );
+    const fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        localStorage,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        now: () => 3_700_000,
+      })
+    );
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toBeNull();
+    expect(service.getDiagnostics().source).toBe('static-neutral');
+  });
   it('fetches stats, caches results, and notifies subscribers', async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,

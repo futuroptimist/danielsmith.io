@@ -73,8 +73,11 @@ interface BackoffRecord {
   lastErrorAt: number;
 }
 
+type MemoryCacheSource = 'runtime-cache' | 'browser-live' | 'local-storage';
+
 interface MemoryCacheEntry extends CachedStatsRecord {
   freshUntil: number;
+  source: MemoryCacheSource;
 }
 
 export interface GitHubRepoStatsServiceOptions {
@@ -182,7 +185,8 @@ const safeRemove = (storage: StorageLike | null, key: string): void => {
 const normalizeCachedRecord = (
   record: CachedStatsRecord | null,
   now: number,
-  ttlMs: number
+  ttlMs: number,
+  source: MemoryCacheSource
 ): MemoryCacheEntry | null => {
   if (!record || typeof record !== 'object') {
     return null;
@@ -206,6 +210,7 @@ const normalizeCachedRecord = (
     },
     cachedAt,
     freshUntil: cachedAt + ttlMs,
+    source,
   };
 };
 
@@ -322,11 +327,13 @@ export function createGitHubRepoStatsService(
     freshUntil: number
   ) => {
     const key = makeCacheKey(identifier);
-    cache.set(key, { stats, cachedAt, freshUntil });
+    cache.set(key, { stats, cachedAt, freshUntil, source: 'runtime-cache' });
     notify(key, stats);
   };
 
   let runtimeCacheLoadPromise: Promise<boolean> | null = null;
+  let runtimeCacheAvailable = false;
+  const runtimeCacheRepoKeys = new Set<string>();
 
   const loadRuntimeCache = async (): Promise<boolean> => {
     if (!runtimeCacheUrl || !fetchImpl) {
@@ -337,10 +344,20 @@ export function createGitHubRepoStatsService(
     }
 
     runtimeCacheLoadPromise = (async () => {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      let controller: AbortController | undefined;
       try {
-        const response = await fetchImpl(runtimeCacheUrl, {
+        if (AbortControllerTarget && fetchTimeoutMs > 0) {
+          controller = new AbortControllerTarget();
+          timeoutId = setTimeout(() => controller?.abort(), fetchTimeoutMs);
+        }
+        const requestInit: RequestInit = {
           headers: { Accept: 'application/json' },
-        });
+        };
+        if (controller?.signal) {
+          requestInit.signal = controller.signal;
+        }
+        const response = await fetchImpl(runtimeCacheUrl, requestInit);
         if (!response.ok) {
           diagnostics.source = 'static-neutral';
           return false;
@@ -365,6 +382,7 @@ export function createGitHubRepoStatsService(
           return false;
         }
 
+        const loadedRepoKeys = new Set<string>();
         let loadedCount = 0;
         for (const [key, repoStats] of Object.entries(payload.repos)) {
           const normalized = normalizeRuntimeRepoStats(repoStats);
@@ -382,6 +400,8 @@ export function createGitHubRepoStatsService(
           ) {
             continue;
           }
+          const normalizedKey = makeCacheKey({ owner, repo });
+          loadedRepoKeys.add(normalizedKey);
           writeMemoryEntry(
             { owner, repo },
             normalized,
@@ -390,16 +410,35 @@ export function createGitHubRepoStatsService(
           );
           loadedCount += 1;
         }
+
+        for (const [key, entry] of cache) {
+          if (entry.source === 'runtime-cache' && !loadedRepoKeys.has(key)) {
+            cache.delete(key);
+          }
+        }
+        runtimeCacheRepoKeys.clear();
+        for (const key of loadedRepoKeys) {
+          runtimeCacheRepoKeys.add(key);
+        }
+        runtimeCacheAvailable = true;
         diagnostics.source =
           loadedCount > 0 ? 'runtime-cache' : 'static-neutral';
-        return loadedCount > 0;
+        return true;
       } catch {
         diagnostics.source = 'static-neutral';
         return false;
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
     })();
 
-    return runtimeCacheLoadPromise;
+    const loaded = await runtimeCacheLoadPromise;
+    if (!loaded) {
+      runtimeCacheLoadPromise = null;
+    }
+    return loaded;
   };
 
   const warnOnce = (status: ErrorStatus) => {
@@ -431,15 +470,16 @@ export function createGitHubRepoStatsService(
   ): MemoryCacheEntry | null => {
     const key = makeCacheKey(identifier);
     const cached = cache.get(key);
-    if (cached) {
+    if (cached && canUseCachedEntry(key, cached)) {
       return cached;
     }
     const stored = normalizeCachedRecord(
       safeReadJson<CachedStatsRecord>(localStorage, makeStorageKey(identifier)),
       now(),
-      successCacheTtlMs
+      successCacheTtlMs,
+      'local-storage'
     );
-    if (stored) {
+    if (stored && canUseCachedEntry(key, stored)) {
       cache.set(key, stored);
       return stored;
     }
@@ -456,6 +496,7 @@ export function createGitHubRepoStatsService(
     cache.set(key, {
       ...record,
       freshUntil: cachedAt + successCacheTtlMs,
+      source: 'browser-live',
     });
     safeWriteJson(localStorage, makeStorageKey(identifier), record);
   };
@@ -478,6 +519,19 @@ export function createGitHubRepoStatsService(
     diagnostics.lastErrorAt = now();
     setBackoff(status);
     warnOnce(status);
+  };
+
+  const canUseCachedEntry = (key: string, entry: MemoryCacheEntry): boolean => {
+    if (!runtimeCacheUrl) {
+      return true;
+    }
+    if (entry.source === 'runtime-cache') {
+      return runtimeCacheRepoKeys.has(key);
+    }
+    if (runtimeCacheAvailable) {
+      return false;
+    }
+    return allowLiveFetch;
   };
 
   const getCachedStats = (
@@ -528,9 +582,13 @@ export function createGitHubRepoStatsService(
   ): Promise<GitHubRepoStats | null> => {
     await loadRuntimeCache();
     const key = makeCacheKey(identifier);
+    if (runtimeCacheAvailable && !runtimeCacheRepoKeys.has(key)) {
+      diagnostics.source = 'static-neutral';
+      return null;
+    }
     const cached = readCachedEntry(identifier);
     if (cached && cached.freshUntil > now()) {
-      if (diagnostics.source !== 'runtime-cache') {
+      if (cached.source !== 'runtime-cache') {
         diagnostics.source = 'cached';
       }
       return cached.stats;
@@ -541,13 +599,12 @@ export function createGitHubRepoStatsService(
     }
     if (!fetchImpl || !allowLiveFetch) {
       if (
-        !cached &&
         diagnostics.source !== 'runtime-cache' &&
         diagnostics.source !== 'runtime-cache-stale'
       ) {
         diagnostics.source = 'static-neutral';
       }
-      return cached?.stats ?? null;
+      return null;
     }
     if (isBackoffActive(backoff, now())) {
       diagnostics.suppressedRequestCount += 1;
