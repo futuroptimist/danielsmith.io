@@ -94,7 +94,9 @@ layer without guessing where functionality lives.
   a sidecar-refreshed `/runtime/github-metrics.json` file, and the static frontend treats that
   cache as the normal source of truth. The cache has a modest grace window beyond `expiresAt`
   so an hourly refresh that lands slightly late does not flicker metrics back to neutral copy;
-  stale, invalid, missing, private, or rate-limited data falls back to localized neutral text
+  long-lived sessions retry the runtime file after that cache window instead of pinning the
+  first successful response forever. Stale, invalid, missing, private, or rate-limited data falls
+  back to localized neutral text
   such as “Syncing from GitHub…” rather than invented numbers. Browser live GitHub API fetches
   are disabled for normal visitors and require an explicit debug/test flag
   (`?enableLiveGitHubMetrics=1` or `window.__ENABLE_LIVE_GITHUB_METRICS__ = true`). No GitHub

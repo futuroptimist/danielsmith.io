@@ -332,6 +332,8 @@ export function createGitHubRepoStatsService(
   };
 
   let runtimeCacheLoadPromise: Promise<boolean> | null = null;
+  let runtimeCacheLoadInFlight = false;
+  let runtimeCacheRefreshAfter = 0;
   let runtimeCacheAvailable = false;
   const runtimeCacheRepoKeys = new Set<string>();
 
@@ -340,9 +342,17 @@ export function createGitHubRepoStatsService(
       return false;
     }
     if (runtimeCacheLoadPromise) {
-      return runtimeCacheLoadPromise;
+      if (
+        runtimeCacheLoadInFlight ||
+        runtimeCacheRefreshAfter === 0 ||
+        now() < runtimeCacheRefreshAfter
+      ) {
+        return runtimeCacheLoadPromise;
+      }
+      runtimeCacheLoadPromise = null;
     }
 
+    runtimeCacheLoadInFlight = true;
     runtimeCacheLoadPromise = (async () => {
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
       let controller: AbortController | undefined;
@@ -420,6 +430,7 @@ export function createGitHubRepoStatsService(
         for (const key of loadedRepoKeys) {
           runtimeCacheRepoKeys.add(key);
         }
+        runtimeCacheRefreshAfter = expiresAt + runtimeCacheGraceMs;
         runtimeCacheAvailable = true;
         diagnostics.source =
           loadedCount > 0 ? 'runtime-cache' : 'static-neutral';
@@ -431,12 +442,14 @@ export function createGitHubRepoStatsService(
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
+        runtimeCacheLoadInFlight = false;
       }
     })();
 
     const loaded = await runtimeCacheLoadPromise;
     if (!loaded) {
       runtimeCacheLoadPromise = null;
+      runtimeCacheRefreshAfter = 0;
     }
     return loaded;
   };
@@ -664,6 +677,7 @@ export function createGitHubRepoStatsService(
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
+        runtimeCacheLoadInFlight = false;
         inFlight.delete(key);
       }
     })();
