@@ -118,6 +118,9 @@ jobs:
             --set ingress.host=staging.danielsmith.io \
             --set image.tag=main-deadbee
 
+      - name: Run chart render assertions
+        run: npm run test:helm
+
       - name: Package Helm chart
         id: package
         shell: bash

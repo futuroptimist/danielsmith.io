@@ -21,7 +21,8 @@
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",
-    "links:check": "node scripts/check-links.cjs"
+    "links:check": "node scripts/check-links.cjs",
+    "test:helm": "node scripts/test-helm-chart.cjs"
   },
   "dependencies": {
     "three": "^0.161.0"

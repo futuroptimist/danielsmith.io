@@ -77,6 +77,48 @@ ingress:
     enabled: false
     secretName: ''
 
+githubMetricsCache:
+  enabled: false
+  image:
+    repository: python
+    tag: '3.12-alpine'
+    pullPolicy: IfNotPresent
+  refreshIntervalSeconds: 3600
+  startupTimeoutSeconds: 20
+  cacheTtlSeconds: 4500
+  outputPath: /cache/github-metrics.json
+  publicPath: /runtime/github-metrics.json
+  repos:
+    - owner: futuroptimist
+      repo: danielsmith.io
+    - owner: futuroptimist
+      repo: token.place
+    - owner: futuroptimist
+      repo: gabriel
+    - owner: futuroptimist
+      repo: flywheel
+    - owner: futuroptimist
+      repo: jobbot3000
+    - owner: futuroptimist
+      repo: gitshelves
+    - owner: futuroptimist
+      repo: f2clipboard
+    - owner: futuroptimist
+      repo: sigma
+    - owner: futuroptimist
+      repo: wove
+    - owner: democratizedspace
+      repo: dspace
+    - owner: futuroptimist
+      repo: pr-reaper
+  resources:
+    requests:
+      cpu: 5m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+
 nodeSelector: {}
 tolerations: []
 affinity: {}
