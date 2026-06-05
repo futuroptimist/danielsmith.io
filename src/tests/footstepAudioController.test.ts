@@ -9,8 +9,14 @@ import {
 class StubFootstepPlayer {
   public readonly calls: FootstepPlaybackOptions[] = [];
 
+  public stopCalls = 0;
+
   play(options: FootstepPlaybackOptions): void {
     this.calls.push(options);
+  }
+
+  stop(): void {
+    this.stopCalls += 1;
   }
 }
 
@@ -81,6 +87,40 @@ describe('footstep audio controller', () => {
     controller.update({ delta: 0.2, linearSpeed: 4, isGrounded: false });
     controller.update({ delta: 0.4, linearSpeed: 4, isGrounded: true });
     expect(player.calls.length).toBeGreaterThan(callsAfterFirst);
+  });
+
+  it('can start disabled and stops active playback when globally muted', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player, {
+      initialEnabled: false,
+      random: () => 0.5,
+    });
+
+    expect(controller.isEnabled()).toBe(false);
+    controller.update({ delta: 0.6, linearSpeed: 4 });
+    controller.notifyFootfall('left');
+    expect(player.calls).toHaveLength(0);
+
+    controller.setEnabled(true);
+    controller.update({ delta: 0.6, linearSpeed: 4 });
+    expect(player.calls.length).toBeGreaterThan(0);
+
+    controller.setEnabled(false);
+    const callsAfterDisable = player.calls.length;
+    expect(player.stopCalls).toBe(1);
+    controller.update({ delta: 0.6, linearSpeed: 4 });
+    controller.notifyFootfall('right');
+    expect(player.calls).toHaveLength(callsAfterDisable);
+  });
+
+  it('does not stop playback again when disabled repeatedly', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createController(player);
+
+    controller.setEnabled(false);
+    controller.setEnabled(false);
+
+    expect(player.stopCalls).toBe(1);
   });
 
   it('scales cadence, volume, and pitch with speed and master volume', () => {

@@ -268,6 +268,32 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('marks every localized DSPACE GitHub star metric as private and neutral', () => {
+    const numericFallbackPattern = /\d/;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const dspace = getPoiDefinitions(locale).find(
+        (poi) => poi.id === 'dspace-backyard-rocket'
+      );
+      const starMetric = dspace?.metrics?.find(
+        (metric) => metric.source?.type === 'githubStars'
+      );
+
+      expect(dspace, locale).toBeDefined();
+      expect(starMetric, locale).toBeDefined();
+      expect(starMetric?.source, locale).toMatchObject({
+        type: 'githubStars',
+        owner: 'democratizedspace',
+        repo: 'dspace',
+        visibility: 'private',
+      });
+      expect(starMetric?.value, locale).not.toMatch(numericFallbackPattern);
+      expect(starMetric?.source?.fallback ?? '', locale).not.toMatch(
+        numericFallbackPattern
+      );
+    }
+  });
+
   it('deep-clones localized POI metric sources per call', () => {
     const firstDefinitions = getPoiDefinitions('en-x-pseudo');
     const firstPoi = firstDefinitions.find(

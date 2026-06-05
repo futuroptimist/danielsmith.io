@@ -909,7 +909,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       outcome: {
         label: 'Outcome',
         value:
-          'Links to the public democratizedspace/dspace repository and official game documentation instead of an unverified mission log.',
+          'Keeps private democratizedspace/dspace repository metadata unavailable while linking official game documentation instead of an unverified mission log.',
       },
       metrics: [
         {
@@ -919,6 +919,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             type: 'githubStars',
             owner: 'democratizedspace',
             repo: 'dspace',
+            visibility: 'private',
             format: 'compact',
             template: '{value} stars',
             fallback: 'Syncing from GitHub…',

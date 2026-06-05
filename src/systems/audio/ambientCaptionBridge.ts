@@ -49,6 +49,8 @@ export class AmbientCaptionBridge {
 
   private readonly states = new Map<string, AmbientCaptionState>();
 
+  private readonly messageIds = new Set<string>();
+
   constructor({
     controller,
     subtitles,
@@ -60,6 +62,14 @@ export class AmbientCaptionBridge {
     this.subtitles = subtitles;
     this.cooldownMs = Math.max(0, cooldownMs);
     this.now = now;
+  }
+
+  clear(): void {
+    for (const messageId of this.messageIds) {
+      this.subtitles.clear(messageId);
+    }
+    this.messageIds.clear();
+    this.states.clear();
   }
 
   update(): void {
@@ -75,6 +85,7 @@ export class AmbientCaptionBridge {
     for (const id of Array.from(this.states.keys())) {
       if (!snapshotIds.has(id)) {
         this.states.delete(id);
+        this.messageIds.delete(`ambient-${id}`);
       }
     }
   }
@@ -85,8 +96,10 @@ export class AmbientCaptionBridge {
   ): void {
     const { definition, currentVolume } = snapshot;
     const caption = definition.caption;
+    const messageId = `ambient-${snapshot.id}`;
     if (!caption) {
       this.states.delete(snapshot.id);
+      this.messageIds.delete(messageId);
       return;
     }
 
@@ -99,7 +112,6 @@ export class AmbientCaptionBridge {
         lastShownAt: null,
         pendingImmediateReshow: false,
       } satisfies AmbientCaptionState);
-    const messageId = `ambient-${snapshot.id}`;
     const currentMessage = this.subtitles.getCurrent();
     const hasFocus = currentMessage?.id === messageId;
     const otherMessageActive =
@@ -127,6 +139,7 @@ export class AmbientCaptionBridge {
       const elapsed = currentTime - lastShownAt;
       const bypassCooldown = state.pendingImmediateReshow;
       if (bypassCooldown || elapsed >= this.cooldownMs) {
+        this.messageIds.add(messageId);
         this.subtitles.show({
           id: messageId,
           text: caption,

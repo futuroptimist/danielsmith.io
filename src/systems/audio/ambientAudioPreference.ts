@@ -25,7 +25,12 @@ export interface AmbientAudioPreferenceBindingHandle {
   dispose(): void;
 }
 
-const DEFAULT_STORAGE_KEY = 'danielsmith.io::ambientAudioEnabled::v1';
+export const AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY =
+  'danielsmith.io::ambientAudioEnabled::v2';
+export const LEGACY_AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY =
+  'danielsmith.io::ambientAudioEnabled::v1';
+
+const DEFAULT_STORAGE_KEY = AMBIENT_AUDIO_PREFERENCE_STORAGE_KEY;
 
 const parseStoredValue = (value: string | null): boolean | null => {
   if (value === '1' || value === 'true') {
@@ -103,11 +108,18 @@ export class AmbientAudioPreference {
     source: AmbientAudioPreferenceChangeSource = 'control'
   ): void {
     if (this.enabled === enabled) {
+      if (source === 'control') {
+        this.persist();
+      }
       return;
     }
     this.enabled = enabled;
     this.persist();
     this.notify(source);
+  }
+
+  getStorageKey(): string {
+    return this.storageKey;
   }
 
   subscribe(
@@ -240,14 +252,16 @@ export const bindAmbientAudioPreference = ({
   };
 
   const attemptEnable = async () => {
-    if (disposed || controller.isEnabled()) {
+    if (disposed || controller.isEnabled() || !preference.isEnabled()) {
       return;
     }
     try {
       await controller.enable();
     } catch (error) {
       logger.warn('Ambient audio auto-resume failed:', error);
-      scheduleGestureListeners();
+      if (preference.isEnabled()) {
+        scheduleGestureListeners();
+      }
     }
   };
 
