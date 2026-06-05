@@ -514,7 +514,9 @@ Ideas to evaluate after the core experience is stable:
 - ✅ Procedural storytelling AI that narrates the journey between POIs.
   - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
 - ✅ Integration with GitHub API for live repo stats and contribution heatmaps.
-  - ✅ Live GitHub star counts now stream into POI metric panels via the repo stats service.
+  - ✅ GitHub star counts now prefer the pod-local `/runtime/github-metrics.json`
+    cache generated from public unauthenticated metadata, with neutral localized
+    fallbacks when the cache is missing, stale, or invalid.
 - ✅ Exportable "press kit" mode now packages screenshots, POI blurbs, and metrics for media kits.
   - ✅ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
   - ✅ Press kit performance report now surfaces headroom for materials, draw calls, and texture

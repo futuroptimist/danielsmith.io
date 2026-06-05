@@ -44,7 +44,7 @@ class MockRepoStatsService implements GitHubRepoStatsService {
 
   getDiagnostics() {
     return {
-      source: 'static-fallback' as const,
+      source: 'static-neutral' as const,
       requestCount: this.requested.length,
       suppressedRequestCount: 0,
       lastErrorStatus: null,
@@ -52,6 +52,9 @@ class MockRepoStatsService implements GitHubRepoStatsService {
       backoffExpiresAt: this.backoffExpiresAt,
       cachedRepoCount: this.cache.size,
       warningCount: 0,
+      runtimeCacheRequestCount: 0,
+      runtimeCacheGeneratedAt: null,
+      runtimeCacheExpiresAt: null,
     };
   }
 

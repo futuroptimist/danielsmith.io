@@ -5,7 +5,12 @@ const IMMERSIVE_GITHUB_METRICS_URL =
   '/?mode=immersive&disablePerformanceFailover=1&enableLiveGitHubMetrics=1';
 
 interface GitHubMetricsDiagnostics {
-  source: 'live' | 'cached' | 'static-fallback';
+  source:
+    | 'runtime-cache'
+    | 'runtime-cache-stale'
+    | 'browser-live'
+    | 'cached'
+    | 'static-neutral';
   requestCount: number;
   suppressedRequestCount: number;
   lastErrorStatus: number | 'network' | null;
@@ -31,6 +36,22 @@ test.describe('GitHub repo metrics fallback', () => {
     page,
   }) => {
     const consoleMessages = collectConsole(page);
+    await page.route('**/runtime/github-metrics.json', (route) => {
+      const generatedAt = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          schemaVersion: 1,
+          generatedAt,
+          expiresAt,
+          source: 'github-api',
+          repos: {},
+          errors: {},
+        }),
+      });
+    });
     await page.route('https://api.github.com/repos/**', (route) =>
       route.fulfill({
         status: 403,
@@ -73,7 +94,7 @@ test.describe('GitHub repo metrics fallback', () => {
     });
 
     expect(diagnostics).toMatchObject({
-      source: 'static-fallback',
+      source: 'static-neutral',
       requestCount: 1,
       lastErrorStatus: 403,
     });

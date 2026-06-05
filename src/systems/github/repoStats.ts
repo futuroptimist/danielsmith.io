@@ -13,17 +13,25 @@ export interface GitHubRepoStats {
 
 export type GitHubRepoStatsListener = (stats: GitHubRepoStats) => void;
 
-export type GitHubRepoMetricsSource = 'live' | 'cached' | 'static-fallback';
+export type GitHubRepoMetricsSource =
+  | 'runtime-cache'
+  | 'runtime-cache-stale'
+  | 'browser-live'
+  | 'cached'
+  | 'static-neutral';
 
 export interface GitHubRepoStatsDiagnostics {
   source: GitHubRepoMetricsSource;
   requestCount: number;
+  runtimeCacheRequestCount: number;
   suppressedRequestCount: number;
-  lastErrorStatus: number | 'network' | null;
+  lastErrorStatus: number | 'network' | 'invalid-runtime-cache' | null;
   lastErrorAt: string | null;
   backoffExpiresAt: string | null;
   cachedRepoCount: number;
   warningCount: number;
+  runtimeCacheGeneratedAt: string | null;
+  runtimeCacheExpiresAt: string | null;
 }
 
 export interface GitHubRepoStatsService {
@@ -48,11 +56,15 @@ const BACKOFF_STORAGE_KEY = 'danielsmith.io:github-repo-stats:backoff';
 const DEFAULT_SUCCESS_CACHE_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_FAILURE_BACKOFF_MS = 15 * 60 * 1000;
 const DEFAULT_FETCH_TIMEOUT_MS = 3500;
+const DEFAULT_RUNTIME_CACHE_URL = '/runtime/github-metrics.json';
+const DEFAULT_RUNTIME_CACHE_GRACE_MS = 30 * 60 * 1000;
 const WARNING_SESSION_KEY = 'danielsmith.io:github-repo-stats:warning-shown';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 type ErrorStatus = number | 'network';
+
+type DiagnosticsErrorStatus = ErrorStatus | 'invalid-runtime-cache';
 
 interface CachedStatsRecord {
   stats: GitHubRepoStats;
@@ -67,10 +79,29 @@ interface BackoffRecord {
 
 interface MemoryCacheEntry extends CachedStatsRecord {
   freshUntil: number;
+  source: 'runtime-cache' | 'cached';
+}
+
+interface RuntimeRepoMetrics {
+  owner: string;
+  repo: string;
+  stars: number;
+  watchers: number;
+  forks: number;
+  openIssues: number;
+  pushedAt: string | null;
+}
+
+interface RuntimeCachePayload {
+  generatedAt: string;
+  expiresAt: string;
+  repos: Map<string, RuntimeRepoMetrics>;
 }
 
 export interface GitHubRepoStatsServiceOptions {
   allowLiveFetch?: boolean;
+  runtimeCacheUrl?: string | null;
+  runtimeCacheGraceMs?: number;
   localStorage?: StorageLike | null;
   sessionStorage?: StorageLike | null;
   logger?: Pick<Console, 'warn'> | null;
@@ -99,7 +130,7 @@ const makeStorageKey = (identifier: GitHubRepoIdentifier): string =>
   `${CACHE_STORAGE_PREFIX}${makeCacheKey(identifier)}`;
 
 const shouldAttemptLiveFetch = (() => {
-  const globalScope = globalThis as Partial<
+  const globalScope = globalThis as unknown as Partial<
     Window & { __ENABLE_LIVE_GITHUB_METRICS__?: boolean }
   >;
   if (globalScope.__ENABLE_LIVE_GITHUB_METRICS__) {
@@ -110,14 +141,7 @@ const shouldAttemptLiveFetch = (() => {
     return false;
   }
   const params = new URLSearchParams(location.search);
-  if (params.get('enableLiveGitHubMetrics') === '1') {
-    return true;
-  }
-  const hostname = location.hostname.toLowerCase();
-  if (hostname === 'danielsmith.io' || hostname.endsWith('.danielsmith.io')) {
-    return true;
-  }
-  return false;
+  return params.get('enableLiveGitHubMetrics') === '1';
 })();
 
 const getBrowserStorage = (key: 'localStorage' | 'sessionStorage') => {
@@ -199,6 +223,61 @@ const normalizeCachedRecord = (
     },
     cachedAt,
     freshUntil: cachedAt + ttlMs,
+    source: 'cached',
+  };
+};
+
+const parseDateMs = (value: unknown): number | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : null;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const normalizeRuntimeCache = (
+  data: unknown,
+  now: number,
+  graceMs: number
+): RuntimeCachePayload | 'stale' | null => {
+  if (!isRecord(data) || data.schemaVersion !== 1 || !isRecord(data.repos)) {
+    return null;
+  }
+  const generatedAt = parseDateMs(data.generatedAt);
+  const expiresAt = parseDateMs(data.expiresAt);
+  if (generatedAt === null || expiresAt === null || generatedAt > now) {
+    return null;
+  }
+  if (expiresAt + graceMs < now) {
+    return 'stale';
+  }
+  const repos = new Map<string, RuntimeRepoMetrics>();
+  Object.values(data.repos).forEach((value) => {
+    if (!isRecord(value)) {
+      return;
+    }
+    const owner = typeof value.owner === 'string' ? value.owner : null;
+    const repo = typeof value.repo === 'string' ? value.repo : null;
+    if (!owner || !repo) {
+      return;
+    }
+    repos.set(makeCacheKey({ owner, repo }), {
+      owner,
+      repo,
+      stars: sanitizeNumber(value.stars),
+      watchers: sanitizeNumber(value.watchers),
+      forks: sanitizeNumber(value.forks),
+      openIssues: sanitizeNumber(value.openIssues),
+      pushedAt: typeof value.pushedAt === 'string' ? value.pushedAt : null,
+    });
+  });
+  return {
+    generatedAt: new Date(generatedAt).toISOString(),
+    expiresAt: new Date(expiresAt).toISOString(),
+    repos,
   };
 };
 
@@ -226,6 +305,12 @@ export function createGitHubRepoStatsService(
   options: GitHubRepoStatsServiceOptions = {}
 ): GitHubRepoStatsService {
   const allowLiveFetch = options.allowLiveFetch ?? shouldAttemptLiveFetch;
+  const runtimeCacheUrl =
+    options.runtimeCacheUrl === undefined
+      ? DEFAULT_RUNTIME_CACHE_URL
+      : options.runtimeCacheUrl;
+  const runtimeCacheGraceMs =
+    options.runtimeCacheGraceMs ?? DEFAULT_RUNTIME_CACHE_GRACE_MS;
   const localStorage =
     options.localStorage === undefined
       ? getBrowserStorage('localStorage')
@@ -247,12 +332,15 @@ export function createGitHubRepoStatsService(
   const listeners = new Map<string, Set<GitHubRepoStatsListener>>();
   const inFlight = new Map<string, Promise<GitHubRepoStats | null>>();
   const diagnostics = {
-    source: 'static-fallback' as GitHubRepoMetricsSource,
+    source: 'static-neutral' as GitHubRepoMetricsSource,
     requestCount: 0,
+    runtimeCacheRequestCount: 0,
     suppressedRequestCount: 0,
-    lastErrorStatus: null as ErrorStatus | null,
+    lastErrorStatus: null as DiagnosticsErrorStatus | null,
     lastErrorAt: null as number | null,
     warningCount: 0,
+    runtimeCacheGeneratedAt: null as string | null,
+    runtimeCacheExpiresAt: null as string | null,
   };
 
   let backoff = safeReadJson<BackoffRecord>(localStorage, BACKOFF_STORAGE_KEY);
@@ -294,7 +382,7 @@ export function createGitHubRepoStatsService(
     diagnostics.warningCount += 1;
     safeWriteJson(sessionStorage, WARNING_SESSION_KEY, true);
     logger.warn(
-      '[github-metrics] Live GitHub repo metrics are temporarily unavailable; using cached/static project metrics.',
+      '[github-metrics] Live GitHub repo metrics are temporarily unavailable; using cached or neutral project metrics.',
       {
         status,
         backoffExpiresAt: backoff ? toIso(backoff.expiresAt) : null,
@@ -332,9 +420,71 @@ export function createGitHubRepoStatsService(
     cache.set(key, {
       ...record,
       freshUntil: cachedAt + successCacheTtlMs,
+      source: 'cached',
     });
     safeWriteJson(localStorage, makeStorageKey(identifier), record);
   };
+
+  const setRuntimeCacheEntries = (payload: RuntimeCachePayload) => {
+    diagnostics.runtimeCacheGeneratedAt = payload.generatedAt;
+    diagnostics.runtimeCacheExpiresAt = payload.expiresAt;
+    diagnostics.source = 'runtime-cache';
+    const fetchedAt = now();
+    const freshUntil = Date.parse(payload.expiresAt) + runtimeCacheGraceMs;
+    payload.repos.forEach((repoMetrics, key) => {
+      const stats: GitHubRepoStats = {
+        stars: repoMetrics.stars,
+        watchers: repoMetrics.watchers,
+        forks: repoMetrics.forks,
+        openIssues: repoMetrics.openIssues,
+        pushedAt: repoMetrics.pushedAt,
+      };
+      cache.set(key, {
+        stats,
+        cachedAt: fetchedAt,
+        freshUntil,
+        source: 'runtime-cache',
+      });
+      notify(key, stats);
+    });
+  };
+
+  const loadRuntimeCache = async (): Promise<void> => {
+    if (!fetchImpl || !runtimeCacheUrl) {
+      return;
+    }
+    try {
+      diagnostics.runtimeCacheRequestCount += 1;
+      const response = await fetchImpl(runtimeCacheUrl, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) {
+        diagnostics.source = 'static-neutral';
+        return;
+      }
+      const normalized = normalizeRuntimeCache(
+        await response.json(),
+        now(),
+        runtimeCacheGraceMs
+      );
+      if (normalized === 'stale') {
+        diagnostics.source = 'runtime-cache-stale';
+        return;
+      }
+      if (!normalized) {
+        diagnostics.source = 'static-neutral';
+        diagnostics.lastErrorStatus = 'invalid-runtime-cache';
+        diagnostics.lastErrorAt = now();
+        return;
+      }
+      setRuntimeCacheEntries(normalized);
+    } catch {
+      diagnostics.source = 'static-neutral';
+    }
+  };
+
+  const runtimeCachePromise = loadRuntimeCache();
 
   const setBackoff = (status: ErrorStatus) => {
     if (!shouldBackoffForStatus(status)) {
@@ -360,10 +510,12 @@ export function createGitHubRepoStatsService(
     identifier: GitHubRepoIdentifier
   ): GitHubRepoStats | null => {
     const entry = readCachedEntry(identifier);
-    if (entry) {
-      diagnostics.source = diagnostics.source === 'live' ? 'live' : 'cached';
+    if (entry && entry.freshUntil > now()) {
+      diagnostics.source =
+        entry.source === 'runtime-cache' ? 'runtime-cache' : 'cached';
+      return entry.stats;
     }
-    return entry?.stats ?? null;
+    return null;
   };
 
   const subscribe = (
@@ -378,7 +530,7 @@ export function createGitHubRepoStatsService(
     }
     repoListeners.add(listener);
 
-    const cached = readCachedEntry(identifier)?.stats;
+    const cached = getCachedStats(identifier);
     if (cached) {
       queueMicrotask(() => {
         if (listeners.get(key)?.has(listener)) {
@@ -402,10 +554,12 @@ export function createGitHubRepoStatsService(
   const requestStats = async (
     identifier: GitHubRepoIdentifier
   ): Promise<GitHubRepoStats | null> => {
+    await runtimeCachePromise;
     const key = makeCacheKey(identifier);
     const cached = readCachedEntry(identifier);
     if (cached && cached.freshUntil > now()) {
-      diagnostics.source = 'cached';
+      diagnostics.source =
+        cached.source === 'runtime-cache' ? 'runtime-cache' : 'cached';
       return cached.stats;
     }
     const existing = inFlight.get(key);
@@ -413,12 +567,15 @@ export function createGitHubRepoStatsService(
       return existing;
     }
     if (!fetchImpl || !allowLiveFetch) {
-      diagnostics.source = cached ? 'cached' : 'static-fallback';
-      return cached?.stats ?? null;
+      diagnostics.source =
+        diagnostics.source === 'runtime-cache-stale'
+          ? 'runtime-cache-stale'
+          : 'static-neutral';
+      return null;
     }
     if (isBackoffActive(backoff, now())) {
       diagnostics.suppressedRequestCount += 1;
-      diagnostics.source = cached ? 'cached' : 'static-fallback';
+      diagnostics.source = cached ? 'cached' : 'static-neutral';
       return cached?.stats ?? null;
     }
     if (backoff) {
@@ -441,7 +598,7 @@ export function createGitHubRepoStatsService(
         );
         if (!response.ok) {
           recordFailure(response.status);
-          diagnostics.source = cached ? 'cached' : 'static-fallback';
+          diagnostics.source = cached ? 'cached' : 'static-neutral';
           return cached?.stats ?? null;
         }
         const data = (await response.json()) as Record<string, unknown>;
@@ -455,14 +612,14 @@ export function createGitHubRepoStatsService(
           pushedAt: typeof data.pushed_at === 'string' ? data.pushed_at : null,
         };
         writeCachedEntry(identifier, stats);
-        diagnostics.source = 'live';
+        diagnostics.source = 'browser-live';
         diagnostics.lastErrorStatus = null;
         diagnostics.lastErrorAt = null;
         notify(key, stats);
         return stats;
       } catch {
         recordFailure('network');
-        diagnostics.source = cached ? 'cached' : 'static-fallback';
+        diagnostics.source = cached ? 'cached' : 'static-neutral';
         return cached?.stats ?? null;
       } finally {
         if (timeoutId) {
@@ -479,6 +636,7 @@ export function createGitHubRepoStatsService(
   const getDiagnostics = (): GitHubRepoStatsDiagnostics => ({
     source: diagnostics.source,
     requestCount: diagnostics.requestCount,
+    runtimeCacheRequestCount: diagnostics.runtimeCacheRequestCount,
     suppressedRequestCount: diagnostics.suppressedRequestCount,
     lastErrorStatus: diagnostics.lastErrorStatus,
     lastErrorAt: toIso(diagnostics.lastErrorAt),
@@ -487,6 +645,8 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
+    runtimeCacheGeneratedAt: diagnostics.runtimeCacheGeneratedAt,
+    runtimeCacheExpiresAt: diagnostics.runtimeCacheExpiresAt,
   });
 
   return {

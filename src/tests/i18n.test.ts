@@ -200,6 +200,24 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('keeps GitHub star fallbacks neutral and non-numeric in every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      for (const poi of getPoiDefinitions(locale)) {
+        for (const metric of poi.metrics ?? []) {
+          if (metric.source?.type !== 'githubStars') {
+            continue;
+          }
+          expect(metric.source.owner, `${locale}:${poi.id}`).toBeTruthy();
+          expect(metric.source.repo, `${locale}:${poi.id}`).toBeTruthy();
+          expect(metric.value, `${locale}:${poi.id}`).not.toMatch(/\d/);
+          expect(metric.source.fallback, `${locale}:${poi.id}`).not.toMatch(
+            /\d/
+          );
+        }
+      }
+    }
+  });
+
   it('removes the invalid DSPACE Mission Log link from every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
       const dspace = getPoiDefinitions(locale).find(
