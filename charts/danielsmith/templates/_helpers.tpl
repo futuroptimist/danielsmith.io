@@ -55,3 +55,24 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- printf "%s:%s" .Values.image.repository (required "image.tag is required when image.digest is not set" .Values.image.tag) -}}
 {{- end -}}
 {{- end -}}
+
+{{/* Validate GitHub metrics cache values that must line up across mounts. */}}
+{{- define "danielsmith.githubMetricsCache.validate" -}}
+{{- if .Values.githubMetricsCache.enabled -}}
+{{- if ne (base .Values.githubMetricsCache.outputPath) (base .Values.githubMetricsCache.publicPath) -}}
+{{- fail "githubMetricsCache.outputPath and githubMetricsCache.publicPath must use the same file name" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCache.image" -}}
+{{- printf "%s:%s" .Values.githubMetricsCache.image.repository .Values.githubMetricsCache.image.tag -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCache.outputDir" -}}
+{{- dir .Values.githubMetricsCache.outputPath -}}
+{{- end -}}
+
+{{- define "danielsmith.githubMetricsCache.publicDir" -}}
+{{- printf "/usr/share/nginx/html/%s" (dir (trimPrefix "/" .Values.githubMetricsCache.publicPath)) | clean -}}
+{{- end -}}

@@ -1,3 +1,4 @@
+{{- include "danielsmith.githubMetricsCache.validate" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,6 +61,11 @@ spec:
               mountPath: /var/cache/nginx
             - name: var-run
               mountPath: /var/run
+            {{- if .Values.githubMetricsCache.enabled }}
+            - name: github-metrics-cache
+              mountPath: {{ include "danielsmith.githubMetricsCache.publicDir" . }}
+              readOnly: true
+            {{- end }}
           {{- if or (gt (len .Values.env) 0) (gt (len .Values.extraEnv) 0) }}
           env:
             {{- if kindIs "map" .Values.env }}
@@ -81,6 +87,37 @@ spec:
           envFrom:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if .Values.githubMetricsCache.enabled }}
+        - name: github-metrics
+          image: {{ include "danielsmith.githubMetricsCache.image" . | quote }}
+          imagePullPolicy: {{ .Values.githubMetricsCache.image.pullPolicy }}
+          command:
+            - python
+            - /etc/github-metrics/refresh-github-metrics.py
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: GITHUB_METRICS_REPOS_PATH
+              value: /etc/github-metrics/repos.json
+            - name: GITHUB_METRICS_OUTPUT_PATH
+              value: {{ .Values.githubMetricsCache.outputPath | quote }}
+            - name: GITHUB_METRICS_REFRESH_INTERVAL_SECONDS
+              value: {{ .Values.githubMetricsCache.refreshIntervalSeconds | quote }}
+            - name: GITHUB_METRICS_REQUEST_TIMEOUT_SECONDS
+              value: {{ .Values.githubMetricsCache.startupTimeoutSeconds | quote }}
+            - name: GITHUB_METRICS_CACHE_TTL_SECONDS
+              value: {{ .Values.githubMetricsCache.cacheTtlSeconds | quote }}
+          securityContext:
+            {{- toYaml .Values.githubMetricsCache.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.githubMetricsCache.resources | nindent 12 }}
+          volumeMounts:
+            - name: github-metrics-config
+              mountPath: /etc/github-metrics
+              readOnly: true
+            - name: github-metrics-cache
+              mountPath: {{ include "danielsmith.githubMetricsCache.outputDir" . }}
+        {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}
@@ -88,6 +125,14 @@ spec:
           emptyDir: {}
         - name: var-run
           emptyDir: {}
+        {{- if .Values.githubMetricsCache.enabled }}
+        - name: github-metrics-cache
+          emptyDir: {}
+        - name: github-metrics-config
+          configMap:
+            name: {{ include "danielsmith.fullname" . }}-github-metrics-cache
+            defaultMode: 0555
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
