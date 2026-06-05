@@ -42,9 +42,13 @@ class MockRepoStatsService implements GitHubRepoStatsService {
     return Promise.resolve(this.cache.get(key) ?? null);
   }
 
+  loadRuntimeCache(): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
   getDiagnostics() {
     return {
-      source: 'static-fallback' as const,
+      source: 'static-neutral' as const,
       requestCount: this.requested.length,
       suppressedRequestCount: 0,
       lastErrorStatus: null,

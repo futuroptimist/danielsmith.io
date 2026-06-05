@@ -561,7 +561,18 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Futuroptimist hub for open-source scripts, data pipelines, tests, and YouTube-oriented automation metadata.'
       ),
       metrics: [
-        { label: wrap('Stars'), value: wrap('Syncing from GitHub…') },
+        {
+          label: wrap('Stars'),
+          value: wrap('Syncing from GitHub…'),
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'danielsmith.io',
+            format: 'compact',
+            template: wrap('{value} stars'),
+            fallback: wrap('Syncing from GitHub…'),
+          },
+        },
         {
           label: wrap('Workflow'),
           value: wrap('uv, Make targets, pytest, and GitHub Actions'),

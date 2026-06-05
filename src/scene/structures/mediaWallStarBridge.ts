@@ -1,21 +1,21 @@
 import type { LivingRoomMediaWallController } from './mediaWall';
 
-const sanitizeStarCount = (value: number | null | undefined): number => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return 0;
+const sanitizeStarCount = (value: number | null | undefined): number | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    return null;
   }
-  return Math.max(0, Math.round(value));
+  return Math.round(value);
 };
 
 export interface MediaWallStarBridge {
   attach(controller: LivingRoomMediaWallController): void;
   detach(): void;
   updateStarCount(stars: number | null | undefined): void;
-  getStarCount(): number;
+  getStarCount(): number | null;
 }
 
 export const createMediaWallStarBridge = (
-  initialStars = 1280
+  initialStars: number | null = null
 ): MediaWallStarBridge => {
   let starCount = sanitizeStarCount(initialStars);
   let controller: LivingRoomMediaWallController | null = null;

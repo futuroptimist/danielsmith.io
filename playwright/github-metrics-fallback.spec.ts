@@ -2,14 +2,20 @@ import { expect, test, type Page } from '@playwright/test';
 
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_GITHUB_METRICS_URL =
-  '/?mode=immersive&disablePerformanceFailover=1&enableLiveGitHubMetrics=1';
+  '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=safe';
 
 interface GitHubMetricsDiagnostics {
-  source: 'live' | 'cached' | 'static-fallback';
+  source:
+    | 'runtime-cache'
+    | 'runtime-cache-stale'
+    | 'browser-live'
+    | 'cached'
+    | 'static-neutral';
   requestCount: number;
   suppressedRequestCount: number;
   lastErrorStatus: number | 'network' | null;
   backoffExpiresAt: string | null;
+  cachedRepoCount: number;
 }
 
 const collectConsole = (page: Page) => {
@@ -27,15 +33,43 @@ const collectConsole = (page: Page) => {
 };
 
 test.describe('GitHub repo metrics fallback', () => {
-  test('keeps immersive stable and suppresses fan-out when GitHub returns 403', async ({
+  test('loads pod-local runtime cache without browser GitHub API fan-out', async ({
     page,
   }) => {
     const consoleMessages = collectConsole(page);
-    await page.route('https://api.github.com/repos/**', (route) =>
-      route.fulfill({
-        status: 403,
+    const liveRequests: string[] = [];
+    await page.route('https://api.github.com/repos/**', (route) => {
+      liveRequests.push(route.request().url());
+      return route.fulfill({
+        status: 500,
         contentType: 'application/json',
-        body: JSON.stringify({ message: 'API rate limit exceeded' }),
+        body: JSON.stringify({ message: 'unexpected browser live fetch' }),
+      });
+    });
+    await page.route('**/runtime/github-metrics.json', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          schemaVersion: 1,
+          generatedAt: '2026-06-03T00:00:00.000Z',
+          expiresAt: '2999-06-03T01:15:00.000Z',
+          source: 'github-api',
+          repos: {
+            'futuroptimist/danielsmith.io': {
+              owner: 'futuroptimist',
+              repo: 'danielsmith.io',
+              stars: 77,
+              watchers: 1,
+              forks: 2,
+              openIssues: 0,
+              pushedAt: '2026-06-03T00:00:00Z',
+              fetchedAt: '2026-06-03T00:00:00.000Z',
+              htmlUrl: 'https://github.com/futuroptimist/danielsmith.io',
+            },
+          },
+          errors: {},
+        }),
       })
     );
     await page.addInitScript(() => {
@@ -62,7 +96,7 @@ test.describe('GitHub repo metrics fallback', () => {
       () =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).portfolio?.githubMetrics?.getDiagnostics?.()
-          ?.lastErrorStatus === 403,
+          ?.cachedRepoCount === 1,
       undefined,
       { timeout: 10_000 }
     );
@@ -73,12 +107,12 @@ test.describe('GitHub repo metrics fallback', () => {
     });
 
     expect(diagnostics).toMatchObject({
-      source: 'static-fallback',
-      requestCount: 1,
-      lastErrorStatus: 403,
+      requestCount: 0,
+      lastErrorStatus: null,
+      cachedRepoCount: 1,
     });
-    expect(diagnostics.suppressedRequestCount).toBe(0);
-    expect(diagnostics.backoffExpiresAt).toEqual(expect.any(String));
+    expect(['runtime-cache', 'cached']).toContain(diagnostics.source);
+    expect(liveRequests).toEqual([]);
     await expect(page.locator('#app')).not.toHaveAttribute('data-mode', 'text');
     await expect(page.locator('.poi-tooltip-overlay')).toHaveCount(1);
     await expect(page.locator('html')).not.toHaveAttribute(
@@ -90,11 +124,10 @@ test.describe('GitHub repo metrics fallback', () => {
         (message) => !message.includes('Failed to load resource')
       )
     ).toEqual([]);
-    expect(consoleMessages.errors).toHaveLength(1);
     expect(
       consoleMessages.warnings.filter((message) =>
         message.includes('[github-metrics]')
       )
-    ).toHaveLength(1);
+    ).toHaveLength(0);
   });
 });

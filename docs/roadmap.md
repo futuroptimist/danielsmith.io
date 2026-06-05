@@ -220,8 +220,9 @@ Focus: anchor each highlighted project with an interactive artifact.
      screen, ambient shelf lighting, interaction clearance volume, and modular prefab wiring.
      - ✅ Undershelf LED wash now breathes with POI emphasis while calm/photosensitive presets
        dampen pulses and flicker spikes.
-     - ✅ Live GitHub star telemetry now feeds the media wall badge so the display mirrors the
-       latest repo metrics alongside the POI overlays.
+     - ✅ GitHub star telemetry now feeds the media wall badge from the pod-local runtime
+       cache so overlays display cached public metrics without browser fan-out or fake
+       numeric fallbacks.
      - ✅ Floor-level clearance halo now pulses with POI focus to keep walkable space obvious
        while accessibility presets soften its bloom and tint transitions.
    - ✅ Spinning Flywheel kinetic hub built in the studio with responsive rotation, glowing
@@ -514,7 +515,9 @@ Ideas to evaluate after the core experience is stable:
 - ✅ Procedural storytelling AI that narrates the journey between POIs.
   - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
 - ✅ Integration with GitHub API for live repo stats and contribution heatmaps.
-  - ✅ Live GitHub star counts now stream into POI metric panels via the repo stats service.
+  - ✅ GitHub star counts now stream into POI metric panels from `/runtime/github-metrics.json`;
+    normal staging/prod sessions use neutral localized fallback copy until the server-side
+    cache is available, and optional browser-live fetches are debug-gated.
 - ✅ Exportable "press kit" mode now packages screenshots, POI blurbs, and metrics for media kits.
   - ✅ Press kit summary generator now exports POI metadata and performance budgets to JSON for packaging.
   - ✅ Press kit performance report now surfaces headroom for materials, draw calls, and texture
