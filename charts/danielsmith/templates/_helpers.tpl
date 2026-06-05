@@ -81,11 +81,19 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- if eq $publicDir "/" -}}
 {{- fail "githubMetricsCache.publicPath must include a non-root directory" -}}
 {{- end -}}
-{{- if not (hasPrefix "/runtime/" $publicPath) -}}
-{{- fail "githubMetricsCache.publicPath must live under /runtime/ so nginx serves it with runtime cache headers" -}}
-{{- end -}}
 {{- if ne (base $outputPath) (base $publicPath) -}}
 {{- fail "githubMetricsCache.outputPath and githubMetricsCache.publicPath must use the same file name" -}}
+{{- end -}}
+{{- if ne $publicPath "/runtime/github-metrics.json" -}}
+{{- fail "githubMetricsCache.publicPath must be exactly /runtime/github-metrics.json" -}}
+{{- end -}}
+{{- if eq (len .Values.githubMetricsCache.repos) 0 -}}
+{{- fail "githubMetricsCache.repos must include at least one repository" -}}
+{{- end -}}
+{{- range $index, $repo := .Values.githubMetricsCache.repos -}}
+{{- if or (not $repo.owner) (not $repo.repo) -}}
+{{- fail (printf "githubMetricsCache.repos[%d] must include non-empty owner and repo" $index) -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

@@ -82,18 +82,16 @@ assertIncludes(
 );
 assertIncludes(
   enabledRender,
-  'mountPath: /usr/share/nginx/html/runtime',
-  'nginx should mount the runtime cache directory instead of the document root'
+  `- name: github-metrics-cache
+              mountPath: /usr/share/nginx/html/runtime
+              readOnly: true`,
+  'nginx should mount the runtime cache directory read-only instead of the document root'
 );
 assertIncludes(
   enabledRender,
-  'readOnly: true',
-  'nginx/config mounts should be read-only'
-);
-assertIncludes(
-  enabledRender,
-  'mountPath: /cache',
-  'sidecar should mount the writable cache directory'
+  `- name: github-metrics-cache
+              mountPath: /cache`,
+  'sidecar should mount the cache directory writable by omitting readOnly'
 );
 assertIncludes(
   enabledRender,
@@ -117,6 +115,11 @@ assertIncludes(
 );
 assertIncludes(
   enabledRender,
+  '"subscribers": data.get("subscribers_count", 0) or 0',
+  'rendered script should expose subscribers_count as subscribers'
+);
+assertIncludes(
+  enabledRender,
   '"repo": "token.place"',
   'repo list should render into the sidecar config'
 );
@@ -124,6 +127,11 @@ assertIncludes(
   enabledRender,
   '"owner": "democratizedspace"',
   'repo list should preserve non-default owners'
+);
+assertIncludes(
+  enabledRender,
+  '"repo": "dspace"',
+  'repo list should preserve the democratizedspace/dspace repo'
 );
 assertExcludes(
   enabledRender,
@@ -215,10 +223,42 @@ assertRenderFails(
     '--set',
     'githubMetricsCache.enabled=true',
     '--set',
-    'githubMetricsCache.publicPath=/metrics/github-metrics.json',
+    'githubMetricsCache.publicPath=/runtime/github-stars.json',
   ],
-  'githubMetricsCache.publicPath must live under /runtime/',
-  'public paths outside /runtime should be rejected so nginx runtime headers apply'
+  'githubMetricsCache.outputPath and githubMetricsCache.publicPath must use the same file name',
+  'mismatched output/public basenames should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.outputPath=/cache/github-stars.json',
+  ],
+  'githubMetricsCache.outputPath and githubMetricsCache.publicPath must use the same file name',
+  'mismatched output/public basenames should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
+    'githubMetricsCache.publicPath=/runtime/github-stars.json',
+    '--set',
+    'githubMetricsCache.outputPath=/cache/github-stars.json',
+  ],
+  'githubMetricsCache.publicPath must be exactly /runtime/github-metrics.json',
+  'public paths outside the wired frontend runtime URL should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set-json',
+    'githubMetricsCache.repos=[]',
+  ],
+  'githubMetricsCache.repos must include at least one repository',
+  'empty repo lists should be rejected'
 );
 assertRenderFails(
   [

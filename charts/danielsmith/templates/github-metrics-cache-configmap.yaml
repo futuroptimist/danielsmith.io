@@ -91,6 +91,7 @@ data:
             "owner": owner,
             "repo": repo,
             "stars": data.get("stargazers_count", 0) or 0,
+            "subscribers": data.get("subscribers_count", 0) or 0,
             "watchers": data.get("subscribers_count", data.get("watchers_count", 0)) or 0,
             "forks": data.get("forks_count", 0) or 0,
             "openIssues": data.get("open_issues_count", 0) or 0,
