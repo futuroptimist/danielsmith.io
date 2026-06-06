@@ -367,10 +367,12 @@ import {
 } from './systems/movement/facing';
 import { computeStairLayout } from './systems/movement/stairLayout';
 import {
+  classifyStairTransitionZone,
   computeRampHeight as computeStairRampHeight,
+  createStairNavigationZones,
+  createUpperStairEdgeGuardColliders,
   predictStairFloorId,
   sampleStairSurfaceHeight,
-  createStairNavAreaRect,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
@@ -558,6 +560,16 @@ declare global {
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
         getPlayerPosition(): { x: number; y: number; z: number };
+        predictFloorAt?(target: {
+          x: number;
+          z: number;
+          currentFloor?: FloorId;
+        }): FloorId;
+        classifyStairTransitionZone?(target: {
+          x: number;
+          z: number;
+          currentFloor?: FloorId;
+        }): string;
         getStairMetrics(): {
           stairCenterX: number;
           stairHalfWidth: number;
@@ -568,6 +580,8 @@ declare global {
           stairLandingDepth: number;
           stairDirection: 1 | -1;
           upperFloorElevation: number;
+          transitionMargin: number;
+          landingTriggerMargin: number;
         };
         getCeilingOpacities(): number[];
         // Test-only helper: current player yaw in radians
@@ -1702,10 +1716,14 @@ function initializeImmersiveScene(
     landingTriggerMargin: stairLandingTriggerMargin,
     stepRise: STAIRCASE_CONFIG.step.rise,
   };
-  const stairNavArea = createStairNavAreaRect(stairGeometry, {
-    marginX: PLAYER_RADIUS * 0.5,
-    marginZ: PLAYER_RADIUS,
-  });
+  const stairNavZones = createStairNavigationZones(
+    stairGeometry,
+    stairBehavior,
+    {
+      marginX: PLAYER_RADIUS * 0.5,
+      marginZ: PLAYER_RADIUS,
+    }
+  );
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1722,6 +1740,13 @@ function initializeImmersiveScene(
     minZ: stairGuardMinZ,
     maxZ: stairGuardMaxZ,
   });
+
+  // Upper-floor-only invisible guards protect the stairwell shoulders. They
+  // leave the explicit descent corridor open while preventing side brushes near
+  // the landing edge from reviving accidental upstairs-to-ground teleports.
+  createUpperStairEdgeGuardColliders(stairGeometry, stairBehavior).forEach(
+    (collider) => upperFloorColliders.push(collider)
+  );
 
   const upperFloorGroup = new Group();
   upperFloorGroup.visible = false;
@@ -1837,12 +1862,15 @@ function initializeImmersiveScene(
     ground: createNavMesh(FLOOR_PLAN, {
       padding: doorwayPadding,
       depth: doorwayDepth,
-      extraZones: [stairNavArea],
+      extraZones: [
+        stairNavZones.lowerStairEntrance,
+        stairNavZones.stairRampBody,
+      ],
     }),
     upper: createNavMesh(UPPER_FLOOR_PLAN, {
       padding: doorwayPadding,
       depth: doorwayDepth,
-      extraZones: [stairNavArea],
+      extraZones: [stairNavZones.upperLanding],
     }),
   };
 
@@ -2876,6 +2904,26 @@ function initializeImmersiveScene(
           z: player.position.z,
         };
       },
+      predictFloorAt(target: { x: number; z: number; currentFloor?: FloorId }) {
+        return predictFloorId(
+          target.x,
+          target.z,
+          target.currentFloor ?? activeFloorId
+        );
+      },
+      classifyStairTransitionZone(target: {
+        x: number;
+        z: number;
+        currentFloor?: FloorId;
+      }) {
+        return classifyStairTransitionZone(
+          stairGeometry,
+          stairBehavior,
+          target.x,
+          target.z,
+          target.currentFloor ?? activeFloorId
+        );
+      },
       getStairMetrics() {
         return {
           stairCenterX,
@@ -2887,6 +2935,8 @@ function initializeImmersiveScene(
           stairLandingDepth: stairLandingDepth,
           stairDirection: stairLayout.directionMultiplier,
           upperFloorElevation,
+          transitionMargin: stairTransitionMargin,
+          landingTriggerMargin: stairLandingTriggerMargin,
         };
       },
       // Test helpers – expose current mannequin yaw in radians.
