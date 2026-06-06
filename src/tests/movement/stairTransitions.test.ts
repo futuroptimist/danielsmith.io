@@ -139,6 +139,36 @@ describe('stair floor transitions (negative Z ascent)', () => {
     ).toBe('ground');
   });
 
+  it('keeps a deliberate descent on ground through the top handoff band', () => {
+    const firstDescentStepZ =
+      NEGATIVE_Z_STAIRS.topZ + STAIR_BEHAVIOR.landingTriggerMargin + 0.01;
+
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        firstDescentStepZ,
+        'upper'
+      )
+    ).toBe('explicitDescentCorridor');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        firstDescentStepZ,
+        'upper'
+      )
+    ).toBe('ground');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        firstDescentStepZ,
+        'ground'
+      )
+    ).toBe('ground');
+  });
+
   it('does not transition floors for lateral movement outside stair width', () => {
     const farEastX = NEGATIVE_Z_STAIRS.centerX + toWorldUnits(2.5);
     const descentZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.7);
@@ -189,6 +219,28 @@ describe('stair floor transitions (positive Z ascent)', () => {
     ).toBe('explicitDescentCorridor');
     expect(
       predict(positiveGeometry, positiveGeometry.centerX, firstStepZ, 'upper')
+    ).toBe('ground');
+  });
+
+  it('keeps positive-Z descents on ground through the top handoff band', () => {
+    const firstDescentStepZ =
+      positiveGeometry.topZ - STAIR_BEHAVIOR.landingTriggerMargin - 0.01;
+
+    expect(
+      predict(
+        positiveGeometry,
+        positiveGeometry.centerX,
+        firstDescentStepZ,
+        'upper'
+      )
+    ).toBe('ground');
+    expect(
+      predict(
+        positiveGeometry,
+        positiveGeometry.centerX,
+        firstDescentStepZ,
+        'ground'
+      )
     ).toBe('ground');
   });
 

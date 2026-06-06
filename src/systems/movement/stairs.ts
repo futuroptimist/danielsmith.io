@@ -55,6 +55,15 @@ const isWithinZRange = (
   margin = 0
 ): boolean => z >= minZ - margin && z <= maxZ + margin;
 
+const getDescentDistanceFromLanding = (
+  geometry: StairGeometry,
+  z: number
+): number =>
+  geometry.direction === -1 ? z - geometry.topZ : geometry.topZ - z;
+
+const getSmoothstep = (value: number): number =>
+  value * value * (3 - 2 * value);
+
 const getDescentCorridorHalfWidth = (
   geometry: StairGeometry,
   behavior: StairBehavior
@@ -164,6 +173,29 @@ export const createStairNavigationZones = (
   };
 };
 
+const isInExplicitDescentCorridor = (
+  geometry: StairGeometry,
+  behavior: StairBehavior,
+  x: number,
+  z: number
+): boolean => {
+  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
+  const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
+  const descentDistance = getDescentDistanceFromLanding(geometry, z);
+  const insideRampZ = isWithinZRange(
+    z,
+    rampMinZ,
+    rampMaxZ,
+    behavior.transitionMargin * 0.5
+  );
+
+  return (
+    descentDistance > behavior.landingTriggerMargin &&
+    insideRampZ &&
+    isWithinDescentCorridorWidth(geometry, behavior, x)
+  );
+};
+
 export const classifyStairTransitionZone = (
   geometry: StairGeometry,
   behavior: StairBehavior,
@@ -171,8 +203,6 @@ export const classifyStairTransitionZone = (
   z: number,
   current: FloorId
 ): StairTransitionZone => {
-  const direction =
-    geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
   const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
   const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
   const inActualStairWidth = isWithinStairWidth(geometry, x);
@@ -190,21 +220,9 @@ export const classifyStairTransitionZone = (
     return 'upperLanding';
   }
 
-  const hasLeftLandingForDescent =
-    direction === -1
-      ? z > geometry.topZ + behavior.landingTriggerMargin
-      : z < geometry.topZ - behavior.landingTriggerMargin;
-  const insideRampZ = isWithinZRange(
-    z,
-    rampMinZ,
-    rampMaxZ,
-    behavior.transitionMargin * 0.5
-  );
   if (
     current === 'upper' &&
-    hasLeftLandingForDescent &&
-    insideRampZ &&
-    isWithinDescentCorridorWidth(geometry, behavior, x)
+    isInExplicitDescentCorridor(geometry, behavior, x, z)
   ) {
     return 'explicitDescentCorridor';
   }
@@ -212,6 +230,8 @@ export const classifyStairTransitionZone = (
   if (current === 'upper') {
     return 'safeUpperFloor';
   }
+
+  const direction = geometry.direction;
 
   if (inActualStairWidth && isWithinZRange(z, rampMinZ, rampMaxZ)) {
     return 'stairRampBody';
@@ -244,11 +264,14 @@ export const predictStairFloorId = (
     x,
     behavior.transitionMargin
   );
-  const direction =
-    geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
+  const direction = geometry.direction;
 
   if (current === 'upper') {
     return zone === 'explicitDescentCorridor' ? 'ground' : 'upper';
+  }
+
+  if (isInExplicitDescentCorridor(geometry, behavior, x, z)) {
+    return 'ground';
   }
 
   const nearTop =
@@ -307,6 +330,22 @@ export const sampleStairSurfaceHeight = ({
     currentFloor === 'upper'
   ) {
     return upperFloorElevation;
+  }
+
+  if (isInExplicitDescentCorridor(geometry, behavior, x, z)) {
+    const blendRange = Math.max(
+      behavior.transitionMargin - behavior.landingTriggerMargin,
+      DENOMINATOR_EPSILON
+    );
+    const descentDistance = getDescentDistanceFromLanding(geometry, z);
+    const descentProgress = MathUtils.clamp(
+      (descentDistance - behavior.landingTriggerMargin) / blendRange,
+      0,
+      1
+    );
+    const lipBlend = getSmoothstep(descentProgress);
+
+    return MathUtils.lerp(upperFloorElevation, clampedRamp, lipBlend);
   }
 
   return clampedRamp;

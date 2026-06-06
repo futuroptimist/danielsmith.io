@@ -367,12 +367,12 @@ import {
 } from './systems/movement/facing';
 import { computeStairLayout } from './systems/movement/stairLayout';
 import {
-  computeRampHeight as computeStairRampHeight,
   classifyStairTransitionZone,
   createStairNavigationZones,
   predictStairFloorId,
   sampleStairSurfaceHeight,
   type FloorId,
+  type StairTransitionZone,
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
@@ -568,7 +568,7 @@ declare global {
           x: number;
           z: number;
           currentFloor?: FloorId;
-        }): string;
+        }): StairTransitionZone;
         getStairMetrics(): {
           stairCenterX: number;
           stairHalfWidth: number;
@@ -3518,9 +3518,6 @@ function initializeImmersiveScene(
     })
   );
 
-  const computeRampHeight = (x: number, z: number): number =>
-    computeStairRampHeight(stairGeometry, stairBehavior, x, z);
-
   const predictFloorId = (x: number, z: number, current: FloorId): FloorId =>
     predictStairFloorId(stairGeometry, stairBehavior, x, z, current);
 
@@ -3558,11 +3555,14 @@ function initializeImmersiveScene(
   };
 
   const updatePlayerVerticalPosition = () => {
-    const rampHeight = computeRampHeight(player.position.x, player.position.z);
-    const baseHeight =
-      activeFloorId === 'upper'
-        ? upperFloorElevation
-        : Math.min(rampHeight, upperFloorElevation);
+    const baseHeight = sampleStairSurfaceHeight({
+      geometry: stairGeometry,
+      behavior: stairBehavior,
+      x: player.position.x,
+      z: player.position.z,
+      currentFloor: activeFloorId,
+      upperFloorElevation,
+    });
     player.position.y = PLAYER_RADIUS + baseHeight;
   };
 
