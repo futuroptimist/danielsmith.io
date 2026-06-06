@@ -1784,24 +1784,48 @@ function initializeImmersiveScene(
   );
   const upperLandingClearance = toWorldUnits(0.05);
   const upperLandingSolidStartZ = stairTopZ + upperLandingClearance;
-  const upperLandingCutouts = upperLandingRoom
+  const upperLandingStairwellCutout = upperLandingRoom
     ? {
-        upperLanding: [
-          {
-            minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-            maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-            minZ: upperLandingRoom.bounds.minZ,
-            maxZ: upperLandingSolidStartZ,
-          },
-          {
-            minX: upperLandingRoom.bounds.minX,
-            maxX: upperLandingRoom.bounds.maxX,
-            minZ: upperLandingSolidStartZ,
-            maxZ: upperLandingRoom.bounds.maxZ,
-          },
-        ],
+        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+        maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+        minZ: upperLandingRoom.bounds.minZ,
+        maxZ: upperLandingRoom.bounds.maxZ,
       }
     : undefined;
+  const upperLandingStubBounds = upperLandingRoom
+    ? [
+        {
+          minX: upperLandingRoom.bounds.minX,
+          maxX: upperLandingStairwellCutout!.minX,
+          minZ: upperLandingRoom.bounds.minZ,
+          maxZ: upperLandingRoom.bounds.maxZ,
+        },
+        {
+          minX: upperLandingStairwellCutout!.maxX,
+          maxX: upperLandingRoom.bounds.maxX,
+          minZ: upperLandingRoom.bounds.minZ,
+          maxZ: upperLandingRoom.bounds.maxZ,
+        },
+      ].filter(
+        (bounds) =>
+          bounds.maxX - bounds.minX > 0 &&
+          bounds.maxZ - upperLandingSolidStartZ > 0
+      )
+    : [];
+  const upperLandingCutouts =
+    upperLandingRoom && upperLandingStairwellCutout
+      ? {
+          upperLanding: [
+            upperLandingStairwellCutout,
+            ...upperLandingStubBounds.map((bounds) => ({
+              minX: bounds.minX,
+              maxX: bounds.maxX,
+              minZ: upperLandingSolidStartZ,
+              maxZ: bounds.maxZ,
+            })),
+          ],
+        }
+      : undefined;
   const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
     material: upperFloorMaterial,
     elevation: upperFloorElevation,
@@ -1811,12 +1835,12 @@ function initializeImmersiveScene(
   });
   upperFloorGroup.add(upperFloorTiles.group);
 
-  // Keep only the stairwell open: room tiles fill the upper landing shoulders,
-  // while the stub remains the visible bridge from the stairs without z-fighting.
+  // Keep the central stairwell/descent corridor open: room tiles and side
+  // stubs only fill the landing shoulders, avoiding a full-width seal or z-fight.
 
-  if (upperLandingRoom) {
+  upperLandingStubBounds.forEach((bounds, index) => {
     const upperLandingStub = createUpperLandingStub({
-      bounds: upperLandingRoom.bounds,
+      bounds,
       landingMaxZ: stairTopZ,
       elevation: upperFloorElevation,
       thickness: STAIRCASE_CONFIG.landing.thickness,
@@ -1837,11 +1861,12 @@ function initializeImmersiveScene(
         },
       },
     });
+    upperLandingStub.group.name = `UpperLandingShoulderStub-${index + 1}`;
     upperFloorGroup.add(upperLandingStub.group);
     upperLandingStub.colliders.forEach((collider) =>
       upperFloorColliders.push(collider)
     );
-  }
+  });
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {

@@ -37,23 +37,29 @@ describe('createRoomFloorTiles', () => {
       minX: stairCenterX - stairHalfWidth - stairwellMarginX,
       maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
       minZ: upperLandingRoom!.bounds.minZ,
-      maxZ: upperLandingSolidStartZ,
+      maxZ: upperLandingRoom!.bounds.maxZ,
     };
+    const shoulderStubCutouts = [
+      {
+        minX: upperLandingRoom!.bounds.minX,
+        maxX: stairwellCutout.minX,
+        minZ: upperLandingSolidStartZ,
+        maxZ: upperLandingRoom!.bounds.maxZ,
+      },
+      {
+        minX: stairwellCutout.maxX,
+        maxX: upperLandingRoom!.bounds.maxX,
+        minZ: upperLandingSolidStartZ,
+        maxZ: upperLandingRoom!.bounds.maxZ,
+      },
+    ];
     const build = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
       material,
       elevation: 4,
       thickness: 0.45,
       groupName: 'UpperFloorTiles',
       cutoutsByRoom: {
-        upperLanding: [
-          stairwellCutout,
-          {
-            minX: upperLandingRoom!.bounds.minX,
-            maxX: upperLandingRoom!.bounds.maxX,
-            minZ: upperLandingSolidStartZ,
-            maxZ: upperLandingRoom!.bounds.maxZ,
-          },
-        ],
+        upperLanding: [stairwellCutout, ...shoulderStubCutouts],
       },
     });
 
@@ -79,6 +85,9 @@ describe('createRoomFloorTiles', () => {
 
     for (const tile of upperLandingTiles) {
       expect(overlaps(tile.bounds, stairwellCutout)).toBe(false);
+      for (const shoulderStubCutout of shoulderStubCutouts) {
+        expect(overlaps(tile.bounds, shoulderStubCutout)).toBe(false);
+      }
     }
 
     expect(material.transparent).toBe(false);
