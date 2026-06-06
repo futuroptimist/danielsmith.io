@@ -194,13 +194,30 @@ describe('wireGitHubRepoMetrics', () => {
         metrics: [
           {
             label: 'Stars',
-            value: 'Hidden',
+            value: 'Syncing',
             source: {
               type: 'githubStars',
               owner: 'democratizedspace',
               repo: 'dspace',
-              visibility: 'private',
-              fallback: 'Hidden',
+              visibility: 'public',
+              template: '{value} stars',
+              fallback: 'Syncing',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'sugarkube-backyard-greenhouse',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Syncing',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'sugarkube',
+              template: '{value} stars',
+              fallback: 'Syncing',
             },
           },
         ],
@@ -219,8 +236,11 @@ describe('wireGitHubRepoMetrics', () => {
     expect(service.requested).toEqual([
       'futuroptimist/flywheel',
       'futuroptimist/axel',
+      'democratizedspace/dspace',
+      'futuroptimist/sugarkube',
     ]);
-    expect(definitions[3].metrics?.[0]?.value).toBe('Hidden');
+    expect(definitions[3].metrics?.[0]?.value).toBe('Syncing');
+    expect(definitions[4].metrics?.[0]?.value).toBe('Syncing');
 
     service.emit(
       { owner: 'futuroptimist', repo: 'flywheel' },
@@ -237,16 +257,31 @@ describe('wireGitHubRepoMetrics', () => {
 
     service.emit(
       { owner: 'futuroptimist', repo: 'axel' },
-      { stars: 86, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+      { stars: 0, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
-    expect(definitions[2].metrics?.[0]?.value).toBe('86 stars');
+    expect(definitions[2].metrics?.[0]?.value).toBe('0 stars');
+
+    service.emit(
+      { owner: 'democratizedspace', repo: 'dspace' },
+      { stars: 3, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    expect(definitions[3].metrics?.[0]?.value).toBe('3 stars');
+
+    service.emit(
+      { owner: 'futuroptimist', repo: 'sugarkube' },
+      { stars: 0, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    expect(definitions[4].metrics?.[0]?.value).toBe('0 stars');
     expect(
       service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
-    ).toBe(0);
+    ).toBe(1);
 
     controller.dispose();
     expect(
       service.listenerCount({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).toBe(0);
+    expect(
+      service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
     ).toBe(0);
     const previousUpdates = updated.length;
     service.emit(

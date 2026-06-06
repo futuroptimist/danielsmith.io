@@ -162,6 +162,7 @@ describe('i18n utilities', () => {
       'gabriel-studio-sentry',
       'flywheel-studio-flywheel',
       'jobbot-studio-terminal',
+      'axel-studio-tracker',
       'gitshelves-living-room-installation',
       'danielsmith-portfolio-table',
       'f2clipboard-kitchen-console',
@@ -169,6 +170,7 @@ describe('i18n utilities', () => {
       'wove-kitchen-loom',
       'dspace-backyard-rocket',
       'pr-reaper-backyard-console',
+      'sugarkube-backyard-greenhouse',
     ]);
 
     for (const englishPoi of starBackedPois) {
@@ -268,29 +270,61 @@ describe('i18n utilities', () => {
     }
   });
 
-  it('marks every localized DSPACE GitHub star metric as private and neutral', () => {
+  it('covers public GitHub star metrics for DSPACE, Sugarkube, and Axel', () => {
     const numericFallbackPattern = /\d/;
-
-    for (const locale of AVAILABLE_LOCALES) {
-      const dspace = getPoiDefinitions(locale).find(
-        (poi) => poi.id === 'dspace-backyard-rocket'
-      );
-      const starMetric = dspace?.metrics?.find(
-        (metric) => metric.source?.type === 'githubStars'
-      );
-
-      expect(dspace, locale).toBeDefined();
-      expect(starMetric, locale).toBeDefined();
-      expect(starMetric?.source, locale).toMatchObject({
-        type: 'githubStars',
+    const expectedSources = {
+      'dspace-backyard-rocket': {
         owner: 'democratizedspace',
         repo: 'dspace',
-        visibility: 'private',
-      });
-      expect(starMetric?.value, locale).not.toMatch(numericFallbackPattern);
-      expect(starMetric?.source?.fallback ?? '', locale).not.toMatch(
-        numericFallbackPattern
-      );
+      },
+      'sugarkube-backyard-greenhouse': {
+        owner: 'futuroptimist',
+        repo: 'sugarkube',
+      },
+      'axel-studio-tracker': { owner: 'futuroptimist', repo: 'axel' },
+    } as const;
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const definitions = getPoiDefinitions(locale);
+      for (const [poiId, expectedSource] of Object.entries(expectedSources)) {
+        const poi = definitions.find((definition) => definition.id === poiId);
+        const starMetric = poi?.metrics?.find(
+          (metric) => metric.source?.type === 'githubStars'
+        );
+
+        expect(poi, `${locale} ${poiId}`).toBeDefined();
+        expect(starMetric, `${locale} ${poiId}`).toBeDefined();
+        expect(starMetric?.source, `${locale} ${poiId}`).toMatchObject({
+          type: 'githubStars',
+          ...expectedSource,
+        });
+        expect(starMetric?.source?.visibility, `${locale} ${poiId}`).not.toBe(
+          'private'
+        );
+        expect(starMetric?.value, `${locale} ${poiId}`).not.toMatch(
+          numericFallbackPattern
+        );
+        expect(
+          starMetric?.source?.fallback ?? '',
+          `${locale} ${poiId}`
+        ).not.toMatch(numericFallbackPattern);
+      }
+    }
+  });
+
+  it('does not leave any POI GitHub stars pointed at futuroptimist/dspace', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const definitions = getPoiDefinitions(locale);
+      const staleMetric = definitions
+        .flatMap((poi) => poi.metrics ?? [])
+        .find(
+          (metric) =>
+            metric.source?.type === 'githubStars' &&
+            metric.source.owner === 'futuroptimist' &&
+            metric.source.repo === 'dspace'
+        );
+
+      expect(staleMetric, locale).toBeUndefined();
     }
   });
 

@@ -85,6 +85,73 @@ describe('GitHub repo stats service', () => {
     });
   });
 
+  it('loads runtime cache data for DSPACE, Sugarkube, and Axel including zero stars', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt: '2026-06-03T00:00:00.000Z',
+        expiresAt: '2026-06-03T01:15:00.000Z',
+        source: 'github-api',
+        repos: {
+          'democratizedspace/dspace': {
+            owner: 'democratizedspace',
+            repo: 'dspace',
+            stars: 3,
+            watchers: 0,
+            forks: 0,
+            openIssues: 0,
+            pushedAt: null,
+          },
+          'futuroptimist/sugarkube': {
+            owner: 'futuroptimist',
+            repo: 'sugarkube',
+            stars: 0,
+            watchers: 0,
+            forks: 0,
+            openIssues: 0,
+            pushedAt: null,
+          },
+          'futuroptimist/axel': {
+            owner: 'futuroptimist',
+            repo: 'axel',
+            stars: 0,
+            watchers: 0,
+            forks: 0,
+            openIssues: 0,
+            pushedAt: null,
+          },
+        },
+        errors: {},
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        now: () => Date.parse('2026-06-03T01:20:00.000Z'),
+      })
+    );
+
+    await expect(
+      service.requestStats({ owner: 'democratizedspace', repo: 'dspace' })
+    ).resolves.toMatchObject({ stars: 3 });
+    expect(
+      service.getCachedStats({ owner: 'futuroptimist', repo: 'sugarkube' })
+    ).toMatchObject({ stars: 0 });
+    expect(
+      service.getCachedStats({ owner: 'futuroptimist', repo: 'axel' })
+    ).toMatchObject({ stars: 0 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(service.getDiagnostics()).toMatchObject({
+      source: 'runtime-cache',
+      requestCount: 0,
+      cachedRepoCount: 3,
+    });
+  });
+
   it('does not map runtime watchers to stars', async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,

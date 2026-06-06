@@ -648,6 +648,26 @@ describe('PoiTooltipOverlay', () => {
     expect(updatedValues).toContain('Updated workflow');
   });
 
+  it('renders zero-star GitHub metrics as visible values', () => {
+    const zeroStarPoi: PoiDefinition = {
+      ...basePoi,
+      id: 'sugarkube-backyard-greenhouse',
+      title: 'Sugarkube',
+      metrics: [{ label: 'Stars', value: '0 stars' }],
+    };
+
+    overlay.setHovered(zeroStarPoi);
+
+    const metric = container.querySelector('.poi-tooltip-overlay__metric');
+    expect(metric).toBeTruthy();
+    expect(
+      metric?.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('Stars');
+    expect(
+      metric?.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('0 stars');
+  });
+
   it('hides the outcome row when a POI omits the outcome field', () => {
     const poiWithoutOutcome: PoiDefinition = {
       ...basePoi,
