@@ -13,6 +13,13 @@ export interface RoomFloorBuild {
   readonly tiles: RoomFloorTile[];
 }
 
+export interface RectangularFloorCutout {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+}
+
 export interface RoomFloorOptions {
   /** Height of the tile's top surface. */
   readonly elevation?: number;
@@ -32,6 +39,8 @@ export interface RoomFloorOptions {
   readonly groupName?: string;
   /** When true, exterior rooms receive tiles too. */
   readonly includeExterior?: boolean;
+  /** Rectangular openings to carve out of any intersecting room tile. */
+  readonly cutouts?: RectangularFloorCutout[];
 }
 
 const DEFAULT_GROUP_NAME = 'RoomFloorTiles';
@@ -39,6 +48,79 @@ const DEFAULT_THICKNESS = 0.12;
 const DEFAULT_INSET = 0;
 const MIN_DIMENSION = 0.05;
 const DEFAULT_COLOR = 0x2a3547;
+
+function intersectCutout(
+  bounds: RectangularFloorCutout,
+  cutout: RectangularFloorCutout
+): RectangularFloorCutout | null {
+  const minX = Math.max(bounds.minX, cutout.minX);
+  const maxX = Math.min(bounds.maxX, cutout.maxX);
+  const minZ = Math.max(bounds.minZ, cutout.minZ);
+  const maxZ = Math.min(bounds.maxZ, cutout.maxZ);
+
+  if (maxX - minX <= MIN_DIMENSION || maxZ - minZ <= MIN_DIMENSION) {
+    return null;
+  }
+
+  return { minX, maxX, minZ, maxZ };
+}
+
+function splitBoundsAroundCutout(
+  bounds: RectangularFloorCutout,
+  cutout: RectangularFloorCutout
+): RectangularFloorCutout[] {
+  const intersection = intersectCutout(bounds, cutout);
+  if (!intersection) {
+    return [bounds];
+  }
+
+  return [
+    { ...bounds, maxX: intersection.minX },
+    { ...bounds, minX: intersection.maxX },
+    {
+      minX: intersection.minX,
+      maxX: intersection.maxX,
+      minZ: bounds.minZ,
+      maxZ: intersection.minZ,
+    },
+    {
+      minX: intersection.minX,
+      maxX: intersection.maxX,
+      minZ: intersection.maxZ,
+      maxZ: bounds.maxZ,
+    },
+  ].filter(
+    (candidate) =>
+      candidate.maxX - candidate.minX > MIN_DIMENSION &&
+      candidate.maxZ - candidate.minZ > MIN_DIMENSION
+  );
+}
+
+function getRoomTileBounds(
+  room: RoomDefinition,
+  inset: number,
+  cutouts: readonly RectangularFloorCutout[]
+): RectangularFloorCutout[] {
+  const baseBounds = {
+    minX: room.bounds.minX + inset,
+    maxX: room.bounds.maxX - inset,
+    minZ: room.bounds.minZ + inset,
+    maxZ: room.bounds.maxZ - inset,
+  };
+
+  if (
+    baseBounds.maxX - baseBounds.minX <= MIN_DIMENSION ||
+    baseBounds.maxZ - baseBounds.minZ <= MIN_DIMENSION
+  ) {
+    return [];
+  }
+
+  return cutouts.reduce<RectangularFloorCutout[]>(
+    (boundsList, cutout) =>
+      boundsList.flatMap((bounds) => splitBoundsAroundCutout(bounds, cutout)),
+    [baseBounds]
+  );
+}
 
 function applyLightMapOptions(
   material: MeshStandardMaterial,
@@ -102,30 +184,34 @@ export function createRoomFloorTiles(
       return;
     }
 
-    const width = room.bounds.maxX - room.bounds.minX - inset * 2;
-    const depth = room.bounds.maxZ - room.bounds.minZ - inset * 2;
-
-    if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
-      return;
-    }
-
-    const geometry = new BoxGeometry(width, thickness, depth);
-    applyLightmapUv2(geometry);
-
-    const mesh = new Mesh(
-      geometry,
-      resolveMaterial(room, options, defaultMaterial)
+    const roomTileBounds = getRoomTileBounds(
+      room,
+      inset,
+      options.cutouts ?? []
     );
-    mesh.position.set(
-      (room.bounds.minX + room.bounds.maxX) / 2,
-      elevation - thickness / 2,
-      (room.bounds.minZ + room.bounds.maxZ) / 2
-    );
-    mesh.name = `${room.name} Floor`;
-    mesh.receiveShadow = true;
+    const material = resolveMaterial(room, options, defaultMaterial);
 
-    group.add(mesh);
-    tiles.push({ roomId: room.id, mesh });
+    roomTileBounds.forEach((bounds, index) => {
+      const width = bounds.maxX - bounds.minX;
+      const depth = bounds.maxZ - bounds.minZ;
+      const geometry = new BoxGeometry(width, thickness, depth);
+      applyLightmapUv2(geometry);
+
+      const mesh = new Mesh(geometry, material);
+      mesh.position.set(
+        (bounds.minX + bounds.maxX) / 2,
+        elevation - thickness / 2,
+        (bounds.minZ + bounds.maxZ) / 2
+      );
+      mesh.name =
+        roomTileBounds.length > 1
+          ? `${room.name} Floor ${index + 1}`
+          : `${room.name} Floor`;
+      mesh.receiveShadow = true;
+
+      group.add(mesh);
+      tiles.push({ roomId: room.id, mesh });
+    });
   });
 
   return { group, tiles };

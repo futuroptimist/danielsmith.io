@@ -120,4 +120,41 @@ describe('createRoomFloorTiles', () => {
     const { tiles } = createRoomFloorTiles([tightRoom], { inset: 0.2 });
     expect(tiles).toHaveLength(0);
   });
+
+  it('cuts stairwell openings out of upper-floor tile slabs', () => {
+    const opaqueMaterial = new MeshStandardMaterial({
+      transparent: false,
+      opacity: 1,
+      depthWrite: true,
+    });
+
+    const { group, tiles } = createRoomFloorTiles([livingRoom], {
+      material: opaqueMaterial,
+      elevation: 4.2,
+      thickness: 0.38,
+      groupName: 'UpperFloorTiles',
+      cutouts: [{ minX: -2, maxX: 2, minZ: -6, maxZ: -2 }],
+    });
+
+    expect(group.name).toBe('UpperFloorTiles');
+    expect(tiles).toHaveLength(4);
+    expect(tiles.every((tile) => tile.roomId === 'living')).toBe(true);
+
+    for (const tile of tiles) {
+      const geometry = tile.mesh.geometry as BoxGeometry;
+      const material = tile.mesh.material as MeshStandardMaterial;
+      const minX = tile.mesh.position.x - geometry.parameters.width / 2;
+      const maxX = tile.mesh.position.x + geometry.parameters.width / 2;
+      const minZ = tile.mesh.position.z - geometry.parameters.depth / 2;
+      const maxZ = tile.mesh.position.z + geometry.parameters.depth / 2;
+      const overlapsCutout = maxX > -2 && minX < 2 && maxZ > -6 && minZ < -2;
+
+      expect(overlapsCutout).toBe(false);
+      expect(geometry.parameters.height).toBeCloseTo(0.38);
+      expect(tile.mesh.position.y).toBeCloseTo(4.2 - 0.19);
+      expect(material.transparent).toBe(false);
+      expect(material.opacity).toBe(1);
+      expect(material.depthWrite).toBe(true);
+    }
+  });
 });

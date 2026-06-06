@@ -12,11 +12,8 @@ import {
   Group,
   HemisphereLight,
   MathUtils,
-  Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
-  Shape,
-  ShapeGeometry,
   OrthographicCamera,
   PointLight,
   Scene,
@@ -113,6 +110,7 @@ import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
+import { createFloorVisibilityController } from './scene/floors/visibilityController';
 import {
   createMotionBlurController,
   type MotionBlurController,
@@ -1672,6 +1670,11 @@ function initializeImmersiveScene(
     selfieMirror = mirror;
   }
 
+  let activeFloorId: FloorId = 'ground';
+  let floorVisibilityController: ReturnType<
+    typeof createFloorVisibilityController
+  > | null = null;
+
   const staircase = createStaircase(STAIRCASE_CONFIG);
   scene.add(staircase.group);
   const stairTotalRise = staircase.totalRise;
@@ -1766,21 +1769,13 @@ function initializeImmersiveScene(
 
   const upperFloorMaterial = new MeshStandardMaterial({
     color: 0x1f273a,
-    side: DoubleSide,
-    // Nudge the upper floor away from coplanar surfaces (e.g., landing top)
-    // to avoid depth fighting at shared boundaries.
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
+    roughness: 0.62,
+    metalness: 0.14,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
+    depthTest: true,
   });
-  const upperFloorShape = new Shape();
-  const [upperFirstX, upperFirstZ] = UPPER_FLOOR_PLAN.outline[0];
-  upperFloorShape.moveTo(upperFirstX, upperFirstZ);
-  for (let i = 1; i < UPPER_FLOOR_PLAN.outline.length; i += 1) {
-    const [x, z] = UPPER_FLOOR_PLAN.outline[i];
-    upperFloorShape.lineTo(x, z);
-  }
-  upperFloorShape.closePath();
 
   // Carve a stairwell hole in the upper floor directly above the stairs to
   // eliminate z-fighting and allow the player to visually descend. Use a
@@ -1790,23 +1785,21 @@ function initializeImmersiveScene(
   const stairHoleMaxX = stairCenterX + stairHoleHalfWidth;
   const stairHoleMinZ = stairLayout.stairHoleRange.minZ;
   const stairHoleMaxZ = stairLayout.stairHoleRange.maxZ;
-  upperFloorShape.holes.push(
-    (() => {
-      const hole = new Shape();
-      hole.moveTo(stairHoleMinX, stairHoleMinZ);
-      hole.lineTo(stairHoleMaxX, stairHoleMinZ);
-      hole.lineTo(stairHoleMaxX, stairHoleMaxZ);
-      hole.lineTo(stairHoleMinX, stairHoleMaxZ);
-      hole.closePath();
-      return hole;
-    })()
-  );
-  const upperFloorGeometry = new ShapeGeometry(upperFloorShape);
-  upperFloorGeometry.rotateX(-Math.PI / 2);
-  const upperFloor = new Mesh(upperFloorGeometry, upperFloorMaterial);
-  // Slightly lower than the landing top to ensure no coplanar z-fighting.
-  upperFloor.position.y = upperFloorElevation - 0.002;
-  upperFloorGroup.add(upperFloor);
+  const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+    material: upperFloorMaterial,
+    elevation: upperFloorElevation - 0.004,
+    thickness: STAIRCASE_CONFIG.landing.thickness,
+    groupName: 'UpperFloorTiles',
+    cutouts: [
+      {
+        minX: stairHoleMinX,
+        maxX: stairHoleMaxX,
+        minZ: stairHoleMinZ,
+        maxZ: stairHoleMaxZ,
+      },
+    ],
+  });
+  upperFloorGroup.add(upperFloorTiles.group);
 
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
@@ -1957,6 +1950,15 @@ function initializeImmersiveScene(
       staticColliders.push(poi.collider);
     }
     poiInstances.push(poi);
+  });
+
+  floorVisibilityController = createFloorVisibilityController({
+    activeFloorId,
+    upperFloorGroups: [upperFloorGroup],
+    groundPoiInstances: poiInstances,
+    groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
+      (group): group is Group => Boolean(group)
+    ),
   });
 
   const poiAnalytics = createWindowPoiAnalytics();
@@ -3331,7 +3333,6 @@ function initializeImmersiveScene(
   const mouseCameraStart = new Vector2();
   let mouseCameraPointerId: number | null = null;
 
-  let activeFloorId: FloorId = 'ground';
   let helpKeyWasPressed = false;
   let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
   const buildHelpButtonText = (shortcut: string) =>
@@ -3547,10 +3548,11 @@ function initializeImmersiveScene(
 
   const setActiveFloorId = (next: FloorId) => {
     if (activeFloorId === next) {
+      floorVisibilityController?.setActiveFloorId(next);
       return;
     }
     activeFloorId = next;
-    upperFloorGroup.visible = next === 'upper';
+    floorVisibilityController?.setActiveFloorId(next);
     document.documentElement.dataset.activeFloor = next;
   };
 
@@ -3568,6 +3570,7 @@ function initializeImmersiveScene(
 
   updatePlayerVerticalPosition();
   document.documentElement.dataset.activeFloor = activeFloorId;
+  floorVisibilityController?.setActiveFloorId(activeFloorId);
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -4644,6 +4647,10 @@ function initializeImmersiveScene(
     const worldTooltipVisible = worldTooltipState.visible;
 
     for (const poi of poiInstances) {
+      if (floorVisibilityController?.applyPoiVisibility(poi) === false) {
+        continue;
+      }
+
       const floatOffset = Math.sin(
         elapsedTime * poi.floatSpeed + poi.floatPhase
       );

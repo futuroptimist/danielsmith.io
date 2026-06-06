@@ -1,11 +1,13 @@
 import {
   Color,
   CylinderGeometry,
+  Group,
   MeshStandardMaterial,
   SphereGeometry,
 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { createFloorVisibilityController } from '../scene/floors/visibilityController';
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import { scalePoiValue } from '../scene/poi/constants';
 import {
@@ -240,6 +242,53 @@ describe('createPoiInstances', () => {
     expect(instance.labelBaseHeight ?? 0).toBeGreaterThan(
       instance.orbBaseHeight ?? 0
     );
+  });
+
+  it('hides ground-floor marker labels and checkmarks while the upper floor is active', () => {
+    const [instance] = createPoiInstances([
+      createDefinition({ title: 'Ground Floor POI' }),
+    ]);
+    const upperFloorGroup = new Group();
+    const ledGroup = new Group();
+
+    instance.group.visible = true;
+    if (!instance.label || !instance.labelMaterial || !instance.visitedBadge) {
+      throw new Error('Expected a pedestal POI with label and visited badge.');
+    }
+    instance.label.visible = true;
+    instance.labelMaterial.opacity = 0.8;
+    instance.visitedBadge.mesh.visible = true;
+    instance.visitedBadge.material.opacity = 0.88;
+
+    const controller = createFloorVisibilityController({
+      activeFloorId: 'ground',
+      upperFloorGroups: [upperFloorGroup],
+      groundPoiInstances: [instance],
+      groundLedGroups: [ledGroup],
+    });
+
+    expect(controller.isPoiVisible(instance)).toBe(true);
+    expect(instance.group.visible).toBe(true);
+    expect(ledGroup.visible).toBe(true);
+    expect(upperFloorGroup.visible).toBe(false);
+
+    controller.setActiveFloorId('upper');
+
+    expect(controller.isPoiVisible(instance)).toBe(false);
+    expect(instance.group.visible).toBe(false);
+    expect(instance.label.visible).toBe(false);
+    expect(instance.labelMaterial.opacity).toBe(0);
+    expect(instance.visitedBadge.mesh.visible).toBe(false);
+    expect(instance.visitedBadge.material.opacity).toBe(0);
+    expect(ledGroup.visible).toBe(false);
+    expect(upperFloorGroup.visible).toBe(true);
+
+    controller.setActiveFloorId('ground');
+
+    expect(controller.isPoiVisible(instance)).toBe(true);
+    expect(instance.group.visible).toBe(true);
+    expect(ledGroup.visible).toBe(true);
+    expect(upperFloorGroup.visible).toBe(false);
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {
