@@ -28,6 +28,18 @@ const contains = (
   bounds.minZ <= target.minZ &&
   bounds.maxZ >= target.maxZ;
 
+const valuesAreClose = (actual: number, expected: number): boolean =>
+  Math.abs(actual - expected) < 1e-6;
+
+const boundsAreClose = (
+  actual: { minX: number; maxX: number; minZ: number; maxZ: number },
+  expected: { minX: number; maxX: number; minZ: number; maxZ: number }
+): boolean =>
+  valuesAreClose(actual.minX, expected.minX) &&
+  valuesAreClose(actual.maxX, expected.maxX) &&
+  valuesAreClose(actual.minZ, expected.minZ) &&
+  valuesAreClose(actual.maxZ, expected.maxZ);
+
 describe('createRoomFloorTiles', () => {
   it('builds opaque upper-floor slabs with a layout-driven stairwell opening', () => {
     const material = new MeshStandardMaterial({
@@ -77,22 +89,36 @@ describe('createRoomFloorTiles', () => {
     expect(build.group.name).toBe('UpperFloorTiles');
     expect(upperLandingTiles.length).toBeGreaterThan(0);
 
-    const fillsLeftLandingShoulder = upperLandingTiles.some(
-      (tile) =>
-        tile.bounds.minX === upperLandingRoom!.bounds.minX &&
-        tile.bounds.maxX === stairwellOpening.minX &&
-        tile.bounds.minZ === upperLandingRoom!.bounds.minZ &&
-        tile.bounds.maxZ === upperLandingRoom!.bounds.maxZ
+    const fillsLeftLandingShoulder = upperLandingTiles.some((tile) =>
+      boundsAreClose(tile.bounds, {
+        minX: upperLandingRoom!.bounds.minX,
+        maxX: stairwellOpening.minX,
+        minZ: upperLandingRoom!.bounds.minZ,
+        maxZ: upperLandingRoom!.bounds.maxZ,
+      })
     );
-    const fillsRightLandingShoulder = upperLandingTiles.some(
-      (tile) =>
-        tile.bounds.minX === stairwellOpening.maxX &&
-        tile.bounds.maxX === upperLandingRoom!.bounds.maxX &&
-        tile.bounds.minZ === upperLandingRoom!.bounds.minZ &&
-        tile.bounds.maxZ === upperLandingRoom!.bounds.maxZ
+    const fillsRightLandingShoulder = upperLandingTiles.some((tile) =>
+      boundsAreClose(tile.bounds, {
+        minX: stairwellOpening.maxX,
+        maxX: upperLandingRoom!.bounds.maxX,
+        minZ: upperLandingRoom!.bounds.minZ,
+        maxZ: upperLandingRoom!.bounds.maxZ,
+      })
     );
     expect(fillsLeftLandingShoulder).toBe(true);
     expect(fillsRightLandingShoulder).toBe(true);
+
+    const upperDoorwayBridge = {
+      minX: toWorldUnits(6.2 - 0.6),
+      maxX: toWorldUnits(6.2 + 0.6),
+      minZ: upperLandingRoom!.bounds.maxZ - toWorldUnits(0.6),
+      maxZ: upperLandingRoom!.bounds.maxZ,
+    };
+    expect(
+      upperLandingTiles.some((tile) =>
+        contains(tile.bounds, upperDoorwayBridge)
+      )
+    ).toBe(true);
 
     for (const tile of build.tiles) {
       const geometry = tile.mesh.geometry as BoxGeometry;

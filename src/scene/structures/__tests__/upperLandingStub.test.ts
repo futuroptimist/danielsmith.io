@@ -53,6 +53,33 @@ describe('createUpperStairwellLanding', () => {
     ).toBe(false);
   });
 
+  it('clamps guard colliders to the landing room when the opening touches an edge', () => {
+    const result = createUpperStairwellLanding({
+      roomBounds: { minX: -2, maxX: 4, minZ: -6, maxZ: 6 },
+      openingBounds: { minX: -2, maxX: 2, minZ: -4, maxZ: 4 },
+      elevation: 4,
+      guard: {
+        height: 0.56,
+        thickness: 0.4,
+        material: { color: 0xff0000 },
+      },
+    });
+
+    expect(result.colliders).not.toContainEqual({
+      minX: -2.4,
+      maxX: -2,
+      minZ: -4,
+      maxZ: 4,
+    });
+    expect(result.colliders).toHaveLength(2);
+    for (const collider of result.colliders) {
+      expect(collider.minX).toBeGreaterThanOrEqual(-2);
+      expect(collider.maxX).toBeLessThanOrEqual(4);
+      expect(collider.minZ).toBeGreaterThanOrEqual(-6);
+      expect(collider.maxZ).toBeLessThanOrEqual(6);
+    }
+  });
+
   it('does not create a landing slab that covers the descent opening', () => {
     const openingBounds = { minX: -2, maxX: 2, minZ: -8, maxZ: 6 };
     const result = createUpperStairwellLanding({

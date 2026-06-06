@@ -1795,9 +1795,9 @@ function initializeImmersiveScene(
       })
     : undefined;
   // The upper-floor stairwell cutout intentionally comes from the same
-  // computeStairLayout result used by movement. It covers the landing plus the
-  // visible descent run (clipped to the upstairs room), so floor tiles cannot
-  // become a solid cuboid over the stairs when stair metrics change.
+  // computeStairLayout result used by movement. It covers the upper stair
+  // threshold while preserving ordinary upstairs doorway floor beyond it, so
+  // floor tiles cannot drift into a solid cuboid when stair metrics change.
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {

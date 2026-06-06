@@ -22,7 +22,10 @@ export interface StairwellOpeningConfig {
   halfWidth: number;
   marginX: number;
   roomBounds: StairwellBounds;
-  layout: Pick<StairLayoutResult, 'stairHoleRange'>;
+  layout: Pick<
+    StairLayoutResult,
+    'directionMultiplier' | 'landingMinZ' | 'landingMaxZ' | 'stairHoleRange'
+  >;
 }
 
 export interface StairLayoutResult {
@@ -85,21 +88,33 @@ export const computeStairLayout = (
 };
 
 /**
- * Clips the visual upstairs stairwell hole to the landing room while deriving
- * the stair run from `computeStairLayout`. Movement and visuals therefore use
- * the same top/bottom/landing metrics instead of separate hard-coded Z spans.
+ * Clips the visible upstairs stairwell hole to the landing room while deriving
+ * the run-facing edge from `computeStairLayout`. Movement and visuals therefore
+ * use the same top/landing metrics without letting the cutout consume ordinary
+ * upstairs doorway floor beyond the upper stair threshold.
  */
 export const computeStairwellOpeningBounds = (
   config: StairwellOpeningConfig
-): StairwellBounds => ({
-  minX: Math.max(
-    config.roomBounds.minX,
-    config.centerX - config.halfWidth - config.marginX
-  ),
-  maxX: Math.min(
-    config.roomBounds.maxX,
-    config.centerX + config.halfWidth + config.marginX
-  ),
-  minZ: Math.max(config.roomBounds.minZ, config.layout.stairHoleRange.minZ),
-  maxZ: Math.min(config.roomBounds.maxZ, config.layout.stairHoleRange.maxZ),
-});
+): StairwellBounds => {
+  const runFacingMinZ =
+    config.layout.directionMultiplier === -1
+      ? config.layout.stairHoleRange.minZ
+      : config.layout.landingMinZ;
+  const runFacingMaxZ =
+    config.layout.directionMultiplier === -1
+      ? config.layout.landingMaxZ
+      : config.layout.stairHoleRange.maxZ;
+
+  return {
+    minX: Math.max(
+      config.roomBounds.minX,
+      config.centerX - config.halfWidth - config.marginX
+    ),
+    maxX: Math.min(
+      config.roomBounds.maxX,
+      config.centerX + config.halfWidth + config.marginX
+    ),
+    minZ: Math.max(config.roomBounds.minZ, runFacingMinZ),
+    maxZ: Math.min(config.roomBounds.maxZ, runFacingMaxZ),
+  };
+};

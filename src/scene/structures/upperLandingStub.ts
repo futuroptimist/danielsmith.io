@@ -52,11 +52,13 @@ const addGuard = (params: {
   material: MeshStandardMaterial;
   name: string;
   bounds: Bounds2D;
+  roomBounds: Bounds2D;
   elevation: number;
   height: number;
 }) => {
-  const width = params.bounds.maxX - params.bounds.minX;
-  const depth = params.bounds.maxZ - params.bounds.minZ;
+  const guardBounds = clampBoundsToRoom(params.bounds, params.roomBounds);
+  const width = guardBounds.maxX - guardBounds.minX;
+  const depth = guardBounds.maxZ - guardBounds.minZ;
   if (width <= 0 || depth <= 0 || params.height <= 0) {
     return;
   }
@@ -67,12 +69,12 @@ const addGuard = (params: {
   );
   guard.name = params.name;
   guard.position.set(
-    params.bounds.minX + width / 2,
+    guardBounds.minX + width / 2,
     params.elevation + params.height / 2,
-    params.bounds.minZ + depth / 2
+    guardBounds.minZ + depth / 2
   );
   params.group.add(guard);
-  params.colliders.push(params.bounds);
+  params.colliders.push(guardBounds);
 };
 
 /**
@@ -113,6 +115,7 @@ export function createUpperStairwellLanding(
       minZ: openingBounds.minZ,
       maxZ: openingBounds.maxZ,
     },
+    roomBounds: config.roomBounds,
     elevation: config.elevation,
     height: config.guard.height,
   });
@@ -127,6 +130,7 @@ export function createUpperStairwellLanding(
       minZ: openingBounds.minZ,
       maxZ: openingBounds.maxZ,
     },
+    roomBounds: config.roomBounds,
     elevation: config.elevation,
     height: config.guard.height,
   });
@@ -141,6 +145,7 @@ export function createUpperStairwellLanding(
       minZ: openingBounds.minZ,
       maxZ: openingBounds.minZ + thickness,
     },
+    roomBounds: config.roomBounds,
     elevation: config.elevation,
     height: config.guard.height,
   });
