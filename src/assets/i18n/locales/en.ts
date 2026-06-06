@@ -313,6 +313,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       failureAnnouncementTemplate:
         'Unable to switch to {target}. Staying on {current} locale.',
     },
+    narrationToggle: {
+      labelEnabled: 'Narration: On',
+      labelDisabled: 'Narration: Off',
+      descriptionEnabled:
+        'Narration popups and captions are enabled. Activate to hide them.',
+      descriptionDisabled:
+        'Narration popups and captions are hidden until you turn them on.',
+    },
     tourGuideToggle: {
       labelEnabled: 'Guided tour on',
       labelDisabled: 'Guided tour off',

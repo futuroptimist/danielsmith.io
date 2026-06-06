@@ -38,6 +38,10 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
     guidedTourOn: 'Visita guiada activada',
     guidedTourOff: 'Visita guiada desactivada',
     audioOn: 'Audio: activado',
+    narrationOn: 'Narración: activada',
+    narrationOff: 'Narración: desactivada',
+    narrationDescription:
+      'Controla las ventanas emergentes y subtítulos de narración.',
     audioOff: 'Audio: desactivado',
   },
   poi: {

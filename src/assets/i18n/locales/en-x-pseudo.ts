@@ -299,6 +299,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Unable to switch to {target}. Staying on {current} locale.'
       ),
     },
+    narrationToggle: {
+      labelEnabled: wrap('Narration: On'),
+      labelDisabled: wrap('Narration: Off'),
+      descriptionEnabled: wrap(
+        'Narration popups and captions are enabled. Activate to hide them.'
+      ),
+      descriptionDisabled: wrap(
+        'Narration popups and captions are hidden until you turn them on.'
+      ),
+    },
     tourGuideToggle: {
       labelEnabled: wrap('Guided tour on'),
       labelDisabled: wrap('Guided tour off'),

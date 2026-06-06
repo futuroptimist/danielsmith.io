@@ -24,6 +24,7 @@ import type {
   ModeAnnouncerStrings,
   ModeToggleResolvedStrings,
   MovementLegendStrings,
+  NarrationToggleStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
   PoiOverlayChromeStrings,
@@ -446,6 +447,12 @@ export function getPoiNarrativeLogStrings(
 
 export function getSiteStrings(input?: LocaleInput): SiteStrings {
   return getLocaleStrings(input).site;
+}
+
+export function getNarrationToggleStrings(
+  input?: LocaleInput
+): NarrationToggleStrings {
+  return cloneValue(getLocaleStrings(input).hud.narrationToggle);
 }
 
 export function getTourGuideToggleStrings(

@@ -10,18 +10,30 @@ export interface AudioSubtitleMessage {
   durationMs?: number;
 }
 
+export interface AudioSubtitlesState {
+  current: AudioSubtitleMessage | null;
+  currentText: string | null;
+  queueLength: number;
+  visible: boolean;
+  dismissCount: number;
+  lastDismissedAt: number | null;
+}
+
 export interface AudioSubtitlesHandle {
   show(message: AudioSubtitleMessage): void;
   clear(messageId?: string): void;
+  dismissAll(): void;
   dispose(): void;
   /** Returns the currently visible caption if any. */
   getCurrent(): AudioSubtitleMessage | null;
+  getState(): AudioSubtitlesState;
 }
 
 export interface AudioSubtitlesOptions {
   container?: HTMLElement;
   ariaLive?: 'polite' | 'assertive';
   labels?: Partial<Record<AudioSubtitleSource, string>>;
+  dismissLabels?: Partial<Record<AudioSubtitleSource, string>>;
   documentTarget?: Document;
   /**
    * Messages at or above this priority temporarily upgrade the live region to
@@ -47,10 +59,16 @@ const DEFAULT_LABELS: Record<AudioSubtitleSource, string> = {
   poi: 'Narration',
 };
 
+const DEFAULT_DISMISS_LABELS: Record<AudioSubtitleSource, string> = {
+  ambient: 'Dismiss caption',
+  poi: 'Dismiss narration',
+};
+
 export function createAudioSubtitles({
   container = document.body,
   ariaLive = 'polite',
   labels: providedLabels,
+  dismissLabels: providedDismissLabels,
   documentTarget = document,
   assertivePriorityThreshold,
 }: AudioSubtitlesOptions = {}): AudioSubtitlesHandle {
@@ -64,6 +82,9 @@ export function createAudioSubtitles({
   label.setAttribute('aria-hidden', 'true');
   root.appendChild(label);
 
+  const header = documentTarget.createElement('div');
+  header.className = 'audio-subtitles__header';
+
   const caption = documentTarget.createElement('p');
   caption.className = 'audio-subtitles__caption';
 
@@ -76,17 +97,29 @@ export function createAudioSubtitles({
   captionSequence.setAttribute('aria-hidden', 'true');
   caption.appendChild(captionSequence);
 
-  root.appendChild(caption);
+  const dismissButton = documentTarget.createElement('button');
+  dismissButton.type = 'button';
+  dismissButton.className = 'audio-subtitles__dismiss';
+  dismissButton.textContent = '×';
+
+  header.append(label, dismissButton);
+  root.append(header, caption);
 
   container.appendChild(root);
 
   const labels = { ...DEFAULT_LABELS, ...providedLabels };
+  const dismissLabels = {
+    ...DEFAULT_DISMISS_LABELS,
+    ...providedDismissLabels,
+  };
 
   const queue: NormalizedAudioSubtitleMessage[] = [];
   let hideTimeout: number | null = null;
   let current: NormalizedAudioSubtitleMessage | null = null;
   let currentToken: symbol | null = null;
   let announcementSequence = 0;
+  let dismissCount = 0;
+  let lastDismissedAt: number | null = null;
 
   const baseAriaLive = ariaLive;
   const resolvedAssertiveThreshold = resolveAssertivePriorityThreshold(
@@ -188,6 +221,8 @@ export function createAudioSubtitles({
     applyAriaLive(baseAriaLive);
     captionText.textContent = '';
     captionSequence.textContent = '';
+    dismissButton.setAttribute('aria-label', DEFAULT_DISMISS_LABELS.poi);
+    dismissButton.title = DEFAULT_DISMISS_LABELS.poi;
     if (advance) {
       void showNextQueued();
     }
@@ -204,6 +239,10 @@ export function createAudioSubtitles({
     }
     label.textContent =
       labels[message.source] ?? DEFAULT_LABELS[message.source];
+    const dismissLabel =
+      dismissLabels[message.source] ?? DEFAULT_DISMISS_LABELS[message.source];
+    dismissButton.setAttribute('aria-label', dismissLabel);
+    dismissButton.title = dismissLabel;
     captionText.textContent = '';
     captionText.textContent = message.text;
     announcementSequence += 1;
@@ -212,6 +251,20 @@ export function createAudioSubtitles({
       announcementSequence % 2 === 0 ? ZERO_WIDTH_SPACE : ZERO_WIDTH_NON_JOINER;
     scheduleHide(message, currentToken);
   };
+
+  const dismissAll = () => {
+    dismissCount += 1;
+    lastDismissedAt = Date.now();
+    queue.length = 0;
+    if (current) {
+      hideCurrent(false);
+      return;
+    }
+    clearTimer();
+    root.dataset.visible = 'false';
+  };
+
+  dismissButton.addEventListener('click', dismissAll);
 
   const show = (message: AudioSubtitleMessage) => {
     const normalized = normalizeMessage(message);
@@ -260,6 +313,9 @@ export function createAudioSubtitles({
         hideCurrent(true);
       }
     },
+    dismissAll() {
+      dismissAll();
+    },
     dispose() {
       queue.length = 0;
       if (current) {
@@ -267,10 +323,21 @@ export function createAudioSubtitles({
       } else {
         clearTimer();
       }
+      dismissButton.removeEventListener('click', dismissAll);
       root.remove();
     },
     getCurrent() {
       return current;
+    },
+    getState() {
+      return {
+        current,
+        currentText: current?.text ?? null,
+        queueLength: queue.length,
+        visible: root.dataset.visible === 'true',
+        dismissCount,
+        lastDismissedAt,
+      };
     },
   };
 }

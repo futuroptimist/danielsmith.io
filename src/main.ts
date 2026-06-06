@@ -50,6 +50,7 @@ import {
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
+  getNarrationToggleStrings,
   getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getSiteStrings,
@@ -317,6 +318,10 @@ import {
   type MotionBlurControlHandle,
 } from './systems/controls/motionBlurControl';
 import {
+  createNarrationToggleControl,
+  type NarrationToggleControlHandle,
+} from './systems/controls/narrationToggleControl';
+import {
   createTourGuideToggleControl,
   type TourGuideToggleControlHandle,
 } from './systems/controls/tourGuideToggleControl';
@@ -476,6 +481,18 @@ declare global {
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
       githubMetrics?: {
         getDiagnostics(): GitHubRepoStatsDiagnostics;
+      };
+      narration?: {
+        getState(): {
+          preferenceEnabled: boolean;
+          activeStorageKey: string;
+          storageKeyVersion: string;
+          currentSubtitle: string | null;
+          queueLength: number;
+          visible: boolean;
+          dismissCount: number;
+          lastDismissedAt: number | null;
+        };
       };
       audio?: {
         getState(): {
@@ -972,6 +989,7 @@ function initializeImmersiveScene(
 
   let inputLatencyTelemetry: InputLatencyTelemetryHandle | null = null;
   let manualModeToggle: ManualModeToggleHandle | null = null;
+  let narrationToggleControl: NarrationToggleControlHandle | null = null;
   let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
   let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
@@ -1038,6 +1056,7 @@ function initializeImmersiveScene(
   let removeIdleSubscription: (() => void) | null = null;
   let removeGuidedTourSubscription: (() => void) | null = null;
   let removeGuidedTourPreferenceSubscription: (() => void) | null = null;
+  let removeNarrationPreferenceSubscription: (() => void) | null = null;
   let githubRepoMetrics: GitHubRepoMetricsController | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
@@ -1110,6 +1129,20 @@ function initializeImmersiveScene(
     audioHudHandle?.refresh();
   };
 
+  const getNarrationDebugState = () => {
+    const subtitleState = audioSubtitles?.getState();
+    return {
+      preferenceEnabled: narrationPreference.isEnabled(),
+      activeStorageKey: narrationPreference.getStorageKey(),
+      storageKeyVersion: 'v1',
+      currentSubtitle: subtitleState?.currentText ?? null,
+      queueLength: subtitleState?.queueLength ?? 0,
+      visible: subtitleState?.visible ?? false,
+      dismissCount: subtitleState?.dismissCount ?? 0,
+      lastDismissedAt: subtitleState?.lastDismissedAt ?? null,
+    };
+  };
+
   const getAudioDebugState = () => {
     const snapshots = ambientAudioController?.getBedSnapshots() ?? [];
     const ambientSourcesPlaying = snapshots.map((snapshot) => ({
@@ -1169,6 +1202,12 @@ function initializeImmersiveScene(
     windowTarget: window,
     defaultEnabled: false,
   });
+  const narrationPreference = new NarrationPreference({
+    storage: ambientAudioStorage ?? null,
+    storageKey: NARRATION_PREFERENCE_STORAGE_KEY,
+    windowTarget: window,
+    defaultEnabled: false,
+  });
 
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
@@ -1205,6 +1244,7 @@ function initializeImmersiveScene(
   let audioHudStrings = getAudioHudControlStrings(locale);
   let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+  let narrationToggleStrings = getNarrationToggleStrings(locale);
   let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
@@ -1974,6 +2014,9 @@ function initializeImmersiveScene(
   window.portfolio.githubMetrics = {
     getDiagnostics: () => githubRepoStatsService.getDiagnostics(),
   };
+  window.portfolio.narration = {
+    getState: getNarrationDebugState,
+  };
   window.portfolio.audio = {
     getState: getAudioDebugState,
   };
@@ -2180,6 +2223,15 @@ function initializeImmersiveScene(
     (enabled) => {
       guidedTourChannel?.setEnabled(enabled);
       tourGuideToggleControl?.setEnabled(enabled);
+    }
+  );
+  removeNarrationPreferenceSubscription = narrationPreference.subscribe(
+    (enabled) => {
+      narrationToggleControl?.setEnabled(enabled);
+      if (!enabled) {
+        ambientCaptionBridge?.clear();
+        audioSubtitles?.dismissAll();
+      }
     }
   );
   removeGuidedTourSubscription = guidedTourChannel.subscribe(
@@ -2454,7 +2506,11 @@ function initializeImmersiveScene(
     (poi) => {
       idleMonitor?.reportActivity();
       poiVisitedState.markVisited(poi.id);
-      if (poi.narration?.caption && audioSubtitles) {
+      if (
+        poi.narration?.caption &&
+        audioSubtitles &&
+        narrationPreference.isEnabled()
+      ) {
         audioSubtitles.show({
           id: `poi-${poi.id}`,
           text: poi.narration.caption,
@@ -3259,6 +3315,7 @@ function initializeImmersiveScene(
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+    narrationToggleStrings = getNarrationToggleStrings(locale);
     tourGuideToggleStrings = getTourGuideToggleStrings(locale);
     tourResetControlStrings = getTourResetControlStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
@@ -3327,6 +3384,7 @@ function initializeImmersiveScene(
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
+    narrationToggleControl?.setStrings(narrationToggleStrings);
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
@@ -3793,7 +3851,26 @@ function initializeImmersiveScene(
     if (!ambientCaptionBridge && audioSubtitles) {
       ambientCaptionBridge = new AmbientCaptionBridge({
         controller: ambientAudioController,
-        subtitles: audioSubtitles,
+        subtitles: {
+          show: (message) => {
+            if (narrationPreference.isEnabled()) {
+              audioSubtitles?.show(message);
+            }
+          },
+          clear: (messageId) => audioSubtitles?.clear(messageId),
+          dismissAll: () => audioSubtitles?.dismissAll(),
+          dispose: () => undefined,
+          getCurrent: () => audioSubtitles?.getCurrent() ?? null,
+          getState: () =>
+            audioSubtitles?.getState() ?? {
+              current: null,
+              currentText: null,
+              queueLength: 0,
+              visible: false,
+              dismissCount: 0,
+              lastDismissedAt: null,
+            },
+        },
       });
     }
 
@@ -3814,6 +3891,16 @@ function initializeImmersiveScene(
       strings: audioHudStrings,
     });
     registerHudControlElement(audioHudHandle?.element);
+
+    narrationToggleControl = createNarrationToggleControl({
+      container: hudSettingsStack,
+      initialEnabled: narrationPreference.isEnabled(),
+      onToggle: (enabled) => {
+        narrationPreference.setEnabled(enabled, 'control');
+      },
+      strings: narrationToggleStrings,
+    });
+    registerHudControlElement(narrationToggleControl?.element ?? null);
 
     manualModeToggle = createManualModeToggle({
       container: hudSettingsStack,
@@ -4732,9 +4819,14 @@ function initializeImmersiveScene(
       removeGuidedTourPreferenceSubscription();
       removeGuidedTourPreferenceSubscription = null;
     }
+    if (removeNarrationPreferenceSubscription) {
+      removeNarrationPreferenceSubscription();
+      removeNarrationPreferenceSubscription = null;
+    }
     guidedTourChannel?.dispose();
     guidedTourChannel = null;
     guidedTourPreference.dispose();
+    narrationPreference.dispose();
     if (githubRepoMetrics) {
       githubRepoMetrics.dispose();
       githubRepoMetrics = null;
@@ -4743,6 +4835,10 @@ function initializeImmersiveScene(
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();
     poiTourGuide.dispose();
+    if (narrationToggleControl) {
+      narrationToggleControl.dispose();
+      narrationToggleControl = null;
+    }
     if (manualModeToggle) {
       manualModeToggle.dispose();
       manualModeToggle = null;
@@ -4892,6 +4988,9 @@ function initializeImmersiveScene(
     }
     if (window.portfolio?.audio) {
       delete window.portfolio.audio;
+    }
+    if (window.portfolio?.narration) {
+      delete window.portfolio.narration;
     }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;

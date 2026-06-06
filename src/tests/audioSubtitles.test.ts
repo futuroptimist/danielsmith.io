@@ -58,6 +58,83 @@ describe('audio subtitles overlay', () => {
     handle.dispose();
   });
 
+  it('renders an accessible dismiss button for visible narration', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration can be dismissed immediately.',
+      source: 'poi',
+      durationMs: 5000,
+    });
+
+    const dismissButton = document.querySelector(
+      '.audio-subtitles__dismiss'
+    ) as HTMLButtonElement | null;
+
+    expect(dismissButton).toBeTruthy();
+    expect(dismissButton?.getAttribute('aria-label')).toBe('Dismiss narration');
+    expect(dismissButton?.tabIndex).not.toBeLessThan(0);
+
+    dismissButton?.click();
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    expect(handle.getState().dismissCount).toBe(1);
+    handle.dispose();
+  });
+
+  it('dismissAll hides active captions and drops queued messages', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-narration',
+      text: 'Active narration.',
+      source: 'poi',
+      priority: 5,
+      durationMs: 1000,
+    });
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Queued caption should not replace dismissed narration.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 1000,
+    });
+
+    expect(handle.getState().queueLength).toBe(1);
+
+    handle.dismissAll();
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    expect(handle.getState().queueLength).toBe(0);
+
+    vi.advanceTimersByTime(1000);
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('uses caption-specific dismiss labels for ambient captions', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Ambient caption can be dismissed.',
+      source: 'ambient',
+      durationMs: 5000,
+    });
+
+    const dismissButton = document.querySelector(
+      '.audio-subtitles__dismiss'
+    ) as HTMLButtonElement | null;
+
+    expect(dismissButton?.getAttribute('aria-label')).toBe('Dismiss caption');
+    handle.dispose();
+  });
+
   it('respects priorities and refreshes timers for identical message ids', () => {
     const handle = createAudioSubtitles();
     handle.show({

@@ -586,6 +586,14 @@ canvas {
 
 .audio-subtitles[data-visible='true'] {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.audio-subtitles__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .audio-subtitles__label {
@@ -593,6 +601,25 @@ canvas {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: rgba(148, 208, 255, 0.85);
+}
+
+.audio-subtitles__dismiss {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid rgba(148, 208, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(8, 20, 35, 0.72);
+  color: rgba(230, 243, 255, 0.92);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.audio-subtitles__dismiss:hover,
+.audio-subtitles__dismiss:focus-visible {
+  border-color: rgba(148, 208, 255, 0.8);
+  background: rgba(39, 98, 150, 0.55);
+  outline: none;
 }
 
 .audio-subtitles__caption {

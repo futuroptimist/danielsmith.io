@@ -38,6 +38,9 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     guidedTourOn: 'Vezetett túra be',
     guidedTourOff: 'Vezetett túra ki',
     audioOn: 'Hang: be',
+    narrationOn: 'Narráció: be',
+    narrationOff: 'Narráció: ki',
+    narrationDescription: 'A narrációs felugrókat és feliratokat vezérli.',
     audioOff: 'Hang: ki',
   },
   poi: {

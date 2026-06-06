@@ -158,6 +158,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    narrationToggle: {
+      labelEnabled: 'السرد: مفعّل',
+      labelDisabled: 'السرد: متوقف',
+      descriptionEnabled:
+        'نوافذ السرد والتسميات التوضيحية مفعّلة. فعّل لإخفائها.',
+      descriptionDisabled:
+        'تبقى نوافذ السرد والتسميات التوضيحية مخفية حتى تشغّلها.',
+    },
     controlOverlay: {
       heading: 'عناصر التحكم',
       items: {

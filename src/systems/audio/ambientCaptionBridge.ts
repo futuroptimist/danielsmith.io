@@ -1,13 +1,23 @@
-import type { AudioSubtitlesHandle } from '../../ui/hud/audioSubtitles';
+import type {
+  AudioSubtitleMessage,
+  AudioSubtitlesHandle,
+} from '../../ui/hud/audioSubtitles';
 
 import type {
   AmbientAudioBedSnapshot,
   AmbientAudioController,
 } from './ambientAudio';
 
+type AmbientCaptionSubtitles = Pick<
+  AudioSubtitlesHandle,
+  'clear' | 'getCurrent'
+> & {
+  show(message: AudioSubtitleMessage): void;
+};
+
 export interface AmbientCaptionBridgeOptions {
   controller: AmbientAudioController;
-  subtitles: AudioSubtitlesHandle;
+  subtitles: AmbientCaptionSubtitles;
   cooldownMs?: number;
   now?: () => number;
 }
@@ -41,7 +51,7 @@ const resolveCaptionPriority = (value: number | undefined): number => {
 export class AmbientCaptionBridge {
   private readonly controller: AmbientAudioController;
 
-  private readonly subtitles: AudioSubtitlesHandle;
+  private readonly subtitles: AmbientCaptionSubtitles;
 
   private readonly cooldownMs: number;
 

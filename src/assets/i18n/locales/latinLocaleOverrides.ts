@@ -42,6 +42,9 @@ interface LatinLocaleCopy {
     guidedTourOff: string;
     audioOn: string;
     audioOff: string;
+    narrationOn: string;
+    narrationOff: string;
+    narrationDescription: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -669,6 +672,12 @@ export function buildLatinLocaleOverrides(
         switchingAnnouncementTemplate: s.switching,
         selectedAnnouncementTemplate: s.selected,
         failureAnnouncementTemplate: s.failure,
+      },
+      narrationToggle: {
+        labelEnabled: s.narrationOn,
+        labelDisabled: s.narrationOff,
+        descriptionEnabled: s.narrationDescription,
+        descriptionDisabled: s.narrationDescription,
       },
       tourGuideToggle: {
         labelEnabled: s.guidedTourOn,

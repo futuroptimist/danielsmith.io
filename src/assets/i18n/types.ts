@@ -191,6 +191,13 @@ export interface TourGuideToggleStrings {
   descriptionDisabled: string;
 }
 
+export interface NarrationToggleStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
 export interface TourResetControlStrings {
   heading: string;
   resetKey: string;
@@ -377,6 +384,7 @@ export interface LocaleStrings {
     audioControl: AudioHudControlStrings;
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
+    narrationToggle: NarrationToggleStrings;
     tourGuideToggle: TourGuideToggleStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;

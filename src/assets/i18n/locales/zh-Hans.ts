@@ -243,6 +243,12 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       selectedAnnouncementTemplate: '已选择 {label}。',
       failureAnnouncementTemplate: '无法切换到 {target}。保持 {current}。',
     },
+    narrationToggle: {
+      labelEnabled: '旁白：开启',
+      labelDisabled: '旁白：关闭',
+      descriptionEnabled: '旁白弹窗和字幕已开启。激活即可隐藏它们。',
+      descriptionDisabled: '旁白弹窗和字幕保持隐藏，直到你开启。',
+    },
     tourGuideToggle: {
       labelEnabled: '导览已开启',
       labelDisabled: '导览已关闭',
