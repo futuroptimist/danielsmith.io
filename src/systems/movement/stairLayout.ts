@@ -10,6 +10,13 @@ export interface StairLayoutConfig {
   stairwellMargin: number;
 }
 
+export interface StairwellOpeningBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
 export interface StairLayoutResult {
   topZ: number;
   landingMinZ: number;
@@ -22,6 +29,18 @@ export interface StairLayoutResult {
 const resolveDirectionMultiplier = (
   direction: StairLayoutConfig['direction']
 ): 1 | -1 => (direction === 'negativeZ' ? -1 : 1);
+
+export const createStairwellOpeningBounds = (config: {
+  centerX: number;
+  halfWidth: number;
+  marginX: number;
+  stairHoleRange: StairLayoutResult['stairHoleRange'];
+}): StairwellOpeningBounds => ({
+  minX: config.centerX - config.halfWidth - config.marginX,
+  maxX: config.centerX + config.halfWidth + config.marginX,
+  minZ: config.stairHoleRange.minZ,
+  maxZ: config.stairHoleRange.maxZ,
+});
 
 export const computeStairLayout = (
   config: StairLayoutConfig
