@@ -618,6 +618,24 @@ describe('PoiTooltipOverlay', () => {
     ).toBe('相关案例研究');
   });
 
+  it('renders zero-star metrics as visible values', () => {
+    overlay.setHovered({
+      ...basePoi,
+      id: 'sugarkube-backyard-greenhouse',
+      title: 'Sugarkube',
+      metrics: [{ label: 'Stars', value: '0 stars' }],
+    });
+
+    const metric = container.querySelector('.poi-tooltip-overlay__metric');
+    expect(metric).toBeTruthy();
+    expect(
+      metric?.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('Stars');
+    expect(
+      metric?.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('0 stars');
+  });
+
   it('skips rebuilding active POI content when updates do not change copy', () => {
     overlay.setHovered(basePoi);
     const metricSelector = '.poi-tooltip-overlay__metric';

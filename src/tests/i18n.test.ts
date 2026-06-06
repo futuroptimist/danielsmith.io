@@ -162,6 +162,7 @@ describe('i18n utilities', () => {
       'gabriel-studio-sentry',
       'flywheel-studio-flywheel',
       'jobbot-studio-terminal',
+      'axel-studio-tracker',
       'gitshelves-living-room-installation',
       'danielsmith-portfolio-table',
       'f2clipboard-kitchen-console',
@@ -169,6 +170,7 @@ describe('i18n utilities', () => {
       'wove-kitchen-loom',
       'dspace-backyard-rocket',
       'pr-reaper-backyard-console',
+      'sugarkube-backyard-greenhouse',
     ]);
 
     for (const englishPoi of starBackedPois) {
@@ -268,7 +270,7 @@ describe('i18n utilities', () => {
     }
   });
 
-  it('marks every localized DSPACE GitHub star metric as private and neutral', () => {
+  it('marks every localized DSPACE GitHub star metric as public and neutral', () => {
     const numericFallbackPattern = /\d/;
 
     for (const locale of AVAILABLE_LOCALES) {
@@ -285,11 +287,68 @@ describe('i18n utilities', () => {
         type: 'githubStars',
         owner: 'democratizedspace',
         repo: 'dspace',
-        visibility: 'private',
+        visibility: 'public',
       });
       expect(starMetric?.value, locale).not.toMatch(numericFallbackPattern);
       expect(starMetric?.source?.fallback ?? '', locale).not.toMatch(
         numericFallbackPattern
+      );
+    }
+  });
+
+  it('adds runtime-backed stars to DSPACE, Sugarkube, and Axel without stale DSPACE owners', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const definitions = getPoiDefinitions(locale);
+      const byId = new Map(definitions.map((poi) => [poi.id, poi]));
+      const expectedSources = [
+        {
+          id: 'dspace-backyard-rocket',
+          owner: 'democratizedspace',
+          repo: 'dspace',
+          visibility: 'public',
+        },
+        {
+          id: 'sugarkube-backyard-greenhouse',
+          owner: 'futuroptimist',
+          repo: 'sugarkube',
+          visibility: undefined,
+        },
+        {
+          id: 'axel-studio-tracker',
+          owner: 'futuroptimist',
+          repo: 'axel',
+          visibility: undefined,
+        },
+      ] as const;
+
+      for (const { id, owner, repo, visibility } of expectedSources) {
+        const starMetric = byId
+          .get(id)
+          ?.metrics?.find((metric) => metric.source?.type === 'githubStars');
+
+        expect(starMetric, `${locale} ${id}`).toBeDefined();
+        expect(starMetric?.source, `${locale} ${id}`).toMatchObject({
+          type: 'githubStars',
+          owner,
+          repo,
+        });
+        expect(starMetric?.source?.visibility, `${locale} ${id}`).toBe(
+          visibility
+        );
+      }
+
+      const starSources = definitions.flatMap((poi) =>
+        (poi.metrics ?? [])
+          .filter((metric) => metric.source?.type === 'githubStars')
+          .map((metric) => metric.source)
+      );
+      expect(starSources, locale).toEqual(
+        expect.not.arrayContaining([
+          expect.objectContaining({
+            owner: 'futuroptimist',
+            repo: 'dspace',
+          }),
+        ])
       );
     }
   });

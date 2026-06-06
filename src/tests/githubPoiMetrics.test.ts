@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { wireGitHubRepoMetrics } from '../scene/poi/githubMetrics';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
 import type {
   GitHubRepoIdentifier,
@@ -199,7 +200,8 @@ describe('wireGitHubRepoMetrics', () => {
               type: 'githubStars',
               owner: 'democratizedspace',
               repo: 'dspace',
-              visibility: 'private',
+              visibility: 'public',
+              template: '{value} stars',
               fallback: 'Hidden',
             },
           },
@@ -219,6 +221,7 @@ describe('wireGitHubRepoMetrics', () => {
     expect(service.requested).toEqual([
       'futuroptimist/flywheel',
       'futuroptimist/axel',
+      'democratizedspace/dspace',
     ]);
     expect(definitions[3].metrics?.[0]?.value).toBe('Hidden');
 
@@ -240,9 +243,15 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 86, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(definitions[2].metrics?.[0]?.value).toBe('86 stars');
+
+    service.emit(
+      { owner: 'democratizedspace', repo: 'dspace' },
+      { stars: 3, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    expect(definitions[3].metrics?.[0]?.value).toBe('3 stars');
     expect(
       service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
-    ).toBe(0);
+    ).toBe(1);
 
     controller.dispose();
     expect(
@@ -362,6 +371,48 @@ describe('wireGitHubRepoMetrics', () => {
       'futuroptimist/flywheel',
       'futuroptimist/axel',
     ]);
+    controller.dispose();
+  });
+
+  it('wires localized DSPACE, Sugarkube, and Axel definitions to runtime cache star values', async () => {
+    const definitions = getPoiDefinitions('en');
+    const byId = new Map(definitions.map((poi) => [poi.id, poi]));
+    const service = new MockRepoStatsService();
+    service.primeCache(
+      { owner: 'democratizedspace', repo: 'dspace' },
+      { stars: 3, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    service.primeCache(
+      { owner: 'futuroptimist', repo: 'sugarkube' },
+      { stars: 0, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    service.primeCache(
+      { owner: 'futuroptimist', repo: 'axel' },
+      { stars: 0, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+
+    const controller = wireGitHubRepoMetrics({ definitions, service });
+    await Promise.resolve();
+
+    expect(
+      byId
+        .get('dspace-backyard-rocket')
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars')
+        ?.value
+    ).toBe('3 stars');
+    expect(
+      byId
+        .get('sugarkube-backyard-greenhouse')
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars')
+        ?.value
+    ).toBe('0 stars');
+    expect(
+      byId
+        .get('axel-studio-tracker')
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars')
+        ?.value
+    ).toBe('0 stars');
+
     controller.dispose();
   });
 
