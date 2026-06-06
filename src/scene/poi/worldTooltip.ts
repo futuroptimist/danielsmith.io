@@ -15,6 +15,7 @@ import {
   GuidedTourPreference,
   defaultGuidedTourPreference,
 } from '../../systems/guidedTour/preference';
+import type { FloorId } from '../../systems/movement/stairs';
 
 import type { PoiDefinition } from './types';
 
@@ -22,6 +23,7 @@ type PoiWorldTooltipMode = 'hovered' | 'selected' | 'recommended';
 
 export interface PoiWorldTooltipTarget {
   poi: PoiDefinition;
+  floorId?: FloorId;
   getAnchorPosition(out: Vector3): Vector3;
 }
 
@@ -110,6 +112,8 @@ export class PoiWorldTooltip {
   private passiveRecommendationsEnabled = true;
 
   private idle = false;
+
+  private activeFloorId: FloorId = 'ground';
 
   private unsubscribeGuidedTour: (() => void) | null = null;
 
@@ -207,6 +211,14 @@ export class PoiWorldTooltip {
     this.recommendation = target;
   }
 
+  setActiveFloorId(floorId: FloorId): void {
+    if (this.activeFloorId === floorId) {
+      return;
+    }
+    this.activeFloorId = floorId;
+    this.fadeOut(0);
+  }
+
   setPassiveRecommendationsEnabled(enabled: boolean): void {
     if (this.passiveRecommendationsEnabled === enabled) {
       return;
@@ -244,7 +256,7 @@ export class PoiWorldTooltip {
           ? 'recommended'
           : null;
 
-    if (!active || !mode) {
+    if (!active || !mode || !this.isTargetOnActiveFloor(active)) {
       this.fadeOut(delta);
       return;
     }
@@ -375,6 +387,10 @@ export class PoiWorldTooltip {
       visible: this.group.visible,
       opacity: this.mesh.material.opacity,
     };
+  }
+
+  private isTargetOnActiveFloor(target: PoiWorldTooltipTarget): boolean {
+    return !target.floorId || target.floorId === this.activeFloorId;
   }
 
   private isFacingCamera(target: Vector3): boolean {

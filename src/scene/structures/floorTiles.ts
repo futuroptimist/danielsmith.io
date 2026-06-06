@@ -1,16 +1,24 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
-import type { RoomDefinition } from '../../assets/floorPlan';
+import type { Bounds2D, RoomDefinition } from '../../assets/floorPlan';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
 
 export interface RoomFloorTile {
   readonly roomId: string;
   readonly mesh: Mesh;
+  readonly bounds: Bounds2D;
 }
 
 export interface RoomFloorBuild {
   readonly group: Group;
   readonly tiles: RoomFloorTile[];
+}
+
+export interface RoomFloorCutout {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
 }
 
 export interface RoomFloorOptions {
@@ -32,6 +40,10 @@ export interface RoomFloorOptions {
   readonly groupName?: string;
   /** When true, exterior rooms receive tiles too. */
   readonly includeExterior?: boolean;
+  /** World-space openings removed from every room tile. */
+  readonly cutouts?: RoomFloorCutout[];
+  /** World-space openings removed only from a matching room id. */
+  readonly cutoutsByRoom?: Readonly<Record<string, RoomFloorCutout[]>>;
 }
 
 const DEFAULT_GROUP_NAME = 'RoomFloorTiles';
@@ -74,6 +86,91 @@ function resolveMaterial(
   return defaultMaterial;
 }
 
+const hasPositiveArea = (bounds: Bounds2D): boolean =>
+  bounds.maxX - bounds.minX > MIN_DIMENSION &&
+  bounds.maxZ - bounds.minZ > MIN_DIMENSION;
+
+const clipCutoutToBounds = (
+  bounds: Bounds2D,
+  cutout: RoomFloorCutout
+): Bounds2D | null => {
+  const overlap = {
+    minX: Math.max(bounds.minX, cutout.minX),
+    maxX: Math.min(bounds.maxX, cutout.maxX),
+    minZ: Math.max(bounds.minZ, cutout.minZ),
+    maxZ: Math.min(bounds.maxZ, cutout.maxZ),
+  };
+
+  return hasPositiveArea(overlap) ? overlap : null;
+};
+
+const subtractCutout = (
+  bounds: Bounds2D,
+  cutout: RoomFloorCutout
+): Bounds2D[] => {
+  const overlap = clipCutoutToBounds(bounds, cutout);
+  if (!overlap) {
+    return [bounds];
+  }
+
+  const pieces: Bounds2D[] = [
+    {
+      minX: bounds.minX,
+      maxX: overlap.minX,
+      minZ: bounds.minZ,
+      maxZ: bounds.maxZ,
+    },
+    {
+      minX: overlap.maxX,
+      maxX: bounds.maxX,
+      minZ: bounds.minZ,
+      maxZ: bounds.maxZ,
+    },
+    {
+      minX: overlap.minX,
+      maxX: overlap.maxX,
+      minZ: bounds.minZ,
+      maxZ: overlap.minZ,
+    },
+    {
+      minX: overlap.minX,
+      maxX: overlap.maxX,
+      minZ: overlap.maxZ,
+      maxZ: bounds.maxZ,
+    },
+  ];
+
+  return pieces.filter(hasPositiveArea);
+};
+
+const getRoomTileBounds = (
+  room: RoomDefinition,
+  options: RoomFloorOptions,
+  inset: number
+): Bounds2D[] => {
+  const roomBounds = {
+    minX: room.bounds.minX + inset,
+    maxX: room.bounds.maxX - inset,
+    minZ: room.bounds.minZ + inset,
+    maxZ: room.bounds.maxZ - inset,
+  };
+
+  if (!hasPositiveArea(roomBounds)) {
+    return [];
+  }
+
+  const cutouts = [
+    ...(options.cutouts ?? []),
+    ...(options.cutoutsByRoom?.[room.id] ?? []),
+  ];
+
+  return cutouts.reduce<Bounds2D[]>(
+    (pieces, cutout) =>
+      pieces.flatMap((piece) => subtractCutout(piece, cutout)),
+    [roomBounds]
+  );
+};
+
 export function createRoomFloorTiles(
   rooms: RoomDefinition[],
   options: RoomFloorOptions = {}
@@ -102,30 +199,28 @@ export function createRoomFloorTiles(
       return;
     }
 
-    const width = room.bounds.maxX - room.bounds.minX - inset * 2;
-    const depth = room.bounds.maxZ - room.bounds.minZ - inset * 2;
+    getRoomTileBounds(room, options, inset).forEach((bounds, index) => {
+      const width = bounds.maxX - bounds.minX;
+      const depth = bounds.maxZ - bounds.minZ;
+      const geometry = new BoxGeometry(width, thickness, depth);
+      applyLightmapUv2(geometry);
 
-    if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
-      return;
-    }
+      const mesh = new Mesh(
+        geometry,
+        resolveMaterial(room, options, defaultMaterial)
+      );
+      mesh.position.set(
+        (bounds.minX + bounds.maxX) / 2,
+        elevation - thickness / 2,
+        (bounds.minZ + bounds.maxZ) / 2
+      );
+      mesh.name =
+        index === 0 ? `${room.name} Floor` : `${room.name} Floor ${index + 1}`;
+      mesh.receiveShadow = true;
 
-    const geometry = new BoxGeometry(width, thickness, depth);
-    applyLightmapUv2(geometry);
-
-    const mesh = new Mesh(
-      geometry,
-      resolveMaterial(room, options, defaultMaterial)
-    );
-    mesh.position.set(
-      (room.bounds.minX + room.bounds.maxX) / 2,
-      elevation - thickness / 2,
-      (room.bounds.minZ + room.bounds.maxZ) / 2
-    );
-    mesh.name = `${room.name} Floor`;
-    mesh.receiveShadow = true;
-
-    group.add(mesh);
-    tiles.push({ roomId: room.id, mesh });
+      group.add(mesh);
+      tiles.push({ roomId: room.id, mesh, bounds });
+    });
   });
 
   return { group, tiles };
