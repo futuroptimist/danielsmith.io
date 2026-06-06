@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
+  classifyStairTransitionZone,
   createStairNavAreaRect,
+  createStairNavigationZones,
   predictStairFloorId,
   type FloorId,
   type StairBehavior,
@@ -37,81 +39,159 @@ const STAIR_BEHAVIOR: StairBehavior = {
   transitionMargin: toWorldUnits(0.6),
   landingTriggerMargin: toWorldUnits(0.2),
   stepRise: 0.42,
+  descentCorridorInset: 0.75,
 };
 
+const predict = (
+  geometry: StairGeometry,
+  x: number,
+  z: number,
+  currentFloor: FloorId
+): FloorId => predictStairFloorId(geometry, STAIR_BEHAVIOR, x, z, currentFloor);
+
+const classify = (
+  geometry: StairGeometry,
+  x: number,
+  z: number,
+  currentFloor: FloorId
+) => classifyStairTransitionZone(geometry, STAIR_BEHAVIOR, x, z, currentFloor);
+
 describe('stair floor transitions (negative Z ascent)', () => {
-  it('keeps the player on the upper floor when walking above the stair void', () => {
-    const currentFloor: FloorId = 'upper';
-    const walkwayZ = NEGATIVE_Z_STAIRS.bottomZ - toWorldUnits(0.2);
-    const result = predictStairFloorId(
-      NEGATIVE_Z_STAIRS,
-      STAIR_BEHAVIOR,
-      NEGATIVE_Z_STAIRS.centerX,
-      walkwayZ,
-      currentFloor
-    );
+  it('transitions from ground to upper near the top of the stairs', () => {
+    const nearTopStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.15);
 
-    expect(result).toBe('upper');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        nearTopStepZ,
+        'ground'
+      )
+    ).toBe('upper');
   });
 
-  it('stays on the upper floor while roaming across the landing', () => {
-    const currentFloor: FloorId = 'upper';
+  it('keeps the player on the upper floor while roaming across the landing', () => {
     const landingInteriorZ = NEGATIVE_Z_STAIRS.landingMinZ + toWorldUnits(0.6);
-    const result = predictStairFloorId(
-      NEGATIVE_Z_STAIRS,
-      STAIR_BEHAVIOR,
-      NEGATIVE_Z_STAIRS.centerX,
-      landingInteriorZ,
-      currentFloor
-    );
 
-    expect(result).toBe('upper');
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        landingInteriorZ,
+        'upper'
+      )
+    ).toBe('upperLanding');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        landingInteriorZ,
+        'upper'
+      )
+    ).toBe('upper');
   });
 
-  it('does not leave the upper floor when west of the stair base', () => {
-    const currentFloor: FloorId = 'upper';
-    const westLandingX =
-      NEGATIVE_Z_STAIRS.centerX -
-      NEGATIVE_Z_STAIRS.halfWidth +
-      toWorldUnits(0.15);
-    const southOfLandingZ = NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.35);
-    const result = predictStairFloorId(
-      NEGATIVE_Z_STAIRS,
-      STAIR_BEHAVIOR,
-      westLandingX,
-      southOfLandingZ,
-      currentFloor
-    );
+  it('keeps the player on upper in nearby upstairs room/landing-edge space', () => {
+    const nearbyRoomX = NEGATIVE_Z_STAIRS.centerX + toWorldUnits(3.0);
+    const upperRoomZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(1.1);
 
-    expect(result).toBe('upper');
+    expect(classify(NEGATIVE_Z_STAIRS, nearbyRoomX, upperRoomZ, 'upper')).toBe(
+      'safeUpperFloor'
+    );
+    expect(predict(NEGATIVE_Z_STAIRS, nearbyRoomX, upperRoomZ, 'upper')).toBe(
+      'upper'
+    );
   });
 
-  it('switches to the ground floor after leaving the landing for the ramp', () => {
-    const currentFloor: FloorId = 'upper';
-    const firstStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.3);
-    const result = predictStairFloorId(
-      NEGATIVE_Z_STAIRS,
-      STAIR_BEHAVIOR,
-      NEGATIVE_Z_STAIRS.centerX,
-      firstStepZ,
-      currentFloor
-    );
+  it('does not teleport at the screenshot-like upper landing edge', () => {
+    const oldSharedNavEdgeX =
+      NEGATIVE_Z_STAIRS.centerX +
+      NEGATIVE_Z_STAIRS.halfWidth -
+      toWorldUnits(0.1);
+    const slightlyDownFromLandingZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.7);
 
-    expect(result).toBe('ground');
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        oldSharedNavEdgeX,
+        slightlyDownFromLandingZ,
+        'upper'
+      )
+    ).toBe('safeUpperFloor');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        oldSharedNavEdgeX,
+        slightlyDownFromLandingZ,
+        'upper'
+      )
+    ).toBe('upper');
+  });
+
+  it('transitions to ground only inside the explicit descent corridor', () => {
+    const descentZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.7);
+
+    expect(
+      classify(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, descentZ, 'upper')
+    ).toBe('explicitDescentCorridor');
+    expect(
+      predict(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, descentZ, 'upper')
+    ).toBe('ground');
+  });
+
+  it('keeps a deliberate descent on ground through the top handoff band', () => {
+    const firstDescentStepZ =
+      NEGATIVE_Z_STAIRS.topZ + STAIR_BEHAVIOR.landingTriggerMargin + 0.01;
+
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        firstDescentStepZ,
+        'upper'
+      )
+    ).toBe('explicitDescentCorridor');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        firstDescentStepZ,
+        'upper'
+      )
+    ).toBe('ground');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        firstDescentStepZ,
+        'ground'
+      )
+    ).toBe('ground');
+  });
+
+  it('does not transition floors for lateral movement outside stair width', () => {
+    const farEastX = NEGATIVE_Z_STAIRS.centerX + toWorldUnits(2.5);
+    const descentZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.7);
+
+    expect(predict(NEGATIVE_Z_STAIRS, farEastX, descentZ, 'upper')).toBe(
+      'upper'
+    );
+    expect(predict(NEGATIVE_Z_STAIRS, farEastX, descentZ, 'ground')).toBe(
+      'ground'
+    );
   });
 
   it('remains on the ground after passing the stair base', () => {
-    const currentFloor: FloorId = 'upper';
     const groundExitZ = NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.1);
-    const result = predictStairFloorId(
-      NEGATIVE_Z_STAIRS,
-      STAIR_BEHAVIOR,
-      NEGATIVE_Z_STAIRS.centerX,
-      groundExitZ,
-      currentFloor
-    );
 
-    expect(result).toBe('ground');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        groundExitZ,
+        'upper'
+      )
+    ).toBe('ground');
   });
 });
 
@@ -119,66 +199,91 @@ describe('stair floor transitions (positive Z ascent)', () => {
   const positiveGeometry = createStairGeometry(1);
 
   it('keeps the player on the upper floor across the landing interior', () => {
-    const currentFloor: FloorId = 'upper';
     const landingInteriorZ = positiveGeometry.landingMaxZ - toWorldUnits(0.6);
-    const result = predictStairFloorId(
-      positiveGeometry,
-      STAIR_BEHAVIOR,
-      positiveGeometry.centerX,
-      landingInteriorZ,
-      currentFloor
-    );
 
-    expect(result).toBe('upper');
+    expect(
+      predict(
+        positiveGeometry,
+        positiveGeometry.centerX,
+        landingInteriorZ,
+        'upper'
+      )
+    ).toBe('upper');
   });
 
-  it('switches to the ground floor after stepping off the landing', () => {
-    const currentFloor: FloorId = 'upper';
-    const firstStepZ = positiveGeometry.topZ - toWorldUnits(0.3);
-    const result = predictStairFloorId(
-      positiveGeometry,
-      STAIR_BEHAVIOR,
-      positiveGeometry.centerX,
-      firstStepZ,
-      currentFloor
-    );
+  it('switches to the ground floor after deliberately entering descent', () => {
+    const firstStepZ = positiveGeometry.topZ - toWorldUnits(0.7);
 
-    expect(result).toBe('ground');
+    expect(
+      classify(positiveGeometry, positiveGeometry.centerX, firstStepZ, 'upper')
+    ).toBe('explicitDescentCorridor');
+    expect(
+      predict(positiveGeometry, positiveGeometry.centerX, firstStepZ, 'upper')
+    ).toBe('ground');
+  });
+
+  it('keeps positive-Z descents on ground through the top handoff band', () => {
+    const firstDescentStepZ =
+      positiveGeometry.topZ - STAIR_BEHAVIOR.landingTriggerMargin - 0.01;
+
+    expect(
+      predict(
+        positiveGeometry,
+        positiveGeometry.centerX,
+        firstDescentStepZ,
+        'upper'
+      )
+    ).toBe('ground');
+    expect(
+      predict(
+        positiveGeometry,
+        positiveGeometry.centerX,
+        firstDescentStepZ,
+        'ground'
+      )
+    ).toBe('ground');
   });
 
   it('remains on the ground after moving past the stair base', () => {
-    const currentFloor: FloorId = 'upper';
     const groundExitZ = positiveGeometry.bottomZ - toWorldUnits(0.1);
-    const result = predictStairFloorId(
-      positiveGeometry,
-      STAIR_BEHAVIOR,
-      positiveGeometry.centerX,
-      groundExitZ,
-      currentFloor
-    );
 
-    expect(result).toBe('ground');
+    expect(
+      predict(positiveGeometry, positiveGeometry.centerX, groundExitZ, 'upper')
+    ).toBe('ground');
   });
 
   it('ignores stair transitions when outside the stair width', () => {
-    const currentFloor: FloorId = 'ground';
     const farEastX = positiveGeometry.centerX + toWorldUnits(2.5);
     const landingMidpointZ =
       (positiveGeometry.landingMinZ + positiveGeometry.landingMaxZ) / 2;
-    const result = predictStairFloorId(
-      positiveGeometry,
-      STAIR_BEHAVIOR,
-      farEastX,
-      landingMidpointZ,
-      currentFloor
-    );
 
-    expect(result).toBe('ground');
+    expect(
+      predict(positiveGeometry, farEastX, landingMidpointZ, 'ground')
+    ).toBe('ground');
   });
 });
 
-describe('createStairNavAreaRect', () => {
-  it('expands the stair footprint with margins', () => {
+describe('stair navigation zones', () => {
+  it('exposes narrower upper descent nav than the legacy shared stair footprint', () => {
+    const zones = createStairNavigationZones(NEGATIVE_Z_STAIRS, STAIR_BEHAVIOR);
+    const legacyRect = createStairNavAreaRect(NEGATIVE_Z_STAIRS, {
+      marginX: STAIR_BEHAVIOR.transitionMargin,
+      marginZ: STAIR_BEHAVIOR.transitionMargin,
+    });
+
+    expect(zones.explicitDescentCorridor.minX).toBeGreaterThan(legacyRect.minX);
+    expect(zones.explicitDescentCorridor.maxX).toBeLessThan(legacyRect.maxX);
+    expect(zones.upperLanding.minZ).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.landingMinZ,
+      6
+    );
+    expect(zones.upperLanding.maxZ).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.landingMaxZ,
+      6
+    );
+  });
+
+  it('expands the legacy stair footprint with margins for compatibility', () => {
     const marginX = toWorldUnits(0.25);
     const marginZ = toWorldUnits(0.5);
     const rect = createStairNavAreaRect(NEGATIVE_Z_STAIRS, {

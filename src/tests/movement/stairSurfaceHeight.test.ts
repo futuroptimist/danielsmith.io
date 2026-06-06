@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
+  computeRampHeight,
   sampleStairSurfaceHeight,
   type FloorId,
   type StairBehavior,
@@ -44,11 +45,47 @@ describe('sampleStairSurfaceHeight', () => {
     expect(height).toBeCloseTo(geometry.totalRise / 2, 5);
   });
 
-  it('retains ramp height when descending toward the top step', () => {
+  it('keeps landing height at the descent threshold', () => {
     const nearTopStepZ = geometry.topZ - toWorldUnits(0.2);
     const height = sample({ x: 0, z: nearTopStepZ, currentFloor: 'ground' });
-    expect(height).toBeGreaterThan(geometry.totalRise * 0.9);
-    expect(height).toBeLessThanOrEqual(geometry.totalRise);
+
+    expect(height).toBeCloseTo(upperFloorElevation, 6);
+  });
+
+  it('smooths the landing lip after an intentional descent begins', () => {
+    const firstDescentStepZ =
+      geometry.topZ - behavior.landingTriggerMargin - toWorldUnits(0.01);
+    const rampHeight = computeRampHeight(
+      geometry,
+      behavior,
+      0,
+      firstDescentStepZ
+    );
+    const height = sample({
+      x: 0,
+      z: firstDescentStepZ,
+      currentFloor: 'ground',
+    });
+
+    expect(height).toBeGreaterThan(rampHeight);
+    expect(height).toBeCloseTo(upperFloorElevation, 1);
+  });
+
+  it('returns the ramp height after clearing the top handoff band', () => {
+    const clearedTopStepZ = geometry.topZ - behavior.transitionMargin;
+    const rampHeight = computeRampHeight(
+      geometry,
+      behavior,
+      0,
+      clearedTopStepZ
+    );
+    const height = sample({
+      x: 0,
+      z: clearedTopStepZ,
+      currentFloor: 'ground',
+    });
+
+    expect(height).toBeCloseTo(rampHeight, 6);
   });
 
   it('returns upper floor elevation across the landing interior', () => {
