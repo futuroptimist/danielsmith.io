@@ -30,14 +30,26 @@ describe('createRoomFloorTiles', () => {
     const stairCenterX = toWorldUnits(6.2);
     const stairHalfWidth = toWorldUnits(3.1) / 2;
     const stairwellMarginX = toWorldUnits(0.2);
+    const descentCorridorInset = 0.75;
     const stairTopZ = toWorldUnits(-5.3) - toWorldUnits(0.85) * 9;
     const landingClearance = toWorldUnits(0.05);
+    const landingTriggerMargin = toWorldUnits(0.2);
     const upperLandingSolidStartZ = stairTopZ + landingClearance;
-    const stairwellCutout = {
+    const broadStairwellBounds = {
       minX: stairCenterX - stairHalfWidth - stairwellMarginX,
       maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
       minZ: upperLandingRoom!.bounds.minZ,
       maxZ: upperLandingRoom!.bounds.maxZ,
+    };
+    const descentCorridorHalfWidth = Math.max(
+      stairHalfWidth - descentCorridorInset,
+      stairHalfWidth * 0.55
+    );
+    const stairwellCutout = {
+      minX: stairCenterX - descentCorridorHalfWidth,
+      maxX: stairCenterX + descentCorridorHalfWidth,
+      minZ: upperLandingRoom!.bounds.minZ,
+      maxZ: stairTopZ + landingTriggerMargin + landingClearance,
     };
     const shoulderStubCutouts = [
       {
@@ -69,12 +81,28 @@ describe('createRoomFloorTiles', () => {
 
     expect(build.group.name).toBe('UpperFloorTiles');
     expect(upperLandingTiles.length).toBeGreaterThan(0);
-    expect(
-      upperLandingTiles.some((tile) => tile.bounds.maxX <= stairwellCutout.minX)
-    ).toBe(true);
-    expect(
-      upperLandingTiles.some((tile) => tile.bounds.minX >= stairwellCutout.maxX)
-    ).toBe(true);
+    const fillsLeftStairwellShoulder = upperLandingTiles.some(
+      (tile) =>
+        tile.bounds.minX < broadStairwellBounds.minX &&
+        tile.bounds.maxX > broadStairwellBounds.minX &&
+        tile.bounds.maxX <= stairwellCutout.minX
+    );
+    const fillsRightStairwellShoulder = upperLandingTiles.some(
+      (tile) =>
+        tile.bounds.minX >= stairwellCutout.maxX &&
+        tile.bounds.minX < broadStairwellBounds.maxX &&
+        tile.bounds.maxX > broadStairwellBounds.maxX
+    );
+    const fillsCentralLandingPastDescent = upperLandingTiles.some(
+      (tile) =>
+        tile.bounds.minX >= stairwellCutout.minX &&
+        tile.bounds.maxX <= stairwellCutout.maxX &&
+        tile.bounds.minZ >= stairwellCutout.maxZ &&
+        tile.bounds.maxZ === upperLandingRoom!.bounds.maxZ
+    );
+    expect(fillsLeftStairwellShoulder).toBe(true);
+    expect(fillsRightStairwellShoulder).toBe(true);
+    expect(fillsCentralLandingPastDescent).toBe(true);
 
     for (const tile of build.tiles) {
       const geometry = tile.mesh.geometry as BoxGeometry;

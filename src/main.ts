@@ -1784,24 +1784,29 @@ function initializeImmersiveScene(
   );
   const upperLandingClearance = toWorldUnits(0.05);
   const upperLandingSolidStartZ = stairTopZ + upperLandingClearance;
-  const upperLandingStairwellCutout = upperLandingRoom
+  const upperLandingDescentCutoutMaxZ =
+    stairTopZ + stairLandingTriggerMargin + upperLandingClearance;
+  const upperLandingDescentCutout = upperLandingRoom
     ? {
-        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-        maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+        minX: stairNavigationZones.explicitDescentCorridor.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
         minZ: upperLandingRoom.bounds.minZ,
-        maxZ: upperLandingRoom.bounds.maxZ,
+        maxZ: Math.min(
+          upperLandingRoom.bounds.maxZ,
+          upperLandingDescentCutoutMaxZ
+        ),
       }
     : undefined;
   const upperLandingStubBounds = upperLandingRoom
     ? [
         {
           minX: upperLandingRoom.bounds.minX,
-          maxX: upperLandingStairwellCutout!.minX,
+          maxX: upperLandingDescentCutout!.minX,
           minZ: upperLandingRoom.bounds.minZ,
           maxZ: upperLandingRoom.bounds.maxZ,
         },
         {
-          minX: upperLandingStairwellCutout!.maxX,
+          minX: upperLandingDescentCutout!.maxX,
           maxX: upperLandingRoom.bounds.maxX,
           minZ: upperLandingRoom.bounds.minZ,
           maxZ: upperLandingRoom.bounds.maxZ,
@@ -1813,10 +1818,10 @@ function initializeImmersiveScene(
       )
     : [];
   const upperLandingCutouts =
-    upperLandingRoom && upperLandingStairwellCutout
+    upperLandingRoom && upperLandingDescentCutout
       ? {
           upperLanding: [
-            upperLandingStairwellCutout,
+            upperLandingDescentCutout,
             ...upperLandingStubBounds.map((bounds) => ({
               minX: bounds.minX,
               maxX: bounds.maxX,
@@ -1835,8 +1840,9 @@ function initializeImmersiveScene(
   });
   upperFloorGroup.add(upperFloorTiles.group);
 
-  // Keep the central stairwell/descent corridor open: room tiles and side
-  // stubs only fill the landing shoulders, avoiding a full-width seal or z-fight.
+  // Keep only the explicit stairwell/descent handoff open. Room tiles and
+  // side stubs fill the walkable landing shoulders without a full-width seal
+  // or z-fight.
 
   upperLandingStubBounds.forEach((bounds, index) => {
     const upperLandingStub = createUpperLandingStub({
