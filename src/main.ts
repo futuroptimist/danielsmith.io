@@ -368,9 +368,10 @@ import {
 import { computeStairLayout } from './systems/movement/stairLayout';
 import {
   computeRampHeight as computeStairRampHeight,
+  classifyStairTransitionZone,
+  createStairNavigationZones,
   predictStairFloorId,
   sampleStairSurfaceHeight,
-  createStairNavAreaRect,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
@@ -558,6 +559,16 @@ declare global {
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
         getPlayerPosition(): { x: number; y: number; z: number };
+        predictFloorAt(target: {
+          x: number;
+          z: number;
+          currentFloor?: FloorId;
+        }): FloorId;
+        getStairTransitionZone(target: {
+          x: number;
+          z: number;
+          currentFloor?: FloorId;
+        }): string;
         getStairMetrics(): {
           stairCenterX: number;
           stairHalfWidth: number;
@@ -1701,11 +1712,37 @@ function initializeImmersiveScene(
     transitionMargin: stairTransitionMargin,
     landingTriggerMargin: stairLandingTriggerMargin,
     stepRise: STAIRCASE_CONFIG.step.rise,
+    descentCorridorInset: PLAYER_RADIUS,
   };
-  const stairNavArea = createStairNavAreaRect(stairGeometry, {
-    marginX: PLAYER_RADIUS * 0.5,
-    marginZ: PLAYER_RADIUS,
-  });
+  const stairNavigationZones = createStairNavigationZones(
+    stairGeometry,
+    stairBehavior
+  );
+  const groundStairNavZones = [
+    stairNavigationZones.lowerStairEntrance,
+    stairNavigationZones.stairRampBody,
+    stairNavigationZones.upperLanding,
+  ];
+  const upperStairNavZones = [stairNavigationZones.upperLanding];
+  const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
+  const upperStairDescentGuardMaxZ = Math.max(stairTopZ, stairBottomZ);
+  // Invisible upper-floor guard rails flank the intentional descent corridor.
+  // They keep normal landing/room movement from drifting into the stairwell
+  // void while leaving the middle corridor open for deliberate stair descent.
+  upperFloorColliders.push(
+    {
+      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+      maxX: stairNavigationZones.explicitDescentCorridor.minX,
+      minZ: upperStairDescentGuardMinZ,
+      maxZ: upperStairDescentGuardMaxZ,
+    },
+    {
+      minX: stairNavigationZones.explicitDescentCorridor.maxX,
+      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+      minZ: upperStairDescentGuardMinZ,
+      maxZ: upperStairDescentGuardMaxZ,
+    }
+  );
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1837,12 +1874,12 @@ function initializeImmersiveScene(
     ground: createNavMesh(FLOOR_PLAN, {
       padding: doorwayPadding,
       depth: doorwayDepth,
-      extraZones: [stairNavArea],
+      extraZones: groundStairNavZones,
     }),
     upper: createNavMesh(UPPER_FLOOR_PLAN, {
       padding: doorwayPadding,
       depth: doorwayDepth,
-      extraZones: [stairNavArea],
+      extraZones: upperStairNavZones,
     }),
   };
 
@@ -2875,6 +2912,26 @@ function initializeImmersiveScene(
           y: player.position.y,
           z: player.position.z,
         };
+      },
+      predictFloorAt(target: { x: number; z: number; currentFloor?: FloorId }) {
+        return predictFloorId(
+          target.x,
+          target.z,
+          target.currentFloor ?? activeFloorId
+        );
+      },
+      getStairTransitionZone(target: {
+        x: number;
+        z: number;
+        currentFloor?: FloorId;
+      }) {
+        return classifyStairTransitionZone(
+          stairGeometry,
+          stairBehavior,
+          target.x,
+          target.z,
+          target.currentFloor ?? activeFloorId
+        );
       },
       getStairMetrics() {
         return {
