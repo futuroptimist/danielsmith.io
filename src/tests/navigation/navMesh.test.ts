@@ -78,4 +78,15 @@ describe('createNavMesh', () => {
   it('includes explicitly provided zones', () => {
     expect(navMesh.contains(41, 41)).toBe(true);
   });
+
+  it('removes excluded zones from otherwise walkable rooms', () => {
+    const meshWithExclusion = createNavMesh(FLOOR_PLAN, {
+      padding: doorwayPadding,
+      depth: doorwayDepth,
+      excludedZones: [{ minX: -1, maxX: 1, minZ: -11, maxZ: -9 }],
+    });
+
+    expect(meshWithExclusion.contains(0, -10)).toBe(false);
+    expect(meshWithExclusion.contains(4, -10)).toBe(true);
+  });
 });

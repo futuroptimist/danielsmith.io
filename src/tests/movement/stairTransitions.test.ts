@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
+  classifyStairTransitionZone,
   createStairNavAreaRect,
+  createStairNavigationZones,
   predictStairFloorId,
   type FloorId,
   type StairBehavior,
@@ -86,7 +88,72 @@ describe('stair floor transitions (negative Z ascent)', () => {
     expect(result).toBe('upper');
   });
 
-  it('switches to the ground floor after leaving the landing for the ramp', () => {
+  it('transitions from ground near the top of the stairs to the upper floor', () => {
+    const currentFloor: FloorId = 'ground';
+    const nearTopZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.2);
+    const result = predictStairFloorId(
+      NEGATIVE_Z_STAIRS,
+      STAIR_BEHAVIOR,
+      NEGATIVE_Z_STAIRS.centerX,
+      nearTopZ,
+      currentFloor
+    );
+
+    expect(result).toBe('upper');
+  });
+
+  it('keeps upper-floor room movement away from stair transitions', () => {
+    const currentFloor: FloorId = 'upper';
+    const nearbyRoomX = NEGATIVE_Z_STAIRS.centerX + toWorldUnits(2.3);
+    const nearbyRoomZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(1.4);
+    const result = predictStairFloorId(
+      NEGATIVE_Z_STAIRS,
+      STAIR_BEHAVIOR,
+      nearbyRoomX,
+      nearbyRoomZ,
+      currentFloor
+    );
+
+    expect(result).toBe('upper');
+    expect(
+      classifyStairTransitionZone(
+        NEGATIVE_Z_STAIRS,
+        STAIR_BEHAVIOR,
+        nearbyRoomX,
+        nearbyRoomZ,
+        currentFloor
+      )
+    ).toBe('safeUpperFloor');
+  });
+
+  it('does not teleport at the problematic upper landing edge', () => {
+    const currentFloor: FloorId = 'upper';
+    const edgeX =
+      NEGATIVE_Z_STAIRS.centerX -
+      NEGATIVE_Z_STAIRS.halfWidth +
+      toWorldUnits(0.2);
+    const edgeZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.25);
+    const result = predictStairFloorId(
+      NEGATIVE_Z_STAIRS,
+      STAIR_BEHAVIOR,
+      edgeX,
+      edgeZ,
+      currentFloor
+    );
+
+    expect(result).toBe('upper');
+    expect(
+      classifyStairTransitionZone(
+        NEGATIVE_Z_STAIRS,
+        STAIR_BEHAVIOR,
+        edgeX,
+        edgeZ,
+        currentFloor
+      )
+    ).toBe('stairRampBody');
+  });
+
+  it('switches to the ground floor after deliberately entering the descent corridor', () => {
     const currentFloor: FloorId = 'upper';
     const firstStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.3);
     const result = predictStairFloorId(
@@ -98,6 +165,21 @@ describe('stair floor transitions (negative Z ascent)', () => {
     );
 
     expect(result).toBe('ground');
+  });
+
+  it('does not transition when lateral movement is outside the stair width', () => {
+    const currentFloor: FloorId = 'upper';
+    const farEastX = NEGATIVE_Z_STAIRS.centerX + toWorldUnits(2.5);
+    const firstStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.3);
+    const result = predictStairFloorId(
+      NEGATIVE_Z_STAIRS,
+      STAIR_BEHAVIOR,
+      farEastX,
+      firstStepZ,
+      currentFloor
+    );
+
+    expect(result).toBe('upper');
   });
 
   it('remains on the ground after passing the stair base', () => {
@@ -209,5 +291,30 @@ describe('createStairNavAreaRect', () => {
     );
     expect(rect.minZ).toBeCloseTo(expectedMinZ - marginZ, 6);
     expect(rect.maxZ).toBeCloseTo(expectedMaxZ + marginZ, 6);
+  });
+});
+
+describe('createStairNavigationZones', () => {
+  it('separates broad ramp edges from the deliberate descent corridor', () => {
+    const zones = createStairNavigationZones(
+      NEGATIVE_Z_STAIRS,
+      STAIR_BEHAVIOR,
+      {
+        marginX: toWorldUnits(0.1),
+        marginZ: toWorldUnits(0.1),
+      }
+    );
+
+    expect(zones.explicitDescentCorridor.minX).toBeGreaterThan(
+      zones.stairRampBody.minX
+    );
+    expect(zones.explicitDescentCorridor.maxX).toBeLessThan(
+      zones.stairRampBody.maxX
+    );
+    expect(zones.unsafeUpperRampEdges).toHaveLength(2);
+    zones.unsafeUpperRampEdges.forEach((edge) => {
+      expect(edge.minZ).toBeCloseTo(zones.stairRampBody.minZ, 6);
+      expect(edge.maxZ).toBeCloseTo(zones.stairRampBody.maxZ, 6);
+    });
   });
 });

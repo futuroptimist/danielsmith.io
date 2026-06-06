@@ -8,6 +8,8 @@ import type { RectCollider } from '../collision';
 export interface NavMeshOptions extends DoorwayPassageZoneOptions {
   /** Additional rectangles to include in the walkable area. */
   extraZones?: readonly RectCollider[];
+  /** Rectangles to remove from otherwise walkable room/doorway polygons. */
+  excludedZones?: readonly RectCollider[];
   /** Comparison epsilon when determining containment. */
   epsilon?: number;
 }
@@ -43,6 +45,7 @@ export function createNavMesh(
 ): NavMesh {
   const {
     extraZones = [],
+    excludedZones = [],
     epsilon = DEFAULT_EPSILON,
     ...doorwayOptions
   } = options;
@@ -62,10 +65,19 @@ export function createNavMesh(
     polygons.push(cloneRect(zone));
   });
 
+  const exclusions = excludedZones.map(cloneRect);
+
   return {
     polygons,
     contains(x, z) {
-      return polygons.some((polygon) => isWithinRect(polygon, x, z, epsilon));
+      const included = polygons.some((polygon) =>
+        isWithinRect(polygon, x, z, epsilon)
+      );
+      if (!included) {
+        return false;
+      }
+
+      return !exclusions.some((zone) => isWithinRect(zone, x, z, epsilon));
     },
   };
 }
