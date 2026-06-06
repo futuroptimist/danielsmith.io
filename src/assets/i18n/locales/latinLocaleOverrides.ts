@@ -42,6 +42,14 @@ interface LatinLocaleCopy {
     guidedTourOff: string;
     audioOn: string;
     audioOff: string;
+    audioSubtitleAmbientLabel: string;
+    audioSubtitlePoiLabel: string;
+    audioSubtitleDismissAmbient: string;
+    audioSubtitleDismissPoi: string;
+    narrationToggleLabelEnabled: string;
+    narrationToggleLabelDisabled: string;
+    narrationToggleDescriptionEnabled: string;
+    narrationToggleDescriptionDisabled: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -92,14 +100,6 @@ const localizedTemplates: Record<
     audioMutedAnnouncementTemplate: string;
     audioMutedValueTemplate: string;
     audioMutedAriaValueTemplate: string;
-    audioSubtitleAmbientLabel: string;
-    audioSubtitlePoiLabel: string;
-    audioSubtitleDismissAmbient: string;
-    audioSubtitleDismissPoi: string;
-    narrationToggleLabelEnabled: string;
-    narrationToggleLabelDisabled: string;
-    narrationToggleDescriptionEnabled: string;
-    narrationToggleDescriptionDisabled: string;
     tourResetLabel: string;
     tourResetDescription: string;
     fallbackRendererLabel: string;
@@ -148,16 +148,6 @@ const localizedTemplates: Record<
       'Audio ambiental silenciado. Volumen {volume}.',
     audioMutedValueTemplate: 'Silenciado · {volume}',
     audioMutedAriaValueTemplate: 'Silenciado ({volume})',
-    audioSubtitleAmbientLabel: 'Audio ambiental',
-    audioSubtitlePoiLabel: 'Narración',
-    audioSubtitleDismissAmbient: 'Descartar subtítulo',
-    audioSubtitleDismissPoi: 'Descartar narración',
-    narrationToggleLabelEnabled: 'Narración activada',
-    narrationToggleLabelDisabled: 'Narración desactivada',
-    narrationToggleDescriptionEnabled:
-      'Las ventanas y subtítulos de narración aparecen en futuros momentos de exhibición.',
-    narrationToggleDescriptionDisabled:
-      'Las ventanas y subtítulos de narración permanecen ocultos hasta que los actives.',
     tourResetLabel: 'Reiniciar visita guiada',
     tourResetDescription: 'Borra los POI visitados y repite la ruta curada.',
     fallbackRendererLabel: 'renderizador WebGL por software',
@@ -206,16 +196,6 @@ const localizedTemplates: Record<
       'Áudio ambiente silenciado. Volume {volume}.',
     audioMutedValueTemplate: 'Silenciado · {volume}',
     audioMutedAriaValueTemplate: 'Silenciado ({volume})',
-    audioSubtitleAmbientLabel: 'Áudio ambiente',
-    audioSubtitlePoiLabel: 'Narração',
-    audioSubtitleDismissAmbient: 'Dispensar legenda',
-    audioSubtitleDismissPoi: 'Dispensar narração',
-    narrationToggleLabelEnabled: 'Narração ativada',
-    narrationToggleLabelDisabled: 'Narração desativada',
-    narrationToggleDescriptionEnabled:
-      'Pop-ups e legendas de narração aparecem nos próximos momentos das exibições.',
-    narrationToggleDescriptionDisabled:
-      'Pop-ups e legendas de narração ficam ocultos até você ativá-los.',
     tourResetLabel: 'Reiniciar visita guiada',
     tourResetDescription:
       'Limpe os POIs visitados e repita o caminho selecionado.',
@@ -264,16 +244,6 @@ const localizedTemplates: Record<
     audioMutedAnnouncementTemplate: 'Ambient-Audio stumm. Lautstärke {volume}.',
     audioMutedValueTemplate: 'Stumm · {volume}',
     audioMutedAriaValueTemplate: 'Stumm ({volume})',
-    audioSubtitleAmbientLabel: 'Ambient-Audio',
-    audioSubtitlePoiLabel: 'Erzählung',
-    audioSubtitleDismissAmbient: 'Untertitel schließen',
-    audioSubtitleDismissPoi: 'Erzählung schließen',
-    narrationToggleLabelEnabled: 'Erzählung ein',
-    narrationToggleLabelDisabled: 'Erzählung aus',
-    narrationToggleDescriptionEnabled:
-      'Erzähl-Popups und Untertitel erscheinen bei zukünftigen Exponatmomenten.',
-    narrationToggleDescriptionDisabled:
-      'Erzähl-Popups und Untertitel bleiben verborgen, bis du sie einschaltest.',
     tourResetLabel: 'Geführte Tour neu starten',
     tourResetDescription:
       'Besuchte POIs löschen und den kuratierten Pfad wiederholen.',
@@ -323,16 +293,6 @@ const localizedTemplates: Record<
       'Környezeti hang némítva. Hangerő {volume}.',
     audioMutedValueTemplate: 'Némítva · {volume}',
     audioMutedAriaValueTemplate: 'Némítva ({volume})',
-    audioSubtitleAmbientLabel: 'Környezeti hang',
-    audioSubtitlePoiLabel: 'Narráció',
-    audioSubtitleDismissAmbient: 'Felirat elvetése',
-    audioSubtitleDismissPoi: 'Narráció elvetése',
-    narrationToggleLabelEnabled: 'Narráció bekapcsolva',
-    narrationToggleLabelDisabled: 'Narráció kikapcsolva',
-    narrationToggleDescriptionEnabled:
-      'A narrációs felugrók és feliratok megjelennek a későbbi kiállítási pillanatoknál.',
-    narrationToggleDescriptionDisabled:
-      'A narrációs felugrók és feliratok rejtve maradnak, amíg be nem kapcsolod őket.',
     tourResetLabel: 'Vezetett túra újraindítása',
     tourResetDescription:
       'Látogatott POI-k törlése és a kijelölt útvonal újrajátszása.',
@@ -692,12 +652,12 @@ export function buildLatinLocaleOverrides(
       },
       audioSubtitles: {
         labels: {
-          ambient: templates.audioSubtitleAmbientLabel,
-          poi: templates.audioSubtitlePoiLabel,
+          ambient: s.audioSubtitleAmbientLabel,
+          poi: s.audioSubtitlePoiLabel,
         },
         dismissLabels: {
-          ambient: templates.audioSubtitleDismissAmbient,
-          poi: templates.audioSubtitleDismissPoi,
+          ambient: s.audioSubtitleDismissAmbient,
+          poi: s.audioSubtitleDismissPoi,
         },
       },
       audioControl: {
@@ -735,10 +695,10 @@ export function buildLatinLocaleOverrides(
         descriptionDisabled: s.guidedTour,
       },
       narrationToggle: {
-        labelEnabled: templates.narrationToggleLabelEnabled,
-        labelDisabled: templates.narrationToggleLabelDisabled,
-        descriptionEnabled: templates.narrationToggleDescriptionEnabled,
-        descriptionDisabled: templates.narrationToggleDescriptionDisabled,
+        labelEnabled: s.narrationToggleLabelEnabled,
+        labelDisabled: s.narrationToggleLabelDisabled,
+        descriptionEnabled: s.narrationToggleDescriptionEnabled,
+        descriptionDisabled: s.narrationToggleDescriptionDisabled,
       },
       tourReset: {
         heading: s.guidedTour,

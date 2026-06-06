@@ -259,6 +259,24 @@ export const JA_OVERRIDES: LocaleOverrides = {
           'リストコンソールやホログラフィックドローンを切り替えます。',
       },
     },
+    audioSubtitles: {
+      labels: {
+        ambient: '環境音',
+        poi: 'ナレーション',
+      },
+      dismissLabels: {
+        ambient: '字幕を閉じる',
+        poi: 'ナレーションを閉じる',
+      },
+    },
+    narrationToggle: {
+      labelEnabled: 'ナレーション オン',
+      labelDisabled: 'ナレーション オフ',
+      descriptionEnabled:
+        '今後の展示シーンでナレーションのポップアップと字幕を表示します。',
+      descriptionDisabled:
+        'オンにするまでナレーションのポップアップと字幕は非表示です。',
+    },
     poiOverlay: {
       visited: '訪問済み',
       nextHighlight: '次のハイライト',

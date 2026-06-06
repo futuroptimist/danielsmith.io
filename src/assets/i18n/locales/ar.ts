@@ -258,6 +258,24 @@ export const AR_OVERRIDES: LocaleOverrides = {
         description: 'فعّل سوار المعصم أو الطائرة الهولوغرافية.',
       },
     },
+    audioSubtitles: {
+      labels: {
+        ambient: 'الصوت المحيط',
+        poi: 'السرد',
+      },
+      dismissLabels: {
+        ambient: 'إغلاق التسمية التوضيحية',
+        poi: 'إغلاق السرد',
+      },
+    },
+    narrationToggle: {
+      labelEnabled: 'السرد مفعّل',
+      labelDisabled: 'السرد معطّل',
+      descriptionEnabled:
+        'تظهر نوافذ السرد والتسميات التوضيحية في محطات المعرض القادمة.',
+      descriptionDisabled:
+        'تبقى نوافذ السرد والتسميات التوضيحية مخفية حتى تفعّلها.',
+    },
     poiOverlay: {
       visited: 'تمت الزيارة',
       nextHighlight: 'المحطة التالية',
