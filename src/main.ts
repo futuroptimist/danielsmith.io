@@ -3733,6 +3733,17 @@ function initializeImmersiveScene(
     updateDebugCoordinatesLabels();
   };
 
+  const syncDebugCoordinatesOverlayVisibility = () => {
+    if (!debugCoordinatesOverlay) {
+      return;
+    }
+    debugCoordinatesOverlay.hidden = !debugCoordinatesEnabled;
+    debugCoordinatesOverlay.setAttribute(
+      'aria-hidden',
+      debugCoordinatesEnabled ? 'false' : 'true'
+    );
+  };
+
   const setDebugCoordinatesRowValue = (
     rowId: DebugCoordinatesRowId,
     value: string
@@ -3804,9 +3815,7 @@ function initializeImmersiveScene(
     options: { persist?: boolean } = { persist: true }
   ) => {
     debugCoordinatesEnabled = enabled;
-    if (debugCoordinatesOverlay) {
-      debugCoordinatesOverlay.hidden = !enabled;
-    }
+    syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
     if (enabled) {
       updateDebugCoordinatesOverlay();
@@ -3831,8 +3840,7 @@ function initializeImmersiveScene(
 
   debugCoordinatesOverlay = document.createElement('aside');
   debugCoordinatesOverlay.className = 'debug-coordinates';
-  debugCoordinatesOverlay.setAttribute('aria-hidden', 'true');
-  debugCoordinatesOverlay.hidden = !debugCoordinatesEnabled;
+  syncDebugCoordinatesOverlayVisibility();
   document.body.appendChild(debugCoordinatesOverlay);
   createDebugCoordinatesOverlayContent();
 

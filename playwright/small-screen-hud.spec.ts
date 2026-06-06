@@ -300,7 +300,7 @@ test.describe('small-screen HUD regression coverage', () => {
       await expect(overlay).toContainText(/Debug coordinates/i);
       await expect(overlay).toContainText(/XYZ/i);
       await expect(overlay).toContainText(/Active floor/i);
-      await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+      await expect(overlay).toHaveAttribute('aria-hidden', 'false');
       expect(await overlay.getAttribute('aria-live')).toBeNull();
       await expect
         .poll(async () => getDebugCoordinatesState(page))
@@ -317,6 +317,7 @@ test.describe('small-screen HUD regression coverage', () => {
           (window as PortfolioPoiWindow).portfolio?.debugCoordinates?.getState
       );
       await expect(overlay).toBeVisible();
+      await expect(overlay).toHaveAttribute('aria-hidden', 'false');
       await expect
         .poll(async () => getDebugCoordinatesState(page))
         .toMatchObject({ enabled: true });
