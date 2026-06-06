@@ -454,7 +454,7 @@ describe('wireGitHubRepoMetrics', () => {
         ],
       }),
       createPoi({
-        id: 'private-stars-poi',
+        id: 'danielsmith-portfolio-table',
         metrics: [
           {
             label: 'Stars',

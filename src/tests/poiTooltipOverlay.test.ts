@@ -718,7 +718,7 @@ describe('PoiTooltipOverlay', () => {
 
     const nextPoi: PoiDefinition = {
       ...basePoi,
-      id: 'futuroptimist-living-room-tv-variant',
+      id: 'jobbot-studio-terminal',
       title: 'Futuroptimist Alt',
       interactionPrompt: 'Inspect Futuroptimist Alt',
     };
@@ -879,7 +879,7 @@ describe('PoiTooltipOverlay', () => {
 
   it('hides recommendation badges when guided tour mode is disabled', () => {
     overlay.setIdleState(true);
-    preference.setEnabled(false, 'test');
+    preference.setEnabled(false, 'api');
     overlay.setRecommendation(basePoi);
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
@@ -892,7 +892,7 @@ describe('PoiTooltipOverlay', () => {
     ) as HTMLSpanElement;
     expect(badge.hidden).toBe(true);
 
-    preference.setEnabled(true, 'test');
+    preference.setEnabled(true, 'api');
     expect(root.dataset.guidedTour).toBe('on');
     expect(badge.hidden).toBe(false);
   });
@@ -947,7 +947,7 @@ describe('PoiTooltipOverlay', () => {
       guidedTourPreference: preference,
     });
 
-    overlay.setSelected({ ...basePoi, summary: undefined });
+    overlay.setSelected({ ...basePoi, summary: '' });
 
     const liveRegion = container.querySelector(
       '.poi-tooltip-overlay__live-region'
