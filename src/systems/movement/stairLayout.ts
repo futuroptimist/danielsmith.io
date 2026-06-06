@@ -10,6 +10,13 @@ export interface StairLayoutConfig {
   stairwellMargin: number;
 }
 
+export interface StairwellOpeningBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
 export interface StairLayoutResult {
   topZ: number;
   landingMinZ: number;
@@ -66,5 +73,29 @@ export const computeStairLayout = (
     directionMultiplier,
     guardRange: { minZ: guardRangeMin, maxZ: guardRangeMax },
     stairHoleRange: { minZ: stairHoleMinZ, maxZ: stairHoleMaxZ },
+  };
+};
+
+export interface StairwellOpeningBoundsConfig extends StairLayoutConfig {
+  centerX: number;
+  halfWidth: number;
+  marginX: number;
+}
+
+/**
+ * Computes the full upper-floor stairwell void from the same stair run,
+ * landing, direction, and margin values used by movement. Visual floor cutouts
+ * should call this instead of re-deriving bounds so the stair opening always
+ * tracks the navigation layout.
+ */
+export const computeStairwellOpeningBounds = (
+  config: StairwellOpeningBoundsConfig
+): StairwellOpeningBounds => {
+  const layout = computeStairLayout(config);
+  return {
+    minX: config.centerX - config.halfWidth - config.marginX,
+    maxX: config.centerX + config.halfWidth + config.marginX,
+    minZ: layout.stairHoleRange.minZ,
+    maxZ: layout.stairHoleRange.maxZ,
   };
 };
