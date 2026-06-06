@@ -184,6 +184,18 @@ export interface LocaleOptionStrings {
   direction: LocaleDirection;
 }
 
+export interface NarrationToggleStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
+export interface AudioSubtitleStrings {
+  labels: Record<'ambient' | 'poi', string>;
+  dismissLabels: Record<'ambient' | 'poi', string>;
+}
+
 export interface TourGuideToggleStrings {
   labelEnabled: string;
   labelDisabled: string;
@@ -377,6 +389,8 @@ export interface LocaleStrings {
     audioControl: AudioHudControlStrings;
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
+    narrationToggle: NarrationToggleStrings;
+    audioSubtitles: AudioSubtitleStrings;
     tourGuideToggle: TourGuideToggleStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;

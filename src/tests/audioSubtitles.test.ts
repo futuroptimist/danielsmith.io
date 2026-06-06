@@ -30,6 +30,75 @@ describe('audio subtitles overlay', () => {
     );
   };
 
+  it('renders an accessible dismiss button while visible', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration can be dismissed.',
+      source: 'poi',
+      durationMs: 1000,
+    });
+
+    const button = document.querySelector<HTMLButtonElement>(
+      '.audio-subtitles__dismiss'
+    );
+
+    expect(button).toBeInstanceOf(HTMLButtonElement);
+    expect(button?.getAttribute('aria-label')).toBe('Dismiss narration');
+    expect(button?.tabIndex).toBeGreaterThanOrEqual(0);
+    handle.dispose();
+  });
+
+  it('dismisses the active caption immediately and drops queued captions', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-narration',
+      text: 'Long-running narration clip.',
+      source: 'poi',
+      priority: 4,
+      durationMs: 5000,
+    });
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Queued ambient track awaiting playback.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 600,
+    });
+
+    document
+      .querySelector<HTMLButtonElement>('.audio-subtitles__dismiss')
+      ?.click();
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    expect(handle.getState().queueLength).toBe(0);
+    expect(handle.getState().dismissCount).toBe(1);
+    vi.advanceTimersByTime(5000);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('uses ambient dismiss labels for ambient captions', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Ambient caption can be dismissed.',
+      source: 'ambient',
+      durationMs: 1000,
+    });
+
+    expect(
+      document
+        .querySelector<HTMLButtonElement>('.audio-subtitles__dismiss')
+        ?.getAttribute('aria-label')
+    ).toBe('Dismiss caption');
+    handle.dispose();
+  });
+
   it('shows captions with labels and auto-hides after the configured duration', () => {
     const handle = createAudioSubtitles();
     handle.show({

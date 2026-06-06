@@ -299,6 +299,26 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Unable to switch to {target}. Staying on {current} locale.'
       ),
     },
+    narrationToggle: {
+      labelEnabled: wrap('Narration: On'),
+      labelDisabled: wrap('Narration: Off'),
+      descriptionEnabled: wrap(
+        'Disable narration popups and captions. Existing history stays in Settings.'
+      ),
+      descriptionDisabled: wrap(
+        'Enable narration popups and captions for future exhibit and ambient cues.'
+      ),
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: wrap('Ambient caption'),
+        poi: wrap('Narration'),
+      },
+      dismissLabels: {
+        ambient: wrap('Dismiss caption'),
+        poi: wrap('Dismiss narration'),
+      },
+    },
     tourGuideToggle: {
       labelEnabled: wrap('Guided tour on'),
       labelDisabled: wrap('Guided tour off'),

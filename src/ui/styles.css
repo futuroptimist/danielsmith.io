@@ -568,7 +568,7 @@ canvas {
   bottom: 3.5rem;
   transform: translateX(-50%);
   max-width: min(90vw, 36rem);
-  padding: 0.9rem 1.2rem;
+  padding: 0.9rem 3rem 0.9rem 1.2rem;
   border-radius: 0.9rem;
   background: rgba(5, 12, 21, 0.82);
   border: 1px solid rgba(88, 183, 255, 0.32);
@@ -586,6 +586,30 @@ canvas {
 
 .audio-subtitles[data-visible='true'] {
   opacity: 1;
+  pointer-events: auto;
+}
+
+.audio-subtitles__dismiss {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid rgba(148, 208, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(12, 28, 45, 0.72);
+  color: rgba(230, 243, 255, 0.95);
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.audio-subtitles__dismiss:focus-visible,
+.audio-subtitles__dismiss:hover {
+  border-color: rgba(151, 222, 255, 0.9);
+  background: rgba(30, 68, 100, 0.88);
+  outline: 2px solid rgba(151, 222, 255, 0.42);
+  outline-offset: 2px;
 }
 
 .audio-subtitles__label {
@@ -615,7 +639,7 @@ canvas {
 
 html[data-hud-layout='mobile'] .audio-subtitles {
   bottom: 6.5rem;
-  padding: 0.85rem 1.05rem;
+  padding: 0.85rem 3rem 0.85rem 1.05rem;
   font-size: 0.95rem;
 }
 

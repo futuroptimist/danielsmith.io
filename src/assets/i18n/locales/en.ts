@@ -313,6 +313,24 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       failureAnnouncementTemplate:
         'Unable to switch to {target}. Staying on {current} locale.',
     },
+    narrationToggle: {
+      labelEnabled: 'Narration: On',
+      labelDisabled: 'Narration: Off',
+      descriptionEnabled:
+        'Disable narration popups and captions. Existing history stays in Settings.',
+      descriptionDisabled:
+        'Enable narration popups and captions for future exhibit and ambient cues.',
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: 'Ambient caption',
+        poi: 'Narration',
+      },
+      dismissLabels: {
+        ambient: 'Dismiss caption',
+        poi: 'Dismiss narration',
+      },
+    },
     tourGuideToggle: {
       labelEnabled: 'Guided tour on',
       labelDisabled: 'Guided tour off',
