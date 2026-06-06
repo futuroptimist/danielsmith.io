@@ -292,7 +292,7 @@ export class PoiInteractionManager {
   }
 
   private handleKeyDown(event: KeyboardEvent) {
-    if (!this.enableKeyboard || this.getEnabledPoiInstances().length === 0) {
+    if (!this.enableKeyboard) {
       return;
     }
 
@@ -332,12 +332,23 @@ export class PoiInteractionManager {
       case 'enter':
       case ' ':
       case 'f': {
-        if (this.hovered) {
-          event.preventDefault();
-          this.usingKeyboard = true;
-          this.setSelected(this.hovered, 'keyboard');
-          this.dispatchSelection(this.hovered.definition);
+        if (!this.hovered) {
+          break;
         }
+
+        event.preventDefault();
+        if (!this.isPoiEnabled(this.hovered)) {
+          const staleHovered = this.hovered;
+          this.setHovered(null, 'keyboard');
+          if (this.selected === staleHovered) {
+            this.setSelected(null, 'keyboard');
+          }
+          break;
+        }
+
+        this.usingKeyboard = true;
+        this.setSelected(this.hovered, 'keyboard');
+        this.dispatchSelection(this.hovered.definition);
         break;
       }
       case 'escape':

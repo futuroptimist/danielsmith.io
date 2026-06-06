@@ -488,6 +488,36 @@ describe('PoiInteractionManager', () => {
     window.removeEventListener('poi:selected', customEventHandler);
   });
 
+  it('does not activate a stale hovered POI after it becomes disabled', () => {
+    manager.dispose();
+    let enabled = true;
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      isPoiEnabled: () => enabled,
+    });
+    manager.start();
+    const listener = vi.fn();
+    const selectionState = vi.fn();
+    manager.addSelectionListener(listener);
+    manager.addSelectionStateListener(selectionState);
+    const customEventHandler = vi.fn();
+    window.addEventListener('poi:selected', customEventHandler);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(poi.focusTarget).toBe(1);
+
+    enabled = false;
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(customEventHandler).not.toHaveBeenCalled();
+    expect(selectionState).not.toHaveBeenCalled();
+    expect(poi.focusTarget).toBe(0);
+
+    window.removeEventListener('poi:selected', customEventHandler);
+  });
+
   it('selects POIs programmatically by id', () => {
     manager.start();
     const listener = vi.fn();
