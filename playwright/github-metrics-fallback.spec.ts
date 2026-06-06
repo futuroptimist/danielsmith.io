@@ -15,8 +15,15 @@ const RUNTIME_CACHE_REPOS = [
   'futuroptimist/sigma',
   'futuroptimist/wove',
   'democratizedspace/dspace',
+  'futuroptimist/axel',
+  'futuroptimist/sugarkube',
   'futuroptimist/pr-reaper',
 ] as const;
+
+const ZERO_STAR_RUNTIME_CACHE_REPOS = new Set([
+  'futuroptimist/axel',
+  'futuroptimist/sugarkube',
+]);
 
 const createRuntimeCacheRepos = () =>
   Object.fromEntries(
@@ -27,7 +34,7 @@ const createRuntimeCacheRepos = () =>
         {
           owner,
           repo,
-          stars: 77 + index,
+          stars: ZERO_STAR_RUNTIME_CACHE_REPOS.has(key) ? 0 : 77 + index,
           watchers: 1,
           forks: 2,
           openIssues: 0,

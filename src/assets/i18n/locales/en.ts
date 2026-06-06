@@ -746,6 +746,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Alpha releases keep README, FAQ, and threat model coverage in sync with the pytest suite.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'axel',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         { label: 'Status', value: 'Alpha · pipx install axel' },
         {
           label: 'Repo analytics',
@@ -937,7 +949,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             type: 'githubStars',
             owner: 'democratizedspace',
             repo: 'dspace',
-            visibility: 'private',
+            visibility: 'public',
             format: 'compact',
             template: '{value} stars',
             fallback: 'Syncing from GitHub…',
@@ -999,6 +1011,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Docs cover the 3-node HA k3s happy path, Raspberry Pi imaging, flashing, verification, and solar hardware notes.',
       },
       metrics: [
+        {
+          label: 'Stars',
+          value: 'Syncing from GitHub…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'sugarkube',
+            format: 'compact',
+            template: '{value} stars',
+            fallback: 'Syncing from GitHub…',
+          },
+        },
         {
           label: 'Platform',
           value:

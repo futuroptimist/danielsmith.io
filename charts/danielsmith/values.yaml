@@ -83,6 +83,10 @@ githubMetricsCache:
     - owner: democratizedspace
       repo: dspace
     - owner: futuroptimist
+      repo: axel
+    - owner: futuroptimist
+      repo: sugarkube
+    - owner: futuroptimist
       repo: pr-reaper
   resources:
     requests:

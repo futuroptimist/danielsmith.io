@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2026-06-04T03:26:52.636Z",
+  "generatedAtIso": "2026-06-06T06:30:53.249Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -338,6 +338,18 @@
       },
       "metrics": [
         {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "axel",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
+        {
           "label": "Status",
           "value": "Alpha · pipx install axel"
         },
@@ -610,6 +622,7 @@
             "type": "githubStars",
             "owner": "democratizedspace",
             "repo": "dspace",
+            "visibility": "public",
             "format": "compact",
             "template": "{value} stars",
             "fallback": "Syncing from GitHub…"
@@ -697,6 +710,18 @@
         "name": "Backyard"
       },
       "metrics": [
+        {
+          "label": "Stars",
+          "value": "Syncing from GitHub…",
+          "source": {
+            "type": "githubStars",
+            "owner": "futuroptimist",
+            "repo": "sugarkube",
+            "format": "compact",
+            "template": "{value} stars",
+            "fallback": "Syncing from GitHub…"
+          }
+        },
         {
           "label": "Platform",
           "value": "k3s, Kubernetes helpers, Cloudflare tunnels, and solar tilt/irrigation notes"
