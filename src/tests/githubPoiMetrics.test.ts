@@ -199,7 +199,8 @@ describe('wireGitHubRepoMetrics', () => {
               type: 'githubStars',
               owner: 'democratizedspace',
               repo: 'dspace',
-              visibility: 'private',
+              visibility: 'public',
+              template: '{value} stars',
               fallback: 'Hidden',
             },
           },
@@ -219,6 +220,7 @@ describe('wireGitHubRepoMetrics', () => {
     expect(service.requested).toEqual([
       'futuroptimist/flywheel',
       'futuroptimist/axel',
+      'democratizedspace/dspace',
     ]);
     expect(definitions[3].metrics?.[0]?.value).toBe('Hidden');
 
@@ -242,7 +244,13 @@ describe('wireGitHubRepoMetrics', () => {
     expect(definitions[2].metrics?.[0]?.value).toBe('86 stars');
     expect(
       service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
-    ).toBe(0);
+    ).toBe(1);
+
+    service.emit(
+      { owner: 'democratizedspace', repo: 'dspace' },
+      { stars: 3, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    expect(definitions[3].metrics?.[0]?.value).toBe('3 stars');
 
     controller.dispose();
     expect(
@@ -254,6 +262,58 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 2000, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(updated).toHaveLength(previousUpdates);
+  });
+
+  it('renders zero-star GitHub updates as valid metric values', async () => {
+    const definitions: PoiDefinition[] = [
+      createPoi({
+        id: 'sugarkube-backyard-greenhouse',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Syncing from GitHub…',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'sugarkube',
+              template: '{value} stars',
+              fallback: 'Syncing from GitHub…',
+            },
+          },
+        ],
+      }),
+      createPoi({
+        id: 'axel-studio-tracker',
+        metrics: [
+          {
+            label: 'Stars',
+            value: 'Syncing from GitHub…',
+            source: {
+              type: 'githubStars',
+              owner: 'futuroptimist',
+              repo: 'axel',
+              template: '{value} stars',
+              fallback: 'Syncing from GitHub…',
+            },
+          },
+        ],
+      }),
+    ];
+    const service = new MockRepoStatsService();
+    const controller = wireGitHubRepoMetrics({ definitions, service });
+
+    service.emit(
+      { owner: 'futuroptimist', repo: 'sugarkube' },
+      { stars: 0, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    service.emit(
+      { owner: 'futuroptimist', repo: 'axel' },
+      { stars: 0, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+
+    expect(definitions[0].metrics?.[0]?.value).toBe('0 stars');
+    expect(definitions[1].metrics?.[0]?.value).toBe('0 stars');
+    controller.dispose();
   });
 
   it('stops refreshes when the probe request restores backoff', async () => {

@@ -188,6 +188,25 @@ describe('PoiTooltipOverlay', () => {
     expect(describedIds).toContain(linksList.id);
   });
 
+  it('renders zero-star metrics instead of treating them as missing', () => {
+    overlay.setHovered({
+      ...basePoi,
+      metrics: [{ label: 'Stars', value: '0 stars' }],
+    });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const metrics = Array.from(
+      root.querySelectorAll('.poi-tooltip-overlay__metric')
+    );
+    expect(metrics).toHaveLength(1);
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-label')?.textContent
+    ).toBe('Stars');
+    expect(
+      root.querySelector('.poi-tooltip-overlay__metric-value')?.textContent
+    ).toBe('0 stars');
+  });
+
   it('renders selected POI metadata without a hover target', () => {
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 
