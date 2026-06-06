@@ -5,6 +5,7 @@ import {
   formatMessage,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCoordinatesStrings,
   getHelpModalStrings,
   getLocaleDirection,
   getLocaleToggleStrings,
@@ -777,6 +778,32 @@ describe('i18n utilities', () => {
     AVAILABLE_LOCALES.forEach((locale) => {
       assertNoMissingStrings(getLocaleStrings(locale), locale);
     });
+  });
+
+  it('localizes debug coordinate controls across locales', () => {
+    expect(getDebugCoordinatesStrings('en').labelDisabled).toBe(
+      'Debug coordinates off'
+    );
+    expect(getDebugCoordinatesStrings('es').labels.activeFloor).toBe(
+      'Piso activo'
+    );
+    expect(getDebugCoordinatesStrings('pt').values.yes).toBe('Sim');
+    expect(getDebugCoordinatesStrings('de').labels.stairNav).toBe(
+      'Treppen-Navigationsbereich'
+    );
+    expect(getDebugCoordinatesStrings('hu').labelEnabled).toBe(
+      'Hibakeresési koordináták be'
+    );
+    expect(getDebugCoordinatesStrings('zh-Hans').labels.predictedFloor).toBe(
+      '楼梯预测楼层'
+    );
+    expect(getDebugCoordinatesStrings('ja').values.none).toBe('なし');
+    expect(getDebugCoordinatesStrings('ar').overlayLabel).toBe(
+      'إحداثيات التصحيح'
+    );
+    expect(getDebugCoordinatesStrings('en-x-pseudo').labelDisabled).toBe(
+      '⟦Debug coordinates off⟧'
+    );
   });
 
   it('localizes narration controls and subtitle labels for Latin locales', () => {

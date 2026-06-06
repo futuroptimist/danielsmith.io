@@ -50,6 +50,23 @@ interface LatinLocaleCopy {
     narrationToggleLabelDisabled: string;
     narrationToggleDescriptionEnabled: string;
     narrationToggleDescriptionDisabled: string;
+    debugCoordinatesLabelEnabled: string;
+    debugCoordinatesLabelDisabled: string;
+    debugCoordinatesDescriptionEnabled: string;
+    debugCoordinatesDescriptionDisabled: string;
+    debugCoordinatesOverlayLabel: string;
+    debugCoordinatesPosition: string;
+    debugCoordinatesActiveFloor: string;
+    debugCoordinatesPredictedFloor: string;
+    debugCoordinatesCameraZoom: string;
+    debugCoordinatesStairWidth: string;
+    debugCoordinatesLanding: string;
+    debugCoordinatesStairNav: string;
+    debugCoordinatesStairZone: string;
+    debugCoordinatesRoom: string;
+    debugCoordinatesYes: string;
+    debugCoordinatesNo: string;
+    debugCoordinatesNone: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -699,6 +716,29 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.narrationToggleLabelDisabled,
         descriptionEnabled: s.narrationToggleDescriptionEnabled,
         descriptionDisabled: s.narrationToggleDescriptionDisabled,
+      },
+      debugCoordinates: {
+        labelEnabled: s.debugCoordinatesLabelEnabled,
+        labelDisabled: s.debugCoordinatesLabelDisabled,
+        descriptionEnabled: s.debugCoordinatesDescriptionEnabled,
+        descriptionDisabled: s.debugCoordinatesDescriptionDisabled,
+        overlayLabel: s.debugCoordinatesOverlayLabel,
+        labels: {
+          position: s.debugCoordinatesPosition,
+          activeFloor: s.debugCoordinatesActiveFloor,
+          predictedFloor: s.debugCoordinatesPredictedFloor,
+          cameraZoom: s.debugCoordinatesCameraZoom,
+          stairWidth: s.debugCoordinatesStairWidth,
+          landing: s.debugCoordinatesLanding,
+          stairNav: s.debugCoordinatesStairNav,
+          stairZone: s.debugCoordinatesStairZone,
+          room: s.debugCoordinatesRoom,
+        },
+        values: {
+          yes: s.debugCoordinatesYes,
+          no: s.debugCoordinatesNo,
+          none: s.debugCoordinatesNone,
+        },
       },
       tourReset: {
         heading: s.guidedTour,
