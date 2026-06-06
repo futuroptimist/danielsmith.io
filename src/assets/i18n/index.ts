@@ -13,6 +13,7 @@ import type {
   AudioHudControlStrings,
   AudioSubtitleStrings,
   ControlOverlayStrings,
+  DebugCoordinatesStrings,
   DeepPartial,
   HelpModalStrings,
   Locale,
@@ -466,6 +467,12 @@ export function getNarrationToggleStrings(
   input?: LocaleInput
 ): NarrationToggleStrings {
   return cloneValue(getLocaleStrings(input).hud.narrationToggle);
+}
+
+export function getDebugCoordinatesStrings(
+  input?: LocaleInput
+): DebugCoordinatesStrings {
+  return cloneValue(getLocaleStrings(input).hud.debugCoordinates);
 }
 
 export function getTourResetControlStrings(

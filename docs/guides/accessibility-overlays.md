@@ -45,6 +45,19 @@ screen-reader visitors receive the same metadata as 3D players.
   [`playwright/keyboard-traversal.spec.ts`](../../playwright/keyboard-traversal.spec.ts))
   to verify the overlay announces each POI in the expected order.
 
+## Debug coordinate overlay
+
+- The immersive Settings menu includes an opt-in **Debug coordinates** toggle for
+  QA reports. It defaults off and persists in `localStorage` under
+  `danielsmith.io::debugCoordinates::v1`.
+- Use `?debugCoordinates=1` with the standard immersive preview overrides when a
+  report needs coordinates immediately:
+  `?mode=immersive&disablePerformanceFailover=1&debugCoordinates=1`.
+- The overlay is pointer-transparent, updates at a modest cadence, and should
+  stay out of the text-only fallback. It reports player XYZ, active/predicted
+  stair floor, camera zoom, stair width/landing/nav-area booleans, stair zone,
+  and room id for copy-pasteable upstairs/stair bug reports.
+
 ## Automated audits
 
 - `npm run test:ci` now includes

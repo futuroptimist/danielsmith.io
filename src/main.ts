@@ -44,6 +44,7 @@ import {
   getAudioHudControlStrings,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCoordinatesStrings,
   getHelpModalStrings,
   getHudCustomizationStrings,
   getLocaleDirection,
@@ -299,6 +300,10 @@ import {
 import { createAvatarAccessoryControl } from './systems/controls/avatarAccessoryControl';
 import { createAvatarVariantControl } from './systems/controls/avatarVariantControl';
 import {
+  createDebugCoordinatesControl,
+  type DebugCoordinatesControlHandle,
+} from './systems/controls/debugCoordinatesControl';
+import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
 } from './systems/controls/graphicsQualityControl';
@@ -369,6 +374,8 @@ import { computeStairLayout } from './systems/movement/stairLayout';
 import {
   classifyStairTransitionZone,
   createStairNavigationZones,
+  isWithinLanding,
+  isWithinStairWidth,
   predictStairFloorId,
   sampleStairSurfaceHeight,
   type FloorId,
@@ -415,6 +422,11 @@ import {
   createHudCustomizationSection,
   type HudCustomizationHandle,
 } from './ui/hud/customizationSection';
+import {
+  createDebugCoordinatesOverlay,
+  type DebugCoordinatesOverlayHandle,
+  type DebugCoordinatesState,
+} from './ui/hud/debugCoordinatesOverlay';
 import { createHelpModal } from './ui/hud/helpModal';
 import {
   attachHelpModalController,
@@ -457,6 +469,7 @@ const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
+const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
 const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
@@ -507,6 +520,10 @@ declare global {
           storageKeyVersion: string;
           activeStorageKey: string;
         };
+      };
+      debugCoordinates?: {
+        getState(): DebugCoordinatesState;
+        setEnabled(enabled: boolean): void;
       };
       narration?: {
         getState(): {
@@ -1008,6 +1025,8 @@ function initializeImmersiveScene(
   let inputLatencyTelemetry: InputLatencyTelemetryHandle | null = null;
   let manualModeToggle: ManualModeToggleHandle | null = null;
   let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
+  let debugCoordinatesControl: DebugCoordinatesControlHandle | null = null;
+  let debugCoordinatesOverlay: DebugCoordinatesOverlayHandle | null = null;
   let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let responsiveControlOverlay: ResponsiveControlOverlayHandle | null = null;
@@ -1216,6 +1235,47 @@ function initializeImmersiveScene(
     localeStorage = undefined;
   }
 
+  const readDebugCoordinatesPreference = (): boolean => {
+    try {
+      return localeStorage?.getItem(DEBUG_COORDINATES_STORAGE_KEY) === '1';
+    } catch {
+      return false;
+    }
+  };
+
+  const hasDebugCoordinatesUrlOverride = (): boolean => {
+    const params = new URLSearchParams(window.location.search);
+    const value = params.get('debugCoordinates');
+    return value === '1' || value === 'true' || value === 'yes';
+  };
+
+  const writeDebugCoordinatesPreference = (enabled: boolean) => {
+    try {
+      localeStorage?.setItem(
+        DEBUG_COORDINATES_STORAGE_KEY,
+        enabled ? '1' : '0'
+      );
+    } catch {
+      /* ignore storage write failures */
+    }
+  };
+
+  let debugCoordinatesEnabled =
+    readDebugCoordinatesPreference() || hasDebugCoordinatesUrlOverride();
+
+  const setDebugCoordinatesEnabled = (
+    enabled: boolean,
+    source: 'control' | 'api' | 'url' = 'control'
+  ) => {
+    debugCoordinatesEnabled = enabled;
+    if (source !== 'url') {
+      writeDebugCoordinatesPreference(enabled);
+    }
+    debugCoordinatesControl?.setEnabled(enabled);
+    debugCoordinatesOverlay?.setEnabled(enabled);
+    debugCoordinatesOverlay?.refresh();
+  };
+
   let ambientAudioStorage: Storage | undefined;
   try {
     ambientAudioStorage = window.localStorage;
@@ -1281,6 +1341,7 @@ function initializeImmersiveScene(
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
   let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
   let narrationToggleStrings = getNarrationToggleStrings(locale);
+  let debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
@@ -3390,6 +3451,7 @@ function initializeImmersiveScene(
     audioHudStrings = getAudioHudControlStrings(locale);
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
     narrationToggleStrings = getNarrationToggleStrings(locale);
+    debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
@@ -3464,6 +3526,8 @@ function initializeImmersiveScene(
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
+    debugCoordinatesControl?.setStrings(debugCoordinatesStrings);
+    debugCoordinatesOverlay?.setStrings(debugCoordinatesStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
     updateHelpButtonLabel();
@@ -3568,6 +3632,74 @@ function initializeImmersiveScene(
 
   updatePlayerVerticalPosition();
   document.documentElement.dataset.activeFloor = activeFloorId;
+
+  const containsPoint = (
+    rect: { minX: number; maxX: number; minZ: number; maxZ: number },
+    x: number,
+    z: number
+  ): boolean =>
+    x >= rect.minX && x <= rect.maxX && z >= rect.minZ && z <= rect.maxZ;
+
+  const getCurrentRoomId = (): string | null => {
+    const plan = activeFloorId === 'upper' ? UPPER_FLOOR_PLAN : FLOOR_PLAN;
+    const room = plan.rooms.find(({ bounds }) =>
+      containsPoint(bounds, player.position.x, player.position.z)
+    );
+    return room?.id ?? null;
+  };
+
+  const getDebugCoordinatesState = (): DebugCoordinatesState => {
+    const { x, y, z } = player.position;
+    const predictedFloorId = predictFloorId(x, z, activeFloorId);
+    const stairZone = classifyStairTransitionZone(
+      stairGeometry,
+      stairBehavior,
+      x,
+      z,
+      activeFloorId
+    );
+    const insideStairNavArea = Object.values(stairNavigationZones).some(
+      (rect) => containsPoint(rect, x, z)
+    );
+
+    return {
+      enabled: debugCoordinatesEnabled,
+      x,
+      y,
+      z,
+      activeFloorId,
+      predictedFloorId,
+      cameraZoom,
+      insideStairWidth: isWithinStairWidth(stairGeometry, x),
+      insideLanding: isWithinLanding(stairGeometry, x, z),
+      insideStairNavArea,
+      stairZone,
+      roomId: getCurrentRoomId(),
+    };
+  };
+
+  debugCoordinatesOverlay = createDebugCoordinatesOverlay({
+    container: document.body,
+    getState: getDebugCoordinatesState,
+    strings: debugCoordinatesStrings,
+  });
+  debugCoordinatesOverlay.setEnabled(debugCoordinatesEnabled);
+
+  const ensureDebugCoordinatesApi = () => {
+    const portfolioWindow = window as Window;
+    if (!portfolioWindow.portfolio) {
+      portfolioWindow.portfolio = {};
+    }
+    portfolioWindow.portfolio.debugCoordinates = {
+      getState() {
+        return getDebugCoordinatesState();
+      },
+      setEnabled(enabled: boolean) {
+        setDebugCoordinatesEnabled(Boolean(enabled), 'api');
+      },
+    };
+  };
+  ensureDebugCoordinatesApi();
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -3997,6 +4129,16 @@ function initializeImmersiveScene(
       strings: tourGuideToggleStrings,
     });
     registerHudControlElement(tourGuideToggleControl?.element ?? null);
+
+    debugCoordinatesControl = createDebugCoordinatesControl({
+      container: hudSettingsStack,
+      initialEnabled: debugCoordinatesEnabled,
+      onToggle: (enabled) => {
+        setDebugCoordinatesEnabled(enabled, 'control');
+      },
+      strings: debugCoordinatesStrings,
+    });
+    registerHudControlElement(debugCoordinatesControl?.element ?? null);
 
     tourResetControl = createTourResetControl({
       container: hudSettingsStack,
@@ -4962,6 +5104,14 @@ function initializeImmersiveScene(
     if (motionBlurControl) {
       motionBlurControl.dispose();
       motionBlurControl = null;
+    }
+    if (debugCoordinatesControl) {
+      debugCoordinatesControl.dispose();
+      debugCoordinatesControl = null;
+    }
+    if (debugCoordinatesOverlay) {
+      debugCoordinatesOverlay.dispose();
+      debugCoordinatesOverlay = null;
     }
     if (footstepAudio) {
       if (footstepAudio.isPlaying) {

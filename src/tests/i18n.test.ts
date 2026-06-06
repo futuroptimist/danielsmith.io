@@ -5,6 +5,7 @@ import {
   formatMessage,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCoordinatesStrings,
   getHelpModalStrings,
   getLocaleDirection,
   getLocaleToggleStrings,
@@ -787,6 +788,28 @@ describe('i18n utilities', () => {
     expect(getNarrationToggleStrings('de').labelEnabled).toBe('Erzählung ein');
     expect(getNarrationToggleStrings('hu').descriptionDisabled).toContain(
       'rejtve maradnak'
+    );
+  });
+
+  it('localizes debug coordinate controls for every resolved locale', () => {
+    expect(getDebugCoordinatesStrings('en').labelDisabled).toBe(
+      'Debug coordinates off'
+    );
+    expect(getDebugCoordinatesStrings('en-x-pseudo').overlay.title).toBe(
+      '⟦Debug coordinates⟧'
+    );
+    expect(getDebugCoordinatesStrings('ar').overlay.activeFloor).toBe(
+      'الطابق النشط'
+    );
+    expect(getDebugCoordinatesStrings('ja').labelEnabled).toBe(
+      'デバッグ座標 オン'
+    );
+    expect(getDebugCoordinatesStrings('zh-Hans').overlay.room).toBe('房间');
+    expect(getDebugCoordinatesStrings('es').overlay.yes).toBe('Sí');
+    expect(getDebugCoordinatesStrings('pt').overlay.no).toBe('Não');
+    expect(getDebugCoordinatesStrings('de').overlay.unknown).toBe('Unbekannt');
+    expect(getDebugCoordinatesStrings('hu').overlay.stairZone).toBe(
+      'Lépcsőzóna'
     );
   });
 

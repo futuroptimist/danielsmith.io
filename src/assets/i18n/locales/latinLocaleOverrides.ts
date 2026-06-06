@@ -50,6 +50,22 @@ interface LatinLocaleCopy {
     narrationToggleLabelDisabled: string;
     narrationToggleDescriptionEnabled: string;
     narrationToggleDescriptionDisabled: string;
+    debugCoordinatesLabelEnabled: string;
+    debugCoordinatesLabelDisabled: string;
+    debugCoordinatesDescriptionEnabled: string;
+    debugCoordinatesDescriptionDisabled: string;
+    debugCoordinatesTitle: string;
+    debugCoordinatesActiveFloor: string;
+    debugCoordinatesPredictedFloor: string;
+    debugCoordinatesCameraZoom: string;
+    debugCoordinatesStairWidth: string;
+    debugCoordinatesLanding: string;
+    debugCoordinatesStairNavArea: string;
+    debugCoordinatesStairZone: string;
+    debugCoordinatesRoom: string;
+    debugCoordinatesYes: string;
+    debugCoordinatesNo: string;
+    debugCoordinatesUnknown: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -699,6 +715,26 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.narrationToggleLabelDisabled,
         descriptionEnabled: s.narrationToggleDescriptionEnabled,
         descriptionDisabled: s.narrationToggleDescriptionDisabled,
+      },
+      debugCoordinates: {
+        labelEnabled: s.debugCoordinatesLabelEnabled,
+        labelDisabled: s.debugCoordinatesLabelDisabled,
+        descriptionEnabled: s.debugCoordinatesDescriptionEnabled,
+        descriptionDisabled: s.debugCoordinatesDescriptionDisabled,
+        overlay: {
+          title: s.debugCoordinatesTitle,
+          activeFloor: s.debugCoordinatesActiveFloor,
+          predictedFloor: s.debugCoordinatesPredictedFloor,
+          cameraZoom: s.debugCoordinatesCameraZoom,
+          stairWidth: s.debugCoordinatesStairWidth,
+          landing: s.debugCoordinatesLanding,
+          stairNavArea: s.debugCoordinatesStairNavArea,
+          stairZone: s.debugCoordinatesStairZone,
+          room: s.debugCoordinatesRoom,
+          yes: s.debugCoordinatesYes,
+          no: s.debugCoordinatesNo,
+          unknown: s.debugCoordinatesUnknown,
+        },
       },
       tourReset: {
         heading: s.guidedTour,

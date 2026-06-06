@@ -49,6 +49,24 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
       'A narrációs felugrók és feliratok megjelennek a következő kiállítási pillanatoknál.',
     narrationToggleDescriptionDisabled:
       'A narrációs felugrók és feliratok rejtve maradnak, amíg be nem kapcsolod őket.',
+    debugCoordinatesLabelEnabled: 'Hibakeresési koordináták be',
+    debugCoordinatesLabelDisabled: 'Hibakeresési koordináták ki',
+    debugCoordinatesDescriptionEnabled:
+      'Megjeleníti a játékos XYZ-ét, emeletét, lépcsőzónáját, zoomját és szobáját.',
+    debugCoordinatesDescriptionDisabled:
+      'A hibakeresési koordináták rejtve maradnak, amíg be nem kapcsolod.',
+    debugCoordinatesTitle: 'Hibakeresési koordináták',
+    debugCoordinatesActiveFloor: 'Aktív emelet',
+    debugCoordinatesPredictedFloor: 'Előre jelzett lépcsőemelet',
+    debugCoordinatesCameraZoom: 'Kamerazoom',
+    debugCoordinatesStairWidth: 'Lépcsőszélességen belül',
+    debugCoordinatesLanding: 'Pihenőn belül',
+    debugCoordinatesStairNavArea: 'Lépcső nav területen belül',
+    debugCoordinatesStairZone: 'Lépcsőzóna',
+    debugCoordinatesRoom: 'Szoba',
+    debugCoordinatesYes: 'Igen',
+    debugCoordinatesNo: 'Nem',
+    debugCoordinatesUnknown: 'Ismeretlen',
   },
   poi: {
     futuroptimist: {

@@ -2242,3 +2242,54 @@ html[data-hud-layout='mobile'] .audio-subtitles {
     flex: 0 0 auto;
   }
 }
+
+.debug-coordinates-overlay {
+  position: fixed;
+  inset-block-end: clamp(0.75rem, 2vw, 1.25rem);
+  inset-inline-start: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 22;
+  max-width: min(18rem, calc(100vw - 1.5rem));
+  padding: 0.72rem 0.82rem;
+  border: 1px solid var(--hud-surface-border);
+  border-radius: 0.85rem;
+  background: rgba(5, 12, 21, 0.82);
+  color: var(--hud-surface-text);
+  box-shadow: var(--hud-surface-shadow);
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.debug-coordinates-overlay[hidden] {
+  display: none;
+}
+
+.debug-coordinates-overlay__title {
+  margin-bottom: 0.42rem;
+  color: rgba(210, 232, 255, 0.9);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.debug-coordinates-overlay__list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.18rem 0.72rem;
+  margin: 0;
+}
+
+.debug-coordinates-overlay__list dt {
+  margin: 0;
+  color: var(--hud-surface-muted-text);
+  white-space: nowrap;
+}
+
+.debug-coordinates-overlay__list dd {
+  margin: 0;
+  color: var(--hud-surface-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

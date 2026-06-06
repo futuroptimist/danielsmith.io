@@ -339,6 +339,31 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       descriptionDisabled:
         'Narration popups and captions stay hidden until you turn them on.',
     },
+    debugCoordinates: {
+      labelEnabled: 'Debug coordinates on',
+      labelDisabled: 'Debug coordinates off',
+      descriptionEnabled:
+        'Shows the player XYZ, floor, stair zone, zoom, and room overlay.',
+      descriptionDisabled:
+        'Debug coordinates are hidden until you turn them on.',
+      overlay: {
+        title: 'Debug coordinates',
+        x: 'X',
+        y: 'Y',
+        z: 'Z',
+        activeFloor: 'Active floor',
+        predictedFloor: 'Predicted stair floor',
+        cameraZoom: 'Camera zoom',
+        stairWidth: 'Inside stair width',
+        landing: 'Inside landing',
+        stairNavArea: 'Inside stair nav area',
+        stairZone: 'Stair zone',
+        room: 'Room',
+        yes: 'Yes',
+        no: 'No',
+        unknown: 'Unknown',
+      },
+    },
     tourReset: {
       heading: 'Guided tour',
       resetKey: 'g',

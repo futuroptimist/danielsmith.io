@@ -49,6 +49,24 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
       'Pop-ups e legendas de narração aparecem em futuros momentos da exibição.',
     narrationToggleDescriptionDisabled:
       'Pop-ups e legendas de narração ficam ocultos até você ativá-los.',
+    debugCoordinatesLabelEnabled: 'Coordenadas de depuração ativadas',
+    debugCoordinatesLabelDisabled: 'Coordenadas de depuração desativadas',
+    debugCoordinatesDescriptionEnabled:
+      'Mostra XYZ do jogador, piso, zona da escada, zoom e sala.',
+    debugCoordinatesDescriptionDisabled:
+      'As coordenadas de depuração ficam ocultas até você ativá-las.',
+    debugCoordinatesTitle: 'Coordenadas de depuração',
+    debugCoordinatesActiveFloor: 'Piso ativo',
+    debugCoordinatesPredictedFloor: 'Piso previsto pela escada',
+    debugCoordinatesCameraZoom: 'Zoom da câmera',
+    debugCoordinatesStairWidth: 'Dentro da largura da escada',
+    debugCoordinatesLanding: 'Dentro do patamar',
+    debugCoordinatesStairNavArea: 'Dentro da área nav. da escada',
+    debugCoordinatesStairZone: 'Zona da escada',
+    debugCoordinatesRoom: 'Sala',
+    debugCoordinatesYes: 'Sim',
+    debugCoordinatesNo: 'Não',
+    debugCoordinatesUnknown: 'Desconhecida',
   },
   poi: {
     futuroptimist: {
