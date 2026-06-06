@@ -5,6 +5,8 @@ import {
   formatMessage,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCoordinatesControlStrings,
+  getDebugCoordinatesOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
   getLocaleToggleStrings,
@@ -390,10 +392,16 @@ describe('i18n utilities', () => {
     const pseudoOverlay = getControlOverlayStrings('en-x-pseudo');
     const arabicOverlay = getControlOverlayStrings('ar');
     const japaneseOverlay = getControlOverlayStrings('ja');
+    const englishDebugControl = getDebugCoordinatesControlStrings('en');
+    const pseudoDebugControl = getDebugCoordinatesControlStrings('en-x-pseudo');
+    const arabicDebugOverlay = getDebugCoordinatesOverlayStrings('ar');
     expect(englishOverlay.heading).toBe('Controls');
     expect(pseudoOverlay.heading).toBe('⟦Controls⟧');
     expect(arabicOverlay.heading).toBe('عناصر التحكم');
     expect(japaneseOverlay.heading).toBe('操作');
+    expect(englishDebugControl.labelDisabled).toBe('Debug coordinates off');
+    expect(pseudoDebugControl.labelEnabled).toBe('⟦Debug coordinates on⟧');
+    expect(arabicDebugOverlay.labels.activeFloor).toBe('الطابق النشط');
     expect(getControlOverlayStrings('zh-Hans').heading).toBe('控制');
     expect(getHelpModalStrings('zh-Hans').heading).toBe('设置与帮助');
     expect(pseudoOverlay.items.keyboardMove.keys).toBe(

@@ -277,6 +277,32 @@ export const JA_OVERRIDES: LocaleOverrides = {
       descriptionDisabled:
         'オンにするまでナレーションのポップアップと字幕は非表示です。',
     },
+    debugCoordinatesControl: {
+      labelEnabled: 'デバッグ座標 オン',
+      labelDisabled: 'デバッグ座標 オフ',
+      descriptionEnabled:
+        'プレイヤーの XYZ、階、階段、ズーム、部屋を表示します。',
+      descriptionDisabled: 'オンにするまで座標オーバーレイを非表示にします。',
+    },
+    debugCoordinatesOverlay: {
+      title: 'デバッグ座標',
+      roomFallback: '部屋なし',
+      labels: {
+        position: 'XYZ',
+        activeFloor: '現在の階',
+        predictedFloor: '予測階',
+        cameraZoom: 'カメラズーム',
+        stairWidth: '階段幅',
+        landing: '踊り場',
+        stairNavArea: '階段ナビ領域',
+        stairZone: '階段ゾーン',
+        room: '部屋',
+      },
+      boolean: {
+        yes: 'はい',
+        no: 'いいえ',
+      },
+    },
     poiOverlay: {
       visited: '訪問済み',
       nextHighlight: '次のハイライト',

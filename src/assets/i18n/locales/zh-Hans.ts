@@ -265,6 +265,31 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       descriptionEnabled: '未来展品时刻会显示旁白弹窗和字幕。',
       descriptionDisabled: '旁白弹窗和字幕保持隐藏，直到你开启。',
     },
+    debugCoordinatesControl: {
+      labelEnabled: '调试坐标已开启',
+      labelDisabled: '调试坐标已关闭',
+      descriptionEnabled: '显示玩家 XYZ、楼层、楼梯、缩放和房间。',
+      descriptionDisabled: '隐藏坐标浮层，直到你重新开启。',
+    },
+    debugCoordinatesOverlay: {
+      title: '调试坐标',
+      roomFallback: '无房间',
+      labels: {
+        position: 'XYZ',
+        activeFloor: '当前楼层',
+        predictedFloor: '预测楼层',
+        cameraZoom: '相机缩放',
+        stairWidth: '楼梯宽度',
+        landing: '平台',
+        stairNavArea: '楼梯导航区',
+        stairZone: '楼梯区域',
+        room: '房间',
+      },
+      boolean: {
+        yes: '是',
+        no: '否',
+      },
+    },
     tourReset: {
       heading: '导览',
       resetKey: 'g',

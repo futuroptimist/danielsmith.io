@@ -329,6 +329,35 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Narration popups and captions stay hidden until you turn them on.'
       ),
     },
+    debugCoordinatesControl: {
+      labelEnabled: wrap('Debug coordinates on'),
+      labelDisabled: wrap('Debug coordinates off'),
+      descriptionEnabled: wrap(
+        'Shows player XYZ, floor, stair, zoom, and room debugging details.'
+      ),
+      descriptionDisabled: wrap(
+        'Hides the coordinate overlay until you turn it back on.'
+      ),
+    },
+    debugCoordinatesOverlay: {
+      title: wrap('Debug coordinates'),
+      roomFallback: wrap('No room'),
+      labels: {
+        position: wrap('XYZ'),
+        activeFloor: wrap('Active floor'),
+        predictedFloor: wrap('Predicted floor'),
+        cameraZoom: wrap('Camera zoom'),
+        stairWidth: wrap('Stair width'),
+        landing: wrap('Landing'),
+        stairNavArea: wrap('Stair nav area'),
+        stairZone: wrap('Stair zone'),
+        room: wrap('Room'),
+      },
+      boolean: {
+        yes: wrap('Yes'),
+        no: wrap('No'),
+      },
+    },
     tourReset: {
       heading: wrap('Guided tour'),
       resetKey: 'g',

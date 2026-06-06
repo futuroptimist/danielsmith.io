@@ -209,6 +209,33 @@ export interface NarrationToggleStrings {
   descriptionDisabled: string;
 }
 
+export interface DebugCoordinatesControlStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
+export interface DebugCoordinatesOverlayStrings {
+  title: string;
+  roomFallback: string;
+  labels: {
+    position: string;
+    activeFloor: string;
+    predictedFloor: string;
+    cameraZoom: string;
+    stairWidth: string;
+    landing: string;
+    stairNavArea: string;
+    stairZone: string;
+    room: string;
+  };
+  boolean: {
+    yes: string;
+    no: string;
+  };
+}
+
 export interface TourResetControlStrings {
   heading: string;
   resetKey: string;
@@ -398,6 +425,8 @@ export interface LocaleStrings {
     localeToggle: LocaleToggleStrings;
     tourGuideToggle: TourGuideToggleStrings;
     narrationToggle: NarrationToggleStrings;
+    debugCoordinatesControl: DebugCoordinatesControlStrings;
+    debugCoordinatesOverlay: DebugCoordinatesOverlayStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     helpModal: HelpModalStrings;

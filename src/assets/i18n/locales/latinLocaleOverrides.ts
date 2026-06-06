@@ -50,6 +50,25 @@ interface LatinLocaleCopy {
     narrationToggleLabelDisabled: string;
     narrationToggleDescriptionEnabled: string;
     narrationToggleDescriptionDisabled: string;
+    debugCoordinatesLabelEnabled: string;
+    debugCoordinatesLabelDisabled: string;
+    debugCoordinatesDescriptionEnabled: string;
+    debugCoordinatesDescriptionDisabled: string;
+    debugCoordinatesTitle: string;
+    debugCoordinatesRoomFallback: string;
+    debugCoordinatesYes: string;
+    debugCoordinatesNo: string;
+    debugCoordinatesLabels: {
+      position: string;
+      activeFloor: string;
+      predictedFloor: string;
+      cameraZoom: string;
+      stairWidth: string;
+      landing: string;
+      stairNavArea: string;
+      stairZone: string;
+      room: string;
+    };
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -699,6 +718,21 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.narrationToggleLabelDisabled,
         descriptionEnabled: s.narrationToggleDescriptionEnabled,
         descriptionDisabled: s.narrationToggleDescriptionDisabled,
+      },
+      debugCoordinatesControl: {
+        labelEnabled: s.debugCoordinatesLabelEnabled,
+        labelDisabled: s.debugCoordinatesLabelDisabled,
+        descriptionEnabled: s.debugCoordinatesDescriptionEnabled,
+        descriptionDisabled: s.debugCoordinatesDescriptionDisabled,
+      },
+      debugCoordinatesOverlay: {
+        title: s.debugCoordinatesTitle,
+        roomFallback: s.debugCoordinatesRoomFallback,
+        labels: s.debugCoordinatesLabels,
+        boolean: {
+          yes: s.debugCoordinatesYes,
+          no: s.debugCoordinatesNo,
+        },
       },
       tourReset: {
         heading: s.guidedTour,

@@ -45,6 +45,19 @@ screen-reader visitors receive the same metadata as 3D players.
   [`playwright/keyboard-traversal.spec.ts`](../../playwright/keyboard-traversal.spec.ts))
   to verify the overlay announces each POI in the expected order.
 
+## Opt-in debug overlays
+
+- Keep diagnostics off by default and expose them through Settings when they are
+  useful to non-developer QA. The immersive coordinate overlay is controlled by
+  the **Debug coordinates** Setting, persists to
+  `danielsmith.io::debugCoordinates::v1`, and may be forced for a review link
+  with `?debugCoordinates=1`.
+- Diagnostic overlays must be non-blocking (`pointer-events: none`) so movement,
+  camera panning, zooming, POI clicks, and Settings controls continue to work.
+- Prefer modest DOM update cadences for diagnostics. The coordinate overlay
+  samples every frame but only rewrites visible text at a throttled cadence so it
+  can report XYZ/floor/stair state without adding per-frame layout churn.
+
 ## Automated audits
 
 - `npm run test:ci` now includes
