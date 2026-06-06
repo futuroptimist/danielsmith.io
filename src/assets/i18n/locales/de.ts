@@ -39,6 +39,16 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     guidedTourOff: 'Geführte Tour aus',
     audioOn: 'Audio: an',
     audioOff: 'Audio: aus',
+    audioSubtitleAmbientLabel: 'Ambient-Audio',
+    audioSubtitlePoiLabel: 'Erzählung',
+    audioSubtitleDismissAmbient: 'Untertitel schließen',
+    audioSubtitleDismissPoi: 'Erzählung schließen',
+    narrationToggleLabelEnabled: 'Erzählung ein',
+    narrationToggleLabelDisabled: 'Erzählung aus',
+    narrationToggleDescriptionEnabled:
+      'Erzähl-Pop-ups und Untertitel erscheinen bei künftigen Exponatmomenten.',
+    narrationToggleDescriptionDisabled:
+      'Erzähl-Pop-ups und Untertitel bleiben verborgen, bis du sie einschaltest.',
   },
   poi: {
     futuroptimist: {

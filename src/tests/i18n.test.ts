@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   AVAILABLE_LOCALES,
   formatMessage,
+  getAudioSubtitleStrings,
   getControlOverlayStrings,
   getHelpModalStrings,
   getLocaleDirection,
@@ -11,6 +12,7 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getLocaleStrings,
+  getNarrationToggleStrings,
   getTourGuideToggleStrings,
   getTourResetControlStrings,
   isI18nDebugEnabled,
@@ -716,6 +718,17 @@ describe('i18n utilities', () => {
     AVAILABLE_LOCALES.forEach((locale) => {
       assertNoMissingStrings(getLocaleStrings(locale), locale);
     });
+  });
+
+  it('localizes narration controls and subtitle labels for Latin locales', () => {
+    expect(getAudioSubtitleStrings('es').dismissLabels.poi).toBe(
+      'Descartar narración'
+    );
+    expect(getAudioSubtitleStrings('pt').labels.ambient).toBe('Áudio ambiente');
+    expect(getNarrationToggleStrings('de').labelEnabled).toBe('Erzählung ein');
+    expect(getNarrationToggleStrings('hu').descriptionDisabled).toContain(
+      'rejtve maradnak'
+    );
   });
 
   it('localizes guided tour controls for Mandarin and pseudo locale', () => {

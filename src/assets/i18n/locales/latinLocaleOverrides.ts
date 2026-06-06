@@ -42,6 +42,14 @@ interface LatinLocaleCopy {
     guidedTourOff: string;
     audioOn: string;
     audioOff: string;
+    audioSubtitleAmbientLabel: string;
+    audioSubtitlePoiLabel: string;
+    audioSubtitleDismissAmbient: string;
+    audioSubtitleDismissPoi: string;
+    narrationToggleLabelEnabled: string;
+    narrationToggleLabelDisabled: string;
+    narrationToggleDescriptionEnabled: string;
+    narrationToggleDescriptionDisabled: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -642,6 +650,16 @@ export function buildLatinLocaleOverrides(
           settings: { label: s.settingsHelp, title: s.settingsHelp },
         },
       },
+      audioSubtitles: {
+        labels: {
+          ambient: s.audioSubtitleAmbientLabel,
+          poi: s.audioSubtitlePoiLabel,
+        },
+        dismissLabels: {
+          ambient: s.audioSubtitleDismissAmbient,
+          poi: s.audioSubtitleDismissPoi,
+        },
+      },
       audioControl: {
         groupLabel: templates.audioGroupLabel,
         toggle: {
@@ -675,6 +693,12 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.guidedTourOff,
         descriptionEnabled: s.guidedTour,
         descriptionDisabled: s.guidedTour,
+      },
+      narrationToggle: {
+        labelEnabled: s.narrationToggleLabelEnabled,
+        labelDisabled: s.narrationToggleLabelDisabled,
+        descriptionEnabled: s.narrationToggleDescriptionEnabled,
+        descriptionDisabled: s.narrationToggleDescriptionDisabled,
       },
       tourReset: {
         heading: s.guidedTour,

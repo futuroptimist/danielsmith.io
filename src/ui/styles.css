@@ -568,7 +568,7 @@ canvas {
   bottom: 3.5rem;
   transform: translateX(-50%);
   max-width: min(90vw, 36rem);
-  padding: 0.9rem 1.2rem;
+  padding: 0.9rem 3rem 0.9rem 1.2rem;
   border-radius: 0.9rem;
   background: rgba(5, 12, 21, 0.82);
   border: 1px solid rgba(88, 183, 255, 0.32);
@@ -613,9 +613,32 @@ canvas {
   overflow: hidden;
 }
 
+.audio-subtitles__dismiss {
+  position: absolute;
+  pointer-events: auto;
+  top: 0.55rem;
+  right: 0.65rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 208, 255, 0.45);
+  background: rgba(10, 24, 40, 0.72);
+  color: rgba(230, 243, 255, 0.95);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.audio-subtitles__dismiss:hover,
+.audio-subtitles__dismiss:focus-visible {
+  border-color: rgba(148, 208, 255, 0.88);
+  background: rgba(21, 44, 70, 0.92);
+  outline: none;
+}
+
 html[data-hud-layout='mobile'] .audio-subtitles {
   bottom: 6.5rem;
-  padding: 0.85rem 1.05rem;
+  padding: 0.85rem 2.85rem 0.85rem 1.05rem;
   font-size: 0.95rem;
 }
 

@@ -39,6 +39,16 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     guidedTourOff: 'Vezetett túra ki',
     audioOn: 'Hang: be',
     audioOff: 'Hang: ki',
+    audioSubtitleAmbientLabel: 'Környezeti hang',
+    audioSubtitlePoiLabel: 'Narráció',
+    audioSubtitleDismissAmbient: 'Felirat elvetése',
+    audioSubtitleDismissPoi: 'Narráció elvetése',
+    narrationToggleLabelEnabled: 'Narráció bekapcsolva',
+    narrationToggleLabelDisabled: 'Narráció kikapcsolva',
+    narrationToggleDescriptionEnabled:
+      'A narrációs felugrók és feliratok megjelennek a következő kiállítási pillanatoknál.',
+    narrationToggleDescriptionDisabled:
+      'A narrációs felugrók és feliratok rejtve maradnak, amíg be nem kapcsolod őket.',
   },
   poi: {
     futuroptimist: {

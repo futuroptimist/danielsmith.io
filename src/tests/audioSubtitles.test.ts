@@ -405,4 +405,85 @@ describe('audio subtitles overlay', () => {
 
     handle.dispose();
   });
+
+  it('renders an accessible dismiss button while a message is visible', () => {
+    const handle = createAudioSubtitles();
+
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration is visible until dismissed.',
+      source: 'poi',
+      durationMs: 5000,
+    });
+
+    const button = document.querySelector<HTMLButtonElement>(
+      '.audio-subtitles__dismiss'
+    );
+    expect(button).toBeTruthy();
+    expect(button?.hidden).toBe(false);
+    expect(button?.getAttribute('aria-label')).toBe('Dismiss narration');
+    expect(button?.tabIndex).toBe(0);
+
+    handle.dispose();
+  });
+
+  it('dismiss button hides the current message and clears queued captions', () => {
+    const handle = createAudioSubtitles();
+
+    handle.show({
+      id: 'poi-narration',
+      text: 'Narration is active.',
+      source: 'poi',
+      priority: 5,
+      durationMs: 5000,
+    });
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Ambient caption is queued.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 1000,
+    });
+
+    expect(handle.getQueueLength()).toBe(1);
+    const dismissButton = document.querySelector<HTMLButtonElement>(
+      '.audio-subtitles__dismiss'
+    );
+    dismissButton?.focus();
+    expect(document.activeElement).toBe(dismissButton);
+    dismissButton?.click();
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    expect(handle.getQueueLength()).toBe(0);
+    expect(document.activeElement).not.toBe(dismissButton);
+    expect(handle.getDismissCount()).toBe(1);
+    expect(handle.getLastDismissedAt()).toBeGreaterThan(0);
+
+    vi.advanceTimersByTime(5000);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
+  it('uses the caption dismiss label for ambient messages', () => {
+    const handle = createAudioSubtitles();
+
+    handle.show({
+      id: 'ambient-hum',
+      text: 'Ambient caption is visible.',
+      source: 'ambient',
+      durationMs: 5000,
+    });
+
+    expect(
+      document
+        .querySelector<HTMLButtonElement>('.audio-subtitles__dismiss')
+        ?.getAttribute('aria-label')
+    ).toBe('Dismiss caption');
+
+    handle.dispose();
+  });
 });

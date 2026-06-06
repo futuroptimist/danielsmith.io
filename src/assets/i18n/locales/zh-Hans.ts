@@ -208,6 +208,16 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         description: '切换腕部控制台或全息无人机伙伴。',
       },
     },
+    audioSubtitles: {
+      labels: {
+        ambient: '环境音频',
+        poi: '旁白',
+      },
+      dismissLabels: {
+        ambient: '关闭字幕',
+        poi: '关闭旁白',
+      },
+    },
     audioControl: {
       keyHint: 'M',
       groupLabel: '环境音频控制',
@@ -248,6 +258,12 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       labelDisabled: '导览已关闭',
       descriptionEnabled: '高亮沉浸式导览中下一个推荐展品。',
       descriptionDisabled: '导览高亮已隐藏，直到你重新开启。',
+    },
+    narrationToggle: {
+      labelEnabled: '旁白已开启',
+      labelDisabled: '旁白已关闭',
+      descriptionEnabled: '未来展品时刻会显示旁白弹窗和字幕。',
+      descriptionDisabled: '旁白弹窗和字幕保持隐藏，直到你开启。',
     },
     tourReset: {
       heading: '导览',

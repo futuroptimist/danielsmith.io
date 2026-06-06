@@ -73,6 +73,17 @@ export interface MovementLegendStrings {
   interactPromptTemplates: Record<InputMethod | 'default', string>;
 }
 
+export interface AudioSubtitleStrings {
+  labels: {
+    ambient: string;
+    poi: string;
+  };
+  dismissLabels: {
+    ambient: string;
+    poi: string;
+  };
+}
+
 export interface AudioHudControlStrings {
   keyHint: string;
   groupLabel: string;
@@ -185,6 +196,13 @@ export interface LocaleOptionStrings {
 }
 
 export interface TourGuideToggleStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
+export interface NarrationToggleStrings {
   labelEnabled: string;
   labelDisabled: string;
   descriptionEnabled: string;
@@ -375,9 +393,11 @@ export interface LocaleStrings {
     controlOverlay: ControlOverlayStrings;
     movementLegend: MovementLegendStrings;
     audioControl: AudioHudControlStrings;
+    audioSubtitles: AudioSubtitleStrings;
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
     tourGuideToggle: TourGuideToggleStrings;
+    narrationToggle: NarrationToggleStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     helpModal: HelpModalStrings;

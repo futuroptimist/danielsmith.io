@@ -39,6 +39,16 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
     guidedTourOff: 'Visita guiada desativada',
     audioOn: 'Áudio: ligado',
     audioOff: 'Áudio: desligado',
+    audioSubtitleAmbientLabel: 'Áudio ambiente',
+    audioSubtitlePoiLabel: 'Narração',
+    audioSubtitleDismissAmbient: 'Dispensar legenda',
+    audioSubtitleDismissPoi: 'Dispensar narração',
+    narrationToggleLabelEnabled: 'Narração ativada',
+    narrationToggleLabelDisabled: 'Narração desativada',
+    narrationToggleDescriptionEnabled:
+      'Pop-ups e legendas de narração aparecem em futuros momentos da exibição.',
+    narrationToggleDescriptionDisabled:
+      'Pop-ups e legendas de narração ficam ocultos até você ativá-los.',
   },
   poi: {
     futuroptimist: {
