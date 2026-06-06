@@ -82,6 +82,12 @@ layer without guessing where functionality lives.
   [`getCameraRelativeMovementVector`](../../src/systems/movement/cameraRelativeMovement.ts).
   The same loop applies velocity, collision clamping, and yaw so HUD prompts can
   reflect active WASD axes without owning Three.js meshes.
+- **Floor visibility** – `src/main.ts` keeps floor-specific scene objects in
+  explicit ground/upper groups, while
+  [`src/scene/floors/floorVisibility.ts`](../../src/scene/floors/floorVisibility.ts)
+  centralizes active-floor toggles for upstairs slabs, ground POI marker cues,
+  and ground LED strips so second-floor views do not show lower-floor labels or
+  light bands through the navigable floor.
 - **POI orchestration** – The registry
   (`src/scene/poi/registry.ts`) hydrates data from
   [`src/assets/i18n/locales/en.ts`](../../src/assets/i18n/locales/en.ts) and now exposes

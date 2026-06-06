@@ -1,6 +1,6 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
-import type { RoomDefinition } from '../../assets/floorPlan';
+import type { Bounds2D, RoomDefinition } from '../../assets/floorPlan';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
 
 export interface RoomFloorTile {
@@ -32,6 +32,8 @@ export interface RoomFloorOptions {
   readonly groupName?: string;
   /** When true, exterior rooms receive tiles too. */
   readonly includeExterior?: boolean;
+  /** Optional rectangular voids to cut from individual room tiles. */
+  readonly cutoutsByRoom?: Partial<Record<string, Bounds2D[]>>;
 }
 
 const DEFAULT_GROUP_NAME = 'RoomFloorTiles';
@@ -39,6 +41,78 @@ const DEFAULT_THICKNESS = 0.12;
 const DEFAULT_INSET = 0;
 const MIN_DIMENSION = 0.05;
 const DEFAULT_COLOR = 0x2a3547;
+
+interface TileBounds {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+}
+
+function intersectBounds(a: TileBounds, b: Bounds2D): TileBounds | null {
+  const minX = Math.max(a.minX, b.minX);
+  const maxX = Math.min(a.maxX, b.maxX);
+  const minZ = Math.max(a.minZ, b.minZ);
+  const maxZ = Math.min(a.maxZ, b.maxZ);
+
+  if (maxX - minX <= MIN_DIMENSION || maxZ - minZ <= MIN_DIMENSION) {
+    return null;
+  }
+
+  return { minX, maxX, minZ, maxZ };
+}
+
+function subtractCutout(tile: TileBounds, cutout: Bounds2D): TileBounds[] {
+  const intersection = intersectBounds(tile, cutout);
+  if (!intersection) {
+    return [tile];
+  }
+
+  return [
+    // West side.
+    {
+      minX: tile.minX,
+      maxX: intersection.minX,
+      minZ: tile.minZ,
+      maxZ: tile.maxZ,
+    },
+    // East side.
+    {
+      minX: intersection.maxX,
+      maxX: tile.maxX,
+      minZ: tile.minZ,
+      maxZ: tile.maxZ,
+    },
+    // South side, between the west/east side strips.
+    {
+      minX: intersection.minX,
+      maxX: intersection.maxX,
+      minZ: tile.minZ,
+      maxZ: intersection.minZ,
+    },
+    // North side, between the west/east side strips.
+    {
+      minX: intersection.minX,
+      maxX: intersection.maxX,
+      minZ: intersection.maxZ,
+      maxZ: tile.maxZ,
+    },
+  ].filter(
+    (candidate) =>
+      candidate.maxX - candidate.minX > MIN_DIMENSION &&
+      candidate.maxZ - candidate.minZ > MIN_DIMENSION
+  );
+}
+
+function applyRoomCutouts(
+  roomTile: TileBounds,
+  cutouts: readonly Bounds2D[]
+): TileBounds[] {
+  return cutouts.reduce<TileBounds[]>(
+    (tiles, cutout) => tiles.flatMap((tile) => subtractCutout(tile, cutout)),
+    [roomTile]
+  );
+}
 
 function applyLightMapOptions(
   material: MeshStandardMaterial,
@@ -102,30 +176,46 @@ export function createRoomFloorTiles(
       return;
     }
 
-    const width = room.bounds.maxX - room.bounds.minX - inset * 2;
-    const depth = room.bounds.maxZ - room.bounds.minZ - inset * 2;
-
-    if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
-      return;
-    }
-
-    const geometry = new BoxGeometry(width, thickness, depth);
-    applyLightmapUv2(geometry);
-
-    const mesh = new Mesh(
-      geometry,
-      resolveMaterial(room, options, defaultMaterial)
+    const roomTile = {
+      minX: room.bounds.minX + inset,
+      maxX: room.bounds.maxX - inset,
+      minZ: room.bounds.minZ + inset,
+      maxZ: room.bounds.maxZ - inset,
+    };
+    const roomTiles = applyRoomCutouts(
+      roomTile,
+      options.cutoutsByRoom?.[room.id] ?? []
     );
-    mesh.position.set(
-      (room.bounds.minX + room.bounds.maxX) / 2,
-      elevation - thickness / 2,
-      (room.bounds.minZ + room.bounds.maxZ) / 2
-    );
-    mesh.name = `${room.name} Floor`;
-    mesh.receiveShadow = true;
 
-    group.add(mesh);
-    tiles.push({ roomId: room.id, mesh });
+    roomTiles.forEach((tile, tileIndex) => {
+      const width = tile.maxX - tile.minX;
+      const depth = tile.maxZ - tile.minZ;
+
+      if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
+        return;
+      }
+
+      const geometry = new BoxGeometry(width, thickness, depth);
+      applyLightmapUv2(geometry);
+
+      const mesh = new Mesh(
+        geometry,
+        resolveMaterial(room, options, defaultMaterial)
+      );
+      mesh.position.set(
+        (tile.minX + tile.maxX) / 2,
+        elevation - thickness / 2,
+        (tile.minZ + tile.maxZ) / 2
+      );
+      mesh.name =
+        roomTiles.length > 1
+          ? `${room.name} Floor ${tileIndex + 1}`
+          : `${room.name} Floor`;
+      mesh.receiveShadow = true;
+
+      group.add(mesh);
+      tiles.push({ roomId: room.id, mesh });
+    });
   });
 
   return { group, tiles };

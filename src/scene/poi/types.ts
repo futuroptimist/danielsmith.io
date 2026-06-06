@@ -110,6 +110,7 @@ export interface PoiDefinition {
   category: PoiCategory;
   interaction: PoiInteraction;
   roomId: string;
+  floorId?: 'ground' | 'upper';
   position: { x: number; y: number; z: number };
   headingRadians?: number;
   interactionRadius: number;
