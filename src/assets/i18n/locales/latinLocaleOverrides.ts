@@ -642,6 +642,16 @@ export function buildLatinLocaleOverrides(
           settings: { label: s.settingsHelp, title: s.settingsHelp },
         },
       },
+      audioSubtitles: {
+        labels: {
+          ambient: 'Ambient audio',
+          poi: 'Narration',
+        },
+        dismissLabels: {
+          ambient: 'Dismiss caption',
+          poi: 'Dismiss narration',
+        },
+      },
       audioControl: {
         groupLabel: templates.audioGroupLabel,
         toggle: {
@@ -675,6 +685,14 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.guidedTourOff,
         descriptionEnabled: s.guidedTour,
         descriptionDisabled: s.guidedTour,
+      },
+      narrationToggle: {
+        labelEnabled: 'Narration on',
+        labelDisabled: 'Narration off',
+        descriptionEnabled:
+          'Narration popups and captions are shown for future exhibit moments.',
+        descriptionDisabled:
+          'Narration popups and captions stay hidden until you turn them on.',
       },
       tourReset: {
         heading: s.guidedTour,

@@ -77,6 +77,14 @@ describe('AmbientCaptionBridge', () => {
       }),
       dispose: vi.fn(),
       getCurrent: vi.fn(() => current),
+      dismissAll: vi.fn(() => {
+        current = null;
+      }),
+      getQueueLength: vi.fn(() => 0),
+      isVisible: vi.fn(() => current !== null),
+      getDismissCount: vi.fn(() => 0),
+      getLastDismissedAt: vi.fn(() => null),
+      setLabels: vi.fn(),
     };
 
     const bridge = new AmbientCaptionBridge({
@@ -154,6 +162,14 @@ describe('AmbientCaptionBridge priority handling', () => {
       }),
       dispose: vi.fn(),
       getCurrent: vi.fn(() => current),
+      dismissAll: vi.fn(() => {
+        current = null;
+      }),
+      getQueueLength: vi.fn(() => 0),
+      isVisible: vi.fn(() => current !== null),
+      getDismissCount: vi.fn(() => 0),
+      getLastDismissedAt: vi.fn(() => null),
+      setLabels: vi.fn(),
     };
 
     const bridge = new AmbientCaptionBridge({
@@ -207,6 +223,14 @@ describe('AmbientCaptionBridge priority handling', () => {
       }),
       dispose: vi.fn(),
       getCurrent: vi.fn(() => current),
+      dismissAll: vi.fn(() => {
+        current = null;
+      }),
+      getQueueLength: vi.fn(() => 0),
+      isVisible: vi.fn(() => current !== null),
+      getDismissCount: vi.fn(() => 0),
+      getLastDismissedAt: vi.fn(() => null),
+      setLabels: vi.fn(),
     };
 
     const bridge = new AmbientCaptionBridge({
@@ -272,6 +296,14 @@ describe('AmbientCaptionBridge priority handling', () => {
       }),
       dispose: vi.fn(),
       getCurrent: vi.fn(() => current),
+      dismissAll: vi.fn(() => {
+        current = null;
+      }),
+      getQueueLength: vi.fn(() => 0),
+      isVisible: vi.fn(() => current !== null),
+      getDismissCount: vi.fn(() => 0),
+      getLastDismissedAt: vi.fn(() => null),
+      setLabels: vi.fn(),
     } satisfies AudioSubtitlesHandle;
 
     const bridge = new AmbientCaptionBridge({
@@ -345,6 +377,14 @@ describe('AmbientCaptionBridge priority handling', () => {
       }),
       dispose: vi.fn(),
       getCurrent: vi.fn(() => current),
+      dismissAll: vi.fn(() => {
+        current = null;
+      }),
+      getQueueLength: vi.fn(() => 0),
+      isVisible: vi.fn(() => current !== null),
+      getDismissCount: vi.fn(() => 0),
+      getLastDismissedAt: vi.fn(() => null),
+      setLabels: vi.fn(),
     };
 
     const bridge = new AmbientCaptionBridge({
@@ -387,6 +427,14 @@ describe('AmbientCaptionBridge priority handling', () => {
       }),
       dispose: vi.fn(),
       getCurrent: vi.fn(() => current),
+      dismissAll: vi.fn(() => {
+        current = null;
+      }),
+      getQueueLength: vi.fn(() => 0),
+      isVisible: vi.fn(() => current !== null),
+      getDismissCount: vi.fn(() => 0),
+      getLastDismissedAt: vi.fn(() => null),
+      setLabels: vi.fn(),
     };
 
     const bridge = new AmbientCaptionBridge({

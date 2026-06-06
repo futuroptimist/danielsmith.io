@@ -254,6 +254,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         ),
       },
     },
+    audioSubtitles: {
+      labels: {
+        ambient: wrap('Ambient audio'),
+        poi: wrap('Narration'),
+      },
+      dismissLabels: {
+        ambient: wrap('Dismiss caption'),
+        poi: wrap('Dismiss narration'),
+      },
+    },
     audioControl: {
       keyHint: wrap('M'),
       groupLabel: wrap('Ambient audio controls'),
@@ -307,6 +317,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       ),
       descriptionDisabled: wrap(
         'Guided tour highlights are hidden until you turn them back on.'
+      ),
+    },
+    narrationToggle: {
+      labelEnabled: wrap('Narration on'),
+      labelDisabled: wrap('Narration off'),
+      descriptionEnabled: wrap(
+        'Narration popups and captions are shown for future exhibit moments.'
+      ),
+      descriptionDisabled: wrap(
+        'Narration popups and captions stay hidden until you turn them on.'
       ),
     },
     tourReset: {

@@ -11,6 +11,7 @@ import { PT_OVERRIDES } from './locales/pt';
 import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
   AudioHudControlStrings,
+  AudioSubtitleStrings,
   ControlOverlayStrings,
   DeepPartial,
   HelpModalStrings,
@@ -24,6 +25,7 @@ import type {
   ModeAnnouncerStrings,
   ModeToggleResolvedStrings,
   MovementLegendStrings,
+  NarrationToggleStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
   PoiOverlayChromeStrings,
@@ -366,6 +368,12 @@ export function getAudioHudControlStrings(
   return cloneValue(strings);
 }
 
+export function getAudioSubtitleStrings(
+  input?: LocaleInput
+): AudioSubtitleStrings {
+  return cloneValue(getLocaleStrings(input).hud.audioSubtitles);
+}
+
 export function getLocaleToggleStrings(
   input?: LocaleInput
 ): LocaleToggleResolvedStrings {
@@ -452,6 +460,12 @@ export function getTourGuideToggleStrings(
   input?: LocaleInput
 ): TourGuideToggleStrings {
   return cloneValue(getLocaleStrings(input).hud.tourGuideToggle);
+}
+
+export function getNarrationToggleStrings(
+  input?: LocaleInput
+): NarrationToggleStrings {
+  return cloneValue(getLocaleStrings(input).hud.narrationToggle);
 }
 
 export function getTourResetControlStrings(

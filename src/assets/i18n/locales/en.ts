@@ -270,6 +270,16 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           'Toggle the wrist console or holographic drone companions.',
       },
     },
+    audioSubtitles: {
+      labels: {
+        ambient: 'Ambient audio',
+        poi: 'Narration',
+      },
+      dismissLabels: {
+        ambient: 'Dismiss caption',
+        poi: 'Dismiss narration',
+      },
+    },
     audioControl: {
       keyHint: 'M',
       groupLabel: 'Ambient audio controls',
@@ -320,6 +330,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'Highlights the next recommended exhibit in the immersive tour.',
       descriptionDisabled:
         'Guided tour highlights are hidden until you turn them back on.',
+    },
+    narrationToggle: {
+      labelEnabled: 'Narration on',
+      labelDisabled: 'Narration off',
+      descriptionEnabled:
+        'Narration popups and captions are shown for future exhibit moments.',
+      descriptionDisabled:
+        'Narration popups and captions stay hidden until you turn them on.',
     },
     tourReset: {
       heading: 'Guided tour',
