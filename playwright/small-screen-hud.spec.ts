@@ -22,6 +22,21 @@ type ElementBounds = {
   height: number;
 };
 
+type DebugCoordinatesState = {
+  enabled: boolean;
+  x: number;
+  y: number;
+  z: number;
+  activeFloorId: string;
+  predictedStairFloorId: string;
+  cameraZoom: number;
+  insideStairWidth: boolean;
+  insideLanding: boolean;
+  insideStairNavArea: boolean;
+  stairZone: string;
+  currentRoomId: string | null;
+};
+
 type AudioDebugState = {
   preferenceEnabled: boolean;
   ambientEnabled: boolean;
@@ -43,6 +58,10 @@ type PortfolioPoiWindow = Window & {
     };
     audio?: {
       getState?: () => AudioDebugState;
+    };
+    debugCoordinates?: {
+      getState?: () => DebugCoordinatesState;
+      setEnabled?: (enabled: boolean) => void;
     };
   };
 };
@@ -91,6 +110,38 @@ async function waitForImmersiveReady(page: Page) {
   await page.waitForFunction(
     () => (window as PortfolioPoiWindow).portfolio?.audio?.getState
   );
+}
+
+async function getDebugCoordinatesState(
+  page: Page
+): Promise<DebugCoordinatesState> {
+  return page.evaluate(() => {
+    const getState = (window as PortfolioPoiWindow).portfolio?.debugCoordinates
+      ?.getState;
+
+    if (!getState) {
+      throw new Error(
+        'window.portfolio.debugCoordinates.getState() is unavailable'
+      );
+    }
+
+    return getState();
+  });
+}
+
+async function setDebugCoordinatesEnabled(page: Page, enabled: boolean) {
+  await page.evaluate((nextEnabled) => {
+    const setEnabled = (window as PortfolioPoiWindow).portfolio
+      ?.debugCoordinates?.setEnabled;
+
+    if (!setEnabled) {
+      throw new Error(
+        'window.portfolio.debugCoordinates.setEnabled() is unavailable'
+      );
+    }
+
+    setEnabled(nextEnabled);
+  }, enabled);
 }
 
 async function getAudioState(page: Page): Promise<AudioDebugState> {
@@ -222,6 +273,54 @@ test.describe('small-screen HUD regression coverage', () => {
 
   test.describe('desktop viewport', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
+
+    test('keeps debug coordinates visual-only and persisted', async ({
+      page,
+    }) => {
+      await page.addInitScript(() => {
+        if (window.sessionStorage.getItem('debugCoordinatesE2eSeeded')) {
+          return;
+        }
+        window.localStorage.removeItem('danielsmith.io::debugCoordinates::v1');
+        window.sessionStorage.setItem('debugCoordinatesE2eSeeded', '1');
+      });
+      await waitForImmersiveReady(page);
+
+      const overlay = page.locator('.debug-coordinates');
+      await expect(overlay).toBeHidden();
+      await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+      expect(await overlay.getAttribute('aria-live')).toBeNull();
+      await expect(overlay).toHaveCSS('pointer-events', 'none');
+      await expect
+        .poll(async () => getDebugCoordinatesState(page))
+        .toMatchObject({ enabled: false });
+
+      await setDebugCoordinatesEnabled(page, true);
+      await expect(overlay).toBeVisible();
+      await expect(overlay).toContainText(/Debug coordinates/i);
+      await expect(overlay).toContainText(/XYZ/i);
+      await expect(overlay).toContainText(/Active floor/i);
+      await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+      expect(await overlay.getAttribute('aria-live')).toBeNull();
+      await expect
+        .poll(async () => getDebugCoordinatesState(page))
+        .toMatchObject({ enabled: true });
+
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(
+        () => document.documentElement.dataset.appMode === 'immersive',
+        undefined,
+        { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+      );
+      await page.waitForFunction(
+        () =>
+          (window as PortfolioPoiWindow).portfolio?.debugCoordinates?.getState
+      );
+      await expect(overlay).toBeVisible();
+      await expect
+        .poll(async () => getDebugCoordinatesState(page))
+        .toMatchObject({ enabled: true });
+    });
 
     test('routes Settings audio and M key toggles through global mute', async ({
       page,
