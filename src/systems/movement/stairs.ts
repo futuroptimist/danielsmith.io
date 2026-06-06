@@ -23,6 +23,34 @@ export interface StairBehavior {
 
 const DENOMINATOR_EPSILON = 1e-6;
 
+export type StairTransitionZone =
+  | 'lowerStairEntrance'
+  | 'stairRampBody'
+  | 'upperLanding'
+  | 'safeUpperFloor'
+  | 'explicitDescentCorridor';
+
+export interface StairTransitionZoneSample {
+  zone: StairTransitionZone;
+  withinStairWidth: boolean;
+  withinCoreStairWidth: boolean;
+  withinDescentCorridorWidth: boolean;
+  withinRampZ: boolean;
+  withinLanding: boolean;
+}
+
+const isBetween = (value: number, a: number, b: number, margin = 0): boolean =>
+  value >= Math.min(a, b) - margin && value <= Math.max(a, b) + margin;
+
+const getDescentCorridorHalfWidth = (
+  geometry: StairGeometry,
+  behavior: StairBehavior
+): number =>
+  Math.max(
+    geometry.halfWidth - behavior.transitionMargin * 0.35,
+    geometry.halfWidth * 0.55
+  );
+
 export const isWithinStairWidth = (
   geometry: StairGeometry,
   x: number,
@@ -60,6 +88,98 @@ export const computeRampHeight = (
   return clamped * geometry.totalRise;
 };
 
+export const classifyStairTransitionZone = (
+  geometry: StairGeometry,
+  behavior: StairBehavior,
+  x: number,
+  z: number,
+  current: FloorId
+): StairTransitionZoneSample => {
+  const direction =
+    geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
+  const withinStairWidth = isWithinStairWidth(
+    geometry,
+    x,
+    behavior.transitionMargin
+  );
+  const withinCoreStairWidth = isWithinStairWidth(geometry, x);
+  const descentCorridorHalfWidth = getDescentCorridorHalfWidth(
+    geometry,
+    behavior
+  );
+  const withinDescentCorridorWidth =
+    Math.abs(x - geometry.centerX) <= descentCorridorHalfWidth;
+  const withinLanding = isWithinLanding(
+    geometry,
+    x,
+    z,
+    behavior.landingTriggerMargin
+  );
+  const withinRampZ = isBetween(
+    z,
+    geometry.bottomZ,
+    geometry.topZ,
+    behavior.transitionMargin * 0.5
+  );
+  const nearBottom =
+    direction === -1
+      ? z >= geometry.bottomZ - behavior.transitionMargin * 0.5
+      : z <= geometry.bottomZ + behavior.transitionMargin * 0.5;
+
+  if (withinLanding) {
+    return {
+      zone: 'upperLanding',
+      withinStairWidth,
+      withinCoreStairWidth,
+      withinDescentCorridorWidth,
+      withinRampZ,
+      withinLanding,
+    };
+  }
+
+  if (current === 'upper' && withinDescentCorridorWidth && withinRampZ) {
+    return {
+      zone: 'explicitDescentCorridor',
+      withinStairWidth,
+      withinCoreStairWidth,
+      withinDescentCorridorWidth,
+      withinRampZ,
+      withinLanding,
+    };
+  }
+
+  if (withinCoreStairWidth && withinRampZ) {
+    return {
+      zone: 'stairRampBody',
+      withinStairWidth,
+      withinCoreStairWidth,
+      withinDescentCorridorWidth,
+      withinRampZ,
+      withinLanding,
+    };
+  }
+
+  if (withinCoreStairWidth && nearBottom) {
+    return {
+      zone: 'lowerStairEntrance',
+      withinStairWidth,
+      withinCoreStairWidth,
+      withinDescentCorridorWidth,
+      withinRampZ,
+      withinLanding,
+    };
+  }
+
+  return {
+    zone: 'safeUpperFloor',
+    withinStairWidth,
+    withinCoreStairWidth,
+    withinDescentCorridorWidth,
+    withinRampZ,
+    withinLanding,
+  };
+};
+
 export const predictStairFloorId = (
   geometry: StairGeometry,
   behavior: StairBehavior,
@@ -68,53 +188,22 @@ export const predictStairFloorId = (
   current: FloorId
 ): FloorId => {
   const rampHeight = computeRampHeight(geometry, behavior, x, z);
-  const withinStairs = isWithinStairWidth(
-    geometry,
-    x,
-    behavior.transitionMargin
-  );
   const direction =
     geometry.direction ?? (geometry.topZ >= geometry.bottomZ ? 1 : -1);
+  const zoneSample = classifyStairTransitionZone(
+    geometry,
+    behavior,
+    x,
+    z,
+    current
+  );
 
   if (current === 'upper') {
-    if (!withinStairs) {
-      return 'upper';
-    }
-
-    const baseExitHalfWidth = Math.max(
-      geometry.halfWidth - behavior.transitionMargin * 0.5,
-      geometry.halfWidth * 0.5
-    );
-    const withinBaseExit = Math.abs(x - geometry.centerX) <= baseExitHalfWidth;
-
-    const withinLanding = isWithinLanding(
-      geometry,
-      x,
-      z,
-      behavior.landingTriggerMargin
-    );
-    if (withinLanding) {
-      return 'upper';
-    }
-
-    const hasLeftLanding =
-      rampHeight < geometry.totalRise - behavior.stepRise * 0.1;
-    const bottomThreshold =
-      direction === -1
-        ? geometry.bottomZ - behavior.transitionMargin * 0.5
-        : geometry.bottomZ + behavior.transitionMargin * 0.5;
-
-    if (hasLeftLanding) {
-      const reachedLowerRegion =
-        direction === -1 ? z <= bottomThreshold : z >= bottomThreshold;
-      if (reachedLowerRegion) {
-        return 'ground';
-      }
-    }
-
-    const crossedBaseExit =
-      direction === -1 ? z >= geometry.bottomZ : z <= geometry.bottomZ;
-    if (withinBaseExit && crossedBaseExit) {
+    // Upper-to-ground transitions are intentionally narrower than the full
+    // stair nav footprint. The broad footprint keeps ascent forgiving, while
+    // this named descent corridor prevents landing-edge drift from reviving
+    // accidental teleport goblins.
+    if (zoneSample.zone === 'explicitDescentCorridor') {
       return 'ground';
     }
 
@@ -127,10 +216,10 @@ export const predictStairFloorId = (
       : z >= geometry.topZ - behavior.transitionMargin;
 
   const nearLanding =
-    withinStairs &&
+    zoneSample.withinStairWidth &&
     (nearTop ||
       rampHeight >= geometry.totalRise - behavior.stepRise * 0.25 ||
-      isWithinLanding(geometry, x, z, behavior.landingTriggerMargin));
+      zoneSample.withinLanding);
   if (nearLanding) {
     return 'upper';
   }
@@ -165,13 +254,24 @@ export const sampleStairSurfaceHeight = ({
     currentFloor
   );
   if (predictedFloor === 'upper') {
+    const zoneSample = classifyStairTransitionZone(
+      geometry,
+      behavior,
+      x,
+      z,
+      currentFloor
+    );
     const withinStairWidth = isWithinStairWidth(
       geometry,
       x,
       behavior.transitionMargin
     );
     const onLanding = isWithinLanding(geometry, x, z);
-    if (!withinStairWidth || onLanding) {
+    if (
+      (currentFloor === 'upper' && zoneSample.zone === 'safeUpperFloor') ||
+      !withinStairWidth ||
+      onLanding
+    ) {
       return upperFloorElevation;
     }
   }

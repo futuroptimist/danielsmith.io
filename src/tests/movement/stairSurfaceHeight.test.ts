@@ -68,6 +68,13 @@ describe('sampleStairSurfaceHeight', () => {
     expect(height).toBeCloseTo(upperFloorElevation, 6);
   });
 
+  it('keeps safe upper-floor edges at the upper floor elevation', () => {
+    const edgeX = geometry.centerX + geometry.halfWidth + toWorldUnits(0.12);
+    const edgeZ = geometry.topZ - toWorldUnits(0.45);
+    const height = sample({ x: edgeX, z: edgeZ, currentFloor: 'upper' });
+    expect(height).toBeCloseTo(upperFloorElevation, 6);
+  });
+
   it('clamps to ground level when outside the stair span', () => {
     const farEastX = geometry.centerX + geometry.halfWidth + toWorldUnits(0.8);
     const height = sample({
