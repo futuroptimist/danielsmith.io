@@ -321,6 +321,24 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       descriptionDisabled:
         'Guided tour highlights are hidden until you turn them back on.',
     },
+    narrationToggle: {
+      labelEnabled: 'Narration: On',
+      labelDisabled: 'Narration: Off',
+      descriptionEnabled:
+        'Narration popups and captions are shown. Activate to hide them.',
+      descriptionDisabled:
+        'Narration popups and captions are hidden until you opt in.',
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: 'Caption',
+        poi: 'Narration',
+      },
+      dismissLabels: {
+        ambient: 'Dismiss caption',
+        poi: 'Dismiss narration',
+      },
+    },
     tourReset: {
       heading: 'Guided tour',
       resetKey: 'g',

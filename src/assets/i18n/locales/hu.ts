@@ -37,6 +37,16 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     guidedTour: 'Vezetett túra',
     guidedTourOn: 'Vezetett túra be',
     guidedTourOff: 'Vezetett túra ki',
+    narrationOn: 'Narráció: be',
+    narrationOff: 'Narráció: ki',
+    narrationDescriptionOn:
+      'A narrációs felugrók és feliratok láthatók. Aktiváld az elrejtéshez.',
+    narrationDescriptionOff:
+      'A narrációs felugrók és feliratok rejtve maradnak, amíg be nem kapcsolod.',
+    captionLabel: 'Felirat',
+    narrationLabel: 'Narráció',
+    dismissCaption: 'Felirat bezárása',
+    dismissNarration: 'Narráció bezárása',
     audioOn: 'Hang: be',
     audioOff: 'Hang: ki',
   },

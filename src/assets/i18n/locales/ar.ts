@@ -158,6 +158,23 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    narrationToggle: {
+      labelEnabled: 'السرد: تشغيل',
+      labelDisabled: 'السرد: إيقاف',
+      descriptionEnabled: 'تظهر نوافذ السرد والتعليقات. فعّل لإخفائها.',
+      descriptionDisabled:
+        'تبقى نوافذ السرد والتعليقات مخفية حتى تختار تشغيلها.',
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: 'تعليق',
+        poi: 'سرد',
+      },
+      dismissLabels: {
+        ambient: 'إغلاق التعليق',
+        poi: 'إغلاق السرد',
+      },
+    },
     controlOverlay: {
       heading: 'عناصر التحكم',
       items: {

@@ -249,6 +249,22 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       descriptionEnabled: '高亮沉浸式导览中下一个推荐展品。',
       descriptionDisabled: '导览高亮已隐藏，直到你重新开启。',
     },
+    narrationToggle: {
+      labelEnabled: '旁白：开启',
+      labelDisabled: '旁白：关闭',
+      descriptionEnabled: '显示旁白弹窗和字幕。激活后可隐藏。',
+      descriptionDisabled: '旁白弹窗和字幕已隐藏，直到你选择开启。',
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: '字幕',
+        poi: '旁白',
+      },
+      dismissLabels: {
+        ambient: '关闭字幕',
+        poi: '关闭旁白',
+      },
+    },
     tourReset: {
       heading: '导览',
       resetKey: 'g',

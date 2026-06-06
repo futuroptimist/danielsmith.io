@@ -159,6 +159,24 @@ export const JA_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    narrationToggle: {
+      labelEnabled: 'ナレーション: オン',
+      labelDisabled: 'ナレーション: オフ',
+      descriptionEnabled:
+        'ナレーションのポップアップと字幕を表示します。押すと非表示にします。',
+      descriptionDisabled:
+        'ナレーションのポップアップと字幕は、オンにするまで非表示です。',
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: '字幕',
+        poi: 'ナレーション',
+      },
+      dismissLabels: {
+        ambient: '字幕を閉じる',
+        poi: 'ナレーションを閉じる',
+      },
+    },
     controlOverlay: {
       heading: '操作',
       items: {

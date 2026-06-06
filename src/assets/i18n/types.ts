@@ -191,6 +191,18 @@ export interface TourGuideToggleStrings {
   descriptionDisabled: string;
 }
 
+export interface NarrationToggleStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
+export interface AudioSubtitleOverlayStrings {
+  labels: Record<'ambient' | 'poi', string>;
+  dismissLabels: Record<'ambient' | 'poi', string>;
+}
+
 export interface TourResetControlStrings {
   heading: string;
   resetKey: string;
@@ -378,6 +390,8 @@ export interface LocaleStrings {
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
     tourGuideToggle: TourGuideToggleStrings;
+    narrationToggle: NarrationToggleStrings;
+    audioSubtitles: AudioSubtitleOverlayStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     helpModal: HelpModalStrings;

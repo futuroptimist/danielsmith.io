@@ -10,6 +10,7 @@ export interface AmbientCaptionBridgeOptions {
   subtitles: AudioSubtitlesHandle;
   cooldownMs?: number;
   now?: () => number;
+  isEnabled?: () => boolean;
 }
 
 interface AmbientCaptionState {
@@ -47,6 +48,8 @@ export class AmbientCaptionBridge {
 
   private readonly now: () => number;
 
+  private readonly isEnabled: () => boolean;
+
   private readonly states = new Map<string, AmbientCaptionState>();
 
   private readonly messageIds = new Set<string>();
@@ -57,11 +60,13 @@ export class AmbientCaptionBridge {
     cooldownMs = DEFAULT_COOLDOWN_MS,
     now = () =>
       typeof performance !== 'undefined' ? performance.now() : Date.now(),
+    isEnabled = () => true,
   }: AmbientCaptionBridgeOptions) {
     this.controller = controller;
     this.subtitles = subtitles;
     this.cooldownMs = Math.max(0, cooldownMs);
     this.now = now;
+    this.isEnabled = isEnabled;
   }
 
   clear(): void {
@@ -73,6 +78,11 @@ export class AmbientCaptionBridge {
   }
 
   update(): void {
+    if (!this.isEnabled()) {
+      this.clear();
+      return;
+    }
+
     const snapshots = this.controller.getBedSnapshots();
     const snapshotIds = new Set<string>();
     const currentTime = this.now();

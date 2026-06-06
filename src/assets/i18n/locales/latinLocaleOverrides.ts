@@ -40,6 +40,14 @@ interface LatinLocaleCopy {
     guidedTour: string;
     guidedTourOn: string;
     guidedTourOff: string;
+    narrationOn: string;
+    narrationOff: string;
+    narrationDescriptionOn: string;
+    narrationDescriptionOff: string;
+    captionLabel: string;
+    narrationLabel: string;
+    dismissCaption: string;
+    dismissNarration: string;
     audioOn: string;
     audioOff: string;
   };
@@ -675,6 +683,22 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.guidedTourOff,
         descriptionEnabled: s.guidedTour,
         descriptionDisabled: s.guidedTour,
+      },
+      narrationToggle: {
+        labelEnabled: s.narrationOn,
+        labelDisabled: s.narrationOff,
+        descriptionEnabled: s.narrationDescriptionOn,
+        descriptionDisabled: s.narrationDescriptionOff,
+      },
+      audioSubtitles: {
+        labels: {
+          ambient: s.captionLabel,
+          poi: s.narrationLabel,
+        },
+        dismissLabels: {
+          ambient: s.dismissCaption,
+          poi: s.dismissNarration,
+        },
       },
       tourReset: {
         heading: s.guidedTour,

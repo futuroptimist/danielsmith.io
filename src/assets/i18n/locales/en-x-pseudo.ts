@@ -309,6 +309,26 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Guided tour highlights are hidden until you turn them back on.'
       ),
     },
+    narrationToggle: {
+      labelEnabled: wrap('Narration: On'),
+      labelDisabled: wrap('Narration: Off'),
+      descriptionEnabled: wrap(
+        'Narration popups and captions are shown. Activate to hide them.'
+      ),
+      descriptionDisabled: wrap(
+        'Narration popups and captions are hidden until you opt in.'
+      ),
+    },
+    audioSubtitles: {
+      labels: {
+        ambient: wrap('Caption'),
+        poi: wrap('Narration'),
+      },
+      dismissLabels: {
+        ambient: wrap('Dismiss caption'),
+        poi: wrap('Dismiss narration'),
+      },
+    },
     tourReset: {
       heading: wrap('Guided tour'),
       resetKey: 'g',

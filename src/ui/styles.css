@@ -575,9 +575,9 @@ canvas {
   box-shadow: 0 22px 48px rgba(3, 9, 18, 0.6);
   color: #e7f1ff;
   backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.75rem;
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
@@ -586,9 +586,11 @@ canvas {
 
 .audio-subtitles[data-visible='true'] {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .audio-subtitles__label {
+  grid-column: 1;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -596,10 +598,38 @@ canvas {
 }
 
 .audio-subtitles__caption {
+  grid-column: 1;
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.45;
   color: rgba(230, 243, 255, 0.95);
+}
+
+.audio-subtitles__dismiss {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid rgba(148, 208, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(12, 28, 44, 0.82);
+  color: rgba(230, 243, 255, 0.95);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.audio-subtitles__dismiss:focus-visible,
+.audio-subtitles__dismiss:hover {
+  border-color: rgba(148, 208, 255, 0.9);
+  background: rgba(32, 76, 116, 0.9);
+  outline: 2px solid rgba(148, 208, 255, 0.65);
+  outline-offset: 2px;
+}
+
+.audio-subtitles[data-visible='false'] .audio-subtitles__dismiss {
+  display: none;
 }
 
 .audio-subtitles__text {

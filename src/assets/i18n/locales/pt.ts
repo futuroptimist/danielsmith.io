@@ -37,6 +37,16 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
     guidedTour: 'Visita guiada',
     guidedTourOn: 'Visita guiada ativada',
     guidedTourOff: 'Visita guiada desativada',
+    narrationOn: 'Narração: ativada',
+    narrationOff: 'Narração: desativada',
+    narrationDescriptionOn:
+      'Pop-ups e legendas de narração aparecem. Ative para ocultá-los.',
+    narrationDescriptionOff:
+      'Pop-ups e legendas de narração ficam ocultos até você ativar.',
+    captionLabel: 'Legenda',
+    narrationLabel: 'Narração',
+    dismissCaption: 'Fechar legenda',
+    dismissNarration: 'Fechar narração',
     audioOn: 'Áudio: ligado',
     audioOff: 'Áudio: desligado',
   },

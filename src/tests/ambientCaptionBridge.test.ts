@@ -113,6 +113,36 @@ describe('AmbientCaptionBridge', () => {
     bridge.update();
     expect(show).toHaveBeenCalledTimes(2);
   });
+
+  it('clears and suppresses captions while narration is disabled', () => {
+    const controller = new FakeController({
+      id: 'hum',
+      center: { x: 0, z: 0 },
+      innerRadius: 1,
+      outerRadius: 4,
+      baseVolume: 0.4,
+      source: fakeSource,
+      caption: 'Soft hum fills the room.',
+    });
+    controller.setVolume(0.3);
+    const subtitles = {
+      show: vi.fn(),
+      clear: vi.fn(),
+      dispose: vi.fn(),
+      getCurrent: vi.fn(() => null),
+    };
+
+    const bridge = new AmbientCaptionBridge({
+      controller,
+      subtitles,
+      isEnabled: () => false,
+    });
+
+    bridge.update();
+
+    expect(subtitles.show).not.toHaveBeenCalled();
+    expect(subtitles.clear).not.toHaveBeenCalled();
+  });
 });
 
 describe('AmbientCaptionBridge priority handling', () => {

@@ -112,6 +112,63 @@ describe('audio subtitles overlay', () => {
     handle.dispose();
   });
 
+  it('renders an accessible dismiss button and hides immediately when activated', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-dismiss',
+      text: 'Dismissible narration appears.',
+      source: 'poi',
+      durationMs: 5000,
+    });
+
+    const element = document.querySelector('.audio-subtitles');
+    const button = document.querySelector(
+      '.audio-subtitles__dismiss'
+    ) as HTMLButtonElement | null;
+
+    expect(element?.dataset.visible).toBe('true');
+    expect(button).toBeTruthy();
+    expect(button?.getAttribute('aria-label')).toBe('Dismiss narration');
+
+    button?.click();
+
+    expect(element?.dataset.visible).toBe('false');
+    expect(handle.getCurrent()).toBeNull();
+    expect(handle.getState?.().dismissCount).toBe(1);
+    handle.dispose();
+  });
+
+  it('dismisses active and queued captions without immediately replacing them', () => {
+    const handle = createAudioSubtitles();
+    handle.show({
+      id: 'poi-active',
+      text: 'Active narration.',
+      source: 'poi',
+      priority: 4,
+      durationMs: 5000,
+    });
+    handle.show({
+      id: 'ambient-queued',
+      text: 'Queued caption.',
+      source: 'ambient',
+      priority: 1,
+      durationMs: 5000,
+    });
+
+    expect(handle.getState?.().queueLength).toBe(1);
+    handle.dismissAll?.();
+
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    expect(handle.getState?.().queueLength).toBe(0);
+    vi.advanceTimersByTime(5000);
+    expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
+      'false'
+    );
+    handle.dispose();
+  });
+
   it('clears captions only when the matching identifier is provided', () => {
     const handle = createAudioSubtitles();
     handle.show({
