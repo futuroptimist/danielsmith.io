@@ -1779,30 +1779,48 @@ function initializeImmersiveScene(
     opacity: 1,
     depthWrite: true,
   });
-  const upperFloorTiles = createRoomFloorTiles(
-    UPPER_FLOOR_PLAN.rooms.filter((room) => room.id !== 'upperLanding'),
-    {
-      material: upperFloorMaterial,
-      elevation: upperFloorElevation,
-      thickness: STAIRCASE_CONFIG.landing.thickness,
-      groupName: 'UpperFloorTiles',
-    }
-  );
-  upperFloorGroup.add(upperFloorTiles.group);
-
-  // Keep the stairwell open: the landing stub below bridges from the stairs to
-  // the room tiles while avoiding a sealed slab over the descent corridor.
-
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
   );
+  const upperLandingClearance = toWorldUnits(0.05);
+  const upperLandingSolidStartZ = stairTopZ + upperLandingClearance;
+  const upperLandingCutouts = upperLandingRoom
+    ? {
+        upperLanding: [
+          {
+            minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+            maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+            minZ: upperLandingRoom.bounds.minZ,
+            maxZ: upperLandingSolidStartZ,
+          },
+          {
+            minX: upperLandingRoom.bounds.minX,
+            maxX: upperLandingRoom.bounds.maxX,
+            minZ: upperLandingSolidStartZ,
+            maxZ: upperLandingRoom.bounds.maxZ,
+          },
+        ],
+      }
+    : undefined;
+  const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+    material: upperFloorMaterial,
+    elevation: upperFloorElevation,
+    thickness: STAIRCASE_CONFIG.landing.thickness,
+    groupName: 'UpperFloorTiles',
+    cutoutsByRoom: upperLandingCutouts,
+  });
+  upperFloorGroup.add(upperFloorTiles.group);
+
+  // Keep only the stairwell open: room tiles fill the upper landing shoulders,
+  // while the stub remains the visible bridge from the stairs without z-fighting.
+
   if (upperLandingRoom) {
     const upperLandingStub = createUpperLandingStub({
       bounds: upperLandingRoom.bounds,
       landingMaxZ: stairTopZ,
       elevation: upperFloorElevation,
       thickness: STAIRCASE_CONFIG.landing.thickness,
-      landingClearance: toWorldUnits(0.05),
+      landingClearance: upperLandingClearance,
       material: {
         color: 0x4c596b,
         roughness: 0.58,
