@@ -446,14 +446,18 @@ describe('audio subtitles overlay', () => {
     });
 
     expect(handle.getQueueLength()).toBe(1);
-    document
-      .querySelector<HTMLButtonElement>('.audio-subtitles__dismiss')
-      ?.click();
+    const dismissButton = document.querySelector<HTMLButtonElement>(
+      '.audio-subtitles__dismiss'
+    );
+    dismissButton?.focus();
+    expect(document.activeElement).toBe(dismissButton);
+    dismissButton?.click();
 
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
       'false'
     );
     expect(handle.getQueueLength()).toBe(0);
+    expect(document.activeElement).not.toBe(dismissButton);
     expect(handle.getDismissCount()).toBe(1);
     expect(handle.getLastDismissedAt()).toBeGreaterThan(0);
 

@@ -280,6 +280,7 @@ export function createAudioSubtitles({
   };
 
   const dismissAll = () => {
+    dismissButton.blur();
     dismissCount += 1;
     lastDismissedAt = Date.now();
     queue.length = 0;

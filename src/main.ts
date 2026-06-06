@@ -1194,7 +1194,7 @@ function initializeImmersiveScene(
   };
 
   const clearNarrationSubtitles = () => {
-    audioSubtitles?.dismissAll();
+    audioSubtitles?.clear();
     ambientCaptionBridge?.clear();
   };
 

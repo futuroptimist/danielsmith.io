@@ -60,4 +60,50 @@ describe('NarrationPreference', () => {
 
     expect(preference.isEnabled()).toBe(false);
   });
+
+  it('treats removed storage keys as cross-tab opt-out', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(NARRATION_PREFERENCE_STORAGE_KEY, '1');
+    const preference = new NarrationPreference({
+      storage,
+      windowTarget: window,
+    });
+    const listener = vi.fn();
+
+    preference.subscribe(listener);
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: NARRATION_PREFERENCE_STORAGE_KEY,
+        newValue: null,
+      })
+    );
+
+    expect(preference.isEnabled()).toBe(false);
+    expect(listener).toHaveBeenLastCalledWith({
+      enabled: false,
+      source: 'storage',
+    });
+
+    preference.dispose();
+  });
+
+  it('treats localStorage clear events as cross-tab opt-out', () => {
+    const storage = new MemoryStorage();
+    storage.setItem(NARRATION_PREFERENCE_STORAGE_KEY, '1');
+    const preference = new NarrationPreference({
+      storage,
+      windowTarget: window,
+    });
+
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: null,
+        newValue: null,
+      })
+    );
+
+    expect(preference.isEnabled()).toBe(false);
+
+    preference.dispose();
+  });
 });

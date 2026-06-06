@@ -586,7 +586,6 @@ canvas {
 
 .audio-subtitles[data-visible='true'] {
   opacity: 1;
-  pointer-events: auto;
 }
 
 .audio-subtitles__label {
@@ -616,6 +615,7 @@ canvas {
 
 .audio-subtitles__dismiss {
   position: absolute;
+  pointer-events: auto;
   top: 0.55rem;
   right: 0.65rem;
   width: 1.8rem;
