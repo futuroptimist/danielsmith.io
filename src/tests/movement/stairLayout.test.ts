@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeStairLayout } from '../../systems/movement/stairLayout';
+import {
+  computeStairLayout,
+  computeStairwellOpeningBounds,
+} from '../../systems/movement/stairLayout';
 
 describe('computeStairLayout', () => {
   it('derives layout metrics for negative Z staircases', () => {
@@ -43,5 +46,30 @@ describe('computeStairLayout', () => {
       guardRange: { minZ: -0.5, maxZ: 5 },
       stairHoleRange: { minZ: -0.25, maxZ: 5.25 },
     });
+  });
+
+  it('clips upstairs stairwell hole bounds from the shared stair layout plus margin', () => {
+    const layout = computeStairLayout({
+      baseZ: -10.6,
+      stepRun: 1.7,
+      stepCount: 9,
+      landingDepth: 5.2,
+      direction: 'negativeZ',
+      guardMargin: 1.2,
+      stairwellMargin: 0.8,
+    });
+
+    const opening = computeStairwellOpeningBounds({
+      centerX: 9.92,
+      halfWidth: 2.48,
+      marginX: 0.4,
+      roomBounds: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+      layout,
+    });
+
+    expect(opening.minX).toBeCloseTo(7.04);
+    expect(opening.maxX).toBeCloseTo(12.8);
+    expect(opening.minZ).toBeCloseTo(-31.9);
+    expect(opening.maxZ).toBeCloseTo(-16);
   });
 });

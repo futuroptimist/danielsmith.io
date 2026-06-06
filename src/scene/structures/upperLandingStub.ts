@@ -4,114 +4,146 @@ import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
 
-export interface UpperLandingGuardConfig {
-  /** Height of the guard rail measured from the landing surface. */
+export interface UpperStairwellGuardConfig {
+  /** Height of the guard rail measured from the upper-floor surface. */
   height: number;
-  /** Thickness of the guard rail along the Z axis. */
+  /** Physical thickness of each rail. */
   thickness: number;
-  /** Inset applied to both sides of the guard rail along the X axis. */
-  inset: number;
-  /** Optional material overrides for the guard rail. */
+  /** Optional material overrides for the guard rails. */
   material?: MeshStandardMaterialParameters;
 }
 
-export interface UpperLandingStubConfig {
+export interface UpperStairwellLandingConfig {
   /** World-space bounds of the upper landing room. */
-  bounds: Bounds2D;
-  /** World-space Z coordinate where the stair landing ends (south edge). */
-  landingMaxZ: number;
-  /** Height of the landing surface measured from world origin. */
+  roomBounds: Bounds2D;
+  /** World-space stairwell opening derived from the shared stair layout. */
+  openingBounds: Bounds2D;
+  /** Height of the upper-floor surface measured from world origin. */
   elevation: number;
-  /** Thickness of the landing slab. */
-  thickness: number;
-  /** Gap maintained between the landing slab and the stair landing. */
-  landingClearance: number;
-  /** Material applied to the landing stub. */
-  material: MeshStandardMaterialParameters;
-  /** Optional guard rail configuration. */
-  guard?: UpperLandingGuardConfig;
+  /** Guard rail configuration. */
+  guard: UpperStairwellGuardConfig;
 }
 
-export interface UpperLandingStubBuild {
+export interface UpperStairwellLandingBuild {
   group: Group;
   colliders: RectCollider[];
 }
 
-const GROUP_NAME = 'UpperLandingStub';
-const SLAB_NAME = 'UpperLandingStubSlab';
-const GUARD_NAME = 'UpperLandingStubGuard';
+const GROUP_NAME = 'UpperStairwellLanding';
+const SIDE_GUARD_NAME = 'UpperStairwellLandingSideGuard';
+const FAR_GUARD_NAME = 'UpperStairwellLandingFarGuard';
+
+const hasPositiveArea = (bounds: Bounds2D): boolean =>
+  bounds.maxX > bounds.minX && bounds.maxZ > bounds.minZ;
+
+const clampBoundsToRoom = (
+  bounds: Bounds2D,
+  roomBounds: Bounds2D
+): Bounds2D => ({
+  minX: Math.max(bounds.minX, roomBounds.minX),
+  maxX: Math.min(bounds.maxX, roomBounds.maxX),
+  minZ: Math.max(bounds.minZ, roomBounds.minZ),
+  maxZ: Math.min(bounds.maxZ, roomBounds.maxZ),
+});
+
+const addGuard = (params: {
+  group: Group;
+  colliders: RectCollider[];
+  material: MeshStandardMaterial;
+  name: string;
+  bounds: Bounds2D;
+  elevation: number;
+  height: number;
+}) => {
+  const width = params.bounds.maxX - params.bounds.minX;
+  const depth = params.bounds.maxZ - params.bounds.minZ;
+  if (width <= 0 || depth <= 0 || params.height <= 0) {
+    return;
+  }
+
+  const guard = new Mesh(
+    new BoxGeometry(width, params.height, depth),
+    params.material
+  );
+  guard.name = params.name;
+  guard.position.set(
+    params.bounds.minX + width / 2,
+    params.elevation + params.height / 2,
+    params.bounds.minZ + depth / 2
+  );
+  params.group.add(guard);
+  params.colliders.push(params.bounds);
+};
 
 /**
- * Builds a placeholder upper landing slab that bridges the stair landing to the
- * future second-floor layout. The geometry is intentionally minimal so future
- * automation can reshape or reskin it without rewriting scene wiring.
+ * Adds low railings around the upstairs stairwell opening without creating any
+ * slab across the descent path. The room floor tiles own the walkable landing
+ * surface, while the shared stair layout owns `openingBounds`; keeping those
+ * inputs separate prevents visual floor slabs from drifting over the ramp.
  */
-export function createUpperLandingStub(
-  config: UpperLandingStubConfig
-): UpperLandingStubBuild {
+export function createUpperStairwellLanding(
+  config: UpperStairwellLandingConfig
+): UpperStairwellLandingBuild {
+  const openingBounds = clampBoundsToRoom(
+    config.openingBounds,
+    config.roomBounds
+  );
+  if (!hasPositiveArea(openingBounds)) {
+    throw new Error('Upper stairwell opening must overlap the landing room.');
+  }
+
   const group = new Group();
   group.name = GROUP_NAME;
   const colliders: RectCollider[] = [];
+  const thickness = Math.max(config.guard.thickness, 0);
+  const guardMaterial = new MeshStandardMaterial(config.guard.material);
 
-  const width = config.bounds.maxX - config.bounds.minX;
-  if (width <= 0) {
-    throw new Error('Upper landing bounds must have a positive width.');
+  if (thickness <= 0 || config.guard.height <= 0) {
+    return { group, colliders };
   }
 
-  const startZ = Math.max(
-    config.bounds.minZ,
-    config.landingMaxZ + config.landingClearance
-  );
-  const depth = config.bounds.maxZ - startZ;
-  if (depth <= 0) {
-    throw new Error(
-      'Upper landing bounds must extend beyond the stair landing.'
-    );
-  }
-
-  const slabMaterial = new MeshStandardMaterial(config.material);
-  const slabGeometry = new BoxGeometry(width, config.thickness, depth);
-  const slab = new Mesh(slabGeometry, slabMaterial);
-  slab.name = SLAB_NAME;
-  slab.position.set(
-    config.bounds.minX + width / 2,
-    config.elevation - config.thickness / 2,
-    startZ + depth / 2
-  );
-  group.add(slab);
-
-  if (config.guard) {
-    const guardMaterial = new MeshStandardMaterial(
-      config.guard.material ?? config.material
-    );
-    const guardLength = Math.max(0, width - config.guard.inset * 2);
-    if (
-      guardLength > 0 &&
-      config.guard.thickness > 0 &&
-      config.guard.height > 0
-    ) {
-      const guardGeometry = new BoxGeometry(
-        guardLength,
-        config.guard.height,
-        config.guard.thickness
-      );
-      const guard = new Mesh(guardGeometry, guardMaterial);
-      guard.name = GUARD_NAME;
-      guard.position.set(
-        config.bounds.minX + config.guard.inset + guardLength / 2,
-        config.elevation + config.guard.height / 2,
-        config.bounds.maxZ - config.guard.thickness / 2
-      );
-      group.add(guard);
-
-      colliders.push({
-        minX: guard.position.x - guardLength / 2,
-        maxX: guard.position.x + guardLength / 2,
-        minZ: guard.position.z - config.guard.thickness / 2,
-        maxZ: guard.position.z + config.guard.thickness / 2,
-      });
-    }
-  }
+  addGuard({
+    group,
+    colliders,
+    material: guardMaterial,
+    name: `${SIDE_GUARD_NAME}-West`,
+    bounds: {
+      minX: openingBounds.minX - thickness,
+      maxX: openingBounds.minX,
+      minZ: openingBounds.minZ,
+      maxZ: openingBounds.maxZ,
+    },
+    elevation: config.elevation,
+    height: config.guard.height,
+  });
+  addGuard({
+    group,
+    colliders,
+    material: guardMaterial,
+    name: `${SIDE_GUARD_NAME}-East`,
+    bounds: {
+      minX: openingBounds.maxX,
+      maxX: openingBounds.maxX + thickness,
+      minZ: openingBounds.minZ,
+      maxZ: openingBounds.maxZ,
+    },
+    elevation: config.elevation,
+    height: config.guard.height,
+  });
+  addGuard({
+    group,
+    colliders,
+    material: guardMaterial,
+    name: FAR_GUARD_NAME,
+    bounds: {
+      minX: openingBounds.minX,
+      maxX: openingBounds.maxX,
+      minZ: openingBounds.minZ,
+      maxZ: openingBounds.minZ + thickness,
+    },
+    elevation: config.elevation,
+    height: config.guard.height,
+  });
 
   return { group, colliders };
 }

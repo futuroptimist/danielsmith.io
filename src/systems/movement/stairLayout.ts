@@ -10,6 +10,21 @@ export interface StairLayoutConfig {
   stairwellMargin: number;
 }
 
+export interface StairwellBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+export interface StairwellOpeningConfig {
+  centerX: number;
+  halfWidth: number;
+  marginX: number;
+  roomBounds: StairwellBounds;
+  layout: Pick<StairLayoutResult, 'stairHoleRange'>;
+}
+
 export interface StairLayoutResult {
   topZ: number;
   landingMinZ: number;
@@ -68,3 +83,23 @@ export const computeStairLayout = (
     stairHoleRange: { minZ: stairHoleMinZ, maxZ: stairHoleMaxZ },
   };
 };
+
+/**
+ * Clips the visual upstairs stairwell hole to the landing room while deriving
+ * the stair run from `computeStairLayout`. Movement and visuals therefore use
+ * the same top/bottom/landing metrics instead of separate hard-coded Z spans.
+ */
+export const computeStairwellOpeningBounds = (
+  config: StairwellOpeningConfig
+): StairwellBounds => ({
+  minX: Math.max(
+    config.roomBounds.minX,
+    config.centerX - config.halfWidth - config.marginX
+  ),
+  maxX: Math.min(
+    config.roomBounds.maxX,
+    config.centerX + config.halfWidth + config.marginX
+  ),
+  minZ: Math.max(config.roomBounds.minZ, config.layout.stairHoleRange.minZ),
+  maxZ: Math.min(config.roomBounds.maxZ, config.layout.stairHoleRange.maxZ),
+});
