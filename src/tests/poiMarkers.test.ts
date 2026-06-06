@@ -1,11 +1,16 @@
 import {
   Color,
   CylinderGeometry,
+  Group,
   MeshStandardMaterial,
   SphereGeometry,
 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import {
+  createFloorVisibilityController,
+  applyPoiFloorVisibility,
+} from '../scene/floors/visibility';
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import { scalePoiValue } from '../scene/poi/constants';
 import {
@@ -292,5 +297,72 @@ describe('createPoiInstances', () => {
     );
     expect(performance.collider).toEqual(balanced.collider);
     expect(performance.hitArea.name).toBe(`POI_HIT:${definition.id}`);
+  });
+
+  it('keeps ground POI labels and visited checkmarks off while the upper floor is active', () => {
+    const [groundPoi] = createPoiInstances([
+      createDefinition({ title: 'Ground Exhibit' }),
+    ]);
+    expect(groundPoi.label).toBeDefined();
+    expect(groundPoi.labelMaterial).toBeDefined();
+    expect(groundPoi.visitedHighlight).toBeDefined();
+
+    groundPoi.labelMaterial!.opacity = 0.76;
+    groundPoi.label!.visible = true;
+    groundPoi.visited = true;
+    groundPoi.visitedHighlight!.material.opacity = 0.55;
+    groundPoi.visitedHighlight!.mesh.visible = true;
+
+    applyPoiFloorVisibility([groundPoi], () => 'ground', 'upper');
+
+    expect(groundPoi.group.visible).toBe(false);
+    expect(groundPoi.label!.visible).toBe(false);
+    expect(groundPoi.labelMaterial!.opacity).toBe(0);
+    expect(groundPoi.visitedHighlight!.mesh.visible).toBe(false);
+    expect(groundPoi.visitedHighlight!.material.opacity).toBe(0);
+  });
+
+  it('toggles floor-specific visual groups without hiding the staircase group', () => {
+    const groundArchitecture = new Group();
+    const groundPoi = new Group();
+    const groundLed = new Group();
+    const groundLedFillLights = new Group();
+    const upperArchitecture = new Group();
+    const staircase = new Group();
+    staircase.name = 'LivingRoomStaircase';
+
+    const controller = createFloorVisibilityController({
+      groups: {
+        groundArchitecture,
+        groundPoi,
+        groundLed,
+        groundLedFillLights,
+        upperArchitecture,
+      },
+    });
+
+    expect(groundArchitecture.visible).toBe(true);
+    expect(groundPoi.visible).toBe(true);
+    expect(groundLed.visible).toBe(true);
+    expect(groundLedFillLights.visible).toBe(true);
+    expect(upperArchitecture.visible).toBe(false);
+    expect(staircase.visible).toBe(true);
+
+    controller.setActiveFloor('upper');
+
+    expect(controller.activeFloor).toBe('upper');
+    expect(groundArchitecture.visible).toBe(true);
+    expect(groundPoi.visible).toBe(false);
+    expect(groundLed.visible).toBe(false);
+    expect(groundLedFillLights.visible).toBe(false);
+    expect(upperArchitecture.visible).toBe(true);
+    expect(staircase.visible).toBe(true);
+
+    controller.setActiveFloor('ground');
+
+    expect(groundPoi.visible).toBe(true);
+    expect(groundLed.visible).toBe(true);
+    expect(groundLedFillLights.visible).toBe(true);
+    expect(upperArchitecture.visible).toBe(false);
   });
 });

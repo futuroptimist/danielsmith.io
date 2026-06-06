@@ -109,6 +109,33 @@ describe('createRoomFloorTiles', () => {
     expect(tileMaterial.lightMapIntensity).toBeCloseTo(0.18);
   });
 
+  it('splits upstairs slabs around rectangular stairwell cutouts', () => {
+    const { group, tiles } = createRoomFloorTiles([livingRoom], {
+      elevation: 4,
+      thickness: 0.4,
+      cutouts: [{ minX: -1, maxX: 1, minZ: -5, maxZ: -3 }],
+    });
+
+    expect(group.name).toBe('RoomFloorTiles');
+    expect(tiles).toHaveLength(4);
+    tiles.forEach((tile) => {
+      const material = tile.mesh.material as MeshStandardMaterial;
+      expect(material.transparent).toBe(false);
+      expect(material.depthWrite).toBe(true);
+      expect(tile.mesh.position.y).toBeCloseTo(3.8);
+    });
+
+    const hasCutoutCoveringTile = tiles.some((tile) => {
+      const geometry = tile.mesh.geometry as BoxGeometry;
+      const minX = tile.mesh.position.x - geometry.parameters.width / 2;
+      const maxX = tile.mesh.position.x + geometry.parameters.width / 2;
+      const minZ = tile.mesh.position.z - geometry.parameters.depth / 2;
+      const maxZ = tile.mesh.position.z + geometry.parameters.depth / 2;
+      return minX < 1 && maxX > -1 && minZ < -3 && maxZ > -5;
+    });
+    expect(hasCutoutCoveringTile).toBe(false);
+  });
+
   it('skips rooms that are too small after inset adjustments', () => {
     const tightRoom: RoomDefinition = {
       id: 'micro',

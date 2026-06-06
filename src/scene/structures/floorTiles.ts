@@ -1,6 +1,6 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
-import type { RoomDefinition } from '../../assets/floorPlan';
+import type { Bounds2D, RoomDefinition } from '../../assets/floorPlan';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
 
 export interface RoomFloorTile {
@@ -24,6 +24,8 @@ export interface RoomFloorOptions {
   readonly material?: MeshStandardMaterial;
   /** Optional factory for bespoke materials per room. */
   readonly materialFactory?: (room: RoomDefinition) => MeshStandardMaterial;
+  /** Optional rectangular floor voids that should not receive tile geometry. */
+  readonly cutouts?: readonly Bounds2D[];
   /** Optional baked lightmap assigned to each tile. */
   readonly lightMap?: Texture;
   /** Intensity multiplier applied to the baked lightmap. */
@@ -52,6 +54,75 @@ function applyLightMapOptions(
   } else if (typeof options.lightMapIntensity === 'number') {
     material.lightMapIntensity = Math.max(0, options.lightMapIntensity);
   }
+}
+
+function getIntersection(a: Bounds2D, b: Bounds2D): Bounds2D | null {
+  const minX = Math.max(a.minX, b.minX);
+  const maxX = Math.min(a.maxX, b.maxX);
+  const minZ = Math.max(a.minZ, b.minZ);
+  const maxZ = Math.min(a.maxZ, b.maxZ);
+
+  if (maxX - minX <= MIN_DIMENSION || maxZ - minZ <= MIN_DIMENSION) {
+    return null;
+  }
+
+  return { minX, maxX, minZ, maxZ };
+}
+
+function subtractCutout(rect: Bounds2D, cutout: Bounds2D): Bounds2D[] {
+  const overlap = getIntersection(rect, cutout);
+  if (!overlap) {
+    return [rect];
+  }
+
+  const pieces: Bounds2D[] = [];
+  const pushPiece = (piece: Bounds2D) => {
+    if (
+      piece.maxX - piece.minX > MIN_DIMENSION &&
+      piece.maxZ - piece.minZ > MIN_DIMENSION
+    ) {
+      pieces.push(piece);
+    }
+  };
+
+  pushPiece({
+    minX: rect.minX,
+    maxX: rect.maxX,
+    minZ: rect.minZ,
+    maxZ: overlap.minZ,
+  });
+  pushPiece({
+    minX: rect.minX,
+    maxX: rect.maxX,
+    minZ: overlap.maxZ,
+    maxZ: rect.maxZ,
+  });
+  pushPiece({
+    minX: rect.minX,
+    maxX: overlap.minX,
+    minZ: overlap.minZ,
+    maxZ: overlap.maxZ,
+  });
+  pushPiece({
+    minX: overlap.maxX,
+    maxX: rect.maxX,
+    minZ: overlap.minZ,
+    maxZ: overlap.maxZ,
+  });
+
+  return pieces;
+}
+
+function applyCutouts(
+  rect: Bounds2D,
+  cutouts: readonly Bounds2D[]
+): Bounds2D[] {
+  return cutouts.reduce<Bounds2D[]>(
+    (pieces, cutout) => {
+      return pieces.flatMap((piece) => subtractCutout(piece, cutout));
+    },
+    [rect]
+  );
 }
 
 function resolveMaterial(
@@ -102,30 +173,42 @@ export function createRoomFloorTiles(
       return;
     }
 
-    const width = room.bounds.maxX - room.bounds.minX - inset * 2;
-    const depth = room.bounds.maxZ - room.bounds.minZ - inset * 2;
+    const roomRect = {
+      minX: room.bounds.minX + inset,
+      maxX: room.bounds.maxX - inset,
+      minZ: room.bounds.minZ + inset,
+      maxZ: room.bounds.maxZ - inset,
+    };
 
-    if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
-      return;
-    }
+    const pieces = applyCutouts(roomRect, options.cutouts ?? []);
+    const material = resolveMaterial(room, options, defaultMaterial);
 
-    const geometry = new BoxGeometry(width, thickness, depth);
-    applyLightmapUv2(geometry);
+    pieces.forEach((piece, index) => {
+      const width = piece.maxX - piece.minX;
+      const depth = piece.maxZ - piece.minZ;
 
-    const mesh = new Mesh(
-      geometry,
-      resolveMaterial(room, options, defaultMaterial)
-    );
-    mesh.position.set(
-      (room.bounds.minX + room.bounds.maxX) / 2,
-      elevation - thickness / 2,
-      (room.bounds.minZ + room.bounds.maxZ) / 2
-    );
-    mesh.name = `${room.name} Floor`;
-    mesh.receiveShadow = true;
+      if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
+        return;
+      }
 
-    group.add(mesh);
-    tiles.push({ roomId: room.id, mesh });
+      const geometry = new BoxGeometry(width, thickness, depth);
+      applyLightmapUv2(geometry);
+
+      const mesh = new Mesh(geometry, material);
+      mesh.position.set(
+        (piece.minX + piece.maxX) / 2,
+        elevation - thickness / 2,
+        (piece.minZ + piece.maxZ) / 2
+      );
+      mesh.name =
+        pieces.length > 1
+          ? `${room.name} Floor ${index + 1}`
+          : `${room.name} Floor`;
+      mesh.receiveShadow = true;
+
+      group.add(mesh);
+      tiles.push({ roomId: room.id, mesh });
+    });
   });
 
   return { group, tiles };

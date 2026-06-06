@@ -12,11 +12,8 @@ import {
   Group,
   HemisphereLight,
   MathUtils,
-  Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
-  Shape,
-  ShapeGeometry,
   OrthographicCamera,
   PointLight,
   Scene,
@@ -113,6 +110,11 @@ import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
+import {
+  createFloorVisibilityController,
+  createNamedFloorGroup,
+  type SceneFloorId,
+} from './scene/floors/visibility';
 import {
   createMotionBlurController,
   type MotionBlurController,
@@ -1536,6 +1538,15 @@ function initializeImmersiveScene(
     );
   }
 
+  const groundArchitectureGroup = createNamedFloorGroup(
+    'GroundFloorArchitecture'
+  );
+  scene.add(groundArchitectureGroup);
+  const groundPoiGroup = createNamedFloorGroup('GroundFloorPoiVisuals');
+  scene.add(groundPoiGroup);
+  const groundLedGroup = createNamedFloorGroup('GroundFloorLedVisuals');
+  scene.add(groundLedGroup);
+
   const floorMaterial = new MeshStandardMaterial({
     color: 0x2a3547,
     roughness: 0.58,
@@ -1546,7 +1557,7 @@ function initializeImmersiveScene(
     elevation: 0,
     groupName: 'GroundFloorTiles',
   });
-  scene.add(floorTiles.group);
+  groundArchitectureGroup.add(floorTiles.group);
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
@@ -1585,7 +1596,7 @@ function initializeImmersiveScene(
       return instance.isFence ? fenceMaterial : wallMaterial;
     },
   });
-  scene.add(groundWallMeshes.group);
+  groundArchitectureGroup.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
     groundColliders.push(instance.collider);
   });
@@ -1599,7 +1610,7 @@ function initializeImmersiveScene(
     trimDepth: WALL_THICKNESS * 0.92,
     material: doorwayTrimMaterial,
   });
-  scene.add(doorwayOpenings.group);
+  groundArchitectureGroup.add(doorwayOpenings.group);
 
   const ceilings = createRoomCeilingPanels(FLOOR_PLAN.rooms, {
     height: WALL_HEIGHT - 0.15,
@@ -1610,7 +1621,7 @@ function initializeImmersiveScene(
     lightMap: interiorLightmaps.ceiling,
     lightMapIntensity: 0.52,
   });
-  scene.add(ceilings.group);
+  groundArchitectureGroup.add(ceilings.group);
 
   const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
   if (livingRoom) {
@@ -1618,7 +1629,7 @@ function initializeImmersiveScene(
       livingRoom.bounds,
       activeSceneDetailPolicy
     );
-    scene.add(mediaWall.group);
+    groundArchitectureGroup.add(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
     mediaWallStarBridge.attach(mediaWall.controller);
@@ -1667,7 +1678,7 @@ function initializeImmersiveScene(
       width: 3.4,
       height: 4.1,
     });
-    scene.add(mirror.group);
+    groundArchitectureGroup.add(mirror.group);
     groundColliders.push(mirror.collider);
     selfieMirror = mirror;
   }
@@ -1765,48 +1776,38 @@ function initializeImmersiveScene(
   scene.add(upperFloorGroup);
 
   const upperFloorMaterial = new MeshStandardMaterial({
-    color: 0x1f273a,
-    side: DoubleSide,
-    // Nudge the upper floor away from coplanar surfaces (e.g., landing top)
-    // to avoid depth fighting at shared boundaries.
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
+    color: 0x242e42,
+    roughness: 0.64,
+    metalness: 0.08,
+    transparent: false,
+    opacity: 1,
+    depthWrite: true,
+    depthTest: true,
   });
-  const upperFloorShape = new Shape();
-  const [upperFirstX, upperFirstZ] = UPPER_FLOOR_PLAN.outline[0];
-  upperFloorShape.moveTo(upperFirstX, upperFirstZ);
-  for (let i = 1; i < UPPER_FLOOR_PLAN.outline.length; i += 1) {
-    const [x, z] = UPPER_FLOOR_PLAN.outline[i];
-    upperFloorShape.lineTo(x, z);
-  }
-  upperFloorShape.closePath();
 
-  // Carve a stairwell hole in the upper floor directly above the stairs to
-  // eliminate z-fighting and allow the player to visually descend. Use a
-  // slightly oversized cutout so collision tolerances near edges feel natural.
+  // Build the upstairs deck as opaque slabs instead of a single paper-thin
+  // ShapeGeometry plane. The stairwell cutout is applied to overlapping room
+  // tiles so the landing remains usable without sealing the descent opening.
   const stairHoleHalfWidth = stairHalfWidth + stairwellMarginX;
   const stairHoleMinX = stairCenterX - stairHoleHalfWidth;
   const stairHoleMaxX = stairCenterX + stairHoleHalfWidth;
   const stairHoleMinZ = stairLayout.stairHoleRange.minZ;
   const stairHoleMaxZ = stairLayout.stairHoleRange.maxZ;
-  upperFloorShape.holes.push(
-    (() => {
-      const hole = new Shape();
-      hole.moveTo(stairHoleMinX, stairHoleMinZ);
-      hole.lineTo(stairHoleMaxX, stairHoleMinZ);
-      hole.lineTo(stairHoleMaxX, stairHoleMaxZ);
-      hole.lineTo(stairHoleMinX, stairHoleMaxZ);
-      hole.closePath();
-      return hole;
-    })()
-  );
-  const upperFloorGeometry = new ShapeGeometry(upperFloorShape);
-  upperFloorGeometry.rotateX(-Math.PI / 2);
-  const upperFloor = new Mesh(upperFloorGeometry, upperFloorMaterial);
-  // Slightly lower than the landing top to ensure no coplanar z-fighting.
-  upperFloor.position.y = upperFloorElevation - 0.002;
-  upperFloorGroup.add(upperFloor);
+  const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+    material: upperFloorMaterial,
+    elevation: upperFloorElevation,
+    thickness: STAIRCASE_CONFIG.landing.thickness,
+    groupName: 'UpperFloorTiles',
+    cutouts: [
+      {
+        minX: stairHoleMinX,
+        maxX: stairHoleMaxX,
+        minZ: stairHoleMinZ,
+        maxZ: stairHoleMaxZ,
+      },
+    ],
+  });
+  upperFloorGroup.add(upperFloorTiles.group);
 
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
@@ -1925,8 +1926,8 @@ function initializeImmersiveScene(
     });
     ledAnimator.captureBaseline();
 
-    scene.add(ledBuild.group);
-    scene.add(ledBuild.fillLightGroup);
+    groundLedGroup.add(ledBuild.group);
+    groundLedGroup.add(ledBuild.fillLightGroup);
   } else {
     applySeasonalLightingPreset({
       preset: seasonalPreset,
@@ -1951,7 +1952,7 @@ function initializeImmersiveScene(
   });
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
-      scene.add(poi.group);
+      groundPoiGroup.add(poi.group);
     }
     if (poi.collider) {
       staticColliders.push(poi.collider);
@@ -1959,10 +1960,30 @@ function initializeImmersiveScene(
     poiInstances.push(poi);
   });
 
+  const upperRoomIds = new Set(UPPER_FLOOR_PLAN.rooms.map((room) => room.id));
+  const getPoiFloorId = (poi: PoiDefinition): SceneFloorId =>
+    upperRoomIds.has(poi.roomId) ? 'upper' : 'ground';
+  const getPoiInstanceFloorId = (poi: PoiInstance): SceneFloorId =>
+    getPoiFloorId(poi.definition);
+  const floorVisibilityController = createFloorVisibilityController({
+    groups: {
+      groundArchitecture: groundArchitectureGroup,
+      groundPoi: groundPoiGroup,
+      groundLed: ledStripGroup ? groundLedGroup : undefined,
+      groundLedFillLights: ledFillLightGroup ?? undefined,
+      upperArchitecture: upperFloorGroup,
+    },
+    poi: {
+      instances: poiInstances,
+      floorForPoi: getPoiInstanceFloorId,
+    },
+  });
+
   const poiAnalytics = createWindowPoiAnalytics();
   const interactionTimeline = new InteractionTimeline();
   let currentHoveredPoi: PoiDefinition | null = null;
   let currentSelectedPoi: PoiDefinition | null = null;
+  let activeFloorId: FloorId = 'ground';
   let currentGuidedTourRecommendation: PoiDefinition | null = null;
   let dismissedPassiveRecommendationPoiId: string | null = null;
   let poiInteractionManager: PoiInteractionManager | null = null;
@@ -1989,13 +2010,21 @@ function initializeImmersiveScene(
     camera,
     guidedTourPreference,
   });
+  const isPoiVisibleOnActiveFloor = (poi: PoiDefinition | null): boolean =>
+    poi !== null && getPoiFloorId(poi) === activeFloorId;
+  const resolveFloorAwareWorldTooltipTarget = (
+    poi: PoiDefinition | null
+  ): PoiWorldTooltipTarget | null =>
+    isPoiVisibleOnActiveFloor(poi) ? resolveWorldTooltipTarget(poi) : null;
   const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
     (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
     (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
   const getVisiblePoiRecommendation = (): PoiDefinition | null => {
     if (
       currentGuidedTourRecommendation &&
-      currentGuidedTourRecommendation.id !== dismissedPassiveRecommendationPoiId
+      currentGuidedTourRecommendation.id !==
+        dismissedPassiveRecommendationPoiId &&
+      isPoiVisibleOnActiveFloor(currentGuidedTourRecommendation)
     ) {
       return currentGuidedTourRecommendation;
     }
@@ -2005,7 +2034,7 @@ function initializeImmersiveScene(
     const visibleRecommendation = getVisiblePoiRecommendation();
     poiTooltipOverlay.setRecommendation(visibleRecommendation);
     poiWorldTooltip.setRecommendation(
-      resolveWorldTooltipTarget(visibleRecommendation)
+      resolveFloorAwareWorldTooltipTarget(visibleRecommendation)
     );
   };
   const suppressActivePoiRecommendation = (poi: PoiDefinition | null) => {
@@ -2028,8 +2057,10 @@ function initializeImmersiveScene(
     const showSelected = canShowDetail ? currentSelectedPoi : null;
     poiTooltipOverlay.setHovered(showHover);
     poiTooltipOverlay.setSelected(showSelected);
-    poiWorldTooltip.setHovered(resolveWorldTooltipTarget(showHover));
-    poiWorldTooltip.setSelected(resolveWorldTooltipTarget(showSelected));
+    poiWorldTooltip.setHovered(resolveFloorAwareWorldTooltipTarget(showHover));
+    poiWorldTooltip.setSelected(
+      resolveFloorAwareWorldTooltipTarget(showSelected)
+    );
   };
   const clearPoiDetailState = (
     inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
@@ -3331,7 +3362,6 @@ function initializeImmersiveScene(
   const mouseCameraStart = new Vector2();
   let mouseCameraPointerId: number | null = null;
 
-  let activeFloorId: FloorId = 'ground';
   let helpKeyWasPressed = false;
   let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
   const buildHelpButtonText = (shortcut: string) =>
@@ -3550,7 +3580,9 @@ function initializeImmersiveScene(
       return;
     }
     activeFloorId = next;
-    upperFloorGroup.visible = next === 'upper';
+    floorVisibilityController.setActiveFloor(next);
+    syncPoiRecommendation();
+    syncPoiDetailOverlay();
     document.documentElement.dataset.activeFloor = next;
   };
 
@@ -3567,6 +3599,7 @@ function initializeImmersiveScene(
   };
 
   updatePlayerVerticalPosition();
+  floorVisibilityController.setActiveFloor(activeFloorId);
   document.documentElement.dataset.activeFloor = activeFloorId;
 
   const setCameraZoomTarget = (next: number) => {
@@ -4644,6 +4677,8 @@ function initializeImmersiveScene(
     const worldTooltipVisible = worldTooltipState.visible;
 
     for (const poi of poiInstances) {
+      const poiVisibleOnActiveFloor =
+        getPoiInstanceFloorId(poi) === activeFloorId;
       const floatOffset = Math.sin(
         elapsedTime * poi.floatSpeed + poi.floatPhase
       );
@@ -4670,12 +4705,10 @@ function initializeImmersiveScene(
       );
       const planarDistance = poiPlayerOffset.length();
       const maxRadius = poi.definition.interactionRadius;
-      const targetActivation = MathUtils.clamp(
-        1 - planarDistance / maxRadius,
-        0,
-        1
-      );
-      const visitedTarget = poi.visited ? 1 : 0;
+      const targetActivation = poiVisibleOnActiveFloor
+        ? MathUtils.clamp(1 - planarDistance / maxRadius, 0, 1)
+        : 0;
+      const visitedTarget = poiVisibleOnActiveFloor && poi.visited ? 1 : 0;
       poi.activation = MathUtils.lerp(
         poi.activation,
         targetActivation,
@@ -4700,9 +4733,10 @@ function initializeImmersiveScene(
       }
 
       if (poi.label && poi.labelMaterial) {
-        const labelOpacity = worldTooltipVisible
-          ? 0
-          : computePoiLabelOpacity(emphasis, visitedEmphasis);
+        const labelOpacity =
+          poiVisibleOnActiveFloor && !worldTooltipVisible
+            ? computePoiLabelOpacity(emphasis, visitedEmphasis)
+            : 0;
         poi.labelMaterial.opacity = labelOpacity;
         poi.label.visible = labelOpacity > 0.05;
       }
@@ -4718,7 +4752,9 @@ function initializeImmersiveScene(
         } = poi.displayHighlight;
         const visitedOpacityBoost = MathUtils.lerp(0, 0.25, visitedEmphasis);
         const nextOpacity = MathUtils.lerp(baseOpacity, focusOpacity, emphasis);
-        const combinedOpacity = Math.min(nextOpacity + visitedOpacityBoost, 1);
+        const combinedOpacity = poiVisibleOnActiveFloor
+          ? Math.min(nextOpacity + visitedOpacityBoost, 1)
+          : 0;
         material.opacity = combinedOpacity;
         mesh.visible = combinedOpacity > 0.02;
         if (baseScale !== undefined && focusScale !== undefined && mesh.scale) {
@@ -4783,7 +4819,9 @@ function initializeImmersiveScene(
           const haloScale =
             MathUtils.lerp(baseHaloScale, 1.18, emphasis) * haloPulse;
           poi.halo.scale.setScalar(haloScale);
-          const haloOpacity = computePoiHaloOpacity(emphasis, visitedEmphasis);
+          const haloOpacity = poiVisibleOnActiveFloor
+            ? computePoiHaloOpacity(emphasis, visitedEmphasis)
+            : 0;
           poi.haloMaterial.opacity = haloOpacity;
           poi.halo.visible = haloOpacity > 0.04;
           poi.haloMaterial.color.lerpColors(
