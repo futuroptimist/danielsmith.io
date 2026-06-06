@@ -501,6 +501,28 @@ describe('PoiInteractionManager', () => {
     expect(poi.focusTarget).toBe(1);
   });
 
+  it('ignores disabled POIs during programmatic selection', () => {
+    manager.dispose();
+    const disabledManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {
+        isPoiEnabled: () => false,
+      }
+    );
+    disabledManager.start();
+    const listener = vi.fn();
+    disabledManager.addSelectionListener(listener);
+
+    disabledManager.selectPoiById(definition.id);
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(poi.focusTarget).toBe(0);
+
+    disabledManager.dispose();
+  });
+
   it('clearSelection notifies selection state listeners with null', () => {
     manager.start();
     const selectionState = vi.fn();

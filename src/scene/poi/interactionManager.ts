@@ -171,7 +171,7 @@ export class PoiInteractionManager {
     const poi = this.poiInstances.find(
       (instance) => instance.definition.id === poiId
     );
-    if (!poi) {
+    if (!poi || !this.isPoiEnabled(poi)) {
       return;
     }
     this.usingKeyboard = true;

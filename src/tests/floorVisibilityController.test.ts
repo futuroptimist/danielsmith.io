@@ -41,6 +41,15 @@ function createPoiInstance(roomId: string): PoiInstance {
     new MeshBasicMaterial()
   );
   visitedBadge.visible = true;
+  const displayHighlightMaterial = new MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.8,
+  });
+  const displayHighlight = new Mesh(
+    new PlaneGeometry(1, 1),
+    displayHighlightMaterial
+  );
+  displayHighlight.visible = true;
   group.add(label, visitedRing, visitedBadge);
 
   return {
@@ -66,6 +75,12 @@ function createPoiInstance(roomId: string): PoiInstance {
       material: new MeshBasicMaterial(),
       baseHeight: 1,
       rotationSpeed: 0,
+    },
+    displayHighlight: {
+      mesh: displayHighlight,
+      material: displayHighlightMaterial,
+      baseOpacity: 0.8,
+      focusOpacity: 1,
     },
   } as PoiInstance;
 }
@@ -114,6 +129,8 @@ describe('floor visibility controller', () => {
     expect(groundPoi.visitedHighlight?.mesh.visible).toBe(false);
     expect(groundPoi.visitedHighlight?.material.opacity).toBe(0);
     expect(groundPoi.visitedBadge?.mesh.visible).toBe(false);
+    expect(groundPoi.displayHighlight?.mesh.visible).toBe(false);
+    expect(groundPoi.displayHighlight?.material.opacity).toBe(0);
   });
 
   it('keeps upper POIs visible when the upper floor is active', () => {

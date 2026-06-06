@@ -71,6 +71,10 @@ export function createFloorVisibilityController(
       if (poi.visitedBadge) {
         poi.visitedBadge.mesh.visible = false;
       }
+      if (poi.displayHighlight) {
+        poi.displayHighlight.material.opacity = 0;
+        poi.displayHighlight.mesh.visible = false;
+      }
     }
 
     return visible;

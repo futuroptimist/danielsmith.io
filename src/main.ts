@@ -1625,7 +1625,7 @@ function initializeImmersiveScene(
       livingRoom.bounds,
       activeSceneDetailPolicy
     );
-    scene.add(mediaWall.group);
+    groundFloorGroup.add(mediaWall.group);
     mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
     mediaWallStarBridge.attach(mediaWall.controller);
@@ -1674,7 +1674,7 @@ function initializeImmersiveScene(
       width: 3.4,
       height: 4.1,
     });
-    scene.add(mirror.group);
+    groundFloorGroup.add(mirror.group);
     groundColliders.push(mirror.collider);
     selfieMirror = mirror;
   }
@@ -1954,7 +1954,7 @@ function initializeImmersiveScene(
   const floorVisibilityController: FloorVisibilityController =
     createFloorVisibilityController({
       initialFloorId: activeFloorId,
-      groundGroups: [groundPoiGroup],
+      groundGroups: [groundFloorGroup, groundPoiGroup],
       upperGroups: [upperFloorGroup],
       groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
         (group): group is Group => group !== null
