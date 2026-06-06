@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { wireGitHubRepoMetrics } from '../scene/poi/githubMetrics';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
+import { createGitHubRepoStatsService } from '../systems/github/repoStats';
 import type {
   GitHubRepoIdentifier,
   GitHubRepoStats,
@@ -199,7 +201,6 @@ describe('wireGitHubRepoMetrics', () => {
               type: 'githubStars',
               owner: 'democratizedspace',
               repo: 'dspace',
-              visibility: 'private',
               fallback: 'Hidden',
             },
           },
@@ -219,6 +220,7 @@ describe('wireGitHubRepoMetrics', () => {
     expect(service.requested).toEqual([
       'futuroptimist/flywheel',
       'futuroptimist/axel',
+      'democratizedspace/dspace',
     ]);
     expect(definitions[3].metrics?.[0]?.value).toBe('Hidden');
 
@@ -240,13 +242,21 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 86, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(definitions[2].metrics?.[0]?.value).toBe('86 stars');
+    service.emit(
+      { owner: 'democratizedspace', repo: 'dspace' },
+      { stars: 3, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
+    );
+    expect(definitions[3].metrics?.[0]?.value).toBe('3');
     expect(
       service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
-    ).toBe(0);
+    ).toBe(1);
 
     controller.dispose();
     expect(
       service.listenerCount({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).toBe(0);
+    expect(
+      service.listenerCount({ owner: 'democratizedspace', repo: 'dspace' })
     ).toBe(0);
     const previousUpdates = updated.length;
     service.emit(
@@ -254,6 +264,71 @@ describe('wireGitHubRepoMetrics', () => {
       { stars: 2000, watchers: 0, forks: 0, openIssues: 0, pushedAt: null }
     );
     expect(updated).toHaveLength(previousUpdates);
+  });
+
+  it('renders DSPACE, Sugarkube, and Axel stars from the runtime cache, including zeroes', async () => {
+    const generatedAt = '2026-06-03T00:00:00.000Z';
+    const expiresAt = '2026-06-03T01:15:00.000Z';
+    const repoStats = (owner: string, repo: string, stars: number) => ({
+      owner,
+      repo,
+      stars,
+      watchers: 0,
+      forks: 0,
+      openIssues: 0,
+      pushedAt: null,
+    });
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt,
+        expiresAt,
+        repos: {
+          'democratizedspace/dspace': repoStats(
+            'democratizedspace',
+            'dspace',
+            3
+          ),
+          'futuroptimist/sugarkube': repoStats('futuroptimist', 'sugarkube', 0),
+          'futuroptimist/axel': repoStats('futuroptimist', 'axel', 0),
+        },
+      }),
+    });
+    const definitions = getPoiDefinitions('en');
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      {
+        allowLiveFetch: false,
+        localStorage: null,
+        sessionStorage: null,
+        logger: null,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+        fetchTimeoutMs: 0,
+        now: () => Date.parse('2026-06-03T01:20:00.000Z'),
+      }
+    );
+    const controller = wireGitHubRepoMetrics({ definitions, service });
+
+    await controller.refreshAll();
+
+    const starValue = (id: PoiDefinition['id']) =>
+      definitions
+        .find((poi) => poi.id === id)
+        ?.metrics?.find((metric) => metric.source?.type === 'githubStars')
+        ?.value;
+
+    expect(starValue('dspace-backyard-rocket')).toBe('3 stars');
+    expect(starValue('sugarkube-backyard-greenhouse')).toBe('0 stars');
+    expect(starValue('axel-studio-tracker')).toBe('0 stars');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(service.getDiagnostics()).toMatchObject({
+      requestCount: 0,
+      cachedRepoCount: 3,
+    });
+
+    controller.dispose();
   });
 
   it('stops refreshes when the probe request restores backoff', async () => {

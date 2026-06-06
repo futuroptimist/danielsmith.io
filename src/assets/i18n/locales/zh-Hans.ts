@@ -583,6 +583,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         value: 'Alpha 版本让 README、FAQ 和威胁模型随 pytest 套件保持同步。',
       },
       metrics: [
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'axel',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '状态', value: 'Alpha · pipx install axel' },
         { label: '仓库分析', value: '根据仓库列表和扫描进行任务规划' },
         { label: '文档', value: 'FAQ · 已知问题 · 威胁模型随测试维护' },
@@ -755,7 +767,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
             type: 'githubStars',
             owner: 'democratizedspace',
             repo: 'dspace',
-            visibility: 'private',
             format: 'compact',
             template: '{value} 个星标',
             fallback: '正在从 GitHub 同步…',
@@ -807,6 +818,18 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         value: '在涉及磁盘、集群或硬件之前保持工作流可预演和有护栏。',
       },
       metrics: [
+        {
+          label: '星标',
+          value: '正在从 GitHub 同步…',
+          source: {
+            type: 'githubStars',
+            owner: 'futuroptimist',
+            repo: 'sugarkube',
+            format: 'compact',
+            template: '{value} 个星标',
+            fallback: '正在从 GitHub 同步…',
+          },
+        },
         { label: '状态', value: '硬件/集群自动化' },
         { label: '安全', value: '干跑优先 · 受保护的破坏性命令' },
         { label: '范围', value: 'k3s · 太阳能 · 设备编排' },

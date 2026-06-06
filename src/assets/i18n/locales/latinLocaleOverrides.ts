@@ -842,15 +842,10 @@ function buildPoi(
     fallback: string;
   }
 ): LocaleOverrides['poi'] {
-  const starSource = (
-    repo: string,
-    visibility?: 'private',
-    owner = 'futuroptimist'
-  ) => ({
+  const starSource = (repo: string, owner = 'futuroptimist') => ({
     type: 'githubStars' as const,
     owner,
     repo,
-    ...(visibility ? { visibility } : {}),
     format: 'compact' as const,
     template: githubStars.template,
     fallback: githubStars.fallback,
@@ -944,6 +939,11 @@ function buildPoi(
       summary: poi.axel.summary,
       outcome: { label: copy.strings.outcome, value: poi.axel.outcome },
       metrics: [
+        {
+          label: githubStars.label,
+          value: githubStars.value,
+          source: starSource('axel'),
+        },
         { label: poi.axel.metrics[0], value: poi.axel.metrics[1] },
         { label: poi.axel.metrics[2], value: poi.axel.metrics[3] },
         { label: poi.axel.metrics[4], value: poi.axel.metrics[5] },
@@ -1033,7 +1033,7 @@ function buildPoi(
         {
           label: githubStars.label,
           value: githubStars.value,
-          source: starSource('dspace', 'private', 'democratizedspace'),
+          source: starSource('dspace', 'democratizedspace'),
         },
         { label: poi.dspace.metrics[0], value: poi.dspace.metrics[1] },
         { label: poi.dspace.metrics[2], value: poi.dspace.metrics[3] },
@@ -1060,6 +1060,11 @@ function buildPoi(
       summary: poi.sugarkube.summary,
       outcome: { label: copy.strings.outcome, value: poi.sugarkube.outcome },
       metrics: [
+        {
+          label: githubStars.label,
+          value: githubStars.value,
+          source: starSource('sugarkube'),
+        },
         { label: poi.sugarkube.metrics[0], value: poi.sugarkube.metrics[1] },
         { label: poi.sugarkube.metrics[2], value: poi.sugarkube.metrics[3] },
         { label: poi.sugarkube.metrics[4], value: poi.sugarkube.metrics[5] },

@@ -188,6 +188,26 @@ describe('PoiTooltipOverlay', () => {
     expect(describedIds).toContain(linksList.id);
   });
 
+  it('renders zero-star metrics as valid visible values', () => {
+    overlay.setHovered({
+      ...basePoi,
+      id: 'axel-studio-tracker',
+      title: 'Axel',
+      metrics: [{ label: 'Stars', value: '0 stars' }],
+      links: [
+        { label: 'GitHub', href: 'https://github.com/futuroptimist/axel' },
+      ],
+    });
+
+    const metrics = Array.from(
+      container.querySelectorAll('.poi-tooltip-overlay__metric')
+    );
+    const value = container.querySelector('.poi-tooltip-overlay__metric-value');
+
+    expect(metrics).toHaveLength(1);
+    expect(value?.textContent).toBe('0 stars');
+  });
+
   it('renders selected POI metadata without a hover target', () => {
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 
