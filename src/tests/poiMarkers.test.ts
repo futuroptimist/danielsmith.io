@@ -6,6 +6,11 @@ import {
 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
+import {
+  createFloorVisibilityController,
+  createPoiFloorResolver,
+} from '../scene/floors/visibilityController';
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import { scalePoiValue } from '../scene/poi/constants';
 import {
@@ -292,5 +297,36 @@ describe('createPoiInstances', () => {
     );
     expect(performance.collider).toEqual(balanced.collider);
     expect(performance.hitArea.name).toBe(`POI_HIT:${definition.id}`);
+  });
+
+  it('hides ground-floor marker labels and checkmarks when the upper floor is active', () => {
+    const [instance] = createPoiInstances([
+      createDefinition({ id: 'flywheel-studio-flywheel', roomId: 'studio' }),
+    ]);
+    if (
+      !instance.label ||
+      !instance.labelMaterial ||
+      !instance.visitedHighlight
+    ) {
+      throw new Error(
+        'Expected default POI to include floor-hideable visuals.'
+      );
+    }
+    instance.label.visible = true;
+    instance.labelMaterial.opacity = 0.72;
+    instance.visitedHighlight.mesh.visible = true;
+    instance.visitedHighlight.material.opacity = 0.55;
+
+    createFloorVisibilityController({
+      initialFloorId: 'upper',
+      poiInstances: [instance],
+      getPoiFloorId: createPoiFloorResolver(FLOOR_PLAN_LEVELS),
+    });
+
+    expect(instance.group.visible).toBe(false);
+    expect(instance.label.visible).toBe(false);
+    expect(instance.labelMaterial.opacity).toBe(0);
+    expect(instance.visitedHighlight.mesh.visible).toBe(false);
+    expect(instance.visitedHighlight.material.opacity).toBe(0);
   });
 });

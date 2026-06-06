@@ -40,6 +40,7 @@ type ListenerTarget = Pick<
 export interface PoiInteractionOptions {
   keyboardTarget?: ListenerTarget | null;
   enableKeyboard?: boolean;
+  isPoiEnabled?: (poi: PoiInstance) => boolean;
 }
 
 export class PoiInteractionManager {
@@ -54,6 +55,7 @@ export class PoiInteractionManager {
   private active = false;
   private readonly keyboardTarget: ListenerTarget | null;
   private readonly enableKeyboard: boolean;
+  private readonly isPoiEnabled: (poi: PoiInstance) => boolean;
   private keyboardIndex: number | null = null;
   private usingKeyboard = false;
   private touchPointerId: number | null = null;
@@ -97,6 +99,7 @@ export class PoiInteractionManager {
         : null) as ListenerTarget | null);
     this.keyboardTarget = defaultKeyboardTarget ?? domElement;
     this.enableKeyboard = resolvedOptions.enableKeyboard ?? true;
+    this.isPoiEnabled = resolvedOptions.isPoiEnabled ?? (() => true);
   }
 
   start() {
@@ -289,7 +292,7 @@ export class PoiInteractionManager {
   }
 
   private handleKeyDown(event: KeyboardEvent) {
-    if (!this.enableKeyboard || this.poiInstances.length === 0) {
+    if (!this.enableKeyboard || this.getEnabledPoiInstances().length === 0) {
       return;
     }
 
@@ -350,15 +353,24 @@ export class PoiInteractionManager {
 
   private moveKeyboardFocus(direction: 1 | -1) {
     this.usingKeyboard = true;
-    const count = this.poiInstances.length;
+    const enabledPoiInstances = this.getEnabledPoiInstances();
+    const count = enabledPoiInstances.length;
     if (!count) {
       return;
     }
 
-    const currentIndex = this.keyboardIndex ?? (direction > 0 ? -1 : 0);
+    const currentPoi =
+      this.keyboardIndex === null
+        ? null
+        : this.poiInstances[this.keyboardIndex];
+    const enabledCurrentIndex = currentPoi
+      ? enabledPoiInstances.indexOf(currentPoi)
+      : -1;
+    const currentIndex =
+      enabledCurrentIndex >= 0 ? enabledCurrentIndex : direction > 0 ? -1 : 0;
     const nextIndex = (currentIndex + direction + count) % count;
-    this.keyboardIndex = nextIndex;
-    const poi = this.poiInstances[nextIndex];
+    const poi = enabledPoiInstances[nextIndex];
+    this.keyboardIndex = this.poiInstances.indexOf(poi);
     this.setHovered(poi, 'keyboard');
   }
 
@@ -385,22 +397,27 @@ export class PoiInteractionManager {
   }
 
   private pickPoi(): PoiInstance | null {
-    if (this.poiInstances.length === 0) {
+    const enabledPoiInstances = this.getEnabledPoiInstances();
+    if (enabledPoiInstances.length === 0) {
       return null;
     }
-    for (const poi of this.poiInstances) {
+    for (const poi of enabledPoiInstances) {
       poi.hitArea.updateWorldMatrix(true, false);
     }
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const intersections = this.raycaster.intersectObjects(
-      this.poiInstances.map((poi) => poi.hitArea),
+      enabledPoiInstances.map((poi) => poi.hitArea),
       false
     );
     if (!intersections.length) {
       return null;
     }
     const target = intersections[0].object;
-    return this.poiInstances.find((poi) => poi.hitArea === target) ?? null;
+    return enabledPoiInstances.find((poi) => poi.hitArea === target) ?? null;
+  }
+
+  private getEnabledPoiInstances(): PoiInstance[] {
+    return this.poiInstances.filter(this.isPoiEnabled);
   }
 
   private setHovered(

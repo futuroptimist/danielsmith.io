@@ -544,6 +544,30 @@ describe('PoiWorldTooltip', () => {
     preference.dispose();
   });
 
+  it('does not render ghost ground-floor world labels on the upper floor', () => {
+    const { tooltip, preference } = createTooltip();
+    const poi = createPoiDefinition({ roomId: 'studio' });
+    tooltip.setActiveFloorId('upper');
+    tooltip.setHovered({
+      ...createTarget(poi, new Vector3(0, 1, 0)),
+      floorId: 'ground',
+    });
+    tooltip.update(0.016);
+
+    const state = tooltip.getState();
+    expect(state.visible).toBe(false);
+    expect(state.poiId).toBeNull();
+
+    tooltip.setActiveFloorId('ground');
+    tooltip.update(0.016);
+
+    expect(tooltip.getState().visible).toBe(true);
+    expect(tooltip.getState().poiId).toBe(poi.id);
+
+    tooltip.dispose();
+    preference.dispose();
+  });
+
   it('disposes resources without leaking scene children', () => {
     const { tooltip, scene } = createTooltip();
     const poi = createPoiDefinition({ id: 'pr-reaper-backyard-console' });
