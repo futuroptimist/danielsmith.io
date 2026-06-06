@@ -133,6 +133,16 @@ assertIncludes(
   '"repo": "dspace"',
   'repo list should preserve the democratizedspace/dspace repo'
 );
+assertIncludes(
+  enabledRender,
+  '"repo": "axel"',
+  'repo list should include the Axel runtime star source'
+);
+assertIncludes(
+  enabledRender,
+  '"repo": "sugarkube"',
+  'repo list should include the Sugarkube runtime star source'
+);
 assertExcludes(
   enabledRender,
   'kind: Secret',
