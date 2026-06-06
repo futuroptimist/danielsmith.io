@@ -1325,6 +1325,7 @@ function initializeImmersiveScene(
     debugCoordinatesUrlEnabled || debugCoordinatesStoredEnabled;
   let debugCoordinatesControl: HTMLButtonElement | null = null;
   let debugCoordinatesOverlay: HTMLElement | null = null;
+  let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
@@ -3671,44 +3672,108 @@ function initializeImmersiveScene(
       ? debugCoordinatesStrings.values.yes
       : debugCoordinatesStrings.values.no;
 
+  type DebugCoordinatesRowId =
+    | 'position'
+    | 'activeFloor'
+    | 'predictedFloor'
+    | 'cameraZoom'
+    | 'stairWidth'
+    | 'landing'
+    | 'stairNav'
+    | 'stairZone'
+    | 'room';
+
+  const debugCoordinatesRows = new Map<
+    DebugCoordinatesRowId,
+    { term: HTMLElement; detail: HTMLElement }
+  >();
+  const debugCoordinatesRowOrder: DebugCoordinatesRowId[] = [
+    'position',
+    'activeFloor',
+    'predictedFloor',
+    'cameraZoom',
+    'stairWidth',
+    'landing',
+    'stairNav',
+    'stairZone',
+    'room',
+  ];
+
+  const updateDebugCoordinatesLabels = () => {
+    if (!debugCoordinatesHeading) {
+      return;
+    }
+    debugCoordinatesHeading.textContent = debugCoordinatesStrings.overlayLabel;
+    for (const rowId of debugCoordinatesRowOrder) {
+      const row = debugCoordinatesRows.get(rowId);
+      if (row) {
+        row.term.textContent = debugCoordinatesStrings.labels[rowId];
+      }
+    }
+  };
+
+  const createDebugCoordinatesOverlayContent = () => {
+    if (!debugCoordinatesOverlay || debugCoordinatesHeading) {
+      return;
+    }
+    debugCoordinatesHeading = document.createElement('div');
+    debugCoordinatesHeading.className = 'debug-coordinates__heading';
+
+    const list = document.createElement('dl');
+    list.className = 'debug-coordinates__list';
+
+    for (const rowId of debugCoordinatesRowOrder) {
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      debugCoordinatesRows.set(rowId, { term, detail });
+      list.append(term, detail);
+    }
+
+    debugCoordinatesOverlay.append(debugCoordinatesHeading, list);
+    updateDebugCoordinatesLabels();
+  };
+
+  const setDebugCoordinatesRowValue = (
+    rowId: DebugCoordinatesRowId,
+    value: string
+  ) => {
+    const detail = debugCoordinatesRows.get(rowId)?.detail;
+    if (detail) {
+      detail.textContent = value;
+    }
+  };
+
   const updateDebugCoordinatesOverlay = () => {
     if (!debugCoordinatesOverlay || !debugCoordinatesEnabled) {
       return;
     }
+    createDebugCoordinatesOverlayContent();
+
     const state = getDebugCoordinatesState();
-    const labels = debugCoordinatesStrings.labels;
-    debugCoordinatesOverlay.textContent = '';
-
-    const heading = document.createElement('div');
-    heading.className = 'debug-coordinates__heading';
-    heading.textContent = debugCoordinatesStrings.overlayLabel;
-
-    const list = document.createElement('dl');
-    list.className = 'debug-coordinates__list';
-    const addRow = (label: string, value: string) => {
-      const term = document.createElement('dt');
-      term.textContent = label;
-      const detail = document.createElement('dd');
-      detail.textContent = value;
-      list.append(term, detail);
-    };
-
-    addRow(
-      labels.position,
+    setDebugCoordinatesRowValue(
+      'position',
       `${state.x.toFixed(2)}, ${state.y.toFixed(2)}, ${state.z.toFixed(2)}`
     );
-    addRow(labels.activeFloor, state.activeFloorId);
-    addRow(labels.predictedFloor, state.predictedStairFloorId);
-    addRow(labels.cameraZoom, state.cameraZoom.toFixed(2));
-    addRow(labels.stairWidth, formatDebugBoolean(state.insideStairWidth));
-    addRow(labels.landing, formatDebugBoolean(state.insideLanding));
-    addRow(labels.stairNav, formatDebugBoolean(state.insideStairNavArea));
-    addRow(labels.stairZone, state.stairZone);
-    addRow(
-      labels.room,
+    setDebugCoordinatesRowValue('activeFloor', state.activeFloorId);
+    setDebugCoordinatesRowValue('predictedFloor', state.predictedStairFloorId);
+    setDebugCoordinatesRowValue('cameraZoom', state.cameraZoom.toFixed(2));
+    setDebugCoordinatesRowValue(
+      'stairWidth',
+      formatDebugBoolean(state.insideStairWidth)
+    );
+    setDebugCoordinatesRowValue(
+      'landing',
+      formatDebugBoolean(state.insideLanding)
+    );
+    setDebugCoordinatesRowValue(
+      'stairNav',
+      formatDebugBoolean(state.insideStairNavArea)
+    );
+    setDebugCoordinatesRowValue('stairZone', state.stairZone);
+    setDebugCoordinatesRowValue(
+      'room',
       state.currentRoomId ?? debugCoordinatesStrings.values.none
     );
-    debugCoordinatesOverlay.append(heading, list);
   };
 
   const refreshDebugCoordinatesControl = () => {
@@ -3760,14 +3825,16 @@ function initializeImmersiveScene(
 
   const refreshDebugCoordinatesStrings = () => {
     refreshDebugCoordinatesControl();
+    updateDebugCoordinatesLabels();
     updateDebugCoordinatesOverlay();
   };
 
   debugCoordinatesOverlay = document.createElement('aside');
   debugCoordinatesOverlay.className = 'debug-coordinates';
-  debugCoordinatesOverlay.setAttribute('aria-live', 'polite');
+  debugCoordinatesOverlay.setAttribute('aria-hidden', 'true');
   debugCoordinatesOverlay.hidden = !debugCoordinatesEnabled;
   document.body.appendChild(debugCoordinatesOverlay);
+  createDebugCoordinatesOverlayContent();
 
   debugCoordinatesControl = document.createElement('button');
   debugCoordinatesControl.type = 'button';
@@ -5312,6 +5379,8 @@ function initializeImmersiveScene(
     if (debugCoordinatesOverlay) {
       debugCoordinatesOverlay.remove();
       debugCoordinatesOverlay = null;
+      debugCoordinatesHeading = null;
+      debugCoordinatesRows.clear();
     }
     movementLegend?.dispose();
     narrationPreference.dispose();
