@@ -255,7 +255,7 @@ import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
-import { createUpperStairwellLanding } from './scene/structures/upperLandingStub';
+import { createUpperStairwellLanding } from './scene/structures/upperStairwellLanding';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,

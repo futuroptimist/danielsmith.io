@@ -1,7 +1,7 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createUpperStairwellLanding } from '../upperLandingStub';
+import { createUpperStairwellLanding } from '../upperStairwellLanding';
 
 const overlaps = (
   first: { minX: number; maxX: number; minZ: number; maxZ: number },
