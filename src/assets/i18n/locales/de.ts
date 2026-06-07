@@ -49,6 +49,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       'Erzähl-Pop-ups und Untertitel erscheinen bei künftigen Exponatmomenten.',
     narrationToggleDescriptionDisabled:
       'Erzähl-Pop-ups und Untertitel bleiben verborgen, bis du sie einschaltest.',
+    debugCollidersLabelEnabled: 'Collider-Overlay ein',
+    debugCollidersLabelDisabled: 'Collider-Overlay aus',
+    debugCollidersDescriptionEnabled:
+      'Zeigt unsichtbare Wände und Kollisionsrechtecke der aktiven Etage.',
+    debugCollidersDescriptionDisabled:
+      'Unsichtbare Wände und Kollisionsrechtecke bleiben verborgen, bis du sie einschaltest.',
     debugCoordinatesLabelEnabled: 'Debug-Koordinaten ein',
     debugCoordinatesLabelDisabled: 'Debug-Koordinaten aus',
     debugCoordinatesDescriptionEnabled:

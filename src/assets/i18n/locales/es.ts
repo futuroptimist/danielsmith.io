@@ -49,6 +49,12 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       'Las ventanas y subtítulos de narración aparecen en futuros momentos de exhibición.',
     narrationToggleDescriptionDisabled:
       'Las ventanas y subtítulos de narración permanecen ocultos hasta que los actives.',
+    debugCollidersLabelEnabled: 'Superposición de colisionadores activada',
+    debugCollidersLabelDisabled: 'Superposición de colisionadores desactivada',
+    debugCollidersDescriptionEnabled:
+      'Muestra paredes invisibles y rectángulos de colisión del piso activo.',
+    debugCollidersDescriptionDisabled:
+      'Las paredes invisibles y los rectángulos de colisión permanecen ocultos hasta que los actives.',
     debugCoordinatesLabelEnabled: 'Coordenadas de depuración activadas',
     debugCoordinatesLabelDisabled: 'Coordenadas de depuración desactivadas',
     debugCoordinatesDescriptionEnabled:

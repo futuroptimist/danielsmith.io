@@ -49,6 +49,12 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
       'A narrációs felugrók és feliratok megjelennek a következő kiállítási pillanatoknál.',
     narrationToggleDescriptionDisabled:
       'A narrációs felugrók és feliratok rejtve maradnak, amíg be nem kapcsolod őket.',
+    debugCollidersLabelEnabled: 'Ütközőfedvény bekapcsolva',
+    debugCollidersLabelDisabled: 'Ütközőfedvény kikapcsolva',
+    debugCollidersDescriptionEnabled:
+      'Megjeleníti az aktív szint láthatatlan falait és ütközési téglalapjait.',
+    debugCollidersDescriptionDisabled:
+      'A láthatatlan falak és ütközési téglalapok rejtve maradnak, amíg be nem kapcsolod őket.',
     debugCoordinatesLabelEnabled: 'Hibakeresési koordináták be',
     debugCoordinatesLabelDisabled: 'Hibakeresési koordináták ki',
     debugCoordinatesDescriptionEnabled:

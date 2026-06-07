@@ -329,6 +329,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         'Narration popups and captions stay hidden until you turn them on.'
       ),
     },
+    debugColliders: {
+      labelEnabled: wrap('Collider overlay on'),
+      labelDisabled: wrap('Collider overlay off'),
+      descriptionEnabled: wrap(
+        'Shows invisible wall and collision rectangles for the active floor.'
+      ),
+      descriptionDisabled: wrap(
+        'Invisible wall and collision rectangles stay hidden until you turn them on.'
+      ),
+    },
     debugCoordinates: {
       labelEnabled: wrap('Debug coordinates on'),
       labelDisabled: wrap('Debug coordinates off'),

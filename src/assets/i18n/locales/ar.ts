@@ -276,6 +276,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
       descriptionDisabled:
         'تبقى نوافذ السرد والتسميات التوضيحية مخفية حتى تفعّلها.',
     },
+    debugColliders: {
+      labelEnabled: 'طبقة المصادمات مفعّلة',
+      labelDisabled: 'طبقة المصادمات معطّلة',
+      descriptionEnabled:
+        'تعرض الجدران غير المرئية ومستطيلات التصادم للطابق النشط.',
+      descriptionDisabled:
+        'تبقى الجدران غير المرئية ومستطيلات التصادم مخفية حتى تفعّلها.',
+    },
     debugCoordinates: {
       labelEnabled: 'إحداثيات التصحيح مفعّلة',
       labelDisabled: 'إحداثيات التصحيح معطّلة',

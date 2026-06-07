@@ -265,6 +265,12 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       descriptionEnabled: '未来展品时刻会显示旁白弹窗和字幕。',
       descriptionDisabled: '旁白弹窗和字幕保持隐藏，直到你开启。',
     },
+    debugColliders: {
+      labelEnabled: '碰撞体叠加层开启',
+      labelDisabled: '碰撞体叠加层关闭',
+      descriptionEnabled: '显示当前楼层的隐形墙和碰撞矩形。',
+      descriptionDisabled: '隐形墙和碰撞矩形会保持隐藏，直到你开启它们。',
+    },
     debugCoordinates: {
       labelEnabled: '调试坐标已开启',
       labelDisabled: '调试坐标已关闭',

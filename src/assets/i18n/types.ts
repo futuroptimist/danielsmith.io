@@ -209,6 +209,13 @@ export interface NarrationToggleStrings {
   descriptionDisabled: string;
 }
 
+export interface DebugColliderStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
 export interface DebugCoordinatesStrings {
   labelEnabled: string;
   labelDisabled: string;
@@ -423,6 +430,7 @@ export interface LocaleStrings {
     tourGuideToggle: TourGuideToggleStrings;
     narrationToggle: NarrationToggleStrings;
     debugCoordinates: DebugCoordinatesStrings;
+    debugColliders: DebugColliderStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     helpModal: HelpModalStrings;

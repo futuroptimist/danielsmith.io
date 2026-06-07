@@ -27,6 +27,7 @@ import type {
   MovementLegendStrings,
   NarrationToggleStrings,
   DebugCoordinatesStrings,
+  DebugColliderStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
   PoiOverlayChromeStrings,
@@ -473,6 +474,12 @@ export function getDebugCoordinatesStrings(
   input?: LocaleInput
 ): DebugCoordinatesStrings {
   return cloneValue(getLocaleStrings(input).hud.debugCoordinates);
+}
+
+export function getDebugColliderStrings(
+  input?: LocaleInput
+): DebugColliderStrings {
+  return cloneValue(getLocaleStrings(input).hud.debugColliders);
 }
 
 export function getTourResetControlStrings(

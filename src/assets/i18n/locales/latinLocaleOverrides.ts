@@ -50,6 +50,10 @@ interface LatinLocaleCopy {
     narrationToggleLabelDisabled: string;
     narrationToggleDescriptionEnabled: string;
     narrationToggleDescriptionDisabled: string;
+    debugCollidersLabelEnabled: string;
+    debugCollidersLabelDisabled: string;
+    debugCollidersDescriptionEnabled: string;
+    debugCollidersDescriptionDisabled: string;
     debugCoordinatesLabelEnabled: string;
     debugCoordinatesLabelDisabled: string;
     debugCoordinatesDescriptionEnabled: string;
@@ -716,6 +720,12 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.narrationToggleLabelDisabled,
         descriptionEnabled: s.narrationToggleDescriptionEnabled,
         descriptionDisabled: s.narrationToggleDescriptionDisabled,
+      },
+      debugColliders: {
+        labelEnabled: s.debugCollidersLabelEnabled,
+        labelDisabled: s.debugCollidersLabelDisabled,
+        descriptionEnabled: s.debugCollidersDescriptionEnabled,
+        descriptionDisabled: s.debugCollidersDescriptionDisabled,
       },
       debugCoordinates: {
         labelEnabled: s.debugCoordinatesLabelEnabled,

@@ -277,6 +277,13 @@ export const JA_OVERRIDES: LocaleOverrides = {
       descriptionDisabled:
         'オンにするまでナレーションのポップアップと字幕は非表示です。',
     },
+    debugColliders: {
+      labelEnabled: 'コライダー表示オン',
+      labelDisabled: 'コライダー表示オフ',
+      descriptionEnabled: 'アクティブな階の見えない壁と衝突矩形を表示します。',
+      descriptionDisabled:
+        '見えない壁と衝突矩形はオンにするまで非表示のままです。',
+    },
     debugCoordinates: {
       labelEnabled: 'デバッグ座標オン',
       labelDisabled: 'デバッグ座標オフ',

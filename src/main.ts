@@ -42,6 +42,7 @@ import {
   getAudioHudControlStrings,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugColliderStrings,
   getDebugCoordinatesStrings,
   getHelpModalStrings,
   getHudCustomizationStrings,
@@ -108,6 +109,12 @@ import {
   type AvatarVariantId,
 } from './scene/avatar/variants';
 import { resolveInitialAvatarCameraFraming } from './scene/camera/initialFraming';
+import {
+  createColliderVisualizer,
+  type ColliderDebugDescriptor,
+  type ColliderDebugMetadata,
+  type ColliderVisualizerHandle,
+} from './scene/debug/colliderVisualizer';
 import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
@@ -467,6 +474,7 @@ const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
+const DEBUG_COLLIDERS_STORAGE_KEY = 'danielsmith.io::debugColliders::v1';
 const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
@@ -563,6 +571,15 @@ declare global {
           activeInWorldTooltipCount: number;
           totalInWorldTooltipCount: number;
         };
+      };
+      debugColliders?: {
+        getState(): {
+          enabled: boolean;
+          visibleColliderCount: number;
+          totalColliderCount: number;
+        };
+        setEnabled(enabled: boolean): void;
+        getColliders(): ColliderDebugMetadata[];
       };
       debugCoordinates?: {
         getState(): {
@@ -1308,27 +1325,42 @@ function initializeImmersiveScene(
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
   let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
   let narrationToggleStrings = getNarrationToggleStrings(locale);
+  let debugColliderStrings = getDebugColliderStrings(locale);
   let debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
   let siteStrings = getSiteStrings(locale);
-  let debugCoordinatesStorage: Storage | undefined;
+  let debugSettingsStorage: Storage | undefined;
   try {
-    debugCoordinatesStorage = window.localStorage;
+    debugSettingsStorage = window.localStorage;
   } catch {
-    debugCoordinatesStorage = undefined;
+    debugSettingsStorage = undefined;
   }
   const debugCoordinatesUrlOverride = new URLSearchParams(
     window.location.search
   ).get('debugCoordinates');
-  const debugCoordinatesUrlEnabled = ['1', 'true', 'yes', 'on'].includes(
-    debugCoordinatesUrlOverride?.toLowerCase() ?? ''
+  const isTruthyDebugUrlValue = (value: string | null): boolean =>
+    ['1', 'true', 'yes', 'on'].includes(value?.toLowerCase() ?? '');
+  const debugCoordinatesUrlEnabled = isTruthyDebugUrlValue(
+    debugCoordinatesUrlOverride
   );
   const debugCoordinatesStoredEnabled =
-    debugCoordinatesStorage?.getItem(DEBUG_COORDINATES_STORAGE_KEY) === '1';
+    debugSettingsStorage?.getItem(DEBUG_COORDINATES_STORAGE_KEY) === '1';
   let debugCoordinatesEnabled =
     debugCoordinatesUrlEnabled || debugCoordinatesStoredEnabled;
+  const debugCollidersUrlOverride = new URLSearchParams(
+    window.location.search
+  ).get('debugColliders');
+  const debugCollidersUrlEnabled = isTruthyDebugUrlValue(
+    debugCollidersUrlOverride
+  );
+  const debugCollidersStoredEnabled =
+    debugSettingsStorage?.getItem(DEBUG_COLLIDERS_STORAGE_KEY) === '1';
+  let debugCollidersEnabled =
+    debugCollidersUrlEnabled || debugCollidersStoredEnabled;
+  let debugCollidersControl: HTMLButtonElement | null = null;
+  let colliderVisualizer: ColliderVisualizerHandle | null = null;
   let debugCoordinatesControl: HTMLButtonElement | null = null;
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
@@ -2602,6 +2634,36 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
+  const colliderDebugDescriptors: ColliderDebugDescriptor[] = [
+    ...groundColliders.map((collider, index) => ({
+      floor: 'ground' as const,
+      category: 'ground',
+      name: `ground-${index + 1}`,
+      bounds: collider,
+      elevation: 0,
+    })),
+    ...upperFloorColliders.map((collider, index) => ({
+      floor: 'upper' as const,
+      category: 'upper-floor',
+      name: `upper-${index + 1}`,
+      bounds: collider,
+      elevation: upperFloorElevation,
+    })),
+    ...staticColliders.map((collider, index) => ({
+      floor: 'ground' as const,
+      category: 'static',
+      name: `static-${index + 1}`,
+      bounds: collider,
+      elevation: 0,
+    })),
+  ];
+  colliderVisualizer = createColliderVisualizer({
+    scene,
+    colliders: colliderDebugDescriptors,
+    activeFloorId,
+    enabled: debugCollidersEnabled,
+  });
+
   poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,
     camera,
@@ -3464,6 +3526,7 @@ function initializeImmersiveScene(
     audioHudStrings = getAudioHudControlStrings(locale);
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
     narrationToggleStrings = getNarrationToggleStrings(locale);
+    debugColliderStrings = getDebugColliderStrings(locale);
     debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
@@ -3538,6 +3601,7 @@ function initializeImmersiveScene(
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
+    updateDebugCollidersControl();
     refreshDebugCoordinatesStrings();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
@@ -3627,6 +3691,7 @@ function initializeImmersiveScene(
     }
     activeFloorId = next;
     floorVisibilityController.setActiveFloorId(next);
+    colliderVisualizer?.setActiveFloorId(next);
     poiWorldTooltip.setActiveFloorId(next);
     syncPoiDetailOverlay();
     syncPoiRecommendation();
@@ -3661,6 +3726,48 @@ function initializeImmersiveScene(
       containsRectPoint(bounds, player.position.x, player.position.z)
     );
     return room?.id ?? null;
+  };
+
+  const updateDebugCollidersControl = () => {
+    if (!debugCollidersControl) {
+      return;
+    }
+    const label = debugCollidersEnabled
+      ? debugColliderStrings.labelEnabled
+      : debugColliderStrings.labelDisabled;
+    const description = debugCollidersEnabled
+      ? debugColliderStrings.descriptionEnabled
+      : debugColliderStrings.descriptionDisabled;
+    debugCollidersControl.textContent = label;
+    debugCollidersControl.dataset.state = debugCollidersEnabled
+      ? 'enabled'
+      : 'disabled';
+    debugCollidersControl.setAttribute(
+      'aria-pressed',
+      debugCollidersEnabled ? 'true' : 'false'
+    );
+    debugCollidersControl.setAttribute('aria-label', description);
+    debugCollidersControl.title = description;
+    debugCollidersControl.dataset.hudAnnounce = `${label}. ${description}`;
+  };
+
+  const setDebugCollidersEnabled = (
+    enabled: boolean,
+    options: { persist?: boolean } = { persist: true }
+  ) => {
+    debugCollidersEnabled = enabled;
+    colliderVisualizer?.setEnabled(enabled);
+    updateDebugCollidersControl();
+    if (options.persist !== false && debugSettingsStorage) {
+      try {
+        debugSettingsStorage.setItem(
+          DEBUG_COLLIDERS_STORAGE_KEY,
+          enabled ? '1' : '0'
+        );
+      } catch (error) {
+        console.warn('Failed to persist collider debug preference.', error);
+      }
+    }
   };
 
   const getDebugCoordinatesState = () => {
@@ -3855,9 +3962,9 @@ function initializeImmersiveScene(
     if (enabled) {
       updateDebugCoordinatesOverlay();
     }
-    if (options.persist !== false && debugCoordinatesStorage) {
+    if (options.persist !== false && debugSettingsStorage) {
       try {
-        debugCoordinatesStorage.setItem(
+        debugSettingsStorage.setItem(
           DEBUG_COORDINATES_STORAGE_KEY,
           enabled ? '1' : '0'
         );
@@ -3879,6 +3986,16 @@ function initializeImmersiveScene(
   document.body.appendChild(debugCoordinatesOverlay);
   createDebugCoordinatesOverlayContent();
 
+  debugCollidersControl = document.createElement('button');
+  debugCollidersControl.type = 'button';
+  debugCollidersControl.className = 'tour-toggle debug-colliders-toggle';
+  debugCollidersControl.addEventListener('click', () => {
+    setDebugCollidersEnabled(!debugCollidersEnabled);
+  });
+  hudSettingsStack.appendChild(debugCollidersControl);
+  registerHudControlElement(debugCollidersControl);
+  updateDebugCollidersControl();
+
   debugCoordinatesControl = document.createElement('button');
   debugCoordinatesControl.type = 'button';
   debugCoordinatesControl.className = 'tour-toggle debug-coordinates-toggle';
@@ -3893,6 +4010,19 @@ function initializeImmersiveScene(
     updateDebugCoordinatesOverlay,
     250
   );
+
+  window.portfolio.debugColliders = {
+    getState: () =>
+      colliderVisualizer?.getState() ?? {
+        enabled: debugCollidersEnabled,
+        visibleColliderCount: 0,
+        totalColliderCount: 0,
+      },
+    setEnabled: (enabled: boolean) => {
+      setDebugCollidersEnabled(enabled);
+    },
+    getColliders: () => colliderVisualizer?.getColliders() ?? [],
+  };
 
   window.portfolio.debugCoordinates = {
     getState: getDebugCoordinatesState,
@@ -5411,6 +5541,9 @@ function initializeImmersiveScene(
     if (window.portfolio?.debugCoordinates) {
       delete window.portfolio.debugCoordinates;
     }
+    if (window.portfolio?.debugColliders) {
+      delete window.portfolio.debugColliders;
+    }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
     }
@@ -5421,6 +5554,14 @@ function initializeImmersiveScene(
     if (debugCoordinatesInterval !== null) {
       window.clearInterval(debugCoordinatesInterval);
       debugCoordinatesInterval = null;
+    }
+    if (debugCollidersControl) {
+      debugCollidersControl.remove();
+      debugCollidersControl = null;
+    }
+    if (colliderVisualizer) {
+      colliderVisualizer.dispose();
+      colliderVisualizer = null;
     }
     if (debugCoordinatesControl) {
       debugCoordinatesControl.remove();

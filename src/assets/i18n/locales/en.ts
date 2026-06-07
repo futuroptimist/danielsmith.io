@@ -339,6 +339,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       descriptionDisabled:
         'Narration popups and captions stay hidden until you turn them on.',
     },
+    debugColliders: {
+      labelEnabled: 'Collider overlay on',
+      labelDisabled: 'Collider overlay off',
+      descriptionEnabled:
+        'Shows invisible wall and collision rectangles for the active floor.',
+      descriptionDisabled:
+        'Invisible wall and collision rectangles stay hidden until you turn them on.',
+    },
     debugCoordinates: {
       labelEnabled: 'Debug coordinates on',
       labelDisabled: 'Debug coordinates off',
