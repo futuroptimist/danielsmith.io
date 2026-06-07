@@ -128,6 +128,27 @@ describe('stair floor transitions (negative Z ascent)', () => {
     ).toBe('upper');
   });
 
+  it('keeps the preserved upper doorway bridge on the upper floor', () => {
+    const preservedBridgeZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(2.0);
+
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        preservedBridgeZ,
+        'upper'
+      )
+    ).toBe('safeUpperFloor');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        preservedBridgeZ,
+        'upper'
+      )
+    ).toBe('upper');
+  });
+
   it('transitions to ground only inside the explicit descent corridor', () => {
     const descentZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.7);
 

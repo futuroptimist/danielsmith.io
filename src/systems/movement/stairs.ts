@@ -189,11 +189,32 @@ const isInExplicitDescentCorridor = (
     behavior.transitionMargin * 0.5
   );
 
+  // Keep the upper doorway bridge beyond the stair-top handoff from
+  // masquerading as an intentional stair descent.
+  const explicitDescentMaxDistance =
+    behavior.transitionMargin + behavior.landingTriggerMargin;
+
   return (
     descentDistance > behavior.landingTriggerMargin &&
+    descentDistance <= explicitDescentMaxDistance &&
     insideRampZ &&
     isWithinDescentCorridorWidth(geometry, behavior, x)
   );
+};
+
+const isPastLowerStairExit = (
+  geometry: StairGeometry,
+  behavior: StairBehavior,
+  x: number,
+  z: number
+): boolean => {
+  if (!isWithinStairWidth(geometry, x, behavior.transitionMargin)) {
+    return false;
+  }
+
+  return geometry.direction === -1
+    ? z >= geometry.bottomZ
+    : z <= geometry.bottomZ;
 };
 
 export const classifyStairTransitionZone = (
@@ -267,7 +288,10 @@ export const predictStairFloorId = (
   const direction = geometry.direction;
 
   if (current === 'upper') {
-    return zone === 'explicitDescentCorridor' ? 'ground' : 'upper';
+    return zone === 'explicitDescentCorridor' ||
+      isPastLowerStairExit(geometry, behavior, x, z)
+      ? 'ground'
+      : 'upper';
   }
 
   if (isInExplicitDescentCorridor(geometry, behavior, x, z)) {
