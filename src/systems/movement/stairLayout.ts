@@ -22,7 +22,10 @@ export interface StairwellOpeningConfig {
   halfWidth: number;
   marginX: number;
   roomBounds: StairwellBounds;
-  layout: Pick<StairLayoutResult, 'stairHoleRange'>;
+  layout: Pick<
+    StairLayoutResult,
+    'directionMultiplier' | 'landingMinZ' | 'landingMaxZ' | 'stairHoleRange'
+  >;
 }
 
 export interface StairLayoutResult {
@@ -86,20 +89,32 @@ export const computeStairLayout = (
 
 /**
  * Clips the visible upstairs stairwell hole to the landing room while deriving
- * the full stair run from `computeStairLayout`. Movement and visuals therefore
- * use the same hole metrics so floor tiles cannot cover the visible stairs.
+ * the stair landing void from `computeStairLayout`. Movement and visuals
+ * therefore use the same threshold metrics without cutting away the normal
+ * upper-floor doorway bridge beyond the stair top.
  */
 export const computeStairwellOpeningBounds = (
   config: StairwellOpeningConfig
-): StairwellBounds => ({
-  minX: Math.max(
-    config.roomBounds.minX,
-    config.centerX - config.halfWidth - config.marginX
-  ),
-  maxX: Math.min(
-    config.roomBounds.maxX,
-    config.centerX + config.halfWidth + config.marginX
-  ),
-  minZ: Math.max(config.roomBounds.minZ, config.layout.stairHoleRange.minZ),
-  maxZ: Math.min(config.roomBounds.maxZ, config.layout.stairHoleRange.maxZ),
-});
+): StairwellBounds => {
+  const openingMinZ =
+    config.layout.directionMultiplier === -1
+      ? config.layout.stairHoleRange.minZ
+      : config.layout.landingMinZ;
+  const openingMaxZ =
+    config.layout.directionMultiplier === -1
+      ? config.layout.landingMaxZ
+      : config.layout.stairHoleRange.maxZ;
+
+  return {
+    minX: Math.max(
+      config.roomBounds.minX,
+      config.centerX - config.halfWidth - config.marginX
+    ),
+    maxX: Math.min(
+      config.roomBounds.maxX,
+      config.centerX + config.halfWidth + config.marginX
+    ),
+    minZ: Math.max(config.roomBounds.minZ, openingMinZ),
+    maxZ: Math.min(config.roomBounds.maxZ, openingMaxZ),
+  };
+};
