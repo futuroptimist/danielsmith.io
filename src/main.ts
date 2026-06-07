@@ -42,6 +42,7 @@ import {
   getAudioHudControlStrings,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCollidersStrings,
   getDebugCoordinatesStrings,
   getHelpModalStrings,
   getHudCustomizationStrings,
@@ -108,6 +109,13 @@ import {
   type AvatarVariantId,
 } from './scene/avatar/variants';
 import { resolveInitialAvatarCameraFraming } from './scene/camera/initialFraming';
+import {
+  createColliderDebugEntries,
+  createColliderVisualizer,
+  type ColliderDebugMetadata,
+  type ColliderVisualizer,
+  type ColliderVisualizerState,
+} from './scene/debug/colliderVisualizer';
 import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
@@ -467,6 +475,8 @@ const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
+const DEBUG_COLLIDERS_STORAGE_KEY = 'danielsmith.io::debugColliders::v1';
+const DEBUG_URL_TRUTHY_VALUES = new Set(['1', 'true', 'yes', 'on']);
 const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
@@ -580,6 +590,11 @@ declare global {
           currentRoomId: string | null;
         };
         setEnabled(enabled: boolean): void;
+      };
+      debugColliders?: {
+        getState(): ColliderVisualizerState;
+        setEnabled(enabled: boolean): void;
+        getColliders(): ColliderDebugMetadata[];
       };
       world?: {
         getActiveFloor(): FloorId;
@@ -1309,6 +1324,7 @@ function initializeImmersiveScene(
   let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
   let narrationToggleStrings = getNarrationToggleStrings(locale);
   let debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
+  let debugCollidersStrings = getDebugCollidersStrings(locale);
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
@@ -1322,14 +1338,25 @@ function initializeImmersiveScene(
   const debugCoordinatesUrlOverride = new URLSearchParams(
     window.location.search
   ).get('debugCoordinates');
-  const debugCoordinatesUrlEnabled = ['1', 'true', 'yes', 'on'].includes(
+  const debugCoordinatesUrlEnabled = DEBUG_URL_TRUTHY_VALUES.has(
     debugCoordinatesUrlOverride?.toLowerCase() ?? ''
   );
   const debugCoordinatesStoredEnabled =
     debugCoordinatesStorage?.getItem(DEBUG_COORDINATES_STORAGE_KEY) === '1';
   let debugCoordinatesEnabled =
     debugCoordinatesUrlEnabled || debugCoordinatesStoredEnabled;
+  const debugCollidersUrlOverride = new URLSearchParams(
+    window.location.search
+  ).get('debugColliders');
+  const debugCollidersUrlEnabled = DEBUG_URL_TRUTHY_VALUES.has(
+    debugCollidersUrlOverride?.toLowerCase() ?? ''
+  );
+  const debugCollidersStoredEnabled =
+    debugCoordinatesStorage?.getItem(DEBUG_COLLIDERS_STORAGE_KEY) === '1';
+  let debugCollidersEnabled =
+    debugCollidersUrlEnabled || debugCollidersStoredEnabled;
   let debugCoordinatesControl: HTMLButtonElement | null = null;
+  let debugCollidersControl: HTMLButtonElement | null = null;
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
@@ -2602,6 +2629,17 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
+  const colliderVisualizer: ColliderVisualizer = createColliderVisualizer(
+    createColliderDebugEntries({
+      groundColliders,
+      upperFloorColliders,
+      staticColliders,
+      upperFloorElevation,
+    }),
+    activeFloorId
+  );
+  scene.add(colliderVisualizer.group);
+
   poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,
     camera,
@@ -3465,6 +3503,7 @@ function initializeImmersiveScene(
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
     narrationToggleStrings = getNarrationToggleStrings(locale);
     debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
+    debugCollidersStrings = getDebugCollidersStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
@@ -3539,6 +3578,7 @@ function initializeImmersiveScene(
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
     refreshDebugCoordinatesStrings();
+    refreshDebugCollidersControl();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
@@ -3626,6 +3666,7 @@ function initializeImmersiveScene(
       return;
     }
     activeFloorId = next;
+    colliderVisualizer.setActiveFloorId(next);
     floorVisibilityController.setActiveFloorId(next);
     poiWorldTooltip.setActiveFloorId(next);
     syncPoiDetailOverlay();
@@ -3867,6 +3908,48 @@ function initializeImmersiveScene(
     }
   };
 
+  const refreshDebugCollidersControl = () => {
+    if (!debugCollidersControl) {
+      return;
+    }
+    const label = debugCollidersEnabled
+      ? debugCollidersStrings.labelEnabled
+      : debugCollidersStrings.labelDisabled;
+    const description = debugCollidersEnabled
+      ? debugCollidersStrings.descriptionEnabled
+      : debugCollidersStrings.descriptionDisabled;
+    debugCollidersControl.textContent = label;
+    debugCollidersControl.dataset.state = debugCollidersEnabled
+      ? 'enabled'
+      : 'disabled';
+    debugCollidersControl.setAttribute(
+      'aria-pressed',
+      debugCollidersEnabled ? 'true' : 'false'
+    );
+    debugCollidersControl.setAttribute('aria-label', description);
+    debugCollidersControl.title = description;
+    debugCollidersControl.dataset.hudAnnounce = `${label}. ${description}`;
+  };
+
+  const setDebugCollidersEnabled = (
+    enabled: boolean,
+    options: { persist?: boolean } = { persist: true }
+  ) => {
+    debugCollidersEnabled = enabled;
+    colliderVisualizer.setEnabled(enabled);
+    refreshDebugCollidersControl();
+    if (options.persist !== false && debugCoordinatesStorage) {
+      try {
+        debugCoordinatesStorage.setItem(
+          DEBUG_COLLIDERS_STORAGE_KEY,
+          enabled ? '1' : '0'
+        );
+      } catch (error) {
+        console.warn('Failed to persist debug collider preference.', error);
+      }
+    }
+  };
+
   const refreshDebugCoordinatesStrings = () => {
     refreshDebugCoordinatesControl();
     updateDebugCoordinatesLabels();
@@ -3899,6 +3982,25 @@ function initializeImmersiveScene(
     setEnabled: (enabled: boolean) => {
       setDebugCoordinatesEnabled(enabled);
     },
+  };
+
+  debugCollidersControl = document.createElement('button');
+  debugCollidersControl.type = 'button';
+  debugCollidersControl.className = 'tour-toggle debug-colliders-toggle';
+  debugCollidersControl.addEventListener('click', () => {
+    setDebugCollidersEnabled(!debugCollidersEnabled);
+  });
+  hudSettingsStack.appendChild(debugCollidersControl);
+  registerHudControlElement(debugCollidersControl);
+  refreshDebugCollidersControl();
+  setDebugCollidersEnabled(debugCollidersEnabled, { persist: false });
+
+  window.portfolio.debugColliders = {
+    getState: () => colliderVisualizer.getState(),
+    setEnabled: (enabled: boolean) => {
+      setDebugCollidersEnabled(enabled);
+    },
+    getColliders: () => colliderVisualizer.getColliders(),
   };
 
   const setCameraZoomTarget = (next: number) => {

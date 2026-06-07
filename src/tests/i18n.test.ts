@@ -5,6 +5,7 @@ import {
   formatMessage,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCollidersStrings,
   getDebugCoordinatesStrings,
   getHelpModalStrings,
   getLocaleDirection,
@@ -803,6 +804,36 @@ describe('i18n utilities', () => {
     );
     expect(getDebugCoordinatesStrings('en-x-pseudo').labelDisabled).toBe(
       '⟦Debug coordinates off⟧'
+    );
+  });
+
+  it('localizes debug collider controls across locales', () => {
+    expect(getDebugCollidersStrings('en').labelDisabled).toBe(
+      'Collider overlay off'
+    );
+    expect(getDebugCollidersStrings('es').labelEnabled).toBe(
+      'Superposición de colisionadores activada'
+    );
+    expect(getDebugCollidersStrings('pt').descriptionDisabled).toContain(
+      'permanece oculta'
+    );
+    expect(getDebugCollidersStrings('de').labelDisabled).toBe(
+      'Collider-Overlay aus'
+    );
+    expect(getDebugCollidersStrings('hu').labelEnabled).toBe(
+      'Ütköző overlay be'
+    );
+    expect(getDebugCollidersStrings('zh-Hans').labelDisabled).toBe(
+      '碰撞体浮层已关闭'
+    );
+    expect(getDebugCollidersStrings('ja').labelEnabled).toBe(
+      'コライダー表示オン'
+    );
+    expect(getDebugCollidersStrings('ar').descriptionEnabled).toContain(
+      'الجدران غير المرئية'
+    );
+    expect(getDebugCollidersStrings('en-x-pseudo').labelDisabled).toBe(
+      '⟦Collider overlay off⟧'
     );
   });
 

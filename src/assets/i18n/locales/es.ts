@@ -67,6 +67,12 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesRoom: 'Sala',
     debugCoordinatesYes: 'Sí',
     debugCoordinatesNo: 'No',
+    debugCollidersLabelEnabled: 'Superposición de colisionadores activada',
+    debugCollidersLabelDisabled: 'Superposición de colisionadores desactivada',
+    debugCollidersDescriptionEnabled:
+      'Muestra la geometría de depuración de muros invisibles y rectángulos de colisión.',
+    debugCollidersDescriptionDisabled:
+      'La geometría de muros invisibles y rectángulos de colisión permanece oculta.',
     debugCoordinatesNone: 'Ninguna',
   },
   poi: {

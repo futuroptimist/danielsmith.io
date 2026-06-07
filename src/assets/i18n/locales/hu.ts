@@ -67,6 +67,12 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesRoom: 'Szoba',
     debugCoordinatesYes: 'Igen',
     debugCoordinatesNo: 'Nem',
+    debugCollidersLabelEnabled: 'Ütköző overlay be',
+    debugCollidersLabelDisabled: 'Ütköző overlay ki',
+    debugCollidersDescriptionEnabled:
+      'Megjeleníti a láthatatlan falak és ütközési téglalapok hibakeresési geometriáját.',
+    debugCollidersDescriptionDisabled:
+      'A láthatatlan falak és ütközési téglalapok geometriája rejtve marad.',
     debugCoordinatesNone: 'Nincs',
   },
   poi: {

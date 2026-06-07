@@ -14,6 +14,14 @@ http://localhost:5173/?mode=immersive&disablePerformanceFailover=1
 3. Confirm the overlay appears with position, active floor, predicted floor, stair zone, and room.
 4. Optional console check: `window.portfolio.debugCoordinates.getState()` should mirror the overlay.
 
+## Enable collider visualization
+
+1. Open `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1&debugColliders=1`.
+2. Open **Settings** in the HUD and confirm **Collider overlay on** is pressed.
+3. Confirm thin debug rectangles are visible for the active floor only.
+4. Toggle **Collider overlay on/off** and confirm `window.portfolio.debugColliders.getState()`
+   switches between visible collider counts and zero visible colliders without changing movement.
+
 ## Stairs up
 
 1. Start on the ground floor and walk to the stair base near **X 12.40, Z -10.60**.

@@ -335,6 +335,12 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       errorAnnouncementTemplate: '文本模式切换失败。按 {keyHint} 重试。',
       errorTitleTemplate: '文本模式切换失败。按 {keyHint} 重试文本模式。',
     },
+    debugColliders: {
+      labelEnabled: '碰撞体浮层已开启',
+      labelDisabled: '碰撞体浮层已关闭',
+      descriptionEnabled: '显示隐形墙和碰撞矩形的调试几何体。',
+      descriptionDisabled: '隐形墙和碰撞矩形几何体会保持隐藏。',
+    },
     poiOverlay: {
       visited: '已访问',
       nextHighlight: '下一个亮点',

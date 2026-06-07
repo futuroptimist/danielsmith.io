@@ -67,6 +67,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesRoom: 'Raum',
     debugCoordinatesYes: 'Ja',
     debugCoordinatesNo: 'Nein',
+    debugCollidersLabelEnabled: 'Collider-Overlay ein',
+    debugCollidersLabelDisabled: 'Collider-Overlay aus',
+    debugCollidersDescriptionEnabled:
+      'Zeigt Debug-Geometrie für unsichtbare Wände und Kollisionsrechtecke.',
+    debugCollidersDescriptionDisabled:
+      'Geometrie für unsichtbare Wände und Kollisionsrechtecke bleibt verborgen.',
     debugCoordinatesNone: 'Keine',
   },
   poi: {

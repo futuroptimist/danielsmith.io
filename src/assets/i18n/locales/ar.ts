@@ -299,6 +299,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
         none: 'لا شيء',
       },
     },
+    debugColliders: {
+      labelEnabled: 'طبقة المصادمات مفعّلة',
+      labelDisabled: 'طبقة المصادمات معطّلة',
+      descriptionEnabled:
+        'تعرض هندسة تصحيح الجدران غير المرئية ومستطيلات التصادم.',
+      descriptionDisabled:
+        'تبقى هندسة الجدران غير المرئية ومستطيلات التصادم مخفية.',
+    },
     poiOverlay: {
       visited: 'تمت الزيارة',
       nextHighlight: 'المحطة التالية',

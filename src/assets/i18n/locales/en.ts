@@ -364,6 +364,14 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         none: 'None',
       },
     },
+    debugColliders: {
+      labelEnabled: 'Collider overlay on',
+      labelDisabled: 'Collider overlay off',
+      descriptionEnabled:
+        'Shows invisible wall and collision rectangle debug geometry.',
+      descriptionDisabled:
+        'Invisible wall and collision rectangle geometry stays hidden.',
+    },
     tourReset: {
       heading: 'Guided tour',
       resetKey: 'g',
