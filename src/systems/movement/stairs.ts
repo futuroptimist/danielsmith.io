@@ -213,8 +213,9 @@ const isPastLowerStairExit = (
   }
 
   return geometry.direction === -1
-    ? z >= geometry.bottomZ
-    : z <= geometry.bottomZ;
+    ? z >= geometry.bottomZ && z <= geometry.bottomZ + behavior.transitionMargin
+    : z <= geometry.bottomZ &&
+        z >= geometry.bottomZ - behavior.transitionMargin;
 };
 
 export const classifyStairTransitionZone = (

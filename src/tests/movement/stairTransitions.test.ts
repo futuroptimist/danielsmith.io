@@ -214,6 +214,17 @@ describe('stair floor transitions (negative Z ascent)', () => {
       )
     ).toBe('ground');
   });
+
+  it('keeps ordinary upper rooms past the stair base on the upper floor', () => {
+    const loftRoomZ = NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(1.3);
+
+    expect(
+      classify(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, loftRoomZ, 'upper')
+    ).toBe('safeUpperFloor');
+    expect(
+      predict(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, loftRoomZ, 'upper')
+    ).toBe('upper');
+  });
 });
 
 describe('stair floor transitions (positive Z ascent)', () => {
@@ -271,6 +282,14 @@ describe('stair floor transitions (positive Z ascent)', () => {
     expect(
       predict(positiveGeometry, positiveGeometry.centerX, groundExitZ, 'upper')
     ).toBe('ground');
+  });
+
+  it('keeps positive-Z upper rooms past the stair base on the upper floor', () => {
+    const upperRoomZ = positiveGeometry.bottomZ - toWorldUnits(1.3);
+
+    expect(
+      predict(positiveGeometry, positiveGeometry.centerX, upperRoomZ, 'upper')
+    ).toBe('upper');
   });
 
   it('ignores stair transitions when outside the stair width', () => {
