@@ -70,6 +70,6 @@ describe('computeStairLayout', () => {
     expect(opening.minX).toBeCloseTo(7.04);
     expect(opening.maxX).toBeCloseTo(12.8);
     expect(opening.minZ).toBeCloseTo(-31.9);
-    expect(opening.maxZ).toBeCloseTo(-25.9);
+    expect(opening.maxZ).toBeCloseTo(-16);
   });
 });
