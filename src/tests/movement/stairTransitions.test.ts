@@ -202,7 +202,7 @@ describe('stair floor transitions (negative Z ascent)', () => {
     );
   });
 
-  it('remains on the ground after passing the stair base', () => {
+  it('keeps ground descents on the ground after passing the stair base', () => {
     const groundExitZ = NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.1);
 
     expect(
@@ -210,9 +210,20 @@ describe('stair floor transitions (negative Z ascent)', () => {
         NEGATIVE_Z_STAIRS,
         NEGATIVE_Z_STAIRS.centerX,
         groundExitZ,
-        'upper'
+        'ground'
       )
     ).toBe('ground');
+  });
+
+  it('keeps ordinary upper rooms inside the stair-base margin on the upper floor', () => {
+    const loftRoomZ = NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.3);
+
+    expect(
+      classify(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, loftRoomZ, 'upper')
+    ).toBe('safeUpperFloor');
+    expect(
+      predict(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, loftRoomZ, 'upper')
+    ).toBe('upper');
   });
 
   it('keeps ordinary upper rooms past the stair base on the upper floor', () => {
@@ -276,12 +287,23 @@ describe('stair floor transitions (positive Z ascent)', () => {
     ).toBe('ground');
   });
 
-  it('remains on the ground after moving past the stair base', () => {
+  it('keeps positive-Z ground descents on ground past the stair base', () => {
     const groundExitZ = positiveGeometry.bottomZ - toWorldUnits(0.1);
 
     expect(
-      predict(positiveGeometry, positiveGeometry.centerX, groundExitZ, 'upper')
+      predict(positiveGeometry, positiveGeometry.centerX, groundExitZ, 'ground')
     ).toBe('ground');
+  });
+
+  it('keeps positive-Z upper rooms inside the stair-base margin on upper', () => {
+    const upperRoomZ = positiveGeometry.bottomZ - toWorldUnits(0.3);
+
+    expect(
+      classify(positiveGeometry, positiveGeometry.centerX, upperRoomZ, 'upper')
+    ).toBe('safeUpperFloor');
+    expect(
+      predict(positiveGeometry, positiveGeometry.centerX, upperRoomZ, 'upper')
+    ).toBe('upper');
   });
 
   it('keeps positive-Z upper rooms past the stair base on the upper floor', () => {

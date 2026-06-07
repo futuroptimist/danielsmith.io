@@ -202,22 +202,6 @@ const isInExplicitDescentCorridor = (
   );
 };
 
-const isPastLowerStairExit = (
-  geometry: StairGeometry,
-  behavior: StairBehavior,
-  x: number,
-  z: number
-): boolean => {
-  if (!isWithinStairWidth(geometry, x, behavior.transitionMargin)) {
-    return false;
-  }
-
-  return geometry.direction === -1
-    ? z >= geometry.bottomZ && z <= geometry.bottomZ + behavior.transitionMargin
-    : z <= geometry.bottomZ &&
-        z >= geometry.bottomZ - behavior.transitionMargin;
-};
-
 export const classifyStairTransitionZone = (
   geometry: StairGeometry,
   behavior: StairBehavior,
@@ -289,10 +273,7 @@ export const predictStairFloorId = (
   const direction = geometry.direction;
 
   if (current === 'upper') {
-    return zone === 'explicitDescentCorridor' ||
-      isPastLowerStairExit(geometry, behavior, x, z)
-      ? 'ground'
-      : 'upper';
+    return zone === 'explicitDescentCorridor' ? 'ground' : 'upper';
   }
 
   if (isInExplicitDescentCorridor(geometry, behavior, x, z)) {
