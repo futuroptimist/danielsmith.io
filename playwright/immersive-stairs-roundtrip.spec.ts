@@ -292,7 +292,7 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   expect(tooltipState.visibleMarkerLabelCount).toBe(0);
   expect(tooltipState.activeInWorldTooltipCount).toBe(0);
   expect(tooltipState.totalInWorldTooltipCount).toBe(0);
-  expect(tooltipState.visibleMarkerLabelPoiIds).not.toEqual(
-    expect.arrayContaining(GROUND_POI_IDS)
-  );
+  for (const groundPoiId of GROUND_POI_IDS) {
+    expect(tooltipState.visibleMarkerLabelPoiIds).not.toContain(groundPoiId);
+  }
 });

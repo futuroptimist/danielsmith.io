@@ -10,7 +10,7 @@ http://localhost:5173/?mode=immersive&disablePerformanceFailover=1
 ## Enable debug coordinates
 
 1. Open **Settings** in the HUD.
-2. Press **Show debug coordinates**.
+2. Press **Debug coordinates off**.
 3. Confirm the overlay appears with position, active floor, predicted floor, stair zone, and room.
 4. Optional console check: `window.portfolio.debugCoordinates.getState()` should mirror the overlay.
 
