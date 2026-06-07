@@ -86,8 +86,12 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await movePlayerTo({ x: stairCenterX, z: landingRoamZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
-  // Return toward the stairs and descend back to ground.
+  // Return toward the stairs, enter the explicit descent handoff, then
+  // continue down the ramp. The helper teleports between sampled positions,
+  // so include the narrow handoff band that real movement crosses frame by frame.
   await movePlayerTo({ x: stairCenterX, z: stairTopZ - 0.15 });
+  await movePlayerTo({ x: stairCenterX, z: stairTopZ + 0.7 });
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
   await movePlayerTo({ x: stairCenterX, z: (stairBottomZ + stairTopZ) / 2 });
   await movePlayerTo({ x: stairCenterX, z: stairBottomZ + 0.35 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
