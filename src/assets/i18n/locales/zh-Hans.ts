@@ -288,6 +288,12 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         none: '无',
       },
     },
+    debugColliders: {
+      labelEnabled: '碰撞墙已显示',
+      labelDisabled: '碰撞墙已隐藏',
+      descriptionEnabled: '显示隐形墙和碰撞矩形的调试几何体。',
+      descriptionDisabled: '隐形墙和碰撞矩形的调试几何体保持隐藏。',
+    },
     tourReset: {
       heading: '导览',
       resetKey: 'g',

@@ -5,6 +5,7 @@ import {
   formatMessage,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCollidersStrings,
   getDebugCoordinatesStrings,
   getHelpModalStrings,
   getLocaleDirection,
@@ -778,6 +779,36 @@ describe('i18n utilities', () => {
     AVAILABLE_LOCALES.forEach((locale) => {
       assertNoMissingStrings(getLocaleStrings(locale), locale);
     });
+  });
+
+  it('localizes debug collider controls across locales', () => {
+    expect(getDebugCollidersStrings('en').labelDisabled).toBe(
+      'Collider walls hidden'
+    );
+    expect(getDebugCollidersStrings('es').labelEnabled).toBe(
+      'Muros de colisión visibles'
+    );
+    expect(getDebugCollidersStrings('pt').labelDisabled).toBe(
+      'Paredes de colisão ocultas'
+    );
+    expect(getDebugCollidersStrings('de').descriptionEnabled).toContain(
+      'Kollisionsrechtecke'
+    );
+    expect(getDebugCollidersStrings('hu').labelEnabled).toBe(
+      'Ütközési falak láthatók'
+    );
+    expect(getDebugCollidersStrings('zh-Hans').labelDisabled).toBe(
+      '碰撞墙已隐藏'
+    );
+    expect(getDebugCollidersStrings('ja').labelEnabled).toBe(
+      'コライダー壁を表示'
+    );
+    expect(getDebugCollidersStrings('ar').labelDisabled).toBe(
+      'جدران التصادم مخفية'
+    );
+    expect(getDebugCollidersStrings('en-x-pseudo').labelDisabled).toBe(
+      '⟦Collider walls hidden⟧'
+    );
   });
 
   it('localizes debug coordinate controls across locales', () => {

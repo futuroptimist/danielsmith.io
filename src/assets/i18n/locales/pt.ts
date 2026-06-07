@@ -49,6 +49,12 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
       'Pop-ups e legendas de narração aparecem em futuros momentos da exibição.',
     narrationToggleDescriptionDisabled:
       'Pop-ups e legendas de narração ficam ocultos até você ativá-los.',
+    debugCollidersLabelEnabled: 'Paredes de colisão visíveis',
+    debugCollidersLabelDisabled: 'Paredes de colisão ocultas',
+    debugCollidersDescriptionEnabled:
+      'Mostra a geometria de depuração de paredes invisíveis e retângulos de colisão.',
+    debugCollidersDescriptionDisabled:
+      'A geometria de depuração de paredes invisíveis e retângulos de colisão permanece oculta.',
     debugCoordinatesLabelEnabled: 'Coordenadas de depuração ativadas',
     debugCoordinatesLabelDisabled: 'Coordenadas de depuração desativadas',
     debugCoordinatesDescriptionEnabled:

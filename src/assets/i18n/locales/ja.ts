@@ -301,6 +301,14 @@ export const JA_OVERRIDES: LocaleOverrides = {
         none: 'なし',
       },
     },
+    debugColliders: {
+      labelEnabled: 'コライダー壁を表示',
+      labelDisabled: 'コライダー壁を非表示',
+      descriptionEnabled:
+        '不可視の壁と衝突矩形のデバッグジオメトリを表示します。',
+      descriptionDisabled:
+        '不可視の壁と衝突矩形のデバッグジオメトリは非表示のままです。',
+    },
     poiOverlay: {
       visited: '訪問済み',
       nextHighlight: '次のハイライト',
