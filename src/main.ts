@@ -42,6 +42,7 @@ import {
   getAudioHudControlStrings,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getDebugCoordinatesStrings,
   getHelpModalStrings,
   getHudCustomizationStrings,
   getLocaleDirection,
@@ -372,6 +373,8 @@ import { computeStairLayout } from './systems/movement/stairLayout';
 import {
   classifyStairTransitionZone,
   createStairNavigationZones,
+  isWithinLanding,
+  isWithinStairWidth,
   predictStairFloorId,
   sampleStairSurfaceHeight,
   type FloorId,
@@ -460,6 +463,7 @@ const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
+const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
 const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
@@ -556,6 +560,23 @@ declare global {
           activeInWorldTooltipCount: number;
           totalInWorldTooltipCount: number;
         };
+      };
+      debugCoordinates?: {
+        getState(): {
+          enabled: boolean;
+          x: number;
+          y: number;
+          z: number;
+          activeFloorId: FloorId;
+          predictedStairFloorId: FloorId;
+          cameraZoom: number;
+          insideStairWidth: boolean;
+          insideLanding: boolean;
+          insideStairNavArea: boolean;
+          stairZone: StairTransitionZone;
+          currentRoomId: string | null;
+        };
+        setEnabled(enabled: boolean): void;
       };
       world?: {
         getActiveFloor(): FloorId;
@@ -1284,10 +1305,31 @@ function initializeImmersiveScene(
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
   let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
   let narrationToggleStrings = getNarrationToggleStrings(locale);
+  let debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
   let siteStrings = getSiteStrings(locale);
+  let debugCoordinatesStorage: Storage | undefined;
+  try {
+    debugCoordinatesStorage = window.localStorage;
+  } catch {
+    debugCoordinatesStorage = undefined;
+  }
+  const debugCoordinatesUrlOverride = new URLSearchParams(
+    window.location.search
+  ).get('debugCoordinates');
+  const debugCoordinatesUrlEnabled = ['1', 'true', 'yes', 'on'].includes(
+    debugCoordinatesUrlOverride?.toLowerCase() ?? ''
+  );
+  const debugCoordinatesStoredEnabled =
+    debugCoordinatesStorage?.getItem(DEBUG_COORDINATES_STORAGE_KEY) === '1';
+  let debugCoordinatesEnabled =
+    debugCoordinatesUrlEnabled || debugCoordinatesStoredEnabled;
+  let debugCoordinatesControl: HTMLButtonElement | null = null;
+  let debugCoordinatesOverlay: HTMLElement | null = null;
+  let debugCoordinatesHeading: HTMLDivElement | null = null;
+  let debugCoordinatesInterval: number | null = null;
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
       rendererInfo,
@@ -3462,6 +3504,7 @@ function initializeImmersiveScene(
     audioHudStrings = getAudioHudControlStrings(locale);
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
     narrationToggleStrings = getNarrationToggleStrings(locale);
+    debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
@@ -3535,6 +3578,7 @@ function initializeImmersiveScene(
     poiNarrativeLog?.setStrings(narrativeLogStrings);
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
+    refreshDebugCoordinatesStrings();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
@@ -3643,6 +3687,259 @@ function initializeImmersiveScene(
 
   updatePlayerVerticalPosition();
   document.documentElement.dataset.activeFloor = activeFloorId;
+
+  const containsRectPoint = (
+    rect: { minX: number; maxX: number; minZ: number; maxZ: number },
+    x: number,
+    z: number
+  ): boolean =>
+    x >= rect.minX && x <= rect.maxX && z >= rect.minZ && z <= rect.maxZ;
+
+  const getCurrentRoomId = (): string | null => {
+    const plan = activeFloorId === 'upper' ? UPPER_FLOOR_PLAN : FLOOR_PLAN;
+    const room = plan.rooms.find(({ bounds }) =>
+      containsRectPoint(bounds, player.position.x, player.position.z)
+    );
+    return room?.id ?? null;
+  };
+
+  const getDebugCoordinatesState = () => {
+    const x = Number(player.position.x.toFixed(2));
+    const y = Number(player.position.y.toFixed(2));
+    const z = Number(player.position.z.toFixed(2));
+    const stairZone = classifyStairTransitionZone(
+      stairGeometry,
+      stairBehavior,
+      player.position.x,
+      player.position.z,
+      activeFloorId
+    );
+    const insideStairNavArea = Object.values(stairNavigationZones).some(
+      (zone) => containsRectPoint(zone, player.position.x, player.position.z)
+    );
+
+    return {
+      enabled: debugCoordinatesEnabled,
+      x,
+      y,
+      z,
+      activeFloorId,
+      predictedStairFloorId: predictFloorId(
+        player.position.x,
+        player.position.z,
+        activeFloorId
+      ),
+      cameraZoom: Number(camera.zoom.toFixed(2)),
+      insideStairWidth: isWithinStairWidth(stairGeometry, player.position.x),
+      insideLanding: isWithinLanding(
+        stairGeometry,
+        player.position.x,
+        player.position.z
+      ),
+      insideStairNavArea,
+      stairZone,
+      currentRoomId: getCurrentRoomId(),
+    };
+  };
+
+  const formatDebugBoolean = (value: boolean): string =>
+    value
+      ? debugCoordinatesStrings.values.yes
+      : debugCoordinatesStrings.values.no;
+
+  type DebugCoordinatesRowId =
+    | 'position'
+    | 'activeFloor'
+    | 'predictedFloor'
+    | 'cameraZoom'
+    | 'stairWidth'
+    | 'landing'
+    | 'stairNav'
+    | 'stairZone'
+    | 'room';
+
+  const debugCoordinatesRows = new Map<
+    DebugCoordinatesRowId,
+    { term: HTMLElement; detail: HTMLElement }
+  >();
+  const debugCoordinatesRowOrder: DebugCoordinatesRowId[] = [
+    'position',
+    'activeFloor',
+    'predictedFloor',
+    'cameraZoom',
+    'stairWidth',
+    'landing',
+    'stairNav',
+    'stairZone',
+    'room',
+  ];
+
+  const updateDebugCoordinatesLabels = () => {
+    if (!debugCoordinatesHeading) {
+      return;
+    }
+    debugCoordinatesHeading.textContent = debugCoordinatesStrings.overlayLabel;
+    for (const rowId of debugCoordinatesRowOrder) {
+      const row = debugCoordinatesRows.get(rowId);
+      if (row) {
+        row.term.textContent = debugCoordinatesStrings.labels[rowId];
+      }
+    }
+  };
+
+  const createDebugCoordinatesOverlayContent = () => {
+    if (!debugCoordinatesOverlay || debugCoordinatesHeading) {
+      return;
+    }
+    debugCoordinatesHeading = document.createElement('div');
+    debugCoordinatesHeading.className = 'debug-coordinates__heading';
+
+    const list = document.createElement('dl');
+    list.className = 'debug-coordinates__list';
+
+    for (const rowId of debugCoordinatesRowOrder) {
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      debugCoordinatesRows.set(rowId, { term, detail });
+      list.append(term, detail);
+    }
+
+    debugCoordinatesOverlay.append(debugCoordinatesHeading, list);
+    updateDebugCoordinatesLabels();
+  };
+
+  const syncDebugCoordinatesOverlayVisibility = () => {
+    if (!debugCoordinatesOverlay) {
+      return;
+    }
+    debugCoordinatesOverlay.hidden = !debugCoordinatesEnabled;
+    debugCoordinatesOverlay.setAttribute(
+      'aria-hidden',
+      debugCoordinatesEnabled ? 'false' : 'true'
+    );
+  };
+
+  const setDebugCoordinatesRowValue = (
+    rowId: DebugCoordinatesRowId,
+    value: string
+  ) => {
+    const detail = debugCoordinatesRows.get(rowId)?.detail;
+    if (detail) {
+      detail.textContent = value;
+    }
+  };
+
+  const updateDebugCoordinatesOverlay = () => {
+    if (!debugCoordinatesOverlay || !debugCoordinatesEnabled) {
+      return;
+    }
+    createDebugCoordinatesOverlayContent();
+
+    const state = getDebugCoordinatesState();
+    setDebugCoordinatesRowValue(
+      'position',
+      `${state.x.toFixed(2)}, ${state.y.toFixed(2)}, ${state.z.toFixed(2)}`
+    );
+    setDebugCoordinatesRowValue('activeFloor', state.activeFloorId);
+    setDebugCoordinatesRowValue('predictedFloor', state.predictedStairFloorId);
+    setDebugCoordinatesRowValue('cameraZoom', state.cameraZoom.toFixed(2));
+    setDebugCoordinatesRowValue(
+      'stairWidth',
+      formatDebugBoolean(state.insideStairWidth)
+    );
+    setDebugCoordinatesRowValue(
+      'landing',
+      formatDebugBoolean(state.insideLanding)
+    );
+    setDebugCoordinatesRowValue(
+      'stairNav',
+      formatDebugBoolean(state.insideStairNavArea)
+    );
+    setDebugCoordinatesRowValue('stairZone', state.stairZone);
+    setDebugCoordinatesRowValue(
+      'room',
+      state.currentRoomId ?? debugCoordinatesStrings.values.none
+    );
+  };
+
+  const refreshDebugCoordinatesControl = () => {
+    if (!debugCoordinatesControl) {
+      return;
+    }
+    const label = debugCoordinatesEnabled
+      ? debugCoordinatesStrings.labelEnabled
+      : debugCoordinatesStrings.labelDisabled;
+    const description = debugCoordinatesEnabled
+      ? debugCoordinatesStrings.descriptionEnabled
+      : debugCoordinatesStrings.descriptionDisabled;
+    debugCoordinatesControl.textContent = label;
+    debugCoordinatesControl.dataset.state = debugCoordinatesEnabled
+      ? 'enabled'
+      : 'disabled';
+    debugCoordinatesControl.setAttribute(
+      'aria-pressed',
+      debugCoordinatesEnabled ? 'true' : 'false'
+    );
+    debugCoordinatesControl.setAttribute('aria-label', description);
+    debugCoordinatesControl.title = description;
+    debugCoordinatesControl.dataset.hudAnnounce = `${label}. ${description}`;
+  };
+
+  const setDebugCoordinatesEnabled = (
+    enabled: boolean,
+    options: { persist?: boolean } = { persist: true }
+  ) => {
+    debugCoordinatesEnabled = enabled;
+    syncDebugCoordinatesOverlayVisibility();
+    refreshDebugCoordinatesControl();
+    if (enabled) {
+      updateDebugCoordinatesOverlay();
+    }
+    if (options.persist !== false && debugCoordinatesStorage) {
+      try {
+        debugCoordinatesStorage.setItem(
+          DEBUG_COORDINATES_STORAGE_KEY,
+          enabled ? '1' : '0'
+        );
+      } catch (error) {
+        console.warn('Failed to persist debug coordinates preference.', error);
+      }
+    }
+  };
+
+  const refreshDebugCoordinatesStrings = () => {
+    refreshDebugCoordinatesControl();
+    updateDebugCoordinatesLabels();
+    updateDebugCoordinatesOverlay();
+  };
+
+  debugCoordinatesOverlay = document.createElement('aside');
+  debugCoordinatesOverlay.className = 'debug-coordinates';
+  syncDebugCoordinatesOverlayVisibility();
+  document.body.appendChild(debugCoordinatesOverlay);
+  createDebugCoordinatesOverlayContent();
+
+  debugCoordinatesControl = document.createElement('button');
+  debugCoordinatesControl.type = 'button';
+  debugCoordinatesControl.className = 'tour-toggle debug-coordinates-toggle';
+  debugCoordinatesControl.addEventListener('click', () => {
+    setDebugCoordinatesEnabled(!debugCoordinatesEnabled);
+  });
+  hudSettingsStack.appendChild(debugCoordinatesControl);
+  registerHudControlElement(debugCoordinatesControl);
+  refreshDebugCoordinatesControl();
+  updateDebugCoordinatesOverlay();
+  debugCoordinatesInterval = window.setInterval(
+    updateDebugCoordinatesOverlay,
+    250
+  );
+
+  window.portfolio.debugCoordinates = {
+    getState: getDebugCoordinatesState,
+    setEnabled: (enabled: boolean) => {
+      setDebugCoordinatesEnabled(enabled);
+    },
+  };
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -5151,12 +5448,29 @@ function initializeImmersiveScene(
     if (window.portfolio?.narration) {
       delete window.portfolio.narration;
     }
+    if (window.portfolio?.debugCoordinates) {
+      delete window.portfolio.debugCoordinates;
+    }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
     }
     if (localeToggleControl) {
       localeToggleControl.dispose();
       localeToggleControl = null;
+    }
+    if (debugCoordinatesInterval !== null) {
+      window.clearInterval(debugCoordinatesInterval);
+      debugCoordinatesInterval = null;
+    }
+    if (debugCoordinatesControl) {
+      debugCoordinatesControl.remove();
+      debugCoordinatesControl = null;
+    }
+    if (debugCoordinatesOverlay) {
+      debugCoordinatesOverlay.remove();
+      debugCoordinatesOverlay = null;
+      debugCoordinatesHeading = null;
+      debugCoordinatesRows.clear();
     }
     movementLegend?.dispose();
     narrationPreference.dispose();

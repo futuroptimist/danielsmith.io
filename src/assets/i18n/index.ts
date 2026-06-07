@@ -26,6 +26,7 @@ import type {
   ModeToggleResolvedStrings,
   MovementLegendStrings,
   NarrationToggleStrings,
+  DebugCoordinatesStrings,
   PoiCopy,
   PoiNarrativeLogStrings,
   PoiOverlayChromeStrings,
@@ -466,6 +467,12 @@ export function getNarrationToggleStrings(
   input?: LocaleInput
 ): NarrationToggleStrings {
   return cloneValue(getLocaleStrings(input).hud.narrationToggle);
+}
+
+export function getDebugCoordinatesStrings(
+  input?: LocaleInput
+): DebugCoordinatesStrings {
+  return cloneValue(getLocaleStrings(input).hud.debugCoordinates);
 }
 
 export function getTourResetControlStrings(

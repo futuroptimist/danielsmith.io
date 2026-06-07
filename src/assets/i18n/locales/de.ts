@@ -49,6 +49,25 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       'Erzähl-Pop-ups und Untertitel erscheinen bei künftigen Exponatmomenten.',
     narrationToggleDescriptionDisabled:
       'Erzähl-Pop-ups und Untertitel bleiben verborgen, bis du sie einschaltest.',
+    debugCoordinatesLabelEnabled: 'Debug-Koordinaten ein',
+    debugCoordinatesLabelDisabled: 'Debug-Koordinaten aus',
+    debugCoordinatesDescriptionEnabled:
+      'Zeigt das Overlay für XYZ, Etage, Kamera und Treppe.',
+    debugCoordinatesDescriptionDisabled:
+      'Debug-Koordinaten bleiben verborgen, bis du sie einschaltest.',
+    debugCoordinatesOverlayLabel: 'Debug-Koordinaten',
+    debugCoordinatesPosition: 'XYZ',
+    debugCoordinatesActiveFloor: 'Aktive Etage',
+    debugCoordinatesPredictedFloor: 'Vorhergesagte Treppenetage',
+    debugCoordinatesCameraZoom: 'Kamera-Zoom',
+    debugCoordinatesStairWidth: 'Treppenbreite',
+    debugCoordinatesLanding: 'Podest',
+    debugCoordinatesStairNav: 'Treppen-Navigationsbereich',
+    debugCoordinatesStairZone: 'Treppenzone',
+    debugCoordinatesRoom: 'Raum',
+    debugCoordinatesYes: 'Ja',
+    debugCoordinatesNo: 'Nein',
+    debugCoordinatesNone: 'Keine',
   },
   poi: {
     futuroptimist: {

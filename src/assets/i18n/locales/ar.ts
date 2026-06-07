@@ -276,6 +276,29 @@ export const AR_OVERRIDES: LocaleOverrides = {
       descriptionDisabled:
         'تبقى نوافذ السرد والتسميات التوضيحية مخفية حتى تفعّلها.',
     },
+    debugCoordinates: {
+      labelEnabled: 'إحداثيات التصحيح مفعّلة',
+      labelDisabled: 'إحداثيات التصحيح معطّلة',
+      descriptionEnabled: 'يعرض طبقة XYZ والطابق والكاميرا والسلالم للتصحيح.',
+      descriptionDisabled: 'تبقى إحداثيات التصحيح مخفية حتى تفعّلها.',
+      overlayLabel: 'إحداثيات التصحيح',
+      labels: {
+        position: 'XYZ',
+        activeFloor: 'الطابق النشط',
+        predictedFloor: 'طابق السلم المتوقع',
+        cameraZoom: 'تكبير الكاميرا',
+        stairWidth: 'عرض السلم',
+        landing: 'بسطة السلم',
+        stairNav: 'منطقة تنقل السلم',
+        stairZone: 'نطاق السلم',
+        room: 'الغرفة',
+      },
+      values: {
+        yes: 'نعم',
+        no: 'لا',
+        none: 'لا شيء',
+      },
+    },
     poiOverlay: {
       visited: 'تمت الزيارة',
       nextHighlight: 'المحطة التالية',
