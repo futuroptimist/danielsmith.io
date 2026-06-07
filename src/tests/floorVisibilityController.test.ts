@@ -133,6 +133,33 @@ describe('floor visibility controller', () => {
     expect(groundPoi.displayHighlight?.material.opacity).toBe(0);
   });
 
+  it('keeps hidden ground POI chrome suppressed when animations re-apply visuals upstairs', () => {
+    const groundPoi = createPoiInstance('studio');
+    const controller = createFloorVisibilityController({
+      initialFloorId: 'upper',
+      poiInstances: [groundPoi],
+      getPoiFloorId: createPoiFloorResolver(FLOOR_PLAN_LEVELS),
+    });
+
+    groundPoi.label!.visible = true;
+    groundPoi.labelMaterial!.opacity = 0.9;
+    groundPoi.visitedHighlight!.mesh.visible = true;
+    groundPoi.visitedHighlight!.material.opacity = 0.7;
+    groundPoi.visitedBadge!.mesh.visible = true;
+    groundPoi.displayHighlight!.mesh.visible = true;
+    groundPoi.displayHighlight!.material.opacity = 0.6;
+
+    expect(controller.applyPoiVisualState(groundPoi)).toBe(false);
+    expect(groundPoi.group.visible).toBe(false);
+    expect(groundPoi.label?.visible).toBe(false);
+    expect(groundPoi.labelMaterial?.opacity).toBe(0);
+    expect(groundPoi.visitedHighlight?.mesh.visible).toBe(false);
+    expect(groundPoi.visitedHighlight?.material.opacity).toBe(0);
+    expect(groundPoi.visitedBadge?.mesh.visible).toBe(false);
+    expect(groundPoi.displayHighlight?.mesh.visible).toBe(false);
+    expect(groundPoi.displayHighlight?.material.opacity).toBe(0);
+  });
+
   it('keeps upper POIs visible when the upper floor is active', () => {
     const upperPoi = createPoiInstance('loftLibrary');
     const controller = createFloorVisibilityController({
