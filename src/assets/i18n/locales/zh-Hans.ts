@@ -288,6 +288,12 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         none: '无',
       },
     },
+    debugColliders: {
+      labelEnabled: '碰撞墙已开启',
+      labelDisabled: '碰撞墙已关闭',
+      descriptionEnabled: '显示当前楼层的不可见碰撞墙。',
+      descriptionDisabled: '不可见碰撞墙会保持隐藏，直到你开启。',
+    },
     tourReset: {
       heading: '导览',
       resetKey: 'g',

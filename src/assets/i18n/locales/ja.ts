@@ -301,6 +301,12 @@ export const JA_OVERRIDES: LocaleOverrides = {
         none: 'なし',
       },
     },
+    debugColliders: {
+      labelEnabled: 'コライダー壁オン',
+      labelDisabled: 'コライダー壁オフ',
+      descriptionEnabled: '現在の階の見えない衝突壁を表示します。',
+      descriptionDisabled: '見えない衝突壁はオンにするまで非表示です。',
+    },
     poiOverlay: {
       visited: '訪問済み',
       nextHighlight: '次のハイライト',

@@ -6,6 +6,7 @@ import {
   getAudioSubtitleStrings,
   getControlOverlayStrings,
   getDebugCoordinatesStrings,
+  getDebugCollidersStrings,
   getHelpModalStrings,
   getLocaleDirection,
   getLocaleToggleStrings,
@@ -803,6 +804,36 @@ describe('i18n utilities', () => {
     );
     expect(getDebugCoordinatesStrings('en-x-pseudo').labelDisabled).toBe(
       '⟦Debug coordinates off⟧'
+    );
+  });
+
+  it('localizes debug collider controls across locales', () => {
+    expect(getDebugCollidersStrings('en').labelDisabled).toBe(
+      'Collider walls off'
+    );
+    expect(getDebugCollidersStrings('es').labelEnabled).toBe(
+      'Muros de colisión activados'
+    );
+    expect(getDebugCollidersStrings('pt').descriptionEnabled).toBe(
+      'Mostra as paredes de colisão invisíveis do piso ativo.'
+    );
+    expect(getDebugCollidersStrings('de').labelDisabled).toBe(
+      'Kollisionswände aus'
+    );
+    expect(getDebugCollidersStrings('hu').labelEnabled).toBe(
+      'Ütközési falak be'
+    );
+    expect(getDebugCollidersStrings('zh-Hans').labelDisabled).toBe(
+      '碰撞墙已关闭'
+    );
+    expect(getDebugCollidersStrings('ja').descriptionDisabled).toBe(
+      '見えない衝突壁はオンにするまで非表示です。'
+    );
+    expect(getDebugCollidersStrings('ar').labelEnabled).toBe(
+      'جدران التصادم مفعّلة'
+    );
+    expect(getDebugCollidersStrings('en-x-pseudo').labelEnabled).toBe(
+      '⟦Collider walls on⟧'
     );
   });
 

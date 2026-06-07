@@ -233,6 +233,13 @@ export interface DebugCoordinatesStrings {
   };
 }
 
+export interface DebugCollidersStrings {
+  labelEnabled: string;
+  labelDisabled: string;
+  descriptionEnabled: string;
+  descriptionDisabled: string;
+}
+
 export interface TourResetControlStrings {
   heading: string;
   resetKey: string;
@@ -423,6 +430,7 @@ export interface LocaleStrings {
     tourGuideToggle: TourGuideToggleStrings;
     narrationToggle: NarrationToggleStrings;
     debugCoordinates: DebugCoordinatesStrings;
+    debugColliders: DebugCollidersStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     helpModal: HelpModalStrings;

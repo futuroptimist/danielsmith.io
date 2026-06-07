@@ -356,6 +356,16 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         none: wrap('None'),
       },
     },
+    debugColliders: {
+      labelEnabled: wrap('Collider walls on'),
+      labelDisabled: wrap('Collider walls off'),
+      descriptionEnabled: wrap(
+        'Shows invisible collision walls for the active floor.'
+      ),
+      descriptionDisabled: wrap(
+        'Invisible collision walls stay hidden until you turn them on.'
+      ),
+    },
     tourReset: {
       heading: wrap('Guided tour'),
       resetKey: 'g',

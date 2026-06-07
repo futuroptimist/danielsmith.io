@@ -68,6 +68,12 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesYes: 'Igen',
     debugCoordinatesNo: 'Nem',
     debugCoordinatesNone: 'Nincs',
+    debugCollidersLabelEnabled: 'Ütközési falak be',
+    debugCollidersLabelDisabled: 'Ütközési falak ki',
+    debugCollidersDescriptionEnabled:
+      'Megjeleníti az aktív emelet láthatatlan ütközési falait.',
+    debugCollidersDescriptionDisabled:
+      'A láthatatlan ütközési falak rejtve maradnak, amíg be nem kapcsolod.',
   },
   poi: {
     futuroptimist: {

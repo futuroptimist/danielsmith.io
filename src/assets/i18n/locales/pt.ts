@@ -68,6 +68,12 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesYes: 'Sim',
     debugCoordinatesNo: 'Não',
     debugCoordinatesNone: 'Nenhuma',
+    debugCollidersLabelEnabled: 'Paredes de colisão ativadas',
+    debugCollidersLabelDisabled: 'Paredes de colisão desativadas',
+    debugCollidersDescriptionEnabled:
+      'Mostra as paredes de colisão invisíveis do piso ativo.',
+    debugCollidersDescriptionDisabled:
+      'As paredes de colisão invisíveis ficam ocultas até você ativá-las.',
   },
   poi: {
     futuroptimist: {

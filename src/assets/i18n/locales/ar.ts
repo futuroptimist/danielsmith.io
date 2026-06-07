@@ -299,6 +299,12 @@ export const AR_OVERRIDES: LocaleOverrides = {
         none: 'لا شيء',
       },
     },
+    debugColliders: {
+      labelEnabled: 'جدران التصادم مفعّلة',
+      labelDisabled: 'جدران التصادم معطّلة',
+      descriptionEnabled: 'يعرض جدران التصادم المخفية للطابق النشط.',
+      descriptionDisabled: 'تبقى جدران التصادم المخفية غير ظاهرة حتى تفعّلها.',
+    },
     poiOverlay: {
       visited: 'تمت الزيارة',
       nextHighlight: 'المحطة التالية',
