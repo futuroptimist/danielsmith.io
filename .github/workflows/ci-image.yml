@@ -88,7 +88,8 @@ jobs:
           done
           test "${ready}" = 1
 
-          curl -fsS http://127.0.0.1:8080/studio | grep -qi '<html'
+          studio_html="$(curl -fsS http://127.0.0.1:8080/studio)"
+          grep -qi '<html' <<< "${studio_html}"
 
           asset_path="$(docker exec "${container_name}" sh -lc \
             "sed -n 's/.*\\(\\/assets\\/[^\" ]*\\).*/\\1/p' /usr/share/nginx/html/index.html \

@@ -10,6 +10,24 @@ export interface StairLayoutConfig {
   stairwellMargin: number;
 }
 
+export interface StairwellBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+export interface StairwellOpeningConfig {
+  centerX: number;
+  halfWidth: number;
+  marginX: number;
+  roomBounds: StairwellBounds;
+  layout: Pick<
+    StairLayoutResult,
+    'directionMultiplier' | 'landingMinZ' | 'landingMaxZ' | 'stairHoleRange'
+  >;
+}
+
 export interface StairLayoutResult {
   topZ: number;
   landingMinZ: number;
@@ -66,5 +84,37 @@ export const computeStairLayout = (
     directionMultiplier,
     guardRange: { minZ: guardRangeMin, maxZ: guardRangeMax },
     stairHoleRange: { minZ: stairHoleMinZ, maxZ: stairHoleMaxZ },
+  };
+};
+
+/**
+ * Clips the visible upstairs stairwell hole to the landing room while deriving
+ * the stair landing void from `computeStairLayout`. Movement and visuals
+ * therefore use the same threshold metrics without cutting away the normal
+ * upper-floor doorway bridge beyond the stair top.
+ */
+export const computeStairwellOpeningBounds = (
+  config: StairwellOpeningConfig
+): StairwellBounds => {
+  const openingMinZ =
+    config.layout.directionMultiplier === -1
+      ? config.layout.stairHoleRange.minZ
+      : config.layout.landingMinZ;
+  const openingMaxZ =
+    config.layout.directionMultiplier === -1
+      ? config.layout.landingMaxZ
+      : config.layout.stairHoleRange.maxZ;
+
+  return {
+    minX: Math.max(
+      config.roomBounds.minX,
+      config.centerX - config.halfWidth - config.marginX
+    ),
+    maxX: Math.min(
+      config.roomBounds.maxX,
+      config.centerX + config.halfWidth + config.marginX
+    ),
+    minZ: Math.max(config.roomBounds.minZ, openingMinZ),
+    maxZ: Math.min(config.roomBounds.maxZ, openingMaxZ),
   };
 };

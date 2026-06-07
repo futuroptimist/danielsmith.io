@@ -189,8 +189,14 @@ const isInExplicitDescentCorridor = (
     behavior.transitionMargin * 0.5
   );
 
+  // Keep the upper doorway bridge beyond the stair-top handoff from
+  // masquerading as an intentional stair descent.
+  const explicitDescentMaxDistance =
+    behavior.transitionMargin + behavior.landingTriggerMargin;
+
   return (
     descentDistance > behavior.landingTriggerMargin &&
+    descentDistance <= explicitDescentMaxDistance &&
     insideRampZ &&
     isWithinDescentCorridorWidth(geometry, behavior, x)
   );

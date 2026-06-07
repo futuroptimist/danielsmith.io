@@ -2,6 +2,10 @@ import { BoxGeometry, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE, UPPER_FLOOR_PLAN } from '../../../assets/floorPlan';
+import {
+  computeStairLayout,
+  computeStairwellOpeningBounds,
+} from '../../../systems/movement/stairLayout';
 import { createRoomFloorTiles } from '../floorTiles';
 
 const toWorldUnits = (value: number): number => value * FLOOR_PLAN_SCALE;
@@ -15,8 +19,29 @@ const overlaps = (
   bounds.minZ < cutout.maxZ &&
   bounds.maxZ > cutout.minZ;
 
+const contains = (
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number },
+  target: { minX: number; maxX: number; minZ: number; maxZ: number }
+): boolean =>
+  bounds.minX <= target.minX &&
+  bounds.maxX >= target.maxX &&
+  bounds.minZ <= target.minZ &&
+  bounds.maxZ >= target.maxZ;
+
+const valuesAreClose = (actual: number, expected: number): boolean =>
+  Math.abs(actual - expected) < 1e-6;
+
+const boundsAreClose = (
+  actual: { minX: number; maxX: number; minZ: number; maxZ: number },
+  expected: { minX: number; maxX: number; minZ: number; maxZ: number }
+): boolean =>
+  valuesAreClose(actual.minX, expected.minX) &&
+  valuesAreClose(actual.maxX, expected.maxX) &&
+  valuesAreClose(actual.minZ, expected.minZ) &&
+  valuesAreClose(actual.maxZ, expected.maxZ);
+
 describe('createRoomFloorTiles', () => {
-  it('builds opaque upper-floor slabs with a targeted stairwell cutout', () => {
+  it('builds opaque upper-floor slabs with a layout-driven stairwell opening', () => {
     const material = new MeshStandardMaterial({
       transparent: false,
       opacity: 1,
@@ -30,48 +55,30 @@ describe('createRoomFloorTiles', () => {
     const stairCenterX = toWorldUnits(6.2);
     const stairHalfWidth = toWorldUnits(3.1) / 2;
     const stairwellMarginX = toWorldUnits(0.2);
-    const descentCorridorInset = 0.75;
-    const stairTopZ = toWorldUnits(-5.3) - toWorldUnits(0.85) * 9;
-    const landingClearance = toWorldUnits(0.05);
-    const landingTriggerMargin = toWorldUnits(0.2);
-    const upperLandingSolidStartZ = stairTopZ + landingClearance;
-    const broadStairwellBounds = {
-      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-      minZ: upperLandingRoom!.bounds.minZ,
-      maxZ: upperLandingRoom!.bounds.maxZ,
-    };
-    const descentCorridorHalfWidth = Math.max(
-      stairHalfWidth - descentCorridorInset,
-      stairHalfWidth * 0.55
-    );
-    const stairwellCutout = {
-      minX: stairCenterX - descentCorridorHalfWidth,
-      maxX: stairCenterX + descentCorridorHalfWidth,
-      minZ: upperLandingRoom!.bounds.minZ,
-      maxZ: stairTopZ + landingTriggerMargin + landingClearance,
-    };
-    const shoulderStubCutouts = [
-      {
-        minX: upperLandingRoom!.bounds.minX,
-        maxX: stairwellCutout.minX,
-        minZ: upperLandingSolidStartZ,
-        maxZ: upperLandingRoom!.bounds.maxZ,
-      },
-      {
-        minX: stairwellCutout.maxX,
-        maxX: upperLandingRoom!.bounds.maxX,
-        minZ: upperLandingSolidStartZ,
-        maxZ: upperLandingRoom!.bounds.maxZ,
-      },
-    ];
+    const stairLayout = computeStairLayout({
+      baseZ: toWorldUnits(-5.3),
+      stepRun: toWorldUnits(0.85),
+      stepCount: 9,
+      landingDepth: toWorldUnits(2.6),
+      direction: 'negativeZ',
+      guardMargin: toWorldUnits(0.6),
+      stairwellMargin: toWorldUnits(0.4),
+    });
+    const stairwellOpening = computeStairwellOpeningBounds({
+      centerX: stairCenterX,
+      halfWidth: stairHalfWidth,
+      marginX: stairwellMarginX,
+      roomBounds: upperLandingRoom!.bounds,
+      layout: stairLayout,
+    });
+
     const build = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
       material,
       elevation: 4,
       thickness: 0.45,
       groupName: 'UpperFloorTiles',
       cutoutsByRoom: {
-        upperLanding: [stairwellCutout, ...shoulderStubCutouts],
+        upperLanding: [stairwellOpening],
       },
     });
 
@@ -81,28 +88,49 @@ describe('createRoomFloorTiles', () => {
 
     expect(build.group.name).toBe('UpperFloorTiles');
     expect(upperLandingTiles.length).toBeGreaterThan(0);
-    const fillsLeftStairwellShoulder = upperLandingTiles.some(
-      (tile) =>
-        tile.bounds.minX < broadStairwellBounds.minX &&
-        tile.bounds.maxX > broadStairwellBounds.minX &&
-        tile.bounds.maxX <= stairwellCutout.minX
+
+    const fillsLeftLandingShoulder = upperLandingTiles.some((tile) =>
+      boundsAreClose(tile.bounds, {
+        minX: upperLandingRoom!.bounds.minX,
+        maxX: stairwellOpening.minX,
+        minZ: upperLandingRoom!.bounds.minZ,
+        maxZ: upperLandingRoom!.bounds.maxZ,
+      })
     );
-    const fillsRightStairwellShoulder = upperLandingTiles.some(
-      (tile) =>
-        tile.bounds.minX >= stairwellCutout.maxX &&
-        tile.bounds.minX < broadStairwellBounds.maxX &&
-        tile.bounds.maxX > broadStairwellBounds.maxX
+    const fillsRightLandingShoulder = upperLandingTiles.some((tile) =>
+      boundsAreClose(tile.bounds, {
+        minX: stairwellOpening.maxX,
+        maxX: upperLandingRoom!.bounds.maxX,
+        minZ: upperLandingRoom!.bounds.minZ,
+        maxZ: upperLandingRoom!.bounds.maxZ,
+      })
     );
-    const fillsCentralLandingPastDescent = upperLandingTiles.some(
-      (tile) =>
-        tile.bounds.minX >= stairwellCutout.minX &&
-        tile.bounds.maxX <= stairwellCutout.maxX &&
-        tile.bounds.minZ >= stairwellCutout.maxZ &&
-        tile.bounds.maxZ === upperLandingRoom!.bounds.maxZ
-    );
-    expect(fillsLeftStairwellShoulder).toBe(true);
-    expect(fillsRightStairwellShoulder).toBe(true);
-    expect(fillsCentralLandingPastDescent).toBe(true);
+    expect(fillsLeftLandingShoulder).toBe(true);
+    expect(fillsRightLandingShoulder).toBe(true);
+
+    const visibleStairwellVoid = {
+      minX: stairwellOpening.minX,
+      maxX: stairwellOpening.maxX,
+      minZ: stairwellOpening.minZ,
+      maxZ: stairLayout.landingMaxZ,
+    };
+    expect(
+      upperLandingTiles.some((tile) =>
+        overlaps(tile.bounds, visibleStairwellVoid)
+      )
+    ).toBe(false);
+
+    const doorwayBridgePastStairTop = {
+      minX: stairwellOpening.minX,
+      maxX: stairwellOpening.maxX,
+      minZ: stairLayout.landingMaxZ,
+      maxZ: upperLandingRoom!.bounds.maxZ,
+    };
+    expect(
+      upperLandingTiles.some((tile) =>
+        boundsAreClose(tile.bounds, doorwayBridgePastStairTop)
+      )
+    ).toBe(true);
 
     for (const tile of build.tiles) {
       const geometry = tile.mesh.geometry as BoxGeometry;
@@ -112,10 +140,8 @@ describe('createRoomFloorTiles', () => {
     }
 
     for (const tile of upperLandingTiles) {
-      expect(overlaps(tile.bounds, stairwellCutout)).toBe(false);
-      for (const shoulderStubCutout of shoulderStubCutouts) {
-        expect(overlaps(tile.bounds, shoulderStubCutout)).toBe(false);
-      }
+      expect(overlaps(tile.bounds, stairwellOpening)).toBe(false);
+      expect(contains(tile.bounds, stairwellOpening)).toBe(false);
     }
 
     expect(material.transparent).toBe(false);
