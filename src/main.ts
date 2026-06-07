@@ -1816,6 +1816,7 @@ function initializeImmersiveScene(
     const upperStairwellLanding = createUpperStairwellLanding({
       roomBounds: upperLandingRoom.bounds,
       openingBounds: upperStairwellOpening,
+      descentCorridorBounds: stairNavigationZones.explicitDescentCorridor,
       elevation: upperFloorElevation,
       guard: {
         height: 0.56,

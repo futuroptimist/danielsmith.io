@@ -53,6 +53,46 @@ describe('createUpperStairwellLanding', () => {
     ).toBe(false);
   });
 
+  it('fills floorless shoulder strips while leaving the descent corridor open', () => {
+    const openingBounds = { minX: -2, maxX: 2, minZ: -8, maxZ: 6 };
+    const descentCorridorBounds = {
+      minX: -1.2,
+      maxX: 1.1,
+      minZ: -7.6,
+      maxZ: 6,
+    };
+    const result = createUpperStairwellLanding({
+      roomBounds: { minX: -6, maxX: 6, minZ: -10, maxZ: 8 },
+      openingBounds,
+      descentCorridorBounds,
+      elevation: 4,
+      guard: {
+        height: 0.56,
+        thickness: 0.2,
+        material: { color: 0xff0000 },
+      },
+    });
+
+    expect(result.colliders).toHaveLength(5);
+    expect(result.colliders).toContainEqual({
+      minX: -2,
+      maxX: -1.2,
+      minZ: -8,
+      maxZ: 6,
+    });
+    expect(result.colliders).toContainEqual({
+      minX: 1.1,
+      maxX: 2,
+      minZ: -8,
+      maxZ: 6,
+    });
+
+    const descentPath = { minX: -1.2, maxX: 1.1, minZ: -7.5, maxZ: 6 };
+    expect(
+      result.colliders.some((collider) => overlaps(collider, descentPath))
+    ).toBe(false);
+  });
+
   it('clamps guard colliders to the landing room when the opening touches an edge', () => {
     const result = createUpperStairwellLanding({
       roomBounds: { minX: -2, maxX: 4, minZ: -6, maxZ: 6 },

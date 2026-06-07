@@ -18,6 +18,8 @@ export interface UpperStairwellLandingConfig {
   roomBounds: Bounds2D;
   /** World-space stairwell opening derived from the shared stair layout. */
   openingBounds: Bounds2D;
+  /** Optional deliberate descent corridor that remains open through the cutout. */
+  descentCorridorBounds?: Bounds2D;
   /** Height of the upper-floor surface measured from world origin. */
   elevation: number;
   /** Guard rail configuration. */
@@ -32,6 +34,7 @@ export interface UpperStairwellLandingBuild {
 const GROUP_NAME = 'UpperStairwellLanding';
 const SIDE_GUARD_NAME = 'UpperStairwellLandingSideGuard';
 const FAR_GUARD_NAME = 'UpperStairwellLandingFarGuard';
+const SHOULDER_GUARD_NAME = 'UpperStairwellLandingShoulderGuard';
 
 const hasPositiveArea = (bounds: Bounds2D): boolean =>
   bounds.maxX > bounds.minX && bounds.maxZ > bounds.minZ;
@@ -149,6 +152,44 @@ export function createUpperStairwellLanding(
     elevation: config.elevation,
     height: config.guard.height,
   });
+
+  if (config.descentCorridorBounds) {
+    const descentCorridorBounds = clampBoundsToRoom(
+      config.descentCorridorBounds,
+      openingBounds
+    );
+
+    addGuard({
+      group,
+      colliders,
+      material: guardMaterial,
+      name: `${SHOULDER_GUARD_NAME}-West`,
+      bounds: {
+        minX: openingBounds.minX,
+        maxX: descentCorridorBounds.minX,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.maxZ,
+      },
+      roomBounds: config.roomBounds,
+      elevation: config.elevation,
+      height: config.guard.height,
+    });
+    addGuard({
+      group,
+      colliders,
+      material: guardMaterial,
+      name: `${SHOULDER_GUARD_NAME}-East`,
+      bounds: {
+        minX: descentCorridorBounds.maxX,
+        maxX: openingBounds.maxX,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.maxZ,
+      },
+      roomBounds: config.roomBounds,
+      elevation: config.elevation,
+      height: config.guard.height,
+    });
+  }
 
   return { group, colliders };
 }
