@@ -56,9 +56,9 @@ export interface GroundStairBoundaryColliderOptions {
    */
   eastBoundaryMaxX?: number;
   /**
-   * Optional east-most X coordinate for the full-run east seal. Keep this
-   * localized to the bypass lane; using a room edge would overblock the
-   * living-room floor beside the stairs.
+   * Optional east-most X coordinate for the full-run east seal. Pass the
+   * reachable room edge when no nearer physical obstacle can terminate the
+   * barrier; otherwise a finite edge remains routeable around the stair run.
    */
   eastRunSealMaxX?: number;
 }
@@ -238,10 +238,8 @@ export const createGroundStairBoundaryColliders = (
   );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // The run seal needs to cover the player's collision radius around the
-  // outer edge as well as the visible guard width. Add a small fraction of the
-  // player radius so samples just beyond the previous finite edge still touch
-  // the seal, while keeping the seal below the regular living-room lane.
+  // The run seal must terminate at an actual obstacle or room edge. Padding
+  // only moves the finite edge and leaves another reachable bypass sample.
   const eastRunSealEdgePadding = options.playerRadius * 0.12;
   const fallbackEastRunSealMaxX =
     eastBoundaryMaxX +
