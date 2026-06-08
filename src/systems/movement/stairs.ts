@@ -56,11 +56,10 @@ export interface GroundStairBoundaryColliderOptions {
    */
   eastBoundaryMaxX?: number;
   /**
-   * Optional east-most X coordinate for the full-run east seal. Pass the
-   * reachable room edge when no nearer physical obstacle can terminate the
-   * barrier; otherwise a finite edge remains routeable around the stair run.
+   * Optional X coordinate for a thin run seal that prevents players from
+   * crossing around the stair-side blocker without filling the living room.
    */
-  eastRunSealMaxX?: number;
+  eastRunSealX?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -238,26 +237,32 @@ export const createGroundStairBoundaryColliders = (
   );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // The run seal must terminate at an actual obstacle or room edge. Padding
-  // only moves the finite edge and leaves another reachable bypass sample.
-  const eastRunSealEdgePadding = options.playerRadius * 0.12;
-  const fallbackEastRunSealMaxX =
+  // Keep the run seal as a thin local edge instead of a filled strip. A wide
+  // seal to the room edge closes bypasses but also turns normal living-room
+  // positions into an invisible wall.
+  const eastRunSealClearanceEpsilon = 0.001;
+  const fallbackEastRunSealX =
     eastBoundaryMaxX +
     options.playerRadius +
     options.guardThickness * 0.5 +
-    eastRunSealEdgePadding;
-  const eastRunSealMaxX = Math.max(
-    fallbackEastRunSealMaxX,
-    options.eastRunSealMaxX ?? fallbackEastRunSealMaxX
+    options.playerRadius * (2 / 15) -
+    eastRunSealClearanceEpsilon;
+  const eastRunSealX = Math.max(
+    fallbackEastRunSealX,
+    options.eastRunSealX ?? fallbackEastRunSealX
+  );
+  const eastRunSealVisualThickness = Math.min(
+    options.guardThickness * 0.05,
+    0.02
   );
   const eastRunSealColliders: NamedStairBoundaryCollider[] =
-    eastRunSealMaxX > eastBoundaryMaxX
+    eastRunSealX > eastBoundaryMaxX
       ? [
           {
             name: 'GroundStairEastRunSeal',
             bounds: {
-              minX: eastBoundaryMinX,
-              maxX: eastRunSealMaxX,
+              minX: eastRunSealX - eastRunSealVisualThickness,
+              maxX: eastRunSealX,
               minZ: rampMinZ,
               maxZ: rampMaxZ,
             },

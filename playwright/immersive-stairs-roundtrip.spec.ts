@@ -243,6 +243,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     { x: 23, z: -14.66, floorId: 'ground' as const },
     { x: 23, z: -18, floorId: 'ground' as const },
     { x: 23.91, z: -18, floorId: 'ground' as const },
+    { x: 23.99, z: -18, floorId: 'ground' as const },
   ];
   const lowerEntrance = {
     x: stairCenterX,
@@ -259,7 +260,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
 
   expect(
     await canOccupyPosition(page, { x: 24, z: -18, floorId: 'ground' })
-  ).toBe(false);
+  ).toBe(true);
   expect(
     await canOccupyPosition(page, { x: 24, z: -30, floorId: 'ground' })
   ).toBe(true);
