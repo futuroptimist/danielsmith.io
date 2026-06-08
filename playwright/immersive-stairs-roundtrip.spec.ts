@@ -222,6 +222,51 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
   });
 });
 
+test('ground stair east-side squeeze samples are blocked', async ({ page }) => {
+  await waitForImmersiveReady(page);
+
+  const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
+  const reportedLowerCornerSqueeze = {
+    x: 17.38,
+    z: -8.84,
+    floorId: 'ground' as const,
+  };
+  const reportedEastBoundarySqueeze = {
+    x: 21.35,
+    z: -14.66,
+    floorId: 'ground' as const,
+  };
+  const lowerStairEntrance = {
+    x: stairCenterX,
+    z: stairBottomZ + 0.3,
+    floorId: 'ground' as const,
+  };
+
+  expect(await canOccupyPosition(page, reportedLowerCornerSqueeze)).toBe(false);
+  expect(await canOccupyPosition(page, reportedEastBoundarySqueeze)).toBe(
+    false
+  );
+  expect(await canOccupyPosition(page, lowerStairEntrance)).toBe(true);
+
+  await expect(async () =>
+    movePlayerTo(page, reportedLowerCornerSqueeze)
+  ).rejects.toThrow(/Cannot occupy/);
+  await expect(async () =>
+    movePlayerTo(page, reportedEastBoundarySqueeze)
+  ).rejects.toThrow(/Cannot occupy/);
+
+  await movePlayerTo(page, lowerStairEntrance);
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: (stairBottomZ + stairTopZ) / 2,
+  });
+  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.1 });
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-active-floor',
+    'upper'
+  );
+});
+
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   test.slow();
   await waitForImmersiveReady(page);

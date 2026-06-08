@@ -42,6 +42,18 @@ export interface StairNavigationZones {
   explicitDescentCorridor: RectCollider;
 }
 
+export interface NamedStairBoundaryCollider {
+  name: string;
+  bounds: RectCollider;
+}
+
+export interface GroundStairBoundaryColliderOptions {
+  /** Radius used by movement collision checks. */
+  playerRadius: number;
+  /** Extra east-side width reserved as a no-squeeze buffer beside the stairs. */
+  eastSideClearance?: number;
+}
+
 const DENOMINATOR_EPSILON = 1e-6;
 
 const getMinZ = (...values: number[]): number => Math.min(...values);
@@ -378,6 +390,43 @@ export interface StairNavAreaOptions {
   marginX?: number;
   marginZ?: number;
 }
+
+export const createGroundStairBoundaryColliders = (
+  geometry: StairGeometry,
+  behavior: StairBehavior,
+  options: GroundStairBoundaryColliderOptions
+): NamedStairBoundaryCollider[] => {
+  const eastStairEdgeX = geometry.centerX + geometry.halfWidth;
+  const eastSideClearance =
+    options.eastSideClearance ??
+    geometry.halfWidth + behavior.transitionMargin + options.playerRadius;
+  const eastBoundaryMaxX = eastStairEdgeX + eastSideClearance;
+  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
+  const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
+  const lowerCornerFarZ =
+    geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+
+  return [
+    {
+      name: 'GroundStairEastBoundary',
+      bounds: {
+        minX: eastStairEdgeX,
+        maxX: eastBoundaryMaxX,
+        minZ: rampMinZ,
+        maxZ: rampMaxZ,
+      },
+    },
+    {
+      name: 'GroundStairLowerCornerGuard',
+      bounds: {
+        minX: eastStairEdgeX,
+        maxX: eastBoundaryMaxX,
+        minZ: getMinZ(geometry.bottomZ, lowerCornerFarZ),
+        maxZ: getMaxZ(geometry.bottomZ, lowerCornerFarZ),
+      },
+    },
+  ];
+};
 
 export const createStairNavAreaRect = (
   geometry: StairGeometry,
