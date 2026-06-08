@@ -93,11 +93,31 @@ const createCenteredRect = (
   maxZ,
 });
 
+export const isWithinPhysicalStairWidth = (
+  geometry: StairGeometry,
+  x: number
+): boolean => Math.abs(x - geometry.centerX) <= geometry.halfWidth;
+
 export const isWithinStairWidth = (
   geometry: StairGeometry,
   x: number,
   margin = 0
-): boolean => Math.abs(x - geometry.centerX) <= geometry.halfWidth + margin;
+): boolean =>
+  margin === 0
+    ? isWithinPhysicalStairWidth(geometry, x)
+    : Math.abs(x - geometry.centerX) <= geometry.halfWidth + margin;
+
+export const isWithinRampRun = (
+  geometry: StairGeometry,
+  z: number,
+  margin = 0
+): boolean =>
+  isWithinZRange(
+    z,
+    getMinZ(geometry.bottomZ, geometry.topZ),
+    getMaxZ(geometry.bottomZ, geometry.topZ),
+    margin
+  );
 
 export const isWithinLanding = (
   geometry: StairGeometry,
@@ -115,7 +135,7 @@ export const computeRampHeight = (
   x: number,
   z: number
 ): number => {
-  if (!isWithinStairWidth(geometry, x, behavior.transitionMargin)) {
+  if (!isWithinPhysicalStairWidth(geometry, x)) {
     return 0;
   }
   const denominator = geometry.bottomZ - geometry.topZ;
@@ -209,8 +229,6 @@ export const classifyStairTransitionZone = (
   z: number,
   current: FloorId
 ): StairTransitionZone => {
-  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
-  const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
   const inActualStairWidth = isWithinStairWidth(geometry, x);
   const inTransitionWidth = isWithinStairWidth(
     geometry,
@@ -239,7 +257,7 @@ export const classifyStairTransitionZone = (
 
   const direction = geometry.direction;
 
-  if (inActualStairWidth && isWithinZRange(z, rampMinZ, rampMaxZ)) {
+  if (inActualStairWidth && isWithinRampRun(geometry, z)) {
     return 'stairRampBody';
   }
 
@@ -265,11 +283,7 @@ export const predictStairFloorId = (
 ): FloorId => {
   const zone = classifyStairTransitionZone(geometry, behavior, x, z, current);
   const rampHeight = computeRampHeight(geometry, behavior, x, z);
-  const withinStairs = isWithinStairWidth(
-    geometry,
-    x,
-    behavior.transitionMargin
-  );
+  const withinPhysicalStairs = isWithinPhysicalStairWidth(geometry, x);
   const direction = geometry.direction;
 
   if (current === 'upper') {
@@ -286,7 +300,7 @@ export const predictStairFloorId = (
       : z >= geometry.topZ - behavior.transitionMargin;
 
   const nearLanding =
-    withinStairs &&
+    withinPhysicalStairs &&
     (nearTop ||
       rampHeight >= geometry.totalRise - behavior.stepRise * 0.25 ||
       zone === 'upperLanding');

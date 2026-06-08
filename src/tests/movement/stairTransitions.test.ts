@@ -6,6 +6,7 @@ import {
   createStairNavAreaRect,
   createStairNavigationZones,
   predictStairFloorId,
+  sampleStairSurfaceHeight,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
@@ -34,6 +35,9 @@ const createStairGeometry = (direction: 1 | -1): StairGeometry => {
 };
 
 const NEGATIVE_Z_STAIRS = createStairGeometry(-1);
+const UPPER_FLOOR_ELEVATION = NEGATIVE_Z_STAIRS.totalRise + 0.38;
+const SCREENSHOT_4_SOURCE_POINT = { x: 7.4, z: -25.27 };
+const SCREENSHOT_4_LIFT_POINT = { x: 8.14, z: -25.36 };
 
 const STAIR_BEHAVIOR: StairBehavior = {
   transitionMargin: toWorldUnits(0.6),
@@ -68,6 +72,30 @@ describe('stair floor transitions (negative Z ascent)', () => {
         'ground'
       )
     ).toBe('upper');
+  });
+
+  it('keeps screenshot-4 off-stair ground points near the top on ground', () => {
+    for (const point of [SCREENSHOT_4_SOURCE_POINT, SCREENSHOT_4_LIFT_POINT]) {
+      expect(classify(NEGATIVE_Z_STAIRS, point.x, point.z, 'ground')).toBe(
+        'outsideStairs'
+      );
+      expect(predict(NEGATIVE_Z_STAIRS, point.x, point.z, 'ground')).toBe(
+        'ground'
+      );
+    }
+  });
+
+  it('does not lift screenshot-4 off-stair points onto the upper surface', () => {
+    const height = sampleStairSurfaceHeight({
+      geometry: NEGATIVE_Z_STAIRS,
+      behavior: STAIR_BEHAVIOR,
+      x: SCREENSHOT_4_LIFT_POINT.x,
+      z: SCREENSHOT_4_LIFT_POINT.z,
+      currentFloor: 'ground',
+      upperFloorElevation: UPPER_FLOOR_ELEVATION,
+    });
+
+    expect(height).toBe(0);
   });
 
   it('keeps the player on the upper floor while roaming across the landing', () => {
@@ -146,6 +174,21 @@ describe('stair floor transitions (negative Z ascent)', () => {
         preservedBridgeZ,
         'upper'
       )
+    ).toBe('upper');
+  });
+
+  it('keeps upper-floor positions outside the explicit descent corridor upstairs', () => {
+    const outsideCorridorX =
+      NEGATIVE_Z_STAIRS.centerX +
+      NEGATIVE_Z_STAIRS.halfWidth -
+      toWorldUnits(0.15);
+    const descentZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.7);
+
+    expect(
+      classify(NEGATIVE_Z_STAIRS, outsideCorridorX, descentZ, 'upper')
+    ).toBe('safeUpperFloor');
+    expect(
+      predict(NEGATIVE_Z_STAIRS, outsideCorridorX, descentZ, 'upper')
     ).toBe('upper');
   });
 

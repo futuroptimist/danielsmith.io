@@ -145,6 +145,48 @@ async function getTooltipState(page: Page): Promise<TooltipState> {
   });
 }
 
+test('off-stair ground points near the upper stair top stay on ground', async ({
+  page,
+}) => {
+  await waitForImmersiveReady(page);
+
+  const predictions = await page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return {
+      source: world.predictFloorAt({
+        x: 7.4,
+        z: -25.27,
+        currentFloor: 'ground',
+      }),
+      lifted: world.predictFloorAt({
+        x: 8.14,
+        z: -25.36,
+        currentFloor: 'ground',
+      }),
+      sourceZone: world.getStairTransitionZone({
+        x: 7.4,
+        z: -25.27,
+        currentFloor: 'ground',
+      }),
+      liftedZone: world.getStairTransitionZone({
+        x: 8.14,
+        z: -25.36,
+        currentFloor: 'ground',
+      }),
+    };
+  });
+
+  expect(predictions).toEqual({
+    source: 'ground',
+    lifted: 'ground',
+    sourceZone: 'outsideStairs',
+    liftedZone: 'outsideStairs',
+  });
+});
+
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   test.slow();
   await waitForImmersiveReady(page);
