@@ -112,25 +112,13 @@ describe('createRoomFloorTiles', () => {
       minX: stairwellOpening.minX,
       maxX: stairwellOpening.maxX,
       minZ: stairwellOpening.minZ,
-      maxZ: stairLayout.landingMaxZ,
+      maxZ: stairwellOpening.maxZ,
     };
     expect(
       upperLandingTiles.some((tile) =>
         overlaps(tile.bounds, visibleStairwellVoid)
       )
     ).toBe(false);
-
-    const doorwayBridgePastStairTop = {
-      minX: stairwellOpening.minX,
-      maxX: stairwellOpening.maxX,
-      minZ: stairLayout.landingMaxZ,
-      maxZ: upperLandingRoom!.bounds.maxZ,
-    };
-    expect(
-      upperLandingTiles.some((tile) =>
-        boundsAreClose(tile.bounds, doorwayBridgePastStairTop)
-      )
-    ).toBe(true);
 
     for (const tile of build.tiles) {
       const geometry = tile.mesh.geometry as BoxGeometry;

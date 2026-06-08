@@ -48,7 +48,7 @@ describe('computeStairLayout', () => {
     });
   });
 
-  it('clips upstairs stairwell hole bounds from the shared stair layout plus margin', () => {
+  it('clips upstairs stairwell hole bounds from the full shared stair run plus margin', () => {
     const layout = computeStairLayout({
       baseZ: -10.6,
       stepRun: 1.7,
@@ -70,6 +70,30 @@ describe('computeStairLayout', () => {
     expect(opening.minX).toBeCloseTo(7.04);
     expect(opening.maxX).toBeCloseTo(12.8);
     expect(opening.minZ).toBeCloseTo(-31.9);
-    expect(opening.maxZ).toBeCloseTo(-25.9);
+    expect(opening.maxZ).toBeCloseTo(-16);
+  });
+
+  it('extends negative-Z upper-floor cutouts over the ramp run, not just the landing lip', () => {
+    const layout = computeStairLayout({
+      baseZ: -10.6,
+      stepRun: 1.7,
+      stepCount: 9,
+      landingDepth: 5.2,
+      direction: 'negativeZ',
+      guardMargin: 1.2,
+      stairwellMargin: 0.8,
+    });
+
+    const opening = computeStairwellOpeningBounds({
+      centerX: 12.4,
+      halfWidth: 3.1,
+      marginX: 0.4,
+      roomBounds: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+      layout,
+    });
+
+    expect(opening.minZ).toBeLessThan(layout.topZ);
+    expect(opening.maxZ).toBeGreaterThan(-23.72);
+    expect(opening.maxZ).toBeCloseTo(-16);
   });
 });

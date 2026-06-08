@@ -618,6 +618,15 @@ declare global {
           z: number;
           currentFloor?: FloorId;
         }): StairTransitionZone;
+        isPositionOccupiable(target: {
+          x: number;
+          z: number;
+          floorId?: FloorId;
+        }): boolean;
+        getFloorPlanRooms(floorId: FloorId): Array<{
+          id: string;
+          bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+        }>;
         getStairMetrics(): {
           stairCenterX: number;
           stairHalfWidth: number;
@@ -1817,25 +1826,40 @@ function initializeImmersiveScene(
     stairNavigationZones.stairRampBody,
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
   const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
   const upperStairDescentGuardMaxZ = Math.max(stairTopZ, stairBottomZ);
-  // Invisible upper-floor guard rails flank the intentional descent corridor.
-  // They keep normal landing/room movement from drifting into the stairwell
-  // void while leaving the middle corridor open for deliberate stair descent.
-  upperFloorColliders.push(
-    {
-      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-      maxX: stairNavigationZones.explicitDescentCorridor.minX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    },
-    {
-      minX: stairNavigationZones.explicitDescentCorridor.maxX,
-      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    }
-  );
+  // An invisible upper-floor guard rail protects the +X side of the
+  // intentional descent corridor. The -X side stays open so the landing can
+  // egress into the upstairs rooms.
+  upperFloorColliders.push({
+    minX: stairNavigationZones.explicitDescentCorridor.maxX,
+    maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+    minZ: upperStairDescentGuardMinZ,
+    maxZ: upperStairDescentGuardMaxZ,
+  });
+  // Keep upper-floor navigation off the ramp void after the visual floor
+  // cutout exposes the hidden stair run. The explicit descent handoff predicts
+  // the ground floor before this upper-only blocker applies, so valid stair
+  // descent still works through the center corridor.
+  const overStairRunBlockerStartZ =
+    stairLayout.directionMultiplier === -1
+      ? stairTopZ + PLAYER_RADIUS * 2
+      : stairTopZ - PLAYER_RADIUS * 2;
+  upperFloorColliders.push({
+    minX: stairCenterX - stairHalfWidth,
+    maxX: stairCenterX + stairHalfWidth,
+    minZ: Math.min(
+      overStairRunBlockerStartZ,
+      upperLandingRoom?.bounds.maxZ ?? overStairRunBlockerStartZ
+    ),
+    maxZ: Math.max(
+      overStairRunBlockerStartZ,
+      upperLandingRoom?.bounds.maxZ ?? overStairRunBlockerStartZ
+    ),
+  });
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1865,9 +1889,6 @@ function initializeImmersiveScene(
     opacity: 1,
     depthWrite: true,
   });
-  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
-    (room) => room.id === 'upperLanding'
-  );
   const upperStairwellOpening = upperLandingRoom
     ? computeStairwellOpeningBounds({
         centerX: stairCenterX,
@@ -1900,6 +1921,8 @@ function initializeImmersiveScene(
       roomBounds: upperLandingRoom.bounds,
       openingBounds: upperStairwellOpening,
       descentCorridorBounds: stairNavigationZones.explicitDescentCorridor,
+      sideGuards: { west: false },
+      shoulderGuards: { west: false },
       elevation: upperFloorElevation,
       guard: {
         height: 0.56,
@@ -3048,6 +3071,24 @@ function initializeImmersiveScene(
           target.z,
           target.currentFloor ?? activeFloorId
         );
+      },
+      isPositionOccupiable(target: {
+        x: number;
+        z: number;
+        floorId?: FloorId;
+      }) {
+        return canOccupyPosition(
+          target.x,
+          target.z,
+          target.floorId ?? activeFloorId
+        );
+      },
+      getFloorPlanRooms(floorId: FloorId) {
+        const plan = floorId === 'upper' ? UPPER_FLOOR_PLAN : FLOOR_PLAN;
+        return plan.rooms.map((room) => ({
+          id: room.id,
+          bounds: { ...room.bounds },
+        }));
       },
       getStairMetrics() {
         return {

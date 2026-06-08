@@ -93,6 +93,48 @@ describe('createUpperStairwellLanding', () => {
     ).toBe(false);
   });
 
+  it('can leave the -X side open for upper-room egress while preserving +X guards', () => {
+    const openingBounds = { minX: -2, maxX: 2, minZ: -8, maxZ: 6 };
+    const result = createUpperStairwellLanding({
+      roomBounds: { minX: -6, maxX: 6, minZ: -10, maxZ: 8 },
+      openingBounds,
+      descentCorridorBounds: { minX: -1, maxX: 1, minZ: -8, maxZ: 6 },
+      sideGuards: { west: false },
+      shoulderGuards: { west: false },
+      elevation: 4,
+      guard: {
+        height: 0.56,
+        thickness: 0.2,
+        material: { color: 0xff0000 },
+      },
+    });
+
+    expect(result.colliders).not.toContainEqual({
+      minX: -2.2,
+      maxX: -2,
+      minZ: -8,
+      maxZ: 6,
+    });
+    expect(result.colliders).not.toContainEqual({
+      minX: -2,
+      maxX: -1,
+      minZ: -8,
+      maxZ: 6,
+    });
+    expect(result.colliders).toContainEqual({
+      minX: 2,
+      maxX: 2.2,
+      minZ: -8,
+      maxZ: 6,
+    });
+    expect(result.colliders).toContainEqual({
+      minX: 1,
+      maxX: 2,
+      minZ: -8,
+      maxZ: 6,
+    });
+  });
+
   it('clamps guard colliders to the landing room when the opening touches an edge', () => {
     const result = createUpperStairwellLanding({
       roomBounds: { minX: -2, maxX: 4, minZ: -6, maxZ: 6 },
