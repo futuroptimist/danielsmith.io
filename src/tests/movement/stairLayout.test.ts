@@ -48,7 +48,7 @@ describe('computeStairLayout', () => {
     });
   });
 
-  it('clips upstairs stairwell hole bounds from the shared stair layout plus margin', () => {
+  it('clips the negative-Z upstairs stairwell opening across the hidden stair run', () => {
     const layout = computeStairLayout({
       baseZ: -10.6,
       stepRun: 1.7,
@@ -70,6 +70,31 @@ describe('computeStairLayout', () => {
     expect(opening.minX).toBeCloseTo(7.04);
     expect(opening.maxX).toBeCloseTo(12.8);
     expect(opening.minZ).toBeCloseTo(-31.9);
-    expect(opening.maxZ).toBeCloseTo(-25.9);
+    expect(opening.maxZ).toBeCloseTo(-16);
+  });
+
+  it('clips the positive-Z upstairs stairwell opening across the hidden stair run', () => {
+    const layout = computeStairLayout({
+      baseZ: 10,
+      stepRun: 1,
+      stepCount: 4,
+      landingDepth: 3,
+      direction: 'positiveZ',
+      guardMargin: 0.5,
+      stairwellMargin: 0.25,
+    });
+
+    const opening = computeStairwellOpeningBounds({
+      centerX: 5,
+      halfWidth: 1.5,
+      marginX: 0.25,
+      roomBounds: { minX: 0, maxX: 10, minZ: 8, maxZ: 20 },
+      layout,
+    });
+
+    expect(opening.minX).toBeCloseTo(3.25);
+    expect(opening.maxX).toBeCloseTo(6.75);
+    expect(opening.minZ).toBeCloseTo(9.75);
+    expect(opening.maxZ).toBeCloseTo(17.25);
   });
 });

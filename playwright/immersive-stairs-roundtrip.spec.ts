@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
@@ -23,6 +25,11 @@ type StairTransitionZone =
 
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+  canOccupyPosition(target: {
+    x: number;
+    z: number;
+    floorId?: FloorId;
+  }): boolean;
   getActiveFloor(): FloorId;
   getPlayerPosition(): { x: number; y: number; z: number };
   predictFloorAt(target: {
@@ -84,6 +91,27 @@ type PortfolioWindow = Window & {
 
 test.setTimeout(150_000);
 
+const getUpperRoom = (roomId: string) => {
+  const room = UPPER_FLOOR_PLAN.rooms.find(
+    (candidate) => candidate.id === roomId
+  );
+  if (!room) {
+    throw new Error(`Missing upper-floor room: ${roomId}`);
+  }
+  return room;
+};
+
+const getUpperLandingWestDoorCenterZ = (): number => {
+  const upperLanding = getUpperRoom('upperLanding');
+  const doorway = upperLanding.doorways?.find(
+    (candidate) => candidate.wall === 'west'
+  );
+  if (!doorway) {
+    throw new Error('Missing upper landing west doorway.');
+  }
+  return (doorway.start + doorway.end) / 2;
+};
+
 async function waitForImmersiveReady(page: Page) {
   await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
@@ -120,6 +148,19 @@ async function movePlayerTo(
     world.movePlayerTo(next);
   }, target);
   await page.waitForTimeout(150);
+}
+
+async function canOccupyPosition(
+  page: Page,
+  target: { x: number; z: number; floorId?: FloorId }
+): Promise<boolean> {
+  return page.evaluate((next) => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.canOccupyPosition(next);
+  }, target);
 }
 
 async function getWorldState(page: Page) {
@@ -281,6 +322,68 @@ test('upper landing edge nudges stay upstairs until the descent corridor is ente
   // Moving back to the center of the stair opening remains an intentional descent.
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
+});
+
+test('upper landing opens west while hidden stair run stays blocked upstairs', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const html = page.locator('html');
+  const {
+    stairCenterX,
+    stairTopZ,
+    stairLandingMinZ,
+    stairLandingMaxZ,
+    stairDirection,
+  } = await getStairMetrics(page);
+  const upperLanding = getUpperRoom('upperLanding');
+  const creatorsStudio = getUpperRoom('creatorsStudio');
+  const westDoorCenterZ = getUpperLandingWestDoorCenterZ();
+
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const landingEgressZ = Math.max(
+    stairLandingMinZ + 0.6,
+    Math.min(westDoorCenterZ, stairLandingMaxZ - 0.35)
+  );
+  await movePlayerTo(page, {
+    x: upperLanding.bounds.minX + 1,
+    z: landingEgressZ,
+    floorId: 'upper',
+  });
+  await movePlayerTo(page, {
+    x: creatorsStudio.bounds.maxX - 2,
+    z: westDoorCenterZ,
+    floorId: 'upper',
+  });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const upstairsRoomState = await getWorldState(page);
+  expect(upstairsRoomState.activeFloor).toBe('upper');
+  expect(upstairsRoomState.position.x).toBeLessThan(upperLanding.bounds.minX);
+
+  const normalUpperSpace = { x: 8.15, z: -11.82, floorId: 'upper' as const };
+  const nearbyPlusX = { ...normalUpperSpace, x: normalUpperSpace.x + 0.6 };
+  await expect(canOccupyPosition(page, normalUpperSpace)).resolves.toBe(true);
+  await expect(canOccupyPosition(page, nearbyPlusX)).resolves.toBe(true);
+
+  const overHiddenStairs = { x: 12.7, z: -23.72, floorId: 'upper' as const };
+  await expect(canOccupyPosition(page, overHiddenStairs)).resolves.toBe(false);
+  await expect(
+    page.evaluate((target) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+      world.movePlayerTo(target);
+    }, overHiddenStairs)
+  ).rejects.toThrow(/Cannot occupy/);
 });
 
 test('debug coordinates and upstairs POI state stay floor-aware', async ({

@@ -4,6 +4,13 @@ import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
 
+export interface UpperStairwellGuardGap {
+  /** Lowest Z coordinate left open through a guard. */
+  minZ: number;
+  /** Highest Z coordinate left open through a guard. */
+  maxZ: number;
+}
+
 export interface UpperStairwellGuardConfig {
   /** Height of the guard rail measured from the upper-floor surface. */
   height: number;
@@ -11,6 +18,11 @@ export interface UpperStairwellGuardConfig {
   thickness: number;
   /** Optional material overrides for the guard rails. */
   material?: MeshStandardMaterialParameters;
+  /** Optional openings through guard runs, keyed by camera-relative side. */
+  gaps?: {
+    west?: readonly UpperStairwellGuardGap[];
+    east?: readonly UpperStairwellGuardGap[];
+  };
 }
 
 export interface UpperStairwellLandingConfig {
@@ -49,6 +61,31 @@ const clampBoundsToRoom = (
   maxZ: Math.min(bounds.maxZ, roomBounds.maxZ),
 });
 
+const subtractZGap = (
+  bounds: Bounds2D,
+  gap: UpperStairwellGuardGap
+): Bounds2D[] => {
+  const overlapMinZ = Math.max(bounds.minZ, gap.minZ);
+  const overlapMaxZ = Math.min(bounds.maxZ, gap.maxZ);
+  if (overlapMaxZ <= overlapMinZ) {
+    return [bounds];
+  }
+
+  return [
+    { ...bounds, maxZ: overlapMinZ },
+    { ...bounds, minZ: overlapMaxZ },
+  ].filter(hasPositiveArea);
+};
+
+const applyZGap = (
+  bounds: Bounds2D,
+  gaps: readonly UpperStairwellGuardGap[] = []
+): Bounds2D[] =>
+  gaps.reduce<Bounds2D[]>(
+    (pieces, gap) => pieces.flatMap((piece) => subtractZGap(piece, gap)),
+    [bounds]
+  );
+
 const addGuard = (params: {
   group: Group;
   colliders: RectCollider[];
@@ -58,26 +95,29 @@ const addGuard = (params: {
   roomBounds: Bounds2D;
   elevation: number;
   height: number;
+  gaps?: readonly UpperStairwellGuardGap[];
 }) => {
   const guardBounds = clampBoundsToRoom(params.bounds, params.roomBounds);
-  const width = guardBounds.maxX - guardBounds.minX;
-  const depth = guardBounds.maxZ - guardBounds.minZ;
-  if (width <= 0 || depth <= 0 || params.height <= 0) {
-    return;
-  }
+  applyZGap(guardBounds, params.gaps).forEach((piece, index) => {
+    const width = piece.maxX - piece.minX;
+    const depth = piece.maxZ - piece.minZ;
+    if (width <= 0 || depth <= 0 || params.height <= 0) {
+      return;
+    }
 
-  const guard = new Mesh(
-    new BoxGeometry(width, params.height, depth),
-    params.material
-  );
-  guard.name = params.name;
-  guard.position.set(
-    guardBounds.minX + width / 2,
-    params.elevation + params.height / 2,
-    guardBounds.minZ + depth / 2
-  );
-  params.group.add(guard);
-  params.colliders.push(guardBounds);
+    const guard = new Mesh(
+      new BoxGeometry(width, params.height, depth),
+      params.material
+    );
+    guard.name = index === 0 ? params.name : `${params.name}-${index + 1}`;
+    guard.position.set(
+      piece.minX + width / 2,
+      params.elevation + params.height / 2,
+      piece.minZ + depth / 2
+    );
+    params.group.add(guard);
+    params.colliders.push(piece);
+  });
 };
 
 /**
@@ -121,6 +161,7 @@ export function createUpperStairwellLanding(
     roomBounds: config.roomBounds,
     elevation: config.elevation,
     height: config.guard.height,
+    gaps: config.guard.gaps?.west,
   });
   addGuard({
     group,
@@ -136,6 +177,7 @@ export function createUpperStairwellLanding(
     roomBounds: config.roomBounds,
     elevation: config.elevation,
     height: config.guard.height,
+    gaps: config.guard.gaps?.east,
   });
   addGuard({
     group,
@@ -173,6 +215,7 @@ export function createUpperStairwellLanding(
       roomBounds: config.roomBounds,
       elevation: config.elevation,
       height: config.guard.height,
+      gaps: config.guard.gaps?.west,
     });
     addGuard({
       group,
@@ -188,6 +231,7 @@ export function createUpperStairwellLanding(
       roomBounds: config.roomBounds,
       elevation: config.elevation,
       height: config.guard.height,
+      gaps: config.guard.gaps?.east,
     });
   }
 

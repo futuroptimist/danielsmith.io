@@ -607,6 +607,11 @@ declare global {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+        canOccupyPosition(target: {
+          x: number;
+          z: number;
+          floorId?: FloorId;
+        }): boolean;
         getPlayerPosition(): { x: number; y: number; z: number };
         predictFloorAt(target: {
           x: number;
@@ -1817,25 +1822,6 @@ function initializeImmersiveScene(
     stairNavigationZones.stairRampBody,
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
-  const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
-  const upperStairDescentGuardMaxZ = Math.max(stairTopZ, stairBottomZ);
-  // Invisible upper-floor guard rails flank the intentional descent corridor.
-  // They keep normal landing/room movement from drifting into the stairwell
-  // void while leaving the middle corridor open for deliberate stair descent.
-  upperFloorColliders.push(
-    {
-      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-      maxX: stairNavigationZones.explicitDescentCorridor.minX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    },
-    {
-      minX: stairNavigationZones.explicitDescentCorridor.maxX,
-      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    }
-  );
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1878,14 +1864,36 @@ function initializeImmersiveScene(
       })
     : undefined;
   // The upper-floor stairwell cutout intentionally comes from the same
-  // computeStairLayout result used by movement. It removes the stair landing
-  // void while preserving the normal doorway bridge beyond the stair top.
+  // computeStairLayout result used by movement. It removes both the landing
+  // lip and the ramp/run void so opaque room tiles never cover the stairs.
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
           upperLanding: [upperStairwellOpening],
         }
       : undefined;
+  if (upperLandingRoom) {
+    const rampRoomEdgeZ =
+      stairLayout.directionMultiplier === -1
+        ? upperLandingRoom.bounds.maxZ
+        : upperLandingRoom.bounds.minZ;
+
+    // The player may enter the descent corridor as ground-floor stair
+    // movement, but the upper floor itself must not be occupiable over the
+    // hidden ramp run. Scope this invisible blocker to the landing room so
+    // normal upstairs space north of the stairwell stays walkable.
+    const overStairRunBlockerStartZ =
+      stairTopZ -
+      stairLayout.directionMultiplier *
+        (stairTransitionMargin + stairLandingTriggerMargin);
+    upperFloorColliders.push({
+      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+      minZ: Math.min(overStairRunBlockerStartZ, rampRoomEdgeZ),
+      maxZ: Math.max(overStairRunBlockerStartZ, rampRoomEdgeZ),
+    });
+  }
+
   const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
     material: upperFloorMaterial,
     elevation: upperFloorElevation,
@@ -1904,6 +1912,14 @@ function initializeImmersiveScene(
       guard: {
         height: 0.56,
         thickness: toWorldUnits(0.12),
+        gaps: {
+          west: [
+            {
+              minZ: stairLandingMinZ + toWorldUnits(0.3),
+              maxZ: stairLandingMaxZ - toWorldUnits(0.15),
+            },
+          ],
+        },
         material: {
           color: 0x2a3241,
           roughness: 0.72,
@@ -3020,6 +3036,11 @@ function initializeImmersiveScene(
         player.position.z = z;
         setActiveFloorId(predictedFloor);
         updatePlayerVerticalPosition();
+      },
+      canOccupyPosition(target: { x: number; z: number; floorId?: FloorId }) {
+        const { x, z, floorId } = target;
+        const predictedFloor = floorId ?? predictFloorId(x, z, activeFloorId);
+        return canOccupyPosition(x, z, predictedFloor);
       },
       // Test helpers – intentionally minimal and read-only in production.
       getPlayerPosition() {
