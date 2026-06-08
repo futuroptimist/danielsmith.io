@@ -263,7 +263,10 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // Return toward the stairs, enter the explicit descent handoff, then continue down the ramp.
   // The helper teleports between sampled positions, so include the narrow handoff band that real
   // movement crosses frame by frame.
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.15 });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
   await movePlayerTo(page, {
@@ -311,6 +314,18 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ - stairDirection * 0.4,
     floorId: 'upper' as const,
   };
+  const hiddenStairVoidGap = [
+    {
+      x: stairCenterX,
+      z: stairTopZ + stairDirection * 0.1,
+      floorId: 'upper' as const,
+    },
+    {
+      x: stairCenterX,
+      z: stairTopZ + stairDirection * 0.6,
+      floorId: 'upper' as const,
+    },
+  ];
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
   await movePlayerTo(page, {
@@ -332,6 +347,9 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, normalLoftEastNudge)).toBe(true);
   expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
+  for (const hiddenStairVoidGapSample of hiddenStairVoidGap) {
+    expect(await canOccupyPosition(page, hiddenStairVoidGapSample)).toBe(false);
+  }
   expect(await canOccupyPosition(page, hiddenStairRun)).toBe(false);
   await expect(async () => movePlayerTo(page, hiddenStairRun)).rejects.toThrow(
     /Cannot occupy/

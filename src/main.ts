@@ -1883,6 +1883,13 @@ function initializeImmersiveScene(
 
     const upperLandingDoorwayClearanceZ =
       upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
+    const hiddenStairTopGapBlockerNearZ =
+      stairTopZ +
+      stairLayout.directionMultiplier *
+        (PLAYER_RADIUS + stairLandingTriggerMargin);
+    const hiddenStairTopGapBlockerFarZ =
+      stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
+    const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
     const hiddenStairBlockerStartZ =
       stairTopZ -
       stairLayout.directionMultiplier *
@@ -1895,8 +1902,9 @@ function initializeImmersiveScene(
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable. The center
-    // blocker rejects forced upper-floor placement over the hidden stairs while
-    // stopping short of the north doorway's padded passage into the loft.
+    // blockers reject forced upper-floor placement over the hidden stair-top gap
+    // and doorway-side void while preserving the narrow stair-top handoff, west
+    // egress path, and north doorway's padded passage into the loft.
     upperFloorColliders.push(
       {
         minX: stairCenterX - stairHalfWidth - stairwellMarginX,
@@ -1915,6 +1923,18 @@ function initializeImmersiveScene(
         maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
         minZ: upperStairVoidMinZ,
         maxZ: upperStairVoidMaxZ,
+      },
+      {
+        minX: hiddenStairTopGapBlockerMinX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+        minZ: Math.min(
+          hiddenStairTopGapBlockerNearZ,
+          hiddenStairTopGapBlockerFarZ
+        ),
+        maxZ: Math.max(
+          hiddenStairTopGapBlockerNearZ,
+          hiddenStairTopGapBlockerFarZ
+        ),
       },
       {
         minX: stairNavigationZones.explicitDescentCorridor.minX,
