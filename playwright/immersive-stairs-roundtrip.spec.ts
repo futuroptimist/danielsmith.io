@@ -55,6 +55,11 @@ type TestWorldApi = {
   };
 };
 
+type DebugColliderApi = {
+  setEnabled(enabled: boolean): void;
+  getColliders(): Array<{ name: string }>;
+};
+
 type DebugCoordinatesApi = {
   getState(): {
     enabled: boolean;
@@ -82,6 +87,7 @@ type TooltipState = {
 type PortfolioWindow = Window & {
   portfolio?: {
     world?: TestWorldApi;
+    debugColliders?: DebugColliderApi;
     debugCoordinates?: DebugCoordinatesApi;
     poi?: {
       getTooltipState(): TooltipState;
@@ -220,6 +226,54 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
     sourceZone: 'outsideStairs',
     liftedZone: 'outsideStairs',
   });
+});
+
+test('ground stair east boundary blocks squeeze corners but preserves the stair path', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const html = page.locator('html');
+  const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
+  const squeezeSamples = [
+    { x: 17.38, z: -8.84, floorId: 'ground' as const },
+    { x: 21.35, z: -14.66, floorId: 'ground' as const },
+  ];
+  const lowerEntrance = {
+    x: stairCenterX,
+    z: stairBottomZ + 0.3,
+    floorId: 'ground' as const,
+  };
+
+  for (const sample of squeezeSamples) {
+    expect(await canOccupyPosition(page, sample)).toBe(false);
+    await expect(async () => movePlayerTo(page, sample)).rejects.toThrow(
+      /Cannot occupy/
+    );
+  }
+
+  expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
+  await movePlayerTo(page, lowerEntrance);
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
+
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: (stairBottomZ + stairTopZ) / 2,
+  });
+  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.1 });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const debugColliders = await page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    debugApi.setEnabled(true);
+    return debugApi.getColliders().map((collider) => collider.name);
+  });
+  expect(debugColliders).toContain('GroundStairEastBoundary');
+  expect(debugColliders).toContain('GroundStairLowerCornerGuard');
 });
 
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
