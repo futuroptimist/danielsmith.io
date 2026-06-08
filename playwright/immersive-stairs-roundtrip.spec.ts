@@ -254,6 +254,9 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     );
   }
 
+  expect(
+    await canOccupyPosition(page, { x: 24, z: -18, floorId: 'ground' })
+  ).toBe(true);
   expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
   await movePlayerTo(page, lowerEntrance);
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
