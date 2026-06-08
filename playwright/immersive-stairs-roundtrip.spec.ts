@@ -239,6 +239,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   const squeezeSamples = [
     { x: 17.38, z: -8.84, floorId: 'ground' as const },
     { x: 21.35, z: -14.66, floorId: 'ground' as const },
+    { x: 22.1, z: -14.66, floorId: 'ground' as const },
   ];
   const lowerEntrance = {
     x: stairCenterX,

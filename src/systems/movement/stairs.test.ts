@@ -10,6 +10,7 @@ import {
 } from './stairs';
 
 const PLAYER_RADIUS = 0.75;
+const GROUND_FLOOR_EAST_WALL_X = 32;
 
 const geometry: StairGeometry = {
   centerX: 12.4,
@@ -35,6 +36,7 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
+    sealMaxX: GROUND_FLOOR_EAST_WALL_X,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
@@ -47,13 +49,24 @@ describe('createGroundStairBoundaryColliders', () => {
     ]);
   });
 
-  it('blocks the east-side squeeze samples near the ground stairs', () => {
+  it('seals the east-side squeeze route against the reachable ground-floor edge', () => {
     expect(
       collidesWithColliders(17.38, -8.84, PLAYER_RADIUS, boundaryBounds)
     ).toBe(true);
     expect(
       collidesWithColliders(21.35, -14.66, PLAYER_RADIUS, boundaryBounds)
     ).toBe(true);
+    expect(
+      collidesWithColliders(22.1, -14.66, PLAYER_RADIUS, boundaryBounds)
+    ).toBe(true);
+  });
+
+  it('extends the east stair boundary to the requested seal edge', () => {
+    const eastBoundary = boundaryColliders.find(
+      (collider) => collider.name === 'GroundStairEastBoundary'
+    );
+
+    expect(eastBoundary?.bounds.maxX).toBe(GROUND_FLOOR_EAST_WALL_X);
   });
 
   it('preserves the center lower entrance and ramp body', () => {

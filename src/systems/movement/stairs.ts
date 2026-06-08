@@ -50,6 +50,12 @@ export interface NamedStairBoundaryCollider {
 export interface GroundStairBoundaryColliderOptions {
   playerRadius: number;
   guardThickness: number;
+  /**
+   * East-most reachable ground-floor X coordinate to seal against. When
+   * provided, the boundary extends to this edge so players cannot route
+   * around the blocker's finite outer side.
+   */
+  sealMaxX?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -215,11 +221,15 @@ export const createGroundStairBoundaryColliders = (
   const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
   const stairEastX = geometry.centerX + geometry.halfWidth;
   const eastBoundaryMinX = stairEastX + options.guardThickness;
-  const eastBoundaryMaxX =
+  const fallbackEastBoundaryMaxX =
     stairEastX +
     geometry.halfWidth +
     behavior.transitionMargin +
     options.playerRadius * 2;
+  const eastBoundaryMaxX = Math.max(
+    fallbackEastBoundaryMaxX,
+    options.sealMaxX ?? fallbackEastBoundaryMaxX
+  );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
 

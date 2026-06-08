@@ -866,7 +866,7 @@ const LIGHTING_OPTIONS = {
 } as const;
 
 const groundColliders: RectCollider[] = [];
-const namedGroundColliderDebugNames = new Map<RectCollider, string>();
+const namedColliderDebugNames = new Map<RectCollider, string>();
 const upperFloorColliders: RectCollider[] = [];
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
@@ -1847,11 +1847,12 @@ function initializeImmersiveScene(
     {
       playerRadius: PLAYER_RADIUS,
       guardThickness: stairGuardThickness,
+      sealMaxX: floorBounds.maxX,
     }
   );
   groundStairBoundaryColliders.forEach(({ name, bounds }) => {
     groundColliders.push(bounds);
-    namedGroundColliderDebugNames.set(bounds, name);
+    namedColliderDebugNames.set(bounds, name);
   });
 
   const upperFloorGroup = new Group();
@@ -3824,7 +3825,7 @@ function initializeImmersiveScene(
       floor: options.floor,
       category: options.category,
       name:
-        namedGroundColliderDebugNames.get(bounds) ??
+        namedColliderDebugNames.get(bounds) ??
         `${options.namePrefix}-${index + 1}`,
       bounds,
       elevation: options.elevation,
