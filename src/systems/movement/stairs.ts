@@ -60,6 +60,12 @@ export interface GroundStairBoundaryColliderOptions {
    * crossing around the stair-side blocker without filling the living room.
    */
   eastRunSealX?: number;
+  /**
+   * Optional east-most X coordinate for thin caps at each end of the run seal.
+   * These caps should terminate at a nearby obstacle or room edge so the seal
+   * cannot be routed around while the middle of the living room stays open.
+   */
+  eastRunSealCapMaxX?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -255,6 +261,10 @@ export const createGroundStairBoundaryColliders = (
     options.guardThickness * 0.05,
     0.02
   );
+  const eastRunSealCapMaxX = Math.max(
+    eastRunSealX,
+    options.eastRunSealCapMaxX ?? eastRunSealX
+  );
   const eastRunSealColliders: NamedStairBoundaryCollider[] =
     eastRunSealX > eastBoundaryMaxX
       ? [
@@ -264,6 +274,24 @@ export const createGroundStairBoundaryColliders = (
               minX: eastRunSealX - eastRunSealVisualThickness,
               maxX: eastRunSealX,
               minZ: rampMinZ,
+              maxZ: rampMaxZ,
+            },
+          },
+          {
+            name: 'GroundStairEastRunSealTopCap',
+            bounds: {
+              minX: eastBoundaryMaxX,
+              maxX: eastRunSealCapMaxX,
+              minZ: rampMinZ,
+              maxZ: rampMinZ + eastRunSealVisualThickness,
+            },
+          },
+          {
+            name: 'GroundStairEastRunSealBottomCap',
+            bounds: {
+              minX: eastBoundaryMaxX,
+              maxX: eastRunSealCapMaxX,
+              minZ: rampMaxZ - eastRunSealVisualThickness,
               maxZ: rampMaxZ,
             },
           },
