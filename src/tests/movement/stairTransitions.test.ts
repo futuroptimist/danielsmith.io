@@ -6,6 +6,7 @@ import {
   createStairNavAreaRect,
   createStairNavigationZones,
   predictStairFloorId,
+  sampleStairSurfaceHeight,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
@@ -68,6 +69,59 @@ describe('stair floor transitions (negative Z ascent)', () => {
         'ground'
       )
     ).toBe('upper');
+  });
+
+  it('keeps screenshot-4 off-stair ground positions near the top on ground', () => {
+    const screenshotSource = { x: 7.4, z: -25.27 };
+    const screenshotLanding = { x: 8.14, z: -25.36 };
+
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        screenshotSource.x,
+        screenshotSource.z,
+        'ground'
+      )
+    ).toBe('ground');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        screenshotLanding.x,
+        screenshotLanding.z,
+        'ground'
+      )
+    ).toBe('ground');
+  });
+
+  it('does not sample upper-floor height for off-stair ground positions near the top', () => {
+    const upperFloorElevation = NEGATIVE_Z_STAIRS.totalRise + 0.38;
+    const height = sampleStairSurfaceHeight({
+      geometry: NEGATIVE_Z_STAIRS,
+      behavior: STAIR_BEHAVIOR,
+      x: 8.14,
+      z: -25.36,
+      currentFloor: 'ground',
+      upperFloorElevation,
+    });
+
+    expect(height).toBe(0);
+    expect(height).toBeLessThan(upperFloorElevation);
+  });
+
+  it('keeps centerline ascent near the same stair-top band working', () => {
+    expect(
+      predict(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, -25.36, 'ground')
+    ).toBe('upper');
+  });
+
+  it('keeps upper-floor positions outside the explicit descent corridor upstairs', () => {
+    expect(predict(NEGATIVE_Z_STAIRS, 8.14, -25.36, 'upper')).toBe('upper');
+  });
+
+  it('allows the explicit stair-top descent corridor to hand upper players down', () => {
+    expect(
+      predict(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, -25.36, 'upper')
+    ).toBe('ground');
   });
 
   it('keeps the player on the upper floor while roaming across the landing', () => {
@@ -160,7 +214,7 @@ describe('stair floor transitions (negative Z ascent)', () => {
     ).toBe('ground');
   });
 
-  it('keeps a deliberate descent on ground through the top handoff band', () => {
+  it('treats ground-floor movement through the top handoff band as ascent', () => {
     const firstDescentStepZ =
       NEGATIVE_Z_STAIRS.topZ + STAIR_BEHAVIOR.landingTriggerMargin + 0.01;
 
@@ -187,7 +241,7 @@ describe('stair floor transitions (negative Z ascent)', () => {
         firstDescentStepZ,
         'ground'
       )
-    ).toBe('ground');
+    ).toBe('upper');
   });
 
   it('does not transition floors for lateral movement outside stair width', () => {
@@ -265,7 +319,7 @@ describe('stair floor transitions (positive Z ascent)', () => {
     ).toBe('ground');
   });
 
-  it('keeps positive-Z descents on ground through the top handoff band', () => {
+  it('treats positive-Z ground movement through the top handoff band as ascent', () => {
     const firstDescentStepZ =
       positiveGeometry.topZ - STAIR_BEHAVIOR.landingTriggerMargin - 0.01;
 
@@ -284,7 +338,7 @@ describe('stair floor transitions (positive Z ascent)', () => {
         firstDescentStepZ,
         'ground'
       )
-    ).toBe('ground');
+    ).toBe('upper');
   });
 
   it('keeps positive-Z ground descents on ground past the stair base', () => {
