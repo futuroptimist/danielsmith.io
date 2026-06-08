@@ -55,6 +55,11 @@ export interface GroundStairBoundaryColliderOptions {
    * localized to the squeeze seam so regular living-room space stays usable.
    */
   eastBoundaryMaxX?: number;
+  /**
+   * Optional east-most X coordinate for a lower-run seal that closes the
+   * bypass lane only near the bottom stair approach instead of the full room.
+   */
+  eastApproachSealMaxX?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -232,6 +237,28 @@ export const createGroundStairBoundaryColliders = (
   );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+  const lowerRunSealDepth =
+    behavior.transitionMargin * 4 + options.playerRadius;
+  const lowerRunSealFarZ =
+    geometry.bottomZ + geometry.direction * lowerRunSealDepth;
+  const eastApproachSealMaxX = Math.max(
+    eastBoundaryMaxX,
+    options.eastApproachSealMaxX ?? eastBoundaryMaxX
+  );
+  const eastApproachSealColliders: NamedStairBoundaryCollider[] =
+    eastApproachSealMaxX > eastBoundaryMaxX
+      ? [
+          {
+            name: 'GroundStairEastApproachSeal',
+            bounds: {
+              minX: eastBoundaryMinX,
+              maxX: eastApproachSealMaxX,
+              minZ: getMinZ(geometry.bottomZ, lowerRunSealFarZ),
+              maxZ: getMaxZ(geometry.bottomZ, lowerRunSealFarZ),
+            },
+          },
+        ]
+      : [];
 
   return [
     {
@@ -252,6 +279,7 @@ export const createGroundStairBoundaryColliders = (
         maxZ: getMaxZ(geometry.bottomZ, lowerApproachZ),
       },
     },
+    ...eastApproachSealColliders,
   ];
 };
 

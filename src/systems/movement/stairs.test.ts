@@ -35,6 +35,7 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
+    eastApproachSealMaxX: 32,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
@@ -44,6 +45,7 @@ describe('createGroundStairBoundaryColliders', () => {
     expect(boundaryColliders.map((collider) => collider.name)).toEqual([
       'GroundStairEastBoundary',
       'GroundStairLowerCornerGuard',
+      'GroundStairEastApproachSeal',
     ]);
   });
 
@@ -56,6 +58,9 @@ describe('createGroundStairBoundaryColliders', () => {
     ).toBe(true);
     expect(
       collidesWithColliders(22.1, -14.66, PLAYER_RADIUS, boundaryBounds)
+    ).toBe(true);
+    expect(
+      collidesWithColliders(23, -14.66, PLAYER_RADIUS, boundaryBounds)
     ).toBe(true);
   });
 

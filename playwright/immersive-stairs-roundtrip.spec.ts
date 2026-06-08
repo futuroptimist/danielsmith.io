@@ -240,6 +240,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     { x: 17.38, z: -8.84, floorId: 'ground' as const },
     { x: 21.35, z: -14.66, floorId: 'ground' as const },
     { x: 22.1, z: -14.66, floorId: 'ground' as const },
+    { x: 23, z: -14.66, floorId: 'ground' as const },
   ];
   const lowerEntrance = {
     x: stairCenterX,
@@ -278,6 +279,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   });
   expect(debugColliders).toContain('GroundStairEastBoundary');
   expect(debugColliders).toContain('GroundStairLowerCornerGuard');
+  expect(debugColliders).toContain('GroundStairEastApproachSeal');
 });
 
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
