@@ -1890,7 +1890,8 @@ function initializeImmersiveScene(
     const hiddenStairTopGapBlockerFarZ =
       stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
-    const hiddenStairWestVoidGapBlockerZ = hiddenStairTopGapBlockerFarZ;
+    const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
+    const hiddenStairWestVoidGapBlockerMaxZ = upperStairWestEgressMaxZ;
     const hiddenStairBlockerStartZ =
       stairTopZ -
       stairLayout.directionMultiplier *
@@ -1905,7 +1906,7 @@ function initializeImmersiveScene(
     // run so normal loft space beyond the landing remains occupiable. The center
     // blockers reject forced upper-floor placement over the hidden stair-top gap
     // and doorway-side void while preserving the narrow stair-top handoff, a
-    // west-side bypass around the void, and the north doorway's padded passage
+    // west-side bypass lane around the void, and the north doorway's padded passage
     // into the loft.
     upperFloorColliders.push(
       {
@@ -1928,9 +1929,9 @@ function initializeImmersiveScene(
       },
       {
         minX: upperStairwellOpening.minX,
-        maxX: hiddenStairTopGapBlockerMinX,
-        minZ: hiddenStairWestVoidGapBlockerZ,
-        maxZ: hiddenStairWestVoidGapBlockerZ,
+        maxX: stairNavigationZones.explicitDescentCorridor.minX,
+        minZ: hiddenStairWestVoidGapBlockerMinZ,
+        maxZ: hiddenStairWestVoidGapBlockerMaxZ,
       },
       {
         minX: hiddenStairTopGapBlockerMinX,
