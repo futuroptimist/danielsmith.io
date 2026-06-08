@@ -35,7 +35,6 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
-    eastRunSealCapMaxX: 32,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
@@ -75,10 +74,26 @@ describe('createGroundStairBoundaryColliders', () => {
     ).toBe(true);
   });
 
-  it('caps the run seal ends while keeping the middle living-room lane clear', () => {
+  it('keeps regular living-room lanes clear around localized seal caps', () => {
     expect(collidesWithColliders(24, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
       false
     );
+    expect(
+      collidesWithColliders(
+        24,
+        geometry.topZ + PLAYER_RADIUS + 0.01,
+        PLAYER_RADIUS,
+        boundaryBounds
+      )
+    ).toBe(false);
+    expect(
+      collidesWithColliders(
+        24,
+        geometry.bottomZ - PLAYER_RADIUS - 0.01,
+        PLAYER_RADIUS,
+        boundaryBounds
+      )
+    ).toBe(false);
     expect(
       collidesWithColliders(
         24,
@@ -86,7 +101,7 @@ describe('createGroundStairBoundaryColliders', () => {
         PLAYER_RADIUS,
         boundaryBounds
       )
-    ).toBe(true);
+    ).toBe(false);
     expect(
       collidesWithColliders(
         24,
@@ -94,7 +109,7 @@ describe('createGroundStairBoundaryColliders', () => {
         PLAYER_RADIUS,
         boundaryBounds
       )
-    ).toBe(true);
+    ).toBe(false);
     expect(collidesWithColliders(24, -30, PLAYER_RADIUS, boundaryBounds)).toBe(
       false
     );

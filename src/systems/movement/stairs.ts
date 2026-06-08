@@ -62,8 +62,9 @@ export interface GroundStairBoundaryColliderOptions {
   eastRunSealX?: number;
   /**
    * Optional east-most X coordinate for thin caps at each end of the run seal.
-   * These caps should terminate at a nearby obstacle or room edge so the seal
-   * cannot be routed around while the middle of the living room stays open.
+   * Keep this localized; using the full room edge creates invisible horizontal
+   * walls across reachable living-room space once player-radius expansion is
+   * applied.
    */
   eastRunSealCapMaxX?: number;
 }
@@ -261,9 +262,10 @@ export const createGroundStairBoundaryColliders = (
     options.guardThickness * 0.05,
     0.02
   );
+  const fallbackEastRunSealCapMaxX = eastRunSealX;
   const eastRunSealCapMaxX = Math.max(
-    eastRunSealX,
-    options.eastRunSealCapMaxX ?? eastRunSealX
+    fallbackEastRunSealCapMaxX,
+    options.eastRunSealCapMaxX ?? fallbackEastRunSealCapMaxX
   );
   const eastRunSealColliders: NamedStairBoundaryCollider[] =
     eastRunSealX > eastBoundaryMaxX

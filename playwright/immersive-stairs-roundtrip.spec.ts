@@ -264,17 +264,31 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   expect(
     await canOccupyPosition(page, {
       x: 24,
+      z: stairTopZ + 0.76,
+      floorId: 'ground',
+    })
+  ).toBe(true);
+  expect(
+    await canOccupyPosition(page, {
+      x: 24,
+      z: stairBottomZ - 0.76,
+      floorId: 'ground',
+    })
+  ).toBe(true);
+  expect(
+    await canOccupyPosition(page, {
+      x: 24,
       z: stairTopZ - 0.05,
       floorId: 'ground',
     })
-  ).toBe(false);
+  ).toBe(true);
   expect(
     await canOccupyPosition(page, {
       x: 24,
       z: stairBottomZ + 0.05,
       floorId: 'ground',
     })
-  ).toBe(false);
+  ).toBe(true);
   expect(
     await canOccupyPosition(page, { x: 24, z: -30, floorId: 'ground' })
   ).toBe(true);
