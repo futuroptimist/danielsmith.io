@@ -42,6 +42,16 @@ export interface StairNavigationZones {
   explicitDescentCorridor: RectCollider;
 }
 
+export interface NamedStairBoundaryCollider {
+  name: string;
+  bounds: RectCollider;
+}
+
+export interface GroundStairBoundaryColliderOptions {
+  guardThickness: number;
+  playerRadius: number;
+}
+
 const DENOMINATOR_EPSILON = 1e-6;
 
 const getMinZ = (...values: number[]): number => Math.min(...values);
@@ -194,6 +204,69 @@ export const createStairNavigationZones = (
       rampMaxZ
     ),
   };
+};
+
+export const createGroundStairBoundaryColliders = (
+  geometry: StairGeometry,
+  behavior: StairBehavior,
+  options: GroundStairBoundaryColliderOptions
+): NamedStairBoundaryCollider[] => {
+  const lowerApproachZ =
+    geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+  const guardMinZ = getMinZ(
+    geometry.landingMinZ,
+    geometry.landingMaxZ,
+    geometry.bottomZ,
+    lowerApproachZ
+  );
+  const guardMaxZ = getMaxZ(
+    geometry.landingMinZ,
+    geometry.landingMaxZ,
+    geometry.bottomZ,
+    lowerApproachZ
+  );
+  const westEdgeX = geometry.centerX - geometry.halfWidth;
+  const eastEdgeX = geometry.centerX + geometry.halfWidth;
+  const eastBoundaryDepth =
+    geometry.halfWidth +
+    behavior.transitionMargin +
+    options.playerRadius +
+    options.guardThickness;
+  const lowerCornerMinZ = getMinZ(geometry.bottomZ, lowerApproachZ);
+  const lowerCornerMaxZ = getMaxZ(
+    geometry.bottomZ,
+    lowerApproachZ + geometry.direction * -options.playerRadius
+  );
+
+  return [
+    {
+      name: 'GroundStairWestBoundary',
+      bounds: {
+        minX: westEdgeX - options.guardThickness,
+        maxX: westEdgeX,
+        minZ: guardMinZ,
+        maxZ: guardMaxZ,
+      },
+    },
+    {
+      name: 'GroundStairEastBoundary',
+      bounds: {
+        minX: eastEdgeX,
+        maxX: eastEdgeX + eastBoundaryDepth,
+        minZ: guardMinZ,
+        maxZ: guardMaxZ,
+      },
+    },
+    {
+      name: 'GroundStairLowerCornerGuard',
+      bounds: {
+        minX: eastEdgeX,
+        maxX: eastEdgeX + behavior.transitionMargin + options.playerRadius,
+        minZ: lowerCornerMinZ,
+        maxZ: lowerCornerMaxZ,
+      },
+    },
+  ];
 };
 
 const isInExplicitDescentCorridor = (

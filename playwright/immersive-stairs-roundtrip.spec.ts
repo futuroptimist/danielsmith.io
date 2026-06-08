@@ -55,6 +55,21 @@ type TestWorldApi = {
   };
 };
 
+type DebugCollidersApi = {
+  getState(): {
+    enabled: boolean;
+    visibleColliderCount: number;
+    totalColliderCount: number;
+  };
+  setEnabled(enabled: boolean): void;
+  getColliders(): Array<{
+    floor: FloorId | 'all';
+    category: string;
+    name: string;
+    bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+  }>;
+};
+
 type DebugCoordinatesApi = {
   getState(): {
     enabled: boolean;
@@ -83,6 +98,7 @@ type PortfolioWindow = Window & {
   portfolio?: {
     world?: TestWorldApi;
     debugCoordinates?: DebugCoordinatesApi;
+    debugColliders?: DebugCollidersApi;
     poi?: {
       getTooltipState(): TooltipState;
     };
@@ -220,6 +236,69 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
     sourceZone: 'outsideStairs',
     liftedZone: 'outsideStairs',
   });
+});
+
+test('ground stair east boundary blocks squeeze corner while preserving ascent', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const html = page.locator('html');
+  const { stairCenterX, stairBottomZ, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+  const blockedSqueezePoint = {
+    x: 17.38,
+    z: -8.84,
+    floorId: 'ground' as const,
+  };
+  const blockedCornerPoint = {
+    x: 21.35,
+    z: -14.66,
+    floorId: 'ground' as const,
+  };
+  const lowerEntrance = {
+    x: stairCenterX,
+    z: stairBottomZ + 0.3,
+    floorId: 'ground' as const,
+  };
+
+  expect(await canOccupyPosition(page, blockedSqueezePoint)).toBe(false);
+  expect(await canOccupyPosition(page, blockedCornerPoint)).toBe(false);
+  await expect(async () =>
+    movePlayerTo(page, blockedSqueezePoint)
+  ).rejects.toThrow(/Cannot occupy/);
+  await expect(async () =>
+    movePlayerTo(page, blockedCornerPoint)
+  ).rejects.toThrow(/Cannot occupy/);
+
+  expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
+  await movePlayerTo(page, lowerEntrance);
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: (stairBottomZ + stairTopZ) / 2,
+  });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const debugColliderNames = await page.evaluate(() => {
+    const debugColliders = (window as PortfolioWindow).portfolio
+      ?.debugColliders;
+    if (!debugColliders) {
+      throw new Error('Debug collider API unavailable');
+    }
+    debugColliders.setEnabled(true);
+    return debugColliders.getColliders().map((collider) => collider.name);
+  });
+  expect(debugColliderNames).toEqual(
+    expect.arrayContaining([
+      'GroundStairEastBoundary',
+      'GroundStairLowerCornerGuard',
+    ])
+  );
 });
 
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {

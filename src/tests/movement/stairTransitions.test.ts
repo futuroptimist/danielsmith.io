@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
+import { collidesWithColliders } from '../../systems/collision';
 import {
   classifyStairTransitionZone,
+  createGroundStairBoundaryColliders,
   createStairNavAreaRect,
   createStairNavigationZones,
   predictStairFloorId,
@@ -38,6 +40,9 @@ const NEGATIVE_Z_STAIRS = createStairGeometry(-1);
 const UPPER_FLOOR_ELEVATION = NEGATIVE_Z_STAIRS.totalRise + 0.38;
 const SCREENSHOT_4_SOURCE_POINT = { x: 7.4, z: -25.27 };
 const SCREENSHOT_4_LIFT_POINT = { x: 8.14, z: -25.36 };
+const GROUND_STAIR_SQUEEZE_POINT = { x: 17.38, z: -8.84 };
+const GROUND_STAIR_CORNER_POINT = { x: 21.35, z: -14.66 };
+const PLAYER_RADIUS = 0.75;
 
 const STAIR_BEHAVIOR: StairBehavior = {
   transitionMargin: toWorldUnits(0.6),
@@ -456,6 +461,53 @@ describe('stair navigation zones', () => {
       NEGATIVE_Z_STAIRS.landingMaxZ,
       6
     );
+  });
+
+  it('blocks the ground-floor east-side stair squeeze without covering the centerline', () => {
+    const boundaryColliders = createGroundStairBoundaryColliders(
+      NEGATIVE_Z_STAIRS,
+      STAIR_BEHAVIOR,
+      { guardThickness: toWorldUnits(0.22), playerRadius: PLAYER_RADIUS }
+    );
+    const colliderBounds = boundaryColliders.map((collider) => collider.bounds);
+
+    expect(boundaryColliders.map((collider) => collider.name)).toEqual([
+      'GroundStairWestBoundary',
+      'GroundStairEastBoundary',
+      'GroundStairLowerCornerGuard',
+    ]);
+    expect(
+      collidesWithColliders(
+        GROUND_STAIR_SQUEEZE_POINT.x,
+        GROUND_STAIR_SQUEEZE_POINT.z,
+        PLAYER_RADIUS,
+        colliderBounds
+      )
+    ).toBe(true);
+    expect(
+      collidesWithColliders(
+        GROUND_STAIR_CORNER_POINT.x,
+        GROUND_STAIR_CORNER_POINT.z,
+        PLAYER_RADIUS,
+        colliderBounds
+      )
+    ).toBe(true);
+    expect(
+      collidesWithColliders(
+        NEGATIVE_Z_STAIRS.centerX,
+        NEGATIVE_Z_STAIRS.bottomZ + toWorldUnits(0.15),
+        PLAYER_RADIUS,
+        colliderBounds
+      )
+    ).toBe(false);
+    expect(
+      collidesWithColliders(
+        NEGATIVE_Z_STAIRS.centerX,
+        (NEGATIVE_Z_STAIRS.bottomZ + NEGATIVE_Z_STAIRS.topZ) / 2,
+        PLAYER_RADIUS,
+        colliderBounds
+      )
+    ).toBe(false);
   });
 
   it('expands the legacy stair footprint with margins for compatibility', () => {

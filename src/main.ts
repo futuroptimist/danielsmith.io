@@ -382,6 +382,7 @@ import {
 } from './systems/movement/stairLayout';
 import {
   classifyStairTransitionZone,
+  createGroundStairBoundaryColliders,
   createStairNavigationZones,
   isWithinLanding,
   isWithinStairWidth,
@@ -1823,21 +1824,20 @@ function initializeImmersiveScene(
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
   const stairGuardThickness = toWorldUnits(0.22);
-  const stairGuardMinZ = stairLayout.guardRange.minZ;
-  const stairGuardMaxZ = stairLayout.guardRange.maxZ;
-
-  groundColliders.push({
-    minX: stairCenterX - stairHalfWidth - stairGuardThickness,
-    maxX: stairCenterX - stairHalfWidth,
-    minZ: stairGuardMinZ,
-    maxZ: stairGuardMaxZ,
-  });
-  groundColliders.push({
-    minX: stairCenterX + stairHalfWidth,
-    maxX: stairCenterX + stairHalfWidth + stairGuardThickness,
-    minZ: stairGuardMinZ,
-    maxZ: stairGuardMaxZ,
-  });
+  const groundStairBoundaryColliders = createGroundStairBoundaryColliders(
+    stairGeometry,
+    stairBehavior,
+    {
+      guardThickness: stairGuardThickness,
+      playerRadius: PLAYER_RADIUS,
+    }
+  );
+  const namedGroundColliderBounds = new Set<RectCollider>(
+    groundStairBoundaryColliders.map((collider) => collider.bounds)
+  );
+  groundStairBoundaryColliders.forEach((collider) =>
+    groundColliders.push(collider.bounds)
+  );
 
   const upperFloorGroup = new Group();
   upperFloorGroup.visible = false;
@@ -3818,11 +3818,22 @@ function initializeImmersiveScene(
     enabled: debugCollidersEnabled,
   });
   colliderVisualizer.register([
-    ...createDebugColliderRegistrations(groundColliders, {
-      floor: 'ground',
-      category: 'ground',
-      namePrefix: 'ground-collider',
-    }),
+    ...createDebugColliderRegistrations(
+      groundColliders.filter(
+        (collider) => !namedGroundColliderBounds.has(collider)
+      ),
+      {
+        floor: 'ground',
+        category: 'ground',
+        namePrefix: 'ground-collider',
+      }
+    ),
+    ...groundStairBoundaryColliders.map((collider) => ({
+      floor: 'ground' as const,
+      category: 'stair-boundary',
+      name: collider.name,
+      bounds: collider.bounds,
+    })),
     ...createDebugColliderRegistrations(staticColliders, {
       floor: 'ground',
       category: 'static',
