@@ -299,6 +299,14 @@ export const AR_OVERRIDES: LocaleOverrides = {
         none: 'لا شيء',
       },
     },
+    debugColliders: {
+      labelEnabled: 'تراكب المصادمات مفعّل',
+      labelDisabled: 'تراكب المصادمات معطّل',
+      descriptionEnabled:
+        'يعرض الجدران غير المرئية ومستطيلات التصادم للطابق النشط.',
+      descriptionDisabled:
+        'تبقى الجدران غير المرئية ومستطيلات التصادم مخفية حتى تفعّلها.',
+    },
     poiOverlay: {
       visited: 'تمت الزيارة',
       nextHighlight: 'المحطة التالية',

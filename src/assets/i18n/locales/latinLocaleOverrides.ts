@@ -67,6 +67,10 @@ interface LatinLocaleCopy {
     debugCoordinatesYes: string;
     debugCoordinatesNo: string;
     debugCoordinatesNone: string;
+    debugCollidersLabelEnabled: string;
+    debugCollidersLabelDisabled: string;
+    debugCollidersDescriptionEnabled: string;
+    debugCollidersDescriptionDisabled: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -739,6 +743,12 @@ export function buildLatinLocaleOverrides(
           no: s.debugCoordinatesNo,
           none: s.debugCoordinatesNone,
         },
+      },
+      debugColliders: {
+        labelEnabled: s.debugCollidersLabelEnabled,
+        labelDisabled: s.debugCollidersLabelDisabled,
+        descriptionEnabled: s.debugCollidersDescriptionEnabled,
+        descriptionDisabled: s.debugCollidersDescriptionDisabled,
       },
       tourReset: {
         heading: s.guidedTour,

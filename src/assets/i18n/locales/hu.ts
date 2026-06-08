@@ -68,6 +68,12 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesYes: 'Igen',
     debugCoordinatesNo: 'Nem',
     debugCoordinatesNone: 'Nincs',
+    debugCollidersLabelEnabled: 'Collider-réteg be',
+    debugCollidersLabelDisabled: 'Collider-réteg ki',
+    debugCollidersDescriptionEnabled:
+      'Megjeleníti az aktív emelet láthatatlan falait és ütközési téglalapjait.',
+    debugCollidersDescriptionDisabled:
+      'A láthatatlan falak és ütközési téglalapok rejtve maradnak, amíg be nem kapcsolod.',
   },
   poi: {
     futuroptimist: {
