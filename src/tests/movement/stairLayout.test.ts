@@ -70,6 +70,29 @@ describe('computeStairLayout', () => {
     expect(opening.minX).toBeCloseTo(7.04);
     expect(opening.maxX).toBeCloseTo(12.8);
     expect(opening.minZ).toBeCloseTo(-31.9);
-    expect(opening.maxZ).toBeCloseTo(-25.9);
+    expect(opening.maxZ).toBeCloseTo(-16);
+  });
+
+  it('extends negative Z cutouts over the hidden stair run, not just the landing lip', () => {
+    const layout = computeStairLayout({
+      baseZ: 0,
+      stepRun: 1,
+      stepCount: 4,
+      landingDepth: 2,
+      direction: 'negativeZ',
+      guardMargin: 0.5,
+      stairwellMargin: 0.25,
+    });
+
+    const opening = computeStairwellOpeningBounds({
+      centerX: 0,
+      halfWidth: 1,
+      marginX: 0.25,
+      roomBounds: { minX: -5, maxX: 5, minZ: -7, maxZ: 1 },
+      layout,
+    });
+
+    expect(opening.minZ).toBeCloseTo(-6.25);
+    expect(opening.maxZ).toBeCloseTo(0.25);
   });
 });

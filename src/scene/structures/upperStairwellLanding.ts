@@ -9,6 +9,17 @@ export interface UpperStairwellGuardConfig {
   height: number;
   /** Physical thickness of each rail. */
   thickness: number;
+  /**
+   * Optional long side rail edges around the opening. Omitting west keeps the
+   * upstairs-room egress open while east can still protect the stair void edge.
+   */
+  sideSides?: ReadonlyArray<'east' | 'west'>;
+  /**
+   * Optional shoulder rail sides to add around the descent corridor. Omitting
+   * west keeps the upstairs-room egress open while east can still protect the
+   * stair void edge.
+   */
+  shoulderSides?: ReadonlyArray<'east' | 'west'>;
   /** Optional material overrides for the guard rails. */
   material?: MeshStandardMaterialParameters;
 }
@@ -107,36 +118,43 @@ export function createUpperStairwellLanding(
     return { group, colliders };
   }
 
-  addGuard({
-    group,
-    colliders,
-    material: guardMaterial,
-    name: `${SIDE_GUARD_NAME}-West`,
-    bounds: {
-      minX: openingBounds.minX - thickness,
-      maxX: openingBounds.minX,
-      minZ: openingBounds.minZ,
-      maxZ: openingBounds.maxZ,
-    },
-    roomBounds: config.roomBounds,
-    elevation: config.elevation,
-    height: config.guard.height,
-  });
-  addGuard({
-    group,
-    colliders,
-    material: guardMaterial,
-    name: `${SIDE_GUARD_NAME}-East`,
-    bounds: {
-      minX: openingBounds.maxX,
-      maxX: openingBounds.maxX + thickness,
-      minZ: openingBounds.minZ,
-      maxZ: openingBounds.maxZ,
-    },
-    roomBounds: config.roomBounds,
-    elevation: config.elevation,
-    height: config.guard.height,
-  });
+  const sideSides = config.guard.sideSides ?? ['east', 'west'];
+
+  if (sideSides.includes('west')) {
+    addGuard({
+      group,
+      colliders,
+      material: guardMaterial,
+      name: `${SIDE_GUARD_NAME}-West`,
+      bounds: {
+        minX: openingBounds.minX - thickness,
+        maxX: openingBounds.minX,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.maxZ,
+      },
+      roomBounds: config.roomBounds,
+      elevation: config.elevation,
+      height: config.guard.height,
+    });
+  }
+
+  if (sideSides.includes('east')) {
+    addGuard({
+      group,
+      colliders,
+      material: guardMaterial,
+      name: `${SIDE_GUARD_NAME}-East`,
+      bounds: {
+        minX: openingBounds.maxX,
+        maxX: openingBounds.maxX + thickness,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.maxZ,
+      },
+      roomBounds: config.roomBounds,
+      elevation: config.elevation,
+      height: config.guard.height,
+    });
+  }
   addGuard({
     group,
     colliders,
@@ -153,42 +171,49 @@ export function createUpperStairwellLanding(
     height: config.guard.height,
   });
 
-  if (config.descentCorridorBounds) {
+  const shoulderSides = config.guard.shoulderSides ?? ['east', 'west'];
+
+  if (config.descentCorridorBounds && shoulderSides.length > 0) {
     const descentCorridorBounds = clampBoundsToRoom(
       config.descentCorridorBounds,
       openingBounds
     );
 
-    addGuard({
-      group,
-      colliders,
-      material: guardMaterial,
-      name: `${SHOULDER_GUARD_NAME}-West`,
-      bounds: {
-        minX: openingBounds.minX,
-        maxX: descentCorridorBounds.minX,
-        minZ: openingBounds.minZ,
-        maxZ: openingBounds.maxZ,
-      },
-      roomBounds: config.roomBounds,
-      elevation: config.elevation,
-      height: config.guard.height,
-    });
-    addGuard({
-      group,
-      colliders,
-      material: guardMaterial,
-      name: `${SHOULDER_GUARD_NAME}-East`,
-      bounds: {
-        minX: descentCorridorBounds.maxX,
-        maxX: openingBounds.maxX,
-        minZ: openingBounds.minZ,
-        maxZ: openingBounds.maxZ,
-      },
-      roomBounds: config.roomBounds,
-      elevation: config.elevation,
-      height: config.guard.height,
-    });
+    if (shoulderSides.includes('west')) {
+      addGuard({
+        group,
+        colliders,
+        material: guardMaterial,
+        name: `${SHOULDER_GUARD_NAME}-West`,
+        bounds: {
+          minX: openingBounds.minX,
+          maxX: descentCorridorBounds.minX,
+          minZ: openingBounds.minZ,
+          maxZ: openingBounds.maxZ,
+        },
+        roomBounds: config.roomBounds,
+        elevation: config.elevation,
+        height: config.guard.height,
+      });
+    }
+
+    if (shoulderSides.includes('east')) {
+      addGuard({
+        group,
+        colliders,
+        material: guardMaterial,
+        name: `${SHOULDER_GUARD_NAME}-East`,
+        bounds: {
+          minX: descentCorridorBounds.maxX,
+          maxX: openingBounds.maxX,
+          minZ: openingBounds.minZ,
+          maxZ: openingBounds.maxZ,
+        },
+        roomBounds: config.roomBounds,
+        elevation: config.elevation,
+        height: config.guard.height,
+      });
+    }
   }
 
   return { group, colliders };

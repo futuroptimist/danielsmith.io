@@ -605,6 +605,11 @@ declare global {
       };
       world?: {
         getActiveFloor(): FloorId;
+        canOccupyPosition(target: {
+          x: number;
+          z: number;
+          floorId?: FloorId;
+        }): boolean;
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
         getPlayerPosition(): { x: number; y: number; z: number };
@@ -1817,25 +1822,6 @@ function initializeImmersiveScene(
     stairNavigationZones.stairRampBody,
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
-  const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
-  const upperStairDescentGuardMaxZ = Math.max(stairTopZ, stairBottomZ);
-  // Invisible upper-floor guard rails flank the intentional descent corridor.
-  // They keep normal landing/room movement from drifting into the stairwell
-  // void while leaving the middle corridor open for deliberate stair descent.
-  upperFloorColliders.push(
-    {
-      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-      maxX: stairNavigationZones.explicitDescentCorridor.minX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    },
-    {
-      minX: stairNavigationZones.explicitDescentCorridor.maxX,
-      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    }
-  );
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1878,8 +1864,63 @@ function initializeImmersiveScene(
       })
     : undefined;
   // The upper-floor stairwell cutout intentionally comes from the same
-  // computeStairLayout result used by movement. It removes the stair landing
-  // void while preserving the normal doorway bridge beyond the stair top.
+  // computeStairLayout result used by movement. It removes both the stair
+  // landing void and the hidden ramp run below the landing lip.
+  if (upperStairwellOpening) {
+    const upperStairVoidMinZ = upperStairwellOpening.minZ;
+    const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
+    const upperStairWestEgressMinZ = Math.min(
+      stairLandingMinZ + stairwellMarginZ,
+      stairLandingMaxZ
+    );
+    const upperStairWestEgressMaxZ = Math.max(
+      stairLandingMinZ + stairwellMarginZ,
+      stairLandingMaxZ
+    );
+
+    // Invisible upper-floor guard rails flank the intentional descent corridor.
+    // They are scoped to the actual upper-floor cutout instead of the full ramp
+    // run so normal loft space beyond the landing remains occupiable. The center
+    // blocker below rejects forced upper-floor placement over the hidden stairs;
+    // live movement still hands off to the ground floor through the descent zone.
+    upperFloorColliders.push(
+      {
+        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+        maxX: stairNavigationZones.explicitDescentCorridor.minX,
+        minZ: upperStairVoidMinZ,
+        maxZ: upperStairWestEgressMinZ,
+      },
+      {
+        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+        maxX: stairNavigationZones.explicitDescentCorridor.minX,
+        minZ: upperStairWestEgressMaxZ,
+        maxZ: upperStairVoidMaxZ,
+      },
+      {
+        minX: stairNavigationZones.explicitDescentCorridor.maxX,
+        maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+        minZ: upperStairVoidMinZ,
+        maxZ: upperStairVoidMaxZ,
+      },
+      {
+        minX: stairNavigationZones.explicitDescentCorridor.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+        minZ: Math.min(
+          stairTopZ -
+            stairLayout.directionMultiplier *
+              (stairLandingTriggerMargin + PLAYER_RADIUS),
+          upperStairVoidMaxZ
+        ),
+        maxZ: Math.max(
+          stairTopZ -
+            stairLayout.directionMultiplier *
+              (stairLandingTriggerMargin + PLAYER_RADIUS),
+          upperStairVoidMaxZ
+        ),
+      }
+    );
+  }
+
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
@@ -1896,14 +1937,22 @@ function initializeImmersiveScene(
   upperFloorGroup.add(upperFloorTiles.group);
 
   if (upperLandingRoom && upperStairwellOpening) {
+    const upperStairwellGuardOpening = {
+      minX: upperStairwellOpening.minX,
+      maxX: upperStairwellOpening.maxX,
+      minZ: upperStairwellOpening.minZ,
+      maxZ: Math.min(upperLandingRoom.bounds.maxZ, stairLandingMaxZ),
+    };
     const upperStairwellLanding = createUpperStairwellLanding({
       roomBounds: upperLandingRoom.bounds,
-      openingBounds: upperStairwellOpening,
+      openingBounds: upperStairwellGuardOpening,
       descentCorridorBounds: stairNavigationZones.explicitDescentCorridor,
       elevation: upperFloorElevation,
       guard: {
         height: 0.56,
         thickness: toWorldUnits(0.12),
+        sideSides: ['east'],
+        shoulderSides: ['east'],
         material: {
           color: 0x2a3241,
           roughness: 0.72,
@@ -3003,6 +3052,11 @@ function initializeImmersiveScene(
     portfolioWindow.portfolio.world = {
       getActiveFloor() {
         return activeFloorId;
+      },
+      canOccupyPosition(target: { x: number; z: number; floorId?: FloorId }) {
+        const floorId =
+          target.floorId ?? predictFloorId(target.x, target.z, activeFloorId);
+        return canOccupyPosition(target.x, target.z, floorId);
       },
       setActiveFloor(next: FloorId) {
         setActiveFloorId(next);
