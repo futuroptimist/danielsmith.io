@@ -108,29 +108,20 @@ describe('createRoomFloorTiles', () => {
     expect(fillsLeftLandingShoulder).toBe(true);
     expect(fillsRightLandingShoulder).toBe(true);
 
-    const visibleStairwellVoid = {
-      minX: stairwellOpening.minX,
-      maxX: stairwellOpening.maxX,
-      minZ: stairwellOpening.minZ,
-      maxZ: stairLayout.landingMaxZ,
-    };
-    expect(
-      upperLandingTiles.some((tile) =>
-        overlaps(tile.bounds, visibleStairwellVoid)
-      )
-    ).toBe(false);
-
-    const doorwayBridgePastStairTop = {
+    const hiddenStairRunVoid = {
       minX: stairwellOpening.minX,
       maxX: stairwellOpening.maxX,
       minZ: stairLayout.landingMaxZ,
       maxZ: upperLandingRoom!.bounds.maxZ,
     };
     expect(
+      upperLandingTiles.some((tile) => overlaps(tile.bounds, stairwellOpening))
+    ).toBe(false);
+    expect(
       upperLandingTiles.some((tile) =>
-        boundsAreClose(tile.bounds, doorwayBridgePastStairTop)
+        overlaps(tile.bounds, hiddenStairRunVoid)
       )
-    ).toBe(true);
+    ).toBe(false);
 
     for (const tile of build.tiles) {
       const geometry = tile.mesh.geometry as BoxGeometry;

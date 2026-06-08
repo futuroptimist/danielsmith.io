@@ -605,6 +605,11 @@ declare global {
       };
       world?: {
         getActiveFloor(): FloorId;
+        canOccupyPosition(target: {
+          x: number;
+          z: number;
+          floorId?: FloorId;
+        }): boolean;
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
         getPlayerPosition(): { x: number; y: number; z: number };
@@ -1817,25 +1822,6 @@ function initializeImmersiveScene(
     stairNavigationZones.stairRampBody,
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
-  const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
-  const upperStairDescentGuardMaxZ = Math.max(stairTopZ, stairBottomZ);
-  // Invisible upper-floor guard rails flank the intentional descent corridor.
-  // They keep normal landing/room movement from drifting into the stairwell
-  // void while leaving the middle corridor open for deliberate stair descent.
-  upperFloorColliders.push(
-    {
-      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-      maxX: stairNavigationZones.explicitDescentCorridor.minX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    },
-    {
-      minX: stairNavigationZones.explicitDescentCorridor.maxX,
-      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    }
-  );
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1865,6 +1851,9 @@ function initializeImmersiveScene(
     opacity: 1,
     depthWrite: true,
   });
+  const doorwayPadding = PLAYER_RADIUS * 0.6;
+  const doorwayDepth = WALL_THICKNESS + PLAYER_RADIUS * 2;
+
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
   );
@@ -1878,8 +1867,113 @@ function initializeImmersiveScene(
       })
     : undefined;
   // The upper-floor stairwell cutout intentionally comes from the same
-  // computeStairLayout result used by movement. It removes the stair landing
-  // void while preserving the normal doorway bridge beyond the stair top.
+  // computeStairLayout result used by movement. It removes both the stair
+  // landing void and the hidden ramp run below the landing lip.
+  if (upperStairwellOpening) {
+    const upperStairVoidMinZ = upperStairwellOpening.minZ;
+    const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
+    const upperStairWestEgressMinZ = Math.min(
+      stairLandingMinZ + stairwellMarginZ,
+      stairLandingMaxZ
+    );
+    const upperStairWestEgressMaxZ = Math.max(
+      stairLandingMinZ + stairwellMarginZ,
+      stairLandingMaxZ
+    );
+
+    const upperLandingDoorwayClearanceZ =
+      upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
+    const hiddenStairTopGapBlockerNearZ =
+      stairTopZ +
+      stairLayout.directionMultiplier *
+        (PLAYER_RADIUS + stairLandingTriggerMargin);
+    const hiddenStairTopGapBlockerFarZ =
+      stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
+    const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
+    const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
+    const hiddenStairWestVoidGapBlockerMaxZ = upperStairWestEgressMaxZ;
+    const hiddenStairDeepVoidBlockerMinZ =
+      hiddenStairWestVoidGapBlockerMinZ -
+      stairLayout.directionMultiplier * PLAYER_RADIUS;
+    const hiddenStairDeepVoidBlockerMaxZ =
+      hiddenStairTopGapBlockerNearZ +
+      stairLayout.directionMultiplier * PLAYER_RADIUS * 2;
+    const hiddenStairBlockerStartZ =
+      stairTopZ -
+      stairLayout.directionMultiplier *
+        (PLAYER_RADIUS + stairLandingTriggerMargin / 2);
+    const hiddenStairBlockerMaxZ = Math.min(
+      upperStairVoidMaxZ,
+      upperLandingDoorwayClearanceZ
+    );
+
+    // Invisible upper-floor guard rails flank the intentional descent corridor.
+    // They are scoped to the actual upper-floor cutout instead of the full ramp
+    // run so normal loft space beyond the landing remains occupiable. The center
+    // blockers reject forced upper-floor placement over the hidden stair-top gap,
+    // the deeper removed stair run, and doorway-side void while preserving the
+    // narrow stair-top handoff, a west-side bypass lane around the void, and the
+    // north doorway's padded passage into the loft. The west-edge blocker starts
+    // at the visual cutout because collider checks already apply PLAYER_RADIUS
+    // clearance around the blocker edge.
+    upperFloorColliders.push(
+      {
+        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+        maxX: stairNavigationZones.explicitDescentCorridor.minX,
+        minZ: upperStairVoidMinZ,
+        maxZ: upperStairWestEgressMinZ,
+      },
+      {
+        minX: upperStairwellOpening.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.minX,
+        minZ: upperStairWestEgressMaxZ,
+        maxZ: upperStairVoidMaxZ,
+      },
+      {
+        minX: stairNavigationZones.explicitDescentCorridor.maxX,
+        maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
+        minZ: upperStairVoidMinZ,
+        maxZ: upperStairVoidMaxZ,
+      },
+      {
+        minX: upperStairwellOpening.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.minX,
+        minZ: hiddenStairWestVoidGapBlockerMinZ,
+        maxZ: hiddenStairWestVoidGapBlockerMaxZ,
+      },
+      {
+        minX: stairNavigationZones.explicitDescentCorridor.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+        minZ: Math.min(
+          hiddenStairDeepVoidBlockerMinZ,
+          hiddenStairDeepVoidBlockerMaxZ
+        ),
+        maxZ: Math.max(
+          hiddenStairDeepVoidBlockerMinZ,
+          hiddenStairDeepVoidBlockerMaxZ
+        ),
+      },
+      {
+        minX: hiddenStairTopGapBlockerMinX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+        minZ: Math.min(
+          hiddenStairTopGapBlockerNearZ,
+          hiddenStairTopGapBlockerFarZ
+        ),
+        maxZ: Math.max(
+          hiddenStairTopGapBlockerNearZ,
+          hiddenStairTopGapBlockerFarZ
+        ),
+      },
+      {
+        minX: stairNavigationZones.explicitDescentCorridor.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+        minZ: Math.min(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
+        maxZ: Math.max(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
+      }
+    );
+  }
+
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
@@ -1896,14 +1990,22 @@ function initializeImmersiveScene(
   upperFloorGroup.add(upperFloorTiles.group);
 
   if (upperLandingRoom && upperStairwellOpening) {
+    const upperStairwellGuardOpening = {
+      minX: upperStairwellOpening.minX,
+      maxX: upperStairwellOpening.maxX,
+      minZ: upperStairwellOpening.minZ,
+      maxZ: Math.min(upperLandingRoom.bounds.maxZ, stairLandingMaxZ),
+    };
     const upperStairwellLanding = createUpperStairwellLanding({
       roomBounds: upperLandingRoom.bounds,
-      openingBounds: upperStairwellOpening,
+      openingBounds: upperStairwellGuardOpening,
       descentCorridorBounds: stairNavigationZones.explicitDescentCorridor,
       elevation: upperFloorElevation,
       guard: {
         height: 0.56,
         thickness: toWorldUnits(0.12),
+        sideSides: ['east'],
+        shoulderSides: ['east'],
         material: {
           color: 0x2a3241,
           roughness: 0.72,
@@ -1943,9 +2045,6 @@ function initializeImmersiveScene(
     ground: groundColliders,
     upper: upperFloorColliders,
   };
-
-  const doorwayPadding = PLAYER_RADIUS * 0.6;
-  const doorwayDepth = WALL_THICKNESS + PLAYER_RADIUS * 2;
 
   const navMeshes: Record<FloorId, NavMesh> = {
     ground: createNavMesh(FLOOR_PLAN, {
@@ -3003,6 +3102,11 @@ function initializeImmersiveScene(
     portfolioWindow.portfolio.world = {
       getActiveFloor() {
         return activeFloorId;
+      },
+      canOccupyPosition(target: { x: number; z: number; floorId?: FloorId }) {
+        const floorId =
+          target.floorId ?? predictFloorId(target.x, target.z, activeFloorId);
+        return canOccupyPosition(target.x, target.z, floorId);
       },
       setActiveFloor(next: FloorId) {
         setActiveFloorId(next);

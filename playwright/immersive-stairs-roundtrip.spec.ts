@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
@@ -24,6 +26,11 @@ type StairTransitionZone =
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
   getActiveFloor(): FloorId;
+  canOccupyPosition(target: {
+    x: number;
+    z: number;
+    floorId?: FloorId;
+  }): boolean;
   getPlayerPosition(): { x: number; y: number; z: number };
   predictFloorAt(target: {
     x: number;
@@ -120,6 +127,34 @@ async function movePlayerTo(
     world.movePlayerTo(next);
   }, target);
   await page.waitForTimeout(150);
+}
+
+function getUpperRoomCenter(roomId: string) {
+  const room = UPPER_FLOOR_PLAN.rooms.find(
+    (candidate) => candidate.id === roomId
+  );
+  if (!room) {
+    throw new Error(`Missing upper-floor room: ${roomId}`);
+  }
+
+  return {
+    x: (room.bounds.minX + room.bounds.maxX) / 2,
+    z: (room.bounds.minZ + room.bounds.maxZ) / 2,
+    floorId: 'upper' as const,
+  };
+}
+
+async function canOccupyPosition(
+  page: Page,
+  target: { x: number; z: number; floorId?: FloorId }
+) {
+  return page.evaluate((next) => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.canOccupyPosition(next);
+  }, target);
 }
 
 async function getWorldState(page: Page) {
@@ -228,7 +263,10 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // Return toward the stairs, enter the explicit descent handoff, then continue down the ramp.
   // The helper teleports between sampled positions, so include the narrow handoff band that real
   // movement crosses frame by frame.
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.15 });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
   await movePlayerTo(page, {
@@ -237,6 +275,117 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   });
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.35 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
+});
+
+test('upper landing opens west into upstairs rooms and blocks the hidden stair run', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const html = page.locator('html');
+  const { stairCenterX, stairBottomZ, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+  const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
+  const westLandingEgress = {
+    x: stairCenterX - 1.6,
+    z: stairTopZ + stairDirection * 1.8,
+    floorId: 'upper' as const,
+  };
+  const normalLoftSpace = { x: 8.15, z: -11.82, floorId: 'upper' as const };
+  const normalLoftEastNudge = {
+    ...normalLoftSpace,
+    x: normalLoftSpace.x + 0.45,
+  };
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  if (!upperLandingRoom) {
+    throw new Error('Missing upper landing room');
+  }
+  const loftDoorway = {
+    x: stairCenterX,
+    z: upperLandingRoom.bounds.maxZ,
+    floorId: 'upper' as const,
+  };
+  const hiddenStairRun = { x: 12.7, z: -23.72, floorId: 'upper' as const };
+  const hiddenStairTopRun = {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.4,
+    floorId: 'upper' as const,
+  };
+  const westHiddenStairVoidGap = {
+    x: stairCenterX - 1.9,
+    z: stairTopZ + stairDirection * 0.95,
+    floorId: 'upper' as const,
+  };
+  const deeperWestHiddenStairVoidGap = {
+    x: stairCenterX - 1.9,
+    z: stairTopZ + stairDirection * 2,
+    floorId: 'upper' as const,
+  };
+  const westHiddenStairVoidSliver = {
+    x: stairCenterX - 1.55,
+    z: stairTopZ + stairDirection * 2.1,
+    floorId: 'upper' as const,
+  };
+  const westEdgeFloorClearance = {
+    x: 7.5,
+    z: -23,
+    floorId: 'upper' as const,
+  };
+  const westVoidBypass = {
+    x: stairCenterX - 4.4,
+    z: stairTopZ + stairDirection * 0.95,
+    floorId: 'upper' as const,
+  };
+  const hiddenStairVoidGap = [
+    {
+      x: stairCenterX,
+      z: stairTopZ + stairDirection * 0.1,
+      floorId: 'upper' as const,
+    },
+    {
+      x: stairCenterX,
+      z: stairTopZ + stairDirection * 0.6,
+      floorId: 'upper' as const,
+    },
+  ];
+
+  await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: (stairBottomZ + stairTopZ) / 2,
+  });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  expect(await canOccupyPosition(page, westLandingEgress)).toBe(true);
+  await movePlayerTo(page, westLandingEgress);
+  await movePlayerTo(page, creatorsStudioCenter);
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  expect(await canOccupyPosition(page, normalLoftSpace)).toBe(true);
+  expect(await canOccupyPosition(page, normalLoftEastNudge)).toBe(true);
+  expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
+  expect(await canOccupyPosition(page, westVoidBypass)).toBe(true);
+  expect(await canOccupyPosition(page, westHiddenStairVoidGap)).toBe(false);
+  expect(await canOccupyPosition(page, deeperWestHiddenStairVoidGap)).toBe(
+    false
+  );
+  expect(await canOccupyPosition(page, westHiddenStairVoidSliver)).toBe(false);
+  expect(await canOccupyPosition(page, westEdgeFloorClearance)).toBe(true);
+  expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
+  for (const hiddenStairVoidGapSample of hiddenStairVoidGap) {
+    expect(await canOccupyPosition(page, hiddenStairVoidGapSample)).toBe(false);
+  }
+  expect(await canOccupyPosition(page, hiddenStairRun)).toBe(false);
+  await expect(async () => movePlayerTo(page, hiddenStairRun)).rejects.toThrow(
+    /Cannot occupy/
+  );
 });
 
 test('upper landing edge nudges stay upstairs until the descent corridor is entered', async ({
