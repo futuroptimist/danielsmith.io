@@ -1847,6 +1847,7 @@ function initializeImmersiveScene(
     {
       playerRadius: PLAYER_RADIUS,
       guardThickness: stairGuardThickness,
+      eastRunSealMaxX: floorBounds.maxX,
     }
   );
   groundStairBoundaryColliders.forEach(({ name, bounds }) => {

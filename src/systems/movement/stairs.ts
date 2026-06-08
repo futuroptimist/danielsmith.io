@@ -56,17 +56,11 @@ export interface GroundStairBoundaryColliderOptions {
    */
   eastBoundaryMaxX?: number;
   /**
-   * Optional X coordinate for a thin run seal that prevents players from
-   * crossing around the stair-side blocker without filling the living room.
+   * Optional east-most X coordinate for the stair-run seal. The seal must end
+   * at a real boundary, otherwise players can step just beyond the finite edge
+   * and continue through the same stair-run squeeze lane.
    */
-  eastRunSealX?: number;
-  /**
-   * Optional east-most X coordinate for thin caps at each end of the run seal.
-   * Keep this localized; using the full room edge creates invisible horizontal
-   * walls across reachable living-room space once player-radius expansion is
-   * applied.
-   */
-  eastRunSealCapMaxX?: number;
+  eastRunSealMaxX?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -244,56 +238,25 @@ export const createGroundStairBoundaryColliders = (
   );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // Keep the run seal as a thin local edge instead of a filled strip. A wide
-  // seal to the room edge closes bypasses but also turns normal living-room
-  // positions into an invisible wall.
-  const eastRunSealClearanceEpsilon = 0.001;
-  const fallbackEastRunSealX =
-    eastBoundaryMaxX +
-    options.playerRadius +
-    options.guardThickness * 0.5 +
-    options.playerRadius * (2 / 15) -
-    eastRunSealClearanceEpsilon;
-  const eastRunSealX = Math.max(
-    fallbackEastRunSealX,
-    options.eastRunSealX ?? fallbackEastRunSealX
-  );
-  const eastRunSealVisualThickness = Math.min(
-    options.guardThickness * 0.05,
-    0.02
-  );
-  const fallbackEastRunSealCapMaxX = eastRunSealX;
-  const eastRunSealCapMaxX = Math.max(
-    fallbackEastRunSealCapMaxX,
-    options.eastRunSealCapMaxX ?? fallbackEastRunSealCapMaxX
+  // Seal the east-side stair run as a filled strip through the whole ramp
+  // band. A finite line or localized cap only moves the bypass point farther
+  // east; callers can extend this to the room edge so the seal terminates at a
+  // real boundary instead of leaving a route-around gap.
+  const fallbackEastRunSealMaxX =
+    eastBoundaryMaxX + options.playerRadius + options.guardThickness * 0.5;
+  const eastRunSealMaxX = Math.max(
+    fallbackEastRunSealMaxX,
+    options.eastRunSealMaxX ?? fallbackEastRunSealMaxX
   );
   const eastRunSealColliders: NamedStairBoundaryCollider[] =
-    eastRunSealX > eastBoundaryMaxX
+    eastRunSealMaxX > eastBoundaryMaxX
       ? [
           {
             name: 'GroundStairEastRunSeal',
             bounds: {
-              minX: eastRunSealX - eastRunSealVisualThickness,
-              maxX: eastRunSealX,
-              minZ: rampMinZ,
-              maxZ: rampMaxZ,
-            },
-          },
-          {
-            name: 'GroundStairEastRunSealTopCap',
-            bounds: {
               minX: eastBoundaryMaxX,
-              maxX: eastRunSealCapMaxX,
+              maxX: eastRunSealMaxX,
               minZ: rampMinZ,
-              maxZ: rampMinZ + eastRunSealVisualThickness,
-            },
-          },
-          {
-            name: 'GroundStairEastRunSealBottomCap',
-            bounds: {
-              minX: eastBoundaryMaxX,
-              maxX: eastRunSealCapMaxX,
-              minZ: rampMaxZ - eastRunSealVisualThickness,
               maxZ: rampMaxZ,
             },
           },

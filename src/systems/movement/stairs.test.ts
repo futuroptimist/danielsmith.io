@@ -35,6 +35,7 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
+    eastRunSealMaxX: 32,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
@@ -45,8 +46,6 @@ describe('createGroundStairBoundaryColliders', () => {
       'GroundStairEastBoundary',
       'GroundStairLowerCornerGuard',
       'GroundStairEastRunSeal',
-      'GroundStairEastRunSealTopCap',
-      'GroundStairEastRunSealBottomCap',
     ]);
   });
 
@@ -74,14 +73,14 @@ describe('createGroundStairBoundaryColliders', () => {
     ).toBe(true);
   });
 
-  it('keeps regular living-room lanes clear around localized seal caps', () => {
+  it('seals the east stair-run lane while keeping non-run room space clear', () => {
     expect(collidesWithColliders(24, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
-      false
+      true
     );
     expect(
       collidesWithColliders(
         24,
-        geometry.topZ + PLAYER_RADIUS + 0.01,
+        geometry.topZ - PLAYER_RADIUS - 0.01,
         PLAYER_RADIUS,
         boundaryBounds
       )
@@ -89,23 +88,7 @@ describe('createGroundStairBoundaryColliders', () => {
     expect(
       collidesWithColliders(
         24,
-        geometry.bottomZ - PLAYER_RADIUS - 0.01,
-        PLAYER_RADIUS,
-        boundaryBounds
-      )
-    ).toBe(false);
-    expect(
-      collidesWithColliders(
-        24,
-        geometry.topZ - 0.05,
-        PLAYER_RADIUS,
-        boundaryBounds
-      )
-    ).toBe(false);
-    expect(
-      collidesWithColliders(
-        24,
-        geometry.bottomZ + 0.05,
+        geometry.bottomZ + PLAYER_RADIUS + 0.01,
         PLAYER_RADIUS,
         boundaryBounds
       )
