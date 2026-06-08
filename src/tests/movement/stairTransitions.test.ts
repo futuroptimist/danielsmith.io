@@ -98,6 +98,27 @@ describe('stair floor transitions (negative Z ascent)', () => {
     expect(height).toBe(0);
   });
 
+  it('keeps ground-floor positions past the ramp run on ground', () => {
+    const upperDoorwayBridgeZ = NEGATIVE_Z_STAIRS.topZ - toWorldUnits(0.6);
+
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        upperDoorwayBridgeZ,
+        'ground'
+      )
+    ).toBe('upperLanding');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        NEGATIVE_Z_STAIRS.centerX,
+        upperDoorwayBridgeZ,
+        'ground'
+      )
+    ).toBe('ground');
+  });
+
   it('keeps the player on the upper floor while roaming across the landing', () => {
     const landingInteriorZ = NEGATIVE_Z_STAIRS.landingMinZ + toWorldUnits(0.6);
 
@@ -378,6 +399,22 @@ describe('stair navigation zones', () => {
 
     expect(zones.explicitDescentCorridor.minX).toBeGreaterThan(legacyRect.minX);
     expect(zones.explicitDescentCorridor.maxX).toBeLessThan(legacyRect.maxX);
+    expect(zones.stairRampBody.minX).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.centerX - NEGATIVE_Z_STAIRS.halfWidth,
+      6
+    );
+    expect(zones.stairRampBody.maxX).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.centerX + NEGATIVE_Z_STAIRS.halfWidth,
+      6
+    );
+    expect(zones.upperLanding.minX).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.centerX - NEGATIVE_Z_STAIRS.halfWidth,
+      6
+    );
+    expect(zones.upperLanding.maxX).toBeCloseTo(
+      NEGATIVE_Z_STAIRS.centerX + NEGATIVE_Z_STAIRS.halfWidth,
+      6
+    );
     expect(zones.upperLanding.minZ).toBeCloseTo(
       NEGATIVE_Z_STAIRS.landingMinZ,
       6

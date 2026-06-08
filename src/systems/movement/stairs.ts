@@ -93,7 +93,7 @@ const createCenteredRect = (
   maxZ,
 });
 
-export const isWithinPhysicalStairWidth = (
+const isWithinPhysicalStairWidth = (
   geometry: StairGeometry,
   x: number
 ): boolean => Math.abs(x - geometry.centerX) <= geometry.halfWidth;
@@ -107,7 +107,7 @@ export const isWithinStairWidth = (
     ? isWithinPhysicalStairWidth(geometry, x)
     : Math.abs(x - geometry.centerX) <= geometry.halfWidth + margin;
 
-export const isWithinRampRun = (
+const isWithinRampRun = (
   geometry: StairGeometry,
   z: number,
   margin = 0
@@ -131,11 +131,14 @@ export const isWithinLanding = (
 
 export const computeRampHeight = (
   geometry: StairGeometry,
-  behavior: StairBehavior,
+  _behavior: StairBehavior,
   x: number,
   z: number
 ): number => {
-  if (!isWithinPhysicalStairWidth(geometry, x)) {
+  if (
+    !isWithinPhysicalStairWidth(geometry, x) ||
+    !isWithinRampRun(geometry, z)
+  ) {
     return 0;
   }
   const denominator = geometry.bottomZ - geometry.topZ;
@@ -174,13 +177,13 @@ export const createStairNavigationZones = (
     ),
     stairRampBody: createCenteredRect(
       geometry,
-      geometry.halfWidth + behavior.transitionMargin * 0.25,
+      geometry.halfWidth,
       rampMinZ,
       rampMaxZ
     ),
     upperLanding: createCenteredRect(
       geometry,
-      geometry.halfWidth + behavior.landingTriggerMargin,
+      geometry.halfWidth,
       geometry.landingMinZ,
       geometry.landingMaxZ
     ),
@@ -284,6 +287,7 @@ export const predictStairFloorId = (
   const zone = classifyStairTransitionZone(geometry, behavior, x, z, current);
   const rampHeight = computeRampHeight(geometry, behavior, x, z);
   const withinPhysicalStairs = isWithinPhysicalStairWidth(geometry, x);
+  const withinRampRun = isWithinRampRun(geometry, z);
   const direction = geometry.direction;
 
   if (current === 'upper') {
@@ -301,9 +305,8 @@ export const predictStairFloorId = (
 
   const nearLanding =
     withinPhysicalStairs &&
-    (nearTop ||
-      rampHeight >= geometry.totalRise - behavior.stepRise * 0.25 ||
-      zone === 'upperLanding');
+    withinRampRun &&
+    (nearTop || rampHeight >= geometry.totalRise - behavior.stepRise * 0.25);
   if (nearLanding) {
     return 'upper';
   }
