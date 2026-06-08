@@ -1892,6 +1892,8 @@ function initializeImmersiveScene(
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
     const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
     const hiddenStairWestVoidGapBlockerMaxZ = upperStairWestEgressMaxZ;
+    const upperStairWestEdgeSafetyMinX =
+      upperStairwellOpening.minX - PLAYER_RADIUS;
     const hiddenStairDeepVoidBlockerMinZ =
       hiddenStairWestVoidGapBlockerMinZ -
       stairLayout.directionMultiplier * PLAYER_RADIUS;
@@ -1913,7 +1915,9 @@ function initializeImmersiveScene(
     // blockers reject forced upper-floor placement over the hidden stair-top gap,
     // the deeper removed stair run, and doorway-side void while preserving the
     // narrow stair-top handoff, a west-side bypass lane around the void, and the
-    // north doorway's padded passage into the loft.
+    // north doorway's padded passage into the loft. The west edge safety blocker
+    // starts one player radius before the visual cutout so center-point placement
+    // cannot leave the avatar overhanging the missing upper-floor slab.
     upperFloorColliders.push(
       {
         minX: stairCenterX - stairHalfWidth - stairwellMarginX,
@@ -1922,7 +1926,7 @@ function initializeImmersiveScene(
         maxZ: upperStairWestEgressMinZ,
       },
       {
-        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
+        minX: upperStairWestEdgeSafetyMinX,
         maxX: stairNavigationZones.explicitDescentCorridor.minX,
         minZ: upperStairWestEgressMaxZ,
         maxZ: upperStairVoidMaxZ,
