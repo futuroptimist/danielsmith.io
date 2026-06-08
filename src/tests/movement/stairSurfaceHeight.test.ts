@@ -30,6 +30,34 @@ const behavior: StairBehavior = {
 
 const upperFloorElevation = geometry.totalRise + 0.38;
 
+const negativeZGeometry: StairGeometry = {
+  centerX: toWorldUnits(6.2),
+  halfWidth: toWorldUnits(3.1) / 2,
+  bottomZ: toWorldUnits(-5.3),
+  topZ: toWorldUnits(-5.3) - toWorldUnits(0.85) * 9,
+  landingMinZ: toWorldUnits(-5.3) - toWorldUnits(0.85) * 9 - toWorldUnits(2.6),
+  landingMaxZ: toWorldUnits(-5.3) - toWorldUnits(0.85) * 9,
+  totalRise: 0.42 * 9,
+  direction: -1,
+};
+
+const negativeZBehavior: StairBehavior = {
+  ...behavior,
+  descentCorridorInset: 0.75,
+};
+
+const sampleNegativeZ = (params: {
+  x: number;
+  z: number;
+  currentFloor: FloorId;
+}) =>
+  sampleStairSurfaceHeight({
+    geometry: negativeZGeometry,
+    behavior: negativeZBehavior,
+    upperFloorElevation,
+    ...params,
+  });
+
 const sample = (params: { x: number; z: number; currentFloor: FloorId }) =>
   sampleStairSurfaceHeight({
     geometry,
@@ -43,6 +71,16 @@ describe('sampleStairSurfaceHeight', () => {
     const midRampZ = geometry.topZ / 2;
     const height = sample({ x: 0, z: midRampZ, currentFloor: 'ground' });
     expect(height).toBeCloseTo(geometry.totalRise / 2, 5);
+  });
+
+  it('does not lift off-stair ground positions near the upper stair top', () => {
+    const height = sampleNegativeZ({
+      x: 8.14,
+      z: -25.36,
+      currentFloor: 'ground',
+    });
+
+    expect(height).toBe(0);
   });
 
   it('keeps landing height at the descent threshold', () => {

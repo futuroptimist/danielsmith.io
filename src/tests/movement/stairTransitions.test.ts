@@ -57,6 +57,36 @@ const classify = (
 ) => classifyStairTransitionZone(geometry, STAIR_BEHAVIOR, x, z, currentFloor);
 
 describe('stair floor transitions (negative Z ascent)', () => {
+  it('keeps screenshot-4 off-stair positions on ground near the upper stair top', () => {
+    const screenshotSource = { x: 7.4, z: -25.27 };
+    const screenshotLandingEdge = { x: 8.14, z: -25.36 };
+
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        screenshotSource.x,
+        screenshotSource.z,
+        'ground'
+      )
+    ).toBe('ground');
+    expect(
+      predict(
+        NEGATIVE_Z_STAIRS,
+        screenshotLandingEdge.x,
+        screenshotLandingEdge.z,
+        'ground'
+      )
+    ).toBe('ground');
+    expect(
+      classify(
+        NEGATIVE_Z_STAIRS,
+        screenshotLandingEdge.x,
+        screenshotLandingEdge.z,
+        'ground'
+      )
+    ).toBe('outsideStairs');
+  });
+
   it('transitions from ground to upper near the top of the stairs', () => {
     const nearTopStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.15);
 
