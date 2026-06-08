@@ -6,6 +6,7 @@ import {
   createStairNavAreaRect,
   createStairNavigationZones,
   predictStairFloorId,
+  sampleStairSurfaceHeight,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
@@ -68,6 +69,33 @@ describe('stair floor transitions (negative Z ascent)', () => {
         'ground'
       )
     ).toBe('upper');
+  });
+
+  it('keeps screenshot-4 ground points outside physical width on ground near the top', () => {
+    const offStairTarget = { x: 8.14, z: -25.36 };
+    const sourcePoint = { x: 7.4, z: -25.27 };
+
+    expect(
+      predict(NEGATIVE_Z_STAIRS, offStairTarget.x, offStairTarget.z, 'ground')
+    ).toBe('ground');
+    expect(
+      predict(NEGATIVE_Z_STAIRS, sourcePoint.x, sourcePoint.z, 'ground')
+    ).toBe('ground');
+  });
+
+  it('does not sample upper-floor height for screenshot-4 ground points outside physical width', () => {
+    const offStairTarget = { x: 8.14, z: -25.36 };
+    const upperFloorElevation = NEGATIVE_Z_STAIRS.totalRise + 0.38;
+
+    expect(
+      sampleStairSurfaceHeight({
+        geometry: NEGATIVE_Z_STAIRS,
+        behavior: STAIR_BEHAVIOR,
+        upperFloorElevation,
+        currentFloor: 'ground',
+        ...offStairTarget,
+      })
+    ).toBe(0);
   });
 
   it('keeps the player on the upper floor while roaming across the landing', () => {

@@ -161,6 +161,27 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // Start on ground.
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
+  const offStairRegression = await page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    const target = { x: 8.14, z: -25.36, currentFloor: 'ground' as const };
+    const source = { x: 7.4, z: -25.27, currentFloor: 'ground' as const };
+    return {
+      targetPrediction: world.predictFloorAt(target),
+      sourcePrediction: world.predictFloorAt(source),
+      targetZone: world.getStairTransitionZone(target),
+      sourceZone: world.getStairTransitionZone(source),
+    };
+  });
+  expect(offStairRegression).toEqual({
+    targetPrediction: 'ground',
+    sourcePrediction: 'ground',
+    targetZone: 'outsideStairs',
+    sourceZone: 'outsideStairs',
+  });
+
   // Move to the base of the staircase on the ground floor.
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
