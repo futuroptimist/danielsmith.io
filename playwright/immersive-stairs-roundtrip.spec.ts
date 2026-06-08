@@ -222,6 +222,61 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
   });
 });
 
+test('ground stair boundary blocks the east-side squeeze corner', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const html = page.locator('html');
+  const { stairCenterX, stairBottomZ, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+  const reportedSqueezePoints = [
+    { x: 17.38, z: -8.84, floorId: 'ground' as const },
+    { x: 21.35, z: -14.66, floorId: 'ground' as const },
+  ];
+
+  for (const point of reportedSqueezePoints) {
+    expect(await canOccupyPosition(page, point)).toBe(false);
+    await expect(async () => movePlayerTo(page, point)).rejects.toThrow(
+      /Cannot occupy/
+    );
+  }
+
+  const lowerStairEntrance = {
+    x: stairCenterX,
+    z: stairBottomZ + 0.3,
+    floorId: 'ground' as const,
+  };
+  expect(await canOccupyPosition(page, lowerStairEntrance)).toBe(true);
+  await movePlayerTo(page, lowerStairEntrance);
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
+
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: (stairBottomZ + stairTopZ) / 2,
+  });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const debugColliders = await page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug collider API unavailable');
+    }
+    return debugApi.getColliders().map((collider) => collider.name);
+  });
+  expect(debugColliders).toEqual(
+    expect.arrayContaining([
+      'GroundStairEastBoundary',
+      'GroundStairLowerCornerGuard',
+    ])
+  );
+});
+
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   test.slow();
   await waitForImmersiveReady(page);

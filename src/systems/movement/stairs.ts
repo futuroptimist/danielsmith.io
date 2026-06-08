@@ -153,6 +153,69 @@ export const computeRampHeight = (
   return clamped * geometry.totalRise;
 };
 
+export type GroundStairBoundaryColliderName =
+  | 'GroundStairEastBoundary'
+  | 'GroundStairLowerCornerGuard';
+
+export interface GroundStairBoundaryCollider {
+  name: GroundStairBoundaryColliderName;
+  bounds: RectCollider;
+}
+
+export interface GroundStairBoundaryColliderOptions {
+  /** Radius used by avatar collision checks. */
+  playerRadius: number;
+  /** Thickness already used by the visual/invisible stair guard rails. */
+  guardThickness: number;
+  /** Lower stair handoff margin from the stair behavior. */
+  transitionMargin: number;
+}
+
+export const createGroundStairBoundaryColliders = (
+  geometry: StairGeometry,
+  options: GroundStairBoundaryColliderOptions
+): GroundStairBoundaryCollider[] => {
+  const eastStairEdgeX = geometry.centerX + geometry.halfWidth;
+  const guardOuterX = eastStairEdgeX + options.guardThickness;
+  const eastPocketMaxX =
+    eastStairEdgeX +
+    geometry.halfWidth +
+    options.transitionMargin +
+    options.playerRadius +
+    options.guardThickness;
+  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
+  const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
+  const lowerApproachNearZ =
+    geometry.direction === -1
+      ? geometry.bottomZ - options.transitionMargin
+      : geometry.bottomZ;
+  const lowerApproachFarZ =
+    geometry.direction === -1
+      ? geometry.bottomZ + options.transitionMargin + options.playerRadius
+      : geometry.bottomZ - options.transitionMargin - options.playerRadius;
+
+  return [
+    {
+      name: 'GroundStairEastBoundary',
+      bounds: {
+        minX: guardOuterX,
+        maxX: eastPocketMaxX,
+        minZ: rampMinZ,
+        maxZ: rampMaxZ,
+      },
+    },
+    {
+      name: 'GroundStairLowerCornerGuard',
+      bounds: {
+        minX: guardOuterX,
+        maxX: eastPocketMaxX,
+        minZ: getMinZ(lowerApproachNearZ, lowerApproachFarZ),
+        maxZ: getMaxZ(lowerApproachNearZ, lowerApproachFarZ),
+      },
+    },
+  ];
+};
+
 export const createStairNavigationZones = (
   geometry: StairGeometry,
   behavior: StairBehavior

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
+import { collidesWithColliders } from '../../systems/collision';
 import {
   classifyStairTransitionZone,
   createStairNavAreaRect,
+  createGroundStairBoundaryColliders,
   createStairNavigationZones,
   predictStairFloorId,
   sampleStairSurfaceHeight,
@@ -489,5 +491,57 @@ describe('stair navigation zones', () => {
     );
     expect(rect.minZ).toBeCloseTo(expectedMinZ - marginZ, 6);
     expect(rect.maxZ).toBeCloseTo(expectedMaxZ + marginZ, 6);
+  });
+});
+
+describe('ground stair boundary colliders', () => {
+  const PLAYER_RADIUS = 0.75;
+  const GUARD_THICKNESS = toWorldUnits(0.22);
+  const reportedSqueezePoints = [
+    { x: 17.38, z: -8.84 },
+    { x: 21.35, z: -14.66 },
+  ];
+
+  it('blocks the east-side squeeze points without covering the stair centerline', () => {
+    const colliders = createGroundStairBoundaryColliders(NEGATIVE_Z_STAIRS, {
+      playerRadius: PLAYER_RADIUS,
+      guardThickness: GUARD_THICKNESS,
+      transitionMargin: STAIR_BEHAVIOR.transitionMargin,
+    });
+    const bounds = colliders.map((collider) => collider.bounds);
+
+    for (const point of reportedSqueezePoints) {
+      expect(
+        collidesWithColliders(point.x, point.z, PLAYER_RADIUS, bounds)
+      ).toBe(true);
+    }
+
+    const stairCenterlineSamples = [
+      { x: NEGATIVE_Z_STAIRS.centerX, z: NEGATIVE_Z_STAIRS.bottomZ + 0.3 },
+      {
+        x: NEGATIVE_Z_STAIRS.centerX,
+        z: (NEGATIVE_Z_STAIRS.bottomZ + NEGATIVE_Z_STAIRS.topZ) / 2,
+      },
+      { x: NEGATIVE_Z_STAIRS.centerX, z: NEGATIVE_Z_STAIRS.topZ + 0.3 },
+    ];
+
+    for (const point of stairCenterlineSamples) {
+      expect(
+        collidesWithColliders(point.x, point.z, PLAYER_RADIUS, bounds)
+      ).toBe(false);
+    }
+  });
+
+  it('labels the debug-visible boundary blockers', () => {
+    const colliders = createGroundStairBoundaryColliders(NEGATIVE_Z_STAIRS, {
+      playerRadius: PLAYER_RADIUS,
+      guardThickness: GUARD_THICKNESS,
+      transitionMargin: STAIR_BEHAVIOR.transitionMargin,
+    });
+
+    expect(colliders.map((collider) => collider.name)).toEqual([
+      'GroundStairEastBoundary',
+      'GroundStairLowerCornerGuard',
+    ]);
   });
 });

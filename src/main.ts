@@ -382,6 +382,7 @@ import {
 } from './systems/movement/stairLayout';
 import {
   classifyStairTransitionZone,
+  createGroundStairBoundaryColliders,
   createStairNavigationZones,
   isWithinLanding,
   isWithinStairWidth,
@@ -1837,6 +1838,18 @@ function initializeImmersiveScene(
     maxX: stairCenterX + stairHalfWidth + stairGuardThickness,
     minZ: stairGuardMinZ,
     maxZ: stairGuardMaxZ,
+  });
+
+  const groundStairBoundaryColliders = createGroundStairBoundaryColliders(
+    stairGeometry,
+    {
+      playerRadius: PLAYER_RADIUS,
+      guardThickness: stairGuardThickness,
+      transitionMargin: stairTransitionMargin,
+    }
+  );
+  groundStairBoundaryColliders.forEach((collider) => {
+    groundColliders.push(collider.bounds);
   });
 
   const upperFloorGroup = new Group();
@@ -3823,6 +3836,14 @@ function initializeImmersiveScene(
       category: 'ground',
       namePrefix: 'ground-collider',
     }),
+    ...groundStairBoundaryColliders.map(
+      (collider): DebugColliderRegistration => ({
+        floor: 'ground',
+        category: 'ground-stair-boundary',
+        name: collider.name,
+        bounds: collider.bounds,
+      })
+    ),
     ...createDebugColliderRegistrations(staticColliders, {
       floor: 'ground',
       category: 'static',
