@@ -145,6 +145,48 @@ async function getTooltipState(page: Page): Promise<TooltipState> {
   });
 }
 
+test('off-stair ground points near the upper stair top stay on ground', async ({
+  page,
+}) => {
+  await waitForImmersiveReady(page);
+
+  const predictions = await page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return {
+      source: world.predictFloorAt({
+        x: 7.4,
+        z: -25.27,
+        currentFloor: 'ground',
+      }),
+      lifted: world.predictFloorAt({
+        x: 8.14,
+        z: -25.36,
+        currentFloor: 'ground',
+      }),
+      sourceZone: world.getStairTransitionZone({
+        x: 7.4,
+        z: -25.27,
+        currentFloor: 'ground',
+      }),
+      liftedZone: world.getStairTransitionZone({
+        x: 8.14,
+        z: -25.36,
+        currentFloor: 'ground',
+      }),
+    };
+  });
+
+  expect(predictions).toEqual({
+    source: 'ground',
+    lifted: 'ground',
+    sourceZone: 'outsideStairs',
+    liftedZone: 'outsideStairs',
+  });
+});
+
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   test.slow();
   await waitForImmersiveReady(page);
@@ -156,6 +198,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     stairTopZ,
     stairLandingMinZ,
     stairLandingDepth,
+    stairDirection,
   } = await getStairMetrics(page);
 
   // Start on ground.
@@ -170,7 +213,10 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     x: stairCenterX,
     z: (stairBottomZ + stairTopZ) / 2,
   });
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.1 });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   // Roam deeper onto the upper landing and confirm we stay upstairs.
@@ -244,8 +290,13 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   await waitForImmersiveReady(page);
 
   const html = page.locator('html');
-  const { stairCenterX, stairTopZ, stairLandingMinZ, stairLandingDepth } =
-    await getStairMetrics(page);
+  const {
+    stairCenterX,
+    stairTopZ,
+    stairLandingMinZ,
+    stairLandingDepth,
+    stairDirection,
+  } = await getStairMetrics(page);
   const landingInteriorZ =
     stairLandingMinZ + Math.min(stairLandingDepth * 0.5, 0.6);
 
@@ -263,7 +314,10 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   await expect(debugToggle).toHaveAttribute('aria-pressed', 'true');
   await expect(debugOverlay).toBeVisible();
 
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.1 });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
   await movePlayerTo(page, { x: stairCenterX, z: landingInteriorZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
