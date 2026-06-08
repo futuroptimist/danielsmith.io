@@ -238,8 +238,16 @@ export const createGroundStairBoundaryColliders = (
   );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+  // The run seal needs to cover the player's collision radius around the
+  // outer edge as well as the visible guard width. Add a small fraction of the
+  // player radius so samples just beyond the previous finite edge still touch
+  // the seal, while keeping the seal below the regular living-room lane.
+  const eastRunSealEdgePadding = options.playerRadius * 0.12;
   const fallbackEastRunSealMaxX =
-    eastBoundaryMaxX + options.playerRadius + options.guardThickness * 0.5;
+    eastBoundaryMaxX +
+    options.playerRadius +
+    options.guardThickness * 0.5 +
+    eastRunSealEdgePadding;
   const eastRunSealMaxX = Math.max(
     fallbackEastRunSealMaxX,
     options.eastRunSealMaxX ?? fallbackEastRunSealMaxX

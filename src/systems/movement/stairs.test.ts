@@ -64,6 +64,9 @@ describe('createGroundStairBoundaryColliders', () => {
     expect(collidesWithColliders(23, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
       true
     );
+    expect(
+      collidesWithColliders(23.91, -18, PLAYER_RADIUS, boundaryBounds)
+    ).toBe(true);
   });
 
   it('keeps regular living-room positions east of the stairs clear', () => {
