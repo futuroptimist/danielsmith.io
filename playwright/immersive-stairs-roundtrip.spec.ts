@@ -294,7 +294,23 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     ...normalLoftSpace,
     x: normalLoftSpace.x + 0.45,
   };
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  if (!upperLandingRoom) {
+    throw new Error('Missing upper landing room');
+  }
+  const loftDoorway = {
+    x: stairCenterX,
+    z: upperLandingRoom.bounds.maxZ,
+    floorId: 'upper' as const,
+  };
   const hiddenStairRun = { x: 12.7, z: -23.72, floorId: 'upper' as const };
+  const hiddenStairTopRun = {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.4,
+    floorId: 'upper' as const,
+  };
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
   await movePlayerTo(page, {
@@ -314,6 +330,8 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
 
   expect(await canOccupyPosition(page, normalLoftSpace)).toBe(true);
   expect(await canOccupyPosition(page, normalLoftEastNudge)).toBe(true);
+  expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
+  expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
   expect(await canOccupyPosition(page, hiddenStairRun)).toBe(false);
   await expect(async () => movePlayerTo(page, hiddenStairRun)).rejects.toThrow(
     /Cannot occupy/

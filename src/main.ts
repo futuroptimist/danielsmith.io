@@ -1851,6 +1851,9 @@ function initializeImmersiveScene(
     opacity: 1,
     depthWrite: true,
   });
+  const doorwayPadding = PLAYER_RADIUS * 0.6;
+  const doorwayDepth = WALL_THICKNESS + PLAYER_RADIUS * 2;
+
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
   );
@@ -1878,11 +1881,22 @@ function initializeImmersiveScene(
       stairLandingMaxZ
     );
 
+    const upperLandingDoorwayClearanceZ =
+      upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
+    const hiddenStairBlockerStartZ =
+      stairTopZ -
+      stairLayout.directionMultiplier *
+        (PLAYER_RADIUS + stairLandingTriggerMargin / 2);
+    const hiddenStairBlockerMaxZ = Math.min(
+      upperStairVoidMaxZ,
+      upperLandingDoorwayClearanceZ
+    );
+
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable. The center
-    // blocker below rejects forced upper-floor placement over the hidden stairs;
-    // live movement still hands off to the ground floor through the descent zone.
+    // blocker rejects forced upper-floor placement over the hidden stairs while
+    // stopping short of the north doorway's padded passage into the loft.
     upperFloorColliders.push(
       {
         minX: stairCenterX - stairHalfWidth - stairwellMarginX,
@@ -1905,18 +1919,8 @@ function initializeImmersiveScene(
       {
         minX: stairNavigationZones.explicitDescentCorridor.minX,
         maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-        minZ: Math.min(
-          stairTopZ -
-            stairLayout.directionMultiplier *
-              (stairLandingTriggerMargin + PLAYER_RADIUS),
-          upperStairVoidMaxZ
-        ),
-        maxZ: Math.max(
-          stairTopZ -
-            stairLayout.directionMultiplier *
-              (stairLandingTriggerMargin + PLAYER_RADIUS),
-          upperStairVoidMaxZ
-        ),
+        minZ: Math.min(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
+        maxZ: Math.max(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
       }
     );
   }
@@ -1992,9 +1996,6 @@ function initializeImmersiveScene(
     ground: groundColliders,
     upper: upperFloorColliders,
   };
-
-  const doorwayPadding = PLAYER_RADIUS * 0.6;
-  const doorwayDepth = WALL_THICKNESS + PLAYER_RADIUS * 2;
 
   const navMeshes: Record<FloorId, NavMesh> = {
     ground: createNavMesh(FLOOR_PLAN, {
