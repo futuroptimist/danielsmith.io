@@ -90,20 +90,14 @@ export const computeStairLayout = (
 /**
  * Clips the visible upstairs stairwell hole to the landing room while deriving
  * the stair landing void from `computeStairLayout`. Movement and visuals
- * therefore use the same threshold metrics without cutting away the normal
- * upper-floor doorway bridge beyond the stair top.
+ * therefore use the same threshold metrics and include the ramp/run portion
+ * beneath the upper floor instead of cutting only the landing lip.
  */
 export const computeStairwellOpeningBounds = (
   config: StairwellOpeningConfig
 ): StairwellBounds => {
-  const openingMinZ =
-    config.layout.directionMultiplier === -1
-      ? config.layout.stairHoleRange.minZ
-      : config.layout.landingMinZ;
-  const openingMaxZ =
-    config.layout.directionMultiplier === -1
-      ? config.layout.landingMaxZ
-      : config.layout.stairHoleRange.maxZ;
+  const openingMinZ = config.layout.stairHoleRange.minZ;
+  const openingMaxZ = config.layout.stairHoleRange.maxZ;
 
   return {
     minX: Math.max(

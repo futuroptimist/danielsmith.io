@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
@@ -22,6 +24,11 @@ type StairTransitionZone =
   | 'outsideStairs';
 
 type TestWorldApi = {
+  canOccupyPosition(target: {
+    x: number;
+    z: number;
+    floorId: FloorId;
+  }): boolean;
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
   getActiveFloor(): FloorId;
   getPlayerPosition(): { x: number; y: number; z: number };
@@ -135,6 +142,19 @@ async function getWorldState(page: Page) {
   });
 }
 
+async function canOccupyPosition(
+  page: Page,
+  target: { x: number; z: number; floorId: FloorId }
+) {
+  return page.evaluate((next) => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.canOccupyPosition(next);
+  }, target);
+}
+
 async function getTooltipState(page: Page): Promise<TooltipState> {
   return page.evaluate(() => {
     const poi = (window as PortfolioWindow).portfolio?.poi;
@@ -225,6 +245,22 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await movePlayerTo(page, { x: stairCenterX, z: landingRoamZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
+  const creatorsStudio = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'creatorsStudio'
+  );
+  expect(creatorsStudio).toBeDefined();
+  if (!creatorsStudio) {
+    throw new Error('Missing creators studio room definition');
+  }
+
+  const upstairsRoomTarget = {
+    x: (creatorsStudio.bounds.minX + creatorsStudio.bounds.maxX) / 2,
+    z: (creatorsStudio.bounds.minZ + creatorsStudio.bounds.maxZ) / 2,
+    floorId: 'upper' as const,
+  };
+  await movePlayerTo(page, upstairsRoomTarget);
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
   // Return toward the stairs, enter the explicit descent handoff, then continue down the ramp.
   // The helper teleports between sampled positions, so include the narrow handoff band that real
   // movement crosses frame by frame.
@@ -281,6 +317,40 @@ test('upper landing edge nudges stay upstairs until the descent corridor is ente
   // Moving back to the center of the stair opening remains an intentional descent.
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
+});
+
+test('upper stairwell blockers preserve upstairs rooms while sealing hidden stairs', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const normalUpstairsTarget = {
+    x: 8.15,
+    z: -11.82,
+    floorId: 'upper' as const,
+  };
+  await expect(canOccupyPosition(page, normalUpstairsTarget)).resolves.toBe(
+    true
+  );
+  await expect(
+    canOccupyPosition(page, {
+      ...normalUpstairsTarget,
+      x: normalUpstairsTarget.x + 0.35,
+    })
+  ).resolves.toBe(true);
+
+  const hiddenStairRunTarget = {
+    x: 12.7,
+    z: -23.72,
+    floorId: 'upper' as const,
+  };
+  await expect(canOccupyPosition(page, hiddenStairRunTarget)).resolves.toBe(
+    false
+  );
+  await expect(movePlayerTo(page, hiddenStairRunTarget)).rejects.toThrow(
+    /Cannot occupy/
+  );
 });
 
 test('debug coordinates and upstairs POI state stay floor-aware', async ({

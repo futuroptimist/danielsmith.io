@@ -606,6 +606,11 @@ declare global {
       world?: {
         getActiveFloor(): FloorId;
         setActiveFloor(next: FloorId): void;
+        canOccupyPosition(target: {
+          x: number;
+          z: number;
+          floorId: FloorId;
+        }): boolean;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
         getPlayerPosition(): { x: number; y: number; z: number };
         predictFloorAt(target: {
@@ -1817,25 +1822,6 @@ function initializeImmersiveScene(
     stairNavigationZones.stairRampBody,
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
-  const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
-  const upperStairDescentGuardMaxZ = Math.max(stairTopZ, stairBottomZ);
-  // Invisible upper-floor guard rails flank the intentional descent corridor.
-  // They keep normal landing/room movement from drifting into the stairwell
-  // void while leaving the middle corridor open for deliberate stair descent.
-  upperFloorColliders.push(
-    {
-      minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-      maxX: stairNavigationZones.explicitDescentCorridor.minX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    },
-    {
-      minX: stairNavigationZones.explicitDescentCorridor.maxX,
-      maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-      minZ: upperStairDescentGuardMinZ,
-      maxZ: upperStairDescentGuardMaxZ,
-    }
-  );
   const stairGuardThickness = toWorldUnits(0.22);
   const stairGuardMinZ = stairLayout.guardRange.minZ;
   const stairGuardMaxZ = stairLayout.guardRange.maxZ;
@@ -1895,11 +1881,37 @@ function initializeImmersiveScene(
   });
   upperFloorGroup.add(upperFloorTiles.group);
 
+  if (upperLandingRoom) {
+    const upperStairRunBlockerInset = stairLandingTriggerMargin + PLAYER_RADIUS;
+    const upperStairRunBlockerStartZ =
+      stairLayout.directionMultiplier === -1
+        ? stairTopZ + upperStairRunBlockerInset
+        : stairTopZ - upperStairRunBlockerInset;
+    const upperStairRunBlockerMinZ = Math.max(
+      upperLandingRoom.bounds.minZ,
+      Math.min(stairBottomZ, upperStairRunBlockerStartZ)
+    );
+    const upperStairRunBlockerMaxZ = Math.min(
+      upperLandingRoom.bounds.maxZ,
+      Math.max(stairBottomZ, upperStairRunBlockerStartZ)
+    );
+
+    if (upperStairRunBlockerMaxZ > upperStairRunBlockerMinZ) {
+      upperFloorColliders.push({
+        minX: stairCenterX - stairHalfWidth,
+        maxX: stairCenterX + stairHalfWidth,
+        minZ: upperStairRunBlockerMinZ,
+        maxZ: upperStairRunBlockerMaxZ,
+      });
+    }
+  }
+
   if (upperLandingRoom && upperStairwellOpening) {
     const upperStairwellLanding = createUpperStairwellLanding({
       roomBounds: upperLandingRoom.bounds,
       openingBounds: upperStairwellOpening,
       descentCorridorBounds: stairNavigationZones.explicitDescentCorridor,
+      shoulderGuards: { west: false, east: true },
       elevation: upperFloorElevation,
       guard: {
         height: 0.56,
@@ -3007,6 +3019,9 @@ function initializeImmersiveScene(
       setActiveFloor(next: FloorId) {
         setActiveFloorId(next);
         updatePlayerVerticalPosition();
+      },
+      canOccupyPosition(target: { x: number; z: number; floorId: FloorId }) {
+        return canOccupyPosition(target.x, target.z, target.floorId);
       },
       movePlayerTo(target: { x: number; z: number; floorId?: FloorId }) {
         const { x, z, floorId } = target;
