@@ -365,12 +365,12 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
     },
     debugColliders: {
-      labelEnabled: 'Collider walls on',
-      labelDisabled: 'Collider walls off',
+      labelEnabled: 'Collider overlay on',
+      labelDisabled: 'Collider overlay off',
       descriptionEnabled:
-        'Shows invisible collision walls for the active floor.',
+        'Shows invisible walls and collision rectangles for the active floor.',
       descriptionDisabled:
-        'Invisible collision walls stay hidden until you turn them on.',
+        'Invisible walls and collision rectangles stay hidden until you turn them on.',
     },
     tourReset: {
       heading: 'Guided tour',

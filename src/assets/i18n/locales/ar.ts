@@ -300,10 +300,12 @@ export const AR_OVERRIDES: LocaleOverrides = {
       },
     },
     debugColliders: {
-      labelEnabled: 'جدران التصادم مفعّلة',
-      labelDisabled: 'جدران التصادم معطّلة',
-      descriptionEnabled: 'يعرض جدران التصادم المخفية للطابق النشط.',
-      descriptionDisabled: 'تبقى جدران التصادم المخفية غير ظاهرة حتى تفعّلها.',
+      labelEnabled: 'تراكب المصادمات مفعّل',
+      labelDisabled: 'تراكب المصادمات معطّل',
+      descriptionEnabled:
+        'يعرض الجدران غير المرئية ومستطيلات التصادم للطابق النشط.',
+      descriptionDisabled:
+        'تبقى الجدران غير المرئية ومستطيلات التصادم مخفية حتى تفعّلها.',
     },
     poiOverlay: {
       visited: 'تمت الزيارة',

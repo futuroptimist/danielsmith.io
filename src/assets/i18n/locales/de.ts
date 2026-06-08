@@ -68,12 +68,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesYes: 'Ja',
     debugCoordinatesNo: 'Nein',
     debugCoordinatesNone: 'Keine',
-    debugCollidersLabelEnabled: 'Kollisionswände ein',
-    debugCollidersLabelDisabled: 'Kollisionswände aus',
+    debugCollidersLabelEnabled: 'Collider-Overlay ein',
+    debugCollidersLabelDisabled: 'Collider-Overlay aus',
     debugCollidersDescriptionEnabled:
-      'Zeigt die unsichtbaren Kollisionswände der aktiven Etage.',
+      'Zeigt unsichtbare Wände und Kollisionsrechtecke der aktiven Etage.',
     debugCollidersDescriptionDisabled:
-      'Unsichtbare Kollisionswände bleiben verborgen, bis du sie einschaltest.',
+      'Unsichtbare Wände und Kollisionsrechtecke bleiben verborgen, bis du sie einschaltest.',
   },
   poi: {
     futuroptimist: {

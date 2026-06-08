@@ -357,13 +357,13 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       },
     },
     debugColliders: {
-      labelEnabled: wrap('Collider walls on'),
-      labelDisabled: wrap('Collider walls off'),
+      labelEnabled: wrap('Collider overlay on'),
+      labelDisabled: wrap('Collider overlay off'),
       descriptionEnabled: wrap(
-        'Shows invisible collision walls for the active floor.'
+        'Shows invisible walls and collision rectangles for the active floor.'
       ),
       descriptionDisabled: wrap(
-        'Invisible collision walls stay hidden until you turn them on.'
+        'Invisible walls and collision rectangles stay hidden until you turn them on.'
       ),
     },
     tourReset: {

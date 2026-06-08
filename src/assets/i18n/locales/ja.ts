@@ -302,10 +302,10 @@ export const JA_OVERRIDES: LocaleOverrides = {
       },
     },
     debugColliders: {
-      labelEnabled: 'コライダー壁オン',
-      labelDisabled: 'コライダー壁オフ',
-      descriptionEnabled: '現在の階の見えない衝突壁を表示します。',
-      descriptionDisabled: '見えない衝突壁はオンにするまで非表示です。',
+      labelEnabled: 'コライダーオーバーレイオン',
+      labelDisabled: 'コライダーオーバーレイオフ',
+      descriptionEnabled: '現在の階の見えない壁と衝突矩形を表示します。',
+      descriptionDisabled: '見えない壁と衝突矩形はオンにするまで非表示です。',
     },
     poiOverlay: {
       visited: '訪問済み',

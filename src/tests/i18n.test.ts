@@ -808,33 +808,85 @@ describe('i18n utilities', () => {
   });
 
   it('localizes debug collider controls across locales', () => {
-    expect(getDebugCollidersStrings('en').labelDisabled).toBe(
-      'Collider walls off'
+    const expectedDebugColliderStrings = {
+      ar: {
+        labelEnabled: 'تراكب المصادمات مفعّل',
+        labelDisabled: 'تراكب المصادمات معطّل',
+        descriptionEnabled:
+          'يعرض الجدران غير المرئية ومستطيلات التصادم للطابق النشط.',
+        descriptionDisabled:
+          'تبقى الجدران غير المرئية ومستطيلات التصادم مخفية حتى تفعّلها.',
+      },
+      de: {
+        labelEnabled: 'Collider-Overlay ein',
+        labelDisabled: 'Collider-Overlay aus',
+        descriptionEnabled:
+          'Zeigt unsichtbare Wände und Kollisionsrechtecke der aktiven Etage.',
+        descriptionDisabled:
+          'Unsichtbare Wände und Kollisionsrechtecke bleiben verborgen, bis du sie einschaltest.',
+      },
+      en: {
+        labelEnabled: 'Collider overlay on',
+        labelDisabled: 'Collider overlay off',
+        descriptionEnabled:
+          'Shows invisible walls and collision rectangles for the active floor.',
+        descriptionDisabled:
+          'Invisible walls and collision rectangles stay hidden until you turn them on.',
+      },
+      'en-x-pseudo': {
+        labelEnabled: '⟦Collider overlay on⟧',
+        labelDisabled: '⟦Collider overlay off⟧',
+        descriptionEnabled:
+          '⟦Shows invisible walls and collision rectangles for the active floor.⟧',
+        descriptionDisabled:
+          '⟦Invisible walls and collision rectangles stay hidden until you turn them on.⟧',
+      },
+      es: {
+        labelEnabled: 'Superposición de colliders activada',
+        labelDisabled: 'Superposición de colliders desactivada',
+        descriptionEnabled:
+          'Muestra muros invisibles y rectángulos de colisión del piso activo.',
+        descriptionDisabled:
+          'Los muros invisibles y los rectángulos de colisión permanecen ocultos hasta que los actives.',
+      },
+      hu: {
+        labelEnabled: 'Collider-réteg be',
+        labelDisabled: 'Collider-réteg ki',
+        descriptionEnabled:
+          'Megjeleníti az aktív emelet láthatatlan falait és ütközési téglalapjait.',
+        descriptionDisabled:
+          'A láthatatlan falak és ütközési téglalapok rejtve maradnak, amíg be nem kapcsolod.',
+      },
+      ja: {
+        labelEnabled: 'コライダーオーバーレイオン',
+        labelDisabled: 'コライダーオーバーレイオフ',
+        descriptionEnabled: '現在の階の見えない壁と衝突矩形を表示します。',
+        descriptionDisabled: '見えない壁と衝突矩形はオンにするまで非表示です。',
+      },
+      pt: {
+        labelEnabled: 'Sobreposição de colisores ativada',
+        labelDisabled: 'Sobreposição de colisores desativada',
+        descriptionEnabled:
+          'Mostra paredes invisíveis e retângulos de colisão do piso ativo.',
+        descriptionDisabled:
+          'As paredes invisíveis e os retângulos de colisão ficam ocultos até você ativá-los.',
+      },
+      'zh-Hans': {
+        labelEnabled: '碰撞体叠加层已开启',
+        labelDisabled: '碰撞体叠加层已关闭',
+        descriptionEnabled: '显示当前楼层的不可见墙和碰撞矩形。',
+        descriptionDisabled: '不可见墙和碰撞矩形会保持隐藏，直到你开启。',
+      },
+    } as const;
+
+    expect(Object.keys(expectedDebugColliderStrings).sort()).toEqual(
+      [...AVAILABLE_LOCALES].sort()
     );
-    expect(getDebugCollidersStrings('es').labelEnabled).toBe(
-      'Muros de colisión activados'
-    );
-    expect(getDebugCollidersStrings('pt').descriptionEnabled).toBe(
-      'Mostra as paredes de colisão invisíveis do piso ativo.'
-    );
-    expect(getDebugCollidersStrings('de').labelDisabled).toBe(
-      'Kollisionswände aus'
-    );
-    expect(getDebugCollidersStrings('hu').labelEnabled).toBe(
-      'Ütközési falak be'
-    );
-    expect(getDebugCollidersStrings('zh-Hans').labelDisabled).toBe(
-      '碰撞墙已关闭'
-    );
-    expect(getDebugCollidersStrings('ja').descriptionDisabled).toBe(
-      '見えない衝突壁はオンにするまで非表示です。'
-    );
-    expect(getDebugCollidersStrings('ar').labelEnabled).toBe(
-      'جدران التصادم مفعّلة'
-    );
-    expect(getDebugCollidersStrings('en-x-pseudo').labelEnabled).toBe(
-      '⟦Collider walls on⟧'
-    );
+    for (const [locale, expectedStrings] of Object.entries(
+      expectedDebugColliderStrings
+    )) {
+      expect(getDebugCollidersStrings(locale)).toEqual(expectedStrings);
+    }
   });
 
   it('localizes narration controls and subtitle labels for Latin locales', () => {

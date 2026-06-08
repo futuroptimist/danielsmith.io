@@ -68,12 +68,12 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
     debugCoordinatesYes: 'Sí',
     debugCoordinatesNo: 'No',
     debugCoordinatesNone: 'Ninguna',
-    debugCollidersLabelEnabled: 'Muros de colisión activados',
-    debugCollidersLabelDisabled: 'Muros de colisión desactivados',
+    debugCollidersLabelEnabled: 'Superposición de colliders activada',
+    debugCollidersLabelDisabled: 'Superposición de colliders desactivada',
     debugCollidersDescriptionEnabled:
-      'Muestra los muros de colisión invisibles del piso activo.',
+      'Muestra muros invisibles y rectángulos de colisión del piso activo.',
     debugCollidersDescriptionDisabled:
-      'Los muros de colisión invisibles permanecen ocultos hasta que los actives.',
+      'Los muros invisibles y los rectángulos de colisión permanecen ocultos hasta que los actives.',
   },
   poi: {
     futuroptimist: {

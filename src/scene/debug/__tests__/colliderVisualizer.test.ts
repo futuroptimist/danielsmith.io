@@ -1,3 +1,4 @@
+import type { Material, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { createColliderVisualizer } from '../colliderVisualizer';
@@ -74,8 +75,8 @@ describe('createColliderVisualizer', () => {
       name: 'static-0',
       bounds: collider,
     });
-    const mesh = visualizer.group.children[0];
-    const material = (mesh as { material: { depthTest: boolean } }).material;
+    const mesh = visualizer.group.children[0] as Mesh;
+    const material = mesh.material as Material;
 
     expect(mesh.raycast({} as never, [] as never)).toBeUndefined();
     expect(material.depthTest).toBe(false);
