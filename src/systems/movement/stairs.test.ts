@@ -10,6 +10,8 @@ import {
 } from './stairs';
 
 const PLAYER_RADIUS = 0.75;
+const EPSILON = 0.1;
+const CONTAINING_ROOM_MAX_X = 32;
 
 const geometry: StairGeometry = {
   centerX: 12.4,
@@ -35,67 +37,84 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
-    eastRunSealCapMaxX: 32,
-    eastRunSealLowerCapEndZ: -8,
-    eastRunSealUpperCapEndZ: -32,
+    containingRoomMaxX: CONTAINING_ROOM_MAX_X,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
+
+const stairEastX = geometry.centerX + geometry.halfWidth;
+const rampMinZ = Math.min(geometry.bottomZ, geometry.topZ);
+const rampMaxZ = Math.max(geometry.bottomZ, geometry.topZ);
+const lowerApproachZ =
+  geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+const lowerApproachMaxZ = Math.max(geometry.bottomZ, lowerApproachZ);
+const roomLaneX = stairEastX + (CONTAINING_ROOM_MAX_X - stairEastX) / 2;
 
 describe('createGroundStairBoundaryColliders', () => {
   it('names the ground stair blockers for debug visualization', () => {
     const names = boundaryColliders.map((collider) => collider.name);
 
-    expect(names).toContain('GroundStairEastBoundary');
-    expect(names).toContain('GroundStairLowerCornerGuard');
-    expect(names).toContain('GroundStairEastRunSeal');
-    expect(names).toContain('GroundStairEastRunSealLowerCap');
-    expect(names).toContain('GroundStairEastRunSealUpperCap');
+    expect(names).toEqual([
+      'GroundStairEastBoundary',
+      'GroundStairLowerCornerGuard',
+      'GroundStairEastRunSeal',
+    ]);
   });
 
-  it('blocks the east-side squeeze route without sealing the whole room', () => {
-    expect(
-      collidesWithColliders(17.38, -8.84, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
-    expect(
-      collidesWithColliders(21.35, -14.66, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
-    expect(
-      collidesWithColliders(22.1, -14.66, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
-    expect(
-      collidesWithColliders(23, -14.66, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
-    expect(collidesWithColliders(23, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
-      true
-    );
-    expect(
-      collidesWithColliders(23.91, -18, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
-    expect(
-      collidesWithColliders(23.99, -18, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
+  it('seals the east-side stair-run band to the containing room edge', () => {
+    const stairRunZSamples = [
+      rampMinZ + EPSILON,
+      (rampMinZ + rampMaxZ) / 2,
+      rampMaxZ - EPSILON,
+    ];
+    const eastBandXSamples = [
+      stairEastX + EPSILON,
+      stairEastX + (CONTAINING_ROOM_MAX_X - stairEastX) * 0.25,
+      stairEastX + (CONTAINING_ROOM_MAX_X - stairEastX) * 0.5,
+      CONTAINING_ROOM_MAX_X - EPSILON,
+    ];
+
+    stairRunZSamples.forEach((z) => {
+      eastBandXSamples.forEach((x) => {
+        expect(collidesWithColliders(x, z, PLAYER_RADIUS, boundaryBounds)).toBe(
+          true
+        );
+      });
+    });
   });
 
-  it('keeps regular room lanes clear while sealing route-around caps', () => {
-    expect(collidesWithColliders(24, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
-      false
-    );
-    expect(
-      collidesWithColliders(24, -25.14, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(false);
-    expect(
-      collidesWithColliders(24, -11.36, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(false);
-    expect(collidesWithColliders(24, -30, PLAYER_RADIUS, boundaryBounds)).toBe(
-      false
-    );
-    expect(collidesWithColliders(28, -9.2, PLAYER_RADIUS, boundaryBounds)).toBe(
-      true
-    );
-    expect(
-      collidesWithColliders(28, -29.2, PLAYER_RADIUS, boundaryBounds)
-    ).toBe(true);
+  it('blocks representative east-side squeeze and route-around samples', () => {
+    const blockedSamples = [
+      { x: 17.38, z: -8.84 },
+      { x: 21.35, z: -14.66 },
+      { x: 22.1, z: -14.66 },
+      { x: 24, z: -18 },
+    ];
+
+    blockedSamples.forEach((sample) => {
+      expect(
+        collidesWithColliders(sample.x, sample.z, PLAYER_RADIUS, boundaryBounds)
+      ).toBe(true);
+    });
+  });
+
+  it('keeps living-room lanes outside the east-side seal band clear', () => {
+    const clearSamples = [
+      {
+        x: roomLaneX,
+        z: lowerApproachMaxZ + PLAYER_RADIUS + EPSILON,
+      },
+      {
+        x: roomLaneX,
+        z: rampMinZ - PLAYER_RADIUS - EPSILON,
+      },
+    ];
+
+    clearSamples.forEach((sample) => {
+      expect(
+        collidesWithColliders(sample.x, sample.z, PLAYER_RADIUS, boundaryBounds)
+      ).toBe(false);
+    });
   });
 
   it('preserves the center lower entrance and ramp body', () => {

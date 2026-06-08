@@ -51,22 +51,13 @@ export interface GroundStairBoundaryColliderOptions {
   playerRadius: number;
   guardThickness: number;
   /**
-   * Optional east-most X coordinate for the stair-side blocker. Keep this
-   * localized to the squeeze seam so regular living-room space stays usable.
+   * East-most X coordinate for the containing room edge that closes the
+   * stair-run no-go band. This should be the local room boundary, not a global
+   * floor edge, unless those are the same physical edge.
    */
+  containingRoomMaxX: number;
+  /** Optional east-most X coordinate for the local stair-side blocker. */
   eastBoundaryMaxX?: number;
-  /**
-   * Optional east-most X coordinate for the local stair-run seal. Keep this
-   * near the stair-side squeeze lane; use the cap options below to connect the
-   * seal to room edges without filling the whole ramp band.
-   */
-  eastRunSealMaxX?: number;
-  /** East-most X coordinate where diagonal seal caps terminate. */
-  eastRunSealCapMaxX?: number;
-  /** Z coordinate where the lower stair-run cap terminates at a room edge. */
-  eastRunSealLowerCapEndZ?: number;
-  /** Z coordinate where the upper stair-run cap terminates at a room edge. */
-  eastRunSealUpperCapEndZ?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -124,43 +115,6 @@ const isWithinPhysicalStairWidth = (
   geometry: StairGeometry,
   x: number
 ): boolean => Math.abs(x - geometry.centerX) <= geometry.halfWidth;
-
-const createSteppedSealCapColliders = (
-  name: string,
-  startX: number,
-  startZ: number,
-  endX: number,
-  endZ: number,
-  guardThickness: number,
-  playerRadius: number
-): NamedStairBoundaryCollider[] => {
-  if (endX <= startX || Math.abs(endZ - startZ) <= DENOMINATOR_EPSILON) {
-    return [];
-  }
-
-  const spanX = endX - startX;
-  const segmentCount = Math.max(4, Math.ceil(spanX / (playerRadius * 0.3)));
-  const halfThickness = Math.max(guardThickness * 0.05, 0.01);
-
-  return Array.from({ length: segmentCount }, (_, index) => {
-    const startT = index / segmentCount;
-    const endT = (index + 1) / segmentCount;
-    const segmentMinX = startX + spanX * startT;
-    const segmentMaxX = startX + spanX * endT;
-    const segmentStartZ = startZ + (endZ - startZ) * startT;
-    const segmentEndZ = startZ + (endZ - startZ) * endT;
-
-    return {
-      name,
-      bounds: {
-        minX: segmentMinX,
-        maxX: segmentMaxX,
-        minZ: getMinZ(segmentStartZ, segmentEndZ) - halfThickness,
-        maxZ: getMaxZ(segmentStartZ, segmentEndZ) + halfThickness,
-      },
-    };
-  });
-};
 
 export const isWithinStairWidth = (
   geometry: StairGeometry,
@@ -279,58 +233,13 @@ export const createGroundStairBoundaryColliders = (
     fallbackEastBoundaryMaxX,
     options.eastBoundaryMaxX ?? fallbackEastBoundaryMaxX
   );
+  const eastRunSealMaxX = Math.max(
+    eastBoundaryMaxX,
+    options.containingRoomMaxX
+  );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // Keep the east-side stair-run seal local so ordinary living-room
-  // positions remain occupiable. Diagonal caps can then terminate the local
-  // seal at the room edges without creating full-width horizontal walls after
-  // player-radius expansion.
-  const fallbackEastRunSealMaxX =
-    eastBoundaryMaxX + options.playerRadius + options.guardThickness * 0.72;
-  const eastRunSealMaxX = Math.max(
-    fallbackEastRunSealMaxX,
-    options.eastRunSealMaxX ?? fallbackEastRunSealMaxX
-  );
-  const eastRunSealColliders: NamedStairBoundaryCollider[] =
-    eastRunSealMaxX > eastBoundaryMaxX
-      ? [
-          {
-            name: 'GroundStairEastRunSeal',
-            bounds: {
-              minX: eastBoundaryMaxX,
-              maxX: eastRunSealMaxX,
-              minZ: rampMinZ,
-              maxZ: rampMaxZ,
-            },
-          },
-        ]
-      : [];
-  const eastRunSealCapMaxX = options.eastRunSealCapMaxX ?? eastRunSealMaxX;
-  const eastRunSealCapColliders =
-    eastRunSealCapMaxX > eastRunSealMaxX
-      ? [
-          ...createSteppedSealCapColliders(
-            'GroundStairEastRunSealLowerCap',
-            eastRunSealMaxX,
-            rampMaxZ,
-            eastRunSealCapMaxX,
-            options.eastRunSealLowerCapEndZ ?? rampMaxZ,
-            options.guardThickness,
-            options.playerRadius
-          ),
-          ...createSteppedSealCapColliders(
-            'GroundStairEastRunSealUpperCap',
-            eastRunSealMaxX,
-            rampMinZ,
-            eastRunSealCapMaxX,
-            options.eastRunSealUpperCapEndZ ?? rampMinZ,
-            options.guardThickness,
-            options.playerRadius
-          ),
-        ]
-      : [];
-
-  return [
+  const colliders: NamedStairBoundaryCollider[] = [
     {
       name: 'GroundStairEastBoundary',
       bounds: {
@@ -349,9 +258,21 @@ export const createGroundStairBoundaryColliders = (
         maxZ: getMaxZ(geometry.bottomZ, lowerApproachZ),
       },
     },
-    ...eastRunSealColliders,
-    ...eastRunSealCapColliders,
   ];
+
+  if (eastRunSealMaxX > eastBoundaryMaxX) {
+    colliders.push({
+      name: 'GroundStairEastRunSeal',
+      bounds: {
+        minX: eastBoundaryMaxX,
+        maxX: eastRunSealMaxX,
+        minZ: rampMinZ,
+        maxZ: rampMaxZ,
+      },
+    });
+  }
+
+  return colliders;
 };
 
 const isInExplicitDescentCorridor = (

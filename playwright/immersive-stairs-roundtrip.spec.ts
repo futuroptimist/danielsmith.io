@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+import { FLOOR_PLAN, UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
 
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
@@ -150,6 +150,15 @@ function getUpperRoomCenter(roomId: string) {
   };
 }
 
+function getGroundRoomBounds(roomId: string) {
+  const room = FLOOR_PLAN.rooms.find((candidate) => candidate.id === roomId);
+  if (!room) {
+    throw new Error(`Missing ground-floor room: ${roomId}`);
+  }
+
+  return room.bounds;
+}
+
 async function canOccupyPosition(
   page: Page,
   target: { x: number; z: number; floorId?: FloorId }
@@ -235,15 +244,37 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   await waitForImmersiveReady(page);
 
   const html = page.locator('html');
-  const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
+  const { stairCenterX, stairHalfWidth, stairBottomZ, stairTopZ } =
+    await getStairMetrics(page);
+  const livingRoomBounds = getGroundRoomBounds('livingRoom');
+  const playerRadius = 0.75;
+  const epsilon = 0.1;
+  const stairEastX = stairCenterX + stairHalfWidth;
+  const rampMinZ = Math.min(stairBottomZ, stairTopZ);
+  const rampMaxZ = Math.max(stairBottomZ, stairTopZ);
+  const roomLaneX = stairEastX + (livingRoomBounds.maxX - stairEastX) / 2;
   const squeezeSamples = [
     { x: 17.38, z: -8.84, floorId: 'ground' as const },
     { x: 21.35, z: -14.66, floorId: 'ground' as const },
     { x: 22.1, z: -14.66, floorId: 'ground' as const },
-    { x: 23, z: -14.66, floorId: 'ground' as const },
-    { x: 23, z: -18, floorId: 'ground' as const },
-    { x: 23.91, z: -18, floorId: 'ground' as const },
-    { x: 23.99, z: -18, floorId: 'ground' as const },
+    { x: 24, z: -18, floorId: 'ground' as const },
+  ];
+  const stairRunBandSamples = [
+    { x: stairEastX + epsilon, z: rampMinZ + epsilon },
+    { x: roomLaneX, z: (rampMinZ + rampMaxZ) / 2 },
+    { x: livingRoomBounds.maxX - epsilon, z: rampMaxZ - epsilon },
+  ].map((sample) => ({ ...sample, floorId: 'ground' as const }));
+  const livingRoomSamplesOutsideSeal = [
+    {
+      x: roomLaneX,
+      z: rampMaxZ + playerRadius + epsilon,
+      floorId: 'ground' as const,
+    },
+    {
+      x: roomLaneX,
+      z: rampMinZ - playerRadius - epsilon,
+      floorId: 'ground' as const,
+    },
   ];
   const lowerEntrance = {
     x: stairCenterX,
@@ -251,31 +282,17 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     floorId: 'ground' as const,
   };
 
-  for (const sample of squeezeSamples) {
+  for (const sample of [...squeezeSamples, ...stairRunBandSamples]) {
     expect(await canOccupyPosition(page, sample)).toBe(false);
     await expect(async () => movePlayerTo(page, sample)).rejects.toThrow(
       /Cannot occupy/
     );
   }
 
-  expect(
-    await canOccupyPosition(page, { x: 24, z: -18, floorId: 'ground' })
-  ).toBe(true);
-  expect(
-    await canOccupyPosition(page, { x: 24, z: -25.14, floorId: 'ground' })
-  ).toBe(true);
-  expect(
-    await canOccupyPosition(page, { x: 24, z: -11.36, floorId: 'ground' })
-  ).toBe(true);
-  expect(
-    await canOccupyPosition(page, { x: 28, z: -9.2, floorId: 'ground' })
-  ).toBe(false);
-  expect(
-    await canOccupyPosition(page, { x: 28, z: -29.2, floorId: 'ground' })
-  ).toBe(false);
-  expect(
-    await canOccupyPosition(page, { x: 24, z: -30, floorId: 'ground' })
-  ).toBe(true);
+  for (const sample of livingRoomSamplesOutsideSeal) {
+    expect(await canOccupyPosition(page, sample)).toBe(true);
+  }
+
   expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
   await movePlayerTo(page, lowerEntrance);
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
@@ -298,8 +315,6 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   expect(debugColliders).toContain('GroundStairEastBoundary');
   expect(debugColliders).toContain('GroundStairLowerCornerGuard');
   expect(debugColliders).toContain('GroundStairEastRunSeal');
-  expect(debugColliders).toContain('GroundStairEastRunSealLowerCap');
-  expect(debugColliders).toContain('GroundStairEastRunSealUpperCap');
 });
 
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
