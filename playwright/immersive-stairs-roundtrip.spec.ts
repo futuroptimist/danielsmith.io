@@ -260,21 +260,19 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
 
   expect(
     await canOccupyPosition(page, { x: 24, z: -18, floorId: 'ground' })
+  ).toBe(true);
+  expect(
+    await canOccupyPosition(page, { x: 24, z: -25.14, floorId: 'ground' })
+  ).toBe(true);
+  expect(
+    await canOccupyPosition(page, { x: 24, z: -11.36, floorId: 'ground' })
+  ).toBe(true);
+  expect(
+    await canOccupyPosition(page, { x: 28, z: -9.2, floorId: 'ground' })
   ).toBe(false);
   expect(
-    await canOccupyPosition(page, {
-      x: 24,
-      z: stairTopZ - 0.76,
-      floorId: 'ground',
-    })
-  ).toBe(true);
-  expect(
-    await canOccupyPosition(page, {
-      x: 24,
-      z: stairBottomZ + 0.76,
-      floorId: 'ground',
-    })
-  ).toBe(true);
+    await canOccupyPosition(page, { x: 28, z: -29.2, floorId: 'ground' })
+  ).toBe(false);
   expect(
     await canOccupyPosition(page, { x: 24, z: -30, floorId: 'ground' })
   ).toBe(true);
@@ -300,6 +298,8 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   expect(debugColliders).toContain('GroundStairEastBoundary');
   expect(debugColliders).toContain('GroundStairLowerCornerGuard');
   expect(debugColliders).toContain('GroundStairEastRunSeal');
+  expect(debugColliders).toContain('GroundStairEastRunSealLowerCap');
+  expect(debugColliders).toContain('GroundStairEastRunSealUpperCap');
 });
 
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {

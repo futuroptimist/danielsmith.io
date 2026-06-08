@@ -35,18 +35,22 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
-    eastRunSealMaxX: 32,
+    eastRunSealCapMaxX: 32,
+    eastRunSealLowerCapEndZ: -8,
+    eastRunSealUpperCapEndZ: -32,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
 
 describe('createGroundStairBoundaryColliders', () => {
   it('names the ground stair blockers for debug visualization', () => {
-    expect(boundaryColliders.map((collider) => collider.name)).toEqual([
-      'GroundStairEastBoundary',
-      'GroundStairLowerCornerGuard',
-      'GroundStairEastRunSeal',
-    ]);
+    const names = boundaryColliders.map((collider) => collider.name);
+
+    expect(names).toContain('GroundStairEastBoundary');
+    expect(names).toContain('GroundStairLowerCornerGuard');
+    expect(names).toContain('GroundStairEastRunSeal');
+    expect(names).toContain('GroundStairEastRunSealLowerCap');
+    expect(names).toContain('GroundStairEastRunSealUpperCap');
   });
 
   it('blocks the east-side squeeze route without sealing the whole room', () => {
@@ -73,29 +77,25 @@ describe('createGroundStairBoundaryColliders', () => {
     ).toBe(true);
   });
 
-  it('seals the east stair-run lane while keeping non-run room space clear', () => {
+  it('keeps regular room lanes clear while sealing route-around caps', () => {
     expect(collidesWithColliders(24, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
-      true
+      false
     );
     expect(
-      collidesWithColliders(
-        24,
-        geometry.topZ - PLAYER_RADIUS - 0.01,
-        PLAYER_RADIUS,
-        boundaryBounds
-      )
+      collidesWithColliders(24, -25.14, PLAYER_RADIUS, boundaryBounds)
     ).toBe(false);
     expect(
-      collidesWithColliders(
-        24,
-        geometry.bottomZ + PLAYER_RADIUS + 0.01,
-        PLAYER_RADIUS,
-        boundaryBounds
-      )
+      collidesWithColliders(24, -11.36, PLAYER_RADIUS, boundaryBounds)
     ).toBe(false);
     expect(collidesWithColliders(24, -30, PLAYER_RADIUS, boundaryBounds)).toBe(
       false
     );
+    expect(collidesWithColliders(28, -9.2, PLAYER_RADIUS, boundaryBounds)).toBe(
+      true
+    );
+    expect(
+      collidesWithColliders(28, -29.2, PLAYER_RADIUS, boundaryBounds)
+    ).toBe(true);
   });
 
   it('preserves the center lower entrance and ramp body', () => {

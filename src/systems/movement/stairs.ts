@@ -56,11 +56,17 @@ export interface GroundStairBoundaryColliderOptions {
    */
   eastBoundaryMaxX?: number;
   /**
-   * Optional east-most X coordinate for the stair-run seal. The seal must end
-   * at a real boundary, otherwise players can step just beyond the finite edge
-   * and continue through the same stair-run squeeze lane.
+   * Optional east-most X coordinate for the local stair-run seal. Keep this
+   * near the stair-side squeeze lane; use the cap options below to connect the
+   * seal to room edges without filling the whole ramp band.
    */
   eastRunSealMaxX?: number;
+  /** East-most X coordinate where diagonal seal caps terminate. */
+  eastRunSealCapMaxX?: number;
+  /** Z coordinate where the lower stair-run cap terminates at a room edge. */
+  eastRunSealLowerCapEndZ?: number;
+  /** Z coordinate where the upper stair-run cap terminates at a room edge. */
+  eastRunSealUpperCapEndZ?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -118,6 +124,43 @@ const isWithinPhysicalStairWidth = (
   geometry: StairGeometry,
   x: number
 ): boolean => Math.abs(x - geometry.centerX) <= geometry.halfWidth;
+
+const createSteppedSealCapColliders = (
+  name: string,
+  startX: number,
+  startZ: number,
+  endX: number,
+  endZ: number,
+  guardThickness: number,
+  playerRadius: number
+): NamedStairBoundaryCollider[] => {
+  if (endX <= startX || Math.abs(endZ - startZ) <= DENOMINATOR_EPSILON) {
+    return [];
+  }
+
+  const spanX = endX - startX;
+  const segmentCount = Math.max(4, Math.ceil(spanX / (playerRadius * 0.3)));
+  const halfThickness = Math.max(guardThickness * 0.05, 0.01);
+
+  return Array.from({ length: segmentCount }, (_, index) => {
+    const startT = index / segmentCount;
+    const endT = (index + 1) / segmentCount;
+    const segmentMinX = startX + spanX * startT;
+    const segmentMaxX = startX + spanX * endT;
+    const segmentStartZ = startZ + (endZ - startZ) * startT;
+    const segmentEndZ = startZ + (endZ - startZ) * endT;
+
+    return {
+      name,
+      bounds: {
+        minX: segmentMinX,
+        maxX: segmentMaxX,
+        minZ: getMinZ(segmentStartZ, segmentEndZ) - halfThickness,
+        maxZ: getMaxZ(segmentStartZ, segmentEndZ) + halfThickness,
+      },
+    };
+  });
+};
 
 export const isWithinStairWidth = (
   geometry: StairGeometry,
@@ -238,12 +281,12 @@ export const createGroundStairBoundaryColliders = (
   );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // Seal the east-side stair run as a filled strip through the whole ramp
-  // band. A finite line or localized cap only moves the bypass point farther
-  // east; callers can extend this to the room edge so the seal terminates at a
-  // real boundary instead of leaving a route-around gap.
+  // Keep the east-side stair-run seal local so ordinary living-room
+  // positions remain occupiable. Diagonal caps can then terminate the local
+  // seal at the room edges without creating full-width horizontal walls after
+  // player-radius expansion.
   const fallbackEastRunSealMaxX =
-    eastBoundaryMaxX + options.playerRadius + options.guardThickness * 0.5;
+    eastBoundaryMaxX + options.playerRadius + options.guardThickness * 0.72;
   const eastRunSealMaxX = Math.max(
     fallbackEastRunSealMaxX,
     options.eastRunSealMaxX ?? fallbackEastRunSealMaxX
@@ -260,6 +303,30 @@ export const createGroundStairBoundaryColliders = (
               maxZ: rampMaxZ,
             },
           },
+        ]
+      : [];
+  const eastRunSealCapMaxX = options.eastRunSealCapMaxX ?? eastRunSealMaxX;
+  const eastRunSealCapColliders =
+    eastRunSealCapMaxX > eastRunSealMaxX
+      ? [
+          ...createSteppedSealCapColliders(
+            'GroundStairEastRunSealLowerCap',
+            eastRunSealMaxX,
+            rampMaxZ,
+            eastRunSealCapMaxX,
+            options.eastRunSealLowerCapEndZ ?? rampMaxZ,
+            options.guardThickness,
+            options.playerRadius
+          ),
+          ...createSteppedSealCapColliders(
+            'GroundStairEastRunSealUpperCap',
+            eastRunSealMaxX,
+            rampMinZ,
+            eastRunSealCapMaxX,
+            options.eastRunSealUpperCapEndZ ?? rampMinZ,
+            options.guardThickness,
+            options.playerRadius
+          ),
         ]
       : [];
 
@@ -283,6 +350,7 @@ export const createGroundStairBoundaryColliders = (
       },
     },
     ...eastRunSealColliders,
+    ...eastRunSealCapColliders,
   ];
 };
 
