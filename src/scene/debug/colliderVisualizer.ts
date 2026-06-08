@@ -102,6 +102,7 @@ export function createColliderVisualizer(options: {
       const geometry = new BoxGeometry(width, height, depth);
       const material = new MeshBasicMaterial({
         color: collider.color ?? FLOOR_COLORS[collider.floor] ?? DEFAULT_COLOR,
+        depthTest: false,
         depthWrite: false,
         opacity: 0.42,
         transparent: true,

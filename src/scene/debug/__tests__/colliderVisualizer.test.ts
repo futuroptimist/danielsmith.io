@@ -74,8 +74,10 @@ describe('createColliderVisualizer', () => {
       name: 'static-0',
       bounds: collider,
     });
-    expect(
-      visualizer.group.children[0].raycast({} as never, [] as never)
-    ).toBeUndefined();
+    const mesh = visualizer.group.children[0];
+    const material = (mesh as { material: { depthTest: boolean } }).material;
+
+    expect(mesh.raycast({} as never, [] as never)).toBeUndefined();
+    expect(material.depthTest).toBe(false);
   });
 });

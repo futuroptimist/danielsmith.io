@@ -476,6 +476,14 @@ const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
 const DEBUG_COLLIDERS_STORAGE_KEY = 'danielsmith.io::debugColliders::v1';
 const DEBUG_URL_TRUTHY_VALUES = ['1', 'true', 'yes', 'on'] as const;
+const DEBUG_URL_FALSY_VALUES = ['0', 'false', 'no', 'off'] as const;
+const isDebugUrlValueIn = (
+  value: string | null | undefined,
+  candidates: readonly string[]
+) => {
+  const normalizedValue = value?.toLowerCase() ?? '';
+  return candidates.some((candidate) => candidate === normalizedValue);
+};
 const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
@@ -1337,9 +1345,9 @@ function initializeImmersiveScene(
   const debugCoordinatesUrlOverride = new URLSearchParams(
     window.location.search
   ).get('debugCoordinates');
-  const debugCoordinatesUrlEnabled = DEBUG_URL_TRUTHY_VALUES.includes(
-    (debugCoordinatesUrlOverride?.toLowerCase() ??
-      '') as (typeof DEBUG_URL_TRUTHY_VALUES)[number]
+  const debugCoordinatesUrlEnabled = isDebugUrlValueIn(
+    debugCoordinatesUrlOverride,
+    DEBUG_URL_TRUTHY_VALUES
   );
   const debugCoordinatesStoredEnabled =
     debugCoordinatesStorage?.getItem(DEBUG_COORDINATES_STORAGE_KEY) === '1';
@@ -1349,14 +1357,19 @@ function initializeImmersiveScene(
   const debugCollidersUrlOverride = new URLSearchParams(
     window.location.search
   ).get('debugColliders');
-  const debugCollidersUrlEnabled = DEBUG_URL_TRUTHY_VALUES.includes(
-    (debugCollidersUrlOverride?.toLowerCase() ??
-      '') as (typeof DEBUG_URL_TRUTHY_VALUES)[number]
+  const debugCollidersUrlEnabled = isDebugUrlValueIn(
+    debugCollidersUrlOverride,
+    DEBUG_URL_TRUTHY_VALUES
+  );
+  const debugCollidersUrlDisabled = isDebugUrlValueIn(
+    debugCollidersUrlOverride,
+    DEBUG_URL_FALSY_VALUES
   );
   const debugCollidersStoredEnabled =
     debugCoordinatesStorage?.getItem(DEBUG_COLLIDERS_STORAGE_KEY) === '1';
-  let debugCollidersEnabled =
-    debugCollidersUrlEnabled || debugCollidersStoredEnabled;
+  let debugCollidersEnabled = debugCollidersUrlDisabled
+    ? false
+    : debugCollidersUrlEnabled || debugCollidersStoredEnabled;
   let debugCoordinatesControl: HTMLButtonElement | null = null;
   let debugCollidersControl: HTMLButtonElement | null = null;
   let debugCoordinatesOverlay: HTMLElement | null = null;
