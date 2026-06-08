@@ -90,11 +90,19 @@ describe('sampleStairSurfaceHeight', () => {
 
   it('returns ground height for ground-floor samples beyond the ramp run', () => {
     const upperLandingZ = geometry.topZ + toWorldUnits(0.6);
-    const height = sample({ x: 0, z: upperLandingZ, currentFloor: 'ground' });
-    const rampHeight = computeRampHeight(geometry, behavior, 0, upperLandingZ);
 
-    expect(rampHeight).toBe(0);
-    expect(height).toBe(0);
+    for (const x of [0, geometry.halfWidth - toWorldUnits(0.05)]) {
+      const height = sample({ x, z: upperLandingZ, currentFloor: 'ground' });
+      const rampHeight = computeRampHeight(
+        geometry,
+        behavior,
+        x,
+        upperLandingZ
+      );
+
+      expect(rampHeight).toBe(0);
+      expect(height).toBe(0);
+    }
   });
 
   it('returns upper floor elevation across the landing interior', () => {

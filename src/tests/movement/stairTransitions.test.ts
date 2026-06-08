@@ -60,6 +60,15 @@ const classify = (
   currentFloor: FloorId
 ) => classifyStairTransitionZone(geometry, STAIR_BEHAVIOR, x, z, currentFloor);
 
+const containsPoint = (
+  rect: { minX: number; maxX: number; minZ: number; maxZ: number },
+  point: { x: number; z: number }
+): boolean =>
+  point.x >= rect.minX &&
+  point.x <= rect.maxX &&
+  point.z >= rect.minZ &&
+  point.z <= rect.maxZ;
+
 describe('stair floor transitions (negative Z ascent)', () => {
   it('transitions from ground to upper near the top of the stairs', () => {
     const nearTopStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.15);
@@ -117,6 +126,16 @@ describe('stair floor transitions (negative Z ascent)', () => {
         'ground'
       )
     ).toBe('ground');
+    expect(
+      sampleStairSurfaceHeight({
+        geometry: NEGATIVE_Z_STAIRS,
+        behavior: STAIR_BEHAVIOR,
+        x: NEGATIVE_Z_STAIRS.centerX,
+        z: upperDoorwayBridgeZ,
+        currentFloor: 'ground',
+        upperFloorElevation: UPPER_FLOOR_ELEVATION,
+      })
+    ).toBe(0);
   });
 
   it('keeps the player on the upper floor while roaming across the landing', () => {
@@ -390,6 +409,20 @@ describe('stair floor transitions (positive Z ascent)', () => {
 });
 
 describe('stair navigation zones', () => {
+  it('keeps the upper landing out of ground stair navigation zones', () => {
+    const zones = createStairNavigationZones(NEGATIVE_Z_STAIRS, STAIR_BEHAVIOR);
+    const landingBridgePoint = {
+      x: NEGATIVE_Z_STAIRS.centerX,
+      z: NEGATIVE_Z_STAIRS.topZ - toWorldUnits(0.6),
+    };
+
+    expect(containsPoint(zones.upperLanding, landingBridgePoint)).toBe(true);
+    expect(containsPoint(zones.lowerStairEntrance, landingBridgePoint)).toBe(
+      false
+    );
+    expect(containsPoint(zones.stairRampBody, landingBridgePoint)).toBe(false);
+  });
+
   it('exposes narrower upper descent nav than the legacy shared stair footprint', () => {
     const zones = createStairNavigationZones(NEGATIVE_Z_STAIRS, STAIR_BEHAVIOR);
     const legacyRect = createStairNavAreaRect(NEGATIVE_Z_STAIRS, {

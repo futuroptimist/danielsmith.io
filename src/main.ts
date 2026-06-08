@@ -1815,7 +1815,6 @@ function initializeImmersiveScene(
   const groundStairNavZones = [
     stairNavigationZones.lowerStairEntrance,
     stairNavigationZones.stairRampBody,
-    stairNavigationZones.upperLanding,
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
   const upperStairDescentGuardMinZ = Math.min(stairTopZ, stairBottomZ);
