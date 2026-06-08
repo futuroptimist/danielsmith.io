@@ -1892,6 +1892,12 @@ function initializeImmersiveScene(
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
     const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
     const hiddenStairWestVoidGapBlockerMaxZ = upperStairWestEgressMaxZ;
+    const hiddenStairDeepVoidBlockerMinZ =
+      hiddenStairWestVoidGapBlockerMinZ -
+      stairLayout.directionMultiplier * PLAYER_RADIUS;
+    const hiddenStairDeepVoidBlockerMaxZ =
+      hiddenStairTopGapBlockerNearZ +
+      stairLayout.directionMultiplier * PLAYER_RADIUS * 2;
     const hiddenStairBlockerStartZ =
       stairTopZ -
       stairLayout.directionMultiplier *
@@ -1904,10 +1910,10 @@ function initializeImmersiveScene(
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable. The center
-    // blockers reject forced upper-floor placement over the hidden stair-top gap
-    // and doorway-side void while preserving the narrow stair-top handoff, a
-    // west-side bypass lane around the void, and the north doorway's padded passage
-    // into the loft.
+    // blockers reject forced upper-floor placement over the hidden stair-top gap,
+    // the deeper removed stair run, and doorway-side void while preserving the
+    // narrow stair-top handoff, a west-side bypass lane around the void, and the
+    // north doorway's padded passage into the loft.
     upperFloorColliders.push(
       {
         minX: stairCenterX - stairHalfWidth - stairwellMarginX,
@@ -1932,6 +1938,18 @@ function initializeImmersiveScene(
         maxX: stairNavigationZones.explicitDescentCorridor.minX,
         minZ: hiddenStairWestVoidGapBlockerMinZ,
         maxZ: hiddenStairWestVoidGapBlockerMaxZ,
+      },
+      {
+        minX: stairNavigationZones.explicitDescentCorridor.minX,
+        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+        minZ: Math.min(
+          hiddenStairDeepVoidBlockerMinZ,
+          hiddenStairDeepVoidBlockerMaxZ
+        ),
+        maxZ: Math.max(
+          hiddenStairDeepVoidBlockerMinZ,
+          hiddenStairDeepVoidBlockerMaxZ
+        ),
       },
       {
         minX: hiddenStairTopGapBlockerMinX,

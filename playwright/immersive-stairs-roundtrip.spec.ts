@@ -324,6 +324,11 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ + stairDirection * 2,
     floorId: 'upper' as const,
   };
+  const westHiddenStairVoidSliver = {
+    x: stairCenterX - 1.55,
+    z: stairTopZ + stairDirection * 2.1,
+    floorId: 'upper' as const,
+  };
   const westVoidBypass = {
     x: stairCenterX - 4.4,
     z: stairTopZ + stairDirection * 0.95,
@@ -366,6 +371,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, deeperWestHiddenStairVoidGap)).toBe(
     false
   );
+  expect(await canOccupyPosition(page, westHiddenStairVoidSliver)).toBe(false);
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
   for (const hiddenStairVoidGapSample of hiddenStairVoidGap) {
     expect(await canOccupyPosition(page, hiddenStairVoidGapSample)).toBe(false);
