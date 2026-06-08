@@ -35,7 +35,6 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
-    eastApproachSealMaxX: 32,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
@@ -45,7 +44,7 @@ describe('createGroundStairBoundaryColliders', () => {
     expect(boundaryColliders.map((collider) => collider.name)).toEqual([
       'GroundStairEastBoundary',
       'GroundStairLowerCornerGuard',
-      'GroundStairEastApproachSeal',
+      'GroundStairEastRunSeal',
     ]);
   });
 
@@ -62,6 +61,9 @@ describe('createGroundStairBoundaryColliders', () => {
     expect(
       collidesWithColliders(23, -14.66, PLAYER_RADIUS, boundaryBounds)
     ).toBe(true);
+    expect(collidesWithColliders(23, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
+      true
+    );
   });
 
   it('keeps regular living-room positions east of the stairs clear', () => {
