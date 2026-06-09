@@ -251,6 +251,127 @@ export const createGroundStairBoundaryColliders = (
   return colliders;
 };
 
+export interface UpperStairVoidBoundaryColliderOptions {
+  openingBounds: RectCollider;
+  roomBounds: RectCollider;
+  explicitDescentCorridor: RectCollider;
+  playerRadius: number;
+  stairwellMarginX: number;
+  /**
+   * Furthest usable landing z before the west-side room egress begins. This
+   * keeps the void guards out of the intentional stair-top landing mouth.
+   */
+  westEgressMinZ: number;
+  westEgressMaxZ: number;
+  doorwayClearanceZ: number;
+}
+
+const clampRectToBounds = (
+  rect: RectCollider,
+  bounds: RectCollider
+): RectCollider => ({
+  minX: Math.max(rect.minX, bounds.minX),
+  maxX: Math.min(rect.maxX, bounds.maxX),
+  minZ: Math.max(rect.minZ, bounds.minZ),
+  maxZ: Math.min(rect.maxZ, bounds.maxZ),
+});
+
+const maybeAddNamedCollider = (
+  colliders: NamedStairBoundaryCollider[],
+  name: string,
+  bounds: RectCollider,
+  clipBounds: RectCollider
+) => {
+  const clipped = clampRectToBounds(bounds, clipBounds);
+  if (clipped.maxX > clipped.minX && clipped.maxZ > clipped.minZ) {
+    colliders.push({ name, bounds: clipped });
+  }
+};
+
+/**
+ * Creates upper-floor void blockers around the hidden stair run while leaving
+ * the physical stair-top-to-landing mouth open. The center corridor is only
+ * blocked on the hidden ramp side of the stair lip; the upper landing side is
+ * walkable so legitimate ascents can complete without loosening floor
+ * prediction.
+ */
+export const createUpperStairVoidBoundaryColliders = (
+  geometry: StairGeometry,
+  options: UpperStairVoidBoundaryColliderOptions
+): NamedStairBoundaryCollider[] => {
+  const colliders: NamedStairBoundaryCollider[] = [];
+  const openingBounds = clampRectToBounds(
+    options.openingBounds,
+    options.roomBounds
+  );
+  const stairWestEdge = geometry.centerX - geometry.halfWidth;
+  const stairEastEdge = geometry.centerX + geometry.halfWidth;
+  const voidRunBlockerNearZ =
+    geometry.topZ - geometry.direction * (options.playerRadius + 0.15);
+  const voidRunBlockerFarZ =
+    geometry.direction === -1
+      ? Math.min(openingBounds.maxZ, options.doorwayClearanceZ)
+      : Math.max(openingBounds.minZ, options.doorwayClearanceZ);
+
+  maybeAddNamedCollider(
+    colliders,
+    'UpperStairWestVoidGuard-LandingSide',
+    {
+      minX: stairWestEdge - options.stairwellMarginX,
+      maxX: options.explicitDescentCorridor.minX,
+      minZ: openingBounds.minZ,
+      maxZ: options.westEgressMinZ,
+    },
+    openingBounds
+  );
+  maybeAddNamedCollider(
+    colliders,
+    'UpperStairWestVoidGuard-RoomSide',
+    {
+      minX: openingBounds.minX,
+      maxX: options.explicitDescentCorridor.minX,
+      minZ: options.westEgressMaxZ,
+      maxZ: openingBounds.maxZ,
+    },
+    openingBounds
+  );
+  maybeAddNamedCollider(
+    colliders,
+    'UpperStairEastVoidGuard',
+    {
+      minX: options.explicitDescentCorridor.maxX,
+      maxX: stairEastEdge + options.stairwellMarginX,
+      minZ: openingBounds.minZ,
+      maxZ: openingBounds.maxZ,
+    },
+    openingBounds
+  );
+  maybeAddNamedCollider(
+    colliders,
+    'UpperStairWestVoidGapGuard',
+    {
+      minX: openingBounds.minX,
+      maxX: options.explicitDescentCorridor.minX,
+      minZ: options.westEgressMinZ,
+      maxZ: options.westEgressMaxZ,
+    },
+    openingBounds
+  );
+  maybeAddNamedCollider(
+    colliders,
+    'UpperStairHiddenRampGuard',
+    {
+      minX: options.explicitDescentCorridor.minX,
+      maxX: options.explicitDescentCorridor.maxX,
+      minZ: Math.min(voidRunBlockerNearZ, voidRunBlockerFarZ),
+      maxZ: Math.max(voidRunBlockerNearZ, voidRunBlockerFarZ),
+    },
+    openingBounds
+  );
+
+  return colliders;
+};
+
 const isInExplicitDescentCorridor = (
   geometry: StairGeometry,
   behavior: StairBehavior,

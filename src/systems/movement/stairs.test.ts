@@ -5,6 +5,7 @@ import { collidesWithColliders } from '../collision';
 import {
   createGroundStairBoundaryColliders,
   createStairNavigationZones,
+  createUpperStairVoidBoundaryColliders,
   type StairBehavior,
   type StairGeometry,
 } from './stairs';
@@ -125,6 +126,76 @@ describe('createGroundStairBoundaryColliders', () => {
       expect(
         collidesWithColliders(sample.x, sample.z, PLAYER_RADIUS, boundaryBounds)
       ).toBe(false);
+    });
+  });
+});
+
+describe('createUpperStairVoidBoundaryColliders', () => {
+  const zones = createStairNavigationZones(geometry, behavior);
+  const upperVoidColliders = createUpperStairVoidBoundaryColliders(geometry, {
+    openingBounds: { minX: 8.9, maxX: 15.9, minZ: -31.9, maxZ: -16 },
+    roomBounds: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+    explicitDescentCorridor: zones.explicitDescentCorridor,
+    playerRadius: PLAYER_RADIUS,
+    stairwellMarginX: 0.4,
+    westEgressMinZ: -30.3,
+    westEgressMaxZ: -25.9,
+    doorwayClearanceZ: -17.75,
+  });
+  const upperVoidBounds = upperVoidColliders.map((collider) => collider.bounds);
+
+  it('names concise upper void guards for collider debug visualization', () => {
+    expect(upperVoidColliders.map((collider) => collider.name)).toEqual([
+      'UpperStairWestVoidGuard-LandingSide',
+      'UpperStairWestVoidGuard-RoomSide',
+      'UpperStairEastVoidGuard',
+      'UpperStairWestVoidGapGuard',
+      'UpperStairHiddenRampGuard',
+    ]);
+  });
+
+  it('leaves the stair-top and landing centerline occupiable', () => {
+    const clearSamples = [
+      { x: geometry.centerX, z: geometry.topZ - geometry.direction * 0.1 },
+      { x: geometry.centerX, z: geometry.topZ + geometry.direction * 0.1 },
+      { x: geometry.centerX, z: geometry.landingMinZ + 0.6 },
+    ];
+
+    clearSamples.forEach((sample) => {
+      expect(
+        collidesWithColliders(
+          sample.x,
+          sample.z,
+          PLAYER_RADIUS,
+          upperVoidBounds
+        )
+      ).toBe(false);
+    });
+  });
+
+  it('continues blocking the hidden ramp and west void gaps', () => {
+    const blockedSamples = [
+      { x: 12.7, z: -23.72 },
+      {
+        x: geometry.centerX - 1.9,
+        z: geometry.topZ + geometry.direction * 0.95,
+      },
+      {
+        x: geometry.centerX - 2.6,
+        z: geometry.topZ + geometry.direction * 2.1,
+      },
+      { x: geometry.centerX + geometry.halfWidth + 0.15, z: geometry.topZ - 1 },
+    ];
+
+    blockedSamples.forEach((sample) => {
+      expect(
+        collidesWithColliders(
+          sample.x,
+          sample.z,
+          PLAYER_RADIUS,
+          upperVoidBounds
+        )
+      ).toBe(true);
     });
   });
 });
