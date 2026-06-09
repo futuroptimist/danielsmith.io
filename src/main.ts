@@ -263,7 +263,10 @@ import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
-import { createUpperStairwellLanding } from './scene/structures/upperStairwellLanding';
+import {
+  createUpperStairwellLanding,
+  createUpperStairwellVoidGuardColliders,
+} from './scene/structures/upperStairwellLanding';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,
@@ -586,6 +589,11 @@ declare global {
         getState(): DebugColliderVisualizerState;
         setEnabled(enabled: boolean): void;
         getColliders(): DebugColliderMetadata[];
+        getBlockingCollidersAt(target: {
+          x: number;
+          z: number;
+          floorId?: FloorId;
+        }): DebugColliderMetadata[];
       };
       debugCoordinates?: {
         getState(): {
@@ -1903,8 +1911,6 @@ function initializeImmersiveScene(
   // computeStairLayout result used by movement. It removes both the stair
   // landing void and the hidden ramp run below the landing lip.
   if (upperStairwellOpening) {
-    const upperStairVoidMinZ = upperStairwellOpening.minZ;
-    const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
     const upperStairWestEgressMinZ = Math.min(
       stairLandingMinZ + stairwellMarginZ,
       stairLandingMaxZ
@@ -1913,98 +1919,35 @@ function initializeImmersiveScene(
       stairLandingMinZ + stairwellMarginZ,
       stairLandingMaxZ
     );
-
     const upperLandingDoorwayClearanceZ =
-      upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
-    const hiddenStairTopGapBlockerNearZ =
-      stairTopZ +
-      stairLayout.directionMultiplier *
-        (PLAYER_RADIUS + stairLandingTriggerMargin);
-    const hiddenStairTopGapBlockerFarZ =
-      stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
-    const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
-    const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
-    const hiddenStairWestVoidGapBlockerMaxZ = upperStairWestEgressMaxZ;
-    const hiddenStairDeepVoidBlockerMinZ =
-      hiddenStairWestVoidGapBlockerMinZ -
-      stairLayout.directionMultiplier * PLAYER_RADIUS;
-    const hiddenStairDeepVoidBlockerMaxZ =
-      hiddenStairTopGapBlockerNearZ +
-      stairLayout.directionMultiplier * PLAYER_RADIUS * 2;
-    const hiddenStairBlockerStartZ =
-      stairTopZ -
-      stairLayout.directionMultiplier *
-        (PLAYER_RADIUS + stairLandingTriggerMargin / 2);
+      upperLandingRoom!.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
     const hiddenStairBlockerMaxZ = Math.min(
-      upperStairVoidMaxZ,
+      upperStairwellOpening.maxZ,
       upperLandingDoorwayClearanceZ
     );
 
-    // Invisible upper-floor guard rails flank the intentional descent corridor.
-    // They are scoped to the actual upper-floor cutout instead of the full ramp
-    // run so normal loft space beyond the landing remains occupiable. The center
-    // blockers reject forced upper-floor placement over the hidden stair-top gap,
-    // the deeper removed stair run, and doorway-side void while preserving the
-    // narrow stair-top handoff, a west-side bypass lane around the void, and the
-    // north doorway's padded passage into the loft. The west-edge blocker starts
-    // at the visual cutout because collider checks already apply PLAYER_RADIUS
-    // clearance around the blocker edge.
-    upperFloorColliders.push(
-      {
-        minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-        maxX: stairNavigationZones.explicitDescentCorridor.minX,
-        minZ: upperStairVoidMinZ,
-        maxZ: upperStairWestEgressMinZ,
+    // Invisible upper-floor guard rails flank the intentional descent corridor
+    // and block the hidden stair run north of the landing lip. The center of
+    // the real landing remains open so legitimate stair ascent can hand off to
+    // upstairs occupancy without loosening floor prediction.
+    createUpperStairwellVoidGuardColliders({
+      openingBounds: upperStairwellOpening,
+      descentCorridorBounds: stairNavigationZones.explicitDescentCorridor,
+      landingEntryBounds: {
+        minX: stairNavigationZones.upperLanding.minX,
+        maxX: stairNavigationZones.upperLanding.maxX,
+        minZ: upperStairWestEgressMinZ,
+        maxZ: upperStairWestEgressMaxZ,
       },
-      {
-        minX: upperStairwellOpening.minX,
-        maxX: stairNavigationZones.explicitDescentCorridor.minX,
-        minZ: upperStairWestEgressMaxZ,
-        maxZ: upperStairVoidMaxZ,
-      },
-      {
-        minX: stairNavigationZones.explicitDescentCorridor.maxX,
-        maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-        minZ: upperStairVoidMinZ,
-        maxZ: upperStairVoidMaxZ,
-      },
-      {
-        minX: upperStairwellOpening.minX,
-        maxX: stairNavigationZones.explicitDescentCorridor.minX,
-        minZ: hiddenStairWestVoidGapBlockerMinZ,
-        maxZ: hiddenStairWestVoidGapBlockerMaxZ,
-      },
-      {
-        minX: stairNavigationZones.explicitDescentCorridor.minX,
-        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-        minZ: Math.min(
-          hiddenStairDeepVoidBlockerMinZ,
-          hiddenStairDeepVoidBlockerMaxZ
-        ),
-        maxZ: Math.max(
-          hiddenStairDeepVoidBlockerMinZ,
-          hiddenStairDeepVoidBlockerMaxZ
-        ),
-      },
-      {
-        minX: hiddenStairTopGapBlockerMinX,
-        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-        minZ: Math.min(
-          hiddenStairTopGapBlockerNearZ,
-          hiddenStairTopGapBlockerFarZ
-        ),
-        maxZ: Math.max(
-          hiddenStairTopGapBlockerNearZ,
-          hiddenStairTopGapBlockerFarZ
-        ),
-      },
-      {
-        minX: stairNavigationZones.explicitDescentCorridor.minX,
-        maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-        minZ: Math.min(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
-        maxZ: Math.max(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
-      }
-    );
+      stairTopZ,
+      stairDirection: stairLayout.directionMultiplier,
+      playerRadius: PLAYER_RADIUS,
+      landingTriggerMargin: stairLandingTriggerMargin,
+      hiddenRunMaxZ: hiddenStairBlockerMaxZ,
+    }).forEach(({ name, bounds }) => {
+      upperFloorColliders.push(bounds);
+      namedColliderDebugNames.set(bounds, name);
+    });
   }
 
   const upperLandingCutouts =
@@ -3899,7 +3842,7 @@ function initializeImmersiveScene(
     activeFloorId,
     enabled: debugCollidersEnabled,
   });
-  colliderVisualizer.register([
+  const debugColliderRegistrations = [
     ...createDebugColliderRegistrations(groundColliders, {
       floor: 'ground',
       category: 'ground',
@@ -3916,7 +3859,8 @@ function initializeImmersiveScene(
       namePrefix: 'upper-collider',
       elevation: upperFloorElevation,
     }),
-  ]);
+  ];
+  colliderVisualizer.register(debugColliderRegistrations);
   scene.add(colliderVisualizer.group);
 
   const containsRectPoint = (
@@ -4227,6 +4171,20 @@ function initializeImmersiveScene(
       setDebugCollidersEnabled(enabled);
     },
     getColliders: () => colliderVisualizer.getColliders(),
+    getBlockingCollidersAt: ({ x, z, floorId = activeFloorId }) =>
+      debugColliderRegistrations
+        .filter(
+          (collider) => collider.floor === floorId || collider.floor === 'all'
+        )
+        .filter((collider) =>
+          collidesWithColliders(x, z, PLAYER_RADIUS, [collider.bounds])
+        )
+        .map((collider) => ({
+          floor: collider.floor,
+          category: collider.category,
+          name: collider.name,
+          bounds: { ...collider.bounds },
+        })),
   };
 
   window.portfolio.debugCoordinates = {

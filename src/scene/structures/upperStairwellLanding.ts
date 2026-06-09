@@ -42,10 +42,27 @@ export interface UpperStairwellLandingBuild {
   colliders: RectCollider[];
 }
 
+export interface NamedUpperStairwellVoidCollider {
+  name: string;
+  bounds: RectCollider;
+}
+
+export interface UpperStairwellVoidGuardConfig {
+  openingBounds: Bounds2D;
+  descentCorridorBounds: Bounds2D;
+  landingEntryBounds: Bounds2D;
+  stairTopZ: number;
+  stairDirection: 1 | -1;
+  playerRadius: number;
+  landingTriggerMargin: number;
+  hiddenRunMaxZ: number;
+}
+
 const GROUP_NAME = 'UpperStairwellLanding';
 const SIDE_GUARD_NAME = 'UpperStairwellLandingSideGuard';
 const FAR_GUARD_NAME = 'UpperStairwellLandingFarGuard';
 const SHOULDER_GUARD_NAME = 'UpperStairwellLandingShoulderGuard';
+const VOID_GUARD_NAME = 'UpperStairwellVoidGuard';
 
 const hasPositiveArea = (bounds: Bounds2D): boolean =>
   bounds.maxX > bounds.minX && bounds.maxZ > bounds.minZ;
@@ -59,6 +76,69 @@ const clampBoundsToRoom = (
   minZ: Math.max(bounds.minZ, roomBounds.minZ),
   maxZ: Math.min(bounds.maxZ, roomBounds.maxZ),
 });
+
+const pushNamedGuard = (
+  colliders: NamedUpperStairwellVoidCollider[],
+  name: string,
+  bounds: RectCollider
+) => {
+  if (hasPositiveArea(bounds)) {
+    colliders.push({ name, bounds });
+  }
+};
+
+/**
+ * Creates precise upper-floor blockers for the hidden stair void while leaving
+ * the legitimate stair-top landing mouth open. The returned rectangles guard
+ * the cutout shoulders and the over-stair run north of the landing lip, but do
+ * not place any center blocker inside `landingEntryBounds`.
+ */
+export function createUpperStairwellVoidGuardColliders(
+  config: UpperStairwellVoidGuardConfig
+): NamedUpperStairwellVoidCollider[] {
+  const openingBounds = config.openingBounds;
+  const descentCorridorBounds = clampBoundsToRoom(
+    config.descentCorridorBounds,
+    openingBounds
+  );
+  const landingEntryBounds = clampBoundsToRoom(
+    config.landingEntryBounds,
+    openingBounds
+  );
+  const colliders: NamedUpperStairwellVoidCollider[] = [];
+
+  pushNamedGuard(colliders, `${VOID_GUARD_NAME}-WestLower`, {
+    minX: openingBounds.minX,
+    maxX: descentCorridorBounds.minX,
+    minZ: openingBounds.minZ,
+    maxZ: landingEntryBounds.minZ,
+  });
+  pushNamedGuard(colliders, `${VOID_GUARD_NAME}-WestUpper`, {
+    minX: openingBounds.minX,
+    maxX: descentCorridorBounds.minX,
+    minZ: landingEntryBounds.maxZ,
+    maxZ: openingBounds.maxZ,
+  });
+  pushNamedGuard(colliders, `${VOID_GUARD_NAME}-East`, {
+    minX: descentCorridorBounds.maxX,
+    maxX: openingBounds.maxX,
+    minZ: openingBounds.minZ,
+    maxZ: openingBounds.maxZ,
+  });
+
+  const hiddenRunStartZ =
+    config.stairTopZ -
+    config.stairDirection *
+      (config.playerRadius + config.landingTriggerMargin / 2);
+  pushNamedGuard(colliders, `${VOID_GUARD_NAME}-HiddenRun`, {
+    minX: descentCorridorBounds.minX,
+    maxX: descentCorridorBounds.maxX,
+    minZ: Math.min(hiddenRunStartZ, config.hiddenRunMaxZ),
+    maxZ: Math.max(hiddenRunStartZ, config.hiddenRunMaxZ),
+  });
+
+  return colliders;
+}
 
 const addGuard = (params: {
   group: Group;

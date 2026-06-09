@@ -1,7 +1,11 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { createUpperStairwellLanding } from '../upperStairwellLanding';
+import { collidesWithColliders } from '../../../systems/collision';
+import {
+  createUpperStairwellLanding,
+  createUpperStairwellVoidGuardColliders,
+} from '../upperStairwellLanding';
 
 const overlaps = (
   first: { minX: number; maxX: number; minZ: number; maxZ: number },
@@ -13,6 +17,42 @@ const overlaps = (
   first.maxZ > second.minZ;
 
 describe('createUpperStairwellLanding', () => {
+  it('keeps the stair-top landing entry open while blocking the hidden run', () => {
+    const playerRadius = 0.75;
+    const colliders = createUpperStairwellVoidGuardColliders({
+      openingBounds: { minX: 8, maxX: 16, minZ: -31.9, maxZ: -16 },
+      descentCorridorBounds: {
+        minX: 10.05,
+        maxX: 14.75,
+        minZ: -25.9,
+        maxZ: -10.6,
+      },
+      landingEntryBounds: { minX: 9.3, maxX: 15.5, minZ: -30.3, maxZ: -25.9 },
+      stairTopZ: -25.9,
+      stairDirection: -1,
+      playerRadius,
+      landingTriggerMargin: 0.4,
+      hiddenRunMaxZ: -18.7,
+    });
+    const bounds = colliders.map((collider) => collider.bounds);
+
+    expect(colliders.map((collider) => collider.name)).toEqual([
+      'UpperStairwellVoidGuard-WestLower',
+      'UpperStairwellVoidGuard-WestUpper',
+      'UpperStairwellVoidGuard-East',
+      'UpperStairwellVoidGuard-HiddenRun',
+    ]);
+    expect(collidesWithColliders(12.4, -27.7, playerRadius, bounds)).toBe(
+      false
+    );
+    expect(collidesWithColliders(10.8, -29.5, playerRadius, bounds)).toBe(
+      false
+    );
+    expect(collidesWithColliders(12.7, -23.72, playerRadius, bounds)).toBe(
+      true
+    );
+  });
+
   it('adds guard colliders around sealed stairwell edges but not across the stair path', () => {
     const openingBounds = { minX: -2, maxX: 2, minZ: -8, maxZ: 6 };
     const result = createUpperStairwellLanding({
