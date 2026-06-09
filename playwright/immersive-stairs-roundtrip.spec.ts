@@ -23,6 +23,14 @@ type StairTransitionZone =
   | 'explicitDescentCorridor'
   | 'outsideStairs';
 
+type FloorVisibilitySnapshot = {
+  groundFloorVisible: boolean;
+  groundPoiVisible: boolean;
+  groundStructureVisible: boolean;
+  groundEnvironmentVisible: boolean;
+  upperFloorVisible: boolean;
+};
+
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
   getActiveFloor(): FloorId;
@@ -42,6 +50,7 @@ type TestWorldApi = {
     z: number;
     currentFloor?: FloorId;
   }): StairTransitionZone;
+  getFloorVisibilitySnapshot(): FloorVisibilitySnapshot;
   getStairMetrics(): {
     stairCenterX: number;
     stairHalfWidth: number;
@@ -173,6 +182,18 @@ async function getWorldState(page: Page) {
       activeFloor: world.getActiveFloor(),
       position: world.getPlayerPosition(),
     };
+  });
+}
+
+async function getFloorVisibilitySnapshot(
+  page: Page
+): Promise<FloorVisibilitySnapshot> {
+  return page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.getFloorVisibilitySnapshot();
   });
 }
 
@@ -563,4 +584,30 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   for (const groundPoiId of GROUND_POI_IDS) {
     expect(tooltipState.visibleMarkerLabelPoiIds).not.toContain(groundPoiId);
   }
+
+  await expect
+    .poll(() => getFloorVisibilitySnapshot(page))
+    .toEqual({
+      groundFloorVisible: false,
+      groundPoiVisible: false,
+      groundStructureVisible: false,
+      groundEnvironmentVisible: false,
+      upperFloorVisible: true,
+    });
+
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ - stairDirection * 0.1,
+  });
+  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
+  await expect
+    .poll(() => getFloorVisibilitySnapshot(page))
+    .toEqual({
+      groundFloorVisible: true,
+      groundPoiVisible: true,
+      groundStructureVisible: true,
+      groundEnvironmentVisible: true,
+      upperFloorVisible: false,
+    });
 });

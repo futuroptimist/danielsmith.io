@@ -88,11 +88,13 @@ function createPoiInstance(roomId: string): PoiInstance {
 describe('floor visibility controller', () => {
   it('toggles floor-specific groups and LED groups with the active floor', () => {
     const groundGroup = new Object3D();
+    const groundStructureGroup = new Object3D();
+    const groundEnvironmentGroup = new Object3D();
     const upperGroup = new Object3D();
     const groundLedGroup = new Object3D();
     const upperLedGroup = new Object3D();
     const controller = createFloorVisibilityController({
-      groundGroups: [groundGroup],
+      groundGroups: [groundGroup, groundStructureGroup, groundEnvironmentGroup],
       upperGroups: [upperGroup],
       groundLedGroups: [groundLedGroup],
       upperLedGroups: [upperLedGroup],
@@ -101,6 +103,8 @@ describe('floor visibility controller', () => {
 
     expect(groundGroup.visible).toBe(true);
     expect(groundLedGroup.visible).toBe(true);
+    expect(groundStructureGroup.visible).toBe(true);
+    expect(groundEnvironmentGroup.visible).toBe(true);
     expect(upperGroup.visible).toBe(false);
     expect(upperLedGroup.visible).toBe(false);
 
@@ -108,8 +112,19 @@ describe('floor visibility controller', () => {
 
     expect(groundGroup.visible).toBe(false);
     expect(groundLedGroup.visible).toBe(false);
+    expect(groundStructureGroup.visible).toBe(false);
+    expect(groundEnvironmentGroup.visible).toBe(false);
     expect(upperGroup.visible).toBe(true);
     expect(upperLedGroup.visible).toBe(true);
+
+    controller.setActiveFloorId('ground');
+
+    expect(groundGroup.visible).toBe(true);
+    expect(groundLedGroup.visible).toBe(true);
+    expect(groundStructureGroup.visible).toBe(true);
+    expect(groundEnvironmentGroup.visible).toBe(true);
+    expect(upperGroup.visible).toBe(false);
+    expect(upperLedGroup.visible).toBe(false);
   });
 
   it('hides ground POI labels and visited checkmarks on the upper floor', () => {
