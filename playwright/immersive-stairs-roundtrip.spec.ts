@@ -53,6 +53,16 @@ type TestWorldApi = {
     stairDirection: 1 | -1;
     upperFloorElevation: number;
   };
+  getFloorVisibilitySnapshot(): {
+    activeFloorId: FloorId;
+    groups: {
+      groundFloor: boolean;
+      groundPoi: boolean;
+      groundStructures: boolean;
+      groundEnvironment: boolean;
+      upperFloor: boolean;
+    };
+  };
 };
 
 type DebugColliderApi = {
@@ -183,6 +193,16 @@ async function getTooltipState(page: Page): Promise<TooltipState> {
       throw new Error('POI API unavailable');
     }
     return poi.getTooltipState();
+  });
+}
+
+async function getFloorVisibilitySnapshot(page: Page) {
+  return page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.getFloorVisibilitySnapshot();
   });
 }
 
@@ -563,4 +583,31 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   for (const groundPoiId of GROUND_POI_IDS) {
     expect(tooltipState.visibleMarkerLabelPoiIds).not.toContain(groundPoiId);
   }
+
+  const upperVisibility = await getFloorVisibilitySnapshot(page);
+  expect(upperVisibility).toEqual({
+    activeFloorId: 'upper',
+    groups: {
+      groundFloor: false,
+      groundPoi: false,
+      groundStructures: false,
+      groundEnvironment: false,
+      upperFloor: true,
+    },
+  });
+
+  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
+
+  const groundVisibility = await getFloorVisibilitySnapshot(page);
+  expect(groundVisibility).toEqual({
+    activeFloorId: 'ground',
+    groups: {
+      groundFloor: true,
+      groundPoi: true,
+      groundStructures: true,
+      groundEnvironment: true,
+      upperFloor: false,
+    },
+  });
 });

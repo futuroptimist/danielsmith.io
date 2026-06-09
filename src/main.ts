@@ -635,6 +635,16 @@ declare global {
           stairDirection: 1 | -1;
           upperFloorElevation: number;
         };
+        getFloorVisibilitySnapshot(): {
+          activeFloorId: FloorId;
+          groups: {
+            groundFloor: boolean;
+            groundPoi: boolean;
+            groundStructures: boolean;
+            groundEnvironment: boolean;
+            upperFloor: boolean;
+          };
+        };
         getCeilingOpacities(): number[];
         // Test-only helper: current player yaw in radians
         getPlayerYaw?(): number;
@@ -1612,6 +1622,10 @@ function initializeImmersiveScene(
   });
   environmentLightAnimator.captureBaseline();
 
+  const groundEnvironmentGroup = new Group();
+  groundEnvironmentGroup.name = 'GroundEnvironmentVisuals';
+  scene.add(groundEnvironmentGroup);
+
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.id === BACKYARD_ROOM_ID
   );
@@ -1620,7 +1634,7 @@ function initializeImmersiveScene(
       seasonalPreset,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(backyardEnvironment.group);
+    groundEnvironmentGroup.add(backyardEnvironment.group);
     // Remove the enclosing sky dome to avoid a bright circular spheroid.
     // We want a dark void beyond the property in runtime.
     const skyDome =
@@ -1636,6 +1650,10 @@ function initializeImmersiveScene(
   const groundFloorGroup = new Group();
   groundFloorGroup.name = 'GroundFloorVisuals';
   scene.add(groundFloorGroup);
+
+  const groundStructureGroup = new Group();
+  groundStructureGroup.name = 'GroundStructureVisuals';
+  scene.add(groundStructureGroup);
 
   const floorMaterial = new MeshStandardMaterial({
     color: 0x2a3547,
@@ -2160,7 +2178,12 @@ function initializeImmersiveScene(
   const floorVisibilityController: FloorVisibilityController =
     createFloorVisibilityController({
       initialFloorId: activeFloorId,
-      groundGroups: [groundFloorGroup, groundPoiGroup],
+      groundGroups: [
+        groundFloorGroup,
+        groundPoiGroup,
+        groundStructureGroup,
+        groundEnvironmentGroup,
+      ],
       upperGroups: [upperFloorGroup],
       groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
         (group): group is Group => group !== null
@@ -2576,7 +2599,7 @@ function initializeImmersiveScene(
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(showpiece.group);
+    groundStructureGroup.add(showpiece.group);
     showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
@@ -2596,7 +2619,7 @@ function initializeImmersiveScene(
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(terminal.group);
+    groundStructureGroup.add(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
 
@@ -2609,7 +2632,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
       });
-      scene.add(navigator.group);
+      groundStructureGroup.add(navigator.group);
       navigator.colliders.forEach((collider) => groundColliders.push(collider));
       axelNavigator = navigator;
     }
@@ -2623,7 +2646,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: tokenPlacePoi.group.rotation.y ?? 0,
       });
-      scene.add(rack.group);
+      groundStructureGroup.add(rack.group);
       rack.colliders.forEach((collider) => groundColliders.push(collider));
       tokenPlaceRack = rack;
     }
@@ -2637,7 +2660,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: gabrielPoi.group.rotation.y ?? 0,
       });
-      scene.add(sentry.group);
+      groundStructureGroup.add(sentry.group);
       sentry.colliders.forEach((collider) => groundColliders.push(collider));
       gabrielSentry = sentry;
     }
@@ -2652,7 +2675,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
     });
-    scene.add(console.group);
+    groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
   }
@@ -2666,7 +2689,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
-    scene.add(installation.group);
+    groundStructureGroup.add(installation.group);
     installation.colliders.forEach((collider) =>
       groundColliders.push(collider)
     );
@@ -2696,7 +2719,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
     });
-    scene.add(console.group);
+    groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     f2ClipboardConsole = console;
   }
@@ -2724,7 +2747,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: sigmaPoi.group.rotation.y ?? 0,
     });
-    scene.add(workbench.group);
+    groundStructureGroup.add(workbench.group);
     workbench.colliders.forEach((collider) => groundColliders.push(collider));
     sigmaWorkbench = workbench;
   }
@@ -2752,7 +2775,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
-    scene.add(loom.group);
+    groundStructureGroup.add(loom.group);
     loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;
   }
@@ -3184,6 +3207,18 @@ function initializeImmersiveScene(
       // Test helpers – expose current mannequin yaw in radians.
       getPlayerYaw() {
         return normalizeRadians(mannequinRelativeYaw);
+      },
+      getFloorVisibilitySnapshot() {
+        return {
+          activeFloorId,
+          groups: {
+            groundFloor: groundFloorGroup.visible,
+            groundPoi: groundPoiGroup.visible,
+            groundStructures: groundStructureGroup.visible,
+            groundEnvironment: groundEnvironmentGroup.visible,
+            upperFloor: upperFloorGroup.visible,
+          },
+        };
       },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {
