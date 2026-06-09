@@ -1841,20 +1841,12 @@ function initializeImmersiveScene(
     maxZ: stairGuardMaxZ,
   });
 
-  const groundStairContainingRoomMaxX = livingRoom?.bounds.maxX;
-  if (groundStairContainingRoomMaxX === undefined) {
-    throw new Error(
-      'Missing living room bounds for ground stair boundary seal'
-    );
-  }
-
   const groundStairBoundaryColliders = createGroundStairBoundaryColliders(
     stairGeometry,
     stairBehavior,
     {
       playerRadius: PLAYER_RADIUS,
       guardThickness: stairGuardThickness,
-      containingRoomMaxX: groundStairContainingRoomMaxX,
     }
   );
   groundStairBoundaryColliders.forEach(({ name, bounds }) => {

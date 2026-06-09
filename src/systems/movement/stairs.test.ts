@@ -11,7 +11,6 @@ import {
 
 const PLAYER_RADIUS = 0.75;
 const EPSILON = 0.1;
-const CONTAINING_ROOM_MAX_X = 32;
 
 const geometry: StairGeometry = {
   centerX: 12.4,
@@ -37,7 +36,6 @@ const boundaryColliders = createGroundStairBoundaryColliders(
   {
     playerRadius: PLAYER_RADIUS,
     guardThickness: 0.44,
-    containingRoomMaxX: CONTAINING_ROOM_MAX_X,
   }
 );
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
@@ -48,47 +46,26 @@ const rampMaxZ = Math.max(geometry.bottomZ, geometry.topZ);
 const lowerApproachZ =
   geometry.bottomZ - geometry.direction * behavior.transitionMargin;
 const lowerApproachMaxZ = Math.max(geometry.bottomZ, lowerApproachZ);
-const roomLaneX = stairEastX + (CONTAINING_ROOM_MAX_X - stairEastX) / 2;
+const eastBoundaryMaxX = Math.max(
+  ...boundaryColliders.map((collider) => collider.bounds.maxX)
+);
 
 describe('createGroundStairBoundaryColliders', () => {
-  it('names the ground stair blockers for debug visualization', () => {
+  it('names the local ground stair blockers for debug visualization', () => {
     const names = boundaryColliders.map((collider) => collider.name);
 
     expect(names).toEqual([
       'GroundStairEastBoundary',
       'GroundStairLowerCornerGuard',
-      'GroundStairEastRunSeal',
     ]);
+    expect(names).not.toContain('GroundStairEastRunSeal');
   });
 
-  it('seals the east-side stair-run band to the containing room edge', () => {
-    const stairRunZSamples = [
-      rampMinZ + EPSILON,
-      (rampMinZ + rampMaxZ) / 2,
-      rampMaxZ - EPSILON,
-    ];
-    const eastBandXSamples = [
-      stairEastX + EPSILON,
-      stairEastX + (CONTAINING_ROOM_MAX_X - stairEastX) * 0.25,
-      stairEastX + (CONTAINING_ROOM_MAX_X - stairEastX) * 0.5,
-      CONTAINING_ROOM_MAX_X - EPSILON,
-    ];
-
-    stairRunZSamples.forEach((z) => {
-      eastBandXSamples.forEach((x) => {
-        expect(collidesWithColliders(x, z, PLAYER_RADIUS, boundaryBounds)).toBe(
-          true
-        );
-      });
-    });
-  });
-
-  it('blocks representative east-side squeeze and route-around samples', () => {
+  it('blocks the reported stair-side squeeze samples', () => {
     const blockedSamples = [
       { x: 17.38, z: -8.84 },
       { x: 21.35, z: -14.66 },
       { x: 22.1, z: -14.66 },
-      { x: 24, z: -18 },
     ];
 
     blockedSamples.forEach((sample) => {
@@ -98,14 +75,24 @@ describe('createGroundStairBoundaryColliders', () => {
     });
   });
 
-  it('keeps living-room lanes outside the east-side seal band clear', () => {
+  it('keeps ordinary living-room space east of the local blocker clear', () => {
+    expect(collidesWithColliders(24, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
+      false
+    );
+  });
+
+  it('keeps living-room lanes outside the local stair-side blocker clear', () => {
     const clearSamples = [
       {
-        x: roomLaneX,
+        x: eastBoundaryMaxX + PLAYER_RADIUS + EPSILON,
+        z: (rampMinZ + rampMaxZ) / 2,
+      },
+      {
+        x: stairEastX + PLAYER_RADIUS + EPSILON,
         z: lowerApproachMaxZ + PLAYER_RADIUS + EPSILON,
       },
       {
-        x: roomLaneX,
+        x: stairEastX + PLAYER_RADIUS + EPSILON,
         z: rampMinZ - PLAYER_RADIUS - EPSILON,
       },
     ];

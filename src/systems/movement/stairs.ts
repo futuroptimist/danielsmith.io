@@ -50,12 +50,6 @@ export interface NamedStairBoundaryCollider {
 export interface GroundStairBoundaryColliderOptions {
   playerRadius: number;
   guardThickness: number;
-  /**
-   * East-most X coordinate for the containing room edge that closes the
-   * stair-run no-go band. This should be the local room boundary, not a global
-   * floor edge, unless those are the same physical edge.
-   */
-  containingRoomMaxX: number;
   /** Optional east-most X coordinate for the local stair-side blocker. */
   eastBoundaryMaxX?: number;
 }
@@ -233,12 +227,10 @@ export const createGroundStairBoundaryColliders = (
     fallbackEastBoundaryMaxX,
     options.eastBoundaryMaxX ?? fallbackEastBoundaryMaxX
   );
-  const eastRunSealMaxX = Math.max(
-    eastBoundaryMaxX,
-    options.containingRoomMaxX
-  );
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+  // Keep the blocker local: east-of-blocker living-room space is
+  // intentionally still navigable, so do not seal this to the room edge.
   const colliders: NamedStairBoundaryCollider[] = [
     {
       name: 'GroundStairEastBoundary',
@@ -259,18 +251,6 @@ export const createGroundStairBoundaryColliders = (
       },
     },
   ];
-
-  if (eastRunSealMaxX > eastBoundaryMaxX) {
-    colliders.push({
-      name: 'GroundStairEastRunSeal',
-      bounds: {
-        minX: eastBoundaryMaxX,
-        maxX: eastRunSealMaxX,
-        minZ: rampMinZ,
-        maxZ: rampMaxZ,
-      },
-    });
-  }
 
   return colliders;
 };
