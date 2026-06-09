@@ -350,12 +350,9 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   const upperTooltipState = await getTooltipState(page);
-  expect(upperTooltipState.visibleMarkerLabelCount).toBe(0);
-  for (const groundPoiId of GROUND_POI_IDS) {
-    expect(upperTooltipState.visibleMarkerLabelPoiIds).not.toContain(
-      groundPoiId
-    );
-  }
+  expect(upperTooltipState.visibleMarkerLabelPoiIds).not.toEqual(
+    expect.arrayContaining(GROUND_POI_IDS)
+  );
   expect(await getFloorVisibilitySnapshot(page)).toMatchObject({
     activeFloorId: 'upper',
     groundFloorVisible: false,

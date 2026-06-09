@@ -2178,7 +2178,11 @@ function initializeImmersiveScene(
       poiGroup.add(poi.group);
     }
     if (poi.collider) {
-      staticColliders.push(poi.collider);
+      if (getPoiFloorId(poi.definition) === 'upper') {
+        upperFloorColliders.push(poi.collider);
+      } else {
+        staticColliders.push(poi.collider);
+      }
     }
     poiInstances.push(poi);
   });
