@@ -636,6 +636,15 @@ declare global {
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
+        getFloorVisibilitySnapshot(): {
+          activeFloorId: FloorId;
+          groundFloorVisible: boolean;
+          groundPoiVisible: boolean;
+          groundStructureVisible: boolean;
+          backyardEnvironmentVisible: boolean | null;
+          upperFloorVisible: boolean;
+          upperPoiVisible: boolean;
+        };
         // Test-only helper: current player yaw in radians
         getPlayerYaw?(): number;
       };
@@ -1612,6 +1621,10 @@ function initializeImmersiveScene(
   });
   environmentLightAnimator.captureBaseline();
 
+  const groundStructureGroup = new Group();
+  groundStructureGroup.name = 'GroundStructureVisuals';
+  scene.add(groundStructureGroup);
+
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.id === BACKYARD_ROOM_ID
   );
@@ -1620,7 +1633,7 @@ function initializeImmersiveScene(
       seasonalPreset,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(backyardEnvironment.group);
+    groundStructureGroup.add(backyardEnvironment.group);
     // Remove the enclosing sky dome to avoid a bright circular spheroid.
     // We want a dark void beyond the property in runtime.
     const skyDome =
@@ -2143,12 +2156,22 @@ function initializeImmersiveScene(
   groundPoiGroup.name = 'GroundPoiVisuals';
   scene.add(groundPoiGroup);
 
+  const upperPoiGroup = new Group();
+  upperPoiGroup.name = 'UpperPoiVisuals';
+  upperPoiGroup.visible = false;
+  scene.add(upperPoiGroup);
+
+  const getPoiFloorId = createPoiFloorResolver(FLOOR_PLAN_LEVELS);
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides, {
     detailPolicy: activeSceneDetailPolicy,
   });
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
-      groundPoiGroup.add(poi.group);
+      const targetPoiGroup =
+        getPoiFloorId(poi.definition) === 'upper'
+          ? upperPoiGroup
+          : groundPoiGroup;
+      targetPoiGroup.add(poi.group);
     }
     if (poi.collider) {
       staticColliders.push(poi.collider);
@@ -2156,12 +2179,11 @@ function initializeImmersiveScene(
     poiInstances.push(poi);
   });
 
-  const getPoiFloorId = createPoiFloorResolver(FLOOR_PLAN_LEVELS);
   const floorVisibilityController: FloorVisibilityController =
     createFloorVisibilityController({
       initialFloorId: activeFloorId,
-      groundGroups: [groundFloorGroup, groundPoiGroup],
-      upperGroups: [upperFloorGroup],
+      groundGroups: [groundFloorGroup, groundPoiGroup, groundStructureGroup],
+      upperGroups: [upperFloorGroup, upperPoiGroup],
       groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
         (group): group is Group => group !== null
       ),
@@ -2576,7 +2598,7 @@ function initializeImmersiveScene(
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(showpiece.group);
+    groundStructureGroup.add(showpiece.group);
     showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
@@ -2596,7 +2618,7 @@ function initializeImmersiveScene(
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(terminal.group);
+    groundStructureGroup.add(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
 
@@ -2609,7 +2631,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
       });
-      scene.add(navigator.group);
+      groundStructureGroup.add(navigator.group);
       navigator.colliders.forEach((collider) => groundColliders.push(collider));
       axelNavigator = navigator;
     }
@@ -2623,7 +2645,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: tokenPlacePoi.group.rotation.y ?? 0,
       });
-      scene.add(rack.group);
+      groundStructureGroup.add(rack.group);
       rack.colliders.forEach((collider) => groundColliders.push(collider));
       tokenPlaceRack = rack;
     }
@@ -2637,7 +2659,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: gabrielPoi.group.rotation.y ?? 0,
       });
-      scene.add(sentry.group);
+      groundStructureGroup.add(sentry.group);
       sentry.colliders.forEach((collider) => groundColliders.push(collider));
       gabrielSentry = sentry;
     }
@@ -2652,7 +2674,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
     });
-    scene.add(console.group);
+    groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
   }
@@ -2666,7 +2688,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
-    scene.add(installation.group);
+    groundStructureGroup.add(installation.group);
     installation.colliders.forEach((collider) =>
       groundColliders.push(collider)
     );
@@ -2696,7 +2718,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
     });
-    scene.add(console.group);
+    groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     f2ClipboardConsole = console;
   }
@@ -2724,7 +2746,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: sigmaPoi.group.rotation.y ?? 0,
     });
-    scene.add(workbench.group);
+    groundStructureGroup.add(workbench.group);
     workbench.colliders.forEach((collider) => groundColliders.push(collider));
     sigmaWorkbench = workbench;
   }
@@ -2752,7 +2774,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
-    scene.add(loom.group);
+    groundStructureGroup.add(loom.group);
     loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;
   }
@@ -3190,6 +3212,19 @@ function initializeImmersiveScene(
           const material = p.mesh.material as MeshStandardMaterial;
           return material.opacity;
         });
+      },
+      getFloorVisibilitySnapshot() {
+        return {
+          activeFloorId,
+          groundFloorVisible: groundFloorGroup.visible,
+          groundPoiVisible: groundPoiGroup.visible,
+          groundStructureVisible: groundStructureGroup.visible,
+          backyardEnvironmentVisible: backyardEnvironment
+            ? groundStructureGroup.visible && backyardEnvironment.group.visible
+            : null,
+          upperFloorVisible: upperFloorGroup.visible,
+          upperPoiVisible: upperPoiGroup.visible,
+        };
       },
     };
   };

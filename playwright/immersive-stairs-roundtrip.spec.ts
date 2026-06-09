@@ -23,6 +23,16 @@ type StairTransitionZone =
   | 'explicitDescentCorridor'
   | 'outsideStairs';
 
+type FloorVisibilitySnapshot = {
+  activeFloorId: FloorId;
+  groundFloorVisible: boolean;
+  groundPoiVisible: boolean;
+  groundStructureVisible: boolean;
+  backyardEnvironmentVisible: boolean | null;
+  upperFloorVisible: boolean;
+  upperPoiVisible: boolean;
+};
+
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
   getActiveFloor(): FloorId;
@@ -53,6 +63,7 @@ type TestWorldApi = {
     stairDirection: 1 | -1;
     upperFloorElevation: number;
   };
+  getFloorVisibilitySnapshot(): FloorVisibilitySnapshot;
 };
 
 type DebugColliderApi = {
@@ -183,6 +194,18 @@ async function getTooltipState(page: Page): Promise<TooltipState> {
       throw new Error('POI API unavailable');
     }
     return poi.getTooltipState();
+  });
+}
+
+async function getFloorVisibilitySnapshot(
+  page: Page
+): Promise<FloorVisibilitySnapshot> {
+  return page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.getFloorVisibilitySnapshot();
   });
 }
 
@@ -553,6 +576,17 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   expect(debugState.predictedStairFloorId).toBe('upper');
   expect(debugState.currentRoomId).toBeTruthy();
 
+  const upperVisibility = await getFloorVisibilitySnapshot(page);
+  expect(upperVisibility).toMatchObject({
+    activeFloorId: 'upper',
+    groundFloorVisible: false,
+    groundPoiVisible: false,
+    groundStructureVisible: false,
+    backyardEnvironmentVisible: false,
+    upperFloorVisible: true,
+    upperPoiVisible: true,
+  });
+
   const tooltipState = await getTooltipState(page);
   expect(tooltipState.worldTooltipVisible).toBe(false);
   expect(tooltipState.worldTooltipPoiId).toBeNull();
@@ -563,4 +597,17 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   for (const groundPoiId of GROUND_POI_IDS) {
     expect(tooltipState.visibleMarkerLabelPoiIds).not.toContain(groundPoiId);
   }
+
+  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
+  const groundVisibility = await getFloorVisibilitySnapshot(page);
+  expect(groundVisibility).toMatchObject({
+    activeFloorId: 'ground',
+    groundFloorVisible: true,
+    groundPoiVisible: true,
+    groundStructureVisible: true,
+    backyardEnvironmentVisible: true,
+    upperFloorVisible: false,
+    upperPoiVisible: false,
+  });
 });
