@@ -636,6 +636,16 @@ declare global {
           upperFloorElevation: number;
         };
         getCeilingOpacities(): number[];
+        getFloorVisibilitySnapshot(): {
+          activeFloorId: FloorId;
+          groundFloorVisible: boolean;
+          groundPoiVisible: boolean;
+          upperPoiVisible: boolean;
+          groundEnvironmentVisible: boolean;
+          groundStructureVisible: boolean;
+          upperFloorVisible: boolean;
+          backyardEnvironmentVisible: boolean | null;
+        };
         // Test-only helper: current player yaw in radians
         getPlayerYaw?(): number;
       };
@@ -1612,6 +1622,14 @@ function initializeImmersiveScene(
   });
   environmentLightAnimator.captureBaseline();
 
+  const groundEnvironmentGroup = new Group();
+  groundEnvironmentGroup.name = 'GroundEnvironmentVisuals';
+  scene.add(groundEnvironmentGroup);
+
+  const groundStructureGroup = new Group();
+  groundStructureGroup.name = 'GroundStructureVisuals';
+  scene.add(groundStructureGroup);
+
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.id === BACKYARD_ROOM_ID
   );
@@ -1620,7 +1638,7 @@ function initializeImmersiveScene(
       seasonalPreset,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(backyardEnvironment.group);
+    groundEnvironmentGroup.add(backyardEnvironment.group);
     // Remove the enclosing sky dome to avoid a bright circular spheroid.
     // We want a dark void beyond the property in runtime.
     const skyDome =
@@ -2143,12 +2161,21 @@ function initializeImmersiveScene(
   groundPoiGroup.name = 'GroundPoiVisuals';
   scene.add(groundPoiGroup);
 
+  const upperPoiGroup = new Group();
+  upperPoiGroup.name = 'UpperPoiVisuals';
+  scene.add(upperPoiGroup);
+
+  const getPoiFloorId = createPoiFloorResolver(FLOOR_PLAN_LEVELS);
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides, {
     detailPolicy: activeSceneDetailPolicy,
   });
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
-      groundPoiGroup.add(poi.group);
+      const poiGroup =
+        getPoiFloorId(poi.definition) === 'upper'
+          ? upperPoiGroup
+          : groundPoiGroup;
+      poiGroup.add(poi.group);
     }
     if (poi.collider) {
       staticColliders.push(poi.collider);
@@ -2156,12 +2183,16 @@ function initializeImmersiveScene(
     poiInstances.push(poi);
   });
 
-  const getPoiFloorId = createPoiFloorResolver(FLOOR_PLAN_LEVELS);
   const floorVisibilityController: FloorVisibilityController =
     createFloorVisibilityController({
       initialFloorId: activeFloorId,
-      groundGroups: [groundFloorGroup, groundPoiGroup],
-      upperGroups: [upperFloorGroup],
+      groundGroups: [
+        groundFloorGroup,
+        groundPoiGroup,
+        groundEnvironmentGroup,
+        groundStructureGroup,
+      ],
+      upperGroups: [upperFloorGroup, upperPoiGroup],
       groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
         (group): group is Group => group !== null
       ),
@@ -2576,7 +2607,7 @@ function initializeImmersiveScene(
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(showpiece.group);
+    groundStructureGroup.add(showpiece.group);
     showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
@@ -2596,7 +2627,7 @@ function initializeImmersiveScene(
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
-    scene.add(terminal.group);
+    groundStructureGroup.add(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
 
@@ -2609,7 +2640,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
       });
-      scene.add(navigator.group);
+      groundStructureGroup.add(navigator.group);
       navigator.colliders.forEach((collider) => groundColliders.push(collider));
       axelNavigator = navigator;
     }
@@ -2623,7 +2654,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: tokenPlacePoi.group.rotation.y ?? 0,
       });
-      scene.add(rack.group);
+      groundStructureGroup.add(rack.group);
       rack.colliders.forEach((collider) => groundColliders.push(collider));
       tokenPlaceRack = rack;
     }
@@ -2637,7 +2668,7 @@ function initializeImmersiveScene(
         },
         orientationRadians: gabrielPoi.group.rotation.y ?? 0,
       });
-      scene.add(sentry.group);
+      groundStructureGroup.add(sentry.group);
       sentry.colliders.forEach((collider) => groundColliders.push(collider));
       gabrielSentry = sentry;
     }
@@ -2652,7 +2683,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
     });
-    scene.add(console.group);
+    groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
   }
@@ -2666,7 +2697,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
-    scene.add(installation.group);
+    groundStructureGroup.add(installation.group);
     installation.colliders.forEach((collider) =>
       groundColliders.push(collider)
     );
@@ -2696,7 +2727,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
     });
-    scene.add(console.group);
+    groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     f2ClipboardConsole = console;
   }
@@ -2724,7 +2755,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: sigmaPoi.group.rotation.y ?? 0,
     });
-    scene.add(workbench.group);
+    groundStructureGroup.add(workbench.group);
     workbench.colliders.forEach((collider) => groundColliders.push(collider));
     sigmaWorkbench = workbench;
   }
@@ -2752,7 +2783,7 @@ function initializeImmersiveScene(
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
-    scene.add(loom.group);
+    groundStructureGroup.add(loom.group);
     loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;
   }
@@ -3190,6 +3221,36 @@ function initializeImmersiveScene(
           const material = p.mesh.material as MeshStandardMaterial;
           return material.opacity;
         });
+      },
+      getFloorVisibilitySnapshot() {
+        const isEffectivelyVisible = (
+          object: Object3D | null
+        ): boolean | null => {
+          if (!object) {
+            return null;
+          }
+          let current: Object3D | null = object;
+          while (current) {
+            if (!current.visible) {
+              return false;
+            }
+            current = current.parent;
+          }
+          return true;
+        };
+
+        return {
+          activeFloorId,
+          groundFloorVisible: groundFloorGroup.visible,
+          groundPoiVisible: groundPoiGroup.visible,
+          upperPoiVisible: upperPoiGroup.visible,
+          groundEnvironmentVisible: groundEnvironmentGroup.visible,
+          groundStructureVisible: groundStructureGroup.visible,
+          upperFloorVisible: upperFloorGroup.visible,
+          backyardEnvironmentVisible: isEffectivelyVisible(
+            backyardEnvironment?.group ?? null
+          ),
+        };
       },
     };
   };

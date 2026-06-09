@@ -23,6 +23,17 @@ type StairTransitionZone =
   | 'explicitDescentCorridor'
   | 'outsideStairs';
 
+type FloorVisibilitySnapshot = {
+  activeFloorId: FloorId;
+  groundFloorVisible: boolean;
+  groundPoiVisible: boolean;
+  upperPoiVisible: boolean;
+  groundEnvironmentVisible: boolean;
+  groundStructureVisible: boolean;
+  upperFloorVisible: boolean;
+  backyardEnvironmentVisible: boolean | null;
+};
+
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
   getActiveFloor(): FloorId;
@@ -53,6 +64,7 @@ type TestWorldApi = {
     stairDirection: 1 | -1;
     upperFloorElevation: number;
   };
+  getFloorVisibilitySnapshot(): FloorVisibilitySnapshot;
 };
 
 type DebugColliderApi = {
@@ -183,6 +195,18 @@ async function getTooltipState(page: Page): Promise<TooltipState> {
       throw new Error('POI API unavailable');
     }
     return poi.getTooltipState();
+  });
+}
+
+async function getFloorVisibilitySnapshot(
+  page: Page
+): Promise<FloorVisibilitySnapshot> {
+  return page.evaluate(() => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.getFloorVisibilitySnapshot();
   });
 }
 
@@ -325,6 +349,24 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await movePlayerTo(page, { x: stairCenterX, z: landingRoamZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
+  const upperTooltipState = await getTooltipState(page);
+  expect(upperTooltipState.visibleMarkerLabelCount).toBe(0);
+  for (const groundPoiId of GROUND_POI_IDS) {
+    expect(upperTooltipState.visibleMarkerLabelPoiIds).not.toContain(
+      groundPoiId
+    );
+  }
+  expect(await getFloorVisibilitySnapshot(page)).toMatchObject({
+    activeFloorId: 'upper',
+    groundFloorVisible: false,
+    groundPoiVisible: false,
+    upperPoiVisible: true,
+    groundEnvironmentVisible: false,
+    groundStructureVisible: false,
+    upperFloorVisible: true,
+    backyardEnvironmentVisible: false,
+  });
+
   // Return toward the stairs, enter the explicit descent handoff, then continue down the ramp.
   // The helper teleports between sampled positions, so include the narrow handoff band that real
   // movement crosses frame by frame.
@@ -340,6 +382,16 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   });
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.35 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
+  expect(await getFloorVisibilitySnapshot(page)).toMatchObject({
+    activeFloorId: 'ground',
+    groundFloorVisible: true,
+    groundPoiVisible: true,
+    upperPoiVisible: false,
+    groundEnvironmentVisible: true,
+    groundStructureVisible: true,
+    upperFloorVisible: false,
+    backyardEnvironmentVisible: true,
+  });
 });
 
 test('upper landing opens west into upstairs rooms and blocks the hidden stair run', async ({
