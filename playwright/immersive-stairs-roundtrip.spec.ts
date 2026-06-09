@@ -4,6 +4,7 @@ import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
 
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
+const PLAYER_RADIUS = 0.75;
 
 const GROUND_POI_IDS = [
   'futuroptimist-living-room-tv',
@@ -435,8 +436,13 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   await waitForImmersiveReady(page);
 
   const html = page.locator('html');
-  const { stairCenterX, stairBottomZ, stairTopZ, stairDirection } =
-    await getStairMetrics(page);
+  const {
+    stairCenterX,
+    stairHalfWidth,
+    stairBottomZ,
+    stairTopZ,
+    stairDirection,
+  } = await getStairMetrics(page);
   const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
   const westLandingEgress = {
     x: stairCenterX - 1.6,
@@ -495,9 +501,21 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ + stairDirection * 0.4,
     floorId: 'upper' as const,
   };
+  const explicitDescentCorridorMaxX =
+    stairCenterX + stairHalfWidth - PLAYER_RADIUS;
+  const eastUpperLandingMouth = {
+    x: explicitDescentCorridorMaxX,
+    z: stairTopZ + stairDirection * 0.95,
+    floorId: 'upper' as const,
+  };
   const hiddenStairVoidGap = [
     {
-      x: stairCenterX + 2,
+      x: stairCenterX - PLAYER_RADIUS * 0.5,
+      z: stairTopZ + stairDirection * 0.95,
+      floorId: 'upper' as const,
+    },
+    {
+      x: stairCenterX,
       z: stairTopZ + stairDirection * 0.95,
       floorId: 'upper' as const,
     },
@@ -516,6 +534,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
 
   expect(await canOccupyPosition(page, firstUpperLandingStep)).toBe(true);
   await movePlayerTo(page, firstUpperLandingStep);
+  expect(await canOccupyPosition(page, eastUpperLandingMouth)).toBe(true);
 
   expect(await canOccupyPosition(page, westLandingEgress)).toBe(true);
   await movePlayerTo(page, westLandingEgress);
