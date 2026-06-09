@@ -76,9 +76,16 @@ describe('createGroundStairBoundaryColliders', () => {
   });
 
   it('keeps ordinary living-room space east of the local blocker clear', () => {
-    expect(collidesWithColliders(24, -18, PLAYER_RADIUS, boundaryBounds)).toBe(
-      false
-    );
+    const clearSamples = [
+      { x: 23, z: -18 },
+      { x: 24, z: -18 },
+    ];
+
+    clearSamples.forEach((sample) => {
+      expect(
+        collidesWithColliders(sample.x, sample.z, PLAYER_RADIUS, boundaryBounds)
+      ).toBe(false);
+    });
   });
 
   it('keeps living-room lanes outside the local stair-side blocker clear', () => {

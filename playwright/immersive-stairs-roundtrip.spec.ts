@@ -241,7 +241,10 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     { x: 21.35, z: -14.66, floorId: 'ground' as const },
     { x: 22.1, z: -14.66, floorId: 'ground' as const },
   ];
-  const livingRoomSample = { x: 24, z: -18, floorId: 'ground' as const };
+  const livingRoomSamples = [
+    { x: 23, z: -18, floorId: 'ground' as const },
+    { x: 24, z: -18, floorId: 'ground' as const },
+  ];
   const lowerEntrance = {
     x: stairCenterX,
     z: stairBottomZ + 0.3,
@@ -255,7 +258,9 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     );
   }
 
-  expect(await canOccupyPosition(page, livingRoomSample)).toBe(true);
+  for (const sample of livingRoomSamples) {
+    expect(await canOccupyPosition(page, sample)).toBe(true);
+  }
   expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
   await movePlayerTo(page, lowerEntrance);
   await expect(html).toHaveAttribute('data-active-floor', 'ground');

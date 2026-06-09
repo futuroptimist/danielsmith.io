@@ -50,8 +50,6 @@ export interface NamedStairBoundaryCollider {
 export interface GroundStairBoundaryColliderOptions {
   playerRadius: number;
   guardThickness: number;
-  /** Optional east-most X coordinate for the local stair-side blocker. */
-  eastBoundaryMaxX?: number;
 }
 
 const DENOMINATOR_EPSILON = 1e-6;
@@ -223,14 +221,12 @@ export const createGroundStairBoundaryColliders = (
     behavior.transitionMargin +
     options.playerRadius * 2 +
     options.guardThickness * 2;
-  const eastBoundaryMaxX = Math.max(
-    fallbackEastBoundaryMaxX,
-    options.eastBoundaryMaxX ?? fallbackEastBoundaryMaxX
-  );
+  const eastBoundaryMaxX = fallbackEastBoundaryMaxX;
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // Keep the blocker local: east-of-blocker living-room space is
-  // intentionally still navigable, so do not seal this to the room edge.
+  // Keep this finite on purpose: we block the stair-side squeeze pocket, not
+  // the whole east-side ramp band. Far-east living-room coordinates remain
+  // valid navigation space, so do not seal this local edge to a room bound.
   const colliders: NamedStairBoundaryCollider[] = [
     {
       name: 'GroundStairEastBoundary',
