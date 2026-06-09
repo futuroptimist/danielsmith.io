@@ -70,6 +70,11 @@ type TestWorldApi = {
 type DebugColliderApi = {
   setEnabled(enabled: boolean): void;
   getColliders(): Array<{ name: string }>;
+  getBlockingCollidersAt(target: {
+    x: number;
+    z: number;
+    floorId?: FloorId;
+  }): Array<{ name: string }>;
 };
 
 type DebugCoordinatesApi = {
@@ -343,6 +348,38 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
+  // Step from the stair top through the explicit upper-landing mouth.
+  const firstUpperLandingStep = {
+    x: stairCenterX,
+    z: stairTopZ + stairDirection * 0.4,
+    floorId: 'upper' as const,
+  };
+  expect(await canOccupyPosition(page, firstUpperLandingStep)).toBe(true);
+  await movePlayerTo(page, firstUpperLandingStep);
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const blockingCollidersAtLandingMouth = await page.evaluate((target) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi
+      .getBlockingCollidersAt(target)
+      .map((collider) => collider.name);
+  }, firstUpperLandingStep);
+  expect(blockingCollidersAtLandingMouth).toEqual([]);
+
+  // Continue through the intended west upper-landing exit into an upstairs room.
+  const upperLandingWestExit = {
+    x: stairCenterX - 1.6,
+    z: stairTopZ + stairDirection * 1.8,
+    floorId: 'upper' as const,
+  };
+  expect(await canOccupyPosition(page, upperLandingWestExit)).toBe(true);
+  await movePlayerTo(page, upperLandingWestExit);
+  await movePlayerTo(page, getUpperRoomCenter('creatorsStudio'));
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
   // Roam deeper onto the upper landing and confirm we stay upstairs.
   const landingRoamZ =
     stairLandingMinZ + Math.min(stairLandingDepth * 0.5, 0.6);
@@ -453,15 +490,15 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ + stairDirection * 0.95,
     floorId: 'upper' as const,
   };
+  const firstUpperLandingStep = {
+    x: stairCenterX,
+    z: stairTopZ + stairDirection * 0.4,
+    floorId: 'upper' as const,
+  };
   const hiddenStairVoidGap = [
     {
-      x: stairCenterX,
-      z: stairTopZ + stairDirection * 0.1,
-      floorId: 'upper' as const,
-    },
-    {
-      x: stairCenterX,
-      z: stairTopZ + stairDirection * 0.6,
+      x: stairCenterX + 2,
+      z: stairTopZ + stairDirection * 0.95,
       floorId: 'upper' as const,
     },
   ];
@@ -476,6 +513,9 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ - stairDirection * 0.1,
   });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  expect(await canOccupyPosition(page, firstUpperLandingStep)).toBe(true);
+  await movePlayerTo(page, firstUpperLandingStep);
 
   expect(await canOccupyPosition(page, westLandingEgress)).toBe(true);
   await movePlayerTo(page, westLandingEgress);
