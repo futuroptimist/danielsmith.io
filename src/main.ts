@@ -3963,6 +3963,8 @@ function initializeImmersiveScene(
     colliderVisualizer.setActiveFloor(next);
   };
 
+  // Persists the intentional upper→ground descent context after the floor handoff so
+  // slow movement keeps using the upper lip blend across the whole transition band.
   let upperDescentBlendActive = false;
 
   const getVerticalSurfaceFloor = (surfaceFloor: FloorId): FloorId => {
@@ -4055,8 +4057,8 @@ function initializeImmersiveScene(
     stepZ: number,
     options: { includeDiagnostics?: boolean } = {}
   ) => {
-    // Height sampling uses the floor from the start of the step so the first
-    // upper→ground descent sample still receives the lip blend after handoff.
+    // Height sampling uses the floor from the start of the step and the persisted
+    // descent context so upper→ground descent keeps the lip blend after handoff.
     const surfaceFloorBeforeStep = activeFloorId;
     const blockedBy = options.includeDiagnostics ? new Set<string>() : null;
     let movedX = false;

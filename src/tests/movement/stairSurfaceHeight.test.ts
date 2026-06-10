@@ -117,6 +117,26 @@ describe('sampleStairSurfaceHeight', () => {
     expect(height).toBeLessThan(upperFloorElevation);
   });
 
+  it('keeps slow upper descent samples smooth through the full lip band', () => {
+    const blendRange =
+      behavior.transitionMargin - behavior.landingTriggerMargin;
+    const sampleCount = 7;
+    const heights = Array.from({ length: sampleCount }, (_, index) => {
+      const progress = index / (sampleCount - 1);
+      const descentZ =
+        geometry.topZ - behavior.landingTriggerMargin - blendRange * progress;
+
+      return sample({ x: 0, z: descentZ, currentFloor: 'upper' });
+    });
+
+    for (let index = 1; index < heights.length; index += 1) {
+      expect(heights[index]).toBeLessThanOrEqual(heights[index - 1] + 0.001);
+      expect(heights[index - 1] - heights[index]).toBeLessThan(0.25);
+    }
+
+    expect(heights[0]).toBeGreaterThan(heights.at(-1) ?? heights[0]);
+  });
+
   it('keeps ground ascent samples on the ramp inside the descent lip band', () => {
     const blendRange =
       behavior.transitionMargin - behavior.landingTriggerMargin;

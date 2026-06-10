@@ -408,6 +408,9 @@ export const sampleStairSurfaceHeight = ({
     return upperFloorElevation;
   }
 
+  // Only an upper-origin descent receives the landing-lip blend. Ground ascent
+  // callers deliberately pass `ground`, while runtime descent preserves `upper`
+  // as the surface context after active floor handoff until this band is clear.
   if (
     currentFloor === 'upper' &&
     isInExplicitDescentCorridor(geometry, behavior, x, z)

@@ -45,6 +45,7 @@ type TestWorldApi = {
     blockedBy?: string[];
   };
   getActiveFloor(): FloorId;
+  setActiveFloor(next: FloorId): void;
   canOccupyPosition(target: {
     x: number;
     z: number;
@@ -390,6 +391,89 @@ async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
   );
 }
 
+async function walkUpperDescentLipBand(page: Page) {
+  const { stairCenterX, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ + stairDirection * 0.05,
+    floorId: 'upper',
+  });
+
+  return page.evaluate(
+    ({
+      stairCenterX: nextStairCenterX,
+      stairTopZ: nextStairTopZ,
+      stairDirection: nextDirection,
+    }) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+
+      let startZ: number | null = null;
+      for (let index = 1; index <= 40; index += 1) {
+        const candidateZ = nextStairTopZ - nextDirection * index * 0.05;
+        const zone = world.getStairTransitionZone({
+          x: nextStairCenterX,
+          z: candidateZ,
+          currentFloor: 'upper',
+        });
+        if (zone === 'explicitDescentCorridor') {
+          startZ = candidateZ;
+          break;
+        }
+      }
+      if (startZ === null) {
+        throw new Error('Unable to find explicit descent corridor start');
+      }
+
+      world.movePlayerTo({ x: nextStairCenterX, z: startZ });
+      world.setActiveFloor('upper');
+
+      const stepZ = -nextDirection * 0.06;
+      const targetZ = nextStairTopZ - nextDirection * 0.8;
+      const samples: Array<{
+        activeFloor: FloorId;
+        position: { x: number; y: number; z: number };
+        upperZone: StairTransitionZone;
+      }> = [];
+
+      for (let index = 0; index < 80; index += 1) {
+        const before = world.getPlayerPosition();
+        if (nextDirection === 1 ? before.z <= targetZ : before.z >= targetZ) {
+          break;
+        }
+
+        const result = world.stepPlayerForTest({ dx: 0, dz: stepZ });
+        if (!result.movedZ) {
+          throw new Error(
+            `Blocked descending at z=${before.z.toFixed(2)}: ${(result.blockedBy ?? []).join(', ')}`
+          );
+        }
+        if (Math.abs(result.position.x - nextStairCenterX) > 0.001) {
+          throw new Error(
+            `Descent drifted off centerline to x=${result.position.x}`
+          );
+        }
+
+        samples.push({
+          activeFloor: result.activeFloor,
+          position: result.position,
+          upperZone: world.getStairTransitionZone({
+            x: result.position.x,
+            z: result.position.z,
+            currentFloor: 'upper',
+          }),
+        });
+      }
+
+      return samples;
+    },
+    { stairCenterX, stairTopZ, stairDirection }
+  );
+}
+
 async function getWorldState(page: Page) {
   return page.evaluate(() => {
     const world = (window as PortfolioWindow).portfolio?.world;
@@ -587,14 +671,24 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     backyardEnvironmentVisible: false,
   });
 
-  // Return toward the stairs, enter the explicit descent handoff, then continue down the ramp.
-  // The helper teleports between sampled positions, so include the narrow handoff band that real
-  // movement crosses frame by frame.
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
-  });
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
+  // Return toward the stairs with continuous upper→ground steps. The first ground
+  // samples should keep the upper-origin lip blend instead of snapping to raw ramp height.
+  const descentSamples = await walkUpperDescentLipBand(page);
+  const descentGroundSamples = descentSamples.filter(
+    (sample) =>
+      sample.activeFloor === 'ground' &&
+      sample.upperZone === 'explicitDescentCorridor'
+  );
+  expect(descentGroundSamples.length).toBeGreaterThan(3);
+  for (let index = 1; index < descentGroundSamples.length; index += 1) {
+    const previousY = descentGroundSamples[index - 1].position.y;
+    const currentY = descentGroundSamples[index].position.y;
+    expect(currentY).toBeLessThanOrEqual(previousY + 0.01);
+    expect(previousY - currentY).toBeLessThan(0.2);
+  }
+  expect(descentGroundSamples[0].position.y).toBeGreaterThan(
+    descentGroundSamples[descentGroundSamples.length - 1].position.y
+  );
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
   await movePlayerTo(page, {
     x: stairCenterX,
