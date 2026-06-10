@@ -45,14 +45,15 @@ describe('sampleStairSurfaceHeight', () => {
     expect(height).toBeCloseTo(geometry.totalRise / 2, 5);
   });
 
-  it('keeps landing height at the descent threshold', () => {
+  it('keeps ground ascent on the ramp until the physical stair top', () => {
     const nearTopStepZ = geometry.topZ - toWorldUnits(0.2);
     const height = sample({ x: 0, z: nearTopStepZ, currentFloor: 'ground' });
+    const rampHeight = computeRampHeight(geometry, behavior, 0, nearTopStepZ);
 
-    expect(height).toBeCloseTo(upperFloorElevation, 6);
+    expect(height).toBeCloseTo(rampHeight, 6);
   });
 
-  it('smooths the landing lip after an intentional descent begins', () => {
+  it('keeps ground ascent ramp height through the former handoff halo', () => {
     const firstDescentStepZ =
       geometry.topZ - behavior.landingTriggerMargin - toWorldUnits(0.01);
     const rampHeight = computeRampHeight(
@@ -67,8 +68,7 @@ describe('sampleStairSurfaceHeight', () => {
       currentFloor: 'ground',
     });
 
-    expect(height).toBeGreaterThan(rampHeight);
-    expect(height).toBeCloseTo(upperFloorElevation, 1);
+    expect(height).toBeCloseTo(rampHeight, 6);
   });
 
   it('returns the ramp height after clearing the top handoff band', () => {
@@ -88,7 +88,7 @@ describe('sampleStairSurfaceHeight', () => {
     expect(height).toBeCloseTo(rampHeight, 6);
   });
 
-  it('returns ground height for ground-floor samples beyond the ramp run', () => {
+  it('returns upper height for centerline ground samples beyond the ramp run', () => {
     const upperLandingZ = geometry.topZ + toWorldUnits(0.6);
 
     for (const x of [0, geometry.halfWidth - toWorldUnits(0.05)]) {
@@ -101,7 +101,7 @@ describe('sampleStairSurfaceHeight', () => {
       );
 
       expect(rampHeight).toBe(0);
-      expect(height).toBe(0);
+      expect(height).toBe(upperFloorElevation);
     }
   });
 

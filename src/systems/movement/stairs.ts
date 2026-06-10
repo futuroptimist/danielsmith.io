@@ -340,7 +340,6 @@ export const predictStairFloorId = (
   current: FloorId
 ): FloorId => {
   const zone = classifyStairTransitionZone(geometry, behavior, x, z, current);
-  const rampHeight = computeRampHeight(geometry, behavior, x, z);
   const withinPhysicalStairs = isWithinPhysicalStairWidth(geometry, x);
   const withinRampRun = isWithinRampRun(geometry, z);
   const direction = geometry.direction;
@@ -353,16 +352,15 @@ export const predictStairFloorId = (
     return 'ground';
   }
 
-  const nearTop =
-    direction === -1
-      ? z <= geometry.topZ + behavior.transitionMargin
-      : z >= geometry.topZ - behavior.transitionMargin;
+  const atOrPastStairTop =
+    direction === -1 ? z <= geometry.topZ : z >= geometry.topZ;
+  const onUpperLanding = isWithinLanding(geometry, x, z);
 
-  const nearLanding =
+  if (
     withinPhysicalStairs &&
-    withinRampRun &&
-    (nearTop || rampHeight >= geometry.totalRise - behavior.stepRise * 0.25);
-  if (nearLanding) {
+    atOrPastStairTop &&
+    (withinRampRun || onUpperLanding)
+  ) {
     return 'upper';
   }
 
@@ -405,12 +403,15 @@ export const sampleStairSurfaceHeight = ({
   if (
     predictedFloor === 'upper' &&
     zone !== 'explicitDescentCorridor' &&
-    currentFloor === 'upper'
+    (currentFloor === 'upper' || zone === 'upperLanding')
   ) {
     return upperFloorElevation;
   }
 
-  if (isInExplicitDescentCorridor(geometry, behavior, x, z)) {
+  if (
+    currentFloor === 'upper' &&
+    isInExplicitDescentCorridor(geometry, behavior, x, z)
+  ) {
     const blendRange = Math.max(
       behavior.transitionMargin - behavior.landingTriggerMargin,
       DENOMINATOR_EPSILON

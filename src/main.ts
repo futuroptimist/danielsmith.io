@@ -619,6 +619,13 @@ declare global {
         }): boolean;
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+        stepPlayerForTest(step: { dx: number; dz: number }): {
+          movedX: boolean;
+          movedZ: boolean;
+          activeFloor: FloorId;
+          position: { x: number; y: number; z: number };
+          blockedBy?: string[];
+        };
         getPlayerPosition(): { x: number; y: number; z: number };
         predictFloorAt(target: {
           x: number;
@@ -2073,15 +2080,6 @@ function initializeImmersiveScene(
       },
       ...upperStairTopGapBlockers,
       {
-        name: 'UpperStairTopGapCenterLipBlocker',
-        bounds: {
-          minX: hiddenStairTopGapBlockerMinX,
-          maxX: stairCenterX + PLAYER_RADIUS,
-          minZ: hiddenStairTopGapBlockerMinZ - stairwellMarginX * 0.1,
-          maxZ: hiddenStairTopGapBlockerMinZ,
-        },
-      },
-      {
         name: 'UpperStairHiddenRunBlocker',
         bounds: {
           minX: stairNavigationZones.explicitDescentCorridor.minX,
@@ -3267,6 +3265,9 @@ function initializeImmersiveScene(
         setActiveFloorId(predictedFloor);
         updatePlayerVerticalPosition();
       },
+      stepPlayerForTest(step: { dx: number; dz: number }) {
+        return applyPlayerMovementStep(step.dx, step.dz);
+      },
       // Test helpers – intentionally minimal and read-only in production.
       getPlayerPosition() {
         return {
@@ -3963,6 +3964,99 @@ function initializeImmersiveScene(
       upperFloorElevation,
     });
     player.position.y = PLAYER_RADIUS + baseHeight;
+  };
+
+  const getBlockingNamesAt = (
+    x: number,
+    z: number,
+    floorId: FloorId
+  ): string[] => {
+    const blockedBy = new Set<string>();
+    const navMesh = navMeshes[floorId];
+    if (!navMesh.contains(x, z)) {
+      blockedBy.add(`${floorId}NavMesh`);
+    }
+
+    for (const collider of floorColliders[floorId]) {
+      if (collidesWithColliders(x, z, PLAYER_RADIUS, [collider])) {
+        blockedBy.add(
+          namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
+        );
+      }
+    }
+
+    if (floorId === 'ground') {
+      for (const collider of staticColliders) {
+        if (collidesWithColliders(x, z, PLAYER_RADIUS, [collider])) {
+          blockedBy.add(
+            namedColliderDebugNames.get(collider) ?? 'StaticCollider'
+          );
+        }
+      }
+    }
+
+    return Array.from(blockedBy);
+  };
+
+  const applyPlayerMovementStep = (stepX: number, stepZ: number) => {
+    const blockedBy = new Set<string>();
+    let movedX = false;
+    let movedZ = false;
+
+    if (stepX !== 0) {
+      const candidateX = player.position.x + stepX;
+      const predictedFloor = predictFloorId(
+        candidateX,
+        player.position.z,
+        activeFloorId
+      );
+      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
+        player.position.x = candidateX;
+        setActiveFloorId(predictedFloor);
+        movedX = true;
+      } else {
+        getBlockingNamesAt(
+          candidateX,
+          player.position.z,
+          predictedFloor
+        ).forEach((name) => blockedBy.add(name));
+      }
+    }
+
+    if (stepZ !== 0) {
+      const candidateZ = player.position.z + stepZ;
+      const predictedFloor = predictFloorId(
+        player.position.x,
+        candidateZ,
+        activeFloorId
+      );
+      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
+        player.position.z = candidateZ;
+        setActiveFloorId(predictedFloor);
+        movedZ = true;
+      } else {
+        getBlockingNamesAt(
+          player.position.x,
+          candidateZ,
+          predictedFloor
+        ).forEach((name) => blockedBy.add(name));
+      }
+    }
+
+    updatePlayerVerticalPosition();
+
+    const blockingNames = Array.from(blockedBy);
+    return {
+      movedX,
+      movedZ,
+      activeFloor: activeFloorId,
+      position: {
+        x: player.position.x,
+        y: player.position.y,
+        z: player.position.z,
+      },
+      ...(blockingNames.length > 0 ? { blockedBy: blockingNames } : {}),
+    };
   };
 
   updatePlayerVerticalPosition();
@@ -5272,39 +5366,15 @@ function initializeImmersiveScene(
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
 
-    if (stepX !== 0) {
-      const candidateX = player.position.x + stepX;
-      const predictedFloor = predictFloorId(
-        candidateX,
-        player.position.z,
-        activeFloorId
-      );
-      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
-        player.position.x = candidateX;
-        setActiveFloorId(predictedFloor);
-      } else {
-        targetVelocity.x = 0;
-        velocity.x = 0;
-      }
+    const movementStep = applyPlayerMovementStep(stepX, stepZ);
+    if (stepX !== 0 && !movementStep.movedX) {
+      targetVelocity.x = 0;
+      velocity.x = 0;
     }
-
-    if (stepZ !== 0) {
-      const candidateZ = player.position.z + stepZ;
-      const predictedFloor = predictFloorId(
-        player.position.x,
-        candidateZ,
-        activeFloorId
-      );
-      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
-        player.position.z = candidateZ;
-        setActiveFloorId(predictedFloor);
-      } else {
-        targetVelocity.z = 0;
-        velocity.z = 0;
-      }
+    if (stepZ !== 0 && !movementStep.movedZ) {
+      targetVelocity.z = 0;
+      velocity.z = 0;
     }
-
-    updatePlayerVerticalPosition();
 
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
