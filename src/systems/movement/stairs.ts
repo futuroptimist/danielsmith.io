@@ -340,7 +340,6 @@ export const predictStairFloorId = (
   current: FloorId
 ): FloorId => {
   const zone = classifyStairTransitionZone(geometry, behavior, x, z, current);
-  const rampHeight = computeRampHeight(geometry, behavior, x, z);
   const withinPhysicalStairs = isWithinPhysicalStairWidth(geometry, x);
   const withinRampRun = isWithinRampRun(geometry, z);
   const direction = geometry.direction;
@@ -353,16 +352,12 @@ export const predictStairFloorId = (
     return 'ground';
   }
 
-  const nearTop =
-    direction === -1
-      ? z <= geometry.topZ + behavior.transitionMargin
-      : z >= geometry.topZ - behavior.transitionMargin;
+  const reachedTop = direction === -1 ? z <= geometry.topZ : z >= geometry.topZ;
+  const inLandingHandoff =
+    zone === 'upperLanding' && withinPhysicalStairs && reachedTop;
+  const atPhysicalRampTop = withinPhysicalStairs && withinRampRun && reachedTop;
 
-  const nearLanding =
-    withinPhysicalStairs &&
-    withinRampRun &&
-    (nearTop || rampHeight >= geometry.totalRise - behavior.stepRise * 0.25);
-  if (nearLanding) {
+  if (inLandingHandoff || atPhysicalRampTop) {
     return 'upper';
   }
 
