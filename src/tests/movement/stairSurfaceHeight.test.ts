@@ -105,6 +105,29 @@ describe('sampleStairSurfaceHeight', () => {
     }
   });
 
+  it('blends the first upper descent sample from the landing lip to the ramp', () => {
+    const blendRange =
+      behavior.transitionMargin - behavior.landingTriggerMargin;
+    const descentZ =
+      geometry.topZ - behavior.landingTriggerMargin - blendRange / 2;
+    const rampHeight = computeRampHeight(geometry, behavior, 0, descentZ);
+    const height = sample({ x: 0, z: descentZ, currentFloor: 'upper' });
+
+    expect(height).toBeGreaterThan(rampHeight);
+    expect(height).toBeLessThan(upperFloorElevation);
+  });
+
+  it('keeps ground ascent samples on the ramp inside the descent lip band', () => {
+    const blendRange =
+      behavior.transitionMargin - behavior.landingTriggerMargin;
+    const descentZ =
+      geometry.topZ - behavior.landingTriggerMargin - blendRange / 2;
+    const rampHeight = computeRampHeight(geometry, behavior, 0, descentZ);
+    const height = sample({ x: 0, z: descentZ, currentFloor: 'ground' });
+
+    expect(height).toBeCloseTo(rampHeight, 6);
+  });
+
   it('returns upper floor elevation across the landing interior', () => {
     const landingInteriorZ = (geometry.landingMinZ + geometry.landingMaxZ) / 2;
     const height = sample({ x: 0, z: landingInteriorZ, currentFloor: 'upper' });

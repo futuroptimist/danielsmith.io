@@ -3268,7 +3268,7 @@ function initializeImmersiveScene(
       stepPlayerForTest(step: { dx: number; dz: number }) {
         return applyPlayerMovementStep(step.dx, step.dz);
       },
-      // Test helpers – intentionally minimal and read-only in production.
+      // Test helpers – intentionally minimal and unavailable outside debug/test handles.
       getPlayerPosition() {
         return {
           x: player.position.x,
@@ -3954,16 +3954,31 @@ function initializeImmersiveScene(
     colliderVisualizer.setActiveFloor(next);
   };
 
-  const updatePlayerVerticalPosition = () => {
+  const updatePlayerVerticalPosition = (
+    surfaceFloor: FloorId = activeFloorId
+  ) => {
     const baseHeight = sampleStairSurfaceHeight({
       geometry: stairGeometry,
       behavior: stairBehavior,
       x: player.position.x,
       z: player.position.z,
-      currentFloor: activeFloorId,
+      currentFloor: surfaceFloor,
       upperFloorElevation,
     });
     player.position.y = PLAYER_RADIUS + baseHeight;
+  };
+
+  const collidesWithCollider = (
+    x: number,
+    z: number,
+    radius: number,
+    collider: RectCollider
+  ): boolean => {
+    const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
+    const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
+    const dx = x - closestX;
+    const dz = z - closestZ;
+    return dx * dx + dz * dz < radius * radius;
   };
 
   const getBlockingNamesAt = (
@@ -3978,7 +3993,7 @@ function initializeImmersiveScene(
     }
 
     for (const collider of floorColliders[floorId]) {
-      if (collidesWithColliders(x, z, PLAYER_RADIUS, [collider])) {
+      if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
         blockedBy.add(
           namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
         );
@@ -3987,7 +4002,7 @@ function initializeImmersiveScene(
 
     if (floorId === 'ground') {
       for (const collider of staticColliders) {
-        if (collidesWithColliders(x, z, PLAYER_RADIUS, [collider])) {
+        if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
           blockedBy.add(
             namedColliderDebugNames.get(collider) ?? 'StaticCollider'
           );
@@ -3999,6 +4014,9 @@ function initializeImmersiveScene(
   };
 
   const applyPlayerMovementStep = (stepX: number, stepZ: number) => {
+    // Height sampling uses the floor from the start of the step so the first
+    // upper→ground descent sample still receives the lip blend after handoff.
+    const surfaceFloorBeforeStep = activeFloorId;
     const blockedBy = new Set<string>();
     let movedX = false;
     let movedZ = false;
@@ -4043,7 +4061,7 @@ function initializeImmersiveScene(
       }
     }
 
-    updatePlayerVerticalPosition();
+    updatePlayerVerticalPosition(surfaceFloorBeforeStep);
 
     const blockingNames = Array.from(blockedBy);
     return {
@@ -5366,14 +5384,16 @@ function initializeImmersiveScene(
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
 
-    const movementStep = applyPlayerMovementStep(stepX, stepZ);
-    if (stepX !== 0 && !movementStep.movedX) {
-      targetVelocity.x = 0;
-      velocity.x = 0;
-    }
-    if (stepZ !== 0 && !movementStep.movedZ) {
-      targetVelocity.z = 0;
-      velocity.z = 0;
+    if (stepX !== 0 || stepZ !== 0) {
+      const movementStep = applyPlayerMovementStep(stepX, stepZ);
+      if (stepX !== 0 && !movementStep.movedX) {
+        targetVelocity.x = 0;
+        velocity.x = 0;
+      }
+      if (stepZ !== 0 && !movementStep.movedZ) {
+        targetVelocity.z = 0;
+        velocity.z = 0;
+      }
     }
 
     // Update facing: aim toward current planar velocity when moving.
