@@ -20,6 +20,8 @@ export interface UpperStairwellGuardConfig {
    * stair void edge.
    */
   shoulderSides?: ReadonlyArray<'east' | 'west'>;
+  /** Optional lower X edge for the far rail when a west-side egress must stay open. */
+  farGuardMinX?: number;
   /** Optional material overrides for the guard rails. */
   material?: MeshStandardMaterialParameters;
 }
@@ -161,7 +163,10 @@ export function createUpperStairwellLanding(
     material: guardMaterial,
     name: FAR_GUARD_NAME,
     bounds: {
-      minX: openingBounds.minX,
+      minX: Math.max(
+        openingBounds.minX,
+        config.guard.farGuardMinX ?? openingBounds.minX
+      ),
       maxX: openingBounds.maxX,
       minZ: openingBounds.minZ,
       maxZ: openingBounds.minZ + thickness,

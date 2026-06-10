@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   getDoorwayPassageZones,
@@ -143,5 +143,40 @@ describe('getDoorwayPassageZones', () => {
       kitchenStudio.doorway.center.z + halfWidth + padding,
       3
     );
+  });
+});
+
+describe('upper landing west egress doorway', () => {
+  const upperLanding = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const creatorsStudio = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'creatorsStudio'
+  );
+  const landingDoorway = upperLanding?.doorways?.find(
+    (doorway) => doorway.wall === 'west'
+  );
+  const creatorsDoorway = creatorsStudio?.doorways?.find(
+    (doorway) =>
+      doorway.wall === 'east' && doorway.start === landingDoorway?.start
+  );
+
+  it('aligns the upper landing and creators studio shared doorway', () => {
+    expect(landingDoorway).toBeDefined();
+    expect(creatorsDoorway).toBeDefined();
+    expect(creatorsDoorway?.start).toBeCloseTo(landingDoorway?.start ?? 0, 5);
+    expect(creatorsDoorway?.end).toBeCloseTo(landingDoorway?.end ?? 0, 5);
+  });
+
+  it('covers the intended world-space stair landing egress band', () => {
+    expect(landingDoorway).toBeDefined();
+    if (!landingDoorway) {
+      return;
+    }
+
+    for (const z of [-26.14, -27.5, -29.0, -30.5, -31.24]) {
+      expect(landingDoorway.start).toBeLessThanOrEqual(z);
+      expect(landingDoorway.end).toBeGreaterThanOrEqual(z);
+    }
   });
 });

@@ -136,6 +136,7 @@ const livingToStudioDoorCenter = 7.5;
 const kitchenToBackyardDoorCenter = -9;
 const studioToBackyardDoorCenter = 7.5;
 const kitchenToStudioDoorCenterZ = 2;
+const upperLandingWestEgressDoorway = { start: -16, end: -10 };
 
 const doorwayRange = (center: number) => ({
   start: center - DOOR_HALF_WIDTH,
@@ -242,7 +243,7 @@ const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
       doorways: [
         {
           wall: 'west',
-          ...doorwayRange(-12),
+          ...upperLandingWestEgressDoorway,
         },
         {
           wall: 'north',
@@ -258,7 +259,7 @@ const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
       doorways: [
         {
           wall: 'east',
-          ...doorwayRange(-12),
+          ...upperLandingWestEgressDoorway,
         },
         {
           wall: 'east',

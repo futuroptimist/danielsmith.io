@@ -391,6 +391,52 @@ async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
   );
 }
 
+async function assertUpperLandingWestEgressBandIsClear(page: Page) {
+  const { stairCenterX, stairHalfWidth } = await getStairMetrics(page);
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const creatorsStudio = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'creatorsStudio'
+  );
+  const westDoorway = upperLandingRoom?.doorways?.find(
+    (doorway) => doorway.wall === 'west'
+  );
+  const creatorsDoorway = creatorsStudio?.doorways?.find(
+    (doorway) => doorway.wall === 'east' && doorway.start === westDoorway?.start
+  );
+  if (
+    !upperLandingRoom ||
+    !creatorsStudio ||
+    !westDoorway ||
+    !creatorsDoorway
+  ) {
+    throw new Error(
+      'Missing aligned upper landing/creatorsStudio west egress doorway'
+    );
+  }
+
+  expect(creatorsDoorway.end).toBeCloseTo(westDoorway.end, 5);
+  const egressLaneX = stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
+  const landingDoorwaySideX = upperLandingRoom.bounds.minX + PLAYER_RADIUS;
+  const creatorsDoorwaySideX = creatorsStudio.bounds.maxX - PLAYER_RADIUS;
+  const zSamples = [-26.14, -27.5, -29.0, -30.5, -31.24];
+
+  expect(westDoorway.start).toBeLessThanOrEqual(Math.min(...zSamples));
+  expect(westDoorway.end).toBeGreaterThanOrEqual(Math.max(...zSamples));
+
+  for (const z of zSamples) {
+    for (const x of [egressLaneX, landingDoorwaySideX, creatorsDoorwaySideX]) {
+      const target = { x, z, floorId: 'upper' as const };
+      expect(await canOccupyPosition(page, target), `${x}, ${z}`).toBe(true);
+      expect(
+        await getBlockingColliderNames(page, target),
+        `${x}, ${z}`
+      ).toEqual([]);
+    }
+  }
+}
+
 async function walkUpperDescentLipBand(page: Page) {
   const { stairCenterX, stairTopZ, stairDirection } =
     await getStairMetrics(page);
@@ -642,6 +688,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
       []
     );
   }
+  await assertUpperLandingWestEgressBandIsClear(page);
 
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.
@@ -813,6 +860,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, eastUpperLandingMouth)).toBe(true);
 
   expect(await canOccupyPosition(page, westLandingEgress)).toBe(true);
+  await assertUpperLandingWestEgressBandIsClear(page);
   await movePlayerTo(page, westLandingEgress);
   await movePlayerTo(page, creatorsStudioCenter);
   await expect(html).toHaveAttribute('data-active-floor', 'upper');

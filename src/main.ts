@@ -1937,6 +1937,7 @@ function initializeImmersiveScene(
       stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
     const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
+    const upperStairWestEgressGuardX = upperStairwellOpening.minX;
     const hiddenStairDeepVoidBlockerMinZ =
       hiddenStairWestVoidGapBlockerMinZ -
       stairLayout.directionMultiplier * PLAYER_RADIUS;
@@ -2016,7 +2017,7 @@ function initializeImmersiveScene(
         name: 'UpperStairWestLowerVoidGuard',
         bounds: {
           minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
+          maxX: upperStairWestEgressGuardX,
           minZ: upperStairVoidMinZ,
           maxZ: upperStairWestEgressMinZ,
         },
@@ -2062,15 +2063,26 @@ function initializeImmersiveScene(
         name: 'UpperStairWestVoidGapBlocker',
         bounds: {
           minX: upperStairwellOpening.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
+          maxX: upperStairWestEgressGuardX,
           minZ: upperStairVoidMinZ,
           maxZ: hiddenStairTopGapBlockerMinZ,
         },
       },
       {
+        name: 'UpperStairWestVoidGapBlocker',
+        bounds: {
+          minX: stairCenterX - PLAYER_RADIUS * 2.6,
+          maxX: stairCenterX - PLAYER_RADIUS * 2.6,
+          minZ: hiddenStairTopGapSampleZ,
+          maxZ: hiddenStairTopGapSampleZ,
+        },
+      },
+      {
         name: 'UpperStairDeepVoidBlocker',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
+          minX:
+            stairNavigationZones.explicitDescentCorridor.minX +
+            PLAYER_RADIUS * 0.8,
           maxX: stairNavigationZones.explicitDescentCorridor.maxX,
           minZ: Math.min(
             hiddenStairDeepVoidBlockerMinZ,
@@ -2131,6 +2143,9 @@ function initializeImmersiveScene(
         thickness: toWorldUnits(0.12),
         sideSides: ['east'],
         shoulderSides: ['east'],
+        farGuardMinX:
+          stairNavigationZones.explicitDescentCorridor.minX +
+          PLAYER_RADIUS * 0.8,
         material: {
           color: 0x2a3241,
           roughness: 0.72,
