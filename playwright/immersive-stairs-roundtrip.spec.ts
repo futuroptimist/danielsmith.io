@@ -699,6 +699,8 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
       z: stairTopZ + stairDirection * 0.95,
       floorId: 'upper' as const,
     },
+    { x: 9, z: -28, floorId: 'upper' as const },
+    { x: 9, z: -29, floorId: 'upper' as const },
   ];
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });

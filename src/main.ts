@@ -2061,10 +2061,10 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairWestVoidGapBlocker',
         bounds: {
-          minX: stairCenterX - PLAYER_RADIUS * 2.5,
-          maxX: stairCenterX - PLAYER_RADIUS * 2.5,
-          minZ: hiddenStairTopGapSampleZ - 0.02,
-          maxZ: hiddenStairTopGapSampleZ + 0.02,
+          minX: upperStairwellOpening.minX,
+          maxX: stairNavigationZones.explicitDescentCorridor.minX,
+          minZ: upperStairVoidMinZ,
+          maxZ: hiddenStairTopGapBlockerMinZ,
         },
       },
       {
@@ -3254,6 +3254,7 @@ function initializeImmersiveScene(
         return canOccupyPosition(target.x, target.z, floorId);
       },
       setActiveFloor(next: FloorId) {
+        resetUpperDescentBlend();
         setActiveFloorId(next);
         updatePlayerVerticalPosition();
       },
@@ -3265,6 +3266,7 @@ function initializeImmersiveScene(
             `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
           );
         }
+        resetUpperDescentBlend();
         player.position.x = x;
         player.position.z = z;
         setActiveFloorId(predictedFloor);
@@ -3961,15 +3963,43 @@ function initializeImmersiveScene(
     colliderVisualizer.setActiveFloor(next);
   };
 
+  let upperDescentBlendActive = false;
+
+  const getVerticalSurfaceFloor = (surfaceFloor: FloorId): FloorId => {
+    if (surfaceFloor === 'upper') {
+      return 'upper';
+    }
+
+    if (
+      upperDescentBlendActive &&
+      classifyStairTransitionZone(
+        stairGeometry,
+        stairBehavior,
+        player.position.x,
+        player.position.z,
+        'upper'
+      ) === 'explicitDescentCorridor'
+    ) {
+      return 'upper';
+    }
+
+    return surfaceFloor;
+  };
+
+  const resetUpperDescentBlend = () => {
+    upperDescentBlendActive = false;
+  };
+
   const updatePlayerVerticalPosition = (
     surfaceFloor: FloorId = activeFloorId
   ) => {
+    const verticalSurfaceFloor = getVerticalSurfaceFloor(surfaceFloor);
     const baseHeight = sampleStairSurfaceHeight({
       geometry: stairGeometry,
       behavior: stairBehavior,
       x: player.position.x,
       z: player.position.z,
-      currentFloor: surfaceFloor,
+      currentFloor: verticalSurfaceFloor,
       upperFloorElevation,
     });
     player.position.y = PLAYER_RADIUS + baseHeight;
@@ -4071,6 +4101,18 @@ function initializeImmersiveScene(
         ).forEach((name) => blockedBy.add(name));
       }
     }
+
+    const usingUpperDescentBlend =
+      (surfaceFloorBeforeStep === 'upper' || upperDescentBlendActive) &&
+      activeFloorId === 'ground' &&
+      classifyStairTransitionZone(
+        stairGeometry,
+        stairBehavior,
+        player.position.x,
+        player.position.z,
+        'upper'
+      ) === 'explicitDescentCorridor';
+    upperDescentBlendActive = usingUpperDescentBlend;
 
     updatePlayerVerticalPosition(surfaceFloorBeforeStep);
 
@@ -6110,7 +6152,7 @@ function initializeImmersiveScene(
               behavior: stairBehavior,
               x,
               z: y,
-              currentFloor: activeFloorId,
+              currentFloor: getVerticalSurfaceFloor(activeFloorId),
               upperFloorElevation,
             });
           },
