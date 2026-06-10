@@ -136,7 +136,7 @@ const livingToStudioDoorCenter = 7.5;
 const kitchenToBackyardDoorCenter = -9;
 const studioToBackyardDoorCenter = 7.5;
 const kitchenToStudioDoorCenterZ = 2;
-const upperLandingToCreatorsStudioDoorway = { start: -15.62, end: -10 };
+const upperLandingToCreatorsStudioDoorway = { start: -16, end: -13.07 };
 
 const doorwayRange = (center: number) => ({
   start: center - DOOR_HALF_WIDTH,

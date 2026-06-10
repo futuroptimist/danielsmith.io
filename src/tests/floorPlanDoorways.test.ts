@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
+import {
+  FLOOR_PLAN,
+  UPPER_FLOOR_PLAN,
+  WALL_THICKNESS,
+  type RoomCategory,
+} from '../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   getDoorwayPassageZones,
   getNormalizedDoorways,
 } from '../assets/floorPlan/doorways';
+import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import { collidesWithColliders } from '../systems/collision';
 import { createNavMesh } from '../systems/navigation/navMesh';
 
 import {
@@ -13,6 +20,16 @@ import {
   findSharedDoorway,
   resolveNormalizedDoorway,
 } from './helpers/doorwayTestHelpers';
+
+const PLAYER_RADIUS = 0.75;
+const WALL_HEIGHT = 6;
+const FENCE_HEIGHT = 2.4;
+const FENCE_THICKNESS = 0.28;
+
+function getRoomCategory(roomId: string): RoomCategory {
+  const room = UPPER_FLOOR_PLAN.rooms.find((entry) => entry.id === roomId);
+  return room?.category ?? 'interior';
+}
 
 describe('getDoorwayClearanceZones', () => {
   const zones = getDoorwayClearanceZones(FLOOR_PLAN, {
@@ -171,10 +188,10 @@ describe('upper landing west egress doorway', () => {
 
     expect(sharedDoorway).toBeDefined();
     expect(sharedDoorway?.start).toBeLessThanOrEqual(
-      Math.min(...desiredWorldZSamples)
+      Math.min(...desiredWorldZSamples) + DOOR_EPSILON
     );
     expect(sharedDoorway?.end).toBeGreaterThanOrEqual(
-      Math.max(...desiredWorldZSamples)
+      Math.max(...desiredWorldZSamples) - DOOR_EPSILON
     );
   });
 
@@ -204,9 +221,51 @@ describe('upper landing west egress doorway', () => {
 
     const navMesh = createNavMesh(UPPER_FLOOR_PLAN);
     for (const z of desiredWorldZSamples) {
-      expect(z).toBeGreaterThanOrEqual(egressZone.bounds.minZ);
-      expect(z).toBeLessThanOrEqual(egressZone.bounds.maxZ);
+      expect(z).toBeGreaterThanOrEqual(egressZone.bounds.minZ - DOOR_EPSILON);
+      expect(z).toBeLessThanOrEqual(egressZone.bounds.maxZ + DOOR_EPSILON);
       expect(navMesh.contains(normalized.center.x, z)).toBe(true);
     }
+  });
+
+  it('leaves the lower requested doorway edge crossable for player collision', () => {
+    const normalized = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(normalized).toBeDefined();
+    if (!normalized) {
+      return;
+    }
+
+    const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    });
+    const colliders = wallInstances.map((instance) => instance.collider);
+    const lowerRequestedEdgeZ = Math.min(...desiredWorldZSamples);
+
+    expect(
+      collidesWithColliders(
+        normalized.center.x + PLAYER_RADIUS,
+        lowerRequestedEdgeZ,
+        PLAYER_RADIUS,
+        colliders
+      )
+    ).toBe(false);
+    expect(
+      collidesWithColliders(
+        normalized.center.x - PLAYER_RADIUS,
+        lowerRequestedEdgeZ,
+        PLAYER_RADIUS,
+        colliders
+      )
+    ).toBe(false);
   });
 });

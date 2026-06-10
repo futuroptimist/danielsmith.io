@@ -2052,8 +2052,7 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairDeepVoidBlocker',
         bounds: {
-          minX:
-            stairNavigationZones.explicitDescentCorridor.minX + PLAYER_RADIUS,
+          minX: stairNavigationZones.explicitDescentCorridor.minX,
           maxX: stairNavigationZones.explicitDescentCorridor.maxX,
           minZ: Math.min(
             hiddenStairDeepVoidBlockerMinZ,
