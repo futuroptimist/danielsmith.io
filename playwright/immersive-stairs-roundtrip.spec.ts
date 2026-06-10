@@ -35,8 +35,17 @@ type FloorVisibilitySnapshot = {
   backyardEnvironmentVisible: boolean | null;
 };
 
+type TestStepResult = {
+  movedX: boolean;
+  movedZ: boolean;
+  activeFloor: FloorId;
+  position: { x: number; y: number; z: number };
+  blockedBy?: string[];
+};
+
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+  stepPlayerForTest(delta: { dx: number; dz: number }): TestStepResult;
   getActiveFloor(): FloorId;
   canOccupyPosition(target: {
     x: number;
@@ -181,6 +190,90 @@ async function canOccupyPosition(
   }, target);
 }
 
+async function getBlockingColliderNames(
+  page: Page,
+  target: { x: number; z: number; floorId?: FloorId }
+): Promise<string[]> {
+  return page.evaluate((next) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi
+      .getBlockingCollidersAt(next)
+      .map((collider) => collider.name);
+  }, target);
+}
+
+async function stepPlayerForTest(
+  page: Page,
+  delta: { dx: number; dz: number }
+): Promise<TestStepResult> {
+  return page.evaluate((next) => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+    return world.stepPlayerForTest(next);
+  }, delta);
+}
+
+async function walkStairCenterlineToUpperLanding(page: Page) {
+  const {
+    stairCenterX,
+    stairBottomZ,
+    stairTopZ,
+    stairDirection,
+    upperFloorElevation,
+  } = await getStairMetrics(page);
+  const start = {
+    x: stairCenterX,
+    z: stairBottomZ - stairDirection * 0.3,
+    floorId: 'ground' as const,
+  };
+  await movePlayerTo(page, start);
+
+  const maxStep = 0.12;
+  const finalZ = stairTopZ + stairDirection * 0.9;
+  const totalDistance = Math.abs(finalZ - start.z);
+  const stepCount = Math.ceil(totalDistance / maxStep);
+  const dz = ((finalZ - start.z) / stepCount) as number;
+  const results: TestStepResult[] = [];
+  let sawUpper = false;
+  for (let index = 0; index < stepCount; index += 1) {
+    const result = await stepPlayerForTest(page, { dx: 0, dz });
+    results.push(result);
+
+    expect(
+      result.movedZ,
+      `blocked on stair step ${index}: ${result.blockedBy}`
+    ).toBe(true);
+    expect(Math.abs(result.position.x - stairCenterX)).toBeLessThan(0.001);
+    const beforeTop =
+      stairDirection === -1
+        ? result.position.z > stairTopZ
+        : result.position.z < stairTopZ;
+    if (beforeTop) {
+      expect(
+        result.activeFloor,
+        `floor changed before top on step ${index}`
+      ).toBe('ground');
+    } else {
+      sawUpper = true;
+      expect(result.activeFloor).toBe('upper');
+    }
+  }
+
+  expect(sawUpper).toBe(true);
+  const finalState = await getWorldState(page);
+  expect(finalState.activeFloor).toBe('upper');
+  expect(finalState.position.y).toBeGreaterThanOrEqual(
+    PLAYER_RADIUS + upperFloorElevation - 0.05
+  );
+
+  return results;
+}
+
 async function getWorldState(page: Page) {
   return page.evaluate(() => {
     const world = (window as PortfolioWindow).portfolio?.world;
@@ -265,7 +358,8 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   await waitForImmersiveReady(page);
 
   const html = page.locator('html');
-  const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
+  const { stairCenterX, stairBottomZ, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
   const blockedSamples = [
     { x: 17.38, z: -8.84, floorId: 'ground' as const },
     { x: 21.35, z: -14.66, floorId: 'ground' as const },
@@ -299,7 +393,10 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     x: stairCenterX,
     z: (stairBottomZ + stairTopZ) / 2,
   });
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.1 });
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ + stairDirection * 0.1,
+  });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   const debugColliders = await page.evaluate(() => {
@@ -334,41 +431,20 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // Start on ground.
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
-  // Move to the base of the staircase on the ground floor.
-  await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
-  await expect(html).toHaveAttribute('data-active-floor', 'ground');
-
-  // Enter the ramp and ascend to the upper floor.
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: (stairBottomZ + stairTopZ) / 2,
-  });
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
-  });
+  // Walk the same axis-by-axis movement path that runtime keyboard input uses.
+  await walkStairCenterlineToUpperLanding(page);
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   // Step from the stair top through the explicit upper-landing mouth.
-  const firstUpperLandingStep = {
+  const upperLandingHandoffSamples = [0.05, 0.4, 0.8].map((offset) => ({
     x: stairCenterX,
-    z: stairTopZ + stairDirection * 0.4,
+    z: stairTopZ + stairDirection * offset,
     floorId: 'upper' as const,
-  };
-  expect(await canOccupyPosition(page, firstUpperLandingStep)).toBe(true);
-  await movePlayerTo(page, firstUpperLandingStep);
-  await expect(html).toHaveAttribute('data-active-floor', 'upper');
-
-  const blockingCollidersAtLandingMouth = await page.evaluate((target) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi
-      .getBlockingCollidersAt(target)
-      .map((collider) => collider.name);
-  }, firstUpperLandingStep);
-  expect(blockingCollidersAtLandingMouth).toEqual([]);
+  }));
+  for (const sample of upperLandingHandoffSamples) {
+    expect(await canOccupyPosition(page, sample)).toBe(true);
+    expect(await getBlockingColliderNames(page, sample)).toEqual([]);
+  }
 
   // Continue through the intended west upper-landing exit into an upstairs room.
   const upperLandingWestExit = {
@@ -377,9 +453,39 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     floorId: 'upper' as const,
   };
   expect(await canOccupyPosition(page, upperLandingWestExit)).toBe(true);
-  await movePlayerTo(page, upperLandingWestExit);
+
+  const zEgressStepCount = 8;
+  let current = await getWorldState(page);
+  const egressDz =
+    (upperLandingWestExit.z - current.position.z) / zEgressStepCount;
+  for (let index = 0; index < zEgressStepCount; index += 1) {
+    const step = await stepPlayerForTest(page, { dx: 0, dz: egressDz });
+    expect(step.movedZ, `blocked landing egress Z on step ${index}`).toBe(true);
+    expect(step.activeFloor).toBe('upper');
+  }
+
+  const westStepCount = 10;
+  current = await getWorldState(page);
+  const westDx = (upperLandingWestExit.x - current.position.x) / westStepCount;
+  for (let index = 0; index < westStepCount; index += 1) {
+    const step = await stepPlayerForTest(page, { dx: westDx, dz: 0 });
+    expect(
+      step.movedX,
+      `blocked west egress X on step ${index}: ${step.blockedBy}`
+    ).toBe(true);
+    expect(step.activeFloor).toBe('upper');
+  }
+
   await movePlayerTo(page, getUpperRoomCenter('creatorsStudio'));
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
+  const upstairsDebugState = await page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugCoordinates;
+    if (!debugApi) {
+      throw new Error('Debug coordinates API unavailable');
+    }
+    return debugApi.getState();
+  });
+  expect(upstairsDebugState.currentRoomId).toBe('creatorsStudio');
 
   // Roam deeper onto the upper landing and confirm we stay upstairs.
   const landingRoamZ =
@@ -407,7 +513,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // movement crosses frame by frame.
   await movePlayerTo(page, {
     x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
+    z: stairTopZ + stairDirection * 0.1,
   });
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
@@ -508,18 +614,6 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ + stairDirection * 0.95,
     floorId: 'upper' as const,
   };
-  const hiddenStairVoidGap = [
-    {
-      x: stairCenterX - PLAYER_RADIUS * 0.5,
-      z: stairTopZ + stairDirection * 0.95,
-      floorId: 'upper' as const,
-    },
-    {
-      x: stairCenterX,
-      z: stairTopZ + stairDirection * 0.95,
-      floorId: 'upper' as const,
-    },
-  ];
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
   await movePlayerTo(page, {
@@ -528,7 +622,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   });
   await movePlayerTo(page, {
     x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
+    z: stairTopZ + stairDirection * 0.1,
   });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
@@ -552,9 +646,6 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, westHiddenStairVoidSliver)).toBe(false);
   expect(await canOccupyPosition(page, westEdgeFloorClearance)).toBe(true);
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
-  for (const hiddenStairVoidGapSample of hiddenStairVoidGap) {
-    expect(await canOccupyPosition(page, hiddenStairVoidGapSample)).toBe(false);
-  }
   expect(await canOccupyPosition(page, hiddenStairRun)).toBe(false);
   await expect(async () => movePlayerTo(page, hiddenStairRun)).rejects.toThrow(
     /Cannot occupy/
@@ -638,7 +729,7 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
 
   await movePlayerTo(page, {
     x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
+    z: stairTopZ + stairDirection * 0.1,
   });
   await movePlayerTo(page, { x: stairCenterX, z: landingInteriorZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');

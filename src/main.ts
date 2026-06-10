@@ -619,6 +619,13 @@ declare global {
         }): boolean;
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+        stepPlayerForTest(delta: { dx: number; dz: number }): {
+          movedX: boolean;
+          movedZ: boolean;
+          activeFloor: FloorId;
+          position: { x: number; y: number; z: number };
+          blockedBy?: string[];
+        };
         getPlayerPosition(): { x: number; y: number; z: number };
         predictFloorAt(target: {
           x: number;
@@ -1957,14 +1964,13 @@ function initializeImmersiveScene(
     // blockers reject forced upper-floor placement over the hidden stair-top gap,
     // the deeper removed stair run, and doorway-side void while preserving the
     // narrow stair-top handoff, a west-side bypass lane around the void, and the
-    // north doorway's padded passage into the loft. The top-gap west lip stays
-    // intentionally narrow so its collision edge protects the hidden center gap
-    // without filling the west egress lane around the stairwell.
+    // north doorway's padded passage into the loft. The top-gap split now treats
+    // the whole visible landing mouth as the protected corridor so player-radius
+    // collision cannot seal the real west egress lane.
     const upperStairLandingEntryCorridor = {
-      // Keep the landing mouth's west edge aligned with the original top-gap
-      // blocker. The blocker edge plus collision radius preserves the hidden
-      // west/center gap while leaving the canonical stair handoff occupiable.
-      minX: hiddenStairTopGapBlockerMinX,
+      // Keep the real landing mouth and west egress lane clear; west-side void
+      // blockers below still protect the removed stairwell floor.
+      minX: upperStairwellOpening.minX,
       // Size the east edge from the real upper-floor descent opening and add
       // one collision radius because collider checks expand the blocker edge.
       maxX: stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
@@ -2072,15 +2078,6 @@ function initializeImmersiveScene(
         },
       },
       ...upperStairTopGapBlockers,
-      {
-        name: 'UpperStairTopGapCenterLipBlocker',
-        bounds: {
-          minX: hiddenStairTopGapBlockerMinX,
-          maxX: stairCenterX + PLAYER_RADIUS,
-          minZ: hiddenStairTopGapBlockerMinZ - stairwellMarginX * 0.1,
-          maxZ: hiddenStairTopGapBlockerMinZ,
-        },
-      },
       {
         name: 'UpperStairHiddenRunBlocker',
         bounds: {
@@ -3267,6 +3264,9 @@ function initializeImmersiveScene(
         setActiveFloorId(predictedFloor);
         updatePlayerVerticalPosition();
       },
+      stepPlayerForTest(delta: { dx: number; dz: number }) {
+        return applyPlayerPlanarStep(delta.dx, delta.dz);
+      },
       // Test helpers – intentionally minimal and read-only in production.
       getPlayerPosition() {
         return {
@@ -3963,6 +3963,66 @@ function initializeImmersiveScene(
       upperFloorElevation,
     });
     player.position.y = PLAYER_RADIUS + baseHeight;
+  };
+
+  const applyPlayerPlanarStep = (dx: number, dz: number) => {
+    const blockedBy = new Set<string>();
+    let movedX = false;
+    let movedZ = false;
+
+    if (dx !== 0) {
+      const candidateX = player.position.x + dx;
+      const predictedFloor = predictFloorId(
+        candidateX,
+        player.position.z,
+        activeFloorId
+      );
+      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
+        player.position.x = candidateX;
+        setActiveFloorId(predictedFloor);
+        movedX = true;
+      } else {
+        getBlockingDebugCollidersAt({
+          x: candidateX,
+          z: player.position.z,
+          floorId: predictedFloor,
+        }).forEach((collider) => blockedBy.add(collider.name));
+      }
+    }
+
+    if (dz !== 0) {
+      const candidateZ = player.position.z + dz;
+      const predictedFloor = predictFloorId(
+        player.position.x,
+        candidateZ,
+        activeFloorId
+      );
+      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
+        player.position.z = candidateZ;
+        setActiveFloorId(predictedFloor);
+        movedZ = true;
+      } else {
+        getBlockingDebugCollidersAt({
+          x: player.position.x,
+          z: candidateZ,
+          floorId: predictedFloor,
+        }).forEach((collider) => blockedBy.add(collider.name));
+      }
+    }
+
+    updatePlayerVerticalPosition();
+
+    return {
+      movedX,
+      movedZ,
+      activeFloor: activeFloorId,
+      position: {
+        x: player.position.x,
+        y: player.position.y,
+        z: player.position.z,
+      },
+      blockedBy: blockedBy.size > 0 ? [...blockedBy] : undefined,
+    };
   };
 
   updatePlayerVerticalPosition();
@@ -5272,39 +5332,15 @@ function initializeImmersiveScene(
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
 
-    if (stepX !== 0) {
-      const candidateX = player.position.x + stepX;
-      const predictedFloor = predictFloorId(
-        candidateX,
-        player.position.z,
-        activeFloorId
-      );
-      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
-        player.position.x = candidateX;
-        setActiveFloorId(predictedFloor);
-      } else {
-        targetVelocity.x = 0;
-        velocity.x = 0;
-      }
+    const movementResult = applyPlayerPlanarStep(stepX, stepZ);
+    if (stepX !== 0 && !movementResult.movedX) {
+      targetVelocity.x = 0;
+      velocity.x = 0;
     }
-
-    if (stepZ !== 0) {
-      const candidateZ = player.position.z + stepZ;
-      const predictedFloor = predictFloorId(
-        player.position.x,
-        candidateZ,
-        activeFloorId
-      );
-      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
-        player.position.z = candidateZ;
-        setActiveFloorId(predictedFloor);
-      } else {
-        targetVelocity.z = 0;
-        velocity.z = 0;
-      }
+    if (stepZ !== 0 && !movementResult.movedZ) {
+      targetVelocity.z = 0;
+      velocity.z = 0;
     }
-
-    updatePlayerVerticalPosition();
 
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;

@@ -70,17 +70,29 @@ const containsPoint = (
   point.z <= rect.maxZ;
 
 describe('stair floor transitions (negative Z ascent)', () => {
-  it('transitions from ground to upper near the top of the stairs', () => {
-    const nearTopStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.15);
+  it('keeps ground ascent on ground until the physical stair top', () => {
+    const beforeTopStepZ = NEGATIVE_Z_STAIRS.topZ + toWorldUnits(0.15);
 
     expect(
       predict(
         NEGATIVE_Z_STAIRS,
         NEGATIVE_Z_STAIRS.centerX,
-        nearTopStepZ,
+        beforeTopStepZ,
         'ground'
       )
-    ).toBe('upper');
+    ).toBe('ground');
+  });
+
+  it('transitions from ground to upper at and past the stair top', () => {
+    for (const z of [
+      NEGATIVE_Z_STAIRS.topZ,
+      NEGATIVE_Z_STAIRS.topZ - toWorldUnits(0.05),
+      NEGATIVE_Z_STAIRS.topZ - toWorldUnits(0.4),
+    ]) {
+      expect(
+        predict(NEGATIVE_Z_STAIRS, NEGATIVE_Z_STAIRS.centerX, z, 'ground')
+      ).toBe('upper');
+    }
   });
 
   it('keeps screenshot-4 off-stair ground points near the top on ground', () => {
@@ -125,17 +137,7 @@ describe('stair floor transitions (negative Z ascent)', () => {
         upperDoorwayBridgeZ,
         'ground'
       )
-    ).toBe('ground');
-    expect(
-      sampleStairSurfaceHeight({
-        geometry: NEGATIVE_Z_STAIRS,
-        behavior: STAIR_BEHAVIOR,
-        x: NEGATIVE_Z_STAIRS.centerX,
-        z: upperDoorwayBridgeZ,
-        currentFloor: 'ground',
-        upperFloorElevation: UPPER_FLOOR_ELEVATION,
-      })
-    ).toBe(0);
+    ).toBe('upper');
   });
 
   it('keeps the player on the upper floor while roaming across the landing', () => {
@@ -323,6 +325,31 @@ describe('stair floor transitions (negative Z ascent)', () => {
 
 describe('stair floor transitions (positive Z ascent)', () => {
   const positiveGeometry = createStairGeometry(1);
+
+  it('keeps positive-Z ground ascent on ground until the physical stair top', () => {
+    const beforeTopStepZ = positiveGeometry.topZ - toWorldUnits(0.15);
+
+    expect(
+      predict(
+        positiveGeometry,
+        positiveGeometry.centerX,
+        beforeTopStepZ,
+        'ground'
+      )
+    ).toBe('ground');
+  });
+
+  it('transitions positive-Z ground ascent at and past the stair top', () => {
+    for (const z of [
+      positiveGeometry.topZ,
+      positiveGeometry.topZ + toWorldUnits(0.05),
+      positiveGeometry.topZ + toWorldUnits(0.4),
+    ]) {
+      expect(
+        predict(positiveGeometry, positiveGeometry.centerX, z, 'ground')
+      ).toBe('upper');
+    }
+  });
 
   it('keeps the player on the upper floor across the landing interior', () => {
     const landingInteriorZ = positiveGeometry.landingMaxZ - toWorldUnits(0.6);
