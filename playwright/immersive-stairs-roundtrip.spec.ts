@@ -37,7 +37,15 @@ type FloorVisibilitySnapshot = {
 
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+  stepPlayerForTest(step: { dx: number; dz: number }): {
+    movedX: boolean;
+    movedZ: boolean;
+    activeFloor: FloorId;
+    position: { x: number; y: number; z: number };
+    blockedBy?: string[];
+  };
   getActiveFloor(): FloorId;
+  setActiveFloor(next: FloorId): void;
   canOccupyPosition(target: {
     x: number;
     z: number;
@@ -181,6 +189,291 @@ async function canOccupyPosition(
   }, target);
 }
 
+async function getBlockingColliderNames(
+  page: Page,
+  target: { x: number; z: number; floorId?: FloorId }
+) {
+  return page.evaluate((next) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi
+      .getBlockingCollidersAt(next)
+      .map((collider) => collider.name);
+  }, target);
+}
+
+async function walkStairCenterlineToUpperLanding(page: Page) {
+  const {
+    stairCenterX,
+    stairBottomZ,
+    stairTopZ,
+    stairDirection,
+    upperFloorElevation,
+  } = await getStairMetrics(page);
+  const entranceZ = stairBottomZ - stairDirection * 0.3;
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: entranceZ,
+    floorId: 'ground',
+  });
+
+  const targetZ = stairTopZ + stairDirection * 0.9;
+  const stepZ = stairDirection * 0.12;
+  const walkResults = await page.evaluate(
+    ({
+      targetZ: nextTargetZ,
+      stepZ: nextStepZ,
+      stairDirection: nextDirection,
+    }) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+
+      const results: Array<{
+        before: {
+          activeFloor: FloorId;
+          position: { x: number; y: number; z: number };
+        };
+        result: ReturnType<TestWorldApi['stepPlayerForTest']>;
+      }> = [];
+
+      for (let index = 0; index < 260; index += 1) {
+        const before = {
+          activeFloor: world.getActiveFloor(),
+          position: world.getPlayerPosition(),
+        };
+        if (
+          nextDirection === -1
+            ? before.position.z <= nextTargetZ
+            : before.position.z >= nextTargetZ
+        ) {
+          break;
+        }
+
+        results.push({
+          before,
+          result: world.stepPlayerForTest({ dx: 0, dz: nextStepZ }),
+        });
+      }
+
+      return {
+        results,
+        finalState: {
+          activeFloor: world.getActiveFloor(),
+          position: world.getPlayerPosition(),
+        },
+      };
+    },
+    { targetZ, stepZ, stairDirection }
+  );
+
+  let sawUpper = false;
+  let firstUpperZ: number | null = null;
+  for (const { before, result } of walkResults.results) {
+    expect(
+      result.movedZ,
+      `blocked at z=${before.position.z}: ${result.blockedBy}`
+    ).toBe(true);
+    expect(Math.abs(result.position.x - stairCenterX)).toBeLessThan(0.001);
+    if (!sawUpper && result.activeFloor === 'upper') {
+      sawUpper = true;
+      firstUpperZ = result.position.z;
+      if (stairDirection === -1) {
+        expect(result.position.z).toBeLessThanOrEqual(stairTopZ + 0.02);
+      } else {
+        expect(result.position.z).toBeGreaterThanOrEqual(stairTopZ - 0.02);
+      }
+    }
+
+    if (!sawUpper) {
+      expect(result.activeFloor).toBe('ground');
+    }
+  }
+
+  expect(sawUpper, 'expected floor handoff during continuous stair walk').toBe(
+    true
+  );
+  expect(firstUpperZ).not.toBeNull();
+  expect(walkResults.finalState.activeFloor).toBe('upper');
+  expect(walkResults.finalState.position.y).toBeGreaterThanOrEqual(
+    PLAYER_RADIUS + upperFloorElevation - 0.01
+  );
+
+  return walkResults.finalState;
+}
+
+async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
+  const { stairCenterX, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const westDoorway = upperLandingRoom?.doorways?.find(
+    (doorway) => doorway.wall === 'west'
+  );
+  if (!upperLandingRoom || !westDoorway) {
+    throw new Error('Missing upper landing west doorway');
+  }
+
+  const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
+  const doorwayZ = (westDoorway.start + westDoorway.end) / 2;
+  const westLandingExitX = upperLandingRoom.bounds.minX + PLAYER_RADIUS;
+  const creatorsDoorwayEntryX = upperLandingRoom.bounds.minX - PLAYER_RADIUS;
+
+  return page.evaluate(
+    ({ waypoints }) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      const debugCoordinates = (window as PortfolioWindow).portfolio
+        ?.debugCoordinates;
+      if (!world || !debugCoordinates) {
+        throw new Error('World/debug coordinates API unavailable');
+      }
+
+      const maxStep = 0.18;
+      const steps: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> = [];
+
+      for (const waypoint of waypoints) {
+        for (let index = 0; index < 320; index += 1) {
+          const position = world.getPlayerPosition();
+          const remainingX = waypoint.x - position.x;
+          const remainingZ = waypoint.z - position.z;
+          if (Math.abs(remainingX) < 0.001 && Math.abs(remainingZ) < 0.001) {
+            break;
+          }
+
+          const dx = Math.max(-maxStep, Math.min(maxStep, remainingX));
+          const dz = Math.max(-maxStep, Math.min(maxStep, remainingZ));
+          if (Math.abs(dx) > maxStep || Math.abs(dz) > maxStep) {
+            throw new Error(`Step exceeded ${maxStep}: dx=${dx}, dz=${dz}`);
+          }
+
+          const result = world.stepPlayerForTest({ dx, dz });
+          steps.push(result);
+          const blockedAxis =
+            (dx !== 0 && !result.movedX) || (dz !== 0 && !result.movedZ);
+          if (blockedAxis) {
+            throw new Error(
+              `Blocked walking to (${waypoint.x.toFixed(2)}, ${waypoint.z.toFixed(
+                2
+              )}) from (${position.x.toFixed(2)}, ${position.z.toFixed(
+                2
+              )}): ${(result.blockedBy ?? []).join(', ')}`
+            );
+          }
+          if (result.activeFloor !== 'upper') {
+            throw new Error(
+              `Expected upper floor during landing egress, got ${result.activeFloor}`
+            );
+          }
+        }
+      }
+
+      return {
+        steps,
+        finalState: world.getPlayerPosition(),
+        debugState: debugCoordinates.getState(),
+      };
+    },
+    {
+      waypoints: [
+        { x: stairCenterX, z: stairTopZ + stairDirection * 0.05 },
+        { x: stairCenterX - 1.6, z: stairTopZ + stairDirection * 0.05 },
+        { x: westLandingExitX, z: stairTopZ + stairDirection * 0.05 },
+        { x: westLandingExitX, z: doorwayZ },
+        { x: creatorsDoorwayEntryX, z: doorwayZ },
+        { x: creatorsStudioCenter.x, z: doorwayZ },
+        { x: creatorsStudioCenter.x, z: creatorsStudioCenter.z },
+      ],
+    }
+  );
+}
+
+async function walkUpperDescentLipBand(page: Page) {
+  const { stairCenterX, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+  await movePlayerTo(page, {
+    x: stairCenterX,
+    z: stairTopZ + stairDirection * 0.05,
+    floorId: 'upper',
+  });
+
+  return page.evaluate(
+    ({
+      stairCenterX: nextStairCenterX,
+      stairTopZ: nextStairTopZ,
+      stairDirection: nextDirection,
+    }) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+
+      let startZ: number | null = null;
+      for (let index = 1; index <= 40; index += 1) {
+        const candidateZ = nextStairTopZ - nextDirection * index * 0.05;
+        const zone = world.getStairTransitionZone({
+          x: nextStairCenterX,
+          z: candidateZ,
+          currentFloor: 'upper',
+        });
+        if (zone === 'explicitDescentCorridor') {
+          startZ = candidateZ;
+          break;
+        }
+      }
+      if (startZ === null) {
+        throw new Error('Unable to find explicit descent corridor start');
+      }
+
+      world.movePlayerTo({ x: nextStairCenterX, z: startZ });
+      world.setActiveFloor('upper');
+
+      const stepZ = -nextDirection * 0.06;
+      const targetZ = nextStairTopZ - nextDirection * 0.8;
+      const samples: Array<{
+        activeFloor: FloorId;
+        position: { x: number; y: number; z: number };
+        upperZone: StairTransitionZone;
+      }> = [];
+
+      for (let index = 0; index < 80; index += 1) {
+        const before = world.getPlayerPosition();
+        if (nextDirection === 1 ? before.z <= targetZ : before.z >= targetZ) {
+          break;
+        }
+
+        const result = world.stepPlayerForTest({ dx: 0, dz: stepZ });
+        if (!result.movedZ) {
+          throw new Error(
+            `Blocked descending at z=${before.z.toFixed(2)}: ${(result.blockedBy ?? []).join(', ')}`
+          );
+        }
+        if (Math.abs(result.position.x - nextStairCenterX) > 0.001) {
+          throw new Error(
+            `Descent drifted off centerline to x=${result.position.x}`
+          );
+        }
+
+        samples.push({
+          activeFloor: result.activeFloor,
+          position: result.position,
+          upperZone: world.getStairTransitionZone({
+            x: result.position.x,
+            z: result.position.z,
+            currentFloor: 'upper',
+          }),
+        });
+      }
+
+      return samples;
+    },
+    { stairCenterX, stairTopZ, stairDirection }
+  );
+}
+
 async function getWorldState(page: Page) {
   return page.evaluate(() => {
     const world = (window as PortfolioWindow).portfolio?.world;
@@ -299,7 +592,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     x: stairCenterX,
     z: (stairBottomZ + stairTopZ) / 2,
   });
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.1 });
+  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.1 });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   const debugColliders = await page.evaluate(() => {
@@ -334,51 +627,27 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // Start on ground.
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
-  // Move to the base of the staircase on the ground floor.
-  await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
-  await expect(html).toHaveAttribute('data-active-floor', 'ground');
-
-  // Enter the ramp and ascend to the upper floor.
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: (stairBottomZ + stairTopZ) / 2,
-  });
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
-  });
+  // Walk the real axis-by-axis movement path from the lower entrance onto the landing.
+  await walkStairCenterlineToUpperLanding(page);
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
-  // Step from the stair top through the explicit upper-landing mouth.
-  const firstUpperLandingStep = {
-    x: stairCenterX,
-    z: stairTopZ + stairDirection * 0.4,
-    floorId: 'upper' as const,
-  };
-  expect(await canOccupyPosition(page, firstUpperLandingStep)).toBe(true);
-  await movePlayerTo(page, firstUpperLandingStep);
-  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+  for (const landingOffset of [0.05, 0.4, 0.8]) {
+    const landingHandoffSample = {
+      x: stairCenterX,
+      z: stairTopZ + stairDirection * landingOffset,
+      floorId: 'upper' as const,
+    };
+    expect(await canOccupyPosition(page, landingHandoffSample)).toBe(true);
+    expect(await getBlockingColliderNames(page, landingHandoffSample)).toEqual(
+      []
+    );
+  }
 
-  const blockingCollidersAtLandingMouth = await page.evaluate((target) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi
-      .getBlockingCollidersAt(target)
-      .map((collider) => collider.name);
-  }, firstUpperLandingStep);
-  expect(blockingCollidersAtLandingMouth).toEqual([]);
-
-  // Continue through the intended west upper-landing exit into an upstairs room.
-  const upperLandingWestExit = {
-    x: stairCenterX - 1.6,
-    z: stairTopZ + stairDirection * 1.8,
-    floorId: 'upper' as const,
-  };
-  expect(await canOccupyPosition(page, upperLandingWestExit)).toBe(true);
-  await movePlayerTo(page, upperLandingWestExit);
-  await movePlayerTo(page, getUpperRoomCenter('creatorsStudio'));
+  // Continue through the intended west upper-landing exit into an upstairs room
+  // with the same step helper used by runtime movement instead of teleporting.
+  const egressWalk = await walkUpperLandingWestExitToCreatorsStudio(page);
+  expect(egressWalk.steps.length).toBeGreaterThan(0);
+  expect(egressWalk.debugState.currentRoomId).toBe('creatorsStudio');
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   // Roam deeper onto the upper landing and confirm we stay upstairs.
@@ -402,14 +671,24 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     backyardEnvironmentVisible: false,
   });
 
-  // Return toward the stairs, enter the explicit descent handoff, then continue down the ramp.
-  // The helper teleports between sampled positions, so include the narrow handoff band that real
-  // movement crosses frame by frame.
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
-  });
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ + 0.7 });
+  // Return toward the stairs with continuous upper→ground steps. The first ground
+  // samples should keep the upper-origin lip blend instead of snapping to raw ramp height.
+  const descentSamples = await walkUpperDescentLipBand(page);
+  const descentGroundSamples = descentSamples.filter(
+    (sample) =>
+      sample.activeFloor === 'ground' &&
+      sample.upperZone === 'explicitDescentCorridor'
+  );
+  expect(descentGroundSamples.length).toBeGreaterThan(3);
+  for (let index = 1; index < descentGroundSamples.length; index += 1) {
+    const previousY = descentGroundSamples[index - 1].position.y;
+    const currentY = descentGroundSamples[index].position.y;
+    expect(currentY).toBeLessThanOrEqual(previousY + 0.01);
+    expect(previousY - currentY).toBeLessThan(0.2);
+  }
+  expect(descentGroundSamples[0].position.y).toBeGreaterThan(
+    descentGroundSamples[descentGroundSamples.length - 1].position.y
+  );
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
   await movePlayerTo(page, {
     x: stairCenterX,
@@ -514,11 +793,8 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
       z: stairTopZ + stairDirection * 0.95,
       floorId: 'upper' as const,
     },
-    {
-      x: stairCenterX,
-      z: stairTopZ + stairDirection * 0.95,
-      floorId: 'upper' as const,
-    },
+    { x: 9, z: -28, floorId: 'upper' as const },
+    { x: 9, z: -29, floorId: 'upper' as const },
   ];
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
@@ -528,7 +804,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   });
   await movePlayerTo(page, {
     x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
+    z: stairTopZ + stairDirection * 0.1,
   });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
@@ -546,9 +822,15 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
   expect(await canOccupyPosition(page, westVoidBypass)).toBe(true);
   expect(await canOccupyPosition(page, westHiddenStairVoidGap)).toBe(false);
+  expect(
+    await getBlockingColliderNames(page, westHiddenStairVoidGap)
+  ).toContain('UpperStairWestVoidGapBlocker');
   expect(await canOccupyPosition(page, deeperWestHiddenStairVoidGap)).toBe(
     false
   );
+  expect(
+    await getBlockingColliderNames(page, deeperWestHiddenStairVoidGap)
+  ).toContain('UpperStairDeepVoidBlocker');
   expect(await canOccupyPosition(page, westHiddenStairVoidSliver)).toBe(false);
   expect(await canOccupyPosition(page, westEdgeFloorClearance)).toBe(true);
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
@@ -556,6 +838,9 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     expect(await canOccupyPosition(page, hiddenStairVoidGapSample)).toBe(false);
   }
   expect(await canOccupyPosition(page, hiddenStairRun)).toBe(false);
+  expect(await getBlockingColliderNames(page, hiddenStairRun)).toContain(
+    'UpperStairHiddenRunBlocker'
+  );
   await expect(async () => movePlayerTo(page, hiddenStairRun)).rejects.toThrow(
     /Cannot occupy/
   );
@@ -638,7 +923,7 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
 
   await movePlayerTo(page, {
     x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.1,
+    z: stairTopZ + stairDirection * 0.1,
   });
   await movePlayerTo(page, { x: stairCenterX, z: landingInteriorZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');

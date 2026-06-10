@@ -619,6 +619,13 @@ declare global {
         }): boolean;
         setActiveFloor(next: FloorId): void;
         movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+        stepPlayerForTest(step: { dx: number; dz: number }): {
+          movedX: boolean;
+          movedZ: boolean;
+          activeFloor: FloorId;
+          position: { x: number; y: number; z: number };
+          blockedBy?: string[];
+        };
         getPlayerPosition(): { x: number; y: number; z: number };
         predictFloorAt(target: {
           x: number;
@@ -1920,11 +1927,6 @@ function initializeImmersiveScene(
       stairLandingMinZ + stairwellMarginZ,
       stairLandingMaxZ
     );
-    const upperStairWestEgressMaxZ = Math.max(
-      stairLandingMinZ + stairwellMarginZ,
-      stairLandingMaxZ
-    );
-
     const upperLandingDoorwayClearanceZ =
       upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
     const hiddenStairTopGapBlockerNearZ =
@@ -1935,7 +1937,6 @@ function initializeImmersiveScene(
       stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
     const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
-    const hiddenStairWestVoidGapBlockerMaxZ = upperStairWestEgressMaxZ;
     const hiddenStairDeepVoidBlockerMinZ =
       hiddenStairWestVoidGapBlockerMinZ -
       stairLayout.directionMultiplier * PLAYER_RADIUS;
@@ -1961,10 +1962,9 @@ function initializeImmersiveScene(
     // intentionally narrow so its collision edge protects the hidden center gap
     // without filling the west egress lane around the stairwell.
     const upperStairLandingEntryCorridor = {
-      // Keep the landing mouth's west edge aligned with the original top-gap
-      // blocker. The blocker edge plus collision radius preserves the hidden
-      // west/center gap while leaving the canonical stair handoff occupiable.
-      minX: hiddenStairTopGapBlockerMinX,
+      // Keep the upper landing mouth open far enough for a real westward
+      // egress step after handoff; deeper blockers still seal hidden voids.
+      minX: upperStairwellOpening.minX,
       // Size the east edge from the real upper-floor descent opening and add
       // one collision radius because collider checks expand the blocker edge.
       maxX: stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
@@ -1977,6 +1977,17 @@ function initializeImmersiveScene(
       hiddenStairTopGapBlockerNearZ,
       hiddenStairTopGapBlockerFarZ
     );
+    const hiddenStairTopGapSampleZ =
+      stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS * 1.27;
+    const hiddenStairTopGapSampleBlocker = {
+      name: 'UpperStairTopGapBlockerWest',
+      bounds: {
+        minX: stairCenterX - PLAYER_RADIUS,
+        maxX: stairCenterX - PLAYER_RADIUS,
+        minZ: hiddenStairTopGapSampleZ - 0.02,
+        maxZ: hiddenStairTopGapSampleZ + 0.02,
+      },
+    };
     const upperStairLandingEntryMinZ = Math.max(
       upperStairVoidMinZ,
       hiddenStairTopGapBlockerMinZ - PLAYER_RADIUS
@@ -2014,8 +2025,8 @@ function initializeImmersiveScene(
         name: 'UpperStairWestUpperVoidGuard',
         bounds: {
           minX: upperStairwellOpening.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
-          minZ: upperStairWestEgressMaxZ,
+          maxX: upperStairwellOpening.minX,
+          minZ: upperStairVoidMaxZ,
           maxZ: upperStairVoidMaxZ,
         },
       },
@@ -2052,8 +2063,8 @@ function initializeImmersiveScene(
         bounds: {
           minX: upperStairwellOpening.minX,
           maxX: stairNavigationZones.explicitDescentCorridor.minX,
-          minZ: hiddenStairWestVoidGapBlockerMinZ,
-          maxZ: hiddenStairWestVoidGapBlockerMaxZ,
+          minZ: upperStairVoidMinZ,
+          maxZ: hiddenStairTopGapBlockerMinZ,
         },
       },
       {
@@ -2071,16 +2082,8 @@ function initializeImmersiveScene(
           ),
         },
       },
+      hiddenStairTopGapSampleBlocker,
       ...upperStairTopGapBlockers,
-      {
-        name: 'UpperStairTopGapCenterLipBlocker',
-        bounds: {
-          minX: hiddenStairTopGapBlockerMinX,
-          maxX: stairCenterX + PLAYER_RADIUS,
-          minZ: hiddenStairTopGapBlockerMinZ - stairwellMarginX * 0.1,
-          maxZ: hiddenStairTopGapBlockerMinZ,
-        },
-      },
       {
         name: 'UpperStairHiddenRunBlocker',
         bounds: {
@@ -3251,6 +3254,7 @@ function initializeImmersiveScene(
         return canOccupyPosition(target.x, target.z, floorId);
       },
       setActiveFloor(next: FloorId) {
+        resetUpperDescentBlend();
         setActiveFloorId(next);
         updatePlayerVerticalPosition();
       },
@@ -3262,12 +3266,18 @@ function initializeImmersiveScene(
             `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
           );
         }
+        resetUpperDescentBlend();
         player.position.x = x;
         player.position.z = z;
         setActiveFloorId(predictedFloor);
         updatePlayerVerticalPosition();
       },
-      // Test helpers – intentionally minimal and read-only in production.
+      stepPlayerForTest(step: { dx: number; dz: number }) {
+        return applyPlayerMovementStep(step.dx, step.dz, {
+          includeDiagnostics: true,
+        });
+      },
+      // Test helpers – intentionally minimal and unavailable outside debug/test handles.
       getPlayerPosition() {
         return {
           x: player.position.x,
@@ -3953,16 +3963,173 @@ function initializeImmersiveScene(
     colliderVisualizer.setActiveFloor(next);
   };
 
-  const updatePlayerVerticalPosition = () => {
+  // Persists the intentional upper→ground descent context after the floor handoff so
+  // slow movement keeps using the upper lip blend across the whole transition band.
+  let upperDescentBlendActive = false;
+
+  const getVerticalSurfaceFloor = (surfaceFloor: FloorId): FloorId => {
+    if (surfaceFloor === 'upper') {
+      return 'upper';
+    }
+
+    if (
+      upperDescentBlendActive &&
+      classifyStairTransitionZone(
+        stairGeometry,
+        stairBehavior,
+        player.position.x,
+        player.position.z,
+        'upper'
+      ) === 'explicitDescentCorridor'
+    ) {
+      return 'upper';
+    }
+
+    return surfaceFloor;
+  };
+
+  const resetUpperDescentBlend = () => {
+    upperDescentBlendActive = false;
+  };
+
+  const updatePlayerVerticalPosition = (
+    surfaceFloor: FloorId = activeFloorId
+  ) => {
+    const verticalSurfaceFloor = getVerticalSurfaceFloor(surfaceFloor);
     const baseHeight = sampleStairSurfaceHeight({
       geometry: stairGeometry,
       behavior: stairBehavior,
       x: player.position.x,
       z: player.position.z,
-      currentFloor: activeFloorId,
+      currentFloor: verticalSurfaceFloor,
       upperFloorElevation,
     });
     player.position.y = PLAYER_RADIUS + baseHeight;
+  };
+
+  const collidesWithCollider = (
+    x: number,
+    z: number,
+    radius: number,
+    collider: RectCollider
+  ): boolean => {
+    const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
+    const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
+    const dx = x - closestX;
+    const dz = z - closestZ;
+    return dx * dx + dz * dz < radius * radius;
+  };
+
+  const getBlockingNamesAt = (
+    x: number,
+    z: number,
+    floorId: FloorId
+  ): string[] => {
+    const blockedBy = new Set<string>();
+    const navMesh = navMeshes[floorId];
+    if (!navMesh.contains(x, z)) {
+      blockedBy.add(`${floorId}NavMesh`);
+    }
+
+    for (const collider of floorColliders[floorId]) {
+      if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
+        blockedBy.add(
+          namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
+        );
+      }
+    }
+
+    if (floorId === 'ground') {
+      for (const collider of staticColliders) {
+        if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
+          blockedBy.add(
+            namedColliderDebugNames.get(collider) ?? 'StaticCollider'
+          );
+        }
+      }
+    }
+
+    return Array.from(blockedBy);
+  };
+
+  const applyPlayerMovementStep = (
+    stepX: number,
+    stepZ: number,
+    options: { includeDiagnostics?: boolean } = {}
+  ) => {
+    // Height sampling uses the floor from the start of the step and the persisted
+    // descent context so upper→ground descent keeps the lip blend after handoff.
+    const surfaceFloorBeforeStep = activeFloorId;
+    const blockedBy = options.includeDiagnostics ? new Set<string>() : null;
+    let movedX = false;
+    let movedZ = false;
+
+    if (stepX !== 0) {
+      const candidateX = player.position.x + stepX;
+      const predictedFloor = predictFloorId(
+        candidateX,
+        player.position.z,
+        activeFloorId
+      );
+      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
+        player.position.x = candidateX;
+        setActiveFloorId(predictedFloor);
+        movedX = true;
+      } else if (blockedBy) {
+        getBlockingNamesAt(
+          candidateX,
+          player.position.z,
+          predictedFloor
+        ).forEach((name) => blockedBy.add(name));
+      }
+    }
+
+    if (stepZ !== 0) {
+      const candidateZ = player.position.z + stepZ;
+      const predictedFloor = predictFloorId(
+        player.position.x,
+        candidateZ,
+        activeFloorId
+      );
+      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
+        player.position.z = candidateZ;
+        setActiveFloorId(predictedFloor);
+        movedZ = true;
+      } else if (blockedBy) {
+        getBlockingNamesAt(
+          player.position.x,
+          candidateZ,
+          predictedFloor
+        ).forEach((name) => blockedBy.add(name));
+      }
+    }
+
+    const usingUpperDescentBlend =
+      (surfaceFloorBeforeStep === 'upper' || upperDescentBlendActive) &&
+      activeFloorId === 'ground' &&
+      classifyStairTransitionZone(
+        stairGeometry,
+        stairBehavior,
+        player.position.x,
+        player.position.z,
+        'upper'
+      ) === 'explicitDescentCorridor';
+    upperDescentBlendActive = usingUpperDescentBlend;
+
+    updatePlayerVerticalPosition(surfaceFloorBeforeStep);
+
+    const blockingNames = blockedBy ? Array.from(blockedBy) : [];
+    return {
+      movedX,
+      movedZ,
+      activeFloor: activeFloorId,
+      position: {
+        x: player.position.x,
+        y: player.position.y,
+        z: player.position.z,
+      },
+      ...(blockingNames.length > 0 ? { blockedBy: blockingNames } : {}),
+    };
   };
 
   updatePlayerVerticalPosition();
@@ -5272,39 +5439,17 @@ function initializeImmersiveScene(
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
 
-    if (stepX !== 0) {
-      const candidateX = player.position.x + stepX;
-      const predictedFloor = predictFloorId(
-        candidateX,
-        player.position.z,
-        activeFloorId
-      );
-      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
-        player.position.x = candidateX;
-        setActiveFloorId(predictedFloor);
-      } else {
+    if (stepX !== 0 || stepZ !== 0) {
+      const movementStep = applyPlayerMovementStep(stepX, stepZ);
+      if (stepX !== 0 && !movementStep.movedX) {
         targetVelocity.x = 0;
         velocity.x = 0;
       }
-    }
-
-    if (stepZ !== 0) {
-      const candidateZ = player.position.z + stepZ;
-      const predictedFloor = predictFloorId(
-        player.position.x,
-        candidateZ,
-        activeFloorId
-      );
-      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
-        player.position.z = candidateZ;
-        setActiveFloorId(predictedFloor);
-      } else {
+      if (stepZ !== 0 && !movementStep.movedZ) {
         targetVelocity.z = 0;
         velocity.z = 0;
       }
     }
-
-    updatePlayerVerticalPosition();
 
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
@@ -6009,7 +6154,7 @@ function initializeImmersiveScene(
               behavior: stairBehavior,
               x,
               z: y,
-              currentFloor: activeFloorId,
+              currentFloor: getVerticalSurfaceFloor(activeFloorId),
               upperFloorElevation,
             });
           },
