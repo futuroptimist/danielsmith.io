@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   getDoorwayPassageZones,
@@ -143,5 +143,64 @@ describe('getDoorwayPassageZones', () => {
       kitchenStudio.doorway.center.z + halfWidth + padding,
       3
     );
+  });
+});
+
+describe('upper landing west egress doorway', () => {
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const creatorsStudioRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'creatorsStudio'
+  );
+  const upperLandingWestDoorway = upperLandingRoom?.doorways?.find(
+    (doorway) => doorway.wall === 'west'
+  );
+  const creatorsStudioEastDoorway = creatorsStudioRoom?.doorways?.find(
+    (doorway) => doorway.wall === 'east' && doorway.start < -30
+  );
+
+  it('aligns the upperLanding west doorway with creatorsStudio east doorway', () => {
+    expect(upperLandingWestDoorway).toBeDefined();
+    expect(creatorsStudioEastDoorway).toBeDefined();
+    expect(upperLandingWestDoorway?.start).toBeCloseTo(
+      creatorsStudioEastDoorway!.start,
+      3
+    );
+    expect(upperLandingWestDoorway?.end).toBeCloseTo(
+      creatorsStudioEastDoorway!.end,
+      3
+    );
+  });
+
+  it('covers the desired world-space landing egress band', () => {
+    expect(upperLandingWestDoorway).toBeDefined();
+    const minZ = Math.min(
+      upperLandingWestDoorway!.start,
+      upperLandingWestDoorway!.end
+    );
+    const maxZ = Math.max(
+      upperLandingWestDoorway!.start,
+      upperLandingWestDoorway!.end
+    );
+
+    for (const sampleZ of [-26.14, -27.5, -29, -30.5, -31.24]) {
+      expect(sampleZ).toBeGreaterThanOrEqual(minZ);
+      expect(sampleZ).toBeLessThanOrEqual(maxZ);
+    }
+  });
+
+  it('normalizes the widened shared opening as a single vertical doorway', () => {
+    const doorway = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+
+    expect(doorway).toBeDefined();
+    expect(doorway?.axis).toBe('vertical');
+    expect(doorway?.width).toBeGreaterThanOrEqual(12);
   });
 });

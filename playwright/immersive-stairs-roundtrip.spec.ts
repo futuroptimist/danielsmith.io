@@ -161,6 +161,35 @@ async function movePlayerTo(
   await page.waitForTimeout(150);
 }
 
+function getUpperLandingWestDoorway() {
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const westDoorway = upperLandingRoom?.doorways?.find(
+    (doorway) => doorway.wall === 'west'
+  );
+  if (!upperLandingRoom || !westDoorway) {
+    throw new Error('Missing upper landing west doorway');
+  }
+
+  return { upperLandingRoom, westDoorway };
+}
+
+function getUpperLandingWestEgressZSamples(westDoorway: {
+  start: number;
+  end: number;
+}) {
+  const desiredWorldZSamples = [-26.14, -27.5, -29, -30.5, -31.24];
+  const doorwayMinZ = Math.min(westDoorway.start, westDoorway.end);
+  const doorwayMaxZ = Math.max(westDoorway.start, westDoorway.end);
+
+  return desiredWorldZSamples.map((z) => {
+    expect(z).toBeGreaterThanOrEqual(doorwayMinZ - 0.01);
+    expect(z).toBeLessThanOrEqual(doorwayMaxZ + 0.01);
+    return z;
+  });
+}
+
 function getUpperRoomCenter(roomId: string) {
   const room = UPPER_FLOOR_PLAN.rooms.find(
     (candidate) => candidate.id === roomId
@@ -306,20 +335,14 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
 }
 
 async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
-  const { stairCenterX, stairTopZ, stairDirection } =
+  const { stairCenterX, stairHalfWidth, stairTopZ, stairDirection } =
     await getStairMetrics(page);
-  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
-    (room) => room.id === 'upperLanding'
-  );
-  const westDoorway = upperLandingRoom?.doorways?.find(
-    (doorway) => doorway.wall === 'west'
-  );
-  if (!upperLandingRoom || !westDoorway) {
-    throw new Error('Missing upper landing west doorway');
-  }
+  const { upperLandingRoom, westDoorway } = getUpperLandingWestDoorway();
 
   const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
-  const doorwayZ = (westDoorway.start + westDoorway.end) / 2;
+  const egressZSamples = getUpperLandingWestEgressZSamples(westDoorway);
+  const doorwayZ = egressZSamples[egressZSamples.length - 1];
+  const stairSideEgressX = stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
   const westLandingExitX = upperLandingRoom.bounds.minX + PLAYER_RADIUS;
   const creatorsDoorwayEntryX = upperLandingRoom.bounds.minX - PLAYER_RADIUS;
 
@@ -380,8 +403,8 @@ async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
     {
       waypoints: [
         { x: stairCenterX, z: stairTopZ + stairDirection * 0.05 },
-        { x: stairCenterX - 1.6, z: stairTopZ + stairDirection * 0.05 },
-        { x: westLandingExitX, z: stairTopZ + stairDirection * 0.05 },
+        { x: stairSideEgressX, z: stairTopZ + stairDirection * 0.05 },
+        ...egressZSamples.map((z) => ({ x: stairSideEgressX, z })),
         { x: westLandingExitX, z: doorwayZ },
         { x: creatorsDoorwayEntryX, z: doorwayZ },
         { x: creatorsStudioCenter.x, z: doorwayZ },
@@ -617,6 +640,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   const html = page.locator('html');
   const {
     stairCenterX,
+    stairHalfWidth,
     stairBottomZ,
     stairTopZ,
     stairLandingMinZ,
@@ -641,6 +665,29 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     expect(await getBlockingColliderNames(page, landingHandoffSample)).toEqual(
       []
     );
+  }
+
+  const { westDoorway } = getUpperLandingWestDoorway();
+  const egressZSamples = getUpperLandingWestEgressZSamples(westDoorway);
+  const stairSideEgressX = stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
+  const doorwayThresholdXs = [
+    stairSideEgressX,
+    UPPER_FLOOR_PLAN.rooms.find((room) => room.id === 'upperLanding')!.bounds
+      .minX + PLAYER_RADIUS,
+    UPPER_FLOOR_PLAN.rooms.find((room) => room.id === 'upperLanding')!.bounds
+      .minX - PLAYER_RADIUS,
+  ];
+  for (const z of egressZSamples) {
+    for (const x of doorwayThresholdXs) {
+      const sample = { x, z, floorId: 'upper' as const };
+      const canOccupy = await canOccupyPosition(page, sample);
+      const blockingColliders = await getBlockingColliderNames(page, sample);
+      expect(
+        canOccupy,
+        `expected upper landing west egress sample (${x}, ${z}) to be occupiable; blockers=${blockingColliders.join(', ')}`
+      ).toBe(true);
+      expect(blockingColliders).toEqual([]);
+    }
   }
 
   // Continue through the intended west upper-landing exit into an upstairs room
@@ -724,7 +771,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   } = await getStairMetrics(page);
   const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
   const westLandingEgress = {
-    x: stairCenterX - 1.6,
+    x: stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75,
     z: stairTopZ + stairDirection * 1.8,
     floorId: 'upper' as const,
   };
@@ -793,8 +840,16 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
       z: stairTopZ + stairDirection * 0.95,
       floorId: 'upper' as const,
     },
-    { x: 9, z: -28, floorId: 'upper' as const },
-    { x: 9, z: -29, floorId: 'upper' as const },
+    {
+      x: stairCenterX - PLAYER_RADIUS * 1.2,
+      z: -28,
+      floorId: 'upper' as const,
+    },
+    {
+      x: stairCenterX - PLAYER_RADIUS * 1.2,
+      z: -29,
+      floorId: 'upper' as const,
+    },
   ];
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
@@ -830,7 +885,13 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   );
   expect(
     await getBlockingColliderNames(page, deeperWestHiddenStairVoidGap)
-  ).toContain('UpperStairDeepVoidBlocker');
+  ).toEqual(
+    expect.arrayContaining([
+      expect.stringMatching(
+        /^UpperStair(?:DeepVoidBlocker|WestVoidGapBlocker)$/
+      ),
+    ])
+  );
   expect(await canOccupyPosition(page, westHiddenStairVoidSliver)).toBe(false);
   expect(await canOccupyPosition(page, westEdgeFloorClearance)).toBe(true);
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);

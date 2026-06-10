@@ -1916,6 +1916,9 @@ function initializeImmersiveScene(
     upperFloorColliders.push(bounds);
     namedColliderDebugNames.set(bounds, name);
   };
+  // Keep hidden stair-run blockers near the center of the removed stairwell
+  // so the west side can serve as the intended upper-landing room egress.
+  const hiddenStairCenterVoidMinX = stairCenterX - PLAYER_RADIUS * 1.6;
 
   // The upper-floor stairwell cutout intentionally comes from the same
   // computeStairLayout result used by movement. It removes both the stair
@@ -2013,15 +2016,6 @@ function initializeImmersiveScene(
 
     [
       {
-        name: 'UpperStairWestLowerVoidGuard',
-        bounds: {
-          minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
-          minZ: upperStairVoidMinZ,
-          maxZ: upperStairWestEgressMinZ,
-        },
-      },
-      {
         name: 'UpperStairWestUpperVoidGuard',
         bounds: {
           minX: upperStairwellOpening.minX,
@@ -2061,8 +2055,8 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairWestVoidGapBlocker',
         bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
+          minX: hiddenStairCenterVoidMinX,
+          maxX: hiddenStairCenterVoidMinX,
           minZ: upperStairVoidMinZ,
           maxZ: hiddenStairTopGapBlockerMinZ,
         },
@@ -2070,7 +2064,7 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairDeepVoidBlocker',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
+          minX: hiddenStairCenterVoidMinX,
           maxX: stairNavigationZones.explicitDescentCorridor.maxX,
           minZ: Math.min(
             hiddenStairDeepVoidBlockerMinZ,
@@ -2129,6 +2123,7 @@ function initializeImmersiveScene(
       guard: {
         height: 0.56,
         thickness: toWorldUnits(0.12),
+        farGuardMinX: hiddenStairCenterVoidMinX,
         sideSides: ['east'],
         shoulderSides: ['east'],
         material: {

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN, WALL_THICKNESS } from '../../assets/floorPlan';
+import {
+  FLOOR_PLAN,
+  UPPER_FLOOR_PLAN,
+  WALL_THICKNESS,
+} from '../../assets/floorPlan';
 import { createNavMesh } from '../../systems/navigation/navMesh';
 import { resolveNormalizedDoorway } from '../helpers/doorwayTestHelpers';
 
@@ -77,5 +81,35 @@ describe('createNavMesh', () => {
 
   it('includes explicitly provided zones', () => {
     expect(navMesh.contains(41, 41)).toBe(true);
+  });
+});
+
+describe('createNavMesh for upper landing egress', () => {
+  const doorwayPadding = PLAYER_RADIUS * 0.6;
+  const doorwayDepth = WALL_THICKNESS + PLAYER_RADIUS * 2;
+  const navMesh = createNavMesh(UPPER_FLOOR_PLAN, {
+    padding: doorwayPadding,
+    depth: doorwayDepth,
+  });
+
+  it('contains the widened upperLanding west doorway passage zone', () => {
+    const doorway = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(doorway).toBeDefined();
+    if (!doorway) {
+      return;
+    }
+
+    const halfDepth = doorwayDepth / 2 - 0.05;
+    for (const z of [-26.14, -27.5, -29, -30.5, -31.24]) {
+      expect(navMesh.contains(doorway.center.x, z)).toBe(true);
+      expect(navMesh.contains(doorway.center.x + halfDepth, z)).toBe(true);
+      expect(navMesh.contains(doorway.center.x - halfDepth, z)).toBe(true);
+    }
   });
 });
