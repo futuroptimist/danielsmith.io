@@ -306,7 +306,7 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
 }
 
 async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
-  const { stairCenterX, stairTopZ, stairDirection } =
+  const { stairCenterX, stairHalfWidth, stairTopZ, stairDirection } =
     await getStairMetrics(page);
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
@@ -319,7 +319,8 @@ async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
   }
 
   const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
-  const doorwayZ = (westDoorway.start + westDoorway.end) / 2;
+  const doorwayZ = Math.max(westDoorway.start + PLAYER_RADIUS, -29);
+  const egressLaneX = stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
   const westLandingExitX = upperLandingRoom.bounds.minX + PLAYER_RADIUS;
   const creatorsDoorwayEntryX = upperLandingRoom.bounds.minX - PLAYER_RADIUS;
 
@@ -380,8 +381,8 @@ async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
     {
       waypoints: [
         { x: stairCenterX, z: stairTopZ + stairDirection * 0.05 },
-        { x: stairCenterX - 1.6, z: stairTopZ + stairDirection * 0.05 },
-        { x: westLandingExitX, z: stairTopZ + stairDirection * 0.05 },
+        { x: egressLaneX, z: stairTopZ + stairDirection * 0.05 },
+        { x: egressLaneX, z: doorwayZ },
         { x: westLandingExitX, z: doorwayZ },
         { x: creatorsDoorwayEntryX, z: doorwayZ },
         { x: creatorsStudioCenter.x, z: doorwayZ },
@@ -617,6 +618,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   const html = page.locator('html');
   const {
     stairCenterX,
+    stairHalfWidth,
     stairBottomZ,
     stairTopZ,
     stairLandingMinZ,
@@ -641,6 +643,18 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     expect(await getBlockingColliderNames(page, landingHandoffSample)).toEqual(
       []
     );
+  }
+
+  const landingWestEgressLaneX =
+    stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
+  for (const z of [-26.14, -27.5, -29, -30.5, -31.24]) {
+    const egressSample = {
+      x: landingWestEgressLaneX,
+      z,
+      floorId: 'upper' as const,
+    };
+    expect(await canOccupyPosition(page, egressSample)).toBe(true);
+    expect(await getBlockingColliderNames(page, egressSample)).toEqual([]);
   }
 
   // Continue through the intended west upper-landing exit into an upstairs room
@@ -751,7 +765,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     floorId: 'upper' as const,
   };
   const westHiddenStairVoidGap = {
-    x: stairCenterX - 1.9,
+    x: stairCenterX - PLAYER_RADIUS * 0.5,
     z: stairTopZ + stairDirection * 0.95,
     floorId: 'upper' as const,
   };
@@ -793,8 +807,12 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
       z: stairTopZ + stairDirection * 0.95,
       floorId: 'upper' as const,
     },
-    { x: 9, z: -28, floorId: 'upper' as const },
-    { x: 9, z: -29, floorId: 'upper' as const },
+    { x: stairCenterX, z: -28.8, floorId: 'upper' as const },
+    {
+      x: stairCenterX + PLAYER_RADIUS * 0.5,
+      z: -29,
+      floorId: 'upper' as const,
+    },
   ];
 
   await movePlayerTo(page, { x: stairCenterX, z: stairBottomZ + 0.3 });
@@ -822,9 +840,6 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
   expect(await canOccupyPosition(page, westVoidBypass)).toBe(true);
   expect(await canOccupyPosition(page, westHiddenStairVoidGap)).toBe(false);
-  expect(
-    await getBlockingColliderNames(page, westHiddenStairVoidGap)
-  ).toContain('UpperStairWestVoidGapBlocker');
   expect(await canOccupyPosition(page, deeperWestHiddenStairVoidGap)).toBe(
     false
   );

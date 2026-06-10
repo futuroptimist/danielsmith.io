@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   getDoorwayPassageZones,
   getNormalizedDoorways,
 } from '../assets/floorPlan/doorways';
+import { createNavMesh } from '../systems/navigation/navMesh';
 
 import {
   DOOR_EPSILON,
+  findSharedDoorway,
   resolveNormalizedDoorway,
 } from './helpers/doorwayTestHelpers';
 
@@ -143,5 +145,68 @@ describe('getDoorwayPassageZones', () => {
       kitchenStudio.doorway.center.z + halfWidth + padding,
       3
     );
+  });
+});
+
+describe('upper landing west egress doorway', () => {
+  const desiredWorldZSamples = [-26.14, -27.5, -29, -30.5, -31.24];
+  const upperLanding = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const creatorsStudio = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'creatorsStudio'
+  );
+
+  it('aligns the upperLanding west doorway with the creatorsStudio east doorway', () => {
+    expect(upperLanding).toBeDefined();
+    expect(creatorsStudio).toBeDefined();
+    if (!upperLanding || !creatorsStudio) {
+      return;
+    }
+
+    const sharedDoorway = findSharedDoorway(
+      upperLanding.doorways?.filter((doorway) => doorway.wall === 'west'),
+      creatorsStudio.doorways?.filter((doorway) => doorway.wall === 'east')
+    );
+
+    expect(sharedDoorway).toBeDefined();
+    expect(sharedDoorway?.start).toBeLessThanOrEqual(
+      Math.min(...desiredWorldZSamples)
+    );
+    expect(sharedDoorway?.end).toBeGreaterThanOrEqual(
+      Math.max(...desiredWorldZSamples)
+    );
+  });
+
+  it('exposes a passage zone across the widened west egress band', () => {
+    const normalized = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(normalized).toBeDefined();
+    if (!normalized) {
+      return;
+    }
+
+    const zones = getDoorwayPassageZones(UPPER_FLOOR_PLAN);
+    const egressZone = zones.find(
+      (zone) =>
+        Math.abs(zone.doorway.center.x - normalized.center.x) < DOOR_EPSILON &&
+        Math.abs(zone.doorway.center.z - normalized.center.z) < DOOR_EPSILON
+    );
+    expect(egressZone).toBeDefined();
+    if (!egressZone) {
+      return;
+    }
+
+    const navMesh = createNavMesh(UPPER_FLOOR_PLAN);
+    for (const z of desiredWorldZSamples) {
+      expect(z).toBeGreaterThanOrEqual(egressZone.bounds.minZ);
+      expect(z).toBeLessThanOrEqual(egressZone.bounds.maxZ);
+      expect(navMesh.contains(normalized.center.x, z)).toBe(true);
+    }
   });
 });
