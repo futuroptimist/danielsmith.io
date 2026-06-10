@@ -77,13 +77,13 @@ describe('createUpperStairwellLanding', () => {
     expect(result.colliders).toContainEqual({
       minX: -2,
       maxX: -1.2,
-      minZ: -8,
+      minZ: -7.6,
       maxZ: 6,
     });
     expect(result.colliders).toContainEqual({
       minX: 1.1,
       maxX: 2,
-      minZ: -8,
+      minZ: -7.6,
       maxZ: 6,
     });
 

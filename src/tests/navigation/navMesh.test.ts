@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN, WALL_THICKNESS } from '../../assets/floorPlan';
+import {
+  FLOOR_PLAN,
+  UPPER_FLOOR_PLAN,
+  WALL_THICKNESS,
+} from '../../assets/floorPlan';
 import { createNavMesh } from '../../systems/navigation/navMesh';
 import { resolveNormalizedDoorway } from '../helpers/doorwayTestHelpers';
 
@@ -77,5 +81,29 @@ describe('createNavMesh', () => {
 
   it('includes explicitly provided zones', () => {
     expect(navMesh.contains(41, 41)).toBe(true);
+  });
+
+  it('contains the widened upper landing west egress samples', () => {
+    const upperNavMesh = createNavMesh(UPPER_FLOOR_PLAN, {
+      padding: doorwayPadding,
+      depth: doorwayDepth,
+    });
+    const upperLandingCreators = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(upperLandingCreators).toBeDefined();
+    if (!upperLandingCreators) {
+      return;
+    }
+
+    for (const sampleZ of [-26.14, -27.5, -29, -30.5, -31.24]) {
+      expect(
+        upperNavMesh.contains(upperLandingCreators.center.x, sampleZ)
+      ).toBe(true);
+    }
   });
 });

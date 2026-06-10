@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   getDoorwayPassageZones,
@@ -74,6 +74,22 @@ describe('getNormalizedDoorways', () => {
     expect(doorway).toBeDefined();
     expect(doorway?.axis).toBe('vertical');
   });
+
+  it('aligns the upper landing west doorway with the creators studio east doorway', () => {
+    const doorway = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(doorway).toBeDefined();
+    expect(doorway?.axis).toBe('vertical');
+    const minZ = doorway ? doorway.center.z - doorway.width / 2 : 0;
+    const maxZ = doorway ? doorway.center.z + doorway.width / 2 : 0;
+    expect(minZ).toBeLessThanOrEqual(-31.24);
+    expect(maxZ).toBeGreaterThanOrEqual(-26.14);
+  });
 });
 
 describe('getDoorwayPassageZones', () => {
@@ -143,5 +159,33 @@ describe('getDoorwayPassageZones', () => {
       kitchenStudio.doorway.center.z + halfWidth + padding,
       3
     );
+  });
+
+  it('spans the widened upper landing west egress band', () => {
+    const normalized = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    const upperLandingCreators = getDoorwayPassageZones(UPPER_FLOOR_PLAN, {
+      padding,
+      depth,
+    }).find(
+      (zone) =>
+        normalized &&
+        Math.abs(zone.doorway.center.x - normalized.center.x) < DOOR_EPSILON &&
+        Math.abs(zone.doorway.center.z - normalized.center.z) < DOOR_EPSILON
+    );
+    expect(upperLandingCreators).toBeDefined();
+    if (!upperLandingCreators) {
+      return;
+    }
+
+    for (const sampleZ of [-26.14, -27.5, -29, -30.5, -31.24]) {
+      expect(upperLandingCreators.bounds.minZ).toBeLessThanOrEqual(sampleZ);
+      expect(upperLandingCreators.bounds.maxZ).toBeGreaterThanOrEqual(sampleZ);
+    }
   });
 });

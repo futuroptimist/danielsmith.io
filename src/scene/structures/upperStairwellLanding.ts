@@ -178,6 +178,10 @@ export function createUpperStairwellLanding(
       config.descentCorridorBounds,
       openingBounds
     );
+    const shoulderMinZ = Math.max(
+      openingBounds.minZ,
+      descentCorridorBounds.minZ
+    );
 
     if (shoulderSides.includes('west')) {
       addGuard({
@@ -188,7 +192,7 @@ export function createUpperStairwellLanding(
         bounds: {
           minX: openingBounds.minX,
           maxX: descentCorridorBounds.minX,
-          minZ: openingBounds.minZ,
+          minZ: shoulderMinZ,
           maxZ: openingBounds.maxZ,
         },
         roomBounds: config.roomBounds,
@@ -206,7 +210,7 @@ export function createUpperStairwellLanding(
         bounds: {
           minX: descentCorridorBounds.maxX,
           maxX: openingBounds.maxX,
-          minZ: openingBounds.minZ,
+          minZ: shoulderMinZ,
           maxZ: openingBounds.maxZ,
         },
         roomBounds: config.roomBounds,

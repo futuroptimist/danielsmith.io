@@ -1951,6 +1951,10 @@ function initializeImmersiveScene(
       upperStairVoidMaxZ,
       upperLandingDoorwayClearanceZ
     );
+    const upperStairWestEgressCenterX =
+      stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
+    const upperStairWestEgressColliderMinX =
+      upperStairWestEgressCenterX + PLAYER_RADIUS + 0.02;
 
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
@@ -2003,7 +2007,10 @@ function initializeImmersiveScene(
     const upperStairTopGapBlockers = splitColliderAroundCorridor({
       name: 'UpperStairTopGapBlocker',
       bounds: {
-        minX: hiddenStairTopGapBlockerEdgeMinX,
+        minX: Math.max(
+          hiddenStairTopGapBlockerEdgeMinX,
+          upperStairWestEgressColliderMinX
+        ),
         maxX: stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
         minZ: hiddenStairTopGapBlockerMinZ,
         maxZ: hiddenStairTopGapBlockerMaxZ,
@@ -2016,7 +2023,10 @@ function initializeImmersiveScene(
         name: 'UpperStairWestLowerVoidGuard',
         bounds: {
           minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
+          maxX: Math.min(
+            upperStairwellOpening.minX,
+            stairNavigationZones.explicitDescentCorridor.minX
+          ),
           minZ: upperStairVoidMinZ,
           maxZ: upperStairWestEgressMinZ,
         },
@@ -2061,17 +2071,19 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairWestVoidGapBlocker',
         bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
+          minX:
+            stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
+          maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
           minZ: upperStairVoidMinZ,
-          maxZ: hiddenStairTopGapBlockerMinZ,
+          maxZ: hiddenStairTopGapBlockerMinZ - PLAYER_RADIUS,
         },
       },
       {
         name: 'UpperStairDeepVoidBlocker',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+          minX:
+            stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
+          maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
           minZ: Math.min(
             hiddenStairDeepVoidBlockerMinZ,
             hiddenStairDeepVoidBlockerMaxZ
@@ -2115,7 +2127,10 @@ function initializeImmersiveScene(
     const upperStairwellGuardOpening = {
       minX: upperStairwellOpening.minX,
       maxX: upperStairwellOpening.maxX,
-      minZ: upperStairwellOpening.minZ,
+      minZ: Math.max(
+        upperStairwellOpening.minZ,
+        stairTopZ + stairLayout.directionMultiplier * (PLAYER_RADIUS * 0.2)
+      ),
       maxZ: Math.min(upperLandingRoom.bounds.maxZ, stairLandingMaxZ),
     };
     const upperStairwellLanding = createUpperStairwellLanding({
@@ -2124,13 +2139,14 @@ function initializeImmersiveScene(
       descentCorridorBounds: {
         ...stairNavigationZones.explicitDescentCorridor,
         maxX: stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
+        minZ: stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS,
       },
       elevation: upperFloorElevation,
       guard: {
-        height: 0.56,
+        height: 0,
         thickness: toWorldUnits(0.12),
-        sideSides: ['east'],
-        shoulderSides: ['east'],
+        sideSides: [],
+        shoulderSides: [],
         material: {
           color: 0x2a3241,
           roughness: 0.72,
