@@ -1917,6 +1917,11 @@ function initializeImmersiveScene(
     namedColliderDebugNames.set(bounds, name);
   };
 
+  const upperStairWestEgressLaneX =
+    stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
+  const upperStairWestEgressBlockerMinX =
+    upperStairWestEgressLaneX + PLAYER_RADIUS + 0.01;
+
   // The upper-floor stairwell cutout intentionally comes from the same
   // computeStairLayout result used by movement. It removes both the stair
   // landing void and the hidden ramp run below the landing lip.
@@ -1951,7 +1956,6 @@ function initializeImmersiveScene(
       upperStairVoidMaxZ,
       upperLandingDoorwayClearanceZ
     );
-
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable. The center
@@ -2052,7 +2056,7 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairDeepVoidBlocker',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
+          minX: upperStairWestEgressBlockerMinX,
           maxX: stairNavigationZones.explicitDescentCorridor.maxX,
           minZ: Math.min(
             hiddenStairDeepVoidBlockerMinZ,
@@ -2081,7 +2085,12 @@ function initializeImmersiveScene(
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
-          upperLanding: [upperStairwellOpening],
+          upperLanding: [
+            {
+              ...upperStairwellOpening,
+              minX: upperStairWestEgressBlockerMinX,
+            },
+          ],
         }
       : undefined;
   const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {

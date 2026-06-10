@@ -657,6 +657,31 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     expect(await getBlockingColliderNames(page, egressSample)).toEqual([]);
   }
 
+  const hiddenVoidSampleZ = -29;
+  const nonEgressHiddenVoidSamples = [
+    {
+      x: stairCenterX - stairHalfWidth + PLAYER_RADIUS,
+      z: hiddenVoidSampleZ,
+      floorId: 'upper' as const,
+    },
+    {
+      x: stairCenterX,
+      z: hiddenVoidSampleZ,
+      floorId: 'upper' as const,
+    },
+    {
+      x: stairCenterX + stairHalfWidth - PLAYER_RADIUS,
+      z: hiddenVoidSampleZ,
+      floorId: 'upper' as const,
+    },
+  ];
+  for (const hiddenVoidSample of nonEgressHiddenVoidSamples) {
+    expect(await canOccupyPosition(page, hiddenVoidSample)).toBe(false);
+    expect(await getBlockingColliderNames(page, hiddenVoidSample)).not.toEqual(
+      []
+    );
+  }
+
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.
   const egressWalk = await walkUpperLandingWestExitToCreatorsStudio(page);
