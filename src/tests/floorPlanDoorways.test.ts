@@ -1,16 +1,35 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import {
+  FLOOR_PLAN,
+  UPPER_FLOOR_PLAN,
+  WALL_THICKNESS,
+  type RoomCategory,
+} from '../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   getDoorwayPassageZones,
   getNormalizedDoorways,
 } from '../assets/floorPlan/doorways';
+import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import { collidesWithColliders } from '../systems/collision';
+import { createNavMesh } from '../systems/navigation/navMesh';
 
 import {
   DOOR_EPSILON,
+  findSharedDoorway,
   resolveNormalizedDoorway,
 } from './helpers/doorwayTestHelpers';
+
+const PLAYER_RADIUS = 0.75;
+const WALL_HEIGHT = 6;
+const FENCE_HEIGHT = 2.4;
+const FENCE_THICKNESS = 0.28;
+
+function getRoomCategory(roomId: string): RoomCategory {
+  const room = UPPER_FLOOR_PLAN.rooms.find((entry) => entry.id === roomId);
+  return room?.category ?? 'interior';
+}
 
 describe('getDoorwayClearanceZones', () => {
   const zones = getDoorwayClearanceZones(FLOOR_PLAN, {
@@ -143,5 +162,110 @@ describe('getDoorwayPassageZones', () => {
       kitchenStudio.doorway.center.z + halfWidth + padding,
       3
     );
+  });
+});
+
+describe('upper landing west egress doorway', () => {
+  const desiredWorldZSamples = [-26.14, -27.5, -29, -30.5, -31.24];
+  const upperLanding = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  const creatorsStudio = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'creatorsStudio'
+  );
+
+  it('aligns the upperLanding west doorway with the creatorsStudio east doorway', () => {
+    expect(upperLanding).toBeDefined();
+    expect(creatorsStudio).toBeDefined();
+    if (!upperLanding || !creatorsStudio) {
+      return;
+    }
+
+    const sharedDoorway = findSharedDoorway(
+      upperLanding.doorways?.filter((doorway) => doorway.wall === 'west'),
+      creatorsStudio.doorways?.filter((doorway) => doorway.wall === 'east')
+    );
+
+    expect(sharedDoorway).toBeDefined();
+    expect(sharedDoorway?.start).toBeLessThanOrEqual(
+      Math.min(...desiredWorldZSamples) + DOOR_EPSILON
+    );
+    expect(sharedDoorway?.end).toBeGreaterThanOrEqual(
+      Math.max(...desiredWorldZSamples) - DOOR_EPSILON
+    );
+  });
+
+  it('exposes a passage zone across the widened west egress band', () => {
+    const normalized = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(normalized).toBeDefined();
+    if (!normalized) {
+      return;
+    }
+
+    const zones = getDoorwayPassageZones(UPPER_FLOOR_PLAN);
+    const egressZone = zones.find(
+      (zone) =>
+        Math.abs(zone.doorway.center.x - normalized.center.x) < DOOR_EPSILON &&
+        Math.abs(zone.doorway.center.z - normalized.center.z) < DOOR_EPSILON
+    );
+    expect(egressZone).toBeDefined();
+    if (!egressZone) {
+      return;
+    }
+
+    const navMesh = createNavMesh(UPPER_FLOOR_PLAN);
+    for (const z of desiredWorldZSamples) {
+      expect(z).toBeGreaterThanOrEqual(egressZone.bounds.minZ - DOOR_EPSILON);
+      expect(z).toBeLessThanOrEqual(egressZone.bounds.maxZ + DOOR_EPSILON);
+      expect(navMesh.contains(normalized.center.x, z)).toBe(true);
+    }
+  });
+
+  it('leaves the lower requested doorway edge crossable for player collision', () => {
+    const normalized = resolveNormalizedDoorway({
+      plan: UPPER_FLOOR_PLAN,
+      roomAId: 'upperLanding',
+      wallA: 'west',
+      roomBId: 'creatorsStudio',
+      wallB: 'east',
+    });
+    expect(normalized).toBeDefined();
+    if (!normalized) {
+      return;
+    }
+
+    const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    });
+    const colliders = wallInstances.map((instance) => instance.collider);
+    const lowerRequestedEdgeZ = Math.min(...desiredWorldZSamples);
+
+    expect(
+      collidesWithColliders(
+        normalized.center.x + PLAYER_RADIUS,
+        lowerRequestedEdgeZ,
+        PLAYER_RADIUS,
+        colliders
+      )
+    ).toBe(false);
+    expect(
+      collidesWithColliders(
+        normalized.center.x - PLAYER_RADIUS,
+        lowerRequestedEdgeZ,
+        PLAYER_RADIUS,
+        colliders
+      )
+    ).toBe(false);
   });
 });

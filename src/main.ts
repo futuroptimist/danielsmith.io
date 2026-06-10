@@ -1917,6 +1917,11 @@ function initializeImmersiveScene(
     namedColliderDebugNames.set(bounds, name);
   };
 
+  const upperStairWestEgressLaneX =
+    stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
+  const upperStairWestEgressBlockerMinX =
+    upperStairWestEgressLaneX + PLAYER_RADIUS + 0.01;
+
   // The upper-floor stairwell cutout intentionally comes from the same
   // computeStairLayout result used by movement. It removes both the stair
   // landing void and the hidden ramp run below the landing lip.
@@ -1951,12 +1956,11 @@ function initializeImmersiveScene(
       upperStairVoidMaxZ,
       upperLandingDoorwayClearanceZ
     );
-
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable. The center
-    // blockers reject forced upper-floor placement over the hidden stair-top gap,
-    // the deeper removed stair run, and doorway-side void while preserving the
+    // blockers reject forced upper-floor placement over the hidden stair-top gap
+    // and the deeper removed stair run while preserving the widened west egress,
     // narrow stair-top handoff, a west-side bypass lane around the void, and the
     // north doorway's padded passage into the loft. The top-gap west lip stays
     // intentionally narrow so its collision edge protects the hidden center gap
@@ -2013,15 +2017,6 @@ function initializeImmersiveScene(
 
     [
       {
-        name: 'UpperStairWestLowerVoidGuard',
-        bounds: {
-          minX: stairCenterX - stairHalfWidth - stairwellMarginX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
-          minZ: upperStairVoidMinZ,
-          maxZ: upperStairWestEgressMinZ,
-        },
-      },
-      {
         name: 'UpperStairWestUpperVoidGuard',
         bounds: {
           minX: upperStairwellOpening.minX,
@@ -2059,18 +2054,9 @@ function initializeImmersiveScene(
         },
       },
       {
-        name: 'UpperStairWestVoidGapBlocker',
-        bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.minX,
-          minZ: upperStairVoidMinZ,
-          maxZ: hiddenStairTopGapBlockerMinZ,
-        },
-      },
-      {
         name: 'UpperStairDeepVoidBlocker',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
+          minX: upperStairWestEgressBlockerMinX,
           maxX: stairNavigationZones.explicitDescentCorridor.maxX,
           minZ: Math.min(
             hiddenStairDeepVoidBlockerMinZ,
@@ -2099,7 +2085,12 @@ function initializeImmersiveScene(
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
-          upperLanding: [upperStairwellOpening],
+          upperLanding: [
+            {
+              ...upperStairwellOpening,
+              minX: upperStairWestEgressBlockerMinX,
+            },
+          ],
         }
       : undefined;
   const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
@@ -2113,7 +2104,7 @@ function initializeImmersiveScene(
 
   if (upperLandingRoom && upperStairwellOpening) {
     const upperStairwellGuardOpening = {
-      minX: upperStairwellOpening.minX,
+      minX: stairNavigationZones.explicitDescentCorridor.minX + PLAYER_RADIUS,
       maxX: upperStairwellOpening.maxX,
       minZ: upperStairwellOpening.minZ,
       maxZ: Math.min(upperLandingRoom.bounds.maxZ, stairLandingMaxZ),
