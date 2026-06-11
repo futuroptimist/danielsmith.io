@@ -803,11 +803,10 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     throw new Error('Missing upper stair guard debug collider');
   }
 
-  const westBannisterCenterX =
-    (westBannister.bounds.minX + westBannister.bounds.maxX) / 2;
   const northBannisterCenterZ =
     (northBannister.bounds.minZ + northBannister.bounds.maxZ) / 2;
-  expectCloseTo(westBannisterCenterX, 10.59, 0.05, 'west bannister center x');
+  expectCloseTo(westBannister.bounds.minX, 8.9, 0.05, 'west bannister min x');
+  expectCloseTo(westBannister.bounds.maxX, 9.3, 0.05, 'west bannister max x');
   expectCloseTo(
     westBannister.bounds.minZ,
     -24.68,
@@ -1051,7 +1050,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     );
   }
 
-  const leftDescentLaneX = stairCenterX - PLAYER_RADIUS;
+  const leftDescentLaneX = stairCenterX - stairHalfWidth + PLAYER_RADIUS + 0.05;
   for (const descentOffset of [0.1, 0.45, 0.85]) {
     for (const x of [stairCenterX, leftDescentLaneX]) {
       const descentCorridorSample = {
@@ -1220,7 +1219,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     z: upperLandingRoom.bounds.maxZ,
     floorId: 'upper' as const,
   };
-  const westSideStairEntry = { x: 10.59, z: -23.72, floorId: 'upper' as const };
+  const westSideStairEntry = { x: 9.3, z: -23.72, floorId: 'upper' as const };
   const northBackStairEntry = {
     x: 12.7,
     z: -18.25,
@@ -1358,7 +1357,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   );
   const runtimeWestEntry = await stepRuntimeIntoUpperStairGuard(
     page,
-    { x: 9.62, z: -24.68 },
+    { x: 8.1, z: -24.68 },
     { dx: 0.12, dz: 0 }
   );
   expect(runtimeWestEntry.movedX).toBe(false);

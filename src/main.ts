@@ -1990,9 +1990,14 @@ function initializeImmersiveScene(
 
     const upperStairBannisterThickness =
       STAIRCASE_CONFIG.landing.guard.thickness;
-    const upperStairWestBannisterCenterX =
+    const upperStairWestBannisterMinX = upperStairwellOpening.minX;
+    // Keep a full player-radius clearance between the side guard and the
+    // explicit descent lane; collision checks expand colliders by that radius.
+    const upperStairWestBannisterMaxX =
+      stairNavigationZones.explicitDescentCorridor.minX - PLAYER_RADIUS - 0.01;
+    const upperStairNorthBannisterMinX =
       stairNavigationZones.explicitDescentCorridor.minX +
-      upperStairBannisterThickness * 2;
+      upperStairBannisterThickness * 1.5;
     const upperStairNorthBannisterCenterZ =
       upperLandingDoorwayClearanceZ - WALL_THICKNESS;
     const upperStairWestBannisterSouthZ =
@@ -2057,10 +2062,8 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairWestBannisterGuard',
         bounds: {
-          minX:
-            upperStairWestBannisterCenterX - upperStairBannisterThickness / 2,
-          maxX:
-            upperStairWestBannisterCenterX + upperStairBannisterThickness / 2,
+          minX: upperStairWestBannisterMinX,
+          maxX: upperStairWestBannisterMaxX,
           minZ: Math.min(
             upperStairNorthBannisterCenterZ,
             upperStairWestBannisterSouthZ
@@ -2074,8 +2077,7 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairNorthBannisterGuard',
         bounds: {
-          minX:
-            upperStairWestBannisterCenterX - upperStairBannisterThickness / 2,
+          minX: upperStairNorthBannisterMinX,
           maxX: upperStairNorthBannisterMaxX,
           minZ:
             upperStairNorthBannisterCenterZ - upperStairBannisterThickness / 2,
