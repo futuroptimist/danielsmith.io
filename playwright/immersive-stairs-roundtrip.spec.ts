@@ -576,9 +576,9 @@ test('upper landing debug colliders exclude removed landing artifacts', async ({
 
   await walkStairCenterlineToUpperLanding(page);
   const debugColliderNames = await getDebugColliderNames(page);
-  expect(debugColliderNames).not.toEqual(
-    expect.arrayContaining(removedColliderNames)
-  );
+  for (const removedColliderName of removedColliderNames) {
+    expect(debugColliderNames).not.toContain(removedColliderName);
+  }
 
   const landingSamples = [
     { x: 12.99, z: -26.84, floorId: 'upper' as const },
@@ -594,9 +594,9 @@ test('upper landing debug colliders exclude removed landing artifacts', async ({
       page,
       landingSample
     );
-    expect(blockingColliderNames).not.toEqual(
-      expect.arrayContaining(removedColliderNames)
-    );
+    for (const removedColliderName of removedColliderNames) {
+      expect(blockingColliderNames).not.toContain(removedColliderName);
+    }
     expect(blockingColliderNames).toEqual([]);
   }
 });
