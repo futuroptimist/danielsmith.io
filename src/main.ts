@@ -1928,10 +1928,6 @@ function initializeImmersiveScene(
   if (upperLandingRoom && upperStairwellOpening) {
     const upperStairVoidMinZ = upperStairwellOpening.minZ;
     const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
-    const upperStairWestEgressMinZ = Math.min(
-      stairLandingMinZ + stairwellMarginZ,
-      stairLandingMaxZ
-    );
     const upperLandingDoorwayClearanceZ =
       upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
     const hiddenStairTopGapBlockerNearZ =
@@ -1941,13 +1937,6 @@ function initializeImmersiveScene(
     const hiddenStairTopGapBlockerFarZ =
       stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
-    const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
-    const hiddenStairDeepVoidBlockerMinZ =
-      hiddenStairWestVoidGapBlockerMinZ -
-      stairLayout.directionMultiplier * PLAYER_RADIUS;
-    const hiddenStairDeepVoidBlockerMaxZ =
-      hiddenStairTopGapBlockerNearZ +
-      stairLayout.directionMultiplier * PLAYER_RADIUS * 2;
     const hiddenStairBlockerStartZ =
       stairTopZ -
       stairLayout.directionMultiplier *
@@ -2030,21 +2019,6 @@ function initializeImmersiveScene(
           maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
           minZ: upperStairLandingEntryMaxZ,
           maxZ: upperStairVoidMaxZ,
-        },
-      },
-      {
-        name: 'UpperStairDeepVoidBlocker',
-        bounds: {
-          minX: upperStairWestEgressBlockerMinX,
-          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-          minZ: Math.min(
-            hiddenStairDeepVoidBlockerMinZ,
-            hiddenStairDeepVoidBlockerMaxZ
-          ),
-          maxZ: Math.max(
-            hiddenStairDeepVoidBlockerMinZ,
-            hiddenStairDeepVoidBlockerMaxZ
-          ),
         },
       },
       ...upperStairTopGapBlockers,
