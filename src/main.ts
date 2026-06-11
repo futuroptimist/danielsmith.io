@@ -1947,9 +1947,12 @@ function initializeImmersiveScene(
     );
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
-    // run so normal loft space beyond the landing remains occupiable. The center
-    // blockers reject forced upper-floor placement over the hidden stair-top gap
-    // and hidden run while preserving the widened west egress,
+    // run so normal loft space beyond the landing remains occupiable.
+    // UpperStairDeepVoidBlocker is intentionally absent: it covered the visible
+    // physical StaircaseLanding slab, while the remaining top-gap/hidden-run/void
+    // blockers still guard the true hidden stair run and no-floor void edges.
+    // The center blockers reject forced upper-floor placement over the hidden
+    // stair-top gap and hidden run while preserving the widened west egress,
     // narrow stair-top handoff, a west-side bypass lane around the void, and the
     // north doorway's padded passage into the loft. The top-gap west lip stays
     // intentionally narrow so its collision edge protects the hidden center gap
