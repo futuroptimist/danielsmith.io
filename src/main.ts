@@ -1945,11 +1945,10 @@ function initializeImmersiveScene(
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable.
     // UpperStairDeepVoidBlocker is intentionally absent: it covered the visible
-    // physical StaircaseLanding slab, while the remaining top-gap, bannister,
-    // and void blockers still guard the true hidden run and no-floor void edges.
-    // The remaining top-gap blocker rejects forced upper-floor placement over
-    // the hidden stair-top gap. The hidden run itself is protected by two narrow
-    // bannister guards so the centerline remains open for legitimate descent.
+    // physical StaircaseLanding slab, while the remaining top-gap, hidden-run,
+    // bannister, and void blockers still guard the true no-floor cutout edges.
+    // The hidden-run blocker starts one player radius beyond the explicit
+    // descent handoff band so legitimate upper-floor descent remains open.
     const upperStairLandingEntryCorridor = {
       // Keep the upper landing mouth open far enough for a real westward
       // egress step after handoff; side guards still seal hidden void edges.
@@ -1992,14 +1991,20 @@ function initializeImmersiveScene(
     const upperStairBannisterThickness =
       STAIRCASE_CONFIG.landing.guard.thickness;
     const upperStairWestBannisterCenterX =
-      stairNavigationZones.explicitDescentCorridor.minX +
-      upperStairBannisterThickness * 2;
+      upperStairwellOpening.minX + upperStairBannisterThickness / 2;
     const upperStairNorthBannisterCenterZ =
       upperLandingDoorwayClearanceZ - WALL_THICKNESS;
     const upperStairWestBannisterSouthZ =
       hiddenStairBlockerStartZ + upperStairBannisterThickness;
     const upperStairNorthBannisterMaxX =
       upperStairwellOpening.maxX - upperStairBannisterThickness;
+    const upperStairDescentHandoffFarZ =
+      stairTopZ -
+      stairLayout.directionMultiplier *
+        (stairTransitionMargin + stairLandingTriggerMargin);
+    const upperStairHiddenRunGuardNearZ =
+      upperStairDescentHandoffFarZ -
+      stairLayout.directionMultiplier * PLAYER_RADIUS;
 
     [
       {
@@ -2030,6 +2035,21 @@ function initializeImmersiveScene(
         },
       },
       ...upperStairTopGapBlockers,
+      {
+        name: 'UpperStairHiddenRunVoidGuard',
+        bounds: {
+          minX: upperStairwellOpening.minX,
+          maxX: upperStairwellOpening.maxX,
+          minZ: Math.min(
+            upperStairHiddenRunGuardNearZ,
+            upperLandingDoorwayClearanceZ
+          ),
+          maxZ: Math.max(
+            upperStairHiddenRunGuardNearZ,
+            upperLandingDoorwayClearanceZ
+          ),
+        },
+      },
       {
         name: 'UpperStairWestBannisterGuard',
         bounds: {
