@@ -14,6 +14,11 @@ const GROUND_POI_IDS = [
   'dspace-backyard-rocket',
 ];
 
+const REMOVED_UPPER_LANDING_COLLIDER_NAMES = [
+  'UpperStairTopGapBlockerWest',
+  'UpperStairEastLandingMouthVoidGuard',
+];
+
 type FloorId = 'ground' | 'upper';
 
 type StairTransitionZone =
@@ -187,6 +192,16 @@ async function canOccupyPosition(
     }
     return world.canOccupyPosition(next);
   }, target);
+}
+
+async function getDebugColliderNames(page: Page) {
+  return page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliders().map((collider) => collider.name);
+  });
 }
 
 async function getBlockingColliderNames(
@@ -596,14 +611,14 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.1 });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
-  const debugColliders = await page.evaluate(() => {
+  await page.evaluate(() => {
     const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
     if (!debugApi) {
       throw new Error('Debug colliders API unavailable');
     }
     debugApi.setEnabled(true);
-    return debugApi.getColliders().map((collider) => collider.name);
   });
+  const debugColliders = await getDebugColliderNames(page);
   expect(debugColliders).toContain('GroundStairEastBoundary');
   expect(debugColliders).toContain('GroundStairLowerCornerGuard');
   expect(debugColliders).not.toContain('GroundStairEastRunSeal');
@@ -632,6 +647,26 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   // Walk the real axis-by-axis movement path from the lower entrance onto the landing.
   await walkStairCenterlineToUpperLanding(page);
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  expect(await getDebugColliderNames(page)).not.toEqual(
+    expect.arrayContaining(REMOVED_UPPER_LANDING_COLLIDER_NAMES)
+  );
+
+  const reportedLandingSamples = [
+    { x: 12.99, z: -26.84, floorId: 'upper' as const },
+    { x: 12.74, z: -26.84, floorId: 'upper' as const },
+    { x: 13.24, z: -26.84, floorId: 'upper' as const },
+    { x: 12.99, z: -26.64, floorId: 'upper' as const },
+    { x: 12.99, z: -27.04, floorId: 'upper' as const },
+  ];
+  for (const sample of reportedLandingSamples) {
+    expect(await canOccupyPosition(page, sample)).toBe(true);
+    const blockers = await getBlockingColliderNames(page, sample);
+    expect(blockers).not.toEqual(
+      expect.arrayContaining(REMOVED_UPPER_LANDING_COLLIDER_NAMES)
+    );
+    expect(blockers).toEqual([]);
+  }
 
   for (const landingOffset of [0.05, 0.4, 0.8]) {
     const landingHandoffSample = {
@@ -827,11 +862,6 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     floorId: 'upper' as const,
   };
   const hiddenStairVoidGap = [
-    {
-      x: stairCenterX - PLAYER_RADIUS * 0.5,
-      z: stairTopZ + stairDirection * 0.95,
-      floorId: 'upper' as const,
-    },
     { x: stairCenterX, z: -28.8, floorId: 'upper' as const },
     {
       x: stairCenterX + PLAYER_RADIUS * 0.5,
@@ -864,7 +894,10 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(await canOccupyPosition(page, normalLoftEastNudge)).toBe(true);
   expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
   expect(await canOccupyPosition(page, westVoidBypass)).toBe(true);
-  expect(await canOccupyPosition(page, westHiddenStairVoidGap)).toBe(false);
+  expect(await canOccupyPosition(page, westHiddenStairVoidGap)).toBe(true);
+  expect(await getBlockingColliderNames(page, westHiddenStairVoidGap)).toEqual(
+    []
+  );
   expect(await canOccupyPosition(page, deeperWestHiddenStairVoidGap)).toBe(
     false
   );
