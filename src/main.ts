@@ -1928,10 +1928,6 @@ function initializeImmersiveScene(
   if (upperLandingRoom && upperStairwellOpening) {
     const upperStairVoidMinZ = upperStairwellOpening.minZ;
     const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
-    const upperStairWestEgressMinZ = Math.min(
-      stairLandingMinZ + stairwellMarginZ,
-      stairLandingMaxZ
-    );
     const upperLandingDoorwayClearanceZ =
       upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
     const hiddenStairTopGapBlockerNearZ =
@@ -1941,13 +1937,6 @@ function initializeImmersiveScene(
     const hiddenStairTopGapBlockerFarZ =
       stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS;
     const hiddenStairTopGapBlockerMinX = stairCenterX - PLAYER_RADIUS;
-    const hiddenStairWestVoidGapBlockerMinZ = upperStairWestEgressMinZ;
-    const hiddenStairDeepVoidBlockerMinZ =
-      hiddenStairWestVoidGapBlockerMinZ -
-      stairLayout.directionMultiplier * PLAYER_RADIUS;
-    const hiddenStairDeepVoidBlockerMaxZ =
-      hiddenStairTopGapBlockerNearZ +
-      stairLayout.directionMultiplier * PLAYER_RADIUS * 2;
     const hiddenStairBlockerStartZ =
       stairTopZ -
       stairLayout.directionMultiplier *
@@ -1959,15 +1948,15 @@ function initializeImmersiveScene(
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable. The center
-    // blockers reject forced upper-floor placement over the hidden stair-top gap
-    // and the deeper removed stair run while preserving the widened west egress,
-    // narrow stair-top handoff, a west-side bypass lane around the void, and the
-    // north doorway's padded passage into the loft. The top-gap west lip stays
-    // intentionally narrow so its collision edge protects the hidden center gap
-    // without filling the west egress lane around the stairwell.
+    // blocker rejects forced upper-floor placement over the hidden stair run while
+    // preserving the widened west egress, narrow stair-top handoff, a west-side
+    // bypass lane around the void, and the north doorway's padded passage into
+    // the loft. The top-gap west lip stays intentionally narrow so its collision
+    // edge protects the hidden center gap without filling the west egress lane
+    // around the stairwell.
     const upperStairLandingEntryCorridor = {
       // Keep the upper landing mouth open far enough for a real westward
-      // egress step after handoff; deeper blockers still seal hidden voids.
+      // egress step after handoff.
       minX: upperStairwellOpening.minX,
       // Size the east edge from the real upper-floor descent opening and add
       // one collision radius because collider checks expand the blocker edge.
@@ -2030,21 +2019,6 @@ function initializeImmersiveScene(
           maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
           minZ: upperStairLandingEntryMaxZ,
           maxZ: upperStairVoidMaxZ,
-        },
-      },
-      {
-        name: 'UpperStairDeepVoidBlocker',
-        bounds: {
-          minX: upperStairWestEgressBlockerMinX,
-          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-          minZ: Math.min(
-            hiddenStairDeepVoidBlockerMinZ,
-            hiddenStairDeepVoidBlockerMaxZ
-          ),
-          maxZ: Math.max(
-            hiddenStairDeepVoidBlockerMinZ,
-            hiddenStairDeepVoidBlockerMaxZ
-          ),
         },
       },
       ...upperStairTopGapBlockers,

@@ -570,6 +570,7 @@ test('upper landing debug colliders exclude removed landing artifacts', async ({
   await waitForImmersiveReady(page);
 
   const removedColliderNames = [
+    'UpperStairDeepVoidBlocker',
     'UpperStairTopGapBlockerWest',
     'UpperStairEastLandingMouthVoidGuard',
   ];
@@ -586,6 +587,9 @@ test('upper landing debug colliders exclude removed landing artifacts', async ({
     { x: 13.14, z: -26.84, floorId: 'upper' as const },
     { x: 12.99, z: -26.72, floorId: 'upper' as const },
     { x: 12.99, z: -26.96, floorId: 'upper' as const },
+    { x: 12.4, z: -29, floorId: 'upper' as const },
+    { x: 12.99, z: -29.05, floorId: 'upper' as const },
+    { x: 13.4, z: -29.05, floorId: 'upper' as const },
   ];
 
   for (const landingSample of landingSamples) {
@@ -706,29 +710,31 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     expect(await getBlockingColliderNames(page, egressSample)).toEqual([]);
   }
 
-  const hiddenVoidSampleZ = -29;
-  const nonEgressHiddenVoidSamples = [
+  const middleLandingArtifactSampleZ = -29;
+  const middleLandingArtifactSamples = [
     {
       x: stairCenterX - stairHalfWidth + PLAYER_RADIUS,
-      z: hiddenVoidSampleZ,
+      z: middleLandingArtifactSampleZ,
       floorId: 'upper' as const,
     },
     {
       x: stairCenterX,
-      z: hiddenVoidSampleZ,
+      z: middleLandingArtifactSampleZ,
       floorId: 'upper' as const,
     },
     {
-      x: stairCenterX + stairHalfWidth - PLAYER_RADIUS,
-      z: hiddenVoidSampleZ,
+      x: stairCenterX + stairHalfWidth - PLAYER_RADIUS * 2,
+      z: middleLandingArtifactSampleZ,
       floorId: 'upper' as const,
     },
   ];
-  for (const hiddenVoidSample of nonEgressHiddenVoidSamples) {
-    expect(await canOccupyPosition(page, hiddenVoidSample)).toBe(false);
-    expect(await getBlockingColliderNames(page, hiddenVoidSample)).not.toEqual(
-      []
+  for (const middleLandingArtifactSample of middleLandingArtifactSamples) {
+    expect(await canOccupyPosition(page, middleLandingArtifactSample)).toBe(
+      true
     );
+    expect(
+      await getBlockingColliderNames(page, middleLandingArtifactSample)
+    ).toEqual([]);
   }
 
   // Continue through the intended west upper-landing exit into an upstairs room
@@ -843,12 +849,12 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ + stairDirection * 0.95,
     floorId: 'upper' as const,
   };
-  const deeperWestHiddenStairVoidGap = {
-    x: stairCenterX - 1.9,
-    z: stairTopZ + stairDirection * 2,
+  const middleLandingSlab = {
+    x: stairCenterX,
+    z: stairTopZ + stairDirection * 3.1,
     floorId: 'upper' as const,
   };
-  const westHiddenStairVoidSliver = {
+  const westLandingSlab = {
     x: stairCenterX - 1.55,
     z: stairTopZ + stairDirection * 2.1,
     floorId: 'upper' as const,
@@ -875,7 +881,7 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
     z: stairTopZ + stairDirection * 0.95,
     floorId: 'upper' as const,
   };
-  const hiddenStairVoidGap = [
+  const middleLandingSlabSamples = [
     { x: stairCenterX, z: -28.8, floorId: 'upper' as const },
     {
       x: stairCenterX + PLAYER_RADIUS * 0.5,
@@ -912,17 +918,17 @@ test('upper landing opens west into upstairs rooms and blocks the hidden stair r
   expect(
     await getBlockingColliderNames(page, westLandingMouthClearance)
   ).toEqual([]);
-  expect(await canOccupyPosition(page, deeperWestHiddenStairVoidGap)).toBe(
-    false
-  );
-  expect(
-    await getBlockingColliderNames(page, deeperWestHiddenStairVoidGap)
-  ).toContain('UpperStairDeepVoidBlocker');
-  expect(await canOccupyPosition(page, westHiddenStairVoidSliver)).toBe(false);
+  expect(await canOccupyPosition(page, middleLandingSlab)).toBe(true);
+  expect(await getBlockingColliderNames(page, middleLandingSlab)).toEqual([]);
+  expect(await canOccupyPosition(page, westLandingSlab)).toBe(true);
+  expect(await getBlockingColliderNames(page, westLandingSlab)).toEqual([]);
   expect(await canOccupyPosition(page, westEdgeFloorClearance)).toBe(true);
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(false);
-  for (const hiddenStairVoidGapSample of hiddenStairVoidGap) {
-    expect(await canOccupyPosition(page, hiddenStairVoidGapSample)).toBe(false);
+  for (const middleLandingSlabSample of middleLandingSlabSamples) {
+    expect(await canOccupyPosition(page, middleLandingSlabSample)).toBe(true);
+    expect(
+      await getBlockingColliderNames(page, middleLandingSlabSample)
+    ).toEqual([]);
   }
   expect(await canOccupyPosition(page, hiddenStairRun)).toBe(false);
   expect(await getBlockingColliderNames(page, hiddenStairRun)).toContain(
