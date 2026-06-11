@@ -1941,22 +1941,14 @@ function initializeImmersiveScene(
       stairTopZ -
       stairLayout.directionMultiplier *
         (PLAYER_RADIUS + stairLandingTriggerMargin / 2);
-    const hiddenStairBlockerMaxZ = Math.min(
-      upperStairVoidMaxZ,
-      upperLandingDoorwayClearanceZ
-    );
     // Invisible upper-floor guard rails flank the intentional descent corridor.
     // They are scoped to the actual upper-floor cutout instead of the full ramp
     // run so normal loft space beyond the landing remains occupiable.
     // UpperStairDeepVoidBlocker is intentionally absent: it covered the visible
-    // physical StaircaseLanding slab, while the remaining top-gap/hidden-run/void
-    // blockers still guard the true hidden stair run and no-floor void edges.
-    // The center blockers reject forced upper-floor placement over the hidden
-    // stair-top gap and hidden run while preserving the widened west egress,
-    // narrow stair-top handoff, a west-side bypass lane around the void, and the
-    // north doorway's padded passage into the loft. The top-gap west lip stays
-    // intentionally narrow so its collision edge protects the hidden center gap
-    // without filling the west egress lane around the stairwell.
+    // physical StaircaseLanding slab, while the remaining top-gap, hidden-run,
+    // bannister, and void blockers still guard the true no-floor cutout edges.
+    // The hidden-run blocker starts one player radius beyond the explicit
+    // descent handoff band so legitimate upper-floor descent remains open.
     const upperStairLandingEntryCorridor = {
       // Keep the upper landing mouth open far enough for a real westward
       // egress step after handoff; side guards still seal hidden void edges.
@@ -1996,6 +1988,30 @@ function initializeImmersiveScene(
       corridor: upperStairLandingEntryCorridor,
     });
 
+    const upperStairBannisterThickness =
+      STAIRCASE_CONFIG.landing.guard.thickness;
+    const upperStairWestBannisterMinX = upperStairwellOpening.minX;
+    // Keep a full player-radius clearance between the side guard and the
+    // explicit descent lane; collision checks expand colliders by that radius.
+    const upperStairWestBannisterMaxX =
+      stairNavigationZones.explicitDescentCorridor.minX - PLAYER_RADIUS - 0.01;
+    const upperStairNorthBannisterMinX =
+      stairNavigationZones.explicitDescentCorridor.minX +
+      upperStairBannisterThickness * 1.5;
+    const upperStairNorthBannisterCenterZ =
+      upperLandingDoorwayClearanceZ - WALL_THICKNESS;
+    const upperStairWestBannisterSouthZ =
+      hiddenStairBlockerStartZ + upperStairBannisterThickness;
+    const upperStairNorthBannisterMaxX =
+      upperStairwellOpening.maxX - upperStairBannisterThickness;
+    const upperStairDescentHandoffFarZ =
+      stairTopZ -
+      stairLayout.directionMultiplier *
+        (stairTransitionMargin + stairLandingTriggerMargin);
+    const upperStairHiddenRunGuardNearZ =
+      upperStairDescentHandoffFarZ -
+      stairLayout.directionMultiplier * PLAYER_RADIUS;
+
     [
       {
         name: 'UpperStairWestUpperVoidGuard',
@@ -2026,12 +2042,47 @@ function initializeImmersiveScene(
       },
       ...upperStairTopGapBlockers,
       {
-        name: 'UpperStairHiddenRunBlocker',
+        name: 'UpperStairHiddenRunVoidGuard',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-          minZ: Math.min(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
-          maxZ: Math.max(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
+          minX: upperStairwellOpening.minX,
+          maxX: upperStairwellOpening.maxX,
+          minZ: Math.min(
+            upperStairHiddenRunGuardNearZ,
+            upperLandingDoorwayClearanceZ
+          ),
+          maxZ: Math.max(
+            upperStairHiddenRunGuardNearZ,
+            upperStairNorthBannisterCenterZ -
+              upperStairBannisterThickness / 2 -
+              PLAYER_RADIUS -
+              0.01
+          ),
+        },
+      },
+      {
+        name: 'UpperStairWestBannisterGuard',
+        bounds: {
+          minX: upperStairWestBannisterMinX,
+          maxX: upperStairWestBannisterMaxX,
+          minZ: Math.min(
+            upperStairNorthBannisterCenterZ,
+            upperStairWestBannisterSouthZ
+          ),
+          maxZ: Math.max(
+            upperStairNorthBannisterCenterZ,
+            upperStairWestBannisterSouthZ
+          ),
+        },
+      },
+      {
+        name: 'UpperStairNorthBannisterGuard',
+        bounds: {
+          minX: upperStairNorthBannisterMinX,
+          maxX: upperStairNorthBannisterMaxX,
+          minZ:
+            upperStairNorthBannisterCenterZ - upperStairBannisterThickness / 2,
+          maxZ:
+            upperStairNorthBannisterCenterZ + upperStairBannisterThickness / 2,
         },
       },
     ].forEach(({ name, bounds }) => pushNamedUpperFloorCollider(name, bounds));
