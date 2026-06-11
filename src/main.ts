@@ -1981,17 +1981,6 @@ function initializeImmersiveScene(
       hiddenStairTopGapBlockerNearZ,
       hiddenStairTopGapBlockerFarZ
     );
-    const hiddenStairTopGapSampleZ =
-      stairTopZ + stairLayout.directionMultiplier * PLAYER_RADIUS * 1.27;
-    const hiddenStairTopGapSampleBlocker = {
-      name: 'UpperStairTopGapBlockerWest',
-      bounds: {
-        minX: stairCenterX - PLAYER_RADIUS,
-        maxX: stairCenterX - PLAYER_RADIUS,
-        minZ: hiddenStairTopGapSampleZ - 0.02,
-        maxZ: hiddenStairTopGapSampleZ + 0.02,
-      },
-    };
     const upperStairLandingEntryMinZ = Math.max(
       upperStairVoidMinZ,
       hiddenStairTopGapBlockerMinZ - PLAYER_RADIUS
@@ -2035,16 +2024,6 @@ function initializeImmersiveScene(
         },
       },
       {
-        name: 'UpperStairEastLandingMouthVoidGuard',
-        bounds: {
-          minX:
-            stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS,
-          maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-          minZ: upperStairLandingEntryMinZ,
-          maxZ: upperStairLandingEntryMaxZ,
-        },
-      },
-      {
         name: 'UpperStairEastUpperVoidGuard',
         bounds: {
           minX: stairNavigationZones.explicitDescentCorridor.maxX,
@@ -2068,7 +2047,6 @@ function initializeImmersiveScene(
           ),
         },
       },
-      hiddenStairTopGapSampleBlocker,
       ...upperStairTopGapBlockers,
       {
         name: 'UpperStairHiddenRunBlocker',
