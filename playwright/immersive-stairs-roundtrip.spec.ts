@@ -100,6 +100,18 @@ type DebugColliderApi = {
   }): DebugColliderMetadata[];
 };
 
+function expectCloseTo(
+  actual: number,
+  expected: number,
+  tolerance: number,
+  label: string
+) {
+  expect(
+    Math.abs(actual - expected),
+    `${label}: expected ${actual} to be within ${tolerance} of ${expected}`
+  ).toBeLessThanOrEqual(tolerance);
+}
+
 type DebugCoordinatesApi = {
   getState(): {
     enabled: boolean;
@@ -564,6 +576,110 @@ async function walkUpperDescentLipBand(page: Page) {
   );
 }
 
+async function walkRuntimeUpperLandingMouthDescent(page: Page) {
+  const { stairCenterX, stairTopZ, stairDirection } =
+    await getStairMetrics(page);
+
+  return page.evaluate(
+    ({
+      stairCenterX: nextStairCenterX,
+      stairTopZ: nextStairTopZ,
+      stairDirection: nextDirection,
+    }) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+
+      const forbiddenBlockers = [
+        'UpperStairHiddenRunBlocker',
+        'UpperStairWestBannisterGuard',
+        'UpperStairNorthBannisterGuard',
+      ];
+      const stepZ = -nextDirection * 0.06;
+      const samples: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> = [];
+
+      for (let index = 0; index < 180; index += 1) {
+        const before = world.getPlayerPosition();
+        if (world.getActiveFloor() === 'ground') {
+          break;
+        }
+        if (Math.abs(before.x - nextStairCenterX) > 0.001) {
+          throw new Error(`Descent did not start on centerline: x=${before.x}`);
+        }
+        if (
+          nextDirection === 1
+            ? before.z < nextStairTopZ - 1
+            : before.z > nextStairTopZ + 1
+        ) {
+          throw new Error(
+            `Still upstairs after leaving handoff band at z=${before.z}`
+          );
+        }
+
+        const result = world.stepPlayerForTest({ dx: 0, dz: stepZ });
+        samples.push(result);
+        const blockedBy = result.blockedBy ?? [];
+        const forbiddenHit = blockedBy.find((name) =>
+          forbiddenBlockers.includes(name)
+        );
+        if (forbiddenHit) {
+          throw new Error(`Runtime descent blocked by ${blockedBy.join(', ')}`);
+        }
+        if (!result.movedZ) {
+          throw new Error(
+            `Runtime descent step rejected at z=${before.z.toFixed(2)} by ${blockedBy.join(', ')}`
+          );
+        }
+        if (Math.abs(result.position.x - nextStairCenterX) > 0.001) {
+          throw new Error(
+            `Runtime descent drifted off centerline to x=${result.position.x}`
+          );
+        }
+      }
+
+      return {
+        samples,
+        finalState: {
+          activeFloor: world.getActiveFloor(),
+          position: world.getPlayerPosition(),
+        },
+      };
+    },
+    { stairCenterX, stairTopZ, stairDirection }
+  );
+}
+
+async function stepRuntimeIntoUpperStairGuard(
+  page: Page,
+  start: { x: number; z: number },
+  step: { dx: number; dz: number }
+) {
+  await movePlayerTo(page, { ...start, floorId: 'upper' });
+  return page.evaluate((nextStep) => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+
+    let lastResult: ReturnType<TestWorldApi['stepPlayerForTest']> | null = null;
+    for (let index = 0; index < 24; index += 1) {
+      const result = world.stepPlayerForTest(nextStep);
+      lastResult = result;
+      const blockedAxis =
+        (nextStep.dx !== 0 && !result.movedX) ||
+        (nextStep.dz !== 0 && !result.movedZ);
+      if (blockedAxis) {
+        return result;
+      }
+    }
+
+    throw new Error(
+      `Runtime stairwell entry was not blocked; last result=${JSON.stringify(lastResult)}`
+    );
+  }, step);
+}
+
 async function getWorldState(page: Page) {
   return page.evaluate(() => {
     const world = (window as PortfolioWindow).portfolio?.world;
@@ -691,18 +807,41 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     (westBannister.bounds.minX + westBannister.bounds.maxX) / 2;
   const northBannisterCenterZ =
     (northBannister.bounds.minZ + northBannister.bounds.maxZ) / 2;
-  expect(westBannisterCenterX).toBeGreaterThan(8.8);
-  expect(westBannisterCenterX).toBeLessThan(9.3);
-  expect(westBannister.bounds.minZ).toBeLessThan(-24.4);
-  expect(westBannister.bounds.maxZ).toBeGreaterThan(-18.5);
-  expect(northBannisterCenterZ).toBeGreaterThan(-18.5);
-  expect(northBannisterCenterZ).toBeLessThan(-18);
-  expect(northBannister.bounds.minX).toBeLessThan(9.3);
-  expect(northBannister.bounds.maxX).toBeGreaterThan(15.3);
+  expectCloseTo(westBannisterCenterX, 10.59, 0.05, 'west bannister center x');
+  expectCloseTo(
+    westBannister.bounds.minZ,
+    -24.68,
+    0.08,
+    'west bannister min z'
+  );
+  expectCloseTo(
+    westBannister.bounds.maxZ,
+    -18.25,
+    0.08,
+    'west bannister max z'
+  );
+  expectCloseTo(
+    northBannisterCenterZ,
+    -18.25,
+    0.05,
+    'north bannister center z'
+  );
+  expectCloseTo(
+    northBannister.bounds.minX,
+    10.4,
+    0.08,
+    'north bannister min x'
+  );
+  expectCloseTo(
+    northBannister.bounds.maxX,
+    15.58,
+    0.08,
+    'north bannister max x'
+  );
   expect(hiddenRunGuard.bounds.minZ).toBeGreaterThan(-24);
   expect(hiddenRunGuard.bounds.minZ).toBeLessThan(-23.2);
-  expect(hiddenRunGuard.bounds.maxZ).toBeGreaterThan(-18.1);
-  expect(hiddenRunGuard.bounds.maxZ).toBeLessThan(-17.4);
+  expect(hiddenRunGuard.bounds.maxZ).toBeGreaterThan(-19.3);
+  expect(hiddenRunGuard.bounds.maxZ).toBeLessThan(-19.0);
 
   const stairMetrics = await getStairMetrics(page);
   const visibleMiddleLandingArtifactSamples: NamedPosition[] = [
@@ -802,6 +941,22 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }
 });
 
+test('runtime descent from upper landing mouth stays clear of bannister guards', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const html = page.locator('html');
+  await walkStairCenterlineToUpperLanding(page);
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
+
+  const descent = await walkRuntimeUpperLandingMouthDescent(page);
+  expect(descent.samples.length).toBeGreaterThan(0);
+  expect(descent.finalState.activeFloor).toBe('ground');
+  await expect(html).toHaveAttribute('data-active-floor', 'ground');
+});
+
 test('ground stair east boundary blocks squeeze corners but preserves the stair path', async ({
   page,
 }) => {
@@ -896,7 +1051,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     );
   }
 
-  const leftDescentLaneX = stairCenterX - stairHalfWidth + PLAYER_RADIUS + 0.1;
+  const leftDescentLaneX = stairCenterX - PLAYER_RADIUS;
   for (const descentOffset of [0.1, 0.45, 0.85]) {
     for (const x of [stairCenterX, leftDescentLaneX]) {
       const descentCorridorSample = {
@@ -1199,14 +1354,30 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   }
   expect(await canOccupyPosition(page, westSideStairEntry)).toBe(false);
   expect(await getBlockingColliderNames(page, westSideStairEntry)).toContain(
-    'UpperStairHiddenRunVoidGuard'
+    'UpperStairWestBannisterGuard'
   );
+  const runtimeWestEntry = await stepRuntimeIntoUpperStairGuard(
+    page,
+    { x: 9.62, z: -24.68 },
+    { dx: 0.12, dz: 0 }
+  );
+  expect(runtimeWestEntry.movedX).toBe(false);
+  expect(runtimeWestEntry.blockedBy).toContain('UpperStairWestBannisterGuard');
   await expect(async () =>
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
 
   expect(await canOccupyPosition(page, northBackStairEntry)).toBe(false);
   expect(await getBlockingColliderNames(page, northBackStairEntry)).toContain(
+    'UpperStairNorthBannisterGuard'
+  );
+  const runtimeNorthEntry = await stepRuntimeIntoUpperStairGuard(
+    page,
+    { x: 10.2, z: -16 },
+    { dx: 0, dz: -0.18 }
+  );
+  expect(runtimeNorthEntry.movedZ).toBe(false);
+  expect(runtimeNorthEntry.blockedBy).toContain(
     'UpperStairNorthBannisterGuard'
   );
   await expect(async () =>

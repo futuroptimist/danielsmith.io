@@ -1991,7 +1991,8 @@ function initializeImmersiveScene(
     const upperStairBannisterThickness =
       STAIRCASE_CONFIG.landing.guard.thickness;
     const upperStairWestBannisterCenterX =
-      upperStairwellOpening.minX + upperStairBannisterThickness / 2;
+      stairNavigationZones.explicitDescentCorridor.minX +
+      upperStairBannisterThickness * 2;
     const upperStairNorthBannisterCenterZ =
       upperLandingDoorwayClearanceZ - WALL_THICKNESS;
     const upperStairWestBannisterSouthZ =
@@ -2046,7 +2047,10 @@ function initializeImmersiveScene(
           ),
           maxZ: Math.max(
             upperStairHiddenRunGuardNearZ,
-            upperLandingDoorwayClearanceZ
+            upperStairNorthBannisterCenterZ -
+              upperStairBannisterThickness / 2 -
+              PLAYER_RADIUS -
+              0.01
           ),
         },
       },
@@ -2058,11 +2062,11 @@ function initializeImmersiveScene(
           maxX:
             upperStairWestBannisterCenterX + upperStairBannisterThickness / 2,
           minZ: Math.min(
-            upperStairNorthBannisterCenterZ - upperStairBannisterThickness / 2,
+            upperStairNorthBannisterCenterZ,
             upperStairWestBannisterSouthZ
           ),
           maxZ: Math.max(
-            upperStairNorthBannisterCenterZ - upperStairBannisterThickness / 2,
+            upperStairNorthBannisterCenterZ,
             upperStairWestBannisterSouthZ
           ),
         },
