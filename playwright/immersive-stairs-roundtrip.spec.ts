@@ -76,14 +76,28 @@ type TestWorldApi = {
   getFloorVisibilitySnapshot(): FloorVisibilitySnapshot;
 };
 
+type DebugColliderBounds = {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+};
+
+type DebugColliderMetadata = {
+  floor: FloorId | 'all';
+  category: string;
+  name: string;
+  bounds: DebugColliderBounds;
+};
+
 type DebugColliderApi = {
   setEnabled(enabled: boolean): void;
-  getColliders(): Array<{ name: string }>;
+  getColliders(): DebugColliderMetadata[];
   getBlockingCollidersAt(target: {
     x: number;
     z: number;
     floorId?: FloorId;
-  }): Array<{ name: string }>;
+  }): DebugColliderMetadata[];
 };
 
 type DebugCoordinatesApi = {
@@ -214,6 +228,32 @@ function expectSampleOnPhysicalStaircaseLanding(
   ).toBeLessThanOrEqual(landingMaxZ);
 }
 
+function expectSampleOutsidePhysicalStaircaseLanding(
+  sample: NamedPosition,
+  metrics: Awaited<ReturnType<typeof getStairMetrics>>
+) {
+  const landingMinX = metrics.stairCenterX - metrics.stairHalfWidth;
+  const landingMaxX = metrics.stairCenterX + metrics.stairHalfWidth;
+  const landingMinZ = Math.min(
+    metrics.stairLandingMinZ,
+    metrics.stairLandingMaxZ
+  );
+  const landingMaxZ = Math.max(
+    metrics.stairLandingMinZ,
+    metrics.stairLandingMaxZ
+  );
+  const isOnLandingSlab =
+    sample.target.x >= landingMinX &&
+    sample.target.x <= landingMaxX &&
+    sample.target.z >= landingMinZ &&
+    sample.target.z <= landingMaxZ;
+
+  expect(
+    isOnLandingSlab,
+    `${sample.name} should sit in the no-floor stairwell cutout, not on the visible StaircaseLanding slab`
+  ).toBe(false);
+}
+
 async function canOccupyPosition(
   page: Page,
   target: { x: number; z: number; floorId?: FloorId }
@@ -242,14 +282,14 @@ async function getBlockingColliderNames(
   }, target);
 }
 
-async function getDebugColliderNames(page: Page) {
+async function getDebugColliders(page: Page) {
   return page.evaluate(() => {
     const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
     if (!debugApi) {
       throw new Error('Debug colliders API unavailable');
     }
     debugApi.setEnabled(true);
-    return debugApi.getColliders().map((collider) => collider.name);
+    return debugApi.getColliders();
   });
 }
 
@@ -616,57 +656,74 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   ];
 
   await walkStairCenterlineToUpperLanding(page);
-  const debugColliderNames = await getDebugColliderNames(page);
+  const debugColliders = await getDebugColliders(page);
+  const debugColliderNames = debugColliders.map((collider) => collider.name);
   expect(debugColliderNames).not.toContain(colliderRemovedByThisPr);
   for (const previouslyRemovedCollider of previouslyRemovedArtifactColliders) {
     expect(debugColliderNames).not.toContain(previouslyRemovedCollider);
   }
 
   const stairMetrics = await getStairMetrics(page);
-  const physicalLandingSamples: NamedPosition[] = [
+  const visibleMiddleLandingArtifactSamples: NamedPosition[] = [
     {
-      name: 'near stair handoff center',
+      name: 'visible middle-landing artifact center',
       target: { x: 12.99, z: -26.84, floorId: 'upper' as const },
     },
     {
-      name: 'near stair handoff west edge',
+      name: 'visible middle-landing artifact west edge',
       target: { x: 12.84, z: -26.84, floorId: 'upper' as const },
     },
     {
-      name: 'near stair handoff east edge',
+      name: 'visible middle-landing artifact east edge',
       target: { x: 13.14, z: -26.84, floorId: 'upper' as const },
     },
     {
-      name: 'near stair handoff north edge',
+      name: 'visible middle-landing artifact north edge',
       target: { x: 12.99, z: -26.72, floorId: 'upper' as const },
     },
     {
-      name: 'near stair handoff south edge',
+      name: 'visible middle-landing artifact south edge',
       target: { x: 12.99, z: -26.96, floorId: 'upper' as const },
     },
+  ];
+  const physicalLandingSamplesAtFormerZ29: NamedPosition[] = [
     {
-      name: 'former UpperStairDeepVoidBlocker center',
+      name: 'former UpperStairDeepVoidBlocker z=-29 landing center',
       target: { x: 12.99, z: -29, floorId: 'upper' as const },
     },
     {
-      name: 'former UpperStairDeepVoidBlocker west sample',
+      name: 'former UpperStairDeepVoidBlocker z=-29 landing west sample',
       target: { x: 12.84, z: -29, floorId: 'upper' as const },
     },
     {
-      name: 'former UpperStairDeepVoidBlocker east sample',
+      name: 'former UpperStairDeepVoidBlocker z=-29 landing east sample',
       target: { x: 13.14, z: -29, floorId: 'upper' as const },
     },
+  ];
+  const noFloorHiddenCutoutSamples: Array<
+    NamedPosition & { expectedBlocker: string }
+  > = [
     {
-      name: 'former UpperStairDeepVoidBlocker north sample',
-      target: { x: 12.99, z: -28.82, floorId: 'upper' as const },
+      name: 'east no-floor cutout beside z=-29 landing sample',
+      target: { x: 15.75, z: -29, floorId: 'upper' as const },
+      expectedBlocker: 'UpperStairEastLowerVoidGuard',
     },
     {
-      name: 'former UpperStairDeepVoidBlocker south sample',
-      target: { x: 12.99, z: -29.18, floorId: 'upper' as const },
+      name: 'south no-floor cutout beyond StaircaseLanding slab',
+      target: { x: 12.99, z: -31.35, floorId: 'upper' as const },
+      expectedBlocker: 'UpperStairwellLandingGuard-2',
+    },
+    {
+      name: 'hidden stair run above upper landing lip',
+      target: { x: 12.7, z: -23.72, floorId: 'upper' as const },
+      expectedBlocker: 'UpperStairHiddenRunBlocker',
     },
   ];
 
-  for (const sample of physicalLandingSamples) {
+  for (const sample of [
+    ...visibleMiddleLandingArtifactSamples,
+    ...physicalLandingSamplesAtFormerZ29,
+  ]) {
     expectSampleOnPhysicalStaircaseLanding(sample, stairMetrics);
     expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
       true
@@ -679,6 +736,21 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       colliderRemovedByThisPr
     );
     expect(blockingColliderNames, sample.name).toEqual([]);
+  }
+
+  for (const sample of noFloorHiddenCutoutSamples) {
+    expectSampleOutsidePhysicalStaircaseLanding(sample, stairMetrics);
+    expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
+      false
+    );
+    const blockingColliderNames = await getBlockingColliderNames(
+      page,
+      sample.target
+    );
+    expect(blockingColliderNames, sample.name).toContain(
+      sample.expectedBlocker
+    );
+    expect(blockingColliderNames.length, sample.name).toBeGreaterThan(0);
   }
 });
 
