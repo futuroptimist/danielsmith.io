@@ -2026,12 +2026,29 @@ function initializeImmersiveScene(
       },
       ...upperStairTopGapBlockers,
       {
-        name: 'UpperStairHiddenRunBlocker',
+        name: 'UpperStairWestBannisterGuard',
         bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.minX,
-          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+          minX:
+            stairNavigationZones.explicitDescentCorridor.minX +
+            PLAYER_RADIUS * 0.75 -
+            stairGuardThickness / 2,
+          maxX:
+            stairNavigationZones.explicitDescentCorridor.minX +
+            PLAYER_RADIUS * 0.75 +
+            stairGuardThickness / 2,
           minZ: Math.min(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
           maxZ: Math.max(hiddenStairBlockerStartZ, hiddenStairBlockerMaxZ),
+        },
+      },
+      {
+        name: 'UpperStairNorthBannisterGuard',
+        bounds: {
+          minX:
+            stairNavigationZones.explicitDescentCorridor.minX +
+            PLAYER_RADIUS * 0.75,
+          maxX: stairCenterX + stairHalfWidth + stairGuardThickness / 2,
+          minZ: hiddenStairBlockerMaxZ - stairGuardThickness / 2,
+          maxZ: hiddenStairBlockerMaxZ + stairGuardThickness / 2,
         },
       },
     ].forEach(({ name, bounds }) => pushNamedUpperFloorCollider(name, bounds));
