@@ -209,7 +209,7 @@ const allocateNewColliderDebugIds = (
     seedCounts.set(seed, (seedCounts.get(seed) ?? 0) + 1);
   }
 
-  return metadataList.map((metadata) => {
+  const allocationItems = metadataList.map((metadata, index) => {
     const seed = getColliderDebugSeed(metadata);
     const seedOccurrence = seedCounts.get(seed) ?? 0;
     seedCounts.set(seed, seedOccurrence + 1);
@@ -218,10 +218,36 @@ const allocateNewColliderDebugIds = (
     // registration occurrence, so only exact duplicates receive this salt.
     const idSeed =
       seedOccurrence > 0 ? `${seed}|occurrence:${seedOccurrence}` : seed;
-    const id = createColliderDebugIdFromSeed(idSeed, usedIds);
-    usedIds.add(id);
-    return id;
+
+    return {
+      idSeed,
+      index,
+      primaryId: getColliderDebugPrimaryId(idSeed),
+    };
   });
+
+  // Allocate by stable candidate order so same-primary collisions do not
+  // depend on the order colliders arrived in a single registration batch.
+  allocationItems.sort((left, right) => {
+    const primaryComparison = left.primaryId.localeCompare(right.primaryId);
+    if (primaryComparison !== 0) {
+      return primaryComparison;
+    }
+    const seedComparison = left.idSeed.localeCompare(right.idSeed);
+    if (seedComparison !== 0) {
+      return seedComparison;
+    }
+    return left.index - right.index;
+  });
+
+  const ids = new Array<string>(metadataList.length);
+  for (const item of allocationItems) {
+    const id = createColliderDebugIdFromSeed(item.idSeed, usedIds);
+    usedIds.add(id);
+    ids[item.index] = id;
+  }
+
+  return ids;
 };
 
 const getLabelPaletteIndex = (id: string): number => {

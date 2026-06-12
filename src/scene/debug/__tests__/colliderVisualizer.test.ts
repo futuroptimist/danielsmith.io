@@ -318,6 +318,49 @@ describe('createColliderVisualizer', () => {
     expect(ids).not.toContain('BC930D');
   });
 
+  it('keeps same-primary collision IDs stable across registration order', () => {
+    const colliders = [
+      {
+        floor: 'ground' as const,
+        category: 'walls',
+        name: 'collision-1104',
+        bounds: collider,
+      },
+      {
+        floor: 'ground' as const,
+        category: 'walls',
+        name: 'collision-2488',
+        bounds: collider,
+      },
+    ];
+    const forwardVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const reversedVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+
+    expect(createColliderDebugId(colliders[0])).toBe(
+      createColliderDebugId(colliders[1])
+    );
+
+    forwardVisualizer.register(colliders);
+    reversedVisualizer.register([...colliders].reverse());
+
+    const idsByName = new Map(
+      forwardVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const reversedIdsByName = new Map(
+      reversedVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const ids = [...idsByName.values()];
+
+    expect(idsByName).toEqual(reversedIdsByName);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
+    expect(ids.every((id) => !id.includes('-'))).toBe(true);
+  });
+
   it('preserves exposed IDs when later registrations collide', () => {
     const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
     const firstCollider = {
