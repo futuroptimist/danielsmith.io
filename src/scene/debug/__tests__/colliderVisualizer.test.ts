@@ -36,16 +36,32 @@ describe('createColliderDebugId', () => {
     );
   });
 
-  it('produces short uppercase hexadecimal IDs', () => {
-    expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{4,6}$/);
+  it('produces stable uppercase hexadecimal IDs from collider metadata', () => {
+    expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{8}$/);
   });
 
-  it('handles collisions deterministically by extending the hexadecimal hash', () => {
+  it('does not change IDs when shorter prefixes are already used', () => {
+    const id = createColliderDebugId(metadata);
+
+    expect(
+      createColliderDebugId(
+        metadata,
+        new Set([
+          id.slice(0, 4),
+          id.slice(0, 5),
+          id.slice(0, 6),
+          id.slice(0, 7),
+        ])
+      )
+    ).toBe(id);
+  });
+
+  it('handles full-hash collisions deterministically by adding a suffix', () => {
     const firstId = createColliderDebugId(metadata);
     const collidingId = createColliderDebugId(metadata, new Set([firstId]));
 
-    expect(collidingId).toMatch(/^[0-9A-F]{5,8}$/);
-    expect(collidingId.startsWith(firstId)).toBe(true);
+    expect(collidingId).toMatch(/^[0-9A-F]{8}-[0-9A-Z]+$/);
+    expect(collidingId.startsWith(`${firstId}-`)).toBe(true);
     expect(createColliderDebugId(metadata, new Set([firstId]))).toBe(
       collidingId
     );

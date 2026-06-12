@@ -59,12 +59,14 @@ export interface ColliderVisualizer {
 const DEFAULT_HEIGHT = 0.08;
 const MIN_DIMENSION = 0.02;
 const DEFAULT_COLOR = 0x66e6ff;
-const DEBUG_ID_MIN_LENGTH = 4;
 const DEBUG_ID_MAX_LENGTH = 8;
 const DEBUG_ID_COLLISION_SUFFIX_BASE = 36;
 const DEBUG_ID_PRECISION = 2;
 const LABEL_CANVAS_WIDTH = 256;
 const LABEL_CANVAS_HEIGHT = 128;
+const LABEL_TEXT_MAX_WIDTH = LABEL_CANVAS_WIDTH - 48;
+const LABEL_FONT_MAX_SIZE = 54;
+const LABEL_FONT_MIN_SIZE = 28;
 const LABEL_SCALE_X = 1.15;
 const LABEL_SCALE_Y = 0.58;
 const LABEL_VERTICAL_GAP = 0.18;
@@ -124,20 +126,22 @@ const fnv1a = (input: string): number => {
 const getIdSuffix = (collisionIndex: number): string =>
   collisionIndex.toString(DEBUG_ID_COLLISION_SUFFIX_BASE).toUpperCase();
 
+const getColliderDebugHash = (
+  metadata: Omit<DebugColliderMetadata, 'id'>
+): string =>
+  fnv1a(getColliderDebugSeed(metadata))
+    .toString(16)
+    .toUpperCase()
+    .padStart(DEBUG_ID_MAX_LENGTH, '0')
+    .slice(0, DEBUG_ID_MAX_LENGTH);
+
 export function createColliderDebugId(
   metadata: Omit<DebugColliderMetadata, 'id'>,
   usedIds: ReadonlySet<string> = new Set()
 ): string {
-  const hash = fnv1a(getColliderDebugSeed(metadata))
-    .toString(16)
-    .toUpperCase()
-    .padStart(DEBUG_ID_MAX_LENGTH, '0');
-
-  for (const length of [DEBUG_ID_MIN_LENGTH, 5, 6, DEBUG_ID_MAX_LENGTH]) {
-    const candidate = hash.slice(0, length);
-    if (!usedIds.has(candidate)) {
-      return candidate;
-    }
+  const hash = getColliderDebugHash(metadata);
+  if (!usedIds.has(hash)) {
+    return hash;
   }
 
   let collisionIndex = 1;
@@ -222,8 +226,14 @@ const createLabelTexture = (
   context.fill();
   context.stroke();
 
-  context.font =
-    '700 54px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+  let fontSize = LABEL_FONT_MAX_SIZE;
+  do {
+    context.font = `700 ${fontSize}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    fontSize -= 2;
+  } while (
+    context.measureText(id).width > LABEL_TEXT_MAX_WIDTH &&
+    fontSize >= LABEL_FONT_MIN_SIZE
+  );
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.lineWidth = 9;
