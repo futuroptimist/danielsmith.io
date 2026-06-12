@@ -84,6 +84,7 @@ type DebugColliderBounds = {
 };
 
 type DebugColliderMetadata = {
+  id: string;
   floor: FloorId | 'all';
   category: string;
   name: string;
@@ -91,8 +92,17 @@ type DebugColliderMetadata = {
 };
 
 type DebugColliderApi = {
+  getState(): {
+    enabled: boolean;
+    visibleColliderCount: number;
+    totalColliderCount: number;
+    visibleLabelCount: number;
+    totalLabelCount: number;
+  };
   setEnabled(enabled: boolean): void;
   getColliders(): DebugColliderMetadata[];
+  getColliderById(id: string): DebugColliderMetadata | undefined;
+  findColliderById(id: string): DebugColliderMetadata | undefined;
   getBlockingCollidersAt(target: {
     x: number;
     z: number;
@@ -302,6 +312,17 @@ async function getDebugColliders(page: Page) {
     }
     debugApi.setEnabled(true);
     return debugApi.getColliders();
+  });
+}
+
+async function getDebugColliderState(page: Page) {
+  return page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+
+    return debugApi.getState();
   });
 }
 
@@ -757,6 +778,78 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
   });
 });
 
+test('debug collider API exposes unique IDs and label visibility state', async ({
+  page,
+}) => {
+  await waitForImmersiveReady(page);
+
+  const debugColliders = await getDebugColliders(page);
+  const debugColliderIds = debugColliders.map((collider) => collider.id);
+  expect(debugColliderIds.length).toBeGreaterThan(0);
+  expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
+  for (const id of debugColliderIds) {
+    expect(id).toMatch(/^[0-9A-F]{4,8}$/);
+  }
+
+  const lookup = await page.evaluate((id) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug collider API unavailable');
+    }
+    return debugApi.getColliderById(id);
+  }, debugColliderIds[0]);
+  expect(lookup?.id).toBe(debugColliderIds[0]);
+
+  const sampleCollider = debugColliders.find(
+    (collider) => collider.floor === 'ground'
+  );
+  expect(sampleCollider).toBeDefined();
+  if (!sampleCollider) {
+    throw new Error('Missing ground debug collider sample');
+  }
+  const blockers = await page.evaluate((collider) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug collider API unavailable');
+    }
+    return debugApi.getBlockingCollidersAt({
+      x: (collider.bounds.minX + collider.bounds.maxX) / 2,
+      z: (collider.bounds.minZ + collider.bounds.maxZ) / 2,
+      floorId: collider.floor === 'all' ? undefined : collider.floor,
+    });
+  }, sampleCollider);
+  expect(blockers.map((collider) => collider.id)).toContain(sampleCollider.id);
+  for (const blocker of blockers) {
+    expect(blocker.id).toMatch(/^[0-9A-F]{4,8}$/);
+  }
+
+  await page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug collider API unavailable');
+    }
+    debugApi.setEnabled(true);
+  });
+  const enabledState = await getDebugColliderState(page);
+  expect(enabledState.enabled).toBe(true);
+  expect(enabledState.visibleColliderCount).toBeGreaterThan(0);
+  expect(enabledState.visibleLabelCount).toBe(
+    enabledState.visibleColliderCount
+  );
+
+  await page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug collider API unavailable');
+    }
+    debugApi.setEnabled(false);
+  });
+  const disabledState = await getDebugColliderState(page);
+  expect(disabledState.enabled).toBe(false);
+  expect(disabledState.visibleColliderCount).toBe(0);
+  expect(disabledState.visibleLabelCount).toBe(0);
+});
+
 test('upper landing debug colliders exclude middle landing artifact', async ({
   page,
 }) => {
@@ -777,6 +870,11 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   await walkStairCenterlineToUpperLanding(page);
   const debugColliders = await getDebugColliders(page);
   const debugColliderNames = debugColliders.map((collider) => collider.name);
+  const debugColliderIds = debugColliders.map((collider) => collider.id);
+  expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
+  for (const id of debugColliderIds) {
+    expect(id).toMatch(/^[0-9A-F]{4,8}$/);
+  }
   for (const removedBroadBlocker of removedBroadStairBlockers) {
     expect(debugColliderNames).not.toContain(removedBroadBlocker);
   }
