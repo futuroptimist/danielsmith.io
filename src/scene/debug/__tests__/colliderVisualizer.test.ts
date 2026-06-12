@@ -339,6 +339,9 @@ describe('createColliderVisualizer', () => {
     const reversedVisualizer = createColliderVisualizer({
       activeFloorId: 'ground',
     });
+    const reverseSplitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
 
     expect(createColliderDebugId(colliders[0])).toBe(
       createColliderDebugId(colliders[1])
@@ -346,6 +349,8 @@ describe('createColliderVisualizer', () => {
 
     forwardVisualizer.register(colliders);
     reversedVisualizer.register([...colliders].reverse());
+    reverseSplitVisualizer.register([colliders[1]]);
+    reverseSplitVisualizer.register([colliders[0]]);
 
     const idsByName = new Map(
       forwardVisualizer.getColliders().map((next) => [next.name, next.id])
@@ -353,9 +358,13 @@ describe('createColliderVisualizer', () => {
     const reversedIdsByName = new Map(
       reversedVisualizer.getColliders().map((next) => [next.name, next.id])
     );
+    const reverseSplitIdsByName = new Map(
+      reverseSplitVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
     const ids = [...idsByName.values()];
 
     expect(idsByName).toEqual(reversedIdsByName);
+    expect(idsByName).toEqual(reverseSplitIdsByName);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
