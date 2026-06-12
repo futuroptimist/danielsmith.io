@@ -36,23 +36,42 @@ describe('createColliderDebugId', () => {
     );
   });
 
-  it('produces stable uppercase hexadecimal IDs from collider metadata', () => {
-    expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{4,6}$/);
+  it('produces stable six-character uppercase hexadecimal IDs from collider metadata', () => {
+    expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{6}$/);
+  });
+
+  it('ignores occupied four-character prefixes when the six-character ID is free', () => {
+    const firstId = createColliderDebugId(metadata);
+    const prefixOnlyIds = new Set([firstId.slice(0, 4), firstId.slice(0, 5)]);
+
+    expect(createColliderDebugId(metadata, prefixOnlyIds)).toBe(firstId);
   });
 
   it('handles collisions with deterministic short hexadecimal retry IDs', () => {
     const firstId = createColliderDebugId(metadata);
-    const collidingIds = new Set([
-      firstId,
-      `${firstId}0`.slice(0, 5),
-      `${firstId}00`.slice(0, 6),
-    ]);
-    const collidingId = createColliderDebugId(metadata, collidingIds);
+    const firstRetryId = createColliderDebugId(metadata, new Set([firstId]));
+    const secondRetryId = createColliderDebugId(
+      metadata,
+      new Set([firstId, firstRetryId])
+    );
+    const thirdRetryId = createColliderDebugId(
+      metadata,
+      new Set([firstId, firstRetryId, secondRetryId])
+    );
 
-    expect(collidingId).toMatch(/^[0-9A-F]{4,6}$/);
-    expect(collidingId).not.toContain('-');
-    expect(collidingIds.has(collidingId)).toBe(false);
-    expect(createColliderDebugId(metadata, collidingIds)).toBe(collidingId);
+    expect(firstRetryId).toMatch(/^[0-9A-F]{4}$/);
+    expect(secondRetryId).toMatch(/^[0-9A-F]{5}$/);
+    expect(secondRetryId.startsWith(firstRetryId)).toBe(true);
+    expect(thirdRetryId).toMatch(/^[0-9A-F]{6}$/);
+    expect(thirdRetryId.startsWith(secondRetryId)).toBe(true);
+    expect(
+      [firstRetryId, secondRetryId, thirdRetryId].every(
+        (id) => !id.includes('-')
+      )
+    ).toBe(true);
+    expect(createColliderDebugId(metadata, new Set([firstId]))).toBe(
+      firstRetryId
+    );
   });
 });
 
@@ -154,6 +173,41 @@ describe('createColliderVisualizer', () => {
     expect(mesh.raycast({} as never, [] as never)).toBeUndefined();
     expect(label.raycast({} as never, [] as never)).toBeUndefined();
     expect(material.depthTest).toBe(false);
+  });
+
+  it('keeps six-character IDs stable across four-character prefix collisions', () => {
+    const colliders = [
+      {
+        floor: 'ground' as const,
+        category: 'walls',
+        name: 'prefix-collider-142',
+        bounds: collider,
+      },
+      {
+        floor: 'ground' as const,
+        category: 'walls',
+        name: 'prefix-collider-182',
+        bounds: collider,
+      },
+    ];
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const reversedVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+
+    visualizer.register(colliders);
+    reversedVisualizer.register([...colliders].reverse());
+
+    const idsByName = new Map(
+      visualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const reversedIdsByName = new Map(
+      reversedVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+
+    expect(idsByName).toEqual(reversedIdsByName);
+    expect(idsByName.get('prefix-collider-142')).toBe('E8936E');
+    expect(idsByName.get('prefix-collider-182')).toBe('E893DC');
   });
 
   it('keeps duplicate registrations unique with short hex IDs', () => {

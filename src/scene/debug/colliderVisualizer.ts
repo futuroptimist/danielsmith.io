@@ -148,10 +148,7 @@ export function createColliderDebugId(
   usedIds: ReadonlySet<string> = new Set()
 ): string {
   const seed = getColliderDebugSeed(metadata);
-  const primaryCandidate = getColliderDebugHash(seed).slice(
-    0,
-    DEBUG_ID_MIN_LENGTH
-  );
+  const primaryCandidate = getColliderDebugHash(seed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
   }
@@ -324,6 +321,9 @@ export function createColliderVisualizer(options: {
         name: collider.name,
         bounds: cloneBounds(collider.bounds),
       };
+      // Exact duplicate metadata has no stable differentiator beyond
+      // deterministic registration occurrence, so usedIds only salts true
+      // six-character collisions and duplicates.
       const id = createColliderDebugId(metadataWithoutId, usedIds);
       usedIds.add(id);
 
