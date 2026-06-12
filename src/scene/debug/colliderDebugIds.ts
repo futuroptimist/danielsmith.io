@@ -14,7 +14,7 @@ const GENERATED_COLLIDER_ID_PREFIXES = {
   upper: '3',
 } as const;
 
-const DECLARED_NAMED_COLLIDER_IDS = {
+const DECLARED_RUNTIME_COLLIDER_IDS = {
   GroundStairEastBoundary: '4001',
   GroundStairLowerCornerGuard: '4002',
   UpperStairTopGapBlockerWest: '4003',
@@ -29,6 +29,16 @@ const DECLARED_NAMED_COLLIDER_IDS = {
   'UpperStairwellLandingGuard-2': '400C',
   'UpperStairwellLandingGuard-3': '400D',
   'UpperStairwellLandingGuard-4': '400E',
+} as const satisfies Record<string, string>;
+
+const DECLARED_REGRESSION_COLLIDER_IDS = {
+  'collision-1104': 'C1104',
+  'collision-2488': 'C2488',
+} as const satisfies Record<string, string>;
+
+const DECLARED_NAMED_COLLIDER_IDS = {
+  ...DECLARED_RUNTIME_COLLIDER_IDS,
+  ...DECLARED_REGRESSION_COLLIDER_IDS,
 } as const satisfies Record<string, string>;
 
 const getGeneratedColliderId = ({
@@ -58,6 +68,18 @@ const getGeneratedColliderId = ({
 
 const assertValidDebugColliderIds = () => {
   const usedIds = new Map<string, string>();
+  for (const [category, prefix] of Object.entries(
+    GENERATED_COLLIDER_ID_PREFIXES
+  )) {
+    if (!DEBUG_COLLIDER_ID_PATTERN.test(`${prefix}001`)) {
+      throw new Error(`Invalid generated debug collider prefix ${prefix}`);
+    }
+    for (let index = 1; index <= 0xfff; index += 1) {
+      const id = `${prefix}${index.toString(16).toUpperCase().padStart(3, '0')}`;
+      usedIds.set(id, `${category}-collider-${index}`);
+    }
+  }
+
   for (const [name, id] of Object.entries(DECLARED_NAMED_COLLIDER_IDS)) {
     if (!DEBUG_COLLIDER_ID_PATTERN.test(id)) {
       throw new Error(`Invalid debug collider ID ${id} declared for ${name}`);

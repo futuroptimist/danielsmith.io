@@ -73,6 +73,22 @@ describe('createColliderDebugId', () => {
         bounds: collider,
       })
     ).toBe('400A');
+    expect(
+      createColliderDebugId({
+        floor: 'ground',
+        category: 'walls',
+        name: 'collision-1104',
+        bounds: collider,
+      })
+    ).toBe('C1104');
+    expect(
+      createColliderDebugId({
+        floor: 'ground',
+        category: 'walls',
+        name: 'collision-2488',
+        bounds: collider,
+      })
+    ).toBe('C2488');
   });
 
   it('ignores occupied four-character prefixes when the six-character ID is free', () => {
@@ -391,7 +407,7 @@ describe('createColliderVisualizer', () => {
     expect(ids).not.toContain('BC930D');
   });
 
-  it('keeps Greptile same-primary regression IDs stable across batch registration order', () => {
+  it('keeps Greptile same-primary regression IDs stable across batch and split registration', () => {
     const colliders = [
       {
         floor: 'ground' as const,
@@ -412,50 +428,86 @@ describe('createColliderVisualizer', () => {
     const reversedVisualizer = createColliderVisualizer({
       activeFloorId: 'ground',
     });
-    expect(createColliderDebugId(colliders[0])).not.toBe(
-      createColliderDebugId(colliders[1])
-    );
+    const forwardSplitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const reverseSplitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+
+    expect(createColliderDebugId(colliders[0])).toBe('C1104');
+    expect(createColliderDebugId(colliders[1])).toBe('C2488');
 
     forwardVisualizer.register(colliders);
     reversedVisualizer.register([...colliders].reverse());
+    forwardSplitVisualizer.register([colliders[0]]);
+    const forwardExposedId = forwardSplitVisualizer.getColliders()[0].id;
+    forwardSplitVisualizer.register([colliders[1]]);
+    reverseSplitVisualizer.register([colliders[1]]);
+    const reverseExposedId = reverseSplitVisualizer.getColliders()[0].id;
+    const reverseExposedMeshName = reverseSplitVisualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    )?.name;
+    const reverseExposedLabelName = reverseSplitVisualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    )?.name;
+    reverseSplitVisualizer.register([colliders[0]]);
+
     const idsByName = new Map(
       forwardVisualizer.getColliders().map((next) => [next.name, next.id])
     );
     const reversedIdsByName = new Map(
       reversedVisualizer.getColliders().map((next) => [next.name, next.id])
     );
+    const forwardSplitIdsByName = new Map(
+      forwardSplitVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const reverseSplitIdsByName = new Map(
+      reverseSplitVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
     const ids = [...idsByName.values()];
 
     expect(idsByName).toEqual(reversedIdsByName);
+    expect(idsByName).toEqual(forwardSplitIdsByName);
+    expect(idsByName).toEqual(reverseSplitIdsByName);
+    expect(idsByName).toEqual(
+      new Map([
+        ['collision-1104', 'C1104'],
+        ['collision-2488', 'C2488'],
+      ])
+    );
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
+    expect(ids).not.toContain('FB7D89');
+    expect(forwardSplitVisualizer.getColliderById(forwardExposedId)?.name).toBe(
+      'collision-1104'
+    );
+    expect(reverseSplitVisualizer.getColliderById(reverseExposedId)?.name).toBe(
+      'collision-2488'
+    );
+    expect(
+      reverseSplitVisualizer.group.children.find(
+        (child) => child.type === 'Mesh'
+      )?.name
+    ).toBe(reverseExposedMeshName);
+    expect(
+      reverseSplitVisualizer.group.children.find(
+        (child) => child.type === 'Sprite'
+      )?.name
+    ).toBe(reverseExposedLabelName);
   });
 
-  it('keeps Greptile same-primary regression IDs stable when registration is split', () => {
+  it('keeps duplicate registrations unique with short hex IDs', () => {
     const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
-    const batchedVisualizer = createColliderVisualizer({
-      activeFloorId: 'ground',
-    });
-    const firstCollider = {
+    const duplicateCollider = {
       floor: 'ground' as const,
       category: 'walls',
-      name: 'collision-2488',
-      bounds: collider,
-    };
-    const collidingCollider = {
-      floor: 'ground' as const,
-      category: 'walls',
-      name: 'collision-1104',
+      name: 'duplicate-0',
       bounds: collider,
     };
 
-    expect(createColliderDebugId(firstCollider)).not.toBe(
-      createColliderDebugId(collidingCollider)
-    );
-
-    batchedVisualizer.register([collidingCollider, firstCollider]);
-    visualizer.register([firstCollider]);
+    visualizer.register([duplicateCollider]);
     const exposedId = visualizer.getColliders()[0].id;
     const exposedMeshName = visualizer.group.children.find(
       (child) => child.type === 'Mesh'
@@ -464,55 +516,21 @@ describe('createColliderVisualizer', () => {
       (child) => child.type === 'Sprite'
     )?.name;
 
-    expect(exposedId).toBe(createColliderDebugId(firstCollider));
-    expect(visualizer.getColliderById(exposedId)?.name).toBe('collision-2488');
+    visualizer.register([duplicateCollider]);
 
-    visualizer.register([collidingCollider]);
-
-    const collidersByName = new Map(
-      visualizer.getColliders().map((next) => [next.name, next])
-    );
-    const ids = visualizer.getColliders().map((next) => next.id);
-
-    expect(collidersByName.get('collision-2488')?.id).toBe(exposedId);
-    expect(visualizer.getColliderById(exposedId)?.name).toBe('collision-2488');
-    expect(collidersByName.get('collision-1104')?.id).toBe(
-      createColliderDebugId(collidingCollider)
-    );
-    expect(collidersByName).toEqual(
-      new Map(batchedVisualizer.getColliders().map((next) => [next.name, next]))
-    );
+    const colliders = visualizer.getColliders();
+    const ids = colliders.map((next) => next.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
+    expect(colliders[0].id).toBe(exposedId);
+    expect(visualizer.getColliderById(exposedId)).toEqual(colliders[0]);
     expect(
       visualizer.group.children.find((child) => child.type === 'Mesh')?.name
     ).toBe(exposedMeshName);
     expect(
       visualizer.group.children.find((child) => child.type === 'Sprite')?.name
     ).toBe(exposedLabelName);
-  });
-
-  it('keeps duplicate registrations unique with short hex IDs', () => {
-    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
-    visualizer.register([
-      {
-        floor: 'ground',
-        category: 'walls',
-        name: 'duplicate-0',
-        bounds: collider,
-      },
-      {
-        floor: 'ground',
-        category: 'walls',
-        name: 'duplicate-0',
-        bounds: collider,
-      },
-    ]);
-
-    const ids = visualizer.getColliders().map((next) => next.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
   });
 
   it('creates floor-aware labels that toggle with debug collider visibility', () => {

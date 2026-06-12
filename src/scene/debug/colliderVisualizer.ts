@@ -165,15 +165,15 @@ const getColliderDebugIdCandidates = (seed: string): string[] => {
 
 const createColliderDebugIdFromMetadata = (
   metadata: Omit<DebugColliderMetadata, 'id'>,
-  usedIds: ReadonlySet<string>
+  usedIds: ReadonlySet<string>,
+  idSeed = getColliderDebugSeed(metadata)
 ): string => {
-  const seed = getColliderDebugSeed(metadata);
-  const primaryCandidate = getColliderDebugPrimaryId(metadata, seed);
+  const primaryCandidate = getColliderDebugPrimaryId(metadata, idSeed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
   }
 
-  return getColliderDebugRetryId(seed, new Set(usedIds));
+  return getColliderDebugRetryId(idSeed, new Set(usedIds));
 };
 
 export function createColliderDebugId(
@@ -228,8 +228,11 @@ const allocateColliderDebugIds = (
     };
   });
 
-  // Allocate incoming colliders by stable candidate order while treating
-  // previously exposed IDs as fixed screenshot-to-metadata anchors.
+  // Config-declared runtime IDs are the deterministic invariant for real
+  // collider metadata: validation prevents declared/generated collisions, and
+  // existing IDs remain fixed after exposure. Unconfigured fallback collisions
+  // must allocate around already exposed IDs because a finite 4-to-6 hex
+  // namespace cannot both freeze old screenshots and globally remap later data.
   allocationItems.sort((left, right) => {
     const primaryComparison = left.primaryId.localeCompare(right.primaryId);
     if (primaryComparison !== 0) {
@@ -246,7 +249,8 @@ const allocateColliderDebugIds = (
   for (const item of allocationItems) {
     const id = createColliderDebugIdFromMetadata(
       metadataList[item.index],
-      usedIds
+      usedIds,
+      item.idSeed
     );
     usedIds.add(id);
     ids[item.index] = id;
