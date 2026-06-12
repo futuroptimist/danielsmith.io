@@ -36,8 +36,43 @@ describe('createColliderDebugId', () => {
     );
   });
 
-  it('produces stable six-character uppercase hexadecimal IDs from collider metadata', () => {
+  it('produces stable six-character uppercase hexadecimal IDs from fallback metadata', () => {
     expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{6}$/);
+  });
+
+  it('uses declared IDs for generated and named runtime colliders', () => {
+    expect(
+      createColliderDebugId({
+        floor: 'ground',
+        category: 'ground',
+        name: 'ground-collider-1',
+        bounds: collider,
+      })
+    ).toBe('1001');
+    expect(
+      createColliderDebugId({
+        floor: 'ground',
+        category: 'static',
+        name: 'static-collider-15',
+        bounds: collider,
+      })
+    ).toBe('200F');
+    expect(
+      createColliderDebugId({
+        floor: 'upper',
+        category: 'upper',
+        name: 'upper-collider-2',
+        bounds: collider,
+      })
+    ).toBe('3002');
+    expect(
+      createColliderDebugId({
+        floor: 'upper',
+        category: 'upper',
+        name: 'UpperStairNorthBannisterGuard',
+        bounds: collider,
+      })
+    ).toBe('400A');
   });
 
   it('ignores occupied four-character prefixes when the six-character ID is free', () => {
@@ -239,11 +274,6 @@ describe('createColliderVisualizer', () => {
       activeFloorId: 'ground',
     });
 
-    expect(colliders.map((next) => createColliderDebugId(next))).toEqual([
-      'E60005',
-      'E60D71',
-    ]);
-
     batchedVisualizer.register(colliders);
     splitVisualizer.register([colliders[0]]);
     splitVisualizer.register([colliders[1]]);
@@ -266,6 +296,49 @@ describe('createColliderVisualizer', () => {
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
     expect(ids).not.toContain('53D147');
+  });
+
+  it('does not remap numeric suffixes that differ by 65536', () => {
+    const firstCollider = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'x-1',
+      bounds: collider,
+    };
+    const secondCollider = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'x-65537',
+      bounds: collider,
+    };
+    const forwardVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const splitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+
+    expect(createColliderDebugId(firstCollider)).not.toBe(
+      createColliderDebugId(secondCollider)
+    );
+    expect(createColliderDebugId(firstCollider)).not.toBe('800001');
+    expect(createColliderDebugId(secondCollider)).not.toBe('800001');
+
+    forwardVisualizer.register([firstCollider, secondCollider]);
+    splitVisualizer.register([secondCollider]);
+    splitVisualizer.register([firstCollider]);
+
+    const idsByName = new Map(
+      forwardVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const splitIdsByName = new Map(
+      splitVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+
+    expect(idsByName).toEqual(splitIdsByName);
+    expect(
+      [...idsByName.values()].every((id) => /^[0-9A-F]{4,6}$/.test(id))
+    ).toBe(true);
   });
 
   it('keeps IDs stable when salted-primary collision pairs are batched or split', () => {

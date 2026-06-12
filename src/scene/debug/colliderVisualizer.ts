@@ -13,6 +13,8 @@ import {
 import type { RectCollider } from '../../systems/collision';
 import type { FloorId } from '../../systems/movement/stairs';
 
+import { getDeclaredColliderDebugId } from './colliderDebugIds';
+
 export type DebugColliderFloor = FloorId | 'all';
 
 export interface DebugColliderMetadata {
@@ -141,34 +143,11 @@ const getColliderDebugHash = (seed: string): string =>
     .toUpperCase()
     .padStart(DEBUG_ID_MAX_LENGTH, '0');
 
-const getTrailingNumericNameId = (seed: string): string | undefined => {
-  const parts = seed.split('|');
-  const name = parts[0];
-  const numericMatch = name.match(/^(?<prefix>.*?)(?<numericSuffix>\d+)$/);
-  if (!numericMatch?.groups) {
-    return undefined;
-  }
-
-  const numericSuffix = Number.parseInt(numericMatch.groups.numericSuffix, 10);
-  if (!Number.isSafeInteger(numericSuffix) || numericSuffix < 0) {
-    return undefined;
-  }
-
-  const stableNamePrefix = numericMatch.groups.prefix;
-  const stableContext = [stableNamePrefix, ...parts.slice(1)].join('|');
-  const contextPrefix = getColliderDebugHash(
-    `${stableContext}|${DEBUG_ID_PRIMARY_SALT}|numeric-context`
-  ).slice(0, 2);
-  const suffixId = (numericSuffix % 0x10000)
-    .toString(16)
-    .toUpperCase()
-    .padStart(4, '0');
-
-  return `${contextPrefix}${suffixId}`;
-};
-
-const getColliderDebugPrimaryId = (seed: string): string =>
-  getTrailingNumericNameId(seed) ??
+const getColliderDebugPrimaryId = (
+  metadata: Omit<DebugColliderMetadata, 'id'>,
+  seed: string
+): string =>
+  getDeclaredColliderDebugId(metadata) ??
   getColliderDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
 
 const getColliderDebugIdCandidates = (seed: string): string[] => {
@@ -184,11 +163,12 @@ const getColliderDebugIdCandidates = (seed: string): string[] => {
   return candidates;
 };
 
-const createColliderDebugIdFromSeed = (
-  seed: string,
+const createColliderDebugIdFromMetadata = (
+  metadata: Omit<DebugColliderMetadata, 'id'>,
   usedIds: ReadonlySet<string>
 ): string => {
-  const primaryCandidate = getColliderDebugPrimaryId(seed);
+  const seed = getColliderDebugSeed(metadata);
+  const primaryCandidate = getColliderDebugPrimaryId(metadata, seed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
   }
@@ -200,7 +180,7 @@ export function createColliderDebugId(
   metadata: Omit<DebugColliderMetadata, 'id'>,
   usedIds: ReadonlySet<string> = new Set()
 ): string {
-  return createColliderDebugIdFromSeed(getColliderDebugSeed(metadata), usedIds);
+  return createColliderDebugIdFromMetadata(metadata, usedIds);
 }
 
 const getColliderDebugRetryId = (
@@ -244,7 +224,7 @@ const allocateColliderDebugIds = (
     return {
       idSeed,
       index,
-      primaryId: getColliderDebugPrimaryId(idSeed),
+      primaryId: getColliderDebugPrimaryId(metadata, idSeed),
     };
   });
 
@@ -264,7 +244,10 @@ const allocateColliderDebugIds = (
 
   const ids = new Array<string>(metadataList.length);
   for (const item of allocationItems) {
-    const id = createColliderDebugIdFromSeed(item.idSeed, usedIds);
+    const id = createColliderDebugIdFromMetadata(
+      metadataList[item.index],
+      usedIds
+    );
     usedIds.add(id);
     ids[item.index] = id;
   }
