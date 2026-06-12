@@ -84,6 +84,7 @@ type DebugColliderBounds = {
 };
 
 type DebugColliderMetadata = {
+  id: string;
   floor: FloorId | 'all';
   category: string;
   name: string;
@@ -93,6 +94,7 @@ type DebugColliderMetadata = {
 type DebugColliderApi = {
   setEnabled(enabled: boolean): void;
   getColliders(): DebugColliderMetadata[];
+  getColliderById(id: string): DebugColliderMetadata | undefined;
   getBlockingCollidersAt(target: {
     x: number;
     z: number;
@@ -776,6 +778,21 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
 
   await walkStairCenterlineToUpperLanding(page);
   const debugColliders = await getDebugColliders(page);
+  const debugColliderIds = debugColliders.map((collider) => collider.id);
+  expect(debugColliderIds.length).toBeGreaterThan(0);
+  expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
+  for (const debugColliderId of debugColliderIds) {
+    expect(debugColliderId).toMatch(/^[0-9A-F]{4,6}$/);
+  }
+  const firstColliderById = await page.evaluate((id) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliderById(id);
+  }, debugColliderIds[0]);
+  expect(firstColliderById).toEqual(debugColliders[0]);
+
   const debugColliderNames = debugColliders.map((collider) => collider.name);
   for (const removedBroadBlocker of removedBroadStairBlockers) {
     expect(debugColliderNames).not.toContain(removedBroadBlocker);
@@ -802,6 +819,22 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   if (!westBannister || !northBannister || !hiddenRunGuard) {
     throw new Error('Missing upper stair guard debug collider');
   }
+
+  const westBannisterBlockers = await page.evaluate(
+    (target) => {
+      const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+      if (!debugApi) {
+        throw new Error('Debug colliders API unavailable');
+      }
+      return debugApi.getBlockingCollidersAt(target);
+    },
+    {
+      x: (westBannister.bounds.minX + westBannister.bounds.maxX) / 2,
+      z: (westBannister.bounds.minZ + westBannister.bounds.maxZ) / 2,
+      floorId: 'upper' as const,
+    }
+  );
+  expect(westBannisterBlockers).toContainEqual(westBannister);
 
   const northBannisterCenterZ =
     (northBannister.bounds.minZ + northBannister.bounds.maxZ) / 2;

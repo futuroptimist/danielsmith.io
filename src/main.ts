@@ -587,6 +587,7 @@ declare global {
         getState(): DebugColliderVisualizerState;
         setEnabled(enabled: boolean): void;
         getColliders(): DebugColliderMetadata[];
+        getColliderById(id: string): DebugColliderMetadata | undefined;
         getBlockingCollidersAt(target: {
           x: number;
           z: number;
@@ -4502,6 +4503,7 @@ function initializeImmersiveScene(
       setDebugCollidersEnabled(enabled);
     },
     getColliders: () => colliderVisualizer.getColliders(),
+    getColliderById: (id: string) => colliderVisualizer.getColliderById(id),
     getBlockingCollidersAt: getBlockingDebugCollidersAt,
   };
 
