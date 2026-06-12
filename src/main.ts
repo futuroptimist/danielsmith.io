@@ -592,6 +592,7 @@ declare global {
           z: number;
           floorId?: FloorId;
         }): DebugColliderMetadata[];
+        getColliderById(id: string): DebugColliderMetadata | undefined;
       };
       debugCoordinates?: {
         getState(): {
@@ -4503,6 +4504,7 @@ function initializeImmersiveScene(
     },
     getColliders: () => colliderVisualizer.getColliders(),
     getBlockingCollidersAt: getBlockingDebugCollidersAt,
+    getColliderById: (id: string) => colliderVisualizer.getColliderById(id),
   };
 
   window.portfolio.debugCoordinates = {
