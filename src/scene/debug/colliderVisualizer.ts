@@ -52,15 +52,15 @@ export interface ColliderVisualizer {
   setActiveFloor(floorId: FloorId): void;
   getState(): DebugColliderVisualizerState;
   getColliders(): DebugColliderMetadata[];
-  getColliderById(id: string): DebugColliderMetadata | undefined;
+  getColliderById(id: unknown): DebugColliderMetadata | undefined;
   dispose(): void;
 }
 
 const DEFAULT_HEIGHT = 0.08;
 const MIN_DIMENSION = 0.02;
 const DEFAULT_COLOR = 0x66e6ff;
-const DEBUG_ID_MAX_LENGTH = 8;
-const DEBUG_ID_COLLISION_SUFFIX_BASE = 36;
+const DEBUG_ID_MIN_LENGTH = 4;
+const DEBUG_ID_MAX_LENGTH = 6;
 const DEBUG_ID_PRECISION = 2;
 const LABEL_CANVAS_WIDTH = 256;
 const LABEL_CANVAS_HEIGHT = 128;
@@ -123,39 +123,59 @@ const fnv1a = (input: string): number => {
   return hash >>> 0;
 };
 
-const getIdSuffix = (collisionIndex: number): string =>
-  collisionIndex.toString(DEBUG_ID_COLLISION_SUFFIX_BASE).toUpperCase();
-
-const getColliderDebugHash = (
-  metadata: Omit<DebugColliderMetadata, 'id'>
-): string =>
-  fnv1a(getColliderDebugSeed(metadata))
+const getColliderDebugHash = (seed: string): string =>
+  fnv1a(seed)
     .toString(16)
     .toUpperCase()
     .padStart(DEBUG_ID_MAX_LENGTH, '0')
     .slice(0, DEBUG_ID_MAX_LENGTH);
 
+const getColliderDebugIdCandidates = (seed: string): string[] => {
+  const hash = getColliderDebugHash(seed);
+  const candidates: string[] = [];
+  for (
+    let length = DEBUG_ID_MIN_LENGTH;
+    length <= DEBUG_ID_MAX_LENGTH;
+    length += 1
+  ) {
+    candidates.push(hash.slice(0, length));
+  }
+  return candidates;
+};
+
 export function createColliderDebugId(
   metadata: Omit<DebugColliderMetadata, 'id'>,
   usedIds: ReadonlySet<string> = new Set()
 ): string {
-  const hash = getColliderDebugHash(metadata);
-  if (!usedIds.has(hash)) {
-    return hash;
+  const seed = getColliderDebugSeed(metadata);
+  const primaryCandidate = getColliderDebugHash(seed).slice(
+    0,
+    DEBUG_ID_MIN_LENGTH
+  );
+  if (!usedIds.has(primaryCandidate)) {
+    return primaryCandidate;
   }
 
-  let collisionIndex = 1;
-  let candidate = `${hash}-${getIdSuffix(collisionIndex)}`;
-  while (usedIds.has(candidate)) {
-    collisionIndex += 1;
-    candidate = `${hash}-${getIdSuffix(collisionIndex)}`;
+  for (
+    let retryIndex = 1;
+    retryIndex < Number.MAX_SAFE_INTEGER;
+    retryIndex += 1
+  ) {
+    for (const candidate of getColliderDebugIdCandidates(
+      `${seed}|retry:${retryIndex}`
+    )) {
+      if (!usedIds.has(candidate)) {
+        return candidate;
+      }
+    }
   }
-  return candidate;
+
+  throw new Error('Unable to allocate a short collider debug ID');
 }
 
 const getLabelPaletteIndex = (id: string): number => {
   const numericPrefix = Number.parseInt(
-    id.replace(/[^0-9A-F]/g, '').slice(0, 8),
+    id.replace(/[^0-9A-F]/g, '').slice(0, DEBUG_ID_MAX_LENGTH),
     16
   );
   return Number.isFinite(numericPrefix)
@@ -226,14 +246,16 @@ const createLabelTexture = (
   context.fill();
   context.stroke();
 
-  let fontSize = LABEL_FONT_MAX_SIZE;
-  do {
+  for (
+    let fontSize = LABEL_FONT_MAX_SIZE;
+    fontSize >= LABEL_FONT_MIN_SIZE;
+    fontSize -= 2
+  ) {
     context.font = `700 ${fontSize}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
-    fontSize -= 2;
-  } while (
-    context.measureText(id).width > LABEL_TEXT_MAX_WIDTH &&
-    fontSize >= LABEL_FONT_MIN_SIZE
-  );
+    if (context.measureText(id).width <= LABEL_TEXT_MAX_WIDTH) {
+      break;
+    }
+  }
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.lineWidth = 9;
@@ -398,7 +420,10 @@ export function createColliderVisualizer(options: {
     getColliders() {
       return entries.map((entry) => cloneMetadata(entry.metadata));
     },
-    getColliderById(id: string) {
+    getColliderById(id: unknown) {
+      if (typeof id !== 'string' || id.length === 0) {
+        return undefined;
+      }
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;

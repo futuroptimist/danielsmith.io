@@ -37,34 +37,22 @@ describe('createColliderDebugId', () => {
   });
 
   it('produces stable uppercase hexadecimal IDs from collider metadata', () => {
-    expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{8}$/);
+    expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{4,6}$/);
   });
 
-  it('does not change IDs when shorter prefixes are already used', () => {
-    const id = createColliderDebugId(metadata);
-
-    expect(
-      createColliderDebugId(
-        metadata,
-        new Set([
-          id.slice(0, 4),
-          id.slice(0, 5),
-          id.slice(0, 6),
-          id.slice(0, 7),
-        ])
-      )
-    ).toBe(id);
-  });
-
-  it('handles full-hash collisions deterministically by adding a suffix', () => {
+  it('handles collisions with deterministic short hexadecimal retry IDs', () => {
     const firstId = createColliderDebugId(metadata);
-    const collidingId = createColliderDebugId(metadata, new Set([firstId]));
+    const collidingIds = new Set([
+      firstId,
+      `${firstId}0`.slice(0, 5),
+      `${firstId}00`.slice(0, 6),
+    ]);
+    const collidingId = createColliderDebugId(metadata, collidingIds);
 
-    expect(collidingId).toMatch(/^[0-9A-F]{8}-[0-9A-Z]+$/);
-    expect(collidingId.startsWith(`${firstId}-`)).toBe(true);
-    expect(createColliderDebugId(metadata, new Set([firstId]))).toBe(
-      collidingId
-    );
+    expect(collidingId).toMatch(/^[0-9A-F]{4,6}$/);
+    expect(collidingId).not.toContain('-');
+    expect(collidingIds.has(collidingId)).toBe(false);
+    expect(createColliderDebugId(metadata, collidingIds)).toBe(collidingId);
   });
 });
 
@@ -150,6 +138,11 @@ describe('createColliderVisualizer', () => {
     expect(visualizer.getColliderById(expectedId.toLowerCase())?.id).toBe(
       expectedId
     );
+    expect(visualizer.getColliderById('')).toBeUndefined();
+    expect(visualizer.getColliderById(null)).toBeUndefined();
+    expect(visualizer.getColliderById(undefined)).toBeUndefined();
+    expect(visualizer.getColliderById(1234)).toBeUndefined();
+    expect(visualizer.getColliderById('missing')).toBeUndefined();
     const mesh = visualizer.group.children.find(
       (child) => child.type === 'Mesh'
     ) as Mesh;
@@ -161,6 +154,28 @@ describe('createColliderVisualizer', () => {
     expect(mesh.raycast({} as never, [] as never)).toBeUndefined();
     expect(label.raycast({} as never, [] as never)).toBeUndefined();
     expect(material.depthTest).toBe(false);
+  });
+
+  it('keeps duplicate registrations unique with short hex IDs', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'duplicate-0',
+        bounds: collider,
+      },
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'duplicate-0',
+        bounds: collider,
+      },
+    ]);
+
+    const ids = visualizer.getColliders().map((next) => next.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
   });
 
   it('creates floor-aware labels that toggle with debug collider visibility', () => {
@@ -187,7 +202,7 @@ describe('createColliderVisualizer', () => {
     expect(labels.every((label) => label.visible === false)).toBe(true);
     expect(
       labels.every((label) =>
-        label.name.match(/^DebugColliderLabel:[0-9A-F]{4,}/)
+        label.name.match(/^DebugColliderLabel:[0-9A-F]{4,6}$/)
       )
     ).toBe(true);
 
