@@ -210,7 +210,7 @@ describe('createColliderVisualizer', () => {
     expect(idsByName.get('prefix-collider-182')).toBe('E893DC');
   });
 
-  it('keeps exact six-character hash collisions stable in any registration order', () => {
+  it('keeps exact six-character hash collisions stable within one registration batch', () => {
     const colliders = [
       {
         floor: 'ground' as const,
@@ -229,9 +229,6 @@ describe('createColliderVisualizer', () => {
     const reversedVisualizer = createColliderVisualizer({
       activeFloorId: 'ground',
     });
-    const incrementalVisualizer = createColliderVisualizer({
-      activeFloorId: 'ground',
-    });
 
     expect(colliders.map((next) => createColliderDebugId(next))).toEqual([
       '53D147',
@@ -240,8 +237,6 @@ describe('createColliderVisualizer', () => {
 
     visualizer.register(colliders);
     reversedVisualizer.register([...colliders].reverse());
-    incrementalVisualizer.register([colliders[0]]);
-    incrementalVisualizer.register([colliders[1]]);
 
     const idsByName = new Map(
       visualizer.getColliders().map((next) => [next.name, next.id])
@@ -249,17 +244,61 @@ describe('createColliderVisualizer', () => {
     const reversedIdsByName = new Map(
       reversedVisualizer.getColliders().map((next) => [next.name, next.id])
     );
-    const incrementalIdsByName = new Map(
-      incrementalVisualizer.getColliders().map((next) => [next.name, next.id])
-    );
     const ids = [...idsByName.values()];
 
     expect(idsByName).toEqual(reversedIdsByName);
-    expect(idsByName).toEqual(incrementalIdsByName);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
     expect(ids).not.toContain('53D147');
+  });
+
+  it('preserves exposed IDs when later registrations collide', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const firstCollider = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'collision-5',
+      bounds: collider,
+    };
+    const collidingCollider = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'collision-3441',
+      bounds: collider,
+    };
+
+    visualizer.register([firstCollider]);
+    const exposedId = visualizer.getColliders()[0].id;
+    const exposedMeshName = visualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    )?.name;
+    const exposedLabelName = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    )?.name;
+
+    expect(exposedId).toBe('53D147');
+    expect(visualizer.getColliderById(exposedId)?.name).toBe('collision-5');
+
+    visualizer.register([collidingCollider]);
+
+    const collidersByName = new Map(
+      visualizer.getColliders().map((next) => [next.name, next])
+    );
+    const ids = visualizer.getColliders().map((next) => next.id);
+
+    expect(collidersByName.get('collision-5')?.id).toBe(exposedId);
+    expect(visualizer.getColliderById(exposedId)?.name).toBe('collision-5');
+    expect(collidersByName.get('collision-3441')?.id).not.toBe(exposedId);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
+    expect(ids.every((id) => !id.includes('-'))).toBe(true);
+    expect(
+      visualizer.group.children.find((child) => child.type === 'Mesh')?.name
+    ).toBe(exposedMeshName);
+    expect(
+      visualizer.group.children.find((child) => child.type === 'Sprite')?.name
+    ).toBe(exposedLabelName);
   });
 
   it('keeps duplicate registrations unique with short hex IDs', () => {

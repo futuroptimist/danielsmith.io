@@ -156,15 +156,6 @@ export function createColliderDebugId(
   return getColliderDebugRetryId(seed, new Set(usedIds));
 }
 
-const getMetadataWithoutId = (
-  metadata: DebugColliderMetadata
-): Omit<DebugColliderMetadata, 'id'> => ({
-  floor: metadata.floor,
-  category: metadata.category,
-  name: metadata.name,
-  bounds: cloneBounds(metadata.bounds),
-});
-
 interface DebugColliderIdRecord {
   index: number;
   seed: string;
@@ -194,11 +185,21 @@ const getColliderDebugRetryId = (
   throw new Error('Unable to allocate a short collider debug ID');
 };
 
-const allocateColliderDebugIds = (
+const allocateNewColliderDebugIds = (
+  existingMetadata: readonly DebugColliderMetadata[],
   metadataList: readonly Omit<DebugColliderMetadata, 'id'>[]
 ): string[] => {
+  const existingIds = new Set(existingMetadata.map((metadata) => metadata.id));
   const seedCounts = new Map<string, number>();
   const primaryCounts = new Map<string, number>();
+
+  for (const metadata of existingMetadata) {
+    const seed = getColliderDebugSeed(metadata);
+    const primaryId = getColliderDebugHash(seed);
+    seedCounts.set(seed, (seedCounts.get(seed) ?? 0) + 1);
+    primaryCounts.set(primaryId, (primaryCounts.get(primaryId) ?? 0) + 1);
+  }
+
   const records = metadataList.map((metadata, index) => {
     const seed = getColliderDebugSeed(metadata);
     const primaryId = getColliderDebugHash(seed);
@@ -213,16 +214,19 @@ const allocateColliderDebugIds = (
   }));
 
   const ids = Array<string>(metadataList.length);
-  const usedIds = new Set<string>();
+  const usedIds = new Set(existingIds);
   for (const record of recordsWithCounts) {
-    if ((primaryCounts.get(record.primaryId) ?? 0) === 1) {
+    if (
+      (primaryCounts.get(record.primaryId) ?? 0) === 1 &&
+      !usedIds.has(record.primaryId)
+    ) {
       ids[record.index] = record.primaryId;
       usedIds.add(record.primaryId);
     }
   }
 
   const collisionRecords = recordsWithCounts
-    .filter((record) => (primaryCounts.get(record.primaryId) ?? 0) > 1)
+    .filter((record) => ids[record.index] === undefined)
     .sort(
       (left, right) =>
         left.primaryId.localeCompare(right.primaryId) ||
@@ -231,6 +235,8 @@ const allocateColliderDebugIds = (
     );
 
   for (const record of collisionRecords) {
+    // Existing entries may already be visible in screenshots or returned from
+    // DevTools, so collision retries only allocate IDs for new registrations.
     // Identical metadata has no stable differentiator beyond deterministic
     // registration occurrence, so only exact duplicates receive this salt.
     const retrySeed =
@@ -367,33 +373,6 @@ const createColliderLabel = (
 const getDebugColliderMeshName = (metadata: DebugColliderMetadata): string =>
   `DebugCollider:${metadata.id}:${metadata.floor}:${metadata.category}:${metadata.name}`;
 
-const applyDebugIdToEntry = (
-  entry: DebugColliderVisualEntry,
-  id: string
-): void => {
-  if (entry.metadata.id === id) {
-    return;
-  }
-
-  entry.metadata.id = id;
-  entry.mesh.name = getDebugColliderMeshName(entry.metadata);
-  entry.mesh.userData.colliderDebug = {
-    id,
-    floor: entry.metadata.floor,
-    category: entry.metadata.category,
-    name: entry.metadata.name,
-  };
-
-  const labelColor = LABEL_PALETTE[getLabelPaletteIndex(id)];
-  const texture = createLabelTexture(id, labelColor);
-  entry.label.material.map?.dispose();
-  entry.label.material.map = texture ?? null;
-  entry.label.material.color.set(texture ? 0xffffff : labelColor);
-  entry.label.material.needsUpdate = true;
-  entry.label.name = `DebugColliderLabel:${id}`;
-  entry.label.userData.colliderDebugLabel = { id };
-};
-
 export function createColliderVisualizer(options: {
   activeFloorId: FloorId;
   enabled?: boolean;
@@ -424,19 +403,14 @@ export function createColliderVisualizer(options: {
       name: collider.name,
       bounds: cloneBounds(collider.bounds),
     }));
-    const existingEntryCount = entries.length;
-    const nextIds = allocateColliderDebugIds([
-      ...entries.map((entry) => getMetadataWithoutId(entry.metadata)),
-      ...metadataWithoutIds,
-    ]);
-
-    entries.forEach((entry, index) => {
-      applyDebugIdToEntry(entry, nextIds[index]);
-    });
+    const nextIds = allocateNewColliderDebugIds(
+      entries.map((entry) => entry.metadata),
+      metadataWithoutIds
+    );
 
     for (const [colliderIndex, collider] of colliders.entries()) {
       const metadataWithoutId = metadataWithoutIds[colliderIndex];
-      const id = nextIds[existingEntryCount + colliderIndex];
+      const id = nextIds[colliderIndex];
 
       const width = Math.max(
         collider.bounds.maxX - collider.bounds.minX,
