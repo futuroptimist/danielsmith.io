@@ -117,21 +117,29 @@ const getColliderDebugSeed = (
     normalizeBoundsForId(metadata.bounds),
   ].join('|');
 
-const fnv1a = (input: string): number => {
-  let hash = 0x811c9dc5;
+const getStableDebugHashValue = (input: string): number => {
+  let low = 0xdeadbeef ^ input.length;
+  let high = 0x41c6ce57 ^ input.length;
+
   for (let index = 0; index < input.length; index += 1) {
-    hash ^= input.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
+    const charCode = input.charCodeAt(index);
+    low = Math.imul(low ^ charCode, 2_654_435_761);
+    high = Math.imul(high ^ charCode, 1_597_334_677);
   }
-  return hash >>> 0;
+
+  low = Math.imul(low ^ (low >>> 16), 2_246_822_507);
+  low ^= Math.imul(high ^ (high >>> 13), 3_266_489_909);
+  high = Math.imul(high ^ (high >>> 16), 2_246_822_507);
+  high ^= Math.imul(low ^ (low >>> 13), 3_266_489_909);
+
+  return 4_294_967_296 * (2_097_151 & high) + (low >>> 0);
 };
 
 const getColliderDebugHash = (seed: string): string =>
-  fnv1a(seed)
+  Math.floor(getStableDebugHashValue(seed) % 0x1000000)
     .toString(16)
     .toUpperCase()
-    .padStart(DEBUG_ID_MAX_LENGTH, '0')
-    .slice(0, DEBUG_ID_MAX_LENGTH);
+    .padStart(DEBUG_ID_MAX_LENGTH, '0');
 
 const getColliderDebugPrimaryId = (seed: string): string =>
   getColliderDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
@@ -149,25 +157,23 @@ const getColliderDebugIdCandidates = (seed: string): string[] => {
   return candidates;
 };
 
-export function createColliderDebugId(
-  metadata: Omit<DebugColliderMetadata, 'id'>,
-  usedIds: ReadonlySet<string> = new Set()
-): string {
-  const seed = getColliderDebugSeed(metadata);
+const createColliderDebugIdFromSeed = (
+  seed: string,
+  usedIds: ReadonlySet<string>
+): string => {
   const primaryCandidate = getColliderDebugPrimaryId(seed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
   }
 
   return getColliderDebugRetryId(seed, new Set(usedIds));
-}
+};
 
-interface DebugColliderIdRecord {
-  index: number;
-  seed: string;
-  primaryId: string;
-  seedOccurrence: number;
-  seedOccurrenceCount: number;
+export function createColliderDebugId(
+  metadata: Omit<DebugColliderMetadata, 'id'>,
+  usedIds: ReadonlySet<string> = new Set()
+): string {
+  return createColliderDebugIdFromSeed(getColliderDebugSeed(metadata), usedIds);
 }
 
 const getColliderDebugRetryId = (
@@ -195,66 +201,27 @@ const allocateNewColliderDebugIds = (
   existingMetadata: readonly DebugColliderMetadata[],
   metadataList: readonly Omit<DebugColliderMetadata, 'id'>[]
 ): string[] => {
-  const existingIds = new Set(existingMetadata.map((metadata) => metadata.id));
+  const usedIds = new Set(existingMetadata.map((metadata) => metadata.id));
   const seedCounts = new Map<string, number>();
-  const primaryCounts = new Map<string, number>();
 
   for (const metadata of existingMetadata) {
     const seed = getColliderDebugSeed(metadata);
-    const primaryId = getColliderDebugPrimaryId(seed);
     seedCounts.set(seed, (seedCounts.get(seed) ?? 0) + 1);
-    primaryCounts.set(primaryId, (primaryCounts.get(primaryId) ?? 0) + 1);
   }
 
-  const records = metadataList.map((metadata, index) => {
+  return metadataList.map((metadata) => {
     const seed = getColliderDebugSeed(metadata);
-    const primaryId = getColliderDebugPrimaryId(seed);
     const seedOccurrence = seedCounts.get(seed) ?? 0;
     seedCounts.set(seed, seedOccurrence + 1);
-    primaryCounts.set(primaryId, (primaryCounts.get(primaryId) ?? 0) + 1);
-    return { index, seed, primaryId, seedOccurrence };
-  });
-  const recordsWithCounts: DebugColliderIdRecord[] = records.map((record) => ({
-    ...record,
-    seedOccurrenceCount: seedCounts.get(record.seed) ?? 1,
-  }));
 
-  const ids = Array<string>(metadataList.length);
-  const usedIds = new Set(existingIds);
-  for (const record of recordsWithCounts) {
-    if (
-      (primaryCounts.get(record.primaryId) ?? 0) === 1 &&
-      !usedIds.has(record.primaryId)
-    ) {
-      ids[record.index] = record.primaryId;
-      usedIds.add(record.primaryId);
-    }
-  }
-
-  const collisionRecords = recordsWithCounts
-    .filter((record) => ids[record.index] === undefined)
-    .sort(
-      (left, right) =>
-        left.primaryId.localeCompare(right.primaryId) ||
-        left.seed.localeCompare(right.seed) ||
-        left.seedOccurrence - right.seedOccurrence
-    );
-
-  for (const record of collisionRecords) {
-    // Existing entries may already be visible in screenshots or returned from
-    // DevTools, so collision retries only allocate IDs for new registrations.
     // Identical metadata has no stable differentiator beyond deterministic
     // registration occurrence, so only exact duplicates receive this salt.
-    const retrySeed =
-      record.seedOccurrenceCount > 1
-        ? `${record.seed}|occurrence:${record.seedOccurrence}`
-        : record.seed;
-    const id = getColliderDebugRetryId(retrySeed, usedIds);
-    ids[record.index] = id;
+    const idSeed =
+      seedOccurrence > 0 ? `${seed}|occurrence:${seedOccurrence}` : seed;
+    const id = createColliderDebugIdFromSeed(idSeed, usedIds);
     usedIds.add(id);
-  }
-
-  return ids;
+    return id;
+  });
 };
 
 const getLabelPaletteIndex = (id: string): number => {

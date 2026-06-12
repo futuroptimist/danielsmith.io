@@ -240,8 +240,8 @@ describe('createColliderVisualizer', () => {
     });
 
     expect(colliders.map((next) => createColliderDebugId(next))).toEqual([
-      '3400B0',
-      '129962',
+      '0E4528',
+      'E36988',
     ]);
 
     batchedVisualizer.register(colliders);
@@ -266,6 +266,56 @@ describe('createColliderVisualizer', () => {
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
     expect(ids).not.toContain('53D147');
+  });
+
+  it('keeps IDs stable when salted-primary collision pairs are batched or split', () => {
+    const colliders = [
+      {
+        floor: 'ground' as const,
+        category: 'walls',
+        name: 'collision-703',
+        bounds: collider,
+      },
+      {
+        floor: 'ground' as const,
+        category: 'walls',
+        name: 'collision-1045',
+        bounds: collider,
+      },
+    ];
+    const batchedVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const splitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const reversedVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+
+    batchedVisualizer.register(colliders);
+    splitVisualizer.register([colliders[0]]);
+    splitVisualizer.register([colliders[1]]);
+    reversedVisualizer.register([...colliders].reverse());
+
+    const idsByName = new Map(
+      batchedVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const splitIdsByName = new Map(
+      splitVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const reversedIdsByName = new Map(
+      reversedVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const ids = [...idsByName.values()];
+
+    expect(idsByName).toEqual(splitIdsByName);
+    expect(idsByName).toEqual(reversedIdsByName);
+    expect(ids).toEqual(colliders.map((next) => createColliderDebugId(next)));
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
+    expect(ids.every((id) => !id.includes('-'))).toBe(true);
+    expect(ids).not.toContain('BC930D');
   });
 
   it('preserves exposed IDs when later registrations collide', () => {
