@@ -62,6 +62,9 @@ const DEFAULT_COLOR = 0x66e6ff;
 const DEBUG_ID_MIN_LENGTH = 4;
 const DEBUG_ID_MAX_LENGTH = 6;
 const DEBUG_ID_PRECISION = 2;
+// Keep the visible primary ID namespaced from the raw metadata hash so
+// historical raw-prefix collisions do not decide screenshot-visible labels.
+const DEBUG_ID_PRIMARY_SALT = 'debug-id:v2';
 const LABEL_CANVAS_WIDTH = 256;
 const LABEL_CANVAS_HEIGHT = 128;
 const LABEL_TEXT_MAX_WIDTH = LABEL_CANVAS_WIDTH - 48;
@@ -130,6 +133,9 @@ const getColliderDebugHash = (seed: string): string =>
     .padStart(DEBUG_ID_MAX_LENGTH, '0')
     .slice(0, DEBUG_ID_MAX_LENGTH);
 
+const getColliderDebugPrimaryId = (seed: string): string =>
+  getColliderDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
+
 const getColliderDebugIdCandidates = (seed: string): string[] => {
   const hash = getColliderDebugHash(seed);
   const candidates: string[] = [];
@@ -148,7 +154,7 @@ export function createColliderDebugId(
   usedIds: ReadonlySet<string> = new Set()
 ): string {
   const seed = getColliderDebugSeed(metadata);
-  const primaryCandidate = getColliderDebugHash(seed);
+  const primaryCandidate = getColliderDebugPrimaryId(seed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
   }
@@ -195,14 +201,14 @@ const allocateNewColliderDebugIds = (
 
   for (const metadata of existingMetadata) {
     const seed = getColliderDebugSeed(metadata);
-    const primaryId = getColliderDebugHash(seed);
+    const primaryId = getColliderDebugPrimaryId(seed);
     seedCounts.set(seed, (seedCounts.get(seed) ?? 0) + 1);
     primaryCounts.set(primaryId, (primaryCounts.get(primaryId) ?? 0) + 1);
   }
 
   const records = metadataList.map((metadata, index) => {
     const seed = getColliderDebugSeed(metadata);
-    const primaryId = getColliderDebugHash(seed);
+    const primaryId = getColliderDebugPrimaryId(seed);
     const seedOccurrence = seedCounts.get(seed) ?? 0;
     seedCounts.set(seed, seedOccurrence + 1);
     primaryCounts.set(primaryId, (primaryCounts.get(primaryId) ?? 0) + 1);

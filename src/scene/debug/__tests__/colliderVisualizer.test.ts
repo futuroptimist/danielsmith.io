@@ -206,11 +206,15 @@ describe('createColliderVisualizer', () => {
     );
 
     expect(idsByName).toEqual(reversedIdsByName);
-    expect(idsByName.get('prefix-collider-142')).toBe('E8936E');
-    expect(idsByName.get('prefix-collider-182')).toBe('E893DC');
+    expect(idsByName.get('prefix-collider-142')).toBe(
+      createColliderDebugId(colliders[0])
+    );
+    expect(idsByName.get('prefix-collider-182')).toBe(
+      createColliderDebugId(colliders[1])
+    );
   });
 
-  it('keeps exact six-character hash collisions stable within one registration batch', () => {
+  it('keeps IDs stable when old raw-hash collision pairs are batched or split', () => {
     const colliders = [
       {
         floor: 'ground' as const,
@@ -225,27 +229,38 @@ describe('createColliderVisualizer', () => {
         bounds: collider,
       },
     ];
-    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const batchedVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const splitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
     const reversedVisualizer = createColliderVisualizer({
       activeFloorId: 'ground',
     });
 
     expect(colliders.map((next) => createColliderDebugId(next))).toEqual([
-      '53D147',
-      '53D147',
+      '3400B0',
+      '129962',
     ]);
 
-    visualizer.register(colliders);
+    batchedVisualizer.register(colliders);
+    splitVisualizer.register([colliders[0]]);
+    splitVisualizer.register([colliders[1]]);
     reversedVisualizer.register([...colliders].reverse());
 
     const idsByName = new Map(
-      visualizer.getColliders().map((next) => [next.name, next.id])
+      batchedVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const splitIdsByName = new Map(
+      splitVisualizer.getColliders().map((next) => [next.name, next.id])
     );
     const reversedIdsByName = new Map(
       reversedVisualizer.getColliders().map((next) => [next.name, next.id])
     );
     const ids = [...idsByName.values()];
 
+    expect(idsByName).toEqual(splitIdsByName);
     expect(idsByName).toEqual(reversedIdsByName);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
@@ -277,7 +292,7 @@ describe('createColliderVisualizer', () => {
       (child) => child.type === 'Sprite'
     )?.name;
 
-    expect(exposedId).toBe('53D147');
+    expect(exposedId).toBe(createColliderDebugId(firstCollider));
     expect(visualizer.getColliderById(exposedId)?.name).toBe('collision-5');
 
     visualizer.register([collidingCollider]);
