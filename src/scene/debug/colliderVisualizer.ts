@@ -229,10 +229,11 @@ const allocateColliderDebugIds = (
   });
 
   // Config-declared runtime IDs are the deterministic invariant for real
-  // collider metadata: validation prevents declared/generated collisions, and
-  // existing IDs remain fixed after exposure. Unconfigured fallback collisions
-  // must allocate around already exposed IDs because a finite 4-to-6 hex
-  // namespace cannot both freeze old screenshots and globally remap later data.
+  // collider metadata: validation prevents declared/generated collisions before
+  // labels are exposed. Once an ID is visible or returned by getColliders(), it
+  // is an immutable screenshot/DevTools anchor: split fallback registrations
+  // intentionally allocate later colliders around those already exposed IDs
+  // instead of remapping old screenshots to a different collider.
   allocationItems.sort((left, right) => {
     const primaryComparison = left.primaryId.localeCompare(right.primaryId);
     if (primaryComparison !== 0) {

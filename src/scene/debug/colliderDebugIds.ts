@@ -32,6 +32,9 @@ const DECLARED_RUNTIME_COLLIDER_IDS = {
 } as const satisfies Record<string, string>;
 
 const DECLARED_REGRESSION_COLLIDER_IDS = {
+  // Greptile regression pair: these names historically shared fallback primary
+  // FB7D89, so declare code-owned IDs instead of depending on registration
+  // timing to decide which collider owns that visible screenshot anchor.
   'collision-1104': 'C1104',
   'collision-2488': 'C2488',
 } as const satisfies Record<string, string>;
