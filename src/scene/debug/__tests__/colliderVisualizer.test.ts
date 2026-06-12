@@ -240,8 +240,8 @@ describe('createColliderVisualizer', () => {
     });
 
     expect(colliders.map((next) => createColliderDebugId(next))).toEqual([
-      '0E4528',
-      'E36988',
+      'E60005',
+      'E60D71',
     ]);
 
     batchedVisualizer.register(colliders);
@@ -318,7 +318,7 @@ describe('createColliderVisualizer', () => {
     expect(ids).not.toContain('BC930D');
   });
 
-  it('keeps same-primary collision IDs stable across batch registration order', () => {
+  it('keeps Greptile same-primary regression IDs stable across batch registration order', () => {
     const colliders = [
       {
         floor: 'ground' as const,
@@ -339,7 +339,7 @@ describe('createColliderVisualizer', () => {
     const reversedVisualizer = createColliderVisualizer({
       activeFloorId: 'ground',
     });
-    expect(createColliderDebugId(colliders[0])).toBe(
+    expect(createColliderDebugId(colliders[0])).not.toBe(
       createColliderDebugId(colliders[1])
     );
 
@@ -359,8 +359,11 @@ describe('createColliderVisualizer', () => {
     expect(ids.every((id) => !id.includes('-'))).toBe(true);
   });
 
-  it('preserves exposed IDs when later registrations collide', () => {
+  it('keeps Greptile same-primary regression IDs stable when registration is split', () => {
     const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const batchedVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
     const firstCollider = {
       floor: 'ground' as const,
       category: 'walls',
@@ -374,10 +377,11 @@ describe('createColliderVisualizer', () => {
       bounds: collider,
     };
 
-    expect(createColliderDebugId(firstCollider)).toBe(
+    expect(createColliderDebugId(firstCollider)).not.toBe(
       createColliderDebugId(collidingCollider)
     );
 
+    batchedVisualizer.register([collidingCollider, firstCollider]);
     visualizer.register([firstCollider]);
     const exposedId = visualizer.getColliders()[0].id;
     const exposedMeshName = visualizer.group.children.find(
@@ -399,7 +403,12 @@ describe('createColliderVisualizer', () => {
 
     expect(collidersByName.get('collision-2488')?.id).toBe(exposedId);
     expect(visualizer.getColliderById(exposedId)?.name).toBe('collision-2488');
-    expect(collidersByName.get('collision-1104')?.id).not.toBe(exposedId);
+    expect(collidersByName.get('collision-1104')?.id).toBe(
+      createColliderDebugId(collidingCollider)
+    );
+    expect(collidersByName).toEqual(
+      new Map(batchedVisualizer.getColliders().map((next) => [next.name, next]))
+    );
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
     expect(ids.every((id) => !id.includes('-'))).toBe(true);

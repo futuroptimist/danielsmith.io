@@ -64,7 +64,7 @@ const DEBUG_ID_MAX_LENGTH = 6;
 const DEBUG_ID_PRECISION = 2;
 // Keep the visible primary ID namespaced from the raw metadata hash so
 // historical raw-prefix collisions do not decide screenshot-visible labels.
-const DEBUG_ID_PRIMARY_SALT = 'debug-id:v2';
+const DEBUG_ID_PRIMARY_SALT = 'debug-id:v3';
 const LABEL_CANVAS_WIDTH = 256;
 const LABEL_CANVAS_HEIGHT = 128;
 const LABEL_TEXT_MAX_WIDTH = LABEL_CANVAS_WIDTH - 48;
@@ -141,7 +141,34 @@ const getColliderDebugHash = (seed: string): string =>
     .toUpperCase()
     .padStart(DEBUG_ID_MAX_LENGTH, '0');
 
+const getTrailingNumericNameId = (seed: string): string | undefined => {
+  const parts = seed.split('|');
+  const name = parts[0];
+  const numericMatch = name.match(/^(?<prefix>.*?)(?<numericSuffix>\d+)$/);
+  if (!numericMatch?.groups) {
+    return undefined;
+  }
+
+  const numericSuffix = Number.parseInt(numericMatch.groups.numericSuffix, 10);
+  if (!Number.isSafeInteger(numericSuffix) || numericSuffix < 0) {
+    return undefined;
+  }
+
+  const stableNamePrefix = numericMatch.groups.prefix;
+  const stableContext = [stableNamePrefix, ...parts.slice(1)].join('|');
+  const contextPrefix = getColliderDebugHash(
+    `${stableContext}|${DEBUG_ID_PRIMARY_SALT}|numeric-context`
+  ).slice(0, 2);
+  const suffixId = (numericSuffix % 0x10000)
+    .toString(16)
+    .toUpperCase()
+    .padStart(4, '0');
+
+  return `${contextPrefix}${suffixId}`;
+};
+
 const getColliderDebugPrimaryId = (seed: string): string =>
+  getTrailingNumericNameId(seed) ??
   getColliderDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
 
 const getColliderDebugIdCandidates = (seed: string): string[] => {
