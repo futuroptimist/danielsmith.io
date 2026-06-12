@@ -153,6 +153,30 @@ export function createColliderDebugId(
     return primaryCandidate;
   }
 
+  return getColliderDebugRetryId(seed, new Set(usedIds));
+}
+
+const getMetadataWithoutId = (
+  metadata: DebugColliderMetadata
+): Omit<DebugColliderMetadata, 'id'> => ({
+  floor: metadata.floor,
+  category: metadata.category,
+  name: metadata.name,
+  bounds: cloneBounds(metadata.bounds),
+});
+
+interface DebugColliderIdRecord {
+  index: number;
+  seed: string;
+  primaryId: string;
+  seedOccurrence: number;
+  seedOccurrenceCount: number;
+}
+
+const getColliderDebugRetryId = (
+  seed: string,
+  usedIds: Set<string>
+): string => {
   for (
     let retryIndex = 1;
     retryIndex < Number.MAX_SAFE_INTEGER;
@@ -168,7 +192,58 @@ export function createColliderDebugId(
   }
 
   throw new Error('Unable to allocate a short collider debug ID');
-}
+};
+
+const allocateColliderDebugIds = (
+  metadataList: readonly Omit<DebugColliderMetadata, 'id'>[]
+): string[] => {
+  const seedCounts = new Map<string, number>();
+  const primaryCounts = new Map<string, number>();
+  const records = metadataList.map((metadata, index) => {
+    const seed = getColliderDebugSeed(metadata);
+    const primaryId = getColliderDebugHash(seed);
+    const seedOccurrence = seedCounts.get(seed) ?? 0;
+    seedCounts.set(seed, seedOccurrence + 1);
+    primaryCounts.set(primaryId, (primaryCounts.get(primaryId) ?? 0) + 1);
+    return { index, seed, primaryId, seedOccurrence };
+  });
+  const recordsWithCounts: DebugColliderIdRecord[] = records.map((record) => ({
+    ...record,
+    seedOccurrenceCount: seedCounts.get(record.seed) ?? 1,
+  }));
+
+  const ids = Array<string>(metadataList.length);
+  const usedIds = new Set<string>();
+  for (const record of recordsWithCounts) {
+    if ((primaryCounts.get(record.primaryId) ?? 0) === 1) {
+      ids[record.index] = record.primaryId;
+      usedIds.add(record.primaryId);
+    }
+  }
+
+  const collisionRecords = recordsWithCounts
+    .filter((record) => (primaryCounts.get(record.primaryId) ?? 0) > 1)
+    .sort(
+      (left, right) =>
+        left.primaryId.localeCompare(right.primaryId) ||
+        left.seed.localeCompare(right.seed) ||
+        left.seedOccurrence - right.seedOccurrence
+    );
+
+  for (const record of collisionRecords) {
+    // Identical metadata has no stable differentiator beyond deterministic
+    // registration occurrence, so only exact duplicates receive this salt.
+    const retrySeed =
+      record.seedOccurrenceCount > 1
+        ? `${record.seed}|occurrence:${record.seedOccurrence}`
+        : record.seed;
+    const id = getColliderDebugRetryId(retrySeed, usedIds);
+    ids[record.index] = id;
+    usedIds.add(id);
+  }
+
+  return ids;
+};
 
 const getLabelPaletteIndex = (id: string): number => {
   const numericPrefix = Number.parseInt(
@@ -289,6 +364,36 @@ const createColliderLabel = (
   return label;
 };
 
+const getDebugColliderMeshName = (metadata: DebugColliderMetadata): string =>
+  `DebugCollider:${metadata.id}:${metadata.floor}:${metadata.category}:${metadata.name}`;
+
+const applyDebugIdToEntry = (
+  entry: DebugColliderVisualEntry,
+  id: string
+): void => {
+  if (entry.metadata.id === id) {
+    return;
+  }
+
+  entry.metadata.id = id;
+  entry.mesh.name = getDebugColliderMeshName(entry.metadata);
+  entry.mesh.userData.colliderDebug = {
+    id,
+    floor: entry.metadata.floor,
+    category: entry.metadata.category,
+    name: entry.metadata.name,
+  };
+
+  const labelColor = LABEL_PALETTE[getLabelPaletteIndex(id)];
+  const texture = createLabelTexture(id, labelColor);
+  entry.label.material.map?.dispose();
+  entry.label.material.map = texture ?? null;
+  entry.label.material.color.set(texture ? 0xffffff : labelColor);
+  entry.label.material.needsUpdate = true;
+  entry.label.name = `DebugColliderLabel:${id}`;
+  entry.label.userData.colliderDebugLabel = { id };
+};
+
 export function createColliderVisualizer(options: {
   activeFloorId: FloorId;
   enabled?: boolean;
@@ -299,7 +404,6 @@ export function createColliderVisualizer(options: {
   group.userData.debugOnly = true;
 
   const entries: DebugColliderVisualEntry[] = [];
-  const usedIds = new Set<string>();
   let enabled = options.enabled ?? false;
   let activeFloorId = options.activeFloorId;
 
@@ -314,18 +418,25 @@ export function createColliderVisualizer(options: {
   };
 
   const register = (colliders: readonly DebugColliderRegistration[]) => {
-    for (const collider of colliders) {
-      const metadataWithoutId = {
-        floor: collider.floor,
-        category: collider.category,
-        name: collider.name,
-        bounds: cloneBounds(collider.bounds),
-      };
-      // Exact duplicate metadata has no stable differentiator beyond
-      // deterministic registration occurrence, so usedIds only salts true
-      // six-character collisions and duplicates.
-      const id = createColliderDebugId(metadataWithoutId, usedIds);
-      usedIds.add(id);
+    const metadataWithoutIds = colliders.map((collider) => ({
+      floor: collider.floor,
+      category: collider.category,
+      name: collider.name,
+      bounds: cloneBounds(collider.bounds),
+    }));
+    const existingEntryCount = entries.length;
+    const nextIds = allocateColliderDebugIds([
+      ...entries.map((entry) => getMetadataWithoutId(entry.metadata)),
+      ...metadataWithoutIds,
+    ]);
+
+    entries.forEach((entry, index) => {
+      applyDebugIdToEntry(entry, nextIds[index]);
+    });
+
+    for (const [colliderIndex, collider] of colliders.entries()) {
+      const metadataWithoutId = metadataWithoutIds[colliderIndex];
+      const id = nextIds[existingEntryCount + colliderIndex];
 
       const width = Math.max(
         collider.bounds.maxX - collider.bounds.minX,
@@ -346,11 +457,11 @@ export function createColliderVisualizer(options: {
         wireframe: true,
       });
       const mesh = new Mesh(geometry, material);
-      mesh.name = `DebugCollider:${id}:${collider.floor}:${collider.category}:${collider.name}`;
       const centerX = (collider.bounds.minX + collider.bounds.maxX) / 2;
       const centerZ = (collider.bounds.minZ + collider.bounds.maxZ) / 2;
       const baseElevation = collider.elevation ?? 0;
       mesh.position.set(centerX, baseElevation + height / 2, centerZ);
+      mesh.name = getDebugColliderMeshName({ id, ...metadataWithoutId });
       mesh.renderOrder = 10_000;
       mesh.userData.debugOnly = true;
       mesh.userData.colliderDebug = {
@@ -437,7 +548,6 @@ export function createColliderVisualizer(options: {
         entry.label.material.dispose();
       }
       entries.length = 0;
-      usedIds.clear();
       const parent = group.parent as Object3D | null;
       parent?.remove(group);
     },
