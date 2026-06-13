@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { FLOOR_PLAN_SCALE, UPPER_FLOOR_PLAN } from '../../../assets/floorPlan';
 import {
   computeStairLayout,
+  computeStaircaseLandingBounds,
   computeStairwellOpeningBounds,
 } from '../../../systems/movement/stairLayout';
 import { createRoomFloorTiles } from '../floorTiles';
@@ -138,5 +139,89 @@ describe('createRoomFloorTiles', () => {
     expect(material.transparent).toBe(false);
     expect(material.opacity).toBe(1);
     expect(material.depthWrite).toBe(true);
+  });
+
+  it('cuts the visible staircase landing footprint out of the upper landing floor', () => {
+    const material = new MeshStandardMaterial();
+    const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+      (room) => room.id === 'upperLanding'
+    );
+    expect(upperLandingRoom).toBeDefined();
+
+    const playerRadius = 0.75;
+    const stairCenterX = toWorldUnits(6.2);
+    const stairHalfWidth = toWorldUnits(3.1) / 2;
+    const stairwellMarginX = toWorldUnits(0.2);
+    const stairLayout = computeStairLayout({
+      baseZ: toWorldUnits(-5.3),
+      stepRun: toWorldUnits(0.85),
+      stepCount: 9,
+      landingDepth: toWorldUnits(2.6),
+      direction: 'negativeZ',
+      guardMargin: toWorldUnits(0.6),
+      stairwellMargin: toWorldUnits(0.4),
+    });
+    const stairwellOpening = computeStairwellOpeningBounds({
+      centerX: stairCenterX,
+      halfWidth: stairHalfWidth,
+      marginX: stairwellMarginX,
+      roomBounds: upperLandingRoom!.bounds,
+      layout: stairLayout,
+    });
+    const visibleStairLandingBounds = computeStaircaseLandingBounds({
+      centerX: stairCenterX,
+      halfWidth: stairHalfWidth,
+      layout: stairLayout,
+    });
+    const upperStairWestEgressLaneX =
+      stairCenterX - stairHalfWidth + playerRadius * 0.75;
+    const upperStairWestEgressBlockerMinX =
+      upperStairWestEgressLaneX + playerRadius + 0.01;
+
+    const build = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+      material,
+      elevation: 4,
+      thickness: 0.38,
+      groupName: 'UpperFloorTiles',
+      cutoutsByRoom: {
+        upperLanding: [
+          visibleStairLandingBounds,
+          {
+            ...stairwellOpening,
+            minX: upperStairWestEgressBlockerMinX,
+          },
+        ],
+      },
+    });
+
+    const upperLandingTiles = build.tiles.filter(
+      (tile) => tile.roomId === 'upperLanding'
+    );
+
+    expect(upperLandingTiles.length).toBeGreaterThan(0);
+    expect(
+      upperLandingTiles.some((tile) =>
+        overlaps(tile.bounds, visibleStairLandingBounds)
+      )
+    ).toBe(false);
+    expect(
+      upperLandingTiles.some((tile) =>
+        overlaps(tile.bounds, {
+          ...visibleStairLandingBounds,
+          minX: visibleStairLandingBounds.minX + 0.01,
+          maxX: upperStairWestEgressBlockerMinX - 0.01,
+        })
+      )
+    ).toBe(false);
+    expect(
+      upperLandingTiles.some((tile) =>
+        boundsAreClose(tile.bounds, {
+          minX: upperLandingRoom!.bounds.minX,
+          maxX: visibleStairLandingBounds.minX,
+          minZ: upperLandingRoom!.bounds.minZ,
+          maxZ: upperLandingRoom!.bounds.maxZ,
+        })
+      )
+    ).toBe(true);
   });
 });

@@ -17,6 +17,12 @@ export interface StairwellBounds {
   maxZ: number;
 }
 
+export interface StaircaseLandingBoundsConfig {
+  centerX: number;
+  halfWidth: number;
+  layout: Pick<StairLayoutResult, 'landingMinZ' | 'landingMaxZ'>;
+}
+
 export interface StairwellOpeningConfig {
   centerX: number;
   halfWidth: number;
@@ -86,6 +92,15 @@ export const computeStairLayout = (
     stairHoleRange: { minZ: stairHoleMinZ, maxZ: stairHoleMaxZ },
   };
 };
+
+export const computeStaircaseLandingBounds = (
+  config: StaircaseLandingBoundsConfig
+): StairwellBounds => ({
+  minX: config.centerX - config.halfWidth,
+  maxX: config.centerX + config.halfWidth,
+  minZ: config.layout.landingMinZ,
+  maxZ: config.layout.landingMaxZ,
+});
 
 /**
  * Clips the visible upstairs stairwell hole to the landing room while deriving

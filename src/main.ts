@@ -378,6 +378,7 @@ import {
 } from './systems/movement/facing';
 import {
   computeStairLayout,
+  computeStaircaseLandingBounds,
   computeStairwellOpeningBounds,
 } from './systems/movement/stairLayout';
 import {
@@ -1904,6 +1905,11 @@ function initializeImmersiveScene(
   const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
   );
+  const visibleStairLandingBounds = computeStaircaseLandingBounds({
+    centerX: stairCenterX,
+    halfWidth: stairHalfWidth,
+    layout: stairLayout,
+  });
   const upperStairwellOpening = upperLandingRoom
     ? computeStairwellOpeningBounds({
         centerX: stairCenterX,
@@ -2093,6 +2099,10 @@ function initializeImmersiveScene(
     upperLandingRoom && upperStairwellOpening
       ? {
           upperLanding: [
+            // Remove the visible StaircaseLanding slab footprint at its exact
+            // upper-floor elevation so room floor tiles meet it without a
+            // coplanar overlap that flickers in the isometric camera view.
+            visibleStairLandingBounds,
             {
               ...upperStairwellOpening,
               minX: upperStairWestEgressBlockerMinX,
