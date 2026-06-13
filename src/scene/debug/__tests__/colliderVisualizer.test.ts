@@ -1,4 +1,4 @@
-import type { Material, Mesh, Sprite } from 'three';
+import type { Mesh, MeshBasicMaterial, Sprite, SpriteMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -224,19 +224,50 @@ describe('createColliderVisualizer', () => {
     const label = visualizer.group.children.find(
       (child) => child.type === 'Sprite'
     ) as Sprite;
-    const material = mesh.material as Material;
+    const material = mesh.material as MeshBasicMaterial;
 
     expect(mesh.raycast({} as never, [] as never)).toBeUndefined();
     expect(label.raycast({} as never, [] as never)).toBeUndefined();
-    const labelMaterial = label.material as Material;
+    const labelMaterial = label.material as SpriteMaterial;
 
     expect(material.depthTest).toBe(false);
     expect(label.renderOrder).toBeGreaterThan(mesh.renderOrder);
     expect(label.frustumCulled).toBe(false);
-    expect(label.scale.x).toBeGreaterThan(2);
+    expect(label.scale.x).toBeCloseTo(1.6);
+    expect(label.scale.y).toBeCloseTo(0.8);
     expect(label.position.y).toBeGreaterThan(mesh.position.y);
+    expect(material.color.getHex()).toBe(labelMaterial.color.getHex());
     expect(labelMaterial.depthTest).toBe(false);
     expect(labelMaterial.depthWrite).toBe(false);
+  });
+
+  it('keeps explicit collider color overrides synced between wireframes and labels', () => {
+    const visualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+      enabled: true,
+    });
+
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'static',
+        name: 'custom-color',
+        bounds: collider,
+        color: 'hotpink',
+      },
+    ]);
+
+    const mesh = visualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    ) as Mesh;
+    const label = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    ) as Sprite;
+    const material = mesh.material as MeshBasicMaterial;
+    const labelMaterial = label.material as SpriteMaterial;
+
+    expect(material.color.getStyle()).toBe('rgb(255,105,180)');
+    expect(labelMaterial.color.getHex()).toBe(material.color.getHex());
   });
 
   it('keeps six-character IDs stable across four-character prefix collisions', () => {
