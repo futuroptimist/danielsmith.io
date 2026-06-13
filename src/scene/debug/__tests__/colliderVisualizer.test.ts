@@ -500,7 +500,7 @@ describe('createColliderVisualizer', () => {
     ).toBe(reverseExposedLabelName);
   });
 
-  it('keeps exposed fallback IDs valid when later same-primary colliders register', () => {
+  it('keeps exposed fallback IDs valid when split registration differs from batch', () => {
     const colliders = [
       {
         floor: 'ground' as const,
@@ -515,35 +515,51 @@ describe('createColliderVisualizer', () => {
         bounds: collider,
       },
     ];
-    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const batchVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const splitVisualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
 
     expect(createColliderDebugId(colliders[0])).toBe(
       createColliderDebugId(colliders[1])
     );
 
-    visualizer.register([colliders[0]]);
-    const exposedCollider = visualizer.getColliders()[0];
-    const exposedMeshName = visualizer.group.children.find(
+    batchVisualizer.register(colliders);
+    splitVisualizer.register([colliders[0]]);
+    const exposedCollider = splitVisualizer.getColliders()[0];
+    const exposedMeshName = splitVisualizer.group.children.find(
       (child) => child.type === 'Mesh'
     )?.name;
-    const exposedLabelName = visualizer.group.children.find(
+    const exposedLabelName = splitVisualizer.group.children.find(
       (child) => child.type === 'Sprite'
     )?.name;
 
-    visualizer.register([colliders[1]]);
+    splitVisualizer.register([colliders[1]]);
 
-    const ids = visualizer.getColliders().map((next) => next.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(ids.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
-    expect(ids.every((id) => !id.includes('-'))).toBe(true);
-    expect(visualizer.getColliderById(exposedCollider.id)).toEqual(
+    const batchIdsByName = new Map(
+      batchVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const splitIdsByName = new Map(
+      splitVisualizer.getColliders().map((next) => [next.name, next.id])
+    );
+    const splitIds = [...splitIdsByName.values()];
+
+    expect(batchIdsByName).not.toEqual(splitIdsByName);
+    expect(new Set(splitIds).size).toBe(splitIds.length);
+    expect(splitIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
+    expect(splitIds.every((id) => !id.includes('-'))).toBe(true);
+    expect(splitVisualizer.getColliderById(exposedCollider.id)).toEqual(
       exposedCollider
     );
     expect(
-      visualizer.group.children.find((child) => child.type === 'Mesh')?.name
+      splitVisualizer.group.children.find((child) => child.type === 'Mesh')
+        ?.name
     ).toBe(exposedMeshName);
     expect(
-      visualizer.group.children.find((child) => child.type === 'Sprite')?.name
+      splitVisualizer.group.children.find((child) => child.type === 'Sprite')
+        ?.name
     ).toBe(exposedLabelName);
   });
 

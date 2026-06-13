@@ -230,10 +230,11 @@ const allocateColliderDebugIds = (
 
   // Config-declared runtime IDs are the deterministic invariant for real
   // collider metadata: validation prevents declared/generated collisions before
-  // labels are exposed. Once an ID is visible or returned by getColliders(), it
-  // is an immutable screenshot/DevTools anchor: split fallback registrations
-  // intentionally allocate later colliders around those already exposed IDs
-  // instead of remapping old screenshots to a different collider.
+  // labels are exposed. For unconfigured fallback metadata, an ID that has been
+  // visible or returned by getColliders() is an immutable screenshot/DevTools
+  // anchor. Split fallback registrations therefore allocate later colliders
+  // around already exposed IDs by design instead of remapping old screenshots
+  // to a different collider just to match a never-exposed batch allocation.
   allocationItems.sort((left, right) => {
     const primaryComparison = left.primaryId.localeCompare(right.primaryId);
     if (primaryComparison !== 0) {
