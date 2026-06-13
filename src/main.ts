@@ -2096,11 +2096,24 @@ function initializeImmersiveScene(
     minZ: stairLandingMinZ,
     maxZ: stairLandingMaxZ,
   };
+  const finalStairStepFootprint = {
+    minX: stairCenterX - stairHalfWidth,
+    maxX: stairCenterX + stairHalfWidth,
+    minZ: Math.min(
+      stairTopZ,
+      stairTopZ - stairLayout.directionMultiplier * stairRun
+    ),
+    maxZ: Math.max(
+      stairTopZ,
+      stairTopZ - stairLayout.directionMultiplier * stairRun
+    ),
+  };
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
           upperLanding: createUpperLandingFloorCutouts({
             staircaseLandingFootprint,
+            finalStairStepFootprint,
             stairwellOpening: upperStairwellOpening,
             hiddenRunVoidMinX: upperStairWestEgressBlockerMinX,
           }),

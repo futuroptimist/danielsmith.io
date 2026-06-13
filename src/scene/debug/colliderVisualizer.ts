@@ -39,6 +39,8 @@ export interface DebugColliderVisualizerState {
   enabled: boolean;
   visibleColliderCount: number;
   totalColliderCount: number;
+  visibleLabelCount: number;
+  totalLabelCount: number;
 }
 
 interface DebugColliderVisualEntry {
@@ -72,9 +74,9 @@ const LABEL_CANVAS_HEIGHT = 128;
 const LABEL_TEXT_MAX_WIDTH = LABEL_CANVAS_WIDTH - 48;
 const LABEL_FONT_MAX_SIZE = 54;
 const LABEL_FONT_MIN_SIZE = 28;
-const LABEL_SCALE_X = 1.15;
-const LABEL_SCALE_Y = 0.58;
-const LABEL_VERTICAL_GAP = 0.18;
+const LABEL_SCALE_X = 3.2;
+const LABEL_SCALE_Y = 1.6;
+const LABEL_VERTICAL_GAP = 0.65;
 const LABEL_PALETTE = [
   '#8BE9FD',
   '#F1FA8C',
@@ -366,13 +368,15 @@ const createColliderLabel = (
     color: texture ? 0xffffff : color,
     depthTest: false,
     depthWrite: false,
-    opacity: 0.95,
+    opacity: 0.98,
+    toneMapped: false,
     transparent: true,
     ...(texture ? { map: texture } : {}),
   });
   const label = new Sprite(material);
   label.name = `DebugColliderLabel:${id}`;
-  label.renderOrder = 10_001;
+  label.renderOrder = 20_001;
+  label.frustumCulled = false;
   label.scale.set(LABEL_SCALE_X, LABEL_SCALE_Y, 1);
   label.userData.debugOnly = true;
   label.userData.colliderDebugLabel = { id };
@@ -436,6 +440,7 @@ export function createColliderVisualizer(options: {
         depthWrite: false,
         opacity: 0.42,
         transparent: true,
+        toneMapped: false,
         wireframe: true,
       });
       const mesh = new Mesh(geometry, material);
@@ -444,7 +449,8 @@ export function createColliderVisualizer(options: {
       const baseElevation = collider.elevation ?? 0;
       mesh.position.set(centerX, baseElevation + height / 2, centerZ);
       mesh.name = getDebugColliderMeshName({ id, ...metadataWithoutId });
-      mesh.renderOrder = 10_000;
+      mesh.renderOrder = 20_000;
+      mesh.frustumCulled = false;
       mesh.userData.debugOnly = true;
       mesh.userData.colliderDebug = {
         id,
@@ -475,7 +481,7 @@ export function createColliderVisualizer(options: {
     applyVisibility();
   };
 
-  const getVisibleColliderCount = () =>
+  const getVisibleEntryCount = () =>
     enabled
       ? entries.filter((entry) =>
           isVisibleOnFloor(entry.metadata.floor, activeFloorId)
@@ -506,8 +512,10 @@ export function createColliderVisualizer(options: {
     getState() {
       return {
         enabled,
-        visibleColliderCount: getVisibleColliderCount(),
+        visibleColliderCount: getVisibleEntryCount(),
         totalColliderCount: entries.length,
+        visibleLabelCount: getVisibleEntryCount(),
+        totalLabelCount: entries.length,
       };
     },
     getColliders() {

@@ -155,6 +155,8 @@ describe('createColliderVisualizer', () => {
       enabled: false,
       visibleColliderCount: 0,
       totalColliderCount: 3,
+      visibleLabelCount: 0,
+      totalLabelCount: 3,
     });
 
     visualizer.setEnabled(true);
@@ -162,10 +164,13 @@ describe('createColliderVisualizer', () => {
       enabled: true,
       visibleColliderCount: 2,
       totalColliderCount: 3,
+      visibleLabelCount: 2,
+      totalLabelCount: 3,
     });
 
     visualizer.setActiveFloor('upper');
     expect(visualizer.getState().visibleColliderCount).toBe(2);
+    expect(visualizer.getState().visibleLabelCount).toBe(2);
   });
 
   it('returns redacted metadata copies and non-raycasting meshes', () => {
@@ -223,7 +228,15 @@ describe('createColliderVisualizer', () => {
 
     expect(mesh.raycast({} as never, [] as never)).toBeUndefined();
     expect(label.raycast({} as never, [] as never)).toBeUndefined();
+    const labelMaterial = label.material as Material;
+
     expect(material.depthTest).toBe(false);
+    expect(label.renderOrder).toBeGreaterThan(mesh.renderOrder);
+    expect(label.frustumCulled).toBe(false);
+    expect(label.scale.x).toBeGreaterThan(2);
+    expect(label.position.y).toBeGreaterThan(mesh.position.y);
+    expect(labelMaterial.depthTest).toBe(false);
+    expect(labelMaterial.depthWrite).toBe(false);
   });
 
   it('keeps six-character IDs stable across four-character prefix collisions', () => {
@@ -628,6 +641,12 @@ describe('createColliderVisualizer', () => {
 
     visualizer.setEnabled(true);
     expect(labels.map((label) => label.visible)).toEqual([true, false]);
+    expect(visualizer.getState()).toMatchObject({
+      visibleColliderCount: 1,
+      totalColliderCount: 2,
+      visibleLabelCount: 1,
+      totalLabelCount: 2,
+    });
 
     visualizer.setActiveFloor('upper');
     expect(labels.map((label) => label.visible)).toEqual([false, true]);
