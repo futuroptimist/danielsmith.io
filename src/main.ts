@@ -377,6 +377,7 @@ import {
   normalizeRadians,
 } from './systems/movement/facing';
 import {
+  computeStaircaseLandingBounds,
   computeStairLayout,
   computeStairwellOpeningBounds,
 } from './systems/movement/stairLayout';
@@ -1831,6 +1832,11 @@ function initializeImmersiveScene(
   const stairLandingMaxZ = stairLayout.landingMaxZ;
   const upperFloorElevation =
     stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
+  const staircaseLandingBounds = computeStaircaseLandingBounds({
+    centerX: stairCenterX,
+    halfWidth: stairHalfWidth,
+    layout: stairLayout,
+  });
   const stairGeometry: StairGeometry = {
     centerX: stairCenterX,
     halfWidth: stairHalfWidth,
@@ -2095,7 +2101,17 @@ function initializeImmersiveScene(
           upperLanding: [
             {
               ...upperStairwellOpening,
-              minX: upperStairWestEgressBlockerMinX,
+              // Keep the upper-floor tile edge outside the physical landing's
+              // top surface; leaving this at the west egress blocker edge
+              // made the floor slab coplanar with StaircaseLanding and caused
+              // z-fighting stripes around the upper stair landing.
+              minX: Math.max(
+                upperStairwellOpening.minX,
+                Math.min(
+                  upperStairWestEgressBlockerMinX,
+                  staircaseLandingBounds.minX
+                )
+              ),
             },
           ],
         }

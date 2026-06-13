@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  computeStaircaseLandingBounds,
   computeStairLayout,
   computeStairwellOpeningBounds,
 } from '../../systems/movement/stairLayout';
@@ -46,6 +47,29 @@ describe('computeStairLayout', () => {
       guardRange: { minZ: -0.5, maxZ: 5 },
       stairHoleRange: { minZ: -0.25, maxZ: 5.25 },
     });
+  });
+
+  it('derives the physical stair landing footprint separately from the wider void', () => {
+    const layout = computeStairLayout({
+      baseZ: -10.6,
+      stepRun: 1.7,
+      stepCount: 9,
+      landingDepth: 5.2,
+      direction: 'negativeZ',
+      guardMargin: 1.2,
+      stairwellMargin: 0.8,
+    });
+
+    const landing = computeStaircaseLandingBounds({
+      centerX: 9.92,
+      halfWidth: 2.48,
+      layout,
+    });
+
+    expect(landing.minX).toBeCloseTo(7.44);
+    expect(landing.maxX).toBeCloseTo(12.4);
+    expect(landing.minZ).toBeCloseTo(-31.1);
+    expect(landing.maxZ).toBeCloseTo(-25.9);
   });
 
   it('clips upstairs stairwell hole bounds from the shared stair layout plus margin', () => {
