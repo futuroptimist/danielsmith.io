@@ -256,6 +256,7 @@ import {
   type SigmaWorkbenchBuild,
 } from './scene/structures/sigmaWorkbench';
 import {
+  computeStaircaseLandingBounds,
   createStaircase,
   type StaircaseConfig,
 } from './scene/structures/staircase';
@@ -1829,6 +1830,8 @@ function initializeImmersiveScene(
   const stairTopZ = stairLayout.topZ;
   const stairLandingMinZ = stairLayout.landingMinZ;
   const stairLandingMaxZ = stairLayout.landingMaxZ;
+  const stairLandingVisualBounds =
+    computeStaircaseLandingBounds(STAIRCASE_CONFIG);
   const upperFloorElevation =
     stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
   const stairGeometry: StairGeometry = {
@@ -2093,6 +2096,10 @@ function initializeImmersiveScene(
     upperLandingRoom && upperStairwellOpening
       ? {
           upperLanding: [
+            // Remove the visible StaircaseLanding slab footprint from the
+            // upper-floor tile mesh. The slab top is intentionally coplanar
+            // with the upper floor, so leaving any overlap causes z-fighting.
+            stairLandingVisualBounds,
             {
               ...upperStairwellOpening,
               minX: upperStairWestEgressBlockerMinX,

@@ -52,6 +52,24 @@ export interface StaircaseBuildResult {
   totalRise: number;
 }
 
+export function computeStaircaseLandingBounds(
+  config: StaircaseConfig
+): RectCollider {
+  const direction = config.direction ?? 'positiveZ';
+  const directionMultiplier = direction === 'negativeZ' ? -1 : 1;
+  const landingCenterZ =
+    config.basePosition.z +
+    directionMultiplier *
+      (config.step.run * config.step.count + config.landing.depth / 2);
+
+  return {
+    minX: config.basePosition.x - config.step.width / 2,
+    maxX: config.basePosition.x + config.step.width / 2,
+    minZ: landingCenterZ - config.landing.depth / 2,
+    maxZ: landingCenterZ + config.landing.depth / 2,
+  };
+}
+
 /**
  * Creates a rectangular staircase with uniform treads, landing, and structural supports.
  * The geometry is intentionally data-driven so future automation can adjust sizes or
@@ -110,22 +128,21 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
     config.landing.thickness,
     config.landing.depth
   );
+  const landingVisualBounds = computeStaircaseLandingBounds(config);
   const landing = new Mesh(landingGeometry, landingMaterial);
   landing.position.set(
-    basePosition.x,
+    (landingVisualBounds.minX + landingVisualBounds.maxX) / 2,
     basePosition.y + totalRise + config.landing.thickness / 2,
-    basePosition.z +
-      directionMultiplier *
-        (config.step.run * config.step.count + config.landing.depth / 2)
+    (landingVisualBounds.minZ + landingVisualBounds.maxZ) / 2
   );
   landing.name = 'StaircaseLanding';
   group.add(landing);
 
   colliders.push({
-    minX: landing.position.x - config.step.width / 2 + landingColliderInset,
-    maxX: landing.position.x + config.step.width / 2 - landingColliderInset,
-    minZ: landing.position.z - config.landing.depth / 2 + landingColliderInset,
-    maxZ: landing.position.z + config.landing.depth / 2 - landingColliderInset,
+    minX: landingVisualBounds.minX + landingColliderInset,
+    maxX: landingVisualBounds.maxX - landingColliderInset,
+    minZ: landingVisualBounds.minZ + landingColliderInset,
+    maxZ: landingVisualBounds.maxZ - landingColliderInset,
   });
 
   if (config.landing.guard && guardMaterial) {
