@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   CanvasTexture,
+  Color,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -288,6 +289,9 @@ const drawRoundedRect = (
   context.quadraticCurveTo(x, y, x + radius, y);
 };
 
+const getLabelColorStyle = (color: ColorRepresentation): string =>
+  `#${new Color(color).getHexString()}`;
+
 const createLabelTexture = (
   id: string,
   color: string
@@ -427,7 +431,9 @@ export function createColliderVisualizer(options: {
       );
       const height = collider.height ?? DEFAULT_HEIGHT;
       const geometry = new BoxGeometry(width, height, depth);
-      const labelColor = LABEL_PALETTE[getLabelPaletteIndex(id)];
+      const labelColor = getLabelColorStyle(
+        collider.color ?? LABEL_PALETTE[getLabelPaletteIndex(id)]
+      );
       const material = new MeshBasicMaterial({
         color: labelColor,
         depthTest: false,

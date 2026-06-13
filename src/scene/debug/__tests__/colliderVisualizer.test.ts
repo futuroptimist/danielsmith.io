@@ -241,6 +241,35 @@ describe('createColliderVisualizer', () => {
     expect(labelMaterial.depthWrite).toBe(false);
   });
 
+  it('keeps explicit collider color overrides synced between wireframes and labels', () => {
+    const visualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+      enabled: true,
+    });
+
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'static',
+        name: 'custom-color',
+        bounds: collider,
+        color: 'hotpink',
+      },
+    ]);
+
+    const mesh = visualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    ) as Mesh;
+    const label = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    ) as Sprite;
+    const material = mesh.material as MeshBasicMaterial;
+    const labelMaterial = label.material as SpriteMaterial;
+
+    expect(material.color.getStyle()).toBe('rgb(255,105,180)');
+    expect(labelMaterial.color.getHex()).toBe(material.color.getHex());
+  });
+
   it('keeps six-character IDs stable across four-character prefix collisions', () => {
     const colliders = [
       {
