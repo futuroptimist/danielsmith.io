@@ -263,6 +263,7 @@ import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
+import { createUpperLandingFloorCutouts } from './scene/structures/upperLandingFloorCutouts';
 import { createUpperStairwellLanding } from './scene/structures/upperStairwellLanding';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
@@ -2089,15 +2090,20 @@ function initializeImmersiveScene(
     ].forEach(({ name, bounds }) => pushNamedUpperFloorCollider(name, bounds));
   }
 
+  const staircaseLandingFootprint = {
+    minX: stairCenterX - stairHalfWidth,
+    maxX: stairCenterX + stairHalfWidth,
+    minZ: stairLandingMinZ,
+    maxZ: stairLandingMaxZ,
+  };
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening
       ? {
-          upperLanding: [
-            {
-              ...upperStairwellOpening,
-              minX: upperStairWestEgressBlockerMinX,
-            },
-          ],
+          upperLanding: createUpperLandingFloorCutouts({
+            staircaseLandingFootprint,
+            stairwellOpening: upperStairwellOpening,
+            hiddenRunVoidMinX: upperStairWestEgressBlockerMinX,
+          }),
         }
       : undefined;
   const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
