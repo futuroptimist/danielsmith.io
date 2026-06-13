@@ -84,6 +84,7 @@ type DebugColliderBounds = {
 };
 
 type DebugColliderMetadata = {
+  id: string;
   floor: FloorId | 'all';
   category: string;
   name: string;
@@ -98,6 +99,7 @@ type DebugColliderApi = {
     z: number;
     floorId?: FloorId;
   }): DebugColliderMetadata[];
+  getColliderById(id: unknown): DebugColliderMetadata | undefined;
 };
 
 function expectCloseTo(
@@ -787,6 +789,20 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   expect(debugColliderNames).toContain('UpperStairNorthBannisterGuard');
   expect(debugColliderNames).toContain('UpperStairHiddenRunVoidGuard');
 
+  const debugColliderIds = debugColliders.map((collider) => collider.id);
+  expect(debugColliderIds.length).toBeGreaterThan(0);
+  expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
+  expect(debugColliderIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
+  const firstDebugCollider = debugColliders[0];
+  const foundById = await page.evaluate((id) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliderById(id);
+  }, firstDebugCollider.id);
+  expect(foundById).toEqual(firstDebugCollider);
+
   const westBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairWestBannisterGuard'
   );
@@ -935,6 +951,18 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     );
     expect(blockingColliderNames, sample.name).toContain(
       sample.expectedBlocker
+    );
+    const blockingColliderIds = await page.evaluate((target) => {
+      const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+      if (!debugApi) {
+        throw new Error('Debug colliders API unavailable');
+      }
+      return debugApi
+        .getBlockingCollidersAt(target)
+        .map((collider) => collider.id);
+    }, sample.target);
+    expect(blockingColliderIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(
+      true
     );
     expect(blockingColliderNames.length, sample.name).toBeGreaterThan(0);
   }
