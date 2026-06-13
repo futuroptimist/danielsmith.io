@@ -62,7 +62,6 @@ export interface ColliderVisualizer {
 
 const DEFAULT_HEIGHT = 0.08;
 const MIN_DIMENSION = 0.02;
-const DEFAULT_COLOR = 0x66e6ff;
 const DEBUG_ID_MIN_LENGTH = 4;
 const DEBUG_ID_MAX_LENGTH = 6;
 const DEBUG_ID_PRECISION = 2;
@@ -74,9 +73,9 @@ const LABEL_CANVAS_HEIGHT = 128;
 const LABEL_TEXT_MAX_WIDTH = LABEL_CANVAS_WIDTH - 48;
 const LABEL_FONT_MAX_SIZE = 54;
 const LABEL_FONT_MIN_SIZE = 28;
-const LABEL_SCALE_X = 3.2;
-const LABEL_SCALE_Y = 1.6;
-const LABEL_VERTICAL_GAP = 0.65;
+const LABEL_SCALE_X = 1.6;
+const LABEL_SCALE_Y = 0.8;
+const LABEL_VERTICAL_GAP = 0.5;
 const LABEL_PALETTE = [
   '#8BE9FD',
   '#F1FA8C',
@@ -85,12 +84,6 @@ const LABEL_PALETTE = [
   '#BD93F9',
   '#FFB86C',
 ];
-const FLOOR_COLORS: Record<DebugColliderFloor, number> = {
-  ground: 0x2ee66b,
-  upper: 0xf7c948,
-  all: 0x66e6ff,
-};
-
 const cloneBounds = (bounds: RectCollider): RectCollider => ({
   minX: bounds.minX,
   maxX: bounds.maxX,
@@ -434,8 +427,9 @@ export function createColliderVisualizer(options: {
       );
       const height = collider.height ?? DEFAULT_HEIGHT;
       const geometry = new BoxGeometry(width, height, depth);
+      const labelColor = LABEL_PALETTE[getLabelPaletteIndex(id)];
       const material = new MeshBasicMaterial({
-        color: collider.color ?? FLOOR_COLORS[collider.floor] ?? DEFAULT_COLOR,
+        color: labelColor,
         depthTest: false,
         depthWrite: false,
         opacity: 0.42,
@@ -460,7 +454,6 @@ export function createColliderVisualizer(options: {
       };
       mesh.raycast = () => undefined;
 
-      const labelColor = LABEL_PALETTE[getLabelPaletteIndex(id)];
       const label = createColliderLabel(id, labelColor);
       label.position.set(
         centerX,
