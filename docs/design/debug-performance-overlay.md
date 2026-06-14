@@ -1,9 +1,8 @@
 # Debug performance overlay
 
-The immersive scene uses [`stats.js`](https://github.com/mrdoob/stats.js) for the
-optional FPS counter because it is a small, familiar Three.js diagnostic panel
-that can be installed from npm instead of copied into the repository or loaded
-from a CDN.
+The immersive scene uses a small in-house FPS counter for the optional
+performance overlay so locked-down npm registry policies cannot block
+installation or deploys.
 
 ## Toggle, storage, and URL overrides
 
@@ -21,16 +20,15 @@ The debug API mirrors that state at `window.portfolio.debugPerformance` with
 
 ## Deployment note
 
-`stats.js` is a normal npm dependency and `@types/stats.js` provides TypeScript
-coverage. Both `package.json` and `package-lock.json` are updated so Docker and
-sugarkube deployments that run `npm ci` install the same versions used during
-local verification.
+The counter has no runtime package dependency. Docker and sugarkube deployments
+that run `npm ci` only need the repository's existing dependency allowlist.
 
 ## Overlay behavior
 
-The panel is debug-only and non-interactive. It is fixed near the lower-left
-edge of the viewport, does not capture pointer events, and is removed from the
-DOM when disabled. Repeated toggles reuse the same panel node so rerenders and
+The panel is debug-only and non-interactive. It is fixed near the upper-left
+edge of the viewport to avoid overlapping the lower-left coordinate debug
+readout, does not capture pointer events, and is removed from the DOM when
+disabled. Repeated toggles reuse the same panel node so rerenders and
 preference changes do not create duplicates.
 
 ## Manual verification

@@ -1552,6 +1552,7 @@ function initializeImmersiveScene(
       disposeImmersiveResources();
     },
     onFallback: (reason) => {
+      disposeDebugPerformanceRegistration();
       lastFailoverReason = reason;
       inputLatencyTelemetry?.report(`failover-${reason}`);
     },
@@ -6086,6 +6087,13 @@ function initializeImmersiveScene(
     helpKeyWasPressed = pressed;
   }
 
+  function disposeDebugPerformanceRegistration() {
+    debugPerformanceOverlay.dispose();
+    if (window.portfolio?.debugPerformance) {
+      delete window.portfolio.debugPerformance;
+    }
+  }
+
   function disposeImmersiveResources() {
     if (immersiveDisposed) {
       return;
@@ -6314,9 +6322,7 @@ function initializeImmersiveScene(
     if (window.portfolio?.debugCoordinates) {
       delete window.portfolio.debugCoordinates;
     }
-    if (window.portfolio?.debugPerformance) {
-      delete window.portfolio.debugPerformance;
-    }
+    disposeDebugPerformanceRegistration();
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
     }
@@ -6348,7 +6354,6 @@ function initializeImmersiveScene(
       debugFpsControl.remove();
       debugFpsControl = null;
     }
-    debugPerformanceOverlay.dispose();
     if (debugCoordinatesOverlay) {
       debugCoordinatesOverlay.remove();
       debugCoordinatesOverlay = null;

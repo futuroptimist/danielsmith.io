@@ -1,25 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createDebugPerformanceOverlay } from '../performanceOverlay';
 
-const createCanvasContext = () => ({
-  fillRect: vi.fn(),
-  fillText: vi.fn(),
-  drawImage: vi.fn(),
-  getImageData: vi.fn(() => ({ data: new Uint8ClampedArray(4) })),
-  putImageData: vi.fn(),
-  font: '',
-  fillStyle: '',
-  globalAlpha: 1,
-});
-
 describe('debug performance overlay', () => {
-  beforeEach(() => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
-      () => createCanvasContext() as unknown as CanvasRenderingContext2D
-    );
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
     document.body.innerHTML = '';
@@ -36,7 +19,7 @@ describe('debug performance overlay', () => {
     overlay.dispose();
   });
 
-  it('toggles a single non-interactive stats panel without duplicates', () => {
+  it('toggles a single non-interactive FPS panel without duplicates', () => {
     const overlay = createDebugPerformanceOverlay();
 
     overlay.setFpsEnabled(true);
@@ -51,6 +34,9 @@ describe('debug performance overlay', () => {
       panelVisible: true,
     });
     expect((panels[0] as HTMLElement).style.pointerEvents).toBe('none');
+    expect((panels[0] as HTMLElement).style.top).toBe(
+      'max(1rem, env(safe-area-inset-top))'
+    );
 
     overlay.setFpsEnabled(false);
 
@@ -61,5 +47,24 @@ describe('debug performance overlay', () => {
       fpsEnabled: false,
       panelVisible: false,
     });
+  });
+
+  it('updates the in-house FPS label without a runtime dependency', () => {
+    const now = vi.spyOn(performance, 'now');
+    now
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(250)
+      .mockReturnValueOnce(500);
+    const overlay = createDebugPerformanceOverlay();
+
+    overlay.setFpsEnabled(true);
+    overlay.end();
+    overlay.end();
+
+    expect(
+      document.querySelector<HTMLElement>(
+        '[data-debug-performance-panel="fps"]'
+      )?.textContent
+    ).toBe('FPS 4');
   });
 });
