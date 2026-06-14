@@ -155,6 +155,7 @@ describe('createColliderVisualizer', () => {
       enabled: false,
       visibleColliderCount: 0,
       totalColliderCount: 3,
+      idsEnabled: true,
       visibleLabelCount: 0,
       totalLabelCount: 3,
     });
@@ -164,6 +165,7 @@ describe('createColliderVisualizer', () => {
       enabled: true,
       visibleColliderCount: 2,
       totalColliderCount: 3,
+      idsEnabled: true,
       visibleLabelCount: 2,
       totalLabelCount: 3,
     });
@@ -171,6 +173,38 @@ describe('createColliderVisualizer', () => {
     visualizer.setActiveFloor('upper');
     expect(visualizer.getState().visibleColliderCount).toBe(2);
     expect(visualizer.getState().visibleLabelCount).toBe(2);
+  });
+
+  it('can hide collider ID labels while keeping wireframes visible', () => {
+    const visualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+      enabled: true,
+    });
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'static',
+        name: 'static-0',
+        bounds: collider,
+      },
+    ]);
+
+    visualizer.setIdsEnabled(false);
+
+    const mesh = visualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    ) as Mesh;
+    const label = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    ) as Sprite;
+    expect(mesh.visible).toBe(true);
+    expect(label.visible).toBe(false);
+    expect(visualizer.getState().visibleColliderCount).toBe(1);
+    expect(visualizer.getState().visibleLabelCount).toBe(0);
+
+    visualizer.setEnabled(false);
+    expect(mesh.visible).toBe(false);
+    expect(label.visible).toBe(false);
   });
 
   it('returns redacted metadata copies and non-raycasting meshes', () => {
