@@ -809,6 +809,14 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   const northBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairNorthBannisterGuard'
   );
+  const lowerStairAccessBlocker = await page.evaluate(() => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliderById('400A');
+  });
+  expect(lowerStairAccessBlocker?.name).toBe('UpperStairNorthBannisterGuard');
   const hiddenRunGuard = debugColliders.find(
     (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
   );
@@ -837,9 +845,9 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   );
   expectCloseTo(
     northBannisterCenterZ,
-    -18.25,
+    -16.25,
     0.05,
-    'north bannister center z'
+    'north bannister center z shifted forward to block lower stair access'
   );
   expectCloseTo(
     northBannister.bounds.minX,
@@ -914,8 +922,8 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       expectedBlocker: 'UpperStairHiddenRunVoidGuard',
     },
     {
-      name: 'north back-entry bannister guard behind stair opening',
-      target: { x: 12.7, z: -18.25, floorId: 'upper' as const },
+      name: 'north back-entry bannister guard shifted forward to block bottommost steps',
+      target: { x: 12.7, z: -16.25, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairNorthBannisterGuard',
     },
   ];
@@ -1244,13 +1252,13 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   }
   const loftDoorway = {
     x: stairCenterX,
-    z: upperLandingRoom.bounds.maxZ,
+    z: upperLandingRoom.bounds.maxZ + PLAYER_RADIUS,
     floorId: 'upper' as const,
   };
   const westSideStairEntry = { x: 9.3, z: -23.72, floorId: 'upper' as const };
   const northBackStairEntry = {
     x: 12.7,
-    z: -18.25,
+    z: -16.25,
     floorId: 'upper' as const,
   };
   const hiddenStairTopRun = {
@@ -1400,7 +1408,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   );
   const runtimeNorthEntry = await stepRuntimeIntoUpperStairGuard(
     page,
-    { x: 10.2, z: -16 },
+    { x: 10.2, z: -15.2 },
     { dx: 0, dz: -0.18 }
   );
   expect(runtimeNorthEntry.movedZ).toBe(false);
