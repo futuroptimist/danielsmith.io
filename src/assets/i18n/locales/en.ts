@@ -371,6 +371,19 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'Shows invisible walls and collision rectangles for the active floor.',
       descriptionDisabled:
         'Invisible walls and collision rectangles stay hidden until you turn them on.',
+
+      idsLabelEnabled: 'Collider IDs on',
+      idsLabelDisabled: 'Collider IDs off',
+      idsDescriptionEnabled:
+        'Shows collider ID labels while the collider overlay is on.',
+      idsDescriptionDisabled:
+        'Hides collider ID labels while keeping collider wireframes available.',
+      solidIdsLabelEnabled: 'Solid IDs on',
+      solidIdsLabelDisabled: 'Solid IDs off',
+      solidIdsDescriptionEnabled:
+        'Shows stable IDs and wireframes for visible scene solids.',
+      solidIdsDescriptionDisabled:
+        'Stable solid IDs and wireframes stay hidden.',
     },
     tourReset: {
       heading: 'Guided tour',

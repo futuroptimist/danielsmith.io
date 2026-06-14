@@ -74,6 +74,18 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
       'Mostra paredes invisíveis e retângulos de colisão do piso ativo.',
     debugCollidersDescriptionDisabled:
       'As paredes invisíveis e os retângulos de colisão ficam ocultos até você ativá-los.',
+    debugCollidersIdsLabelEnabled: 'IDs de colisores ativados',
+    debugCollidersIdsLabelDisabled: 'IDs de colisores desativados',
+    debugCollidersIdsDescriptionEnabled:
+      'Mostra etiquetas de ID dos colisores enquanto a sobreposição está ativa.',
+    debugCollidersIdsDescriptionDisabled:
+      'Oculta etiquetas de ID dos colisores e mantém os wireframes disponíveis.',
+    debugCollidersSolidIdsLabelEnabled: 'IDs de sólidos ativados',
+    debugCollidersSolidIdsLabelDisabled: 'IDs de sólidos desativados',
+    debugCollidersSolidIdsDescriptionEnabled:
+      'Mostra IDs estáveis e wireframes para sólidos visíveis da cena.',
+    debugCollidersSolidIdsDescriptionDisabled:
+      'IDs estáveis de sólidos e wireframes permanecem ocultos.',
   },
   poi: {
     futuroptimist: {

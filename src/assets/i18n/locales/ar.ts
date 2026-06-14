@@ -306,6 +306,19 @@ export const AR_OVERRIDES: LocaleOverrides = {
         'يعرض الجدران غير المرئية ومستطيلات التصادم للطابق النشط.',
       descriptionDisabled:
         'تبقى الجدران غير المرئية ومستطيلات التصادم مخفية حتى تفعّلها.',
+
+      idsLabelEnabled: 'معرّفات المصادمات مفعّلة',
+      idsLabelDisabled: 'معرّفات المصادمات معطّلة',
+      idsDescriptionEnabled:
+        'يعرض تسميات معرّفات المصادمات عندما يكون تراكب المصادمات مفعّلًا.',
+      idsDescriptionDisabled:
+        'يخفي تسميات معرّفات المصادمات مع إبقاء إطارات المصادمات متاحة.',
+      solidIdsLabelEnabled: 'معرّفات المجسمات مفعّلة',
+      solidIdsLabelDisabled: 'معرّفات المجسمات معطّلة',
+      solidIdsDescriptionEnabled:
+        'يعرض معرّفات ثابتة وإطارات للمجسمات المرئية في المشهد.',
+      solidIdsDescriptionDisabled:
+        'تبقى معرّفات المجسمات الثابتة وإطاراتها مخفية.',
     },
     poiOverlay: {
       visited: 'تمت الزيارة',

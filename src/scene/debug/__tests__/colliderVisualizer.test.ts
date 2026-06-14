@@ -153,6 +153,7 @@ describe('createColliderVisualizer', () => {
 
     expect(visualizer.getState()).toEqual({
       enabled: false,
+      idsEnabled: true,
       visibleColliderCount: 0,
       totalColliderCount: 3,
       visibleLabelCount: 0,
@@ -162,6 +163,7 @@ describe('createColliderVisualizer', () => {
     visualizer.setEnabled(true);
     expect(visualizer.getState()).toEqual({
       enabled: true,
+      idsEnabled: true,
       visibleColliderCount: 2,
       totalColliderCount: 3,
       visibleLabelCount: 2,
@@ -239,6 +241,44 @@ describe('createColliderVisualizer', () => {
     expect(material.color.getHex()).toBe(labelMaterial.color.getHex());
     expect(labelMaterial.depthTest).toBe(false);
     expect(labelMaterial.depthWrite).toBe(false);
+  });
+
+  it('hides collider ID labels independently from wireframes', () => {
+    const visualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+      enabled: true,
+    });
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'ground-ids',
+        bounds: collider,
+      },
+    ]);
+
+    const mesh = visualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    );
+    const label = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    );
+
+    visualizer.setIdsEnabled(false);
+    expect(mesh?.visible).toBe(true);
+    expect(label?.visible).toBe(false);
+    expect(visualizer.getState()).toEqual({
+      enabled: true,
+      idsEnabled: false,
+      visibleColliderCount: 1,
+      totalColliderCount: 1,
+      visibleLabelCount: 0,
+      totalLabelCount: 1,
+    });
+
+    visualizer.setEnabled(false);
+    expect(mesh?.visible).toBe(false);
+    expect(label?.visible).toBe(false);
   });
 
   it('keeps explicit collider color overrides synced between wireframes and labels', () => {
