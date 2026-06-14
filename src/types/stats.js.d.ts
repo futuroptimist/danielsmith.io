@@ -3,7 +3,7 @@ declare module 'stats.js' {
     dom: HTMLDivElement;
     domElement: HTMLDivElement;
     begin(): void;
-    end(): number;
+    end(): void;
     showPanel(id: number): void;
   }
 }
