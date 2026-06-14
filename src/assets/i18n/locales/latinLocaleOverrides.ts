@@ -71,6 +71,14 @@ interface LatinLocaleCopy {
     debugCollidersLabelDisabled: string;
     debugCollidersDescriptionEnabled: string;
     debugCollidersDescriptionDisabled: string;
+    debugCollidersIdsLabelEnabled?: string;
+    debugCollidersIdsLabelDisabled?: string;
+    debugCollidersIdsDescriptionEnabled?: string;
+    debugCollidersIdsDescriptionDisabled?: string;
+    debugCollidersSolidIdsLabelEnabled?: string;
+    debugCollidersSolidIdsLabelDisabled?: string;
+    debugCollidersSolidIdsDescriptionEnabled?: string;
+    debugCollidersSolidIdsDescriptionDisabled?: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -749,6 +757,25 @@ export function buildLatinLocaleOverrides(
         labelDisabled: s.debugCollidersLabelDisabled,
         descriptionEnabled: s.debugCollidersDescriptionEnabled,
         descriptionDisabled: s.debugCollidersDescriptionDisabled,
+        idsLabelEnabled: s.debugCollidersIdsLabelEnabled ?? 'Collider IDs on',
+        idsLabelDisabled:
+          s.debugCollidersIdsLabelDisabled ?? 'Collider IDs off',
+        idsDescriptionEnabled:
+          s.debugCollidersIdsDescriptionEnabled ??
+          'Shows collider ID labels while the collider overlay is on.',
+        idsDescriptionDisabled:
+          s.debugCollidersIdsDescriptionDisabled ??
+          'Hides collider ID labels while keeping collider wireframes available.',
+        solidIdsLabelEnabled:
+          s.debugCollidersSolidIdsLabelEnabled ?? 'Solid IDs on',
+        solidIdsLabelDisabled:
+          s.debugCollidersSolidIdsLabelDisabled ?? 'Solid IDs off',
+        solidIdsDescriptionEnabled:
+          s.debugCollidersSolidIdsDescriptionEnabled ??
+          'Shows stable IDs and wireframes for visible scene solids.',
+        solidIdsDescriptionDisabled:
+          s.debugCollidersSolidIdsDescriptionDisabled ??
+          'Stable solid IDs and wireframes stay hidden.',
       },
       tourReset: {
         heading: s.guidedTour,

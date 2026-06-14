@@ -306,6 +306,19 @@ export const JA_OVERRIDES: LocaleOverrides = {
       labelDisabled: 'コライダーオーバーレイオフ',
       descriptionEnabled: '現在の階の見えない壁と衝突矩形を表示します。',
       descriptionDisabled: '見えない壁と衝突矩形はオンにするまで非表示です。',
+
+      idsLabelEnabled: 'Collider ID オン',
+      idsLabelDisabled: 'Collider ID オフ',
+      idsDescriptionEnabled:
+        'コライダーオーバーレイがオンのときに ID ラベルを表示します。',
+      idsDescriptionDisabled:
+        'コライダーのワイヤーフレームを残したまま ID ラベルを隠します。',
+      solidIdsLabelEnabled: 'Solid ID オン',
+      solidIdsLabelDisabled: 'Solid ID オフ',
+      solidIdsDescriptionEnabled:
+        '表示中のシーンソリッドに安定 ID とワイヤーフレームを表示します。',
+      solidIdsDescriptionDisabled:
+        '安定したソリッド ID とワイヤーフレームを隠します。',
     },
     poiOverlay: {
       visited: '訪問済み',

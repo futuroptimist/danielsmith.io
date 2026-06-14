@@ -238,6 +238,14 @@ export interface DebugCollidersStrings {
   labelDisabled: string;
   descriptionEnabled: string;
   descriptionDisabled: string;
+  idsLabelEnabled: string;
+  idsLabelDisabled: string;
+  idsDescriptionEnabled: string;
+  idsDescriptionDisabled: string;
+  solidIdsLabelEnabled: string;
+  solidIdsLabelDisabled: string;
+  solidIdsDescriptionEnabled: string;
+  solidIdsDescriptionDisabled: string;
 }
 
 export interface TourResetControlStrings {

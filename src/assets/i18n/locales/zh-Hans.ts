@@ -293,6 +293,15 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       labelDisabled: '碰撞体叠加层已关闭',
       descriptionEnabled: '显示当前楼层的不可见墙和碰撞矩形。',
       descriptionDisabled: '不可见墙和碰撞矩形会保持隐藏，直到你开启。',
+
+      idsLabelEnabled: '碰撞体 ID 开',
+      idsLabelDisabled: '碰撞体 ID 关',
+      idsDescriptionEnabled: '在碰撞体叠层开启时显示碰撞体 ID 标签。',
+      idsDescriptionDisabled: '隐藏碰撞体 ID 标签，但保留碰撞体线框。',
+      solidIdsLabelEnabled: '实体 ID 开',
+      solidIdsLabelDisabled: '实体 ID 关',
+      solidIdsDescriptionEnabled: '为可见场景实体显示稳定 ID 和线框。',
+      solidIdsDescriptionDisabled: '隐藏稳定实体 ID 和线框。',
     },
     tourReset: {
       heading: '导览',

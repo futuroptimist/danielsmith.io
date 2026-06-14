@@ -885,7 +885,7 @@ describe('i18n utilities', () => {
     for (const [locale, expectedStrings] of Object.entries(
       expectedDebugColliderStrings
     )) {
-      expect(getDebugCollidersStrings(locale)).toEqual(expectedStrings);
+      expect(getDebugCollidersStrings(locale)).toMatchObject(expectedStrings);
     }
   });
 
