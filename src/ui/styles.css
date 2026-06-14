@@ -2292,3 +2292,10 @@ html[data-hud-layout='mobile'] .audio-subtitles {
     flex: 0 0 auto;
   }
 }
+
+.debug-fps-counter {
+  left: 12px !important;
+  pointer-events: none !important;
+  top: 12px !important;
+  z-index: 30 !important;
+}

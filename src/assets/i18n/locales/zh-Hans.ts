@@ -301,6 +301,11 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       solidIdsLabelEnabled: '实体 ID 开',
       solidIdsLabelDisabled: '实体 ID 关',
       solidIdsDescriptionEnabled: '为可见场景实体显示稳定 ID 和线框。',
+      fpsLabelEnabled: 'FPS counter on',
+      fpsLabelDisabled: 'FPS counter off',
+      fpsDescriptionEnabled:
+        'Shows the debug-only stats.js FPS panel without blocking HUD controls.',
+      fpsDescriptionDisabled: 'The debug FPS panel stays hidden.',
       solidIdsDescriptionDisabled: '隐藏稳定实体 ID 和线框。',
     },
     tourReset: {

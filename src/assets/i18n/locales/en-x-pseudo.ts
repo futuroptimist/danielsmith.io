@@ -378,6 +378,12 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         '⟦Shows stable IDs and wireframes for visible scene solids.⟧',
       solidIdsDescriptionDisabled:
         '⟦Stable solid IDs and wireframes stay hidden.⟧',
+      fpsLabelEnabled: wrap('FPS counter on'),
+      fpsLabelDisabled: wrap('FPS counter off'),
+      fpsDescriptionEnabled: wrap(
+        'Shows the debug-only stats.js FPS panel without blocking HUD controls.'
+      ),
+      fpsDescriptionDisabled: wrap('The debug FPS panel stays hidden.'),
     },
     tourReset: {
       heading: wrap('Guided tour'),

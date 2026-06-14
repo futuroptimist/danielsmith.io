@@ -79,6 +79,10 @@ interface LatinLocaleCopy {
     debugCollidersSolidIdsLabelDisabled?: string;
     debugCollidersSolidIdsDescriptionEnabled?: string;
     debugCollidersSolidIdsDescriptionDisabled?: string;
+    debugFpsLabelEnabled?: string;
+    debugFpsLabelDisabled?: string;
+    debugFpsDescriptionEnabled?: string;
+    debugFpsDescriptionDisabled?: string;
   };
   poi: Record<string, { summary: string; outcome: string; metrics: string[] }>;
 }
@@ -776,6 +780,13 @@ export function buildLatinLocaleOverrides(
         solidIdsDescriptionDisabled:
           s.debugCollidersSolidIdsDescriptionDisabled ??
           'Stable solid IDs and wireframes stay hidden.',
+        fpsLabelEnabled: s.debugFpsLabelEnabled ?? 'FPS counter on',
+        fpsLabelDisabled: s.debugFpsLabelDisabled ?? 'FPS counter off',
+        fpsDescriptionEnabled:
+          s.debugFpsDescriptionEnabled ??
+          'Shows the debug-only stats.js FPS panel without blocking HUD controls.',
+        fpsDescriptionDisabled:
+          s.debugFpsDescriptionDisabled ?? 'The debug FPS panel stays hidden.',
       },
       tourReset: {
         heading: s.guidedTour,
