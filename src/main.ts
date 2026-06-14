@@ -1836,7 +1836,6 @@ function initializeImmersiveScene(
       activeSceneDetailPolicy
     );
     groundFloorGroup.add(mediaWall.group);
-    mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
     mediaWallStarBridge.attach(mediaWall.controller);
 
@@ -1885,7 +1884,6 @@ function initializeImmersiveScene(
       height: 4.1,
     });
     groundFloorGroup.add(mirror.group);
-    groundColliders.push(mirror.collider);
     selfieMirror = mirror;
   }
 
@@ -2011,7 +2009,6 @@ function initializeImmersiveScene(
   // computeStairLayout result used by movement. It removes both the stair
   // landing void and the hidden ramp run below the landing lip.
   if (upperLandingRoom && upperStairwellOpening) {
-    const upperStairVoidMinZ = upperStairwellOpening.minZ;
     const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
     const upperLandingDoorwayClearanceZ =
       upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
@@ -2050,10 +2047,6 @@ function initializeImmersiveScene(
       hiddenStairTopGapBlockerNearZ,
       hiddenStairTopGapBlockerFarZ
     );
-    const upperStairLandingEntryMinZ = Math.max(
-      upperStairVoidMinZ,
-      hiddenStairTopGapBlockerMinZ - PLAYER_RADIUS
-    );
     const upperStairLandingEntryMaxZ = Math.min(
       upperStairVoidMaxZ,
       hiddenStairTopGapBlockerMaxZ + PLAYER_RADIUS
@@ -2089,33 +2082,8 @@ function initializeImmersiveScene(
       hiddenStairBlockerStartZ + upperStairBannisterThickness;
     const upperStairNorthBannisterMaxX =
       upperStairwellOpening.maxX - upperStairBannisterThickness;
-    const upperStairDescentHandoffFarZ =
-      stairTopZ -
-      stairLayout.directionMultiplier *
-        (stairTransitionMargin + stairLandingTriggerMargin);
-    const upperStairHiddenRunGuardNearZ =
-      upperStairDescentHandoffFarZ -
-      stairLayout.directionMultiplier * PLAYER_RADIUS;
 
     [
-      {
-        name: 'UpperStairWestUpperVoidGuard',
-        bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: upperStairwellOpening.minX,
-          minZ: upperStairVoidMaxZ,
-          maxZ: upperStairVoidMaxZ,
-        },
-      },
-      {
-        name: 'UpperStairEastLowerVoidGuard',
-        bounds: {
-          minX: stairNavigationZones.explicitDescentCorridor.maxX,
-          maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-          minZ: upperStairVoidMinZ,
-          maxZ: upperStairLandingEntryMinZ,
-        },
-      },
       {
         name: 'UpperStairEastUpperVoidGuard',
         bounds: {
@@ -2126,24 +2094,6 @@ function initializeImmersiveScene(
         },
       },
       ...upperStairTopGapBlockers,
-      {
-        name: 'UpperStairHiddenRunVoidGuard',
-        bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: upperStairwellOpening.maxX,
-          minZ: Math.min(
-            upperStairHiddenRunGuardNearZ,
-            upperLandingDoorwayClearanceZ
-          ),
-          maxZ: Math.max(
-            upperStairHiddenRunGuardNearZ,
-            upperStairNorthBannisterCenterZ -
-              upperStairBannisterThickness / 2 -
-              PLAYER_RADIUS -
-              0.01
-          ),
-        },
-      },
       {
         name: 'UpperStairWestBannisterGuard',
         bounds: {
@@ -2249,12 +2199,14 @@ function initializeImmersiveScene(
       },
     });
     upperFloorGroup.add(upperStairwellLanding.group);
-    upperStairwellLanding.colliders.forEach((collider, index) =>
-      pushNamedUpperFloorCollider(
-        `UpperStairwellLandingGuard-${index + 1}`,
-        collider
-      )
-    );
+    upperStairwellLanding.colliders.forEach((collider, index) => {
+      if (index >= 2) {
+        pushNamedUpperFloorCollider(
+          `UpperStairwellLandingGuard-${index + 1}`,
+          collider
+        );
+      }
+    });
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
@@ -2382,7 +2334,12 @@ function initializeImmersiveScene(
           : groundPoiGroup;
       poiGroup.add(poi.group);
     }
-    if (poi.collider) {
+    const poiColliderRemoved = new Set([
+      'futuroptimist-living-room-tv',
+      'dspace-backyard-rocket',
+      'sugarkube-backyard-greenhouse',
+    ]).has(poi.definition.id);
+    if (poi.collider && !poiColliderRemoved) {
       if (getPoiFloorId(poi.definition) === 'upper') {
         upperFloorColliders.push(poi.collider);
       } else {

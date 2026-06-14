@@ -785,9 +785,19 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   for (const previouslyRemovedCollider of previouslyRemovedArtifactColliders) {
     expect(debugColliderNames).not.toContain(previouslyRemovedCollider);
   }
+  const removedErrantNamedColliders = [
+    'GroundStairEastBoundary',
+    'UpperStairWestUpperVoidGuard',
+    'UpperStairEastLowerVoidGuard',
+    'UpperStairHiddenRunVoidGuard',
+    'UpperStairwellLandingGuard-1',
+    'UpperStairwellLandingGuard-2',
+  ];
+  for (const removedErrantCollider of removedErrantNamedColliders) {
+    expect(debugColliderNames).not.toContain(removedErrantCollider);
+  }
   expect(debugColliderNames).toContain('UpperStairWestBannisterGuard');
   expect(debugColliderNames).toContain('UpperStairNorthBannisterGuard');
-  expect(debugColliderNames).toContain('UpperStairHiddenRunVoidGuard');
 
   const debugColliderIds = debugColliders.map((collider) => collider.id);
   expect(debugColliderIds.length).toBeGreaterThan(0);
@@ -809,14 +819,41 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   const northBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairNorthBannisterGuard'
   );
-  const hiddenRunGuard = debugColliders.find(
-    (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
-  );
   expect(westBannister).toBeDefined();
   expect(northBannister).toBeDefined();
-  expect(hiddenRunGuard).toBeDefined();
-  if (!westBannister || !northBannister || !hiddenRunGuard) {
-    throw new Error('Missing upper stair guard debug collider');
+  if (!westBannister || !northBannister) {
+    throw new Error('Missing upper stair bannister debug collider');
+  }
+
+  const removedErrantColliderBounds = [
+    { minX: 8.9, maxX: 8.9, minZ: -16, maxZ: -16 },
+    { minX: 8.9, maxX: 15.9, minZ: -23.55, maxZ: -19.15 },
+    { minX: 14.75, maxX: 15.9, minZ: -31.9, maxZ: -27.8 },
+    { minX: 15.94, maxX: 22.18, minZ: -25.9, maxZ: -10.6 },
+    { minX: 19.55, maxX: 20.45, minZ: -3.5, maxZ: -2.7 },
+    { minX: 28.139, maxX: 29.461, minZ: -25.127, maxZ: -20.473 },
+    { minX: 12.63, maxX: 13.23, minZ: -4.3, maxZ: -3.7 },
+    { minX: -15.428, maxX: -14.572, minZ: 4.443, maxZ: 6.197 },
+    { minX: -31.7, maxX: -31.12, minZ: -17.144, maxZ: -11.256 },
+    { minX: 8.4, maxX: 15.6, minZ: 22.8, maxZ: 29.2 },
+    { minX: 11.058, maxX: 13.223, minZ: 25.643, maxZ: 27.426 },
+    { minX: 0.243, maxX: 1.593, minZ: 19.596, maxZ: 21.339 },
+    { minX: -3.25, maxX: 3.25, minZ: 30.63, maxZ: 30.97 },
+    { minX: -15.4, maxX: -8.6, minZ: 20.6, maxZ: 27.4 },
+  ];
+  const hasMatchingBounds = (target: DebugColliderBounds) =>
+    debugColliders.some(
+      ({ bounds }) =>
+        Math.abs(bounds.minX - target.minX) < 0.01 &&
+        Math.abs(bounds.maxX - target.maxX) < 0.01 &&
+        Math.abs(bounds.minZ - target.minZ) < 0.01 &&
+        Math.abs(bounds.maxZ - target.maxZ) < 0.01
+    );
+  for (const removedBounds of removedErrantColliderBounds) {
+    expect(
+      hasMatchingBounds(removedBounds),
+      JSON.stringify(removedBounds)
+    ).toBe(false);
   }
 
   const northBannisterCenterZ =

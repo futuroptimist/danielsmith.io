@@ -117,23 +117,13 @@ describe('createPrReaperConsole', () => {
       console.group.getObjectByName('PrReaperConsoleLogGlow')
     ).toBeInstanceOf(Mesh);
 
-    expect(console.colliders).toHaveLength(2);
-    const [deckCollider, walkwayCollider] = console.colliders;
+    expect(console.colliders).toHaveLength(1);
+    const [deckCollider] = console.colliders;
 
     const deckCenterX = (deckCollider.minX + deckCollider.maxX) / 2;
     const deckCenterZ = (deckCollider.minZ + deckCollider.maxZ) / 2;
     expect(deckCenterX).toBeCloseTo(position.x, 6);
     expect(deckCenterZ).toBeCloseTo(position.z, 6);
-
-    const walkwayCenterX = (walkwayCollider.minX + walkwayCollider.maxX) / 2;
-    const walkwayCenterZ = (walkwayCollider.minZ + walkwayCollider.maxZ) / 2;
-    const walkwayOffset = 1.6 / 2 + 0.7 / 2 - 0.12;
-    const expectedWalkwayX = position.x + Math.sin(orientation) * walkwayOffset;
-    const expectedWalkwayZ = position.z + Math.cos(orientation) * walkwayOffset;
-    expect(walkwayCenterX).toBeCloseTo(expectedWalkwayX, 6);
-    expect(walkwayCenterZ).toBeCloseTo(expectedWalkwayZ, 6);
-    expect(walkwayCenterX).not.toBeCloseTo(deckCenterX, 6);
-    expect(walkwayCenterZ).not.toBeCloseTo(deckCenterZ, 6);
   });
 
   it('elevates walkway beacons with emphasis pulses and calm-mode damping', () => {

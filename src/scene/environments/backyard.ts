@@ -512,7 +512,6 @@ export function createBackyardEnvironment(
     detailPolicy,
   });
   group.add(rocket.group);
-  colliders.push(rocket.collider);
   updates.push(rocket.update);
 
   const steppingStoneGeometry = new BoxGeometry(pathWidth * 0.32, 0.12, 0.9);
@@ -552,7 +551,6 @@ export function createBackyardEnvironment(
     detailPolicy,
   });
   group.add(greenhouse.group);
-  greenhouse.colliders.forEach((collider) => colliders.push(collider));
   updates.push(greenhouse.update);
 
   const walkwayWidth = greenhouseWidth * 0.68;
@@ -1567,7 +1565,7 @@ export function createBackyardEnvironment(
       maxZ: fenceBackZ + 0.18,
     },
   ];
-  fenceColliders.forEach((collider) => colliders.push(collider));
+  fenceColliders.slice(0, 2).forEach((collider) => colliders.push(collider));
 
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;

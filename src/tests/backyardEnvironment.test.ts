@@ -113,7 +113,7 @@ describe('createBackyardEnvironment', () => {
     delete document.documentElement.dataset.accessibilityFlickerScale;
   });
 
-  it('adds the model rocket installation and collider to the backyard', () => {
+  it('adds the model rocket installation without an active collider in the backyard', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const { group, colliders } = environment;
     const rocket = group.getObjectByName('BackyardModelRocket');
@@ -128,9 +128,7 @@ describe('createBackyardEnvironment', () => {
         rocketPosition.z <= collider.maxZ
     );
 
-    expect(matchingCollider).toBeDefined();
-    expect(matchingCollider?.maxX).toBeGreaterThan(matchingCollider!.minX);
-    expect(matchingCollider?.maxZ).toBeGreaterThan(matchingCollider!.minZ);
+    expect(matchingCollider).toBeUndefined();
 
     const thruster = (rocket as Group).getObjectByName('ModelRocketThruster');
     expect(thruster).toBeInstanceOf(Mesh);
@@ -181,7 +179,7 @@ describe('createBackyardEnvironment', () => {
     );
   });
 
-  it('installs the greenhouse exhibit with animated elements and collider', () => {
+  it('installs the greenhouse exhibit with animated elements but no active collider', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const greenhouse = environment.group.getObjectByName('BackyardGreenhouse');
     expect(greenhouse).toBeInstanceOf(Group);
@@ -257,9 +255,7 @@ describe('createBackyardEnvironment', () => {
         greenhousePosition.z <= collider.maxZ
     );
 
-    expect(greenhouseCollider).toBeDefined();
-    expect(greenhouseCollider?.maxX).toBeGreaterThan(greenhouseCollider!.minX);
-    expect(greenhouseCollider?.maxZ).toBeGreaterThan(greenhouseCollider!.minZ);
+    expect(greenhouseCollider).toBeUndefined();
   });
 
   it('adds walkway lanterns that glow and pulse along the greenhouse approach', () => {
