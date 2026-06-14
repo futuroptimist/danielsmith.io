@@ -874,9 +874,9 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   );
   expectCloseTo(
     northBannisterCenterZ,
-    -18.25,
+    -16.25,
     0.05,
-    'north bannister center z'
+    'north bannister center z shifts +2 from the previous guard seam'
   );
   expectCloseTo(
     northBannister.bounds.minX,
@@ -951,8 +951,13 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       expectedBlocker: 'UpperStairHiddenRunVoidGuard',
     },
     {
-      name: 'north back-entry bannister guard behind stair opening',
-      target: { x: 12.7, z: -18.25, floorId: 'upper' as const },
+      name: 'raw lower-step upper-floor occupancy probe at descent centerline',
+      target: { x: 12.4, z: -16.25, floorId: 'upper' as const },
+      expectedBlocker: 'UpperStairNorthBannisterGuard',
+    },
+    {
+      name: 'raw lower-step upper-floor occupancy probe at second bottom step',
+      target: { x: 12.4, z: -16.75, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairNorthBannisterGuard',
     },
   ];
@@ -1017,6 +1022,11 @@ test('runtime descent from upper landing mouth stays clear of bannister guards',
 
   const descent = await walkRuntimeUpperLandingMouthDescent(page);
   expect(descent.samples.length).toBeGreaterThan(0);
+  expect(
+    descent.samples.some((sample) =>
+      sample.blockedBy?.includes('UpperStairNorthBannisterGuard')
+    )
+  ).toBe(false);
   expect(descent.finalState.activeFloor).toBe('ground');
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });
@@ -1281,15 +1291,20 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   }
   const loftDoorway = {
     x: stairCenterX,
-    z: upperLandingRoom.bounds.maxZ,
+    z: upperLandingRoom.bounds.maxZ + PLAYER_RADIUS,
     floorId: 'upper' as const,
   };
   const westSideStairEntry = { x: 9.3, z: -23.72, floorId: 'upper' as const };
-  const northBackStairEntry = {
-    x: 12.7,
-    z: -18.25,
-    floorId: 'upper' as const,
-  };
+  const lowerStepRawOccupancyProbes = [
+    {
+      name: 'raw lower-step upper-floor occupancy probe at descent centerline',
+      target: { x: stairCenterX, z: -16.25, floorId: 'upper' as const },
+    },
+    {
+      name: 'raw lower-step upper-floor occupancy probe at second bottom step',
+      target: { x: stairCenterX, z: -16.75, floorId: 'upper' as const },
+    },
+  ];
   const hiddenStairTopRun = {
     x: stairCenterX,
     z: stairTopZ - stairDirection * 0.4,
@@ -1431,22 +1446,21 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
 
-  expect(await canOccupyPosition(page, northBackStairEntry)).toBe(false);
-  expect(await getBlockingColliderNames(page, northBackStairEntry)).toContain(
-    'UpperStairNorthBannisterGuard'
-  );
-  const runtimeNorthEntry = await stepRuntimeIntoUpperStairGuard(
-    page,
-    { x: 10.2, z: -16 },
-    { dx: 0, dz: -0.18 }
-  );
-  expect(runtimeNorthEntry.movedZ).toBe(false);
-  expect(runtimeNorthEntry.blockedBy).toContain(
-    'UpperStairNorthBannisterGuard'
-  );
-  await expect(async () =>
-    movePlayerTo(page, northBackStairEntry)
-  ).rejects.toThrow(/Cannot occupy/);
+  // `canOccupyPosition(...)` is a raw upper-floor occupancy probe. The two
+  // bottommost stair samples are intentionally blocked on the upper floor;
+  // actual descent must use the runtime stair transition path covered above.
+  for (const sample of lowerStepRawOccupancyProbes) {
+    expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
+      false
+    );
+    expect(
+      await getBlockingColliderNames(page, sample.target),
+      sample.name
+    ).toContain('UpperStairNorthBannisterGuard');
+    await expect(async () => movePlayerTo(page, sample.target)).rejects.toThrow(
+      /Cannot occupy/
+    );
+  }
 });
 
 test('upper landing edge nudges stay upstairs until the descent corridor is entered', async ({
