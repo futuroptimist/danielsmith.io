@@ -2157,12 +2157,22 @@ function initializeImmersiveScene(
       stairTopZ - stairLayout.directionMultiplier * stairRun
     ),
   };
-  const upperLandingCutouts =
+  const stairRunApproachFootprint =
     upperLandingRoom && upperStairwellOpening
+      ? {
+          minX: stairCenterX,
+          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
+          minZ: upperStairwellOpening.minZ,
+          maxZ: upperLandingRoom.bounds.maxZ,
+        }
+      : undefined;
+  const upperLandingCutouts =
+    upperLandingRoom && upperStairwellOpening && stairRunApproachFootprint
       ? {
           upperLanding: createUpperLandingFloorCutouts({
             staircaseLandingFootprint,
             finalStairStepFootprint,
+            stairRunApproachFootprint,
             stairwellOpening: upperStairwellOpening,
             hiddenRunVoidMinX: upperStairWestEgressBlockerMinX,
           }),

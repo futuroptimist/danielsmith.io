@@ -13,6 +13,12 @@ export interface UpperLandingFloorCutoutConfig {
    * can produce a jagged z-fighting seam at the landing mouth.
    */
   readonly finalStairStepFootprint: Bounds2D;
+  /**
+   * Upper Landing Floor 6 (debug solid 634BE9 before the fix) was the
+   * camera-facing half of this approach strip. Keep that upper-floor tile out
+   * of the stair-run approach so it cannot obscure the visible treads.
+   */
+  readonly stairRunApproachFootprint: Bounds2D;
   /** West edge of the hidden-run void after preserving the egress lane. */
   readonly hiddenRunVoidMinX: number;
 }
@@ -21,8 +27,10 @@ export interface UpperLandingFloorCutoutConfig {
  * Keeps upper landing floor tiles away from the physical staircase landing slab
  * while preserving the narrower hidden-run cutout that protects upstairs egress.
  * The first cutout removes the coplanar slab footprint; the second removes
- * upper-floor tile undersides from the final top tread; the third keeps the
- * no-floor void open only where the hidden stair run should remain uncovered.
+ * upper-floor tile undersides from the final top tread; the third removes the
+ * narrow stair-run approach strip that used to cover the upper treads; the
+ * fourth keeps the no-floor void open only where the hidden stair run should
+ * remain uncovered.
  */
 export function createUpperLandingFloorCutouts(
   config: UpperLandingFloorCutoutConfig
@@ -30,6 +38,7 @@ export function createUpperLandingFloorCutouts(
   return [
     { ...config.staircaseLandingFootprint },
     { ...config.finalStairStepFootprint },
+    { ...config.stairRunApproachFootprint },
     {
       ...config.stairwellOpening,
       minX: config.hiddenRunVoidMinX,

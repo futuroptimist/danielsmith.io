@@ -72,10 +72,17 @@ describe('createUpperLandingFloorCutouts', () => {
     const westEgressLaneX =
       STAIR_CENTER_X - STAIR_HALF_WIDTH + PLAYER_RADIUS * 0.75;
     const hiddenRunVoidMinX = westEgressLaneX + PLAYER_RADIUS + 0.01;
+    const stairRunApproachFootprint = {
+      minX: STAIR_CENTER_X,
+      maxX: STAIR_CENTER_X + STAIR_HALF_WIDTH - PLAYER_RADIUS,
+      minZ: stairwellOpening.minZ,
+      maxZ: upperLandingRoom.bounds.maxZ,
+    };
 
     const cutouts = createUpperLandingFloorCutouts({
       staircaseLandingFootprint,
       finalStairStepFootprint,
+      stairRunApproachFootprint,
       stairwellOpening,
       hiddenRunVoidMinX,
     });
@@ -88,7 +95,8 @@ describe('createUpperLandingFloorCutouts', () => {
 
     expect(cutouts[0]).toEqual(staircaseLandingFootprint);
     expect(cutouts[1]).toEqual(finalStairStepFootprint);
-    expect(cutouts[2]).toEqual({
+    expect(cutouts[2]).toEqual(stairRunApproachFootprint);
+    expect(cutouts[3]).toEqual({
       ...stairwellOpening,
       minX: hiddenRunVoidMinX,
     });
@@ -101,6 +109,11 @@ describe('createUpperLandingFloorCutouts', () => {
       floorTiles.tiles
         .filter((tile) => tile.roomId === 'upperLanding')
         .every((tile) => !overlaps(tile.bounds, finalStairStepFootprint))
+    ).toBe(true);
+    expect(
+      floorTiles.tiles
+        .filter((tile) => tile.roomId === 'upperLanding')
+        .every((tile) => !overlaps(tile.bounds, stairRunApproachFootprint))
     ).toBe(true);
 
     const upperFloorTileBottomY = 4.16 - 0.38;
@@ -123,6 +136,12 @@ describe('createUpperLandingFloorCutouts', () => {
         maxZ: -25.9,
       },
       finalStairStepFootprint: finalTopTread,
+      stairRunApproachFootprint: {
+        minX: 9.3,
+        maxX: 10.62,
+        minZ: -24.2,
+        maxZ: -16,
+      },
       stairwellOpening: {
         minX: 8.9,
         maxX: 15.9,
@@ -151,6 +170,60 @@ describe('createUpperLandingFloorCutouts', () => {
 
     expect(
       floorTiles.tiles.every((tile) => !overlaps(tile.bounds, finalTopTread))
+    ).toBe(true);
+  });
+
+  it('removes the Upper Landing Floor 6 approach strip over the upper stair run', () => {
+    const upperLandingFloor6ApproachStrip = {
+      minX: 9.3,
+      maxX: 10.62,
+      minZ: -24.2,
+      maxZ: -16,
+    };
+    const cutouts = createUpperLandingFloorCutouts({
+      staircaseLandingFootprint: {
+        minX: 9.3,
+        maxX: 15.5,
+        minZ: -31.1,
+        maxZ: -25.9,
+      },
+      finalStairStepFootprint: {
+        minX: 9.3,
+        maxX: 15.5,
+        minZ: -25.9,
+        maxZ: -24.2,
+      },
+      stairRunApproachFootprint: upperLandingFloor6ApproachStrip,
+      stairwellOpening: {
+        minX: 8.9,
+        maxX: 15.9,
+        minZ: -31.9,
+        maxZ: -24.2,
+      },
+      hiddenRunVoidMinX: 10.62,
+    });
+
+    const floorTiles = createRoomFloorTiles(
+      [
+        {
+          id: 'upperLanding',
+          name: 'Upper Landing',
+          bounds: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+          doorways: [],
+        },
+      ],
+      {
+        material: new MeshStandardMaterial(),
+        elevation: 4.16,
+        thickness: 0.38,
+        cutoutsByRoom: { upperLanding: cutouts },
+      }
+    );
+
+    expect(
+      floorTiles.tiles.every(
+        (tile) => !overlaps(tile.bounds, upperLandingFloor6ApproachStrip)
+      )
     ).toBe(true);
   });
 });
