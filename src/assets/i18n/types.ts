@@ -246,6 +246,10 @@ export interface DebugCollidersStrings {
   solidIdsLabelDisabled: string;
   solidIdsDescriptionEnabled: string;
   solidIdsDescriptionDisabled: string;
+  fpsLabelEnabled: string;
+  fpsLabelDisabled: string;
+  fpsDescriptionEnabled: string;
+  fpsDescriptionDisabled: string;
 }
 
 export interface TourResetControlStrings {

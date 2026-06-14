@@ -86,6 +86,12 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
       'Mostra IDs estáveis e wireframes para sólidos visíveis da cena.',
     debugCollidersSolidIdsDescriptionDisabled:
       'IDs estáveis de sólidos e wireframes permanecem ocultos.',
+    debugCollidersFpsLabelEnabled: 'Contador de FPS ativado',
+    debugCollidersFpsLabelDisabled: 'Contador de FPS desativado',
+    debugCollidersFpsDescriptionEnabled:
+      'Mostra um painel FPS stats.js não interativo para diagnósticos imersivos.',
+    debugCollidersFpsDescriptionDisabled:
+      'Oculta o painel FPS stats.js mantendo os diagnósticos disponíveis.',
   },
   poi: {
     futuroptimist: {

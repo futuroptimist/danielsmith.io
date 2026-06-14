@@ -86,6 +86,12 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
       'Stabil azonosítókat és drótvázakat mutat a látható jelenetszilárdtestekhez.',
     debugCollidersSolidIdsDescriptionDisabled:
       'A stabil solid-azonosítók és drótvázak rejtve maradnak.',
+    debugCollidersFpsLabelEnabled: 'FPS-számláló be',
+    debugCollidersFpsLabelDisabled: 'FPS-számláló ki',
+    debugCollidersFpsDescriptionEnabled:
+      'Nem interaktív stats.js FPS-panelt jelenít meg az immerzív diagnosztikához.',
+    debugCollidersFpsDescriptionDisabled:
+      'Elrejti a stats.js FPS-panelt, miközben a diagnosztika elérhető marad.',
   },
   poi: {
     futuroptimist: {

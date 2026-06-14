@@ -86,6 +86,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       'Zeigt stabile IDs und Drahtgitter für sichtbare Szenen-Solids.',
     debugCollidersSolidIdsDescriptionDisabled:
       'Stabile Solid-IDs und Drahtgitter bleiben ausgeblendet.',
+    debugCollidersFpsLabelEnabled: 'FPS-Zähler ein',
+    debugCollidersFpsLabelDisabled: 'FPS-Zähler aus',
+    debugCollidersFpsDescriptionEnabled:
+      'Zeigt ein nicht interaktives stats.js-FPS-Panel für immersive Diagnosen.',
+    debugCollidersFpsDescriptionDisabled:
+      'Blendet das stats.js-FPS-Panel aus, während Diagnosen verfügbar bleiben.',
   },
   poi: {
     futuroptimist: {
