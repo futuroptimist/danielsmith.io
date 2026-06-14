@@ -15,6 +15,7 @@ import type { RectCollider } from '../../systems/collision';
 import type { FloorId } from '../../systems/movement/stairs';
 
 import { getDeclaredColliderDebugId } from './colliderDebugIds';
+import { DEBUG_ID_MAX_LENGTH, allocateDebugId, getDebugHash } from './debugIds';
 
 export type DebugColliderFloor = FloorId | 'all';
 
@@ -38,6 +39,7 @@ export interface DebugColliderRegistration {
 
 export interface DebugColliderVisualizerState {
   enabled: boolean;
+  idsEnabled: boolean;
   visibleColliderCount: number;
   totalColliderCount: number;
   visibleLabelCount: number;
@@ -47,13 +49,14 @@ export interface DebugColliderVisualizerState {
 interface DebugColliderVisualEntry {
   metadata: DebugColliderMetadata;
   mesh: Mesh<BoxGeometry, MeshBasicMaterial>;
-  label: Sprite<SpriteMaterial>;
+  label: Sprite;
 }
 
 export interface ColliderVisualizer {
   readonly group: Group;
   register(colliders: readonly DebugColliderRegistration[]): void;
   setEnabled(enabled: boolean): void;
+  setIdsEnabled(enabled: boolean): void;
   setActiveFloor(floorId: FloorId): void;
   getState(): DebugColliderVisualizerState;
   getColliders(): DebugColliderMetadata[];
@@ -63,8 +66,6 @@ export interface ColliderVisualizer {
 
 const DEFAULT_HEIGHT = 0.08;
 const MIN_DIMENSION = 0.02;
-const DEBUG_ID_MIN_LENGTH = 4;
-const DEBUG_ID_MAX_LENGTH = 6;
 const DEBUG_ID_PRECISION = 2;
 // Keep the visible primary ID namespaced from the raw metadata hash so
 // historical raw-prefix collisions do not decide screenshot-visible labels.
@@ -115,29 +116,7 @@ const getColliderDebugSeed = (
     normalizeBoundsForId(metadata.bounds),
   ].join('|');
 
-const getStableDebugHashValue = (input: string): number => {
-  let low = 0xdeadbeef ^ input.length;
-  let high = 0x41c6ce57 ^ input.length;
-
-  for (let index = 0; index < input.length; index += 1) {
-    const charCode = input.charCodeAt(index);
-    low = Math.imul(low ^ charCode, 2_654_435_761);
-    high = Math.imul(high ^ charCode, 1_597_334_677);
-  }
-
-  low = Math.imul(low ^ (low >>> 16), 2_246_822_507);
-  low ^= Math.imul(high ^ (high >>> 13), 3_266_489_909);
-  high = Math.imul(high ^ (high >>> 16), 2_246_822_507);
-  high ^= Math.imul(low ^ (low >>> 13), 3_266_489_909);
-
-  return 4_294_967_296 * (2_097_151 & high) + (low >>> 0);
-};
-
-const getColliderDebugHash = (seed: string): string =>
-  Math.floor(getStableDebugHashValue(seed) % 0x1000000)
-    .toString(16)
-    .toUpperCase()
-    .padStart(DEBUG_ID_MAX_LENGTH, '0');
+const getColliderDebugHash = getDebugHash;
 
 const getColliderDebugPrimaryId = (
   metadata: Omit<DebugColliderMetadata, 'id'>,
@@ -146,30 +125,13 @@ const getColliderDebugPrimaryId = (
   getDeclaredColliderDebugId(metadata) ??
   getColliderDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
 
-const getColliderDebugIdCandidates = (seed: string): string[] => {
-  const hash = getColliderDebugHash(seed);
-  const candidates: string[] = [];
-  for (
-    let length = DEBUG_ID_MIN_LENGTH;
-    length <= DEBUG_ID_MAX_LENGTH;
-    length += 1
-  ) {
-    candidates.push(hash.slice(0, length));
-  }
-  return candidates;
-};
-
 const createColliderDebugIdFromMetadata = (
   metadata: Omit<DebugColliderMetadata, 'id'>,
   usedIds: ReadonlySet<string>,
   idSeed = getColliderDebugSeed(metadata)
 ): string => {
   const primaryCandidate = getColliderDebugPrimaryId(metadata, idSeed);
-  if (!usedIds.has(primaryCandidate)) {
-    return primaryCandidate;
-  }
-
-  return getColliderDebugRetryId(idSeed, new Set(usedIds));
+  return allocateDebugId(primaryCandidate, idSeed, usedIds);
 };
 
 export function createColliderDebugId(
@@ -178,27 +140,6 @@ export function createColliderDebugId(
 ): string {
   return createColliderDebugIdFromMetadata(metadata, usedIds);
 }
-
-const getColliderDebugRetryId = (
-  seed: string,
-  usedIds: Set<string>
-): string => {
-  for (
-    let retryIndex = 1;
-    retryIndex < Number.MAX_SAFE_INTEGER;
-    retryIndex += 1
-  ) {
-    for (const candidate of getColliderDebugIdCandidates(
-      `${seed}|retry:${retryIndex}`
-    )) {
-      if (!usedIds.has(candidate)) {
-        return candidate;
-      }
-    }
-  }
-
-  throw new Error('Unable to allocate a short collider debug ID');
-};
 
 const allocateColliderDebugIds = (
   metadataList: readonly Omit<DebugColliderMetadata, 'id'>[],
@@ -356,10 +297,7 @@ const createLabelTexture = (
   return texture;
 };
 
-const createColliderLabel = (
-  id: string,
-  color: string
-): Sprite<SpriteMaterial> => {
+const createColliderLabel = (id: string, color: string): Sprite => {
   const texture = createLabelTexture(id, color);
   const material = new SpriteMaterial({
     color: texture ? 0xffffff : color,
@@ -387,6 +325,7 @@ const getDebugColliderMeshName = (metadata: DebugColliderMetadata): string =>
 export function createColliderVisualizer(options: {
   activeFloorId: FloorId;
   enabled?: boolean;
+  idsEnabled?: boolean;
 }): ColliderVisualizer {
   const group = new Group();
   group.name = 'DebugColliderVisualizer';
@@ -395,6 +334,7 @@ export function createColliderVisualizer(options: {
 
   const entries: DebugColliderVisualEntry[] = [];
   let enabled = options.enabled ?? false;
+  let idsEnabled = options.idsEnabled ?? true;
   let activeFloorId = options.activeFloorId;
 
   const applyVisibility = () => {
@@ -403,7 +343,7 @@ export function createColliderVisualizer(options: {
       const visible =
         enabled && isVisibleOnFloor(entry.metadata.floor, activeFloorId);
       entry.mesh.visible = visible;
-      entry.label.visible = visible;
+      entry.label.visible = visible && idsEnabled;
     }
   };
 
@@ -504,6 +444,10 @@ export function createColliderVisualizer(options: {
       enabled = next;
       applyVisibility();
     },
+    setIdsEnabled(next: boolean) {
+      idsEnabled = next;
+      applyVisibility();
+    },
     setActiveFloor(next: FloorId) {
       activeFloorId = next;
       applyVisibility();
@@ -511,9 +455,10 @@ export function createColliderVisualizer(options: {
     getState() {
       return {
         enabled,
+        idsEnabled,
         visibleColliderCount: getVisibleEntryCount(),
         totalColliderCount: entries.length,
-        visibleLabelCount: getVisibleEntryCount(),
+        visibleLabelCount: idsEnabled ? getVisibleEntryCount() : 0,
         totalLabelCount: entries.length,
       };
     },
