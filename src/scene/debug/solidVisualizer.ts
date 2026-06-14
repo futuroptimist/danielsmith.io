@@ -100,7 +100,7 @@ const matchesExcludedName = (name: string): boolean => {
   );
 };
 
-const isExcluded = (object: Object3D): boolean => {
+const isPoiUiDebugOrHelperObject = (object: Object3D): boolean => {
   if (
     object.userData.debugOnly ||
     object.userData.colliderDebug ||
@@ -136,10 +136,10 @@ const hasInvisibleMaterial = (material: Material | Material[]): boolean => {
   return materials.length > 0 && materials.every(isInvisibleMaterial);
 };
 
-const hasNoExcludedAncestors = (object: Object3D): boolean => {
+const isEligibleSolidSource = (object: Object3D): boolean => {
   let current: Object3D | null = object;
   while (current) {
-    if (isExcluded(current)) {
+    if (isPoiUiDebugOrHelperObject(current)) {
       return false;
     }
     current = current.parent;
@@ -147,10 +147,10 @@ const hasNoExcludedAncestors = (object: Object3D): boolean => {
   return true;
 };
 
-const hasEffectiveVisibility = (object: Object3D): boolean => {
+const hasEffectiveSourceVisibility = (object: Object3D): boolean => {
   let current: Object3D | null = object;
   while (current) {
-    if (!current.visible || isExcluded(current)) {
+    if (!current.visible || isPoiUiDebugOrHelperObject(current)) {
       return false;
     }
     current = current.parent;
@@ -305,7 +305,7 @@ export const createSolidVisualizer = (
     entries.forEach((entry) => {
       const entryVisible =
         enabled &&
-        hasEffectiveVisibility(entry.mesh) &&
+        hasEffectiveSourceVisibility(entry.mesh) &&
         !hasInvisibleMaterial(entry.mesh.material);
       entry.wireframe.visible = entryVisible;
       entry.label.visible = entryVisible;
@@ -337,7 +337,7 @@ export const createSolidVisualizer = (
     }> = [];
 
     root.traverse((object) => {
-      if (!isMesh(object) || !hasNoExcludedAncestors(object)) {
+      if (!isMesh(object) || !isEligibleSolidSource(object)) {
         return;
       }
       const bounds = getBounds(object, object.geometry);
@@ -440,7 +440,7 @@ export const createSolidVisualizer = (
       const visibleEntryCount = enabled
         ? entries.filter(
             (entry) =>
-              hasEffectiveVisibility(entry.mesh) &&
+              hasEffectiveSourceVisibility(entry.mesh) &&
               !hasInvisibleMaterial(entry.mesh.material)
           ).length
         : 0;

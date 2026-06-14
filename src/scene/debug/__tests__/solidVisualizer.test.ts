@@ -167,6 +167,32 @@ describe('createSolidVisualizer', () => {
     });
   });
 
+  it('excludes POI marker implementation children while keeping ordinary solids', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const poiGroup = new Group();
+    poiGroup.name = 'POI:futuroptimist-living-room-tv';
+    poiGroup.add(createSolid(''));
+    poiGroup.add(createSolid('Halo'));
+    poiGroup.add(createSolid('MarkerLabel'));
+    const transparentHit = createSolid('POI_HIT:futuroptimist-living-room-tv');
+    transparentHit.material.transparent = true;
+    transparentHit.material.opacity = 0;
+    scene.add(poiGroup, transparentHit, createSolid('OrdinarySceneWall'));
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(visualizer.getSolids().map((solid) => solid.name)).toEqual([
+      'OrdinarySceneWall',
+    ]);
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 1,
+      visibleSolidCount: 1,
+      visibleLabelCount: 1,
+    });
+  });
+
   it('keeps multiplayer projection solids while excluding player/avatar meshes', () => {
     const scene = new Group();
     scene.name = 'Scene';
