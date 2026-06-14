@@ -65,6 +65,10 @@ import {
 } from './assets/i18n';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
+  DEBUG_FPS_STORAGE_KEY,
+  createDebugPerformanceOverlay,
+} from './debugPerformanceOverlay';
+import {
   createAvatarAccessorySuite,
   type AvatarAccessorySuite,
   type AvatarAccessoryState,
@@ -608,6 +612,13 @@ declare global {
         setEnabled(enabled: boolean): void;
         getSolids(): DebugSolidMetadata[];
         getSolidById(id: unknown): DebugSolidMetadata | undefined;
+      };
+      debugPerformance?: {
+        getState(): {
+          fpsEnabled: boolean;
+          panelVisible: boolean;
+        };
+        setFpsEnabled(enabled: boolean): void;
       };
       debugCoordinates?: {
         getState(): {
@@ -1449,13 +1460,34 @@ function initializeImmersiveScene(
   let debugSolidIdsEnabled = debugSolidIdsUrlDisabled
     ? false
     : debugSolidIdsUrlEnabled || debugSolidIdsStoredEnabled;
+
+  const debugFpsUrlOverride = new URLSearchParams(window.location.search).get(
+    'debugFps'
+  );
+  const debugFpsUrlEnabled = isDebugUrlValueIn(
+    debugFpsUrlOverride,
+    DEBUG_URL_TRUTHY_VALUES
+  );
+  const debugFpsUrlDisabled = isDebugUrlValueIn(
+    debugFpsUrlOverride,
+    DEBUG_URL_FALSY_VALUES
+  );
+  const debugFpsStoredEnabled =
+    debugCoordinatesStorage?.getItem(DEBUG_FPS_STORAGE_KEY) === '1';
+  let debugFpsEnabled = debugFpsUrlDisabled
+    ? false
+    : debugFpsUrlEnabled || debugFpsStoredEnabled;
   let debugCoordinatesControl: HTMLButtonElement | null = null;
   let debugCollidersControl: HTMLButtonElement | null = null;
   let debugColliderIdsControl: HTMLButtonElement | null = null;
   let debugSolidIdsControl: HTMLButtonElement | null = null;
+  let debugFpsControl: HTMLButtonElement | null = null;
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
+  const debugPerformanceOverlay = createDebugPerformanceOverlay({
+    enabled: debugFpsEnabled,
+  });
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
       rendererInfo,
@@ -4509,6 +4541,27 @@ function initializeImmersiveScene(
     debugColliderIdsControl.dataset.hudAnnounce = `${label}. ${description}`;
   };
 
+  const refreshDebugFpsControl = () => {
+    if (!debugFpsControl) {
+      return;
+    }
+    const label = debugFpsEnabled
+      ? debugCollidersStrings.fpsLabelEnabled
+      : debugCollidersStrings.fpsLabelDisabled;
+    const description = debugFpsEnabled
+      ? debugCollidersStrings.fpsDescriptionEnabled
+      : debugCollidersStrings.fpsDescriptionDisabled;
+    debugFpsControl.textContent = label;
+    debugFpsControl.dataset.state = debugFpsEnabled ? 'enabled' : 'disabled';
+    debugFpsControl.setAttribute(
+      'aria-pressed',
+      debugFpsEnabled ? 'true' : 'false'
+    );
+    debugFpsControl.setAttribute('aria-label', description);
+    debugFpsControl.title = description;
+    debugFpsControl.dataset.hudAnnounce = `${label}. ${description}`;
+  };
+
   const refreshDebugSolidIdsControl = () => {
     if (!debugSolidIdsControl) {
       return;
@@ -4571,6 +4624,25 @@ function initializeImmersiveScene(
     }
   };
 
+  const setDebugFpsEnabled = (
+    enabled: boolean,
+    options: { persist?: boolean } = { persist: true }
+  ) => {
+    debugFpsEnabled = enabled;
+    debugPerformanceOverlay.setFpsEnabled(enabled);
+    refreshDebugFpsControl();
+    if (options.persist !== false && debugCoordinatesStorage) {
+      try {
+        debugCoordinatesStorage.setItem(
+          DEBUG_FPS_STORAGE_KEY,
+          enabled ? '1' : '0'
+        );
+      } catch (error) {
+        console.warn('Failed to persist debug FPS counter preference.', error);
+      }
+    }
+  };
+
   const setDebugSolidIdsEnabled = (
     enabled: boolean,
     options: { persist?: boolean } = { persist: true }
@@ -4625,6 +4697,7 @@ function initializeImmersiveScene(
     refreshDebugCollidersControl();
     refreshDebugColliderIdsControl();
     refreshDebugSolidIdsControl();
+    refreshDebugFpsControl();
   };
 
   debugCoordinatesOverlay = document.createElement('aside');
@@ -4672,6 +4745,17 @@ function initializeImmersiveScene(
   hudSettingsStack.appendChild(debugSolidIdsControl);
   registerHudControlElement(debugSolidIdsControl);
   refreshDebugSolidIdsControl();
+
+  debugFpsControl = document.createElement('button');
+  debugFpsControl.type = 'button';
+  debugFpsControl.className = 'tour-toggle debug-fps-toggle';
+  debugFpsControl.addEventListener('click', () => {
+    setDebugFpsEnabled(!debugFpsEnabled);
+  });
+  hudSettingsStack.appendChild(debugFpsControl);
+  registerHudControlElement(debugFpsControl);
+  refreshDebugFpsControl();
+
   updateDebugCoordinatesOverlay();
   debugCoordinatesInterval = window.setInterval(
     updateDebugCoordinatesOverlay,
@@ -4729,6 +4813,13 @@ function initializeImmersiveScene(
     getState: getDebugCoordinatesState,
     setEnabled: (enabled: boolean) => {
       setDebugCoordinatesEnabled(enabled);
+    },
+  };
+
+  window.portfolio.debugPerformance = {
+    getState: debugPerformanceOverlay.getState,
+    setFpsEnabled: (enabled: boolean) => {
+      setDebugFpsEnabled(enabled);
     },
   };
 
@@ -6226,6 +6317,9 @@ function initializeImmersiveScene(
     if (window.portfolio?.debugCoordinates) {
       delete window.portfolio.debugCoordinates;
     }
+    if (window.portfolio?.debugPerformance) {
+      delete window.portfolio.debugPerformance;
+    }
     if (window.portfolio?.performance) {
       window.portfolio.performance = crashLogAccess;
     }
@@ -6253,6 +6347,11 @@ function initializeImmersiveScene(
       debugSolidIdsControl.remove();
       debugSolidIdsControl = null;
     }
+    if (debugFpsControl) {
+      debugFpsControl.remove();
+      debugFpsControl = null;
+    }
+    debugPerformanceOverlay.dispose();
     if (debugCoordinatesOverlay) {
       debugCoordinatesOverlay.remove();
       debugCoordinatesOverlay = null;
@@ -6331,6 +6430,7 @@ function initializeImmersiveScene(
 
   renderer.setAnimationLoop(() => {
     try {
+      debugPerformanceOverlay.beginFrame();
       const frameStartMs = performance.now();
       const cadenceDecision = resolveSoftwareSafeRenderCadence({
         safeMode: softwareRendererPolicy.safeMode,
@@ -6341,6 +6441,7 @@ function initializeImmersiveScene(
         renderIntervalMs: softwareSafeRenderIntervalMs,
       });
       if (!cadenceDecision.shouldRender) {
+        debugPerformanceOverlay.endFrame();
         return;
       }
       softwareSafeRenderRequested = cadenceDecision.renderRequested;
@@ -6363,6 +6464,7 @@ function initializeImmersiveScene(
       }
       performanceFailover.update(delta);
       if (performanceFailover.hasTriggered()) {
+        debugPerformanceOverlay.endFrame();
         return;
       }
       let phaseStart = performance.now();
@@ -6614,12 +6716,14 @@ function initializeImmersiveScene(
         'mainRender',
         performance.now() - phaseStart
       );
+      debugPerformanceOverlay.endFrame();
       if (!hasPresentedFirstFrame) {
         hasPresentedFirstFrame = true;
         writeModePreference('immersive');
         markDocumentReady('immersive');
       }
     } catch (error) {
+      debugPerformanceOverlay.endFrame();
       handleFatalError(error);
     }
   });
