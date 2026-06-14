@@ -2385,7 +2385,11 @@ function initializeImmersiveScene(
     if (poi.collider) {
       if (getPoiFloorId(poi.definition) === 'upper') {
         upperFloorColliders.push(poi.collider);
-      } else {
+      } else if (
+        poi.definition.id !== 'futuroptimist-living-room-tv' &&
+        poi.definition.id !== 'dspace-backyard-rocket' &&
+        poi.definition.id !== 'sugarkube-backyard-greenhouse'
+      ) {
         staticColliders.push(poi.collider);
       }
     }

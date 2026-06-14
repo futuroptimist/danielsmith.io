@@ -745,17 +745,6 @@ export function createPrReaperConsole(
     orientationRadians
   );
   colliders.push(deckCollider);
-  const walkwayOffset = deckDepth / 2 + walkwayDepth / 2 - 0.12;
-  const walkwayCenter = offsetLocal(
-    basePosition,
-    right,
-    forward,
-    0,
-    walkwayOffset
-  );
-  colliders.push(
-    createCollider(walkwayCenter, 1.6, walkwayDepth, orientationRadians)
-  );
 
   const update = ({
     elapsed,

@@ -554,13 +554,6 @@ export function createFlywheelShowpiece(
     maxZ: options.centerZ + daisRadius,
   });
 
-  colliders.push({
-    minX: infoPanelGroup.position.x - kioskWidth / 2,
-    maxX: infoPanelGroup.position.x + kioskWidth / 2,
-    minZ: infoPanelGroup.position.z - kioskWidth / 2,
-    maxZ: infoPanelGroup.position.z + kioskWidth / 2,
-  });
-
   let spinVelocity = 0.6;
   let infoReveal = 0.08;
   let calloutPhase = 0;

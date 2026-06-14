@@ -760,7 +760,6 @@ export function createBackyardEnvironment(
     orientationRadians: -Math.PI / 9,
   });
   group.add(projection.group);
-  colliders.push(projection.collider);
   updates.push(projection.update);
 
   const walkwayMoteCount = 36;
@@ -1567,7 +1566,7 @@ export function createBackyardEnvironment(
       maxZ: fenceBackZ + 0.18,
     },
   ];
-  fenceColliders.forEach((collider) => colliders.push(collider));
+  fenceColliders.slice(0, 2).forEach((collider) => colliders.push(collider));
 
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;
