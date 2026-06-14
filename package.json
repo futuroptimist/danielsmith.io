@@ -25,6 +25,7 @@
     "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs"
   },
   "dependencies": {
+    "stats.js": "^0.17.0",
     "three": "^0.161.0"
   },
   "devDependencies": {

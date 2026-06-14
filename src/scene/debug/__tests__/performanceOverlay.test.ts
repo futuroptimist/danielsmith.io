@@ -2,15 +2,40 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createDebugPerformanceOverlay } from '../performanceOverlay';
 
+const showPanel = vi.fn();
+const begin = vi.fn();
+const end = vi.fn();
+const statsInstances: Array<{
+  dom: HTMLDivElement;
+  domElement: HTMLDivElement;
+}> = [];
+
+vi.mock('stats.js', () => ({
+  default: vi.fn().mockImplementation(() => {
+    const dom = document.createElement('div');
+    const stats = {
+      dom,
+      domElement: dom,
+      showPanel,
+      begin,
+      end,
+    };
+    statsInstances.push(stats);
+    return stats;
+  }),
+}));
+
 describe('debug performance overlay', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    statsInstances.length = 0;
     document.body.innerHTML = '';
   });
 
-  it('reports disabled state before the FPS panel is enabled', () => {
+  it('creates a stats.js FPS panel and reports disabled state before enabling', () => {
     const overlay = createDebugPerformanceOverlay();
 
+    expect(showPanel).toHaveBeenCalledWith(0);
     expect(overlay.getState()).toEqual({
       fpsEnabled: false,
       panelVisible: false,
@@ -49,22 +74,19 @@ describe('debug performance overlay', () => {
     });
   });
 
-  it('updates the in-house FPS label without a runtime dependency', () => {
-    const now = vi.spyOn(performance, 'now');
-    now
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(250)
-      .mockReturnValueOnce(500);
+  it('delegates frame samples to stats.js only while enabled', () => {
     const overlay = createDebugPerformanceOverlay();
 
-    overlay.setFpsEnabled(true);
+    overlay.begin();
     overlay.end();
+    expect(begin).not.toHaveBeenCalled();
+    expect(end).not.toHaveBeenCalled();
+
+    overlay.setFpsEnabled(true);
+    overlay.begin();
     overlay.end();
 
-    expect(
-      document.querySelector<HTMLElement>(
-        '[data-debug-performance-panel="fps"]'
-      )?.textContent
-    ).toBe('FPS 4');
+    expect(begin).toHaveBeenCalledTimes(1);
+    expect(end).toHaveBeenCalledTimes(1);
   });
 });
