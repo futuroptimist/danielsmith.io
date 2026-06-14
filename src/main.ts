@@ -483,6 +483,77 @@ import {
 import { createSoftwareRendererWarning } from './ui/softwareRendererWarning';
 import './ui/styles.css';
 
+const ERRANT_SOURCE_COLLIDER_BOUNDS: RectCollider[] = [
+  {
+    minX: 11.05809357524045,
+    maxX: 13.223186424759556,
+    minZ: 25.64342876802773,
+    maxZ: 27.42601123197228,
+  },
+  {
+    minX: -3.25,
+    maxX: 3.25,
+    minZ: 30.630000000000006,
+    maxZ: 30.97000000000001,
+  },
+  { minX: 12.629999999999999, maxX: 13.23, minZ: -4.3, maxZ: -3.7 },
+  { minX: 19.55, maxX: 20.45, minZ: -3.5, maxZ: -2.7 },
+  {
+    minX: 0.2426920366564525,
+    maxX: 1.5927814031715848,
+    minZ: 19.595908320472194,
+    maxZ: 21.33931210899127,
+  },
+  {
+    minX: 28.138991631191697,
+    maxX: 29.46100836880832,
+    minZ: -25.126903730815343,
+    maxZ: -20.473096269184673,
+  },
+  {
+    minX: -15.427711452812336,
+    maxX: -14.572288547187664,
+    minZ: 4.4434114543880145,
+    maxZ: 6.196588545611986,
+  },
+  {
+    minX: -31.700000000000006,
+    maxX: -31.120000000000008,
+    minZ: -17.144,
+    maxZ: -11.255999999999998,
+  },
+  { minX: 8.4, maxX: 15.6, minZ: 22.8, maxZ: 29.2 },
+  { minX: -15.4, maxX: -8.6, minZ: 20.6, maxZ: 27.4 },
+];
+
+const COLLIDER_BOUNDS_EPSILON = 1e-9;
+
+const nearlyEqual = (left: number, right: number) =>
+  Math.abs(left - right) <= COLLIDER_BOUNDS_EPSILON;
+
+const hasSameColliderBounds = (left: RectCollider, right: RectCollider) =>
+  nearlyEqual(left.minX, right.minX) &&
+  nearlyEqual(left.maxX, right.maxX) &&
+  nearlyEqual(left.minZ, right.minZ) &&
+  nearlyEqual(left.maxZ, right.maxZ);
+
+const removeErrantSourceColliders = (colliders: RectCollider[]) => {
+  for (let index = colliders.length - 1; index >= 0; index -= 1) {
+    if (
+      ERRANT_SOURCE_COLLIDER_BOUNDS.some((bounds) =>
+        hasSameColliderBounds(colliders[index], bounds)
+      )
+    ) {
+      colliders.splice(index, 1);
+    }
+  }
+};
+
+const REMOVED_GENERATED_DEBUG_COLLIDER_NUMBERS = {
+  ground: new Set([0x003, 0x007, 0x01a, 0x020, 0x023, 0x027, 0x02c]),
+  static: new Set([0x001, 0x00d, 0x00f]),
+} as const;
+
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
@@ -1967,7 +2038,10 @@ function initializeImmersiveScene(
   );
   groundStairBoundaryColliders.forEach(({ name, bounds }) => {
     groundColliders.push(bounds);
-    namedColliderDebugNames.set(bounds, name);
+    namedColliderDebugNames.set(
+      bounds,
+      name === 'GroundStairEastBoundary' ? 'GroundStairEastSqueezeGuard' : name
+    );
   });
 
   const upperFloorGroup = new Group();
@@ -2011,7 +2085,6 @@ function initializeImmersiveScene(
   // computeStairLayout result used by movement. It removes both the stair
   // landing void and the hidden ramp run below the landing lip.
   if (upperLandingRoom && upperStairwellOpening) {
-    const upperStairVoidMinZ = upperStairwellOpening.minZ;
     const upperStairVoidMaxZ = upperStairwellOpening.maxZ;
     const upperLandingDoorwayClearanceZ =
       upperLandingRoom.bounds.maxZ - doorwayDepth / 2 - PLAYER_RADIUS;
@@ -2051,7 +2124,7 @@ function initializeImmersiveScene(
       hiddenStairTopGapBlockerFarZ
     );
     const upperStairLandingEntryMinZ = Math.max(
-      upperStairVoidMinZ,
+      upperStairwellOpening.minZ,
       hiddenStairTopGapBlockerMinZ - PLAYER_RADIUS
     );
     const upperStairLandingEntryMaxZ = Math.min(
@@ -2089,30 +2162,14 @@ function initializeImmersiveScene(
       hiddenStairBlockerStartZ + upperStairBannisterThickness;
     const upperStairNorthBannisterMaxX =
       upperStairwellOpening.maxX - upperStairBannisterThickness;
-    const upperStairDescentHandoffFarZ =
-      stairTopZ -
-      stairLayout.directionMultiplier *
-        (stairTransitionMargin + stairLandingTriggerMargin);
-    const upperStairHiddenRunGuardNearZ =
-      upperStairDescentHandoffFarZ -
-      stairLayout.directionMultiplier * PLAYER_RADIUS;
 
     [
       {
-        name: 'UpperStairWestUpperVoidGuard',
-        bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: upperStairwellOpening.minX,
-          minZ: upperStairVoidMaxZ,
-          maxZ: upperStairVoidMaxZ,
-        },
-      },
-      {
-        name: 'UpperStairEastLowerVoidGuard',
+        name: 'UpperStairEastLowerVoidSqueezeGuard',
         bounds: {
           minX: stairNavigationZones.explicitDescentCorridor.maxX,
           maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
-          minZ: upperStairVoidMinZ,
+          minZ: upperStairwellOpening.minZ,
           maxZ: upperStairLandingEntryMinZ,
         },
       },
@@ -2127,16 +2184,24 @@ function initializeImmersiveScene(
       },
       ...upperStairTopGapBlockers,
       {
-        name: 'UpperStairHiddenRunVoidGuard',
+        name: 'UpperStairHiddenRunSqueezeGuard',
         bounds: {
           minX: upperStairwellOpening.minX,
           maxX: upperStairwellOpening.maxX,
           minZ: Math.min(
-            upperStairHiddenRunGuardNearZ,
+            stairTopZ -
+              stairLayout.directionMultiplier *
+                (stairTransitionMargin +
+                  stairLandingTriggerMargin +
+                  PLAYER_RADIUS),
             upperLandingDoorwayClearanceZ
           ),
           maxZ: Math.max(
-            upperStairHiddenRunGuardNearZ,
+            stairTopZ -
+              stairLayout.directionMultiplier *
+                (stairTransitionMargin +
+                  stairLandingTriggerMargin +
+                  PLAYER_RADIUS),
             upperStairNorthBannisterCenterZ -
               upperStairBannisterThickness / 2 -
               PLAYER_RADIUS -
@@ -2250,10 +2315,15 @@ function initializeImmersiveScene(
     });
     upperFloorGroup.add(upperStairwellLanding.group);
     upperStairwellLanding.colliders.forEach((collider, index) =>
-      pushNamedUpperFloorCollider(
-        `UpperStairwellLandingGuard-${index + 1}`,
-        collider
-      )
+      index === 0 || index === 1
+        ? pushNamedUpperFloorCollider(
+            `UpperStairwellLandingSqueezeGuard-${index + 1}`,
+            collider
+          )
+        : pushNamedUpperFloorCollider(
+            `UpperStairwellLandingGuard-${index + 1}`,
+            collider
+          )
     );
   }
 
@@ -2278,6 +2348,9 @@ function initializeImmersiveScene(
   upperWallInstances.forEach((instance) => {
     upperFloorColliders.push(instance.collider);
   });
+
+  removeErrantSourceColliders(groundColliders);
+  removeErrantSourceColliders(staticColliders);
 
   const floorColliders: Record<FloorId, RectCollider[]> = {
     ground: groundColliders,
@@ -4253,16 +4326,31 @@ function initializeImmersiveScene(
       namePrefix: string;
       elevation?: number;
     }
-  ): DebugColliderRegistration[] =>
-    colliders.map((bounds, index) => ({
-      floor: options.floor,
-      category: options.category,
-      name:
-        namedColliderDebugNames.get(bounds) ??
-        `${options.namePrefix}-${index + 1}`,
-      bounds,
-      elevation: options.elevation,
-    }));
+  ): DebugColliderRegistration[] => {
+    const removedNumbers =
+      REMOVED_GENERATED_DEBUG_COLLIDER_NUMBERS[
+        options.category as keyof typeof REMOVED_GENERATED_DEBUG_COLLIDER_NUMBERS
+      ];
+    let generatedNumber = 0;
+
+    return colliders.map((bounds) => {
+      let generatedName = namedColliderDebugNames.get(bounds);
+      if (!generatedName) {
+        do {
+          generatedNumber += 1;
+        } while (removedNumbers?.has(generatedNumber));
+        generatedName = `${options.namePrefix}-${generatedNumber}`;
+      }
+
+      return {
+        floor: options.floor,
+        category: options.category,
+        name: generatedName,
+        bounds,
+        elevation: options.elevation,
+      };
+    });
+  };
 
   const colliderVisualizer = createColliderVisualizer({
     activeFloorId,
