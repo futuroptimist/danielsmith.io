@@ -934,15 +934,24 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       targetId
     );
   }
+  const expectColliderBoundsCloseTo = (
+    actual: (typeof debugColliders)[number]['bounds'],
+    expected: (typeof targetErrantColliderSources)[number]['bounds']
+  ) =>
+    Math.abs(actual.minX - expected.minX) < 0.000001 &&
+    Math.abs(actual.maxX - expected.maxX) < 0.000001 &&
+    Math.abs(actual.minZ - expected.minZ) < 0.000001 &&
+    Math.abs(actual.maxZ - expected.maxZ) < 0.000001;
   for (const source of targetErrantColliderSources) {
+    const mustRemoveByBounds =
+      source.name.startsWith('ground-collider-') ||
+      source.name.startsWith('static-collider-') ||
+      source.name === 'UpperStairWestUpperVoidGuard';
     expect(
       debugColliders.some(
         (collider) =>
-          collider.name === source.name &&
-          collider.bounds.minX === source.bounds.minX &&
-          collider.bounds.maxX === source.bounds.maxX &&
-          collider.bounds.minZ === source.bounds.minZ &&
-          collider.bounds.maxZ === source.bounds.maxZ
+          expectColliderBoundsCloseTo(collider.bounds, source.bounds) &&
+          (mustRemoveByBounds || collider.name === source.name)
       )
     ).toBe(false);
   }

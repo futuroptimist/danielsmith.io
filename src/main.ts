@@ -2349,9 +2349,6 @@ function initializeImmersiveScene(
     upperFloorColliders.push(instance.collider);
   });
 
-  removeErrantSourceColliders(groundColliders);
-  removeErrantSourceColliders(staticColliders);
-
   const floorColliders: Record<FloorId, RectCollider[]> = {
     ground: groundColliders,
     upper: upperFloorColliders,
@@ -3069,6 +3066,9 @@ function initializeImmersiveScene(
     loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;
   }
+
+  removeErrantSourceColliders(groundColliders);
+  removeErrantSourceColliders(staticColliders);
 
   poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,
@@ -4334,18 +4334,17 @@ function initializeImmersiveScene(
     let generatedNumber = 0;
 
     return colliders.map((bounds) => {
-      let generatedName = namedColliderDebugNames.get(bounds);
-      if (!generatedName) {
-        do {
-          generatedNumber += 1;
-        } while (removedNumbers?.has(generatedNumber));
-        generatedName = `${options.namePrefix}-${generatedNumber}`;
-      }
+      do {
+        generatedNumber += 1;
+      } while (removedNumbers?.has(generatedNumber));
+
+      const generatedName = `${options.namePrefix}-${generatedNumber}`;
+      const colliderName = namedColliderDebugNames.get(bounds) ?? generatedName;
 
       return {
         floor: options.floor,
         category: options.category,
-        name: generatedName,
+        name: colliderName,
         bounds,
         elevation: options.elevation,
       };
