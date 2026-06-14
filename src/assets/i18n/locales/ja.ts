@@ -319,6 +319,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
         '表示中のシーンソリッドに安定 ID とワイヤーフレームを表示します。',
       solidIdsDescriptionDisabled:
         '安定したソリッド ID とワイヤーフレームを隠します。',
+      fpsLabelEnabled: 'FPS カウンターオン',
+      fpsLabelDisabled: 'FPS カウンターオフ',
+      fpsDescriptionEnabled:
+        '非インタラクティブな stats.js FPS パネルを表示します。',
+      fpsDescriptionDisabled: 'stats.js FPS パネルは非表示です。',
     },
     poiOverlay: {
       visited: '訪問済み',

@@ -384,6 +384,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'Shows stable IDs and wireframes for visible scene solids.',
       solidIdsDescriptionDisabled:
         'Stable solid IDs and wireframes stay hidden.',
+      fpsLabelEnabled: 'FPS counter on',
+      fpsLabelDisabled: 'FPS counter off',
+      fpsDescriptionEnabled: 'Shows a non-interactive stats.js FPS panel.',
+      fpsDescriptionDisabled: 'The stats.js FPS panel stays hidden.',
     },
     tourReset: {
       heading: 'Guided tour',
