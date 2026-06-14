@@ -268,7 +268,10 @@ import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
 } from './scene/structures/tokenPlaceRack';
-import { createUpperLandingFloorCutouts } from './scene/structures/upperLandingFloorCutouts';
+import {
+  createUpperLandingFloorCutouts,
+  createUpperLandingStairRunApproachFootprint,
+} from './scene/structures/upperLandingFloorCutouts';
 import { createUpperStairwellLanding } from './scene/structures/upperStairwellLanding';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
@@ -2159,12 +2162,12 @@ function initializeImmersiveScene(
   };
   const stairRunApproachFootprint =
     upperLandingRoom && upperStairwellOpening
-      ? {
-          minX: stairCenterX,
-          maxX: stairNavigationZones.explicitDescentCorridor.maxX,
-          minZ: upperStairwellOpening.minZ,
-          maxZ: upperLandingRoom.bounds.maxZ,
-        }
+      ? createUpperLandingStairRunApproachFootprint({
+          stairCenterX,
+          stairHalfWidth,
+          stairwellOpening: upperStairwellOpening,
+          upperLandingRoomBounds: upperLandingRoom.bounds,
+        })
       : undefined;
   const upperLandingCutouts =
     upperLandingRoom && upperStairwellOpening && stairRunApproachFootprint

@@ -23,6 +23,31 @@ export interface UpperLandingFloorCutoutConfig {
   readonly hiddenRunVoidMinX: number;
 }
 
+export interface UpperLandingStairRunApproachFootprintConfig {
+  readonly stairCenterX: number;
+  readonly stairHalfWidth: number;
+  readonly stairwellOpening: Bounds2D;
+  readonly upperLandingRoomBounds: Bounds2D;
+}
+
+/**
+ * Covers the full physical stair width where upper-floor tiles would otherwise
+ * extend from the stairwell mouth toward the camera-facing upper landing edge.
+ */
+export function createUpperLandingStairRunApproachFootprint({
+  stairCenterX,
+  stairHalfWidth,
+  stairwellOpening,
+  upperLandingRoomBounds,
+}: UpperLandingStairRunApproachFootprintConfig): Bounds2D {
+  return {
+    minX: stairCenterX - stairHalfWidth,
+    maxX: stairCenterX + stairHalfWidth,
+    minZ: stairwellOpening.minZ,
+    maxZ: upperLandingRoomBounds.maxZ,
+  };
+}
+
 /**
  * Keeps upper landing floor tiles away from the physical staircase landing slab
  * while preserving the narrower hidden-run cutout that protects upstairs egress.
