@@ -116,6 +116,11 @@ import {
   type DebugColliderVisualizerState,
 } from './scene/debug/colliderVisualizer';
 import {
+  createSolidVisualizer,
+  type DebugSolidMetadata,
+  type DebugSolidVisualizerState,
+} from './scene/debug/solidVisualizer';
+import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
@@ -478,6 +483,8 @@ const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
 const DEBUG_COLLIDERS_STORAGE_KEY = 'danielsmith.io::debugColliders::v1';
+const DEBUG_COLLIDER_IDS_STORAGE_KEY = 'danielsmith.io::debugColliderIds::v1';
+const DEBUG_SOLID_IDS_STORAGE_KEY = 'danielsmith.io::debugSolidIds::v1';
 const DEBUG_URL_TRUTHY_VALUES = ['1', 'true', 'yes', 'on'] as const;
 const DEBUG_URL_FALSY_VALUES = ['0', 'false', 'no', 'off'] as const;
 const isDebugUrlValueIn = (
@@ -587,6 +594,7 @@ declare global {
       debugColliders?: {
         getState(): DebugColliderVisualizerState;
         setEnabled(enabled: boolean): void;
+        setIdsEnabled(enabled: boolean): void;
         getColliders(): DebugColliderMetadata[];
         getBlockingCollidersAt(target: {
           x: number;
@@ -594,6 +602,12 @@ declare global {
           floorId?: FloorId;
         }): DebugColliderMetadata[];
         getColliderById(id: unknown): DebugColliderMetadata | undefined;
+      };
+      debugSolids?: {
+        getState(): DebugSolidVisualizerState;
+        setEnabled(enabled: boolean): void;
+        getSolids(): DebugSolidMetadata[];
+        getSolidById(id: unknown): DebugSolidMetadata | undefined;
       };
       debugCoordinates?: {
         getState(): {
@@ -1402,8 +1416,42 @@ function initializeImmersiveScene(
   let debugCollidersEnabled = debugCollidersUrlDisabled
     ? false
     : debugCollidersUrlEnabled || debugCollidersStoredEnabled;
+  const debugColliderIdsUrlOverride = new URLSearchParams(
+    window.location.search
+  ).get('debugColliderIds');
+  const debugColliderIdsUrlEnabled = isDebugUrlValueIn(
+    debugColliderIdsUrlOverride,
+    DEBUG_URL_TRUTHY_VALUES
+  );
+  const debugColliderIdsUrlDisabled = isDebugUrlValueIn(
+    debugColliderIdsUrlOverride,
+    DEBUG_URL_FALSY_VALUES
+  );
+  const debugColliderIdsStoredEnabled =
+    debugCoordinatesStorage?.getItem(DEBUG_COLLIDER_IDS_STORAGE_KEY) !== '0';
+  let debugColliderIdsEnabled = debugColliderIdsUrlDisabled
+    ? false
+    : debugColliderIdsUrlEnabled || debugColliderIdsStoredEnabled;
+  const debugSolidIdsUrlOverride = new URLSearchParams(
+    window.location.search
+  ).get('debugSolidIds');
+  const debugSolidIdsUrlEnabled = isDebugUrlValueIn(
+    debugSolidIdsUrlOverride,
+    DEBUG_URL_TRUTHY_VALUES
+  );
+  const debugSolidIdsUrlDisabled = isDebugUrlValueIn(
+    debugSolidIdsUrlOverride,
+    DEBUG_URL_FALSY_VALUES
+  );
+  const debugSolidIdsStoredEnabled =
+    debugCoordinatesStorage?.getItem(DEBUG_SOLID_IDS_STORAGE_KEY) === '1';
+  let debugSolidIdsEnabled = debugSolidIdsUrlDisabled
+    ? false
+    : debugSolidIdsUrlEnabled || debugSolidIdsStoredEnabled;
   let debugCoordinatesControl: HTMLButtonElement | null = null;
   let debugCollidersControl: HTMLButtonElement | null = null;
+  let debugColliderIdsControl: HTMLButtonElement | null = null;
+  let debugSolidIdsControl: HTMLButtonElement | null = null;
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
@@ -4174,6 +4222,7 @@ function initializeImmersiveScene(
   const colliderVisualizer = createColliderVisualizer({
     activeFloorId,
     enabled: debugCollidersEnabled,
+    idsEnabled: debugColliderIdsEnabled,
   });
   colliderVisualizer.register([
     ...createDebugColliderRegistrations(groundColliders, {
@@ -4194,6 +4243,14 @@ function initializeImmersiveScene(
     }),
   ]);
   scene.add(colliderVisualizer.group);
+  const solidVisualizer = createSolidVisualizer({
+    enabled: debugSolidIdsEnabled,
+    reservedIds: colliderVisualizer
+      .getColliders()
+      .map((collider) => collider.id),
+  });
+  solidVisualizer.register(scene);
+  scene.add(solidVisualizer.group);
 
   const containsRectPoint = (
     rect: { minX: number; maxX: number; minZ: number; maxZ: number },
@@ -4415,6 +4472,50 @@ function initializeImmersiveScene(
     debugCollidersControl.dataset.hudAnnounce = `${label}. ${description}`;
   };
 
+  const refreshDebugColliderIdsControl = () => {
+    if (!debugColliderIdsControl) {
+      return;
+    }
+    const label = debugColliderIdsEnabled
+      ? 'Collider IDs on'
+      : 'Collider IDs off';
+    const description = debugColliderIdsEnabled
+      ? 'Shows collider ID labels when the collider overlay is on.'
+      : 'Hides collider ID labels while keeping collider wireframes available.';
+    debugColliderIdsControl.textContent = label;
+    debugColliderIdsControl.dataset.state = debugColliderIdsEnabled
+      ? 'enabled'
+      : 'disabled';
+    debugColliderIdsControl.setAttribute(
+      'aria-pressed',
+      debugColliderIdsEnabled ? 'true' : 'false'
+    );
+    debugColliderIdsControl.setAttribute('aria-label', description);
+    debugColliderIdsControl.title = description;
+    debugColliderIdsControl.dataset.hudAnnounce = `${label}. ${description}`;
+  };
+
+  const refreshDebugSolidIdsControl = () => {
+    if (!debugSolidIdsControl) {
+      return;
+    }
+    const label = debugSolidIdsEnabled ? 'Solid IDs on' : 'Solid IDs off';
+    const description = debugSolidIdsEnabled
+      ? 'Shows stable solid ID labels and wireframes for scene meshes.'
+      : 'Hides stable solid ID labels and wireframes.';
+    debugSolidIdsControl.textContent = label;
+    debugSolidIdsControl.dataset.state = debugSolidIdsEnabled
+      ? 'enabled'
+      : 'disabled';
+    debugSolidIdsControl.setAttribute(
+      'aria-pressed',
+      debugSolidIdsEnabled ? 'true' : 'false'
+    );
+    debugSolidIdsControl.setAttribute('aria-label', description);
+    debugSolidIdsControl.title = description;
+    debugSolidIdsControl.dataset.hudAnnounce = `${label}. ${description}`;
+  };
+
   const setDebugCollidersEnabled = (
     enabled: boolean,
     options: { persist?: boolean } = { persist: true }
@@ -4430,6 +4531,44 @@ function initializeImmersiveScene(
         );
       } catch (error) {
         console.warn('Failed to persist debug collider preference.', error);
+      }
+    }
+  };
+
+  const setDebugColliderIdsEnabled = (
+    enabled: boolean,
+    options: { persist?: boolean } = { persist: true }
+  ) => {
+    debugColliderIdsEnabled = enabled;
+    colliderVisualizer.setIdsEnabled(enabled);
+    refreshDebugColliderIdsControl();
+    if (options.persist !== false && debugCoordinatesStorage) {
+      try {
+        debugCoordinatesStorage.setItem(
+          DEBUG_COLLIDER_IDS_STORAGE_KEY,
+          enabled ? '1' : '0'
+        );
+      } catch (error) {
+        console.warn('Failed to persist debug collider ID preference.', error);
+      }
+    }
+  };
+
+  const setDebugSolidIdsEnabled = (
+    enabled: boolean,
+    options: { persist?: boolean } = { persist: true }
+  ) => {
+    debugSolidIdsEnabled = enabled;
+    solidVisualizer.setEnabled(enabled);
+    refreshDebugSolidIdsControl();
+    if (options.persist !== false && debugCoordinatesStorage) {
+      try {
+        debugCoordinatesStorage.setItem(
+          DEBUG_SOLID_IDS_STORAGE_KEY,
+          enabled ? '1' : '0'
+        );
+      } catch (error) {
+        console.warn('Failed to persist debug solid ID preference.', error);
       }
     }
   };
@@ -4464,6 +4603,8 @@ function initializeImmersiveScene(
 
   const refreshDebugCollidersStrings = () => {
     refreshDebugCollidersControl();
+    refreshDebugColliderIdsControl();
+    refreshDebugSolidIdsControl();
   };
 
   debugCoordinatesOverlay = document.createElement('aside');
@@ -4491,6 +4632,26 @@ function initializeImmersiveScene(
   hudSettingsStack.appendChild(debugCollidersControl);
   registerHudControlElement(debugCollidersControl);
   refreshDebugCollidersControl();
+
+  debugColliderIdsControl = document.createElement('button');
+  debugColliderIdsControl.type = 'button';
+  debugColliderIdsControl.className = 'tour-toggle debug-collider-ids-toggle';
+  debugColliderIdsControl.addEventListener('click', () => {
+    setDebugColliderIdsEnabled(!debugColliderIdsEnabled);
+  });
+  hudSettingsStack.appendChild(debugColliderIdsControl);
+  registerHudControlElement(debugColliderIdsControl);
+  refreshDebugColliderIdsControl();
+
+  debugSolidIdsControl = document.createElement('button');
+  debugSolidIdsControl.type = 'button';
+  debugSolidIdsControl.className = 'tour-toggle debug-solid-ids-toggle';
+  debugSolidIdsControl.addEventListener('click', () => {
+    setDebugSolidIdsEnabled(!debugSolidIdsEnabled);
+  });
+  hudSettingsStack.appendChild(debugSolidIdsControl);
+  registerHudControlElement(debugSolidIdsControl);
+  refreshDebugSolidIdsControl();
   updateDebugCoordinatesOverlay();
   debugCoordinatesInterval = window.setInterval(
     updateDebugCoordinatesOverlay,
@@ -4521,9 +4682,21 @@ function initializeImmersiveScene(
     setEnabled: (enabled: boolean) => {
       setDebugCollidersEnabled(enabled);
     },
+    setIdsEnabled: (enabled: boolean) => {
+      setDebugColliderIdsEnabled(enabled);
+    },
     getColliders: () => colliderVisualizer.getColliders(),
     getBlockingCollidersAt: getBlockingDebugCollidersAt,
     getColliderById: (id: unknown) => colliderVisualizer.getColliderById(id),
+  };
+
+  window.portfolio.debugSolids = {
+    getState: () => solidVisualizer.getState(),
+    setEnabled: (enabled: boolean) => {
+      setDebugSolidIdsEnabled(enabled);
+    },
+    getSolids: () => solidVisualizer.getSolids(),
+    getSolidById: (id: unknown) => solidVisualizer.getSolidById(id),
   };
 
   window.portfolio.debugCoordinates = {
@@ -6021,6 +6194,9 @@ function initializeImmersiveScene(
     if (window.portfolio?.debugColliders) {
       delete window.portfolio.debugColliders;
     }
+    if (window.portfolio?.debugSolids) {
+      delete window.portfolio.debugSolids;
+    }
     if (window.portfolio?.debugCoordinates) {
       delete window.portfolio.debugCoordinates;
     }
@@ -6043,6 +6219,14 @@ function initializeImmersiveScene(
       debugCollidersControl.remove();
       debugCollidersControl = null;
     }
+    if (debugColliderIdsControl) {
+      debugColliderIdsControl.remove();
+      debugColliderIdsControl = null;
+    }
+    if (debugSolidIdsControl) {
+      debugSolidIdsControl.remove();
+      debugSolidIdsControl = null;
+    }
     if (debugCoordinatesOverlay) {
       debugCoordinatesOverlay.remove();
       debugCoordinatesOverlay = null;
@@ -6050,6 +6234,7 @@ function initializeImmersiveScene(
       debugCoordinatesRows.clear();
     }
     colliderVisualizer.dispose();
+    solidVisualizer.dispose();
     movementLegend?.dispose();
     narrationPreference.dispose();
     if (proceduralNarrator) {

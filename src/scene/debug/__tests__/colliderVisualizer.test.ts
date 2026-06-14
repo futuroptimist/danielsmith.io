@@ -153,6 +153,7 @@ describe('createColliderVisualizer', () => {
 
     expect(visualizer.getState()).toEqual({
       enabled: false,
+      idsEnabled: true,
       visibleColliderCount: 0,
       totalColliderCount: 3,
       visibleLabelCount: 0,
@@ -162,6 +163,7 @@ describe('createColliderVisualizer', () => {
     visualizer.setEnabled(true);
     expect(visualizer.getState()).toEqual({
       enabled: true,
+      idsEnabled: true,
       visibleColliderCount: 2,
       totalColliderCount: 3,
       visibleLabelCount: 2,
@@ -268,6 +270,43 @@ describe('createColliderVisualizer', () => {
 
     expect(material.color.getStyle()).toBe('rgb(255,105,180)');
     expect(labelMaterial.color.getHex()).toBe(material.color.getHex());
+  });
+
+  it('hides IDs independently while collider wireframes remain visible', () => {
+    const visualizer = createColliderVisualizer({
+      activeFloorId: 'ground',
+      enabled: true,
+    });
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'ground-0',
+        bounds: collider,
+      },
+    ]);
+
+    const mesh = visualizer.group.children.find(
+      (child) => child.type === 'Mesh'
+    ) as Mesh;
+    const label = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    ) as Sprite;
+
+    visualizer.setIdsEnabled(false);
+
+    expect(mesh.visible).toBe(true);
+    expect(label.visible).toBe(false);
+    expect(visualizer.getState()).toMatchObject({
+      enabled: true,
+      idsEnabled: false,
+      visibleColliderCount: 1,
+      visibleLabelCount: 0,
+    });
+
+    visualizer.setEnabled(false);
+    expect(mesh.visible).toBe(false);
+    expect(label.visible).toBe(false);
   });
 
   it('keeps six-character IDs stable across four-character prefix collisions', () => {
