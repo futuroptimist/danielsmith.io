@@ -319,6 +319,12 @@ export const AR_OVERRIDES: LocaleOverrides = {
         'يعرض معرّفات ثابتة وإطارات للمجسمات المرئية في المشهد.',
       solidIdsDescriptionDisabled:
         'تبقى معرّفات المجسمات الثابتة وإطاراتها مخفية.',
+      fpsLabelEnabled: 'عداد FPS مفعّل',
+      fpsLabelDisabled: 'عداد FPS معطّل',
+      fpsDescriptionEnabled:
+        'يعرض لوحة stats.js غير تفاعلية لتشخيص أداء المشهد الغامر.',
+      fpsDescriptionDisabled:
+        'يخفي لوحة stats.js مع إبقاء أدوات التشخيص متاحة.',
     },
     poiOverlay: {
       visited: 'تمت الزيارة',

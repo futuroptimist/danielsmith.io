@@ -302,6 +302,10 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       solidIdsLabelDisabled: '实体 ID 关',
       solidIdsDescriptionEnabled: '为可见场景实体显示稳定 ID 和线框。',
       solidIdsDescriptionDisabled: '隐藏稳定实体 ID 和线框。',
+      fpsLabelEnabled: 'FPS 计数器已开启',
+      fpsLabelDisabled: 'FPS 计数器已关闭',
+      fpsDescriptionEnabled: '显示用于沉浸式诊断的非交互 stats.js FPS 面板。',
+      fpsDescriptionDisabled: '隐藏 stats.js FPS 面板，同时保留诊断功能。',
     },
     tourReset: {
       heading: '导览',
