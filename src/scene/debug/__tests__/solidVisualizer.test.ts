@@ -167,6 +167,25 @@ describe('createSolidVisualizer', () => {
     });
   });
 
+  it('keeps multiplayer projection solids while excluding player/avatar meshes', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    scene.add(createSolid('BackyardMultiplayerProjection'));
+    scene.add(createSolid('MultiplayerProjectionPanel'));
+    scene.add(createSolid('PlayerControllerMesh'));
+    scene.add(createSolid('PlayerAvatarMesh'));
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(
+      visualizer
+        .getSolids()
+        .map((solid) => solid.name)
+        .sort()
+    ).toEqual(['BackyardMultiplayerProjection', 'MultiplayerProjectionPanel']);
+  });
+
   it('registers own-hidden animated solids and shows them after they become visible', () => {
     const scene = new Group();
     scene.name = 'Scene';

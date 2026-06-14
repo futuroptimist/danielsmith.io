@@ -94,7 +94,7 @@ const matchesExcludedName = (name: string): boolean => {
     normalizedName.includes('label') ||
     normalizedName.includes('sprite') ||
     normalizedName.includes('ui') ||
-    normalizedName.includes('player') ||
+    normalizedName.startsWith('player') ||
     normalizedName.includes('avatar') ||
     normalizedName.includes('mannequin')
   );
