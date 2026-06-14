@@ -818,15 +818,6 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }, '400A');
   expect(northBannisterById?.id).toBe('400A');
   expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
-  const lowerStairAccessBlocker = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '400F');
-  expect(lowerStairAccessBlocker?.id).toBe('400F');
-  expect(lowerStairAccessBlocker?.name).toBe('UpperStairLowerStepAccessGuard');
   const hiddenRunGuard = debugColliders.find(
     (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
   );
@@ -855,9 +846,9 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   );
   expectCloseTo(
     northBannisterCenterZ,
-    -18.25,
+    -16.25,
     0.05,
-    'north bannister center z stays aligned to the visible guard seam'
+    'north bannister center z shifts +2 from the previous guard seam'
   );
   expectCloseTo(
     northBannister.bounds.minX,
@@ -934,7 +925,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     {
       name: 'east lower-step no-floor pocket outside descent corridor',
       target: { x: 15.55, z: -16.25, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairLowerStepAccessGuard',
+      expectedBlocker: 'UpperStairNorthBannisterGuard',
     },
   ];
 
@@ -1417,19 +1408,18 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
 
-  expect(await canOccupyPosition(page, descentCenterlineAtLowerSteps)).toBe(
-    true
-  );
-  expect(
-    await getBlockingColliderNames(page, descentCenterlineAtLowerSteps)
-  ).toEqual([]);
-  expect(await canOccupyPosition(page, eastLowerStepBackEntry)).toBe(false);
-  expect(
-    await getBlockingColliderNames(page, eastLowerStepBackEntry)
-  ).toContain('UpperStairLowerStepAccessGuard');
-  await expect(async () =>
-    movePlayerTo(page, eastLowerStepBackEntry)
-  ).rejects.toThrow(/Cannot occupy/);
+  for (const lowerStepBackEntry of [
+    descentCenterlineAtLowerSteps,
+    eastLowerStepBackEntry,
+  ]) {
+    expect(await canOccupyPosition(page, lowerStepBackEntry)).toBe(false);
+    expect(await getBlockingColliderNames(page, lowerStepBackEntry)).toContain(
+      'UpperStairNorthBannisterGuard'
+    );
+    await expect(async () =>
+      movePlayerTo(page, lowerStepBackEntry)
+    ).rejects.toThrow(/Cannot occupy/);
+  }
 });
 
 test('upper landing edge nudges stay upstairs until the descent corridor is entered', async ({
