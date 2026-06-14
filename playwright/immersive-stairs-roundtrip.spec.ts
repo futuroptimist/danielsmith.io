@@ -932,8 +932,8 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       expectedBlocker: 'UpperStairHiddenRunVoidGuard',
     },
     {
-      name: 'north back-entry bannister guard shifted forward to block bottommost steps',
-      target: { x: 12.7, z: -16.25, floorId: 'upper' as const },
+      name: 'east lower-step no-floor pocket outside descent corridor',
+      target: { x: 15.55, z: -16.25, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairLowerStepAccessGuard',
     },
   ];
@@ -1266,8 +1266,13 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     floorId: 'upper' as const,
   };
   const westSideStairEntry = { x: 9.3, z: -23.72, floorId: 'upper' as const };
-  const northBackStairEntry = {
-    x: 12.7,
+  const eastLowerStepBackEntry = {
+    x: 15.55,
+    z: -16.25,
+    floorId: 'upper' as const,
+  };
+  const descentCenterlineAtLowerSteps = {
+    x: stairCenterX,
     z: -16.25,
     floorId: 'upper' as const,
   };
@@ -1412,21 +1417,18 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
 
-  expect(await canOccupyPosition(page, northBackStairEntry)).toBe(false);
-  expect(await getBlockingColliderNames(page, northBackStairEntry)).toContain(
-    'UpperStairNorthBannisterGuard'
+  expect(await canOccupyPosition(page, descentCenterlineAtLowerSteps)).toBe(
+    true
   );
-  const runtimeNorthEntry = await stepRuntimeIntoUpperStairGuard(
-    page,
-    { x: 10.2, z: -15.2 },
-    { dx: 0, dz: -0.18 }
-  );
-  expect(runtimeNorthEntry.movedZ).toBe(false);
-  expect(runtimeNorthEntry.blockedBy).toContain(
-    'UpperStairNorthBannisterGuard'
-  );
+  expect(
+    await getBlockingColliderNames(page, descentCenterlineAtLowerSteps)
+  ).toEqual([]);
+  expect(await canOccupyPosition(page, eastLowerStepBackEntry)).toBe(false);
+  expect(
+    await getBlockingColliderNames(page, eastLowerStepBackEntry)
+  ).toContain('UpperStairLowerStepAccessGuard');
   await expect(async () =>
-    movePlayerTo(page, northBackStairEntry)
+    movePlayerTo(page, eastLowerStepBackEntry)
   ).rejects.toThrow(/Cannot occupy/);
 });
 

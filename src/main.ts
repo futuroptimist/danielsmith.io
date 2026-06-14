@@ -2060,6 +2060,10 @@ function initializeImmersiveScene(
     // hidden-run guard and visible bannister remain contiguous.
     const upperStairLowerStepGuardCenterZ =
       upperStairNorthBannisterBaseCenterZ + 2;
+    const upperStairLowerStepGuardMinX = Math.max(
+      upperStairNorthBannisterMinX,
+      stairNavigationZones.explicitDescentCorridor.maxX + PLAYER_RADIUS + 0.01
+    );
     const upperStairWestBannisterSouthZ =
       hiddenStairBlockerStartZ + upperStairBannisterThickness;
     const upperStairNorthBannisterMaxX =
@@ -2148,7 +2152,7 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairLowerStepAccessGuard',
         bounds: {
-          minX: upperStairNorthBannisterMinX,
+          minX: upperStairLowerStepGuardMinX,
           maxX: upperStairNorthBannisterMaxX,
           minZ:
             upperStairLowerStepGuardCenterZ - upperStairBannisterThickness / 2,
