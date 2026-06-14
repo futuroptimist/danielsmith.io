@@ -175,6 +175,7 @@ import {
 } from './scene/lighting/seasonalPresets';
 import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
 import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
+import { LowFpsRecoveryMonitor } from './scene/performance/lowFpsRecoveryMonitor';
 import {
   createPerformanceDiagnostics,
   type PerformanceCrashBreadcrumbApi,
@@ -568,6 +569,8 @@ declare global {
         };
       };
       graphics?: {
+        getLevel?(): string;
+        setLevel?(level: string): void;
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
         getMotionBlurState(): {
@@ -620,6 +623,10 @@ declare global {
       debugPerformance?: {
         getState(): DebugPerformanceState;
         setFpsEnabled(enabled: boolean): void;
+        getLowFpsRecoveryState?(): object;
+        forceLowFpsRecoveryPopup?(): void;
+        recordLowFpsRecoveryFrame?(deltaSeconds: number, nowMs?: number): void;
+        dismissLowFpsRecoveryPopup?(nowMs?: number): void;
       };
       debugCoordinates?: {
         getState(): {
@@ -796,6 +803,9 @@ function reloadWithPendingSceneDetailParam(
 
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
 const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
+const LOW_FPS_RECOVERY_THRESHOLD = 5;
+const LOW_FPS_RECOVERY_WINDOW_MS = 10_000;
+const LOW_FPS_RECOVERY_COOLDOWN_MS = 30_000;
 const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
@@ -1560,6 +1570,7 @@ function initializeImmersiveScene(
       inputLatencyTelemetry?.report(`failover-${reason}`);
     },
     disabled: disablePerformanceFailover,
+    disableLowFps: true,
     consoleFailover: {
       budget: 0,
       onExceeded: ({ source, count }) => {
@@ -3740,6 +3751,77 @@ function initializeImmersiveScene(
     }
     performanceFailover.triggerFallback('manual');
   };
+
+  const lowFpsRecoveryPopup = document.createElement('aside');
+  lowFpsRecoveryPopup.className = 'performance-recovery-popup';
+  lowFpsRecoveryPopup.setAttribute('role', 'status');
+  lowFpsRecoveryPopup.setAttribute('aria-live', 'polite');
+  lowFpsRecoveryPopup.hidden = true;
+  container.appendChild(lowFpsRecoveryPopup);
+
+  const getNextLowerGraphicsLevel = () => {
+    const current = graphicsQualityManager?.getLevel();
+    if (current === 'cinematic') {
+      return 'balanced' as const;
+    }
+    if (current === 'balanced') {
+      return 'performance' as const;
+    }
+    return null;
+  };
+
+  const renderLowFpsRecoveryPopup = () => {
+    lowFpsRecoveryPopup.replaceChildren();
+    const title = document.createElement('h2');
+    title.className = 'performance-recovery-popup__title';
+    title.textContent = 'Low frame rate detected';
+    const body = document.createElement('p');
+    body.className = 'performance-recovery-popup__body';
+    body.textContent =
+      'Immersive mode is running slowly. You can lower graphics or switch to non-immersive mode.';
+    const actions = document.createElement('div');
+    actions.className = 'performance-recovery-popup__actions';
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.textContent = 'Dismiss';
+    dismiss.addEventListener('click', () => {
+      lowFpsRecoveryMonitor.dismiss();
+      lowFpsRecoveryPopup.hidden = true;
+    });
+    actions.appendChild(dismiss);
+    const nextLevel = getNextLowerGraphicsLevel();
+    if (nextLevel) {
+      const downgrade = document.createElement('button');
+      downgrade.type = 'button';
+      downgrade.textContent = `Switch to ${nextLevel === 'balanced' ? 'Balanced' : 'Performance'}`;
+      downgrade.addEventListener('click', () => {
+        graphicsQualityManager?.setLevel(nextLevel, { source: 'user' });
+        lowFpsRecoveryMonitor.dismiss();
+        lowFpsRecoveryPopup.hidden = true;
+      });
+      actions.appendChild(downgrade);
+    }
+    const textMode = document.createElement('button');
+    textMode.type = 'button';
+    textMode.textContent = 'Use non-immersive mode';
+    textMode.addEventListener('click', () => {
+      lowFpsRecoveryMonitor.dismiss();
+      lowFpsRecoveryPopup.hidden = true;
+      activateTextMode();
+    });
+    actions.appendChild(textMode);
+    lowFpsRecoveryPopup.append(title, body, actions);
+  };
+
+  const lowFpsRecoveryMonitor = new LowFpsRecoveryMonitor({
+    fpsThreshold: LOW_FPS_RECOVERY_THRESHOLD,
+    windowMs: LOW_FPS_RECOVERY_WINDOW_MS,
+    cooldownMs: LOW_FPS_RECOVERY_COOLDOWN_MS,
+    onTrigger: () => {
+      renderLowFpsRecoveryPopup();
+      lowFpsRecoveryPopup.hidden = false;
+    },
+  });
   const toggleHelpMenu = (force?: boolean) => {
     if (hudPanelCoordinator) {
       hudPanelCoordinator.toggleSettings(force);
@@ -4825,6 +4907,15 @@ function initializeImmersiveScene(
     setFpsEnabled: (enabled: boolean) => {
       setDebugFpsEnabled(enabled);
     },
+    getLowFpsRecoveryState: () => lowFpsRecoveryMonitor.getState(),
+    forceLowFpsRecoveryPopup: () => lowFpsRecoveryMonitor.forceTrigger(),
+    recordLowFpsRecoveryFrame: (deltaSeconds: number, nowMs?: number) => {
+      lowFpsRecoveryMonitor.recordFrame(deltaSeconds, nowMs);
+    },
+    dismissLowFpsRecoveryPopup: (nowMs?: number) => {
+      lowFpsRecoveryMonitor.dismiss(nowMs);
+      lowFpsRecoveryPopup.hidden = true;
+    },
   };
 
   window.portfolio.debugCoordinates = {
@@ -5431,6 +5522,18 @@ function initializeImmersiveScene(
       portfolioWindow.portfolio = {};
     }
     portfolioWindow.portfolio.graphics = {
+      getLevel() {
+        return graphicsQualityManager?.getLevel() ?? 'balanced';
+      },
+      setLevel(level: string) {
+        if (
+          level === 'cinematic' ||
+          level === 'balanced' ||
+          level === 'performance'
+        ) {
+          graphicsQualityManager?.setLevel(level, { source: 'user' });
+        }
+      },
       getMotionBlurIntensity() {
         return motionBlurController?.getIntensity() ?? 0;
       },
@@ -5526,7 +5629,7 @@ function initializeImmersiveScene(
   });
   registerHudControlElement(graphicsQualityControl?.element ?? null);
 
-  const applyFeaturePolicy = () => {
+  const applyFeaturePolicy = (options: { reloadScene?: boolean } = {}) => {
     const policy = getQualityFeaturePolicy(
       graphicsQualityManager?.getLevel() ?? initialQualityPolicy.initialLevel,
       rendererInfo.isSoftwareRenderer
@@ -5537,7 +5640,7 @@ function initializeImmersiveScene(
       renderTargetSize: policy.mirrorTargetSize,
     });
     const level = graphicsQualityManager?.getLevel() ?? initialSceneDetailLevel;
-    applySceneDetailLevel(level, { reloadScene: true });
+    applySceneDetailLevel(level, { reloadScene: options.reloadScene ?? true });
   };
 
   const getActivePostprocessingPassCount = () => {
@@ -5555,7 +5658,7 @@ function initializeImmersiveScene(
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
-    applyFeaturePolicy();
+    applyFeaturePolicy({ reloadScene: false });
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();
@@ -6121,6 +6224,8 @@ function initializeImmersiveScene(
     });
     softwareRendererWarning?.dispose();
     softwareRendererWarning = null;
+    lowFpsRecoveryMonitor.reset();
+    lowFpsRecoveryPopup.remove();
     immersiveDisposed = true;
     ledAnimator = null;
     lightmapAnimator = null;
@@ -6477,6 +6582,7 @@ function initializeImmersiveScene(
         applyFeaturePolicy();
       }
       performanceFailover.update(delta);
+      lowFpsRecoveryMonitor.recordFrame(delta, frameStartMs);
       if (performanceFailover.hasTriggered()) {
         debugPerformanceOverlay.end();
         return;

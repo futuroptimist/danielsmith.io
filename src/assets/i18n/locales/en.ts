@@ -573,7 +573,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
             {
               label: 'Low performance',
               description:
-                'The scene automatically switches to text mode below 30 FPS.',
+                'The scene suggests recovery actions if average FPS stays below 5 for 10 seconds.',
             },
             {
               label: 'Manual toggle',

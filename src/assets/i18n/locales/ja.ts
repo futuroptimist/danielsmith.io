@@ -450,7 +450,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
             {
               label: '低パフォーマンス',
               description:
-                'FPS が 30 を下回ると自動的にテキストモードへ切り替わります。',
+                '平均 FPS が 10 秒間 5 を下回ると復旧アクションを提案します。',
             },
             {
               label: '手動トグル',
