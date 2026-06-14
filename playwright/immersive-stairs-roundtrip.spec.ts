@@ -785,11 +785,86 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   for (const previouslyRemovedCollider of previouslyRemovedArtifactColliders) {
     expect(debugColliderNames).not.toContain(previouslyRemovedCollider);
   }
+  const removedTargetColliderIds = [
+    '4005',
+    '4008',
+    '4006',
+    '400B',
+    '400C',
+    '4001',
+    '1023',
+    '101A',
+    '1020',
+    '102C',
+    '2001',
+    '200F',
+    '1003',
+    '1027',
+    '1007',
+    '200D',
+  ];
+  const removedTargetColliderNames = [
+    'UpperStairWestUpperVoidGuard',
+    'UpperStairHiddenRunVoidGuard',
+    'UpperStairEastLowerVoidGuard',
+    'UpperStairwellLandingGuard-1',
+    'UpperStairwellLandingGuard-2',
+    'GroundStairEastBoundary',
+  ];
+  for (const removedColliderName of removedTargetColliderNames) {
+    expect(debugColliderNames).not.toContain(removedColliderName);
+  }
   expect(debugColliderNames).toContain('UpperStairWestBannisterGuard');
   expect(debugColliderNames).toContain('UpperStairNorthBannisterGuard');
-  expect(debugColliderNames).toContain('UpperStairHiddenRunVoidGuard');
 
   const debugColliderIds = debugColliders.map((collider) => collider.id);
+  for (const removedColliderId of removedTargetColliderIds) {
+    expect(debugColliderIds).not.toContain(removedColliderId);
+  }
+  for (const removedColliderId of removedTargetColliderIds) {
+    const foundTarget = await page.evaluate((id) => {
+      const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+      if (!debugApi) {
+        throw new Error('Debug colliders API unavailable');
+      }
+      return debugApi.getColliderById(id);
+    }, removedColliderId);
+    expect(foundTarget).toBeUndefined();
+  }
+  const removedSourceBounds = [
+    { minX: 15.94, maxX: 22.18, minZ: -25.9, maxZ: -10.6 },
+    {
+      minX: 28.138991631191697,
+      maxX: 29.46100836880832,
+      minZ: -25.126903730815343,
+      maxZ: -20.473096269184673,
+    },
+    { minX: 12.63, maxX: 13.23, minZ: -4.3, maxZ: -3.7 },
+    { minX: 19.55, maxX: 20.45, minZ: -3.5, maxZ: -2.7 },
+    {
+      minX: -15.427711452812336,
+      maxX: -14.572288547187664,
+      minZ: 4.4434114543880145,
+      maxZ: 6.196588545611986,
+    },
+    { minX: -15.4, maxX: -8.6, minZ: 20.6, maxZ: 27.4 },
+    { minX: 8.4, maxX: 15.6, minZ: 22.8, maxZ: 29.2 },
+  ];
+  const hasMatchingBounds = (
+    bounds: DebugCollider['bounds'],
+    target: DebugCollider['bounds']
+  ) =>
+    Math.abs(bounds.minX - target.minX) < 0.001 &&
+    Math.abs(bounds.maxX - target.maxX) < 0.001 &&
+    Math.abs(bounds.minZ - target.minZ) < 0.001 &&
+    Math.abs(bounds.maxZ - target.maxZ) < 0.001;
+  for (const removedBounds of removedSourceBounds) {
+    expect(
+      debugColliders.some((collider) =>
+        hasMatchingBounds(collider.bounds, removedBounds)
+      )
+    ).toBe(false);
+  }
   expect(debugColliderIds.length).toBeGreaterThan(0);
   expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
   expect(debugColliderIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);

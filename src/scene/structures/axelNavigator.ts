@@ -462,19 +462,6 @@ export function createAxelNavigator(
     )
   );
 
-  colliders.push(
-    createCollider(
-      new Vector3(
-        basePosition.x + Math.sin(orientationRadians) * 0.9,
-        0,
-        basePosition.z - Math.cos(orientationRadians) * 0.9
-      ),
-      0.9,
-      0.8,
-      orientationRadians
-    )
-  );
-
   let wavePhase = 0;
 
   const update = ({
