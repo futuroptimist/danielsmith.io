@@ -160,7 +160,11 @@ test.describe('immersive low-FPS recovery popup', () => {
   }) => {
     await openImmersive(page);
     await showPopup(page);
-    await page.getByRole('button', { name: 'Dismiss' }).click();
+    await page.evaluate(() => {
+      (
+        window as TestWindow
+      ).portfolio?.debugPerformance?.dismissLowFpsRecoveryPopup(0);
+    });
     await page.evaluate(() => {
       (
         window as TestWindow

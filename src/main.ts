@@ -47,6 +47,7 @@ import {
   getHelpModalStrings,
   getHudCustomizationStrings,
   getLocaleDirection,
+  getLowFpsRecoveryStrings,
   getLocaleScript,
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
@@ -175,7 +176,10 @@ import {
 } from './scene/lighting/seasonalPresets';
 import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
 import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
-import { LowFpsRecoveryMonitor } from './scene/performance/lowFpsRecoveryMonitor';
+import {
+  LowFpsRecoveryMonitor,
+  type LowFpsRecoveryMonitorState,
+} from './scene/performance/lowFpsRecoveryMonitor';
 import {
   createPerformanceDiagnostics,
   type PerformanceCrashBreadcrumbApi,
@@ -623,7 +627,7 @@ declare global {
       debugPerformance?: {
         getState(): DebugPerformanceState;
         setFpsEnabled(enabled: boolean): void;
-        getLowFpsRecoveryState?(): object;
+        getLowFpsRecoveryState?(): LowFpsRecoveryMonitorState;
         forceLowFpsRecoveryPopup?(): void;
         recordLowFpsRecoveryFrame?(deltaSeconds: number, nowMs?: number): void;
         dismissLowFpsRecoveryPopup?(nowMs?: number): void;
@@ -718,10 +722,17 @@ const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY =
   'portfolio::pending-scene-detail-adaptive-lock';
 const PENDING_SCENE_DETAIL_RELOAD_PARAM = 'sceneDetailReloadLevel';
 const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM = 'sceneDetailAdaptiveLock';
+const PENDING_PLAYER_POSITION_KEY = 'portfolio::pending-player-position';
 
 interface PendingSceneDetailReload {
   level: GraphicsQualityLevel;
   adaptivePerformanceRecoveryLocked: boolean;
+}
+
+interface PendingPlayerPosition {
+  x: number;
+  y: number;
+  z: number;
 }
 
 function consumePendingSceneDetailReload(): PendingSceneDetailReload | null {
@@ -751,6 +762,34 @@ function consumePendingSceneDetailReload(): PendingSceneDetailReload | null {
     window.history.replaceState(window.history.state, '', url);
     return isGraphicsQualityLevel(stored)
       ? { level: stored, adaptivePerformanceRecoveryLocked: adaptiveLock }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistPendingPlayerPosition(position: PendingPlayerPosition): void {
+  try {
+    window.sessionStorage.setItem(
+      PENDING_PLAYER_POSITION_KEY,
+      JSON.stringify(position)
+    );
+  } catch {
+    // Best-effort only; quality reloads can still proceed without a position handoff.
+  }
+}
+
+function consumePendingPlayerPosition(): PendingPlayerPosition | null {
+  try {
+    const stored = window.sessionStorage.getItem(PENDING_PLAYER_POSITION_KEY);
+    window.sessionStorage.removeItem(PENDING_PLAYER_POSITION_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored) as Partial<PendingPlayerPosition>;
+    const { x, y, z } = parsed;
+    return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)
+      ? { x, y, z }
       : null;
   } catch {
     return null;
@@ -1043,6 +1082,7 @@ function initializeImmersiveScene(
     }
   );
   const sceneDetailReloadOverride = consumePendingSceneDetailReload();
+  const pendingPlayerPosition = consumePendingPlayerPosition();
   const effectiveInitialQualityLevel =
     sceneDetailReloadOverride?.level ??
     persistedQualityLevel ??
@@ -1072,6 +1112,13 @@ function initializeImmersiveScene(
         adaptivePerformanceRecoveryLocked:
           options.adaptivePerformanceRecoveryLocked === true,
       } satisfies PendingSceneDetailReload;
+      if (typeof player !== 'undefined') {
+        persistPendingPlayerPosition({
+          x: player.position.x,
+          y: player.position.y,
+          z: player.position.z,
+        });
+      }
       if (persistPendingSceneDetailReload(pendingReload)) {
         window.location.reload();
         return;
@@ -1403,6 +1450,7 @@ function initializeImmersiveScene(
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
+  let lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
   let siteStrings = getSiteStrings(locale);
   let debugCoordinatesStorage: Storage | undefined;
   try {
@@ -3089,7 +3137,15 @@ function initializeImmersiveScene(
   });
   const player = mannequin.group;
   const mannequinHeight = mannequin.height;
-  player.position.copy(initialPlayerPosition);
+  if (pendingPlayerPosition) {
+    player.position.set(
+      pendingPlayerPosition.x,
+      pendingPlayerPosition.y,
+      pendingPlayerPosition.z
+    );
+  } else {
+    player.position.copy(initialPlayerPosition);
+  }
   scene.add(player);
 
   const footstepStereoPanner =
@@ -3754,8 +3810,8 @@ function initializeImmersiveScene(
 
   const lowFpsRecoveryPopup = document.createElement('aside');
   lowFpsRecoveryPopup.className = 'performance-recovery-popup';
-  lowFpsRecoveryPopup.setAttribute('role', 'status');
-  lowFpsRecoveryPopup.setAttribute('aria-live', 'polite');
+  lowFpsRecoveryPopup.setAttribute('role', 'dialog');
+  lowFpsRecoveryPopup.setAttribute('aria-modal', 'false');
   lowFpsRecoveryPopup.hidden = true;
   container.appendChild(lowFpsRecoveryPopup);
 
@@ -3770,43 +3826,62 @@ function initializeImmersiveScene(
     return null;
   };
 
+  const reportLowFpsRecoveryAction = (action: string) => {
+    try {
+      window.dispatchEvent(
+        new CustomEvent('lowfpsrecovery', { detail: { action } })
+      );
+    } catch (error) {
+      console.warn('Failed to dispatch low-FPS recovery event.', error);
+    }
+  };
+
   const renderLowFpsRecoveryPopup = () => {
     lowFpsRecoveryPopup.replaceChildren();
     const title = document.createElement('h2');
     title.className = 'performance-recovery-popup__title';
-    title.textContent = 'Low frame rate detected';
+    title.id = 'performance-recovery-popup-title';
+    title.textContent = lowFpsRecoveryStrings.title;
     const body = document.createElement('p');
     body.className = 'performance-recovery-popup__body';
-    body.textContent =
-      'Immersive mode is running slowly. You can lower graphics or switch to non-immersive mode.';
+    body.id = 'performance-recovery-popup-body';
+    body.textContent = lowFpsRecoveryStrings.body;
+    lowFpsRecoveryPopup.setAttribute('aria-labelledby', title.id);
+    lowFpsRecoveryPopup.setAttribute('aria-describedby', body.id);
     const actions = document.createElement('div');
     actions.className = 'performance-recovery-popup__actions';
     const dismiss = document.createElement('button');
     dismiss.type = 'button';
-    dismiss.textContent = 'Dismiss';
+    dismiss.textContent = lowFpsRecoveryStrings.dismissLabel;
     dismiss.addEventListener('click', () => {
       lowFpsRecoveryMonitor.dismiss();
       lowFpsRecoveryPopup.hidden = true;
+      reportLowFpsRecoveryAction('dismiss');
     });
     actions.appendChild(dismiss);
     const nextLevel = getNextLowerGraphicsLevel();
     if (nextLevel) {
       const downgrade = document.createElement('button');
       downgrade.type = 'button';
-      downgrade.textContent = `Switch to ${nextLevel === 'balanced' ? 'Balanced' : 'Performance'}`;
+      downgrade.textContent =
+        nextLevel === 'balanced'
+          ? lowFpsRecoveryStrings.downgradeBalancedLabel
+          : lowFpsRecoveryStrings.downgradePerformanceLabel;
       downgrade.addEventListener('click', () => {
-        graphicsQualityManager?.setLevel(nextLevel, { source: 'user' });
+        reportLowFpsRecoveryAction(`downgrade-${nextLevel}`);
         lowFpsRecoveryMonitor.dismiss();
         lowFpsRecoveryPopup.hidden = true;
+        graphicsQualityManager?.setLevel(nextLevel, { source: 'user' });
       });
       actions.appendChild(downgrade);
     }
     const textMode = document.createElement('button');
     textMode.type = 'button';
-    textMode.textContent = 'Use non-immersive mode';
+    textMode.textContent = lowFpsRecoveryStrings.textModeLabel;
     textMode.addEventListener('click', () => {
       lowFpsRecoveryMonitor.dismiss();
       lowFpsRecoveryPopup.hidden = true;
+      reportLowFpsRecoveryAction('text-mode');
       activateTextMode();
     });
     actions.appendChild(textMode);
@@ -3820,6 +3895,8 @@ function initializeImmersiveScene(
     onTrigger: () => {
       renderLowFpsRecoveryPopup();
       lowFpsRecoveryPopup.hidden = false;
+      hudFocusAnnouncer?.announce(lowFpsRecoveryStrings.announcement);
+      reportLowFpsRecoveryAction('shown');
     },
   });
   const toggleHelpMenu = (force?: boolean) => {
@@ -3991,6 +4068,10 @@ function initializeImmersiveScene(
     tourGuideToggleStrings = getTourGuideToggleStrings(locale);
     tourResetControlStrings = getTourResetControlStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
+    lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
+    if (!lowFpsRecoveryPopup.hidden) {
+      renderLowFpsRecoveryPopup();
+    }
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -5658,7 +5739,7 @@ function initializeImmersiveScene(
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
-    applyFeaturePolicy({ reloadScene: false });
+    applyFeaturePolicy({ reloadScene: true });
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();

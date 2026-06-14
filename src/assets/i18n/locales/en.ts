@@ -411,6 +411,16 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       toggleTitleOn: 'Disable guided tour highlights',
       toggleTitleOff: 'Enable guided tour highlights',
     },
+
+    lowFpsRecovery: {
+      title: 'Low frame rate detected',
+      body: 'Immersive mode is running slowly. You can lower graphics or switch to non-immersive mode.',
+      dismissLabel: 'Dismiss',
+      downgradeBalancedLabel: 'Switch to Balanced',
+      downgradePerformanceLabel: 'Switch to Performance',
+      textModeLabel: 'Use non-immersive mode',
+      announcement: 'Low frame rate detected. Recovery actions are available.',
+    },
     softwareRendererWarning: {
       fallbackRendererLabel: 'software WebGL renderer',
       title: 'Software rendering detected',

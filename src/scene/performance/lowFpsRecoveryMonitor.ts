@@ -9,6 +9,7 @@ export interface LowFpsRecoveryMonitorOptions {
   windowMs?: number;
   cooldownMs?: number;
   sampleCapacity?: number;
+  maxFrameDeltaMs?: number;
   now?: () => number;
   onTrigger: (context: LowFpsRecoveryContext) => void;
 }
@@ -25,11 +26,13 @@ const DEFAULT_FPS_THRESHOLD = 5;
 const DEFAULT_WINDOW_MS = 10_000;
 const DEFAULT_COOLDOWN_MS = 30_000;
 const DEFAULT_SAMPLE_CAPACITY = 900;
+const DEFAULT_MAX_FRAME_DELTA_MS = 1000;
 
 export class LowFpsRecoveryMonitor {
   private readonly fpsThreshold: number;
   private readonly windowMs: number;
   private readonly cooldownMs: number;
+  private readonly maxFrameDeltaMs: number;
   private readonly now: () => number;
   private readonly onTrigger: (context: LowFpsRecoveryContext) => void;
   private readonly samples: number[];
@@ -47,6 +50,8 @@ export class LowFpsRecoveryMonitor {
       DEFAULT_WINDOW_MS
     );
     this.cooldownMs = options.cooldownMs ?? DEFAULT_COOLDOWN_MS;
+    this.maxFrameDeltaMs =
+      options.maxFrameDeltaMs ?? DEFAULT_MAX_FRAME_DELTA_MS;
     this.now = options.now ?? (() => performance.now());
     this.onTrigger = options.onTrigger;
     this.samples = new Array(options.sampleCapacity ?? DEFAULT_SAMPLE_CAPACITY);
@@ -57,6 +62,10 @@ export class LowFpsRecoveryMonitor {
       return;
     }
     if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
+      return;
+    }
+    if (deltaSeconds * 1000 > this.maxFrameDeltaMs) {
+      this.resetSamples();
       return;
     }
     this.push(nowMs);
