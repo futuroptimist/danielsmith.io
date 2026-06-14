@@ -2054,9 +2054,11 @@ function initializeImmersiveScene(
       upperStairBannisterThickness * 1.5;
     const upperStairNorthBannisterBaseCenterZ =
       upperLandingDoorwayClearanceZ - WALL_THICKNESS;
-    // Shifted forward to block the lower stair bottommost-step pocket while
-    // preserving the named bannister guard's existing X span and thickness.
-    const upperStairNorthBannisterCenterZ =
+    const upperStairNorthBannisterCenterZ = upperStairNorthBannisterBaseCenterZ;
+    // Keep the visible north bannister collider on the landing seam, then add
+    // a separate no-floor blocker for the lower-step back-entry pocket so the
+    // hidden-run guard and visible bannister remain contiguous.
+    const upperStairLowerStepGuardCenterZ =
       upperStairNorthBannisterBaseCenterZ + 2;
     const upperStairWestBannisterSouthZ =
       hiddenStairBlockerStartZ + upperStairBannisterThickness;
@@ -2141,6 +2143,17 @@ function initializeImmersiveScene(
             upperStairNorthBannisterCenterZ - upperStairBannisterThickness / 2,
           maxZ:
             upperStairNorthBannisterCenterZ + upperStairBannisterThickness / 2,
+        },
+      },
+      {
+        name: 'UpperStairLowerStepAccessGuard',
+        bounds: {
+          minX: upperStairNorthBannisterMinX,
+          maxX: upperStairNorthBannisterMaxX,
+          minZ:
+            upperStairLowerStepGuardCenterZ - upperStairBannisterThickness / 2,
+          maxZ:
+            upperStairLowerStepGuardCenterZ + upperStairBannisterThickness / 2,
         },
       },
     ].forEach(({ name, bounds }) => pushNamedUpperFloorCollider(name, bounds));

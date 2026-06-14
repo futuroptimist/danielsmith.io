@@ -809,14 +809,24 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   const northBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairNorthBannisterGuard'
   );
-  const lowerStairAccessBlocker = await page.evaluate(() => {
+  const northBannisterById = await page.evaluate((id) => {
     const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
     if (!debugApi) {
       throw new Error('Debug colliders API unavailable');
     }
-    return debugApi.getColliderById('400A');
-  });
-  expect(lowerStairAccessBlocker?.name).toBe('UpperStairNorthBannisterGuard');
+    return debugApi.getColliderById(id);
+  }, '400A');
+  expect(northBannisterById?.id).toBe('400A');
+  expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
+  const lowerStairAccessBlocker = await page.evaluate((id) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliderById(id);
+  }, '400F');
+  expect(lowerStairAccessBlocker?.id).toBe('400F');
+  expect(lowerStairAccessBlocker?.name).toBe('UpperStairLowerStepAccessGuard');
   const hiddenRunGuard = debugColliders.find(
     (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
   );
@@ -845,9 +855,9 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   );
   expectCloseTo(
     northBannisterCenterZ,
-    -16.25,
+    -18.25,
     0.05,
-    'north bannister center z shifted forward to block lower stair access'
+    'north bannister center z stays aligned to the visible guard seam'
   );
   expectCloseTo(
     northBannister.bounds.minX,
@@ -924,7 +934,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     {
       name: 'north back-entry bannister guard shifted forward to block bottommost steps',
       target: { x: 12.7, z: -16.25, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairNorthBannisterGuard',
+      expectedBlocker: 'UpperStairLowerStepAccessGuard',
     },
   ];
 
