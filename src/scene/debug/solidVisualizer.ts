@@ -337,11 +337,7 @@ export const createSolidVisualizer = (
     }> = [];
 
     root.traverse((object) => {
-      if (
-        !isMesh(object) ||
-        !object.visible ||
-        !hasNoExcludedAncestors(object)
-      ) {
+      if (!isMesh(object) || !hasNoExcludedAncestors(object)) {
         return;
       }
       const bounds = getBounds(object, object.geometry);

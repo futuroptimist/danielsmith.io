@@ -150,9 +150,9 @@ describe('createSolidVisualizer', () => {
         .getSolids()
         .map((solid) => solid.name)
         .sort()
-    ).toEqual(['HiddenAncestorWall', 'VisibleWall']);
+    ).toEqual(['HiddenAncestorWall', 'OwnHiddenWall', 'VisibleWall']);
     expect(visualizer.getState()).toMatchObject({
-      totalSolidCount: 2,
+      totalSolidCount: 3,
       visibleSolidCount: 1,
       visibleLabelCount: 1,
     });
@@ -161,9 +161,38 @@ describe('createSolidVisualizer', () => {
     visualizer.update();
 
     expect(visualizer.getState()).toMatchObject({
-      totalSolidCount: 2,
+      totalSolidCount: 3,
       visibleSolidCount: 2,
       visibleLabelCount: 2,
+    });
+  });
+
+  it('registers own-hidden animated solids and shows them after they become visible', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const animatedHidden = createSolid('FlywheelDocsCallout');
+    animatedHidden.visible = false;
+    scene.add(animatedHidden);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(visualizer.getSolids().map((solid) => solid.name)).toEqual([
+      'FlywheelDocsCallout',
+    ]);
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 1,
+      visibleSolidCount: 0,
+      visibleLabelCount: 0,
+    });
+
+    animatedHidden.visible = true;
+    visualizer.update();
+
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 1,
+      visibleSolidCount: 1,
+      visibleLabelCount: 1,
     });
   });
 
