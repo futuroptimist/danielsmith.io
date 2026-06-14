@@ -50,6 +50,7 @@ export interface DebugSolidVisualizerState {
 }
 
 interface DebugSolidVisualEntry {
+  mesh: Mesh<BufferGeometry, Material | Material[]>;
   metadata: DebugSolidMetadata;
   wireframe: LineSegments<EdgesGeometry, LineBasicMaterial>;
   label: Sprite;
@@ -62,6 +63,7 @@ export interface SolidVisualizer {
   getState(): DebugSolidVisualizerState;
   getSolids(): DebugSolidMetadata[];
   getSolidById(id: unknown): DebugSolidMetadata | undefined;
+  update(): void;
   dispose(): void;
 }
 
@@ -84,6 +86,9 @@ const isExcluded = (object: Object3D): boolean => {
   ) {
     return true;
   }
+  if (object.name.startsWith('POI') || object.name.startsWith('POI_HIT:')) {
+    return true;
+  }
   if (
     object.type === 'Sprite' ||
     object.type.includes('Light') ||
@@ -93,6 +98,25 @@ const isExcluded = (object: Object3D): boolean => {
   }
   return object.name.startsWith('Debug') || object.name.includes('Helper');
 };
+
+const hasVisibleAncestors = (object: Object3D): boolean => {
+  let current: Object3D | null = object;
+  while (current) {
+    if (!current.visible || isExcluded(current)) {
+      return false;
+    }
+    current = current.parent;
+  }
+  return true;
+};
+
+const hasFiniteBounds = (bounds: DebugSolidBounds): boolean =>
+  Number.isFinite(bounds.min.x) &&
+  Number.isFinite(bounds.min.y) &&
+  Number.isFinite(bounds.min.z) &&
+  Number.isFinite(bounds.max.x) &&
+  Number.isFinite(bounds.max.y) &&
+  Number.isFinite(bounds.max.z);
 
 const getObjectPath = (object: Object3D): string => {
   const parts: string[] = [];
@@ -193,11 +217,30 @@ export const createSolidVisualizer = (
   const entries: DebugSolidVisualEntry[] = [];
   let enabled = options.enabled ?? false;
 
+  const syncEntryTransform = (entry: DebugSolidVisualEntry) => {
+    entry.mesh.updateMatrixWorld(true);
+    entry.mesh.matrixWorld.decompose(
+      entry.wireframe.position,
+      entry.wireframe.quaternion,
+      entry.wireframe.scale
+    );
+    const bounds = getBounds(entry.mesh);
+    if (hasFiniteBounds(bounds)) {
+      entry.metadata.bounds = bounds;
+      entry.label.position.set(
+        (bounds.min.x + bounds.max.x) / 2,
+        bounds.max.y + DEBUG_LABEL_VERTICAL_GAP,
+        (bounds.min.z + bounds.max.z) / 2
+      );
+    }
+  };
+
   const applyVisibility = () => {
     group.visible = enabled;
     entries.forEach((entry) => {
-      entry.wireframe.visible = enabled;
-      entry.label.visible = enabled;
+      const entryVisible = enabled && hasVisibleAncestors(entry.mesh);
+      entry.wireframe.visible = entryVisible;
+      entry.label.visible = entryVisible;
     });
   };
 
@@ -226,11 +269,11 @@ export const createSolidVisualizer = (
     }> = [];
 
     root.traverse((object) => {
-      if (!isMesh(object) || isExcluded(object)) {
+      if (!isMesh(object) || !hasVisibleAncestors(object)) {
         return;
       }
       const bounds = getBounds(object);
-      if (!Number.isFinite(bounds.min.x) || !Number.isFinite(bounds.max.x)) {
+      if (!hasFiniteBounds(bounds)) {
         return;
       }
       const path = getObjectPath(object);
@@ -301,11 +344,19 @@ export const createSolidVisualizer = (
         item.metadata.bounds.max.y + DEBUG_LABEL_VERTICAL_GAP,
         (item.metadata.bounds.min.z + item.metadata.bounds.max.z) / 2
       );
+      delete label.userData.colliderDebugLabel;
       label.userData.solidDebugLabel = { id };
       label.raycast = () => undefined;
 
+      const entry = {
+        mesh: item.mesh,
+        metadata: { id, ...item.metadata },
+        wireframe,
+        label,
+      };
+      syncEntryTransform(entry);
       group.add(wireframe, label);
-      entries.push({ metadata: { id, ...item.metadata }, wireframe, label });
+      entries.push(entry);
     }
     applyVisibility();
   };
@@ -318,11 +369,14 @@ export const createSolidVisualizer = (
       applyVisibility();
     },
     getState() {
+      const visibleEntryCount = enabled
+        ? entries.filter((entry) => hasVisibleAncestors(entry.mesh)).length
+        : 0;
       return {
         enabled,
-        visibleSolidCount: enabled ? entries.length : 0,
+        visibleSolidCount: visibleEntryCount,
         totalSolidCount: entries.length,
-        visibleLabelCount: enabled ? entries.length : 0,
+        visibleLabelCount: visibleEntryCount,
         totalLabelCount: entries.length,
       };
     },
@@ -336,6 +390,13 @@ export const createSolidVisualizer = (
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    update() {
+      if (!enabled) {
+        return;
+      }
+      entries.forEach(syncEntryTransform);
+      applyVisibility();
     },
     dispose() {
       clear();

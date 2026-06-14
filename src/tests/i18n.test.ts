@@ -824,6 +824,18 @@ describe('i18n utilities', () => {
           'Zeigt unsichtbare Wände und Kollisionsrechtecke der aktiven Etage.',
         descriptionDisabled:
           'Unsichtbare Wände und Kollisionsrechtecke bleiben verborgen, bis du sie einschaltest.',
+        idsLabelEnabled: 'Collider-IDs ein',
+        idsLabelDisabled: 'Collider-IDs aus',
+        idsDescriptionEnabled:
+          'Zeigt Collider-ID-Beschriftungen, während das Collider-Overlay aktiv ist.',
+        idsDescriptionDisabled:
+          'Blendet Collider-ID-Beschriftungen aus, während die Drahtgitter verfügbar bleiben.',
+        solidIdsLabelEnabled: 'Solid-IDs ein',
+        solidIdsLabelDisabled: 'Solid-IDs aus',
+        solidIdsDescriptionEnabled:
+          'Zeigt stabile IDs und Drahtgitter für sichtbare Szenen-Solids.',
+        solidIdsDescriptionDisabled:
+          'Stabile Solid-IDs und Drahtgitter bleiben ausgeblendet.',
       },
       en: {
         labelEnabled: 'Collider overlay on',
@@ -885,7 +897,27 @@ describe('i18n utilities', () => {
     for (const [locale, expectedStrings] of Object.entries(
       expectedDebugColliderStrings
     )) {
-      expect(getDebugCollidersStrings(locale)).toMatchObject(expectedStrings);
+      const debugStrings = getDebugCollidersStrings(locale);
+      expect(debugStrings).toMatchObject(expectedStrings);
+      for (const key of [
+        'idsLabelEnabled',
+        'idsLabelDisabled',
+        'idsDescriptionEnabled',
+        'idsDescriptionDisabled',
+        'solidIdsLabelEnabled',
+        'solidIdsLabelDisabled',
+        'solidIdsDescriptionEnabled',
+        'solidIdsDescriptionDisabled',
+      ] as const) {
+        expect(debugStrings[key]).toEqual(expect.any(String));
+        expect(debugStrings[key].trim()).not.toBe('');
+      }
+    }
+
+    for (const locale of ['de', 'es', 'hu', 'pt'] as const) {
+      const debugStrings = getDebugCollidersStrings(locale);
+      expect(debugStrings.idsLabelEnabled).not.toBe('Collider IDs on');
+      expect(debugStrings.solidIdsLabelEnabled).not.toBe('Solid IDs on');
     }
   });
 

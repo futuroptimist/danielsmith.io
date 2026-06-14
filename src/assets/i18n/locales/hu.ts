@@ -74,6 +74,18 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
       'Megjeleníti az aktív emelet láthatatlan falait és ütközési téglalapjait.',
     debugCollidersDescriptionDisabled:
       'A láthatatlan falak és ütközési téglalapok rejtve maradnak, amíg be nem kapcsolod.',
+    debugCollidersIdsLabelEnabled: 'Collider-azonosítók be',
+    debugCollidersIdsLabelDisabled: 'Collider-azonosítók ki',
+    debugCollidersIdsDescriptionEnabled:
+      'Megjeleníti a collider-azonosító címkéket, amíg a réteg aktív.',
+    debugCollidersIdsDescriptionDisabled:
+      'Elrejti a collider-azonosító címkéket, de a drótvázakat elérhetően hagyja.',
+    debugCollidersSolidIdsLabelEnabled: 'Solid-azonosítók be',
+    debugCollidersSolidIdsLabelDisabled: 'Solid-azonosítók ki',
+    debugCollidersSolidIdsDescriptionEnabled:
+      'Stabil azonosítókat és drótvázakat mutat a látható jelenetszilárdtestekhez.',
+    debugCollidersSolidIdsDescriptionDisabled:
+      'A stabil solid-azonosítók és drótvázak rejtve maradnak.',
   },
   poi: {
     futuroptimist: {

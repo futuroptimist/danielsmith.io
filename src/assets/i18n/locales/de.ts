@@ -74,6 +74,18 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
       'Zeigt unsichtbare Wände und Kollisionsrechtecke der aktiven Etage.',
     debugCollidersDescriptionDisabled:
       'Unsichtbare Wände und Kollisionsrechtecke bleiben verborgen, bis du sie einschaltest.',
+    debugCollidersIdsLabelEnabled: 'Collider-IDs ein',
+    debugCollidersIdsLabelDisabled: 'Collider-IDs aus',
+    debugCollidersIdsDescriptionEnabled:
+      'Zeigt Collider-ID-Beschriftungen, während das Collider-Overlay aktiv ist.',
+    debugCollidersIdsDescriptionDisabled:
+      'Blendet Collider-ID-Beschriftungen aus, während die Drahtgitter verfügbar bleiben.',
+    debugCollidersSolidIdsLabelEnabled: 'Solid-IDs ein',
+    debugCollidersSolidIdsLabelDisabled: 'Solid-IDs aus',
+    debugCollidersSolidIdsDescriptionEnabled:
+      'Zeigt stabile IDs und Drahtgitter für sichtbare Szenen-Solids.',
+    debugCollidersSolidIdsDescriptionDisabled:
+      'Stabile Solid-IDs und Drahtgitter bleiben ausgeblendet.',
   },
   poi: {
     futuroptimist: {

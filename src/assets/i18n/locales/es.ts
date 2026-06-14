@@ -74,6 +74,18 @@ export const ES_OVERRIDES = buildLatinLocaleOverrides({
       'Muestra muros invisibles y rectángulos de colisión del piso activo.',
     debugCollidersDescriptionDisabled:
       'Los muros invisibles y los rectángulos de colisión permanecen ocultos hasta que los actives.',
+    debugCollidersIdsLabelEnabled: 'IDs de colliders activadas',
+    debugCollidersIdsLabelDisabled: 'IDs de colliders desactivadas',
+    debugCollidersIdsDescriptionEnabled:
+      'Muestra etiquetas de ID de colliders mientras la superposición está activa.',
+    debugCollidersIdsDescriptionDisabled:
+      'Oculta las etiquetas de ID de colliders y mantiene disponibles los alambres.',
+    debugCollidersSolidIdsLabelEnabled: 'IDs de sólidos activadas',
+    debugCollidersSolidIdsLabelDisabled: 'IDs de sólidos desactivadas',
+    debugCollidersSolidIdsDescriptionEnabled:
+      'Muestra IDs estables y alambres para sólidos visibles de la escena.',
+    debugCollidersSolidIdsDescriptionDisabled:
+      'Las IDs estables de sólidos y sus alambres permanecen ocultos.',
   },
   poi: {
     futuroptimist: {

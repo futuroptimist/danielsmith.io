@@ -151,8 +151,9 @@ describe('createColliderVisualizer', () => {
       },
     ]);
 
-    expect(visualizer.getState()).toMatchObject({
+    expect(visualizer.getState()).toEqual({
       enabled: false,
+      idsEnabled: true,
       visibleColliderCount: 0,
       totalColliderCount: 3,
       visibleLabelCount: 0,
@@ -160,8 +161,9 @@ describe('createColliderVisualizer', () => {
     });
 
     visualizer.setEnabled(true);
-    expect(visualizer.getState()).toMatchObject({
+    expect(visualizer.getState()).toEqual({
       enabled: true,
+      idsEnabled: true,
       visibleColliderCount: 2,
       totalColliderCount: 3,
       visibleLabelCount: 2,
@@ -265,11 +267,13 @@ describe('createColliderVisualizer', () => {
     visualizer.setIdsEnabled(false);
     expect(mesh?.visible).toBe(true);
     expect(label?.visible).toBe(false);
-    expect(visualizer.getState()).toMatchObject({
+    expect(visualizer.getState()).toEqual({
       enabled: true,
       idsEnabled: false,
       visibleColliderCount: 1,
+      totalColliderCount: 1,
       visibleLabelCount: 0,
+      totalLabelCount: 1,
     });
 
     visualizer.setEnabled(false);

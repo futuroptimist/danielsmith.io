@@ -4248,10 +4248,20 @@ function initializeImmersiveScene(
   const solidVisualizer = createSolidVisualizer({
     enabled: debugSolidIdsEnabled,
   });
-  solidVisualizer.register(
-    scene,
-    new Set(colliderVisualizer.getColliders().map((collider) => collider.id))
-  );
+  let solidVisualizerRegistered = false;
+  const ensureSolidVisualizerRegistered = () => {
+    if (solidVisualizerRegistered) {
+      return;
+    }
+    solidVisualizer.register(
+      scene,
+      new Set(colliderVisualizer.getColliders().map((collider) => collider.id))
+    );
+    solidVisualizerRegistered = true;
+  };
+  if (debugSolidIdsEnabled) {
+    ensureSolidVisualizerRegistered();
+  }
   scene.add(solidVisualizer.group);
 
   const containsRectPoint = (
@@ -4566,6 +4576,9 @@ function initializeImmersiveScene(
     options: { persist?: boolean } = { persist: true }
   ) => {
     debugSolidIdsEnabled = enabled;
+    if (enabled) {
+      ensureSolidVisualizerRegistered();
+    }
     solidVisualizer.setEnabled(enabled);
     refreshDebugSolidIdsControl();
     if (options.persist !== false && debugCoordinatesStorage) {
@@ -4702,8 +4715,14 @@ function initializeImmersiveScene(
     setEnabled: (enabled: boolean) => {
       setDebugSolidIdsEnabled(enabled);
     },
-    getSolids: () => solidVisualizer.getSolids(),
-    getSolidById: (id: unknown) => solidVisualizer.getSolidById(id),
+    getSolids: () => {
+      ensureSolidVisualizerRegistered();
+      return solidVisualizer.getSolids();
+    },
+    getSolidById: (id: unknown) => {
+      ensureSolidVisualizerRegistered();
+      return solidVisualizer.getSolidById(id);
+    },
   };
 
   window.portfolio.debugCoordinates = {
@@ -6544,6 +6563,7 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
+      solidVisualizer.update();
       if (backyardEnvironment) {
         if (
           sceneDetailController.shouldRunDecorativeUpdate(

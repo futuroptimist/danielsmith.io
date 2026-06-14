@@ -97,4 +97,33 @@ describe('createSolidVisualizer', () => {
       ).material.color.getHex()
     );
   });
+
+  it('skips invisible and POI meshes and updates animated solid transforms', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const visible = createSolid('AnimatedWall');
+    const hiddenParent = new Group();
+    hiddenParent.visible = false;
+    hiddenParent.add(createSolid('HiddenWall'));
+    const poi = createSolid('POI_HIT:demo');
+    scene.add(visible, hiddenParent, poi);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(visualizer.getSolids().map((solid) => solid.name)).toEqual([
+      'AnimatedWall',
+    ]);
+    const wireframe = visualizer.group.children.find(
+      (child) => child.type === 'LineSegments'
+    );
+    const label = visualizer.group.children.find(
+      (child) => child.type === 'Sprite'
+    );
+    expect(label?.userData.colliderDebugLabel).toBeUndefined();
+
+    visible.position.x = 4;
+    visualizer.update();
+    expect(wireframe?.position.x).toBe(4);
+  });
 });
