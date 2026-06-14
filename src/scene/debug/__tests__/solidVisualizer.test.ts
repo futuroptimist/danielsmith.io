@@ -13,6 +13,16 @@ const createSolid = (name = 'solid') => {
   return mesh;
 };
 
+const getOverlayCounts = (
+  visualizer: ReturnType<typeof createSolidVisualizer>
+) => ({
+  labels: visualizer.group.children.filter((child) => child.type === 'Sprite')
+    .length,
+  wireframes: visualizer.group.children.filter(
+    (child) => child.type === 'LineSegments'
+  ).length,
+});
+
 describe('createSolidDebugId', () => {
   const metadata = {
     name: 'Wall',
@@ -68,7 +78,12 @@ describe('createSolidVisualizer', () => {
     const scene = new Group();
     scene.name = 'Scene';
     scene.add(createSolid('WallA'), createSolid('WallB'));
-    const reservedId = 'ABCD';
+    const reservedId = createColliderDebugId({
+      floor: 'ground',
+      category: 'walls',
+      name: 'WallA',
+      bounds: { minX: -1, maxX: 1, minZ: -1, maxZ: 1 },
+    });
 
     const visualizer = createSolidVisualizer({ enabled: true });
     visualizer.register(scene, new Set([reservedId]));
@@ -98,22 +113,88 @@ describe('createSolidVisualizer', () => {
     );
   });
 
-  it('skips invisible and POI meshes and updates animated solid transforms', () => {
+  it('registers only effective visible stable scene solids', () => {
     const scene = new Group();
     scene.name = 'Scene';
-    const visible = createSolid('AnimatedWall');
+    const visible = createSolid('VisibleWall');
+    const ownHidden = createSolid('OwnHiddenWall');
+    ownHidden.visible = false;
     const hiddenParent = new Group();
     hiddenParent.visible = false;
-    hiddenParent.add(createSolid('HiddenWall'));
-    const poi = createSolid('POI_HIT:demo');
-    scene.add(visible, hiddenParent, poi);
+    hiddenParent.add(createSolid('HiddenAncestorWall'));
+    const debugParent = new Group();
+    debugParent.userData.debugOnly = true;
+    debugParent.add(createSolid('DebugChildWall'));
+    const poiHit = createSolid('POI_HIT:demo');
+    const transparentHitArea = createSolid('TransparentInteractionHitArea');
+    transparentHitArea.material.transparent = true;
+    transparentHitArea.material.opacity = 0;
+    const player = createSolid('PlayerAvatarMesh');
+    const mannequin = createSolid('PortfolioMannequinCollisionProxy');
+    scene.add(
+      visible,
+      ownHidden,
+      hiddenParent,
+      debugParent,
+      poiHit,
+      transparentHitArea,
+      player,
+      mannequin
+    );
 
     const visualizer = createSolidVisualizer({ enabled: true });
     visualizer.register(scene);
 
     expect(visualizer.getSolids().map((solid) => solid.name)).toEqual([
-      'AnimatedWall',
+      'VisibleWall',
     ]);
+  });
+
+  it('does not duplicate overlays after repeated enable-disable cycles', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    scene.add(createSolid('WallA'), createSolid('WallB'));
+    const visualizer = createSolidVisualizer();
+
+    visualizer.register(scene);
+    const initialCounts = getOverlayCounts(visualizer);
+    visualizer.setEnabled(true);
+    visualizer.setEnabled(false);
+    visualizer.setEnabled(true);
+
+    expect(getOverlayCounts(visualizer)).toEqual(initialCounts);
+    expect(visualizer.getState()).toMatchObject({
+      enabled: true,
+      totalSolidCount: 2,
+      totalLabelCount: 2,
+      visibleSolidCount: 2,
+      visibleLabelCount: 2,
+    });
+  });
+
+  it('does not leave computed bounding boxes on source geometry', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('NoSourceBoundingBoxMutation');
+    solid.geometry.boundingBox = null;
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(visualizer.getSolids()).toHaveLength(1);
+    expect(solid.geometry.boundingBox).toBeNull();
+  });
+
+  it('updates animated solid transforms and keeps solid labels out of collider metadata', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const visible = createSolid('AnimatedWall');
+    scene.add(visible);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
     const wireframe = visualizer.group.children.find(
       (child) => child.type === 'LineSegments'
     );

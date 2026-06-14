@@ -78,25 +78,59 @@ const isMesh = (
 ): object is Mesh<BufferGeometry, Material | Material[]> =>
   object instanceof Mesh;
 
+const matchesExcludedName = (name: string): boolean => {
+  const normalizedName = name.toLowerCase();
+  return (
+    name.startsWith('Debug') ||
+    name.startsWith('POI') ||
+    name.startsWith('POI_HIT:') ||
+    normalizedName.includes('debug') ||
+    normalizedName.includes('collider') ||
+    normalizedName.includes('helper') ||
+    normalizedName.includes('hud') ||
+    normalizedName.includes('label') ||
+    normalizedName.includes('sprite') ||
+    normalizedName.includes('ui') ||
+    normalizedName.includes('player') ||
+    normalizedName.includes('avatar') ||
+    normalizedName.includes('mannequin')
+  );
+};
+
 const isExcluded = (object: Object3D): boolean => {
   if (
     object.userData.debugOnly ||
     object.userData.colliderDebug ||
-    object.userData.poiLabel
+    object.userData.poiLabel ||
+    object.userData.poi ||
+    object.userData.hud ||
+    object.userData.ui ||
+    object.userData.label ||
+    object.userData.player ||
+    object.userData.avatar
   ) {
     return true;
   }
-  if (object.name.startsWith('POI') || object.name.startsWith('POI_HIT:')) {
+  if (matchesExcludedName(object.name)) {
     return true;
   }
   if (
     object.type === 'Sprite' ||
     object.type.includes('Light') ||
-    object.type === 'Camera'
+    object.type === 'Camera' ||
+    object.type.includes('Helper')
   ) {
     return true;
   }
-  return object.name.startsWith('Debug') || object.name.includes('Helper');
+  return false;
+};
+
+const isInvisibleMaterial = (material: Material): boolean =>
+  material.transparent === true && material.opacity <= 0;
+
+const hasInvisibleMaterial = (material: Material | Material[]): boolean => {
+  const materials = Array.isArray(material) ? material : [material];
+  return materials.length > 0 && materials.every(isInvisibleMaterial);
 };
 
 const hasVisibleAncestors = (object: Object3D): boolean => {
@@ -133,8 +167,18 @@ const cloneBounds = (bounds: DebugSolidBounds): DebugSolidBounds => ({
   max: { ...bounds.max },
 });
 
-const getBounds = (object: Object3D): DebugSolidBounds => {
+const getBounds = (
+  object: Object3D,
+  sourceGeometry?: BufferGeometry
+): DebugSolidBounds => {
+  const originalBoundingBox = sourceGeometry?.boundingBox ?? null;
+  const hadBoundingBox = sourceGeometry?.boundingBox !== null;
   const box = new Box3().setFromObject(object);
+  if (sourceGeometry && !hadBoundingBox) {
+    sourceGeometry.boundingBox = null;
+  } else if (sourceGeometry) {
+    sourceGeometry.boundingBox = originalBoundingBox;
+  }
   return {
     min: { x: round(box.min.x), y: round(box.min.y), z: round(box.min.z) },
     max: { x: round(box.max.x), y: round(box.max.y), z: round(box.max.z) },
@@ -142,11 +186,16 @@ const getBounds = (object: Object3D): DebugSolidBounds => {
 };
 
 const getGeometrySignature = (geometry: BufferGeometry): string => {
-  geometry.computeBoundingBox();
-  const box = geometry.boundingBox;
+  const sourceBox = geometry.boundingBox;
+  let signatureGeometry: BufferGeometry | undefined;
+  if (!sourceBox) {
+    signatureGeometry = geometry.clone();
+    signatureGeometry.computeBoundingBox();
+  }
+  const box = sourceBox ?? signatureGeometry?.boundingBox ?? null;
   const positionCount = geometry.getAttribute('position')?.count ?? 0;
   const indexCount = geometry.index?.count ?? 0;
-  return [
+  const signature = [
     geometry.type,
     `pos:${positionCount}`,
     `idx:${indexCount}`,
@@ -161,6 +210,8 @@ const getGeometrySignature = (geometry: BufferGeometry): string => {
         ].join(',')
       : 'bounds:none',
   ].join('|');
+  signatureGeometry?.dispose();
+  return signature;
 };
 
 const getMaterialSummary = (
@@ -224,7 +275,7 @@ export const createSolidVisualizer = (
       entry.wireframe.quaternion,
       entry.wireframe.scale
     );
-    const bounds = getBounds(entry.mesh);
+    const bounds = getBounds(entry.mesh, entry.mesh.geometry);
     if (hasFiniteBounds(bounds)) {
       entry.metadata.bounds = bounds;
       entry.label.position.set(
@@ -238,7 +289,10 @@ export const createSolidVisualizer = (
   const applyVisibility = () => {
     group.visible = enabled;
     entries.forEach((entry) => {
-      const entryVisible = enabled && hasVisibleAncestors(entry.mesh);
+      const entryVisible =
+        enabled &&
+        hasVisibleAncestors(entry.mesh) &&
+        !hasInvisibleMaterial(entry.mesh.material);
       entry.wireframe.visible = entryVisible;
       entry.label.visible = entryVisible;
     });
@@ -269,10 +323,14 @@ export const createSolidVisualizer = (
     }> = [];
 
     root.traverse((object) => {
-      if (!isMesh(object) || !hasVisibleAncestors(object)) {
+      if (
+        !isMesh(object) ||
+        !hasVisibleAncestors(object) ||
+        hasInvisibleMaterial(object.material)
+      ) {
         return;
       }
-      const bounds = getBounds(object);
+      const bounds = getBounds(object, object.geometry);
       if (!hasFiniteBounds(bounds)) {
         return;
       }
@@ -370,7 +428,11 @@ export const createSolidVisualizer = (
     },
     getState() {
       const visibleEntryCount = enabled
-        ? entries.filter((entry) => hasVisibleAncestors(entry.mesh)).length
+        ? entries.filter(
+            (entry) =>
+              hasVisibleAncestors(entry.mesh) &&
+              !hasInvisibleMaterial(entry.mesh.material)
+          ).length
         : 0;
       return {
         enabled,
