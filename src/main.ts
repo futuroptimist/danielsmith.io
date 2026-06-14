@@ -483,7 +483,7 @@ import {
 import { createSoftwareRendererWarning } from './ui/softwareRendererWarning';
 import './ui/styles.css';
 
-const ERRANT_SOURCE_COLLIDER_BOUNDS: RectCollider[] = [
+const REMOVED_DEBUG_COLLIDER_SOURCE_BOUNDS: RectCollider[] = [
   {
     minX: 11.05809357524045,
     maxX: 13.223186424759556,
@@ -537,10 +537,10 @@ const hasSameColliderBounds = (left: RectCollider, right: RectCollider) =>
   nearlyEqual(left.minZ, right.minZ) &&
   nearlyEqual(left.maxZ, right.maxZ);
 
-const removeErrantSourceColliders = (colliders: RectCollider[]) => {
+const removeDebugColliderArtifactSources = (colliders: RectCollider[]) => {
   for (let index = colliders.length - 1; index >= 0; index -= 1) {
     if (
-      ERRANT_SOURCE_COLLIDER_BOUNDS.some((bounds) =>
+      REMOVED_DEBUG_COLLIDER_SOURCE_BOUNDS.some((bounds) =>
         hasSameColliderBounds(colliders[index], bounds)
       )
     ) {
@@ -3067,8 +3067,8 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
-  removeErrantSourceColliders(groundColliders);
-  removeErrantSourceColliders(staticColliders);
+  removeDebugColliderArtifactSources(groundColliders);
+  removeDebugColliderArtifactSources(staticColliders);
 
   poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,

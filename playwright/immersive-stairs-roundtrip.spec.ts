@@ -779,7 +779,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   await walkStairCenterlineToUpperLanding(page);
   const debugColliders = await getDebugColliders(page);
   const debugColliderNames = debugColliders.map((collider) => collider.name);
-  const targetErrantColliderIds = [
+  const removedDebugColliderIds = [
     '4005',
     '4008',
     '4006',
@@ -797,7 +797,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     '1007',
     '200D',
   ];
-  const targetErrantColliderSources = [
+  const removedDebugColliderSources = [
     {
       name: 'ground-collider-3',
       bounds: {
@@ -929,20 +929,20 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   for (const previouslyRemovedCollider of previouslyRemovedArtifactColliders) {
     expect(debugColliderNames).not.toContain(previouslyRemovedCollider);
   }
-  for (const targetId of targetErrantColliderIds) {
+  for (const targetId of removedDebugColliderIds) {
     expect(debugColliders.map((collider) => collider.id)).not.toContain(
       targetId
     );
   }
   const expectColliderBoundsCloseTo = (
     actual: (typeof debugColliders)[number]['bounds'],
-    expected: (typeof targetErrantColliderSources)[number]['bounds']
+    expected: (typeof removedDebugColliderSources)[number]['bounds']
   ) =>
     Math.abs(actual.minX - expected.minX) < 0.000001 &&
     Math.abs(actual.maxX - expected.maxX) < 0.000001 &&
     Math.abs(actual.minZ - expected.minZ) < 0.000001 &&
     Math.abs(actual.maxZ - expected.maxZ) < 0.000001;
-  for (const source of targetErrantColliderSources) {
+  for (const source of removedDebugColliderSources) {
     const mustRemoveByBounds =
       source.name.startsWith('ground-collider-') ||
       source.name.startsWith('static-collider-') ||
