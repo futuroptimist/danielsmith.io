@@ -113,7 +113,7 @@ describe('createSolidVisualizer', () => {
     );
   });
 
-  it('registers only effective visible stable scene solids', () => {
+  it('registers stable scene solids while hiding currently ineffective entries', () => {
     const scene = new Group();
     scene.name = 'Scene';
     const visible = createSolid('VisibleWall');
@@ -145,9 +145,56 @@ describe('createSolidVisualizer', () => {
     const visualizer = createSolidVisualizer({ enabled: true });
     visualizer.register(scene);
 
+    expect(
+      visualizer
+        .getSolids()
+        .map((solid) => solid.name)
+        .sort()
+    ).toEqual(['HiddenAncestorWall', 'VisibleWall']);
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 2,
+      visibleSolidCount: 1,
+      visibleLabelCount: 1,
+    });
+
+    hiddenParent.visible = true;
+    visualizer.update();
+
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 2,
+      visibleSolidCount: 2,
+      visibleLabelCount: 2,
+    });
+  });
+
+  it('registers opacity-animated solids but hides them while fully transparent', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const animated = createSolid('SigmaWorkbenchHologram');
+    animated.material.transparent = true;
+    animated.material.opacity = 0;
+    scene.add(animated);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
     expect(visualizer.getSolids().map((solid) => solid.name)).toEqual([
-      'VisibleWall',
+      'SigmaWorkbenchHologram',
     ]);
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 1,
+      visibleSolidCount: 0,
+      visibleLabelCount: 0,
+    });
+
+    animated.material.opacity = 1;
+    visualizer.update();
+
+    expect(visualizer.getState()).toMatchObject({
+      totalSolidCount: 1,
+      visibleSolidCount: 1,
+      visibleLabelCount: 1,
+    });
   });
 
   it('does not duplicate overlays after repeated enable-disable cycles', () => {

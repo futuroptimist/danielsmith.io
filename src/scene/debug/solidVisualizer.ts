@@ -87,6 +87,9 @@ const matchesExcludedName = (name: string): boolean => {
     normalizedName.includes('debug') ||
     normalizedName.includes('collider') ||
     normalizedName.includes('helper') ||
+    normalizedName.includes('hitarea') ||
+    normalizedName.includes('hit-area') ||
+    normalizedName.includes('interaction') ||
     normalizedName.includes('hud') ||
     normalizedName.includes('label') ||
     normalizedName.includes('sprite') ||
@@ -133,7 +136,18 @@ const hasInvisibleMaterial = (material: Material | Material[]): boolean => {
   return materials.length > 0 && materials.every(isInvisibleMaterial);
 };
 
-const hasVisibleAncestors = (object: Object3D): boolean => {
+const hasNoExcludedAncestors = (object: Object3D): boolean => {
+  let current: Object3D | null = object;
+  while (current) {
+    if (isExcluded(current)) {
+      return false;
+    }
+    current = current.parent;
+  }
+  return true;
+};
+
+const hasEffectiveVisibility = (object: Object3D): boolean => {
   let current: Object3D | null = object;
   while (current) {
     if (!current.visible || isExcluded(current)) {
@@ -291,7 +305,7 @@ export const createSolidVisualizer = (
     entries.forEach((entry) => {
       const entryVisible =
         enabled &&
-        hasVisibleAncestors(entry.mesh) &&
+        hasEffectiveVisibility(entry.mesh) &&
         !hasInvisibleMaterial(entry.mesh.material);
       entry.wireframe.visible = entryVisible;
       entry.label.visible = entryVisible;
@@ -325,8 +339,8 @@ export const createSolidVisualizer = (
     root.traverse((object) => {
       if (
         !isMesh(object) ||
-        !hasVisibleAncestors(object) ||
-        hasInvisibleMaterial(object.material)
+        !object.visible ||
+        !hasNoExcludedAncestors(object)
       ) {
         return;
       }
@@ -430,7 +444,7 @@ export const createSolidVisualizer = (
       const visibleEntryCount = enabled
         ? entries.filter(
             (entry) =>
-              hasVisibleAncestors(entry.mesh) &&
+              hasEffectiveVisibility(entry.mesh) &&
               !hasInvisibleMaterial(entry.mesh.material)
           ).length
         : 0;
