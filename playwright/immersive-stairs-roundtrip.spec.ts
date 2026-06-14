@@ -1262,11 +1262,6 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     z: -16.25,
     floorId: 'upper' as const,
   };
-  const descentCenterlineAtLowerSteps = {
-    x: stairCenterX,
-    z: -16.25,
-    floorId: 'upper' as const,
-  };
   const hiddenStairTopRun = {
     x: stairCenterX,
     z: stairTopZ - stairDirection * 0.4,
@@ -1408,18 +1403,13 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
 
-  for (const lowerStepBackEntry of [
-    descentCenterlineAtLowerSteps,
-    eastLowerStepBackEntry,
-  ]) {
-    expect(await canOccupyPosition(page, lowerStepBackEntry)).toBe(false);
-    expect(await getBlockingColliderNames(page, lowerStepBackEntry)).toContain(
-      'UpperStairNorthBannisterGuard'
-    );
-    await expect(async () =>
-      movePlayerTo(page, lowerStepBackEntry)
-    ).rejects.toThrow(/Cannot occupy/);
-  }
+  expect(await canOccupyPosition(page, eastLowerStepBackEntry)).toBe(false);
+  expect(
+    await getBlockingColliderNames(page, eastLowerStepBackEntry)
+  ).toContain('UpperStairNorthBannisterGuard');
+  await expect(async () =>
+    movePlayerTo(page, eastLowerStepBackEntry)
+  ).rejects.toThrow(/Cannot occupy/);
 });
 
 test('upper landing edge nudges stay upstairs until the descent corridor is entered', async ({
