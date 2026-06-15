@@ -803,6 +803,18 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }, firstDebugCollider.id);
   expect(foundById).toEqual(firstDebugCollider);
 
+  const westBannisterById = await page.evaluate((id) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliderById(id);
+  }, '4009');
+  expect(westBannisterById?.id).toBe('4009');
+  expect(westBannisterById?.name).toBe('UpperStairWestBannisterGuard');
+  expect(westBannisterById?.floor).toBe('upper');
+  expect(westBannisterById?.category).toBe('upper');
+
   const westBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairWestBannisterGuard'
   );
@@ -830,19 +842,32 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
 
   const northBannisterCenterZ =
     (northBannister.bounds.minZ + northBannister.bounds.maxZ) / 2;
+  const previousWestBannisterMinZ = -24.68;
+  const previousWestBannisterMaxZ = -18.25;
+  const previousWestBannisterCenterZ =
+    (previousWestBannisterMinZ + previousWestBannisterMaxZ) / 2;
+  const westBannisterCenterZ =
+    (westBannister.bounds.minZ + westBannister.bounds.maxZ) / 2;
+
   expectCloseTo(westBannister.bounds.minX, 8.9, 0.05, 'west bannister min x');
   expectCloseTo(westBannister.bounds.maxX, 9.3, 0.05, 'west bannister max x');
   expectCloseTo(
     westBannister.bounds.minZ,
-    -24.68,
+    previousWestBannisterMinZ,
     0.08,
-    'west bannister min z'
+    'west bannister min z remains anchored'
   );
   expectCloseTo(
     westBannister.bounds.maxZ,
-    -18.25,
+    previousWestBannisterMaxZ + 2,
     0.08,
-    'west bannister max z'
+    'west bannister max z extends exactly +2'
+  );
+  expectCloseTo(
+    westBannisterCenterZ,
+    previousWestBannisterCenterZ + 1,
+    0.08,
+    'west bannister center z shifts +1 after +Z extension'
   );
   expectCloseTo(
     northBannisterCenterZ,
@@ -931,6 +956,11 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       name: 'raw lower-step upper-floor occupancy probe at second bottom step',
       target: { x: 12.4, z: -16.75, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairNorthBannisterGuard',
+    },
+    {
+      name: 'upper stair guard gap behind west bannister extension',
+      target: { x: 9.1, z: -17.25, floorId: 'upper' as const },
+      expectedBlocker: 'UpperStairWestBannisterGuard',
     },
   ];
 

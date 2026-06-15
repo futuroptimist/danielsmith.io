@@ -2155,10 +2155,11 @@ function initializeImmersiveScene(
             upperStairNorthBannisterBaseCenterZ,
             upperStairWestBannisterSouthZ
           ),
-          maxZ: Math.max(
-            upperStairNorthBannisterBaseCenterZ,
-            upperStairWestBannisterSouthZ
-          ),
+          maxZ:
+            Math.max(
+              upperStairNorthBannisterBaseCenterZ,
+              upperStairWestBannisterSouthZ
+            ) + 2,
         },
       },
       {
