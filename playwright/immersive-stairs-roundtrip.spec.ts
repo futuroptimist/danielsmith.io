@@ -1126,6 +1126,14 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       { x: 6.2, z: -16, floorId: 'upper' as const },
       { x: 7.75, z: -16, floorId: 'upper' as const },
     ];
+    const passageStart = { x: 6.2, z: -16.6, floorId: 'upper' as const };
+    const passageStep = { dx: 0, dz: 0.1 };
+    world.movePlayerTo(passageStart);
+    const passageSteps: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> =
+      [];
+    for (let index = 0; index < 14; index += 1) {
+      passageSteps.push(world.stepPlayerForTest(passageStep));
+    }
 
     return {
       solidById: debugSolids.getSolidById('DD4252'),
@@ -1140,11 +1148,21 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       canOccupyOpeningSamples: openingSamples.map((sample) =>
         world.canOccupyPosition(sample)
       ),
+      canOccupyWestCutoutEdge: world.canOccupyPosition({
+        x: 8.9,
+        z: -16.7,
+        floorId: 'upper',
+      }),
       blockingAtOpeningSamples: openingSamples.map((sample) =>
         debugColliders
           .getBlockingCollidersAt(sample)
           .map((collider) => collider.name)
       ),
+      passageMovement: {
+        allStepsMoved: passageSteps.every((step) => step.movedZ),
+        blockedBy: passageSteps.flatMap((step) => step.blockedBy ?? []),
+        finalPosition: world.getPlayerPosition(),
+      },
     };
   });
 
@@ -1155,7 +1173,11 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.matchingColliderBoundsCount).toBe(0);
   expect(targetState.formerVoidGuardNames).toEqual([]);
   expect(targetState.canOccupyOpeningSamples).toEqual([true, true, true]);
+  expect(targetState.canOccupyWestCutoutEdge).toBe(false);
   expect(targetState.blockingAtOpeningSamples).toEqual([[], [], []]);
+  expect(targetState.passageMovement.allStepsMoved).toBe(true);
+  expect(targetState.passageMovement.blockedBy).toEqual([]);
+  expect(targetState.passageMovement.finalPosition.z).toBeGreaterThan(-15.35);
 });
 
 test('runtime descent from upper landing mouth stays clear of bannister guards', async ({
