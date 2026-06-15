@@ -174,7 +174,6 @@ import {
   createSeasonallyAdjustedPrograms,
   resolveSeasonalLightingSchedule,
 } from './scene/lighting/seasonalPresets';
-import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
 import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
 import {
   LowFpsRecoveryMonitor,
@@ -1157,7 +1156,7 @@ function initializeImmersiveScene(
       }
     })(),
   });
-  let adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
+  const adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
   let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
   renderer.setPixelRatio(basePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1185,9 +1184,6 @@ function initializeImmersiveScene(
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
   let graphicsQualityManager: GraphicsQualityManager | null = null;
   let graphicsQualityControl: GraphicsQualityControlHandle | null = null;
-  let adaptiveQualityController: ReturnType<
-    typeof createAdaptiveQualityController
-  > | null = null;
   let performanceDiagnostics: ReturnType<
     typeof createPerformanceDiagnostics
   > | null = null;
@@ -5510,33 +5506,10 @@ function initializeImmersiveScene(
   ledAnimator?.captureBaseline();
   environmentLightAnimator?.captureBaseline();
 
-  adaptiveQualityController = createAdaptiveQualityController({
-    qualityManager: graphicsQualityManager,
-    getBasePixelRatio: () => basePixelRatio,
-    setBasePixelRatio: (value) => {
-      adaptivePixelRatioCap = value;
-      basePixelRatio = value;
-    },
-    fpsThreshold: PERFORMANCE_FAILOVER_FPS_THRESHOLD,
-    isSoftwareRenderer: rendererInfo.isSoftwareRenderer,
-    getSelectionSource: () =>
-      graphicsQualityManager?.getSelectionSource() ?? 'initial',
-    initialAdaptivePerformanceRecoveryLocked:
-      sceneDetailReloadOverride?.adaptivePerformanceRecoveryLocked === true,
-    onSceneDetailLevelChange: (level) => {
-      applySceneDetailLevel(level, {
-        reloadScene: true,
-        adaptivePerformanceRecoveryLocked: level === 'performance',
-      });
-    },
-    onAction: (event) => {
-      console.info('[performance] adaptive quality action', event);
-      if (event.action === 'downgrade') {
-        performanceFailover.resetLowFpsSamples();
-      }
-      graphicsQualityControl?.refresh();
-    },
-  });
+  // Runtime low-FPS recovery is intentionally user-directed via the
+  // LowFpsRecoveryMonitor popup. Do not instantiate adaptive quality here;
+  // startup heuristics may pick an initial level, but runtime low FPS must not
+  // silently downgrade quality, reduce DPR, reload the scene, or switch modes.
 
   let accessibilityStorage: Storage | undefined;
   try {
@@ -5725,7 +5698,7 @@ function initializeImmersiveScene(
       renderTargetSize: policy.mirrorTargetSize,
     });
     const level = graphicsQualityManager?.getLevel() ?? initialSceneDetailLevel;
-    applySceneDetailLevel(level, { reloadScene: options.reloadScene ?? true });
+    applySceneDetailLevel(level, { reloadScene: options.reloadScene ?? false });
   };
 
   const getActivePostprocessingPassCount = () => {
@@ -5743,7 +5716,7 @@ function initializeImmersiveScene(
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
-    applyFeaturePolicy({ reloadScene: true });
+    applyFeaturePolicy({ reloadScene: false });
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();
@@ -5771,15 +5744,12 @@ function initializeImmersiveScene(
     getQualityState: () => ({
       level: graphicsQualityManager!.getLevel(),
       selectionSource: graphicsQualityManager!.getSelectionSource(),
-      adaptiveDowngradeCount:
-        adaptiveQualityController?.getDowngradeCount() ?? 0,
-      adaptiveRecoveryCount: adaptiveQualityController?.getRecoveryCount() ?? 0,
-      lastAdaptiveReason: adaptiveQualityController?.getLastReason() ?? null,
-      lastAdaptiveDowngradeReason:
-        adaptiveQualityController?.getLastDowngradeReason() ?? null,
-      lastAdaptiveRecoveryReason:
-        adaptiveQualityController?.getLastRecoveryReason() ?? null,
-      adaptivePolicy: adaptiveQualityController?.getSnapshot() ?? null,
+      adaptiveDowngradeCount: 0,
+      adaptiveRecoveryCount: 0,
+      lastAdaptiveReason: null,
+      lastAdaptiveDowngradeReason: null,
+      lastAdaptiveRecoveryReason: null,
+      adaptivePolicy: null,
       sceneDetail: sceneDetailController.getSnapshot(),
     }),
     getFeatureState: () => {
@@ -6661,10 +6631,6 @@ function initializeImmersiveScene(
         crashBreadcrumbs.recordSnapshot(
           performanceDiagnostics.methods.getSnapshot()
         );
-      }
-      const adaptiveAction = adaptiveQualityController?.update(delta);
-      if (adaptiveAction) {
-        applyFeaturePolicy();
       }
       performanceFailover.update(delta);
       lowFpsRecoveryMonitor.recordFrame(delta, frameStartMs);

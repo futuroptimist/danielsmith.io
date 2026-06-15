@@ -9,6 +9,15 @@ type TestWindow = Window & {
       forceLowFpsRecoveryPopup(): void;
       dismissLowFpsRecoveryPopup(nowMs?: number): void;
       recordLowFpsRecoveryFrame(deltaSeconds: number, nowMs?: number): void;
+      getQualityState?(): {
+        adaptivePolicy: unknown;
+        adaptiveDowngradeCount: number;
+      };
+    };
+    performance?: {
+      getSnapshot(): {
+        quality: { adaptivePolicy: unknown; adaptiveDowngradeCount: number };
+      };
     };
     graphics?: {
       getLevel(): string;
@@ -34,6 +43,12 @@ async function openImmersive(page: Page, graphicsLevel = 'balanced') {
     undefined,
     { timeout: READY_TIMEOUT_MS }
   );
+  const softwareWarningContinue = page.locator(
+    '[data-software-renderer-warning] [data-action="continue-safe-immersive"]'
+  );
+  if (await softwareWarningContinue.isVisible()) {
+    await softwareWarningContinue.click();
+  }
 }
 
 async function setGraphics(page: Page, level: string) {
@@ -48,6 +63,33 @@ async function setGraphics(page: Page, level: string) {
     undefined,
     { timeout: READY_TIMEOUT_MS }
   );
+  const softwareWarningContinue = page.locator(
+    '[data-software-renderer-warning] [data-action="continue-safe-immersive"]'
+  );
+  if (await softwareWarningContinue.isVisible()) {
+    await softwareWarningContinue.click();
+  }
+}
+
+function trackReloads(page: Page) {
+  let navigations = 0;
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) {
+      navigations += 1;
+    }
+  });
+  return () => navigations;
+}
+
+async function expectNoSceneDetailReloadHandoff(page: Page) {
+  expect(page.url()).not.toContain('sceneDetailReloadLevel');
+  expect(
+    await page.evaluate(() =>
+      window.sessionStorage.getItem(
+        'portfolio::pending-scene-detail-reload-level'
+      )
+    )
+  ).toBeNull();
 }
 
 async function showPopup(page: Page) {
@@ -56,7 +98,9 @@ async function showPopup(page: Page) {
       window as TestWindow
     ).portfolio?.debugPerformance?.forceLowFpsRecoveryPopup();
   });
-  await expect(page.getByText('Low frame rate detected')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Low frame rate detected' })
+  ).toBeVisible();
 }
 
 test.describe('immersive low-FPS recovery popup', () => {
@@ -81,6 +125,8 @@ test.describe('immersive low-FPS recovery popup', () => {
       (window as TestWindow).portfolio?.world?.getPlayerPosition()
     );
 
+    const reloadCount = trackReloads(page);
+
     await showPopup(page);
     await expect(
       page.getByRole('button', { name: 'Switch to Balanced' })
@@ -94,9 +140,20 @@ test.describe('immersive low-FPS recovery popup', () => {
         (window as TestWindow).portfolio?.world?.getPlayerPosition()
       )
     ).toMatchObject(before!);
+    expect(
+      await page.evaluate(() =>
+        (window as TestWindow).portfolio?.graphics?.getLevel()
+      )
+    ).toBe('cinematic');
+    expect(reloadCount()).toBe(0);
+    await expectNoSceneDetailReloadHandoff(page);
 
     await page.getByRole('button', { name: 'Switch to Balanced' }).click();
-    await expect(page.getByText('Low frame rate detected')).toBeHidden();
+    await expect(
+      page.getByRole('heading', { name: 'Low frame rate detected' })
+    ).toBeHidden();
+    expect(reloadCount()).toBe(0);
+    await expectNoSceneDetailReloadHandoff(page);
     expect(
       await page.evaluate(() =>
         (window as TestWindow).portfolio?.graphics?.getLevel()
@@ -150,9 +207,9 @@ test.describe('immersive low-FPS recovery popup', () => {
     await expect(
       page.getByRole('button', { name: 'Use non-immersive mode' })
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: /Switch to/ })).toHaveCount(
-      0
-    );
+    await expect(
+      page.getByRole('button', { name: /Switch to (Balanced|Performance)/ })
+    ).toHaveCount(0);
   });
 
   test('dismiss cooldown suppresses immediate redisplay and allows later redisplay', async ({
@@ -170,7 +227,9 @@ test.describe('immersive low-FPS recovery popup', () => {
         window as TestWindow
       ).portfolio?.debugPerformance?.forceLowFpsRecoveryPopup();
     });
-    await expect(page.getByText('Low frame rate detected')).toBeHidden();
+    await expect(
+      page.getByRole('heading', { name: 'Low frame rate detected' })
+    ).toBeHidden();
 
     await page.evaluate(() => {
       const debug = (window as TestWindow).portfolio?.debugPerformance;
@@ -178,7 +237,79 @@ test.describe('immersive low-FPS recovery popup', () => {
         debug?.recordLowFpsRecoveryFrame(0.25, 31_000 + frame * 250);
       }
     });
-    await expect(page.getByText('Low frame rate detected')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Low frame rate detected' })
+    ).toBeVisible();
+  });
+
+  test('keeps Cinematic through low-FPS frames until popup action', async ({
+    page,
+  }) => {
+    await openImmersive(page, 'cinematic');
+    test.skip(
+      (await page.evaluate(() =>
+        (window as TestWindow).portfolio?.graphics?.getLevel()
+      )) !== 'cinematic',
+      'Cinematic is unavailable under software-renderer safe mode.'
+    );
+    const reloadCount = trackReloads(page);
+    await page.evaluate(() => {
+      (window as TestWindow).portfolio?.world?.stepPlayerForTest({
+        dx: 0.5,
+        dz: 0.5,
+      });
+    });
+    const before = await page.evaluate(() =>
+      (window as TestWindow).portfolio?.world?.getPlayerPosition()
+    );
+
+    await page.evaluate(() => {
+      const debug = (window as TestWindow).portfolio?.debugPerformance;
+      for (let frame = 0; frame < 7; frame += 1) {
+        debug?.recordLowFpsRecoveryFrame(0.25, frame * 250);
+      }
+    });
+
+    expect(
+      await page.evaluate(() =>
+        (window as TestWindow).portfolio?.graphics?.getLevel()
+      )
+    ).toBe('cinematic');
+    await expect(
+      page.getByRole('heading', { name: 'Low frame rate detected' })
+    ).toBeHidden();
+    expect(reloadCount()).toBe(0);
+    await expectNoSceneDetailReloadHandoff(page);
+
+    await page.evaluate(() => {
+      const debug = (window as TestWindow).portfolio?.debugPerformance;
+      for (let frame = 7; frame <= 41; frame += 1) {
+        debug?.recordLowFpsRecoveryFrame(0.25, frame * 250);
+      }
+    });
+
+    await expect(
+      page.getByRole('heading', { name: 'Low frame rate detected' })
+    ).toBeVisible();
+    expect(
+      await page.evaluate(() =>
+        (window as TestWindow).portfolio?.graphics?.getLevel()
+      )
+    ).toBe('cinematic');
+    expect(
+      await page.evaluate(() =>
+        (window as TestWindow).portfolio?.world?.getPlayerPosition()
+      )
+    ).toMatchObject(before!);
+    expect(reloadCount()).toBe(0);
+    await expectNoSceneDetailReloadHandoff(page);
+    expect(
+      await page.evaluate(
+        () =>
+          (window as TestWindow).portfolio?.performance?.getSnapshot().quality
+            .adaptivePolicy
+      )
+    ).toBeNull();
   });
 
   test('switches to non-immersive only after the user chooses it', async ({
@@ -186,6 +317,10 @@ test.describe('immersive low-FPS recovery popup', () => {
   }) => {
     await openImmersive(page);
     await showPopup(page);
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'immersive'
+    );
     await page.getByRole('button', { name: 'Use non-immersive mode' }).click();
 
     await expect(page.locator('#app')).toHaveAttribute('data-mode', 'text');

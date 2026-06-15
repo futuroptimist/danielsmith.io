@@ -37,19 +37,17 @@ describe('main module imports', () => {
     );
   });
 
-  it('carries the adaptive recovery lock through scene-detail reload handoffs', () => {
+  it('does not wire runtime adaptive quality into immersive mode', () => {
     const source = readMainSource();
 
-    expect(source).toContain(
-      "adaptivePerformanceRecoveryLocked: level === 'performance'"
+    expect(source).not.toContain('createAdaptiveQualityController');
+    expect(source).not.toContain('adaptiveQualityController');
+    expect(source).not.toContain(
+      "graphicsQualityManager?.setLevel(level, { source: 'adaptive' })"
     );
-    expect(source).toContain('initialAdaptivePerformanceRecoveryLocked:');
-    expect(source).toContain(
-      'sceneDetailReloadOverride?.adaptivePerformanceRecoveryLocked === true'
-    );
-    expect(source).toContain(
-      'return { level: stored, adaptivePerformanceRecoveryLocked: adaptiveLock };'
-    );
+    expect(source).toContain('adaptivePolicy: null');
+    expect(source).toContain('adaptiveDowngradeCount: 0');
+    expect(source).toContain('adaptiveRecoveryCount: 0');
   });
 
   it('does not reload when no scene-detail handoff can be persisted', () => {
