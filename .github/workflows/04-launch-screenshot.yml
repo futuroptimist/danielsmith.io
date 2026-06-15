@@ -29,7 +29,7 @@ jobs:
         run: npx playwright install --with-deps chromium-headless-shell
 
       - name: Capture launch screenshot
-        run: npm run screenshot
+        run: npm run launch:screenshot
 
       - name: Evaluate screenshot state
         id: screenshot_state
