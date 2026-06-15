@@ -269,3 +269,44 @@ describe('upper landing west egress doorway', () => {
     ).toBe(false);
   });
 });
+
+describe('upper landing north landing-side passage', () => {
+  const formerWallBounds = {
+    minX: 3.875,
+    maxX: 8.525,
+    minZ: -16.25,
+    maxZ: -15.75,
+  };
+
+  it('omits the former wall segment and collider between upper landing and loft library', () => {
+    const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    });
+
+    const matchingWall = wallInstances.find(
+      (instance) =>
+        Math.abs(instance.collider.minX - formerWallBounds.minX) <
+          DOOR_EPSILON &&
+        Math.abs(instance.collider.maxX - formerWallBounds.maxX) <
+          DOOR_EPSILON &&
+        Math.abs(instance.collider.minZ - formerWallBounds.minZ) <
+          DOOR_EPSILON &&
+        Math.abs(instance.collider.maxZ - formerWallBounds.maxZ) < DOOR_EPSILON
+    );
+
+    expect(matchingWall).toBeUndefined();
+    expect(
+      collidesWithColliders(
+        6.2,
+        -16,
+        PLAYER_RADIUS,
+        wallInstances.map((instance) => instance.collider)
+      )
+    ).toBe(false);
+  });
+});

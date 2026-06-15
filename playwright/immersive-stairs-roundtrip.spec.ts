@@ -91,6 +91,23 @@ type DebugColliderMetadata = {
   bounds: DebugColliderBounds;
 };
 
+type DebugSolidMetadata = {
+  id: string;
+  name: string;
+  path: string;
+  parentPath: string;
+  bounds: {
+    min: { x: number; y: number; z: number };
+    max: { x: number; y: number; z: number };
+  };
+};
+
+type DebugSolidApi = {
+  setEnabled(enabled: boolean): void;
+  getSolidById(id: unknown): DebugSolidMetadata | undefined;
+  getSolids(): DebugSolidMetadata[];
+};
+
 type DebugColliderApi = {
   setEnabled(enabled: boolean): void;
   getColliders(): DebugColliderMetadata[];
@@ -142,6 +159,7 @@ type PortfolioWindow = Window & {
   portfolio?: {
     world?: TestWorldApi;
     debugColliders?: DebugColliderApi;
+    debugSolids?: DebugSolidApi;
     debugCoordinates?: DebugCoordinatesApi;
     poi?: {
       getTooltipState(): TooltipState;
@@ -1054,6 +1072,83 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     );
     expect(blockingColliderNames.length, sample.name).toBeGreaterThan(0);
   }
+});
+
+test('upper landing-side passage omits removed wall and target colliders', async ({
+  page,
+}) => {
+  await waitForImmersiveReady(page);
+
+  const debugState = await page.evaluate(() => {
+    const solidApi = (window as PortfolioWindow).portfolio?.debugSolids;
+    const colliderApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!solidApi || !colliderApi || !world) {
+      throw new Error('Debug or world API unavailable');
+    }
+    solidApi.setEnabled(true);
+    colliderApi.setEnabled(true);
+
+    const formerWallBounds = {
+      minX: 3.875,
+      maxX: 8.525,
+      minZ: -16.25,
+      maxZ: -15.75,
+    };
+    const sameFormerWallBounds = (bounds: DebugColliderBounds) =>
+      Math.abs(bounds.minX - formerWallBounds.minX) < 0.001 &&
+      Math.abs(bounds.maxX - formerWallBounds.maxX) < 0.001 &&
+      Math.abs(bounds.minZ - formerWallBounds.minZ) < 0.001 &&
+      Math.abs(bounds.maxZ - formerWallBounds.maxZ) < 0.001;
+
+    return {
+      removedSolid: solidApi.getSolidById('DD4252'),
+      removedCollider300A: colliderApi.getColliderById('300A'),
+      removedCollider4005: colliderApi.getColliderById('4005'),
+      collidersWithFormerWallBounds: colliderApi
+        .getColliders()
+        .filter((collider) => sameFormerWallBounds(collider.bounds)),
+      solidsWithFormerWallBounds: solidApi.getSolids().filter((solid) => {
+        const bounds = solid.bounds;
+        return (
+          Math.abs(bounds.min.x - formerWallBounds.minX) < 0.001 &&
+          Math.abs(bounds.max.x - formerWallBounds.maxX) < 0.001 &&
+          Math.abs(bounds.min.z - formerWallBounds.minZ) < 0.001 &&
+          Math.abs(bounds.max.z - formerWallBounds.maxZ) < 0.001
+        );
+      }),
+      canOccupyWestSide: world.canOccupyPosition({
+        x: 6.2,
+        z: -16.6,
+        floorId: 'upper',
+      }),
+      canOccupyFormerWallCenter: world.canOccupyPosition({
+        x: 6.2,
+        z: -16,
+        floorId: 'upper',
+      }),
+      canOccupyEastSide: world.canOccupyPosition({
+        x: 6.2,
+        z: -15.4,
+        floorId: 'upper',
+      }),
+      blockingAtFormerWallCenter: colliderApi.getBlockingCollidersAt({
+        x: 6.2,
+        z: -16,
+        floorId: 'upper',
+      }),
+    };
+  });
+
+  expect(debugState.removedSolid).toBeUndefined();
+  expect(debugState.removedCollider300A).toBeUndefined();
+  expect(debugState.removedCollider4005).toBeUndefined();
+  expect(debugState.collidersWithFormerWallBounds).toEqual([]);
+  expect(debugState.solidsWithFormerWallBounds).toEqual([]);
+  expect(debugState.canOccupyWestSide).toBe(true);
+  expect(debugState.canOccupyFormerWallCenter).toBe(true);
+  expect(debugState.canOccupyEastSide).toBe(true);
+  expect(debugState.blockingAtFormerWallCenter).toEqual([]);
 });
 
 test('runtime descent from upper landing mouth stays clear of bannister guards', async ({
