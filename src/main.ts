@@ -3871,6 +3871,9 @@ function initializeImmersiveScene(
         reportLowFpsRecoveryAction(`downgrade-${nextLevel}`);
         lowFpsRecoveryMonitor.dismiss();
         lowFpsRecoveryPopup.hidden = true;
+        if (nextLevel === 'performance') {
+          pendingLowFpsPerformanceRecoveryReload = true;
+        }
         graphicsQualityManager?.setLevel(nextLevel, { source: 'user' });
       });
       actions.appendChild(downgrade);
@@ -5687,6 +5690,8 @@ function initializeImmersiveScene(
   });
   registerHudControlElement(graphicsQualityControl?.element ?? null);
 
+  let pendingLowFpsPerformanceRecoveryReload = false;
+
   const applyFeaturePolicy = (options: { reloadScene?: boolean } = {}) => {
     const policy = getQualityFeaturePolicy(
       graphicsQualityManager?.getLevel() ?? initialQualityPolicy.initialLevel,
@@ -5718,7 +5723,10 @@ function initializeImmersiveScene(
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange((level) => {
     const previousSceneDetailLevel = sceneDetailController.getLevel();
     const reloadScene =
-      level === 'performance' && previousSceneDetailLevel !== 'performance';
+      pendingLowFpsPerformanceRecoveryReload &&
+      level === 'performance' &&
+      previousSceneDetailLevel !== 'performance';
+    pendingLowFpsPerformanceRecoveryReload = false;
     applyFeaturePolicy({ reloadScene });
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);

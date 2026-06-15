@@ -208,6 +208,30 @@ test.describe('immersive low-FPS recovery popup', () => {
     ).toMatchObject(before!);
   });
 
+  test('does not reload for ordinary Balanced to Performance graphics changes', async ({
+    page,
+  }) => {
+    await openImmersive(page);
+    await setGraphics(page, 'balanced');
+    test.skip(
+      (await page.evaluate(() =>
+        (window as TestWindow).portfolio?.graphics?.getLevel()
+      )) !== 'balanced',
+      'Balanced is unavailable under software-renderer safe mode.'
+    );
+    const reloadCount = trackReloads(page);
+
+    await setGraphics(page, 'performance');
+
+    expect(reloadCount()).toBe(0);
+    await expectNoSceneDetailReloadHandoff(page);
+    expect(
+      await page.evaluate(() =>
+        (window as TestWindow).portfolio?.graphics?.getLevel()
+      )
+    ).toBe('performance');
+  });
+
   test('omits the downgrade action in Performance mode', async ({ page }) => {
     await openImmersive(page);
     await setGraphics(page, 'performance');

@@ -77,9 +77,11 @@ The popup owns the runtime recovery path:
   mode.
 - **Switch to Balanced/Performance** applies the next lower graphics quality only
   after the visitor chooses it. Balanced changes stay in place without a page
-  reload. Performance changes intentionally use the scene-detail reload handoff
-  so high-detail POI, mannequin, backyard, media-wall, and showpiece assets are
-  rebuilt under the low-detail policy while the player's position is restored.
+  reload. Popup-owned Performance recovery intentionally uses the scene-detail
+  reload handoff so high-detail POI, mannequin, backyard, media-wall, and
+  showpiece assets are rebuilt under the low-detail policy while the player's
+  position is restored. Ordinary HUD or API graphics changes still apply
+  in-place and do not reload the immersive scene.
 - **Use non-immersive mode** switches to the text portfolio only after the
   visitor explicitly clicks that action.
 

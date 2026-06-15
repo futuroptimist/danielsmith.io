@@ -50,12 +50,21 @@ describe('main module imports', () => {
     expect(source).toContain('adaptiveRecoveryCount: 0');
   });
 
-  it('rebuilds stale scene detail when explicit recovery switches to Performance', () => {
+  it('limits Performance scene-detail rebuilds to explicit popup recovery', () => {
     const source = readMainSource();
 
     expect(source).toContain(
+      'let pendingLowFpsPerformanceRecoveryReload = false;'
+    );
+    expect(source).toContain("if (nextLevel === 'performance') {");
+    expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = true;');
+    expect(source).not.toContain(
       "const reloadScene =\n      level === 'performance' && previousSceneDetailLevel !== 'performance';"
     );
+    expect(source).toContain(
+      "const reloadScene =\n      pendingLowFpsPerformanceRecoveryReload &&\n      level === 'performance' &&\n      previousSceneDetailLevel !== 'performance';"
+    );
+    expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = false;');
     expect(source).toContain('applyFeaturePolicy({ reloadScene });');
   });
 
