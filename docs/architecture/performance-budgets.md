@@ -63,30 +63,34 @@ Fresh sessions on coarse-pointer, mobile/tablet-like, or constrained-memory/CPU
 hardware start in Performance when no explicit graphics-quality preference is
 persisted. Explicit user selections remain authoritative.
 
-## Adaptive quality warmup and recovery
+## Runtime low-FPS recovery
 
-Staging on May 29, 2026 showed two renderer classes that need different
-adaptive-quality behavior:
+Runtime low-FPS recovery is user-directed. After immersive mode is already
+running, sustained low FPS no longer automatically downgrades graphics, reduces
+DPR, reloads the scene, or switches to text mode. The `LowFpsRecoveryMonitor`
+shows a non-modal recovery popup instead, and the session stays in its current
+graphics level until the visitor chooses an action.
 
-- Hardware acceleration (`ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 ..., D3D11)`)
-  stabilized near 60 FPS with main render time warming down toward roughly
-  1–2 ms after startup. The previous policy could still downgrade balanced
-  quality to performance during shader/asset warmup and leave capable hardware
-  permanently reduced.
-- Software rendering (`ANGLE (Microsoft Basic Render Driver)`) remained around
-  30–40 FPS with DPR reduced, bloom/composer and the mirror disabled, and still
-  needs the separate crash-hardening follow-up.
+The popup owns the runtime recovery path:
 
-Normal renderers now collect warmup metrics during a 2.5-second grace window
-before adaptive downgrades, leaving time for the sustained-low-FPS ladder to act
-before the low-FPS recovery popup is eligible. They require sustained low FPS/high frame
-time hysteresis before stepping down, and recover
-from performance to balanced after a sustained stable window near 60 FPS. The
-recovery path is disabled for software renderers and for explicit user-selected
-quality so manual performance choices are not silently upshifted. Diagnostics
-from `window.portfolio.performance.getSnapshot()` include warmup state,
-selection source, downgrade/recovery counts, and the last adaptive action reason
-so staging can distinguish startup spikes from steady-state overload.
+- **Dismiss** hides the popup and starts its cooldown without changing quality or
+  mode.
+- **Switch to Balanced/Performance** applies the next lower graphics quality only
+  after the visitor chooses it. Balanced changes stay in place without a page
+  reload. Popup-owned Performance recovery intentionally uses the scene-detail
+  reload handoff so high-detail POI, mannequin, backyard, media-wall, and
+  showpiece assets are rebuilt under the low-detail policy while the player's
+  position is restored. Ordinary HUD or API graphics changes still apply
+  in-place and do not reload the immersive scene.
+- **Use non-immersive mode** switches to the text portfolio only after the
+  visitor explicitly clicks that action.
+
+Startup safety remains separate from runtime low-FPS recovery. Fresh sessions may
+still choose an initial graphics level based on device/software-renderer policy,
+and true failovers for unsupported WebGL, low memory, fatal renderer errors, and
+explicit text-mode actions remain intact. Diagnostics now report zero/null
+adaptive downgrade state because immersive runtime no longer instantiates an
+adaptive quality controller.
 
 ## Heavy assets & lazy loading
 

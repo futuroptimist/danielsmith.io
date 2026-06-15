@@ -58,7 +58,11 @@ captures; keep artifacts in `docs/metrics/`.
     to the text experience while honoring `?mode=immersive&disablePerformanceFailover=1`
     overrides.
   - ✅ Runtime low-FPS recovery now shows a non-modal popup after 10 s below 5 FPS.
-  - ✅ Low-performance recovery now offers dismissal, one-step graphics downgrade, or explicit text mode without resetting player position.
+  - ✅ Runtime low FPS no longer automatically downgrades graphics or switches modes;
+    the popup is the only low-FPS runtime recovery path. Explicit Performance
+    recovery from the popup rebuilds scene-detail assets through the existing
+    reload handoff, while ordinary graphics settings changes remain in-place.
+  - ✅ Low-performance recovery now offers dismissal, one-step graphics downgrade, or explicit text mode while preserving player position.
     - ✅ A `performancefailover` CustomEvent now broadcasts the fallback reason and FPS summary so
       analytics hooks can forward the telemetry payload without coupling to the renderer.
   - ✅ Data-saver and console-error failovers now narrate their reason through the mode announcer

@@ -37,19 +37,35 @@ describe('main module imports', () => {
     );
   });
 
-  it('carries the adaptive recovery lock through scene-detail reload handoffs', () => {
+  it('does not wire runtime adaptive quality into immersive mode', () => {
+    const source = readMainSource();
+
+    expect(source).not.toContain('createAdaptiveQualityController');
+    expect(source).not.toContain('adaptiveQualityController');
+    expect(source).not.toContain(
+      "graphicsQualityManager?.setLevel(level, { source: 'adaptive' })"
+    );
+    expect(source).toContain('adaptivePolicy: null');
+    expect(source).toContain('adaptiveDowngradeCount: 0');
+    expect(source).toContain('adaptiveRecoveryCount: 0');
+  });
+
+  it('limits Performance scene-detail rebuilds to explicit popup recovery', () => {
     const source = readMainSource();
 
     expect(source).toContain(
-      "adaptivePerformanceRecoveryLocked: level === 'performance'"
+      'let pendingLowFpsPerformanceRecoveryReload = false;'
     );
-    expect(source).toContain('initialAdaptivePerformanceRecoveryLocked:');
+    expect(source).toContain("if (nextLevel === 'performance') {");
+    expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = true;');
+    expect(source).not.toContain(
+      "const reloadScene =\n      level === 'performance' && previousSceneDetailLevel !== 'performance';"
+    );
     expect(source).toContain(
-      'sceneDetailReloadOverride?.adaptivePerformanceRecoveryLocked === true'
+      "const reloadScene =\n      pendingLowFpsPerformanceRecoveryReload &&\n      level === 'performance' &&\n      previousSceneDetailLevel !== 'performance';"
     );
-    expect(source).toContain(
-      'return { level: stored, adaptivePerformanceRecoveryLocked: adaptiveLock };'
-    );
+    expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = false;');
+    expect(source).toContain('applyFeaturePolicy({ reloadScene });');
   });
 
   it('does not reload when no scene-detail handoff can be persisted', () => {
