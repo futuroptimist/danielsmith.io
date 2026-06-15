@@ -91,6 +91,23 @@ type DebugColliderMetadata = {
   bounds: DebugColliderBounds;
 };
 
+type DebugSolidMetadata = {
+  id: string;
+  name: string;
+  path: string;
+  parentPath: string;
+  bounds: {
+    min: { x: number; y: number; z: number };
+    max: { x: number; y: number; z: number };
+  };
+};
+
+type DebugSolidApi = {
+  setEnabled(enabled: boolean): void;
+  getSolids(): DebugSolidMetadata[];
+  getSolidById(id: unknown): DebugSolidMetadata | undefined;
+};
+
 type DebugColliderApi = {
   setEnabled(enabled: boolean): void;
   getColliders(): DebugColliderMetadata[];
@@ -143,6 +160,7 @@ type PortfolioWindow = Window & {
     world?: TestWorldApi;
     debugColliders?: DebugColliderApi;
     debugCoordinates?: DebugCoordinatesApi;
+    debugSolids?: DebugSolidApi;
     poi?: {
       getTooltipState(): TooltipState;
     };
@@ -757,6 +775,106 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
     sourceZone: 'outsideStairs',
     liftedZone: 'outsideStairs',
   });
+});
+
+test('intentional upper landing opening removes wall solid and blockers', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+
+  const removed = await page.evaluate(() => {
+    const colliders = (window as PortfolioWindow).portfolio?.debugColliders;
+    const solids = (window as PortfolioWindow).portfolio?.debugSolids;
+    if (!colliders || !solids) {
+      throw new Error('Debug APIs unavailable');
+    }
+    colliders.setEnabled(true);
+    solids.setEnabled(true);
+    const allColliders = colliders.getColliders();
+    const allSolids = solids.getSolids();
+    const formerWallBounds = {
+      minX: 3.875,
+      maxX: 8.525,
+      minZ: -16.25,
+      maxZ: -15.75,
+    };
+    const formerVoidGuardBounds = {
+      minX: 8.9,
+      maxX: 8.9,
+      minZ: -16,
+      maxZ: -16,
+    };
+    const matchesBounds = (
+      bounds: DebugColliderBounds,
+      target: DebugColliderBounds
+    ) =>
+      Math.abs(bounds.minX - target.minX) < 0.01 &&
+      Math.abs(bounds.maxX - target.maxX) < 0.01 &&
+      Math.abs(bounds.minZ - target.minZ) < 0.01 &&
+      Math.abs(bounds.maxZ - target.maxZ) < 0.01;
+
+    return {
+      solidById: solids.getSolidById('DD4252'),
+      collider300A: colliders.getColliderById('300A'),
+      collider4005: colliders.getColliderById('4005'),
+      wallColliderMatches: allColliders.filter((collider) =>
+        matchesBounds(collider.bounds, formerWallBounds)
+      ),
+      voidGuardMatches: allColliders.filter((collider) =>
+        matchesBounds(collider.bounds, formerVoidGuardBounds)
+      ),
+      wallSolidMatches: allSolids.filter(
+        (solid) =>
+          solid.name === 'WallSegment' &&
+          solid.parentPath.endsWith('/UpperWallSegments') &&
+          Math.abs(solid.bounds.min.x - formerWallBounds.minX) < 0.01 &&
+          Math.abs(solid.bounds.max.x - formerWallBounds.maxX) < 0.01 &&
+          Math.abs(solid.bounds.min.z - formerWallBounds.minZ) < 0.01 &&
+          Math.abs(solid.bounds.max.z - formerWallBounds.maxZ) < 0.01
+      ),
+    };
+  });
+
+  expect(removed.solidById).toBeUndefined();
+  expect(removed.collider300A).toBeUndefined();
+  expect(removed.collider4005).toBeUndefined();
+  expect(removed.wallColliderMatches).toEqual([]);
+  expect(removed.voidGuardMatches).toEqual([]);
+  expect(removed.wallSolidMatches).toEqual([]);
+
+  const start = { x: 5.2, z: -17.2, floorId: 'upper' as const };
+  const opening = { x: 5.2, z: -15.45, floorId: 'upper' as const };
+  const beyond = { x: 5.2, z: -14.2, floorId: 'upper' as const };
+  for (const sample of [start, opening, beyond]) {
+    expect(await canOccupyPosition(page, sample)).toBe(true);
+    expect(await getBlockingColliderNames(page, sample)).toEqual([]);
+  }
+
+  await movePlayerTo(page, start);
+  const movement = await page.evaluate(
+    (target) => {
+      const world = (window as PortfolioWindow).portfolio?.world;
+      if (!world) {
+        throw new Error('World API unavailable');
+      }
+      const before = world.getPlayerPosition();
+      const first = world.stepPlayerForTest({
+        dx: 0,
+        dz: target.openingZ - before.z,
+      });
+      const second = world.stepPlayerForTest({
+        dx: 0,
+        dz: target.beyondZ - first.position.z,
+      });
+      return { first, second };
+    },
+    { openingZ: opening.z, beyondZ: beyond.z }
+  );
+
+  expect(movement.first.movedZ).toBe(true);
+  expect(movement.second.movedZ).toBe(true);
+  expect(movement.second.position.z).toBeGreaterThan(-14.35);
 });
 
 test('upper landing debug colliders exclude middle landing artifact', async ({

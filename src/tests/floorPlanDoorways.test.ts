@@ -195,6 +195,46 @@ describe('upper landing west egress doorway', () => {
     );
   });
 
+  it('omits the former upper landing north wall segment for the open route', () => {
+    expect(upperLanding).toBeDefined();
+    if (!upperLanding) {
+      return;
+    }
+
+    const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    });
+    const colliders = wallInstances.map((instance) => instance.collider);
+    const openedRouteCenter = {
+      x: upperLanding.bounds.minX + PLAYER_RADIUS + 0.45,
+      z: upperLanding.bounds.maxZ + WALL_THICKNESS * 0.1,
+    };
+
+    expect(
+      collidesWithColliders(
+        openedRouteCenter.x,
+        openedRouteCenter.z,
+        PLAYER_RADIUS,
+        colliders
+      )
+    ).toBe(false);
+    expect(
+      wallInstances.some(
+        (instance) =>
+          instance.segment.orientation === 'horizontal' &&
+          Math.abs(instance.segment.start.z - upperLanding.bounds.maxZ) <
+            DOOR_EPSILON &&
+          instance.collider.minX < upperLanding.bounds.minX + PLAYER_RADIUS &&
+          instance.collider.maxX > upperLanding.bounds.minX + PLAYER_RADIUS
+      )
+    ).toBe(false);
+  });
+
   it('exposes a passage zone across the widened west egress band', () => {
     const normalized = resolveNormalizedDoorway({
       plan: UPPER_FLOOR_PLAN,

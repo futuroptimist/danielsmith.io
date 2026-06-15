@@ -2156,15 +2156,8 @@ function initializeImmersiveScene(
       stairLayout.directionMultiplier * PLAYER_RADIUS;
 
     [
-      {
-        name: 'UpperStairWestUpperVoidGuard',
-        bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: upperStairwellOpening.minX,
-          minZ: upperStairVoidMaxZ,
-          maxZ: upperStairVoidMaxZ,
-        },
-      },
+      // UpperStairWestUpperVoidGuard is intentionally omitted with the adjacent
+      // landing-side wall segment so the upstairs route remains open.
       {
         name: 'UpperStairEastLowerVoidGuard',
         bounds: {
@@ -2336,6 +2329,10 @@ function initializeImmersiveScene(
   upperFloorGroup.add(upperWallMeshes.group);
   upperWallInstances.forEach((instance) => {
     upperFloorColliders.push(instance.collider);
+    namedColliderDebugNames.set(
+      instance.collider,
+      `UpperWallSegment:${instance.segmentId}`
+    );
   });
 
   const floorColliders: Record<FloorId, RectCollider[]> = {

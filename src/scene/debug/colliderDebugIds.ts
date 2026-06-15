@@ -19,7 +19,6 @@ const DECLARED_RUNTIME_COLLIDER_IDS = {
   GroundStairLowerCornerGuard: '4002',
   UpperStairTopGapBlockerWest: '4003',
   UpperStairTopGapBlockerEast: '4004',
-  UpperStairWestUpperVoidGuard: '4005',
   UpperStairEastLowerVoidGuard: '4006',
   UpperStairEastUpperVoidGuard: '4007',
   UpperStairHiddenRunVoidGuard: '4008',
