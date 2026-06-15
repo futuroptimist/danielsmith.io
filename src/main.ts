@@ -5715,8 +5715,11 @@ function initializeImmersiveScene(
   const shouldUseComposer = () =>
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
-  unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
-    applyFeaturePolicy({ reloadScene: false });
+  unsubscribeGraphicsQuality = graphicsQualityManager.onChange((level) => {
+    const previousSceneDetailLevel = sceneDetailController.getLevel();
+    const reloadScene =
+      level === 'performance' && previousSceneDetailLevel !== 'performance';
+    applyFeaturePolicy({ reloadScene });
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();

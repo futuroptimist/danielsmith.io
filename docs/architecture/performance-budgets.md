@@ -75,10 +75,11 @@ The popup owns the runtime recovery path:
 
 - **Dismiss** hides the popup and starts its cooldown without changing quality or
   mode.
-- **Switch to Balanced/Performance** applies the next lower graphics quality in
-  place without a page reload or player-position reset. Scene-detail-heavy
-  policies follow the existing in-place feature policy; if a future visual
-  detail needs a full rebuild, it must not silently reload from this path.
+- **Switch to Balanced/Performance** applies the next lower graphics quality only
+  after the visitor chooses it. Balanced changes stay in place without a page
+  reload. Performance changes intentionally use the scene-detail reload handoff
+  so high-detail POI, mannequin, backyard, media-wall, and showpiece assets are
+  rebuilt under the low-detail policy while the player's position is restored.
 - **Use non-immersive mode** switches to the text portfolio only after the
   visitor explicitly clicks that action.
 

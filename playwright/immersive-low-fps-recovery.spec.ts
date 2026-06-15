@@ -166,7 +166,7 @@ test.describe('immersive low-FPS recovery popup', () => {
     ).toMatchObject(before!);
   });
 
-  test('uses Performance as the Balanced downgrade target', async ({
+  test('uses Performance as the Balanced downgrade target and rebuilds scene detail', async ({
     page,
   }) => {
     await openImmersive(page);
@@ -177,15 +177,35 @@ test.describe('immersive low-FPS recovery popup', () => {
       )) !== 'balanced',
       'Balanced is unavailable under software-renderer safe mode.'
     );
+    await page.evaluate(() => {
+      (window as TestWindow).portfolio?.world?.stepPlayerForTest({
+        dx: 1,
+        dz: 0,
+      });
+    });
+    const before = await page.evaluate(() =>
+      (window as TestWindow).portfolio?.world?.getPlayerPosition()
+    );
+    const reloadCount = trackReloads(page);
     await showPopup(page);
 
     await page.getByRole('button', { name: 'Switch to Performance' }).click();
 
+    await page.waitForFunction(
+      () =>
+        document.documentElement.dataset.appMode === 'immersive' &&
+        (window as TestWindow).portfolio?.graphics?.getLevel() ===
+          'performance',
+      undefined,
+      { timeout: READY_TIMEOUT_MS }
+    );
+    expect(reloadCount()).toBeGreaterThan(0);
+    await expectNoSceneDetailReloadHandoff(page);
     expect(
       await page.evaluate(() =>
-        (window as TestWindow).portfolio?.graphics?.getLevel()
+        (window as TestWindow).portfolio?.world?.getPlayerPosition()
       )
-    ).toBe('performance');
+    ).toMatchObject(before!);
   });
 
   test('omits the downgrade action in Performance mode', async ({ page }) => {

@@ -50,6 +50,15 @@ describe('main module imports', () => {
     expect(source).toContain('adaptiveRecoveryCount: 0');
   });
 
+  it('rebuilds stale scene detail when explicit recovery switches to Performance', () => {
+    const source = readMainSource();
+
+    expect(source).toContain(
+      "const reloadScene =\n      level === 'performance' && previousSceneDetailLevel !== 'performance';"
+    );
+    expect(source).toContain('applyFeaturePolicy({ reloadScene });');
+  });
+
   it('does not reload when no scene-detail handoff can be persisted', () => {
     const source = readMainSource();
 
