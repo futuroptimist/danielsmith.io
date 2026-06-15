@@ -102,6 +102,25 @@ type DebugColliderApi = {
   getColliderById(id: unknown): DebugColliderMetadata | undefined;
 };
 
+type DebugSolidMetadata = {
+  id: string;
+  name: string;
+  path: string;
+  parentPath: string;
+  meshType: string;
+  bounds: {
+    min: { x: number; y: number; z: number };
+    max: { x: number; y: number; z: number };
+  };
+  material: string | null;
+};
+
+type DebugSolidApi = {
+  setEnabled(enabled: boolean): void;
+  getSolids(): DebugSolidMetadata[];
+  getSolidById(id: unknown): DebugSolidMetadata | undefined;
+};
+
 function expectCloseTo(
   actual: number,
   expected: number,
@@ -142,6 +161,7 @@ type PortfolioWindow = Window & {
   portfolio?: {
     world?: TestWorldApi;
     debugColliders?: DebugColliderApi;
+    debugSolids?: DebugSolidApi;
     debugCoordinates?: DebugCoordinatesApi;
     poi?: {
       getTooltipState(): TooltipState;
@@ -1054,6 +1074,88 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     );
     expect(blockingColliderNames.length, sample.name).toBeGreaterThan(0);
   }
+});
+
+test('upper landing-side passage removes targeted wall and colliders', async ({
+  page,
+}) => {
+  test.slow();
+  await waitForImmersiveReady(page);
+  await walkStairCenterlineToUpperLanding(page);
+
+  const targetState = await page.evaluate(() => {
+    const debugSolids = (window as PortfolioWindow).portfolio?.debugSolids;
+    const debugColliders = (window as PortfolioWindow).portfolio
+      ?.debugColliders;
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!debugSolids || !debugColliders || !world) {
+      throw new Error('Required debug/world API unavailable');
+    }
+    debugSolids.setEnabled(true);
+    debugColliders.setEnabled(true);
+
+    const formerWallBounds = {
+      minX: 3.875,
+      maxX: 8.525,
+      minZ: -16.25,
+      maxZ: -15.75,
+    };
+    const matchingWallSolids = debugSolids
+      .getSolids()
+      .filter(
+        (solid) =>
+          solid.name === 'WallSegment' &&
+          solid.parentPath === 'Scene/Group/UpperWallSegments' &&
+          Math.abs(solid.bounds.min.x - formerWallBounds.minX) < 0.001 &&
+          Math.abs(solid.bounds.max.x - formerWallBounds.maxX) < 0.001 &&
+          Math.abs(solid.bounds.min.z - formerWallBounds.minZ) < 0.001 &&
+          Math.abs(solid.bounds.max.z - formerWallBounds.maxZ) < 0.001
+      );
+    const matchingColliderBounds = debugColliders
+      .getColliders()
+      .filter(
+        (collider) =>
+          collider.floor === 'upper' &&
+          Math.abs(collider.bounds.minX - formerWallBounds.minX) < 0.001 &&
+          Math.abs(collider.bounds.maxX - formerWallBounds.maxX) < 0.001 &&
+          Math.abs(collider.bounds.minZ - formerWallBounds.minZ) < 0.001 &&
+          Math.abs(collider.bounds.maxZ - formerWallBounds.maxZ) < 0.001
+      );
+    const openingSamples = [
+      { x: 5.5, z: -16, floorId: 'upper' as const },
+      { x: 6.2, z: -16, floorId: 'upper' as const },
+      { x: 7.75, z: -16, floorId: 'upper' as const },
+    ];
+
+    return {
+      solidById: debugSolids.getSolidById('DD4252'),
+      collider300A: debugColliders.getColliderById('300A'),
+      collider4005: debugColliders.getColliderById('4005'),
+      matchingWallSolidCount: matchingWallSolids.length,
+      matchingColliderBoundsCount: matchingColliderBounds.length,
+      formerVoidGuardNames: debugColliders
+        .getColliders()
+        .filter((collider) => collider.name === 'UpperStairWestUpperVoidGuard')
+        .map((collider) => collider.id),
+      canOccupyOpeningSamples: openingSamples.map((sample) =>
+        world.canOccupyPosition(sample)
+      ),
+      blockingAtOpeningSamples: openingSamples.map((sample) =>
+        debugColliders
+          .getBlockingCollidersAt(sample)
+          .map((collider) => collider.name)
+      ),
+    };
+  });
+
+  expect(targetState.solidById).toBeUndefined();
+  expect(targetState.collider300A).toBeUndefined();
+  expect(targetState.collider4005).toBeUndefined();
+  expect(targetState.matchingWallSolidCount).toBe(0);
+  expect(targetState.matchingColliderBoundsCount).toBe(0);
+  expect(targetState.formerVoidGuardNames).toEqual([]);
+  expect(targetState.canOccupyOpeningSamples).toEqual([true, true, true]);
+  expect(targetState.blockingAtOpeningSamples).toEqual([[], [], []]);
 });
 
 test('runtime descent from upper landing mouth stays clear of bannister guards', async ({

@@ -137,6 +137,7 @@ const kitchenToBackyardDoorCenter = -9;
 const studioToBackyardDoorCenter = 7.5;
 const kitchenToStudioDoorCenterZ = 2;
 const upperLandingToCreatorsStudioDoorway = { start: -16, end: -13.07 };
+const upperLandingToLoftLibraryDoorway = { start: 2, end: 8.2 };
 
 const doorwayRange = (center: number) => ({
   start: center - DOOR_HALF_WIDTH,
@@ -247,7 +248,9 @@ const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
         },
         {
           wall: 'north',
-          ...doorwayRange(6.2),
+          // Intentionally starts at the landing's west edge to open the
+          // upstairs landing-side passage formerly sealed by this wall run.
+          ...upperLandingToLoftLibraryDoorway,
         },
       ],
     },
@@ -275,7 +278,7 @@ const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
       doorways: [
         {
           wall: 'south',
-          ...doorwayRange(6.2),
+          ...upperLandingToLoftLibraryDoorway,
         },
         {
           wall: 'west',
