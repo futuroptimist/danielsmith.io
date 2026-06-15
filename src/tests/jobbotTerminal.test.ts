@@ -61,7 +61,14 @@ describe('JobbotTerminal structure', () => {
     expect(build.group.position.x).toBeCloseTo(12);
     expect(build.group.rotation.y).toBeCloseTo(Math.PI / 2);
 
-    expect(build.colliders).toHaveLength(0);
+    expect(build.colliders).toHaveLength(1);
+    const collider = build.colliders[0];
+    expect(collider.minX).toBeLessThan(collider.maxX);
+    expect(collider.minZ).toBeLessThan(collider.maxZ);
+    expect(collider.minX).toBeLessThanOrEqual(12);
+    expect(collider.maxX).toBeGreaterThanOrEqual(12);
+    expect(collider.minZ).toBeLessThanOrEqual(-1);
+    expect(collider.maxZ).toBeGreaterThanOrEqual(-1);
 
     expect(build.group.getObjectByName('JobbotTerminalScreen')).toBeInstanceOf(
       Mesh

@@ -371,6 +371,14 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
       orientationRadians
     )
   );
+  colliders.push(
+    createCollider(
+      new Vector3(basePosition.x, 0, basePosition.z + 0.32),
+      tableWidth * 0.7,
+      0.6,
+      orientationRadians
+    )
+  );
 
   return {
     group,

@@ -54,13 +54,19 @@ describe('createGroundStairBoundaryColliders', () => {
   it('names the local ground stair blockers for debug visualization', () => {
     const names = boundaryColliders.map((collider) => collider.name);
 
-    expect(names).toEqual(['GroundStairLowerCornerGuard']);
-    expect(names).not.toContain('GroundStairEastBoundary');
+    expect(names).toEqual([
+      'GroundStairEastBoundary',
+      'GroundStairLowerCornerGuard',
+    ]);
     expect(names).not.toContain('GroundStairEastRunSeal');
   });
 
   it('blocks the reported stair-side squeeze samples', () => {
-    const blockedSamples = [{ x: 17.38, z: -8.84 }];
+    const blockedSamples = [
+      { x: 17.38, z: -8.84 },
+      { x: 21.35, z: -14.66 },
+      { x: 22.1, z: -14.66 },
+    ];
 
     blockedSamples.forEach((sample) => {
       expect(

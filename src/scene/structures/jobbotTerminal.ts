@@ -14,6 +14,7 @@ import {
 } from 'three';
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
+import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
@@ -24,7 +25,7 @@ const JOBBOT_TELEMETRY_HEIGHT = 512;
 
 export interface JobbotTerminalBuild {
   group: Group;
-  colliders: never[];
+  colliders: RectCollider[];
   update(context: {
     elapsed: number;
     delta: number;
@@ -201,6 +202,46 @@ function createTelemetryPanelTexture(
   return texture;
 }
 
+function createCollider(
+  center: { x: number; z: number },
+  width: number,
+  depth: number,
+  rotation: number
+): RectCollider {
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const corners = [
+    { x: -halfWidth, z: -halfDepth },
+    { x: halfWidth, z: -halfDepth },
+    { x: halfWidth, z: halfDepth },
+    { x: -halfWidth, z: halfDepth },
+  ];
+
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minZ = Number.POSITIVE_INFINITY;
+  let maxZ = Number.NEGATIVE_INFINITY;
+
+  for (const corner of corners) {
+    const worldX = center.x + corner.x * cos - corner.z * sin;
+    const worldZ = center.z + corner.x * sin + corner.z * cos;
+    minX = Math.min(minX, worldX);
+    maxX = Math.max(maxX, worldX);
+    minZ = Math.min(minZ, worldZ);
+    maxZ = Math.max(maxZ, worldZ);
+  }
+
+  return {
+    minX,
+    maxX,
+    minZ,
+    maxZ,
+  };
+}
+
 export function createJobbotTerminal(
   options: JobbotTerminalOptions
 ): JobbotTerminalBuild {
@@ -221,7 +262,7 @@ export function createJobbotTerminal(
   group.position.set(position.x, baseY, position.z);
   group.rotation.y = orientationRadians;
 
-  const colliders = [];
+  const colliders: RectCollider[] = [];
 
   const topGeometry = new BoxGeometry(deskWidth, deskThickness, deskDepth);
   const topMaterial = new MeshStandardMaterial({
@@ -560,6 +601,15 @@ export function createJobbotTerminal(
     group.add(beacon);
     beacons.push(beacon);
   });
+
+  colliders.push(
+    createCollider(
+      { x: position.x, z: position.z },
+      deskWidth + 0.4,
+      deskDepth + 0.2,
+      orientationRadians
+    )
+  );
 
   let telemetryRotation = 0;
   let lastElapsed = 0;

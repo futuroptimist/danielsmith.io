@@ -10,7 +10,7 @@ describe('createAxelNavigator', () => {
     expect(build.group.name).toBe('AxelQuestNavigator');
     expect(build.group.position.x).toBeCloseTo(2);
     expect(build.group.position.z).toBeCloseTo(-3);
-    expect(build.colliders).toHaveLength(1);
+    expect(build.colliders).toHaveLength(2);
 
     const dais = build.group.getObjectByName('AxelNavigatorDais');
     const slate = build.group.getObjectByName('AxelNavigatorSlate');
@@ -20,9 +20,10 @@ describe('createAxelNavigator', () => {
     expect(slate).toBeInstanceOf(Mesh);
     expect(questCard).toBeInstanceOf(Mesh);
 
-    const [mainCollider] = build.colliders;
+    const [mainCollider, consoleCollider] = build.colliders;
     expect(mainCollider.minX).toBeLessThan(mainCollider.maxX);
     expect(mainCollider.minZ).toBeLessThan(mainCollider.maxZ);
+    expect(consoleCollider.minX).toBeLessThan(consoleCollider.maxX);
   });
 
   it('animates hologram layers and beacons based on emphasis', () => {
