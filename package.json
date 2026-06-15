@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --strictPort --port 5173",
     "screenshot": "playwright test",
+    "launch:screenshot": "playwright test playwright/screenshot.spec.ts",
     "lint": "eslint . --ext .ts",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",

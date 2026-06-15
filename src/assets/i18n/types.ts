@@ -282,6 +282,16 @@ export interface SoftwareRendererWarningStrings {
   reloadSafeLabel: string;
 }
 
+export interface LowFpsRecoveryStrings {
+  title: string;
+  body: string;
+  dismissLabel: string;
+  downgradeBalancedLabel: string;
+  downgradePerformanceLabel: string;
+  textModeLabel: string;
+  announcement: string;
+}
+
 export interface PoiOverlayChromeStrings {
   visited: string;
   nextHighlight: string;
@@ -445,6 +455,7 @@ export interface LocaleStrings {
     debugColliders: DebugCollidersStrings;
     tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
+    lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
     narrativeLog: PoiNarrativeLogStrings;

@@ -384,6 +384,16 @@ export const JA_OVERRIDES: LocaleOverrides = {
         },
       },
     },
+    lowFpsRecovery: {
+      title: '低いフレームレートを検出しました',
+      body: '没入モードの動作が遅くなっています。グラフィックを下げるか、非没入モードに切り替えられます。',
+      dismissLabel: '閉じる',
+      downgradeBalancedLabel: 'Balanced に切り替える',
+      downgradePerformanceLabel: 'Performance に切り替える',
+      textModeLabel: '非没入モードを使う',
+      announcement:
+        '低いフレームレートを検出しました。復旧アクションを選べます。',
+    },
     helpModal: {
       heading: '設定とヘルプ',
       description:
@@ -450,7 +460,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
             {
               label: '低パフォーマンス',
               description:
-                'FPS が 30 を下回ると自動的にテキストモードへ切り替わります。',
+                '平均 FPS が 10 秒間 5 を下回ると復旧アクションを提案します。',
             },
             {
               label: '手動トグル',

@@ -52,14 +52,13 @@ captures; keep artifacts in `docs/metrics/`.
     - ✅ Performance failover events now include console budget payloads so HUD/analytics hooks
       can surface the triggering source and counts alongside low-FPS summaries.
 - **Failover** – auto redirect to text-only portfolio if WebGL is unavailable, memory
-  heuristics fail (<1 GB), or FPS drops below 30 for 5s; provide manual toggle in HUD.
+  heuristics fail (<1 GB), or a runtime renderer error occurs; provide manual toggle and low-FPS recovery in HUD.
   - ✅ WebGL capability detection now routes unsupported browsers to the lightweight text view (also available via `?mode=text`)
   - ✅ Low-memory heuristic now routes devices reporting <1 GB via `navigator.deviceMemory`
     to the text experience while honoring `?mode=immersive&disablePerformanceFailover=1`
     overrides.
-  - ✅ Runtime performance monitor now auto-switches to text mode after 5 s below 30 FPS.
-  - ✅ Low-performance failover logs now surface min/median/p95 FPS and sample counts for telemetry
-    handoff, with a default console summary emitted whenever low-FPS fallback triggers.
+  - ✅ Runtime low-FPS recovery now shows a non-modal popup after 10 s below 5 FPS.
+  - ✅ Low-performance recovery now offers dismissal, one-step graphics downgrade, or explicit text mode without resetting player position.
     - ✅ A `performancefailover` CustomEvent now broadcasts the fallback reason and FPS summary so
       analytics hooks can forward the telemetry payload without coupling to the renderer.
   - ✅ Data-saver and console-error failovers now narrate their reason through the mode announcer

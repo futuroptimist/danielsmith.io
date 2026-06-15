@@ -54,6 +54,7 @@ export interface PerformanceFailoverHandlerOptions {
     context?: PerformanceFailoverContext
   ) => void;
   disabled?: boolean;
+  disableLowFps?: boolean;
   consoleFailover?: ConsoleFailoverOptions;
   eventTarget?: EventTarget | null;
 }
@@ -199,6 +200,7 @@ export function createPerformanceFailoverHandler(
     onBeforeFallback,
     onFallback,
     disabled = false,
+    disableLowFps = false,
     consoleFailover,
     eventTarget = typeof window !== 'undefined' && 'dispatchEvent' in window
       ? window
@@ -288,16 +290,17 @@ export function createPerformanceFailoverHandler(
     markAppReady('fallback', reason);
   };
 
-  const monitor = disabled
-    ? null
-    : new PerformanceFailoverMonitor({
-        fpsThreshold,
-        minimumDurationMs,
-        maxFrameDeltaMs,
-        onTrigger: (context) => {
-          transitionToFallback('low-performance', context);
-        },
-      });
+  const monitor =
+    disabled || disableLowFps
+      ? null
+      : new PerformanceFailoverMonitor({
+          fpsThreshold,
+          minimumDurationMs,
+          maxFrameDeltaMs,
+          onTrigger: (context) => {
+            transitionToFallback('low-performance', context);
+          },
+        });
 
   const consoleFailoverOptions = consoleFailover;
 

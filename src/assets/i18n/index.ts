@@ -22,6 +22,7 @@ import type {
   LocaleDirection,
   LocaleScript,
   LocaleToggleStrings,
+  LowFpsRecoveryStrings,
   ModeAnnouncerStrings,
   ModeToggleResolvedStrings,
   MovementLegendStrings,
@@ -492,4 +493,10 @@ export function getSoftwareRendererWarningStrings(
   input?: LocaleInput
 ): SoftwareRendererWarningStrings {
   return cloneValue(getLocaleStrings(input).hud.softwareRendererWarning);
+}
+
+export function getLowFpsRecoveryStrings(
+  input?: LocaleInput
+): LowFpsRecoveryStrings {
+  return cloneValue(getLocaleStrings(input).hud.lowFpsRecovery);
 }

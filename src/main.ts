@@ -47,6 +47,7 @@ import {
   getHelpModalStrings,
   getHudCustomizationStrings,
   getLocaleDirection,
+  getLowFpsRecoveryStrings,
   getLocaleScript,
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
@@ -175,6 +176,10 @@ import {
 } from './scene/lighting/seasonalPresets';
 import { createAdaptiveQualityController } from './scene/performance/adaptiveQuality';
 import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
+import {
+  LowFpsRecoveryMonitor,
+  type LowFpsRecoveryMonitorState,
+} from './scene/performance/lowFpsRecoveryMonitor';
 import {
   createPerformanceDiagnostics,
   type PerformanceCrashBreadcrumbApi,
@@ -568,6 +573,8 @@ declare global {
         };
       };
       graphics?: {
+        getLevel?(): string;
+        setLevel?(level: string): void;
         getMotionBlurIntensity(): number;
         setMotionBlurIntensity(intensity: number): void;
         getMotionBlurState(): {
@@ -620,6 +627,10 @@ declare global {
       debugPerformance?: {
         getState(): DebugPerformanceState;
         setFpsEnabled(enabled: boolean): void;
+        getLowFpsRecoveryState?(): LowFpsRecoveryMonitorState;
+        forceLowFpsRecoveryPopup?(): void;
+        recordLowFpsRecoveryFrame?(deltaSeconds: number, nowMs?: number): void;
+        dismissLowFpsRecoveryPopup?(nowMs?: number): void;
       };
       debugCoordinates?: {
         getState(): {
@@ -711,10 +722,17 @@ const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY =
   'portfolio::pending-scene-detail-adaptive-lock';
 const PENDING_SCENE_DETAIL_RELOAD_PARAM = 'sceneDetailReloadLevel';
 const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM = 'sceneDetailAdaptiveLock';
+const PENDING_PLAYER_POSITION_KEY = 'portfolio::pending-player-position';
 
 interface PendingSceneDetailReload {
   level: GraphicsQualityLevel;
   adaptivePerformanceRecoveryLocked: boolean;
+}
+
+interface PendingPlayerPosition {
+  x: number;
+  y: number;
+  z: number;
 }
 
 function consumePendingSceneDetailReload(): PendingSceneDetailReload | null {
@@ -744,6 +762,34 @@ function consumePendingSceneDetailReload(): PendingSceneDetailReload | null {
     window.history.replaceState(window.history.state, '', url);
     return isGraphicsQualityLevel(stored)
       ? { level: stored, adaptivePerformanceRecoveryLocked: adaptiveLock }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistPendingPlayerPosition(position: PendingPlayerPosition): void {
+  try {
+    window.sessionStorage.setItem(
+      PENDING_PLAYER_POSITION_KEY,
+      JSON.stringify(position)
+    );
+  } catch {
+    // Best-effort only; quality reloads can still proceed without a position handoff.
+  }
+}
+
+function consumePendingPlayerPosition(): PendingPlayerPosition | null {
+  try {
+    const stored = window.sessionStorage.getItem(PENDING_PLAYER_POSITION_KEY);
+    window.sessionStorage.removeItem(PENDING_PLAYER_POSITION_KEY);
+    if (!stored) {
+      return null;
+    }
+    const parsed = JSON.parse(stored) as Partial<PendingPlayerPosition>;
+    const { x, y, z } = parsed;
+    return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)
+      ? { x, y, z }
       : null;
   } catch {
     return null;
@@ -796,6 +842,9 @@ function reloadWithPendingSceneDetailParam(
 
 const PERFORMANCE_FAILOVER_FPS_THRESHOLD = 30;
 const PERFORMANCE_FAILOVER_DURATION_MS = 5000;
+const LOW_FPS_RECOVERY_THRESHOLD = 5;
+const LOW_FPS_RECOVERY_WINDOW_MS = 10_000;
+const LOW_FPS_RECOVERY_COOLDOWN_MS = 30_000;
 const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
@@ -1033,6 +1082,7 @@ function initializeImmersiveScene(
     }
   );
   const sceneDetailReloadOverride = consumePendingSceneDetailReload();
+  const pendingPlayerPosition = consumePendingPlayerPosition();
   const effectiveInitialQualityLevel =
     sceneDetailReloadOverride?.level ??
     persistedQualityLevel ??
@@ -1062,6 +1112,13 @@ function initializeImmersiveScene(
         adaptivePerformanceRecoveryLocked:
           options.adaptivePerformanceRecoveryLocked === true,
       } satisfies PendingSceneDetailReload;
+      if (typeof player !== 'undefined') {
+        persistPendingPlayerPosition({
+          x: player.position.x,
+          y: player.position.y,
+          z: player.position.z,
+        });
+      }
       if (persistPendingSceneDetailReload(pendingReload)) {
         window.location.reload();
         return;
@@ -1393,6 +1450,7 @@ function initializeImmersiveScene(
   let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
+  let lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
   let siteStrings = getSiteStrings(locale);
   let debugCoordinatesStorage: Storage | undefined;
   try {
@@ -1560,6 +1618,7 @@ function initializeImmersiveScene(
       inputLatencyTelemetry?.report(`failover-${reason}`);
     },
     disabled: disablePerformanceFailover,
+    disableLowFps: true,
     consoleFailover: {
       budget: 0,
       onExceeded: ({ source, count }) => {
@@ -3080,7 +3139,15 @@ function initializeImmersiveScene(
   });
   const player = mannequin.group;
   const mannequinHeight = mannequin.height;
-  player.position.copy(initialPlayerPosition);
+  if (pendingPlayerPosition) {
+    player.position.set(
+      pendingPlayerPosition.x,
+      pendingPlayerPosition.y,
+      pendingPlayerPosition.z
+    );
+  } else {
+    player.position.copy(initialPlayerPosition);
+  }
   scene.add(player);
 
   const footstepStereoPanner =
@@ -3742,6 +3809,98 @@ function initializeImmersiveScene(
     }
     performanceFailover.triggerFallback('manual');
   };
+
+  const lowFpsRecoveryPopup = document.createElement('aside');
+  lowFpsRecoveryPopup.className = 'performance-recovery-popup';
+  lowFpsRecoveryPopup.setAttribute('role', 'dialog');
+  lowFpsRecoveryPopup.setAttribute('aria-modal', 'false');
+  lowFpsRecoveryPopup.hidden = true;
+  container.appendChild(lowFpsRecoveryPopup);
+
+  const getNextLowerGraphicsLevel = () => {
+    const current = graphicsQualityManager?.getLevel();
+    if (current === 'cinematic') {
+      return 'balanced' as const;
+    }
+    if (current === 'balanced') {
+      return 'performance' as const;
+    }
+    return null;
+  };
+
+  const reportLowFpsRecoveryAction = (action: string) => {
+    try {
+      window.dispatchEvent(
+        new CustomEvent('lowfpsrecovery', { detail: { action } })
+      );
+    } catch (error) {
+      console.warn('Failed to dispatch low-FPS recovery event.', error);
+    }
+  };
+
+  const renderLowFpsRecoveryPopup = () => {
+    lowFpsRecoveryPopup.replaceChildren();
+    const title = document.createElement('h2');
+    title.className = 'performance-recovery-popup__title';
+    title.id = 'performance-recovery-popup-title';
+    title.textContent = lowFpsRecoveryStrings.title;
+    const body = document.createElement('p');
+    body.className = 'performance-recovery-popup__body';
+    body.id = 'performance-recovery-popup-body';
+    body.textContent = lowFpsRecoveryStrings.body;
+    lowFpsRecoveryPopup.setAttribute('aria-labelledby', title.id);
+    lowFpsRecoveryPopup.setAttribute('aria-describedby', body.id);
+    const actions = document.createElement('div');
+    actions.className = 'performance-recovery-popup__actions';
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.textContent = lowFpsRecoveryStrings.dismissLabel;
+    dismiss.addEventListener('click', () => {
+      lowFpsRecoveryMonitor.dismiss();
+      lowFpsRecoveryPopup.hidden = true;
+      reportLowFpsRecoveryAction('dismiss');
+    });
+    actions.appendChild(dismiss);
+    const nextLevel = getNextLowerGraphicsLevel();
+    if (nextLevel) {
+      const downgrade = document.createElement('button');
+      downgrade.type = 'button';
+      downgrade.textContent =
+        nextLevel === 'balanced'
+          ? lowFpsRecoveryStrings.downgradeBalancedLabel
+          : lowFpsRecoveryStrings.downgradePerformanceLabel;
+      downgrade.addEventListener('click', () => {
+        reportLowFpsRecoveryAction(`downgrade-${nextLevel}`);
+        lowFpsRecoveryMonitor.dismiss();
+        lowFpsRecoveryPopup.hidden = true;
+        graphicsQualityManager?.setLevel(nextLevel, { source: 'user' });
+      });
+      actions.appendChild(downgrade);
+    }
+    const textMode = document.createElement('button');
+    textMode.type = 'button';
+    textMode.textContent = lowFpsRecoveryStrings.textModeLabel;
+    textMode.addEventListener('click', () => {
+      lowFpsRecoveryMonitor.dismiss();
+      lowFpsRecoveryPopup.hidden = true;
+      reportLowFpsRecoveryAction('text-mode');
+      activateTextMode();
+    });
+    actions.appendChild(textMode);
+    lowFpsRecoveryPopup.append(title, body, actions);
+  };
+
+  const lowFpsRecoveryMonitor = new LowFpsRecoveryMonitor({
+    fpsThreshold: LOW_FPS_RECOVERY_THRESHOLD,
+    windowMs: LOW_FPS_RECOVERY_WINDOW_MS,
+    cooldownMs: LOW_FPS_RECOVERY_COOLDOWN_MS,
+    onTrigger: () => {
+      renderLowFpsRecoveryPopup();
+      lowFpsRecoveryPopup.hidden = false;
+      hudFocusAnnouncer?.announce(lowFpsRecoveryStrings.announcement);
+      reportLowFpsRecoveryAction('shown');
+    },
+  });
   const toggleHelpMenu = (force?: boolean) => {
     if (hudPanelCoordinator) {
       hudPanelCoordinator.toggleSettings(force);
@@ -3911,6 +4070,10 @@ function initializeImmersiveScene(
     tourGuideToggleStrings = getTourGuideToggleStrings(locale);
     tourResetControlStrings = getTourResetControlStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
+    lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
+    if (!lowFpsRecoveryPopup.hidden) {
+      renderLowFpsRecoveryPopup();
+    }
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
     narrativeTimeFormatter = new Intl.DateTimeFormat(
@@ -4827,6 +4990,15 @@ function initializeImmersiveScene(
     setFpsEnabled: (enabled: boolean) => {
       setDebugFpsEnabled(enabled);
     },
+    getLowFpsRecoveryState: () => lowFpsRecoveryMonitor.getState(),
+    forceLowFpsRecoveryPopup: () => lowFpsRecoveryMonitor.forceTrigger(),
+    recordLowFpsRecoveryFrame: (deltaSeconds: number, nowMs?: number) => {
+      lowFpsRecoveryMonitor.recordFrame(deltaSeconds, nowMs);
+    },
+    dismissLowFpsRecoveryPopup: (nowMs?: number) => {
+      lowFpsRecoveryMonitor.dismiss(nowMs);
+      lowFpsRecoveryPopup.hidden = true;
+    },
   };
 
   window.portfolio.debugCoordinates = {
@@ -5433,6 +5605,18 @@ function initializeImmersiveScene(
       portfolioWindow.portfolio = {};
     }
     portfolioWindow.portfolio.graphics = {
+      getLevel() {
+        return graphicsQualityManager?.getLevel() ?? 'balanced';
+      },
+      setLevel(level: string) {
+        if (
+          level === 'cinematic' ||
+          level === 'balanced' ||
+          level === 'performance'
+        ) {
+          graphicsQualityManager?.setLevel(level, { source: 'user' });
+        }
+      },
       getMotionBlurIntensity() {
         return motionBlurController?.getIntensity() ?? 0;
       },
@@ -5528,7 +5712,7 @@ function initializeImmersiveScene(
   });
   registerHudControlElement(graphicsQualityControl?.element ?? null);
 
-  const applyFeaturePolicy = () => {
+  const applyFeaturePolicy = (options: { reloadScene?: boolean } = {}) => {
     const policy = getQualityFeaturePolicy(
       graphicsQualityManager?.getLevel() ?? initialQualityPolicy.initialLevel,
       rendererInfo.isSoftwareRenderer
@@ -5539,7 +5723,7 @@ function initializeImmersiveScene(
       renderTargetSize: policy.mirrorTargetSize,
     });
     const level = graphicsQualityManager?.getLevel() ?? initialSceneDetailLevel;
-    applySceneDetailLevel(level, { reloadScene: true });
+    applySceneDetailLevel(level, { reloadScene: options.reloadScene ?? true });
   };
 
   const getActivePostprocessingPassCount = () => {
@@ -5557,7 +5741,7 @@ function initializeImmersiveScene(
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange(() => {
-    applyFeaturePolicy();
+    applyFeaturePolicy({ reloadScene: true });
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();
@@ -6123,6 +6307,8 @@ function initializeImmersiveScene(
     });
     softwareRendererWarning?.dispose();
     softwareRendererWarning = null;
+    lowFpsRecoveryMonitor.reset();
+    lowFpsRecoveryPopup.remove();
     immersiveDisposed = true;
     ledAnimator = null;
     lightmapAnimator = null;
@@ -6479,6 +6665,7 @@ function initializeImmersiveScene(
         applyFeaturePolicy();
       }
       performanceFailover.update(delta);
+      lowFpsRecoveryMonitor.recordFrame(delta, frameStartMs);
       if (performanceFailover.hasTriggered()) {
         debugPerformanceOverlay.end();
         return;
