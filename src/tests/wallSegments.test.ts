@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   FLOOR_PLAN,
+  UPPER_FLOOR_PLAN,
   WALL_THICKNESS,
   type DoorwayDefinition,
 } from '../assets/floorPlan';
@@ -14,7 +15,9 @@ const FENCE_THICKNESS = 0.28;
 const PLAYER_RADIUS = 0.75;
 
 function getRoomCategory(roomId: string) {
-  const room = FLOOR_PLAN.rooms.find((entry) => entry.id === roomId);
+  const room = [...FLOOR_PLAN.rooms, ...UPPER_FLOOR_PLAN.rooms].find(
+    (entry) => entry.id === roomId
+  );
   return room?.category ?? 'interior';
 }
 
@@ -110,5 +113,36 @@ describe('createWallSegmentInstances', () => {
     expect(transition?.isFence).toBe(false);
     expect(transition?.isSharedInterior).toBe(true);
     expect(transition?.dimensions.height).toBeCloseTo(WALL_HEIGHT, 5);
+  });
+
+  it('omits the intentional upper landing-side passage wall segment', () => {
+    const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    });
+    const upperWallColliders = upperWallInstances.map(
+      (instance) => instance.collider
+    );
+    const formerWallBounds = {
+      minX: 3.875,
+      maxX: 8.525,
+      minZ: -16.25,
+      maxZ: -15.75,
+    };
+
+    expect(upperWallInstances).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          collider: expect.objectContaining(formerWallBounds),
+        }),
+      ])
+    );
+    expect(
+      collidesWithColliders(6.2, -16, PLAYER_RADIUS, upperWallColliders)
+    ).toBe(false);
   });
 });

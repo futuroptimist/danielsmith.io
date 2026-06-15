@@ -2157,15 +2157,6 @@ function initializeImmersiveScene(
 
     [
       {
-        name: 'UpperStairWestUpperVoidGuard',
-        bounds: {
-          minX: upperStairwellOpening.minX,
-          maxX: upperStairwellOpening.minX,
-          minZ: upperStairVoidMaxZ,
-          maxZ: upperStairVoidMaxZ,
-        },
-      },
-      {
         name: 'UpperStairEastLowerVoidGuard',
         bounds: {
           minX: stairNavigationZones.explicitDescentCorridor.maxX,
@@ -2336,6 +2327,10 @@ function initializeImmersiveScene(
   upperFloorGroup.add(upperWallMeshes.group);
   upperWallInstances.forEach((instance) => {
     upperFloorColliders.push(instance.collider);
+    namedColliderDebugNames.set(
+      instance.collider,
+      `UpperWallSegment:${instance.segmentId}`
+    );
   });
 
   const floorColliders: Record<FloorId, RectCollider[]> = {
