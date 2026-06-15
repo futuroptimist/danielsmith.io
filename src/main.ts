@@ -2222,11 +2222,10 @@ function initializeImmersiveScene(
           minX: upperStairWestBannisterMinX,
           maxX: upperStairWestBannisterMinX + upperStairBannisterThickness,
           minZ:
-            upperStairNorthBannisterCenterZ -
-            upperStairBannisterThickness * 2.1,
-          maxZ:
-            upperStairNorthBannisterCenterZ -
-            upperStairBannisterThickness * 1.1,
+            upperStairVoidMaxZ -
+            PLAYER_RADIUS / 3 -
+            upperStairBannisterThickness,
+          maxZ: upperStairVoidMaxZ - PLAYER_RADIUS / 3,
         },
       },
       {
