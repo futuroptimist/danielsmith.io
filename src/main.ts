@@ -2080,6 +2080,7 @@ function initializeImmersiveScene(
     // explicit descent lane; collision checks expand colliders by that radius.
     const upperStairWestBannisterMaxX =
       stairNavigationZones.explicitDescentCorridor.minX - PLAYER_RADIUS - 0.01;
+    const upperStairWestBannisterShiftX = 1;
     const upperStairNorthBannisterMinX =
       stairNavigationZones.explicitDescentCorridor.minX +
       upperStairBannisterThickness * 1.5;
@@ -2149,8 +2150,8 @@ function initializeImmersiveScene(
       {
         name: 'UpperStairWestBannisterGuard',
         bounds: {
-          minX: upperStairWestBannisterMinX,
-          maxX: upperStairWestBannisterMaxX,
+          minX: upperStairWestBannisterMinX + upperStairWestBannisterShiftX,
+          maxX: upperStairWestBannisterMaxX + upperStairWestBannisterShiftX,
           minZ: Math.min(
             upperStairNorthBannisterBaseCenterZ,
             upperStairWestBannisterSouthZ

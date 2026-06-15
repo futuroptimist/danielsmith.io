@@ -842,15 +842,41 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
 
   const northBannisterCenterZ =
     (northBannister.bounds.minZ + northBannister.bounds.maxZ) / 2;
+  const previousWestBannisterMinX = 8.9;
+  const previousWestBannisterMaxX = 9.3;
   const previousWestBannisterMinZ = -24.68;
   const previousWestBannisterMaxZ = -18.25;
+  const previousWestBannisterCenterX =
+    (previousWestBannisterMinX + previousWestBannisterMaxX) / 2;
   const previousWestBannisterCenterZ =
     (previousWestBannisterMinZ + previousWestBannisterMaxZ) / 2;
+  const previousWestBannisterSpanX =
+    previousWestBannisterMaxX - previousWestBannisterMinX;
+  const westBannisterCenterX =
+    (westBannister.bounds.minX + westBannister.bounds.maxX) / 2;
   const westBannisterCenterZ =
     (westBannister.bounds.minZ + westBannister.bounds.maxZ) / 2;
+  const westBannisterSpanX =
+    westBannister.bounds.maxX - westBannister.bounds.minX;
 
-  expectCloseTo(westBannister.bounds.minX, 8.9, 0.05, 'west bannister min x');
-  expectCloseTo(westBannister.bounds.maxX, 9.3, 0.05, 'west bannister max x');
+  expectCloseTo(
+    westBannister.bounds.minX,
+    previousWestBannisterMinX + 1,
+    0.05,
+    'west bannister min x shifts +1'
+  );
+  expectCloseTo(
+    westBannister.bounds.maxX,
+    previousWestBannisterMaxX + 1,
+    0.05,
+    'west bannister max x shifts +1'
+  );
+  expectCloseTo(
+    westBannisterSpanX,
+    previousWestBannisterSpanX,
+    0.05,
+    'west bannister x span remains unchanged'
+  );
   expectCloseTo(
     westBannister.bounds.minZ,
     previousWestBannisterMinZ,
@@ -862,6 +888,12 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     previousWestBannisterMaxZ + 2,
     0.08,
     'west bannister max z extends exactly +2'
+  );
+  expectCloseTo(
+    westBannisterCenterX,
+    previousWestBannisterCenterX + 1,
+    0.05,
+    'west bannister center x shifts +1'
   );
   expectCloseTo(
     westBannisterCenterZ,
@@ -958,8 +990,8 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       expectedBlocker: 'UpperStairNorthBannisterGuard',
     },
     {
-      name: 'upper stair guard gap behind west bannister extension',
-      target: { x: 9.1, z: -17.25, floorId: 'upper' as const },
+      name: 'upper stair guard gap inside shifted west bannister extension',
+      target: { x: 10.1, z: -17.25, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairWestBannisterGuard',
     },
   ];
@@ -983,6 +1015,18 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     }
     expect(blockingColliderNames, sample.name).toEqual([]);
   }
+
+  const upperLandingDoorwayClearance = {
+    x: 9.5,
+    z: -15.5,
+    floorId: 'upper' as const,
+  };
+  expect(await canOccupyPosition(page, upperLandingDoorwayClearance)).toBe(
+    true
+  );
+  expect(
+    await getBlockingColliderNames(page, upperLandingDoorwayClearance)
+  ).toEqual([]);
 
   for (const sample of noFloorHiddenCutoutSamples) {
     expectSampleOutsidePhysicalStaircaseLanding(sample, stairMetrics);
@@ -1127,9 +1171,10 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     );
   }
 
-  const leftDescentLaneX = stairCenterX - stairHalfWidth + PLAYER_RADIUS + 0.05;
+  const westDescentLaneClearanceX =
+    stairCenterX - stairHalfWidth + PLAYER_RADIUS + 1.05;
   for (const descentOffset of [0.1, 0.45, 0.85]) {
-    for (const x of [stairCenterX, leftDescentLaneX]) {
+    for (const x of [stairCenterX, westDescentLaneClearanceX]) {
       const descentCorridorSample = {
         x,
         z: stairTopZ - stairDirection * descentOffset,
