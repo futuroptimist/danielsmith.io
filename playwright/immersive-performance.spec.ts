@@ -225,8 +225,8 @@ test.describe('immersive performance diagnostics', () => {
       expect(snapshot.lastFailoverReason).toBeNull();
       expect(snapshot.rendererSize.pixelRatio).toBeLessThanOrEqual(1.25);
       expect(snapshot.quality.level).not.toBe('cinematic');
-      expect(snapshot.quality.adaptivePolicy).toBeDefined();
-      expect(snapshot.quality.adaptivePolicy?.softwareRenderer).toBe(
+      expect(snapshot.quality.adaptivePolicy).toBeNull();
+      expect(snapshot.softwareRendererPolicy.safeMode).toBe(
         snapshot.renderer.isSoftwareRenderer
       );
       expect(snapshot.features.mirrorRenderTargetSize).toBeLessThanOrEqual(320);
@@ -299,7 +299,7 @@ test.describe('immersive performance diagnostics', () => {
         snapshot.features.activePostprocessingPassCount
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
-      expect(snapshot.quality.adaptivePolicy).toBeDefined();
+      expect(snapshot.quality.adaptivePolicy).toBeNull();
     } finally {
       await context.close();
     }
