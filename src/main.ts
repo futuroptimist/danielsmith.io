@@ -36,7 +36,10 @@ import {
   WALL_THICKNESS,
   type RoomCategory,
 } from './assets/floorPlan';
-import { createWallSegmentInstances } from './assets/floorPlan/wallSegments';
+import {
+  createWallSegmentInstances,
+  type WallSegmentInstance,
+} from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
   getAudioHudControlStrings,
@@ -967,6 +970,24 @@ const LIGHTING_OPTIONS = {
 const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
 const upperFloorColliders: RectCollider[] = [];
+
+const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
+  `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
+
+const getUpperWallSegmentDebugName = (
+  instance: WallSegmentInstance
+): string => {
+  const { segment } = instance;
+  const start = formatUpperWallDebugPoint(segment.start);
+  const end = formatUpperWallDebugPoint(segment.end);
+  const rooms = segment.rooms
+    .map((room) => `${room.id}:${room.wall}`)
+    .sort()
+    .join('|');
+
+  return `UpperWallSegment:${segment.orientation}|${start}|${end}|${rooms || 'none'}`;
+};
+
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
@@ -2331,7 +2352,7 @@ function initializeImmersiveScene(
     upperFloorColliders.push(instance.collider);
     namedColliderDebugNames.set(
       instance.collider,
-      `UpperWallSegment:${instance.segmentId}`
+      getUpperWallSegmentDebugName(instance)
     );
   });
 
