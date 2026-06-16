@@ -1148,11 +1148,6 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       canOccupyOpeningSamples: openingSamples.map((sample) =>
         world.canOccupyPosition(sample)
       ),
-      canOccupyWestCutoutEdge: world.canOccupyPosition({
-        x: 8.9,
-        z: -16.7,
-        floorId: 'upper',
-      }),
       blockingAtOpeningSamples: openingSamples.map((sample) =>
         debugColliders
           .getBlockingCollidersAt(sample)
@@ -1173,7 +1168,6 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.matchingColliderBoundsCount).toBe(0);
   expect(targetState.formerVoidGuardNames).toEqual([]);
   expect(targetState.canOccupyOpeningSamples).toEqual([true, true, true]);
-  expect(targetState.canOccupyWestCutoutEdge).toBe(false);
   expect(targetState.blockingAtOpeningSamples).toEqual([[], [], []]);
   expect(targetState.passageMovement.allStepsMoved).toBe(true);
   expect(targetState.passageMovement.blockedBy).toEqual([]);

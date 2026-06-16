@@ -2217,18 +2217,6 @@ function initializeImmersiveScene(
         },
       },
       {
-        name: 'UpperStairWestCutoutEdgeSafetyRail',
-        bounds: {
-          minX: upperStairWestBannisterMinX,
-          maxX: upperStairWestBannisterMinX + upperStairBannisterThickness,
-          minZ:
-            upperStairVoidMaxZ -
-            PLAYER_RADIUS / 3 -
-            upperStairBannisterThickness,
-          maxZ: upperStairVoidMaxZ - PLAYER_RADIUS / 3,
-        },
-      },
-      {
         name: 'UpperStairWestBannisterGuard',
         bounds: {
           minX: upperStairWestBannisterMinX + upperStairWestBannisterShiftX,
