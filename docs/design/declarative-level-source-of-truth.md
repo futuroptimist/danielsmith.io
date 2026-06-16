@@ -195,6 +195,14 @@ Short hex IDs may remain as debug display references for screenshot readability
 or compact overlays, but they are downstream labels. Debug labels should point
 back to semantic source IDs rather than becoming the source of truth.
 
+The foundational source-ID primitives live in
+`src/scene/level/sourceIds.ts`. Use that module to validate and compose
+dot-separated semantic source IDs, attach `LevelSourceMetadata` to future source
+and generated artifacts, and derive deterministic short debug references when a
+compact review label is needed. The helper layer is intentionally not wired into
+visible debug IDs yet, so it can be adopted by later migration phases without
+changing current scene output.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
