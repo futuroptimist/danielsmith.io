@@ -39,6 +39,9 @@ export interface DebugSolidMetadata {
   meshType: string;
   bounds: DebugSolidBounds;
   material?: string;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugSolidVisualizerState {
@@ -63,11 +66,19 @@ export interface SolidVisualizer {
   getState(): DebugSolidVisualizerState;
   getSolids(): DebugSolidMetadata[];
   getSolidById(id: unknown): DebugSolidMetadata | undefined;
+  getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
+  getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
   update(): void;
   dispose(): void;
 }
 
 const DEBUG_SOLID_PRIMARY_SALT = 'debug-solid-id:v1';
+
+const readOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
+
+const isValidLookupId = (id: unknown): id is string =>
+  typeof id === 'string' && id.length > 0;
 
 const round = (value: number): number => roundDebugValue(value);
 const format = (value: number): string =>
@@ -228,6 +239,24 @@ const getGeometrySignature = (geometry: BufferGeometry): string => {
   return signature;
 };
 
+const getSourceMetadata = (
+  object: Object3D
+): Pick<DebugSolidMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
+  const levelSource = object.userData.levelSource;
+  const sourceMetadata =
+    levelSource && typeof levelSource === 'object'
+      ? (levelSource as Record<string, unknown>)
+      : undefined;
+
+  return {
+    sourceId:
+      readOptionalString(object.userData.levelSourceId) ??
+      readOptionalString(sourceMetadata?.sourceId),
+    sourceType: readOptionalString(sourceMetadata?.sourceType),
+    purpose: readOptionalString(sourceMetadata?.purpose),
+  };
+};
+
 const getMaterialSummary = (
   material: Material | Material[]
 ): string | undefined => {
@@ -354,6 +383,7 @@ export const createSolidVisualizer = (
         meshType: object.type,
         bounds,
         material: getMaterialSummary(object.material),
+        ...getSourceMetadata(object),
       };
       meshes.push({
         mesh: object,
@@ -456,12 +486,27 @@ export const createSolidVisualizer = (
       return entries.map((entry) => cloneMetadata(entry.metadata));
     },
     getSolidById(id: unknown) {
-      if (typeof id !== 'string' || id.length === 0) {
+      if (!isValidLookupId(id)) {
         return undefined;
       }
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getSolidBySourceId(sourceId: unknown) {
+      if (!isValidLookupId(sourceId)) {
+        return undefined;
+      }
+      const entry = entries.find((next) => next.metadata.sourceId === sourceId);
+      return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getSolidsBySourceId(sourceId: unknown) {
+      if (!isValidLookupId(sourceId)) {
+        return [];
+      }
+      return entries
+        .filter((entry) => entry.metadata.sourceId === sourceId)
+        .map((entry) => cloneMetadata(entry.metadata));
     },
     update() {
       if (!enabled) {

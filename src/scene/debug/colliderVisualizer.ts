@@ -31,6 +31,9 @@ export interface DebugColliderMetadata {
   category: string;
   name: string;
   bounds: RectCollider;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugColliderRegistration {
@@ -41,6 +44,9 @@ export interface DebugColliderRegistration {
   elevation?: number;
   height?: number;
   color?: ColorRepresentation;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugColliderVisualizerState {
@@ -67,6 +73,8 @@ export interface ColliderVisualizer {
   getState(): DebugColliderVisualizerState;
   getColliders(): DebugColliderMetadata[];
   getColliderById(id: unknown): DebugColliderMetadata | undefined;
+  getColliderBySourceId(sourceId: unknown): DebugColliderMetadata | undefined;
+  getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
   dispose(): void;
 }
 
@@ -94,6 +102,12 @@ const cloneBounds = (bounds: RectCollider): RectCollider => ({
   minZ: bounds.minZ,
   maxZ: bounds.maxZ,
 });
+
+const copyOptionalString = (value: string | undefined): string | undefined =>
+  typeof value === 'string' ? value : undefined;
+
+const isValidLookupId = (id: unknown): id is string =>
+  typeof id === 'string' && id.length > 0;
 
 const isVisibleOnFloor = (
   colliderFloor: DebugColliderFloor,
@@ -347,6 +361,9 @@ export function createColliderVisualizer(options: {
       category: collider.category,
       name: collider.name,
       bounds: cloneBounds(collider.bounds),
+      sourceId: copyOptionalString(collider.sourceId),
+      sourceType: copyOptionalString(collider.sourceType),
+      purpose: copyOptionalString(collider.purpose),
     }));
     const nextIds = allocateColliderDebugIds(metadataWithoutIds, existingIds);
 
@@ -431,6 +448,9 @@ export function createColliderVisualizer(options: {
     category: metadata.category,
     name: metadata.name,
     bounds: cloneBounds(metadata.bounds),
+    sourceId: metadata.sourceId,
+    sourceType: metadata.sourceType,
+    purpose: metadata.purpose,
   });
 
   return {
@@ -462,12 +482,27 @@ export function createColliderVisualizer(options: {
       return entries.map((entry) => cloneMetadata(entry.metadata));
     },
     getColliderById(id: unknown) {
-      if (typeof id !== 'string' || id.length === 0) {
+      if (!isValidLookupId(id)) {
         return undefined;
       }
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getColliderBySourceId(sourceId: unknown) {
+      if (!isValidLookupId(sourceId)) {
+        return undefined;
+      }
+      const entry = entries.find((next) => next.metadata.sourceId === sourceId);
+      return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getCollidersBySourceId(sourceId: unknown) {
+      if (!isValidLookupId(sourceId)) {
+        return [];
+      }
+      return entries
+        .filter((entry) => entry.metadata.sourceId === sourceId)
+        .map((entry) => cloneMetadata(entry.metadata));
     },
     dispose() {
       for (const entry of entries) {

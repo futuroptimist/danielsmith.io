@@ -192,8 +192,11 @@ Source ID guidance:
   pieces.
 
 Short hex IDs may remain as debug display references for screenshot readability
-or compact overlays, but they are downstream labels. Debug labels should point
-back to semantic source IDs rather than becoming the source of truth.
+or compact overlays, but they are downstream labels. Debug APIs now expose
+optional `sourceId`, `sourceType`, and `purpose` metadata for colliders and
+solids so DevTools and future inventory reports can resolve a compact visible
+label back to its authoritative source object without changing label text or
+geometry.
 
 The foundation helpers for this migration live in
 `src/scene/level/sourceIds.ts`. New source-backed level data should use the

@@ -682,6 +682,75 @@ describe('createColliderVisualizer', () => {
     ).toBe(exposedLabelName);
   });
 
+  it('returns source metadata copies and supports source ID lookup', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const wallRegistration = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'source-wall-0',
+      bounds: collider,
+      sourceId: 'ground.living_room.north_wall',
+      sourceType: 'wall',
+      purpose: 'room boundary',
+    };
+    const duplicateRegistration = {
+      ...wallRegistration,
+      name: 'source-wall-1',
+      bounds: { minX: 3, maxX: 4, minZ: 2, maxZ: 5 },
+    };
+
+    visualizer.register([wallRegistration, duplicateRegistration]);
+
+    const sourceMatches = visualizer.getCollidersBySourceId(
+      wallRegistration.sourceId
+    );
+    expect(sourceMatches).toHaveLength(2);
+    expect(sourceMatches[0]).toMatchObject({
+      sourceId: wallRegistration.sourceId,
+      sourceType: 'wall',
+      purpose: 'room boundary',
+    });
+    expect(visualizer.getColliderBySourceId(wallRegistration.sourceId)).toEqual(
+      sourceMatches[0]
+    );
+    sourceMatches[0].bounds.minX = 99;
+    expect(
+      visualizer.getColliderBySourceId(wallRegistration.sourceId)?.bounds.minX
+    ).toBe(collider.minX);
+    expect(visualizer.getColliderBySourceId('')).toBeUndefined();
+    expect(visualizer.getColliderBySourceId(null)).toBeUndefined();
+    expect(visualizer.getCollidersBySourceId('missing')).toEqual([]);
+  });
+
+  it('does not include source metadata in visible collider debug IDs', () => {
+    const visualizerWithoutSource = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const visualizerWithSource = createColliderVisualizer({
+      activeFloorId: 'ground',
+    });
+    const registration = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'source-id-invariant',
+      bounds: collider,
+    };
+
+    visualizerWithoutSource.register([registration]);
+    visualizerWithSource.register([
+      {
+        ...registration,
+        sourceId: 'ground.study.west_wall',
+        sourceType: 'wall',
+        purpose: 'debug provenance',
+      },
+    ]);
+
+    expect(visualizerWithSource.getColliders()[0].id).toBe(
+      visualizerWithoutSource.getColliders()[0].id
+    );
+  });
+
   it('creates floor-aware labels that toggle with debug collider visibility', () => {
     const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
     visualizer.register([

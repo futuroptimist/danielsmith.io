@@ -271,6 +271,64 @@ describe('createSolidVisualizer', () => {
     });
   });
 
+  it('reads levelSourceId metadata and supports source ID lookup', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solidA = createSolid('SourceWallA');
+    const solidB = createSolid('SourceWallB');
+    solidB.position.x = 2;
+    solidA.userData.levelSourceId = 'ground.living_room.media_wall';
+    solidB.userData.levelSourceId = 'ground.living_room.media_wall';
+    scene.add(solidA, solidB);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const matches = visualizer.getSolidsBySourceId(
+      'ground.living_room.media_wall'
+    );
+    expect(matches).toHaveLength(2);
+    expect(matches.every((solid) => solid.sourceId)).toBe(true);
+    expect(
+      visualizer.getSolidBySourceId('ground.living_room.media_wall')
+    ).toEqual(matches[0]);
+    matches[0].bounds.min.x = 99;
+    expect(
+      visualizer.getSolidBySourceId('ground.living_room.media_wall')?.bounds.min
+        .x
+    ).not.toBe(99);
+    expect(visualizer.getSolidBySourceId('')).toBeUndefined();
+    expect(visualizer.getSolidBySourceId(null)).toBeUndefined();
+    expect(visualizer.getSolidsBySourceId('missing')).toEqual([]);
+  });
+
+  it('reads structured levelSource metadata without changing solid IDs', () => {
+    const sceneWithoutSource = new Group();
+    sceneWithoutSource.name = 'Scene';
+    sceneWithoutSource.add(createSolid('StructuredSourceWall'));
+    const sceneWithSource = new Group();
+    sceneWithSource.name = 'Scene';
+    const sourcedSolid = createSolid('StructuredSourceWall');
+    sourcedSolid.userData.levelSource = {
+      sourceId: 'upper.loft_library.south_wall.left',
+      sourceType: 'wall',
+      purpose: 'room boundary',
+    };
+    sceneWithSource.add(sourcedSolid);
+
+    const visualizerWithoutSource = createSolidVisualizer({ enabled: true });
+    const visualizerWithSource = createSolidVisualizer({ enabled: true });
+    visualizerWithoutSource.register(sceneWithoutSource);
+    visualizerWithSource.register(sceneWithSource);
+
+    expect(visualizerWithSource.getSolids()[0]).toMatchObject({
+      id: visualizerWithoutSource.getSolids()[0].id,
+      sourceId: 'upper.loft_library.south_wall.left',
+      sourceType: 'wall',
+      purpose: 'room boundary',
+    });
+  });
+
   it('does not duplicate overlays after repeated enable-disable cycles', () => {
     const scene = new Group();
     scene.name = 'Scene';
