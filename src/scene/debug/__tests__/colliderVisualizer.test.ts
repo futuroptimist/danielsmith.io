@@ -682,6 +682,60 @@ describe('createColliderVisualizer', () => {
     ).toBe(exposedLabelName);
   });
 
+  it('registers semantic source metadata without changing visible IDs', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const baselineId = createColliderDebugId(metadata);
+
+    visualizer.register([
+      {
+        ...metadata,
+        sourceId: 'wall:studio-west',
+        sourceType: 'wall',
+        purpose: 'blocking',
+      },
+    ]);
+
+    const [registered] = visualizer.getColliders();
+    expect(registered).toEqual({
+      id: baselineId,
+      ...metadata,
+      sourceId: 'wall:studio-west',
+      sourceType: 'wall',
+      purpose: 'blocking',
+    });
+    expect(visualizer.getColliderById(baselineId)).toEqual(registered);
+    expect(
+      visualizer.group.children.find((child) => child.type === 'Mesh')?.userData
+        .colliderDebug
+    ).toMatchObject({
+      id: baselineId,
+      sourceId: 'wall:studio-west',
+      sourceType: 'wall',
+      purpose: 'blocking',
+    });
+  });
+
+  it('looks up colliders by source ID and returns duplicate matches', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    visualizer.register([
+      { ...metadata, name: 'source-a-0', sourceId: 'wall:shared' },
+      { ...metadata, name: 'source-a-1', sourceId: 'wall:shared' },
+      { ...metadata, name: 'source-b-0', sourceId: 'wall:other' },
+      { ...metadata, name: 'source-empty-0' },
+    ]);
+
+    const matches = visualizer.getCollidersBySourceId('wall:shared');
+    expect(matches.map((match) => match.name)).toEqual([
+      'source-a-0',
+      'source-a-1',
+    ]);
+    expect(visualizer.getColliderBySourceId('wall:shared')).toEqual(matches[0]);
+    expect(visualizer.getColliderBySourceId('missing')).toBeUndefined();
+    expect(visualizer.getColliderBySourceId(null)).toBeUndefined();
+    expect(visualizer.getCollidersBySourceId('missing')).toEqual([]);
+    expect(visualizer.getCollidersBySourceId(null)).toEqual([]);
+  });
+
   it('creates floor-aware labels that toggle with debug collider visibility', () => {
     const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
     visualizer.register([

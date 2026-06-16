@@ -31,6 +31,9 @@ export interface DebugColliderMetadata {
   category: string;
   name: string;
   bounds: RectCollider;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugColliderRegistration {
@@ -41,6 +44,9 @@ export interface DebugColliderRegistration {
   elevation?: number;
   height?: number;
   color?: ColorRepresentation;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugColliderVisualizerState {
@@ -67,6 +73,8 @@ export interface ColliderVisualizer {
   getState(): DebugColliderVisualizerState;
   getColliders(): DebugColliderMetadata[];
   getColliderById(id: unknown): DebugColliderMetadata | undefined;
+  getColliderBySourceId(sourceId: unknown): DebugColliderMetadata | undefined;
+  getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
   dispose(): void;
 }
 
@@ -88,6 +96,22 @@ export const DEBUG_LABEL_PALETTE = [
   '#BD93F9',
   '#FFB86C',
 ];
+const cloneSourceMetadata = <
+  T extends {
+    sourceId?: string;
+    sourceType?: string;
+    purpose?: string;
+  },
+>(
+  input: T
+): Pick<T, 'sourceId' | 'sourceType' | 'purpose'> => ({
+  ...(typeof input.sourceId === 'string' ? { sourceId: input.sourceId } : {}),
+  ...(typeof input.sourceType === 'string'
+    ? { sourceType: input.sourceType }
+    : {}),
+  ...(typeof input.purpose === 'string' ? { purpose: input.purpose } : {}),
+});
+
 const cloneBounds = (bounds: RectCollider): RectCollider => ({
   minX: bounds.minX,
   maxX: bounds.maxX,
@@ -347,6 +371,7 @@ export function createColliderVisualizer(options: {
       category: collider.category,
       name: collider.name,
       bounds: cloneBounds(collider.bounds),
+      ...cloneSourceMetadata(collider),
     }));
     const nextIds = allocateColliderDebugIds(metadataWithoutIds, existingIds);
 
@@ -393,6 +418,7 @@ export function createColliderVisualizer(options: {
         floor: collider.floor,
         category: collider.category,
         name: collider.name,
+        ...cloneSourceMetadata(collider),
       };
       mesh.raycast = () => undefined;
 
@@ -431,6 +457,7 @@ export function createColliderVisualizer(options: {
     category: metadata.category,
     name: metadata.name,
     bounds: cloneBounds(metadata.bounds),
+    ...cloneSourceMetadata(metadata),
   });
 
   return {
@@ -468,6 +495,21 @@ export function createColliderVisualizer(options: {
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getColliderBySourceId(sourceId: unknown) {
+      if (typeof sourceId !== 'string' || sourceId.length === 0) {
+        return undefined;
+      }
+      const entry = entries.find((next) => next.metadata.sourceId === sourceId);
+      return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getCollidersBySourceId(sourceId: unknown) {
+      if (typeof sourceId !== 'string' || sourceId.length === 0) {
+        return [];
+      }
+      return entries
+        .filter((entry) => entry.metadata.sourceId === sourceId)
+        .map((entry) => cloneMetadata(entry.metadata));
     },
     dispose() {
       for (const entry of entries) {

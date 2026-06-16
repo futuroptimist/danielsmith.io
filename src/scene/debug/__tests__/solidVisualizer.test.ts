@@ -74,6 +74,73 @@ describe('createSolidVisualizer', () => {
     expect(visualizer.getSolids()[0].bounds.min.x).not.toBe(99);
   });
 
+  it('reads source metadata from userData.levelSourceId', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('SourceIdWall');
+    solid.userData.levelSourceId = 'wall:source-id';
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [metadata] = visualizer.getSolids();
+    expect(metadata).toMatchObject({
+      name: 'SourceIdWall',
+      sourceId: 'wall:source-id',
+    });
+    expect(visualizer.getSolidBySourceId('wall:source-id')).toEqual(metadata);
+    expect(visualizer.getSolidsBySourceId('wall:source-id')).toEqual([
+      metadata,
+    ]);
+  });
+
+  it('reads source metadata from userData.levelSource', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const first = createSolid('SourceObjectWallA');
+    first.userData.levelSource = {
+      sourceId: 'wall:shared-source',
+      sourceType: 'wall',
+      purpose: 'render',
+    };
+    const second = createSolid('SourceObjectWallB');
+    second.userData.levelSource = { sourceId: 'wall:shared-source' };
+    scene.add(first, second);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const matches = visualizer.getSolidsBySourceId('wall:shared-source');
+    expect(matches).toHaveLength(2);
+    expect(visualizer.getSolidBySourceId('wall:shared-source')).toEqual(
+      matches[0]
+    );
+    expect(matches[0]).toMatchObject({
+      sourceId: 'wall:shared-source',
+      sourceType: 'wall',
+      purpose: 'render',
+    });
+  });
+
+  it('keeps objects without source metadata behaving as before', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    scene.add(createSolid('LegacyWall'));
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [metadata] = visualizer.getSolids();
+    expect(metadata.sourceId).toBeUndefined();
+    expect(metadata.sourceType).toBeUndefined();
+    expect(metadata.purpose).toBeUndefined();
+    expect(visualizer.getSolidBySourceId('missing')).toBeUndefined();
+    expect(visualizer.getSolidBySourceId(null)).toBeUndefined();
+    expect(visualizer.getSolidsBySourceId('missing')).toEqual([]);
+    expect(visualizer.getSolidsBySourceId(null)).toEqual([]);
+  });
+
   it('creates matching non-raycasting debug wireframes and labels without ID collisions', () => {
     const scene = new Group();
     scene.name = 'Scene';
