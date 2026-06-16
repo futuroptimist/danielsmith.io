@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEBUG_ID_MAX_LENGTH } from '../../debug/debugIds';
+import { DEBUG_ID_MAX_LENGTH, DEBUG_ID_MIN_LENGTH } from '../../debug/debugIds';
 import {
   assertLevelSourceId,
   getLevelSourceDebugRef,
@@ -87,10 +87,12 @@ describe('level source debug references', () => {
     const sourceId = assertLevelSourceId('ground.living_room.north_wall.left');
 
     const lengthError = new RegExp(
-      `integer length from 1 to ${DEBUG_ID_MAX_LENGTH}`
+      `integer length from ${DEBUG_ID_MIN_LENGTH} to ${DEBUG_ID_MAX_LENGTH}`
     );
 
-    expect(() => getLevelSourceDebugRef(sourceId, 0)).toThrow(lengthError);
+    expect(() =>
+      getLevelSourceDebugRef(sourceId, DEBUG_ID_MIN_LENGTH - 1)
+    ).toThrow(lengthError);
     expect(() =>
       getLevelSourceDebugRef(sourceId, DEBUG_ID_MAX_LENGTH + 1)
     ).toThrow(lengthError);
