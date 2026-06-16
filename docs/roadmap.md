@@ -20,6 +20,14 @@ _Actions:_ cut a git tag + screenshot/GIF when each phase slices, update the tab
 metrics snapshot (Lighthouse CI, WebPageTest, telemetry). Numbers are privacy-respecting lab
 captures; keep artifacts in `docs/metrics/`.
 
+## Declarative level authoring direction
+
+The immersive scene is migrating toward declarative level source data before any
+in-game editor is built. The current text data layer is the editor: rooms, walls,
+floor surfaces, safety colliders, scene objects, and semantic connections should
+become reviewable source data first, with generated meshes, colliders, debug
+metadata, tests, and future editing tools flowing downstream from that source.
+
 ## Global success criteria
 
 - **Performance budgets** – p95 FPS ≥90 on desktop class hardware and ≥60 on mid-range mobile;
