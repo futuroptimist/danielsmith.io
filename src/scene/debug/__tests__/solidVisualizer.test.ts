@@ -74,6 +74,69 @@ describe('createSolidVisualizer', () => {
     expect(visualizer.getSolids()[0].bounds.min.x).not.toBe(99);
   });
 
+  it('reads levelSourceId metadata and supports source ID lookups', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const first = createSolid('WallPartA');
+    first.userData.levelSourceId = 'ground.living_room.north_wall';
+    const second = createSolid('WallPartB');
+    second.userData.levelSourceId = 'ground.living_room.north_wall';
+    scene.add(first, second);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const solids = visualizer.getSolids();
+
+    expect(solids).toHaveLength(2);
+    expect(
+      solids.every(
+        (solid) => solid.sourceId === 'ground.living_room.north_wall'
+      )
+    ).toBe(true);
+    expect(
+      visualizer.getSolidBySourceId('ground.living_room.north_wall')
+    ).toEqual(solids[0]);
+    expect(
+      visualizer.getSolidsBySourceId('ground.living_room.north_wall')
+    ).toEqual(solids);
+    expect(visualizer.getSolidBySourceId('')).toBeUndefined();
+    expect(visualizer.getSolidBySourceId(1234)).toBeUndefined();
+    expect(visualizer.getSolidsBySourceId('missing')).toEqual([]);
+  });
+
+  it('reads structured levelSource metadata without changing source-less metadata', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const sourced = createSolid('LandingGuard');
+    sourced.userData.levelSource = {
+      sourceId: 'upper.stairwell.landing_guard',
+      sourceType: 'safety_collider',
+      purpose: 'prevent stairwell falls',
+    };
+    const ordinary = createSolid('OrdinarySceneWall');
+    scene.add(sourced, ordinary);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const sourcedMetadata = visualizer.getSolidBySourceId(
+      'upper.stairwell.landing_guard'
+    );
+    const ordinaryMetadata = visualizer
+      .getSolids()
+      .find((solid) => solid.name === 'OrdinarySceneWall');
+
+    expect(sourcedMetadata).toMatchObject({
+      sourceId: 'upper.stairwell.landing_guard',
+      sourceType: 'safety_collider',
+      purpose: 'prevent stairwell falls',
+    });
+    expect(ordinaryMetadata).not.toHaveProperty('sourceId');
+    expect(ordinaryMetadata).not.toHaveProperty('sourceType');
+    expect(ordinaryMetadata).not.toHaveProperty('purpose');
+  });
+
   it('creates matching non-raycasting debug wireframes and labels without ID collisions', () => {
     const scene = new Group();
     scene.name = 'Scene';

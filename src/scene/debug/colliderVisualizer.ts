@@ -31,6 +31,9 @@ export interface DebugColliderMetadata {
   category: string;
   name: string;
   bounds: RectCollider;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugColliderRegistration {
@@ -41,6 +44,9 @@ export interface DebugColliderRegistration {
   elevation?: number;
   height?: number;
   color?: ColorRepresentation;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugColliderVisualizerState {
@@ -67,6 +73,8 @@ export interface ColliderVisualizer {
   getState(): DebugColliderVisualizerState;
   getColliders(): DebugColliderMetadata[];
   getColliderById(id: unknown): DebugColliderMetadata | undefined;
+  getColliderBySourceId(sourceId: unknown): DebugColliderMetadata | undefined;
+  getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
   dispose(): void;
 }
 
@@ -88,6 +96,24 @@ export const DEBUG_LABEL_PALETTE = [
   '#BD93F9',
   '#FFB86C',
 ];
+const cloneOptionalMetadataString = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
+
+const withOptionalSourceMetadata = <T extends object>(
+  base: T,
+  metadata: { sourceId?: unknown; sourceType?: unknown; purpose?: unknown }
+): T & Pick<DebugColliderMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
+  const sourceId = cloneOptionalMetadataString(metadata.sourceId);
+  const sourceType = cloneOptionalMetadataString(metadata.sourceType);
+  const purpose = cloneOptionalMetadataString(metadata.purpose);
+  return {
+    ...base,
+    ...(sourceId ? { sourceId } : {}),
+    ...(sourceType ? { sourceType } : {}),
+    ...(purpose ? { purpose } : {}),
+  };
+};
+
 const cloneBounds = (bounds: RectCollider): RectCollider => ({
   minX: bounds.minX,
   maxX: bounds.maxX,
@@ -342,12 +368,17 @@ export function createColliderVisualizer(options: {
 
   const register = (colliders: readonly DebugColliderRegistration[]) => {
     const existingIds = new Set(entries.map((entry) => entry.metadata.id));
-    const metadataWithoutIds = colliders.map((collider) => ({
-      floor: collider.floor,
-      category: collider.category,
-      name: collider.name,
-      bounds: cloneBounds(collider.bounds),
-    }));
+    const metadataWithoutIds = colliders.map((collider) =>
+      withOptionalSourceMetadata(
+        {
+          floor: collider.floor,
+          category: collider.category,
+          name: collider.name,
+          bounds: cloneBounds(collider.bounds),
+        },
+        collider
+      )
+    );
     const nextIds = allocateColliderDebugIds(metadataWithoutIds, existingIds);
 
     for (const [colliderIndex, collider] of colliders.entries()) {
@@ -393,6 +424,9 @@ export function createColliderVisualizer(options: {
         floor: collider.floor,
         category: collider.category,
         name: collider.name,
+        sourceId: metadataWithoutId.sourceId,
+        sourceType: metadataWithoutId.sourceType,
+        purpose: metadataWithoutId.purpose,
       };
       mesh.raycast = () => undefined;
 
@@ -425,13 +459,24 @@ export function createColliderVisualizer(options: {
 
   const cloneMetadata = (
     metadata: DebugColliderMetadata
-  ): DebugColliderMetadata => ({
-    id: metadata.id,
-    floor: metadata.floor,
-    category: metadata.category,
-    name: metadata.name,
-    bounds: cloneBounds(metadata.bounds),
-  });
+  ): DebugColliderMetadata =>
+    withOptionalSourceMetadata(
+      {
+        id: metadata.id,
+        floor: metadata.floor,
+        category: metadata.category,
+        name: metadata.name,
+        bounds: cloneBounds(metadata.bounds),
+      },
+      metadata
+    );
+
+  const findEntriesBySourceId = (sourceId: unknown) => {
+    if (typeof sourceId !== 'string' || sourceId.length === 0) {
+      return [];
+    }
+    return entries.filter((entry) => entry.metadata.sourceId === sourceId);
+  };
 
   return {
     group,
@@ -468,6 +513,15 @@ export function createColliderVisualizer(options: {
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getColliderBySourceId(sourceId: unknown) {
+      const [entry] = findEntriesBySourceId(sourceId);
+      return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getCollidersBySourceId(sourceId: unknown) {
+      return findEntriesBySourceId(sourceId).map((entry) =>
+        cloneMetadata(entry.metadata)
+      );
     },
     dispose() {
       for (const entry of entries) {

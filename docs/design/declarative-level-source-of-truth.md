@@ -204,6 +204,13 @@ with no empty segments, whitespace, or slash-style paths, and
 `getLevelSourceDebugRef(...)` provides deterministic short uppercase hex
 references for future debug metadata without changing current visible debug IDs.
 
+Debug collider and solid APIs now expose optional `sourceId`, `sourceType`, and
+`purpose` fields alongside the existing compact hex labels. These fields are
+metadata-only: they are not part of the visible debug ID seed, label text, wall
+or floor geometry, movement behavior, or collision behavior. Use them to trace a
+downstream collider or solid back to its authoritative source item while keeping
+the compact hex IDs as screenshot-friendly downstream labels during migration.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the

@@ -39,6 +39,9 @@ export interface DebugSolidMetadata {
   meshType: string;
   bounds: DebugSolidBounds;
   material?: string;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugSolidVisualizerState {
@@ -63,6 +66,8 @@ export interface SolidVisualizer {
   getState(): DebugSolidVisualizerState;
   getSolids(): DebugSolidMetadata[];
   getSolidById(id: unknown): DebugSolidMetadata | undefined;
+  getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
+  getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
   update(): void;
   dispose(): void;
 }
@@ -70,6 +75,8 @@ export interface SolidVisualizer {
 const DEBUG_SOLID_PRIMARY_SALT = 'debug-solid-id:v1';
 
 const round = (value: number): number => roundDebugValue(value);
+const getOptionalString = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
 const format = (value: number): string =>
   round(value).toFixed(DEBUG_ID_PRECISION);
 
@@ -174,6 +181,22 @@ const getObjectPath = (object: Object3D): string => {
     current = current.parent;
   }
   return parts.reverse().join('/');
+};
+
+const getLevelSourceMetadata = (object: Object3D) => {
+  const levelSource = object.userData.levelSource;
+  const sourceRecord =
+    typeof levelSource === 'object' && levelSource !== null ? levelSource : {};
+  const sourceId =
+    getOptionalString(object.userData.levelSourceId) ??
+    getOptionalString(sourceRecord.sourceId);
+  const sourceType = getOptionalString(sourceRecord.sourceType);
+  const purpose = getOptionalString(sourceRecord.purpose);
+  return {
+    ...(sourceId ? { sourceId } : {}),
+    ...(sourceType ? { sourceType } : {}),
+    ...(purpose ? { purpose } : {}),
+  };
 };
 
 const cloneBounds = (bounds: DebugSolidBounds): DebugSolidBounds => ({
@@ -312,6 +335,13 @@ export const createSolidVisualizer = (
     });
   };
 
+  const findEntriesBySourceId = (sourceId: unknown) => {
+    if (typeof sourceId !== 'string' || sourceId.length === 0) {
+      return [];
+    }
+    return entries.filter((entry) => entry.metadata.sourceId === sourceId);
+  };
+
   const clear = () => {
     entries.forEach((entry) => {
       group.remove(entry.wireframe, entry.label);
@@ -354,6 +384,7 @@ export const createSolidVisualizer = (
         meshType: object.type,
         bounds,
         material: getMaterialSummary(object.material),
+        ...getLevelSourceMetadata(object),
       };
       meshes.push({
         mesh: object,
@@ -462,6 +493,15 @@ export const createSolidVisualizer = (
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getSolidBySourceId(sourceId: unknown) {
+      const [entry] = findEntriesBySourceId(sourceId);
+      return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getSolidsBySourceId(sourceId: unknown) {
+      return findEntriesBySourceId(sourceId).map((entry) =>
+        cloneMetadata(entry.metadata)
+      );
     },
     update() {
       if (!enabled) {

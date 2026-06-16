@@ -243,6 +243,68 @@ describe('createColliderVisualizer', () => {
     expect(labelMaterial.depthWrite).toBe(false);
   });
 
+  it('registers source metadata and supports source ID lookups', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'source-wall-a',
+        bounds: collider,
+        sourceId: 'ground.living_room.north_wall',
+        sourceType: 'wall',
+        purpose: 'room boundary',
+      },
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'source-wall-b',
+        bounds: { minX: 4, maxX: 5, minZ: 6, maxZ: 7 },
+        sourceId: 'ground.living_room.north_wall',
+        sourceType: 'wall',
+        purpose: 'split collider segment',
+      },
+    ]);
+
+    const colliders = visualizer.getColliders();
+
+    expect(colliders[0]).toMatchObject({
+      sourceId: 'ground.living_room.north_wall',
+      sourceType: 'wall',
+      purpose: 'room boundary',
+    });
+    expect(
+      visualizer.getColliderBySourceId('ground.living_room.north_wall')
+    ).toEqual(colliders[0]);
+    expect(
+      visualizer.getCollidersBySourceId('ground.living_room.north_wall')
+    ).toEqual(colliders);
+    expect(visualizer.getColliderBySourceId('')).toBeUndefined();
+    expect(visualizer.getColliderBySourceId(1234)).toBeUndefined();
+    expect(visualizer.getCollidersBySourceId('missing')).toEqual([]);
+  });
+
+  it('keeps visible IDs unchanged when registrations add no source metadata', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const registration = {
+      floor: 'ground' as const,
+      category: 'walls',
+      name: 'stable-without-source-id',
+      bounds: collider,
+    };
+
+    visualizer.register([registration]);
+
+    expect(visualizer.getColliders()[0]).toEqual({
+      id: createColliderDebugId(registration),
+      floor: 'ground',
+      category: 'walls',
+      name: 'stable-without-source-id',
+      bounds: collider,
+    });
+  });
+
   it('hides collider ID labels independently from wireframes', () => {
     const visualizer = createColliderVisualizer({
       activeFloorId: 'ground',
