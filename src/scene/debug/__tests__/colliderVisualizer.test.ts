@@ -243,6 +243,72 @@ describe('createColliderVisualizer', () => {
     expect(labelMaterial.depthWrite).toBe(false);
   });
 
+  it('exposes optional source metadata without changing visible debug IDs', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const expectedId = createColliderDebugId({
+      floor: 'ground',
+      category: 'walls',
+      name: 'source-wall',
+      bounds: collider,
+    });
+
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'source-wall',
+        bounds: collider,
+        sourceId: 'wall:living-room:north',
+        sourceType: 'wall',
+        purpose: 'collision',
+      },
+    ]);
+
+    expect(visualizer.getColliders()[0]).toEqual({
+      id: expectedId,
+      floor: 'ground',
+      category: 'walls',
+      name: 'source-wall',
+      bounds: collider,
+      sourceId: 'wall:living-room:north',
+      sourceType: 'wall',
+      purpose: 'collision',
+    });
+    expect(visualizer.getColliderBySourceId('wall:living-room:north')).toEqual(
+      visualizer.getColliders()[0]
+    );
+  });
+
+  it('returns all collider metadata matches for duplicate source IDs', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'source-wall-a',
+        bounds: collider,
+        sourceId: 'wall:shared',
+      },
+      {
+        floor: 'ground',
+        category: 'walls',
+        name: 'source-wall-b',
+        bounds: { minX: 5, maxX: 6, minZ: 7, maxZ: 8 },
+        sourceId: 'wall:shared',
+      },
+    ]);
+
+    expect(
+      visualizer
+        .getCollidersBySourceId('wall:shared')
+        .map((entry) => entry.name)
+    ).toEqual(['source-wall-a', 'source-wall-b']);
+    expect(visualizer.getColliderBySourceId('')).toBeUndefined();
+    expect(visualizer.getColliderBySourceId(null)).toBeUndefined();
+    expect(visualizer.getCollidersBySourceId('missing')).toEqual([]);
+    expect(visualizer.getCollidersBySourceId(1234)).toEqual([]);
+  });
+
   it('hides collider ID labels independently from wireframes', () => {
     const visualizer = createColliderVisualizer({
       activeFloorId: 'ground',

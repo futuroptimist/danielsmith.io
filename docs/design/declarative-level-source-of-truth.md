@@ -204,6 +204,13 @@ with no empty segments, whitespace, or slash-style paths, and
 `getLevelSourceDebugRef(...)` provides deterministic short uppercase hex
 references for future debug metadata without changing current visible debug IDs.
 
+Current debug visualizer APIs now accept and return optional source provenance
+for this migration phase. Debug collider registrations may include `sourceId`,
+`sourceType`, and `purpose`; debug solids read the same semantic fields from
+`object.userData.levelSourceId` or `object.userData.levelSource`. The visible
+hex debug IDs and label text remain downstream labels, while the source metadata
+is exposed through lookup helpers for future inventory and editor workflows.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the

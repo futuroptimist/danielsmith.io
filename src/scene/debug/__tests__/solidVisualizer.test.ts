@@ -74,6 +74,73 @@ describe('createSolidVisualizer', () => {
     expect(visualizer.getSolids()[0].bounds.min.x).not.toBe(99);
   });
 
+  it('reads levelSourceId userData and looks up solid metadata by source ID', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('SourceWall');
+    solid.userData.levelSourceId = 'wall:gallery:east';
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(visualizer.getSolids()[0]).toMatchObject({
+      name: 'SourceWall',
+      sourceId: 'wall:gallery:east',
+    });
+    expect(visualizer.getSolidBySourceId('wall:gallery:east')).toEqual(
+      visualizer.getSolids()[0]
+    );
+    expect(visualizer.getSolidsBySourceId('wall:gallery:east')).toEqual([
+      visualizer.getSolids()[0],
+    ]);
+  });
+
+  it('reads nested levelSource userData metadata without changing solid IDs', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('NestedSourceWall');
+    solid.userData.levelSource = {
+      sourceId: 'floor:studio:main',
+      sourceType: 'floor-surface',
+      purpose: 'rendering',
+    };
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [solidMetadata] = visualizer.getSolids();
+    const comparisonScene = new Group();
+    comparisonScene.name = 'Scene';
+    comparisonScene.add(createSolid('NestedSourceWall'));
+    const comparisonVisualizer = createSolidVisualizer({ enabled: true });
+    comparisonVisualizer.register(comparisonScene);
+
+    const { sourceId, sourceType, purpose } = solidMetadata;
+    expect(solidMetadata.id).toBe(comparisonVisualizer.getSolids()[0].id);
+    expect({ sourceId, sourceType, purpose }).toEqual({
+      sourceId: 'floor:studio:main',
+      sourceType: 'floor-surface',
+      purpose: 'rendering',
+    });
+  });
+
+  it('keeps objects without source IDs compatible with existing lookups', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    scene.add(createSolid('OrdinaryWall'));
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    expect(visualizer.getSolids()[0]).not.toHaveProperty('sourceId');
+    expect(visualizer.getSolidBySourceId('')).toBeUndefined();
+    expect(visualizer.getSolidBySourceId(null)).toBeUndefined();
+    expect(visualizer.getSolidBySourceId('missing')).toBeUndefined();
+    expect(visualizer.getSolidsBySourceId(1234)).toEqual([]);
+  });
+
   it('creates matching non-raycasting debug wireframes and labels without ID collisions', () => {
     const scene = new Group();
     scene.name = 'Scene';
