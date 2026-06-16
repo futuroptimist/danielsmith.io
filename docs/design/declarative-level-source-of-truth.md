@@ -195,6 +195,18 @@ Short hex IDs may remain as debug display references for screenshot readability
 or compact overlays, but they are downstream labels. Debug labels should point
 back to semantic source IDs rather than becoming the source of truth.
 
+`src/scene/level/sourceIds.ts` provides the foundation primitives for this
+migration phase. Use `LevelSourceId` plus `assertLevelSourceId(...)`,
+`isLevelSourceId(...)`, `makeLevelSourceId(...)`, and `joinLevelSourceId(...)`
+when declaring or deriving semantic source IDs. The helper validates readable
+hierarchical IDs, rejects empty segments, whitespace, and slash paths, and keeps
+composition explicit rather than silently normalizing malformed values.
+`LevelSourceMetadata` pairs a source ID with a source type and optional purpose
+text for future generated colliders, solids, and inventory reports.
+`getLevelSourceDebugRef(...)` can derive deterministic uppercase hex references
+for compact downstream debug metadata, but visible debug IDs are not wired to
+these source IDs yet.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
