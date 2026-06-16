@@ -195,6 +195,16 @@ Short hex IDs may remain as debug display references for screenshot readability
 or compact overlays, but they are downstream labels. Debug labels should point
 back to semantic source IDs rather than becoming the source of truth.
 
+The initial foundation for this identity layer lives in
+`src/scene/level/sourceIds.ts`. It defines the branded `LevelSourceId` type,
+runtime validation, composition helpers, short deterministic debug-reference
+hashing, and `LevelSourceMetadata` for downstream generated artifacts. New
+level-source data should use these helpers instead of raw strings so malformed
+IDs fail close to the authoring boundary. The current canonical helper format is
+dot-separated lowercase hierarchy segments containing letters, digits, `_`, or
+`-`; helper functions intentionally do not case-normalize or trim inputs because
+reviewable source IDs should be written explicitly.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
