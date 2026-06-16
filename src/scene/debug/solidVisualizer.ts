@@ -197,7 +197,7 @@ const cloneSourceMetadata = (metadata: {
     : {}),
 });
 
-const getUserDataSourceMetadata = (
+const getOwnUserDataSourceMetadata = (
   object: Object3D
 ): Pick<DebugSolidMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
   const levelSource = object.userData.levelSource;
@@ -209,15 +209,44 @@ const getUserDataSourceMetadata = (
           purpose?: unknown;
         })
       : undefined;
+  const directSourceId = object.userData.levelSourceId;
+
+  if (typeof directSourceId === 'string') {
+    const nestedSourceId = nestedSource?.sourceId;
+    return cloneSourceMetadata({
+      sourceId: directSourceId,
+      ...(nestedSourceId === directSourceId
+        ? {
+            sourceType: nestedSource.sourceType,
+            purpose: nestedSource.purpose,
+          }
+        : {}),
+    });
+  }
 
   return cloneSourceMetadata({
-    sourceId:
-      typeof object.userData.levelSourceId === 'string'
-        ? object.userData.levelSourceId
-        : nestedSource?.sourceId,
+    sourceId: nestedSource?.sourceId,
     sourceType: nestedSource?.sourceType,
     purpose: nestedSource?.purpose,
   });
+};
+
+const getUserDataSourceMetadata = (
+  object: Object3D
+): Pick<DebugSolidMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
+  let current: Object3D | null = object;
+  while (current) {
+    const metadata = getOwnUserDataSourceMetadata(current);
+    if (
+      metadata.sourceId !== undefined ||
+      metadata.sourceType !== undefined ||
+      metadata.purpose !== undefined
+    ) {
+      return metadata;
+    }
+    current = current.parent;
+  }
+  return {};
 };
 
 const cloneBounds = (bounds: DebugSolidBounds): DebugSolidBounds => ({
@@ -448,7 +477,10 @@ export const createSolidVisualizer = (
       wireframe.renderOrder = 20_002;
       wireframe.frustumCulled = false;
       wireframe.userData.debugOnly = true;
-      wireframe.userData.solidDebug = { id };
+      wireframe.userData.solidDebug = {
+        id,
+        ...cloneSourceMetadata(item.metadata),
+      };
       wireframe.raycast = () => undefined;
 
       const label = createDebugIdLabel(id, color);

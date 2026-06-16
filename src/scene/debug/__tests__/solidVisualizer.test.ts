@@ -123,6 +123,80 @@ describe('createSolidVisualizer', () => {
     });
   });
 
+  it('inherits source metadata from owning ancestors with child precedence', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const parent = new Group();
+    parent.name = 'DeclarativeWallGroup';
+    parent.userData.levelSource = {
+      sourceId: 'wall:parent-source',
+      sourceType: 'wall',
+      purpose: 'structure',
+    };
+    parent.add(createSolid('InheritedSourceWall'));
+    const childOverride = createSolid('ChildSourceWall');
+    childOverride.userData.levelSourceId = 'wall:child-source';
+    parent.add(childOverride);
+    scene.add(parent);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const inherited = visualizer.getSolidBySourceId('wall:parent-source');
+    expect(inherited).toMatchObject({
+      name: 'InheritedSourceWall',
+      sourceId: 'wall:parent-source',
+      sourceType: 'wall',
+      purpose: 'structure',
+    });
+    expect(visualizer.getSolidBySourceId('wall:child-source')).toMatchObject({
+      name: 'ChildSourceWall',
+      sourceId: 'wall:child-source',
+    });
+    expect(visualizer.getSolidsBySourceId('wall:parent-source')).toHaveLength(
+      1
+    );
+  });
+
+  it('keeps direct source IDs coherent when nested source metadata differs', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const mismatched = createSolid('MigratedSourceWall');
+    mismatched.userData.levelSourceId = 'wall:new-source';
+    mismatched.userData.levelSource = {
+      sourceId: 'wall:old-source',
+      sourceType: 'wall',
+      purpose: 'legacy',
+    };
+    const matching = createSolid('MatchingSourceWall');
+    matching.userData.levelSourceId = 'wall:matching-source';
+    matching.userData.levelSource = {
+      sourceId: 'wall:matching-source',
+      sourceType: 'wall',
+      purpose: 'render',
+    };
+    scene.add(mismatched, matching);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const migrated = visualizer.getSolidBySourceId('wall:new-source');
+    expect(migrated).toMatchObject({
+      name: 'MigratedSourceWall',
+      sourceId: 'wall:new-source',
+    });
+    expect(migrated?.sourceType).toBeUndefined();
+    expect(migrated?.purpose).toBeUndefined();
+    expect(visualizer.getSolidBySourceId('wall:matching-source')).toMatchObject(
+      {
+        name: 'MatchingSourceWall',
+        sourceId: 'wall:matching-source',
+        sourceType: 'wall',
+        purpose: 'render',
+      }
+    );
+  });
+
   it('keeps objects without source metadata behaving as before', () => {
     const scene = new Group();
     scene.name = 'Scene';
@@ -166,6 +240,9 @@ describe('createSolidVisualizer', () => {
       (child) => child.type === 'Sprite'
     );
     expect(wireframe?.userData.debugOnly).toBe(true);
+    expect(wireframe?.userData.solidDebug).toEqual({
+      id: solids[0].id,
+    });
     expect(label?.userData.debugOnly).toBe(true);
     expect(wireframe?.raycast({} as never, [] as never)).toBeUndefined();
     expect(label?.raycast({} as never, [] as never)).toBeUndefined();
@@ -178,6 +255,32 @@ describe('createSolidVisualizer', () => {
         label as { material: { color: { getHex(): number } } }
       ).material.color.getHex()
     );
+  });
+
+  it('exposes solid source metadata on debug wireframe userData', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('InspectableSourceWall');
+    solid.userData.levelSource = {
+      sourceId: 'wall:inspectable-source',
+      sourceType: 'wall',
+      purpose: 'inspect',
+    };
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [metadata] = visualizer.getSolids();
+    const wireframe = visualizer.group.children.find(
+      (child) => child.type === 'LineSegments'
+    );
+    expect(wireframe?.userData.solidDebug).toEqual({
+      id: metadata.id,
+      sourceId: 'wall:inspectable-source',
+      sourceType: 'wall',
+      purpose: 'inspect',
+    });
   });
 
   it('registers stable scene solids while hiding currently ineffective entries', () => {
