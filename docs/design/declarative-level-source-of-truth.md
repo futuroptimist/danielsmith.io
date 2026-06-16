@@ -172,11 +172,11 @@ labels, test failures, and inventory reports.
 
 Examples:
 
-- `upper.loftLibrary.southWall.left`
-- `upper.stairwell.westBannister.safetyCollider`
-- `ground.livingRoom.mediaWall.sceneObject`
-- `ground.kitchen.northThreshold.floorSurface`
-- `backyard.greenhousePath.eastFence.section03`
+- `upper.loft_library.south_wall.left`
+- `upper.stairwell.west_bannister.safety_collider`
+- `ground.living_room.media_wall.scene_object`
+- `ground.kitchen.north_threshold.floor_surface`
+- `backyard.greenhouse_path.east_fence.section03`
 
 Source ID guidance:
 
@@ -188,12 +188,21 @@ Source ID guidance:
 - Require uniqueness across all source layers unless a child artifact is using an
   explicit suffix derived from its owning source item.
 - Allow downstream artifacts to append generated suffixes such as `.mesh.0`,
-  `.collider.1`, or `.debugLabel` when a source item produces multiple runtime
+  `.collider.1`, or `.debug_label` when a source item produces multiple runtime
   pieces.
 
 Short hex IDs may remain as debug display references for screenshot readability
 or compact overlays, but they are downstream labels. Debug labels should point
 back to semantic source IDs rather than becoming the source of truth.
+
+The foundation helpers for this migration live in
+`src/scene/level/sourceIds.ts`. New source-backed level data should use the
+`LevelSourceId` branded type, `assertLevelSourceId(...)`,
+`joinLevelSourceId(...)`, and `makeLevelSourceId(...)` instead of passing raw
+strings through generators. The helper validates lowercase dot-separated paths
+with no empty segments, whitespace, or slash-style paths, and
+`getLevelSourceDebugRef(...)` provides deterministic short uppercase hex
+references for future debug metadata without changing current visible debug IDs.
 
 ## Migration phases
 
