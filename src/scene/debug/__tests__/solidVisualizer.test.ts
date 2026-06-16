@@ -123,6 +123,50 @@ describe('createSolidVisualizer', () => {
     });
   });
 
+  it('keeps visible debug IDs stable when otherwise identical solids add source metadata', () => {
+    const sceneWithoutSource = new Group();
+    sceneWithoutSource.name = 'Scene';
+    sceneWithoutSource.add(createSolid('StableSourceWall'));
+    const withoutSource = createSolidVisualizer({ enabled: true });
+    withoutSource.register(sceneWithoutSource);
+
+    const sceneWithSourceId = new Group();
+    sceneWithSourceId.name = 'Scene';
+    const withSourceId = createSolid('StableSourceWall');
+    withSourceId.userData.levelSourceId = 'wall:stable-source-id';
+    sceneWithSourceId.add(withSourceId);
+    const withSourceIdVisualizer = createSolidVisualizer({ enabled: true });
+    withSourceIdVisualizer.register(sceneWithSourceId);
+
+    const sceneWithLevelSource = new Group();
+    sceneWithLevelSource.name = 'Scene';
+    const withLevelSource = createSolid('StableSourceWall');
+    withLevelSource.userData.levelSource = {
+      sourceId: 'wall:stable-level-source',
+      sourceType: 'wall',
+      purpose: 'structure',
+    };
+    sceneWithLevelSource.add(withLevelSource);
+    const withLevelSourceVisualizer = createSolidVisualizer({ enabled: true });
+    withLevelSourceVisualizer.register(sceneWithLevelSource);
+
+    const [sourceLessMetadata] = withoutSource.getSolids();
+    const [sourceIdMetadata] = withSourceIdVisualizer.getSolids();
+    const [levelSourceMetadata] = withLevelSourceVisualizer.getSolids();
+
+    expect(sourceIdMetadata.id).toBe(sourceLessMetadata.id);
+    expect(levelSourceMetadata.id).toBe(sourceLessMetadata.id);
+    expect(
+      withSourceIdVisualizer.getSolidBySourceId('wall:stable-source-id')
+    ).toEqual(sourceIdMetadata);
+    expect(
+      withLevelSourceVisualizer.getSolidsBySourceId('wall:stable-level-source')
+    ).toEqual([levelSourceMetadata]);
+    expect(sourceLessMetadata).not.toHaveProperty('sourceId');
+    expect(sourceLessMetadata).not.toHaveProperty('sourceType');
+    expect(sourceLessMetadata).not.toHaveProperty('purpose');
+  });
+
   it('inherits source metadata from owning ancestors with child precedence', () => {
     const scene = new Group();
     scene.name = 'Scene';
