@@ -6,10 +6,11 @@ The plan leans into agentic workflows: every deliverable is intentionally scoped
 automation-friendly prompt (see `docs/prompts/`) can guide implementation.
 
 Before any in-game editor is built, the immersive scene is migrating toward
-declarative level source data. The text data layer is the current editor: source
-files describe intended rooms, walls, floor surfaces, safety colliders, scene
-objects, and semantic connections, and generated runtime geometry should flow
-downstream from those files.
+declarative level source data. The text data layer is the current editor for
+source-owned rooms, walls, and floor surfaces; remaining layers such as safety
+colliders, scene objects, semantic connections, room-specific cutouts, and
+other generated runtime geometry should be extracted from imperative assembly
+into those files over the migration.
 
 ## Delivery scoreboard
 
