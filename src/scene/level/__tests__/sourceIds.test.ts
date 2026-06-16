@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { DEBUG_ID_MAX_LENGTH } from '../../debug/debugIds';
 import {
   assertLevelSourceId,
   getLevelSourceDebugRef,
@@ -76,8 +77,24 @@ describe('level source debug references', () => {
     expect(getLevelSourceDebugRef(sourceId)).toBe(
       getLevelSourceDebugRef(sourceId)
     );
-    expect(getLevelSourceDebugRef(sourceId)).toMatch(/^[0-9A-F]{6}$/);
+    expect(getLevelSourceDebugRef(sourceId)).toMatch(
+      new RegExp(`^[0-9A-F]{${DEBUG_ID_MAX_LENGTH}}$`)
+    );
     expect(getLevelSourceDebugRef(sourceId, 4)).toMatch(/^[0-9A-F]{4}$/);
+  });
+
+  it('rejects unsupported debug reference lengths', () => {
+    const sourceId = assertLevelSourceId('ground.living_room.north_wall.left');
+
+    const lengthError = new RegExp(
+      `integer length from 1 to ${DEBUG_ID_MAX_LENGTH}`
+    );
+
+    expect(() => getLevelSourceDebugRef(sourceId, 0)).toThrow(lengthError);
+    expect(() =>
+      getLevelSourceDebugRef(sourceId, DEBUG_ID_MAX_LENGTH + 1)
+    ).toThrow(lengthError);
+    expect(() => getLevelSourceDebugRef(sourceId, 1.5)).toThrow(lengthError);
   });
 
   it('produces different refs for representative different source IDs', () => {
@@ -93,6 +110,6 @@ describe('level source helper names', () => {
   it('avoid tombstone-oriented helper names', async () => {
     const helperNames = Object.keys(await import('../sourceIds'));
 
-    expect(helperNames.join(' ')).not.toMatch(/former|removed|skip/i);
+    expect(helperNames.join(' ')).not.toMatch(/former|removed|tombstone/i);
   });
 });

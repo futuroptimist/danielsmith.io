@@ -1,4 +1,4 @@
-import { getDebugHash } from '../debug/debugIds';
+import { DEBUG_ID_MAX_LENGTH, getDebugHash } from '../debug/debugIds';
 
 export type LevelSourceId = string & {
   readonly __levelSourceIdBrand: unique symbol;
@@ -64,11 +64,11 @@ export const joinLevelSourceId = (...parts: string[]): LevelSourceId =>
 
 export const getLevelSourceDebugRef = (
   sourceId: LevelSourceId,
-  length = 6
+  length = DEBUG_ID_MAX_LENGTH
 ): string => {
-  if (!Number.isInteger(length) || length < 1 || length > 6) {
+  if (!Number.isInteger(length) || length < 1 || length > DEBUG_ID_MAX_LENGTH) {
     throw new Error(
-      'Level source debug refs must request an integer length from 1 to 6.'
+      `Level source debug refs must request an integer length from 1 to ${DEBUG_ID_MAX_LENGTH}.`
     );
   }
 
