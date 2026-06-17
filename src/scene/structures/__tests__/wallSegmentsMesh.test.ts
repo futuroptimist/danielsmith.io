@@ -15,6 +15,8 @@ function createWallInstance(
       rooms: [{ id: 'livingRoom', wall: 'north' }],
     },
     segmentId: 'segment-default',
+    sourceId:
+      'ground.generated-walls.horizontal.x0p000_z0p000.to.x4p000_z0p000.rooms.living-room-north' as WallSegmentInstance['sourceId'],
     center: { x: 2, y: 3, z: 0 },
     dimensions: { width: 4, height: 6, depth: 0.5 },
     collider: { minX: 0, maxX: 4, minZ: -0.25, maxZ: 0.25 },
@@ -33,6 +35,8 @@ describe('createWallSegmentMeshes', () => {
       createWallInstance({
         center: { x: -2, y: 3, z: 1 },
         segmentId: 'segment-vertical',
+        sourceId:
+          'ground.generated-walls.vertical.xm3p000_z0p000.to.xm3p000_z2p000.rooms.kitchen-east' as WallSegmentInstance['sourceId'],
         segment: {
           orientation: 'vertical',
           start: { x: -3, z: 0 },
@@ -48,6 +52,8 @@ describe('createWallSegmentMeshes', () => {
         isFence: true,
         thickness: 0.28,
         segmentId: 'segment-horizontal',
+        sourceId:
+          'ground.generated-walls.horizontal.x4p500_zm5p500.to.x7p500_zm5p500.rooms.backyard-south' as WallSegmentInstance['sourceId'],
         segment: {
           orientation: 'horizontal',
           start: { x: 4.5, z: -5.5 },
@@ -58,11 +64,10 @@ describe('createWallSegmentMeshes', () => {
       }),
     ];
 
-    const getMaterial = vi
-      .fn<(instance: WallSegmentInstance) => MeshBasicMaterial>()
-      .mockImplementation((instance) =>
+    const getMaterial = vi.fn(
+      (instance: WallSegmentInstance): MeshBasicMaterial =>
         instance.isFence ? fenceMaterial : wallMaterial
-      );
+    );
 
     const build = createWallSegmentMeshes({
       instances,
@@ -85,6 +90,11 @@ describe('createWallSegmentMeshes', () => {
       );
       expect(mesh.userData.thickness).toBe(instances[index]?.thickness);
       expect(mesh.userData.segmentId).toBe(instances[index]?.segmentId);
+      expect(mesh.userData.levelSourceId).toBe(instances[index]?.sourceId);
+      expect(mesh.userData.levelSource).toEqual({
+        sourceId: instances[index]?.sourceId,
+        sourceType: 'wall',
+      });
       expect(mesh.name).toBe(
         instances[index]?.isFence ? 'FenceSegment' : 'WallSegment'
       );
