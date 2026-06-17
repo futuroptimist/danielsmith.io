@@ -140,11 +140,44 @@ describe('declarative level schema validation', () => {
   });
 
   it('rejects source IDs that look like tombstone/debug-only removal records', () => {
+    for (const term of ['former', 'removed', 'debugonlyremoval']) {
+      const level = createLevel();
+      level.floors[0].walls[0].sourceId = sourceId(`ground.gallery.${term}`);
+
+      expect(validateLevelDefinition(level).errors).toContain(
+        `wall "gallery-south-wall" sourceId "ground.gallery.${term}" uses forbidden tombstone wording.`
+      );
+    }
+  });
+
+  it('rejects levels without floors', () => {
     const level = createLevel();
-    level.floors[0].walls[0].sourceId = sourceId('ground.gallery.removed');
+    level.floors = [];
 
     expect(validateLevelDefinition(level).errors).toContain(
-      'wall "gallery-south-wall" sourceId "ground.gallery.removed" uses forbidden tombstone wording.'
+      'level "test-level" requires at least one floor.'
+    );
+  });
+
+  it('rejects empty, too-small, non-finite, and duplicate floor outlines', () => {
+    const level = createLevel();
+    level.floors[0].outline = [];
+
+    expect(validateLevelDefinition(level).errors).toContain(
+      'floor "ground" outline requires at least three points.'
+    );
+
+    level.floors[0].outline = [
+      [0, 0],
+      [Number.POSITIVE_INFINITY, 0],
+      [0, 0],
+    ];
+
+    expect(validateLevelDefinition(level).errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('point 1 must use finite coordinates'),
+        expect.stringContaining('must not contain repeated points'),
+      ])
     );
   });
 
@@ -166,15 +199,60 @@ describe('declarative level schema validation', () => {
     );
   });
 
+  it('rejects infinite and inverted bounds', () => {
+    const infiniteBounds = createLevel();
+    infiniteBounds.floors[0].floorSurfaces[0].bounds.maxZ =
+      Number.POSITIVE_INFINITY;
+
+    expect(validateLevelDefinition(infiniteBounds).errors).toContain(
+      'floor surface "gallery-floor" bounds must use finite coordinates.'
+    );
+
+    const invertedBounds = createLevel();
+    invertedBounds.floors[0].rooms[0].bounds.minX = 5;
+    invertedBounds.floors[0].rooms[0].bounds.maxX = 4;
+
+    expect(validateLevelDefinition(invertedBounds).errors).toContain(
+      'room "gallery" bounds must have positive area.'
+    );
+  });
+
   it('reports malformed wall geometry instead of throwing', () => {
-    const level = createLevel();
-    level.floors[0].walls[0] = {
-      ...level.floors[0].walls[0],
+    const undefinedSegments = createLevel();
+    undefinedSegments.floors[0].walls[0] = {
+      ...undefinedSegments.floors[0].walls[0],
       segments: undefined,
     } as never;
 
-    expect(validateLevelDefinition(level).errors).toContain(
+    expect(validateLevelDefinition(undefinedSegments).errors).toContain(
       'wall "gallery-south-wall" requires either segments or a run.'
+    );
+
+    const bothKinds = createLevel();
+    bothKinds.floors[0].walls[0] = {
+      ...bothKinds.floors[0].walls[0],
+      run: { start: { x: 0, z: 0 }, end: { x: 5, z: 0 } },
+    } as never;
+
+    expect(validateLevelDefinition(bothKinds).errors).toContain(
+      'wall "gallery-south-wall" must define either segments or a run, not both.'
+    );
+
+    const neitherKind = createLevel();
+    delete (neitherKind.floors[0].walls[0] as { segments?: unknown }).segments;
+
+    expect(validateLevelDefinition(neitherKind).errors).toContain(
+      'wall "gallery-south-wall" requires either segments or a run.'
+    );
+
+    const undefinedRun = createLevel();
+    undefinedRun.floors[0].walls[1] = {
+      ...undefinedRun.floors[0].walls[1],
+      run: undefined,
+    } as never;
+
+    expect(validateLevelDefinition(undefinedRun).errors).toContain(
+      'wall "studio-west-wall" requires either segments or a run.'
     );
   });
 
@@ -187,6 +265,8 @@ describe('declarative level schema validation', () => {
         { start: Number.NaN, end: 2 },
         { start: -1, end: 1 },
         { start: 2, end: 2.5 },
+        { start: 3, end: 2 },
+        { start: 3.5, end: 5 },
       ],
     };
 
@@ -203,6 +283,8 @@ describe('declarative level schema validation', () => {
         { start: Number.NaN, end: 2 },
         { start: -1, end: 1 },
         { start: 2, end: 2.5 },
+        { start: 3, end: 2 },
+        { start: 3.5, end: 5 },
       ],
     };
 
@@ -211,6 +293,8 @@ describe('declarative level schema validation', () => {
         expect.stringContaining('gap 0 must use finite coordinates'),
         expect.stringContaining('gap 1 must stay within the run'),
         expect.stringContaining('gap 2 must be at least 1.2 units wide'),
+        expect.stringContaining('gap 3 must have positive length'),
+        expect.stringContaining('must not overlap another gap'),
       ])
     );
   });

@@ -241,8 +241,11 @@ Wall authoring supports two current-state representations:
 Those gaps describe present topology only. They are not removed-wall records.
 Validation rejects source IDs with whole tombstone-like path segments such as
 `former`, `removed`, or `debugonlyremoval`, including when those words are the
-final segment. Doorway gaps must be finite, axis-aligned, within the wall run,
-non-overlapping, and wide enough for the legacy doorway checks. A visible door,
+final segment. Doorway gaps use local distances measured from `run.start`
+toward `run.end`; the adapter projects those local distances into absolute
+legacy doorway ranges. Doorway gaps must be finite, positive, axis-aligned,
+within that local wall-run span, non-overlapping, sorted or normalizable, and
+wide enough for the legacy doorway checks. A visible door,
 arch, trim, threshold, or rail should be declared as a scene object or current
 wall/railing; a walkable opening does not need a former blocker record.
 

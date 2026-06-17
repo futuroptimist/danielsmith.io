@@ -63,11 +63,17 @@ function getDoorwaysForWall(
   const roomWall = getRoomWallForRun(room, wall.run);
   if (!roomWall) return [];
 
-  return wall.run.gaps.map((gap) => ({
-    wall: roomWall,
-    start: gap.start,
-    end: gap.end,
-  }));
+  return wall.run.gaps.flatMap((gap) => {
+    const doorwayRange = projectGapToDoorwayRange(wall.run, gap.start, gap.end);
+    if (
+      !doorwayRange ||
+      !doorwayOverlapsRoomWall(room, roomWall, doorwayRange)
+    ) {
+      return [];
+    }
+
+    return [{ wall: roomWall, ...doorwayRange }];
+  });
 }
 
 function getRoomWallForRun(
@@ -87,4 +93,66 @@ function getRoomWallForRun(
   }
 
   return undefined;
+}
+
+function projectGapToDoorwayRange(
+  run: WallDefinition['run'],
+  gapStart: number,
+  gapEnd: number
+): Pick<DoorwayDefinition, 'start' | 'end'> | undefined {
+  const deltaX = run.end.x - run.start.x;
+  const deltaZ = run.end.z - run.start.z;
+  const runLength = Math.hypot(deltaX, deltaZ);
+  if (runLength <= AXIS_EPSILON) return undefined;
+
+  const startRatio = gapStart / runLength;
+  const endRatio = gapEnd / runLength;
+  const projectedStart = {
+    x: run.start.x + deltaX * startRatio,
+    z: run.start.z + deltaZ * startRatio,
+  };
+  const projectedEnd = {
+    x: run.start.x + deltaX * endRatio,
+    z: run.start.z + deltaZ * endRatio,
+  };
+
+  if (Math.abs(deltaZ) <= AXIS_EPSILON) {
+    return normalizeDoorwayRange(projectedStart.x, projectedEnd.x);
+  }
+
+  if (Math.abs(deltaX) <= AXIS_EPSILON) {
+    return normalizeDoorwayRange(projectedStart.z, projectedEnd.z);
+  }
+
+  return undefined;
+}
+
+function normalizeDoorwayRange(
+  start: number,
+  end: number
+): Pick<DoorwayDefinition, 'start' | 'end'> {
+  return {
+    start: roundDoorwayCoordinate(Math.min(start, end)),
+    end: roundDoorwayCoordinate(Math.max(start, end)),
+  };
+}
+
+function roundDoorwayCoordinate(value: number): number {
+  return Number(value.toFixed(12));
+}
+
+function doorwayOverlapsRoomWall(
+  room: SemanticRoomDefinition,
+  wall: RoomWall,
+  doorway: Pick<DoorwayDefinition, 'start' | 'end'>
+): boolean {
+  const bounds =
+    wall === 'north' || wall === 'south'
+      ? { min: room.bounds.minX, max: room.bounds.maxX }
+      : { min: room.bounds.minZ, max: room.bounds.maxZ };
+
+  return (
+    doorway.end > bounds.min + AXIS_EPSILON &&
+    doorway.start < bounds.max - AXIS_EPSILON
+  );
 }

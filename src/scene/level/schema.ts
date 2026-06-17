@@ -63,7 +63,10 @@ export interface WallRunGapDefinition {
 export interface WallRunDefinition {
   start: Point2D;
   end: Point2D;
-  /** Intentional current topology gaps such as open passages, not tombstones. */
+  /**
+   * Intentional current topology gaps such as open passages, not tombstones.
+   * Gap start/end are local distances measured from run.start toward run.end.
+   */
   gaps?: WallRunGapDefinition[];
 }
 
@@ -140,6 +143,10 @@ export function validateLevelDefinition(
   const errors: string[] = [];
   const sourceIds = new Map<string, string>();
   const floorIds = new Set<string>();
+
+  if (level.floors.length === 0) {
+    errors.push(`level "${level.id}" requires at least one floor.`);
+  }
 
   const addNamespaceId = (namespace: string, id: string, ids: Set<string>) => {
     if (ids.has(id)) {
@@ -349,7 +356,17 @@ function validateOutline(
 }
 
 function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
-  if ('segments' in wall && wall.segments !== undefined) {
+  const hasSegments = 'segments' in wall && wall.segments !== undefined;
+  const hasRun = 'run' in wall && wall.run !== undefined;
+
+  if (hasSegments && hasRun) {
+    errors.push(
+      `wall "${wall.id}" must define either segments or a run, not both.`
+    );
+    return;
+  }
+
+  if (hasSegments) {
     if (wall.segments.length === 0)
       errors.push(`wall "${wall.id}" requires at least one segment.`);
     wall.segments.forEach((segment, index) => {
@@ -367,7 +384,7 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
     return;
   }
 
-  if (!('run' in wall) || wall.run === undefined) {
+  if (!hasRun) {
     errors.push(`wall "${wall.id}" requires either segments or a run.`);
     return;
   }
@@ -386,8 +403,8 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
 function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
   if (!('run' in wall) || !wall.run.gaps) return;
 
-  const axisRange = getWallRunAxisRange(wall.run);
-  if (!axisRange) {
+  const runLength = getSegmentLength(wall.run);
+  if (!isAxisAlignedRun(wall.run)) {
     errors.push(`wall "${wall.id}" gaps require an axis-aligned run.`);
     return;
   }
@@ -412,10 +429,7 @@ function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
       );
     }
 
-    if (
-      gap.start < axisRange.min - LENGTH_EPSILON ||
-      gap.end > axisRange.max + LENGTH_EPSILON
-    ) {
+    if (gap.start < -LENGTH_EPSILON || gap.end > runLength + LENGTH_EPSILON) {
       errors.push(`wall "${wall.id}" gap ${index} must stay within the run.`);
     }
 
@@ -428,24 +442,11 @@ function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
   });
 }
 
-function getWallRunAxisRange(
-  run: WallRunDefinition
-): { min: number; max: number } | undefined {
-  if (Math.abs(run.start.z - run.end.z) <= AXIS_EPSILON) {
-    return {
-      min: Math.min(run.start.x, run.end.x),
-      max: Math.max(run.start.x, run.end.x),
-    };
-  }
-
-  if (Math.abs(run.start.x - run.end.x) <= AXIS_EPSILON) {
-    return {
-      min: Math.min(run.start.z, run.end.z),
-      max: Math.max(run.start.z, run.end.z),
-    };
-  }
-
-  return undefined;
+function isAxisAlignedRun(run: WallRunDefinition): boolean {
+  return (
+    Math.abs(run.start.z - run.end.z) <= AXIS_EPSILON ||
+    Math.abs(run.start.x - run.end.x) <= AXIS_EPSILON
+  );
 }
 
 function segmentUsesFiniteCoordinates(segment: WallSegmentDefinition): boolean {

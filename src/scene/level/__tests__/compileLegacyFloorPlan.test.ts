@@ -101,6 +101,82 @@ describe('compileLegacyFloorPlan', () => {
     ]);
   });
 
+  it('projects offset and reversed vertical wall gaps into absolute doorway ranges', () => {
+    const offset = structuredClone(level);
+    offset.floors[0].walls[0].run = {
+      start: { x: 4, z: 4 },
+      end: { x: 4, z: 0 },
+      gaps: [{ start: 1.3, end: 2.7 }],
+    };
+
+    const plan = compileLegacyFloorPlan(offset, 'ground', {
+      includeDoorwaysFromWallGaps: true,
+    });
+
+    expect(plan.rooms).toMatchObject([
+      { id: 'left', doorways: [{ wall: 'east', start: 1.3, end: 2.7 }] },
+      { id: 'right', doorways: [{ wall: 'west', start: 1.3, end: 2.7 }] },
+    ]);
+  });
+
+  it('projects offset and reversed horizontal wall gaps into absolute doorway ranges', () => {
+    const horizontal = structuredClone(level);
+    horizontal.floors[0].rooms = [
+      {
+        id: 'bottom',
+        sourceId: sourceId('ground.bottom.room'),
+        name: 'Bottom',
+        bounds: { minX: 0, maxX: 8, minZ: 0, maxZ: 2 },
+        ledColor: 0xffffff,
+      },
+      {
+        id: 'top',
+        sourceId: sourceId('ground.top.room'),
+        name: 'Top',
+        bounds: { minX: 0, maxX: 8, minZ: 2, maxZ: 4 },
+        ledColor: 0xff00ff,
+      },
+    ];
+    horizontal.floors[0].walls[0] = {
+      ...horizontal.floors[0].walls[0],
+      run: {
+        start: { x: 8, z: 2 },
+        end: { x: 0, z: 2 },
+        gaps: [{ start: 2, end: 4 }],
+      },
+      rooms: ['bottom', 'top'],
+    };
+    horizontal.floors[0].floorSurfaces[0].roomId = 'bottom';
+    horizontal.floors[0].roomConnections = [];
+
+    const plan = compileLegacyFloorPlan(horizontal, 'ground', {
+      includeDoorwaysFromWallGaps: true,
+    });
+
+    expect(plan.rooms).toMatchObject([
+      { id: 'bottom', doorways: [{ wall: 'north', start: 4, end: 6 }] },
+      { id: 'top', doorways: [{ wall: 'south', start: 4, end: 6 }] },
+    ]);
+  });
+
+  it('ignores wall gaps that do not overlap the referenced room boundary', () => {
+    const nonOverlapping = structuredClone(level);
+    nonOverlapping.floors[0].walls[0].run = {
+      start: { x: 4, z: 5 },
+      end: { x: 4, z: 7 },
+      gaps: [{ start: 0.1, end: 1.4 }],
+    };
+
+    const plan = compileLegacyFloorPlan(nonOverlapping, 'ground', {
+      includeDoorwaysFromWallGaps: true,
+    });
+
+    expect(plan.rooms).toMatchObject([
+      { id: 'left', doorways: undefined },
+      { id: 'right', doorways: undefined },
+    ]);
+  });
+
   it('proves semantic room connections alone do not generate or remove geometry', () => {
     const withoutConnections = structuredClone(level);
     withoutConnections.floors[0].roomConnections = [];
