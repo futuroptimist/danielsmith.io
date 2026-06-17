@@ -287,3 +287,50 @@ to regenerate the final visual geometry, gameplay collision, and debug metadata;
 legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
 and inventory tooling can explain every runtime level artifact by semantic source
 ID.
+
+## Declarative schema module
+
+Phase 5 introduces a TypeScript schema in `src/scene/level/schema.ts`. The
+schema is intentionally small enough for hand editing while broad enough to
+represent the current scene as future source data:
+
+- `LevelDefinition` owns one or more `FloorDefinition` entries.
+- `FloorDefinition` carries a human-readable name, outline, semantic rooms,
+  current walls, floor surfaces, and optional safety colliders, scene objects,
+  and semantic room connections.
+- `SemanticRoomDefinition` keeps room labels, bounds, LED colors, and optional
+  interior/exterior category metadata separate from generated wall geometry.
+- `WallDefinition` accepts either explicit current wall segments or a current
+  wall run with intentional gaps. Those gaps are authoring conveniences for
+  present-day topology, not deleted wall records or debug tombstones.
+- `FloorSurfaceDefinition` starts with rectangular bounds and can later feed a
+  generator that clips or splits output around stairs, thresholds, and voids.
+- `SafetyColliderDefinition` requires a purpose string so invisible constraints
+  explain why they exist in reviews and inventory checks.
+- `SceneObjectDefinition` captures visible/interactable placement plus an
+  explicit collider policy (`none`, `footprint`, or custom bounds).
+- `RoomConnectionDefinition` is semantic-only unless a later generator
+  intentionally consumes it; adding a connection does not generate, remove, or
+  patch geometry by itself.
+
+The validator enforces the phase-5 invariants before any runtime migration:
+source IDs must be valid and globally unique, object IDs must be unique within
+floor-local namespaces, wall segments and wall runs must have positive length,
+floor surfaces and safety colliders must have positive area, safety colliders
+must declare a purpose, and room references must resolve. Source IDs containing
+`.former.`, `.removed.`, or `.debugOnlyRemoval.` are rejected so the production
+schema cannot smuggle historical deletion records into the editor layer.
+
+## Transitional legacy floor-plan adapter
+
+`src/scene/level/compileLegacyFloorPlan.ts` provides a temporary adapter from a
+single declarative `FloorDefinition` into the existing `FloorPlanDefinition`
+shape. It copies rooms, outlines, colors, bounds, and categories exactly, then
+infers legacy room `doorways` only from current wall-run gaps that sit on a
+referenced room boundary. This is compatibility glue for room-focused legacy
+helpers; it is not the canonical scene-construction path.
+
+Semantic `roomConnections` are deliberately ignored by the adapter. A connection
+can describe adjacency for UI, navigation, narration, or editor affordances, but
+it does not create a doorway, remove a wall, or modify collision unless a future
+explicit generator is designed to consume it.
