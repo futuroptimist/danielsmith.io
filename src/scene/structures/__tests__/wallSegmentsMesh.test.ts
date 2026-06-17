@@ -14,6 +14,8 @@ function createWallInstance(
       end: { x: 4, z: 0 },
       rooms: [{ id: 'livingRoom', wall: 'north' }],
     },
+    sourceId:
+      'ground.generated-walls.horizontal.x0_z0.x4_z0.living-room-north' as WallSegmentInstance['sourceId'],
     segmentId: 'segment-default',
     center: { x: 2, y: 3, z: 0 },
     dimensions: { width: 4, height: 6, depth: 0.5 },
@@ -32,6 +34,8 @@ describe('createWallSegmentMeshes', () => {
     const instances: WallSegmentInstance[] = [
       createWallInstance({
         center: { x: -2, y: 3, z: 1 },
+        sourceId:
+          'ground.generated-walls.vertical.xn3_z0.xn3_z2.kitchen-east' as WallSegmentInstance['sourceId'],
         segmentId: 'segment-vertical',
         segment: {
           orientation: 'vertical',
@@ -47,6 +51,8 @@ describe('createWallSegmentMeshes', () => {
         dimensions: { width: 0.28, height: 2.4, depth: 3 },
         isFence: true,
         thickness: 0.28,
+        sourceId:
+          'ground.generated-walls.horizontal.x4p5_zn5p5.x7p5_zn5p5.backyard-south' as WallSegmentInstance['sourceId'],
         segmentId: 'segment-horizontal',
         segment: {
           orientation: 'horizontal',
@@ -85,6 +91,11 @@ describe('createWallSegmentMeshes', () => {
       );
       expect(mesh.userData.thickness).toBe(instances[index]?.thickness);
       expect(mesh.userData.segmentId).toBe(instances[index]?.segmentId);
+      expect(mesh.userData.levelSourceId).toBe(instances[index]?.sourceId);
+      expect(mesh.userData.levelSource).toEqual({
+        sourceId: instances[index]?.sourceId,
+        sourceType: 'wall',
+      });
       expect(mesh.name).toBe(
         instances[index]?.isFence ? 'FenceSegment' : 'WallSegment'
       );

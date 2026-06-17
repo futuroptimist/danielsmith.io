@@ -4,8 +4,10 @@ import {
   FLOOR_PLAN,
   WALL_THICKNESS,
   type DoorwayDefinition,
+  type FloorPlanDefinition,
 } from '../assets/floorPlan';
 import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import { isLevelSourceId } from '../scene/level/sourceIds';
 import { collidesWithColliders } from '../systems/collision';
 
 const WALL_HEIGHT = 6;
@@ -36,6 +38,7 @@ function findSharedDoorway(
 
 describe('createWallSegmentInstances', () => {
   const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+    floorId: 'ground',
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -44,6 +47,100 @@ describe('createWallSegmentInstances', () => {
     getRoomCategory,
   });
   const colliders = groundWallInstances.map((instance) => instance.collider);
+
+  it('assigns valid unique semantic source IDs without index suffixes', () => {
+    const sourceIds = groundWallInstances.map((instance) => instance.sourceId);
+
+    expect(sourceIds.every(isLevelSourceId)).toBe(true);
+    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    expect(sourceIds.every((sourceId) => !/\.\d+$/.test(sourceId))).toBe(true);
+    expect(sourceIds.every((sourceId) => sourceId.startsWith('ground.'))).toBe(
+      true
+    );
+  });
+
+  it('keeps source IDs stable when unrelated rooms are inserted', () => {
+    const fixture: FloorPlanDefinition = {
+      outline: [
+        [0, 0],
+        [8, 0],
+        [8, 8],
+        [0, 8],
+      ],
+      rooms: [
+        {
+          id: 'alphaRoom',
+          name: 'Alpha Room',
+          bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+          ledColor: 0xffffff,
+        },
+      ],
+    };
+    const withInsertedRoom: FloorPlanDefinition = {
+      ...fixture,
+      rooms: [
+        {
+          id: 'insertedRoom',
+          name: 'Inserted Room',
+          bounds: { minX: 5, maxX: 8, minZ: 5, maxZ: 8 },
+          ledColor: 0xffffff,
+        },
+        ...fixture.rooms,
+      ],
+    };
+
+    const createFixtureInstances = (plan: FloorPlanDefinition) =>
+      createWallSegmentInstances(plan, {
+        floorId: 'ground',
+        baseElevation: 0,
+        wallHeight: WALL_HEIGHT,
+        wallThickness: WALL_THICKNESS,
+        fenceHeight: FENCE_HEIGHT,
+        fenceThickness: FENCE_THICKNESS,
+        getRoomCategory: () => 'interior',
+      }).filter((instance) =>
+        instance.segment.rooms.some((room) => room.id === 'alphaRoom')
+      );
+
+    expect(
+      createFixtureInstances(withInsertedRoom).map(
+        (instance) => instance.sourceId
+      )
+    ).toEqual(
+      createFixtureInstances(fixture).map((instance) => instance.sourceId)
+    );
+  });
+
+  it('keeps generated geometry and collider bounds unchanged from source ID metadata', () => {
+    const withoutFloorId = createWallSegmentInstances(FLOOR_PLAN, {
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    });
+
+    expect(
+      groundWallInstances.map((instance) => ({
+        center: instance.center,
+        dimensions: instance.dimensions,
+        collider: instance.collider,
+        isFence: instance.isFence,
+        isSharedInterior: instance.isSharedInterior,
+        thickness: instance.thickness,
+      }))
+    ).toEqual(
+      withoutFloorId.map((instance) => ({
+        center: instance.center,
+        dimensions: instance.dimensions,
+        collider: instance.collider,
+        isFence: instance.isFence,
+        isSharedInterior: instance.isSharedInterior,
+        thickness: instance.thickness,
+      }))
+    );
+  });
 
   it('leaves usable gaps for shared doorways', () => {
     const livingRoom = FLOOR_PLAN.rooms.find(

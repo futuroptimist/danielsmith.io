@@ -36,10 +36,7 @@ import {
   WALL_THICKNESS,
   type RoomCategory,
 } from './assets/floorPlan';
-import {
-  createWallSegmentInstances,
-  type WallSegmentInstance,
-} from './assets/floorPlan/wallSegments';
+import { createWallSegmentInstances } from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
   getAudioHudControlStrings,
@@ -977,23 +974,6 @@ const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
 const upperFloorColliders: RectCollider[] = [];
 
-const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
-  `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
-
-const getUpperWallSegmentDebugName = (
-  instance: WallSegmentInstance
-): string => {
-  const { segment } = instance;
-  const start = formatUpperWallDebugPoint(segment.start);
-  const end = formatUpperWallDebugPoint(segment.end);
-  const rooms = segment.rooms
-    .map((room) => `${room.id}:${room.wall}`)
-    .sort()
-    .join('|');
-
-  return `UpperWallSegment:${segment.orientation}|${start}|${end}|${rooms || 'none'}`;
-};
-
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
@@ -1870,6 +1850,7 @@ function initializeImmersiveScene(
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
   const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+    floorId: 'ground',
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -1887,6 +1868,7 @@ function initializeImmersiveScene(
   groundFloorGroup.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
     groundColliders.push(instance.collider);
+    namedColliderDebugNames.set(instance.collider, instance.sourceId);
   });
 
   const doorwayOpenings = createDoorwayOpenings(FLOOR_PLAN, {
@@ -2338,6 +2320,7 @@ function initializeImmersiveScene(
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+    floorId: 'upper',
     baseElevation: upperFloorElevation,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -2356,10 +2339,7 @@ function initializeImmersiveScene(
   upperFloorGroup.add(upperWallMeshes.group);
   upperWallInstances.forEach((instance) => {
     upperFloorColliders.push(instance.collider);
-    namedColliderDebugNames.set(
-      instance.collider,
-      getUpperWallSegmentDebugName(instance)
-    );
+    namedColliderDebugNames.set(instance.collider, instance.sourceId);
   });
 
   const floorColliders: Record<FloorId, RectCollider[]> = {
@@ -4442,6 +4422,7 @@ function initializeImmersiveScene(
       category: string;
       namePrefix: string;
       elevation?: number;
+      sourceIds?: ReadonlyMap<RectCollider, string>;
     }
   ): DebugColliderRegistration[] =>
     colliders.map((bounds, index) => ({
@@ -4452,6 +4433,8 @@ function initializeImmersiveScene(
         `${options.namePrefix}-${index + 1}`,
       bounds,
       elevation: options.elevation,
+      sourceId: options.sourceIds?.get(bounds),
+      sourceType: options.sourceIds?.has(bounds) ? 'wall' : undefined,
     }));
 
   const colliderVisualizer = createColliderVisualizer({
@@ -4459,11 +4442,17 @@ function initializeImmersiveScene(
     enabled: debugCollidersEnabled,
   });
   colliderVisualizer.setIdsEnabled(debugColliderIdsEnabled);
+  const generatedWallColliderSourceIds = new Map<RectCollider, string>();
+  for (const instance of [...groundWallInstances, ...upperWallInstances]) {
+    generatedWallColliderSourceIds.set(instance.collider, instance.sourceId);
+  }
+
   colliderVisualizer.register([
     ...createDebugColliderRegistrations(groundColliders, {
       floor: 'ground',
       category: 'ground',
       namePrefix: 'ground-collider',
+      sourceIds: generatedWallColliderSourceIds,
     }),
     ...createDebugColliderRegistrations(staticColliders, {
       floor: 'ground',
@@ -4475,6 +4464,7 @@ function initializeImmersiveScene(
       category: 'upper',
       namePrefix: 'upper-collider',
       elevation: upperFloorElevation,
+      sourceIds: generatedWallColliderSourceIds,
     }),
   ]);
   scene.add(colliderVisualizer.group);
