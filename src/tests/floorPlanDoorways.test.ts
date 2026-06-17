@@ -241,6 +241,7 @@ describe('upper landing west egress doorway', () => {
     }
 
     const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      floorId: 'upper',
       baseElevation: 0,
       wallHeight: WALL_HEIGHT,
       wallThickness: WALL_THICKNESS,
@@ -271,6 +272,7 @@ describe('upper landing west egress doorway', () => {
 
   it('omits the former upper landing to loft library west wall blocker', () => {
     const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+      floorId: 'upper',
       baseElevation: 0,
       wallHeight: WALL_HEIGHT,
       wallThickness: WALL_THICKNESS,

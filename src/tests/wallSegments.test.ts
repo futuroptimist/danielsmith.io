@@ -6,7 +6,10 @@ import {
   type DoorwayDefinition,
   type FloorPlanDefinition,
 } from '../assets/floorPlan';
-import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import {
+  createWallSegmentInstances,
+  type WallSegmentInstance,
+} from '../assets/floorPlan/wallSegments';
 import { isLevelSourceId } from '../scene/level/sourceIds';
 import { collidesWithColliders } from '../systems/collision';
 
@@ -51,9 +54,7 @@ const createFixtureInstances = (plan: FloorPlanDefinition) =>
     getRoomCategory: getFixtureRoomCategory,
   });
 
-const getSegmentKey = (instance: {
-  segment: (typeof groundWallInstances)[number]['segment'];
-}) =>
+const getSegmentKey = (instance: Pick<WallSegmentInstance, 'segment'>) =>
   [
     instance.segment.orientation,
     instance.segment.start.x.toFixed(3),
@@ -101,10 +102,16 @@ describe('createWallSegmentInstances', () => {
 
   it('assigns valid unique semantic source IDs without array index suffixes', () => {
     const sourceIds = groundWallInstances.map((instance) => instance.sourceId);
+    const segmentIds = groundWallInstances.map(
+      (instance) => instance.segmentId
+    );
 
     expect(sourceIds.every(isLevelSourceId)).toBe(true);
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
     expect(sourceIds.every((sourceId) => !/[.|_-]\d+$/.test(sourceId))).toBe(
+      true
+    );
+    expect(segmentIds.every((segmentId) => !/[.|_-]\d+$/.test(segmentId))).toBe(
       true
     );
   });
@@ -136,8 +143,22 @@ describe('createWallSegmentInstances', () => {
     });
   });
 
+  it('requires floor context for semantic source IDs', () => {
+    expect(() =>
+      createWallSegmentInstances(FLOOR_PLAN, {
+        baseElevation: 0,
+        wallHeight: WALL_HEIGHT,
+        wallThickness: WALL_THICKNESS,
+        fenceHeight: FENCE_HEIGHT,
+        fenceThickness: FENCE_THICKNESS,
+        getRoomCategory,
+      } as never)
+    ).toThrow(/requires floorId or levelId/);
+  });
+
   it('preserves generated geometry and collider bounds when source IDs are added', () => {
-    const withoutFloorContext = createWallSegmentInstances(FLOOR_PLAN, {
+    const alternateFloorContext = createWallSegmentInstances(FLOOR_PLAN, {
+      floorId: 'alternate',
       baseElevation: 0,
       wallHeight: WALL_HEIGHT,
       wallThickness: WALL_THICKNESS,
@@ -147,7 +168,7 @@ describe('createWallSegmentInstances', () => {
     });
 
     expect(
-      withoutFloorContext.map((instance) => ({
+      alternateFloorContext.map((instance) => ({
         center: instance.center,
         dimensions: instance.dimensions,
         collider: instance.collider,

@@ -28,7 +28,7 @@ export interface WallSegmentInstance {
   thickness: number;
 }
 
-export interface WallSegmentOptions {
+interface WallSegmentBaseOptions {
   baseElevation: number;
   wallHeight: number;
   wallThickness: number;
@@ -38,12 +38,25 @@ export interface WallSegmentOptions {
   interiorExtensionFactor?: number;
   /** Additional overlap factor for exterior segments to prevent light leaks. */
   exteriorExtensionFactor?: number;
-  /** Floor context used when deriving semantic source IDs for generated wall segments. */
-  floorId?: string;
-  /** Alias for floorId when a caller has level terminology. */
-  levelId?: string;
   getRoomCategory(roomId: string): RoomCategory;
 }
+
+type WallSegmentFloorContext =
+  | {
+      /** Floor context used when deriving semantic source IDs for generated wall segments. */
+      floorId: string;
+      /** Alias for floorId when a caller has level terminology. */
+      levelId?: string;
+    }
+  | {
+      /** Floor context used when deriving semantic source IDs for generated wall segments. */
+      floorId?: string;
+      /** Alias for floorId when a caller has level terminology. */
+      levelId: string;
+    };
+
+export type WallSegmentOptions = WallSegmentBaseOptions &
+  WallSegmentFloorContext;
 
 const DEFAULT_INTERIOR_EXTENSION = 0.5;
 const DEFAULT_EXTERIOR_EXTENSION = 1;
@@ -174,8 +187,16 @@ function createSegmentId(segment: CombinedWallSegment): string {
 }
 
 function formatSourceCoordinate(value: number): string {
-  const scaled = Math.round(value * 1000);
-  return scaled < 0 ? `n${Math.abs(scaled)}` : `p${scaled}`;
+  if (!Number.isFinite(value)) {
+    throw new Error(
+      `Wall source coordinates must be finite; received ${value}.`
+    );
+  }
+
+  const normalized = Object.is(value, -0) ? 0 : value;
+  return `${normalized < 0 ? 'n' : 'p'}${Math.abs(normalized)
+    .toString()
+    .replace(/[^a-z0-9]+/g, '_')}`;
 }
 
 function formatSourcePoint(point: { x: number; z: number }): string {
@@ -196,9 +217,14 @@ function createSegmentSourceId(
   segment: CombinedWallSegment,
   options: Pick<WallSegmentOptions, 'floorId' | 'levelId'>
 ): LevelSourceId {
-  const floorId = formatSourcePart(
-    options.floorId ?? options.levelId ?? 'floor'
-  );
+  const floorContext = options.floorId ?? options.levelId;
+  if (!floorContext) {
+    throw new Error(
+      'createWallSegmentInstances requires floorId or levelId for stable wall source IDs.'
+    );
+  }
+
+  const floorId = formatSourcePart(floorContext);
   const rooms = segment.rooms
     .map((room) => `${formatSourcePart(room.id)}_${room.wall}`)
     .sort()
