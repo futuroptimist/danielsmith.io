@@ -36,10 +36,7 @@ import {
   WALL_THICKNESS,
   type RoomCategory,
 } from './assets/floorPlan';
-import {
-  createWallSegmentInstances,
-  type WallSegmentInstance,
-} from './assets/floorPlan/wallSegments';
+import type { WallSegmentInstance } from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
   getAudioHudControlStrings,
@@ -153,6 +150,8 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { generateWallInstances } from './scene/level/generateWalls';
+import { PORTFOLIO_LEVEL } from './scene/level/portfolioLevel';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -502,6 +501,15 @@ const DEBUG_SOLID_IDS_STORAGE_KEY = 'danielsmith.io::debugSolidIds::v1';
 const DEBUG_FPS_STORAGE_KEY = 'danielsmith.io::debugFpsCounter::v1';
 const DEBUG_URL_TRUTHY_VALUES = ['1', 'true', 'yes', 'on'] as const;
 const DEBUG_URL_FALSY_VALUES = ['0', 'false', 'no', 'off'] as const;
+const getPortfolioFloor = (floorId: 'ground' | 'upper') => {
+  const floor = PORTFOLIO_LEVEL.floors.find(
+    (candidate) => candidate.id === floorId
+  );
+  if (!floor) {
+    throw new Error(`Missing declarative portfolio floor: ${floorId}`);
+  }
+  return floor;
+};
 const isDebugUrlValueIn = (
   value: string | null | undefined,
   candidates: readonly string[]
@@ -1873,8 +1881,9 @@ function initializeImmersiveScene(
   wallMaterial.lightMapIntensity = 0.68;
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
-  const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
-    floorId: 'ground',
+  const groundLevelFloor = getPortfolioFloor('ground');
+  const groundWallInstances = generateWallInstances(groundLevelFloor, {
+    scale: FLOOR_PLAN_SCALE,
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -2343,8 +2352,9 @@ function initializeImmersiveScene(
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
-  const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
-    floorId: 'upper',
+  const upperLevelFloor = getPortfolioFloor('upper');
+  const upperWallInstances = generateWallInstances(upperLevelFloor, {
+    scale: FLOOR_PLAN_SCALE,
     baseElevation: upperFloorElevation,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
