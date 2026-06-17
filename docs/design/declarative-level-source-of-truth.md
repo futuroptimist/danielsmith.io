@@ -214,6 +214,42 @@ with no empty segments, whitespace, or slash-style paths, and
 `getLevelSourceDebugRef(...)` provides deterministic short uppercase hex
 references for future debug metadata without changing current visible debug IDs.
 
+## Declarative schema and transitional adapter
+
+Phase 5 introduces the first TypeScript schema in `src/scene/level/schema.ts`.
+The schema is intentionally hand-editable and mirrors the future editor layers:
+
+- `LevelDefinition` owns a set of floors.
+- `FloorDefinition` owns floor `outline`, semantic `rooms`, current `walls`,
+  `floorSurfaces`, optional `safetyColliders`, optional `sceneObjects`, and
+  optional semantic `roomConnections`.
+- Rooms, walls, surfaces, safety colliders, scene objects, and connections each
+  carry stable `sourceId` values using the semantic source-ID helpers.
+- Walls may be literal segments or axis-aligned current-state runs with
+  intentional `gaps`. Those gaps represent present topology, such as an open
+  passage or doorway; they are not former-wall records or deletion tombstones.
+- Floor surfaces start as rectangles. Generators may later split or clip them
+  into renderable pieces, but the source data remains the current intended
+  surface.
+- Room connections are semantic only unless a later generator explicitly consumes
+  them. They do not create or remove walls, floors, or colliders by themselves.
+
+Validation enforces uniqueness for source IDs across the level data it checks and
+for object IDs within each floor namespace. It also rejects invalid semantic
+source IDs, tombstone-style markers such as `.former.`, `.removed.`, and
+`.debugOnlyRemoval.`, zero-length wall segments or runs, zero-area floor
+surfaces and safety colliders, safety colliders without purpose text, bad floor
+references, and room connections or object references that point at missing
+rooms.
+
+`src/scene/level/compileLegacyFloorPlan.ts` is a temporary compatibility adapter.
+It compiles declarative rooms into the existing `FloorPlanDefinition` shape and
+derives legacy room doorway ranges from intentional gaps on current wall runs.
+That doorway derivation exists only so old room-first consumers can keep working
+during migration; canonical scene construction should move toward direct
+consumption of declarative wall, floor-surface, safety-collider, scene-object,
+and connection data.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
