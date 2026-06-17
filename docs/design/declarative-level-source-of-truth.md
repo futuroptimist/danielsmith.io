@@ -249,9 +249,12 @@ wide enough for the legacy doorway checks. A visible door,
 arch, trim, threshold, or rail should be declared as a scene object or current
 wall/railing; a walkable opening does not need a former blocker record.
 
-The temporary adapter in `src/scene/level/compileLegacyFloorPlan.ts` compiles a
-declarative floor back to the existing `FloorPlanDefinition` shape for migration
-checks and narrow compatibility. By default it copies room metadata only. When
+Current ground and upper room bounds, wall runs, intentional wall-run gaps,
+floor surfaces, and semantic room connections now live in
+`src/scene/level/portfolioLevel.ts`. The temporary adapter in
+`src/scene/level/compileLegacyFloorPlan.ts` compiles a declarative floor
+back to the existing `FloorPlanDefinition` shape for migration checks and
+narrow compatibility. By default it copies room metadata only. When
 `includeDoorwaysFromWallGaps` is explicitly enabled, it derives legacy room
 `doorways` from current wall-run gaps. That derivation is compatibility glue for
 old room-wall generators, not the canonical future scene-construction path, and
@@ -269,8 +272,9 @@ semantic `roomConnections` intentionally do not create or remove geometry.
    IDs so debug references do not churn while source IDs are introduced.
 5. **Add the declarative schema.** Define rooms, walls, floor surfaces, safety
    colliders, scene objects, and room connections as source data.
-6. **Migrate room and wall data.** Move current room and wall intent into the
-   declarative source while proving generated output remains equivalent.
+6. **Migrate room and wall data.** Current room and wall intent now lives in
+   `src/scene/level/portfolioLevel.ts`; legacy floor-plan exports still compile
+   through the adapter until downstream generators consume source data directly.
 7. **Generate wall outputs from source.** Derive wall meshes, wall colliders, and
    wall debug metadata from source-backed wall definitions.
 8. **Generate floor outputs from source.** Derive floor surfaces from source data,
