@@ -287,3 +287,37 @@ to regenerate the final visual geometry, gameplay collision, and debug metadata;
 legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
 and inventory tooling can explain every runtime level artifact by semantic source
 ID.
+
+## Declarative schema adapter added in phase 5
+
+The first TypeScript schema now lives in `src/scene/level/schema.ts`. It defines
+`LevelDefinition` and per-floor source layers for semantic rooms, current walls,
+floor surfaces, safety colliders, scene objects, and optional room connections.
+Every source-backed item carries a stable semantic `sourceId`, while local `id`
+values stay unique within their layer on a floor so hand-edited diffs remain
+small and readable.
+
+Walls can be authored as explicit segment lists or as one current-state run with
+intentional gaps. A gap means “this opening exists now”; it is not a former wall,
+removed bounds record, or debug-ID tombstone. Visible doors, trims, thresholds,
+rails, and similar passage details should be declared as current wall geometry or
+scene objects. Purely walkable openings can remain as absences in the wall layer,
+with an optional `RoomConnectionDefinition` for semantic adjacency.
+
+`validateLevelDefinition(...)` enforces the initial source invariants:
+
+- valid, unique semantic source IDs across all source layers;
+- unique local object IDs inside each floor/layer namespace;
+- positive wall segment or run length;
+- positive floor-surface and safety-collider area;
+- non-empty safety-collider purpose text;
+- room references that resolve on the owning floor; and
+- no source IDs containing `.former.`, `.removed.`, or `.debugOnlyRemoval.`.
+
+The temporary compatibility adapter in
+`src/scene/level/compileLegacyFloorPlan.ts` compiles declarative rooms into the
+existing `FloorPlanDefinition` shape for transitional tests and legacy helpers.
+It derives legacy room `doorways` only from intentional wall-run gaps so current
+room-wall splitting can continue during migration. This is compatibility glue,
+not canonical scene construction: semantic `roomConnections` are ignored by the
+adapter and must not create, remove, or patch geometry by themselves.
