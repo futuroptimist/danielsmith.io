@@ -292,10 +292,12 @@ describe('declarative level schema validation', () => {
       end: { x: 9, z: 4 },
       gaps: [
         { start: Number.NaN, end: 2 },
+        null,
         { start: -1, end: 1 },
         { start: 2, end: 2.5 },
         { start: 3, end: 2 },
         { start: 3.5, end: 5 },
+        { start: 4, end: 5.5 },
       ],
     };
 
@@ -310,19 +312,22 @@ describe('declarative level schema validation', () => {
       end: { x: 5, z: 6 },
       gaps: [
         { start: Number.NaN, end: 2 },
+        null,
         { start: -1, end: 1 },
         { start: 2, end: 2.5 },
         { start: 3, end: 2 },
         { start: 3.5, end: 5 },
+        { start: 4, end: 5.5 },
       ],
     };
 
     expect(validateLevelDefinition(level).errors).toEqual(
       expect.arrayContaining([
         expect.stringContaining('gap 0 must use finite coordinates'),
-        expect.stringContaining('gap 1 must stay within the run'),
-        expect.stringContaining('gap 2 must be at least 1.2 units wide'),
-        expect.stringContaining('gap 3 must have positive length'),
+        expect.stringContaining('gap 1 must use finite coordinates'),
+        expect.stringContaining('gap 0 must stay within the run'),
+        expect.stringContaining('gap 1 must be at least 1.2 units wide'),
+        expect.stringContaining('gap 2 must have positive length'),
         expect.stringContaining('must not overlap another gap'),
       ])
     );

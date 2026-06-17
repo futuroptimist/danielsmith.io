@@ -416,15 +416,20 @@ function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
     return;
   }
 
-  const sortedGaps = [...wall.run.gaps].sort((a, b) => a.start - b.start);
-  sortedGaps.forEach((gap, index) => {
-    if (!Number.isFinite(gap.start) || !Number.isFinite(gap.end)) {
+  const validGaps: WallRunGapDefinition[] = [];
+  wall.run.gaps.forEach((gap, index) => {
+    if (!isFiniteWallRunGap(gap)) {
       errors.push(
         `wall "${wall.id}" gap ${index} must use finite coordinates.`
       );
       return;
     }
 
+    validGaps.push(gap);
+  });
+
+  const sortedGaps = [...validGaps].sort((a, b) => a.start - b.start);
+  sortedGaps.forEach((gap, index) => {
     if (gap.end - gap.start <= LENGTH_EPSILON) {
       errors.push(`wall "${wall.id}" gap ${index} must have positive length.`);
       return;
@@ -447,6 +452,12 @@ function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
       );
     }
   });
+}
+
+function isFiniteWallRunGap(gap: unknown): gap is WallRunGapDefinition {
+  return (
+    isRecord(gap) && Number.isFinite(gap.start) && Number.isFinite(gap.end)
+  );
 }
 
 function isAxisAlignedRun(run: WallRunDefinition): boolean {
