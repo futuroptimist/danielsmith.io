@@ -975,6 +975,7 @@ const LIGHTING_OPTIONS = {
 
 const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
+const wallColliderSourceIds = new Map<RectCollider, string>();
 const upperFloorColliders: RectCollider[] = [];
 
 const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
@@ -1870,6 +1871,7 @@ function initializeImmersiveScene(
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
   const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+    floorId: 'ground',
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -1887,6 +1889,7 @@ function initializeImmersiveScene(
   groundFloorGroup.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
     groundColliders.push(instance.collider);
+    wallColliderSourceIds.set(instance.collider, instance.sourceId);
   });
 
   const doorwayOpenings = createDoorwayOpenings(FLOOR_PLAN, {
@@ -2338,6 +2341,7 @@ function initializeImmersiveScene(
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+    floorId: 'upper',
     baseElevation: upperFloorElevation,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -2360,6 +2364,7 @@ function initializeImmersiveScene(
       instance.collider,
       getUpperWallSegmentDebugName(instance)
     );
+    wallColliderSourceIds.set(instance.collider, instance.sourceId);
   });
 
   const floorColliders: Record<FloorId, RectCollider[]> = {
@@ -4449,9 +4454,12 @@ function initializeImmersiveScene(
       category: options.category,
       name:
         namedColliderDebugNames.get(bounds) ??
+        wallColliderSourceIds.get(bounds) ??
         `${options.namePrefix}-${index + 1}`,
       bounds,
       elevation: options.elevation,
+      sourceId: wallColliderSourceIds.get(bounds),
+      sourceType: wallColliderSourceIds.has(bounds) ? 'wall' : undefined,
     }));
 
   const colliderVisualizer = createColliderVisualizer({

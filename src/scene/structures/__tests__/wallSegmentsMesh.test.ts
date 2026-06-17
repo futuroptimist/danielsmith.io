@@ -2,6 +2,7 @@ import { MeshBasicMaterial } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { WallSegmentInstance } from '../../../assets/floorPlan/wallSegments';
+import { assertLevelSourceId } from '../../../scene/level/sourceIds';
 import { createWallSegmentMeshes } from '../wallSegmentsMesh';
 
 function createWallInstance(
@@ -15,6 +16,7 @@ function createWallInstance(
       rooms: [{ id: 'livingRoom', wall: 'north' }],
     },
     segmentId: 'segment-default',
+    sourceId: assertLevelSourceId('ground.generated-wall.horizontal.default'),
     center: { x: 2, y: 3, z: 0 },
     dimensions: { width: 4, height: 6, depth: 0.5 },
     collider: { minX: 0, maxX: 4, minZ: -0.25, maxZ: 0.25 },
@@ -33,6 +35,9 @@ describe('createWallSegmentMeshes', () => {
       createWallInstance({
         center: { x: -2, y: 3, z: 1 },
         segmentId: 'segment-vertical',
+        sourceId: assertLevelSourceId(
+          'ground.generated-wall.vertical.kitchen-east'
+        ),
         segment: {
           orientation: 'vertical',
           start: { x: -3, z: 0 },
@@ -48,6 +53,9 @@ describe('createWallSegmentMeshes', () => {
         isFence: true,
         thickness: 0.28,
         segmentId: 'segment-horizontal',
+        sourceId: assertLevelSourceId(
+          'ground.generated-wall.horizontal.backyard-south'
+        ),
         segment: {
           orientation: 'horizontal',
           start: { x: 4.5, z: -5.5 },
@@ -85,6 +93,11 @@ describe('createWallSegmentMeshes', () => {
       );
       expect(mesh.userData.thickness).toBe(instances[index]?.thickness);
       expect(mesh.userData.segmentId).toBe(instances[index]?.segmentId);
+      expect(mesh.userData.levelSourceId).toBe(instances[index]?.sourceId);
+      expect(mesh.userData.levelSource).toEqual({
+        sourceId: instances[index]?.sourceId,
+        sourceType: 'wall',
+      });
       expect(mesh.name).toBe(
         instances[index]?.isFence ? 'FenceSegment' : 'WallSegment'
       );

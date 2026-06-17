@@ -4,8 +4,10 @@ import {
   FLOOR_PLAN,
   WALL_THICKNESS,
   type DoorwayDefinition,
+  type FloorPlanDefinition,
 } from '../assets/floorPlan';
 import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import { isLevelSourceId } from '../scene/level/sourceIds';
 import { collidesWithColliders } from '../systems/collision';
 
 const WALL_HEIGHT = 6;
@@ -36,6 +38,7 @@ function findSharedDoorway(
 
 describe('createWallSegmentInstances', () => {
   const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+    floorId: 'ground',
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -44,6 +47,93 @@ describe('createWallSegmentInstances', () => {
     getRoomCategory,
   });
   const colliders = groundWallInstances.map((instance) => instance.collider);
+
+  it('assigns valid unique semantic source IDs without array suffixes', () => {
+    const sourceIds = groundWallInstances.map((instance) => instance.sourceId);
+
+    expect(sourceIds.every(isLevelSourceId)).toBe(true);
+    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    expect(sourceIds.every((sourceId) => !/\.\d+$/.test(sourceId))).toBe(true);
+  });
+
+  it('keeps geometry and collider bounds independent from source ID generation', () => {
+    const withoutSourceIds = groundWallInstances.map((instance) => ({
+      ...instance,
+      sourceId: undefined,
+    }));
+    const regenerated = createWallSegmentInstances(FLOOR_PLAN, {
+      floorId: 'ground',
+      baseElevation: 0,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    }).map((instance) => ({
+      ...instance,
+      sourceId: undefined,
+    }));
+
+    expect(regenerated).toEqual(withoutSourceIds);
+  });
+
+  it('does not churn unaffected source IDs when unrelated segments are inserted', () => {
+    const basePlan: FloorPlanDefinition = {
+      outline: [
+        [0, 0],
+        [8, 0],
+        [8, 8],
+        [0, 8],
+      ],
+      rooms: [
+        {
+          id: 'alphaRoom',
+          name: 'Alpha Room',
+          bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+          ledColor: 0xffffff,
+        },
+        {
+          id: 'betaRoom',
+          name: 'Beta Room',
+          bounds: { minX: 4, maxX: 8, minZ: 0, maxZ: 4 },
+          ledColor: 0xffffff,
+        },
+      ],
+    };
+    const insertedPlan: FloorPlanDefinition = {
+      ...basePlan,
+      rooms: [
+        {
+          id: 'insertedRoom',
+          name: 'Inserted Room',
+          bounds: { minX: 0, maxX: 4, minZ: 4, maxZ: 8 },
+          ledColor: 0xffffff,
+        },
+        ...basePlan.rooms,
+      ],
+    };
+    const createFixtureInstances = (plan: FloorPlanDefinition) =>
+      createWallSegmentInstances(plan, {
+        floorId: 'ground',
+        baseElevation: 0,
+        wallHeight: WALL_HEIGHT,
+        wallThickness: WALL_THICKNESS,
+        fenceHeight: FENCE_HEIGHT,
+        fenceThickness: FENCE_THICKNESS,
+        getRoomCategory: () => 'interior',
+      });
+    const findAlphaSouth = (plan: FloorPlanDefinition) =>
+      createFixtureInstances(plan).find(
+        (instance) =>
+          instance.segment.rooms.length === 1 &&
+          instance.segment.rooms[0]?.id === 'alphaRoom' &&
+          instance.segment.rooms[0]?.wall === 'south'
+      );
+
+    expect(findAlphaSouth(insertedPlan)?.sourceId).toBe(
+      findAlphaSouth(basePlan)?.sourceId
+    );
+  });
 
   it('leaves usable gaps for shared doorways', () => {
     const livingRoom = FLOOR_PLAN.rooms.find(
