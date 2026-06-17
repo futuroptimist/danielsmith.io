@@ -214,6 +214,44 @@ with no empty segments, whitespace, or slash-style paths, and
 `getLevelSourceDebugRef(...)` provides deterministic short uppercase hex
 references for future debug metadata without changing current visible debug IDs.
 
+## Declarative schema adapter (phase 5)
+
+The first code-level source contract lives in `src/scene/level/schema.ts`. It is
+not wired into runtime scene construction yet; `FLOOR_PLAN`,
+`UPPER_FLOOR_PLAN`, generated wall meshes, generated colliders, and compact debug
+IDs remain unchanged in this phase. The schema exists so future edits have a
+small, hand-authored shape to migrate toward before any runtime generator changes.
+
+The schema models a `LevelDefinition` with one or more `FloorDefinition` entries.
+Each floor has an outline plus explicit arrays for semantic rooms, current walls,
+floor surfaces, and optional safety colliders, scene objects, and semantic room
+connections. All source-backed entities carry a `sourceId` using the semantic ID
+helpers from `src/scene/level/sourceIds.ts`, and validation checks global source
+ID uniqueness across layers. Per-layer `id` fields are unique within their floor
+namespace so editor-friendly IDs can stay short while source IDs remain globally
+stable.
+
+Wall authoring supports two current-state representations:
+
+- explicit positive wall `segments` for authors who want to spell out each
+  visible/collidable piece;
+- a current wall `run` with intentional `gaps` for doors or open passages when
+  the run is easier to edit as one boundary.
+
+Those gaps describe present topology only. They are not removed-wall records, and
+validation rejects source IDs that contain tombstone-like segments such as
+`.former.`, `.removed.`, or `.debugOnlyRemoval.`. A visible door, arch, trim,
+threshold, or rail should be declared as a scene object or current wall/railing;
+a walkable opening does not need a former blocker record.
+
+The temporary adapter in `src/scene/level/compileLegacyFloorPlan.ts` compiles a
+declarative floor back to the existing `FloorPlanDefinition` shape for migration
+checks and narrow compatibility. By default it copies room metadata only. When
+`includeDoorwaysFromWallGaps` is explicitly enabled, it derives legacy room
+`doorways` from current wall-run gaps. That derivation is compatibility glue for
+old room-wall generators, not the canonical future scene-construction path, and
+semantic `roomConnections` intentionally do not create or remove geometry.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
