@@ -36,10 +36,7 @@ import {
   WALL_THICKNESS,
   type RoomCategory,
 } from './assets/floorPlan';
-import {
-  createWallSegmentInstances,
-  type WallSegmentInstance,
-} from './assets/floorPlan/wallSegments';
+import { type WallSegmentInstance } from './assets/floorPlan/wallSegments';
 import {
   formatMessage,
   getAudioHudControlStrings,
@@ -153,6 +150,8 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { generateWallInstances } from './scene/level/generateWalls';
+import { PORTFOLIO_LEVEL } from './scene/level/portfolioLevel';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -1873,8 +1872,9 @@ function initializeImmersiveScene(
   wallMaterial.lightMapIntensity = 0.68;
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
-  const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+  const groundWallInstances = generateWallInstances(PORTFOLIO_LEVEL, {
     floorId: 'ground',
+    coordinateScale: FLOOR_PLAN_SCALE,
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -2343,8 +2343,9 @@ function initializeImmersiveScene(
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
-  const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+  const upperWallInstances = generateWallInstances(PORTFOLIO_LEVEL, {
     floorId: 'upper',
+    coordinateScale: FLOOR_PLAN_SCALE,
     baseElevation: upperFloorElevation,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,

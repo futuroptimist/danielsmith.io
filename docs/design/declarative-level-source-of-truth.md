@@ -275,8 +275,10 @@ semantic `roomConnections` intentionally do not create or remove geometry.
 6. **Migrate room and wall data.** Current room and wall intent now lives in
    `src/scene/level/portfolioLevel.ts`; legacy floor-plan exports still compile
    through the adapter until downstream generators consume source data directly.
-7. **Generate wall outputs from source.** Derive wall meshes, wall colliders, and
-   wall debug metadata from source-backed wall definitions.
+7. **Generate wall outputs from source.** Wall meshes, wall colliders, and
+   wall debug metadata are now derived from source-backed wall definitions via
+   `src/scene/level/generateWalls.ts`, with source IDs flowing through mesh
+   userData and collider debug metadata.
 8. **Generate floor outputs from source.** Derive floor surfaces from source data,
    allowing generator-owned splitting and clipping where useful.
 9. **Move stair and void safety.** Convert stair, landing, and void guard

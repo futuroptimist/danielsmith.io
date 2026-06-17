@@ -84,12 +84,20 @@ export function createWallSegmentInstances(
   plan: FloorPlanDefinition,
   options: WallSegmentOptions
 ): WallSegmentInstance[] {
+  return createWallSegmentInstancesFromCombinedSegments(
+    getCombinedWallSegments(plan),
+    options
+  );
+}
+
+export function createWallSegmentInstancesFromCombinedSegments(
+  segments: readonly CombinedWallSegment[],
+  options: WallSegmentOptions
+): WallSegmentInstance[] {
   const interiorExtension =
     options.interiorExtensionFactor ?? DEFAULT_INTERIOR_EXTENSION;
   const exteriorExtension =
     options.exteriorExtensionFactor ?? DEFAULT_EXTERIOR_EXTENSION;
-
-  const segments = getCombinedWallSegments(plan);
   const instances: WallSegmentInstance[] = [];
 
   segments.forEach((segment) => {
