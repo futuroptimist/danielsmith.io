@@ -159,6 +159,35 @@ describe('compileLegacyFloorPlan', () => {
     ]);
   });
 
+  it('clips projected wall gaps to the room edge and rechecks doorway width', () => {
+    const partialOverlap = structuredClone(level);
+    partialOverlap.floors[0].rooms[0].bounds.maxZ = 5;
+    partialOverlap.floors[0].rooms[1].bounds.maxZ = 5;
+    partialOverlap.floors[0].outline = [
+      [0, 0],
+      [8, 0],
+      [8, 5],
+      [0, 5],
+    ];
+    partialOverlap.floors[0].walls[0].run = {
+      start: { x: 4, z: 0 },
+      end: { x: 4, z: 10 },
+      gaps: [
+        { start: 4.1, end: 5.3 },
+        { start: 1.3, end: 2.7 },
+      ],
+    };
+
+    const plan = compileLegacyFloorPlan(partialOverlap, 'ground', {
+      includeDoorwaysFromWallGaps: true,
+    });
+
+    expect(plan.rooms).toMatchObject([
+      { id: 'left', doorways: [{ wall: 'east', start: 1.3, end: 2.7 }] },
+      { id: 'right', doorways: [{ wall: 'west', start: 1.3, end: 2.7 }] },
+    ]);
+  });
+
   it('ignores wall gaps that do not overlap the referenced room boundary', () => {
     const nonOverlapping = structuredClone(level);
     nonOverlapping.floors[0].walls[0].run = {

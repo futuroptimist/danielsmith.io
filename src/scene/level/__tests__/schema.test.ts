@@ -185,14 +185,18 @@ describe('declarative level schema validation', () => {
     const level = createLevel();
     level.floors[0].outline = [
       [0, 0],
+      null,
       [Number.NaN, 0],
+      undefined,
       [0, 0],
-    ];
+    ] as never;
     level.floors[0].rooms[0].bounds.maxX = Number.NaN;
 
     expect(validateLevelDefinition(level).errors).toEqual(
       expect.arrayContaining([
         expect.stringContaining('point 1 must use finite coordinates'),
+        expect.stringContaining('point 2 must use finite coordinates'),
+        expect.stringContaining('point 3 must use finite coordinates'),
         expect.stringContaining('must not contain repeated points'),
         expect.stringContaining('bounds must use finite coordinates'),
       ])
@@ -253,6 +257,31 @@ describe('declarative level schema validation', () => {
 
     expect(validateLevelDefinition(undefinedRun).errors).toContain(
       'wall "studio-west-wall" requires either segments or a run.'
+    );
+
+    const nullSegment = createLevel();
+    nullSegment.floors[0].walls[0].segments = [null] as never;
+
+    expect(validateLevelDefinition(nullSegment).errors).toContain(
+      'wall "gallery-south-wall" segment 0 must use finite coordinates.'
+    );
+
+    const missingSegmentStart = createLevel();
+    missingSegmentStart.floors[0].walls[0].segments = [
+      { end: { x: 5, z: 0 } },
+    ] as never;
+
+    expect(validateLevelDefinition(missingSegmentStart).errors).toContain(
+      'wall "gallery-south-wall" segment 0 must use finite coordinates.'
+    );
+
+    const missingRunStart = createLevel();
+    missingRunStart.floors[0].walls[1].run = {
+      end: { x: 5, z: 6 },
+    } as never;
+
+    expect(validateLevelDefinition(missingRunStart).errors).toContain(
+      'wall "studio-west-wall" run must use finite coordinates.'
     );
   });
 

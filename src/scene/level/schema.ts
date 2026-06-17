@@ -340,17 +340,14 @@ function validateOutline(
   }
 
   outline.forEach((point, index) => {
-    if (
-      point.length !== 2 ||
-      !Number.isFinite(point[0]) ||
-      !Number.isFinite(point[1])
-    ) {
+    if (!isFiniteOutlinePoint(point)) {
       errors.push(`${label} point ${index} must use finite coordinates.`);
     }
   });
 
-  const uniquePoints = new Set(outline.map(([x, z]) => `${x}:${z}`));
-  if (uniquePoints.size !== outline.length) {
+  const validPoints = outline.filter(isFiniteOutlinePoint);
+  const uniquePoints = new Set(validPoints.map(([x, z]) => `${x}:${z}`));
+  if (uniquePoints.size !== validPoints.length) {
     errors.push(`${label} must not contain repeated points.`);
   }
 }
@@ -367,6 +364,11 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
   }
 
   if (hasSegments) {
+    if (!Array.isArray(wall.segments)) {
+      errors.push(`wall "${wall.id}" segments must be an array.`);
+      return;
+    }
+
     if (wall.segments.length === 0)
       errors.push(`wall "${wall.id}" requires at least one segment.`);
     wall.segments.forEach((segment, index) => {
@@ -402,6 +404,11 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
 
 function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
   if (!('run' in wall) || !wall.run.gaps) return;
+
+  if (!Array.isArray(wall.run.gaps)) {
+    errors.push(`wall "${wall.id}" gaps must be an array.`);
+    return;
+  }
 
   const runLength = getSegmentLength(wall.run);
   if (!isAxisAlignedRun(wall.run)) {
@@ -449,10 +456,37 @@ function isAxisAlignedRun(run: WallRunDefinition): boolean {
   );
 }
 
-function segmentUsesFiniteCoordinates(segment: WallSegmentDefinition): boolean {
-  return [segment.start.x, segment.start.z, segment.end.x, segment.end.z].every(
-    Number.isFinite
+function isFiniteOutlinePoint(point: unknown): point is [number, number] {
+  return (
+    Array.isArray(point) &&
+    point.length === 2 &&
+    Number.isFinite(point[0]) &&
+    Number.isFinite(point[1])
   );
+}
+
+function segmentUsesFiniteCoordinates(
+  segment: WallSegmentDefinition | unknown
+): segment is WallSegmentDefinition {
+  if (
+    !isRecord(segment) ||
+    !isFinitePoint(segment.start) ||
+    !isFinitePoint(segment.end)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isFinitePoint(point: unknown): point is Point2D {
+  return (
+    isRecord(point) && Number.isFinite(point.x) && Number.isFinite(point.z)
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 function getSegmentLength(segment: WallSegmentDefinition): number {

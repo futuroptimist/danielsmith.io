@@ -13,6 +13,7 @@ import {
 } from './schema';
 
 const AXIS_EPSILON = 1e-6;
+const LEGACY_DOORWAY_MIN_WIDTH = 1.2;
 
 export interface CompileLegacyFloorPlanOptions {
   includeDoorwaysFromWallGaps?: boolean;
@@ -65,14 +66,16 @@ function getDoorwaysForWall(
 
   return wall.run.gaps.flatMap((gap) => {
     const doorwayRange = projectGapToDoorwayRange(wall.run, gap.start, gap.end);
-    if (
-      !doorwayRange ||
-      !doorwayOverlapsRoomWall(room, roomWall, doorwayRange)
-    ) {
-      return [];
-    }
+    if (!doorwayRange) return [];
 
-    return [{ wall: roomWall, ...doorwayRange }];
+    const clippedDoorwayRange = clipDoorwayRangeToRoomWall(
+      room,
+      roomWall,
+      doorwayRange
+    );
+    if (!clippedDoorwayRange) return [];
+
+    return [{ wall: roomWall, ...clippedDoorwayRange }];
   });
 }
 
@@ -141,18 +144,24 @@ function roundDoorwayCoordinate(value: number): number {
   return Number(value.toFixed(12));
 }
 
-function doorwayOverlapsRoomWall(
+function clipDoorwayRangeToRoomWall(
   room: SemanticRoomDefinition,
   wall: RoomWall,
   doorway: Pick<DoorwayDefinition, 'start' | 'end'>
-): boolean {
+): Pick<DoorwayDefinition, 'start' | 'end'> | undefined {
   const bounds =
     wall === 'north' || wall === 'south'
       ? { min: room.bounds.minX, max: room.bounds.maxX }
       : { min: room.bounds.minZ, max: room.bounds.maxZ };
+  const clippedStart = Math.max(doorway.start, bounds.min);
+  const clippedEnd = Math.min(doorway.end, bounds.max);
+  if (clippedEnd - clippedStart <= AXIS_EPSILON) return undefined;
 
-  return (
-    doorway.end > bounds.min + AXIS_EPSILON &&
-    doorway.start < bounds.max - AXIS_EPSILON
-  );
+  const clipped = normalizeDoorwayRange(clippedStart, clippedEnd);
+
+  if (clipped.end - clipped.start + AXIS_EPSILON < LEGACY_DOORWAY_MIN_WIDTH) {
+    return undefined;
+  }
+
+  return clipped;
 }
