@@ -15,8 +15,10 @@ export interface WallSegmentInstance {
   segment: CombinedWallSegment;
   /** Stable identifier for correlating generated meshes with the source segment. */
   segmentId: string;
-  /** Semantic source identifier for generated legacy wall segments. */
+  /** Semantic source identifier for generated wall segments. */
   sourceId: LevelSourceId;
+  /** Semantic source type for debug solid/collider metadata. */
+  sourceType?: 'wall';
   center: { x: number; y: number; z: number };
   dimensions: { width: number; height: number; depth: number };
   collider: RectCollider;

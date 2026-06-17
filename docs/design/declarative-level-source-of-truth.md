@@ -25,8 +25,8 @@ orchestration code:
      in `BASE_FLOOR_PLAN` before scaling them into `FLOOR_PLAN`.
    - Doorways are attached to room walls and are validated by width, but they are
      not first-class semantic connections.
-   - Wall generation starts from room bounds and doorways via room wall segments
-     and combined wall segments.
+   - Legacy compatibility wall helpers still exist for consumers that have not migrated,
+     but runtime wall meshes and colliders now come from declarative wall data.
 2. `src/assets/floorPlan/wallSegments.ts`
    - Converts combined wall segments into wall or fence instances.
    - Computes wall/fence dimensions, center points, colliders, shared-interior
@@ -275,8 +275,10 @@ semantic `roomConnections` intentionally do not create or remove geometry.
 6. **Migrate room and wall data.** Current room and wall intent now lives in
    `src/scene/level/portfolioLevel.ts`; legacy floor-plan exports still compile
    through the adapter until downstream generators consume source data directly.
-7. **Generate wall outputs from source.** Derive wall meshes, wall colliders, and
-   wall debug metadata from source-backed wall definitions.
+7. **Generate wall outputs from source.** ✅ Wall meshes, wall colliders, and
+   wall debug metadata are now derived from source-backed wall definitions. The
+   generator may split wall runs at room seams and declared gaps, but authors edit
+   current declarative wall data rather than downstream filters or removal lists.
 8. **Generate floor outputs from source.** Derive floor surfaces from source data,
    allowing generator-owned splitting and clipping where useful.
 9. **Move stair and void safety.** Convert stair, landing, and void guard
