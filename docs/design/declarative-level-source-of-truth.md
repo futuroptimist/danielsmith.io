@@ -249,6 +249,14 @@ wide enough for the legacy doorway checks. A visible door,
 arch, trim, threshold, or rail should be declared as a scene object or current
 wall/railing; a walkable opening does not need a former blocker record.
 
+Current ground and upper room bounds plus wall runs now live in
+`src/scene/level/portfolioLevel.ts` as `PORTFOLIO_LEVEL`. The legacy exports in
+`src/assets/floorPlan/index.ts` intentionally remain available, but they are now
+compatibility products compiled from that declarative source and scaled into the
+existing runtime coordinate space. Open passages are represented as current
+wall-run gaps; optional `roomConnections` document adjacency only and are not used
+to remove or create wall or floor geometry.
+
 The temporary adapter in `src/scene/level/compileLegacyFloorPlan.ts` compiles a
 declarative floor back to the existing `FloorPlanDefinition` shape for migration
 checks and narrow compatibility. By default it copies room metadata only. When

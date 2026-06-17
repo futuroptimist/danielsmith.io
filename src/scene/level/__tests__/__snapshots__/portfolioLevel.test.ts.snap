@@ -1,0 +1,666 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PORTFOLIO_LEVEL > compiles declarative wall runs to the current expected wall bounds 1`] = `
+[
+  {
+    "end": {
+      "x": -22.000000000000004,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "north",
+      },
+      {
+        "id": "kitchen",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -32.00000000000001,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": -4.000000000000001,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "north",
+      },
+      {
+        "id": "kitchen",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -14.000000000000004,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 11.000000000000002,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "north",
+      },
+      {
+        "id": "studio",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -4.000000000000001,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 32.00000000000001,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "north",
+      },
+      {
+        "id": "studio",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": 19.000000000000004,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 32.00000000000001,
+      "z": -32,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -32.00000000000001,
+      "z": -32,
+    },
+  },
+  {
+    "end": {
+      "x": -22.000000000000004,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "kitchen",
+        "wall": "north",
+      },
+      {
+        "id": "backyard",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -32.00000000000001,
+      "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": -4.000000000000001,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "kitchen",
+        "wall": "north",
+      },
+      {
+        "id": "backyard",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -14.000000000000004,
+      "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 11.000000000000002,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "studio",
+        "wall": "north",
+      },
+      {
+        "id": "backyard",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -4.000000000000001,
+      "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 32.00000000000001,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "studio",
+        "wall": "north",
+      },
+      {
+        "id": "backyard",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": 19.000000000000004,
+      "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 32.00000000000001,
+      "z": 32,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "backyard",
+        "wall": "north",
+      },
+    ],
+    "start": {
+      "x": -32.00000000000001,
+      "z": 32,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": -8.000000000000002,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 32,
+      "z": -32.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": 16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "studio",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 32,
+      "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": 32.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "backyard",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 32,
+      "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": -32,
+      "z": -8.000000000000002,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "livingRoom",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": -32,
+      "z": -32.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": -32,
+      "z": 16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "kitchen",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": -32,
+      "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": -32,
+      "z": 32.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "backyard",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": -32,
+      "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": -4,
+      "z": 0,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "studio",
+        "wall": "west",
+      },
+      {
+        "id": "kitchen",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": -4,
+      "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": -4,
+      "z": 16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "studio",
+        "wall": "west",
+      },
+      {
+        "id": "kitchen",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": -4,
+      "z": 8.000000000000002,
+    },
+  },
+]
+`;
+
+exports[`PORTFOLIO_LEVEL > compiles declarative wall runs to the current expected wall bounds 2`] = `
+[
+  {
+    "end": {
+      "x": 20.800000000000004,
+      "z": -16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "upperLanding",
+        "wall": "north",
+      },
+      {
+        "id": "loftLibrary",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": 16.400000000000002,
+      "z": -16,
+    },
+  },
+  {
+    "end": {
+      "x": 24.000000000000007,
+      "z": -16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "loftLibrary",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": 20.800000000000004,
+      "z": -16,
+    },
+  },
+  {
+    "end": {
+      "x": 4.000000000000001,
+      "z": -32,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "creatorsStudio",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -20.000000000000004,
+      "z": -32,
+    },
+  },
+  {
+    "end": {
+      "x": 20.800000000000004,
+      "z": -32,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "upperLanding",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": 4.000000000000001,
+      "z": -32,
+    },
+  },
+  {
+    "end": {
+      "x": 4.000000000000001,
+      "z": 0,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "creatorsStudio",
+        "wall": "north",
+      },
+    ],
+    "start": {
+      "x": -20.000000000000004,
+      "z": 0,
+    },
+  },
+  {
+    "end": {
+      "x": 4.000000000000001,
+      "z": 12,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "focusPods",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": -20.000000000000004,
+      "z": 12,
+    },
+  },
+  {
+    "end": {
+      "x": 24.000000000000007,
+      "z": 12,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "loftLibrary",
+        "wall": "north",
+      },
+      {
+        "id": "focusPods",
+        "wall": "south",
+      },
+    ],
+    "start": {
+      "x": 12.000000000000004,
+      "z": 12,
+    },
+  },
+  {
+    "end": {
+      "x": 24.000000000000007,
+      "z": 28,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      {
+        "id": "focusPods",
+        "wall": "north",
+      },
+    ],
+    "start": {
+      "x": -20.000000000000004,
+      "z": 28,
+    },
+  },
+  {
+    "end": {
+      "x": 20.8,
+      "z": -16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "upperLanding",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 20.8,
+      "z": -32.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 4,
+      "z": -16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "upperLanding",
+        "wall": "west",
+      },
+      {
+        "id": "creatorsStudio",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 4,
+      "z": -26.140000000000008,
+    },
+  },
+  {
+    "end": {
+      "x": 4,
+      "z": -12.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "creatorsStudio",
+        "wall": "east",
+      },
+      {
+        "id": "loftLibrary",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": 4,
+      "z": -16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 4,
+      "z": 0,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "creatorsStudio",
+        "wall": "east",
+      },
+      {
+        "id": "loftLibrary",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": 4,
+      "z": -4.000000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 4,
+      "z": 12.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "loftLibrary",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": 4,
+      "z": 0,
+    },
+  },
+  {
+    "end": {
+      "x": -20,
+      "z": 0,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "creatorsStudio",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": -20,
+      "z": -32.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": -20,
+      "z": 28.000000000000007,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "focusPods",
+        "wall": "west",
+      },
+    ],
+    "start": {
+      "x": -20,
+      "z": 12.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 24,
+      "z": 12.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "loftLibrary",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 24,
+      "z": -16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 24,
+      "z": 28.000000000000007,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      {
+        "id": "focusPods",
+        "wall": "east",
+      },
+    ],
+    "start": {
+      "x": 24,
+      "z": 12.000000000000004,
+    },
+  },
+]
+`;
