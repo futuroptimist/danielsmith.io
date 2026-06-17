@@ -234,19 +234,24 @@ const getOwnUserDataSourceMetadata = (
 const getUserDataSourceMetadata = (
   object: Object3D
 ): Pick<DebugSolidMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
+  const metadata: Pick<
+    DebugSolidMetadata,
+    'sourceId' | 'sourceType' | 'purpose'
+  > = {};
   let current: Object3D | null = object;
   while (current) {
-    const metadata = getOwnUserDataSourceMetadata(current);
-    if (
-      metadata.sourceId !== undefined ||
-      metadata.sourceType !== undefined ||
-      metadata.purpose !== undefined
-    ) {
-      return metadata;
+    const ownMetadata = getOwnUserDataSourceMetadata(current);
+    metadata.sourceType ??= ownMetadata.sourceType;
+    metadata.purpose ??= ownMetadata.purpose;
+
+    if (ownMetadata.sourceId !== undefined) {
+      metadata.sourceId = ownMetadata.sourceId;
+      return cloneSourceMetadata(metadata);
     }
+
     current = current.parent;
   }
-  return {};
+  return cloneSourceMetadata(metadata);
 };
 
 const cloneBounds = (bounds: DebugSolidBounds): DebugSolidBounds => ({

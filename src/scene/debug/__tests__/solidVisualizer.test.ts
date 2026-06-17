@@ -181,6 +181,9 @@ describe('createSolidVisualizer', () => {
     const childOverride = createSolid('ChildSourceWall');
     childOverride.userData.levelSourceId = 'wall:child-source';
     parent.add(childOverride);
+    const partialChild = createSolid('PartialChildSourceWall');
+    partialChild.userData.levelSource = { purpose: 'render' };
+    parent.add(partialChild);
     scene.add(parent);
 
     const visualizer = createSolidVisualizer({ enabled: true });
@@ -197,9 +200,19 @@ describe('createSolidVisualizer', () => {
       name: 'ChildSourceWall',
       sourceId: 'wall:child-source',
     });
-    expect(visualizer.getSolidsBySourceId('wall:parent-source')).toHaveLength(
-      1
-    );
+    expect(visualizer.getSolidsBySourceId('wall:parent-source')).toEqual([
+      expect.objectContaining({
+        name: 'InheritedSourceWall',
+        sourceId: 'wall:parent-source',
+        purpose: 'structure',
+      }),
+      expect.objectContaining({
+        name: 'PartialChildSourceWall',
+        sourceId: 'wall:parent-source',
+        sourceType: 'wall',
+        purpose: 'render',
+      }),
+    ]);
   });
 
   it('keeps direct source IDs coherent when nested source metadata differs', () => {
