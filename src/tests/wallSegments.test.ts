@@ -18,6 +18,29 @@ const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;
 const PLAYER_RADIUS = 0.75;
 
+const subMillimeterEndpointPlan: FloorPlanDefinition = {
+  outline: [
+    [0, 0],
+    [3, 0],
+    [3, 2],
+    [0, 2],
+  ],
+  rooms: [
+    {
+      id: 'nearWall',
+      name: 'Near Wall A',
+      bounds: { minX: 0, maxX: 2, minZ: 0, maxZ: 1 },
+      ledColor: 0xffffff,
+    },
+    {
+      id: 'nearWall',
+      name: 'Near Wall B',
+      bounds: { minX: 0.0004, maxX: 2.0004, minZ: 0, maxZ: 1 },
+      ledColor: 0xffffff,
+    },
+  ],
+};
+
 const fixturePlan: FloorPlanDefinition = {
   outline: [
     [0, 0],
@@ -113,6 +136,37 @@ describe('createWallSegmentInstances', () => {
     );
     expect(segmentIds.every((segmentId) => !/[.|_-]\d+$/.test(segmentId))).toBe(
       true
+    );
+  });
+
+  it('keeps sub-0.001 endpoint differences distinct in generated source IDs', () => {
+    const nearWallInstances = createFixtureInstances(subMillimeterEndpointPlan);
+    const nearWallSouthFragments = nearWallInstances.filter(
+      (instance) =>
+        instance.segment.orientation === 'horizontal' &&
+        instance.segment.rooms.length === 1 &&
+        instance.segment.rooms[0]?.id === 'nearWall' &&
+        instance.segment.rooms[0]?.wall === 'south'
+    );
+
+    expect(nearWallSouthFragments).toHaveLength(2);
+    expect(
+      nearWallSouthFragments.every((instance) =>
+        isLevelSourceId(instance.sourceId)
+      )
+    ).toBe(true);
+    expect(
+      new Set(nearWallSouthFragments.map((instance) => instance.sourceId)).size
+    ).toBe(2);
+    expect(
+      nearWallSouthFragments.some((instance) =>
+        [instance.segment.start.x, instance.segment.end.x].some(
+          (coordinate) => Math.abs(coordinate - 0.0004) < 1e-8
+        )
+      )
+    ).toBe(true);
+    expect(nearWallSouthFragments[0]?.collider).not.toEqual(
+      nearWallSouthFragments[1]?.collider
     );
   });
 
