@@ -1,6 +1,9 @@
 import type { Mesh, MeshBasicMaterial, Sprite, SpriteMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { FLOOR_PLAN, WALL_THICKNESS } from '../../../assets/floorPlan';
+import { createWallSegmentInstances } from '../../../assets/floorPlan/wallSegments';
+import { isLevelSourceId } from '../../level/sourceIds';
 import {
   createColliderDebugId,
   createColliderVisualizer,
@@ -713,6 +716,44 @@ describe('createColliderVisualizer', () => {
       sourceType: 'wall',
       purpose: 'blocking',
     });
+  });
+
+  it('registers generated wall collider source metadata from wall instances', () => {
+    const [wallInstance] = createWallSegmentInstances(FLOOR_PLAN, {
+      floorId: 'ground',
+      baseElevation: 0,
+      wallHeight: 6,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: 2.4,
+      fenceThickness: 0.28,
+      getRoomCategory: (roomId) =>
+        FLOOR_PLAN.rooms.find((room) => room.id === roomId)?.category ??
+        'interior',
+    });
+    expect(wallInstance).toBeDefined();
+    if (!wallInstance) {
+      return;
+    }
+
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    visualizer.register([
+      {
+        floor: 'ground',
+        category: 'ground',
+        name: 'ground-collider-1',
+        bounds: wallInstance.collider,
+        sourceId: wallInstance.sourceId,
+        sourceType: 'wall',
+      },
+    ]);
+
+    const [registered] = visualizer.getColliders();
+    expect(registered?.sourceId).toBe(wallInstance.sourceId);
+    expect(isLevelSourceId(registered?.sourceId)).toBe(true);
+    expect(registered?.sourceType).toBe('wall');
+    expect(visualizer.getColliderBySourceId(wallInstance.sourceId)).toEqual(
+      registered
+    );
   });
 
   it('looks up colliders by source ID and returns duplicate matches', () => {

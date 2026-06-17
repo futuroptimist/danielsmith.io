@@ -975,6 +975,10 @@ const LIGHTING_OPTIONS = {
 
 const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
+const colliderSourceIds = new Map<
+  RectCollider,
+  WallSegmentInstance['sourceId']
+>();
 const upperFloorColliders: RectCollider[] = [];
 
 const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
@@ -1870,6 +1874,7 @@ function initializeImmersiveScene(
   fenceMaterial.lightMap = interiorLightmaps.wall;
   fenceMaterial.lightMapIntensity = 0.56;
   const groundWallInstances = createWallSegmentInstances(FLOOR_PLAN, {
+    floorId: 'ground',
     baseElevation: 0,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -1887,6 +1892,7 @@ function initializeImmersiveScene(
   groundFloorGroup.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
     groundColliders.push(instance.collider);
+    colliderSourceIds.set(instance.collider, instance.sourceId);
   });
 
   const doorwayOpenings = createDoorwayOpenings(FLOOR_PLAN, {
@@ -2338,6 +2344,7 @@ function initializeImmersiveScene(
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
   const upperWallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
+    floorId: 'upper',
     baseElevation: upperFloorElevation,
     wallHeight: WALL_HEIGHT,
     wallThickness: WALL_THICKNESS,
@@ -2360,6 +2367,7 @@ function initializeImmersiveScene(
       instance.collider,
       getUpperWallSegmentDebugName(instance)
     );
+    colliderSourceIds.set(instance.collider, instance.sourceId);
   });
 
   const floorColliders: Record<FloorId, RectCollider[]> = {
@@ -4452,6 +4460,8 @@ function initializeImmersiveScene(
         `${options.namePrefix}-${index + 1}`,
       bounds,
       elevation: options.elevation,
+      sourceId: colliderSourceIds.get(bounds),
+      sourceType: colliderSourceIds.has(bounds) ? 'wall' : undefined,
     }));
 
   const colliderVisualizer = createColliderVisualizer({
