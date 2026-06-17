@@ -257,6 +257,21 @@ checks and narrow compatibility. By default it copies room metadata only. When
 old room-wall generators, not the canonical future scene-construction path, and
 semantic `roomConnections` intentionally do not create or remove geometry.
 
+## Current room and wall source (phase 6)
+
+The current ground and upper room bounds, wall runs, wall-run gaps, floor
+surfaces, and semantic room adjacencies now live in
+`src/scene/level/portfolioLevel.ts`. `src/assets/floorPlan/index.ts` remains as
+compatibility scaffolding: it compiles that declarative source into the legacy
+`FLOOR_PLAN`, `UPPER_FLOOR_PLAN`, and `FLOOR_PLAN_LEVELS` exports so runtime wall,
+floor, stair, POI, and showpiece behavior stays unchanged while later prompts
+move generators over one layer at a time.
+
+Open passages are represented as current wall-run gaps or by absent current wall
+segments rather than production tombstones. The source can document semantic
+`roomConnections`, but those records are adjacency metadata only and are covered
+by tests that prove they do not add or remove wall/floor geometry.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the

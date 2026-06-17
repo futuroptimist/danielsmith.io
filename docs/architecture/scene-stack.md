@@ -48,6 +48,11 @@ layer without guessing where functionality lives.
 
 - [`src/assets/`](../../src/assets/) – floor plans, localisation, theme, and
   performance budgets. Also exposes POI copy consumed across systems and UI.
+  Current room bounds and wall runs are now canonically declared in
+  [`src/scene/level/portfolioLevel.ts`](../../src/scene/level/portfolioLevel.ts);
+  [`src/assets/floorPlan/index.ts`](../../src/assets/floorPlan/index.ts) remains a
+  compatibility adapter that compiles those records into the legacy floor-plan exports
+  during the migration.
 - [`src/systems/`](../../src/systems/) – keyboard controls, audio pipelines,
   movement prediction, collision detection, mode failover, HUD control handles,
   and the GitHub repo stats service that reads pod-local runtime metrics into POIs.
