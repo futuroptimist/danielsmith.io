@@ -101,9 +101,9 @@ const floorSurfaceForRoom = (
   };
 };
 
-const buildFloor = (
-  floor: Omit<FloorDefinition, 'floorSurfaces'>
-): FloorDefinition => ({
+type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
+
+const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
   ...floor,
   floorSurfaces: floor.rooms.map((room) => floorSurfaceForRoom(floor.id, room)),
 });
