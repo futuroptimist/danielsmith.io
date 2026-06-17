@@ -1,4 +1,8 @@
-import type { LevelDefinition, WallDefinition } from './schema';
+import type {
+  FloorDefinition,
+  LevelDefinition,
+  WallDefinition,
+} from './schema';
 import { assertLevelSourceId } from './sourceIds';
 
 const sourceId = (value: string) => assertLevelSourceId(value);
@@ -78,10 +82,36 @@ const centeredGap = (runStart: number, center: number, label: string) => {
   return gap(range.start - runStart, range.end - runStart, label);
 };
 
+const roomIdToSourceSegment = (roomId: string) =>
+  roomId.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+
+const floorSurfaceForRoom = (
+  floorId: FloorDefinition['id'],
+  room: FloorDefinition['rooms'][number]
+): FloorDefinition['floorSurfaces'][number] => {
+  const roomSourceSegment = roomIdToSourceSegment(room.id);
+
+  return {
+    id: `${room.id}-floor-surface`,
+    sourceId: sourceId(`${floorId}.${roomSourceSegment}.floor_surface`),
+    floorId,
+    bounds: { ...room.bounds },
+    roomId: room.id,
+    purpose: 'room-floor',
+  };
+};
+
+const buildFloor = (
+  floor: Omit<FloorDefinition, 'floorSurfaces'>
+): FloorDefinition => ({
+  ...floor,
+  floorSurfaces: floor.rooms.map((room) => floorSurfaceForRoom(floor.id, room)),
+});
+
 export const PORTFOLIO_LEVEL: LevelDefinition = {
   id: 'portfolio',
   floors: [
-    {
+    buildFloor({
       id: 'ground',
       name: 'Ground Floor',
       outline: [
@@ -205,8 +235,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
               'kitchen-to-backyard'
             ),
             centeredGap(-16, studioToBackyardDoorCenter, 'studio-to-backyard'),
-          ],
-          'fence'
+          ]
         ),
         verticalWall(
           'backyard-west-fence',
@@ -242,7 +271,6 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'fence'
         ),
       ],
-      floorSurfaces: [],
       roomConnections: [
         {
           id: 'living-to-kitchen',
@@ -280,8 +308,8 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           label: 'Studio to backyard',
         },
       ],
-    },
-    {
+    }),
+    buildFloor({
       id: 'upper',
       name: 'Upper Floor',
       outline: [
@@ -356,6 +384,33 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
             ),
             centeredGap(-16, -4, 'creators-studio-to-library'),
           ]
+        ),
+        horizontalWall(
+          'creators-studio-north-wall',
+          'upper.creators_studio.north_wall',
+          'upper',
+          0,
+          -10,
+          2,
+          ['creatorsStudio']
+        ),
+        verticalWall(
+          'loft-library-west-wall',
+          'upper.loft_library.west_wall',
+          'upper',
+          2,
+          0,
+          6,
+          ['loftLibrary']
+        ),
+        horizontalWall(
+          'focus-pods-south-wall',
+          'upper.focus_pods.south_wall',
+          'upper',
+          6,
+          -10,
+          2,
+          ['focusPods']
         ),
         horizontalWall(
           'upper-landing-south-wall',
@@ -439,7 +494,6 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           ['focusPods']
         ),
       ],
-      floorSurfaces: [],
       roomConnections: [
         {
           id: 'upper-landing-to-creators-studio',
@@ -474,19 +528,6 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           label: 'Loft library to focus pods',
         },
       ],
-    },
+    }),
   ],
 };
-
-PORTFOLIO_LEVEL.floors.forEach((floor) => {
-  floor.floorSurfaces = floor.rooms.map((room) => ({
-    id: `${room.id}-floor-surface`,
-    sourceId: sourceId(
-      `${floor.id}.${room.id.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()}.floor_surface`
-    ),
-    floorId: floor.id,
-    bounds: { ...room.bounds },
-    roomId: room.id,
-    purpose: 'room-floor',
-  }));
-});

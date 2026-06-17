@@ -252,8 +252,9 @@ wall/railing; a walkable opening does not need a former blocker record.
 Current ground and upper room bounds, wall runs, intentional wall-run gaps,
 floor surfaces, and semantic room connections now live in
 `src/scene/level/portfolioLevel.ts`. The temporary adapter in
-`src/scene/level/compileLegacyFloorPlan.ts` compiles a declarative floor back to the existing `FloorPlanDefinition` shape for migration
-checks and narrow compatibility. By default it copies room metadata only. When
+`src/scene/level/compileLegacyFloorPlan.ts` compiles a declarative floor
+back to the existing `FloorPlanDefinition` shape for migration checks and
+narrow compatibility. By default it copies room metadata only. When
 `includeDoorwaysFromWallGaps` is explicitly enabled, it derives legacy room
 `doorways` from current wall-run gaps. That derivation is compatibility glue for
 old room-wall generators, not the canonical future scene-construction path, and
