@@ -129,12 +129,10 @@ export interface LevelValidationResult {
   errors: string[];
 }
 
-const FORBIDDEN_SOURCE_ID_PARTS = [
-  '.former.',
-  '.removed.',
-  '.debugOnlyRemoval.',
-];
+const FORBIDDEN_SOURCE_ID_PARTS = ['former', 'removed', 'debugonlyremoval'];
 const LENGTH_EPSILON = 1e-6;
+const LEGACY_DOORWAY_MIN_WIDTH = 1.2;
+const AXIS_EPSILON = 1e-6;
 
 export function validateLevelDefinition(
   level: LevelDefinition
@@ -158,7 +156,10 @@ export function validateLevelDefinition(
     }
 
     const rawSourceId = sourceId as string;
-    if (FORBIDDEN_SOURCE_ID_PARTS.some((part) => rawSourceId.includes(part))) {
+    const sourceIdParts = rawSourceId.split('.');
+    if (
+      FORBIDDEN_SOURCE_ID_PARTS.some((part) => sourceIdParts.includes(part))
+    ) {
       errors.push(
         `${owner} sourceId "${rawSourceId}" uses forbidden tombstone wording.`
       );
@@ -185,6 +186,8 @@ export function validateLevelDefinition(
     const safetyIds = new Set<string>();
     const objectIds = new Set<string>();
     const connectionIds = new Set<string>();
+
+    validateOutline(floor.outline, `floor "${floor.id}" outline`, errors);
 
     floor.rooms.forEach((room) => {
       addNamespaceId(`room on floor ${floor.id}`, room.id, roomIds);
@@ -306,6 +309,12 @@ function validateBounds(
   label: string,
   errors: string[]
 ): void {
+  const values = [bounds.minX, bounds.maxX, bounds.minZ, bounds.maxZ];
+  if (!values.every(Number.isFinite)) {
+    errors.push(`${label} must use finite coordinates.`);
+    return;
+  }
+
   if (
     bounds.maxX - bounds.minX <= LENGTH_EPSILON ||
     bounds.maxZ - bounds.minZ <= LENGTH_EPSILON
@@ -314,11 +323,42 @@ function validateBounds(
   }
 }
 
+function validateOutline(
+  outline: FloorDefinition['outline'],
+  label: string,
+  errors: string[]
+): void {
+  if (outline.length < 3) {
+    errors.push(`${label} requires at least three points.`);
+  }
+
+  outline.forEach((point, index) => {
+    if (
+      point.length !== 2 ||
+      !Number.isFinite(point[0]) ||
+      !Number.isFinite(point[1])
+    ) {
+      errors.push(`${label} point ${index} must use finite coordinates.`);
+    }
+  });
+
+  const uniquePoints = new Set(outline.map(([x, z]) => `${x}:${z}`));
+  if (uniquePoints.size !== outline.length) {
+    errors.push(`${label} must not contain repeated points.`);
+  }
+}
+
 function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
-  if ('segments' in wall) {
+  if ('segments' in wall && wall.segments !== undefined) {
     if (wall.segments.length === 0)
       errors.push(`wall "${wall.id}" requires at least one segment.`);
     wall.segments.forEach((segment, index) => {
+      if (!segmentUsesFiniteCoordinates(segment)) {
+        errors.push(
+          `wall "${wall.id}" segment ${index} must use finite coordinates.`
+        );
+        return;
+      }
       if (getSegmentLength(segment) <= LENGTH_EPSILON)
         errors.push(
           `wall "${wall.id}" segment ${index} must have positive length.`
@@ -327,13 +367,91 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
     return;
   }
 
+  if (!('run' in wall) || wall.run === undefined) {
+    errors.push(`wall "${wall.id}" requires either segments or a run.`);
+    return;
+  }
+
+  if (!segmentUsesFiniteCoordinates(wall.run)) {
+    errors.push(`wall "${wall.id}" run must use finite coordinates.`);
+    return;
+  }
+
   if (getSegmentLength(wall.run) <= LENGTH_EPSILON) {
     errors.push(`wall "${wall.id}" run must have positive length.`);
   }
-  wall.run.gaps?.forEach((gap, index) => {
-    if (gap.end - gap.start <= LENGTH_EPSILON)
+  validateWallRunGaps(wall, errors);
+}
+
+function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
+  if (!('run' in wall) || !wall.run.gaps) return;
+
+  const axisRange = getWallRunAxisRange(wall.run);
+  if (!axisRange) {
+    errors.push(`wall "${wall.id}" gaps require an axis-aligned run.`);
+    return;
+  }
+
+  const sortedGaps = [...wall.run.gaps].sort((a, b) => a.start - b.start);
+  sortedGaps.forEach((gap, index) => {
+    if (!Number.isFinite(gap.start) || !Number.isFinite(gap.end)) {
+      errors.push(
+        `wall "${wall.id}" gap ${index} must use finite coordinates.`
+      );
+      return;
+    }
+
+    if (gap.end - gap.start <= LENGTH_EPSILON) {
       errors.push(`wall "${wall.id}" gap ${index} must have positive length.`);
+      return;
+    }
+
+    if (gap.end - gap.start + LENGTH_EPSILON < LEGACY_DOORWAY_MIN_WIDTH) {
+      errors.push(
+        `wall "${wall.id}" gap ${index} must be at least ${LEGACY_DOORWAY_MIN_WIDTH} units wide.`
+      );
+    }
+
+    if (
+      gap.start < axisRange.min - LENGTH_EPSILON ||
+      gap.end > axisRange.max + LENGTH_EPSILON
+    ) {
+      errors.push(`wall "${wall.id}" gap ${index} must stay within the run.`);
+    }
+
+    const previousGap = sortedGaps[index - 1];
+    if (previousGap && gap.start < previousGap.end - LENGTH_EPSILON) {
+      errors.push(
+        `wall "${wall.id}" gap ${index} must not overlap another gap.`
+      );
+    }
   });
+}
+
+function getWallRunAxisRange(
+  run: WallRunDefinition
+): { min: number; max: number } | undefined {
+  if (Math.abs(run.start.z - run.end.z) <= AXIS_EPSILON) {
+    return {
+      min: Math.min(run.start.x, run.end.x),
+      max: Math.max(run.start.x, run.end.x),
+    };
+  }
+
+  if (Math.abs(run.start.x - run.end.x) <= AXIS_EPSILON) {
+    return {
+      min: Math.min(run.start.z, run.end.z),
+      max: Math.max(run.start.z, run.end.z),
+    };
+  }
+
+  return undefined;
+}
+
+function segmentUsesFiniteCoordinates(segment: WallSegmentDefinition): boolean {
+  return [segment.start.x, segment.start.z, segment.end.x, segment.end.z].every(
+    Number.isFinite
+  );
 }
 
 function getSegmentLength(segment: WallSegmentDefinition): number {

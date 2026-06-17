@@ -141,10 +141,77 @@ describe('declarative level schema validation', () => {
 
   it('rejects source IDs that look like tombstone/debug-only removal records', () => {
     const level = createLevel();
-    level.floors[0].walls[0].sourceId = sourceId('ground.gallery.former.wall');
+    level.floors[0].walls[0].sourceId = sourceId('ground.gallery.removed');
 
     expect(validateLevelDefinition(level).errors).toContain(
-      'wall "gallery-south-wall" sourceId "ground.gallery.former.wall" uses forbidden tombstone wording.'
+      'wall "gallery-south-wall" sourceId "ground.gallery.removed" uses forbidden tombstone wording.'
+    );
+  });
+
+  it('rejects malformed floor outlines and non-finite room bounds', () => {
+    const level = createLevel();
+    level.floors[0].outline = [
+      [0, 0],
+      [Number.NaN, 0],
+      [0, 0],
+    ];
+    level.floors[0].rooms[0].bounds.maxX = Number.NaN;
+
+    expect(validateLevelDefinition(level).errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('point 1 must use finite coordinates'),
+        expect.stringContaining('must not contain repeated points'),
+        expect.stringContaining('bounds must use finite coordinates'),
+      ])
+    );
+  });
+
+  it('reports malformed wall geometry instead of throwing', () => {
+    const level = createLevel();
+    level.floors[0].walls[0] = {
+      ...level.floors[0].walls[0],
+      segments: undefined,
+    } as never;
+
+    expect(validateLevelDefinition(level).errors).toContain(
+      'wall "gallery-south-wall" requires either segments or a run.'
+    );
+  });
+
+  it('rejects wall gaps that cannot compile into bounded legacy doorways', () => {
+    const level = createLevel();
+    level.floors[0].walls[1].run = {
+      start: { x: 5, z: 0 },
+      end: { x: 9, z: 4 },
+      gaps: [
+        { start: Number.NaN, end: 2 },
+        { start: -1, end: 1 },
+        { start: 2, end: 2.5 },
+      ],
+    };
+
+    expect(validateLevelDefinition(level).errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('gaps require an axis-aligned run'),
+      ])
+    );
+
+    level.floors[0].walls[1].run = {
+      start: { x: 5, z: 0 },
+      end: { x: 5, z: 6 },
+      gaps: [
+        { start: Number.NaN, end: 2 },
+        { start: -1, end: 1 },
+        { start: 2, end: 2.5 },
+      ],
+    };
+
+    expect(validateLevelDefinition(level).errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('gap 0 must use finite coordinates'),
+        expect.stringContaining('gap 1 must stay within the run'),
+        expect.stringContaining('gap 2 must be at least 1.2 units wide'),
+      ])
     );
   });
 });

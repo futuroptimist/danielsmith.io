@@ -43,7 +43,7 @@ const level: LevelDefinition = {
           run: {
             start: { x: 4, z: 0 },
             end: { x: 4, z: 4 },
-            gaps: [{ start: 1.5, end: 2.5 }],
+            gaps: [{ start: 1.3, end: 2.7 }],
           },
           rooms: ['left', 'right'],
         },
@@ -72,12 +72,22 @@ const level: LevelDefinition = {
 describe('compileLegacyFloorPlan', () => {
   it('compiles declarative rooms into the legacy floor plan shape', () => {
     expect(compileLegacyFloorPlan(level, 'ground')).toEqual({
-      outline: level.floors[0].outline,
+      outline: level.floors[0].outline.map(([x, z]) => [x, z]),
       rooms: [
         expect.objectContaining({ id: 'left', doorways: undefined }),
         expect.objectContaining({ id: 'right', doorways: undefined }),
       ],
     });
+  });
+
+  it('copies mutable legacy plan data away from the declarative source', () => {
+    const plan = compileLegacyFloorPlan(level, 'ground');
+
+    plan.outline[0][0] = 999;
+    plan.rooms[0].bounds.minX = 999;
+
+    expect(level.floors[0].outline[0][0]).toBe(0);
+    expect(level.floors[0].rooms[0].bounds.minX).toBe(0);
   });
 
   it('derives legacy doorway compatibility from current wall gaps when requested', () => {
@@ -86,8 +96,8 @@ describe('compileLegacyFloorPlan', () => {
     });
 
     expect(plan.rooms).toMatchObject([
-      { id: 'left', doorways: [{ wall: 'east', start: 1.5, end: 2.5 }] },
-      { id: 'right', doorways: [{ wall: 'west', start: 1.5, end: 2.5 }] },
+      { id: 'left', doorways: [{ wall: 'east', start: 1.3, end: 2.7 }] },
+      { id: 'right', doorways: [{ wall: 'west', start: 1.3, end: 2.7 }] },
     ]);
   });
 

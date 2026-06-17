@@ -29,11 +29,11 @@ export function compileLegacyFloorPlan(
     throw new Error(`Level "${level.id}" does not contain floor "${floorId}".`);
 
   return {
-    outline: floor.outline,
+    outline: floor.outline.map(([x, z]) => [x, z]),
     rooms: floor.rooms.map((room) => ({
       id: room.id,
       name: room.name,
-      bounds: room.bounds,
+      bounds: { ...room.bounds },
       ledColor: room.ledColor,
       category: room.category,
       doorways: options.includeDoorwaysFromWallGaps

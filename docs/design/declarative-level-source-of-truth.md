@@ -238,11 +238,13 @@ Wall authoring supports two current-state representations:
 - a current wall `run` with intentional `gaps` for doors or open passages when
   the run is easier to edit as one boundary.
 
-Those gaps describe present topology only. They are not removed-wall records, and
-validation rejects source IDs that contain tombstone-like segments such as
-`.former.`, `.removed.`, or `.debugOnlyRemoval.`. A visible door, arch, trim,
-threshold, or rail should be declared as a scene object or current wall/railing;
-a walkable opening does not need a former blocker record.
+Those gaps describe present topology only. They are not removed-wall records.
+Validation rejects source IDs with whole tombstone-like path segments such as
+`former`, `removed`, or `debugonlyremoval`, including when those words are the
+final segment. Doorway gaps must be finite, axis-aligned, within the wall run,
+non-overlapping, and wide enough for the legacy doorway checks. A visible door,
+arch, trim, threshold, or rail should be declared as a scene object or current
+wall/railing; a walkable opening does not need a former blocker record.
 
 The temporary adapter in `src/scene/level/compileLegacyFloorPlan.ts` compiles a
 declarative floor back to the existing `FloorPlanDefinition` shape for migration
