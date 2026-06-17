@@ -1,3 +1,6 @@
+import { compileLegacyFloorPlan } from '../../scene/level/compileLegacyFloorPlan';
+import { PORTFOLIO_LEVEL } from '../../scene/level/portfolioLevel';
+
 export type RoomWall = 'north' | 'south' | 'east' | 'west';
 
 export interface Bounds2D {
@@ -128,183 +131,17 @@ export interface CombinedWallSegment {
 
 export const WALL_THICKNESS = 0.5;
 
-const DOOR_WIDTH = 4;
-const DOOR_HALF_WIDTH = DOOR_WIDTH / 2;
-
-const livingToKitchenDoorCenter = -9;
-const livingToStudioDoorCenter = 7.5;
-const kitchenToBackyardDoorCenter = -9;
-const studioToBackyardDoorCenter = 7.5;
-const kitchenToStudioDoorCenterZ = 2;
-const upperLandingToCreatorsStudioDoorway = { start: -16, end: -13.07 };
-const upperLandingToLoftLibraryDoorway = { start: 2, end: 8.2 };
-
-const doorwayRange = (center: number) => ({
-  start: center - DOOR_HALF_WIDTH,
-  end: center + DOOR_HALF_WIDTH,
+const BASE_FLOOR_PLAN = compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'ground', {
+  includeDoorwaysFromWallGaps: true,
 });
 
-const BASE_FLOOR_PLAN: FloorPlanDefinition = {
-  outline: [
-    [-16, -16],
-    [16, -16],
-    [16, 16],
-    [-16, 16],
-  ],
-  rooms: [
-    {
-      id: 'livingRoom',
-      name: 'Living Room',
-      bounds: { minX: -16, maxX: 16, minZ: -16, maxZ: -4 },
-      ledColor: 0x4cf889,
-      doorways: [
-        {
-          wall: 'north',
-          ...doorwayRange(livingToKitchenDoorCenter),
-        },
-        {
-          wall: 'north',
-          ...doorwayRange(livingToStudioDoorCenter),
-        },
-      ],
-    },
-    {
-      id: 'studio',
-      name: 'Studio',
-      bounds: { minX: -2, maxX: 16, minZ: -4, maxZ: 8 },
-      ledColor: 0x58c4ff,
-      doorways: [
-        {
-          wall: 'south',
-          ...doorwayRange(livingToStudioDoorCenter),
-        },
-        {
-          wall: 'west',
-          ...doorwayRange(kitchenToStudioDoorCenterZ),
-        },
-        {
-          wall: 'north',
-          ...doorwayRange(studioToBackyardDoorCenter),
-        },
-      ],
-    },
-    {
-      id: 'kitchen',
-      name: 'Kitchen',
-      bounds: { minX: -16, maxX: -2, minZ: -4, maxZ: 8 },
-      ledColor: 0xffb347,
-      doorways: [
-        {
-          wall: 'south',
-          ...doorwayRange(livingToKitchenDoorCenter),
-        },
-        {
-          wall: 'east',
-          ...doorwayRange(kitchenToStudioDoorCenterZ),
-        },
-        {
-          wall: 'north',
-          ...doorwayRange(kitchenToBackyardDoorCenter),
-        },
-      ],
-    },
-    {
-      id: 'backyard',
-      name: 'Backyard',
-      bounds: { minX: -16, maxX: 16, minZ: 8, maxZ: 16 },
-      ledColor: 0x274f37,
-      doorways: [
-        {
-          wall: 'south',
-          ...doorwayRange(kitchenToBackyardDoorCenter),
-        },
-        {
-          wall: 'south',
-          ...doorwayRange(studioToBackyardDoorCenter),
-        },
-      ],
-      category: 'exterior',
-    },
-  ],
-};
+const UPPER_FLOOR_BASE_PLAN = compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'upper', {
+  includeDoorwaysFromWallGaps: true,
+});
 
-const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = {
-  outline: [
-    [-14, -16],
-    [14, -16],
-    [14, 14],
-    [-14, 14],
-  ],
-  rooms: [
-    {
-      id: 'upperLanding',
-      name: 'Upper Landing',
-      bounds: { minX: 2, maxX: 10.4, minZ: -16, maxZ: -8 },
-      ledColor: 0xffba52,
-      doorways: [
-        {
-          wall: 'west',
-          ...upperLandingToCreatorsStudioDoorway,
-        },
-        {
-          wall: 'north',
-          // Intentionally starts at the landing's west edge to open the
-          // upstairs landing-side passage formerly sealed by this wall run.
-          ...upperLandingToLoftLibraryDoorway,
-        },
-      ],
-    },
-    {
-      id: 'creatorsStudio',
-      name: 'Creators Studio',
-      bounds: { minX: -10, maxX: 2, minZ: -16, maxZ: 0 },
-      ledColor: 0x7bd5ff,
-      doorways: [
-        {
-          wall: 'east',
-          ...upperLandingToCreatorsStudioDoorway,
-        },
-        {
-          wall: 'east',
-          ...doorwayRange(-4),
-        },
-      ],
-    },
-    {
-      id: 'loftLibrary',
-      name: 'Loft Library',
-      bounds: { minX: 2, maxX: 12, minZ: -8, maxZ: 6 },
-      ledColor: 0xc3a7ff,
-      doorways: [
-        {
-          wall: 'south',
-          ...upperLandingToLoftLibraryDoorway,
-        },
-        {
-          wall: 'west',
-          ...doorwayRange(-4),
-        },
-        {
-          wall: 'north',
-          ...doorwayRange(4),
-        },
-      ],
-    },
-    {
-      id: 'focusPods',
-      name: 'Focus Pods',
-      bounds: { minX: -10, maxX: 12, minZ: 6, maxZ: 14 },
-      ledColor: 0x9cf7c7,
-      doorways: [
-        {
-          wall: 'south',
-          ...doorwayRange(4),
-        },
-      ],
-    },
-  ],
-};
-
+// Compatibility exports: legacy scene builders still consume scaled floor-plan
+// records with room doorways. The canonical room and wall topology lives in
+// PORTFOLIO_LEVEL and is adapted here until direct declarative consumers land.
 export const FLOOR_PLAN: FloorPlanDefinition =
   scaleFloorPlanDefinition(BASE_FLOOR_PLAN);
 

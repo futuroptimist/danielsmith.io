@@ -46,8 +46,12 @@ layer without guessing where functionality lives.
 
 ## Module directories
 
-- [`src/assets/`](../../src/assets/) – floor plans, localisation, theme, and
-  performance budgets. Also exposes POI copy consumed across systems and UI.
+- [`src/assets/`](../../src/assets/) – compatibility floor plans, localisation, theme, and
+  performance budgets. Also exposes POI copy consumed across systems and UI. Current
+  room bounds and wall topology are now authored in the declarative level source at
+  [`src/scene/level/portfolioLevel.ts`](../../src/scene/level/portfolioLevel.ts);
+  `src/assets/floorPlan/index.ts` adapts that source into legacy `FLOOR_PLAN`,
+  `UPPER_FLOOR_PLAN`, and `FLOOR_PLAN_LEVELS` exports while the migration continues.
 - [`src/systems/`](../../src/systems/) – keyboard controls, audio pipelines,
   movement prediction, collision detection, mode failover, HUD control handles,
   and the GitHub repo stats service that reads pod-local runtime metrics into POIs.
@@ -61,14 +65,15 @@ layer without guessing where functionality lives.
 
 ### State surfaces & consumers
 
-| Source handle / data surface      | Origin                                                                                                   | Consumed by                                                                             | Notes                                                           |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `FLOOR_PLAN` + POI metadata       | [`src/assets/floorPlan/index.ts`](../../src/assets/floorPlan/index.ts)                                   | Scene POI builders, keyboard traversal macro, HUD tooltip overlay                       | Canonical IDs power collision bounds and DOM aria-label text.   |
-| `KeyBindingRegistry`              | [`src/systems/controls/keyBindings.ts`](../../src/systems/controls/keyBindings.ts)                       | HUD legend (`src/ui/hud/movementLegend.tsx`), help modal, Playwright macro              | Emits observable binding changes so overlays update instantly.  |
-| `getCameraRelativeMovementVector` | [`src/systems/movement/cameraRelativeMovement.ts`](../../src/systems/movement/cameraRelativeMovement.ts) | `src/main.ts` avatar update loop and movement/facing tests                              | Provides camera-relative planar vectors for movement and yaw.   |
-| `PoiVisitedState`                 | [`src/scene/poi/visitedState.ts`](../../src/scene/poi/visitedState.ts)                                   | Scene halo/material toggles, DOM overlay badges, accessibility announcers               | Persists visited state between HUD and Three.js meshes.         |
-| `HudFocusAnnouncerHandle`         | [`src/ui/accessibility/hudFocusAnnouncer.ts`](../../src/ui/accessibility/hudFocusAnnouncer.ts)           | HUD overlays, subtitles bridge, Playwright assertions                                   | Centralises live-region announcements and aria-live priorities. |
-| Performance budgets               | [`src/assets/performance.ts`](../../src/assets/performance.ts)                                           | Vitest assertions (`src/tests/performanceBudget.test.ts`), Playwright diff budget, docs | Keeps render metrics and screenshot tolerances in sync.         |
+| Source handle / data surface         | Origin                                                                                                   | Consumed by                                                                             | Notes                                                                  |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `PORTFOLIO_LEVEL` declarative source | [`src/scene/level/portfolioLevel.ts`](../../src/scene/level/portfolioLevel.ts)                           | Legacy floor-plan adapter, level invariant tests                                        | Canonical current room and wall source for ground and upper floors.    |
+| `FLOOR_PLAN` + POI metadata          | [`src/assets/floorPlan/index.ts`](../../src/assets/floorPlan/index.ts)                                   | Scene POI builders, keyboard traversal macro, HUD tooltip overlay                       | Compatibility exports adapted from `PORTFOLIO_LEVEL` during migration. |
+| `KeyBindingRegistry`                 | [`src/systems/controls/keyBindings.ts`](../../src/systems/controls/keyBindings.ts)                       | HUD legend (`src/ui/hud/movementLegend.tsx`), help modal, Playwright macro              | Emits observable binding changes so overlays update instantly.         |
+| `getCameraRelativeMovementVector`    | [`src/systems/movement/cameraRelativeMovement.ts`](../../src/systems/movement/cameraRelativeMovement.ts) | `src/main.ts` avatar update loop and movement/facing tests                              | Provides camera-relative planar vectors for movement and yaw.          |
+| `PoiVisitedState`                    | [`src/scene/poi/visitedState.ts`](../../src/scene/poi/visitedState.ts)                                   | Scene halo/material toggles, DOM overlay badges, accessibility announcers               | Persists visited state between HUD and Three.js meshes.                |
+| `HudFocusAnnouncerHandle`            | [`src/ui/accessibility/hudFocusAnnouncer.ts`](../../src/ui/accessibility/hudFocusAnnouncer.ts)           | HUD overlays, subtitles bridge, Playwright assertions                                   | Centralises live-region announcements and aria-live priorities.        |
+| Performance budgets                  | [`src/assets/performance.ts`](../../src/assets/performance.ts)                                           | Vitest assertions (`src/tests/performanceBudget.test.ts`), Playwright diff budget, docs | Keeps render metrics and screenshot tolerances in sync.                |
 
 ### Data flow callouts
 
