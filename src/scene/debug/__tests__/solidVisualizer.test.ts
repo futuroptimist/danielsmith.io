@@ -74,6 +74,204 @@ describe('createSolidVisualizer', () => {
     expect(visualizer.getSolids()[0].bounds.min.x).not.toBe(99);
   });
 
+  it('reads source metadata from userData.levelSourceId', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('SourceIdWall');
+    solid.userData.levelSourceId = 'wall:source-id';
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [metadata] = visualizer.getSolids();
+    expect(metadata).toMatchObject({
+      name: 'SourceIdWall',
+      sourceId: 'wall:source-id',
+    });
+    expect(visualizer.getSolidBySourceId('wall:source-id')).toEqual(metadata);
+    expect(visualizer.getSolidsBySourceId('wall:source-id')).toEqual([
+      metadata,
+    ]);
+  });
+
+  it('reads source metadata from userData.levelSource', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const first = createSolid('SourceObjectWallA');
+    first.userData.levelSource = {
+      sourceId: 'wall:shared-source',
+      sourceType: 'wall',
+      purpose: 'render',
+    };
+    const second = createSolid('SourceObjectWallB');
+    second.userData.levelSource = { sourceId: 'wall:shared-source' };
+    scene.add(first, second);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const matches = visualizer.getSolidsBySourceId('wall:shared-source');
+    expect(matches).toHaveLength(2);
+    expect(visualizer.getSolidBySourceId('wall:shared-source')).toEqual(
+      matches[0]
+    );
+    expect(matches[0]).toMatchObject({
+      sourceId: 'wall:shared-source',
+      sourceType: 'wall',
+      purpose: 'render',
+    });
+  });
+
+  it('keeps visible debug IDs stable when otherwise identical solids add source metadata', () => {
+    const sceneWithoutSource = new Group();
+    sceneWithoutSource.name = 'Scene';
+    sceneWithoutSource.add(createSolid('StableSourceWall'));
+    const withoutSource = createSolidVisualizer({ enabled: true });
+    withoutSource.register(sceneWithoutSource);
+
+    const sceneWithSourceId = new Group();
+    sceneWithSourceId.name = 'Scene';
+    const withSourceId = createSolid('StableSourceWall');
+    withSourceId.userData.levelSourceId = 'wall:stable-source-id';
+    sceneWithSourceId.add(withSourceId);
+    const withSourceIdVisualizer = createSolidVisualizer({ enabled: true });
+    withSourceIdVisualizer.register(sceneWithSourceId);
+
+    const sceneWithLevelSource = new Group();
+    sceneWithLevelSource.name = 'Scene';
+    const withLevelSource = createSolid('StableSourceWall');
+    withLevelSource.userData.levelSource = {
+      sourceId: 'wall:stable-level-source',
+      sourceType: 'wall',
+      purpose: 'structure',
+    };
+    sceneWithLevelSource.add(withLevelSource);
+    const withLevelSourceVisualizer = createSolidVisualizer({ enabled: true });
+    withLevelSourceVisualizer.register(sceneWithLevelSource);
+
+    const [sourceLessMetadata] = withoutSource.getSolids();
+    const [sourceIdMetadata] = withSourceIdVisualizer.getSolids();
+    const [levelSourceMetadata] = withLevelSourceVisualizer.getSolids();
+
+    expect(sourceIdMetadata.id).toBe(sourceLessMetadata.id);
+    expect(levelSourceMetadata.id).toBe(sourceLessMetadata.id);
+    expect(
+      withSourceIdVisualizer.getSolidBySourceId('wall:stable-source-id')
+    ).toEqual(sourceIdMetadata);
+    expect(
+      withLevelSourceVisualizer.getSolidsBySourceId('wall:stable-level-source')
+    ).toEqual([levelSourceMetadata]);
+    expect(sourceLessMetadata).not.toHaveProperty('sourceId');
+    expect(sourceLessMetadata).not.toHaveProperty('sourceType');
+    expect(sourceLessMetadata).not.toHaveProperty('purpose');
+  });
+
+  it('inherits source metadata from owning ancestors with child precedence', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const parent = new Group();
+    parent.name = 'DeclarativeWallGroup';
+    parent.userData.levelSource = {
+      sourceId: 'wall:parent-source',
+      sourceType: 'wall',
+      purpose: 'structure',
+    };
+    parent.add(createSolid('InheritedSourceWall'));
+    const childOverride = createSolid('ChildSourceWall');
+    childOverride.userData.levelSourceId = 'wall:child-source';
+    parent.add(childOverride);
+    const partialChild = createSolid('PartialChildSourceWall');
+    partialChild.userData.levelSource = { purpose: 'render' };
+    parent.add(partialChild);
+    scene.add(parent);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const inherited = visualizer.getSolidBySourceId('wall:parent-source');
+    expect(inherited).toMatchObject({
+      name: 'InheritedSourceWall',
+      sourceId: 'wall:parent-source',
+      sourceType: 'wall',
+      purpose: 'structure',
+    });
+    expect(visualizer.getSolidBySourceId('wall:child-source')).toMatchObject({
+      name: 'ChildSourceWall',
+      sourceId: 'wall:child-source',
+    });
+    expect(visualizer.getSolidsBySourceId('wall:parent-source')).toEqual([
+      expect.objectContaining({
+        name: 'InheritedSourceWall',
+        sourceId: 'wall:parent-source',
+        purpose: 'structure',
+      }),
+      expect.objectContaining({
+        name: 'PartialChildSourceWall',
+        sourceId: 'wall:parent-source',
+        sourceType: 'wall',
+        purpose: 'render',
+      }),
+    ]);
+  });
+
+  it('keeps direct source IDs coherent when nested source metadata differs', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const mismatched = createSolid('MigratedSourceWall');
+    mismatched.userData.levelSourceId = 'wall:new-source';
+    mismatched.userData.levelSource = {
+      sourceId: 'wall:old-source',
+      sourceType: 'wall',
+      purpose: 'legacy',
+    };
+    const matching = createSolid('MatchingSourceWall');
+    matching.userData.levelSourceId = 'wall:matching-source';
+    matching.userData.levelSource = {
+      sourceId: 'wall:matching-source',
+      sourceType: 'wall',
+      purpose: 'render',
+    };
+    scene.add(mismatched, matching);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const migrated = visualizer.getSolidBySourceId('wall:new-source');
+    expect(migrated).toMatchObject({
+      name: 'MigratedSourceWall',
+      sourceId: 'wall:new-source',
+    });
+    expect(migrated?.sourceType).toBeUndefined();
+    expect(migrated?.purpose).toBeUndefined();
+    expect(visualizer.getSolidBySourceId('wall:matching-source')).toMatchObject(
+      {
+        name: 'MatchingSourceWall',
+        sourceId: 'wall:matching-source',
+        sourceType: 'wall',
+        purpose: 'render',
+      }
+    );
+  });
+
+  it('keeps objects without source metadata behaving as before', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    scene.add(createSolid('LegacyWall'));
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [metadata] = visualizer.getSolids();
+    expect(metadata.sourceId).toBeUndefined();
+    expect(metadata.sourceType).toBeUndefined();
+    expect(metadata.purpose).toBeUndefined();
+    expect(visualizer.getSolidBySourceId('missing')).toBeUndefined();
+    expect(visualizer.getSolidBySourceId(null)).toBeUndefined();
+    expect(visualizer.getSolidsBySourceId('missing')).toEqual([]);
+    expect(visualizer.getSolidsBySourceId(null)).toEqual([]);
+  });
+
   it('creates matching non-raycasting debug wireframes and labels without ID collisions', () => {
     const scene = new Group();
     scene.name = 'Scene';
@@ -99,6 +297,9 @@ describe('createSolidVisualizer', () => {
       (child) => child.type === 'Sprite'
     );
     expect(wireframe?.userData.debugOnly).toBe(true);
+    expect(wireframe?.userData.solidDebug).toEqual({
+      id: solids[0].id,
+    });
     expect(label?.userData.debugOnly).toBe(true);
     expect(wireframe?.raycast({} as never, [] as never)).toBeUndefined();
     expect(label?.raycast({} as never, [] as never)).toBeUndefined();
@@ -111,6 +312,32 @@ describe('createSolidVisualizer', () => {
         label as { material: { color: { getHex(): number } } }
       ).material.color.getHex()
     );
+  });
+
+  it('exposes solid source metadata on debug wireframe userData', () => {
+    const scene = new Group();
+    scene.name = 'Scene';
+    const solid = createSolid('InspectableSourceWall');
+    solid.userData.levelSource = {
+      sourceId: 'wall:inspectable-source',
+      sourceType: 'wall',
+      purpose: 'inspect',
+    };
+    scene.add(solid);
+
+    const visualizer = createSolidVisualizer({ enabled: true });
+    visualizer.register(scene);
+
+    const [metadata] = visualizer.getSolids();
+    const wireframe = visualizer.group.children.find(
+      (child) => child.type === 'LineSegments'
+    );
+    expect(wireframe?.userData.solidDebug).toEqual({
+      id: metadata.id,
+      sourceId: 'wall:inspectable-source',
+      sourceType: 'wall',
+      purpose: 'inspect',
+    });
   });
 
   it('registers stable scene solids while hiding currently ineffective entries', () => {

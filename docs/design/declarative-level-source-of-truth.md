@@ -195,6 +195,16 @@ Short hex IDs may remain as debug display references for screenshot readability
 or compact overlays, but they are downstream labels. Debug labels should point
 back to semantic source IDs rather than becoming the source of truth.
 
+The debug visualizer APIs now expose optional `sourceId`, `sourceType`, and
+`purpose` metadata on collider and solid metadata responses while preserving the
+existing visible hex IDs and label text. Collider registrations can pass those
+fields directly, and solid debug metadata reads them from
+`object.userData.levelSourceId` or `object.userData.levelSource`. Consumers can
+use `getColliderBySourceId(...)`, `getCollidersBySourceId(...)`,
+`getSolidBySourceId(...)`, and `getSolidsBySourceId(...)` to inspect downstream
+artifacts by authoritative source identity without reverse-engineering compact
+labels.
+
 The foundation helpers for this migration live in
 `src/scene/level/sourceIds.ts`. New source-backed level data should use the
 `LevelSourceId` branded type, `assertLevelSourceId(...)`,

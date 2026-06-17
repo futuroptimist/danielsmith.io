@@ -619,12 +619,18 @@ declare global {
           floorId?: FloorId;
         }): DebugColliderMetadata[];
         getColliderById(id: unknown): DebugColliderMetadata | undefined;
+        getColliderBySourceId(
+          sourceId: unknown
+        ): DebugColliderMetadata | undefined;
+        getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
       };
       debugSolids?: {
         getState(): DebugSolidVisualizerState;
         setEnabled(enabled: boolean): void;
         getSolids(): DebugSolidMetadata[];
         getSolidById(id: unknown): DebugSolidMetadata | undefined;
+        getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
+        getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
       };
       debugPerformance?: {
         getState(): DebugPerformanceState;
@@ -4987,6 +4993,10 @@ function initializeImmersiveScene(
     getColliders: () => colliderVisualizer.getColliders(),
     getBlockingCollidersAt: getBlockingDebugCollidersAt,
     getColliderById: (id: unknown) => colliderVisualizer.getColliderById(id),
+    getColliderBySourceId: (sourceId: unknown) =>
+      colliderVisualizer.getColliderBySourceId(sourceId),
+    getCollidersBySourceId: (sourceId: unknown) =>
+      colliderVisualizer.getCollidersBySourceId(sourceId),
   };
 
   window.portfolio.debugSolids = {
@@ -5001,6 +5011,14 @@ function initializeImmersiveScene(
     getSolidById: (id: unknown) => {
       ensureSolidVisualizerRegistered();
       return solidVisualizer.getSolidById(id);
+    },
+    getSolidBySourceId: (sourceId: unknown) => {
+      ensureSolidVisualizerRegistered();
+      return solidVisualizer.getSolidBySourceId(sourceId);
+    },
+    getSolidsBySourceId: (sourceId: unknown) => {
+      ensureSolidVisualizerRegistered();
+      return solidVisualizer.getSolidsBySourceId(sourceId);
     },
   };
 

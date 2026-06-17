@@ -39,6 +39,9 @@ export interface DebugSolidMetadata {
   meshType: string;
   bounds: DebugSolidBounds;
   material?: string;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 }
 
 export interface DebugSolidVisualizerState {
@@ -63,6 +66,8 @@ export interface SolidVisualizer {
   getState(): DebugSolidVisualizerState;
   getSolids(): DebugSolidMetadata[];
   getSolidById(id: unknown): DebugSolidMetadata | undefined;
+  getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
+  getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
   update(): void;
   dispose(): void;
 }
@@ -176,6 +181,79 @@ const getObjectPath = (object: Object3D): string => {
   return parts.reverse().join('/');
 };
 
+const cloneSourceMetadata = (metadata: {
+  sourceId?: unknown;
+  sourceType?: unknown;
+  purpose?: unknown;
+}) => ({
+  ...(typeof metadata.sourceId === 'string'
+    ? { sourceId: metadata.sourceId }
+    : {}),
+  ...(typeof metadata.sourceType === 'string'
+    ? { sourceType: metadata.sourceType }
+    : {}),
+  ...(typeof metadata.purpose === 'string'
+    ? { purpose: metadata.purpose }
+    : {}),
+});
+
+const getOwnUserDataSourceMetadata = (
+  object: Object3D
+): Pick<DebugSolidMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
+  const levelSource = object.userData.levelSource;
+  const nestedSource =
+    levelSource && typeof levelSource === 'object'
+      ? (levelSource as {
+          sourceId?: unknown;
+          sourceType?: unknown;
+          purpose?: unknown;
+        })
+      : undefined;
+  const directSourceId = object.userData.levelSourceId;
+
+  if (typeof directSourceId === 'string') {
+    const nestedSourceId = nestedSource?.sourceId;
+    return cloneSourceMetadata({
+      sourceId: directSourceId,
+      ...(nestedSourceId === directSourceId
+        ? {
+            sourceType: nestedSource.sourceType,
+            purpose: nestedSource.purpose,
+          }
+        : {}),
+    });
+  }
+
+  return cloneSourceMetadata({
+    sourceId: nestedSource?.sourceId,
+    sourceType: nestedSource?.sourceType,
+    purpose: nestedSource?.purpose,
+  });
+};
+
+const getUserDataSourceMetadata = (
+  object: Object3D
+): Pick<DebugSolidMetadata, 'sourceId' | 'sourceType' | 'purpose'> => {
+  const metadata: Pick<
+    DebugSolidMetadata,
+    'sourceId' | 'sourceType' | 'purpose'
+  > = {};
+  let current: Object3D | null = object;
+  while (current) {
+    const ownMetadata = getOwnUserDataSourceMetadata(current);
+    metadata.sourceType ??= ownMetadata.sourceType;
+    metadata.purpose ??= ownMetadata.purpose;
+
+    if (ownMetadata.sourceId !== undefined) {
+      metadata.sourceId = ownMetadata.sourceId;
+      return cloneSourceMetadata(metadata);
+    }
+
+    current = current.parent;
+  }
+  return cloneSourceMetadata(metadata);
+};
+
 const cloneBounds = (bounds: DebugSolidBounds): DebugSolidBounds => ({
   min: { ...bounds.min },
   max: { ...bounds.max },
@@ -269,6 +347,7 @@ export const createSolidDebugId = (
 
 const cloneMetadata = (metadata: DebugSolidMetadata): DebugSolidMetadata => ({
   ...metadata,
+  ...cloneSourceMetadata(metadata),
   bounds: cloneBounds(metadata.bounds),
 });
 
@@ -354,6 +433,7 @@ export const createSolidVisualizer = (
         meshType: object.type,
         bounds,
         material: getMaterialSummary(object.material),
+        ...getUserDataSourceMetadata(object),
       };
       meshes.push({
         mesh: object,
@@ -402,7 +482,10 @@ export const createSolidVisualizer = (
       wireframe.renderOrder = 20_002;
       wireframe.frustumCulled = false;
       wireframe.userData.debugOnly = true;
-      wireframe.userData.solidDebug = { id };
+      wireframe.userData.solidDebug = {
+        id,
+        ...cloneSourceMetadata(item.metadata),
+      };
       wireframe.raycast = () => undefined;
 
       const label = createDebugIdLabel(id, color);
@@ -462,6 +545,21 @@ export const createSolidVisualizer = (
       const normalizedId = id.toUpperCase();
       const entry = entries.find((next) => next.metadata.id === normalizedId);
       return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getSolidBySourceId(sourceId: unknown) {
+      if (typeof sourceId !== 'string' || sourceId.length === 0) {
+        return undefined;
+      }
+      const entry = entries.find((next) => next.metadata.sourceId === sourceId);
+      return entry ? cloneMetadata(entry.metadata) : undefined;
+    },
+    getSolidsBySourceId(sourceId: unknown) {
+      if (typeof sourceId !== 'string' || sourceId.length === 0) {
+        return [];
+      }
+      return entries
+        .filter((entry) => entry.metadata.sourceId === sourceId)
+        .map((entry) => cloneMetadata(entry.metadata));
     },
     update() {
       if (!enabled) {
