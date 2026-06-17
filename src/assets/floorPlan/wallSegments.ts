@@ -1,3 +1,7 @@
+import {
+  makeLevelSourceId,
+  type LevelSourceId,
+} from '../../scene/level/sourceIds';
 import type { RectCollider } from '../../systems/collision';
 import {
   getCombinedWallSegments,
@@ -11,6 +15,8 @@ export interface WallSegmentInstance {
   segment: CombinedWallSegment;
   /** Stable identifier for correlating generated meshes with the source segment. */
   segmentId: string;
+  /** Semantic source identifier for generated legacy wall segments. */
+  sourceId: LevelSourceId;
   center: { x: number; y: number; z: number };
   dimensions: { width: number; height: number; depth: number };
   collider: RectCollider;
@@ -32,6 +38,10 @@ export interface WallSegmentOptions {
   interiorExtensionFactor?: number;
   /** Additional overlap factor for exterior segments to prevent light leaks. */
   exteriorExtensionFactor?: number;
+  /** Floor context used when deriving semantic source IDs for generated wall segments. */
+  floorId?: string;
+  /** Alias for floorId when a caller has level terminology. */
+  levelId?: string;
   getRoomCategory(roomId: string): RoomCategory;
 }
 
@@ -69,7 +79,7 @@ export function createWallSegmentInstances(
   const segments = getCombinedWallSegments(plan);
   const instances: WallSegmentInstance[] = [];
 
-  segments.forEach((segment, index) => {
+  segments.forEach((segment) => {
     const length =
       segment.orientation === 'horizontal'
         ? Math.abs(segment.end.x - segment.start.x)
@@ -135,7 +145,8 @@ export function createWallSegmentInstances(
 
     instances.push({
       segment,
-      segmentId: createSegmentId(segment, index),
+      segmentId: createSegmentId(segment),
+      sourceId: createSegmentSourceId(segment, options),
       center,
       dimensions: { width, height, depth },
       collider,
@@ -152,12 +163,52 @@ function formatPoint(point: { x: number; z: number }): string {
   return `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
 }
 
-function createSegmentId(segment: CombinedWallSegment, index: number): string {
+function createSegmentId(segment: CombinedWallSegment): string {
   const start = formatPoint(segment.start);
   const end = formatPoint(segment.end);
   const rooms = segment.rooms
     .map((room) => `${room.id}:${room.wall}`)
     .sort()
     .join('|');
-  return [segment.orientation, start, end, rooms || 'none', index].join('|');
+  return [segment.orientation, start, end, rooms || 'none'].join('|');
+}
+
+function formatSourceCoordinate(value: number): string {
+  const scaled = Math.round(value * 1000);
+  return scaled < 0 ? `n${Math.abs(scaled)}` : `p${scaled}`;
+}
+
+function formatSourcePoint(point: { x: number; z: number }): string {
+  return `x${formatSourceCoordinate(point.x)}_z${formatSourceCoordinate(point.z)}`;
+}
+
+function formatSourcePart(value: string): string {
+  return (
+    value
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'unknown'
+  );
+}
+
+function createSegmentSourceId(
+  segment: CombinedWallSegment,
+  options: Pick<WallSegmentOptions, 'floorId' | 'levelId'>
+): LevelSourceId {
+  const floorId = formatSourcePart(
+    options.floorId ?? options.levelId ?? 'floor'
+  );
+  const rooms = segment.rooms
+    .map((room) => `${formatSourcePart(room.id)}_${room.wall}`)
+    .sort()
+    .join('__');
+
+  return makeLevelSourceId([
+    floorId,
+    'generated_wall',
+    segment.orientation,
+    `${formatSourcePoint(segment.start)}_to_${formatSourcePoint(segment.end)}`,
+    rooms || 'none',
+  ]);
 }

@@ -15,6 +15,8 @@ function createWallInstance(
       rooms: [{ id: 'livingRoom', wall: 'north' }],
     },
     segmentId: 'segment-default',
+    sourceId:
+      'ground.generated_wall.horizontal.xp0_zp0_to_xp4000_zp0.living_room_north' as WallSegmentInstance['sourceId'],
     center: { x: 2, y: 3, z: 0 },
     dimensions: { width: 4, height: 6, depth: 0.5 },
     collider: { minX: 0, maxX: 4, minZ: -0.25, maxZ: 0.25 },
@@ -85,6 +87,11 @@ describe('createWallSegmentMeshes', () => {
       );
       expect(mesh.userData.thickness).toBe(instances[index]?.thickness);
       expect(mesh.userData.segmentId).toBe(instances[index]?.segmentId);
+      expect(mesh.userData.levelSourceId).toBe(instances[index]?.sourceId);
+      expect(mesh.userData.levelSource).toEqual({
+        sourceId: instances[index]?.sourceId,
+        sourceType: 'wall',
+      });
       expect(mesh.name).toBe(
         instances[index]?.isFence ? 'FenceSegment' : 'WallSegment'
       );
