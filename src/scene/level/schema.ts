@@ -163,7 +163,9 @@ export function validateLevelDefinition(
     }
 
     const rawSourceId = sourceId as string;
-    const sourceIdParts = rawSourceId.split('.');
+    const sourceIdParts = rawSourceId
+      .split('.')
+      .map((part) => part.toLowerCase());
     if (
       FORBIDDEN_SOURCE_ID_PARTS.some((part) => sourceIdParts.includes(part))
     ) {

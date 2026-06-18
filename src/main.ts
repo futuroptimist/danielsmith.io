@@ -150,8 +150,12 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { generateFloorSurfaces } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
-import { PORTFOLIO_LEVEL } from './scene/level/portfolioLevel';
+import {
+  PORTFOLIO_LEVEL,
+  UPPER_LANDING_FLOOR_MAIN_ID,
+} from './scene/level/portfolioLevel';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -236,7 +240,6 @@ import {
   createF2ClipboardConsole,
   type F2ClipboardConsoleBuild,
 } from './scene/structures/f2ClipboardConsole';
-import { createRoomFloorTiles } from './scene/structures/floorTiles';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -1851,7 +1854,7 @@ function initializeImmersiveScene(
     roughness: 0.58,
     metalness: 0.18,
   });
-  const floorTiles = createRoomFloorTiles(FLOOR_PLAN.rooms, {
+  const floorTiles = generateFloorSurfaces(getLevelFloor('ground'), {
     material: floorMaterial,
     elevation: 0,
     groupName: 'GroundFloorTiles',
@@ -2307,12 +2310,29 @@ function initializeImmersiveScene(
           }),
         }
       : undefined;
-  const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+  const upperFloorSurfaceCutouts =
+    upperLandingCutouts &&
+    upperLandingRoom &&
+    upperStairwellOpening &&
+    stairRunApproachFootprint
+      ? {
+          [UPPER_LANDING_FLOOR_MAIN_ID]: [
+            ...upperLandingCutouts.upperLanding,
+            {
+              minX: stairRunApproachFootprint.minX,
+              maxX: stairRunApproachFootprint.maxX,
+              minZ: upperLandingRoom.bounds.minZ,
+              maxZ: upperStairwellOpening.minZ,
+            },
+          ],
+        }
+      : undefined;
+  const upperFloorTiles = generateFloorSurfaces(getLevelFloor('upper'), {
     material: upperFloorMaterial,
     elevation: upperFloorElevation,
     thickness: STAIRCASE_CONFIG.landing.thickness,
     groupName: 'UpperFloorTiles',
-    cutoutsByRoom: upperLandingCutouts,
+    cutoutsBySurfaceId: upperFloorSurfaceCutouts,
   });
   upperFloorGroup.add(upperFloorTiles.group);
 

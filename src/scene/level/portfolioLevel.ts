@@ -82,18 +82,38 @@ const centeredGap = (runStart: number, center: number, label: string) => {
   return gap(range.start - runStart, range.end - runStart, label);
 };
 
-const roomIdToSourceSegment = (roomId: string) =>
-  roomId.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+const FLOOR_SURFACE_SOURCE_IDS: Readonly<Record<string, string>> = {
+  'ground:livingRoom': 'ground.livingRoom.floor.main',
+  'ground:studio': 'ground.studio.floor.main',
+  'ground:kitchen': 'ground.kitchen.floor.main',
+  'upper:upperLanding': 'upper.upperLanding.floor.main',
+  'upper:upperLandingStairEdge': 'upper.upperLanding.floor.stairEdgePiece',
+  'upper:creatorsStudio': 'upper.creatorsStudio.floor.main',
+  'upper:loftLibrary': 'upper.loftLibrary.floor.main',
+  'upper:focusPods': 'upper.focusPods.floor.main',
+};
+
+export const UPPER_LANDING_FLOOR_MAIN_ID = 'upperLanding-floor-main';
 
 const floorSurfaceForRoom = (
   floorId: FloorDefinition['id'],
   room: FloorDefinition['rooms'][number]
-): FloorDefinition['floorSurfaces'][number] => {
-  const roomSourceSegment = roomIdToSourceSegment(room.id);
+): FloorDefinition['floorSurfaces'][number] | undefined => {
+  if (room.category === 'exterior') return undefined;
+
+  const mappedSourceId = FLOOR_SURFACE_SOURCE_IDS[`${floorId}:${room.id}`];
+  if (!mappedSourceId) {
+    throw new Error(
+      `Missing floor surface source ID for ${floorId}:${room.id}.`
+    );
+  }
 
   return {
-    id: `${room.id}-floor-surface`,
-    sourceId: sourceId(`${floorId}.${roomSourceSegment}.floor_surface`),
+    id:
+      room.id === 'upperLanding'
+        ? UPPER_LANDING_FLOOR_MAIN_ID
+        : `${room.id}-floor-main`,
+    sourceId: sourceId(mappedSourceId),
     floorId,
     bounds: { ...room.bounds },
     roomId: room.id,
@@ -105,7 +125,26 @@ type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
 
 const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
   ...floor,
-  floorSurfaces: floor.rooms.map((room) => floorSurfaceForRoom(floor.id, room)),
+  floorSurfaces: [
+    ...floor.rooms.flatMap((room) => {
+      const surface = floorSurfaceForRoom(floor.id, room);
+      return surface ? [surface] : [];
+    }),
+    ...(floor.id === 'upper'
+      ? [
+          {
+            id: 'upperLanding-floor-stair-edge-piece',
+            sourceId: sourceId(
+              FLOOR_SURFACE_SOURCE_IDS['upper:upperLandingStairEdge']
+            ),
+            floorId: 'upper',
+            bounds: { minX: 4.65, maxX: 7.75, minZ: -16, maxZ: -15.9 },
+            roomId: 'upperLanding',
+            purpose: 'stair-edge-floor',
+          },
+        ]
+      : []),
+  ],
 });
 
 export const PORTFOLIO_LEVEL: LevelDefinition = {

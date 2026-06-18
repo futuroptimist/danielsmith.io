@@ -111,11 +111,14 @@ not as old blockers that are removed later.
 
 ### Floor surfaces
 
-Floor surfaces describe current walkable and rendered floor pieces. They may be
+Floor surfaces describe current walkable and rendered floor pieces and now carry
+stable semantic source IDs through generated meshes and debug solids. They may be
 large source rectangles or polygons while the generator clips them into smaller
 renderable meshes around stairs, voids, thresholds, or material regions. Source
 floor data should describe the intended current surface, not the history of a
-former full floor plus a list of removed holes.
+former full floor plus a list of removed holes. Current stairwell clipping remains
+generator-owned so authored production data names the present landing surfaces
+rather than preserving historical missing-floor artifacts.
 
 ### Safety colliders
 
@@ -257,7 +260,7 @@ arch, trim, threshold, or rail should be declared as a scene object or current
 wall/railing; a walkable opening does not need a former blocker record.
 
 Current ground and upper room bounds, wall runs, intentional wall-run gaps,
-floor surfaces, and semantic room connections now live in
+floor surfaces with source IDs, and semantic room connections now live in
 `src/scene/level/portfolioLevel.ts`. The temporary adapter in
 `src/scene/level/compileLegacyFloorPlan.ts` compiles a declarative floor
 back to the existing `FloorPlanDefinition` shape for migration checks and
@@ -287,8 +290,11 @@ semantic `roomConnections` intentionally do not create or remove geometry.
    `src/scene/level/generateWalls.ts`; the legacy room-doorway wall generator is
    retained only as a compatibility reference while later phases migrate floors,
    safety colliders, and inventory tooling.
-8. **Generate floor outputs from source.** Derive floor surfaces from source data,
-   allowing generator-owned splitting and clipping where useful.
+8. **Generate floor outputs from source.** Floor meshes now derive from
+   `FloorDefinition.floorSurfaces` via
+   `src/scene/level/generateFloorSurfaces.ts`, with generator-owned splitting
+   and clipping preserving the current stairwell void while propagating
+   `floorSurface` source metadata to debug solids.
 9. **Move stair and void safety.** Convert stair, landing, and void guard
    colliders into purpose-labeled source-ID-backed safety colliders.
 10. **Move scene objects and policies.** Place visible/interactable objects and

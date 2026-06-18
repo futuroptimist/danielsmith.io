@@ -16,16 +16,18 @@ const validIds = [
   'ground.living_room.media_wall.scene_object',
   'backyard.greenhouse_path.east_fence.section03',
   'ground.room_01.wall-02.generated_collider',
+  'ground.livingRoom.floor.main',
+  'upper.upperLanding.floor.stairEdgePiece',
 ];
 
 const invalidIds = [
   'ground living_room.north_wall',
-  'Ground.living_room.north_wall',
   'ground..livingRoom',
   'ground/living_room/north_wall',
   '.ground.living_room',
   'ground.living_room.',
   '',
+  'Ground.living_room.north_wall',
 ];
 
 describe('level source ID validation', () => {
@@ -61,11 +63,11 @@ describe('level source ID composition', () => {
 
   it('fails instead of silently normalizing malformed parts', () => {
     expect(() => joinLevelSourceId('ground', '', 'northWall')).toThrow(/empty/);
-    expect(() => joinLevelSourceId('ground.living_room', 'north_wall')).toThrow(
-      /dots/
-    );
     expect(() => joinLevelSourceId('ground', 'LivingRoom')).toThrow(
       /Invalid level source ID/
+    );
+    expect(() => joinLevelSourceId('ground.living_room', 'north_wall')).toThrow(
+      /dots/
     );
   });
 });
