@@ -152,7 +152,10 @@ import {
 } from './scene/graphics/sceneDetailPolicy';
 import { generateFloorSurfaces } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
-import { PORTFOLIO_LEVEL } from './scene/level/portfolioLevel';
+import {
+  PORTFOLIO_LEVEL,
+  UPPER_LANDING_FLOOR_MAIN_ID,
+} from './scene/level/portfolioLevel';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -2308,14 +2311,17 @@ function initializeImmersiveScene(
         }
       : undefined;
   const upperFloorSurfaceCutouts =
-    upperLandingCutouts && upperStairwellOpening && stairRunApproachFootprint
+    upperLandingCutouts &&
+    upperLandingRoom &&
+    upperStairwellOpening &&
+    stairRunApproachFootprint
       ? {
-          'upperLanding-floor-main': [
+          [UPPER_LANDING_FLOOR_MAIN_ID]: [
             ...upperLandingCutouts.upperLanding,
             {
               minX: stairRunApproachFootprint.minX,
               maxX: stairRunApproachFootprint.maxX,
-              minZ: upperLandingRoom!.bounds.minZ,
+              minZ: upperLandingRoom.bounds.minZ,
               maxZ: upperStairwellOpening.minZ,
             },
           ],

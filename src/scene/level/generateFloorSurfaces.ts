@@ -9,7 +9,8 @@ import {
 
 import type { FloorDefinition, FloorSurfaceDefinition } from './schema';
 
-export interface FloorSurfaceGenerationOptions extends RoomFloorOptions {
+export interface FloorSurfaceGenerationOptions
+  extends Omit<RoomFloorOptions, 'includeExterior' | 'cutoutsByRoom'> {
   readonly scale?: number;
   readonly cutoutsBySurfaceId?: Readonly<Record<string, RoomFloorCutout[]>>;
 }
@@ -41,7 +42,11 @@ export function generateFloorSurfaces(
   floor: FloorDefinition,
   options: FloorSurfaceGenerationOptions = {}
 ): GeneratedFloorSurfaceBuild {
-  const scale = options.scale ?? FLOOR_PLAN_SCALE;
+  const {
+    cutoutsBySurfaceId,
+    scale = FLOOR_PLAN_SCALE,
+    ...roomFloorOptions
+  } = options;
   const roomNames = new Map(floor.rooms.map((room) => [room.id, room.name]));
   const surfacesByKey = new Map<string, FloorSurfaceDefinition>();
 
@@ -58,16 +63,30 @@ export function generateFloorSurfaces(
     };
   });
 
+  const surfaceIds = new Set(floor.floorSurfaces.map((surface) => surface.id));
+  const unknownCutoutSurfaceIds = Object.keys(cutoutsBySurfaceId ?? {}).filter(
+    (surfaceId) => !surfaceIds.has(surfaceId)
+  );
+
+  if (unknownCutoutSurfaceIds.length > 0) {
+    console.warn(
+      `Ignoring cutouts for unknown floor surface IDs: ${unknownCutoutSurfaceIds.join(
+        ', '
+      )}.`
+    );
+  }
+
   const cutoutsByRoom = Object.fromEntries(
     floor.floorSurfaces.map((surface) => [
       makeRoomSurfaceKey(surface),
-      options.cutoutsBySurfaceId?.[surface.id] ?? [],
+      cutoutsBySurfaceId?.[surface.id] ?? [],
     ])
   );
 
   const build = createRoomFloorTiles(surfaceRooms, {
-    ...options,
+    ...roomFloorOptions,
     cutoutsByRoom,
+    // Surface definitions are already production-filtered; keep synthetic rooms renderable.
     includeExterior: true,
   });
 

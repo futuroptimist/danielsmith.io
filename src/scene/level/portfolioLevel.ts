@@ -93,6 +93,8 @@ const FLOOR_SURFACE_SOURCE_IDS: Readonly<Record<string, string>> = {
   'upper:focusPods': 'upper.focusPods.floor.main',
 };
 
+export const UPPER_LANDING_FLOOR_MAIN_ID = 'upperLanding-floor-main';
+
 const floorSurfaceForRoom = (
   floorId: FloorDefinition['id'],
   room: FloorDefinition['rooms'][number]
@@ -107,7 +109,10 @@ const floorSurfaceForRoom = (
   }
 
   return {
-    id: `${room.id}-floor-main`,
+    id:
+      room.id === 'upperLanding'
+        ? UPPER_LANDING_FLOOR_MAIN_ID
+        : `${room.id}-floor-main`,
     sourceId: sourceId(mappedSourceId),
     floorId,
     bounds: { ...room.bounds },
@@ -133,7 +138,7 @@ const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
               FLOOR_SURFACE_SOURCE_IDS['upper:upperLandingStairEdge']
             ),
             floorId: 'upper',
-            bounds: { minX: 4.65, maxX: 7.75, minZ: -16, maxZ: -15.95 },
+            bounds: { minX: 4.65, maxX: 7.75, minZ: -16, maxZ: -15.9 },
             roomId: 'upperLanding',
             purpose: 'stair-edge-floor',
           },

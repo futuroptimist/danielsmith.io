@@ -1,8 +1,11 @@
 import { MeshStandardMaterial } from 'three';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { generateFloorSurfaces } from '../generateFloorSurfaces';
-import { PORTFOLIO_LEVEL } from '../portfolioLevel';
+import {
+  PORTFOLIO_LEVEL,
+  UPPER_LANDING_FLOOR_MAIN_ID,
+} from '../portfolioLevel';
 
 const getFloor = (floorId: string) => {
   const floor = PORTFOLIO_LEVEL.floors.find(
@@ -26,6 +29,10 @@ const sampleCoveredBy = (
   );
 
 describe('generateFloorSurfaces', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('adds source metadata to every generated floor tile', () => {
     const build = generateFloorSurfaces(getFloor('ground'), {
       material: new MeshStandardMaterial(),
@@ -88,7 +95,7 @@ describe('generateFloorSurfaces', () => {
     const build = generateFloorSurfaces(upper, {
       scale: 1,
       cutoutsBySurfaceId: {
-        'upperLanding-floor-main': [
+        [UPPER_LANDING_FLOOR_MAIN_ID]: [
           { minX: 4.65, maxX: 7.75, minZ: -15.95, maxZ: -8 },
           { minX: 7.75, maxX: 7.95, minZ: -16, maxZ: -15.95 },
         ],
@@ -99,5 +106,20 @@ describe('generateFloorSurfaces', () => {
     expect(sampleCoveredBy(build.tiles, 3, -12)).toBe(true);
     expect(sampleCoveredBy(build.tiles, 8.5, -12)).toBe(true);
     expect(sampleCoveredBy(build.tiles, 6.2, -15.975)).toBe(true);
+  });
+
+  it('warns when cutouts reference an unknown floor surface ID', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    generateFloorSurfaces(getFloor('upper'), {
+      scale: 1,
+      cutoutsBySurfaceId: {
+        staleSurfaceId: [{ minX: 0, maxX: 1, minZ: 0, maxZ: 1 }],
+      },
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      'Ignoring cutouts for unknown floor surface IDs: staleSurfaceId.'
+    );
   });
 });

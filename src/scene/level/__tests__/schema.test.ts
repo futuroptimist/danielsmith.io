@@ -140,7 +140,14 @@ describe('declarative level schema validation', () => {
   });
 
   it('rejects source IDs that look like tombstone/debug-only removal records', () => {
-    for (const term of ['former', 'removed', 'debugonlyremoval']) {
+    for (const term of [
+      'former',
+      'removed',
+      'debugonlyremoval',
+      'Former',
+      'Removed',
+      'DebugOnlyRemoval',
+    ]) {
       const level = createLevel();
       level.floors[0].walls[0].sourceId = sourceId(`ground.gallery.${term}`);
 
