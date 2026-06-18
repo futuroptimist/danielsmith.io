@@ -2,6 +2,16 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
 
+import {
+  expectNoBlockingCollidersAt,
+  expectSamplesBlocked,
+  expectSamplesOccupiable,
+  expectSourceBackedColliderPresent,
+  expectSourceBackedSolidPresent,
+  getDebugColliderByRegistryId,
+  type ImmersiveSample,
+} from './helpers/immersiveAssertions';
+
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const PLAYER_RADIUS = 0.75;
@@ -230,10 +240,7 @@ function getUpperRoomCenter(roomId: string) {
   };
 }
 
-type NamedPosition = {
-  name: string;
-  target: { x: number; z: number; floorId?: FloorId };
-};
+type NamedPosition = ImmersiveSample;
 
 function expectSampleOnPhysicalStaircaseLanding(
   sample: NamedPosition,
@@ -820,22 +827,13 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
   expect(debugColliderIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(true);
   const firstDebugCollider = debugColliders[0];
-  const foundById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, firstDebugCollider.id);
+  const foundById = await getDebugColliderByRegistryId(
+    page,
+    firstDebugCollider.id
+  );
   expect(foundById).toEqual(firstDebugCollider);
 
-  const westBannisterById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '4009');
+  const westBannisterById = await getDebugColliderByRegistryId(page, '4009');
   expect(westBannisterById?.id).toBe('4009');
   expect(westBannisterById?.name).toBe('UpperStairWestBannisterGuard');
   expect(westBannisterById?.floor).toBe('upper');
@@ -847,22 +845,10 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   const northBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairNorthBannisterGuard'
   );
-  const northBannisterById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '400A');
+  const northBannisterById = await getDebugColliderByRegistryId(page, '400A');
   expect(northBannisterById?.id).toBe('400A');
   expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
-  const hiddenRunGuardById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '4008');
+  const hiddenRunGuardById = await getDebugColliderByRegistryId(page, '4008');
   expect(hiddenRunGuardById).toBeUndefined();
   expect(westBannister).toBeDefined();
   expect(northBannister).toBeDefined();
@@ -1083,6 +1069,25 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   await waitForImmersiveReady(page);
   await walkStairCenterlineToUpperLanding(page);
 
+  await expectSourceBackedSolidPresent(page, 'upper.upper_landing.south_wall');
+  await expectSourceBackedColliderPresent(
+    page,
+    'upper.upper_landing.south_wall'
+  );
+  await expectSourceBackedSolidPresent(page, 'upper.upperLanding.floor.main');
+  await expectSourceBackedColliderPresent(
+    page,
+    'upper.stairwell.westBannister.safetyCollider'
+  );
+  await expectSourceBackedSolidPresent(
+    page,
+    'upper.upper_landing_to_loft_library.wall'
+  );
+  await expectSourceBackedColliderPresent(
+    page,
+    'upper.upper_landing_to_loft_library.wall'
+  );
+
   const targetState = await page.evaluate(() => {
     const debugSolids = (window as PortfolioWindow).portfolio?.debugSolids;
     const debugColliders = (window as PortfolioWindow).portfolio
@@ -1272,17 +1277,29 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     floorId: 'ground' as const,
   };
 
+  await expectSamplesBlocked(
+    page,
+    blockedSamples.map((target, index) => ({
+      name: `ground stair squeeze corner ${index}`,
+      target,
+    }))
+  );
   for (const sample of blockedSamples) {
-    expect(await canOccupyPosition(page, sample)).toBe(false);
     await expect(async () => movePlayerTo(page, sample)).rejects.toThrow(
       /Cannot occupy/
     );
   }
 
-  for (const sample of livingRoomSamples) {
-    expect(await canOccupyPosition(page, sample)).toBe(true);
-  }
-  expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
+  await expectSamplesOccupiable(
+    page,
+    [...livingRoomSamples, lowerEntrance].map((target, index) => ({
+      name:
+        index < livingRoomSamples.length
+          ? `living room ${index}`
+          : 'lower entrance',
+      target,
+    }))
+  );
   await movePlayerTo(page, lowerEntrance);
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
@@ -1331,17 +1348,16 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await walkStairCenterlineToUpperLanding(page);
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
-  for (const landingOffset of [0.05, 0.4, 0.8]) {
-    const landingHandoffSample = {
+  const landingHandoffSamples = [0.05, 0.4, 0.8].map((landingOffset) => ({
+    name: `upper landing handoff offset ${landingOffset}`,
+    target: {
       x: stairCenterX,
       z: stairTopZ + stairDirection * landingOffset,
       floorId: 'upper' as const,
-    };
-    expect(await canOccupyPosition(page, landingHandoffSample)).toBe(true);
-    expect(await getBlockingColliderNames(page, landingHandoffSample)).toEqual(
-      []
-    );
-  }
+    },
+  }));
+  await expectSamplesOccupiable(page, landingHandoffSamples);
+  await expectNoBlockingCollidersAt(page, landingHandoffSamples);
 
   const westDescentLaneClearanceX =
     stairCenterX - stairHalfWidth + PLAYER_RADIUS + 1.05;
