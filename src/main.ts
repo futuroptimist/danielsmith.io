@@ -2150,7 +2150,6 @@ function initializeImmersiveScene(
       doorwayDepth,
       stairwellMarginX,
       stairTopZ,
-      stairTransitionMargin,
       stairLandingTriggerMargin,
       stairLayoutDirectionMultiplier: stairLayout.directionMultiplier,
       upperLandingRoomBounds: upperLandingRoom.bounds,
