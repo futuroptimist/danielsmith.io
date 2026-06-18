@@ -61,6 +61,77 @@ function compareSignatures(
   return JSON.stringify(a).localeCompare(JSON.stringify(b));
 }
 
+const sourceEditProofFloor = (): FloorDefinition => ({
+  id: 'proof',
+  name: 'Proof Floor',
+  outline: [
+    [0, 0],
+    [8, 0],
+    [8, 4],
+    [0, 4],
+  ],
+  rooms: [
+    {
+      id: 'left',
+      sourceId: 'proof.left.room' as never,
+      name: 'Left',
+      bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+      ledColor: 0xffffff,
+    },
+    {
+      id: 'right',
+      sourceId: 'proof.right.room' as never,
+      name: 'Right',
+      bounds: { minX: 4, maxX: 8, minZ: 0, maxZ: 4 },
+      ledColor: 0xffffff,
+    },
+  ],
+  walls: [
+    {
+      id: 'left-west-wall',
+      sourceId: 'proof.left.west_wall' as never,
+      floorId: 'proof',
+      wallKind: 'wall',
+      rooms: ['left'],
+      run: { start: { x: 0, z: 0 }, end: { x: 0, z: 4 } },
+    },
+    {
+      id: 'divider-wall',
+      sourceId: 'proof.left_to_right.divider_wall' as never,
+      floorId: 'proof',
+      wallKind: 'wall',
+      rooms: ['left', 'right'],
+      run: { start: { x: 4, z: 0 }, end: { x: 4, z: 4 } },
+    },
+  ],
+  floorSurfaces: [
+    {
+      id: 'left-floor',
+      sourceId: 'proof.left.floor.main' as never,
+      floorId: 'proof',
+      roomId: 'left',
+      bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+    },
+    {
+      id: 'right-floor',
+      sourceId: 'proof.right.floor.main' as never,
+      floorId: 'proof',
+      roomId: 'right',
+      bounds: { minX: 4, maxX: 8, minZ: 0, maxZ: 4 },
+    },
+  ],
+});
+
+const proofWallOptions = () => ({
+  coordinateScale: 1,
+  baseElevation: 0,
+  wallHeight: 3,
+  wallThickness: 0.25,
+  fenceHeight: 1,
+  fenceThickness: 0.1,
+  getRoomCategory: () => 'interior' as const,
+});
+
 function getFloor(level: LevelDefinition, floorId: string): FloorDefinition {
   const floor = level.floors.find((candidate) => candidate.id === floorId);
   if (!floor) throw new Error(`Missing test floor ${floorId}.`);
@@ -140,6 +211,100 @@ describe('generateWallSegmentInstances', () => {
     expect(JSON.stringify(PORTFOLIO_LEVEL)).not.toMatch(
       /skip|former|removed|tombstone/i
     );
+  });
+
+  it('regenerates wall meshes and colliders from direct source-data edits', () => {
+    const floor = sourceEditProofFloor();
+    const addedWallSourceId = 'proof.right.east_wall';
+    const withAddedWall: FloorDefinition = {
+      ...floor,
+      walls: [
+        ...floor.walls,
+        {
+          id: 'right-east-wall',
+          sourceId: addedWallSourceId as never,
+          floorId: 'proof',
+          wallKind: 'wall',
+          rooms: ['right'],
+          run: { start: { x: 8, z: 0 }, end: { x: 8, z: 4 } },
+        },
+      ],
+    };
+
+    const baseline = generateWallSegmentInstances(floor, proofWallOptions());
+    const edited = generateWallSegmentInstances(
+      withAddedWall,
+      proofWallOptions()
+    );
+
+    expect(baseline.some((wall) => wall.sourceId === addedWallSourceId)).toBe(
+      false
+    );
+    const generatedWall = edited.find(
+      (wall) => wall.sourceId === addedWallSourceId
+    );
+    expect(generatedWall).toBeDefined();
+    expect(generatedWall?.collider).toMatchObject({ minX: 8, maxX: 8.25 });
+
+    const material = new MeshBasicMaterial({ color: 0xffffff });
+    const { meshes } = createWallSegmentMeshes({
+      instances: edited,
+      getMaterial: () => material,
+    });
+    expect(
+      meshes.some((mesh) => mesh.userData.levelSourceId === addedWallSourceId)
+    ).toBe(true);
+    material.dispose();
+  });
+
+  it('removes generated wall meshes and colliders after a direct source-data deletion', () => {
+    const floor = sourceEditProofFloor();
+    const removedSourceId = 'proof.left_to_right.divider_wall';
+    const withoutDivider: FloorDefinition = {
+      ...floor,
+      walls: floor.walls.filter((wall) => wall.sourceId !== removedSourceId),
+    };
+
+    const baseline = generateWallSegmentInstances(floor, proofWallOptions());
+    const edited = generateWallSegmentInstances(
+      withoutDivider,
+      proofWallOptions()
+    );
+
+    expect(baseline.some((wall) => wall.sourceId === removedSourceId)).toBe(
+      true
+    );
+    expect(edited.some((wall) => wall.sourceId === removedSourceId)).toBe(
+      false
+    );
+  });
+
+  it('does not create or remove wall geometry for semantic room connections', () => {
+    const floor = sourceEditProofFloor();
+    const withConnection: FloorDefinition = {
+      ...floor,
+      roomConnections: [
+        {
+          id: 'left-right-opening',
+          sourceId: 'proof.left_to_right.connection' as never,
+          floorId: 'proof',
+          rooms: ['left', 'right'],
+        },
+      ],
+    };
+
+    const baseline = generateWallSegmentInstances(floor, proofWallOptions());
+    const edited = generateWallSegmentInstances(
+      withConnection,
+      proofWallOptions()
+    );
+
+    expect(edited.map(wallSignature).sort(compareSignatures)).toEqual(
+      baseline.map(wallSignature).sort(compareSignatures)
+    );
+    expect(
+      edited.some((wall) => wall.sourceId === 'proof.left_to_right.connection')
+    ).toBe(false);
   });
 
   it('responds to declarative wall edits without consuming semantic connections', () => {
