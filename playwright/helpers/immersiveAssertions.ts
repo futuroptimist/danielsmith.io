@@ -137,13 +137,11 @@ export async function expectPathTraversable(
       }
 
       for (const waypoint of nextWaypoints) {
-        let reachedWaypoint = false;
         for (let index = 0; index < 320; index += 1) {
           const position = world.getPlayerPosition();
           const remainingX = waypoint.x - position.x;
           const remainingZ = waypoint.z - position.z;
           if (Math.abs(remainingX) < 0.001 && Math.abs(remainingZ) < 0.001) {
-            reachedWaypoint = true;
             break;
           }
 
@@ -168,8 +166,11 @@ export async function expectPathTraversable(
           }
         }
 
+        const position = world.getPlayerPosition();
+        const reachedWaypoint =
+          Math.abs(waypoint.x - position.x) < 0.001 &&
+          Math.abs(waypoint.z - position.z) < 0.001;
         if (!reachedWaypoint) {
-          const position = world.getPlayerPosition();
           throw new Error(
             `Waypoint (${waypoint.x.toFixed(2)}, ${waypoint.z.toFixed(2)}) ` +
               `not reached after 320 steps; stopped at ` +
