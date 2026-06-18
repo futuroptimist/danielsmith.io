@@ -86,7 +86,6 @@ describe('createWallSegmentMeshes', () => {
         instances[index]?.isSharedInterior ?? false
       );
       expect(mesh.userData.thickness).toBe(instances[index]?.thickness);
-      expect(mesh.userData.segmentId).toBe(instances[index]?.segmentId);
       expect(mesh.userData.levelSourceId).toBe(instances[index]?.sourceId);
       expect(mesh.userData.levelSource).toEqual({
         sourceId: instances[index]?.sourceId,

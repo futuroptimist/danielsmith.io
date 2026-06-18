@@ -2,11 +2,12 @@
 
 ## Purpose
 
-This document defines the migration path from the current floor-plan and
-scene-orchestration pipeline to a floor-plan-first declarative level source of
-truth. It is intentionally documentation-only: the current TypeScript runtime,
-rendered geometry, colliders, debug IDs, movement, stairs, POIs, and rendering
-must remain unchanged until later migration prompts.
+This document records the completed migration from the original floor-plan and
+scene-orchestration fragments to a floor-plan-first declarative level source of
+truth for migrated walls, floor surfaces, major safety colliders, and migrated
+scene-object placements. Runtime behavior, debug UI behavior, stair movement,
+POIs, and rendering remain intentionally preserved while source data now owns
+the current scene intent.
 
 The core principle is that authoritative level data describes the intended
 current scene. Generated meshes, gameplay colliders, debug metadata, validation,
@@ -15,10 +16,10 @@ split, clip, subtract, or batch geometry when that is the simplest way to build 
 runtime artifact, but production source data should not preserve former bounds,
 removed-ID lists, or higher-layer patches as the way to change layout.
 
-## Current pipeline
+## Current pipeline after migration
 
-The current level is assembled from several authoritative fragments plus runtime
-orchestration code:
+The current level is assembled from declarative source data plus downstream
+generators and a small amount of scene orchestration:
 
 1. `src/assets/floorPlan/index.ts`
    - Defines room bounds, room labels, LED colors, categories, and doorway ranges
@@ -325,8 +326,11 @@ semantic `roomConnections` intentionally do not create or remove geometry.
     their collider policies in declarative source data.
 11. **Add invariants and inventory tooling.** Prevent hidden overrides, duplicate
     source IDs, debug-ID tombstones, and unowned colliders or visible solids.
-12. **Remove legacy scaffolding.** Delete bridge code once direct source edits are
-    proven to regenerate final scene geometry and collision.
+12. **Remove legacy scaffolding.** Completed for migrated walls, floor
+    surfaces, major safety colliders, and migrated scene objects. Direct source
+    edit tests now prove that adding or deleting wall definitions changes final
+    generated meshes/colliders, and semantic room connections do not act as a
+    parallel geometry system.
 
 ## Migration risks
 
@@ -367,10 +371,20 @@ Future phases should add tests and tooling that make source ownership auditable:
 - Room connection checks assert semantic adjacency references real rooms and real
   current geometry or scene objects, without creating duplicate collision rules.
 
-## Definition of success
+## Completion status and remaining edges
 
-The migration is complete when a direct edit to declarative source data is enough
-to regenerate the final visual geometry, gameplay collision, and debug metadata;
-legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
-and inventory tooling can explain every runtime level artifact by semantic source
-ID.
+The migration is complete for current room definitions, wall/fence generation,
+floor surfaces, stair/void safety colliders, and the migrated scene-object
+placements with collider policies. Direct source edits regenerate generated wall
+meshes and colliders, browser debug APIs expose source IDs for known wall, floor,
+and safety-collider artifacts, and semantic room connections remain metadata
+rather than geometry.
+
+Remaining edge cases are limited to compatibility surfaces that still exist for
+comparison or non-level runtime systems: the legacy floor-plan wall adapter in
+`src/assets/floorPlan/wallSegments.ts` is retained for regression comparisons,
+not as the production authoring path, and compact hex debug IDs remain downstream
+labels. Hardcoded bounds that remain in production code should be either explicit
+source data, stair-derived safety geometry, or documented object-factory collider
+policies. See `docs/design/editing-level-data.md` for the current human editing
+workflow.
