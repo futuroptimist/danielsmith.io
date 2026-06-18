@@ -126,7 +126,12 @@ Safety colliders are invisible constraints that should exist, each with a stated
 purpose such as preventing stairwell falls, preserving stair approach lanes,
 blocking unfinished zones, or protecting showpiece footprints. They should carry
 source IDs, floor assignment, bounds, and purpose text so reviewers can tell why
-the invisible constraint exists.
+the invisible constraint exists. Physical wall colliders remain generated from
+wall/fence source geometry; safety colliders are separate source-backed
+constraints and must not masquerade as layout wall geometry or hidden post-hoc
+patches. Stair, landing, and void guards now flow through
+`src/scene/level/stairSafetyColliders.ts`, which preserves current bounds while
+attaching concise purposes to debug collider metadata.
 
 ### Scene objects
 
@@ -295,8 +300,9 @@ semantic `roomConnections` intentionally do not create or remove geometry.
    `src/scene/level/generateFloorSurfaces.ts`, with generator-owned splitting
    and clipping preserving the current stairwell void while propagating
    `floorSurface` source metadata to debug solids.
-9. **Move stair and void safety.** Convert stair, landing, and void guard
-   colliders into purpose-labeled source-ID-backed safety colliders.
+9. **Move stair and void safety.** Stair, landing, and void guard colliders now
+   come from `src/scene/level/stairSafetyColliders.ts` as purpose-labeled,
+   source-ID-backed safety colliders while preserving their runtime bounds.
 10. **Move scene objects and policies.** Place visible/interactable objects and
     their collider policies in declarative source data.
 11. **Add invariants and inventory tooling.** Prevent hidden overrides, duplicate
