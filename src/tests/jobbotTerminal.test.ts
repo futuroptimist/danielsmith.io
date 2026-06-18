@@ -10,6 +10,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
+import { assertLevelSourceId } from '../scene/level/sourceIds';
 import { createJobbotTerminal } from '../scene/structures/jobbotTerminal';
 
 function createMockContext(): CanvasRenderingContext2D {
@@ -229,5 +230,25 @@ describe('JobbotTerminal structure', () => {
 
     expect(shardMaterial.emissiveIntensity).toBeGreaterThan(baselineIntensity);
     expect(Math.abs(shard.position.y - baselineHeight)).toBeGreaterThan(0.001);
+  });
+
+  it('exposes scene object source metadata on its root group', () => {
+    const build = createJobbotTerminal({
+      position: { x: 0, y: 0, z: 0 },
+      levelSource: {
+        sourceId: assertLevelSourceId('ground.studio.jobbot.terminal'),
+        sourceType: 'sceneObject',
+        purpose: 'test source metadata',
+      },
+    });
+
+    expect(build.group.userData.levelSourceId).toBe(
+      'ground.studio.jobbot.terminal'
+    );
+    expect(build.group.userData.levelSource).toMatchObject({
+      sourceId: 'ground.studio.jobbot.terminal',
+      sourceType: 'sceneObject',
+      purpose: 'test source metadata',
+    });
   });
 });

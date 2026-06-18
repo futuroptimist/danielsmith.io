@@ -16,6 +16,10 @@ import {
 } from 'three';
 
 import type { RectCollider } from '../collision';
+import {
+  applySceneObjectSourceMetadata,
+  type SourceBackedSceneObjectOptions,
+} from '../level/sceneObjects';
 
 export interface AxelNavigatorBuild {
   group: Group;
@@ -23,7 +27,7 @@ export interface AxelNavigatorBuild {
   update(context: { elapsed: number; delta: number; emphasis: number }): void;
 }
 
-export interface AxelNavigatorOptions {
+export interface AxelNavigatorOptions extends SourceBackedSceneObjectOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
 }
@@ -138,6 +142,9 @@ export function createAxelNavigator(
   group.name = 'AxelQuestNavigator';
   group.position.copy(basePosition);
   group.rotation.y = orientationRadians;
+  if (options.levelSource) {
+    applySceneObjectSourceMetadata(group, options.levelSource);
+  }
 
   const colliders: RectCollider[] = [];
 

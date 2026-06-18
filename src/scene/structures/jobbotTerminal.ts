@@ -17,6 +17,10 @@ import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import {
+  applySceneObjectSourceMetadata,
+  type SourceBackedSceneObjectOptions,
+} from '../level/sceneObjects';
 
 const JOBBOT_SCREEN_WIDTH = 2048;
 const JOBBOT_SCREEN_HEIGHT = 1024;
@@ -35,7 +39,7 @@ export interface JobbotTerminalBuild {
   }): void;
 }
 
-export interface JobbotTerminalOptions {
+export interface JobbotTerminalOptions extends SourceBackedSceneObjectOptions {
   position: { x: number; z: number; y?: number };
   orientationRadians?: number;
   desk?: {
@@ -261,6 +265,9 @@ export function createJobbotTerminal(
   group.name = 'JobbotTerminal';
   group.position.set(position.x, baseY, position.z);
   group.rotation.y = orientationRadians;
+  if (options.levelSource) {
+    applySceneObjectSourceMetadata(group, options.levelSource);
+  }
 
   const colliders: RectCollider[] = [];
 

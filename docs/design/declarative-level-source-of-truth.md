@@ -360,3 +360,22 @@ to regenerate the final visual geometry, gameplay collision, and debug metadata;
 legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
 and inventory tooling can explain every runtime level artifact by semantic source
 ID.
+
+## Scene object placements and collider policy (phase 10)
+
+Scene object definitions now cover the first source-backed subset of POI
+showpieces whose colliders historically required manual tracing through
+`main.ts` and structure factories: Flywheel, Jobbot, Axel, Wove, and PR Reaper.
+Each definition records `sourceId`, `id`, `floorId`, `kind`, `position`, optional
+`orientation`, optional `roomId`, `purpose`, and an explicit `colliderPolicy`.
+The policy is current intentional data: visible solid-like objects use `solid`
+or `custom`, and future decorative objects must use `decorativeNoCollision` with
+a reason rather than silently omitting collision.
+
+Runtime factories can receive the source metadata without changing their visual
+placement logic. Generated root groups receive `userData.levelSourceId` plus a
+`userData.levelSource` object with `sourceType: 'sceneObject'`; collider
+registration maps returned rectangle colliders back to the same source metadata
+for debug overlays. This preserves the current geometry and collision bounds
+while making future object collider cleanup an edit to declarative source data
+instead of a hidden override in construction code.

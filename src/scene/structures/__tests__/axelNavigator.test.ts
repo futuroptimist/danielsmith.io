@@ -1,6 +1,7 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { assertLevelSourceId } from '../../level/sourceIds';
 import { createAxelNavigator, QUEST_MOMENTUM_PRESETS } from '../axelNavigator';
 
 describe('createAxelNavigator', () => {
@@ -101,5 +102,25 @@ describe('createAxelNavigator', () => {
     expect(indicatorMaterial.opacity).toBeGreaterThan(initialOpacity);
     expect(haloMaterial.opacity).toBeGreaterThan(initialHaloOpacity);
     expect(halo.position.y).toBeLessThan(indicator.position.y);
+  });
+
+  it('exposes scene object source metadata on its root group', () => {
+    const build = createAxelNavigator({
+      position: { x: 0, y: 0, z: 0 },
+      levelSource: {
+        sourceId: assertLevelSourceId('ground.studio.axel.navigator'),
+        sourceType: 'sceneObject',
+        purpose: 'test source metadata',
+      },
+    });
+
+    expect(build.group.userData.levelSourceId).toBe(
+      'ground.studio.axel.navigator'
+    );
+    expect(build.group.userData.levelSource).toMatchObject({
+      sourceId: 'ground.studio.axel.navigator',
+      sourceType: 'sceneObject',
+      purpose: 'test source metadata',
+    });
   });
 });

@@ -11,6 +11,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
+import { assertLevelSourceId } from '../scene/level/sourceIds';
 import { createPrReaperConsole } from '../scene/structures/prReaperConsole';
 
 const gradientStub = { addColorStop: vi.fn() };
@@ -407,5 +408,25 @@ describe('createPrReaperConsole', () => {
       calmTickerCalls
     );
     expect(logGlowMaterial.opacity).toBeGreaterThanOrEqual(calmRefreshGlow);
+  });
+
+  it('exposes scene object source metadata on its root group', () => {
+    const build = createPrReaperConsole({
+      position: { x: 0, y: 0, z: 0 },
+      levelSource: {
+        sourceId: assertLevelSourceId('ground.backyard.pr_reaper.console'),
+        sourceType: 'sceneObject',
+        purpose: 'test source metadata',
+      },
+    });
+
+    expect(build.group.userData.levelSourceId).toBe(
+      'ground.backyard.pr_reaper.console'
+    );
+    expect(build.group.userData.levelSource).toMatchObject({
+      sourceId: 'ground.backyard.pr_reaper.console',
+      sourceType: 'sceneObject',
+      purpose: 'test source metadata',
+    });
   });
 });

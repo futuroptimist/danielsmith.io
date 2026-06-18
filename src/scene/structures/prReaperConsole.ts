@@ -19,6 +19,10 @@ import {
 
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
+import {
+  applySceneObjectSourceMetadata,
+  type SourceBackedSceneObjectOptions,
+} from '../level/sceneObjects';
 
 export interface PrReaperConsoleBuild {
   group: Group;
@@ -26,7 +30,7 @@ export interface PrReaperConsoleBuild {
   update(context: { elapsed: number; delta: number; emphasis: number }): void;
 }
 
-export interface PrReaperConsoleOptions {
+export interface PrReaperConsoleOptions extends SourceBackedSceneObjectOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
 }
@@ -388,6 +392,9 @@ export function createPrReaperConsole(
   group.name = 'PrReaperConsole';
   group.position.copy(basePosition);
   group.rotation.y = orientationRadians;
+  if (options.levelSource) {
+    applySceneObjectSourceMetadata(group, options.levelSource);
+  }
 
   const right = new Vector3(
     Math.cos(orientationRadians),

@@ -20,6 +20,10 @@ import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import {
+  applySceneObjectSourceMetadata,
+  type SourceBackedSceneObjectOptions,
+} from '../level/sceneObjects';
 
 const FLYWHEEL_POI_ID = 'flywheel-studio-flywheel';
 
@@ -29,7 +33,8 @@ export interface FlywheelShowpieceBuild {
   update(context: { elapsed: number; delta: number; emphasis: number }): void;
 }
 
-export interface FlywheelShowpieceOptions {
+export interface FlywheelShowpieceOptions
+  extends SourceBackedSceneObjectOptions {
   centerX: number;
   centerZ: number;
   roomBounds: Bounds2D;
@@ -58,6 +63,9 @@ export function createFlywheelShowpiece(
 
   const group = new Group();
   group.name = 'FlywheelShowpiece';
+  if (options.levelSource) {
+    applySceneObjectSourceMetadata(group, options.levelSource);
+  }
 
   const colliders: RectCollider[] = [];
 

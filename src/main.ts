@@ -157,6 +157,12 @@ import {
   UPPER_LANDING_FLOOR_MAIN_ID,
 } from './scene/level/portfolioLevel';
 import {
+  createSceneObjectDefinitionLookup,
+  getSceneObjectSourceMetadata,
+  registerSceneObjectColliderMetadata,
+} from './scene/level/sceneObjects';
+import type { LevelSourceId } from './scene/level/sourceIds';
+import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
@@ -983,8 +989,11 @@ const namedColliderDebugNames = new Map<RectCollider, string>();
 const colliderSourceMetadata = new Map<
   RectCollider,
   {
-    sourceId: WallSegmentInstance['sourceId'] | LevelSafetyCollider['sourceId'];
-    sourceType: 'wall' | 'safetyCollider';
+    sourceId:
+      | WallSegmentInstance['sourceId']
+      | LevelSafetyCollider['sourceId']
+      | LevelSourceId;
+    sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
     purpose?: string;
   }
 >();
@@ -1046,6 +1055,12 @@ const roomDefinitions = new Map(
 function getRoomCategory(roomId: string): RoomCategory {
   const room = roomDefinitions.get(roomId);
   return room?.category ?? 'interior';
+}
+
+function getGroundSceneObjectLookup() {
+  return createSceneObjectDefinitionLookup(
+    getLevelFloor('ground').sceneObjects ?? []
+  );
 }
 
 function getLevelFloor(floorId: FloorId) {
@@ -2802,32 +2817,63 @@ function initializeImmersiveScene(
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
   const kitchenBounds = kitchenRoom?.bounds;
+  const sceneObjectDefinitions = getGroundSceneObjectLookup();
+  const flywheelSceneObject = sceneObjectDefinitions.require(
+    'flywheel-studio-showpiece'
+  );
+  const jobbotSceneObject = sceneObjectDefinitions.require(
+    'jobbot-studio-terminal'
+  );
+  const axelSceneObject = sceneObjectDefinitions.require(
+    'axel-studio-navigator'
+  );
+  const woveSceneObject = sceneObjectDefinitions.require('wove-kitchen-loom');
+  const prReaperSceneObject = sceneObjectDefinitions.require(
+    'pr-reaper-backyard-console'
+  );
+  const registerSceneObjectColliders = (
+    colliders: readonly RectCollider[],
+    objectId: string
+  ) => {
+    registerSceneObjectColliderMetadata(
+      colliders,
+      getSceneObjectSourceMetadata(sceneObjectDefinitions.require(objectId)),
+      (collider, metadata) => colliderSourceMetadata.set(collider, metadata)
+    );
+  };
   if (studioRoom) {
     const centerX =
-      flywheelPoi?.group.position.x ??
-      (studioRoom.bounds.minX + studioRoom.bounds.maxX) / 2;
+      flywheelPoi?.group.position.x ?? flywheelSceneObject.position.x;
     const centerZ =
-      flywheelPoi?.group.position.z ??
-      (studioRoom.bounds.minZ + studioRoom.bounds.maxZ) / 2;
+      flywheelPoi?.group.position.z ?? flywheelSceneObject.position.z;
     const showpiece = createFlywheelShowpiece({
       centerX,
       centerZ,
       roomBounds: studioRoom.bounds,
-      orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
+      orientationRadians:
+        flywheelPoi?.group.rotation.y ?? flywheelSceneObject.orientation ?? 0,
       detailPolicy: activeSceneDetailPolicy,
+      levelSource: getSceneObjectSourceMetadata(flywheelSceneObject),
     });
     groundStructureGroup.add(showpiece.group);
+    registerSceneObjectColliders(
+      showpiece.colliders,
+      'flywheel-studio-showpiece'
+    );
     showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
-    const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
+    const terminalOrientation =
+      jobbotPoi?.group.rotation.y ??
+      jobbotSceneObject.orientation ??
+      -Math.PI / 2;
     const terminalX = MathUtils.clamp(
-      jobbotPoi?.group.position.x ?? 11.4,
+      jobbotPoi?.group.position.x ?? jobbotSceneObject.position.x,
       studioRoom.bounds.minX + 1.2,
       studioRoom.bounds.maxX - 0.8
     );
     const terminalZ = MathUtils.clamp(
-      jobbotPoi?.group.position.z ?? -0.6,
+      jobbotPoi?.group.position.z ?? jobbotSceneObject.position.z,
       studioRoom.bounds.minZ + 1.2,
       studioRoom.bounds.maxZ - 1.1
     );
@@ -2835,8 +2881,10 @@ function initializeImmersiveScene(
       position: { x: terminalX, y: 0, z: terminalZ },
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
+      levelSource: getSceneObjectSourceMetadata(jobbotSceneObject),
     });
     groundStructureGroup.add(terminal.group);
+    registerSceneObjectColliders(terminal.colliders, 'jobbot-studio-terminal');
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
 
@@ -2848,8 +2896,13 @@ function initializeImmersiveScene(
           z: axelPoi.group.position.z,
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
+        levelSource: getSceneObjectSourceMetadata(axelSceneObject),
       });
       groundStructureGroup.add(navigator.group);
+      registerSceneObjectColliders(
+        navigator.colliders,
+        'axel-studio-navigator'
+      );
       navigator.colliders.forEach((collider) => groundColliders.push(collider));
       axelNavigator = navigator;
     }
@@ -2891,8 +2944,13 @@ function initializeImmersiveScene(
         z: prReaperPoi.group.position.z,
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
+      levelSource: getSceneObjectSourceMetadata(prReaperSceneObject),
     });
     groundStructureGroup.add(console.group);
+    registerSceneObjectColliders(
+      console.colliders,
+      'pr-reaper-backyard-console'
+    );
     console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
   }
@@ -2991,8 +3049,10 @@ function initializeImmersiveScene(
         z: loomZ,
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
+      levelSource: getSceneObjectSourceMetadata(woveSceneObject),
     });
     groundStructureGroup.add(loom.group);
+    registerSceneObjectColliders(loom.colliders, 'wove-kitchen-loom');
     loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;
   }

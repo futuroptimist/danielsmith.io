@@ -1,6 +1,7 @@
 import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { assertLevelSourceId } from '../scene/level/sourceIds';
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
 
 type CapturingContext = CanvasRenderingContext2D & {
@@ -287,5 +288,27 @@ describe('createFlywheelShowpiece', () => {
     );
 
     build.group.dispatchEvent({ type: 'removed' } as Event);
+  });
+
+  it('exposes scene object source metadata on its root group', () => {
+    const build = createFlywheelShowpiece({
+      centerX: 0,
+      centerZ: 0,
+      roomBounds: { minX: -2, maxX: 2, minZ: -2, maxZ: 2 },
+      levelSource: {
+        sourceId: assertLevelSourceId('ground.studio.flywheel.showpiece'),
+        sourceType: 'sceneObject',
+        purpose: 'test source metadata',
+      },
+    });
+
+    expect(build.group.userData.levelSourceId).toBe(
+      'ground.studio.flywheel.showpiece'
+    );
+    expect(build.group.userData.levelSource).toMatchObject({
+      sourceId: 'ground.studio.flywheel.showpiece',
+      sourceType: 'sceneObject',
+      purpose: 'test source metadata',
+    });
   });
 });

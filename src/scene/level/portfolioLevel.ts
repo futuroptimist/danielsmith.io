@@ -310,6 +310,70 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'fence'
         ),
       ],
+
+      sceneObjects: [
+        {
+          id: 'flywheel-studio-showpiece',
+          sourceId: sourceId('ground.studio.flywheel.showpiece'),
+          floorId: 'ground',
+          kind: 'flywheelShowpiece',
+          position: { x: 10, y: 0, z: -2 },
+          orientation: 0,
+          roomId: 'studio',
+          colliderPolicy: {
+            kind: 'custom',
+            purpose: 'showpiece dais and info panel blockers',
+          },
+          purpose:
+            'Studio Flywheel visible showpiece and information panel collision source.',
+        },
+        {
+          id: 'jobbot-studio-terminal',
+          sourceId: sourceId('ground.studio.jobbot.terminal'),
+          floorId: 'ground',
+          kind: 'jobbotTerminal',
+          position: { x: 14, y: 0, z: 6 },
+          orientation: -Math.PI / 2,
+          roomId: 'studio',
+          colliderPolicy: { kind: 'solid' },
+          purpose:
+            'Studio Jobbot terminal desk remains a visible solid object.',
+        },
+        {
+          id: 'axel-studio-navigator',
+          sourceId: sourceId('ground.studio.axel.navigator'),
+          floorId: 'ground',
+          kind: 'axelNavigator',
+          position: { x: 2, y: 0, z: -3 },
+          orientation: Math.PI,
+          roomId: 'studio',
+          colliderPolicy: { kind: 'solid' },
+          purpose:
+            'Studio Axel navigator table remains a visible solid object.',
+        },
+        {
+          id: 'wove-kitchen-loom',
+          sourceId: sourceId('ground.kitchen.wove.loom'),
+          floorId: 'ground',
+          kind: 'woveLoom',
+          position: { x: -10, y: 0, z: -1.8 },
+          orientation: Math.PI * 0.45,
+          roomId: 'kitchen',
+          colliderPolicy: { kind: 'solid' },
+          purpose: 'Kitchen Wove loom remains a visible solid worktable.',
+        },
+        {
+          id: 'pr-reaper-backyard-console',
+          sourceId: sourceId('ground.backyard.pr_reaper.console'),
+          floorId: 'ground',
+          kind: 'prReaperConsole',
+          position: { x: 0, y: 0, z: 20 },
+          orientation: Math.PI * 0.35,
+          roomId: 'backyard',
+          colliderPolicy: { kind: 'solid' },
+          purpose: 'Backyard PR Reaper console remains a visible solid object.',
+        },
+      ],
       roomConnections: [
         {
           id: 'living-to-kitchen',

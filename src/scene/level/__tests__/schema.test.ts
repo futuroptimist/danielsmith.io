@@ -86,8 +86,12 @@ const createLevel = (): LevelDefinition => ({
           floorId: 'ground',
           kind: 'threshold',
           position: { x: 5, z: 3 },
-          colliderPolicy: { kind: 'none', reason: 'walkable trim' },
+          colliderPolicy: {
+            kind: 'decorativeNoCollision',
+            reason: 'walkable trim',
+          },
           roomId: 'gallery',
+          purpose: 'Decorative threshold trim with no collision.',
         },
       ],
       roomConnections: [

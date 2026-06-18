@@ -1,6 +1,7 @@
 import { Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { assertLevelSourceId } from '../../level/sourceIds';
 import { createWoveLoom } from '../woveLoom';
 
 describe('createWoveLoom', () => {
@@ -74,5 +75,23 @@ describe('createWoveLoom', () => {
     expect(Math.abs(threadWeaveHigh - threadWeaveLow)).toBeGreaterThan(1e-4);
     expect(threadScaleHigh).not.toBe(threadScaleLow);
     expect(glowOpacityHigh).toBeGreaterThan(glowOpacityLow);
+  });
+
+  it('exposes scene object source metadata on its root group', () => {
+    const build = createWoveLoom({
+      position: { x: 0, y: 0, z: 0 },
+      levelSource: {
+        sourceId: assertLevelSourceId('ground.kitchen.wove.loom'),
+        sourceType: 'sceneObject',
+        purpose: 'test source metadata',
+      },
+    });
+
+    expect(build.group.userData.levelSourceId).toBe('ground.kitchen.wove.loom');
+    expect(build.group.userData.levelSource).toMatchObject({
+      sourceId: 'ground.kitchen.wove.loom',
+      sourceType: 'sceneObject',
+      purpose: 'test source metadata',
+    });
   });
 });

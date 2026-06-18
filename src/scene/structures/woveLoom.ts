@@ -12,6 +12,10 @@ import {
 } from 'three';
 
 import type { RectCollider } from '../collision';
+import {
+  applySceneObjectSourceMetadata,
+  type SourceBackedSceneObjectOptions,
+} from '../level/sceneObjects';
 
 export interface WoveLoomBuild {
   group: Group;
@@ -19,7 +23,7 @@ export interface WoveLoomBuild {
   update(context: { elapsed: number; delta: number; emphasis: number }): void;
 }
 
-export interface WoveLoomOptions {
+export interface WoveLoomOptions extends SourceBackedSceneObjectOptions {
   position: { x: number; z: number; y?: number };
   orientationRadians?: number;
 }
@@ -91,6 +95,9 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
   group.name = 'WoveLoom';
   group.position.set(position.x, baseY, position.z);
   group.rotation.y = orientationRadians;
+  if (options.levelSource) {
+    applySceneObjectSourceMetadata(group, options.levelSource);
+  }
 
   const colliders: RectCollider[] = [];
   const emissiveSurfaces: EmissiveSurface[] = [];
