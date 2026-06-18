@@ -177,6 +177,14 @@ type PortfolioWindow = Window & {
 
 test.setTimeout(150_000);
 
+// Immersive test taxonomy:
+// - Behavior helpers below assert player-facing promises: paths remain traversable,
+//   meaningful voids stay blocked, and openings have no blockers.
+// - Debug/provenance checks should stay narrow and use source metadata rather than
+//   implementation-specific collider names or bounds whenever possible.
+// - Raw debug IDs are reserved for debug registry behavior; do not use them to
+//   prove general player movement or occupancy promises.
+
 async function waitForImmersiveReady(page: Page) {
   await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
@@ -320,6 +328,99 @@ async function getBlockingColliderNames(
       .getBlockingCollidersAt(next)
       .map((collider) => collider.name);
   }, target);
+}
+
+async function expectSamplesOccupiable(page: Page, samples: NamedPosition[]) {
+  for (const sample of samples) {
+    expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
+      true
+    );
+  }
+}
+
+async function expectSamplesBlocked(page: Page, samples: NamedPosition[]) {
+  for (const sample of samples) {
+    expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
+      false
+    );
+  }
+}
+
+async function expectNoBlockingCollidersAt(
+  page: Page,
+  samples: NamedPosition[]
+) {
+  for (const sample of samples) {
+    expect(
+      await getBlockingColliderNames(page, sample.target),
+      sample.name
+    ).toEqual([]);
+  }
+}
+
+async function expectPathTraversable(
+  page: Page,
+  path: {
+    start: { x: number; z: number; floorId?: FloorId };
+    step: { dx: number; dz: number };
+    steps: number;
+    expectedFloor?: FloorId;
+  }
+) {
+  await movePlayerTo(page, path.start);
+  const result = await page.evaluate((nextPath) => {
+    const world = (window as PortfolioWindow).portfolio?.world;
+    if (!world) {
+      throw new Error('World API unavailable');
+    }
+
+    const steps: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> = [];
+    for (let index = 0; index < nextPath.steps; index += 1) {
+      steps.push(world.stepPlayerForTest(nextPath.step));
+    }
+
+    return {
+      allStepsMoved: steps.every(
+        (step) =>
+          (nextPath.step.dx === 0 || step.movedX) &&
+          (nextPath.step.dz === 0 || step.movedZ)
+      ),
+      blockedBy: steps.flatMap((step) => step.blockedBy ?? []),
+      finalFloor: world.getActiveFloor(),
+      finalPosition: world.getPlayerPosition(),
+    };
+  }, path);
+
+  expect(
+    result.allStepsMoved,
+    `path blocked by ${result.blockedBy.join(', ')}`
+  ).toBe(true);
+  expect(result.blockedBy).toEqual([]);
+  if (path.expectedFloor) {
+    expect(result.finalFloor).toBe(path.expectedFloor);
+  }
+
+  return result;
+}
+
+function expectSourceBackedColliderPresent(
+  colliders: DebugColliderMetadata[],
+  sourceId: string
+) {
+  expect(
+    colliders.some((collider) => collider.sourceId === sourceId),
+    `expected debug collider sourced from ${sourceId}`
+  ).toBe(true);
+}
+
+function expectSourceBackedSolidPresent(
+  solids: DebugSolidMetadata[],
+  sourceId: string
+) {
+  expect(
+    solids.some((solid) => solid.sourceId === sourceId),
+    `expected debug solid sourced from ${sourceId}`
+  ).toBe(true);
 }
 
 async function getDebugColliders(page: Page) {
@@ -1036,17 +1137,16 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     expect(blockingColliderNames, sample.name).toEqual([]);
   }
 
-  const upperLandingDoorwayClearance = {
-    x: 9.5,
-    z: -15.5,
-    floorId: 'upper' as const,
+  const upperLandingDoorwayClearance: NamedPosition = {
+    name: 'upper landing doorway clearance',
+    target: {
+      x: 9.5,
+      z: -15.5,
+      floorId: 'upper' as const,
+    },
   };
-  expect(await canOccupyPosition(page, upperLandingDoorwayClearance)).toBe(
-    true
-  );
-  expect(
-    await getBlockingColliderNames(page, upperLandingDoorwayClearance)
-  ).toEqual([]);
+  await expectSamplesOccupiable(page, [upperLandingDoorwayClearance]);
+  await expectNoBlockingCollidersAt(page, [upperLandingDoorwayClearance]);
 
   for (const sample of noFloorHiddenCutoutSamples) {
     expectSampleOutsidePhysicalStaircaseLanding(sample, stairMetrics);
@@ -1158,16 +1258,22 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       knownWallColliderCount: knownWallColliders.length,
       passageWallSolidCount: passageWallSolids.length,
       passageWallColliderCount: passageWallColliders.length,
+      knownWallSolids,
+      knownWallColliders,
       knownWallSolidSourceIds: knownWallSolids.map((solid) => solid.sourceId),
       knownWallColliderSourceIds: knownWallColliders.map(
         (collider) => collider.sourceId
       ),
       knownFloorSolidCount: knownFloorSolids.length,
+      knownFloorSolids,
       knownFloorSolidSourceIds: knownFloorSolids.map((solid) => solid.sourceId),
       knownSafetyColliderCount: knownSafetyColliders.length,
+      knownSafetyColliders,
       knownSafetyColliderSourceIds: knownSafetyColliders.map(
         (collider) => collider.sourceId
       ),
+      passageWallSolids,
+      passageWallColliders,
       passageWallSolidSourceIds: passageWallSolids.map(
         (solid) => solid.sourceId
       ),
@@ -1194,6 +1300,14 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
 
   expect(targetState.knownWallSolidCount).toBeGreaterThan(0);
   expect(targetState.knownWallColliderCount).toBeGreaterThan(0);
+  expectSourceBackedSolidPresent(
+    targetState.knownWallSolids,
+    'upper.upper_landing.south_wall'
+  );
+  expectSourceBackedColliderPresent(
+    targetState.knownWallColliders,
+    'upper.upper_landing.south_wall'
+  );
   expect(targetState.knownWallSolidSourceIds).toContain(
     'upper.upper_landing.south_wall'
   );
@@ -1204,15 +1318,31 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.collider300A).toBeUndefined();
   expect(targetState.collider4005).toBeUndefined();
   expect(targetState.knownFloorSolidCount).toBeGreaterThan(0);
+  expectSourceBackedSolidPresent(
+    targetState.knownFloorSolids,
+    'upper.upperLanding.floor.main'
+  );
   expect(targetState.knownFloorSolidSourceIds).toContain(
     'upper.upperLanding.floor.main'
   );
   expect(targetState.knownSafetyColliderCount).toBeGreaterThan(0);
+  expectSourceBackedColliderPresent(
+    targetState.knownSafetyColliders,
+    'upper.stairwell.westBannister.safetyCollider'
+  );
   expect(targetState.knownSafetyColliderSourceIds).toContain(
     'upper.stairwell.westBannister.safetyCollider'
   );
   expect(targetState.passageWallSolidCount).toBeGreaterThan(0);
   expect(targetState.passageWallColliderCount).toBeGreaterThan(0);
+  expectSourceBackedSolidPresent(
+    targetState.passageWallSolids,
+    'upper.upper_landing_to_loft_library.wall'
+  );
+  expectSourceBackedColliderPresent(
+    targetState.passageWallColliders,
+    'upper.upper_landing_to_loft_library.wall'
+  );
   expect(targetState.passageWallSolidSourceIds).toContain(
     'upper.upper_landing_to_loft_library.wall'
   );
@@ -1257,14 +1387,29 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
 
   const html = page.locator('html');
   const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
-  const blockedSamples = [
-    { x: 17.38, z: -8.84, floorId: 'ground' as const },
-    { x: 21.35, z: -14.66, floorId: 'ground' as const },
-    { x: 22.1, z: -14.66, floorId: 'ground' as const },
+  const blockedSamples: NamedPosition[] = [
+    {
+      name: 'ground stair east squeeze corner',
+      target: { x: 17.38, z: -8.84, floorId: 'ground' as const },
+    },
+    {
+      name: 'ground stair lower corner west edge',
+      target: { x: 21.35, z: -14.66, floorId: 'ground' as const },
+    },
+    {
+      name: 'ground stair lower corner east edge',
+      target: { x: 22.1, z: -14.66, floorId: 'ground' as const },
+    },
   ];
-  const livingRoomSamples = [
-    { x: 23, z: -18, floorId: 'ground' as const },
-    { x: 24, z: -18, floorId: 'ground' as const },
+  const livingRoomSamples: NamedPosition[] = [
+    {
+      name: 'living room stair-adjacent clearance',
+      target: { x: 23, z: -18, floorId: 'ground' as const },
+    },
+    {
+      name: 'living room wider clearance',
+      target: { x: 24, z: -18, floorId: 'ground' as const },
+    },
   ];
   const lowerEntrance = {
     x: stairCenterX,
@@ -1272,25 +1417,24 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
     floorId: 'ground' as const,
   };
 
+  await expectSamplesBlocked(page, blockedSamples);
   for (const sample of blockedSamples) {
-    expect(await canOccupyPosition(page, sample)).toBe(false);
-    await expect(async () => movePlayerTo(page, sample)).rejects.toThrow(
+    await expect(async () => movePlayerTo(page, sample.target)).rejects.toThrow(
       /Cannot occupy/
     );
   }
 
-  for (const sample of livingRoomSamples) {
-    expect(await canOccupyPosition(page, sample)).toBe(true);
-  }
+  await expectSamplesOccupiable(page, livingRoomSamples);
   expect(await canOccupyPosition(page, lowerEntrance)).toBe(true);
   await movePlayerTo(page, lowerEntrance);
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 
-  await movePlayerTo(page, {
-    x: stairCenterX,
-    z: (stairBottomZ + stairTopZ) / 2,
+  await expectPathTraversable(page, {
+    start: lowerEntrance,
+    step: { dx: 0, dz: 0.12 },
+    steps: Math.ceil((stairTopZ - 0.1 - lowerEntrance.z) / 0.12),
+    expectedFloor: 'upper',
   });
-  await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.1 });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
 
   const debugColliders = await page.evaluate(() => {

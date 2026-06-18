@@ -138,3 +138,27 @@ npx vitest run src/scene/level/__tests__/generateWalls.test.ts
 npx vitest run src/scene/level/__tests__/generateFloorSurfaces.test.ts
 npx playwright test playwright/immersive-stairs-roundtrip.spec.ts
 ```
+
+## Immersive test taxonomy
+
+Use the behavior-first taxonomy below when adding or updating immersive scene tests:
+
+1. **Behavior / interaction tests** should assert player-facing promises: intended paths are
+   traversable, meaningful voids or blocked regions cannot be occupied, and authored openings stay
+   open. Prefer helpers that call `world.canOccupyPosition(...)`, step the player along paths, or
+   verify no blocking colliders at a sample. Avoid naming specific colliders, solids, IDs, or exact
+   bounds unless those details are the public contract under test.
+2. **Debug / provenance tests** should be narrow and explicitly separate from behavior tests. Use
+   them to confirm representative source IDs and source metadata are exposed through debug APIs, not
+   to prove that the player can move through a space.
+3. **Generator tests** may assert exact bounds or generated geometry when they operate on tiny
+   synthetic fixtures. Avoid exact production-scene collider or solid pinning unless the test is a
+   deliberate regression guard and includes a comment explaining why that implementation detail must
+   stay fixed.
+4. **Registry / ID tests** may assert raw debug IDs only when the registry behavior itself is under
+   test. Raw debug IDs should not appear in general movement, occupancy, or opening-clearance tests.
+
+`playwright/immersive-stairs-roundtrip.spec.ts` keeps thin wrappers for these categories, including
+occupiable/blocked sample helpers, no-blocker assertions, traversable path checks, and
+source-backed debug metadata checks. Prefer those wrappers for new stairs coverage so regressions pin
+product behavior first and debug implementation details only where the debug surface is the contract.
