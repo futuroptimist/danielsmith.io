@@ -37,15 +37,17 @@ describe('main module imports', () => {
     );
   });
 
-  it('passes generated wall source IDs into debug collider metadata', () => {
+  it('passes source IDs into debug collider metadata', () => {
     const source = readMainSource();
 
+    expect(source).toContain('colliderSourceMetadata.set(instance.collider, {');
+    expect(source).toContain("sourceType: 'wall',");
+    expect(source).toContain("sourceType: 'safetyCollider',");
     expect(source).toContain(
-      'colliderSourceIds.set(instance.collider, instance.sourceId);'
+      'sourceId: colliderSourceMetadata.get(bounds)?.sourceId,'
     );
-    expect(source).toContain('sourceId: colliderSourceIds.get(bounds),');
     expect(source).toContain(
-      "sourceType: colliderSourceIds.has(bounds) ? 'wall' : undefined,"
+      'purpose: colliderSourceMetadata.get(bounds)?.purpose,'
     );
   });
 

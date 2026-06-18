@@ -241,6 +241,14 @@ ID uniqueness across layers. Per-layer `id` fields are unique within their floor
 namespace so editor-friendly IDs can stay short while source IDs remain globally
 stable.
 
+Physical wall colliders and safety colliders are distinct source-backed outputs.
+Wall colliders represent visible or authored structural boundaries generated from
+wall definitions. Safety colliders represent intentional invisible constraints,
+such as stairwell void guards, landing edge preservation, and lower stair squeeze
+prevention. They must carry `sourceType: 'safetyCollider'`, a stable semantic
+`sourceId`, and a concise `purpose` explaining why the invisible constraint
+exists instead of pretending to be layout wall geometry.
+
 Wall authoring supports two current-state representations:
 
 - explicit positive wall `segments` for authors who want to spell out each
