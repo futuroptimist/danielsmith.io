@@ -117,6 +117,32 @@ window.portfolio.debugColliders.getCollidersBySourceId(
 Short hex IDs are useful overlay labels, but source IDs are the primary review
 and test assertions.
 
+## Immersive test taxonomy
+
+Keep immersive coverage behavior-first unless a test is explicitly about debug
+metadata or a small synthetic geometry fixture. This separation keeps player
+promises stable when implementation furniture, generated bounds, or compact
+debug IDs change.
+
+1. **Behavior / interaction tests** assert that players can traverse intended
+   paths, cannot occupy meaningful voids or blocked regions, and that intended
+   openings remain open. Prefer helper-level assertions such as occupiable
+   samples, blocked samples, no blocking colliders at a point, and traversable
+   waypoint paths. Do not name specific colliders, solids, or raw IDs unless
+   that name or ID is the public contract under test.
+2. **Debug / provenance tests** assert that representative source IDs and source
+   metadata are exposed through debug APIs. Keep these narrow and separate from
+   movement behavior so source metadata regressions do not masquerade as player
+   traversal failures.
+3. **Generator tests** may assert exact bounds and geometry for tiny synthetic
+   fixtures. Avoid exact production-scene collider or solid pinning unless it is
+   a deliberate regression test with a comment explaining why those exact bounds
+   are contractual for that case.
+4. **Registry / ID tests** may assert exact debug IDs only for declared debug-ID
+   registry behavior. Do not use raw debug IDs as general movement expectations;
+   use source IDs for provenance and occupiable/blocked/path helpers for player
+   behavior.
+
 ## Verification commands
 
 Run the standard checks before committing level-data edits:
