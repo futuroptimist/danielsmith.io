@@ -99,6 +99,7 @@ export const createUpperStairSafetyColliders = ({
   doorwayDepth,
   stairwellMarginX,
   stairTopZ,
+  stairTransitionMargin,
   stairLandingTriggerMargin,
   stairLayoutDirectionMultiplier,
   upperLandingRoomBounds,
@@ -171,6 +172,14 @@ export const createUpperStairSafetyColliders = ({
     hiddenStairBlockerStartZ + upperStairBannisterThickness;
   const upperStairNorthBannisterMaxX =
     upperStairwellOpening.maxX - upperStairBannisterThickness;
+  const upperStairDescentHandoffFarZ =
+    stairTopZ -
+    stairLayoutDirectionMultiplier *
+      (stairTransitionMargin + stairLandingTriggerMargin);
+  const upperStairHiddenRunGuardNearZ =
+    upperStairDescentHandoffFarZ -
+    stairLayoutDirectionMultiplier * playerRadius;
+
   return [
     {
       name: 'UpperStairEastLowerVoidGuard',
@@ -208,6 +217,28 @@ export const createUpperStairSafetyColliders = ({
       purpose: 'guard upper stairwell void edge',
       bounds,
     })),
+    {
+      name: 'UpperStairHiddenRunVoidGuard',
+      sourceId: sourceId('upper.stairwell.hiddenRun.safetyCollider'),
+      floor: 'upper',
+      category: 'void',
+      purpose: 'guard hidden stair run no-floor area',
+      bounds: {
+        minX: upperStairwellOpening.minX,
+        maxX: upperStairwellOpening.maxX,
+        minZ: Math.min(
+          upperStairHiddenRunGuardNearZ,
+          upperLandingDoorwayClearanceZ
+        ),
+        maxZ: Math.max(
+          upperStairHiddenRunGuardNearZ,
+          upperStairNorthBannisterBaseCenterZ -
+            upperStairBannisterThickness / 2 -
+            playerRadius -
+            0.01
+        ),
+      },
+    },
     {
       name: 'UpperStairWestBannisterGuard',
       sourceId: sourceId('upper.stairwell.westBannister.safetyCollider'),
