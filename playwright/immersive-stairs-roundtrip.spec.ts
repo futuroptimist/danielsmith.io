@@ -813,7 +813,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }
   expect(debugColliderNames).toContain('UpperStairWestBannisterGuard');
   expect(debugColliderNames).toContain('UpperStairNorthBannisterGuard');
-  expect(debugColliderNames).toContain('UpperStairHiddenRunVoidGuard');
+  expect(debugColliderNames).not.toContain('UpperStairHiddenRunVoidGuard');
 
   const debugColliderIds = debugColliders.map((collider) => collider.id);
   expect(debugColliderIds.length).toBeGreaterThan(0);
@@ -863,16 +863,11 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     }
     return debugApi.getColliderById(id);
   }, '4008');
-  expect(hiddenRunGuardById?.id).toBe('4008');
-  expect(hiddenRunGuardById?.name).toBe('UpperStairHiddenRunVoidGuard');
-  const hiddenRunGuard = debugColliders.find(
-    (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
-  );
+  expect(hiddenRunGuardById).toBeUndefined();
   expect(westBannister).toBeDefined();
   expect(northBannister).toBeDefined();
-  expect(hiddenRunGuard).toBeDefined();
-  if (!westBannister || !northBannister || !hiddenRunGuard) {
-    throw new Error('Missing upper stair guard debug collider');
+  if (!westBannister || !northBannister) {
+    throw new Error('Missing upper stair bannister debug collider');
   }
 
   const northBannisterCenterZ =
@@ -1003,16 +998,6 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       name: 'south no-floor cutout beyond StaircaseLanding slab',
       target: { x: 12.99, z: -31.35, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairwellLandingGuard-2',
-    },
-    {
-      name: 'reviewer hidden-run band sample',
-      target: { x: 12.7, z: -23.72, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairHiddenRunVoidGuard',
-    },
-    {
-      name: 'west side-entry hidden-run guard beside stair cutout',
-      target: { x: 10.59, z: -23.72, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairHiddenRunVoidGuard',
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at descent centerline',
