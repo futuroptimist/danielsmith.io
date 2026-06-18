@@ -104,6 +104,10 @@ export interface SafetyColliderDefinition {
 }
 
 export type ColliderPolicyDefinition =
+  | { kind: 'solid'; purpose?: string }
+  | { kind: 'decorativeNoCollision'; reason: string }
+  | { kind: 'interactionOnly'; reason?: string }
+  | { kind: 'custom'; bounds?: Bounds2D; purpose?: string }
   | { kind: 'none'; reason?: string }
   | { kind: 'footprint' }
   | { kind: 'bounds'; bounds: Bounds2D; purpose?: string };
@@ -116,6 +120,7 @@ export interface SceneObjectDefinition {
   position: Point2D & { y?: number };
   orientation?: number;
   colliderPolicy?: ColliderPolicyDefinition;
+  purpose?: string;
   roomId?: string;
 }
 
@@ -272,7 +277,11 @@ export function validateLevelDefinition(
         errors.push(
           `scene object "${object.id}" references missing room "${object.roomId}".`
         );
-      if (object.colliderPolicy?.kind === 'bounds') {
+      if (
+        object.colliderPolicy?.kind === 'bounds' ||
+        (object.colliderPolicy?.kind === 'custom' &&
+          object.colliderPolicy.bounds)
+      ) {
         validateBounds(
           object.colliderPolicy.bounds,
           `scene object "${object.id}" collider bounds`,

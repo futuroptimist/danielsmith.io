@@ -360,3 +360,28 @@ to regenerate the final visual geometry, gameplay collision, and debug metadata;
 legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
 and inventory tooling can explain every runtime level artifact by semantic source
 ID.
+
+## Scene objects and collider policies (phase 10)
+
+Scene object placement intent is now part of the declarative level source. A
+safe subset of POI/showpiece objects in `src/scene/level/portfolioLevel.ts`
+uses `sceneObjects` records with stable `sourceId`, runtime `kind`, floor,
+optional room, placement defaults, purpose text, and explicit collider policy.
+The first migrated objects are the recurring collider-debug pain points:
+Flywheel showpiece, Jobbot terminal, Axel navigator, PR Reaper console, and Wove
+loom.
+
+Collider policy is intentional data rather than an implicit side effect of a
+structure factory. Solid-looking migrated objects declare `solid` with a purpose
+for the retained collider footprint. Decorative or interaction-only future
+objects should use `decorativeNoCollision` or `interactionOnly` with a reason;
+therefore, the absence of a collider should be reviewed as an explicit policy,
+not treated as an accidental omission.
+
+Runtime construction still preserves current POI-driven positions and existing
+collider bounds. During registration, migrated object groups and descendants get
+`userData.levelSourceId` plus `userData.levelSource.sourceType = 'sceneObject'`,
+and each retained rectangle collider is mapped to the same source metadata so
+debug collider APIs can find object colliders by source ID. Future cleanup can
+move additional object-specific positions, clamps, and custom collider bounds
+into the same source records without changing the debug metadata contract.

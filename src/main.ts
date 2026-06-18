@@ -156,6 +156,8 @@ import {
   PORTFOLIO_LEVEL,
   UPPER_LANDING_FLOOR_MAIN_ID,
 } from './scene/level/portfolioLevel';
+import type { SceneObjectDefinition } from './scene/level/schema';
+import type { LevelSourceMetadata } from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -980,14 +982,7 @@ const LIGHTING_OPTIONS = {
 
 const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
-const colliderSourceMetadata = new Map<
-  RectCollider,
-  {
-    sourceId: WallSegmentInstance['sourceId'] | LevelSafetyCollider['sourceId'];
-    sourceType: 'wall' | 'safetyCollider';
-    purpose?: string;
-  }
->();
+const colliderSourceMetadata = new Map<RectCollider, LevelSourceMetadata>();
 const upperFloorColliders: RectCollider[] = [];
 
 const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
@@ -1055,6 +1050,43 @@ function getLevelFloor(floorId: FloorId) {
   if (!floor) throw new Error(`Portfolio level is missing floor "${floorId}".`);
   return floor;
 }
+
+const getSceneObjectDefinition = (
+  floorId: FloorId,
+  kind: string
+): SceneObjectDefinition | undefined =>
+  getLevelFloor(floorId).sceneObjects?.find((object) => object.kind === kind);
+
+const applySceneObjectSourceMetadata = (
+  group: Object3D,
+  definition: SceneObjectDefinition
+): LevelSourceMetadata => {
+  const metadata: LevelSourceMetadata = {
+    sourceId: definition.sourceId,
+    sourceType: 'sceneObject',
+    purpose: definition.colliderPolicy?.purpose ?? definition.purpose,
+  };
+  group.traverse((object) => {
+    object.userData.levelSourceId = definition.sourceId;
+    object.userData.levelSource = metadata;
+  });
+  return metadata;
+};
+
+const registerSceneObjectColliders = (
+  colliders: readonly RectCollider[],
+  metadata: LevelSourceMetadata,
+  targetColliders: RectCollider[]
+) => {
+  colliders.forEach((collider, index) => {
+    targetColliders.push(collider);
+    namedColliderDebugNames.set(
+      collider,
+      `${metadata.sourceId}:collider-${index + 1}`
+    );
+    colliderSourceMetadata.set(collider, metadata);
+  });
+};
 
 const container = document.getElementById('app');
 
@@ -2809,20 +2841,41 @@ function initializeImmersiveScene(
     const centerZ =
       flywheelPoi?.group.position.z ??
       (studioRoom.bounds.minZ + studioRoom.bounds.maxZ) / 2;
+    const flywheelSceneObject = getSceneObjectDefinition(
+      'ground',
+      'flywheelShowpiece'
+    );
     const showpiece = createFlywheelShowpiece({
       centerX,
       centerZ,
       roomBounds: studioRoom.bounds,
-      orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
+      orientationRadians:
+        flywheelPoi?.group.rotation.y ?? flywheelSceneObject?.orientation ?? 0,
       detailPolicy: activeSceneDetailPolicy,
     });
     groundStructureGroup.add(showpiece.group);
-    showpiece.colliders.forEach((collider) => groundColliders.push(collider));
+    registerSceneObjectColliders(
+      showpiece.colliders,
+      flywheelSceneObject
+        ? applySceneObjectSourceMetadata(showpiece.group, flywheelSceneObject)
+        : {
+            sourceId: 'runtime.flywheelShowpiece.sceneObject' as never,
+            sourceType: 'sceneObject',
+          },
+      groundColliders
+    );
     flywheelShowpiece = showpiece;
 
-    const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
+    const jobbotSceneObject = getSceneObjectDefinition(
+      'ground',
+      'jobbotTerminal'
+    );
+    const terminalOrientation =
+      jobbotPoi?.group.rotation.y ??
+      jobbotSceneObject?.orientation ??
+      -Math.PI / 2;
     const terminalX = MathUtils.clamp(
-      jobbotPoi?.group.position.x ?? 11.4,
+      jobbotPoi?.group.position.x ?? jobbotSceneObject?.position.x ?? 11.4,
       studioRoom.bounds.minX + 1.2,
       studioRoom.bounds.maxX - 0.8
     );
@@ -2837,7 +2890,15 @@ function initializeImmersiveScene(
       detailPolicy: activeSceneDetailPolicy,
     });
     groundStructureGroup.add(terminal.group);
-    terminal.colliders.forEach((collider) => groundColliders.push(collider));
+    if (jobbotSceneObject) {
+      registerSceneObjectColliders(
+        terminal.colliders,
+        applySceneObjectSourceMetadata(terminal.group, jobbotSceneObject),
+        groundColliders
+      );
+    } else {
+      terminal.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     jobbotTerminal = terminal;
 
     if (axelPoi) {
@@ -2849,8 +2910,22 @@ function initializeImmersiveScene(
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
       });
+      const axelSceneObject = getSceneObjectDefinition(
+        'ground',
+        'axelNavigator'
+      );
       groundStructureGroup.add(navigator.group);
-      navigator.colliders.forEach((collider) => groundColliders.push(collider));
+      if (axelSceneObject) {
+        registerSceneObjectColliders(
+          navigator.colliders,
+          applySceneObjectSourceMetadata(navigator.group, axelSceneObject),
+          groundColliders
+        );
+      } else {
+        navigator.colliders.forEach((collider) =>
+          groundColliders.push(collider)
+        );
+      }
       axelNavigator = navigator;
     }
 
@@ -2892,8 +2967,20 @@ function initializeImmersiveScene(
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
     });
+    const prReaperSceneObject = getSceneObjectDefinition(
+      'ground',
+      'prReaperConsole'
+    );
     groundStructureGroup.add(console.group);
-    console.colliders.forEach((collider) => groundColliders.push(collider));
+    if (prReaperSceneObject) {
+      registerSceneObjectColliders(
+        console.colliders,
+        applySceneObjectSourceMetadata(console.group, prReaperSceneObject),
+        groundColliders
+      );
+    } else {
+      console.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     prReaperConsole = console;
   }
 
@@ -2992,8 +3079,17 @@ function initializeImmersiveScene(
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
+    const woveSceneObject = getSceneObjectDefinition('ground', 'woveLoom');
     groundStructureGroup.add(loom.group);
-    loom.colliders.forEach((collider) => groundColliders.push(collider));
+    if (woveSceneObject) {
+      registerSceneObjectColliders(
+        loom.colliders,
+        applySceneObjectSourceMetadata(loom.group, woveSceneObject),
+        groundColliders
+      );
+    } else {
+      loom.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     woveLoom = loom;
   }
 

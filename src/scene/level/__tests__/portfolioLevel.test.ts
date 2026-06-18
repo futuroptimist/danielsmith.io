@@ -58,6 +58,34 @@ describe('PORTFOLIO_LEVEL', () => {
     );
   });
 
+  it('declares collider policies for migrated solid-like scene objects', () => {
+    const groundObjects = PORTFOLIO_LEVEL.floors.find(
+      (floor) => floor.id === 'ground'
+    )?.sceneObjects;
+    const migratedKinds = [
+      'flywheelShowpiece',
+      'jobbotTerminal',
+      'axelNavigator',
+      'prReaperConsole',
+      'woveLoom',
+    ];
+
+    expect(
+      groundObjects?.filter((object) => migratedKinds.includes(object.kind))
+    ).toHaveLength(migratedKinds.length);
+    migratedKinds.forEach((kind) => {
+      const object = groundObjects?.find(
+        (candidate) => candidate.kind === kind
+      );
+      expect(object).toMatchObject({
+        sourceId: expect.stringContaining('.sceneObject'),
+        colliderPolicy: { kind: 'solid' },
+      });
+      expect(object?.purpose).toBeTruthy();
+      expect(object?.colliderPolicy?.purpose).toBeTruthy();
+    });
+  });
+
   it('compiles compatibility room bounds and doorways for the current floors', () => {
     expect(
       compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'ground', {

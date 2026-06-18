@@ -310,6 +310,73 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'fence'
         ),
       ],
+
+      sceneObjects: [
+        {
+          id: 'flywheel-studio-showpiece',
+          sourceId: sourceId('ground.studio.flywheelShowpiece.sceneObject'),
+          floorId: 'ground',
+          kind: 'flywheelShowpiece',
+          position: { x: 0, z: 0 },
+          roomId: 'studio',
+          colliderPolicy: {
+            kind: 'solid',
+            purpose: 'showpiece dais and info panel',
+          },
+          purpose: 'Studio Flywheel automation showpiece anchored to its POI.',
+        },
+        {
+          id: 'jobbot-studio-terminal',
+          sourceId: sourceId('ground.studio.jobbotTerminal.sceneObject'),
+          floorId: 'ground',
+          kind: 'jobbotTerminal',
+          position: { x: 11.4, z: -0.6 },
+          orientation: -Math.PI / 2,
+          roomId: 'studio',
+          colliderPolicy: { kind: 'solid', purpose: 'terminal desk footprint' },
+          purpose: 'Jobbot automation terminal placement and collider policy.',
+        },
+        {
+          id: 'axel-studio-navigator',
+          sourceId: sourceId('ground.studio.axelNavigator.sceneObject'),
+          floorId: 'ground',
+          kind: 'axelNavigator',
+          position: { x: 0, z: 0 },
+          roomId: 'studio',
+          colliderPolicy: {
+            kind: 'solid',
+            purpose: 'navigator table and quest card',
+          },
+          purpose: 'Axel quest navigator placement follows the Axel POI.',
+        },
+        {
+          id: 'pr-reaper-backyard-console',
+          sourceId: sourceId('ground.backyard.prReaperConsole.sceneObject'),
+          floorId: 'ground',
+          kind: 'prReaperConsole',
+          position: { x: 0, z: 0 },
+          roomId: 'backyard',
+          colliderPolicy: {
+            kind: 'solid',
+            purpose: 'console deck and walkway',
+          },
+          purpose:
+            'PR Reaper operations console placement follows the PR Reaper POI.',
+        },
+        {
+          id: 'wove-kitchen-loom',
+          sourceId: sourceId('ground.kitchen.woveLoom.sceneObject'),
+          floorId: 'ground',
+          kind: 'woveLoom',
+          position: { x: 0, z: 0 },
+          roomId: 'kitchen',
+          colliderPolicy: {
+            kind: 'solid',
+            purpose: 'loom table and shuttle rail',
+          },
+          purpose: 'Wove loom placement follows the Wove POI.',
+        },
+      ],
       roomConnections: [
         {
           id: 'living-to-kitchen',
