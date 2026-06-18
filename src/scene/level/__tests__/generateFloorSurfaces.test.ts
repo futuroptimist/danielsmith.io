@@ -1,6 +1,7 @@
 import { MeshStandardMaterial } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { createSolidVisualizer } from '../../debug/solidVisualizer';
 import { generateFloorSurfaces } from '../generateFloorSurfaces';
 import {
   PORTFOLIO_LEVEL,
@@ -50,6 +51,27 @@ describe('generateFloorSurfaces', () => {
         (tile) => tile.mesh.userData.levelSource?.sourceType === 'floorSurface'
       )
     ).toBe(true);
+  });
+
+  it('registers generated floor solids for debug lookup by source ID', () => {
+    const build = generateFloorSurfaces(getFloor('ground'), {
+      material: new MeshStandardMaterial(),
+      scale: 1,
+    });
+    const visualizer = createSolidVisualizer({ enabled: true });
+
+    visualizer.register(build.group);
+
+    const matches = visualizer.getSolidsBySourceId(
+      'ground.livingRoom.floor.main'
+    );
+
+    expect(matches.length).toBeGreaterThan(0);
+    expect(matches.every((solid) => solid.sourceType === 'floorSurface')).toBe(
+      true
+    );
+
+    visualizer.dispose();
   });
 
   it('uses the expected stable floor surface source IDs', () => {

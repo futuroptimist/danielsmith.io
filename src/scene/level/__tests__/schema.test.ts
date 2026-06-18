@@ -144,9 +144,9 @@ describe('declarative level schema validation', () => {
       'former',
       'removed',
       'debugonlyremoval',
-      'Former',
-      'Removed',
-      'DebugOnlyRemoval',
+      'fOrmer',
+      'rEmoved',
+      'debugOnlyRemoval',
     ]) {
       const level = createLevel();
       level.floors[0].walls[0].sourceId = sourceId(`ground.gallery.${term}`);
