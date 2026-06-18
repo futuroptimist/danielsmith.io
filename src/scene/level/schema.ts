@@ -104,6 +104,10 @@ export interface SafetyColliderDefinition {
 }
 
 export type ColliderPolicyDefinition =
+  | { kind: 'solid'; reason?: string }
+  | { kind: 'decorativeNoCollision'; reason: string }
+  | { kind: 'interactionOnly'; reason?: string }
+  | { kind: 'custom'; purpose?: string }
   | { kind: 'none'; reason?: string }
   | { kind: 'footprint' }
   | { kind: 'bounds'; bounds: Bounds2D; purpose?: string };
@@ -117,6 +121,7 @@ export interface SceneObjectDefinition {
   orientation?: number;
   colliderPolicy?: ColliderPolicyDefinition;
   roomId?: string;
+  purpose?: string;
 }
 
 export interface RoomConnectionDefinition {
@@ -272,13 +277,10 @@ export function validateLevelDefinition(
         errors.push(
           `scene object "${object.id}" references missing room "${object.roomId}".`
         );
-      if (object.colliderPolicy?.kind === 'bounds') {
-        validateBounds(
-          object.colliderPolicy.bounds,
-          `scene object "${object.id}" collider bounds`,
-          errors
-        );
-      }
+      if (!object.kind.trim())
+        errors.push(`scene object "${object.id}" requires a kind.`);
+      validateSceneObjectPosition(object, errors);
+      validateColliderPolicy(object, errors);
     });
 
     floor.roomConnections?.forEach((connection) => {
@@ -507,4 +509,38 @@ function getSegmentLength(segment: WallSegmentDefinition): number {
     segment.end.x - segment.start.x,
     segment.end.z - segment.start.z
   );
+}
+
+function validateSceneObjectPosition(
+  object: SceneObjectDefinition,
+  errors: string[]
+): void {
+  const values = [object.position.x, object.position.z];
+  if (object.position.y !== undefined) values.push(object.position.y);
+  if (object.orientation !== undefined) values.push(object.orientation);
+  if (!values.every(Number.isFinite)) {
+    errors.push(
+      `scene object "${object.id}" position/orientation must use finite values.`
+    );
+  }
+}
+
+function validateColliderPolicy(
+  object: SceneObjectDefinition,
+  errors: string[]
+): void {
+  const policy = object.colliderPolicy;
+  if (!policy) return;
+  if (policy.kind === 'bounds') {
+    validateBounds(
+      policy.bounds,
+      `scene object "${object.id}" collider bounds`,
+      errors
+    );
+  }
+  if (policy.kind === 'decorativeNoCollision' && !policy.reason.trim()) {
+    errors.push(
+      `scene object "${object.id}" decorativeNoCollision policy requires a reason.`
+    );
+  }
 }

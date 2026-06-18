@@ -1,6 +1,7 @@
 import type {
   FloorDefinition,
   LevelDefinition,
+  SceneObjectDefinition,
   WallDefinition,
 } from './schema';
 import { assertLevelSourceId } from './sourceIds';
@@ -81,6 +82,31 @@ const centeredGap = (runStart: number, center: number, label: string) => {
   const range = doorwayRange(center);
   return gap(range.start - runStart, range.end - runStart, label);
 };
+
+const sceneObject = (
+  id: string,
+  source: string,
+  floorId: 'ground' | 'upper',
+  kind: string,
+  roomId: string,
+  position: { x: number; y?: number; z: number },
+  orientation: number,
+  purpose: string,
+  colliderPolicy: SceneObjectDefinition['colliderPolicy'] = {
+    kind: 'custom',
+    purpose: 'factory-colliders',
+  }
+): SceneObjectDefinition => ({
+  id,
+  sourceId: sourceId(source),
+  floorId,
+  kind,
+  roomId,
+  position,
+  orientation,
+  purpose,
+  colliderPolicy,
+});
 
 const FLOOR_SURFACE_SOURCE_IDS: Readonly<Record<string, string>> = {
   'ground:livingRoom': 'ground.livingRoom.floor.main',
@@ -308,6 +334,58 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           ['backyard'],
           [],
           'fence'
+        ),
+      ],
+      sceneObjects: [
+        sceneObject(
+          'flywheel-studio-flywheel',
+          'ground.studio.flywheel_showpiece.scene_object',
+          'ground',
+          'showpiece.flywheel',
+          'studio',
+          { x: 11, z: -4 },
+          0,
+          'POI showpiece and info panel with factory-owned solid colliders'
+        ),
+        sceneObject(
+          'jobbot-studio-terminal',
+          'ground.studio.jobbot_terminal.scene_object',
+          'ground',
+          'showpiece.jobbot_terminal',
+          'studio',
+          { x: 24, z: 4 },
+          -Math.PI / 2,
+          'POI terminal with factory-owned desk collider'
+        ),
+        sceneObject(
+          'axel-studio-tracker',
+          'ground.studio.axel_navigator.scene_object',
+          'ground',
+          'showpiece.axel_navigator',
+          'studio',
+          { x: 20, z: -4 },
+          Math.PI,
+          'POI navigator with factory-owned dais and console colliders'
+        ),
+        sceneObject(
+          'wove-kitchen-loom',
+          'ground.kitchen.wove_loom.scene_object',
+          'ground',
+          'showpiece.wove_loom',
+          'kitchen',
+          { x: -15, z: 5 },
+          Math.PI * 0.45,
+          'POI tactile loom with factory-owned table and loom colliders'
+        ),
+        sceneObject(
+          'pr-reaper-backyard-console',
+          'ground.backyard.pr_reaper_console.scene_object',
+          'ground',
+          'showpiece.pr_reaper_console',
+          'backyard',
+          { x: 0, z: 20 },
+          Math.PI * 0.35,
+          'Backyard POI console with factory-owned deck and console colliders'
         ),
       ],
       roomConnections: [

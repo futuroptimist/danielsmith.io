@@ -1,4 +1,40 @@
+import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
+import type { SceneObjectDefinition } from '../level/schema';
+
 import type { PoiDefinition, PoiId } from './types';
+
+const getSceneObjectPoiPlacement = (
+  object: SceneObjectDefinition
+): {
+  roomId: string;
+  position: { x: number; y?: number; z: number };
+  headingRadians?: number;
+} | null => {
+  if (!object.roomId) return null;
+  return {
+    roomId: object.roomId,
+    position: { ...object.position },
+    headingRadians: object.orientation,
+  };
+};
+
+const SCENE_OBJECT_POI_PLACEMENTS = Object.fromEntries(
+  PORTFOLIO_LEVEL.floors.flatMap((floor) =>
+    (floor.sceneObjects ?? []).flatMap((object) => {
+      const placement = getSceneObjectPoiPlacement(object);
+      return placement ? [[object.id, placement]] : [];
+    })
+  )
+) as Partial<
+  Record<
+    PoiId,
+    {
+      roomId: string;
+      position: { x: number; y?: number; z: number };
+      headingRadians?: number;
+    }
+  >
+>;
 
 // Manual downstairs placements (world units). TV remains a wall display and is left as-is.
 export const MANUAL_POI_PLACEMENTS: Partial<
@@ -22,27 +58,10 @@ export const MANUAL_POI_PLACEMENTS: Partial<
     position: { x: 3, z: -28 },
     headingRadians: 0,
   },
-
-  // Studio (three exhibits near center, spaced apart)
-  'flywheel-studio-flywheel': {
-    roomId: 'studio',
-    position: { x: 11, z: -4 },
-    headingRadians: 0,
-  },
-  'jobbot-studio-terminal': {
-    roomId: 'studio',
-    position: { x: 24, z: 4 },
-    headingRadians: -Math.PI / 2,
-  },
   'gabriel-studio-sentry': {
     roomId: 'studio',
     position: { x: 2, z: 8 },
     headingRadians: -Math.PI * 0.3,
-  },
-  'axel-studio-tracker': {
-    roomId: 'studio',
-    position: { x: 20, z: -4 },
-    headingRadians: Math.PI,
   },
   'tokenplace-studio-cluster': {
     roomId: 'studio',
@@ -61,18 +80,14 @@ export const MANUAL_POI_PLACEMENTS: Partial<
     position: { x: -25, z: 6 },
     headingRadians: Math.PI * 0.1,
   },
-  'wove-kitchen-loom': {
-    roomId: 'kitchen',
-    position: { x: -15, z: 5 },
-    headingRadians: Math.PI * 0.45,
-  },
 };
 
 export function applyManualPoiPlacements(
   defs: PoiDefinition[]
 ): PoiDefinition[] {
   return defs.map((d) => {
-    const override = MANUAL_POI_PLACEMENTS[d.id];
+    const override =
+      SCENE_OBJECT_POI_PLACEMENTS[d.id] ?? MANUAL_POI_PLACEMENTS[d.id];
     if (!override) return d;
     return {
       ...d,

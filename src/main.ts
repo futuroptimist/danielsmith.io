@@ -156,6 +156,7 @@ import {
   PORTFOLIO_LEVEL,
   UPPER_LANDING_FLOOR_MAIN_ID,
 } from './scene/level/portfolioLevel';
+import type { SceneObjectDefinition } from './scene/level/schema';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -983,12 +984,55 @@ const namedColliderDebugNames = new Map<RectCollider, string>();
 const colliderSourceMetadata = new Map<
   RectCollider,
   {
-    sourceId: WallSegmentInstance['sourceId'] | LevelSafetyCollider['sourceId'];
-    sourceType: 'wall' | 'safetyCollider';
+    sourceId:
+      | WallSegmentInstance['sourceId']
+      | LevelSafetyCollider['sourceId']
+      | SceneObjectDefinition['sourceId'];
+    sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
     purpose?: string;
   }
 >();
 const upperFloorColliders: RectCollider[] = [];
+
+const sceneObjectDefinitionsById = new Map(
+  PORTFOLIO_LEVEL.floors.flatMap((floor) =>
+    (floor.sceneObjects ?? []).map((object) => [object.id, object] as const)
+  )
+);
+
+const getSceneObjectDefinition = (
+  id: string
+): SceneObjectDefinition | undefined => sceneObjectDefinitionsById.get(id);
+
+const applySceneObjectSourceMetadata = (
+  object: Object3D,
+  definition: SceneObjectDefinition
+): void => {
+  object.userData.levelSourceId = definition.sourceId;
+  object.userData.levelSource = {
+    sourceId: definition.sourceId,
+    sourceType: 'sceneObject',
+    purpose: definition.purpose ?? definition.colliderPolicy?.kind,
+  };
+};
+
+const registerSceneObjectColliders = (
+  colliders: readonly RectCollider[],
+  definition: SceneObjectDefinition,
+  target: RectCollider[]
+): void => {
+  colliders.forEach((collider) => {
+    target.push(collider);
+    colliderSourceMetadata.set(collider, {
+      sourceId: definition.sourceId,
+      sourceType: 'sceneObject',
+      purpose:
+        definition.colliderPolicy?.kind === 'custom'
+          ? definition.colliderPolicy.purpose
+          : definition.colliderPolicy?.kind,
+    });
+  });
+};
 
 const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
   `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
@@ -2816,8 +2860,20 @@ function initializeImmersiveScene(
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
       detailPolicy: activeSceneDetailPolicy,
     });
+    const flywheelSceneObject = getSceneObjectDefinition(
+      'flywheel-studio-flywheel'
+    );
+    if (flywheelSceneObject) {
+      applySceneObjectSourceMetadata(showpiece.group, flywheelSceneObject);
+      registerSceneObjectColliders(
+        showpiece.colliders,
+        flywheelSceneObject,
+        groundColliders
+      );
+    } else {
+      showpiece.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     groundStructureGroup.add(showpiece.group);
-    showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
@@ -2836,8 +2892,20 @@ function initializeImmersiveScene(
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
+    const jobbotSceneObject = getSceneObjectDefinition(
+      'jobbot-studio-terminal'
+    );
+    if (jobbotSceneObject) {
+      applySceneObjectSourceMetadata(terminal.group, jobbotSceneObject);
+      registerSceneObjectColliders(
+        terminal.colliders,
+        jobbotSceneObject,
+        groundColliders
+      );
+    } else {
+      terminal.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     groundStructureGroup.add(terminal.group);
-    terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
 
     if (axelPoi) {
@@ -2849,8 +2917,20 @@ function initializeImmersiveScene(
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
       });
+      const axelSceneObject = getSceneObjectDefinition('axel-studio-tracker');
+      if (axelSceneObject) {
+        applySceneObjectSourceMetadata(navigator.group, axelSceneObject);
+        registerSceneObjectColliders(
+          navigator.colliders,
+          axelSceneObject,
+          groundColliders
+        );
+      } else {
+        navigator.colliders.forEach((collider) =>
+          groundColliders.push(collider)
+        );
+      }
       groundStructureGroup.add(navigator.group);
-      navigator.colliders.forEach((collider) => groundColliders.push(collider));
       axelNavigator = navigator;
     }
 
@@ -2892,8 +2972,20 @@ function initializeImmersiveScene(
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
     });
+    const prReaperSceneObject = getSceneObjectDefinition(
+      'pr-reaper-backyard-console'
+    );
+    if (prReaperSceneObject) {
+      applySceneObjectSourceMetadata(console.group, prReaperSceneObject);
+      registerSceneObjectColliders(
+        console.colliders,
+        prReaperSceneObject,
+        groundColliders
+      );
+    } else {
+      console.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     groundStructureGroup.add(console.group);
-    console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
   }
 
@@ -2992,8 +3084,18 @@ function initializeImmersiveScene(
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
+    const woveSceneObject = getSceneObjectDefinition('wove-kitchen-loom');
+    if (woveSceneObject) {
+      applySceneObjectSourceMetadata(loom.group, woveSceneObject);
+      registerSceneObjectColliders(
+        loom.colliders,
+        woveSceneObject,
+        groundColliders
+      );
+    } else {
+      loom.colliders.forEach((collider) => groundColliders.push(collider));
+    }
     groundStructureGroup.add(loom.group);
-    loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;
   }
 
