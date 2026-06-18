@@ -60,6 +60,23 @@ const GROUND_STAIR_SAFETY_COLLIDER_METADATA = {
   Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose'>
 >;
 
+const getGroundStairSafetyColliderMetadata = (
+  name: string
+): Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose'> => {
+  const metadata =
+    GROUND_STAIR_SAFETY_COLLIDER_METADATA[
+      name as keyof typeof GROUND_STAIR_SAFETY_COLLIDER_METADATA
+    ];
+
+  if (!metadata) {
+    throw new Error(
+      `Missing ground stair safety collider metadata for ${name}`
+    );
+  }
+
+  return metadata;
+};
+
 export const createGroundStairSafetyColliders = (
   geometry: StairGeometry,
   behavior: StairBehavior,
@@ -70,9 +87,7 @@ export const createGroundStairSafetyColliders = (
       name,
       floor: 'ground',
       bounds,
-      ...GROUND_STAIR_SAFETY_COLLIDER_METADATA[
-        name as keyof typeof GROUND_STAIR_SAFETY_COLLIDER_METADATA
-      ],
+      ...getGroundStairSafetyColliderMetadata(name),
     })
   );
 
@@ -192,10 +207,10 @@ export const createUpperStairSafetyColliders = ({
         maxZ: upperStairVoidMaxZ,
       },
     },
-    ...upperStairTopGapBlockers.map(({ name, bounds }, index) => ({
+    ...upperStairTopGapBlockers.map(({ name, bounds }) => ({
       name,
       sourceId: sourceId(
-        `upper.stairwell.topGap.${index === 0 ? 'west' : 'east'}.safetyCollider`
+        `upper.stairwell.topGap.${name.endsWith('West') ? 'west' : 'east'}.safetyCollider`
       ),
       floor: 'upper' as const,
       category: 'void' as const,

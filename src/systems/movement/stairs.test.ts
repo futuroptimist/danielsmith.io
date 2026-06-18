@@ -46,7 +46,7 @@ const eastBoundaryMaxX = Math.max(
   ...boundaryColliders.map((collider) => collider.bounds.maxX)
 );
 
-describe('createGroundStairBoundaryColliders', () => {
+describe('createGroundStairSafetyColliders', () => {
   it('names the local ground stair blockers for debug visualization', () => {
     const names = boundaryColliders.map((collider) => collider.name);
 
