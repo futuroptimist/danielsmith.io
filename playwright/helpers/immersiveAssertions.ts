@@ -19,6 +19,7 @@ type TestWorldApi = {
     blockedBy?: string[];
   };
   getPlayerPosition(): { x: number; y: number; z: number };
+  getActiveFloor(): FloorId;
 };
 
 type DebugColliderMetadata = {
@@ -54,7 +55,10 @@ type PortfolioWindow = Window & {
   };
 };
 
-async function canOccupyPosition(page: Page, target: ImmersiveSampleTarget) {
+export async function canOccupyPosition(
+  page: Page,
+  target: ImmersiveSampleTarget
+) {
   return page.evaluate((next) => {
     const world = (window as PortfolioWindow).portfolio?.world;
     if (!world) {
@@ -64,7 +68,7 @@ async function canOccupyPosition(page: Page, target: ImmersiveSampleTarget) {
   }, target);
 }
 
-async function getBlockingColliderNames(
+export async function getBlockingColliderNames(
   page: Page,
   target: ImmersiveSampleTarget
 ) {
@@ -126,12 +130,20 @@ export async function expectPathTraversable(
       }
 
       const steps: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> = [];
+      if (floorId && world.getActiveFloor() !== floorId) {
+        throw new Error(
+          `Expected ${floorId} floor before walking path, got ${world.getActiveFloor()}`
+        );
+      }
+
       for (const waypoint of nextWaypoints) {
+        let reachedWaypoint = false;
         for (let index = 0; index < 320; index += 1) {
           const position = world.getPlayerPosition();
           const remainingX = waypoint.x - position.x;
           const remainingZ = waypoint.z - position.z;
           if (Math.abs(remainingX) < 0.001 && Math.abs(remainingZ) < 0.001) {
+            reachedWaypoint = true;
             break;
           }
 
@@ -155,6 +167,15 @@ export async function expectPathTraversable(
             );
           }
         }
+
+        if (!reachedWaypoint) {
+          const position = world.getPlayerPosition();
+          throw new Error(
+            `Waypoint (${waypoint.x.toFixed(2)}, ${waypoint.z.toFixed(2)}) ` +
+              `not reached after 320 steps; stopped at ` +
+              `(${position.x.toFixed(2)}, ${position.z.toFixed(2)})`
+          );
+        }
       }
 
       return {
@@ -175,7 +196,6 @@ export async function expectSourceBackedColliderPresent(
     if (!debugApi) {
       throw new Error('Debug colliders API unavailable');
     }
-    debugApi.setEnabled(true);
     return debugApi.getCollidersBySourceId(nextSourceId);
   }, sourceId);
 
@@ -199,7 +219,6 @@ export async function expectSourceBackedSolidPresent(
     if (!debugApi) {
       throw new Error('Debug solids API unavailable');
     }
-    debugApi.setEnabled(true);
     return debugApi.getSolidsBySourceId(nextSourceId);
   }, sourceId);
 

@@ -3,12 +3,14 @@ import { expect, test, type Page } from '@playwright/test';
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
 
 import {
+  canOccupyPosition,
   expectNoBlockingCollidersAt,
   expectPathTraversable,
   expectSamplesBlocked,
   expectSamplesOccupiable,
   expectSourceBackedColliderPresent,
   expectSourceBackedSolidPresent,
+  getBlockingColliderNames,
   type ImmersiveSample,
 } from './helpers/immersiveAssertions';
 
@@ -299,34 +301,6 @@ function expectSampleOutsidePhysicalStaircaseLanding(
     isOnLandingSlab,
     `${sample.name} should sit in the no-floor stairwell cutout, not on the visible StaircaseLanding slab`
   ).toBe(false);
-}
-
-async function canOccupyPosition(
-  page: Page,
-  target: { x: number; z: number; floorId?: FloorId }
-) {
-  return page.evaluate((next) => {
-    const world = (window as PortfolioWindow).portfolio?.world;
-    if (!world) {
-      throw new Error('World API unavailable');
-    }
-    return world.canOccupyPosition(next);
-  }, target);
-}
-
-async function getBlockingColliderNames(
-  page: Page,
-  target: { x: number; z: number; floorId?: FloorId }
-) {
-  return page.evaluate((next) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi
-      .getBlockingCollidersAt(next)
-      .map((collider) => collider.name);
-  }, target);
 }
 
 async function getDebugColliders(page: Page) {
