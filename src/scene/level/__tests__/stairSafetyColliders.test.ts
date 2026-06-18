@@ -83,16 +83,6 @@ describe('stair safety collider source definitions', () => {
     });
     expect(
       colliders.find(
-        (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
-      )?.bounds
-    ).toEqual({
-      minX: 8.4,
-      maxX: 16.4,
-      minZ: -23.549999999999997,
-      maxZ: -21.030000000000005,
-    });
-    expect(
-      colliders.find(
         (collider) => collider.name === 'UpperStairWestBannisterGuard'
       )?.bounds
     ).toEqual({
@@ -135,7 +125,6 @@ describe('stair safety collider source definitions', () => {
       ['GroundStairLowerCornerGuard', '4002'],
       ['UpperStairEastLowerVoidGuard', '4006'],
       ['UpperStairEastUpperVoidGuard', '4007'],
-      ['UpperStairHiddenRunVoidGuard', '4008'],
       ['UpperStairWestBannisterGuard', '4009'],
       ['UpperStairNorthBannisterGuard', '400A'],
     ].forEach(([name, id]) => {
@@ -144,6 +133,15 @@ describe('stair safety collider source definitions', () => {
         getDeclaredColliderDebugId({ floor: 'upper', category: 'upper', name })
       ).toBe(id);
     });
+
+    expect(names.has('UpperStairHiddenRunVoidGuard')).toBe(false);
+    expect(
+      getDeclaredColliderDebugId({
+        floor: 'upper',
+        category: 'upper',
+        name: 'UpperStairHiddenRunVoidGuard',
+      })
+    ).toBeUndefined();
 
     expect(
       getDeclaredColliderDebugId({
