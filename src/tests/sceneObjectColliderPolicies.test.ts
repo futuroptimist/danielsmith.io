@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { PORTFOLIO_LEVEL } from '../scene/level/portfolioLevel';
@@ -64,51 +66,62 @@ afterAll(() => {
 
 const definitionsById = createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
 
+type MigratedFactoryPlacement = {
+  position: { x: number; z: number };
+  orientation: number;
+};
+
 const migratedFactories = [
   {
     id: 'flywheel-studio-flywheel',
     expectedColliderCount: 2,
-    build: () =>
+    placement: { position: { x: 5.5, z: -2 }, orientation: 0 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createFlywheelShowpiece({
-        centerX: 5.5,
-        centerZ: -2,
+        centerX: position.x,
+        centerZ: position.z,
+        orientationRadians: orientation,
         roomBounds: { minX: 0, maxX: 16, minZ: -16, maxZ: 16 },
       }),
   },
   {
     id: 'jobbot-studio-terminal',
     expectedColliderCount: 1,
-    build: () =>
+    placement: { position: { x: 12, z: 2 }, orientation: -Math.PI / 2 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createJobbotTerminal({
-        position: { x: 12, y: 0, z: 2 },
-        orientationRadians: -Math.PI / 2,
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
       }),
   },
   {
     id: 'axel-studio-tracker',
     expectedColliderCount: 2,
-    build: () =>
+    placement: { position: { x: 10, z: -2 }, orientation: Math.PI },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createAxelNavigator({
-        position: { x: 10, y: 0, z: -2 },
-        orientationRadians: Math.PI,
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
       }),
   },
   {
     id: 'wove-kitchen-loom',
     expectedColliderCount: 2,
-    build: () =>
+    placement: { position: { x: -7.5, z: 2.5 }, orientation: Math.PI * 0.45 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createWoveLoom({
-        position: { x: -7.5, y: 0, z: 2.5 },
-        orientationRadians: Math.PI * 0.45,
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
       }),
   },
   {
     id: 'pr-reaper-backyard-console',
     expectedColliderCount: 2,
-    build: () =>
+    placement: { position: { x: 0, z: 10 }, orientation: Math.PI * 0.35 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createPrReaperConsole({
-        position: { x: 0, y: 0, z: 10 },
-        orientationRadians: Math.PI * 0.35,
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
       }),
   },
 ] as const;
@@ -126,11 +139,25 @@ describe('migrated scene object collider policies', () => {
     }
   });
 
-  it('registers every existing factory collider with scene object source metadata', () => {
-    for (const { id, expectedColliderCount, build } of migratedFactories) {
+  it('keeps factory args aligned with declarative placement data', () => {
+    for (const { id, placement } of migratedFactories) {
       const definition = definitionsById.get(id);
       expect(definition, id).toBeDefined();
-      const factoryColliders = build().colliders;
+      expect(definition!.position, id).toEqual(placement.position);
+      expect(definition!.orientation, id).toBe(placement.orientation);
+    }
+  });
+
+  it('registers every existing factory collider with scene object source metadata', () => {
+    for (const {
+      id,
+      expectedColliderCount,
+      build,
+      placement,
+    } of migratedFactories) {
+      const definition = definitionsById.get(id);
+      expect(definition, id).toBeDefined();
+      const factoryColliders = build(placement).colliders;
       const registered = [];
       const metadata = new Map();
 
@@ -151,5 +178,25 @@ describe('migrated scene object collider policies', () => {
         });
       }
     }
+  });
+
+  it('does not duplicate migrated placements as manual main-scene factory args', () => {
+    const mainSource = readFileSync('src/main.ts', 'utf8');
+
+    expect(mainSource).not.toMatch(
+      /createJobbotTerminal\(\{[\s\S]{0,500}x: 12,[\s\S]{0,200}z: 2/
+    );
+    expect(mainSource).not.toMatch(
+      /createAxelNavigator\(\{[\s\S]{0,500}x: 10,[\s\S]{0,200}z: -2/
+    );
+    expect(mainSource).not.toMatch(
+      /createWoveLoom\(\{[\s\S]{0,500}x: -7\.5,[\s\S]{0,200}z: 2\.5/
+    );
+    expect(mainSource).not.toMatch(
+      /createPrReaperConsole\(\{[\s\S]{0,500}x: 0,[\s\S]{0,200}z: 10/
+    );
+    expect(mainSource).not.toMatch(
+      /createFlywheelShowpiece\(\{[\s\S]{0,300}centerX: 5\.5/
+    );
   });
 });
