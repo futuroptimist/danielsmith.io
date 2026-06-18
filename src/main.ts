@@ -150,6 +150,7 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { generateFloorSurfaceTiles } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
 import { PORTFOLIO_LEVEL } from './scene/level/portfolioLevel';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
@@ -236,7 +237,6 @@ import {
   createF2ClipboardConsole,
   type F2ClipboardConsoleBuild,
 } from './scene/structures/f2ClipboardConsole';
-import { createRoomFloorTiles } from './scene/structures/floorTiles';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -1851,7 +1851,7 @@ function initializeImmersiveScene(
     roughness: 0.58,
     metalness: 0.18,
   });
-  const floorTiles = createRoomFloorTiles(FLOOR_PLAN.rooms, {
+  const floorTiles = generateFloorSurfaceTiles(getLevelFloor('ground'), {
     material: floorMaterial,
     elevation: 0,
     groupName: 'GroundFloorTiles',
@@ -2307,12 +2307,17 @@ function initializeImmersiveScene(
           }),
         }
       : undefined;
-  const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+  const upperFloorTiles = generateFloorSurfaceTiles(getLevelFloor('upper'), {
     material: upperFloorMaterial,
     elevation: upperFloorElevation,
     thickness: STAIRCASE_CONFIG.landing.thickness,
     groupName: 'UpperFloorTiles',
-    cutoutsByRoom: upperLandingCutouts,
+    cutoutsBySurface: upperLandingCutouts
+      ? {
+          'upper-landing-main-floor': upperLandingCutouts.upperLanding,
+          'upper-landing-stair-edge-floor': upperLandingCutouts.upperLanding,
+        }
+      : undefined,
   });
   upperFloorGroup.add(upperFloorTiles.group);
 

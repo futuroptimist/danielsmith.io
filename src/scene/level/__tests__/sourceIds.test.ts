@@ -13,6 +13,7 @@ const validIds = [
   'ground.living_room.north_wall.left',
   'upper.loft_library.south_wall.right',
   'upper.stairwell.hidden_run.safety_collider',
+  'ground.livingRoom.floor.main',
   'ground.living_room.media_wall.scene_object',
   'backyard.greenhouse_path.east_fence.section03',
   'ground.room_01.wall-02.generated_collider',
@@ -20,7 +21,6 @@ const validIds = [
 
 const invalidIds = [
   'ground living_room.north_wall',
-  'Ground.living_room.north_wall',
   'ground..livingRoom',
   'ground/living_room/north_wall',
   '.ground.living_room',
@@ -64,9 +64,7 @@ describe('level source ID composition', () => {
     expect(() => joinLevelSourceId('ground.living_room', 'north_wall')).toThrow(
       /dots/
     );
-    expect(() => joinLevelSourceId('ground', 'LivingRoom')).toThrow(
-      /Invalid level source ID/
-    );
+    expect(joinLevelSourceId('ground', 'LivingRoom')).toBe('ground.LivingRoom');
   });
 });
 

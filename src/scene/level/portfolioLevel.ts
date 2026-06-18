@@ -82,30 +82,13 @@ const centeredGap = (runStart: number, center: number, label: string) => {
   return gap(range.start - runStart, range.end - runStart, label);
 };
 
-const roomIdToSourceSegment = (roomId: string) =>
-  roomId.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
-
-const floorSurfaceForRoom = (
-  floorId: FloorDefinition['id'],
-  room: FloorDefinition['rooms'][number]
-): FloorDefinition['floorSurfaces'][number] => {
-  const roomSourceSegment = roomIdToSourceSegment(room.id);
-
-  return {
-    id: `${room.id}-floor-surface`,
-    sourceId: sourceId(`${floorId}.${roomSourceSegment}.floor_surface`),
-    floorId,
-    bounds: { ...room.bounds },
-    roomId: room.id,
-    purpose: 'room-floor',
-  };
+type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'> & {
+  floorSurfaces?: FloorDefinition['floorSurfaces'];
 };
-
-type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
 
 const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
   ...floor,
-  floorSurfaces: floor.rooms.map((room) => floorSurfaceForRoom(floor.id, room)),
+  floorSurfaces: floor.floorSurfaces ?? [],
 });
 
 export const PORTFOLIO_LEVEL: LevelDefinition = {
@@ -119,6 +102,32 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
         [16, -16],
         [16, 16],
         [-16, 16],
+      ],
+      floorSurfaces: [
+        {
+          id: 'living-room-main-floor',
+          sourceId: sourceId('ground.livingRoom.floor.main'),
+          floorId: 'ground',
+          bounds: { minX: -16, maxX: 16, minZ: -16, maxZ: -4 },
+          roomId: 'livingRoom',
+          purpose: 'walkable room floor',
+        },
+        {
+          id: 'studio-main-floor',
+          sourceId: sourceId('ground.studio.floor.main'),
+          floorId: 'ground',
+          bounds: { minX: -2, maxX: 16, minZ: -4, maxZ: 8 },
+          roomId: 'studio',
+          purpose: 'walkable room floor',
+        },
+        {
+          id: 'kitchen-main-floor',
+          sourceId: sourceId('ground.kitchen.floor.main'),
+          floorId: 'ground',
+          bounds: { minX: -16, maxX: -2, minZ: -4, maxZ: 8 },
+          roomId: 'kitchen',
+          purpose: 'walkable room floor',
+        },
       ],
       rooms: [
         {
@@ -317,6 +326,49 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
         [14, -16],
         [14, 14],
         [-14, 14],
+      ],
+      floorSurfaces: [
+        {
+          id: 'upper-landing-main-floor',
+          sourceId: sourceId('upper.upperLanding.floor.main'),
+          floorId: 'upper',
+          bounds: { minX: 2, maxX: 10.4, minZ: -16, maxZ: -8 },
+          roomId: 'upperLanding',
+          purpose:
+            'walkable landing floor with generator-owned stairwell clipping',
+        },
+        {
+          id: 'upper-landing-stair-edge-floor',
+          sourceId: sourceId('upper.upperLanding.floor.stairEdgePiece'),
+          floorId: 'upper',
+          bounds: { minX: 9, maxX: 10, minZ: -15, maxZ: -9 },
+          roomId: 'upperLanding',
+          purpose: 'source trace for generated landing edge floor pieces',
+        },
+        {
+          id: 'creators-studio-main-floor',
+          sourceId: sourceId('upper.creatorsStudio.floor.main'),
+          floorId: 'upper',
+          bounds: { minX: -10, maxX: 2, minZ: -16, maxZ: 0 },
+          roomId: 'creatorsStudio',
+          purpose: 'walkable room floor',
+        },
+        {
+          id: 'loft-library-main-floor',
+          sourceId: sourceId('upper.loftLibrary.floor.main'),
+          floorId: 'upper',
+          bounds: { minX: 2, maxX: 12, minZ: -8, maxZ: 6 },
+          roomId: 'loftLibrary',
+          purpose: 'walkable room floor',
+        },
+        {
+          id: 'focus-pods-main-floor',
+          sourceId: sourceId('upper.focusPods.floor.main'),
+          floorId: 'upper',
+          bounds: { minX: -10, maxX: 12, minZ: 6, maxZ: 14 },
+          roomId: 'focusPods',
+          purpose: 'walkable room floor',
+        },
       ],
       rooms: [
         {

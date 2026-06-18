@@ -267,6 +267,21 @@ narrow compatibility. By default it copies room metadata only. When
 old room-wall generators, not the canonical future scene-construction path, and
 semantic `roomConnections` intentionally do not create or remove geometry.
 
+## Floor surface generation status
+
+Floor surfaces now live in `PORTFOLIO_LEVEL` as source-ID-backed current-state
+coverage records. `generateFloorSurfaceTiles(...)` owns the conversion from each
+`floorSurfaces` rectangle into renderable box meshes, including pragmatic
+splitting and stairwell clipping where the upper landing needs to preserve the
+current stair void. Generated floor meshes carry `userData.levelSourceId` and a
+`userData.levelSource` object with `sourceType: 'floorSurface'`, so debug solid
+queries can resolve rendered floor pieces by semantic source ID instead of only
+by transient hex solid IDs.
+
+Production floor surface records describe current intended coverage. Historical
+missing-floor strips or debug-ID-oriented removal records stay out of the source;
+void edges are produced by the generator from current stair/landing geometry.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
