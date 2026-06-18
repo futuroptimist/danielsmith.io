@@ -166,13 +166,13 @@ describe('generateWallSegmentInstances', () => {
       wallOptions()
     );
 
-    const removedSourceId = 'ground.living_room.south_wall';
+    const southWallSourceId = 'ground.living_room.south_wall';
 
     expect(
-      baseline.some((instance) => instance.sourceId === removedSourceId)
+      baseline.some((instance) => instance.sourceId === southWallSourceId)
     ).toBe(true);
     expect(
-      edited.some((instance) => instance.sourceId === removedSourceId)
+      edited.some((instance) => instance.sourceId === southWallSourceId)
     ).toBe(false);
   });
 

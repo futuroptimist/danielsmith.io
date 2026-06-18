@@ -6,7 +6,10 @@ This document defines the migration path from the current floor-plan and
 scene-orchestration pipeline to a floor-plan-first declarative level source of
 truth. It is intentionally documentation-only: the current TypeScript runtime,
 rendered geometry, colliders, debug IDs, movement, stairs, POIs, and rendering
-must remain unchanged until later migration prompts.
+must remain unchanged unless a follow-up intentionally edits level data. Prompt 12
+completed the migrated portfolio-house source-of-truth path; this document now
+records the final authoring contract plus the few compatibility seams left for
+regression comparisons.
 
 The core principle is that authoritative level data describes the intended
 current scene. Generated meshes, gameplay colliders, debug metadata, validation,
@@ -34,13 +37,12 @@ orchestration code:
      status, and generator-owned seam extension without requiring removed-bounds
      lists or visualizer filters.
 3. `src/assets/floorPlan/wallSegments.ts`
-   - Retains the legacy combined-wall adapter for compatibility tests and
-     non-migrated consumers.
+   - Retains the combined-wall adapter for compatibility tests that compare
+     source-generated output to the pre-migration floor-plan shape.
    - Computes wall/fence dimensions, center points, colliders, shared-interior
-     status, and current `segmentId` values.
-   - Current segment IDs are generated from segment data plus the segment order,
-     so they are useful runtime correlation labels but are not yet stable source
-     identities.
+     status, and current `segmentId` values for those compatibility callers.
+   - Semantic `sourceId` metadata is the stable authoring identity; `segmentId`
+     remains only as a compact runtime correlation label.
 4. `src/scene/structures/wallSegmentsMesh.ts`
    - Builds Three.js wall and fence meshes from wall segment instances.
    - Copies compact metadata such as `segmentId`, `isFence`,
@@ -325,8 +327,21 @@ semantic `roomConnections` intentionally do not create or remove geometry.
     their collider policies in declarative source data.
 11. **Add invariants and inventory tooling.** Prevent hidden overrides, duplicate
     source IDs, debug-ID tombstones, and unowned colliders or visible solids.
-12. **Remove legacy scaffolding.** Delete bridge code once direct source edits are
-    proven to regenerate final scene geometry and collision.
+12. **Remove legacy scaffolding.** Completed for migrated areas. Direct source
+    edits now prove final wall meshes/colliders regenerate from current data,
+    semantic room connections do not act as geometry, and browser-level debug
+    proofs use source IDs for wall, floor, and safety-collider assertions.
+
+## Final authoring workflow
+
+The day-to-day editing guide lives in [Editing level data](./editing-level-data.md).
+For migrated areas, authors should edit `src/scene/level/portfolioLevel.ts` for
+rooms, wall definitions, floor surfaces, scene objects, and general safety
+colliders, and `src/scene/level/stairSafetyColliders.ts` for stair-specific guard
+colliders. Browser/debug assertions should prefer semantic `sourceId` lookups over
+hex debug IDs. Remaining compatibility code is limited to adapters and tests that
+compare against pre-migration generated floor-plan shapes; it is not an authoring
+surface for new layout intent.
 
 ## Migration risks
 
