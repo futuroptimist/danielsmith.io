@@ -125,7 +125,9 @@ Run the standard checks before committing level-data edits:
 npm run format:write
 npm run lint
 npm run test:ci
+npx playwright test playwright/immersive-stairs-roundtrip.spec.ts
 npm run docs:check
+npm run build
 npm run smoke
 ```
 
