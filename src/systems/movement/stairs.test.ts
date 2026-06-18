@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { createGroundStairSafetyColliders } from '../../scene/level/stairSafetyColliders';
 import { collidesWithColliders } from '../collision';
 
 import {
-  createGroundStairBoundaryColliders,
   createStairNavigationZones,
   type StairBehavior,
   type StairGeometry,
@@ -30,14 +30,10 @@ const behavior: StairBehavior = {
   descentCorridorInset: PLAYER_RADIUS,
 };
 
-const boundaryColliders = createGroundStairBoundaryColliders(
-  geometry,
-  behavior,
-  {
-    playerRadius: PLAYER_RADIUS,
-    guardThickness: 0.44,
-  }
-);
+const boundaryColliders = createGroundStairSafetyColliders(geometry, behavior, {
+  playerRadius: PLAYER_RADIUS,
+  guardThickness: 0.44,
+});
 const boundaryBounds = boundaryColliders.map((collider) => collider.bounds);
 
 const stairEastX = geometry.centerX + geometry.halfWidth;
@@ -50,7 +46,7 @@ const eastBoundaryMaxX = Math.max(
   ...boundaryColliders.map((collider) => collider.bounds.maxX)
 );
 
-describe('createGroundStairBoundaryColliders', () => {
+describe('createGroundStairSafetyColliders', () => {
   it('names the local ground stair blockers for debug visualization', () => {
     const names = boundaryColliders.map((collider) => collider.name);
 
@@ -59,6 +55,23 @@ describe('createGroundStairBoundaryColliders', () => {
       'GroundStairLowerCornerGuard',
     ]);
     expect(names).not.toContain('GroundStairEastRunSeal');
+  });
+
+  it('adds source metadata to raw blockers for reported stair-side squeeze samples', () => {
+    expect(boundaryColliders).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'GroundStairEastBoundary',
+          sourceId: 'ground.stairwell.eastBoundary.safetyCollider',
+          purpose: 'prevent lower stair side squeeze',
+        }),
+        expect.objectContaining({
+          name: 'GroundStairLowerCornerGuard',
+          sourceId: 'ground.stairwell.lowerCorner.safetyCollider',
+          purpose: 'block raw lower-step occupancy',
+        }),
+      ])
+    );
   });
 
   it('blocks the reported stair-side squeeze samples', () => {
