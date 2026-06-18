@@ -82,31 +82,24 @@ const centeredGap = (runStart: number, center: number, label: string) => {
   return gap(range.start - runStart, range.end - runStart, label);
 };
 
-const roomIdToSourceSegment = (roomId: string) =>
-  roomId.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
-
-const floorSurfaceForRoom = (
+const floorSurface = (
+  id: string,
+  source: string,
   floorId: FloorDefinition['id'],
-  room: FloorDefinition['rooms'][number]
-): FloorDefinition['floorSurfaces'][number] => {
-  const roomSourceSegment = roomIdToSourceSegment(room.id);
-
-  return {
-    id: `${room.id}-floor-surface`,
-    sourceId: sourceId(`${floorId}.${roomSourceSegment}.floor_surface`),
-    floorId,
-    bounds: { ...room.bounds },
-    roomId: room.id,
-    purpose: 'room-floor',
-  };
-};
-
-type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
-
-const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
-  ...floor,
-  floorSurfaces: floor.rooms.map((room) => floorSurfaceForRoom(floor.id, room)),
+  bounds: FloorDefinition['rooms'][number]['bounds'],
+  roomId: string
+): FloorDefinition['floorSurfaces'][number] => ({
+  id,
+  sourceId: sourceId(source),
+  floorId,
+  bounds: { ...bounds },
+  roomId,
+  purpose: 'room-floor',
 });
+
+type FloorDefinitionInput = FloorDefinition;
+
+const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => floor;
 
 export const PORTFOLIO_LEVEL: LevelDefinition = {
   id: 'portfolio',
@@ -150,6 +143,29 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           ledColor: 0x274f37,
           category: 'exterior',
         },
+      ],
+      floorSurfaces: [
+        floorSurface(
+          'living-room-floor-main',
+          'ground.living_room.floor.main',
+          'ground',
+          { minX: -16, maxX: 16, minZ: -16, maxZ: -4 },
+          'livingRoom'
+        ),
+        floorSurface(
+          'kitchen-floor-main',
+          'ground.kitchen.floor.main',
+          'ground',
+          { minX: -16, maxX: -2, minZ: -4, maxZ: 8 },
+          'kitchen'
+        ),
+        floorSurface(
+          'studio-floor-main',
+          'ground.studio.floor.main',
+          'ground',
+          { minX: -2, maxX: 16, minZ: -4, maxZ: 8 },
+          'studio'
+        ),
       ],
       walls: [
         horizontalWall(
@@ -347,6 +363,36 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           bounds: { minX: -10, maxX: 12, minZ: 6, maxZ: 14 },
           ledColor: 0x9cf7c7,
         },
+      ],
+      floorSurfaces: [
+        floorSurface(
+          'upper-landing-floor-main',
+          'upper.upper_landing.floor.main',
+          'upper',
+          { minX: 2, maxX: 10.4, minZ: -16, maxZ: -8 },
+          'upperLanding'
+        ),
+        floorSurface(
+          'creators-studio-floor-main',
+          'upper.creators_studio.floor.main',
+          'upper',
+          { minX: -10, maxX: 2, minZ: -16, maxZ: 0 },
+          'creatorsStudio'
+        ),
+        floorSurface(
+          'loft-library-floor-main',
+          'upper.loft_library.floor.main',
+          'upper',
+          { minX: 2, maxX: 12, minZ: -8, maxZ: 6 },
+          'loftLibrary'
+        ),
+        floorSurface(
+          'focus-pods-floor-main',
+          'upper.focus_pods.floor.main',
+          'upper',
+          { minX: -10, maxX: 12, minZ: 6, maxZ: 14 },
+          'focusPods'
+        ),
       ],
       walls: [
         horizontalWall(

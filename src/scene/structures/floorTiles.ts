@@ -1,12 +1,15 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
 import type { Bounds2D, RoomDefinition } from '../../assets/floorPlan';
+import type { FloorSurfaceDefinition } from '../level/schema';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
 
 export interface RoomFloorTile {
   readonly roomId: string;
   readonly mesh: Mesh;
   readonly bounds: Bounds2D;
+  readonly sourceId?: FloorSurfaceDefinition['sourceId'];
+  readonly surfaceId?: string;
 }
 
 export interface RoomFloorBuild {
@@ -46,6 +49,16 @@ export interface RoomFloorOptions {
   readonly cutoutsByRoom?: Readonly<Record<string, RoomFloorCutout[]>>;
 }
 
+export interface FloorSurfaceOptions
+  extends Omit<RoomFloorOptions, 'includeExterior' | 'materialFactory'> {
+  /** Optional factory for bespoke materials per floor surface. */
+  readonly materialFactory?: (
+    surface: FloorSurfaceDefinition
+  ) => MeshStandardMaterial;
+  /** World-space openings removed only from a matching floor surface id. */
+  readonly cutoutsBySurface?: Readonly<Record<string, RoomFloorCutout[]>>;
+}
+
 const DEFAULT_GROUP_NAME = 'RoomFloorTiles';
 const DEFAULT_THICKNESS = 0.12;
 const DEFAULT_INSET = 0;
@@ -54,7 +67,7 @@ const DEFAULT_COLOR = 0x2a3547;
 
 function applyLightMapOptions(
   material: MeshStandardMaterial,
-  options: RoomFloorOptions
+  options: Pick<RoomFloorOptions, 'lightMap' | 'lightMapIntensity'>
 ) {
   if (options.lightMap) {
     material.lightMap = options.lightMap;
@@ -73,6 +86,26 @@ function resolveMaterial(
 ): MeshStandardMaterial {
   if (options.materialFactory) {
     const customMaterial = options.materialFactory(room);
+    applyLightMapOptions(customMaterial, options);
+    return customMaterial;
+  }
+
+  if (options.material) {
+    applyLightMapOptions(options.material, options);
+    return options.material;
+  }
+
+  applyLightMapOptions(defaultMaterial, options);
+  return defaultMaterial;
+}
+
+function resolveFloorSurfaceMaterial(
+  surface: FloorSurfaceDefinition,
+  options: FloorSurfaceOptions,
+  defaultMaterial: MeshStandardMaterial
+): MeshStandardMaterial {
+  if (options.materialFactory) {
+    const customMaterial = options.materialFactory(surface);
     applyLightMapOptions(customMaterial, options);
     return customMaterial;
   }
@@ -143,6 +176,16 @@ const subtractCutout = (
   return pieces.filter(hasPositiveArea);
 };
 
+const subtractCutouts = (
+  bounds: Bounds2D,
+  cutouts: readonly RoomFloorCutout[]
+): Bounds2D[] =>
+  cutouts.reduce<Bounds2D[]>(
+    (pieces, cutout) =>
+      pieces.flatMap((piece) => subtractCutout(piece, cutout)),
+    [bounds]
+  );
+
 const getRoomTileBounds = (
   room: RoomDefinition,
   options: RoomFloorOptions,
@@ -164,12 +207,105 @@ const getRoomTileBounds = (
     ...(options.cutoutsByRoom?.[room.id] ?? []),
   ];
 
-  return cutouts.reduce<Bounds2D[]>(
-    (pieces, cutout) =>
-      pieces.flatMap((piece) => subtractCutout(piece, cutout)),
-    [roomBounds]
-  );
+  return subtractCutouts(roomBounds, cutouts);
 };
+
+const createTileMesh = (
+  bounds: Bounds2D,
+  thickness: number,
+  elevation: number,
+  material: MeshStandardMaterial
+): Mesh => {
+  const width = bounds.maxX - bounds.minX;
+  const depth = bounds.maxZ - bounds.minZ;
+  const geometry = new BoxGeometry(width, thickness, depth);
+  applyLightmapUv2(geometry);
+
+  const mesh = new Mesh(geometry, material);
+  mesh.position.set(
+    (bounds.minX + bounds.maxX) / 2,
+    elevation - thickness / 2,
+    (bounds.minZ + bounds.maxZ) / 2
+  );
+  mesh.receiveShadow = true;
+
+  return mesh;
+};
+
+export function createFloorSurfaceTiles(
+  surfaces: FloorSurfaceDefinition[],
+  options: FloorSurfaceOptions = {}
+): RoomFloorBuild {
+  const group = new Group();
+  group.name = options.groupName ?? DEFAULT_GROUP_NAME;
+
+  const tiles: RoomFloorTile[] = [];
+  const inset = Math.max(options.inset ?? DEFAULT_INSET, 0);
+  const thickness = Math.max(
+    options.thickness ?? DEFAULT_THICKNESS,
+    MIN_DIMENSION
+  );
+  const defaultElevation = options.elevation ?? 0;
+
+  const defaultMaterial =
+    options.material ??
+    new MeshStandardMaterial({
+      color: DEFAULT_COLOR,
+      roughness: 0.58,
+      metalness: 0.18,
+    });
+
+  surfaces.forEach((surface) => {
+    const surfaceBounds = {
+      minX: surface.bounds.minX + inset,
+      maxX: surface.bounds.maxX - inset,
+      minZ: surface.bounds.minZ + inset,
+      maxZ: surface.bounds.maxZ - inset,
+    };
+
+    if (!hasPositiveArea(surfaceBounds)) {
+      return;
+    }
+
+    const cutouts = [
+      ...(options.cutouts ?? []),
+      ...(surface.roomId
+        ? (options.cutoutsByRoom?.[surface.roomId] ?? [])
+        : []),
+      ...(options.cutoutsBySurface?.[surface.id] ?? []),
+    ];
+
+    subtractCutouts(surfaceBounds, cutouts).forEach((bounds, index) => {
+      const mesh = createTileMesh(
+        bounds,
+        thickness,
+        surface.elevation ?? defaultElevation,
+        resolveFloorSurfaceMaterial(surface, options, defaultMaterial)
+      );
+      mesh.name =
+        index === 0
+          ? `${surface.id} Floor`
+          : `${surface.id} Floor ${index + 1}`;
+      mesh.userData.levelSourceId = surface.sourceId;
+      mesh.userData.levelSource = {
+        sourceId: surface.sourceId,
+        sourceType: 'floorSurface',
+        purpose: surface.purpose,
+      };
+
+      group.add(mesh);
+      tiles.push({
+        roomId: surface.roomId ?? surface.id,
+        mesh,
+        bounds,
+        sourceId: surface.sourceId,
+        surfaceId: surface.id,
+      });
+    });
+  });
+
+  return { group, tiles };
+}
 
 export function createRoomFloorTiles(
   rooms: RoomDefinition[],
@@ -200,23 +336,14 @@ export function createRoomFloorTiles(
     }
 
     getRoomTileBounds(room, options, inset).forEach((bounds, index) => {
-      const width = bounds.maxX - bounds.minX;
-      const depth = bounds.maxZ - bounds.minZ;
-      const geometry = new BoxGeometry(width, thickness, depth);
-      applyLightmapUv2(geometry);
-
-      const mesh = new Mesh(
-        geometry,
+      const mesh = createTileMesh(
+        bounds,
+        thickness,
+        elevation,
         resolveMaterial(room, options, defaultMaterial)
-      );
-      mesh.position.set(
-        (bounds.minX + bounds.maxX) / 2,
-        elevation - thickness / 2,
-        (bounds.minZ + bounds.maxZ) / 2
       );
       mesh.name =
         index === 0 ? `${room.name} Floor` : `${room.name} Floor ${index + 1}`;
-      mesh.receiveShadow = true;
 
       group.add(mesh);
       tiles.push({ roomId: room.id, mesh, bounds });

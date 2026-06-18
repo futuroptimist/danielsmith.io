@@ -29,8 +29,8 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 
 import {
   FLOOR_PLAN,
-  FLOOR_PLAN_LEVELS,
   FLOOR_PLAN_SCALE,
+  FLOOR_PLAN_LEVELS,
   UPPER_FLOOR_PLAN,
   getFloorBounds,
   WALL_THICKNESS,
@@ -150,6 +150,7 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { generateFloorSurfaces } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
 import { PORTFOLIO_LEVEL } from './scene/level/portfolioLevel';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
@@ -236,7 +237,6 @@ import {
   createF2ClipboardConsole,
   type F2ClipboardConsoleBuild,
 } from './scene/structures/f2ClipboardConsole';
-import { createRoomFloorTiles } from './scene/structures/floorTiles';
 import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
@@ -1851,10 +1851,17 @@ function initializeImmersiveScene(
     roughness: 0.58,
     metalness: 0.18,
   });
-  const floorTiles = createRoomFloorTiles(FLOOR_PLAN.rooms, {
+  const groundFloorDefinition = PORTFOLIO_LEVEL.floors.find(
+    (floor) => floor.id === 'ground'
+  );
+  if (!groundFloorDefinition) {
+    throw new Error('Expected ground floor source definition to exist.');
+  }
+  const floorTiles = generateFloorSurfaces(groundFloorDefinition, {
     material: floorMaterial,
     elevation: 0,
     groupName: 'GroundFloorTiles',
+    coordinateScale: FLOOR_PLAN_SCALE,
   });
   groundFloorGroup.add(floorTiles.group);
 
@@ -2307,11 +2314,18 @@ function initializeImmersiveScene(
           }),
         }
       : undefined;
-  const upperFloorTiles = createRoomFloorTiles(UPPER_FLOOR_PLAN.rooms, {
+  const upperFloorDefinition = PORTFOLIO_LEVEL.floors.find(
+    (floor) => floor.id === 'upper'
+  );
+  if (!upperFloorDefinition) {
+    throw new Error('Expected upper floor source definition to exist.');
+  }
+  const upperFloorTiles = generateFloorSurfaces(upperFloorDefinition, {
     material: upperFloorMaterial,
     elevation: upperFloorElevation,
     thickness: STAIRCASE_CONFIG.landing.thickness,
     groupName: 'UpperFloorTiles',
+    coordinateScale: FLOOR_PLAN_SCALE,
     cutoutsByRoom: upperLandingCutouts,
   });
   upperFloorGroup.add(upperFloorTiles.group);

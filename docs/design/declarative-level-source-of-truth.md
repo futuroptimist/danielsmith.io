@@ -45,10 +45,13 @@ orchestration code:
    - Builds Three.js wall and fence meshes from wall segment instances.
    - Copies compact metadata such as `segmentId`, `isFence`,
      `isSharedInterior`, and `thickness` into mesh `userData`.
-5. `src/scene/structures/floorTiles.ts`
-   - Builds room floor tile meshes from room bounds.
-   - Supports generator-owned cutout subtraction and room-specific cutouts, then
-     emits renderable tile pieces.
+5. `src/scene/structures/floorTiles.ts` and
+   `src/scene/level/generateFloorSurfaces.ts`
+   - Build source-backed floor tile meshes from declarative floor surface
+     bounds, while retaining the legacy room-bound helper for compatibility
+     tests.
+   - Support generator-owned cutout subtraction and room-specific cutouts, then
+     emit renderable tile pieces that carry floor-surface source metadata.
 6. `src/main.ts`
    - Orchestrates the scene and stitches together generated assets with manual
      runtime additions.
@@ -258,7 +261,11 @@ wall/railing; a walkable opening does not need a former blocker record.
 
 Current ground and upper room bounds, wall runs, intentional wall-run gaps,
 floor surfaces, and semantic room connections now live in
-`src/scene/level/portfolioLevel.ts`. The temporary adapter in
+`src/scene/level/portfolioLevel.ts`. Floor surfaces use stable source IDs
+such as `ground.living_room.floor.main` and
+`upper.upper_landing.floor.main`; the runtime floor generator may split or clip
+those source rectangles into multiple renderable pieces around the current
+stairwell void without adding production tombstones for old removed strips. The temporary adapter in
 `src/scene/level/compileLegacyFloorPlan.ts` compiles a declarative floor
 back to the existing `FloorPlanDefinition` shape for migration checks and
 narrow compatibility. By default it copies room metadata only. When
@@ -287,8 +294,13 @@ semantic `roomConnections` intentionally do not create or remove geometry.
    `src/scene/level/generateWalls.ts`; the legacy room-doorway wall generator is
    retained only as a compatibility reference while later phases migrate floors,
    safety colliders, and inventory tooling.
-8. **Generate floor outputs from source.** Derive floor surfaces from source data,
-   allowing generator-owned splitting and clipping where useful.
+8. **Generate floor outputs from source.** Floor tiles now derive from
+   `FloorDefinition.floorSurfaces` via `generateFloorSurfaces(...)`, and each
+   generated mesh carries `userData.levelSourceId` plus
+   `userData.levelSource.sourceType = 'floorSurface'`. Generator-owned
+   splitting and clipping preserve the current stairwell void and landing
+   coverage without encoding former or removed floor artifacts as production
+   source data.
 9. **Move stair and void safety.** Convert stair, landing, and void guard
    colliders into purpose-labeled source-ID-backed safety colliders.
 10. **Move scene objects and policies.** Place visible/interactable objects and
