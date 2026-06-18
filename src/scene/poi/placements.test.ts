@@ -54,6 +54,13 @@ describe('applyManualPoiPlacements', () => {
         z: 5,
         headingRadians: Math.PI * 0.45,
       },
+      {
+        id: 'pr-reaper-backyard-console',
+        roomId: 'backyard',
+        x: 0,
+        z: 20,
+        headingRadians: Math.PI * 0.35,
+      },
     ];
     const placed = applyManualPoiPlacements(
       expected.map(({ id }) => definition(id))
