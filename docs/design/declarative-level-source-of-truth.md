@@ -360,3 +360,20 @@ to regenerate the final visual geometry, gameplay collision, and debug metadata;
 legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
 and inventory tooling can explain every runtime level artifact by semantic source
 ID.
+
+## Scene object placements and collider policies (phase 10)
+
+Scene object declarations now cover the first recurring collider-debug pain
+points: Flywheel, Jobbot, Axel, Wove, and PR Reaper. Each declaration carries a
+stable `sourceId`, runtime `id`, `floorId`, object `kind`, room/purpose metadata,
+and an explicit `colliderPolicy`. The current safe subset uses `custom` policies
+because the structure factories still own their exact collider geometry; `main.ts`
+attaches the source metadata to the generated group and maps each returned
+collider to `sourceType: 'sceneObject'` at registration time.
+
+Visible solid-looking objects should not rely on accidental omission. If an
+object is solid, its source row should say so with `solid`, `bounds`, or `custom`.
+If an object is intentionally passable, use `decorativeNoCollision` with a reason
+or `interactionOnly` for POI/hit-area-only affordances. Future collider cleanup
+should happen by editing the declarative policy first, then updating the factory
+or registration adapter to match.

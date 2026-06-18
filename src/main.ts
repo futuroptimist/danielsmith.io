@@ -156,6 +156,7 @@ import {
   PORTFOLIO_LEVEL,
   UPPER_LANDING_FLOOR_MAIN_ID,
 } from './scene/level/portfolioLevel';
+import type { LevelSceneObjectDefinition } from './scene/level/schema';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -983,8 +984,11 @@ const namedColliderDebugNames = new Map<RectCollider, string>();
 const colliderSourceMetadata = new Map<
   RectCollider,
   {
-    sourceId: WallSegmentInstance['sourceId'] | LevelSafetyCollider['sourceId'];
-    sourceType: 'wall' | 'safetyCollider';
+    sourceId:
+      | WallSegmentInstance['sourceId']
+      | LevelSafetyCollider['sourceId']
+      | LevelSceneObjectDefinition['sourceId'];
+    sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
     purpose?: string;
   }
 >();
@@ -1054,6 +1058,42 @@ function getLevelFloor(floorId: FloorId) {
   );
   if (!floor) throw new Error(`Portfolio level is missing floor "${floorId}".`);
   return floor;
+}
+
+function getLevelSceneObject(
+  id: string
+): LevelSceneObjectDefinition | undefined {
+  for (const floor of PORTFOLIO_LEVEL.floors) {
+    const object = floor.sceneObjects?.find((candidate) => candidate.id === id);
+    if (object) return object;
+  }
+  return undefined;
+}
+
+function tagSceneObjectSource(
+  group: Object3D,
+  object: LevelSceneObjectDefinition
+): void {
+  group.userData.levelSourceId = object.sourceId;
+  group.userData.levelSource = {
+    sourceId: object.sourceId,
+    sourceType: 'sceneObject',
+    purpose: object.purpose ?? object.colliderPolicy?.kind,
+  };
+}
+
+function registerSceneObjectColliders(
+  object: LevelSceneObjectDefinition,
+  colliders: readonly RectCollider[]
+): void {
+  colliders.forEach((collider, index) => {
+    namedColliderDebugNames.set(collider, `${object.id}-collider-${index + 1}`);
+    colliderSourceMetadata.set(collider, {
+      sourceId: object.sourceId,
+      sourceType: 'sceneObject',
+      purpose: object.colliderPolicy?.kind ?? object.purpose,
+    });
+  });
 }
 
 const container = document.getElementById('app');
@@ -2799,6 +2839,11 @@ function initializeImmersiveScene(
   const prReaperPoi = poiInstances.find(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
+  const flywheelSceneObject = getLevelSceneObject('flywheel-studio-flywheel');
+  const jobbotSceneObject = getLevelSceneObject('jobbot-studio-terminal');
+  const axelSceneObject = getLevelSceneObject('axel-studio-tracker');
+  const woveSceneObject = getLevelSceneObject('wove-kitchen-loom');
+  const prReaperSceneObject = getLevelSceneObject('pr-reaper-backyard-console');
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
   const kitchenBounds = kitchenRoom?.bounds;
@@ -2816,6 +2861,10 @@ function initializeImmersiveScene(
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
       detailPolicy: activeSceneDetailPolicy,
     });
+    if (flywheelSceneObject) {
+      tagSceneObjectSource(showpiece.group, flywheelSceneObject);
+      registerSceneObjectColliders(flywheelSceneObject, showpiece.colliders);
+    }
     groundStructureGroup.add(showpiece.group);
     showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     flywheelShowpiece = showpiece;
@@ -2836,6 +2885,10 @@ function initializeImmersiveScene(
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
+    if (jobbotSceneObject) {
+      tagSceneObjectSource(terminal.group, jobbotSceneObject);
+      registerSceneObjectColliders(jobbotSceneObject, terminal.colliders);
+    }
     groundStructureGroup.add(terminal.group);
     terminal.colliders.forEach((collider) => groundColliders.push(collider));
     jobbotTerminal = terminal;
@@ -2849,6 +2902,10 @@ function initializeImmersiveScene(
         },
         orientationRadians: axelPoi.group.rotation.y ?? 0,
       });
+      if (axelSceneObject) {
+        tagSceneObjectSource(navigator.group, axelSceneObject);
+        registerSceneObjectColliders(axelSceneObject, navigator.colliders);
+      }
       groundStructureGroup.add(navigator.group);
       navigator.colliders.forEach((collider) => groundColliders.push(collider));
       axelNavigator = navigator;
@@ -2892,6 +2949,10 @@ function initializeImmersiveScene(
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
     });
+    if (prReaperSceneObject) {
+      tagSceneObjectSource(console.group, prReaperSceneObject);
+      registerSceneObjectColliders(prReaperSceneObject, console.colliders);
+    }
     groundStructureGroup.add(console.group);
     console.colliders.forEach((collider) => groundColliders.push(collider));
     prReaperConsole = console;
@@ -2992,6 +3053,10 @@ function initializeImmersiveScene(
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
+    if (woveSceneObject) {
+      tagSceneObjectSource(loom.group, woveSceneObject);
+      registerSceneObjectColliders(woveSceneObject, loom.colliders);
+    }
     groundStructureGroup.add(loom.group);
     loom.colliders.forEach((collider) => groundColliders.push(collider));
     woveLoom = loom;

@@ -121,6 +121,74 @@ const floorSurfaceForRoom = (
   };
 };
 
+const sceneObject = (
+  id: string,
+  source: string,
+  kind: string,
+  roomId: string,
+  position: { x: number; z: number },
+  orientation: number,
+  purpose: string
+): FloorDefinition['sceneObjects'][number] => ({
+  id,
+  sourceId: sourceId(source),
+  floorId: 'ground',
+  kind,
+  position,
+  orientation,
+  roomId,
+  colliderPolicy: { kind: 'custom', purpose, colliderCount: 1 },
+  purpose,
+});
+
+const SCENE_OBJECTS: NonNullable<FloorDefinition['sceneObjects']> = [
+  sceneObject(
+    'flywheel-studio-flywheel',
+    'ground.studio.flywheel.scene_object',
+    'flywheelShowpiece',
+    'studio',
+    { x: 11, z: -4 },
+    0,
+    'Kinetic Flywheel exhibit with custom dais and info-panel colliders.'
+  ),
+  sceneObject(
+    'jobbot-studio-terminal',
+    'ground.studio.jobbot_terminal.scene_object',
+    'jobbotTerminal',
+    'studio',
+    { x: 24, z: 4 },
+    -Math.PI / 2,
+    'Jobbot terminal desk keeps its factory-owned solid footprint.'
+  ),
+  sceneObject(
+    'axel-studio-tracker',
+    'ground.studio.axel_navigator.scene_object',
+    'axelNavigator',
+    'studio',
+    { x: 20, z: -4 },
+    Math.PI,
+    'Axel navigator tabletop uses custom table and console colliders.'
+  ),
+  sceneObject(
+    'wove-kitchen-loom',
+    'ground.kitchen.wove_loom.scene_object',
+    'woveLoom',
+    'kitchen',
+    { x: -15, z: 5 },
+    Math.PI * 0.45,
+    'Wove loom table and shuttle zone remain solid via custom colliders.'
+  ),
+  sceneObject(
+    'pr-reaper-backyard-console',
+    'ground.backyard.pr_reaper_console.scene_object',
+    'prReaperConsole',
+    'backyard',
+    { x: 12, z: 26 },
+    Math.PI * 0.55,
+    'PR Reaper triage console preserves deck and intake collision policy.'
+  ),
+];
+
 type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
 
 const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
@@ -310,6 +378,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'fence'
         ),
       ],
+      sceneObjects: SCENE_OBJECTS,
       roomConnections: [
         {
           id: 'living-to-kitchen',

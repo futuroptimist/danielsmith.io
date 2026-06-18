@@ -25,7 +25,7 @@ export interface FloorDefinition {
   walls: WallDefinition[];
   floorSurfaces: FloorSurfaceDefinition[];
   safetyColliders?: SafetyColliderDefinition[];
-  sceneObjects?: SceneObjectDefinition[];
+  sceneObjects?: LevelSceneObjectDefinition[];
   roomConnections?: RoomConnectionDefinition[];
 }
 
@@ -103,21 +103,26 @@ export interface SafetyColliderDefinition {
   purpose: string;
 }
 
-export type ColliderPolicyDefinition =
-  | { kind: 'none'; reason?: string }
-  | { kind: 'footprint' }
+export type SceneObjectColliderPolicy =
+  | { kind: 'solid'; purpose?: string }
+  | { kind: 'decorativeNoCollision'; reason: string }
+  | { kind: 'interactionOnly'; reason?: string }
+  | { kind: 'custom'; purpose?: string; colliderCount?: number }
   | { kind: 'bounds'; bounds: Bounds2D; purpose?: string };
 
-export interface SceneObjectDefinition {
+export interface LevelSceneObjectDefinition {
   id: string;
   sourceId: LevelSourceId;
   floorId: string;
   kind: string;
   position: Point2D & { y?: number };
   orientation?: number;
-  colliderPolicy?: ColliderPolicyDefinition;
+  colliderPolicy?: SceneObjectColliderPolicy;
   roomId?: string;
+  purpose?: string;
 }
+
+export type SceneObjectDefinition = LevelSceneObjectDefinition;
 
 export interface RoomConnectionDefinition {
   id: string;
@@ -272,6 +277,19 @@ export function validateLevelDefinition(
         errors.push(
           `scene object "${object.id}" references missing room "${object.roomId}".`
         );
+      if (!object.purpose?.trim() && !object.colliderPolicy) {
+        errors.push(
+          `scene object "${object.id}" requires a purpose or collider policy.`
+        );
+      }
+      if (
+        object.colliderPolicy?.kind === 'decorativeNoCollision' &&
+        !object.colliderPolicy.reason.trim()
+      ) {
+        errors.push(
+          `scene object "${object.id}" decorativeNoCollision policy requires a reason.`
+        );
+      }
       if (object.colliderPolicy?.kind === 'bounds') {
         validateBounds(
           object.colliderPolicy.bounds,
