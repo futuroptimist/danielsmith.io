@@ -112,6 +112,8 @@ export type ColliderPolicyDefinition =
   | { kind: 'footprint' }
   | { kind: 'bounds'; bounds: Bounds2D; purpose?: string };
 
+export type LevelSceneObjectDefinition = SceneObjectDefinition;
+
 export interface SceneObjectDefinition {
   id: string;
   sourceId: LevelSourceId;

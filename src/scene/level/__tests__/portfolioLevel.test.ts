@@ -70,20 +70,24 @@ describe('PORTFOLIO_LEVEL', () => {
       (floor) => floor.sceneObjects ?? []
     );
 
-    expect(sceneObjects.map((object) => object.id)).toEqual(
-      expect.arrayContaining(migratedIds)
+    const migratedObjects = migratedIds.map((id) =>
+      sceneObjects.find((object) => object.id === id)
     );
+    expect(migratedObjects).not.toContain(undefined);
 
-    for (const object of sceneObjects.filter((next) =>
-      migratedIds.includes(next.id)
-    )) {
-      expect(object.sourceId).toMatch(/\.scene_object$/);
-      expect(object.colliderPolicy).toMatchObject({
+    const migratedSourceIds = migratedObjects.map((object) =>
+      String(object!.sourceId)
+    );
+    expect(new Set(migratedSourceIds).size).toBe(migratedSourceIds.length);
+
+    for (const object of migratedObjects) {
+      expect(object!.sourceId).toMatch(/\.scene_object$/);
+      expect(object!.colliderPolicy).toEqual({
         kind: 'custom',
         purpose: 'factory-colliders',
       });
-      expect(object.purpose).toEqual(expect.any(String));
-      expect(object.purpose?.trim()).not.toBe('');
+      expect(object!.purpose).toEqual(expect.any(String));
+      expect(object!.purpose?.trim()).not.toBe('');
     }
   });
 

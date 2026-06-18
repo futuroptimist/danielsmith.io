@@ -156,6 +156,11 @@ import {
   PORTFOLIO_LEVEL,
   UPPER_LANDING_FLOOR_MAIN_ID,
 } from './scene/level/portfolioLevel';
+import {
+  applySceneObjectSourceMetadata,
+  createSceneObjectDefinitionsById,
+  registerSceneObjectColliders,
+} from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
 import {
   createGroundStairSafetyColliders,
@@ -994,61 +999,12 @@ const colliderSourceMetadata = new Map<
 >();
 const upperFloorColliders: RectCollider[] = [];
 
-const createSceneObjectDefinitionsById = (): Map<
-  string,
-  SceneObjectDefinition
-> => {
-  const definitionsById = new Map<string, SceneObjectDefinition>();
-  for (const floor of PORTFOLIO_LEVEL.floors) {
-    for (const object of floor.sceneObjects ?? []) {
-      const existing = definitionsById.get(object.id);
-      if (existing) {
-        throw new Error(
-          `Duplicate scene object id "${object.id}" used by source IDs ` +
-            `"${existing.sourceId}" and "${object.sourceId}".`
-        );
-      }
-      definitionsById.set(object.id, object);
-    }
-  }
-  return definitionsById;
-};
-
-const sceneObjectDefinitionsById = createSceneObjectDefinitionsById();
+const sceneObjectDefinitionsById =
+  createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
 
 const getSceneObjectDefinition = (
   id: string
 ): SceneObjectDefinition | undefined => sceneObjectDefinitionsById.get(id);
-
-const applySceneObjectSourceMetadata = (
-  object: Object3D,
-  definition: SceneObjectDefinition
-): void => {
-  object.userData.levelSourceId = definition.sourceId;
-  object.userData.levelSource = {
-    sourceId: definition.sourceId,
-    sourceType: 'sceneObject',
-    purpose: definition.purpose ?? definition.colliderPolicy?.kind,
-  };
-};
-
-const registerSceneObjectColliders = (
-  colliders: readonly RectCollider[],
-  definition: SceneObjectDefinition,
-  target: RectCollider[]
-): void => {
-  colliders.forEach((collider) => {
-    target.push(collider);
-    colliderSourceMetadata.set(collider, {
-      sourceId: definition.sourceId,
-      sourceType: 'sceneObject',
-      purpose:
-        definition.colliderPolicy?.kind === 'custom'
-          ? definition.colliderPolicy.purpose
-          : definition.colliderPolicy?.kind,
-    });
-  });
-};
 
 const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
   `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
@@ -2884,7 +2840,8 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         showpiece.colliders,
         flywheelSceneObject,
-        groundColliders
+        groundColliders,
+        colliderSourceMetadata
       );
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
@@ -2916,7 +2873,8 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         terminal.colliders,
         jobbotSceneObject,
-        groundColliders
+        groundColliders,
+        colliderSourceMetadata
       );
     } else {
       terminal.colliders.forEach((collider) => groundColliders.push(collider));
@@ -2939,7 +2897,8 @@ function initializeImmersiveScene(
         registerSceneObjectColliders(
           navigator.colliders,
           axelSceneObject,
-          groundColliders
+          groundColliders,
+          colliderSourceMetadata
         );
       } else {
         navigator.colliders.forEach((collider) =>
@@ -2996,7 +2955,8 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         console.colliders,
         prReaperSceneObject,
-        groundColliders
+        groundColliders,
+        colliderSourceMetadata
       );
     } else {
       console.colliders.forEach((collider) => groundColliders.push(collider));
@@ -3106,7 +3066,8 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         loom.colliders,
         woveSceneObject,
-        groundColliders
+        groundColliders,
+        colliderSourceMetadata
       );
     } else {
       loom.colliders.forEach((collider) => groundColliders.push(collider));
