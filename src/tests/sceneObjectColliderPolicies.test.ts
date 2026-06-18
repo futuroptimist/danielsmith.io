@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { PORTFOLIO_LEVEL } from '../scene/level/portfolioLevel';
 import {
@@ -11,10 +11,12 @@ import { createJobbotTerminal } from '../scene/structures/jobbotTerminal';
 import { createPrReaperConsole } from '../scene/structures/prReaperConsole';
 import { createWoveLoom } from '../scene/structures/woveLoom';
 
-const createCanvasContext = (): CanvasRenderingContext2D => {
+const createCanvasContext = (
+  canvas: HTMLCanvasElement
+): CanvasRenderingContext2D => {
   const gradient = { addColorStop: vi.fn() };
   return {
-    canvas: document.createElement('canvas'),
+    canvas,
     fillStyle: '',
     strokeStyle: '',
     font: '',
@@ -42,10 +44,22 @@ const createCanvasContext = (): CanvasRenderingContext2D => {
   } as unknown as CanvasRenderingContext2D;
 };
 
+let getContextSpy: ReturnType<typeof vi.spyOn>;
+
 beforeAll(() => {
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() =>
-    createCanvasContext()
-  );
+  getContextSpy = vi
+    .spyOn(HTMLCanvasElement.prototype, 'getContext')
+    .mockImplementation(function (this: HTMLCanvasElement, contextId: string) {
+      if (contextId !== '2d') {
+        return null;
+      }
+
+      return createCanvasContext(this);
+    });
+});
+
+afterAll(() => {
+  getContextSpy.mockRestore();
 });
 
 const definitionsById = createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
@@ -103,18 +117,19 @@ describe('migrated scene object collider policies', () => {
   it('keeps each migrated visible showpiece on a custom factory-collider policy', () => {
     for (const { id } of migratedFactories) {
       const definition = definitionsById.get(id);
-      expect(definition?.colliderPolicy).toEqual({
+      expect(definition, id).toBeDefined();
+      expect(definition!.colliderPolicy).toEqual({
         kind: 'custom',
         purpose: 'factory-colliders',
       });
-      expect(definition?.sourceId).toMatch(/\.scene_object$/);
+      expect(definition!.sourceId).toMatch(/\.scene_object$/);
     }
   });
 
   it('registers every existing factory collider with scene object source metadata', () => {
     for (const { id, expectedColliderCount, build } of migratedFactories) {
       const definition = definitionsById.get(id);
-      expect(definition).toBeDefined();
+      expect(definition, id).toBeDefined();
       const factoryColliders = build().colliders;
       const registered = [];
       const metadata = new Map();
