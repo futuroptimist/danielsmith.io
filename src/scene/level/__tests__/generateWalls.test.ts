@@ -124,11 +124,71 @@ describe('generateWallSegmentInstances', () => {
       wallOptions()
     );
 
-    expect(edited).toHaveLength(baseline.length - 1);
+    const removedSourceId = 'ground.living_room.south_wall';
+
     expect(
-      edited.some(
-        (instance) => instance.sourceId === 'ground.living_room.south_wall'
-      )
+      baseline.some((instance) => instance.sourceId === removedSourceId)
+    ).toBe(true);
+    expect(
+      edited.some((instance) => instance.sourceId === removedSourceId)
     ).toBe(false);
+  });
+
+  it('uses per-wall thickness when offsetting exterior wall instances', () => {
+    const ground = getFloor(PORTFOLIO_LEVEL, 'ground');
+    const customThickness = WALL_THICKNESS * 2;
+    const thickenedSouthWall: FloorDefinition = {
+      ...ground,
+      walls: ground.walls.map((wall) =>
+        wall.id === 'living-room-south-wall'
+          ? { ...wall, thickness: customThickness }
+          : wall
+      ),
+    };
+
+    const sourceId = 'ground.living_room.south_wall';
+    const baselineSouthWalls = generateWallSegmentInstances(
+      ground,
+      wallOptions()
+    ).filter((instance) => instance.sourceId === sourceId);
+    const thickenedSouthWalls = generateWallSegmentInstances(
+      thickenedSouthWall,
+      wallOptions()
+    ).filter((instance) => instance.sourceId === sourceId);
+
+    expect(thickenedSouthWalls).toHaveLength(baselineSouthWalls.length);
+    expect(thickenedSouthWalls.length).toBeGreaterThan(0);
+    thickenedSouthWalls.forEach((instance, index) => {
+      expect(instance.thickness).toBe(customThickness);
+      expect(instance.dimensions.depth).toBe(customThickness);
+      expect(instance.center.z).toBeCloseTo(
+        baselineSouthWalls[index].center.z -
+          (customThickness - WALL_THICKNESS) / 2
+      );
+    });
+  });
+
+  it('rejects non-axis-aligned declarative walls instead of silently dropping them', () => {
+    const ground = getFloor(PORTFOLIO_LEVEL, 'ground');
+    const diagonalWall: FloorDefinition = {
+      ...ground,
+      walls: [
+        ...ground.walls,
+        {
+          id: 'test-diagonal-wall',
+          sourceId: 'ground.test.diagonal_wall' as never,
+          floorId: 'ground',
+          rooms: ['livingRoom'],
+          run: {
+            start: { x: 0, z: 0 },
+            end: { x: 1, z: 1 },
+          },
+        },
+      ],
+    };
+
+    expect(() =>
+      generateWallSegmentInstances(diagonalWall, wallOptions())
+    ).toThrow(/test-diagonal-wall.*non-axis-aligned segment/);
   });
 });

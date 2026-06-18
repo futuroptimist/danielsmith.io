@@ -26,11 +26,6 @@ interface AtomicWallSegment {
   end: { x: number; z: number };
 }
 
-interface WallCoverage {
-  wall: WallDefinition;
-  roomWalls: Array<{ id: string; wall: RoomWall }>;
-}
-
 export type DeclarativeWallGenerationOptions = Omit<
   WallSegmentOptions,
   'floorId' | 'levelId'
@@ -46,13 +41,12 @@ export function generateWallSegmentInstances(
     scaleFloorDefinition(floor, options.coordinateScale ?? 1)
   );
   return segments.flatMap(
-    (segment) => createWallInstance(segment, floor, options) ?? []
+    (segment) => createWallInstance(segment, options) ?? []
   );
 }
 
 function createWallInstance(
   segment: CombinedWallSegment & { sourceWall: WallDefinition },
-  floor: FloorDefinition,
   options: DeclarativeWallGenerationOptions
 ): WallSegmentInstance | undefined {
   const length =
@@ -102,8 +96,10 @@ function createWallInstance(
   let offsetZ = 0;
   if (!isSharedInterior && segment.rooms.length > 0) {
     const outward = getWallOutwardDirection(segment.rooms[0].wall);
-    offsetX = outward.x * (options.wallThickness / 2);
-    offsetZ = outward.z * (options.wallThickness / 2);
+    const offsetThickness =
+      segment.sourceWall.thickness ?? options.wallThickness;
+    offsetX = outward.x * (offsetThickness / 2);
+    offsetZ = outward.z * (offsetThickness / 2);
   }
 
   const center = {
@@ -209,7 +205,13 @@ function expandWallDefinition(wall: WallDefinition): AtomicWallSegment[] {
   const segments = 'segments' in wall ? wall.segments : splitRun(wall.run);
   return segments.flatMap((segment) => {
     const orientation = getOrientation(segment.start, segment.end);
-    if (!orientation) return [];
+    if (!orientation) {
+      throw new Error(
+        `Wall ${wall.id} contains a non-axis-aligned segment from ${formatPoint(
+          segment.start
+        )} to ${formatPoint(segment.end)}. Declarative wall generation only supports horizontal or vertical walls.`
+      );
+    }
     return [{ wall, orientation, start: segment.start, end: segment.end }];
   });
 }
@@ -286,7 +288,7 @@ function getRoomWallsForSpan(
   orientation: Axis,
   spanStart: number,
   spanEnd: number
-): WallCoverage['roomWalls'] {
+): Array<{ id: string; wall: RoomWall }> {
   return (wall.rooms ?? []).flatMap((roomId) => {
     const room = floor.rooms.find((candidate) => candidate.id === roomId);
     const roomWall = room ? getRoomWallForWall(room, wall) : undefined;
