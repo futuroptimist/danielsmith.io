@@ -1,0 +1,202 @@
+import { readFileSync } from 'node:fs';
+
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
+import { PORTFOLIO_LEVEL } from '../scene/level/portfolioLevel';
+import {
+  createSceneObjectDefinitionsById,
+  registerSceneObjectColliders,
+} from '../scene/level/sceneObjects';
+import { createAxelNavigator } from '../scene/structures/axelNavigator';
+import { createFlywheelShowpiece } from '../scene/structures/flywheel';
+import { createJobbotTerminal } from '../scene/structures/jobbotTerminal';
+import { createPrReaperConsole } from '../scene/structures/prReaperConsole';
+import { createWoveLoom } from '../scene/structures/woveLoom';
+
+const createCanvasContext = (
+  canvas: HTMLCanvasElement
+): CanvasRenderingContext2D => {
+  const gradient = { addColorStop: vi.fn() };
+  return {
+    canvas,
+    fillStyle: '',
+    strokeStyle: '',
+    font: '',
+    textAlign: 'left',
+    textBaseline: 'alphabetic',
+    lineWidth: 0,
+    globalAlpha: 1,
+    shadowBlur: 0,
+    shadowColor: '',
+    clearRect: vi.fn(),
+    fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    fillText: vi.fn(),
+    measureText: vi.fn(() => ({ width: 0 })),
+    createLinearGradient: vi.fn(() => gradient),
+    save: vi.fn(),
+    restore: vi.fn(),
+    beginPath: vi.fn(),
+    closePath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
+    fill: vi.fn(),
+    stroke: vi.fn(),
+  } as unknown as CanvasRenderingContext2D;
+};
+
+let getContextSpy: ReturnType<typeof vi.spyOn>;
+
+beforeAll(() => {
+  getContextSpy = vi
+    .spyOn(HTMLCanvasElement.prototype, 'getContext')
+    .mockImplementation(function (this: HTMLCanvasElement, contextId: string) {
+      if (contextId !== '2d') {
+        return null;
+      }
+
+      return createCanvasContext(this);
+    });
+});
+
+afterAll(() => {
+  getContextSpy.mockRestore();
+});
+
+const definitionsById = createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
+
+type MigratedFactoryPlacement = {
+  position: { x: number; z: number };
+  orientation: number;
+};
+
+const migratedFactories = [
+  {
+    id: 'flywheel-studio-flywheel',
+    expectedColliderCount: 2,
+    placement: { position: { x: 5.5, z: -2 }, orientation: 0 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
+      createFlywheelShowpiece({
+        centerX: position.x,
+        centerZ: position.z,
+        orientationRadians: orientation,
+        roomBounds: { minX: 0, maxX: 16, minZ: -16, maxZ: 16 },
+      }),
+  },
+  {
+    id: 'jobbot-studio-terminal',
+    expectedColliderCount: 1,
+    placement: { position: { x: 12, z: 2 }, orientation: -Math.PI / 2 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
+      createJobbotTerminal({
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
+      }),
+  },
+  {
+    id: 'axel-studio-tracker',
+    expectedColliderCount: 2,
+    placement: { position: { x: 10, z: -2 }, orientation: Math.PI },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
+      createAxelNavigator({
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
+      }),
+  },
+  {
+    id: 'wove-kitchen-loom',
+    expectedColliderCount: 2,
+    placement: { position: { x: -7.5, z: 2.5 }, orientation: Math.PI * 0.45 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
+      createWoveLoom({
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
+      }),
+  },
+  {
+    id: 'pr-reaper-backyard-console',
+    expectedColliderCount: 2,
+    placement: { position: { x: 0, z: 10 }, orientation: Math.PI * 0.35 },
+    build: ({ position, orientation }: MigratedFactoryPlacement) =>
+      createPrReaperConsole({
+        position: { x: position.x, y: 0, z: position.z },
+        orientationRadians: orientation,
+      }),
+  },
+] as const;
+
+describe('migrated scene object collider policies', () => {
+  it('keeps each migrated visible showpiece on a custom factory-collider policy', () => {
+    for (const { id } of migratedFactories) {
+      const definition = definitionsById.get(id);
+      expect(definition, id).toBeDefined();
+      expect(definition!.colliderPolicy).toEqual({
+        kind: 'custom',
+        purpose: 'factory-colliders',
+      });
+      expect(definition!.sourceId).toMatch(/\.scene_object$/);
+    }
+  });
+
+  it('keeps factory args aligned with declarative placement data', () => {
+    for (const { id, placement } of migratedFactories) {
+      const definition = definitionsById.get(id);
+      expect(definition, id).toBeDefined();
+      expect(definition!.position, id).toEqual(placement.position);
+      expect(definition!.orientation, id).toBe(placement.orientation);
+    }
+  });
+
+  it('registers every existing factory collider with scene object source metadata', () => {
+    for (const {
+      id,
+      expectedColliderCount,
+      build,
+      placement,
+    } of migratedFactories) {
+      const definition = definitionsById.get(id);
+      expect(definition, id).toBeDefined();
+      const factoryColliders = build(placement).colliders;
+      const registered = [];
+      const metadata = new Map();
+
+      registerSceneObjectColliders(
+        factoryColliders,
+        definition!,
+        registered,
+        metadata
+      );
+
+      expect(factoryColliders, id).toHaveLength(expectedColliderCount);
+      expect(registered, id).toHaveLength(expectedColliderCount);
+      for (const collider of factoryColliders) {
+        expect(metadata.get(collider), id).toEqual({
+          sourceId: definition!.sourceId,
+          sourceType: 'sceneObject',
+          purpose: 'factory-colliders',
+        });
+      }
+    }
+  });
+
+  it('does not duplicate migrated placements as manual main-scene factory args', () => {
+    const mainSource = readFileSync('src/main.ts', 'utf8');
+
+    expect(mainSource).not.toMatch(
+      /createJobbotTerminal\(\{[\s\S]{0,500}x: 12,[\s\S]{0,200}z: 2/
+    );
+    expect(mainSource).not.toMatch(
+      /createAxelNavigator\(\{[\s\S]{0,500}x: 10,[\s\S]{0,200}z: -2/
+    );
+    expect(mainSource).not.toMatch(
+      /createWoveLoom\(\{[\s\S]{0,500}x: -7\.5,[\s\S]{0,200}z: 2\.5/
+    );
+    expect(mainSource).not.toMatch(
+      /createPrReaperConsole\(\{[\s\S]{0,500}x: 0,[\s\S]{0,200}z: 10/
+    );
+    expect(mainSource).not.toMatch(
+      /createFlywheelShowpiece\(\{[\s\S]{0,300}centerX: 5\.5/
+    );
+  });
+});
