@@ -813,7 +813,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }
   expect(debugColliderNames).toContain('UpperStairWestBannisterGuard');
   expect(debugColliderNames).toContain('UpperStairNorthBannisterGuard');
-  expect(debugColliderNames).toContain('UpperStairHiddenRunVoidGuard');
+  expect(debugColliderNames).not.toContain('UpperStairHiddenRunVoidGuard');
 
   const debugColliderIds = debugColliders.map((collider) => collider.id);
   expect(debugColliderIds.length).toBeGreaterThan(0);
@@ -841,6 +841,15 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   expect(westBannisterById?.floor).toBe('upper');
   expect(westBannisterById?.category).toBe('upper');
 
+  const removedHiddenRunGuardById = await page.evaluate((id) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi.getColliderById(id);
+  }, '4008');
+  expect(removedHiddenRunGuardById).toBeUndefined();
+
   const westBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairWestBannisterGuard'
   );
@@ -856,13 +865,9 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }, '400A');
   expect(northBannisterById?.id).toBe('400A');
   expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
-  const hiddenRunGuard = debugColliders.find(
-    (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
-  );
   expect(westBannister).toBeDefined();
   expect(northBannister).toBeDefined();
-  expect(hiddenRunGuard).toBeDefined();
-  if (!westBannister || !northBannister || !hiddenRunGuard) {
+  if (!westBannister || !northBannister) {
     throw new Error('Missing upper stair guard debug collider');
   }
 
@@ -945,11 +950,6 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     0.08,
     'north bannister max x'
   );
-  expect(hiddenRunGuard.bounds.minZ).toBeGreaterThan(-24);
-  expect(hiddenRunGuard.bounds.minZ).toBeLessThan(-23.2);
-  expect(hiddenRunGuard.bounds.maxZ).toBeGreaterThan(-19.3);
-  expect(hiddenRunGuard.bounds.maxZ).toBeLessThan(-19.0);
-
   const stairMetrics = await getStairMetrics(page);
   const visibleMiddleLandingArtifactSamples: NamedPosition[] = [
     {
@@ -999,11 +999,6 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       name: 'south no-floor cutout beyond StaircaseLanding slab',
       target: { x: 12.99, z: -31.35, floorId: 'upper' as const },
       expectedBlocker: 'UpperStairwellLandingGuard-2',
-    },
-    {
-      name: 'west side-entry hidden-run guard beside stair cutout',
-      target: { x: 10.59, z: -23.72, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairHiddenRunVoidGuard',
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at descent centerline',
@@ -1637,15 +1632,12 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(true);
   expect(await getBlockingColliderNames(page, hiddenStairTopRun)).toEqual([]);
   expect(
-    await canOccupyPosition(page, { x: 12.7, z: -23.72, floorId: 'upper' })
-  ).toBe(false);
-  expect(
     await getBlockingColliderNames(page, {
       x: 12.7,
       z: -23.72,
       floorId: 'upper',
     })
-  ).toContain('UpperStairHiddenRunVoidGuard');
+  ).not.toContain('UpperStairHiddenRunVoidGuard');
   for (const sample of formerLandingArtifactSamples) {
     expectSampleOnPhysicalStaircaseLanding(sample, stairMetrics);
     expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
