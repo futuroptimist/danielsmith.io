@@ -128,6 +128,15 @@ blocking unfinished zones, or protecting showpiece footprints. They should carry
 source IDs, floor assignment, bounds, and purpose text so reviewers can tell why
 the invisible constraint exists.
 
+Physical wall colliders come from authored wall or fence geometry and should
+represent visible layout boundaries. Safety colliders are separate
+source-backed constraints: they may guard stairwell void edges, seal hidden
+no-floor stair runs, or preserve a descent corridor, but they are not layout
+walls and should not be reviewed as hidden post-hoc wall patches. The stair
+safety generators now return `LevelSafetyCollider` records with semantic
+`.safetyCollider` source IDs and concise purpose strings before those records
+are registered with runtime collision and debug metadata.
+
 ### Scene objects
 
 Scene objects describe visible or interactable objects and their collider

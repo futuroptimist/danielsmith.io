@@ -89,6 +89,9 @@ type DebugColliderMetadata = {
   category: string;
   name: string;
   bounds: DebugColliderBounds;
+  sourceId?: string;
+  sourceType?: string;
+  purpose?: string;
 };
 
 type DebugColliderApi = {
@@ -834,6 +837,11 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   expect(westBannisterById?.name).toBe('UpperStairWestBannisterGuard');
   expect(westBannisterById?.floor).toBe('upper');
   expect(westBannisterById?.category).toBe('upper');
+  expect(westBannisterById?.sourceId).toBe(
+    'upper.stairwell.westBannister.safetyCollider'
+  );
+  expect(westBannisterById?.sourceType).toBe('safetyCollider');
+  expect(westBannisterById?.purpose).toBe('preserve descent corridor edge');
 
   const westBannister = debugColliders.find(
     (collider) => collider.name === 'UpperStairWestBannisterGuard'
@@ -850,6 +858,9 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }, '400A');
   expect(northBannisterById?.id).toBe('400A');
   expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
+  expect(northBannisterById?.sourceId).toBe(
+    'upper.stairwell.northBannister.safetyCollider'
+  );
   const hiddenRunGuard = debugColliders.find(
     (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
   );
@@ -1072,6 +1083,25 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     expect(blockingColliderIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(
       true
     );
+    const expectedBlockingCollider = await page.evaluate(
+      (target) => {
+        const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+        if (!debugApi) {
+          throw new Error('Debug colliders API unavailable');
+        }
+        return debugApi
+          .getBlockingCollidersAt(target)
+          .find((collider) => collider.name === target.expectedBlocker);
+      },
+      { ...sample.target, expectedBlocker: sample.expectedBlocker }
+    );
+    expect(expectedBlockingCollider?.sourceId, sample.name).toMatch(
+      /\.safetyCollider$/
+    );
+    expect(expectedBlockingCollider?.sourceType, sample.name).toBe(
+      'safetyCollider'
+    );
+    expect(expectedBlockingCollider?.purpose, sample.name).toBeTruthy();
     expect(blockingColliderNames.length, sample.name).toBeGreaterThan(0);
   }
 });

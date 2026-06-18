@@ -40,13 +40,10 @@ describe('main module imports', () => {
   it('passes generated wall source IDs into debug collider metadata', () => {
     const source = readMainSource();
 
-    expect(source).toContain(
-      'colliderSourceIds.set(instance.collider, instance.sourceId);'
-    );
-    expect(source).toContain('sourceId: colliderSourceIds.get(bounds),');
-    expect(source).toContain(
-      "sourceType: colliderSourceIds.has(bounds) ? 'wall' : undefined,"
-    );
+    expect(source).toContain('colliderSourceMetadata.set(instance.collider, {');
+    expect(source).toContain('sourceId: instance.sourceId,');
+    expect(source).toContain("sourceType: 'wall',");
+    expect(source).toContain('...colliderSourceMetadata.get(bounds),');
   });
 
   it('does not wire runtime adaptive quality into immersive mode', () => {
