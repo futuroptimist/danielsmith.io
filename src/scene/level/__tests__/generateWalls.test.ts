@@ -1,3 +1,4 @@
+import { MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -7,6 +8,7 @@ import {
   WALL_THICKNESS,
 } from '../../../assets/floorPlan';
 import { createWallSegmentInstances } from '../../../assets/floorPlan/wallSegments';
+import { createWallSegmentMeshes } from '../../structures/wallSegmentsMesh';
 import { generateWallSegmentInstances } from '../generateWalls';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
 import type { FloorDefinition, LevelDefinition } from '../schema';
@@ -97,6 +99,46 @@ describe('generateWallSegmentInstances', () => {
 
     expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
       legacy.map(wallSignature).sort(compareSignatures)
+    );
+  });
+
+  it('adds stable source metadata to generated wall and fence meshes', () => {
+    const material = new MeshBasicMaterial({ color: 0xffffff });
+    const instances = [
+      ...generateWallSegmentInstances(
+        getFloor(PORTFOLIO_LEVEL, 'ground'),
+        wallOptions()
+      ),
+      ...generateWallSegmentInstances(
+        getFloor(PORTFOLIO_LEVEL, 'upper'),
+        wallOptions(9)
+      ),
+    ];
+
+    const { meshes } = createWallSegmentMeshes({
+      instances,
+      groupName: 'GeneratedWallMetadataTest',
+      getMaterial: () => material,
+    });
+
+    expect(meshes).toHaveLength(instances.length);
+    meshes.forEach((mesh, index) => {
+      const sourceId = instances[index]?.sourceId;
+
+      expect(typeof mesh.userData.levelSourceId).toBe('string');
+      expect(mesh.userData.levelSourceId).toBe(sourceId);
+      expect(mesh.userData.levelSource).toEqual({
+        sourceId,
+        sourceType: 'wall',
+      });
+    });
+
+    material.dispose();
+  });
+
+  it('keeps production declarative wall data free of wall-removal escape hatches', () => {
+    expect(JSON.stringify(PORTFOLIO_LEVEL)).not.toMatch(
+      /skip|former|removed|tombstone/i
     );
   });
 
