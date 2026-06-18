@@ -13,9 +13,7 @@ import {
 
 export interface WallSegmentInstance {
   segment: CombinedWallSegment;
-  /** Stable identifier for correlating generated meshes with the source segment. */
-  segmentId: string;
-  /** Semantic source identifier for generated legacy wall segments. */
+  /** Semantic source identifier for generated wall segments. */
   sourceId: LevelSourceId;
   center: { x: number; y: number; z: number };
   dimensions: { width: number; height: number; depth: number };
@@ -158,7 +156,6 @@ export function createWallSegmentInstances(
 
     instances.push({
       segment,
-      segmentId: createSegmentId(segment),
       sourceId: createSegmentSourceId(segment, options),
       center,
       dimensions: { width, height, depth },
@@ -170,20 +167,6 @@ export function createWallSegmentInstances(
   });
 
   return instances;
-}
-
-function formatPoint(point: { x: number; z: number }): string {
-  return `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
-}
-
-function createSegmentId(segment: CombinedWallSegment): string {
-  const start = formatPoint(segment.start);
-  const end = formatPoint(segment.end);
-  const rooms = segment.rooms
-    .map((room) => `${room.id}:${room.wall}`)
-    .sort()
-    .join('|');
-  return [segment.orientation, start, end, rooms || 'none'].join('|');
 }
 
 function formatSourceCoordinate(value: number): string {

@@ -2,11 +2,12 @@
 
 ## Purpose
 
-This document defines the migration path from the current floor-plan and
-scene-orchestration pipeline to a floor-plan-first declarative level source of
-truth. It is intentionally documentation-only: the current TypeScript runtime,
-rendered geometry, colliders, debug IDs, movement, stairs, POIs, and rendering
-must remain unchanged until later migration prompts.
+This document defines the completed architecture for migrated immersive level
+data and records the migration path from the prior floor-plan/runtime
+orchestration pipeline to a floor-plan-first declarative source of truth. The
+current TypeScript runtime, rendered geometry, colliders, debug IDs, movement,
+stairs, POIs, and rendering remain behaviorally unchanged; the upstream authoring
+contract is now declarative current-state level data.
 
 The core principle is that authoritative level data describes the intended
 current scene. Generated meshes, gameplay colliders, debug metadata, validation,
@@ -37,13 +38,10 @@ orchestration code:
    - Retains the legacy combined-wall adapter for compatibility tests and
      non-migrated consumers.
    - Computes wall/fence dimensions, center points, colliders, shared-interior
-     status, and current `segmentId` values.
-   - Current segment IDs are generated from segment data plus the segment order,
-     so they are useful runtime correlation labels but are not yet stable source
-     identities.
+     status, and current semantic source IDs.
 4. `src/scene/structures/wallSegmentsMesh.ts`
    - Builds Three.js wall and fence meshes from wall segment instances.
-   - Copies compact metadata such as `segmentId`, `isFence`,
+   - Copies compact metadata such as `sourceId`, `isFence`,
      `isSharedInterior`, and `thickness` into mesh `userData`.
 5. `src/scene/structures/floorTiles.ts`
    - Builds room floor tile meshes from room bounds.

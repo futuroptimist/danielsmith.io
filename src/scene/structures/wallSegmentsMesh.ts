@@ -49,9 +49,6 @@ export function createWallSegmentMeshes(
     mesh.name = instance.isFence ? FENCE_MESH_NAME : WALL_MESH_NAME;
     mesh.position.set(instance.center.x, instance.center.y, instance.center.z);
 
-    // Store a compact identifier instead of the full segment object to avoid
-    // retaining large or circular references in Three.js metadata.
-    mesh.userData.segmentId = instance.segmentId;
     mesh.userData.levelSourceId = instance.sourceId;
     mesh.userData.levelSource = {
       sourceId: instance.sourceId,

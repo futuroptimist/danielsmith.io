@@ -116,7 +116,6 @@ function createWallInstance(
 
   return {
     segment,
-    segmentId: createSegmentId(segment),
     sourceId: segment.sourceWall.sourceId,
     center,
     dimensions: { width, height, depth },
@@ -335,19 +334,6 @@ function uniqueRoomWalls(
     seen.add(key);
     return true;
   });
-}
-
-function createSegmentId(segment: CombinedWallSegment): string {
-  const rooms = segment.rooms
-    .map((room) => `${room.id}:${room.wall}`)
-    .sort()
-    .join('|');
-  return [
-    segment.orientation,
-    formatPoint(segment.start),
-    formatPoint(segment.end),
-    rooms || 'none',
-  ].join('|');
 }
 
 function formatPoint(point: { x: number; z: number }): string {

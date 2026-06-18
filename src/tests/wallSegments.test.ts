@@ -125,16 +125,9 @@ describe('createWallSegmentInstances', () => {
 
   it('assigns valid unique semantic source IDs without array index suffixes', () => {
     const sourceIds = groundWallInstances.map((instance) => instance.sourceId);
-    const segmentIds = groundWallInstances.map(
-      (instance) => instance.segmentId
-    );
-
     expect(sourceIds.every(isLevelSourceId)).toBe(true);
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
     expect(sourceIds.every((sourceId) => !/[.|_-]\d+$/.test(sourceId))).toBe(
-      true
-    );
-    expect(segmentIds.every((segmentId) => !/[.|_-]\d+$/.test(segmentId))).toBe(
       true
     );
   });
