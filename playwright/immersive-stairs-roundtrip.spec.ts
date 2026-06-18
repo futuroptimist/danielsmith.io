@@ -1076,7 +1076,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }
 });
 
-test('upper landing-side passage removes targeted wall and colliders', async ({
+test('debug APIs expose source IDs and leave the upper passage open', async ({
   page,
 }) => {
   test.slow();
@@ -1098,8 +1098,10 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     const knownWallSolids = debugSolids.getSolidsBySourceId(knownWallSourceId);
     const knownWallColliders =
       debugColliders.getCollidersBySourceId(knownWallSourceId);
+    const knownFloorSourceId = 'upper.upperLanding.floor.main';
+    const knownSafetySourceId = 'upper.stairwell.northBannister.safetyCollider';
 
-    const formerWallBounds = {
+    const openPassageWallBounds = {
       minX: 3.875,
       maxX: 8.525,
       minZ: -16.25,
@@ -1111,20 +1113,20 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
         (solid) =>
           solid.name === 'WallSegment' &&
           solid.parentPath === 'Scene/Group/UpperWallSegments' &&
-          Math.abs(solid.bounds.min.x - formerWallBounds.minX) < 0.001 &&
-          Math.abs(solid.bounds.max.x - formerWallBounds.maxX) < 0.001 &&
-          Math.abs(solid.bounds.min.z - formerWallBounds.minZ) < 0.001 &&
-          Math.abs(solid.bounds.max.z - formerWallBounds.maxZ) < 0.001
+          Math.abs(solid.bounds.min.x - openPassageWallBounds.minX) < 0.001 &&
+          Math.abs(solid.bounds.max.x - openPassageWallBounds.maxX) < 0.001 &&
+          Math.abs(solid.bounds.min.z - openPassageWallBounds.minZ) < 0.001 &&
+          Math.abs(solid.bounds.max.z - openPassageWallBounds.maxZ) < 0.001
       );
     const matchingColliderBounds = debugColliders
       .getColliders()
       .filter(
         (collider) =>
           collider.floor === 'upper' &&
-          Math.abs(collider.bounds.minX - formerWallBounds.minX) < 0.001 &&
-          Math.abs(collider.bounds.maxX - formerWallBounds.maxX) < 0.001 &&
-          Math.abs(collider.bounds.minZ - formerWallBounds.minZ) < 0.001 &&
-          Math.abs(collider.bounds.maxZ - formerWallBounds.maxZ) < 0.001
+          Math.abs(collider.bounds.minX - openPassageWallBounds.minX) < 0.001 &&
+          Math.abs(collider.bounds.maxX - openPassageWallBounds.maxX) < 0.001 &&
+          Math.abs(collider.bounds.minZ - openPassageWallBounds.minZ) < 0.001 &&
+          Math.abs(collider.bounds.maxZ - openPassageWallBounds.maxZ) < 0.001
       );
     const openingSamples = [
       { x: 5.5, z: -16, floorId: 'upper' as const },
@@ -1150,6 +1152,12 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       knownWallColliderSourceIds: knownWallColliders.map(
         (collider) => collider.sourceId
       ),
+      knownFloorSolidSourceIds: debugSolids
+        .getSolidsBySourceId(knownFloorSourceId)
+        .map((solid) => solid.sourceId),
+      knownSafetyColliderSourceIds: debugColliders
+        .getCollidersBySourceId(knownSafetySourceId)
+        .map((collider) => collider.sourceId),
       matchingWallSolidCount: matchingWallSolids.length,
       matchingColliderBoundsCount: matchingColliderBounds.length,
       formerVoidGuardNames: debugColliders
@@ -1179,6 +1187,12 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   );
   expect(targetState.knownWallColliderSourceIds).toContain(
     'upper.upper_landing.south_wall'
+  );
+  expect(targetState.knownFloorSolidSourceIds).toContain(
+    'upper.upperLanding.floor.main'
+  );
+  expect(targetState.knownSafetyColliderSourceIds).toContain(
+    'upper.stairwell.northBannister.safetyCollider'
   );
   expect(targetState.solidById).toBeUndefined();
   expect(targetState.collider300A).toBeUndefined();

@@ -294,6 +294,21 @@ narrow compatibility. By default it copies room metadata only. When
 old room-wall generators, not the canonical future scene-construction path, and
 semantic `roomConnections` intentionally do not create or remove geometry.
 
+## Migration status
+
+The migration is complete for the authored immersive house layout: rooms, walls,
+floor surfaces, stair/void safety colliders, migrated scene objects, and semantic
+room connections now originate from declarative current-state source data.
+Compatibility floor-plan exports remain for older consumers and tests, but they
+compile from `src/scene/level/portfolioLevel.ts` instead of acting as the source
+of truth. Human editing guidance lives in
+[`editing-level-data.md`](./editing-level-data.md).
+
+Remaining edge cases are adapter-oriented rather than layout-authoring paths:
+legacy floor-plan doorway exports still support consumers that have not moved to
+source-aware APIs, and stair geometry continues to derive several safety bounds
+from the staircase configuration so movement behavior stays unchanged.
+
 ## Migration phases
 
 1. **Document the architecture.** Establish this source-of-truth model and the
@@ -325,17 +340,19 @@ semantic `roomConnections` intentionally do not create or remove geometry.
     their collider policies in declarative source data.
 11. **Add invariants and inventory tooling.** Prevent hidden overrides, duplicate
     source IDs, debug-ID tombstones, and unowned colliders or visible solids.
-12. **Remove legacy scaffolding.** Delete bridge code once direct source edits are
-    proven to regenerate final scene geometry and collision.
+12. **Remove legacy scaffolding.** Completed for migrated wall metadata: direct
+    source-edit proof tests now show wall additions/removals and semantic
+    connections regenerate final wall geometry/collision without segment-ID
+    bridge metadata.
 
 ## Migration risks
 
 - **Debug ID churn:** Compact labels and screenshot anchors may change when
   allocation order changes. Mitigation: carry semantic source IDs through debug
   metadata first, then stabilize or regenerate compact references deliberately.
-- **Order-dependent wall segment IDs:** Current segment IDs depend partly on
-  generated segment order. Mitigation: add semantic IDs before changing wall
-  generation order and assert bridge mappings during migration.
+- **Source-ID stability:** Semantic IDs must stay stable even when generator-owned
+  wall splitting changes. Mitigation: assert source IDs and debug metadata rather
+  than compact debug labels or generation order.
 - **Stair safety regressions:** Stair and landing colliders protect traversal and
   fall prevention. Mitigation: migrate them behind invariant tests that cover
   stair approach lanes, landing bounds, and stairwell void guards.
@@ -349,7 +366,7 @@ semantic `roomConnections` intentionally do not create or remove geometry.
 
 ## Testing and invariant goals
 
-Future phases should add tests and tooling that make source ownership auditable:
+Current tests and tooling make source ownership auditable:
 
 - Every generated mesh, gameplay collider, debug collider, and debug solid has a
   semantic source ID or an explicit generated-child ID derived from one.
@@ -369,8 +386,9 @@ Future phases should add tests and tooling that make source ownership auditable:
 
 ## Definition of success
 
-The migration is complete when a direct edit to declarative source data is enough
-to regenerate the final visual geometry, gameplay collision, and debug metadata;
-legacy patches, removed-ID lists, and manually pushed unowned colliders are gone;
-and inventory tooling can explain every runtime level artifact by semantic source
-ID.
+The migrated layout now meets this success definition for rooms, walls, floor
+surfaces, major safety colliders, and migrated scene objects: direct edits to
+declarative source data regenerate final visual geometry, gameplay collision, and
+debug metadata; deleted generated debug IDs are not preserved as production
+removal records; and runtime debug APIs explain level artifacts by semantic
+source ID.

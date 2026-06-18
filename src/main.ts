@@ -162,6 +162,7 @@ import {
   registerSceneObjectColliders,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
+import type { LevelSourceMetadata } from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -988,13 +989,8 @@ const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
 const colliderSourceMetadata = new Map<
   RectCollider,
-  {
-    sourceId:
-      | WallSegmentInstance['sourceId']
-      | LevelSafetyCollider['sourceId']
-      | SceneObjectDefinition['sourceId'];
+  LevelSourceMetadata & {
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
-    purpose?: string;
   }
 >();
 const upperFloorColliders: RectCollider[] = [];
