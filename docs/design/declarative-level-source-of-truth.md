@@ -25,34 +25,41 @@ orchestration code:
      in `BASE_FLOOR_PLAN` before scaling them into `FLOOR_PLAN`.
    - Doorways are attached to room walls and are validated by width, but they are
      not first-class semantic connections.
-   - Wall generation starts from room bounds and doorways via room wall segments
-     and combined wall segments.
-2. `src/assets/floorPlan/wallSegments.ts`
-   - Converts combined wall segments into wall or fence instances.
+   - Legacy consumers can still derive room wall segments from room bounds and
+     doorway-compatible wall gaps.
+2. `src/scene/level/generateWalls.ts`
+   - Splits declarative wall runs around current topology gaps, room boundaries,
+     and seams, then emits wall/fence instances with source IDs.
+   - Computes wall/fence dimensions, center points, colliders, shared-interior
+     status, and generator-owned seam extension without requiring removed-bounds
+     lists or visualizer filters.
+3. `src/assets/floorPlan/wallSegments.ts`
+   - Retains the legacy combined-wall adapter for compatibility tests and
+     non-migrated consumers.
    - Computes wall/fence dimensions, center points, colliders, shared-interior
      status, and current `segmentId` values.
    - Current segment IDs are generated from segment data plus the segment order,
      so they are useful runtime correlation labels but are not yet stable source
      identities.
-3. `src/scene/structures/wallSegmentsMesh.ts`
+4. `src/scene/structures/wallSegmentsMesh.ts`
    - Builds Three.js wall and fence meshes from wall segment instances.
    - Copies compact metadata such as `segmentId`, `isFence`,
      `isSharedInterior`, and `thickness` into mesh `userData`.
-4. `src/scene/structures/floorTiles.ts`
+5. `src/scene/structures/floorTiles.ts`
    - Builds room floor tile meshes from room bounds.
    - Supports generator-owned cutout subtraction and room-specific cutouts, then
      emits renderable tile pieces.
-5. `src/main.ts`
+6. `src/main.ts`
    - Orchestrates the scene and stitches together generated assets with manual
      runtime additions.
-   - Creates floor tiles, wall segment instances, wall meshes, lightmaps,
+   - Creates floor tiles, source-generated wall segment instances, wall meshes, lightmaps,
      ceilings, backyard environment pieces, stair geometry, POIs, and showpieces.
    - Pushes manually assembled colliders into ground, upper, and static collider
      lists, including wall colliders, backyard colliders, stair guards, landing
      and stairwell constraints, mirrors, media wall/showpiece colliders, and
      other object policies.
    - Supplies names and debug registrations for generated and manual colliders.
-6. `src/scene/debug/colliderVisualizer.ts`,
+7. `src/scene/debug/colliderVisualizer.ts`,
    `src/scene/debug/solidVisualizer.ts`, and
    `src/scene/debug/colliderDebugIds.ts`
    - Consume collider and solid metadata after geometry and collider generation.
@@ -275,8 +282,11 @@ semantic `roomConnections` intentionally do not create or remove geometry.
 6. **Migrate room and wall data.** Current room and wall intent now lives in
    `src/scene/level/portfolioLevel.ts`; legacy floor-plan exports still compile
    through the adapter until downstream generators consume source data directly.
-7. **Generate wall outputs from source.** Derive wall meshes, wall colliders, and
-   wall debug metadata from source-backed wall definitions.
+7. **Generate wall outputs from source.** Wall meshes, wall colliders, and
+   wall debug metadata now derive from `FloorDefinition.walls` via
+   `src/scene/level/generateWalls.ts`; the legacy room-doorway wall generator is
+   retained only as a compatibility reference while later phases migrate floors,
+   safety colliders, and inventory tooling.
 8. **Generate floor outputs from source.** Derive floor surfaces from source data,
    allowing generator-owned splitting and clipping where useful.
 9. **Move stair and void safety.** Convert stair, landing, and void guard

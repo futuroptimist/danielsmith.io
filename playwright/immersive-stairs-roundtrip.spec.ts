@@ -1094,6 +1094,11 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     debugSolids.setEnabled(true);
     debugColliders.setEnabled(true);
 
+    const knownWallSourceId = 'upper.upper_landing.south_wall';
+    const knownWallSolids = debugSolids.getSolidsBySourceId(knownWallSourceId);
+    const knownWallColliders =
+      debugColliders.getCollidersBySourceId(knownWallSourceId);
+
     const formerWallBounds = {
       minX: 3.875,
       maxX: 8.525,
@@ -1139,6 +1144,12 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       solidById: debugSolids.getSolidById('DD4252'),
       collider300A: debugColliders.getColliderById('300A'),
       collider4005: debugColliders.getColliderById('4005'),
+      knownWallSolidCount: knownWallSolids.length,
+      knownWallColliderCount: knownWallColliders.length,
+      knownWallSolidSourceIds: knownWallSolids.map((solid) => solid.sourceId),
+      knownWallColliderSourceIds: knownWallColliders.map(
+        (collider) => collider.sourceId
+      ),
       matchingWallSolidCount: matchingWallSolids.length,
       matchingColliderBoundsCount: matchingColliderBounds.length,
       formerVoidGuardNames: debugColliders
@@ -1161,6 +1172,14 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     };
   });
 
+  expect(targetState.knownWallSolidCount).toBeGreaterThan(0);
+  expect(targetState.knownWallColliderCount).toBeGreaterThan(0);
+  expect(targetState.knownWallSolidSourceIds).toContain(
+    'upper.upper_landing.south_wall'
+  );
+  expect(targetState.knownWallColliderSourceIds).toContain(
+    'upper.upper_landing.south_wall'
+  );
   expect(targetState.solidById).toBeUndefined();
   expect(targetState.collider300A).toBeUndefined();
   expect(targetState.collider4005).toBeUndefined();
