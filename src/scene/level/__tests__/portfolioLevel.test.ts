@@ -58,6 +58,71 @@ describe('PORTFOLIO_LEVEL', () => {
     );
   });
 
+  it('declares collider policies for migrated solid-like scene objects', () => {
+    const migratedIds = [
+      'flywheel-studio-flywheel',
+      'jobbot-studio-terminal',
+      'axel-studio-tracker',
+      'wove-kitchen-loom',
+      'pr-reaper-backyard-console',
+    ];
+    const sceneObjects = PORTFOLIO_LEVEL.floors.flatMap(
+      (floor) => floor.sceneObjects ?? []
+    );
+
+    const migratedObjects = migratedIds.map((id) =>
+      sceneObjects.find((object) => object.id === id)
+    );
+    expect(migratedObjects).not.toContain(undefined);
+
+    const migratedSourceIds = migratedObjects.map((object) =>
+      String(object!.sourceId)
+    );
+    expect(new Set(migratedSourceIds).size).toBe(migratedSourceIds.length);
+
+    for (const object of migratedObjects) {
+      expect(object!.sourceId).toMatch(/\.scene_object$/);
+      expect(object!.colliderPolicy).toEqual({
+        kind: 'custom',
+        purpose: 'factory-colliders',
+      });
+      expect(object!.purpose).toEqual(expect.any(String));
+      expect(object!.purpose?.trim()).not.toBe('');
+    }
+  });
+
+  it('rejects scene objects outside their declared room or missing custom purpose', () => {
+    const invalidLevel = {
+      ...PORTFOLIO_LEVEL,
+      floors: PORTFOLIO_LEVEL.floors.map((floor) =>
+        floor.id === 'ground'
+          ? {
+              ...floor,
+              sceneObjects: [
+                ...(floor.sceneObjects ?? []),
+                {
+                  id: 'invalid-studio-object',
+                  sourceId: floor.sceneObjects![0].sourceId,
+                  floorId: 'ground',
+                  kind: 'showpiece.invalid',
+                  roomId: 'studio',
+                  position: { x: 99, z: 99 },
+                  colliderPolicy: { kind: 'custom' as const },
+                },
+              ],
+            }
+          : floor
+      ),
+    };
+
+    expect(validateLevelDefinition(invalidLevel).errors).toEqual(
+      expect.arrayContaining([
+        'scene object "invalid-studio-object" position must stay within room "studio" bounds.',
+        'scene object "invalid-studio-object" custom collider policy requires a purpose.',
+      ])
+    );
+  });
+
   it('compiles compatibility room bounds and doorways for the current floors', () => {
     expect(
       compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'ground', {

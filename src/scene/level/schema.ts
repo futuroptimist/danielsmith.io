@@ -104,9 +104,15 @@ export interface SafetyColliderDefinition {
 }
 
 export type ColliderPolicyDefinition =
+  | { kind: 'solid'; reason?: string }
+  | { kind: 'decorativeNoCollision'; reason: string }
+  | { kind: 'interactionOnly'; reason?: string }
+  | { kind: 'custom'; purpose?: string }
   | { kind: 'none'; reason?: string }
   | { kind: 'footprint' }
   | { kind: 'bounds'; bounds: Bounds2D; purpose?: string };
+
+export type LevelSceneObjectDefinition = SceneObjectDefinition;
 
 export interface SceneObjectDefinition {
   id: string;
@@ -117,6 +123,7 @@ export interface SceneObjectDefinition {
   orientation?: number;
   colliderPolicy?: ColliderPolicyDefinition;
   roomId?: string;
+  purpose?: string;
 }
 
 export interface RoomConnectionDefinition {
@@ -190,6 +197,7 @@ export function validateLevelDefinition(
     floorIds.add(floor.id);
 
     const roomIds = new Set<string>();
+    const roomsById = new Map<string, SemanticRoomDefinition>();
     const wallIds = new Set<string>();
     const surfaceIds = new Set<string>();
     const safetyIds = new Set<string>();
@@ -200,6 +208,7 @@ export function validateLevelDefinition(
 
     floor.rooms.forEach((room) => {
       addNamespaceId(`room on floor ${floor.id}`, room.id, roomIds);
+      roomsById.set(room.id, room);
       addSourceId(room.sourceId, `room "${room.id}"`);
       validateBounds(room.bounds, `room "${room.id}" bounds`, errors);
     });
@@ -272,13 +281,10 @@ export function validateLevelDefinition(
         errors.push(
           `scene object "${object.id}" references missing room "${object.roomId}".`
         );
-      if (object.colliderPolicy?.kind === 'bounds') {
-        validateBounds(
-          object.colliderPolicy.bounds,
-          `scene object "${object.id}" collider bounds`,
-          errors
-        );
-      }
+      if (!object.kind.trim())
+        errors.push(`scene object "${object.id}" requires a kind.`);
+      validateSceneObjectPosition(object, errors, roomsById);
+      validateColliderPolicy(object, errors);
     });
 
     floor.roomConnections?.forEach((connection) => {
@@ -506,5 +512,62 @@ function getSegmentLength(segment: WallSegmentDefinition): number {
   return Math.hypot(
     segment.end.x - segment.start.x,
     segment.end.z - segment.start.z
+  );
+}
+
+function validateSceneObjectPosition(
+  object: SceneObjectDefinition,
+  errors: string[],
+  roomsById: ReadonlyMap<string, SemanticRoomDefinition>
+): void {
+  const values = [object.position.x, object.position.z];
+  if (object.position.y !== undefined) values.push(object.position.y);
+  if (object.orientation !== undefined) values.push(object.orientation);
+  if (!values.every(Number.isFinite)) {
+    errors.push(
+      `scene object "${object.id}" position/orientation must use finite values.`
+    );
+    return;
+  }
+
+  const room = object.roomId ? roomsById.get(object.roomId) : undefined;
+  if (room && !pointIsWithinBounds(object.position, room.bounds)) {
+    errors.push(
+      `scene object "${object.id}" position must stay within room "${room.id}" bounds.`
+    );
+  }
+}
+
+function validateColliderPolicy(
+  object: SceneObjectDefinition,
+  errors: string[]
+): void {
+  const policy = object.colliderPolicy;
+  if (!policy) return;
+  if (policy.kind === 'bounds') {
+    validateBounds(
+      policy.bounds,
+      `scene object "${object.id}" collider bounds`,
+      errors
+    );
+  }
+  if (policy.kind === 'decorativeNoCollision' && !policy.reason.trim()) {
+    errors.push(
+      `scene object "${object.id}" decorativeNoCollision policy requires a reason.`
+    );
+  }
+  if (policy.kind === 'custom' && !policy.purpose?.trim()) {
+    errors.push(
+      `scene object "${object.id}" custom collider policy requires a purpose.`
+    );
+  }
+}
+
+function pointIsWithinBounds(point: Point2D, bounds: Bounds2D): boolean {
+  return (
+    point.x >= bounds.minX - LENGTH_EPSILON &&
+    point.x <= bounds.maxX + LENGTH_EPSILON &&
+    point.z >= bounds.minZ - LENGTH_EPSILON &&
+    point.z <= bounds.maxZ + LENGTH_EPSILON
   );
 }
