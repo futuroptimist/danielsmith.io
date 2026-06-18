@@ -1,10 +1,13 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 
 import type { Bounds2D, RoomDefinition } from '../../assets/floorPlan';
+import type { FloorSurfaceDefinition } from '../level/schema';
+import type { LevelSourceId } from '../level/sourceIds';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
 
 export interface RoomFloorTile {
   readonly roomId: string;
+  readonly sourceId?: LevelSourceId;
   readonly mesh: Mesh;
   readonly bounds: Bounds2D;
 }
@@ -44,6 +47,8 @@ export interface RoomFloorOptions {
   readonly cutouts?: RoomFloorCutout[];
   /** World-space openings removed only from a matching room id. */
   readonly cutoutsByRoom?: Readonly<Record<string, RoomFloorCutout[]>>;
+  /** World-space openings removed only from a matching floor surface id. */
+  readonly cutoutsBySurface?: Readonly<Record<string, RoomFloorCutout[]>>;
 }
 
 const DEFAULT_GROUP_NAME = 'RoomFloorTiles';
@@ -143,16 +148,18 @@ const subtractCutout = (
   return pieces.filter(hasPositiveArea);
 };
 
-const getRoomTileBounds = (
-  room: RoomDefinition,
+const getFloorTileBounds = (
+  bounds: Bounds2D,
   options: RoomFloorOptions,
-  inset: number
+  inset: number,
+  roomId?: string,
+  surfaceId?: string
 ): Bounds2D[] => {
   const roomBounds = {
-    minX: room.bounds.minX + inset,
-    maxX: room.bounds.maxX - inset,
-    minZ: room.bounds.minZ + inset,
-    maxZ: room.bounds.maxZ - inset,
+    minX: bounds.minX + inset,
+    maxX: bounds.maxX - inset,
+    minZ: bounds.minZ + inset,
+    maxZ: bounds.maxZ - inset,
   };
 
   if (!hasPositiveArea(roomBounds)) {
@@ -161,7 +168,8 @@ const getRoomTileBounds = (
 
   const cutouts = [
     ...(options.cutouts ?? []),
-    ...(options.cutoutsByRoom?.[room.id] ?? []),
+    ...(roomId ? (options.cutoutsByRoom?.[roomId] ?? []) : []),
+    ...(surfaceId ? (options.cutoutsBySurface?.[surfaceId] ?? []) : []),
   ];
 
   return cutouts.reduce<Bounds2D[]>(
@@ -199,27 +207,109 @@ export function createRoomFloorTiles(
       return;
     }
 
-    getRoomTileBounds(room, options, inset).forEach((bounds, index) => {
+    getFloorTileBounds(room.bounds, options, inset, room.id).forEach(
+      (bounds, index) => {
+        const width = bounds.maxX - bounds.minX;
+        const depth = bounds.maxZ - bounds.minZ;
+        const geometry = new BoxGeometry(width, thickness, depth);
+        applyLightmapUv2(geometry);
+
+        const mesh = new Mesh(
+          geometry,
+          resolveMaterial(room, options, defaultMaterial)
+        );
+        mesh.position.set(
+          (bounds.minX + bounds.maxX) / 2,
+          elevation - thickness / 2,
+          (bounds.minZ + bounds.maxZ) / 2
+        );
+        mesh.name =
+          index === 0
+            ? `${room.name} Floor`
+            : `${room.name} Floor ${index + 1}`;
+        mesh.receiveShadow = true;
+
+        group.add(mesh);
+        tiles.push({ roomId: room.id, mesh, bounds });
+      }
+    );
+  });
+
+  return { group, tiles };
+}
+
+export type FloorSurfaceTileOptions = Omit<
+  RoomFloorOptions,
+  'materialFactory'
+> & {
+  readonly materialFactory?: (
+    surface: FloorSurfaceDefinition
+  ) => MeshStandardMaterial;
+};
+
+export function createFloorSurfaceTiles(
+  surfaces: FloorSurfaceDefinition[],
+  options: FloorSurfaceTileOptions = {}
+): RoomFloorBuild {
+  const group = new Group();
+  group.name = options.groupName ?? DEFAULT_GROUP_NAME;
+
+  const tiles: RoomFloorTile[] = [];
+  const inset = Math.max(options.inset ?? DEFAULT_INSET, 0);
+  const thickness = Math.max(
+    options.thickness ?? DEFAULT_THICKNESS,
+    MIN_DIMENSION
+  );
+  const elevation = options.elevation ?? 0;
+  const defaultMaterial =
+    options.material ??
+    new MeshStandardMaterial({
+      color: DEFAULT_COLOR,
+      roughness: 0.58,
+      metalness: 0.18,
+    });
+
+  surfaces.forEach((surface) => {
+    getFloorTileBounds(
+      surface.bounds,
+      options,
+      inset,
+      surface.roomId,
+      surface.id
+    ).forEach((bounds, index) => {
       const width = bounds.maxX - bounds.minX;
       const depth = bounds.maxZ - bounds.minZ;
       const geometry = new BoxGeometry(width, thickness, depth);
       applyLightmapUv2(geometry);
-
-      const mesh = new Mesh(
-        geometry,
-        resolveMaterial(room, options, defaultMaterial)
-      );
+      const material = options.materialFactory
+        ? options.materialFactory(surface)
+        : defaultMaterial;
+      applyLightMapOptions(material, options);
+      const mesh = new Mesh(geometry, material);
       mesh.position.set(
         (bounds.minX + bounds.maxX) / 2,
-        elevation - thickness / 2,
+        (surface.elevation ?? elevation) - thickness / 2,
         (bounds.minZ + bounds.maxZ) / 2
       );
       mesh.name =
-        index === 0 ? `${room.name} Floor` : `${room.name} Floor ${index + 1}`;
+        index === 0
+          ? `${surface.id} Floor`
+          : `${surface.id} Floor ${index + 1}`;
       mesh.receiveShadow = true;
+      mesh.userData.levelSourceId = surface.sourceId;
+      mesh.userData.levelSource = {
+        sourceId: surface.sourceId,
+        sourceType: 'floorSurface',
+        purpose: surface.purpose,
+      };
 
       group.add(mesh);
-      tiles.push({ roomId: room.id, mesh, bounds });
+      tiles.push({
+        roomId: surface.roomId ?? surface.id,
+        sourceId: surface.sourceId,
+        mesh,
+        bounds,
+      });
     });
   });
 

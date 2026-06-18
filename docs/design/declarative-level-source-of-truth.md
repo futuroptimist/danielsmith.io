@@ -45,10 +45,11 @@ orchestration code:
    - Builds Three.js wall and fence meshes from wall segment instances.
    - Copies compact metadata such as `segmentId`, `isFence`,
      `isSharedInterior`, and `thickness` into mesh `userData`.
-5. `src/scene/structures/floorTiles.ts`
-   - Builds room floor tile meshes from room bounds.
-   - Supports generator-owned cutout subtraction and room-specific cutouts, then
-     emits renderable tile pieces.
+5. `src/scene/structures/floorTiles.ts` and
+   `src/scene/level/generateFloorSurfaces.ts`
+   - Build floor tile meshes from declarative floor surface definitions.
+   - Support generator-owned cutout subtraction plus room- or surface-specific
+     cutouts, then emit renderable tile pieces carrying floor-surface source IDs.
 6. `src/main.ts`
    - Orchestrates the scene and stitches together generated assets with manual
      runtime additions.
@@ -111,11 +112,14 @@ not as old blockers that are removed later.
 
 ### Floor surfaces
 
-Floor surfaces describe current walkable and rendered floor pieces. They may be
-large source rectangles or polygons while the generator clips them into smaller
-renderable meshes around stairs, voids, thresholds, or material regions. Source
-floor data should describe the intended current surface, not the history of a
-former full floor plus a list of removed holes.
+Floor surfaces describe current walkable and rendered floor pieces. Current
+production surfaces use declarative rectangles with semantic source IDs such as
+`ground.livingRoom.floor.main`, `upper.upperLanding.floor.main`, and
+`upper.upperLanding.floor.stairEdgePiece`. A surface may be a large source
+rectangle while the generator clips it into smaller renderable meshes around
+stairs, voids, thresholds, or material regions. Source floor data should describe
+the intended current surface, not the history of a former full floor plus a list
+of removed holes.
 
 ### Safety colliders
 
@@ -216,8 +220,8 @@ The foundation helpers for this migration live in
 `src/scene/level/sourceIds.ts`. New source-backed level data should use the
 `LevelSourceId` branded type, `assertLevelSourceId(...)`,
 `joinLevelSourceId(...)`, and `makeLevelSourceId(...)` instead of passing raw
-strings through generators. The helper validates lowercase dot-separated paths
-with no empty segments, whitespace, or slash-style paths, and
+strings through generators. The helper validates dot-separated paths with no empty segments, whitespace, or
+slash-style paths, and
 `getLevelSourceDebugRef(...)` provides deterministic short uppercase hex
 references for future debug metadata without changing current visible debug IDs.
 
@@ -287,8 +291,9 @@ semantic `roomConnections` intentionally do not create or remove geometry.
    `src/scene/level/generateWalls.ts`; the legacy room-doorway wall generator is
    retained only as a compatibility reference while later phases migrate floors,
    safety colliders, and inventory tooling.
-8. **Generate floor outputs from source.** Derive floor surfaces from source data,
-   allowing generator-owned splitting and clipping where useful.
+8. **Generate floor outputs from source.** Floor tile meshes are derived from
+   declarative floor surface data, carry `floorSurface` source metadata for
+   debug solids, and allow generator-owned splitting and clipping where useful.
 9. **Move stair and void safety.** Convert stair, landing, and void guard
    colliders into purpose-labeled source-ID-backed safety colliders.
 10. **Move scene objects and policies.** Place visible/interactable objects and

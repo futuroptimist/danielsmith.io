@@ -8,7 +8,7 @@ export type LevelSourceId = string & {
   readonly __levelSourceIdBrand: unique symbol;
 };
 
-export const LEVEL_SOURCE_ID_PATTERN = /^[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/;
+export const LEVEL_SOURCE_ID_PATTERN = /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$/;
 
 export type LevelSourceType =
   | 'room'

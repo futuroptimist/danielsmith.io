@@ -82,30 +82,51 @@ const centeredGap = (runStart: number, center: number, label: string) => {
   return gap(range.start - runStart, range.end - runStart, label);
 };
 
-const roomIdToSourceSegment = (roomId: string) =>
-  roomId.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
-
 const floorSurfaceForRoom = (
   floorId: FloorDefinition['id'],
   room: FloorDefinition['rooms'][number]
-): FloorDefinition['floorSurfaces'][number] => {
-  const roomSourceSegment = roomIdToSourceSegment(room.id);
+): FloorDefinition['floorSurfaces'] => {
+  if (floorId === 'upper' && room.id === 'upperLanding') {
+    const splitX = 5;
+    return [
+      {
+        id: `${room.id}-floor-surface`,
+        sourceId: sourceId('upper.upperLanding.floor.main'),
+        floorId,
+        bounds: { ...room.bounds, maxX: splitX },
+        roomId: room.id,
+        purpose: 'room-floor',
+      },
+      {
+        id: `${room.id}-stair-edge-floor-surface`,
+        sourceId: sourceId('upper.upperLanding.floor.stairEdgePiece'),
+        floorId,
+        bounds: { ...room.bounds, minX: splitX },
+        roomId: room.id,
+        purpose: 'stair-edge-floor',
+      },
+    ];
+  }
 
-  return {
-    id: `${room.id}-floor-surface`,
-    sourceId: sourceId(`${floorId}.${roomSourceSegment}.floor_surface`),
-    floorId,
-    bounds: { ...room.bounds },
-    roomId: room.id,
-    purpose: 'room-floor',
-  };
+  return [
+    {
+      id: `${room.id}-floor-surface`,
+      sourceId: sourceId(`${floorId}.${room.id}.floor.main`),
+      floorId,
+      bounds: { ...room.bounds },
+      roomId: room.id,
+      purpose: 'room-floor',
+    },
+  ];
 };
 
 type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
 
 const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
   ...floor,
-  floorSurfaces: floor.rooms.map((room) => floorSurfaceForRoom(floor.id, room)),
+  floorSurfaces: floor.rooms.flatMap((room) =>
+    floorSurfaceForRoom(floor.id, room)
+  ),
 });
 
 export const PORTFOLIO_LEVEL: LevelDefinition = {
