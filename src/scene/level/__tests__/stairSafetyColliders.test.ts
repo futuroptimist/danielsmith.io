@@ -84,13 +84,8 @@ describe('stair safety collider source definitions', () => {
     expect(
       colliders.find(
         (collider) => collider.name === 'UpperStairHiddenRunVoidGuard'
-      )?.bounds
-    ).toEqual({
-      minX: 8.4,
-      maxX: 16.4,
-      minZ: -23.549999999999997,
-      maxZ: -21.030000000000005,
-    });
+      )
+    ).toBeUndefined();
     expect(
       colliders.find(
         (collider) => collider.name === 'UpperStairWestBannisterGuard'
@@ -135,7 +130,6 @@ describe('stair safety collider source definitions', () => {
       ['GroundStairLowerCornerGuard', '4002'],
       ['UpperStairEastLowerVoidGuard', '4006'],
       ['UpperStairEastUpperVoidGuard', '4007'],
-      ['UpperStairHiddenRunVoidGuard', '4008'],
       ['UpperStairWestBannisterGuard', '4009'],
       ['UpperStairNorthBannisterGuard', '400A'],
     ].forEach(([name, id]) => {
@@ -159,6 +153,13 @@ describe('stair safety collider source definitions', () => {
         name: 'UpperStairTopGapBlockerEast',
       })
     ).toBe('4004');
+    expect(
+      getDeclaredColliderDebugId({
+        floor: 'upper',
+        category: 'upper',
+        name: 'UpperStairHiddenRunVoidGuard',
+      })
+    ).toBeUndefined();
   });
 
   it('keeps safety collider source IDs free of tombstone wording', () => {
