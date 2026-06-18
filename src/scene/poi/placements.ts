@@ -1,3 +1,4 @@
+import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
 import type { SceneObjectDefinition } from '../level/schema';
 
@@ -18,23 +19,36 @@ const getSceneObjectPoiPlacement = (
   };
 };
 
-const SCENE_OBJECT_POI_PLACEMENTS = Object.fromEntries(
-  PORTFOLIO_LEVEL.floors.flatMap((floor) =>
-    (floor.sceneObjects ?? []).flatMap((object) => {
-      const placement = getSceneObjectPoiPlacement(object);
-      return placement ? [[object.id, placement]] : [];
-    })
-  )
-) as Partial<
-  Record<
-    PoiId,
-    {
-      roomId: string;
-      position: { x: number; y?: number; z: number };
-      headingRadians?: number;
-    }
-  >
->;
+type PoiPlacementOverride = {
+  roomId: string;
+  position: { x: number; y?: number; z: number };
+  headingRadians?: number;
+};
+
+const toWorldPoiPlacement = (
+  placement: PoiPlacementOverride
+): PoiPlacementOverride => ({
+  ...placement,
+  position: {
+    ...placement.position,
+    x: placement.position.x * FLOOR_PLAN_SCALE,
+    z: placement.position.z * FLOOR_PLAN_SCALE,
+  },
+});
+
+const SCENE_OBJECT_POI_PLACEMENTS: Record<string, PoiPlacementOverride> =
+  Object.fromEntries(
+    PORTFOLIO_LEVEL.floors.flatMap((floor) =>
+      (floor.sceneObjects ?? []).flatMap((object) => {
+        const placement = getSceneObjectPoiPlacement(object);
+        return placement ? [[object.id, toWorldPoiPlacement(placement)]] : [];
+      })
+    )
+  );
+
+const getSceneObjectPoiPlacementOverride = (
+  id: PoiId
+): PoiPlacementOverride | undefined => SCENE_OBJECT_POI_PLACEMENTS[id];
 
 // Manual downstairs placements (world units). TV remains a wall display and is left as-is.
 export const MANUAL_POI_PLACEMENTS: Partial<
@@ -87,7 +101,7 @@ export function applyManualPoiPlacements(
 ): PoiDefinition[] {
   return defs.map((d) => {
     const override =
-      SCENE_OBJECT_POI_PLACEMENTS[d.id] ?? MANUAL_POI_PLACEMENTS[d.id];
+      getSceneObjectPoiPlacementOverride(d.id) ?? MANUAL_POI_PLACEMENTS[d.id];
     if (!override) return d;
     return {
       ...d,

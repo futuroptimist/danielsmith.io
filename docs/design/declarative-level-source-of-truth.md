@@ -148,9 +148,12 @@ policies are source data: a visible solid-looking object should declare a
 declare `decorativeNoCollision` or `interactionOnly` with a reason. Absence of
 a collider is therefore an explicit authored policy, not an accidental omission.
 The first migrated subset covers the Flywheel showpiece/info panel, Axel
-navigator, Jobbot terminal, PR Reaper console, and Wove loom. These continue to
-use their existing structure-factory collider bounds, but the source object owns
-the stable source ID, room/floor placement, purpose, and `custom`
+navigator, Jobbot terminal, PR Reaper console, and Wove loom. Scene-object
+positions are authored in level-space coordinates and validated against their
+declared room bounds; POI placement adapters scale them to the runtime world
+coordinates used by the current immersive scene. These objects continue to use
+their existing structure-factory collider bounds, but the source object owns the
+stable source ID, room/floor placement, purpose, and `custom`
 `factory-colliders` policy that debug collider and solid metadata can expose.
 
 ### Room connections

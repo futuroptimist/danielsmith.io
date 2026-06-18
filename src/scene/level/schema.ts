@@ -195,6 +195,7 @@ export function validateLevelDefinition(
     floorIds.add(floor.id);
 
     const roomIds = new Set<string>();
+    const roomsById = new Map<string, SemanticRoomDefinition>();
     const wallIds = new Set<string>();
     const surfaceIds = new Set<string>();
     const safetyIds = new Set<string>();
@@ -205,6 +206,7 @@ export function validateLevelDefinition(
 
     floor.rooms.forEach((room) => {
       addNamespaceId(`room on floor ${floor.id}`, room.id, roomIds);
+      roomsById.set(room.id, room);
       addSourceId(room.sourceId, `room "${room.id}"`);
       validateBounds(room.bounds, `room "${room.id}" bounds`, errors);
     });
@@ -279,7 +281,7 @@ export function validateLevelDefinition(
         );
       if (!object.kind.trim())
         errors.push(`scene object "${object.id}" requires a kind.`);
-      validateSceneObjectPosition(object, errors);
+      validateSceneObjectPosition(object, errors, roomsById);
       validateColliderPolicy(object, errors);
     });
 
@@ -513,7 +515,8 @@ function getSegmentLength(segment: WallSegmentDefinition): number {
 
 function validateSceneObjectPosition(
   object: SceneObjectDefinition,
-  errors: string[]
+  errors: string[],
+  roomsById: ReadonlyMap<string, SemanticRoomDefinition>
 ): void {
   const values = [object.position.x, object.position.z];
   if (object.position.y !== undefined) values.push(object.position.y);
@@ -521,6 +524,14 @@ function validateSceneObjectPosition(
   if (!values.every(Number.isFinite)) {
     errors.push(
       `scene object "${object.id}" position/orientation must use finite values.`
+    );
+    return;
+  }
+
+  const room = object.roomId ? roomsById.get(object.roomId) : undefined;
+  if (room && !pointIsWithinBounds(object.position, room.bounds)) {
+    errors.push(
+      `scene object "${object.id}" position must stay within room "${room.id}" bounds.`
     );
   }
 }
@@ -543,4 +554,18 @@ function validateColliderPolicy(
       `scene object "${object.id}" decorativeNoCollision policy requires a reason.`
     );
   }
+  if (policy.kind === 'custom' && !policy.purpose?.trim()) {
+    errors.push(
+      `scene object "${object.id}" custom collider policy requires a purpose.`
+    );
+  }
+}
+
+function pointIsWithinBounds(point: Point2D, bounds: Bounds2D): boolean {
+  return (
+    point.x >= bounds.minX - LENGTH_EPSILON &&
+    point.x <= bounds.maxX + LENGTH_EPSILON &&
+    point.z >= bounds.minZ - LENGTH_EPSILON &&
+    point.z <= bounds.maxZ + LENGTH_EPSILON
+  );
 }

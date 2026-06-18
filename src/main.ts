@@ -994,11 +994,27 @@ const colliderSourceMetadata = new Map<
 >();
 const upperFloorColliders: RectCollider[] = [];
 
-const sceneObjectDefinitionsById = new Map(
-  PORTFOLIO_LEVEL.floors.flatMap((floor) =>
-    (floor.sceneObjects ?? []).map((object) => [object.id, object] as const)
-  )
-);
+const createSceneObjectDefinitionsById = (): Map<
+  string,
+  SceneObjectDefinition
+> => {
+  const definitionsById = new Map<string, SceneObjectDefinition>();
+  for (const floor of PORTFOLIO_LEVEL.floors) {
+    for (const object of floor.sceneObjects ?? []) {
+      const existing = definitionsById.get(object.id);
+      if (existing) {
+        throw new Error(
+          `Duplicate scene object id "${object.id}" used by source IDs ` +
+            `"${existing.sourceId}" and "${object.sourceId}".`
+        );
+      }
+      definitionsById.set(object.id, object);
+    }
+  }
+  return definitionsById;
+};
+
+const sceneObjectDefinitionsById = createSceneObjectDefinitionsById();
 
 const getSceneObjectDefinition = (
   id: string
