@@ -12,6 +12,7 @@ import { createWallSegmentMeshes } from '../../structures/wallSegmentsMesh';
 import { generateWallSegmentInstances } from '../generateWalls';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
 import type { FloorDefinition, LevelDefinition } from '../schema';
+import { assertLevelSourceId } from '../sourceIds';
 
 const wallOptions = (baseElevation = 0) => ({
   coordinateScale: FLOOR_PLAN_SCALE,
@@ -61,6 +62,8 @@ function compareSignatures(
   return JSON.stringify(a).localeCompare(JSON.stringify(b));
 }
 
+const sourceId = (value: string) => assertLevelSourceId(value);
+
 const sourceEditProofFloor = (): FloorDefinition => ({
   id: 'proof',
   name: 'Proof Floor',
@@ -73,14 +76,14 @@ const sourceEditProofFloor = (): FloorDefinition => ({
   rooms: [
     {
       id: 'left',
-      sourceId: 'proof.left.room' as never,
+      sourceId: sourceId('proof.left.room'),
       name: 'Left',
       bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
       ledColor: 0xffffff,
     },
     {
       id: 'right',
-      sourceId: 'proof.right.room' as never,
+      sourceId: sourceId('proof.right.room'),
       name: 'Right',
       bounds: { minX: 4, maxX: 8, minZ: 0, maxZ: 4 },
       ledColor: 0xffffff,
@@ -89,7 +92,7 @@ const sourceEditProofFloor = (): FloorDefinition => ({
   walls: [
     {
       id: 'left-west-wall',
-      sourceId: 'proof.left.west_wall' as never,
+      sourceId: sourceId('proof.left.west_wall'),
       floorId: 'proof',
       wallKind: 'wall',
       rooms: ['left'],
@@ -97,7 +100,7 @@ const sourceEditProofFloor = (): FloorDefinition => ({
     },
     {
       id: 'divider-wall',
-      sourceId: 'proof.left_to_right.divider_wall' as never,
+      sourceId: sourceId('proof.left_to_right.divider_wall'),
       floorId: 'proof',
       wallKind: 'wall',
       rooms: ['left', 'right'],
@@ -107,14 +110,14 @@ const sourceEditProofFloor = (): FloorDefinition => ({
   floorSurfaces: [
     {
       id: 'left-floor',
-      sourceId: 'proof.left.floor.main' as never,
+      sourceId: sourceId('proof.left.floor.main'),
       floorId: 'proof',
       roomId: 'left',
       bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
     },
     {
       id: 'right-floor',
-      sourceId: 'proof.right.floor.main' as never,
+      sourceId: sourceId('proof.right.floor.main'),
       floorId: 'proof',
       roomId: 'right',
       bounds: { minX: 4, maxX: 8, minZ: 0, maxZ: 4 },
@@ -215,14 +218,14 @@ describe('generateWallSegmentInstances', () => {
 
   it('regenerates wall meshes and colliders from direct source-data edits', () => {
     const floor = sourceEditProofFloor();
-    const addedWallSourceId = 'proof.right.east_wall';
+    const addedWallSourceId = sourceId('proof.right.east_wall');
     const withAddedWall: FloorDefinition = {
       ...floor,
       walls: [
         ...floor.walls,
         {
           id: 'right-east-wall',
-          sourceId: addedWallSourceId as never,
+          sourceId: addedWallSourceId,
           floorId: 'proof',
           wallKind: 'wall',
           rooms: ['right'],
@@ -259,7 +262,7 @@ describe('generateWallSegmentInstances', () => {
 
   it('removes generated wall meshes and colliders after a direct source-data deletion', () => {
     const floor = sourceEditProofFloor();
-    const removedSourceId = 'proof.left_to_right.divider_wall';
+    const removedSourceId = sourceId('proof.left_to_right.divider_wall');
     const withoutDivider: FloorDefinition = {
       ...floor,
       walls: floor.walls.filter((wall) => wall.sourceId !== removedSourceId),
@@ -286,7 +289,7 @@ describe('generateWallSegmentInstances', () => {
       roomConnections: [
         {
           id: 'left-right-opening',
-          sourceId: 'proof.left_to_right.connection' as never,
+          sourceId: sourceId('proof.left_to_right.connection'),
           floorId: 'proof',
           rooms: ['left', 'right'],
         },
@@ -315,7 +318,7 @@ describe('generateWallSegmentInstances', () => {
         ...(ground.roomConnections ?? []),
         {
           id: 'test-only-connection',
-          sourceId: 'ground.test_only.connection' as never,
+          sourceId: sourceId('ground.test_only.connection'),
           floorId: 'ground',
           rooms: ['livingRoom', 'studio'],
         },
@@ -383,7 +386,7 @@ describe('generateWallSegmentInstances', () => {
         ...ground.walls,
         {
           id: 'test-diagonal-wall',
-          sourceId: 'ground.test.diagonal_wall' as never,
+          sourceId: sourceId('ground.test.diagonal_wall'),
           floorId: 'ground',
           rooms: ['livingRoom'],
           run: {

@@ -89,6 +89,7 @@ type DebugColliderMetadata = {
   category: string;
   name: string;
   bounds: DebugColliderBounds;
+  sourceId?: string;
 };
 
 type DebugColliderApi = {
@@ -100,6 +101,8 @@ type DebugColliderApi = {
     floorId?: FloorId;
   }): DebugColliderMetadata[];
   getColliderById(id: unknown): DebugColliderMetadata | undefined;
+  getColliderBySourceId(sourceId: unknown): DebugColliderMetadata | undefined;
+  getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
 };
 
 type DebugSolidMetadata = {
@@ -113,12 +116,15 @@ type DebugSolidMetadata = {
     max: { x: number; y: number; z: number };
   };
   material: string | null;
+  sourceId?: string;
 };
 
 type DebugSolidApi = {
   setEnabled(enabled: boolean): void;
   getSolids(): DebugSolidMetadata[];
   getSolidById(id: unknown): DebugSolidMetadata | undefined;
+  getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
+  getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
 };
 
 function expectCloseTo(
@@ -1097,7 +1103,6 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     const knownWallSourceId = 'upper.upper_landing.south_wall';
     const knownFloorSourceId = 'upper.upperLanding.floor.main';
     const knownSafetySourceId = 'upper.stairwell.westBannister.safetyCollider';
-    const absentWallSourceId = 'upper.upper_landing.open_passage.wall';
     const knownWallSolids = debugSolids.getSolidsBySourceId(knownWallSourceId);
     const knownWallColliders =
       debugColliders.getCollidersBySourceId(knownWallSourceId);
@@ -1105,10 +1110,33 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       debugSolids.getSolidsBySourceId(knownFloorSourceId);
     const knownSafetyColliders =
       debugColliders.getCollidersBySourceId(knownSafetySourceId);
-    const absentWallSolids =
-      debugSolids.getSolidsBySourceId(absentWallSourceId);
-    const absentWallColliders =
-      debugColliders.getCollidersBySourceId(absentWallSourceId);
+    const formerWallBounds = {
+      minX: 3.875,
+      maxX: 8.525,
+      minZ: -16.25,
+      maxZ: -15.75,
+    };
+    const matchingWallSolids = debugSolids
+      .getSolids()
+      .filter(
+        (solid) =>
+          solid.name === 'WallSegment' &&
+          solid.parentPath === 'Scene/Group/UpperWallSegments' &&
+          Math.abs(solid.bounds.min.x - formerWallBounds.minX) < 0.001 &&
+          Math.abs(solid.bounds.max.x - formerWallBounds.maxX) < 0.001 &&
+          Math.abs(solid.bounds.min.z - formerWallBounds.minZ) < 0.001 &&
+          Math.abs(solid.bounds.max.z - formerWallBounds.maxZ) < 0.001
+      );
+    const matchingColliderBounds = debugColliders
+      .getColliders()
+      .filter(
+        (collider) =>
+          collider.floor === 'upper' &&
+          Math.abs(collider.bounds.minX - formerWallBounds.minX) < 0.001 &&
+          Math.abs(collider.bounds.maxX - formerWallBounds.maxX) < 0.001 &&
+          Math.abs(collider.bounds.minZ - formerWallBounds.minZ) < 0.001 &&
+          Math.abs(collider.bounds.maxZ - formerWallBounds.maxZ) < 0.001
+      );
     const openingSamples = [
       { x: 5.5, z: -16, floorId: 'upper' as const },
       { x: 6.2, z: -16, floorId: 'upper' as const },
@@ -1139,8 +1167,8 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       knownSafetyColliderSourceIds: knownSafetyColliders.map(
         (collider) => collider.sourceId
       ),
-      absentWallSolidCount: absentWallSolids.length,
-      absentWallColliderCount: absentWallColliders.length,
+      matchingWallSolidCount: matchingWallSolids.length,
+      matchingColliderBoundsCount: matchingColliderBounds.length,
       canOccupyOpeningSamples: openingSamples.map((sample) =>
         world.canOccupyPosition(sample)
       ),
@@ -1176,8 +1204,8 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.knownSafetyColliderSourceIds).toContain(
     'upper.stairwell.westBannister.safetyCollider'
   );
-  expect(targetState.absentWallSolidCount).toBe(0);
-  expect(targetState.absentWallColliderCount).toBe(0);
+  expect(targetState.matchingWallSolidCount).toBe(0);
+  expect(targetState.matchingColliderBoundsCount).toBe(0);
   expect(targetState.canOccupyOpeningSamples).toEqual([true, true, true]);
   expect(targetState.blockingAtOpeningSamples).toEqual([[], [], []]);
   expect(targetState.passageMovement.allStepsMoved).toBe(true);
