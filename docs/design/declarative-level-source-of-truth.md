@@ -124,9 +124,19 @@ rather than preserving historical missing-floor artifacts.
 
 Safety colliders are invisible constraints that should exist, each with a stated
 purpose such as preventing stairwell falls, preserving stair approach lanes,
-blocking unfinished zones, or protecting showpiece footprints. They should carry
-source IDs, floor assignment, bounds, and purpose text so reviewers can tell why
-the invisible constraint exists.
+blocking unfinished zones, or protecting showpiece footprints. They are distinct
+from physical wall colliders: walls describe visible layout boundaries and emit
+wall meshes/debug metadata, while safety colliders describe intentional invisible
+runtime constraints that keep traversal safe around voids, stairs, landings, and
+other no-floor areas. They should carry source IDs, floor assignment, bounds, and
+purpose text so reviewers can tell why the invisible constraint exists instead of
+mistaking it for hidden post-hoc layout geometry.
+
+Stair and landing safety colliders are source-backed even when their bounds are
+generated from stair layout measurements. Their source IDs should stay stable
+across refactors, and their purpose strings should explain the constraint (for
+example preserving a descent corridor edge or guarding a hidden stair-run
+no-floor area) without masquerading as room-wall geometry.
 
 ### Scene objects
 
