@@ -1,6 +1,8 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { assertLevelSourceId } from '../../level/sourceIds';
+import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from '../../level/upperStairwellLandingPolicy';
 import { createUpperStairwellLanding } from '../upperStairwellLanding';
 
 const overlaps = (
@@ -11,6 +13,44 @@ const overlaps = (
   first.maxX > second.minX &&
   first.minZ < second.maxZ &&
   first.maxZ > second.minZ;
+
+const allSegments = [
+  {
+    role: 'side-west',
+    render: true,
+    collision: true,
+    sourceId: assertLevelSourceId('test.upper.sideWest.generatedCollider'),
+    colliderName: 'TestSideWest',
+  },
+  {
+    role: 'side-east',
+    render: true,
+    collision: true,
+    sourceId: assertLevelSourceId('test.upper.sideEast.generatedCollider'),
+    colliderName: 'TestSideEast',
+  },
+  {
+    role: 'far',
+    render: true,
+    collision: true,
+    sourceId: assertLevelSourceId('test.upper.far.generatedCollider'),
+    colliderName: 'TestFar',
+  },
+  {
+    role: 'shoulder-west',
+    render: true,
+    collision: true,
+    sourceId: assertLevelSourceId('test.upper.shoulderWest.generatedCollider'),
+    colliderName: 'TestShoulderWest',
+  },
+  {
+    role: 'shoulder-east',
+    render: true,
+    collision: true,
+    sourceId: assertLevelSourceId('test.upper.shoulderEast.generatedCollider'),
+    colliderName: 'TestShoulderEast',
+  },
+] as const;
 
 describe('createUpperStairwellLanding', () => {
   it('adds guard colliders around sealed stairwell edges but not across the stair path', () => {
@@ -24,23 +64,29 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.2,
         material: { color: 0xff0000 },
       },
+      segmentPolicies: allSegments,
     });
 
+    const colliderBounds = result.colliders.map(({ bounds }) => bounds);
     expect(result.group.name).toBe('UpperStairwellLanding');
-    expect(result.colliders).toHaveLength(3);
-    expect(result.colliders).toContainEqual({
+    expect(result.colliders.map(({ role }) => role)).toEqual([
+      'side-west',
+      'side-east',
+      'far',
+    ]);
+    expect(colliderBounds).toContainEqual({
       minX: -2.2,
       maxX: -2,
       minZ: -8,
       maxZ: 6,
     });
-    expect(result.colliders).toContainEqual({
+    expect(colliderBounds).toContainEqual({
       minX: 2,
       maxX: 2.2,
       minZ: -8,
       maxZ: 6,
     });
-    expect(result.colliders).toContainEqual({
+    expect(colliderBounds).toContainEqual({
       minX: -2,
       maxX: 2,
       minZ: -8,
@@ -49,7 +95,7 @@ describe('createUpperStairwellLanding', () => {
 
     const descentPath = { minX: -1.6, maxX: 1.6, minZ: -7.5, maxZ: 6 };
     expect(
-      result.colliders.some((collider) => overlaps(collider, descentPath))
+      colliderBounds.some((collider) => overlaps(collider, descentPath))
     ).toBe(false);
   });
 
@@ -71,16 +117,24 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.2,
         material: { color: 0xff0000 },
       },
+      segmentPolicies: allSegments,
     });
 
-    expect(result.colliders).toHaveLength(5);
-    expect(result.colliders).toContainEqual({
+    const colliderBounds = result.colliders.map(({ bounds }) => bounds);
+    expect(result.colliders.map(({ role }) => role)).toEqual([
+      'side-west',
+      'side-east',
+      'far',
+      'shoulder-west',
+      'shoulder-east',
+    ]);
+    expect(colliderBounds).toContainEqual({
       minX: -2,
       maxX: -1.2,
       minZ: -8,
       maxZ: 6,
     });
-    expect(result.colliders).toContainEqual({
+    expect(colliderBounds).toContainEqual({
       minX: 1.1,
       maxX: 2,
       minZ: -8,
@@ -89,11 +143,11 @@ describe('createUpperStairwellLanding', () => {
 
     const descentPath = { minX: -1.2, maxX: 1.1, minZ: -7.5, maxZ: 6 };
     expect(
-      result.colliders.some((collider) => overlaps(collider, descentPath))
+      colliderBounds.some((collider) => overlaps(collider, descentPath))
     ).toBe(false);
   });
 
-  it('exposes collider source guard names for stable runtime filtering', () => {
+  it('renders visual-only segments without emitting colliders', () => {
     const result = createUpperStairwellLanding({
       roomBounds: { minX: -6, maxX: 6, minZ: -10, maxZ: 8 },
       openingBounds: { minX: -2, maxX: 2, minZ: -8, maxZ: 6 },
@@ -107,20 +161,84 @@ describe('createUpperStairwellLanding', () => {
       guard: {
         height: 0.56,
         thickness: 0.2,
-        sideSides: ['east'],
-        shoulderSides: ['east'],
         material: { color: 0xff0000 },
       },
+      segmentPolicies: [
+        {
+          role: 'side-east',
+          render: true,
+          collision: false,
+          sourceId: assertLevelSourceId('test.upper.visualOnly.generatedSolid'),
+        },
+      ],
     });
 
-    expect(result.namedColliders.map(({ name }) => name)).toEqual([
+    expect(result.group.children.map((child) => child.name)).toEqual([
+      'UpperStairwellLandingSideGuard-East',
+    ]);
+    expect(result.segments).toEqual([
+      {
+        role: 'side-east',
+        sourceId: assertLevelSourceId('test.upper.visualOnly.generatedSolid'),
+        bounds: { minX: 2, maxX: 2.2, minZ: -8, maxZ: 6 },
+        rendered: true,
+      },
+    ]);
+    expect(result.colliders).toEqual([]);
+  });
+
+  it('emits the production east shoulder collider with source ID and stable runtime name', () => {
+    const result = createUpperStairwellLanding({
+      roomBounds: { minX: -6, maxX: 6, minZ: -10, maxZ: 8 },
+      openingBounds: { minX: -2, maxX: 2, minZ: -8, maxZ: 6 },
+      descentCorridorBounds: {
+        minX: -1.2,
+        maxX: 1.1,
+        minZ: -7.6,
+        maxZ: 6,
+      },
+      elevation: 4,
+      guard: {
+        height: 0.56,
+        thickness: 0.2,
+        material: { color: 0xff0000 },
+      },
+      segmentPolicies: UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
+    });
+
+    expect(result.group.children.map((child) => child.name)).toEqual([
       'UpperStairwellLandingSideGuard-East',
       'UpperStairwellLandingFarGuard',
       'UpperStairwellLandingShoulderGuard-East',
     ]);
-    expect(result.namedColliders.map(({ collider }) => collider)).toStrictEqual(
-      result.colliders
-    );
+    expect(
+      result.segments.map(({ role, rendered, collider }) => ({
+        role,
+        rendered,
+        colliderName: collider?.name,
+      }))
+    ).toEqual([
+      { role: 'side-east', rendered: true, colliderName: undefined },
+      { role: 'far', rendered: true, colliderName: undefined },
+      {
+        role: 'shoulder-east',
+        rendered: true,
+        colliderName: 'UpperStairwellLandingGuard-3',
+      },
+    ]);
+    expect(result.colliders).toEqual([
+      {
+        role: 'shoulder-east',
+        sourceId: 'upper.stairwell.landingGuard.shoulderEast.generatedCollider',
+        name: 'UpperStairwellLandingGuard-3',
+        bounds: {
+          minX: 1.1,
+          maxX: 2,
+          minZ: -8,
+          maxZ: 6,
+        },
+      },
+    ]);
   });
 
   it('clamps guard colliders to the landing room when the opening touches an edge', () => {
@@ -133,16 +251,18 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.4,
         material: { color: 0xff0000 },
       },
+      segmentPolicies: allSegments,
     });
 
-    expect(result.colliders).not.toContainEqual({
+    const colliderBounds = result.colliders.map(({ bounds }) => bounds);
+    expect(colliderBounds).not.toContainEqual({
       minX: -2.4,
       maxX: -2,
       minZ: -4,
       maxZ: 4,
     });
     expect(result.colliders).toHaveLength(2);
-    for (const collider of result.colliders) {
+    for (const collider of colliderBounds) {
       expect(collider.minX).toBeGreaterThanOrEqual(-2);
       expect(collider.maxX).toBeLessThanOrEqual(4);
       expect(collider.minZ).toBeGreaterThanOrEqual(-6);
@@ -161,6 +281,7 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.2,
         material: { color: 0xff0000 },
       },
+      segmentPolicies: allSegments,
     });
 
     const slab = result.group.children.find((child) =>

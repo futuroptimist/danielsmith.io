@@ -3,23 +3,16 @@ import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
+import type {
+  UpperStairwellLandingSegmentPolicy,
+  UpperStairwellLandingSegmentRole,
+} from '../level/upperStairwellLandingPolicy';
 
 export interface UpperStairwellGuardConfig {
   /** Height of the guard rail measured from the upper-floor surface. */
   height: number;
   /** Physical thickness of each rail. */
   thickness: number;
-  /**
-   * Optional long side rail edges around the opening. Omitting west keeps the
-   * upstairs-room egress open while east can still protect the stair void edge.
-   */
-  sideSides?: ReadonlyArray<'east' | 'west'>;
-  /**
-   * Optional shoulder rail sides to add around the descent corridor. Omitting
-   * west keeps the upstairs-room egress open while east can still protect the
-   * stair void edge.
-   */
-  shoulderSides?: ReadonlyArray<'east' | 'west'>;
   /** Optional material overrides for the guard rails. */
   material?: MeshStandardMaterialParameters;
 }
@@ -35,17 +28,29 @@ export interface UpperStairwellLandingConfig {
   elevation: number;
   /** Guard rail configuration. */
   guard: UpperStairwellGuardConfig;
+  /** Declarative source-owned segment render/collision policy. */
+  segmentPolicies: readonly UpperStairwellLandingSegmentPolicy[];
 }
 
-export interface NamedUpperStairwellLandingCollider {
+export interface UpperStairwellLandingColliderRecord {
+  role: UpperStairwellLandingSegmentRole;
+  sourceId: UpperStairwellLandingSegmentPolicy['sourceId'];
   name: string;
-  collider: RectCollider;
+  bounds: RectCollider;
+}
+
+export interface UpperStairwellLandingSegmentRecord {
+  role: UpperStairwellLandingSegmentRole;
+  sourceId: UpperStairwellLandingSegmentPolicy['sourceId'];
+  bounds: Bounds2D;
+  rendered: boolean;
+  collider?: UpperStairwellLandingColliderRecord;
 }
 
 export interface UpperStairwellLandingBuild {
   group: Group;
-  colliders: RectCollider[];
-  namedColliders: NamedUpperStairwellLandingCollider[];
+  segments: UpperStairwellLandingSegmentRecord[];
+  colliders: UpperStairwellLandingColliderRecord[];
 }
 
 const GROUP_NAME = 'UpperStairwellLanding';
@@ -66,12 +71,78 @@ const clampBoundsToRoom = (
   maxZ: Math.min(bounds.maxZ, roomBounds.maxZ),
 });
 
-const addGuard = (params: {
+const getSegmentName = (role: UpperStairwellLandingSegmentRole): string => {
+  switch (role) {
+    case 'side-east':
+      return `${SIDE_GUARD_NAME}-East`;
+    case 'side-west':
+      return `${SIDE_GUARD_NAME}-West`;
+    case 'far':
+      return FAR_GUARD_NAME;
+    case 'shoulder-east':
+      return `${SHOULDER_GUARD_NAME}-East`;
+    case 'shoulder-west':
+      return `${SHOULDER_GUARD_NAME}-West`;
+  }
+};
+
+const getSegmentBounds = (params: {
+  role: UpperStairwellLandingSegmentRole;
+  openingBounds: Bounds2D;
+  descentCorridorBounds?: Bounds2D;
+  thickness: number;
+}): Bounds2D | undefined => {
+  const { openingBounds, descentCorridorBounds, thickness } = params;
+
+  switch (params.role) {
+    case 'side-west':
+      return {
+        minX: openingBounds.minX - thickness,
+        maxX: openingBounds.minX,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.maxZ,
+      };
+    case 'side-east':
+      return {
+        minX: openingBounds.maxX,
+        maxX: openingBounds.maxX + thickness,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.maxZ,
+      };
+    case 'far':
+      return {
+        minX: openingBounds.minX,
+        maxX: openingBounds.maxX,
+        minZ: openingBounds.minZ,
+        maxZ: openingBounds.minZ + thickness,
+      };
+    case 'shoulder-west':
+      return descentCorridorBounds
+        ? {
+            minX: openingBounds.minX,
+            maxX: descentCorridorBounds.minX,
+            minZ: openingBounds.minZ,
+            maxZ: openingBounds.maxZ,
+          }
+        : undefined;
+    case 'shoulder-east':
+      return descentCorridorBounds
+        ? {
+            minX: descentCorridorBounds.maxX,
+            maxX: openingBounds.maxX,
+            minZ: openingBounds.minZ,
+            maxZ: openingBounds.maxZ,
+          }
+        : undefined;
+  }
+};
+
+const addSegment = (params: {
   group: Group;
-  colliders: RectCollider[];
-  namedColliders: NamedUpperStairwellLandingCollider[];
+  colliders: UpperStairwellLandingColliderRecord[];
+  segments: UpperStairwellLandingSegmentRecord[];
   material: MeshStandardMaterial;
-  name: string;
+  policy: UpperStairwellLandingSegmentPolicy;
   bounds: Bounds2D;
   roomBounds: Bounds2D;
   elevation: number;
@@ -84,19 +155,46 @@ const addGuard = (params: {
     return;
   }
 
-  const guard = new Mesh(
-    new BoxGeometry(width, params.height, depth),
-    params.material
-  );
-  guard.name = params.name;
-  guard.position.set(
-    guardBounds.minX + width / 2,
-    params.elevation + params.height / 2,
-    guardBounds.minZ + depth / 2
-  );
-  params.group.add(guard);
-  params.colliders.push(guardBounds);
-  params.namedColliders.push({ name: params.name, collider: guardBounds });
+  let rendered = false;
+  if (params.policy.render) {
+    const guard = new Mesh(
+      new BoxGeometry(width, params.height, depth),
+      params.material
+    );
+    guard.name = getSegmentName(params.policy.role);
+    guard.userData.levelSourceId = params.policy.sourceId;
+    guard.userData.levelSource = {
+      sourceId: params.policy.sourceId,
+      sourceType: 'generatedSolid',
+      purpose: 'render upper stairwell landing guard segment',
+    };
+    guard.position.set(
+      guardBounds.minX + width / 2,
+      params.elevation + params.height / 2,
+      guardBounds.minZ + depth / 2
+    );
+    params.group.add(guard);
+    rendered = true;
+  }
+
+  const collider = params.policy.collision
+    ? {
+        role: params.policy.role,
+        sourceId: params.policy.sourceId,
+        name: params.policy.colliderName ?? getSegmentName(params.policy.role),
+        bounds: guardBounds,
+      }
+    : undefined;
+  if (collider) {
+    params.colliders.push(collider);
+  }
+  params.segments.push({
+    role: params.policy.role,
+    sourceId: params.policy.sourceId,
+    bounds: guardBounds,
+    rendered,
+    ...(collider ? { collider } : {}),
+  });
 };
 
 /**
@@ -118,117 +216,42 @@ export function createUpperStairwellLanding(
 
   const group = new Group();
   group.name = GROUP_NAME;
-  const colliders: RectCollider[] = [];
-  const namedColliders: NamedUpperStairwellLandingCollider[] = [];
+  const colliders: UpperStairwellLandingColliderRecord[] = [];
+  const segments: UpperStairwellLandingSegmentRecord[] = [];
   const thickness = Math.max(config.guard.thickness, 0);
   const guardMaterial = new MeshStandardMaterial(config.guard.material);
 
   if (thickness <= 0 || config.guard.height <= 0) {
-    return { group, colliders, namedColliders };
+    return { group, segments, colliders };
   }
 
-  const sideSides = config.guard.sideSides ?? ['east', 'west'];
+  const descentCorridorBounds = config.descentCorridorBounds
+    ? clampBoundsToRoom(config.descentCorridorBounds, openingBounds)
+    : undefined;
 
-  if (sideSides.includes('west')) {
-    addGuard({
+  for (const policy of config.segmentPolicies) {
+    const bounds = getSegmentBounds({
+      role: policy.role,
+      openingBounds,
+      descentCorridorBounds,
+      thickness,
+    });
+    if (!bounds) {
+      continue;
+    }
+
+    addSegment({
       group,
       colliders,
-      namedColliders,
+      segments,
       material: guardMaterial,
-      name: `${SIDE_GUARD_NAME}-West`,
-      bounds: {
-        minX: openingBounds.minX - thickness,
-        maxX: openingBounds.minX,
-        minZ: openingBounds.minZ,
-        maxZ: openingBounds.maxZ,
-      },
+      policy,
+      bounds,
       roomBounds: config.roomBounds,
       elevation: config.elevation,
       height: config.guard.height,
     });
   }
 
-  if (sideSides.includes('east')) {
-    addGuard({
-      group,
-      colliders,
-      namedColliders,
-      material: guardMaterial,
-      name: `${SIDE_GUARD_NAME}-East`,
-      bounds: {
-        minX: openingBounds.maxX,
-        maxX: openingBounds.maxX + thickness,
-        minZ: openingBounds.minZ,
-        maxZ: openingBounds.maxZ,
-      },
-      roomBounds: config.roomBounds,
-      elevation: config.elevation,
-      height: config.guard.height,
-    });
-  }
-  addGuard({
-    group,
-    colliders,
-    namedColliders,
-    material: guardMaterial,
-    name: FAR_GUARD_NAME,
-    bounds: {
-      minX: openingBounds.minX,
-      maxX: openingBounds.maxX,
-      minZ: openingBounds.minZ,
-      maxZ: openingBounds.minZ + thickness,
-    },
-    roomBounds: config.roomBounds,
-    elevation: config.elevation,
-    height: config.guard.height,
-  });
-
-  const shoulderSides = config.guard.shoulderSides ?? ['east', 'west'];
-
-  if (config.descentCorridorBounds && shoulderSides.length > 0) {
-    const descentCorridorBounds = clampBoundsToRoom(
-      config.descentCorridorBounds,
-      openingBounds
-    );
-
-    if (shoulderSides.includes('west')) {
-      addGuard({
-        group,
-        colliders,
-        namedColliders,
-        material: guardMaterial,
-        name: `${SHOULDER_GUARD_NAME}-West`,
-        bounds: {
-          minX: openingBounds.minX,
-          maxX: descentCorridorBounds.minX,
-          minZ: openingBounds.minZ,
-          maxZ: openingBounds.maxZ,
-        },
-        roomBounds: config.roomBounds,
-        elevation: config.elevation,
-        height: config.guard.height,
-      });
-    }
-
-    if (shoulderSides.includes('east')) {
-      addGuard({
-        group,
-        colliders,
-        namedColliders,
-        material: guardMaterial,
-        name: `${SHOULDER_GUARD_NAME}-East`,
-        bounds: {
-          minX: descentCorridorBounds.maxX,
-          maxX: openingBounds.maxX,
-          minZ: openingBounds.minZ,
-          maxZ: openingBounds.maxZ,
-        },
-        roomBounds: config.roomBounds,
-        elevation: config.elevation,
-        height: config.guard.height,
-      });
-    }
-  }
-
-  return { group, colliders, namedColliders };
+  return { group, segments, colliders };
 }
