@@ -167,6 +167,7 @@ import {
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
 } from './scene/level/stairSafetyColliders';
+import { PRODUCTION_UPPER_STAIRWELL_LANDING_SEGMENTS } from './scene/level/upperStairwellLandingSegments';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -993,7 +994,7 @@ const colliderSourceMetadata = new Map<
       | WallSegmentInstance['sourceId']
       | LevelSafetyCollider['sourceId']
       | SceneObjectDefinition['sourceId'];
-    sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
+    sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
   }
 >();
@@ -2128,11 +2129,6 @@ function initializeImmersiveScene(
         layout: stairLayout,
       })
     : undefined;
-  const pushNamedUpperFloorCollider = (name: string, bounds: RectCollider) => {
-    upperFloorColliders.push(bounds);
-    namedColliderDebugNames.set(bounds, name);
-  };
-
   const upperStairWestEgressLaneX =
     stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
   const upperStairWestEgressBlockerMinX =
@@ -2250,18 +2246,18 @@ function initializeImmersiveScene(
           metalness: 0.05,
         },
       },
+      segments: PRODUCTION_UPPER_STAIRWELL_LANDING_SEGMENTS,
     });
     upperFloorGroup.add(upperStairwellLanding.group);
-    upperStairwellLanding.namedColliders
-      .filter(({ name }) =>
-        name.startsWith('UpperStairwellLandingShoulderGuard')
-      )
-      .forEach(({ collider }, index) =>
-        pushNamedUpperFloorCollider(
-          `UpperStairwellLandingGuard-${index + 3}`,
-          collider
-        )
-      );
+    upperStairwellLanding.colliderSegments.forEach((segment) => {
+      upperFloorColliders.push(segment.bounds);
+      namedColliderDebugNames.set(segment.bounds, segment.name);
+      colliderSourceMetadata.set(segment.bounds, {
+        sourceId: segment.sourceId,
+        sourceType: 'generatedCollider',
+        purpose: `upper stairwell landing ${segment.role} guard`,
+      });
+    });
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
