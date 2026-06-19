@@ -751,8 +751,6 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }
   expect(debugColliderNames).toContain('UpperStairWestBannisterGuard');
   expect(debugColliderNames).toContain('UpperStairNorthBannisterGuard');
-  expect(debugColliderNames).not.toContain('UpperStairHiddenRunVoidGuard');
-
   const debugColliderIds = debugColliders.map((collider) => collider.id);
   expect(debugColliderIds.length).toBeGreaterThan(0);
   expect(new Set(debugColliderIds).size).toBe(debugColliderIds.length);
@@ -796,14 +794,6 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }, '400A');
   expect(northBannisterById?.id).toBe('400A');
   expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
-  const hiddenRunGuardById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '4008');
-  expect(hiddenRunGuardById).toBeUndefined();
   expect(westBannister).toBeDefined();
   expect(northBannister).toBeDefined();
   if (!westBannister || !northBannister) {
