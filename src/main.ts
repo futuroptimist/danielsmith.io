@@ -998,6 +998,7 @@ const colliderSourceMetadata = new Map<
       | LevelSourceId;
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
+    debugId?: string;
   }
 >();
 const upperFloorColliders: RectCollider[] = [];
@@ -2096,6 +2097,7 @@ function initializeImmersiveScene(
       sourceId: collider.sourceId,
       sourceType: 'safetyCollider',
       purpose: collider.purpose,
+      debugId: collider.debugId,
     });
   };
 
@@ -2136,6 +2138,7 @@ function initializeImmersiveScene(
     bounds: RectCollider;
     sourceId: LevelSourceId;
     role: string;
+    debugId?: string;
   }) => {
     upperFloorColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
@@ -2143,6 +2146,7 @@ function initializeImmersiveScene(
       sourceId: collider.sourceId,
       sourceType: 'generatedCollider',
       purpose: `upper stairwell landing ${collider.role} guard`,
+      debugId: collider.debugId,
     });
   };
 
@@ -4459,6 +4463,7 @@ function initializeImmersiveScene(
       sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
       sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
       purpose: colliderSourceMetadata.get(bounds)?.purpose,
+      debugId: colliderSourceMetadata.get(bounds)?.debugId,
     }));
 
   const colliderVisualizer = createColliderVisualizer({

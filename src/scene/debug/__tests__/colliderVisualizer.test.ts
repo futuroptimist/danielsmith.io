@@ -43,7 +43,7 @@ describe('createColliderDebugId', () => {
     expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{6}$/);
   });
 
-  it('uses declared IDs for generated and named runtime colliders', () => {
+  it('uses declared IDs for generated, regression, and source-backed colliders', () => {
     expect(
       createColliderDebugId({
         floor: 'ground',
@@ -74,6 +74,7 @@ describe('createColliderDebugId', () => {
         category: 'upper',
         name: 'UpperStairNorthBannisterGuard',
         bounds: collider,
+        debugId: '400A',
       })
     ).toBe('400A');
     expect(

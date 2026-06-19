@@ -137,7 +137,13 @@ Stair and landing safety colliders are source-backed even when their bounds are
 generated from stair layout measurements. Their source IDs should stay stable
 across refactors, and their purpose strings should explain the constraint (for
 example preserving a descent corridor edge or guarding a hidden stair-run
-no-floor area) without masquerading as room-wall geometry.
+no-floor area) without masquerading as room-wall geometry. Stable compact debug
+IDs for active stair and landing colliders live beside the active collider
+declarations or segment policies that emit them. Deleting or disabling one of
+these source declarations removes its runtime collider and debug ID together; do
+not preserve deleted colliders as tombstones, negative tests, or manual debug-ID
+registries. Behavior tests should pin player-facing promises, while generator
+and registry tests validate active declarations generically.
 
 ### Scene objects
 

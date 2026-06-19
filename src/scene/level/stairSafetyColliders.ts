@@ -18,6 +18,7 @@ export interface LevelSafetyCollider {
   category: SafetyColliderCategory;
   bounds: RectCollider;
   purpose: string;
+  debugId?: string;
 }
 
 export interface GroundStairSafetyColliderOptions {
@@ -48,20 +49,25 @@ const GROUND_STAIR_SAFETY_COLLIDER_METADATA = {
     sourceId: sourceId('ground.stairwell.eastBoundary.safetyCollider'),
     category: 'stair',
     purpose: 'prevent lower stair side squeeze',
+    debugId: '4001',
   },
   GroundStairLowerCornerGuard: {
     sourceId: sourceId('ground.stairwell.lowerCorner.safetyCollider'),
     category: 'stair',
     purpose: 'block raw lower-step occupancy',
+    debugId: '4002',
   },
 } as const satisfies Record<
   string,
-  Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose'>
+  Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose' | 'debugId'>
 >;
 
 const getGroundStairSafetyColliderMetadata = (
   name: string
-): Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose'> => {
+): Pick<
+  LevelSafetyCollider,
+  'sourceId' | 'category' | 'purpose' | 'debugId'
+> => {
   const metadata =
     GROUND_STAIR_SAFETY_COLLIDER_METADATA[
       name as keyof typeof GROUND_STAIR_SAFETY_COLLIDER_METADATA
@@ -172,6 +178,7 @@ export const createUpperStairSafetyColliders = ({
       floor: 'upper',
       category: 'void',
       purpose: 'guard upper stairwell void edge',
+      debugId: '4007',
       bounds: {
         minX: stairNavigationZones.explicitDescentCorridor.maxX,
         maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
@@ -187,6 +194,7 @@ export const createUpperStairSafetyColliders = ({
       floor: 'upper' as const,
       category: 'void' as const,
       purpose: 'guard upper stairwell void edge',
+      debugId: name.endsWith('West') ? '4003' : '4004',
       bounds,
     })),
     {
@@ -195,6 +203,7 @@ export const createUpperStairSafetyColliders = ({
       floor: 'upper',
       category: 'landing',
       purpose: 'preserve descent corridor edge',
+      debugId: '4009',
       bounds: {
         minX: upperStairWestBannisterMinX + upperStairWestBannisterShiftX,
         maxX: upperStairWestBannisterMaxX + upperStairWestBannisterShiftX,
@@ -215,6 +224,7 @@ export const createUpperStairSafetyColliders = ({
       floor: 'upper',
       category: 'landing',
       purpose: 'preserve descent corridor edge',
+      debugId: '400A',
       bounds: {
         minX: upperStairNorthBannisterMinX,
         maxX: upperStairNorthBannisterMaxX,

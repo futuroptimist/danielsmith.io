@@ -5,12 +5,17 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from '../../../systems/movement/stairs';
-import { getDeclaredColliderDebugId } from '../../debug/colliderDebugIds';
+import {
+  DEBUG_COLLIDER_ID_PATTERN,
+  getGeneratedColliderId,
+} from '../../debug/colliderDebugIds';
+import { createColliderVisualizer } from '../../debug/colliderVisualizer';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
 } from '../stairSafetyColliders';
+import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from '../upperStairwellLandingSegments';
 
 const PLAYER_RADIUS = 0.75;
 
@@ -106,51 +111,63 @@ describe('stair safety collider source definitions', () => {
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
   });
 
-  it('keeps declared debug IDs mapped to existing safety collider names', () => {
-    const names = new Set(
-      collectSafetyColliders().map((collider) => collider.name)
+  it('keeps active source-backed debug IDs valid, unique, and non-generated', () => {
+    const debugIds = collectSafetyColliders().flatMap((collider) =>
+      collider.debugId ? [collider.debugId] : []
     );
+    const landingDebugIds = UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES.flatMap(
+      (policy) => (policy.collision && policy.debugId ? [policy.debugId] : [])
+    );
+    const activeDebugIds = [...debugIds, ...landingDebugIds];
 
-    [
-      ['GroundStairEastBoundary', '4001'],
-      ['GroundStairLowerCornerGuard', '4002'],
-      ['UpperStairEastUpperVoidGuard', '4007'],
-      ['UpperStairWestBannisterGuard', '4009'],
-      ['UpperStairNorthBannisterGuard', '400A'],
-    ].forEach(([name, id]) => {
-      expect(names.has(name)).toBe(true);
+    expect([...activeDebugIds].sort()).toEqual([
+      '4001',
+      '4002',
+      '4007',
+      '4009',
+      '400A',
+      '400D',
+    ]);
+    expect(new Set(activeDebugIds).size).toBe(activeDebugIds.length);
+
+    activeDebugIds.forEach((debugId) => {
+      expect(DEBUG_COLLIDER_ID_PATTERN.test(debugId)).toBe(true);
       expect(
-        getDeclaredColliderDebugId({ floor: 'upper', category: 'upper', name })
-      ).toBe(id);
+        getGeneratedColliderId({
+          floor: 'upper',
+          category: debugId.startsWith('1') ? 'ground' : 'upper',
+          name: `${debugId.startsWith('1') ? 'ground' : 'upper'}-collider-${Number.parseInt(debugId.slice(1), 16)}`,
+        })
+      ).not.toBe(debugId);
     });
-
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairTopGapBlockerWest',
-      })
-    ).toBe('4003');
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairTopGapBlockerEast',
-      })
-    ).toBe('4004');
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairHiddenRunVoidGuard',
-      })
-    ).toBeUndefined();
   });
 
-  it('does not regenerate the removed hidden-run void guard', () => {
-    const names = collectSafetyColliders().map((collider) => collider.name);
+  it('exposes source-backed debug IDs unchanged at runtime registration', () => {
+    const colliders = collectSafetyColliders();
+    const visualizer = createColliderVisualizer({ activeFloorId: 'upper' });
 
-    expect(names).not.toContain('UpperStairHiddenRunVoidGuard');
+    visualizer.register(
+      colliders.map((collider) => ({
+        floor: collider.floor,
+        category: collider.floor,
+        name: collider.name,
+        bounds: collider.bounds,
+        sourceId: collider.sourceId,
+        sourceType: 'safetyCollider',
+        purpose: collider.purpose,
+        debugId: collider.debugId,
+      }))
+    );
+
+    colliders.forEach((collider) => {
+      if (!collider.debugId) return;
+
+      expect(visualizer.getColliderBySourceId(collider.sourceId)?.id).toBe(
+        collider.debugId
+      );
+    });
+
+    visualizer.dispose();
   });
 
   it('keeps safety collider source IDs free of tombstone wording', () => {

@@ -14,7 +14,10 @@ import {
 import type { RectCollider } from '../../systems/collision';
 import type { FloorId } from '../../systems/movement/stairs';
 
-import { getDeclaredColliderDebugId } from './colliderDebugIds';
+import {
+  DEBUG_COLLIDER_ID_PATTERN,
+  getDeclaredColliderDebugId,
+} from './colliderDebugIds';
 import {
   DEBUG_ID_PRECISION,
   allocateDebugId,
@@ -34,6 +37,7 @@ export interface DebugColliderMetadata {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  debugId?: string;
 }
 
 export interface DebugColliderRegistration {
@@ -47,6 +51,7 @@ export interface DebugColliderRegistration {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  debugId?: string;
 }
 
 export interface DebugColliderVisualizerState {
@@ -101,15 +106,17 @@ const cloneSourceMetadata = <
     sourceId?: string;
     sourceType?: string;
     purpose?: string;
+    debugId?: string;
   },
 >(
   input: T
-): Pick<T, 'sourceId' | 'sourceType' | 'purpose'> => ({
+): Pick<T, 'sourceId' | 'sourceType' | 'purpose' | 'debugId'> => ({
   ...(typeof input.sourceId === 'string' ? { sourceId: input.sourceId } : {}),
   ...(typeof input.sourceType === 'string'
     ? { sourceType: input.sourceType }
     : {}),
   ...(typeof input.purpose === 'string' ? { purpose: input.purpose } : {}),
+  ...(typeof input.debugId === 'string' ? { debugId: input.debugId } : {}),
 });
 
 const cloneBounds = (bounds: RectCollider): RectCollider => ({
@@ -146,6 +153,7 @@ const getColliderDebugPrimaryId = (
   metadata: Omit<DebugColliderMetadata, 'id'>,
   seed: string
 ): string =>
+  metadata.debugId ??
   getDeclaredColliderDebugId(metadata) ??
   getDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
 
@@ -176,7 +184,24 @@ const allocateColliderDebugIds = (
   const usedIds = new Set(existingIds);
   const seedCounts = new Map<string, number>();
 
+  const explicitIds = new Map<string, string>();
+
   const allocationItems = metadataList.map((metadata, index) => {
+    if (metadata.debugId) {
+      if (!DEBUG_COLLIDER_ID_PATTERN.test(metadata.debugId)) {
+        throw new Error(
+          `Invalid debug collider ID ${metadata.debugId} declared for ${metadata.name}`
+        );
+      }
+      const existingName = explicitIds.get(metadata.debugId);
+      if (existingName || existingIds.has(metadata.debugId)) {
+        throw new Error(
+          `Debug collider ID ${metadata.debugId} is declared for both ${existingName ?? 'an existing collider'} and ${metadata.name}`
+        );
+      }
+      explicitIds.set(metadata.debugId, metadata.name);
+    }
+
     const seed = getColliderDebugSeed(metadata);
     const seedOccurrence = seedCounts.get(seed) ?? 0;
     seedCounts.set(seed, seedOccurrence + 1);
