@@ -2253,7 +2253,7 @@ function initializeImmersiveScene(
     });
     upperFloorGroup.add(upperStairwellLanding.group);
     upperStairwellLanding.colliders
-      .slice(2)
+      .slice(0, 2)
       .forEach((collider, index) =>
         pushNamedUpperFloorCollider(
           `UpperStairwellLandingGuard-${index + 3}`,
