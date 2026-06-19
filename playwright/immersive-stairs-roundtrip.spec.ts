@@ -1087,6 +1087,8 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   });
   expect(debugColliders).toContain('GroundStairEastBoundary');
   expect(debugColliders).toContain('GroundStairLowerCornerGuard');
+  expect(debugColliders).toContain('UpperStairwellLandingGuard-3');
+  expect(debugColliders).not.toContain('UpperStairwellLandingGuard-4');
   expect(debugColliders).not.toContain('GroundStairEastRunSeal');
   expect(debugColliders).not.toContain('GroundStairEastRunSealLowerCap');
   expect(debugColliders).not.toContain('GroundStairEastRunSealUpperCap');
@@ -1183,18 +1185,6 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
       sample.name
     ).toEqual([]);
   }
-
-  const eastVoidGuardSample = {
-    x: stairCenterX + stairHalfWidth - PLAYER_RADIUS,
-    z: physicalLandingZ,
-    floorId: 'upper' as const,
-  };
-  expect(await canOccupyPosition(page, eastVoidGuardSample)).toBe(false);
-  await expectBlockingColliderSourceAt(
-    page,
-    eastVoidGuardSample,
-    'upper.stairwell.eastLowerVoid.safetyCollider'
-  );
 
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.

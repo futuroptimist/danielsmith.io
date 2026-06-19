@@ -2252,12 +2252,16 @@ function initializeImmersiveScene(
       },
     });
     upperFloorGroup.add(upperStairwellLanding.group);
-    upperStairwellLanding.colliders.forEach((collider, index) =>
-      pushNamedUpperFloorCollider(
-        `UpperStairwellLandingGuard-${index + 1}`,
-        collider
+    upperStairwellLanding.namedColliders
+      .filter(({ name }) =>
+        name.startsWith('UpperStairwellLandingShoulderGuard')
       )
-    );
+      .forEach(({ collider }, index) =>
+        pushNamedUpperFloorCollider(
+          `UpperStairwellLandingGuard-${index + 3}`,
+          collider
+        )
+      );
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });

@@ -20,14 +20,10 @@ const DECLARED_RUNTIME_COLLIDER_IDS = {
   UpperStairTopGapBlockerWest: '4003',
   UpperStairTopGapBlockerEast: '4004',
   UpperStairWestUpperVoidGuard: '4005',
-  UpperStairEastLowerVoidGuard: '4006',
   UpperStairEastUpperVoidGuard: '4007',
   UpperStairWestBannisterGuard: '4009',
   UpperStairNorthBannisterGuard: '400A',
-  'UpperStairwellLandingGuard-1': '400B',
-  'UpperStairwellLandingGuard-2': '400C',
   'UpperStairwellLandingGuard-3': '400D',
-  'UpperStairwellLandingGuard-4': '400E',
 } as const satisfies Record<string, string>;
 
 const DECLARED_REGRESSION_COLLIDER_IDS = {
