@@ -37,9 +37,15 @@ export interface UpperStairwellLandingConfig {
   guard: UpperStairwellGuardConfig;
 }
 
+export interface NamedUpperStairwellLandingCollider {
+  name: string;
+  collider: RectCollider;
+}
+
 export interface UpperStairwellLandingBuild {
   group: Group;
   colliders: RectCollider[];
+  namedColliders: NamedUpperStairwellLandingCollider[];
 }
 
 const GROUP_NAME = 'UpperStairwellLanding';
@@ -63,6 +69,7 @@ const clampBoundsToRoom = (
 const addGuard = (params: {
   group: Group;
   colliders: RectCollider[];
+  namedColliders: NamedUpperStairwellLandingCollider[];
   material: MeshStandardMaterial;
   name: string;
   bounds: Bounds2D;
@@ -89,6 +96,7 @@ const addGuard = (params: {
   );
   params.group.add(guard);
   params.colliders.push(guardBounds);
+  params.namedColliders.push({ name: params.name, collider: guardBounds });
 };
 
 /**
@@ -111,11 +119,12 @@ export function createUpperStairwellLanding(
   const group = new Group();
   group.name = GROUP_NAME;
   const colliders: RectCollider[] = [];
+  const namedColliders: NamedUpperStairwellLandingCollider[] = [];
   const thickness = Math.max(config.guard.thickness, 0);
   const guardMaterial = new MeshStandardMaterial(config.guard.material);
 
   if (thickness <= 0 || config.guard.height <= 0) {
-    return { group, colliders };
+    return { group, colliders, namedColliders };
   }
 
   const sideSides = config.guard.sideSides ?? ['east', 'west'];
@@ -124,6 +133,7 @@ export function createUpperStairwellLanding(
     addGuard({
       group,
       colliders,
+      namedColliders,
       material: guardMaterial,
       name: `${SIDE_GUARD_NAME}-West`,
       bounds: {
@@ -142,6 +152,7 @@ export function createUpperStairwellLanding(
     addGuard({
       group,
       colliders,
+      namedColliders,
       material: guardMaterial,
       name: `${SIDE_GUARD_NAME}-East`,
       bounds: {
@@ -158,6 +169,7 @@ export function createUpperStairwellLanding(
   addGuard({
     group,
     colliders,
+    namedColliders,
     material: guardMaterial,
     name: FAR_GUARD_NAME,
     bounds: {
@@ -183,6 +195,7 @@ export function createUpperStairwellLanding(
       addGuard({
         group,
         colliders,
+        namedColliders,
         material: guardMaterial,
         name: `${SHOULDER_GUARD_NAME}-West`,
         bounds: {
@@ -201,6 +214,7 @@ export function createUpperStairwellLanding(
       addGuard({
         group,
         colliders,
+        namedColliders,
         material: guardMaterial,
         name: `${SHOULDER_GUARD_NAME}-East`,
         bounds: {
@@ -216,5 +230,5 @@ export function createUpperStairwellLanding(
     }
   }
 
-  return { group, colliders };
+  return { group, colliders, namedColliders };
 }

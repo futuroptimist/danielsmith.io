@@ -93,6 +93,36 @@ describe('createUpperStairwellLanding', () => {
     ).toBe(false);
   });
 
+  it('exposes collider source guard names for stable runtime filtering', () => {
+    const result = createUpperStairwellLanding({
+      roomBounds: { minX: -6, maxX: 6, minZ: -10, maxZ: 8 },
+      openingBounds: { minX: -2, maxX: 2, minZ: -8, maxZ: 6 },
+      descentCorridorBounds: {
+        minX: -1.2,
+        maxX: 1.1,
+        minZ: -7.6,
+        maxZ: 6,
+      },
+      elevation: 4,
+      guard: {
+        height: 0.56,
+        thickness: 0.2,
+        sideSides: ['east'],
+        shoulderSides: ['east'],
+        material: { color: 0xff0000 },
+      },
+    });
+
+    expect(result.namedColliders.map(({ name }) => name)).toEqual([
+      'UpperStairwellLandingSideGuard-East',
+      'UpperStairwellLandingFarGuard',
+      'UpperStairwellLandingShoulderGuard-East',
+    ]);
+    expect(result.namedColliders.map(({ collider }) => collider)).toStrictEqual(
+      result.colliders
+    );
+  });
+
   it('clamps guard colliders to the landing room when the opening touches an edge', () => {
     const result = createUpperStairwellLanding({
       roomBounds: { minX: -2, maxX: 4, minZ: -6, maxZ: 6 },
