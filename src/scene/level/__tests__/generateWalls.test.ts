@@ -1,18 +1,12 @@
 import { MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import {
-  FLOOR_PLAN,
-  FLOOR_PLAN_SCALE,
-  UPPER_FLOOR_PLAN,
-  WALL_THICKNESS,
-} from '../../../assets/floorPlan';
-import { createWallSegmentInstances } from '../../../assets/floorPlan/wallSegments';
+import { FLOOR_PLAN_SCALE, WALL_THICKNESS } from '../../../assets/floorPlan';
 import { createWallSegmentMeshes } from '../../structures/wallSegmentsMesh';
 import { generateWallSegmentInstances } from '../generateWalls';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
 import type { FloorDefinition, LevelDefinition } from '../schema';
-import { assertLevelSourceId } from '../sourceIds';
+import { LEVEL_SOURCE_ID_PATTERN, assertLevelSourceId } from '../sourceIds';
 
 const wallOptions = (baseElevation = 0) => ({
   coordinateScale: FLOOR_PLAN_SCALE,
@@ -142,38 +136,44 @@ function getFloor(level: LevelDefinition, floorId: string): FloorDefinition {
 }
 
 describe('generateWallSegmentInstances', () => {
-  it('matches legacy ground wall and fence bounds while using declarative source IDs', () => {
+  it('generates source-backed ground wall and fence inventory', () => {
     const generated = generateWallSegmentInstances(
       getFloor(PORTFOLIO_LEVEL, 'ground'),
       wallOptions()
     );
-    const legacy = createWallSegmentInstances(FLOOR_PLAN, {
-      floorId: 'ground',
-      ...wallOptions(),
-    });
+    const sourceIds = generated.map((instance) => instance.sourceId);
+    const sourceInventory = getFloor(PORTFOLIO_LEVEL, 'ground').walls.map(
+      (wall) => wall.sourceId
+    );
 
-    expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
-      legacy.map(wallSignature).sort(compareSignatures)
+    expect(generated.length).toBeGreaterThan(0);
+    expect(new Set(sourceInventory).size).toBe(sourceInventory.length);
+    expect(sourceIds.every((id) => LEVEL_SOURCE_ID_PATTERN.test(id))).toBe(
+      true
     );
-    expect(generated.every((instance) => instance.sourceId)).toBe(true);
-    expect(generated.map((instance) => instance.sourceId)).toContain(
-      'ground.living_room.south_wall'
-    );
+    expect(new Set(sourceIds)).toEqual(new Set(sourceInventory));
+    expect(generated.some((instance) => instance.isFence)).toBe(true);
+    expect(generated.some((instance) => !instance.isFence)).toBe(true);
+    expect(sourceIds).toContain('ground.living_room.south_wall');
   });
 
-  it('matches legacy upper wall bounds without legacy room-doorway generation', () => {
+  it('generates source-backed upper wall inventory', () => {
     const generated = generateWallSegmentInstances(
       getFloor(PORTFOLIO_LEVEL, 'upper'),
       wallOptions(9)
     );
-    const legacy = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
-      floorId: 'upper',
-      ...wallOptions(9),
-    });
-
-    expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
-      legacy.map(wallSignature).sort(compareSignatures)
+    const sourceIds = generated.map((instance) => instance.sourceId);
+    const sourceInventory = getFloor(PORTFOLIO_LEVEL, 'upper').walls.map(
+      (wall) => wall.sourceId
     );
+
+    expect(generated.length).toBeGreaterThan(0);
+    expect(new Set(sourceInventory).size).toBe(sourceInventory.length);
+    expect(sourceIds.every((id) => LEVEL_SOURCE_ID_PATTERN.test(id))).toBe(
+      true
+    );
+    expect(new Set(sourceIds)).toEqual(new Set(sourceInventory));
+    expect(generated.every((instance) => !instance.isFence)).toBe(true);
   });
 
   it('adds stable source metadata to generated wall and fence meshes', () => {
@@ -247,6 +247,8 @@ describe('generateWallSegmentInstances', () => {
       (wall) => wall.sourceId === addedWallSourceId
     );
     expect(generatedWall).toBeDefined();
+    // Exact collider geometry belongs here because this tiny proof floor isolates
+    // the wall generator from production floor-plan inventory churn.
     expect(generatedWall?.collider).toMatchObject({ minX: 8, maxX: 8.25 });
 
     const material = new MeshBasicMaterial({ color: 0xffffff });
