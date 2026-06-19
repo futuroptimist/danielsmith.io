@@ -160,13 +160,16 @@ import {
   applySceneObjectSourceMetadata,
   createSceneObjectDefinitionsById,
   registerSceneObjectColliders,
+  type SceneObjectColliderSourceMetadata,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
+import type { LevelSourceId } from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
 } from './scene/level/stairSafetyColliders';
+import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from './scene/level/upperStairwellLandingSegments';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -992,12 +995,17 @@ const colliderSourceMetadata = new Map<
     sourceId:
       | WallSegmentInstance['sourceId']
       | LevelSafetyCollider['sourceId']
-      | SceneObjectDefinition['sourceId'];
-    sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
+      | SceneObjectDefinition['sourceId']
+      | LevelSourceId;
+    sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
   }
 >();
 const upperFloorColliders: RectCollider[] = [];
+const sceneObjectColliderSourceMetadata = colliderSourceMetadata as Map<
+  RectCollider,
+  SceneObjectColliderSourceMetadata
+>;
 
 const sceneObjectDefinitionsById =
   createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
@@ -2128,9 +2136,19 @@ function initializeImmersiveScene(
         layout: stairLayout,
       })
     : undefined;
-  const pushNamedUpperFloorCollider = (name: string, bounds: RectCollider) => {
-    upperFloorColliders.push(bounds);
-    namedColliderDebugNames.set(bounds, name);
+  const registerUpperFloorGeneratedCollider = (collider: {
+    name: string;
+    bounds: RectCollider;
+    sourceId: LevelSourceId;
+    role: string;
+  }) => {
+    upperFloorColliders.push(collider.bounds);
+    namedColliderDebugNames.set(collider.bounds, collider.name);
+    colliderSourceMetadata.set(collider.bounds, {
+      sourceId: collider.sourceId,
+      sourceType: 'generatedCollider',
+      purpose: `upper stairwell landing ${collider.role} guard`,
+    });
   };
 
   const upperStairWestEgressLaneX =
@@ -2250,18 +2268,12 @@ function initializeImmersiveScene(
           metalness: 0.05,
         },
       },
+      segments: UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
     });
     upperFloorGroup.add(upperStairwellLanding.group);
-    upperStairwellLanding.namedColliders
-      .filter(({ name }) =>
-        name.startsWith('UpperStairwellLandingShoulderGuard')
-      )
-      .forEach(({ collider }, index) =>
-        pushNamedUpperFloorCollider(
-          `UpperStairwellLandingGuard-${index + 3}`,
-          collider
-        )
-      );
+    upperStairwellLanding.colliders.forEach(
+      registerUpperFloorGeneratedCollider
+    );
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
@@ -2844,7 +2856,7 @@ function initializeImmersiveScene(
         showpiece.colliders,
         flywheelSceneObject,
         groundColliders,
-        colliderSourceMetadata
+        sceneObjectColliderSourceMetadata
       );
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
@@ -2877,7 +2889,7 @@ function initializeImmersiveScene(
         terminal.colliders,
         jobbotSceneObject,
         groundColliders,
-        colliderSourceMetadata
+        sceneObjectColliderSourceMetadata
       );
     } else {
       terminal.colliders.forEach((collider) => groundColliders.push(collider));
@@ -2901,7 +2913,7 @@ function initializeImmersiveScene(
           navigator.colliders,
           axelSceneObject,
           groundColliders,
-          colliderSourceMetadata
+          sceneObjectColliderSourceMetadata
         );
       } else {
         navigator.colliders.forEach((collider) =>
@@ -2959,7 +2971,7 @@ function initializeImmersiveScene(
         console.colliders,
         prReaperSceneObject,
         groundColliders,
-        colliderSourceMetadata
+        sceneObjectColliderSourceMetadata
       );
     } else {
       console.colliders.forEach((collider) => groundColliders.push(collider));
@@ -3070,7 +3082,7 @@ function initializeImmersiveScene(
         loom.colliders,
         woveSceneObject,
         groundColliders,
-        colliderSourceMetadata
+        sceneObjectColliderSourceMetadata
       );
     } else {
       loom.colliders.forEach((collider) => groundColliders.push(collider));
