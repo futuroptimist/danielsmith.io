@@ -1132,6 +1132,9 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     };
   });
 
+  // The page.evaluate() block above enables debugSolids/debugColliders before
+  // querying targetState; that browser-side debug API state persists here and
+  // satisfies the source-backed helper preconditions.
   await expectSourceBackedSolidPresent(page, 'upper.upper_landing.south_wall');
   await expectSourceBackedColliderPresent(
     page,
