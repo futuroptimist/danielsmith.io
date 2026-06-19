@@ -278,6 +278,6 @@ performance, modes, animation, and more) provide ready-to-run task scaffolding f
 `npm run build` generates distributable assets, and CI asserts that `dist/index.html`
 exists as part of the smoke suite.
 
-[resume-src]: docs/resume/2025-09/resume.tex
+[resume-src]: docs/resume/2026-06/resume.tex
 [prompt-summary]: docs/prompts/summary.md
 [baseline-prompt]: docs/prompts/codex/baseline.md
