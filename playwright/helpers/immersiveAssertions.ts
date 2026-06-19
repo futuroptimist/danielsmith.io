@@ -88,6 +88,22 @@ export async function getBlockingColliderNames(
   }, target);
 }
 
+export async function getBlockingColliderSourceIds(
+  page: Page,
+  target: ImmersiveSampleTarget
+) {
+  return page.evaluate((next) => {
+    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
+    if (!debugApi) {
+      throw new Error('Debug colliders API unavailable');
+    }
+    return debugApi
+      .getBlockingCollidersAt(next)
+      .map((collider) => collider.sourceId)
+      .filter((sourceId): sourceId is string => typeof sourceId === 'string');
+  }, target);
+}
+
 export async function expectSamplesOccupiable(
   page: Page,
   samples: ImmersiveSample[]

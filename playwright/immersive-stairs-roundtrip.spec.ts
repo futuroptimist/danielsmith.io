@@ -11,6 +11,7 @@ import {
   expectSourceBackedColliderPresent,
   expectSourceBackedSolidPresent,
   getBlockingColliderNames,
+  getBlockingColliderSourceIds,
   type ImmersiveSample,
 } from './helpers/immersiveAssertions';
 
@@ -1171,9 +1172,9 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     floorId: 'upper' as const,
   };
   expect(await canOccupyPosition(page, eastVoidGuardSample)).toBe(false);
-  expect(await getBlockingColliderNames(page, eastVoidGuardSample)).not.toEqual(
-    []
-  );
+  expect(
+    await getBlockingColliderSourceIds(page, eastVoidGuardSample)
+  ).toContain('upper.stairwell.eastLowerVoid.safetyCollider');
 
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.
@@ -1405,16 +1406,18 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     ).toEqual([]);
   }
   expect(await canOccupyPosition(page, westSideStairEntry)).toBe(false);
-  expect(await getBlockingColliderNames(page, westSideStairEntry)).not.toEqual(
-    []
-  );
+  expect(
+    await getBlockingColliderSourceIds(page, westSideStairEntry)
+  ).toContain('upper.stairwell.westBannister.safetyCollider');
   const runtimeWestEntry = await stepRuntimeIntoUpperStairEdge(
     page,
     { x: 8.1, z: -24.68 },
     { dx: 0.12, dz: 0 }
   );
   expect(runtimeWestEntry.movedX).toBe(false);
-  expect(runtimeWestEntry.blockedBy ?? []).not.toEqual([]);
+  expect(runtimeWestEntry.blockedBy ?? []).toContain(
+    'UpperStairWestBannisterGuard'
+  );
   await expect(async () =>
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
@@ -1427,9 +1430,9 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
       false
     );
     expect(
-      await getBlockingColliderNames(page, sample.target),
+      await getBlockingColliderSourceIds(page, sample.target),
       sample.name
-    ).not.toEqual([]);
+    ).toContain('upper.stairwell.northBannister.safetyCollider');
     await expect(async () => movePlayerTo(page, sample.target)).rejects.toThrow(
       /Cannot occupy/
     );
