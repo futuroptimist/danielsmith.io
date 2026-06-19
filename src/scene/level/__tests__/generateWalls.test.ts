@@ -140,11 +140,14 @@ function expectGeneratedWallSourceIdsToMatchDeclaredInventory(
   generated: ReturnType<typeof generateWallSegmentInstances>
 ) {
   const declaredSourceIds = floor.walls.map((wall) => wall.sourceId);
-  const generatedSourceIds = generated.map((instance) => instance.sourceId);
+  const generatedSourceIds = [
+    ...new Set(generated.map((instance) => instance.sourceId)),
+  ];
 
   expect(new Set(declaredSourceIds).size).toBe(declaredSourceIds.length);
+  expect(new Set(generatedSourceIds).size).toBe(generatedSourceIds.length);
   generatedSourceIds.forEach((id) => expect(() => sourceId(id)).not.toThrow());
-  expect(new Set(generatedSourceIds)).toEqual(new Set(declaredSourceIds));
+  expect(generatedSourceIds.toSorted()).toEqual(declaredSourceIds.toSorted());
 }
 
 describe('generateWallSegmentInstances', () => {
@@ -153,6 +156,7 @@ describe('generateWallSegmentInstances', () => {
     const generated = generateWallSegmentInstances(ground, wallOptions());
     expect(generated.length).toBeGreaterThan(0);
     expect(generated.some((instance) => instance.isFence)).toBe(true);
+    expect(generated.some((instance) => !instance.isFence)).toBe(true);
     expectGeneratedWallSourceIdsToMatchDeclaredInventory(ground, generated);
   });
 
