@@ -1,0 +1,101 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.55in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\setlist[itemize]{leftmargin=*, label={--}, itemsep=0.15mm, topsep=0.15mm,
+  parsep=0pt, partopsep=0pt}
+\titlespacing*{\section}{0pt}{1.6mm}{0.7mm}
+\setlength\parindent{0pt}
+\linespread{0.93}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Daniel Smith}}\\[-1mm]
+    \href{mailto:daniel@danielsmith.io}{daniel@danielsmith.io} \,|\,
+    \href{https://danielsmith.io}{danielsmith.io} \,|\,
+    \href{https://github.com/futuroptimist}{github.com/futuroptimist} \,|\,
+    \href{https://linkedin.com/in/danielsmith4483}{linkedin.com/in/danielsmith4483}
+\end{center}
+
+\vspace{-2.2mm}
+\section*{Summary}
+Reliability and platform engineer with 6+ years at YouTube (Google) and 10+ years building
+production software. Builds Kubernetes and Helm platforms, privacy-focused AI infrastructure,
+and accessible full-stack products, with strengths in release engineering, operational
+automation, and incident response.
+
+\vspace{-2.2mm}
+\section*{Skills}
+\textbf{Languages \& Data:} Python, Go, TypeScript/JavaScript, SQL, C++, Bash,
+BigQuery/GoogleSQL \\
+\textbf{Platform \& Delivery:} Kubernetes, k3s, Helm, Docker/OCI, Linux, GitHub Actions,
+GHCR, Cloudflare, Google Cloud \\
+\textbf{Reliability:} SLOs, monitoring and alerting, dashboards, incident response, on-call,
+capacity and reliability reviews, runbooks, CI/CD, release engineering, automated testing \\
+\textbf{Application \& AI:} Astro, Svelte, React, Vite, Flask, REST and OpenAI-compatible APIs,
+Three.js/WebGL, local LLM inference, LLM application and infrastructure engineering
+
+\vspace{-2.2mm}
+\section*{Experience}
+\textbf{Independent Open Source Engineering} \hfill Remote \\
+\textit{Platform \& Reliability Engineer} \hfill Jun 2025 -- Present
+\begin{itemize}
+  \item Designed and operate \href{https://github.com/futuroptimist/sugarkube}{Sugarkube},
+  a reusable k3s and Helm platform for Raspberry Pi and SBC clusters, with automated image
+  provisioning, environment-specific deployments, health verification, rollback paths, and
+  recovery runbooks.
+  \item Standardized release engineering across \href{https://democratized.space}{DSPACE},
+  \href{https://token.place}{token.place}, and
+  \href{https://danielsmith.io}{danielsmith.io} using GHCR container images, OCI Helm charts,
+  immutable commit tags, staged promotion, and post-deployment verification.
+  \item Developed \href{https://token.place}{token.place}, a privacy-focused distributed AI
+  platform with OpenAI-compatible APIs, local model inference, end-to-end encrypted relay flows,
+  multi-relay failover, rate limiting, and cross-language security and integration testing.
+  \item Integrated \href{https://democratized.space}{DSPACE} chat with
+  \href{https://token.place}{token.place} and shipped accessible Astro/Svelte and
+  TypeScript/Three.js applications with offline behavior, SSR safeguards, WebGL-to-text failover,
+  and automated browser testing.
+\end{itemize}
+
+\textbf{YouTube (Google)} \hfill San Bruno, CA \\
+\textit{Site Reliability Engineer, L4} \hfill Sep 2018 -- May 2025
+\begin{itemize}
+  \item Defined product-health metrics and leadership dashboards for high-traffic YouTube surfaces,
+  giving product and engineering teams a shared basis for reliability reviews and prioritization.
+  \item Automated monitoring, anomaly analysis, and operational workflows in Python, Go, SQL, and
+  C++, improving signal quality and reducing repetitive investigation for large-scale production
+  systems.
+  \item Served on-call across Core, Trust \& Safety, and Search SRE; handled incidents and
+  partnered with service owners to turn failure modes into runbooks, readiness checks, and
+  follow-up improvements.
+  \item Advised teams across Alphabet on reliability metrics and review practices; authored reusable
+  playbooks, mentored engineers, strengthened onboarding, and earned promotion to L4 in Dec 2021.
+\end{itemize}
+
+\textbf{Naval Research Laboratory} \hfill Stennis Space Center, MS \\
+\textit{Software Engineer} \hfill Jan 2017 -- Sep 2018
+\begin{itemize}
+  \item Built C++/Qt data-processing applications for research workflows and delivered iterative
+  releases, demonstrations, and documentation in a distributed Scrum team.
+\end{itemize}
+
+\textbf{The University of Southern Mississippi} \hfill Hattiesburg, MS \\
+\textit{Software Developer} \hfill Mar 2014 -- Dec 2016
+\begin{itemize}
+  \item Built an Objective-C content-delivery and networking framework for university iOS
+  applications, supporting real-time content updates.
+\end{itemize}
+
+\vspace{-2.2mm}
+\section*{Education}
+\textbf{The University of Southern Mississippi} - M.S. Computer Science, \textit{GPA: 4.0}
+\hfill Aug 2015 -- Aug 2016 \\
+\textbf{The University of Southern Mississippi} - B.S. Computer Science, \textit{GPA: 4.0}
+\hfill May 2013 -- May 2015 \\
+\textbf{Jones County Junior College} - A.A.S. Information System Technology,
+\textit{GPA: 4.0} \hfill Aug 2011 -- May 2013
+
+\end{document}
