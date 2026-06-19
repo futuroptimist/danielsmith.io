@@ -68,6 +68,8 @@ const collectSafetyColliders = (): LevelSafetyCollider[] => [
 
 describe('stair safety collider source definitions', () => {
   it('preserves key generated upper stair guard bounds', () => {
+    // Exact bounds stay here because this is a small synthetic generator fixture,
+    // not the production PORTFOLIO_LEVEL scene inventory.
     const colliders = createUpperStairSafetyColliders(upperArgs);
 
     expect(
@@ -147,6 +149,19 @@ describe('stair safety collider source definitions', () => {
         name: 'UpperStairTopGapBlockerEast',
       })
     ).toBe('4004');
+    expect(
+      getDeclaredColliderDebugId({
+        floor: 'upper',
+        category: 'upper',
+        name: 'UpperStairHiddenRunVoidGuard',
+      })
+    ).toBeUndefined();
+  });
+
+  it('does not regenerate the removed hidden-run void guard', () => {
+    const names = collectSafetyColliders().map((collider) => collider.name);
+
+    expect(names).not.toContain('UpperStairHiddenRunVoidGuard');
   });
 
   it('keeps safety collider source IDs free of tombstone wording', () => {
