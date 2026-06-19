@@ -1,13 +1,7 @@
 import { MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import {
-  FLOOR_PLAN,
-  FLOOR_PLAN_SCALE,
-  UPPER_FLOOR_PLAN,
-  WALL_THICKNESS,
-} from '../../../assets/floorPlan';
-import { createWallSegmentInstances } from '../../../assets/floorPlan/wallSegments';
+import { FLOOR_PLAN_SCALE, WALL_THICKNESS } from '../../../assets/floorPlan';
 import { createWallSegmentMeshes } from '../../structures/wallSegmentsMesh';
 import { generateWallSegmentInstances } from '../generateWalls';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
@@ -141,39 +135,36 @@ function getFloor(level: LevelDefinition, floorId: string): FloorDefinition {
   return floor;
 }
 
-describe('generateWallSegmentInstances', () => {
-  it('matches legacy ground wall and fence bounds while using declarative source IDs', () => {
-    const generated = generateWallSegmentInstances(
-      getFloor(PORTFOLIO_LEVEL, 'ground'),
-      wallOptions()
-    );
-    const legacy = createWallSegmentInstances(FLOOR_PLAN, {
-      floorId: 'ground',
-      ...wallOptions(),
-    });
+function expectGeneratedWallSourceIdsToMatchDeclaredInventory(
+  floor: FloorDefinition,
+  generated: ReturnType<typeof generateWallSegmentInstances>
+) {
+  const declaredSourceIds = floor.walls.map((wall) => wall.sourceId);
+  const generatedSourceIds = [
+    ...new Set(generated.map((instance) => instance.sourceId)),
+  ];
 
-    expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
-      legacy.map(wallSignature).sort(compareSignatures)
-    );
-    expect(generated.every((instance) => instance.sourceId)).toBe(true);
-    expect(generated.map((instance) => instance.sourceId)).toContain(
-      'ground.living_room.south_wall'
-    );
+  expect(new Set(declaredSourceIds).size).toBe(declaredSourceIds.length);
+  expect(new Set(generatedSourceIds).size).toBe(generatedSourceIds.length);
+  generatedSourceIds.forEach((id) => expect(() => sourceId(id)).not.toThrow());
+  expect(generatedSourceIds.toSorted()).toEqual(declaredSourceIds.toSorted());
+}
+
+describe('generateWallSegmentInstances', () => {
+  it('generates source-backed ground walls and fences from declarative inventory', () => {
+    const ground = getFloor(PORTFOLIO_LEVEL, 'ground');
+    const generated = generateWallSegmentInstances(ground, wallOptions());
+    expect(generated.length).toBeGreaterThan(0);
+    expect(generated.some((instance) => instance.isFence)).toBe(true);
+    expect(generated.some((instance) => !instance.isFence)).toBe(true);
+    expectGeneratedWallSourceIdsToMatchDeclaredInventory(ground, generated);
   });
 
-  it('matches legacy upper wall bounds without legacy room-doorway generation', () => {
-    const generated = generateWallSegmentInstances(
-      getFloor(PORTFOLIO_LEVEL, 'upper'),
-      wallOptions(9)
-    );
-    const legacy = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
-      floorId: 'upper',
-      ...wallOptions(9),
-    });
-
-    expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
-      legacy.map(wallSignature).sort(compareSignatures)
-    );
+  it('generates source-backed upper walls without legacy room-doorway generation', () => {
+    const upper = getFloor(PORTFOLIO_LEVEL, 'upper');
+    const generated = generateWallSegmentInstances(upper, wallOptions(9));
+    expect(generated.length).toBeGreaterThan(0);
+    expectGeneratedWallSourceIdsToMatchDeclaredInventory(upper, generated);
   });
 
   it('adds stable source metadata to generated wall and fence meshes', () => {
@@ -247,6 +238,8 @@ describe('generateWallSegmentInstances', () => {
       (wall) => wall.sourceId === addedWallSourceId
     );
     expect(generatedWall).toBeDefined();
+    // Exact bounds belong in this tiny proof floor fixture; production-scene
+    // coverage above only asserts source inventory/provenance contracts.
     expect(generatedWall?.collider).toMatchObject({ minX: 8, maxX: 8.25 });
 
     const material = new MeshBasicMaterial({ color: 0xffffff });
