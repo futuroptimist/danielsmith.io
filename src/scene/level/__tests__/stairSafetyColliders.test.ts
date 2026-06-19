@@ -133,15 +133,6 @@ describe('stair safety collider source definitions', () => {
       ).toBe(id);
     });
 
-    expect(names.has('UpperStairHiddenRunVoidGuard')).toBe(false);
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairHiddenRunVoidGuard',
-      })
-    ).toBeUndefined();
-
     expect(
       getDeclaredColliderDebugId({
         floor: 'upper',

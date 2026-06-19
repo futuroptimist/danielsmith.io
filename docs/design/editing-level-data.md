@@ -138,3 +138,29 @@ npx vitest run src/scene/level/__tests__/generateWalls.test.ts
 npx vitest run src/scene/level/__tests__/generateFloorSurfaces.test.ts
 npx playwright test playwright/immersive-stairs-roundtrip.spec.ts
 ```
+
+## Immersive test taxonomy
+
+Keep immersive Playwright assertions behavior-first unless a test is explicitly
+about debug provenance, generator output, or debug-ID registry behavior:
+
+1. **Behavior / interaction tests** should assert player-facing promises: the
+   player can traverse intended routes, cannot occupy meaningful voids or
+   blocked regions, and authored openings remain open. Prefer helpers such as
+   `expectSamplesOccupiable(...)`, `expectSamplesBlocked(...)`,
+   `expectNoBlockingCollidersAt(...)`, and `expectPathTraversable(...)` instead
+   of pinning production collider names, short debug IDs, or exact generated
+   bounds.
+2. **Debug / provenance tests** should be narrow and visibly separate from
+   behavior checks. Use source-ID helpers such as
+   `expectSourceBackedColliderPresent(...)` and
+   `expectSourceBackedSolidPresent(...)` when the contract is that authored
+   source metadata remains discoverable through debug APIs.
+3. **Generator tests** may assert exact bounds and geometry for tiny synthetic
+   fixtures. Avoid exact production-scene collider or solid pinning unless it is
+   a deliberate regression test with a comment explaining why that exact shape is
+   part of the test's purpose.
+4. **Registry / ID tests** may assert raw debug IDs only for declared debug-ID
+   registry behavior. Do not use raw IDs to prove normal movement behavior;
+   player-facing tests should describe the route, open area, blocked void, or
+   source-backed feature instead.
