@@ -13,10 +13,22 @@ on:
       - '.github/workflows/resume.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-artifacts:
     name: Build resume artifacts
     runs-on: ubuntu-latest
+    outputs:
+      artifact_docx: ${{ steps.resume.outputs.artifact_docx }}
+      artifact_pdf: ${{ steps.resume.outputs.artifact_pdf }}
+      base: ${{ steps.resume.outputs.base }}
+      docx_sha256: ${{ steps.checksums.outputs.docx_sha256 }}
+      pdf_pages: ${{ steps.pdfinfo.outputs.pages }}
+      pdf_sha256: ${{ steps.checksums.outputs.pdf_sha256 }}
+      source: ${{ steps.resume.outputs.tex }}
+      version: ${{ steps.resume.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,15 +36,22 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y texlive-full latexmk pandoc
+          sudo apt-get install -y latexmk pandoc poppler-utils texlive-full
 
       - name: Determine latest resume source
         id: resume
+        shell: bash
         run: |
           set -euo pipefail
           latest_dir=$(find docs/resume -regextype posix-extended -maxdepth 1 -mindepth 1 -type d -regex '.*/[0-9]{4}-[0-9]{2}$' | sort | tail -n1)
           if [ -z "${latest_dir}" ]; then
             echo "No dated resume directories found." >&2
+            exit 1
+          fi
+
+          version=$(basename "${latest_dir}")
+          if [[ ! "${version}" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
+            echo "Selected resume version '${version}' must match YYYY-MM." >&2
             exit 1
           fi
 
@@ -43,32 +62,209 @@ jobs:
           fi
 
           base_name=$(basename "${tex_file}" .tex)
-          resume_dir=$(dirname "${tex_file}")
+          build_dir="${RUNNER_TEMP}/resume-build"
+          artifact_pdf="${base_name}-${version}-pdf"
+          artifact_docx="${base_name}-${version}-docx"
 
+          mkdir -p "${build_dir}"
           {
-            echo "dir=${resume_dir}"
-            echo "tex=${tex_file}"
+            echo "artifact_docx=${artifact_docx}"
+            echo "artifact_pdf=${artifact_pdf}"
             echo "base=${base_name}"
+            echo "build_dir=${build_dir}"
+            echo "docx=${build_dir}/${base_name}.docx"
+            echo "pdf=${build_dir}/${base_name}.pdf"
+            echo "tex=${tex_file}"
+            echo "version=${version}"
           } >>"${GITHUB_OUTPUT}"
 
       - name: Generate PDF with latexmk
         run: |
           set -euo pipefail
-          latexmk -pdf -interaction=nonstopmode -outdir="${{ steps.resume.outputs.dir }}" "${{ steps.resume.outputs.tex }}"
+          latexmk -pdf -interaction=nonstopmode -outdir="${{ steps.resume.outputs.build_dir }}" "${{ steps.resume.outputs.tex }}"
 
       - name: Generate DOCX with pandoc
         run: |
           set -euo pipefail
-          pandoc "${{ steps.resume.outputs.tex }}" -o "${{ steps.resume.outputs.dir }}/${{ steps.resume.outputs.base }}.docx"
+          pandoc "${{ steps.resume.outputs.tex }}" -o "${{ steps.resume.outputs.docx }}"
+
+      - name: Collect PDF page count
+        id: pdfinfo
+        shell: bash
+        run: |
+          set -euo pipefail
+          pages=$(pdfinfo "${{ steps.resume.outputs.pdf }}" | awk '/^Pages:/ {print $2}')
+          if [ -z "${pages}" ]; then
+            echo "Unable to read PDF page count." >&2
+            exit 1
+          fi
+          echo "pages=${pages}" >>"${GITHUB_OUTPUT}"
+
+      - name: Calculate checksums
+        id: checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          pdf_sha256=$(sha256sum "${{ steps.resume.outputs.pdf }}" | awk '{print $1}')
+          docx_sha256=$(sha256sum "${{ steps.resume.outputs.docx }}" | awk '{print $1}')
+          {
+            echo "pdf_sha256=${pdf_sha256}"
+            echo "docx_sha256=${docx_sha256}"
+          } >>"${GITHUB_OUTPUT}"
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.resume.outputs.base }}.pdf
-          path: ${{ steps.resume.outputs.dir }}/${{ steps.resume.outputs.base }}.pdf
+          name: ${{ steps.resume.outputs.artifact_pdf }}
+          path: ${{ steps.resume.outputs.pdf }}
+          if-no-files-found: error
 
       - name: Upload DOCX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.resume.outputs.base }}.docx
-          path: ${{ steps.resume.outputs.dir }}/${{ steps.resume.outputs.base }}.docx
+          name: ${{ steps.resume.outputs.artifact_docx }}
+          path: ${{ steps.resume.outputs.docx }}
+          if-no-files-found: error
+
+      - name: Report build summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Resume artifact build"
+            echo
+            echo "- Selected TeX source: \`${{ steps.resume.outputs.tex }}\`"
+            echo "- Selected version: \`${{ steps.resume.outputs.version }}\`"
+            echo "- PDF page count: \`${{ steps.pdfinfo.outputs.pages }}\`"
+            echo "- Output paths:"
+            echo "  - \`${{ steps.resume.outputs.pdf }}\`"
+            echo "  - \`${{ steps.resume.outputs.docx }}\`"
+            echo "- SHA-256 checksums:"
+            echo "  - PDF: \`${{ steps.checksums.outputs.pdf_sha256 }}\`"
+            echo "  - DOCX: \`${{ steps.checksums.outputs.docx_sha256 }}\`"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
+  publish-artifacts:
+    name: Publish resume artifacts
+    runs-on: ubuntu-latest
+    needs: build-artifacts
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download PDF artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-artifacts.outputs.artifact_pdf }}
+          path: ${{ runner.temp }}/resume-artifacts/pdf
+
+      - name: Download DOCX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-artifacts.outputs.artifact_docx }}
+          path: ${{ runner.temp }}/resume-artifacts/docx
+
+      - name: Persist generated artifacts
+        id: persist
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.build-artifacts.outputs.version }}"
+          base="${{ needs.build-artifacts.outputs.base }}"
+
+          if [[ ! "${version}" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
+            echo "Resume version '${version}' must match YYYY-MM." >&2
+            exit 1
+          fi
+
+          source_pdf="${RUNNER_TEMP}/resume-artifacts/pdf/${base}.pdf"
+          source_docx="${RUNNER_TEMP}/resume-artifacts/docx/${base}.docx"
+          for artifact in "${source_pdf}" "${source_docx}"; do
+            if [ ! -s "${artifact}" ]; then
+              echo "Expected generated artifact missing: ${artifact}" >&2
+              exit 1
+            fi
+          done
+
+          version_dir="public/docs/resume/${version}"
+          mkdir -p "${version_dir}"
+          cp "${source_pdf}" "${version_dir}/resume.pdf"
+          cp "${source_docx}" "${version_dir}/resume.docx"
+          cp "${source_pdf}" public/resume.pdf
+          cp "${source_docx}" public/resume.docx
+
+          cmp --silent public/resume.pdf "${version_dir}/resume.pdf"
+          cmp --silent public/resume.docx "${version_dir}/resume.docx"
+
+          paths=(
+            "${version_dir}/resume.pdf"
+            "${version_dir}/resume.docx"
+            "public/resume.pdf"
+            "public/resume.docx"
+          )
+
+          if [ -n "$(git status --short -- "${paths[@]}")" ]; then
+            changed=true
+          else
+            changed=false
+          fi
+
+          {
+            echo "changed=${changed}"
+            echo "versioned_pdf=${version_dir}/resume.pdf"
+            echo "versioned_docx=${version_dir}/resume.docx"
+            echo "stable_pdf=public/resume.pdf"
+            echo "stable_docx=public/resume.docx"
+          } >>"${GITHUB_OUTPUT}"
+
+      - name: Commit and push generated artifacts
+        id: commit
+        if: ${{ steps.persist.outputs.changed == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            "${{ steps.persist.outputs.versioned_pdf }}" \
+            "${{ steps.persist.outputs.versioned_docx }}" \
+            "${{ steps.persist.outputs.stable_pdf }}" \
+            "${{ steps.persist.outputs.stable_docx }}"
+          git commit -m "📄 : – refresh generated resume artifacts"
+          git pull --rebase origin main
+          if ! git push origin HEAD:main; then
+            echo "::error::Unable to push generated resume artifacts to main. If branch protection blocks GitHub Actions pushes, update the documented persistence strategy or allow this workflow to write these generated files."
+            exit 1
+          fi
+          echo "sha=$(git rev-parse HEAD)" >>"${GITHUB_OUTPUT}"
+
+      - name: Report publish summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          commit_sha="${{ steps.commit.outputs.sha }}"
+          if [ -z "${commit_sha}" ]; then
+            commit_sha="not published"
+          fi
+          {
+            echo "## Resume artifact publish"
+            echo
+            echo "- Selected TeX source: \`${{ needs.build-artifacts.outputs.source }}\`"
+            echo "- Selected version: \`${{ needs.build-artifacts.outputs.version }}\`"
+            echo "- PDF page count: \`${{ needs.build-artifacts.outputs.pdf_pages }}\`"
+            echo "- Output paths:"
+            echo "  - \`${{ steps.persist.outputs.versioned_pdf }}\`"
+            echo "  - \`${{ steps.persist.outputs.versioned_docx }}\`"
+            echo "  - \`${{ steps.persist.outputs.stable_pdf }}\`"
+            echo "  - \`${{ steps.persist.outputs.stable_docx }}\`"
+            echo "- SHA-256 checksums:"
+            echo "  - PDF: \`${{ needs.build-artifacts.outputs.pdf_sha256 }}\`"
+            echo "  - DOCX: \`${{ needs.build-artifacts.outputs.docx_sha256 }}\`"
+            echo "- Repository files changed: \`${{ steps.persist.outputs.changed }}\`"
+            echo "- Generated commit SHA: \`${commit_sha}\`"
+          } >>"${GITHUB_STEP_SUMMARY}"
