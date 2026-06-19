@@ -68,6 +68,11 @@ export async function canOccupyPosition(
   }, target);
 }
 
+/**
+ * `getBlockingCollidersAt` reads collision state directly and does not require
+ * the debug collider overlay to be enabled. Keep this helper side-effect free so
+ * behavior assertions do not toggle persisted debug UI state.
+ */
 export async function getBlockingColliderNames(
   page: Page,
   target: ImmersiveSampleTarget
