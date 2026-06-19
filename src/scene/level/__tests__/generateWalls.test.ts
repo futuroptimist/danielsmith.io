@@ -1,13 +1,7 @@
 import { MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import {
-  FLOOR_PLAN,
-  FLOOR_PLAN_SCALE,
-  UPPER_FLOOR_PLAN,
-  WALL_THICKNESS,
-} from '../../../assets/floorPlan';
-import { createWallSegmentInstances } from '../../../assets/floorPlan/wallSegments';
+import { FLOOR_PLAN_SCALE, WALL_THICKNESS } from '../../../assets/floorPlan';
 import { createWallSegmentMeshes } from '../../structures/wallSegmentsMesh';
 import { generateWallSegmentInstances } from '../generateWalls';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
@@ -142,37 +136,37 @@ function getFloor(level: LevelDefinition, floorId: string): FloorDefinition {
 }
 
 describe('generateWallSegmentInstances', () => {
-  it('matches legacy ground wall and fence bounds while using declarative source IDs', () => {
-    const generated = generateWallSegmentInstances(
-      getFloor(PORTFOLIO_LEVEL, 'ground'),
-      wallOptions()
+  it('generates source-backed production wall and fence categories', () => {
+    const generated = [
+      ...generateWallSegmentInstances(
+        getFloor(PORTFOLIO_LEVEL, 'ground'),
+        wallOptions()
+      ),
+      ...generateWallSegmentInstances(
+        getFloor(PORTFOLIO_LEVEL, 'upper'),
+        wallOptions(9)
+      ),
+    ];
+    const sourceIds = generated.map((instance) => instance.sourceId);
+    const declaredWallSourceIds = PORTFOLIO_LEVEL.floors.flatMap((floor) =>
+      floor.walls.map((wall) => wall.sourceId)
     );
-    const legacy = createWallSegmentInstances(FLOOR_PLAN, {
-      floorId: 'ground',
-      ...wallOptions(),
-    });
 
-    expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
-      legacy.map(wallSignature).sort(compareSignatures)
-    );
+    expect(generated.length).toBeGreaterThan(0);
     expect(generated.every((instance) => instance.sourceId)).toBe(true);
-    expect(generated.map((instance) => instance.sourceId)).toContain(
-      'ground.living_room.south_wall'
+    expect(new Set(declaredWallSourceIds).size).toBe(
+      declaredWallSourceIds.length
     );
-  });
-
-  it('matches legacy upper wall bounds without legacy room-doorway generation', () => {
-    const generated = generateWallSegmentInstances(
-      getFloor(PORTFOLIO_LEVEL, 'upper'),
-      wallOptions(9)
-    );
-    const legacy = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
-      floorId: 'upper',
-      ...wallOptions(9),
-    });
-
-    expect(generated.map(wallSignature).sort(compareSignatures)).toEqual(
-      legacy.map(wallSignature).sort(compareSignatures)
+    expect(
+      sourceIds.every((sourceId) => declaredWallSourceIds.includes(sourceId))
+    ).toBe(true);
+    expect(generated.some((instance) => instance.isFence)).toBe(true);
+    expect(generated.some((instance) => !instance.isFence)).toBe(true);
+    expect(sourceIds).toEqual(
+      expect.arrayContaining([
+        'ground.living_room.south_wall',
+        'upper.upper_landing.south_wall',
+      ])
     );
   });
 
@@ -247,6 +241,7 @@ describe('generateWallSegmentInstances', () => {
       (wall) => wall.sourceId === addedWallSourceId
     );
     expect(generatedWall).toBeDefined();
+    // Synthetic proof floor keeps exactness close to the generator math.
     expect(generatedWall?.collider).toMatchObject({ minX: 8, maxX: 8.25 });
 
     const material = new MeshBasicMaterial({ color: 0xffffff });

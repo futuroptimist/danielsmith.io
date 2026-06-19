@@ -29,6 +29,7 @@ function createWallInstance(
 
 describe('createWallSegmentMeshes', () => {
   it('creates wall and fence meshes with UV2 coordinates and metadata', () => {
+    // Synthetic wall instances keep segment/source exactness at the mesh adapter layer.
     const wallMaterial = new MeshBasicMaterial({ color: 0xffffff });
     const fenceMaterial = new MeshBasicMaterial({ color: 0x888888 });
     const instances: WallSegmentInstance[] = [
