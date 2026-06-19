@@ -48,15 +48,17 @@ type FloorVisibilitySnapshot = {
   backyardEnvironmentVisible: boolean | null;
 };
 
+type RuntimeStepResult = {
+  movedX: boolean;
+  movedZ: boolean;
+  activeFloor: FloorId;
+  position: { x: number; y: number; z: number };
+  blockedBy?: string[];
+};
+
 type TestWorldApi = {
   movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
-  stepPlayerForTest(step: { dx: number; dz: number }): {
-    movedX: boolean;
-    movedZ: boolean;
-    activeFloor: FloorId;
-    position: { x: number; y: number; z: number };
-    blockedBy?: string[];
-  };
+  stepPlayerForTest(step: { dx: number; dz: number }): RuntimeStepResult;
   getActiveFloor(): FloorId;
   setActiveFloor(next: FloorId): void;
   canOccupyPosition(target: {
@@ -606,15 +608,23 @@ async function stepRuntimeIntoUpperStairEdge(
       throw new Error('World API unavailable');
     }
 
-    let lastResult: ReturnType<TestWorldApi['stepPlayerForTest']> | null = null;
+    let lastResult: RuntimeStepResult | null = null;
     for (let index = 0; index < 24; index += 1) {
+      const before = world.getPlayerPosition();
       const result = world.stepPlayerForTest(nextStep);
       lastResult = result;
       const blockedAxis =
         (nextStep.dx !== 0 && !result.movedX) ||
         (nextStep.dz !== 0 && !result.movedZ);
       if (blockedAxis) {
-        return result;
+        return {
+          ...result,
+          attemptedTarget: {
+            x: before.x + nextStep.dx,
+            z: before.z + nextStep.dz,
+            floorId: result.activeFloor,
+          },
+        };
       }
     }
 
@@ -622,6 +632,14 @@ async function stepRuntimeIntoUpperStairEdge(
       `Runtime stairwell entry was not blocked; last result=${JSON.stringify(lastResult)}`
     );
   }, step);
+}
+
+async function expectBlockingColliderSourceAt(
+  page: Page,
+  sample: { x: number; z: number; floorId?: FloorId },
+  sourceId: string
+) {
+  expect(await getBlockingColliderSourceIds(page, sample)).toContain(sourceId);
 }
 
 async function getWorldState(page: Page) {
@@ -1172,9 +1190,11 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     floorId: 'upper' as const,
   };
   expect(await canOccupyPosition(page, eastVoidGuardSample)).toBe(false);
-  expect(
-    await getBlockingColliderSourceIds(page, eastVoidGuardSample)
-  ).toContain('upper.stairwell.eastLowerVoid.safetyCollider');
+  await expectBlockingColliderSourceAt(
+    page,
+    eastVoidGuardSample,
+    'upper.stairwell.eastLowerVoid.safetyCollider'
+  );
 
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.
@@ -1406,17 +1426,21 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     ).toEqual([]);
   }
   expect(await canOccupyPosition(page, westSideStairEntry)).toBe(false);
-  expect(
-    await getBlockingColliderSourceIds(page, westSideStairEntry)
-  ).toContain('upper.stairwell.westBannister.safetyCollider');
+  await expectBlockingColliderSourceAt(
+    page,
+    westSideStairEntry,
+    'upper.stairwell.westBannister.safetyCollider'
+  );
   const runtimeWestEntry = await stepRuntimeIntoUpperStairEdge(
     page,
     { x: 8.1, z: -24.68 },
     { dx: 0.12, dz: 0 }
   );
   expect(runtimeWestEntry.movedX).toBe(false);
-  expect(runtimeWestEntry.blockedBy ?? []).toContain(
-    'UpperStairWestBannisterGuard'
+  await expectBlockingColliderSourceAt(
+    page,
+    runtimeWestEntry.attemptedTarget,
+    'upper.stairwell.westBannister.safetyCollider'
   );
   await expect(async () =>
     movePlayerTo(page, westSideStairEntry)
@@ -1429,10 +1453,11 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
       false
     );
-    expect(
-      await getBlockingColliderSourceIds(page, sample.target),
-      sample.name
-    ).toContain('upper.stairwell.northBannister.safetyCollider');
+    await expectBlockingColliderSourceAt(
+      page,
+      sample.target,
+      'upper.stairwell.northBannister.safetyCollider'
+    );
     await expect(async () => movePlayerTo(page, sample.target)).rejects.toThrow(
       /Cannot occupy/
     );
