@@ -160,7 +160,6 @@ import {
   applySceneObjectSourceMetadata,
   createSceneObjectDefinitionsById,
   registerSceneObjectColliders,
-  type SceneObjectColliderSourceMetadata,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
 import type { LevelSourceId } from './scene/level/sourceIds';
@@ -1002,10 +1001,6 @@ const colliderSourceMetadata = new Map<
   }
 >();
 const upperFloorColliders: RectCollider[] = [];
-const sceneObjectColliderSourceMetadata = colliderSourceMetadata as Map<
-  RectCollider,
-  SceneObjectColliderSourceMetadata
->;
 
 const sceneObjectDefinitionsById =
   createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
@@ -2856,7 +2851,7 @@ function initializeImmersiveScene(
         showpiece.colliders,
         flywheelSceneObject,
         groundColliders,
-        sceneObjectColliderSourceMetadata
+        colliderSourceMetadata
       );
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
@@ -2889,7 +2884,7 @@ function initializeImmersiveScene(
         terminal.colliders,
         jobbotSceneObject,
         groundColliders,
-        sceneObjectColliderSourceMetadata
+        colliderSourceMetadata
       );
     } else {
       terminal.colliders.forEach((collider) => groundColliders.push(collider));
@@ -2913,7 +2908,7 @@ function initializeImmersiveScene(
           navigator.colliders,
           axelSceneObject,
           groundColliders,
-          sceneObjectColliderSourceMetadata
+          colliderSourceMetadata
         );
       } else {
         navigator.colliders.forEach((collider) =>
@@ -2971,7 +2966,7 @@ function initializeImmersiveScene(
         console.colliders,
         prReaperSceneObject,
         groundColliders,
-        sceneObjectColliderSourceMetadata
+        colliderSourceMetadata
       );
     } else {
       console.colliders.forEach((collider) => groundColliders.push(collider));
@@ -3082,7 +3077,7 @@ function initializeImmersiveScene(
         loom.colliders,
         woveSceneObject,
         groundColliders,
-        sceneObjectColliderSourceMetadata
+        colliderSourceMetadata
       );
     } else {
       loom.colliders.forEach((collider) => groundColliders.push(collider));
