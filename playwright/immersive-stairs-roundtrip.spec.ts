@@ -1190,11 +1190,10 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     floorId: 'upper' as const,
   };
   expect(await canOccupyPosition(page, eastVoidGuardSample)).toBe(false);
-  await expectBlockingColliderSourceAt(
-    page,
-    eastVoidGuardSample,
-    'upper.stairwell.eastLowerVoid.safetyCollider'
-  );
+  expect(
+    await getBlockingColliderNames(page, eastVoidGuardSample),
+    'upper landing east void remains blocked by nearby active geometry'
+  ).not.toEqual([]);
 
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.

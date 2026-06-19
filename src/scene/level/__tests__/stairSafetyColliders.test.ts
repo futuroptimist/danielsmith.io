@@ -74,16 +74,6 @@ describe('stair safety collider source definitions', () => {
 
     expect(
       colliders.find(
-        (collider) => collider.name === 'UpperStairEastLowerVoidGuard'
-      )?.bounds
-    ).toEqual({
-      minX: 14.75,
-      maxX: 16.4,
-      minZ: -31.1,
-      maxZ: -27.799999999999997,
-    });
-    expect(
-      colliders.find(
         (collider) => collider.name === 'UpperStairWestBannisterGuard'
       )?.bounds
     ).toEqual({
@@ -124,7 +114,6 @@ describe('stair safety collider source definitions', () => {
     [
       ['GroundStairEastBoundary', '4001'],
       ['GroundStairLowerCornerGuard', '4002'],
-      ['UpperStairEastLowerVoidGuard', '4006'],
       ['UpperStairEastUpperVoidGuard', '4007'],
       ['UpperStairWestBannisterGuard', '4009'],
       ['UpperStairNorthBannisterGuard', '400A'],
