@@ -188,6 +188,11 @@ export async function expectPathTraversable(
   );
 }
 
+/**
+ * @precondition Callers must enable `window.portfolio.debugColliders`
+ * before invoking this helper. Keeping enablement outside this thin
+ * provenance assertion avoids toggling persisted debug UI state here.
+ */
 export async function expectSourceBackedColliderPresent(
   page: Page,
   sourceId: string
@@ -211,6 +216,11 @@ export async function expectSourceBackedColliderPresent(
   return colliders;
 }
 
+/**
+ * @precondition Callers must enable `window.portfolio.debugSolids`
+ * before invoking this helper. Keeping enablement outside this thin
+ * provenance assertion avoids toggling persisted debug UI state here.
+ */
 export async function expectSourceBackedSolidPresent(
   page: Page,
   sourceId: string
