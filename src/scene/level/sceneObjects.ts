@@ -57,11 +57,18 @@ export function applySceneObjectSourceMetadata(
   });
 }
 
+type SceneObjectColliderMetadataSink = {
+  set(
+    collider: RectCollider,
+    metadata: SceneObjectColliderSourceMetadata
+  ): unknown;
+};
+
 export function registerSceneObjectColliders(
   colliders: readonly RectCollider[],
   definition: SceneObjectDefinition,
   target: RectCollider[],
-  colliderSourceMetadata: Map<RectCollider, SceneObjectColliderSourceMetadata>
+  colliderSourceMetadata: SceneObjectColliderMetadataSink
 ): void {
   colliders.forEach((collider) => {
     target.push(collider);

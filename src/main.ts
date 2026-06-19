@@ -162,11 +162,13 @@ import {
   registerSceneObjectColliders,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
+import type { LevelSourceId } from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
 } from './scene/level/stairSafetyColliders';
+import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from './scene/level/upperStairwellLandingSegments';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -992,8 +994,9 @@ const colliderSourceMetadata = new Map<
     sourceId:
       | WallSegmentInstance['sourceId']
       | LevelSafetyCollider['sourceId']
-      | SceneObjectDefinition['sourceId'];
-    sourceType: 'wall' | 'safetyCollider' | 'sceneObject';
+      | SceneObjectDefinition['sourceId']
+      | LevelSourceId;
+    sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
   }
 >();
@@ -2128,9 +2131,19 @@ function initializeImmersiveScene(
         layout: stairLayout,
       })
     : undefined;
-  const pushNamedUpperFloorCollider = (name: string, bounds: RectCollider) => {
-    upperFloorColliders.push(bounds);
-    namedColliderDebugNames.set(bounds, name);
+  const registerUpperFloorGeneratedCollider = (collider: {
+    name: string;
+    bounds: RectCollider;
+    sourceId: LevelSourceId;
+    role: string;
+  }) => {
+    upperFloorColliders.push(collider.bounds);
+    namedColliderDebugNames.set(collider.bounds, collider.name);
+    colliderSourceMetadata.set(collider.bounds, {
+      sourceId: collider.sourceId,
+      sourceType: 'generatedCollider',
+      purpose: `upper stairwell landing ${collider.role} guard`,
+    });
   };
 
   const upperStairWestEgressLaneX =
@@ -2242,26 +2255,18 @@ function initializeImmersiveScene(
       guard: {
         height: 0.56,
         thickness: toWorldUnits(0.12),
-        sideSides: ['east'],
-        shoulderSides: ['east'],
         material: {
           color: 0x2a3241,
           roughness: 0.72,
           metalness: 0.05,
         },
       },
+      segments: UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
     });
     upperFloorGroup.add(upperStairwellLanding.group);
-    upperStairwellLanding.namedColliders
-      .filter(({ name }) =>
-        name.startsWith('UpperStairwellLandingShoulderGuard')
-      )
-      .forEach(({ collider }, index) =>
-        pushNamedUpperFloorCollider(
-          `UpperStairwellLandingGuard-${index + 3}`,
-          collider
-        )
-      );
+    upperStairwellLanding.colliders.forEach(
+      registerUpperFloorGeneratedCollider
+    );
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });
