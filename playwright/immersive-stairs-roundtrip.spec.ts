@@ -1087,6 +1087,8 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   });
   expect(debugColliders).toContain('GroundStairEastBoundary');
   expect(debugColliders).toContain('GroundStairLowerCornerGuard');
+  expect(debugColliders).toContain('UpperStairwellLandingGuard-3');
+  expect(debugColliders).toContain('UpperStairwellLandingGuard-4');
   expect(debugColliders).not.toContain('GroundStairEastRunSeal');
   expect(debugColliders).not.toContain('GroundStairEastRunSealLowerCap');
   expect(debugColliders).not.toContain('GroundStairEastRunSealUpperCap');
