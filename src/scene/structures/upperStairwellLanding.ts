@@ -3,7 +3,6 @@ import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
-import { assertLevelSourceId } from '../level/sourceIds';
 import type {
   UpperStairwellLandingSegmentPolicy,
   UpperStairwellLandingSegmentRole,
@@ -14,17 +13,6 @@ export interface UpperStairwellGuardConfig {
   height: number;
   /** Physical thickness of each rail. */
   thickness: number;
-  /**
-   * Optional long side rail edges around the opening. Omitting west keeps the
-   * upstairs-room egress open while east can still protect the stair void edge.
-   */
-  sideSides?: ReadonlyArray<'east' | 'west'>;
-  /**
-   * Optional shoulder rail sides to add around the descent corridor. Omitting
-   * west keeps the upstairs-room egress open while east can still protect the
-   * stair void edge.
-   */
-  shoulderSides?: ReadonlyArray<'east' | 'west'>;
   /** Optional material overrides for the guard rails. */
   material?: MeshStandardMaterialParameters;
 }
@@ -41,7 +29,7 @@ export interface UpperStairwellLandingConfig {
   /** Guard rail configuration. */
   guard: UpperStairwellGuardConfig;
   /** Declarative render/collision policy for semantic guard segments. */
-  segments?: readonly UpperStairwellLandingSegmentPolicy[];
+  segments: readonly UpperStairwellLandingSegmentPolicy[];
 }
 
 export interface UpperStairwellLandingCollider {
@@ -61,24 +49,6 @@ const SIDE_GUARD_NAME = 'UpperStairwellLandingSideGuard';
 const FAR_GUARD_NAME = 'UpperStairwellLandingFarGuard';
 const SHOULDER_GUARD_NAME = 'UpperStairwellLandingShoulderGuard';
 
-const DEFAULT_SEGMENT_SOURCE_IDS = {
-  'side-west': 'upper.stairwell.landingGuard.sideWest',
-  'side-east': 'upper.stairwell.landingGuard.sideEast',
-  far: 'upper.stairwell.landingGuard.far',
-  'shoulder-west': 'upper.stairwell.landingGuard.shoulderWest',
-  'shoulder-east': 'upper.stairwell.landingGuard.shoulderEast',
-} as const satisfies Record<UpperStairwellLandingSegmentRole, string>;
-
-const createDefaultSegmentPolicy = (
-  role: UpperStairwellLandingSegmentRole
-): UpperStairwellLandingSegmentPolicy => ({
-  role,
-  render: true,
-  collision: true,
-  sourceId: assertLevelSourceId(DEFAULT_SEGMENT_SOURCE_IDS[role]),
-  colliderName: getMeshNameForRole(role),
-});
-
 const getMeshNameForRole = (role: UpperStairwellLandingSegmentRole): string => {
   switch (role) {
     case 'side-west':
@@ -92,22 +62,6 @@ const getMeshNameForRole = (role: UpperStairwellLandingSegmentRole): string => {
     case 'shoulder-east':
       return `${SHOULDER_GUARD_NAME}-East`;
   }
-};
-
-const getDefaultSegmentPolicies = (
-  config: UpperStairwellLandingConfig
-): UpperStairwellLandingSegmentPolicy[] => {
-  const sideSides = config.guard.sideSides ?? ['east', 'west'];
-  const shoulderSides = config.guard.shoulderSides ?? ['east', 'west'];
-  const roles: UpperStairwellLandingSegmentRole[] = [
-    ...sideSides.map((side) => `side-${side}` as const),
-    'far',
-    ...(config.descentCorridorBounds
-      ? shoulderSides.map((side) => `shoulder-${side}` as const)
-      : []),
-  ];
-
-  return roles.map(createDefaultSegmentPolicy);
 };
 
 const hasPositiveArea = (bounds: Bounds2D): boolean =>
@@ -201,9 +155,7 @@ export function createUpperStairwellLanding(
   const descentCorridorBounds = config.descentCorridorBounds
     ? clampBoundsToRoom(config.descentCorridorBounds, openingBounds)
     : undefined;
-  const segmentPolicies = config.segments ?? getDefaultSegmentPolicies(config);
-
-  for (const policy of segmentPolicies) {
+  for (const policy of config.segments) {
     let bounds: Bounds2D | undefined;
 
     switch (policy.role) {

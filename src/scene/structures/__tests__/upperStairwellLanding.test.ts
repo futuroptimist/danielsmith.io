@@ -1,8 +1,30 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from '../../level/upperStairwellLandingSegments';
+import { assertLevelSourceId } from '../../level/sourceIds';
+import {
+  UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
+  type UpperStairwellLandingSegmentPolicy,
+  type UpperStairwellLandingSegmentRole,
+} from '../../level/upperStairwellLandingSegments';
 import { createUpperStairwellLanding } from '../upperStairwellLanding';
+
+const ALL_SEGMENT_ROLES: readonly UpperStairwellLandingSegmentRole[] = [
+  'side-west',
+  'side-east',
+  'far',
+  'shoulder-west',
+  'shoulder-east',
+];
+
+const allSegmentPolicies = (): UpperStairwellLandingSegmentPolicy[] =>
+  ALL_SEGMENT_ROLES.map((role) => ({
+    role,
+    render: true,
+    collision: true,
+    sourceId: assertLevelSourceId(`upper.stairwell.landingGuard.test.${role}`),
+    colliderName: `UpperStairwellLandingTestGuard-${role}`,
+  }));
 
 const overlaps = (
   first: { minX: number; maxX: number; minZ: number; maxZ: number },
@@ -25,6 +47,7 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.2,
         material: { color: 0xff0000 },
       },
+      segments: allSegmentPolicies(),
     });
 
     expect(result.group.name).toBe('UpperStairwellLanding');
@@ -72,6 +95,7 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.2,
         material: { color: 0xff0000 },
       },
+      segments: allSegmentPolicies(),
     });
 
     expect(result.colliders).toHaveLength(5);
@@ -143,6 +167,7 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.4,
         material: { color: 0xff0000 },
       },
+      segments: allSegmentPolicies(),
     });
 
     expect(result.colliders.map(({ bounds }) => bounds)).not.toContainEqual({
@@ -171,6 +196,7 @@ describe('createUpperStairwellLanding', () => {
         thickness: 0.2,
         material: { color: 0xff0000 },
       },
+      segments: allSegmentPolicies(),
     });
 
     const slab = result.group.children.find((child) =>

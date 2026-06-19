@@ -2255,8 +2255,6 @@ function initializeImmersiveScene(
       guard: {
         height: 0.56,
         thickness: toWorldUnits(0.12),
-        sideSides: ['east'],
-        shoulderSides: ['east'],
         material: {
           color: 0x2a3241,
           roughness: 0.72,
