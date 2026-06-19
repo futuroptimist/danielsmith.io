@@ -135,38 +135,32 @@ function getFloor(level: LevelDefinition, floorId: string): FloorDefinition {
   return floor;
 }
 
+function expectGeneratedWallSourceIdsToMatchDeclaredInventory(
+  floor: FloorDefinition,
+  generated: ReturnType<typeof generateWallSegmentInstances>
+) {
+  const declaredSourceIds = floor.walls.map((wall) => wall.sourceId);
+  const generatedSourceIds = generated.map((instance) => instance.sourceId);
+
+  expect(new Set(declaredSourceIds).size).toBe(declaredSourceIds.length);
+  generatedSourceIds.forEach((id) => expect(() => sourceId(id)).not.toThrow());
+  expect(new Set(generatedSourceIds)).toEqual(new Set(declaredSourceIds));
+}
+
 describe('generateWallSegmentInstances', () => {
   it('generates source-backed ground walls and fences from declarative inventory', () => {
     const ground = getFloor(PORTFOLIO_LEVEL, 'ground');
     const generated = generateWallSegmentInstances(ground, wallOptions());
-    const generatedSourceIds = generated.map((instance) => instance.sourceId);
-
     expect(generated.length).toBeGreaterThan(0);
     expect(generated.some((instance) => instance.isFence)).toBe(true);
-    const declaredSourceIds = ground.walls.map((wall) => wall.sourceId);
-    expect(new Set(declaredSourceIds).size).toBe(declaredSourceIds.length);
-    generatedSourceIds.forEach((id) =>
-      expect(() => sourceId(id)).not.toThrow()
-    );
-    ground.walls.forEach((wall) => {
-      expect(generatedSourceIds, wall.id).toContain(wall.sourceId);
-    });
+    expectGeneratedWallSourceIdsToMatchDeclaredInventory(ground, generated);
   });
 
   it('generates source-backed upper walls without legacy room-doorway generation', () => {
     const upper = getFloor(PORTFOLIO_LEVEL, 'upper');
     const generated = generateWallSegmentInstances(upper, wallOptions(9));
-    const generatedSourceIds = generated.map((instance) => instance.sourceId);
-
     expect(generated.length).toBeGreaterThan(0);
-    const declaredSourceIds = upper.walls.map((wall) => wall.sourceId);
-    expect(new Set(declaredSourceIds).size).toBe(declaredSourceIds.length);
-    generatedSourceIds.forEach((id) =>
-      expect(() => sourceId(id)).not.toThrow()
-    );
-    upper.walls.forEach((wall) => {
-      expect(generatedSourceIds, wall.id).toContain(wall.sourceId);
-    });
+    expectGeneratedWallSourceIdsToMatchDeclaredInventory(upper, generated);
   });
 
   it('adds stable source metadata to generated wall and fence meshes', () => {
