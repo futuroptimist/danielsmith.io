@@ -153,6 +153,7 @@ describe('createUpperStairwellLanding', () => {
           minZ: -8,
           maxZ: 6,
         },
+        debugId: '400D',
       },
     ]);
   });

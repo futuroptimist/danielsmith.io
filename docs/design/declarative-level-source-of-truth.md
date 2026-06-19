@@ -134,10 +134,16 @@ purpose text so reviewers can tell why the invisible constraint exists instead o
 mistaking it for hidden post-hoc layout geometry.
 
 Stair and landing safety colliders are source-backed even when their bounds are
-generated from stair layout measurements. Their source IDs should stay stable
-across refactors, and their purpose strings should explain the constraint (for
-example preserving a descent corridor edge or guarding a hidden stair-run
-no-floor area) without masquerading as room-wall geometry.
+generated from stair layout measurements. Their source IDs and any stable debug
+collider IDs live beside the active collider declaration or segment policy that
+emits the runtime collider. Deleting or disabling that active source declaration
+removes both the runtime collider and its debug ID; deleted colliders should not
+leave tombstones, negative registries, or historical absence tests. Behavior
+tests pin player-facing promises such as traversal, blocked regions, and usable
+openings, while generator and registry tests validate the currently active
+source-backed declarations generically. Purpose strings should explain the
+constraint (for example preserving a descent corridor edge or guarding a hidden
+stair-run no-floor area) without masquerading as room-wall geometry.
 
 ### Scene objects
 

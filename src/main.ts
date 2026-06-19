@@ -988,6 +988,7 @@ const LIGHTING_OPTIONS = {
 
 const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
+const colliderDebugIds = new Map<RectCollider, string>();
 const colliderSourceMetadata = new Map<
   RectCollider,
   {
@@ -2097,6 +2098,9 @@ function initializeImmersiveScene(
       sourceType: 'safetyCollider',
       purpose: collider.purpose,
     });
+    if (collider.debugId) {
+      colliderDebugIds.set(collider.bounds, collider.debugId);
+    }
   };
 
   createGroundStairSafetyColliders(stairGeometry, stairBehavior, {
@@ -2136,6 +2140,7 @@ function initializeImmersiveScene(
     bounds: RectCollider;
     sourceId: LevelSourceId;
     role: string;
+    debugId?: string;
   }) => {
     upperFloorColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
@@ -2144,6 +2149,9 @@ function initializeImmersiveScene(
       sourceType: 'generatedCollider',
       purpose: `upper stairwell landing ${collider.role} guard`,
     });
+    if (collider.debugId) {
+      colliderDebugIds.set(collider.bounds, collider.debugId);
+    }
   };
 
   const upperStairWestEgressLaneX =
@@ -4459,6 +4467,7 @@ function initializeImmersiveScene(
       sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
       sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
       purpose: colliderSourceMetadata.get(bounds)?.purpose,
+      debugId: colliderDebugIds.get(bounds),
     }));
 
   const colliderVisualizer = createColliderVisualizer({

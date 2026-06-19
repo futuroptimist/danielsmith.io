@@ -72,8 +72,9 @@ describe('createColliderDebugId', () => {
       createColliderDebugId({
         floor: 'upper',
         category: 'upper',
-        name: 'UpperStairNorthBannisterGuard',
+        name: 'SourceBackedCollider',
         bounds: collider,
+        debugId: '400A',
       })
     ).toBe('400A');
     expect(
