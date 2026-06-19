@@ -147,6 +147,7 @@ describe('createUpperStairwellLanding', () => {
         role: 'shoulder-east',
         sourceId: 'upper.stairwell.landingGuard.shoulderEast',
         name: 'UpperStairwellLandingGuard-3',
+        debugId: '400D',
         bounds: {
           minX: 1.1,
           maxX: 2,

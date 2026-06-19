@@ -43,7 +43,7 @@ describe('createColliderDebugId', () => {
     expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{6}$/);
   });
 
-  it('uses declared IDs for generated and named runtime colliders', () => {
+  it('uses declared IDs for generated and regression colliders', () => {
     expect(
       createColliderDebugId({
         floor: 'ground',
@@ -68,14 +68,6 @@ describe('createColliderDebugId', () => {
         bounds: collider,
       })
     ).toBe('3002');
-    expect(
-      createColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairNorthBannisterGuard',
-        bounds: collider,
-      })
-    ).toBe('400A');
     expect(
       createColliderDebugId({
         floor: 'ground',
@@ -127,6 +119,27 @@ describe('createColliderDebugId', () => {
       firstRetryId
     );
   });
+});
+
+it('uses explicit source-backed debug IDs before fallback allocation', () => {
+  const visualizer = createColliderVisualizer({ activeFloorId: 'upper' });
+  visualizer.register([
+    {
+      floor: 'upper',
+      category: 'upper',
+      name: 'UpperStairNorthBannisterGuard',
+      bounds: collider,
+      debugId: '400A',
+    },
+  ]);
+
+  expect(visualizer.getColliders()).toEqual([
+    expect.objectContaining({
+      name: 'UpperStairNorthBannisterGuard',
+      id: '400A',
+      debugId: '400A',
+    }),
+  ]);
 });
 
 describe('createColliderVisualizer', () => {

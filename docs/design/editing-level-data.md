@@ -69,6 +69,14 @@ Every safety collider needs:
 - `floorId`
 - `bounds`
 - a clear `purpose`
+- a stable `debugId` when the collider is part of a source-backed family that
+  needs a durable browser debug label
+
+Stable debug IDs live beside active collider declarations or segment policies.
+Deleting or disabling a collider should remove its runtime collider and debug ID
+without adding tombstones, historical absence tests, or registry-only records.
+Behavior tests should pin player promises, while generator and registry tests
+validate active declarations generically.
 
 Use safety colliders for invisible constraints such as stairwell void guards or
 approach-lane protection, not as a hidden substitute for visible wall geometry.

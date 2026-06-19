@@ -6,25 +6,28 @@ export interface DebugColliderIdLookupInput {
   name: string;
 }
 
+export type DebugColliderId = string & {
+  readonly __debugColliderId: unique symbol;
+};
+
 const DEBUG_COLLIDER_ID_PATTERN = /^[0-9A-F]{4,6}$/;
+
+export const isDebugColliderId = (value: string): boolean =>
+  DEBUG_COLLIDER_ID_PATTERN.test(value);
+
+export const assertDebugColliderId = (value: string): DebugColliderId => {
+  if (!isDebugColliderId(value)) {
+    throw new Error(`Invalid debug collider ID ${value}`);
+  }
+
+  return value as DebugColliderId;
+};
 
 const GENERATED_COLLIDER_ID_PREFIXES = {
   ground: '1',
   static: '2',
   upper: '3',
 } as const;
-
-const DECLARED_RUNTIME_COLLIDER_IDS = {
-  GroundStairEastBoundary: '4001',
-  GroundStairLowerCornerGuard: '4002',
-  UpperStairTopGapBlockerWest: '4003',
-  UpperStairTopGapBlockerEast: '4004',
-  UpperStairWestUpperVoidGuard: '4005',
-  UpperStairEastUpperVoidGuard: '4007',
-  UpperStairWestBannisterGuard: '4009',
-  UpperStairNorthBannisterGuard: '400A',
-  'UpperStairwellLandingGuard-3': '400D',
-} as const satisfies Record<string, string>;
 
 const DECLARED_REGRESSION_COLLIDER_IDS = {
   // Greptile regression pair: these names historically shared fallback primary
@@ -35,7 +38,6 @@ const DECLARED_REGRESSION_COLLIDER_IDS = {
 } as const satisfies Record<string, string>;
 
 const DECLARED_NAMED_COLLIDER_IDS = {
-  ...DECLARED_RUNTIME_COLLIDER_IDS,
   ...DECLARED_REGRESSION_COLLIDER_IDS,
 } as const satisfies Record<string, string>;
 

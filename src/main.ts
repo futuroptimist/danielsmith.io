@@ -988,6 +988,7 @@ const LIGHTING_OPTIONS = {
 
 const groundColliders: RectCollider[] = [];
 const namedColliderDebugNames = new Map<RectCollider, string>();
+const explicitColliderDebugIds = new Map<RectCollider, string>();
 const colliderSourceMetadata = new Map<
   RectCollider,
   {
@@ -2092,6 +2093,7 @@ function initializeImmersiveScene(
       collider.floor === 'ground' ? groundColliders : upperFloorColliders;
     targetColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
+    explicitColliderDebugIds.set(collider.bounds, collider.debugId);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
       sourceType: 'safetyCollider',
@@ -2136,9 +2138,13 @@ function initializeImmersiveScene(
     bounds: RectCollider;
     sourceId: LevelSourceId;
     role: string;
+    debugId?: string;
   }) => {
     upperFloorColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
+    if (collider.debugId) {
+      explicitColliderDebugIds.set(collider.bounds, collider.debugId);
+    }
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
       sourceType: 'generatedCollider',
@@ -4459,6 +4465,7 @@ function initializeImmersiveScene(
       sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
       sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
       purpose: colliderSourceMetadata.get(bounds)?.purpose,
+      debugId: explicitColliderDebugIds.get(bounds),
     }));
 
   const colliderVisualizer = createColliderVisualizer({
