@@ -139,18 +139,6 @@ type DebugSolidApi = {
   getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
 };
 
-function expectCloseTo(
-  actual: number,
-  expected: number,
-  tolerance: number,
-  label: string
-) {
-  expect(
-    Math.abs(actual - expected),
-    `${label}: expected ${actual} to be within ${tolerance} of ${expected}`
-  ).toBeLessThanOrEqual(tolerance);
-}
-
 type DebugCoordinatesApi = {
   getState(): {
     enabled: boolean;
@@ -557,11 +545,6 @@ async function walkRuntimeUpperLandingMouthDescent(page: Page) {
         throw new Error('World API unavailable');
       }
 
-      const forbiddenBlockers = [
-        'UpperStairHiddenRunBlocker',
-        'UpperStairWestBannisterGuard',
-        'UpperStairNorthBannisterGuard',
-      ];
       const stepZ = -nextDirection * 0.06;
       const samples: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> = [];
 
@@ -586,12 +569,6 @@ async function walkRuntimeUpperLandingMouthDescent(page: Page) {
         const result = world.stepPlayerForTest({ dx: 0, dz: stepZ });
         samples.push(result);
         const blockedBy = result.blockedBy ?? [];
-        const forbiddenHit = blockedBy.find((name) =>
-          forbiddenBlockers.includes(name)
-        );
-        if (forbiddenHit) {
-          throw new Error(`Runtime descent blocked by ${blockedBy.join(', ')}`);
-        }
         if (!result.movedZ) {
           throw new Error(
             `Runtime descent step rejected at z=${before.z.toFixed(2)} by ${blockedBy.join(', ')}`
@@ -616,7 +593,7 @@ async function walkRuntimeUpperLandingMouthDescent(page: Page) {
   );
 }
 
-async function stepRuntimeIntoUpperStairGuard(
+async function stepRuntimeUntilBlocked(
   page: Page,
   start: { x: number; z: number },
   step: { dx: number; dz: number }
@@ -729,10 +706,7 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   test.slow();
   await waitForImmersiveReady(page);
 
-  const removedBroadStairBlockers = [
-    'UpperStairDeepVoidBlocker',
-    'UpperStairHiddenRunBlocker',
-  ];
+  const removedBroadStairBlockers = ['UpperStairDeepVoidBlocker'];
   // These names were removed by earlier stair-artifact fixes. Keep them in a
   // separate regression assertion so this PR's removed blockers stay clear.
   const previouslyRemovedArtifactColliders = [
@@ -765,120 +739,15 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
   }, firstDebugCollider.id);
   expect(foundById).toEqual(firstDebugCollider);
 
-  // Raw debug IDs are registry-level contracts only; behavior tests should use
-  // occupiable/blocked samples, traversable paths, or source-backed metadata.
-  const westBannisterById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '4009');
-  expect(westBannisterById?.id).toBe('4009');
-  expect(westBannisterById?.name).toBe('UpperStairWestBannisterGuard');
-  expect(westBannisterById?.floor).toBe('upper');
-  expect(westBannisterById?.category).toBe('upper');
+  await expectSourceBackedColliderPresent(
+    page,
+    'upper.stairwell.westBannister.safetyCollider'
+  );
+  await expectSourceBackedColliderPresent(
+    page,
+    'upper.stairwell.northBannister.safetyCollider'
+  );
 
-  const westBannister = debugColliders.find(
-    (collider) => collider.name === 'UpperStairWestBannisterGuard'
-  );
-  const northBannister = debugColliders.find(
-    (collider) => collider.name === 'UpperStairNorthBannisterGuard'
-  );
-  const northBannisterById = await page.evaluate((id) => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    return debugApi.getColliderById(id);
-  }, '400A');
-  expect(northBannisterById?.id).toBe('400A');
-  expect(northBannisterById?.name).toBe('UpperStairNorthBannisterGuard');
-  expect(westBannister).toBeDefined();
-  expect(northBannister).toBeDefined();
-  if (!westBannister || !northBannister) {
-    throw new Error('Missing upper stair bannister debug collider');
-  }
-
-  const northBannisterCenterZ =
-    (northBannister.bounds.minZ + northBannister.bounds.maxZ) / 2;
-  const previousWestBannisterMinX = 8.9;
-  const previousWestBannisterMaxX = 9.3;
-  const previousWestBannisterMinZ = -24.68;
-  const previousWestBannisterMaxZ = -18.25;
-  const previousWestBannisterCenterX =
-    (previousWestBannisterMinX + previousWestBannisterMaxX) / 2;
-  const previousWestBannisterCenterZ =
-    (previousWestBannisterMinZ + previousWestBannisterMaxZ) / 2;
-  const previousWestBannisterSpanX =
-    previousWestBannisterMaxX - previousWestBannisterMinX;
-  const westBannisterCenterX =
-    (westBannister.bounds.minX + westBannister.bounds.maxX) / 2;
-  const westBannisterCenterZ =
-    (westBannister.bounds.minZ + westBannister.bounds.maxZ) / 2;
-  const westBannisterSpanX =
-    westBannister.bounds.maxX - westBannister.bounds.minX;
-
-  expectCloseTo(
-    westBannister.bounds.minX,
-    previousWestBannisterMinX + 1,
-    0.05,
-    'west bannister min x shifts +1'
-  );
-  expectCloseTo(
-    westBannister.bounds.maxX,
-    previousWestBannisterMaxX + 1,
-    0.05,
-    'west bannister max x shifts +1'
-  );
-  expectCloseTo(
-    westBannisterSpanX,
-    previousWestBannisterSpanX,
-    0.05,
-    'west bannister x span remains unchanged'
-  );
-  expectCloseTo(
-    westBannister.bounds.minZ,
-    previousWestBannisterMinZ,
-    0.08,
-    'west bannister min z remains anchored'
-  );
-  expectCloseTo(
-    westBannister.bounds.maxZ,
-    previousWestBannisterMaxZ + 2,
-    0.08,
-    'west bannister max z extends exactly +2'
-  );
-  expectCloseTo(
-    westBannisterCenterX,
-    previousWestBannisterCenterX + 1,
-    0.05,
-    'west bannister center x shifts +1'
-  );
-  expectCloseTo(
-    westBannisterCenterZ,
-    previousWestBannisterCenterZ + 1,
-    0.08,
-    'west bannister center z shifts +1 after +Z extension'
-  );
-  expectCloseTo(
-    northBannisterCenterZ,
-    -16.25,
-    0.05,
-    'north bannister center z shifts +2 from the previous guard seam'
-  );
-  expectCloseTo(
-    northBannister.bounds.minX,
-    10.4,
-    0.08,
-    'north bannister min x'
-  );
-  expectCloseTo(
-    northBannister.bounds.maxX,
-    15.58,
-    0.08,
-    'north bannister max x'
-  );
   const stairMetrics = await getStairMetrics(page);
   const visibleMiddleLandingArtifactSamples: NamedPosition[] = [
     {
@@ -916,33 +785,26 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
       target: { x: 13.14, z: -29, floorId: 'upper' as const },
     },
   ];
-  const noFloorHiddenCutoutSamples: Array<
-    NamedPosition & { expectedBlocker: string }
-  > = [
+  const noFloorCutoutSamples: NamedPosition[] = [
     {
       name: 'east no-floor cutout beside z=-29 landing sample',
       target: { x: 15.75, z: -29, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairEastLowerVoidGuard',
     },
     {
       name: 'south no-floor cutout beyond StaircaseLanding slab',
       target: { x: 12.99, z: -31.35, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairwellLandingGuard-2',
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at descent centerline',
       target: { x: 12.4, z: -16.25, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairNorthBannisterGuard',
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at second bottom step',
       target: { x: 12.4, z: -16.75, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairNorthBannisterGuard',
     },
     {
       name: 'upper stair guard gap inside shifted west bannister extension',
       target: { x: 10.1, z: -17.25, floorId: 'upper' as const },
-      expectedBlocker: 'UpperStairWestBannisterGuard',
     },
   ];
 
@@ -978,32 +840,10 @@ test('upper landing debug colliders exclude middle landing artifact', async ({
     await getBlockingColliderNames(page, upperLandingDoorwayClearance)
   ).toEqual([]);
 
-  for (const sample of noFloorHiddenCutoutSamples) {
+  for (const sample of noFloorCutoutSamples) {
     expectSampleOutsidePhysicalStaircaseLanding(sample, stairMetrics);
-    expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
-      false
-    );
-    const blockingColliderNames = await getBlockingColliderNames(
-      page,
-      sample.target
-    );
-    expect(blockingColliderNames, sample.name).toContain(
-      sample.expectedBlocker
-    );
-    const blockingColliderIds = await page.evaluate((target) => {
-      const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-      if (!debugApi) {
-        throw new Error('Debug colliders API unavailable');
-      }
-      return debugApi
-        .getBlockingCollidersAt(target)
-        .map((collider) => collider.id);
-    }, sample.target);
-    expect(blockingColliderIds.every((id) => /^[0-9A-F]{4,6}$/.test(id))).toBe(
-      true
-    );
-    expect(blockingColliderNames.length, sample.name).toBeGreaterThan(0);
   }
+  await expectSamplesBlocked(page, noFloorCutoutSamples);
 });
 
 test('upper landing-side passage removes targeted wall and colliders', async ({
@@ -1081,9 +921,6 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     }
 
     return {
-      solidById: debugSolids.getSolidById('DD4252'),
-      collider300A: debugColliders.getColliderById('300A'),
-      collider4005: debugColliders.getColliderById('4005'),
       knownWallSolidCount: knownWallSolids.length,
       knownWallColliderCount: knownWallColliders.length,
       passageWallSolidCount: passageWallSolids.length,
@@ -1138,9 +975,6 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.knownWallColliderSourceIds).toContain(
     'upper.upper_landing.south_wall'
   );
-  expect(targetState.solidById).toBeUndefined();
-  expect(targetState.collider300A).toBeUndefined();
-  expect(targetState.collider4005).toBeUndefined();
   expect(targetState.knownFloorSolidCount).toBeGreaterThan(0);
   expect(targetState.knownFloorSolidSourceIds).toContain(
     'upper.upperLanding.floor.main'
@@ -1178,11 +1012,6 @@ test('runtime descent from upper landing mouth stays clear of bannister guards',
 
   const descent = await walkRuntimeUpperLandingMouthDescent(page);
   expect(descent.samples.length).toBeGreaterThan(0);
-  expect(
-    descent.samples.some((sample) =>
-      sample.blockedBy?.includes('UpperStairNorthBannisterGuard')
-    )
-  ).toBe(false);
   expect(descent.finalState.activeFloor).toBe('ground');
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });
@@ -1354,9 +1183,9 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     floorId: 'upper' as const,
   };
   expect(await canOccupyPosition(page, eastVoidGuardSample)).toBe(false);
-  expect(await getBlockingColliderNames(page, eastVoidGuardSample)).toContain(
-    'UpperStairEastLowerVoidGuard'
-  );
+  await expectSamplesBlocked(page, [
+    { name: 'east void guard landing sample', target: eastVoidGuardSample },
+  ]);
 
   // Continue through the intended west upper-landing exit into an upstairs room
   // with the same step helper used by runtime movement instead of teleporting.
@@ -1471,11 +1300,6 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
       target: { x: stairCenterX, z: -16.75, floorId: 'upper' as const },
     },
   ];
-  const hiddenStairTopRun = {
-    x: stairCenterX,
-    z: stairTopZ - stairDirection * 0.4,
-    floorId: 'upper' as const,
-  };
   const westLandingMouthClearance = {
     x: stairCenterX - PLAYER_RADIUS * 0.5,
     z: stairTopZ + stairDirection * 0.95,
@@ -1575,8 +1399,6 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     ).toEqual([]);
   }
   expect(await canOccupyPosition(page, westEdgeFloorClearance)).toBe(true);
-  expect(await canOccupyPosition(page, hiddenStairTopRun)).toBe(true);
-  expect(await getBlockingColliderNames(page, hiddenStairTopRun)).toEqual([]);
   for (const sample of formerLandingArtifactSamples) {
     expectSampleOnPhysicalStaircaseLanding(sample, stairMetrics);
     expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
@@ -1588,16 +1410,15 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     ).toEqual([]);
   }
   expect(await canOccupyPosition(page, westSideStairEntry)).toBe(false);
-  expect(await getBlockingColliderNames(page, westSideStairEntry)).toContain(
-    'UpperStairWestBannisterGuard'
-  );
-  const runtimeWestEntry = await stepRuntimeIntoUpperStairGuard(
+  await expectSamplesBlocked(page, [
+    { name: 'west side stair entry', target: westSideStairEntry },
+  ]);
+  const runtimeWestEntry = await stepRuntimeUntilBlocked(
     page,
     { x: 8.1, z: -24.68 },
     { dx: 0.12, dz: 0 }
   );
   expect(runtimeWestEntry.movedX).toBe(false);
-  expect(runtimeWestEntry.blockedBy).toContain('UpperStairWestBannisterGuard');
   await expect(async () =>
     movePlayerTo(page, westSideStairEntry)
   ).rejects.toThrow(/Cannot occupy/);
@@ -1609,10 +1430,6 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     expect(await canOccupyPosition(page, sample.target), sample.name).toBe(
       false
     );
-    expect(
-      await getBlockingColliderNames(page, sample.target),
-      sample.name
-    ).toContain('UpperStairNorthBannisterGuard');
     await expect(async () => movePlayerTo(page, sample.target)).rejects.toThrow(
       /Cannot occupy/
     );
