@@ -7,6 +7,19 @@ export interface DebugColliderIdLookupInput {
 }
 
 const DEBUG_COLLIDER_ID_PATTERN = /^[0-9A-F]{4,6}$/;
+export type DebugColliderId = string & {
+  readonly __debugColliderId: unique symbol;
+};
+
+export const isDebugColliderId = (value: string): value is DebugColliderId =>
+  DEBUG_COLLIDER_ID_PATTERN.test(value);
+
+export const assertDebugColliderId = (value: string): DebugColliderId => {
+  if (!isDebugColliderId(value)) {
+    throw new Error(`Invalid debug collider ID ${value}`);
+  }
+  return value;
+};
 
 const GENERATED_COLLIDER_ID_PREFIXES = {
   ground: '1',
@@ -14,29 +27,12 @@ const GENERATED_COLLIDER_ID_PREFIXES = {
   upper: '3',
 } as const;
 
-const DECLARED_RUNTIME_COLLIDER_IDS = {
-  GroundStairEastBoundary: '4001',
-  GroundStairLowerCornerGuard: '4002',
-  UpperStairTopGapBlockerWest: '4003',
-  UpperStairTopGapBlockerEast: '4004',
-  UpperStairWestUpperVoidGuard: '4005',
-  UpperStairEastUpperVoidGuard: '4007',
-  UpperStairWestBannisterGuard: '4009',
-  UpperStairNorthBannisterGuard: '400A',
-  'UpperStairwellLandingGuard-3': '400D',
-} as const satisfies Record<string, string>;
-
 const DECLARED_REGRESSION_COLLIDER_IDS = {
   // Greptile regression pair: these names historically shared fallback primary
   // FB7D89, so declare code-owned IDs instead of depending on registration
   // timing to decide which collider owns that visible screenshot anchor.
   'collision-1104': 'C1104',
   'collision-2488': 'C2488',
-} as const satisfies Record<string, string>;
-
-const DECLARED_NAMED_COLLIDER_IDS = {
-  ...DECLARED_RUNTIME_COLLIDER_IDS,
-  ...DECLARED_REGRESSION_COLLIDER_IDS,
 } as const satisfies Record<string, string>;
 
 const getGeneratedColliderId = ({
@@ -64,8 +60,8 @@ const getGeneratedColliderId = ({
   return `${prefix}${index.toString(16).toUpperCase().padStart(3, '0')}`;
 };
 
-const assertValidDebugColliderIds = () => {
-  const usedIds = new Map<string, string>();
+export const getGeneratedColliderDebugIds = (): Map<string, string> => {
+  const generatedIds = new Map<string, string>();
   for (const [category, prefix] of Object.entries(
     GENERATED_COLLIDER_ID_PREFIXES
   )) {
@@ -74,11 +70,26 @@ const assertValidDebugColliderIds = () => {
     }
     for (let index = 1; index <= 0xfff; index += 1) {
       const id = `${prefix}${index.toString(16).toUpperCase().padStart(3, '0')}`;
-      usedIds.set(id, `${category}-collider-${index}`);
+      generatedIds.set(id, `${category}-collider-${index}`);
     }
   }
+  return generatedIds;
+};
 
-  for (const [name, id] of Object.entries(DECLARED_NAMED_COLLIDER_IDS)) {
+export const getDeclaredRegressionColliderDebugIds = (): ReadonlyMap<
+  string,
+  string
+> => new Map(Object.entries(DECLARED_REGRESSION_COLLIDER_IDS));
+
+export const assertDebugColliderIdsDoNotCollide = (
+  declaredIds: Iterable<readonly [string, string]>
+): void => {
+  const usedIds = getGeneratedColliderDebugIds();
+
+  for (const [name, id] of [
+    ...Object.entries(DECLARED_REGRESSION_COLLIDER_IDS),
+    ...declaredIds,
+  ]) {
     if (!DEBUG_COLLIDER_ID_PATTERN.test(id)) {
       throw new Error(`Invalid debug collider ID ${id} declared for ${name}`);
     }
@@ -92,11 +103,11 @@ const assertValidDebugColliderIds = () => {
   }
 };
 
-assertValidDebugColliderIds();
+assertDebugColliderIdsDoNotCollide([]);
 
 export const getDeclaredColliderDebugId = (
   input: DebugColliderIdLookupInput
 ): string | undefined =>
-  DECLARED_NAMED_COLLIDER_IDS[
-    input.name as keyof typeof DECLARED_NAMED_COLLIDER_IDS
+  DECLARED_REGRESSION_COLLIDER_IDS[
+    input.name as keyof typeof DECLARED_REGRESSION_COLLIDER_IDS
   ] ?? getGeneratedColliderId(input);

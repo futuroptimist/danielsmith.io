@@ -36,6 +36,7 @@ export interface UpperStairwellLandingCollider {
   role: UpperStairwellLandingSegmentRole;
   sourceId: UpperStairwellLandingSegmentPolicy['sourceId'];
   name: string;
+  debugId?: UpperStairwellLandingSegmentPolicy['debugId'];
   bounds: RectCollider;
 }
 
@@ -120,6 +121,7 @@ const addGuard = (params: {
       role: params.policy.role,
       sourceId: params.policy.sourceId,
       name: params.policy.colliderName,
+      debugId: params.policy.debugId,
       bounds: guardBounds,
     });
   }

@@ -160,7 +160,11 @@ about debug provenance, generator output, or debug-ID registry behavior:
    fixtures. Avoid exact production-scene collider or solid pinning unless it is
    a deliberate regression test with a comment explaining why that exact shape is
    part of the test's purpose.
-4. **Registry / ID tests** may assert raw debug IDs only for declared debug-ID
-   registry behavior. Do not use raw IDs to prove normal movement behavior;
-   player-facing tests should describe the route, open area, blocked void, or
-   source-backed feature instead.
+4. **Registry / ID tests** may assert raw debug IDs only for source-backed
+   declaration and visualizer API contracts. Stable IDs for stair and landing
+   safety colliders live beside the active collider declarations that emit them;
+   deleting or disabling a source declaration removes both the runtime collider
+   and its debug ID without tombstones, negative historical assertions, or
+   Playwright inventory edits. Do not use raw IDs to prove normal movement
+   behavior; player-facing tests should describe the route, open area, blocked
+   void, or source-backed feature instead.

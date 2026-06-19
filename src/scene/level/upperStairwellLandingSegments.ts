@@ -1,3 +1,8 @@
+import {
+  assertDebugColliderId,
+  type DebugColliderId,
+} from '../debug/colliderDebugIds';
+
 import { assertLevelSourceId, type LevelSourceId } from './sourceIds';
 
 export type UpperStairwellLandingSegmentRole =
@@ -13,9 +18,12 @@ export interface UpperStairwellLandingSegmentPolicy {
   collision: boolean;
   sourceId: LevelSourceId;
   colliderName?: string;
+  debugId?: DebugColliderId;
 }
 
 const sourceId = (value: string): LevelSourceId => assertLevelSourceId(value);
+const debugId = (value: string): DebugColliderId =>
+  assertDebugColliderId(value);
 
 export const UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES = [
   {
@@ -36,5 +44,6 @@ export const UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES = [
     collision: true,
     sourceId: sourceId('upper.stairwell.landingGuard.shoulderEast'),
     colliderName: 'UpperStairwellLandingGuard-3',
+    debugId: debugId('400D'),
   },
 ] as const satisfies readonly UpperStairwellLandingSegmentPolicy[];
