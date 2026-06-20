@@ -178,6 +178,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # NOTE: keep in sync with the identical definition in the commit step.
           check_resume_stale_paths() {
             local from_ref="$1"
             local to_ref="$2"
@@ -256,14 +257,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            "${{ steps.persist.outputs.versioned_pdf }}" \
-            "${{ steps.persist.outputs.versioned_docx }}" \
-            "${{ steps.persist.outputs.stable_pdf }}" \
-            "${{ steps.persist.outputs.stable_docx }}"
-          git commit -m "📄 : – refresh generated resume artifacts"
+          # NOTE: keep in sync with the identical definition in the persist step.
           check_resume_stale_paths() {
             local from_ref="$1"
             local to_ref="$2"
@@ -278,6 +272,14 @@ jobs:
             fi
           }
 
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            "${{ steps.persist.outputs.versioned_pdf }}" \
+            "${{ steps.persist.outputs.versioned_docx }}" \
+            "${{ steps.persist.outputs.stable_pdf }}" \
+            "${{ steps.persist.outputs.stable_docx }}"
+          git commit -m "📄 : – refresh generated resume artifacts"
           publish_base="${{ steps.persist.outputs.publish_base }}"
           git fetch origin main
           current_main="$(git rev-parse origin/main)"
