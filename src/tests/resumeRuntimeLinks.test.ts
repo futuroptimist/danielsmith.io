@@ -1,9 +1,15 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { getSiteStrings } from '../assets/i18n';
+import { AVAILABLE_LOCALES, getSiteStrings } from '../assets/i18n';
+
+const require = createRequire(import.meta.url);
+
+const { runtimeAssetExpectations } =
+  require('../../scripts/static-asset-expectations.cjs') as typeof import('../../scripts/static-asset-expectations.cjs');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 const ACTIVE_SOURCE_FILES = [
@@ -28,16 +34,12 @@ function readProjectFile(relativePath: string): string {
 }
 
 describe('runtime résumé links', () => {
-  it('uses the stable PDF for localized text and immersive action surfaces', () => {
-    for (const locale of ['ar', 'en', 'ja', 'zh-Hans'] as const) {
+  it('uses the stable PDF for every localized text fallback surface', () => {
+    for (const locale of AVAILABLE_LOCALES) {
       expect(getSiteStrings(locale).textFallback.contact.resumeUrl).toBe(
         '/resume.pdf'
       );
     }
-
-    expect(
-      getSiteStrings('en-x-pseudo').textFallback.contact.resumeUrl
-    ).toContain('/resume.pdf');
   });
 
   it('uses the stable PDF in the no-script fallback', () => {
@@ -47,11 +49,14 @@ describe('runtime résumé links', () => {
   });
 
   it('requires the stable PDF before strict smoke validation runs', () => {
-    const expectations = readProjectFile(
-      'scripts/static-asset-expectations.cjs'
+    expect(runtimeAssetExpectations).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '/resume.pdf' })])
     );
-
-    expect(expectations).toContain("path: '/resume.pdf'");
+    expect(runtimeAssetExpectations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: LEGACY_RESUME_ARCHIVE_URL }),
+      ])
+    );
     expect(existsSync(path.join(PROJECT_ROOT, 'public', 'resume.pdf'))).toBe(
       true
     );
