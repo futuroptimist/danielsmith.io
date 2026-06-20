@@ -27,6 +27,14 @@ _Actions:_ cut a git tag + screenshot/GIF when each phase slices, update the tab
 metrics snapshot (Lighthouse CI, WebPageTest, telemetry). Numbers are privacy-respecting lab
 captures; keep artifacts in `docs/metrics/`.
 
+## v0.1.0 production launch
+
+- 🗓️ Planned: publish the first production release from this repository with a minimal accessible
+  link surface, stable `/resume.pdf` contract, immutable staging-to-production promotion, and
+  baseline Sugarkube observability gates. See [`docs/releases/v0.1.0.md`](releases/v0.1.0.md)
+  for the launch checklist, dashboard/alert requirements, privacy boundaries, promotion evidence,
+  and rollback plan.
+
 ## Global success criteria
 
 - **Performance budgets** – p95 FPS ≥90 on desktop class hardware and ≥60 on mid-range mobile;
