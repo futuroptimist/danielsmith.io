@@ -55,7 +55,11 @@ Avatar facing is computed from the camera-relative movement vector; see
   [docs/guides/in-world-vs-overlay.md](docs/guides/in-world-vs-overlay.md).
 - **Résumé** – Latest résumé source is
   [`resume.tex`][resume-src].
-  CI renders PDF and DOCX artifacts.
+  CI renders PDF and DOCX artifacts. `/resume.pdf` is the stable public résumé
+  URL for runtime links, while `/resume.docx` is the stable downloadable DOCX
+  URL (served from `public/resume.docx`) when a word-processor copy is useful. The immutable
+  dated PDF archive for this source snapshot lives at
+  `public/docs/resume/2026-06/resume.pdf`.
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
   `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
@@ -154,10 +158,11 @@ lightweight.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
 - **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage, then runs `npm run links:check`. The link checker collects POI locale links plus README/docs Markdown links, validates URL syntax, checks local targets, and probes external HTTP(S) targets with HEAD plus GET fallback while treating private, rate-limited, or unreachable hosts as warnings instead of clear broken-link failures.
 - **Launch smoke** – `npm run smoke` builds once, validates bundled output references, and reports
-  manual static binary assets (resume/favicon) as warnings by default.
+  manual static binary assets (`/resume.pdf`, favicon, and similar files) as warnings by
+  default.
 - **Strict manual static verification** – run `REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke` after
-  Daniel manually adds binary assets (for example `favicon.ico` and resume PDFs) so missing source
-  or `dist/` artifacts fail fast.
+  Daniel manually adds binary assets (for example `favicon.ico`, `/resume.pdf`, and
+  `/resume.docx`) so missing source or `dist/` artifacts fail fast.
 - **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, GPTBot,
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
