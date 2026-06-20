@@ -12,6 +12,12 @@ colliders, scene objects, semantic connections, room-specific cutouts, and
 other generated runtime geometry should be extracted from imperative assembly
 into those files over the migration.
 
+## Release plans
+
+- [v0.1.0 launch plan](releases/v0.1.0.md) — first public production launch checklist requiring
+  the repository-backed production surface, accessibility/text-fallback gates, immutable staging
+  promotion, and a small Sugarkube observability baseline before production promotion.
+
 ## Delivery scoreboard
 
 | Phase | Status         | Demo                | Key metrics                                               |
