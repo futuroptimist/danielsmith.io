@@ -53,9 +53,11 @@ Avatar facing is computed from the camera-relative movement vector; see
   [docs/backlog.md](docs/backlog.md).
 - **UI placement guide** – Compare in-world vs. overlay treatments in
   [docs/guides/in-world-vs-overlay.md](docs/guides/in-world-vs-overlay.md).
-- **Résumé** – Latest résumé source is
-  [`resume.tex`][resume-src].
-  CI renders PDF and DOCX artifacts.
+- **Résumé** – Latest résumé source stays in
+  [`resume.tex`][resume-src]. Runtime links use the stable [`/resume.pdf`](public/resume.pdf)
+  artifact, while [`public/docs/resume/2026-06/resume.pdf`](public/docs/resume/2026-06/resume.pdf)
+  remains the immutable dated PDF archive. CI also refreshes [`/resume.docx`](public/resume.docx)
+  as a stable downloadable DOCX artifact.
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
   `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
@@ -156,8 +158,8 @@ lightweight.
 - **Launch smoke** – `npm run smoke` builds once, validates bundled output references, and reports
   manual static binary assets (resume/favicon) as warnings by default.
 - **Strict manual static verification** – run `REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke` after
-  Daniel manually adds binary assets (for example `favicon.ico` and resume PDFs) so missing source
-  or `dist/` artifacts fail fast.
+  Daniel manually adds binary assets (for example `favicon.ico`, stable `/resume.pdf`, and
+  dated resume archives) so missing source or `dist/` artifacts fail fast.
 - **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, GPTBot,
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
