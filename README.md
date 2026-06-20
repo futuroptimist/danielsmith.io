@@ -156,8 +156,9 @@ lightweight.
 - **Launch smoke** – `npm run smoke` builds once, validates bundled output references, and reports
   manual static binary assets (resume/favicon) as warnings by default.
 - **Strict manual static verification** – run `REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke` after
-  Daniel manually adds binary assets (for example `favicon.ico` and resume PDFs) so missing source
-  or `dist/` artifacts fail fast.
+  Daniel manually adds binary assets (for example `favicon.ico`, the stable `public/resume.pdf`,
+  and dated résumé archives such as `public/docs/resume/2026-06/resume.pdf`) so missing source or
+  `dist/` artifacts fail fast.
 - **Link preview heuristics** – Automated user-agent checks steer social/chat crawlers
   (Facebook, Twitter, Slack, Discord, LinkedIn, Telegram, WhatsApp, Skype, GPTBot,
   ClaudeBot, ByteSpider, and others) to the text tour so share cards render without
