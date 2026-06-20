@@ -178,12 +178,42 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          check_resume_stale_paths() {
+            local base_sha="$1"
+            local head_sha="$2"
+            local context="$3"
+            local blocking_paths
+
+            blocking_paths="$(
+              git diff --name-only "${base_sha}" "${head_sha}" -- \
+                docs/resume \
+                .github/workflows/resume.yml
+            )"
+            if [ -n "${blocking_paths}" ]; then
+              {
+                echo "::error::Refusing to publish stale resume artifacts after ${context}."
+                echo "::error::Resume-affecting paths changed between:"
+                echo "::error::  base: ${base_sha}"
+                echo "::error::  head: ${head_sha}"
+                while IFS= read -r path; do
+                  echo "::error::  - ${path}"
+                done <<<"${blocking_paths}"
+              } >&2
+              exit 1
+            fi
+          }
+
           git fetch origin main
           current_main="$(git rev-parse origin/main)"
           if [ "${GITHUB_SHA}" != "${current_main}" ]; then
-            echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_main}."
-            exit 1
+            check_resume_stale_paths \
+              "${GITHUB_SHA}" \
+              "${current_main}" \
+              "main advanced before artifact persistence"
+            git checkout "${current_main}"
           fi
+          publish_base="${current_main}"
 
           version="${{ needs.build-artifacts.outputs.version }}"
           base="${{ needs.build-artifacts.outputs.base }}"
@@ -231,6 +261,7 @@ jobs:
             echo "versioned_docx=${version_dir}/resume.docx"
             echo "stable_pdf=public/resume.pdf"
             echo "stable_docx=public/resume.docx"
+            echo "publish_base=${publish_base}"
           } >>"${GITHUB_OUTPUT}"
 
       - name: Commit and push generated artifacts
@@ -239,6 +270,32 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          check_resume_stale_paths() {
+            local base_sha="$1"
+            local head_sha="$2"
+            local context="$3"
+            local blocking_paths
+
+            blocking_paths="$(
+              git diff --name-only "${base_sha}" "${head_sha}" -- \
+                docs/resume \
+                .github/workflows/resume.yml
+            )"
+            if [ -n "${blocking_paths}" ]; then
+              {
+                echo "::error::Refusing to publish stale resume artifacts after ${context}."
+                echo "::error::Resume-affecting paths changed between:"
+                echo "::error::  base: ${base_sha}"
+                echo "::error::  head: ${head_sha}"
+                while IFS= read -r path; do
+                  echo "::error::  - ${path}"
+                done <<<"${blocking_paths}"
+              } >&2
+              exit 1
+            fi
+          }
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
@@ -249,9 +306,13 @@ jobs:
           git commit -m "📄 : – refresh generated resume artifacts"
           git fetch origin main
           current_main="$(git rev-parse origin/main)"
-          if [ "${GITHUB_SHA}" != "${current_main}" ]; then
-            echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_main}."
-            exit 1
+          publish_base="${{ steps.persist.outputs.publish_base }}"
+          if [ "${publish_base}" != "${current_main}" ]; then
+            check_resume_stale_paths \
+              "${publish_base}" \
+              "${current_main}" \
+              "main advanced before final push"
+            git rebase origin/main
           fi
           if ! git push origin HEAD:main; then
             echo "::error::Unable to push generated resume artifacts to main. If branch protection blocks GitHub Actions pushes, update the documented persistence strategy or allow this workflow to write these generated files."
