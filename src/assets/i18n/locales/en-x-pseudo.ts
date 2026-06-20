@@ -113,7 +113,8 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         githubLabel: wrap('GitHub'),
         githubUrl: wrap('https://github.com/futuroptimist'),
         resumeLabel: wrap('Résumé (PDF)'),
-        resumeUrl: wrap('/resume.pdf'),
+        // Keep runtime URLs machine-readable while pseudo-localizing user-facing labels.
+        resumeUrl: '/resume.pdf',
       },
       recoveryCta: {
         title: wrap('Ready for the full room?'),
