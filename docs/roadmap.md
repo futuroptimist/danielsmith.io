@@ -12,6 +12,12 @@ colliders, scene objects, semantic connections, room-specific cutouts, and
 other generated runtime geometry should be extracted from imperative assembly
 into those files over the migration.
 
+## Release plans
+
+- [v0.1.0 launch plan](releases/v0.1.0.md) – production promotion checklist for
+  replacing the legacy placeholder with this repository, including launch-surface,
+  accessibility, baseline observability, verification, and rollback gates.
+
 ## Delivery scoreboard
 
 | Phase | Status         | Demo                | Key metrics                                               |
