@@ -178,11 +178,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          report_blocking_resume_changes() {
+            local base_sha="$1"
+            local current_sha="$2"
+            local blocking_paths
+            blocking_paths="$(git diff --name-only "${base_sha}" "${current_sha}" -- \
+              docs/resume .github/workflows/resume.yml)"
+
+            if [ -n "${blocking_paths}" ]; then
+              echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_sha}. Resume-affecting paths changed:"
+              while IFS= read -r path; do
+                echo "::error::  ${path}"
+              done <<<"${blocking_paths}"
+              return 1
+            fi
+
+            return 0
+          }
+
           git fetch origin main
           current_main="$(git rev-parse origin/main)"
           if [ "${GITHUB_SHA}" != "${current_main}" ]; then
-            echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_main}."
-            exit 1
+            report_blocking_resume_changes "${GITHUB_SHA}" "${current_main}"
+            echo "Main advanced to ${current_main} with only unrelated changes; publishing there."
+            git checkout --detach "${current_main}"
           fi
 
           version="${{ needs.build-artifacts.outputs.version }}"
@@ -227,6 +246,7 @@ jobs:
 
           {
             echo "changed=${changed}"
+            echo "publish_base=$(git rev-parse HEAD)"
             echo "versioned_pdf=${version_dir}/resume.pdf"
             echo "versioned_docx=${version_dir}/resume.docx"
             echo "stable_pdf=public/resume.pdf"
@@ -247,11 +267,32 @@ jobs:
             "${{ steps.persist.outputs.stable_pdf }}" \
             "${{ steps.persist.outputs.stable_docx }}"
           git commit -m "📄 : – refresh generated resume artifacts"
+
+          report_blocking_resume_changes() {
+            local base_sha="$1"
+            local current_sha="$2"
+            local blocking_paths
+            blocking_paths="$(git diff --name-only "${base_sha}" "${current_sha}" -- \
+              docs/resume .github/workflows/resume.yml)"
+
+            if [ -n "${blocking_paths}" ]; then
+              echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_sha}. Resume-affecting paths changed:"
+              while IFS= read -r path; do
+                echo "::error::  ${path}"
+              done <<<"${blocking_paths}"
+              return 1
+            fi
+
+            return 0
+          }
+
+          publish_base="${{ steps.persist.outputs.publish_base }}"
           git fetch origin main
           current_main="$(git rev-parse origin/main)"
-          if [ "${GITHUB_SHA}" != "${current_main}" ]; then
-            echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_main}."
-            exit 1
+          if [ "${publish_base}" != "${current_main}" ]; then
+            report_blocking_resume_changes "${publish_base}" "${current_main}"
+            echo "Main advanced to ${current_main} with only unrelated changes; rebasing."
+            git rebase origin/main
           fi
           if ! git push origin HEAD:main; then
             echo "::error::Unable to push generated resume artifacts to main. If branch protection blocks GitHub Actions pushes, update the documented persistence strategy or allow this workflow to write these generated files."
