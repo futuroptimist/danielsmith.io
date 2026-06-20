@@ -12,6 +12,13 @@ colliders, scene objects, semantic connections, room-specific cutouts, and
 other generated runtime geometry should be extracted from imperative assembly
 into those files over the migration.
 
+## Release plans
+
+- [v0.1.0 launch plan](releases/v0.1.0.md) — production launch checklist requiring the
+  repository-backed site, accessible launch links, stable `/resume.pdf`, staging-to-production
+  immutable image promotion, baseline blackbox/Kubernetes observability, dashboard evidence,
+  actionable alerts, privacy boundaries, verification, and rollback.
+
 ## Delivery scoreboard
 
 | Phase | Status         | Demo                | Key metrics                                               |
