@@ -14,7 +14,10 @@ import {
 import type { RectCollider } from '../../systems/collision';
 import type { FloorId } from '../../systems/movement/stairs';
 
-import { getDeclaredColliderDebugId } from './colliderDebugIds';
+import {
+  assertDebugColliderId,
+  getDeclaredColliderDebugId,
+} from './colliderDebugIds';
 import {
   DEBUG_ID_PRECISION,
   allocateDebugId,
@@ -159,6 +162,16 @@ const createColliderDebugIdFromMetadata = (
   usedIds: ReadonlySet<string>,
   idSeed = getColliderDebugSeed(metadata)
 ): string => {
+  if (metadata.debugId !== undefined) {
+    const explicitDebugId = assertDebugColliderId(metadata.debugId);
+    if (usedIds.has(explicitDebugId)) {
+      throw new Error(
+        `Duplicate explicit debug collider ID ${explicitDebugId}`
+      );
+    }
+    return explicitDebugId;
+  }
+
   const primaryCandidate = getColliderDebugPrimaryId(metadata, idSeed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
