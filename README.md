@@ -55,7 +55,10 @@ Avatar facing is computed from the camera-relative movement vector; see
   [docs/guides/in-world-vs-overlay.md](docs/guides/in-world-vs-overlay.md).
 - **Résumé** – Latest résumé source is
   [`resume.tex`][resume-src].
-  CI renders PDF and DOCX artifacts.
+  CI renders the stable public PDF at [`/resume.pdf`](public/resume.pdf) and keeps
+  [`/resume.docx`](public/resume.docx) available as a stable downloadable DOCX. The
+  immutable dated archive for this source version is
+  [`public/docs/resume/2026-06/resume.pdf`](public/docs/resume/2026-06/resume.pdf).
 - **Prompt library** – Automation-ready Codex prompts are summarized in
   [`summary.md`][prompt-summary] and expanded across topical files in
   `docs/prompts/codex/` (automation, lighting, avatar, HUD, POIs, accessibility, and more).
