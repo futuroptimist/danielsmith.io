@@ -5,7 +5,11 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from '../../../systems/movement/stairs';
-import { getDeclaredColliderDebugId } from '../../debug/colliderDebugIds';
+import {
+  assertDebugColliderIdsDoNotCollide,
+  isDebugColliderId,
+} from '../../debug/colliderDebugIds';
+import { createColliderDebugId } from '../../debug/colliderVisualizer';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -106,53 +110,34 @@ describe('stair safety collider source definitions', () => {
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
   });
 
-  it('keeps declared debug IDs mapped to existing safety collider names', () => {
-    const names = new Set(
-      collectSafetyColliders().map((collider) => collider.name)
+  it('keeps active safety collider debug IDs valid, unique, and collision-free', () => {
+    const colliders = collectSafetyColliders();
+    const declaredIds = colliders.map(
+      (collider) => [collider.name, collider.debugId] as const
     );
 
-    [
-      ['GroundStairEastBoundary', '4001'],
-      ['GroundStairLowerCornerGuard', '4002'],
-      ['UpperStairEastUpperVoidGuard', '4007'],
-      ['UpperStairWestBannisterGuard', '4009'],
-      ['UpperStairNorthBannisterGuard', '400A'],
-    ].forEach(([name, id]) => {
-      expect(names.has(name)).toBe(true);
-      expect(
-        getDeclaredColliderDebugId({ floor: 'upper', category: 'upper', name })
-      ).toBe(id);
+    colliders.forEach((collider) => {
+      expect(isDebugColliderId(collider.debugId)).toBe(true);
     });
-
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairTopGapBlockerWest',
-      })
-    ).toBe('4003');
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairTopGapBlockerEast',
-      })
-    ).toBe('4004');
-    expect(
-      getDeclaredColliderDebugId({
-        floor: 'upper',
-        category: 'upper',
-        name: 'UpperStairHiddenRunVoidGuard',
-      })
-    ).toBeUndefined();
+    expect(new Set(colliders.map((collider) => collider.debugId)).size).toBe(
+      colliders.length
+    );
+    expect(() => assertDebugColliderIdsDoNotCollide(declaredIds)).not.toThrow();
   });
 
-  it('does not regenerate the removed hidden-run void guard', () => {
-    const names = collectSafetyColliders().map((collider) => collider.name);
-
-    expect(names).not.toContain('UpperStairHiddenRunVoidGuard');
+  it('passes source-backed safety debug IDs through runtime registration unchanged', () => {
+    collectSafetyColliders().forEach((collider) => {
+      expect(
+        createColliderDebugId({
+          floor: collider.floor,
+          category: collider.floor,
+          name: collider.name,
+          bounds: collider.bounds,
+          debugId: collider.debugId,
+        })
+      ).toBe(collider.debugId);
+    });
   });
-
   it('keeps safety collider source IDs free of tombstone wording', () => {
     collectSafetyColliders().forEach((collider) => {
       expect(String(collider.sourceId)).not.toMatch(

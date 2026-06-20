@@ -1076,22 +1076,6 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
   });
   await movePlayerTo(page, { x: stairCenterX, z: stairTopZ - 0.1 });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
-
-  const debugColliders = await page.evaluate(() => {
-    const debugApi = (window as PortfolioWindow).portfolio?.debugColliders;
-    if (!debugApi) {
-      throw new Error('Debug colliders API unavailable');
-    }
-    debugApi.setEnabled(true);
-    return debugApi.getColliders().map((collider) => collider.name);
-  });
-  expect(debugColliders).toContain('GroundStairEastBoundary');
-  expect(debugColliders).toContain('GroundStairLowerCornerGuard');
-  expect(debugColliders).toContain('UpperStairwellLandingGuard-3');
-  expect(debugColliders).not.toContain('UpperStairwellLandingGuard-4');
-  expect(debugColliders).not.toContain('GroundStairEastRunSeal');
-  expect(debugColliders).not.toContain('GroundStairEastRunSealLowerCap');
-  expect(debugColliders).not.toContain('GroundStairEastRunSealUpperCap');
 });
 
 test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {

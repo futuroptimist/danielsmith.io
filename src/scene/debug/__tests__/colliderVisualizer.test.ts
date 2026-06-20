@@ -43,7 +43,7 @@ describe('createColliderDebugId', () => {
     expect(createColliderDebugId(metadata)).toMatch(/^[0-9A-F]{6}$/);
   });
 
-  it('uses declared IDs for generated and named runtime colliders', () => {
+  it('uses generated, regression, and explicit source-backed IDs', () => {
     expect(
       createColliderDebugId({
         floor: 'ground',
@@ -74,8 +74,30 @@ describe('createColliderDebugId', () => {
         category: 'upper',
         name: 'UpperStairNorthBannisterGuard',
         bounds: collider,
+        debugId: '400A',
       })
     ).toBe('400A');
+    expect(() =>
+      createColliderDebugId({
+        floor: 'upper',
+        category: 'upper',
+        name: 'UpperStairNorthBannisterGuard',
+        bounds: collider,
+        debugId: '400a',
+      })
+    ).toThrow('Invalid debug collider ID 400a');
+    expect(() =>
+      createColliderDebugId(
+        {
+          floor: 'upper',
+          category: 'upper',
+          name: 'UpperStairNorthBannisterGuard',
+          bounds: collider,
+          debugId: '400A',
+        },
+        new Set(['400A'])
+      )
+    ).toThrow('Duplicate explicit debug collider ID 400A');
     expect(
       createColliderDebugId({
         floor: 'ground',
@@ -683,6 +705,46 @@ describe('createColliderVisualizer', () => {
     expect(
       visualizer.group.children.find((child) => child.type === 'Sprite')?.name
     ).toBe(exposedLabelName);
+  });
+
+  it('rejects duplicate explicit debug IDs instead of remapping them', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+    const explicitCollider = {
+      floor: 'upper' as const,
+      category: 'upper',
+      name: 'UpperStairNorthBannisterGuard',
+      bounds: collider,
+      debugId: '400A',
+    };
+
+    visualizer.register([explicitCollider]);
+
+    expect(() =>
+      visualizer.register([
+        {
+          ...explicitCollider,
+          name: 'UpperStairSouthBannisterGuard',
+        },
+      ])
+    ).toThrow('Duplicate explicit debug collider ID 400A');
+    expect(visualizer.getColliders()).toHaveLength(1);
+  });
+
+  it('rejects malformed explicit debug IDs instead of leaking them', () => {
+    const visualizer = createColliderVisualizer({ activeFloorId: 'ground' });
+
+    expect(() =>
+      visualizer.register([
+        {
+          floor: 'upper',
+          category: 'upper',
+          name: 'UpperStairNorthBannisterGuard',
+          bounds: collider,
+          debugId: '400a',
+        },
+      ])
+    ).toThrow('Invalid debug collider ID 400a');
+    expect(visualizer.getColliders()).toHaveLength(0);
   });
 
   it('registers semantic source metadata without changing visible IDs', () => {

@@ -1,6 +1,8 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { isDebugColliderId } from '../../debug/colliderDebugIds';
+import { createColliderDebugId } from '../../debug/colliderVisualizer';
 import { assertLevelSourceId } from '../../level/sourceIds';
 import {
   UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
@@ -147,6 +149,7 @@ describe('createUpperStairwellLanding', () => {
         role: 'shoulder-east',
         sourceId: 'upper.stairwell.landingGuard.shoulderEast',
         name: 'UpperStairwellLandingGuard-3',
+        debugId: '400D',
         bounds: {
           minX: 1.1,
           maxX: 2,
@@ -157,6 +160,44 @@ describe('createUpperStairwellLanding', () => {
     ]);
   });
 
+  it('emits source-owned production landing debug IDs unchanged', () => {
+    const result = createUpperStairwellLanding({
+      roomBounds: { minX: -6, maxX: 6, minZ: -10, maxZ: 8 },
+      openingBounds: { minX: -2, maxX: 2, minZ: -8, maxZ: 6 },
+      descentCorridorBounds: {
+        minX: -1.2,
+        maxX: 1.1,
+        minZ: -7.6,
+        maxZ: 6,
+      },
+      elevation: 4,
+      guard: {
+        height: 0.56,
+        thickness: 0.2,
+        material: { color: 0xff0000 },
+      },
+      segments: UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
+    });
+
+    const explicitDebugIds = result.colliders.flatMap((collider) =>
+      collider.debugId ? [collider.debugId] : []
+    );
+
+    expect(explicitDebugIds.every(isDebugColliderId)).toBe(true);
+    expect(new Set(explicitDebugIds).size).toBe(explicitDebugIds.length);
+    result.colliders.forEach((collider) => {
+      if (!collider.debugId) return;
+      expect(
+        createColliderDebugId({
+          floor: 'upper',
+          category: 'upper',
+          name: collider.name,
+          bounds: collider.bounds,
+          debugId: collider.debugId,
+        })
+      ).toBe(collider.debugId);
+    });
+  });
   it('clamps guard colliders to the landing room when the opening touches an edge', () => {
     const result = createUpperStairwellLanding({
       roomBounds: { minX: -2, maxX: 4, minZ: -6, maxZ: 6 },

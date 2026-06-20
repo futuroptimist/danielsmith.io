@@ -14,7 +14,10 @@ import {
 import type { RectCollider } from '../../systems/collision';
 import type { FloorId } from '../../systems/movement/stairs';
 
-import { getDeclaredColliderDebugId } from './colliderDebugIds';
+import {
+  assertDebugColliderId,
+  getDeclaredColliderDebugId,
+} from './colliderDebugIds';
 import {
   DEBUG_ID_PRECISION,
   allocateDebugId,
@@ -34,6 +37,7 @@ export interface DebugColliderMetadata {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  debugId?: string;
 }
 
 export interface DebugColliderRegistration {
@@ -47,6 +51,7 @@ export interface DebugColliderRegistration {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  debugId?: string;
 }
 
 export interface DebugColliderVisualizerState {
@@ -101,15 +106,17 @@ const cloneSourceMetadata = <
     sourceId?: string;
     sourceType?: string;
     purpose?: string;
+    debugId?: string;
   },
 >(
   input: T
-): Pick<T, 'sourceId' | 'sourceType' | 'purpose'> => ({
+): Pick<T, 'sourceId' | 'sourceType' | 'purpose' | 'debugId'> => ({
   ...(typeof input.sourceId === 'string' ? { sourceId: input.sourceId } : {}),
   ...(typeof input.sourceType === 'string'
     ? { sourceType: input.sourceType }
     : {}),
   ...(typeof input.purpose === 'string' ? { purpose: input.purpose } : {}),
+  ...(typeof input.debugId === 'string' ? { debugId: input.debugId } : {}),
 });
 
 const cloneBounds = (bounds: RectCollider): RectCollider => ({
@@ -146,6 +153,7 @@ const getColliderDebugPrimaryId = (
   metadata: Omit<DebugColliderMetadata, 'id'>,
   seed: string
 ): string =>
+  metadata.debugId ??
   getDeclaredColliderDebugId(metadata) ??
   getDebugHash(`${seed}|${DEBUG_ID_PRIMARY_SALT}`);
 
@@ -154,6 +162,16 @@ const createColliderDebugIdFromMetadata = (
   usedIds: ReadonlySet<string>,
   idSeed = getColliderDebugSeed(metadata)
 ): string => {
+  if (metadata.debugId !== undefined) {
+    const explicitDebugId = assertDebugColliderId(metadata.debugId);
+    if (usedIds.has(explicitDebugId)) {
+      throw new Error(
+        `Duplicate explicit debug collider ID ${explicitDebugId}`
+      );
+    }
+    return explicitDebugId;
+  }
+
   const primaryCandidate = getColliderDebugPrimaryId(metadata, idSeed);
   if (!usedIds.has(primaryCandidate)) {
     return primaryCandidate;
