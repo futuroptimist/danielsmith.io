@@ -154,24 +154,12 @@ jobs:
     needs: build-artifacts
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]' }}
     permissions:
-      actions: write
       contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Verify publish run is current
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          current_main="$(git rev-parse origin/main)"
-          if [ "${GITHUB_SHA}" != "${current_main}" ]; then
-            echo "::error::Skipping stale resume publish run for ${GITHUB_SHA}; current main is ${current_main}."
-            exit 1
-          fi
 
       - name: Download PDF artifact
         uses: actions/download-artifact@v4
@@ -190,6 +178,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git fetch origin main
+          current_main="$(git rev-parse origin/main)"
+          if [ "${GITHUB_SHA}" != "${current_main}" ]; then
+            echo "::error::Refusing to publish stale resume artifacts for ${GITHUB_SHA}; current main is ${current_main}."
+            exit 1
+          fi
+
           version="${{ needs.build-artifacts.outputs.version }}"
           base="${{ needs.build-artifacts.outputs.base }}"
 
@@ -263,14 +258,6 @@ jobs:
             exit 1
           fi
           echo "sha=$(git rev-parse HEAD)" >>"${GITHUB_OUTPUT}"
-
-      - name: Trigger image publish for generated artifacts
-        if: ${{ steps.commit.outputs.sha != '' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          gh workflow run ci-image.yml --ref main -f ref=main
 
       - name: Report publish summary
         shell: bash
