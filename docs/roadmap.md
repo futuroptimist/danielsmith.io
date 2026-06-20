@@ -27,6 +27,13 @@ _Actions:_ cut a git tag + screenshot/GIF when each phase slices, update the tab
 metrics snapshot (Lighthouse CI, WebPageTest, telemetry). Numbers are privacy-respecting lab
 captures; keep artifacts in `docs/metrics/`.
 
+## v0.1.0 launch plan
+
+- 🗓️ Planned: [v0.1.0 launch plan](releases/v0.1.0.md) defines the production
+  launch surface, accessibility gates, Sugarkube promotion evidence, rollback path,
+  and the minimal observability requirement for promoting the portfolio from the
+  legacy placeholder to this repository's static nginx application.
+
 ## Global success criteria
 
 - **Performance budgets** – p95 FPS ≥90 on desktop class hardware and ≥60 on mid-range mobile;
