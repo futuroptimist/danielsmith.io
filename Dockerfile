@@ -5,7 +5,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN REQUIRE_MANUAL_STATIC_ASSETS=1 npm run smoke
+RUN npm run smoke
 RUN find dist -type f -name '*.map' -delete
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
