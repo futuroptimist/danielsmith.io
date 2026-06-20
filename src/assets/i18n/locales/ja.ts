@@ -107,7 +107,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
         githubLabel: 'GitHub',
         githubUrl: 'https://github.com/futuroptimist',
         resumeLabel: '履歴書 (PDF)',
-        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+        resumeUrl: '/resume.pdf',
       },
       recoveryCta: {
         title: 'フルルームに戻りますか？',
