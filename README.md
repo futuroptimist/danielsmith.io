@@ -56,8 +56,8 @@ Avatar facing is computed from the camera-relative movement vector; see
 - **Résumé** – Latest résumé source is
   [`resume.tex`][resume-src].
   CI renders PDF and DOCX artifacts. `/resume.pdf` is the stable public résumé
-  URL for runtime links, while `public/resume.docx` is available as the stable
-  downloadable DOCX artifact when a word-processor copy is useful. The immutable
+  URL for runtime links, while `/resume.docx` is the stable downloadable DOCX
+  URL (served from `public/resume.docx`) when a word-processor copy is useful. The immutable
   dated PDF archive for this source snapshot lives at
   `public/docs/resume/2026-06/resume.pdf`.
 - **Prompt library** – Automation-ready Codex prompts are summarized in

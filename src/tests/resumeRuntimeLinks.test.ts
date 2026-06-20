@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -16,6 +16,7 @@ const ACTIVE_SOURCE_FILES = [
   'src/systems/failover/index.ts',
   'scripts/static-asset-expectations.cjs',
 ];
+// Split to avoid this file matching its own scan for the legacy archive URL.
 const LEGACY_RESUME_ARCHIVE_URL = [
   '/docs/resume',
   '2025' + '-09',
@@ -65,17 +66,15 @@ describe('runtime résumé links', () => {
   });
 
   it('permits immutable dated archive artifacts alongside the stable PDF', () => {
+    const archiveRoot = path.join(PROJECT_ROOT, 'public', 'docs', 'resume');
+    const latestVersion = readdirSync(archiveRoot)
+      .filter((entry) => /^\d{4}-\d{2}$/.test(entry))
+      .sort()
+      .at(-1);
+
+    expect(latestVersion).toBeDefined();
     expect(
-      existsSync(
-        path.join(
-          PROJECT_ROOT,
-          'public',
-          'docs',
-          'resume',
-          '2026-06',
-          'resume.pdf'
-        )
-      )
+      existsSync(path.join(archiveRoot, latestVersion!, 'resume.pdf'))
     ).toBe(true);
   });
 });
