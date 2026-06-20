@@ -27,6 +27,13 @@ _Actions:_ cut a git tag + screenshot/GIF when each phase slices, update the tab
 metrics snapshot (Lighthouse CI, WebPageTest, telemetry). Numbers are privacy-respecting lab
 captures; keep artifacts in `docs/metrics/`.
 
+## Release plans
+
+- [v0.1.0 launch plan](releases/v0.1.0.md) – concrete production-promotion
+  checklist for serving this repository at `danielsmith.io`, keeping accessibility and text
+  fallback as launch gates, and requiring a small Sugarkube observability baseline before
+  promotion.
+
 ## Global success criteria
 
 - **Performance budgets** – p95 FPS ≥90 on desktop class hardware and ≥60 on mid-range mobile;
