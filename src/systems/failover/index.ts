@@ -1018,7 +1018,7 @@ export function renderTextFallback(
 ): void {
   const {
     reason,
-    resumeUrl = 'docs/resume/2025-09/resume.pdf',
+    resumeUrl = '/resume.pdf',
     githubUrl = 'https://github.com/futuroptimist',
     immersiveUrl: providedImmersiveUrl,
     debugImmersiveUrl: providedDebugImmersiveUrl,
@@ -1031,9 +1031,7 @@ export function renderTextFallback(
   const actionStrings = textFallbackStrings.actions;
   const modeToggleStrings = getModeToggleStrings(localeHint);
   const resolvedResumeUrl =
-    resumeUrl ??
-    textFallbackStrings.contact.resumeUrl ??
-    'docs/resume/2025-09/resume.pdf';
+    resumeUrl ?? textFallbackStrings.contact.resumeUrl ?? '/resume.pdf';
   const resolvedGithubUrl = githubUrl ?? textFallbackStrings.contact.githubUrl;
   const immersiveUrl = createImmersiveRecoveryUrl(
     providedImmersiveUrl ?? documentTarget.defaultView?.location ?? undefined

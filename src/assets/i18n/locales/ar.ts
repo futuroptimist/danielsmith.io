@@ -107,7 +107,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
         githubLabel: 'GitHub',
         githubUrl: 'https://github.com/futuroptimist',
         resumeLabel: 'السيرة الذاتية (PDF)',
-        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+        resumeUrl: '/resume.pdf',
       },
       recoveryCta: {
         title: 'هل أنت جاهز للغرفة الكاملة؟',

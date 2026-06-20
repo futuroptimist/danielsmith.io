@@ -90,7 +90,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         githubLabel: 'GitHub',
         githubUrl: 'https://github.com/futuroptimist',
         resumeLabel: '简历 (PDF)',
-        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+        resumeUrl: '/resume.pdf',
       },
       recoveryCta: {
         title: '准备进入完整房间了吗？',

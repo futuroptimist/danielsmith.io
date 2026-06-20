@@ -112,7 +112,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         githubLabel: 'GitHub',
         githubUrl: 'https://github.com/futuroptimist',
         resumeLabel: 'Résumé (PDF)',
-        resumeUrl: 'docs/resume/2025-09/resume.pdf',
+        resumeUrl: '/resume.pdf',
       },
       recoveryCta: {
         title: 'Ready for the full room?',

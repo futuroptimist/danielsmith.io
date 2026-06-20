@@ -113,7 +113,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         githubLabel: wrap('GitHub'),
         githubUrl: wrap('https://github.com/futuroptimist'),
         resumeLabel: wrap('Résumé (PDF)'),
-        resumeUrl: wrap('docs/resume/2025-09/resume.pdf'),
+        resumeUrl: wrap('/resume.pdf'),
       },
       recoveryCta: {
         title: wrap('Ready for the full room?'),

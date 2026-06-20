@@ -16,7 +16,7 @@ const runtimeAssetExpectations = [
     reason: 'Tab/favicon metadata in index.html.',
   },
   {
-    path: '/docs/resume/2025-09/resume.pdf',
+    path: '/resume.pdf',
     reason: 'No-script fallback resume link in index.html.',
   },
 ];
