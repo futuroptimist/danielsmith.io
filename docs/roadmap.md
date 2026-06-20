@@ -12,6 +12,12 @@ colliders, scene objects, semantic connections, room-specific cutouts, and
 other generated runtime geometry should be extracted from imperative assembly
 into those files over the migration.
 
+## Release plans
+
+- [v0.1.0 launch plan](releases/v0.1.0.md) defines the production launch,
+  accessibility, baseline observability, promotion evidence, verification, and
+  rollback gates.
+
 ## Delivery scoreboard
 
 | Phase | Status         | Demo                | Key metrics                                               |
