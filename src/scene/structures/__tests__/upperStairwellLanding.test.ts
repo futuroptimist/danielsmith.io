@@ -23,9 +23,13 @@ const allSegmentPolicies = (): UpperStairwellLandingSegmentPolicy[] =>
   ALL_SEGMENT_ROLES.map((role) => ({
     role,
     render: true,
-    collision: true,
     sourceId: assertLevelSourceId(`upper.stairwell.landingGuard.test.${role}`),
-    colliderName: `UpperStairwellLandingTestGuard-${role}`,
+    collision: {
+      collision: 'active',
+      intent: 'safety-guard',
+      purpose: `upper stairwell landing ${role} guard`,
+      runtimeName: `UpperStairwellLandingTestGuard-${role}`,
+    },
   }));
 
 const overlaps = (
@@ -148,6 +152,9 @@ describe('createUpperStairwellLanding', () => {
       {
         role: 'shoulder-east',
         sourceId: 'upper.stairwell.landingGuard.shoulderEast',
+        sourceType: 'generatedCollider',
+        intent: 'safety-guard',
+        purpose: 'upper stairwell landing shoulder-east guard',
         name: 'UpperStairwellLandingGuard-3',
         debugId: '400D',
         bounds: {

@@ -2095,7 +2095,7 @@ function initializeImmersiveScene(
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
-      sourceType: 'safetyCollider',
+      sourceType: collider.sourceType,
       purpose: collider.purpose,
       debugId: collider.debugId,
     });
@@ -2137,15 +2137,16 @@ function initializeImmersiveScene(
     name: string;
     bounds: RectCollider;
     sourceId: LevelSourceId;
-    role: string;
+    sourceType: 'generatedCollider';
+    purpose: string;
     debugId?: string;
   }) => {
     upperFloorColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
-      sourceType: 'generatedCollider',
-      purpose: `upper stairwell landing ${collider.role} guard`,
+      sourceType: collider.sourceType,
+      purpose: collider.purpose,
       debugId: collider.debugId,
     });
   };

@@ -11,19 +11,20 @@ import {
   type DebugColliderId,
 } from '../debug/colliderDebugIds';
 
+import type { ActiveSourceBackedCollider } from './sourceBackedColliders';
 import { assertLevelSourceId, type LevelSourceId } from './sourceIds';
 
 export type SafetyColliderCategory = 'stair' | 'landing' | 'void';
 
-export interface LevelSafetyCollider {
-  sourceId: LevelSourceId;
-  name: string;
-  floor: 'ground' | 'upper';
-  category: SafetyColliderCategory;
-  bounds: RectCollider;
-  purpose: string;
-  debugId: DebugColliderId;
-}
+export type LevelSafetyCollider = ActiveSourceBackedCollider<
+  'stair-safety',
+  {
+    sourceType: 'safetyCollider';
+    floor: 'ground' | 'upper';
+    category: SafetyColliderCategory;
+    debugId: DebugColliderId;
+  }
+>;
 
 export interface GroundStairSafetyColliderOptions {
   playerRadius: number;
@@ -54,19 +55,23 @@ const GROUND_STAIR_SAFETY_COLLIDER_METADATA = {
   GroundStairLowerCornerGuard: {
     sourceId: sourceId('ground.stairwell.lowerCorner.safetyCollider'),
     category: 'stair',
+    intent: 'safety-guard',
     purpose: 'block raw lower-step occupancy',
     debugId: debugId('4002'),
   },
 } as const satisfies Record<
   string,
-  Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose' | 'debugId'>
+  Pick<
+    LevelSafetyCollider,
+    'sourceId' | 'category' | 'purpose' | 'debugId' | 'intent'
+  >
 >;
 
 const getGroundStairSafetyColliderMetadata = (
   name: string
 ): Pick<
   LevelSafetyCollider,
-  'sourceId' | 'category' | 'purpose' | 'debugId'
+  'sourceId' | 'category' | 'purpose' | 'debugId' | 'intent'
 > => {
   const metadata =
     GROUND_STAIR_SAFETY_COLLIDER_METADATA[
@@ -89,7 +94,9 @@ export const createGroundStairSafetyColliders = (
 ): LevelSafetyCollider[] =>
   createGroundStairBoundaryColliders(geometry, behavior, options).map(
     ({ name, bounds }) => ({
+      role: 'stair-safety',
       name,
+      sourceType: 'safetyCollider',
       floor: 'ground',
       bounds,
       ...getGroundStairSafetyColliderMetadata(name),
@@ -173,7 +180,10 @@ export const createUpperStairSafetyColliders = ({
     upperStairwellOpening.maxX - upperStairBannisterThickness;
   return [
     {
+      role: 'stair-safety',
       name: 'UpperStairEastUpperVoidGuard',
+      sourceType: 'safetyCollider',
+      intent: 'safety-guard',
       debugId: debugId('4007'),
       sourceId: sourceId('upper.stairwell.eastUpperVoid.safetyCollider'),
       floor: 'upper',
@@ -187,7 +197,10 @@ export const createUpperStairSafetyColliders = ({
       },
     },
     ...upperStairTopGapBlockers.map(({ name, bounds }) => ({
+      role: 'stair-safety' as const,
       name,
+      sourceType: 'safetyCollider' as const,
+      intent: 'safety-guard' as const,
       sourceId: sourceId(
         `upper.stairwell.topGap.${name.endsWith('West') ? 'west' : 'east'}.safetyCollider`
       ),
@@ -198,7 +211,10 @@ export const createUpperStairSafetyColliders = ({
       bounds,
     })),
     {
+      role: 'stair-safety',
       name: 'UpperStairWestBannisterGuard',
+      sourceType: 'safetyCollider',
+      intent: 'secondary-backstop',
       debugId: debugId('4009'),
       sourceId: sourceId('upper.stairwell.westBannister.safetyCollider'),
       floor: 'upper',
@@ -219,7 +235,10 @@ export const createUpperStairSafetyColliders = ({
       },
     },
     {
+      role: 'stair-safety',
       name: 'UpperStairNorthBannisterGuard',
+      sourceType: 'safetyCollider',
+      intent: 'secondary-backstop',
       debugId: debugId('400A'),
       sourceId: sourceId('upper.stairwell.northBannister.safetyCollider'),
       floor: 'upper',

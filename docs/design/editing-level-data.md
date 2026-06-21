@@ -139,6 +139,21 @@ npx vitest run src/scene/level/__tests__/generateFloorSurfaces.test.ts
 npx playwright test playwright/immersive-stairs-roundtrip.spec.ts
 ```
 
+## Source-owned collision policies
+
+Stair safety and upper-stairwell landing guard colliders use the shared
+`SourceCollisionPolicy` / `ActiveSourceBackedCollider` contract under
+`src/scene/level/`. Active declarations carry their collision intent, purpose,
+runtime name, and optional stable debug ID beside the source ID that owns the
+collider. Visual-only declarations use `collision: 'none'` with a concise
+rationale so disabling collision does not require tombstones or a parallel
+runtime ledger.
+
+When removing or changing one of these source-backed colliders, edit the active
+declaration that emits it. Runtime registration consumes the emitted source
+metadata directly; do not reconstruct source IDs, purposes, or debug IDs in
+`src/main.ts`.
+
 ## Immersive test taxonomy
 
 Keep immersive Playwright assertions behavior-first unless a test is explicitly
