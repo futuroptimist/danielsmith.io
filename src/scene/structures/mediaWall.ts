@@ -607,6 +607,12 @@ export function createLivingRoomMediaWall(
     anchorZ
   );
   group.add(shelf);
+  colliders.push({
+    minX: wallInteriorX + boardDepth,
+    maxX: wallInteriorX + boardDepth + shelfDepth,
+    minZ: anchorZ - shelfWidth / 2,
+    maxZ: anchorZ + shelfWidth / 2,
+  });
 
   const consoleMaterial = new MeshStandardMaterial({
     color: 0x0f1724,

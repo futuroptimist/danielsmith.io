@@ -1327,6 +1327,19 @@ describe('createBackyardEnvironment', () => {
         collider.maxX >= backTopRail!.position.x - backTopRail!.scale.x / 2
     );
     expect(backCollider).toBeDefined();
+    const middleBackFenceSample = {
+      x: (BACKYARD_BOUNDS.minX + BACKYARD_BOUNDS.maxX) / 2,
+      z: backMostPostZ,
+    };
+    expect(
+      environment.colliders.some(
+        (collider) =>
+          collider.minX <= middleBackFenceSample.x &&
+          collider.maxX >= middleBackFenceSample.x &&
+          collider.minZ <= middleBackFenceSample.z &&
+          collider.maxZ >= middleBackFenceSample.z
+      )
+    ).toBe(true);
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();

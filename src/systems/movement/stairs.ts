@@ -212,22 +212,22 @@ export const createGroundStairBoundaryColliders = (
   options: GroundStairBoundaryColliderOptions
 ): NamedStairBoundaryCollider[] => {
   const stairEastX = geometry.centerX + geometry.halfWidth;
-  const fallbackEastBoundaryMaxX =
+  const eastBoundaryMaxX =
     stairEastX +
     geometry.halfWidth +
     behavior.transitionMargin +
     options.playerRadius * 2 +
     options.guardThickness * 2;
-  const eastBoundaryMaxX = fallbackEastBoundaryMaxX;
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
+  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
   const colliders: NamedStairBoundaryCollider[] = [
     {
       name: 'GroundStairLowerCornerGuard',
       bounds: {
         minX: stairEastX,
         maxX: eastBoundaryMaxX,
-        minZ: getMinZ(geometry.bottomZ, lowerApproachZ),
+        minZ: rampMinZ,
         maxZ: getMaxZ(geometry.bottomZ, lowerApproachZ),
       },
     },

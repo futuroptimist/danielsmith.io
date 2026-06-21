@@ -169,4 +169,20 @@ describe('createLivingRoomMediaWall', () => {
 
     expect(() => build.controller.dispose()).not.toThrow();
   });
+
+  it('blocks the physical shelf footprint in front of the media wall', () => {
+    const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
+    const build = createLivingRoomMediaWall(bounds);
+    const shelfSample = { x: bounds.minX + 0.12 + 0.18 + 0.58 / 2, z: -14.2 };
+
+    const shelfCollider = build.colliders.find(
+      (collider) =>
+        collider.minX <= shelfSample.x &&
+        collider.maxX >= shelfSample.x &&
+        collider.minZ <= shelfSample.z &&
+        collider.maxZ >= shelfSample.z
+    );
+
+    expect(shelfCollider).toBeDefined();
+  });
 });

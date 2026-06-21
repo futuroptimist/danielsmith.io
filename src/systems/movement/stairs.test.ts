@@ -66,11 +66,11 @@ describe('createGroundStairSafetyColliders', () => {
     );
   });
 
-  it('blocks the lower stair-side squeeze samples', () => {
+  it('blocks the reported stair-side squeeze samples', () => {
     const blockedSamples = [
       { x: 17.38, z: -8.84 },
-      { x: 21.35, z: -9.5 },
-      { x: 22.1, z: -9.5 },
+      { x: 21.35, z: -14.66 },
+      { x: 22.1, z: -14.66 },
     ];
 
     blockedSamples.forEach((sample) => {
