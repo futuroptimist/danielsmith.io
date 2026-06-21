@@ -116,7 +116,10 @@ const cloneSourceMetadata = <
   },
 >(
   input: T
-): Pick<T, 'sourceId' | 'sourceType' | 'purpose' | 'debugId'> => ({
+): Pick<
+  T,
+  'sourceId' | 'sourceType' | 'purpose' | 'role' | 'intent' | 'debugId'
+> => ({
   ...(typeof input.sourceId === 'string' ? { sourceId: input.sourceId } : {}),
   ...(typeof input.sourceType === 'string'
     ? { sourceType: input.sourceType }

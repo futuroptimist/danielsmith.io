@@ -79,7 +79,7 @@ export const BACKYARD_FENCE_SEGMENT_POLICIES = [
     sourceId: sourceId('ground.backyard.perimeter.backFence.boundary'),
     name: 'BackyardBackFenceBoundary',
     purpose: 'preserve the visible back fence as a physical boundary',
-    debugId: debugId('1007'),
+    debugId: debugId('1006'),
   },
 ] as const satisfies readonly BackyardFenceSegmentPolicy[];
 
@@ -88,6 +88,7 @@ export const BACKYARD_HOLOGRAM_BARRIER_POLICY = {
   sourceId: sourceId('ground.backyard.hologramBarrier.boundary'),
   name: 'BackyardHologramBarrierBoundary',
   purpose: 'block traversal through the hologram barrier plane',
+  debugId: debugId('1007'),
 } as const;
 
 const createFenceBounds = (
@@ -191,7 +192,18 @@ export const createBackyardHologramBarrierCollider = ({
   intent: 'physical-boundary',
   purpose: BACKYARD_HOLOGRAM_BARRIER_POLICY.purpose,
   name: BACKYARD_HOLOGRAM_BARRIER_POLICY.name,
+  debugId: BACKYARD_HOLOGRAM_BARRIER_POLICY.debugId,
 });
+
+const BACKYARD_SOURCE_IDS: ReadonlySet<string> = new Set([
+  BACKYARD_HOLOGRAM_BARRIER_POLICY.sourceId,
+  ...BACKYARD_FENCE_SEGMENT_POLICIES.map((policy) => policy.sourceId),
+]);
+
+const BACKYARD_SOURCE_ROLES: ReadonlySet<string> = new Set([
+  BACKYARD_HOLOGRAM_BARRIER_POLICY.role,
+  ...BACKYARD_FENCE_SEGMENT_POLICIES.map((policy) => policy.role),
+]);
 
 export const isBackyardSourceCollider = (
   collider: RectCollider
@@ -199,6 +211,9 @@ export const isBackyardSourceCollider = (
   const candidate = collider as Partial<BackyardSourceCollider>;
   return (
     typeof candidate.sourceId === 'string' &&
+    BACKYARD_SOURCE_IDS.has(candidate.sourceId) &&
+    typeof candidate.role === 'string' &&
+    BACKYARD_SOURCE_ROLES.has(candidate.role) &&
     candidate.sourceType === 'generatedCollider' &&
     typeof candidate.name === 'string' &&
     typeof candidate.purpose === 'string' &&

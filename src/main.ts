@@ -4465,21 +4465,24 @@ function initializeImmersiveScene(
       elevation?: number;
     }
   ): DebugColliderRegistration[] =>
-    colliders.map((bounds, index) => ({
-      floor: options.floor,
-      category: options.category,
-      name:
-        namedColliderDebugNames.get(bounds) ??
-        `${options.namePrefix}-${index + 1}`,
-      bounds,
-      elevation: options.elevation,
-      sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
-      sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
-      purpose: colliderSourceMetadata.get(bounds)?.purpose,
-      role: colliderSourceMetadata.get(bounds)?.role,
-      intent: colliderSourceMetadata.get(bounds)?.intent,
-      debugId: colliderSourceMetadata.get(bounds)?.debugId,
-    }));
+    colliders.map((bounds, index) => {
+      const sourceMetadata = colliderSourceMetadata.get(bounds);
+      return {
+        floor: options.floor,
+        category: options.category,
+        name:
+          namedColliderDebugNames.get(bounds) ??
+          `${options.namePrefix}-${index + 1}`,
+        bounds,
+        elevation: options.elevation,
+        sourceId: sourceMetadata?.sourceId,
+        sourceType: sourceMetadata?.sourceType,
+        purpose: sourceMetadata?.purpose,
+        role: sourceMetadata?.role,
+        intent: sourceMetadata?.intent,
+        debugId: sourceMetadata?.debugId,
+      };
+    });
 
   const colliderVisualizer = createColliderVisualizer({
     activeFloorId,
