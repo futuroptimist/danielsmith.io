@@ -1970,7 +1970,6 @@ function initializeImmersiveScene(
       activeSceneDetailPolicy
     );
     groundFloorGroup.add(mediaWall.group);
-    mediaWall.colliders.forEach((collider) => staticColliders.push(collider));
     livingRoomMediaWall = mediaWall;
     mediaWallStarBridge.attach(mediaWall.controller);
 
