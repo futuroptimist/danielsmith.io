@@ -92,6 +92,24 @@ colliders. If the connection needs an opening, edit the wall run/gap or delete
 that wall source data. If it needs a visible threshold or door, add a scene
 object.
 
+## Inspect runtime colliders from the CLI
+
+Before proposing a collider removal, resolve the runtime collider through the
+immersive debug API instead of searching generated arrays by hand. The on-demand
+inspector launches or reuses the local Vite runtime, opens immersive mode with
+performance failover disabled, reads `window.portfolio.debugColliders`, and
+prints the collider identity, source provenance, policy metadata, normalized
+bounds, dimensions, ID kind, and active overlap count. It does not write an
+inventory file or participate in CI.
+
+```bash
+npm run collider:inspect -- --id 1007
+npm run collider:inspect -- --source-id upper.stairwell.landingGuard.shoulderEast
+npm run collider:inspect -- --name UpperStairNorthBannisterGuard --json
+```
+
+Set `PLAYWRIGHT_BASE_URL` to reuse an already-running preview or dev server.
+
 ## Inspect source IDs in the browser
 
 Launch immersive mode with performance failover disabled:

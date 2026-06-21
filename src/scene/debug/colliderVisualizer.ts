@@ -37,6 +37,7 @@ export interface DebugColliderMetadata {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  intent?: string;
   debugId?: string;
 }
 
@@ -51,6 +52,7 @@ export interface DebugColliderRegistration {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  intent?: string;
   debugId?: string;
 }
 
@@ -106,16 +108,18 @@ const cloneSourceMetadata = <
     sourceId?: string;
     sourceType?: string;
     purpose?: string;
+    intent?: string;
     debugId?: string;
   },
 >(
   input: T
-): Pick<T, 'sourceId' | 'sourceType' | 'purpose' | 'debugId'> => ({
+): Pick<T, 'sourceId' | 'sourceType' | 'purpose' | 'intent' | 'debugId'> => ({
   ...(typeof input.sourceId === 'string' ? { sourceId: input.sourceId } : {}),
   ...(typeof input.sourceType === 'string'
     ? { sourceType: input.sourceType }
     : {}),
   ...(typeof input.purpose === 'string' ? { purpose: input.purpose } : {}),
+  ...(typeof input.intent === 'string' ? { intent: input.intent } : {}),
   ...(typeof input.debugId === 'string' ? { debugId: input.debugId } : {}),
 });
 

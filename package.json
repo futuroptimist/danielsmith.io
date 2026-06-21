@@ -23,7 +23,8 @@
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",
     "links:check": "node scripts/check-links.cjs",
-    "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs"
+    "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs",
+    "collider:inspect": "tsx scripts/colliderInspect.ts"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
