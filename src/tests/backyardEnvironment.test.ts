@@ -29,6 +29,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
+import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
@@ -1317,7 +1318,11 @@ describe('createBackyardEnvironment', () => {
         collider.minZ <= frontMostPostZ + 0.05 &&
         collider.maxZ >= backMostPostZ - 0.05
     );
-    expect(leftCollider).toBeDefined();
+    expect(leftCollider).toMatchObject({
+      sourceId: 'ground.backyard.perimeter.leftFence.boundary',
+      role: 'leftFenceBoundary',
+      intent: 'physical-boundary',
+    });
 
     const pointIsBlocked =
       (colliders: typeof environment.colliders) =>
@@ -1342,26 +1347,43 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = {
-      minX: -32,
-      maxX: 32,
-      minZ: 16,
-      maxZ: 32,
-    };
+    const productionBackyardBounds = FLOOR_PLAN.rooms.find(
+      (room) => room.id === 'backyard'
+    )?.bounds;
+    expect(productionBackyardBounds).toBeDefined();
     const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds
+      productionBackyardBounds!
     );
+    const productionBackFenceSampleZ = productionBackyardBounds!.maxZ - 1.8;
     const productionBackFenceSamples = [
-      { x: 0, z: 30.2 },
-      { x: 5, z: 30.2 },
-      { x: -5, z: 30.2 },
+      {
+        x:
+          (productionBackyardBounds!.minX + productionBackyardBounds!.maxX) / 2,
+        z: productionBackFenceSampleZ,
+      },
+      { x: 5, z: productionBackFenceSampleZ },
+      { x: -5, z: productionBackFenceSampleZ },
     ];
+    expect(productionBackFenceSamples[1].x).toBe(5);
+    expect(productionBackFenceSamples[1].z).toBeCloseTo(30.2, 5);
 
     expect(
       productionBackFenceSamples.every(
         pointIsBlocked(productionEnvironment.colliders)
       )
     ).toBe(true);
+
+    const productionBackFenceCollider = productionEnvironment.colliders.find(
+      (collider) =>
+        (collider as { sourceId?: string }).sourceId ===
+        'ground.backyard.perimeter.backFence.boundary'
+    );
+    expect(productionBackFenceCollider).toMatchObject({
+      debugId: '1007',
+      role: 'backFenceBoundary',
+      intent: 'physical-boundary',
+      purpose: expect.stringContaining('visible back fence'),
+    });
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();

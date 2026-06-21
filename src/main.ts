@@ -150,6 +150,7 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
 import { generateFloorSurfaces } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
 import {
@@ -1001,6 +1002,8 @@ const colliderSourceMetadata = new Map<
       | LevelSourceId;
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
+    role?: string;
+    intent?: string;
     debugId?: string;
   }
 >();
@@ -1870,9 +1873,20 @@ function initializeImmersiveScene(
     if (skyDome) {
       skyDome.visible = false;
     }
-    backyardEnvironment.colliders.forEach((collider) =>
-      groundColliders.push(collider)
-    );
+    backyardEnvironment.colliders.forEach((collider) => {
+      if (isBackyardSourceCollider(collider)) {
+        namedColliderDebugNames.set(collider, collider.name);
+        colliderSourceMetadata.set(collider, {
+          sourceId: collider.sourceId,
+          sourceType: collider.sourceType,
+          purpose: collider.purpose,
+          role: collider.role,
+          intent: collider.intent,
+          debugId: collider.debugId,
+        });
+      }
+      groundColliders.push(collider);
+    });
   }
 
   const groundFloorGroup = new Group();
@@ -4462,6 +4476,8 @@ function initializeImmersiveScene(
       sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
       sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
       purpose: colliderSourceMetadata.get(bounds)?.purpose,
+      role: colliderSourceMetadata.get(bounds)?.role,
+      intent: colliderSourceMetadata.get(bounds)?.intent,
       debugId: colliderSourceMetadata.get(bounds)?.debugId,
     }));
 

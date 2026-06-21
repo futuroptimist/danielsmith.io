@@ -37,6 +37,8 @@ export interface DebugColliderMetadata {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  role?: string;
+  intent?: string;
   debugId?: string;
 }
 
@@ -51,6 +53,8 @@ export interface DebugColliderRegistration {
   sourceId?: string;
   sourceType?: string;
   purpose?: string;
+  role?: string;
+  intent?: string;
   debugId?: string;
 }
 
@@ -106,6 +110,8 @@ const cloneSourceMetadata = <
     sourceId?: string;
     sourceType?: string;
     purpose?: string;
+    role?: string;
+    intent?: string;
     debugId?: string;
   },
 >(
@@ -116,6 +122,8 @@ const cloneSourceMetadata = <
     ? { sourceType: input.sourceType }
     : {}),
   ...(typeof input.purpose === 'string' ? { purpose: input.purpose } : {}),
+  ...(typeof input.role === 'string' ? { role: input.role } : {}),
+  ...(typeof input.intent === 'string' ? { intent: input.intent } : {}),
   ...(typeof input.debugId === 'string' ? { debugId: input.debugId } : {}),
 });
 
