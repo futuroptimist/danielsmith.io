@@ -7,6 +7,13 @@ on:
     paths:
       - 'public/resume.pdf'
       - '.github/workflows/resume-gcs.yml'
+  workflow_run:
+    workflows:
+      - Resume artifacts
+    branches:
+      - main
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -26,9 +33,12 @@ jobs:
       GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
-      RESUME_GCS_DESTINATION: ${{ vars.RESUME_GCS_DESTINATION }}
-      RESUME_PUBLIC_URL: ${{ vars.RESUME_PUBLIC_URL }}
-      RESUME_STORAGE_PUBLIC_URL: ${{ vars.RESUME_STORAGE_PUBLIC_URL }}
+      RESUME_GCS_DESTINATION: gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf
+      RESUME_PUBLIC_URL: https://resume.danielsmith.io
+      RESUME_STORAGE_PUBLIC_URL: https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf
+    if: >-
+      ${{ github.event_name != 'workflow_run' ||
+        github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,10 +52,7 @@ jobs:
           for variable in \
             GCP_PROJECT_ID \
             GCP_WORKLOAD_IDENTITY_PROVIDER \
-            GCP_SERVICE_ACCOUNT \
-            RESUME_GCS_DESTINATION \
-            RESUME_PUBLIC_URL \
-            RESUME_STORAGE_PUBLIC_URL; do
+            GCP_SERVICE_ACCOUNT; do
             if [ -z "${!variable:-}" ]; then
               echo "::error::Repository variable ${variable} is required for resume deployment."
               missing=1
@@ -57,29 +64,13 @@ jobs:
             exit 1
           fi
 
-          if [ "${RESUME_GCS_DESTINATION}" != "gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf" ]; then
-            echo "::error::RESUME_GCS_DESTINATION must be gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf."
-            exit 1
-          fi
-
-          if [ "${RESUME_PUBLIC_URL}" != "https://resume.danielsmith.io" ]; then
-            echo "::error::RESUME_PUBLIC_URL must be https://resume.danielsmith.io."
-            exit 1
-          fi
-
-          expected_storage_url="https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf"
-          if [ "${RESUME_STORAGE_PUBLIC_URL}" != "${expected_storage_url}" ]; then
-            echo "::error::RESUME_STORAGE_PUBLIC_URL must be ${expected_storage_url}."
-            exit 1
-          fi
-
           if [ ! -s "${LOCAL_RESUME_PATH}" ]; then
-            echo "::error::${LOCAL_RESUME_PATH} is missing or empty. P6 must run first and commit the stable resume PDF to main."
+            echo "::error::${LOCAL_RESUME_PATH} is missing or empty. Run the Resume artifacts workflow first so it commits the stable resume PDF to main."
             exit 1
           fi
 
           if [ "$(head -c 5 "${LOCAL_RESUME_PATH}")" != "%PDF-" ]; then
-            echo "::error::${LOCAL_RESUME_PATH} is not a PDF. P6 must publish a valid stable resume PDF first."
+            echo "::error::${LOCAL_RESUME_PATH} is not a PDF. Run the Resume artifacts workflow first so it publishes a valid stable resume PDF."
             exit 1
           fi
 
@@ -132,7 +123,7 @@ jobs:
             local url="$2"
             local output_dir="$3"
             local expected_sha="$4"
-            local cache_busted_url body_file headers_file status_file sha content_type content_disposition
+            local cache_busted_url body_file headers_file status_file http_code sha content_type content_disposition
 
             cache_busted_url="$(append_cache_buster "${url}" "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")"
             body_file="${output_dir}/${label}.pdf"
@@ -140,6 +131,11 @@ jobs:
             status_file="${output_dir}/${label}.status"
 
             http_code="$(curl --location --silent --show-error \
+              --connect-timeout 10 \
+              --max-time 60 \
+              --retry 3 \
+              --retry-delay 2 \
+              --retry-connrefused \
               --dump-header "${headers_file}" \
               --output "${body_file}" \
               --write-out '%{http_code}' \
@@ -202,17 +198,26 @@ jobs:
             --project="${GCP_PROJECT_ID}" \
             --format=json >"${acl_json}"
 
-          public_acl="$(python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1], encoding="utf-8")); acl = metadata.get("acl") or []; found = any(entry.get("entity") == "allUsers" and entry.get("role") in {"READER", "OWNER"} for entry in acl); print("allUsers Reader present" if found else "allUsers Reader missing"); sys.exit(0 if found else 1)' "${acl_json}")"
+          public_acl="$(python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1], encoding="utf-8")); acl = metadata.get("acl") or []; found = any(entry.get("entity") == "allUsers" and entry.get("role") == "READER" for entry in acl); print("allUsers Reader present" if found else "allUsers Reader missing"); sys.exit(0 if found else 1)' "${acl_json}")"
           echo "public_acl=${public_acl}" >>"${GITHUB_OUTPUT}"
 
       - name: Write deployment summary
         if: always()
         shell: bash
+        env:
+          LOCAL_SHA256: ${{ steps.upload.outputs.local_sha256 }}
+          STORAGE_SHA256: ${{ steps.verify.outputs.storage_sha256 }}
+          CANONICAL_SHA256: ${{ steps.verify.outputs.canonical_sha256 }}
+          STORAGE_CONTENT_TYPE: ${{ steps.verify.outputs.storage_content_type }}
+          CANONICAL_CONTENT_TYPE: ${{ steps.verify.outputs.canonical_content_type }}
+          STORAGE_CONTENT_DISPOSITION: ${{ steps.verify.outputs.storage_content_disposition }}
+          CANONICAL_CONTENT_DISPOSITION: ${{ steps.verify.outputs.canonical_content_disposition }}
+          PUBLIC_ACL: ${{ steps.verify.outputs.public_acl }}
+          STORAGE_HEADERS: ${{ steps.verify.outputs.storage_headers }}
+          CANONICAL_HEADERS: ${{ steps.verify.outputs.canonical_headers }}
+          JOB_STATUS: ${{ job.status }}
         run: |
           set -euo pipefail
-
-          storage_disposition='${{ steps.verify.outputs.storage_content_disposition }}'
-          canonical_disposition='${{ steps.verify.outputs.canonical_content_disposition }}'
 
           {
             echo "## Resume GCS deployment"
@@ -224,29 +229,29 @@ jobs:
             echo "| Destination GCS URI | \`${RESUME_GCS_DESTINATION}\` |"
             echo "| Storage URL | ${RESUME_STORAGE_PUBLIC_URL} |"
             echo "| Canonical public URL | ${RESUME_PUBLIC_URL} |"
-            echo "| Local SHA-256 | \`${{ steps.upload.outputs.local_sha256 }}\` |"
-            echo "| Storage URL SHA-256 | \`${{ steps.verify.outputs.storage_sha256 }}\` |"
-            echo "| Canonical URL SHA-256 | \`${{ steps.verify.outputs.canonical_sha256 }}\` |"
-            echo "| Storage Content-Type | \`${{ steps.verify.outputs.storage_content_type }}\` |"
-            echo "| Canonical Content-Type | \`${{ steps.verify.outputs.canonical_content_type }}\` |"
-            echo "| Object ACL/public-read verification | \`${{ steps.verify.outputs.public_acl }}\` |"
-            echo "| Final deployment status | \`${{ job.status }}\` |"
+            echo "| Local SHA-256 | \`${LOCAL_SHA256}\` |"
+            echo "| Storage URL SHA-256 | \`${STORAGE_SHA256}\` |"
+            echo "| Canonical URL SHA-256 | \`${CANONICAL_SHA256}\` |"
+            echo "| Storage Content-Type | \`${STORAGE_CONTENT_TYPE}\` |"
+            echo "| Canonical Content-Type | \`${CANONICAL_CONTENT_TYPE}\` |"
+            echo "| Object ACL/public-read verification | \`${PUBLIC_ACL}\` |"
+            echo "| Final deployment status | \`${JOB_STATUS}\` |"
             echo
-            if [ "${storage_disposition}" = "absent" ]; then
+            if [ "${STORAGE_CONTENT_DISPOSITION}" = "absent" ]; then
               echo "> Warning: the storage URL did not expose Content-Disposition."
               echo
             fi
-            if [ "${canonical_disposition}" = "absent" ]; then
+            if [ "${CANONICAL_CONTENT_DISPOSITION}" = "absent" ]; then
               echo "> Warning: the canonical URL did not expose Content-Disposition."
               echo
             fi
             echo "### Storage URL response headers"
             echo '```'
-            printf '%s\n' '${{ steps.verify.outputs.storage_headers }}'
+            printf '%s\n' "${STORAGE_HEADERS}"
             echo '```'
             echo
             echo "### Canonical URL response headers"
             echo '```'
-            printf '%s\n' '${{ steps.verify.outputs.canonical_headers }}'
+            printf '%s\n' "${CANONICAL_HEADERS}"
             echo '```'
           } >>"${GITHUB_STEP_SUMMARY}"

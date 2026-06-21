@@ -22,32 +22,34 @@ access. The deployed object must include an object ACL grant for `allUsers` with
 
 ## Automated deployment model
 
-P6 produces and persists the stable repository artifact at `public/resume.pdf`. P8
-then deploys that exact PDF byte-for-byte to the existing GCS object named
-`Daniel_Smith_Resume.pdf`. The deploy workflow does not compile TeX, regenerate resume
-artifacts, deploy `public/resume.docx`, edit resume content, or edit generated PDF
-bytes.
+The **Resume artifacts** workflow (`.github/workflows/resume.yml`) produces and
+persists the stable repository artifact at `public/resume.pdf`. The **Deploy resume
+to GCS** workflow then deploys that exact PDF byte-for-byte to the existing GCS object
+named `Daniel_Smith_Resume.pdf`. The deploy workflow does not compile TeX, regenerate
+resume artifacts, deploy `public/resume.docx`, edit resume content, or edit generated
+PDF bytes.
 
-The deployment workflow is `.github/workflows/resume-gcs.yml`. It runs on pushes to
-`main` that change `public/resume.pdf` or the workflow itself, and it also supports
-manual `workflow_dispatch` runs. It does not run on `pull_request`, so pull requests
-never authenticate to Google Cloud or deploy.
+The deployment workflow is `.github/workflows/resume-gcs.yml`. It runs on successful
+`Resume artifacts` workflow completions on `main`, direct pushes to `main` that change
+`public/resume.pdf` or the deployment workflow itself, and manual `workflow_dispatch`
+runs. The `workflow_run` handoff is required because GitHub suppresses follow-on
+workflow runs for commits that `Resume artifacts` pushes with `GITHUB_TOKEN`. It does
+not run on `pull_request`, so pull requests never authenticate to Google Cloud or
+deploy.
 
 ## Required GitHub repository variables
 
 Configure these repository variables before enabling the workflow:
 
-| Variable                         | Expected value or purpose                                                      |
-| -------------------------------- | ------------------------------------------------------------------------------ |
-| `GCP_PROJECT_ID`                 | Google Cloud project ID for the observed `danielsmith io` project.             |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Full Workload Identity Provider resource name used by GitHub OIDC.             |
-| `GCP_SERVICE_ACCOUNT`            | Dedicated deploy service account email to impersonate.                         |
-| `RESUME_GCS_DESTINATION`         | `gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf`                           |
-| `RESUME_PUBLIC_URL`              | `https://resume.danielsmith.io`                                                |
-| `RESUME_STORAGE_PUBLIC_URL`      | `https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf` |
+| Variable                         | Expected value or purpose                                          |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `GCP_PROJECT_ID`                 | Google Cloud project ID for the observed `danielsmith io` project. |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Full Workload Identity Provider resource name used by GitHub OIDC. |
+| `GCP_SERVICE_ACCOUNT`            | Dedicated deploy service account email to impersonate.             |
 
-The workflow fails before authentication or upload if any variable is missing. It also
-checks that the three resume destination variables match the known production target.
+The workflow fails before authentication or upload if any required variable is missing.
+The resume destination, canonical URL, and storage URL are production constants in the
+workflow so operators cannot accidentally point a deployment at another object.
 
 ## Google Workload Identity Federation setup
 
@@ -111,7 +113,7 @@ STORAGE_URL="https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_R
 CANONICAL_URL="https://resume.danielsmith.io"
 
 if [ ! -s "${LOCAL_RESUME_PATH}" ]; then
-  echo "${LOCAL_RESUME_PATH} is missing or empty. P6 must run first." >&2
+  echo "${LOCAL_RESUME_PATH} is missing or empty. Run Resume artifacts first." >&2
   exit 1
 fi
 
@@ -127,7 +129,13 @@ gcloud storage objects update "${DESTINATION}" \
 
 for url in "${STORAGE_URL}" "${CANONICAL_URL}"; do
   tmp="$(mktemp)"
-  curl --location --fail --silent --show-error "${url}?resume_verify=$(date +%s)" \
+  curl --location --fail --silent --show-error \
+    --connect-timeout 10 \
+    --max-time 60 \
+    --retry 3 \
+    --retry-delay 2 \
+    --retry-connrefused \
+    "${url}?resume_verify=$(date +%s)" \
     --output "${tmp}"
   test -s "${tmp}"
   test "$(head -c 5 "${tmp}")" = "%PDF-"
@@ -158,6 +166,11 @@ for label in storage canonical; do
 
   tmpdir="$(mktemp -d)"
   curl --location --fail --silent --show-error \
+    --connect-timeout 10 \
+    --max-time 60 \
+    --retry 3 \
+    --retry-delay 2 \
+    --retry-connrefused \
     --dump-header "${tmpdir}/${label}.headers" \
     --output "${tmpdir}/${label}.pdf" \
     "${url}?resume_verify=$(date +%s)"
