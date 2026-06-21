@@ -104,6 +104,165 @@ jobs:
           fi
           echo "pages=${pages}" >>"${GITHUB_OUTPUT}"
 
+      - name: Run ATS smoke report
+        id: ats
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pdf="${{ steps.resume.outputs.pdf }}"
+          tmp="${RUNNER_TEMP}/resume-ats"
+          plain_text="${tmp}/resume.txt"
+          layout_text="${tmp}/resume-layout.txt"
+          mkdir -p "${tmp}"
+
+          pdftotext "${pdf}" "${plain_text}"
+          pdftotext -layout "${pdf}" "${layout_text}"
+
+          echo "artifact=resume-${{ steps.resume.outputs.version }}-ats-text" >>"${GITHUB_OUTPUT}"
+          echo "dir=${tmp}" >>"${GITHUB_OUTPUT}"
+
+          python3 - "$plain_text" "$layout_text" "${GITHUB_STEP_SUMMARY}" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          plain_path = Path(sys.argv[1])
+          layout_path = Path(sys.argv[2])
+          summary_path = Path(sys.argv[3])
+          plain = plain_path.read_text(encoding="utf-8", errors="replace")
+          layout = layout_path.read_text(encoding="utf-8", errors="replace")
+          lines = plain.splitlines()
+
+          failures = []
+          warnings = []
+          checklist = []
+          pdf_pages = "${{ steps.pdfinfo.outputs.pages }}"
+
+          def required(label, ok, failure_message):
+              checklist.append((label, ok))
+              if not ok:
+                  failures.append(failure_message)
+
+          required(
+              "Plain extracted text is non-empty and reasonably large",
+              len(plain.strip()) >= 1000,
+              "Plain extracted text is empty or unexpectedly small.",
+          )
+          required(
+              "Generated PDF remains one page",
+              pdf_pages == "1",
+              f"Expected generated PDF to be one page, got {pdf_pages}.",
+          )
+
+          required_terms = [
+              "Daniel Smith",
+              "daniel@danielsmith.io",
+              "Summary",
+              "Skills",
+              "Experience",
+              "Education",
+              "Independent Open Source Engineering",
+              "YouTube (Google)",
+              "Site Reliability Engineer, L4",
+              "The University of Southern Mississippi",
+              "Jones County Junior College",
+          ]
+          for term in required_terms:
+              required(f"Contains `{term}`", term in plain, f"Missing required text: {term}")
+
+          def position(term):
+              index = plain.find(term)
+              return index if index >= 0 else None
+
+          order_checks = [
+              ("`Summary` appears before `Skills`", "Summary", "Skills"),
+              ("`Skills` appears before `Experience`", "Skills", "Experience"),
+              ("`Experience` appears before `Education`", "Experience", "Education"),
+          ]
+          for label, first, second in order_checks:
+              first_pos = position(first)
+              second_pos = position(second)
+              ok = first_pos is not None and second_pos is not None and first_pos < second_pos
+              required(label, ok, f"Section order is not sane: {first} should precede {second}.")
+
+          # TODO: Make these Education pairing warnings blocking after the Education
+          # section is reformatted in a follow-up PR.
+          education_pairs = [
+              ("M.S. Computer Science", "Aug 2015"),
+              ("B.S. Computer Science", "May 2013"),
+              ("A.A.S. Information System Technology", "Aug 2011"),
+          ]
+
+          def degree_date_pair_status(degree, date):
+              for line in lines:
+                  if degree in line and date in line:
+                      return "same line"
+              degree_pos = position(degree)
+              date_pos = position(date)
+              if degree_pos is None or date_pos is None:
+                  return "missing"
+              start = max(0, min(degree_pos, date_pos) - 160)
+              end = min(len(plain), max(degree_pos + len(degree), date_pos + len(date)) + 160)
+              if degree in plain[start:end] and date in plain[start:end]:
+                  return "nearby window"
+              return "detached"
+
+          education_statuses = []
+          for degree, date in education_pairs:
+              status = degree_date_pair_status(degree, date)
+              education_statuses.append((degree, date, status))
+              if status != "same line":
+                  warnings.append(
+                      f"`{degree}` and `{date}` are {status}; this is non-blocking for now."
+                  )
+
+          oddities = sorted(
+              {
+                  match.group(0)
+                  for text in (plain, layout)
+                  for match in re.finditer(r"\b[A-Za-z]{3,}-\s*\n\s*[A-Za-z]{3,}\b", text)
+              }
+          )
+          if oddities:
+              preview = ", ".join(re.sub(r"\s+", " ", item) for item in oddities[:5])
+              warnings.append(f"Possible line-wrap or hyphenation oddities detected: {preview}")
+
+          preview = "\n".join(lines[:120])
+          with summary_path.open("a", encoding="utf-8") as summary:
+              summary.write("## ATS smoke report\n\n")
+              summary.write(f"- Selected TeX source: `${{ steps.resume.outputs.tex }}`\n")
+              summary.write(f"- Selected resume version: `${{ steps.resume.outputs.version }}`\n")
+              summary.write(f"- Generated PDF path: `${{ steps.resume.outputs.pdf }}`\n")
+              summary.write(f"- PDF page count: `${{ steps.pdfinfo.outputs.pages }}`\n")
+              summary.write(f"- Plain extracted character count: `{len(plain)}`\n")
+              summary.write(f"- Layout extracted character count: `{len(layout)}`\n\n")
+              summary.write("### Pass/fail checklist\n\n")
+              for label, ok in checklist:
+                  summary.write(f"- {'✅' if ok else '❌'} {label}\n")
+              summary.write("\n### Education pairing observations\n\n")
+              for degree, date, status in education_statuses:
+                  icon = "✅" if status == "same line" else "⚠️"
+                  summary.write(f"- {icon} `{degree}` with `{date}`: {status}\n")
+              if warnings:
+                  summary.write("\n### Non-blocking warnings\n\n")
+                  for warning in warnings:
+                      summary.write(f"- ⚠️ {warning}\n")
+              summary.write("\n<details>\n<summary>First 120 lines of plain extraction</summary>\n\n")
+              summary.write("```text\n")
+              summary.write(preview)
+              if preview and not preview.endswith("\n"):
+                  summary.write("\n")
+              summary.write("```\n\n</details>\n")
+
+          if failures:
+              for failure in failures:
+                  print(f"::error::{failure}")
+              sys.exit(1)
+          for warning in warnings:
+              print(f"::warning::{warning}")
+          PY
+
       - name: Calculate checksums
         id: checksums
         shell: bash
@@ -128,6 +287,15 @@ jobs:
         with:
           name: ${{ steps.resume.outputs.artifact_docx }}
           path: ${{ steps.resume.outputs.docx }}
+          if-no-files-found: error
+
+      - name: Upload ATS extracted text artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.ats.outputs.artifact }}
+          path: |
+            ${{ steps.ats.outputs.dir }}/resume.txt
+            ${{ steps.ats.outputs.dir }}/resume-layout.txt
           if-no-files-found: error
 
       - name: Report build summary
