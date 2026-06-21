@@ -1,4 +1,6 @@
+import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 import {
   collectRuntimeColliders,
@@ -208,7 +210,15 @@ export const runColliderInspectCli = async (args: readonly string[]) => {
   );
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isDirectExecution = () => {
+  const invokedPath = process.argv[1];
+  return Boolean(
+    invokedPath &&
+      path.resolve(invokedPath) === path.resolve(fileURLToPath(import.meta.url))
+  );
+};
+
+if (isDirectExecution()) {
   runColliderInspectCli(process.argv.slice(2)).catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`${message}\n`);

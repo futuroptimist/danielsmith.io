@@ -69,6 +69,34 @@ const waitForServer = async (baseUrl: string, timeoutMs: number) => {
   throw new Error(`Timed out waiting for Vite dev server at ${baseUrl}.`);
 };
 
+const waitForServerOrExit = async (
+  baseUrl: string,
+  timeoutMs: number,
+  child: ChildProcess
+) => {
+  let handleExit:
+    | ((code: number | null, signal: NodeJS.Signals | null) => void)
+    | undefined;
+
+  const exited = new Promise<never>((_, reject) => {
+    handleExit = (code, signal) => {
+      const status = signal
+        ? `signal ${signal}`
+        : `exit code ${code ?? 'unknown'}`;
+      reject(new Error(`Vite dev server failed to start (${status}).`));
+    };
+    child.once('exit', handleExit);
+  });
+
+  try {
+    await Promise.race([waitForServer(baseUrl, timeoutMs), exited]);
+  } finally {
+    if (handleExit) {
+      child.off('exit', handleExit);
+    }
+  }
+};
+
 const startViteServer = async (
   baseUrl: string,
   timeoutMs: number
@@ -94,7 +122,7 @@ const startViteServer = async (
   );
 
   try {
-    await waitForServer(baseUrl, timeoutMs);
+    await waitForServerOrExit(baseUrl, timeoutMs, child);
   } catch (error) {
     child.kill();
     throw error;
@@ -109,8 +137,11 @@ const closeStartedServer = async (server: ChildProcess | undefined) => {
   }
   server.kill();
   await new Promise<void>((resolve) => {
-    server.once('exit', () => resolve());
-    setTimeout(resolve, 1_000);
+    const timer = setTimeout(resolve, 1_000);
+    server.once('exit', () => {
+      clearTimeout(timer);
+      resolve();
+    });
   });
 };
 
