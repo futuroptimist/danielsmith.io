@@ -163,6 +163,7 @@ export const formatInspectionRecords = (
         `  source ID: ${formatOptional(record.sourceId)}`,
         `  source type: ${formatOptional(record.sourceType)}`,
         `  intent: ${formatOptional(record.intent)}`,
+        `  role: ${formatOptional(record.role)}`,
         `  purpose: ${formatOptional(record.purpose)}`,
         `  floor: ${record.floor}`,
         `  category: ${record.category}`,

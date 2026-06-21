@@ -1002,6 +1002,7 @@ const colliderSourceMetadata = new Map<
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
     intent?: string;
+    role?: string;
     debugId?: string;
   }
 >();
@@ -2102,6 +2103,7 @@ function initializeImmersiveScene(
       sourceType: collider.sourceType,
       purpose: collider.purpose,
       intent: collider.intent,
+      role: collider.role,
       debugId: collider.debugId,
     });
   };
@@ -2148,6 +2150,7 @@ function initializeImmersiveScene(
       sourceType: collider.sourceType,
       purpose: collider.purpose,
       intent: collider.intent,
+      role: collider.role,
       debugId: collider.debugId,
     });
   };
@@ -4466,6 +4469,7 @@ function initializeImmersiveScene(
       sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
       purpose: colliderSourceMetadata.get(bounds)?.purpose,
       intent: colliderSourceMetadata.get(bounds)?.intent,
+      role: colliderSourceMetadata.get(bounds)?.role,
       debugId: colliderSourceMetadata.get(bounds)?.debugId,
     }));
 

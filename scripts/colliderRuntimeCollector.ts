@@ -21,6 +21,7 @@ export type RuntimeColliderMetadata = {
   sourceType?: string;
   purpose?: string;
   intent?: string;
+  role?: string;
   debugId?: string;
 };
 
@@ -42,6 +43,19 @@ export const DEFAULT_COLLIDER_RUNTIME_BASE_URL = 'http://127.0.0.1:5173';
 const wait = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+const withTimeoutSignal = async <T>(
+  timeoutMs: number,
+  action: (signal: AbortSignal) => Promise<T>
+): Promise<T> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await action(controller.signal);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const buildImmersiveUrl = (baseUrl: string): string => {
   const url = new URL(baseUrl);
   url.searchParams.set('mode', 'immersive');
@@ -49,9 +63,14 @@ const buildImmersiveUrl = (baseUrl: string): string => {
   return url.toString();
 };
 
-const isReachable = async (baseUrl: string): Promise<boolean> => {
+const isReachable = async (
+  baseUrl: string,
+  timeoutMs = 2_000
+): Promise<boolean> => {
   try {
-    const response = await fetch(baseUrl, { method: 'HEAD' });
+    const response = await withTimeoutSignal(timeoutMs, (signal) =>
+      fetch(baseUrl, { method: 'HEAD', signal })
+    );
     return response.ok || response.status < 500;
   } catch {
     return false;
@@ -61,7 +80,8 @@ const isReachable = async (baseUrl: string): Promise<boolean> => {
 const waitForServer = async (baseUrl: string, timeoutMs: number) => {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    if (await isReachable(baseUrl)) {
+    const remainingMs = Math.max(1, timeoutMs - (Date.now() - startedAt));
+    if (await isReachable(baseUrl, Math.min(2_000, remainingMs))) {
       return;
     }
     await wait(500);
@@ -78,6 +98,8 @@ const waitForServerOrExit = async (
     | ((code: number | null, signal: NodeJS.Signals | null) => void)
     | undefined;
 
+  let handleError: ((error: Error) => void) | undefined;
+
   const exited = new Promise<never>((_, reject) => {
     handleExit = (code, signal) => {
       const status = signal
@@ -85,7 +107,11 @@ const waitForServerOrExit = async (
         : `exit code ${code ?? 'unknown'}`;
       reject(new Error(`Vite dev server failed to start (${status}).`));
     };
+    handleError = (error) => {
+      reject(new Error(`Vite dev server failed to start: ${error.message}`));
+    };
     child.once('exit', handleExit);
+    child.once('error', handleError);
   });
 
   try {
@@ -94,17 +120,16 @@ const waitForServerOrExit = async (
     if (handleExit) {
       child.off('exit', handleExit);
     }
+    if (handleError) {
+      child.off('error', handleError);
+    }
   }
 };
 
 const startViteServer = async (
   baseUrl: string,
   timeoutMs: number
-): Promise<ChildProcess | undefined> => {
-  if (await isReachable(baseUrl)) {
-    return undefined;
-  }
-
+): Promise<ChildProcess> => {
   const url = new URL(baseUrl);
   const host = url.hostname || '127.0.0.1';
   const port = url.port || '5173';
@@ -147,7 +172,10 @@ const closeStartedServer = async (server: ChildProcess | undefined) => {
 
 const readCollidersFromPage = async (page: Page, timeoutMs: number) => {
   await page.waitForFunction(
-    () => Boolean((window as PortfolioWindow).portfolio?.debugColliders),
+    () => {
+      const api = (window as PortfolioWindow).portfolio?.debugColliders;
+      return Boolean(api && api.getColliders().length > 0);
+    },
     undefined,
     { timeout: timeoutMs }
   );
@@ -164,14 +192,15 @@ const readCollidersFromPage = async (page: Page, timeoutMs: number) => {
 export const collectRuntimeColliders = async (
   options: RuntimeColliderCollectorOptions = {}
 ): Promise<RuntimeColliderMetadata[]> => {
-  const baseUrl =
-    options.baseUrl ??
-    process.env.PLAYWRIGHT_BASE_URL ??
-    DEFAULT_COLLIDER_RUNTIME_BASE_URL;
+  const suppliedBaseUrl = options.baseUrl ?? process.env.PLAYWRIGHT_BASE_URL;
+  const baseUrl = suppliedBaseUrl ?? DEFAULT_COLLIDER_RUNTIME_BASE_URL;
   const timeoutMs = options.timeoutMs ?? 120_000;
-  const server = await startViteServer(baseUrl, timeoutMs);
+  const server = suppliedBaseUrl
+    ? undefined
+    : (await isReachable(baseUrl))
+      ? undefined
+      : await startViteServer(baseUrl, timeoutMs);
   let browser: Browser | undefined;
-
   try {
     browser = await chromium.launch();
     const page = await browser.newPage({
@@ -183,7 +212,7 @@ export const collectRuntimeColliders = async (
     });
     return await readCollidersFromPage(page, timeoutMs);
   } finally {
-    await browser?.close();
-    await closeStartedServer(server);
+    await browser?.close().catch(() => undefined);
+    await closeStartedServer(server).catch(() => undefined);
   }
 };

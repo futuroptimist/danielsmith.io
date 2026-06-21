@@ -98,8 +98,8 @@ Before proposing a collider removal, resolve the runtime collider through the
 immersive debug API instead of searching generated arrays by hand. The on-demand
 inspector launches or reuses the local Vite runtime, opens immersive mode with
 performance failover disabled, reads `window.portfolio.debugColliders`, and
-prints the collider identity, source provenance, policy metadata, normalized
-bounds, dimensions, ID kind, and active overlap count. It does not write an
+prints the collider identity, source provenance, policy metadata (including
+source-backed role and intent), normalized bounds, dimensions, ID kind, and active overlap count. It does not write an
 inventory file or participate in CI.
 
 ```bash
@@ -190,6 +190,6 @@ about debug provenance, generator output, or debug-ID registry behavior:
 Source-owned collider declarations should use the shared policy contract in
 `src/scene/level/sourceCollision.ts` when they need stable runtime provenance.
 Active policies carry intent, purpose, required runtime name, and optional debug
-ID; visual-only policies carry a concise no-collision rationale. Emitted records
+ID, while emitted source-backed colliders also preserve their source role; visual-only policies carry a concise no-collision rationale. Emitted records
 should pass that source metadata through to runtime registration directly rather
 than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
