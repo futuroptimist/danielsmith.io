@@ -133,6 +133,7 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
+| `npm run collider:inspect -- --id 400D`         | Inspect runtime collider metadata from the immersive debug API.        |
 
 ### Local quality gates
 

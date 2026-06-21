@@ -1000,6 +1000,8 @@ const colliderSourceMetadata = new Map<
       | SceneObjectDefinition['sourceId']
       | LevelSourceId;
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
+    role?: string;
+    intent?: string;
     purpose?: string;
     debugId?: string;
   }
@@ -2099,6 +2101,8 @@ function initializeImmersiveScene(
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
       sourceType: collider.sourceType,
+      role: collider.role,
+      intent: collider.intent,
       purpose: collider.purpose,
       debugId: collider.debugId,
     });
@@ -2144,6 +2148,8 @@ function initializeImmersiveScene(
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
       sourceType: collider.sourceType,
+      role: collider.role,
+      intent: collider.intent,
       purpose: collider.purpose,
       debugId: collider.debugId,
     });
@@ -4461,6 +4467,8 @@ function initializeImmersiveScene(
       elevation: options.elevation,
       sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
       sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
+      role: colliderSourceMetadata.get(bounds)?.role,
+      intent: colliderSourceMetadata.get(bounds)?.intent,
       purpose: colliderSourceMetadata.get(bounds)?.purpose,
       debugId: colliderSourceMetadata.get(bounds)?.debugId,
     }));

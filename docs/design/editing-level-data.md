@@ -101,7 +101,18 @@ npm run preview -- --host 0.0.0.0
 # open http://localhost:5173/?mode=immersive&disablePerformanceFailover=1
 ```
 
-In DevTools, enable and query debug APIs:
+Use the collider inspector as the first step before proposing a collider
+removal. It opens the real immersive runtime, reads
+`window.portfolio.debugColliders`, and prints the runtime ID, durable source
+metadata, bounds, dimensions, and overlap count without writing inventory files:
+
+```bash
+npm run collider:inspect -- --id 400D
+npm run collider:inspect -- --source-id upper.stairwell.landingGuard.shoulderEast
+npm run collider:inspect -- --name UpperStairNorthBannisterGuard --json
+```
+
+In DevTools, you can still enable overlays and query debug APIs manually:
 
 ```js
 window.portfolio.debugSolids.setEnabled(true);
