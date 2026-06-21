@@ -298,7 +298,10 @@ import {
   createUpperLandingFloorCutouts,
   createUpperLandingStairRunApproachFootprint,
 } from './scene/structures/upperLandingFloorCutouts';
-import { createUpperStairwellLanding } from './scene/structures/upperStairwellLanding';
+import {
+  createUpperStairwellLanding,
+  type UpperStairwellLandingCollider,
+} from './scene/structures/upperStairwellLanding';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,
@@ -2095,7 +2098,7 @@ function initializeImmersiveScene(
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
-      sourceType: 'safetyCollider',
+      sourceType: collider.sourceType,
       purpose: collider.purpose,
       debugId: collider.debugId,
     });
@@ -2133,19 +2136,15 @@ function initializeImmersiveScene(
         layout: stairLayout,
       })
     : undefined;
-  const registerUpperFloorGeneratedCollider = (collider: {
-    name: string;
-    bounds: RectCollider;
-    sourceId: LevelSourceId;
-    role: string;
-    debugId?: string;
-  }) => {
+  const registerUpperFloorGeneratedCollider = (
+    collider: UpperStairwellLandingCollider
+  ) => {
     upperFloorColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
-      sourceType: 'generatedCollider',
-      purpose: `upper stairwell landing ${collider.role} guard`,
+      sourceType: collider.sourceType,
+      purpose: collider.purpose,
       debugId: collider.debugId,
     });
   };

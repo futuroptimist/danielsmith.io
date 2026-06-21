@@ -2,7 +2,10 @@ import type { MeshStandardMaterialParameters } from 'three';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
-import type { RectCollider } from '../../systems/collision';
+import {
+  isActiveSourceCollisionPolicy,
+  type SourceBackedCollider,
+} from '../level/sourceCollision';
 import type {
   UpperStairwellLandingSegmentPolicy,
   UpperStairwellLandingSegmentRole,
@@ -32,13 +35,11 @@ export interface UpperStairwellLandingConfig {
   segments: readonly UpperStairwellLandingSegmentPolicy[];
 }
 
-export interface UpperStairwellLandingCollider {
-  role: UpperStairwellLandingSegmentRole;
-  sourceId: UpperStairwellLandingSegmentPolicy['sourceId'];
-  name: string;
-  debugId?: UpperStairwellLandingSegmentPolicy['debugId'];
-  bounds: RectCollider;
-}
+export type UpperStairwellLandingCollider = SourceBackedCollider<
+  UpperStairwellLandingSegmentRole,
+  UpperStairwellLandingSegmentPolicy['sourceId'],
+  'generatedCollider'
+>;
 
 export interface UpperStairwellLandingBuild {
   group: Group;
@@ -110,18 +111,16 @@ const addGuard = (params: {
     params.group.add(guard);
   }
 
-  if (params.policy.collision) {
-    if (!params.policy.colliderName) {
-      throw new Error(
-        `Upper stairwell landing segment ${params.policy.role} enables collision without a collider name.`
-      );
-    }
-
+  const collision = params.policy.collision;
+  if (isActiveSourceCollisionPolicy(collision)) {
     params.colliders.push({
       role: params.policy.role,
       sourceId: params.policy.sourceId,
-      name: params.policy.colliderName,
-      debugId: params.policy.debugId,
+      sourceType: 'generatedCollider',
+      intent: collision.intent,
+      purpose: collision.purpose,
+      name: collision.runtimeName,
+      debugId: collision.debugId,
       bounds: guardBounds,
     });
   }

@@ -168,3 +168,10 @@ about debug provenance, generator output, or debug-ID registry behavior:
    Playwright inventory edits. Do not use raw IDs to prove normal movement
    behavior; player-facing tests should describe the route, open area, blocked
    void, or source-backed feature instead.
+
+Source-owned collider declarations should use the shared policy contract in
+`src/scene/level/sourceCollision.ts` when they need stable runtime provenance.
+Active policies carry intent, purpose, required runtime name, and optional debug
+ID; visual-only policies carry a concise no-collision rationale. Emitted records
+should pass that source metadata through to runtime registration directly rather
+than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
