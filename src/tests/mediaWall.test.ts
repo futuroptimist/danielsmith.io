@@ -8,7 +8,10 @@ import {
   vi,
 } from 'vitest';
 
-import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
+import {
+  FUTUROPTIMIST_MEDIA_WALL_POLICY,
+  createLivingRoomMediaWall,
+} from '../scene/structures/mediaWall';
 
 describe('createLivingRoomMediaWall', () => {
   type CapturingContext = CanvasRenderingContext2D & {
@@ -180,6 +183,20 @@ describe('createLivingRoomMediaWall', () => {
     expect(
       build.group.getObjectByName('LivingRoomMediaWallClearance')
     ).toBeTruthy();
-    expect(build.colliders).toHaveLength(0);
+    expect(build.policy).toBe(FUTUROPTIMIST_MEDIA_WALL_POLICY);
+    expect(build.policy.collision.collision).toBe('none');
+
+    if (build.policy.collision.collision !== 'none') {
+      throw new Error('Expected media wall policy to be visual-only.');
+    }
+
+    expect(build.policy.sourceId).toBe(
+      'ground.living_room.futuroptimist_media_wall'
+    );
+    expect(build.policy.subsystemRole).toBe('futuroptimist-media-display');
+    expect(build.policy.renderIntent).toBe('visual-poi-affordance');
+    expect(build.policy.collision.rationale.trim()).toContain('Wall-mounted');
+    expect(build.policy.collision.rationale.trim()).toContain('floor-level');
+    expect('colliders' in build).toBe(false);
   });
 });
