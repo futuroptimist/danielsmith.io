@@ -399,6 +399,6 @@ Backyard perimeter collision now uses source-owned semantic policies in
 `src/scene/level/backyardCollisionPolicies.ts`. The left, right, and back
 fence visual runs and their physical-boundary colliders derive from the same
 segment declarations so a future fence edit updates visuals and collision from
-one source. The retained back fence boundary declares debug ID `1006`,
-while the hologram barrier declares `1007`, so each source-backed collider keeps
-its historical manual-debug label.
+one source. The retained back fence boundary declares stable debug ID `1007` so
+manual collider-debug overlays and screenshot references keep identifying the
+source-backed physical boundary after the migration.

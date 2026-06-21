@@ -1379,9 +1379,12 @@ describe('createBackyardEnvironment', () => {
         'ground.backyard.perimeter.backFence.boundary'
     );
     expect(productionBackFenceCollider).toMatchObject({
-      debugId: '1006',
+      name: 'BackyardBackFenceBoundary',
+      sourceId: 'ground.backyard.perimeter.backFence.boundary',
+      sourceType: 'generatedCollider',
       role: 'backFenceBoundary',
       intent: 'physical-boundary',
+      debugId: '1007',
       purpose: expect.stringContaining('visible back fence'),
     });
 
