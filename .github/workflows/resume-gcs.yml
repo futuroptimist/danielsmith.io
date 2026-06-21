@@ -1,0 +1,252 @@
+name: Deploy resume to GCS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'public/resume.pdf'
+      - '.github/workflows/resume-gcs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: resume-gcs-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy stable resume PDF
+    runs-on: ubuntu-latest
+    env:
+      LOCAL_RESUME_PATH: public/resume.pdf
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      RESUME_GCS_DESTINATION: ${{ vars.RESUME_GCS_DESTINATION }}
+      RESUME_PUBLIC_URL: ${{ vars.RESUME_PUBLIC_URL }}
+      RESUME_STORAGE_PUBLIC_URL: ${{ vars.RESUME_STORAGE_PUBLIC_URL }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for variable in \
+            GCP_PROJECT_ID \
+            GCP_WORKLOAD_IDENTITY_PROVIDER \
+            GCP_SERVICE_ACCOUNT \
+            RESUME_GCS_DESTINATION \
+            RESUME_PUBLIC_URL \
+            RESUME_STORAGE_PUBLIC_URL; do
+            if [ -z "${!variable:-}" ]; then
+              echo "::error::Repository variable ${variable} is required for resume deployment."
+              missing=1
+            fi
+          done
+
+          if [ "${missing}" -ne 0 ]; then
+            echo "Configure the missing repository variables before rerunning this workflow." >&2
+            exit 1
+          fi
+
+          if [ "${RESUME_GCS_DESTINATION}" != "gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf" ]; then
+            echo "::error::RESUME_GCS_DESTINATION must be gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf."
+            exit 1
+          fi
+
+          if [ "${RESUME_PUBLIC_URL}" != "https://resume.danielsmith.io" ]; then
+            echo "::error::RESUME_PUBLIC_URL must be https://resume.danielsmith.io."
+            exit 1
+          fi
+
+          expected_storage_url="https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf"
+          if [ "${RESUME_STORAGE_PUBLIC_URL}" != "${expected_storage_url}" ]; then
+            echo "::error::RESUME_STORAGE_PUBLIC_URL must be ${expected_storage_url}."
+            exit 1
+          fi
+
+          if [ ! -s "${LOCAL_RESUME_PATH}" ]; then
+            echo "::error::${LOCAL_RESUME_PATH} is missing or empty. P6 must run first and commit the stable resume PDF to main."
+            exit 1
+          fi
+
+          if [ "$(head -c 5 "${LOCAL_RESUME_PATH}")" != "%PDF-" ]; then
+            echo "::error::${LOCAL_RESUME_PATH} is not a PDF. P6 must publish a valid stable resume PDF first."
+            exit 1
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Upload resume PDF
+        id: upload
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          local_sha256="$(sha256sum "${LOCAL_RESUME_PATH}" | awk '{print $1}')"
+          echo "local_sha256=${local_sha256}" >>"${GITHUB_OUTPUT}"
+
+          gcloud storage cp "${LOCAL_RESUME_PATH}" "${RESUME_GCS_DESTINATION}" \
+            --project="${GCP_PROJECT_ID}" \
+            --content-type="application/pdf" \
+            --content-disposition='inline; filename="Daniel_Smith_Resume.pdf"' \
+            --cache-control="public, max-age=300, must-revalidate"
+
+          gcloud storage objects update "${RESUME_GCS_DESTINATION}" \
+            --project="${GCP_PROJECT_ID}" \
+            --add-acl-grant=entity=allUsers,role=READER
+
+      - name: Verify public deployment
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          append_cache_buster() {
+            local url="$1"
+            local token="$2"
+            case "${url}" in
+              *\?*) printf '%s&resume_deploy_cache_bust=%s\n' "${url}" "${token}" ;;
+              *) printf '%s?resume_deploy_cache_bust=%s\n' "${url}" "${token}" ;;
+            esac
+          }
+
+          download_and_verify() {
+            local label="$1"
+            local url="$2"
+            local output_dir="$3"
+            local expected_sha="$4"
+            local cache_busted_url body_file headers_file status_file sha content_type content_disposition
+
+            cache_busted_url="$(append_cache_buster "${url}" "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")"
+            body_file="${output_dir}/${label}.pdf"
+            headers_file="${output_dir}/${label}.headers"
+            status_file="${output_dir}/${label}.status"
+
+            http_code="$(curl --location --silent --show-error \
+              --dump-header "${headers_file}" \
+              --output "${body_file}" \
+              --write-out '%{http_code}' \
+              "${cache_busted_url}")"
+            printf '%s\n' "${http_code}" >"${status_file}"
+
+            if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+              echo "::error::${label} URL returned HTTP ${http_code}."
+              exit 1
+            fi
+
+            if [ ! -s "${body_file}" ]; then
+              echo "::error::${label} URL returned an empty body."
+              exit 1
+            fi
+
+            if [ "$(head -c 5 "${body_file}")" != "%PDF-" ]; then
+              echo "::error::${label} URL did not return PDF bytes."
+              exit 1
+            fi
+
+            sha="$(sha256sum "${body_file}" | awk '{print $1}')"
+            if [ "${sha}" != "${expected_sha}" ]; then
+              echo "::error::${label} SHA-256 ${sha} does not match local ${expected_sha}."
+              exit 1
+            fi
+
+            content_type="$(awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/^[^:]+:[[:space:]]*/, ""); value=$0} END{print value}' "${headers_file}" | tr -d '\r')"
+            if ! printf '%s\n' "${content_type}" | grep -Eiq '(^|[[:space:];])application/pdf([[:space:];]|$)'; then
+              echo "::error::${label} Content-Type must include application/pdf; observed '${content_type}'."
+              exit 1
+            fi
+
+            content_disposition="$(awk 'BEGIN{IGNORECASE=1} /^content-disposition:/ {sub(/^[^:]+:[[:space:]]*/, ""); value=$0} END{print value}' "${headers_file}" | tr -d '\r')"
+            if [ -n "${content_disposition}" ] && \
+              ! printf '%s\n' "${content_disposition}" | grep -Eiq '^inline([[:space:];]|$)'; then
+              echo "::error::${label} Content-Disposition must be inline or absent; observed '${content_disposition}'."
+              exit 1
+            fi
+
+            {
+              echo "${label}_sha256=${sha}"
+              echo "${label}_content_type=${content_type}"
+              echo "${label}_content_disposition=${content_disposition:-absent}"
+              echo "${label}_headers<<EOF_HEADERS_${label}"
+              sed -n '1,20p' "${headers_file}" | sed 's/[[:cntrl:]]$//'
+              echo "EOF_HEADERS_${label}"
+            } >>"${GITHUB_OUTPUT}"
+          }
+
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "${tmpdir}"' EXIT
+
+          local_sha256="${{ steps.upload.outputs.local_sha256 }}"
+          download_and_verify storage "${RESUME_STORAGE_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
+          download_and_verify canonical "${RESUME_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
+
+          acl_json="${tmpdir}/acl.json"
+          gcloud storage objects describe "${RESUME_GCS_DESTINATION}" \
+            --project="${GCP_PROJECT_ID}" \
+            --format=json >"${acl_json}"
+
+          public_acl="$(python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1], encoding="utf-8")); acl = metadata.get("acl") or []; found = any(entry.get("entity") == "allUsers" and entry.get("role") in {"READER", "OWNER"} for entry in acl); print("allUsers Reader present" if found else "allUsers Reader missing"); sys.exit(0 if found else 1)' "${acl_json}")"
+          echo "public_acl=${public_acl}" >>"${GITHUB_OUTPUT}"
+
+      - name: Write deployment summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          storage_disposition='${{ steps.verify.outputs.storage_content_disposition }}'
+          canonical_disposition='${{ steps.verify.outputs.canonical_content_disposition }}'
+
+          {
+            echo "## Resume GCS deployment"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Source commit SHA | \`${GITHUB_SHA}\` |"
+            echo "| Local file path | \`${LOCAL_RESUME_PATH}\` |"
+            echo "| Destination GCS URI | \`${RESUME_GCS_DESTINATION}\` |"
+            echo "| Storage URL | ${RESUME_STORAGE_PUBLIC_URL} |"
+            echo "| Canonical public URL | ${RESUME_PUBLIC_URL} |"
+            echo "| Local SHA-256 | \`${{ steps.upload.outputs.local_sha256 }}\` |"
+            echo "| Storage URL SHA-256 | \`${{ steps.verify.outputs.storage_sha256 }}\` |"
+            echo "| Canonical URL SHA-256 | \`${{ steps.verify.outputs.canonical_sha256 }}\` |"
+            echo "| Storage Content-Type | \`${{ steps.verify.outputs.storage_content_type }}\` |"
+            echo "| Canonical Content-Type | \`${{ steps.verify.outputs.canonical_content_type }}\` |"
+            echo "| Object ACL/public-read verification | \`${{ steps.verify.outputs.public_acl }}\` |"
+            echo "| Final deployment status | \`${{ job.status }}\` |"
+            echo
+            if [ "${storage_disposition}" = "absent" ]; then
+              echo "> Warning: the storage URL did not expose Content-Disposition."
+              echo
+            fi
+            if [ "${canonical_disposition}" = "absent" ]; then
+              echo "> Warning: the canonical URL did not expose Content-Disposition."
+              echo
+            fi
+            echo "### Storage URL response headers"
+            echo '```'
+            printf '%s\n' '${{ steps.verify.outputs.storage_headers }}'
+            echo '```'
+            echo
+            echo "### Canonical URL response headers"
+            echo '```'
+            printf '%s\n' '${{ steps.verify.outputs.canonical_headers }}'
+            echo '```'
+          } >>"${GITHUB_STEP_SUMMARY}"
