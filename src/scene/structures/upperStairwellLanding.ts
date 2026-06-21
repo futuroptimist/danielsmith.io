@@ -113,12 +113,6 @@ const addGuard = (params: {
 
   const collision = params.policy.collision;
   if (isActiveSourceCollisionPolicy(collision)) {
-    if (!collision.name) {
-      throw new Error(
-        `Upper stairwell landing segment ${params.policy.role} enables collision without a collider name.`
-      );
-    }
-
     params.colliders.push({
       role: params.policy.role,
       sourceId: params.policy.sourceId,

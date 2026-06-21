@@ -1,4 +1,5 @@
 import type { RectCollider } from '../../systems/collision';
+import type { DebugColliderId } from '../debug/colliderDebugIds';
 
 export type CollisionIntent =
   | 'physical-boundary'
@@ -10,8 +11,8 @@ export interface ActiveSourceCollisionPolicy {
   kind: 'active';
   intent: CollisionIntent;
   purpose: string;
-  name?: string;
-  debugId?: string;
+  name: string;
+  debugId?: DebugColliderId;
 }
 
 export interface NoSourceCollisionPolicy {
@@ -35,7 +36,7 @@ export interface SourceBackedCollider<
   purpose: string;
   bounds: RectCollider;
   name: string;
-  debugId?: string;
+  debugId?: DebugColliderId;
 }
 
 export const isActiveSourceCollisionPolicy = (

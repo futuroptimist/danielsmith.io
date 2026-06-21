@@ -17,7 +17,7 @@ export interface UpperStairwellLandingSegmentPolicy {
   role: UpperStairwellLandingSegmentRole;
   render: boolean;
   sourceId: LevelSourceId;
-  collision: SourceCollisionPolicy & { debugId?: DebugColliderId };
+  collision: SourceCollisionPolicy;
 }
 
 const sourceId = (value: string): LevelSourceId => assertLevelSourceId(value);
