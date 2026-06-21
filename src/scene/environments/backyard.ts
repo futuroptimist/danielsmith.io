@@ -44,6 +44,13 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import {
+  createBackyardFenceColliders,
+  createBackyardFenceLayout,
+  createBackyardFenceSegments,
+  createBackyardHologramBarrierCollider,
+  type BackyardPerimeterCollider,
+} from '../level/backyardPerimeterColliders';
+import {
   applySeasonalLightingPreset,
   type SeasonalLightingPreset,
   type SeasonalLightingTarget,
@@ -55,6 +62,7 @@ import { createMultiplayerProjection } from '../structures/multiplayerProjection
 export interface BackyardEnvironmentBuild {
   group: Group;
   colliders: RectCollider[];
+  sourceBackedColliders: BackyardPerimeterCollider[];
   update(context: { elapsed: number; delta: number }): void;
   ambientAudioBeds: BackyardAmbientAudioBed[];
   applySeasonalPreset(preset: SeasonalLightingPreset | null): void;
@@ -315,6 +323,7 @@ export function createBackyardEnvironment(
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
+  const sourceBackedColliders: BackyardPerimeterCollider[] = [];
   const updates: Array<(context: { elapsed: number; delta: number }) => void> =
     [];
   const ambientAudioBeds: BackyardAmbientAudioBed[] = [];
@@ -1452,16 +1461,12 @@ export function createBackyardEnvironment(
     });
   }
 
-  const barrierZ = bounds.maxZ - 1.2;
+  const fenceLayout = createBackyardFenceLayout(bounds);
+  const barrierZ = fenceLayout.barrierZ;
 
   const fenceGroup = new Group();
   fenceGroup.name = 'BackyardPerimeterFence';
-  const fenceHeight = 1.5;
-  const fenceInsetX = 0.35;
-  const fenceFrontPadding = 0.9;
-  const fenceBackGap = 0.6;
-  const fenceFrontZ = bounds.minZ + fenceFrontPadding;
-  const fenceBackZ = barrierZ - fenceBackGap;
+  const fenceHeight = fenceLayout.fenceHeight;
 
   const fencePostGeometry = new CylinderGeometry(0.07, 0.09, fenceHeight, 10);
   const fenceRailGeometry = new BoxGeometry(1, 0.08, 0.12);
@@ -1529,45 +1534,21 @@ export function createBackyardEnvironment(
     fenceGroup.add(runGroup);
   };
 
-  const fenceRuns = [
-    {
-      start: new Vector3(bounds.minX + fenceInsetX, 0, fenceFrontZ),
-      end: new Vector3(bounds.minX + fenceInsetX, 0, fenceBackZ),
-    },
-    {
-      start: new Vector3(bounds.maxX - fenceInsetX, 0, fenceFrontZ),
-      end: new Vector3(bounds.maxX - fenceInsetX, 0, fenceBackZ),
-    },
-    {
-      start: new Vector3(bounds.minX + fenceInsetX, 0, fenceBackZ),
-      end: new Vector3(bounds.maxX - fenceInsetX, 0, fenceBackZ),
-    },
-  ];
+  const fenceSegments = createBackyardFenceSegments(bounds, fenceLayout);
 
-  fenceRuns.forEach(({ start, end }, index) => addFenceRun(index, start, end));
+  fenceSegments.forEach(({ start, end }, index) =>
+    addFenceRun(
+      index,
+      new Vector3(start.x, 0, start.z),
+      new Vector3(end.x, 0, end.z)
+    )
+  );
   group.add(fenceGroup);
 
-  const fenceColliders: RectCollider[] = [
-    {
-      minX: bounds.minX + fenceInsetX - 0.12,
-      maxX: bounds.minX + fenceInsetX + 0.18,
-      minZ: fenceFrontZ - 0.3,
-      maxZ: fenceBackZ + 0.3,
-    },
-    {
-      minX: bounds.maxX - fenceInsetX - 0.18,
-      maxX: bounds.maxX - fenceInsetX + 0.12,
-      minZ: fenceFrontZ - 0.3,
-      maxZ: fenceBackZ + 0.3,
-    },
-    {
-      minX: bounds.minX + fenceInsetX + 0.18,
-      maxX: bounds.maxX - fenceInsetX - 0.18,
-      minZ: fenceBackZ - 0.3,
-      maxZ: fenceBackZ + 0.3,
-    },
-  ];
-  fenceColliders.forEach((collider) => colliders.push(collider));
+  createBackyardFenceColliders(fenceSegments).forEach((collider) => {
+    sourceBackedColliders.push(collider);
+    colliders.push(collider.bounds);
+  });
 
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;
@@ -2055,12 +2036,14 @@ export function createBackyardEnvironment(
   const baseEmitterOpacity = emitterMaterial.opacity;
   const baseEmitterSize = emitterMaterial.size;
 
-  colliders.push({
-    minX: barrier.position.x - barrierWidth / 2,
-    maxX: barrier.position.x + barrierWidth / 2,
-    minZ: barrier.position.z - barrierThickness / 2,
-    maxZ: barrier.position.z + barrierThickness / 2,
+  const barrierCollider = createBackyardHologramBarrierCollider({
+    centerX: barrier.position.x,
+    barrierZ,
+    barrierWidth,
+    barrierThickness,
   });
+  sourceBackedColliders.push(barrierCollider);
+  colliders.push(barrierCollider.bounds);
 
   updates.push(({ elapsed }) => {
     const flickerScale = getFlickerScale();
@@ -2193,6 +2176,7 @@ export function createBackyardEnvironment(
   return {
     group,
     colliders,
+    sourceBackedColliders,
     update,
     ambientAudioBeds,
     applySeasonalPreset: applyBackyardSeasonalPreset,

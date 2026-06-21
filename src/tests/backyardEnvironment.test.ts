@@ -29,6 +29,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
+import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
@@ -37,6 +38,14 @@ const BACKYARD_BOUNDS = {
   maxX: 10,
   minZ: 8,
   maxZ: 16,
+};
+
+const getProductionBackyardBounds = () => {
+  const backyard = FLOOR_PLAN.rooms.find((room) => room.id === 'backyard');
+  if (!backyard) {
+    throw new Error('Production floor plan is missing the backyard room.');
+  }
+  return backyard.bounds;
 };
 
 function clonePositions(attribute: BufferAttribute): Float32Array {
@@ -1342,20 +1351,46 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = {
-      minX: -32,
-      maxX: 32,
-      minZ: 16,
-      maxZ: 32,
-    };
+    const backFencePolicy = environment.sourceBackedColliders.find(
+      (collider) => collider.role === 'backFenceBoundary'
+    );
+    expect(backFencePolicy).toMatchObject({
+      sourceId: 'ground.backyard.perimeter.backFenceBoundary',
+      sourceType: 'generatedCollider',
+      intent: 'physical-boundary',
+      purpose: 'Keep the visible back fence as an explicit backyard boundary.',
+      debugId: '1007',
+    });
+    expect(backFencePolicy?.bounds.minZ).toBeLessThanOrEqual(backMostPostZ);
+    expect(backFencePolicy?.bounds.maxZ).toBeGreaterThanOrEqual(backMostPostZ);
+
+    expect(
+      environment.sourceBackedColliders.filter(
+        (collider) => collider.intent === 'physical-boundary'
+      )
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: 'leftFenceBoundary' }),
+        expect.objectContaining({ role: 'rightFenceBoundary' }),
+        expect.objectContaining({ role: 'backFenceBoundary' }),
+        expect.objectContaining({ role: 'hologramBarrier' }),
+      ])
+    );
+
+    const productionBackyardBounds = getProductionBackyardBounds();
     const productionEnvironment = createBackyardEnvironment(
       productionBackyardBounds
     );
+    const productionCenterX =
+      (productionBackyardBounds.minX + productionBackyardBounds.maxX) / 2;
+    const productionBackFenceSampleZ = productionBackyardBounds.maxZ - 1.8;
     const productionBackFenceSamples = [
-      { x: 0, z: 30.2 },
-      { x: 5, z: 30.2 },
-      { x: -5, z: 30.2 },
+      { x: productionCenterX, z: productionBackFenceSampleZ },
+      { x: productionCenterX + 5, z: productionBackFenceSampleZ },
+      { x: productionCenterX - 5, z: productionBackFenceSampleZ },
     ];
+    expect(productionBackFenceSamples[1]?.x).toBe(5);
+    expect(productionBackFenceSamples[1]?.z).toBeCloseTo(30.2, 5);
 
     expect(
       productionBackFenceSamples.every(
