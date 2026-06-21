@@ -11,7 +11,7 @@ export interface ActiveSourceCollisionPolicy {
   collision: 'active';
   intent: CollisionIntent;
   purpose: string;
-  runtimeName?: string;
+  runtimeName: string;
   debugId?: DebugColliderId;
 }
 

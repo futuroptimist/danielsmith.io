@@ -113,12 +113,6 @@ const addGuard = (params: {
 
   const collision = params.policy.collision;
   if (isActiveSourceCollisionPolicy(collision)) {
-    if (!collision.runtimeName) {
-      throw new Error(
-        'Active upper stairwell landing collisions require a runtimeName.'
-      );
-    }
-
     params.colliders.push({
       role: params.policy.role,
       sourceId: params.policy.sourceId,
