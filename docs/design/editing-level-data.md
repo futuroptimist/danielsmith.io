@@ -172,6 +172,9 @@ about debug provenance, generator output, or debug-ID registry behavior:
 Source-owned collider declarations should use the shared policy contract in
 `src/scene/level/sourceCollision.ts` when they need stable runtime provenance.
 Active policies carry intent, purpose, required runtime name, and optional debug
-ID; visual-only policies carry a concise no-collision rationale. Emitted records
-should pass that source metadata through to runtime registration directly rather
-than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
+ID; visual-only policies carry a concise no-collision rationale. For example,
+the Futuroptimist media wall declares its wall-mounted visual media policy in
+`src/scene/level/mediaWallPolicy.ts`, so its shelf, screen, and clearance
+highlight remain rendered while no floor-level collider is emitted. Emitted
+records should pass that source metadata through to runtime registration directly
+rather than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
