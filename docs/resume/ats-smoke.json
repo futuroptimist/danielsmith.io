@@ -1,0 +1,30 @@
+{
+  "minimumPlainCharacters": 3000,
+  "requiredTerms": [
+    "Daniel Smith",
+    "daniel@danielsmith.io",
+    "Summary",
+    "Skills",
+    "Experience",
+    "Education",
+    "Independent Open Source Engineering",
+    "YouTube (Google)",
+    "Site Reliability Engineer, L4",
+    "The University of Southern Mississippi",
+    "Jones County Junior College"
+  ],
+  "sectionOrderPairs": [
+    ["Summary", "Skills"],
+    ["Skills", "Experience"],
+    ["Experience", "Education"]
+  ],
+  "educationPairing": {
+    "severity": "warning",
+    "nearbyWindowCharacters": 240,
+    "pairs": [
+      ["M.S. Computer Science", "Aug 2015"],
+      ["B.S. Computer Science", "May 2013"],
+      ["A.A.S. Information System Technology", "Aug 2011"]
+    ]
+  }
+}
