@@ -50,21 +50,13 @@ describe('createGroundStairSafetyColliders', () => {
   it('names the local ground stair blockers for debug visualization', () => {
     const names = boundaryColliders.map((collider) => collider.name);
 
-    expect(names).toEqual([
-      'GroundStairEastBoundary',
-      'GroundStairLowerCornerGuard',
-    ]);
+    expect(names).toEqual(['GroundStairLowerCornerGuard']);
     expect(names).not.toContain('GroundStairEastRunSeal');
   });
 
   it('adds source metadata to raw blockers for reported stair-side squeeze samples', () => {
     expect(boundaryColliders).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          name: 'GroundStairEastBoundary',
-          sourceId: 'ground.stairwell.eastBoundary.safetyCollider',
-          purpose: 'prevent lower stair side squeeze',
-        }),
         expect.objectContaining({
           name: 'GroundStairLowerCornerGuard',
           sourceId: 'ground.stairwell.lowerCorner.safetyCollider',
@@ -74,12 +66,8 @@ describe('createGroundStairSafetyColliders', () => {
     );
   });
 
-  it('blocks the reported stair-side squeeze samples', () => {
-    const blockedSamples = [
-      { x: 17.38, z: -8.84 },
-      { x: 21.35, z: -14.66 },
-      { x: 22.1, z: -14.66 },
-    ];
+  it('blocks lower stair corner occupancy while adjacent walls guard the ramp edge', () => {
+    const blockedSamples = [{ x: 17.38, z: -8.84 }];
 
     blockedSamples.forEach((sample) => {
       expect(

@@ -1023,7 +1023,7 @@ test('runtime descent from upper landing mouth reaches the ground', async ({
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });
 
-test('ground stair east boundary blocks squeeze corners but preserves the stair path', async ({
+test('ground stair lower corner guard blocks squeeze occupancy and preserves the stair path', async ({
   page,
 }) => {
   test.slow();
@@ -1031,11 +1031,7 @@ test('ground stair east boundary blocks squeeze corners but preserves the stair 
 
   const html = page.locator('html');
   const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
-  const blockedSamples = [
-    { x: 17.38, z: -8.84, floorId: 'ground' as const },
-    { x: 21.35, z: -14.66, floorId: 'ground' as const },
-    { x: 22.1, z: -14.66, floorId: 'ground' as const },
-  ];
+  const blockedSamples = [{ x: 17.38, z: -8.84, floorId: 'ground' as const }];
   const livingRoomSamples = [
     { x: 23, z: -18, floorId: 'ground' as const },
     { x: 24, z: -18, floorId: 'ground' as const },

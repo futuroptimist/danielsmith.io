@@ -2055,13 +2055,6 @@ export function createBackyardEnvironment(
   const baseEmitterOpacity = emitterMaterial.opacity;
   const baseEmitterSize = emitterMaterial.size;
 
-  colliders.push({
-    minX: barrier.position.x - barrierWidth / 2,
-    maxX: barrier.position.x + barrierWidth / 2,
-    minZ: barrier.position.z - barrierThickness / 2,
-    maxZ: barrier.position.z + barrierThickness / 2,
-  });
-
   updates.push(({ elapsed }) => {
     const flickerScale = getFlickerScale();
     const pulseScale = getPulseScale();
