@@ -1319,14 +1319,49 @@ describe('createBackyardEnvironment', () => {
     );
     expect(leftCollider).toBeDefined();
 
-    const backCollider = environment.colliders.find(
-      (collider) =>
-        collider.minZ <= backMostPostZ &&
-        collider.maxZ >= backMostPostZ &&
-        collider.minX <= backTopRail!.position.x + backTopRail!.scale.x / 2 &&
-        collider.maxX >= backTopRail!.position.x - backTopRail!.scale.x / 2
+    const pointIsBlocked =
+      (colliders: typeof environment.colliders) =>
+      (sample: { x: number; z: number }) =>
+        colliders.some(
+          (collider) =>
+            collider.minX <= sample.x &&
+            collider.maxX >= sample.x &&
+            collider.minZ <= sample.z &&
+            collider.maxZ >= sample.z
+        );
+    const backFenceSamples = [
+      {
+        x: (BACKYARD_BOUNDS.minX + BACKYARD_BOUNDS.maxX) / 2,
+        z: backMostPostZ,
+      },
+      { x: 1.56, z: backMostPostZ },
+      { x: -1.56, z: backMostPostZ },
+    ];
+
+    expect(backFenceSamples.every(pointIsBlocked(environment.colliders))).toBe(
+      true
     );
-    expect(backCollider).toBeDefined();
+
+    const productionBackyardBounds = {
+      minX: -32,
+      maxX: 32,
+      minZ: 16,
+      maxZ: 32,
+    };
+    const productionEnvironment = createBackyardEnvironment(
+      productionBackyardBounds
+    );
+    const productionBackFenceSamples = [
+      { x: 0, z: 30.2 },
+      { x: 5, z: 30.2 },
+      { x: -5, z: 30.2 },
+    ];
+
+    expect(
+      productionBackFenceSamples.every(
+        pointIsBlocked(productionEnvironment.colliders)
+      )
+    ).toBe(true);
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();

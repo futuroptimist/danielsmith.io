@@ -1023,7 +1023,7 @@ test('runtime descent from upper landing mouth reaches the ground', async ({
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });
 
-test('ground stair east boundary blocks squeeze corners but preserves the stair path', async ({
+test('ground stair side guard blocks squeeze entry and preserves the stair path', async ({
   page,
 }) => {
   test.slow();

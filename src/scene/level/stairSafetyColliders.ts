@@ -51,12 +51,6 @@ const debugId = (value: string): DebugColliderId =>
   assertDebugColliderId(value);
 
 const GROUND_STAIR_SAFETY_COLLIDER_METADATA = {
-  GroundStairEastBoundary: {
-    sourceId: sourceId('ground.stairwell.eastBoundary.safetyCollider'),
-    category: 'stair',
-    purpose: 'prevent lower stair side squeeze',
-    debugId: debugId('4001'),
-  },
   GroundStairLowerCornerGuard: {
     sourceId: sourceId('ground.stairwell.lowerCorner.safetyCollider'),
     category: 'stair',

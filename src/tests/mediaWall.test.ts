@@ -169,4 +169,17 @@ describe('createLivingRoomMediaWall', () => {
 
     expect(() => build.controller.dispose()).not.toThrow();
   });
+
+  it('keeps the wall-mounted media POI visible without adding floor blockers', () => {
+    const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
+    const build = createLivingRoomMediaWall(bounds);
+
+    expect(
+      build.group.getObjectByName('LivingRoomMediaWallScreen')
+    ).toBeTruthy();
+    expect(
+      build.group.getObjectByName('LivingRoomMediaWallClearance')
+    ).toBeTruthy();
+    expect(build.colliders).toHaveLength(0);
+  });
 });
