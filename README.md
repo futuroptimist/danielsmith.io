@@ -133,6 +133,7 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
+| `npm run collider:inspect -- --id <debug-id>`   | Resolve a runtime collider from the immersive debug API.               |
 
 ### Local quality gates
 
@@ -148,6 +149,23 @@ npm run smoke
 Pre-commit mirrors these commands alongside formatting hooks. Compared to the full
 Flywheel stack, we skip the Python-heavy aggregate hook to keep this web-focused repo
 lightweight.
+
+### Collider inspection
+
+Before proposing a collider removal or replacement, first resolve the runtime
+record with the on-demand inspector instead of searching array positions:
+
+```bash
+npm run collider:inspect -- --id 400D
+npm run collider:inspect -- --source-id upper.stairwell.landingGuard.shoulderEast
+npm run collider:inspect -- --name UpperStairNorthBannisterGuard --json
+```
+
+The command opens the real immersive runtime with performance failover disabled,
+uses `window.portfolio.debugColliders` as the source of truth, and leaves no
+repository artifacts unless you explicitly redirect the JSON output. Set
+`PLAYWRIGHT_BASE_URL` to reuse an already-running Vite server; otherwise the
+inspector starts and stops a local dev server for the collection.
 
 ## Testing & automation
 

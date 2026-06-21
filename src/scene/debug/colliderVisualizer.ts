@@ -36,6 +36,8 @@ export interface DebugColliderMetadata {
   bounds: RectCollider;
   sourceId?: string;
   sourceType?: string;
+  role?: string;
+  intent?: string;
   purpose?: string;
   debugId?: string;
 }
@@ -50,6 +52,8 @@ export interface DebugColliderRegistration {
   color?: ColorRepresentation;
   sourceId?: string;
   sourceType?: string;
+  role?: string;
+  intent?: string;
   purpose?: string;
   debugId?: string;
 }
@@ -105,16 +109,23 @@ const cloneSourceMetadata = <
   T extends {
     sourceId?: string;
     sourceType?: string;
+    role?: string;
+    intent?: string;
     purpose?: string;
     debugId?: string;
   },
 >(
   input: T
-): Pick<T, 'sourceId' | 'sourceType' | 'purpose' | 'debugId'> => ({
+): Pick<
+  T,
+  'sourceId' | 'sourceType' | 'role' | 'intent' | 'purpose' | 'debugId'
+> => ({
   ...(typeof input.sourceId === 'string' ? { sourceId: input.sourceId } : {}),
   ...(typeof input.sourceType === 'string'
     ? { sourceType: input.sourceType }
     : {}),
+  ...(typeof input.role === 'string' ? { role: input.role } : {}),
+  ...(typeof input.intent === 'string' ? { intent: input.intent } : {}),
   ...(typeof input.purpose === 'string' ? { purpose: input.purpose } : {}),
   ...(typeof input.debugId === 'string' ? { debugId: input.debugId } : {}),
 });
