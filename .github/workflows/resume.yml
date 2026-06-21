@@ -136,6 +136,7 @@ jobs:
 
           plain_chars=$(wc -m <"${plain_text}" | tr -d '[:space:]')
           layout_chars=$(wc -m <"${layout_text}" | tr -d '[:space:]')
+          export ats_dir
           echo "ats_dir=${ats_dir}" >>"${GITHUB_OUTPUT}"
           echo "plain_text=${plain_text}" >>"${GITHUB_OUTPUT}"
           echo "layout_text=${layout_text}" >>"${GITHUB_OUTPUT}"
@@ -148,8 +149,9 @@ jobs:
           import sys
           from pathlib import Path
 
-          plain_path = Path(os.environ["RUNNER_TEMP"]) / "resume-ats" / "resume.txt"
-          layout_path = Path(os.environ["RUNNER_TEMP"]) / "resume-ats" / "resume-layout.txt"
+          ats_dir = Path(os.environ["ats_dir"])
+          plain_path = ats_dir / "resume.txt"
+          layout_path = ats_dir / "resume-layout.txt"
           plain = plain_path.read_text(encoding="utf-8", errors="replace")
           layout = layout_path.read_text(encoding="utf-8", errors="replace")
           failures = []
@@ -220,7 +222,11 @@ jobs:
                   checklist.append((f"Education pair nearby: `{degree}` / `{date}`", True, "warning only"))
               else:
                   warnings.append(f"Education pair not found nearby: `{degree}` / `{date}`")
-                  checklist.append((f"Education pair nearby: `{degree}` / `{date}`", True, "warning only"))
+                  checklist.append((
+                      f"Education pair not found nearby: `{degree}` / `{date}`",
+                      False,
+                      "warning only",
+                  ))
 
           oddities = []
           if re.search(r"[A-Za-z]-\n[A-Za-z]", plain):
@@ -261,6 +267,7 @@ jobs:
           PY
 
       - name: Upload ATS text artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: resume-${{ steps.resume.outputs.version }}-ats-text
