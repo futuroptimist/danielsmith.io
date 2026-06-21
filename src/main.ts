@@ -150,6 +150,7 @@ import {
   createSceneDetailController,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
+import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
 import { generateFloorSurfaces } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
 import {
@@ -1001,8 +1002,8 @@ const colliderSourceMetadata = new Map<
       | LevelSourceId;
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
-    intent?: string;
     role?: string;
+    intent?: string;
     debugId?: string;
   }
 >();
@@ -1872,9 +1873,20 @@ function initializeImmersiveScene(
     if (skyDome) {
       skyDome.visible = false;
     }
-    backyardEnvironment.colliders.forEach((collider) =>
-      groundColliders.push(collider)
-    );
+    backyardEnvironment.colliders.forEach((collider) => {
+      if (isBackyardSourceCollider(collider)) {
+        namedColliderDebugNames.set(collider, collider.name);
+        colliderSourceMetadata.set(collider, {
+          sourceId: collider.sourceId,
+          sourceType: collider.sourceType,
+          purpose: collider.purpose,
+          role: collider.role,
+          intent: collider.intent,
+          debugId: collider.debugId,
+        });
+      }
+      groundColliders.push(collider);
+    });
   }
 
   const groundFloorGroup = new Group();
@@ -4456,21 +4468,24 @@ function initializeImmersiveScene(
       elevation?: number;
     }
   ): DebugColliderRegistration[] =>
-    colliders.map((bounds, index) => ({
-      floor: options.floor,
-      category: options.category,
-      name:
-        namedColliderDebugNames.get(bounds) ??
-        `${options.namePrefix}-${index + 1}`,
-      bounds,
-      elevation: options.elevation,
-      sourceId: colliderSourceMetadata.get(bounds)?.sourceId,
-      sourceType: colliderSourceMetadata.get(bounds)?.sourceType,
-      purpose: colliderSourceMetadata.get(bounds)?.purpose,
-      intent: colliderSourceMetadata.get(bounds)?.intent,
-      role: colliderSourceMetadata.get(bounds)?.role,
-      debugId: colliderSourceMetadata.get(bounds)?.debugId,
-    }));
+    colliders.map((bounds, index) => {
+      const sourceMetadata = colliderSourceMetadata.get(bounds);
+      return {
+        floor: options.floor,
+        category: options.category,
+        name:
+          namedColliderDebugNames.get(bounds) ??
+          `${options.namePrefix}-${index + 1}`,
+        bounds,
+        elevation: options.elevation,
+        sourceId: sourceMetadata?.sourceId,
+        sourceType: sourceMetadata?.sourceType,
+        purpose: sourceMetadata?.purpose,
+        role: sourceMetadata?.role,
+        intent: sourceMetadata?.intent,
+        debugId: sourceMetadata?.debugId,
+      };
+    });
 
   const colliderVisualizer = createColliderVisualizer({
     activeFloorId,
