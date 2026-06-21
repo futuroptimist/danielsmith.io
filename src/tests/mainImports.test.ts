@@ -46,14 +46,13 @@ describe('main module imports', () => {
     expect(source).toContain('sourceType: collider.sourceType,');
     expect(source).toContain('purpose: collider.purpose,');
     expect(source).toContain(
-      'sourceId: colliderSourceMetadata.get(bounds)?.sourceId,'
+      'const sourceMetadata = colliderSourceMetadata.get(bounds);'
     );
-    expect(source).toContain(
-      'sourceType: colliderSourceMetadata.get(bounds)?.sourceType,'
-    );
-    expect(source).toContain(
-      'purpose: colliderSourceMetadata.get(bounds)?.purpose,'
-    );
+    expect(source).toContain('sourceId: sourceMetadata?.sourceId,');
+    expect(source).toContain('sourceType: sourceMetadata?.sourceType,');
+    expect(source).toContain('purpose: sourceMetadata?.purpose,');
+    expect(source).toContain('role: sourceMetadata?.role,');
+    expect(source).toContain('intent: sourceMetadata?.intent,');
   });
 
   it('does not wire runtime adaptive quality into immersive mode', () => {

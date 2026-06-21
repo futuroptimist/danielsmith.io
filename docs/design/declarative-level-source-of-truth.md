@@ -392,3 +392,15 @@ labels. Hardcoded bounds that remain in production code should be either explici
 source data, stair-derived safety geometry, or documented object-factory collider
 policies. See `docs/design/editing-level-data.md` for the current human editing
 workflow.
+
+### Backyard perimeter policies
+
+Backyard perimeter collision now uses source-owned semantic policies in
+`src/scene/level/backyardCollisionPolicies.ts`. The left, right, and back
+fence visual runs and their physical-boundary colliders derive from the same
+segment declarations so a future fence edit updates visuals and collision from
+one source. The generated-ID migration follows the pre-policy backyard collider
+push order: the retained back fence boundary declares stable debug ID `1006`,
+and the following hologram barrier boundary declares stable debug ID `1007`, so
+manual collider-debug overlays and screenshot references keep identifying the
+same physical boundaries after the migration.
