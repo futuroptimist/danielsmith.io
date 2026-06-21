@@ -8,6 +8,7 @@ import {
   vi,
 } from 'vitest';
 
+import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../scene/level/mediaWallPolicy';
 import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
 
 describe('createLivingRoomMediaWall', () => {
@@ -170,16 +171,31 @@ describe('createLivingRoomMediaWall', () => {
     expect(() => build.controller.dispose()).not.toThrow();
   });
 
-  it('keeps the wall-mounted media POI visible without adding floor blockers', () => {
+  it('declares the media POI as an active visual-only source policy', () => {
+    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY).toMatchObject({
+      role: 'living-room-futuroptimist-media',
+      subsystemRole: 'poi-media-wall',
+      renderIntent: 'visual-media-poi',
+      render: true,
+      sourceId: 'ground.livingRoom.mediaWall.futuroptimist',
+      collision: { collision: 'none' },
+    });
+    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.collision.rationale).toMatch(
+      /wall-mounted.+no floor-level interaction footprint/i
+    );
+  });
+
+  it('keeps the visual media POI visible without emitting floor colliders', () => {
     const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
     const build = createLivingRoomMediaWall(bounds);
 
+    expect(build.policy).toBe(FUTUROPTIMIST_MEDIA_WALL_POLICY);
     expect(
       build.group.getObjectByName('LivingRoomMediaWallScreen')
     ).toBeTruthy();
     expect(
       build.group.getObjectByName('LivingRoomMediaWallClearance')
     ).toBeTruthy();
-    expect(build.colliders).toHaveLength(0);
+    expect('colliders' in build).toBe(false);
   });
 });
