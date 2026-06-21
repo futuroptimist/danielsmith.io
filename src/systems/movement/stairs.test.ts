@@ -67,6 +67,8 @@ describe('createGroundStairSafetyColliders', () => {
   });
 
   it('blocks the reported stair-side squeeze samples', () => {
+    // The former east-boundary pocket stays unreachable because the lower
+    // corner guard (runtime 4002) seals the approach with the living-room edge.
     const blockedSamples = [
       { x: 17.38, z: -8.84 },
       { x: 21.35, z: -14.66 },

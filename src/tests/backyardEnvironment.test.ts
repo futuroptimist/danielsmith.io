@@ -1319,25 +1319,17 @@ describe('createBackyardEnvironment', () => {
     );
     expect(leftCollider).toBeDefined();
 
-    const backCollider = environment.colliders.find(
-      (collider) =>
-        collider.minZ <= backMostPostZ &&
-        collider.maxZ >= backMostPostZ &&
-        collider.minX <= backTopRail!.position.x + backTopRail!.scale.x / 2 &&
-        collider.maxX >= backTopRail!.position.x - backTopRail!.scale.x / 2
-    );
-    expect(backCollider).toBeDefined();
-    const middleBackFenceSample = {
+    const middleBackFenceApproach = {
       x: (BACKYARD_BOUNDS.minX + BACKYARD_BOUNDS.maxX) / 2,
-      z: backMostPostZ,
+      z: backMostPostZ + 0.6,
     };
     expect(
       environment.colliders.some(
         (collider) =>
-          collider.minX <= middleBackFenceSample.x &&
-          collider.maxX >= middleBackFenceSample.x &&
-          collider.minZ <= middleBackFenceSample.z &&
-          collider.maxZ >= middleBackFenceSample.z
+          collider.minX <= middleBackFenceApproach.x &&
+          collider.maxX >= middleBackFenceApproach.x &&
+          collider.minZ <= middleBackFenceApproach.z &&
+          collider.maxZ >= middleBackFenceApproach.z
       )
     ).toBe(true);
 

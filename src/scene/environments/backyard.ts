@@ -1560,12 +1560,8 @@ export function createBackyardEnvironment(
       minZ: fenceFrontZ - 0.3,
       maxZ: fenceBackZ + 0.3,
     },
-    {
-      minX: bounds.minX + fenceInsetX + 0.18,
-      maxX: bounds.maxX - fenceInsetX - 0.18,
-      minZ: fenceBackZ - 0.12,
-      maxZ: fenceBackZ + 0.3,
-    },
+    // The central back-fence ground blocker is intentionally omitted: the
+    // active hologram barrier (runtime 1006) seals the reachable approach.
   ];
   fenceColliders.forEach((collider) => colliders.push(collider));
 

@@ -607,12 +607,8 @@ export function createLivingRoomMediaWall(
     anchorZ
   );
   group.add(shelf);
-  colliders.push({
-    minX: wallInteriorX + boardDepth,
-    maxX: wallInteriorX + boardDepth + shelfDepth,
-    minZ: anchorZ - shelfWidth / 2,
-    maxZ: anchorZ + shelfWidth / 2,
-  });
+  // This Futuroptimist media POI is wall-mounted, so the visual shelf and
+  // clearance affordance intentionally do not add a floor-level blocker.
 
   const consoleMaterial = new MeshStandardMaterial({
     color: 0x0f1724,
