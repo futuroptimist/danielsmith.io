@@ -717,13 +717,6 @@ export function createLivingRoomMediaWall(
   clearance.renderOrder = 4;
   group.add(clearance);
 
-  colliders.push({
-    minX: wallInteriorX + boardDepth,
-    maxX: wallInteriorX + boardDepth + shelfDepth,
-    minZ: anchorZ - shelfWidth / 2,
-    maxZ: anchorZ + shelfWidth / 2,
-  });
-
   const poiBindings: LivingRoomMediaWallPoiBindings = {
     futuroptimistTv: {
       screen: screenMesh,
