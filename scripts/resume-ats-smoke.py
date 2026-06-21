@@ -91,8 +91,6 @@ def education_pair_observations(
     warnings: list[str] = []
     failures: list[str] = []
 
-    # TODO: Make these Education pairing warnings blocking after the Education
-    # section is reformatted in a follow-up PR.
     for degree, date in education_config.get("pairs", []):
         same_line = any(degree in line and date in line for line in lines)
         degree_pos = education_text.find(degree)
