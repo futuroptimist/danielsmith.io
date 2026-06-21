@@ -11,19 +11,21 @@ import {
   type DebugColliderId,
 } from '../debug/colliderDebugIds';
 
+import type { SourceBackedColliderRecord } from './sourceBackedColliders';
 import { assertLevelSourceId, type LevelSourceId } from './sourceIds';
 
 export type SafetyColliderCategory = 'stair' | 'landing' | 'void';
 
-export interface LevelSafetyCollider {
-  sourceId: LevelSourceId;
-  name: string;
-  floor: 'ground' | 'upper';
-  category: SafetyColliderCategory;
-  bounds: RectCollider;
-  purpose: string;
-  debugId: DebugColliderId;
-}
+export type LevelSafetyCollider = SourceBackedColliderRecord<
+  SafetyColliderCategory,
+  LevelSourceId,
+  'safetyCollider',
+  {
+    floor: 'ground' | 'upper';
+    category: SafetyColliderCategory;
+    debugId: DebugColliderId;
+  }
+>;
 
 export interface GroundStairSafetyColliderOptions {
   playerRadius: number;
@@ -56,17 +58,21 @@ const GROUND_STAIR_SAFETY_COLLIDER_METADATA = {
     category: 'stair',
     purpose: 'block raw lower-step occupancy',
     debugId: debugId('4002'),
+    intent: 'safety-guard',
   },
 } as const satisfies Record<
   string,
-  Pick<LevelSafetyCollider, 'sourceId' | 'category' | 'purpose' | 'debugId'>
+  Pick<
+    LevelSafetyCollider,
+    'sourceId' | 'category' | 'purpose' | 'debugId' | 'intent'
+  >
 >;
 
 const getGroundStairSafetyColliderMetadata = (
   name: string
 ): Pick<
   LevelSafetyCollider,
-  'sourceId' | 'category' | 'purpose' | 'debugId'
+  'sourceId' | 'category' | 'purpose' | 'debugId' | 'intent'
 > => {
   const metadata =
     GROUND_STAIR_SAFETY_COLLIDER_METADATA[
@@ -89,6 +95,8 @@ export const createGroundStairSafetyColliders = (
 ): LevelSafetyCollider[] =>
   createGroundStairBoundaryColliders(geometry, behavior, options).map(
     ({ name, bounds }) => ({
+      role: 'stair',
+      sourceType: 'safetyCollider',
       name,
       floor: 'ground',
       bounds,
@@ -173,12 +181,15 @@ export const createUpperStairSafetyColliders = ({
     upperStairwellOpening.maxX - upperStairBannisterThickness;
   return [
     {
+      role: 'void',
+      sourceType: 'safetyCollider',
       name: 'UpperStairEastUpperVoidGuard',
       debugId: debugId('4007'),
       sourceId: sourceId('upper.stairwell.eastUpperVoid.safetyCollider'),
       floor: 'upper',
       category: 'void',
       purpose: 'guard upper stairwell void edge',
+      intent: 'safety-guard',
       bounds: {
         minX: stairNavigationZones.explicitDescentCorridor.maxX,
         maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
@@ -187,6 +198,8 @@ export const createUpperStairSafetyColliders = ({
       },
     },
     ...upperStairTopGapBlockers.map(({ name, bounds }) => ({
+      role: 'void',
+      sourceType: 'safetyCollider',
       name,
       sourceId: sourceId(
         `upper.stairwell.topGap.${name.endsWith('West') ? 'west' : 'east'}.safetyCollider`
@@ -195,15 +208,19 @@ export const createUpperStairSafetyColliders = ({
       category: 'void' as const,
       purpose: 'guard upper stairwell void edge',
       debugId: debugId(name.endsWith('West') ? '4003' : '4004'),
+      intent: 'safety-guard',
       bounds,
     })),
     {
+      role: 'landing',
+      sourceType: 'safetyCollider',
       name: 'UpperStairWestBannisterGuard',
       debugId: debugId('4009'),
       sourceId: sourceId('upper.stairwell.westBannister.safetyCollider'),
       floor: 'upper',
       category: 'landing',
       purpose: 'preserve descent corridor edge',
+      intent: 'safety-guard',
       bounds: {
         minX: upperStairWestBannisterMinX + upperStairWestBannisterShiftX,
         maxX: upperStairWestBannisterMaxX + upperStairWestBannisterShiftX,
@@ -219,12 +236,15 @@ export const createUpperStairSafetyColliders = ({
       },
     },
     {
+      role: 'landing',
+      sourceType: 'safetyCollider',
       name: 'UpperStairNorthBannisterGuard',
       debugId: debugId('400A'),
       sourceId: sourceId('upper.stairwell.northBannister.safetyCollider'),
       floor: 'upper',
       category: 'landing',
       purpose: 'preserve descent corridor edge',
+      intent: 'safety-guard',
       bounds: {
         minX: upperStairNorthBannisterMinX,
         maxX: upperStairNorthBannisterMaxX,

@@ -162,7 +162,6 @@ import {
   registerSceneObjectColliders,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
-import type { LevelSourceId } from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -994,8 +993,7 @@ const colliderSourceMetadata = new Map<
     sourceId:
       | WallSegmentInstance['sourceId']
       | LevelSafetyCollider['sourceId']
-      | SceneObjectDefinition['sourceId']
-      | LevelSourceId;
+      | SceneObjectDefinition['sourceId'];
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
     debugId?: string;
@@ -2095,7 +2093,7 @@ function initializeImmersiveScene(
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
-      sourceType: 'safetyCollider',
+      sourceType: collider.sourceType,
       purpose: collider.purpose,
       debugId: collider.debugId,
     });
@@ -2133,22 +2131,6 @@ function initializeImmersiveScene(
         layout: stairLayout,
       })
     : undefined;
-  const registerUpperFloorGeneratedCollider = (collider: {
-    name: string;
-    bounds: RectCollider;
-    sourceId: LevelSourceId;
-    role: string;
-    debugId?: string;
-  }) => {
-    upperFloorColliders.push(collider.bounds);
-    namedColliderDebugNames.set(collider.bounds, collider.name);
-    colliderSourceMetadata.set(collider.bounds, {
-      sourceId: collider.sourceId,
-      sourceType: 'generatedCollider',
-      purpose: `upper stairwell landing ${collider.role} guard`,
-      debugId: collider.debugId,
-    });
-  };
 
   const upperStairWestEgressLaneX =
     stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
@@ -2268,9 +2250,16 @@ function initializeImmersiveScene(
       segments: UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
     });
     upperFloorGroup.add(upperStairwellLanding.group);
-    upperStairwellLanding.colliders.forEach(
-      registerUpperFloorGeneratedCollider
-    );
+    upperStairwellLanding.colliders.forEach((collider) => {
+      upperFloorColliders.push(collider.bounds);
+      namedColliderDebugNames.set(collider.bounds, collider.name);
+      colliderSourceMetadata.set(collider.bounds, {
+        sourceId: collider.sourceId,
+        sourceType: collider.sourceType,
+        purpose: collider.purpose,
+        debugId: collider.debugId,
+      });
+    });
   }
 
   const upperWallMaterial = new MeshStandardMaterial({ color: 0x46536a });

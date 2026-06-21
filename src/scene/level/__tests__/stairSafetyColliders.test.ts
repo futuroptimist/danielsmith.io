@@ -104,7 +104,10 @@ describe('stair safety collider source definitions', () => {
 
     expect(
       colliders.every(
-        (collider) => collider.sourceId && collider.purpose.trim()
+        (collider) =>
+          collider.sourceId &&
+          collider.intent === 'safety-guard' &&
+          collider.purpose.trim()
       )
     ).toBe(true);
     expect(new Set(sourceIds).size).toBe(sourceIds.length);

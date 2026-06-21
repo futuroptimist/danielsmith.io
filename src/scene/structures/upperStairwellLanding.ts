@@ -2,7 +2,8 @@ import type { MeshStandardMaterialParameters } from 'three';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
-import type { RectCollider } from '../../systems/collision';
+import { isActiveSourceCollisionPolicy } from '../level/sourceBackedColliders';
+import type { SourceBackedColliderRecord } from '../level/sourceBackedColliders';
 import type {
   UpperStairwellLandingSegmentPolicy,
   UpperStairwellLandingSegmentRole,
@@ -32,13 +33,11 @@ export interface UpperStairwellLandingConfig {
   segments: readonly UpperStairwellLandingSegmentPolicy[];
 }
 
-export interface UpperStairwellLandingCollider {
-  role: UpperStairwellLandingSegmentRole;
-  sourceId: UpperStairwellLandingSegmentPolicy['sourceId'];
-  name: string;
-  debugId?: UpperStairwellLandingSegmentPolicy['debugId'];
-  bounds: RectCollider;
-}
+export type UpperStairwellLandingCollider = SourceBackedColliderRecord<
+  UpperStairwellLandingSegmentRole,
+  UpperStairwellLandingSegmentPolicy['sourceId'],
+  'generatedCollider'
+>;
 
 export interface UpperStairwellLandingBuild {
   group: Group;
@@ -110,18 +109,22 @@ const addGuard = (params: {
     params.group.add(guard);
   }
 
-  if (params.policy.collision) {
-    if (!params.policy.colliderName) {
+  const collisionPolicy = params.policy.collision;
+  if (isActiveSourceCollisionPolicy(collisionPolicy)) {
+    if (!collisionPolicy.runtimeName) {
       throw new Error(
-        `Upper stairwell landing segment ${params.policy.role} enables collision without a collider name.`
+        `Upper stairwell landing segment ${params.policy.role} enables collision without a runtime name.`
       );
     }
 
     params.colliders.push({
       role: params.policy.role,
       sourceId: params.policy.sourceId,
-      name: params.policy.colliderName,
-      debugId: params.policy.debugId,
+      sourceType: 'generatedCollider',
+      intent: collisionPolicy.intent,
+      purpose: collisionPolicy.purpose,
+      name: collisionPolicy.runtimeName,
+      debugId: collisionPolicy.debugId,
       bounds: guardBounds,
     });
   }

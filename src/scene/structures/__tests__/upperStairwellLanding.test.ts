@@ -1,7 +1,10 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { isDebugColliderId } from '../../debug/colliderDebugIds';
+import {
+  assertDebugColliderId,
+  isDebugColliderId,
+} from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
 import { assertLevelSourceId } from '../../level/sourceIds';
 import {
@@ -23,9 +26,16 @@ const allSegmentPolicies = (): UpperStairwellLandingSegmentPolicy[] =>
   ALL_SEGMENT_ROLES.map((role) => ({
     role,
     render: true,
-    collision: true,
     sourceId: assertLevelSourceId(`upper.stairwell.landingGuard.test.${role}`),
-    colliderName: `UpperStairwellLandingTestGuard-${role}`,
+    collision: {
+      collision: 'active',
+      intent: 'safety-guard',
+      purpose: `test upper stairwell landing ${role} guard`,
+      runtimeName: `UpperStairwellLandingTestGuard-${role}`,
+      debugId: assertDebugColliderId(
+        `9${ALL_SEGMENT_ROLES.indexOf(role).toString().padStart(3, '0')}`
+      ),
+    },
   }));
 
 const overlaps = (
@@ -148,6 +158,9 @@ describe('createUpperStairwellLanding', () => {
       {
         role: 'shoulder-east',
         sourceId: 'upper.stairwell.landingGuard.shoulderEast',
+        sourceType: 'generatedCollider',
+        intent: 'safety-guard',
+        purpose: 'upper stairwell landing shoulder-east guard',
         name: 'UpperStairwellLandingGuard-3',
         debugId: '400D',
         bounds: {
@@ -158,6 +171,17 @@ describe('createUpperStairwellLanding', () => {
         },
       },
     ]);
+  });
+
+  it('documents visual-only production segment collision rationale', () => {
+    const visualOnlyPolicies = UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES.filter(
+      (policy) => policy.collision.collision === 'none'
+    );
+
+    expect(visualOnlyPolicies).toHaveLength(2);
+    visualOnlyPolicies.forEach((policy) => {
+      expect(policy.collision.rationale.trim()).not.toBe('');
+    });
   });
 
   it('emits source-owned production landing debug IDs unchanged', () => {
