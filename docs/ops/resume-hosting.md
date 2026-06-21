@@ -82,7 +82,7 @@ The workflow uploads only `public/resume.pdf` to
 
 - `Content-Type: application/pdf`
 - `Content-Disposition: inline; filename="Daniel_Smith_Resume.pdf"`
-- `Cache-Control: public, max-age=300, must-revalidate`
+- `Cache-Control: no-cache, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate`
 
 After upload, it runs:
 
@@ -95,6 +95,16 @@ gcloud storage objects update \
 This preserves existing object ACL grants while adding or confirming public read access.
 Do not use canned public-read ACL replacement flags unless a future runbook change
 explicitly explains why replacing other object ACL grants is acceptable.
+
+Because `resume.danielsmith.io` is a stable URL whose PDF bytes can change after a
+resume update, it intentionally uses a no-stale cache policy:
+`no-cache, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate`. Do not replace
+this with a short positive `max-age` policy for the stable alias. A previous object
+response with `cache-control: public, max-age=3600` can remain stale at the bare URL
+even after a successful upload. Cache-busted URLs can show the new object while
+`https://resume.danielsmith.io/` still serves the old object, and Cloudflare purge may
+not help when `cf-cache-status` is `DYNAMIC` because the stale response can be coming
+from GCS, Google edge, or other origin-side public-object caching.
 
 ## Running `workflow_dispatch`
 
@@ -119,6 +129,7 @@ LOCAL_RESUME_PATH="public/resume.pdf"
 DESTINATION="gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf"
 STORAGE_URL="https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf"
 CANONICAL_URL="https://resume.danielsmith.io"
+CACHE_CONTROL="no-cache, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate"
 
 if [ ! -s "${LOCAL_RESUME_PATH}" ]; then
   echo "${LOCAL_RESUME_PATH} is missing or empty. Run Resume artifacts first." >&2
@@ -130,33 +141,44 @@ local_sha256="$(sha256sum "${LOCAL_RESUME_PATH}" | awk '{print $1}')"
 gcloud storage cp "${LOCAL_RESUME_PATH}" "${DESTINATION}" \
   --content-type="application/pdf" \
   --content-disposition='inline; filename="Daniel_Smith_Resume.pdf"' \
-  --cache-control="public, max-age=300, must-revalidate"
+  --cache-control="${CACHE_CONTROL}"
 
 gcloud storage objects update "${DESTINATION}" \
   --add-acl-grant=entity=allUsers,role=READER
 
-for url in "${STORAGE_URL}" "${CANONICAL_URL}"; do
-  tmp="$(mktemp)"
-  curl --location --fail --silent --show-error \
-    --connect-timeout 10 \
-    --max-time 60 \
-    --retry 3 \
-    --retry-delay 2 \
-    --retry-connrefused \
-    "${url}?resume_verify=$(date +%s)" \
-    --output "${tmp}"
-  test -s "${tmp}"
-  test "$(head -c 5 "${tmp}")" = "%PDF-"
-  remote_sha256="$(sha256sum "${tmp}" | awk '{print $1}')"
-  rm -f "${tmp}"
-  test "${remote_sha256}" = "${local_sha256}"
+for mode in cache-busted bare; do
+  for url in "${STORAGE_URL}" "${CANONICAL_URL}"; do
+    tmpdir="$(mktemp -d)"
+    verify_url="${url}"
+    if [ "${mode}" = "cache-busted" ]; then
+      verify_url="${url}?resume_verify=$(date +%s)"
+    fi
+
+    curl --location --fail --silent --show-error \
+      --connect-timeout 10 \
+      --max-time 60 \
+      --retry 3 \
+      --retry-delay 2 \
+      --retry-connrefused \
+      --dump-header "${tmpdir}/headers" \
+      --output "${tmpdir}/resume.pdf" \
+      "${verify_url}"
+    test -s "${tmpdir}/resume.pdf"
+    test "$(head -c 5 "${tmpdir}/resume.pdf")" = "%PDF-"
+    grep -Ei '^content-type:.*application/pdf' "${tmpdir}/headers"
+    grep -Ei '^cache-control:.*(no-cache|max-age=0)' "${tmpdir}/headers"
+    remote_sha256="$(sha256sum "${tmpdir}/resume.pdf" | awk '{print $1}')"
+    test "${remote_sha256}" = "${local_sha256}"
+    rm -rf "${tmpdir}"
+  done
 done
 ```
 
 ## Shell verification
 
-After any deployment, verify both public endpoints are reachable without authentication
-and match the repository PDF:
+After any deployment, verify cache-busted URLs for immediate object integrity and
+bare URLs for actual public readiness. The bare canonical URL is not live until its
+SHA-256 matches the local file SHA-256:
 
 ```bash
 set -euo pipefail
@@ -172,23 +194,33 @@ for label in storage canonical; do
     canonical) url="${CANONICAL_URL}" ;;
   esac
 
-  tmpdir="$(mktemp -d)"
-  curl --location --fail --silent --show-error \
-    --connect-timeout 10 \
-    --max-time 60 \
-    --retry 3 \
-    --retry-delay 2 \
-    --retry-connrefused \
-    --dump-header "${tmpdir}/${label}.headers" \
-    --output "${tmpdir}/${label}.pdf" \
-    "${url}?resume_verify=$(date +%s)"
+  for mode in cache-busted bare; do
+    tmpdir="$(mktemp -d)"
+    verify_url="${url}"
+    if [ "${mode}" = "cache-busted" ]; then
+      verify_url="${url}?resume_verify=$(date +%s)"
+    fi
 
-  test -s "${tmpdir}/${label}.pdf"
-  test "$(head -c 5 "${tmpdir}/${label}.pdf")" = "%PDF-"
-  grep -Ei '^content-type:.*application/pdf' "${tmpdir}/${label}.headers"
-  remote_sha256="$(sha256sum "${tmpdir}/${label}.pdf" | awk '{print $1}')"
-  test "${remote_sha256}" = "${local_sha256}"
-  rm -rf "${tmpdir}"
+    curl --location --fail --silent --show-error \
+      --connect-timeout 10 \
+      --max-time 60 \
+      --retry 3 \
+      --retry-delay 2 \
+      --retry-connrefused \
+      --dump-header "${tmpdir}/${label}-${mode}.headers" \
+      --output "${tmpdir}/${label}-${mode}.pdf" \
+      "${verify_url}"
+
+    test -s "${tmpdir}/${label}-${mode}.pdf"
+    test "$(head -c 5 "${tmpdir}/${label}-${mode}.pdf")" = "%PDF-"
+    grep -Ei '^content-type:.*application/pdf' "${tmpdir}/${label}-${mode}.headers"
+    grep -Ei '^cache-control:.*(no-cache|max-age=0)' "${tmpdir}/${label}-${mode}.headers"
+    grep -Ei '^(cache-control|age|etag|last-modified|cf-cache-status|server):' \
+      "${tmpdir}/${label}-${mode}.headers" || true
+    remote_sha256="$(sha256sum "${tmpdir}/${label}-${mode}.pdf" | awk '{print $1}')"
+    test "${remote_sha256}" = "${local_sha256}"
+    rm -rf "${tmpdir}"
+  done
 done
 ```
 
@@ -236,9 +268,12 @@ SHA-256 values match the local file, and object ACL verification reports
   non-inline value is a deployment failure.
 - **Canonical URL not matching storage URL:** compare both SHA-256 values in the workflow
   summary. Check custom-domain routing and caching before changing the bucket or object.
-- **Cache propagation:** the workflow appends cache-busting query parameters and sets a
-  five-minute cache policy. If humans still see stale bytes, wait for cache expiry and
-  re-check with a cache-busting URL.
+- **Stale bare URL after a successful upload:** compare the cache-busted and bare SHA-256
+  values in the workflow summary. A matching cache-busted SHA with a stale bare SHA means
+  cache-busted verification proved object integrity, but public readiness has not
+  propagated. Inspect `cache-control`, `age`, `etag`, `last-modified`, `cf-cache-status`,
+  and `server` in the bare URL headers before changing DNS, Cloudflare, bucket website
+  settings, or bucket IAM.
 - **Checksum mismatch:** stop and do not retry blindly. Confirm `public/resume.pdf` in the
   checked-out source commit shown in the deploy summary, the GCS object destination, and
   any custom-domain cache behavior. For generated artifact commits, compare the summary
