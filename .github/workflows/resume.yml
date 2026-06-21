@@ -157,6 +157,7 @@ jobs:
           failures = []
           warnings = []
           checklist = []
+          education_observations = []
 
           def check(label, passed, detail=""):
               checklist.append((label, passed, detail))
@@ -216,17 +217,17 @@ jobs:
                   and abs(degree_pos - date_pos) <= 240
               )
               if same_line:
-                  checklist.append((f"Education pair same line: `{degree}` / `{date}`", True, ""))
+                  education_observations.append(
+                      f"✅ `{degree}` / `{date}` — same extracted line"
+                  )
               elif nearby:
-                  warnings.append(f"Education pair is nearby but detached: `{degree}` / `{date}`")
-                  checklist.append((f"Education pair nearby: `{degree}` / `{date}`", True, "warning only"))
+                  education_observations.append(
+                      f"⚠️ `{degree}` / `{date}` — nearby text window"
+                  )
               else:
-                  warnings.append(f"Education pair not found nearby: `{degree}` / `{date}`")
-                  checklist.append((
-                      f"Education pair not found nearby: `{degree}` / `{date}`",
-                      False,
-                      "warning only",
-                  ))
+                  warning = f"Education pair detached / not found nearby: `{degree}` / `{date}`"
+                  warnings.append(warning)
+                  education_observations.append(f"⚠️ {warning}")
 
           oddities = []
           if re.search(r"[A-Za-z]-\n[A-Za-z]", plain):
@@ -249,6 +250,10 @@ jobs:
               for label, passed, detail in checklist:
                   suffix = f" — {detail}" if detail else ""
                   fh.write(f"- {'✅' if passed else '❌'} {label}{suffix}\n")
+              if education_observations:
+                  fh.write("\n### Education pairing observations\n\n")
+                  for observation in education_observations:
+                      fh.write(f"- {observation}\n")
               if warnings:
                   fh.write("\n### Non-blocking warnings\n\n")
                   for warning in warnings:
