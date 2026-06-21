@@ -25,10 +25,10 @@ const allSegmentPolicies = (): UpperStairwellLandingSegmentPolicy[] =>
     render: true,
     sourceId: assertLevelSourceId(`upper.stairwell.landingGuard.test.${role}`),
     collision: {
-      kind: 'active',
+      collision: 'active',
       intent: 'safety-guard',
       purpose: `upper stairwell landing test ${role} guard`,
-      name: `UpperStairwellLandingTestGuard-${role}`,
+      runtimeName: `UpperStairwellLandingTestGuard-${role}`,
     },
   }));
 

@@ -30,7 +30,7 @@ export const UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES = [
     render: true,
     sourceId: sourceId('upper.stairwell.landingGuard.sideEast'),
     collision: {
-      kind: 'none',
+      collision: 'none',
       rationale: 'visual rail outside the active east-shoulder collision strip',
     },
   },
@@ -39,7 +39,7 @@ export const UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES = [
     render: true,
     sourceId: sourceId('upper.stairwell.landingGuard.far'),
     collision: {
-      kind: 'none',
+      collision: 'none',
       rationale: 'visual rail leaves the descent approach open',
     },
   },
@@ -48,10 +48,10 @@ export const UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES = [
     render: true,
     sourceId: sourceId('upper.stairwell.landingGuard.shoulderEast'),
     collision: {
-      kind: 'active',
+      collision: 'active',
       intent: 'safety-guard',
       purpose: 'upper stairwell landing shoulder-east guard',
-      name: 'UpperStairwellLandingGuard-3',
+      runtimeName: 'UpperStairwellLandingGuard-3',
       debugId: debugId('400D'),
     },
   },

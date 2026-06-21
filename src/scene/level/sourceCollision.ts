@@ -8,15 +8,15 @@ export type CollisionIntent =
   | 'secondary-backstop';
 
 export interface ActiveSourceCollisionPolicy {
-  kind: 'active';
+  collision: 'active';
   intent: CollisionIntent;
   purpose: string;
-  name: string;
+  runtimeName?: string;
   debugId?: DebugColliderId;
 }
 
 export interface NoSourceCollisionPolicy {
-  kind: 'none';
+  collision: 'none';
   rationale: string;
 }
 
@@ -41,4 +41,4 @@ export interface SourceBackedCollider<
 
 export const isActiveSourceCollisionPolicy = (
   policy: SourceCollisionPolicy
-): policy is ActiveSourceCollisionPolicy => policy.kind === 'active';
+): policy is ActiveSourceCollisionPolicy => policy.collision === 'active';
