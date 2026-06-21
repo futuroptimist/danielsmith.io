@@ -43,7 +43,7 @@ describe('main module imports', () => {
     expect(source).toContain('colliderSourceMetadata.set(instance.collider, {');
     expect(source).toContain("sourceType: 'wall',");
     expect(source).toContain('colliderSourceMetadata.set(collider.bounds, {');
-    expect(source).toContain("sourceType: 'safetyCollider',");
+    expect(source).toContain('sourceType: collider.sourceType,');
     expect(source).toContain('purpose: collider.purpose,');
     expect(source).toContain(
       'sourceId: colliderSourceMetadata.get(bounds)?.sourceId,'

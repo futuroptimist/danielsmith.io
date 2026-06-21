@@ -3,6 +3,7 @@ import {
   type DebugColliderId,
 } from '../debug/colliderDebugIds';
 
+import type { SourceCollisionPolicy } from './sourceCollision';
 import { assertLevelSourceId, type LevelSourceId } from './sourceIds';
 
 export type UpperStairwellLandingSegmentRole =
@@ -15,10 +16,8 @@ export type UpperStairwellLandingSegmentRole =
 export interface UpperStairwellLandingSegmentPolicy {
   role: UpperStairwellLandingSegmentRole;
   render: boolean;
-  collision: boolean;
   sourceId: LevelSourceId;
-  colliderName?: string;
-  debugId?: DebugColliderId;
+  collision: SourceCollisionPolicy & { debugId?: DebugColliderId };
 }
 
 const sourceId = (value: string): LevelSourceId => assertLevelSourceId(value);
@@ -29,21 +28,31 @@ export const UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES = [
   {
     role: 'side-east',
     render: true,
-    collision: false,
     sourceId: sourceId('upper.stairwell.landingGuard.sideEast'),
+    collision: {
+      kind: 'none',
+      rationale: 'visual rail outside the active east-shoulder collision strip',
+    },
   },
   {
     role: 'far',
     render: true,
-    collision: false,
     sourceId: sourceId('upper.stairwell.landingGuard.far'),
+    collision: {
+      kind: 'none',
+      rationale: 'visual rail leaves the descent approach open',
+    },
   },
   {
     role: 'shoulder-east',
     render: true,
-    collision: true,
     sourceId: sourceId('upper.stairwell.landingGuard.shoulderEast'),
-    colliderName: 'UpperStairwellLandingGuard-3',
-    debugId: debugId('400D'),
+    collision: {
+      kind: 'active',
+      intent: 'safety-guard',
+      purpose: 'upper stairwell landing shoulder-east guard',
+      name: 'UpperStairwellLandingGuard-3',
+      debugId: debugId('400D'),
+    },
   },
 ] as const satisfies readonly UpperStairwellLandingSegmentPolicy[];
