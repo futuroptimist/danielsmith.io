@@ -155,21 +155,33 @@ jobs:
             esac
           }
 
-          header_value() {
-            local header="$1"
-            local headers_file="$2"
-            awk -v header="${header}" '
-              BEGIN{IGNORECASE=1; target=tolower(header)}
+          final_response_headers() {
+            local headers_file="$1"
+            awk '
+              BEGIN{block=""}
               /^HTTP\// {
                 in_headers=1
-                delete values
-                next
-              }
-              in_headers && /^[[:space:]]*$/ {
-                in_headers=0
+                block=$0 "\n"
                 next
               }
               in_headers {
+                block=block $0 "\n"
+                if ($0 ~ /^[[:space:]]*$/) {
+                  last_block=block
+                  in_headers=0
+                }
+              }
+              END{printf "%s", last_block}
+            ' "${headers_file}" | sed 's/[[:cntrl:]]$//'
+          }
+
+          header_value() {
+            local header="$1"
+            local headers_file="$2"
+            final_response_headers "${headers_file}" | awk -v header="${header}" '
+              BEGIN{IGNORECASE=1; target=tolower(header)}
+              /^[[:space:]]*$/ {next}
+              {
                 name=$0
                 sub(/:.*/, "", name)
                 if (tolower(name) == target) {
@@ -179,7 +191,7 @@ jobs:
                 }
               }
               END{print values[target]}
-            ' "${headers_file}" | tr -d '\r'
+            '
           }
 
           cache_control_is_no_stale() {
@@ -199,7 +211,7 @@ jobs:
               echo "${output_prefix}_cf_cache_status=$(header_value cf-cache-status "${headers_file}")"
               echo "${output_prefix}_server=$(header_value server "${headers_file}")"
               echo "${output_prefix}_headers<<EOF_HEADERS_${output_prefix}"
-              sed -n '1,30p' "${headers_file}" | sed 's/[[:cntrl:]]$//'
+              final_response_headers "${headers_file}" | sed -n '1,30p'
               echo "EOF_HEADERS_${output_prefix}"
             } >>"${GITHUB_OUTPUT}"
           }
@@ -210,8 +222,7 @@ jobs:
               echo "No response headers captured."
               return 0
             fi
-            awk 'BEGIN{IGNORECASE=1} /^(cache-control|age|etag|last-modified|cf-cache-status|server):/ {print}' \
-              "${headers_file}" | sed 's/[[:cntrl:]]$//'
+            final_response_headers "${headers_file}" | awk 'BEGIN{IGNORECASE=1} /^(cache-control|age|etag|last-modified|cf-cache-status|server):/ {print}'
           }
 
           fetch_and_verify() {
