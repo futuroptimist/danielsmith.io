@@ -211,32 +211,16 @@ export const createGroundStairBoundaryColliders = (
   behavior: StairBehavior,
   options: GroundStairBoundaryColliderOptions
 ): NamedStairBoundaryCollider[] => {
-  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
-  const rampMaxZ = getMaxZ(geometry.bottomZ, geometry.topZ);
   const stairEastX = geometry.centerX + geometry.halfWidth;
-  const eastBoundaryMinX = stairEastX + options.guardThickness;
-  const fallbackEastBoundaryMaxX =
+  const eastBoundaryMaxX =
     stairEastX +
     geometry.halfWidth +
     behavior.transitionMargin +
     options.playerRadius * 2 +
     options.guardThickness * 2;
-  const eastBoundaryMaxX = fallbackEastBoundaryMaxX;
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  // Keep this finite on purpose: we block the stair-side squeeze pocket, not
-  // the whole east-side ramp band. Far-east living-room coordinates remain
-  // valid navigation space, so do not seal this local edge to a room bound.
   const colliders: NamedStairBoundaryCollider[] = [
-    {
-      name: 'GroundStairEastBoundary',
-      bounds: {
-        minX: eastBoundaryMinX,
-        maxX: eastBoundaryMaxX,
-        minZ: rampMinZ,
-        maxZ: rampMaxZ,
-      },
-    },
     {
       name: 'GroundStairLowerCornerGuard',
       bounds: {

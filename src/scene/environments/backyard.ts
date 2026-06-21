@@ -1560,12 +1560,6 @@ export function createBackyardEnvironment(
       minZ: fenceFrontZ - 0.3,
       maxZ: fenceBackZ + 0.3,
     },
-    {
-      minX: bounds.minX + fenceInsetX - 0.3,
-      maxX: bounds.maxX - fenceInsetX + 0.3,
-      minZ: fenceBackZ - 0.18,
-      maxZ: fenceBackZ + 0.18,
-    },
   ];
   fenceColliders.forEach((collider) => colliders.push(collider));
 
