@@ -33,15 +33,33 @@ jobs:
       GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
-      RESUME_GCS_DESTINATION: gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf
-      RESUME_PUBLIC_URL: https://resume.danielsmith.io
-      RESUME_STORAGE_PUBLIC_URL: https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf
+      RESUME_GCS_DESTINATION: ${{ vars.RESUME_GCS_DESTINATION }}
+      RESUME_PUBLIC_URL: ${{ vars.RESUME_PUBLIC_URL }}
+      RESUME_STORAGE_PUBLIC_URL: ${{ vars.RESUME_STORAGE_PUBLIC_URL }}
     if: >-
       ${{ github.event_name != 'workflow_run' ||
-        github.event.workflow_run.conclusion == 'success' }}
+        (github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'main') }}
     steps:
+      - name: Require main branch for manual deploys
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' }}
+        shell: bash
+        run: |
+          echo "::error::Resume GCS deploys must run from main. Select the main branch before running this workflow manually."
+          exit 1
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.ref }}
+
+      - name: Capture source commit
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >>"${GITHUB_OUTPUT}"
 
       - name: Validate deployment configuration
         shell: bash
@@ -52,7 +70,10 @@ jobs:
           for variable in \
             GCP_PROJECT_ID \
             GCP_WORKLOAD_IDENTITY_PROVIDER \
-            GCP_SERVICE_ACCOUNT; do
+            GCP_SERVICE_ACCOUNT \
+            RESUME_GCS_DESTINATION \
+            RESUME_PUBLIC_URL \
+            RESUME_STORAGE_PUBLIC_URL; do
             if [ -z "${!variable:-}" ]; then
               echo "::error::Repository variable ${variable} is required for resume deployment."
               missing=1
@@ -61,6 +82,21 @@ jobs:
 
           if [ "${missing}" -ne 0 ]; then
             echo "Configure the missing repository variables before rerunning this workflow." >&2
+            exit 1
+          fi
+
+          if [ "${RESUME_GCS_DESTINATION}" != "gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf" ]; then
+            echo "::error::RESUME_GCS_DESTINATION must target the production resume object."
+            exit 1
+          fi
+
+          if [ "${RESUME_PUBLIC_URL}" != "https://resume.danielsmith.io" ]; then
+            echo "::error::RESUME_PUBLIC_URL must target the production resume host."
+            exit 1
+          fi
+
+          if [ "${RESUME_STORAGE_PUBLIC_URL}" != "https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf" ]; then
+            echo "::error::RESUME_STORAGE_PUBLIC_URL must target the production storage URL."
             exit 1
           fi
 
@@ -198,13 +234,37 @@ jobs:
             --project="${GCP_PROJECT_ID}" \
             --format=json >"${acl_json}"
 
-          public_acl="$(python3 -c 'import json, sys; metadata = json.load(open(sys.argv[1], encoding="utf-8")); acl = metadata.get("acl") or []; found = any(entry.get("entity") == "allUsers" and entry.get("role") == "READER" for entry in acl); print("allUsers Reader present" if found else "allUsers Reader missing"); sys.exit(0 if found else 1)' "${acl_json}")"
+          public_acl="$(python3 - <<'PY' "${acl_json}"
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              metadata = json.load(handle)
+
+          public_write_roles = {"OWNER", "WRITER"}
+          acl = metadata.get("acl") or []
+          all_users_roles = [entry.get("role") for entry in acl if entry.get("entity") == "allUsers"]
+          public_write = sorted(role for role in all_users_roles if role in public_write_roles)
+          reader_present = "READER" in all_users_roles
+
+          if public_write:
+              print(f"allUsers unsafe public role(s): {', '.join(public_write)}")
+              sys.exit(1)
+
+          if not reader_present:
+              print("allUsers Reader missing")
+              sys.exit(1)
+
+          print("allUsers Reader present; no public write grants observed")
+          PY
+          )"
           echo "public_acl=${public_acl}" >>"${GITHUB_OUTPUT}"
 
       - name: Write deployment summary
         if: always()
         shell: bash
         env:
+          SOURCE_COMMIT_SHA: ${{ steps.source.outputs.sha }}
           LOCAL_SHA256: ${{ steps.upload.outputs.local_sha256 }}
           STORAGE_SHA256: ${{ steps.verify.outputs.storage_sha256 }}
           CANONICAL_SHA256: ${{ steps.verify.outputs.canonical_sha256 }}
@@ -224,7 +284,7 @@ jobs:
             echo
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| Source commit SHA | \`${GITHUB_SHA}\` |"
+            echo "| Source commit SHA | \`${SOURCE_COMMIT_SHA}\` |"
             echo "| Local file path | \`${LOCAL_RESUME_PATH}\` |"
             echo "| Destination GCS URI | \`${RESUME_GCS_DESTINATION}\` |"
             echo "| Storage URL | ${RESUME_STORAGE_PUBLIC_URL} |"

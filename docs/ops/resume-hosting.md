@@ -26,30 +26,36 @@ The **Resume artifacts** workflow (`.github/workflows/resume.yml`) produces and
 persists the stable repository artifact at `public/resume.pdf`. The **Deploy resume
 to GCS** workflow then deploys that exact PDF byte-for-byte to the existing GCS object
 named `Daniel_Smith_Resume.pdf`. The deploy workflow does not compile TeX, regenerate
-resume artifacts, deploy `public/resume.docx`, edit resume content, or edit generated
-PDF bytes.
+resume artifacts, deploy other resume formats, edit resume content, or edit generated PDF bytes.
 
 The deployment workflow is `.github/workflows/resume-gcs.yml`. It runs on successful
-`Resume artifacts` workflow completions on `main`, direct pushes to `main` that change
-`public/resume.pdf` or the deployment workflow itself, and manual `workflow_dispatch`
-runs. The `workflow_run` handoff is required because GitHub suppresses follow-on
-workflow runs for commits that `Resume artifacts` pushes with `GITHUB_TOKEN`. It does
-not run on `pull_request`, so pull requests never authenticate to Google Cloud or
-deploy.
+`Resume artifacts` workflow completions that were started by a `push` to `main`, direct
+pushes to `main` that change `public/resume.pdf` or the deployment workflow itself,
+and manual `workflow_dispatch` runs from `main`. The `workflow_run` handoff is required
+because GitHub suppresses follow-on workflow runs for commits that `Resume artifacts`
+pushes with `GITHUB_TOKEN`. For `workflow_run` events, the deploy job checks out the
+current `main` branch after the artifact commit exists and records `git rev-parse HEAD`
+in the job summary as the deployed source commit SHA. It does not run on
+`pull_request`, so pull requests never authenticate to Google Cloud or deploy.
 
 ## Required GitHub repository variables
 
 Configure these repository variables before enabling the workflow:
 
-| Variable                         | Expected value or purpose                                          |
-| -------------------------------- | ------------------------------------------------------------------ |
-| `GCP_PROJECT_ID`                 | Google Cloud project ID for the observed `danielsmith io` project. |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Full Workload Identity Provider resource name used by GitHub OIDC. |
-| `GCP_SERVICE_ACCOUNT`            | Dedicated deploy service account email to impersonate.             |
+| Variable                         | Expected value or purpose                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `GCP_PROJECT_ID`                 | Google Cloud project ID for the observed `danielsmith io` project.             |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Full Workload Identity Provider resource name used by GitHub OIDC.             |
+| `GCP_SERVICE_ACCOUNT`            | Dedicated deploy service account email to impersonate.                         |
+| `RESUME_GCS_DESTINATION`         | `gs://resume.danielsmith.io/Daniel_Smith_Resume.pdf`                           |
+| `RESUME_PUBLIC_URL`              | `https://resume.danielsmith.io`                                                |
+| `RESUME_STORAGE_PUBLIC_URL`      | `https://storage.googleapis.com/resume.danielsmith.io/Daniel_Smith_Resume.pdf` |
 
 The workflow fails before authentication or upload if any required variable is missing.
-The resume destination, canonical URL, and storage URL are production constants in the
-workflow so operators cannot accidentally point a deployment at another object.
+Manual `workflow_dispatch` runs also fail before checkout or Google authentication
+unless the selected branch is `main`. The resume destination, canonical URL, and storage
+URL remain repository variables, but the workflow validates them against the production
+object and URLs so operators cannot accidentally point a deployment elsewhere.
 
 ## Google Workload Identity Federation setup
 
@@ -87,16 +93,18 @@ gcloud storage objects update \
 ```
 
 This preserves existing object ACL grants while adding or confirming public read access.
-Do not replace object ACLs with `--predefined-acl=publicRead` unless a future runbook
-change explicitly explains why replacing other object ACL grants is acceptable.
+Do not use canned public-read ACL replacement flags unless a future runbook change
+explicitly explains why replacing other object ACL grants is acceptable.
 
 ## Running `workflow_dispatch`
 
 1. Open GitHub Actions for `futuroptimist/danielsmith.io`.
 2. Select **Deploy resume to GCS**.
-3. Choose **Run workflow** on `main`.
-4. Wait for the job summary to report matching local, storage URL, and canonical URL
-   SHA-256 values.
+3. Choose **Run workflow** on `main`. A run started from any other branch is expected
+   to fail immediately with a `Resume GCS deploys must run from main` error before
+   checkout or Google authentication.
+4. Wait for the job summary to report the checked-out source commit SHA plus matching
+   local, storage URL, and canonical URL SHA-256 values.
 
 ## Manual break-glass deployment
 
@@ -190,16 +198,20 @@ with an `application/pdf` content type and matching SHA-256.
 
 ## Rollback
 
-Rollback by restoring a prior stable resume artifact in Git, then letting the workflow
-redeploy it:
+Rollback by restoring a prior stable resume artifact in Git, then letting the
+`Resume artifacts` to `Deploy resume to GCS` handoff redeploy it:
 
 - Revert or check out a prior Git commit that contains the previous `public/resume.pdf`,
   or
 - Copy a prior `public/docs/resume/<version>/resume.pdf` over `public/resume.pdf` in a
   rollback PR.
 
-Do not edit generated PDF bytes by hand. After the rollback PR merges to `main`, the
-workflow redeploys the restored file to the same GCS object.
+Do not edit generated PDF bytes by hand. After the rollback PR merges to `main`, wait
+for **Resume artifacts** to complete successfully, then confirm **Deploy resume to GCS**
+starts from that `workflow_run`. Verify the deploy summary source commit SHA matches
+the current `main` commit containing the restored `public/resume.pdf`, both public URL
+SHA-256 values match the local file, and object ACL verification reports
+`allUsers Reader present; no public write grants observed`.
 
 ## Troubleshooting
 
@@ -214,7 +226,8 @@ workflow redeploys the restored file to the same GCS object.
   during diagnosis.
 - **Object ACL/public-read failures:** confirm uniform bucket-level access is not blocking
   object ACLs and that the deploy identity can update object ACLs. The target object must
-  have `allUsers` `Reader`, not public write access.
+  have `allUsers` `Reader`. Any public `Owner`, `Writer`, or other public-write-like
+  grant is a deployment failure and must be removed before considering the object safe.
 - **Content-Type mismatch:** re-run the workflow and confirm the upload command sets
   `application/pdf`. The verification step fails if either public endpoint lacks a PDF
   content type.
@@ -227,4 +240,6 @@ workflow redeploys the restored file to the same GCS object.
   five-minute cache policy. If humans still see stale bytes, wait for cache expiry and
   re-check with a cache-busting URL.
 - **Checksum mismatch:** stop and do not retry blindly. Confirm `public/resume.pdf` in the
-  checked-out commit, the GCS object destination, and any custom-domain cache behavior.
+  checked-out source commit shown in the deploy summary, the GCS object destination, and
+  any custom-domain cache behavior. For generated artifact commits, compare the summary
+  source SHA to current `main` rather than the earlier `workflow_run` triggering SHA.
