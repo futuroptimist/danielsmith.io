@@ -19,7 +19,10 @@ import {
 } from '../../ui/accessibility/animationPreferences';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
-import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../level/mediaWallPolicy';
+import {
+  FUTUROPTIMIST_MEDIA_WALL_POLICY,
+  type MediaWallPolicy,
+} from '../level/mediaWallPolicy';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
@@ -364,7 +367,7 @@ export interface LivingRoomMediaWallController {
 
 export interface LivingRoomMediaWallBuild {
   group: Group;
-  policy: typeof FUTUROPTIMIST_MEDIA_WALL_POLICY;
+  policy: MediaWallPolicy;
   poiBindings: LivingRoomMediaWallPoiBindings;
   controller: LivingRoomMediaWallController;
 }
