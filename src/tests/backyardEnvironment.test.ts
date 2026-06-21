@@ -1384,8 +1384,24 @@ describe('createBackyardEnvironment', () => {
       sourceType: 'generatedCollider',
       role: 'backFenceBoundary',
       intent: 'physical-boundary',
-      debugId: '1007',
+      debugId: '1006',
       purpose: expect.stringContaining('visible back fence'),
+    });
+
+    const productionHologramBarrierCollider =
+      productionEnvironment.colliders.find(
+        (collider) =>
+          (collider as { sourceId?: string }).sourceId ===
+          'ground.backyard.hologramBarrier.boundary'
+      );
+    expect(productionHologramBarrierCollider).toMatchObject({
+      name: 'BackyardHologramBarrierBoundary',
+      sourceId: 'ground.backyard.hologramBarrier.boundary',
+      sourceType: 'generatedCollider',
+      role: 'hologramBarrier',
+      intent: 'physical-boundary',
+      debugId: '1007',
+      purpose: expect.stringContaining('hologram barrier'),
     });
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
