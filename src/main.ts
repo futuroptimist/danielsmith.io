@@ -2113,6 +2113,8 @@ function initializeImmersiveScene(
       sourceId: collider.sourceId,
       sourceType: collider.sourceType,
       purpose: collider.purpose,
+      intent: collider.intent,
+      role: collider.role,
       debugId: collider.debugId,
     });
   };
@@ -2158,6 +2160,8 @@ function initializeImmersiveScene(
       sourceId: collider.sourceId,
       sourceType: collider.sourceType,
       purpose: collider.purpose,
+      intent: collider.intent,
+      role: collider.role,
       debugId: collider.debugId,
     });
   };
