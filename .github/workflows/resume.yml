@@ -116,6 +116,53 @@ jobs:
             echo "docx_sha256=${docx_sha256}"
           } >>"${GITHUB_OUTPUT}"
 
+      - name: Run ATS smoke report
+        id: ats
+        shell: bash
+        env:
+          PDF: ${{ steps.resume.outputs.pdf }}
+          TEX_SOURCE: ${{ steps.resume.outputs.tex }}
+          VERSION: ${{ steps.resume.outputs.version }}
+          PDF_PAGES: ${{ steps.pdfinfo.outputs.pages }}
+          ATS_CONFIG: docs/resume/ats-smoke.json
+        run: |
+          set -euo pipefail
+          ats_dir="${RUNNER_TEMP}/resume-ats"
+          mkdir -p "${ats_dir}"
+
+          plain_text="${ats_dir}/resume.txt"
+          layout_text="${ats_dir}/resume-layout.txt"
+          pdftotext "${PDF}" "${plain_text}"
+          pdftotext -layout "${PDF}" "${layout_text}"
+
+          plain_chars=$(wc -m <"${plain_text}" | tr -d '[:space:]')
+          layout_chars=$(wc -m <"${layout_text}" | tr -d '[:space:]')
+          echo "ats_dir=${ats_dir}" >>"${GITHUB_OUTPUT}"
+          echo "plain_text=${plain_text}" >>"${GITHUB_OUTPUT}"
+          echo "layout_text=${layout_text}" >>"${GITHUB_OUTPUT}"
+          echo "plain_chars=${plain_chars}" >>"${GITHUB_OUTPUT}"
+          echo "layout_chars=${layout_chars}" >>"${GITHUB_OUTPUT}"
+
+          scripts/resume-ats-smoke.py \
+            --pdf "${PDF}" \
+            --tex-source "${TEX_SOURCE}" \
+            --version "${VERSION}" \
+            --pdf-pages "${PDF_PAGES}" \
+            --plain-text "${plain_text}" \
+            --layout-text "${layout_text}" \
+            --summary "${GITHUB_STEP_SUMMARY}" \
+            --config "${ATS_CONFIG}"
+
+      - name: Upload ATS text artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resume-${{ steps.resume.outputs.version }}-ats-text
+          path: |
+            ${{ steps.ats.outputs.plain_text }}
+            ${{ steps.ats.outputs.layout_text }}
+          if-no-files-found: error
+
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
