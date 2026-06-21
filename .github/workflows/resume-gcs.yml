@@ -159,9 +159,26 @@ jobs:
             local header="$1"
             local headers_file="$2"
             awk -v header="${header}" '
-              BEGIN{IGNORECASE=1}
-              index($0, header ":") == 1 {sub(/^[^:]+:[[:space:]]*/, ""); value=$0}
-              END{print value}
+              BEGIN{IGNORECASE=1; target=tolower(header)}
+              /^HTTP\// {
+                in_headers=1
+                delete values
+                next
+              }
+              in_headers && /^[[:space:]]*$/ {
+                in_headers=0
+                next
+              }
+              in_headers {
+                name=$0
+                sub(/:.*/, "", name)
+                if (tolower(name) == target) {
+                  value=$0
+                  sub(/^[^:]+:[[:space:]]*/, "", value)
+                  values[target]=value
+                }
+              }
+              END{print values[target]}
             ' "${headers_file}" | tr -d '\r'
           }
 
@@ -189,6 +206,10 @@ jobs:
 
           print_cache_headers() {
             local headers_file="$1"
+            if [ ! -s "${headers_file}" ]; then
+              echo "No response headers captured."
+              return 0
+            fi
             awk 'BEGIN{IGNORECASE=1} /^(cache-control|age|etag|last-modified|cf-cache-status|server):/ {print}' \
               "${headers_file}" | sed 's/[[:cntrl:]]$//'
           }
@@ -205,7 +226,7 @@ jobs:
             headers_file="${output_dir}/${output_prefix}.headers"
             status_file="${output_dir}/${output_prefix}.status"
 
-            http_code="$(curl --location --silent --show-error \
+            if ! http_code="$(curl --location --silent --show-error \
               --connect-timeout 10 \
               --max-time 60 \
               --retry 3 \
@@ -214,7 +235,11 @@ jobs:
               --dump-header "${headers_file}" \
               --output "${body_file}" \
               --write-out '%{http_code}' \
-              "${url}")"
+              "${url}")"; then
+              echo "::error::${label} URL could not be fetched."
+              print_cache_headers "${headers_file}"
+              return 1
+            fi
             printf '%s\n' "${http_code}" >"${status_file}"
 
             if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
