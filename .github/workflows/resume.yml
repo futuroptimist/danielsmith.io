@@ -104,6 +104,151 @@ jobs:
           fi
           echo "pages=${pages}" >>"${GITHUB_OUTPUT}"
 
+      - name: Run ATS smoke report
+        id: ats
+        shell: bash
+        env:
+          PDF_PATH: ${{ steps.resume.outputs.pdf }}
+          PDF_PAGES: ${{ steps.pdfinfo.outputs.pages }}
+          RESUME_TEX: ${{ steps.resume.outputs.tex }}
+          RESUME_VERSION: ${{ steps.resume.outputs.version }}
+        run: |
+          set -euo pipefail
+          ats_dir="${RUNNER_TEMP}/resume-ats"
+          mkdir -p "${ats_dir}"
+
+          pdftotext "${PDF_PATH}" "${ats_dir}/resume.txt"
+          pdftotext -layout "${PDF_PATH}" "${ats_dir}/resume-layout.txt"
+
+          {
+            echo "dir=${ats_dir}"
+            echo "artifact=resume-${RESUME_VERSION}-ats-text"
+          } >>"${GITHUB_OUTPUT}"
+
+          python3 <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          ats_dir = Path(os.environ["RUNNER_TEMP"]) / "resume-ats"
+          plain_path = ats_dir / "resume.txt"
+          layout_path = ats_dir / "resume-layout.txt"
+          summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          plain = plain_path.read_text(encoding="utf-8", errors="replace")
+          layout = layout_path.read_text(encoding="utf-8", errors="replace")
+
+          required_strings = [
+              "Daniel Smith",
+              "daniel@danielsmith.io",
+              "Summary",
+              "Skills",
+              "Experience",
+              "Education",
+              "Independent Open Source Engineering",
+              "YouTube (Google)",
+              "Site Reliability Engineer, L4",
+              "The University of Southern Mississippi",
+              "Jones County Junior College",
+          ]
+          section_pairs = [
+              ("Summary", "Skills"),
+              ("Skills", "Experience"),
+              ("Experience", "Education"),
+          ]
+          education_pairs = [
+              ("M.S. Computer Science", "Aug 2015"),
+              ("B.S. Computer Science", "May 2013"),
+              ("A.A.S. Information System Technology", "Aug 2011"),
+          ]
+
+          failures = []
+          checklist = []
+
+          plain_chars = len(plain)
+          layout_chars = len(layout)
+          extraction_ok = plain_chars >= 1000
+          checklist.append(("pass" if extraction_ok else "fail", "Plain text extraction is non-empty and reasonably large"))
+          if not extraction_ok:
+              failures.append(f"Plain text extraction is too small: {plain_chars} characters.")
+
+          for required in required_strings:
+              ok = required in plain
+              checklist.append(("pass" if ok else "fail", f"Plain text contains `{required}`"))
+              if not ok:
+                  failures.append(f"Missing required extracted text: {required}")
+
+          for before, after in section_pairs:
+              before_index = plain.find(before)
+              after_index = plain.find(after)
+              ok = before_index != -1 and after_index != -1 and before_index < after_index
+              checklist.append(("pass" if ok else "fail", f"`{before}` appears before `{after}`"))
+              if not ok:
+                  failures.append(f"Section order check failed: {before} before {after}")
+
+          education_warnings = []
+          plain_lines = plain.splitlines()
+          for degree, date in education_pairs:
+              same_line = any(degree in line and date in line for line in plain_lines)
+              degree_index = plain.find(degree)
+              date_index = plain.find(date)
+              nearby = (
+                  degree_index != -1
+                  and date_index != -1
+                  and abs(degree_index - date_index) <= 240
+              )
+              if same_line:
+                  education_warnings.append(f"✅ `{degree}` pairs with `{date}` on one extracted line.")
+              elif nearby:
+                  education_warnings.append(f"✅ `{degree}` pairs with `{date}` in a nearby text window.")
+              else:
+                  education_warnings.append(
+                      f"⚠️ `{degree}` is detached from `{date}` in the extracted text."
+                  )
+
+          # TODO: Make the Education degree/date pairing warning blocking after the
+          # Education section is reformatted in a follow-up PR.
+          hyphenation_matches = re.findall(r"[A-Za-z]-\n[A-Za-z]", plain)
+
+          preview = "\n".join(plain_lines[:120])
+          with summary_path.open("a", encoding="utf-8") as summary:
+              summary.write("## ATS smoke report\n\n")
+              summary.write(f"- Selected TeX source: `{os.environ['RESUME_TEX']}`\n")
+              summary.write(f"- Selected resume version: `{os.environ['RESUME_VERSION']}`\n")
+              summary.write(f"- Generated PDF path: `{os.environ['PDF_PATH']}`\n")
+              summary.write(f"- PDF page count: `{os.environ['PDF_PAGES']}`\n")
+              summary.write(f"- Plain extracted character count: `{plain_chars}`\n")
+              summary.write(f"- Layout extracted character count: `{layout_chars}`\n\n")
+
+              summary.write("### Pass/fail checklist\n\n")
+              for status, label in checklist:
+                  icon = "✅" if status == "pass" else "❌"
+                  summary.write(f"- {icon} {label}\n")
+
+              summary.write("\n### Non-blocking warnings\n\n")
+              for warning in education_warnings:
+                  summary.write(f"- {warning}\n")
+              if hyphenation_matches:
+                  summary.write(
+                      f"- ⚠️ Found {len(hyphenation_matches)} possible line-wrap hyphenation oddities.\n"
+                  )
+              else:
+                  summary.write("- ✅ No obvious line-wrap hyphenation oddities detected.\n")
+
+              summary.write("\n<details>\n")
+              summary.write("<summary>Plain extraction preview (first 120 lines)</summary>\n\n")
+              summary.write("```text\n")
+              summary.write(preview)
+              summary.write("\n```\n\n")
+              summary.write("</details>\n")
+
+          if failures:
+              for failure in failures:
+                  print(f"::error::{failure}")
+              sys.exit(1)
+          PY
+
       - name: Calculate checksums
         id: checksums
         shell: bash
@@ -115,6 +260,13 @@ jobs:
             echo "pdf_sha256=${pdf_sha256}"
             echo "docx_sha256=${docx_sha256}"
           } >>"${GITHUB_OUTPUT}"
+
+      - name: Upload ATS text artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.ats.outputs.artifact }}
+          path: ${{ steps.ats.outputs.dir }}
+          if-no-files-found: error
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
