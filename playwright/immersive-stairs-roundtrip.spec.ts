@@ -1023,18 +1023,20 @@ test('runtime descent from upper landing mouth reaches the ground', async ({
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });
 
-test('ground stair east boundary blocks squeeze corners but preserves the stair path', async ({
+test('ground stair lower corner guard blocks squeezes but preserves the stair path', async ({
   page,
 }) => {
   test.slow();
   await waitForImmersiveReady(page);
 
   const html = page.locator('html');
-  const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
+  const { stairCenterX, stairHalfWidth, stairBottomZ, stairTopZ } =
+    await getStairMetrics(page);
+  const stairEastX = stairCenterX + stairHalfWidth;
   const blockedSamples = [
     { x: 17.38, z: -8.84, floorId: 'ground' as const },
-    { x: 21.35, z: -14.66, floorId: 'ground' as const },
-    { x: 22.1, z: -14.66, floorId: 'ground' as const },
+    { x: stairEastX + 0.38, z: stairBottomZ + 0.6, floorId: 'ground' as const },
+    { x: stairEastX + 0.94, z: stairBottomZ + 1, floorId: 'ground' as const },
   ];
   const livingRoomSamples = [
     { x: 23, z: -18, floorId: 'ground' as const },
