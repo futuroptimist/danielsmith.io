@@ -132,6 +132,12 @@ layer without guessing where functionality lives.
   [`src/ui/accessibility`](../../src/ui/accessibility) subscribe to key binding, accessibility
   preset, and POI selection handles. Each overlay follows the
   [accessibility checklist](../guides/accessibility-overlays.md).
+- **Visual-only collision policy** – The Futuroptimist media wall declares its
+  wall-mounted visual source in
+  [`src/scene/level/mediaWallPolicy.ts`](../../src/scene/level/mediaWallPolicy.ts).
+  The scene builder applies that source metadata to the visible screen, shelf,
+  and clearance affordance while the policy's `collision: 'none'` rationale
+  keeps it from emitting any floor-level collider.
 - **POI orchestration** – The registry at
   [`src/scene/poi/registry.ts`](../../src/scene/poi/registry.ts) now includes
   room-scoped helpers such as `getPoiDefinitionsByRoom(...)`. Interactions in

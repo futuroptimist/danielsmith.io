@@ -17,9 +17,11 @@ import {
   getFlickerScale,
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
-import type { RectCollider } from '../collision';
-import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
-import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
+import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../level/mediaWallPolicy';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
@@ -31,6 +33,16 @@ const CLEARANCE_BASE_OPACITY = 0.16;
 const CLEARANCE_MAX_OPACITY = 0.52;
 const CLEARANCE_BASE_COLOR = 0x10283b;
 const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
+
+const applyMediaWallPolicy = (mesh: Mesh) => {
+  mesh.userData.levelSourceId = FUTUROPTIMIST_MEDIA_WALL_POLICY.sourceId;
+  mesh.userData.levelSource = {
+    sourceId: FUTUROPTIMIST_MEDIA_WALL_POLICY.sourceId,
+    sourceType: 'generatedSolid',
+    purpose: FUTUROPTIMIST_MEDIA_WALL_POLICY.renderIntent,
+  };
+  mesh.userData.collisionPolicy = FUTUROPTIMIST_MEDIA_WALL_POLICY.collision;
+};
 
 interface MediaWallScreenRendererOptions {
   starCount: number | null;
@@ -364,7 +376,6 @@ export interface LivingRoomMediaWallController {
 
 export interface LivingRoomMediaWallBuild {
   group: Group;
-  colliders: RectCollider[];
   poiBindings: LivingRoomMediaWallPoiBindings;
   controller: LivingRoomMediaWallController;
 }
@@ -500,7 +511,6 @@ export function createLivingRoomMediaWall(
 ): LivingRoomMediaWallBuild {
   const group = new Group();
   group.name = 'LivingRoomMediaWall';
-  const colliders: RectCollider[] = [];
 
   const wallInteriorX = bounds.minX + 0.12;
   const anchorZ = MathUtils.clamp(-14.2, bounds.minZ + 3, bounds.maxZ - 3);
@@ -554,6 +564,7 @@ export function createLivingRoomMediaWall(
   screenMesh.position.set(wallInteriorX + boardDepth + 0.02, 2.36, anchorZ);
   screenMesh.rotation.y = Math.PI / 2;
   screenMesh.renderOrder = 10;
+  applyMediaWallPolicy(screenMesh);
   group.add(screenMesh);
 
   const screenGlowMaterial = new MeshBasicMaterial({
@@ -606,9 +617,8 @@ export function createLivingRoomMediaWall(
     shelfThickness / 2 + 0.46,
     anchorZ
   );
+  applyMediaWallPolicy(shelf);
   group.add(shelf);
-  // This Futuroptimist media POI is wall-mounted, so the visual shelf and
-  // clearance affordance intentionally do not add a floor-level blocker.
 
   const consoleMaterial = new MeshStandardMaterial({
     color: 0x0f1724,
@@ -717,6 +727,7 @@ export function createLivingRoomMediaWall(
     anchorZ
   );
   clearance.renderOrder = 4;
+  applyMediaWallPolicy(clearance);
   group.add(clearance);
 
   const poiBindings: LivingRoomMediaWallPoiBindings = {
@@ -745,5 +756,5 @@ export function createLivingRoomMediaWall(
     detailPolicy,
   });
 
-  return { group, colliders, poiBindings, controller };
+  return { group, poiBindings, controller };
 }
