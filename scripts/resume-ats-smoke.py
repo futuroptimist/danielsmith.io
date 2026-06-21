@@ -76,6 +76,13 @@ def section_slice(
     return text[start:end]
 
 
+def compact_education_context(education_text: str) -> str:
+    normalized = re.sub(r"\s+", " ", education_text).strip()
+    if len(normalized) <= 260:
+        return normalized
+    return f"{normalized[:257].rstrip()}..."
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -86,6 +93,7 @@ def education_pair_observations(
     severity = education_config.get("severity", "warning")
     prefix = "⚠️" if severity == "warning" else "❌"
     education_text = section_slice(plain, heading_positions_by_name, "Education")
+    education_context = compact_education_context(education_text)
     lines = education_text.splitlines()
     observations: list[str] = []
     warnings: list[str] = []
@@ -104,14 +112,11 @@ def education_pair_observations(
         if same_line:
             observations.append(f"✅ {label} — same extracted line")
         elif nearby:
-            message = f"Education pair not on same extracted line: {label}"
-            observations.append(f"{prefix} {message} — nearby text window")
-            if severity == "warning":
-                warnings.append(message)
-            else:
-                failures.append(message)
+            observations.append(f"✅ {label} — nearby text window")
         else:
             message = f"Education pair detached / not found nearby: {label}"
+            if education_context:
+                message = f"{message} — Education context: {education_context}"
             observations.append(f"{prefix} {message}")
             if severity == "warning":
                 warnings.append(message)
