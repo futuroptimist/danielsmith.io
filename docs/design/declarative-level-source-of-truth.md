@@ -158,11 +158,14 @@ positions are authored in level-space coordinates and validated against their
 declared room bounds; POI placement adapters scale them to the runtime world
 coordinates used by the current immersive scene. Scene object placement and
 collider policy are declarative source data rather than shadow runtime constants.
-Objects that intentionally have no collider must
-be explicitly marked with a no-collider policy and authored reason instead of
-silently disappearing from collider generation. These objects continue to use
-their existing structure-factory collider bounds, but the source object owns the
-stable source ID, room/floor placement, purpose, and `custom`
+Objects that intentionally have no collider must be explicitly marked with a
+no-collider policy and authored reason instead of silently disappearing from
+collider generation. The Futuroptimist media wall is the canonical visual-only
+exception: its source-owned policy declares the wall-mounted render intent and a
+`collision: 'none'` rationale, so the visual POI remains rendered without a
+floor-level interaction footprint. Objects with factory colliders continue to
+use their existing structure-factory collider bounds, but the source object owns
+the stable source ID, room/floor placement, purpose, and `custom`
 `factory-colliders` policy that debug collider and solid metadata can expose.
 
 ### Room connections

@@ -17,9 +17,10 @@ import {
   getFlickerScale,
   getPulseScale,
 } from '../../ui/accessibility/animationPreferences';
-import type { RectCollider } from '../collision';
-import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import type { SourceCollisionPolicy } from '../level/sourceCollision';
+import { assertLevelSourceId, type LevelSourceId } from '../level/sourceIds';
 
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
@@ -31,6 +32,24 @@ const CLEARANCE_BASE_OPACITY = 0.16;
 const CLEARANCE_MAX_OPACITY = 0.52;
 const CLEARANCE_BASE_COLOR = 0x10283b;
 const CLEARANCE_HIGHLIGHT_COLOR = 0x3ec9ff;
+
+export interface LivingRoomMediaWallPolicy {
+  sourceId: LevelSourceId;
+  subsystemRole: 'futuroptimist-media';
+  renderIntent: 'wall-mounted-visual-poi';
+  collision: SourceCollisionPolicy;
+}
+
+export const FUTUROPTIMIST_MEDIA_WALL_POLICY = {
+  sourceId: assertLevelSourceId('ground.livingRoom.mediaWall.futuroptimist'),
+  subsystemRole: 'futuroptimist-media',
+  renderIntent: 'wall-mounted-visual-poi',
+  collision: {
+    collision: 'none',
+    rationale:
+      'Wall-mounted media component; intentionally has no floor-level interaction footprint.',
+  },
+} as const satisfies LivingRoomMediaWallPolicy;
 
 interface MediaWallScreenRendererOptions {
   starCount: number | null;
@@ -364,7 +383,6 @@ export interface LivingRoomMediaWallController {
 
 export interface LivingRoomMediaWallBuild {
   group: Group;
-  colliders: RectCollider[];
   poiBindings: LivingRoomMediaWallPoiBindings;
   controller: LivingRoomMediaWallController;
 }
@@ -500,7 +518,7 @@ export function createLivingRoomMediaWall(
 ): LivingRoomMediaWallBuild {
   const group = new Group();
   group.name = 'LivingRoomMediaWall';
-  const colliders: RectCollider[] = [];
+  group.userData.sourcePolicy = FUTUROPTIMIST_MEDIA_WALL_POLICY;
 
   const wallInteriorX = bounds.minX + 0.12;
   const anchorZ = MathUtils.clamp(-14.2, bounds.minZ + 3, bounds.maxZ - 3);
@@ -607,8 +625,6 @@ export function createLivingRoomMediaWall(
     anchorZ
   );
   group.add(shelf);
-  // This Futuroptimist media POI is wall-mounted, so the visual shelf and
-  // clearance affordance intentionally do not add a floor-level blocker.
 
   const consoleMaterial = new MeshStandardMaterial({
     color: 0x0f1724,
@@ -745,5 +761,5 @@ export function createLivingRoomMediaWall(
     detailPolicy,
   });
 
-  return { group, colliders, poiBindings, controller };
+  return { group, poiBindings, controller };
 }

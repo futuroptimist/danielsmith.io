@@ -8,7 +8,10 @@ import {
   vi,
 } from 'vitest';
 
-import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
+import {
+  FUTUROPTIMIST_MEDIA_WALL_POLICY,
+  createLivingRoomMediaWall,
+} from '../scene/structures/mediaWall';
 
 describe('createLivingRoomMediaWall', () => {
   type CapturingContext = CanvasRenderingContext2D & {
@@ -170,7 +173,23 @@ describe('createLivingRoomMediaWall', () => {
     expect(() => build.controller.dispose()).not.toThrow();
   });
 
-  it('keeps the wall-mounted media POI visible without adding floor blockers', () => {
+  it('declares the active media wall policy as visual-only', () => {
+    expect(String(FUTUROPTIMIST_MEDIA_WALL_POLICY.sourceId)).toBe(
+      'ground.livingRoom.mediaWall.futuroptimist'
+    );
+    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.subsystemRole).toBe(
+      'futuroptimist-media'
+    );
+    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.renderIntent).toBe(
+      'wall-mounted-visual-poi'
+    );
+    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.collision.collision).toBe('none');
+    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.collision.rationale).toMatch(
+      /wall-mounted.*no floor-level interaction footprint/i
+    );
+  });
+
+  it('keeps the media POI visuals visible without adding floor blockers', () => {
     const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
     const build = createLivingRoomMediaWall(bounds);
 
@@ -180,6 +199,9 @@ describe('createLivingRoomMediaWall', () => {
     expect(
       build.group.getObjectByName('LivingRoomMediaWallClearance')
     ).toBeTruthy();
-    expect(build.colliders).toHaveLength(0);
+    expect(build.group.userData.sourcePolicy).toBe(
+      FUTUROPTIMIST_MEDIA_WALL_POLICY
+    );
+    expect('colliders' in build).toBe(false);
   });
 });
