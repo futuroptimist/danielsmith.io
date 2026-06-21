@@ -104,7 +104,12 @@ def education_pair_observations(
         if same_line:
             observations.append(f"✅ {label} — same extracted line")
         elif nearby:
-            observations.append(f"{prefix} {label} — nearby text window")
+            message = f"Education pair not on same extracted line: {label}"
+            observations.append(f"{prefix} {message} — nearby text window")
+            if severity == "warning":
+                warnings.append(message)
+            else:
+                failures.append(message)
         else:
             message = f"Education pair detached / not found nearby: {label}"
             observations.append(f"{prefix} {message}")
