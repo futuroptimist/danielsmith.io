@@ -116,6 +116,169 @@ jobs:
             echo "docx_sha256=${docx_sha256}"
           } >>"${GITHUB_OUTPUT}"
 
+      - name: Run ATS smoke report
+        id: ats
+        shell: bash
+        run: |
+          set -euo pipefail
+          pdf="${{ steps.resume.outputs.pdf }}"
+          tmp="${RUNNER_TEMP}/resume-ats"
+          text="${tmp}/resume.txt"
+          layout_text="${tmp}/resume-layout.txt"
+          mkdir -p "${tmp}"
+
+          pdftotext "${pdf}" "${text}"
+          pdftotext -layout "${pdf}" "${layout_text}"
+
+          plain_chars=$(wc -m <"${text}" | tr -d '[:space:]')
+          layout_chars=$(wc -m <"${layout_text}" | tr -d '[:space:]')
+          min_plain_chars=1000
+          fail=0
+          warnings=()
+          checks=()
+
+          add_check() {
+            local status="$1"
+            local message="$2"
+            checks+=("${status} ${message}")
+            if [ "${status}" = "❌" ]; then
+              fail=1
+            fi
+          }
+
+          require_text() {
+            local needle="$1"
+            if grep -Fq "${needle}" "${text}"; then
+              add_check "✅" "Plain extraction contains \`${needle}\`."
+            else
+              add_check "❌" "Plain extraction is missing \`${needle}\`."
+            fi
+          }
+
+          first_line_for() {
+            local needle="$1"
+            awk -v needle="${needle}" 'index($0, needle) { print NR; exit }' "${text}"
+          }
+
+          check_order() {
+            local before="$1"
+            local after="$2"
+            local before_line after_line
+            before_line=$(first_line_for "${before}")
+            after_line=$(first_line_for "${after}")
+            if [ -n "${before_line}" ] && [ -n "${after_line}" ] && [ "${before_line}" -lt "${after_line}" ]; then
+              add_check "✅" "\`${before}\` appears before \`${after}\`."
+            else
+              add_check "❌" "\`${before}\` must appear before \`${after}\`."
+            fi
+          }
+
+          # TODO: Make Education degree/date pairing a blocking check after the
+          # Education section is reformatted in a follow-up PR.
+          report_education_pair() {
+            local degree="$1"
+            local date_text="$2"
+            if awk \
+              -v degree="${degree}" \
+              -v date_text="${date_text}" \
+              'index($0, degree) && index($0, date_text) { found=1 } END { exit !found }' \
+              "${text}"; then
+              warnings+=("✅ Education pair appears on one line: \`${degree}\` / \`${date_text}\`.")
+            elif awk -v degree="${degree}" -v date_text="${date_text}" '
+              index($0, degree) { degree_line = NR }
+              index($0, date_text) && degree_line && NR - degree_line <= 4 { found = 1 }
+              END { exit !found }
+            ' "${text}"; then
+              warnings+=("⚠️ Education pair appears within a short nearby window: \`${degree}\` / \`${date_text}\`.")
+            else
+              warnings+=("⚠️ Education pair appears detached in plain extraction: \`${degree}\` / \`${date_text}\`.")
+            fi
+          }
+
+          if [ "${plain_chars}" -ge "${min_plain_chars}" ]; then
+            add_check "✅" "Plain extraction has at least ${min_plain_chars} characters."
+          else
+            add_check "❌" "Plain extraction has fewer than ${min_plain_chars} characters."
+          fi
+
+          if [ "${{ steps.pdfinfo.outputs.pages }}" = "1" ]; then
+            add_check "✅" "PDF remains one page."
+          else
+            add_check "❌" "PDF page count must be one."
+          fi
+
+          require_text "Daniel Smith"
+          require_text "daniel@danielsmith.io"
+          require_text "Summary"
+          require_text "Skills"
+          require_text "Experience"
+          require_text "Education"
+          require_text "Independent Open Source Engineering"
+          require_text "YouTube (Google)"
+          require_text "Site Reliability Engineer, L4"
+          require_text "The University of Southern Mississippi"
+          require_text "Jones County Junior College"
+
+          check_order "Summary" "Skills"
+          check_order "Skills" "Experience"
+          check_order "Experience" "Education"
+
+          report_education_pair "M.S. Computer Science" "Aug 2015"
+          report_education_pair "B.S. Computer Science" "May 2013"
+          report_education_pair "A.A.S. Information System Technology" "Aug 2011"
+
+          if grep -En '[[:alpha:]]-[[:space:]]*$' "${text}" >/dev/null; then
+            warnings+=("⚠️ Plain extraction contains possible end-of-line hyphenation oddities.")
+          else
+            warnings+=("✅ No obvious end-of-line hyphenation oddities detected in plain extraction.")
+          fi
+
+          {
+            echo "ats_text_dir=${tmp}"
+            echo "artifact_name=resume-${{ steps.resume.outputs.version }}-ats-text"
+          } >>"${GITHUB_OUTPUT}"
+
+          {
+            echo "## ATS smoke report"
+            echo
+            echo "- Selected TeX source: \`${{ steps.resume.outputs.tex }}\`"
+            echo "- Selected resume version: \`${{ steps.resume.outputs.version }}\`"
+            echo "- Generated PDF path: \`${pdf}\`"
+            echo "- PDF page count: \`${{ steps.pdfinfo.outputs.pages }}\`"
+            echo "- Plain extracted character count: \`${plain_chars}\`"
+            echo "- Layout extracted character count: \`${layout_chars}\`"
+            echo
+            echo "### Pass/fail checklist"
+            for check in "${checks[@]}"; do
+              echo "- ${check}"
+            done
+            echo
+            echo "### Non-blocking warnings"
+            for warning in "${warnings[@]}"; do
+              echo "- ${warning}"
+            done
+            echo
+            echo "<details>"
+            echo "<summary>First 120 lines of plain extraction</summary>"
+            echo
+            echo '```text'
+            sed -n '1,120p' "${text}"
+            echo '```'
+            echo
+            echo "</details>"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
+          exit "${fail}"
+
+      - name: Upload ATS text artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.ats.outputs.artifact_name }}
+          path: |
+            ${{ steps.ats.outputs.ats_text_dir }}/resume.txt
+            ${{ steps.ats.outputs.ats_text_dir }}/resume-layout.txt
+          if-no-files-found: error
+
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
