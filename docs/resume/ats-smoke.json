@@ -19,8 +19,8 @@
     ["Experience", "Education"]
   ],
   "educationPairing": {
-    "severity": "warning",
-    "nearbyWindowCharacters": 240,
+    "severity": "error",
+    "nearbyWindowCharacters": 0,
     "pairs": [
       ["M.S. Computer Science", "Aug 2015"],
       ["B.S. Computer Science", "May 2013"],

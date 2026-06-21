@@ -76,6 +76,13 @@ def section_slice(
     return text[start:end]
 
 
+def compact_education_context(education_text: str) -> str:
+    normalized = re.sub(r"\s+", " ", education_text).strip()
+    if len(normalized) <= 260:
+        return normalized
+    return f"{normalized[:257].rstrip()}..."
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -86,13 +93,12 @@ def education_pair_observations(
     severity = education_config.get("severity", "warning")
     prefix = "⚠️" if severity == "warning" else "❌"
     education_text = section_slice(plain, heading_positions_by_name, "Education")
+    education_context = compact_education_context(education_text)
     lines = education_text.splitlines()
     observations: list[str] = []
     warnings: list[str] = []
     failures: list[str] = []
 
-    # TODO: Make these Education pairing warnings blocking after the Education
-    # section is reformatted in a follow-up PR.
     for degree, date in education_config.get("pairs", []):
         same_line = any(degree in line and date in line for line in lines)
         degree_pos = education_text.find(degree)
@@ -106,9 +112,11 @@ def education_pair_observations(
         if same_line:
             observations.append(f"✅ {label} — same extracted line")
         elif nearby:
-            observations.append(f"{prefix} {label} — nearby text window")
+            observations.append(f"✅ {label} — nearby text window")
         else:
             message = f"Education pair detached / not found nearby: {label}"
+            if education_context:
+                message = f"{message} — Education context: {education_context}"
             observations.append(f"{prefix} {message}")
             if severity == "warning":
                 warnings.append(message)
