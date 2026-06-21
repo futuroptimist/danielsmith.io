@@ -222,7 +222,18 @@ jobs:
               echo "No response headers captured."
               return 0
             fi
-            final_response_headers "${headers_file}" | awk 'BEGIN{IGNORECASE=1} /^(cache-control|age|etag|last-modified|cf-cache-status|server):/ {print}'
+            final_response_headers "${headers_file}" | awk '
+              /^[[:space:]]*$/ {next}
+              {
+                name=$0
+                sub(/:.*/, "", name)
+                name=tolower(name)
+                if (name == "cache-control" || name == "age" || name == "etag" || \
+                    name == "last-modified" || name == "cf-cache-status" || name == "server") {
+                  print
+                }
+              }
+            '
           }
 
           fetch_and_verify() {
@@ -296,6 +307,7 @@ jobs:
             if [ -n "${content_disposition}" ] && \
               ! printf '%s\n' "${content_disposition}" | grep -Eiq '^inline([[:space:];]|$)'; then
               echo "::error::${label} Content-Disposition must be inline or absent; observed '${content_disposition}'."
+              print_cache_headers "${headers_file}"
               return 1
             fi
 
