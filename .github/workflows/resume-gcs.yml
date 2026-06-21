@@ -36,6 +36,7 @@ jobs:
       RESUME_GCS_DESTINATION: ${{ vars.RESUME_GCS_DESTINATION }}
       RESUME_PUBLIC_URL: ${{ vars.RESUME_PUBLIC_URL }}
       RESUME_STORAGE_PUBLIC_URL: ${{ vars.RESUME_STORAGE_PUBLIC_URL }}
+      RESUME_CACHE_CONTROL: no-cache, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate
     if: >-
       ${{ github.event_name != 'workflow_run' ||
         (github.event.workflow_run.conclusion == 'success' &&
@@ -133,7 +134,7 @@ jobs:
             --project="${GCP_PROJECT_ID}" \
             --content-type="application/pdf" \
             --content-disposition='inline; filename="Daniel_Smith_Resume.pdf"' \
-            --cache-control="public, max-age=300, must-revalidate"
+            --cache-control="${RESUME_CACHE_CONTROL}"
 
           gcloud storage objects update "${RESUME_GCS_DESTINATION}" \
             --project="${GCP_PROJECT_ID}" \
@@ -154,19 +155,27 @@ jobs:
             esac
           }
 
-          download_and_verify() {
-            local label="$1"
-            local url="$2"
-            local output_dir="$3"
-            local expected_sha="$4"
-            local cache_busted_url body_file headers_file status_file http_code sha content_type content_disposition
+          header_value() {
+            local header="$1"
+            local headers_file="$2"
+            awk -v header="${header}" '
+              BEGIN{IGNORECASE=1}
+              $0 ~ "^" header ":" {sub(/^[^:]+:[[:space:]]*/, ""); value=$0}
+              END{print value}
+            ' "${headers_file}" | tr -d '\r'
+          }
 
-            cache_busted_url="$(append_cache_buster "${url}" "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")"
-            body_file="${output_dir}/${label}.pdf"
-            headers_file="${output_dir}/${label}.headers"
-            status_file="${output_dir}/${label}.status"
+          cache_control_is_no_stale() {
+            local cache_control="$1"
+            [ "${cache_control}" = "${RESUME_CACHE_CONTROL}" ] || \
+              printf '%s\n' "${cache_control}" | grep -Eiq '(^|[,[:space:]])(no-cache|max-age=0)([,[:space:]]|$)'
+          }
 
-            http_code="$(curl --location --silent --show-error \
+          curl_pdf() {
+            local url="$1"
+            local body_file="$2"
+            local headers_file="$3"
+            curl --location --silent --show-error \
               --connect-timeout 10 \
               --max-time 60 \
               --retry 3 \
@@ -175,37 +184,70 @@ jobs:
               --dump-header "${headers_file}" \
               --output "${body_file}" \
               --write-out '%{http_code}' \
-              "${cache_busted_url}")"
-            printf '%s\n' "${http_code}" >"${status_file}"
+              "${url}"
+          }
+
+          record_headers_output() {
+            local label="$1"
+            local headers_file="$2"
+            {
+              echo "${label}_headers<<EOF_HEADERS_${label}"
+              sed -n '1,40p' "${headers_file}" | sed 's/[[:cntrl:]]$//'
+              echo "EOF_HEADERS_${label}"
+            } >>"${GITHUB_OUTPUT}"
+          }
+
+          verify_pdf_response() {
+            local label="$1"
+            local body_file="$2"
+            local headers_file="$3"
+            local expected_sha="$4"
+            local http_code="$5"
+            local sha content_type
 
             if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
               echo "::error::${label} URL returned HTTP ${http_code}."
-              exit 1
+              return 1
             fi
-
             if [ ! -s "${body_file}" ]; then
               echo "::error::${label} URL returned an empty body."
-              exit 1
+              return 1
             fi
-
             if [ "$(head -c 5 "${body_file}")" != "%PDF-" ]; then
               echo "::error::${label} URL did not return PDF bytes."
-              exit 1
+              return 1
             fi
 
             sha="$(sha256sum "${body_file}" | awk '{print $1}')"
             if [ "${sha}" != "${expected_sha}" ]; then
               echo "::error::${label} SHA-256 ${sha} does not match local ${expected_sha}."
-              exit 1
+              return 1
             fi
 
-            content_type="$(awk 'BEGIN{IGNORECASE=1} /^content-type:/ {sub(/^[^:]+:[[:space:]]*/, ""); value=$0} END{print value}' "${headers_file}" | tr -d '\r')"
+            content_type="$(header_value content-type "${headers_file}")"
             if ! printf '%s\n' "${content_type}" | grep -Eiq '(^|[[:space:];])application/pdf([[:space:];]|$)'; then
               echo "::error::${label} Content-Type must include application/pdf; observed '${content_type}'."
-              exit 1
+              return 1
             fi
+          }
 
-            content_disposition="$(awk 'BEGIN{IGNORECASE=1} /^content-disposition:/ {sub(/^[^:]+:[[:space:]]*/, ""); value=$0} END{print value}' "${headers_file}" | tr -d '\r')"
+          verify_cache_busted_url() {
+            local label="$1"
+            local url="$2"
+            local output_dir="$3"
+            local expected_sha="$4"
+            local cache_busted_url body_file headers_file http_code sha content_type content_disposition
+
+            cache_busted_url="$(append_cache_buster "${url}" "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")"
+            body_file="${output_dir}/${label}.pdf"
+            headers_file="${output_dir}/${label}.headers"
+
+            http_code="$(curl_pdf "${cache_busted_url}" "${body_file}" "${headers_file}")"
+            verify_pdf_response "${label}" "${body_file}" "${headers_file}" "${expected_sha}" "${http_code}"
+
+            sha="$(sha256sum "${body_file}" | awk '{print $1}')"
+            content_type="$(header_value content-type "${headers_file}")"
+            content_disposition="$(header_value content-disposition "${headers_file}")"
             if [ -n "${content_disposition}" ] && \
               ! printf '%s\n' "${content_disposition}" | grep -Eiq '^inline([[:space:];]|$)'; then
               echo "::error::${label} Content-Disposition must be inline or absent; observed '${content_disposition}'."
@@ -216,18 +258,87 @@ jobs:
               echo "${label}_sha256=${sha}"
               echo "${label}_content_type=${content_type}"
               echo "${label}_content_disposition=${content_disposition:-absent}"
-              echo "${label}_headers<<EOF_HEADERS_${label}"
-              sed -n '1,20p' "${headers_file}" | sed 's/[[:cntrl:]]$//'
-              echo "EOF_HEADERS_${label}"
             } >>"${GITHUB_OUTPUT}"
+            record_headers_output "${label}" "${headers_file}"
+          }
+
+          print_cache_headers() {
+            local label="$1"
+            local headers_file="$2"
+            echo "${label} cache-relevant headers:"
+            for header in cache-control age etag last-modified cf-cache-status server; do
+              printf '  %s: %s\n' "${header}" "$(header_value "${header}" "${headers_file}")"
+            done
+          }
+
+          verify_bare_url_when_live() {
+            local label="$1"
+            local url="$2"
+            local output_dir="$3"
+            local expected_sha="$4"
+            local body_file headers_file http_code sha content_type cache_control age etag last_modified cf_cache_status server attempt deadline
+
+            body_file="${output_dir}/${label}.pdf"
+            headers_file="${output_dir}/${label}.headers"
+            deadline=$((SECONDS + 600))
+            attempt=1
+
+            while true; do
+              http_code="$(curl_pdf "${url}" "${body_file}" "${headers_file}")"
+              sha="absent"
+              [ -s "${body_file}" ] && sha="$(sha256sum "${body_file}" | awk '{print $1}')"
+              content_type="$(header_value content-type "${headers_file}")"
+              cache_control="$(header_value cache-control "${headers_file}")"
+
+              if verify_pdf_response "${label}" "${body_file}" "${headers_file}" "${expected_sha}" "${http_code}" && \
+                cache_control_is_no_stale "${cache_control}"; then
+                break
+              fi
+
+              if [ "${SECONDS}" -ge "${deadline}" ]; then
+                echo "::error::${label} bare URL did not return the new no-stale PDF before timeout."
+                echo "Observed SHA-256: ${sha}; expected: ${expected_sha}"
+                print_cache_headers "${label}" "${headers_file}"
+                exit 1
+              fi
+
+              echo "${label} bare URL not live yet on attempt ${attempt}: sha=${sha}, content-type='${content_type}', cache-control='${cache_control}'. Retrying in 10 seconds."
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+
+            age="$(header_value age "${headers_file}")"
+            etag="$(header_value etag "${headers_file}")"
+            last_modified="$(header_value last-modified "${headers_file}")"
+            cf_cache_status="$(header_value cf-cache-status "${headers_file}")"
+            server="$(header_value server "${headers_file}")"
+
+            {
+              echo "${label}_sha256=${sha}"
+              echo "${label}_content_type=${content_type}"
+              echo "${label}_cache_control=${cache_control}"
+              echo "${label}_age=${age:-absent}"
+              echo "${label}_etag=${etag:-absent}"
+              echo "${label}_last_modified=${last_modified:-absent}"
+              echo "${label}_cf_cache_status=${cf_cache_status:-absent}"
+              echo "${label}_server=${server:-absent}"
+            } >>"${GITHUB_OUTPUT}"
+            record_headers_output "${label}" "${headers_file}"
           }
 
           tmpdir="$(mktemp -d)"
           trap 'rm -rf "${tmpdir}"' EXIT
 
           local_sha256="${{ steps.upload.outputs.local_sha256 }}"
-          download_and_verify storage "${RESUME_STORAGE_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
-          download_and_verify canonical "${RESUME_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
+
+          # Cache-busted storage URL verifies uploaded object bytes immediately.
+          verify_cache_busted_url storage_cache_busted "${RESUME_STORAGE_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
+          # Cache-busted canonical URL verifies the routed canonical path can fetch the new bytes.
+          verify_cache_busted_url canonical_cache_busted "${RESUME_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
+
+          # Bare URLs prove public readiness for the stable aliases that users visit.
+          verify_bare_url_when_live storage_bare "${RESUME_STORAGE_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
+          verify_bare_url_when_live canonical_bare "${RESUME_PUBLIC_URL}" "${tmpdir}" "${local_sha256}"
 
           acl_json="${tmpdir}/acl.json"
           gcloud storage objects describe "${RESUME_GCS_DESTINATION}" \
@@ -266,18 +377,41 @@ jobs:
         env:
           SOURCE_COMMIT_SHA: ${{ steps.source.outputs.sha }}
           LOCAL_SHA256: ${{ steps.upload.outputs.local_sha256 }}
-          STORAGE_SHA256: ${{ steps.verify.outputs.storage_sha256 }}
-          CANONICAL_SHA256: ${{ steps.verify.outputs.canonical_sha256 }}
-          STORAGE_CONTENT_TYPE: ${{ steps.verify.outputs.storage_content_type }}
-          CANONICAL_CONTENT_TYPE: ${{ steps.verify.outputs.canonical_content_type }}
-          STORAGE_CONTENT_DISPOSITION: ${{ steps.verify.outputs.storage_content_disposition }}
-          CANONICAL_CONTENT_DISPOSITION: ${{ steps.verify.outputs.canonical_content_disposition }}
+          STORAGE_CACHE_BUSTED_SHA256: ${{ steps.verify.outputs.storage_cache_busted_sha256 }}
+          CANONICAL_CACHE_BUSTED_SHA256: ${{ steps.verify.outputs.canonical_cache_busted_sha256 }}
+          STORAGE_BARE_SHA256: ${{ steps.verify.outputs.storage_bare_sha256 }}
+          CANONICAL_BARE_SHA256: ${{ steps.verify.outputs.canonical_bare_sha256 }}
+          STORAGE_BARE_CONTENT_TYPE: ${{ steps.verify.outputs.storage_bare_content_type }}
+          CANONICAL_BARE_CONTENT_TYPE: ${{ steps.verify.outputs.canonical_bare_content_type }}
+          STORAGE_CACHE_BUSTED_CONTENT_DISPOSITION: ${{ steps.verify.outputs.storage_cache_busted_content_disposition }}
+          CANONICAL_CACHE_BUSTED_CONTENT_DISPOSITION: ${{ steps.verify.outputs.canonical_cache_busted_content_disposition }}
+          STORAGE_BARE_CACHE_CONTROL: ${{ steps.verify.outputs.storage_bare_cache_control }}
+          CANONICAL_BARE_CACHE_CONTROL: ${{ steps.verify.outputs.canonical_bare_cache_control }}
+          STORAGE_BARE_AGE: ${{ steps.verify.outputs.storage_bare_age }}
+          CANONICAL_BARE_AGE: ${{ steps.verify.outputs.canonical_bare_age }}
+          STORAGE_BARE_ETAG: ${{ steps.verify.outputs.storage_bare_etag }}
+          CANONICAL_BARE_ETAG: ${{ steps.verify.outputs.canonical_bare_etag }}
+          STORAGE_BARE_LAST_MODIFIED: ${{ steps.verify.outputs.storage_bare_last_modified }}
+          CANONICAL_BARE_LAST_MODIFIED: ${{ steps.verify.outputs.canonical_bare_last_modified }}
+          STORAGE_BARE_CF_CACHE_STATUS: ${{ steps.verify.outputs.storage_bare_cf_cache_status }}
+          CANONICAL_BARE_CF_CACHE_STATUS: ${{ steps.verify.outputs.canonical_bare_cf_cache_status }}
+          STORAGE_BARE_SERVER: ${{ steps.verify.outputs.storage_bare_server }}
+          CANONICAL_BARE_SERVER: ${{ steps.verify.outputs.canonical_bare_server }}
           PUBLIC_ACL: ${{ steps.verify.outputs.public_acl }}
-          STORAGE_HEADERS: ${{ steps.verify.outputs.storage_headers }}
-          CANONICAL_HEADERS: ${{ steps.verify.outputs.canonical_headers }}
+          STORAGE_CACHE_BUSTED_HEADERS: ${{ steps.verify.outputs.storage_cache_busted_headers }}
+          CANONICAL_CACHE_BUSTED_HEADERS: ${{ steps.verify.outputs.canonical_cache_busted_headers }}
+          STORAGE_BARE_HEADERS: ${{ steps.verify.outputs.storage_bare_headers }}
+          CANONICAL_BARE_HEADERS: ${{ steps.verify.outputs.canonical_bare_headers }}
           JOB_STATUS: ${{ job.status }}
         run: |
           set -euo pipefail
+
+          conclusion="Bare canonical URL is live only when its bare SHA-256 matches the local SHA-256."
+          if [ "${CANONICAL_BARE_SHA256}" = "${LOCAL_SHA256}" ]; then
+            conclusion="${conclusion} This run observed a match."
+          else
+            conclusion="${conclusion} This run did not observe a match."
+          fi
 
           {
             echo "## Resume GCS deployment"
@@ -289,29 +423,50 @@ jobs:
             echo "| Destination GCS URI | \`${RESUME_GCS_DESTINATION}\` |"
             echo "| Storage URL | ${RESUME_STORAGE_PUBLIC_URL} |"
             echo "| Canonical public URL | ${RESUME_PUBLIC_URL} |"
+            echo "| Upload Cache-Control | \`${RESUME_CACHE_CONTROL}\` |"
             echo "| Local SHA-256 | \`${LOCAL_SHA256}\` |"
-            echo "| Storage URL SHA-256 | \`${STORAGE_SHA256}\` |"
-            echo "| Canonical URL SHA-256 | \`${CANONICAL_SHA256}\` |"
-            echo "| Storage Content-Type | \`${STORAGE_CONTENT_TYPE}\` |"
-            echo "| Canonical Content-Type | \`${CANONICAL_CONTENT_TYPE}\` |"
+            echo "| Cache-busted storage SHA-256 | \`${STORAGE_CACHE_BUSTED_SHA256}\` |"
+            echo "| Cache-busted canonical SHA-256 | \`${CANONICAL_CACHE_BUSTED_SHA256}\` |"
+            echo "| Bare storage SHA-256 | \`${STORAGE_BARE_SHA256}\` |"
+            echo "| Bare canonical SHA-256 | \`${CANONICAL_BARE_SHA256}\` |"
+            echo "| Bare storage Content-Type | \`${STORAGE_BARE_CONTENT_TYPE}\` |"
+            echo "| Bare canonical Content-Type | \`${CANONICAL_BARE_CONTENT_TYPE}\` |"
             echo "| Object ACL/public-read verification | \`${PUBLIC_ACL}\` |"
             echo "| Final deployment status | \`${JOB_STATUS}\` |"
+            echo "| Conclusion | ${conclusion} |"
             echo
-            if [ "${STORAGE_CONTENT_DISPOSITION}" = "absent" ]; then
-              echo "> Warning: the storage URL did not expose Content-Disposition."
+            if [ "${STORAGE_CACHE_BUSTED_CONTENT_DISPOSITION}" = "absent" ]; then
+              echo "> Warning: the cache-busted storage URL did not expose Content-Disposition."
               echo
             fi
-            if [ "${CANONICAL_CONTENT_DISPOSITION}" = "absent" ]; then
-              echo "> Warning: the canonical URL did not expose Content-Disposition."
+            if [ "${CANONICAL_CACHE_BUSTED_CONTENT_DISPOSITION}" = "absent" ]; then
+              echo "> Warning: the cache-busted canonical URL did not expose Content-Disposition."
               echo
             fi
-            echo "### Storage URL response headers"
+            echo "### Bare URL cache evidence"
+            echo
+            echo "| URL class | Cache-Control | Age | ETag | Last-Modified | Server | CF-Cache-Status |"
+            echo "| --- | --- | --- | --- | --- | --- | --- |"
+            echo "| Storage bare | \`${STORAGE_BARE_CACHE_CONTROL}\` | \`${STORAGE_BARE_AGE}\` | \`${STORAGE_BARE_ETAG}\` | \`${STORAGE_BARE_LAST_MODIFIED}\` | \`${STORAGE_BARE_SERVER}\` | \`${STORAGE_BARE_CF_CACHE_STATUS}\` |"
+            echo "| Canonical bare | \`${CANONICAL_BARE_CACHE_CONTROL}\` | \`${CANONICAL_BARE_AGE}\` | \`${CANONICAL_BARE_ETAG}\` | \`${CANONICAL_BARE_LAST_MODIFIED}\` | \`${CANONICAL_BARE_SERVER}\` | \`${CANONICAL_BARE_CF_CACHE_STATUS}\` |"
+            echo
+            echo "### Cache-busted storage URL response headers"
             echo '```'
-            printf '%s\n' "${STORAGE_HEADERS}"
+            printf '%s\n' "${STORAGE_CACHE_BUSTED_HEADERS}"
             echo '```'
             echo
-            echo "### Canonical URL response headers"
+            echo "### Cache-busted canonical URL response headers"
             echo '```'
-            printf '%s\n' "${CANONICAL_HEADERS}"
+            printf '%s\n' "${CANONICAL_CACHE_BUSTED_HEADERS}"
+            echo '```'
+            echo
+            echo "### Bare storage URL response headers"
+            echo '```'
+            printf '%s\n' "${STORAGE_BARE_HEADERS}"
+            echo '```'
+            echo
+            echo "### Bare canonical URL response headers"
+            echo '```'
+            printf '%s\n' "${CANONICAL_BARE_HEADERS}"
             echo '```'
           } >>"${GITHUB_STEP_SUMMARY}"
