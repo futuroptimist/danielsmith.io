@@ -162,6 +162,7 @@ import {
   registerSceneObjectColliders,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
+import type { SourceBackedColliderRecord } from './scene/level/sourceBackedColliders';
 import type { LevelSourceId } from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
@@ -2088,17 +2089,24 @@ function initializeImmersiveScene(
     maxZ: stairGuardMaxZ,
   });
 
-  const registerSafetyCollider = (collider: LevelSafetyCollider) => {
-    const targetColliders =
-      collider.floor === 'ground' ? groundColliders : upperFloorColliders;
+  const registerSourceBackedCollider = (
+    collider: SourceBackedColliderRecord,
+    targetColliders: RectCollider[]
+  ) => {
     targetColliders.push(collider.bounds);
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
-      sourceType: 'safetyCollider',
+      sourceType: collider.sourceType,
       purpose: collider.purpose,
       debugId: collider.debugId,
     });
+  };
+
+  const registerSafetyCollider = (collider: LevelSafetyCollider) => {
+    const targetColliders =
+      collider.floor === 'ground' ? groundColliders : upperFloorColliders;
+    registerSourceBackedCollider(collider, targetColliders);
   };
 
   createGroundStairSafetyColliders(stairGeometry, stairBehavior, {
@@ -2133,22 +2141,9 @@ function initializeImmersiveScene(
         layout: stairLayout,
       })
     : undefined;
-  const registerUpperFloorGeneratedCollider = (collider: {
-    name: string;
-    bounds: RectCollider;
-    sourceId: LevelSourceId;
-    role: string;
-    debugId?: string;
-  }) => {
-    upperFloorColliders.push(collider.bounds);
-    namedColliderDebugNames.set(collider.bounds, collider.name);
-    colliderSourceMetadata.set(collider.bounds, {
-      sourceId: collider.sourceId,
-      sourceType: 'generatedCollider',
-      purpose: `upper stairwell landing ${collider.role} guard`,
-      debugId: collider.debugId,
-    });
-  };
+  const registerUpperFloorGeneratedCollider = (
+    collider: SourceBackedColliderRecord<string, 'generatedCollider'>
+  ) => registerSourceBackedCollider(collider, upperFloorColliders);
 
   const upperStairWestEgressLaneX =
     stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;

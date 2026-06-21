@@ -62,13 +62,21 @@ splitting and stairwell clipping.
 
 Safety colliders live in `safetyColliders` for authored fixed colliders, and
 stair-derived colliders are defined in `src/scene/level/stairSafetyColliders.ts`.
-Every safety collider needs:
+Every active source-backed safety collider needs:
 
-- `id`
+- a subsystem role or category owned by that subsystem
 - `sourceId`
-- `floorId`
+- `sourceType`
+- collision `intent`
 - `bounds`
+- runtime `name`
 - a clear `purpose`
+- any stable explicit `debugId` required by the declaration
+
+Visual-only source declarations should use a no-collision policy with a concise
+current rationale instead of carrying inactive collider names or debug IDs.
+Future stair or landing collider removals should happen at the active source
+declaration so the runtime collider and debug identity disappear together.
 
 Use safety colliders for invisible constraints such as stairwell void guards or
 approach-lane protection, not as a hidden substitute for visible wall geometry.
