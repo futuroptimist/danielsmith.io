@@ -1319,35 +1319,49 @@ describe('createBackyardEnvironment', () => {
     );
     expect(leftCollider).toBeDefined();
 
-    const pointIsBlocked = (sample: { x: number; z: number }) =>
-      environment.colliders.some(
-        (collider) =>
-          collider.minX <= sample.x &&
-          collider.maxX >= sample.x &&
-          collider.minZ <= sample.z &&
-          collider.maxZ >= sample.z
-      );
-    const reviewerSampleX = 5;
-    const productionHalfWidth = 32;
-    const testHalfWidth = (BACKYARD_BOUNDS.maxX - BACKYARD_BOUNDS.minX) / 2;
-    const reviewerMappedX =
-      (reviewerSampleX / productionHalfWidth) * testHalfWidth;
-    const backFenceApproachZ = backMostPostZ + 0.6;
-    // The reviewer-raised production sample `x=5, z=30.2` sits on the former
-    // central back-fence span. In these narrower unit-test bounds, x is scaled
-    // by the same center-relative backyard width ratio and z is sampled at the
-    // reachable approach dominated by the active barrier rather than by the
-    // intentionally omitted ground blocker.
-    const backFenceApproachSamples = [
+    const pointIsBlocked =
+      (colliders: typeof environment.colliders) =>
+      (sample: { x: number; z: number }) =>
+        colliders.some(
+          (collider) =>
+            collider.minX <= sample.x &&
+            collider.maxX >= sample.x &&
+            collider.minZ <= sample.z &&
+            collider.maxZ >= sample.z
+        );
+    const backFenceSamples = [
       {
         x: (BACKYARD_BOUNDS.minX + BACKYARD_BOUNDS.maxX) / 2,
-        z: backFenceApproachZ,
+        z: backMostPostZ,
       },
-      { x: reviewerMappedX, z: backFenceApproachZ },
-      { x: -reviewerMappedX, z: backFenceApproachZ },
+      { x: 1.56, z: backMostPostZ },
+      { x: -1.56, z: backMostPostZ },
     ];
 
-    expect(backFenceApproachSamples.every(pointIsBlocked)).toBe(true);
+    expect(backFenceSamples.every(pointIsBlocked(environment.colliders))).toBe(
+      true
+    );
+
+    const productionBackyardBounds = {
+      minX: -32,
+      maxX: 32,
+      minZ: 16,
+      maxZ: 32,
+    };
+    const productionEnvironment = createBackyardEnvironment(
+      productionBackyardBounds
+    );
+    const productionBackFenceSamples = [
+      { x: 0, z: 30.2 },
+      { x: 5, z: 30.2 },
+      { x: -5, z: 30.2 },
+    ];
+
+    expect(
+      productionBackFenceSamples.every(
+        pointIsBlocked(productionEnvironment.colliders)
+      )
+    ).toBe(true);
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();

@@ -1560,10 +1560,12 @@ export function createBackyardEnvironment(
       minZ: fenceFrontZ - 0.3,
       maxZ: fenceBackZ + 0.3,
     },
-    // The old central back-fence ground blocker (runtime 1007) is intentionally
-    // omitted. Reachable player movement is dominated by the active hologram
-    // barrier (runtime 1006), which seals the approach before this visual
-    // back-fence span can become an interactive boundary.
+    {
+      minX: bounds.minX + fenceInsetX + 0.18,
+      maxX: bounds.maxX - fenceInsetX - 0.18,
+      minZ: fenceBackZ - 0.3,
+      maxZ: fenceBackZ + 0.3,
+    },
   ];
   fenceColliders.forEach((collider) => colliders.push(collider));
 
