@@ -175,3 +175,9 @@ Active policies carry intent, purpose, required runtime name, and optional debug
 ID; visual-only policies carry a concise no-collision rationale. Emitted records
 should pass that source metadata through to runtime registration directly rather
 than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
+
+Backyard perimeter fence and hologram-barrier collision policies are declared in
+`src/scene/level/backyardCollisionPolicies.ts`. The perimeter segment list owns
+both the visible fence run endpoints and the physical-boundary collider bounds,
+so removing or changing a fence boundary should happen in that source policy
+rather than through anonymous collider arrays or registration-order ID maps.

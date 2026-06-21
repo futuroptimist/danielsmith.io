@@ -44,6 +44,11 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import {
+  BACKYARD_PERIMETER_SEGMENT_POLICIES,
+  createBackyardHologramBarrierCollider,
+  type BackyardSourceBackedCollider,
+} from '../level/backyardCollisionPolicies';
+import {
   applySeasonalLightingPreset,
   type SeasonalLightingPreset,
   type SeasonalLightingTarget,
@@ -55,6 +60,7 @@ import { createMultiplayerProjection } from '../structures/multiplayerProjection
 export interface BackyardEnvironmentBuild {
   group: Group;
   colliders: RectCollider[];
+  sourceBackedColliders: BackyardSourceBackedCollider[];
   update(context: { elapsed: number; delta: number }): void;
   ambientAudioBeds: BackyardAmbientAudioBed[];
   applySeasonalPreset(preset: SeasonalLightingPreset | null): void;
@@ -315,6 +321,7 @@ export function createBackyardEnvironment(
   const group = new Group();
   group.name = 'BackyardEnvironment';
   const colliders: RectCollider[] = [];
+  const sourceBackedColliders: BackyardSourceBackedCollider[] = [];
   const updates: Array<(context: { elapsed: number; delta: number }) => void> =
     [];
   const ambientAudioBeds: BackyardAmbientAudioBed[] = [];
@@ -1480,9 +1487,9 @@ export function createBackyardEnvironment(
     envMapIntensity: 0.2,
   });
 
-  const addFenceRun = (runIndex: number, start: Vector3, end: Vector3) => {
+  const addFenceRun = (runName: string, start: Vector3, end: Vector3) => {
     const runGroup = new Group();
-    runGroup.name = `BackyardFenceRun-${runIndex}`;
+    runGroup.name = runName;
     const direction = new Vector3().subVectors(end, start);
     const runLength = direction.length();
     const normalizedDirection = direction.clone().normalize();
@@ -1499,7 +1506,7 @@ export function createBackyardEnvironment(
         .copy(start)
         .add(normalizedDirection.clone().multiplyScalar(runLength * ratio));
       const post = new Mesh(fencePostGeometry, fencePostMaterial);
-      post.name = `BackyardFencePost-${runIndex}-${postIndex}`;
+      post.name = `BackyardFencePost-${runName}-${postIndex}`;
       post.position.set(position.x, fenceHeight / 2, position.z);
       runGroup.add(post);
     }
@@ -1515,7 +1522,7 @@ export function createBackyardEnvironment(
 
       const createRail = (tier: 'Top' | 'Mid', height: number) => {
         const rail = new Mesh(fenceRailGeometry, fenceRailMaterial);
-        rail.name = `BackyardFenceRail-${tier}-${runIndex}-${segmentIndex}`;
+        rail.name = `BackyardFenceRail-${tier}-${runName}-${segmentIndex}`;
         rail.scale.x = segmentDistance;
         rail.position.set(center.x, height, center.z);
         rail.quaternion.copy(orientation);
@@ -1529,45 +1536,37 @@ export function createBackyardEnvironment(
     fenceGroup.add(runGroup);
   };
 
-  const fenceRuns = [
-    {
-      start: new Vector3(bounds.minX + fenceInsetX, 0, fenceFrontZ),
-      end: new Vector3(bounds.minX + fenceInsetX, 0, fenceBackZ),
-    },
-    {
-      start: new Vector3(bounds.maxX - fenceInsetX, 0, fenceFrontZ),
-      end: new Vector3(bounds.maxX - fenceInsetX, 0, fenceBackZ),
-    },
-    {
-      start: new Vector3(bounds.minX + fenceInsetX, 0, fenceBackZ),
-      end: new Vector3(bounds.maxX - fenceInsetX, 0, fenceBackZ),
-    },
-  ];
+  const perimeterLayout = {
+    bounds,
+    fenceInsetX,
+    fenceFrontZ,
+    fenceBackZ,
+  };
+  const perimeterColliderBounds = BACKYARD_PERIMETER_SEGMENT_POLICIES.map(
+    (policy) => {
+      const { start, end } = policy.getEndpoints(perimeterLayout);
+      addFenceRun(
+        policy.visualRunName,
+        new Vector3(start.x, 0, start.z),
+        new Vector3(end.x, 0, end.z)
+      );
 
-  fenceRuns.forEach(({ start, end }, index) => addFenceRun(index, start, end));
+      const sourceBackedCollider: BackyardSourceBackedCollider = {
+        role: policy.role,
+        sourceId: policy.sourceId,
+        sourceType: 'generatedCollider',
+        intent: policy.intent,
+        purpose: policy.purpose,
+        bounds: policy.getBounds(perimeterLayout),
+        name: policy.runtimeName,
+        ...(policy.debugId ? { debugId: policy.debugId } : {}),
+      };
+      sourceBackedColliders.push(sourceBackedCollider);
+      return sourceBackedCollider.bounds;
+    }
+  );
   group.add(fenceGroup);
-
-  const fenceColliders: RectCollider[] = [
-    {
-      minX: bounds.minX + fenceInsetX - 0.12,
-      maxX: bounds.minX + fenceInsetX + 0.18,
-      minZ: fenceFrontZ - 0.3,
-      maxZ: fenceBackZ + 0.3,
-    },
-    {
-      minX: bounds.maxX - fenceInsetX - 0.18,
-      maxX: bounds.maxX - fenceInsetX + 0.12,
-      minZ: fenceFrontZ - 0.3,
-      maxZ: fenceBackZ + 0.3,
-    },
-    {
-      minX: bounds.minX + fenceInsetX + 0.18,
-      maxX: bounds.maxX - fenceInsetX - 0.18,
-      minZ: fenceBackZ - 0.3,
-      maxZ: fenceBackZ + 0.3,
-    },
-  ];
-  fenceColliders.forEach((collider) => colliders.push(collider));
+  colliders.push(...perimeterColliderBounds);
 
   interface LanternAnimationTarget {
     glassMaterial: MeshStandardMaterial;
@@ -2055,12 +2054,14 @@ export function createBackyardEnvironment(
   const baseEmitterOpacity = emitterMaterial.opacity;
   const baseEmitterSize = emitterMaterial.size;
 
-  colliders.push({
-    minX: barrier.position.x - barrierWidth / 2,
-    maxX: barrier.position.x + barrierWidth / 2,
-    minZ: barrier.position.z - barrierThickness / 2,
-    maxZ: barrier.position.z + barrierThickness / 2,
+  const barrierCollider = createBackyardHologramBarrierCollider({
+    centerX: barrier.position.x,
+    barrierZ: barrier.position.z,
+    barrierWidth,
+    barrierThickness,
   });
+  sourceBackedColliders.push(barrierCollider);
+  colliders.push(barrierCollider.bounds);
 
   updates.push(({ elapsed }) => {
     const flickerScale = getFlickerScale();
@@ -2193,6 +2194,7 @@ export function createBackyardEnvironment(
   return {
     group,
     colliders,
+    sourceBackedColliders,
     update,
     ambientAudioBeds,
     applySeasonalPreset: applyBackyardSeasonalPreset,

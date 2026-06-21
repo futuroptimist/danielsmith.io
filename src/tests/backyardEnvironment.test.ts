@@ -29,6 +29,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
+import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
@@ -1264,19 +1265,25 @@ describe('createBackyardEnvironment', () => {
     expect(fenceGroup).toBeInstanceOf(Group);
 
     const leftRun = (fenceGroup as Group).getObjectByName(
-      'BackyardFenceRun-0'
+      'BackyardFenceRun-left-fence-boundary'
     ) as Group | null;
     expect(leftRun).toBeInstanceOf(Group);
 
     const leftPosts = (leftRun as Group).children.filter((child) =>
-      child.name.startsWith('BackyardFencePost-0-')
+      child.name.startsWith(
+        'BackyardFencePost-BackyardFenceRun-left-fence-boundary-'
+      )
     );
     expect(leftPosts.length).toBeGreaterThan(2);
 
-    const firstTopRail = leftRun?.getObjectByName('BackyardFenceRail-Top-0-0');
+    const firstTopRail = leftRun?.getObjectByName(
+      'BackyardFenceRail-Top-BackyardFenceRun-left-fence-boundary-0'
+    );
     expect(firstTopRail).toBeInstanceOf(Mesh);
 
-    const firstMidRail = leftRun?.getObjectByName('BackyardFenceRail-Mid-0-0');
+    const firstMidRail = leftRun?.getObjectByName(
+      'BackyardFenceRail-Mid-BackyardFenceRun-left-fence-boundary-0'
+    );
     expect(firstMidRail).toBeInstanceOf(Mesh);
 
     const topRailMesh = firstTopRail as Mesh;
@@ -1290,12 +1297,12 @@ describe('createBackyardEnvironment', () => {
     expect(Math.abs(verticalOrientation.z)).toBeCloseTo(1, 5);
 
     const backRun = (fenceGroup as Group).getObjectByName(
-      'BackyardFenceRun-2'
+      'BackyardFenceRun-back-fence-boundary'
     ) as Group | null;
     expect(backRun).toBeInstanceOf(Group);
 
     const backTopRail = backRun?.getObjectByName(
-      'BackyardFenceRail-Top-2-0'
+      'BackyardFenceRail-Top-BackyardFenceRun-back-fence-boundary-0'
     ) as Mesh | null;
     expect(backTopRail).toBeInstanceOf(Mesh);
 
@@ -1342,14 +1349,12 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = {
-      minX: -32,
-      maxX: 32,
-      minZ: 16,
-      maxZ: 32,
-    };
+    const productionBackyardBounds = FLOOR_PLAN.rooms.find(
+      (room) => room.id === 'backyard'
+    )?.bounds;
+    expect(productionBackyardBounds).toBeDefined();
     const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds
+      productionBackyardBounds!
     );
     const productionBackFenceSamples = [
       { x: 0, z: 30.2 },
@@ -1362,6 +1367,27 @@ describe('createBackyardEnvironment', () => {
         pointIsBlocked(productionEnvironment.colliders)
       )
     ).toBe(true);
+
+    const backFenceCollider = environment.sourceBackedColliders.find(
+      (collider) => collider.role === 'back-fence-boundary'
+    );
+    expect(backFenceCollider).toMatchObject({
+      sourceId: 'ground.backyard.perimeter.backFenceBoundary',
+      sourceType: 'generatedCollider',
+      intent: 'physical-boundary',
+      purpose: 'preserve the north backyard back-fence boundary',
+      debugId: '1007',
+      name: 'BackyardBackFenceBoundary',
+    });
+
+    const fenceRoles = environment.sourceBackedColliders
+      .filter((collider) => collider.role.includes('fence-boundary'))
+      .map((collider) => collider.role);
+    expect(fenceRoles).toEqual([
+      'left-fence-boundary',
+      'right-fence-boundary',
+      'back-fence-boundary',
+    ]);
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();

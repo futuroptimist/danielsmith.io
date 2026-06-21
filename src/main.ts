@@ -1873,6 +1873,15 @@ function initializeImmersiveScene(
     backyardEnvironment.colliders.forEach((collider) =>
       groundColliders.push(collider)
     );
+    backyardEnvironment.sourceBackedColliders.forEach((collider) => {
+      namedColliderDebugNames.set(collider.bounds, collider.name);
+      colliderSourceMetadata.set(collider.bounds, {
+        sourceId: collider.sourceId,
+        sourceType: collider.sourceType,
+        purpose: collider.purpose,
+        debugId: collider.debugId,
+      });
+    });
   }
 
   const groundFloorGroup = new Group();
