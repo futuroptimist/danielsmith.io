@@ -244,6 +244,16 @@ use `getColliderBySourceId(...)`, `getCollidersBySourceId(...)`,
 artifacts by authoritative source identity without reverse-engineering compact
 labels.
 
+Backyard perimeter collision now follows the same source-backed contract.
+`src/scene/level/backyardPerimeterPolicies.ts` declares the active left,
+right, and back fence boundaries plus the hologram barrier as semantic
+`physical-boundary` policies. `createBackyardEnvironment(...)` derives both
+the visible fence runs and their collider records from those declarations,
+so future fence changes happen at the policy source instead of by editing
+anonymous collider arrays or preserving array offsets. The back fence keeps
+its explicit stable debug ID (`1007`) because that boundary is a manual
+debugging anchor.
+
 The foundation helpers for this migration live in
 `src/scene/level/sourceIds.ts`. New source-backed level data should use the
 `LevelSourceId` branded type, `assertLevelSourceId(...)`,

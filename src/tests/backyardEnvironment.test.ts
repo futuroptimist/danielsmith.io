@@ -29,6 +29,7 @@ import {
   type SpyInstance,
 } from 'vitest';
 
+import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
@@ -38,6 +39,10 @@ const BACKYARD_BOUNDS = {
   minZ: 8,
   maxZ: 16,
 };
+
+const PRODUCTION_BACKYARD_BOUNDS = FLOOR_PLAN.rooms.find(
+  (room) => room.id === 'backyard'
+)!.bounds;
 
 function clonePositions(attribute: BufferAttribute): Float32Array {
   return new Float32Array(attribute.array as Float32Array);
@@ -1342,17 +1347,16 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = {
-      minX: -32,
-      maxX: 32,
-      minZ: 16,
-      maxZ: 32,
-    };
     const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds
+      PRODUCTION_BACKYARD_BOUNDS
     );
     const productionBackFenceSamples = [
-      { x: 0, z: 30.2 },
+      {
+        x:
+          (PRODUCTION_BACKYARD_BOUNDS.minX + PRODUCTION_BACKYARD_BOUNDS.maxX) /
+          2,
+        z: PRODUCTION_BACKYARD_BOUNDS.maxZ - 1.8,
+      },
       { x: 5, z: 30.2 },
       { x: -5, z: 30.2 },
     ];
@@ -1366,6 +1370,41 @@ describe('createBackyardEnvironment', () => {
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();
     expect(railMaterial.envMapIntensity).toBeGreaterThan(0);
+  });
+
+  it('exposes backyard perimeter semantic collision policies', () => {
+    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
+    const policiesByRole = new Map(
+      environment.sourceBackedColliders.map((collider) => [
+        collider.role,
+        collider,
+      ])
+    );
+
+    expect([...policiesByRole.keys()].sort()).toEqual([
+      'backFenceBoundary',
+      'hologramBarrier',
+      'leftFenceBoundary',
+      'rightFenceBoundary',
+    ]);
+
+    const backFence = policiesByRole.get('backFenceBoundary');
+    expect(backFence).toMatchObject({
+      sourceId: 'ground.backyard.perimeter.backFenceBoundary',
+      sourceType: 'generatedCollider',
+      intent: 'physical-boundary',
+      debugId: '1007',
+    });
+    expect(backFence?.purpose).toContain('physical boundary');
+    expect(environment.colliders).toContain(backFence?.bounds);
+
+    environment.sourceBackedColliders.forEach((collider) => {
+      expect(collider.sourceId).toMatch(/^ground\.backyard\.perimeter\./);
+      expect(collider.intent).toBe('physical-boundary');
+      expect(collider.purpose.trim().length).toBeGreaterThan(0);
+      expect(collider.bounds.maxX).toBeGreaterThan(collider.bounds.minX);
+      expect(collider.bounds.maxZ).toBeGreaterThan(collider.bounds.minZ);
+    });
   });
 
   it('dampens backyard pulses when the photosensitive safe scale is disabled', () => {
