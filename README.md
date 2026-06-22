@@ -133,6 +133,15 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
+| `npm run collider:inspect`                      | Inspect active runtime collider metadata by ID, source ID, or name.    |
+| `npm run collider:audit:geometry`               | Compare one collider against same-floor/category geometry evidence.    |
+| `npm run collider:audit:reachability`           | Probe whether a collider is first-blocking, dominated, or ambiguous.   |
+
+See [Editing level data](docs/design/editing-level-data.md#inspect-runtime-colliders-from-the-cli)
+for collider inspection/audit workflows. Use `npm --silent run ... -- --json`
+when piping those tools to `jq` or redirecting JSON, and set
+`PLAYWRIGHT_BASE_URL=https://staging.danielsmith.io` to target staging instead
+of the default local runtime.
 
 ### Local quality gates
 
