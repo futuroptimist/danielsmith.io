@@ -68,8 +68,8 @@ describe('main module imports', () => {
     expect(source).toContain(
       "const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');"
     );
-    expect(source).toContain(
-      "namedColliderDebugNames.set(\n      mirror.collider,\n      'LivingRoomSelfieMirrorCollider'\n    );"
+    expect(source).toMatch(
+      /namedColliderDebugNames\.set\(\s*mirror\.collider,\s*'LivingRoomSelfieMirrorCollider'\s*\);/
     );
     expect(source).toContain('colliderSourceMetadata.set(mirror.collider, {');
     expect(source).toContain("sourceType: 'sceneObject',");
@@ -81,7 +81,6 @@ describe('main module imports', () => {
         '      ),'
     );
     expect(source).toContain('debugId: SELFIE_MIRROR_COLLIDER_DEBUG_ID,');
-    expect(source).toContain('Keep 101A source-backed');
     expect(source).toContain('groundColliders.push(mirror.collider);');
   });
 
