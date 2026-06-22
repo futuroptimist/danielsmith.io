@@ -38,6 +38,8 @@ export type RuntimeColliderCollectorOptions = {
   timeoutMs?: number;
 };
 
+export type RuntimePageOptions = RuntimeColliderCollectorOptions;
+
 export const DEFAULT_COLLIDER_RUNTIME_BASE_URL = 'http://127.0.0.1:5173';
 
 const wait = (milliseconds: number) =>
@@ -189,9 +191,10 @@ const readCollidersFromPage = async (page: Page, timeoutMs: number) => {
   });
 };
 
-export const collectRuntimeColliders = async (
-  options: RuntimeColliderCollectorOptions = {}
-): Promise<RuntimeColliderMetadata[]> => {
+export const withRuntimePage = async <T>(
+  options: RuntimePageOptions = {},
+  action: (page: Page) => Promise<T>
+): Promise<T> => {
   const suppliedBaseUrl = options.baseUrl ?? process.env.PLAYWRIGHT_BASE_URL;
   const baseUrl = suppliedBaseUrl ?? DEFAULT_COLLIDER_RUNTIME_BASE_URL;
   const timeoutMs = options.timeoutMs ?? 120_000;
@@ -210,9 +213,16 @@ export const collectRuntimeColliders = async (
       waitUntil: 'domcontentloaded',
       timeout: timeoutMs,
     });
-    return await readCollidersFromPage(page, timeoutMs);
+    return await action(page);
   } finally {
     await browser?.close().catch(() => undefined);
     await closeStartedServer(server).catch(() => undefined);
   }
 };
+
+export const collectRuntimeColliders = async (
+  options: RuntimeColliderCollectorOptions = {}
+): Promise<RuntimeColliderMetadata[]> =>
+  withRuntimePage(options, (page) =>
+    readCollidersFromPage(page, options.timeoutMs ?? 120_000)
+  );

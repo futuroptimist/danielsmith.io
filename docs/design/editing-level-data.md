@@ -132,6 +132,41 @@ Use `--samples <count>` to tune the deterministic per-axis union-coverage grid
 and `--tolerance <world-units>` to adjust nearby-edge or nearly-identical bounds
 matching. Audit output is not persisted and is not part of required CI.
 
+## Audit collider reachability from the CLI
+
+When static geometry is not enough, run the opt-in reachability audit for one
+candidate. The audit asks whether a player starting from known legal anchors can
+reach an approach region and encounter the candidate as the first meaningful
+blocker. It combines bounded occupancy path proposals with normal runtime
+movement stepping, then reports direct load-bearing hits, dominating blockers,
+outside-navmesh evidence, visual-only source policies, secondary backstop intent,
+or ambiguity.
+
+```bash
+npm run collider:audit:reachability -- --id 400D
+npm run collider:audit:reachability -- --source-id ground.backyard.perimeter.backFence.boundary
+npm run collider:audit:reachability -- --id 1007 --json
+```
+
+The output includes grid resolution, maximum explored nodes, tested starts, and
+tested approach samples. It is review evidence only: it does not scan every
+collider in CI, delete anything, persist snapshots, or replace screenshots and
+maintainer judgment when the result is ambiguous.
+
+## Lightweight collider removal workflow
+
+For a possible removal, keep the review centered on the active source policy:
+
+1. Inspect the candidate with `npm run collider:inspect` to confirm identity,
+   provenance, intent, and bounds.
+2. Run `npm run collider:audit:geometry` when overlap, containment, or coverage
+   evidence would clarify whether nearby colliders describe the same space.
+3. Run `npm run collider:audit:reachability` when player-facing first-blocker
+   evidence would clarify direct load-bearing or domination.
+4. Edit the active source policy or declaration that emits the collider.
+5. Rely on behavior checks and generic declaration contracts; do not add
+   historical deletion records or full-scene snapshots for the removal itself.
+
 ## Inspect source IDs in the browser
 
 Launch immersive mode with performance failover disabled:
