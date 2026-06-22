@@ -129,6 +129,9 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run test` / `npm run test:ci`              | Execute the Vitest suite (CI uses `:ci`).                              |
 | `npm run typecheck`                             | Type-check with TypeScript without emitting files.                     |
 | `npm run docs:check`                            | Ensure required docs exist and run the link checker.                   |
+| `npm run collider:inspect`                      | Inspect one runtime collider by generated ID, source ID, or name.      |
+| `npm run collider:audit:geometry`               | Compare one collider with overlapping same-floor/category geometry.    |
+| `npm run collider:audit:reachability`           | Probe whether one collider is first-blocker, dominated, or ambiguous.  |
 | `npm run links:check`                           | Validate POI and README/docs links, failing clear 404/410 targets.     |
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
 | `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
