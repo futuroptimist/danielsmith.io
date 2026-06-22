@@ -132,6 +132,33 @@ Use `--samples <count>` to tune the deterministic per-axis union-coverage grid
 and `--tolerance <world-units>` to adjust nearby-edge or nearly-identical bounds
 matching. Audit output is not persisted and is not part of required CI.
 
+## Audit collider reachability from the CLI
+
+When geometry evidence is not enough, run the opt-in reachability audit against
+one candidate. The audit asks whether normal runtime movement from known legal
+starts can encounter the candidate as the first meaningful blocker. It reuses
+the runtime collector, normal movement stepping, floor handoff, selector
+matching, and geometry audit evidence; raw occupancy probes only propose
+approach samples and never prove reachability by teleporting into a pocket.
+
+```bash
+npm run collider:audit:reachability -- --id 400D
+npm run collider:audit:reachability -- --source-id ground.backyard.perimeter.backFence.boundary
+npm run collider:audit:reachability -- --id 1007 --json
+```
+
+The report includes the deterministic limits used for review: grid resolution,
+maximum explored nodes, max movement steps per path, tested starts, and tested
+approach samples. Classifications are review aids, not deletion commands:
+`directly-load-bearing`, `dominated`, `outside-reachable-navmesh`,
+`visual-only-by-policy`, `secondary-backstop`, or `ambiguous`. For dominated
+cases, the report lists the first blocking collider identities and source IDs
+when runtime evidence supports them. Outer boundaries should still be reviewed
+from the player-facing side; the tool must not treat an unreachable exterior as
+proof that a boundary is redundant. Screenshots, design intent, and maintainer
+judgment may override an ambiguous report. The command leaves no repository
+artifacts and is not a CI gate.
+
 ## Inspect source IDs in the browser
 
 Launch immersive mode with performance failover disabled:
@@ -178,6 +205,26 @@ npx vitest run src/scene/level/__tests__/generateWalls.test.ts
 npx vitest run src/scene/level/__tests__/generateFloorSurfaces.test.ts
 npx playwright test playwright/immersive-stairs-roundtrip.spec.ts
 ```
+
+## Narrow collider removal workflow
+
+For a suspected redundant collider, keep the review tied to the active source
+instead of recording historical absence:
+
+1. Inspect the candidate with `npm run collider:inspect` to confirm runtime
+   identity, source provenance, intent, and bounds.
+2. Run `npm run collider:audit:geometry` for overlap, containment, adjacency,
+   and sampled coverage evidence.
+3. Run `npm run collider:audit:reachability` when the player-facing question
+   depends on whether a legal route can hit the candidate first.
+4. If the evidence and maintainer judgment support removal, edit the active
+   source collision policy that emits the collider, or change an explicit
+   visual-only policy when no collider should be emitted.
+5. Rely on behavior tests and generic source-declaration contracts rather than
+   adding tombstones, full-scene snapshots, or permanent expected
+   classifications for every production collider.
+
+This workflow is a lightweight review aid, not a mandatory checklist.
 
 ## Immersive test taxonomy
 
