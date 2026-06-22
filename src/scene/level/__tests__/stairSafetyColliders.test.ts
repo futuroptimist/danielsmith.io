@@ -5,11 +5,9 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from '../../../systems/movement/stairs';
-import {
-  assertDebugColliderIdsDoNotCollide,
-  isDebugColliderId,
-} from '../../debug/colliderDebugIds';
+import { assertDebugColliderIdsDoNotCollide } from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
+import { validateSourceCollisionRecords } from '../sourceCollisionValidation';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -98,29 +96,16 @@ describe('stair safety collider source definitions', () => {
     });
   });
 
-  it('assigns every safety collider a source ID and purpose without duplicates', () => {
-    const colliders = collectSafetyColliders();
-    const sourceIds = colliders.map((collider) => String(collider.sourceId));
-
-    expect(
-      colliders.every(
-        (collider) => collider.sourceId && collider.purpose.trim()
-      )
-    ).toBe(true);
-    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+  it('satisfies the source-backed active collider contract', () => {
+    expect(validateSourceCollisionRecords(collectSafetyColliders())).toEqual(
+      []
+    );
   });
 
-  it('keeps active safety collider debug IDs valid, unique, and collision-free', () => {
+  it('keeps active safety collider debug IDs collision-free against generated IDs', () => {
     const colliders = collectSafetyColliders();
     const declaredIds = colliders.map(
       (collider) => [collider.name, collider.debugId] as const
-    );
-
-    colliders.forEach((collider) => {
-      expect(isDebugColliderId(collider.debugId)).toBe(true);
-    });
-    expect(new Set(colliders.map((collider) => collider.debugId)).size).toBe(
-      colliders.length
     );
     expect(() => assertDebugColliderIdsDoNotCollide(declaredIds)).not.toThrow();
   });
@@ -136,13 +121,6 @@ describe('stair safety collider source definitions', () => {
           debugId: collider.debugId,
         })
       ).toBe(collider.debugId);
-    });
-  });
-  it('keeps safety collider source IDs free of tombstone wording', () => {
-    collectSafetyColliders().forEach((collider) => {
-      expect(String(collider.sourceId)).not.toMatch(
-        /\.(former|removed|debugonlyremoval)\./i
-      );
     });
   });
 });
