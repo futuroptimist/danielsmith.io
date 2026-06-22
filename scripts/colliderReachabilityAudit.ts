@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 import type { Page } from '@playwright/test';
 
 import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../src/scene/level/mediaWallPolicy';
-import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from '../src/scene/level/upperStairwellLandingSegments';
 
 import { auditColliderGeometry } from './colliderGeometryAudit';
 import {
@@ -49,6 +48,13 @@ type RuntimeApproachResult = {
   message?: string;
 };
 
+type DominatingColliderEvidence = Pick<
+  RuntimeColliderMetadata,
+  'id' | 'sourceId' | 'name'
+> & {
+  blockedDirections: ApproachDirection[];
+};
+
 export type ReachabilityAggregationInput = {
   candidate: Pick<RuntimeColliderMetadata, 'id' | 'sourceId' | 'intent'>;
   approaches: readonly Pick<RuntimeApproachResult, 'status' | 'blockers'>[];
@@ -66,28 +72,22 @@ export type ColliderReachabilityAuditReport = {
     testedApproachSamples: number;
   };
   approaches: RuntimeApproachResult[];
-  dominatingColliders: Array<
-    Pick<RuntimeColliderMetadata, 'id' | 'sourceId' | 'name'>
-  >;
+  dominatingColliders: DominatingColliderEvidence[];
   staticEvidence?: ReturnType<typeof auditColliderGeometry>[number];
   note: string;
 };
 
-const SOURCE_COLLISION_POLICIES = [
-  FUTUROPTIMIST_MEDIA_WALL_POLICY,
-  ...UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
-];
-
-const VISUAL_ONLY_POLICIES = SOURCE_COLLISION_POLICIES.flatMap((policy) =>
-  policy.collision.collision === 'none'
-    ? [
-        {
-          sourceId: policy.sourceId,
-          collision: policy.collision.collision,
-          rationale: policy.collision.rationale,
-        },
-      ]
-    : []
+const VISUAL_ONLY_POLICIES = [FUTUROPTIMIST_MEDIA_WALL_POLICY].flatMap(
+  (policy) =>
+    policy.collision.collision === 'none'
+      ? [
+          {
+            sourceId: policy.sourceId,
+            collision: policy.collision.collision,
+            rationale: policy.collision.rationale,
+          },
+        ]
+      : []
 );
 
 export const parseColliderReachabilityAuditArgs = (
@@ -119,6 +119,7 @@ export const parseColliderReachabilityAuditArgs = (
       index += 1;
     } else if (
       arg === '--grid-resolution' ||
+      arg === '--max-explored-nodes' ||
       arg === '--max-nodes' ||
       arg === '--timeout-ms'
     ) {
@@ -126,7 +127,9 @@ export const parseColliderReachabilityAuditArgs = (
       if (!Number.isFinite(value) || value <= 0)
         throw new Error(`${arg} must be positive.`);
       if (arg === '--grid-resolution') gridResolution = value;
-      if (arg === '--max-nodes') maxExploredNodes = Math.floor(value);
+      if (arg === '--max-explored-nodes' || arg === '--max-nodes') {
+        maxExploredNodes = Math.floor(value);
+      }
       if (arg === '--timeout-ms') timeoutMs = Math.floor(value);
       index += 1;
     } else if (arg === '--base-url') {
@@ -163,6 +166,48 @@ export const classifyReachabilityEvidence = ({
     return 'outside-reachable-navmesh';
   }
   return 'ambiguous';
+};
+
+export const collectDominatingColliderEvidence = (
+  classification: ReachabilityClassification,
+  candidate: Pick<RuntimeColliderMetadata, 'id' | 'sourceId' | 'name'>,
+  colliders: readonly RuntimeColliderMetadata[],
+  approaches: readonly Pick<
+    RuntimeApproachResult,
+    'status' | 'direction' | 'blockers' | 'blockerSourceIds'
+  >[]
+): DominatingColliderEvidence[] => {
+  if (classification !== 'dominated') return [];
+  const directionsByColliderId = new Map<string, Set<ApproachDirection>>();
+  for (const approach of approaches) {
+    if (approach.status !== 'blocked-by-other') continue;
+    for (const collider of colliders) {
+      const refs = [collider.id, collider.name, collider.sourceId].filter(
+        Boolean
+      );
+      const blocked = [...approach.blockers, ...approach.blockerSourceIds];
+      if (
+        refs.some((ref) => blocked.includes(ref)) &&
+        collider.id !== candidate.id &&
+        collider.name !== candidate.name &&
+        collider.sourceId !== candidate.sourceId
+      ) {
+        const directions =
+          directionsByColliderId.get(collider.id) ??
+          new Set<ApproachDirection>();
+        directions.add(approach.direction);
+        directionsByColliderId.set(collider.id, directions);
+      }
+    }
+  }
+  return colliders
+    .filter((collider) => directionsByColliderId.has(collider.id))
+    .map(({ id, sourceId, name }) => ({
+      id,
+      sourceId,
+      name,
+      blockedDirections: [...directionsByColliderId.get(id)!],
+    }));
 };
 
 const runRuntimeApproaches = async (
@@ -387,18 +432,17 @@ const runRuntimeApproaches = async (
               z: Number(sample.z.toFixed(3)),
               floorId,
             },
-            status:
-              blockers.length === 0
-                ? 'unreachable'
-                : blockers.some((blocker) => blocker.id === nextCandidate.id)
-                  ? 'candidate-first'
-                  : 'blocked-by-other',
+            status: 'unreachable',
             blockers: blockers.map((blocker) => blocker.id),
             blockerSourceIds: blockers
               .map((blocker) => blocker.sourceId)
               .filter(Boolean) as string[],
             exploredNodes: 0,
             pathLength: 0,
+            message:
+              blockers.length > 0
+                ? 'Approach sample is not occupiable; blockers are diagnostic only until confirmed from a legal start.'
+                : 'Approach sample is not occupiable and no legal runtime path was confirmed.',
           };
         }
         let best: RuntimeApproachResult | undefined;
@@ -550,19 +594,6 @@ export const auditColliderReachability = async (
           candidate,
           approaches: runtime.approaches,
         });
-        const blockerRefs = new Set(
-          runtime.approaches
-            .flatMap((approach) => [
-              ...approach.blockers,
-              ...approach.blockerSourceIds,
-            ])
-            .filter(
-              (id) =>
-                id !== candidate.id &&
-                id !== candidate.sourceId &&
-                id !== candidate.name
-            )
-        );
         reports.push({
           candidate,
           classification,
@@ -573,14 +604,12 @@ export const auditColliderReachability = async (
             testedApproachSamples: runtime.approaches.length,
           },
           approaches: runtime.approaches,
-          dominatingColliders: colliders
-            .filter(
-              (collider) =>
-                blockerRefs.has(collider.id) ||
-                blockerRefs.has(collider.name) ||
-                blockerRefs.has(collider.sourceId ?? '')
-            )
-            .map(({ id, sourceId, name }) => ({ id, sourceId, name })),
+          dominatingColliders: collectDominatingColliderEvidence(
+            classification,
+            candidate,
+            colliders,
+            runtime.approaches
+          ),
           staticEvidence: auditColliderGeometry(colliders, {
             query: { kind: 'id', value: candidate.id },
             json: true,
@@ -621,7 +650,7 @@ const formatReport = (report: ColliderReachabilityAuditReport) => {
       ? report.dominatingColliders
           .map(
             (collider) =>
-              `  - ${collider.id} ${collider.name} (${formatOptional(collider.sourceId)})`
+              `  - ${collider.id} ${collider.name} (${formatOptional(collider.sourceId)}); directions ${collider.blockedDirections.join(', ')}`
           )
           .join('\n')
       : '  - none',

@@ -145,7 +145,7 @@ or ambiguity.
 ```bash
 npm run collider:audit:reachability -- --id 400D
 npm run collider:audit:reachability -- --source-id ground.backyard.perimeter.backFence.boundary
-npm run collider:audit:reachability -- --id 1007 --json
+npm run collider:audit:reachability -- --id 1007 --json --max-explored-nodes 1400
 ```
 
 The output includes grid resolution, maximum explored nodes, tested starts, and

@@ -16,7 +16,11 @@ const runAudit = async (args: string[]) => {
   );
   return JSON.parse(stdout) as Array<{
     classification: string;
-    approaches: unknown[];
+    approaches: Array<{
+      status: string;
+      pathLength: number;
+      start?: { x: number; z: number; floorId: string };
+    }>;
   }>;
 };
 
@@ -29,7 +33,14 @@ test.describe('collider reachability audit CLI', () => {
     ]);
 
     expect(report.classification).toBe('directly-load-bearing');
-    expect(report.approaches.length).toBeGreaterThan(0);
+    expect(
+      report.approaches.some(
+        (approach) =>
+          approach.status === 'candidate-first' &&
+          approach.pathLength > 0 &&
+          Boolean(approach.start)
+      )
+    ).toBe(true);
   });
 
   test('reports a visual-only policy from source intent without a fake collider', async () => {

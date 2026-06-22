@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   classifyReachabilityEvidence,
+  collectDominatingColliderEvidence,
   parseColliderReachabilityAuditArgs,
 } from '../colliderReachabilityAudit';
 
@@ -57,6 +58,90 @@ describe('collider reachability audit aggregation', () => {
     ).toBe('ambiguous');
   });
 
+  it('keeps diagnostic blockers on unreached approaches out of confident direct evidence', () => {
+    expect(
+      classifyReachabilityEvidence({
+        candidate,
+        approaches: [
+          { status: 'unreachable', blockers: ['1006'] },
+          { status: 'unreachable', blockers: ['2001'] },
+        ],
+      })
+    ).toBe('outside-reachable-navmesh');
+  });
+
+  it('keeps mixed reachable and unreached evidence ambiguous without a confirmed hit', () => {
+    expect(
+      classifyReachabilityEvidence({
+        candidate,
+        approaches: [
+          { status: 'blocked-by-other', blockers: ['2001'] },
+          { status: 'unreachable', blockers: ['1006'] },
+          { status: 'ambiguous', blockers: [] },
+        ],
+      })
+    ).toBe('ambiguous');
+  });
+
+  it('reports direction evidence per dominating collider only for dominated results', () => {
+    const colliders = [
+      { id: '1006', name: 'Candidate', sourceId: candidate.sourceId },
+      { id: '2001', name: 'NorthWall', sourceId: 'wall.north' },
+      { id: '2002', name: 'SouthWall', sourceId: 'wall.south' },
+    ] as never;
+    const approaches = [
+      {
+        direction: 'north',
+        status: 'blocked-by-other',
+        blockers: ['NorthWall'],
+        blockerSourceIds: ['wall.north'],
+      },
+      {
+        direction: 'south',
+        status: 'blocked-by-other',
+        blockers: ['2002'],
+        blockerSourceIds: [],
+      },
+      {
+        direction: 'east',
+        status: 'blocked-by-other',
+        blockers: ['2001'],
+        blockerSourceIds: ['wall.north'],
+      },
+    ] as const;
+
+    expect(
+      collectDominatingColliderEvidence(
+        'dominated',
+        { ...candidate, name: 'Candidate' },
+        colliders,
+        approaches
+      )
+    ).toEqual([
+      {
+        id: '2001',
+        name: 'NorthWall',
+        sourceId: 'wall.north',
+        blockedDirections: ['north', 'east'],
+      },
+      {
+        id: '2002',
+        name: 'SouthWall',
+        sourceId: 'wall.south',
+        blockedDirections: ['south'],
+      },
+    ]);
+
+    expect(
+      collectDominatingColliderEvidence(
+        'ambiguous',
+        { ...candidate, name: 'Candidate' },
+        colliders,
+        approaches
+      )
+    ).toEqual([]);
+  });
+
   it('reports secondary backstops from active source intent', () => {
     expect(
       classifyReachabilityEvidence({
@@ -74,7 +159,7 @@ describe('collider reachability audit aggregation', () => {
         '--json',
         '--grid-resolution',
         '0.4',
-        '--max-nodes',
+        '--max-explored-nodes',
         '42',
       ])
     ).toMatchObject({
