@@ -157,8 +157,11 @@ Interpret classifications as review evidence only:
 - `exact duplicate`: another same-floor/category collider has matching bounds.
 - `fully contained`: the candidate is contained by another same-review-group
   collider.
-- `highly overlapped`: the sample-grid estimate says other colliders cover at
-  least 95% of the candidate.
+- `highly overlapped`: the top-level classification means the union sample-grid
+  estimate says other colliders cover at least 95% of the candidate. Individual
+  pairwise evidence rows can also carry `highly overlapped` when a single
+  collider covers at least 80% of the candidate, even if the top-level result is
+  only `partially covered`.
 - `partially covered`: some overlap exists, but not enough for high coverage.
 - `ambiguous`: no coverage was found, but nearby edge adjacency may matter.
 - `isolated`: no overlap or adjacency evidence was found.
@@ -194,9 +197,11 @@ Interpret classifications conservatively:
 - `directly-load-bearing`: at least one approach hit the candidate as the first
   meaningful blocker. Do not remove it without changing the level/collision
   plan and adding behavior tests.
-- `dominated`: reachable approaches are blocked first by other colliders. This
-  is stronger removal evidence when the dominating colliders have concrete
-  source IDs.
+- `dominated`: all approach directions return `blocked-by-other`, so every
+  approach is blocked first by another collider. This is stronger removal
+  evidence when the dominating colliders have concrete source IDs. If any
+  approach is unreachable or ambiguous, the top-level result stays
+  `ambiguous`.
 - `outside-reachable-navmesh`: approach samples were not reachable from legal
   starts in the bounded search.
 - `visual-only-by-policy`: source policy intentionally emits no runtime
