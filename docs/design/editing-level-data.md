@@ -228,3 +228,26 @@ bounds through the narrow production fixture helpers in
 `src/tests/helpers/productionLevelFixtures.ts`. Request the semantic floor and
 room IDs needed by the test, and keep exact geometry literals limited to small
 synthetic fixtures where the generator output itself is under test.
+
+## Collider removal evidence workflow
+
+When reviewing a collider-removal candidate, gather only the evidence needed for
+that candidate rather than creating historical ledgers or full-scene snapshots:
+
+1. Inspect the runtime record with `npm run collider:inspect -- --source-id <source-id>`
+   or `--id <debug-id>` to confirm identity, provenance, policy, and bounds.
+2. Run geometric supporting evidence with
+   `npm run collider:audit:geometry -- --source-id <source-id>` when overlap,
+   containment, adjacency, or coverage loss would clarify the review.
+3. Run reachability evidence with
+   `npm run collider:audit:reachability -- --source-id <source-id>` when the
+   player-facing question is whether a legal approach encounters that collider
+   as the first meaningful blocker. Treat `ambiguous` as a prompt for maintainer
+   judgment, screenshots, or a narrower manual route check rather than as a
+   deletion approval.
+4. Edit the active source policy that emits the collider, or change that source
+   to an intentional visual-only policy when the component should render without
+   a floor-level footprint.
+5. Rely on behavior tests and the generic declaration contracts to keep the
+   scene honest; do not add tombstones, mandatory all-collider audits, or
+   permanent historical deletion records for the removed runtime collider.

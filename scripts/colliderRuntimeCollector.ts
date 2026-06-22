@@ -189,9 +189,10 @@ const readCollidersFromPage = async (page: Page, timeoutMs: number) => {
   });
 };
 
-export const collectRuntimeColliders = async (
+export const collectRuntimeCollidersWithPage = async <T>(
+  action: (page: Page, colliders: RuntimeColliderMetadata[]) => Promise<T>,
   options: RuntimeColliderCollectorOptions = {}
-): Promise<RuntimeColliderMetadata[]> => {
+): Promise<T> => {
   const suppliedBaseUrl = options.baseUrl ?? process.env.PLAYWRIGHT_BASE_URL;
   const baseUrl = suppliedBaseUrl ?? DEFAULT_COLLIDER_RUNTIME_BASE_URL;
   const timeoutMs = options.timeoutMs ?? 120_000;
@@ -210,9 +211,22 @@ export const collectRuntimeColliders = async (
       waitUntil: 'domcontentloaded',
       timeout: timeoutMs,
     });
-    return await readCollidersFromPage(page, timeoutMs);
+    await page.evaluate(() => {
+      const target = window as unknown as { __name?: <T>(value: T) => T };
+      target.__name ??= (value) => value;
+    });
+    const colliders = await readCollidersFromPage(page, timeoutMs);
+    return await action(page, colliders);
   } finally {
     await browser?.close().catch(() => undefined);
     await closeStartedServer(server).catch(() => undefined);
   }
 };
+
+export const collectRuntimeColliders = async (
+  options: RuntimeColliderCollectorOptions = {}
+): Promise<RuntimeColliderMetadata[]> =>
+  collectRuntimeCollidersWithPage(
+    async (_page, colliders) => colliders,
+    options
+  );
