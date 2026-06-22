@@ -59,6 +59,29 @@ const readValue = (args: readonly string[], index: number, flag: string) => {
   return value;
 };
 
+const parsePositiveNumber = (
+  args: readonly string[],
+  index: number,
+  flag: string
+) => {
+  const value = Number(readValue(args, index, flag));
+  if (!Number.isFinite(value) || value <= 0)
+    throw new Error(`${flag} must be positive.`);
+  return value;
+};
+
+const parsePositiveInteger = (
+  args: readonly string[],
+  index: number,
+  flag: string
+) => {
+  const rawValue = readValue(args, index, flag);
+  const value = Number(rawValue);
+  if (!Number.isInteger(value) || value < 1)
+    throw new Error(`${flag} must be a positive integer.`);
+  return value;
+};
+
 export const parseColliderRedundancyGateArgs = (
   args: readonly string[]
 ): ColliderRedundancyGateOptions => {
@@ -74,12 +97,15 @@ export const parseColliderRedundancyGateArgs = (
       arg === '--max-nodes' ||
       arg === '--timeout-ms'
     ) {
-      const value = Number(readValue(args, index, arg));
-      if (!Number.isFinite(value) || value <= 0)
-        throw new Error(`${arg} must be positive.`);
-      if (arg === '--tolerance') options.tolerance = value;
-      if (arg === '--max-nodes') options.maxNodes = Math.floor(value);
-      if (arg === '--timeout-ms') options.timeoutMs = Math.floor(value);
+      if (arg === '--tolerance') {
+        options.tolerance = parsePositiveNumber(args, index, arg);
+      }
+      if (arg === '--max-nodes') {
+        options.maxNodes = parsePositiveInteger(args, index, arg);
+      }
+      if (arg === '--timeout-ms') {
+        options.timeoutMs = parsePositiveInteger(args, index, arg);
+      }
       index += 1;
     } else if (arg === '--base-url') {
       options.baseUrl = readValue(args, index, arg);
@@ -118,12 +144,15 @@ const sameReviewGroup = (
 const sameSourceSemantics = (
   left: RuntimeColliderMetadata,
   right: RuntimeColliderMetadata
-): boolean =>
-  left.sourceId === right.sourceId ||
-  (left.sourceType === right.sourceType &&
+): boolean => {
+  if (left.sourceId && right.sourceId) return left.sourceId === right.sourceId;
+  return (
+    left.sourceType === right.sourceType &&
     left.intent === right.intent &&
     left.role === right.role &&
-    left.purpose === right.purpose);
+    left.purpose === right.purpose
+  );
+};
 
 const byStableIdentity = (
   left: RuntimeColliderMetadata,
@@ -257,10 +286,18 @@ export const formatColliderRedundancyGateReport = (
 
 export const runColliderRedundancyGateCli = async (args: readonly string[]) => {
   const options = parseColliderRedundancyGateArgs(args);
-  const colliders = await collectRuntimeColliders({
-    baseUrl: options.baseUrl,
-    timeoutMs: options.timeoutMs,
-  });
+  let colliders: RuntimeColliderMetadata[];
+  try {
+    colliders = await collectRuntimeColliders({
+      baseUrl: options.baseUrl,
+      timeoutMs: options.timeoutMs,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Unable to inspect runtime colliders: ${message}`, {
+      cause: error,
+    });
+  }
   const report = evaluateColliderRedundancy(colliders, options);
   process.stdout.write(
     options.json
@@ -282,10 +319,12 @@ if (isDirectExecution()) {
   runColliderRedundancyGateCli(process.argv.slice(2)).catch(
     (error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`Unable to inspect runtime colliders: ${message}\n`);
-      process.stderr.write(
-        'Run with --timeout-ms to allow a slower local Vite startup, or --base-url to inspect an already-running preview.\n'
-      );
+      process.stderr.write(`${message}\n`);
+      if (message.startsWith('Unable to inspect runtime colliders:')) {
+        process.stderr.write(
+          'Run with --timeout-ms to allow a slower local Vite startup, or --base-url to inspect an already-running preview.\n'
+        );
+      }
       process.exitCode = 1;
     }
   );

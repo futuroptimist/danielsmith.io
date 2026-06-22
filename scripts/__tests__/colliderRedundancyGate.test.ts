@@ -50,6 +50,15 @@ describe('parseColliderRedundancyGateArgs', () => {
       failOnAnonymous: true,
     });
   });
+
+  it('rejects fractional CI bounds before they can floor to unsafe values', () => {
+    expect(() =>
+      parseColliderRedundancyGateArgs(['--max-nodes', '0.5'])
+    ).toThrow('--max-nodes must be a positive integer.');
+    expect(() =>
+      parseColliderRedundancyGateArgs(['--timeout-ms', '10.5'])
+    ).toThrow('--timeout-ms must be a positive integer.');
+  });
 });
 
 describe('evaluateColliderRedundancy', () => {
@@ -70,6 +79,35 @@ describe('evaluateColliderRedundancy', () => {
         collider: { id: 'B' },
       },
     ]);
+  });
+
+  it('does not treat distinct source policies as exact duplicates when semantics are omitted', () => {
+    const report = evaluateColliderRedundancy(
+      [
+        collider({
+          id: 'ENTRANCE',
+          debugId: 'ENTRANCE',
+          sourceId: 'policy.entrance',
+          sourceType: undefined,
+          intent: undefined,
+          role: undefined,
+          purpose: undefined,
+        }),
+        collider({
+          id: 'EXIT',
+          debugId: 'EXIT',
+          sourceId: 'policy.exit',
+          sourceType: undefined,
+          intent: undefined,
+          role: undefined,
+          purpose: undefined,
+        }),
+      ],
+      options
+    );
+
+    expect(report.ok).toBe(true);
+    expect(report.findings).toEqual([]);
   });
 
   it('fails for source-backed colliders fully contained by a concrete collider', () => {
