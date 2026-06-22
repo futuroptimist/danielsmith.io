@@ -55,6 +55,30 @@ describe('main module imports', () => {
     expect(source).toContain('intent: sourceMetadata?.intent,');
   });
 
+  it('keeps the SelfieMirror collider source-backed while preserving debug ID 101A', () => {
+    const source = readMainSource();
+
+    expect(source).toContain(
+      'const SELFIE_MIRROR_COLLIDER_SOURCE_ID = assertLevelSourceId('
+    );
+    expect(source).toContain("'ground.living_room.selfie_mirror.scene_object'");
+    expect(source).toContain(
+      "const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');"
+    );
+    expect(source).toContain('namedColliderDebugNames.set(');
+    expect(source).toContain("'LivingRoomSelfieMirrorCollider'");
+    expect(source).toContain('colliderSourceMetadata.set(mirror.collider, {');
+    expect(source).toContain("sourceType: 'sceneObject',");
+    expect(source).toContain("intent: 'physical-boundary',");
+    expect(source).toContain("role: 'selfieMirror',");
+    expect(source).toContain(
+      "purpose: 'block the visible selfie mirror footprint',"
+    );
+    expect(source).toContain('debugId: SELFIE_MIRROR_COLLIDER_DEBUG_ID,');
+    expect(source).toContain('Keep 101A source-backed');
+    expect(source).toContain('groundColliders.push(mirror.collider);');
+  });
+
   it('does not wire runtime adaptive quality into immersive mode', () => {
     const source = readMainSource();
 
