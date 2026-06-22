@@ -17,6 +17,13 @@ const colliders: RuntimeColliderMetadata[] = [
     bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
   },
   {
+    id: 'AMBIG',
+    floor: 'upper',
+    category: 'stair',
+    name: 'Candidate',
+    bounds: { minX: 10, maxX: 12, minZ: 10, maxZ: 12 },
+  },
+  {
     id: 'DUP1',
     floor: 'upper',
     category: 'stair',
@@ -68,6 +75,16 @@ describe('parseColliderGeometryAuditArgs', () => {
       tolerance: 0.1,
     });
   });
+
+  it('allows exact-match tolerance and rejects fractional sample counts', () => {
+    expect(
+      parseColliderGeometryAuditArgs(['--id', '1007', '--tolerance', '0'])
+    ).toMatchObject({ tolerance: 0 });
+
+    expect(() =>
+      parseColliderGeometryAuditArgs(['--id', '1007', '--samples', '0.5'])
+    ).toThrow('--samples must be a positive integer.');
+  });
 });
 
 describe('auditColliderGeometry', () => {
@@ -89,6 +106,41 @@ describe('auditColliderGeometry', () => {
     expect(report.evidence[1].labels).toEqual(['edge adjacent']);
     expect(report.unionCoverage.coveragePercent).toBe(100);
     expect(report.classification).toBe('exact duplicate');
+  });
+
+  it('reports zero coverage for degenerate colliders instead of NaN', () => {
+    const [candidate] = colliders;
+    const [report] = auditColliderGeometry(
+      [
+        candidate,
+        {
+          id: 'LINE',
+          floor: 'upper',
+          category: 'stair',
+          name: 'Line',
+          bounds: { minX: 1, maxX: 1, minZ: 0, maxZ: 4 },
+        },
+      ],
+      {
+        query: { kind: 'id', value: '1007' },
+        json: false,
+        tolerance: 0.05,
+        samples: 4,
+      }
+    );
+
+    expect(report.evidence[0].otherCoveragePercent).toBe(0);
+  });
+
+  it('includes matched IDs in ambiguous match errors', () => {
+    expect(() =>
+      auditColliderGeometry(colliders, {
+        query: { kind: 'name', value: 'Candidate' },
+        json: false,
+        tolerance: 0.05,
+        samples: 4,
+      })
+    ).toThrow('matched 2 records: 1007, AMBIG.');
   });
 
   it('formats limitation language without safe-delete claims', () => {

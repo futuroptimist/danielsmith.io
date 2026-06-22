@@ -124,7 +124,7 @@ safety guards, and secondary backstops that protect traversal edge cases.
 
 ```bash
 npm run collider:audit:geometry -- --id 400D
-npm run collider:audit:geometry -- --source-id backyard.fence.back.physicalBoundary
+npm run collider:audit:geometry -- --source-id ground.backyard.perimeter.backFence.boundary
 npm run collider:audit:geometry -- --id 1007 --json
 ```
 

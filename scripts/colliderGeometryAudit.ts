@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   findColliderMatches,
+  floorsCanOverlap,
   formatOptional,
   type ColliderInspectQuery,
 } from './colliderInspect';
@@ -62,9 +63,6 @@ const percent = (ratio: number) => round(ratio * 100);
 const NOTE =
   'Geometry overlap is supporting evidence only; this tool never proves safe deletion.';
 
-const floorsCanOverlap = (left: string, right: string): boolean =>
-  left === right || left === 'all' || right === 'all';
-
 const sameReviewGroup = (
   candidate: RuntimeColliderMetadata,
   other: RuntimeColliderMetadata
@@ -96,10 +94,16 @@ export const parseColliderGeometryAuditArgs = (
     }
     if (arg === '--tolerance' || arg === '--samples') {
       const value = Number(readValue(index, arg));
-      if (!Number.isFinite(value) || value <= 0)
-        throw new Error(`${arg} must be positive.`);
-      if (arg === '--tolerance') tolerance = value;
-      if (arg === '--samples') samples = Math.floor(value);
+      if (!Number.isFinite(value)) throw new Error(`${arg} must be a number.`);
+      if (arg === '--tolerance') {
+        if (value < 0) throw new Error(`${arg} must be zero or positive.`);
+        tolerance = value;
+      }
+      if (arg === '--samples') {
+        if (!Number.isInteger(value) || value < 1)
+          throw new Error(`${arg} must be a positive integer.`);
+        samples = value;
+      }
       index += 1;
       continue;
     }
@@ -149,7 +153,7 @@ export const auditColliderGeometry = (
     );
   if (options.query.kind !== 'source-id' && matches.length > 1) {
     throw new Error(
-      `Ambiguous collider ${options.query.kind} "${options.query.value}" matched ${matches.length} records.`
+      `Ambiguous collider ${options.query.kind} "${options.query.value}" matched ${matches.length} records: ${matches.map((match) => match.id).join(', ')}.`
     );
   }
 
@@ -191,15 +195,15 @@ export const auditColliderGeometry = (
         )
           labels.push('edge adjacent');
         if (labels.length === 0) return undefined;
+        const otherArea = rectangleArea(other.bounds);
         return {
           collider: other,
           labels,
           intersectionArea: round(intersectionArea),
           candidateCoveragePercent:
             candidateArea > 0 ? percent(intersectionArea / candidateArea) : 0,
-          otherCoveragePercent: percent(
-            intersectionArea / rectangleArea(other.bounds)
-          ),
+          otherCoveragePercent:
+            otherArea > 0 ? percent(intersectionArea / otherArea) : 0,
           separationDistance: round(
             rectangleSeparationDistance(candidate.bounds, other.bounds)
           ),

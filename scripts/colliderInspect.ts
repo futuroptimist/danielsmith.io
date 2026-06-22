@@ -43,7 +43,7 @@ const getDimensions = (bounds: RuntimeColliderMetadata['bounds']) => {
   };
 };
 
-const floorsCanOverlap = (left: string, right: string): boolean =>
+export const floorsCanOverlap = (left: string, right: string): boolean =>
   left === right || left === 'all' || right === 'all';
 
 const boundsOverlap = (
