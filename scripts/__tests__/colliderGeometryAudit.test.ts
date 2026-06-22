@@ -38,6 +38,13 @@ const colliders: RuntimeColliderMetadata[] = [
     bounds: { minX: 4.02, maxX: 5, minZ: 0, maxZ: 4 },
   },
   {
+    id: 'ALL',
+    floor: 'all',
+    category: 'stair',
+    name: 'AllFloorDuplicate',
+    bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+  },
+  {
     id: 'GROUND',
     floor: 'ground',
     category: 'stair',
@@ -76,11 +83,17 @@ describe('parseColliderGeometryAuditArgs', () => {
     });
   });
 
-  it('allows exact-match tolerance and rejects fractional sample counts', () => {
+  it('allows exact-match tolerance and valid integer sample counts', () => {
     expect(
       parseColliderGeometryAuditArgs(['--id', '1007', '--tolerance', '0'])
     ).toMatchObject({ tolerance: 0 });
 
+    expect(
+      parseColliderGeometryAuditArgs(['--id', '1007', '--samples', '1'])
+    ).toMatchObject({ samples: 1 });
+  });
+
+  it('rejects fractional sample counts before they can be floored', () => {
     expect(() =>
       parseColliderGeometryAuditArgs(['--id', '1007', '--samples', '0.5'])
     ).toThrow('--samples must be a positive integer.');
@@ -98,12 +111,14 @@ describe('auditColliderGeometry', () => {
 
     expect(report.filters).toMatchObject({ floor: 'upper', category: 'stair' });
     expect(report.evidence.map((item) => item.collider.id)).toEqual([
+      'ALL',
       'DUP1',
       'EDGE',
     ]);
     expect(report.evidence[0].labels).toContain('exact duplicate');
     expect(report.evidence[0].labels).toContain('candidate fully contained');
-    expect(report.evidence[1].labels).toEqual(['edge adjacent']);
+    expect(report.evidence[1].labels).toContain('exact duplicate');
+    expect(report.evidence[2].labels).toEqual(['edge adjacent']);
     expect(report.unionCoverage.coveragePercent).toBe(100);
     expect(report.classification).toBe('exact duplicate');
   });
@@ -129,7 +144,22 @@ describe('auditColliderGeometry', () => {
       }
     );
 
+    expect(report.evidence[0].candidateCoveragePercent).toBe(0);
     expect(report.evidence[0].otherCoveragePercent).toBe(0);
+    expect(JSON.stringify(report)).not.toContain('null');
+  });
+
+  it('uses all-floor colliders as comparable evidence for specific floors', () => {
+    const [report] = auditColliderGeometry(colliders, {
+      query: { kind: 'id', value: '1007' },
+      json: false,
+      tolerance: 0.05,
+      samples: 4,
+    });
+
+    expect(report.evidence.some((item) => item.collider.id === 'ALL')).toBe(
+      true
+    );
   });
 
   it('includes matched IDs in ambiguous match errors', () => {
