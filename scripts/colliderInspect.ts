@@ -26,14 +26,14 @@ export type ColliderInspectionRecord = RuntimeColliderMetadata & {
 
 const round = (value: number) => Number(value.toFixed(3));
 
-const normalizeBounds = (bounds: RuntimeColliderMetadata['bounds']) => ({
+export const normalizeBounds = (bounds: RuntimeColliderMetadata['bounds']) => ({
   minX: round(bounds.minX),
   maxX: round(bounds.maxX),
   minZ: round(bounds.minZ),
   maxZ: round(bounds.maxZ),
 });
 
-const getDimensions = (bounds: RuntimeColliderMetadata['bounds']) => {
+export const getDimensions = (bounds: RuntimeColliderMetadata['bounds']) => {
   const width = Math.max(0, bounds.maxX - bounds.minX);
   const depth = Math.max(0, bounds.maxZ - bounds.minZ);
   return {
@@ -43,10 +43,10 @@ const getDimensions = (bounds: RuntimeColliderMetadata['bounds']) => {
   };
 };
 
-const floorsCanOverlap = (left: string, right: string): boolean =>
+export const floorsCanOverlap = (left: string, right: string): boolean =>
   left === right || left === 'all' || right === 'all';
 
-const boundsOverlap = (
+export const boundsOverlap = (
   left: RuntimeColliderMetadata['bounds'],
   right: RuntimeColliderMetadata['bounds']
 ): boolean =>
@@ -147,10 +147,13 @@ export const toInspectionRecords = (
     overlappingActiveColliderCount: countOverlaps(collider, colliders),
   }));
 
-const formatBounds = (bounds: RuntimeColliderMetadata['bounds']): string =>
+export const formatBounds = (
+  bounds: RuntimeColliderMetadata['bounds']
+): string =>
   `x ${bounds.minX}..${bounds.maxX}, z ${bounds.minZ}..${bounds.maxZ}`;
 
-const formatOptional = (value: string | undefined): string => value ?? 'n/a';
+export const formatOptional = (value: string | undefined): string =>
+  value ?? 'n/a';
 
 export const formatInspectionRecords = (
   records: readonly ColliderInspectionRecord[]
