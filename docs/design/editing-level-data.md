@@ -153,6 +153,33 @@ tested approach samples. It is review evidence only: it does not scan every
 collider in CI, delete anything, persist snapshots, or replace screenshots and
 maintainer judgment when the result is ambiguous.
 
+## Conservative collider redundancy gate
+
+Run the CI-safe redundancy gate before merging collider-heavy changes:
+
+```bash
+npm run collider:audit:redundancy
+npm run collider:audit:redundancy -- --json
+npm run collider:audit:redundancy -- --max-nodes 3000 --timeout-ms 120000
+```
+
+The gate starts or reuses the local immersive runtime, collects active debug
+colliders, and scans a bounded number of records for high-confidence redundancy.
+It fails only when the finding is source-backed and actionable, such as exact
+duplicate active colliders with equivalent floor/category/source semantics or a
+source-backed collider fully contained by source-backed collider(s) in the same
+review group. Anonymous/generated colliders, isolated colliders, ambiguous edge
+adjacency, and runtime-only reachability uncertainty remain warnings or manual
+follow-up by default. Use `--fail-on-anonymous` only for an explicit stricter
+local audit; CI should not enable it unless the current source tree already
+passes.
+
+A failure names the candidate collider, source ID when available,
+classification, dominating colliders, evidence, and remediation: remove the
+duplicate, merge the source policy, mark an intentional secondary/backstop
+collider, or add missing source metadata. This gate is deliberately conservative
+and is not a substitute for maintainer judgment on ambiguous collision behavior.
+
 ## Lightweight collider removal workflow
 
 For a possible removal, keep the review centered on the active source policy:
