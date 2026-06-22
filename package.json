@@ -26,7 +26,8 @@
     "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs",
     "collider:inspect": "tsx scripts/colliderInspect.ts",
     "collider:audit:geometry": "tsx scripts/colliderGeometryAudit.ts",
-    "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts"
+    "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts",
+    "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts"
   },
   "dependencies": {
     "stats.js": "^0.17.0",

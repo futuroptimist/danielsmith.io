@@ -153,6 +153,33 @@ tested approach samples. It is review evidence only: it does not scan every
 collider in CI, delete anything, persist snapshots, or replace screenshots and
 maintainer judgment when the result is ambiguous.
 
+## Run the conservative collider redundancy gate
+
+Use the redundancy gate before merging collider-heavy changes or when reviewing
+new source-backed boundaries. The gate launches or reuses the local immersive
+runtime, collects active debug colliders, and fails only on high-confidence,
+actionable redundancy evidence: exact duplicate source-backed colliders with
+matching floor/category/source semantics, or smaller source-backed colliders
+fully contained by a larger source-backed collider with no intentional exception
+intent. It deliberately does not fail ambiguous, isolated, outside-navmesh,
+anonymous, or source-less cases; those are warnings or provenance follow-ups
+unless a stricter policy is added later. The check is a CI guardrail, not a
+substitute for maintainer judgment on collision behavior.
+
+```bash
+npm run collider:audit:redundancy
+npm run collider:audit:redundancy -- --json
+npm run collider:audit:redundancy -- --max-nodes 3000 --timeout-ms 120000
+npm run collider:audit:redundancy -- --fail-on-anonymous # opt-in only
+```
+
+Failure output names the candidate collider, source ID when available,
+classification, evidence colliders, and remediation. Prefer removing the
+redundant source-backed collider or marking intentional secondary/backstop
+metadata over adding ad hoc allowlists. The default profile is PR-safe: it has a
+120 second timeout, inspects at most 3000 runtime colliders, and starts local
+Vite when `PLAYWRIGHT_BASE_URL` is not set, so it does not depend on staging.
+
 ## Lightweight collider removal workflow
 
 For a possible removal, keep the review centered on the active source policy:
