@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import type { CollisionIntent } from './sourceCollision';
 import {
+  getSourceRoleFamilyKey,
   validateSourceCollisionPolicy,
   validateSourceCollisionRecords,
   type SourceCollisionRecord,
@@ -59,6 +61,71 @@ describe('source collision validation', () => {
       );
     }
   );
+
+  it('rejects non-empty active policy intents outside the collision intent set', () => {
+    expect(
+      validateSourceCollisionPolicy({
+        role: 'guard',
+        sourceId: assertLevelSourceId('upper.stairwell.safetyCollider'),
+        collision: {
+          collision: 'active',
+          intent: 'safety-gaurd' as CollisionIntent,
+          purpose: 'Keep the player inside the playable stairwell path.',
+          runtimeName: 'UpperStairwellSafetyGuard',
+        },
+      })
+    ).toContain(
+      'Active policy upper.stairwell.safetyCollider has invalid intent "safety-gaurd".'
+    );
+  });
+
+  it('rejects non-empty emitted record intents outside the collision intent set', () => {
+    expect(
+      validateSourceCollisionRecords([
+        createRecord({
+          intent: 'safety-gaurd' as CollisionIntent,
+        }),
+      ])
+    ).toContain(
+      'upper.stairwell.safetyCollider (guard) has invalid intent "safety-gaurd".'
+    );
+  });
+
+  it('allows duplicate active records only for explicitly named source-role families', () => {
+    const sourceId = assertLevelSourceId('upper.stairwell.safetyCollider');
+    const otherSourceId = assertLevelSourceId(
+      'ground.stairwell.safetyCollider'
+    );
+
+    expect(
+      validateSourceCollisionRecords(
+        [
+          createRecord({ sourceId }),
+          createRecord({ sourceId, bounds: { ...bounds, minX: 2, maxX: 3 } }),
+        ],
+        {
+          allowMultipleBoundsFor: [getSourceRoleFamilyKey(sourceId, 'guard')],
+        }
+      )
+    ).toEqual([]);
+
+    expect(
+      validateSourceCollisionRecords(
+        [
+          createRecord({ sourceId: otherSourceId }),
+          createRecord({
+            sourceId: otherSourceId,
+            bounds: { ...bounds, minX: 2, maxX: 3 },
+          }),
+        ],
+        {
+          allowMultipleBoundsFor: [getSourceRoleFamilyKey(sourceId, 'guard')],
+        }
+      )
+    ).toContain(
+      'Duplicate active source/role ground.stairwell.safetyCollider (guard); already used by ground.stairwell.safetyCollider (guard).'
+    );
+  });
 
   it('rejects source types outside the known level source type set', () => {
     expect(

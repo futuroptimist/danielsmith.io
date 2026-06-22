@@ -3,6 +3,7 @@ import { isDebugColliderId } from '../debug/colliderDebugIds';
 
 import {
   isActiveSourceCollisionPolicy,
+  type CollisionIntent,
   type SourceBackedCollider,
   type SourceCollisionPolicy,
 } from './sourceCollision';
@@ -38,6 +39,13 @@ const FORBIDDEN_SOURCE_ID_PARTS = new Set([
   'debugonlyremoval',
 ]);
 
+const COLLISION_INTENTS = new Set<CollisionIntent>([
+  'physical-boundary',
+  'safety-guard',
+  'interaction-footprint',
+  'secondary-backstop',
+]);
+
 const LEVEL_SOURCE_TYPES = new Set<LevelSourceType>([
   'room',
   'wall',
@@ -55,6 +63,12 @@ const describeRecord = (
 
 const getRecordBounds = (record: SourceCollisionRecord): RectCollider =>
   'bounds' in record ? record.bounds : record;
+
+/** Builds the `${sourceId}::${role}` family key used by allowMultipleBoundsFor. */
+export const getSourceRoleFamilyKey = (
+  sourceId: LevelSourceId,
+  role: string
+): string => `${sourceId}::${role}`;
 
 const getAllowMultipleBoundsFor = (
   families: SourceCollisionValidationOptions['allowMultipleBoundsFor']
@@ -87,6 +101,9 @@ const validateSourceId = (
 const isLevelSourceType = (value: unknown): value is LevelSourceType =>
   typeof value === 'string' && LEVEL_SOURCE_TYPES.has(value as LevelSourceType);
 
+const isCollisionIntent = (value: unknown): value is CollisionIntent =>
+  typeof value === 'string' && COLLISION_INTENTS.has(value as CollisionIntent);
+
 export const validateSourceCollisionPolicy = <Role extends string>(
   declaration: SourceCollisionPolicyDeclaration<Role>
 ): string[] => {
@@ -107,6 +124,10 @@ export const validateSourceCollisionPolicy = <Role extends string>(
   if (isActiveSourceCollisionPolicy(declaration.collision)) {
     if (!isNonEmpty(declaration.collision.intent)) {
       errors.push(`Active policy ${declaration.sourceId} requires an intent.`);
+    } else if (!isCollisionIntent(declaration.collision.intent)) {
+      errors.push(
+        `Active policy ${declaration.sourceId} has invalid intent "${declaration.collision.intent}".`
+      );
     }
     if (!isNonEmpty(declaration.collision.purpose)) {
       errors.push(`Active policy ${declaration.sourceId} requires a purpose.`);
@@ -179,6 +200,8 @@ export const validateSourceCollisionRecords = <Role extends string>(
     }
     if (!isNonEmpty(record.intent)) {
       errors.push(`${owner} requires an intent.`);
+    } else if (!isCollisionIntent(record.intent)) {
+      errors.push(`${owner} has invalid intent "${record.intent}".`);
     }
     if (!isNonEmpty(record.purpose)) {
       errors.push(`${owner} requires a purpose.`);
@@ -203,7 +226,10 @@ export const validateSourceCollisionRecords = <Role extends string>(
       debugIds.set(record.debugId, owner);
     }
 
-    const sourceRoleFamily = `${record.sourceId}::${record.role}`;
+    const sourceRoleFamily = getSourceRoleFamilyKey(
+      record.sourceId,
+      record.role
+    );
     const sourceRoleKey = `${record.sourceId}\u0000${record.role}`;
     const existing = sourceRolePairs.get(sourceRoleKey);
     if (existing && !allowMultipleBoundsFor.has(sourceRoleFamily)) {
