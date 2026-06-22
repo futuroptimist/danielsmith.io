@@ -132,6 +132,40 @@ Use `--samples <count>` to tune the deterministic per-axis union-coverage grid
 and `--tolerance <world-units>` to adjust nearby-edge or nearly-identical bounds
 matching. Audit output is not persisted and is not part of required CI.
 
+## Audit reachability from the CLI
+
+If geometry evidence is not enough, run the opt-in reachability audit for one
+candidate. It asks whether normal player movement from known legal anchors can
+encounter that collider as the first meaningful blocker. The tool reuses the
+runtime collector, deterministic path proposals, and the same movement stepping
+used by Playwright helpers; raw occupancy probes only propose paths and do not
+prove that a teleported pocket is reachable.
+
+```bash
+npm run collider:audit:reachability -- --id 400D
+npm run collider:audit:reachability -- --source-id ground.backyard.perimeter.backFence.boundary
+npm run collider:audit:reachability -- --source-id upper.stairwell.landingGuard.shoulderEast --json
+```
+
+The report includes the grid resolution, maximum explored nodes, tested starts,
+tested approach samples, first blockers, static geometry evidence, and one of
+`directly-load-bearing`, `dominated`, `outside-reachable-navmesh`,
+`visual-only-by-policy`, `secondary-backstop`, or `ambiguous`. It is review
+evidence only: screenshots, playtesting, and maintainer judgment can override
+an ambiguous report, and the command never edits source data or writes
+artifacts.
+
+## Collider removal workflow
+
+For removals, keep the change source-owned and narrow:
+
+1. Inspect the candidate with `npm run collider:inspect`.
+2. Run geometric evidence with `npm run collider:audit:geometry`.
+3. Run reachability evidence when geometry alone leaves a player-facing risk.
+4. Edit the active source policy that emits the collider.
+5. Rely on behavior tests and the generic declaration contracts instead of
+   historical deletion records or production-scene snapshots.
+
 ## Inspect source IDs in the browser
 
 Launch immersive mode with performance failover disabled:

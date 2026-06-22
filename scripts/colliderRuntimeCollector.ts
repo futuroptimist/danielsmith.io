@@ -189,9 +189,10 @@ const readCollidersFromPage = async (page: Page, timeoutMs: number) => {
   });
 };
 
-export const collectRuntimeColliders = async (
+export const collectRuntimePageData = async <T>(
+  read: (page: Page) => Promise<T>,
   options: RuntimeColliderCollectorOptions = {}
-): Promise<RuntimeColliderMetadata[]> => {
+): Promise<T> => {
   const suppliedBaseUrl = options.baseUrl ?? process.env.PLAYWRIGHT_BASE_URL;
   const baseUrl = suppliedBaseUrl ?? DEFAULT_COLLIDER_RUNTIME_BASE_URL;
   const timeoutMs = options.timeoutMs ?? 120_000;
@@ -206,13 +207,25 @@ export const collectRuntimeColliders = async (
     const page = await browser.newPage({
       viewport: { width: 1280, height: 720 },
     });
+    await page.addInitScript(() => {
+      (window as Window & { __name?: <T>(value: T) => T }).__name ??= (value) =>
+        value;
+    });
     await page.goto(buildImmersiveUrl(baseUrl), {
       waitUntil: 'domcontentloaded',
       timeout: timeoutMs,
     });
-    return await readCollidersFromPage(page, timeoutMs);
+    return await read(page);
   } finally {
     await browser?.close().catch(() => undefined);
     await closeStartedServer(server).catch(() => undefined);
   }
 };
+
+export const collectRuntimeColliders = async (
+  options: RuntimeColliderCollectorOptions = {}
+): Promise<RuntimeColliderMetadata[]> =>
+  collectRuntimePageData(
+    (page) => readCollidersFromPage(page, options.timeoutMs ?? 120_000),
+    options
+  );
