@@ -4,6 +4,7 @@ import {
   classifyReachabilityEvidence,
   collectDominatingColliderEvidence,
   parseColliderReachabilityAuditArgs,
+  preferRuntimeApproachResult,
 } from '../colliderReachabilityAudit';
 
 const candidate = {
@@ -170,6 +171,40 @@ describe('collider reachability audit aggregation', () => {
         blockedDirections: ['west'],
       },
     ]);
+  });
+
+  it('keeps blocked-by-other fallback while scanning for candidate-first evidence', () => {
+    const blockedFallback = {
+      direction: 'north',
+      sample: { x: 0, z: 0, floorId: 'ground' },
+      status: 'blocked-by-other',
+      blockers: ['2001'],
+      blockerSourceIds: [],
+      exploredNodes: 8,
+      pathLength: 3,
+    } as const;
+    const ambiguousLater = {
+      ...blockedFallback,
+      status: 'ambiguous',
+      blockers: [],
+      exploredNodes: 10,
+    } as const;
+    const candidateFirstLater = {
+      ...blockedFallback,
+      status: 'candidate-first',
+      blockers: ['1006'],
+      exploredNodes: 12,
+    } as const;
+
+    expect(preferRuntimeApproachResult(undefined, blockedFallback)).toBe(
+      blockedFallback
+    );
+    expect(preferRuntimeApproachResult(blockedFallback, ambiguousLater)).toBe(
+      blockedFallback
+    );
+    expect(
+      preferRuntimeApproachResult(blockedFallback, candidateFirstLater)
+    ).toBe(candidateFirstLater);
   });
 
   it('reports secondary backstops from active source intent', () => {

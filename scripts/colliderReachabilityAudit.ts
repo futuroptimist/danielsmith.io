@@ -36,7 +36,7 @@ export type ColliderReachabilityAuditOptions = {
 
 type ApproachDirection = 'north' | 'south' | 'east' | 'west';
 
-type RuntimeApproachResult = {
+export type RuntimeApproachResult = {
   direction: ApproachDirection;
   sample: { x: number; z: number; floorId: string };
   status: 'candidate-first' | 'blocked-by-other' | 'unreachable' | 'ambiguous';
@@ -166,6 +166,21 @@ export const classifyReachabilityEvidence = ({
     return 'outside-reachable-navmesh';
   }
   return 'ambiguous';
+};
+
+export const preferRuntimeApproachResult = (
+  current: RuntimeApproachResult | undefined,
+  next: RuntimeApproachResult
+): RuntimeApproachResult => {
+  if (!current) return next;
+  if (next.status === 'candidate-first') return next;
+  if (current.status === 'candidate-first') return current;
+  if (next.status === 'blocked-by-other') return next;
+  if (current.status === 'blocked-by-other') return current;
+  if (next.status === 'ambiguous' && current.status === 'unreachable') {
+    return next;
+  }
+  return current;
 };
 
 export const collectDominatingColliderEvidence = (
@@ -411,6 +426,20 @@ const runRuntimeApproaches = async (
         }
         return { blockers: [] as string[], blockerSourceIds: [] as string[] };
       };
+      const preferRuntimeApproachResultInPage = (
+        current: RuntimeApproachResult | undefined,
+        next: RuntimeApproachResult
+      ) => {
+        if (!current) return next;
+        if (next.status === 'candidate-first') return next;
+        if (current.status === 'candidate-first') return current;
+        if (next.status === 'blocked-by-other') return next;
+        if (current.status === 'blocked-by-other') return current;
+        if (next.status === 'ambiguous' && current.status === 'unreachable') {
+          return next;
+        }
+        return current;
+      };
       const approaches = samples.map((sample) => {
         const occupied = world.canOccupyPosition({
           x: sample.x,
@@ -477,7 +506,7 @@ const runRuntimeApproaches = async (
               : blocked.blockers.length > 0
                 ? 'blocked-by-other'
                 : 'ambiguous';
-          best = {
+          const result = {
             direction: sample.direction,
             sample: {
               x: Number(sample.x.toFixed(3)),
@@ -490,9 +519,9 @@ const runRuntimeApproaches = async (
             blockerSourceIds: blocked.blockerSourceIds,
             exploredNodes: found.exploredNodes,
             pathLength: found.path.length,
-          };
-          if (status === 'candidate-first' || status === 'blocked-by-other')
-            break;
+          } satisfies RuntimeApproachResult;
+          best = preferRuntimeApproachResultInPage(best, result);
+          if (status === 'candidate-first') break;
         }
         return (
           best ?? {
