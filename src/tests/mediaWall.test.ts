@@ -9,6 +9,7 @@ import {
 } from 'vitest';
 
 import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../scene/level/mediaWallPolicy';
+import { validateSourceCollisionPolicy } from '../scene/level/sourceCollisionValidation';
 import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
 
 describe('createLivingRoomMediaWall', () => {
@@ -180,6 +181,9 @@ describe('createLivingRoomMediaWall', () => {
       sourceId: 'ground.livingRoom.mediaWall.futuroptimist',
       collision: { collision: 'none' },
     });
+    expect(
+      validateSourceCollisionPolicy(FUTUROPTIMIST_MEDIA_WALL_POLICY)
+    ).toEqual([]);
     expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.collision.rationale).toMatch(
       /wall-mounted.+no floor-level interaction footprint/i
     );

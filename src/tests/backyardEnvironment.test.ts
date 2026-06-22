@@ -29,9 +29,11 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
+import { validateSourceCollisionRecords } from '../scene/level/sourceCollisionValidation';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
+
+import { getProductionRoomBounds } from './helpers/productionLevelFixtures';
 
 const BACKYARD_BOUNDS = {
   minX: -10,
@@ -1347,18 +1349,17 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = FLOOR_PLAN.rooms.find(
-      (room) => room.id === 'backyard'
-    )?.bounds;
-    expect(productionBackyardBounds).toBeDefined();
-    const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds!
+    const productionBackyardBounds = getProductionRoomBounds(
+      'ground',
+      'backyard'
     );
-    const productionBackFenceSampleZ = productionBackyardBounds!.maxZ - 1.8;
+    const productionEnvironment = createBackyardEnvironment(
+      productionBackyardBounds
+    );
+    const productionBackFenceSampleZ = productionBackyardBounds.maxZ - 1.8;
     const productionBackFenceSamples = [
       {
-        x:
-          (productionBackyardBounds!.minX + productionBackyardBounds!.maxX) / 2,
+        x: (productionBackyardBounds.minX + productionBackyardBounds.maxX) / 2,
         z: productionBackFenceSampleZ,
       },
       { x: 5, z: productionBackFenceSampleZ },
@@ -1372,6 +1373,13 @@ describe('createBackyardEnvironment', () => {
         pointIsBlocked(productionEnvironment.colliders)
       )
     ).toBe(true);
+
+    const productionSourceColliders = productionEnvironment.colliders.filter(
+      (collider) => 'sourceId' in collider
+    );
+    expect(validateSourceCollisionRecords(productionSourceColliders)).toEqual(
+      []
+    );
 
     const productionBackFenceCollider = productionEnvironment.colliders.find(
       (collider) =>
