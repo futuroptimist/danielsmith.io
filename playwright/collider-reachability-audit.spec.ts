@@ -5,13 +5,16 @@ import { expect, test } from '@playwright/test';
 
 const execFileAsync = promisify(execFile);
 
+const AUDIT_SUBPROCESS_TIMEOUT_MS = 120_000;
+const AUDIT_PLAYWRIGHT_TIMEOUT_MS = 150_000;
+
 const runAudit = async (args: string[]) => {
   const { stdout } = await execFileAsync(
     'npx',
     ['tsx', 'scripts/colliderReachabilityAudit.ts', ...args],
     {
       env: { ...process.env, PLAYWRIGHT_BASE_URL: 'http://127.0.0.1:5173' },
-      timeout: 120_000,
+      timeout: AUDIT_SUBPROCESS_TIMEOUT_MS,
     }
   );
   return JSON.parse(stdout) as Array<{
@@ -25,6 +28,7 @@ const runAudit = async (args: string[]) => {
 };
 
 test.describe('collider reachability audit CLI', () => {
+  test.describe.configure({ timeout: AUDIT_PLAYWRIGHT_TIMEOUT_MS });
   test('reports a semantic physical boundary as directly load-bearing', async () => {
     const [report] = await runAudit([
       '--source-id',
