@@ -58,6 +58,27 @@ describe('PORTFOLIO_LEVEL', () => {
     );
   });
 
+  it('declares the SelfieMirror footprint blocker as a scene object source', () => {
+    const groundSceneObjects =
+      PORTFOLIO_LEVEL.floors.find((floor) => floor.id === 'ground')
+        ?.sceneObjects ?? [];
+
+    expect(
+      groundSceneObjects.find(
+        (object) => object.id === 'selfie-mirror-living-room'
+      )
+    ).toMatchObject({
+      sourceId: 'ground.living_room.selfie_mirror.scene_object',
+      floorId: 'ground',
+      kind: 'decor.selfie_mirror',
+      roomId: 'livingRoom',
+      colliderPolicy: {
+        kind: 'custom',
+        purpose: 'block the visible selfie mirror footprint',
+      },
+    });
+  });
+
   it('declares collider policies for migrated solid-like scene objects', () => {
     const migratedIds = [
       'flywheel-studio-flywheel',

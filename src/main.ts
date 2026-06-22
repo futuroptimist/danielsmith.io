@@ -110,6 +110,7 @@ import {
   type AvatarVariantId,
 } from './scene/avatar/variants';
 import { resolveInitialAvatarCameraFraming } from './scene/camera/initialFraming';
+import { assertDebugColliderId } from './scene/debug/colliderDebugIds';
 import {
   createColliderVisualizer,
   type DebugColliderMetadata,
@@ -160,10 +161,14 @@ import {
 import {
   applySceneObjectSourceMetadata,
   createSceneObjectDefinitionsById,
+  getSceneObjectColliderSourcePurpose,
   registerSceneObjectColliders,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
-import type { LevelSourceId } from './scene/level/sourceIds';
+import {
+  assertLevelSourceId,
+  type LevelSourceId,
+} from './scene/level/sourceIds';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -1015,6 +1020,23 @@ const sceneObjectDefinitionsById =
 const getSceneObjectDefinition = (
   id: string
 ): SceneObjectDefinition | undefined => sceneObjectDefinitionsById.get(id);
+
+const requireSceneObjectDefinition = (id: string): SceneObjectDefinition => {
+  const definition = getSceneObjectDefinition(id);
+  if (!definition) {
+    throw new Error(`Missing scene object definition for ${id}.`);
+  }
+  return definition;
+};
+
+const SELFIE_MIRROR_SCENE_OBJECT_ID = 'selfie-mirror-living-room';
+const SELFIE_MIRROR_SCENE_OBJECT_DEFINITION = requireSceneObjectDefinition(
+  SELFIE_MIRROR_SCENE_OBJECT_ID
+);
+const SELFIE_MIRROR_COLLIDER_SOURCE_ID = assertLevelSourceId(
+  SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.sourceId
+);
+const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');
 
 const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
   `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
@@ -2032,6 +2054,23 @@ function initializeImmersiveScene(
       height: 4.1,
     });
     groundFloorGroup.add(mirror.group);
+    namedColliderDebugNames.set(
+      mirror.collider,
+      'LivingRoomSelfieMirrorCollider'
+    );
+    colliderSourceMetadata.set(mirror.collider, {
+      sourceId: SELFIE_MIRROR_COLLIDER_SOURCE_ID,
+      sourceType: 'sceneObject',
+      intent: 'physical-boundary',
+      role: 'selfieMirror',
+      purpose: getSceneObjectColliderSourcePurpose(
+        SELFIE_MIRROR_SCENE_OBJECT_DEFINITION
+      ),
+      debugId: SELFIE_MIRROR_COLLIDER_DEBUG_ID,
+    });
+    // Keep 101A source-backed: this collider intentionally blocks the visible
+    // SelfieMirror footprint. It is not redundant just because geometry/reachability
+    // audits classify it as isolated or ambiguous.
     groundColliders.push(mirror.collider);
     selfieMirror = mirror;
   }
