@@ -3,8 +3,6 @@ import { compileLegacyFloorPlan } from '../../scene/level/compileLegacyFloorPlan
 import { PORTFOLIO_LEVEL } from '../../scene/level/portfolioLevel';
 import type { Bounds2D, LevelDefinition } from '../../scene/level/schema';
 
-const cloneBounds = (bounds: Bounds2D): Bounds2D => ({ ...bounds });
-
 const scaleBounds = (bounds: Bounds2D): Bounds2D => ({
   minX: bounds.minX * FLOOR_PLAN_SCALE,
   maxX: bounds.maxX * FLOOR_PLAN_SCALE,
@@ -47,10 +45,10 @@ export const getProductionFloorBounds = (
   const floor = getFloor(level, floorId);
   const xs = floor.outline.map(([x]) => x * FLOOR_PLAN_SCALE);
   const zs = floor.outline.map(([, z]) => z * FLOOR_PLAN_SCALE);
-  return cloneBounds({
+  return {
     minX: Math.min(...xs),
     maxX: Math.max(...xs),
     minZ: Math.min(...zs),
     maxZ: Math.max(...zs),
-  });
+  };
 };

@@ -6,7 +6,11 @@ import {
   type SourceBackedCollider,
   type SourceCollisionPolicy,
 } from './sourceCollision';
-import { isLevelSourceId, type LevelSourceId } from './sourceIds';
+import {
+  isLevelSourceId,
+  type LevelSourceId,
+  type LevelSourceType,
+} from './sourceIds';
 
 export interface SourceCollisionPolicyDeclaration<
   Role extends string = string,
@@ -30,6 +34,23 @@ export interface SourceCollisionValidationOptions<
 const isNonEmpty = (value: unknown): value is string =>
   typeof value === 'string' && value.trim().length > 0;
 
+const FORBIDDEN_SOURCE_ID_PARTS = new Set([
+  'former',
+  'removed',
+  'debugonlyremoval',
+]);
+
+const LEVEL_SOURCE_TYPES = new Set<LevelSourceType>([
+  'room',
+  'wall',
+  'floorSurface',
+  'safetyCollider',
+  'sceneObject',
+  'roomConnection',
+  'generatedCollider',
+  'generatedSolid',
+]);
+
 const describeRecord = (
   record: Pick<SourceCollisionRecord, 'sourceId' | 'role'>
 ): string => `${record.sourceId} (${record.role})`;
@@ -41,16 +62,43 @@ const getMultiBoundRoles = <Role extends string>(
   roles: SourceCollisionValidationOptions<Role>['multiBoundRoles']
 ): ReadonlySet<Role> => (roles instanceof Set ? roles : new Set(roles ?? []));
 
+const usesForbiddenSourceIdPart = (sourceId: string): boolean =>
+  sourceId
+    .split('.')
+    .some((part) => FORBIDDEN_SOURCE_ID_PARTS.has(part.toLowerCase()));
+
+const validateSourceId = (
+  sourceId: LevelSourceId,
+  owner: string,
+  errors: string[],
+  invalidMessage: string
+): void => {
+  if (!isLevelSourceId(sourceId)) {
+    errors.push(invalidMessage);
+    return;
+  }
+
+  if (usesForbiddenSourceIdPart(sourceId)) {
+    errors.push(
+      `${owner} sourceId "${sourceId}" uses forbidden tombstone wording.`
+    );
+  }
+};
+
+const isLevelSourceType = (value: unknown): value is LevelSourceType =>
+  typeof value === 'string' && LEVEL_SOURCE_TYPES.has(value as LevelSourceType);
+
 export const validateSourceCollisionPolicy = <Role extends string>(
   declaration: SourceCollisionPolicyDeclaration<Role>
 ): string[] => {
   const errors: string[] = [];
 
-  if (!isLevelSourceId(declaration.sourceId)) {
-    errors.push(
-      `Policy ${declaration.role} has invalid sourceId "${declaration.sourceId}".`
-    );
-  }
+  validateSourceId(
+    declaration.sourceId,
+    `Policy ${declaration.role}`,
+    errors,
+    `Policy ${declaration.role} has invalid sourceId "${declaration.sourceId}".`
+  );
   if (!isNonEmpty(declaration.role)) {
     errors.push(
       `Policy ${declaration.sourceId} requires a nonempty semantic role.`
@@ -117,11 +165,16 @@ export const validateSourceCollisionRecords = <Role extends string>(
     const owner = describeRecord(record);
     validateBounds(getRecordBounds(record), owner, errors);
 
-    if (!isLevelSourceId(record.sourceId)) {
-      errors.push(`${owner} has invalid sourceId.`);
-    }
+    validateSourceId(
+      record.sourceId,
+      owner,
+      errors,
+      `${owner} has invalid sourceId.`
+    );
     if (!isNonEmpty(record.sourceType)) {
       errors.push(`${owner} requires a sourceType.`);
+    } else if (!isLevelSourceType(record.sourceType)) {
+      errors.push(`${owner} has invalid sourceType "${record.sourceType}".`);
     }
     if (!isNonEmpty(record.intent)) {
       errors.push(`${owner} requires an intent.`);
