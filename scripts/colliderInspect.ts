@@ -150,7 +150,8 @@ export const toInspectionRecords = (
 const formatBounds = (bounds: RuntimeColliderMetadata['bounds']): string =>
   `x ${bounds.minX}..${bounds.maxX}, z ${bounds.minZ}..${bounds.maxZ}`;
 
-const formatOptional = (value: string | undefined): string => value ?? 'n/a';
+export const formatOptional = (value: string | undefined): string =>
+  value ?? 'n/a';
 
 export const formatInspectionRecords = (
   records: readonly ColliderInspectionRecord[]
