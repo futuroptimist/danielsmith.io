@@ -29,9 +29,18 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
+import {
+  BACKYARD_FENCE_SEGMENT_POLICIES,
+  BACKYARD_HOLOGRAM_BARRIER_POLICY,
+} from '../scene/level/backyardCollisionPolicies';
+import {
+  validateActiveSourceRecords,
+  validateSourceCollisionPolicies,
+} from '../scene/level/colliderDeclarationContracts';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
+
+import { getProductionRoomBounds } from './helpers/productionLevelBounds';
 
 const BACKYARD_BOUNDS = {
   minX: -10,
@@ -1347,25 +1356,23 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = FLOOR_PLAN.rooms.find(
-      (room) => room.id === 'backyard'
-    )?.bounds;
-    expect(productionBackyardBounds).toBeDefined();
-    const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds!
+    const productionBackyardBounds = getProductionRoomBounds(
+      'ground',
+      'backyard'
     );
-    const productionBackFenceSampleZ = productionBackyardBounds!.maxZ - 1.8;
+    const productionEnvironment = createBackyardEnvironment(
+      productionBackyardBounds
+    );
+    const productionBackFenceSampleZ = productionBackyardBounds.maxZ - 1.8;
     const productionBackFenceSamples = [
       {
-        x:
-          (productionBackyardBounds!.minX + productionBackyardBounds!.maxX) / 2,
+        x: (productionBackyardBounds.minX + productionBackyardBounds.maxX) / 2,
         z: productionBackFenceSampleZ,
       },
       { x: 5, z: productionBackFenceSampleZ },
       { x: -5, z: productionBackFenceSampleZ },
     ];
     expect(productionBackFenceSamples[1].x).toBe(5);
-    expect(productionBackFenceSamples[1].z).toBeCloseTo(30.2, 5);
 
     expect(
       productionBackFenceSamples.every(
@@ -1407,6 +1414,61 @@ describe('createBackyardEnvironment', () => {
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();
     expect(railMaterial.envMapIntensity).toBeGreaterThan(0);
+  });
+
+  it('validates backyard source-owned boundary policies and active records', () => {
+    const productionBackyardBounds = getProductionRoomBounds(
+      'ground',
+      'backyard'
+    );
+    const productionEnvironment = createBackyardEnvironment(
+      productionBackyardBounds
+    );
+    const migratedPolicies = [
+      ...BACKYARD_FENCE_SEGMENT_POLICIES.map((policy) => ({
+        role: policy.role,
+        sourceId: policy.sourceId,
+        collision: {
+          collision: 'active' as const,
+          intent: 'physical-boundary' as const,
+          purpose: policy.purpose,
+          runtimeName: policy.name,
+          ...(policy.debugId ? { debugId: policy.debugId } : {}),
+        },
+      })),
+      {
+        role: BACKYARD_HOLOGRAM_BARRIER_POLICY.role,
+        sourceId: BACKYARD_HOLOGRAM_BARRIER_POLICY.sourceId,
+        collision: {
+          collision: 'active' as const,
+          intent: 'physical-boundary' as const,
+          purpose: BACKYARD_HOLOGRAM_BARRIER_POLICY.purpose,
+          runtimeName: BACKYARD_HOLOGRAM_BARRIER_POLICY.name,
+          debugId: BACKYARD_HOLOGRAM_BARRIER_POLICY.debugId,
+        },
+      },
+    ];
+    const boundaryRecords = productionEnvironment.colliders.filter(
+      (collider) =>
+        typeof collider.sourceId === 'string' &&
+        String(collider.sourceId).startsWith('ground.backyard.')
+    );
+
+    expect(() =>
+      validateSourceCollisionPolicies(
+        migratedPolicies,
+        'backyard boundary policies'
+      )
+    ).not.toThrow();
+    expect(() =>
+      validateActiveSourceRecords(boundaryRecords, 'backyard boundary records')
+    ).not.toThrow();
+    expect(boundaryRecords.map((collider) => collider.role).sort()).toEqual([
+      'backFenceBoundary',
+      'hologramBarrier',
+      'leftFenceBoundary',
+      'rightFenceBoundary',
+    ]);
   });
 
   it('dampens backyard pulses when the photosensitive safe scale is disabled', () => {

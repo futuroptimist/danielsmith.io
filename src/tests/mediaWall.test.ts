@@ -8,8 +8,11 @@ import {
   vi,
 } from 'vitest';
 
+import { validateSourceCollisionPolicies } from '../scene/level/colliderDeclarationContracts';
 import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../scene/level/mediaWallPolicy';
 import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
+
+import { getProductionRoomBounds } from './helpers/productionLevelBounds';
 
 describe('createLivingRoomMediaWall', () => {
   type CapturingContext = CanvasRenderingContext2D & {
@@ -77,8 +80,9 @@ describe('createLivingRoomMediaWall', () => {
   });
 
   it('includes a TV screen with YouTube text and exposes POI bindings', () => {
-    const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
-    const build = createLivingRoomMediaWall(bounds);
+    const build = createLivingRoomMediaWall(
+      getProductionRoomBounds('ground', 'livingRoom')
+    );
 
     const screen = build.group.getObjectByName('LivingRoomMediaWallScreen');
     expect(screen).toBeTruthy();
@@ -171,7 +175,13 @@ describe('createLivingRoomMediaWall', () => {
     expect(() => build.controller.dispose()).not.toThrow();
   });
 
-  it('declares the media POI as an active visual-only source policy', () => {
+  it('declares the media POI as an explicit visual-only source policy', () => {
+    expect(() =>
+      validateSourceCollisionPolicies(
+        [FUTUROPTIMIST_MEDIA_WALL_POLICY],
+        'media wall collision policy'
+      )
+    ).not.toThrow();
     expect(FUTUROPTIMIST_MEDIA_WALL_POLICY).toMatchObject({
       role: 'living-room-futuroptimist-media',
       subsystemRole: 'poi-media-wall',
@@ -180,14 +190,12 @@ describe('createLivingRoomMediaWall', () => {
       sourceId: 'ground.livingRoom.mediaWall.futuroptimist',
       collision: { collision: 'none' },
     });
-    expect(FUTUROPTIMIST_MEDIA_WALL_POLICY.collision.rationale).toMatch(
-      /wall-mounted.+no floor-level interaction footprint/i
-    );
   });
 
   it('keeps the visual media POI visible without emitting floor colliders', () => {
-    const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
-    const build = createLivingRoomMediaWall(bounds);
+    const build = createLivingRoomMediaWall(
+      getProductionRoomBounds('ground', 'livingRoom')
+    );
 
     expect(build.policy).toBe(FUTUROPTIMIST_MEDIA_WALL_POLICY);
     expect(

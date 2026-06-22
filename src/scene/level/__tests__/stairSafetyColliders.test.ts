@@ -10,6 +10,7 @@ import {
   isDebugColliderId,
 } from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
+import { validateActiveSourceRecords } from '../colliderDeclarationContracts';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -98,16 +99,13 @@ describe('stair safety collider source definitions', () => {
     });
   });
 
-  it('assigns every safety collider a source ID and purpose without duplicates', () => {
-    const colliders = collectSafetyColliders();
-    const sourceIds = colliders.map((collider) => String(collider.sourceId));
-
-    expect(
-      colliders.every(
-        (collider) => collider.sourceId && collider.purpose.trim()
+  it('validates every source-backed active safety collider contract', () => {
+    expect(() =>
+      validateActiveSourceRecords(
+        collectSafetyColliders(),
+        'stair safety colliders'
       )
-    ).toBe(true);
-    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    ).not.toThrow();
   });
 
   it('keeps active safety collider debug IDs valid, unique, and collision-free', () => {

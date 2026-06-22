@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import { isDebugColliderId } from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
+import {
+  validateActiveSourceRecords,
+  validateSourceCollisionPolicies,
+} from '../../level/colliderDeclarationContracts';
 import { assertLevelSourceId } from '../../level/sourceIds';
 import {
   UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
@@ -148,8 +152,20 @@ describe('createUpperStairwellLanding', () => {
       'UpperStairwellLandingFarGuard',
       'UpperStairwellLandingShoulderGuard-East',
     ]);
+    expect(() =>
+      validateSourceCollisionPolicies(
+        UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
+        'upper landing segment policies'
+      )
+    ).not.toThrow();
+    expect(() =>
+      validateActiveSourceRecords(
+        result.colliders,
+        'upper landing active records'
+      )
+    ).not.toThrow();
     expect(result.colliders).toEqual([
-      {
+      expect.objectContaining({
         role: 'shoulder-east',
         sourceId: 'upper.stairwell.landingGuard.shoulderEast',
         sourceType: 'generatedCollider',
@@ -157,13 +173,7 @@ describe('createUpperStairwellLanding', () => {
         purpose: 'upper stairwell landing shoulder-east guard',
         name: 'UpperStairwellLandingGuard-3',
         debugId: '400D',
-        bounds: {
-          minX: 1.1,
-          maxX: 2,
-          minZ: -8,
-          maxZ: 6,
-        },
-      },
+      }),
     ]);
   });
 

@@ -189,10 +189,20 @@ about debug provenance, generator output, or debug-ID registry behavior:
 
 Source-owned collider declarations should use the shared policy contract in
 `src/scene/level/sourceCollision.ts` when they need stable runtime provenance.
+Pure tests can validate migrated policy and record shape with
+`src/scene/level/colliderDeclarationContracts.ts` instead of repeating one-off
+source ID, role, bounds, purpose, and debug ID assertions in every family test.
 Active policies carry intent, purpose, required runtime name, and optional debug
-ID, while emitted source-backed colliders also preserve their source role; visual-only policies carry a concise no-collision rationale. For example,
+ID, while emitted source-backed colliders also preserve their source role;
+visual-only policies carry a concise no-collision rationale. For example,
 the Futuroptimist media wall declares its wall-mounted visual media policy in
 `src/scene/level/mediaWallPolicy.ts`, so its shelf, screen, and clearance
 highlight remain rendered while no floor-level collider is emitted. Emitted
 records should pass that source metadata through to runtime registration directly
 rather than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
+
+When a regression test needs production room or floor bounds, prefer the narrow
+test helpers in `src/tests/helpers/productionLevelBounds.ts`. They read from
+`PORTFOLIO_LEVEL`, clone the returned bounds, and throw named floor/room errors
+for missing semantic IDs so tests do not copy or proportionally scale production
+coordinates. Keep exact geometry literals in small synthetic fixtures only.

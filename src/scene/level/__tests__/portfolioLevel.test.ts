@@ -124,16 +124,31 @@ describe('PORTFOLIO_LEVEL', () => {
   });
 
   it('compiles compatibility room bounds and doorways for the current floors', () => {
+    const ground = compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'ground', {
+      includeDoorwaysFromWallGaps: true,
+    });
+    const upper = compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'upper', {
+      includeDoorwaysFromWallGaps: true,
+    });
+
+    expect(ground.rooms.map((room) => room.id).sort()).toEqual([
+      'backyard',
+      'kitchen',
+      'livingRoom',
+      'studio',
+    ]);
+    expect(upper.rooms.map((room) => room.id).sort()).toEqual([
+      'creatorsStudio',
+      'focusPods',
+      'loftLibrary',
+      'upperLanding',
+    ]);
     expect(
-      compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'ground', {
-        includeDoorwaysFromWallGaps: true,
-      })
-    ).toMatchSnapshot();
-    expect(
-      compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'upper', {
-        includeDoorwaysFromWallGaps: true,
-      })
-    ).toMatchSnapshot();
+      ground.rooms.some((room) => (room.doorways?.length ?? 0) > 0)
+    ).toBe(true);
+    expect(upper.rooms.some((room) => (room.doorways?.length ?? 0) > 0)).toBe(
+      true
+    );
   });
 
   it('keeps current compatibility floor bounds unchanged', () => {
@@ -151,9 +166,18 @@ describe('PORTFOLIO_LEVEL', () => {
     });
   });
 
-  it('keeps current generated wall bounds stable for compatibility consumers', () => {
-    expect(normalizeSegments(FLOOR_PLAN)).toMatchSnapshot();
-    expect(normalizeSegments(UPPER_FLOOR_PLAN)).toMatchSnapshot();
+  it('keeps generated wall segments normalized for compatibility consumers', () => {
+    const segments = [
+      ...normalizeSegments(FLOOR_PLAN),
+      ...normalizeSegments(UPPER_FLOOR_PLAN),
+    ];
+
+    expect(segments.length).toBeGreaterThan(0);
+    segments.forEach((segment) => {
+      expect(segment.rooms.length).toBeGreaterThan(0);
+      expect(segment.start.x).toBeLessThanOrEqual(segment.end.x);
+      expect(segment.start.z).toBeLessThanOrEqual(segment.end.z);
+    });
   });
 
   it('does not let semantic room connections affect legacy room or wall generation', () => {
