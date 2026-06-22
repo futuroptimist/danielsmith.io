@@ -153,6 +153,39 @@ tested approach samples. It is review evidence only: it does not scan every
 collider in CI, delete anything, persist snapshots, or replace screenshots and
 maintainer judgment when the result is ambiguous.
 
+## Run the conservative redundancy gate
+
+For PR-safe regression coverage, run the full-scene redundancy gate. The gate
+launches or reuses the local immersive runtime with performance failover
+disabled, reads the active debug collider inventory, and fails only when it finds
+high-confidence redundant colliders: source-backed exact duplicates or smaller
+source-backed colliders fully contained by larger source-backed colliders on a
+compatible floor/category. It is conservative by design and is not a substitute
+for maintainer judgment on ambiguous collision behavior.
+
+```bash
+npm run collider:audit:redundancy
+npm run collider:audit:redundancy -- --json
+npm run collider:audit:redundancy -- --max-nodes 3000 --timeout-ms 120000
+```
+
+Ambiguous, isolated, outside-reachable-navmesh, source-less, and anonymous
+generated colliders do not fail by default. Anonymous/generated records produce
+warnings with provenance remediation instead, because missing metadata is a
+follow-up signal rather than proof that the collider is unnecessary. Use the
+opt-in stricter mode only when intentionally enforcing that migration locally:
+
+```bash
+npm run collider:audit:redundancy -- --fail-on-anonymous
+```
+
+Failure output names the candidate collider, source ID when available,
+classification, dominating or duplicate evidence, and a suggested remediation:
+remove the duplicate, source-back the collider, or mark an intentional
+secondary/backstop policy in source metadata. The default CI profile is bounded
+with `--timeout-ms` and `--max-nodes`, starts a local Vite runtime when no
+`PLAYWRIGHT_BASE_URL` is provided, and does not depend on staging.
+
 ## Lightweight collider removal workflow
 
 For a possible removal, keep the review centered on the active source policy:

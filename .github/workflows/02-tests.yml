@@ -22,6 +22,8 @@ jobs:
         run: npm run test:ci
       - name: Smoke test
         run: npm run smoke
+      - name: Collider redundancy gate
+        run: npm run collider:audit:redundancy
 
   docker-runtime-smoke:
     runs-on: ubuntu-latest
