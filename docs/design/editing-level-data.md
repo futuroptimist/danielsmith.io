@@ -98,17 +98,41 @@ Before proposing a collider removal, resolve the runtime collider through the
 immersive debug API instead of searching generated arrays by hand. The on-demand
 inspector launches or reuses the local Vite runtime, opens immersive mode with
 performance failover disabled, reads `window.portfolio.debugColliders`, and
-prints the collider identity, source provenance, policy metadata (including
-source-backed role and intent), normalized bounds, dimensions, ID kind, and active overlap count. It does not write an
-inventory file or participate in CI.
+prints identity, source provenance, policy metadata, normalized bounds,
+dimensions, ID kind, and active overlap count. It does not write an inventory
+file or participate in CI.
 
 ```bash
-npm run collider:inspect -- --id 1007
+npm run collider:inspect -- --id 101A
 npm run collider:inspect -- --source-id upper.stairwell.landingGuard.shoulderEast
-npm run collider:inspect -- --name UpperStairNorthBannisterGuard --json
+npm run collider:inspect -- --name UpperStairNorthBannisterGuard
 ```
 
-Set `PLAYWRIGHT_BASE_URL` to reuse an already-running preview or dev server.
+Use `--json` for machine-readable output. When redirecting or piping JSON, run
+through `npm --silent` so npm script banners do not dirty the capture:
+
+```bash
+npm --silent run collider:inspect -- --id 101A --json > /tmp/collider-101A.inspect.json
+npm --silent run collider:inspect -- --id 101A --json | jq '.[0].sourceId'
+```
+
+Runtime target selection:
+
+- By default the tools use the local runtime at `http://127.0.0.1:5173`,
+  starting Vite when needed.
+- To inspect staging, set `PLAYWRIGHT_BASE_URL=https://staging.danielsmith.io`.
+- If staging was previously exported, run `unset PLAYWRIGHT_BASE_URL` before
+  local verification so the local runtime is used again.
+- `collider:audit:reachability` also accepts `--base-url`; the inspector and
+  geometry audit currently use the environment variable only.
+
+```bash
+PLAYWRIGHT_BASE_URL=https://staging.danielsmith.io npm run collider:inspect -- --id 101A
+```
+
+Short generated overlay IDs such as `101A` are useful screenshot anchors. Prefer
+source IDs for long-term review comments, tests, and follow-up tasks because they
+survive debug-label regeneration better than generated screenshot IDs.
 
 ## Audit collider geometry from the CLI
 
@@ -116,21 +140,32 @@ When two colliders look redundant, run the opt-in geometry audit against one
 candidate at a time. The audit reuses the same runtime debug collector and
 selector matching as the inspector, then compares only colliders on compatible
 floors and in the same category so unrelated floors do not create false
-evidence. It reports exact duplicates, containment in either direction,
-pairwise overlap percentages, deterministic sample-grid union coverage, and
-nearby edge adjacency. The labels are review evidence only: geometry overlap
-does not prove a collider is safe to delete, especially for outer walls, stair
-safety guards, and secondary backstops that protect traversal edge cases.
+evidence.
 
 ```bash
-npm run collider:audit:geometry -- --id 400D
+npm run collider:audit:geometry -- --id 101A
 npm run collider:audit:geometry -- --source-id ground.backyard.perimeter.backFence.boundary
-npm run collider:audit:geometry -- --id 1007 --json
+npm --silent run collider:audit:geometry -- --id 101A --json > /tmp/collider-101A.geometry.json
 ```
 
 Use `--samples <count>` to tune the deterministic per-axis union-coverage grid
 and `--tolerance <world-units>` to adjust nearby-edge or nearly-identical bounds
-matching. Audit output is not persisted and is not part of required CI.
+matching. Geometry classifications mean:
+
+- `exact duplicate`: another same-floor/category collider has matching bounds.
+- `fully contained`: other same-floor/category bounds contain the candidate.
+- `highly overlapped`: union coverage estimates at least 95% of the candidate
+  is covered by same-floor/category colliders.
+- `partially covered`: some same-floor/category coverage exists, but less than
+  the high-overlap threshold.
+- `ambiguous`: no overlap coverage was found, but adjacent edges suggest a
+  nearby relationship that needs human review.
+- `isolated`: no overlap or edge-adjacent evidence was found in the review
+  group.
+
+Geometry overlap is supporting evidence only. It never proves deletion is safe
+by itself, especially for outer walls, stair safety guards, secondary backstops,
+and traversal edge cases.
 
 ## Audit collider reachability from the CLI
 
@@ -138,20 +173,71 @@ When static geometry is not enough, run the opt-in reachability audit for one
 candidate. The audit asks whether a player starting from known legal anchors can
 reach an approach region and encounter the candidate as the first meaningful
 blocker. It combines bounded occupancy path proposals with normal runtime
-movement stepping, then reports direct load-bearing hits, dominating blockers,
-outside-navmesh evidence, visual-only source policies, secondary backstop intent,
-or ambiguity.
+movement stepping.
 
 ```bash
-npm run collider:audit:reachability -- --id 400D
+npm run collider:audit:reachability -- --id 101A
 npm run collider:audit:reachability -- --source-id ground.backyard.perimeter.backFence.boundary
-npm run collider:audit:reachability -- --id 1007 --json --max-explored-nodes 1400
+npm --silent run collider:audit:reachability -- --id 101A --json --max-nodes 4000 --timeout-ms 180000 > /tmp/collider-101A.reachability.json
+PLAYWRIGHT_BASE_URL=https://staging.danielsmith.io npm run collider:audit:reachability -- --id 101A
+npm run collider:audit:reachability -- --id 101A --base-url http://127.0.0.1:5173
 ```
 
 The output includes grid resolution, maximum explored nodes, tested starts, and
-tested approach samples. It is review evidence only: it does not scan every
-collider in CI, delete anything, persist snapshots, or replace screenshots and
-maintainer judgment when the result is ambiguous.
+tested approach samples. Reachability classifications mean:
+
+- `directly-load-bearing`: at least one reachable approach hits the candidate
+  first; do not remove it without changing the level/collision plan and adding
+  behavior tests.
+- `dominated`: every reachable sampled approach is blocked by other colliders;
+  this is stronger removal evidence when the dominating colliders are concrete
+  and source-backed.
+- `outside-reachable-navmesh`: sampled approaches could not be reached from the
+  runtime anchors.
+- `visual-only-by-policy`: the source policy intentionally emits no runtime
+  collider.
+- `secondary-backstop`: source intent marks the collider as a backup guard.
+- `ambiguous`: the bounded search did not produce a confident answer; keep using
+  screenshots, source review, and maintainer judgment.
+
+A `blocked-by-other` approach with generic blocker names and no source IDs often
+means there is a metadata/provenance gap, not a deletion green light. Add source
+metadata or trace the generating push site before making removal decisions.
+
+## Debug a screenshot collider label
+
+For a screenshot label such as `101A`, keep the investigation reproducible and
+source-centered:
+
+```bash
+npm run collider:inspect -- --id 101A
+npm --silent run collider:inspect -- --id 101A --json > /tmp/collider-101A.inspect.json
+npm --silent run collider:audit:geometry -- --id 101A --json > /tmp/collider-101A.geometry.json
+npm --silent run collider:audit:reachability -- --id 101A --json --max-nodes 4000 --timeout-ms 180000 > /tmp/collider-101A.reachability.json
+```
+
+Then search by the reported `sourceId` or, if no source ID exists, by runtime
+`name`:
+
+```bash
+git grep -n "reported.source.id" -- src docs
+git grep -n "ReportedRuntimeName" -- src docs
+```
+
+If `sourceId` is missing, identify the source declaration, factory, or manual
+collider push that generated the runtime collider and add source metadata before
+making removal decisions. Do not treat the generated overlay ID as the durable
+handle for future review.
+
+Decision guide:
+
+- If geometry says `isolated` and reachability says `ambiguous`, do not remove
+  the collider based on CLI evidence alone.
+- If reachability says `dominated` and names concrete source-backed dominating
+  colliders, that is stronger removal evidence.
+- If reachability says `directly-load-bearing`, do not remove it without
+  changing the level/collision plan and adding tests.
+- Prefer source IDs over generated screenshot IDs for long-term references.
 
 ## Conservative collider redundancy gate
 
