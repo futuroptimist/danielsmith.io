@@ -188,9 +188,7 @@ export const collectDominatingColliderEvidence = (
       const blocked = [...approach.blockers, ...approach.blockerSourceIds];
       if (
         refs.some((ref) => blocked.includes(ref)) &&
-        collider.id !== candidate.id &&
-        collider.name !== candidate.name &&
-        collider.sourceId !== candidate.sourceId
+        collider.id !== candidate.id
       ) {
         const directions =
           directionsByColliderId.get(collider.id) ??

@@ -142,6 +142,36 @@ describe('collider reachability audit aggregation', () => {
     ).toEqual([]);
   });
 
+  it('keeps dominating evidence when candidate and dominator both omit source IDs', () => {
+    const colliders = [
+      { id: '1006', name: 'Candidate' },
+      { id: '2001', name: 'UnnamedSourceDominator' },
+    ] as never;
+
+    expect(
+      collectDominatingColliderEvidence(
+        'dominated',
+        { id: '1006', name: 'Candidate' },
+        colliders,
+        [
+          {
+            direction: 'west',
+            status: 'blocked-by-other',
+            blockers: ['2001'],
+            blockerSourceIds: [],
+          },
+        ]
+      )
+    ).toEqual([
+      {
+        id: '2001',
+        name: 'UnnamedSourceDominator',
+        sourceId: undefined,
+        blockedDirections: ['west'],
+      },
+    ]);
+  });
+
   it('reports secondary backstops from active source intent', () => {
     expect(
       classifyReachabilityEvidence({
