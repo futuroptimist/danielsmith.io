@@ -153,6 +153,34 @@ tested approach samples. It is review evidence only: it does not scan every
 collider in CI, delete anything, persist snapshots, or replace screenshots and
 maintainer judgment when the result is ambiguous.
 
+## Conservative collider redundancy CI gate
+
+Pull requests also run a conservative redundancy gate that reuses the runtime
+debug collider collector and inspects the local immersive scene without staging.
+The gate is intentionally narrower than the geometry and reachability audit
+tools: it fails only for high-confidence, actionable redundancy such as exact
+duplicate active source-backed colliders, or source-backed colliders fully
+contained by a different source-backed collider on a compatible floor/category.
+Compound colliders emitted by the same source, isolated colliders, ambiguous
+runtime evidence, outside-navmesh cases, and anonymous generated colliders are
+not hard failures by default. Anonymous colliders produce provenance warnings so
+maintainers can source-back them over time without making PR CI flaky.
+
+```bash
+npm run collider:audit:redundancy
+npm run collider:audit:redundancy -- --json
+npm run collider:audit:redundancy -- --max-nodes 3000 --timeout-ms 120000
+npm run collider:audit:redundancy -- --fail-on-anonymous
+```
+
+Failure output names the candidate collider, source ID when available,
+classification, dominating or duplicate collider evidence, and a suggested
+remediation: remove the redundant collider, add missing source metadata, or mark
+the collider with intentional secondary/backstop policy metadata. The gate is
+not a substitute for maintainer judgment on ambiguous collision behavior. Use
+the targeted geometry or reachability audits above when a warning needs deeper
+review.
+
 ## Lightweight collider removal workflow
 
 For a possible removal, keep the review centered on the active source policy:
