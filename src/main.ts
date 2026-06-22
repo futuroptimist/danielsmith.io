@@ -161,6 +161,7 @@ import {
 import {
   applySceneObjectSourceMetadata,
   createSceneObjectDefinitionsById,
+  getSceneObjectColliderSourcePurpose,
   registerSceneObjectColliders,
 } from './scene/level/sceneObjects';
 import type { SceneObjectDefinition } from './scene/level/schema';
@@ -1020,8 +1021,20 @@ const getSceneObjectDefinition = (
   id: string
 ): SceneObjectDefinition | undefined => sceneObjectDefinitionsById.get(id);
 
+const requireSceneObjectDefinition = (id: string): SceneObjectDefinition => {
+  const definition = getSceneObjectDefinition(id);
+  if (!definition) {
+    throw new Error(`Missing scene object definition for ${id}.`);
+  }
+  return definition;
+};
+
+const SELFIE_MIRROR_SCENE_OBJECT_ID = 'selfie-mirror-living-room';
+const SELFIE_MIRROR_SCENE_OBJECT_DEFINITION = requireSceneObjectDefinition(
+  SELFIE_MIRROR_SCENE_OBJECT_ID
+);
 const SELFIE_MIRROR_COLLIDER_SOURCE_ID = assertLevelSourceId(
-  'ground.living_room.selfie_mirror.scene_object'
+  SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.sourceId
 );
 const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');
 
@@ -2050,7 +2063,9 @@ function initializeImmersiveScene(
       sourceType: 'sceneObject',
       intent: 'physical-boundary',
       role: 'selfieMirror',
-      purpose: 'block the visible selfie mirror footprint',
+      purpose: getSceneObjectColliderSourcePurpose(
+        SELFIE_MIRROR_SCENE_OBJECT_DEFINITION
+      ),
       debugId: SELFIE_MIRROR_COLLIDER_DEBUG_ID,
     });
     // Keep 101A source-backed: this collider intentionally blocks the visible

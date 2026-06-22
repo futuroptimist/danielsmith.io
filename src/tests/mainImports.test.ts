@@ -59,20 +59,26 @@ describe('main module imports', () => {
     const source = readMainSource();
 
     expect(source).toContain(
+      "const SELFIE_MIRROR_SCENE_OBJECT_ID = 'selfie-mirror-living-room';"
+    );
+    expect(source).toContain(
       'const SELFIE_MIRROR_COLLIDER_SOURCE_ID = assertLevelSourceId('
     );
-    expect(source).toContain("'ground.living_room.selfie_mirror.scene_object'");
+    expect(source).toContain('SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.sourceId');
     expect(source).toContain(
       "const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');"
     );
-    expect(source).toContain('namedColliderDebugNames.set(');
-    expect(source).toContain("'LivingRoomSelfieMirrorCollider'");
+    expect(source).toContain(
+      "namedColliderDebugNames.set(\n      mirror.collider,\n      'LivingRoomSelfieMirrorCollider'\n    );"
+    );
     expect(source).toContain('colliderSourceMetadata.set(mirror.collider, {');
     expect(source).toContain("sourceType: 'sceneObject',");
     expect(source).toContain("intent: 'physical-boundary',");
     expect(source).toContain("role: 'selfieMirror',");
     expect(source).toContain(
-      "purpose: 'block the visible selfie mirror footprint',"
+      'purpose: getSceneObjectColliderSourcePurpose(\n' +
+        '        SELFIE_MIRROR_SCENE_OBJECT_DEFINITION\n' +
+        '      ),'
     );
     expect(source).toContain('debugId: SELFIE_MIRROR_COLLIDER_DEBUG_ID,');
     expect(source).toContain('Keep 101A source-backed');

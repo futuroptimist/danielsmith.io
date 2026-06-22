@@ -338,6 +338,20 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
       ],
       sceneObjects: [
         sceneObject(
+          'selfie-mirror-living-room',
+          'ground.living_room.selfie_mirror.scene_object',
+          'ground',
+          'decor.selfie_mirror',
+          'livingRoom',
+          { x: 12.8, z: -6.8 },
+          0,
+          'Visible SelfieMirror with one manually registered footprint blocker',
+          {
+            kind: 'custom',
+            purpose: 'block the visible selfie mirror footprint',
+          }
+        ),
+        sceneObject(
           'flywheel-studio-flywheel',
           'ground.studio.flywheel_showpiece.scene_object',
           'ground',
