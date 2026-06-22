@@ -29,16 +29,12 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
+import { getProductionRoomBounds } from '../scene/level/productionLevelFixtures';
+import { assertValidSourceCollisionRecords } from '../scene/level/sourceCollisionValidation';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
-const BACKYARD_BOUNDS = {
-  minX: -10,
-  maxX: 10,
-  minZ: 8,
-  maxZ: 16,
-};
+const BACKYARD_BOUNDS = getProductionRoomBounds('backyard');
 
 function clonePositions(attribute: BufferAttribute): Float32Array {
   return new Float32Array(attribute.array as Float32Array);
@@ -1347,26 +1343,19 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = FLOOR_PLAN.rooms.find(
-      (room) => room.id === 'backyard'
-    )?.bounds;
-    expect(productionBackyardBounds).toBeDefined();
+    const productionBackyardBounds = getProductionRoomBounds('backyard');
     const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds!
+      productionBackyardBounds
     );
-    const productionBackFenceSampleZ = productionBackyardBounds!.maxZ - 1.8;
+    const productionBackFenceSampleZ = productionBackyardBounds.maxZ - 1.8;
     const productionBackFenceSamples = [
       {
-        x:
-          (productionBackyardBounds!.minX + productionBackyardBounds!.maxX) / 2,
+        x: (productionBackyardBounds.minX + productionBackyardBounds.maxX) / 2,
         z: productionBackFenceSampleZ,
       },
       { x: 5, z: productionBackFenceSampleZ },
       { x: -5, z: productionBackFenceSampleZ },
     ];
-    expect(productionBackFenceSamples[1].x).toBe(5);
-    expect(productionBackFenceSamples[1].z).toBeCloseTo(30.2, 5);
-
     expect(
       productionBackFenceSamples.every(
         pointIsBlocked(productionEnvironment.colliders)
@@ -1403,6 +1392,14 @@ describe('createBackyardEnvironment', () => {
       debugId: '1007',
       purpose: expect.stringContaining('hologram barrier'),
     });
+
+    assertValidSourceCollisionRecords(
+      productionEnvironment.colliders.filter(
+        (collider) =>
+          (collider as { sourceType?: string }).sourceType ===
+          'generatedCollider'
+      ) as Parameters<typeof assertValidSourceCollisionRecords>[0]
+    );
 
     const railMaterial = topRailMesh.material as MeshStandardMaterial;
     expect(railMaterial.envMap).toBeTruthy();

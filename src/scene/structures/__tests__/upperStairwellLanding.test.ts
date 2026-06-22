@@ -1,8 +1,11 @@
 import { BoxGeometry, Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { isDebugColliderId } from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
+import {
+  assertValidSourceCollisionPolicies,
+  assertValidSourceCollisionRecords,
+} from '../../level/sourceCollisionValidation';
 import { assertLevelSourceId } from '../../level/sourceIds';
 import {
   UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
@@ -148,6 +151,11 @@ describe('createUpperStairwellLanding', () => {
       'UpperStairwellLandingFarGuard',
       'UpperStairwellLandingShoulderGuard-East',
     ]);
+    assertValidSourceCollisionPolicies(
+      UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES
+    );
+    assertValidSourceCollisionRecords(result.colliders);
+
     expect(result.colliders).toEqual([
       {
         role: 'shoulder-east',
@@ -186,12 +194,6 @@ describe('createUpperStairwellLanding', () => {
       segments: UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
     });
 
-    const explicitDebugIds = result.colliders.flatMap((collider) =>
-      collider.debugId ? [collider.debugId] : []
-    );
-
-    expect(explicitDebugIds.every(isDebugColliderId)).toBe(true);
-    expect(new Set(explicitDebugIds).size).toBe(explicitDebugIds.length);
     result.colliders.forEach((collider) => {
       if (!collider.debugId) return;
       expect(

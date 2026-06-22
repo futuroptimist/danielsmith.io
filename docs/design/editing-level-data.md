@@ -196,3 +196,10 @@ the Futuroptimist media wall declares its wall-mounted visual media policy in
 highlight remain rendered while no floor-level collider is emitted. Emitted
 records should pass that source metadata through to runtime registration directly
 rather than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
+Use the pure validators in `src/scene/level/sourceCollisionValidation.ts` for
+source-owned policy and active-record test coverage instead of repeating bespoke
+shape assertions in each family test. When tests need production room geometry,
+request it by semantic room ID via `getProductionRoomBounds(...)` from
+`src/scene/level/productionLevelFixtures.ts`; this keeps production-coordinate
+regressions tied to `PORTFOLIO_LEVEL` without exposing mutable level internals or
+copying room bounds into fixtures.
