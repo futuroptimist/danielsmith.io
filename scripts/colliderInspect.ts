@@ -43,7 +43,7 @@ const getDimensions = (bounds: RuntimeColliderMetadata['bounds']) => {
   };
 };
 
-const floorsCanOverlap = (left: string, right: string): boolean =>
+export const floorsCanOverlap = (left: string, right: string): boolean =>
   left === right || left === 'all' || right === 'all';
 
 const boundsOverlap = (
@@ -150,7 +150,8 @@ export const toInspectionRecords = (
 const formatBounds = (bounds: RuntimeColliderMetadata['bounds']): string =>
   `x ${bounds.minX}..${bounds.maxX}, z ${bounds.minZ}..${bounds.maxZ}`;
 
-const formatOptional = (value: string | undefined): string => value ?? 'n/a';
+export const formatOptional = (value: string | undefined): string =>
+  value ?? 'n/a';
 
 export const formatInspectionRecords = (
   records: readonly ColliderInspectionRecord[]

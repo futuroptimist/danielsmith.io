@@ -110,6 +110,28 @@ npm run collider:inspect -- --name UpperStairNorthBannisterGuard --json
 
 Set `PLAYWRIGHT_BASE_URL` to reuse an already-running preview or dev server.
 
+## Audit collider geometry from the CLI
+
+When two colliders look redundant, run the opt-in geometry audit against one
+candidate at a time. The audit reuses the same runtime debug collector and
+selector matching as the inspector, then compares only colliders on compatible
+floors and in the same category so unrelated floors do not create false
+evidence. It reports exact duplicates, containment in either direction,
+pairwise overlap percentages, deterministic sample-grid union coverage, and
+nearby edge adjacency. The labels are review evidence only: geometry overlap
+does not prove a collider is safe to delete, especially for outer walls, stair
+safety guards, and secondary backstops that protect traversal edge cases.
+
+```bash
+npm run collider:audit:geometry -- --id 400D
+npm run collider:audit:geometry -- --source-id ground.backyard.perimeter.backFence.boundary
+npm run collider:audit:geometry -- --id 1007 --json
+```
+
+Use `--samples <count>` to tune the deterministic per-axis union-coverage grid
+and `--tolerance <world-units>` to adjust nearby-edge or nearly-identical bounds
+matching. Audit output is not persisted and is not part of required CI.
+
 ## Inspect source IDs in the browser
 
 Launch immersive mode with performance failover disabled:
