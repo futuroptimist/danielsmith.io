@@ -196,3 +196,15 @@ the Futuroptimist media wall declares its wall-mounted visual media policy in
 highlight remain rendered while no floor-level collider is emitted. Emitted
 records should pass that source metadata through to runtime registration directly
 rather than rebuilding source IDs, purposes, or debug IDs in `src/main.ts`.
+
+Regression tests for migrated collider families should reuse the pure validators
+in `src/scene/level/colliderDeclarationContracts.ts` instead of copying policy
+shape checks into each suite. Keep family expectations focused on meaningful
+behavior: physical-boundary families should prove their semantic records are
+emitted, visual-only policies should prove no collider is emitted, and synthetic
+generator tests may keep exact geometry when the numbers are local fixtures.
+Tests that need production room or floor bounds should request them from
+`src/tests/helpers/productionLevelTestHelpers.ts`, which clones the canonical
+`PORTFOLIO_LEVEL` data by semantic ID and throws when an ID is missing. Avoid
+proportional scaling or repeated production coordinate literals in regression
+tests.

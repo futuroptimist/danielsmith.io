@@ -29,9 +29,11 @@ import {
   type SpyInstance,
 } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
 import { createBackyardEnvironment } from '../scene/environments/backyard';
+import { validateActiveSourceColliderRecords } from '../scene/level/colliderDeclarationContracts';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
+
+import { getProductionRoomBounds } from './helpers/productionLevelTestHelpers';
 
 const BACKYARD_BOUNDS = {
   minX: -10,
@@ -1347,25 +1349,32 @@ describe('createBackyardEnvironment', () => {
       true
     );
 
-    const productionBackyardBounds = FLOOR_PLAN.rooms.find(
-      (room) => room.id === 'backyard'
-    )?.bounds;
-    expect(productionBackyardBounds).toBeDefined();
+    const productionBackyardBounds = getProductionRoomBounds('backyard');
     const productionEnvironment = createBackyardEnvironment(
-      productionBackyardBounds!
+      productionBackyardBounds
     );
-    const productionBackFenceSampleZ = productionBackyardBounds!.maxZ - 1.8;
+    expect(() =>
+      validateActiveSourceColliderRecords(
+        productionEnvironment.colliders.filter((collider) =>
+          String((collider as { sourceId?: string }).sourceId ?? '').startsWith(
+            'ground.backyard.'
+          )
+        ) as Parameters<typeof validateActiveSourceColliderRecords>[0]
+      )
+    ).not.toThrow();
+    const productionBackFenceSampleZ = productionBackyardBounds.maxZ - 1.8;
     const productionBackFenceSamples = [
       {
-        x:
-          (productionBackyardBounds!.minX + productionBackyardBounds!.maxX) / 2,
+        x: (productionBackyardBounds.minX + productionBackyardBounds.maxX) / 2,
         z: productionBackFenceSampleZ,
       },
       { x: 5, z: productionBackFenceSampleZ },
       { x: -5, z: productionBackFenceSampleZ },
     ];
     expect(productionBackFenceSamples[1].x).toBe(5);
-    expect(productionBackFenceSamples[1].z).toBeCloseTo(30.2, 5);
+    expect(productionBackFenceSamples[1].z).toBe(
+      productionBackyardBounds.maxZ - 1.8
+    );
 
     expect(
       productionBackFenceSamples.every(

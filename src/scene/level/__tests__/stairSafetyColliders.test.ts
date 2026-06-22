@@ -5,11 +5,9 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from '../../../systems/movement/stairs';
-import {
-  assertDebugColliderIdsDoNotCollide,
-  isDebugColliderId,
-} from '../../debug/colliderDebugIds';
+import { assertDebugColliderIdsDoNotCollide } from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
+import { validateActiveSourceColliderRecords } from '../colliderDeclarationContracts';
 import {
   createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
@@ -98,30 +96,18 @@ describe('stair safety collider source definitions', () => {
     });
   });
 
-  it('assigns every safety collider a source ID and purpose without duplicates', () => {
+  it('satisfies the shared active source-backed collider contract', () => {
     const colliders = collectSafetyColliders();
-    const sourceIds = colliders.map((collider) => String(collider.sourceId));
 
-    expect(
-      colliders.every(
-        (collider) => collider.sourceId && collider.purpose.trim()
-      )
-    ).toBe(true);
-    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    expect(() => validateActiveSourceColliderRecords(colliders)).not.toThrow();
   });
 
-  it('keeps active safety collider debug IDs valid, unique, and collision-free', () => {
+  it('keeps active safety collider debug IDs collision-free', () => {
     const colliders = collectSafetyColliders();
     const declaredIds = colliders.map(
       (collider) => [collider.name, collider.debugId] as const
     );
 
-    colliders.forEach((collider) => {
-      expect(isDebugColliderId(collider.debugId)).toBe(true);
-    });
-    expect(new Set(colliders.map((collider) => collider.debugId)).size).toBe(
-      colliders.length
-    );
     expect(() => assertDebugColliderIdsDoNotCollide(declaredIds)).not.toThrow();
   });
 

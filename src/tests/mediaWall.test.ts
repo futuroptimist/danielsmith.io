@@ -8,6 +8,7 @@ import {
   vi,
 } from 'vitest';
 
+import { validateSourceCollisionPolicy } from '../scene/level/colliderDeclarationContracts';
 import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../scene/level/mediaWallPolicy';
 import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
 
@@ -172,6 +173,9 @@ describe('createLivingRoomMediaWall', () => {
   });
 
   it('declares the media POI as an active visual-only source policy', () => {
+    expect(() =>
+      validateSourceCollisionPolicy(FUTUROPTIMIST_MEDIA_WALL_POLICY)
+    ).not.toThrow();
     expect(FUTUROPTIMIST_MEDIA_WALL_POLICY).toMatchObject({
       role: 'living-room-futuroptimist-media',
       subsystemRole: 'poi-media-wall',
