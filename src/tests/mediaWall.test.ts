@@ -12,6 +12,8 @@ import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../scene/level/mediaWallPolicy'
 import { validateSourceCollisionPolicy } from '../scene/level/sourceCollisionValidation';
 import { createLivingRoomMediaWall } from '../scene/structures/mediaWall';
 
+import { getProductionRoomBounds } from './helpers/productionLevelFixtures';
+
 describe('createLivingRoomMediaWall', () => {
   type CapturingContext = CanvasRenderingContext2D & {
     fillTextCalls: Array<{ text: string; x: number; y: number }>;
@@ -78,7 +80,7 @@ describe('createLivingRoomMediaWall', () => {
   });
 
   it('includes a TV screen with YouTube text and exposes POI bindings', () => {
-    const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
+    const bounds = getProductionRoomBounds('ground', 'livingRoom');
     const build = createLivingRoomMediaWall(bounds);
 
     const screen = build.group.getObjectByName('LivingRoomMediaWallScreen');
@@ -190,7 +192,7 @@ describe('createLivingRoomMediaWall', () => {
   });
 
   it('keeps the visual media POI visible without emitting floor colliders', () => {
-    const bounds = { minX: -16, maxX: 16, minZ: -16, maxZ: -4 };
+    const bounds = getProductionRoomBounds('ground', 'livingRoom');
     const build = createLivingRoomMediaWall(bounds);
 
     expect(build.policy).toBe(FUTUROPTIMIST_MEDIA_WALL_POLICY);

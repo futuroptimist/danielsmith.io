@@ -25,10 +25,8 @@ export type SourceCollisionRecord<Role extends string = string> =
   | (RectCollider &
       Omit<SourceBackedCollider<Role, LevelSourceId, string>, 'bounds'>);
 
-export interface SourceCollisionValidationOptions<
-  Role extends string = string,
-> {
-  multiBoundRoles?: ReadonlySet<Role> | readonly Role[];
+export interface SourceCollisionValidationOptions {
+  allowMultipleBoundsFor?: ReadonlySet<string> | readonly string[];
 }
 
 const isNonEmpty = (value: unknown): value is string =>
@@ -58,9 +56,10 @@ const describeRecord = (
 const getRecordBounds = (record: SourceCollisionRecord): RectCollider =>
   'bounds' in record ? record.bounds : record;
 
-const getMultiBoundRoles = <Role extends string>(
-  roles: SourceCollisionValidationOptions<Role>['multiBoundRoles']
-): ReadonlySet<Role> => (roles instanceof Set ? roles : new Set(roles ?? []));
+const getAllowMultipleBoundsFor = (
+  families: SourceCollisionValidationOptions['allowMultipleBoundsFor']
+): ReadonlySet<string> =>
+  families instanceof Set ? families : new Set(families ?? []);
 
 const usesForbiddenSourceIdPart = (sourceId: string): boolean =>
   sourceId
@@ -154,12 +153,14 @@ const validateBounds = (
 
 export const validateSourceCollisionRecords = <Role extends string>(
   records: readonly SourceCollisionRecord<Role>[],
-  options: SourceCollisionValidationOptions<Role> = {}
+  options: SourceCollisionValidationOptions = {}
 ): string[] => {
   const errors: string[] = [];
   const debugIds = new Map<string, string>();
   const sourceRolePairs = new Map<string, string>();
-  const multiBoundRoles = getMultiBoundRoles(options.multiBoundRoles);
+  const allowMultipleBoundsFor = getAllowMultipleBoundsFor(
+    options.allowMultipleBoundsFor
+  );
 
   for (const record of records) {
     const owner = describeRecord(record);
@@ -202,9 +203,10 @@ export const validateSourceCollisionRecords = <Role extends string>(
       debugIds.set(record.debugId, owner);
     }
 
+    const sourceRoleFamily = `${record.sourceId}::${record.role}`;
     const sourceRoleKey = `${record.sourceId}\u0000${record.role}`;
     const existing = sourceRolePairs.get(sourceRoleKey);
-    if (existing && !multiBoundRoles.has(record.role)) {
+    if (existing && !allowMultipleBoundsFor.has(sourceRoleFamily)) {
       errors.push(
         `Duplicate active source/role ${owner}; already used by ${existing}.`
       );
