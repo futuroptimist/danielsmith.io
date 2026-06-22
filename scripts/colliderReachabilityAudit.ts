@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import type { Page } from '@playwright/test';
 
 import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../src/scene/level/mediaWallPolicy';
+import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from '../src/scene/level/upperStairwellLandingSegments';
 
 import { auditColliderGeometry } from './colliderGeometryAudit';
 import {
@@ -72,14 +73,21 @@ export type ColliderReachabilityAuditReport = {
   note: string;
 };
 
-const round = (value: number) => Number(value.toFixed(3));
+const SOURCE_COLLISION_POLICIES = [
+  FUTUROPTIMIST_MEDIA_WALL_POLICY,
+  ...UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES,
+];
 
-const VISUAL_ONLY_POLICIES = [FUTUROPTIMIST_MEDIA_WALL_POLICY].map(
-  (policy) => ({
-    sourceId: policy.sourceId,
-    collision: policy.collision.collision,
-    rationale: policy.collision.rationale,
-  })
+const VISUAL_ONLY_POLICIES = SOURCE_COLLISION_POLICIES.flatMap((policy) =>
+  policy.collision.collision === 'none'
+    ? [
+        {
+          sourceId: policy.sourceId,
+          collision: policy.collision.collision,
+          rationale: policy.collision.rationale,
+        },
+      ]
+    : []
 );
 
 export const parseColliderReachabilityAuditArgs = (
@@ -205,7 +213,8 @@ const runRuntimeApproaches = async (
       const floorId = (
         nextCandidate.floor === 'upper' ? 'upper' : 'ground'
       ) as FloorId;
-      const radius = 0.38;
+      const playerRadius = 0.75;
+      const radius = playerRadius;
       const center = {
         x: (nextCandidate.bounds.minX + nextCandidate.bounds.maxX) / 2,
         z: (nextCandidate.bounds.minZ + nextCandidate.bounds.maxZ) / 2,
@@ -241,6 +250,22 @@ const runRuntimeApproaches = async (
         { x: 0, z: -23 },
         { x: 12.4, z: -25.2 },
       ];
+      for (let x = center.x - 10; x <= center.x + 10; x += gridResolution * 2) {
+        for (
+          let z = center.z - 10;
+          z <= center.z + 10;
+          z += gridResolution * 2
+        ) {
+          const candidateStart = {
+            x: Number(x.toFixed(3)),
+            z: Number(z.toFixed(3)),
+            floorId,
+          };
+          if (world.canOccupyPosition(candidateStart)) {
+            startCandidates.push(candidateStart);
+          }
+        }
+      }
       const starts = startCandidates
         .map((start) => ({ x: start.x, z: start.z, floorId }))
         .filter(
@@ -290,8 +315,8 @@ const runRuntimeApproaches = async (
             [0, -gridResolution],
           ]) {
             const next = {
-              x: round(node.x + dx),
-              z: round(node.z + dz),
+              x: Number((node.x + dx).toFixed(3)),
+              z: Number((node.z + dz).toFixed(3)),
               floorId,
             };
             const nextKey = key(next.x, next.z);
@@ -309,8 +334,7 @@ const runRuntimeApproaches = async (
       };
       const confirm = (
         start: { x: number; z: number; floorId: FloorId },
-        path: Array<{ x: number; z: number }>,
-        sample: { x: number; z: number }
+        path: Array<{ x: number; z: number }>
       ) => {
         world.movePlayerTo(start);
         const waypoints = [...path, center];
@@ -322,17 +346,17 @@ const runRuntimeApproaches = async (
             if (Math.hypot(remainingX, remainingZ) < 0.03) break;
             const length = Math.max(0.001, Math.hypot(remainingX, remainingZ));
             const amount = Math.min(0.16, length);
-            const result = world.stepPlayerForTest({
-              dx: (remainingX / length) * amount,
-              dz: (remainingZ / length) * amount,
-            });
+            const dx = (remainingX / length) * amount;
+            const dz = (remainingZ / length) * amount;
+            const result = world.stepPlayerForTest({ dx, dz });
             const blocked = result.blockedBy ?? [];
             if (blocked.length > 0 || (!result.movedX && !result.movedZ)) {
-              const atPoint = debug.getBlockingCollidersAt({
-                x: sample.x,
-                z: sample.z,
-                floorId,
-              });
+              const afterStep = world.getPlayerPosition();
+              const probe =
+                result.movedX || result.movedZ
+                  ? { x: afterStep.x + dx, z: afterStep.z + dz, floorId }
+                  : { x: position.x + dx, z: position.z + dz, floorId };
+              const atPoint = debug.getBlockingCollidersAt(probe);
               return {
                 blockers: blocked,
                 blockerSourceIds: atPoint
@@ -363,9 +387,12 @@ const runRuntimeApproaches = async (
               z: Number(sample.z.toFixed(3)),
               floorId,
             },
-            status: blockers.some((blocker) => blocker.id === nextCandidate.id)
-              ? 'candidate-first'
-              : 'blocked-by-other',
+            status:
+              blockers.length === 0
+                ? 'unreachable'
+                : blockers.some((blocker) => blocker.id === nextCandidate.id)
+                  ? 'candidate-first'
+                  : 'blocked-by-other',
             blockers: blockers.map((blocker) => blocker.id),
             blockerSourceIds: blockers
               .map((blocker) => blocker.sourceId)
@@ -394,12 +421,20 @@ const runRuntimeApproaches = async (
             };
             continue;
           }
-          const blocked = confirm(start, found.path, sample);
-          const status = blocked.blockers.includes(nextCandidate.id)
-            ? 'candidate-first'
-            : blocked.blockers.length > 0
-              ? 'blocked-by-other'
-              : 'ambiguous';
+          const blocked = confirm(start, found.path);
+          const candidateRefs = [
+            nextCandidate.id,
+            nextCandidate.name,
+            nextCandidate.sourceId,
+          ].filter(Boolean);
+          const status =
+            blocked.blockers.some((blocker) =>
+              candidateRefs.includes(blocker)
+            ) || blocked.blockerSourceIds.includes(nextCandidate.sourceId ?? '')
+              ? 'candidate-first'
+              : blocked.blockers.length > 0
+                ? 'blocked-by-other'
+                : 'ambiguous';
           best = {
             direction: sample.direction,
             sample: {
@@ -473,6 +508,18 @@ export const auditColliderReachability = async (
   return withRuntimePage(
     { baseUrl, timeoutMs: options.timeoutMs },
     async (page) => {
+      await page.waitForFunction(
+        () => {
+          const api = (
+            window as typeof window & {
+              portfolio?: { debugColliders?: { getColliders(): unknown[] } };
+            }
+          ).portfolio?.debugColliders;
+          return Boolean(api && api.getColliders().length > 0);
+        },
+        undefined,
+        { timeout: options.timeoutMs }
+      );
       const colliders = await page.evaluate(() => {
         const api = (
           window as typeof window & {
@@ -503,10 +550,18 @@ export const auditColliderReachability = async (
           candidate,
           approaches: runtime.approaches,
         });
-        const blockerIds = new Set(
+        const blockerRefs = new Set(
           runtime.approaches
-            .flatMap((approach) => approach.blockers)
-            .filter((id) => id !== candidate.id)
+            .flatMap((approach) => [
+              ...approach.blockers,
+              ...approach.blockerSourceIds,
+            ])
+            .filter(
+              (id) =>
+                id !== candidate.id &&
+                id !== candidate.sourceId &&
+                id !== candidate.name
+            )
         );
         reports.push({
           candidate,
@@ -519,7 +574,12 @@ export const auditColliderReachability = async (
           },
           approaches: runtime.approaches,
           dominatingColliders: colliders
-            .filter((collider) => blockerIds.has(collider.id))
+            .filter(
+              (collider) =>
+                blockerRefs.has(collider.id) ||
+                blockerRefs.has(collider.name) ||
+                blockerRefs.has(collider.sourceId ?? '')
+            )
             .map(({ id, sourceId, name }) => ({ id, sourceId, name })),
           staticEvidence: auditColliderGeometry(colliders, {
             query: { kind: 'id', value: candidate.id },
