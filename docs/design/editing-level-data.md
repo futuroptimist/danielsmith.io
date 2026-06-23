@@ -229,6 +229,11 @@ Then search the source tree by the reported `sourceId` first, or by runtime
 factory or push site that generated the collider and add source metadata before
 using the audits to justify removal.
 
+```bash
+git grep -n "<reported sourceId>" -- src docs scripts
+git grep -n "<reported runtime name>" -- src docs scripts
+```
+
 Decision guide:
 
 - If geometry says `isolated` and reachability says `ambiguous`, do not remove
