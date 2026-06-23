@@ -357,47 +357,17 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'ground',
           'showpiece.flywheel',
           'studio',
-          { x: 5.5, z: -2 },
+          { x: 9.035, y: 0.75, z: 0.745 },
           0,
           'POI showpiece and info panel with factory-owned solid colliders'
         ),
         sceneObject(
-          'jobbot-studio-terminal',
-          'ground.studio.jobbot_terminal.scene_object',
-          'ground',
-          'showpiece.jobbot_terminal',
-          'studio',
-          { x: 12, z: 2 },
-          -Math.PI / 2,
-          'POI terminal with factory-owned desk collider'
-        ),
-        sceneObject(
-          'axel-studio-tracker',
-          'ground.studio.axel_navigator.scene_object',
-          'ground',
-          'showpiece.axel_navigator',
-          'studio',
-          { x: 10, z: -2 },
-          Math.PI,
-          'POI navigator with factory-owned dais and console colliders'
-        ),
-        sceneObject(
-          'wove-kitchen-loom',
-          'ground.kitchen.wove_loom.scene_object',
-          'ground',
-          'showpiece.wove_loom',
-          'kitchen',
-          { x: -7.5, z: 2.5 },
-          Math.PI * 0.45,
-          'POI tactile loom with factory-owned table and loom colliders'
-        ),
-        sceneObject(
           'pr-reaper-backyard-console',
-          'ground.backyard.pr_reaper_console.scene_object',
+          'ground.studio.pr_reaper_console.scene_object',
           'ground',
           'showpiece.pr_reaper_console',
-          'backyard',
-          { x: 0, z: 10 },
+          'studio',
+          { x: 1.5, y: 0.75, z: 0.525 },
           Math.PI * 0.35,
           'Backyard POI console with factory-owned deck and console colliders'
         ),
@@ -623,6 +593,38 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           6,
           14,
           ['focusPods']
+        ),
+      ],
+      sceneObjects: [
+        sceneObject(
+          'jobbot-studio-terminal',
+          'upper.creators_studio.jobbot_terminal.scene_object',
+          'upper',
+          'showpiece.jobbot_terminal',
+          'creatorsStudio',
+          { x: -8.38, y: 4.91, z: -14.4 },
+          -Math.PI / 2,
+          'POI terminal with factory-owned desk collider'
+        ),
+        sceneObject(
+          'axel-studio-tracker',
+          'upper.creators_studio.axel_navigator.scene_object',
+          'upper',
+          'showpiece.axel_navigator',
+          'creatorsStudio',
+          { x: -6.21, y: 4.91, z: -9.59 },
+          Math.PI,
+          'POI navigator with factory-owned dais and console colliders'
+        ),
+        sceneObject(
+          'wove-kitchen-loom',
+          'upper.loft_library.wove_loom.scene_object',
+          'upper',
+          'showpiece.wove_loom',
+          'loftLibrary',
+          { x: 8.24, y: 4.91, z: 2.135 },
+          Math.PI * 0.45,
+          'POI tactile loom with factory-owned table and loom colliders'
         ),
       ],
       roomConnections: [

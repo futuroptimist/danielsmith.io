@@ -61,38 +61,45 @@ export const MANUAL_POI_PLACEMENTS: Partial<
     }
   >
 > = {
-  // Living room (center-biased spread)
-  'gitshelves-living-room-installation': {
+  'futuroptimist-living-room-tv': {
     roomId: 'livingRoom',
-    position: { x: -15, z: -25 },
-    headingRadians: Math.PI * 0.1,
-  },
-  'danielsmith-portfolio-table': {
-    roomId: 'livingRoom',
-    position: { x: 3, z: -28 },
-    headingRadians: 0,
-  },
-  'gabriel-studio-sentry': {
-    roomId: 'studio',
-    position: { x: 2, z: 8 },
-    headingRadians: -Math.PI * 0.3,
+    position: { x: -31.68, y: 0.75, z: -24 },
+    headingRadians: Math.PI * 0.5,
   },
   'tokenplace-studio-cluster': {
-    roomId: 'studio',
-    position: { x: 6, z: 2 },
+    roomId: 'livingRoom',
+    position: { x: -22.34, y: 0.75, z: -22.61 },
     headingRadians: Math.PI * 0.05,
   },
-
-  // Kitchen (three exhibits around center)
-  'f2clipboard-kitchen-console': {
+  'sugarkube-backyard-greenhouse': {
+    roomId: 'livingRoom',
+    position: { x: -8.74, y: 0.75, z: -22.92 },
+    headingRadians: Math.PI * 0.55,
+  },
+  'danielsmith-portfolio-table': {
     roomId: 'kitchen',
-    position: { x: -20, z: -4 },
+    position: { x: -21.6, y: 0.75, z: 1.63 },
+    headingRadians: 0,
+  },
+  'f2clipboard-kitchen-console': {
+    roomId: 'focusPods',
+    position: { x: -0.63, y: 4.91, z: 14.03 },
     headingRadians: Math.PI * 0.5,
   },
   'sigma-kitchen-workbench': {
-    roomId: 'kitchen',
-    position: { x: -25, z: 6 },
+    roomId: 'focusPods',
+    position: { x: 16.59, y: 4.91, z: 17.66 },
     headingRadians: Math.PI * 0.1,
+  },
+  'gitshelves-living-room-installation': {
+    roomId: 'focusPods',
+    position: { x: -16.87, y: 4.91, z: 17.23 },
+    headingRadians: Math.PI * 0.1,
+  },
+  'gabriel-studio-sentry': {
+    roomId: 'creatorsStudio',
+    position: { x: -17.28, y: 4.91, z: -7.02 },
+    headingRadians: -Math.PI * 0.3,
   },
 };
 
