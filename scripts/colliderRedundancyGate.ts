@@ -124,11 +124,31 @@ const hasExplicitRuntimeIdentity = (
   collider: RuntimeColliderMetadata
 ): boolean => collider.debugId === collider.id;
 
+const hasSourceBackedGeneratedWallIdentity = (
+  collider: RuntimeColliderMetadata
+): boolean => {
+  if (collider.sourceType !== 'wall' || typeof collider.sourceId !== 'string') {
+    return false;
+  }
+  if (collider.floor !== 'ground' && collider.floor !== 'upper') {
+    return false;
+  }
+  const expectedPrefix =
+    collider.floor === 'upper' ? 'UpperWallCollider:' : 'GroundWallCollider:';
+  return collider.name === `${expectedPrefix}${collider.sourceId}`;
+};
+
+const hasAuditableRuntimeIdentity = (
+  collider: RuntimeColliderMetadata
+): boolean =>
+  hasExplicitRuntimeIdentity(collider) ||
+  hasSourceBackedGeneratedWallIdentity(collider);
+
 const isConcreteSourceBacked = (collider: RuntimeColliderMetadata): boolean =>
   isSourceBacked(collider) && hasExplicitRuntimeIdentity(collider);
 
 const isAnonymousGenerated = (collider: RuntimeColliderMetadata): boolean =>
-  !isSourceBacked(collider) || !hasExplicitRuntimeIdentity(collider);
+  !isSourceBacked(collider) || !hasAuditableRuntimeIdentity(collider);
 
 const isIntentionalException = (collider: RuntimeColliderMetadata): boolean =>
   INTENTIONAL_NON_REDUNDANT_INTENTS.has(collider.intent ?? '');
@@ -179,10 +199,10 @@ export const evaluateColliderRedundancy = (
         collider: candidate,
         classification: 'anonymous-generated',
         evidence:
-          'Collider is missing source metadata or uses a generated runtime ID.',
+          'Collider is missing source metadata or uses an anonymous generated runtime identity.',
         dominatingColliders: [],
         remediation:
-          'Add sourceId/debugId metadata so future audits can distinguish intentional colliders from generated runtime records.',
+          'Add sourceId/debugId metadata or a source-backed generated wall identity so future audits can distinguish intentional colliders from anonymous runtime records.',
       });
     }
 

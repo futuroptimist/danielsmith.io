@@ -193,6 +193,56 @@ describe('evaluateColliderRedundancy', () => {
     ]);
   });
 
+  it('treats source-backed generated wall names as auditable identities', () => {
+    const report = evaluateColliderRedundancy(
+      [
+        collider({
+          id: 'ABC123',
+          debugId: undefined,
+          floor: 'ground',
+          name: 'GroundWallCollider:ground.living_room.south_wall',
+          sourceId: 'ground.living_room.south_wall',
+          sourceType: 'wall',
+        }),
+        collider({
+          id: 'DEF456',
+          debugId: undefined,
+          floor: 'upper',
+          name: 'UpperWallCollider:upper.focus_pods.north_wall',
+          sourceId: 'upper.focus_pods.north_wall',
+          sourceType: 'wall',
+        }),
+      ],
+      options
+    );
+
+    expect(report.findings).toEqual([]);
+  });
+
+  it('keeps ambiguous generated wall names as anonymous warnings', () => {
+    const report = evaluateColliderRedundancy(
+      [
+        collider({
+          id: '1008',
+          debugId: undefined,
+          floor: 'ground',
+          name: 'ground-collider-8',
+          sourceId: 'ground.living_room.south_wall',
+          sourceType: 'wall',
+        }),
+      ],
+      options
+    );
+
+    expect(report.findings).toMatchObject([
+      {
+        severity: 'warning',
+        classification: 'anonymous-generated',
+        collider: { id: '1008' },
+      },
+    ]);
+  });
+
   it('can opt in to failing anonymous generated colliders', () => {
     const report = evaluateColliderRedundancy(
       [collider({ id: 'ANON', debugId: undefined, sourceId: undefined })],
