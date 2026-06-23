@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN, FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
 import {
@@ -10,6 +10,16 @@ import {
 } from '../scene/poi/validation';
 
 const baseDefinitions = getPoiDefinitions();
+const productionFloorPlans = FLOOR_PLAN_LEVELS.map((level) => ({
+  id: level.id,
+  plan: level.plan,
+}));
+
+const validationOptions = {
+  floorPlan: FLOOR_PLAN,
+  floorPlans: productionFloorPlans,
+};
+
 const livingRoomBounds = FLOOR_PLAN.rooms.find(
   (room) => room.id === baseDefinitions[0].roomId
 )!.bounds;
@@ -30,9 +40,7 @@ function clonePoi(overrides: Partial<PoiDefinition>): PoiDefinition {
 
 describe('validatePoiDefinitions', () => {
   it('returns no issues for baseline registry', () => {
-    const issues = validatePoiDefinitions(baseDefinitions, {
-      floorPlan: FLOOR_PLAN,
-    });
+    const issues = validatePoiDefinitions(baseDefinitions, validationOptions);
     expect(issues).toHaveLength(0);
   });
 
@@ -41,9 +49,10 @@ describe('validatePoiDefinitions', () => {
       ...baseDefinitions[1],
       summary: 'Duplicate entry for testing.',
     };
-    const issues = validatePoiDefinitions([...baseDefinitions, duplicate], {
-      floorPlan: FLOOR_PLAN,
-    });
+    const issues = validatePoiDefinitions(
+      [...baseDefinitions, duplicate],
+      validationOptions
+    );
     expect(issues).toContainEqual({
       type: 'duplicate-id',
       poiId: duplicate.id,
@@ -100,9 +109,10 @@ describe('validatePoiDefinitions', () => {
         z: livingRoomBounds.minZ + 2,
       },
     });
-    const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
-      floorPlan: FLOOR_PLAN,
-    });
+    const issues = validatePoiDefinitions(
+      [...baseDefinitions, poiA, poiB],
+      validationOptions
+    );
     expect(issues).toContainEqual({
       type: 'overlap',
       poiId: poiA.id,
@@ -121,9 +131,10 @@ describe('validatePoiDefinitions', () => {
       footprint: { width: 3.2, depth: 2.4 },
     });
 
-    const issues = validatePoiDefinitions([...baseDefinitions, doorwayPoi], {
-      floorPlan: FLOOR_PLAN,
-    });
+    const issues = validatePoiDefinitions(
+      [...baseDefinitions, doorwayPoi],
+      validationOptions
+    );
 
     expect(issues).toContainEqual({
       type: 'doorway-blocked',
@@ -159,9 +170,10 @@ describe('validatePoiDefinitions', () => {
       interactionRadius: 2,
     });
 
-    const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
-      floorPlan: FLOOR_PLAN,
-    });
+    const issues = validatePoiDefinitions(
+      [...baseDefinitions, poiA, poiB],
+      validationOptions
+    );
 
     expect(issues).toContainEqual({
       type: 'overlap',
@@ -187,8 +199,8 @@ describe('validatePoiDefinitions', () => {
         z: livingRoomBounds.minZ + 4,
       },
     });
-    const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
-      floorPlan: FLOOR_PLAN,
+    const issues = validatePoiDefinitions([poiA, poiB], {
+      ...validationOptions,
       allowOverlapFor: [poiA.id, poiB.id],
     });
     expect(issues.every((issue) => issue.type !== 'overlap')).toBe(true);
@@ -243,11 +255,11 @@ describe('assertValidPoiDefinitions', () => {
     ];
 
     expect(() =>
-      assertValidPoiDefinitions(problematicList, { floorPlan: FLOOR_PLAN })
+      assertValidPoiDefinitions(problematicList, validationOptions)
     ).toThrowError(/Duplicate POI id detected/);
 
     try {
-      assertValidPoiDefinitions(problematicList, { floorPlan: FLOOR_PLAN });
+      assertValidPoiDefinitions(problematicList, validationOptions);
     } catch (error) {
       if (error instanceof Error) {
         expect(error.message).toContain('unknown room');

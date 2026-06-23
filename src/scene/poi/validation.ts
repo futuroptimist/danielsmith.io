@@ -26,13 +26,16 @@ export type PoiValidationIssue =
 
 export interface PoiValidationOptions {
   floorPlan: FloorPlanDefinition;
+  floorPlans?: ReadonlyArray<{ id: string; plan: FloorPlanDefinition }>;
   /** Optional epsilon for floating point comparisons. */
   epsilon?: number;
   /** Allow small overlaps when POIs are conceptually the same exhibit. */
   allowOverlapFor?: PoiId[];
 }
 
-const defaultOptions: Required<Omit<PoiValidationOptions, 'floorPlan'>> = {
+const defaultOptions: Required<
+  Omit<PoiValidationOptions, 'floorPlan' | 'floorPlans'>
+> = {
   epsilon: 1e-4,
   allowOverlapFor: [],
 };
@@ -57,23 +60,30 @@ export function validatePoiDefinitions(
   definitions: PoiDefinition[],
   options: PoiValidationOptions
 ): PoiValidationIssue[] {
-  const { floorPlan } = options;
+  const floorPlans = options.floorPlans ?? [
+    { id: 'ground', plan: options.floorPlan },
+  ];
   const { epsilon, allowOverlapFor } = { ...defaultOptions, ...options };
 
   const issues: PoiValidationIssue[] = [];
   const seen = new Map<PoiId, PoiDefinition>();
-  const roomLookup = new Map(floorPlan.rooms.map((room) => [room.id, room]));
-  const clearances = getDoorwayClearanceZones(floorPlan);
-  const clearancesByRoom = new Map<string, DoorwayClearanceZone[]>(
-    floorPlan.rooms.map((room) => [room.id, []])
-  );
-  clearances.forEach((zone) => {
-    const list = clearancesByRoom.get(zone.roomId);
-    if (list) {
-      list.push(zone);
-    } else {
-      clearancesByRoom.set(zone.roomId, [zone]);
-    }
+  const roomLookup = new Map<string, FloorPlanDefinition['rooms'][number]>();
+  const roomFloorIds = new Map<string, string>();
+  const clearancesByRoom = new Map<string, DoorwayClearanceZone[]>();
+  floorPlans.forEach(({ id, plan }) => {
+    plan.rooms.forEach((room) => {
+      roomLookup.set(room.id, room);
+      roomFloorIds.set(room.id, id);
+      clearancesByRoom.set(room.id, []);
+    });
+    getDoorwayClearanceZones(plan).forEach((zone) => {
+      const list = clearancesByRoom.get(zone.roomId);
+      if (list) {
+        list.push(zone);
+      } else {
+        clearancesByRoom.set(zone.roomId, [zone]);
+      }
+    });
   });
 
   definitions.forEach((definition) => {
@@ -149,6 +159,10 @@ export function validatePoiDefinitions(
       if (!b) continue;
 
       if (allowOverlapSet.has(a.id) && allowOverlapSet.has(b.id)) {
+        continue;
+      }
+
+      if (roomFloorIds.get(a.roomId) !== roomFloorIds.get(b.roomId)) {
         continue;
       }
 

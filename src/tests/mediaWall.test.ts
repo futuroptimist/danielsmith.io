@@ -174,6 +174,31 @@ describe('createLivingRoomMediaWall', () => {
     expect(() => build.controller.dispose()).not.toThrow();
   });
 
+  it('centers the TV on the derived living-room west wall bay', () => {
+    const bounds = getProductionRoomBounds('ground', 'livingRoom');
+    const build = createLivingRoomMediaWall(bounds);
+    const screen = build.group.getObjectByName('LivingRoomMediaWallScreen');
+    const clearance = build.group.getObjectByName(
+      'LivingRoomMediaWallClearance'
+    );
+
+    if (!screen || !clearance) {
+      throw new Error('Missing media wall screen or clearance anchor');
+    }
+
+    const expectedInteriorX = bounds.minX + 0.12;
+    const expectedBayCenterZ = Math.max(
+      bounds.minZ + 3,
+      Math.min(-14.2, bounds.maxZ - 3)
+    );
+
+    expect(screen.position.x).toBeCloseTo(expectedInteriorX + 0.2, 2);
+    expect(screen.position.z).toBeCloseTo(expectedBayCenterZ, 2);
+    expect(screen.rotation.y).toBeCloseTo(Math.PI / 2, 6);
+    expect(clearance.position.x).toBeGreaterThan(expectedInteriorX + 0.18);
+    expect(clearance.position.z).toBeCloseTo(expectedBayCenterZ, 2);
+  });
+
   it('declares the media POI as an active visual-only source policy', () => {
     expect(FUTUROPTIMIST_MEDIA_WALL_POLICY).toMatchObject({
       role: 'living-room-futuroptimist-media',

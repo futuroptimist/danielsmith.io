@@ -45,7 +45,7 @@ const createCanvasContext = (
   } as unknown as CanvasRenderingContext2D;
 };
 
-let getContextSpy: ReturnType<typeof vi.spyOn>;
+let getContextSpy: { mockRestore: () => void };
 
 beforeAll(() => {
   getContextSpy = vi
@@ -66,7 +66,7 @@ afterAll(() => {
 const definitionsById = createSceneObjectDefinitionsById(PORTFOLIO_LEVEL);
 
 type MigratedFactoryPlacement = {
-  position: { x: number; z: number };
+  position: { x: number; y?: number; z: number };
   orientation: number;
 };
 
@@ -81,7 +81,7 @@ type MigratedFactory = {
 const migratedFactories = [
   {
     id: 'flywheel-studio-flywheel',
-    placement: { position: { x: 5.5, z: -2 }, orientation: 0 },
+    placement: { position: { x: 9.035, y: 0.75, z: 0.745 }, orientation: 0 },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createFlywheelShowpiece({
         centerX: position.x,
@@ -92,37 +92,49 @@ const migratedFactories = [
   },
   {
     id: 'jobbot-studio-terminal',
-    placement: { position: { x: 12, z: 2 }, orientation: -Math.PI / 2 },
+    placement: {
+      position: { x: -8.38, y: 4.91, z: -14.4 },
+      orientation: -Math.PI / 2,
+    },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createJobbotTerminal({
-        position: { x: position.x, y: 0, z: position.z },
+        position: { x: position.x, y: position.y ?? 0, z: position.z },
         orientationRadians: orientation,
       }),
   },
   {
     id: 'axel-studio-tracker',
-    placement: { position: { x: 10, z: -2 }, orientation: Math.PI },
+    placement: {
+      position: { x: -6.21, y: 4.91, z: -9.59 },
+      orientation: Math.PI,
+    },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createAxelNavigator({
-        position: { x: position.x, y: 0, z: position.z },
+        position: { x: position.x, y: position.y ?? 0, z: position.z },
         orientationRadians: orientation,
       }),
   },
   {
     id: 'wove-kitchen-loom',
-    placement: { position: { x: -7.5, z: 2.5 }, orientation: Math.PI * 0.45 },
+    placement: {
+      position: { x: 8.24, y: 4.91, z: 2.135 },
+      orientation: Math.PI * 0.45,
+    },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createWoveLoom({
-        position: { x: position.x, y: 0, z: position.z },
+        position: { x: position.x, y: position.y ?? 0, z: position.z },
         orientationRadians: orientation,
       }),
   },
   {
     id: 'pr-reaper-backyard-console',
-    placement: { position: { x: 0, z: 10 }, orientation: Math.PI * 0.35 },
+    placement: {
+      position: { x: 1.5, y: 0.75, z: 0.525 },
+      orientation: Math.PI * 0.35,
+    },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createPrReaperConsole({
-        position: { x: position.x, y: 0, z: position.z },
+        position: { x: position.x, y: position.y ?? 0, z: position.z },
         orientationRadians: orientation,
       }),
   },
@@ -155,8 +167,8 @@ describe('migrated scene object collider policies', () => {
       const definition = definitionsById.get(id);
       expect(definition, id).toBeDefined();
       const factoryColliders = build(placement).colliders;
-      const registered = [];
-      const metadata = new Map();
+      const registered: RectCollider[] = [];
+      const metadata = new Map<RectCollider, unknown>();
 
       registerSceneObjectColliders(
         factoryColliders,
@@ -184,7 +196,7 @@ describe('migrated scene object collider policies', () => {
       const definition = definitionsById.get(id);
       expect(definition, id).toBeDefined();
 
-      return `${definition!.position.x},${definition!.position.z},${definition!.orientation}`;
+      return `${definition!.position.x},${definition!.position.y ?? 0},${definition!.position.z},${definition!.orientation}`;
     });
 
     expect(new Set(placements).size).toBe(placements.length);
