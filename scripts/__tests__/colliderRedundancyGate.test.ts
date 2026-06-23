@@ -139,7 +139,7 @@ describe('evaluateColliderRedundancy', () => {
     ]);
   });
 
-  it('does not fail ambiguous adjacent, isolated, anonymous, source-backed generated, or intentional backstop cases', () => {
+  it('does not fail ambiguous adjacent, isolated, anonymous, source-backed stable-name, or intentional backstop cases', () => {
     const report = evaluateColliderRedundancy(
       [
         collider({ id: 'A', debugId: 'A' }),
@@ -162,10 +162,18 @@ describe('evaluateColliderRedundancy', () => {
           bounds: { minX: 30, maxX: 31, minZ: 30, maxZ: 31 },
         }),
         collider({
+          id: 'STABLE',
+          debugId: undefined,
+          name: 'GroundWallCollider:ground.wall.generated:segment-a',
+          sourceId: 'ground.wall.generated',
+          bounds: { minX: 6, maxX: 7, minZ: 0, maxZ: 4 },
+        }),
+        collider({
           id: 'GEN',
           debugId: undefined,
-          sourceId: 'ground.wall.generated',
-          bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+          name: 'ground-collider-8',
+          sourceId: 'ground.wall.generated_name',
+          bounds: { minX: 40, maxX: 41, minZ: 40, maxZ: 41 },
         }),
         collider({
           id: 'BACKSTOP',

@@ -120,9 +120,18 @@ export const parseColliderRedundancyGateArgs = (
 const isSourceBacked = (collider: RuntimeColliderMetadata): boolean =>
   typeof collider.sourceId === 'string' && collider.sourceId.length > 0;
 
+const GENERATED_RUNTIME_NAME_PATTERN = /^(ground|static|upper)-collider-\d+$/;
+
+const hasSourceBackedStableName = (
+  collider: RuntimeColliderMetadata
+): boolean =>
+  isSourceBacked(collider) &&
+  !GENERATED_RUNTIME_NAME_PATTERN.test(collider.name);
+
 const hasExplicitRuntimeIdentity = (
   collider: RuntimeColliderMetadata
-): boolean => collider.debugId === collider.id;
+): boolean =>
+  collider.debugId === collider.id || hasSourceBackedStableName(collider);
 
 const isConcreteSourceBacked = (collider: RuntimeColliderMetadata): boolean =>
   isSourceBacked(collider) && hasExplicitRuntimeIdentity(collider);
@@ -179,10 +188,10 @@ export const evaluateColliderRedundancy = (
         collider: candidate,
         classification: 'anonymous-generated',
         evidence:
-          'Collider is missing source metadata or uses a generated runtime ID.',
+          'Collider is missing source metadata or still uses a generated runtime identity.',
         dominatingColliders: [],
         remediation:
-          'Add sourceId/debugId metadata so future audits can distinguish intentional colliders from generated runtime records.',
+          'Add sourceId metadata and a stable source-backed debug name or debugId so future audits can distinguish intentional colliders from generated runtime records.',
       });
     }
 

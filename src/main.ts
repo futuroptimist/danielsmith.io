@@ -110,6 +110,7 @@ import {
   type AvatarVariantId,
 } from './scene/avatar/variants';
 import { resolveInitialAvatarCameraFraming } from './scene/camera/initialFraming';
+import { getWallSegmentColliderDebugName } from './scene/debug/colliderDebugIdentity';
 import { assertDebugColliderId } from './scene/debug/colliderDebugIds';
 import {
   createColliderVisualizer,
@@ -1038,23 +1039,6 @@ const SELFIE_MIRROR_COLLIDER_SOURCE_ID = assertLevelSourceId(
 );
 const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');
 
-const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
-  `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
-
-const getUpperWallSegmentDebugName = (
-  instance: WallSegmentInstance
-): string => {
-  const { segment } = instance;
-  const start = formatUpperWallDebugPoint(segment.start);
-  const end = formatUpperWallDebugPoint(segment.end);
-  const rooms = segment.rooms
-    .map((room) => `${room.id}:${room.wall}`)
-    .sort()
-    .join('|');
-
-  return `UpperWallSegment:${segment.orientation}|${start}|${end}|${rooms || 'none'}`;
-};
-
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
 let backyardEnvironment: BackyardEnvironmentBuild | null = null;
@@ -1971,6 +1955,10 @@ function initializeImmersiveScene(
   groundFloorGroup.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
     groundColliders.push(instance.collider);
+    namedColliderDebugNames.set(
+      instance.collider,
+      getWallSegmentColliderDebugName('ground', instance)
+    );
     colliderSourceMetadata.set(instance.collider, {
       sourceId: instance.sourceId,
       sourceType: 'wall',
@@ -2354,7 +2342,7 @@ function initializeImmersiveScene(
     upperFloorColliders.push(instance.collider);
     namedColliderDebugNames.set(
       instance.collider,
-      getUpperWallSegmentDebugName(instance)
+      getWallSegmentColliderDebugName('upper', instance)
     );
     colliderSourceMetadata.set(instance.collider, {
       sourceId: instance.sourceId,
