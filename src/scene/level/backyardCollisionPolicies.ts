@@ -6,7 +6,11 @@ import {
 } from '../debug/colliderDebugIds';
 
 import type { SourceBackedCollider } from './sourceCollision';
-import { assertLevelSourceId, type LevelSourceId } from './sourceIds';
+import {
+  assertLevelSourceId,
+  getLevelSourceDebugRef,
+  type LevelSourceId,
+} from './sourceIds';
 
 export type BackyardCollisionRole =
   | 'leftFenceBoundary'
@@ -53,6 +57,8 @@ export type BackyardSourceCollider = RectCollider &
 const sourceId = (value: string): LevelSourceId => assertLevelSourceId(value);
 const debugId = (value: string): DebugColliderId =>
   assertDebugColliderId(value);
+const debugIdFromSource = (value: LevelSourceId): DebugColliderId =>
+  assertDebugColliderId(getLevelSourceDebugRef(value));
 
 export const BACKYARD_FENCE_LAYOUT = {
   fenceInsetX: 0.35,
@@ -67,12 +73,18 @@ export const BACKYARD_FENCE_SEGMENT_POLICIES = [
     sourceId: sourceId('ground.backyard.perimeter.leftFence.boundary'),
     name: 'BackyardLeftFenceBoundary',
     purpose: 'block the west edge of the backyard perimeter fence',
+    debugId: debugIdFromSource(
+      sourceId('ground.backyard.perimeter.leftFence.boundary')
+    ),
   },
   {
     role: 'rightFenceBoundary',
     sourceId: sourceId('ground.backyard.perimeter.rightFence.boundary'),
     name: 'BackyardRightFenceBoundary',
     purpose: 'block the east edge of the backyard perimeter fence',
+    debugId: debugIdFromSource(
+      sourceId('ground.backyard.perimeter.rightFence.boundary')
+    ),
   },
   {
     role: 'backFenceBoundary',

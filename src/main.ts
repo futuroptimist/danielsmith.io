@@ -175,6 +175,7 @@ import {
   type LevelSafetyCollider,
 } from './scene/level/stairSafetyColliders';
 import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from './scene/level/upperStairwellLandingSegments';
+import { getWallColliderDebugIdentity } from './scene/level/wallColliderDebugIdentity';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -1037,23 +1038,6 @@ const SELFIE_MIRROR_COLLIDER_SOURCE_ID = assertLevelSourceId(
   SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.sourceId
 );
 const SELFIE_MIRROR_COLLIDER_DEBUG_ID = assertDebugColliderId('101A');
-
-const formatUpperWallDebugPoint = (point: { x: number; z: number }): string =>
-  `${point.x.toFixed(3)},${point.z.toFixed(3)}`;
-
-const getUpperWallSegmentDebugName = (
-  instance: WallSegmentInstance
-): string => {
-  const { segment } = instance;
-  const start = formatUpperWallDebugPoint(segment.start);
-  const end = formatUpperWallDebugPoint(segment.end);
-  const rooms = segment.rooms
-    .map((room) => `${room.id}:${room.wall}`)
-    .sort()
-    .join('|');
-
-  return `UpperWallSegment:${segment.orientation}|${start}|${end}|${rooms || 'none'}`;
-};
 
 const staticColliders: RectCollider[] = [];
 const poiInstances: PoiInstance[] = [];
@@ -1970,10 +1954,13 @@ function initializeImmersiveScene(
   });
   groundFloorGroup.add(groundWallMeshes.group);
   groundWallInstances.forEach((instance) => {
+    const debugIdentity = getWallColliderDebugIdentity('ground', instance);
     groundColliders.push(instance.collider);
+    namedColliderDebugNames.set(instance.collider, debugIdentity.name);
     colliderSourceMetadata.set(instance.collider, {
       sourceId: instance.sourceId,
       sourceType: 'wall',
+      debugId: debugIdentity.debugId,
     });
   });
 
@@ -2351,14 +2338,13 @@ function initializeImmersiveScene(
   });
   upperFloorGroup.add(upperWallMeshes.group);
   upperWallInstances.forEach((instance) => {
+    const debugIdentity = getWallColliderDebugIdentity('upper', instance);
     upperFloorColliders.push(instance.collider);
-    namedColliderDebugNames.set(
-      instance.collider,
-      getUpperWallSegmentDebugName(instance)
-    );
+    namedColliderDebugNames.set(instance.collider, debugIdentity.name);
     colliderSourceMetadata.set(instance.collider, {
       sourceId: instance.sourceId,
       sourceType: 'wall',
+      debugId: debugIdentity.debugId,
     });
   });
 
