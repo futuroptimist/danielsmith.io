@@ -236,6 +236,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
   injectPoiStructuredData,
@@ -1863,6 +1864,10 @@ function initializeImmersiveScene(
   groundStructureGroup.name = 'GroundStructureVisuals';
   scene.add(groundStructureGroup);
 
+  const upperStructureGroup = new Group();
+  upperStructureGroup.name = 'UpperStructureVisuals';
+  scene.add(upperStructureGroup);
+
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.id === BACKYARD_ROOM_ID
   );
@@ -2470,7 +2475,7 @@ function initializeImmersiveScene(
         groundEnvironmentGroup,
         groundStructureGroup,
       ],
-      upperGroups: [upperFloorGroup, upperPoiGroup],
+      upperGroups: [upperFloorGroup, upperPoiGroup, upperStructureGroup],
       groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
         (group): group is Group => group !== null
       ),
@@ -2869,8 +2874,16 @@ function initializeImmersiveScene(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
-  const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
-  const kitchenBounds = kitchenRoom?.bounds;
+  const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
+    (getPoiFloorId(poi.definition) === 'upper'
+      ? upperStructureGroup
+      : groundStructureGroup
+    ).add(group);
+  };
+  const getPoiColliderTarget = (poi: PoiInstance) =>
+    getPoiFloorId(poi.definition) === 'upper'
+      ? upperFloorColliders
+      : groundColliders;
   if (studioRoom) {
     const centerX =
       flywheelPoi?.group.position.x ??
@@ -2903,36 +2916,45 @@ function initializeImmersiveScene(
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
-    const terminalX = MathUtils.clamp(
-      jobbotPoi?.group.position.x ?? 11.4,
-      studioRoom.bounds.minX + 1.2,
-      studioRoom.bounds.maxX - 0.8
-    );
-    const terminalZ = MathUtils.clamp(
-      jobbotPoi?.group.position.z ?? -0.6,
-      studioRoom.bounds.minZ + 1.2,
-      studioRoom.bounds.maxZ - 1.1
-    );
     const terminal = createJobbotTerminal({
-      position: { x: terminalX, y: 0, z: terminalZ },
+      position: {
+        x: jobbotPoi?.group.position.x ?? 11.4,
+        y: jobbotPoi?.group.position.y ?? 0,
+        z: jobbotPoi?.group.position.z ?? -0.6,
+      },
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
     const jobbotSceneObject = getSceneObjectDefinition(
       'jobbot-studio-terminal'
     );
+    const fallbackJobbotStructureGroup =
+      jobbotSceneObject?.floorId === 'upper'
+        ? upperStructureGroup
+        : groundStructureGroup;
+    const jobbotColliderTarget = jobbotPoi
+      ? getPoiColliderTarget(jobbotPoi)
+      : jobbotSceneObject?.floorId === 'upper'
+        ? upperFloorColliders
+        : groundColliders;
     if (jobbotSceneObject) {
       applySceneObjectSourceMetadata(terminal.group, jobbotSceneObject);
       registerSceneObjectColliders(
         terminal.colliders,
         jobbotSceneObject,
-        groundColliders,
+        jobbotColliderTarget,
         colliderSourceMetadata
       );
     } else {
-      terminal.colliders.forEach((collider) => groundColliders.push(collider));
+      terminal.colliders.forEach((collider) =>
+        jobbotColliderTarget.push(collider)
+      );
     }
-    groundStructureGroup.add(terminal.group);
+    if (jobbotPoi) {
+      addPoiStructure(jobbotPoi, terminal.group);
+    } else {
+      fallbackJobbotStructureGroup.add(terminal.group);
+    }
     jobbotTerminal = terminal;
 
     if (axelPoi) {
@@ -2950,15 +2972,15 @@ function initializeImmersiveScene(
         registerSceneObjectColliders(
           navigator.colliders,
           axelSceneObject,
-          groundColliders,
+          getPoiColliderTarget(axelPoi),
           colliderSourceMetadata
         );
       } else {
         navigator.colliders.forEach((collider) =>
-          groundColliders.push(collider)
+          getPoiColliderTarget(axelPoi).push(collider)
         );
       }
-      groundStructureGroup.add(navigator.group);
+      addPoiStructure(axelPoi, navigator.group);
       axelNavigator = navigator;
     }
 
@@ -2971,8 +2993,10 @@ function initializeImmersiveScene(
         },
         orientationRadians: tokenPlacePoi.group.rotation.y ?? 0,
       });
-      groundStructureGroup.add(rack.group);
-      rack.colliders.forEach((collider) => groundColliders.push(collider));
+      addPoiStructure(tokenPlacePoi, rack.group);
+      rack.colliders.forEach((collider) =>
+        getPoiColliderTarget(tokenPlacePoi).push(collider)
+      );
       tokenPlaceRack = rack;
     }
 
@@ -2985,8 +3009,10 @@ function initializeImmersiveScene(
         },
         orientationRadians: gabrielPoi.group.rotation.y ?? 0,
       });
-      groundStructureGroup.add(sentry.group);
-      sentry.colliders.forEach((collider) => groundColliders.push(collider));
+      addPoiStructure(gabrielPoi, sentry.group);
+      sentry.colliders.forEach((collider) =>
+        getPoiColliderTarget(gabrielPoi).push(collider)
+      );
       gabrielSentry = sentry;
     }
   }
@@ -3008,13 +3034,15 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         console.colliders,
         prReaperSceneObject,
-        groundColliders,
+        getPoiColliderTarget(prReaperPoi),
         colliderSourceMetadata
       );
     } else {
-      console.colliders.forEach((collider) => groundColliders.push(collider));
+      console.colliders.forEach((collider) =>
+        getPoiColliderTarget(prReaperPoi).push(collider)
+      );
     }
-    groundStructureGroup.add(console.group);
+    addPoiStructure(prReaperPoi, console.group);
     prReaperConsole = console;
   }
 
@@ -3027,89 +3055,51 @@ function initializeImmersiveScene(
       },
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
-    groundStructureGroup.add(installation.group);
+    addPoiStructure(gitshelvesPoi, installation.group);
     installation.colliders.forEach((collider) =>
-      groundColliders.push(collider)
+      getPoiColliderTarget(gitshelvesPoi).push(collider)
     );
     gitshelvesInstallation = installation;
   }
 
   if (f2ClipboardPoi) {
-    const consoleX = kitchenBounds
-      ? MathUtils.clamp(
-          f2ClipboardPoi.group.position.x,
-          kitchenBounds.minX + 0.8,
-          kitchenBounds.maxX - 0.8
-        )
-      : f2ClipboardPoi.group.position.x;
-    const consoleZ = kitchenBounds
-      ? MathUtils.clamp(
-          f2ClipboardPoi.group.position.z,
-          kitchenBounds.minZ + 0.8,
-          kitchenBounds.maxZ - 0.8
-        )
-      : f2ClipboardPoi.group.position.z;
     const console = createF2ClipboardConsole({
       position: {
-        x: consoleX,
+        x: f2ClipboardPoi.group.position.x,
         y: f2ClipboardPoi.group.position.y,
-        z: consoleZ,
+        z: f2ClipboardPoi.group.position.z,
       },
       orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
     });
-    groundStructureGroup.add(console.group);
-    console.colliders.forEach((collider) => groundColliders.push(collider));
+    addPoiStructure(f2ClipboardPoi, console.group);
+    console.colliders.forEach((collider) =>
+      getPoiColliderTarget(f2ClipboardPoi).push(collider)
+    );
     f2ClipboardConsole = console;
   }
 
   if (sigmaPoi) {
-    const benchX = kitchenBounds
-      ? MathUtils.clamp(
-          sigmaPoi.group.position.x,
-          kitchenBounds.minX + 0.9,
-          kitchenBounds.maxX - 0.9
-        )
-      : sigmaPoi.group.position.x;
-    const benchZ = kitchenBounds
-      ? MathUtils.clamp(
-          sigmaPoi.group.position.z,
-          kitchenBounds.minZ + 0.9,
-          kitchenBounds.maxZ - 0.9
-        )
-      : sigmaPoi.group.position.z;
     const workbench = createSigmaWorkbench({
       position: {
-        x: benchX,
+        x: sigmaPoi.group.position.x,
         y: sigmaPoi.group.position.y,
-        z: benchZ,
+        z: sigmaPoi.group.position.z,
       },
       orientationRadians: sigmaPoi.group.rotation.y ?? 0,
     });
-    groundStructureGroup.add(workbench.group);
-    workbench.colliders.forEach((collider) => groundColliders.push(collider));
+    addPoiStructure(sigmaPoi, workbench.group);
+    workbench.colliders.forEach((collider) =>
+      getPoiColliderTarget(sigmaPoi).push(collider)
+    );
     sigmaWorkbench = workbench;
   }
 
   if (wovePoi) {
-    const loomX = kitchenBounds
-      ? MathUtils.clamp(
-          wovePoi.group.position.x,
-          kitchenBounds.minX + 0.8,
-          kitchenBounds.maxX - 0.8
-        )
-      : wovePoi.group.position.x;
-    const loomZ = kitchenBounds
-      ? MathUtils.clamp(
-          wovePoi.group.position.z,
-          kitchenBounds.minZ + 0.8,
-          kitchenBounds.maxZ - 0.6
-        )
-      : wovePoi.group.position.z;
     const loom = createWoveLoom({
       position: {
-        x: loomX,
+        x: wovePoi.group.position.x,
         y: wovePoi.group.position.y,
-        z: loomZ,
+        z: wovePoi.group.position.z,
       },
       orientationRadians: wovePoi.group.rotation.y ?? 0,
     });
@@ -3119,13 +3109,15 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         loom.colliders,
         woveSceneObject,
-        groundColliders,
+        getPoiColliderTarget(wovePoi),
         colliderSourceMetadata
       );
     } else {
-      loom.colliders.forEach((collider) => groundColliders.push(collider));
+      loom.colliders.forEach((collider) =>
+        getPoiColliderTarget(wovePoi).push(collider)
+      );
     }
-    groundStructureGroup.add(loom.group);
+    addPoiStructure(wovePoi, loom.group);
     woveLoom = loom;
   }
 
@@ -6177,9 +6169,10 @@ function initializeImmersiveScene(
         poi.label.lookAt(poiLabelLookTarget);
       }
 
+      const interactionAnchor = getPoiInteractionAnchorPosition(poi.definition);
       poiPlayerOffset.set(
-        player.position.x - poi.group.position.x,
-        player.position.z - poi.group.position.z
+        player.position.x - interactionAnchor.x,
+        player.position.z - interactionAnchor.z
       );
       const planarDistance = poiPlayerOffset.length();
       const maxRadius = poi.definition.interactionRadius;

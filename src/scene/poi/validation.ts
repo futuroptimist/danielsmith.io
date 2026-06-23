@@ -1,4 +1,8 @@
-import type { FloorPlanDefinition, RoomWall } from '../../assets/floorPlan';
+import type {
+  FloorPlanDefinition,
+  FloorPlanLevel,
+  RoomWall,
+} from '../../assets/floorPlan';
 import {
   getDoorwayClearanceZones,
   type DoorwayClearanceZone,
@@ -24,15 +28,24 @@ export type PoiValidationIssue =
       doorway: { start: number; end: number };
     };
 
+/**
+ * Production callers must supply `floorPlan` (legacy, single-floor) or
+ * `floorPlanLevels` (multi-floor) so room membership and overlap checks resolve
+ * against real structure data. Omitting both is reserved for intentional tests
+ * that exercise empty-plan validation behavior.
+ */
 export interface PoiValidationOptions {
-  floorPlan: FloorPlanDefinition;
+  floorPlan?: FloorPlanDefinition;
+  floorPlanLevels?: readonly FloorPlanLevel[];
   /** Optional epsilon for floating point comparisons. */
   epsilon?: number;
   /** Allow small overlaps when POIs are conceptually the same exhibit. */
   allowOverlapFor?: PoiId[];
 }
 
-const defaultOptions: Required<Omit<PoiValidationOptions, 'floorPlan'>> = {
+const defaultOptions: Required<
+  Pick<PoiValidationOptions, 'epsilon' | 'allowOverlapFor'>
+> = {
   epsilon: 1e-4,
   allowOverlapFor: [],
 };
@@ -57,15 +70,36 @@ export function validatePoiDefinitions(
   definitions: PoiDefinition[],
   options: PoiValidationOptions
 ): PoiValidationIssue[] {
-  const { floorPlan } = options;
+  const floorPlanLevels =
+    options.floorPlanLevels ??
+    (options.floorPlan
+      ? [{ id: 'ground', name: 'Ground Floor', plan: options.floorPlan }]
+      : []);
   const { epsilon, allowOverlapFor } = { ...defaultOptions, ...options };
 
   const issues: PoiValidationIssue[] = [];
   const seen = new Map<PoiId, PoiDefinition>();
-  const roomLookup = new Map(floorPlan.rooms.map((room) => [room.id, room]));
-  const clearances = getDoorwayClearanceZones(floorPlan);
+  const roomLookup = new Map(
+    floorPlanLevels.flatMap((level) =>
+      level.plan.rooms.map(
+        (room) => [room.id, { room, floorId: level.id }] as const
+      )
+    )
+  );
+  const roomFloorIds = new Map(
+    floorPlanLevels.flatMap((level) =>
+      level.plan.rooms.map((room) => [room.id, level.id] as const)
+    )
+  );
+  const clearances = floorPlanLevels.flatMap((level) =>
+    getDoorwayClearanceZones(level.plan)
+  );
   const clearancesByRoom = new Map<string, DoorwayClearanceZone[]>(
-    floorPlan.rooms.map((room) => [room.id, []])
+    floorPlanLevels.flatMap((level) =>
+      level.plan.rooms.map(
+        (room) => [room.id, []] as [string, DoorwayClearanceZone[]]
+      )
+    )
   );
   clearances.forEach((zone) => {
     const list = clearancesByRoom.get(zone.roomId);
@@ -84,8 +118,8 @@ export function validatePoiDefinitions(
       seen.set(definition.id, definition);
     }
 
-    const room = roomLookup.get(definition.roomId);
-    if (!room) {
+    const roomEntry = roomLookup.get(definition.roomId);
+    if (!roomEntry) {
       issues.push({
         type: 'invalid-room',
         poiId: definition.id,
@@ -94,6 +128,7 @@ export function validatePoiDefinitions(
       return;
     }
 
+    const { room } = roomEntry;
     const { x, z } = definition.position;
     if (
       x < room.bounds.minX - epsilon ||
@@ -147,6 +182,9 @@ export function validatePoiDefinitions(
     for (let j = i + 1; j < pairs; j += 1) {
       const b = definitions[j];
       if (!b) continue;
+      const floorIdA = roomFloorIds.get(a.roomId);
+      const floorIdB = roomFloorIds.get(b.roomId);
+      if (!floorIdA || !floorIdB || floorIdA !== floorIdB) continue;
 
       if (allowOverlapSet.has(a.id) && allowOverlapSet.has(b.id)) {
         continue;

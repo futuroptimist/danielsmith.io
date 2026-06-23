@@ -4,17 +4,30 @@ import type { SceneObjectDefinition } from '../level/schema';
 
 import type { PoiDefinition, PoiId } from './types';
 
+const PLAYER_HEIGHT_ANCHOR_Y_BY_FLOOR: Record<
+  SceneObjectDefinition['floorId'],
+  number
+> = {
+  ground: 0.75,
+  upper: 4.91,
+};
+
+const getPlayerHeightAnchorY = (
+  floorId: SceneObjectDefinition['floorId']
+): number => PLAYER_HEIGHT_ANCHOR_Y_BY_FLOOR[floorId];
+
 const getSceneObjectPoiPlacement = (
   object: SceneObjectDefinition
-): {
-  roomId: string;
-  position: { x: number; y?: number; z: number };
-  headingRadians?: number;
-} | null => {
+): PoiPlacementOverride | null => {
   if (!object.roomId) return null;
   return {
     roomId: object.roomId,
     position: { ...object.position },
+    interactionAnchorPosition: {
+      x: object.position.x,
+      y: getPlayerHeightAnchorY(object.floorId),
+      z: object.position.z,
+    },
     headingRadians: object.orientation,
   };
 };
@@ -22,6 +35,7 @@ const getSceneObjectPoiPlacement = (
 type PoiPlacementOverride = {
   roomId: string;
   position: { x: number; y?: number; z: number };
+  interactionAnchorPosition?: { x: number; y: number; z: number };
   headingRadians?: number;
 };
 
@@ -34,6 +48,13 @@ const toWorldPoiPlacement = (
     x: placement.position.x * FLOOR_PLAN_SCALE,
     z: placement.position.z * FLOOR_PLAN_SCALE,
   },
+  interactionAnchorPosition: placement.interactionAnchorPosition
+    ? {
+        x: placement.interactionAnchorPosition.x * FLOOR_PLAN_SCALE,
+        y: placement.interactionAnchorPosition.y,
+        z: placement.interactionAnchorPosition.z * FLOOR_PLAN_SCALE,
+      }
+    : undefined,
 });
 
 const SCENE_OBJECT_POI_PLACEMENTS: Record<string, PoiPlacementOverride> =
@@ -57,42 +78,57 @@ export const MANUAL_POI_PLACEMENTS: Partial<
     {
       roomId: string;
       position: { x: number; y?: number; z: number };
+      interactionAnchorPosition?: { x: number; y: number; z: number };
       headingRadians?: number;
     }
   >
 > = {
-  // Living room (center-biased spread)
-  'gitshelves-living-room-installation': {
+  'futuroptimist-living-room-tv': {
     roomId: 'livingRoom',
-    position: { x: -15, z: -25 },
-    headingRadians: Math.PI * 0.1,
-  },
-  'danielsmith-portfolio-table': {
-    roomId: 'livingRoom',
-    position: { x: 3, z: -28 },
-    headingRadians: 0,
-  },
-  'gabriel-studio-sentry': {
-    roomId: 'studio',
-    position: { x: 2, z: 8 },
-    headingRadians: -Math.PI * 0.3,
+    position: { x: -31.68, y: 0, z: -24 },
+    headingRadians: Math.PI * 0.5,
   },
   'tokenplace-studio-cluster': {
-    roomId: 'studio',
-    position: { x: 6, z: 2 },
+    roomId: 'livingRoom',
+    position: { x: -22.34, y: 0, z: -22.61 },
+    interactionAnchorPosition: { x: -22.34, y: 0.75, z: -22.61 },
     headingRadians: Math.PI * 0.05,
   },
-
-  // Kitchen (three exhibits around center)
-  'f2clipboard-kitchen-console': {
+  'sugarkube-backyard-greenhouse': {
+    roomId: 'livingRoom',
+    position: { x: -8.74, y: 0, z: -22.92 },
+    interactionAnchorPosition: { x: -8.74, y: 0.75, z: -22.92 },
+    headingRadians: Math.PI * 0.55,
+  },
+  'danielsmith-portfolio-table': {
     roomId: 'kitchen',
-    position: { x: -20, z: -4 },
+    position: { x: -21.6, y: 0, z: 1.63 },
+    interactionAnchorPosition: { x: -21.6, y: 0.75, z: 1.63 },
+    headingRadians: 0,
+  },
+  'f2clipboard-kitchen-console': {
+    roomId: 'focusPods',
+    position: { x: -0.63, y: 4.16, z: 14.03 },
+    interactionAnchorPosition: { x: -0.63, y: 4.91, z: 14.03 },
     headingRadians: Math.PI * 0.5,
   },
   'sigma-kitchen-workbench': {
-    roomId: 'kitchen',
-    position: { x: -25, z: 6 },
+    roomId: 'focusPods',
+    position: { x: 16.59, y: 4.16, z: 17.66 },
+    interactionAnchorPosition: { x: 16.59, y: 4.91, z: 17.66 },
     headingRadians: Math.PI * 0.1,
+  },
+  'gitshelves-living-room-installation': {
+    roomId: 'focusPods',
+    position: { x: -16.87, y: 4.16, z: 17.23 },
+    interactionAnchorPosition: { x: -16.87, y: 4.91, z: 17.23 },
+    headingRadians: Math.PI * 0.1,
+  },
+  'gabriel-studio-sentry': {
+    roomId: 'creatorsStudio',
+    position: { x: -17.28, y: 4.16, z: -7.02 },
+    interactionAnchorPosition: { x: -17.28, y: 4.91, z: -7.02 },
+    headingRadians: -Math.PI * 0.3,
   },
 };
 
@@ -111,7 +147,18 @@ export function applyManualPoiPlacements(
         y: override.position.y ?? d.position.y,
         z: override.position.z,
       },
+      interactionAnchorPosition: override.interactionAnchorPosition
+        ? { ...override.interactionAnchorPosition }
+        : d.interactionAnchorPosition,
       headingRadians: override.headingRadians ?? d.headingRadians,
     };
   });
+}
+
+export function getPoiInteractionAnchorPosition(definition: PoiDefinition): {
+  x: number;
+  y: number;
+  z: number;
+} {
+  return definition.interactionAnchorPosition ?? definition.position;
 }

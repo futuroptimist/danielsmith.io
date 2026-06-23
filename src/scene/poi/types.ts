@@ -110,7 +110,10 @@ export interface PoiDefinition {
   category: PoiCategory;
   interaction: PoiInteraction;
   roomId: string;
+  /** Visual/object origin; keep y on the floor plane so installations do not float. */
   position: { x: number; y: number; z: number };
+  /** Optional player-height world anchor used for interaction/approach checks. */
+  interactionAnchorPosition?: { x: number; y: number; z: number };
   headingRadians?: number;
   interactionRadius: number;
   footprint: PoiFootprint;
