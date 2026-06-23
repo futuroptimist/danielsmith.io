@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN, FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
 import {
@@ -32,6 +32,7 @@ describe('validatePoiDefinitions', () => {
   it('returns no issues for baseline registry', () => {
     const issues = validatePoiDefinitions(baseDefinitions, {
       floorPlan: FLOOR_PLAN,
+      floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
     });
     expect(issues).toHaveLength(0);
   });
@@ -43,6 +44,7 @@ describe('validatePoiDefinitions', () => {
     };
     const issues = validatePoiDefinitions([...baseDefinitions, duplicate], {
       floorPlan: FLOOR_PLAN,
+      floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
     });
     expect(issues).toContainEqual({
       type: 'duplicate-id',
@@ -56,6 +58,7 @@ describe('validatePoiDefinitions', () => {
       [...baseDefinitions, invalidRoomPoi],
       {
         floorPlan: FLOOR_PLAN,
+        floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
       }
     );
     expect(issues).toContainEqual({
@@ -73,6 +76,7 @@ describe('validatePoiDefinitions', () => {
       [...baseDefinitions, invalidPositionPoi],
       {
         floorPlan: FLOOR_PLAN,
+        floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
       }
     );
     expect(
@@ -102,6 +106,7 @@ describe('validatePoiDefinitions', () => {
     });
     const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
       floorPlan: FLOOR_PLAN,
+      floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
     });
     expect(issues).toContainEqual({
       type: 'overlap',
@@ -123,6 +128,7 @@ describe('validatePoiDefinitions', () => {
 
     const issues = validatePoiDefinitions([...baseDefinitions, doorwayPoi], {
       floorPlan: FLOOR_PLAN,
+      floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
     });
 
     expect(issues).toContainEqual({
@@ -161,6 +167,7 @@ describe('validatePoiDefinitions', () => {
 
     const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
       floorPlan: FLOOR_PLAN,
+      floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
     });
 
     expect(issues).toContainEqual({
@@ -189,9 +196,17 @@ describe('validatePoiDefinitions', () => {
     });
     const issues = validatePoiDefinitions([...baseDefinitions, poiA, poiB], {
       floorPlan: FLOOR_PLAN,
+      floorPlans: FLOOR_PLAN_LEVELS.map((level) => level.plan),
       allowOverlapFor: [poiA.id, poiB.id],
     });
-    expect(issues.every((issue) => issue.type !== 'overlap')).toBe(true);
+    expect(
+      issues.some(
+        (issue) =>
+          issue.type === 'overlap' &&
+          issue.poiId === poiA.id &&
+          issue.otherPoiId === poiB.id
+      )
+    ).toBe(false);
   });
 });
 

@@ -23,35 +23,40 @@ describe('applyManualPoiPlacements', () => {
       id: PoiId;
       roomId: string;
       x: number;
+      y: number;
       z: number;
       headingRadians: number;
     }> = [
       {
         id: 'flywheel-studio-flywheel',
         roomId: 'studio',
-        x: 11,
-        z: -4,
+        x: 18.07,
+        y: 0.75,
+        z: 1.49,
         headingRadians: 0,
       },
       {
         id: 'jobbot-studio-terminal',
-        roomId: 'studio',
-        x: 24,
-        z: 4,
+        roomId: 'creatorsStudio',
+        x: -16.76,
+        y: 4.91,
+        z: -28.8,
         headingRadians: -Math.PI / 2,
       },
       {
         id: 'axel-studio-tracker',
-        roomId: 'studio',
-        x: 20,
-        z: -4,
+        roomId: 'creatorsStudio',
+        x: -12.42,
+        y: 4.91,
+        z: -19.18,
         headingRadians: Math.PI,
       },
       {
         id: 'wove-kitchen-loom',
-        roomId: 'kitchen',
-        x: -15,
-        z: 5,
+        roomId: 'loftLibrary',
+        x: 16.48,
+        y: 4.91,
+        z: 4.27,
         headingRadians: Math.PI * 0.45,
       },
     ];
@@ -64,7 +69,7 @@ describe('applyManualPoiPlacements', () => {
       expect(poi.id).toBe(nextExpected.id);
       expect(poi.roomId).toBe(nextExpected.roomId);
       expect(poi.position.x).toBeCloseTo(nextExpected.x);
-      expect(poi.position.y).toBe(0.5);
+      expect(poi.position.y).toBe(nextExpected.y);
       expect(poi.position.z).toBeCloseTo(nextExpected.z);
       expect(poi.headingRadians).toBeCloseTo(nextExpected.headingRadians);
     }
