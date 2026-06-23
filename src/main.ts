@@ -2928,22 +2928,33 @@ function initializeImmersiveScene(
     const jobbotSceneObject = getSceneObjectDefinition(
       'jobbot-studio-terminal'
     );
+    const fallbackJobbotStructureGroup =
+      jobbotSceneObject?.floorId === 'upper'
+        ? upperStructureGroup
+        : groundStructureGroup;
+    const jobbotColliderTarget = jobbotPoi
+      ? getPoiColliderTarget(jobbotPoi)
+      : jobbotSceneObject?.floorId === 'upper'
+        ? upperFloorColliders
+        : groundColliders;
     if (jobbotSceneObject) {
       applySceneObjectSourceMetadata(terminal.group, jobbotSceneObject);
       registerSceneObjectColliders(
         terminal.colliders,
         jobbotSceneObject,
-        jobbotPoi ? getPoiColliderTarget(jobbotPoi) : groundColliders,
+        jobbotColliderTarget,
         colliderSourceMetadata
       );
     } else {
       terminal.colliders.forEach((collider) =>
-        (jobbotPoi ? getPoiColliderTarget(jobbotPoi) : groundColliders).push(
-          collider
-        )
+        jobbotColliderTarget.push(collider)
       );
     }
-    if (jobbotPoi) addPoiStructure(jobbotPoi, terminal.group);
+    if (jobbotPoi) {
+      addPoiStructure(jobbotPoi, terminal.group);
+    } else {
+      fallbackJobbotStructureGroup.add(terminal.group);
+    }
     jobbotTerminal = terminal;
 
     if (axelPoi) {
