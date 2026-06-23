@@ -236,6 +236,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
   injectPoiStructuredData,
@@ -6157,9 +6158,10 @@ function initializeImmersiveScene(
         poi.label.lookAt(poiLabelLookTarget);
       }
 
+      const interactionAnchor = getPoiInteractionAnchorPosition(poi.definition);
       poiPlayerOffset.set(
-        player.position.x - poi.group.position.x,
-        player.position.z - poi.group.position.z
+        player.position.x - interactionAnchor.x,
+        player.position.z - interactionAnchor.z
       );
       const planarDistance = poiPlayerOffset.length();
       const maxRadius = poi.definition.interactionRadius;

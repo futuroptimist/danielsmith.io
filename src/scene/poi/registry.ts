@@ -296,6 +296,9 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
   return {
     ...definition,
     position: { ...definition.position },
+    interactionAnchorPosition: definition.interactionAnchorPosition
+      ? { ...definition.interactionAnchorPosition }
+      : undefined,
     footprint: { ...definition.footprint },
     outcome: definition.outcome ? { ...definition.outcome } : undefined,
     metrics: definition.metrics?.map((metric) => ({

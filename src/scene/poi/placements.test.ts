@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { FLOOR_PLAN_LEVELS } from '../../assets/floorPlan';
 import { createPoiFloorResolver } from '../floors/visibilityController';
 
-import { applyManualPoiPlacements } from './placements';
+import {
+  applyManualPoiPlacements,
+  getPoiInteractionAnchorPosition,
+} from './placements';
 import type { PoiDefinition, PoiId } from './types';
 
 const definition = (id: PoiId): PoiDefinition => ({
@@ -29,77 +32,90 @@ describe('applyManualPoiPlacements', () => {
       roomId: string;
       floorId: 'ground' | 'upper';
       position: { x: number; y: number; z: number };
+      anchorY: number;
     }> = [
       {
         id: 'tokenplace-studio-cluster',
         roomId: 'livingRoom',
         floorId: 'ground',
+        anchorY: 0.75,
         position: { x: -22.34, y: 0, z: -22.61 },
       },
       {
         id: 'sugarkube-backyard-greenhouse',
         roomId: 'livingRoom',
         floorId: 'ground',
+        anchorY: 0.75,
         position: { x: -8.74, y: 0, z: -22.92 },
       },
       {
         id: 'danielsmith-portfolio-table',
         roomId: 'kitchen',
         floorId: 'ground',
+        anchorY: 0.75,
         position: { x: -21.6, y: 0, z: 1.63 },
       },
       {
         id: 'pr-reaper-backyard-console',
         roomId: 'studio',
         floorId: 'ground',
+        anchorY: 0.75,
         position: { x: 3, y: 0, z: 1.05 },
       },
       {
         id: 'flywheel-studio-flywheel',
         roomId: 'studio',
         floorId: 'ground',
+        anchorY: 0.75,
         position: { x: 18.07, y: 0, z: 1.49 },
       },
       {
         id: 'jobbot-studio-terminal',
         roomId: 'creatorsStudio',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: -16.76, y: 4.16, z: -28.8 },
       },
       {
         id: 'axel-studio-tracker',
         roomId: 'creatorsStudio',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: -12.42, y: 4.16, z: -19.18 },
       },
       {
         id: 'gabriel-studio-sentry',
         roomId: 'creatorsStudio',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: -17.28, y: 4.16, z: -7.02 },
       },
       {
         id: 'wove-kitchen-loom',
         roomId: 'loftLibrary',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: 16.48, y: 4.16, z: 4.27 },
       },
       {
         id: 'sigma-kitchen-workbench',
         roomId: 'focusPods',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: 16.59, y: 4.16, z: 17.66 },
       },
       {
         id: 'f2clipboard-kitchen-console',
         roomId: 'focusPods',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: -0.63, y: 4.16, z: 14.03 },
       },
       {
         id: 'gitshelves-living-room-installation',
         roomId: 'focusPods',
         floorId: 'upper',
+        anchorY: 4.91,
         position: { x: -16.87, y: 4.16, z: 17.23 },
       },
     ];
@@ -115,17 +131,24 @@ describe('applyManualPoiPlacements', () => {
       expect(poi.position.x).toBeCloseTo(nextExpected.position.x, 2);
       expect(poi.position.y).toBeCloseTo(nextExpected.position.y, 2);
       expect(poi.position.z).toBeCloseTo(nextExpected.position.z, 2);
+      const anchor = getPoiInteractionAnchorPosition(poi);
+      expect(anchor.x).toBeCloseTo(nextExpected.position.x, 2);
+      expect(anchor.y).toBeCloseTo(nextExpected.anchorY, 2);
+      expect(anchor.z).toBeCloseTo(nextExpected.position.z, 2);
     }
   });
 
-  it('keeps DSPACE room, placement, and orientation unchanged', () => {
-    const placed = applyManualPoiPlacements([
-      definition('dspace-backyard-rocket'),
-    ])[0];
+  it('keeps DSPACE placement, floor, and orientation unchanged', () => {
+    const dspace = definition('dspace-backyard-rocket');
+    dspace.roomId = 'backyard';
+    dspace.position = { x: -12, y: 0, z: 24 };
+    dspace.headingRadians = -Math.PI / 10;
+    const placed = applyManualPoiPlacements([dspace])[0];
 
-    expect(placed.roomId).toBe('original-room');
-    expect(placed.position).toEqual({ x: 1, y: 0.5, z: 2 });
-    expect(placed.headingRadians).toBe(0.25);
+    expect(placed.roomId).toBe('backyard');
+    expect(getPoiFloorId(placed)).toBe('ground');
+    expect(placed.position).toEqual({ x: -12, y: 0, z: 24 });
+    expect(placed.headingRadians).toBe(-Math.PI / 10);
   });
 
   it('keeps danielsmith.io and pr-reaper independently positioned', () => {
