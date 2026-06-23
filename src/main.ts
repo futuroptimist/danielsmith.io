@@ -2871,6 +2871,10 @@ function initializeImmersiveScene(
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const kitchenRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'kitchen');
   const kitchenBounds = kitchenRoom?.bounds;
+  const getPoiStructureTargets = (poi: PoiInstance) =>
+    getPoiFloorId(poi.definition) === 'upper'
+      ? { group: upperFloorGroup, colliders: upperFloorColliders }
+      : { group: groundStructureGroup, colliders: groundColliders };
   if (studioRoom) {
     const centerX =
       flywheelPoi?.group.position.x ??
@@ -2903,18 +2907,11 @@ function initializeImmersiveScene(
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
-    const terminalX = MathUtils.clamp(
-      jobbotPoi?.group.position.x ?? 11.4,
-      studioRoom.bounds.minX + 1.2,
-      studioRoom.bounds.maxX - 0.8
-    );
-    const terminalZ = MathUtils.clamp(
-      jobbotPoi?.group.position.z ?? -0.6,
-      studioRoom.bounds.minZ + 1.2,
-      studioRoom.bounds.maxZ - 1.1
-    );
+    const terminalX = jobbotPoi?.group.position.x ?? 11.4;
+    const terminalY = jobbotPoi?.group.position.y ?? 0;
+    const terminalZ = jobbotPoi?.group.position.z ?? -0.6;
     const terminal = createJobbotTerminal({
-      position: { x: terminalX, y: 0, z: terminalZ },
+      position: { x: terminalX, y: terminalY, z: terminalZ },
       orientationRadians: terminalOrientation,
       detailPolicy: activeSceneDetailPolicy,
     });
@@ -2926,13 +2923,23 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         terminal.colliders,
         jobbotSceneObject,
-        groundColliders,
+        jobbotPoi
+          ? getPoiStructureTargets(jobbotPoi).colliders
+          : groundColliders,
         colliderSourceMetadata
       );
     } else {
-      terminal.colliders.forEach((collider) => groundColliders.push(collider));
+      terminal.colliders.forEach((collider) =>
+        (jobbotPoi
+          ? getPoiStructureTargets(jobbotPoi).colliders
+          : groundColliders
+        ).push(collider)
+      );
     }
-    groundStructureGroup.add(terminal.group);
+    (jobbotPoi
+      ? getPoiStructureTargets(jobbotPoi).group
+      : groundStructureGroup
+    ).add(terminal.group);
     jobbotTerminal = terminal;
 
     if (axelPoi) {
@@ -2950,15 +2957,15 @@ function initializeImmersiveScene(
         registerSceneObjectColliders(
           navigator.colliders,
           axelSceneObject,
-          groundColliders,
+          getPoiStructureTargets(axelPoi).colliders,
           colliderSourceMetadata
         );
       } else {
         navigator.colliders.forEach((collider) =>
-          groundColliders.push(collider)
+          getPoiStructureTargets(axelPoi).colliders.push(collider)
         );
       }
-      groundStructureGroup.add(navigator.group);
+      getPoiStructureTargets(axelPoi).group.add(navigator.group);
       axelNavigator = navigator;
     }
 
@@ -2985,8 +2992,10 @@ function initializeImmersiveScene(
         },
         orientationRadians: gabrielPoi.group.rotation.y ?? 0,
       });
-      groundStructureGroup.add(sentry.group);
-      sentry.colliders.forEach((collider) => groundColliders.push(collider));
+      getPoiStructureTargets(gabrielPoi).group.add(sentry.group);
+      sentry.colliders.forEach((collider) =>
+        getPoiStructureTargets(gabrielPoi).colliders.push(collider)
+      );
       gabrielSentry = sentry;
     }
   }
@@ -3027,28 +3036,32 @@ function initializeImmersiveScene(
       },
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
-    groundStructureGroup.add(installation.group);
+    getPoiStructureTargets(gitshelvesPoi).group.add(installation.group);
     installation.colliders.forEach((collider) =>
-      groundColliders.push(collider)
+      getPoiStructureTargets(gitshelvesPoi).colliders.push(collider)
     );
     gitshelvesInstallation = installation;
   }
 
   if (f2ClipboardPoi) {
-    const consoleX = kitchenBounds
-      ? MathUtils.clamp(
-          f2ClipboardPoi.group.position.x,
-          kitchenBounds.minX + 0.8,
-          kitchenBounds.maxX - 0.8
-        )
-      : f2ClipboardPoi.group.position.x;
-    const consoleZ = kitchenBounds
-      ? MathUtils.clamp(
-          f2ClipboardPoi.group.position.z,
-          kitchenBounds.minZ + 0.8,
-          kitchenBounds.maxZ - 0.8
-        )
-      : f2ClipboardPoi.group.position.z;
+    const f2Targets = getPoiStructureTargets(f2ClipboardPoi);
+    const isF2Upper = getPoiFloorId(f2ClipboardPoi.definition) === 'upper';
+    const consoleX =
+      kitchenBounds && !isF2Upper
+        ? MathUtils.clamp(
+            f2ClipboardPoi.group.position.x,
+            kitchenBounds.minX + 0.8,
+            kitchenBounds.maxX - 0.8
+          )
+        : f2ClipboardPoi.group.position.x;
+    const consoleZ =
+      kitchenBounds && !isF2Upper
+        ? MathUtils.clamp(
+            f2ClipboardPoi.group.position.z,
+            kitchenBounds.minZ + 0.8,
+            kitchenBounds.maxZ - 0.8
+          )
+        : f2ClipboardPoi.group.position.z;
     const console = createF2ClipboardConsole({
       position: {
         x: consoleX,
@@ -3057,26 +3070,30 @@ function initializeImmersiveScene(
       },
       orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
     });
-    groundStructureGroup.add(console.group);
-    console.colliders.forEach((collider) => groundColliders.push(collider));
+    f2Targets.group.add(console.group);
+    console.colliders.forEach((collider) => f2Targets.colliders.push(collider));
     f2ClipboardConsole = console;
   }
 
   if (sigmaPoi) {
-    const benchX = kitchenBounds
-      ? MathUtils.clamp(
-          sigmaPoi.group.position.x,
-          kitchenBounds.minX + 0.9,
-          kitchenBounds.maxX - 0.9
-        )
-      : sigmaPoi.group.position.x;
-    const benchZ = kitchenBounds
-      ? MathUtils.clamp(
-          sigmaPoi.group.position.z,
-          kitchenBounds.minZ + 0.9,
-          kitchenBounds.maxZ - 0.9
-        )
-      : sigmaPoi.group.position.z;
+    const sigmaTargets = getPoiStructureTargets(sigmaPoi);
+    const isSigmaUpper = getPoiFloorId(sigmaPoi.definition) === 'upper';
+    const benchX =
+      kitchenBounds && !isSigmaUpper
+        ? MathUtils.clamp(
+            sigmaPoi.group.position.x,
+            kitchenBounds.minX + 0.9,
+            kitchenBounds.maxX - 0.9
+          )
+        : sigmaPoi.group.position.x;
+    const benchZ =
+      kitchenBounds && !isSigmaUpper
+        ? MathUtils.clamp(
+            sigmaPoi.group.position.z,
+            kitchenBounds.minZ + 0.9,
+            kitchenBounds.maxZ - 0.9
+          )
+        : sigmaPoi.group.position.z;
     const workbench = createSigmaWorkbench({
       position: {
         x: benchX,
@@ -3085,26 +3102,32 @@ function initializeImmersiveScene(
       },
       orientationRadians: sigmaPoi.group.rotation.y ?? 0,
     });
-    groundStructureGroup.add(workbench.group);
-    workbench.colliders.forEach((collider) => groundColliders.push(collider));
+    sigmaTargets.group.add(workbench.group);
+    workbench.colliders.forEach((collider) =>
+      sigmaTargets.colliders.push(collider)
+    );
     sigmaWorkbench = workbench;
   }
 
   if (wovePoi) {
-    const loomX = kitchenBounds
-      ? MathUtils.clamp(
-          wovePoi.group.position.x,
-          kitchenBounds.minX + 0.8,
-          kitchenBounds.maxX - 0.8
-        )
-      : wovePoi.group.position.x;
-    const loomZ = kitchenBounds
-      ? MathUtils.clamp(
-          wovePoi.group.position.z,
-          kitchenBounds.minZ + 0.8,
-          kitchenBounds.maxZ - 0.6
-        )
-      : wovePoi.group.position.z;
+    const woveTargets = getPoiStructureTargets(wovePoi);
+    const isWoveUpper = getPoiFloorId(wovePoi.definition) === 'upper';
+    const loomX =
+      kitchenBounds && !isWoveUpper
+        ? MathUtils.clamp(
+            wovePoi.group.position.x,
+            kitchenBounds.minX + 0.8,
+            kitchenBounds.maxX - 0.8
+          )
+        : wovePoi.group.position.x;
+    const loomZ =
+      kitchenBounds && !isWoveUpper
+        ? MathUtils.clamp(
+            wovePoi.group.position.z,
+            kitchenBounds.minZ + 0.8,
+            kitchenBounds.maxZ - 0.6
+          )
+        : wovePoi.group.position.z;
     const loom = createWoveLoom({
       position: {
         x: loomX,
@@ -3119,13 +3142,15 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         loom.colliders,
         woveSceneObject,
-        groundColliders,
+        woveTargets.colliders,
         colliderSourceMetadata
       );
     } else {
-      loom.colliders.forEach((collider) => groundColliders.push(collider));
+      loom.colliders.forEach((collider) =>
+        woveTargets.colliders.push(collider)
+      );
     }
-    groundStructureGroup.add(loom.group);
+    woveTargets.group.add(loom.group);
     woveLoom = loom;
   }
 

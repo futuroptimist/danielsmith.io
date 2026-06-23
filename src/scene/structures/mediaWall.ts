@@ -506,7 +506,12 @@ export function createLivingRoomMediaWall(
   const policy = FUTUROPTIMIST_MEDIA_WALL_POLICY;
 
   const wallInteriorX = bounds.minX + 0.12;
-  const anchorZ = MathUtils.clamp(-14.2, bounds.minZ + 3, bounds.maxZ - 3);
+  const wallCenterZ = (bounds.minZ + bounds.maxZ) / 2;
+  const anchorZ = MathUtils.clamp(
+    wallCenterZ,
+    bounds.minZ + 3,
+    bounds.maxZ - 3
+  );
 
   const boardWidth = 6.4;
   const boardHeight = 3.6;

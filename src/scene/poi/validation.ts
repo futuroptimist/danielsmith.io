@@ -146,7 +146,7 @@ export function validatePoiDefinitions(
 
     for (let j = i + 1; j < pairs; j += 1) {
       const b = definitions[j];
-      if (!b) continue;
+      if (!b || a.roomId !== b.roomId) continue;
 
       if (allowOverlapSet.has(a.id) && allowOverlapSet.has(b.id)) {
         continue;

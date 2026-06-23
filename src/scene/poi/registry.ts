@@ -1,4 +1,4 @@
-import { FLOOR_PLAN } from '../../assets/floorPlan';
+import { FLOOR_PLAN_LEVELS } from '../../assets/floorPlan';
 import {
   formatMessage,
   getControlOverlayStrings,
@@ -227,6 +227,10 @@ const baseDefinitions: PoiStaticDefinition[] = [
   },
 ];
 
+const POI_FLOOR_PLAN_ROOMS = FLOOR_PLAN_LEVELS.flatMap(
+  (level) => level.plan.rooms
+);
+
 function localizeBaseDefinitions(input?: LocaleInput): PoiDefinition[] {
   const poiCopy = getPoiCopy(input);
   const controlOverlayStrings = getControlOverlayStrings(input);
@@ -284,7 +288,12 @@ export function localizePoiDefinitions(input?: LocaleInput): PoiDefinition[] {
   // Deterministically lay out indoor POIs across downstairs rooms.
   // Apply only manual placements for downstairs. Simple, explicit, and easy to tweak.
   const definitions = applyManualPoiPlacements(localized);
-  assertValidPoiDefinitions(definitions, { floorPlan: FLOOR_PLAN });
+  assertValidPoiDefinitions(definitions, {
+    floorPlan: {
+      outline: [],
+      rooms: POI_FLOOR_PLAN_ROOMS,
+    },
+  });
   return definitions.map((definition) => clonePoi(definition));
 }
 
@@ -400,7 +409,7 @@ export function getPoiDefinitionsByCategory(
 }
 
 export function isPoiInsideRoom(poi: PoiDefinition): boolean {
-  const room = FLOOR_PLAN.rooms.find((entry) => entry.id === poi.roomId);
+  const room = POI_FLOOR_PLAN_ROOMS.find((entry) => entry.id === poi.roomId);
   if (!room) {
     return false;
   }
@@ -413,6 +422,6 @@ export function isPoiInsideRoom(poi: PoiDefinition): boolean {
 
 export function getPoiRoomBounds(poi: PoiDefinition) {
   return (
-    FLOOR_PLAN.rooms.find((room) => room.id === poi.roomId)?.bounds ?? null
+    POI_FLOOR_PLAN_ROOMS.find((room) => room.id === poi.roomId)?.bounds ?? null
   );
 }

@@ -86,6 +86,11 @@ describe('createLivingRoomMediaWall', () => {
     const screen = build.group.getObjectByName('LivingRoomMediaWallScreen');
     expect(screen).toBeTruthy();
 
+    const wallCenterZ = (bounds.minZ + bounds.maxZ) / 2;
+    expect(screen?.position.x).toBeCloseTo(bounds.minX + 0.32);
+    expect(screen?.position.z).toBeCloseTo(wallCenterZ);
+    expect(screen?.rotation.y).toBeCloseTo(Math.PI / 2);
+
     const badge = build.group.getObjectByName('LivingRoomMediaWallBadge');
     expect(badge).toBeTruthy();
 

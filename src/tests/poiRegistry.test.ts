@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
 import {
   getPoiDefinitions,
   getPoiDefinitionsByCategory,
@@ -40,7 +40,11 @@ describe('POI registry', () => {
   });
 
   it('references rooms that exist in the floor plan', () => {
-    const roomIds = new Set(FLOOR_PLAN.rooms.map((room) => room.id));
+    const roomIds = new Set(
+      FLOOR_PLAN_LEVELS.flatMap((level) => level.plan.rooms).map(
+        (room) => room.id
+      )
+    );
     pois.forEach((poi) => {
       expect(roomIds.has(poi.roomId)).toBe(true);
     });
@@ -87,7 +91,7 @@ describe('POI registry', () => {
       (poi) => poi.id === 'sugarkube-backyard-greenhouse'
     );
     expect(greenhouse).toBeDefined();
-    expect(greenhouse?.roomId).toBe('backyard');
+    expect(greenhouse?.roomId).toBe('livingRoom');
     expect(greenhouse?.interactionRadius).toBeGreaterThan(2);
     expect(greenhouse?.footprint.width).toBeGreaterThan(3);
     expect(
@@ -115,11 +119,8 @@ describe('POI registry', () => {
 
   it('exposes stable room-level ordering with defensive copies', () => {
     const expectedStudioOrder = [
-      'tokenplace-studio-cluster',
-      'gabriel-studio-sentry',
       'flywheel-studio-flywheel',
-      'jobbot-studio-terminal',
-      'axel-studio-tracker',
+      'pr-reaper-backyard-console',
     ];
 
     const firstCall = getPoiDefinitionsByRoom('studio');
