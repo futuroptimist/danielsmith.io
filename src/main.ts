@@ -2932,12 +2932,14 @@ function initializeImmersiveScene(
       registerSceneObjectColliders(
         terminal.colliders,
         jobbotSceneObject,
-        getPoiColliderTarget(jobbotPoi!),
+        jobbotPoi ? getPoiColliderTarget(jobbotPoi) : groundColliders,
         colliderSourceMetadata
       );
     } else {
       terminal.colliders.forEach((collider) =>
-        getPoiColliderTarget(jobbotPoi!).push(collider)
+        (jobbotPoi ? getPoiColliderTarget(jobbotPoi) : groundColliders).push(
+          collider
+        )
       );
     }
     if (jobbotPoi) addPoiStructure(jobbotPoi, terminal.group);

@@ -63,42 +63,42 @@ export const MANUAL_POI_PLACEMENTS: Partial<
 > = {
   'futuroptimist-living-room-tv': {
     roomId: 'livingRoom',
-    position: { x: -31.68, y: 0.75, z: -24 },
+    position: { x: -31.68, y: 0, z: -24 },
     headingRadians: Math.PI * 0.5,
   },
   'tokenplace-studio-cluster': {
     roomId: 'livingRoom',
-    position: { x: -22.34, y: 0.75, z: -22.61 },
+    position: { x: -22.34, y: 0, z: -22.61 },
     headingRadians: Math.PI * 0.05,
   },
   'sugarkube-backyard-greenhouse': {
     roomId: 'livingRoom',
-    position: { x: -8.74, y: 0.75, z: -22.92 },
+    position: { x: -8.74, y: 0, z: -22.92 },
     headingRadians: Math.PI * 0.55,
   },
   'danielsmith-portfolio-table': {
     roomId: 'kitchen',
-    position: { x: -21.6, y: 0.75, z: 1.63 },
+    position: { x: -21.6, y: 0, z: 1.63 },
     headingRadians: 0,
   },
   'f2clipboard-kitchen-console': {
     roomId: 'focusPods',
-    position: { x: -0.63, y: 4.91, z: 14.03 },
+    position: { x: -0.63, y: 4.16, z: 14.03 },
     headingRadians: Math.PI * 0.5,
   },
   'sigma-kitchen-workbench': {
     roomId: 'focusPods',
-    position: { x: 16.59, y: 4.91, z: 17.66 },
+    position: { x: 16.59, y: 4.16, z: 17.66 },
     headingRadians: Math.PI * 0.1,
   },
   'gitshelves-living-room-installation': {
     roomId: 'focusPods',
-    position: { x: -16.87, y: 4.91, z: 17.23 },
+    position: { x: -16.87, y: 4.16, z: 17.23 },
     headingRadians: Math.PI * 0.1,
   },
   'gabriel-studio-sentry': {
     roomId: 'creatorsStudio',
-    position: { x: -17.28, y: 4.91, z: -7.02 },
+    position: { x: -17.28, y: 4.16, z: -7.02 },
     headingRadians: -Math.PI * 0.3,
   },
 };

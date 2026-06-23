@@ -357,7 +357,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'ground',
           'showpiece.flywheel',
           'studio',
-          { x: 9.035, y: 0.75, z: 0.745 },
+          { x: 9.035, y: 0, z: 0.745 },
           0,
           'POI showpiece and info panel with factory-owned solid colliders'
         ),
@@ -367,9 +367,9 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'ground',
           'showpiece.pr_reaper_console',
           'studio',
-          { x: 1.5, y: 0.75, z: 0.525 },
+          { x: 1.5, y: 0, z: 0.525 },
           Math.PI * 0.35,
-          'Backyard POI console with factory-owned deck and console colliders'
+          'Studio POI console with factory-owned deck and console colliders'
         ),
       ],
       roomConnections: [
@@ -602,7 +602,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'upper',
           'showpiece.jobbot_terminal',
           'creatorsStudio',
-          { x: -8.38, y: 4.91, z: -14.4 },
+          { x: -8.38, y: 4.16, z: -14.4 },
           -Math.PI / 2,
           'POI terminal with factory-owned desk collider'
         ),
@@ -612,7 +612,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'upper',
           'showpiece.axel_navigator',
           'creatorsStudio',
-          { x: -6.21, y: 4.91, z: -9.59 },
+          { x: -6.21, y: 4.16, z: -9.59 },
           Math.PI,
           'POI navigator with factory-owned dais and console colliders'
         ),
@@ -622,7 +622,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'upper',
           'showpiece.wove_loom',
           'loftLibrary',
-          { x: 8.24, y: 4.91, z: 2.135 },
+          { x: 8.24, y: 4.16, z: 2.135 },
           Math.PI * 0.45,
           'POI tactile loom with factory-owned table and loom colliders'
         ),

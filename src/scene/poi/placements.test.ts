@@ -34,73 +34,73 @@ describe('applyManualPoiPlacements', () => {
         id: 'tokenplace-studio-cluster',
         roomId: 'livingRoom',
         floorId: 'ground',
-        position: { x: -22.34, y: 0.75, z: -22.61 },
+        position: { x: -22.34, y: 0, z: -22.61 },
       },
       {
         id: 'sugarkube-backyard-greenhouse',
         roomId: 'livingRoom',
         floorId: 'ground',
-        position: { x: -8.74, y: 0.75, z: -22.92 },
+        position: { x: -8.74, y: 0, z: -22.92 },
       },
       {
         id: 'danielsmith-portfolio-table',
         roomId: 'kitchen',
         floorId: 'ground',
-        position: { x: -21.6, y: 0.75, z: 1.63 },
+        position: { x: -21.6, y: 0, z: 1.63 },
       },
       {
         id: 'pr-reaper-backyard-console',
         roomId: 'studio',
         floorId: 'ground',
-        position: { x: 3, y: 0.75, z: 1.05 },
+        position: { x: 3, y: 0, z: 1.05 },
       },
       {
         id: 'flywheel-studio-flywheel',
         roomId: 'studio',
         floorId: 'ground',
-        position: { x: 18.07, y: 0.75, z: 1.49 },
+        position: { x: 18.07, y: 0, z: 1.49 },
       },
       {
         id: 'jobbot-studio-terminal',
         roomId: 'creatorsStudio',
         floorId: 'upper',
-        position: { x: -16.76, y: 4.91, z: -28.8 },
+        position: { x: -16.76, y: 4.16, z: -28.8 },
       },
       {
         id: 'axel-studio-tracker',
         roomId: 'creatorsStudio',
         floorId: 'upper',
-        position: { x: -12.42, y: 4.91, z: -19.18 },
+        position: { x: -12.42, y: 4.16, z: -19.18 },
       },
       {
         id: 'gabriel-studio-sentry',
         roomId: 'creatorsStudio',
         floorId: 'upper',
-        position: { x: -17.28, y: 4.91, z: -7.02 },
+        position: { x: -17.28, y: 4.16, z: -7.02 },
       },
       {
         id: 'wove-kitchen-loom',
         roomId: 'loftLibrary',
         floorId: 'upper',
-        position: { x: 16.48, y: 4.91, z: 4.27 },
+        position: { x: 16.48, y: 4.16, z: 4.27 },
       },
       {
         id: 'sigma-kitchen-workbench',
         roomId: 'focusPods',
         floorId: 'upper',
-        position: { x: 16.59, y: 4.91, z: 17.66 },
+        position: { x: 16.59, y: 4.16, z: 17.66 },
       },
       {
         id: 'f2clipboard-kitchen-console',
         roomId: 'focusPods',
         floorId: 'upper',
-        position: { x: -0.63, y: 4.91, z: 14.03 },
+        position: { x: -0.63, y: 4.16, z: 14.03 },
       },
       {
         id: 'gitshelves-living-room-installation',
         roomId: 'focusPods',
         floorId: 'upper',
-        position: { x: -16.87, y: 4.91, z: 17.23 },
+        position: { x: -16.87, y: 4.16, z: 17.23 },
       },
     ];
     const placed = applyManualPoiPlacements(
@@ -118,7 +118,7 @@ describe('applyManualPoiPlacements', () => {
     }
   });
 
-  it('keeps DSPACE placement, floor, and orientation unchanged', () => {
+  it('keeps DSPACE room, placement, and orientation unchanged', () => {
     const placed = applyManualPoiPlacements([
       definition('dspace-backyard-rocket'),
     ])[0];
@@ -135,10 +135,10 @@ describe('applyManualPoiPlacements', () => {
     ]);
 
     expect(portfolio.position.x).toBeCloseTo(-21.6, 2);
-    expect(portfolio.position.y).toBeCloseTo(0.75, 2);
+    expect(portfolio.position.y).toBeCloseTo(0, 2);
     expect(portfolio.position.z).toBeCloseTo(1.63, 2);
     expect(reaper.position.x).toBeCloseTo(3, 2);
-    expect(reaper.position.y).toBeCloseTo(0.75, 2);
+    expect(reaper.position.y).toBeCloseTo(0, 2);
     expect(reaper.position.z).toBeCloseTo(1.05, 2);
     expect(portfolio.position).not.toEqual(reaper.position);
   });

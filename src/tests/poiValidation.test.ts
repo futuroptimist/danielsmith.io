@@ -65,6 +65,35 @@ describe('validatePoiDefinitions', () => {
     } satisfies PoiValidationIssue);
   });
 
+  it('skips overlap checks when both room floor ids are unresolved', () => {
+    const poiA = clonePoi({
+      id: 'invalid-room-overlap-a' as PoiDefinition['id'],
+      roomId: 'missing-room-a',
+      position: { x: 1, y: 0, z: 1 },
+    });
+    const poiB = clonePoi({
+      id: 'invalid-room-overlap-b' as PoiDefinition['id'],
+      roomId: 'missing-room-b',
+      position: { x: 1, y: 0, z: 1 },
+    });
+
+    const issues = validatePoiDefinitions([poiA, poiB], {
+      floorPlanLevels: FLOOR_PLAN_LEVELS,
+    });
+
+    expect(issues).toContainEqual({
+      type: 'invalid-room',
+      poiId: poiA.id,
+      roomId: poiA.roomId,
+    } satisfies PoiValidationIssue);
+    expect(issues).toContainEqual({
+      type: 'invalid-room',
+      poiId: poiB.id,
+      roomId: poiB.roomId,
+    } satisfies PoiValidationIssue);
+    expect(issues.some((issue) => issue.type === 'overlap')).toBe(false);
+  });
+
   it('flags POIs positioned outside of their room bounds', () => {
     const invalidPositionPoi = clonePoi({
       position: { x: Number.POSITIVE_INFINITY, y: 0, z: 0 },

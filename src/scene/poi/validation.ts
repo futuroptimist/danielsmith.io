@@ -28,6 +28,11 @@ export type PoiValidationIssue =
       doorway: { start: number; end: number };
     };
 
+/**
+ * Supply exactly one of `floorPlan` (legacy, single-floor) or
+ * `floorPlanLevels` (multi-floor). Omitting both is only useful for tests that
+ * deliberately exercise the empty-plan path; production callers must pass one.
+ */
 export interface PoiValidationOptions {
   floorPlan?: FloorPlanDefinition;
   floorPlanLevels?: readonly FloorPlanLevel[];
@@ -176,7 +181,9 @@ export function validatePoiDefinitions(
     for (let j = i + 1; j < pairs; j += 1) {
       const b = definitions[j];
       if (!b) continue;
-      if (roomFloorIds.get(a.roomId) !== roomFloorIds.get(b.roomId)) continue;
+      const floorIdA = roomFloorIds.get(a.roomId);
+      const floorIdB = roomFloorIds.get(b.roomId);
+      if (!floorIdA || !floorIdB || floorIdA !== floorIdB) continue;
 
       if (allowOverlapSet.has(a.id) && allowOverlapSet.has(b.id)) {
         continue;

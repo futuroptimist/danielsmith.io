@@ -81,7 +81,7 @@ type MigratedFactory = {
 const migratedFactories = [
   {
     id: 'flywheel-studio-flywheel',
-    placement: { position: { x: 9.035, y: 0.75, z: 0.745 }, orientation: 0 },
+    placement: { position: { x: 9.035, y: 0, z: 0.745 }, orientation: 0 },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createFlywheelShowpiece({
         centerX: position.x,
@@ -93,7 +93,7 @@ const migratedFactories = [
   {
     id: 'jobbot-studio-terminal',
     placement: {
-      position: { x: -8.38, y: 4.91, z: -14.4 },
+      position: { x: -8.38, y: 4.16, z: -14.4 },
       orientation: -Math.PI / 2,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
@@ -105,7 +105,7 @@ const migratedFactories = [
   {
     id: 'axel-studio-tracker',
     placement: {
-      position: { x: -6.21, y: 4.91, z: -9.59 },
+      position: { x: -6.21, y: 4.16, z: -9.59 },
       orientation: Math.PI,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
@@ -117,7 +117,7 @@ const migratedFactories = [
   {
     id: 'wove-kitchen-loom',
     placement: {
-      position: { x: 8.24, y: 4.91, z: 2.135 },
+      position: { x: 8.24, y: 4.16, z: 2.135 },
       orientation: Math.PI * 0.45,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
@@ -129,7 +129,7 @@ const migratedFactories = [
   {
     id: 'pr-reaper-backyard-console',
     placement: {
-      position: { x: 1.5, y: 0.75, z: 0.525 },
+      position: { x: 1.5, y: 0, z: 0.525 },
       orientation: Math.PI * 0.35,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
