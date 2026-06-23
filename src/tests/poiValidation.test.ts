@@ -50,6 +50,21 @@ describe('validatePoiDefinitions', () => {
     } satisfies PoiValidationIssue);
   });
 
+  it('allows empty-plan validation only for intentional callers', () => {
+    const issues = validatePoiDefinitions(
+      [clonePoi({ roomId: 'empty-plan-room' })],
+      {}
+    );
+
+    expect(issues).toEqual([
+      {
+        type: 'invalid-room',
+        poiId: baseDefinitions[0].id,
+        roomId: 'empty-plan-room',
+      } satisfies PoiValidationIssue,
+    ]);
+  });
+
   it('detects invalid room references', () => {
     const invalidRoomPoi = clonePoi({ roomId: 'moon-base' });
     const issues = validatePoiDefinitions(

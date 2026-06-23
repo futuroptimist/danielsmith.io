@@ -29,9 +29,10 @@ export type PoiValidationIssue =
     };
 
 /**
- * Supply exactly one of `floorPlan` (legacy, single-floor) or
- * `floorPlanLevels` (multi-floor). Omitting both is only useful for tests that
- * deliberately exercise the empty-plan path; production callers must pass one.
+ * Production callers must supply `floorPlan` (legacy, single-floor) or
+ * `floorPlanLevels` (multi-floor) so room membership and overlap checks resolve
+ * against real structure data. Omitting both is reserved for intentional tests
+ * that exercise empty-plan validation behavior.
  */
 export interface PoiValidationOptions {
   floorPlan?: FloorPlanDefinition;
