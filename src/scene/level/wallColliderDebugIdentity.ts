@@ -23,9 +23,10 @@ export function getWallColliderDebugIdentity(
 ): WallColliderDebugIdentity {
   const sourceId = String(instance.sourceId);
   const identitySeed = `${floor}|${sourceId}|${instance.segmentId}`;
+  const debugId = assertDebugColliderId(getDebugHash(identitySeed));
 
   return {
-    name: `${WALL_COLLIDER_NAME_PREFIX[floor]}:${sourceId}`,
-    debugId: assertDebugColliderId(getDebugHash(identitySeed)),
+    name: `${WALL_COLLIDER_NAME_PREFIX[floor]}:${sourceId}:${debugId}`,
+    debugId,
   };
 }

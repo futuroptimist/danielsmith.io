@@ -60,6 +60,16 @@ const debugId = (value: string): DebugColliderId =>
 const debugIdFromSource = (value: LevelSourceId): DebugColliderId =>
   assertDebugColliderId(getLevelSourceDebugRef(value));
 
+const leftFenceBoundarySourceId = sourceId(
+  'ground.backyard.perimeter.leftFence.boundary'
+);
+const rightFenceBoundarySourceId = sourceId(
+  'ground.backyard.perimeter.rightFence.boundary'
+);
+const backFenceBoundarySourceId = sourceId(
+  'ground.backyard.perimeter.backFence.boundary'
+);
+
 export const BACKYARD_FENCE_LAYOUT = {
   fenceInsetX: 0.35,
   fenceFrontPadding: 0.9,
@@ -70,27 +80,25 @@ export const BACKYARD_FENCE_LAYOUT = {
 export const BACKYARD_FENCE_SEGMENT_POLICIES = [
   {
     role: 'leftFenceBoundary',
-    sourceId: sourceId('ground.backyard.perimeter.leftFence.boundary'),
+    sourceId: leftFenceBoundarySourceId,
     name: 'BackyardLeftFenceBoundary',
     purpose: 'block the west edge of the backyard perimeter fence',
-    debugId: debugIdFromSource(
-      sourceId('ground.backyard.perimeter.leftFence.boundary')
-    ),
+    debugId: debugIdFromSource(leftFenceBoundarySourceId),
   },
   {
     role: 'rightFenceBoundary',
-    sourceId: sourceId('ground.backyard.perimeter.rightFence.boundary'),
+    sourceId: rightFenceBoundarySourceId,
     name: 'BackyardRightFenceBoundary',
     purpose: 'block the east edge of the backyard perimeter fence',
-    debugId: debugIdFromSource(
-      sourceId('ground.backyard.perimeter.rightFence.boundary')
-    ),
+    debugId: debugIdFromSource(rightFenceBoundarySourceId),
   },
   {
     role: 'backFenceBoundary',
-    sourceId: sourceId('ground.backyard.perimeter.backFence.boundary'),
+    sourceId: backFenceBoundarySourceId,
     name: 'BackyardBackFenceBoundary',
     purpose: 'preserve the visible back fence as a physical boundary',
+    // Retain the existing audit-registered anchor while newer side fences
+    // use source-derived IDs.
     debugId: debugId('1006'),
   },
 ] as const satisfies readonly BackyardFenceSegmentPolicy[];

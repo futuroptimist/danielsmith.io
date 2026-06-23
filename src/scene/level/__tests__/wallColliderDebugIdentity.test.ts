@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { WALL_THICKNESS } from '../../../assets/floorPlan';
+import { FLOOR_PLAN_SCALE, WALL_THICKNESS } from '../../../assets/floorPlan';
 import type { RoomCategory } from '../../../assets/floorPlan';
 import { generateWallSegmentInstances } from '../generateWalls';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
@@ -18,7 +18,7 @@ const getRoomCategory = (
 };
 
 const wallOptions = (floorId: 'ground' | 'upper') => ({
-  coordinateScale: 0.5,
+  coordinateScale: FLOOR_PLAN_SCALE,
   baseElevation: floorId === 'ground' ? 0 : 6,
   wallHeight: 6,
   wallThickness: WALL_THICKNESS,
@@ -45,7 +45,9 @@ describe('wall collider debug identities', () => {
     const identity = getWallColliderDebugIdentity('ground', instance);
 
     expect(identity).toEqual(getWallColliderDebugIdentity('ground', instance));
-    expect(identity.name).toBe(`GroundWallCollider:${instance.sourceId}`);
+    expect(identity.name).toBe(
+      `GroundWallCollider:${instance.sourceId}:${identity.debugId}`
+    );
     expect(identity.debugId).toMatch(/^[0-9A-F]{6}$/);
   });
 
@@ -58,6 +60,9 @@ describe('wall collider debug identities', () => {
     });
 
     expect(identities.length).toBeGreaterThan(0);
+    expect(new Set(identities.map((identity) => identity.name)).size).toBe(
+      identities.length
+    );
     expect(new Set(identities.map((identity) => identity.debugId)).size).toBe(
       identities.length
     );
