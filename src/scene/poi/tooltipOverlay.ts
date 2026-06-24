@@ -17,6 +17,13 @@ type DiscoveryFormatter = (
   strings: PoiOverlayChromeStrings
 ) => string;
 
+export interface PoiDebugDetails {
+  anchor: { x: number; y: number; z: number };
+  modelTriangles: number;
+}
+
+type PoiDebugDetailsProvider = (poi: PoiDefinition) => PoiDebugDetails;
+
 export interface PoiTooltipOverlayOptions {
   container: HTMLElement;
   onDismiss?: () => void;
@@ -26,6 +33,8 @@ export interface PoiTooltipOverlayOptions {
   };
   interactionTimeline?: InteractionTimeline;
   guidedTourPreference?: GuidedTourPreference;
+  getDebugDetails?: PoiDebugDetailsProvider;
+  locale?: string;
 }
 
 interface RenderState {
@@ -54,6 +63,7 @@ export class PoiTooltipOverlay {
   private readonly outcomeValue: HTMLSpanElement;
   private readonly metricsList: HTMLUListElement;
   private readonly linksList: HTMLUListElement;
+  private readonly debugDetails: HTMLDListElement;
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
@@ -80,6 +90,9 @@ export class PoiTooltipOverlay {
   private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
   private readonly onDismiss: (() => void) | null;
+  private readonly getDebugDetails: PoiDebugDetailsProvider;
+  private debugDetailsEnabled = false;
+  private locale: string;
   private strings: PoiOverlayChromeStrings;
 
   constructor(options: PoiTooltipOverlayOptions) {
@@ -89,8 +102,11 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
+      getDebugDetails = defaultDebugDetailsProvider,
     } = options;
     const documentTarget = container.ownerDocument ?? document;
+    const locale =
+      options.locale ?? (documentTarget.documentElement.lang || 'en');
 
     this.strings = getPoiOverlayChromeStrings();
     this.discoveryPoliteness = discoveryAnnouncer?.politeness ?? 'polite';
@@ -99,6 +115,8 @@ export class PoiTooltipOverlay {
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
     this.onDismiss = onDismiss ?? null;
+    this.getDebugDetails = getDebugDetails;
+    this.locale = locale;
     this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
@@ -182,6 +200,13 @@ export class PoiTooltipOverlay {
     this.linksList.setAttribute('aria-label', this.strings.relatedCaseStudies);
     this.root.appendChild(this.linksList);
 
+    this.debugDetails = documentTarget.createElement('dl');
+    this.debugDetails.className = 'poi-tooltip-overlay__debug';
+    this.debugDetails.id = `${this.instanceId}-debug`;
+    this.debugDetails.dataset.poiDebug = 'true';
+    this.debugDetails.hidden = true;
+    this.root.appendChild(this.debugDetails);
+
     container.appendChild(this.root);
 
     this.liveRegion = documentTarget.createElement('div');
@@ -203,12 +228,24 @@ export class PoiTooltipOverlay {
     );
   }
 
-  setStrings(strings: PoiOverlayChromeStrings): void {
+  setStrings(strings: PoiOverlayChromeStrings, locale?: string): void {
     this.strings = strings;
     this.visitedBadge.textContent = strings.visited;
     this.recommendationBadge.textContent = strings.nextHighlight;
     this.closeButton.setAttribute('aria-label', strings.closeDetails);
     this.linksList.setAttribute('aria-label', strings.relatedCaseStudies);
+    if (locale) {
+      this.locale = locale;
+    }
+    this.renderState = { poiId: null, poiRef: null, contentKey: null };
+    this.update();
+  }
+
+  setDebugDetailsEnabled(enabled: boolean): void {
+    if (this.debugDetailsEnabled === enabled) {
+      return;
+    }
+    this.debugDetailsEnabled = enabled;
     this.renderState = { poiId: null, poiRef: null, contentKey: null };
     this.update();
   }
@@ -310,6 +347,8 @@ export class PoiTooltipOverlay {
       this.visitedBadge.hidden = true;
       this.recommendationBadge.hidden = true;
       this.liveRegion.textContent = '';
+      this.debugDetails.hidden = true;
+      this.debugDetails.innerHTML = '';
       this.focusOnNextUpdate = false;
       return;
     }
@@ -347,6 +386,7 @@ export class PoiTooltipOverlay {
       };
       this.renderPoi(poi);
     }
+    this.renderDebugDetails(poi);
 
     const describedByIds = [this.summary.id];
     if (!this.outcome.hidden) {
@@ -357,6 +397,9 @@ export class PoiTooltipOverlay {
     }
     if (!this.linksList.hidden) {
       describedByIds.push(this.linksList.id);
+    }
+    if (!this.debugDetails.hidden) {
+      describedByIds.push(this.debugDetails.id);
     }
     if (describedByIds.length > 0) {
       this.root.setAttribute('aria-describedby', describedByIds.join(' '));
@@ -473,6 +516,55 @@ export class PoiTooltipOverlay {
     }
   }
 
+  private renderDebugDetails(poi: PoiDefinition) {
+    this.debugDetails.innerHTML = '';
+    if (!this.debugDetailsEnabled) {
+      this.debugDetails.hidden = true;
+      return;
+    }
+
+    const details = this.getDebugDetails(poi);
+    const axisFormatter = new Intl.NumberFormat(this.locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const integerFormatter = new Intl.NumberFormat(this.locale, {
+      maximumFractionDigits: 0,
+    });
+    this.debugDetails.setAttribute(
+      'aria-label',
+      this.strings.debugDetailsLabel
+    );
+    this.appendDebugRow(
+      this.strings.debugPoiAnchor,
+      `X ${axisFormatter.format(details.anchor.x)} · Y ${axisFormatter.format(
+        details.anchor.y
+      )} · Z ${axisFormatter.format(details.anchor.z)}`,
+      'anchor'
+    );
+    this.appendDebugRow(
+      this.strings.debugModelTriangles,
+      integerFormatter.format(Math.max(0, Math.floor(details.modelTriangles))),
+      'triangles'
+    );
+    this.debugDetails.hidden = false;
+  }
+
+  private appendDebugRow(labelText: string, valueText: string, key: string) {
+    const term = document.createElement('dt');
+    term.className = 'poi-tooltip-overlay__debug-label';
+    term.textContent = labelText;
+    const detail = document.createElement('dd');
+    detail.className = 'poi-tooltip-overlay__debug-value';
+    detail.textContent = valueText;
+    if (key === 'anchor') {
+      detail.dataset.poiDebugAnchor = 'true';
+    } else if (key === 'triangles') {
+      detail.dataset.poiDebugTriangles = 'true';
+    }
+    this.debugDetails.append(term, detail);
+  }
+
   private renderLinks(poi: PoiDefinition) {
     this.linksList.innerHTML = '';
     if (!poi.links || poi.links.length === 0) {
@@ -533,6 +625,10 @@ function applyVisuallyHiddenStyles(element: HTMLElement): void {
   element.style.clipPath = 'inset(50%)';
   element.style.whiteSpace = 'nowrap';
   element.style.pointerEvents = 'none';
+}
+
+function defaultDebugDetailsProvider(poi: PoiDefinition): PoiDebugDetails {
+  return { anchor: poi.position, modelTriangles: 0 };
 }
 
 function defaultDiscoveryFormatter(

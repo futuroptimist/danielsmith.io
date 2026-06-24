@@ -1,7 +1,10 @@
 import {
   Color,
   CylinderGeometry,
+  Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
+  PlaneGeometry,
   SphereGeometry,
 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -163,6 +166,35 @@ describe('createPoiInstances', () => {
 
     expect(instance.definition.title).toBe('⟦Gitshelves⟧');
     expect(fillTextLog.join(' ')).toBe('⟦Gitshelves⟧');
+  });
+
+  it('seeds display POI model roots from the highlighted model mesh', () => {
+    const hitArea = new Mesh(
+      new PlaneGeometry(2, 1),
+      new MeshBasicMaterial({ transparent: true, opacity: 0 })
+    );
+    const highlightMesh = new Mesh(
+      new PlaneGeometry(2, 1),
+      new MeshBasicMaterial()
+    );
+    const [instance] = createPoiInstances(
+      [createDefinition({ id: 'futuroptimist-living-room-tv' })],
+      {
+        'futuroptimist-living-room-tv': {
+          mode: 'display',
+          hitArea,
+          highlight: {
+            mesh: highlightMesh,
+            material: highlightMesh.material,
+            baseOpacity: 0.1,
+            focusOpacity: 0.55,
+          },
+        },
+      }
+    );
+
+    expect(instance.visualMode).toBe('display');
+    expect(instance.modelRoots).toEqual([highlightMesh]);
   });
 
   it('preserves existing title-only marker labels without ellipsizing them', () => {

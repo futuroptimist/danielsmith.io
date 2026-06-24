@@ -768,6 +768,9 @@ const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY =
 const PENDING_SCENE_DETAIL_RELOAD_PARAM = 'sceneDetailReloadLevel';
 const PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM = 'sceneDetailAdaptiveLock';
 const PENDING_PLAYER_POSITION_KEY = 'portfolio::pending-player-position';
+const PENDING_PLAYER_POSITION_X_PARAM = 'pendingPlayerX';
+const PENDING_PLAYER_POSITION_Y_PARAM = 'pendingPlayerY';
+const PENDING_PLAYER_POSITION_Z_PARAM = 'pendingPlayerZ';
 
 interface PendingSceneDetailReload {
   level: GraphicsQualityLevel;
@@ -813,14 +816,17 @@ function consumePendingSceneDetailReload(): PendingSceneDetailReload | null {
   }
 }
 
-function persistPendingPlayerPosition(position: PendingPlayerPosition): void {
+function persistPendingPlayerPosition(
+  position: PendingPlayerPosition
+): boolean {
   try {
     window.sessionStorage.setItem(
       PENDING_PLAYER_POSITION_KEY,
       JSON.stringify(position)
     );
+    return window.sessionStorage.getItem(PENDING_PLAYER_POSITION_KEY) !== null;
   } catch {
-    // Best-effort only; quality reloads can still proceed without a position handoff.
+    return false;
   }
 }
 
@@ -833,6 +839,33 @@ function consumePendingPlayerPosition(): PendingPlayerPosition | null {
     }
     const parsed = JSON.parse(stored) as Partial<PendingPlayerPosition>;
     const { x, y, z } = parsed;
+    return typeof x === 'number' &&
+      typeof y === 'number' &&
+      typeof z === 'number' &&
+      Number.isFinite(x) &&
+      Number.isFinite(y) &&
+      Number.isFinite(z)
+      ? { x, y, z }
+      : null;
+  } catch {
+    // Fall through to the URL handoff used when sessionStorage is unavailable.
+  }
+
+  try {
+    const url = new URL(window.location.href);
+    const storedX = url.searchParams.get(PENDING_PLAYER_POSITION_X_PARAM);
+    const storedY = url.searchParams.get(PENDING_PLAYER_POSITION_Y_PARAM);
+    const storedZ = url.searchParams.get(PENDING_PLAYER_POSITION_Z_PARAM);
+    url.searchParams.delete(PENDING_PLAYER_POSITION_X_PARAM);
+    url.searchParams.delete(PENDING_PLAYER_POSITION_Y_PARAM);
+    url.searchParams.delete(PENDING_PLAYER_POSITION_Z_PARAM);
+    window.history.replaceState(window.history.state, '', url);
+    if (storedX === null || storedY === null || storedZ === null) {
+      return null;
+    }
+    const x = Number(storedX);
+    const y = Number(storedY);
+    const z = Number(storedZ);
     return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)
       ? { x, y, z }
       : null;
@@ -865,7 +898,8 @@ function persistPendingSceneDetailReload(
 }
 
 function reloadWithPendingSceneDetailParam(
-  pendingReload: PendingSceneDetailReload
+  pendingReload: PendingSceneDetailReload,
+  playerPosition?: PendingPlayerPosition
 ): boolean {
   try {
     const url = new URL(window.location.href);
@@ -873,6 +907,20 @@ function reloadWithPendingSceneDetailParam(
       PENDING_SCENE_DETAIL_RELOAD_PARAM,
       pendingReload.level
     );
+    if (playerPosition) {
+      url.searchParams.set(
+        PENDING_PLAYER_POSITION_X_PARAM,
+        String(playerPosition.x)
+      );
+      url.searchParams.set(
+        PENDING_PLAYER_POSITION_Y_PARAM,
+        String(playerPosition.y)
+      );
+      url.searchParams.set(
+        PENDING_PLAYER_POSITION_Z_PARAM,
+        String(playerPosition.z)
+      );
+    }
     if (pendingReload.adaptivePerformanceRecoveryLocked) {
       url.searchParams.set(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM, '1');
     } else {
@@ -1081,6 +1129,7 @@ let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
+let futuroptimistTvModelRoot: Object3D | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
@@ -1210,7 +1259,7 @@ function initializeImmersiveScene(
   ) => {
     if (level === sceneDetailController.getLevel()) {
       activeSceneDetailPolicy = sceneDetailController.getPolicy();
-      return;
+      return false;
     }
     if (options.reloadScene) {
       const pendingReload = {
@@ -1218,19 +1267,28 @@ function initializeImmersiveScene(
         adaptivePerformanceRecoveryLocked:
           options.adaptivePerformanceRecoveryLocked === true,
       } satisfies PendingSceneDetailReload;
-      if (typeof player !== 'undefined') {
-        persistPendingPlayerPosition({
-          x: player.position.x,
-          y: player.position.y,
-          z: player.position.z,
-        });
-      }
+      const playerPosition =
+        typeof player !== 'undefined'
+          ? {
+              x: player.position.x,
+              y: player.position.y,
+              z: player.position.z,
+            }
+          : undefined;
+      const didPersistPlayerPosition = playerPosition
+        ? persistPendingPlayerPosition(playerPosition)
+        : false;
       if (persistPendingSceneDetailReload(pendingReload)) {
         window.location.reload();
-        return;
+        return true;
       }
-      if (reloadWithPendingSceneDetailParam(pendingReload)) {
-        return;
+      if (
+        reloadWithPendingSceneDetailParam(
+          pendingReload,
+          didPersistPlayerPosition ? undefined : playerPosition
+        )
+      ) {
+        return true;
       }
       console.warn(
         '[performance] scene detail reload handoff unavailable; applying policy without reload'
@@ -1238,6 +1296,7 @@ function initializeImmersiveScene(
     }
     sceneDetailController.setLevel(level);
     activeSceneDetailPolicy = sceneDetailController.getPolicy();
+    return false;
   };
   const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
     ? initialQualityPolicy.basePixelRatioCap
@@ -2043,6 +2102,7 @@ function initializeImmersiveScene(
     tvHitArea.visible = true;
     tvHitArea.renderOrder = tvBinding.glow.renderOrder + 1;
     mediaWall.group.add(tvHitArea);
+    futuroptimistTvModelRoot = tvBinding.glow;
 
     poiOverrides['futuroptimist-living-room-tv'] = {
       mode: 'display',
@@ -2522,6 +2582,16 @@ function initializeImmersiveScene(
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
+    locale,
+    getDebugDetails: (definition) => {
+      const poi = poiInstances.find(
+        (candidate) => candidate.definition.id === definition.id
+      );
+      return {
+        anchor: definition.position,
+        modelTriangles: poi ? countPoiModelTriangles(poi.modelRoots) : 0,
+      };
+    },
     interactionTimeline,
     guidedTourPreference,
     discoveryAnnouncer: {
@@ -2535,7 +2605,7 @@ function initializeImmersiveScene(
       dismissActivePoiDetail();
     },
   });
-  poiTooltipOverlay.setStrings(poiOverlayStrings);
+  poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
@@ -2874,6 +2944,10 @@ function initializeImmersiveScene(
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
   );
+  if (futuroptimistPoi && futuroptimistTvModelRoot) {
+    futuroptimistPoi.modelRoots = [futuroptimistTvModelRoot];
+  }
+
   const jobbotPoi = poiInstances.find(
     (poi) => poi.definition.id === 'jobbot-studio-terminal'
   );
@@ -2944,7 +3018,11 @@ function initializeImmersiveScene(
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     }
-    groundStructureGroup.add(showpiece.group);
+    if (flywheelPoi) {
+      addPoiStructure(flywheelPoi, showpiece.group);
+    } else {
+      groundStructureGroup.add(showpiece.group);
+    }
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
@@ -4292,13 +4370,13 @@ function initializeImmersiveScene(
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
+    poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
     refreshDebugCoordinatesStrings();
     refreshDebugCollidersStrings();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
-    poiTooltipOverlay.setStrings(poiOverlayStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
     syncPoiRecommendation();
@@ -5011,6 +5089,7 @@ function initializeImmersiveScene(
     debugCoordinatesEnabled = enabled;
     syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
+    poiTooltipOverlay.setDebugDetailsEnabled(enabled);
     if (enabled) {
       updateDebugCoordinatesOverlay();
     }
@@ -5038,6 +5117,8 @@ function initializeImmersiveScene(
     refreshDebugSolidIdsControl();
     refreshDebugFpsControl();
   };
+
+  poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
 
   debugCoordinatesOverlay = document.createElement('aside');
   debugCoordinatesOverlay.className = 'debug-coordinates';
@@ -5865,7 +5946,12 @@ function initializeImmersiveScene(
 
   let pendingLowFpsPerformanceRecoveryReload = false;
 
-  const applyFeaturePolicy = (options: { reloadScene?: boolean } = {}) => {
+  const applyFeaturePolicy = (
+    options: {
+      reloadScene?: boolean;
+      adaptivePerformanceRecoveryLocked?: boolean;
+    } = {}
+  ) => {
     const policy = getQualityFeaturePolicy(
       graphicsQualityManager?.getLevel() ?? initialQualityPolicy.initialLevel,
       rendererInfo.isSoftwareRenderer
@@ -5876,7 +5962,11 @@ function initializeImmersiveScene(
       renderTargetSize: policy.mirrorTargetSize,
     });
     const level = graphicsQualityManager?.getLevel() ?? initialSceneDetailLevel;
-    applySceneDetailLevel(level, { reloadScene: options.reloadScene ?? false });
+    return applySceneDetailLevel(level, {
+      reloadScene: options.reloadScene ?? false,
+      adaptivePerformanceRecoveryLocked:
+        options.adaptivePerformanceRecoveryLocked === true,
+    });
   };
 
   const getActivePostprocessingPassCount = () => {
@@ -5895,12 +5985,17 @@ function initializeImmersiveScene(
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange((level) => {
     const previousSceneDetailLevel = sceneDetailController.getLevel();
-    const reloadScene =
-      pendingLowFpsPerformanceRecoveryReload &&
-      level === 'performance' &&
-      previousSceneDetailLevel !== 'performance';
+    const reloadScene = previousSceneDetailLevel !== level;
+    const adaptivePerformanceRecoveryLocked =
+      pendingLowFpsPerformanceRecoveryReload && level === 'performance';
     pendingLowFpsPerformanceRecoveryReload = false;
-    applyFeaturePolicy({ reloadScene });
+    const didScheduleSceneReload = applyFeaturePolicy({
+      reloadScene,
+      adaptivePerformanceRecoveryLocked,
+    });
+    if (didScheduleSceneReload) {
+      return;
+    }
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();

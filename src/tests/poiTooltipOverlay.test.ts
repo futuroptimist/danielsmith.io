@@ -188,6 +188,94 @@ describe('PoiTooltipOverlay', () => {
     expect(describedIds).toContain(linksList.id);
   });
 
+  it('hides debug details by default and keeps metrics unchanged', () => {
+    overlay.setHovered(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      true
+    );
+    expect(root.querySelectorAll('.poi-tooltip-overlay__metric')).toHaveLength(
+      1
+    );
+    expect(root.getAttribute('aria-describedby')).not.toContain('debug');
+  });
+
+  it('toggles localized anchor and triangle debug details immediately', () => {
+    overlay.dispose();
+    let modelTriangles = 1234;
+    overlay = new PoiTooltipOverlay({
+      container,
+      interactionTimeline: timelineHarness.timeline,
+      guidedTourPreference: preference,
+      locale: 'en-US',
+      getDebugDetails: () => ({
+        anchor: { x: -8.735, y: 0, z: -22.924 },
+        modelTriangles,
+      }),
+    });
+    overlay.setStrings(getPoiOverlayChromeStrings('en'), 'en-US');
+    overlay.setHovered(basePoi);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      true
+    );
+
+    overlay.setDebugDetailsEnabled(true);
+
+    const debug = root.querySelector('[data-poi-debug]') as HTMLElement;
+    expect(debug.hidden).toBe(false);
+    expect(root.querySelector('[data-poi-debug-anchor]')?.textContent).toBe(
+      'X -8.74 · Y 0.00 · Z -22.92'
+    );
+    expect(root.querySelector('[data-poi-debug-triangles]')?.textContent).toBe(
+      '1,234'
+    );
+    expect(root.getAttribute('aria-describedby')?.split(' ')).toContain(
+      debug.id
+    );
+    expect(root.querySelectorAll('.poi-tooltip-overlay__metric')).toHaveLength(
+      1
+    );
+
+    modelTriangles = 4321;
+    overlay.setHovered(basePoi);
+    expect(root.querySelector('[data-poi-debug-triangles]')?.textContent).toBe(
+      '4,321'
+    );
+
+    overlay.setDebugDetailsEnabled(false);
+
+    expect(debug.hidden).toBe(true);
+    expect(root.getAttribute('aria-describedby')?.split(' ')).not.toContain(
+      debug.id
+    );
+  });
+
+  it('shows debug details for selected and recommended card states', () => {
+    overlay.setDebugDetailsEnabled(true);
+    overlay.setSelected(basePoi, { inputMethod: 'pointer' });
+    let root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('selected');
+    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      false
+    );
+
+    overlay.setSelected(null);
+    overlay.setRecommendation(basePoi);
+    overlay.setIdleState(true);
+    root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    expect(root.dataset.state).toBe('recommended');
+    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      false
+    );
+  });
+
   it('renders selected POI metadata without a hover target', () => {
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 
@@ -455,6 +543,9 @@ describe('PoiTooltipOverlay', () => {
       relatedCaseStudies: '⟦Related case studies⟧',
       outcomeFallbackLabel: '⟦Outcome⟧',
       discoveryAnnouncementTemplate: '⟦{title} discovered. {summary}⟧',
+      debugDetailsLabel: '⟦Debug details⟧',
+      debugPoiAnchor: '⟦POI anchor⟧',
+      debugModelTriangles: '⟦Model triangles⟧',
     });
     overlay.setSelected(localizedPoi);
 

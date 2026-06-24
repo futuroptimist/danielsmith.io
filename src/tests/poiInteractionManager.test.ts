@@ -85,6 +85,7 @@ function createMockPoi(definition: PoiDefinition): PoiInstance {
     visualMode: 'pedestal',
     visited: false,
     visitedStrength: 0,
+    modelRoots: [],
   } satisfies PoiInstance;
 }
 

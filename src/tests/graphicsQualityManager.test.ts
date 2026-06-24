@@ -9,6 +9,16 @@ import {
 } from '../scene/graphics/qualityManager';
 
 describe('createGraphicsQualityManager', () => {
+  it('documents model detail in every preset description', () => {
+    expect(
+      GRAPHICS_QUALITY_PRESETS.every((preset) =>
+        /detail 3D models|3D model detail|detail 3D model/i.test(
+          preset.description
+        )
+      )
+    ).toBe(true);
+  });
+
   const baseBloom = {
     strength: 0.55,
     radius: 0.85,
