@@ -240,6 +240,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { registerPoiModelRoot } from './scene/poi/modelTriangleRegistry';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -302,6 +303,10 @@ import {
   createStaircase,
   type StaircaseConfig,
 } from './scene/structures/staircase';
+import {
+  createSugarkubeDeployment,
+  type SugarkubeDeploymentBuild,
+} from './scene/structures/sugarkubeDeployment';
 import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
@@ -1066,6 +1071,7 @@ let woveLoom: WoveLoomBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
+let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
@@ -2891,8 +2897,12 @@ function initializeImmersiveScene(
   const prReaperPoi = poiInstances.find(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
+  const sugarkubePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'sugarkube-backyard-greenhouse'
+  );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
+    registerPoiModelRoot(poi.definition.id, group);
     (getPoiFloorId(poi.definition) === 'upper'
       ? upperStructureGroup
       : groundStructureGroup
@@ -3033,6 +3043,43 @@ function initializeImmersiveScene(
       );
       gabrielSentry = sentry;
     }
+  }
+
+  if (sugarkubePoi) {
+    const livingRoom = FLOOR_PLAN.rooms.find(
+      (room) => room.id === 'livingRoom'
+    );
+    const wallMargin = 1.1;
+    const wallX = livingRoom
+      ? MathUtils.clamp(
+          sugarkubePoi.group.position.x,
+          livingRoom.bounds.minX + wallMargin,
+          livingRoom.bounds.maxX - wallMargin
+        )
+      : sugarkubePoi.group.position.x;
+    const wallZ = livingRoom
+      ? livingRoom.bounds.minZ + WALL_THICKNESS / 2 + 0.04
+      : sugarkubePoi.group.position.z - 2.8;
+    const deployment = createSugarkubeDeployment({
+      position: {
+        x: sugarkubePoi.group.position.x,
+        y: sugarkubePoi.group.position.y,
+        z: sugarkubePoi.group.position.z,
+      },
+      orientationRadians: sugarkubePoi.group.rotation.y ?? 0,
+      detailPolicy: activeSceneDetailPolicy,
+      wallEndpoint: {
+        x: wallX,
+        y: sugarkubePoi.group.position.y + 0.42,
+        z: wallZ,
+        orientationRadians: 0,
+      },
+    });
+    addPoiStructure(sugarkubePoi, deployment.group);
+    deployment.colliders.forEach((collider) =>
+      getPoiColliderTarget(sugarkubePoi).push(collider)
+    );
+    sugarkubeDeployment = deployment;
   }
 
   if (prReaperPoi) {
@@ -6698,6 +6745,7 @@ function initializeImmersiveScene(
     jobbotTerminal = null;
     axelNavigator = null;
     tokenPlaceRack = null;
+    sugarkubeDeployment = null;
     prReaperConsole = null;
     gabrielSentry = null;
     gitshelvesInstallation = null;
@@ -6907,6 +6955,15 @@ function initializeImmersiveScene(
         const activation = axelPoi?.activation ?? 0;
         const focus = axelPoi?.focus ?? 0;
         axelNavigator.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis: Math.max(activation, focus),
+        });
+      }
+      if (sugarkubeDeployment) {
+        const activation = sugarkubePoi?.activation ?? 0;
+        const focus = sugarkubePoi?.focus ?? 0;
+        sugarkubeDeployment.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
