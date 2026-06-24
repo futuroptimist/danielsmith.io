@@ -110,7 +110,7 @@ export interface PoiDefinition {
   category: PoiCategory;
   interaction: PoiInteraction;
   roomId: string;
-  /** Visual/object origin; keep y on the floor plane so installations do not float. */
+  /** Visual/object bottom anchor. Floor-standing POIs use the room floor elevation (ground 0, upper 5). */
   position: { x: number; y: number; z: number };
   /** Optional player-height world anchor used for interaction/approach checks. */
   interactionAnchorPosition?: { x: number; y: number; z: number };

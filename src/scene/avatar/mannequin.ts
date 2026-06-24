@@ -113,12 +113,13 @@ export function createPortfolioMannequin(
     new MeshBasicMaterial({ color: 0xffffff })
   );
   collisionProxy.name = 'PortfolioMannequinCollisionProxy';
+  collisionProxy.position.y = collisionRadius;
   collisionProxy.visible = false;
   group.add(collisionProxy);
 
   const mannequinRoot = new Group();
   mannequinRoot.name = 'PortfolioMannequinVisual';
-  mannequinRoot.position.y = -collisionRadius;
+  mannequinRoot.position.y = 0;
   group.add(mannequinRoot);
 
   const platformMaterial = createStandardMaterial(
