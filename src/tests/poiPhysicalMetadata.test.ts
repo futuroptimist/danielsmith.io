@@ -1,4 +1,4 @@
-import { Box3, Object3D, Vector3 } from 'three';
+import { Box3, Mesh, Object3D, PlaneGeometry, Vector3 } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
@@ -9,7 +9,11 @@ import {
 } from '../scene/poi/physicalMetadata';
 import type { PoiId } from '../scene/poi/types';
 import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
-import { createTokenPlaceWorkstation } from '../scene/structures/tokenPlaceWorkstation';
+import {
+  EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
+  SUGARKUBE_PI_BOARD_SCENE_WIDTH,
+  createTokenPlaceWorkstation,
+} from '../scene/structures/tokenPlaceWorkstation';
 
 const originalGetContext = HTMLCanvasElement.prototype.getContext;
 
@@ -40,6 +44,12 @@ const expectPositiveFiniteBounds = (
   expect(bounds.width).toBeGreaterThan(0);
   expect(bounds.depth).toBeGreaterThan(0);
   expect(bounds.height).toBeGreaterThan(0);
+};
+
+const planeSize = (mesh: Mesh): { width: number; height: number } => {
+  const geometry = mesh.geometry as PlaneGeometry;
+  const { width, height } = geometry.parameters;
+  return { width, height };
 };
 
 const visibleBounds = (root: Object3D) => {
@@ -99,6 +109,18 @@ describe('POI physical metadata', () => {
       detailPolicy: getSceneDetailPolicy('balanced'),
     });
 
+    const screenWidths = [0, 1].map((index) =>
+      planeSize(
+        build.group.getObjectByName(`TokenPlaceMonitorScreen-${index}`) as Mesh
+      )
+    );
+
+    screenWidths.forEach(({ width }) => {
+      expect(width / SUGARKUBE_PI_BOARD_SCENE_WIDTH).toBeCloseTo(
+        EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
+        2
+      );
+    });
     expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
     expectFitsContract(
       build.group,

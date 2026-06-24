@@ -3,9 +3,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import {
+  EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
+  MONITOR_SCREEN_WIDTH,
   createTokenPlaceTerminalState,
   createTokenPlaceWorkstation,
   fingerprintRows,
+  SUGARKUBE_PI_BOARD_SCENE_WIDTH,
 } from '../scene/structures/tokenPlaceWorkstation';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
@@ -95,8 +98,8 @@ describe('TokenPlaceWorkstation', () => {
     expect(build.colliders).toHaveLength(2);
     build.colliders.forEach((collider) => {
       expect(Object.values(collider).every(Number.isFinite)).toBe(true);
-      expect(collider.maxX - collider.minX).toBeLessThanOrEqual(3.2);
-      expect(collider.maxZ - collider.minZ).toBeLessThanOrEqual(3.2);
+      expect(collider.maxX - collider.minX).toBeLessThanOrEqual(5.9);
+      expect(collider.maxZ - collider.minZ).toBeLessThanOrEqual(5.9);
     });
     build.dispose();
   });
@@ -114,39 +117,36 @@ describe('TokenPlaceWorkstation', () => {
     const rightMonitor = find(build.group, 'TokenPlaceMonitor-1');
     const workstationBounds = localBoundingBox(build.group);
 
-    // Raspberry Pi 5 footprint is about 85mm x 56mm. A 27 inch 16:9
-    // monitor has about a 598mm x 336mm active area, so each screen
-    // should be ~7x wider than a Pi board and the dual-monitor setup
-    // should read as a full desk, not a board-sized accessory.
-    const raspberryPi5WidthMm = 85;
-    const monitor27InchWidthMm = 598;
-    const expectedMonitorToPiRatio = monitor27InchWidthMm / raspberryPi5WidthMm;
-    const screenToPiReferenceWidth =
-      screenSizes[0].width / expectedMonitorToPiRatio;
     const dualMonitorOuterWidth =
       Math.abs(
         (rightMonitor?.position.x ?? 0) - (leftMonitor?.position.x ?? 0)
       ) + screenSizes[0].width;
 
     screenSizes.forEach(({ width, height }) => {
-      expect(width / height).toBeGreaterThan(1.75);
-      expect(width / height).toBeLessThan(1.79);
-      expect(width / screenToPiReferenceWidth).toBeCloseTo(
-        expectedMonitorToPiRatio
+      expect(width).toBeCloseTo(MONITOR_SCREEN_WIDTH, 2);
+      expect(width / SUGARKUBE_PI_BOARD_SCENE_WIDTH).toBeCloseTo(
+        EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
+        2
       );
+      expect(width / height).toBeCloseTo(16 / 9, 2);
     });
-    expect(dualMonitorOuterWidth / screenToPiReferenceWidth).toBeGreaterThan(
-      12
+    expect(dualMonitorOuterWidth).toBeGreaterThan(
+      14 * SUGARKUBE_PI_BOARD_SCENE_WIDTH
+    );
+    expect(dualMonitorOuterWidth).toBeLessThan(
+      16.5 * SUGARKUBE_PI_BOARD_SCENE_WIDTH
     );
     expect(workstationBounds.max.x - workstationBounds.min.x).toBeGreaterThan(
-      2.3
+      4.6
     );
     expect(workstationBounds.max.z - workstationBounds.min.z).toBeGreaterThan(
-      1.5
+      2
     );
-    expect(workstationBounds.max.x - workstationBounds.min.x).toBeLessThan(3);
-    expect(workstationBounds.max.z - workstationBounds.min.z).toBeLessThan(2.4);
-    expect(workstationBounds.max.y).toBeLessThan(1.7);
+    expect(workstationBounds.max.x - workstationBounds.min.x).toBeLessThan(5.7);
+    expect(workstationBounds.max.z - workstationBounds.min.z).toBeLessThan(
+      2.85
+    );
+    expect(workstationBounds.max.y).toBeLessThan(2.4);
     expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
     build.dispose();
   });

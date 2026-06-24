@@ -40,14 +40,14 @@ const physicalMetadata = {
       height: 1.25,
     },
     intendedSceneBounds: {
-      width: 2.9,
-      depth: 2.2,
-      height: 1.7,
+      width: 5.7,
+      depth: 2.85,
+      height: 2.4,
     },
     anchor: 'bottom-center',
     clearances: {
-      markerMinHeight: 1.7,
-      avatarPathRadius: 0.9,
+      markerMinHeight: 2.4,
+      avatarPathRadius: 1.2,
     },
   },
   'sugarkube-backyard-greenhouse': {

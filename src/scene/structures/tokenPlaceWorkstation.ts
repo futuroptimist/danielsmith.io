@@ -62,6 +62,23 @@ export interface TokenPlaceWorkstationOptions {
   detailPolicy?: SceneDetailPolicy;
 }
 
+export const SUGARKUBE_PI_BOARD_SCENE_WIDTH = 0.31;
+export const RASPBERRY_PI_5_REAL_WIDTH_METERS = 0.085;
+export const MONITOR_27_INCH_16_9_REAL_WIDTH_METERS = 0.598;
+export const EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO =
+  MONITOR_27_INCH_16_9_REAL_WIDTH_METERS / RASPBERRY_PI_5_REAL_WIDTH_METERS;
+export const MONITOR_SCREEN_WIDTH =
+  SUGARKUBE_PI_BOARD_SCENE_WIDTH * EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO;
+export const MONITOR_SCREEN_HEIGHT = MONITOR_SCREEN_WIDTH * (9 / 16);
+
+const MONITOR_CENTER_GAP = 0.18;
+const MONITOR_BEZEL_PADDING_X = 0.16;
+const MONITOR_BEZEL_PADDING_Y = 0.12;
+const MONITOR_BEZEL_DEPTH = 0.08;
+const MONITOR_BEZEL_WIDTH = MONITOR_SCREEN_WIDTH + MONITOR_BEZEL_PADDING_X;
+const MONITOR_BEZEL_HEIGHT = MONITOR_SCREEN_HEIGHT + MONITOR_BEZEL_PADDING_Y;
+const MONITOR_X_OFFSET = MONITOR_SCREEN_WIDTH / 2 + MONITOR_CENTER_GAP / 2;
+
 interface DetailConfig {
   level: SceneDetailPolicy['level'];
   terminalWidth: number;
@@ -348,19 +365,19 @@ export function createTokenPlaceWorkstation(
   const desk = new Group();
   desk.name = 'TokenPlaceDesk';
   group.add(desk);
-  addBox(desk, 'TokenPlaceDeskTop', [2.45, 0.14, 1.02], [0, 0.78, 0], wood);
+  addBox(desk, 'TokenPlaceDeskTop', [5.35, 0.14, 1.28], [0, 0.78, 0], wood);
   addBox(
     desk,
     'TokenPlaceDeskBackBrace',
-    [2.24, 0.09, 0.09],
-    [0, 0.46, -0.43],
+    [4.95, 0.09, 0.09],
+    [0, 0.46, -0.56],
     charcoal
   );
   const legPositions: Array<[number, number]> = [
-    [-1.06, -0.4],
-    [1.06, -0.4],
-    [-1.06, 0.4],
-    [1.06, 0.4],
+    [-2.46, -0.52],
+    [2.46, -0.52],
+    [-2.46, 0.52],
+    [2.46, 0.52],
   ];
   legPositions.forEach(([x, z], index) =>
     addBox(
@@ -376,41 +393,41 @@ export function createTokenPlaceWorkstation(
       desk,
       'TokenPlaceDeskGrommet',
       [0.18, 0.014, 0.1],
-      [0.78, 0.858, -0.34],
+      [1.78, 0.858, -0.48],
       charcoal
     );
     addBox(
       desk,
       'TokenPlaceCableBundle',
       [0.06, 0.28, 0.05],
-      [0.84, 0.64, -0.38],
+      [1.88, 0.64, -0.52],
       charcoal
     );
   }
 
   const tower = new Group();
   tower.name = 'TokenPlacePcTower';
-  tower.position.set(-0.92, 0.38, 0.2);
+  tower.position.set(-2.12, 0.42, 0.22);
   group.add(tower);
   addBox(
     tower,
     'TokenPlacePcTowerCase',
-    [0.44, 0.76, 0.52],
+    [0.58, 0.84, 0.62],
     [0, 0, 0],
     charcoal
   );
   addBox(
     tower,
     'TokenPlacePcTowerFrontPanel',
-    [0.45, 0.64, 0.04],
-    [0, 0.02, 0.285],
+    [0.59, 0.72, 0.04],
+    [0, 0.02, 0.335],
     dark
   );
   addBox(
     tower,
     'TokenPlacePcPowerIndicator',
     [0.04, 0.04, 0.04],
-    [0.13, 0.24, 0.315],
+    [0.18, 0.26, 0.365],
     amber
   );
   for (let i = 0; i < config.pcVentCount; i += 1)
@@ -418,56 +435,56 @@ export function createTokenPlaceWorkstation(
       tower,
       `TokenPlacePcVent-${i}`,
       [0.26, 0.014, 0.02],
-      [0, 0.14 - i * 0.04, 0.315],
+      [0, 0.18 - i * 0.045, 0.365],
       accent
     );
   if (config.level === 'cinematic') {
-    const fan = new Mesh(new CylinderGeometry(0.13, 0.13, 0.02, 24), accent);
+    const fan = new Mesh(new CylinderGeometry(0.16, 0.16, 0.02, 24), accent);
     fan.name = 'TokenPlacePcFanRing';
     fan.rotation.x = Math.PI / 2;
-    fan.position.set(-0.09, -0.2, 0.315);
+    fan.position.set(-0.12, -0.22, 0.365);
     tower.add(fan);
     addBox(
       tower,
       'TokenPlacePcSidePanel',
-      [0.025, 0.56, 0.34],
-      [0.23, 0, 0],
+      [0.025, 0.62, 0.4],
+      [0.3, 0, 0],
       dark
     );
   }
 
   const chair = new Group();
   chair.name = 'TokenPlaceGamingChair';
-  chair.position.set(0.06, 0, 1.14);
+  chair.position.set(0.08, 0, 1.48);
   chair.rotation.y = -0.08;
   group.add(chair);
-  addBox(chair, 'TokenPlaceChairSeat', [0.72, 0.16, 0.64], [0, 0.43, 0], dark);
+  addBox(chair, 'TokenPlaceChairSeat', [0.9, 0.18, 0.78], [0, 0.43, 0], dark);
   addBox(
     chair,
     'TokenPlaceChairBack',
-    [0.68, 0.92, 0.14],
-    [0, 0.98, 0.29],
+    [0.84, 1.04, 0.16],
+    [0, 1.04, 0.36],
     dark
   );
   addBox(
     chair,
     'TokenPlaceChairHeadrest',
-    [0.44, 0.18, 0.15],
-    [0, 1.4, 0.23],
+    [0.52, 0.2, 0.16],
+    [0, 1.5, 0.3],
     charcoal
   );
   addBox(
     chair,
     'TokenPlaceChairLeftArm',
-    [0.09, 0.36, 0.44],
-    [-0.44, 0.64, 0.03],
+    [0.1, 0.38, 0.52],
+    [-0.54, 0.68, 0.04],
     charcoal
   );
   addBox(
     chair,
     'TokenPlaceChairRightArm',
-    [0.09, 0.36, 0.44],
-    [0.44, 0.64, 0.03],
+    [0.1, 0.38, 0.52],
+    [0.54, 0.68, 0.04],
     charcoal
   );
   const post = new Mesh(
@@ -492,7 +509,7 @@ export function createTokenPlaceWorkstation(
       chair,
       'TokenPlaceChairAccentStitch',
       [0.07, 0.8, 0.03],
-      [0, 1, 0.37],
+      [0, 1.08, 0.45],
       accent
     );
 
@@ -513,60 +530,60 @@ export function createTokenPlaceWorkstation(
   const textures = terminals.map((terminal) =>
     createTerminalTexture(config.terminalWidth, config.terminalHeight, terminal)
   );
-  const monitorXs = [-0.43, 0.43];
+  const monitorXs = [-MONITOR_X_OFFSET, MONITOR_X_OFFSET];
   monitorXs.forEach((x, index) => {
     const monitor = new Group();
     monitor.name = `TokenPlaceMonitor-${index}`;
-    monitor.position.set(x, 1.3, -0.34);
+    monitor.position.set(x, 1.58, -0.48);
     monitor.rotation.y = index === 0 ? -0.18 : 0.18;
     group.add(monitor);
     addBox(
       monitor,
       `TokenPlaceMonitorBezel-${index}`,
-      [0.78, 0.46, 0.055],
+      [MONITOR_BEZEL_WIDTH, MONITOR_BEZEL_HEIGHT, MONITOR_BEZEL_DEPTH],
       [0, 0, 0],
       charcoal
     );
     const screen = new Mesh(
-      new PlaneGeometry(0.704, 0.396),
+      new PlaneGeometry(MONITOR_SCREEN_WIDTH, MONITOR_SCREEN_HEIGHT),
       screenMaterialBase.clone()
     );
     screen.name = `TokenPlaceMonitorScreen-${index}`;
     (screen.material as MeshBasicMaterial).map = textures[index];
-    screen.position.set(0, 0, 0.032);
+    screen.position.set(0, 0, MONITOR_BEZEL_DEPTH / 2 + 0.003);
     monitor.add(screen);
     addBox(
       monitor,
       `TokenPlaceMonitorStand-${index}`,
-      [0.08, 0.38, 0.065],
-      [0, -0.42, 0],
+      [0.12, 0.56, 0.09],
+      [0, -0.78, 0],
       charcoal
     );
     addBox(
       monitor,
       `TokenPlaceMonitorBase-${index}`,
-      [0.38, 0.05, 0.26],
-      [0, -0.64, 0.04],
+      [0.62, 0.06, 0.36],
+      [0, -1.08, 0.05],
       charcoal
     );
     if (config.level === 'cinematic')
       addBox(
         monitor,
         `TokenPlaceMonitorBackVent-${index}`,
-        [0.42, 0.045, 0.018],
-        [0, 0.13, -0.035],
+        [1.3, 0.055, 0.02],
+        [0, 0.28, -0.05],
         accent
       );
   });
 
   const keyboard = new Group();
   keyboard.name = 'TokenPlaceKeyboard';
-  keyboard.position.set(-0.12, 0.89, 0.14);
+  keyboard.position.set(-0.25, 0.89, 0.22);
   group.add(keyboard);
   addBox(
     keyboard,
     'TokenPlaceKeyboardBase',
-    [0.86, 0.045, 0.28],
+    [1.28, 0.045, 0.34],
     [0, 0, 0],
     charcoal
   );
@@ -577,9 +594,9 @@ export function createTokenPlaceWorkstation(
         `TokenPlaceKey-${row}-${col}`,
         [0.05, 0.02, 0.034],
         [
-          -0.35 + col * (0.7 / Math.max(1, config.keyColumns - 1)),
+          -0.54 + col * (1.08 / Math.max(1, config.keyColumns - 1)),
           0.032,
-          -0.09 + row * 0.07,
+          -0.12 + row * 0.07,
         ],
         dark
       );
@@ -588,13 +605,13 @@ export function createTokenPlaceWorkstation(
   addBox(
     group,
     'TokenPlaceMousePad',
-    [0.42, 0.02, 0.34],
-    [0.72, 0.872, 0.14],
+    [0.68, 0.02, 0.46],
+    [1.25, 0.872, 0.22],
     dark
   );
   const mouse = new Mesh(
     new SphereGeometry(
-      0.095,
+      0.12,
       config.monitorSegments,
       Math.max(4, Math.floor(config.monitorSegments / 2))
     ),
@@ -602,16 +619,16 @@ export function createTokenPlaceWorkstation(
   );
   mouse.name = 'TokenPlaceMouse';
   mouse.scale.set(1.05, 0.34, 1.45);
-  mouse.position.set(0.72, 0.93, 0.12);
+  mouse.position.set(1.25, 0.94, 0.2);
   group.add(mouse);
 
   const token = new Mesh(
-    new CylinderGeometry(0.095, 0.095, 0.02, config.monitorSegments),
+    new CylinderGeometry(0.13, 0.13, 0.025, config.monitorSegments),
     amber
   );
   token.name = 'TokenPlaceCoinMotif';
   token.rotation.x = Math.PI / 2;
-  token.position.set(1.04, 0.87, -0.34);
+  token.position.set(2.16, 0.875, -0.42);
   group.add(token);
 
   const rotateLocalOffset = (x: number, z: number) => {
@@ -622,15 +639,15 @@ export function createTokenPlaceWorkstation(
 
   const colliders = [
     createCollider(
-      basePosition.clone().add(rotateLocalOffset(0, 0.04)),
-      2.62,
-      1.26,
+      basePosition.clone().add(rotateLocalOffset(0, 0.08)),
+      5.55,
+      1.58,
       orientationRadians
     ),
     createCollider(
-      basePosition.clone().add(rotateLocalOffset(0.06, 1.14)),
-      0.88,
-      0.76,
+      basePosition.clone().add(rotateLocalOffset(0.08, 1.48)),
+      1.08,
+      0.96,
       orientationRadians - 0.08
     ),
   ];
