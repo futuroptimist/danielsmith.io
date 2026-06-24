@@ -380,36 +380,6 @@
       "metadataFingerprint": "3eb528cda1bdda4a0306c982b6523c16164d5e9c3466a8d439d3c8cf3c33f0c9"
     },
     {
-      "id": "audit:src:scene:structures:greenhouse",
-      "sourceFiles": ["src/scene/structures/greenhouse.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f62650ed957edc2d16b175b76aa0b7d53fd0bf2296ad7e37071f9bfe14864969"
-    },
-    {
-      "id": "audit:src:scene:structures:mediaWallStarBridge",
-      "sourceFiles": ["src/scene/structures/mediaWallStarBridge.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "04d2cedb3edec666eb4aca08bf1ec62e8e9bbd9f421ec67d2960b759dd8e24b4",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "569ec24c53a8f90d787b8917856cb5b0f9998ec0dc4785215ad682c9fc19106d"
-    },
-    {
-      "id": "audit:src:scene:structures:multiplayerProjection",
-      "sourceFiles": ["src/scene/structures/multiplayerProjection.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "04676c6f3d637192e62e0f52bb16b33f9231b1db56ec08d77e2878ec397a47c7",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "565d07c8217d6d67c1a39d23f880d9f7a0a063e85842481ea6755cf56a350d5f"
-    },
-    {
       "id": "audit:src:scene:structures:triangleCount",
       "sourceFiles": ["src/scene/structures/triangleCount.ts"],
       "proxyFiles": [],
@@ -452,7 +422,7 @@
       "syncRevision": 1,
       "syncNote": "Ceiling panel fixtures need simplified caps in the tabletop.",
       "sourceFingerprint": "ebd5f2e8ef4522745c486e0fe00d2a9c9b59067c82e0f73e807082f3af3cbcd5",
-      "proxyFingerprint": "c146356b39dfd3c95168647c741c491abd7cd53d3d221f0b98861db67ab5f137",
+      "proxyFingerprint": "367efe0d80524fde5963c9688fd97c54c5a5a68fc7de5f77b8abd1fdff8113e6",
       "metadataFingerprint": "73cc34b6ec09ede01419bf028fe4d2a8e6b227520c61098398daaa25ffe91566"
     },
     {
@@ -519,7 +489,7 @@
       "syncRevision": 1,
       "syncNote": "Visible LED strips are represented as simplified fixture strips; invisible light contribution is excluded.",
       "sourceFingerprint": "db5e4dc8734e2a2b560bdfac3c8471286095c02bc2480c2a943a2b96552a719e",
-      "proxyFingerprint": "c146356b39dfd3c95168647c741c491abd7cd53d3d221f0b98861db67ab5f137",
+      "proxyFingerprint": "367efe0d80524fde5963c9688fd97c54c5a5a68fc7de5f77b8abd1fdff8113e6",
       "metadataFingerprint": "c45e7bcebfe889f25d2582d69cefd5b716828079c769b454f959b3d2fcfc98f6"
     },
     {
@@ -745,6 +715,36 @@
       "sourceFingerprint": "d07b9df05209e054f4b5be8a6217636c614ec179d5a10bcaf2bc7eaaef2527dd",
       "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "5128232251928c3002eed1bcdb8e1df1b63d37f78e4c8afad794756597ef6675"
+    },
+    {
+      "id": "structure:greenhouse",
+      "sourceFiles": ["src/scene/structures/greenhouse.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Greenhouse shell and visible planters are represented by simplified proxy geometry.",
+      "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
+      "proxyFingerprint": "367efe0d80524fde5963c9688fd97c54c5a5a68fc7de5f77b8abd1fdff8113e6",
+      "metadataFingerprint": "fc6531df64c47d676958fcc5b51888d9c48fe33484b658d70841deb5f8888986"
+    },
+    {
+      "id": "structure:media-wall-star-bridge",
+      "sourceFiles": ["src/scene/structures/mediaWallStarBridge.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Media wall star bridge visible spans are represented by simplified proxy geometry.",
+      "sourceFingerprint": "04d2cedb3edec666eb4aca08bf1ec62e8e9bbd9f421ec67d2960b759dd8e24b4",
+      "proxyFingerprint": "367efe0d80524fde5963c9688fd97c54c5a5a68fc7de5f77b8abd1fdff8113e6",
+      "metadataFingerprint": "492f0a9f355b44bea11a40f10baedbaf8cc02b767a9917b622a52f6f0f538232"
+    },
+    {
+      "id": "structure:multiplayer-projection",
+      "sourceFiles": ["src/scene/structures/multiplayerProjection.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Multiplayer projection visible screen and plinth are represented by simplified proxy geometry.",
+      "sourceFingerprint": "04676c6f3d637192e62e0f52bb16b33f9231b1db56ec08d77e2878ec397a47c7",
+      "proxyFingerprint": "367efe0d80524fde5963c9688fd97c54c5a5a68fc7de5f77b8abd1fdff8113e6",
+      "metadataFingerprint": "f064a0716c5538bdeaff7d47d54dcc2a0a2b97d0403e6000496ce505524f4608"
     }
   ]
 }

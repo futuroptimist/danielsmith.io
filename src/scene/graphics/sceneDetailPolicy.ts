@@ -317,9 +317,10 @@ export function stepSceneDetailLevel(
   steps: number
 ): SceneDetailLevel {
   const index = ORDERED_SCENE_DETAIL_LEVELS.indexOf(level);
+  const downSteps = Math.max(0, Math.floor(steps));
   const next = Math.min(
     ORDERED_SCENE_DETAIL_LEVELS.length - 1,
-    Math.max(0, index + steps)
+    Math.max(0, index + downSteps)
   );
   return ORDERED_SCENE_DETAIL_LEVELS[next];
 }

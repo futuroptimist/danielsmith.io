@@ -18,6 +18,7 @@ import {
   MINIATURE_SCENE_COMPONENT_COVERAGE,
   type MiniatureSceneComponentCoverage,
 } from '../src/scene/miniature/sceneComponentRegistry';
+import { getPoiDefinitions } from '../src/scene/poi/registry';
 
 const MANIFEST_PATH = 'src/scene/miniature/miniatureManifest.generated.json';
 const AUDITED_DIRS = [
@@ -125,6 +126,28 @@ function validateRegistry(entries: Entry[]) {
       owners.set(file, entry.id);
     })
   );
+  const livePoiIds = new Set<string>(
+    getPoiDefinitions().map((definition) => definition.id)
+  );
+  const proxyPoiIds = new Set<string>(
+    Object.keys(MINIATURE_POI_PROXY_REGISTRY)
+  );
+  const missing = [...livePoiIds].filter((id) => !proxyPoiIds.has(id));
+  const unknown = [...proxyPoiIds].filter((id) => !livePoiIds.has(id));
+  if (missing.length || unknown.length) {
+    throw new Error(
+      [
+        missing.length
+          ? `Missing POI miniature proxy ids: ${missing.join(', ')}`
+          : '',
+        unknown.length
+          ? `Unknown POI miniature proxy ids: ${unknown.join(', ')}`
+          : '',
+      ]
+        .filter(Boolean)
+        .join('\n')
+    );
+  }
 }
 
 function buildManifest() {
@@ -148,6 +171,41 @@ function buildManifest() {
       ]),
     })),
   };
+}
+
+function entriesById(manifest: ReturnType<typeof buildManifest>) {
+  return new Map(manifest.entries.map((entry) => [entry.id, entry]));
+}
+
+export function assertManifestUpdateIsAcknowledged(
+  previous: ReturnType<typeof buildManifest>,
+  next: ReturnType<typeof buildManifest>
+) {
+  const previousEntries = entriesById(previous);
+  next.entries.forEach((entry) => {
+    const before = previousEntries.get(entry.id);
+    if (!before) return;
+    const sourceChanged = before.sourceFingerprint !== entry.sourceFingerprint;
+    const proxyChanged = before.proxyFingerprint !== entry.proxyFingerprint;
+    const revisionIncreased = entry.syncRevision > before.syncRevision;
+    const noteChanged = entry.syncNote !== before.syncNote;
+    const hasNote = entry.syncNote.trim().length > 0;
+    if (!sourceChanged && !proxyChanged && noteChanged) {
+      throw new Error(
+        `${entry.id} changed only syncNote; note-only acknowledgements are not proxy updates.`
+      );
+    }
+    if (
+      sourceChanged &&
+      !proxyChanged &&
+      !(revisionIncreased && noteChanged && hasNote)
+    ) {
+      throw new Error(
+        `${entry.id} changed source files without proxy changes. ` +
+          'Bump syncRevision and add a new syncNote, or update proxy geometry.'
+      );
+    }
+  });
 }
 
 function assertAuditedFilesClassified(
@@ -232,6 +290,12 @@ if (process.argv.includes('--update')) {
   const manifest = buildManifest();
   assertAuditedFilesClassified(manifest);
   assertNoInlineMainGeometry();
+  if (existsSync(MANIFEST_PATH)) {
+    assertManifestUpdateIsAcknowledged(
+      JSON.parse(readFileSync(MANIFEST_PATH, 'utf8')),
+      manifest
+    );
+  }
   writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
   execFileSync('npx', ['prettier', '--write', MANIFEST_PATH], {
     stdio: 'ignore',

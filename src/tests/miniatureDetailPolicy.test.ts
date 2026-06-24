@@ -34,10 +34,14 @@ describe('miniature detail policy', () => {
     expect(getMiniatureSceneDetailPolicy('balanced').level).toBe('low');
   });
 
-  it('steps detail levels with clamping', () => {
+  it('steps detail levels down only with floored clamping', () => {
     expect(stepSceneDetailLevel('cinematic', 2)).toBe('performance');
+    expect(stepSceneDetailLevel('cinematic', 2.9)).toBe('performance');
     expect(stepSceneDetailLevel('performance', 99)).toBe('micro');
-    expect(stepSceneDetailLevel('low', -99)).toBe('cinematic');
+    expect(stepSceneDetailLevel('low', -99)).toBe('low');
+    expect(stepSceneDetailLevel('balanced', -0.5)).toBe('balanced');
+    expect(stepSceneDetailLevel('balanced', 0)).toBe('balanced');
+    expect(stepSceneDetailLevel('balanced', 1.5)).toBe('performance');
   });
 
   it('decreases policy metadata monotonically and keeps constructible primitive segments', () => {

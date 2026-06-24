@@ -10,7 +10,10 @@ import {
   MINIATURE_POI_PROXY_REGISTRY,
 } from '../scene/miniature/poiProxyRegistry';
 import { buildMiniatureProxy } from '../scene/miniature/proxyBuilder';
-import { MINIATURE_SCENE_COMPONENT_COVERAGE } from '../scene/miniature/sceneComponentRegistry';
+import {
+  MINIATURE_SCENE_COMPONENT_COVERAGE,
+  MINIATURE_SCENE_COMPONENT_PROXIES,
+} from '../scene/miniature/sceneComponentRegistry';
 import type { PoiId } from '../scene/poi/types';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
@@ -99,6 +102,26 @@ describe('miniature POI proxy registry', () => {
     }
   });
 
+  it('builds required visible component proxies at every detail level', () => {
+    expect(MINIATURE_SCENE_COMPONENT_PROXIES.map((entry) => entry.id)).toEqual(
+      expect.arrayContaining([
+        'component:greenhouse',
+        'component:media-wall-star-bridge',
+        'component:multiplayer-projection',
+      ])
+    );
+    for (const level of ORDERED_SCENE_DETAIL_LEVELS) {
+      for (const definition of MINIATURE_SCENE_COMPONENT_PROXIES) {
+        const { root, semanticNames } = buildMiniatureProxy(
+          definition,
+          getSceneDetailPolicy(level)
+        );
+        expect(semanticNames.length).toBeGreaterThan(0);
+        expect(countObjectTriangles(root)).toBeGreaterThan(0);
+      }
+    }
+  });
+
   it('keeps proxy catalog triangles monotonic without filler geometry', () => {
     const totals = ORDERED_SCENE_DETAIL_LEVELS.map((level) =>
       MINIATURE_POI_PROXY_DEFINITIONS.reduce(
@@ -122,6 +145,9 @@ describe('miniature POI proxy registry', () => {
         'level:floors-walls',
         'level:stairs-landing',
         'environment:backyard',
+        'structure:greenhouse',
+        'structure:media-wall-star-bridge',
+        'structure:multiplayer-projection',
       ])
     );
   });
