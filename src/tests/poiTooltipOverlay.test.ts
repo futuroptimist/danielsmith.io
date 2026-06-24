@@ -204,6 +204,7 @@ describe('PoiTooltipOverlay', () => {
 
   it('toggles localized anchor and triangle debug details immediately', () => {
     overlay.dispose();
+    let modelTriangles = 1234;
     overlay = new PoiTooltipOverlay({
       container,
       interactionTimeline: timelineHarness.timeline,
@@ -211,7 +212,7 @@ describe('PoiTooltipOverlay', () => {
       locale: 'en-US',
       getDebugDetails: () => ({
         anchor: { x: -8.735, y: 0, z: -22.924 },
-        modelTriangles: 1234,
+        modelTriangles,
       }),
     });
     overlay.setStrings(getPoiOverlayChromeStrings('en'), 'en-US');
@@ -238,6 +239,12 @@ describe('PoiTooltipOverlay', () => {
     );
     expect(root.querySelectorAll('.poi-tooltip-overlay__metric')).toHaveLength(
       1
+    );
+
+    modelTriangles = 4321;
+    overlay.setHovered(basePoi);
+    expect(root.querySelector('[data-poi-debug-triangles]')?.textContent).toBe(
+      '4,321'
     );
 
     overlay.setDebugDetailsEnabled(false);

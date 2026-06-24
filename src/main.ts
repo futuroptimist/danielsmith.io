@@ -2519,7 +2519,7 @@ function initializeImmersiveScene(
         (candidate) => candidate.definition.id === definition.id
       );
       return {
-        anchor: definition.position,
+        anchor: getPoiInteractionAnchorPosition(definition),
         modelTriangles: poi ? countPoiModelTriangles(poi.modelRoots) : 0,
       };
     },
@@ -2942,7 +2942,11 @@ function initializeImmersiveScene(
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     }
-    groundStructureGroup.add(showpiece.group);
+    if (flywheelPoi) {
+      addPoiStructure(flywheelPoi, showpiece.group);
+    } else {
+      groundStructureGroup.add(showpiece.group);
+    }
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;

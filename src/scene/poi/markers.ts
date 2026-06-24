@@ -485,7 +485,7 @@ function createDisplayPoiInstance(
     displayHighlight: override.highlight,
     visited: false,
     visitedStrength: 0,
-    modelRoots: [],
+    modelRoots: [override.highlight.mesh],
   };
 }
 

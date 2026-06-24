@@ -386,6 +386,7 @@ export class PoiTooltipOverlay {
       };
       this.renderPoi(poi);
     }
+    this.renderDebugDetails(poi);
 
     const describedByIds = [this.summary.id];
     if (!this.outcome.hidden) {
@@ -456,7 +457,6 @@ export class PoiTooltipOverlay {
     this.renderOutcome(poi);
     this.renderMetrics(poi);
     this.renderLinks(poi);
-    this.renderDebugDetails(poi);
   }
 
   private renderOutcome(poi: PoiDefinition) {
