@@ -832,6 +832,9 @@ export function buildLatinLocaleOverrides(
         relatedCaseStudies: s.related,
         outcomeFallbackLabel: s.outcome,
         discoveryAnnouncementTemplate: s.discovered,
+        debugDetailsLabel: 'Debug details',
+        debugPoiAnchor: 'POI anchor',
+        debugModelTriangles: 'Model triangles',
       },
       narrativeLog: {
         heading:

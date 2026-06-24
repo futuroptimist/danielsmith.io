@@ -240,6 +240,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { countPoiModelTriangles } from './scene/poi/modelTriangles';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -1119,6 +1120,7 @@ let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
+let futuroptimistTvModelRoot: Object3D | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
@@ -2091,6 +2093,7 @@ function initializeImmersiveScene(
     tvHitArea.visible = true;
     tvHitArea.renderOrder = tvBinding.glow.renderOrder + 1;
     mediaWall.group.add(tvHitArea);
+    futuroptimistTvModelRoot = tvBinding.glow;
 
     poiOverrides['futuroptimist-living-room-tv'] = {
       mode: 'display',
@@ -2570,6 +2573,16 @@ function initializeImmersiveScene(
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
+    locale,
+    getDebugDetails: (definition) => {
+      const poi = poiInstances.find(
+        (candidate) => candidate.definition.id === definition.id
+      );
+      return {
+        anchor: definition.position,
+        modelTriangles: poi ? countPoiModelTriangles(poi.modelRoots) : 0,
+      };
+    },
     interactionTimeline,
     guidedTourPreference,
     discoveryAnnouncer: {
@@ -2583,7 +2596,7 @@ function initializeImmersiveScene(
       dismissActivePoiDetail();
     },
   });
-  poiTooltipOverlay.setStrings(poiOverlayStrings);
+  poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
@@ -2922,6 +2935,10 @@ function initializeImmersiveScene(
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
   );
+  if (futuroptimistPoi && futuroptimistTvModelRoot) {
+    futuroptimistPoi.modelRoots = [futuroptimistTvModelRoot];
+  }
+
   const jobbotPoi = poiInstances.find(
     (poi) => poi.definition.id === 'jobbot-studio-terminal'
   );
@@ -2955,6 +2972,7 @@ function initializeImmersiveScene(
       ? upperStructureGroup
       : groundStructureGroup
     ).add(group);
+    poi.modelRoots.push(group);
   };
   const getPoiColliderTarget = (poi: PoiInstance) =>
     getPoiFloorId(poi.definition) === 'upper'
@@ -2988,7 +3006,11 @@ function initializeImmersiveScene(
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     }
-    groundStructureGroup.add(showpiece.group);
+    if (flywheelPoi) {
+      addPoiStructure(flywheelPoi, showpiece.group);
+    } else {
+      groundStructureGroup.add(showpiece.group);
+    }
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
@@ -4277,13 +4299,13 @@ function initializeImmersiveScene(
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
+    poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
     refreshDebugCoordinatesStrings();
     refreshDebugCollidersStrings();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
-    poiTooltipOverlay.setStrings(poiOverlayStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
     syncPoiRecommendation();
@@ -4996,6 +5018,7 @@ function initializeImmersiveScene(
     debugCoordinatesEnabled = enabled;
     syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
+    poiTooltipOverlay.setDebugDetailsEnabled(enabled);
     if (enabled) {
       updateDebugCoordinatesOverlay();
     }
@@ -5023,6 +5046,8 @@ function initializeImmersiveScene(
     refreshDebugSolidIdsControl();
     refreshDebugFpsControl();
   };
+
+  poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
 
   debugCoordinatesOverlay = document.createElement('aside');
   debugCoordinatesOverlay.className = 'debug-coordinates';

@@ -29,6 +29,27 @@ import {
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
 
+it('provides POI debug detail labels for every locale', () => {
+  for (const locale of AVAILABLE_LOCALES) {
+    const strings = getPoiOverlayChromeStrings(locale);
+    expect(strings.debugDetailsLabel.trim()).not.toBe('');
+    expect(strings.debugPoiAnchor.trim()).not.toBe('');
+    expect(strings.debugModelTriangles.trim()).not.toBe('');
+  }
+});
+
+it('pseudo-localizes POI debug detail labels', () => {
+  const english = getPoiOverlayChromeStrings('en');
+  const pseudo = getPoiOverlayChromeStrings('en-x-pseudo');
+
+  expect(pseudo.debugDetailsLabel).not.toBe(english.debugDetailsLabel);
+  expect(pseudo.debugPoiAnchor).not.toBe(english.debugPoiAnchor);
+  expect(pseudo.debugModelTriangles).not.toBe(english.debugModelTriangles);
+  expect(pseudo.debugDetailsLabel).toMatch(/^⟦.*⟧$/);
+  expect(pseudo.debugPoiAnchor).toMatch(/^⟦.*⟧$/);
+  expect(pseudo.debugModelTriangles).toMatch(/^⟦.*⟧$/);
+});
+
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
     expect(AVAILABLE_LOCALES).toContain('en');
