@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
@@ -98,6 +101,20 @@ describe('POI model triangle registry', () => {
     );
     expect(getPoiModelTriangleCount('sugarkube-backyard-greenhouse')).not.toBe(
       staleTriangleCount
+    );
+  });
+
+  it('keeps main debug triangle reporting on the registry path', () => {
+    const mainSource = readFileSync(join(process.cwd(), 'src/main.ts'), 'utf8');
+
+    const staleCounterName = ['countPoiModel', 'Triangles'].join('');
+
+    expect(mainSource).not.toContain(staleCounterName);
+    expect(mainSource).toContain(
+      'modelTriangles: getPoiModelTriangleCount(definition.id) ?? 0'
+    );
+    expect(mainSource).toContain(
+      'registerPoiModelRoot(\n      futuroptimistPoi.definition.id'
     );
   });
 });

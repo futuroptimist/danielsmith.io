@@ -2583,15 +2583,10 @@ function initializeImmersiveScene(
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
     locale,
-    getDebugDetails: (definition) => {
-      const poi = poiInstances.find(
-        (candidate) => candidate.definition.id === definition.id
-      );
-      return {
-        anchor: definition.position,
-        modelTriangles: poi ? countPoiModelTriangles(poi.modelRoots) : 0,
-      };
-    },
+    getDebugDetails: (definition) => ({
+      anchor: definition.position,
+      modelTriangles: getPoiModelTriangleCount(definition.id) ?? 0,
+    }),
     interactionTimeline,
     guidedTourPreference,
     discoveryAnnouncer: {
@@ -2945,7 +2940,10 @@ function initializeImmersiveScene(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
   );
   if (futuroptimistPoi && futuroptimistTvModelRoot) {
-    futuroptimistPoi.modelRoots = [futuroptimistTvModelRoot];
+    registerPoiModelRoot(
+      futuroptimistPoi.definition.id,
+      futuroptimistTvModelRoot
+    );
   }
 
   const jobbotPoi = poiInstances.find(
