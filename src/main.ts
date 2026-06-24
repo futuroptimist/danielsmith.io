@@ -240,7 +240,10 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
-import { registerPoiModelRoot } from './scene/poi/modelTriangles';
+import {
+  clearPoiModelRoots,
+  registerPoiModelRoot,
+} from './scene/poi/modelTriangles';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -6751,6 +6754,7 @@ function initializeImmersiveScene(
     axelNavigator = null;
     tokenPlaceRack = null;
     sugarkubeDeployment = null;
+    clearPoiModelRoots();
     prReaperConsole = null;
     gabrielSentry = null;
     gitshelvesInstallation = null;

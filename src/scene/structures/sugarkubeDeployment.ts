@@ -211,10 +211,11 @@ export function createSugarkubeDeployment(
       [x, 0.015, SWITCH_DEPTH / 2 + 0.015],
       black
     );
-    const led = new Mesh(
-      new BoxGeometry(0.028, 0.02, 0.012),
-      createMat(port % 2 ? 0x37ff62 : 0xff3b2e, 0.1, 0.25)
-    );
+    const ledColor = port % 2 ? 0x37ff62 : 0xff3b2e;
+    const ledMaterial = createMat(ledColor, 0.1, 0.25);
+    ledMaterial.emissive = new Color(ledColor);
+    ledMaterial.emissiveIntensity = 0.18;
+    const led = new Mesh(new BoxGeometry(0.028, 0.02, 0.012), ledMaterial);
     led.name = `SugarkubeSwitchPortLed-${port}`;
     led.position.set(x, 0.06, SWITCH_DEPTH / 2 + 0.018);
     netSwitch.add(led);
