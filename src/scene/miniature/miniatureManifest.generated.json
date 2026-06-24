@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "generatedBy": "scripts/miniature-manifest.ts",
+  "entries": [
+    {
+      "id": "poi:futuroptimist-living-room-tv",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "5ae0c335ad80e351dd6abe42b008a9b9d8a37655cec8ade60920b91319ec1cf3",
+      "proxyFingerprint": "f5bb1ffb3d99e75736a91b3c4042b250ba5eb38895afadb4bb14d691c53177f7"
+    },
+    {
+      "id": "poi:flywheel-studio-flywheel",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "6822f8a1521806afc6e7f4fab869e8e8d3bd58e8a6df86d5124c636587d94a16",
+      "proxyFingerprint": "891bc2683ab55e90269538744503ae30566f0444f592b7eb7cb330518b458279"
+    },
+    {
+      "id": "poi:jobbot-studio-terminal",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "b7b25bb4264851c4265f18012be51714fe6e08a4d1014fad49c57853c459071b",
+      "proxyFingerprint": "48884848c41917be2b42ddb21fe6f37c03918e4dbb533d20ce534b2e8bf44c12"
+    },
+    {
+      "id": "poi:dspace-backyard-rocket",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "300f5646148d01529c7170a5e86f536ed78d1427049f227eb5c51bc4a85b51b4",
+      "proxyFingerprint": "3e3715543657df2dc0dca51ff9e391d8b005d14093bfd85c4060751720715c94"
+    },
+    {
+      "id": "poi:sugarkube-backyard-greenhouse",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": [
+        "src/scene/poi/registry.ts",
+        "src/scene/poi/types.ts",
+        "src/scene/structures/sugarkubeDeployment.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "cc7bee2d5c608519c846bdbe944ef3e9a0d81a4899a79d57127824b7382d6aba",
+      "proxyFingerprint": "9ef9ba1c079a3f6aced96ad03f8cebf9a5022962122b1d6d3b7240cc4fbbfd6e"
+    },
+    {
+      "id": "poi:tokenplace-studio-cluster",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": [
+        "src/scene/poi/registry.ts",
+        "src/scene/poi/types.ts",
+        "src/scene/structures/tokenPlaceWorkstation.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "9fa16753464d85ac7ad6ec712205493e4b9db50b23dd41754a742c1dd75e88b2",
+      "proxyFingerprint": "b60a9f918e54aa9871645ec2608a4fa85b3b5f1376fb3d88ac1c71cc9c463ba7"
+    },
+    {
+      "id": "poi:gabriel-studio-sentry",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "639262b046272844abc9e333924a494181c1f1b5abfa4ede6511350f5d69b19a",
+      "proxyFingerprint": "73f84b84da243946296f3cf9713d3108738ca933518ee9d8cbfe30da48f06531"
+    },
+    {
+      "id": "poi:f2clipboard-kitchen-console",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "f7a694928d00114051a4744877b04b6e074c6da018ec645cbcbe3efac7eeb28a",
+      "proxyFingerprint": "8bc2fd64358e92899caca021ee6bd0be9de84530091f01add45ef0d5832f3317"
+    },
+    {
+      "id": "poi:axel-studio-tracker",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "6ebdf21454b5fd62bc15f24df233489d820bc965f865ee57da6ab4bf1a23645d",
+      "proxyFingerprint": "cf81f5d79d57d5fdd2bacb2413bb980e76153b660b2f3853fb6c6b78b2c69320"
+    },
+    {
+      "id": "poi:sigma-kitchen-workbench",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "16371e9bfd5b7a2b6185d68d0c4b2b3672c2c3da0a83b643dda54e9d38750676",
+      "proxyFingerprint": "52684ba5b18cc18aabe8496b210703b5c36aa032a1aa2cd0bd98534e040e80ad"
+    },
+    {
+      "id": "poi:gitshelves-living-room-installation",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "abe6340fd4967b53abac8b7b76bc005f9899a57cd52396ae316d4a6b097c54ad",
+      "proxyFingerprint": "72836e4afcfe418ec06527503c89c3ca1a6d714f8da4f6856b5a983a03c93f89"
+    },
+    {
+      "id": "poi:wove-kitchen-loom",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "7f3793453dc85fb1da5f99e6ac2ab5261b7c3dad6240a3a0f51928a1b45bccd7",
+      "proxyFingerprint": "d65fe31697ba9904b237e1badb792f53a7ea37522c7a620974496fe5ca5927bb"
+    },
+    {
+      "id": "poi:pr-reaper-backyard-console",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage for tabletop infrastructure.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "758fe62b9b8a1fb51e21bcce25dcd9433d1f4b0c77a4c72db32a3abddb1cc155",
+      "proxyFingerprint": "6b0f297a8a162be5e715ad647368bd0b1dfbba9f8e39bb973785a7604826d81e"
+    },
+    {
+      "id": "poi:danielsmith-portfolio-table",
+      "syncRevision": 1,
+      "syncNote": "Recursion boundary: build only a simple nonrecursive white table proxy.",
+      "sourceFiles": ["src/scene/poi/registry.ts", "src/scene/poi/types.ts"],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "sourceFingerprint": "ad528fcd21dab6d4ddd195f957eeff2c813377a6f9b3f5927f33e5a647b2a6b3",
+      "proxyFingerprint": "46d827d85aadc25832bb0340373ea13e8b2d1e8854398c18fce192d76587f9bc"
+    },
+    {
+      "id": "shared:floor-plan-levels",
+      "syncRevision": 1,
+      "syncNote": "Prompt 4b should derive topology directly from shared level data.",
+      "sourceFiles": [
+        "src/scene/level/generateFloorSurfaces.ts",
+        "src/scene/level/generateWalls.ts",
+        "src/scene/level/portfolioLevel.ts",
+        "src/scene/structures/staircase.ts",
+        "src/scene/structures/upperLandingFloorCutouts.ts",
+        "src/scene/structures/upperStairwellLanding.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "sourceFingerprint": "19ed1b94ff8a65ed9bfc01f4da317e16a4ac165bb984ec8bbd9f45a48f2e3306",
+      "proxyFingerprint": "8102df8dd76bad301028c6038b816038bba93d233d38724835b487ee64321f75"
+    },
+    {
+      "id": "shared:backyard-environment",
+      "syncRevision": 1,
+      "syncNote": "Miniature should derive bounds and major environment features from backyard source data.",
+      "sourceFiles": ["src/scene/environments/backyard.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "sourceFingerprint": "1cca0bd553dffe1b0cdc54f308da8ab60a8a91aa25a6d9c341c855b9a258e328",
+      "proxyFingerprint": "dadd793007a43f76e5116a067c9d841ca53223b88187a943dd5622d2ba6ac227"
+    },
+    {
+      "id": "proxy:house-visible-fixtures",
+      "syncRevision": 1,
+      "syncNote": "Visible fixtures that are not pure topology get simplified proxy coverage.",
+      "sourceFiles": [
+        "src/scene/lighting/ledStrips.ts",
+        "src/scene/structures/ceilingPanels.ts",
+        "src/scene/structures/doorwayOpenings.ts",
+        "src/scene/structures/floorTiles.ts",
+        "src/scene/structures/mediaWall.ts",
+        "src/scene/structures/mediaWallStarBridge.ts",
+        "src/scene/structures/selfieMirror.ts",
+        "src/scene/structures/wallSegmentsMesh.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "sourceFingerprint": "82c21057899b76ed42b06fcfcd05868a1c75c61739ab51e05700739d73893c69",
+      "proxyFingerprint": "15dca9edd526f4075e0c6ab144977fc947c631ac3fbf1a05f5965192b01b2d06"
+    },
+    {
+      "id": "excluded:runtime-non-geometry",
+      "syncRevision": 1,
+      "syncNote": "The live miniature player is deferred to Prompt 4b.",
+      "sourceFiles": [
+        "src/scene/avatar/accessories.ts",
+        "src/scene/avatar/mannequin.ts",
+        "src/scene/collision.ts",
+        "src/scene/debug/colliderVisualizer.ts",
+        "src/scene/debug/solidVisualizer.ts",
+        "src/scene/poi/markers.ts",
+        "src/scene/poi/tooltipOverlay.ts",
+        "src/scene/poi/visitedBadge.ts",
+        "src/scene/poi/worldTooltip.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "sourceFingerprint": "a5fc190f3fd3d2f2e3d9e7cca89dbc4786786f0290212aae6b1b1fa8b1cd99dc",
+      "proxyFingerprint": "ee76ced7aae0cee97aa6f2bfa572fbb56f1d6e8beae08edb5075eec732ae17eb"
+    }
+  ]
+}

@@ -129,6 +129,30 @@ const DETAIL_CONFIG: Record<SceneDetailPolicy['level'], DetailConfig> = {
     pcVentCount: 2,
     wheelCount: 3,
   },
+  low: {
+    level: 'low',
+    terminalWidth: 160,
+    terminalHeight: 80,
+    redrawFps: 1,
+    monitorSegments: 4,
+    chairSegments: 4,
+    keyRows: 1,
+    keyColumns: 3,
+    pcVentCount: 1,
+    wheelCount: 0,
+  },
+  micro: {
+    level: 'micro',
+    terminalWidth: 96,
+    terminalHeight: 48,
+    redrawFps: 0,
+    monitorSegments: 3,
+    chairSegments: 3,
+    keyRows: 1,
+    keyColumns: 2,
+    pcVentCount: 0,
+    wheelCount: 0,
+  },
 };
 
 function mulberry32(seed: number): () => number {
