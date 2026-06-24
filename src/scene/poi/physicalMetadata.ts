@@ -1,3 +1,5 @@
+import { PORTFOLIO_MINIATURE_TABLE_CONTRACT } from '../structures/portfolioMiniatureTable';
+
 import type { PoiId } from './types';
 
 export interface PoiPhysicalMetadata {
@@ -49,6 +51,15 @@ const physicalMetadata = {
       markerMinHeight: 2.4,
       avatarPathRadius: 1.2,
     },
+  },
+
+  'danielsmith-portfolio-table': {
+    realWorldReference: PORTFOLIO_MINIATURE_TABLE_CONTRACT.realWorldReference,
+    realWorldDimensionsMeters:
+      PORTFOLIO_MINIATURE_TABLE_CONTRACT.realWorldDimensionsMeters,
+    intendedSceneBounds: PORTFOLIO_MINIATURE_TABLE_CONTRACT.intendedSceneBounds,
+    anchor: PORTFOLIO_MINIATURE_TABLE_CONTRACT.anchor,
+    clearances: PORTFOLIO_MINIATURE_TABLE_CONTRACT.clearances,
   },
   'sugarkube-backyard-greenhouse': {
     realWorldReference: 'Raspberry Pi 5 based Sugarkube deployment',

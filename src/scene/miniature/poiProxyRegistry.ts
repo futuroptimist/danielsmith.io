@@ -355,10 +355,14 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 1,
-    syncNote: 'Nonrecursive self-proxy: simple white portfolio table only.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/selfieMirror.ts'],
-    proxyFiles: [SELF_FILE],
+    syncRevision: 2,
+    syncNote:
+      'Outer exhibit now contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive white table shell silhouette.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/portfolioMiniatureTable.ts',
+    ],
+    proxyFiles: [SELF_FILE, 'src/scene/structures/portfolioMiniatureTable.ts'],
     primitives: [
       box(
         'danielsmith-white-tabletop',
