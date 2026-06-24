@@ -53,6 +53,7 @@ export interface PoiInstanceOptions {
 export interface PoiInstance {
   definition: PoiDefinition;
   group: Object3D;
+  modelRoot?: Object3D;
   orb?: Mesh;
   orbMaterial?: MeshStandardMaterial;
   orbBaseHeight?: number;

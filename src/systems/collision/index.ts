@@ -1,6 +1,7 @@
 import { MathUtils } from 'three';
 
 export interface RectCollider {
+  debugName?: string;
   minX: number;
   maxX: number;
   minZ: number;
