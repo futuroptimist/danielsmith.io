@@ -93,7 +93,7 @@ const migratedFactories = [
   {
     id: 'jobbot-studio-terminal',
     placement: {
-      position: { x: -8.38, y: 4.16, z: -14.4 },
+      position: { x: -8.38, y: 5, z: -14.4 },
       orientation: -Math.PI / 2,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
@@ -105,7 +105,7 @@ const migratedFactories = [
   {
     id: 'axel-studio-tracker',
     placement: {
-      position: { x: -6.21, y: 4.16, z: -9.59 },
+      position: { x: -6.21, y: 5, z: -9.59 },
       orientation: Math.PI,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
@@ -117,7 +117,7 @@ const migratedFactories = [
   {
     id: 'wove-kitchen-loom',
     placement: {
-      position: { x: 8.24, y: 4.16, z: 2.135 },
+      position: { x: 8.24, y: 5, z: 2.135 },
       orientation: Math.PI * 0.45,
     },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>

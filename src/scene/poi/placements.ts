@@ -1,20 +1,17 @@
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
+import type { FloorId } from '../../systems/movement/stairs';
+import { getFloorElevation } from '../floors/elevations';
 import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
 import type { SceneObjectDefinition } from '../level/schema';
 
 import type { PoiDefinition, PoiId } from './types';
 
-const PLAYER_HEIGHT_ANCHOR_Y_BY_FLOOR: Record<
-  SceneObjectDefinition['floorId'],
-  number
-> = {
-  ground: 0.75,
-  upper: 4.91,
-};
+const POI_INTERACTION_HEIGHT_ABOVE_FLOOR = 0.75;
 
-const getPlayerHeightAnchorY = (
+const getPoiInteractionAnchorY = (
   floorId: SceneObjectDefinition['floorId']
-): number => PLAYER_HEIGHT_ANCHOR_Y_BY_FLOOR[floorId];
+): number =>
+  getFloorElevation(floorId as FloorId) + POI_INTERACTION_HEIGHT_ABOVE_FLOOR;
 
 const getSceneObjectPoiPlacement = (
   object: SceneObjectDefinition
@@ -22,10 +19,13 @@ const getSceneObjectPoiPlacement = (
   if (!object.roomId) return null;
   return {
     roomId: object.roomId,
-    position: { ...object.position },
+    position: {
+      ...object.position,
+      y: getFloorElevation(object.floorId as FloorId),
+    },
     interactionAnchorPosition: {
       x: object.position.x,
-      y: getPlayerHeightAnchorY(object.floorId),
+      y: getPoiInteractionAnchorY(object.floorId),
       z: object.position.z,
     },
     headingRadians: object.orientation,
@@ -90,44 +90,72 @@ export const MANUAL_POI_PLACEMENTS: Partial<
   },
   'tokenplace-studio-cluster': {
     roomId: 'livingRoom',
-    position: { x: -22.34, y: 0, z: -22.61 },
-    interactionAnchorPosition: { x: -22.34, y: 0.75, z: -22.61 },
+    position: { x: -22.34, y: getFloorElevation('ground'), z: -22.61 },
+    interactionAnchorPosition: {
+      x: -22.34,
+      y: getPoiInteractionAnchorY('ground'),
+      z: -22.61,
+    },
     headingRadians: Math.PI * 0.05,
   },
   'sugarkube-backyard-greenhouse': {
     roomId: 'livingRoom',
-    position: { x: -8.74, y: 0, z: -22.92 },
-    interactionAnchorPosition: { x: -8.74, y: 0.75, z: -22.92 },
+    position: { x: -8.74, y: getFloorElevation('ground'), z: -22.92 },
+    interactionAnchorPosition: {
+      x: -8.74,
+      y: getPoiInteractionAnchorY('ground'),
+      z: -22.92,
+    },
     headingRadians: Math.PI * 0.55,
   },
   'danielsmith-portfolio-table': {
     roomId: 'kitchen',
-    position: { x: -21.6, y: 0, z: 1.63 },
-    interactionAnchorPosition: { x: -21.6, y: 0.75, z: 1.63 },
+    position: { x: -21.6, y: getFloorElevation('ground'), z: 1.63 },
+    interactionAnchorPosition: {
+      x: -21.6,
+      y: getPoiInteractionAnchorY('ground'),
+      z: 1.63,
+    },
     headingRadians: 0,
   },
   'f2clipboard-kitchen-console': {
     roomId: 'focusPods',
-    position: { x: -0.63, y: 4.16, z: 14.03 },
-    interactionAnchorPosition: { x: -0.63, y: 4.91, z: 14.03 },
+    position: { x: -0.63, y: getFloorElevation('upper'), z: 14.03 },
+    interactionAnchorPosition: {
+      x: -0.63,
+      y: getPoiInteractionAnchorY('upper'),
+      z: 14.03,
+    },
     headingRadians: Math.PI * 0.5,
   },
   'sigma-kitchen-workbench': {
     roomId: 'focusPods',
-    position: { x: 16.59, y: 4.16, z: 17.66 },
-    interactionAnchorPosition: { x: 16.59, y: 4.91, z: 17.66 },
+    position: { x: 16.59, y: getFloorElevation('upper'), z: 17.66 },
+    interactionAnchorPosition: {
+      x: 16.59,
+      y: getPoiInteractionAnchorY('upper'),
+      z: 17.66,
+    },
     headingRadians: Math.PI * 0.1,
   },
   'gitshelves-living-room-installation': {
     roomId: 'focusPods',
-    position: { x: -16.87, y: 4.16, z: 17.23 },
-    interactionAnchorPosition: { x: -16.87, y: 4.91, z: 17.23 },
+    position: { x: -16.87, y: getFloorElevation('upper'), z: 17.23 },
+    interactionAnchorPosition: {
+      x: -16.87,
+      y: getPoiInteractionAnchorY('upper'),
+      z: 17.23,
+    },
     headingRadians: Math.PI * 0.1,
   },
   'gabriel-studio-sentry': {
     roomId: 'creatorsStudio',
-    position: { x: -17.28, y: 4.16, z: -7.02 },
-    interactionAnchorPosition: { x: -17.28, y: 4.91, z: -7.02 },
+    position: { x: -17.28, y: getFloorElevation('upper'), z: -7.02 },
+    interactionAnchorPosition: {
+      x: -17.28,
+      y: getPoiInteractionAnchorY('upper'),
+      z: -7.02,
+    },
     headingRadians: -Math.PI * 0.3,
   },
 };

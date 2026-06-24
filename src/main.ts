@@ -131,6 +131,10 @@ import {
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
 import {
+  GROUND_FLOOR_ELEVATION,
+  UPPER_FLOOR_ELEVATION,
+} from './scene/floors/elevations';
+import {
   createFloorVisibilityController,
   createPoiFloorResolver,
   type FloorVisibilityController,
@@ -947,13 +951,25 @@ const handleImmersiveFailure = (
   markDocumentReady('fallback', 'immersive-init-error');
 };
 
+const STAIRCASE_LANDING_THICKNESS = 0.38;
+const STAIRCASE_STEP_COUNT = 9;
+const STAIRCASE_STEP_RISE =
+  (UPPER_FLOOR_ELEVATION -
+    GROUND_FLOOR_ELEVATION -
+    STAIRCASE_LANDING_THICKNESS) /
+  STAIRCASE_STEP_COUNT;
+
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
-  basePosition: new Vector3(toWorldUnits(6.2), 0, toWorldUnits(-5.3)),
+  basePosition: new Vector3(
+    toWorldUnits(6.2),
+    GROUND_FLOOR_ELEVATION,
+    toWorldUnits(-5.3)
+  ),
   direction: 'negativeZ',
   step: {
-    count: 9,
-    rise: 0.42,
+    count: STAIRCASE_STEP_COUNT,
+    rise: STAIRCASE_STEP_RISE,
     run: toWorldUnits(0.85),
     width: toWorldUnits(3.1),
     material: {
@@ -965,7 +981,7 @@ const STAIRCASE_CONFIG = {
   },
   landing: {
     depth: toWorldUnits(2.6),
-    thickness: 0.38,
+    thickness: STAIRCASE_LANDING_THICKNESS,
     material: {
       color: 0x5b6775,
       roughness: 0.55,
@@ -1746,7 +1762,7 @@ function initializeImmersiveScene(
   const initialRoom = FLOOR_PLAN.rooms[0];
   const initialPlayerPosition = new Vector3(
     (initialRoom.bounds.minX + initialRoom.bounds.maxX) / 2,
-    PLAYER_RADIUS,
+    GROUND_FLOOR_ELEVATION,
     (initialRoom.bounds.minZ + initialRoom.bounds.maxZ) / 2
   );
 
@@ -1783,7 +1799,9 @@ function initializeImmersiveScene(
   const cameraForwardPlanar = new Vector3();
   const cameraWorldUp = new Vector3();
 
-  const cameraCenter = initialPlayerPosition.clone();
+  const cameraCenter = initialPlayerPosition
+    .clone()
+    .add(new Vector3(0, PLAYER_RADIUS, 0));
   camera.position.copy(cameraCenter).add(cameraBaseOffset);
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
   initialCameraFraming = resolveInitialAvatarCameraFraming({
@@ -1911,7 +1929,7 @@ function initializeImmersiveScene(
   });
   const floorTiles = generateFloorSurfaces(getLevelFloor('ground'), {
     material: floorMaterial,
-    elevation: 0,
+    elevation: GROUND_FLOOR_ELEVATION,
     groupName: 'GroundFloorTiles',
   });
   groundFloorGroup.add(floorTiles.group);
@@ -1942,7 +1960,7 @@ function initializeImmersiveScene(
     getLevelFloor('ground'),
     {
       coordinateScale: FLOOR_PLAN_SCALE,
-      baseElevation: 0,
+      baseElevation: GROUND_FLOOR_ELEVATION,
       wallHeight: WALL_HEIGHT,
       wallThickness: WALL_THICKNESS,
       fenceHeight: FENCE_HEIGHT,
@@ -2091,8 +2109,19 @@ function initializeImmersiveScene(
   const stairTopZ = stairLayout.topZ;
   const stairLandingMinZ = stairLayout.landingMinZ;
   const stairLandingMaxZ = stairLayout.landingMaxZ;
-  const upperFloorElevation =
-    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
+  const upperFloorElevation = UPPER_FLOOR_ELEVATION;
+  if (
+    Math.abs(
+      STAIRCASE_CONFIG.basePosition.y +
+        stairTotalRise +
+        STAIRCASE_CONFIG.landing.thickness -
+        upperFloorElevation
+    ) > 1e-6
+  ) {
+    throw new Error(
+      'Staircase landing top must match the upper-floor elevation.'
+    );
+  }
   const stairGeometry: StairGeometry = {
     centerX: stairCenterX,
     halfWidth: stairHalfWidth,
@@ -4345,7 +4374,8 @@ function initializeImmersiveScene(
       currentFloor: verticalSurfaceFloor,
       upperFloorElevation,
     });
-    player.position.y = PLAYER_RADIUS + baseHeight;
+    // The player root is the floor/base anchor; elevated consumers add explicit offsets.
+    player.position.y = baseHeight;
   };
 
   const collidesWithCollider = (
@@ -6118,7 +6148,7 @@ function initializeImmersiveScene(
 
     cameraCenter.set(
       player.position.x + cameraPan.x,
-      player.position.y,
+      player.position.y + PLAYER_RADIUS,
       player.position.z + cameraPan.z
     );
 

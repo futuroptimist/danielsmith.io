@@ -106,3 +106,14 @@ export function applyPlacement(
 
 - Seeded Poisson-disk sampling for more organic centers.
 - True WFC over room tiles; apply this scoring post-pass.
+
+## Vertical anchoring convention
+
+Interactive scene roots use floor/base anchoring for floor-standing objects:
+
+- Ground-floor player, POI, and showpiece roots sit on `y = 0`.
+- Upper-floor player, POI, and showpiece roots sit on `y = 5`.
+- Collision centers, interaction anchors, labels, orbs, and camera targets add explicit local
+  offsets above those roots.
+- Wall-mounted displays remain wall-derived exceptions instead of being forced onto a floor
+  anchor.

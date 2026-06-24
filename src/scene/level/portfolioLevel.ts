@@ -1,3 +1,5 @@
+import { getFloorElevation } from '../floors/elevations';
+
 import type {
   FloorDefinition,
   LevelDefinition,
@@ -102,7 +104,7 @@ const sceneObject = (
   floorId,
   kind,
   roomId,
-  position,
+  position: { ...position, y: position.y ?? getFloorElevation(floorId) },
   orientation,
   purpose,
   colliderPolicy,
@@ -602,7 +604,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'upper',
           'showpiece.jobbot_terminal',
           'creatorsStudio',
-          { x: -8.38, y: 4.16, z: -14.4 },
+          { x: -8.38, y: getFloorElevation('upper'), z: -14.4 },
           -Math.PI / 2,
           'POI terminal with factory-owned desk collider'
         ),
@@ -612,7 +614,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'upper',
           'showpiece.axel_navigator',
           'creatorsStudio',
-          { x: -6.21, y: 4.16, z: -9.59 },
+          { x: -6.21, y: getFloorElevation('upper'), z: -9.59 },
           Math.PI,
           'POI navigator with factory-owned dais and console colliders'
         ),
@@ -622,7 +624,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           'upper',
           'showpiece.wove_loom',
           'loftLibrary',
-          { x: 8.24, y: 4.16, z: 2.135 },
+          { x: 8.24, y: getFloorElevation('upper'), z: 2.135 },
           Math.PI * 0.45,
           'POI tactile loom with factory-owned table and loom colliders'
         ),
