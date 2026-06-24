@@ -1,11 +1,29 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+} from '../../scene/level/floorElevations';
+import {
   computeStairLayout,
   computeStairwellOpeningBounds,
 } from '../../systems/movement/stairLayout';
 
 describe('computeStairLayout', () => {
+  it('derives stair rise from canonical floor elevations', () => {
+    const landingThickness = 0.38;
+    const stepCount = 9;
+    const stepRise =
+      (UPPER_FLOOR_TOP_ELEVATION -
+        GROUND_FLOOR_TOP_ELEVATION -
+        landingThickness) /
+      stepCount;
+
+    expect(
+      GROUND_FLOOR_TOP_ELEVATION + stepRise * stepCount + landingThickness
+    ).toBe(UPPER_FLOOR_TOP_ELEVATION);
+  });
+
   it('derives layout metrics for negative Z staircases', () => {
     const layout = computeStairLayout({
       baseZ: 0,

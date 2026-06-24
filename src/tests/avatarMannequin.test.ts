@@ -28,13 +28,14 @@ describe('createPortfolioMannequin', () => {
       throw new Error('Collision proxy mesh missing.');
     }
     expect(collisionProxy.visible).toBe(false);
+    expect(collisionProxy.position.y).toBeCloseTo(build.collisionRadius);
 
     const visualRoot = build.group.getObjectByName('PortfolioMannequinVisual');
     expect(visualRoot).toBeInstanceOf(Group);
     if (!(visualRoot instanceof Group)) {
       throw new Error('Visual root missing.');
     }
-    expect(visualRoot.position.y).toBeCloseTo(-build.collisionRadius);
+    expect(visualRoot.position.y).toBeCloseTo(0);
 
     const crest = build.group.getObjectByName('PortfolioMannequinCrest');
     expect(crest).toBeInstanceOf(Mesh);
@@ -74,7 +75,7 @@ describe('createPortfolioMannequin', () => {
     if (!(visualRoot instanceof Group)) {
       throw new Error('Visual root missing.');
     }
-    expect(visualRoot.position.y).toBeCloseTo(-options.collisionRadius);
+    expect(visualRoot.position.y).toBeCloseTo(0);
 
     const visor = build.group.getObjectByName('PortfolioMannequinVisor');
     expect(visor).toBeInstanceOf(Mesh);

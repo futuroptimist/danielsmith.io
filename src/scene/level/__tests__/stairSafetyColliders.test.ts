@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+
 import {
   createStairNavigationZones,
   type StairBehavior,
@@ -7,6 +8,7 @@ import {
 } from '../../../systems/movement/stairs';
 import { assertDebugColliderIdsDoNotCollide } from '../../debug/colliderDebugIds';
 import { createColliderDebugId } from '../../debug/colliderVisualizer';
+import { UPPER_FLOOR_TOP_ELEVATION } from '../../level/floorElevations';
 import { validateSourceCollisionRecords } from '../sourceCollisionValidation';
 import {
   createGroundStairSafetyColliders,
@@ -15,6 +17,10 @@ import {
 } from '../stairSafetyColliders';
 
 const PLAYER_RADIUS = 0.75;
+const LANDING_THICKNESS = 0.38;
+const STAIR_STEP_COUNT = 9;
+const STAIR_STEP_RISE =
+  (UPPER_FLOOR_TOP_ELEVATION - LANDING_THICKNESS) / STAIR_STEP_COUNT;
 
 const geometry: StairGeometry = {
   centerX: 12.4,
@@ -23,14 +29,14 @@ const geometry: StairGeometry = {
   topZ: -25.9,
   landingMinZ: -31.1,
   landingMaxZ: -25.9,
-  totalRise: 3.78,
+  totalRise: UPPER_FLOOR_TOP_ELEVATION - LANDING_THICKNESS,
   direction: -1,
 };
 
 const behavior: StairBehavior = {
   transitionMargin: 1.2,
   landingTriggerMargin: 0.4,
-  stepRise: 0.42,
+  stepRise: STAIR_STEP_RISE,
   descentCorridorInset: PLAYER_RADIUS,
 };
 

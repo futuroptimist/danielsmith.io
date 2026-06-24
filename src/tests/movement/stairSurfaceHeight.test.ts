@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
+import { UPPER_FLOOR_TOP_ELEVATION } from '../../scene/level/floorElevations';
 import {
   computeRampHeight,
   sampleStairSurfaceHeight,
@@ -18,17 +19,17 @@ const geometry: StairGeometry = {
   topZ: toWorldUnits(0.85) * 9,
   landingMinZ: toWorldUnits(0.85) * 9,
   landingMaxZ: toWorldUnits(0.85) * 9 + toWorldUnits(2.6),
-  totalRise: 0.42 * 9,
+  totalRise: UPPER_FLOOR_TOP_ELEVATION - 0.38,
   direction: 1,
 };
 
 const behavior: StairBehavior = {
   transitionMargin: toWorldUnits(0.6),
   landingTriggerMargin: toWorldUnits(0.2),
-  stepRise: 0.42,
+  stepRise: (UPPER_FLOOR_TOP_ELEVATION - 0.38) / 9,
 };
 
-const upperFloorElevation = geometry.totalRise + 0.38;
+const upperFloorElevation = UPPER_FLOOR_TOP_ELEVATION;
 
 const sample = (params: { x: number; z: number; currentFloor: FloorId }) =>
   sampleStairSurfaceHeight({
