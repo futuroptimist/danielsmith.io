@@ -53,6 +53,7 @@ export interface PoiInstanceOptions {
 export interface PoiInstance {
   definition: PoiDefinition;
   group: Object3D;
+  modelRoots: Object3D[];
   orb?: Mesh;
   orbMaterial?: MeshStandardMaterial;
   orbBaseHeight?: number;
@@ -390,6 +391,7 @@ function createPedestalPoiInstance(
   return {
     definition,
     group,
+    modelRoots: [],
     orb,
     orbMaterial,
     orbBaseHeight,
@@ -469,6 +471,7 @@ function createDisplayPoiInstance(
   return {
     definition,
     group: override.hitArea,
+    modelRoots: [],
     collider,
     activation: 0,
     pulseOffset: 0,

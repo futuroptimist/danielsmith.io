@@ -240,6 +240,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { countPoiModelTriangles } from './scene/poi/modelTriangles';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -2512,6 +2513,12 @@ function initializeImmersiveScene(
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
+    getModelTriangleCount: (poi) => {
+      const instance = poiInstances.find(
+        (candidate) => candidate.definition.id === poi.id
+      );
+      return instance ? countPoiModelTriangles(instance.modelRoots) : 0;
+    },
     interactionTimeline,
     guidedTourPreference,
     discoveryAnnouncer: {
@@ -2526,6 +2533,7 @@ function initializeImmersiveScene(
     },
   });
   poiTooltipOverlay.setStrings(poiOverlayStrings);
+  poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
@@ -2897,6 +2905,7 @@ function initializeImmersiveScene(
       ? upperStructureGroup
       : groundStructureGroup
     ).add(group);
+    poi.modelRoots.push(group);
   };
   const getPoiColliderTarget = (poi: PoiInstance) =>
     getPoiFloorId(poi.definition) === 'upper'
@@ -4936,6 +4945,7 @@ function initializeImmersiveScene(
     options: { persist?: boolean } = { persist: true }
   ) => {
     debugCoordinatesEnabled = enabled;
+    poiTooltipOverlay.setDebugDetailsEnabled(enabled);
     syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
     if (enabled) {

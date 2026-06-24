@@ -301,6 +301,8 @@ export interface PoiOverlayChromeStrings {
   relatedCaseStudies: string;
   outcomeFallbackLabel: string;
   discoveryAnnouncementTemplate: string;
+  debugAnchorLabel: string;
+  debugTrianglesLabel: string;
 }
 
 export interface PoiNarrativeLogStrings {

@@ -455,6 +455,8 @@ describe('PoiTooltipOverlay', () => {
       relatedCaseStudies: '⟦Related case studies⟧',
       outcomeFallbackLabel: '⟦Outcome⟧',
       discoveryAnnouncementTemplate: '⟦{title} discovered. {summary}⟧',
+      debugAnchorLabel: '⟦POI anchor⟧',
+      debugTrianglesLabel: '⟦Model triangles⟧',
     });
     overlay.setSelected(localizedPoi);
 
@@ -953,5 +955,90 @@ describe('PoiTooltipOverlay', () => {
       '.poi-tooltip-overlay__live-region'
     ) as HTMLElement;
     expect(liveRegion.textContent).toBe('');
+  });
+});
+
+describe('PoiTooltipOverlay debug details', () => {
+  let container: HTMLElement;
+  let overlay: PoiTooltipOverlay;
+  const poi: PoiDefinition = {
+    id: 'sugarkube-backyard-greenhouse',
+    title: 'Sugarkube',
+    summary: 'Relocated deployment marker.',
+    interactionPrompt: 'Inspect Sugarkube',
+    category: 'project',
+    interaction: 'inspect',
+    roomId: 'backyard',
+    position: { x: -8.74, y: 0, z: -22.92 },
+    interactionRadius: 2,
+    footprint: { width: 1, depth: 1 },
+    metrics: [{ label: 'Status', value: 'Relocated' }],
+  };
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    overlay = new PoiTooltipOverlay({
+      container,
+      getModelTriangleCount: () => 1234,
+    });
+    overlay.setStrings(getPoiOverlayChromeStrings('en'));
+  });
+
+  afterEach(() => {
+    overlay.dispose();
+    container.remove();
+    document.documentElement.lang = '';
+  });
+
+  it('hides debug content by default while preserving normal metrics', () => {
+    overlay.setSelected(poi);
+    expect(
+      container.querySelector<HTMLElement>('[data-poi-debug]')?.hidden
+    ).toBe(true);
+    expect(
+      container.querySelector('.poi-tooltip-overlay__metrics')?.textContent
+    ).toContain('Relocated');
+  });
+
+  it('shows bottom-center anchor and active model triangle count when enabled', () => {
+    document.documentElement.lang = 'en';
+    overlay.setSelected(poi);
+    overlay.setDebugDetailsEnabled(true);
+
+    expect(
+      container.querySelector('[data-poi-debug-anchor]')?.textContent
+    ).toBe('X -8.74 · Y 0.00 · Z -22.92');
+    expect(
+      container.querySelector('[data-poi-debug-triangles]')?.textContent
+    ).toBe('1,234');
+  });
+
+  it('removes debug details from accessibility relationships immediately when disabled', () => {
+    overlay.setSelected(poi);
+    overlay.setDebugDetailsEnabled(true);
+    const region = container.querySelector<HTMLElement>('.poi-tooltip-overlay');
+    const debug = container.querySelector<HTMLElement>('[data-poi-debug]');
+    expect(region?.getAttribute('aria-describedby')).toContain(debug?.id);
+
+    overlay.setDebugDetailsEnabled(false);
+    expect(
+      container.querySelector<HTMLElement>('[data-poi-debug]')?.hidden
+    ).toBe(true);
+    expect(region?.getAttribute('aria-describedby')).not.toContain(debug?.id);
+  });
+
+  it('appears for hovered and recommended card states', () => {
+    overlay.setDebugDetailsEnabled(true);
+    overlay.setHovered(poi);
+    expect(
+      container.querySelector('[data-poi-debug-triangles]')?.textContent
+    ).toBe('1,234');
+    overlay.setHovered(null);
+    overlay.setRecommendation(poi);
+    overlay.setIdleState(true);
+    expect(
+      container.querySelector('[data-poi-debug-triangles]')?.textContent
+    ).toBe('1,234');
   });
 });

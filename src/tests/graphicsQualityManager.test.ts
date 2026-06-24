@@ -9,6 +9,25 @@ import {
 } from '../scene/graphics/qualityManager';
 
 describe('createGraphicsQualityManager', () => {
+  it('describes model detail across every graphics quality preset', () => {
+    expect(GRAPHICS_QUALITY_PRESETS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'cinematic',
+          description: expect.stringMatching(/highest-detail 3D models/),
+        }),
+        expect.objectContaining({
+          id: 'balanced',
+          description: expect.stringMatching(/medium-detail 3D models/),
+        }),
+        expect.objectContaining({
+          id: 'performance',
+          description: expect.stringMatching(/lowest-detail 3D models/),
+        }),
+      ])
+    );
+  });
+
   const baseBloom = {
     strength: 0.55,
     radius: 0.85,

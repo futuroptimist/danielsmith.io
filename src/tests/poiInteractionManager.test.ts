@@ -57,6 +57,7 @@ function createMockPoi(definition: PoiDefinition): PoiInstance {
   return {
     definition,
     group,
+    modelRoots: [],
     orb,
     orbMaterial,
     orbBaseHeight: 1,

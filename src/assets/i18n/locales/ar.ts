@@ -335,6 +335,8 @@ export const AR_OVERRIDES: LocaleOverrides = {
       relatedCaseStudies: 'دراسات حالة ذات صلة',
       outcomeFallbackLabel: 'النتيجة',
       discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
+      debugAnchorLabel: 'POI anchor',
+      debugTrianglesLabel: 'Model triangles',
     },
     narrativeLog: {
       heading: 'سجل القصة',

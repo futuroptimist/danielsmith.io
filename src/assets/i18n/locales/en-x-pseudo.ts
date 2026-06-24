@@ -461,6 +461,8 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       relatedCaseStudies: wrap('Related case studies'),
       outcomeFallbackLabel: wrap('Outcome'),
       discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
+      debugAnchorLabel: wrap('POI anchor'),
+      debugTrianglesLabel: wrap('Model triangles'),
     },
     narrativeLog: {
       heading: wrap('Creator story log'),
