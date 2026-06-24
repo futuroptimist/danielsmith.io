@@ -232,3 +232,10 @@ describe('createGraphicsQualityManager', () => {
     expect(ids).toEqual(['cinematic', 'balanced', 'performance']);
   });
 });
+
+it('mentions 3D model detail in every graphics quality description', () => {
+  for (const preset of GRAPHICS_QUALITY_PRESETS) {
+    expect(preset.description).toMatch(/3D models/);
+    expect(preset.description).toMatch(/detail/i);
+  }
+});

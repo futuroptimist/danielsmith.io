@@ -26,6 +26,7 @@ export interface PoiTooltipOverlayOptions {
   };
   interactionTimeline?: InteractionTimeline;
   guidedTourPreference?: GuidedTourPreference;
+  getModelTriangleCount?: (poi: PoiDefinition) => number;
 }
 
 interface RenderState {
@@ -54,6 +55,9 @@ export class PoiTooltipOverlay {
   private readonly outcomeValue: HTMLSpanElement;
   private readonly metricsList: HTMLUListElement;
   private readonly linksList: HTMLUListElement;
+  private readonly debugDetails: HTMLDListElement;
+  private readonly debugAnchorValue: HTMLElement;
+  private readonly debugTrianglesValue: HTMLElement;
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
@@ -81,6 +85,8 @@ export class PoiTooltipOverlay {
   private focusOnNextUpdate = false;
   private readonly onDismiss: (() => void) | null;
   private strings: PoiOverlayChromeStrings;
+  private debugDetailsEnabled = false;
+  private readonly getModelTriangleCount: (poi: PoiDefinition) => number;
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
@@ -89,6 +95,7 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
+      getModelTriangleCount,
     } = options;
     const documentTarget = container.ownerDocument ?? document;
 
@@ -99,6 +106,7 @@ export class PoiTooltipOverlay {
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
     this.onDismiss = onDismiss ?? null;
+    this.getModelTriangleCount = getModelTriangleCount ?? (() => 0);
     this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
@@ -182,6 +190,31 @@ export class PoiTooltipOverlay {
     this.linksList.setAttribute('aria-label', this.strings.relatedCaseStudies);
     this.root.appendChild(this.linksList);
 
+    this.debugDetails = documentTarget.createElement('dl');
+    this.debugDetails.className = 'poi-tooltip-overlay__debug';
+    this.debugDetails.id = `${this.instanceId}-debug`;
+    this.debugDetails.dataset.poiDebug = '';
+    this.debugDetails.hidden = true;
+    this.debugDetails.setAttribute(
+      'aria-label',
+      this.strings.debugDetailsLabel
+    );
+    this.root.appendChild(this.debugDetails);
+
+    const anchorTerm = documentTarget.createElement('dt');
+    anchorTerm.textContent = this.strings.debugAnchorLabel;
+    this.debugDetails.appendChild(anchorTerm);
+    this.debugAnchorValue = documentTarget.createElement('dd');
+    this.debugAnchorValue.dataset.poiDebugAnchor = '';
+    this.debugDetails.appendChild(this.debugAnchorValue);
+
+    const trianglesTerm = documentTarget.createElement('dt');
+    trianglesTerm.textContent = this.strings.debugTrianglesLabel;
+    this.debugDetails.appendChild(trianglesTerm);
+    this.debugTrianglesValue = documentTarget.createElement('dd');
+    this.debugTrianglesValue.dataset.poiDebugTriangles = '';
+    this.debugDetails.appendChild(this.debugTrianglesValue);
+
     container.appendChild(this.root);
 
     this.liveRegion = documentTarget.createElement('div');
@@ -209,6 +242,16 @@ export class PoiTooltipOverlay {
     this.recommendationBadge.textContent = strings.nextHighlight;
     this.closeButton.setAttribute('aria-label', strings.closeDetails);
     this.linksList.setAttribute('aria-label', strings.relatedCaseStudies);
+    this.debugDetails.setAttribute('aria-label', strings.debugDetailsLabel);
+    this.renderState = { poiId: null, poiRef: null, contentKey: null };
+    this.update();
+  }
+
+  setDebugDetailsEnabled(enabled: boolean): void {
+    if (this.debugDetailsEnabled === enabled) {
+      return;
+    }
+    this.debugDetailsEnabled = enabled;
     this.renderState = { poiId: null, poiRef: null, contentKey: null };
     this.update();
   }
@@ -358,6 +401,9 @@ export class PoiTooltipOverlay {
     if (!this.linksList.hidden) {
       describedByIds.push(this.linksList.id);
     }
+    if (!this.debugDetails.hidden) {
+      describedByIds.push(this.debugDetails.id);
+    }
     if (describedByIds.length > 0) {
       this.root.setAttribute('aria-describedby', describedByIds.join(' '));
     } else {
@@ -414,6 +460,7 @@ export class PoiTooltipOverlay {
     this.renderOutcome(poi);
     this.renderMetrics(poi);
     this.renderLinks(poi);
+    this.renderDebugDetails(poi);
   }
 
   private renderOutcome(poi: PoiDefinition) {
@@ -496,6 +543,30 @@ export class PoiTooltipOverlay {
       item.appendChild(anchor);
       this.linksList.appendChild(item);
     }
+  }
+
+  private renderDebugDetails(poi: PoiDefinition) {
+    if (!this.debugDetailsEnabled) {
+      this.debugDetails.hidden = true;
+      this.debugAnchorValue.textContent = '';
+      this.debugTrianglesValue.textContent = '';
+      return;
+    }
+
+    const locale = this.root.ownerDocument?.documentElement.lang || undefined;
+    const decimalFormatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const integerFormatter = new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 0,
+    });
+    const { x, y, z } = poi.position;
+    this.debugAnchorValue.textContent = `X ${decimalFormatter.format(x)} · Y ${decimalFormatter.format(y)} · Z ${decimalFormatter.format(z)}`;
+    this.debugTrianglesValue.textContent = integerFormatter.format(
+      this.getModelTriangleCount(poi)
+    );
+    this.debugDetails.hidden = false;
   }
 
   private announceDiscovery(poi: PoiDefinition) {

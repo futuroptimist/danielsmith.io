@@ -362,6 +362,9 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       closeDetails: '关闭兴趣点详情',
       relatedCaseStudies: '相关案例研究',
       outcomeFallbackLabel: '成果',
+      debugDetailsLabel: 'Debug details',
+      debugAnchorLabel: 'POI anchor',
+      debugTrianglesLabel: 'Model triangles',
       discoveryAnnouncementTemplate: '已发现 {title}。{summary}',
     },
     narrativeLog: {

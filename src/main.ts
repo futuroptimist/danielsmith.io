@@ -240,6 +240,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { countRenderedPoiModelTriangles } from './scene/poi/modelTriangles';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -2512,6 +2513,11 @@ function initializeImmersiveScene(
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
+    getModelTriangleCount: (poi) =>
+      countRenderedPoiModelTriangles(
+        poiInstances.find((instance) => instance.definition.id === poi.id)
+          ?.modelRoots ?? []
+      ),
     interactionTimeline,
     guidedTourPreference,
     discoveryAnnouncer: {
@@ -2526,6 +2532,7 @@ function initializeImmersiveScene(
     },
   });
   poiTooltipOverlay.setStrings(poiOverlayStrings);
+  poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
@@ -2893,6 +2900,7 @@ function initializeImmersiveScene(
   );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
+    poi.modelRoots.push(group);
     (getPoiFloorId(poi.definition) === 'upper'
       ? upperStructureGroup
       : groundStructureGroup
@@ -2930,7 +2938,11 @@ function initializeImmersiveScene(
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
     }
-    groundStructureGroup.add(showpiece.group);
+    if (flywheelPoi) {
+      addPoiStructure(flywheelPoi, showpiece.group);
+    } else {
+      groundStructureGroup.add(showpiece.group);
+    }
     flywheelShowpiece = showpiece;
 
     const terminalOrientation = jobbotPoi?.group.rotation.y ?? -Math.PI / 2;
@@ -4226,6 +4238,7 @@ function initializeImmersiveScene(
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings);
+    poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
     syncPoiRecommendation();
@@ -4936,6 +4949,7 @@ function initializeImmersiveScene(
     options: { persist?: boolean } = { persist: true }
   ) => {
     debugCoordinatesEnabled = enabled;
+    poiTooltipOverlay.setDebugDetailsEnabled(enabled);
     syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
     if (enabled) {

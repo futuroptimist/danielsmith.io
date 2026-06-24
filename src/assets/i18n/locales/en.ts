@@ -464,6 +464,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       relatedCaseStudies: 'Related case studies',
       outcomeFallbackLabel: 'Outcome',
       discoveryAnnouncementTemplate: '{title} discovered. {summary}',
+      debugDetailsLabel: 'Debug details',
+      debugAnchorLabel: 'POI anchor',
+      debugTrianglesLabel: 'Model triangles',
     },
     narrativeLog: {
       heading: 'Creator story log',

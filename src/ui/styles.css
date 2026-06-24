@@ -2355,3 +2355,28 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   width: min(18rem, calc(100vw - 1.5rem));
   padding: 0.7rem;
 }
+
+.poi-tooltip-overlay__debug {
+  border-top: 1px solid rgb(148 215 255 / 28%);
+  display: grid;
+  gap: 0.25rem 0.75rem;
+  grid-template-columns: max-content 1fr;
+  margin: 0.65rem 0 0;
+  padding-top: 0.55rem;
+  font-size: 0.72rem;
+  color: rgb(211 235 255 / 82%);
+}
+
+.poi-tooltip-overlay__debug[hidden] {
+  display: none;
+}
+
+.poi-tooltip-overlay__debug dt {
+  font-weight: 700;
+  color: rgb(232 246 255 / 92%);
+}
+
+.poi-tooltip-overlay__debug dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
