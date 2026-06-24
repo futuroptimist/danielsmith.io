@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "generatedBy": "scripts/miniatureManifest.ts",
+  "entries": [
+    {
+      "id": "axel-studio-tracker",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "1aa040b8e5d8936b91f915019843467e3acd45a14d4065ea4a62b5f3dc202878",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "backyard-bounds-and-paths",
+      "syncRevision": 1,
+      "syncNote": "Backyard bounds, terrain, fences, paths, shrubs, and fixtures are represented from backyard source data.",
+      "sourceFingerprint": "163ac4a4123d1bc8aa780aa9d290fcbedb0aa7b1d471df8cfdaa4c520640d6f0",
+      "proxyFingerprint": "a1e1f05dd964608246f60595acdd6ecd3e170d2942abae9676560cf7698878d7"
+    },
+    {
+      "id": "danielsmith-portfolio-table",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "0f2c644d6b60374d3673f735516292db0c54184aa1d1d52ecdce80e3dde88591",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "dspace-backyard-rocket",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "120e407e11c42d1300800569fa5f0fbddac0a340b914e690f95e85df24141c3b",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "f2clipboard-kitchen-console",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "7b855761befa5db9b3ca35ed73cfe708054284ad7b3f1ad017605186c702b5e3",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "floor-wall-ceiling-builders",
+      "syncRevision": 1,
+      "syncNote": "Prompt 4b can derive simplified floors, walls, ceilings, and openings from shared builders and level data.",
+      "sourceFingerprint": "f60e5873eafd76196000766e6367486d2a00ae0c01e6715b6f89d3dddbc0a2da",
+      "proxyFingerprint": "a1e1f05dd964608246f60595acdd6ecd3e170d2942abae9676560cf7698878d7"
+    },
+    {
+      "id": "flywheel-studio-flywheel",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "79e9582c4c2f96b58239545f1c53755450f827a4fc5136e8c34f134b69a51b67",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "futuroptimist-living-room-tv",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "3f3be358c16d11a02da78c7fd82328ae4e513b6ea7c7a192f87c85ab2f574f6a",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "gabriel-studio-sentry",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "b448e630cdae11412c1b71c1eed35d96a1c4ff657dbb2dc6ce3b67bb6cdacded",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "generic-room-decor",
+      "syncRevision": 1,
+      "syncNote": "Initial non-POI miniature proxy coverage.",
+      "sourceFingerprint": "2114e1f4595ed0cb31c02649429d17e884b006a7104d36173054d259a872055c",
+      "proxyFingerprint": "a1e1f05dd964608246f60595acdd6ecd3e170d2942abae9676560cf7698878d7"
+    },
+    {
+      "id": "gitshelves-living-room-installation",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "d7c2b91d3efbcf9b76e27c226dd022b8f3aec420999e5c2f5bb569fb84e3d2c9",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "house-topology-layout",
+      "syncRevision": 1,
+      "syncNote": "Miniature house floors, room bounds, walls, and door openings are generated from shared level topology.",
+      "sourceFingerprint": "a3444cbe4828bfa704761f2cbfac6dd639c638d6fd7de6ae52051a4ba872be39",
+      "proxyFingerprint": "a1e1f05dd964608246f60595acdd6ecd3e170d2942abae9676560cf7698878d7"
+    },
+    {
+      "id": "jobbot-studio-terminal",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "505ef6562a2fbab14ea527960ce58ad7c0bffc59f1f267903f38fe623bb4afcb",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "pr-reaper-backyard-console",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "0a9e1a1a252a1fb0d783ff51db65178b83b3bed4d8c12c04378c54c43f831902",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "sigma-kitchen-workbench",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "c23123e4628f0276f7273bff6b8db49bfd96479143b0520a4bfb29972dfe32d5",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "stairs-and-upper-landing",
+      "syncRevision": 1,
+      "syncNote": "Staircase and landing are generated from shared topology constants.",
+      "sourceFingerprint": "11957cc393545b7e17ddc61882c62ecef13f54c4c34aab9f8a1165d95d502089",
+      "proxyFingerprint": "a1e1f05dd964608246f60595acdd6ecd3e170d2942abae9676560cf7698878d7"
+    },
+    {
+      "id": "sugarkube-backyard-greenhouse",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "4a9880f5866832609c8418ce4534dbd92fa275247cfc43e05e5738d20a20d785",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "tokenplace-studio-cluster",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "dfe8ba7280f1a16ce3e0127a460923c9fb1b75ca8d4d5da197702df0bba64a44",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    },
+    {
+      "id": "visible-led-fixtures",
+      "syncRevision": 1,
+      "syncNote": "Initial non-POI miniature proxy coverage.",
+      "sourceFingerprint": "75e632a90b43b27dd9b4feb2a703af4b8c8136293a5ff553ffa1c3e8dfaddd8e",
+      "proxyFingerprint": "a1e1f05dd964608246f60595acdd6ecd3e170d2942abae9676560cf7698878d7"
+    },
+    {
+      "id": "wove-kitchen-loom",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage.",
+      "sourceFingerprint": "10af83f99b846b8d4881bf20108d7fb0f34327af3449762cc59cb1349a3971cb",
+      "proxyFingerprint": "77aa0aabbc04ce5cf02e876bff189e3c9aa38de8892e1206b97eeed28ad07a19"
+    }
+  ]
+}

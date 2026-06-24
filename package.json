@@ -18,7 +18,7 @@
     "docs:check": "node scripts/check-docs.cjs && npm run links:check",
     "smoke": "npm run build && node scripts/assert-dist.cjs",
     "press-kit": "tsx scripts/generate-press-kit.ts",
-    "check": "npm run lint && npm run test:ci && npm run docs:check",
+    "check": "npm run lint && npm run miniature:check && npm run test:ci && npm run docs:check",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",
@@ -27,7 +27,9 @@
     "collider:inspect": "tsx scripts/colliderInspect.ts",
     "collider:audit:geometry": "tsx scripts/colliderGeometryAudit.ts",
     "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts",
-    "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts"
+    "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts",
+    "miniature:check": "tsx scripts/miniatureManifest.ts check",
+    "miniature:manifest:update": "tsx scripts/miniatureManifest.ts update"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
