@@ -2355,3 +2355,26 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   width: min(18rem, calc(100vw - 1.5rem));
   padding: 0.7rem;
 }
+
+.poi-tooltip-overlay__debug {
+  margin: 0.15rem 0 0;
+  padding: 0.65rem 0 0;
+  border-top: 1px solid rgba(143, 214, 255, 0.18);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.3rem 0.65rem;
+  color: rgba(188, 231, 255, 0.82);
+  font-size: 0.72rem;
+}
+
+.poi-tooltip-overlay__debug dt {
+  color: rgba(141, 217, 255, 0.92);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.poi-tooltip-overlay__debug dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

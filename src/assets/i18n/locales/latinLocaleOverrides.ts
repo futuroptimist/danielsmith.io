@@ -30,6 +30,9 @@ interface LatinLocaleCopy {
     stars: string;
     syncing: string;
     discovered: string;
+    debugDetailsLabel: string;
+    debugPoiAnchor: string;
+    debugModelTriangles: string;
     closePoi: string;
     nextHighlight: string;
     related: string;
@@ -832,6 +835,9 @@ export function buildLatinLocaleOverrides(
         relatedCaseStudies: s.related,
         outcomeFallbackLabel: s.outcome,
         discoveryAnnouncementTemplate: s.discovered,
+        debugDetailsLabel: s.debugDetailsLabel,
+        debugPoiAnchor: s.debugPoiAnchor,
+        debugModelTriangles: s.debugModelTriangles,
       },
       narrativeLog: {
         heading:

@@ -54,3 +54,16 @@ Confirm that the FPS panel is visible, the coordinate readout remains visible
 without overlap, Settings can turn the panel off and back on, HUD controls
 remain clickable, and `window.portfolio.debugPerformance.getState()` reports
 matching `fpsEnabled` and `panelVisible` values.
+
+## POI card diagnostics
+
+The Debug coordinates setting also enables a compact diagnostics section inside
+visible POI information cards. The card-level diagnostics reuse the same storage,
+URL override, Settings control, and `window.portfolio.debugCoordinates` API as
+the coordinate readout rather than adding another toggle. When enabled, each card
+reports the POI's bottom-center anchor from the localized definition and the
+triangle count from runtime-registered model roots for that POI only.
+
+Triangle diagnostics intentionally exclude the POI halo, orb, label, hit area,
+visited badge, and broad room geometry. POIs without a dedicated registered model
+root report zero triangles until their own model deployment registers one.

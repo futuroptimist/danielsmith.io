@@ -15,6 +15,14 @@ describe('createGraphicsQualityControl', () => {
     })
   );
 
+  it('receives preset descriptions that mention model detail', () => {
+    expect(presets.map((preset) => preset.description)).toEqual([
+      'Full post-processing, highest-detail 3D models, cinematic bloom and lighting.',
+      'Moderate bloom, reduced resolution, and medium-detail 3D models for laptops.',
+      'Disables bloom, lowers resolution, and uses lowest-detail 3D models to prioritize FPS.',
+    ]);
+  });
+
   it('renders presets, updates state, and handles refreshes', async () => {
     const container = document.createElement('div');
     document.body.appendChild(container);

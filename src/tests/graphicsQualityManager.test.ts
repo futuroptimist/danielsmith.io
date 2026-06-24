@@ -112,6 +112,12 @@ describe('createGraphicsQualityManager', () => {
     expect(renderer.toneMappingExposure).toBeCloseTo(1.1, 3);
   });
 
+  it('describes model detail across every preset', () => {
+    for (const preset of GRAPHICS_QUALITY_PRESETS) {
+      expect(preset.description).toMatch(/detail 3D models/i);
+    }
+  });
+
   it('applies adaptive selections without persisting over user choices', () => {
     const { renderer } = createRenderer();
     const storage = {

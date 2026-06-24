@@ -335,6 +335,9 @@ export const JA_OVERRIDES: LocaleOverrides = {
       relatedCaseStudies: '関連ケーススタディ',
       outcomeFallbackLabel: '成果',
       discoveryAnnouncementTemplate: '{title} を発見しました。{summary}',
+      debugDetailsLabel: 'POI デバッグメタデータ',
+      debugPoiAnchor: 'POI アンカー',
+      debugModelTriangles: 'モデル三角形',
     },
     narrativeLog: {
       heading: 'クリエイターストーリーログ',

@@ -2524,8 +2524,12 @@ function initializeImmersiveScene(
     onDismiss: () => {
       dismissActivePoiDetail();
     },
+    getModelRoots: (poi) =>
+      poiInstances.find((instance) => instance.definition.id === poi.id)
+        ?.modelRoots ?? [],
+    locale,
   });
-  poiTooltipOverlay.setStrings(poiOverlayStrings);
+  poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
@@ -2897,7 +2901,10 @@ function initializeImmersiveScene(
       ? upperStructureGroup
       : groundStructureGroup
     ).add(group);
+    poi.modelRoots.push(group);
   };
+  poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
+
   const getPoiColliderTarget = (poi: PoiInstance) =>
     getPoiFloorId(poi.definition) === 'upper'
       ? upperFloorColliders
@@ -4147,6 +4154,7 @@ function initializeImmersiveScene(
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
+    poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     tourGuideToggleStrings = getTourGuideToggleStrings(locale);
     tourResetControlStrings = getTourResetControlStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
@@ -4225,7 +4233,7 @@ function initializeImmersiveScene(
     refreshDebugCollidersStrings();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
-    poiTooltipOverlay.setStrings(poiOverlayStrings);
+    poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
     syncPoiRecommendation();
@@ -4936,6 +4944,7 @@ function initializeImmersiveScene(
     options: { persist?: boolean } = { persist: true }
   ) => {
     debugCoordinatesEnabled = enabled;
+    poiTooltipOverlay.setDebugDetailsEnabled(enabled);
     syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
     if (enabled) {

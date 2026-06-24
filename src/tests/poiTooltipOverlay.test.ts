@@ -1,3 +1,9 @@
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Mesh,
+  MeshBasicMaterial,
+} from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getPoiOverlayChromeStrings } from '../assets/i18n';
@@ -455,6 +461,9 @@ describe('PoiTooltipOverlay', () => {
       relatedCaseStudies: '⟦Related case studies⟧',
       outcomeFallbackLabel: '⟦Outcome⟧',
       discoveryAnnouncementTemplate: '⟦{title} discovered. {summary}⟧',
+      debugDetailsLabel: '⟦POI debug metadata⟧',
+      debugPoiAnchor: '⟦POI anchor⟧',
+      debugModelTriangles: '⟦Model triangles⟧',
     });
     overlay.setSelected(localizedPoi);
 
@@ -953,5 +962,86 @@ describe('PoiTooltipOverlay', () => {
       '.poi-tooltip-overlay__live-region'
     ) as HTMLElement;
     expect(liveRegion.textContent).toBe('');
+  });
+});
+
+describe('PoiTooltipOverlay debug details', () => {
+  let container: HTMLElement;
+  let overlay: PoiTooltipOverlay;
+  const poi: PoiDefinition = {
+    id: 'futuroptimist-living-room-tv',
+    title: 'Futuroptimist',
+    summary: 'Debuggable POI card.',
+    interactionPrompt: 'Inspect Futuroptimist',
+    category: 'project',
+    interaction: 'inspect',
+    roomId: 'livingRoom',
+    position: { x: -8.735, y: 0, z: -22.924 },
+    interactionRadius: 2.6,
+    footprint: { width: 3.2, depth: 3 },
+    metrics: [{ label: 'Workflow', value: 'Resolve-style suite' }],
+  };
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    overlay = new PoiTooltipOverlay({
+      container,
+      getModelRoots: () => {
+        const geometry = new BufferGeometry();
+        geometry.setAttribute(
+          'position',
+          new BufferAttribute(new Float32Array(18), 3)
+        );
+        return [new Mesh(geometry, new MeshBasicMaterial())];
+      },
+    });
+  });
+
+  afterEach(() => {
+    overlay.dispose();
+    container.remove();
+  });
+
+  it('hides debug content by default and preserves normal metrics', () => {
+    overlay.setSelected(poi);
+    expect(container.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      true
+    );
+    expect(
+      container.querySelector('.poi-tooltip-overlay__metrics')?.textContent
+    ).toContain('Workflow');
+    expect(
+      container
+        .querySelector('.poi-tooltip-overlay')
+        ?.getAttribute('aria-describedby')
+    ).not.toContain('-debug');
+  });
+
+  it('toggles anchor and triangle diagnostics into accessibility relationships immediately', () => {
+    overlay.setSelected(poi);
+    overlay.setDebugDetailsEnabled(true);
+    const debug = container.querySelector<HTMLElement>('[data-poi-debug]');
+    expect(debug?.hidden).toBe(false);
+    expect(
+      container.querySelector('[data-poi-debug-anchor]')?.textContent
+    ).toBe('X -8.74 · Y 0.00 · Z -22.92');
+    expect(
+      container.querySelector('[data-poi-debug-triangles]')?.textContent
+    ).toBe('2');
+    expect(
+      container
+        .querySelector('.poi-tooltip-overlay')
+        ?.getAttribute('aria-describedby')
+    ).toContain(debug?.id);
+
+    overlay.setDebugDetailsEnabled(false);
+    expect(debug?.hidden).toBe(true);
+    expect(
+      container
+        .querySelector('.poi-tooltip-overlay')
+        ?.getAttribute('aria-describedby')
+    ).not.toContain(debug?.id);
   });
 });

@@ -1,3 +1,5 @@
+import type { Object3D } from 'three';
+
 import {
   formatMessage,
   getPoiOverlayChromeStrings,
@@ -10,6 +12,7 @@ import {
 import type { InteractionTimeline } from '../../ui/accessibility/interactionTimeline';
 
 import type { PoiSelectionContext } from './interactionManager';
+import { countPoiModelTriangles } from './modelTriangles';
 import type { PoiDefinition } from './types';
 
 type DiscoveryFormatter = (
@@ -26,6 +29,8 @@ export interface PoiTooltipOverlayOptions {
   };
   interactionTimeline?: InteractionTimeline;
   guidedTourPreference?: GuidedTourPreference;
+  getModelRoots?: (poi: PoiDefinition) => readonly Object3D[];
+  locale?: string;
 }
 
 interface RenderState {
@@ -54,6 +59,9 @@ export class PoiTooltipOverlay {
   private readonly outcomeValue: HTMLSpanElement;
   private readonly metricsList: HTMLUListElement;
   private readonly linksList: HTMLUListElement;
+  private readonly debugDetails: HTMLDListElement;
+  private readonly debugAnchorValue: HTMLElement;
+  private readonly debugTrianglesValue: HTMLElement;
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
   private readonly recommendationBadge: HTMLSpanElement;
@@ -81,6 +89,9 @@ export class PoiTooltipOverlay {
   private focusOnNextUpdate = false;
   private readonly onDismiss: (() => void) | null;
   private strings: PoiOverlayChromeStrings;
+  private debugDetailsEnabled = false;
+  private locale = 'en';
+  private readonly getModelRoots: (poi: PoiDefinition) => readonly Object3D[];
 
   constructor(options: PoiTooltipOverlayOptions) {
     const {
@@ -89,6 +100,8 @@ export class PoiTooltipOverlay {
       discoveryAnnouncer,
       interactionTimeline,
       guidedTourPreference = defaultGuidedTourPreference,
+      getModelRoots,
+      locale = 'en',
     } = options;
     const documentTarget = container.ownerDocument ?? document;
 
@@ -99,6 +112,8 @@ export class PoiTooltipOverlay {
     this.interactionTimeline = interactionTimeline ?? null;
     this.guidedTourPreference = guidedTourPreference;
     this.onDismiss = onDismiss ?? null;
+    this.getModelRoots = getModelRoots ?? (() => []);
+    this.locale = locale;
     this.instanceId = generateTooltipInstanceId();
 
     this.root = documentTarget.createElement('section');
@@ -182,6 +197,32 @@ export class PoiTooltipOverlay {
     this.linksList.setAttribute('aria-label', this.strings.relatedCaseStudies);
     this.root.appendChild(this.linksList);
 
+    this.debugDetails = documentTarget.createElement('dl');
+    this.debugDetails.className = 'poi-tooltip-overlay__debug';
+    this.debugDetails.id = `${this.instanceId}-debug`;
+    this.debugDetails.dataset.poiDebug = 'true';
+    this.debugDetails.hidden = true;
+    this.debugDetails.setAttribute(
+      'aria-label',
+      this.strings.debugDetailsLabel
+    );
+
+    const anchorTerm = documentTarget.createElement('dt');
+    anchorTerm.textContent = this.strings.debugPoiAnchor;
+    this.debugDetails.appendChild(anchorTerm);
+    this.debugAnchorValue = documentTarget.createElement('dd');
+    this.debugAnchorValue.dataset.poiDebugAnchor = 'true';
+    this.debugDetails.appendChild(this.debugAnchorValue);
+
+    const trianglesTerm = documentTarget.createElement('dt');
+    trianglesTerm.textContent = this.strings.debugModelTriangles;
+    this.debugDetails.appendChild(trianglesTerm);
+    this.debugTrianglesValue = documentTarget.createElement('dd');
+    this.debugTrianglesValue.dataset.poiDebugTriangles = 'true';
+    this.debugDetails.appendChild(this.debugTrianglesValue);
+
+    this.root.appendChild(this.debugDetails);
+
     container.appendChild(this.root);
 
     this.liveRegion = documentTarget.createElement('div');
@@ -203,12 +244,23 @@ export class PoiTooltipOverlay {
     );
   }
 
-  setStrings(strings: PoiOverlayChromeStrings): void {
+  setStrings(strings: PoiOverlayChromeStrings, locale = this.locale): void {
     this.strings = strings;
+    this.locale = locale;
     this.visitedBadge.textContent = strings.visited;
     this.recommendationBadge.textContent = strings.nextHighlight;
     this.closeButton.setAttribute('aria-label', strings.closeDetails);
     this.linksList.setAttribute('aria-label', strings.relatedCaseStudies);
+    this.debugDetails.setAttribute('aria-label', strings.debugDetailsLabel);
+    this.renderState = { poiId: null, poiRef: null, contentKey: null };
+    this.update();
+  }
+
+  setDebugDetailsEnabled(enabled: boolean): void {
+    if (this.debugDetailsEnabled === enabled) {
+      return;
+    }
+    this.debugDetailsEnabled = enabled;
     this.renderState = { poiId: null, poiRef: null, contentKey: null };
     this.update();
   }
@@ -358,6 +410,9 @@ export class PoiTooltipOverlay {
     if (!this.linksList.hidden) {
       describedByIds.push(this.linksList.id);
     }
+    if (!this.debugDetails.hidden) {
+      describedByIds.push(this.debugDetails.id);
+    }
     if (describedByIds.length > 0) {
       this.root.setAttribute('aria-describedby', describedByIds.join(' '));
     } else {
@@ -414,6 +469,7 @@ export class PoiTooltipOverlay {
     this.renderOutcome(poi);
     this.renderMetrics(poi);
     this.renderLinks(poi);
+    this.renderDebugDetails(poi);
   }
 
   private renderOutcome(poi: PoiDefinition) {
@@ -496,6 +552,31 @@ export class PoiTooltipOverlay {
       item.appendChild(anchor);
       this.linksList.appendChild(item);
     }
+  }
+
+  private renderDebugDetails(poi: PoiDefinition) {
+    if (!this.debugDetailsEnabled) {
+      this.debugDetails.hidden = true;
+      return;
+    }
+
+    const numberFormatter = new Intl.NumberFormat(this.locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    const integerFormatter = new Intl.NumberFormat(this.locale, {
+      maximumFractionDigits: 0,
+    });
+
+    const { x, y, z } = poi.position;
+    this.debugDetails.children[0].textContent = this.strings.debugPoiAnchor;
+    this.debugDetails.children[2].textContent =
+      this.strings.debugModelTriangles;
+    this.debugAnchorValue.textContent = `X ${numberFormatter.format(x)} · Y ${numberFormatter.format(y)} · Z ${numberFormatter.format(z)}`;
+    this.debugTrianglesValue.textContent = integerFormatter.format(
+      countPoiModelTriangles(this.getModelRoots(poi))
+    );
+    this.debugDetails.hidden = false;
   }
 
   private announceDiscovery(poi: PoiDefinition) {
