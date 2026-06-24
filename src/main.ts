@@ -240,6 +240,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { registerPoiModelRoot } from './scene/poi/modelTriangles';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -302,6 +303,10 @@ import {
   createStaircase,
   type StaircaseConfig,
 } from './scene/structures/staircase';
+import {
+  createSugarkubeDeployment,
+  type SugarkubeDeploymentBuild,
+} from './scene/structures/sugarkubeDeployment';
 import {
   createTokenPlaceRack,
   type TokenPlaceRackBuild,
@@ -1066,6 +1071,7 @@ let woveLoom: WoveLoomBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceRack: TokenPlaceRackBuild | null = null;
+let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
@@ -2882,6 +2888,9 @@ function initializeImmersiveScene(
   const tokenPlacePoi = poiInstances.find(
     (poi) => poi.definition.id === 'tokenplace-studio-cluster'
   );
+  const sugarkubePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'sugarkube-backyard-greenhouse'
+  );
   const gabrielPoi = poiInstances.find(
     (poi) => poi.definition.id === 'gabriel-studio-sentry'
   );
@@ -2897,6 +2906,7 @@ function initializeImmersiveScene(
       ? upperStructureGroup
       : groundStructureGroup
     ).add(group);
+    registerPoiModelRoot(poi.definition.id, group);
   };
   const getPoiColliderTarget = (poi: PoiInstance) =>
     getPoiFloorId(poi.definition) === 'upper'
@@ -3033,6 +3043,48 @@ function initializeImmersiveScene(
       );
       gabrielSentry = sentry;
     }
+  }
+
+  if (sugarkubePoi) {
+    const livingRoom = FLOOR_PLAN.rooms.find(
+      (room) => room.id === 'livingRoom'
+    );
+    const wallEndpoint = (() => {
+      if (!livingRoom) {
+        return {
+          x: sugarkubePoi.group.position.x,
+          y: sugarkubePoi.group.position.y + 0.48,
+          z: sugarkubePoi.group.position.z - 5,
+          orientationRadians: 0,
+        };
+      }
+      const cornerClearance = 1.2;
+      return {
+        x: MathUtils.clamp(
+          sugarkubePoi.group.position.x,
+          livingRoom.bounds.minX + cornerClearance,
+          livingRoom.bounds.maxX - cornerClearance
+        ),
+        y: sugarkubePoi.group.position.y + 0.48,
+        z: livingRoom.bounds.minZ + WALL_THICKNESS / 2 + 0.03,
+        orientationRadians: 0,
+      };
+    })();
+    const deployment = createSugarkubeDeployment({
+      position: {
+        x: sugarkubePoi.group.position.x,
+        y: sugarkubePoi.group.position.y,
+        z: sugarkubePoi.group.position.z,
+      },
+      orientationRadians: sugarkubePoi.group.rotation.y ?? 0,
+      detailPolicy: activeSceneDetailPolicy,
+      wallNetworkEndpoint: wallEndpoint,
+    });
+    addPoiStructure(sugarkubePoi, deployment.group);
+    deployment.colliders.forEach((collider) =>
+      getPoiColliderTarget(sugarkubePoi).push(collider)
+    );
+    sugarkubeDeployment = deployment;
   }
 
   if (prReaperPoi) {
@@ -6698,6 +6750,7 @@ function initializeImmersiveScene(
     jobbotTerminal = null;
     axelNavigator = null;
     tokenPlaceRack = null;
+    sugarkubeDeployment = null;
     prReaperConsole = null;
     gabrielSentry = null;
     gitshelvesInstallation = null;
@@ -6920,6 +6973,23 @@ function initializeImmersiveScene(
           delta,
           emphasis: Math.max(activation, focus),
         });
+      }
+      if (sugarkubeDeployment) {
+        const activation = sugarkubePoi?.activation ?? 0;
+        const focus = sugarkubePoi?.focus ?? 0;
+        if (
+          sceneDetailController.shouldRunDecorativeUpdate(
+            elapsedTime,
+            Math.max(activation, focus),
+            'sugarkube'
+          )
+        ) {
+          sugarkubeDeployment.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
       }
       if (gabrielSentry) {
         const activation = gabrielPoi?.activation ?? 0;
