@@ -1,88 +1,120 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Group,
-  InstancedMesh,
-  Line,
-  Mesh,
-  MeshBasicMaterial,
-  Object3D,
-} from 'three';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { countPoiModelTriangles } from '../scene/poi/modelTriangles';
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
+import {
+  clearPoiModelRoots,
+  getPoiModelRoot,
+  getPoiModelTriangleCount,
+  registerPoiModelRoot,
+} from '../scene/poi/modelTriangles';
+import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
+import { countObjectTriangles } from '../scene/structures/triangleCount';
 
-const material = new MeshBasicMaterial();
+describe('POI model triangle registry', () => {
+  it('reports the registered Sugarkube deployment variant triangle count', () => {
+    clearPoiModelRoots();
+    const deployment = createSugarkubeDeployment({
+      position: { x: -8.74, y: 0, z: -22.92 },
+      orientationRadians: Math.PI * 0.55,
+      detailPolicy: getSceneDetailPolicy('performance'),
+      wallNetworkEndpoint: {
+        x: -8.74,
+        y: 0.48,
+        z: -31.1,
+        orientationRadians: 0,
+      },
+    });
 
-function nonIndexedGeometry(vertexCount: number): BufferGeometry {
-  const geometry = new BufferGeometry();
-  geometry.setAttribute(
-    'position',
-    new BufferAttribute(new Float32Array(vertexCount * 3), 3)
-  );
-  return geometry;
-}
+    registerPoiModelRoot('sugarkube-backyard-greenhouse', deployment.group);
 
-function indexedGeometry(indexCount: number): BufferGeometry {
-  const geometry = nonIndexedGeometry(indexCount);
-  geometry.setIndex(Array.from({ length: indexCount }, (_, index) => index));
-  return geometry;
-}
+    expect(getPoiModelRoot('sugarkube-backyard-greenhouse')?.name).toBe(
+      'SugarkubeDeployment'
+    );
+    expect(getPoiModelTriangleCount('sugarkube-backyard-greenhouse')).toBe(
+      countObjectTriangles(deployment.group)
+    );
+  });
 
-describe('countPoiModelTriangles', () => {
-  it('counts indexed mesh triangles from index count', () => {
+  it('clears the registered Sugarkube deployment root and triangle count', () => {
+    clearPoiModelRoots();
+    const deployment = createSugarkubeDeployment({
+      position: { x: -8.74, y: 0, z: -22.92 },
+      orientationRadians: Math.PI * 0.55,
+      detailPolicy: getSceneDetailPolicy('performance'),
+      wallNetworkEndpoint: {
+        x: -8.74,
+        y: 0.48,
+        z: -31.1,
+        orientationRadians: 0,
+      },
+    });
+
+    registerPoiModelRoot('sugarkube-backyard-greenhouse', deployment.group);
+    expect(getPoiModelRoot('sugarkube-backyard-greenhouse')).toBe(
+      deployment.group
+    );
+
+    clearPoiModelRoots();
+
+    expect(getPoiModelRoot('sugarkube-backyard-greenhouse')).toBeUndefined();
     expect(
-      countPoiModelTriangles([new Mesh(indexedGeometry(6), material)])
-    ).toBe(2);
+      getPoiModelTriangleCount('sugarkube-backyard-greenhouse')
+    ).toBeNull();
   });
 
-  it('counts non-indexed mesh triangles from position count', () => {
-    expect(
-      countPoiModelTriangles([new Mesh(nonIndexedGeometry(9), material)])
-    ).toBe(3);
+  it('reports the active Sugarkube deployment instead of stale greenhouse geometry', () => {
+    clearPoiModelRoots();
+    const staleGreenhouseRoot = new Mesh(
+      new BoxGeometry(1, 1, 1),
+      new MeshBasicMaterial()
+    );
+    staleGreenhouseRoot.name = 'BackyardGreenhouse';
+    registerPoiModelRoot('sugarkube-backyard-greenhouse', staleGreenhouseRoot);
+    const staleTriangleCount = countObjectTriangles(staleGreenhouseRoot);
+
+    const deployment = createSugarkubeDeployment({
+      position: { x: -8.74, y: 0, z: -22.92 },
+      orientationRadians: Math.PI * 0.55,
+      detailPolicy: getSceneDetailPolicy('performance'),
+      wallNetworkEndpoint: {
+        x: -8.74,
+        y: 0.48,
+        z: -31.1,
+        orientationRadians: 0,
+      },
+    });
+
+    registerPoiModelRoot('sugarkube-backyard-greenhouse', deployment.group);
+
+    expect(getPoiModelRoot('sugarkube-backyard-greenhouse')).toBe(
+      deployment.group
+    );
+    expect(getPoiModelRoot('sugarkube-backyard-greenhouse')?.name).toBe(
+      'SugarkubeDeployment'
+    );
+    expect(getPoiModelTriangleCount('sugarkube-backyard-greenhouse')).toBe(
+      countObjectTriangles(deployment.group)
+    );
+    expect(getPoiModelTriangleCount('sugarkube-backyard-greenhouse')).not.toBe(
+      staleTriangleCount
+    );
   });
 
-  it('multiplies instanced mesh triangles by active instance count', () => {
-    const mesh = new InstancedMesh(indexedGeometry(6), material, 5);
-    mesh.count = 3;
-    expect(countPoiModelTriangles([mesh])).toBe(6);
-  });
+  it('keeps main debug triangle reporting on the registry path', () => {
+    const mainSource = readFileSync(join(process.cwd(), 'src/main.ts'), 'utf8');
 
-  it('skips hidden descendants', () => {
-    const group = new Group();
-    const visible = new Mesh(nonIndexedGeometry(3), material);
-    const hidden = new Mesh(nonIndexedGeometry(6), material);
-    hidden.visible = false;
-    group.add(visible, hidden);
-    expect(countPoiModelTriangles([group])).toBe(1);
-  });
+    const staleCounterName = ['countPoiModel', 'Triangles'].join('');
 
-  it('ignores malformed geometry safely', () => {
-    expect(
-      countPoiModelTriangles([new Mesh(new BufferGeometry(), material)])
-    ).toBe(0);
-  });
-
-  it('counts separate meshes that share geometry', () => {
-    const geometry = nonIndexedGeometry(3);
-    const group = new Group();
-    group.add(new Mesh(geometry, material), new Mesh(geometry, material));
-    expect(countPoiModelTriangles([group])).toBe(2);
-  });
-
-  it('does not double-count overlapping registered roots', () => {
-    const group = new Group();
-    const mesh = new Mesh(nonIndexedGeometry(6), material);
-    group.add(mesh);
-    expect(countPoiModelTriangles([group, mesh])).toBe(2);
-  });
-
-  it('respects finite draw ranges and ignores non-mesh objects', () => {
-    const geometry = nonIndexedGeometry(12);
-    geometry.setDrawRange(3, 6);
-    const group = new Group();
-    group.add(new Line(nonIndexedGeometry(6), material), new Object3D());
-    group.add(new Mesh(geometry, material));
-    expect(countPoiModelTriangles([group])).toBe(2);
+    expect(mainSource).not.toContain(staleCounterName);
+    expect(mainSource).toContain(
+      'modelTriangles: getPoiModelTriangleCount(definition.id) ?? 0'
+    );
+    expect(mainSource).toContain(
+      'registerPoiModelRoot(\n      futuroptimistPoi.definition.id'
+    );
   });
 });
