@@ -114,11 +114,12 @@ export function createPortfolioMannequin(
   );
   collisionProxy.name = 'PortfolioMannequinCollisionProxy';
   collisionProxy.visible = false;
+  collisionProxy.position.y = collisionRadius;
   group.add(collisionProxy);
 
   const mannequinRoot = new Group();
   mannequinRoot.name = 'PortfolioMannequinVisual';
-  mannequinRoot.position.y = -collisionRadius;
+  mannequinRoot.position.y = 0;
   group.add(mannequinRoot);
 
   const platformMaterial = createStandardMaterial(

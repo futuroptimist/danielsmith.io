@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+} from '../../scene/level/floorElevations';
 import { createGroundStairSafetyColliders } from '../../scene/level/stairSafetyColliders';
 import { collidesWithColliders } from '../collision';
 
@@ -10,6 +14,11 @@ import {
 } from './stairs';
 
 const PLAYER_RADIUS = 0.75;
+const LANDING_THICKNESS = 0.38;
+const STAIR_STEP_COUNT = 9;
+const STAIR_STEP_RISE =
+  (UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION - LANDING_THICKNESS) /
+  STAIR_STEP_COUNT;
 const EPSILON = 0.1;
 
 const geometry: StairGeometry = {
@@ -19,14 +28,15 @@ const geometry: StairGeometry = {
   topZ: -25.9,
   landingMinZ: -31.1,
   landingMaxZ: -25.9,
-  totalRise: 3.78,
+  totalRise:
+    UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION - LANDING_THICKNESS,
   direction: -1,
 };
 
 const behavior: StairBehavior = {
   transitionMargin: 1.2,
   landingTriggerMargin: 0.4,
-  stepRise: 0.42,
+  stepRise: STAIR_STEP_RISE,
   descentCorridorInset: PLAYER_RADIUS,
 };
 

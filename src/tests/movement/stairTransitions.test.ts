@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+} from '../../scene/level/floorElevations';
+import {
   classifyStairTransitionZone,
   createStairNavAreaRect,
   createStairNavigationZones,
@@ -29,20 +33,20 @@ const createStairGeometry = (direction: 1 | -1): StairGeometry => {
     topZ,
     landingMinZ: Math.min(topZ, landingFarZ),
     landingMaxZ: Math.max(topZ, landingFarZ),
-    totalRise: 0.42 * 9,
+    totalRise: UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION - 0.38,
     direction,
   };
 };
 
 const NEGATIVE_Z_STAIRS = createStairGeometry(-1);
-const UPPER_FLOOR_ELEVATION = NEGATIVE_Z_STAIRS.totalRise + 0.38;
+const UPPER_FLOOR_ELEVATION = UPPER_FLOOR_TOP_ELEVATION;
 const SCREENSHOT_4_SOURCE_POINT = { x: 7.4, z: -25.27 };
 const SCREENSHOT_4_LIFT_POINT = { x: 8.14, z: -25.36 };
 
 const STAIR_BEHAVIOR: StairBehavior = {
   transitionMargin: toWorldUnits(0.6),
   landingTriggerMargin: toWorldUnits(0.2),
-  stepRise: 0.42,
+  stepRise: (UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION - 0.38) / 9,
   descentCorridorInset: 0.75,
 };
 
