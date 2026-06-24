@@ -91,6 +91,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Prompt 4b will add a dedicated live miniature avatar instead of cloning the overworld player.',
   },
   {
+    id: 'structure:selfie-mirror',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/selfieMirror.ts'],
+    syncRevision: 1,
+    reason:
+      'Selfie mirror runtime shell is not used in the recursive table; danielsmith.io is represented by the nonrecursive table-shell proxy.',
+  },
+  {
     id: 'poi:markers-labels',
     kind: 'excluded',
     sourceFiles: [
@@ -356,9 +364,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Physical sizing now includes the danielsmith.io table contract consumed by the complete outer miniature and finite inner shell proxy.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',

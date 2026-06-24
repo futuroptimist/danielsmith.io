@@ -149,6 +149,7 @@ import {
 } from './scene/graphics/qualityManager';
 import {
   createSceneDetailController,
+  getMiniatureSceneDetailPolicy,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
 import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
@@ -245,6 +246,7 @@ import {
   getPoiModelTriangleCount,
   registerPoiModelRoot,
 } from './scene/poi/modelTriangles';
+import { getPoiPhysicalMetadata } from './scene/poi/physicalMetadata';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -291,6 +293,10 @@ import {
   type LivingRoomMediaWallBuild,
 } from './scene/structures/mediaWall';
 import { createMediaWallStarBridge } from './scene/structures/mediaWallStarBridge';
+import {
+  createPortfolioMiniatureTable,
+  type PortfolioMiniatureTableBuild,
+} from './scene/structures/portfolioMiniatureTable';
 import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
@@ -1124,6 +1130,7 @@ let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceWorkstation: TokenPlaceWorkstationBuild | null = null;
 let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
+let portfolioMiniatureTable: PortfolioMiniatureTableBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
@@ -2976,6 +2983,9 @@ function initializeImmersiveScene(
   const prReaperPoi = poiInstances.find(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
+  const portfolioTablePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'danielsmith-portfolio-table'
+  );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
     (getPoiFloorId(poi.definition) === 'upper'
@@ -3124,6 +3134,36 @@ function initializeImmersiveScene(
       );
       gabrielSentry = sentry;
     }
+  }
+
+  if (portfolioTablePoi) {
+    const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
+    if (!metadata) {
+      throw new Error(
+        'Missing physical metadata for danielsmith.io miniature table.'
+      );
+    }
+    const miniaturePolicy = getMiniatureSceneDetailPolicy(
+      sceneDetailController.getLevel() as GraphicsQualityLevel
+    );
+    const table = createPortfolioMiniatureTable({
+      position: new Vector3(
+        portfolioTablePoi.group.position.x,
+        portfolioTablePoi.group.position.y,
+        portfolioTablePoi.group.position.z
+      ),
+      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      tableDetailPolicy: activeSceneDetailPolicy,
+      miniatureDetailPolicy: miniaturePolicy,
+      poiDefinitions,
+    });
+    addPoiStructure(portfolioTablePoi, table.group);
+    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
+    namedColliderDebugNames.set(
+      table.collider,
+      'PortfolioMiniatureTableCollider'
+    );
+    portfolioMiniatureTable = table;
   }
 
   if (sugarkubePoi) {
@@ -3547,11 +3587,13 @@ function initializeImmersiveScene(
     target: {
       applyPalette: (palette) => {
         mannequin.applyPalette(palette);
+        portfolioMiniatureTable?.setPlayerPalette(palette);
         avatarAccessoryManager?.applyPalette(palette);
       },
     },
     storage: avatarVariantStorage,
   });
+  portfolioMiniatureTable?.setPlayerPalette(mannequin.getPalette());
   ensureAvatarApi();
 
   const controlOverlay = document.getElementById('control-overlay');
@@ -6868,6 +6910,10 @@ function initializeImmersiveScene(
       tokenPlaceWorkstation.dispose();
       tokenPlaceWorkstation = null;
     }
+    if (portfolioMiniatureTable) {
+      portfolioMiniatureTable.dispose();
+      portfolioMiniatureTable = null;
+    }
     sugarkubeDeployment = null;
     clearPoiModelRoots();
     prReaperConsole = null;
@@ -7096,6 +7142,13 @@ function initializeImmersiveScene(
             Math.max(activation, focus),
             'token-place-terminals'
           ),
+        });
+      }
+      if (portfolioMiniatureTable) {
+        portfolioMiniatureTable.update({
+          playerWorldPosition: player.position,
+          playerYaw: player.rotation.y,
+          activeFloor: activeFloorId === 'upper' ? 'upper' : 'ground',
         });
       }
       if (sugarkubeDeployment) {
