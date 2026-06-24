@@ -38,6 +38,18 @@ it('provides POI debug detail labels for every locale', () => {
   }
 });
 
+it('pseudo-localizes POI debug detail labels', () => {
+  const english = getPoiOverlayChromeStrings('en');
+  const pseudo = getPoiOverlayChromeStrings('en-x-pseudo');
+
+  expect(pseudo.debugDetailsLabel).not.toBe(english.debugDetailsLabel);
+  expect(pseudo.debugPoiAnchor).not.toBe(english.debugPoiAnchor);
+  expect(pseudo.debugModelTriangles).not.toBe(english.debugModelTriangles);
+  expect(pseudo.debugDetailsLabel).toMatch(/^⟦.*⟧$/);
+  expect(pseudo.debugPoiAnchor).toMatch(/^⟦.*⟧$/);
+  expect(pseudo.debugModelTriangles).toMatch(/^⟦.*⟧$/);
+});
+
 describe('i18n utilities', () => {
   it('exposes available locales including pseudo locale scaffolding', () => {
     expect(AVAILABLE_LOCALES).toContain('en');

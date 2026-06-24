@@ -1072,6 +1072,7 @@ let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
+let futuroptimistTvModelRoot: Object3D | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
@@ -2034,6 +2035,7 @@ function initializeImmersiveScene(
     tvHitArea.visible = true;
     tvHitArea.renderOrder = tvBinding.glow.renderOrder + 1;
     mediaWall.group.add(tvHitArea);
+    futuroptimistTvModelRoot = tvBinding.glow;
 
     poiOverrides['futuroptimist-living-room-tv'] = {
       mode: 'display',
@@ -2519,7 +2521,7 @@ function initializeImmersiveScene(
         (candidate) => candidate.definition.id === definition.id
       );
       return {
-        anchor: getPoiInteractionAnchorPosition(definition),
+        anchor: definition.position,
         modelTriangles: poi ? countPoiModelTriangles(poi.modelRoots) : 0,
       };
     },
@@ -2875,6 +2877,10 @@ function initializeImmersiveScene(
   const flywheelPoi = poiInstances.find(
     (poi) => poi.definition.id === 'flywheel-studio-flywheel'
   );
+  if (futuroptimistPoi && futuroptimistTvModelRoot) {
+    futuroptimistPoi.modelRoots = [futuroptimistTvModelRoot];
+  }
+
   const jobbotPoi = poiInstances.find(
     (poi) => poi.definition.id === 'jobbot-studio-terminal'
   );
