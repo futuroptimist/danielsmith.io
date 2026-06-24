@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import type { Bounds2D } from '../assets/floorPlan';
-import { UPPER_FLOOR_TOP_ELEVATION } from '../scene/level/floorElevations';
+import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+} from '../scene/level/floorElevations';
 import { createRoomFloorTiles } from '../scene/structures/floorTiles';
 import {
   createUpperLandingFloorCutouts,
@@ -28,7 +31,8 @@ const STAIR_RUN = toWorldUnits(0.85);
 const STAIR_STEP_COUNT = 9;
 const LANDING_THICKNESS = 0.38;
 const STAIR_STEP_RISE =
-  (UPPER_FLOOR_TOP_ELEVATION - LANDING_THICKNESS) / STAIR_STEP_COUNT;
+  (UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION - LANDING_THICKNESS) /
+  STAIR_STEP_COUNT;
 const STAIR_LANDING_DEPTH = toWorldUnits(2.6);
 const STAIRWELL_MARGIN_X = toWorldUnits(0.2);
 const STAIRWELL_MARGIN_Z = toWorldUnits(0.4);
