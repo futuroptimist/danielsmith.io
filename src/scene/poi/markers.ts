@@ -87,6 +87,7 @@ export interface PoiInstance {
     material: MeshBasicMaterial;
   };
   visitedBadge?: PoiVisitedBadge;
+  modelRoots: Object3D[];
 }
 
 export function createPoiInstances(
@@ -420,6 +421,7 @@ function createPedestalPoiInstance(
     visitedStrength: 0,
     visitedHighlight: { mesh: visitedRing, material: visitedRingMaterial },
     visitedBadge,
+    modelRoots: [],
   };
 }
 
@@ -483,6 +485,7 @@ function createDisplayPoiInstance(
     displayHighlight: override.highlight,
     visited: false,
     visitedStrength: 0,
+    modelRoots: [],
   };
 }
 

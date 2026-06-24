@@ -463,6 +463,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       closeDetails: 'Close POI details',
       relatedCaseStudies: 'Related case studies',
       outcomeFallbackLabel: 'Outcome',
+      debugDetailsLabel: 'Debug details',
+      debugPoiAnchor: 'POI anchor',
+      debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: '{title} discovered. {summary}',
     },
     narrativeLog: {

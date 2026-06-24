@@ -240,6 +240,7 @@ import {
   type PoiInstance,
   type PoiInstanceOverrides,
 } from './scene/poi/markers';
+import { countPoiModelTriangles } from './scene/poi/modelTriangles';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -2512,6 +2513,16 @@ function initializeImmersiveScene(
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
   const poiTooltipOverlay = new PoiTooltipOverlay({
     container,
+    locale,
+    getDebugDetails: (definition) => {
+      const poi = poiInstances.find(
+        (candidate) => candidate.definition.id === definition.id
+      );
+      return {
+        anchor: definition.position,
+        modelTriangles: poi ? countPoiModelTriangles(poi.modelRoots) : 0,
+      };
+    },
     interactionTimeline,
     guidedTourPreference,
     discoveryAnnouncer: {
@@ -2525,7 +2536,7 @@ function initializeImmersiveScene(
       dismissActivePoiDetail();
     },
   });
-  poiTooltipOverlay.setStrings(poiOverlayStrings);
+  poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
@@ -2897,6 +2908,7 @@ function initializeImmersiveScene(
       ? upperStructureGroup
       : groundStructureGroup
     ).add(group);
+    poi.modelRoots.push(group);
   };
   const getPoiColliderTarget = (poi: PoiInstance) =>
     getPoiFloorId(poi.definition) === 'upper'
@@ -4219,13 +4231,13 @@ function initializeImmersiveScene(
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
     poiNarrativeLog?.setStrings(narrativeLogStrings);
+    poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     audioSubtitles?.setLabels(audioSubtitleStrings);
     narrationToggleControl?.setStrings(narrationToggleStrings);
     refreshDebugCoordinatesStrings();
     refreshDebugCollidersStrings();
     tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
     tourResetControl?.setStrings(tourResetControlStrings);
-    poiTooltipOverlay.setStrings(poiOverlayStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
     syncPoiRecommendation();
@@ -4938,6 +4950,7 @@ function initializeImmersiveScene(
     debugCoordinatesEnabled = enabled;
     syncDebugCoordinatesOverlayVisibility();
     refreshDebugCoordinatesControl();
+    poiTooltipOverlay.setDebugDetailsEnabled(enabled);
     if (enabled) {
       updateDebugCoordinatesOverlay();
     }
@@ -4965,6 +4978,8 @@ function initializeImmersiveScene(
     refreshDebugSolidIdsControl();
     refreshDebugFpsControl();
   };
+
+  poiTooltipOverlay.setDebugDetailsEnabled(debugCoordinatesEnabled);
 
   debugCoordinatesOverlay = document.createElement('aside');
   debugCoordinatesOverlay.className = 'debug-coordinates';
