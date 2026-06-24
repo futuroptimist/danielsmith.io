@@ -312,9 +312,9 @@ import {
   type SugarkubeDeploymentBuild,
 } from './scene/structures/sugarkubeDeployment';
 import {
-  createTokenPlaceRack,
-  type TokenPlaceRackBuild,
-} from './scene/structures/tokenPlaceRack';
+  createTokenPlaceWorkstation,
+  type TokenPlaceWorkstationBuild,
+} from './scene/structures/tokenPlaceWorkstation';
 import {
   createUpperLandingFloorCutouts,
   createUpperLandingStairRunApproachFootprint,
@@ -1122,7 +1122,7 @@ let sigmaWorkbench: SigmaWorkbenchBuild | null = null;
 let woveLoom: WoveLoomBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
-let tokenPlaceRack: TokenPlaceRackBuild | null = null;
+let tokenPlaceWorkstation: TokenPlaceWorkstationBuild | null = null;
 let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
@@ -3093,19 +3093,20 @@ function initializeImmersiveScene(
     }
 
     if (tokenPlacePoi) {
-      const rack = createTokenPlaceRack({
+      const workstation = createTokenPlaceWorkstation({
         position: {
           x: tokenPlacePoi.group.position.x,
           y: tokenPlacePoi.group.position.y,
           z: tokenPlacePoi.group.position.z,
         },
         orientationRadians: tokenPlacePoi.group.rotation.y ?? 0,
+        detailPolicy: activeSceneDetailPolicy,
       });
-      addPoiStructure(tokenPlacePoi, rack.group);
-      rack.colliders.forEach((collider) =>
+      addPoiStructure(tokenPlacePoi, workstation.group);
+      workstation.colliders.forEach((collider) =>
         getPoiColliderTarget(tokenPlacePoi).push(collider)
       );
-      tokenPlaceRack = rack;
+      tokenPlaceWorkstation = workstation;
     }
 
     if (gabrielPoi) {
@@ -6863,7 +6864,10 @@ function initializeImmersiveScene(
     woveLoom = null;
     jobbotTerminal = null;
     axelNavigator = null;
-    tokenPlaceRack = null;
+    if (tokenPlaceWorkstation) {
+      tokenPlaceWorkstation.dispose();
+      tokenPlaceWorkstation = null;
+    }
     sugarkubeDeployment = null;
     clearPoiModelRoots();
     prReaperConsole = null;
@@ -7080,14 +7084,22 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
-      if (tokenPlaceRack) {
+      if (tokenPlaceWorkstation) {
         const activation = tokenPlacePoi?.activation ?? 0;
         const focus = tokenPlacePoi?.focus ?? 0;
-        tokenPlaceRack.update({
-          elapsed: elapsedTime,
-          delta,
-          emphasis: Math.max(activation, focus),
-        });
+        if (
+          sceneDetailController.shouldRunDecorativeUpdate(
+            elapsedTime,
+            Math.max(activation, focus),
+            'token-place-terminals'
+          )
+        ) {
+          tokenPlaceWorkstation.update({
+            elapsed: elapsedTime,
+            delta,
+            emphasis: Math.max(activation, focus),
+          });
+        }
       }
       if (sugarkubeDeployment) {
         const activation = sugarkubePoi?.activation ?? 0;
