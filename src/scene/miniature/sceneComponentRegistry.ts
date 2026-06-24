@@ -80,15 +80,30 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     syncNote: 'Ceiling panel fixtures need simplified caps in the tabletop.',
   },
   {
-    id: 'avatar:overworld-player',
+    id: 'avatar:miniature-player',
+    kind: 'proxy',
+    sourceFiles: ['src/scene/avatar/mannequin.ts'],
+    proxyFiles: [SELF_FILE, 'src/scene/structures/portfolioMiniatureTable.ts'],
+    syncRevision: 2,
+    syncNote:
+      'Prompt 4b adds a dedicated live miniature avatar mapped from the overworld player without cloning runtime systems.',
+  },
+
+  {
+    id: 'avatar:accessories-runtime',
     kind: 'excluded',
-    sourceFiles: [
-      'src/scene/avatar/mannequin.ts',
-      'src/scene/avatar/accessories.ts',
-    ],
+    sourceFiles: ['src/scene/avatar/accessories.ts'],
     syncRevision: 1,
     reason:
-      'Prompt 4b will add a dedicated live miniature avatar instead of cloning the overworld player.',
+      'Avatar accessories are not cloned into the miniature; palette sync only affects the dedicated tiny player.',
+  },
+  {
+    id: 'structure:selfie-mirror',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/selfieMirror.ts'],
+    syncRevision: 1,
+    reason:
+      'The danielsmith.io miniature table replaces the old empty exhibit and owns the visible self-proxy shell.',
   },
   {
     id: 'poi:markers-labels',
@@ -356,9 +371,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Tracks physical sizing inputs; danielsmith.io table dimensions are shared with the miniature table contract.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',

@@ -149,6 +149,7 @@ import {
 } from './scene/graphics/qualityManager';
 import {
   createSceneDetailController,
+  getMiniatureSceneDetailPolicy,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
 import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
@@ -245,6 +246,7 @@ import {
   getPoiModelTriangleCount,
   registerPoiModelRoot,
 } from './scene/poi/modelTriangles';
+import { getPoiPhysicalMetadata } from './scene/poi/physicalMetadata';
 import { getPoiInteractionAnchorPosition } from './scene/poi/placements';
 import { getPoiDefinitions } from './scene/poi/registry';
 import {
@@ -291,6 +293,10 @@ import {
   type LivingRoomMediaWallBuild,
 } from './scene/structures/mediaWall';
 import { createMediaWallStarBridge } from './scene/structures/mediaWallStarBridge';
+import {
+  createPortfolioMiniatureTable,
+  type PortfolioMiniatureTableBuild,
+} from './scene/structures/portfolioMiniatureTable';
 import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
@@ -1124,6 +1130,7 @@ let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceWorkstation: TokenPlaceWorkstationBuild | null = null;
 let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
+let portfolioMiniatureTable: PortfolioMiniatureTableBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
@@ -2967,6 +2974,9 @@ function initializeImmersiveScene(
   const sugarkubePoi = poiInstances.find(
     (poi) => poi.definition.id === 'sugarkube-backyard-greenhouse'
   );
+  const portfolioTablePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'danielsmith-portfolio-table'
+  );
   const gabrielPoi = poiInstances.find(
     (poi) => poi.definition.id === 'gabriel-studio-sentry'
   );
@@ -3124,6 +3134,34 @@ function initializeImmersiveScene(
       );
       gabrielSentry = sentry;
     }
+  }
+
+  if (portfolioTablePoi) {
+    const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
+    if (!metadata) {
+      throw new Error(
+        'Missing physical metadata for danielsmith-portfolio-table.'
+      );
+    }
+    const table = createPortfolioMiniatureTable({
+      position: {
+        x: portfolioTablePoi.group.position.x,
+        y: portfolioTablePoi.group.position.y,
+        z: portfolioTablePoi.group.position.z,
+      },
+      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      tableDetailPolicy: activeSceneDetailPolicy,
+      miniatureDetailPolicy: getMiniatureSceneDetailPolicy(
+        effectiveInitialQualityLevel
+      ),
+      poiDefinitions,
+    });
+    addPoiStructure(portfolioTablePoi, table.group);
+    table.colliders.forEach((collider) => {
+      getPoiColliderTarget(portfolioTablePoi).push(collider);
+      namedColliderDebugNames.set(collider, 'PortfolioMiniatureTableCollider');
+    });
+    portfolioMiniatureTable = table;
   }
 
   if (sugarkubePoi) {
@@ -3543,10 +3581,13 @@ function initializeImmersiveScene(
     presets: AVATAR_ACCESSORY_PRESETS,
   });
 
+  portfolioMiniatureTable?.setPlayerPalette(mannequin.getPalette());
+
   avatarVariantManager = createAvatarVariantManager({
     target: {
       applyPalette: (palette) => {
         mannequin.applyPalette(palette);
+        portfolioMiniatureTable?.setPlayerPalette(palette);
         avatarAccessoryManager?.applyPalette(palette);
       },
     },
@@ -6227,6 +6268,13 @@ function initializeImmersiveScene(
     );
     player.rotation.y = computeModelYawFromVector(facingDirection);
 
+    portfolioMiniatureTable?.update({
+      playerWorldPosition: player.position,
+      playerYaw: player.rotation.y,
+      activeFloor: activeFloorId,
+      reducedMotion: getPulseScale() === 0,
+    });
+
     const yawAfter = player.rotation.y;
     if (Number.isFinite(delta) && delta > 1e-6) {
       const yawDelta = angularDifference(yawBefore, yawAfter);
@@ -6869,6 +6917,10 @@ function initializeImmersiveScene(
       tokenPlaceWorkstation = null;
     }
     sugarkubeDeployment = null;
+    if (portfolioMiniatureTable) {
+      portfolioMiniatureTable.dispose();
+      portfolioMiniatureTable = null;
+    }
     clearPoiModelRoots();
     prReaperConsole = null;
     gabrielSentry = null;

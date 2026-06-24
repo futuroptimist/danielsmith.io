@@ -7,7 +7,9 @@ import {
   POI_PHYSICAL_METADATA,
   type PoiPhysicalMetadata,
 } from '../scene/poi/physicalMetadata';
+import { localizePoiDefinitions } from '../scene/poi/registry';
 import type { PoiId } from '../scene/poi/types';
+import { createPortfolioMiniatureTable } from '../scene/structures/portfolioMiniatureTable';
 import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
 import {
   EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
@@ -28,9 +30,10 @@ afterAll(() => {
   HTMLCanvasElement.prototype.getContext = originalGetContext;
 });
 
-const PHYSICAL_POI_IDS = [
+const REQUIRED_PHYSICAL_POI_IDS = [
   'tokenplace-studio-cluster',
   'sugarkube-backyard-greenhouse',
+  'danielsmith-portfolio-table',
 ] as const satisfies PoiId[];
 
 const FIT_TOLERANCE = 0.05;
@@ -74,18 +77,18 @@ const expectFitsContract = (root: Object3D, metadata: PoiPhysicalMetadata) => {
 };
 
 describe('POI physical metadata', () => {
-  it('defines a positive bottom-center size contract for token.place and Sugarkube', () => {
-    expect(Object.keys(POI_PHYSICAL_METADATA).sort()).toEqual(
-      [...PHYSICAL_POI_IDS].sort()
-    );
-
-    PHYSICAL_POI_IDS.forEach((poiId) => {
+  it('defines positive bottom-center size contracts for required physical POIs', () => {
+    REQUIRED_PHYSICAL_POI_IDS.forEach((poiId) => {
       const metadata = getPoiPhysicalMetadata(poiId);
       expect(metadata).toBeDefined();
       expect(metadata?.anchor).toBe('bottom-center');
       expect(metadata?.realWorldReference.length).toBeGreaterThan(0);
       expectPositiveFiniteBounds(metadata!.intendedSceneBounds);
       expectPositiveFiniteBounds(metadata!.realWorldDimensionsMeters!);
+    });
+    Object.values(POI_PHYSICAL_METADATA).forEach((metadata) => {
+      expect(metadata.anchor).toBe('bottom-center');
+      expectPositiveFiniteBounds(metadata.intendedSceneBounds);
     });
   });
 
@@ -127,6 +130,30 @@ describe('POI physical metadata', () => {
       getPoiPhysicalMetadata('tokenplace-studio-cluster')!
     );
     build.dispose();
+  });
+
+  it('keeps danielsmith.io miniature table within its intended bounds without root scaling', () => {
+    const poiDefinitions = localizePoiDefinitions();
+    const poi = poiDefinitions.find(
+      (definition) => definition.id === 'danielsmith-portfolio-table'
+    )!;
+
+    (['cinematic', 'balanced', 'performance'] as const).forEach((level) => {
+      const build = createPortfolioMiniatureTable({
+        position: poi.position,
+        orientationRadians: poi.headingRadians,
+        tableDetailPolicy: getSceneDetailPolicy(level),
+        miniatureDetailPolicy: getSceneDetailPolicy('micro'),
+        poiDefinitions,
+      });
+
+      expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
+      expectFitsContract(
+        build.group,
+        getPoiPhysicalMetadata('danielsmith-portfolio-table')!
+      );
+      build.dispose();
+    });
   });
 
   it('keeps Sugarkube visible bounds within its intended scene bounds without root scaling', () => {
