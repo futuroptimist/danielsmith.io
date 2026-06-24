@@ -844,13 +844,19 @@ function consumePendingPlayerPosition(): PendingPlayerPosition | null {
 
   try {
     const url = new URL(window.location.href);
-    const x = Number(url.searchParams.get(PENDING_PLAYER_POSITION_X_PARAM));
-    const y = Number(url.searchParams.get(PENDING_PLAYER_POSITION_Y_PARAM));
-    const z = Number(url.searchParams.get(PENDING_PLAYER_POSITION_Z_PARAM));
+    const storedX = url.searchParams.get(PENDING_PLAYER_POSITION_X_PARAM);
+    const storedY = url.searchParams.get(PENDING_PLAYER_POSITION_Y_PARAM);
+    const storedZ = url.searchParams.get(PENDING_PLAYER_POSITION_Z_PARAM);
     url.searchParams.delete(PENDING_PLAYER_POSITION_X_PARAM);
     url.searchParams.delete(PENDING_PLAYER_POSITION_Y_PARAM);
     url.searchParams.delete(PENDING_PLAYER_POSITION_Z_PARAM);
     window.history.replaceState(window.history.state, '', url);
+    if (storedX === null || storedY === null || storedZ === null) {
+      return null;
+    }
+    const x = Number(storedX);
+    const y = Number(storedY);
+    const z = Number(storedZ);
     return Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)
       ? { x, y, z }
       : null;
@@ -1242,7 +1248,7 @@ function initializeImmersiveScene(
   ) => {
     if (level === sceneDetailController.getLevel()) {
       activeSceneDetailPolicy = sceneDetailController.getPolicy();
-      return;
+      return false;
     }
     if (options.reloadScene) {
       const pendingReload = {
@@ -1263,7 +1269,7 @@ function initializeImmersiveScene(
         : false;
       if (persistPendingSceneDetailReload(pendingReload)) {
         window.location.reload();
-        return;
+        return true;
       }
       if (
         reloadWithPendingSceneDetailParam(
@@ -1271,7 +1277,7 @@ function initializeImmersiveScene(
           didPersistPlayerPosition ? undefined : playerPosition
         )
       ) {
-        return;
+        return true;
       }
       console.warn(
         '[performance] scene detail reload handoff unavailable; applying policy without reload'
@@ -1279,6 +1285,7 @@ function initializeImmersiveScene(
     }
     sceneDetailController.setLevel(level);
     activeSceneDetailPolicy = sceneDetailController.getPolicy();
+    return false;
   };
   const maxPolicyPixelRatioCap = rendererInfo.isDangerousSoftwareRenderer
     ? initialQualityPolicy.basePixelRatioCap
@@ -5859,7 +5866,7 @@ function initializeImmersiveScene(
       renderTargetSize: policy.mirrorTargetSize,
     });
     const level = graphicsQualityManager?.getLevel() ?? initialSceneDetailLevel;
-    applySceneDetailLevel(level, {
+    return applySceneDetailLevel(level, {
       reloadScene: options.reloadScene ?? false,
       adaptivePerformanceRecoveryLocked:
         options.adaptivePerformanceRecoveryLocked === true,
@@ -5886,7 +5893,13 @@ function initializeImmersiveScene(
     const adaptivePerformanceRecoveryLocked =
       pendingLowFpsPerformanceRecoveryReload && level === 'performance';
     pendingLowFpsPerformanceRecoveryReload = false;
-    applyFeaturePolicy({ reloadScene, adaptivePerformanceRecoveryLocked });
+    const didScheduleSceneReload = applyFeaturePolicy({
+      reloadScene,
+      adaptivePerformanceRecoveryLocked,
+    });
+    if (didScheduleSceneReload) {
+      return;
+    }
     composer?.setSize(window.innerWidth, window.innerHeight);
     bloomPass?.setSize(window.innerWidth, window.innerHeight);
     graphicsQualityControl?.refresh();

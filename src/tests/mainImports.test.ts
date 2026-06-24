@@ -32,9 +32,12 @@ describe('main module imports', () => {
       "url.searchParams.set(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_PARAM, '1');"
     );
     expect(source).toContain('window.location.assign(url.toString());');
-    expect(source).toContain(
-      'reloadWithPendingSceneDetailParam(\n          pendingReload,'
+    expect(source).toMatch(
+      /reloadWithPendingSceneDetailParam\(\s*pendingReload,/
     );
+    expect(source).toContain('storedX === null');
+    expect(source).toContain('storedY === null');
+    expect(source).toContain('storedZ === null');
   });
 
   it('passes generated source IDs and purposes into debug collider metadata', () => {
@@ -112,9 +115,10 @@ describe('main module imports', () => {
       "pendingLowFpsPerformanceRecoveryReload && level === 'performance';"
     );
     expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = false;');
-    expect(source).toContain(
-      'applyFeaturePolicy({ reloadScene, adaptivePerformanceRecoveryLocked });'
+    expect(source).toMatch(
+      /const didScheduleSceneReload = applyFeaturePolicy\(\{\s*reloadScene,\s*adaptivePerformanceRecoveryLocked,\s*\}\);/
     );
+    expect(source).toMatch(/if \(didScheduleSceneReload\) \{\s*return;\s*\}/);
   });
 
   it('does not reload when no scene-detail handoff can be persisted', () => {
@@ -127,7 +131,7 @@ describe('main module imports', () => {
       'window.sessionStorage.getItem(PENDING_SCENE_DETAIL_ADAPTIVE_LOCK_KEY) ==='
     );
     expect(source).toMatch(
-      /if \(persistPendingSceneDetailReload\(pendingReload\)\) \{\s*window\.location\.reload\(\);\s*return;\s*\}/
+      /if \(persistPendingSceneDetailReload\(pendingReload\)\) \{\s*window\.location\.reload\(\);\s*return true;\s*\}/
     );
     expect(source).toContain(
       '[performance] scene detail reload handoff unavailable; applying policy without reload'
