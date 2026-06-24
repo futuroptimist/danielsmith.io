@@ -78,13 +78,20 @@ export interface PortfolioMiniatureTableOptions {
 
 const ownedMaterials = new WeakSet<object>();
 
-const createMaterial = (color: number, transparent = false, opacity = 1) => {
+const createMaterial = (
+  color: number,
+  transparent = false,
+  opacity = 1,
+  roughness = 0.72,
+  metalness = 0.05
+) => {
   const material = new MeshStandardMaterial({
     color,
-    roughness: 0.72,
-    metalness: 0.05,
+    roughness,
+    metalness,
     transparent,
     opacity,
+    depthWrite: !transparent,
   });
   ownedMaterials.add(material);
   return material;
@@ -95,9 +102,12 @@ function addBox(
   name: string,
   size: [number, number, number],
   position: [number, number, number],
-  color: number
+  color: number | MeshStandardMaterial
 ) {
-  const mesh = new Mesh(new BoxGeometry(...size), createMaterial(color));
+  const mesh = new Mesh(
+    new BoxGeometry(...size),
+    typeof color === 'number' ? createMaterial(color) : color
+  );
   mesh.name = name;
   mesh.position.set(...position);
   mesh.castShadow = false;
@@ -216,9 +226,54 @@ export function createMiniatureWorldTransform(
   };
 }
 
+const MINIATURE_MATERIAL_COLORS = {
+  groundFloor: 0x2a3547,
+  upperFloorGhost: 0x7bd5ff,
+  upperFloorRim: 0x9cf7c7,
+  backyard: 0x274f37,
+  walls: 0xf8fafc,
+  stairs: 0x52657d,
+  landing: 0xffba52,
+} as const;
+
+const createMiniatureMaterial = (
+  role: keyof typeof MINIATURE_MATERIAL_COLORS,
+  options: { transparent?: boolean; opacity?: number } = {}
+) => {
+  const material = createMaterial(
+    MINIATURE_MATERIAL_COLORS[role],
+    options.transparent,
+    options.opacity,
+    role === 'groundFloor' ? 0.58 : 0.72,
+    role === 'groundFloor' ? 0.18 : 0.05
+  );
+  material.name = `MiniatureMaterial:${role}`;
+  return material;
+};
+
+const getRoomMiniatureColor = (room: (typeof FLOOR_PLAN.rooms)[number]) => {
+  if (room.category === 'exterior') return MINIATURE_MATERIAL_COLORS.backyard;
+  return room.id === 'livingRoom'
+    ? MINIATURE_MATERIAL_COLORS.groundFloor
+    : room.ledColor;
+};
+
 function createArchitecture(detailPolicy: SceneDetailPolicy) {
   const root = new Group();
   root.name = 'MiniatureArchitecture';
+  const groundFloorMaterial = createMiniatureMaterial('groundFloor');
+  const backyardMaterial = createMiniatureMaterial('backyard');
+  const upperFloorMaterial = createMiniatureMaterial('upperFloorGhost', {
+    transparent: true,
+    opacity: 0.22,
+  });
+  const upperRimMaterial = createMiniatureMaterial('upperFloorRim', {
+    transparent: true,
+    opacity: 0.55,
+  });
+  const wallMaterial = createMiniatureMaterial('walls');
+  const stairMaterial = createMiniatureMaterial('stairs');
+  const landingMaterial = createMiniatureMaterial('landing');
   const slab = (name: string, y: number, plan = FLOOR_PLAN) => {
     for (const room of plan.rooms) {
       const { minX, maxX, minZ, maxZ } = room.bounds;
@@ -227,13 +282,61 @@ function createArchitecture(detailPolicy: SceneDetailPolicy) {
         `${name}:${room.id}`,
         [maxX - minX, 0.08, maxZ - minZ],
         [(minX + maxX) / 2, y, (minZ + maxZ) / 2],
-        room.category === 'exterior' ? 0x86efac : 0xdbeafe
+        name === 'MiniatureUpperFloor'
+          ? upperFloorMaterial
+          : room.category === 'exterior'
+            ? backyardMaterial
+            : room.id === 'livingRoom'
+              ? groundFloorMaterial
+              : getRoomMiniatureColor(room)
       );
       mesh.userData.floor = name;
+      mesh.userData.materialRole =
+        name === 'MiniatureUpperFloor'
+          ? 'upperFloorGhost'
+          : room.category === 'exterior'
+            ? 'backyard'
+            : 'groundFloor';
     }
   };
   slab('MiniatureGroundFloor', GROUND_FLOOR_TOP_ELEVATION, FLOOR_PLAN);
-  slab('MiniatureUpperFloor', UPPER_FLOOR_TOP_ELEVATION, UPPER_FLOOR_PLAN);
+  slab(
+    'MiniatureUpperFloor',
+    UPPER_FLOOR_TOP_ELEVATION + 0.16,
+    UPPER_FLOOR_PLAN
+  );
+  for (const room of UPPER_FLOOR_PLAN.rooms) {
+    const { minX, maxX, minZ, maxZ } = room.bounds;
+    const y = UPPER_FLOOR_TOP_ELEVATION + 0.24;
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:north`,
+      [maxX - minX, 0.08, 0.1],
+      [(minX + maxX) / 2, y, minZ],
+      upperRimMaterial
+    );
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:south`,
+      [maxX - minX, 0.08, 0.1],
+      [(minX + maxX) / 2, y, maxZ],
+      upperRimMaterial
+    );
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:west`,
+      [0.1, 0.08, maxZ - minZ],
+      [minX, y, (minZ + maxZ) / 2],
+      upperRimMaterial
+    );
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:east`,
+      [0.1, 0.08, maxZ - minZ],
+      [maxX, y, (minZ + maxZ) / 2],
+      upperRimMaterial
+    );
+  }
   const wallHeight = detailPolicy.detailIndex >= 3 ? 0.45 : 0.7;
   for (const [plan, y, label] of [
     [FLOOR_PLAN, 0, 'ground'],
@@ -253,7 +356,7 @@ function createArchitecture(detailPolicy: SceneDetailPolicy) {
           ? [length, wallHeight, 0.12]
           : [0.12, wallHeight, length],
         [cx, y + wallHeight / 2 + 0.06, cz],
-        0xf8fafc
+        label === 'upper' ? upperRimMaterial : wallMaterial
       );
     }
   }
@@ -262,21 +365,21 @@ function createArchitecture(detailPolicy: SceneDetailPolicy) {
     'MiniatureBackyard',
     [10, 0.05, 8],
     [-8, GROUND_FLOOR_TOP_ELEVATION + 0.02, -28],
-    0xbbf7d0
+    backyardMaterial
   );
   addBox(
     root,
     'MiniatureStaircase',
     [1.2, UPPER_FLOOR_TOP_ELEVATION, 4.2],
     [-6, UPPER_FLOOR_TOP_ELEVATION / 2, -2],
-    0xcbd5e1
+    stairMaterial
   );
   addBox(
     root,
     'MiniatureUpperLanding',
     [4, 0.1, 3],
     [-6, UPPER_FLOOR_TOP_ELEVATION + 0.05, 0],
-    0xe2e8f0
+    landingMaterial
   );
   return root;
 }

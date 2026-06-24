@@ -1,4 +1,4 @@
-import { Box3, Vector3 } from 'three';
+import { Box3, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../scene/avatar/mannequin';
@@ -18,6 +18,14 @@ import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../scene/structures/portfo
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
 const poiDefinitions = getPoiDefinitions('en');
+
+function standardMaterialFor(table: ReturnType<typeof build>, name: string) {
+  const object = table.group.getObjectByName(name);
+  expect(object).toBeInstanceOf(Mesh);
+  const material = (object as Mesh).material;
+  expect(material).toBeInstanceOf(MeshStandardMaterial);
+  return material as MeshStandardMaterial;
+}
 
 function build(
   level: 'cinematic' | 'balanced' | 'performance' = 'balanced',
@@ -78,6 +86,49 @@ describe('PortfolioMiniatureTable', () => {
     expect(
       table.selfProxy.getObjectByName('MiniatureWorldRoot')
     ).toBeUndefined();
+    table.dispose();
+  });
+
+  it('uses overworld-style material roles with a transparent upper-floor cutaway', () => {
+    const table = build('balanced');
+    const ground = standardMaterialFor(
+      table,
+      'MiniatureGroundFloor:livingRoom'
+    );
+    const upper = standardMaterialFor(table, 'MiniatureUpperFloor:focusPods');
+    const upperRim = standardMaterialFor(
+      table,
+      'MiniatureUpperFloorRim:focusPods:north'
+    );
+    const backyard = standardMaterialFor(
+      table,
+      'MiniatureGroundFloor:backyard'
+    );
+    const staircase = standardMaterialFor(table, 'MiniatureStaircase');
+
+    expect(ground.name).toBe('MiniatureMaterial:groundFloor');
+    expect(ground.color.getHex()).toBe(0x2a3547);
+    expect(upper.name).toBe('MiniatureMaterial:upperFloorGhost');
+    expect(upper.color.getHex()).toBe(0x7bd5ff);
+    expect(upper.transparent).toBe(true);
+    expect(upper.depthWrite).toBe(false);
+    expect(upper.opacity).toBeLessThanOrEqual(0.25);
+    expect(upperRim.transparent).toBe(true);
+    expect(upperRim.opacity).toBeGreaterThan(upper.opacity);
+    expect(backyard.color.getHex()).toBe(0x274f37);
+    expect(staircase.color.getHex()).toBe(0x52657d);
+
+    const architectureColors = new Set<number>();
+    table.group.getObjectByName('MiniatureArchitecture')?.traverse((object) => {
+      if (
+        object instanceof Mesh &&
+        object.material instanceof MeshStandardMaterial
+      ) {
+        architectureColors.add(object.material.color.getHex());
+      }
+    });
+    expect(architectureColors.size).toBeGreaterThanOrEqual(6);
+    expect(architectureColors).not.toEqual(new Set([0x808080]));
     table.dispose();
   });
 

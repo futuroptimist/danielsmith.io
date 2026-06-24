@@ -504,7 +504,7 @@
       "syncRevision": 1,
       "syncNote": "Initial navigation tracker proxy.",
       "sourceFingerprint": "c02ed73442456bd852326fb78c2c11aae03b51221a094afe3e7a27052c19cdb4",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "94c96386e867d3cef35cbceff0336a0cb5267ca6ba177465f2f1145def1094a5"
     },
     {
@@ -523,7 +523,7 @@
       "syncRevision": 2,
       "syncNote": "Outer exhibit now contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive white table shell.",
       "sourceFingerprint": "dc0d265ca661b776cf0cc9297023182c71d48b950448ddae032356f6be3cf655",
-      "proxyFingerprint": "f72d3dd8b8c6872fe3be58f4506dc339e47940c42de9e440dd58374dad7c0be3",
+      "proxyFingerprint": "0b93685ae87fc91e132d0a554b0fb1f24f9362599e958f4402761cd1bf6077db",
       "metadataFingerprint": "5ea705094da156595c59e0232a9a1058ec03f023375507eee202692edf00e53a"
     },
     {
@@ -538,7 +538,7 @@
       "syncRevision": 1,
       "syncNote": "Initial launch pad proxy.",
       "sourceFingerprint": "8196006165f5ad39bf7ec3183e5ee09eabb519594caa104645a25e9af909a41c",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "c20cfd85d2ba29c0af6577bba0e9bc376ecba93ef45d73eea099bd726748fe87"
     },
     {
@@ -553,7 +553,7 @@
       "syncRevision": 1,
       "syncNote": "Initial clipboard console proxy.",
       "sourceFingerprint": "5ed72c48f60581bf7e447b48d979d3cd98f17452335293ed4a5de8c8c0e190ba",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "d5572952e57a0275771b9c579b62790241fcca7bb145724e9f6d4db957c9258f"
     },
     {
@@ -568,7 +568,7 @@
       "syncRevision": 1,
       "syncNote": "Initial flywheel dais proxy.",
       "sourceFingerprint": "5078ea4a0ed878b4f8b4ffc42b294817d23f84c4e262264c92149f73746fd01f",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "fb95075602acbb8a9dbd8b9a22a2c45ee51d80d7293ebfef8076d5b8e4ca1977"
     },
     {
@@ -583,7 +583,7 @@
       "syncRevision": 1,
       "syncNote": "Initial iconic television and media console proxy.",
       "sourceFingerprint": "0a1bdda50a7e3aee1665454a5288ce2e498fbfe79d8b8cf0ae06f5c14e451f7f",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "915c7761f7882ae85fdd175a60b302dc0d9e3856f7c077214a6cd1e6b721873f"
     },
     {
@@ -598,7 +598,7 @@
       "syncRevision": 1,
       "syncNote": "Initial sentry proxy.",
       "sourceFingerprint": "2b28966a23060ba49c953968aef595a145e15f271ad23f19ae789f0d0b52f7c4",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "09f8509f782127df286cf445555817f00863f2569797ea95af9c52fe8ae08e71"
     },
     {
@@ -613,7 +613,7 @@
       "syncRevision": 1,
       "syncNote": "Initial shelves proxy.",
       "sourceFingerprint": "17cb60295b40798b38469aa1d27df39330e9e2f1580d3deb83bbb2bd40f6f9fe",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "bfa30c15ffa41f9b277846c37f42d440463ec2a02abc4d28705828bbd221b339"
     },
     {
@@ -628,7 +628,7 @@
       "syncRevision": 1,
       "syncNote": "Initial desk terminal proxy.",
       "sourceFingerprint": "b70de60ca074b7f108b98197a599829e297281ec88f6249a6bb5c963b6d70573",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "ae7d691aa8d19536064f3adf24a29e1b2fa8d1a07036ec0c4f96c87e24554a93"
     },
     {
@@ -657,7 +657,7 @@
       "syncRevision": 1,
       "syncNote": "Initial console proxy.",
       "sourceFingerprint": "fee2fcc98104f3b06b65b43aa0cc252566fbd1d8a7108bec52975a4fafa1cb78",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "5be5fb2b3f82b697489d91d4bb5b93f2b5c1bc14289e3b5c7145360d7dc06057"
     },
     {
@@ -672,7 +672,7 @@
       "syncRevision": 1,
       "syncNote": "Initial workbench proxy.",
       "sourceFingerprint": "feee333087f588377ab5db1c25720c7488c036b7d8da0c2889e88a0ad542bc09",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "86933a5008b738e4d0f510e9deec9ad5b85868e19f4e6759e684df9de87dcb07"
     },
     {
@@ -687,7 +687,7 @@
       "syncRevision": 1,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
       "sourceFingerprint": "2b14742f515253171ffe384bf78cbfc61458c4916177bfb2c1cd5c48fc426fb8",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "0e938ef11341970902621bd2f74e52d654ceefd072b76bca8602b7b4cd66bb0e"
     },
     {
@@ -702,7 +702,7 @@
       "syncRevision": 1,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
       "sourceFingerprint": "a45982ee93a3b3c578817c5f9f40aee31c50a20b388495ecdf844cc84aafff50",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "5eb4b6f4c07c90bee69000fb9028750ea05044921fe5d25693573e97bc6713f3"
     },
     {
@@ -717,7 +717,7 @@
       "syncRevision": 1,
       "syncNote": "Initial loom proxy.",
       "sourceFingerprint": "d07b9df05209e054f4b5be8a6217636c614ec179d5a10bcaf2bc7eaaef2527dd",
-      "proxyFingerprint": "ea8d56bb54ce61f75c905e27106d65d7a63b20fc42a0373a64d187846d0d245d",
+      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
       "metadataFingerprint": "5128232251928c3002eed1bcdb8e1df1b63d37f78e4c8afad794756597ef6675"
     },
     {

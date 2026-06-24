@@ -248,13 +248,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     proxyFiles: [SELF_FILE],
     primitives: [
       cyl('gabriel-base', 0.5, 0.18, [0, 0.09, 0], 0x1e293b),
-      cyl(
-        'gabriel-core',
-        0.28,
-        0.9,
-        [0, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0],
-        0x334155
-      ),
+      cyl('gabriel-core', 0.28, 0.9, [0, 0.55, 0], 0x334155),
       sphere('gabriel-sensor-eye', 0.24, [0, 1.08, 0], 0x60a5fa),
       box('gabriel-shield', [0.85, 0.2, 0.12], [0, 0.55, -0.38], 0x93c5fd),
     ],
@@ -379,7 +373,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
           PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.topThickness,
           PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth,
         ],
-        [0, 0.55, 0],
+        [0, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0],
         0xffffff
       ),
       box(
