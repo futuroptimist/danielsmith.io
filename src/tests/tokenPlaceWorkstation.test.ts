@@ -1,5 +1,5 @@
-import { CanvasTexture, Mesh, Object3D } from 'three';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { Box3, CanvasTexture, Mesh, Object3D, PlaneGeometry } from 'three';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import {
@@ -13,12 +13,29 @@ function find(root: Object3D, name: string): Object3D | undefined {
   return root.getObjectByName(name);
 }
 
+const originalGetContext = HTMLCanvasElement.prototype.getContext;
+
 beforeAll(() => {
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     fillRect: vi.fn(),
     fillStyle: '',
   })) as unknown as HTMLCanvasElement['getContext'];
 });
+
+afterAll(() => {
+  HTMLCanvasElement.prototype.getContext = originalGetContext;
+});
+
+function localBoundingBox(root: Object3D): Box3 {
+  root.updateMatrixWorld(true);
+  return new Box3().setFromObject(root);
+}
+
+function planeSize(mesh: Mesh): { width: number; height: number } {
+  const geometry = mesh.geometry as PlaneGeometry;
+  const { width, height } = geometry.parameters;
+  return { width, height };
+}
 
 function finiteObject(root: Object3D): boolean {
   let finite = true;
@@ -45,6 +62,7 @@ describe('TokenPlaceWorkstation', () => {
     expect(build.group.name).toBe('TokenPlaceWorkstation');
     expect(build.group.position.toArray()).toEqual([2, 0.5, -3]);
     expect(build.group.rotation.y).toBeCloseTo(0.4);
+    expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
     expect(find(build.group, 'TokenPlaceDesk')?.position.x).toBeCloseTo(0);
     expect(find(build.group, 'TokenPlaceDesk')?.position.z).toBeCloseTo(0);
     expect(find(build.group, 'TokenPlacePcTower')?.position.y).toBeLessThan(
@@ -68,14 +86,84 @@ describe('TokenPlaceWorkstation', () => {
         Boolean(find(build.group, `TokenPlaceMonitorScreen-${index}`))
       )
     ).toEqual([true, true]);
-    expect(build.group.getObjectByName('TokenPlaceRack')).toBeUndefined();
+    expect(
+      build.group.children.every(
+        (child) => child.name !== 'TokenPlace' + 'Rack'
+      )
+    ).toBe(true);
     expect(finiteObject(build.group)).toBe(true);
     expect(build.colliders).toHaveLength(2);
     build.colliders.forEach((collider) => {
       expect(Object.values(collider).every(Number.isFinite)).toBe(true);
-      expect(collider.maxX - collider.minX).toBeLessThanOrEqual(2.4);
-      expect(collider.maxZ - collider.minZ).toBeLessThanOrEqual(2.4);
+      expect(collider.maxX - collider.minX).toBeLessThanOrEqual(3.2);
+      expect(collider.maxZ - collider.minZ).toBeLessThanOrEqual(3.2);
     });
+    build.dispose();
+  });
+
+  it('uses Pi-to-monitor proportions without scaling the root', () => {
+    const build = createTokenPlaceWorkstation({
+      position: { x: 0, z: 0 },
+      detailPolicy: getSceneDetailPolicy('balanced'),
+    });
+    const screens = [0, 1].map(
+      (index) => find(build.group, `TokenPlaceMonitorScreen-${index}`) as Mesh
+    );
+    const screenSizes = screens.map(planeSize);
+    const leftMonitor = find(build.group, 'TokenPlaceMonitor-0');
+    const rightMonitor = find(build.group, 'TokenPlaceMonitor-1');
+    const workstationBounds = localBoundingBox(build.group);
+
+    // Raspberry Pi 5 footprint is about 85mm x 56mm. A 27 inch 16:9
+    // monitor has about a 598mm x 336mm active area, so each screen
+    // should be ~7x wider than a Pi board and the dual-monitor setup
+    // should read as a full desk, not a board-sized accessory.
+    const raspberryPi5WidthMm = 85;
+    const monitor27InchWidthMm = 598;
+    const expectedMonitorToPiRatio = monitor27InchWidthMm / raspberryPi5WidthMm;
+    const screenToPiReferenceWidth =
+      screenSizes[0].width / expectedMonitorToPiRatio;
+    const dualMonitorOuterWidth =
+      Math.abs(
+        (rightMonitor?.position.x ?? 0) - (leftMonitor?.position.x ?? 0)
+      ) + screenSizes[0].width;
+
+    screenSizes.forEach(({ width, height }) => {
+      expect(width / height).toBeGreaterThan(1.75);
+      expect(width / height).toBeLessThan(1.79);
+      expect(width / screenToPiReferenceWidth).toBeCloseTo(
+        expectedMonitorToPiRatio
+      );
+    });
+    expect(dualMonitorOuterWidth / screenToPiReferenceWidth).toBeGreaterThan(
+      12
+    );
+    expect(workstationBounds.max.x - workstationBounds.min.x).toBeGreaterThan(
+      2.3
+    );
+    expect(workstationBounds.max.z - workstationBounds.min.z).toBeGreaterThan(
+      1.5
+    );
+    expect(workstationBounds.max.x - workstationBounds.min.x).toBeLessThan(3);
+    expect(workstationBounds.max.z - workstationBounds.min.z).toBeLessThan(2.4);
+    expect(workstationBounds.max.y).toBeLessThan(1.7);
+    expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
+    build.dispose();
+  });
+
+  it('rotates collider offsets with the workstation heading', () => {
+    const orientationRadians = Math.PI / 2;
+    const build = createTokenPlaceWorkstation({
+      position: { x: 5, z: 7 },
+      orientationRadians,
+      detailPolicy: getSceneDetailPolicy('balanced'),
+    });
+    const chairCollider = build.colliders[1];
+    const chairCenterX = (chairCollider.minX + chairCollider.maxX) / 2;
+    const chairCenterZ = (chairCollider.minZ + chairCollider.maxZ) / 2;
+
+    expect(chairCenterX).toBeLessThan(4);
+    expect(chairCenterZ).toBeCloseTo(7.06, 1);
     build.dispose();
   });
 

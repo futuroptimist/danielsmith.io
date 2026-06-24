@@ -186,8 +186,8 @@ export function createTokenPlaceTerminalState(options: {
       let recycled = 0;
       while (this.scroll >= this.rowHeight) {
         this.scroll -= this.rowHeight;
-        this.rows.shift();
-        this.rows.push(createTokenPlaceTerminalRow(random));
+        this.rows.pop();
+        this.rows.unshift(createTokenPlaceTerminalRow(random));
         recycled += 1;
       }
       if (recycled > 0) this.fingerprint = fingerprintRows(this.rows);
@@ -348,26 +348,26 @@ export function createTokenPlaceWorkstation(
   const desk = new Group();
   desk.name = 'TokenPlaceDesk';
   group.add(desk);
-  addBox(desk, 'TokenPlaceDeskTop', [1.85, 0.12, 0.82], [0, 0.76, 0], wood);
+  addBox(desk, 'TokenPlaceDeskTop', [2.45, 0.14, 1.02], [0, 0.78, 0], wood);
   addBox(
     desk,
     'TokenPlaceDeskBackBrace',
-    [1.7, 0.08, 0.08],
-    [0, 0.45, -0.34],
+    [2.24, 0.09, 0.09],
+    [0, 0.46, -0.43],
     charcoal
   );
   const legPositions: Array<[number, number]> = [
-    [-0.78, -0.31],
-    [0.78, -0.31],
-    [-0.78, 0.31],
-    [0.78, 0.31],
+    [-1.06, -0.4],
+    [1.06, -0.4],
+    [-1.06, 0.4],
+    [1.06, 0.4],
   ];
   legPositions.forEach(([x, z], index) =>
     addBox(
       desk,
       `TokenPlaceDeskLeg-${index}`,
-      [0.08, 0.72, 0.08],
-      [x, 0.36, z],
+      [0.09, 0.74, 0.09],
+      [x, 0.37, z],
       charcoal
     )
   );
@@ -375,115 +375,115 @@ export function createTokenPlaceWorkstation(
     addBox(
       desk,
       'TokenPlaceDeskGrommet',
-      [0.14, 0.014, 0.08],
-      [0.55, 0.828, -0.25],
+      [0.18, 0.014, 0.1],
+      [0.78, 0.858, -0.34],
       charcoal
     );
     addBox(
       desk,
       'TokenPlaceCableBundle',
-      [0.05, 0.24, 0.04],
-      [0.6, 0.62, -0.28],
+      [0.06, 0.28, 0.05],
+      [0.84, 0.64, -0.38],
       charcoal
     );
   }
 
   const tower = new Group();
   tower.name = 'TokenPlacePcTower';
-  tower.position.set(-0.64, 0.35, 0.14);
+  tower.position.set(-0.92, 0.38, 0.2);
   group.add(tower);
   addBox(
     tower,
     'TokenPlacePcTowerCase',
-    [0.34, 0.66, 0.42],
+    [0.44, 0.76, 0.52],
     [0, 0, 0],
     charcoal
   );
   addBox(
     tower,
     'TokenPlacePcTowerFrontPanel',
-    [0.35, 0.56, 0.035],
-    [0, 0.02, 0.23],
+    [0.45, 0.64, 0.04],
+    [0, 0.02, 0.285],
     dark
   );
   addBox(
     tower,
     'TokenPlacePcPowerIndicator',
     [0.04, 0.04, 0.04],
-    [0.1, 0.2, 0.255],
+    [0.13, 0.24, 0.315],
     amber
   );
   for (let i = 0; i < config.pcVentCount; i += 1)
     addBox(
       tower,
       `TokenPlacePcVent-${i}`,
-      [0.2, 0.012, 0.018],
-      [0, 0.1 - i * 0.035, 0.255],
+      [0.26, 0.014, 0.02],
+      [0, 0.14 - i * 0.04, 0.315],
       accent
     );
   if (config.level === 'cinematic') {
-    const fan = new Mesh(new CylinderGeometry(0.1, 0.1, 0.018, 24), accent);
+    const fan = new Mesh(new CylinderGeometry(0.13, 0.13, 0.02, 24), accent);
     fan.name = 'TokenPlacePcFanRing';
     fan.rotation.x = Math.PI / 2;
-    fan.position.set(-0.07, -0.18, 0.255);
+    fan.position.set(-0.09, -0.2, 0.315);
     tower.add(fan);
     addBox(
       tower,
       'TokenPlacePcSidePanel',
-      [0.02, 0.48, 0.28],
-      [0.18, 0, 0],
+      [0.025, 0.56, 0.34],
+      [0.23, 0, 0],
       dark
     );
   }
 
   const chair = new Group();
   chair.name = 'TokenPlaceGamingChair';
-  chair.position.set(0.04, 0, 0.86);
+  chair.position.set(0.06, 0, 1.14);
   chair.rotation.y = -0.08;
   group.add(chair);
-  addBox(chair, 'TokenPlaceChairSeat', [0.58, 0.14, 0.52], [0, 0.43, 0], dark);
+  addBox(chair, 'TokenPlaceChairSeat', [0.72, 0.16, 0.64], [0, 0.43, 0], dark);
   addBox(
     chair,
     'TokenPlaceChairBack',
-    [0.56, 0.82, 0.12],
-    [0, 0.91, 0.23],
+    [0.68, 0.92, 0.14],
+    [0, 0.98, 0.29],
     dark
   );
   addBox(
     chair,
     'TokenPlaceChairHeadrest',
-    [0.36, 0.16, 0.13],
-    [0, 1.28, 0.18],
+    [0.44, 0.18, 0.15],
+    [0, 1.4, 0.23],
     charcoal
   );
   addBox(
     chair,
     'TokenPlaceChairLeftArm',
-    [0.08, 0.32, 0.36],
-    [-0.36, 0.6, 0.02],
+    [0.09, 0.36, 0.44],
+    [-0.44, 0.64, 0.03],
     charcoal
   );
   addBox(
     chair,
     'TokenPlaceChairRightArm',
-    [0.08, 0.32, 0.36],
-    [0.36, 0.6, 0.02],
+    [0.09, 0.36, 0.44],
+    [0.44, 0.64, 0.03],
     charcoal
   );
   const post = new Mesh(
-    new CylinderGeometry(0.055, 0.055, 0.35, config.chairSegments),
+    new CylinderGeometry(0.065, 0.065, 0.4, config.chairSegments),
     charcoal
   );
   post.name = 'TokenPlaceChairCentralSupport';
-  post.position.set(0, 0.2, 0);
+  post.position.set(0, 0.22, 0);
   chair.add(post);
   for (let i = 0; i < config.wheelCount; i += 1) {
     const angle = (i / config.wheelCount) * Math.PI * 2;
     addBox(
       chair,
       `TokenPlaceChairRollingBase-${i}`,
-      [0.38, 0.045, 0.07],
-      [Math.cos(angle) * 0.18, 0.05, Math.sin(angle) * 0.18],
+      [0.46, 0.05, 0.08],
+      [Math.cos(angle) * 0.22, 0.05, Math.sin(angle) * 0.22],
       charcoal
     ).rotation.y = -angle;
   }
@@ -491,8 +491,8 @@ export function createTokenPlaceWorkstation(
     addBox(
       chair,
       'TokenPlaceChairAccentStitch',
-      [0.06, 0.72, 0.025],
-      [0, 0.92, 0.3],
+      [0.07, 0.8, 0.03],
+      [0, 1, 0.37],
       accent
     );
 
@@ -513,60 +513,60 @@ export function createTokenPlaceWorkstation(
   const textures = terminals.map((terminal) =>
     createTerminalTexture(config.terminalWidth, config.terminalHeight, terminal)
   );
-  const monitorXs = [-0.44, 0.44];
+  const monitorXs = [-0.43, 0.43];
   monitorXs.forEach((x, index) => {
     const monitor = new Group();
     monitor.name = `TokenPlaceMonitor-${index}`;
-    monitor.position.set(x, 1.16, -0.24);
+    monitor.position.set(x, 1.3, -0.34);
     monitor.rotation.y = index === 0 ? -0.18 : 0.18;
     group.add(monitor);
     addBox(
       monitor,
       `TokenPlaceMonitorBezel-${index}`,
-      [0.66, 0.42, 0.045],
+      [0.78, 0.46, 0.055],
       [0, 0, 0],
       charcoal
     );
     const screen = new Mesh(
-      new PlaneGeometry(0.58, 0.32),
+      new PlaneGeometry(0.704, 0.396),
       screenMaterialBase.clone()
     );
     screen.name = `TokenPlaceMonitorScreen-${index}`;
     (screen.material as MeshBasicMaterial).map = textures[index];
-    screen.position.set(0, 0, 0.027);
+    screen.position.set(0, 0, 0.032);
     monitor.add(screen);
     addBox(
       monitor,
       `TokenPlaceMonitorStand-${index}`,
-      [0.07, 0.32, 0.055],
-      [0, -0.34, 0],
+      [0.08, 0.38, 0.065],
+      [0, -0.42, 0],
       charcoal
     );
     addBox(
       monitor,
       `TokenPlaceMonitorBase-${index}`,
-      [0.32, 0.045, 0.22],
-      [0, -0.52, 0.03],
+      [0.38, 0.05, 0.26],
+      [0, -0.64, 0.04],
       charcoal
     );
     if (config.level === 'cinematic')
       addBox(
         monitor,
         `TokenPlaceMonitorBackVent-${index}`,
-        [0.32, 0.04, 0.015],
-        [0, 0.12, -0.03],
+        [0.42, 0.045, 0.018],
+        [0, 0.13, -0.035],
         accent
       );
   });
 
   const keyboard = new Group();
   keyboard.name = 'TokenPlaceKeyboard';
-  keyboard.position.set(-0.08, 0.86, 0.1);
+  keyboard.position.set(-0.12, 0.89, 0.14);
   group.add(keyboard);
   addBox(
     keyboard,
     'TokenPlaceKeyboardBase',
-    [0.7, 0.04, 0.22],
+    [0.86, 0.045, 0.28],
     [0, 0, 0],
     charcoal
   );
@@ -575,11 +575,11 @@ export function createTokenPlaceWorkstation(
       addBox(
         keyboard,
         `TokenPlaceKey-${row}-${col}`,
-        [0.04, 0.018, 0.028],
+        [0.05, 0.02, 0.034],
         [
-          -0.28 + col * (0.56 / Math.max(1, config.keyColumns - 1)),
+          -0.35 + col * (0.7 / Math.max(1, config.keyColumns - 1)),
           0.032,
-          -0.07 + row * 0.06,
+          -0.09 + row * 0.07,
         ],
         dark
       );
@@ -588,13 +588,13 @@ export function createTokenPlaceWorkstation(
   addBox(
     group,
     'TokenPlaceMousePad',
-    [0.34, 0.018, 0.28],
-    [0.58, 0.842, 0.1],
+    [0.42, 0.02, 0.34],
+    [0.72, 0.872, 0.14],
     dark
   );
   const mouse = new Mesh(
     new SphereGeometry(
-      0.08,
+      0.095,
       config.monitorSegments,
       Math.max(4, Math.floor(config.monitorSegments / 2))
     ),
@@ -602,36 +602,41 @@ export function createTokenPlaceWorkstation(
   );
   mouse.name = 'TokenPlaceMouse';
   mouse.scale.set(1.05, 0.34, 1.45);
-  mouse.position.set(0.58, 0.89, 0.08);
+  mouse.position.set(0.72, 0.93, 0.12);
   group.add(mouse);
 
   const token = new Mesh(
-    new CylinderGeometry(0.08, 0.08, 0.018, config.monitorSegments),
+    new CylinderGeometry(0.095, 0.095, 0.02, config.monitorSegments),
     amber
   );
   token.name = 'TokenPlaceCoinMotif';
   token.rotation.x = Math.PI / 2;
-  token.position.set(0.82, 0.84, -0.24);
+  token.position.set(1.04, 0.87, -0.34);
   group.add(token);
+
+  const rotateLocalOffset = (x: number, z: number) => {
+    const cos = Math.cos(orientationRadians);
+    const sin = Math.sin(orientationRadians);
+    return new Vector3(x * cos - z * sin, 0, x * sin + z * cos);
+  };
 
   const colliders = [
     createCollider(
-      basePosition.clone().add(new Vector3(0, 0, 0.02)),
-      2.05,
-      1.05,
+      basePosition.clone().add(rotateLocalOffset(0, 0.04)),
+      2.62,
+      1.26,
       orientationRadians
     ),
     createCollider(
-      basePosition.clone().add(new Vector3(0.04, 0, 0.86)),
-      0.7,
-      0.62,
+      basePosition.clone().add(rotateLocalOffset(0.06, 1.14)),
+      0.88,
+      0.76,
       orientationRadians - 0.08
     ),
   ];
 
   let redrawAccumulator = 0;
   const redrawInterval = 1 / config.redrawFps;
-  const reducedMotion = getPulseScale() <= 0;
 
   const update = ({
     delta,
@@ -642,29 +647,27 @@ export function createTokenPlaceWorkstation(
     emphasis: number;
     animateTerminals?: boolean;
   }) => {
-    if (reducedMotion || !animateTerminals) return;
+    if (getPulseScale() <= 0 || !animateTerminals) return;
     redrawAccumulator += delta;
     if (redrawAccumulator < redrawInterval) return;
     const step = redrawAccumulator;
     redrawAccumulator = 0;
-    let redrew = false;
     terminals.forEach((terminal) => {
       terminal.advance(step);
-      redrew = true;
     });
-    if (redrew)
-      textures.forEach((texture, index) =>
-        drawTerminalTexture(
-          texture,
-          terminals[index],
-          config.terminalWidth,
-          config.terminalHeight
-        )
-      );
+    textures.forEach((texture, index) =>
+      drawTerminalTexture(
+        texture,
+        terminals[index],
+        config.terminalWidth,
+        config.terminalHeight
+      )
+    );
   };
 
   const dispose = () => {
     textures.forEach((texture) => texture.dispose());
+    screenMaterialBase.dispose();
     group.traverse((object) => {
       if (object instanceof Mesh) {
         object.geometry.dispose();
