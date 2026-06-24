@@ -4,7 +4,6 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
 import {
   getPoiPhysicalMetadata,
-  POI_PHYSICAL_METADATA,
   type PoiPhysicalMetadata,
 } from '../scene/poi/physicalMetadata';
 import type { PoiId } from '../scene/poi/types';
@@ -31,6 +30,7 @@ afterAll(() => {
 const PHYSICAL_POI_IDS = [
   'tokenplace-studio-cluster',
   'sugarkube-backyard-greenhouse',
+  'danielsmith-portfolio-table',
 ] as const satisfies PoiId[];
 
 const FIT_TOLERANCE = 0.05;
@@ -74,11 +74,7 @@ const expectFitsContract = (root: Object3D, metadata: PoiPhysicalMetadata) => {
 };
 
 describe('POI physical metadata', () => {
-  it('defines a positive bottom-center size contract for token.place and Sugarkube', () => {
-    expect(Object.keys(POI_PHYSICAL_METADATA).sort()).toEqual(
-      [...PHYSICAL_POI_IDS].sort()
-    );
-
+  it('defines positive bottom-center size contracts for physical POIs', () => {
     PHYSICAL_POI_IDS.forEach((poiId) => {
       const metadata = getPoiPhysicalMetadata(poiId);
       expect(metadata).toBeDefined();

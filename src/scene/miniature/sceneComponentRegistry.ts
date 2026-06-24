@@ -86,9 +86,29 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/mannequin.ts',
       'src/scene/avatar/accessories.ts',
     ],
+    syncRevision: 2,
+    proxyFiles: ['src/scene/structures/portfolioMiniatureTable.ts'],
+    reason:
+      'Prompt 4b adds a dedicated live miniature avatar in the portfolio table instead of cloning the overworld player.',
+  },
+
+  {
+    id: 'structure:portfolio-miniature-table',
+    kind: 'shared-source',
+    sourceFiles: ['src/scene/structures/portfolioMiniatureTable.ts'],
+    proxyFiles: [SELF_FILE, 'src/scene/miniature/poiProxyRegistry.ts'],
+    syncRevision: 1,
+    syncNote:
+      'Outer danielsmith.io exhibit contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive table shell contract.',
+  },
+
+  {
+    id: 'audit:src:scene:structures:selfieMirror',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/selfieMirror.ts'],
     syncRevision: 1,
     reason:
-      'Prompt 4b will add a dedicated live miniature avatar instead of cloning the overworld player.',
+      'Legacy mirror/showpiece source is not used by the finite danielsmith.io miniature table proxy.',
   },
   {
     id: 'poi:markers-labels',
@@ -356,9 +376,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 1,
+    syncRevision: 3,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Audited physical sizing input now imports the shared danielsmith.io table contract for fit and clearance metadata; visible geometry remains covered by POI or shared component entries.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',
