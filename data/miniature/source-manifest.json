@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "axel-studio-tracker",
+      "sourceHash": "290e407dc801b92e2c52d79a22870a5dfcf94cab52d10bf1272e69199c4c5b13",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "backyard-bounds-environment",
+      "sourceHash": "1954dd519b2e7e8e2b2de797eefdce8ed73bc5a857101d8810caad00b185af06",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Backyard terrain, path, fence, shrubs, and fixtures require simplified non-POI proxies."
+    },
+    {
+      "id": "ceiling-panels-and-floor-tiles",
+      "sourceHash": "26de54452e417b07e1231fd8a16a0b78271474beb8e93310583d0fa7566970f9",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Generated from shared house surface data where miniature floors and cutouts are built."
+    },
+    {
+      "id": "danielsmith-portfolio-table",
+      "sourceHash": "21daf5e0a2d41f9b2f595bca1f71c7b9477bf334173beea69e92020fc213cfeb",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Recursion boundary: nonrecursive white-table proxy only."
+    },
+    {
+      "id": "dspace-backyard-rocket",
+      "sourceHash": "71dce294e811ccf46b63e560f2be2ca8d0324e45dbf2853e13cc1e55e3626264",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "f2clipboard-kitchen-console",
+      "sourceHash": "3c6faf02c77237947ad80ea78315cb01b76a74ef4bda2f91fafc7d24a4638cca",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "flywheel-studio-flywheel",
+      "sourceHash": "bc8e689238b697030298b8acb5a488f406a017ee65a0c341867027f84d5f71fb",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "futuroptimist-living-room-tv",
+      "sourceHash": "65c014e5fafc9667f0890dd8a0ff9864f57d17da2bdcb04128d1d7f9ed866231",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "gabriel-studio-sentry",
+      "sourceHash": "e59debf5414bfe6863d71ea8b2b73a42663af4f7c2bd0da03676cb0e192684e0",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "gitshelves-living-room-installation",
+      "sourceHash": "9fac025a30dac6971f223e425e5bcc62672cd97f0494a34463e52392c3b332b5",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "greenhouse-environment-structure",
+      "sourceHash": "f28a6a4dddb3b5f6cafb3f9b1151b2158c154757bdbcc0774d562255ca874d36",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Visible greenhouse shell receives a simplified miniature proxy."
+    },
+    {
+      "id": "house-topology-floors-rooms-walls-doors",
+      "sourceHash": "91a264472154e7fb142e2d097762fc8fbfb7df825d1c35550c8a930843ca7e27",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Prompt 4b generates floor slabs, room bounds, walls, and door openings from shared topology."
+    },
+    {
+      "id": "jobbot-studio-terminal",
+      "sourceHash": "ae59aa75ceacb0cf497fa8126f25f7a6233120e40d9f8bf6c2c8fe90539c8afb",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "media-wall-star-bridge",
+      "sourceHash": "12623cffaa92a13d72effe59fecbd0106c8ca58e603560da12e879607030a682",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Decorative star bridge represented as simplified accent rails."
+    },
+    {
+      "id": "multiplayer-projection-decor",
+      "sourceHash": "b9c9517d85a174c8e0edb931b53ae0cf0c4ace6b7f9f8553aa649b9d03bbce5d",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Visible projection dais/screen represented by noninteractive proxy geometry."
+    },
+    {
+      "id": "poi-markers-and-labels",
+      "sourceHash": "80a64d1c4a7012d40a8a541ed5568e98fdd193fd7157eeba0d16f7610e9f4c0c",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "POI orbs, halos, labels, badges, hit areas, and tooltips are interaction UI, not miniature geometry."
+    },
+    {
+      "id": "pr-reaper-backyard-console",
+      "sourceHash": "5ade14ba1f5f3e09222eac35fdef9399b620e1075403e643b8bf7a045d5a4f56",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "selfie-mirror-decor",
+      "sourceHash": "53b44278acbbd73bb96a7dcf2a45968a100c0cc70265c0b285f31e2df05257be",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Visible mirror fixture represented by a static miniature proxy."
+    },
+    {
+      "id": "sigma-kitchen-workbench",
+      "sourceHash": "c09064e7063f31f024da5c8fe45de457f4078129f064ea5cd2be3732a9d4384f",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "staircase-upper-landing",
+      "sourceHash": "07f0069c7003c8ea58092b5ce558ab62b987ed92d92a964963e7b6b069cbef93",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Miniature staircase and landing are generated from shared stair builder dimensions."
+    },
+    {
+      "id": "sugarkube-backyard-greenhouse",
+      "sourceHash": "7f8357815daa8cadc05a110e3004a3efa2baa8c68b4c9fc63d15f6b6d6bb3ecc",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "tokenplace-studio-cluster",
+      "sourceHash": "e209e731eda4e0c3e6204151f16c4afb96fd22213b789acc822c5612e0319e47",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    },
+    {
+      "id": "visible-avatar",
+      "sourceHash": "f2bd7f9306faea9e92e99914d25be6ef8f72e8851fcec28a424ec03b0765d002",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Excluded because Prompt 4b will add a dedicated live miniature avatar."
+    },
+    {
+      "id": "visible-lighting-fixtures",
+      "sourceHash": "b1adb0c3116e791d69893ed49af1a8bacd2f925aa954990042fabbe74b5412ad",
+      "proxyHash": "557b88d3a68f2a3f46aef3736deae392369162e300952ba41f5027e1272cd3f3",
+      "syncRevision": 1,
+      "syncNote": "Visible LED strips are represented as simplified fixture strips; light objects themselves are excluded."
+    },
+    {
+      "id": "wove-kitchen-loom",
+      "sourceHash": "04c8c701b6e8fddb364e62f3025ad0fc517dfa499a1e0c86e90acc99f66b0a59",
+      "proxyHash": "b1c6d2871e09cabde4724e6501ab64b58fb12efe950651cbc83d6af5b52cc46d",
+      "syncRevision": 1,
+      "syncNote": "Initial miniature proxy coverage."
+    }
+  ]
+}
