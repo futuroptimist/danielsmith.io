@@ -76,12 +76,10 @@ The popup owns the runtime recovery path:
 - **Dismiss** hides the popup and starts its cooldown without changing quality or
   mode.
 - **Switch to Balanced/Performance** applies the next lower graphics quality only
-  after the visitor chooses it. Balanced changes stay in place without a page
-  reload. Popup-owned Performance recovery intentionally uses the scene-detail
-  reload handoff so high-detail POI, mannequin, backyard, media-wall, and
-  showpiece assets are rebuilt under the low-detail policy while the player's
-  position is restored. Ordinary HUD or API graphics changes still apply
-  in-place and do not reload the immersive scene.
+  after the visitor chooses it. HUD, API, and popup-owned graphics changes use
+  the scene-detail reload handoff so POI, mannequin, backyard, media-wall, and
+  showpiece assets are rebuilt under the selected policy while the player's
+  position is restored.
 - **Use non-immersive mode** switches to the text portfolio only after the
   visitor explicitly clicks that action.
 

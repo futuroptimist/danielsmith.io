@@ -33,7 +33,7 @@ describe('main module imports', () => {
     );
     expect(source).toContain('window.location.assign(url.toString());');
     expect(source).toContain(
-      'if (reloadWithPendingSceneDetailParam(pendingReload))'
+      'reloadWithPendingSceneDetailParam(\n          pendingReload,'
     );
   });
 
@@ -97,7 +97,7 @@ describe('main module imports', () => {
     expect(source).toContain('adaptiveRecoveryCount: 0');
   });
 
-  it('limits Performance scene-detail rebuilds to explicit popup recovery', () => {
+  it('rebuilds scene detail when graphics quality changes', () => {
     const source = readMainSource();
 
     expect(source).toContain(
@@ -105,14 +105,16 @@ describe('main module imports', () => {
     );
     expect(source).toContain("if (nextLevel === 'performance') {");
     expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = true;');
-    expect(source).not.toContain(
-      "const reloadScene =\n      level === 'performance' && previousSceneDetailLevel !== 'performance';"
+    expect(source).toContain(
+      'const reloadScene = previousSceneDetailLevel !== level;'
     );
     expect(source).toContain(
-      "const reloadScene =\n      pendingLowFpsPerformanceRecoveryReload &&\n      level === 'performance' &&\n      previousSceneDetailLevel !== 'performance';"
+      "pendingLowFpsPerformanceRecoveryReload && level === 'performance';"
     );
     expect(source).toContain('pendingLowFpsPerformanceRecoveryReload = false;');
-    expect(source).toContain('applyFeaturePolicy({ reloadScene });');
+    expect(source).toContain(
+      'applyFeaturePolicy({ reloadScene, adaptivePerformanceRecoveryLocked });'
+    );
   });
 
   it('does not reload when no scene-detail handoff can be persisted', () => {
