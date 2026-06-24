@@ -149,6 +149,7 @@ import {
 } from './scene/graphics/qualityManager';
 import {
   createSceneDetailController,
+  getMiniatureSceneDetailPolicy,
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
 import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
@@ -291,6 +292,10 @@ import {
   type LivingRoomMediaWallBuild,
 } from './scene/structures/mediaWall';
 import { createMediaWallStarBridge } from './scene/structures/mediaWallStarBridge';
+import {
+  createPortfolioMiniatureTable,
+  type PortfolioMiniatureTableBuild,
+} from './scene/structures/portfolioMiniatureTable';
 import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
@@ -1127,6 +1132,7 @@ let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
+let portfolioMiniatureTable: PortfolioMiniatureTableBuild | null = null;
 const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
 let futuroptimistTvModelRoot: Object3D | null = null;
@@ -2976,6 +2982,9 @@ function initializeImmersiveScene(
   const prReaperPoi = poiInstances.find(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
+  const portfolioTablePoi = poiInstances.find(
+    (poi) => poi.definition.id === 'danielsmith-portfolio-table'
+  );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
     (getPoiFloorId(poi.definition) === 'upper'
@@ -3289,6 +3298,29 @@ function initializeImmersiveScene(
     woveLoom = loom;
   }
 
+  if (portfolioTablePoi) {
+    const table = createPortfolioMiniatureTable({
+      position: {
+        x: portfolioTablePoi.group.position.x,
+        y: portfolioTablePoi.group.position.y,
+        z: portfolioTablePoi.group.position.z,
+      },
+      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      tableDetailPolicy: activeSceneDetailPolicy,
+      miniatureDetailPolicy: getMiniatureSceneDetailPolicy(
+        effectiveInitialQualityLevel
+      ),
+      poiDefinitions,
+    });
+    addPoiStructure(portfolioTablePoi, table.group);
+    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
+    namedColliderDebugNames.set(
+      table.collider,
+      'PortfolioMiniatureTableCollider'
+    );
+    portfolioMiniatureTable = table;
+  }
+
   poiInteractionManager = new PoiInteractionManager(
     renderer.domElement,
     camera,
@@ -3430,6 +3462,8 @@ function initializeImmersiveScene(
     stereoSeparation: 0.22,
   });
 
+  portfolioMiniatureTable?.setPlayerPalette(mannequin.getPalette());
+
   const mannequinMixer = new AnimationMixer(player);
   const createStaticClip = (name: string) => new AnimationClip(name, -1, []);
   locomotionAnimator = createAvatarLocomotionAnimator({
@@ -3547,6 +3581,7 @@ function initializeImmersiveScene(
     target: {
       applyPalette: (palette) => {
         mannequin.applyPalette(palette);
+        portfolioMiniatureTable?.setPlayerPalette(palette);
         avatarAccessoryManager?.applyPalette(palette);
       },
     },
@@ -6241,6 +6276,14 @@ function initializeImmersiveScene(
       velocity.x * velocity.x + velocity.z * velocity.z
     );
     locomotionLinearSpeed = Number.isFinite(planarSpeed) ? planarSpeed : 0;
+    portfolioMiniatureTable?.update({
+      playerWorldPosition: player.position,
+      playerWorldYaw: player.rotation.y,
+      activeFloor: activeFloorId === 'upper' ? 'upper' : 'ground',
+      reducedMotion:
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ??
+        false,
+    });
   }
 
   function updateCamera(delta: number) {
@@ -6567,6 +6610,10 @@ function initializeImmersiveScene(
     if (removePoiInteractionAnimation) {
       removePoiInteractionAnimation();
       removePoiInteractionAnimation = null;
+    }
+    if (portfolioMiniatureTable) {
+      portfolioMiniatureTable.dispose();
+      portfolioMiniatureTable = null;
     }
     if (avatarInteractionAnimator) {
       avatarInteractionAnimator.dispose();

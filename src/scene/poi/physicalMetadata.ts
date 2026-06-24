@@ -1,3 +1,5 @@
+import { PORTFOLIO_MINIATURE_TABLE_PHYSICAL_METADATA } from '../structures/portfolioMiniatureTableConstants';
+
 import type { PoiId } from './types';
 
 export interface PoiPhysicalMetadata {
@@ -68,6 +70,7 @@ const physicalMetadata = {
       avatarPathRadius: 1.1,
     },
   },
+  'danielsmith-portfolio-table': PORTFOLIO_MINIATURE_TABLE_PHYSICAL_METADATA,
 } as const satisfies Partial<Record<PoiId, PoiPhysicalMetadata>>;
 
 export const POI_PHYSICAL_METADATA: Partial<
