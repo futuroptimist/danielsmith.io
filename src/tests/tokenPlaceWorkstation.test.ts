@@ -1,7 +1,10 @@
 import { Box3, CanvasTexture, Mesh, Object3D, PlaneGeometry } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailLevel,
+} from '../scene/graphics/sceneDetailPolicy';
 import {
   EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
   MONITOR_SCREEN_WIDTH,
@@ -239,12 +242,17 @@ describe('TokenPlaceWorkstation', () => {
   });
 
   it('constructs one selected detail variant with required semantics and tuned triangle ratios', () => {
-    const builds = ['cinematic', 'balanced', 'performance'].map((level) =>
+    const levels: SceneDetailLevel[] = [
+      'cinematic',
+      'balanced',
+      'performance',
+      'low',
+      'micro',
+    ];
+    const builds = levels.map((level) =>
       createTokenPlaceWorkstation({
         position: { x: 0, z: 0 },
-        detailPolicy: getSceneDetailPolicy(
-          level as 'cinematic' | 'balanced' | 'performance'
-        ),
+        detailPolicy: getSceneDetailPolicy(level),
       })
     );
     builds.forEach((build) => {
@@ -270,6 +278,8 @@ describe('TokenPlaceWorkstation', () => {
     const triangles = builds.map((build) => countObjectTriangles(build.group));
     expect(triangles[0]).toBeGreaterThan(triangles[1]);
     expect(triangles[1]).toBeGreaterThan(triangles[2]);
+    expect(triangles[2]).toBeGreaterThanOrEqual(triangles[3]);
+    expect(triangles[3]).toBeGreaterThanOrEqual(triangles[4]);
     expect(triangles[1] / triangles[0]).toBeGreaterThanOrEqual(0.4);
     expect(triangles[1] / triangles[0]).toBeLessThanOrEqual(0.6);
     expect(triangles[2] / triangles[1]).toBeGreaterThanOrEqual(0.4);

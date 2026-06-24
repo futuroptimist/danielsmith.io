@@ -126,6 +126,12 @@ const detailSettings = (level: SceneDetailPolicy['level']) => {
   if (level === 'performance') {
     return { cableSeg: 4, cableRad: 3, cyl: 5, extras: false, mid: false };
   }
+  if (level === 'low') {
+    return { cableSeg: 3, cableRad: 3, cyl: 4, extras: false, mid: false };
+  }
+  if (level === 'micro') {
+    return { cableSeg: 2, cableRad: 3, cyl: 3, extras: false, mid: false };
+  }
   return { cableSeg: 12, cableRad: 6, cyl: 10, extras: false, mid: true };
 };
 
