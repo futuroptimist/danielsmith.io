@@ -525,6 +525,7 @@
     {
       "id": "poi:axel-studio-tracker",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/axelNavigator.ts"
@@ -532,13 +533,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial navigation tracker proxy.",
-      "sourceFingerprint": "d69b351f4e336bea09cf6dfea56456b1f30779ed05165a85feda18a81655d8b5",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "c02ed73442456bd852326fb78c2c11aae03b51221a094afe3e7a27052c19cdb4",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "94c96386e867d3cef35cbceff0336a0cb5267ca6ba177465f2f1145def1094a5"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/selfieMirror.ts"
@@ -546,13 +548,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Nonrecursive self-proxy: simple white portfolio table only.",
-      "sourceFingerprint": "655c4b1bedf90a19822c7370299c6258ccbb2d7676b832d7415f219904e7b233",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "4d4280ea577e28c8f194452b1fb0756c9943b00396d830b7d2a910958431645a",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "efcf557ffdb0bc18bdcbf080669754bebade699834a1df1386795194e44285f6"
     },
     {
       "id": "poi:dspace-backyard-rocket",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/modelRocket.ts"
@@ -560,13 +563,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial launch pad proxy.",
-      "sourceFingerprint": "772ba4c94bcffd1a160c9090a2fa4798397bca74d45a313506bfbe0deba74857",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "8196006165f5ad39bf7ec3183e5ee09eabb519594caa104645a25e9af909a41c",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "c20cfd85d2ba29c0af6577bba0e9bc376ecba93ef45d73eea099bd726748fe87"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/f2ClipboardConsole.ts"
@@ -574,13 +578,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial clipboard console proxy.",
-      "sourceFingerprint": "2b30ac61cb1b9c6f4468e9b6f1e3d53a4ccaf80968245125a5f0d463694478b3",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "5ed72c48f60581bf7e447b48d979d3cd98f17452335293ed4a5de8c8c0e190ba",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "d5572952e57a0275771b9c579b62790241fcca7bb145724e9f6d4db957c9258f"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/flywheel.ts"
@@ -588,13 +593,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial flywheel dais proxy.",
-      "sourceFingerprint": "ae14d2e951760aa7750826fc5074296ad635bc4c1000ae7baa32afe82ec17bfb",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "5078ea4a0ed878b4f8b4ffc42b294817d23f84c4e262264c92149f73746fd01f",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "fb95075602acbb8a9dbd8b9a22a2c45ee51d80d7293ebfef8076d5b8e4ca1977"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/mediaWall.ts"
@@ -602,13 +608,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial iconic television and media console proxy.",
-      "sourceFingerprint": "536687536cb4e89d11f9c0c75c0a25cdd761461b00f9dab53243312ae504ca85",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "0a1bdda50a7e3aee1665454a5288ce2e498fbfe79d8b8cf0ae06f5c14e451f7f",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "915c7761f7882ae85fdd175a60b302dc0d9e3856f7c077214a6cd1e6b721873f"
     },
     {
       "id": "poi:gabriel-studio-sentry",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/gabrielSentry.ts"
@@ -616,13 +623,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial sentry proxy.",
-      "sourceFingerprint": "991531b2f45fcd2ed97ffb8fa319c735b9819e824be95f5365a3aa7d02bcd8ed",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "2b28966a23060ba49c953968aef595a145e15f271ad23f19ae789f0d0b52f7c4",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "09f8509f782127df286cf445555817f00863f2569797ea95af9c52fe8ae08e71"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/gitshelves.ts"
@@ -630,13 +638,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial shelves proxy.",
-      "sourceFingerprint": "375dc3db07f8369d17290ceb211e74b67fe16e92caa532deffaab495fabd8222",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "17cb60295b40798b38469aa1d27df39330e9e2f1580d3deb83bbb2bd40f6f9fe",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "bfa30c15ffa41f9b277846c37f42d440463ec2a02abc4d28705828bbd221b339"
     },
     {
       "id": "poi:jobbot-studio-terminal",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/jobbotTerminal.ts"
@@ -644,8 +653,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial desk terminal proxy.",
-      "sourceFingerprint": "bb6b4e94712969ffa4678d0607f19905720320038e6234a44e73be85bb2be6c8",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "b70de60ca074b7f108b98197a599829e297281ec88f6249a6bb5c963b6d70573",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "ae7d691aa8d19536064f3adf24a29e1b2fa8d1a07036ec0c4f96c87e24554a93"
     },
     {
@@ -665,6 +674,7 @@
     {
       "id": "poi:pr-reaper-backyard-console",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/prReaperConsole.ts"
@@ -672,13 +682,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial console proxy.",
-      "sourceFingerprint": "ac7b65873410b721f260282d265df0dc34f89cd65ac5850f8590af668e1d5a3e",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "fee2fcc98104f3b06b65b43aa0cc252566fbd1d8a7108bec52975a4fafa1cb78",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "5be5fb2b3f82b697489d91d4bb5b93f2b5c1bc14289e3b5c7145360d7dc06057"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/sigmaWorkbench.ts"
@@ -686,13 +697,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial workbench proxy.",
-      "sourceFingerprint": "59059b0382d1076eaa847df387f73dfc81f855affeca667a58d0cc1c0b96787a",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "feee333087f588377ab5db1c25720c7488c036b7d8da0c2889e88a0ad542bc09",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "86933a5008b738e4d0f510e9deec9ad5b85868e19f4e6759e684df9de87dcb07"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/sugarkubeDeployment.ts"
@@ -700,13 +712,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
-      "sourceFingerprint": "6c0d1ba793349f4a964aeeb59bdf47e14eca0bdcf9e72763e3016b74226eaf7d",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "2b14742f515253171ffe384bf78cbfc61458c4916177bfb2c1cd5c48fc426fb8",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "0e938ef11341970902621bd2f74e52d654ceefd072b76bca8602b7b4cd66bb0e"
     },
     {
       "id": "poi:tokenplace-studio-cluster",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/tokenPlaceWorkstation.ts"
@@ -714,13 +727,14 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
-      "sourceFingerprint": "f48de0f8bceed1df14ede5850cc7647fb58890615ea5b0333cd04c2419ad7da4",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "a45982ee93a3b3c578817c5f9f40aee31c50a20b388495ecdf844cc84aafff50",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "5eb4b6f4c07c90bee69000fb9028750ea05044921fe5d25693573e97bc6713f3"
     },
     {
       "id": "poi:wove-kitchen-loom",
       "sourceFiles": [
+        "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/woveLoom.ts"
@@ -728,8 +742,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 1,
       "syncNote": "Initial loom proxy.",
-      "sourceFingerprint": "90266168939215de0e18fcde30c920c3462c2bd7540ecc89938b72c8754d9fcd",
-      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "sourceFingerprint": "d07b9df05209e054f4b5be8a6217636c614ec179d5a10bcaf2bc7eaaef2527dd",
+      "proxyFingerprint": "5f11003c4f16fdd4bb366280b7c93a26ea3955f10ae5640c40450772daad1a54",
       "metadataFingerprint": "5128232251928c3002eed1bcdb8e1df1b63d37f78e4c8afad794756597ef6675"
     }
   ]

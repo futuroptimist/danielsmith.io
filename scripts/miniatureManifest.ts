@@ -18,7 +18,6 @@ import {
   MINIATURE_SCENE_COMPONENT_COVERAGE,
   type MiniatureSceneComponentCoverage,
 } from '../src/scene/miniature/sceneComponentRegistry';
-import { type PoiId } from '../src/scene/poi/types';
 
 const MANIFEST_PATH = 'src/scene/miniature/miniatureManifest.generated.json';
 const AUDITED_DIRS = [
@@ -29,12 +28,7 @@ const AUDITED_DIRS = [
   'src/scene/lighting',
   'src/scene/poi',
 ];
-const EXCLUDED_FILE_PATTERNS = [
-  /\.test\.ts$/,
-  /__tests__\//,
-  /types\.ts$/,
-  /constants\.ts$/,
-];
+const EXCLUDED_FILE_PATTERNS = [/\.test\.ts$/, /__tests__\//, /types\.ts$/];
 
 interface Entry {
   id: string;
@@ -113,9 +107,6 @@ function validateRegistry(entries: Entry[]) {
       'danielsmith.io miniature self-proxy must be marked as a recursion boundary'
     );
   }
-  const poiIds = Object.keys(MINIATURE_POI_PROXY_REGISTRY) as PoiId[];
-  if (new Set(poiIds).size !== poiIds.length)
-    throw new Error('Duplicate POI proxy entry found');
   const owners = new Map<string, string>();
   entries.forEach((entry) =>
     entry.sourceFiles.forEach((file) => {
@@ -124,7 +115,8 @@ function validateRegistry(entries: Entry[]) {
         owner &&
         owner !== entry.id &&
         file !== 'src/scene/poi/registry.ts' &&
-        file !== 'src/scene/poi/placements.ts'
+        file !== 'src/scene/poi/placements.ts' &&
+        file !== 'src/scene/poi/constants.ts'
       ) {
         throw new Error(
           `Source file ${file} is owned by both ${owner} and ${entry.id}`
@@ -185,10 +177,37 @@ function assertAuditedFilesClassified(
 
 function assertNoInlineMainGeometry() {
   const main = readFileSync('src/main.ts', 'utf8');
-  if (/new\s+\w+Geometry\s*\(/.test(main)) {
-    throw new Error(
-      'src/main.ts must not construct visible geometry inline; use audited builder modules.'
-    );
+  const scanner = createScanner(
+    ScriptTarget.Latest,
+    true,
+    LanguageVariant.Standard,
+    main
+  );
+  let token = scanner.scan();
+  while (token !== SyntaxKind.EndOfFileToken) {
+    if (token === SyntaxKind.NewKeyword) {
+      let sawGeometryConstructor = false;
+      token = scanner.scan();
+      while (
+        token !== SyntaxKind.EndOfFileToken &&
+        token !== SyntaxKind.OpenParenToken &&
+        token !== SyntaxKind.SemicolonToken
+      ) {
+        if (
+          token === SyntaxKind.Identifier &&
+          scanner.getTokenText().endsWith('Geometry')
+        ) {
+          sawGeometryConstructor = true;
+        }
+        token = scanner.scan();
+      }
+      if (sawGeometryConstructor && token === SyntaxKind.OpenParenToken) {
+        throw new Error(
+          'src/main.ts must not construct visible geometry inline; use audited builder modules.'
+        );
+      }
+    }
+    token = scanner.scan();
   }
 }
 

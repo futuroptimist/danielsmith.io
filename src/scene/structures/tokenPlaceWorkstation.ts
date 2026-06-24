@@ -412,7 +412,7 @@ export function createTokenPlaceWorkstation(
       charcoal
     )
   );
-  if (config.level !== 'performance') {
+  if (config.level === 'cinematic' || config.level === 'balanced') {
     addBox(
       desk,
       'TokenPlaceDeskGrommet',
@@ -528,7 +528,7 @@ export function createTokenPlaceWorkstation(
       charcoal
     ).rotation.y = -angle;
   }
-  if (config.level !== 'performance')
+  if (config.level === 'cinematic' || config.level === 'balanced')
     addBox(
       chair,
       'TokenPlaceChairAccentStitch',

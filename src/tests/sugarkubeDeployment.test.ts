@@ -8,7 +8,13 @@ import {
 import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
-const levels: SceneDetailLevel[] = ['cinematic', 'balanced', 'performance'];
+const levels: SceneDetailLevel[] = [
+  'cinematic',
+  'balanced',
+  'performance',
+  'low',
+  'micro',
+];
 
 const build = (level: SceneDetailLevel) =>
   createSugarkubeDeployment({
@@ -100,6 +106,8 @@ describe('createSugarkubeDeployment', () => {
 
     expect(totals.cinematic).toBeGreaterThan(totals.balanced);
     expect(totals.balanced).toBeGreaterThan(totals.performance);
+    expect(totals.performance).toBeGreaterThanOrEqual(totals.low);
+    expect(totals.low).toBeGreaterThanOrEqual(totals.micro);
     expect(totals.balanced / totals.cinematic).toBeGreaterThanOrEqual(0.4);
     expect(totals.balanced / totals.cinematic).toBeLessThanOrEqual(0.6);
     expect(totals.performance / totals.balanced).toBeGreaterThanOrEqual(0.4);

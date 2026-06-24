@@ -56,7 +56,11 @@ const cable = (
   minDetail: 'cinematic',
 });
 
-const baseFiles = ['src/scene/poi/registry.ts', 'src/scene/poi/placements.ts'];
+const baseFiles = [
+  'src/scene/poi/registry.ts',
+  'src/scene/poi/placements.ts',
+  'src/scene/poi/constants.ts',
+];
 
 export const MINIATURE_POI_PROXY_REGISTRY = {
   'futuroptimist-living-room-tv': {

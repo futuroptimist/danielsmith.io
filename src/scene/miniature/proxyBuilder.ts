@@ -29,6 +29,13 @@ import type {
 const geometryCache = new Map<string, BufferGeometry>();
 const materialCache = new Map<string, MeshBasicMaterial>();
 
+export function clearMiniatureProxyCache() {
+  geometryCache.forEach((geometry) => geometry.dispose());
+  materialCache.forEach((material) => material.dispose());
+  geometryCache.clear();
+  materialCache.clear();
+}
+
 function detailIndex(level: SceneDetailLevel) {
   return ORDERED_SCENE_DETAIL_LEVELS.indexOf(level);
 }
