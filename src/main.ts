@@ -3221,14 +3221,7 @@ function initializeImmersiveScene(
   const player = mannequin.group;
   const mannequinHeight = mannequin.height;
   if (pendingPlayerPosition) {
-    player.position.set(
-      pendingPlayerPosition.x,
-      pendingPlayerPosition.y >=
-        (GROUND_FLOOR_TOP_ELEVATION + UPPER_FLOOR_TOP_ELEVATION) / 2
-        ? UPPER_FLOOR_TOP_ELEVATION
-        : GROUND_FLOOR_TOP_ELEVATION,
-      pendingPlayerPosition.z
-    );
+    player.position.copy(pendingPlayerPosition);
   } else {
     player.position.copy(initialPlayerPosition);
   }

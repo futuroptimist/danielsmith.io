@@ -21,7 +21,7 @@ describe('computeStairLayout', () => {
 
     expect(
       GROUND_FLOOR_TOP_ELEVATION + stepRise * stepCount + landingThickness
-    ).toBe(UPPER_FLOOR_TOP_ELEVATION);
+    ).toBeCloseTo(UPPER_FLOOR_TOP_ELEVATION, 10);
   });
 
   it('derives layout metrics for negative Z staircases', () => {

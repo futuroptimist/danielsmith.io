@@ -78,12 +78,12 @@ export const MANUAL_POI_PLACEMENTS: Partial<
 > = {
   'futuroptimist-living-room-tv': {
     roomId: 'livingRoom',
-    position: { x: -31.68, y: 0, z: -24 },
+    position: { x: -31.68, y: getFloorTopElevation('ground'), z: -24 },
     headingRadians: Math.PI * 0.5,
   },
   'tokenplace-studio-cluster': {
     roomId: 'livingRoom',
-    position: { x: -22.34, y: 0, z: -22.61 },
+    position: { x: -22.34, y: getFloorTopElevation('ground'), z: -22.61 },
     interactionAnchorPosition: {
       x: -22.34,
       y: getFloorStandingInteractionAnchorY('ground'),
@@ -93,7 +93,7 @@ export const MANUAL_POI_PLACEMENTS: Partial<
   },
   'sugarkube-backyard-greenhouse': {
     roomId: 'livingRoom',
-    position: { x: -8.74, y: 0, z: -22.92 },
+    position: { x: -8.74, y: getFloorTopElevation('ground'), z: -22.92 },
     interactionAnchorPosition: {
       x: -8.74,
       y: getFloorStandingInteractionAnchorY('ground'),
@@ -103,7 +103,7 @@ export const MANUAL_POI_PLACEMENTS: Partial<
   },
   'danielsmith-portfolio-table': {
     roomId: 'kitchen',
-    position: { x: -21.6, y: 0, z: 1.63 },
+    position: { x: -21.6, y: getFloorTopElevation('ground'), z: 1.63 },
     interactionAnchorPosition: {
       x: -21.6,
       y: getFloorStandingInteractionAnchorY('ground'),

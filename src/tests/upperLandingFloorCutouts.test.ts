@@ -1,7 +1,6 @@
 import { MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
-
 import { FLOOR_PLAN_SCALE, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import type { Bounds2D } from '../assets/floorPlan';
 import { UPPER_FLOOR_TOP_ELEVATION } from '../scene/level/floorElevations';
