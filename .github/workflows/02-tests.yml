@@ -20,6 +20,8 @@ jobs:
         run: npm ci
       - name: Unit tests
         run: npm run test:ci
+      - name: Miniature drift guard
+        run: npm run miniature:check
       - name: Install Playwright browser for collider audits
         run: npx playwright install --with-deps chromium-headless-shell
       - name: Collider redundancy gate

@@ -1,0 +1,736 @@
+{
+  "generatedBy": "scripts/miniatureManifest.ts",
+  "auditedDirs": [
+    "src/scene/structures",
+    "src/scene/environments",
+    "src/scene/level",
+    "src/scene/avatar",
+    "src/scene/lighting",
+    "src/scene/poi"
+  ],
+  "entries": [
+    {
+      "id": "audit:src:scene:avatar:accessoryManager",
+      "sourceFiles": ["src/scene/avatar/accessoryManager.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "07acbf5ecd37834fff72f3079b941c63fa120aad9dae1b1bc1afe21f2848ef57",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "46a6b21bece2321bdeeb5293ebc243d87eda58affcd80136d1be671ccbe86448"
+    },
+    {
+      "id": "audit:src:scene:avatar:accessoryPresets",
+      "sourceFiles": ["src/scene/avatar/accessoryPresets.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "343e2c04f978b7f16f70004b705cbcb7aefea423a00bfab997fe7c0c36196d8c",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "9fc81bd840f1931e57d78c58a8455b7e8efa3fc24c0facb071035b02274e823f"
+    },
+    {
+      "id": "audit:src:scene:avatar:assetPipeline",
+      "sourceFiles": ["src/scene/avatar/assetPipeline.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "df234c55090ec59141694ce984a2a21551905f1b9b2df58e960e7c187f4de3e9",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "0ccc9e89ce772b7d2d2c8080be7ab0407d3dfbcbed8e98a95c28052be3c7bfa0"
+    },
+    {
+      "id": "audit:src:scene:avatar:footIkController",
+      "sourceFiles": ["src/scene/avatar/footIkController.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "4831d4333bc7b1a39f9ed3f2e6e25a35668ade2cbeb878c9dc9723d503766cac",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "4c3d4ab32dc55daeb4b345d4d7ed83ed8384727b2423455d5fca98a8d04b5ada"
+    },
+    {
+      "id": "audit:src:scene:avatar:importer",
+      "sourceFiles": ["src/scene/avatar/importer.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "c0c8125409b6a2896b04677295d1b4ec4305b8c7e77c3949d725fb4b286fee24",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "58f9692345457f67a7ab372dade72913797e48b8580fa4df37ee30f1068532eb"
+    },
+    {
+      "id": "audit:src:scene:avatar:interactionAnimator",
+      "sourceFiles": ["src/scene/avatar/interactionAnimator.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "2a34f295c67aa4e5bb0890a7a1604695d8543776759c1c571db8f5aedc8234e4",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "eab5632528649f52b64244a7b902927f0b37e0ea9fddfc52d8570e14a1ad7bf3"
+    },
+    {
+      "id": "audit:src:scene:avatar:locomotionAnimator",
+      "sourceFiles": ["src/scene/avatar/locomotionAnimator.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "c41707ac76d93aed532b4529d0f89256ddf40f2aea522b8ff77a4914e2f9515a",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "f7a67e44d9e48a8b36dc8d3b985145eeddec2de328b224a95cac9180455c1d33"
+    },
+    {
+      "id": "audit:src:scene:avatar:variantManager",
+      "sourceFiles": ["src/scene/avatar/variantManager.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "e9fba5b5a50e2a2bda04ba9bf622cf2ed441d5e04b385de064a5c560cf730668",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "913dbc28c91195d26d986cfff89939bf734bad0ea954712fdf9950d41af4baa5"
+    },
+    {
+      "id": "audit:src:scene:avatar:variants",
+      "sourceFiles": ["src/scene/avatar/variants.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "83fc6f50468393806df0e2b38f5c0d54ff4ce4d4ab83b854f26ebec0541b213a",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "14bcd80a8cbf6503ae662133a518c3c3159ce5cd9421e9b373dfc01eb783d33d"
+    },
+    {
+      "id": "audit:src:scene:level:backyardCollisionPolicies",
+      "sourceFiles": ["src/scene/level/backyardCollisionPolicies.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "e4d38899921462421160ce46b5c6f064794ffdee929d841956cb764d257553c8",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "346e50c8a2bf6ec795a470e08bc307ee5c9043be133ea680846fec5da454e612"
+    },
+    {
+      "id": "audit:src:scene:level:compileLegacyFloorPlan",
+      "sourceFiles": ["src/scene/level/compileLegacyFloorPlan.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "f6634ef46afd88cd00b32b1ed1a8f63c369f2df47ab9f86d66edbf5588f68add",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "12d9777c557e3e9cb23402d29d29076d41a6c10219b2f49367d076647a48f06d"
+    },
+    {
+      "id": "audit:src:scene:level:floorElevations",
+      "sourceFiles": ["src/scene/level/floorElevations.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "7478d3e02dd8a43004d15fcac8491508a45728e9dde873565ae4beee85780f3e",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "56b5a08db4ea133f2caa1a9babf0e06dc4d60cdd8ed11f889e110305f4fb2183"
+    },
+    {
+      "id": "audit:src:scene:level:mediaWallPolicy",
+      "sourceFiles": ["src/scene/level/mediaWallPolicy.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "c70ae24c79400401dad2707ec2d3956fd15e8daf6123f49d2cbaee7ca072f59f",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "4426402ecc9ee57e7f640aa787826819fd76ff598bcce80cc9bf029d53e8e1ab"
+    },
+    {
+      "id": "audit:src:scene:level:sceneObjects",
+      "sourceFiles": ["src/scene/level/sceneObjects.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "65d7e73e9df4a304045e089b70cdfd50e9dc5640e05d4e11bd073af675a9dca8",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "4fa2ee246a066a3111c512379a06de4a6a08524df32eb27033199a882694b9d3"
+    },
+    {
+      "id": "audit:src:scene:level:sourceCollision",
+      "sourceFiles": ["src/scene/level/sourceCollision.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "2b6d1fb14374147313c63715783cf38b8b308d5eee4d5eba35e4a562e41fa9ce",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "35fe5c1a1569ec6b05d4cfadaaa039f7c605f0217496cd8c36312d84de3fc15d"
+    },
+    {
+      "id": "audit:src:scene:level:sourceCollisionValidation",
+      "sourceFiles": ["src/scene/level/sourceCollisionValidation.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "0f6bf2a7145b24b524bef802564c49c289ae6ed935f71fdc0ce8ff91cd138a46",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "58b263966633446d0a9af9f2456dc46a8af79f0ae798be50f6fa659edb4c7f29"
+    },
+    {
+      "id": "audit:src:scene:level:sourceIds",
+      "sourceFiles": ["src/scene/level/sourceIds.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "a676086e9589d553b9f42155d2332dd0405a108c7b0ea673611fd2b397c6ebb1",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "3e79a23e0a7b6f5885c85019482d592ed53192c64214fae979f025fcc43f22f4"
+    },
+    {
+      "id": "audit:src:scene:level:stairSafetyColliders",
+      "sourceFiles": ["src/scene/level/stairSafetyColliders.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "cf4d099605644c9da51378234bb22064bb5dd2c24e3b4defd4f26a880ca6ba7d",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "35c3e4de0afe8ed320446d4781af98e073c8f28d95d186116df9d3009fa22eb8"
+    },
+    {
+      "id": "audit:src:scene:level:wallColliderDebugIdentity",
+      "sourceFiles": ["src/scene/level/wallColliderDebugIdentity.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "a3b48d1b9c5ffc831ec9bf2f46d8d6fc3520c97d5ddc4ab16a72474e7242f61e",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "ceefacb373232027e491eb605b5dbd76d9a2a3306500f5eb5786b7600489f8c2"
+    },
+    {
+      "id": "audit:src:scene:lighting:debugControls",
+      "sourceFiles": ["src/scene/lighting/debugControls.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "cf4f58c68bb084450e207c0140ac204e1333a5d5a3af75d4d653d5191c64cfe2",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "d0b7cd1d6463331abc2a86d5946c5328b5541eeedf574c5f824a94898829bb71"
+    },
+    {
+      "id": "audit:src:scene:lighting:environmentAnimator",
+      "sourceFiles": ["src/scene/lighting/environmentAnimator.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "20e83364ed01799079744edd364e54a0b78aaf510d01eb6cac9329a9fde539ae",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "cdc168522f55698c8c5824937e9de8a3193b3828037c01fe2b227590c0a3e758"
+    },
+    {
+      "id": "audit:src:scene:lighting:ledPulsePrograms",
+      "sourceFiles": ["src/scene/lighting/ledPulsePrograms.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "8eab15b98746714e634fc35171611eb841a12d7b0e7007ba6b235a1c9173fcd9",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "17c337145f81b3622d6850691e3c7d39c80473d703f358ed64264de9e8877a3f"
+    },
+    {
+      "id": "audit:src:scene:lighting:lightmapBounceAnimator",
+      "sourceFiles": ["src/scene/lighting/lightmapBounceAnimator.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "b1310e72f9e76a78784ac1bac130336daab78c7760b6d95700431e14013eb792",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "9fc4abf9842b426e384dd081990dd2ac5d9aa9d7e5757274ef4e0c8be3d558af"
+    },
+    {
+      "id": "audit:src:scene:lighting:seasonalPresets",
+      "sourceFiles": ["src/scene/lighting/seasonalPresets.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "87cc74c345d89a724d3b863b8d670d463ab2c45300701a421fd40621691937d0",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "4332b1e8a204d6a9c11e29ee11d8d8a11f48033d98931a265d08e9d9ebac7880"
+    },
+    {
+      "id": "audit:src:scene:poi:analytics",
+      "sourceFiles": ["src/scene/poi/analytics.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "47cbe02b283bdb3105eaad426b56a17d83b25e1a7b554e76fb38222c3a4c6302",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "e274bd37bd24fe2ae74909647ad6e4fcd023302c66deb89e0a70dc1f7dd9b081"
+    },
+    {
+      "id": "audit:src:scene:poi:emphasis",
+      "sourceFiles": ["src/scene/poi/emphasis.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "4c899f192f01474a7678c086509792c74c65fe14818240e485d36ef3ffe43874",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "8fbb5b772211b195c1336376ba72e6b0983bac5e26d3ed9fabd553ee7896f410"
+    },
+    {
+      "id": "audit:src:scene:poi:githubMetrics",
+      "sourceFiles": ["src/scene/poi/githubMetrics.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "37320d6325527daae4351bf67713f185e419e9b99ae3ebdff3ef71e6560f361d",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "c344e1cfcc6c5b4477ef25ea9140d0cb808c7abdcfcba7deb9abc1b0511b0777"
+    },
+    {
+      "id": "audit:src:scene:poi:guidedTourChannel",
+      "sourceFiles": ["src/scene/poi/guidedTourChannel.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "a5971bb82bbfcb93a823dfb403e2503ecae83d67e771bd9c4688ba313705faba",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "659c5f673e6eef65406d86149a5ddccdd38f4c41141d6003e87fd0c51cd9a086"
+    },
+    {
+      "id": "audit:src:scene:poi:interactionManager",
+      "sourceFiles": ["src/scene/poi/interactionManager.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "a52d2497b276ac5d5ff83f125009c30a60bac5f6e1c1dffd4026b620bd649309",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "7833a0acc7a87821f9e504f5926037b1c91a902adb380bed8122f5a9f41d54b3"
+    },
+    {
+      "id": "audit:src:scene:poi:modelTriangles",
+      "sourceFiles": ["src/scene/poi/modelTriangles.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "5cc612c0d74fcdc64cc3ae48700d7ecb2d823f3b25a56c016333e7f516ae2c3c",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "e64718d866c3b3b8f273396d9ce460749d226d02e14f3f0662b4a8a1c8b0fff7"
+    },
+    {
+      "id": "audit:src:scene:poi:physicalMetadata",
+      "sourceFiles": ["src/scene/poi/physicalMetadata.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "a6519a4c7f5dfb3a926a4464f129877c1cc07d26dfc84ba843cee855b80e0d29",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "dd7022a3222476b3d4144bf3b0e39f29aadd7aa35a520f34a6a0f32511bbb934"
+    },
+    {
+      "id": "audit:src:scene:poi:structuredData",
+      "sourceFiles": ["src/scene/poi/structuredData.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "fa4c3ae88a6210632cea03de98f5319041e5182fe14a7e102f1ba405b74b74a3",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "9108b5316fe803daef1dd6a8e5cba88add022a8468b0967f166a835cd57000ca"
+    },
+    {
+      "id": "audit:src:scene:poi:tooltipOverlay",
+      "sourceFiles": ["src/scene/poi/tooltipOverlay.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "414f76c1d2dbeeda79e90700ff706db899245adb42deb368bffefd244df11335",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "f1569422851af7b9f1dcd5476bc8bf41dc4422703c967c5f5fe02d91d34672fb"
+    },
+    {
+      "id": "audit:src:scene:poi:tourGuide",
+      "sourceFiles": ["src/scene/poi/tourGuide.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "ada60e8191b993d39bfd254743bd9225f666f72eb99318cc1b552fe81b8fb3de",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "6d5c4cb1ce85dc2a40a961361b7541be9da6f1feac469c73b0d53deda5557f8a"
+    },
+    {
+      "id": "audit:src:scene:poi:validation",
+      "sourceFiles": ["src/scene/poi/validation.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "474fb2836596df62b02babaa96df9b93a775088b491b6d32b32c80aa582743f1",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "5b426e1a59e647744df925b6dc872637a8fda306e6f65ace1091e61b90c4d8f3"
+    },
+    {
+      "id": "audit:src:scene:poi:visitedState",
+      "sourceFiles": ["src/scene/poi/visitedState.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "354a2b848939b672bfaf01478ed5088f6788e7e715b70d678fb0c0fca2b4228d",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "d15fd8e5eeef68cd49ba7216c47c8d6d2d1f5e0ad989a005cd666b531221e9b2"
+    },
+    {
+      "id": "audit:src:scene:structures:doorwayOpenings",
+      "sourceFiles": ["src/scene/structures/doorwayOpenings.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "50be732df6b36563761fb78da9bbd693dbb317e77e816478cc52af28c55e1d15",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "3eb528cda1bdda4a0306c982b6523c16164d5e9c3466a8d439d3c8cf3c33f0c9"
+    },
+    {
+      "id": "audit:src:scene:structures:greenhouse",
+      "sourceFiles": ["src/scene/structures/greenhouse.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "f62650ed957edc2d16b175b76aa0b7d53fd0bf2296ad7e37071f9bfe14864969"
+    },
+    {
+      "id": "audit:src:scene:structures:mediaWallStarBridge",
+      "sourceFiles": ["src/scene/structures/mediaWallStarBridge.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "04d2cedb3edec666eb4aca08bf1ec62e8e9bbd9f421ec67d2960b759dd8e24b4",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "569ec24c53a8f90d787b8917856cb5b0f9998ec0dc4785215ad682c9fc19106d"
+    },
+    {
+      "id": "audit:src:scene:structures:multiplayerProjection",
+      "sourceFiles": ["src/scene/structures/multiplayerProjection.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "04676c6f3d637192e62e0f52bb16b33f9231b1db56ec08d77e2878ec397a47c7",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "565d07c8217d6d67c1a39d23f880d9f7a0a063e85842481ea6755cf56a350d5f"
+    },
+    {
+      "id": "audit:src:scene:structures:triangleCount",
+      "sourceFiles": ["src/scene/structures/triangleCount.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
+      "sourceFingerprint": "b25cd48c798393ad02b0cc49954b419bd28e5854250dbad32abd4d7790e36807",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "ed03775f7767039cc7e46e90167540c16679b8f724e2e8661724ffbb697c0761"
+    },
+    {
+      "id": "avatar:overworld-player",
+      "sourceFiles": [
+        "src/scene/avatar/accessories.ts",
+        "src/scene/avatar/mannequin.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Prompt 4b will add a dedicated live miniature avatar instead of cloning the overworld player.",
+      "sourceFingerprint": "a599c1ae534490c0280bf12bf34bc4447444d7dd2bbbb9fae7e2c70610952b1c",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "d8ade7dd53b310c5937a712cdb8bd0d8cd1d29205fb1d986f0d69c3ea123c431"
+    },
+    {
+      "id": "debug:visualizers",
+      "sourceFiles": [
+        "src/scene/debug/colliderVisualizer.ts",
+        "src/scene/debug/solidVisualizer.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Debug visualizers are not production miniature geometry.",
+      "sourceFingerprint": "275199031c0ce245b85ba5c624c3978135c6c0e65801dd1ec07e772c70af229f",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "050e6ab2fb06a709542332a2b47c88b9946dcec7751e92f3128dcb084246e863"
+    },
+    {
+      "id": "decor:ceiling-panels",
+      "sourceFiles": ["src/scene/structures/ceilingPanels.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Ceiling panel fixtures need simplified caps in the tabletop.",
+      "sourceFingerprint": "ebd5f2e8ef4522745c486e0fe00d2a9c9b59067c82e0f73e807082f3af3cbcd5",
+      "proxyFingerprint": "c146356b39dfd3c95168647c741c491abd7cd53d3d221f0b98861db67ab5f137",
+      "metadataFingerprint": "73cc34b6ec09ede01419bf028fe4d2a8e6b227520c61098398daaa25ffe91566"
+    },
+    {
+      "id": "environment:backyard",
+      "sourceFiles": ["src/scene/environments/backyard.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Backyard bounds, path, fence, lantern, shrubs, and barrier require miniature review when source changes.",
+      "sourceFingerprint": "f348116a3a6a19e78ca25cf62d2583de410c1326a69dcc48acd101ab207fa2cd",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "636407de018d5f7167073c9ed38321c65c4c976156ced995496d4f82689491b1"
+    },
+    {
+      "id": "level:floors-walls",
+      "sourceFiles": [
+        "src/scene/level/generateFloorSurfaces.ts",
+        "src/scene/level/generateWalls.ts",
+        "src/scene/structures/floorTiles.ts",
+        "src/scene/structures/wallSegmentsMesh.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Floor and wall shells are generated from shared topology.",
+      "sourceFingerprint": "e10a4597142585a1870bfe7c447e9a9ae1ee6f621991e151cad171578f65ba07",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "99d9c0161e76811b1e157519f365829256bcd5170b66aff1677153d8276c8c3e"
+    },
+    {
+      "id": "level:portfolio-layout",
+      "sourceFiles": [
+        "src/assets/floorPlan/index.ts",
+        "src/scene/level/portfolioLevel.ts",
+        "src/scene/level/schema.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Miniature house will derive floors, room bounds, and door openings from shared level data.",
+      "sourceFingerprint": "f4ba5a1f4a95c5d25c4c1bffc0fc762f635987e4360c656930ad05093d493fc5",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "606f9a96c9448860369087147d4058da977365cdab1a430626f2b5ddf995bfb7"
+    },
+    {
+      "id": "level:stairs-landing",
+      "sourceFiles": [
+        "src/scene/level/upperStairwellLandingSegments.ts",
+        "src/scene/structures/staircase.ts",
+        "src/scene/structures/upperLandingFloorCutouts.ts",
+        "src/scene/structures/upperStairwellLanding.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Stairs and upper landing have shared dimensions.",
+      "sourceFingerprint": "b28fc86672fa3c4e0dcf949fd6e642ea210893871d9d910e21ebb5bf70c4fcea",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "55600d82e33e660513d832a4e426a9d517e9bdd8ce7347dfc4c8f14ccb5794c4"
+    },
+    {
+      "id": "lighting:visible-fixtures",
+      "sourceFiles": [
+        "src/scene/lighting/bakedLightmaps.ts",
+        "src/scene/lighting/ledStrips.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Visible LED strips are represented as simplified fixture strips; invisible light contribution is excluded.",
+      "sourceFingerprint": "db5e4dc8734e2a2b560bdfac3c8471286095c02bc2480c2a943a2b96552a719e",
+      "proxyFingerprint": "c146356b39dfd3c95168647c741c491abd7cd53d3d221f0b98861db67ab5f137",
+      "metadataFingerprint": "c45e7bcebfe889f25d2582d69cefd5b716828079c769b454f959b3d2fcfc98f6"
+    },
+    {
+      "id": "poi:axel-studio-tracker",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/axelNavigator.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial navigation tracker proxy.",
+      "sourceFingerprint": "d69b351f4e336bea09cf6dfea56456b1f30779ed05165a85feda18a81655d8b5",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "94c96386e867d3cef35cbceff0336a0cb5267ca6ba177465f2f1145def1094a5"
+    },
+    {
+      "id": "poi:danielsmith-portfolio-table",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/selfieMirror.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Nonrecursive self-proxy: simple white portfolio table only.",
+      "sourceFingerprint": "655c4b1bedf90a19822c7370299c6258ccbb2d7676b832d7415f219904e7b233",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "efcf557ffdb0bc18bdcbf080669754bebade699834a1df1386795194e44285f6"
+    },
+    {
+      "id": "poi:dspace-backyard-rocket",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/modelRocket.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial launch pad proxy.",
+      "sourceFingerprint": "772ba4c94bcffd1a160c9090a2fa4798397bca74d45a313506bfbe0deba74857",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "c20cfd85d2ba29c0af6577bba0e9bc376ecba93ef45d73eea099bd726748fe87"
+    },
+    {
+      "id": "poi:f2clipboard-kitchen-console",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/f2ClipboardConsole.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial clipboard console proxy.",
+      "sourceFingerprint": "2b30ac61cb1b9c6f4468e9b6f1e3d53a4ccaf80968245125a5f0d463694478b3",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "d5572952e57a0275771b9c579b62790241fcca7bb145724e9f6d4db957c9258f"
+    },
+    {
+      "id": "poi:flywheel-studio-flywheel",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/flywheel.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial flywheel dais proxy.",
+      "sourceFingerprint": "ae14d2e951760aa7750826fc5074296ad635bc4c1000ae7baa32afe82ec17bfb",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "fb95075602acbb8a9dbd8b9a22a2c45ee51d80d7293ebfef8076d5b8e4ca1977"
+    },
+    {
+      "id": "poi:futuroptimist-living-room-tv",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/mediaWall.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial iconic television and media console proxy.",
+      "sourceFingerprint": "536687536cb4e89d11f9c0c75c0a25cdd761461b00f9dab53243312ae504ca85",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "915c7761f7882ae85fdd175a60b302dc0d9e3856f7c077214a6cd1e6b721873f"
+    },
+    {
+      "id": "poi:gabriel-studio-sentry",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/gabrielSentry.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial sentry proxy.",
+      "sourceFingerprint": "991531b2f45fcd2ed97ffb8fa319c735b9819e824be95f5365a3aa7d02bcd8ed",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "09f8509f782127df286cf445555817f00863f2569797ea95af9c52fe8ae08e71"
+    },
+    {
+      "id": "poi:gitshelves-living-room-installation",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/gitshelves.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial shelves proxy.",
+      "sourceFingerprint": "375dc3db07f8369d17290ceb211e74b67fe16e92caa532deffaab495fabd8222",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "bfa30c15ffa41f9b277846c37f42d440463ec2a02abc4d28705828bbd221b339"
+    },
+    {
+      "id": "poi:jobbot-studio-terminal",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/jobbotTerminal.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial desk terminal proxy.",
+      "sourceFingerprint": "bb6b4e94712969ffa4678d0607f19905720320038e6234a44e73be85bb2be6c8",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "ae7d691aa8d19536064f3adf24a29e1b2fa8d1a07036ec0c4f96c87e24554a93"
+    },
+    {
+      "id": "poi:markers-labels",
+      "sourceFiles": [
+        "src/scene/poi/markers.ts",
+        "src/scene/poi/visitedBadge.ts",
+        "src/scene/poi/worldTooltip.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "POI orbs, halos, labels, hit areas, and badges are interaction UI, not miniature geometry.",
+      "sourceFingerprint": "2d8610ac79daaf9017b355fb52f8e7b8bd1969556b20a9eff9eaf30beecbfe4d",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "b34bfa9a91134993800b390aaec8aadd28bf510137fdb7cad715fe401d408435"
+    },
+    {
+      "id": "poi:pr-reaper-backyard-console",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/prReaperConsole.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial console proxy.",
+      "sourceFingerprint": "ac7b65873410b721f260282d265df0dc34f89cd65ac5850f8590af668e1d5a3e",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "5be5fb2b3f82b697489d91d4bb5b93f2b5c1bc14289e3b5c7145360d7dc06057"
+    },
+    {
+      "id": "poi:sigma-kitchen-workbench",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/sigmaWorkbench.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial workbench proxy.",
+      "sourceFingerprint": "59059b0382d1076eaa847df387f73dfc81f855affeca667a58d0cc1c0b96787a",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "86933a5008b738e4d0f510e9deec9ad5b85868e19f4e6759e684df9de87dcb07"
+    },
+    {
+      "id": "poi:sugarkube-backyard-greenhouse",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/sugarkubeDeployment.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
+      "sourceFingerprint": "6c0d1ba793349f4a964aeeb59bdf47e14eca0bdcf9e72763e3016b74226eaf7d",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "0e938ef11341970902621bd2f74e52d654ceefd072b76bca8602b7b4cd66bb0e"
+    },
+    {
+      "id": "poi:tokenplace-studio-cluster",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/tokenPlaceWorkstation.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
+      "sourceFingerprint": "f48de0f8bceed1df14ede5850cc7647fb58890615ea5b0333cd04c2419ad7da4",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "5eb4b6f4c07c90bee69000fb9028750ea05044921fe5d25693573e97bc6713f3"
+    },
+    {
+      "id": "poi:wove-kitchen-loom",
+      "sourceFiles": [
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/woveLoom.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Initial loom proxy.",
+      "sourceFingerprint": "90266168939215de0e18fcde30c920c3462c2bd7540ecc89938b72c8754d9fcd",
+      "proxyFingerprint": "3b146122fe337051f42f774a980645f07cae64d58623bbed84725c18710e9149",
+      "metadataFingerprint": "5128232251928c3002eed1bcdb8e1df1b63d37f78e4c8afad794756597ef6675"
+    }
+  ]
+}

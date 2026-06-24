@@ -27,7 +27,9 @@
     "collider:inspect": "tsx scripts/colliderInspect.ts",
     "collider:audit:geometry": "tsx scripts/colliderGeometryAudit.ts",
     "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts",
-    "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts"
+    "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts",
+    "miniature:check": "tsx scripts/miniatureManifest.ts",
+    "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
