@@ -1,4 +1,5 @@
 import type { PoiId } from '../poi/types';
+import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
 
 import type {
   MiniaturePoiProxyDefinition,
@@ -247,7 +248,13 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     proxyFiles: [SELF_FILE],
     primitives: [
       cyl('gabriel-base', 0.5, 0.18, [0, 0.09, 0], 0x1e293b),
-      cyl('gabriel-core', 0.28, 0.9, [0, 0.55, 0], 0x334155),
+      cyl(
+        'gabriel-core',
+        0.28,
+        0.9,
+        [0, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0],
+        0x334155
+      ),
       sphere('gabriel-sensor-eye', 0.24, [0, 1.08, 0], 0x60a5fa),
       box('gabriel-shield', [0.85, 0.2, 0.12], [0, 0.55, -0.38], 0x93c5fd),
     ],
@@ -355,33 +362,42 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 1,
-    syncNote: 'Nonrecursive self-proxy: simple white portfolio table only.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/selfieMirror.ts'],
-    proxyFiles: [SELF_FILE],
+    syncRevision: 2,
+    syncNote:
+      'Outer exhibit now contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive white table shell.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/selfieMirror.ts',
+      'src/scene/structures/portfolioMiniatureTableContract.ts',
+    ],
+    proxyFiles: [SELF_FILE, 'src/scene/structures/portfolioMiniatureTable.ts'],
     primitives: [
       box(
         'danielsmith-white-tabletop',
-        [1.15, 0.12, 1.15],
+        [
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.width,
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.topThickness,
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth,
+        ],
         [0, 0.55, 0],
         0xffffff
       ),
       box(
         'danielsmith-white-table-leg-a',
-        [0.08, 0.55, 0.08],
-        [-0.42, 0.27, -0.42],
+        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
+        [-1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
         0xf8fafc
       ),
       box(
         'danielsmith-white-table-leg-b',
-        [0.08, 0.55, 0.08],
-        [0.42, 0.27, -0.42],
+        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
+        [1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
         0xf8fafc
       ),
       box(
         'danielsmith-recursion-boundary-plaque',
         [0.72, 0.04, 0.18],
-        [0, 0.64, 0],
+        [0, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.bedInsetY + 0.05, 0],
         0xe5e7eb
       ),
     ],

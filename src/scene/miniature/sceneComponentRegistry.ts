@@ -356,9 +356,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Audited support source; danielsmith.io physical table bounds now feed the complete miniature exhibit contract.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',
