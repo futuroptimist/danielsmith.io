@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+} from '../../scene/level/floorElevation';
+import {
   computeRampHeight,
   sampleStairSurfaceHeight,
   type FloorId,
@@ -11,24 +15,30 @@ import {
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
+const landingThickness = 0.38;
+const stepCount = 9;
+const stepRise =
+  (UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION - landingThickness) /
+  stepCount;
+
 const geometry: StairGeometry = {
   centerX: 0,
   halfWidth: toWorldUnits(3.1) / 2,
   bottomZ: 0,
-  topZ: toWorldUnits(0.85) * 9,
-  landingMinZ: toWorldUnits(0.85) * 9,
-  landingMaxZ: toWorldUnits(0.85) * 9 + toWorldUnits(2.6),
-  totalRise: 0.42 * 9,
+  topZ: toWorldUnits(0.85) * stepCount,
+  landingMinZ: toWorldUnits(0.85) * stepCount,
+  landingMaxZ: toWorldUnits(0.85) * stepCount + toWorldUnits(2.6),
+  totalRise: stepRise * stepCount,
   direction: 1,
 };
 
 const behavior: StairBehavior = {
   transitionMargin: toWorldUnits(0.6),
   landingTriggerMargin: toWorldUnits(0.2),
-  stepRise: 0.42,
+  stepRise,
 };
 
-const upperFloorElevation = geometry.totalRise + 0.38;
+const upperFloorElevation = UPPER_FLOOR_TOP_ELEVATION;
 
 const sample = (params: { x: number; z: number; currentFloor: FloorId }) =>
   sampleStairSurfaceHeight({
@@ -39,6 +49,11 @@ const sample = (params: { x: number; z: number; currentFloor: FloorId }) =>
   });
 
 describe('sampleStairSurfaceHeight', () => {
+  it('derives stair total rise from the canonical upper floor elevation', () => {
+    expect(
+      GROUND_FLOOR_TOP_ELEVATION + geometry.totalRise + landingThickness
+    ).toBe(UPPER_FLOOR_TOP_ELEVATION);
+  });
   it('returns the interpolated ramp height along the stair run', () => {
     const midRampZ = geometry.topZ / 2;
     const height = sample({ x: 0, z: midRampZ, currentFloor: 'ground' });

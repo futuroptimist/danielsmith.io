@@ -400,7 +400,7 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
   expect(firstUpperZ).not.toBeNull();
   expect(walkResults.finalState.activeFloor).toBe('upper');
   expect(walkResults.finalState.position.y).toBeGreaterThanOrEqual(
-    PLAYER_RADIUS + upperFloorElevation - 0.01
+    upperFloorElevation - 0.01
   );
 
   return walkResults.finalState;

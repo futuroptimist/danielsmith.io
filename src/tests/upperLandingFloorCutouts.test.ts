@@ -1,8 +1,10 @@
 import { MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
+
 import { FLOOR_PLAN_SCALE, UPPER_FLOOR_PLAN } from '../assets/floorPlan';
 import type { Bounds2D } from '../assets/floorPlan';
+import { UPPER_FLOOR_TOP_ELEVATION } from '../scene/level/floorElevation';
 import { createRoomFloorTiles } from '../scene/structures/floorTiles';
 import {
   createUpperLandingFloorCutouts,
@@ -25,6 +27,10 @@ const STAIR_HALF_WIDTH = toWorldUnits(3.1) / 2;
 const STAIR_BOTTOM_Z = toWorldUnits(-5.3);
 const STAIR_RUN = toWorldUnits(0.85);
 const STAIR_STEP_COUNT = 9;
+const STAIR_LANDING_THICKNESS = 0.38;
+const STAIR_STEP_RISE =
+  UPPER_FLOOR_TOP_ELEVATION / STAIR_STEP_COUNT -
+  STAIR_LANDING_THICKNESS / STAIR_STEP_COUNT;
 const STAIR_LANDING_DEPTH = toWorldUnits(2.6);
 const STAIRWELL_MARGIN_X = toWorldUnits(0.2);
 const STAIRWELL_MARGIN_Z = toWorldUnits(0.4);
@@ -83,7 +89,7 @@ const createProductionUpperLandingCutoutFixture = () => {
     topZ: stairLayout.topZ,
     landingMinZ: stairLayout.landingMinZ,
     landingMaxZ: stairLayout.landingMaxZ,
-    totalRise: STAIR_STEP_COUNT * 0.42,
+    totalRise: STAIR_STEP_COUNT * STAIR_STEP_RISE,
     direction: stairLayout.directionMultiplier,
   };
   const stairBehavior: StairBehavior = {
@@ -139,8 +145,8 @@ describe('createUpperLandingFloorCutouts', () => {
     });
     const floorTiles = createRoomFloorTiles([upperLandingRoom], {
       material: new MeshStandardMaterial(),
-      elevation: 4.16,
-      thickness: 0.38,
+      elevation: UPPER_FLOOR_TOP_ELEVATION,
+      thickness: STAIR_LANDING_THICKNESS,
       cutoutsByRoom: { upperLanding: cutouts },
     });
 
@@ -167,8 +173,9 @@ describe('createUpperLandingFloorCutouts', () => {
         .every((tile) => !overlaps(tile.bounds, stairRunApproachFootprint))
     ).toBe(true);
 
-    const upperFloorTileBottomY = 4.16 - 0.38;
-    const finalStairStepTopY = STAIR_STEP_COUNT * 0.42;
+    const upperFloorTileBottomY =
+      UPPER_FLOOR_TOP_ELEVATION - STAIR_LANDING_THICKNESS;
+    const finalStairStepTopY = STAIR_STEP_COUNT * STAIR_STEP_RISE;
     expect(upperFloorTileBottomY).toBeCloseTo(finalStairStepTopY);
   });
 
@@ -230,13 +237,13 @@ describe('createUpperLandingFloorCutouts', () => {
           id: 'upperLanding',
           name: 'Upper Landing',
           bounds: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
-          doorways: [],
+          ledColor: 0xffffff,
         },
       ],
       {
         material: new MeshStandardMaterial(),
-        elevation: 4.16,
-        thickness: 0.38,
+        elevation: UPPER_FLOOR_TOP_ELEVATION,
+        thickness: STAIR_LANDING_THICKNESS,
         cutoutsByRoom: { upperLanding: cutouts },
       }
     );
@@ -265,8 +272,8 @@ describe('createUpperLandingFloorCutouts', () => {
 
     const floorTiles = createRoomFloorTiles([upperLandingRoom], {
       material: new MeshStandardMaterial(),
-      elevation: 4.16,
-      thickness: 0.38,
+      elevation: UPPER_FLOOR_TOP_ELEVATION,
+      thickness: STAIR_LANDING_THICKNESS,
       cutoutsByRoom: { upperLanding: cutouts },
     });
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_LEVELS } from '../../assets/floorPlan';
 import { createPoiFloorResolver } from '../floors/visibilityController';
+import { getFloorTopElevation } from '../level/floorElevation';
 
 import {
   applyManualPoiPlacements,
@@ -73,50 +74,50 @@ describe('applyManualPoiPlacements', () => {
         id: 'jobbot-studio-terminal',
         roomId: 'creatorsStudio',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: -16.76, y: 4.16, z: -28.8 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: -16.76, y: getFloorTopElevation('upper'), z: -28.8 },
       },
       {
         id: 'axel-studio-tracker',
         roomId: 'creatorsStudio',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: -12.42, y: 4.16, z: -19.18 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: -12.42, y: getFloorTopElevation('upper'), z: -19.18 },
       },
       {
         id: 'gabriel-studio-sentry',
         roomId: 'creatorsStudio',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: -17.28, y: 4.16, z: -7.02 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: -17.28, y: getFloorTopElevation('upper'), z: -7.02 },
       },
       {
         id: 'wove-kitchen-loom',
         roomId: 'loftLibrary',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: 16.48, y: 4.16, z: 4.27 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: 16.48, y: getFloorTopElevation('upper'), z: 4.27 },
       },
       {
         id: 'sigma-kitchen-workbench',
         roomId: 'focusPods',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: 16.59, y: 4.16, z: 17.66 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: 16.59, y: getFloorTopElevation('upper'), z: 17.66 },
       },
       {
         id: 'f2clipboard-kitchen-console',
         roomId: 'focusPods',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: -0.63, y: 4.16, z: 14.03 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: -0.63, y: getFloorTopElevation('upper'), z: 14.03 },
       },
       {
         id: 'gitshelves-living-room-installation',
         roomId: 'focusPods',
         floorId: 'upper',
-        anchorY: 4.91,
-        position: { x: -16.87, y: 4.16, z: 17.23 },
+        anchorY: getFloorTopElevation('upper') + 0.75,
+        position: { x: -16.87, y: getFloorTopElevation('upper'), z: 17.23 },
       },
     ];
     const placed = applyManualPoiPlacements(

@@ -152,6 +152,11 @@ import {
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
 import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
+import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+  getFloorTopElevation,
+} from './scene/level/floorElevation';
 import { generateFloorSurfaces } from './scene/level/generateFloorSurfaces';
 import { generateWallSegmentInstances } from './scene/level/generateWalls';
 import {
@@ -738,6 +743,7 @@ declare global {
 }
 
 const PLAYER_RADIUS = 0.75;
+const PLAYER_PRESENTATION_FOCUS_Y_OFFSET = PLAYER_RADIUS;
 const PLAYER_SPEED = 12;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
@@ -947,13 +953,23 @@ const handleImmersiveFailure = (
   markDocumentReady('fallback', 'immersive-init-error');
 };
 
+const STAIRCASE_LANDING_THICKNESS = 0.38;
+
 const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
-  basePosition: new Vector3(toWorldUnits(6.2), 0, toWorldUnits(-5.3)),
+  basePosition: new Vector3(
+    toWorldUnits(6.2),
+    GROUND_FLOOR_TOP_ELEVATION,
+    toWorldUnits(-5.3)
+  ),
   direction: 'negativeZ',
   step: {
     count: 9,
-    rise: 0.42,
+    rise:
+      (UPPER_FLOOR_TOP_ELEVATION -
+        GROUND_FLOOR_TOP_ELEVATION -
+        STAIRCASE_LANDING_THICKNESS) /
+      9,
     run: toWorldUnits(0.85),
     width: toWorldUnits(3.1),
     material: {
@@ -965,7 +981,7 @@ const STAIRCASE_CONFIG = {
   },
   landing: {
     depth: toWorldUnits(2.6),
-    thickness: 0.38,
+    thickness: STAIRCASE_LANDING_THICKNESS,
     material: {
       color: 0x5b6775,
       roughness: 0.55,
@@ -1746,7 +1762,7 @@ function initializeImmersiveScene(
   const initialRoom = FLOOR_PLAN.rooms[0];
   const initialPlayerPosition = new Vector3(
     (initialRoom.bounds.minX + initialRoom.bounds.maxX) / 2,
-    PLAYER_RADIUS,
+    getFloorTopElevation('ground'),
     (initialRoom.bounds.minZ + initialRoom.bounds.maxZ) / 2
   );
 
@@ -1784,6 +1800,7 @@ function initializeImmersiveScene(
   const cameraWorldUp = new Vector3();
 
   const cameraCenter = initialPlayerPosition.clone();
+  cameraCenter.y += PLAYER_PRESENTATION_FOCUS_Y_OFFSET;
   camera.position.copy(cameraCenter).add(cameraBaseOffset);
   camera.lookAt(cameraCenter.x, cameraCenter.y, cameraCenter.z);
   initialCameraFraming = resolveInitialAvatarCameraFraming({
@@ -2091,8 +2108,16 @@ function initializeImmersiveScene(
   const stairTopZ = stairLayout.topZ;
   const stairLandingMinZ = stairLayout.landingMinZ;
   const stairLandingMaxZ = stairLayout.landingMaxZ;
-  const upperFloorElevation =
-    stairTotalRise + STAIRCASE_CONFIG.landing.thickness;
+  const upperFloorElevation = UPPER_FLOOR_TOP_ELEVATION;
+  const resolvedStairLandingTop =
+    STAIRCASE_CONFIG.basePosition.y +
+    stairTotalRise +
+    STAIRCASE_CONFIG.landing.thickness;
+  if (Math.abs(resolvedStairLandingTop - upperFloorElevation) > 1e-9) {
+    throw new Error(
+      `Stair landing top ${resolvedStairLandingTop} must match upper floor ${upperFloorElevation}.`
+    );
+  }
   const stairGeometry: StairGeometry = {
     centerX: stairCenterX,
     halfWidth: stairHalfWidth,
@@ -4345,7 +4370,7 @@ function initializeImmersiveScene(
       currentFloor: verticalSurfaceFloor,
       upperFloorElevation,
     });
-    player.position.y = PLAYER_RADIUS + baseHeight;
+    player.position.y = baseHeight;
   };
 
   const collidesWithCollider = (
@@ -6118,7 +6143,7 @@ function initializeImmersiveScene(
 
     cameraCenter.set(
       player.position.x + cameraPan.x,
-      player.position.y,
+      player.position.y + PLAYER_PRESENTATION_FOCUS_Y_OFFSET,
       player.position.z + cameraPan.z
     );
 
