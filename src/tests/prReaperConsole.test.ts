@@ -1,5 +1,6 @@
 import {
   Box3,
+  BufferGeometry,
   Mesh,
   MeshBasicMaterial,
   Object3D,
@@ -21,6 +22,8 @@ import {
   PR_REAPER_FOOTPRINT_WIDTH,
   PR_REAPER_MIN_EMITTER_STANDOFF,
   PR_REAPER_PARKED_POSE,
+  PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
+  PR_REAPER_PR_CIRCLE_Z,
   PR_REAPER_SCREEN_BOTTOM_Y,
   PR_REAPER_SCREEN_HEIGHT,
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
@@ -45,6 +48,16 @@ function triangleCount(root: Object3D): number {
     }
   });
   return total;
+}
+
+function circleRoot(build: ReturnType<typeof createPrReaperInstallation>) {
+  return build.group.getObjectByName('PrReaperPrCircleRoot') as Object3D;
+}
+
+function circleMeshes(build: ReturnType<typeof createPrReaperInstallation>) {
+  return circleRoot(build).children.filter(
+    (child): child is Mesh => child instanceof Mesh
+  );
 }
 
 describe('createPrReaperInstallation', () => {
@@ -215,6 +228,115 @@ describe('createPrReaperInstallation', () => {
     expect(lights).toHaveLength(0);
   });
 
+  it('creates a fixed PR circle mesh pool with stable names and distinct red/green materials', () => {
+    const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
+    const circles = circleMeshes(build);
+
+    expect(circles).toHaveLength(PR_REAPER_PR_CIRCLE_POOL_CAPACITY);
+    expect(build.getDebugState().poolCapacity).toBe(
+      PR_REAPER_PR_CIRCLE_POOL_CAPACITY
+    );
+    expect(circles.map((circle) => circle.name)).toEqual(
+      Array.from(
+        { length: PR_REAPER_PR_CIRCLE_POOL_CAPACITY },
+        (_value, index) => `PrReaperPrCircle-${index}`
+      )
+    );
+    expect(new Set(circles.map((circle) => circle.geometry)).size).toBe(1);
+    expect(
+      new Set(circles.map((circle) => circle.material)).size
+    ).toBeGreaterThanOrEqual(2);
+    expect(circles.every((circle) => !circle.visible)).toBe(true);
+  });
+
+  it('updates active pool meshes without allocating new circle meshes', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'pool-map',
+    });
+    const before = circleMeshes(build);
+
+    for (let i = 0; i < 120; i += 1) {
+      build.update({ elapsed: i / 10, delta: 0.1, emphasis: 0.35 });
+    }
+
+    const after = circleMeshes(build);
+    expect(after).toEqual(before);
+    expect(circleRoot(build).children).toHaveLength(
+      PR_REAPER_PR_CIRCLE_POOL_CAPACITY
+    );
+
+    const debug = build.getDebugState();
+    const activeMeshes = after.filter((circle) => circle.visible);
+    expect(activeMeshes).toHaveLength(debug.activeCandidateCount);
+    activeMeshes.forEach((circle, index) => {
+      const candidate = debug.activeCandidates[index];
+      expect(circle.userData.candidateId).toBe(candidate.id);
+      expect(circle.userData.candidateType).toBe(candidate.type);
+      expect(circle.userData.lifecycle).toBe(candidate.lifecycle);
+      expect(circle.position.x).toBeCloseTo(candidate.center.x, 6);
+      expect(circle.position.y).toBeCloseTo(candidate.center.y, 6);
+      expect(circle.position.z).toBeCloseTo(PR_REAPER_PR_CIRCLE_Z, 6);
+    });
+    after.slice(activeMeshes.length).forEach((circle) => {
+      expect(circle.visible).toBe(false);
+    });
+  });
+
+  it('exposes three-red/one-green batch behavior through installation debug state', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'visible-ratio',
+    });
+    for (let i = 0; i < 50; i += 1) {
+      build.update({ elapsed: i, delta: 0.5, emphasis: 0 });
+    }
+    const firstBatch = build.getDebugState().spawnLog.slice(0, 4);
+    expect(firstBatch.filter((spawn) => spawn.type === 'red')).toHaveLength(3);
+    expect(firstBatch.filter((spawn) => spawn.type === 'green')).toHaveLength(
+      1
+    );
+  });
+
+  it('preserves identical stream semantics across all detail levels for the same seed', () => {
+    const states = Object.values(SCENE_DETAIL_POLICIES).map((detailPolicy) => {
+      const build = createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        detailPolicy,
+        seed: 'detail-independent',
+      });
+      for (let i = 0; i < 40; i += 1) {
+        build.update({ elapsed: i * 0.16, delta: 0.16, emphasis: 0.5 });
+      }
+      const streamState = build.getDebugState();
+      delete (streamState as Partial<typeof streamState>).detailLevel;
+      return streamState;
+    });
+
+    states.slice(1).forEach((state) => {
+      expect(state).toEqual(states[0]);
+    });
+  });
+
+  it('reduces circle geometry cost for lower detail levels', () => {
+    const cinematic = circleMeshes(
+      createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        detailPolicy: SCENE_DETAIL_POLICIES.cinematic,
+      })
+    )[0].geometry as BufferGeometry;
+    const micro = circleMeshes(
+      createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        detailPolicy: SCENE_DETAIL_POLICIES.micro,
+      })
+    )[0].geometry as BufferGeometry;
+
+    expect(cinematic.getAttribute('position').count).toBeGreaterThan(
+      micro.getAttribute('position').count
+    );
+  });
+
   it('provides restrained update behavior and idempotent disposal', () => {
     const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
     const screen = build.group.getObjectByName(
@@ -226,8 +348,10 @@ describe('createPrReaperInstallation', () => {
     expect(material.opacity).toBeGreaterThan(before);
 
     const dispose = vi.spyOn(screen.geometry, 'dispose');
+    const circleDispose = vi.spyOn(circleMeshes(build)[0].geometry, 'dispose');
     build.dispose();
     build.dispose();
     expect(dispose).toHaveBeenCalledTimes(1);
+    expect(circleDispose).toHaveBeenCalled();
   });
 });

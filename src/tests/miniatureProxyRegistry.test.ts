@@ -97,6 +97,9 @@ describe('miniature POI proxy registry', () => {
     expect(definition.sourceFiles).toContain(
       'src/scene/structures/prReaperInstallationContract.ts'
     );
+    expect(definition.sourceFiles).toContain(
+      'src/scene/structures/prReaperStream.ts'
+    );
     expect(primitiveNames).toEqual(
       expect.arrayContaining([
         'reaper-projector-base',
