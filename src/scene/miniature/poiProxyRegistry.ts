@@ -184,9 +184,57 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         0xfacc15
       ),
       box(
-        'sugarkube-node-stack',
-        [0.26, 0.18, 0.22],
-        [0.32, 0.98, 0.12],
+        'sugarkube-pi-node-0-0',
+        [0.16, 0.05, 0.12],
+        [0.08, 0.69, 0],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-0-1',
+        [0.16, 0.05, 0.12],
+        [0.32, 0.69, 0],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-0-2',
+        [0.16, 0.05, 0.12],
+        [0.56, 0.69, 0],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-1-0',
+        [0.16, 0.05, 0.12],
+        [0.08, 0.93, 0.12],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-1-1',
+        [0.16, 0.05, 0.12],
+        [0.32, 0.93, 0.12],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-1-2',
+        [0.16, 0.05, 0.12],
+        [0.56, 0.93, 0.12],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-2-0',
+        [0.16, 0.05, 0.12],
+        [0.08, 1.17, 0.24],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-2-1',
+        [0.16, 0.05, 0.12],
+        [0.32, 1.17, 0.24],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-2-2',
+        [0.16, 0.05, 0.12],
+        [0.56, 1.17, 0.24],
         0xe2e8f0
       ),
       cable('sugarkube-cable-silhouette', [

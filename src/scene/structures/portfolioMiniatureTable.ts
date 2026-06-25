@@ -33,7 +33,7 @@ import { getMiniaturePoiProxyDefinition } from '../miniature/poiProxyRegistry';
 import { buildMiniatureProxy } from '../miniature/proxyBuilder';
 import { MINIATURE_SCENE_COMPONENT_PROXIES } from '../miniature/sceneComponentRegistry';
 import { getPoiPhysicalMetadata } from '../poi/physicalMetadata';
-import type { PoiDefinition } from '../poi/types';
+import type { PoiDefinition, PoiFootprint, PoiId } from '../poi/types';
 
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from './portfolioMiniatureTableContract';
 import { countObjectTriangles } from './triangleCount';
@@ -71,12 +71,24 @@ export interface PortfolioMiniatureTableBuild {
   dispose(): void;
 }
 
+export interface MiniaturePoiPlacement {
+  id: PoiId;
+  position: { x: number; y: number; z: number };
+  headingRadians: number;
+  floor: 'ground' | 'upper';
+  roomId: string;
+  footprint: PoiFootprint;
+  definition: PoiDefinition;
+  placementSource: 'resolved-live-poi' | 'poi-definition-fallback';
+}
+
 export interface PortfolioMiniatureTableOptions {
   position: { x: number; y: number; z: number };
   orientationRadians?: number;
   tableDetailPolicy?: SceneDetailPolicy;
   miniatureDetailPolicy?: SceneDetailPolicy;
   poiDefinitions: readonly PoiDefinition[];
+  poiPlacements?: readonly MiniaturePoiPlacement[];
 }
 
 const ownedMaterials = new WeakSet<object>();
@@ -291,6 +303,23 @@ const getPoiRoomBounds = (poi: PoiDefinition) =>
   FLOOR_PLAN_LEVELS.flatMap((level) => level.plan.rooms).find(
     (room) => room.id === poi.roomId
   )?.bounds ?? null;
+
+export const createMiniaturePoiPlacementFromDefinition = (
+  definition: PoiDefinition
+): MiniaturePoiPlacement => ({
+  id: definition.id,
+  position: {
+    x: definition.position.x,
+    y: definition.position.y ?? GROUND_FLOOR_TOP_ELEVATION,
+    z: definition.position.z,
+  },
+  headingRadians: definition.headingRadians ?? 0,
+  floor: getPoiFloorId(definition),
+  roomId: definition.roomId,
+  footprint: definition.footprint,
+  definition,
+  placementSource: 'poi-definition-fallback',
+});
 
 function createArchitecture(detailPolicy: SceneDetailPolicy) {
   const root = new Group();
@@ -642,7 +671,10 @@ export function createPortfolioMiniatureTable(
   poiRoot.name = 'MiniaturePoiRoot';
   content.add(poiRoot);
   let selfProxy: Object3D | null = null;
-  for (const poi of options.poiDefinitions) {
+  const miniaturePoiPlacements =
+    options.poiPlacements ??
+    options.poiDefinitions.map(createMiniaturePoiPlacementFromDefinition);
+  for (const poi of miniaturePoiPlacements) {
     const definition = getMiniaturePoiProxyDefinition(poi.id);
     if (!definition) continue;
     const built = buildMiniatureProxy(definition, miniaturePolicy).root;
@@ -655,7 +687,7 @@ export function createPortfolioMiniatureTable(
       metadata?.intendedSceneBounds.width ?? poi.footprint.width;
     const targetDepth =
       metadata?.intendedSceneBounds.depth ?? poi.footprint.depth;
-    const roomBounds = getPoiRoomBounds(poi);
+    const roomBounds = getPoiRoomBounds(poi.definition);
     const roomWidth = roomBounds ? roomBounds.maxX - roomBounds.minX : Infinity;
     const roomDepth = roomBounds ? roomBounds.maxZ - roomBounds.minZ : Infinity;
     const fittedTargetWidth = Math.min(targetWidth, roomWidth * 0.82);
@@ -673,20 +705,16 @@ export function createPortfolioMiniatureTable(
         Math.max(1.6, Math.min(footprintScale * 0.72, 3.4))
       );
     }
-    built.position.set(
-      poi.position.x,
-      poi.position.y ?? GROUND_FLOOR_TOP_ELEVATION,
-      poi.position.z
-    );
-    built.rotation.y = poi.headingRadians ?? 0;
-    built.userData.placementSource = 'poi-registry';
+    built.position.set(poi.position.x, poi.position.y, poi.position.z);
+    built.rotation.y = poi.headingRadians;
+    built.userData.placementSource = poi.placementSource;
     built.userData.sourceWorldPosition = {
       x: poi.position.x,
-      y: poi.position.y ?? GROUND_FLOOR_TOP_ELEVATION,
+      y: poi.position.y,
       z: poi.position.z,
     };
     built.userData.roomId = poi.roomId;
-    built.userData.floor = getPoiFloorId(poi);
+    built.userData.floor = poi.floor;
     built.userData.fittedTargetWidth = fittedTargetWidth;
     built.userData.fittedTargetDepth = fittedTargetDepth;
     poiRoot.add(built);

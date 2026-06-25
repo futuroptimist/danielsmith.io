@@ -53,10 +53,15 @@ describe('miniature POI proxy registry', () => {
         'sugarkube-table',
         'sugarkube-network-switch',
         'sugarkube-yellow-rack-tier-top',
-        'sugarkube-node-stack',
+        'sugarkube-pi-node-0-0',
+        'sugarkube-pi-node-1-1',
+        'sugarkube-pi-node-2-2',
         'sugarkube-cable-silhouette',
       ])
     );
+    expect(
+      sugarkube.filter((name) => name.startsWith('sugarkube-pi-node-'))
+    ).toHaveLength(9);
     const tokenplace = MINIATURE_POI_PROXY_REGISTRY[
       'tokenplace-studio-cluster'
     ].primitives.map((p) => p.name);

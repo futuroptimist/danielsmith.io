@@ -19,6 +19,7 @@ import {
   createMiniatureWorldTransform,
   createPortfolioMiniatureTable,
   createPortfolioTableShell,
+  type MiniaturePoiPlacement,
   getPortfolioMiniatureTableVisibleBounds,
 } from '../scene/structures/portfolioMiniatureTable';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../scene/structures/portfolioMiniatureTableContract';
@@ -226,7 +227,7 @@ describe('PortfolioMiniatureTable', () => {
           : `MiniaturePoi:${id}`;
       const proxy = table.group.getObjectByName(proxyName);
       expect(proxy, id).toBeTruthy();
-      expect(proxy?.userData.placementSource).toBe('poi-registry');
+      expect(proxy?.userData.placementSource).toBe('poi-definition-fallback');
       expect(proxy?.position.x).toBeCloseTo(poi!.position.x);
       expect(proxy?.position.y).toBeCloseTo(poi!.position.y ?? 0);
       expect(proxy?.position.z).toBeCloseTo(poi!.position.z);
@@ -245,10 +246,14 @@ describe('PortfolioMiniatureTable', () => {
     expect(tv.position.z).toBeLessThan(-20);
 
     const sugarkube = expected.get('sugarkube-backyard-greenhouse')!;
-    const backyardBounds = getRoomBounds(sugarkube.roomId)!;
-    expect(sugarkube.roomId).toBe('backyard');
-    expect(sugarkube.position.z).toBeGreaterThanOrEqual(backyardBounds.minZ);
-    expect(sugarkube.position.z).toBeLessThanOrEqual(backyardBounds.maxZ);
+    const sugarkubeBounds = getRoomBounds(sugarkube.roomId)!;
+    expect(sugarkube.roomId).toBe('livingRoom');
+    expect(sugarkube.position.x).toBeCloseTo(-8.74);
+    expect(sugarkube.position.z).toBeCloseTo(-22.92);
+    expect(sugarkube.position.x).toBeGreaterThanOrEqual(sugarkubeBounds.minX);
+    expect(sugarkube.position.x).toBeLessThanOrEqual(sugarkubeBounds.maxX);
+    expect(sugarkube.position.z).toBeGreaterThanOrEqual(sugarkubeBounds.minZ);
+    expect(sugarkube.position.z).toBeLessThanOrEqual(sugarkubeBounds.maxZ);
 
     const portfolio = expected.get('danielsmith-portfolio-table')!;
     const portfolioBounds = getRoomBounds(portfolio.roomId)!;
@@ -261,6 +266,62 @@ describe('PortfolioMiniatureTable', () => {
     );
     expect(upstairs?.userData.floor).toBe('upper');
     expect(upstairs?.userData.roomId).toBe('creatorsStudio');
+    table.dispose();
+  });
+
+  it('prefers resolved live miniature placements over stale registry positions', () => {
+    const staleDefinitions = poiDefinitions.map((definition) =>
+      definition.id === 'sugarkube-backyard-greenhouse'
+        ? {
+            ...definition,
+            roomId: 'backyard',
+            position: { x: 12, y: 0, z: 26 },
+          }
+        : definition
+    );
+    const liveDefinition = poiDefinitions.find(
+      (definition) => definition.id === 'sugarkube-backyard-greenhouse'
+    )!;
+    const livePlacements: MiniaturePoiPlacement[] = staleDefinitions.map(
+      (definition) => ({
+        id: definition.id,
+        position:
+          definition.id === 'sugarkube-backyard-greenhouse'
+            ? { x: -8.74, y: 0, z: -22.92 }
+            : definition.position,
+        headingRadians:
+          definition.id === 'sugarkube-backyard-greenhouse'
+            ? Math.PI * 0.55
+            : (definition.headingRadians ?? 0),
+        floor: (definition.position.y ?? 0) >= 3 ? 'upper' : 'ground',
+        roomId:
+          definition.id === 'sugarkube-backyard-greenhouse'
+            ? 'livingRoom'
+            : definition.roomId,
+        footprint: definition.footprint,
+        definition:
+          definition.id === 'sugarkube-backyard-greenhouse'
+            ? liveDefinition
+            : definition,
+        placementSource: 'resolved-live-poi',
+      })
+    );
+
+    const table = createPortfolioMiniatureTable({
+      position: { x: -21.6, y: 0, z: 1.63 },
+      tableDetailPolicy: getSceneDetailPolicy('balanced'),
+      miniatureDetailPolicy: getMiniatureSceneDetailPolicy('balanced'),
+      poiDefinitions: staleDefinitions,
+      poiPlacements: livePlacements,
+    });
+    const sugarkube = table.group.getObjectByName(
+      'MiniaturePoi:sugarkube-backyard-greenhouse'
+    );
+    expect(sugarkube?.userData.placementSource).toBe('resolved-live-poi');
+    expect(sugarkube?.position.x).toBeCloseTo(-8.74);
+    expect(sugarkube?.position.z).toBeCloseTo(-22.92);
+    expect(sugarkube?.userData.roomId).toBe('livingRoom');
+    expect(sugarkube?.position.z).not.toBeCloseTo(26);
     table.dispose();
   });
 

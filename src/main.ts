@@ -295,6 +295,7 @@ import {
 import { createMediaWallStarBridge } from './scene/structures/mediaWallStarBridge';
 import {
   createPortfolioMiniatureTable,
+  type MiniaturePoiPlacement,
   type PortfolioMiniatureTableBuild,
 } from './scene/structures/portfolioMiniatureTable';
 import {
@@ -3143,6 +3144,22 @@ function initializeImmersiveScene(
         'Missing physical metadata for danielsmith-portfolio-table.'
       );
     }
+    const miniaturePoiPlacements: MiniaturePoiPlacement[] = poiInstances.map(
+      (poi) => ({
+        id: poi.definition.id,
+        position: {
+          x: poi.group.position.x,
+          y: poi.group.position.y,
+          z: poi.group.position.z,
+        },
+        headingRadians: poi.group.rotation.y ?? 0,
+        floor: getPoiFloorId(poi.definition),
+        roomId: poi.definition.roomId,
+        footprint: poi.definition.footprint,
+        definition: poi.definition,
+        placementSource: 'resolved-live-poi',
+      })
+    );
     const table = createPortfolioMiniatureTable({
       position: {
         x: portfolioTablePoi.group.position.x,
@@ -3155,6 +3172,7 @@ function initializeImmersiveScene(
         effectiveInitialQualityLevel
       ),
       poiDefinitions,
+      poiPlacements: miniaturePoiPlacements,
     });
     addPoiStructure(portfolioTablePoi, table.group);
     getPoiColliderTarget(portfolioTablePoi).push(table.collider);

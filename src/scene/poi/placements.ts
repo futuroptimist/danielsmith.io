@@ -92,12 +92,12 @@ export const MANUAL_POI_PLACEMENTS: Partial<
     headingRadians: Math.PI * 0.05,
   },
   'sugarkube-backyard-greenhouse': {
-    roomId: 'backyard',
-    position: { x: 12, y: getFloorTopElevation('ground'), z: 26 },
+    roomId: 'livingRoom',
+    position: { x: -8.74, y: getFloorTopElevation('ground'), z: -22.92 },
     interactionAnchorPosition: {
-      x: 12,
+      x: -8.74,
       y: getFloorStandingInteractionAnchorY('ground'),
-      z: 26,
+      z: -22.92,
     },
     headingRadians: Math.PI * 0.55,
   },
