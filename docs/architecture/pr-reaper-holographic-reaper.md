@@ -71,7 +71,10 @@ Local axes after applying the POI heading:
               /
              -Z back, toward wall/projector rear
 
-Root origin O: bottom-center of the installation footprint at floor height.
+Root origin O: bottom-center of the active hologram glass at floor height on the screen
+plane (`local Z = 0`), not the geometric center of the full footprint. The
+footprint is intentionally asymmetric around this origin: rear projector allowance
+extends toward `-Z`, and robot stand-off extends toward `+Z`.
 Screen origin: bottom-center of active hologram glass, also centered on local X.
 Robot base: in front of screen on +Z.
 ```
@@ -142,9 +145,10 @@ invariant by setting the shoulder pivot and mechanical reach so the closest
 possible emitter position remains in front of the screen plane:
 
 ```ts
-const PR_REAPER_ROBOT_BASE_Z = PR_REAPER_MIN_EMITTER_STANDOFF + 0.72; // 3.24
+const PR_REAPER_ROBOT_BASE_Z_REJECTED_DRAFT =
+  PR_REAPER_MIN_EMITTER_STANDOFF + 0.72; // 3.24
 const PR_REAPER_SHOULDER_Y = 0.84;
-const PR_REAPER_SHOULDER_Z = PR_REAPER_ROBOT_BASE_Z;
+const PR_REAPER_SHOULDER_Z = PR_REAPER_ROBOT_BASE_Z_REJECTED_DRAFT;
 const PR_REAPER_ARM_LINK_LENGTH = 0.64;
 const PR_REAPER_TOOL_FORWARD = 0.18;
 const PR_REAPER_EMITTER_LOCAL_Z = 0.06;
@@ -166,7 +170,11 @@ const PR_REAPER_ROBOT_BASE_Z =
 ```
 
 The smallest justified footprint depth is the maximum forward extent plus rear
-projector allowance:
+projector allowance. Because the root remains on the screen plane, these are
+asymmetric extents from `local Z = 0`; do not recenter the installation group to
+the footprint midpoint. Collider centers should be offset by
+`(PR_REAPER_FRONT_DEPTH - PR_REAPER_REAR_DEPTH) / 2` in local `+Z` before heading
+rotation, while the screen stays at the POI anchor.
 
 ```ts
 const PR_REAPER_REAR_DEPTH = 0.42;
@@ -470,9 +478,17 @@ For each firing frame:
 ```ts
 beamVector.subVectors(targetWorld, emitterWorld);
 const length = beamVector.length();
-beam.position.copy(emitterWorld).addScaledVector(beamVector, 0.5);
+beamWorldMidpoint.copy(emitterWorld).addScaledVector(beamVector, 0.5);
+
+// Core/glow meshes are children of PrReaperLaserEmitter, so convert world-space
+// firing geometry into that parent's local frame before writing transforms.
+beam.parent.updateWorldMatrix(true, false);
+beam.position.copy(beam.parent.worldToLocal(beamWorldMidpoint.clone()));
+beamLocalTarget.copy(beam.parent.worldToLocal(targetWorld.clone()));
+beamLocalEmitter.copy(beam.parent.worldToLocal(emitterWorld.clone()));
+beamLocalVector.subVectors(beamLocalTarget, beamLocalEmitter).normalize();
 beam.scale.set(coreRadius, length, coreRadius); // if cylinder height is unit-Y
-beam.quaternion.setFromUnitVectors(Y_AXIS, beamVector.normalize());
+beam.quaternion.setFromUnitVectors(Y_AXIS, beamLocalVector);
 ```
 
 The target endpoint equals the exact center of the red circle every firing frame.
@@ -498,7 +514,6 @@ interface PrReaperBurstState {
   origin: Vector3Tuple;
   startedAt: number;
   duration: number; // uniform 0.25-0.50
-  seedCursor: number;
   active: boolean;
 }
 ```
@@ -514,7 +529,10 @@ On burst start:
 Per update:
 
 - `age01 = clamp((now - startedAt) / duration, 0, 1)`;
-- position = `origin + velocity * age * reducedMotionTravelScale + gravityCurve`;
+- `age = now - startedAt`;
+- `burstGravity = new Vector3(0, -1.15 * age * age, 0)` in meters, multiplied by
+  `reducedMotionTravelScale`;
+- position = `origin + (velocity * age + burstGravity) * reducedMotionTravelScale`;
 - opacity fades with `(1 - age01)`;
 - hide slot and release it when age reaches 1.
 
