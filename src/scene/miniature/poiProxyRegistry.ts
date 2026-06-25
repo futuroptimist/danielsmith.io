@@ -394,9 +394,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Runtime stream now exposes an allocation-free active-candidate snapshot and active-only lifecycle; tabletop proxy intentionally keeps a static 3:1 PR hint snapshot.',
+      'Runtime disposal now explicitly releases both shared stream materials; tabletop proxy geometry remains representative.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',

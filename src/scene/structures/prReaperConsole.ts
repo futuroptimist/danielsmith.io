@@ -124,17 +124,17 @@ function clampOpacity(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function disposeMesh(mesh: Mesh, disposedMaterials: Set<unknown>): void {
-  if (!disposedMaterials.has(mesh.geometry)) {
-    disposedMaterials.add(mesh.geometry);
+function disposeMesh(mesh: Mesh, disposedResources: Set<unknown>): void {
+  if (!disposedResources.has(mesh.geometry)) {
+    disposedResources.add(mesh.geometry);
     mesh.geometry.dispose();
   }
   const materials = Array.isArray(mesh.material)
     ? mesh.material
     : [mesh.material];
   materials.forEach((material) => {
-    if (disposedMaterials.has(material)) return;
-    disposedMaterials.add(material);
+    if (disposedResources.has(material)) return;
+    disposedResources.add(material);
     material.dispose();
   });
 }
@@ -555,8 +555,13 @@ export function createPrReaperInstallation(
     dispose() {
       if (disposed) return;
       disposed = true;
-      const disposedMaterials = new Set<unknown>();
-      owned.forEach((mesh) => disposeMesh(mesh, disposedMaterials));
+      const disposedResources = new Set<unknown>();
+      owned.forEach((mesh) => disposeMesh(mesh, disposedResources));
+      [circleRedMaterial, circleGreenMaterial].forEach((material) => {
+        if (disposedResources.has(material)) return;
+        disposedResources.add(material);
+        material.dispose();
+      });
     },
   };
 }

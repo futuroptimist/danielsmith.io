@@ -336,4 +336,14 @@ describe('createPrReaperInstallation', () => {
     expect(dispose).toHaveBeenCalledTimes(1);
     expect(circleDispose).toHaveBeenCalledTimes(1);
   });
+
+  it('disposes both shared PR circle materials before any stream update', () => {
+    const materialDispose = vi.spyOn(MeshBasicMaterial.prototype, 'dispose');
+    const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
+
+    build.dispose();
+
+    expect(materialDispose).toHaveBeenCalledTimes(5);
+    materialDispose.mockRestore();
+  });
 });
