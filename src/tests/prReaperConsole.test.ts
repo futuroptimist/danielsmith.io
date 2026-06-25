@@ -119,6 +119,16 @@ describe('createPrReaperInstallation', () => {
       expect(Number.isFinite(dimension)).toBe(true);
       expect(dimension).toBeGreaterThan(0);
     });
+
+    const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
+    const screen = build.group.getObjectByName(
+      'PrReaperHologramScreen'
+    ) as Mesh;
+    const material = screen.material as MeshBasicMaterial;
+    expect(material.transparent).toBe(true);
+    expect(material.depthWrite).toBe(false);
+    expect(screen.renderOrder).toBeGreaterThan(0);
+    expect(material.map).toBeNull();
   });
 
   it('parks exactly two animated joint groups and leaves laser/particle roots hidden or empty', () => {

@@ -312,8 +312,8 @@ import {
   WALL_THICKNESS,
 } from './scene/structures/portfolioSceneLayout';
 import {
-  createPrReaperConsole,
-  type PrReaperConsoleBuild,
+  createPrReaperInstallation,
+  type PrReaperInstallationBuild,
 } from './scene/structures/prReaperConsole';
 import {
   createSelfieMirror,
@@ -1092,11 +1092,11 @@ function disposePortfolioMiniatureTableBuild() {
   portfolioMiniatureTable?.dispose();
   portfolioMiniatureTable = null;
 }
-let prReaperConsole: PrReaperConsoleBuild | null = null;
+let prReaperInstallation: PrReaperInstallationBuild | null = null;
 
-function disposePrReaperConsoleBuild() {
-  prReaperConsole?.dispose();
-  prReaperConsole = null;
+function disposePrReaperInstallationBuild() {
+  prReaperInstallation?.dispose();
+  prReaperInstallation = null;
 }
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
@@ -1710,7 +1710,7 @@ function initializeImmersiveScene(
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
     disposePortfolioMiniatureTableBuild();
-    disposePrReaperConsoleBuild();
+    disposePrReaperInstallationBuild();
     clearPoiModelRoots();
     clearPoiVisualAnchors();
     if (renderer.domElement.parentElement === container) {
@@ -3220,7 +3220,7 @@ function initializeImmersiveScene(
   }
 
   if (prReaperPoi) {
-    const console = createPrReaperConsole({
+    const installation = createPrReaperInstallation({
       position: {
         x: prReaperPoi.group.position.x,
         y: prReaperPoi.group.position.y,
@@ -3233,20 +3233,20 @@ function initializeImmersiveScene(
       'pr-reaper-backyard-console'
     );
     if (prReaperSceneObject) {
-      applySceneObjectSourceMetadata(console.group, prReaperSceneObject);
+      applySceneObjectSourceMetadata(installation.group, prReaperSceneObject);
       registerSceneObjectColliders(
-        console.colliders,
+        installation.colliders,
         prReaperSceneObject,
         getPoiColliderTarget(prReaperPoi),
         colliderSourceMetadata
       );
     } else {
-      console.colliders.forEach((collider) =>
+      installation.colliders.forEach((collider) =>
         getPoiColliderTarget(prReaperPoi).push(collider)
       );
     }
-    addPoiStructure(prReaperPoi, console.group);
-    prReaperConsole = console;
+    addPoiStructure(prReaperPoi, installation.group);
+    prReaperInstallation = installation;
   }
 
   if (gitshelvesPoi) {
@@ -6992,7 +6992,7 @@ function initializeImmersiveScene(
     sugarkubeDeployment = null;
     clearPoiModelRoots();
     clearPoiVisualAnchors();
-    disposePrReaperConsoleBuild();
+    disposePrReaperInstallationBuild();
     gabrielSentry = null;
     gitshelvesInstallation = null;
     immersiveLifecycle = 'disposed';
@@ -7262,10 +7262,10 @@ function initializeImmersiveScene(
           emphasis: Math.max(activation, focus),
         });
       }
-      if (prReaperConsole) {
+      if (prReaperInstallation) {
         const activation = prReaperPoi?.activation ?? 0;
         const focus = prReaperPoi?.focus ?? 0;
-        prReaperConsole.update({
+        prReaperInstallation.update({
           elapsed: elapsedTime,
           delta,
           emphasis: Math.max(activation, focus),
