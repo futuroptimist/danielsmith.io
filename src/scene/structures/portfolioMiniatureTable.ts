@@ -289,6 +289,8 @@ export function createMiniatureWorldTransform(
         .add(origin);
     },
     mapWorldYaw(yaw) {
+      // The outer table heading rotates miniature architecture and player
+      // together, so local yaw intentionally stays in overworld coordinates.
       return yaw;
     },
   };
@@ -685,10 +687,6 @@ export function createPortfolioMiniatureTable(
     const definition = getMiniaturePoiProxyDefinition(poi.id);
     if (!definition) continue;
     const built = buildMiniatureProxy(definition, miniaturePolicy).root;
-    built.name =
-      poi.id === 'danielsmith-portfolio-table'
-        ? 'MiniatureSelfProxy'
-        : `MiniaturePoi:${poi.id}`;
     const metadata = getPoiPhysicalMetadata(poi.id);
     const targetWidth =
       metadata?.intendedSceneBounds.width ?? poi.footprint.width;

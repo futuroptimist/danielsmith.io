@@ -3236,71 +3236,6 @@ function initializeImmersiveScene(
     prReaperConsole = console;
   }
 
-  if (portfolioTablePoi) {
-    const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
-    if (!metadata) {
-      throw new Error(
-        'Missing physical metadata for danielsmith-portfolio-table.'
-      );
-    }
-    portfolioTablePoi.group.updateMatrixWorld(true);
-    const selfWorldPosition = portfolioTablePoi.group.getWorldPosition(
-      new Vector3()
-    );
-    const finiteSelfPlacement: MiniaturePoiPlacement = {
-      id: portfolioTablePoi.definition.id,
-      position: {
-        x: selfWorldPosition.x,
-        y: selfWorldPosition.y,
-        z: selfWorldPosition.z,
-      },
-      headingRadians: portfolioTablePoi.group.rotation.y ?? 0,
-      floor: getPoiFloorId(portfolioTablePoi.definition),
-      roomId: portfolioTablePoi.definition.roomId,
-      footprint: portfolioTablePoi.definition.footprint,
-      definition: portfolioTablePoi.definition,
-      anchorKind: 'floor',
-      placementSource: 'visual-model-anchor',
-    };
-    const placementResolution = resolveGroundFloorMiniaturePoiPlacements(
-      poiDefinitions,
-      resolvePoiVisualAnchor,
-      getPoiFloorId,
-      finiteSelfPlacement
-    );
-    if (placementResolution.missingAnchorIds.length > 0) {
-      crashBreadcrumbs.record({
-        type: 'snapshot',
-        message:
-          'miniature-missing-visual-anchors:' +
-          placementResolution.missingAnchorIds.join(','),
-        renderer: rendererInfo,
-        softwareRendererPolicy,
-      });
-    }
-    const table = createPortfolioMiniatureTable({
-      position: {
-        x: portfolioTablePoi.group.position.x,
-        y: portfolioTablePoi.group.position.y,
-        z: portfolioTablePoi.group.position.z,
-      },
-      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
-      tableDetailPolicy: activeSceneDetailPolicy,
-      miniatureDetailPolicy: getMiniatureSceneDetailPolicy(
-        effectiveInitialQualityLevel
-      ),
-      poiDefinitions,
-      poiPlacements: placementResolution.placements,
-    });
-    addPoiStructure(portfolioTablePoi, table.group);
-    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
-    namedColliderDebugNames.set(
-      table.collider,
-      'PortfolioMiniatureTableCollider'
-    );
-    portfolioMiniatureTable = table;
-  }
-
   if (gitshelvesPoi) {
     const installation = createGitshelvesInstallation({
       position: {
@@ -3374,6 +3309,73 @@ function initializeImmersiveScene(
     }
     addPoiStructure(wovePoi, loom.group);
     woveLoom = loom;
+  }
+
+  // Keep tabletop construction after all POI visual-anchor producers so
+  // ground-floor miniature placement can resolve every rendered anchor.
+  if (portfolioTablePoi) {
+    const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
+    if (!metadata) {
+      throw new Error(
+        'Missing physical metadata for danielsmith-portfolio-table.'
+      );
+    }
+    portfolioTablePoi.group.updateMatrixWorld(true);
+    const selfWorldPosition = portfolioTablePoi.group.getWorldPosition(
+      new Vector3()
+    );
+    const finiteSelfPlacement: MiniaturePoiPlacement = {
+      id: portfolioTablePoi.definition.id,
+      position: {
+        x: selfWorldPosition.x,
+        y: selfWorldPosition.y,
+        z: selfWorldPosition.z,
+      },
+      headingRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      floor: getPoiFloorId(portfolioTablePoi.definition),
+      roomId: portfolioTablePoi.definition.roomId,
+      footprint: portfolioTablePoi.definition.footprint,
+      definition: portfolioTablePoi.definition,
+      anchorKind: 'floor',
+      placementSource: 'visual-model-anchor',
+    };
+    const placementResolution = resolveGroundFloorMiniaturePoiPlacements(
+      poiDefinitions,
+      resolvePoiVisualAnchor,
+      getPoiFloorId,
+      finiteSelfPlacement
+    );
+    if (placementResolution.missingAnchorIds.length > 0) {
+      crashBreadcrumbs.record({
+        type: 'snapshot',
+        message:
+          'miniature-missing-visual-anchors:' +
+          placementResolution.missingAnchorIds.join(','),
+        renderer: rendererInfo,
+        softwareRendererPolicy,
+      });
+    }
+    const table = createPortfolioMiniatureTable({
+      position: {
+        x: portfolioTablePoi.group.position.x,
+        y: portfolioTablePoi.group.position.y,
+        z: portfolioTablePoi.group.position.z,
+      },
+      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      tableDetailPolicy: activeSceneDetailPolicy,
+      miniatureDetailPolicy: getMiniatureSceneDetailPolicy(
+        effectiveInitialQualityLevel
+      ),
+      poiDefinitions,
+      poiPlacements: placementResolution.placements,
+    });
+    addPoiStructure(portfolioTablePoi, table.group);
+    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
+    namedColliderDebugNames.set(
+      table.collider,
+      'PortfolioMiniatureTableCollider'
+    );
+    portfolioMiniatureTable = table;
   }
 
   poiInteractionManager = new PoiInteractionManager(

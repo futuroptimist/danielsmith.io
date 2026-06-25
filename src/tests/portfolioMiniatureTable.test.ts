@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import {
   Box3,
   BoxGeometry,
@@ -10,6 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 import { FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../scene/avatar/mannequin';
+import { createPoiFloorResolver } from '../scene/floors/visibilityController';
 import {
   getMiniatureSceneDetailPolicy,
   getSceneDetailPolicy,
@@ -29,6 +32,7 @@ import { STAIRCASE_CONFIG } from '../scene/structures/portfolioSceneLayout';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
 const poiDefinitions = getPoiDefinitions('en');
+const getPoiFloorId = createPoiFloorResolver(FLOOR_PLAN_LEVELS);
 
 const createResolvedPlacements = (
   definitions = poiDefinitions
@@ -218,6 +222,56 @@ describe('PortfolioMiniatureTable', () => {
     expect(
       table.selfProxy.getObjectByName('MiniatureWorldRoot')
     ).toBeUndefined();
+    table.dispose();
+  });
+
+  it('includes Wove in complete ground-floor anchor resolution', () => {
+    const finiteSelf = createResolvedPlacements().find(
+      (placement) => placement.id === 'danielsmith-portfolio-table'
+    );
+    expect(finiteSelf).toBeDefined();
+
+    const woveDefinition = poiDefinitions.find(
+      (definition) => definition.id === 'wove-kitchen-loom'
+    )!;
+    const groundDefinitions = [
+      ...poiDefinitions.filter(
+        (definition) => getPoiFloorId(definition) === 'ground'
+      ),
+      { ...woveDefinition, roomId: 'kitchen' },
+    ];
+
+    const result = resolveGroundFloorMiniaturePoiPlacements(
+      groundDefinitions,
+      (id) => ({
+        worldPosition: new Vector3(
+          id === 'wove-kitchen-loom' ? -20.5 : 10,
+          0.5,
+          id === 'wove-kitchen-loom' ? -7.25 : -12
+        ),
+        worldYaw: id === 'wove-kitchen-loom' ? Math.PI / 4 : Math.PI / 3,
+        kind: 'floor',
+      }),
+      getPoiFloorId,
+      finiteSelf
+    );
+
+    expect(result.missingAnchorIds).toEqual([]);
+    expect(result.placements.map((placement) => placement.id)).toContain(
+      'wove-kitchen-loom'
+    );
+
+    const table = createPortfolioMiniatureTable({
+      position: { x: -21.6, y: 0, z: 1.63 },
+      tableDetailPolicy: getSceneDetailPolicy('balanced'),
+      miniatureDetailPolicy: getMiniatureSceneDetailPolicy('balanced'),
+      poiDefinitions,
+      poiPlacements: result.placements,
+    });
+
+    expect(
+      table.group.getObjectsByProperty('name', 'MiniaturePoi:wove-kitchen-loom')
+    ).toHaveLength(1);
     table.dispose();
   });
 
@@ -534,6 +588,35 @@ describe('PortfolioMiniatureTable', () => {
         transform.modelBedOffset.y
     ).toBeCloseTo(5 * transform.uniformScale);
     expect(transform.mapWorldYaw(1.2)).toBeCloseTo(1.2);
+
+    const table = build('balanced', Math.PI / 3);
+    const worldRoot = table.group.getObjectByName('MiniatureWorldRoot');
+    expect(worldRoot).toBeTruthy();
+    expect(table.group.rotation.y).toBeCloseTo(Math.PI / 3);
+    table.update({
+      playerWorldPosition: new Vector3(-12, 0, -12),
+      playerYaw: 1.2,
+      activeFloor: 'ground',
+    });
+    expect(table.miniaturePlayer.rotation.y).toBeCloseTo(
+      transform.mapWorldYaw(1.2)
+    );
+    expect(
+      table.miniaturePlayer.rotation.y - worldRoot!.rotation.y
+    ).toBeCloseTo(1.2);
+    table.dispose();
+  });
+
+  it('keeps miniature proxy naming single-assignment after wrapping content', () => {
+    const source = readFileSync(
+      'src/scene/structures/portfolioMiniatureTable.ts',
+      'utf8'
+    );
+
+    expect(source).not.toContain(
+      "built.name =\n      poi.id === 'danielsmith-portfolio-table'"
+    );
+    expect(source).toContain('built.name = `${proxyRoot.name}:Model`;');
   });
 
   it('updates tiny player exactly and syncs palette without rebuilding', () => {
