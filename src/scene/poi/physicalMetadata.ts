@@ -1,4 +1,9 @@
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
+import {
+  PR_REAPER_AVATAR_PATH_RADIUS,
+  PR_REAPER_INTENDED_BOUNDS,
+  PR_REAPER_MARKER_MIN_HEIGHT,
+} from '../structures/prReaperInstallationContract';
 
 import type { PoiId } from './types';
 
@@ -50,6 +55,22 @@ const physicalMetadata = {
     clearances: {
       markerMinHeight: 2.4,
       avatarPathRadius: 1.2,
+    },
+  },
+
+  'pr-reaper-backyard-console': {
+    realWorldReference:
+      'near-ceiling translucent 9:21 hologram with projector base and two-axis industrial robot arm',
+    realWorldDimensionsMeters: {
+      width: 2.16,
+      depth: 4.22,
+      height: 5.46,
+    },
+    intendedSceneBounds: PR_REAPER_INTENDED_BOUNDS,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: PR_REAPER_MARKER_MIN_HEIGHT,
+      avatarPathRadius: PR_REAPER_AVATAR_PATH_RADIUS,
     },
   },
 

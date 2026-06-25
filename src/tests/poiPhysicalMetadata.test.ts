@@ -40,6 +40,7 @@ const PHYSICAL_POI_IDS = [
   'tokenplace-studio-cluster',
   'sugarkube-backyard-greenhouse',
   'danielsmith-portfolio-table',
+  'pr-reaper-backyard-console',
 ] as const satisfies PoiId[];
 
 const FIT_TOLERANCE = 0.05;

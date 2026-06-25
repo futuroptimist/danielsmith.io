@@ -384,20 +384,48 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
   'pr-reaper-backyard-console': {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
-    displayName: 'PR Reaper console proxy',
-    syncRevision: 2,
-    syncNote: 'Initial console proxy.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/prReaperConsole.ts'],
+    displayName: 'PR Reaper holographic installation proxy',
+    syncRevision: 5,
+    syncNote:
+      'Static proxy now mirrors the finalized P5b hologram installation source contract, dimensions, robot arm, and laser silhouette.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/prReaperConsole.ts',
+      'src/scene/structures/prReaperInstallationContract.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      box('reaper-console', [1.1, 0.45, 0.65], [0, 0.28, 0], 0x1f2937),
       box(
-        'reaper-scythe-screen',
-        [0.72, 0.42, 0.05],
-        [0, 0.74, -0.18],
-        0x7f1d1d
+        'reaper-projector-base',
+        [0.62, 0.14, 0.28],
+        [0, 0.07, -0.04],
+        0x1f2937
       ),
-      cyl('reaper-review-dial', 0.18, 0.08, [0.38, 0.55, 0.12], 0xf97316),
+      box(
+        'reaper-hologram-screen',
+        [0.72, 1.68, 0.025],
+        [0, 0.94, 0],
+        0x38bdf8
+      ),
+      sphere('reaper-red-pr-circle-0', 0.055, [-0.18, 1.32, 0.03], 0xef4444),
+      sphere('reaper-red-pr-circle-1', 0.055, [0.18, 1.02, 0.03], 0xef4444),
+      sphere('reaper-red-pr-circle-2', 0.055, [-0.04, 0.72, 0.03], 0xef4444),
+      sphere('reaper-green-pr-circle', 0.055, [0.16, 1.42, 0.03], 0x22c55e),
+      cyl('reaper-robot-base', 0.18, 0.18, [0, 0.09, 0.95], 0x334155),
+      cyl('reaper-yaw-joint', 0.14, 0.12, [0, 0.28, 0.95], 0x475569),
+      box('reaper-pitch-arm', [0.12, 0.1, 0.42], [0, 0.48, 0.72], 0x64748b),
+      box(
+        'reaper-tool-flange-laser-gun',
+        [0.12, 0.1, 0.22],
+        [0, 0.48, 0.44],
+        0x111827
+      ),
+      box(
+        'reaper-short-green-beam-hint',
+        [0.035, 0.035, 0.36],
+        [0, 0.48, 0.22],
+        0x22c55e
+      ),
     ],
   },
   'danielsmith-portfolio-table': {
