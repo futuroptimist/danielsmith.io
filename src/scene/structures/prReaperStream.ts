@@ -13,7 +13,7 @@ import {
 } from './prReaperInstallationContract';
 
 export type PrReaperCircleType = 'red' | 'green';
-export type PrReaperCircleLifecycle = 'active' | 'expired';
+export type PrReaperCircleLifecycle = 'active';
 
 export interface PrReaperCircleState {
   id: number;
@@ -49,7 +49,6 @@ interface InternalCandidate {
   type: PrReaperCircleType;
   normalizedX: number;
   spawnedAt: number;
-  lifecycle: PrReaperCircleLifecycle;
 }
 type SpawnHistoryEntry = PrReaperStreamDebugState['spawnHistory'][number];
 
@@ -142,9 +141,8 @@ export class PrReaperStreamState {
   }
 
   getDebugState(): PrReaperStreamDebugState {
-    const activeCandidates = this.active.map((candidate) =>
-      this.toCircleState(candidate)
-    );
+    const activeCandidates: PrReaperCircleState[] = [];
+    this.writeActiveCandidates(activeCandidates, true);
     return {
       seed: this.seed,
       nextSpawnTime: this.nextSpawnTime,
@@ -158,6 +156,28 @@ export class PrReaperStreamState {
       cappedSpawnCount: this.cappedSpawnCount,
       spawnHistory: this.history.map((entry) => ({ ...entry })),
     };
+  }
+
+  writeActiveCandidates(
+    target: PrReaperCircleState[],
+    truncate = false
+  ): number {
+    for (let i = 0; i < this.active.length; i += 1) {
+      const candidate = this.active[i];
+      const state =
+        target[i] ??
+        (target[i] = {
+          id: 0,
+          type: 'red',
+          lifecycle: 'active',
+          normalizedX: 0,
+          progress: 0,
+          center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
+        });
+      this.writeCircleState(candidate, state);
+    }
+    if (truncate) target.length = this.active.length;
+    return this.active.length;
   }
 
   private nextInterval(): number {
@@ -206,7 +226,7 @@ export class PrReaperStreamState {
     this.nextId += 1;
     this.history.push(entry);
     if (this.history.length > 128) this.history.shift();
-    this.active.push({ ...entry, lifecycle: 'active' });
+    this.active.push({ ...entry });
     if (type === 'red') this.totalSpawnedRed += 1;
     else this.totalSpawnedGreen += 1;
   }
@@ -215,8 +235,8 @@ export class PrReaperStreamState {
     let write = 0;
     for (let read = 0; read < this.active.length; read += 1) {
       const candidate = this.active[read];
-      const state = this.toCircleState(candidate);
-      if (state.center.y <= PR_REAPER_STREAM_END_Y) {
+      const progress = this.getProgress(candidate);
+      if (progress >= 1) {
         if (candidate.type === 'red') this.totalExpiredRed += 1;
         else this.totalExpiredGreen += 1;
       } else {
@@ -228,7 +248,20 @@ export class PrReaperStreamState {
   }
 
   private toCircleState(candidate: InternalCandidate): PrReaperCircleState {
-    const progress = Math.min(
+    const state: PrReaperCircleState = {
+      id: 0,
+      type: 'red',
+      lifecycle: 'active',
+      normalizedX: 0,
+      progress: 0,
+      center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
+    };
+    this.writeCircleState(candidate, state);
+    return state;
+  }
+
+  private getProgress(candidate: InternalCandidate): number {
+    return Math.min(
       1,
       Math.max(
         0,
@@ -236,20 +269,27 @@ export class PrReaperStreamState {
           PR_REAPER_STREAM_DESCENT_DURATION_SECONDS
       )
     );
+  }
+
+  private writeCircleState(
+    candidate: InternalCandidate,
+    state: PrReaperCircleState
+  ): void {
+    const progress = this.getProgress(candidate);
     const x =
       -PR_REAPER_SCREEN_WIDTH / 2 +
       candidate.normalizedX * PR_REAPER_SCREEN_WIDTH;
     const y =
       PR_REAPER_STREAM_START_Y +
       (PR_REAPER_STREAM_END_Y - PR_REAPER_STREAM_START_Y) * progress;
-    return {
-      id: candidate.id,
-      type: candidate.type,
-      lifecycle: candidate.lifecycle,
-      normalizedX: candidate.normalizedX,
-      progress,
-      center: { x, y, z: PR_REAPER_STREAM_Z },
-    };
+    state.id = candidate.id;
+    state.type = candidate.type;
+    state.lifecycle = 'active';
+    state.normalizedX = candidate.normalizedX;
+    state.progress = progress;
+    state.center.x = x;
+    state.center.y = y;
+    state.center.z = PR_REAPER_STREAM_Z;
   }
 }
 

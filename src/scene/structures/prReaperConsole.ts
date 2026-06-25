@@ -56,6 +56,7 @@ import {
 import {
   createPrReaperStream,
   PR_REAPER_STREAM_DEFAULT_SEED,
+  type PrReaperCircleState,
   type PrReaperStreamDebugState,
 } from './prReaperStream';
 
@@ -67,7 +68,6 @@ export interface PrReaperInstallationBuild {
     detailLevel: SceneDetailPolicy['level'];
     parkedPose: typeof PR_REAPER_PARKED_POSE;
     screenToEmitterStandoff: number;
-    seed: string;
     poolCapacity: number;
     stream: PrReaperStreamDebugState;
   } & PrReaperStreamDebugState;
@@ -163,6 +163,17 @@ export function createPrReaperInstallation(
   } = options;
   const counts = detailCounts(detailPolicy);
   const stream = createPrReaperStream({ seed });
+  const activeCandidateSnapshot: PrReaperCircleState[] = Array.from(
+    { length: PR_REAPER_PR_CIRCLE_POOL_CAPACITY },
+    () => ({
+      id: 0,
+      type: 'red',
+      lifecycle: 'active',
+      normalizedX: 0,
+      progress: 0,
+      center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
+    })
+  );
   const group = new Group();
   group.name = 'PrReaperInstallation';
   group.position.set(position.x, position.y ?? 0, position.z);
@@ -497,7 +508,9 @@ export function createPrReaperInstallation(
         (0.18 + Math.sin(elapsed * 1.7) * 0.04 + emphasis * 0.2) * pulse;
       screenMaterial.opacity = clampOpacity(0.22 + amount);
       edgeMaterial.opacity = clampOpacity(0.62 + amount);
-      const streamDebug = stream.getDebugState();
+      const activeCandidateCount = stream.writeActiveCandidates(
+        activeCandidateSnapshot
+      );
       circleRedMaterial.opacity = clampOpacity(
         0.72 + emphasis * 0.18 * flicker
       );
@@ -506,14 +519,14 @@ export function createPrReaperInstallation(
       );
       for (let i = 0; i < circlePool.length; i += 1) {
         const circle = circlePool[i];
-        const candidate = streamDebug.activeCandidates[i];
-        if (!candidate) {
+        if (i >= activeCandidateCount) {
           circle.visible = false;
           circle.userData.candidateId = undefined;
           circle.userData.type = undefined;
           circle.userData.lifecycle = 'inactive';
           continue;
         }
+        const candidate = activeCandidateSnapshot[i];
         circle.visible = true;
         circle.position.set(
           candidate.center.x,

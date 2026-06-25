@@ -250,7 +250,7 @@ center point that the robot can transform into arm-base space.
 
 ```ts
 type PrReaperCircleType = 'red' | 'green';
-type PrReaperCircleLifecycle = 'active' | 'expired';
+type PrReaperCircleLifecycle = 'active';
 
 interface PrReaperCircleState {
   id: number;
@@ -264,10 +264,12 @@ interface PrReaperCircleState {
 
 P5c implements this as the pure `src/scene/structures/prReaperStream.ts`
 module. Its public surface is `createPrReaperSeededRandom(...)`,
-`createPrReaperStream(...)`, `advancePrReaperStream(...)`, and the
-`PrReaperStreamState.getDebugState()` snapshot used by installation tests and the
-future targeting pass. P5c deliberately omits reaped/firing/burst target states;
-red and green circles only descend and expire.
+`createPrReaperStream(...)`, `PrReaperStreamState.writeActiveCandidates(...)`,
+and the `PrReaperStreamState.getDebugState()` snapshot used by installation tests
+and the future targeting pass. Runtime rendering uses `writeActiveCandidates(...)`
+so the render loop can reuse a preallocated active-candidate buffer and avoid
+cloning debug history every frame. P5c deliberately omits reaped/firing/burst
+target states; red and green circles only descend and are removed after expiry.
 
 Constants live in `src/scene/structures/prReaperInstallationContract.ts`:
 
@@ -280,7 +282,11 @@ const PR_REAPER_STREAM_DESCENT_DURATION_SECONDS = 5.5;
 const PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS = 0.5;
 const PR_REAPER_STREAM_SPAWN_INTERVAL_MAX_SECONDS = 1.5;
 const PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS = 8;
-const PR_REAPER_PR_CIRCLE_POOL_CAPACITY = 19;
+const PR_REAPER_PR_CIRCLE_POOL_CAPACITY =
+  Math.ceil(
+    PR_REAPER_STREAM_DESCENT_DURATION_SECONDS /
+      PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS
+  ) + PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS; // currently 19
 ```
 
 Mapping from normalized state to screen-local center:
@@ -415,8 +421,8 @@ const PR_REAPER_RECOVER_SECONDS = 0.18;
 At minimum spawn interval (`0.5s`), the arm has roughly `0.5s` per new candidate
 and should keep up without snapping by solving nearest/lowest red candidates and
 using high but clamped angular velocity. If a target expires before firing, its
-assignment is cleared and it proceeds to `expired`; the state machine immediately
-reacquires the next deterministic red candidate.
+assignment is cleared and the expired candidate is removed; the state machine
+immediately reacquires the next deterministic red candidate.
 
 ## Two-axis aiming math
 

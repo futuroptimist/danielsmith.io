@@ -394,9 +394,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Runtime installation now includes the deterministic P5c descending stream and debug contract; tabletop proxy intentionally keeps a static 3:1 PR hint snapshot.',
+      'Runtime stream now exposes an allocation-free active-candidate snapshot and active-only lifecycle; tabletop proxy intentionally keeps a static 3:1 PR hint snapshot.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
