@@ -1,4 +1,9 @@
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
+import {
+  PR_REAPER_INTENDED_BOUNDS,
+  PR_REAPER_SCREEN_BOTTOM_Y,
+  PR_REAPER_SCREEN_HEIGHT,
+} from '../structures/prReaperInstallationContract';
 
 import type { PoiId } from './types';
 
@@ -64,6 +69,22 @@ const physicalMetadata = {
     clearances: {
       markerMinHeight:
         PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.intendedSceneBounds.height,
+      avatarPathRadius: 1.15,
+    },
+  },
+  'pr-reaper-backyard-console': {
+    realWorldReference:
+      'near-ceiling translucent 9:21 hologram with compact projector and two-axis industrial robot arm',
+    realWorldDimensionsMeters: {
+      width: 0.9,
+      depth: 1.45,
+      height: 2.1,
+    },
+    intendedSceneBounds: PR_REAPER_INTENDED_BOUNDS,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight:
+        PR_REAPER_SCREEN_BOTTOM_Y + PR_REAPER_SCREEN_HEIGHT + 0.35,
       avatarPathRadius: 1.15,
     },
   },

@@ -364,9 +364,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 2,
+    syncRevision: 4,
     reason:
-      'Audited support source; danielsmith.io physical table bounds now feed the complete miniature exhibit contract.',
+      'Audited support source; PR Reaper real-world dimensions and scene bounds now feed its holographic installation contract while tabletop geometry remains covered by the POI proxy.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',

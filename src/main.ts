@@ -1093,6 +1093,11 @@ function disposePortfolioMiniatureTableBuild() {
   portfolioMiniatureTable = null;
 }
 let prReaperConsole: PrReaperConsoleBuild | null = null;
+
+function disposePrReaperConsoleBuild() {
+  prReaperConsole?.dispose();
+  prReaperConsole = null;
+}
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 const mediaWallStarBridge = createMediaWallStarBridge();
@@ -1705,6 +1710,7 @@ function initializeImmersiveScene(
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
     disposePortfolioMiniatureTableBuild();
+    disposePrReaperConsoleBuild();
     clearPoiModelRoots();
     clearPoiVisualAnchors();
     if (renderer.domElement.parentElement === container) {
@@ -3221,6 +3227,7 @@ function initializeImmersiveScene(
         z: prReaperPoi.group.position.z,
       },
       orientationRadians: prReaperPoi.group.rotation.y ?? 0,
+      detailPolicy: activeSceneDetailPolicy,
     });
     const prReaperSceneObject = getSceneObjectDefinition(
       'pr-reaper-backyard-console'
@@ -6985,7 +6992,7 @@ function initializeImmersiveScene(
     sugarkubeDeployment = null;
     clearPoiModelRoots();
     clearPoiVisualAnchors();
-    prReaperConsole = null;
+    disposePrReaperConsoleBuild();
     gabrielSentry = null;
     gitshelvesInstallation = null;
     immersiveLifecycle = 'disposed';

@@ -211,7 +211,7 @@ const baseDefinitions: PoiStaticDefinition[] = [
     position: { x: 0, y: 0, z: 20 },
     headingRadians: Math.PI * 0.35,
     interactionRadius: 2.1,
-    footprint: { width: 2.4, depth: 2 },
+    footprint: { width: 2.62, depth: 4.22 },
     status: 'prototype',
   },
   {
