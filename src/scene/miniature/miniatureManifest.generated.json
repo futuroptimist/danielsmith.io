@@ -501,11 +501,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial navigation tracker proxy.",
-      "sourceFingerprint": "c02ed73442456bd852326fb78c2c11aae03b51221a094afe3e7a27052c19cdb4",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "94c96386e867d3cef35cbceff0336a0cb5267ca6ba177465f2f1145def1094a5"
+      "sourceFingerprint": "9040f5c9aa12d345bfd5515506b80e4730b7a54528c10f312271b52a52517839",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "5c025a10db2b646052246f42e1ea122dc454f20053b140d4e149bba192d381f2"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -522,8 +522,8 @@
       ],
       "syncRevision": 2,
       "syncNote": "Outer exhibit now contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive white table shell.",
-      "sourceFingerprint": "dc0d265ca661b776cf0cc9297023182c71d48b950448ddae032356f6be3cf655",
-      "proxyFingerprint": "9b3c7a5454e56ed4a6a6e8d5505e2a7d774589fb632a06168f67b19d18cacf73",
+      "sourceFingerprint": "e45b4bd3d345bc71ad8d4e59c13b6ecb98257ad97993afe4d9ef16cc6d9d01fd",
+      "proxyFingerprint": "6cb30fa8a76d474a2304caee9b19e1c57ef5d9fc9692cefec01d9857c77657c2",
       "metadataFingerprint": "5ea705094da156595c59e0232a9a1058ec03f023375507eee202692edf00e53a"
     },
     {
@@ -535,11 +535,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial launch pad proxy.",
-      "sourceFingerprint": "8196006165f5ad39bf7ec3183e5ee09eabb519594caa104645a25e9af909a41c",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "c20cfd85d2ba29c0af6577bba0e9bc376ecba93ef45d73eea099bd726748fe87"
+      "sourceFingerprint": "12166357ec69d8f2a5ba6f7c3e79b5683080b581b9b3fc8406977a3f70495149",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "b6b4dfc4f81ccbedeba8705343a274095f8ef1fac44093e1fedf490988a3d454"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -550,11 +550,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial clipboard console proxy.",
-      "sourceFingerprint": "5ed72c48f60581bf7e447b48d979d3cd98f17452335293ed4a5de8c8c0e190ba",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "d5572952e57a0275771b9c579b62790241fcca7bb145724e9f6d4db957c9258f"
+      "sourceFingerprint": "a5b1a9fe45a3a14e234caa9558a372b7d83914904ab9f4e0af1160c90c83b001",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "6a942b9f7decdd3e7a50407dace32c83e267574a14641816429a830f602ec965"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -565,11 +565,11 @@
         "src/scene/structures/flywheel.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial flywheel dais proxy.",
-      "sourceFingerprint": "5078ea4a0ed878b4f8b4ffc42b294817d23f84c4e262264c92149f73746fd01f",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "fb95075602acbb8a9dbd8b9a22a2c45ee51d80d7293ebfef8076d5b8e4ca1977"
+      "sourceFingerprint": "d0bea4d6176458759d29ed14ee1d26053eb180f3f314b7e82f53c33abea3e696",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "105e66ec74e117fd8934591444a19a86c0572e1036cea73652712680c0c1f92e"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -580,11 +580,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial iconic television and media console proxy.",
-      "sourceFingerprint": "0a1bdda50a7e3aee1665454a5288ce2e498fbfe79d8b8cf0ae06f5c14e451f7f",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "915c7761f7882ae85fdd175a60b302dc0d9e3856f7c077214a6cd1e6b721873f"
+      "sourceFingerprint": "8ad39824ce567026bf45152c0e4d82a4cd36f1f3bd06c5b0eb90853f8d5fd5b6",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "2e4c7e6b59a1b34556d396b7cc685931367db9eaae0eeec261241f3bfe3f5be9"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -595,11 +595,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial sentry proxy.",
-      "sourceFingerprint": "2b28966a23060ba49c953968aef595a145e15f271ad23f19ae789f0d0b52f7c4",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "09f8509f782127df286cf445555817f00863f2569797ea95af9c52fe8ae08e71"
+      "sourceFingerprint": "df3b60bb1753837620c2f596efe832b48e3a1df82ff2ce6bb84e1c1347e2186e",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "7307ac42863c1f00123667b5101a75ed47133ae16bbe37a809db4f44efde3b35"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -610,11 +610,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial shelves proxy.",
-      "sourceFingerprint": "17cb60295b40798b38469aa1d27df39330e9e2f1580d3deb83bbb2bd40f6f9fe",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "bfa30c15ffa41f9b277846c37f42d440463ec2a02abc4d28705828bbd221b339"
+      "sourceFingerprint": "03597c62f80eccd91337c49e2890ff8495ca92543a8145942afbc4677e2cf9be",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "25db9c30cffd2cb26f53dd6a486b5da9cd239d1994ca08e76d0313e72b53ac17"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -625,11 +625,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial desk terminal proxy.",
-      "sourceFingerprint": "b70de60ca074b7f108b98197a599829e297281ec88f6249a6bb5c963b6d70573",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "ae7d691aa8d19536064f3adf24a29e1b2fa8d1a07036ec0c4f96c87e24554a93"
+      "sourceFingerprint": "509dfeb7bd1968d097a8044e25c36e29854b2ec3d8cfe568c37f6a4acb90e116",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "e88588340bbbc9cabfc609074f366a183d06c0612bfa3bf0e1bb4974c45e960c"
     },
     {
       "id": "poi:markers-labels",
@@ -654,11 +654,11 @@
         "src/scene/structures/prReaperConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial console proxy.",
-      "sourceFingerprint": "fee2fcc98104f3b06b65b43aa0cc252566fbd1d8a7108bec52975a4fafa1cb78",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "5be5fb2b3f82b697489d91d4bb5b93f2b5c1bc14289e3b5c7145360d7dc06057"
+      "sourceFingerprint": "3fef2b57381f6913ecaf1f6451db153284967cd6c293cfa6f0820cc8eb287c0f",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "c574e398db38c9a1312f9c2947eeda5134b0b6af2eb7b83f6afcb7beec37adda"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -669,11 +669,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial workbench proxy.",
-      "sourceFingerprint": "feee333087f588377ab5db1c25720c7488c036b7d8da0c2889e88a0ad542bc09",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "86933a5008b738e4d0f510e9deec9ad5b85868e19f4e6759e684df9de87dcb07"
+      "sourceFingerprint": "67d49d579ecaf1f47feb2e324f67c5a272e411a09358e170d9b2fc520c633fa1",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "140a284a69bc87980c4f23a392bd1443b5bc0b07d0218283a759d41ea8304755"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -684,11 +684,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
-      "sourceFingerprint": "2b14742f515253171ffe384bf78cbfc61458c4916177bfb2c1cd5c48fc426fb8",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "0e938ef11341970902621bd2f74e52d654ceefd072b76bca8602b7b4cd66bb0e"
+      "sourceFingerprint": "0f5da62958b6564147860eacc19698322e5ed0062aa1cb74202886528c307c96",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "17f75919aefb4f157b4531af581f3c89661f599e2bfdd160c9a5233ad17a8f5d"
     },
     {
       "id": "poi:tokenplace-studio-cluster",
@@ -699,11 +699,11 @@
         "src/scene/structures/tokenPlaceWorkstation.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
-      "sourceFingerprint": "a45982ee93a3b3c578817c5f9f40aee31c50a20b388495ecdf844cc84aafff50",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "5eb4b6f4c07c90bee69000fb9028750ea05044921fe5d25693573e97bc6713f3"
+      "sourceFingerprint": "348747ff24b5cd66ebef2e41a8492400df3dabaf80527def206d7b4df4509964",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "5c533bce1d7817805ce4afd0df758d534529e7e441e8823ead1acfb5b43b97a6"
     },
     {
       "id": "poi:wove-kitchen-loom",
@@ -714,11 +714,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 1,
+      "syncRevision": 2,
       "syncNote": "Initial loom proxy.",
-      "sourceFingerprint": "d07b9df05209e054f4b5be8a6217636c614ec179d5a10bcaf2bc7eaaef2527dd",
-      "proxyFingerprint": "4aea9e67679983d2d3369d7d8069dbf4f192c35d0acd7d0199fc7916fe2193ca",
-      "metadataFingerprint": "5128232251928c3002eed1bcdb8e1df1b63d37f78e4c8afad794756597ef6675"
+      "sourceFingerprint": "030ccc6dd28277f45037f5414048659ac9df6136d4b7e7b790fbada0a327d072",
+      "proxyFingerprint": "3c8d282174eaf899722ea29f31ef5da6891c4bfc7567e43be941b08665735b43",
+      "metadataFingerprint": "6c433ed18b1d434b7e3a183f3ff6ef22d28e28157e60c79ab7a9bc005f734a7c"
     },
     {
       "id": "structure:greenhouse",

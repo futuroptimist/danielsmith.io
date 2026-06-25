@@ -14,6 +14,7 @@ import {
 
 import {
   FLOOR_PLAN,
+  FLOOR_PLAN_LEVELS,
   UPPER_FLOOR_PLAN,
   getCombinedWallSegments,
 } from '../../assets/floorPlan';
@@ -279,6 +280,17 @@ const createLedStripMaterial = () => {
   ownedMaterials.add(material);
   return material;
 };
+
+const getPoiFloorId = (poi: PoiDefinition): 'ground' | 'upper' =>
+  (poi.position.y ?? GROUND_FLOOR_TOP_ELEVATION) >=
+  UPPER_FLOOR_TOP_ELEVATION - 0.1
+    ? 'upper'
+    : 'ground';
+
+const getPoiRoomBounds = (poi: PoiDefinition) =>
+  FLOOR_PLAN_LEVELS.flatMap((level) => level.plan.rooms).find(
+    (room) => room.id === poi.roomId
+  )?.bounds ?? null;
 
 function createArchitecture(detailPolicy: SceneDetailPolicy) {
   const root = new Group();
@@ -643,11 +655,16 @@ export function createPortfolioMiniatureTable(
       metadata?.intendedSceneBounds.width ?? poi.footprint.width;
     const targetDepth =
       metadata?.intendedSceneBounds.depth ?? poi.footprint.depth;
+    const roomBounds = getPoiRoomBounds(poi);
+    const roomWidth = roomBounds ? roomBounds.maxX - roomBounds.minX : Infinity;
+    const roomDepth = roomBounds ? roomBounds.maxZ - roomBounds.minZ : Infinity;
+    const fittedTargetWidth = Math.min(targetWidth, roomWidth * 0.82);
+    const fittedTargetDepth = Math.min(targetDepth, roomDepth * 0.82);
     const proxyBounds = new Box3().setFromObject(built);
     const proxySize = proxyBounds.getSize(new Vector3());
     const footprintScale = Math.min(
-      targetWidth / Math.max(proxySize.x, 0.001),
-      targetDepth / Math.max(proxySize.z, 0.001),
+      fittedTargetWidth / Math.max(proxySize.x, 0.001),
+      fittedTargetDepth / Math.max(proxySize.z, 0.001),
       (metadata?.intendedSceneBounds.height ?? 2.2) /
         Math.max(proxySize.y, 0.001)
     );
@@ -663,6 +680,15 @@ export function createPortfolioMiniatureTable(
     );
     built.rotation.y = poi.headingRadians ?? 0;
     built.userData.placementSource = 'poi-registry';
+    built.userData.sourceWorldPosition = {
+      x: poi.position.x,
+      y: poi.position.y ?? GROUND_FLOOR_TOP_ELEVATION,
+      z: poi.position.z,
+    };
+    built.userData.roomId = poi.roomId;
+    built.userData.floor = getPoiFloorId(poi);
+    built.userData.fittedTargetWidth = fittedTargetWidth;
+    built.userData.fittedTargetDepth = fittedTargetDepth;
     poiRoot.add(built);
     if (poi.id === 'danielsmith-portfolio-table') selfProxy = built;
   }

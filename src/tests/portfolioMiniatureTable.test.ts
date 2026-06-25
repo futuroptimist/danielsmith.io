@@ -7,6 +7,7 @@ import {
 } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../scene/avatar/mannequin';
 import {
   getMiniatureSceneDetailPolicy,
@@ -45,6 +46,11 @@ function build(
     poiDefinitions,
   });
 }
+
+const getRoomBounds = (roomId: string) =>
+  FLOOR_PLAN_LEVELS.flatMap((level) => level.plan.rooms).find(
+    (room) => room.id === roomId
+  )?.bounds;
 
 describe('PortfolioMiniatureTable', () => {
   it('has a physical metadata contract and unit outer root', () => {
@@ -198,6 +204,132 @@ describe('PortfolioMiniatureTable', () => {
     expect(
       sugarkube?.getObjectByName('sugarkube-yellow-rack-tier-top')
     ).toBeTruthy();
+    table.dispose();
+  });
+
+  it('places miniature POIs from resolved overworld positions and room floors', () => {
+    const table = build('balanced');
+    const expected = new Map(poiDefinitions.map((poi) => [poi.id, poi]));
+    const cases = [
+      'futuroptimist-living-room-tv',
+      'sugarkube-backyard-greenhouse',
+      'danielsmith-portfolio-table',
+      'gabriel-studio-sentry',
+    ] as const;
+
+    for (const id of cases) {
+      const poi = expected.get(id);
+      expect(poi).toBeDefined();
+      const proxyName =
+        id === 'danielsmith-portfolio-table'
+          ? 'MiniatureSelfProxy'
+          : `MiniaturePoi:${id}`;
+      const proxy = table.group.getObjectByName(proxyName);
+      expect(proxy, id).toBeTruthy();
+      expect(proxy?.userData.placementSource).toBe('poi-registry');
+      expect(proxy?.position.x).toBeCloseTo(poi!.position.x);
+      expect(proxy?.position.y).toBeCloseTo(poi!.position.y ?? 0);
+      expect(proxy?.position.z).toBeCloseTo(poi!.position.z);
+      expect(proxy?.rotation.y).toBeCloseTo(poi!.headingRadians ?? 0);
+      expect(proxy?.userData.sourceWorldPosition).toEqual({
+        x: poi!.position.x,
+        y: poi!.position.y ?? 0,
+        z: poi!.position.z,
+      });
+    }
+
+    const tv = expected.get('futuroptimist-living-room-tv')!;
+    const tvBounds = getRoomBounds(tv.roomId)!;
+    expect(tv.roomId).toBe('livingRoom');
+    expect(tv.position.x).toBeLessThan(tvBounds.minX + 3);
+    expect(tv.position.z).toBeLessThan(-20);
+
+    const sugarkube = expected.get('sugarkube-backyard-greenhouse')!;
+    const backyardBounds = getRoomBounds(sugarkube.roomId)!;
+    expect(sugarkube.roomId).toBe('backyard');
+    expect(sugarkube.position.z).toBeGreaterThanOrEqual(backyardBounds.minZ);
+    expect(sugarkube.position.z).toBeLessThanOrEqual(backyardBounds.maxZ);
+
+    const portfolio = expected.get('danielsmith-portfolio-table')!;
+    const portfolioBounds = getRoomBounds(portfolio.roomId)!;
+    expect(portfolio.roomId).toBe('kitchen');
+    expect(portfolio.position.x).toBeGreaterThanOrEqual(portfolioBounds.minX);
+    expect(portfolio.position.x).toBeLessThanOrEqual(portfolioBounds.maxX);
+
+    const upstairs = table.group.getObjectByName(
+      'MiniaturePoi:gabriel-studio-sentry'
+    );
+    expect(upstairs?.userData.floor).toBe('upper');
+    expect(upstairs?.userData.roomId).toBe('creatorsStudio');
+    table.dispose();
+  });
+
+  it('keeps first-floor walls visible and avoids opaque upper-floor blankets', () => {
+    const table = build('balanced');
+    const walls = table.group
+      .getObjectsByProperty('name', 'MiniatureWall:ground')
+      .filter((object) => object instanceof Mesh) as Mesh[];
+    const leds = table.group
+      .getObjectsByProperty('name', 'MiniatureLedStrip:ground')
+      .filter((object) => object instanceof Mesh) as Mesh[];
+    expect(walls.length).toBeGreaterThan(8);
+    expect(leds.length).toBe(walls.length);
+    for (const wall of walls) {
+      expect(wall.visible).toBe(true);
+      expect((wall.material as MeshStandardMaterial).color.getHex()).toBe(
+        0x111827
+      );
+    }
+
+    const opaqueUpper: Mesh[] = [];
+    table.group.traverse((object) => {
+      if (
+        object instanceof Mesh &&
+        object.userData.floor === 'upper' &&
+        !(object.material as MeshStandardMaterial).transparent
+      ) {
+        opaqueUpper.push(object);
+      }
+    });
+    expect(opaqueUpper).toHaveLength(0);
+    expect(table.group.getObjectByName('MiniatureCeiling')).toBeUndefined();
+    table.dispose();
+  });
+
+  it('keeps resolved ground-floor POI proxy centers inside rooms and off walls', () => {
+    const table = build('balanced');
+    const wallBoxes = table.group
+      .getObjectsByProperty('name', 'MiniatureWall:ground')
+      .filter((object) => object instanceof Mesh)
+      .map((wall) => new Box3().setFromObject(wall));
+
+    for (const poi of poiDefinitions.filter((definition) => {
+      const y = definition.position.y ?? 0;
+      return (
+        y < 1 &&
+        ['livingRoom', 'kitchen', 'studio', 'backyard'].includes(
+          definition.roomId
+        )
+      );
+    })) {
+      const proxyName =
+        poi.id === 'danielsmith-portfolio-table'
+          ? 'MiniatureSelfProxy'
+          : `MiniaturePoi:${poi.id}`;
+      const proxy = table.group.getObjectByName(proxyName);
+      expect(proxy, poi.id).toBeTruthy();
+      const bounds = getRoomBounds(poi.roomId)!;
+      expect(proxy!.position.x, poi.id).toBeGreaterThanOrEqual(bounds.minX);
+      expect(proxy!.position.x, poi.id).toBeLessThanOrEqual(bounds.maxX);
+      expect(proxy!.position.z, poi.id).toBeGreaterThanOrEqual(bounds.minZ);
+      expect(proxy!.position.z, poi.id).toBeLessThanOrEqual(bounds.maxZ);
+
+      const proxyBox = new Box3().setFromObject(proxy!);
+      const intersectsWall = wallBoxes.some((wallBox) =>
+        wallBox.intersectsBox(proxyBox)
+      );
+      expect(intersectsWall, poi.id).toBe(false);
+    }
     table.dispose();
   });
 
