@@ -12,11 +12,7 @@ import {
   Vector3,
 } from 'three';
 
-import {
-  FLOOR_PLAN,
-  FLOOR_PLAN_SCALE,
-  UPPER_FLOOR_PLAN,
-} from '../../assets/floorPlan';
+import { FLOOR_PLAN, FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
 import type { PortfolioMannequinPalette } from '../avatar/mannequin';
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../avatar/mannequin';
@@ -24,10 +20,7 @@ import {
   getSceneDetailPolicy,
   type SceneDetailPolicy,
 } from '../graphics/sceneDetailPolicy';
-import {
-  GROUND_FLOOR_TOP_ELEVATION,
-  UPPER_FLOOR_TOP_ELEVATION,
-} from '../level/floorElevations';
+import { GROUND_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
 import { generateWallSegmentInstances } from '../level/generateWalls';
 import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
 import { createRoomLedStrips } from '../lighting/ledStrips';
@@ -310,8 +303,6 @@ const MINIATURE_MATERIAL_COLORS = {
   backyardAccent: 0x1f6b3b,
   walls: 0x111827,
   ledStrip: 0x7dd3fc,
-  upperFloorGhost: 0x38bdf8,
-  upperFloorRim: 0x7dd3fc,
   stairs: 0x475569,
   landing: 0xb7791f,
   fence: 0x3f2f1f,
@@ -375,14 +366,6 @@ function createArchitecture() {
     livingRoomFloor: createMiniatureMaterial('livingRoomFloor'),
     backyard: createMiniatureMaterial('backyard'),
     backyardAccent: createMiniatureMaterial('backyardAccent'),
-    upperFloorGhost: createMiniatureMaterial('upperFloorGhost', {
-      transparent: true,
-      opacity: 0.025,
-    }),
-    upperFloorRim: createMiniatureMaterial('upperFloorRim', {
-      transparent: true,
-      opacity: 0.62,
-    }),
     walls: createMiniatureMaterial('walls'),
     stairs: createMiniatureMaterial('stairs'),
     landing: createMiniatureMaterial('landing'),
@@ -407,67 +390,6 @@ function createArchitecture() {
     mesh.userData.materialRole = role;
     mesh.userData.filledFloorArea = (maxX - minX) * (maxZ - minZ);
     mesh.userData.opaqueFilledFloor = true;
-  }
-
-  for (const room of UPPER_FLOOR_PLAN.rooms.filter(
-    (candidate) => candidate.category !== 'exterior'
-  )) {
-    const { minX, maxX, minZ, maxZ } = room.bounds;
-    const mesh = addBox(
-      root,
-      `MiniatureUpperFloor:${room.id}`,
-      [maxX - minX, 0.045, maxZ - minZ],
-      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.02, (minZ + maxZ) / 2],
-      materials.upperFloorGhost
-    );
-    mesh.userData.floor = 'upper';
-    mesh.userData.materialRole = 'upperFloorGhost';
-    mesh.userData.filledFloorArea = (maxX - minX) * (maxZ - minZ);
-
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:north`,
-      [maxX - minX, 0.09, 0.08],
-      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.09, minZ],
-      materials.upperFloorRim
-    ).userData.floor = 'upper';
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:south`,
-      [maxX - minX, 0.09, 0.08],
-      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.09, maxZ],
-      materials.upperFloorRim
-    ).userData.floor = 'upper';
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:west`,
-      [0.08, 0.09, maxZ - minZ],
-      [minX, UPPER_FLOOR_TOP_ELEVATION + 0.09, (minZ + maxZ) / 2],
-      materials.upperFloorRim
-    ).userData.floor = 'upper';
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:east`,
-      [0.08, 0.09, maxZ - minZ],
-      [maxX, UPPER_FLOOR_TOP_ELEVATION + 0.09, (minZ + maxZ) / 2],
-      materials.upperFloorRim
-    ).userData.floor = 'upper';
-  }
-
-  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
-    (room) => room.id === 'upperLanding'
-  );
-  if (upperLandingRoom) {
-    const { minX, maxX, minZ, maxZ } = upperLandingRoom.bounds;
-    const landing = addBox(
-      root,
-      'MiniatureUpperLanding',
-      [maxX - minX, 0.055, maxZ - minZ],
-      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.04, (minZ + maxZ) / 2],
-      materials.landing
-    );
-    landing.userData.floor = 'upper';
-    landing.userData.materialRole = 'landing';
   }
 
   const backyardRoom = FLOOR_PLAN.rooms.find(
@@ -756,7 +678,9 @@ export function createPortfolioMiniatureTable(
   poiRoot.name = 'MiniaturePoiRoot';
   content.add(poiRoot);
   let selfProxy: Object3D | null = null;
-  const miniaturePoiPlacements = options.poiPlacements;
+  const miniaturePoiPlacements = options.poiPlacements.filter(
+    (poi) => poi.floor === 'ground'
+  );
   for (const poi of miniaturePoiPlacements) {
     const definition = getMiniaturePoiProxyDefinition(poi.id);
     if (!definition) continue;

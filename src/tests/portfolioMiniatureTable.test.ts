@@ -1,5 +1,6 @@
 import {
   Box3,
+  BoxGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -24,6 +25,7 @@ import {
   getPortfolioMiniatureTableVisibleBounds,
 } from '../scene/structures/portfolioMiniatureTable';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../scene/structures/portfolioMiniatureTableContract';
+import { STAIRCASE_CONFIG } from '../scene/structures/portfolioSceneLayout';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
 const poiDefinitions = getPoiDefinitions('en');
@@ -31,21 +33,23 @@ const poiDefinitions = getPoiDefinitions('en');
 const createResolvedPlacements = (
   definitions = poiDefinitions
 ): MiniaturePoiPlacement[] =>
-  definitions.map((definition) => ({
-    id: definition.id,
-    position: {
-      x: definition.position.x,
-      y: definition.position.y ?? 0,
-      z: definition.position.z,
-    },
-    headingRadians: definition.headingRadians ?? 0,
-    floor: (definition.position.y ?? 0) >= 3 ? 'upper' : 'ground',
-    roomId: definition.roomId,
-    footprint: definition.footprint,
-    definition,
-    anchorKind: 'floor',
-    placementSource: 'visual-model-anchor',
-  }));
+  definitions
+    .filter((definition) => (definition.position.y ?? 0) < 3)
+    .map((definition) => ({
+      id: definition.id,
+      position: {
+        x: definition.position.x,
+        y: definition.position.y ?? 0,
+        z: definition.position.z,
+      },
+      headingRadians: definition.headingRadians ?? 0,
+      floor: 'ground' as const,
+      roomId: definition.roomId,
+      footprint: definition.footprint,
+      definition,
+      anchorKind: 'floor',
+      placementSource: 'visual-model-anchor',
+    }));
 
 function standardMaterialFor(table: ReturnType<typeof build>, name: string) {
   const object = table.group.getObjectByName(name);
@@ -131,7 +135,7 @@ describe('PortfolioMiniatureTable', () => {
     expect(shell.getObjectByName('MiniatureWorldRoot')).toBeUndefined();
   });
 
-  it('contains the finite two-floor miniature topology and every POI once', () => {
+  it('contains the finite ground-floor miniature topology and every ground-floor POI once', () => {
     const table = build('cinematic');
     expect(table.miniatureWorldRoot.name).toBe('MiniatureWorldRoot');
     expect(
@@ -139,11 +143,54 @@ describe('PortfolioMiniatureTable', () => {
     ).toBeTruthy();
     expect(
       table.group.getObjectByName('MiniatureUpperFloor:focusPods')
-    ).toBeTruthy();
+    ).toBeUndefined();
+    expect(
+      table.group
+        .getObjectsByProperty('type', 'Mesh')
+        .some((object) => object.name.startsWith('MiniatureUpperFloor:'))
+    ).toBe(false);
+    expect(
+      table.group
+        .getObjectsByProperty('type', 'Mesh')
+        .some((object) => object.name.startsWith('MiniatureUpperFloorRim:'))
+    ).toBe(false);
     expect(table.group.getObjectByName('MiniatureBackyard')).toBeTruthy();
     expect(table.group.getObjectByName('MiniatureStaircase')).toBeTruthy();
-    expect(table.group.getObjectByName('MiniatureUpperLanding')).toBeTruthy();
-    for (const poi of poiDefinitions) {
+    const staircaseLandingMatches = table.group.getObjectsByProperty(
+      'name',
+      'StaircaseLanding'
+    );
+    expect(staircaseLandingMatches).toHaveLength(1);
+    const staircaseLanding = staircaseLandingMatches[0] as Mesh;
+    expect(staircaseLanding.position.x).toBeCloseTo(
+      STAIRCASE_CONFIG.basePosition.x
+    );
+    expect(staircaseLanding.position.y).toBeCloseTo(
+      STAIRCASE_CONFIG.basePosition.y +
+        STAIRCASE_CONFIG.step.count * STAIRCASE_CONFIG.step.rise +
+        STAIRCASE_CONFIG.landing.thickness / 2
+    );
+    const staircaseDirection =
+      STAIRCASE_CONFIG.direction === 'negativeZ' ? -1 : 1;
+    expect(staircaseLanding.position.z).toBeCloseTo(
+      STAIRCASE_CONFIG.basePosition.z +
+        staircaseDirection *
+          (STAIRCASE_CONFIG.step.run * STAIRCASE_CONFIG.step.count +
+            STAIRCASE_CONFIG.landing.depth / 2)
+    );
+    const landingParameters = (staircaseLanding.geometry as BoxGeometry)
+      .parameters;
+    expect(landingParameters.width).toBeCloseTo(STAIRCASE_CONFIG.step.width);
+    expect(landingParameters.height).toBeCloseTo(
+      STAIRCASE_CONFIG.landing.thickness
+    );
+    expect(landingParameters.depth).toBeCloseTo(STAIRCASE_CONFIG.landing.depth);
+    expect(
+      table.group.getObjectByName('MiniatureUpperLanding')
+    ).toBeUndefined();
+    for (const poi of poiDefinitions.filter(
+      (definition) => (definition.position.y ?? 0) < 3
+    )) {
       const name =
         poi.id === 'danielsmith-portfolio-table'
           ? 'MiniatureSelfProxy'
@@ -156,13 +203,25 @@ describe('PortfolioMiniatureTable', () => {
         expect(matches[0]?.children[0]?.scale.x).toBeGreaterThan(0);
       }
     }
+
+    for (const poi of poiDefinitions.filter(
+      (definition) => (definition.position.y ?? 0) >= 3
+    )) {
+      expect(
+        table.group.getObjectByName(`MiniaturePoi:${poi.id}`),
+        poi.id
+      ).toBeUndefined();
+    }
+    expect(
+      table.group.getObjectByName('MiniaturePoi:gabriel-studio-sentry')
+    ).toBeUndefined();
     expect(
       table.selfProxy.getObjectByName('MiniatureWorldRoot')
     ).toBeUndefined();
     table.dispose();
   });
 
-  it('uses overworld-style material roles with upper-floor cutaway coverage', () => {
+  it('uses overworld-style material roles without upper-floor geometry', () => {
     const table = build('balanced');
     const ground = standardMaterialFor(
       table,
@@ -172,9 +231,9 @@ describe('PortfolioMiniatureTable', () => {
 
     expect(ground.name).toBe('MiniatureMaterial:livingRoomFloor');
     expect(ground.color.getHex()).toBe(0x0b1220);
-    const upper = standardMaterialFor(table, 'MiniatureUpperFloor:focusPods');
-    expect(upper.transparent).toBe(true);
-    expect(upper.opacity).toBeLessThanOrEqual(0.03);
+    expect(
+      table.group.getObjectByName('MiniatureUpperFloor:focusPods')
+    ).toBeUndefined();
     expect(backyard.color.getHex()).toBe(0x052e16);
     const wallMesh = (
       table.group.getObjectsByProperty('type', 'Mesh') as Mesh[]
@@ -205,31 +264,21 @@ describe('PortfolioMiniatureTable', () => {
     table.dispose();
   });
 
-  it('keeps the ground floor dominant, upper floor ghosted, and components source-placed', () => {
+  it('keeps the ground floor dominant and components source-placed', () => {
     const table = build('balanced');
     const opaqueAreas: number[] = [];
-    const upperAreas: number[] = [];
     table.group.getObjectByName('MiniatureArchitecture')?.traverse((object) => {
       if (!(object instanceof Mesh)) return;
       if (object.userData.opaqueFilledFloor) {
         opaqueAreas.push(object.userData.filledFloorArea as number);
       }
-      if (
-        object.userData.floor === 'upper' &&
-        object.userData.filledFloorArea
-      ) {
-        upperAreas.push(object.userData.filledFloorArea as number);
-        expect((object.material as MeshStandardMaterial).transparent).toBe(
-          true
-        );
-        expect(
-          (object.material as MeshStandardMaterial).opacity
-        ).toBeLessThanOrEqual(0.03);
-      }
+      expect(object.name.startsWith('MiniatureUpperFloor:')).toBe(false);
+      expect(object.name.startsWith('MiniatureUpperFloorRim:')).toBe(false);
     });
-    expect(Math.max(...opaqueAreas)).toBeGreaterThan(
-      Math.max(...upperAreas) * 0.4
-    );
+    expect(Math.max(...opaqueAreas)).toBeGreaterThan(0);
+    expect(
+      table.group.getObjectByName('MiniatureUpperLanding')
+    ).toBeUndefined();
 
     expect(
       table.group.getObjectByName('component:lighting-visible-fixtures')
@@ -326,7 +375,13 @@ describe('PortfolioMiniatureTable', () => {
 
     expect(
       table.group.getObjectByName('MiniaturePoi:gabriel-studio-sentry')
-    ).toBeTruthy();
+    ).toBeUndefined();
+    const poiRoot = table.group.getObjectByName('MiniaturePoiRoot');
+    const renderedProxies = poiRoot?.children ?? [];
+    expect(renderedProxies.length).toBeGreaterThan(0);
+    expect(
+      renderedProxies.every((proxy) => proxy.userData.floor === 'ground')
+    ).toBe(true);
     table.dispose();
   });
 
@@ -343,8 +398,9 @@ describe('PortfolioMiniatureTable', () => {
     const liveDefinition = poiDefinitions.find(
       (definition) => definition.id === 'sugarkube-backyard-greenhouse'
     )!;
-    const livePlacements: MiniaturePoiPlacement[] = staleDefinitions.map(
-      (definition) => ({
+    const livePlacements: MiniaturePoiPlacement[] = staleDefinitions
+      .filter((definition) => (definition.position.y ?? 0) < 3)
+      .map((definition) => ({
         id: definition.id,
         position:
           definition.id === 'sugarkube-backyard-greenhouse'
@@ -366,8 +422,7 @@ describe('PortfolioMiniatureTable', () => {
             : definition,
         anchorKind: 'floor',
         placementSource: 'visual-model-anchor',
-      })
-    );
+      }));
 
     const table = createPortfolioMiniatureTable({
       position: { x: -21.6, y: 0, z: 1.63 },
@@ -387,7 +442,7 @@ describe('PortfolioMiniatureTable', () => {
     table.dispose();
   });
 
-  it('keeps first-floor walls visible and avoids ceiling blankets', () => {
+  it('keeps first-floor walls visible and avoids ceilings or second-floor blankets', () => {
     const table = build('balanced');
     const allObjects = table.group.getObjectsByProperty(
       'type',
@@ -408,15 +463,16 @@ describe('PortfolioMiniatureTable', () => {
       );
     }
 
-    const upperSlabs = allObjects.filter((object) =>
-      object.name.startsWith('MiniatureUpperFloor:')
-    );
-    expect(upperSlabs.length).toBeGreaterThan(0);
-    for (const slab of upperSlabs) {
-      const material = slab.material as MeshStandardMaterial;
-      expect(material.transparent).toBe(true);
-      expect(material.opacity).toBeLessThanOrEqual(0.03);
-    }
+    expect(
+      allObjects.some((object) =>
+        object.name.startsWith('MiniatureUpperFloor:')
+      )
+    ).toBe(false);
+    expect(
+      allObjects.some((object) =>
+        object.name.startsWith('MiniatureUpperFloorRim:')
+      )
+    ).toBe(false);
     expect(table.group.getObjectByName('MiniatureCeiling')).toBeUndefined();
     table.dispose();
   });

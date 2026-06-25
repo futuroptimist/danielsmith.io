@@ -10,10 +10,10 @@ nested house, nested player, or second proxy catalog.
 
 Miniature content is authored in world-space scene units beneath
 `MiniatureWorldContent`. The stable envelope is derived from the runtime-scaled
-`FLOOR_PLAN` and `UPPER_FLOOR_PLAN` outlines plus shared floor elevations; do
-not mix these with unscaled `PORTFOLIO_LEVEL` source coordinates. The root
-origin is the X/Z center of the complete property envelope at the ground-floor
-top elevation.
+ground-floor `FLOOR_PLAN` outline, backyard, ground elevation, and shared wall
+height; do not mix these with unscaled `PORTFOLIO_LEVEL` source coordinates. The
+root origin is the X/Z center of the ground-floor property envelope at the
+ground-floor top elevation.
 
 The model uses one uniform scale chosen from the tabletop model-bed width,
 depth, and represented height. Positions map as:
@@ -27,11 +27,20 @@ scale `[1, 1, 1]`. Only `MiniatureWorldRoot` is intentionally scaled.
 
 ## Content rules
 
-All current POIs are instantiated once from the P4a miniature proxy registry
-using placement-resolved `PoiDefinition` world positions and headings. Future POI
-visual upgrades must update their miniature proxy and manifest entry. Visible
-non-POI components continue to be tracked by the miniature scene-component
-coverage registry.
+This PR intentionally lands a ground-floor-only dollhouse for legibility:
+ground-floor rooms, ground-floor walls and LED strips, the backyard, the
+production staircase, and the staircase builder's normal `StaircaseLanding`
+remain visible. The upper floor, upper-floor POIs, ceilings, and a separate
+upper-landing slab are intentionally omitted rather than hidden with
+transparency. A future upper-floor selector or alternate display is follow-up
+scope.
+
+Ground-floor POIs are instantiated once from the P4a miniature proxy registry
+using visual-anchor-resolved world positions and headings. Future POI visual
+upgrades must update their miniature proxy and manifest entry. Visible non-POI
+components continue to be tracked by the miniature scene-component coverage
+registry; the included scene proxies remain source-placed while
+ceiling/lighting/media-wall duplicates are excluded from the ground-only table.
 
 The live tiny player is a dedicated low-poly humanoid, not a clone of the
 runtime avatar. Each frame it receives the canonical player bottom position and
