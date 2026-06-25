@@ -1,0 +1,115 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  PR_REAPER_SCREEN_WIDTH,
+  PR_REAPER_STREAM_CIRCLE_RADIUS,
+  PR_REAPER_STREAM_DESCENT_DURATION_SECONDS,
+  PR_REAPER_STREAM_END_Y,
+  PR_REAPER_STREAM_HORIZONTAL_MARGIN,
+  PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS,
+  PR_REAPER_STREAM_SPAWN_INTERVAL_MAX_SECONDS,
+  PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS,
+  PR_REAPER_STREAM_START_Y,
+} from '../scene/structures/prReaperInstallationContract';
+import { createPrReaperStream } from '../scene/structures/prReaperStream';
+
+function run(seed: string, steps = 800, delta = 0.1) {
+  const stream = createPrReaperStream({ seed });
+  for (let i = 0; i < steps; i += 1) stream.advance(delta);
+  return stream.getDebugState();
+}
+
+describe('PR Reaper deterministic stream', () => {
+  it('replays identical schedules and active states for the same seed', () => {
+    expect(run('same-seed')).toEqual(run('same-seed'));
+  });
+
+  it('varies schedules or positions for different seeds', () => {
+    const a = run('seed-a');
+    const b = run('seed-b');
+    expect(a.spawnHistory).not.toEqual(b.spawnHistory);
+  });
+
+  it('shuffles exact three-red/one-green batches and preserves the ratio', () => {
+    const state = run('ratio-seed', 1200, 0.1);
+    const completed = state.spawnHistory.slice(
+      0,
+      state.spawnHistory.length - (state.spawnHistory.length % 4)
+    );
+    expect(completed.length).toBeGreaterThanOrEqual(64);
+    for (let i = 0; i < completed.length; i += 4) {
+      const batch = completed.slice(i, i + 4);
+      expect(batch.filter((entry) => entry.type === 'red')).toHaveLength(3);
+      expect(batch.filter((entry) => entry.type === 'green')).toHaveLength(1);
+    }
+    expect(completed.filter((entry) => entry.type === 'red')).toHaveLength(
+      completed.filter((entry) => entry.type === 'green').length * 3
+    );
+  });
+
+  it('keeps every interval, including the first, inside the contract range', () => {
+    const state = run('interval-seed', 500, 0.1);
+    state.spawnHistory.forEach((entry) => {
+      expect(entry.interval).toBeGreaterThanOrEqual(
+        PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS
+      );
+      expect(entry.interval).toBeLessThanOrEqual(
+        PR_REAPER_STREAM_SPAWN_INTERVAL_MAX_SECONDS
+      );
+    });
+  });
+
+  it('keeps normalized X positions fully inside horizontal screen margins', () => {
+    const state = run('x-seed', 500, 0.1);
+    const min =
+      (PR_REAPER_STREAM_HORIZONTAL_MARGIN + PR_REAPER_STREAM_CIRCLE_RADIUS) /
+      PR_REAPER_SCREEN_WIDTH;
+    const max = 1 - min;
+    state.spawnHistory.forEach((entry) => {
+      expect(entry.normalizedX).toBeGreaterThanOrEqual(min);
+      expect(entry.normalizedX).toBeLessThanOrEqual(max);
+    });
+  });
+
+  it('descends monotonically and expires only below the bottom exit', () => {
+    const stream = createPrReaperStream({ seed: 'descent-seed' });
+    let previousY = PR_REAPER_STREAM_START_Y;
+    let trackedId: number | null = null;
+    for (let i = 0; i < 80; i += 1) {
+      stream.advance(0.1);
+      const candidates = stream.getDebugState().activeCandidates;
+      if (trackedId === null) trackedId = candidates[0]?.id ?? null;
+      const first = candidates.find((candidate) => candidate.id === trackedId);
+      if (!first) continue;
+      expect(first.center.y).toBeLessThanOrEqual(previousY);
+      previousY = first.center.y;
+      expect(first.center.y).toBeGreaterThan(PR_REAPER_STREAM_END_Y);
+    }
+    stream.advance(PR_REAPER_STREAM_DESCENT_DURATION_SECONDS * 2);
+    const state = stream.getDebugState();
+    expect(state.totalExpiredRed + state.totalExpiredGreen).toBeGreaterThan(0);
+    state.activeCandidates.forEach((candidate) => {
+      expect(candidate.center.y).toBeGreaterThan(PR_REAPER_STREAM_END_Y);
+    });
+  });
+
+  it('bounds large deltas and ignores negative or nonfinite deltas', () => {
+    const stream = createPrReaperStream({ seed: 'delta-seed' });
+    const before = stream.getDebugState();
+    stream.advance(-1);
+    stream.advance(Number.NaN);
+    stream.advance(Number.POSITIVE_INFINITY);
+    expect(stream.getDebugState()).toEqual(before);
+    stream.advance(9999);
+    const after = stream.getDebugState();
+    expect(after.activeCandidateCount).toBeLessThanOrEqual(
+      PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS
+    );
+    expect(after.cappedSpawnCount).toBeGreaterThanOrEqual(0);
+    after.activeCandidates.forEach((candidate) => {
+      expect(Number.isFinite(candidate.center.x)).toBe(true);
+      expect(Number.isFinite(candidate.center.y)).toBe(true);
+      expect(Number.isFinite(candidate.progress)).toBe(true);
+    });
+  });
+});
