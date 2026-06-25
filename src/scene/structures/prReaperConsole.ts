@@ -1,6 +1,7 @@
 import {
   AdditiveBlending,
   BoxGeometry,
+  CircleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
@@ -14,13 +15,17 @@ import {
   Vector3,
 } from 'three';
 
-import { getPulseScale } from '../../ui/accessibility/animationPreferences';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 import {
   PR_REAPER_ARM_LINK_LENGTH,
+  PR_REAPER_CIRCLE_RADIUS,
   PR_REAPER_EMITTER_OFFSET,
   PR_REAPER_FOOTPRINT_DEPTH,
   PR_REAPER_FOOTPRINT_WIDTH,
@@ -28,6 +33,7 @@ import {
   PR_REAPER_INTENDED_BOUNDS,
   PR_REAPER_PARKED_POSE,
   PR_REAPER_PITCH_PIVOT,
+  PR_REAPER_PR_CIRCLE_POOL_SIZE,
   PR_REAPER_PROJECTOR_CENTER_Y,
   PR_REAPER_PROJECTOR_CENTER_Z,
   PR_REAPER_PROJECTOR_DEPTH,
@@ -46,6 +52,11 @@ import {
   PR_REAPER_TOOL_FLANGE_OFFSET,
   PR_REAPER_YAW_PIVOT,
 } from './prReaperInstallationContract';
+import {
+  createPrReaperStream,
+  PR_REAPER_DEFAULT_STREAM_SEED,
+  type PrReaperCircleType,
+} from './prReaperStream';
 
 export interface PrReaperInstallationBuild {
   group: Group;
@@ -55,6 +66,11 @@ export interface PrReaperInstallationBuild {
     detailLevel: SceneDetailPolicy['level'];
     parkedPose: typeof PR_REAPER_PARKED_POSE;
     screenToEmitterStandoff: number;
+    seed: string;
+    poolCapacity: number;
+    stream: ReturnType<
+      ReturnType<typeof createPrReaperStream>['getDebugState']
+    >;
   };
   dispose(): void;
 }
@@ -63,6 +79,7 @@ export interface PrReaperInstallationOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
   detailPolicy?: SceneDetailPolicy;
+  seed?: string;
 }
 
 export type PrReaperConsoleBuild = PrReaperInstallationBuild;
@@ -129,7 +146,24 @@ function detailCounts(policy: SceneDetailPolicy) {
     sphereH: Math.max(3, policy.geometry.sphereHeightSegments),
     accents: scale,
     fasteners: scale > 2 ? 6 : scale > 1 ? 4 : 0,
+    circleSegments: Math.max(
+      3,
+      Math.floor(policy.geometry.ringSegments / Math.max(1, policy.detailIndex))
+    ),
   };
+}
+
+function circleMaterial(
+  type: PrReaperCircleType,
+  intensity: number
+): MeshBasicMaterial {
+  return new MeshBasicMaterial({
+    color: type === 'red' ? 0xff3b4f : 0x42ff8a,
+    transparent: true,
+    opacity: 0.74 * intensity,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
 }
 
 export function createPrReaperInstallation(
@@ -139,6 +173,7 @@ export function createPrReaperInstallation(
     position,
     orientationRadians = 0,
     detailPolicy = getSceneDetailPolicy('balanced'),
+    seed = PR_REAPER_DEFAULT_STREAM_SEED,
   } = options;
   const counts = detailCounts(detailPolicy);
   const group = new Group();
@@ -289,6 +324,26 @@ export function createPrReaperInstallation(
   const prRoot = new Group();
   prRoot.name = 'PrReaperPrCircleRoot';
   hologram.add(prRoot);
+  const stream = createPrReaperStream({ seed });
+  const circleGeometry = new CircleGeometry(
+    PR_REAPER_CIRCLE_RADIUS,
+    counts.circleSegments
+  );
+  const circleIntensity = 1 - detailPolicy.detailIndex * 0.08;
+  const circleMaterials = {
+    red: circleMaterial('red', circleIntensity),
+    green: circleMaterial('green', circleIntensity),
+  } as const;
+  const circlePool: Mesh<CircleGeometry, MeshBasicMaterial>[] = [];
+  for (let i = 0; i < PR_REAPER_PR_CIRCLE_POOL_SIZE; i += 1) {
+    const circle = new Mesh(circleGeometry, circleMaterials.red);
+    circle.name = `PrReaperPrCircle-${i}`;
+    circle.visible = false;
+    circle.renderOrder = 24;
+    circle.userData.lifecycle = 'inactive';
+    prRoot.add(circle);
+    circlePool.push(circle);
+  }
 
   const robotBase = new Group();
   robotBase.name = 'PrReaperRobotBase';
@@ -438,18 +493,50 @@ export function createPrReaperInstallation(
   return {
     group,
     colliders,
-    update({ elapsed, emphasis }) {
+    update({ elapsed, delta, emphasis }) {
+      stream.advance(delta);
       const pulse = getPulseScale();
+      const flicker = getFlickerScale();
       const amount =
         (0.18 + Math.sin(elapsed * 1.7) * 0.04 + emphasis * 0.2) * pulse;
       screenMaterial.opacity = clampOpacity(0.22 + amount);
       edgeMaterial.opacity = clampOpacity(0.62 + amount);
+      const active = stream.getDebugState().activeCandidates;
+      circlePool.forEach((circle, index) => {
+        const candidate = active[index];
+        if (!candidate) {
+          circle.visible = false;
+          circle.userData.lifecycle = 'inactive';
+          return;
+        }
+        circle.visible = true;
+        circle.material = circleMaterials[candidate.type];
+        circle.position.set(
+          candidate.center.x,
+          candidate.center.y,
+          candidate.center.z
+        );
+        const pulseAmount =
+          1 + Math.sin(elapsed * 2.4 + candidate.id) * 0.035 * pulse;
+        circle.scale.setScalar(pulseAmount);
+        circle.material.opacity = clampOpacity(
+          (candidate.type === 'red' ? 0.78 : 0.68) *
+            (0.9 + emphasis * 0.1) *
+            flicker
+        );
+        circle.userData.candidateId = candidate.id;
+        circle.userData.type = candidate.type;
+        circle.userData.lifecycle = candidate.lifecycle;
+      });
     },
     getDebugState() {
       return {
         detailLevel: detailPolicy.level,
         parkedPose: PR_REAPER_PARKED_POSE,
         screenToEmitterStandoff: PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
+        seed,
+        poolCapacity: PR_REAPER_PR_CIRCLE_POOL_SIZE,
+        stream: stream.getDebugState(),
       };
     },
     dispose() {
@@ -457,6 +544,8 @@ export function createPrReaperInstallation(
       disposed = true;
       const disposedMaterials = new Set<unknown>();
       owned.forEach((mesh) => disposeMesh(mesh, disposedMaterials));
+      circleGeometry.dispose();
+      Object.values(circleMaterials).forEach((material) => material.dispose());
     },
   };
 }

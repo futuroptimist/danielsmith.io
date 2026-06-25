@@ -21,6 +21,7 @@ import {
   PR_REAPER_FOOTPRINT_WIDTH,
   PR_REAPER_MIN_EMITTER_STANDOFF,
   PR_REAPER_PARKED_POSE,
+  PR_REAPER_PR_CIRCLE_POOL_SIZE,
   PR_REAPER_SCREEN_BOTTOM_Y,
   PR_REAPER_SCREEN_HEIGHT,
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
@@ -159,6 +160,92 @@ describe('createPrReaperInstallation', () => {
     ).toHaveLength(0);
   });
 
+  it('populates a stable pooled stream of exact circle meshes', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'pool-visible',
+    });
+    const root = build.group.getObjectByName('PrReaperPrCircleRoot');
+    expect(root?.children).toHaveLength(PR_REAPER_PR_CIRCLE_POOL_SIZE);
+    expect(build.getDebugState().poolCapacity).toBe(
+      PR_REAPER_PR_CIRCLE_POOL_SIZE
+    );
+
+    const before = root?.children.slice() ?? [];
+    for (let i = 0; i < 260; i += 1) {
+      build.update({ elapsed: i / 30, delta: 1 / 30, emphasis: 0.4 });
+    }
+    expect(root?.children).toEqual(before);
+
+    const debug = build.getDebugState().stream;
+    const visible = (root?.children ?? []).filter((child) => child.visible);
+    expect(visible).toHaveLength(debug.activeCandidateCount);
+    visible.forEach((object, index) => {
+      const mesh = object as Mesh;
+      const candidate = debug.activeCandidates[index];
+      expect(mesh.name).toBe(`PrReaperPrCircle-${index}`);
+      expect(mesh.position.toArray()).toEqual([
+        candidate.center.x,
+        candidate.center.y,
+        candidate.center.z,
+      ]);
+      expect(mesh.userData).toMatchObject({
+        candidateId: candidate.id,
+        type: candidate.type,
+        lifecycle: 'active',
+      });
+    });
+    (root?.children ?? [])
+      .slice(visible.length)
+      .forEach((object) => expect(object.visible).toBe(false));
+  });
+
+  it('uses distinct red/green materials and exposes 3:1 stream batches', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'mixed-materials',
+    });
+    for (let i = 0; i < 900; i += 1) {
+      build.update({ elapsed: i / 30, delta: 1 / 30, emphasis: 0 });
+    }
+    const debug = build.getDebugState().stream;
+    expect(debug.totalSpawnedRed).toBeGreaterThan(0);
+    expect(debug.totalSpawnedGreen).toBeGreaterThan(0);
+    const completed = Math.floor(debug.spawnHistory.length / 4) * 4;
+    expect(
+      debug.spawnHistory.slice(0, completed).filter((t) => t === 'red')
+    ).toHaveLength((completed / 4) * 3);
+
+    const root = build.group.getObjectByName('PrReaperPrCircleRoot');
+    const materials = new Map<string, unknown>();
+    root?.children.forEach((object) => {
+      if (object.visible)
+        materials.set(String(object.userData.type), (object as Mesh).material);
+    });
+    expect(materials.get('red')).not.toBe(materials.get('green'));
+  });
+
+  it('preserves stream semantics while reducing circle geometry cost by detail level', () => {
+    const states = Object.values(SCENE_DETAIL_POLICIES).map((detailPolicy) => {
+      const build = createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        detailPolicy,
+        seed: 'detail-invariant',
+      });
+      for (let i = 0; i < 360; i += 1) {
+        build.update({ elapsed: i / 30, delta: 1 / 30, emphasis: 0.7 });
+      }
+      const circle = build.group.getObjectByName('PrReaperPrCircle-0') as Mesh;
+      return {
+        stream: build.getDebugState().stream,
+        triangles: circle.geometry.index?.count ?? 0,
+      };
+    });
+    states.forEach((state) => expect(state.stream).toEqual(states[0].stream));
+    expect(states[0].triangles).toBeGreaterThan(states[2].triangles);
+    expect(states[2].triangles).toBeGreaterThan(states[4].triangles);
+  });
+
   it('returns rotation-aware conservative colliders that match physical metadata bounds', () => {
     const position = { x: 1.5, y: 0, z: 0.525 };
     const orientation = Math.PI * 0.35;
@@ -226,8 +313,11 @@ describe('createPrReaperInstallation', () => {
     expect(material.opacity).toBeGreaterThan(before);
 
     const dispose = vi.spyOn(screen.geometry, 'dispose');
+    const circle = build.group.getObjectByName('PrReaperPrCircle-0') as Mesh;
+    const circleDispose = vi.spyOn(circle.geometry, 'dispose');
     build.dispose();
     build.dispose();
     expect(dispose).toHaveBeenCalledTimes(1);
+    expect(circleDispose).toHaveBeenCalledTimes(1);
   });
 });
