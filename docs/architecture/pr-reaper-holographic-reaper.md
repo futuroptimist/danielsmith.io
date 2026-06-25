@@ -552,8 +552,7 @@ Per update:
 
 - `age01 = clamp((now - startedAt) / duration, 0, 1)`;
 - `age = now - startedAt`;
-- `burstGravity = new Vector3(0, -1.15 * age * age, 0)` in meters, multiplied by
-  `reducedMotionTravelScale`;
+- `burstGravity = new Vector3(0, -1.15 * age * age, 0)` in meters;
 - position = `origin + (velocity * age + burstGravity) * reducedMotionTravelScale`;
 - opacity fades with `(1 - age01)`;
 - hide slot and release it when age reaches 1.
