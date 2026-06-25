@@ -1,4 +1,10 @@
-import { Box3, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import {
+  Box3,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  Vector3,
+} from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../scene/avatar/mannequin';
@@ -81,7 +87,11 @@ describe('PortfolioMiniatureTable', () => {
           : `MiniaturePoi:${poi.id}`;
       const matches = table.group.getObjectsByProperty('name', name);
       expect(matches, poi.id).toHaveLength(1);
-      expect(matches[0]?.scale.toArray()).toEqual([1, 1, 1]);
+      if (poi.id === 'danielsmith-portfolio-table') {
+        expect(matches[0]?.scale.toArray()).toEqual([1, 1, 1]);
+      } else {
+        expect(matches[0]?.scale.x).toBeGreaterThanOrEqual(1.6);
+      }
     }
     expect(
       table.selfProxy.getObjectByName('MiniatureWorldRoot')
@@ -100,23 +110,25 @@ describe('PortfolioMiniatureTable', () => {
       table,
       'MiniatureUpperFloorRim:focusPods:north'
     );
-    const backyard = standardMaterialFor(
-      table,
-      'MiniatureGroundFloor:backyard'
-    );
+    const backyard = standardMaterialFor(table, 'MiniatureBackyard');
     const staircase = standardMaterialFor(table, 'MiniatureStaircase');
 
-    expect(ground.name).toBe('MiniatureMaterial:groundFloor');
-    expect(ground.color.getHex()).toBe(0x2a3547);
+    expect(ground.name).toBe('MiniatureMaterial:livingRoomFloor');
+    expect(ground.color.getHex()).toBe(0x0b1220);
     expect(upper.name).toBe('MiniatureMaterial:upperFloorGhost');
-    expect(upper.color.getHex()).toBe(0x7bd5ff);
+    expect(upper.color.getHex()).toBe(0x38bdf8);
     expect(upper.transparent).toBe(true);
     expect(upper.depthWrite).toBe(false);
-    expect(upper.opacity).toBeLessThanOrEqual(0.25);
+    expect(upper.opacity).toBeLessThanOrEqual(0.03);
     expect(upperRim.transparent).toBe(true);
     expect(upperRim.opacity).toBeGreaterThan(upper.opacity);
-    expect(backyard.color.getHex()).toBe(0x274f37);
-    expect(staircase.color.getHex()).toBe(0x52657d);
+    expect(backyard.color.getHex()).toBe(0x052e16);
+    expect(staircase.color.getHex()).toBe(0x475569);
+    const wall = standardMaterialFor(table, 'MiniatureWall:ground');
+    expect(wall.color.getHex()).toBe(0x111827);
+    const led = table.group.getObjectByName('MiniatureLedStrip:ground') as Mesh;
+    expect(led).toBeInstanceOf(Mesh);
+    expect(led.material).toBeInstanceOf(MeshBasicMaterial);
 
     const architectureColors = new Set<number>();
     table.group.getObjectByName('MiniatureArchitecture')?.traverse((object) => {
@@ -129,6 +141,63 @@ describe('PortfolioMiniatureTable', () => {
     });
     expect(architectureColors.size).toBeGreaterThanOrEqual(6);
     expect(architectureColors).not.toEqual(new Set([0x808080]));
+    table.dispose();
+  });
+
+  it('keeps the ground floor dominant, upper floor ghosted, and components source-placed', () => {
+    const table = build('balanced');
+    const opaqueAreas: number[] = [];
+    const upperAreas: number[] = [];
+    table.group.getObjectByName('MiniatureArchitecture')?.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      if (object.userData.opaqueFilledFloor) {
+        opaqueAreas.push(object.userData.filledFloorArea as number);
+      }
+      if (object.userData.floor === 'upper') {
+        upperAreas.push(object.userData.filledFloorArea as number);
+        expect((object.material as MeshStandardMaterial).transparent).toBe(
+          true
+        );
+        expect(
+          (object.material as MeshStandardMaterial).opacity
+        ).toBeLessThanOrEqual(0.03);
+      }
+    });
+    expect(Math.max(...opaqueAreas)).toBeGreaterThan(
+      Math.max(...upperAreas) * 0.4
+    );
+
+    const lighting = table.group.getObjectByName(
+      'component:lighting-visible-fixtures'
+    );
+    const greenhouse = table.group.getObjectByName('component:greenhouse');
+    const bridge = table.group.getObjectByName(
+      'component:media-wall-star-bridge'
+    );
+    expect(lighting?.position.toArray()).toEqual([0, 0.9, -2]);
+    expect(greenhouse?.position.toArray()).toEqual([-16, 0, 21]);
+    expect(bridge?.position.toArray()).toEqual([-10.5, 0, -13.5]);
+    expect(lighting?.position.x).not.toBe(-26);
+    expect(greenhouse?.position.x).not.toBe(-23);
+    table.dispose();
+  });
+
+  it('scales key POI proxies to readable miniature footprints', () => {
+    const table = build('balanced');
+    const token = table.group.getObjectByName(
+      'MiniaturePoi:tokenplace-studio-cluster'
+    );
+    const sugarkube = table.group.getObjectByName(
+      'MiniaturePoi:sugarkube-backyard-greenhouse'
+    );
+    expect(token?.scale.x).toBeGreaterThan(1.5);
+    expect(sugarkube?.scale.x).toBeGreaterThan(1.5);
+    expect(token?.getObjectByName('tokenplace-monitor-left')).toBeTruthy();
+    expect(token?.getObjectByName('tokenplace-monitor-right')).toBeTruthy();
+    expect(sugarkube?.getObjectByName('sugarkube-table')).toBeTruthy();
+    expect(
+      sugarkube?.getObjectByName('sugarkube-yellow-rack-tier-top')
+    ).toBeTruthy();
     table.dispose();
   });
 
