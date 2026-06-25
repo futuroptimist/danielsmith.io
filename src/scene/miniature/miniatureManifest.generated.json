@@ -504,7 +504,7 @@
       "syncRevision": 2,
       "syncNote": "Initial navigation tracker proxy.",
       "sourceFingerprint": "2523053b0c36ecf488b8958b2aefdfe510a469b94073c13ef89c7344b293f449",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "5c025a10db2b646052246f42e1ea122dc454f20053b140d4e149bba192d381f2"
     },
     {
@@ -514,17 +514,18 @@
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
         "src/scene/structures/portfolioMiniatureTableContract.ts",
+        "src/scene/structures/portfolioSceneLayout.ts",
         "src/scene/structures/selfieMirror.ts"
       ],
       "proxyFiles": [
         "src/scene/miniature/poiProxyRegistry.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 2,
-      "syncNote": "Outer exhibit now contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive white table shell.",
-      "sourceFingerprint": "5e30f3ee37d48afa026d59497a4b0174ff832a6f4fcc2bbb392a1b583cc06453",
-      "proxyFingerprint": "d14611eb5fbadaa9571028b1e57a91729c55637f9552a9d8ff555ddd63209eae",
-      "metadataFingerprint": "5ea705094da156595c59e0232a9a1058ec03f023375507eee202692edf00e53a"
+      "syncRevision": 3,
+      "syncNote": "Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.",
+      "sourceFingerprint": "f3224bd72648712468b48742c93e12e32b2a2c114b7dc8a2a19f40791885e674",
+      "proxyFingerprint": "5365d3bdb7d4a7d3e10ae9219689b61cf1ec6a83134ecf65768eabfa59a9c6a1",
+      "metadataFingerprint": "1d21e34769e8710485c27e83cb91e841a1b751619ea1057bb3f0a90f36138aeb"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -538,7 +539,7 @@
       "syncRevision": 2,
       "syncNote": "Initial launch pad proxy.",
       "sourceFingerprint": "19ae99baded8b946e540675593cd1a6ac9fc556aadc93a432a48bdcfbae5c726",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "b6b4dfc4f81ccbedeba8705343a274095f8ef1fac44093e1fedf490988a3d454"
     },
     {
@@ -553,7 +554,7 @@
       "syncRevision": 2,
       "syncNote": "Initial clipboard console proxy.",
       "sourceFingerprint": "54f1b0c07be4535a39320cb19dc9654b500564c97d1c91568183ebf1a064a722",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "6a942b9f7decdd3e7a50407dace32c83e267574a14641816429a830f602ec965"
     },
     {
@@ -568,7 +569,7 @@
       "syncRevision": 2,
       "syncNote": "Initial flywheel dais proxy.",
       "sourceFingerprint": "fbb941d6d53531f34411ce1f0bbb2c6c37d35d0026ad28a331782bbc475a681b",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "105e66ec74e117fd8934591444a19a86c0572e1036cea73652712680c0c1f92e"
     },
     {
@@ -580,11 +581,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial iconic television and media console proxy.",
-      "sourceFingerprint": "6d46185af2a8619e4f64287d46dc82ab9067647a194dc8f404e976edb99274b8",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
-      "metadataFingerprint": "2e4c7e6b59a1b34556d396b7cc685931367db9eaae0eeec261241f3bfe3f5be9"
+      "syncRevision": 3,
+      "syncNote": "Tracks the explicit media-wall visual anchor used by the tabletop miniature.",
+      "sourceFingerprint": "0d1e07452a03d215e58899c745faab99285d01cf7623bccd5a5096c7d4d02ac8",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "metadataFingerprint": "72267991166e4246f3dfb2241ca7a6efdd1786e634e788716c1c6cb2265f42fa"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -598,7 +599,7 @@
       "syncRevision": 2,
       "syncNote": "Initial sentry proxy.",
       "sourceFingerprint": "69c4c8b64bfb00268fa2746717eb4ea62745652d9795f93a648fa831b009a338",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "7307ac42863c1f00123667b5101a75ed47133ae16bbe37a809db4f44efde3b35"
     },
     {
@@ -613,7 +614,7 @@
       "syncRevision": 2,
       "syncNote": "Initial shelves proxy.",
       "sourceFingerprint": "d5f0cecea0a5c76d245008d817be55c68cd349a88aee54787e895704f3f79791",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "25db9c30cffd2cb26f53dd6a486b5da9cd239d1994ca08e76d0313e72b53ac17"
     },
     {
@@ -628,7 +629,7 @@
       "syncRevision": 2,
       "syncNote": "Initial desk terminal proxy.",
       "sourceFingerprint": "0d4ea9a3c14cd1e9e655d5afd269fcfc89c3ec9e0fc252298551a2814fcef58a",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "e88588340bbbc9cabfc609074f366a183d06c0612bfa3bf0e1bb4974c45e960c"
     },
     {
@@ -657,7 +658,7 @@
       "syncRevision": 2,
       "syncNote": "Initial console proxy.",
       "sourceFingerprint": "33903520b641869ca72eb13ad751bd63783b14b9f23d19d8e5cdfabc02a6f87e",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "c574e398db38c9a1312f9c2947eeda5134b0b6af2eb7b83f6afcb7beec37adda"
     },
     {
@@ -672,7 +673,7 @@
       "syncRevision": 2,
       "syncNote": "Initial workbench proxy.",
       "sourceFingerprint": "c767d4203bb1a14daca5c3d4c71fbf93d4ac2d2a1ba3e9100282cad42e75824d",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "140a284a69bc87980c4f23a392bd1443b5bc0b07d0218283a759d41ea8304755"
     },
     {
@@ -687,7 +688,7 @@
       "syncRevision": 2,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
       "sourceFingerprint": "3a25a204460464aea5db201dd46695a123b8472ad3b1552c4ac450ff6d5ddc75",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "17f75919aefb4f157b4531af581f3c89661f599e2bfdd160c9a5233ad17a8f5d"
     },
     {
@@ -702,7 +703,7 @@
       "syncRevision": 2,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
       "sourceFingerprint": "097dc94d76133cef2566868c4ebe25c536f264d0f901d8153b25a8e2e5699766",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "5c533bce1d7817805ce4afd0df758d534529e7e441e8823ead1acfb5b43b97a6"
     },
     {
@@ -717,7 +718,7 @@
       "syncRevision": 2,
       "syncNote": "Initial loom proxy.",
       "sourceFingerprint": "66cf5c6ba351bcf3ef95b01432f4172ccde8b4fec7f210ef22cc9c21264eca75",
-      "proxyFingerprint": "f6e2f2a699dbf69b3240aacc23bea97966085e1cf6aabaa6e6ec0b8a9c13d530",
+      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
       "metadataFingerprint": "6c433ed18b1d434b7e3a183f3ff6ef22d28e28157e60c79ab7a9bc005f734a7c"
     },
     {

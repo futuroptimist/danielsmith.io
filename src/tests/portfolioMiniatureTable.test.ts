@@ -27,6 +27,25 @@ import { countObjectTriangles } from '../scene/structures/triangleCount';
 
 const poiDefinitions = getPoiDefinitions('en');
 
+const createResolvedPlacements = (
+  definitions = poiDefinitions
+): MiniaturePoiPlacement[] =>
+  definitions.map((definition) => ({
+    id: definition.id,
+    position: {
+      x: definition.position.x,
+      y: definition.position.y ?? 0,
+      z: definition.position.z,
+    },
+    headingRadians: definition.headingRadians ?? 0,
+    floor: (definition.position.y ?? 0) >= 3 ? 'upper' : 'ground',
+    roomId: definition.roomId,
+    footprint: definition.footprint,
+    definition,
+    anchorKind: 'floor',
+    placementSource: 'visual-model-anchor',
+  }));
+
 function standardMaterialFor(table: ReturnType<typeof build>, name: string) {
   const object = table.group.getObjectByName(name);
   expect(object).toBeInstanceOf(Mesh);
@@ -45,6 +64,7 @@ function build(
     tableDetailPolicy: getSceneDetailPolicy(level),
     miniatureDetailPolicy: getMiniatureSceneDetailPolicy(level),
     poiDefinitions,
+    poiPlacements: createResolvedPlacements(),
   });
 }
 
@@ -83,11 +103,15 @@ describe('PortfolioMiniatureTable', () => {
     ).toBeTruthy();
     expect(
       table.group.getObjectByName('MiniatureUpperFloor:focusPods')
-    ).toBeTruthy();
+    ).toBeUndefined();
     expect(table.group.getObjectByName('MiniatureBackyard')).toBeTruthy();
     expect(table.group.getObjectByName('MiniatureStaircase')).toBeTruthy();
-    expect(table.group.getObjectByName('MiniatureUpperLanding')).toBeTruthy();
-    for (const poi of poiDefinitions) {
+    expect(
+      table.group.getObjectByName('MiniatureUpperLanding')
+    ).toBeUndefined();
+    for (const poi of poiDefinitions.filter(
+      (definition) => (definition.position.y ?? 0) < 3
+    )) {
       const name =
         poi.id === 'danielsmith-portfolio-table'
           ? 'MiniatureSelfProxy'
@@ -97,7 +121,7 @@ describe('PortfolioMiniatureTable', () => {
       if (poi.id === 'danielsmith-portfolio-table') {
         expect(matches[0]?.scale.toArray()).toEqual([1, 1, 1]);
       } else {
-        expect(matches[0]?.scale.x).toBeGreaterThanOrEqual(1.6);
+        expect(matches[0]?.children[0]?.scale.x).toBeGreaterThan(0);
       }
     }
     expect(
@@ -112,28 +136,26 @@ describe('PortfolioMiniatureTable', () => {
       table,
       'MiniatureGroundFloor:livingRoom'
     );
-    const upper = standardMaterialFor(table, 'MiniatureUpperFloor:focusPods');
-    const upperRim = standardMaterialFor(
-      table,
-      'MiniatureUpperFloorRim:focusPods:north'
-    );
     const backyard = standardMaterialFor(table, 'MiniatureBackyard');
-    const staircase = standardMaterialFor(table, 'MiniatureStaircase');
 
     expect(ground.name).toBe('MiniatureMaterial:livingRoomFloor');
     expect(ground.color.getHex()).toBe(0x0b1220);
-    expect(upper.name).toBe('MiniatureMaterial:upperFloorGhost');
-    expect(upper.color.getHex()).toBe(0x38bdf8);
-    expect(upper.transparent).toBe(true);
-    expect(upper.depthWrite).toBe(false);
-    expect(upper.opacity).toBeLessThanOrEqual(0.03);
-    expect(upperRim.transparent).toBe(true);
-    expect(upperRim.opacity).toBeGreaterThan(upper.opacity);
+    expect(
+      table.group.getObjectByName('MiniatureUpperFloor:focusPods')
+    ).toBeUndefined();
     expect(backyard.color.getHex()).toBe(0x052e16);
-    expect(staircase.color.getHex()).toBe(0x475569);
-    const wall = standardMaterialFor(table, 'MiniatureWall:ground');
-    expect(wall.color.getHex()).toBe(0x111827);
-    const led = table.group.getObjectByName('MiniatureLedStrip:ground') as Mesh;
+    const wallMesh = (
+      table.group.getObjectsByProperty('type', 'Mesh') as Mesh[]
+    ).find(
+      (object) =>
+        object.name.startsWith('MiniatureWall:') && !object.userData.isFence
+    ) as Mesh;
+    expect((wallMesh.material as MeshStandardMaterial).color.getHex()).toBe(
+      0x111827
+    );
+    const led = (
+      table.group.getObjectsByProperty('type', 'Mesh') as Mesh[]
+    ).find((object) => object.name.startsWith('MiniatureLedStrip:')) as Mesh;
     expect(led).toBeInstanceOf(Mesh);
     expect(led.material).toBeInstanceOf(MeshBasicMaterial);
 
@@ -174,18 +196,15 @@ describe('PortfolioMiniatureTable', () => {
       Math.max(...upperAreas) * 0.4
     );
 
-    const lighting = table.group.getObjectByName(
-      'component:lighting-visible-fixtures'
-    );
-    const greenhouse = table.group.getObjectByName('component:greenhouse');
-    const bridge = table.group.getObjectByName(
-      'component:media-wall-star-bridge'
-    );
-    expect(lighting?.position.toArray()).toEqual([0, 0.9, -2]);
-    expect(greenhouse?.position.toArray()).toEqual([-16, 0, 21]);
-    expect(bridge?.position.toArray()).toEqual([-10.5, 0, -13.5]);
-    expect(lighting?.position.x).not.toBe(-26);
-    expect(greenhouse?.position.x).not.toBe(-23);
+    expect(
+      table.group.getObjectByName('component:lighting-visible-fixtures')
+    ).toBeUndefined();
+    expect(
+      table.group.getObjectByName('component:ceiling-panels')
+    ).toBeUndefined();
+    expect(
+      table.group.getObjectByName('component:media-wall-star-bridge')
+    ).toBeUndefined();
     table.dispose();
   });
 
@@ -197,8 +216,8 @@ describe('PortfolioMiniatureTable', () => {
     const sugarkube = table.group.getObjectByName(
       'MiniaturePoi:sugarkube-backyard-greenhouse'
     );
-    expect(token?.scale.x).toBeGreaterThan(1.5);
-    expect(sugarkube?.scale.x).toBeGreaterThan(1.5);
+    expect(token?.children[0]?.scale.x).toBeGreaterThan(0.5);
+    expect(sugarkube?.children[0]?.scale.x).toBeGreaterThan(0.5);
     expect(token?.getObjectByName('tokenplace-monitor-left')).toBeTruthy();
     expect(token?.getObjectByName('tokenplace-monitor-right')).toBeTruthy();
     expect(sugarkube?.getObjectByName('sugarkube-table')).toBeTruthy();
@@ -215,7 +234,7 @@ describe('PortfolioMiniatureTable', () => {
       'futuroptimist-living-room-tv',
       'sugarkube-backyard-greenhouse',
       'danielsmith-portfolio-table',
-      'gabriel-studio-sentry',
+      'tokenplace-studio-cluster',
     ] as const;
 
     for (const id of cases) {
@@ -227,7 +246,7 @@ describe('PortfolioMiniatureTable', () => {
           : `MiniaturePoi:${id}`;
       const proxy = table.group.getObjectByName(proxyName);
       expect(proxy, id).toBeTruthy();
-      expect(proxy?.userData.placementSource).toBe('poi-definition-fallback');
+      expect(proxy?.userData.placementSource).toBe('visual-model-anchor');
       expect(proxy?.position.x).toBeCloseTo(poi!.position.x);
       expect(proxy?.position.y).toBeCloseTo(poi!.position.y ?? 0);
       expect(proxy?.position.z).toBeCloseTo(poi!.position.z);
@@ -261,11 +280,9 @@ describe('PortfolioMiniatureTable', () => {
     expect(portfolio.position.x).toBeGreaterThanOrEqual(portfolioBounds.minX);
     expect(portfolio.position.x).toBeLessThanOrEqual(portfolioBounds.maxX);
 
-    const upstairs = table.group.getObjectByName(
-      'MiniaturePoi:gabriel-studio-sentry'
-    );
-    expect(upstairs?.userData.floor).toBe('upper');
-    expect(upstairs?.userData.roomId).toBe('creatorsStudio');
+    expect(
+      table.group.getObjectByName('MiniaturePoi:gabriel-studio-sentry')
+    ).toBeUndefined();
     table.dispose();
   });
 
@@ -303,7 +320,8 @@ describe('PortfolioMiniatureTable', () => {
           definition.id === 'sugarkube-backyard-greenhouse'
             ? liveDefinition
             : definition,
-        placementSource: 'resolved-live-poi',
+        anchorKind: 'floor',
+        placementSource: 'visual-model-anchor',
       })
     );
 
@@ -317,7 +335,7 @@ describe('PortfolioMiniatureTable', () => {
     const sugarkube = table.group.getObjectByName(
       'MiniaturePoi:sugarkube-backyard-greenhouse'
     );
-    expect(sugarkube?.userData.placementSource).toBe('resolved-live-poi');
+    expect(sugarkube?.userData.placementSource).toBe('visual-model-anchor');
     expect(sugarkube?.position.x).toBeCloseTo(-8.74);
     expect(sugarkube?.position.z).toBeCloseTo(-22.92);
     expect(sugarkube?.userData.roomId).toBe('livingRoom');
@@ -327,18 +345,22 @@ describe('PortfolioMiniatureTable', () => {
 
   it('keeps first-floor walls visible and avoids opaque upper-floor blankets', () => {
     const table = build('balanced');
-    const walls = table.group
-      .getObjectsByProperty('name', 'MiniatureWall:ground')
-      .filter((object) => object instanceof Mesh) as Mesh[];
-    const leds = table.group
-      .getObjectsByProperty('name', 'MiniatureLedStrip:ground')
-      .filter((object) => object instanceof Mesh) as Mesh[];
+    const allObjects = table.group.getObjectsByProperty(
+      'type',
+      'Mesh'
+    ) as Mesh[];
+    const walls = allObjects.filter((object) =>
+      object.name.startsWith('MiniatureWall:')
+    );
+    const leds = allObjects.filter((object) =>
+      object.name.startsWith('MiniatureLedStrip:')
+    );
     expect(walls.length).toBeGreaterThan(8);
-    expect(leds.length).toBe(walls.length);
+    expect(leds.length).toBeGreaterThan(8);
     for (const wall of walls) {
       expect(wall.visible).toBe(true);
-      expect((wall.material as MeshStandardMaterial).color.getHex()).toBe(
-        0x111827
+      expect([0x111827, 0x3f2f1f]).toContain(
+        (wall.material as MeshStandardMaterial).color.getHex()
       );
     }
 

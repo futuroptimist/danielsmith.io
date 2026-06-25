@@ -12,7 +12,10 @@ import {
 } from '../scene/poi/physicalMetadata';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import type { PoiId } from '../scene/poi/types';
-import { createPortfolioMiniatureTable } from '../scene/structures/portfolioMiniatureTable';
+import {
+  createPortfolioMiniatureTable,
+  type MiniaturePoiPlacement,
+} from '../scene/structures/portfolioMiniatureTable';
 import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
 import {
   EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
@@ -167,6 +170,23 @@ describe('POI physical metadata', () => {
         tableDetailPolicy: getSceneDetailPolicy(level),
         miniatureDetailPolicy: getMiniatureSceneDetailPolicy(level),
         poiDefinitions: getPoiDefinitions('en'),
+        poiPlacements: getPoiDefinitions('en').map(
+          (definition): MiniaturePoiPlacement => ({
+            id: definition.id,
+            position: {
+              x: definition.position.x,
+              y: definition.position.y ?? 0,
+              z: definition.position.z,
+            },
+            headingRadians: definition.headingRadians ?? 0,
+            floor: (definition.position.y ?? 0) >= 3 ? 'upper' : 'ground',
+            roomId: definition.roomId,
+            footprint: definition.footprint,
+            definition,
+            anchorKind: 'floor',
+            placementSource: 'visual-model-anchor',
+          })
+        ),
       });
       expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
       expectFitsContract(

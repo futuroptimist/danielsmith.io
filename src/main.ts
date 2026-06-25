@@ -33,7 +33,6 @@ import {
   FLOOR_PLAN_SCALE,
   UPPER_FLOOR_PLAN,
   getFloorBounds,
-  WALL_THICKNESS,
   type RoomCategory,
 } from './assets/floorPlan';
 import type { WallSegmentInstance } from './assets/floorPlan/wallSegments';
@@ -259,6 +258,11 @@ import type { PoiDefinition, PoiId } from './scene/poi/types';
 import { updateVisitedBadge } from './scene/poi/visitedBadge';
 import { PoiVisitedState } from './scene/poi/visitedState';
 import {
+  clearPoiVisualAnchors,
+  registerPoiVisualAnchor,
+  resolvePoiVisualAnchor,
+} from './scene/poi/visualAnchors';
+import {
   PoiWorldTooltip,
   type PoiWorldTooltipTarget,
 } from './scene/poi/worldTooltip';
@@ -299,6 +303,14 @@ import {
   type PortfolioMiniatureTableBuild,
 } from './scene/structures/portfolioMiniatureTable';
 import {
+  CEILING_COVE_OFFSET,
+  FENCE_HEIGHT,
+  FENCE_THICKNESS,
+  STAIRCASE_CONFIG,
+  WALL_HEIGHT,
+  WALL_THICKNESS,
+} from './scene/structures/portfolioSceneLayout';
+import {
   createPrReaperConsole,
   type PrReaperConsoleBuild,
 } from './scene/structures/prReaperConsole';
@@ -310,10 +322,7 @@ import {
   createSigmaWorkbench,
   type SigmaWorkbenchBuild,
 } from './scene/structures/sigmaWorkbench';
-import {
-  createStaircase,
-  type StaircaseConfig,
-} from './scene/structures/staircase';
+import { createStaircase } from './scene/structures/staircase';
 import {
   createSugarkubeDeployment,
   type SugarkubeDeploymentBuild,
@@ -534,9 +543,6 @@ import {
 import { createSoftwareRendererWarning } from './ui/softwareRendererWarning';
 import './ui/styles.css';
 
-const WALL_HEIGHT = 6;
-const FENCE_HEIGHT = 2.4;
-const FENCE_THICKNESS = 0.28;
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
@@ -766,7 +772,6 @@ const CAMERA_MARGIN = 1.1;
 const MIN_CAMERA_ZOOM = 0.65;
 const MAX_CAMERA_ZOOM = 12;
 const MANNEQUIN_YAW_SMOOTHING = 8;
-const CEILING_COVE_OFFSET = 0.35;
 const BACKYARD_ROOM_ID = 'backyard';
 const PENDING_SCENE_DETAIL_RELOAD_KEY =
   'portfolio::pending-scene-detail-reload-level';
@@ -1014,57 +1019,6 @@ const handleImmersiveFailure = (
 
   markDocumentReady('fallback', 'immersive-init-error');
 };
-
-const STAIRCASE_LANDING_THICKNESS = 0.38;
-const STAIRCASE_STEP_COUNT = 9;
-const STAIRCASE_STEP_RISE =
-  (UPPER_FLOOR_TOP_ELEVATION -
-    GROUND_FLOOR_TOP_ELEVATION -
-    STAIRCASE_LANDING_THICKNESS) /
-  STAIRCASE_STEP_COUNT;
-
-const STAIRCASE_CONFIG = {
-  name: 'LivingRoomStaircase',
-  basePosition: new Vector3(
-    toWorldUnits(6.2),
-    GROUND_FLOOR_TOP_ELEVATION,
-    toWorldUnits(-5.3)
-  ),
-  direction: 'negativeZ',
-  step: {
-    count: STAIRCASE_STEP_COUNT,
-    rise: STAIRCASE_STEP_RISE,
-    run: toWorldUnits(0.85),
-    width: toWorldUnits(3.1),
-    material: {
-      color: 0x708091,
-      roughness: 0.6,
-      metalness: 0.12,
-    },
-    colliderInset: toWorldUnits(0.05),
-  },
-  landing: {
-    depth: toWorldUnits(2.6),
-    thickness: STAIRCASE_LANDING_THICKNESS,
-    material: {
-      color: 0x5b6775,
-      roughness: 0.55,
-      metalness: 0.08,
-    },
-    colliderInset: toWorldUnits(0.05),
-    guard: {
-      height: 0.55,
-      thickness: toWorldUnits(0.14),
-      inset: toWorldUnits(0.07),
-      widthScale: 0.95,
-      material: {
-        color: 0x2c343f,
-        roughness: 0.7,
-        metalness: 0.05,
-      },
-    },
-  },
-} satisfies StaircaseConfig;
 
 const LIGHTING_OPTIONS = {
   enableLedStrips: true,
@@ -2111,6 +2065,12 @@ function initializeImmersiveScene(
     tvHitArea.renderOrder = tvBinding.glow.renderOrder + 1;
     mediaWall.group.add(tvHitArea);
     futuroptimistTvModelRoot = tvBinding.glow;
+    registerPoiVisualAnchor(
+      'futuroptimist-living-room-tv',
+      tvBinding.anchor,
+      'wall',
+      { replace: true }
+    );
 
     poiOverrides['futuroptimist-living-room-tv'] = {
       mode: 'display',
@@ -2994,6 +2954,7 @@ function initializeImmersiveScene(
       : groundStructureGroup
     ).add(group);
     registerPoiModelRoot(poi.definition.id, group);
+    registerPoiVisualAnchor(poi.definition.id, group, 'floor');
   };
   const getPoiColliderTarget = (poi: PoiInstance) =>
     getPoiFloorId(poi.definition) === 'upper'
@@ -3137,52 +3098,6 @@ function initializeImmersiveScene(
     }
   }
 
-  if (portfolioTablePoi) {
-    const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
-    if (!metadata) {
-      throw new Error(
-        'Missing physical metadata for danielsmith-portfolio-table.'
-      );
-    }
-    const miniaturePoiPlacements: MiniaturePoiPlacement[] = poiInstances.map(
-      (poi) => ({
-        id: poi.definition.id,
-        position: {
-          x: poi.group.position.x,
-          y: poi.group.position.y,
-          z: poi.group.position.z,
-        },
-        headingRadians: poi.group.rotation.y ?? 0,
-        floor: getPoiFloorId(poi.definition),
-        roomId: poi.definition.roomId,
-        footprint: poi.definition.footprint,
-        definition: poi.definition,
-        placementSource: 'resolved-live-poi',
-      })
-    );
-    const table = createPortfolioMiniatureTable({
-      position: {
-        x: portfolioTablePoi.group.position.x,
-        y: portfolioTablePoi.group.position.y,
-        z: portfolioTablePoi.group.position.z,
-      },
-      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
-      tableDetailPolicy: activeSceneDetailPolicy,
-      miniatureDetailPolicy: getMiniatureSceneDetailPolicy(
-        effectiveInitialQualityLevel
-      ),
-      poiDefinitions,
-      poiPlacements: miniaturePoiPlacements,
-    });
-    addPoiStructure(portfolioTablePoi, table.group);
-    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
-    namedColliderDebugNames.set(
-      table.collider,
-      'PortfolioMiniatureTableCollider'
-    );
-    portfolioMiniatureTable = table;
-  }
-
   if (sugarkubePoi) {
     const livingRoom = FLOOR_PLAN.rooms.find(
       (room) => room.id === 'livingRoom'
@@ -3269,6 +3184,64 @@ function initializeImmersiveScene(
     }
     addPoiStructure(prReaperPoi, console.group);
     prReaperConsole = console;
+  }
+
+  if (portfolioTablePoi) {
+    registerPoiVisualAnchor(
+      portfolioTablePoi.definition.id,
+      portfolioTablePoi.group,
+      'floor',
+      { replace: true }
+    );
+    const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
+    if (!metadata) {
+      throw new Error(
+        'Missing physical metadata for danielsmith-portfolio-table.'
+      );
+    }
+    const miniaturePoiPlacements: MiniaturePoiPlacement[] = poiInstances.map(
+      (poi) => {
+        const anchor = resolvePoiVisualAnchor(poi.definition.id);
+        if (!anchor && getPoiFloorId(poi.definition) === 'ground') {
+          throw new Error(
+            `Missing visual anchor for ground-floor miniature POI "${poi.definition.id}".`
+          );
+        }
+        const source = anchor?.worldPosition ?? poi.group.position;
+        return {
+          id: poi.definition.id,
+          position: { x: source.x, y: source.y, z: source.z },
+          headingRadians: anchor?.worldYaw ?? poi.group.rotation.y ?? 0,
+          floor: getPoiFloorId(poi.definition),
+          roomId: poi.definition.roomId,
+          footprint: poi.definition.footprint,
+          definition: poi.definition,
+          anchorKind: anchor?.kind ?? 'floor',
+          placementSource: 'visual-model-anchor',
+        };
+      }
+    );
+    const table = createPortfolioMiniatureTable({
+      position: {
+        x: portfolioTablePoi.group.position.x,
+        y: portfolioTablePoi.group.position.y,
+        z: portfolioTablePoi.group.position.z,
+      },
+      orientationRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      tableDetailPolicy: activeSceneDetailPolicy,
+      miniatureDetailPolicy: getMiniatureSceneDetailPolicy(
+        effectiveInitialQualityLevel
+      ),
+      poiDefinitions,
+      poiPlacements: miniaturePoiPlacements,
+    });
+    addPoiStructure(portfolioTablePoi, table.group);
+    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
+    namedColliderDebugNames.set(
+      table.collider,
+      'PortfolioMiniatureTableCollider'
+    );
+    portfolioMiniatureTable = table;
   }
 
   if (gitshelvesPoi) {
@@ -6934,6 +6907,7 @@ function initializeImmersiveScene(
     }
     sugarkubeDeployment = null;
     clearPoiModelRoots();
+    clearPoiVisualAnchors();
     prReaperConsole = null;
     gabrielSentry = null;
     gitshelvesInstallation = null;

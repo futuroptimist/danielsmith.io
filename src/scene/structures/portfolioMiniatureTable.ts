@@ -12,12 +12,7 @@ import {
   Vector3,
 } from 'three';
 
-import {
-  FLOOR_PLAN,
-  FLOOR_PLAN_LEVELS,
-  UPPER_FLOOR_PLAN,
-  getCombinedWallSegments,
-} from '../../assets/floorPlan';
+import { FLOOR_PLAN, FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
 import type { PortfolioMannequinPalette } from '../avatar/mannequin';
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../avatar/mannequin';
@@ -25,10 +20,10 @@ import {
   getSceneDetailPolicy,
   type SceneDetailPolicy,
 } from '../graphics/sceneDetailPolicy';
-import {
-  GROUND_FLOOR_TOP_ELEVATION,
-  UPPER_FLOOR_TOP_ELEVATION,
-} from '../level/floorElevations';
+import { GROUND_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
+import { generateWallSegmentInstances } from '../level/generateWalls';
+import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
+import { createRoomLedStrips } from '../lighting/ledStrips';
 import { getMiniaturePoiProxyDefinition } from '../miniature/poiProxyRegistry';
 import { buildMiniatureProxy } from '../miniature/proxyBuilder';
 import { MINIATURE_SCENE_COMPONENT_PROXIES } from '../miniature/sceneComponentRegistry';
@@ -36,7 +31,17 @@ import { getPoiPhysicalMetadata } from '../poi/physicalMetadata';
 import type { PoiDefinition, PoiFootprint, PoiId } from '../poi/types';
 
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from './portfolioMiniatureTableContract';
+import {
+  CEILING_COVE_OFFSET,
+  FENCE_HEIGHT,
+  FENCE_THICKNESS,
+  STAIRCASE_CONFIG,
+  WALL_HEIGHT,
+  WALL_THICKNESS,
+} from './portfolioSceneLayout';
+import { createStaircase } from './staircase';
 import { countObjectTriangles } from './triangleCount';
+import { createWallSegmentMeshes } from './wallSegmentsMesh';
 
 export interface MiniatureWorldTransform {
   worldOrigin: Readonly<Vector3>;
@@ -79,7 +84,8 @@ export interface MiniaturePoiPlacement {
   roomId: string;
   footprint: PoiFootprint;
   definition: PoiDefinition;
-  placementSource: 'resolved-live-poi' | 'poi-definition-fallback';
+  anchorKind: 'floor' | 'wall' | 'environment';
+  placementSource: 'visual-model-anchor';
 }
 
 export interface PortfolioMiniatureTableOptions {
@@ -88,7 +94,7 @@ export interface PortfolioMiniatureTableOptions {
   tableDetailPolicy?: SceneDetailPolicy;
   miniatureDetailPolicy?: SceneDetailPolicy;
   poiDefinitions: readonly PoiDefinition[];
-  poiPlacements?: readonly MiniaturePoiPlacement[];
+  poiPlacements: readonly MiniaturePoiPlacement[];
 }
 
 const ownedMaterials = new WeakSet<object>();
@@ -185,19 +191,15 @@ export function createPortfolioTableShell(
 }
 
 function floorEnvelope() {
-  const xs = [...FLOOR_PLAN.outline, ...UPPER_FLOOR_PLAN.outline].map(
-    ([x]) => x
-  );
-  const zs = [...FLOOR_PLAN.outline, ...UPPER_FLOOR_PLAN.outline].map(
-    ([, z]) => z
-  );
+  const xs = FLOOR_PLAN.outline.map(([x]) => x);
+  const zs = FLOOR_PLAN.outline.map(([, z]) => z);
   return {
     minX: Math.min(...xs),
     maxX: Math.max(...xs),
     minZ: Math.min(...zs),
     maxZ: Math.max(...zs),
     minY: GROUND_FLOOR_TOP_ELEVATION,
-    maxY: UPPER_FLOOR_TOP_ELEVATION + 2.4,
+    maxY: GROUND_FLOOR_TOP_ELEVATION + WALL_HEIGHT,
   };
 }
 
@@ -284,6 +286,17 @@ const getRoomMiniatureMaterialRole = (
   return 'groundFloor';
 };
 
+const getRoomCategory = (roomId: string) =>
+  FLOOR_PLAN.rooms.find((room) => room.id === roomId)?.category ?? 'interior';
+
+const getLevelFloor = (floorId: 'ground' | 'upper') => {
+  const floor = PORTFOLIO_LEVEL.floors.find(
+    (candidate) => candidate.id === floorId
+  );
+  if (!floor) throw new Error(`Missing portfolio floor definition: ${floorId}`);
+  return floor;
+};
+
 const createLedStripMaterial = () => {
   const material = new MeshBasicMaterial({
     color: MINIATURE_MATERIAL_COLORS.ledStrip,
@@ -293,35 +306,10 @@ const createLedStripMaterial = () => {
   return material;
 };
 
-const getPoiFloorId = (poi: PoiDefinition): 'ground' | 'upper' =>
-  (poi.position.y ?? GROUND_FLOOR_TOP_ELEVATION) >=
-  UPPER_FLOOR_TOP_ELEVATION - 0.1
-    ? 'upper'
-    : 'ground';
-
 const getPoiRoomBounds = (poi: PoiDefinition) =>
-  FLOOR_PLAN_LEVELS.flatMap((level) => level.plan.rooms).find(
-    (room) => room.id === poi.roomId
-  )?.bounds ?? null;
+  FLOOR_PLAN.rooms.find((room) => room.id === poi.roomId)?.bounds ?? null;
 
-export const createMiniaturePoiPlacementFromDefinition = (
-  definition: PoiDefinition
-): MiniaturePoiPlacement => ({
-  id: definition.id,
-  position: {
-    x: definition.position.x,
-    y: definition.position.y ?? GROUND_FLOOR_TOP_ELEVATION,
-    z: definition.position.z,
-  },
-  headingRadians: definition.headingRadians ?? 0,
-  floor: getPoiFloorId(definition),
-  roomId: definition.roomId,
-  footprint: definition.footprint,
-  definition,
-  placementSource: 'poi-definition-fallback',
-});
-
-function createArchitecture(detailPolicy: SceneDetailPolicy) {
+function createArchitecture() {
   const root = new Group();
   root.name = 'MiniatureArchitecture';
   const materials = {
@@ -422,99 +410,71 @@ function createArchitecture(detailPolicy: SceneDetailPolicy) {
     );
   }
 
-  for (const room of UPPER_FLOOR_PLAN.rooms) {
-    const { minX, maxX, minZ, maxZ } = room.bounds;
-    const y = UPPER_FLOOR_TOP_ELEVATION + 0.18;
-    const ghost = addBox(
-      root,
-      `MiniatureUpperFloor:${room.id}`,
-      [maxX - minX, 0.012, maxZ - minZ],
-      [(minX + maxX) / 2, y, (minZ + maxZ) / 2],
-      materials.upperFloorGhost
-    );
-    ghost.userData.floor = 'upper';
-    ghost.userData.materialRole = 'upperFloorGhost';
-    ghost.userData.filledFloorArea = (maxX - minX) * (maxZ - minZ);
-    ghost.userData.opaqueFilledFloor = false;
-    const rimY = y + 0.09;
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:north`,
-      [maxX - minX, 0.1, 0.12],
-      [(minX + maxX) / 2, rimY, minZ],
-      materials.upperFloorRim
-    );
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:south`,
-      [maxX - minX, 0.1, 0.12],
-      [(minX + maxX) / 2, rimY, maxZ],
-      materials.upperFloorRim
-    );
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:west`,
-      [0.12, 0.1, maxZ - minZ],
-      [minX, rimY, (minZ + maxZ) / 2],
-      materials.upperFloorRim
-    );
-    addBox(
-      root,
-      `MiniatureUpperFloorRim:${room.id}:east`,
-      [0.12, 0.1, maxZ - minZ],
-      [maxX, rimY, (minZ + maxZ) / 2],
-      materials.upperFloorRim
-    );
+  const wallInstances = generateWallSegmentInstances(getLevelFloor('ground'), {
+    coordinateScale: FLOOR_PLAN_SCALE,
+    baseElevation: GROUND_FLOOR_TOP_ELEVATION,
+    wallHeight: WALL_HEIGHT,
+    wallThickness: WALL_THICKNESS,
+    fenceHeight: FENCE_HEIGHT,
+    fenceThickness: FENCE_THICKNESS,
+    getRoomCategory,
+  });
+  const wallMeshes = createWallSegmentMeshes({
+    instances: wallInstances,
+    groupName: 'MiniatureGroundWallSegments',
+    getMaterial(instance) {
+      return instance.isFence ? materials.fence : materials.walls;
+    },
+  });
+  for (const mesh of wallMeshes.meshes) {
+    mesh.name = `MiniatureWall:${String(mesh.userData.levelSourceId)}`;
+    mesh.userData.materialRole = mesh.userData.isFence ? 'fence' : 'walls';
+    mesh.userData.floor = 'ground';
   }
+  root.add(wallMeshes.group);
 
-  const wallHeight = detailPolicy.detailIndex >= 3 ? 0.52 : 0.72;
-  for (const segment of getCombinedWallSegments(FLOOR_PLAN)) {
-    const cx = (segment.start.x + segment.end.x) / 2;
-    const cz = (segment.start.z + segment.end.z) / 2;
-    const length =
-      segment.orientation === 'horizontal'
-        ? Math.abs(segment.end.x - segment.start.x)
-        : Math.abs(segment.end.z - segment.start.z);
-    const size: [number, number, number] =
-      segment.orientation === 'horizontal'
-        ? [length, wallHeight, 0.14]
-        : [0.14, wallHeight, length];
-    const wall = addBox(
-      root,
-      'MiniatureWall:ground',
-      size,
-      [cx, wallHeight / 2 + 0.08, cz],
-      materials.walls
-    );
-    wall.userData.materialRole = 'walls';
-    const ledSize: [number, number, number] =
-      segment.orientation === 'horizontal'
-        ? [length, 0.05, 0.06]
-        : [0.06, 0.05, length];
-    const led = addBox(
-      root,
-      'MiniatureLedStrip:ground',
-      ledSize,
-      [cx, wallHeight + 0.13, cz],
-      materials.ledStrip
-    );
-    led.userData.materialRole = 'ledStrip';
-  }
+  const ledBuild = createRoomLedStrips({
+    plan: FLOOR_PLAN,
+    getRoomCategory,
+    ledHeight: WALL_HEIGHT - CEILING_COVE_OFFSET,
+    baseColor: 0x101623,
+    emissiveIntensity: 2.6,
+    fillLightIntensity: 0,
+    wallThickness: WALL_THICKNESS,
+  });
+  ledBuild.group.name = 'MiniatureGroundLedStrips';
+  ledBuild.group.traverse((object) => {
+    if (object instanceof Mesh) {
+      object.name = `MiniatureLedStrip:${object.name || object.uuid}`;
+      object.material = materials.ledStrip;
+      object.userData.materialRole = 'ledStrip';
+      object.userData.floor = 'ground';
+    }
+  });
+  root.add(ledBuild.group);
 
-  addBox(
-    root,
-    'MiniatureStaircase',
-    [1.2, UPPER_FLOOR_TOP_ELEVATION, 4.2],
-    [-6, UPPER_FLOOR_TOP_ELEVATION / 2, -2],
-    materials.stairs
-  );
-  addBox(
-    root,
-    'MiniatureUpperLanding',
-    [4, 0.08, 3],
-    [-6, UPPER_FLOOR_TOP_ELEVATION + 0.04, 0],
-    materials.landing
-  );
+  const staircase = createStaircase({
+    ...STAIRCASE_CONFIG,
+    name: 'MiniatureStaircase',
+    step: {
+      ...STAIRCASE_CONFIG.step,
+      material: { color: MINIATURE_MATERIAL_COLORS.stairs },
+    },
+    landing: {
+      ...STAIRCASE_CONFIG.landing,
+      material: { color: MINIATURE_MATERIAL_COLORS.landing },
+      guard: STAIRCASE_CONFIG.landing.guard
+        ? {
+            ...STAIRCASE_CONFIG.landing.guard,
+            material: { color: MINIATURE_MATERIAL_COLORS.walls },
+          }
+        : undefined,
+    },
+  });
+  staircase.group.traverse((object) => {
+    if (object instanceof Mesh) object.userData.floor = 'ground';
+  });
+  root.add(staircase.group);
   return root;
 }
 
@@ -630,50 +590,29 @@ export function createPortfolioMiniatureTable(
   content.name = 'MiniatureWorldContent';
   content.position.copy(transform.worldOrigin).multiplyScalar(-1);
   miniatureWorldRoot.add(content);
-  const architecture = createArchitecture(miniaturePolicy);
+  const architecture = createArchitecture();
   content.add(architecture);
 
   const sceneRoot = new Group();
   sceneRoot.name = 'MiniatureSceneComponentRoot';
   content.add(sceneRoot);
-  const sceneComponentPlacements = {
-    'component:lighting-visible-fixtures': { x: 0, y: 0.9, z: -2 },
-    'component:ceiling-panels': {
-      x: -6,
-      y: UPPER_FLOOR_TOP_ELEVATION + 0.45,
-      z: 5,
-    },
-    'component:greenhouse': { x: -16, y: GROUND_FLOOR_TOP_ELEVATION, z: 21 },
-    'component:media-wall-star-bridge': {
-      x: -10.5,
-      y: GROUND_FLOOR_TOP_ELEVATION,
-      z: -13.5,
-    },
-    'component:multiplayer-projection': {
-      x: 5,
-      y: GROUND_FLOOR_TOP_ELEVATION,
-      z: 7.5,
-    },
-  } as const;
   MINIATURE_SCENE_COMPONENT_PROXIES.forEach((definition) => {
-    const built = buildMiniatureProxy(definition, miniaturePolicy).root;
-    const placement =
-      sceneComponentPlacements[
-        definition.id as keyof typeof sceneComponentPlacements
-      ];
-    if (!placement) return;
-    built.name = definition.id;
-    built.position.set(placement.x, placement.y, placement.z);
-    sceneRoot.add(built);
+    if (
+      definition.id === 'component:ceiling-panels' ||
+      definition.id === 'component:lighting-visible-fixtures' ||
+      definition.id === 'component:media-wall-star-bridge'
+    ) {
+      return;
+    }
   });
 
   const poiRoot = new Group();
   poiRoot.name = 'MiniaturePoiRoot';
   content.add(poiRoot);
   let selfProxy: Object3D | null = null;
-  const miniaturePoiPlacements =
-    options.poiPlacements ??
-    options.poiDefinitions.map(createMiniaturePoiPlacementFromDefinition);
+  const miniaturePoiPlacements = options.poiPlacements.filter(
+    (poi) => poi.floor === 'ground'
+  );
   for (const poi of miniaturePoiPlacements) {
     const definition = getMiniaturePoiProxyDefinition(poi.id);
     if (!definition) continue;
@@ -692,7 +631,17 @@ export function createPortfolioMiniatureTable(
     const roomDepth = roomBounds ? roomBounds.maxZ - roomBounds.minZ : Infinity;
     const fittedTargetWidth = Math.min(targetWidth, roomWidth * 0.82);
     const fittedTargetDepth = Math.min(targetDepth, roomDepth * 0.82);
-    const proxyBounds = new Box3().setFromObject(built);
+    const proxyRoot = new Group();
+    proxyRoot.name =
+      poi.id === 'danielsmith-portfolio-table'
+        ? 'MiniatureSelfProxy'
+        : `MiniaturePoi:${poi.id}`;
+    const contentGroup = new Group();
+    contentGroup.name = `${proxyRoot.name}:Content`;
+    proxyRoot.add(contentGroup);
+    built.name = `${proxyRoot.name}:Model`;
+    contentGroup.add(built);
+    const proxyBounds = new Box3().setFromObject(contentGroup);
     const proxySize = proxyBounds.getSize(new Vector3());
     const footprintScale = Math.min(
       fittedTargetWidth / Math.max(proxySize.x, 0.001),
@@ -701,24 +650,35 @@ export function createPortfolioMiniatureTable(
         Math.max(proxySize.y, 0.001)
     );
     if (poi.id !== 'danielsmith-portfolio-table') {
-      built.scale.setScalar(
-        Math.max(1.6, Math.min(footprintScale * 0.72, 3.4))
-      );
+      const fitScale = Math.min(footprintScale * 0.92, 2.2);
+      contentGroup.scale.setScalar(Math.max(0.01, fitScale));
     }
-    built.position.set(poi.position.x, poi.position.y, poi.position.z);
-    built.rotation.y = poi.headingRadians;
-    built.userData.placementSource = poi.placementSource;
-    built.userData.sourceWorldPosition = {
+    const scaledBounds = new Box3().setFromObject(contentGroup);
+    contentGroup.position.sub(
+      new Vector3(
+        (scaledBounds.min.x + scaledBounds.max.x) / 2,
+        scaledBounds.min.y,
+        (scaledBounds.min.z + scaledBounds.max.z) / 2
+      )
+    );
+    if (poi.anchorKind === 'wall') {
+      contentGroup.position.z += fittedTargetDepth / 2;
+    }
+    proxyRoot.position.set(poi.position.x, poi.position.y, poi.position.z);
+    proxyRoot.rotation.y = poi.headingRadians;
+    proxyRoot.userData.placementSource = poi.placementSource;
+    proxyRoot.userData.sourceWorldPosition = {
       x: poi.position.x,
       y: poi.position.y,
       z: poi.position.z,
     };
-    built.userData.roomId = poi.roomId;
-    built.userData.floor = poi.floor;
-    built.userData.fittedTargetWidth = fittedTargetWidth;
-    built.userData.fittedTargetDepth = fittedTargetDepth;
-    poiRoot.add(built);
-    if (poi.id === 'danielsmith-portfolio-table') selfProxy = built;
+    proxyRoot.userData.roomId = poi.roomId;
+    proxyRoot.userData.floor = poi.floor;
+    proxyRoot.userData.anchorKind = poi.anchorKind;
+    proxyRoot.userData.fittedTargetWidth = fittedTargetWidth;
+    proxyRoot.userData.fittedTargetDepth = fittedTargetDepth;
+    poiRoot.add(proxyRoot);
+    if (poi.id === 'danielsmith-portfolio-table') selfProxy = proxyRoot;
   }
   if (!selfProxy)
     throw new Error(

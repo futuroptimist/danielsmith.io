@@ -68,8 +68,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 2,
-    syncNote: 'Initial iconic television and media console proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Tracks the explicit media-wall visual anchor used by the tabletop miniature.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -404,13 +405,14 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Outer exhibit now contains the complete interactive miniature; inner proxy intentionally reuses only the nonrecursive white table shell.',
+      'Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',
       'src/scene/structures/portfolioMiniatureTableContract.ts',
+      'src/scene/structures/portfolioSceneLayout.ts',
     ],
     proxyFiles: [SELF_FILE, 'src/scene/structures/portfolioMiniatureTable.ts'],
     primitives: [
