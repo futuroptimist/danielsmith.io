@@ -25,6 +25,24 @@ IK libraries, or recursive miniature behavior.
 - Shared dimensions: `WALL_HEIGHT = 6` and `CEILING_COVE_OFFSET = 0.35` live in
   `src/scene/structures/portfolioSceneLayout.ts`; LED strips mount at
   `WALL_HEIGHT - CEILING_COVE_OFFSET`.
+- Deterministic procedural precedent: `src/scene/structures/tokenPlaceWorkstation.ts`
+  defines a local `mulberry32(seed)` helper, threads the returned random source into
+  row/glyph generation, and stores the generated terminal pattern as state. P5b-P5e
+  should mirror the seeded-stream shape but expose the PR Reaper random source through
+  the builder contract for tests.
+- Procedural structure/detail precedent: `src/scene/structures/sugarkubeDeployment.ts`
+  builds named Groups/Meshes, varies geometry/detail counts by `SceneDetailPolicy`,
+  creates rotation-aware factory colliders, and animates owned emissive materials. It
+  does not currently expose a `dispose()` method, so PR Reaper disposal must follow
+  the stricter ownership contract below rather than copying that omission.
+- Emissive/bloom precedent: `src/scene/lighting/ledStrips.ts` creates room-owned
+  emissive strip materials, fill lights, and seasonal lighting targets. The PR Reaper
+  laser should adapt the cool emissive/additive visual language without registering
+  its beam materials or state in the room LED-strip arrays.
+- Footprint/collider metadata: `src/scene/poi/physicalMetadata.ts` records POI
+  `intendedSceneBounds`, bottom-center anchors, and clearance expectations where
+  needed. `src/tests/sceneObjectColliderPolicies.test.ts` verifies migrated factory
+  colliders register with scene-object metadata and purpose `factory-colliders`.
 - Detail policy: `src/scene/graphics/sceneDetailPolicy.ts` defines five internal
   levels: Cinematic, Balanced, Performance, Low, and Micro.
 - Miniature: `poiProxyRegistry.ts`, `sceneComponentRegistry.ts`,
@@ -288,9 +306,13 @@ const z = PR_REAPER_SCREEN_PLANE_Z + 0.012;
 ### Deterministic randomness and 3:1 ratio
 
 Randomness must be injectable and deterministic. Follow existing seeded-solver
-patterns documented in `docs/architecture/poi-placement.md`; expose a small
+patterns documented in `docs/architecture/poi-placement.md` and the `mulberry32`
+usage in `src/scene/structures/tokenPlaceWorkstation.ts`; expose a small
 repository-native PRNG such as `createSeededRandom(seed: string): () => number`.
-Do not call `Math.random()` in the animation loop.
+Do not call `Math.random()` in the animation loop. The runtime default is
+`createSeededRandom(seed ?? 'pr-reaper-holographic-reaper:v1')`; tests may pass
+`random` directly. When both `random` and `seed` are provided, `random` wins and
+`seed` is retained only for debug-state labeling.
 
 Spawn order is an infinite sequence of shuffled batches containing exactly:
 
@@ -593,11 +615,14 @@ interface PrReaperInstallationBuild {
   dispose(): void;
 }
 
+type PrReaperRandomSource = () => number;
+
 interface PrReaperInstallationOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
   detailPolicy: SceneDetailPolicy;
   seed?: string | number;
+  random?: PrReaperRandomSource;
 }
 ```
 
@@ -605,7 +630,9 @@ Integration requirements:
 
 - Replace the old console builder in `main.ts` but keep `addPoiStructure(...)` so
   model roots, triangle metrics, and visual anchors remain registered.
-- Pass `detailPolicy: activeSceneDetailPolicy` and use quality-triggered reloads
+- Pass `detailPolicy: activeSceneDetailPolicy`. Runtime may pass only `seed`; tests may
+  inject `random?: PrReaperRandomSource` to assert exact streams/bursts while leaving
+  production on the documented seeded generator. Use quality-triggered reloads
   to rebuild the installation at the new policy. Since scene detail changes
   already reload/recompose the immersive scene, no in-place policy mutation is
   required.
@@ -637,28 +664,38 @@ stream simulation, call the PRNG, or include recursive behavior. Proxy contents:
 - optional short green beam hint.
 
 For P5b-P5e, update the `pr-reaper-backyard-console` entry in
-`src/scene/miniature/poiProxyRegistry.ts`:
+`src/scene/miniature/poiProxyRegistry.ts` and keep its manifest in sync:
 
-- rename display note from console to holographic reaper installation;
-- include these `sourceFiles` at minimum:
-  - `src/scene/poi/registry.ts`
-  - `src/scene/poi/placements.ts`
-  - `src/scene/poi/constants.ts`
-  - `src/scene/poi/physicalMetadata.ts` if footprint/height metadata is added;
-  - `src/scene/level/portfolioLevel.ts` if scene-object footprint/purpose changes;
-  - `src/scene/structures/portfolioSceneLayout.ts` for wall/cove constants;
-  - `src/scene/structures/prReaperConsole.ts` or the renamed installation file;
-  - any new PR Reaper stream/kinematics module created in P5c/P5d;
-  - `src/scene/graphics/sceneDetailPolicy.ts` if proxy detail thresholds depend on it.
-- bump `syncRevision` every time source geometry semantics change:
-  - P5b: `3`, static hologram/projector/robot proxy;
-  - P5c: `4`, add static 3-red/1-green stream hints if not already present;
-  - P5d: `5`, add beam/tool-flange silhouette;
-  - P5e: `6`, final footprint/accessibility/performance sync if source files or proxy
-    details changed.
-- run `npm run miniature:manifest:update` in implementation PRs that touch the
-  proxy, then commit the generated manifest. P5a does not touch it because this
-  PR is documentation-only.
+- Rename the display note from console to holographic reaper installation.
+- Treat `sourceFiles` as the explicit dependency list for the proxy's geometry and
+  semantics. Include these entries when the corresponding implementation PR lands:
+  - Always for P5b+: `src/scene/poi/registry.ts`, `src/scene/poi/placements.ts`,
+    `src/scene/poi/constants.ts`, `src/scene/level/portfolioLevel.ts`,
+    `src/scene/structures/portfolioSceneLayout.ts`, and the implementation file
+    (`src/scene/structures/prReaperConsole.ts` until renamed, then the renamed PR
+    Reaper installation file). `portfolioSceneLayout.ts` is required because the
+    proxy's 9:21 screen proportions and cove clearance depend on wall/cove constants.
+  - P5b if added/changed: `src/scene/poi/physicalMetadata.ts` for footprint,
+    intended bounds, marker height, or avatar clearance metadata.
+  - P5c when split out: any new PR Reaper stream/random module that defines the
+    3-red/1-green hint semantics. If the stream remains in the main installation
+    file, do not add a nonexistent path.
+  - P5d when split out: any new PR Reaper arm/kinematics/laser/burst module that
+    defines the tool-flange or beam silhouette. If these stay in the main
+    installation file, do not add a nonexistent path.
+  - P5e if thresholds influence proxy geometry: `src/scene/graphics/sceneDetailPolicy.ts`.
+- Bump `syncRevision` in the same PR as each semantic proxy change:
+  - P5b: `3` for static hologram/projector/robot proxy, footprint, and screen
+    proportions.
+  - P5c: `4` for static 3-red/1-green stream hints and any stream sourceFiles.
+  - P5d: `5` for beam/tool-flange silhouette and any kinematics/laser sourceFiles.
+  - P5e: `6` only when final footprint/accessibility/performance hardening changes
+    proxy geometry, sourceFiles, or detail semantics; otherwise leave it at the
+    latest already-applied revision.
+- After any implementation PR touches the proxy or its `sourceFiles`, run
+  `npm run miniature:manifest:update` and commit the generated manifest changes in
+  that same implementation PR. P5a does not touch the proxy or generated manifest
+  because this PR is documentation-only.
 
 ## Testing matrix
 
