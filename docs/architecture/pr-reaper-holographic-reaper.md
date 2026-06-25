@@ -250,41 +250,39 @@ center point that the robot can transform into arm-base space.
 
 ```ts
 type PrReaperCircleType = 'red' | 'green';
-type PrReaperCircleLifecycle = 'active' | 'reaped' | 'expired';
-type PrReaperTargetState =
-  | 'none'
-  | 'assigned'
-  | 'firing'
-  | 'burst'
-  | 'complete';
+type PrReaperCircleLifecycle = 'active' | 'expired';
 
 interface PrReaperCircleState {
   id: number;
-  batchId: number;
   type: PrReaperCircleType;
   normalizedX: number; // 0 left edge, 1 right edge within safe margins
   progress: number; // 0 just above screen, 1 below screen
-  spawnTime: number;
-  activeFrom: number;
+  center: { x: number; y: number; z: number };
+  spawnedAt: number;
+  expiresAt: number;
   lifecycle: PrReaperCircleLifecycle;
-  targetState: PrReaperTargetState;
-  reapedAt?: number;
-  expiredAt?: number;
 }
 ```
+
+P5c implements this in `src/scene/structures/prReaperStream.ts` with
+`createPrReaperStream(...)`, `advancePrReaperStream(...)`,
+`createPrReaperSeededRandom(...)`, and `getDebugState()`. Target ownership,
+reaped states, laser firing, and burst states stay out of the stream until P5d.
 
 Constants:
 
 ```ts
-const PR_REAPER_CIRCLE_RADIUS = 0.115;
-const PR_REAPER_CIRCLE_MARGIN_X =
-  PR_REAPER_CIRCLE_RADIUS / PR_REAPER_SCREEN_WIDTH;
+const PR_REAPER_CIRCLE_RADIUS = PR_REAPER_SCREEN_WIDTH * 0.055;
+const PR_REAPER_STREAM_HORIZONTAL_MARGIN = PR_REAPER_SCREEN_WIDTH * 0.045;
 const PR_REAPER_STREAM_START_Y =
-  PR_REAPER_SCREEN_HEIGHT + PR_REAPER_CIRCLE_RADIUS;
-const PR_REAPER_STREAM_END_Y = -PR_REAPER_CIRCLE_RADIUS;
-const PR_REAPER_DESCENT_SECONDS = 7.2;
-const PR_REAPER_SPAWN_INTERVAL_MIN = 0.5;
-const PR_REAPER_SPAWN_INTERVAL_MAX = 1.5;
+  PR_REAPER_SCREEN_BOTTOM_Y + PR_REAPER_SCREEN_HEIGHT + PR_REAPER_CIRCLE_RADIUS;
+const PR_REAPER_STREAM_END_Y =
+  PR_REAPER_SCREEN_BOTTOM_Y - PR_REAPER_CIRCLE_RADIUS;
+const PR_REAPER_STREAM_DESCENT_DURATION_SECONDS = 5.2;
+const PR_REAPER_STREAM_INTERVAL_MIN_SECONDS = 0.5;
+const PR_REAPER_STREAM_INTERVAL_MAX_SECONDS = 1.5;
+const PR_REAPER_STREAM_CATCH_UP_SPAWN_CAP = 8;
+const PR_REAPER_PR_CIRCLE_POOL_SIZE = 14;
 ```
 
 Mapping from normalized state to screen-local center:
@@ -300,7 +298,7 @@ const y = MathUtils.lerp(
   PR_REAPER_STREAM_END_Y,
   progress
 );
-const z = PR_REAPER_SCREEN_PLANE_Z + 0.012;
+const z = PR_REAPER_SCREEN_PLANE_Z + 0.018;
 ```
 
 ### Deterministic randomness and 3:1 ratio
@@ -321,8 +319,8 @@ Spawn order is an infinite sequence of shuffled batches containing exactly:
 ```
 
 Shuffling is deterministic per batch. The 3:1 ratio applies to the spawned
-candidate stream, not the visible active set, because red candidates disappear
-early after reaping while green candidates continue descending.
+candidate stream, not the visible active set. In P5c both red and green
+candidates simply descend and expire; red candidates do not disappear early.
 
 For each candidate:
 
@@ -333,21 +331,19 @@ For each candidate:
 
 ### Pooling and active-count calculation
 
-Worst case no red is reaped and all circles live for `DESCENT_SECONDS` plus one
-spawn interval. At the minimum `0.5s` interval:
+Worst case all circles live for `PR_REAPER_STREAM_DESCENT_DURATION_SECONDS` plus
+one spawn interval. At the minimum `0.5s` interval:
 
 ```ts
-const PR_REAPER_MAX_ACTIVE_CIRCLES =
-  Math.ceil(
-    (PR_REAPER_DESCENT_SECONDS + PR_REAPER_SPAWN_INTERVAL_MAX) /
-      PR_REAPER_SPAWN_INTERVAL_MIN
-  ) + 2;
-// ceil(8.7 / 0.5) + 2 = 20
+const PR_REAPER_MAX_ACTIVE_CIRCLES = PR_REAPER_PR_CIRCLE_POOL_SIZE; // 14
 ```
 
-Preallocate at least 20 circle meshes and 4 pending burst slots. Per frame, update
-mesh transforms/material opacity only; do not allocate new meshes, arrays,
-materials, geometries, colors, or vectors in the hot path.
+P5c preallocates 14 circle meshes. After a suspended-tab jump the pure stream
+advances at most `PR_REAPER_STREAM_CATCH_UP_SPAWN_CAP` spawns in one call,
+records the capped event in debug state, and schedules the next deterministic
+interval from the current simulation time. Normal frame deltas are not capped.
+Per frame, update mesh transforms/material opacity only; do not allocate new
+meshes, arrays, materials, geometries, colors, or vectors in the hot path.
 
 ## Reaping state machine
 
@@ -563,16 +559,15 @@ particle dynamic lights.
 ## Detail policies and budgets
 
 Semantic stream and exact 3:1 candidate ratio are preserved at all levels.
-Performance reductions affect visual fidelity and update cadence, never candidate
-correctness.
+Performance reductions affect visual fidelity only, never candidate correctness.
 
-| Level       | Screen/frame                                                        | Circles   | Laser               | Burst particles          | Decorative details        | Target budget              |
-| ----------- | ------------------------------------------------------------------- | --------- | ------------------- | ------------------------ | ------------------------- | -------------------------- |
-| Cinematic   | 64 segment circles, translucent pane, frame ribs, projector accents | 20 pooled | core + 2 halos      | 96 x 4 slots             | cables, bolts, glow rings | ~3.8k tris / 18 draw calls |
-| Balanced    | same structure, fewer ribs                                          | 20 pooled | core + 1 halo       | 64 x 4                   | fewer accents             | ~2.6k tris / 15 draw calls |
-| Performance | 10-16 segment circles                                               | 20 pooled | core + 1 cheap halo | 32 x 3                   | no cables                 | ~1.2k tris / 10 draw calls |
-| Low         | 8 segment circles                                                   | 20 pooled | core only           | 16 x 2, half-rate update | minimal base/screen/arm   | ~650 tris / 7 draw calls   |
-| Micro       | octagonal discs or tiny planes                                      | 20 pooled | one line/box hint   | 8 x 1, coarse update     | no accents                | ~300 tris / 5 draw calls   |
+| Level       | Screen/frame                                                        | Circles   | Laser           | Burst particles | Decorative details      | Target budget              |
+| ----------- | ------------------------------------------------------------------- | --------- | --------------- | --------------- | ----------------------- | -------------------------- |
+| Cinematic   | 32 segment circles, translucent pane, frame ribs, projector accents | 14 pooled | hidden/inactive | inactive        | bolts, glow rings       | P5c pool plus P5b shell    |
+| Balanced    | 32 segment circles, fewer ribs                                      | 14 pooled | hidden/inactive | inactive        | fewer accents           | P5c pool plus P5b shell    |
+| Performance | 10 segment circles                                                  | 14 pooled | hidden/inactive | inactive        | no cables               | lower circle triangle cost |
+| Low         | 6 segment circles                                                   | 14 pooled | hidden/inactive | inactive        | minimal base/screen/arm | lower circle triangle cost |
+| Micro       | 3 segment discs                                                     | 14 pooled | hidden/inactive | inactive        | no accents              | lowest circle cost         |
 
 Use `detailPolicy.geometry.*` segment counts and `detailPolicy.effects.*` to
 select primitives. Do not skip candidates, avoid lowering spawn frequency, and do
