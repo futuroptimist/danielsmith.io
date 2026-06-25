@@ -313,11 +313,11 @@
       "id": "audit:src:scene:poi:physicalMetadata",
       "sourceFiles": ["src/scene/poi/physicalMetadata.ts"],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Audited support source; danielsmith.io physical table bounds now feed the complete miniature exhibit contract.",
-      "sourceFingerprint": "7bf9fbeb5c995cf0c98ef9e572a6d510c56b22a294b276d58b325298b8b5e1c0",
+      "syncRevision": 4,
+      "syncNote": "Audited support source; PR Reaper real-world and scene bounds feed the holographic installation contract.",
+      "sourceFingerprint": "3dff024beb0c6c3854de3fbd5539efa7d2689508151b6de29a2b04ff29682d53",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "3b2d074baa0ab1f62d49a68ba5acda2da9d3fdeb8f77131baa6a3466f2dfdb4a"
+      "metadataFingerprint": "831d037a6dfc5517eab5fe137afcea99926f69c135ce81de30f2e36574118658"
     },
     {
       "id": "audit:src:scene:poi:structuredData",
@@ -432,7 +432,7 @@
       "syncRevision": 1,
       "syncNote": "Ceiling panel fixtures need simplified caps in the tabletop.",
       "sourceFingerprint": "ebd5f2e8ef4522745c486e0fe00d2a9c9b59067c82e0f73e807082f3af3cbcd5",
-      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
+      "proxyFingerprint": "c068247d2b52aa676b5041db1ece0e71885a3b84d29d55f3c6ab7c3d0a1230bc",
       "metadataFingerprint": "73cc34b6ec09ede01419bf028fe4d2a8e6b227520c61098398daaa25ffe91566"
     },
     {
@@ -499,7 +499,7 @@
       "syncRevision": 1,
       "syncNote": "Visible LED strips are represented as simplified fixture strips; invisible light contribution is excluded.",
       "sourceFingerprint": "db5e4dc8734e2a2b560bdfac3c8471286095c02bc2480c2a943a2b96552a719e",
-      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
+      "proxyFingerprint": "c068247d2b52aa676b5041db1ece0e71885a3b84d29d55f3c6ab7c3d0a1230bc",
       "metadataFingerprint": "c45e7bcebfe889f25d2582d69cefd5b716828079c769b454f959b3d2fcfc98f6"
     },
     {
@@ -514,7 +514,7 @@
       "syncRevision": 2,
       "syncNote": "Initial navigation tracker proxy.",
       "sourceFingerprint": "2523053b0c36ecf488b8958b2aefdfe510a469b94073c13ef89c7344b293f449",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "5c025a10db2b646052246f42e1ea122dc454f20053b140d4e149bba192d381f2"
     },
     {
@@ -534,7 +534,7 @@
       "syncRevision": 3,
       "syncNote": "Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.",
       "sourceFingerprint": "f3224bd72648712468b48742c93e12e32b2a2c114b7dc8a2a19f40791885e674",
-      "proxyFingerprint": "a9a3a788a61a8f0bbac010ded3d87532de8fb680cd74e12f8c4be806dee560e1",
+      "proxyFingerprint": "de0543525cafd5b9dbf32f0c027216609ec4126d9a3c1ff16f7333a35a219dfc",
       "metadataFingerprint": "1d21e34769e8710485c27e83cb91e841a1b751619ea1057bb3f0a90f36138aeb"
     },
     {
@@ -549,7 +549,7 @@
       "syncRevision": 2,
       "syncNote": "Initial launch pad proxy.",
       "sourceFingerprint": "19ae99baded8b946e540675593cd1a6ac9fc556aadc93a432a48bdcfbae5c726",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "b6b4dfc4f81ccbedeba8705343a274095f8ef1fac44093e1fedf490988a3d454"
     },
     {
@@ -564,7 +564,7 @@
       "syncRevision": 2,
       "syncNote": "Initial clipboard console proxy.",
       "sourceFingerprint": "54f1b0c07be4535a39320cb19dc9654b500564c97d1c91568183ebf1a064a722",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "6a942b9f7decdd3e7a50407dace32c83e267574a14641816429a830f602ec965"
     },
     {
@@ -579,7 +579,7 @@
       "syncRevision": 2,
       "syncNote": "Initial flywheel dais proxy.",
       "sourceFingerprint": "fbb941d6d53531f34411ce1f0bbb2c6c37d35d0026ad28a331782bbc475a681b",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "105e66ec74e117fd8934591444a19a86c0572e1036cea73652712680c0c1f92e"
     },
     {
@@ -594,7 +594,7 @@
       "syncRevision": 3,
       "syncNote": "Tracks the explicit media-wall visual anchor used by the tabletop miniature.",
       "sourceFingerprint": "0d1e07452a03d215e58899c745faab99285d01cf7623bccd5a5096c7d4d02ac8",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "72267991166e4246f3dfb2241ca7a6efdd1786e634e788716c1c6cb2265f42fa"
     },
     {
@@ -609,7 +609,7 @@
       "syncRevision": 2,
       "syncNote": "Initial sentry proxy.",
       "sourceFingerprint": "69c4c8b64bfb00268fa2746717eb4ea62745652d9795f93a648fa831b009a338",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "7307ac42863c1f00123667b5101a75ed47133ae16bbe37a809db4f44efde3b35"
     },
     {
@@ -624,7 +624,7 @@
       "syncRevision": 2,
       "syncNote": "Initial shelves proxy.",
       "sourceFingerprint": "d5f0cecea0a5c76d245008d817be55c68cd349a88aee54787e895704f3f79791",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "25db9c30cffd2cb26f53dd6a486b5da9cd239d1994ca08e76d0313e72b53ac17"
     },
     {
@@ -639,7 +639,7 @@
       "syncRevision": 2,
       "syncNote": "Initial desk terminal proxy.",
       "sourceFingerprint": "0d4ea9a3c14cd1e9e655d5afd269fcfc89c3ec9e0fc252298551a2814fcef58a",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "e88588340bbbc9cabfc609074f366a183d06c0612bfa3bf0e1bb4974c45e960c"
     },
     {
@@ -662,14 +662,15 @@
         "src/scene/poi/constants.ts",
         "src/scene/poi/placements.ts",
         "src/scene/poi/registry.ts",
-        "src/scene/structures/prReaperConsole.ts"
+        "src/scene/structures/prReaperConsole.ts",
+        "src/scene/structures/prReaperInstallationContract.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial console proxy.",
-      "sourceFingerprint": "33903520b641869ca72eb13ad751bd63783b14b9f23d19d8e5cdfabc02a6f87e",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
-      "metadataFingerprint": "c574e398db38c9a1312f9c2947eeda5134b0b6af2eb7b83f6afcb7beec37adda"
+      "syncRevision": 4,
+      "syncNote": "Static hologram/projector/robot silhouette tracks the finalized P5b geometry and bounds contract.",
+      "sourceFingerprint": "8a5634e4c271679cbf3327cc4a6f33e4b6717a3d0fbbc1668f5633fde5f843a3",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
+      "metadataFingerprint": "6992dddb09bb78c6fdc8a7c4eff857459bb4f7820789a461583be6155626476a"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -683,7 +684,7 @@
       "syncRevision": 2,
       "syncNote": "Initial workbench proxy.",
       "sourceFingerprint": "c767d4203bb1a14daca5c3d4c71fbf93d4ac2d2a1ba3e9100282cad42e75824d",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "140a284a69bc87980c4f23a392bd1443b5bc0b07d0218283a759d41ea8304755"
     },
     {
@@ -698,7 +699,7 @@
       "syncRevision": 2,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
       "sourceFingerprint": "3a25a204460464aea5db201dd46695a123b8472ad3b1552c4ac450ff6d5ddc75",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "17f75919aefb4f157b4531af581f3c89661f599e2bfdd160c9a5233ad17a8f5d"
     },
     {
@@ -713,7 +714,7 @@
       "syncRevision": 2,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
       "sourceFingerprint": "097dc94d76133cef2566868c4ebe25c536f264d0f901d8153b25a8e2e5699766",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "5c533bce1d7817805ce4afd0df758d534529e7e441e8823ead1acfb5b43b97a6"
     },
     {
@@ -728,7 +729,7 @@
       "syncRevision": 2,
       "syncNote": "Initial loom proxy.",
       "sourceFingerprint": "66cf5c6ba351bcf3ef95b01432f4172ccde8b4fec7f210ef22cc9c21264eca75",
-      "proxyFingerprint": "c7f3f067630f50b53e9c3c2a5b4b3cc34d84b703c641e63d6e369de049dc432a",
+      "proxyFingerprint": "734f11a8bb4e881ee9114d366087da149da368e2ce6a4fae5d144e60ee7bea18",
       "metadataFingerprint": "6c433ed18b1d434b7e3a183f3ff6ef22d28e28157e60c79ab7a9bc005f734a7c"
     },
     {
@@ -738,7 +739,7 @@
       "syncRevision": 1,
       "syncNote": "Greenhouse shell and visible planters are represented by simplified proxy geometry.",
       "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
-      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
+      "proxyFingerprint": "c068247d2b52aa676b5041db1ece0e71885a3b84d29d55f3c6ab7c3d0a1230bc",
       "metadataFingerprint": "fc6531df64c47d676958fcc5b51888d9c48fe33484b658d70841deb5f8888986"
     },
     {
@@ -748,7 +749,7 @@
       "syncRevision": 1,
       "syncNote": "Media wall star bridge visible spans are represented by simplified proxy geometry.",
       "sourceFingerprint": "04d2cedb3edec666eb4aca08bf1ec62e8e9bbd9f421ec67d2960b759dd8e24b4",
-      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
+      "proxyFingerprint": "c068247d2b52aa676b5041db1ece0e71885a3b84d29d55f3c6ab7c3d0a1230bc",
       "metadataFingerprint": "492f0a9f355b44bea11a40f10baedbaf8cc02b767a9917b622a52f6f0f538232"
     },
     {
@@ -758,7 +759,7 @@
       "syncRevision": 1,
       "syncNote": "Multiplayer projection visible screen and plinth are represented by simplified proxy geometry.",
       "sourceFingerprint": "04676c6f3d637192e62e0f52bb16b33f9231b1db56ec08d77e2878ec397a47c7",
-      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
+      "proxyFingerprint": "c068247d2b52aa676b5041db1ece0e71885a3b84d29d55f3c6ab7c3d0a1230bc",
       "metadataFingerprint": "f064a0716c5538bdeaff7d47d54dcc2a0a2b97d0403e6000496ce505524f4608"
     }
   ]
