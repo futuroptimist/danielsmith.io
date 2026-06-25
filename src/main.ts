@@ -1087,6 +1087,11 @@ let axelNavigator: AxelNavigatorBuild | null = null;
 let tokenPlaceWorkstation: TokenPlaceWorkstationBuild | null = null;
 let sugarkubeDeployment: SugarkubeDeploymentBuild | null = null;
 let portfolioMiniatureTable: PortfolioMiniatureTableBuild | null = null;
+
+function disposePortfolioMiniatureTableBuild() {
+  portfolioMiniatureTable?.dispose();
+  portfolioMiniatureTable = null;
+}
 let prReaperConsole: PrReaperConsoleBuild | null = null;
 let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
@@ -1699,6 +1704,7 @@ function initializeImmersiveScene(
     lowFpsRecoveryMonitor?.reset();
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
+    disposePortfolioMiniatureTableBuild();
     clearPoiModelRoots();
     clearPoiVisualAnchors();
     if (renderer.domElement.parentElement === container) {
@@ -6975,10 +6981,7 @@ function initializeImmersiveScene(
       tokenPlaceWorkstation.dispose();
       tokenPlaceWorkstation = null;
     }
-    if (portfolioMiniatureTable) {
-      portfolioMiniatureTable.dispose();
-      portfolioMiniatureTable = null;
-    }
+    disposePortfolioMiniatureTableBuild();
     sugarkubeDeployment = null;
     clearPoiModelRoots();
     clearPoiVisualAnchors();
