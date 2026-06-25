@@ -364,9 +364,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'Audited support source; danielsmith.io physical table bounds now feed the complete miniature exhibit contract.',
+      'Audited support source; PR Reaper installation bounds now feed physical metadata while POI proxy geometry covers the silhouette.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',

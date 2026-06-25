@@ -1,4 +1,8 @@
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
+import {
+  PR_REAPER_INTENDED_BOUNDS,
+  PR_REAPER_SCREEN_TOP_Y,
+} from '../structures/prReaperInstallationContract';
 
 import type { PoiId } from './types';
 
@@ -64,6 +68,22 @@ const physicalMetadata = {
     clearances: {
       markerMinHeight:
         PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.intendedSceneBounds.height,
+      avatarPathRadius: 1.15,
+    },
+  },
+
+  'pr-reaper-backyard-console': {
+    realWorldReference:
+      'holographic PR triage screen with projector and two-axis robot arm',
+    realWorldDimensionsMeters: {
+      width: 1.2,
+      depth: 2.1,
+      height: 2.4,
+    },
+    intendedSceneBounds: PR_REAPER_INTENDED_BOUNDS,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: PR_REAPER_SCREEN_TOP_Y + 0.35,
       avatarPathRadius: 1.15,
     },
   },

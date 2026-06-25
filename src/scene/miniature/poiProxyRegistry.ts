@@ -384,20 +384,53 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
   'pr-reaper-backyard-console': {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
-    displayName: 'PR Reaper console proxy',
-    syncRevision: 2,
-    syncNote: 'Initial console proxy.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/prReaperConsole.ts'],
+    displayName: 'PR Reaper holographic reaper installation proxy',
+    syncRevision: 3,
+    syncNote:
+      'Tracks the static holographic screen, projector, and two-axis robot installation silhouette.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/prReaperInstallationContract.ts',
+      'src/scene/structures/prReaperConsole.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      box('reaper-console', [1.1, 0.45, 0.65], [0, 0.28, 0], 0x1f2937),
       box(
-        'reaper-scythe-screen',
-        [0.72, 0.42, 0.05],
-        [0, 0.74, -0.18],
-        0x7f1d1d
+        'reaper-projector-base',
+        [0.56, 0.12, 0.24],
+        [0, 0.06, -0.03],
+        0x1f2937
       ),
-      cyl('reaper-review-dial', 0.18, 0.08, [0.38, 0.55, 0.12], 0xf97316),
+      box(
+        'reaper-blue-hologram-screen',
+        [0.5, 1.16, 0.03],
+        [0, 0.72, 0],
+        0x38bdf8
+      ),
+      sphere('reaper-red-pr-hint-0', 0.055, [-0.13, 0.98, 0.03], 0xef4444),
+      sphere('reaper-red-pr-hint-1', 0.055, [0.1, 0.82, 0.03], 0xef4444),
+      sphere('reaper-red-pr-hint-2', 0.055, [-0.03, 0.56, 0.03], 0xef4444),
+      sphere('reaper-green-pr-hint', 0.055, [0.14, 0.36, 0.03], 0x22c55e),
+      cyl('reaper-robot-base', 0.14, 0.12, [0, 0.06, 0.88], 0x334155),
+      cyl('reaper-yaw-column', 0.09, 0.28, [0, 0.24, 0.88], 0x475569),
+      box(
+        'reaper-pitch-arm-link',
+        [0.09, 0.09, 0.38],
+        [0, 0.42, 0.72],
+        0x64748b
+      ),
+      box(
+        'reaper-tool-flange-laser-gun',
+        [0.16, 0.11, 0.14],
+        [0, 0.43, 0.5],
+        0x111827
+      ),
+      box(
+        'reaper-short-green-beam-hint',
+        [0.035, 0.035, 0.22],
+        [0, 0.43, 0.35],
+        0x22c55e
+      ),
     ],
   },
   'danielsmith-portfolio-table': {
