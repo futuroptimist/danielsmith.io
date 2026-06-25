@@ -1,4 +1,11 @@
-import { Color, DoubleSide, Group, Mesh, MeshStandardMaterial } from 'three';
+import {
+  Color,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  Vector3,
+} from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { createPortfolioMannequin } from '../scene/avatar/mannequin';
@@ -52,6 +59,44 @@ describe('createPortfolioMannequin', () => {
       'PortfolioMannequinFootLeftMesh'
     );
     expect(leftFootMesh).toBeInstanceOf(Mesh);
+  });
+
+  it('keeps the foot platform above the floor and arm tops tucked toward the torso', () => {
+    const build = createPortfolioMannequin();
+
+    const platform = build.group.getObjectByName('PortfolioMannequinPlatform');
+    const leftArm = build.group.getObjectByName('PortfolioMannequinArmLeft');
+    const rightArm = build.group.getObjectByName('PortfolioMannequinArmRight');
+
+    expect(platform).toBeInstanceOf(Mesh);
+    expect(leftArm).toBeInstanceOf(Mesh);
+    expect(rightArm).toBeInstanceOf(Mesh);
+    if (
+      !(platform instanceof Mesh) ||
+      !(leftArm instanceof Mesh) ||
+      !(rightArm instanceof Mesh)
+    ) {
+      throw new Error('Expected mannequin platform and arm meshes to exist.');
+    }
+
+    const platformHeight = platform.geometry.parameters.height as number;
+    expect(platform.position.y - platformHeight / 2).toBeGreaterThan(0);
+
+    build.group.updateMatrixWorld(true);
+
+    const armHeight = leftArm.geometry.parameters.height as number;
+    const topEndpoint = new Vector3(0, armHeight / 2, 0);
+    const bottomEndpoint = new Vector3(0, -armHeight / 2, 0);
+
+    const leftTop = topEndpoint.clone().applyMatrix4(leftArm.matrixWorld);
+    const leftBottom = bottomEndpoint.clone().applyMatrix4(leftArm.matrixWorld);
+    expect(Math.abs(leftTop.x)).toBeLessThan(Math.abs(leftBottom.x));
+
+    const rightTop = topEndpoint.clone().applyMatrix4(rightArm.matrixWorld);
+    const rightBottom = bottomEndpoint
+      .clone()
+      .applyMatrix4(rightArm.matrixWorld);
+    expect(Math.abs(rightTop.x)).toBeLessThan(Math.abs(rightBottom.x));
   });
 
   it('honors palette and collision radius overrides for accent-driven materials', () => {

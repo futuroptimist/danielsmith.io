@@ -86,9 +86,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/mannequin.ts',
       'src/scene/avatar/accessories.ts',
     ],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Prompt 4b will add a dedicated live miniature avatar instead of cloning the overworld player.',
+      'Overworld mannequin arm and floor-clearance polish reviewed; the tabletop still uses its dedicated live miniature avatar instead of cloning this mesh.',
   },
   {
     id: 'poi:markers-labels',
