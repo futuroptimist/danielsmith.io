@@ -1,4 +1,5 @@
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
+import { PR_REAPER_INTENDED_BOUNDS } from '../structures/prReaperInstallationContract';
 
 import type { PoiId } from './types';
 
@@ -65,6 +66,22 @@ const physicalMetadata = {
       markerMinHeight:
         PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.intendedSceneBounds.height,
       avatarPathRadius: 1.15,
+    },
+  },
+
+  'pr-reaper-backyard-console': {
+    realWorldReference:
+      'near-ceiling holographic projector with a two-axis industrial laser arm',
+    realWorldDimensionsMeters: {
+      width: 0.72,
+      depth: 1.4,
+      height: 1.9,
+    },
+    intendedSceneBounds: PR_REAPER_INTENDED_BOUNDS,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: PR_REAPER_INTENDED_BOUNDS.height + 0.35,
+      avatarPathRadius: 1.2,
     },
   },
   'sugarkube-backyard-greenhouse': {
