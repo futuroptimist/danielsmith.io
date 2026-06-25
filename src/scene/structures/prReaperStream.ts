@@ -58,6 +58,7 @@ export interface PrReaperStreamOptions {
 }
 
 export const PR_REAPER_STREAM_DEFAULT_SEED = 'pr-reaper-holographic-reaper:v1';
+export const PR_REAPER_STREAM_DEBUG_HISTORY_LIMIT = 128;
 
 function xmur3(input: string): () => number {
   let h = 1779033703 ^ input.length;
@@ -225,7 +226,9 @@ export class PrReaperStreamState {
     };
     this.nextId += 1;
     this.history.push(entry);
-    if (this.history.length > 128) this.history.shift();
+    if (this.history.length > PR_REAPER_STREAM_DEBUG_HISTORY_LIMIT) {
+      this.history.shift();
+    }
     this.active.push({ ...entry });
     if (type === 'red') this.totalSpawnedRed += 1;
     else this.totalSpawnedGreen += 1;
@@ -245,19 +248,6 @@ export class PrReaperStreamState {
       }
     }
     this.active.length = write;
-  }
-
-  private toCircleState(candidate: InternalCandidate): PrReaperCircleState {
-    const state: PrReaperCircleState = {
-      id: 0,
-      type: 'red',
-      lifecycle: 'active',
-      normalizedX: 0,
-      progress: 0,
-      center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
-    };
-    this.writeCircleState(candidate, state);
-    return state;
   }
 
   private getProgress(candidate: InternalCandidate): number {

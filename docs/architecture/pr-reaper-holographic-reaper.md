@@ -255,7 +255,7 @@ type PrReaperCircleLifecycle = 'active';
 interface PrReaperCircleState {
   id: number;
   type: PrReaperCircleType;
-  normalizedX: number; // 0 left edge, 1 right edge within safe margins
+  normalizedX: number; // 0 left screen edge, 1 right screen edge
   progress: number; // 0 just above screen, 1 below screen
   center: { x: number; y: number; z: number };
   lifecycle: PrReaperCircleLifecycle;
@@ -292,15 +292,7 @@ const PR_REAPER_PR_CIRCLE_POOL_CAPACITY =
 Mapping from normalized state to screen-local center:
 
 ```ts
-const x = MathUtils.lerp(
-  -PR_REAPER_SCREEN_WIDTH / 2 +
-    PR_REAPER_STREAM_HORIZONTAL_MARGIN +
-    PR_REAPER_STREAM_CIRCLE_RADIUS,
-  PR_REAPER_SCREEN_WIDTH / 2 -
-    PR_REAPER_STREAM_HORIZONTAL_MARGIN -
-    PR_REAPER_STREAM_CIRCLE_RADIUS,
-  normalizedX
-);
+const x = -PR_REAPER_SCREEN_WIDTH / 2 + normalizedX * PR_REAPER_SCREEN_WIDTH;
 const y = MathUtils.lerp(
   PR_REAPER_STREAM_START_Y,
   PR_REAPER_STREAM_END_Y,

@@ -11,7 +11,10 @@ import {
   PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS,
   PR_REAPER_STREAM_START_Y,
 } from '../scene/structures/prReaperInstallationContract';
-import { createPrReaperStream } from '../scene/structures/prReaperStream';
+import {
+  createPrReaperStream,
+  PR_REAPER_STREAM_DEBUG_HISTORY_LIMIT,
+} from '../scene/structures/prReaperStream';
 
 function run(seed: string, steps = 800, delta = 0.1) {
   const stream = createPrReaperStream({ seed });
@@ -91,6 +94,39 @@ describe('PR Reaper deterministic stream', () => {
     state.activeCandidates.forEach((candidate) => {
       expect(candidate.center.y).toBeGreaterThan(PR_REAPER_STREAM_END_Y);
     });
+  });
+
+  it('keeps debug history bounded while aggregate spawn/expiry counters accumulate', () => {
+    const stream = createPrReaperStream({ seed: 'bounded-history-seed' });
+    for (let i = 0; i < 2400; i += 1) stream.advance(0.1);
+
+    const state = stream.getDebugState();
+    const totalExpired = state.totalExpiredRed + state.totalExpiredGreen;
+
+    expect(state.spawnHistory).toHaveLength(
+      PR_REAPER_STREAM_DEBUG_HISTORY_LIMIT
+    );
+    expect(state.totalSpawned).toBeGreaterThan(
+      PR_REAPER_STREAM_DEBUG_HISTORY_LIMIT
+    );
+    expect(state.totalSpawned).toBe(
+      state.totalSpawnedRed + state.totalSpawnedGreen
+    );
+    expect(totalExpired).toBeGreaterThan(PR_REAPER_STREAM_DEBUG_HISTORY_LIMIT);
+    expect(state.totalSpawned).toBeGreaterThanOrEqual(
+      totalExpired + state.activeCandidateCount
+    );
+  });
+
+  it('exposes active-only lifecycle values for current candidates', () => {
+    const state = run('active-only-lifecycle-seed', 140, 0.1);
+
+    expect(state.activeCandidateCount).toBeGreaterThan(0);
+    expect(
+      state.activeCandidates.every(
+        (candidate) => candidate.lifecycle === 'active'
+      )
+    ).toBe(true);
   });
 
   it('bounds large deltas and ignores negative or nonfinite deltas', () => {
