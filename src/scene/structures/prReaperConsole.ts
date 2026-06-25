@@ -1,6 +1,7 @@
 import {
   AdditiveBlending,
   BoxGeometry,
+  CircleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
@@ -14,13 +15,18 @@ import {
   Vector3,
 } from 'three';
 
-import { getPulseScale } from '../../ui/accessibility/animationPreferences';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 import {
   PR_REAPER_ARM_LINK_LENGTH,
+  PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
+  PR_REAPER_CIRCLE_RADIUS,
   PR_REAPER_EMITTER_OFFSET,
   PR_REAPER_FOOTPRINT_DEPTH,
   PR_REAPER_FOOTPRINT_WIDTH,
@@ -42,10 +48,16 @@ import {
   PR_REAPER_SCREEN_HEIGHT,
   PR_REAPER_SCREEN_PLANE_Z,
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
+  PR_REAPER_STREAM_Z,
   PR_REAPER_SCREEN_WIDTH,
   PR_REAPER_TOOL_FLANGE_OFFSET,
   PR_REAPER_YAW_PIVOT,
 } from './prReaperInstallationContract';
+import {
+  createPrReaperStream,
+  PR_REAPER_DEFAULT_STREAM_SEED,
+  type PrReaperCircleType,
+} from './prReaperStream';
 
 export interface PrReaperInstallationBuild {
   group: Group;
@@ -55,6 +67,20 @@ export interface PrReaperInstallationBuild {
     detailLevel: SceneDetailPolicy['level'];
     parkedPose: typeof PR_REAPER_PARKED_POSE;
     screenToEmitterStandoff: number;
+    seed: string;
+    poolCapacity: number;
+    nextSpawnTime: number;
+    totalSpawned: number;
+    totalSpawnedRed: number;
+    totalSpawnedGreen: number;
+    totalExpiredRed: number;
+    totalExpiredGreen: number;
+    activeCandidateCount: number;
+    activeCandidates: ReturnType<
+      ReturnType<typeof createPrReaperStream>['getDebugState']
+    >['activeCandidates'];
+    droppedCappedSpawnCount: number;
+    spawnedTypes: PrReaperCircleType[];
   };
   dispose(): void;
 }
@@ -63,6 +89,7 @@ export interface PrReaperInstallationOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
   detailPolicy?: SceneDetailPolicy;
+  seed?: string;
 }
 
 export type PrReaperConsoleBuild = PrReaperInstallationBuild;
@@ -108,8 +135,15 @@ function clampOpacity(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function disposeMesh(mesh: Mesh, disposedMaterials: Set<unknown>): void {
-  mesh.geometry.dispose();
+function disposeMesh(
+  mesh: Mesh,
+  disposedMaterials: Set<unknown>,
+  disposedGeometries: Set<unknown>
+): void {
+  if (!disposedGeometries.has(mesh.geometry)) {
+    disposedGeometries.add(mesh.geometry);
+    mesh.geometry.dispose();
+  }
   const materials = Array.isArray(mesh.material)
     ? mesh.material
     : [mesh.material];
@@ -129,6 +163,7 @@ function detailCounts(policy: SceneDetailPolicy) {
     sphereH: Math.max(3, policy.geometry.sphereHeightSegments),
     accents: scale,
     fasteners: scale > 2 ? 6 : scale > 1 ? 4 : 0,
+    circleSegments: Math.max(10, policy.geometry.ringSegments),
   };
 }
 
@@ -139,6 +174,7 @@ export function createPrReaperInstallation(
     position,
     orientationRadians = 0,
     detailPolicy = getSceneDetailPolicy('balanced'),
+    seed = PR_REAPER_DEFAULT_STREAM_SEED,
   } = options;
   const counts = detailCounts(detailPolicy);
   const group = new Group();
@@ -179,6 +215,25 @@ export function createPrReaperInstallation(
     transparent: true,
     opacity: 0.55,
     depthWrite: false,
+  });
+
+  const circleGeometry = new CircleGeometry(
+    PR_REAPER_CIRCLE_RADIUS,
+    counts.circleSegments
+  );
+  const circleRedMaterial = new MeshBasicMaterial({
+    color: 0xff4d5e,
+    transparent: true,
+    opacity: 0.82,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const circleGreenMaterial = new MeshBasicMaterial({
+    color: 0x4dff8f,
+    transparent: true,
+    opacity: 0.72,
+    depthWrite: false,
+    blending: AdditiveBlending,
   });
 
   const projector = new Group();
@@ -289,6 +344,16 @@ export function createPrReaperInstallation(
   const prRoot = new Group();
   prRoot.name = 'PrReaperPrCircleRoot';
   hologram.add(prRoot);
+  const circlePool: Mesh[] = [];
+  for (let index = 0; index < PR_REAPER_PR_CIRCLE_POOL_CAPACITY; index += 1) {
+    const circle = addOwned(owned, new Mesh(circleGeometry, circleRedMaterial));
+    circle.name = `PrReaperPrCircle-${index}`;
+    circle.visible = false;
+    circle.renderOrder = 24;
+    circle.position.z = PR_REAPER_STREAM_Z;
+    circlePool.push(circle);
+    prRoot.add(circle);
+  }
 
   const robotBase = new Group();
   robotBase.name = 'PrReaperRobotBase';
@@ -414,6 +479,8 @@ export function createPrReaperInstallation(
   particles.visible = false;
   group.add(particles);
 
+  const stream = createPrReaperStream({ seed });
+
   const centerOffsetZ = (PR_REAPER_FRONT_DEPTH - PR_REAPER_REAR_DEPTH) / 2;
   const forward = new Vector3(
     Math.sin(orientationRadians),
@@ -438,25 +505,61 @@ export function createPrReaperInstallation(
   return {
     group,
     colliders,
-    update({ elapsed, emphasis }) {
+    update({ elapsed, delta, emphasis }) {
+      stream.advance(delta);
       const pulse = getPulseScale();
       const amount =
         (0.18 + Math.sin(elapsed * 1.7) * 0.04 + emphasis * 0.2) * pulse;
       screenMaterial.opacity = clampOpacity(0.22 + amount);
       edgeMaterial.opacity = clampOpacity(0.62 + amount);
+      const flicker = getFlickerScale();
+      circleRedMaterial.opacity = clampOpacity(
+        (0.76 + emphasis * 0.08) * flicker
+      );
+      circleGreenMaterial.opacity = clampOpacity(
+        (0.66 + emphasis * 0.08) * flicker
+      );
+      const streamDebug = stream.getDebugState();
+      circlePool.forEach((circle, index) => {
+        const candidate = streamDebug.activeCandidates[index];
+        if (!candidate) {
+          circle.visible = false;
+          circle.userData.candidateId = undefined;
+          circle.userData.candidateType = undefined;
+          circle.userData.lifecycle = undefined;
+          return;
+        }
+        circle.visible = true;
+        circle.material =
+          candidate.type === 'red' ? circleRedMaterial : circleGreenMaterial;
+        circle.position.set(
+          candidate.center.x,
+          candidate.center.y,
+          PR_REAPER_STREAM_Z
+        );
+        circle.userData.candidateId = candidate.id;
+        circle.userData.candidateType = candidate.type;
+        circle.userData.lifecycle = candidate.lifecycle;
+      });
     },
     getDebugState() {
       return {
         detailLevel: detailPolicy.level,
         parkedPose: PR_REAPER_PARKED_POSE,
         screenToEmitterStandoff: PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
+        seed,
+        poolCapacity: PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
+        ...stream.getDebugState(),
       };
     },
     dispose() {
       if (disposed) return;
       disposed = true;
       const disposedMaterials = new Set<unknown>();
-      owned.forEach((mesh) => disposeMesh(mesh, disposedMaterials));
+      const disposedGeometries = new Set<unknown>();
+      owned.forEach((mesh) =>
+        disposeMesh(mesh, disposedMaterials, disposedGeometries)
+      );
     },
   };
 }

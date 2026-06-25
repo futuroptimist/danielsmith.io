@@ -93,9 +93,12 @@ describe('miniature POI proxy registry', () => {
       definition.primitives.map((primitive) => [primitive.name, primitive])
     );
 
-    expect(definition.syncRevision).toBeGreaterThanOrEqual(4);
+    expect(definition.syncRevision).toBeGreaterThanOrEqual(6);
     expect(definition.sourceFiles).toContain(
       'src/scene/structures/prReaperInstallationContract.ts'
+    );
+    expect(definition.sourceFiles).toContain(
+      'src/scene/structures/prReaperStream.ts'
     );
     expect(primitiveNames).toEqual(
       expect.arrayContaining([
