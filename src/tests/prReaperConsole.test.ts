@@ -168,8 +168,21 @@ describe('createPrReaperInstallation', () => {
     ).toHaveLength(0);
 
     const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
+    const flange = build.group.getObjectByName(
+      'PrReaperToolFlangeHousing'
+    ) as Mesh;
+    const aperture = build.group.getObjectByName(
+      'PrReaperLaserAperture'
+    ) as Mesh;
     const gunMaterial = gun.material as MeshBasicMaterial;
+    const flangeMaterial = flange.material as MeshBasicMaterial;
+    const apertureMaterial = aperture.material as MeshBasicMaterial;
+
+    expect(gunMaterial).toBeInstanceOf(MeshBasicMaterial);
+    expect(flangeMaterial).toBe(gunMaterial);
     expect(gunMaterial.color.getHex()).toBe(0x5b676d);
+    expect(flangeMaterial.color.getHex()).toBe(0x5b676d);
+    expect(apertureMaterial.color.getHex()).toBe(0x4dff8f);
   });
 
   it('creates a fixed PR circle mesh pool and keeps it stable during updates', () => {
@@ -347,7 +360,7 @@ describe('createPrReaperInstallation', () => {
 
     build.dispose();
 
-    expect(materialDispose).toHaveBeenCalledTimes(5);
+    expect(materialDispose).toHaveBeenCalledTimes(6);
     materialDispose.mockRestore();
   });
 });

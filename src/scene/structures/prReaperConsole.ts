@@ -207,10 +207,8 @@ export function createPrReaperInstallation(
     metalness: 0.5,
     roughness: 0.38,
   });
-  const laserGunMaterial = new MeshStandardMaterial({
+  const laserGunMaterial = new MeshBasicMaterial({
     color: 0x5b676d,
-    metalness: 0.5,
-    roughness: 0.38,
   });
   const green = new MeshBasicMaterial({
     color: 0x4dff8f,
@@ -425,7 +423,10 @@ export function createPrReaperInstallation(
   pitchJoint.add(flange);
   const flangeHousing = addOwned(
     owned,
-    new Mesh(new CylinderGeometry(0.14, 0.14, 0.12, counts.cylinder), darkMetal)
+    new Mesh(
+      new CylinderGeometry(0.14, 0.14, 0.12, counts.cylinder),
+      laserGunMaterial
+    )
   );
   flangeHousing.name = 'PrReaperToolFlangeHousing';
   flangeHousing.rotation.x = Math.PI / 2;
