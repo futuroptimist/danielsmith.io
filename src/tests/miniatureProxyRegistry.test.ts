@@ -76,6 +76,21 @@ describe('miniature POI proxy registry', () => {
         'tokenplace-mouse',
       ])
     );
+    const reaper = MINIATURE_POI_PROXY_REGISTRY['pr-reaper-backyard-console'];
+    expect(reaper.syncRevision).toBeGreaterThanOrEqual(3);
+    expect(reaper.primitives.map((p) => p.name)).toEqual(
+      expect.arrayContaining([
+        'reaper-projector-base',
+        'reaper-hologram-screen',
+        'reaper-red-pr-circle-0',
+        'reaper-red-pr-circle-1',
+        'reaper-red-pr-circle-2',
+        'reaper-green-pr-circle',
+        'reaper-yaw-joint',
+        'reaper-pitch-arm',
+        'reaper-tool-flange-laser-gun',
+      ])
+    );
     const self = MINIATURE_POI_PROXY_REGISTRY['danielsmith-portfolio-table'];
     expect(self.recursionBoundary).toBe(true);
     expect(self.primitives.map((p) => p.name)).toContain(
