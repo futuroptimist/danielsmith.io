@@ -131,7 +131,7 @@ describe('PortfolioMiniatureTable', () => {
     expect(shell.getObjectByName('MiniatureWorldRoot')).toBeUndefined();
   });
 
-  it('contains the finite miniature topology and every POI once', () => {
+  it('contains the finite two-floor miniature topology and every POI once', () => {
     const table = build('cinematic');
     expect(table.miniatureWorldRoot.name).toBe('MiniatureWorldRoot');
     expect(
@@ -139,15 +139,11 @@ describe('PortfolioMiniatureTable', () => {
     ).toBeTruthy();
     expect(
       table.group.getObjectByName('MiniatureUpperFloor:focusPods')
-    ).toBeUndefined();
+    ).toBeTruthy();
     expect(table.group.getObjectByName('MiniatureBackyard')).toBeTruthy();
     expect(table.group.getObjectByName('MiniatureStaircase')).toBeTruthy();
-    expect(
-      table.group.getObjectByName('MiniatureUpperLanding')
-    ).toBeUndefined();
-    for (const poi of poiDefinitions.filter(
-      (definition) => (definition.position.y ?? 0) < 3
-    )) {
+    expect(table.group.getObjectByName('MiniatureUpperLanding')).toBeTruthy();
+    for (const poi of poiDefinitions) {
       const name =
         poi.id === 'danielsmith-portfolio-table'
           ? 'MiniatureSelfProxy'
@@ -166,7 +162,7 @@ describe('PortfolioMiniatureTable', () => {
     table.dispose();
   });
 
-  it('uses overworld-style material roles with a transparent upper-floor cutaway', () => {
+  it('uses overworld-style material roles with upper-floor cutaway coverage', () => {
     const table = build('balanced');
     const ground = standardMaterialFor(
       table,
@@ -176,9 +172,9 @@ describe('PortfolioMiniatureTable', () => {
 
     expect(ground.name).toBe('MiniatureMaterial:livingRoomFloor');
     expect(ground.color.getHex()).toBe(0x0b1220);
-    expect(
-      table.group.getObjectByName('MiniatureUpperFloor:focusPods')
-    ).toBeUndefined();
+    const upper = standardMaterialFor(table, 'MiniatureUpperFloor:focusPods');
+    expect(upper.transparent).toBe(true);
+    expect(upper.opacity).toBeLessThanOrEqual(0.03);
     expect(backyard.color.getHex()).toBe(0x052e16);
     const wallMesh = (
       table.group.getObjectsByProperty('type', 'Mesh') as Mesh[]
@@ -218,7 +214,10 @@ describe('PortfolioMiniatureTable', () => {
       if (object.userData.opaqueFilledFloor) {
         opaqueAreas.push(object.userData.filledFloorArea as number);
       }
-      if (object.userData.floor === 'upper') {
+      if (
+        object.userData.floor === 'upper' &&
+        object.userData.filledFloorArea
+      ) {
         upperAreas.push(object.userData.filledFloorArea as number);
         expect((object.material as MeshStandardMaterial).transparent).toBe(
           true
@@ -241,6 +240,15 @@ describe('PortfolioMiniatureTable', () => {
     expect(
       table.group.getObjectByName('component:media-wall-star-bridge')
     ).toBeUndefined();
+    expect(
+      table.group.getObjectsByProperty('name', 'component:greenhouse')
+    ).toHaveLength(1);
+    expect(
+      table.group.getObjectsByProperty(
+        'name',
+        'component:multiplayer-projection'
+      )
+    ).toHaveLength(1);
     table.dispose();
   });
 
@@ -318,7 +326,7 @@ describe('PortfolioMiniatureTable', () => {
 
     expect(
       table.group.getObjectByName('MiniaturePoi:gabriel-studio-sentry')
-    ).toBeUndefined();
+    ).toBeTruthy();
     table.dispose();
   });
 
@@ -379,7 +387,7 @@ describe('PortfolioMiniatureTable', () => {
     table.dispose();
   });
 
-  it('keeps first-floor walls visible and avoids opaque upper-floor blankets', () => {
+  it('keeps first-floor walls visible and avoids ceiling blankets', () => {
     const table = build('balanced');
     const allObjects = table.group.getObjectsByProperty(
       'type',
@@ -400,17 +408,15 @@ describe('PortfolioMiniatureTable', () => {
       );
     }
 
-    const opaqueUpper: Mesh[] = [];
-    table.group.traverse((object) => {
-      if (
-        object instanceof Mesh &&
-        object.userData.floor === 'upper' &&
-        !(object.material as MeshStandardMaterial).transparent
-      ) {
-        opaqueUpper.push(object);
-      }
-    });
-    expect(opaqueUpper).toHaveLength(0);
+    const upperSlabs = allObjects.filter((object) =>
+      object.name.startsWith('MiniatureUpperFloor:')
+    );
+    expect(upperSlabs.length).toBeGreaterThan(0);
+    for (const slab of upperSlabs) {
+      const material = slab.material as MeshStandardMaterial;
+      expect(material.transparent).toBe(true);
+      expect(material.opacity).toBeLessThanOrEqual(0.03);
+    }
     expect(table.group.getObjectByName('MiniatureCeiling')).toBeUndefined();
     table.dispose();
   });

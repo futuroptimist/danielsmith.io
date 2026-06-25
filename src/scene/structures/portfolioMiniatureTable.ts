@@ -12,7 +12,11 @@ import {
   Vector3,
 } from 'three';
 
-import { FLOOR_PLAN, FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
+import {
+  FLOOR_PLAN,
+  FLOOR_PLAN_SCALE,
+  UPPER_FLOOR_PLAN,
+} from '../../assets/floorPlan';
 import type { RectCollider } from '../../systems/collision';
 import type { PortfolioMannequinPalette } from '../avatar/mannequin';
 import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../avatar/mannequin';
@@ -20,7 +24,10 @@ import {
   getSceneDetailPolicy,
   type SceneDetailPolicy,
 } from '../graphics/sceneDetailPolicy';
-import { GROUND_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
+import {
+  GROUND_FLOOR_TOP_ELEVATION,
+  UPPER_FLOOR_TOP_ELEVATION,
+} from '../level/floorElevations';
 import { generateWallSegmentInstances } from '../level/generateWalls';
 import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
 import { createRoomLedStrips } from '../lighting/ledStrips';
@@ -402,6 +409,67 @@ function createArchitecture() {
     mesh.userData.opaqueFilledFloor = true;
   }
 
+  for (const room of UPPER_FLOOR_PLAN.rooms.filter(
+    (candidate) => candidate.category !== 'exterior'
+  )) {
+    const { minX, maxX, minZ, maxZ } = room.bounds;
+    const mesh = addBox(
+      root,
+      `MiniatureUpperFloor:${room.id}`,
+      [maxX - minX, 0.045, maxZ - minZ],
+      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.02, (minZ + maxZ) / 2],
+      materials.upperFloorGhost
+    );
+    mesh.userData.floor = 'upper';
+    mesh.userData.materialRole = 'upperFloorGhost';
+    mesh.userData.filledFloorArea = (maxX - minX) * (maxZ - minZ);
+
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:north`,
+      [maxX - minX, 0.09, 0.08],
+      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.09, minZ],
+      materials.upperFloorRim
+    ).userData.floor = 'upper';
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:south`,
+      [maxX - minX, 0.09, 0.08],
+      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.09, maxZ],
+      materials.upperFloorRim
+    ).userData.floor = 'upper';
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:west`,
+      [0.08, 0.09, maxZ - minZ],
+      [minX, UPPER_FLOOR_TOP_ELEVATION + 0.09, (minZ + maxZ) / 2],
+      materials.upperFloorRim
+    ).userData.floor = 'upper';
+    addBox(
+      root,
+      `MiniatureUpperFloorRim:${room.id}:east`,
+      [0.08, 0.09, maxZ - minZ],
+      [maxX, UPPER_FLOOR_TOP_ELEVATION + 0.09, (minZ + maxZ) / 2],
+      materials.upperFloorRim
+    ).userData.floor = 'upper';
+  }
+
+  const upperLandingRoom = UPPER_FLOOR_PLAN.rooms.find(
+    (room) => room.id === 'upperLanding'
+  );
+  if (upperLandingRoom) {
+    const { minX, maxX, minZ, maxZ } = upperLandingRoom.bounds;
+    const landing = addBox(
+      root,
+      'MiniatureUpperLanding',
+      [maxX - minX, 0.055, maxZ - minZ],
+      [(minX + maxX) / 2, UPPER_FLOOR_TOP_ELEVATION + 0.04, (minZ + maxZ) / 2],
+      materials.landing
+    );
+    landing.userData.floor = 'upper';
+    landing.userData.materialRole = 'landing';
+  }
+
   const backyardRoom = FLOOR_PLAN.rooms.find(
     (room) => room.category === 'exterior'
   );
@@ -583,6 +651,25 @@ function createTinyPlayer(detailPolicy: SceneDetailPolicy) {
   };
 }
 
+const MINIATURE_SCENE_COMPONENT_SOURCE_PLACEMENTS: Partial<
+  Record<
+    (typeof MINIATURE_SCENE_COMPONENT_PROXIES)[number]['id'],
+    { position: [number, number, number]; rotationY?: number; scale?: number }
+  >
+> = {
+  // The old greenhouse is backyard scenery, separate from the Sugarkube POI.
+  'component:greenhouse': {
+    position: [-16, GROUND_FLOOR_TOP_ELEVATION, 21],
+    rotationY: 0,
+    scale: 2.4,
+  },
+  'component:multiplayer-projection': {
+    position: [5, GROUND_FLOOR_TOP_ELEVATION, 7.5],
+    rotationY: -Math.PI / 8,
+    scale: 2.1,
+  },
+};
+
 function rotatedAabb(
   position: { x: number; z: number },
   width: number,
@@ -653,15 +740,23 @@ export function createPortfolioMiniatureTable(
     ) {
       return;
     }
+    const placement =
+      MINIATURE_SCENE_COMPONENT_SOURCE_PLACEMENTS[definition.id];
+    if (!placement) return;
+    const component = buildMiniatureProxy(definition, miniaturePolicy).root;
+    component.name = definition.id;
+    component.position.set(...placement.position);
+    component.rotation.y = placement.rotationY ?? 0;
+    component.scale.setScalar(placement.scale ?? 1);
+    component.userData.placementSource = 'source-scene-component-placement';
+    sceneRoot.add(component);
   });
 
   const poiRoot = new Group();
   poiRoot.name = 'MiniaturePoiRoot';
   content.add(poiRoot);
   let selfProxy: Object3D | null = null;
-  const miniaturePoiPlacements = options.poiPlacements.filter(
-    (poi) => poi.floor === 'ground'
-  );
+  const miniaturePoiPlacements = options.poiPlacements;
   for (const poi of miniaturePoiPlacements) {
     const definition = getMiniaturePoiProxyDefinition(poi.id);
     if (!definition) continue;
