@@ -2,6 +2,7 @@ import {
   Box3,
   Mesh,
   MeshBasicMaterial,
+  CircleGeometry,
   Object3D,
   PointLight,
   Vector3,
@@ -17,6 +18,7 @@ import {
 } from '../scene/structures/prReaperConsole';
 import {
   PR_REAPER_AVAILABLE_LED_SAFE_HEIGHT,
+  PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
   PR_REAPER_FOOTPRINT_DEPTH,
   PR_REAPER_FOOTPRINT_WIDTH,
   PR_REAPER_MIN_EMITTER_STANDOFF,
@@ -25,6 +27,7 @@ import {
   PR_REAPER_SCREEN_HEIGHT,
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
   PR_REAPER_SCREEN_WIDTH,
+  PR_REAPER_STREAM_Z,
 } from '../scene/structures/prReaperInstallationContract';
 
 function names(root: Object3D): string[] {
@@ -110,6 +113,7 @@ describe('createPrReaperInstallation', () => {
 
     const allDimensions = [
       PR_REAPER_SCREEN_WIDTH,
+      PR_REAPER_STREAM_Z,
       PR_REAPER_SCREEN_HEIGHT,
       PR_REAPER_FOOTPRINT_WIDTH,
       PR_REAPER_FOOTPRINT_DEPTH,
@@ -204,6 +208,106 @@ describe('createPrReaperInstallation', () => {
     expect(counts[1]).toBeGreaterThan(counts[2]);
     expect(counts[2]).toBeGreaterThan(counts[3]);
     expect(counts[3]).toBeGreaterThan(counts[4]);
+  });
+
+  it('pools PR circle meshes and maps active meshes to debug centers', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'pool-seed',
+    });
+    const root = build.group.getObjectByName('PrReaperPrCircleRoot');
+    expect(root?.children).toHaveLength(PR_REAPER_PR_CIRCLE_POOL_CAPACITY);
+    const initialChildren = [...(root?.children ?? [])];
+    initialChildren.forEach((child, index) => {
+      expect(child.name).toBe(`PrReaperPrCircle-${index}`);
+      expect(child.visible).toBe(false);
+    });
+
+    for (let step = 0; step < 180; step += 1) {
+      build.update({ elapsed: step / 30, delta: 1 / 30, emphasis: 0 });
+    }
+
+    expect(root?.children).toEqual(initialChildren);
+    expect(root?.children).toHaveLength(PR_REAPER_PR_CIRCLE_POOL_CAPACITY);
+    const debug = build.getDebugState();
+    const activeMeshes = (root?.children ?? []).filter(
+      (child) => child.visible
+    );
+    expect(activeMeshes).toHaveLength(debug.activeCandidateCount);
+    activeMeshes.forEach((child, index) => {
+      const candidate = debug.activeCandidates[index];
+      expect(child.position.x).toBeCloseTo(candidate.center.x, 8);
+      expect(child.position.y).toBeCloseTo(candidate.center.y, 8);
+      expect(child.position.z).toBeCloseTo(PR_REAPER_STREAM_Z, 8);
+      expect(child.userData).toMatchObject({
+        candidateId: candidate.id,
+        candidateType: candidate.type,
+        lifecycle: 'active',
+      });
+    });
+    (root?.children ?? [])
+      .filter((child) => !child.visible)
+      .forEach((child) => expect(child.visible).toBe(false));
+  });
+
+  it('uses distinct red and green materials and exposes shuffled 3:1 batches', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'visible-batch-seed',
+    });
+    for (let step = 0; step < 600; step += 1) {
+      build.update({ elapsed: step / 20, delta: 1 / 20, emphasis: 0.5 });
+    }
+    const root = build.group.getObjectByName('PrReaperPrCircleRoot');
+    const materials = new Map<string, unknown>();
+    (root?.children ?? []).forEach((child) => {
+      if (child.visible)
+        materials.set(child.userData.candidateType, (child as Mesh).material);
+    });
+    expect(materials.get('red')).toBeDefined();
+    expect(materials.get('green')).toBeDefined();
+    expect(materials.get('red')).not.toBe(materials.get('green'));
+
+    const spawned = build.getDebugState().spawnedTypes.slice(0, 4);
+    expect(spawned.filter((type) => type === 'red')).toHaveLength(3);
+    expect(spawned.filter((type) => type === 'green')).toHaveLength(1);
+  });
+
+  it('preserves stream semantics across detail levels while reducing circle geometry cost', () => {
+    const snapshots = Object.values(SCENE_DETAIL_POLICIES).map(
+      (detailPolicy) => {
+        const build = createPrReaperInstallation({
+          position: { x: 0, z: 0 },
+          detailPolicy,
+          seed: 'detail-seed',
+        });
+        for (let step = 0; step < 240; step += 1) {
+          build.update({ elapsed: step / 30, delta: 1 / 30, emphasis: 0 });
+        }
+        const circle = build.group.getObjectByName(
+          'PrReaperPrCircle-0'
+        ) as Mesh;
+        const geometry = circle.geometry as CircleGeometry;
+        const debug = build.getDebugState();
+        return {
+          semantic: {
+            totalSpawned: debug.totalSpawned,
+            totalExpiredRed: debug.totalExpiredRed,
+            totalExpiredGreen: debug.totalExpiredGreen,
+            activeCandidates: debug.activeCandidates,
+            spawnedTypes: debug.spawnedTypes,
+            nextSpawnTime: debug.nextSpawnTime,
+          },
+          vertices: geometry.getAttribute('position').count,
+        };
+      }
+    );
+
+    snapshots.slice(1).forEach((snapshot) => {
+      expect(snapshot.semantic).toEqual(snapshots[0].semantic);
+    });
+    expect(snapshots[0].vertices).toBeGreaterThan(snapshots[2].vertices);
+    expect(snapshots[2].vertices).toBeGreaterThanOrEqual(snapshots[4].vertices);
   });
 
   it('does not add dynamic point lights', () => {

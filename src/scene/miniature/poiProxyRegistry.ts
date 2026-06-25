@@ -394,13 +394,14 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 4,
+    syncRevision: 6,
     syncNote:
-      'Static holographic reaper installation proxy tracks finalized P5b structure source, projector, 9:21 screen, PR hints, two-axis arm, and tool flange.',
+      'Runtime PR stream pooling finalized for P5c; miniature intentionally remains a static 3:1 red/green snapshot with no recursive animation.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
       'src/scene/structures/prReaperInstallationContract.ts',
+      'src/scene/structures/prReaperStream.ts',
     ],
     proxyFiles: [SELF_FILE],
     primitives: [

@@ -260,7 +260,6 @@ type PrReaperTargetState =
 
 interface PrReaperCircleState {
   id: number;
-  batchId: number;
   type: PrReaperCircleType;
   normalizedX: number; // 0 left edge, 1 right edge within safe margins
   progress: number; // 0 just above screen, 1 below screen
@@ -321,15 +320,15 @@ Spawn order is an infinite sequence of shuffled batches containing exactly:
 ```
 
 Shuffling is deterministic per batch. The 3:1 ratio applies to the spawned
-candidate stream, not the visible active set, because red candidates disappear
-early after reaping while green candidates continue descending.
+candidate stream, not the visible active set, because P5c does not remove red candidates early; every circle simply descends and expires below the screen.
 
 For each candidate:
 
 - interval = `lerp(0.5, 1.5, rng())` seconds;
 - `normalizedX = lerp(PR_REAPER_CIRCLE_MARGIN_X, 1 - PR_REAPER_CIRCLE_MARGIN_X, rng())`;
 - spawn due time advances by the interval even if detail policy is Micro;
-- never drop red or green candidates solely for performance.
+- never drop red or green candidates solely for performance;
+- P5c caps a single huge suspended-tab catch-up at `PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS`, records `droppedCappedSpawnCount`, and schedules the next spawn after the resumed time to avoid unbounded allocation.
 
 ### Pooling and active-count calculation
 
@@ -568,11 +567,11 @@ correctness.
 
 | Level       | Screen/frame                                                        | Circles   | Laser               | Burst particles          | Decorative details        | Target budget              |
 | ----------- | ------------------------------------------------------------------- | --------- | ------------------- | ------------------------ | ------------------------- | -------------------------- |
-| Cinematic   | 64 segment circles, translucent pane, frame ribs, projector accents | 20 pooled | core + 2 halos      | 96 x 4 slots             | cables, bolts, glow rings | ~3.8k tris / 18 draw calls |
-| Balanced    | same structure, fewer ribs                                          | 20 pooled | core + 1 halo       | 64 x 4                   | fewer accents             | ~2.6k tris / 15 draw calls |
-| Performance | 10-16 segment circles                                               | 20 pooled | core + 1 cheap halo | 32 x 3                   | no cables                 | ~1.2k tris / 10 draw calls |
-| Low         | 8 segment circles                                                   | 20 pooled | core only           | 16 x 2, half-rate update | minimal base/screen/arm   | ~650 tris / 7 draw calls   |
-| Micro       | octagonal discs or tiny planes                                      | 20 pooled | one line/box hint   | 8 x 1, coarse update     | no accents                | ~300 tris / 5 draw calls   |
+| Cinematic   | 64 segment circles, translucent pane, frame ribs, projector accents | 14 pooled | core + 2 halos      | 96 x 4 slots             | cables, bolts, glow rings | ~3.8k tris / 18 draw calls |
+| Balanced    | same structure, fewer ribs                                          | 14 pooled | core + 1 halo       | 64 x 4                   | fewer accents             | ~2.6k tris / 15 draw calls |
+| Performance | 10-16 segment circles                                               | 14 pooled | core + 1 cheap halo | 32 x 3                   | no cables                 | ~1.2k tris / 10 draw calls |
+| Low         | 8 segment circles                                                   | 14 pooled | core only           | 16 x 2, half-rate update | minimal base/screen/arm   | ~650 tris / 7 draw calls   |
+| Micro       | octagonal discs or tiny planes                                      | 14 pooled | one line/box hint   | 8 x 1, coarse update     | no accents                | ~300 tris / 5 draw calls   |
 
 Use `detailPolicy.geometry.*` segment counts and `detailPolicy.effects.*` to
 select primitives. Do not skip candidates, avoid lowering spawn frequency, and do
@@ -620,8 +619,7 @@ interface PrReaperInstallationOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
   detailPolicy: SceneDetailPolicy;
-  seed?: string | number;
-  random?: PrReaperRandomSource;
+  seed?: string;
 }
 ```
 
@@ -629,9 +627,7 @@ Integration requirements:
 
 - Replace the old console builder in `main.ts` but keep `addPoiStructure(...)` so
   model roots, triangle metrics, and visual anchors remain registered.
-- Pass `detailPolicy: activeSceneDetailPolicy`. Runtime may pass only `seed`; tests may
-  inject `random?: PrReaperRandomSource` to assert exact streams/bursts while leaving
-  production on the documented seeded generator. Use quality-triggered reloads
+- Pass `detailPolicy: activeSceneDetailPolicy`. Runtime may pass only `seed`; the pure `src/scene/structures/prReaperStream.ts` module exposes `createPrReaperStream(...)`, `advancePrReaperStream(...)`, `createPrReaperSeededRandom(...)`, and `getDebugState()` on `PrReaperStreamState` for exact deterministic tests. Use quality-triggered reloads
   to rebuild the installation at the new policy. Since scene detail changes
   already reload/recompose the immersive scene, no in-place policy mutation is
   required.
@@ -646,9 +642,7 @@ Integration requirements:
   and any canvas textures if retained.
 - Full and partial immersive teardown must call `dispose()` before nulling the
   handle; P5b should improve current `prReaperConsole = null` behavior.
-- `getDebugState()` should expose constants, active circles, upcoming batch
-  sequence summary, arm phase, target id, yaw/pitch, beam endpoints, burst slots,
-  and detail/accessibility flags for tests without mutating Three.js objects.
+- P5c `getDebugState()` exposes detail level, seed, `PR_REAPER_PR_CIRCLE_POOL_CAPACITY` (`14`), next spawn time, spawned/expired red-green totals, active circle snapshots with exact screen-local centers, and `droppedCappedSpawnCount` without mutating Three.js objects. P5d extends this with arm phase, target id, yaw/pitch, beam endpoints, and burst slots.
 
 ## Miniature synchronization
 
@@ -686,7 +680,7 @@ For P5b-P5e, update the `pr-reaper-backyard-console` entry in
 - Bump `syncRevision` in the same PR as each semantic proxy change:
   - P5b: `3` for static hologram/projector/robot proxy, footprint, and screen
     proportions.
-  - P5c: `4` for static 3-red/1-green stream hints and any stream sourceFiles.
+  - P5c: `5` for runtime stream sourceFiles while the miniature remains a static 3-red/1-green snapshot.
   - P5d: `5` for beam/tool-flange silhouette and any kinematics/laser sourceFiles.
   - P5e: `6` only when final footprint/accessibility/performance hardening changes
     proxy geometry, sourceFiles, or detail semantics; otherwise leave it at the
@@ -724,7 +718,7 @@ Future PRs should add/adjust Vitest coverage for:
 - particle burst duration always `0.25-0.50s` and deterministic velocities;
 - detail-policy monotonic reductions in segments, particles, triangles, draw
   calls, and decorative features;
-- reduced-motion/flicker scales reduce pulses/travel without changing stream
+- reduced-motion/flicker scales reduce opacity/pulse only, never travel or stream
   semantics;
 - colliders register with scene-object metadata;
 - `dispose()` is idempotent and disposes owned geometry/material/attribute assets;
