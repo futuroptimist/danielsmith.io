@@ -1,13 +1,21 @@
 import { Box3, Mesh, Object3D, PlaneGeometry, Vector3 } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
+import {
+  getMiniatureSceneDetailPolicy,
+  getSceneDetailPolicy,
+} from '../scene/graphics/sceneDetailPolicy';
 import {
   getPoiPhysicalMetadata,
   POI_PHYSICAL_METADATA,
   type PoiPhysicalMetadata,
 } from '../scene/poi/physicalMetadata';
+import { getPoiDefinitions } from '../scene/poi/registry';
 import type { PoiId } from '../scene/poi/types';
+import {
+  createPortfolioMiniatureTable,
+  type MiniaturePoiPlacement,
+} from '../scene/structures/portfolioMiniatureTable';
 import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
 import {
   EXPECTED_27_INCH_MONITOR_TO_PI_WIDTH_RATIO,
@@ -31,6 +39,7 @@ afterAll(() => {
 const PHYSICAL_POI_IDS = [
   'tokenplace-studio-cluster',
   'sugarkube-backyard-greenhouse',
+  'danielsmith-portfolio-table',
 ] as const satisfies PoiId[];
 
 const FIT_TOLERANCE = 0.05;
@@ -74,18 +83,22 @@ const expectFitsContract = (root: Object3D, metadata: PoiPhysicalMetadata) => {
 };
 
 describe('POI physical metadata', () => {
-  it('defines a positive bottom-center size contract for token.place and Sugarkube', () => {
-    expect(Object.keys(POI_PHYSICAL_METADATA).sort()).toEqual(
-      [...PHYSICAL_POI_IDS].sort()
+  it('defines positive bottom-center size contracts generically', () => {
+    expect(Object.keys(POI_PHYSICAL_METADATA).length).toBeGreaterThanOrEqual(
+      PHYSICAL_POI_IDS.length
     );
 
-    PHYSICAL_POI_IDS.forEach((poiId) => {
-      const metadata = getPoiPhysicalMetadata(poiId);
+    Object.keys(POI_PHYSICAL_METADATA).forEach((poiId) => {
+      const metadata = getPoiPhysicalMetadata(poiId as PoiId);
       expect(metadata).toBeDefined();
       expect(metadata?.anchor).toBe('bottom-center');
       expect(metadata?.realWorldReference.length).toBeGreaterThan(0);
       expectPositiveFiniteBounds(metadata!.intendedSceneBounds);
       expectPositiveFiniteBounds(metadata!.realWorldDimensionsMeters!);
+    });
+
+    PHYSICAL_POI_IDS.forEach((poiId) => {
+      expect(getPoiPhysicalMetadata(poiId)).toBeDefined();
     });
   });
 
@@ -147,5 +160,40 @@ describe('POI physical metadata', () => {
       build.group,
       getPoiPhysicalMetadata('sugarkube-backyard-greenhouse')!
     );
+  });
+
+  it('keeps danielsmith.io miniature table within bounds in public graphics modes', () => {
+    for (const level of ['cinematic', 'balanced', 'performance'] as const) {
+      const build = createPortfolioMiniatureTable({
+        position: { x: -21.6, y: 0, z: 1.63 },
+        orientationRadians: 0,
+        tableDetailPolicy: getSceneDetailPolicy(level),
+        miniatureDetailPolicy: getMiniatureSceneDetailPolicy(level),
+        poiDefinitions: getPoiDefinitions('en'),
+        poiPlacements: getPoiDefinitions('en').map(
+          (definition): MiniaturePoiPlacement => ({
+            id: definition.id,
+            position: {
+              x: definition.position.x,
+              y: definition.position.y ?? 0,
+              z: definition.position.z,
+            },
+            headingRadians: definition.headingRadians ?? 0,
+            floor: (definition.position.y ?? 0) >= 3 ? 'upper' : 'ground',
+            roomId: definition.roomId,
+            footprint: definition.footprint,
+            definition,
+            anchorKind: 'floor',
+            placementSource: 'visual-model-anchor',
+          })
+        ),
+      });
+      expect(build.group.scale.toArray()).toEqual([1, 1, 1]);
+      expectFitsContract(
+        build.group,
+        getPoiPhysicalMetadata('danielsmith-portfolio-table')!
+      );
+      build.dispose();
+    }
   });
 });

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { type ConsoleBudgetExceededDetail } from '../systems/failover/consoleBudgetMonitor';
@@ -510,5 +512,39 @@ describe('createPerformanceFailoverHandler', () => {
     expect(failoverEvents[0].detail.reason).toBe('console-error');
     expect(failoverEvents[0].detail.context).toEqual(consoleDetail);
     expect(consoleTarget.error).toBe(originalError);
+  });
+
+  it('routes partial immersive teardown through idempotent tabletop disposal before clearing anchors', () => {
+    const mainSource = readFileSync('src/main.ts', 'utf8');
+    const helperMatch = mainSource.match(
+      /function disposePortfolioMiniatureTableBuild\(\) \{[\s\S]*?\n\}/
+    );
+    expect(helperMatch?.[0]).toContain('portfolioMiniatureTable?.dispose();');
+    expect(helperMatch?.[0]).toContain('portfolioMiniatureTable = null;');
+
+    const partialStart = mainSource.indexOf(
+      'function disposePartiallyInitializedImmersiveResources()'
+    );
+    const partialEnd = mainSource.indexOf(
+      'function disposeInitializedOrPartialImmersiveResources()',
+      partialStart
+    );
+    const partialSource = mainSource.slice(partialStart, partialEnd);
+    const disposeIndex = partialSource.indexOf(
+      'disposePortfolioMiniatureTableBuild();'
+    );
+    expect(disposeIndex).toBeGreaterThanOrEqual(0);
+    expect(disposeIndex).toBeLessThan(
+      partialSource.indexOf('clearPoiModelRoots();')
+    );
+    expect(disposeIndex).toBeLessThan(
+      partialSource.indexOf('clearPoiVisualAnchors();')
+    );
+
+    const helperCallCount = (
+      mainSource.match(/disposePortfolioMiniatureTableBuild\(\);/g) ?? []
+    ).length;
+    expect(helperCallCount).toBeGreaterThanOrEqual(2);
+    expect(mainSource).not.toContain('portfolioMiniatureTable.dispose();');
   });
 });

@@ -1,3 +1,5 @@
+import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
+
 import type { PoiId } from './types';
 
 export interface PoiPhysicalMetadata {
@@ -48,6 +50,21 @@ const physicalMetadata = {
     clearances: {
       markerMinHeight: 2.4,
       avatarPathRadius: 1.2,
+    },
+  },
+
+  'danielsmith-portfolio-table': {
+    realWorldReference:
+      'white museum display table holding an architectural scale model',
+    realWorldDimensionsMeters:
+      PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.realWorldDimensionsMeters,
+    intendedSceneBounds:
+      PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.intendedSceneBounds,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight:
+        PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.intendedSceneBounds.height,
+      avatarPathRadius: 1.15,
     },
   },
   'sugarkube-backyard-greenhouse': {

@@ -1,4 +1,5 @@
 import type { PoiId } from '../poi/types';
+import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
 
 import type {
   MiniaturePoiProxyDefinition,
@@ -67,8 +68,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 1,
-    syncNote: 'Initial iconic television and media console proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Tracks the explicit media-wall visual anchor used by the tabletop miniature.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -87,7 +89,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial flywheel dais proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/flywheel.ts'],
     proxyFiles: [SELF_FILE],
@@ -115,7 +117,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial desk terminal proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
     proxyFiles: [SELF_FILE],
@@ -135,7 +137,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial launch pad proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
@@ -151,7 +153,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
       'Covers merged table, switch, yellow rack, nodes, and cable silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
@@ -183,9 +185,57 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         0xfacc15
       ),
       box(
-        'sugarkube-node-stack',
-        [0.26, 0.18, 0.22],
-        [0.32, 0.98, 0.12],
+        'sugarkube-pi-node-0-0',
+        [0.16, 0.05, 0.12],
+        [0.08, 0.69, 0],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-0-1',
+        [0.16, 0.05, 0.12],
+        [0.32, 0.69, 0],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-0-2',
+        [0.16, 0.05, 0.12],
+        [0.56, 0.69, 0],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-1-0',
+        [0.16, 0.05, 0.12],
+        [0.08, 0.93, 0.12],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-1-1',
+        [0.16, 0.05, 0.12],
+        [0.32, 0.93, 0.12],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-1-2',
+        [0.16, 0.05, 0.12],
+        [0.56, 0.93, 0.12],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-2-0',
+        [0.16, 0.05, 0.12],
+        [0.08, 1.17, 0.24],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-2-1',
+        [0.16, 0.05, 0.12],
+        [0.32, 1.17, 0.24],
+        0xe2e8f0
+      ),
+      box(
+        'sugarkube-pi-node-2-2',
+        [0.16, 0.05, 0.12],
+        [0.56, 1.17, 0.24],
         0xe2e8f0
       ),
       cable('sugarkube-cable-silhouette', [
@@ -199,7 +249,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
       'Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.',
     sourceFiles: [
@@ -241,7 +291,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial sentry proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
@@ -256,7 +306,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial clipboard console proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
@@ -270,7 +320,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial navigation tracker proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
     proxyFiles: [SELF_FILE],
@@ -292,7 +342,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial workbench proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
@@ -306,7 +356,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial shelves proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
@@ -321,7 +371,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial loom proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
     proxyFiles: [SELF_FILE],
@@ -335,7 +385,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper console proxy',
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote: 'Initial console proxy.',
     sourceFiles: [...baseFiles, 'src/scene/structures/prReaperConsole.ts'],
     proxyFiles: [SELF_FILE],
@@ -355,33 +405,43 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 1,
-    syncNote: 'Nonrecursive self-proxy: simple white portfolio table only.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/selfieMirror.ts'],
-    proxyFiles: [SELF_FILE],
+    syncRevision: 3,
+    syncNote:
+      'Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/selfieMirror.ts',
+      'src/scene/structures/portfolioMiniatureTableContract.ts',
+      'src/scene/structures/portfolioSceneLayout.ts',
+    ],
+    proxyFiles: [SELF_FILE, 'src/scene/structures/portfolioMiniatureTable.ts'],
     primitives: [
       box(
         'danielsmith-white-tabletop',
-        [1.15, 0.12, 1.15],
-        [0, 0.55, 0],
+        [
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.width,
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.topThickness,
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth,
+        ],
+        [0, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0],
         0xffffff
       ),
       box(
         'danielsmith-white-table-leg-a',
-        [0.08, 0.55, 0.08],
-        [-0.42, 0.27, -0.42],
+        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
+        [-1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
         0xf8fafc
       ),
       box(
         'danielsmith-white-table-leg-b',
-        [0.08, 0.55, 0.08],
-        [0.42, 0.27, -0.42],
+        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
+        [1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
         0xf8fafc
       ),
       box(
         'danielsmith-recursion-boundary-plaque',
         [0.72, 0.04, 0.18],
-        [0, 0.64, 0],
+        [0, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.bedInsetY + 0.05, 0],
         0xe5e7eb
       ),
     ],

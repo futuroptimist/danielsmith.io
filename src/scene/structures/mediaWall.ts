@@ -6,6 +6,7 @@ import {
   Group,
   MathUtils,
   Mesh,
+  Object3D,
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
@@ -356,6 +357,7 @@ export interface LivingRoomMediaWallPoiBindings {
     shelfLightMaterial: MeshStandardMaterial;
     clearance: Mesh;
     clearanceMaterial: MeshBasicMaterial;
+    anchor: Object3D;
   };
 }
 
@@ -721,6 +723,12 @@ export function createLivingRoomMediaWall(
   clearance.renderOrder = 4;
   group.add(clearance);
 
+  const tvAnchor = new Object3D();
+  tvAnchor.name = 'LivingRoomMediaWallFuturOptimistVisualAnchor';
+  tvAnchor.position.set(wallInteriorX + boardDepth, 0, anchorZ);
+  tvAnchor.rotation.y = Math.PI / 2;
+  group.add(tvAnchor);
+
   const poiBindings: LivingRoomMediaWallPoiBindings = {
     futuroptimistTv: {
       screen: screenMesh,
@@ -733,6 +741,7 @@ export function createLivingRoomMediaWall(
       shelfLightMaterial,
       clearance,
       clearanceMaterial,
+      anchor: tvAnchor,
     },
   };
 

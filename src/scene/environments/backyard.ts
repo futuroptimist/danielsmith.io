@@ -61,6 +61,7 @@ import { createMultiplayerProjection } from '../structures/multiplayerProjection
 export interface BackyardEnvironmentBuild {
   group: Group;
   colliders: RectCollider[];
+  modelRocketAnchor: Group;
   update(context: { elapsed: number; delta: number }): void;
   ambientAudioBeds: BackyardAmbientAudioBed[];
   applySeasonalPreset(preset: SeasonalLightingPreset | null): void;
@@ -2169,6 +2170,7 @@ export function createBackyardEnvironment(
   return {
     group,
     colliders,
+    modelRocketAnchor: rocket.group,
     update,
     ambientAudioBeds,
     applySeasonalPreset: applyBackyardSeasonalPreset,
