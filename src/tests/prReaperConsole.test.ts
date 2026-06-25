@@ -166,6 +166,10 @@ describe('createPrReaperInstallation', () => {
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
     ).toHaveLength(0);
+
+    const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
+    const gunMaterial = gun.material as MeshBasicMaterial;
+    expect(gunMaterial.color.getHex()).toBe(0x5b676d);
   });
 
   it('creates a fixed PR circle mesh pool and keeps it stable during updates', () => {

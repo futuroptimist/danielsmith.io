@@ -207,6 +207,11 @@ export function createPrReaperInstallation(
     metalness: 0.5,
     roughness: 0.38,
   });
+  const laserGunMaterial = new MeshStandardMaterial({
+    color: 0x5b676d,
+    metalness: 0.5,
+    roughness: 0.38,
+  });
   const green = new MeshBasicMaterial({
     color: 0x4dff8f,
     transparent: true,
@@ -435,7 +440,7 @@ export function createPrReaperInstallation(
   flange.add(emitter);
   const gun = addOwned(
     owned,
-    new Mesh(new BoxGeometry(0.16, 0.12, 0.28), darkMetal)
+    new Mesh(new BoxGeometry(0.16, 0.12, 0.28), laserGunMaterial)
   );
   gun.name = 'PrReaperLaserGunHousing';
   gun.position.z = 0.08;

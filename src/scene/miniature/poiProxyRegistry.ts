@@ -446,7 +446,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         'reaper-tool-flange-laser-gun',
         [0.14, 0.1, 0.2],
         [0, 0.62, 0.62],
-        0x0f172a
+        0x5b676d
       ),
       box(
         'reaper-short-green-beam-hint',
