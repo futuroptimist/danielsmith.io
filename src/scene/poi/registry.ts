@@ -5,8 +5,12 @@ import {
   getPoiCopy,
   type LocaleInput,
 } from '../../assets/i18n';
+import {
+  PR_REAPER_FOOTPRINT_DEPTH,
+  PR_REAPER_FOOTPRINT_WIDTH,
+} from '../structures/prReaperInstallationContract';
 
-import { scalePoiValue } from './constants';
+import { POI_SCALE, scalePoiValue } from './constants';
 import { applyManualPoiPlacements } from './placements';
 import type {
   PoiCategory,
@@ -211,7 +215,10 @@ const baseDefinitions: PoiStaticDefinition[] = [
     position: { x: 0, y: 0, z: 20 },
     headingRadians: Math.PI * 0.35,
     interactionRadius: 2.1,
-    footprint: { width: 2.4, depth: 2 },
+    footprint: {
+      width: PR_REAPER_FOOTPRINT_WIDTH / POI_SCALE,
+      depth: PR_REAPER_FOOTPRINT_DEPTH / POI_SCALE,
+    },
     status: 'prototype',
   },
   {

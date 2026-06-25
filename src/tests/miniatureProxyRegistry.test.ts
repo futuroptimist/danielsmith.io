@@ -83,6 +83,76 @@ describe('miniature POI proxy registry', () => {
     );
   });
 
+  it('keeps the PR Reaper proxy aligned to the P5b static silhouette', () => {
+    const definition =
+      MINIATURE_POI_PROXY_REGISTRY['pr-reaper-backyard-console'];
+    const primitiveNames = definition.primitives.map(
+      (primitive) => primitive.name
+    );
+    const primitiveByName = new Map(
+      definition.primitives.map((primitive) => [primitive.name, primitive])
+    );
+
+    expect(definition.syncRevision).toBeGreaterThanOrEqual(4);
+    expect(definition.sourceFiles).toContain(
+      'src/scene/structures/prReaperInstallationContract.ts'
+    );
+    expect(primitiveNames).toEqual(
+      expect.arrayContaining([
+        'reaper-projector-base',
+        'reaper-projector-lens',
+        'reaper-hologram-screen-9x21',
+        'reaper-hologram-top-edge',
+        'reaper-hologram-bottom-edge',
+        'reaper-robot-yaw-base',
+        'reaper-robot-yaw-column',
+        'reaper-robot-pitch-link',
+        'reaper-tool-flange-laser-gun',
+        'reaper-short-green-beam-hint',
+      ])
+    );
+    expect(primitiveNames).not.toEqual(
+      expect.arrayContaining([
+        'reaper-console',
+        'reaper-scythe-screen',
+        'reaper-review-dial',
+      ])
+    );
+
+    const screen = primitiveByName.get('reaper-hologram-screen-9x21');
+    expect(screen?.kind).toBe('box');
+    expect(screen?.size?.[1]).toBeCloseTo((screen?.size?.[0] ?? 0) * (21 / 9));
+    expect(screen?.color).toBe(0x38bdf8);
+    expect(primitiveByName.get('reaper-hologram-top-edge')?.color).toBe(
+      0x7dd3fc
+    );
+    expect(primitiveByName.get('reaper-hologram-bottom-edge')?.color).toBe(
+      0x7dd3fc
+    );
+
+    expect(
+      definition.primitives.filter((primitive) =>
+        primitive.name.startsWith('reaper-pr-red-hint')
+      )
+    ).toHaveLength(3);
+    expect(
+      definition.primitives.filter((primitive) =>
+        primitive.name.startsWith('reaper-pr-green-hint')
+      )
+    ).toHaveLength(1);
+    expect(primitiveByName.get('reaper-robot-yaw-base')?.kind).toBe('cylinder');
+    expect(primitiveByName.get('reaper-robot-yaw-column')?.kind).toBe(
+      'cylinder'
+    );
+    expect(primitiveByName.get('reaper-robot-pitch-link')?.kind).toBe('box');
+    expect(primitiveByName.get('reaper-tool-flange-laser-gun')?.kind).toBe(
+      'box'
+    );
+    expect(primitiveByName.get('reaper-short-green-beam-hint')?.color).toBe(
+      0x22c55e
+    );
+  });
+
   it('builds finite visible-only geometry at every detail level', () => {
     for (const level of ORDERED_SCENE_DETAIL_LEVELS) {
       for (const definition of MINIATURE_POI_PROXY_DEFINITIONS) {
