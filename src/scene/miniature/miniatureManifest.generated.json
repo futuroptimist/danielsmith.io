@@ -511,11 +511,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial navigation tracker proxy.",
-      "sourceFingerprint": "6dcd1605dec4de2041fe42651a2b6e647a0ad20fbb1e0401798f20db5ff1abc9",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "5c025a10db2b646052246f42e1ea122dc454f20053b140d4e149bba192d381f2"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "d560aa2ab7929bed228d38439cd6c26566a34f397df1b14d99205bd780c47766",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "47ac5aef40df0e5279529d33e08cd23b88265a8bcc44951f3e2b92872515806d"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -533,8 +533,8 @@
       ],
       "syncRevision": 3,
       "syncNote": "Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.",
-      "sourceFingerprint": "5bed7b923355c1e51f560c440e88d816bce8d76ff03846a1db848aa6ec0e8c78",
-      "proxyFingerprint": "92f491f314e58af2c7066406ded3bbcd24a88d19a6efe49a6865509cdc212f57",
+      "sourceFingerprint": "37a605bb70036671d249e3c956b764048ee2c8700333b23437291b064d964a7d",
+      "proxyFingerprint": "36dd3a273b0c9e17ddf3a539dd8ae8c5df8adcddde203ff10d514e9f33320128",
       "metadataFingerprint": "1d21e34769e8710485c27e83cb91e841a1b751619ea1057bb3f0a90f36138aeb"
     },
     {
@@ -546,11 +546,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial launch pad proxy.",
-      "sourceFingerprint": "78b5e99d90b9173afe05431b5fac28ebb3926c40947c2c297910b94265f780c3",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "b6b4dfc4f81ccbedeba8705343a274095f8ef1fac44093e1fedf490988a3d454"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "e28ad477f31ed8573defb67f2d33efffb55b1278cf25c0903519fefdff81c048",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "786ee7c818049bdc258d05a3720b0c24b331bf3b74fff51b103266627458eb00"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -561,11 +561,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial clipboard console proxy.",
-      "sourceFingerprint": "3cd6bca51f461c7176a5d5ad82aab10928dc92c9b127e5df15d9c4ddcffdae98",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "6a942b9f7decdd3e7a50407dace32c83e267574a14641816429a830f602ec965"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "efa55c8aad112ebbcf5537f7be09f3e89a3cf569106949c34c3e5ad5bf8b2daf",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "7e59b35d752bfbac5558f84e3c35b8ef71c6ef05e05375b0d9633ff41094ab62"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -576,11 +576,11 @@
         "src/scene/structures/flywheel.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial flywheel dais proxy.",
-      "sourceFingerprint": "09c5e9fb3c0ea77532b57239c8032d2dd3fc736f7a905dacc7f220320558409e",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "105e66ec74e117fd8934591444a19a86c0572e1036cea73652712680c0c1f92e"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "3053f6e2a8ee799815a28bceb744faa218475941757bed0a2c6e30ba7458401f",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "be312aac26fac81617be4bf80d88bcfa3831b5c038b0ab483e02f6dbaa4c75cd"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -593,8 +593,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 3,
       "syncNote": "Tracks the explicit media-wall visual anchor used by the tabletop miniature.",
-      "sourceFingerprint": "732b4302ade4e8d7dd707f69da2dd5d8921bbc78a1bd2180f61d93ec024a51ea",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
+      "sourceFingerprint": "72c492eddd65cef451b846584cde3463abf5024c18f6b8d5867aa8f52e4f5629",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
       "metadataFingerprint": "72267991166e4246f3dfb2241ca7a6efdd1786e634e788716c1c6cb2265f42fa"
     },
     {
@@ -606,11 +606,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial sentry proxy.",
-      "sourceFingerprint": "c086395a83004277b2377c67b27a701689e5fe064d4413cdee0e4642b0f40094",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "7307ac42863c1f00123667b5101a75ed47133ae16bbe37a809db4f44efde3b35"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "4b77621cf846fc09c4ab487937ad582a6a2a7ee46c02e33f8065111a8bb1c6b1",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "3ca6a37892e29885feb436031dd15d32030afee5b58f4ad7e675c47a5637cb32"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -621,11 +621,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial shelves proxy.",
-      "sourceFingerprint": "efc6a7b9f07b68229326a7f20518c7a41cc801168b7cab6f406d307d9f22204f",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "25db9c30cffd2cb26f53dd6a486b5da9cd239d1994ca08e76d0313e72b53ac17"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "c23e5326459e9b7cc34e7ef59d58a42539979f1b05fcd1e2c838498b2ad86111",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "039970c412196a3415fde6f4132ce00cc756ab663a9e4f10160646777eb280e7"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -636,11 +636,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial desk terminal proxy.",
-      "sourceFingerprint": "f5665d852d241cbfc77cba109dc12a40e64c9229af02828944917ad7c2b89031",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "e88588340bbbc9cabfc609074f366a183d06c0612bfa3bf0e1bb4974c45e960c"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "e19928707238c6fa17a3c300222f3ff026f394b9089dc77b4776b6cb3f456160",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "c6f08c624d272c62a0643814ec2eb881480df8b86860aea00c13b84ae60c9305"
     },
     {
       "id": "poi:markers-labels",
@@ -668,8 +668,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Static holographic reaper installation proxy tracks finalized P5b structure source, projector, 9:21 screen, PR hints, two-axis arm, and tool flange.",
-      "sourceFingerprint": "8e6d95c26910b5ab76d9236a79791303bd2ee4527281506b87405c8467935186",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
+      "sourceFingerprint": "6dae9a5c32097a0c5ce315f7d1446514ec59a4430e4c20bbff6f57186f3ddc65",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
       "metadataFingerprint": "edb726e3bf123b193b0c4cb58b8d472b72b549625e94d449dbd3d83d40273834"
     },
     {
@@ -681,11 +681,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial workbench proxy.",
-      "sourceFingerprint": "f0acd88cbbff1238ca0e35e8549856bc4e4a642ea7601000748cdeb76e561c48",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "140a284a69bc87980c4f23a392bd1443b5bc0b07d0218283a759d41ea8304755"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "8cd993c2721e563594af4ccaf388a7cf21c9799dc22a22f5ecfff1f23e75ef15",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "1e233a900e029d5c325e1b60a9b3537e7136c9cf74a035916ec8a03101dafbde"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -698,8 +698,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 2,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
-      "sourceFingerprint": "e726bbb9cc60906d46cb26325cd96cda79873a90d4aa6a1bedbe7e130319ef28",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
+      "sourceFingerprint": "eafb07327be3977472284d683752b2f901e21301fe9ef5bb9f746f008ccecdb0",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
       "metadataFingerprint": "17f75919aefb4f157b4531af581f3c89661f599e2bfdd160c9a5233ad17a8f5d"
     },
     {
@@ -713,8 +713,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 2,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
-      "sourceFingerprint": "b0c8a44cf200edbbf5a6e7cf700947335154bf2e84f6769e06b9ff81b17a76cf",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
+      "sourceFingerprint": "4c3ac975f22f4516da92e183f4e7170c9357251ab8692bb84a68923d8bdf52be",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
       "metadataFingerprint": "5c533bce1d7817805ce4afd0df758d534529e7e441e8823ead1acfb5b43b97a6"
     },
     {
@@ -726,11 +726,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Initial loom proxy.",
-      "sourceFingerprint": "e727c2699632f2046e4407b9a7852d1b2d0ccbb72fb67bfdacba89ba634a676b",
-      "proxyFingerprint": "2f071e19347aacc005f33e495be65a82aa4d1e814b4017d62bf69b48a7f54d1f",
-      "metadataFingerprint": "6c433ed18b1d434b7e3a183f3ff6ef22d28e28157e60c79ab7a9bc005f734a7c"
+      "syncRevision": 3,
+      "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
+      "sourceFingerprint": "a38743e6e36f75f6b9e2077d9f55fd12bd1ee7646fe1223422f6d1c41b604bee",
+      "proxyFingerprint": "66c783981cda03a9c5ed71271b138953a8bb3bc0e86ff276305836637cea72ac",
+      "metadataFingerprint": "4109c32d634025eac2d183df2d439687eefbc52bdb24d91d392eb5898dc62776"
     },
     {
       "id": "structure:greenhouse",

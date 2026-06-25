@@ -104,12 +104,20 @@ function addOwned<T extends Mesh>(owned: Mesh[], mesh: T): T {
   return mesh;
 }
 
-function disposeMesh(mesh: Mesh): void {
+function clampOpacity(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function disposeMesh(mesh: Mesh, disposedMaterials: Set<unknown>): void {
   mesh.geometry.dispose();
   const materials = Array.isArray(mesh.material)
     ? mesh.material
     : [mesh.material];
-  materials.forEach((material) => material.dispose());
+  materials.forEach((material) => {
+    if (disposedMaterials.has(material)) return;
+    disposedMaterials.add(material);
+    material.dispose();
+  });
 }
 
 function detailCounts(policy: SceneDetailPolicy) {
@@ -340,18 +348,21 @@ export function createPrReaperInstallation(
   arm.name = 'PrReaperArmLink';
   arm.position.z = -PR_REAPER_ARM_LINK_LENGTH / 2;
   pitchJoint.add(arm);
-  const flange = addOwned(
-    owned,
-    new Mesh(new CylinderGeometry(0.14, 0.14, 0.12, counts.cylinder), darkMetal)
-  );
+  const flange = new Group();
   flange.name = 'PrReaperToolFlange';
-  flange.rotation.x = Math.PI / 2;
   flange.position.set(
     PR_REAPER_TOOL_FLANGE_OFFSET.x,
     PR_REAPER_TOOL_FLANGE_OFFSET.y,
     PR_REAPER_TOOL_FLANGE_OFFSET.z
   );
   pitchJoint.add(flange);
+  const flangeHousing = addOwned(
+    owned,
+    new Mesh(new CylinderGeometry(0.14, 0.14, 0.12, counts.cylinder), darkMetal)
+  );
+  flangeHousing.name = 'PrReaperToolFlangeHousing';
+  flangeHousing.rotation.x = Math.PI / 2;
+  flange.add(flangeHousing);
   const emitter = new Group();
   emitter.name = 'PrReaperLaserEmitter';
   emitter.position.set(
@@ -404,11 +415,6 @@ export function createPrReaperInstallation(
   group.add(particles);
 
   const centerOffsetZ = (PR_REAPER_FRONT_DEPTH - PR_REAPER_REAR_DEPTH) / 2;
-  const right = new Vector3(
-    Math.cos(orientationRadians),
-    0,
-    -Math.sin(orientationRadians)
-  );
   const forward = new Vector3(
     Math.sin(orientationRadians),
     0,
@@ -427,7 +433,6 @@ export function createPrReaperInstallation(
       orientationRadians
     ),
   ];
-  void right;
 
   let disposed = false;
   return {
@@ -437,8 +442,8 @@ export function createPrReaperInstallation(
       const pulse = getPulseScale();
       const amount =
         (0.18 + Math.sin(elapsed * 1.7) * 0.04 + emphasis * 0.2) * pulse;
-      screenMaterial.opacity = 0.22 + amount;
-      edgeMaterial.opacity = 0.62 + amount;
+      screenMaterial.opacity = clampOpacity(0.22 + amount);
+      edgeMaterial.opacity = clampOpacity(0.62 + amount);
     },
     getDebugState() {
       return {
@@ -450,7 +455,8 @@ export function createPrReaperInstallation(
     dispose() {
       if (disposed) return;
       disposed = true;
-      owned.forEach(disposeMesh);
+      const disposedMaterials = new Set<unknown>();
+      owned.forEach((mesh) => disposeMesh(mesh, disposedMaterials));
     },
   };
 }

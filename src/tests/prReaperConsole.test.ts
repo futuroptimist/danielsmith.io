@@ -162,7 +162,7 @@ describe('createPrReaperInstallation', () => {
       PR_REAPER_FOOTPRINT_WIDTH
     );
     expect(collider.maxZ - collider.minZ).toBeGreaterThan(
-      PR_REAPER_FOOTPRINT_WIDTH
+      PR_REAPER_FOOTPRINT_DEPTH
     );
 
     const metadata = getPoiPhysicalMetadata('pr-reaper-backyard-console');
@@ -174,14 +174,8 @@ describe('createPrReaperInstallation', () => {
     const placedFootprint = getPoiDefinitions().find(
       (poi) => poi.id === 'pr-reaper-backyard-console'
     )?.footprint;
-    expect(placedFootprint?.width).toBeCloseTo(
-      PR_REAPER_FOOTPRINT_WIDTH * 2,
-      6
-    );
-    expect(placedFootprint?.depth).toBeCloseTo(
-      PR_REAPER_FOOTPRINT_DEPTH * 2,
-      6
-    );
+    expect(placedFootprint?.width).toBeCloseTo(PR_REAPER_FOOTPRINT_WIDTH, 6);
+    expect(placedFootprint?.depth).toBeCloseTo(PR_REAPER_FOOTPRINT_DEPTH, 6);
   });
 
   it('constructs all five detail levels with finite descending public-mode triangle counts', () => {

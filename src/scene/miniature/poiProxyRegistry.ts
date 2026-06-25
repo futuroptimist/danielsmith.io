@@ -89,8 +89,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 2,
-    syncNote: 'Initial flywheel dais proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/flywheel.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -117,8 +118,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 2,
-    syncNote: 'Initial desk terminal proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -137,8 +139,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 2,
-    syncNote: 'Initial launch pad proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -291,8 +294,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 2,
-    syncNote: 'Initial sentry proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -306,8 +310,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 2,
-    syncNote: 'Initial clipboard console proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -320,8 +325,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 2,
-    syncNote: 'Initial navigation tracker proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -342,8 +348,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 2,
-    syncNote: 'Initial workbench proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -356,8 +363,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 2,
-    syncNote: 'Initial shelves proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -371,8 +379,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 2,
-    syncNote: 'Initial loom proxy.',
+    syncRevision: 3,
+    syncNote:
+      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
