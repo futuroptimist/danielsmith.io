@@ -97,6 +97,55 @@ export interface PortfolioMiniatureTableOptions {
   poiPlacements: readonly MiniaturePoiPlacement[];
 }
 
+export interface GroundFloorMiniaturePoiPlacementResolution {
+  placements: MiniaturePoiPlacement[];
+  missingAnchorIds: PoiId[];
+}
+
+export function resolveGroundFloorMiniaturePoiPlacements(
+  poiDefinitions: readonly PoiDefinition[],
+  resolveAnchor: (id: PoiId) => {
+    worldPosition: Vector3;
+    worldYaw: number;
+    kind: MiniaturePoiPlacement['anchorKind'];
+  } | null,
+  getFloorId: (definition: PoiDefinition) => 'ground' | 'upper',
+  finiteSelfPlacement?: MiniaturePoiPlacement
+): GroundFloorMiniaturePoiPlacementResolution {
+  const placements: MiniaturePoiPlacement[] = [];
+  const missingAnchorIds: PoiId[] = [];
+
+  for (const definition of poiDefinitions) {
+    if (getFloorId(definition) !== 'ground') continue;
+    if (finiteSelfPlacement && definition.id === finiteSelfPlacement.id) {
+      placements.push(finiteSelfPlacement);
+      continue;
+    }
+    const anchor = resolveAnchor(definition.id);
+    if (!anchor) {
+      missingAnchorIds.push(definition.id);
+      continue;
+    }
+    placements.push({
+      id: definition.id,
+      position: {
+        x: anchor.worldPosition.x,
+        y: anchor.worldPosition.y,
+        z: anchor.worldPosition.z,
+      },
+      headingRadians: anchor.worldYaw,
+      floor: 'ground',
+      roomId: definition.roomId,
+      footprint: definition.footprint,
+      definition,
+      anchorKind: anchor.kind,
+      placementSource: 'visual-model-anchor',
+    });
+  }
+
+  return { placements, missingAnchorIds };
+}
+
 const ownedMaterials = new WeakSet<object>();
 
 const createMaterial = (

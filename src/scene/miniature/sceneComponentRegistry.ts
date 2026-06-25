@@ -55,9 +55,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'environment:backyard',
     kind: 'shared-source',
     sourceFiles: ['src/scene/environments/backyard.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
-      'Backyard bounds, path, fence, lantern, shrubs, and barrier require miniature review when source changes.',
+      'Backyard now exposes the actual DSPACE rocket group as the visual anchor; miniature DSPACE placement is covered by the POI proxy.',
   },
   {
     id: 'lighting:visible-fixtures',
@@ -351,6 +351,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     syncRevision: 1,
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+  },
+  {
+    id: 'audit:src:scene:poi:visualAnchors',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/poi/visualAnchors.ts'],
+    syncRevision: 1,
+    reason:
+      'Audited placement support source; tabletop proxy geometry remains covered by each POI entry.',
   },
   {
     id: 'audit:src:scene:poi:physicalMetadata',

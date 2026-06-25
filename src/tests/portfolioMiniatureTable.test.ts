@@ -19,6 +19,7 @@ import {
   createMiniatureWorldTransform,
   createPortfolioMiniatureTable,
   createPortfolioTableShell,
+  resolveGroundFloorMiniaturePoiPlacements,
   type MiniaturePoiPlacement,
   getPortfolioMiniatureTableVisibleBounds,
 } from '../scene/structures/portfolioMiniatureTable';
@@ -74,6 +75,41 @@ const getRoomBounds = (roomId: string) =>
   )?.bounds;
 
 describe('PortfolioMiniatureTable', () => {
+  it('resolves only ground-floor miniature placements from visual anchors', () => {
+    const definitions = poiDefinitions.slice(0, 4);
+    const groundDefinitions = definitions.filter(
+      (definition) => (definition.position.y ?? 0) < 3
+    );
+    const missingGroundId = groundDefinitions[0]?.id;
+    const result = resolveGroundFloorMiniaturePoiPlacements(
+      definitions,
+      (id) => {
+        if (id === missingGroundId) return null;
+        return {
+          worldPosition: new Vector3(10, 0.5, -12),
+          worldYaw: Math.PI / 3,
+          kind: 'environment',
+        };
+      },
+      (definition) => ((definition.position.y ?? 0) >= 3 ? 'upper' : 'ground')
+    );
+
+    expect(result.missingAnchorIds).toEqual(
+      missingGroundId ? [missingGroundId] : []
+    );
+    expect(
+      result.placements.every((placement) => placement.floor === 'ground')
+    ).toBe(true);
+    expect(
+      result.placements.every(
+        (placement) => placement.placementSource === 'visual-model-anchor'
+      )
+    ).toBe(true);
+    expect(
+      result.placements.every((placement) => placement.position.x === 10)
+    ).toBe(true);
+  });
+
   it('has a physical metadata contract and unit outer root', () => {
     const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
     expect(metadata?.anchor).toBe('bottom-center');

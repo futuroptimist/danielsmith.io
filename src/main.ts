@@ -299,6 +299,7 @@ import {
 import { createMediaWallStarBridge } from './scene/structures/mediaWallStarBridge';
 import {
   createPortfolioMiniatureTable,
+  resolveGroundFloorMiniaturePoiPlacements,
   type MiniaturePoiPlacement,
   type PortfolioMiniatureTableBuild,
 } from './scene/structures/portfolioMiniatureTable';
@@ -1158,6 +1159,8 @@ function initializeImmersiveScene(
   container: HTMLElement,
   onFatalError: (error: unknown, options: { renderer?: WebGLRenderer }) => void
 ) {
+  clearPoiVisualAnchors();
+  clearPoiModelRoots();
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
   renderer.outputColorSpace = SRGBColorSpace;
@@ -1303,7 +1306,11 @@ function initializeImmersiveScene(
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let responsiveControlOverlay: ResponsiveControlOverlayHandle | null = null;
   let hudPanelCoordinator: HudPanelCoordinatorHandle | null = null;
+  let immersiveLifecycle: 'building' | 'ready' | 'disposing' | 'disposed' =
+    'building';
   let immersiveDisposed = false;
+  let lowFpsRecoveryPopup: HTMLElement | null = null;
+  let lowFpsRecoveryMonitor: LowFpsRecoveryMonitor | null = null;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
   let narrationToggleControl: NarrationToggleControlHandle | null = null;
@@ -1671,6 +1678,44 @@ function initializeImmersiveScene(
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
+  function disposePartiallyInitializedImmersiveResources() {
+    if (
+      immersiveLifecycle === 'disposed' ||
+      immersiveLifecycle === 'disposing'
+    ) {
+      return;
+    }
+    immersiveLifecycle = 'disposing';
+    if (inputLatencyTelemetry) {
+      inputLatencyTelemetry.report('dispose-partial');
+      inputLatencyTelemetry.dispose();
+      inputLatencyTelemetry = null;
+    }
+    softwareSafeRenderEvents.forEach((eventName) => {
+      window.removeEventListener(eventName, requestSoftwareSafeRender);
+    });
+    softwareRendererWarning?.dispose();
+    softwareRendererWarning = null;
+    lowFpsRecoveryMonitor?.reset();
+    lowFpsRecoveryPopup?.remove();
+    lowFpsRecoveryPopup = null;
+    clearPoiModelRoots();
+    clearPoiVisualAnchors();
+    if (renderer.domElement.parentElement === container) {
+      container.removeChild(renderer.domElement);
+    }
+    immersiveDisposed = true;
+    immersiveLifecycle = 'disposed';
+  }
+
+  function disposeInitializedOrPartialImmersiveResources() {
+    if (immersiveLifecycle === 'ready') {
+      disposeImmersiveResources();
+      return;
+    }
+    disposePartiallyInitializedImmersiveResources();
+  }
+
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
       rendererInfo,
@@ -1734,7 +1779,7 @@ function initializeImmersiveScene(
       );
     },
     onBeforeFallback: () => {
-      disposeImmersiveResources();
+      disposeInitializedOrPartialImmersiveResources();
     },
     onFallback: (reason) => {
       disposeDebugPerformanceRegistration();
@@ -1762,7 +1807,7 @@ function initializeImmersiveScene(
       softwareRendererPolicy,
       snapshot: performanceDiagnostics?.methods.getSnapshot(),
     });
-    disposeImmersiveResources();
+    disposeInitializedOrPartialImmersiveResources();
     onFatalError(error, { renderer });
   };
 
@@ -1927,6 +1972,11 @@ function initializeImmersiveScene(
       detailPolicy: activeSceneDetailPolicy,
     });
     groundEnvironmentGroup.add(backyardEnvironment.group);
+    registerPoiVisualAnchor(
+      'dspace-backyard-rocket',
+      backyardEnvironment.modelRocketAnchor,
+      'environment'
+    );
     // Remove the enclosing sky dome to avoid a bright circular spheroid.
     // We want a dark void beyond the property in runtime.
     const skyDome =
@@ -3187,40 +3237,47 @@ function initializeImmersiveScene(
   }
 
   if (portfolioTablePoi) {
-    registerPoiVisualAnchor(
-      portfolioTablePoi.definition.id,
-      portfolioTablePoi.group,
-      'floor',
-      { replace: true }
-    );
     const metadata = getPoiPhysicalMetadata('danielsmith-portfolio-table');
     if (!metadata) {
       throw new Error(
         'Missing physical metadata for danielsmith-portfolio-table.'
       );
     }
-    const miniaturePoiPlacements: MiniaturePoiPlacement[] = poiInstances.map(
-      (poi) => {
-        const anchor = resolvePoiVisualAnchor(poi.definition.id);
-        if (!anchor && getPoiFloorId(poi.definition) === 'ground') {
-          throw new Error(
-            `Missing visual anchor for ground-floor miniature POI "${poi.definition.id}".`
-          );
-        }
-        const source = anchor?.worldPosition ?? poi.group.position;
-        return {
-          id: poi.definition.id,
-          position: { x: source.x, y: source.y, z: source.z },
-          headingRadians: anchor?.worldYaw ?? poi.group.rotation.y ?? 0,
-          floor: getPoiFloorId(poi.definition),
-          roomId: poi.definition.roomId,
-          footprint: poi.definition.footprint,
-          definition: poi.definition,
-          anchorKind: anchor?.kind ?? 'floor',
-          placementSource: 'visual-model-anchor',
-        };
-      }
+    portfolioTablePoi.group.updateMatrixWorld(true);
+    const selfWorldPosition = portfolioTablePoi.group.getWorldPosition(
+      new Vector3()
     );
+    const finiteSelfPlacement: MiniaturePoiPlacement = {
+      id: portfolioTablePoi.definition.id,
+      position: {
+        x: selfWorldPosition.x,
+        y: selfWorldPosition.y,
+        z: selfWorldPosition.z,
+      },
+      headingRadians: portfolioTablePoi.group.rotation.y ?? 0,
+      floor: getPoiFloorId(portfolioTablePoi.definition),
+      roomId: portfolioTablePoi.definition.roomId,
+      footprint: portfolioTablePoi.definition.footprint,
+      definition: portfolioTablePoi.definition,
+      anchorKind: 'floor',
+      placementSource: 'visual-model-anchor',
+    };
+    const placementResolution = resolveGroundFloorMiniaturePoiPlacements(
+      poiDefinitions,
+      resolvePoiVisualAnchor,
+      getPoiFloorId,
+      finiteSelfPlacement
+    );
+    if (placementResolution.missingAnchorIds.length > 0) {
+      crashBreadcrumbs.record({
+        type: 'snapshot',
+        message:
+          'miniature-missing-visual-anchors:' +
+          placementResolution.missingAnchorIds.join(','),
+        renderer: rendererInfo,
+        softwareRendererPolicy,
+      });
+    }
     const table = createPortfolioMiniatureTable({
       position: {
         x: portfolioTablePoi.group.position.x,
@@ -3233,7 +3290,7 @@ function initializeImmersiveScene(
         effectiveInitialQualityLevel
       ),
       poiDefinitions,
-      poiPlacements: miniaturePoiPlacements,
+      poiPlacements: placementResolution.placements,
     });
     addPoiStructure(portfolioTablePoi, table.group);
     getPoiColliderTarget(portfolioTablePoi).push(table.collider);
@@ -4070,7 +4127,7 @@ function initializeImmersiveScene(
     performanceFailover.triggerFallback('manual');
   };
 
-  const lowFpsRecoveryPopup = document.createElement('aside');
+  lowFpsRecoveryPopup = document.createElement('aside');
   lowFpsRecoveryPopup.className = 'performance-recovery-popup';
   lowFpsRecoveryPopup.setAttribute('role', 'dialog');
   lowFpsRecoveryPopup.setAttribute('aria-modal', 'false');
@@ -4099,7 +4156,9 @@ function initializeImmersiveScene(
   };
 
   const renderLowFpsRecoveryPopup = () => {
-    lowFpsRecoveryPopup.replaceChildren();
+    const popup = lowFpsRecoveryPopup;
+    if (!popup) return;
+    popup.replaceChildren();
     const title = document.createElement('h2');
     title.className = 'performance-recovery-popup__title';
     title.id = 'performance-recovery-popup-title';
@@ -4108,16 +4167,16 @@ function initializeImmersiveScene(
     body.className = 'performance-recovery-popup__body';
     body.id = 'performance-recovery-popup-body';
     body.textContent = lowFpsRecoveryStrings.body;
-    lowFpsRecoveryPopup.setAttribute('aria-labelledby', title.id);
-    lowFpsRecoveryPopup.setAttribute('aria-describedby', body.id);
+    popup.setAttribute('aria-labelledby', title.id);
+    popup.setAttribute('aria-describedby', body.id);
     const actions = document.createElement('div');
     actions.className = 'performance-recovery-popup__actions';
     const dismiss = document.createElement('button');
     dismiss.type = 'button';
     dismiss.textContent = lowFpsRecoveryStrings.dismissLabel;
     dismiss.addEventListener('click', () => {
-      lowFpsRecoveryMonitor.dismiss();
-      lowFpsRecoveryPopup.hidden = true;
+      lowFpsRecoveryMonitor?.dismiss();
+      popup.hidden = true;
       reportLowFpsRecoveryAction('dismiss');
     });
     actions.appendChild(dismiss);
@@ -4131,8 +4190,8 @@ function initializeImmersiveScene(
           : lowFpsRecoveryStrings.downgradePerformanceLabel;
       downgrade.addEventListener('click', () => {
         reportLowFpsRecoveryAction(`downgrade-${nextLevel}`);
-        lowFpsRecoveryMonitor.dismiss();
-        lowFpsRecoveryPopup.hidden = true;
+        lowFpsRecoveryMonitor?.dismiss();
+        popup.hidden = true;
         if (nextLevel === 'performance') {
           pendingLowFpsPerformanceRecoveryReload = true;
         }
@@ -4144,22 +4203,24 @@ function initializeImmersiveScene(
     textMode.type = 'button';
     textMode.textContent = lowFpsRecoveryStrings.textModeLabel;
     textMode.addEventListener('click', () => {
-      lowFpsRecoveryMonitor.dismiss();
-      lowFpsRecoveryPopup.hidden = true;
+      lowFpsRecoveryMonitor?.dismiss();
+      popup.hidden = true;
       reportLowFpsRecoveryAction('text-mode');
       activateTextMode();
     });
     actions.appendChild(textMode);
-    lowFpsRecoveryPopup.append(title, body, actions);
+    popup.append(title, body, actions);
   };
 
-  const lowFpsRecoveryMonitor = new LowFpsRecoveryMonitor({
+  lowFpsRecoveryMonitor = new LowFpsRecoveryMonitor({
     fpsThreshold: LOW_FPS_RECOVERY_THRESHOLD,
     windowMs: LOW_FPS_RECOVERY_WINDOW_MS,
     cooldownMs: LOW_FPS_RECOVERY_COOLDOWN_MS,
     onTrigger: () => {
       renderLowFpsRecoveryPopup();
-      lowFpsRecoveryPopup.hidden = false;
+      if (lowFpsRecoveryPopup) {
+        lowFpsRecoveryPopup.hidden = false;
+      }
       hudFocusAnnouncer?.announce(lowFpsRecoveryStrings.announcement);
       reportLowFpsRecoveryAction('shown');
     },
@@ -4334,7 +4395,7 @@ function initializeImmersiveScene(
     tourResetControlStrings = getTourResetControlStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
     lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
-    if (!lowFpsRecoveryPopup.hidden) {
+    if (lowFpsRecoveryPopup && !lowFpsRecoveryPopup.hidden) {
       renderLowFpsRecoveryPopup();
     }
     siteStrings = getSiteStrings(locale);
@@ -5277,14 +5338,23 @@ function initializeImmersiveScene(
     setFpsEnabled: (enabled: boolean) => {
       setDebugFpsEnabled(enabled);
     },
-    getLowFpsRecoveryState: () => lowFpsRecoveryMonitor.getState(),
-    forceLowFpsRecoveryPopup: () => lowFpsRecoveryMonitor.forceTrigger(),
+    getLowFpsRecoveryState: () =>
+      lowFpsRecoveryMonitor?.getState() ?? {
+        averageFps: 0,
+        elapsedMs: 0,
+        frameCount: 0,
+        visible: false,
+        cooldownRemainingMs: 0,
+      },
+    forceLowFpsRecoveryPopup: () => lowFpsRecoveryMonitor?.forceTrigger(),
     recordLowFpsRecoveryFrame: (deltaSeconds: number, nowMs?: number) => {
-      lowFpsRecoveryMonitor.recordFrame(deltaSeconds, nowMs);
+      lowFpsRecoveryMonitor?.recordFrame(deltaSeconds, nowMs);
     },
     dismissLowFpsRecoveryPopup: (nowMs?: number) => {
-      lowFpsRecoveryMonitor.dismiss(nowMs);
-      lowFpsRecoveryPopup.hidden = true;
+      lowFpsRecoveryMonitor?.dismiss(nowMs);
+      if (lowFpsRecoveryPopup) {
+        lowFpsRecoveryPopup.hidden = true;
+      }
     },
   };
 
@@ -6581,6 +6651,7 @@ function initializeImmersiveScene(
     if (immersiveDisposed) {
       return;
     }
+    immersiveLifecycle = 'disposing';
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose');
       inputLatencyTelemetry.dispose();
@@ -6591,8 +6662,9 @@ function initializeImmersiveScene(
     });
     softwareRendererWarning?.dispose();
     softwareRendererWarning = null;
-    lowFpsRecoveryMonitor.reset();
-    lowFpsRecoveryPopup.remove();
+    lowFpsRecoveryMonitor?.reset();
+    lowFpsRecoveryPopup?.remove();
+    lowFpsRecoveryPopup = null;
     immersiveDisposed = true;
     ledAnimator = null;
     lightmapAnimator = null;
@@ -6911,6 +6983,7 @@ function initializeImmersiveScene(
     prReaperConsole = null;
     gabrielSentry = null;
     gitshelvesInstallation = null;
+    immersiveLifecycle = 'disposed';
   }
 
   const softwareSafeRenderIntervalMs = softwareRendererPolicy.renderCadenceFps
@@ -6924,6 +6997,7 @@ function initializeImmersiveScene(
       passive: true,
     });
   });
+  immersiveLifecycle = 'ready';
 
   renderer.setAnimationLoop(() => {
     try {
@@ -6955,7 +7029,7 @@ function initializeImmersiveScene(
         );
       }
       performanceFailover.update(delta);
-      lowFpsRecoveryMonitor.recordFrame(delta, frameStartMs);
+      lowFpsRecoveryMonitor?.recordFrame(delta, frameStartMs);
       if (performanceFailover.hasTriggered()) {
         debugPerformanceOverlay.end();
         return;

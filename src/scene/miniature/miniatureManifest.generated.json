@@ -370,6 +370,16 @@
       "metadataFingerprint": "d15fd8e5eeef68cd49ba7216c47c8d6d2d1f5e0ad989a005cd666b531221e9b2"
     },
     {
+      "id": "audit:src:scene:poi:visualAnchors",
+      "sourceFiles": ["src/scene/poi/visualAnchors.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Audited placement support source; tabletop proxy geometry remains covered by each POI entry.",
+      "sourceFingerprint": "88905b57dec045d59af5a49a7407df0a64ae960183bc7351b813c3f9157661b8",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "826e7026fef1c7b2db7e0a0779a36e972ebfec4baee637adc3294b3def4d4e76"
+    },
+    {
       "id": "audit:src:scene:structures:doorwayOpenings",
       "sourceFiles": ["src/scene/structures/doorwayOpenings.ts"],
       "proxyFiles": [],
@@ -422,18 +432,18 @@
       "syncRevision": 1,
       "syncNote": "Ceiling panel fixtures need simplified caps in the tabletop.",
       "sourceFingerprint": "ebd5f2e8ef4522745c486e0fe00d2a9c9b59067c82e0f73e807082f3af3cbcd5",
-      "proxyFingerprint": "30b6af9925fefff0b46b7109c49c3b34ff843ca56dacffe9acc5f9a5aa5538cf",
+      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
       "metadataFingerprint": "73cc34b6ec09ede01419bf028fe4d2a8e6b227520c61098398daaa25ffe91566"
     },
     {
       "id": "environment:backyard",
       "sourceFiles": ["src/scene/environments/backyard.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Backyard bounds, path, fence, lantern, shrubs, and barrier require miniature review when source changes.",
-      "sourceFingerprint": "f348116a3a6a19e78ca25cf62d2583de410c1326a69dcc48acd101ab207fa2cd",
+      "syncRevision": 2,
+      "syncNote": "Backyard now exposes the actual DSPACE rocket group as the visual anchor; miniature DSPACE placement is covered by the POI proxy.",
+      "sourceFingerprint": "971ef42420aa1289a362fe86a43abe46b38db00bc721b919beb7be62eace561c",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "636407de018d5f7167073c9ed38321c65c4c976156ced995496d4f82689491b1"
+      "metadataFingerprint": "a1f55926d15dbbbf6265d325b88de2dbe745c6b206541a43b0f6e13be4fda910"
     },
     {
       "id": "level:floors-walls",
@@ -489,7 +499,7 @@
       "syncRevision": 1,
       "syncNote": "Visible LED strips are represented as simplified fixture strips; invisible light contribution is excluded.",
       "sourceFingerprint": "db5e4dc8734e2a2b560bdfac3c8471286095c02bc2480c2a943a2b96552a719e",
-      "proxyFingerprint": "30b6af9925fefff0b46b7109c49c3b34ff843ca56dacffe9acc5f9a5aa5538cf",
+      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
       "metadataFingerprint": "c45e7bcebfe889f25d2582d69cefd5b716828079c769b454f959b3d2fcfc98f6"
     },
     {
@@ -524,7 +534,7 @@
       "syncRevision": 3,
       "syncNote": "Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.",
       "sourceFingerprint": "f3224bd72648712468b48742c93e12e32b2a2c114b7dc8a2a19f40791885e674",
-      "proxyFingerprint": "5365d3bdb7d4a7d3e10ae9219689b61cf1ec6a83134ecf65768eabfa59a9c6a1",
+      "proxyFingerprint": "67c239e3e869c29282e6091e9188d4da31c9e3a45ba6be004dd085ef98c81dce",
       "metadataFingerprint": "1d21e34769e8710485c27e83cb91e841a1b751619ea1057bb3f0a90f36138aeb"
     },
     {
@@ -728,7 +738,7 @@
       "syncRevision": 1,
       "syncNote": "Greenhouse shell and visible planters are represented by simplified proxy geometry.",
       "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
-      "proxyFingerprint": "30b6af9925fefff0b46b7109c49c3b34ff843ca56dacffe9acc5f9a5aa5538cf",
+      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
       "metadataFingerprint": "fc6531df64c47d676958fcc5b51888d9c48fe33484b658d70841deb5f8888986"
     },
     {
@@ -738,7 +748,7 @@
       "syncRevision": 1,
       "syncNote": "Media wall star bridge visible spans are represented by simplified proxy geometry.",
       "sourceFingerprint": "04d2cedb3edec666eb4aca08bf1ec62e8e9bbd9f421ec67d2960b759dd8e24b4",
-      "proxyFingerprint": "30b6af9925fefff0b46b7109c49c3b34ff843ca56dacffe9acc5f9a5aa5538cf",
+      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
       "metadataFingerprint": "492f0a9f355b44bea11a40f10baedbaf8cc02b767a9917b622a52f6f0f538232"
     },
     {
@@ -748,7 +758,7 @@
       "syncRevision": 1,
       "syncNote": "Multiplayer projection visible screen and plinth are represented by simplified proxy geometry.",
       "sourceFingerprint": "04676c6f3d637192e62e0f52bb16b33f9231b1db56ec08d77e2878ec397a47c7",
-      "proxyFingerprint": "30b6af9925fefff0b46b7109c49c3b34ff843ca56dacffe9acc5f9a5aa5538cf",
+      "proxyFingerprint": "917f308e1490851b33f39f40a85eeefb56817bbff29a2b1e6ec882f0907a74ea",
       "metadataFingerprint": "f064a0716c5538bdeaff7d47d54dcc2a0a2b97d0403e6000496ce505524f4608"
     }
   ]
