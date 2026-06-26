@@ -129,6 +129,60 @@ describe('PR Reaper deterministic stream', () => {
     ).toBe(true);
   });
 
+  it('reaps active red candidates without incrementing expired counters', () => {
+    const stream = createPrReaperStream({ seed: 'reap-red-seed' });
+    for (let i = 0; i < 40; i += 1) stream.advance(0.1);
+    const red = stream
+      .getDebugState()
+      .activeCandidates.find((candidate) => candidate.type === 'red');
+    expect(red).toBeDefined();
+    const before = stream.getDebugState();
+    const reaped = stream.reapCandidate(red!.id, 4);
+    const after = stream.getDebugState();
+    expect(reaped?.id).toBe(red!.id);
+    expect(
+      after.activeCandidates.some((candidate) => candidate.id === red!.id)
+    ).toBe(false);
+    expect(after.totalReapedRed).toBe(before.totalReapedRed + 1);
+    expect(after.totalExpiredRed).toBe(before.totalExpiredRed);
+    expect(stream.reapCandidate(red!.id)).toBeNull();
+    expect(stream.getDebugState().totalReapedRed).toBe(after.totalReapedRed);
+  });
+
+  it('rejects green and missing reap attempts while preserving candidates', () => {
+    const stream = createPrReaperStream({ seed: 'reap-green-seed' });
+    for (let i = 0; i < 80; i += 1) stream.advance(0.1);
+    const green = stream
+      .getDebugState()
+      .activeCandidates.find((candidate) => candidate.type === 'green');
+    expect(green).toBeDefined();
+    expect(stream.reapCandidate(green!.id)).toBeNull();
+    expect(stream.getCandidateById(green!.id)).not.toBeNull();
+    expect(stream.reapCandidate(999999)).toBeNull();
+    expect(stream.getDebugState().attemptedGreenReapCount).toBe(1);
+  });
+
+  it('keeps future spawn history unchanged after reaping', () => {
+    const a = createPrReaperStream({ seed: 'sequence-stable' });
+    const b = createPrReaperStream({ seed: 'sequence-stable' });
+    for (let i = 0; i < 50; i += 1) {
+      a.advance(0.1);
+      b.advance(0.1);
+    }
+    const red = a
+      .getDebugState()
+      .activeCandidates.find((candidate) => candidate.type === 'red');
+    expect(red).toBeDefined();
+    a.reapCandidate(red!.id);
+    for (let i = 0; i < 100; i += 1) {
+      a.advance(0.1);
+      b.advance(0.1);
+    }
+    expect(a.getDebugState().spawnHistory).toEqual(
+      b.getDebugState().spawnHistory
+    );
+  });
+
   it('bounds large deltas and ignores negative or nonfinite deltas', () => {
     const stream = createPrReaperStream({ seed: 'delta-seed' });
     const before = stream.getDebugState();

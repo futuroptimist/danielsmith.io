@@ -165,7 +165,12 @@ describe('createPrReaperInstallation', () => {
     );
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
-    ).toHaveLength(0);
+    ).toHaveLength(4);
+    expect(
+      build.group
+        .getObjectByName('PrReaperParticleRoot')
+        ?.children.every((child) => !child.visible)
+    ).toBe(true);
 
     const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
     const flange = build.group.getObjectByName(
@@ -326,6 +331,40 @@ describe('createPrReaperInstallation', () => {
     expect(counts[3]).toBeGreaterThan(counts[4]);
   });
 
+  it('targets red circles with two joints, fires an exact beam, and starts a bounded burst', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'fire-seed',
+    });
+    const yaw = build.group.getObjectByName('PrReaperYawJoint')!;
+    const pitch = build.group.getObjectByName('PrReaperPitchJoint')!;
+    const core = build.group.getObjectByName('PrReaperLaserCore')!;
+    const emitter = build.group.getObjectByName('PrReaperLaserEmitter')!;
+    expect(core.visible).toBe(false);
+    let fired = null as ReturnType<typeof build.getDebugState> | null;
+    for (let i = 0; i < 240 && !fired?.laserActive; i += 1) {
+      build.update({ elapsed: i / 20, delta: 0.05, emphasis: 0 });
+      const debug = build.getDebugState();
+      if (debug.laserActive) fired = debug;
+    }
+    expect(fired).not.toBeNull();
+    expect(
+      Math.abs(yaw.rotation.y) + Math.abs(pitch.rotation.x)
+    ).toBeGreaterThan(0);
+    expect(fired!.lastLaserWorldStart).not.toBeNull();
+    expect(fired!.lastLaserWorldEnd).not.toBeNull();
+    const emitterWorld = new Vector3();
+    emitter.getWorldPosition(emitterWorld);
+    expect(fired!.lastLaserWorldStart!.x).toBeCloseTo(emitterWorld.x, 6);
+    expect(fired!.totalReapedRed).toBeGreaterThan(0);
+    expect(fired!.activeBurstCount).toBeGreaterThan(0);
+    expect(fired!.burstPoolCapacity).toBe(4);
+    fired!.activeBurstDurations.forEach((duration) => {
+      expect(duration).toBeGreaterThanOrEqual(0.25);
+      expect(duration).toBeLessThanOrEqual(0.5);
+    });
+  });
+
   it('does not add dynamic point lights', () => {
     const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
     const lights: PointLight[] = [];
@@ -360,7 +399,7 @@ describe('createPrReaperInstallation', () => {
 
     build.dispose();
 
-    expect(materialDispose).toHaveBeenCalledTimes(6);
+    expect(materialDispose).toHaveBeenCalledTimes(8);
     materialDispose.mockRestore();
   });
 });
