@@ -776,11 +776,15 @@ green, missing, expired, and repeated IDs fail safely and do not alter the futur
 schedule, shuffled 3:1 batches, intervals, X positions, or descent speed.
 
 Two-axis aiming lives in `src/scene/structures/prReaperArmKinematics.ts`. The solver converts
-installation-local targets into yaw space, solves yaw around local Y and shoulder pitch around
-local X, clamps to `PR_REAPER_YAW_LIMITS` / `PR_REAPER_PITCH_LIMITS`, reports reachability,
-computes angular error, damps poses with `PR_REAPER_ARM_DAMPING`, and returns the parked pose.
-The runtime still has exactly two animated joint groups: `PrReaperYawJoint` and
-`PrReaperPitchJoint`; no `lookAt()`, elbow, wrist, correction target, or third axis is added.
+installation-local targets into yaw space, treats the barrel forward ray as local `-Z`, solves yaw
+with the Three.js sign convention that positive local-X targets need negative Y rotation, then
+applies the inverse yaw transform before subtracting the pitch-joint local offset and solving
+shoulder pitch around local X. It clamps to `PR_REAPER_YAW_LIMITS` /
+`PR_REAPER_PITCH_LIMITS`, reports reachability, computes angular error, damps poses with
+`PR_REAPER_ARM_DAMPING`, and returns the parked pose. The visible barrel contract is tested through
+`PrReaperLaserAperture` plus the invisible semantic `PrReaperLaserMuzzleForward` anchor. The runtime
+still has exactly two animated joint groups: `PrReaperYawJoint` and `PrReaperPitchJoint`; no
+`lookAt()`, elbow, wrist, correction target, or third axis is added.
 
 `src/scene/structures/prReaperReapingController.ts` owns the pure state machine:
 `idle -> acquire -> track -> fire -> burst -> recover`. It selects red circles only inside the

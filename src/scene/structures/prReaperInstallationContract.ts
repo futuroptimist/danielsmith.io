@@ -73,7 +73,7 @@ export const PR_REAPER_EMITTER_OFFSET = {
   z: -(PR_REAPER_TOOL_FORWARD + PR_REAPER_EMITTER_LOCAL_Z),
 };
 export const PR_REAPER_YAW_LIMITS = { min: -Math.PI / 3, max: Math.PI / 3 };
-export const PR_REAPER_PITCH_LIMITS = { min: -Math.PI / 8, max: Math.PI / 5 };
+export const PR_REAPER_PITCH_LIMITS = { min: -Math.PI / 8, max: Math.PI / 3 };
 export const PR_REAPER_PARKED_POSE = { yaw: 0, pitch: 0 };
 export const PR_REAPER_EMITTER_PARKED_Z =
   PR_REAPER_SHOULDER_Z -

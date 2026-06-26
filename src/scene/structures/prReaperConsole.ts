@@ -490,6 +490,11 @@ export function createPrReaperInstallation(
   aperture.rotation.x = -Math.PI / 2;
   aperture.position.z = -0.08;
   emitter.add(aperture);
+  const muzzleForward = new Group();
+  muzzleForward.name = 'PrReaperLaserMuzzleForward';
+  muzzleForward.position.z = -0.16;
+  muzzleForward.visible = false;
+  emitter.add(muzzleForward);
   const laserCoreMaterial = new MeshBasicMaterial({
     color: 0x66ff99,
     transparent: true,

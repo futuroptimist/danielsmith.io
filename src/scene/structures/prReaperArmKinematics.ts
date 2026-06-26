@@ -9,6 +9,11 @@ import {
 } from './prReaperInstallationContract';
 
 const WORLD_Y_AXIS = new Vector3(0, 1, 0);
+const PITCH_PIVOT_IN_YAW_SPACE = new Vector3(
+  PR_REAPER_PITCH_PIVOT.x,
+  PR_REAPER_PITCH_PIVOT.y - PR_REAPER_YAW_PIVOT.y,
+  PR_REAPER_PITCH_PIVOT.z
+);
 
 export interface PrReaperArmPose {
   yaw: number;
@@ -59,7 +64,7 @@ export function solvePrReaperYaw(targetInYawSpace: {
   x: number;
   z: number;
 }): number {
-  return Math.atan2(targetInYawSpace.x, -targetInYawSpace.z);
+  return -Math.atan2(targetInYawSpace.x, -targetInYawSpace.z);
 }
 
 export function solvePrReaperPitch(targetInPitchSpace: {
@@ -67,7 +72,7 @@ export function solvePrReaperPitch(targetInPitchSpace: {
   z: number;
 }): number {
   return Math.atan2(
-    targetInPitchSpace.y - PR_REAPER_PITCH_PIVOT.y,
+    targetInPitchSpace.y,
     Math.max(0.001, -targetInPitchSpace.z)
   );
 }
@@ -79,13 +84,14 @@ export function solvePrReaperArmAngles(
   const yawSpace = targetToPrReaperYawSpace(target, rootHeading);
   const unclampedYaw = solvePrReaperYaw(yawSpace);
   const yaw = clampPrReaperYaw(unclampedYaw);
-  const cos = Math.cos(-yaw);
-  const sin = Math.sin(-yaw);
-  const pitchSpace = {
-    y: yawSpace.y + PR_REAPER_YAW_PIVOT.y,
-    z: yawSpace.x * sin + yawSpace.z * cos,
-  };
-  const unclampedPitch = solvePrReaperPitch(pitchSpace);
+  const pitchSpace = yawSpace
+    .clone()
+    .applyAxisAngle(WORLD_Y_AXIS, -yaw)
+    .sub(PITCH_PIVOT_IN_YAW_SPACE);
+  const unclampedPitch = solvePrReaperPitch({
+    y: pitchSpace.y,
+    z: pitchSpace.z,
+  });
   const pitch = clampPrReaperPitch(unclampedPitch);
   const yawClamped = Math.abs(yaw - unclampedYaw) > 1e-9;
   const pitchClamped = Math.abs(pitch - unclampedPitch) > 1e-9;

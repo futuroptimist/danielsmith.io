@@ -1,9 +1,11 @@
 import {
   Box3,
+  BufferGeometry,
   Mesh,
   MeshBasicMaterial,
   Object3D,
   Points,
+  PointsMaterial,
   PointLight,
   Vector3,
 } from 'three';
@@ -114,6 +116,7 @@ describe('createPrReaperInstallation', () => {
       'PrReaperArmLink',
       'PrReaperToolFlange',
       'PrReaperLaserEmitter',
+      'PrReaperLaserMuzzleForward',
       'PrReaperLaserCore',
       'PrReaperLaserGlow',
       'PrReaperParticleRoot',
@@ -389,14 +392,13 @@ describe('createPrReaperInstallation', () => {
       fired.lastLaserWorldEnd!.y - fired.lastLaserWorldStart!.y,
       fired.lastLaserWorldEnd!.z - fired.lastLaserWorldStart!.z
     ).normalize();
-    const gun = build.group.getObjectByName('PrReaperLaserGunHousing')!;
-    const gunWorld = new Vector3();
-    gun.getWorldPosition(gunWorld);
-    const barrelForward = gun
-      .localToWorld(new Vector3(0, 0, -1))
-      .sub(gunWorld)
-      .normalize();
-    expect(Math.abs(barrelForward.dot(toTarget))).toBeGreaterThan(0.89);
+    const muzzleForward = build.group.getObjectByName(
+      'PrReaperLaserMuzzleForward'
+    )!;
+    const muzzleWorld = new Vector3();
+    muzzleForward.getWorldPosition(muzzleWorld);
+    const barrelForward = muzzleWorld.sub(apertureWorld).normalize();
+    expect(barrelForward.angleTo(toTarget)).toBeLessThan(0.015);
 
     expect(fired.totalReapedRed).toBeGreaterThan(0);
     expect(fired.activeBurstCount).toBeGreaterThan(0);
@@ -441,7 +443,7 @@ describe('createPrReaperInstallation', () => {
     const particleRoot = build.group.getObjectByName('PrReaperParticleRoot')!;
     const particleDisposals = particleRoot.children.map((child) => {
       expect(child).toBeInstanceOf(Points);
-      const points = child as Points;
+      const points = child as Points<BufferGeometry, PointsMaterial>;
       return {
         geometry: vi.spyOn(points.geometry, 'dispose'),
         material: vi.spyOn(points.material, 'dispose'),
