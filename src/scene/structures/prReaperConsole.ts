@@ -703,8 +703,9 @@ export function createPrReaperInstallation(
       aperture.getWorldPosition(worldStart);
       const step = controller.update({
         delta,
-        candidates: activeCandidateSnapshot.slice(0, activeCandidateCount),
-        fireOrigin: copyVector(worldStart),
+        candidates: activeCandidateSnapshot,
+        candidateCount: activeCandidateCount,
+        fireOrigin: worldStart,
       });
       const pose = controller.getPose();
       yawJoint.rotation.y = pose.yaw;

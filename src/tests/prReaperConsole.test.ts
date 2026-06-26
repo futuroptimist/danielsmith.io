@@ -418,6 +418,37 @@ describe('createPrReaperInstallation', () => {
     });
   });
 
+  it('keeps stream and reaping semantics active when pulse and flicker are disabled', () => {
+    vi.stubGlobal('document', {
+      documentElement: {
+        dataset: {
+          accessibilityPulseScale: '0',
+          accessibilityFlickerScale: '0',
+        },
+      },
+    });
+    try {
+      const build = createPrReaperInstallation({
+        position: { x: 0.5, z: -0.25 },
+        seed: 'reduced-motion-fire-seed',
+      });
+      const fired = updateUntilLaserFires(build);
+
+      expect(fired.reducedPulseScale).toBe(0);
+      expect(fired.reducedFlickerScale).toBe(0);
+      expect(fired.totalReapedRed).toBeGreaterThan(0);
+      expect(fired.attemptedGreenReapCount).toBe(0);
+      expect(fired.totalSpawnedRed).toBeGreaterThan(0);
+      expect(fired.lastLaserWorldStart).not.toBeNull();
+      expect(fired.lastLaserWorldEnd).not.toBeNull();
+      expect(fired.activeBurstCount).toBeGreaterThan(0);
+      expect(fired.activeBurstDurations[0]).toBeGreaterThanOrEqual(0.25);
+      expect(fired.activeBurstDurations[0]).toBeLessThanOrEqual(0.5);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('does not add dynamic point lights', () => {
     const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
     const lights: PointLight[] = [];

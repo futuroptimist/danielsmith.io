@@ -1,5 +1,4 @@
 import {
-  dampPrReaperArmPose,
   getPrReaperAngularError,
   getPrReaperParkedPose,
   solvePrReaperArmAngles,
@@ -56,9 +55,35 @@ const copy = (v: { x: number; y: number; z: number }) => ({
   z: v.z,
 });
 
+function copyInto(
+  target: { x: number; y: number; z: number },
+  source: { x: number; y: number; z: number }
+): void {
+  target.x = source.x;
+  target.y = source.y;
+  target.z = source.z;
+}
+
+function setPose(target: PrReaperArmPose, source: PrReaperArmPose): void {
+  target.yaw = source.yaw;
+  target.pitch = source.pitch;
+}
+
+function dampPoseInto(
+  current: PrReaperArmPose,
+  target: PrReaperArmPose,
+  damping: number,
+  delta: number
+): void {
+  const alpha = 1 - Math.exp(-Math.max(0, damping) * Math.max(0, delta));
+  current.yaw += (target.yaw - current.yaw) * alpha;
+  current.pitch += (target.pitch - current.pitch) * alpha;
+}
+
 export class PrReaperReapingController {
   private state: PrReaperReapingState = 'idle';
   private selectedCandidateId: number | null = null;
+  private readonly parkedPose: PrReaperArmPose = getPrReaperParkedPose();
   private currentPose: PrReaperArmPose = getPrReaperParkedPose();
   private targetPose: PrReaperArmPose = getPrReaperParkedPose();
   private aimError = 0;
@@ -75,6 +100,7 @@ export class PrReaperReapingController {
   update(options: {
     delta: number;
     candidates: readonly PrReaperCircleState[];
+    candidateCount?: number;
     rootHeading?: number;
     fireOrigin?: { x: number; y: number; z: number } | null;
   }): PrReaperReapingControllerStep {
@@ -92,16 +118,20 @@ export class PrReaperReapingController {
       this.state = 'recover';
     } else if (this.state === 'recover') {
       this.recoverRemainingTime -= delta;
-      this.targetPose = getPrReaperParkedPose();
+      setPose(this.targetPose, this.parkedPose);
       if (this.recoverRemainingTime <= 0) this.state = 'idle';
     }
 
     let fire: PrReaperControllerFireEvent | null = null;
     if (this.state === 'idle' || this.state === 'acquire') {
-      const selected = this.selectCandidate(options.candidates);
+      const selected = this.selectCandidate(
+        options.candidates,
+        options.candidateCount ?? options.candidates.length
+      );
       if (selected) {
         this.selectedCandidateId = selected.id;
-        this.selectedTargetCenter = copy(selected.center);
+        this.selectedTargetCenter ??= { x: 0, y: 0, z: 0 };
+        copyInto(this.selectedTargetCenter, selected.center);
         this.state = 'track';
       } else {
         this.selectedCandidateId = null;
@@ -111,9 +141,11 @@ export class PrReaperReapingController {
     }
 
     if (this.state === 'track') {
-      const selected =
-        options.candidates.find((c) => c.id === this.selectedCandidateId) ??
-        null;
+      const selected = this.findCandidateById(
+        options.candidates,
+        options.candidateCount ?? options.candidates.length,
+        this.selectedCandidateId
+      );
       if (!selected || !this.isTrackableCandidate(selected)) {
         this.releaseTarget();
       } else {
@@ -124,9 +156,11 @@ export class PrReaperReapingController {
         if (!solution.reachable) {
           this.releaseTarget();
         } else {
-          this.targetPose = { yaw: solution.yaw, pitch: solution.pitch };
-          this.selectedTargetCenter = copy(selected.center);
-          this.currentPose = dampPrReaperArmPose(
+          this.targetPose.yaw = solution.yaw;
+          this.targetPose.pitch = solution.pitch;
+          this.selectedTargetCenter ??= { x: 0, y: 0, z: 0 };
+          copyInto(this.selectedTargetCenter, selected.center);
+          dampPoseInto(
             this.currentPose,
             this.targetPose,
             PR_REAPER_ARM_DAMPING,
@@ -166,7 +200,7 @@ export class PrReaperReapingController {
     }
 
     if (this.state !== 'track') {
-      this.currentPose = dampPrReaperArmPose(
+      dampPoseInto(
         this.currentPose,
         this.targetPose,
         PR_REAPER_ARM_DAMPING,
@@ -224,20 +258,44 @@ export class PrReaperReapingController {
     );
   }
 
-  private selectCandidate(
-    candidates: readonly PrReaperCircleState[]
+  private findCandidateById(
+    candidates: readonly PrReaperCircleState[],
+    candidateCount: number,
+    id: number | null
   ): PrReaperCircleState | null {
-    return (
-      [...candidates]
-        .filter((candidate) => this.isTrackableCandidate(candidate))
-        .sort((a, b) => b.progress - a.progress || a.id - b.id)[0] ?? null
-    );
+    if (id === null) return null;
+    const limit = Math.min(candidateCount, candidates.length);
+    for (let i = 0; i < limit; i += 1) {
+      const candidate = candidates[i];
+      if (candidate.id === id) return candidate;
+    }
+    return null;
+  }
+
+  private selectCandidate(
+    candidates: readonly PrReaperCircleState[],
+    candidateCount: number
+  ): PrReaperCircleState | null {
+    let selected: PrReaperCircleState | null = null;
+    const limit = Math.min(candidateCount, candidates.length);
+    for (let i = 0; i < limit; i += 1) {
+      const candidate = candidates[i];
+      if (!this.isTrackableCandidate(candidate)) continue;
+      if (
+        !selected ||
+        candidate.progress > selected.progress ||
+        (candidate.progress === selected.progress && candidate.id < selected.id)
+      ) {
+        selected = candidate;
+      }
+    }
+    return selected;
   }
 
   private releaseTarget(): void {
     this.selectedCandidateId = null;
     this.selectedTargetCenter = null;
-    this.targetPose = getPrReaperParkedPose();
+    setPose(this.targetPose, this.parkedPose);
     this.holdTime = 0;
     this.state = 'idle';
   }
