@@ -820,3 +820,71 @@ opacity, halo visibility, and particle travel/brightness; they do not pause the 
 The tabletop miniature remains static. Its proxy source list and manifest include the runtime
 kinematics/controller modules only for sync tracking, and the proxy continues to depict a static
 3-red/1-green hologram snapshot rather than running the stream, controller, laser, or particles.
+
+## P5e final hardening notes
+
+P5e keeps the installation as a production baseline rather than adding new visual
+features. The runtime builder remains `createPrReaperInstallation(...)` in
+`src/scene/structures/prReaperConsole.ts`; callers pass the active
+`SceneDetailPolicy`, bottom-center position, optional heading, and seed, then own
+`group`, physical `colliders`, per-frame `update(...)`, debug snapshots, and
+idempotent `dispose()`.
+
+Final implementation contracts:
+
+- The constants in `prReaperInstallationContract.ts` define the near-ceiling
+  9:21 screen, bottom/screen-plane anchor, asymmetric physical footprint,
+  marker-clearance height, stream bounds, two joint limits, laser duration, and
+  bounded particle pool.
+- The stream scheduler in `prReaperStream.ts` is semantic, not a visual tuning
+  surface: it emits deterministic shuffled 3-red/1-green batches, keeps every
+  spawn interval (including the first) inside 0.5–1.5 seconds, advances through
+  bounded large deltas, and separates red reaped counters from red/green expiry.
+- The reaping controller in `prReaperReapingController.ts` selects only active
+  red circles in the target band, prioritizes greatest progress then lowest id,
+  and never hides, reaps, bursts, or retargets green circles.
+- Arm kinematics stay two-axis only: `PrReaperYawJoint` and
+  `PrReaperPitchJoint`. There is no hidden `lookAt()` correction, elbow, wrist,
+  third animated axis, or parented target object. The visible aperture is sampled
+  in world space at fire time; the beam start equals that aperture, the beam end
+  equals the destroyed red circle center, and the invisible muzzle-forward marker
+  remains collinear with the beam even under nonzero installation heading.
+- Particle confirmation uses the fixed `PrReaperParticleBurstPool-*` `Points`
+  pool. Burst origins are the same world point as the laser endpoint, converted
+  through `PrReaperParticleRoot.worldToLocal(...)`; durations stay in the
+  0.25–0.50 second contract and geometry/materials are created only during setup.
+- Accessibility pulse/flicker scales only soften presentation. With pulse and/or
+  flicker at zero, the stream schedule, target priority, red-only reaping, laser
+  confirmation, and green immunity stay unchanged; halos and particle brightness
+  are reduced to avoid strobing or sudden full-bright flashes.
+- Detail levels (`cinematic`, `balanced`, `performance`, `low`, `micro`) change
+  only rendering cost. Circle segments, projector/arm accents, beam glow,
+  particle counts, and triangle counts step down monotonically or meaningfully,
+  while stream order/timing, target semantics, beam endpoint, and burst origin
+  remain identical for the same seed and frame sequence.
+- Lifecycle ownership in `main.ts` creates exactly one immersive PR Reaper
+  installation for the POI, attaches it through `addPoiStructure(...)`, registers
+  only the physical floor collider with source metadata, updates it every
+  rendered frame independent of focus, and disposes it during full or partial
+  immersive teardown and before quality rebuilds.
+- The tabletop miniature is intentionally static. It must not run the stream,
+  arm controller, laser, or particle system; the proxy only mirrors the projector
+  base, tall blue screen, exactly three red hints, exactly one green hint,
+  two-axis arm silhouette, laser gun/flange, and optional static green beam hint.
+
+Known non-goals remain unchanged: no external data, no images or textures, no
+binary assets, no audio, no extra POI behavior, and no visual redesign of the
+P5a–P5d concept.
+
+Manual QA checklist for this baseline:
+
+1. Launch `npm run dev -- --host 127.0.0.1 --port 5173` and open
+   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`.
+2. Inspect Cinematic, Balanced, and Performance quality settings.
+3. Confirm the hologram is tall/vertical, red and green circles descend at varied
+   X positions, red circles are reaped, green circles fall through safely, and
+   the arm, aperture, laser endpoint, disappearance, and particle burst all align
+   on the same red-circle center.
+4. Confirm burst effects are brief, reduced motion/flicker settings remain
+   comfortable, the POI orb/label clear the near-ceiling hologram, and the
+   miniature remains a static proxy only.

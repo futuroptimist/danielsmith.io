@@ -3220,6 +3220,7 @@ function initializeImmersiveScene(
   }
 
   if (prReaperPoi) {
+    disposePrReaperInstallationBuild();
     const installation = createPrReaperInstallation({
       position: {
         x: prReaperPoi.group.position.x,

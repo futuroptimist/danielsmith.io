@@ -619,17 +619,25 @@ export function createPrReaperInstallation(
     midpoint.copy(localStart).add(localEnd).multiplyScalar(0.5);
     direction.copy(localEnd).sub(localStart);
     const length = Math.max(0.001, direction.length());
-    [laserCore, laserGlow].forEach((beam) => {
-      beam.position.copy(midpoint);
-      beam.scale.set(1, length, 1);
-      beam.quaternion.copy(
-        beamQuaternion.setFromUnitVectors(yAxis, direction.normalize())
-      );
-    });
+    direction.normalize();
+    laserCore.position.copy(midpoint);
+    laserCore.scale.set(1, length, 1);
+    laserCore.quaternion.copy(
+      beamQuaternion.setFromUnitVectors(yAxis, direction)
+    );
+    laserGlow.position.copy(midpoint);
+    laserGlow.scale.set(1, length, 1);
+    laserGlow.quaternion.copy(laserCore.quaternion);
     setBeamVisible(true, flicker);
   }
   function startBurst(origin: Vector3, flicker: number): void {
-    const slot = bursts.find((burst) => !burst.active) ?? bursts[0];
+    let slot = bursts[0];
+    for (let i = 0; i < bursts.length; i += 1) {
+      if (!bursts[i].active) {
+        slot = bursts[i];
+        break;
+      }
+    }
     slot.active = true;
     slot.age = 0;
     slot.duration =
@@ -701,9 +709,10 @@ export function createPrReaperInstallation(
       }
       group.updateWorldMatrix(true, true);
       aperture.getWorldPosition(worldStart);
+      activeCandidateSnapshot.length = activeCandidateCount;
       const step = controller.update({
         delta,
-        candidates: activeCandidateSnapshot.slice(0, activeCandidateCount),
+        candidates: activeCandidateSnapshot,
         fireOrigin: copyVector(worldStart),
       });
       const pose = controller.getPose();
@@ -754,8 +763,9 @@ export function createPrReaperInstallation(
       } else {
         setBeamVisible(false, flicker);
       }
-      bursts.forEach((burst) => {
-        if (!burst.active) return;
+      for (let burstIndex = 0; burstIndex < bursts.length; burstIndex += 1) {
+        const burst = bursts[burstIndex];
+        if (!burst.active) continue;
         burst.age += delta;
         const progress = Math.min(1, burst.age / burst.duration);
         for (let i = 0; i < counts.particles; i += 1) {
@@ -772,7 +782,7 @@ export function createPrReaperInstallation(
           burst.active = false;
           burst.points.visible = false;
         }
-      });
+      }
     },
     getDebugState() {
       const streamDebug = stream.getDebugState();
