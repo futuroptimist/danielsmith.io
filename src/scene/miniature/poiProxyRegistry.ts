@@ -396,7 +396,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     displayName: 'PR Reaper holographic reaper installation proxy',
     syncRevision: 18,
     syncNote:
-      'Reviewer follow-up preserves PR Reaper proxy sync after allocation and test hardening changes.',
+      'Runtime hardening keeps the static 3:1 proxy synchronized with lifecycle, detail, and accessibility files.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
