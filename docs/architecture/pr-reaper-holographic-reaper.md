@@ -766,3 +766,51 @@ Future PRs should add/adjust Vitest coverage for:
   disposal/teardown, quality reload behavior, miniature manifest updates,
   nonzero-heading integration tests, and full required quality gates.
 - Depends on P5b-P5d implementation completeness.
+
+## P5d runtime targeting implementation notes
+
+P5d adds the core runtime reaping behavior without changing the P5c stream
+schedule. `src/scene/structures/prReaperStream.ts` now exposes an explicit
+`reapCandidate(id, now)` API: active red candidates are removed immediately,
+repeated or missing IDs are safe no-ops, and green candidates are rejected and
+left active for natural expiry.
+
+Two-axis aiming lives in `src/scene/structures/prReaperArmKinematics.ts`. The
+solver converts installation-local target centers into yaw-space, clamps to
+`PR_REAPER_YAW_LIMITS` and `PR_REAPER_PITCH_LIMITS`, reports reachability, and
+damps the yaw/pitch pose. The only animated axes remain `PrReaperYawJoint`
+(local Y) and `PrReaperPitchJoint` (local X); the implementation does not add
+look-at helpers, wrists, elbows, or correction groups.
+
+The pure state machine in `src/scene/structures/prReaperReapingController.ts`
+runs through `idle`, `acquire`, `track`, `fire`, `burst`, and `recover`. It uses
+these shared constants from `prReaperInstallationContract.ts`:
+
+- `PR_REAPER_TARGET_PROGRESS_MIN = 0.12`
+- `PR_REAPER_TARGET_PROGRESS_MAX = 0.9`
+- `PR_REAPER_AIM_TOLERANCE_RADIANS = 0.035`
+- `PR_REAPER_AIM_HOLD_SECONDS = 0.04`
+- `PR_REAPER_LASER_DURATION_SECONDS = 0.12`
+- `PR_REAPER_RECOVER_SECONDS = 0.18`
+- `PR_REAPER_ARM_DAMPING = 12`
+
+Target priority is deterministic: red candidates in the shooting band first,
+greatest descent progress next, then smaller candidate ID as the tie-breaker.
+Green candidates are never selected by the controller and remain protected again
+by the stream reaping API.
+
+The beam is a reusable pair of cylinder meshes under `PrReaperLaserEmitter`:
+`PrReaperLaserCore` plus a detail/accessibility-dependent `PrReaperLaserGlow`.
+Each firing frame reads the actual emitter world position and the selected red
+circle mesh world position before hiding/reaping the circle, converts the
+world-space endpoints into the emitter parent local space, and writes midpoint,
+length, and quaternion onto the beam meshes. No point lights or per-shot beam
+resources are created.
+
+Impact confirmation uses four preallocated `Points` pools named
+`PrReaperParticleBurstPool-0` through `PrReaperParticleBurstPool-3`. Burst
+durations are deterministic and bounded to 0.25-0.50 seconds. Particle counts
+by internal detail level are: Cinematic 32, Balanced 24, Performance 14, Low 8,
+and Micro 4. Reduced flicker/pulse scales only soften presentation by reducing
+opacity/travel; stream timing, target priority, and red-only semantics do not
+change.
