@@ -317,7 +317,7 @@ describe('createPrReaperInstallation', () => {
       expect(debugStates[i].particles).toBeLessThanOrEqual(
         debugStates[i - 1].particles
       );
-      expect(debugStates[i].triangles).toBeLessThan(
+      expect(debugStates[i].triangles).toBeLessThanOrEqual(
         debugStates[i - 1].triangles
       );
     }

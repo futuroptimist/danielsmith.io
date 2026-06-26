@@ -394,9 +394,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 17,
+    syncRevision: 18,
     syncNote:
-      'P5e hardening keeps the static 3:1 proxy synchronized with runtime lifecycle, detail, and accessibility files.',
+      'Reviewer follow-up preserves PR Reaper proxy sync after allocation and test hardening changes.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',

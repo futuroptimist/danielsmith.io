@@ -210,6 +210,7 @@ export function createPrReaperInstallation(
       center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
     })
   );
+  const activeCandidatesForController: PrReaperCircleState[] = [];
   const group = new Group();
   group.name = 'PrReaperInstallation';
   group.position.set(position.x, position.y ?? 0, position.z);
@@ -709,10 +710,13 @@ export function createPrReaperInstallation(
       }
       group.updateWorldMatrix(true, true);
       aperture.getWorldPosition(worldStart);
-      activeCandidateSnapshot.length = activeCandidateCount;
+      activeCandidatesForController.length = activeCandidateCount;
+      for (let i = 0; i < activeCandidateCount; i += 1) {
+        activeCandidatesForController[i] = activeCandidateSnapshot[i];
+      }
       const step = controller.update({
         delta,
-        candidates: activeCandidateSnapshot,
+        candidates: activeCandidatesForController,
         fireOrigin: copyVector(worldStart),
       });
       const pose = controller.getPose();
@@ -721,9 +725,14 @@ export function createPrReaperInstallation(
       group.updateWorldMatrix(true, true);
       let laserStartedThisFrame = false;
       if (step.fire) {
-        const targetMesh = circlePool.find(
-          (mesh) => mesh.userData.candidateId === step.fire!.candidateId
-        );
+        let targetMesh: Mesh | undefined;
+        for (let i = 0; i < circlePool.length; i += 1) {
+          const circle = circlePool[i];
+          if (circle.userData.candidateId === step.fire.candidateId) {
+            targetMesh = circle;
+            break;
+          }
+        }
         if (targetMesh && targetMesh.userData.type === 'red') {
           targetMesh.updateWorldMatrix(true, false);
           aperture.updateWorldMatrix(true, false);
