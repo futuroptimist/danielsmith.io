@@ -820,3 +820,36 @@ opacity, halo visibility, and particle travel/brightness; they do not pause the 
 The tabletop miniature remains static. Its proxy source list and manifest include the runtime
 kinematics/controller modules only for sync tracking, and the proxy continues to depict a static
 3-red/1-green hologram snapshot rather than running the stream, controller, laser, or particles.
+
+## P5e production hardening notes
+
+P5e keeps the P5b-P5d visual contract unchanged and treats the installation as a
+finished POI baseline rather than a redesign. The public builder remains
+`createPrReaperInstallation({ position, orientationRadians, detailPolicy, seed })`;
+`src/main.ts` passes the active `SceneDetailPolicy`, attaches the returned group through
+`addPoiStructure(...)`, registers only the returned physical floor collider with
+scene-object source metadata, updates the build every rendered frame, and calls
+`dispose()` from full and partial immersive teardown paths so quality reloads do not
+leave stale PR Reaper geometry, material, particle, collider, or timer state.
+
+The runtime update path is intentionally allocation-light: stream state writes into a
+preallocated circle snapshot, the controller scans that snapshot by bounded count
+instead of slicing/filtering/sorting arrays, beam transforms reuse scratch vectors and
+quaternions, particles reuse fixed `Points` pools, and no mesh, geometry, or material is
+created during updates or per fire. Debug snapshots may still allocate copied state for
+tests and diagnostics because they are not part of the rendered-frame hot path.
+
+Detail levels preserve identical stream semantics for a given seed. Cinematic,
+Balanced, Performance, Low, and Micro only reduce rendering cost: circle segments,
+projector/arm accents, beam halo visibility, fasteners, particle counts, and triangle
+counts step down monotonically or are removed where practical. The red-only target
+contract, green immunity, exact aperture-to-red-center beam endpoint, particle origin
+mapping, and seeded spawn schedule stay invariant across detail levels and
+accessibility settings.
+
+Manual QA for final PRs should launch the immersive scene with
+`?mode=immersive&disablePerformanceFailover=1`, inspect Cinematic/Balanced/Performance,
+verify the tall 9:21 hologram and marker clearance, confirm varied PR spawn positions,
+red reaping, green fall-through, aperture-aligned beam endpoint, brief particle burst at
+the destroyed red center, reduced-motion/reduced-flicker comfort, and ensure the tabletop
+miniature remains the static proxy only.
