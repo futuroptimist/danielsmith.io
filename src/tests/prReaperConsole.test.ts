@@ -165,7 +165,7 @@ describe('createPrReaperInstallation', () => {
     );
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
-    ).toHaveLength(0);
+    ).toHaveLength(4);
 
     const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
     const flange = build.group.getObjectByName(
@@ -360,7 +360,7 @@ describe('createPrReaperInstallation', () => {
 
     build.dispose();
 
-    expect(materialDispose).toHaveBeenCalledTimes(6);
+    expect(materialDispose).toHaveBeenCalledTimes(8);
     materialDispose.mockRestore();
   });
 });
