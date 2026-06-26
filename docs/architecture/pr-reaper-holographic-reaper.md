@@ -820,3 +820,85 @@ opacity, halo visibility, and particle travel/brightness; they do not pause the 
 The tabletop miniature remains static. Its proxy source list and manifest include the runtime
 kinematics/controller modules only for sync tracking, and the proxy continues to depict a static
 3-red/1-green hologram snapshot rather than running the stream, controller, laser, or particles.
+
+## P5e final production baseline
+
+P5e keeps the P5a-P5d visual concept intact and hardens the existing implementation rather than
+adding new features. The public builder remains `createPrReaperInstallation(options)` from
+`src/scene/structures/prReaperConsole.ts`; callers provide the POI bottom-center `position`, optional
+`orientationRadians`, the active `SceneDetailPolicy`, and an optional deterministic seed for tests.
+It returns the root `group`, one physical floor-footprint collider, `update(...)`, debug snapshots,
+and idempotent `dispose()` ownership for all PR Reaper geometry and materials.
+
+Runtime integration in `src/main.ts` creates exactly one installation for
+`pr-reaper-backyard-console`, passes the active scene detail policy, applies scene-object source
+metadata, registers only the physical floor collider, attaches the group through
+`addPoiStructure(...)`, updates every rendered frame, and disposes the build on immersive teardown or
+quality reload. Emphasis is presentation-only: it changes opacity/pulse intensity but never pauses or
+retimes the stream, controller, laser, or particle semantics.
+
+The final stream contract is still pure and deterministic: each shuffled batch contains exactly
+three red PR circles and one green survivor, intervals stay within 0.5-1.5 seconds including the
+first spawn, large deltas are capped, red reaped and red expired counts remain distinct, and green
+candidates are never selected, hidden, reaped, or used for bursts. Reaping removes red candidates
+through `reapCandidate(...)` without consuming future random values, so seed plus frame sequence
+fully determines future schedules and positions.
+
+Arm alignment remains a two-axis contract. Only `PrReaperYawJoint` and `PrReaperPitchJoint` are
+animated; the visible barrel forward ray is represented by `PrReaperLaserAperture` to the semantic
+`PrReaperLaserMuzzleForward` anchor. The controller works in installation-local stream coordinates,
+then the runtime reads final world matrices immediately before firing so the laser start equals the
+visible aperture, the beam direction is collinear with the gun forward vector, and the beam end plus
+particle origin equal the destroyed red-circle center even under a nonzero installation heading.
+There is no `lookAt()` path, hidden correction group, elbow, wrist, or parented target object.
+
+Particle confirmation uses the fixed four-slot `PrReaperParticleBurstPool-*` `Points` pool. Each slot
+owns preallocated positions/velocities, lasts 0.25-0.50 seconds, and converts the world-space hit
+point through `PrReaperParticleRoot.worldToLocal(...)` before activation. Firing reuses meshes,
+geometries, and materials; update loops mutate existing buffers and the bounded pool, while debug
+snapshots may allocate copied state for tests.
+
+Accessibility reductions are semantic no-ops. `accessibilityPulseScale = 0` removes pulse-driven
+screen/circle motion, `accessibilityFlickerScale = 0` softens the beam glow and particle travel, and
+using both still leaves the descending stream, red-only targeting, one clear laser confirmation, and
+a brief low-intensity burst. These settings avoid strobing or sudden full-brightness flashes and do
+not alter spawn order, spawn timing, 3:1 ratio, target priority, or green immunity.
+
+Detail levels reduce rendering cost only:
+
+| Level       | Circle segments | Particles/burst | Arm/projector accents         | Beam/halo layers |
+| ----------- | --------------: | --------------: | ----------------------------- | ---------------- |
+| Cinematic   |              36 |              32 | full accents and fasteners    | core + glow      |
+| Balanced    |              30 |              24 | reduced accents and fasteners | core + glow      |
+| Performance |              24 |              14 | fewer accents and fasteners   | core + glow      |
+| Low         |              18 |               8 | minimal accents               | core only        |
+| Micro       |              12 |               4 | no optional accents           | core only        |
+
+No detail path builds hidden higher-cost variants. Tests assert finite descending triangle counts
+and semantic parity across all five levels.
+
+Physical metadata remains anchored at root scale `[1, 1, 1]` with a bottom-center screen-plane root.
+`PR_REAPER_INTENDED_BOUNDS` covers the near-ceiling 9:21 screen, projector, robot, and marker
+clearance. The single collider is the asymmetric physical floor footprint for projector/robot/avatar
+routing only; the hologram screen is intentionally non-colliding so it does not block routes.
+
+The tabletop miniature stays a static proxy. The proxy must show the projector base, tall blue 9:21
+screen, exactly three red PR hints, exactly one green survivor hint, two-axis arm silhouette, tool
+flange/laser gun, and optional static green beam hint. It must not instantiate or update the runtime
+stream, controller, laser, or particles; `sourceFiles`, `syncRevision`, `syncNote`, and the generated
+manifest are only sync metadata.
+
+Manual QA checklist for future PRs:
+
+- Open `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`.
+- Inspect Cinematic, Balanced, and Performance detail levels.
+- Confirm the screen is tall/vertical and clears the POI orb/label.
+- Confirm varied red/green circles descend, red circles are reaped, and green circles fall through.
+- Confirm the arm points at the red circle, laser starts at the aperture, and laser/particles end at
+  the destroyed red-circle center.
+- Confirm bursts are brief, reduced motion/flicker stays comfortable, and no frame spikes or
+  lingering stale effects appear after quality reloads.
+- Confirm the tabletop miniature remains the static proxy only.
+
+Known non-goals remain unchanged: no external models, textures, images, audio, network data,
+miniature simulation, unrelated POI changes, or visual redesign beyond production hardening.
