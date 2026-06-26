@@ -99,6 +99,8 @@ export interface PrReaperInstallationBuild {
     burstPoolCapacity: number;
     activeBurstDurations: number[];
     activeBurstAges: number[];
+    activeBurstWorldOrigins: Array<{ x: number; y: number; z: number }>;
+    activeBurstLocalOrigins: Array<{ x: number; y: number; z: number }>;
     detailParticleCount: number;
     reducedPulseScale: number;
     reducedFlickerScale: number;
@@ -485,7 +487,7 @@ export function createPrReaperInstallation(
     new Mesh(new CylinderGeometry(0.045, 0.045, 0.035, counts.cylinder), green)
   );
   aperture.name = 'PrReaperLaserAperture';
-  aperture.rotation.x = Math.PI / 2;
+  aperture.rotation.x = -Math.PI / 2;
   aperture.position.z = -0.08;
   emitter.add(aperture);
   const laserCoreMaterial = new MeshBasicMaterial({
@@ -586,6 +588,8 @@ export function createPrReaperInstallation(
   const worldEnd = new Vector3();
   const localStart = new Vector3();
   const localEnd = new Vector3();
+  const localBurstOrigin = new Vector3();
+  const burstWorldOrigin = new Vector3();
   const midpoint = new Vector3();
   const direction = new Vector3();
   const yAxis = new Vector3(0, 1, 0);
@@ -628,7 +632,10 @@ export function createPrReaperInstallation(
       randomUnit() *
         (PR_REAPER_PARTICLE_DURATION_MAX_SECONDS -
           PR_REAPER_PARTICLE_DURATION_MIN_SECONDS);
-    slot.points.position.copy(origin);
+    particles.updateWorldMatrix(true, false);
+    slot.points.position.copy(
+      particles.worldToLocal(localBurstOrigin.copy(origin))
+    );
     slot.points.visible = true;
     for (let i = 0; i < counts.particles; i += 1) {
       const ix = i * 3;
@@ -687,7 +694,8 @@ export function createPrReaperInstallation(
         circle.userData.type = candidate.type;
         circle.userData.lifecycle = candidate.lifecycle;
       }
-      emitter.getWorldPosition(worldStart);
+      group.updateWorldMatrix(true, true);
+      aperture.getWorldPosition(worldStart);
       const step = controller.update({
         delta,
         candidates: activeCandidateSnapshot.slice(0, activeCandidateCount),
@@ -696,14 +704,17 @@ export function createPrReaperInstallation(
       const pose = controller.getPose();
       yawJoint.rotation.y = pose.yaw;
       pitchJoint.rotation.x = pose.pitch;
+      group.updateWorldMatrix(true, true);
       let laserStartedThisFrame = false;
       if (step.fire) {
         const targetMesh = circlePool.find(
           (mesh) => mesh.userData.candidateId === step.fire!.candidateId
         );
         if (targetMesh && targetMesh.userData.type === 'red') {
+          targetMesh.updateWorldMatrix(true, false);
+          aperture.updateWorldMatrix(true, false);
           targetMesh.getWorldPosition(worldEnd);
-          emitter.getWorldPosition(worldStart);
+          aperture.getWorldPosition(worldStart);
           const reaped = stream.reapCandidate(step.fire.candidateId, elapsed);
           if (reaped) {
             lastLaserWorldStart = copyVector(worldStart);
@@ -794,6 +805,15 @@ export function createPrReaperInstallation(
         activeBurstAges: bursts
           .filter((burst) => burst.active)
           .map((burst) => burst.age),
+        activeBurstWorldOrigins: bursts
+          .filter((burst) => burst.active)
+          .map((burst) => {
+            burst.points.getWorldPosition(burstWorldOrigin);
+            return copyVector(burstWorldOrigin);
+          }),
+        activeBurstLocalOrigins: bursts
+          .filter((burst) => burst.active)
+          .map((burst) => copyVector(burst.points.position)),
         detailParticleCount: counts.particles,
         reducedPulseScale: getPulseScale(),
         reducedFlickerScale: getFlickerScale(),

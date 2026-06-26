@@ -793,20 +793,25 @@ ID, tracks the chosen circle as it descends, requires
 the same candidate twice.
 
 `src/scene/structures/prReaperConsole.ts` updates the stream first, writes current stream centers
-into the pooled `PrReaperPrCircle-*` meshes, then runs the controller. On fire it reads the actual
-world-space `PrReaperLaserEmitter` position and the actual red circle mesh center before hiding the
-mesh and calling `reapCandidate(...)`. The reusable `PrReaperLaserCore` and
-`PrReaperLaserGlow` meshes remain children of the emitter, so each firing frame converts the
-world-space start, end, and midpoint into emitter-local space before writing beam transforms. The
-beam therefore terminates at the exact removed mesh center even when the installation root is
-rotated.
+into the pooled `PrReaperPrCircle-*` meshes, then runs the controller. Matrix updates are explicit
+around firing so tests do not depend on renderer-side updates. On fire it reads the actual
+world-space `PrReaperLaserAperture` center, not the parent emitter origin, and the actual red circle
+mesh center before hiding the mesh and calling `reapCandidate(...)`. The reusable
+`PrReaperLaserCore` and `PrReaperLaserGlow` meshes remain children of the emitter, so each firing
+frame converts the aperture start, red-circle end, and midpoint into emitter-local space before
+writing beam transforms. The beam therefore originates at the visible aperture and terminates at the
+exact removed mesh center even when the installation root is rotated.
 
 Particle confirmation uses a fixed `PrReaperParticleBurstPool-0..3` pool of `Points` objects with
 preallocated `BufferGeometry` position attributes and deterministic seeded velocities. Burst
-lifetimes are uniformly bounded from 0.25 to 0.50 seconds. Detail levels keep the semantics but
-scale particle counts: Cinematic 32, Balanced 24, Performance 14, Low 8, and Micro 4. Reduced
-pulse/flicker settings only soften beam opacity, halo visibility, and particle travel/brightness;
-they do not pause the stream, alter the 3:1 ratio, retarget greens, or change spawn timing.
+lifetimes are uniformly bounded from 0.25 to 0.50 seconds. Fire events pass the world-space hit
+point into the particle system, which converts it through `PrReaperParticleRoot.worldToLocal(...)`
+before positioning the selected pool slot; the particle velocities and position attribute updates
+therefore stay in the same particle-root local space while the debug world origin maps back to the
+reaped red-circle center. Detail levels keep the semantics but scale particle counts: Cinematic 32,
+Balanced 24, Performance 14, Low 8, and Micro 4. Reduced pulse/flicker settings only soften beam
+opacity, halo visibility, and particle travel/brightness; they do not pause the stream, alter the
+3:1 ratio, retarget greens, or change spawn timing.
 
 The tabletop miniature remains static. Its proxy source list and manifest include the runtime
 kinematics/controller modules only for sync tracking, and the proxy continues to depict a static

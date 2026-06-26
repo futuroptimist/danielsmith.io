@@ -48,6 +48,29 @@ function triangleCount(root: Object3D): number {
   return total;
 }
 
+function expectVectorCloseTo(
+  actual: { x: number; y: number; z: number },
+  expected: { x: number; y: number; z: number },
+  precision = 5
+): void {
+  expect(actual.x).toBeCloseTo(expected.x, precision);
+  expect(actual.y).toBeCloseTo(expected.y, precision);
+  expect(actual.z).toBeCloseTo(expected.z, precision);
+}
+
+function updateUntilLaserFires(
+  build: ReturnType<typeof createPrReaperInstallation>
+) {
+  let fired = null as ReturnType<typeof build.getDebugState> | null;
+  for (let i = 0; i < 240 && !fired?.laserActive; i += 1) {
+    build.update({ elapsed: i / 20, delta: 0.05, emphasis: 0 });
+    const debug = build.getDebugState();
+    if (debug.laserActive) fired = debug;
+  }
+  expect(fired).not.toBeNull();
+  return fired!;
+}
+
 function getCirclePool(root: Object3D): Mesh[] {
   const circleRoot = root.getObjectByName('PrReaperPrCircleRoot');
   expect(circleRoot).toBeDefined();
@@ -331,35 +354,62 @@ describe('createPrReaperInstallation', () => {
     expect(counts[3]).toBeGreaterThan(counts[4]);
   });
 
-  it('targets red circles with two joints, fires an exact beam, and starts a bounded burst', () => {
+  it('targets red circles from the aperture with aligned beam and local burst origins', () => {
     const build = createPrReaperInstallation({
-      position: { x: 0, z: 0 },
+      position: { x: 1.25, y: 0.1, z: -0.75 },
+      orientationRadians: Math.PI * 0.18,
       seed: 'fire-seed',
     });
     const yaw = build.group.getObjectByName('PrReaperYawJoint')!;
     const pitch = build.group.getObjectByName('PrReaperPitchJoint')!;
     const core = build.group.getObjectByName('PrReaperLaserCore')!;
-    const emitter = build.group.getObjectByName('PrReaperLaserEmitter')!;
+    const aperture = build.group.getObjectByName('PrReaperLaserAperture')!;
     expect(core.visible).toBe(false);
-    let fired = null as ReturnType<typeof build.getDebugState> | null;
-    for (let i = 0; i < 240 && !fired?.laserActive; i += 1) {
-      build.update({ elapsed: i / 20, delta: 0.05, emphasis: 0 });
-      const debug = build.getDebugState();
-      if (debug.laserActive) fired = debug;
-    }
-    expect(fired).not.toBeNull();
+
+    const fired = updateUntilLaserFires(build);
+
     expect(
       Math.abs(yaw.rotation.y) + Math.abs(pitch.rotation.x)
     ).toBeGreaterThan(0);
-    expect(fired!.lastLaserWorldStart).not.toBeNull();
-    expect(fired!.lastLaserWorldEnd).not.toBeNull();
-    const emitterWorld = new Vector3();
-    emitter.getWorldPosition(emitterWorld);
-    expect(fired!.lastLaserWorldStart!.x).toBeCloseTo(emitterWorld.x, 6);
-    expect(fired!.totalReapedRed).toBeGreaterThan(0);
-    expect(fired!.activeBurstCount).toBeGreaterThan(0);
-    expect(fired!.burstPoolCapacity).toBe(4);
-    fired!.activeBurstDurations.forEach((duration) => {
+    expect(fired.lastLaserWorldStart).not.toBeNull();
+    expect(fired.lastLaserWorldEnd).not.toBeNull();
+    build.group.updateWorldMatrix(true, true);
+    const apertureWorld = new Vector3();
+    aperture.getWorldPosition(apertureWorld);
+    expectVectorCloseTo(fired.lastLaserWorldStart!, apertureWorld, 5);
+
+    const beamStart = core.localToWorld(new Vector3(0, -0.5, 0));
+    const beamEnd = core.localToWorld(new Vector3(0, 0.5, 0));
+    expectVectorCloseTo(beamStart, fired.lastLaserWorldStart!, 5);
+    expectVectorCloseTo(beamEnd, fired.lastLaserWorldEnd!, 5);
+
+    const toTarget = new Vector3(
+      fired.lastLaserWorldEnd!.x - fired.lastLaserWorldStart!.x,
+      fired.lastLaserWorldEnd!.y - fired.lastLaserWorldStart!.y,
+      fired.lastLaserWorldEnd!.z - fired.lastLaserWorldStart!.z
+    ).normalize();
+    const gun = build.group.getObjectByName('PrReaperLaserGunHousing')!;
+    const gunWorld = new Vector3();
+    gun.getWorldPosition(gunWorld);
+    const barrelForward = gun
+      .localToWorld(new Vector3(0, 0, -1))
+      .sub(gunWorld)
+      .normalize();
+    expect(Math.abs(barrelForward.dot(toTarget))).toBeGreaterThan(0.89);
+
+    expect(fired.totalReapedRed).toBeGreaterThan(0);
+    expect(fired.activeBurstCount).toBeGreaterThan(0);
+    expect(fired.burstPoolCapacity).toBe(4);
+    expectVectorCloseTo(
+      fired.activeBurstWorldOrigins[0],
+      fired.lastLaserWorldEnd!,
+      5
+    );
+    expect(fired.activeBurstLocalOrigins[0].x).not.toBeCloseTo(
+      fired.lastLaserWorldEnd!.x,
+      5
+    );
+    fired.activeBurstDurations.forEach((duration) => {
       expect(duration).toBeGreaterThanOrEqual(0.25);
       expect(duration).toBeLessThanOrEqual(0.5);
     });
