@@ -394,13 +394,14 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 4,
+    syncRevision: 9,
     syncNote:
-      'Static holographic reaper installation proxy tracks finalized P5b structure source, projector, 9:21 screen, PR hints, two-axis arm, and tool flange.',
+      'Live tool-head contrast material changed; tabletop proxy laser-gun color remains representative.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
       'src/scene/structures/prReaperInstallationContract.ts',
+      'src/scene/structures/prReaperStream.ts',
     ],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -445,7 +446,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         'reaper-tool-flange-laser-gun',
         [0.14, 0.1, 0.2],
         [0, 0.62, 0.62],
-        0x0f172a
+        0x5b676d
       ),
       box(
         'reaper-short-green-beam-hint',

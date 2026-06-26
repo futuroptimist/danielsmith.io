@@ -148,6 +148,9 @@ describe('miniature POI proxy registry', () => {
     expect(primitiveByName.get('reaper-tool-flange-laser-gun')?.kind).toBe(
       'box'
     );
+    expect(primitiveByName.get('reaper-tool-flange-laser-gun')?.color).toBe(
+      0x5b676d
+    );
     expect(primitiveByName.get('reaper-short-green-beam-hint')?.color).toBe(
       0x22c55e
     );

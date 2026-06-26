@@ -250,57 +250,55 @@ center point that the robot can transform into arm-base space.
 
 ```ts
 type PrReaperCircleType = 'red' | 'green';
-type PrReaperCircleLifecycle = 'active' | 'reaped' | 'expired';
-type PrReaperTargetState =
-  | 'none'
-  | 'assigned'
-  | 'firing'
-  | 'burst'
-  | 'complete';
+type PrReaperCircleLifecycle = 'active';
 
 interface PrReaperCircleState {
   id: number;
-  batchId: number;
   type: PrReaperCircleType;
-  normalizedX: number; // 0 left edge, 1 right edge within safe margins
+  normalizedX: number; // 0 left screen edge, 1 right screen edge
   progress: number; // 0 just above screen, 1 below screen
-  spawnTime: number;
-  activeFrom: number;
+  center: { x: number; y: number; z: number };
   lifecycle: PrReaperCircleLifecycle;
-  targetState: PrReaperTargetState;
-  reapedAt?: number;
-  expiredAt?: number;
 }
 ```
 
-Constants:
+P5c implements this as the pure `src/scene/structures/prReaperStream.ts`
+module. Its public surface is `createPrReaperSeededRandom(...)`,
+`createPrReaperStream(...)`, `PrReaperStreamState.writeActiveCandidates(...)`,
+and the `PrReaperStreamState.getDebugState()` snapshot used by installation tests
+and the future targeting pass. Runtime rendering uses `writeActiveCandidates(...)`
+so the render loop can reuse a preallocated active-candidate buffer and avoid
+cloning debug history every frame. P5c deliberately omits reaped/firing/burst
+target states; red and green circles only descend and are removed after expiry.
+
+Constants live in `src/scene/structures/prReaperInstallationContract.ts`:
 
 ```ts
-const PR_REAPER_CIRCLE_RADIUS = 0.115;
-const PR_REAPER_CIRCLE_MARGIN_X =
-  PR_REAPER_CIRCLE_RADIUS / PR_REAPER_SCREEN_WIDTH;
-const PR_REAPER_STREAM_START_Y =
-  PR_REAPER_SCREEN_HEIGHT + PR_REAPER_CIRCLE_RADIUS;
-const PR_REAPER_STREAM_END_Y = -PR_REAPER_CIRCLE_RADIUS;
-const PR_REAPER_DESCENT_SECONDS = 7.2;
-const PR_REAPER_SPAWN_INTERVAL_MIN = 0.5;
-const PR_REAPER_SPAWN_INTERVAL_MAX = 1.5;
+const PR_REAPER_STREAM_CIRCLE_RADIUS = PR_REAPER_SCREEN_WIDTH * 0.055;
+const PR_REAPER_STREAM_HORIZONTAL_MARGIN = PR_REAPER_SCREEN_WIDTH * 0.045;
+const PR_REAPER_STREAM_START_Y = screenTop + PR_REAPER_STREAM_CIRCLE_RADIUS;
+const PR_REAPER_STREAM_END_Y = screenBottom - PR_REAPER_STREAM_CIRCLE_RADIUS;
+const PR_REAPER_STREAM_DESCENT_DURATION_SECONDS = 5.5;
+const PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS = 0.5;
+const PR_REAPER_STREAM_SPAWN_INTERVAL_MAX_SECONDS = 1.5;
+const PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS = 8;
+const PR_REAPER_PR_CIRCLE_POOL_CAPACITY =
+  Math.ceil(
+    PR_REAPER_STREAM_DESCENT_DURATION_SECONDS /
+      PR_REAPER_STREAM_SPAWN_INTERVAL_MIN_SECONDS
+  ) + PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS; // currently 19
 ```
 
 Mapping from normalized state to screen-local center:
 
 ```ts
-const x = MathUtils.lerp(
-  -PR_REAPER_SCREEN_WIDTH / 2 + PR_REAPER_CIRCLE_RADIUS,
-  PR_REAPER_SCREEN_WIDTH / 2 - PR_REAPER_CIRCLE_RADIUS,
-  normalizedX
-);
+const x = -PR_REAPER_SCREEN_WIDTH / 2 + normalizedX * PR_REAPER_SCREEN_WIDTH;
 const y = MathUtils.lerp(
   PR_REAPER_STREAM_START_Y,
   PR_REAPER_STREAM_END_Y,
   progress
 );
-const z = PR_REAPER_SCREEN_PLANE_Z + 0.012;
+const z = PR_REAPER_STREAM_Z;
 ```
 
 ### Deterministic randomness and 3:1 ratio
@@ -321,8 +319,8 @@ Spawn order is an infinite sequence of shuffled batches containing exactly:
 ```
 
 Shuffling is deterministic per batch. The 3:1 ratio applies to the spawned
-candidate stream, not the visible active set, because red candidates disappear
-early after reaping while green candidates continue descending.
+candidate stream, not the visible active set. In P5c both red and green circles
+simply descend and expire; P5d will add red-circle targeting/reaping behavior.
 
 For each candidate:
 
@@ -330,6 +328,10 @@ For each candidate:
 - `normalizedX = lerp(PR_REAPER_CIRCLE_MARGIN_X, 1 - PR_REAPER_CIRCLE_MARGIN_X, rng())`;
 - spawn due time advances by the interval even if detail policy is Micro;
 - never drop red or green candidates solely for performance.
+- negative and nonfinite deltas clamp to zero; suspended-tab catch-up clamps the
+  effective delta to `PR_REAPER_STREAM_MAX_DELTA_SECONDS` and processes at most
+  `PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS` spawns before recording a capped-spawn
+  debug count and rescheduling from the current stream time.
 
 ### Pooling and active-count calculation
 
@@ -411,8 +413,8 @@ const PR_REAPER_RECOVER_SECONDS = 0.18;
 At minimum spawn interval (`0.5s`), the arm has roughly `0.5s` per new candidate
 and should keep up without snapping by solving nearest/lowest red candidates and
 using high but clamped angular velocity. If a target expires before firing, its
-assignment is cleared and it proceeds to `expired`; the state machine immediately
-reacquires the next deterministic red candidate.
+assignment is cleared and the expired candidate is removed; the state machine
+immediately reacquires the next deterministic red candidate.
 
 ## Two-axis aiming math
 
@@ -563,8 +565,10 @@ particle dynamic lights.
 ## Detail policies and budgets
 
 Semantic stream and exact 3:1 candidate ratio are preserved at all levels.
-Performance reductions affect visual fidelity and update cadence, never candidate
-correctness.
+Performance reductions affect visual fidelity, never candidate correctness. P5c
+varies the pooled `CircleGeometry` segment count and material intensity by detail
+policy; it does not skip candidates, alter spawn intervals, or change descent
+timing.
 
 | Level       | Screen/frame                                                        | Circles   | Laser               | Burst particles          | Decorative details        | Target budget              |
 | ----------- | ------------------------------------------------------------------- | --------- | ------------------- | ------------------------ | ------------------------- | -------------------------- |

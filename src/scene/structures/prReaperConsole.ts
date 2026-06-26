@@ -1,6 +1,7 @@
 import {
   AdditiveBlending,
   BoxGeometry,
+  CircleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
@@ -14,7 +15,10 @@ import {
   Vector3,
 } from 'three';
 
-import { getPulseScale } from '../../ui/accessibility/animationPreferences';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
@@ -27,6 +31,7 @@ import {
   PR_REAPER_FRONT_DEPTH,
   PR_REAPER_INTENDED_BOUNDS,
   PR_REAPER_PARKED_POSE,
+  PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
   PR_REAPER_PITCH_PIVOT,
   PR_REAPER_PROJECTOR_CENTER_Y,
   PR_REAPER_PROJECTOR_CENTER_Z,
@@ -43,9 +48,17 @@ import {
   PR_REAPER_SCREEN_PLANE_Z,
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
   PR_REAPER_SCREEN_WIDTH,
+  PR_REAPER_STREAM_CIRCLE_RADIUS,
+  PR_REAPER_STREAM_Z,
   PR_REAPER_TOOL_FLANGE_OFFSET,
   PR_REAPER_YAW_PIVOT,
 } from './prReaperInstallationContract';
+import {
+  createPrReaperStream,
+  PR_REAPER_STREAM_DEFAULT_SEED,
+  type PrReaperCircleState,
+  type PrReaperStreamDebugState,
+} from './prReaperStream';
 
 export interface PrReaperInstallationBuild {
   group: Group;
@@ -55,7 +68,9 @@ export interface PrReaperInstallationBuild {
     detailLevel: SceneDetailPolicy['level'];
     parkedPose: typeof PR_REAPER_PARKED_POSE;
     screenToEmitterStandoff: number;
-  };
+    poolCapacity: number;
+    stream: PrReaperStreamDebugState;
+  } & PrReaperStreamDebugState;
   dispose(): void;
 }
 
@@ -63,6 +78,7 @@ export interface PrReaperInstallationOptions {
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
   detailPolicy?: SceneDetailPolicy;
+  seed?: string;
 }
 
 export type PrReaperConsoleBuild = PrReaperInstallationBuild;
@@ -108,14 +124,17 @@ function clampOpacity(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-function disposeMesh(mesh: Mesh, disposedMaterials: Set<unknown>): void {
-  mesh.geometry.dispose();
+function disposeMesh(mesh: Mesh, disposedResources: Set<unknown>): void {
+  if (!disposedResources.has(mesh.geometry)) {
+    disposedResources.add(mesh.geometry);
+    mesh.geometry.dispose();
+  }
   const materials = Array.isArray(mesh.material)
     ? mesh.material
     : [mesh.material];
   materials.forEach((material) => {
-    if (disposedMaterials.has(material)) return;
-    disposedMaterials.add(material);
+    if (disposedResources.has(material)) return;
+    disposedResources.add(material);
     material.dispose();
   });
 }
@@ -129,6 +148,7 @@ function detailCounts(policy: SceneDetailPolicy) {
     sphereH: Math.max(3, policy.geometry.sphereHeightSegments),
     accents: scale,
     fasteners: scale > 2 ? 6 : scale > 1 ? 4 : 0,
+    circleSegments: Math.max(10, Math.round(36 - policy.detailIndex * 6)),
   };
 }
 
@@ -139,8 +159,21 @@ export function createPrReaperInstallation(
     position,
     orientationRadians = 0,
     detailPolicy = getSceneDetailPolicy('balanced'),
+    seed = PR_REAPER_STREAM_DEFAULT_SEED,
   } = options;
   const counts = detailCounts(detailPolicy);
+  const stream = createPrReaperStream({ seed });
+  const activeCandidateSnapshot: PrReaperCircleState[] = Array.from(
+    { length: PR_REAPER_PR_CIRCLE_POOL_CAPACITY },
+    () => ({
+      id: 0,
+      type: 'red',
+      lifecycle: 'active',
+      normalizedX: 0,
+      progress: 0,
+      center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
+    })
+  );
   const group = new Group();
   group.name = 'PrReaperInstallation';
   group.position.set(position.x, position.y ?? 0, position.z);
@@ -174,12 +207,33 @@ export function createPrReaperInstallation(
     metalness: 0.5,
     roughness: 0.38,
   });
+  const laserGunMaterial = new MeshBasicMaterial({
+    color: 0x5b676d,
+  });
   const green = new MeshBasicMaterial({
     color: 0x4dff8f,
     transparent: true,
     opacity: 0.55,
     depthWrite: false,
   });
+  const circleRedMaterial = new MeshBasicMaterial({
+    color: 0xff4d5d,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const circleGreenMaterial = new MeshBasicMaterial({
+    color: 0x4dff8f,
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const circleGeometry = new CircleGeometry(
+    PR_REAPER_STREAM_CIRCLE_RADIUS,
+    counts.circleSegments
+  );
 
   const projector = new Group();
   projector.name = 'PrReaperProjectorBase';
@@ -289,6 +343,17 @@ export function createPrReaperInstallation(
   const prRoot = new Group();
   prRoot.name = 'PrReaperPrCircleRoot';
   hologram.add(prRoot);
+  const circlePool: Mesh[] = [];
+  for (let i = 0; i < PR_REAPER_PR_CIRCLE_POOL_CAPACITY; i += 1) {
+    const circle = addOwned(owned, new Mesh(circleGeometry, circleRedMaterial));
+    circle.name = `PrReaperPrCircle-${i}`;
+    circle.visible = false;
+    circle.renderOrder = 30;
+    circle.position.z = PR_REAPER_STREAM_Z;
+    circle.userData.lifecycle = 'inactive';
+    prRoot.add(circle);
+    circlePool.push(circle);
+  }
 
   const robotBase = new Group();
   robotBase.name = 'PrReaperRobotBase';
@@ -358,7 +423,10 @@ export function createPrReaperInstallation(
   pitchJoint.add(flange);
   const flangeHousing = addOwned(
     owned,
-    new Mesh(new CylinderGeometry(0.14, 0.14, 0.12, counts.cylinder), darkMetal)
+    new Mesh(
+      new CylinderGeometry(0.14, 0.14, 0.12, counts.cylinder),
+      laserGunMaterial
+    )
   );
   flangeHousing.name = 'PrReaperToolFlangeHousing';
   flangeHousing.rotation.x = Math.PI / 2;
@@ -373,7 +441,7 @@ export function createPrReaperInstallation(
   flange.add(emitter);
   const gun = addOwned(
     owned,
-    new Mesh(new BoxGeometry(0.16, 0.12, 0.28), darkMetal)
+    new Mesh(new BoxGeometry(0.16, 0.12, 0.28), laserGunMaterial)
   );
   gun.name = 'PrReaperLaserGunHousing';
   gun.position.z = 0.08;
@@ -438,25 +506,68 @@ export function createPrReaperInstallation(
   return {
     group,
     colliders,
-    update({ elapsed, emphasis }) {
+    update({ elapsed, delta, emphasis }) {
+      stream.advance(delta);
       const pulse = getPulseScale();
+      const flicker = getFlickerScale();
       const amount =
         (0.18 + Math.sin(elapsed * 1.7) * 0.04 + emphasis * 0.2) * pulse;
       screenMaterial.opacity = clampOpacity(0.22 + amount);
       edgeMaterial.opacity = clampOpacity(0.62 + amount);
+      const activeCandidateCount = stream.writeActiveCandidates(
+        activeCandidateSnapshot
+      );
+      circleRedMaterial.opacity = clampOpacity(
+        0.72 + emphasis * 0.18 * flicker
+      );
+      circleGreenMaterial.opacity = clampOpacity(
+        0.72 + emphasis * 0.18 * flicker
+      );
+      for (let i = 0; i < circlePool.length; i += 1) {
+        const circle = circlePool[i];
+        if (i >= activeCandidateCount) {
+          circle.visible = false;
+          circle.userData.candidateId = undefined;
+          circle.userData.type = undefined;
+          circle.userData.lifecycle = 'inactive';
+          continue;
+        }
+        const candidate = activeCandidateSnapshot[i];
+        circle.visible = true;
+        circle.position.set(
+          candidate.center.x,
+          candidate.center.y,
+          candidate.center.z
+        );
+        circle.material =
+          candidate.type === 'red' ? circleRedMaterial : circleGreenMaterial;
+        circle.scale.setScalar(1 + Math.sin(elapsed * 2 + i) * 0.025 * pulse);
+        circle.userData.candidateId = candidate.id;
+        circle.userData.type = candidate.type;
+        circle.userData.lifecycle = candidate.lifecycle;
+      }
     },
     getDebugState() {
+      const streamDebug = stream.getDebugState();
       return {
         detailLevel: detailPolicy.level,
         parkedPose: PR_REAPER_PARKED_POSE,
         screenToEmitterStandoff: PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
+        poolCapacity: PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
+        ...streamDebug,
+        stream: streamDebug,
       };
     },
     dispose() {
       if (disposed) return;
       disposed = true;
-      const disposedMaterials = new Set<unknown>();
-      owned.forEach((mesh) => disposeMesh(mesh, disposedMaterials));
+      const disposedResources = new Set<unknown>();
+      owned.forEach((mesh) => disposeMesh(mesh, disposedResources));
+      [circleRedMaterial, circleGreenMaterial].forEach((material) => {
+        if (disposedResources.has(material)) return;
+        disposedResources.add(material);
+        material.dispose();
+      });
     },
   };
 }

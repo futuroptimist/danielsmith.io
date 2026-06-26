@@ -21,6 +21,7 @@ import {
   PR_REAPER_FOOTPRINT_WIDTH,
   PR_REAPER_MIN_EMITTER_STANDOFF,
   PR_REAPER_PARKED_POSE,
+  PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
   PR_REAPER_SCREEN_BOTTOM_Y,
   PR_REAPER_SCREEN_HEIGHT,
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
@@ -45,6 +46,14 @@ function triangleCount(root: Object3D): number {
     }
   });
   return total;
+}
+
+function getCirclePool(root: Object3D): Mesh[] {
+  const circleRoot = root.getObjectByName('PrReaperPrCircleRoot');
+  expect(circleRoot).toBeDefined();
+  return circleRoot!.children.filter(
+    (child): child is Mesh => child instanceof Mesh
+  );
 }
 
 describe('createPrReaperInstallation', () => {
@@ -157,6 +166,117 @@ describe('createPrReaperInstallation', () => {
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
     ).toHaveLength(0);
+
+    const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
+    const flange = build.group.getObjectByName(
+      'PrReaperToolFlangeHousing'
+    ) as Mesh;
+    const aperture = build.group.getObjectByName(
+      'PrReaperLaserAperture'
+    ) as Mesh;
+    const gunMaterial = gun.material as MeshBasicMaterial;
+    const flangeMaterial = flange.material as MeshBasicMaterial;
+    const apertureMaterial = aperture.material as MeshBasicMaterial;
+
+    expect(gunMaterial).toBeInstanceOf(MeshBasicMaterial);
+    expect(flangeMaterial).toBe(gunMaterial);
+    expect(gunMaterial.color.getHex()).toBe(0x5b676d);
+    expect(flangeMaterial.color.getHex()).toBe(0x5b676d);
+    expect(apertureMaterial.color.getHex()).toBe(0x4dff8f);
+  });
+
+  it('creates a fixed PR circle mesh pool and keeps it stable during updates', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'pool-seed',
+    });
+    const pool = getCirclePool(build.group);
+    expect(pool).toHaveLength(PR_REAPER_PR_CIRCLE_POOL_CAPACITY);
+    expect(build.getDebugState().poolCapacity).toBe(
+      PR_REAPER_PR_CIRCLE_POOL_CAPACITY
+    );
+    expect(pool.every((mesh) => mesh.visible === false)).toBe(true);
+
+    for (let i = 0; i < 120; i += 1) {
+      build.update({ elapsed: i / 10, delta: 0.1, emphasis: 0 });
+    }
+
+    const afterPool = getCirclePool(build.group);
+    expect(afterPool).toHaveLength(PR_REAPER_PR_CIRCLE_POOL_CAPACITY);
+    expect(afterPool).toEqual(pool);
+
+    const debug = build.getDebugState();
+    const activeMeshes = pool.filter((mesh) => mesh.visible);
+    expect(activeMeshes).toHaveLength(debug.activeCandidateCount);
+    activeMeshes.forEach((mesh, index) => {
+      const candidate = debug.activeCandidates[index];
+      expect(mesh.name).toBe(`PrReaperPrCircle-${index}`);
+      expect(mesh.position.toArray()).toEqual([
+        candidate.center.x,
+        candidate.center.y,
+        candidate.center.z,
+      ]);
+      expect(mesh.userData).toMatchObject({
+        candidateId: candidate.id,
+        type: candidate.type,
+        lifecycle: candidate.lifecycle,
+      });
+    });
+    pool
+      .filter((mesh) => !mesh.visible)
+      .forEach((mesh) => {
+        expect(mesh.userData.lifecycle).toBe('inactive');
+      });
+  });
+
+  it('uses distinct red and green circle materials and exposes batch behavior', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'batch-seed',
+    });
+    for (let i = 0; i < 80; i += 1) {
+      build.update({ elapsed: i / 10, delta: 0.1, emphasis: 0 });
+    }
+    const debug = build.getDebugState();
+    const firstBatch = debug.spawnHistory.slice(0, 4);
+    expect(firstBatch.filter((entry) => entry.type === 'red')).toHaveLength(3);
+    expect(firstBatch.filter((entry) => entry.type === 'green')).toHaveLength(
+      1
+    );
+    const visible = getCirclePool(build.group).filter((mesh) => mesh.visible);
+    const red = visible.find((mesh) => mesh.userData.type === 'red');
+    const greenCircle = visible.find((mesh) => mesh.userData.type === 'green');
+    expect(red?.material).toBeDefined();
+    expect(greenCircle?.material).toBeDefined();
+    expect(red?.material).not.toBe(greenCircle?.material);
+  });
+
+  it('preserves stream semantics while reducing circle geometry across detail levels', () => {
+    const debugStates = SCENE_DETAIL_POLICIES
+      ? Object.values(SCENE_DETAIL_POLICIES).map((detailPolicy) => {
+          const build = createPrReaperInstallation({
+            position: { x: 0, z: 0 },
+            detailPolicy,
+            seed: 'detail-seed',
+          });
+          for (let i = 0; i < 100; i += 1) {
+            build.update({ elapsed: i / 10, delta: 0.1, emphasis: 0.5 });
+          }
+          const firstCircle = getCirclePool(build.group)[0];
+          return {
+            debug: build.getDebugState().stream,
+            vertices: firstCircle.geometry.getAttribute('position').count,
+          };
+        })
+      : [];
+
+    const baseline = debugStates[0].debug;
+    debugStates.forEach(({ debug }) => expect(debug).toEqual(baseline));
+    for (let i = 1; i < debugStates.length; i += 1) {
+      expect(debugStates[i].vertices).toBeLessThanOrEqual(
+        debugStates[i - 1].vertices
+      );
+    }
   });
 
   it('returns rotation-aware conservative colliders that match physical metadata bounds', () => {
@@ -226,8 +346,21 @@ describe('createPrReaperInstallation', () => {
     expect(material.opacity).toBeGreaterThan(before);
 
     const dispose = vi.spyOn(screen.geometry, 'dispose');
+    const circle = getCirclePool(build.group)[0];
+    const circleDispose = vi.spyOn(circle.geometry, 'dispose');
     build.dispose();
     build.dispose();
     expect(dispose).toHaveBeenCalledTimes(1);
+    expect(circleDispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('disposes both shared PR circle materials before any stream update', () => {
+    const materialDispose = vi.spyOn(MeshBasicMaterial.prototype, 'dispose');
+    const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
+
+    build.dispose();
+
+    expect(materialDispose).toHaveBeenCalledTimes(6);
+    materialDispose.mockRestore();
   });
 });
