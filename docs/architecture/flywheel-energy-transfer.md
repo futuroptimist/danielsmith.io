@@ -1,10 +1,11 @@
 # Flywheel kinetic energy installation and transfer network design
 
-This P6a baseline is documentation-only. It specifies the architecture for
+This documentation-only design specifies the architecture for
 upgrading `flywheel-studio-flywheel` from the current abstract automation kiosk
 into a grounded kinetic energy installation with a deterministic cross-POI energy
-transfer packet. P6b/P6c/P6d should implement this design without adding external
-models, external textures, audio, live network data, upper-floor arcs, or an
+transfer packet. Follow-up implementation work should build this design without
+adding external models, external textures, audio, live network data, upper-floor
+arcs, or an
 all-arcs-visible spiderweb.
 
 ## 1. Current-state audit
@@ -31,8 +32,9 @@ interface FlywheelShowpieceBuild {
 
 The build has no public `dispose()`, `setEnergyTargets(...)`, or debug-state
 surface. It registers browser selection listeners internally when `window` exists
-and removes them only when the root group receives a `removed` event. P6b should
-replace that implicit lifecycle with an idempotent `dispose()` and keep any
+and removes them only when the root group receives a `removed` event. Follow-up
+implementation should replace that implicit lifecycle with an idempotent
+`dispose()` and keep any
 selection-driven presentation secondary to the main mechanical animation.
 
 ### Current `group`, `colliders`, and update behavior
@@ -47,14 +49,14 @@ dais/showpiece and info panel footprint. The `update(...)` method animates the
 rotor/counter rings, orbit chips, automation pillars, tech-stack chips, and the
 selection-revealed docs callout.
 
-Important architectural issue for P6b:
+Important architectural issue for implementation:
 
 - The current Flywheel builder authors many child objects directly in world
   coordinates under a root group at the origin.
 - Newer POIs should instead use a bottom-centered, unit-scale root at the POI
   anchor with child geometry authored in local coordinates.
-- P6b must refactor Flywheel to that contract so visual anchors, colliders,
-  miniature placement, model-root triangle accounting, and target resolution
+- Implementation must refactor Flywheel to that contract so visual anchors,
+  colliders, miniature placement, model-root triangle accounting, and target resolution
   remain reliable.
 
 ### Main-scene wiring
@@ -72,18 +74,18 @@ registers the group as the POI model root via `registerPoiModelRoot(...)`, and
 registers the same group as the floor visual anchor via
 `registerPoiVisualAnchor(...)`. Because the current root is still at the origin,
 that visual anchor/model-root behavior is only correct by convention for triangle
-counting and incorrect for position-based consumers. P6b should make the root
+counting and incorrect for position-based consumers. Implementation should make the root
 itself the true anchor.
 
 The frame loop currently gates the entire Flywheel `update(...)` behind
 `sceneDetailController.shouldRunDecorativeUpdate(...)`. That is acceptable for the
-old decorative rotor but not for the new machine. P6b/P6c should call
+old decorative rotor but not for the new machine. Implementation should call
 `flywheelShowpiece.update(...)` every rendered frame for crank, gear, flywheel,
 and packet phase progression; only expensive secondary glow/halo work should use
 a `runDecorativeEffects` boolean.
 
 The teardown path currently sets `flywheelShowpiece = null` but does not call a
-Flywheel-owned disposer. P6b must add `dispose()` and main teardown should call it
+Flywheel-owned disposer. Implementation must add `dispose()` and main teardown should call it
 when available, including partial-initialization teardown.
 
 ### Placement, metadata, and scene objects
@@ -96,7 +98,7 @@ placement should always come from the resolved POI instance rather than a
 hardcoded duplicate coordinate list.
 
 `src/scene/poi/physicalMetadata.ts` does not currently define a Flywheel physical
-metadata entry. P6b should add one that references the shared Flywheel contract,
+metadata entry. Implementation should add one that references the shared Flywheel contract,
 records bottom-center anchoring, marker height, avatar clearance, and intended
 bounds.
 
@@ -104,7 +106,7 @@ bounds.
 
 `src/scene/poi/visualAnchors.ts` stores a POI id to `Object3D` anchor map and
 resolves world position/yaw with `getWorldPosition(...)` and
-`getWorldQuaternion(...)`. P6c target resolution should use this machinery rather
+`getWorldQuaternion(...)`. Target resolution should use this machinery rather
 than a duplicate coordinate table.
 
 `src/scene/poi/modelTriangles.ts` tracks POI model roots and counts triangles via
@@ -114,16 +116,17 @@ triangle budgets.
 The current miniature proxy in `src/scene/miniature/poiProxyRegistry.ts` is a
 static abstract dais, rotor ring, spoke, and counterweight. The generated
 manifest lists `src/scene/structures/flywheel.ts` as a source file with
-`syncRevision: 3`. P6b should update it for the physical wheel/crank/gearbox;
-P6c should add static arc hints; each implementation PR should bump
+`syncRevision: 3`. Follow-up implementation should update it for the physical
+wheel/crank/gearbox, add static arc hints, and bump
 `syncRevision`, update `syncNote`, and regenerate the manifest.
 
 ### Current animation and selection behavior
 
 Flywheel animation is presentation-driven: rotor rings spin, orbit chips rotate,
 automation pillars pulse, and tech-stack chips/docs callouts are revealed by
-emphasis plus `poi:selected`/`poi:selected:analytics` browser events. P6b should
-keep the new mechanical motion active at baseline even when unfocused. Selection
+emphasis plus `poi:selected`/`poi:selected:analytics` browser events.
+Implementation should keep the new mechanical motion active at baseline even when
+unfocused. Selection
 may increase glow or reveal minor secondary details, but it must not desynchronize
 mechanical ratios.
 
@@ -131,7 +134,7 @@ mechanical ratios.
 
 ### Root contract
 
-P6b should make the production builder root:
+Implementation should make the production builder root:
 
 ```ts
 group.name = 'FlywheelEnergyInstallation';
@@ -152,7 +155,7 @@ Contract requirements:
   and gearbox/crank assembly;
 - no colliders are created for energy arcs.
 
-A temporary compatibility overload may accept `centerX`/`centerZ` during P6b, but
+A temporary compatibility overload may accept `centerX`/`centerZ` during migration, but
 `main.ts` production usage should pass `position`.
 
 ### Approximate dimensions and constants
@@ -255,7 +258,7 @@ Visual conventions:
 ## 4. Planetary gear math
 
 Use a fixed ring gear, hand crank driving the sun gear, and planet carrier as the
-high-torque output. P6b should export the exact constants:
+high-torque output. Implementation should export the exact constants:
 
 ```ts
 export const FLYWHEEL_SUN_TEETH = 18;
@@ -312,14 +315,14 @@ Only rendering cost changes.
 | Low          | grooved rings, no individual teeth                 | low policy segments               | 4 spokes, no tiny bolts             | port glow only        | 7 nodes       | no connectors, no halo            |
 | Micro        | iconic discs/rings only                            | micro policy segments             | 3-4 broad spokes                    | tiny port dot         | 5 nodes       | no connectors, no halo            |
 
-P6b should not build all variants and hide unused LOD trees. Build only the
+Implementation should not build all variants and hide unused LOD trees. Build only the
 selected detail variant. Cinematic, Balanced, and Performance should have
 meaningfully different triangle counts.
 
 ## 6. Energy-transfer concept
 
-The energy network is added in P6c. Eligible targets are every other ground-floor
-POI at runtime:
+The energy network is added as follow-up implementation work. Eligible targets
+are every other ground-floor POI at runtime:
 
 - include POIs whose resolved floor is `ground`;
 - exclude `flywheel-studio-flywheel`;
@@ -536,7 +539,7 @@ Reduced-motion/reduced-flicker behavior:
 ## 11. Miniature proxy design
 
 The Flywheel miniature proxy remains static and must not run gear animation,
-target selection, or the energy network. P6b/P6c should update it to show:
+target selection, or the energy network. Follow-up implementation should update it to show:
 
 - base and bearing silhouette;
 - heavy flywheel rim/hub/spokes;
@@ -553,11 +556,11 @@ should bump `syncRevision`, write a concrete `syncNote`, and run
 
 ## 12. Tests and PR decomposition
 
-### P6b scope: physical assembly and planetary gear train
+### Physical assembly and planetary gear train scope
 
 Implement the bottom-centered root, shared contract module, physical hierarchy,
 colliders, physical metadata, every-frame update integration, disposal,
-miniature physical proxy, and P6b doc corrections. Do not implement runtime
+miniature physical proxy, and related doc corrections. Do not implement runtime
 cross-POI arcs.
 
 Required tests:
@@ -579,7 +582,7 @@ Required tests:
 - miniature proxy contains wheel/crank/gear semantics;
 - manifest freshness.
 
-### P6c scope: energy-transfer arcs
+### Energy-transfer arcs scope
 
 Add the pure `flywheelEnergyNetwork` module, deterministic seeded selector,
 5-in/1-out state machine, target resolver, pooled one-packet arc renderer,
@@ -606,7 +609,7 @@ Required tests:
 - miniature proxy contains incoming/outgoing arc hints;
 - manifest freshness.
 
-### P6d scope: hardening and final QA
+### Hardening and final QA scope
 
 Audit runtime integration, quality reloads, partial teardown, performance hot
 paths, accessibility combinations, colliders, physical metadata, triangle/model
@@ -633,7 +636,7 @@ Required tests/final matrix:
 - model-root triangle registration;
 - disposal and quality-reload cleanup.
 
-Manual QA for the complete P6d baseline should use:
+Manual QA for the complete baseline should use:
 
 ```bash
 npm run dev -- --host 127.0.0.1 --port 5173
