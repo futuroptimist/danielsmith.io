@@ -146,6 +146,7 @@ describe('PR Reaper deterministic stream', () => {
     expect(after.totalReapedRed).toBe(before.totalReapedRed + 1);
     expect(after.totalExpiredRed).toBe(before.totalExpiredRed);
     expect(stream.reapCandidate(red!.id)).toBeNull();
+    expect(stream.reapCandidate(red!.id)).toBeNull();
     expect(stream.getDebugState().totalReapedRed).toBe(after.totalReapedRed);
   });
 

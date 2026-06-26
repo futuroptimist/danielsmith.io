@@ -70,6 +70,30 @@ describe('PR Reaper reaping controller', () => {
     expect(controller.getDebugState().selectedCandidateId).not.toBe(8);
   });
 
+  it('releases a tracked target that exits the shooting band before firing', () => {
+    const controller = createPrReaperReapingController();
+    controller.update({
+      delta: 0.016,
+      candidates: [candidate(18, 'red', PR_REAPER_TARGET_PROGRESS_MAX - 0.001)],
+    });
+    expect(controller.getDebugState().selectedCandidateId).toBe(18);
+
+    let fired = false;
+    for (let i = 0; i < 20; i += 1) {
+      const result = controller.update({
+        delta: 0.05,
+        candidates: [
+          candidate(18, 'red', PR_REAPER_TARGET_PROGRESS_MAX + 0.001),
+        ],
+      });
+      fired ||= result.fire !== null;
+    }
+
+    expect(fired).toBe(false);
+    expect(controller.getDebugState().selectedCandidateId).toBeNull();
+    expect(controller.getDebugState().lastReapedCandidateId).toBeNull();
+  });
+
   it('releases expired, out-of-band, or unreachable targets under large deltas', () => {
     const controller = createPrReaperReapingController();
     controller.update({ delta: 0.016, candidates: [candidate(9, 'red', 0.5)] });

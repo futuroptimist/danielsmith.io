@@ -3,6 +3,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   Object3D,
+  Points,
   PointLight,
   Vector3,
 } from 'three';
@@ -437,10 +438,25 @@ describe('createPrReaperInstallation', () => {
     const dispose = vi.spyOn(screen.geometry, 'dispose');
     const circle = getCirclePool(build.group)[0];
     const circleDispose = vi.spyOn(circle.geometry, 'dispose');
+    const particleRoot = build.group.getObjectByName('PrReaperParticleRoot')!;
+    const particleDisposals = particleRoot.children.map((child) => {
+      expect(child).toBeInstanceOf(Points);
+      const points = child as Points;
+      return {
+        geometry: vi.spyOn(points.geometry, 'dispose'),
+        material: vi.spyOn(points.material, 'dispose'),
+      };
+    });
+
     build.dispose();
     build.dispose();
+
     expect(dispose).toHaveBeenCalledTimes(1);
     expect(circleDispose).toHaveBeenCalledTimes(1);
+    particleDisposals.forEach(({ geometry, material }) => {
+      expect(geometry).toHaveBeenCalledTimes(1);
+      expect(material).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('disposes both shared PR circle materials before any stream update', () => {

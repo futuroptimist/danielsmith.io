@@ -114,14 +114,7 @@ export class PrReaperReapingController {
       const selected =
         options.candidates.find((c) => c.id === this.selectedCandidateId) ??
         null;
-      if (
-        !selected ||
-        selected.type !== 'red' ||
-        selected.lifecycle !== 'active' ||
-        this.fired.has(selected.id) ||
-        selected.progress < PR_REAPER_TARGET_PROGRESS_MIN ||
-        selected.progress > PR_REAPER_TARGET_PROGRESS_MAX
-      ) {
+      if (!selected || !this.isTrackableCandidate(selected)) {
         this.releaseTarget();
       } else {
         const solution = solvePrReaperArmAngles(
@@ -143,11 +136,18 @@ export class PrReaperReapingController {
             this.currentPose,
             this.targetPose
           );
+          if (!this.isTrackableCandidate(selected)) {
+            this.releaseTarget();
+            return { fire };
+          }
           this.holdTime =
             this.aimError <= PR_REAPER_AIM_TOLERANCE_RADIANS
               ? this.holdTime + delta
               : 0;
-          if (this.holdTime >= PR_REAPER_AIM_HOLD_SECONDS) {
+          if (
+            this.holdTime >= PR_REAPER_AIM_HOLD_SECONDS &&
+            this.isTrackableCandidate(selected)
+          ) {
             this.state = 'fire';
             this.laserRemainingTime = PR_REAPER_LASER_DURATION_SECONDS;
             this.lastReapedCandidateId = selected.id;
@@ -214,19 +214,22 @@ export class PrReaperReapingController {
     };
   }
 
+  private isTrackableCandidate(candidate: PrReaperCircleState): boolean {
+    return (
+      candidate.type === 'red' &&
+      candidate.lifecycle === 'active' &&
+      !this.fired.has(candidate.id) &&
+      candidate.progress >= PR_REAPER_TARGET_PROGRESS_MIN &&
+      candidate.progress <= PR_REAPER_TARGET_PROGRESS_MAX
+    );
+  }
+
   private selectCandidate(
     candidates: readonly PrReaperCircleState[]
   ): PrReaperCircleState | null {
     return (
       [...candidates]
-        .filter(
-          (candidate) =>
-            candidate.type === 'red' &&
-            candidate.lifecycle === 'active' &&
-            !this.fired.has(candidate.id) &&
-            candidate.progress >= PR_REAPER_TARGET_PROGRESS_MIN &&
-            candidate.progress <= PR_REAPER_TARGET_PROGRESS_MAX
-        )
+        .filter((candidate) => this.isTrackableCandidate(candidate))
         .sort((a, b) => b.progress - a.progress || a.id - b.id)[0] ?? null
     );
   }

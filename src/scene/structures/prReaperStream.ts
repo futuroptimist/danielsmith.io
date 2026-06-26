@@ -124,7 +124,6 @@ export class PrReaperStreamState {
   private lastReapedCandidateId: number | null = null;
   private lastReapedAt: number | null = null;
   private attemptedGreenReapCount = 0;
-  private reapedIds = new Set<number>();
 
   constructor(options: PrReaperStreamOptions = {}) {
     this.seed = options.seed ?? PR_REAPER_STREAM_DEFAULT_SEED;
@@ -179,7 +178,6 @@ export class PrReaperStreamState {
   }
 
   reapCandidate(id: number, now = this.elapsed): PrReaperCircleState | null {
-    if (this.reapedIds.has(id)) return null;
     const index = this.active.findIndex((entry) => entry.id === id);
     if (index < 0) return null;
     const candidate = this.active[index];
@@ -190,7 +188,6 @@ export class PrReaperStreamState {
     const state = this.toCircleState(candidate);
     state.lifecycle = 'reaped';
     this.active.splice(index, 1);
-    this.reapedIds.add(id);
     this.totalReapedRed += 1;
     this.lastReapedCandidateId = id;
     this.lastReapedAt = Number.isFinite(now) ? now : this.elapsed;
