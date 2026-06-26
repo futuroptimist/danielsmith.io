@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import {
   Box3,
   BufferGeometry,
@@ -30,6 +32,7 @@ import {
   PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
   PR_REAPER_SCREEN_WIDTH,
 } from '../scene/structures/prReaperInstallationContract';
+import * as animationPreferences from '../ui/accessibility/animationPreferences';
 
 function names(root: Object3D): string[] {
   const found: string[] = [];
@@ -418,6 +421,28 @@ describe('createPrReaperInstallation', () => {
     });
   });
 
+  it('keeps the arm as a pure two-axis hierarchy without hidden lookAt helpers', () => {
+    const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
+    const animatedJoints: string[] = [];
+    build.group.traverse((object) => {
+      if (object.userData.animatedJoint) animatedJoints.push(object.name);
+      expect(object.name.toLowerCase()).not.toContain('correction');
+      expect(object.name.toLowerCase()).not.toContain('target');
+      expect(object.name.toLowerCase()).not.toContain('elbow');
+      expect(object.name.toLowerCase()).not.toContain('wrist');
+    });
+    expect(animatedJoints.sort()).toEqual([
+      'PrReaperPitchJoint',
+      'PrReaperYawJoint',
+    ]);
+
+    const source = readFileSync(
+      'src/scene/structures/prReaperConsole.ts',
+      'utf8'
+    );
+    expect(source).not.toContain('.lookAt(');
+  });
+
   it('does not add dynamic point lights', () => {
     const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
     const lights: PointLight[] = [];
@@ -425,6 +450,49 @@ describe('createPrReaperInstallation', () => {
       if (object instanceof PointLight) lights.push(object);
     });
     expect(lights).toHaveLength(0);
+  });
+
+  it('keeps reduced pulse and flicker accessible without changing stream semantics', () => {
+    const pulse = vi.spyOn(animationPreferences, 'getPulseScale');
+    const flicker = vi.spyOn(animationPreferences, 'getFlickerScale');
+    const scenarios = [
+      { pulse: 1, flicker: 1 },
+      { pulse: 0, flicker: 1 },
+      { pulse: 1, flicker: 0 },
+      { pulse: 0, flicker: 0 },
+    ];
+    const states = scenarios.map((scenario) => {
+      pulse.mockReturnValue(scenario.pulse);
+      flicker.mockReturnValue(scenario.flicker);
+      const build = createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        seed: 'accessibility-semantic-seed',
+      });
+      const fired = updateUntilLaserFires(build);
+      expect(fired.totalReapedRed).toBeGreaterThan(0);
+      expect(fired.attemptedGreenReapCount).toBe(0);
+      expect(fired.laserActive).toBe(true);
+      expect(fired.activeBurstCount).toBeGreaterThan(0);
+      const glow = build.group.getObjectByName('PrReaperLaserGlow') as Mesh;
+      const glowOpacity = (glow.material as MeshBasicMaterial).opacity;
+      const burstRoot = build.group.getObjectByName('PrReaperParticleRoot')!;
+      const activeBurst = burstRoot.children.find((child) => child.visible) as
+        | Points<BufferGeometry, PointsMaterial>
+        | undefined;
+      expect(activeBurst).toBeDefined();
+      const particleOpacity = activeBurst!.material.opacity;
+      build.dispose();
+      return { stream: fired.stream, glowOpacity, particleOpacity };
+    });
+
+    const baseline = states[0].stream;
+    states.forEach(({ stream }) => expect(stream).toEqual(baseline));
+    expect(states[2].glowOpacity).toBe(0);
+    expect(states[3].glowOpacity).toBe(0);
+    expect(states[2].particleOpacity).toBeLessThan(states[0].particleOpacity);
+    expect(states[3].particleOpacity).toBeLessThan(states[0].particleOpacity);
+    pulse.mockRestore();
+    flicker.mockRestore();
   });
 
   it('provides restrained update behavior and idempotent disposal', () => {
