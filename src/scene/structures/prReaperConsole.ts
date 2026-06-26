@@ -7,6 +7,10 @@ import {
   DoubleSide,
   Group,
   Mesh,
+  Points,
+  PointsMaterial,
+  BufferGeometry,
+  BufferAttribute,
   MeshBasicMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
@@ -31,6 +35,10 @@ import {
   PR_REAPER_FRONT_DEPTH,
   PR_REAPER_INTENDED_BOUNDS,
   PR_REAPER_PARKED_POSE,
+  PR_REAPER_LASER_DURATION_SECONDS,
+  PR_REAPER_PARTICLE_BURST_MAX_SECONDS,
+  PR_REAPER_PARTICLE_BURST_MIN_SECONDS,
+  PR_REAPER_PARTICLE_BURST_POOL_CAPACITY,
   PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
   PR_REAPER_PITCH_PIVOT,
   PR_REAPER_PROJECTOR_CENTER_Y,
@@ -54,6 +62,10 @@ import {
   PR_REAPER_YAW_PIVOT,
 } from './prReaperInstallationContract';
 import {
+  createPrReaperReapingController,
+  type PrReaperControllerDebugState,
+} from './prReaperReapingController';
+import {
   createPrReaperStream,
   PR_REAPER_STREAM_DEFAULT_SEED,
   type PrReaperCircleState,
@@ -70,6 +82,16 @@ export interface PrReaperInstallationBuild {
     screenToEmitterStandoff: number;
     poolCapacity: number;
     stream: PrReaperStreamDebugState;
+    controller: PrReaperControllerDebugState;
+    laserActive: boolean;
+    laserRemainingSeconds: number;
+    lastLaserWorldStart: { x: number; y: number; z: number } | null;
+    lastLaserWorldEnd: { x: number; y: number; z: number } | null;
+    activeBurstCount: number;
+    burstPoolCapacity: number;
+    activeBurstDurations: number[];
+    activeBurstAges: number[];
+    detailParticleCount: number;
   } & PrReaperStreamDebugState;
   dispose(): void;
 }
@@ -163,6 +185,7 @@ export function createPrReaperInstallation(
   } = options;
   const counts = detailCounts(detailPolicy);
   const stream = createPrReaperStream({ seed });
+  const controller = createPrReaperReapingController();
   const activeCandidateSnapshot: PrReaperCircleState[] = Array.from(
     { length: PR_REAPER_PR_CIRCLE_POOL_CAPACITY },
     () => ({
@@ -454,11 +477,35 @@ export function createPrReaperInstallation(
   aperture.rotation.x = Math.PI / 2;
   aperture.position.z = -0.08;
   emitter.add(aperture);
-  const laserCore = new Group();
+  const laserCore = addOwned(
+    owned,
+    new Mesh(
+      new CylinderGeometry(0.012, 0.012, 1, 8),
+      new MeshBasicMaterial({
+        color: 0x40ff77,
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      })
+    )
+  );
   laserCore.name = 'PrReaperLaserCore';
   laserCore.visible = false;
   emitter.add(laserCore);
-  const laserGlow = new Group();
+  const laserGlow = addOwned(
+    owned,
+    new Mesh(
+      new CylinderGeometry(0.035, 0.035, 1, 8),
+      new MeshBasicMaterial({
+        color: 0x6cff9a,
+        transparent: true,
+        opacity: detailPolicy.detailIndex >= 3 ? 0 : 0.28,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      })
+    )
+  );
   laserGlow.name = 'PrReaperLaserGlow';
   laserGlow.visible = false;
   emitter.add(laserGlow);
@@ -479,8 +526,46 @@ export function createPrReaperInstallation(
 
   const particles = new Group();
   particles.name = 'PrReaperParticleRoot';
-  particles.visible = false;
   group.add(particles);
+  const particleCountByLevel: Record<SceneDetailPolicy['level'], number> = {
+    cinematic: 32,
+    balanced: 24,
+    performance: 14,
+    low: 8,
+    micro: 4,
+  };
+  const detailParticleCount = particleCountByLevel[detailPolicy.level];
+  const burstSlots = Array.from(
+    { length: PR_REAPER_PARTICLE_BURST_POOL_CAPACITY },
+    (_, slot) => {
+      const geometry = new BufferGeometry();
+      const positions = new Float32Array(detailParticleCount * 3);
+      geometry.setAttribute('position', new BufferAttribute(positions, 3));
+      const material = new PointsMaterial({
+        color: 0x6cff9a,
+        transparent: true,
+        opacity: detailPolicy.detailIndex >= 3 ? 0.45 : 0.75,
+        size: 0.035,
+        depthWrite: false,
+        blending: AdditiveBlending,
+      });
+      const points = new Points(geometry, material);
+      points.name = `PrReaperParticleBurstPool-${slot}`;
+      points.visible = false;
+      particles.add(points);
+      return {
+        points,
+        geometry,
+        material,
+        positions,
+        velocities: new Float32Array(detailParticleCount * 3),
+        active: false,
+        age: 0,
+        duration: 0.25,
+        origin: new Vector3(),
+      };
+    }
+  );
 
   const centerOffsetZ = (PR_REAPER_FRONT_DEPTH - PR_REAPER_REAR_DEPTH) / 2;
   const forward = new Vector3(
@@ -502,6 +587,14 @@ export function createPrReaperInstallation(
     ),
   ];
 
+  const worldStart = new Vector3();
+  const worldEnd = new Vector3();
+  const beamMid = new Vector3();
+  const beamDir = new Vector3();
+  const localMid = new Vector3();
+  let laserRemaining = 0;
+  let lastLaserStart: Vector3 | null = null;
+  let lastLaserEnd: Vector3 | null = null;
   let disposed = false;
   return {
     group,
@@ -515,7 +608,8 @@ export function createPrReaperInstallation(
       screenMaterial.opacity = clampOpacity(0.22 + amount);
       edgeMaterial.opacity = clampOpacity(0.62 + amount);
       const activeCandidateCount = stream.writeActiveCandidates(
-        activeCandidateSnapshot
+        activeCandidateSnapshot,
+        true
       );
       circleRedMaterial.opacity = clampOpacity(
         0.72 + emphasis * 0.18 * flicker
@@ -546,6 +640,92 @@ export function createPrReaperInstallation(
         circle.userData.type = candidate.type;
         circle.userData.lifecycle = candidate.lifecycle;
       }
+      const fireEvent = controller.update(delta, activeCandidateSnapshot);
+      const pose = controller.getPose();
+      yawJoint.rotation.y = pose.yaw;
+      pitchJoint.rotation.x = pose.pitch;
+      if (fireEvent) {
+        const targetMesh = circlePool.find(
+          (circle) =>
+            circle.userData.candidateId === fireEvent.candidateId &&
+            circle.visible
+        );
+        if (targetMesh && targetMesh.userData.type === 'red') {
+          emitter.getWorldPosition(worldStart);
+          targetMesh.getWorldPosition(worldEnd);
+          const reaped = stream.reapCandidate(fireEvent.candidateId, elapsed);
+          if (reaped) {
+            targetMesh.visible = false;
+            targetMesh.userData.lifecycle = 'reaped';
+            controller.setLastFireEndpoints(worldStart, worldEnd);
+            lastLaserStart = worldStart.clone();
+            lastLaserEnd = worldEnd.clone();
+            laserRemaining = PR_REAPER_LASER_DURATION_SECONDS;
+            const slot =
+              burstSlots.find((entry) => !entry.active) ?? burstSlots[0];
+            slot.active = true;
+            slot.age = 0;
+            slot.duration =
+              PR_REAPER_PARTICLE_BURST_MIN_SECONDS +
+              (((fireEvent.candidateId * 1103515245) >>> 0) / 4294967296) *
+                (PR_REAPER_PARTICLE_BURST_MAX_SECONDS -
+                  PR_REAPER_PARTICLE_BURST_MIN_SECONDS);
+            slot.origin.copy(worldEnd);
+            slot.points.position.copy(worldEnd);
+            slot.points.visible = true;
+            for (let i = 0; i < detailParticleCount; i += 1) {
+              const angle =
+                (i * 6.28318530718) / detailParticleCount +
+                fireEvent.candidateId * 0.17;
+              const speed = (0.18 + (i % 5) * 0.025) * flicker;
+              slot.velocities[i * 3] = Math.cos(angle) * speed;
+              slot.velocities[i * 3 + 1] = 0.1 + (i % 3) * 0.035;
+              slot.velocities[i * 3 + 2] = Math.sin(angle) * speed;
+              slot.positions[i * 3] = 0;
+              slot.positions[i * 3 + 1] = 0;
+              slot.positions[i * 3 + 2] = 0;
+            }
+            slot.geometry.getAttribute('position').needsUpdate = true;
+          }
+        }
+      }
+      laserRemaining = Math.max(0, laserRemaining - delta);
+      const laserActive = laserRemaining > 0 && lastLaserStart && lastLaserEnd;
+      laserCore.visible = Boolean(laserActive);
+      laserGlow.visible = Boolean(
+        laserActive && detailPolicy.detailIndex < 3 && flicker > 0.05
+      );
+      if (laserActive && lastLaserStart && lastLaserEnd) {
+        beamMid.copy(lastLaserStart).add(lastLaserEnd).multiplyScalar(0.5);
+        beamDir.copy(lastLaserEnd).sub(lastLaserStart);
+        const length = beamDir.length();
+        emitter.worldToLocal(localMid.copy(beamMid));
+        [laserCore, laserGlow].forEach((beam) => {
+          beam.position.copy(localMid);
+          beam.scale.set(1, length, 1);
+          beam.quaternion.setFromUnitVectors(
+            new Vector3(0, 1, 0),
+            beamDir.clone().normalize()
+          );
+        });
+      }
+      burstSlots.forEach((slot) => {
+        if (!slot.active) return;
+        slot.age += delta;
+        const t = Math.min(1, slot.age / slot.duration);
+        for (let i = 0; i < detailParticleCount; i += 1) {
+          slot.positions[i * 3] = slot.velocities[i * 3] * slot.age;
+          slot.positions[i * 3 + 1] = slot.velocities[i * 3 + 1] * slot.age;
+          slot.positions[i * 3 + 2] = slot.velocities[i * 3 + 2] * slot.age;
+        }
+        slot.geometry.getAttribute('position').needsUpdate = true;
+        slot.material.opacity =
+          (1 - t) * (detailPolicy.detailIndex >= 3 ? 0.45 : 0.75) * flicker;
+        if (slot.age >= slot.duration) {
+          slot.active = false;
+          slot.points.visible = false;
+        }
+      });
     },
     getDebugState() {
       const streamDebug = stream.getDebugState();
@@ -554,6 +734,20 @@ export function createPrReaperInstallation(
         parkedPose: PR_REAPER_PARKED_POSE,
         screenToEmitterStandoff: PR_REAPER_SCREEN_TO_EMITTER_STANDOFF,
         poolCapacity: PR_REAPER_PR_CIRCLE_POOL_CAPACITY,
+        controller: controller.getDebugState(),
+        laserActive: laserRemaining > 0,
+        laserRemainingSeconds: laserRemaining,
+        lastLaserWorldStart: lastLaserStart ? { ...lastLaserStart } : null,
+        lastLaserWorldEnd: lastLaserEnd ? { ...lastLaserEnd } : null,
+        activeBurstCount: burstSlots.filter((slot) => slot.active).length,
+        burstPoolCapacity: PR_REAPER_PARTICLE_BURST_POOL_CAPACITY,
+        activeBurstDurations: burstSlots
+          .filter((slot) => slot.active)
+          .map((slot) => slot.duration),
+        activeBurstAges: burstSlots
+          .filter((slot) => slot.active)
+          .map((slot) => slot.age),
+        detailParticleCount,
         ...streamDebug,
         stream: streamDebug,
       };
@@ -563,6 +757,10 @@ export function createPrReaperInstallation(
       disposed = true;
       const disposedResources = new Set<unknown>();
       owned.forEach((mesh) => disposeMesh(mesh, disposedResources));
+      burstSlots.forEach((slot) => {
+        slot.geometry.dispose();
+        slot.material.dispose();
+      });
       [circleRedMaterial, circleGreenMaterial].forEach((material) => {
         if (disposedResources.has(material)) return;
         disposedResources.add(material);

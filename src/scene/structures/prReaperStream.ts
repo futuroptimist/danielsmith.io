@@ -13,7 +13,7 @@ import {
 } from './prReaperInstallationContract';
 
 export type PrReaperCircleType = 'red' | 'green';
-export type PrReaperCircleLifecycle = 'active';
+export type PrReaperCircleLifecycle = 'active' | 'reaped';
 
 export interface PrReaperCircleState {
   id: number;
@@ -32,6 +32,10 @@ export interface PrReaperStreamDebugState {
   totalSpawnedGreen: number;
   totalExpiredRed: number;
   totalExpiredGreen: number;
+  totalReapedRed: number;
+  lastReapedCandidateId: number | null;
+  lastReapedAt: number | null;
+  attemptedGreenReapCount: number;
   activeCandidateCount: number;
   activeCandidates: PrReaperCircleState[];
   cappedSpawnCount: number;
@@ -115,6 +119,11 @@ export class PrReaperStreamState {
   private totalSpawnedGreen = 0;
   private totalExpiredRed = 0;
   private totalExpiredGreen = 0;
+  private totalReapedRed = 0;
+  private lastReapedCandidateId: number | null = null;
+  private lastReapedAt: number | null = null;
+  private attemptedGreenReapCount = 0;
+  private reapedIds = new Set<number>();
   private cappedSpawnCount = 0;
 
   constructor(options: PrReaperStreamOptions = {}) {
@@ -152,11 +161,57 @@ export class PrReaperStreamState {
       totalSpawnedGreen: this.totalSpawnedGreen,
       totalExpiredRed: this.totalExpiredRed,
       totalExpiredGreen: this.totalExpiredGreen,
+      totalReapedRed: this.totalReapedRed,
+      lastReapedCandidateId: this.lastReapedCandidateId,
+      lastReapedAt: this.lastReapedAt,
+      attemptedGreenReapCount: this.attemptedGreenReapCount,
       activeCandidateCount: activeCandidates.length,
       activeCandidates,
       cappedSpawnCount: this.cappedSpawnCount,
       spawnHistory: this.history.map((entry) => ({ ...entry })),
     };
+  }
+
+  getCandidateById(id: number): PrReaperCircleState | null {
+    const candidate = this.active.find((entry) => entry.id === id);
+    if (!candidate) return null;
+    const state: PrReaperCircleState = {
+      id: 0,
+      type: 'red',
+      lifecycle: 'active',
+      normalizedX: 0,
+      progress: 0,
+      center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
+    };
+    this.writeCircleState(candidate, state);
+    return state;
+  }
+
+  reapCandidate(id: number, now = this.elapsed): PrReaperCircleState | null {
+    const index = this.active.findIndex((entry) => entry.id === id);
+    if (index < 0) return null;
+    const candidate = this.active[index];
+    if (candidate.type === 'green') {
+      this.attemptedGreenReapCount += 1;
+      return null;
+    }
+    if (this.reapedIds.has(id)) return null;
+    const state: PrReaperCircleState = {
+      id: 0,
+      type: 'red',
+      lifecycle: 'active',
+      normalizedX: 0,
+      progress: 0,
+      center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
+    };
+    this.writeCircleState(candidate, state);
+    state.lifecycle = 'reaped';
+    this.active.splice(index, 1);
+    this.reapedIds.add(id);
+    this.totalReapedRed += 1;
+    this.lastReapedCandidateId = id;
+    this.lastReapedAt = now;
+    return state;
   }
 
   writeActiveCandidates(
