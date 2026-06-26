@@ -227,11 +227,19 @@ export class PrReaperReapingController {
   private selectCandidate(
     candidates: readonly PrReaperCircleState[]
   ): PrReaperCircleState | null {
-    return (
-      [...candidates]
-        .filter((candidate) => this.isTrackableCandidate(candidate))
-        .sort((a, b) => b.progress - a.progress || a.id - b.id)[0] ?? null
-    );
+    let selected: PrReaperCircleState | null = null;
+    for (let i = 0; i < candidates.length; i += 1) {
+      const candidate = candidates[i];
+      if (!this.isTrackableCandidate(candidate)) continue;
+      if (
+        !selected ||
+        candidate.progress > selected.progress ||
+        (candidate.progress === selected.progress && candidate.id < selected.id)
+      ) {
+        selected = candidate;
+      }
+    }
+    return selected;
   }
 
   private releaseTarget(): void {

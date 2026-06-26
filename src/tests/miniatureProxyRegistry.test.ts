@@ -83,7 +83,7 @@ describe('miniature POI proxy registry', () => {
     );
   });
 
-  it('keeps the PR Reaper proxy aligned to the P5b static silhouette', () => {
+  it('keeps the PR Reaper proxy aligned to the static silhouette', () => {
     const definition =
       MINIATURE_POI_PROXY_REGISTRY['pr-reaper-backyard-console'];
     const primitiveNames = definition.primitives.map(

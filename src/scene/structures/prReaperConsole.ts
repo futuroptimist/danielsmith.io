@@ -210,6 +210,7 @@ export function createPrReaperInstallation(
       center: { x: 0, y: 0, z: PR_REAPER_STREAM_Z },
     })
   );
+  const activeCandidatesForController: PrReaperCircleState[] = [];
   const group = new Group();
   group.name = 'PrReaperInstallation';
   group.position.set(position.x, position.y ?? 0, position.z);
@@ -619,17 +620,25 @@ export function createPrReaperInstallation(
     midpoint.copy(localStart).add(localEnd).multiplyScalar(0.5);
     direction.copy(localEnd).sub(localStart);
     const length = Math.max(0.001, direction.length());
-    [laserCore, laserGlow].forEach((beam) => {
-      beam.position.copy(midpoint);
-      beam.scale.set(1, length, 1);
-      beam.quaternion.copy(
-        beamQuaternion.setFromUnitVectors(yAxis, direction.normalize())
-      );
-    });
+    direction.normalize();
+    laserCore.position.copy(midpoint);
+    laserCore.scale.set(1, length, 1);
+    laserCore.quaternion.copy(
+      beamQuaternion.setFromUnitVectors(yAxis, direction)
+    );
+    laserGlow.position.copy(midpoint);
+    laserGlow.scale.set(1, length, 1);
+    laserGlow.quaternion.copy(laserCore.quaternion);
     setBeamVisible(true, flicker);
   }
   function startBurst(origin: Vector3, flicker: number): void {
-    const slot = bursts.find((burst) => !burst.active) ?? bursts[0];
+    let slot = bursts[0];
+    for (let i = 0; i < bursts.length; i += 1) {
+      if (!bursts[i].active) {
+        slot = bursts[i];
+        break;
+      }
+    }
     slot.active = true;
     slot.age = 0;
     slot.duration =
@@ -701,9 +710,13 @@ export function createPrReaperInstallation(
       }
       group.updateWorldMatrix(true, true);
       aperture.getWorldPosition(worldStart);
+      activeCandidatesForController.length = activeCandidateCount;
+      for (let i = 0; i < activeCandidateCount; i += 1) {
+        activeCandidatesForController[i] = activeCandidateSnapshot[i];
+      }
       const step = controller.update({
         delta,
-        candidates: activeCandidateSnapshot.slice(0, activeCandidateCount),
+        candidates: activeCandidatesForController,
         fireOrigin: copyVector(worldStart),
       });
       const pose = controller.getPose();
@@ -712,9 +725,14 @@ export function createPrReaperInstallation(
       group.updateWorldMatrix(true, true);
       let laserStartedThisFrame = false;
       if (step.fire) {
-        const targetMesh = circlePool.find(
-          (mesh) => mesh.userData.candidateId === step.fire!.candidateId
-        );
+        let targetMesh: Mesh | undefined;
+        for (let i = 0; i < circlePool.length; i += 1) {
+          const circle = circlePool[i];
+          if (circle.userData.candidateId === step.fire.candidateId) {
+            targetMesh = circle;
+            break;
+          }
+        }
         if (targetMesh && targetMesh.userData.type === 'red') {
           targetMesh.updateWorldMatrix(true, false);
           aperture.updateWorldMatrix(true, false);
@@ -754,8 +772,9 @@ export function createPrReaperInstallation(
       } else {
         setBeamVisible(false, flicker);
       }
-      bursts.forEach((burst) => {
-        if (!burst.active) return;
+      for (let burstIndex = 0; burstIndex < bursts.length; burstIndex += 1) {
+        const burst = bursts[burstIndex];
+        if (!burst.active) continue;
         burst.age += delta;
         const progress = Math.min(1, burst.age / burst.duration);
         for (let i = 0; i < counts.particles; i += 1) {
@@ -772,7 +791,7 @@ export function createPrReaperInstallation(
           burst.active = false;
           burst.points.visible = false;
         }
-      });
+      }
     },
     getDebugState() {
       const streamDebug = stream.getDebugState();

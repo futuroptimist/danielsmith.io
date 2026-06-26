@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import {
   Box3,
   BufferGeometry,
@@ -20,6 +22,7 @@ import {
 } from '../scene/structures/prReaperConsole';
 import {
   PR_REAPER_AVAILABLE_LED_SAFE_HEIGHT,
+  PR_REAPER_PARTICLE_BURST_POOL_CAPACITY,
   PR_REAPER_FOOTPRINT_DEPTH,
   PR_REAPER_FOOTPRINT_WIDTH,
   PR_REAPER_MIN_EMITTER_STANDOFF,
@@ -283,7 +286,7 @@ describe('createPrReaperInstallation', () => {
     expect(red?.material).not.toBe(greenCircle?.material);
   });
 
-  it('preserves stream semantics while reducing circle geometry across detail levels', () => {
+  it('preserves stream semantics while reducing render cost across detail levels', () => {
     const debugStates = SCENE_DETAIL_POLICIES
       ? Object.values(SCENE_DETAIL_POLICIES).map((detailPolicy) => {
           const build = createPrReaperInstallation({
@@ -295,9 +298,12 @@ describe('createPrReaperInstallation', () => {
             build.update({ elapsed: i / 10, delta: 0.1, emphasis: 0.5 });
           }
           const firstCircle = getCirclePool(build.group)[0];
+          const debug = build.getDebugState();
           return {
-            debug: build.getDebugState().stream,
+            debug: debug.stream,
             vertices: firstCircle.geometry.getAttribute('position').count,
+            particles: debug.detailParticleCount,
+            triangles: triangleCount(build.group),
           };
         })
       : [];
@@ -307,6 +313,12 @@ describe('createPrReaperInstallation', () => {
     for (let i = 1; i < debugStates.length; i += 1) {
       expect(debugStates[i].vertices).toBeLessThanOrEqual(
         debugStates[i - 1].vertices
+      );
+      expect(debugStates[i].particles).toBeLessThanOrEqual(
+        debugStates[i - 1].particles
+      );
+      expect(debugStates[i].triangles).toBeLessThanOrEqual(
+        debugStates[i - 1].triangles
       );
     }
   });
@@ -402,7 +414,9 @@ describe('createPrReaperInstallation', () => {
 
     expect(fired.totalReapedRed).toBeGreaterThan(0);
     expect(fired.activeBurstCount).toBeGreaterThan(0);
-    expect(fired.burstPoolCapacity).toBe(4);
+    expect(fired.burstPoolCapacity).toBe(
+      PR_REAPER_PARTICLE_BURST_POOL_CAPACITY
+    );
     expectVectorCloseTo(
       fired.activeBurstWorldOrigins[0],
       fired.lastLaserWorldEnd!,
@@ -416,6 +430,60 @@ describe('createPrReaperInstallation', () => {
       expect(duration).toBeGreaterThanOrEqual(0.25);
       expect(duration).toBeLessThanOrEqual(0.5);
     });
+  });
+
+  it('keeps reduced pulse and flicker semantic behavior with softer effects', () => {
+    const root = document.documentElement;
+    const previousPulse = root.dataset.accessibilityPulseScale;
+    const previousFlicker = root.dataset.accessibilityFlickerScale;
+    root.dataset.accessibilityPulseScale = '0';
+    root.dataset.accessibilityFlickerScale = '0';
+    try {
+      const build = createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        seed: 'reduced-motion-fire-seed',
+      });
+      const fired = updateUntilLaserFires(build);
+      expect(fired.reducedPulseScale).toBe(0);
+      expect(fired.reducedFlickerScale).toBe(0);
+      expect(fired.laserActive).toBe(true);
+      expect(fired.totalReapedRed).toBeGreaterThan(0);
+      expect(fired.attemptedGreenReapCount).toBe(0);
+      expect(fired.activeBurstCount).toBeGreaterThan(0);
+
+      const glow = build.group.getObjectByName('PrReaperLaserGlow') as Mesh;
+      expect((glow.material as MeshBasicMaterial).opacity).toBe(0);
+      const burst = build.group.getObjectByName(
+        'PrReaperParticleBurstPool-0'
+      ) as Points;
+      expect((burst.material as PointsMaterial).opacity).toBeLessThanOrEqual(
+        0.35
+      );
+    } finally {
+      if (previousPulse === undefined)
+        delete root.dataset.accessibilityPulseScale;
+      else root.dataset.accessibilityPulseScale = previousPulse;
+      if (previousFlicker === undefined)
+        delete root.dataset.accessibilityFlickerScale;
+      else root.dataset.accessibilityFlickerScale = previousFlicker;
+    }
+  });
+
+  it('keeps kinematics structural: no lookAt or hidden third animated axis', () => {
+    const source = readFileSync(
+      'src/scene/structures/prReaperConsole.ts',
+      'utf8'
+    );
+    expect(source).not.toContain('.lookAt(');
+    const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
+    const joints: Object3D[] = [];
+    build.group.traverse((object) => {
+      if (object.userData.animatedJoint) joints.push(object);
+    });
+    expect(joints.map((joint) => joint.name).sort()).toEqual([
+      'PrReaperPitchJoint',
+      'PrReaperYawJoint',
+    ]);
   });
 
   it('does not add dynamic point lights', () => {

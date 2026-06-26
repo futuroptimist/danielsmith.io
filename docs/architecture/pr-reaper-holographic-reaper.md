@@ -1,7 +1,7 @@
 # PR Reaper holographic reaping installation design
 
-P5a is documentation-only. It replaces the current design intent for the
-`PrReaperConsole` with a procedural Three.js installation that later prompts can
+This design baseline is documentation-only. It replaces the current design intent for the
+`PrReaperConsole` with a procedural Three.js installation that later implementation passes can
 implement without adding external models, textures, audio, network data, physics,
 IK libraries, or recursive miniature behavior.
 
@@ -27,7 +27,7 @@ IK libraries, or recursive miniature behavior.
   `WALL_HEIGHT - CEILING_COVE_OFFSET`.
 - Deterministic procedural precedent: `src/scene/structures/tokenPlaceWorkstation.ts`
   defines a local `mulberry32(seed)` helper, threads the returned random source into
-  row/glyph generation, and stores the generated terminal pattern as state. P5b-P5e
+  row/glyph generation, and stores the generated terminal pattern as state. The implementation phases
   should mirror the seeded-stream shape but expose the PR Reaper random source through
   the builder contract for tests.
 - Procedural structure/detail precedent: `src/scene/structures/sugarkubeDeployment.ts`
@@ -203,7 +203,7 @@ const PR_REAPER_FOOTPRINT_WIDTH = Math.max(PR_REAPER_SCREEN_WIDTH + 0.46, 2.62);
 
 Documented tradeoff: keep the POI anchor fixed and expand only the factory
 collider/metadata footprint from roughly `2.4 x 2.0` to `2.62 x 4.22`. The
-backyard/studio path constraints must be remeasured in P5b. Move the POI only if
+backyard/studio path constraints must be remeasured in the static installation phase. Move the POI only if
 collider audits prove this expanded footprint blocks required traversal.
 
 ## Procedural model hierarchy
@@ -262,13 +262,13 @@ interface PrReaperCircleState {
 }
 ```
 
-P5c implements this as the pure `src/scene/structures/prReaperStream.ts`
+the stream phase implements this as the pure `src/scene/structures/prReaperStream.ts`
 module. Its public surface is `createPrReaperSeededRandom(...)`,
 `createPrReaperStream(...)`, `PrReaperStreamState.writeActiveCandidates(...)`,
 and the `PrReaperStreamState.getDebugState()` snapshot used by installation tests
 and the future targeting pass. Runtime rendering uses `writeActiveCandidates(...)`
 so the render loop can reuse a preallocated active-candidate buffer and avoid
-cloning debug history every frame. P5c deliberately omits reaped/firing/burst
+cloning debug history every frame. the stream phase deliberately omits reaped/firing/burst
 target states; red and green circles only descend and are removed after expiry.
 
 Constants live in `src/scene/structures/prReaperInstallationContract.ts`:
@@ -319,8 +319,8 @@ Spawn order is an infinite sequence of shuffled batches containing exactly:
 ```
 
 Shuffling is deterministic per batch. The 3:1 ratio applies to the spawned
-candidate stream, not the visible active set. In P5c both red and green circles
-simply descend and expire; P5d will add red-circle targeting/reaping behavior.
+candidate stream, not the visible active set. In the stream phase both red and green circles
+simply descend and expire; the targeting phase will add red-circle targeting/reaping behavior.
 
 For each candidate:
 
@@ -565,7 +565,7 @@ particle dynamic lights.
 ## Detail policies and budgets
 
 Semantic stream and exact 3:1 candidate ratio are preserved at all levels.
-Performance reductions affect visual fidelity, never candidate correctness. P5c
+Performance reductions affect visual fidelity, never candidate correctness. the stream phase
 varies the pooled `CircleGeometry` segment count and material intensity by detail
 policy; it does not skip candidates, alter spawn intervals, or change descent
 timing.
@@ -607,7 +607,7 @@ const particleOpacityScale = MathUtils.lerp(0.45, 1, flickerScale);
 
 ## Runtime and lifecycle integration
 
-Final builder contract for P5b-P5e:
+Final builder contract for the implementation phases:
 
 ```ts
 interface PrReaperInstallationBuild {
@@ -649,7 +649,7 @@ Integration requirements:
   idempotent and must dispose circles, screen, beam, particles, projector, robot,
   and any canvas textures if retained.
 - Full and partial immersive teardown must call `dispose()` before nulling the
-  handle; P5b should improve current `prReaperConsole = null` behavior.
+  handle; the static installation work should improve current `prReaperConsole = null` behavior.
 - `getDebugState()` should expose constants, active circles, upcoming batch
   sequence summary, arm phase, target id, yaw/pitch, beam endpoints, burst slots,
   and detail/accessibility flags for tests without mutating Three.js objects.
@@ -666,38 +666,38 @@ stream simulation, call the PRNG, or include recursive behavior. Proxy contents:
 - laser-gun/tool-flange silhouette;
 - optional short green beam hint.
 
-For P5b-P5e, update the `pr-reaper-backyard-console` entry in
+For the implementation phases, update the `pr-reaper-backyard-console` entry in
 `src/scene/miniature/poiProxyRegistry.ts` and keep its manifest in sync:
 
 - Rename the display note from console to holographic reaper installation.
 - Treat `sourceFiles` as the explicit dependency list for the proxy's geometry and
   semantics. Include these entries when the corresponding implementation PR lands:
-  - Always for P5b+: `src/scene/poi/registry.ts`, `src/scene/poi/placements.ts`,
+  - Always after the static installation phase: `src/scene/poi/registry.ts`, `src/scene/poi/placements.ts`,
     `src/scene/poi/constants.ts`, `src/scene/level/portfolioLevel.ts`,
     `src/scene/structures/portfolioSceneLayout.ts`, and the implementation file
     (`src/scene/structures/prReaperConsole.ts` until renamed, then the renamed PR
     Reaper installation file). `portfolioSceneLayout.ts` is required because the
     proxy's 9:21 screen proportions and cove clearance depend on wall/cove constants.
-  - P5b if added/changed: `src/scene/poi/physicalMetadata.ts` for footprint,
+  - Static installation metadata when added/changed: `src/scene/poi/physicalMetadata.ts` for footprint,
     intended bounds, marker height, or avatar clearance metadata.
-  - P5c when split out: any new PR Reaper stream/random module that defines the
+  - Stream modules when split out: any new PR Reaper stream/random module that defines the
     3-red/1-green hint semantics. If the stream remains in the main installation
     file, do not add a nonexistent path.
-  - P5d when split out: any new PR Reaper arm/kinematics/laser/burst module that
+  - Targeting modules when split out: any new PR Reaper arm/kinematics/laser/burst module that
     defines the tool-flange or beam silhouette. If these stay in the main
     installation file, do not add a nonexistent path.
-  - P5e if thresholds influence proxy geometry: `src/scene/graphics/sceneDetailPolicy.ts`.
+  - Hardening sources if thresholds influence proxy geometry: `src/scene/graphics/sceneDetailPolicy.ts`.
 - Bump `syncRevision` in the same PR as each semantic proxy change:
-  - P5b: `3` for static hologram/projector/robot proxy, footprint, and screen
+  - Static installation proxy: `3` for static hologram/projector/robot proxy, footprint, and screen
     proportions.
-  - P5c: `4` for static 3-red/1-green stream hints and any stream sourceFiles.
-  - P5d: `5` for beam/tool-flange silhouette and any kinematics/laser sourceFiles.
-  - P5e: `6` only when final footprint/accessibility/performance hardening changes
+  - Stream hints: `4` for static 3-red/1-green stream hints and any stream sourceFiles.
+  - Beam/tool-flange silhouette: `5` for beam/tool-flange silhouette and any kinematics/laser sourceFiles.
+  - Final footprint/accessibility/performance hardening: `6` only when final footprint/accessibility/performance hardening changes
     proxy geometry, sourceFiles, or detail semantics; otherwise leave it at the
     latest already-applied revision.
 - After any implementation PR touches the proxy or its `sourceFiles`, run
   `npm run miniature:manifest:update` and commit the generated manifest changes in
-  that same implementation PR. P5a does not touch the proxy or generated manifest
+  that same implementation PR. The design baseline does not touch the proxy or generated manifest
   because this PR is documentation-only.
 
 ## Testing matrix
@@ -739,37 +739,37 @@ Future PRs should add/adjust Vitest coverage for:
 
 ## PR decomposition
 
-### P5b — Static hologram/projector/robot installation
+### Static hologram/projector/robot installation
 
 - Replace abstract console visuals with static procedural hierarchy, exact
   dimensions, footprint/colliders, detail variants, metadata, disposal, and
   static miniature proxy.
 - No stream simulation, targeting, laser, or particles yet.
-- Depends on P5a constants and hierarchy.
+- Depends on the design baseline constants and hierarchy.
 
-### P5c — Deterministic 3:1 descending PR stream
+### Deterministic 3:1 descending PR stream
 
 - Add pure seeded stream state, shuffled 3-red/1-green batches, spawn intervals,
   horizontal bounds, descent/expiration, circle mesh pool, debug state, and tests.
 - No arm targeting or removal yet.
-- Depends on P5b screen/circle root and debug contract.
+- Depends on the static installation screen/circle root and debug contract.
 
-### P5d — Two-axis targeting, laser reaping, and particles
+### Two-axis targeting, laser reaping, and particles
 
 - Add pure arm state machine, yaw/pitch math, red-only priority, exact-center
   beam endpoints, red removal, deterministic pooled bursts, and tests.
-- Depends on P5c circle targets and P5b robot hierarchy.
+- Depends on the stream circle targets and the static installation robot hierarchy.
 
-### P5e — Hardening, accessibility, performance, miniature sync, final QA
+### Hardening, accessibility, performance, miniature sync, final QA
 
 - Finalize reduced-motion/flicker behavior, detail budgets, collider audits,
   disposal/teardown, quality reload behavior, miniature manifest updates,
   nonzero-heading integration tests, and full required quality gates.
-- Depends on P5b-P5d implementation completeness.
+- Depends on the completed implementation phases.
 
-## P5d targeting, laser, and particle implementation
+## Targeting, laser, and particle implementation
 
-P5d adds the runtime reaping layer without changing the P5c deterministic stream contract.
+The targeting implementation adds the runtime reaping layer without changing the deterministic stream contract.
 `src/scene/structures/prReaperStream.ts` now exposes `reapCandidate(id, now?)` and
 `getCandidateById(id)` so only active red circles can leave the active set through reaping;
 green, missing, expired, and repeated IDs fail safely and do not alter the future spawn
@@ -820,3 +820,71 @@ opacity, halo visibility, and particle travel/brightness; they do not pause the 
 The tabletop miniature remains static. Its proxy source list and manifest include the runtime
 kinematics/controller modules only for sync tracking, and the proxy continues to depict a static
 3-red/1-green hologram snapshot rather than running the stream, controller, laser, or particles.
+
+## Final PR Reaper production baseline
+
+The final hardening keeps the installation as a production baseline rather than adding new visual
+features. The runtime builder remains `createPrReaperInstallation(...)` in
+`src/scene/structures/prReaperConsole.ts`; callers pass the active
+`SceneDetailPolicy`, bottom-center position, optional heading, and seed, then own
+`group`, physical `colliders`, per-frame `update(...)`, debug snapshots, and
+idempotent `dispose()`.
+
+Final implementation contracts:
+
+- The constants in `prReaperInstallationContract.ts` define the near-ceiling
+  9:21 screen, bottom/screen-plane anchor, asymmetric physical footprint,
+  marker-clearance height, stream bounds, two joint limits, laser duration, and
+  bounded particle pool.
+- The stream scheduler in `prReaperStream.ts` is semantic, not a visual tuning
+  surface: it emits deterministic shuffled 3-red/1-green batches, keeps every
+  spawn interval (including the first) inside 0.5–1.5 seconds, advances through
+  bounded large deltas, and separates red reaped counters from red/green expiry.
+- The reaping controller in `prReaperReapingController.ts` selects only active
+  red circles in the target band, prioritizes greatest progress then lowest id,
+  and never hides, reaps, bursts, or retargets green circles.
+- Arm kinematics stay two-axis only: `PrReaperYawJoint` and
+  `PrReaperPitchJoint`. There is no hidden `lookAt()` correction, elbow, wrist,
+  third animated axis, or parented target object. The visible aperture is sampled
+  in world space at fire time; the beam start equals that aperture, the beam end
+  equals the destroyed red circle center, and the invisible muzzle-forward marker
+  remains collinear with the beam even under nonzero installation heading.
+- Particle confirmation uses the fixed `PrReaperParticleBurstPool-*` `Points`
+  pool. Burst origins are the same world point as the laser endpoint, converted
+  through `PrReaperParticleRoot.worldToLocal(...)`; durations stay in the
+  0.25–0.50 second contract and geometry/materials are created only during setup.
+- Accessibility pulse/flicker scales only soften presentation. With pulse and/or
+  flicker at zero, the stream schedule, target priority, red-only reaping, laser
+  confirmation, and green immunity stay unchanged; halos and particle brightness
+  are reduced to avoid strobing or sudden full-bright flashes.
+- Detail levels (`cinematic`, `balanced`, `performance`, `low`, `micro`) change
+  only rendering cost. Circle segments, projector/arm accents, beam glow,
+  particle counts, and triangle counts step down monotonically or meaningfully,
+  while stream order/timing, target semantics, beam endpoint, and burst origin
+  remain identical for the same seed and frame sequence.
+- Lifecycle ownership in `main.ts` creates exactly one immersive PR Reaper
+  installation for the POI, attaches it through `addPoiStructure(...)`, registers
+  only the physical floor collider with source metadata, updates it every
+  rendered frame independent of focus, and disposes it during full or partial
+  immersive teardown and before quality rebuilds.
+- The tabletop miniature is intentionally static. It must not run the stream,
+  arm controller, laser, or particle system; the proxy only mirrors the projector
+  base, tall blue screen, exactly three red hints, exactly one green hint,
+  two-axis arm silhouette, laser gun/flange, and optional static green beam hint.
+
+Known non-goals remain unchanged: no external data, no images or textures, no
+binary assets, no audio, no extra POI behavior, and no visual redesign of the
+the staged implementation concept.
+
+Manual QA checklist for this baseline:
+
+1. Launch `npm run dev -- --host 127.0.0.1 --port 5173` and open
+   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`.
+2. Inspect Cinematic, Balanced, and Performance quality settings.
+3. Confirm the hologram is tall/vertical, red and green circles descend at varied
+   X positions, red circles are reaped, green circles fall through safely, and
+   the arm, aperture, laser endpoint, disappearance, and particle burst all align
+   on the same red-circle center.
+4. Confirm burst effects are brief, reduced motion/flicker settings remain
+   comfortable, the POI orb/label clear the near-ceiling hologram, and the
+   miniature remains a static proxy only.
