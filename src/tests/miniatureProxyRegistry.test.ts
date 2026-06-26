@@ -94,8 +94,15 @@ describe('miniature POI proxy registry', () => {
     );
 
     expect(definition.syncRevision).toBeGreaterThanOrEqual(4);
-    expect(definition.sourceFiles).toContain(
-      'src/scene/structures/prReaperInstallationContract.ts'
+    expect(definition.sourceFiles).toEqual(
+      expect.arrayContaining([
+        'src/scene/structures/prReaperInstallationContract.ts',
+        'src/scene/structures/prReaperArmKinematics.ts',
+        'src/scene/structures/prReaperReapingController.ts',
+      ])
+    );
+    expect(definition.syncNote).toContain(
+      'miniature remains a static 3:1 snapshot'
     );
     expect(primitiveNames).toEqual(
       expect.arrayContaining([

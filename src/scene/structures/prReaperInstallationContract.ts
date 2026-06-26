@@ -75,6 +75,17 @@ export const PR_REAPER_EMITTER_OFFSET = {
 export const PR_REAPER_YAW_LIMITS = { min: -Math.PI / 3, max: Math.PI / 3 };
 export const PR_REAPER_PITCH_LIMITS = { min: -Math.PI / 8, max: Math.PI / 5 };
 export const PR_REAPER_PARKED_POSE = { yaw: 0, pitch: 0 };
+
+export const PR_REAPER_TARGET_PROGRESS_MIN = 0.12;
+export const PR_REAPER_TARGET_PROGRESS_MAX = 0.9;
+export const PR_REAPER_AIM_TOLERANCE_RADIANS = 0.035;
+export const PR_REAPER_AIM_HOLD_SECONDS = 0.04;
+export const PR_REAPER_LASER_DURATION_SECONDS = 0.12;
+export const PR_REAPER_RECOVER_SECONDS = 0.18;
+export const PR_REAPER_ARM_DAMPING = 12;
+export const PR_REAPER_PARTICLE_BURST_POOL_CAPACITY = 4;
+export const PR_REAPER_PARTICLE_BURST_MIN_SECONDS = 0.25;
+export const PR_REAPER_PARTICLE_BURST_MAX_SECONDS = 0.5;
 export const PR_REAPER_EMITTER_PARKED_Z =
   PR_REAPER_SHOULDER_Z -
   PR_REAPER_ARM_LINK_LENGTH -

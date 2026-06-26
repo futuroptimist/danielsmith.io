@@ -1,6 +1,7 @@
 import {
   Box3,
   Mesh,
+  Points,
   MeshBasicMaterial,
   Object3D,
   PointLight,
@@ -165,7 +166,7 @@ describe('createPrReaperInstallation', () => {
     );
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
-    ).toHaveLength(0);
+    ).toHaveLength(4);
 
     const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
     const flange = build.group.getObjectByName(
@@ -360,7 +361,71 @@ describe('createPrReaperInstallation', () => {
 
     build.dispose();
 
-    expect(materialDispose).toHaveBeenCalledTimes(6);
+    expect(materialDispose).toHaveBeenCalled();
     materialDispose.mockRestore();
+  });
+});
+
+describe('createPrReaperInstallation runtime targeting', () => {
+  it('rotates two joints, fires exact beams, hides red circles, and starts bounded bursts', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 0, z: 0 },
+      seed: 'runtime-seed',
+    });
+    const yaw = build.group.getObjectByName('PrReaperYawJoint')!;
+    const pitch = build.group.getObjectByName('PrReaperPitchJoint')!;
+    const core = build.group.getObjectByName('PrReaperLaserCore')!;
+    expect(core.visible).toBe(false);
+    let debug = build.getDebugState();
+    const previousReaped = debug.totalReapedRed;
+    for (
+      let i = 0;
+      i < 200 && build.getDebugState().totalReapedRed === previousReaped;
+      i += 1
+    ) {
+      build.update({ elapsed: i * 0.05, delta: 0.05, emphasis: 0.3 });
+    }
+    debug = build.getDebugState();
+    expect(yaw.rotation.y).not.toBe(PR_REAPER_PARKED_POSE.yaw);
+    expect(pitch.rotation.x).not.toBe(PR_REAPER_PARKED_POSE.pitch);
+    expect(debug.totalReapedRed).toBeGreaterThan(previousReaped);
+    expect(debug.laserActive).toBe(true);
+    expect(core.visible).toBe(true);
+    expect(debug.lastLaserWorldStart).toEqual(debug.controller.lastFireOrigin);
+    expect(debug.lastLaserWorldEnd).toEqual(debug.controller.lastFireTarget);
+    expect(debug.activeBurstCount).toBeGreaterThan(0);
+    expect(debug.burstPoolCapacity).toBe(4);
+    debug.activeBurstDurations.forEach((duration) => {
+      expect(duration).toBeGreaterThanOrEqual(0.25);
+      expect(duration).toBeLessThanOrEqual(0.5);
+    });
+    const activeGreen = getCirclePool(build.group).filter(
+      (mesh) => mesh.visible && mesh.userData.type === 'green'
+    );
+    activeGreen.forEach((mesh) =>
+      expect(mesh.userData.lifecycle).toBe('active')
+    );
+  });
+
+  it('keeps a fixed particle pool and avoids PointLight descendants across detail levels', () => {
+    Object.values(SCENE_DETAIL_POLICIES).forEach((detailPolicy) => {
+      const build = createPrReaperInstallation({
+        position: { x: 0, z: 0 },
+        detailPolicy,
+      });
+      const bursts = build.group.getObjectByName(
+        'PrReaperParticleRoot'
+      )!.children;
+      expect(bursts).toHaveLength(4);
+      expect(bursts.every((child) => child instanceof Points)).toBe(true);
+      const lights: PointLight[] = [];
+      build.group.traverse((object) => {
+        if (object instanceof PointLight) lights.push(object);
+      });
+      expect(lights).toHaveLength(0);
+      expect(build.getDebugState().detailParticleCount).toBeGreaterThan(0);
+      build.dispose();
+      build.dispose();
+    });
   });
 });

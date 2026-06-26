@@ -250,7 +250,7 @@ center point that the robot can transform into arm-base space.
 
 ```ts
 type PrReaperCircleType = 'red' | 'green';
-type PrReaperCircleLifecycle = 'active';
+type PrReaperCircleLifecycle = 'active' | 'reaped';
 
 interface PrReaperCircleState {
   id: number;
@@ -262,14 +262,16 @@ interface PrReaperCircleState {
 }
 ```
 
-P5c implements this as the pure `src/scene/structures/prReaperStream.ts`
-module. Its public surface is `createPrReaperSeededRandom(...)`,
-`createPrReaperStream(...)`, `PrReaperStreamState.writeActiveCandidates(...)`,
-and the `PrReaperStreamState.getDebugState()` snapshot used by installation tests
-and the future targeting pass. Runtime rendering uses `writeActiveCandidates(...)`
-so the render loop can reuse a preallocated active-candidate buffer and avoid
-cloning debug history every frame. P5c deliberately omits reaped/firing/burst
-target states; red and green circles only descend and are removed after expiry.
+P5d keeps the pure `src/scene/structures/prReaperStream.ts` module and adds
+an explicit red-only reaping API: `getCandidateById(...)` and
+`reapCandidate(...)`. Runtime rendering still uses
+`writeActiveCandidates(...)` so the render loop can reuse a preallocated
+active-candidate buffer and avoid cloning debug history every frame. Reaping a
+red candidate removes it from the active set immediately, increments
+`totalReapedRed`, and does not increment expired counters or perturb future
+spawn intervals, shuffled 3:1 batches, or normalized X positions. Green reap
+attempts are rejected, counted diagnostically, and leave the green candidate
+active until it naturally expires.
 
 Constants live in `src/scene/structures/prReaperInstallationContract.ts`:
 
@@ -319,8 +321,7 @@ Spawn order is an infinite sequence of shuffled batches containing exactly:
 ```
 
 Shuffling is deterministic per batch. The 3:1 ratio applies to the spawned
-candidate stream, not the visible active set. In P5c both red and green circles
-simply descend and expire; P5d will add red-circle targeting/reaping behavior.
+candidate stream, not the visible active set. P5d preserves the spawned 3:1 ratio while red circles can be reaped by the runtime controller; green circles simply descend and expire.
 
 For each candidate:
 
@@ -328,6 +329,60 @@ For each candidate:
 - `normalizedX = lerp(PR_REAPER_CIRCLE_MARGIN_X, 1 - PR_REAPER_CIRCLE_MARGIN_X, rng())`;
 - spawn due time advances by the interval even if detail policy is Micro;
 - never drop red or green candidates solely for performance.
+
+### P5d targeting, laser, and burst runtime
+
+P5d adds two focused runtime modules:
+
+- `src/scene/structures/prReaperArmKinematics.ts` solves the two animated axes
+  only: yaw around local Y and shoulder pitch around local X. It converts
+  world targets through the installation heading when needed, clamps to
+  `PR_REAPER_YAW_LIMITS` / `PR_REAPER_PITCH_LIMITS`, reports reachability,
+  computes angular error, damps poses, and exposes the parked pose.
+- `src/scene/structures/prReaperReapingController.ts` owns the pure state
+  machine: `idle`, `acquire`, `track`, `fire`, `burst`, and `recover`. It never
+  mutates Three.js objects directly.
+
+The controller constants live in the shared contract:
+
+```ts
+const PR_REAPER_TARGET_PROGRESS_MIN = 0.12;
+const PR_REAPER_TARGET_PROGRESS_MAX = 0.9;
+const PR_REAPER_AIM_TOLERANCE_RADIANS = 0.035;
+const PR_REAPER_AIM_HOLD_SECONDS = 0.04;
+const PR_REAPER_LASER_DURATION_SECONDS = 0.12;
+const PR_REAPER_RECOVER_SECONDS = 0.18;
+const PR_REAPER_ARM_DAMPING = 12;
+const PR_REAPER_PARTICLE_BURST_POOL_CAPACITY = 4;
+const PR_REAPER_PARTICLE_BURST_MIN_SECONDS = 0.25;
+const PR_REAPER_PARTICLE_BURST_MAX_SECONDS = 0.5;
+```
+
+Target priority is deterministic: red active candidates inside the shooting
+band first, greatest progress next so older/lower red circles are handled
+before escape, and smaller candidate ID as the tie-breaker. Green candidates
+are filtered before assignment and the stream API rejects green reaps as a
+second safeguard.
+
+`prReaperConsole.ts` updates the stream, writes current circle mesh positions,
+runs the controller, applies yaw/pitch to `PrReaperYawJoint` and
+`PrReaperPitchJoint`, and fires only after the aim hold succeeds. On fire it
+reads the actual emitter world position from `PrReaperLaserEmitter` and the
+actual target center from the selected visible circle mesh before hiding it.
+The reusable `PrReaperLaserCore` and `PrReaperLaserGlow` cylinders remain under
+the emitter; each firing frame converts the world-space midpoint into emitter
+local space and orients/scales the cylinders so the beam starts at the aperture
+and terminates at the reaped circle center even when the installation is
+rotated.
+
+Particle bursts are pooled `Points` objects named
+`PrReaperParticleBurstPool-0` through `PrReaperParticleBurstPool-3` with
+preallocated position and velocity arrays. Durations are deterministic and
+bounded to 0.25–0.50 seconds. Detail-level particle counts are Cinematic 32,
+Balanced 24, Performance 14, Low 8, and Micro 4. Reduced motion/flicker scales
+only presentation intensity/travel; it does not alter stream timing, target
+selection, red-only reaping, or green survival.
+
 - negative and nonfinite deltas clamp to zero; suspended-tab catch-up clamps the
   effective delta to `PR_REAPER_STREAM_MAX_DELTA_SECONDS` and processes at most
   `PR_REAPER_STREAM_MAX_CATCH_UP_SPAWNS` spawns before recording a capped-spawn

@@ -394,14 +394,16 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 9,
+    syncRevision: 11,
     syncNote:
-      'Live tool-head contrast material changed; tabletop proxy laser-gun color remains representative.',
+      'Runtime targeting, laser reaping, and particle bursts were added while the miniature remains a static 3:1 snapshot.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
       'src/scene/structures/prReaperInstallationContract.ts',
       'src/scene/structures/prReaperStream.ts',
+      'src/scene/structures/prReaperArmKinematics.ts',
+      'src/scene/structures/prReaperReapingController.ts',
     ],
     proxyFiles: [SELF_FILE],
     primitives: [
