@@ -73,6 +73,15 @@ describe('PR Reaper reaping controller', () => {
   it('releases expired, out-of-band, or unreachable targets under large deltas', () => {
     const controller = createPrReaperReapingController();
     controller.update({ delta: 0.016, candidates: [candidate(9, 'red', 0.5)] });
+    controller.update({
+      delta: 0.016,
+      candidates: [candidate(9, 'red', PR_REAPER_TARGET_PROGRESS_MAX + 0.01)],
+    });
+    expect(controller.getDebugState().selectedCandidateId).toBeNull();
+    controller.update({
+      delta: 0.016,
+      candidates: [candidate(12, 'red', 0.5)],
+    });
     controller.update({ delta: 0.016, candidates: [] });
     expect(controller.getDebugState().selectedCandidateId).toBeNull();
     controller.update({

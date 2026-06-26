@@ -394,9 +394,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'Runtime targeting, laser reaping, and particles were added while the miniature remains a static 3:1 snapshot.',
+      'Runtime leak/per-frame allocation fixes keep the static 3:1 miniature proxy representative.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',

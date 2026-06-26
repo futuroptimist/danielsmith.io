@@ -114,7 +114,14 @@ export class PrReaperReapingController {
       const selected =
         options.candidates.find((c) => c.id === this.selectedCandidateId) ??
         null;
-      if (!selected || selected.type !== 'red' || this.fired.has(selected.id)) {
+      if (
+        !selected ||
+        selected.type !== 'red' ||
+        selected.lifecycle !== 'active' ||
+        this.fired.has(selected.id) ||
+        selected.progress < PR_REAPER_TARGET_PROGRESS_MIN ||
+        selected.progress > PR_REAPER_TARGET_PROGRESS_MAX
+      ) {
         this.releaseTarget();
       } else {
         const solution = solvePrReaperArmAngles(

@@ -8,6 +8,8 @@ import {
   PR_REAPER_YAW_PIVOT,
 } from './prReaperInstallationContract';
 
+const WORLD_Y_AXIS = new Vector3(0, 1, 0);
+
 export interface PrReaperArmPose {
   yaw: number;
   pitch: number;
@@ -49,8 +51,7 @@ export function targetToPrReaperYawSpace(
     target.y - PR_REAPER_YAW_PIVOT.y,
     target.z - PR_REAPER_YAW_PIVOT.z
   );
-  if (rootHeading !== 0)
-    local.applyAxisAngle(new Vector3(0, 1, 0), -rootHeading);
+  if (rootHeading !== 0) local.applyAxisAngle(WORLD_Y_AXIS, -rootHeading);
   return local;
 }
 
