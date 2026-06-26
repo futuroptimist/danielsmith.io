@@ -75,6 +75,7 @@ export class PrReaperReapingController {
   update(options: {
     delta: number;
     candidates: readonly PrReaperCircleState[];
+    candidateCount?: number;
     rootHeading?: number;
     fireOrigin?: { x: number; y: number; z: number } | null;
   }): PrReaperReapingControllerStep {
@@ -98,7 +99,10 @@ export class PrReaperReapingController {
 
     let fire: PrReaperControllerFireEvent | null = null;
     if (this.state === 'idle' || this.state === 'acquire') {
-      const selected = this.selectCandidate(options.candidates);
+      const selected = this.selectCandidate(
+        options.candidates,
+        options.candidateCount
+      );
       if (selected) {
         this.selectedCandidateId = selected.id;
         this.selectedTargetCenter = copy(selected.center);
@@ -111,9 +115,11 @@ export class PrReaperReapingController {
     }
 
     if (this.state === 'track') {
-      const selected =
-        options.candidates.find((c) => c.id === this.selectedCandidateId) ??
-        null;
+      const selected = this.findCandidateById(
+        options.candidates,
+        options.candidateCount,
+        this.selectedCandidateId
+      );
       if (!selected || !this.isTrackableCandidate(selected)) {
         this.releaseTarget();
       } else {
@@ -224,14 +230,37 @@ export class PrReaperReapingController {
     );
   }
 
-  private selectCandidate(
-    candidates: readonly PrReaperCircleState[]
+  private findCandidateById(
+    candidates: readonly PrReaperCircleState[],
+    candidateCount = candidates.length,
+    id: number | null
   ): PrReaperCircleState | null {
-    return (
-      [...candidates]
-        .filter((candidate) => this.isTrackableCandidate(candidate))
-        .sort((a, b) => b.progress - a.progress || a.id - b.id)[0] ?? null
-    );
+    if (id === null) return null;
+    const count = Math.min(candidateCount, candidates.length);
+    for (let i = 0; i < count; i += 1) {
+      if (candidates[i].id === id) return candidates[i];
+    }
+    return null;
+  }
+
+  private selectCandidate(
+    candidates: readonly PrReaperCircleState[],
+    candidateCount = candidates.length
+  ): PrReaperCircleState | null {
+    let selected: PrReaperCircleState | null = null;
+    const count = Math.min(candidateCount, candidates.length);
+    for (let i = 0; i < count; i += 1) {
+      const candidate = candidates[i];
+      if (!this.isTrackableCandidate(candidate)) continue;
+      if (
+        !selected ||
+        candidate.progress > selected.progress ||
+        (candidate.progress === selected.progress && candidate.id < selected.id)
+      ) {
+        selected = candidate;
+      }
+    }
+    return selected;
   }
 
   private releaseTarget(): void {
