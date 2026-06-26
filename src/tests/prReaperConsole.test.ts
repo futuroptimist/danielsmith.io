@@ -1,8 +1,11 @@
 import {
   Box3,
+  BufferGeometry,
   Mesh,
   MeshBasicMaterial,
   Object3D,
+  Points,
+  PointsMaterial,
   PointLight,
   Vector3,
 } from 'three';
@@ -48,6 +51,29 @@ function triangleCount(root: Object3D): number {
   return total;
 }
 
+function expectVectorCloseTo(
+  actual: { x: number; y: number; z: number },
+  expected: { x: number; y: number; z: number },
+  precision = 5
+): void {
+  expect(actual.x).toBeCloseTo(expected.x, precision);
+  expect(actual.y).toBeCloseTo(expected.y, precision);
+  expect(actual.z).toBeCloseTo(expected.z, precision);
+}
+
+function updateUntilLaserFires(
+  build: ReturnType<typeof createPrReaperInstallation>
+) {
+  let fired = null as ReturnType<typeof build.getDebugState> | null;
+  for (let i = 0; i < 240 && !fired?.laserActive; i += 1) {
+    build.update({ elapsed: i / 20, delta: 0.05, emphasis: 0 });
+    const debug = build.getDebugState();
+    if (debug.laserActive) fired = debug;
+  }
+  expect(fired).not.toBeNull();
+  return fired!;
+}
+
 function getCirclePool(root: Object3D): Mesh[] {
   const circleRoot = root.getObjectByName('PrReaperPrCircleRoot');
   expect(circleRoot).toBeDefined();
@@ -90,6 +116,7 @@ describe('createPrReaperInstallation', () => {
       'PrReaperArmLink',
       'PrReaperToolFlange',
       'PrReaperLaserEmitter',
+      'PrReaperLaserMuzzleForward',
       'PrReaperLaserCore',
       'PrReaperLaserGlow',
       'PrReaperParticleRoot',
@@ -165,7 +192,12 @@ describe('createPrReaperInstallation', () => {
     );
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
-    ).toHaveLength(0);
+    ).toHaveLength(4);
+    expect(
+      build.group
+        .getObjectByName('PrReaperParticleRoot')
+        ?.children.every((child) => !child.visible)
+    ).toBe(true);
 
     const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
     const flange = build.group.getObjectByName(
@@ -326,6 +358,66 @@ describe('createPrReaperInstallation', () => {
     expect(counts[3]).toBeGreaterThan(counts[4]);
   });
 
+  it('targets red circles from the aperture with aligned beam and local burst origins', () => {
+    const build = createPrReaperInstallation({
+      position: { x: 1.25, y: 0.1, z: -0.75 },
+      orientationRadians: Math.PI * 0.18,
+      seed: 'fire-seed',
+    });
+    const yaw = build.group.getObjectByName('PrReaperYawJoint')!;
+    const pitch = build.group.getObjectByName('PrReaperPitchJoint')!;
+    const core = build.group.getObjectByName('PrReaperLaserCore')!;
+    const aperture = build.group.getObjectByName('PrReaperLaserAperture')!;
+    expect(core.visible).toBe(false);
+
+    const fired = updateUntilLaserFires(build);
+
+    expect(
+      Math.abs(yaw.rotation.y) + Math.abs(pitch.rotation.x)
+    ).toBeGreaterThan(0);
+    expect(fired.lastLaserWorldStart).not.toBeNull();
+    expect(fired.lastLaserWorldEnd).not.toBeNull();
+    build.group.updateWorldMatrix(true, true);
+    const apertureWorld = new Vector3();
+    aperture.getWorldPosition(apertureWorld);
+    expectVectorCloseTo(fired.lastLaserWorldStart!, apertureWorld, 5);
+
+    const beamStart = core.localToWorld(new Vector3(0, -0.5, 0));
+    const beamEnd = core.localToWorld(new Vector3(0, 0.5, 0));
+    expectVectorCloseTo(beamStart, fired.lastLaserWorldStart!, 5);
+    expectVectorCloseTo(beamEnd, fired.lastLaserWorldEnd!, 5);
+
+    const toTarget = new Vector3(
+      fired.lastLaserWorldEnd!.x - fired.lastLaserWorldStart!.x,
+      fired.lastLaserWorldEnd!.y - fired.lastLaserWorldStart!.y,
+      fired.lastLaserWorldEnd!.z - fired.lastLaserWorldStart!.z
+    ).normalize();
+    const muzzleForward = build.group.getObjectByName(
+      'PrReaperLaserMuzzleForward'
+    )!;
+    const muzzleWorld = new Vector3();
+    muzzleForward.getWorldPosition(muzzleWorld);
+    const barrelForward = muzzleWorld.sub(apertureWorld).normalize();
+    expect(barrelForward.angleTo(toTarget)).toBeLessThan(0.015);
+
+    expect(fired.totalReapedRed).toBeGreaterThan(0);
+    expect(fired.activeBurstCount).toBeGreaterThan(0);
+    expect(fired.burstPoolCapacity).toBe(4);
+    expectVectorCloseTo(
+      fired.activeBurstWorldOrigins[0],
+      fired.lastLaserWorldEnd!,
+      5
+    );
+    expect(fired.activeBurstLocalOrigins[0].x).not.toBeCloseTo(
+      fired.lastLaserWorldEnd!.x,
+      5
+    );
+    fired.activeBurstDurations.forEach((duration) => {
+      expect(duration).toBeGreaterThanOrEqual(0.25);
+      expect(duration).toBeLessThanOrEqual(0.5);
+    });
+  });
+
   it('does not add dynamic point lights', () => {
     const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
     const lights: PointLight[] = [];
@@ -348,10 +440,25 @@ describe('createPrReaperInstallation', () => {
     const dispose = vi.spyOn(screen.geometry, 'dispose');
     const circle = getCirclePool(build.group)[0];
     const circleDispose = vi.spyOn(circle.geometry, 'dispose');
+    const particleRoot = build.group.getObjectByName('PrReaperParticleRoot')!;
+    const particleDisposals = particleRoot.children.map((child) => {
+      expect(child).toBeInstanceOf(Points);
+      const points = child as Points<BufferGeometry, PointsMaterial>;
+      return {
+        geometry: vi.spyOn(points.geometry, 'dispose'),
+        material: vi.spyOn(points.material, 'dispose'),
+      };
+    });
+
     build.dispose();
     build.dispose();
+
     expect(dispose).toHaveBeenCalledTimes(1);
     expect(circleDispose).toHaveBeenCalledTimes(1);
+    particleDisposals.forEach(({ geometry, material }) => {
+      expect(geometry).toHaveBeenCalledTimes(1);
+      expect(material).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('disposes both shared PR circle materials before any stream update', () => {
@@ -360,7 +467,7 @@ describe('createPrReaperInstallation', () => {
 
     build.dispose();
 
-    expect(materialDispose).toHaveBeenCalledTimes(6);
+    expect(materialDispose).toHaveBeenCalledTimes(8);
     materialDispose.mockRestore();
   });
 });

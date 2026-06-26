@@ -766,3 +766,57 @@ Future PRs should add/adjust Vitest coverage for:
   disposal/teardown, quality reload behavior, miniature manifest updates,
   nonzero-heading integration tests, and full required quality gates.
 - Depends on P5b-P5d implementation completeness.
+
+## P5d targeting, laser, and particle implementation
+
+P5d adds the runtime reaping layer without changing the P5c deterministic stream contract.
+`src/scene/structures/prReaperStream.ts` now exposes `reapCandidate(id, now?)` and
+`getCandidateById(id)` so only active red circles can leave the active set through reaping;
+green, missing, expired, and repeated IDs fail safely and do not alter the future spawn
+schedule, shuffled 3:1 batches, intervals, X positions, or descent speed.
+
+Two-axis aiming lives in `src/scene/structures/prReaperArmKinematics.ts`. The solver converts
+installation-local targets into yaw space, treats the barrel forward ray as local `-Z`, solves yaw
+with the Three.js sign convention that positive local-X targets need negative Y rotation, then
+applies the inverse yaw transform before subtracting the pitch-joint local offset and solving
+shoulder pitch around local X. It clamps to `PR_REAPER_YAW_LIMITS` /
+`PR_REAPER_PITCH_LIMITS`, reports reachability, computes angular error, damps poses with
+`PR_REAPER_ARM_DAMPING`, and returns the parked pose. The visible barrel contract is tested through
+`PrReaperLaserAperture` plus the invisible semantic `PrReaperLaserMuzzleForward` anchor. The runtime
+still has exactly two animated joint groups: `PrReaperYawJoint` and `PrReaperPitchJoint`; no
+`lookAt()`, elbow, wrist, correction target, or third axis is added.
+
+`src/scene/structures/prReaperReapingController.ts` owns the pure state machine:
+`idle -> acquire -> track -> fire -> burst -> recover`. It selects red circles only inside the
+shooting band (`PR_REAPER_TARGET_PROGRESS_MIN = 0.12`,
+`PR_REAPER_TARGET_PROGRESS_MAX = 0.9`), sorts by greatest progress and then smallest candidate
+ID, tracks the chosen circle as it descends, requires
+`PR_REAPER_AIM_TOLERANCE_RADIANS = 0.035` for `PR_REAPER_AIM_HOLD_SECONDS = 0.04`, fires for
+`PR_REAPER_LASER_DURATION_SECONDS = 0.12`, and recovers for
+`PR_REAPER_RECOVER_SECONDS = 0.18`. Fired IDs are remembered so duplicate firing cannot remove
+the same candidate twice.
+
+`src/scene/structures/prReaperConsole.ts` updates the stream first, writes current stream centers
+into the pooled `PrReaperPrCircle-*` meshes, then runs the controller. Matrix updates are explicit
+around firing so tests do not depend on renderer-side updates. On fire it reads the actual
+world-space `PrReaperLaserAperture` center, not the parent emitter origin, and the actual red circle
+mesh center before hiding the mesh and calling `reapCandidate(...)`. The reusable
+`PrReaperLaserCore` and `PrReaperLaserGlow` meshes remain children of the emitter, so each firing
+frame converts the aperture start, red-circle end, and midpoint into emitter-local space before
+writing beam transforms. The beam therefore originates at the visible aperture and terminates at the
+exact removed mesh center even when the installation root is rotated.
+
+Particle confirmation uses a fixed `PrReaperParticleBurstPool-0..3` pool of `Points` objects with
+preallocated `BufferGeometry` position attributes and deterministic seeded velocities. Burst
+lifetimes are uniformly bounded from 0.25 to 0.50 seconds. Fire events pass the world-space hit
+point into the particle system, which converts it through `PrReaperParticleRoot.worldToLocal(...)`
+before positioning the selected pool slot; the particle velocities and position attribute updates
+therefore stay in the same particle-root local space while the debug world origin maps back to the
+reaped red-circle center. Detail levels keep the semantics but scale particle counts: Cinematic 32,
+Balanced 24, Performance 14, Low 8, and Micro 4. Reduced pulse/flicker settings only soften beam
+opacity, halo visibility, and particle travel/brightness; they do not pause the stream, alter the
+3:1 ratio, retarget greens, or change spawn timing.
+
+The tabletop miniature remains static. Its proxy source list and manifest include the runtime
+kinematics/controller modules only for sync tracking, and the proxy continues to depict a static
+3-red/1-green hologram snapshot rather than running the stream, controller, laser, or particles.
