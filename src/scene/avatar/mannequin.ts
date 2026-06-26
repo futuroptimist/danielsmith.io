@@ -135,7 +135,8 @@ export function createPortfolioMannequin(
     platformMaterial
   );
   platform.name = 'PortfolioMannequinPlatform';
-  platform.position.y = platformHeight / 2;
+  const platformFloorClearance = 0.015;
+  platform.position.y = platformHeight / 2 + platformFloorClearance;
   platform.castShadow = true;
   platform.receiveShadow = true;
   mannequinRoot.add(platform);
@@ -216,7 +217,7 @@ export function createPortfolioMannequin(
   const leftArm = new Mesh(armGeometry, shoulderMaterial);
   leftArm.name = 'PortfolioMannequinArmLeft';
   leftArm.position.set(-0.52, torso.position.y + 0.16, 0);
-  leftArm.rotation.z = Math.PI / 6;
+  leftArm.rotation.z = -Math.PI / 6;
   leftArm.castShadow = true;
   leftArm.receiveShadow = true;
   mannequinRoot.add(leftArm);

@@ -16,6 +16,7 @@ import {
 } from '../src/scene/miniature/poiProxyRegistry';
 import {
   MINIATURE_SCENE_COMPONENT_COVERAGE,
+  MINIATURE_SCENE_COMPONENT_PROXIES,
   type MiniatureSceneComponentCoverage,
 } from '../src/scene/miniature/sceneComponentRegistry';
 import { getPoiDefinitions } from '../src/scene/poi/registry';
@@ -68,6 +69,37 @@ function fileFingerprint(files: readonly string[]) {
         throw new Error(`Miniature manifest file is missing: ${file}`);
       return `${file}\n${normalizedTypeScriptTokens(readFileSync(file, 'utf8'))}`;
     })
+  );
+}
+
+function componentProxyFingerprint(entry: Entry) {
+  if (
+    !entry.proxyFiles.includes('src/scene/miniature/sceneComponentRegistry.ts')
+  ) {
+    return fileFingerprint([...entry.proxyFiles].sort());
+  }
+
+  const sourceFiles = new Set(entry.sourceFiles);
+  const proxyDefinitions = MINIATURE_SCENE_COMPONENT_PROXIES.filter((proxy) =>
+    proxy.sourceFiles.some((file) => sourceFiles.has(file))
+  );
+
+  if (!proxyDefinitions.length)
+    return fileFingerprint([...entry.proxyFiles].sort());
+
+  return hash(
+    proxyDefinitions
+      .map((proxy) =>
+        JSON.stringify({
+          id: proxy.id,
+          primitives: proxy.primitives,
+          proxyFiles: [...proxy.proxyFiles].sort(),
+          sourceFiles: [...proxy.sourceFiles].sort(),
+          syncNote: proxy.syncNote,
+          syncRevision: proxy.syncRevision,
+        })
+      )
+      .sort()
   );
 }
 
@@ -163,7 +195,7 @@ function buildManifest() {
       syncRevision: entry.syncRevision,
       syncNote: entry.syncNote ?? '',
       sourceFingerprint: fileFingerprint([...entry.sourceFiles].sort()),
-      proxyFingerprint: fileFingerprint([...entry.proxyFiles].sort()),
+      proxyFingerprint: componentProxyFingerprint(entry),
       metadataFingerprint: hash([
         entry.id,
         String(entry.syncRevision),

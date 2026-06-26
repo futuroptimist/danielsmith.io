@@ -406,11 +406,11 @@
         "src/scene/avatar/mannequin.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Prompt 4b will add a dedicated live miniature avatar instead of cloning the overworld player.",
-      "sourceFingerprint": "a599c1ae534490c0280bf12bf34bc4447444d7dd2bbbb9fae7e2c70610952b1c",
+      "syncRevision": 2,
+      "syncNote": "Overworld mannequin arm and floor-clearance polish reviewed; the tabletop still uses its dedicated live miniature avatar instead of cloning this mesh.",
+      "sourceFingerprint": "02f58a444b64fc1926e66e73cd7d6b8ac20ea18e09a822e9e2c8518d2f4d42a9",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "d8ade7dd53b310c5937a712cdb8bd0d8cd1d29205fb1d986f0d69c3ea123c431"
+      "metadataFingerprint": "275a12021d87b998e6eedecde61bcfc0e097bfb4276aa042a73ffe7900b0a89a"
     },
     {
       "id": "debug:visualizers",
@@ -432,7 +432,7 @@
       "syncRevision": 1,
       "syncNote": "Ceiling panel fixtures need simplified caps in the tabletop.",
       "sourceFingerprint": "ebd5f2e8ef4522745c486e0fe00d2a9c9b59067c82e0f73e807082f3af3cbcd5",
-      "proxyFingerprint": "6ed86a4e29c7c863bc62d6c6638dfcc80a96028b6d1542f2f7cbee8a50bea6a1",
+      "proxyFingerprint": "3d85d84201361eb255d4244b61275f9e8311f4b80baf61cecd7e744cb36cf038",
       "metadataFingerprint": "73cc34b6ec09ede01419bf028fe4d2a8e6b227520c61098398daaa25ffe91566"
     },
     {
@@ -499,7 +499,7 @@
       "syncRevision": 1,
       "syncNote": "Visible LED strips are represented as simplified fixture strips; invisible light contribution is excluded.",
       "sourceFingerprint": "db5e4dc8734e2a2b560bdfac3c8471286095c02bc2480c2a943a2b96552a719e",
-      "proxyFingerprint": "6ed86a4e29c7c863bc62d6c6638dfcc80a96028b6d1542f2f7cbee8a50bea6a1",
+      "proxyFingerprint": "126f4c6f72395900bece1a4e106ebca0d8aef985819a43914f8a4e73322c8a9f",
       "metadataFingerprint": "c45e7bcebfe889f25d2582d69cefd5b716828079c769b454f959b3d2fcfc98f6"
     },
     {
@@ -739,7 +739,7 @@
       "syncRevision": 1,
       "syncNote": "Greenhouse shell and visible planters are represented by simplified proxy geometry.",
       "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
-      "proxyFingerprint": "6ed86a4e29c7c863bc62d6c6638dfcc80a96028b6d1542f2f7cbee8a50bea6a1",
+      "proxyFingerprint": "47d4be149f5cf2f69ead7e2822a2361f2b6b29397ff011b880ce24fc49113f02",
       "metadataFingerprint": "fc6531df64c47d676958fcc5b51888d9c48fe33484b658d70841deb5f8888986"
     },
     {
@@ -749,7 +749,7 @@
       "syncRevision": 1,
       "syncNote": "Media wall star bridge visible spans are represented by simplified proxy geometry.",
       "sourceFingerprint": "04d2cedb3edec666eb4aca08bf1ec62e8e9bbd9f421ec67d2960b759dd8e24b4",
-      "proxyFingerprint": "6ed86a4e29c7c863bc62d6c6638dfcc80a96028b6d1542f2f7cbee8a50bea6a1",
+      "proxyFingerprint": "10254a38d3403be7a6241ecb8aff447ce67d7d0bc31fcf9ae797d4a52cef3bf4",
       "metadataFingerprint": "492f0a9f355b44bea11a40f10baedbaf8cc02b767a9917b622a52f6f0f538232"
     },
     {
@@ -759,7 +759,7 @@
       "syncRevision": 1,
       "syncNote": "Multiplayer projection visible screen and plinth are represented by simplified proxy geometry.",
       "sourceFingerprint": "04676c6f3d637192e62e0f52bb16b33f9231b1db56ec08d77e2878ec397a47c7",
-      "proxyFingerprint": "6ed86a4e29c7c863bc62d6c6638dfcc80a96028b6d1542f2f7cbee8a50bea6a1",
+      "proxyFingerprint": "6141a0ffdbcf275606b4e67f9d76a6a3ccf149bc2657ba40635f387f69490370",
       "metadataFingerprint": "f064a0716c5538bdeaff7d47d54dcc2a0a2b97d0403e6000496ce505524f4608"
     }
   ]
