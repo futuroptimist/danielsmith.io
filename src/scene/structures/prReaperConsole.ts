@@ -668,7 +668,8 @@ export function createPrReaperInstallation(
       screenMaterial.opacity = clampOpacity(0.22 + amount);
       edgeMaterial.opacity = clampOpacity(0.62 + amount);
       const activeCandidateCount = stream.writeActiveCandidates(
-        activeCandidateSnapshot
+        activeCandidateSnapshot,
+        true
       );
       circleRedMaterial.opacity = clampOpacity(
         0.72 + emphasis * 0.18 * flicker
@@ -703,7 +704,7 @@ export function createPrReaperInstallation(
       aperture.getWorldPosition(worldStart);
       const step = controller.update({
         delta,
-        candidates: activeCandidateSnapshot.slice(0, activeCandidateCount),
+        candidates: activeCandidateSnapshot,
         fireOrigin: copyVector(worldStart),
       });
       const pose = controller.getPose();
@@ -712,9 +713,14 @@ export function createPrReaperInstallation(
       group.updateWorldMatrix(true, true);
       let laserStartedThisFrame = false;
       if (step.fire) {
-        const targetMesh = circlePool.find(
-          (mesh) => mesh.userData.candidateId === step.fire!.candidateId
-        );
+        let targetMesh: Mesh | undefined;
+        for (let i = 0; i < activeCandidateCount; i += 1) {
+          const mesh = circlePool[i];
+          if (mesh.userData.candidateId === step.fire.candidateId) {
+            targetMesh = mesh;
+            break;
+          }
+        }
         if (targetMesh && targetMesh.userData.type === 'red') {
           targetMesh.updateWorldMatrix(true, false);
           aperture.updateWorldMatrix(true, false);

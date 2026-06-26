@@ -789,8 +789,8 @@ still has exactly two animated joint groups: `PrReaperYawJoint` and `PrReaperPit
 `src/scene/structures/prReaperReapingController.ts` owns the pure state machine:
 `idle -> acquire -> track -> fire -> burst -> recover`. It selects red circles only inside the
 shooting band (`PR_REAPER_TARGET_PROGRESS_MIN = 0.12`,
-`PR_REAPER_TARGET_PROGRESS_MAX = 0.9`), sorts by greatest progress and then smallest candidate
-ID, tracks the chosen circle as it descends, requires
+`PR_REAPER_TARGET_PROGRESS_MAX = 0.9`), selects by greatest progress and then smallest candidate
+ID without allocating per-frame sorted candidate arrays, tracks the chosen circle as it descends, requires
 `PR_REAPER_AIM_TOLERANCE_RADIANS = 0.035` for `PR_REAPER_AIM_HOLD_SECONDS = 0.04`, fires for
 `PR_REAPER_LASER_DURATION_SECONDS = 0.12`, and recovers for
 `PR_REAPER_RECOVER_SECONDS = 0.18`. Fired IDs are remembered so duplicate firing cannot remove
@@ -820,3 +820,104 @@ opacity, halo visibility, and particle travel/brightness; they do not pause the 
 The tabletop miniature remains static. Its proxy source list and manifest include the runtime
 kinematics/controller modules only for sync tracking, and the proxy continues to depict a static
 3-red/1-green hologram snapshot rather than running the stream, controller, laser, or particles.
+
+## P5e final hardening baseline
+
+P5e keeps the P5a-P5d visual contract intact and treats PR Reaper as a production POI
+baseline rather than a feature expansion.
+
+### Builder API and lifecycle
+
+`createPrReaperInstallation({ position, orientationRadians, detailPolicy, seed })` returns a
+`PrReaperInstallationBuild` with `group`, physical `colliders`, `update(...)`,
+`getDebugState()`, and idempotent `dispose()`. `src/main.ts` owns one module-level
+`prReaperInstallation`, passes the active `SceneDetailPolicy`, attaches the returned group via
+`addPoiStructure(...)`, applies scene-object source metadata, registers only the physical floor
+collider, updates the installation every rendered immersive frame, and calls
+`disposePrReaperInstallationBuild()` during both partial initialization cleanup and full immersive
+teardown. Emphasis is presentation-only; the stream/controller continue regardless of POI focus.
+
+### Contract constants and physical footprint
+
+The root remains unit scale and bottom-center/screen-plane anchored. The hologram is a vertical
+9:21 plane with near-ceiling top clearance. The declared intended bounds cover the visible screen,
+projector, robot, beam envelope, and marker clearance, while the registered collider covers only
+the asymmetric physical floor footprint (projector/base/robot), not the hologram screen. The marker
+minimum height intentionally clears the screen top.
+
+### Stream scheduler
+
+`PrReaperStreamState` remains the only scheduler. It emits exact shuffled 3-red/1-green batches,
+uses 0.5-1.5 second spawn intervals including the first interval, keeps seed/frame-sequence
+replays deterministic, separates red reaped counters from red/green expiry counters, rejects green
+reap attempts without hiding them, and caps large-delta catch-up to keep state finite. Reaping does
+not mutate the random stream or future spawn order/timing.
+
+### Reaping controller and arm kinematics
+
+The controller has the pure `idle -> acquire -> track -> fire -> burst -> recover` state machine
+and performs allocation-light red-target selection by scanning active candidates for greatest
+progress then smallest ID. Green candidates are never selected. Kinematics stay two-axis-only:
+`PrReaperYawJoint` and `PrReaperPitchJoint` are the only animated joints. The visible aperture,
+semantic muzzle-forward anchor, laser core, and laser glow are aligned from the same world-space
+start/end pair; tests cover nonzero installation headings, exact aperture starts, exact destroyed
+red-circle endpoints, and collinearity between the barrel forward vector and beam direction. There
+is no `lookAt()` path, hidden third-axis correction, extra animated elbow/wrist, or parented target
+object.
+
+### Particle burst pool
+
+Particle confirmation uses the fixed four-slot `PrReaperParticleBurstPool-*` pool. Each slot owns
+preallocated `BufferGeometry` and `PointsMaterial`; firing reuses a slot rather than creating
+meshes, geometries, or materials. The burst origin is the same world point as the laser endpoint and
+is converted through `PrReaperParticleRoot.worldToLocal(...)`, so transformed installation roots map
+correctly. Durations remain bounded from 0.25 to 0.50 seconds, and `dispose()` releases particle and
+shared mesh resources once.
+
+### Accessibility behavior
+
+`accessibilityPulseScale` and `accessibilityFlickerScale` only affect presentation. With pulse,
+flicker, or both at `0`, the stream continues, red-only reaping continues, one clear laser core
+confirmation remains, halo/flicker is softened or removed, particle opacity/travel is reduced, and
+spawn schedule, 3:1 ratio, target priority, and green immunity are unchanged.
+
+### Detail-level matrix
+
+All five internal detail levels preserve semantic parity for the same seed/frame sequence. Only
+rendering cost changes:
+
+| Detail level | Circle/projector/arm detail    | Beam/halo   | Particle count | Optional accents |
+| ------------ | ------------------------------ | ----------- | -------------- | ---------------- |
+| Cinematic    | highest shared policy segments | core + glow | 32             | full             |
+| Balanced     | high shared policy segments    | core + glow | 24             | reduced          |
+| Performance  | reduced policy segments        | core + glow | 14             | reduced          |
+| Low          | low policy segments            | core only   | 8              | minimal          |
+| Micro        | minimum policy segments        | core only   | 4              | none             |
+
+Tests assert descending triangle budgets and identical stream debug state across levels; the builder
+constructs only the active detail variant instead of building and hiding unused variants.
+
+### Miniature proxy rule
+
+The danielsmith.io tabletop miniature remains static. It does not run the PR stream, arm
+controller, laser, or particle system. The proxy depicts the projector base, tall blue 9:21 screen,
+three red hints, one green hint, two-axis arm silhouette, tool flange/laser gun, and optional static
+green beam hint. The proxy `sourceFiles`, `syncRevision`, and generated manifest track the final
+PR Reaper runtime structure modules; shared accessibility, detail, physical metadata, and
+`main.ts` integration stay covered by their own manifest audit entries.
+
+### Known non-goals
+
+No image generation, binary assets, external models, external textures, audio, network data, new
+visual modes, or stream-contract tuning are part of this baseline.
+
+### Manual QA checklist
+
+Use `npm run dev -- --host 127.0.0.1 --port 5173` and open
+`http://localhost:5173/?mode=immersive&disablePerformanceFailover=1`. Inspect Cinematic,
+Balanced, and Performance. Confirm the hologram is tall/vertical; circles spawn at varied X
+positions; red/green stream readability is clear; red circles are reaped; green circles fall
+through; the arm points at the shot red circle; the laser starts at the aperture and ends at the
+circle center; the red circle disappears; a brief burst appears at the same location; reduced
+motion/flicker remains comfortable; the POI orb/label clears the installation; no frame spikes or
+runaway effects are obvious; and the tabletop miniature remains a static proxy only.
