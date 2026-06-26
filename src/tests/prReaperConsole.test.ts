@@ -140,7 +140,7 @@ describe('createPrReaperInstallation', () => {
     expect(material.map).toBeNull();
   });
 
-  it('parks exactly two animated joint groups and leaves laser/particle roots hidden or empty', () => {
+  it('parks exactly two animated joint groups and preallocates hidden laser/particle pools', () => {
     const build = createPrReaperInstallation({ position: { x: 0, z: 0 } });
     const joints: Object3D[] = [];
     build.group.traverse((object) => {
@@ -165,7 +165,12 @@ describe('createPrReaperInstallation', () => {
     );
     expect(
       build.group.getObjectByName('PrReaperParticleRoot')?.children
-    ).toHaveLength(0);
+    ).toHaveLength(4);
+    build.group
+      .getObjectByName('PrReaperParticleRoot')
+      ?.children.forEach((child) => {
+        expect(child.visible).toBe(false);
+      });
 
     const gun = build.group.getObjectByName('PrReaperLaserGunHousing') as Mesh;
     const flange = build.group.getObjectByName(
@@ -360,7 +365,7 @@ describe('createPrReaperInstallation', () => {
 
     build.dispose();
 
-    expect(materialDispose).toHaveBeenCalledTimes(6);
+    expect(materialDispose).toHaveBeenCalledTimes(8);
     materialDispose.mockRestore();
   });
 });

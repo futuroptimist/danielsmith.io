@@ -268,8 +268,7 @@ module. Its public surface is `createPrReaperSeededRandom(...)`,
 and the `PrReaperStreamState.getDebugState()` snapshot used by installation tests
 and the future targeting pass. Runtime rendering uses `writeActiveCandidates(...)`
 so the render loop can reuse a preallocated active-candidate buffer and avoid
-cloning debug history every frame. P5c deliberately omits reaped/firing/burst
-target states; red and green circles only descend and are removed after expiry.
+cloning debug history every frame. P5d adds a red-only reaping API on that same pure stream: active red candidates can be reaped immediately, green reap attempts are rejected and counted diagnostically, and reaping never changes future spawn intervals, shuffled 3:1 batches, X positions, or descent speed.
 
 Constants live in `src/scene/structures/prReaperInstallationContract.ts`:
 
@@ -420,11 +419,10 @@ immediately reacquires the next deterministic red candidate.
 
 All math must be local-space and heading-safe.
 
-1. Compute target circle center in screen local space using the stream formula.
-2. Convert to world with `hologramRoot.localToWorld(targetWorld)`.
-3. Convert to yaw-joint/robot-base space with
+1. Read the selected circle center from the active `PrReaperPrCircle-*` mesh with `getWorldPosition(...)` immediately before hiding/reaping it.
+2. Convert to yaw-joint/robot-base space with
    `yawJoint.worldToLocal(targetInYawSpace.copy(targetWorld))`.
-4. Solve yaw around Y:
+3. Solve yaw around Y:
 
 ```ts
 const yawTarget = Math.atan2(targetInYawSpace.x, -targetInYawSpace.z);
@@ -476,7 +474,7 @@ const next = current + MathUtils.clamp(damped - current, -maxStep, maxStep);
 
 9. Tool flange and emitter positions are authored as children of
    `PrReaperPitchJoint`. Use `emitter.getWorldPosition(emitterWorld)` every
-   firing frame. The beam end is the target circle center from step 2. Verify:
+   firing frame. The beam end is the exact circle mesh center captured before hiding. Verify:
 
 ```ts
 const standoff = Math.abs(
@@ -766,3 +764,19 @@ Future PRs should add/adjust Vitest coverage for:
   disposal/teardown, quality reload behavior, miniature manifest updates,
   nonzero-heading integration tests, and full required quality gates.
 - Depends on P5b-P5d implementation completeness.
+
+### P5d implementation notes
+
+The checked-in P5d implementation uses these shared constants from
+`prReaperInstallationContract.ts`: `PR_REAPER_TARGET_PROGRESS_MIN = 0.12`,
+`PR_REAPER_TARGET_PROGRESS_MAX = 0.9`, `PR_REAPER_AIM_TOLERANCE_RADIANS = 0.035`,
+`PR_REAPER_AIM_HOLD_SECONDS = 0.04`, `PR_REAPER_LASER_DURATION_SECONDS = 0.12`,
+`PR_REAPER_RECOVER_SECONDS = 0.18`, and `PR_REAPER_ARM_DAMPING = 12`.
+Target priority is deterministic: red candidates in the shooting band first,
+greatest progress next, and smaller candidate ID as the tie-breaker. The reusable
+laser core/glow meshes are parented to the installation group; each firing frame
+converts the captured world-space emitter and target points into installation-local
+midpoint/orientation/length transforms, which preserves exact endpoints under
+installation rotation and arm motion. Particle bursts use four preallocated
+`Points` slots named `PrReaperParticleBurstPool-0` through `-3`, deterministic
+velocities, and bounded durations from `0.25s` to `0.50s`.

@@ -149,3 +149,49 @@ describe('PR Reaper deterministic stream', () => {
     });
   });
 });
+
+describe('PR Reaper stream reaping API', () => {
+  it('removes active red candidates without incrementing expired red', () => {
+    const stream = createPrReaperStream({ seed: 'reap-red' });
+    for (let i = 0; i < 30; i += 1) stream.advance(0.1);
+    const red = stream
+      .getDebugState()
+      .activeCandidates.find((entry) => entry.type === 'red');
+    expect(red).toBeDefined();
+    const beforeExpired = stream.getDebugState().totalExpiredRed;
+    const reaped = stream.reapCandidate(red!.id, 3);
+    expect(reaped?.lifecycle).toBe('reaped');
+    const after = stream.getDebugState();
+    expect(after.activeCandidates.some((entry) => entry.id === red!.id)).toBe(
+      false
+    );
+    expect(after.totalReapedRed).toBe(1);
+    expect(after.totalExpiredRed).toBe(beforeExpired);
+    expect(stream.reapCandidate(red!.id, 4)).toBeNull();
+    expect(stream.reapCandidate(999999, 4)).toBeNull();
+  });
+
+  it('rejects green candidates and preserves future spawn sequence', () => {
+    const seed = 'green-immune';
+    const stream = createPrReaperStream({ seed });
+    const baseline = createPrReaperStream({ seed });
+    for (let i = 0; i < 80; i += 1) {
+      stream.advance(0.1);
+      baseline.advance(0.1);
+    }
+    const green = stream
+      .getDebugState()
+      .activeCandidates.find((entry) => entry.type === 'green');
+    expect(green).toBeDefined();
+    expect(stream.reapCandidate(green!.id, 8)).toBeNull();
+    expect(stream.getCandidateById(green!.id)?.type).toBe('green');
+    for (let i = 0; i < 40; i += 1) {
+      stream.advance(0.1);
+      baseline.advance(0.1);
+    }
+    expect(stream.getDebugState().spawnHistory).toEqual(
+      baseline.getDebugState().spawnHistory
+    );
+    expect(stream.getDebugState().attemptedGreenReapCount).toBe(1);
+  });
+});
