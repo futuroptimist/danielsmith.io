@@ -43,6 +43,9 @@ describe('flywheel energy contract', () => {
       FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
     );
     expect(FLYWHEEL_GEARBOX_OUTER_RADIUS).toBeGreaterThan(0.62);
+    expect(FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_WHEEL.centerZ).toBeGreaterThan(
+      0.8
+    );
   });
 
   it('defines an output shaft from the gearbox side toward the wheel hub', () => {

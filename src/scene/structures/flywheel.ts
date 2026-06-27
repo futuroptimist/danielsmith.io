@@ -273,7 +273,11 @@ export function createFlywheelShowpiece(
     ),
     steel
   );
-  axle.position.set(FLYWHEEL_WHEEL.centerX, FLYWHEEL_WHEEL.centerY, 0);
+  axle.position.set(
+    FLYWHEEL_WHEEL.centerX,
+    FLYWHEEL_WHEEL.centerY,
+    FLYWHEEL_WHEEL.centerZ
+  );
   axle.rotation.x = Math.PI / 2;
   group.add(axle);
   for (const [name, z] of [
@@ -292,7 +296,11 @@ export function createFlywheelShowpiece(
 
   const wheelGroup = new Group();
   wheelGroup.name = 'FlywheelWheelGroup';
-  wheelGroup.position.set(FLYWHEEL_WHEEL.centerX, FLYWHEEL_WHEEL.centerY, 0);
+  wheelGroup.position.set(
+    FLYWHEEL_WHEEL.centerX,
+    FLYWHEEL_WHEEL.centerY,
+    FLYWHEEL_WHEEL.centerZ
+  );
   group.add(wheelGroup);
   const rim = mesh(
     'FlywheelHeavyRim',

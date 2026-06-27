@@ -169,13 +169,14 @@ duplicate scene-unit numbers across those files.
 The current layout is intentionally asymmetric for readability:
 
 - the heavy wheel sits on the left side of the base;
-- the planetary gearbox sits to the right and slightly forward of the wheel;
+- the planetary gearbox sits to the right and clearly forward of the wheel;
 - the hand crank is mounted on the gearbox front face using the named gearbox
   crank clearance;
 - front/back bearing yokes cradle the wheel axle, with axle caps visible outside
   the rim;
-- a torque/output shaft and coupler bridge the gearbox side toward the flywheel
-  hub without crossing the wheel rim on the wrong depth plane;
+- a torque/output shaft and coupler bridge from the front-right gearbox side back
+  toward the left/back flywheel hub without crossing the wheel rim on the wrong
+  depth plane;
 - rim motion ticks stay attached to the wheel group so rotation remains legible;
 - formula-derived edge and clearance constants define wheel/gearbox separation
   instead of ad hoc offsets.

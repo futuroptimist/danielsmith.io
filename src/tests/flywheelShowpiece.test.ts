@@ -15,6 +15,7 @@ import {
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
   FLYWHEEL_GEARBOX_LEFT_EDGE,
+  FLYWHEEL_GEARBOX_OUTER_RADIUS,
   FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_INSTALLATION_BOUNDS,
@@ -169,9 +170,56 @@ describe('createFlywheelShowpiece', () => {
       FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
     );
     expect(gearbox.position.x).toBeGreaterThan(FLYWHEEL_WHEEL_RIGHT_EDGE);
-    expect(gearbox.position.z).toBeGreaterThan(FLYWHEEL_WHEEL.centerZ);
+    expect(gearbox.position.z - FLYWHEEL_WHEEL.centerZ).toBeGreaterThan(0.8);
+    expect(gearboxBox.intersectsBox(wheelBox)).toBe(false);
+    expect(crankBox.intersectsBox(wheelBox)).toBe(false);
     expect(gearboxBox.min.x).toBeGreaterThan(FLYWHEEL_GEARBOX_LEFT_EDGE);
     expect(FLYWHEEL_GEARBOX.centerZ).toBeGreaterThan(0);
+    build.dispose();
+  });
+
+  it('keeps accent glow subordinate to the heavy physical rim', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup') as Object3D;
+    const rim = build.group.getObjectByName('FlywheelHeavyRim') as Object3D;
+    const glow = build.group.getObjectByName(
+      'FlywheelEnergyGlowRing'
+    ) as Object3D;
+    const wheelBox = new Box3().setFromObject(wheel);
+    const rimBox = new Box3().setFromObject(rim);
+    const glowBox = new Box3().setFromObject(glow);
+
+    expect(glowBox.min.x).toBeGreaterThan(rimBox.min.x);
+    expect(glowBox.max.x).toBeLessThan(rimBox.max.x);
+    expect(glowBox.min.y).toBeGreaterThan(rimBox.min.y);
+    expect(glowBox.max.y).toBeLessThan(rimBox.max.y);
+    expect(glowBox.getSize(new Vector3()).length()).toBeLessThan(
+      wheelBox.getSize(new Vector3()).length() * 0.82
+    );
+    build.dispose();
+  });
+
+  it('uses the rendered torque shaft to bridge the gearbox output and flywheel hub gap', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const torqueShaft = build.group.getObjectByName(
+      'FlywheelTorqueShaft'
+    ) as Object3D;
+    const shaftBox = new Box3().setFromObject(torqueShaft);
+
+    expect(shaftBox.min.x).toBeLessThan(FLYWHEEL_WHEEL.centerX + 0.28);
+    expect(shaftBox.max.x).toBeGreaterThan(
+      FLYWHEEL_GEARBOX.centerX - FLYWHEEL_GEARBOX_OUTER_RADIUS
+    );
+    expect(shaftBox.min.z).toBeGreaterThan(
+      FLYWHEEL_WHEEL.centerZ + FLYWHEEL_WHEEL.thickness / 2
+    );
+    expect(shaftBox.max.z).toBeLessThan(FLYWHEEL_GEARBOX.centerZ);
     build.dispose();
   });
 
