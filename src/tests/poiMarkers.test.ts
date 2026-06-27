@@ -1,11 +1,14 @@
 import {
+  Box3,
   Color,
   CylinderGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  Object3D,
   PlaneGeometry,
   SphereGeometry,
+  Vector3,
 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -21,6 +24,7 @@ import {
   createPoiLabelTexture,
   updatePoiInstanceDefinition,
 } from '../scene/poi/markers';
+import { poiRegistry } from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
 
 describe('createPoiInstances', () => {
@@ -277,6 +281,154 @@ describe('createPoiInstances', () => {
     expect(instance.labelBaseHeight ?? 0).toBeGreaterThan(
       instance.orbBaseHeight ?? 0
     );
+  });
+
+  it('renders the Flywheel body shell pedestal as the intentional large POI marker', () => {
+    const definition = poiRegistry.getById('flywheel-studio-flywheel');
+    if (!definition) {
+      throw new Error('Expected Flywheel POI definition to be registered.');
+    }
+    const [instance] = createPoiInstances([definition]);
+
+    expect(definition.pedestal?.type).toBe('hologram');
+    const body = instance.group.getObjectByName(
+      'POI_PedestalBody:flywheel-studio-flywheel'
+    );
+    const accent = instance.group.getObjectByName(
+      'POI_PedestalAccent:flywheel-studio-flywheel'
+    );
+    const ring = instance.group.getObjectByName(
+      'POI_PedestalRing:flywheel-studio-flywheel'
+    );
+
+    expect(body).toBeInstanceOf(Mesh);
+    expect(accent).toBeInstanceOf(Mesh);
+    expect(ring).toBeInstanceOf(Mesh);
+
+    instance.group.updateWorldMatrix(true, true);
+    const bodySize = new Box3()
+      .setFromObject(body as Object3D)
+      .getSize(new Vector3());
+    const accentSize = new Box3()
+      .setFromObject(accent as Object3D)
+      .getSize(new Vector3());
+    expect(bodySize.y).toBeGreaterThan(0.9);
+    expect(accentSize.x).toBeGreaterThan(bodySize.x * 0.8);
+
+    expect(instance.orb).toBeInstanceOf(Mesh);
+    expect(instance.label).toBeInstanceOf(Mesh);
+    expect(instance.orbBaseHeight ?? 0).toBeGreaterThan(1);
+    expect(instance.labelBaseHeight ?? 0).toBeGreaterThan(
+      instance.orbBaseHeight ?? 0
+    );
+  });
+
+  it('renders the Flywheel body shell pedestal in performance mode', () => {
+    const definition = poiRegistry.getById('flywheel-studio-flywheel');
+    if (!definition) {
+      throw new Error('Expected Flywheel POI definition to be registered.');
+    }
+    const [instance] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('performance'),
+      }
+    );
+
+    const body = instance.group.getObjectByName(
+      'POI_PedestalBody:flywheel-studio-flywheel'
+    );
+    const accent = instance.group.getObjectByName(
+      'POI_PedestalAccent:flywheel-studio-flywheel'
+    );
+    const ring = instance.group.getObjectByName(
+      'POI_PedestalRing:flywheel-studio-flywheel'
+    );
+
+    expect(body).toBeInstanceOf(Mesh);
+    expect(accent).toBeInstanceOf(Mesh);
+    expect(ring).toBeInstanceOf(Mesh);
+    expect(body?.visible).toBe(true);
+    expect(accent?.visible).toBe(true);
+    expect(ring?.visible).toBe(true);
+    expect(
+      ((body as Mesh).material as MeshStandardMaterial).opacity
+    ).toBeGreaterThan(0);
+    expect(
+      ((accent as Mesh).material as MeshStandardMaterial).opacity
+    ).toBeGreaterThan(0);
+    expect(
+      ((ring as Mesh).material as MeshBasicMaterial).opacity
+    ).toBeGreaterThan(0);
+
+    expect(instance.orb).toBeInstanceOf(Mesh);
+    expect(instance.label).toBeInstanceOf(Mesh);
+  });
+
+  it('keeps Flywheel body shell pedestal rendering in cinematic and balanced modes', () => {
+    const definition = poiRegistry.getById('flywheel-studio-flywheel');
+    if (!definition) {
+      throw new Error('Expected Flywheel POI definition to be registered.');
+    }
+
+    for (const level of ['cinematic', 'balanced'] as const) {
+      const [instance] = createPoiInstances(
+        [definition],
+        {},
+        {
+          detailPolicy: getSceneDetailPolicy(level),
+        }
+      );
+
+      expect(
+        instance.group.getObjectByName(
+          'POI_PedestalBody:flywheel-studio-flywheel'
+        )
+      ).toBeInstanceOf(Mesh);
+      expect(
+        instance.group.getObjectByName(
+          'POI_PedestalAccent:flywheel-studio-flywheel'
+        )
+      ).toBeInstanceOf(Mesh);
+      expect(
+        instance.group.getObjectByName(
+          'POI_PedestalRing:flywheel-studio-flywheel'
+        )
+      ).toBeInstanceOf(Mesh);
+    }
+  });
+
+  it('keeps performance hologram pedestal rendering opt-in', () => {
+    const definition = createDefinition({
+      id: 'jobbot-studio-terminal',
+      pedestal: {
+        type: 'hologram',
+        height: 1.2,
+        radiusScale: 0.7,
+      },
+    });
+    const [instance] = createPoiInstances(
+      [definition],
+      {},
+      {
+        detailPolicy: getSceneDetailPolicy('performance'),
+      }
+    );
+
+    expect(
+      instance.group.getObjectByName('POI_PedestalBody:jobbot-studio-terminal')
+    ).toBeUndefined();
+    expect(
+      instance.group.getObjectByName(
+        'POI_PedestalAccent:jobbot-studio-terminal'
+      )
+    ).toBeUndefined();
+    expect(
+      instance.group.getObjectByName('POI_PedestalRing:jobbot-studio-terminal')
+    ).toBeUndefined();
+    expect(instance.orb).toBeInstanceOf(Mesh);
+    expect(instance.label).toBeInstanceOf(Mesh);
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {

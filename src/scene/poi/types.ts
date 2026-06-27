@@ -75,6 +75,10 @@ export interface PoiHologramPedestalConfig {
   bodyColor?: number;
   /** Opacity applied to the holographic shell material. */
   bodyOpacity?: number;
+  /** Opt-in to keep this custom hologram body visible in performance mode. */
+  renderInPerformance?: boolean;
+  /** Performance-mode opacity override for the holographic shell material. */
+  performanceBodyOpacity?: number;
   /** Emissive color for the holographic shell glow. */
   emissiveColor?: number;
   /** Emissive intensity multiplier for the holographic shell glow. */
@@ -87,10 +91,14 @@ export interface PoiHologramPedestalConfig {
   accentEmissiveIntensity?: number;
   /** Accent band opacity. */
   accentOpacity?: number;
+  /** Performance-mode opacity override for the accent band material. */
+  performanceAccentOpacity?: number;
   /** Color applied to the floating holographic top ring. */
   ringColor?: number;
   /** Opacity for the floating holographic top ring. */
   ringOpacity?: number;
+  /** Performance-mode opacity override for the floating top ring. */
+  performanceRingOpacity?: number;
   /** Base albedo color for the interaction orb. */
   orbColor?: number;
   /** Emissive color for the interaction orb. */

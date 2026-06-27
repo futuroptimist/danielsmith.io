@@ -69,9 +69,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Tracks the explicit media-wall visual anchor used by the tabletop miniature.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 9,
+    syncRevision: 22,
     syncNote:
-      'Tracks hardened runtime transfer diagnostics while keeping the static arc hints unchanged.',
+      'Tracks the simplified Flywheel rotor body plus performance-visible blue/teal POI shell, energy port, and static energy-arc hints without the deferred gear/crank assembly.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -101,17 +101,17 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      box('flywheel-base', [1.35, 0.12, 0.64], [0, 0.06, 0], 0x17202a),
+      box('flywheel-base', [1.1, 0.12, 0.72], [0, 0.06, 0], 0x17202a),
       box(
-        'flywheel-bearing-left',
-        [0.1, 0.72, 0.18],
-        [-0.48, 0.42, 0],
+        'flywheel-bearing-yoke-front',
+        [0.42, 0.58, 0.08],
+        [0, 0.38, 0.2],
         0x94a3b8
       ),
       box(
-        'flywheel-bearing-right',
-        [0.1, 0.72, 0.18],
-        [0.04, 0.42, 0],
+        'flywheel-bearing-yoke-back',
+        [0.42, 0.58, 0.08],
+        [0, 0.38, -0.2],
         0x94a3b8
       ),
       {
@@ -119,33 +119,26 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         name: 'flywheel-heavy-wheel',
         radius: FLYWHEEL_WHEEL.radius * 0.35,
         tube: 0.055,
-        position: [-0.22, 0.64, 0],
+        position: [0, 0.62, 0],
         rotation: [0, 0, 0],
         color: 0x1f2937,
       },
-      box('flywheel-spoke', [0.56, 0.04, 0.04], [-0.22, 0.64, 0], 0xcbd5e1),
+      box('flywheel-spoke', [0.56, 0.04, 0.04], [0, 0.62, 0], 0xcbd5e1),
       box(
-        'flywheel-crank-arm',
-        [0.36, 0.035, 0.035],
-        [0.42, 0.64, 0.24],
+        'flywheel-motion-tick',
+        [0.05, 0.13, 0.035],
+        [0.24, 0.72, 0.06],
         0xf59e0b
       ),
-      cyl(
-        'flywheel-planetary-gear-cluster',
-        0.18,
-        0.12,
-        [0.38, 0.58, 0],
-        0xd1d5db
-      ),
-      sphere('flywheel-energy-port', 0.07, [0.56, 0.8, 0.28], 0x38bdf8),
+      sphere('flywheel-energy-port', 0.07, [0.24, 0.82, 0.18], 0x38bdf8),
       {
         kind: 'tube',
         name: 'flywheel-incoming-arc-hint',
         radius: 0.012,
         points: [
           [-0.95, 0.18, -0.62],
-          [-0.42, 1.06, -0.18],
-          [0.56, 0.8, 0.28],
+          [-0.34, 1.0, -0.18],
+          [0.24, 0.82, 0.18],
         ],
         color: 0x38bdf8,
       },
@@ -154,8 +147,8 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         name: 'flywheel-outgoing-arc-hint',
         radius: 0.024,
         points: [
-          [0.56, 0.8, 0.28],
-          [0.12, 1.22, 0.58],
+          [0.24, 0.82, 0.18],
+          [0.36, 1.12, 0.36],
           [1.05, 0.22, 0.76],
         ],
         color: 0x7dd3fc,
@@ -166,9 +159,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -187,9 +180,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -204,9 +197,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 2,
+    syncRevision: 4,
     syncNote:
-      'Covers merged table, switch, yellow rack, nodes, and cable silhouette.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -300,9 +293,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 2,
+    syncRevision: 4,
     syncNote:
-      'Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/tokenPlaceWorkstation.ts',
@@ -342,9 +335,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -358,9 +351,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -373,9 +366,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -396,9 +389,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -411,9 +404,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -427,9 +420,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -442,9 +435,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 18,
+    syncRevision: 20,
     syncNote:
-      'Runtime hardening keeps the static 3:1 proxy synchronized with lifecycle, detail, and accessibility files.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
@@ -513,9 +506,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.',
+      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

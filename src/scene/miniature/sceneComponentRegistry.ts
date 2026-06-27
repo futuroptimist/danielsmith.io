@@ -98,9 +98,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'POI orbs, halos, labels, hit areas, and badges are interaction UI, not miniature geometry.',
+      'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
   },
   {
     id: 'debug:visualizers',
@@ -364,9 +364,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 5,
+    syncRevision: 6,
     reason:
-      'Audited support source; Flywheel physical metadata now imports the shared P6b machine contract while tabletop geometry remains covered by the POI proxy.',
+      'Audited support source; Flywheel physical metadata now describes the simplified rotor body while tabletop geometry remains covered by the POI proxy.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',

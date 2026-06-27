@@ -160,7 +160,9 @@ function createPedestalPoiInstance(
   let accentFocusColor: Color | undefined;
 
   const rendersPedestal =
-    !isPerformance && pedestalHeight > 0 && pedestalRadius > 0;
+    pedestalHeight > 0 &&
+    pedestalRadius > 0 &&
+    (!isPerformance || hologramConfig?.renderInPerformance === true);
   const effectivePedestalHeight = rendersPedestal ? pedestalHeight : 0;
   const effectivePedestalRadius = rendersPedestal ? pedestalRadius : 0;
 
@@ -174,7 +176,11 @@ function createPedestalPoiInstance(
     });
     bodyMaterial.transparent = true;
     bodyMaterial.opacity = MathUtils.clamp(
-      hologramConfig?.bodyOpacity ?? 0.52,
+      isPerformance
+        ? (hologramConfig?.performanceBodyOpacity ??
+            hologramConfig?.bodyOpacity ??
+            0.52)
+        : (hologramConfig?.bodyOpacity ?? 0.52),
       0,
       1
     );
@@ -210,7 +216,11 @@ function createPedestalPoiInstance(
     });
     accentMaterial.transparent = true;
     accentMaterial.opacity = MathUtils.clamp(
-      hologramConfig?.accentOpacity ?? 0.88,
+      isPerformance
+        ? (hologramConfig?.performanceAccentOpacity ??
+            hologramConfig?.accentOpacity ??
+            0.88)
+        : (hologramConfig?.accentOpacity ?? 0.88),
       0,
       1
     );
@@ -237,7 +247,15 @@ function createPedestalPoiInstance(
     const ringMaterial = new MeshBasicMaterial({
       color: new Color(hologramConfig?.ringColor ?? 0x78eaff),
       transparent: true,
-      opacity: MathUtils.clamp(hologramConfig?.ringOpacity ?? 0.6, 0, 1),
+      opacity: MathUtils.clamp(
+        isPerformance
+          ? (hologramConfig?.performanceRingOpacity ??
+              hologramConfig?.ringOpacity ??
+              0.6)
+          : (hologramConfig?.ringOpacity ?? 0.6),
+        0,
+        1
+      ),
       blending: AdditiveBlending,
       depthWrite: false,
     });
