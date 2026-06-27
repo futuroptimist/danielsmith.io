@@ -9,10 +9,15 @@ import {
   MeshStandardMaterial,
   Object3D,
   SphereGeometry,
+  Vector3,
   TorusGeometry,
 } from 'three';
 
 import type { Bounds2D } from '../../assets/floorPlan';
+import {
+  getFlickerScale,
+  getPulseScale,
+} from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
@@ -40,6 +45,11 @@ import {
   getFlywheelCarrierAngle,
   getFlywheelPlanetLocalSpin,
 } from './flywheelEnergyContract';
+import {
+  createFlywheelEnergyNetwork,
+  sampleFlywheelEnergyArc,
+  type FlywheelEnergyTarget,
+} from './flywheelEnergyNetwork';
 
 export interface FlywheelShowpieceBuild {
   group: Group;
@@ -50,6 +60,7 @@ export interface FlywheelShowpieceBuild {
     emphasis: number;
     runDecorativeEffects?: boolean;
   }): void;
+  setEnergyTargets(targets: readonly FlywheelEnergyTarget[]): void;
   getDebugState(): FlywheelDebugState;
   dispose(): void;
 }
@@ -71,6 +82,26 @@ export interface FlywheelDebugState {
   planetLocalSpin: number;
   torqueRatio: number;
   triangleCount: number;
+  energy: {
+    targetCount: number;
+    missingTargetDiagnostics: string[];
+    currentCycleCount: number;
+    direction: 'incoming' | 'outgoing' | null;
+    selectedTargetId: string | null;
+    phase: number;
+    visibleWindowStart: number;
+    visibleWindowEnd: number;
+    incomingCompletedCount: number;
+    outgoingCompletedCount: number;
+    sourceWorldPosition: { x: number; y: number; z: number } | null;
+    destinationWorldPosition: { x: number; y: number; z: number } | null;
+    sourceLocalPosition: { x: number; y: number; z: number } | null;
+    destinationLocalPosition: { x: number; y: number; z: number } | null;
+    activeNodeCount: number;
+    detailLevel: string;
+    pulseScale: number;
+    flickerScale: number;
+  };
 }
 
 const MATERIALS = {
@@ -417,6 +448,45 @@ export function createFlywheelShowpiece(
   );
   group.add(port);
 
+  const energyNetwork = createFlywheelEnergyNetwork([], {
+    seed: 'flywheel-studio-energy-arcs',
+  });
+  let missingTargetDiagnostics: string[] = [
+    'flywheel-energy-targets-not-resolved',
+  ];
+  const packetNodeCount =
+    detailPolicy.level === 'cinematic'
+      ? 14
+      : detailPolicy.level === 'balanced'
+        ? 11
+        : detailPolicy.level === 'performance'
+          ? 8
+          : detailPolicy.level === 'low'
+            ? 6
+            : 4;
+  const packetGroup = new Group();
+  packetGroup.name = 'FlywheelEnergyTransferPacket';
+  group.add(packetGroup);
+  const nodeGeometry = own(
+    new SphereGeometry(1, Math.max(6, cylSeg), Math.max(4, cylSeg / 2))
+  );
+  const packetNodes: Mesh[] = [];
+  for (let i = 0; i < packetNodeCount; i += 1) {
+    const material = mat(
+      new MeshBasicMaterial({
+        color: MATERIALS.glow,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+      })
+    );
+    const node = new Mesh(nodeGeometry, material);
+    node.name = `FlywheelEnergyPacketNode-${i}`;
+    node.visible = false;
+    packetGroup.add(node);
+    packetNodes.push(node);
+  }
+
   const colliders = createFlywheelColliders(
     position.x,
     position.z,
@@ -430,6 +500,26 @@ export function createFlywheelShowpiece(
     planetLocalSpin: 0,
     torqueRatio: FLYWHEEL_TORQUE_RATIO,
     triangleCount: countTriangles(group),
+    energy: {
+      targetCount: 0,
+      missingTargetDiagnostics: ['flywheel-energy-targets-not-resolved'],
+      currentCycleCount: 0,
+      direction: null,
+      selectedTargetId: null,
+      phase: 0,
+      visibleWindowStart: 0,
+      visibleWindowEnd: 0,
+      incomingCompletedCount: 0,
+      outgoingCompletedCount: 0,
+      sourceWorldPosition: null,
+      destinationWorldPosition: null,
+      sourceLocalPosition: null,
+      destinationLocalPosition: null,
+      activeNodeCount: 0,
+      detailLevel: detailPolicy.level,
+      pulseScale: 1,
+      flickerScale: 1,
+    },
   };
   let disposed = false;
   let crankAngle = 0;
@@ -460,6 +550,26 @@ export function createFlywheelShowpiece(
         glow.opacity =
           0.45 + Math.min(0.4, emphasis * 0.35) + Math.sin(elapsed * 2) * 0.05;
       }
+      energyNetwork.update(Math.max(0, delta));
+      const energy = updateEnergyPacket(
+        packetNodes,
+        group,
+        port,
+        energyNetwork,
+        detailPolicy.level
+      );
+      if (runDecorativeEffects) {
+        const pulseScale = getPulseScale();
+        const flickerScale = getFlickerScale();
+        const portScale = 1 + Math.sin(elapsed * 1.7) * 0.08 * pulseScale;
+        port.scale.setScalar(portScale);
+        glow.opacity = Math.max(
+          0.22,
+          glow.opacity * (0.75 + 0.25 * flickerScale)
+        );
+        energy.pulseScale = pulseScale;
+        energy.flickerScale = flickerScale;
+      }
       state = {
         crankAngle,
         sunAngle: crankAngle,
@@ -468,9 +578,38 @@ export function createFlywheelShowpiece(
         planetLocalSpin,
         torqueRatio: FLYWHEEL_TORQUE_RATIO,
         triangleCount: state.triangleCount,
+        energy: {
+          ...energy,
+          targetCount: energyNetwork.getSnapshot().targetCount,
+          missingTargetDiagnostics: [...missingTargetDiagnostics],
+          detailLevel: detailPolicy.level,
+        },
       };
     },
-    getDebugState: () => ({ ...state }),
+    setEnergyTargets(targets) {
+      missingTargetDiagnostics =
+        targets.length === 0 ? ['flywheel-energy-no-ground-targets'] : [];
+      energyNetwork.setTargets(targets);
+    },
+    getDebugState: () => ({
+      ...state,
+      energy: {
+        ...state.energy,
+        missingTargetDiagnostics: [...state.energy.missingTargetDiagnostics],
+        sourceWorldPosition: state.energy.sourceWorldPosition
+          ? { ...state.energy.sourceWorldPosition }
+          : null,
+        destinationWorldPosition: state.energy.destinationWorldPosition
+          ? { ...state.energy.destinationWorldPosition }
+          : null,
+        sourceLocalPosition: state.energy.sourceLocalPosition
+          ? { ...state.energy.sourceLocalPosition }
+          : null,
+        destinationLocalPosition: state.energy.destinationLocalPosition
+          ? { ...state.energy.destinationLocalPosition }
+          : null,
+      },
+    }),
     dispose() {
       if (disposed) return;
       disposed = true;
@@ -478,6 +617,101 @@ export function createFlywheelShowpiece(
       ownedMaterials.forEach((m) => m.dispose());
     },
   };
+}
+
+function updateEnergyPacket(
+  packetNodes: readonly Mesh[],
+  root: Group,
+  port: Object3D,
+  network: ReturnType<typeof createFlywheelEnergyNetwork>,
+  detailLevel: string
+): FlywheelDebugState['energy'] {
+  const snapshot = network.getSnapshot();
+  const transfer = network.getActiveTransfer();
+  const inactive = {
+    targetCount: snapshot.targetCount,
+    missingTargetDiagnostics: [],
+    currentCycleCount: snapshot.currentCycleCount,
+    direction: snapshot.direction,
+    selectedTargetId: snapshot.selectedTargetId,
+    phase: snapshot.phase,
+    visibleWindowStart: snapshot.visibleWindowStart,
+    visibleWindowEnd: snapshot.visibleWindowEnd,
+    incomingCompletedCount: snapshot.incomingCompletedCount,
+    outgoingCompletedCount: snapshot.outgoingCompletedCount,
+    sourceWorldPosition: null,
+    destinationWorldPosition: null,
+    sourceLocalPosition: null,
+    destinationLocalPosition: null,
+    activeNodeCount: 0,
+    detailLevel,
+    pulseScale: getPulseScale(),
+    flickerScale: getFlickerScale(),
+  };
+  if (!transfer) {
+    packetNodes.forEach((node) => {
+      node.visible = false;
+    });
+    return inactive;
+  }
+  const target = network.getTarget(transfer.targetPoiId);
+  if (!target) return inactive;
+  const portWorld = port.getWorldPosition(new Vector3());
+  const targetWorld = new Vector3(
+    target.worldPosition.x,
+    target.worldPosition.y + 0.85,
+    target.worldPosition.z
+  );
+  const liftedPort = new Vector3(portWorld.x, portWorld.y, portWorld.z);
+  const sourceWorldVector =
+    transfer.direction === 'incoming' ? targetWorld : liftedPort;
+  const destinationWorldVector =
+    transfer.direction === 'incoming' ? liftedPort : targetWorld;
+  const sourceWorldPosition = toPoint(sourceWorldVector);
+  const destinationWorldPosition = toPoint(destinationWorldVector);
+  const sourceLocal = root.worldToLocal(sourceWorldVector.clone());
+  const destinationLocal = root.worldToLocal(destinationWorldVector.clone());
+  const sourceLocalPosition = toPoint(sourceLocal);
+  const destinationLocalPosition = toPoint(destinationLocal);
+  let activeNodeCount = 0;
+  packetNodes.forEach((node, index) => {
+    const amount =
+      packetNodes.length === 1 ? 0.5 : index / (packetNodes.length - 1);
+    const t =
+      snapshot.visibleWindowStart +
+      (snapshot.visibleWindowEnd - snapshot.visibleWindowStart) * amount;
+    const local = sampleFlywheelEnergyArc(
+      sourceLocalPosition,
+      destinationLocalPosition,
+      t
+    );
+    const fade = Math.sin(Math.PI * amount);
+    const scale =
+      (transfer.direction === 'outgoing' ? 0.105 : 0.07) *
+      transfer.strength *
+      (0.55 + fade * 0.45);
+    node.position.set(local.x, local.y, local.z);
+    node.scale.setScalar(scale);
+    node.visible = t >= 0 && t <= 1;
+    const material = node.material as MeshBasicMaterial;
+    material.opacity =
+      (transfer.direction === 'outgoing' ? 0.82 : 0.58) *
+      fade *
+      getFlickerScale();
+    if (node.visible) activeNodeCount += 1;
+  });
+  return {
+    ...inactive,
+    sourceWorldPosition,
+    destinationWorldPosition,
+    sourceLocalPosition,
+    destinationLocalPosition,
+    activeNodeCount,
+  };
+}
+
+function toPoint(vector: Vector3): { x: number; y: number; z: number } {
+  return { x: vector.x, y: vector.y, z: vector.z };
 }
 
 function addTeeth(

@@ -215,4 +215,65 @@ describe('createFlywheelShowpiece', () => {
       ])
     );
   });
+  it('accepts runtime energy targets and exposes a bounded single packet', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 1, z: 2 },
+      orientationRadians: Math.PI / 4,
+      roomBounds,
+      detailPolicy: SCENE_DETAIL_POLICIES.balanced,
+    });
+    build.setEnergyTargets([
+      {
+        poiId: 'target-a',
+        label: 'Target A',
+        worldPosition: { x: 4, y: 0, z: 2 },
+      },
+      {
+        poiId: 'target-b',
+        label: 'Target B',
+        worldPosition: { x: -3, y: 0, z: 5 },
+      },
+    ]);
+    build.update({
+      elapsed: 1,
+      delta: 0.5,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    const state = build.getDebugState().energy;
+    expect(state.targetCount).toBe(2);
+    expect(state.missingTargetDiagnostics).toEqual([]);
+    expect(state.direction).toBe('incoming');
+    expect(state.sourceWorldPosition?.x).not.toBeCloseTo(
+      state.destinationWorldPosition?.x ?? 0
+    );
+    expect(
+      state.visibleWindowEnd - state.visibleWindowStart
+    ).toBeLessThanOrEqual(0.101);
+    expect(state.activeNodeCount).toBeGreaterThan(0);
+    expect(state.activeNodeCount).toBeLessThanOrEqual(11);
+    expect(
+      build.group.getObjectByName('FlywheelEnergyTransferPacket')
+    ).toBeInstanceOf(Object3D);
+    build.dispose();
+  });
+
+  it('fails open with diagnostics when no energy targets are available', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.setEnergyTargets([]);
+    build.update({
+      elapsed: 1,
+      delta: 0.5,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    expect(build.getDebugState().energy.missingTargetDiagnostics).toContain(
+      'flywheel-energy-no-ground-targets'
+    );
+    expect(build.getDebugState().energy.activeNodeCount).toBe(0);
+    build.dispose();
+  });
 });
