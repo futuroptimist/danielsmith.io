@@ -91,16 +91,23 @@ when available, including partial-initialization teardown.
 ### Placement, metadata, and scene objects
 
 The POI registry defines `flywheel-studio-flywheel` in the studio at
-`{ x: 10, y: 0, z: -2 }`, heading `0`, interaction radius `2.2`, footprint
-`2 x 2`, and a hologram-style pedestal. `src/scene/poi/placements.ts` can override
-placements from declarative scene objects; Flywheel's effective production
-placement should always come from the resolved POI instance rather than a
-hardcoded duplicate coordinate list.
+`{ x: 10, y: 0, z: -2 }`, heading `0`, interaction radius `2.2`, and footprint
+`2 x 2`. The old custom hologram pedestal was removed because its translucent
+cylinder and rings occluded the physical `FlywheelEnergyInstallation`; the POI
+orb, halo, and label now remain UI affordances only. `src/scene/poi/placements.ts`
+can override placements from declarative scene objects; Flywheel's effective
+production placement should always come from the resolved POI instance rather
+than a hardcoded duplicate coordinate list.
 
 `src/scene/poi/physicalMetadata.ts` does not currently define a Flywheel physical
 metadata entry. Implementation should add one that references the shared Flywheel contract,
 records bottom-center anchoring, marker height, avatar clearance, and intended
 bounds.
+
+The Flywheel is represented by the physical `FlywheelEnergyInstallation`, not a
+large POI pedestal shell. Marker visuals must stay non-occluding: the orb and
+label clear the installation, the flat halo remains a floor affordance, and
+energy arcs continue to resolve their endpoint through `FlywheelEnergyPort`.
 
 ### Visual anchors, model triangles, and miniature proxy
 

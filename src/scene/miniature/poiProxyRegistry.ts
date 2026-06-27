@@ -69,9 +69,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Tracks the explicit media-wall visual anchor used by the tabletop miniature.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 18,
+    syncRevision: 19,
     syncNote:
-      'Tracks the long-skid Flywheel silhouette with a right/front gearbox tower raised to face-plane tangency above the wheel, yokes, and fixed diagonal torque shaft.',
+      'Tracks the Flywheel physical installation without the old occluding POI hologram pedestal, preserving the raised gearbox, yokes, and fixed torque shaft miniature silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -172,9 +172,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -193,9 +193,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -210,9 +210,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Covers merged table, switch, yellow rack, nodes, and cable silhouette.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -306,9 +306,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/tokenPlaceWorkstation.ts',
@@ -348,9 +348,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -364,9 +364,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -379,9 +379,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -402,9 +402,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -417,9 +417,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -433,9 +433,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -448,9 +448,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 18,
+    syncRevision: 19,
     syncNote:
-      'Runtime hardening keeps the static 3:1 proxy synchronized with lifecycle, detail, and accessibility files.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
@@ -519,9 +519,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.',
+      'Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

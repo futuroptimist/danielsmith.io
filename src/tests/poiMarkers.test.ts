@@ -1,11 +1,14 @@
 import {
+  Box3,
   Color,
   CylinderGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  Object3D,
   PlaneGeometry,
   SphereGeometry,
+  Vector3,
 } from 'three';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -21,7 +24,9 @@ import {
   createPoiLabelTexture,
   updatePoiInstanceDefinition,
 } from '../scene/poi/markers';
+import { poiRegistry } from '../scene/poi/registry';
 import type { PoiDefinition } from '../scene/poi/types';
+import { createFlywheelShowpiece } from '../scene/structures/flywheel';
 
 describe('createPoiInstances', () => {
   const baseSummary = 'Automation-ready showcase artifact.';
@@ -277,6 +282,71 @@ describe('createPoiInstances', () => {
     expect(instance.labelBaseHeight ?? 0).toBeGreaterThan(
       instance.orbBaseHeight ?? 0
     );
+  });
+
+  it('keeps the Flywheel registry marker from rendering an occluding hologram pedestal', () => {
+    const definition = poiRegistry.getById('flywheel-studio-flywheel');
+    if (!definition) {
+      throw new Error('Expected Flywheel POI definition to be registered.');
+    }
+    const [instance] = createPoiInstances([definition]);
+
+    expect(definition.pedestal).toBeUndefined();
+    expect(
+      instance.group.getObjectByName(
+        'POI_PedestalBody:flywheel-studio-flywheel'
+      )
+    ).toBeUndefined();
+    expect(
+      instance.group.getObjectByName(
+        'POI_PedestalAccent:flywheel-studio-flywheel'
+      )
+    ).toBeUndefined();
+    expect(
+      instance.group.getObjectByName(
+        'POI_PedestalRing:flywheel-studio-flywheel'
+      )
+    ).toBeUndefined();
+
+    const showpiece = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds: { minX: -6, maxX: 6, minZ: -6, maxZ: 6 },
+    });
+    const rim = showpiece.group.getObjectByName('FlywheelHeavyRim') as Object3D;
+    showpiece.group.updateWorldMatrix(true, true);
+    instance.group.updateWorldMatrix(true, true);
+    const rimSize = new Box3().setFromObject(rim).getSize(new Vector3());
+    const rimFaceArea = rimSize.x * rimSize.y;
+
+    instance.group.traverse((object) => {
+      if (
+        !(object instanceof Mesh) ||
+        object === instance.orb ||
+        object === instance.label
+      ) {
+        return;
+      }
+      if (object.name === `POI_HIT:${definition.id}`) {
+        return;
+      }
+      const material = Array.isArray(object.material)
+        ? object.material[0]
+        : object.material;
+      if (!material.transparent || material.opacity <= 0) {
+        return;
+      }
+      const size = new Box3().setFromObject(object).getSize(new Vector3());
+      const projectedFaceArea = size.x * size.y;
+      expect(projectedFaceArea).toBeLessThan(rimFaceArea * 0.2);
+    });
+
+    expect(instance.orb).toBeInstanceOf(Mesh);
+    expect(instance.label).toBeInstanceOf(Mesh);
+    expect(instance.orbBaseHeight ?? 0).toBeGreaterThan(2.2);
+    expect(instance.labelBaseHeight ?? 0).toBeGreaterThan(
+      instance.orbBaseHeight ?? 0
+    );
+    showpiece.dispose();
   });
 
   it('keeps default pedestal styling when no hologram config is provided', () => {
