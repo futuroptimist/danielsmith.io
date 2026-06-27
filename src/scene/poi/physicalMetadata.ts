@@ -46,11 +46,11 @@ const RASPBERRY_PI_5_BOARD_FOOTPRINT_METERS = {
 const physicalMetadata = {
   'flywheel-studio-flywheel': {
     realWorldReference:
-      'industrial hand-cranked flywheel kinetic energy demonstrator with fixed-ring planetary gearbox',
+      'industrial flywheel kinetic energy demonstrator with exposed rotor, hub, spokes, and energy port',
     realWorldDimensionsMeters: {
-      width: 1.8,
-      depth: 1.25,
-      height: 1.55,
+      width: 1.4,
+      depth: 0.9,
+      height: 1.45,
     },
     intendedSceneBounds: FLYWHEEL_INSTALLATION_BOUNDS,
     anchor: 'bottom-center',

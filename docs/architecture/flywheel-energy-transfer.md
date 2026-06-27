@@ -124,7 +124,7 @@ The current miniature proxy in `src/scene/miniature/poiProxyRegistry.ts` is a
 static abstract dais, rotor ring, spoke, and counterweight. The generated
 manifest lists `src/scene/structures/flywheel.ts` as a source file with
 `syncRevision: 3`. Follow-up implementation should update it for the physical
-wheel/crank/gearbox, add static arc hints, and bump
+wheel body, add static arc hints, and bump
 `syncRevision`, update `syncNote`, and regenerate the manifest.
 
 ### Current animation and selection behavior
@@ -141,62 +141,33 @@ mechanical ratios.
 
 ### Root contract
 
-Implementation should make the production builder root:
-
-```ts
-group.name = 'FlywheelEnergyInstallation';
-group.position.set(anchor.x, anchor.y ?? 0, anchor.z);
-group.rotation.y = orientationRadians;
-group.scale.set(1, 1, 1);
-```
-
-Contract requirements:
-
-- bottom-center anchor at the resolved Flywheel POI world anchor;
-- local +Y is up;
-- local +Z is the installation front/service side after POI heading;
-- local X spans the heavy wheel and bearing supports;
-- all visible geometry is authored in local coordinates;
-- no child mesh position should include resolved world `centerX`/`centerZ`;
-- one or more conservative physical colliders cover the base/flywheel footprint
-  and gearbox/crank assembly;
-- no colliders are created for energy arcs.
-
-A temporary compatibility overload may accept `centerX`/`centerZ` during migration, but
-`main.ts` production usage should pass `position`.
+The production builder root is `FlywheelEnergyInstallation`, placed at the
+resolved POI anchor with local +Y up and local +Z as the service/front axis after
+POI heading. All visible geometry is authored in local coordinates, and child
+mesh positions must not include resolved world `centerX`/`centerZ`. Conservative
+physical colliders cover the compact base and wheel footprint only; energy arcs
+are visual transfer effects and are not colliders.
 
 ### Approximate dimensions and constants
 
-The machine should be visibly heavier than the original hologram but remain inside
-the studio route. The implemented contract lives in
-`src/scene/structures/flywheelEnergyContract.ts` and is the source of truth for
-the builder, physical metadata, colliders, tests, and miniature proxy. Do not
-duplicate scene-unit numbers across those files.
+The shared source of truth is `src/scene/structures/flywheelEnergyContract.ts`.
+That contract feeds the builder, physical metadata, colliders, tests, and
+miniature proxy. Do not duplicate scene-unit numbers across files.
 
-The current layout is intentionally asymmetric for readability:
+The current visible baseline is intentionally simplified for readability:
 
-- the heavy wheel sits on the left side of the base;
-- the planetary gearbox sits to the right and clearly forward of the wheel;
-- the hand crank is mounted on the gearbox front face using the named gearbox
-  crank clearance;
-- front/back bearing yokes cradle the wheel axle, with axle caps visible outside
-  the rim;
-- a torque/output shaft and coupler bridge from the front-right gearbox side back
-  toward the left/back flywheel hub without crossing the wheel rim on the wrong
-  depth plane;
-- rim motion ticks stay attached to the wheel group so rotation remains legible;
-- formula-derived edge and clearance constants define wheel/gearbox separation
-  instead of ad hoc offsets.
-
-If implementation measurements show the studio route needs a narrower footprint,
-reduce base depth before changing the POI registry footprint. The target remains
-to keep the existing route/footprint usable.
+- a low physical base supports the installation;
+- front/back bearing yokes cradle a Z-axis axle;
+- the large wheel sits near the POI center with a dark heavy rim, hub, spokes,
+  counterweights, and asymmetric rim motion ticks;
+- a slim blue `FlywheelEnergyGlowRing` accents the rotor without replacing it;
+- `FlywheelEnergyPort` remains the endpoint for transfer arcs;
+- the old custom POI hologram pedestal remains removed so the physical machine is
+  not hidden by a translucent shell.
 
 ## 3. Physical assembly design
 
-The assembly should read as a physical machine, not a floating hologram. Use
-metallic supports, bearings, an axle, and a grounded base. Stable semantic names
-are part of the contract and should be covered by tests:
+Stable semantic names are part of the contract and are covered by tests:
 
 ```text
 FlywheelEnergyInstallation
@@ -215,117 +186,35 @@ FlywheelEnergyInstallation
 │  ├─ FlywheelCounterweight-0..N
 │  ├─ FlywheelRimMotionTick-0..N
 │  └─ FlywheelEnergyGlowRing
-├─ FlywheelCrankGroup
-│  ├─ FlywheelCrankDisc
-│  ├─ FlywheelCrankArm
-│  └─ FlywheelCrankHandle
-├─ FlywheelPlanetaryGearbox
-│  ├─ FlywheelRingGear
-│  ├─ FlywheelSunGear
-│  ├─ FlywheelPlanetCarrier
-│  └─ FlywheelPlanetGear-0..2
-├─ FlywheelGearboxPedestal
-├─ FlywheelGearboxOutputCoupler
-├─ FlywheelTorqueShaft
-├─ FlywheelOutputShaft
 └─ FlywheelEnergyPort
 ```
 
-Visual conventions:
+The current implementation intentionally has no visible hand crank, planetary
+gearbox, ring gear, sun gear, planet gears, gear teeth, gearbox pedestal, long
+torque shaft, or couplers. Those mechanical concepts are deferred for a future
+design pass. Tests assert those object names remain absent so a partial gear
+layout cannot obscure the restored rotor body.
 
-- heavy wheel uses a dark gunmetal rim, brighter worn-metal hub, and visible
-  spokes/counterweights;
-- front/back bearing yokes are bolted to the base and visibly cradle the axle;
-- gearbox is close to the crank and output shaft, not detached from the machine;
-- the energy port is mounted on or near the gearbox/flywheel housing;
-- glow elements emphasize stored energy but do not replace physical supports;
-- old abstract rotor/orbit chips/automation pillars/info-panel elements should be
-  removed unless explicitly renamed and repurposed into the physical metaphor.
+## 4. Rotor animation
 
-## 4. Planetary gear math
+Animation uses one stateful `flywheelAngle` accumulator advanced from nonnegative
+`delta`. Emphasis may mildly increase `spinVelocity` and glow intensity, but it
+does not affect the energy-transfer cadence or target selection.
 
-Use a fixed ring gear, hand crank driving the sun gear, and planet carrier as the
-high-torque output. Implementation should export the exact constants:
-
-```ts
-export const FLYWHEEL_SUN_TEETH = 18;
-export const FLYWHEEL_PLANET_TEETH = 24;
-export const FLYWHEEL_RING_TEETH =
-  FLYWHEEL_SUN_TEETH + FLYWHEEL_PLANET_TEETH * 2; // 66
-
-export const FLYWHEEL_TORQUE_RATIO =
-  1 + FLYWHEEL_RING_TEETH / FLYWHEEL_SUN_TEETH; // 4.666666...
-
-// Spec default for the hand-crank animation baseline.
-export const FLYWHEEL_CRANK_RAD_PER_SECOND = 1.2;
-```
-
-Animation should derive from one stateful crank angle per build. Advance that accumulator from `delta` only so focus/emphasis changes affect future angular velocity without snapping or rewinding the mechanism:
-
-```ts
-crankAngle +=
-  FLYWHEEL_CRANK_RAD_PER_SECOND *
-  (1 + clamp(emphasis, 0, 1) * FLYWHEEL_EMPHASIS_SPEED_BOOST) *
-  Math.max(0, delta);
-const sunAngle = crankAngle;
-const carrierAngle = sunAngle / FLYWHEEL_TORQUE_RATIO;
-const planetOrbitAngle = carrierAngle;
-const outputShaftAngle = carrierAngle;
-const flywheelAngle = outputShaftAngle;
-```
-
-For planet spin with the ring fixed and sun driving, the implementation must
-separate the carrier-relative local spin from any world-space/debug angle. A
-planet mesh parented under `FlywheelPlanetCarrier` already inherits the carrier
-orbit, so its local rotation is only the sun/planet mesh delta in the carrier
-frame:
-
-```ts
-const planetLocalSpin =
-  -(FLYWHEEL_SUN_TEETH / FLYWHEEL_PLANET_TEETH) * (sunAngle - carrierAngle);
-```
-
-Do not use `-(FLYWHEEL_SUN_TEETH + FLYWHEEL_PLANET_TEETH) /
-FLYWHEEL_PLANET_TEETH * sunAngle`; that `-1.75 * sunAngle` shortcut mixes
-world and carrier frames and violates the fixed-ring mesh constraints. Debug
-state may expose a derived `planetWorldSpin` for inspection, but renderable
-planet children under the carrier must use `planetLocalSpin`. A ring-constraint
-cross-check is:
-
-```ts
-const planetLocalSpinFromRing =
-  -(FLYWHEEL_RING_TEETH / FLYWHEEL_PLANET_TEETH) * carrierAngle;
-// With 18/24/66 teeth both forms resolve to about -0.589 * sunAngle.
-```
-
-Implementation may add a constant phase offset per planet and a small inertial
-presentation filter for the flywheel, but the filtered display angle must remain
-convergent to `carrierAngle` and tests should assert the underlying ratio state.
-Emphasis may change a shared `speedScale` or glow intensity, but it must not
-change tooth counts or per-part ratios.
-
-Procedural teeth can be simplified boxes/wedges or grooved rings. They should
-intermesh believably: fixed internal ring teeth face inward, sun teeth face
-outward, planets orbit the sun and counter-spin relative to the carrier, and the
-flywheel turns slower than the hand crank with implied higher torque.
+`FlywheelWheelGroup.rotation.z` is the visible rotor motion. Counterweights and
+`FlywheelRimMotionTick-*` markers are children of `FlywheelWheelGroup`, so their
+world positions visibly move as the wheel rotates. Debug state exposes
+`flywheelAngle`, `spinVelocity`, `triangleCount`, and the energy-network debug
+state; gear-only debug fields are intentionally absent.
 
 ## 5. Detail-level plan
 
-All five internal detail levels preserve semantic behavior: same root contract,
-gear ratio, target selector, transfer cycle, direction, timings, and debug state.
-Only rendering cost changes.
-
-| Detail level | Gear teeth / simplification                        | Segments                          | Spokes / bolts                      | Glow layers           | Energy packet | Connectors / halo                 |
-| ------------ | -------------------------------------------------- | --------------------------------- | ----------------------------------- | --------------------- | ------------- | --------------------------------- |
-| Cinematic    | full 18/24/66 tooth hints, individual tooth blocks | policy high segments, torus 24x64 | 8 spokes, 16+ bolts, counterweights | rim + hub + port halo | 18 nodes      | connectors and halo nodes enabled |
-| Balanced     | full tooth counts with simpler blocks              | high shared segments              | 6 spokes, 10-12 bolts               | rim + port glow       | 14 nodes      | connectors enabled, subtle halo   |
-| Performance  | every second/third tooth or grooved rings          | performance policy segments       | 5 spokes, 6 bolts                   | single glow ring      | 10 nodes      | connectors optional, no halo      |
-| Low          | grooved rings, no individual teeth                 | low policy segments               | 4 spokes, no tiny bolts             | port glow only        | 7 nodes       | no connectors, no halo            |
-| Micro        | iconic discs/rings only                            | micro policy segments             | 3-4 broad spokes                    | tiny port dot         | 5 nodes       | no connectors, no halo            |
-
-Implementation should not build all variants and hide unused LOD trees. Build only the
-selected detail variant. Cinematic, Balanced, and Performance should have
-meaningfully different triangle counts.
+All detail levels preserve the same root contract, rotor semantics, target
+selector, transfer cycle, direction, timings, and debug state. Lower detail
+levels reduce only presentation cost through fewer segments, fewer spokes, and
+fewer packet nodes/connectors. Accessibility pulse and flicker preferences are
+read through `getPulseScale()` and `getFlickerScale()` for opacity/scale
+presentation only; reduced settings do not pause the cycle or alter targets.
 
 ## 6. Energy-transfer concept
 
@@ -458,14 +347,15 @@ export interface FlywheelEnergyTarget {
 }
 
 export interface FlywheelDebugState {
-  crankAngle: number;
-  sunAngle: number;
-  carrierAngle: number;
-  planetLocalSpin: number;
-  transferDirection: 'incoming' | 'outgoing';
-  selectedTargetPoiId: string | null;
-  transferPhase: number;
-  visiblePacketCount: number;
+  flywheelAngle: number;
+  spinVelocity: number;
+  triangleCount: number;
+  energy: {
+    direction: 'incoming' | 'outgoing' | null;
+    selectedTargetId: string | null;
+    phase: number;
+    activeNodeCount: number;
+  };
 }
 
 export interface FlywheelShowpieceBuild {
@@ -545,7 +435,7 @@ settings must not alter the target order, transfer counts, direction, or 5-in /
 
 Reduced-motion/reduced-flicker behavior:
 
-- crank/gear/flywheel motion remains visible but may use a lower shared speed
+- flywheel motion remains visible but may use a lower shared speed
   scale or smoother interpolation;
 - all gear ratios remain synchronized;
 - energy packets continue moving;
@@ -562,7 +452,7 @@ target selection, or the energy network. Follow-up implementation should update 
 
 - base and bearing silhouette;
 - heavy flywheel rim/hub/spokes;
-- hand crank;
+- deferred hand crank;
 - small gear cluster;
 - energy port/glow;
 - one thin incoming blue arc hint;
@@ -673,44 +563,29 @@ precede one larger outgoing packet, reduced motion/flicker remains comfortable,
 the POI marker clears the machine, the miniature proxy is static and current, and
 there are no obvious frame spikes.
 
-## Physical machine and planetary train implementation update
+## Physical machine implementation update
 
-The implementation presents the Flywheel as `FlywheelEnergyInstallation`, a bottom-centered,
-unit-scale POI root placed at the resolved `flywheel-studio-flywheel` anchor.
-Production wiring now passes `position`, `orientationRadians`, the room bounds,
-and the active scene detail policy; all child geometry is authored in local
-coordinates under that root.
+The implementation presents the Flywheel as `FlywheelEnergyInstallation`, a
+bottom-centered, physical rotor exhibit. The visible baseline is intentionally
+simple: a low base, front/back bearing yokes, axle caps, a large heavy
+`FlywheelWheelGroup`, `FlywheelHeavyRim`, `FlywheelInnerHub`, spokes,
+asymmetric `FlywheelCounterweight-*` and `FlywheelRimMotionTick-*` markers, a
+slim `FlywheelEnergyGlowRing`, and `FlywheelEnergyPort`. The wheel is the hero
+object and rotates every update so the attached asymmetric markers make motion
+readable from the normal camera.
 
-The shared implementation contract lives in
-`src/scene/structures/flywheelEnergyContract.ts`. The current constants keep the intended
-physical envelope: 3.4 × 2.4 × 2.75 scene units overall, a 3.25 × 1.55 × 0.22 base,
-a 0.92 radius heavy wheel, a 0.52 radius gearbox, and a marker minimum height of
-2.95. Physical metadata and miniature proxy data import those constants instead
-of duplicating dimensions.
+The experimental gear and hand-crank assembly is deferred for a future design
+pass. The current machine has no visible planetary gearbox, ring gear, sun gear,
+planet gears, gear teeth, hand crank, gearbox pedestal, torque shaft, output
+coupler, or long shaft. Tests assert those object names remain absent so the
+readable rotor body cannot be obscured by a partially connected mechanism.
 
-The final hierarchy is the physical assembly from the physical design:
-`FlywheelBase`, two bearing stands, `FlywheelAxle`, `FlywheelWheelGroup` with
-rim/hub/spokes/counterweights/glow ring, `FlywheelCrankGroup`,
-`FlywheelPlanetaryGearbox`, fixed `FlywheelRingGear`, driven `FlywheelSunGear`,
-`FlywheelPlanetCarrier`, three `FlywheelPlanetGear-*` meshes,
-`FlywheelOutputShaft`, and `FlywheelEnergyPort`. The previous abstract rotor,
-orbit chips, automation pillars, and info panel are intentionally removed.
-
-The implemented gear train uses the planetary constants: sun 18 teeth,
-planet 24 teeth, ring 66 teeth, and a fixed-ring torque ratio of
-`1 + 66 / 18 = 4.666666...`. Runtime animation derives from one deterministic
-crank/sun angle. The carrier, output shaft, and flywheel run at sun angle divided
-by the torque ratio, while planet children orbit on the carrier and counter-spin
-using the carrier-relative formula from this document.
-
-Detail levels build only their selected variant. Cinematic and Balanced keep full
-procedural tooth hints with different segment budgets; Performance samples every
-third tooth; Low and Micro retain iconic rings/discs, base, bearings, crank,
-gearbox, and energy port without individual tooth blocks. The core update runs
-every rendered frame, while decorative glow updates can still be throttled by the
-scene detail controller. The energy-transfer layer adds deterministic
-cross-POI blue transfer arcs while preserving the physical crank, gear, and
-flywheel motion.
+The energy-transfer arcs remain the metaphorical layer. `setEnergyTargets(...)`,
+the deterministic target resolver, the five-in/one-out transfer cadence, visible
+packet window, and energy timing semantics continue to resolve through
+`FlywheelEnergyPort`; physical colliders describe only the compact base/wheel
+footprint and do not include arcs. The miniature proxy mirrors the simplified
+rotor body with static incoming/outgoing arc hints.
 
 ## 8. Energy-transfer implementation notes
 
@@ -725,7 +600,7 @@ runtime rendering integration:
 - `src/scene/structures/flywheel.ts` owns the pooled presentation objects:
   one `FlywheelEnergyTransferPacket` group, preallocated packet nodes, and
   preallocated connector cylinders. The update loop advances the mechanical
-  crank/gear/flywheel state and the active energy-transfer phase every rendered
+  flywheel state and the active energy-transfer phase every rendered
   frame; `runDecorativeEffects` only gates secondary glow presentation.
 - `src/main.ts` resolves targets after ground-floor structures and visual
   anchors have been created. It iterates the resolved `poiInstances`, uses the
@@ -756,57 +631,19 @@ and points are copies so callers cannot mutate internal network state.
 
 ## Geometry/readability correction
 
-This correction keeps the energy-transfer network semantics intact and changes only
-physical readability. The local coordinate contract is explicit in the implementation:
-+X is the right side of the machine, +Y is up, +Z is the front side, and both the
-flywheel and gearbox faces lie in the X/Y plane. The hand-crank is mounted on the
-gearbox front face toward +Z.
+The readability correction is a simplification rather than another gear-layout
+attempt. The physical Flywheel now reads as a large exposed rotor with a heavy
+rim, hub, spokes, counterweights, rim ticks, modest glow, and an energy port. The
+experimental hand-crank and planetary gear assembly was removed entirely from
+the current visible implementation.
 
-The corrected physical layout places the flywheel near the central/rear machine body
-and mounts the planetary gearbox as a separate front module:
+Regression tests build the actual showpiece, assert the restored rotor hierarchy
+exists, assert deleted gear/crank/tooth/shaft/coupler object names are absent,
+verify the asymmetric markers are children of the rotating wheel group, and check
+that the glow ring remains smaller than the physical rim. The POI marker tests
+continue to assert that the old Flywheel hologram pedestal is absent, so no large
+teal shell can obscure the machine.
 
-- the heavy flywheel stays centered near local `Z = 0` with visible hub, spokes,
-  asymmetric rim ticks, and a slim inner energy accent;
-- the planetary gearbox center is around local `Z = 5` and is raised/right of
-  the flywheel. Its Y position is derived from wheel and gearbox outer radii so
-  the gearbox lower edge barely clears the flywheel upper edge; Z separation
-  alone is not sufficient;
-- the ring, sun, carrier, planet gears, teeth, and crank move as one coherent
-  raised module and clear the flywheel in depth and X/Y face projection;
-- the crank center is derived from `FLYWHEEL_GEARBOX.centerZ`, gearbox depth, and
-  `FLYWHEEL_GEARBOX.crankClearance` so the handle sits on the gearbox front face;
-- `FlywheelTorqueShaft` is a fixed connector between explicit flywheel-hub and
-  gearbox-output coupler points. It may use nested spin stripes for motion, but
-  the connector parent stays fixed so the shaft endpoints never sweep away from
-  either coupler;
-- the base and physical colliders cover the longer skid footprint that supports
-  both the flywheel and the forward gearbox, while energy arcs remain outside the
-  physical collider model.
-
-The shared contract exports formula-based spacing invariants so tests can catch
-regressions before visual QA. Rendered-bounds tests build the actual showpiece,
-call `updateWorldMatrix(true, true)`, and assert that the gearbox, crank, ring,
-sun, carrier, planet gears, and visible teeth do not intersect an expanded
-flywheel envelope. Separate face-projection checks project those same rendered
-bounds into the X/Y wheel-face plane while ignoring Z, so a gear set cannot pass
-by moving forward while still visually centered over the flywheel face. The
-contract requires the gearbox projected minimum X to exceed the flywheel
-projected maximum X by the named face-projection margin, while the projected Y
-clearance is held to a tight face-plane tangency window so the gearbox reads as
-externally attached above the wheel instead of embedded in its opening.
-`wheelGearClearance` is the longitudinal gap between the flywheel front face and
-the gearbox rear face and is required to stay at least `0.18` scene units.
-
-The support hierarchy was also corrected for the Z-axis axle. Obsolete left/right
-face posts are replaced by `FlywheelBearingYokeFront`,
-`FlywheelBearingYokeBack`, `FlywheelAxleCapFront`, and `FlywheelAxleCapBack`,
-which straddle the wheel front/back instead of crossing the wheel face. The
-planetary assembly adds `FlywheelGearboxPedestal`, `FlywheelOutputShaft`, and
-`FlywheelTorqueShaft`, while asymmetric `FlywheelRimMotionTick-*` markers remain
-children of `FlywheelWheelGroup` so the slower, torque-multiplied wheel rotation
-is visibly readable.
-
-The miniature proxy sync revision is updated to reflect the new silhouette:
-heavy wheel on the left, raised side-mounted gear cluster on the right/front, front crank,
-output coupler hint, stable energy port, and unchanged incoming/outgoing static
-arc hints.
+The miniature proxy mirrors this baseline with a heavy wheel, spoke, motion tick,
+energy port, and static incoming/outgoing arc hints. It does not include crank,
+gearbox, shaft, or coupler primitives.

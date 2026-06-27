@@ -364,9 +364,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 5,
+    syncRevision: 6,
     reason:
-      'Audited support source; Flywheel physical metadata now imports the shared P6b machine contract while tabletop geometry remains covered by the POI proxy.',
+      'Audited support source; Flywheel physical metadata now describes the simplified rotor body while tabletop geometry remains covered by the POI proxy.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',

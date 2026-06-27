@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 19,
+    syncRevision: 20,
     syncNote:
-      'Tracks the Flywheel physical installation without the old occluding POI hologram pedestal, preserving the raised gearbox, yokes, and fixed torque shaft miniature silhouette.',
+      'Tracks the simplified Flywheel rotor body with hub, spokes, motion tick, energy port, and static energy-arc hints after removing the gear/crank assembly.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -101,17 +101,17 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      box('flywheel-base', [1.35, 0.12, 1.5], [0, 0.06, 0.34], 0x17202a),
+      box('flywheel-base', [1.1, 0.12, 0.72], [0, 0.06, 0], 0x17202a),
       box(
         'flywheel-bearing-yoke-front',
-        [0.42, 0.64, 0.08],
-        [-0.32, 0.42, 0.2],
+        [0.42, 0.58, 0.08],
+        [0, 0.38, 0.2],
         0x94a3b8
       ),
       box(
         'flywheel-bearing-yoke-back',
-        [0.42, 0.64, 0.08],
-        [-0.32, 0.42, -0.2],
+        [0.42, 0.58, 0.08],
+        [0, 0.38, -0.2],
         0x94a3b8
       ),
       {
@@ -119,39 +119,26 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         name: 'flywheel-heavy-wheel',
         radius: FLYWHEEL_WHEEL.radius * 0.35,
         tube: 0.055,
-        position: [-0.4, 0.6, -0.04],
+        position: [0, 0.62, 0],
         rotation: [0, 0, 0],
         color: 0x1f2937,
       },
-      box('flywheel-spoke', [0.56, 0.04, 0.04], [-0.4, 0.6, -0.04], 0xcbd5e1),
+      box('flywheel-spoke', [0.56, 0.04, 0.04], [0, 0.62, 0], 0xcbd5e1),
       box(
-        'flywheel-crank-arm',
-        [0.36, 0.035, 0.035],
-        [0.42, 1.1, 1.12],
+        'flywheel-motion-tick',
+        [0.05, 0.13, 0.035],
+        [0.24, 0.72, 0.06],
         0xf59e0b
       ),
-      cyl(
-        'flywheel-planetary-gear-cluster',
-        0.18,
-        0.12,
-        [0.42, 1.08, 0.96],
-        0xd1d5db
-      ),
-      box(
-        'flywheel-output-coupler',
-        [0.035, 0.035, 1.0],
-        [0.02, 0.84, 0.5],
-        0x94a3b8
-      ),
-      sphere('flywheel-energy-port', 0.07, [-0.08, 0.82, 0.34], 0x38bdf8),
+      sphere('flywheel-energy-port', 0.07, [0.24, 0.82, 0.18], 0x38bdf8),
       {
         kind: 'tube',
         name: 'flywheel-incoming-arc-hint',
         radius: 0.012,
         points: [
           [-0.95, 0.18, -0.62],
-          [-0.42, 1.06, -0.18],
-          [-0.08, 0.82, 0.34],
+          [-0.34, 1.0, -0.18],
+          [0.24, 0.82, 0.18],
         ],
         color: 0x38bdf8,
       },
@@ -160,8 +147,8 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         name: 'flywheel-outgoing-arc-hint',
         radius: 0.024,
         points: [
-          [-0.08, 0.82, 0.34],
-          [0.12, 1.22, 0.58],
+          [0.24, 0.82, 0.18],
+          [0.36, 1.12, 0.36],
           [1.05, 0.22, 0.76],
         ],
         color: 0x7dd3fc,
