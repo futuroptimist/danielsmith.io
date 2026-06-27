@@ -1,4 +1,5 @@
 import type { PoiId } from '../poi/types';
+import { FLYWHEEL_WHEEL } from '../structures/flywheelEnergyContract';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
 
 import type {
@@ -89,29 +90,53 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 3,
+    syncRevision: 6,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/flywheel.ts'],
+      'Acknowledges delta-only flywheel phase integration and shared Z-axis shaft alignment; proxy geometry remains aligned.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/flywheel.ts',
+      'src/scene/structures/flywheelEnergyContract.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      cyl('flywheel-dais', 0.7, 0.18, [0, 0.09, 0], 0x0f766e),
+      box('flywheel-base', [1.35, 0.12, 0.64], [0, 0.06, 0], 0x17202a),
+      box(
+        'flywheel-bearing-left',
+        [0.1, 0.72, 0.18],
+        [-0.48, 0.42, 0],
+        0x94a3b8
+      ),
+      box(
+        'flywheel-bearing-right',
+        [0.1, 0.72, 0.18],
+        [0.04, 0.42, 0],
+        0x94a3b8
+      ),
       {
         kind: 'ring',
-        name: 'flywheel-rotor-ring',
-        radius: 0.55,
-        tube: 0.08,
-        position: [0, 0.65, 0],
-        rotation: [Math.PI / 2, 0, 0],
-        color: 0x2dd4bf,
+        name: 'flywheel-heavy-wheel',
+        radius: FLYWHEEL_WHEEL.radius * 0.35,
+        tube: 0.055,
+        position: [-0.22, 0.64, 0],
+        rotation: [0, 0, 0],
+        color: 0x1f2937,
       },
-      box('flywheel-spoke', [1, 0.05, 0.06], [0, 0.65, 0], 0xccfbf1),
+      box('flywheel-spoke', [0.56, 0.04, 0.04], [-0.22, 0.64, 0], 0xcbd5e1),
       box(
-        'flywheel-counterweight',
-        [0.18, 0.16, 0.18],
-        [0.44, 0.65, 0],
+        'flywheel-crank-arm',
+        [0.36, 0.035, 0.035],
+        [0.42, 0.64, 0.24],
         0xf59e0b
       ),
+      cyl(
+        'flywheel-planetary-gear-cluster',
+        0.18,
+        0.12,
+        [0.38, 0.58, 0],
+        0xd1d5db
+      ),
+      sphere('flywheel-energy-port', 0.07, [0.56, 0.8, 0.28], 0x38bdf8),
     ],
   },
   'jobbot-studio-terminal': {

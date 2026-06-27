@@ -273,10 +273,13 @@ export const FLYWHEEL_TORQUE_RATIO =
 export const FLYWHEEL_CRANK_RAD_PER_SECOND = 1.2;
 ```
 
-Animation should derive from one deterministic crank angle:
+Animation should derive from one stateful crank angle per build. Advance that accumulator from `delta` only so focus/emphasis changes affect future angular velocity without snapping or rewinding the mechanism:
 
 ```ts
-const crankAngle = elapsed * FLYWHEEL_CRANK_RAD_PER_SECOND * speedScale;
+crankAngle +=
+  FLYWHEEL_CRANK_RAD_PER_SECOND *
+  (1 + clamp(emphasis, 0, 1) * FLYWHEEL_EMPHASIS_SPEED_BOOST) *
+  Math.max(0, delta);
 const sunAngle = crankAngle;
 const carrierAngle = sunAngle / FLYWHEEL_TORQUE_RATIO;
 const planetOrbitAngle = carrierAngle;
@@ -682,3 +685,41 @@ only one short blue parabolic packet is visible at a time, five incoming packets
 precede one larger outgoing packet, reduced motion/flicker remains comfortable,
 the POI marker clears the machine, the miniature proxy is static and current, and
 there are no obvious frame spikes.
+
+## P6b implementation update: physical machine and planetary train
+
+P6b implements the Flywheel as `FlywheelEnergyInstallation`, a bottom-centered,
+unit-scale POI root placed at the resolved `flywheel-studio-flywheel` anchor.
+Production wiring now passes `position`, `orientationRadians`, the room bounds,
+and the active scene detail policy; all child geometry is authored in local
+coordinates under that root.
+
+The shared implementation contract lives in
+`src/scene/structures/flywheelEnergyContract.ts`. Final P6b constants keep the
+P6a envelope: 3.4 × 2.4 × 2.75 scene units overall, a 3.25 × 1.55 × 0.22 base,
+a 0.92 radius heavy wheel, a 0.52 radius gearbox, and a marker minimum height of
+2.95. Physical metadata and miniature proxy data import those constants instead
+of duplicating dimensions.
+
+The final hierarchy is the physical assembly from the P6a design:
+`FlywheelBase`, two bearing stands, `FlywheelAxle`, `FlywheelWheelGroup` with
+rim/hub/spokes/counterweights/glow ring, `FlywheelCrankGroup`,
+`FlywheelPlanetaryGearbox`, fixed `FlywheelRingGear`, driven `FlywheelSunGear`,
+`FlywheelPlanetCarrier`, three `FlywheelPlanetGear-*` meshes,
+`FlywheelOutputShaft`, and `FlywheelEnergyPort`. The previous abstract rotor,
+orbit chips, automation pillars, and info panel are intentionally removed.
+
+The implemented gear train uses the P6a planetary constants: sun 18 teeth,
+planet 24 teeth, ring 66 teeth, and a fixed-ring torque ratio of
+`1 + 66 / 18 = 4.666666...`. Runtime animation derives from one deterministic
+crank/sun angle. The carrier, output shaft, and flywheel run at sun angle divided
+by the torque ratio, while planet children orbit on the carrier and counter-spin
+using the carrier-relative formula from this document.
+
+Detail levels build only their selected variant. Cinematic and Balanced keep full
+procedural tooth hints with different segment budgets; Performance samples every
+third tooth; Low and Micro retain iconic rings/discs, base, bearings, crank,
+gearbox, and energy port without individual tooth blocks. The core update runs
+every rendered frame, while decorative glow updates can still be throttled by the
+scene detail controller. Cross-POI blue transfer arcs remain future P6c scope and
+are not implemented here.
