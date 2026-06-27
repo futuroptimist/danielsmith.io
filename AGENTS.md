@@ -61,7 +61,8 @@ the related assets. `npm run launch:screenshot` is review-only because
 
 - Update the relevant files in `docs/` whenever behavior, prompts, or workflows change.
 - Keep documentation and comments generic and evergreen; do not reference ephemeral
-  Codex prompt identifiers, task labels, or internal sequence numbers in committed diffs.
+  Codex prompt identifiers (for example, P1, P2, P6c, or P6.1), task labels,
+  or internal sequence numbers in committed diffs.
 - Store generated images as SVG or PNG in `docs/assets/`, except for CI-owned outputs noted
   below.
 - Never manually create, edit, replace, stage, or commit `docs/assets/game-launch.png`
