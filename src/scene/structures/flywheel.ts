@@ -220,7 +220,7 @@ export function createFlywheelShowpiece(
     steel
   );
   axle.position.set(FLYWHEEL_WHEEL.centerX, FLYWHEEL_WHEEL.centerY, 0);
-  axle.rotation.z = Math.PI / 2;
+  axle.rotation.x = Math.PI / 2;
   group.add(axle);
 
   const wheelGroup = new Group();
@@ -432,27 +432,17 @@ export function createFlywheelShowpiece(
     triangleCount: countTriangles(group),
   };
   let disposed = false;
-  let hasUpdated = false;
-  let previousElapsed = 0;
-  let crankPhase = 0;
+  let crankAngle = 0;
 
   return {
     group,
     colliders,
-    update({ elapsed, delta, emphasis, runDecorativeEffects = true }) {
-      const speed =
+    update({ elapsed, delta = 0, emphasis, runDecorativeEffects = true }) {
+      const emphasisBoost = Math.min(1, Math.max(0, emphasis));
+      const angularVelocity =
         FLYWHEEL_CRANK_RAD_PER_SECOND *
-        (1 + Math.max(0, emphasis) * FLYWHEEL_EMPHASIS_SPEED_BOOST);
-      const elapsedDelta = elapsed - previousElapsed;
-      const integrationDelta = Number.isFinite(delta)
-        ? Math.max(0, delta ?? 0)
-        : Math.max(0, elapsedDelta);
-      crankPhase = hasUpdated
-        ? crankPhase + speed * integrationDelta
-        : elapsed * speed;
-      hasUpdated = true;
-      previousElapsed = elapsed;
-      const crankAngle = crankPhase;
+        (1 + emphasisBoost * FLYWHEEL_EMPHASIS_SPEED_BOOST);
+      crankAngle += angularVelocity * Math.max(0, delta);
       const carrierAngle = getFlywheelCarrierAngle(crankAngle);
       const planetLocalSpin = getFlywheelPlanetLocalSpin(
         crankAngle,

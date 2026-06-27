@@ -273,10 +273,13 @@ export const FLYWHEEL_TORQUE_RATIO =
 export const FLYWHEEL_CRANK_RAD_PER_SECOND = 1.2;
 ```
 
-Animation should derive from one deterministic crank angle:
+Animation should derive from one stateful crank angle per build. Advance that accumulator from `delta` only so focus/emphasis changes affect future angular velocity without snapping or rewinding the mechanism:
 
 ```ts
-const crankAngle = elapsed * FLYWHEEL_CRANK_RAD_PER_SECOND * speedScale;
+crankAngle +=
+  FLYWHEEL_CRANK_RAD_PER_SECOND *
+  (1 + clamp(emphasis, 0, 1) * FLYWHEEL_EMPHASIS_SPEED_BOOST) *
+  Math.max(0, delta);
 const sunAngle = crankAngle;
 const carrierAngle = sunAngle / FLYWHEEL_TORQUE_RATIO;
 const planetOrbitAngle = carrierAngle;

@@ -1,4 +1,4 @@
-import { Object3D } from 'three';
+import { MathUtils, Object3D } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { SCENE_DETAIL_POLICIES } from '../scene/graphics/sceneDetailPolicy';
@@ -86,6 +86,7 @@ describe('createFlywheelShowpiece', () => {
       runDecorativeEffects: false,
     });
     const state = build.getDebugState();
+    expect(state.crankAngle).toBeCloseTo(FLYWHEEL_CRANK_RAD_PER_SECOND / 60);
     expect(state.sunAngle).toBeCloseTo(state.crankAngle);
     expect(state.carrierAngle).toBeCloseTo(
       state.sunAngle / FLYWHEEL_TORQUE_RATIO
@@ -95,6 +96,30 @@ describe('createFlywheelShowpiece', () => {
     expect(
       (build.group.getObjectByName('FlywheelWheelGroup') as Object3D).rotation.z
     ).toBeCloseTo(state.carrierAngle);
+    build.dispose();
+  });
+
+  it('keeps the axle, output shaft, and wheel aligned to the Z spin axis', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const axle = build.group.getObjectByName('FlywheelAxle') as Object3D;
+    const output = build.group.getObjectByName(
+      'FlywheelOutputShaft'
+    ) as Object3D;
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup') as Object3D;
+
+    expect(MathUtils.euclideanModulo(axle.rotation.x, Math.PI * 2)).toBeCloseTo(
+      Math.PI / 2
+    );
+    expect(
+      MathUtils.euclideanModulo(output.rotation.x, Math.PI * 2)
+    ).toBeCloseTo(Math.PI / 2);
+
+    build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
+    expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
+    expect(output.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
     build.dispose();
   });
 
@@ -164,11 +189,16 @@ describe('createFlywheelShowpiece', () => {
     });
     build.update({ elapsed: 600, delta: 1 / 60, emphasis: 0 });
     const beforeBoost = build.getDebugState().crankAngle;
-    build.update({ elapsed: 600 + 1 / 60, delta: 1 / 60, emphasis: 1 });
+    expect(beforeBoost).toBeCloseTo(FLYWHEEL_CRANK_RAD_PER_SECOND / 60);
+
+    build.update({ elapsed: 600 + 1 / 60, delta: 1 / 60, emphasis: 99 });
     const afterBoost = build.getDebugState().crankAngle;
     expect(afterBoost - beforeBoost).toBeCloseTo(
       (FLYWHEEL_CRANK_RAD_PER_SECOND * (1 + FLYWHEEL_EMPHASIS_SPEED_BOOST)) / 60
     );
+
+    build.update({ elapsed: 599, delta: -1, emphasis: 0 });
+    expect(build.getDebugState().crankAngle).toBeCloseTo(afterBoost);
     build.dispose();
   });
 

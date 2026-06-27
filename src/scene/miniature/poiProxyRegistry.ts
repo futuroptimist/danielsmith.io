@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'Acknowledges review hardening for flywheel phase integration and orientation-aware colliders; proxy geometry remains aligned.',
+      'Acknowledges delta-only flywheel phase integration and shared Z-axis shaft alignment; proxy geometry remains aligned.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
