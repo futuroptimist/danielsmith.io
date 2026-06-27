@@ -1,3 +1,8 @@
+import {
+  FLYWHEEL_AVATAR_PATH_RADIUS,
+  FLYWHEEL_INSTALLATION_BOUNDS,
+  FLYWHEEL_MARKER_MIN_HEIGHT,
+} from '../structures/flywheelEnergyContract';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
 import {
   PR_REAPER_INTENDED_BOUNDS,
@@ -39,6 +44,22 @@ const RASPBERRY_PI_5_BOARD_FOOTPRINT_METERS = {
 };
 
 const physicalMetadata = {
+  'flywheel-studio-flywheel': {
+    realWorldReference:
+      'industrial hand-cranked flywheel with fixed-ring planetary gearbox',
+    realWorldDimensionsMeters: {
+      width: 2.2,
+      depth: 1.35,
+      height: 1.85,
+    },
+    intendedSceneBounds: FLYWHEEL_INSTALLATION_BOUNDS,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: FLYWHEEL_MARKER_MIN_HEIGHT,
+      avatarPathRadius: FLYWHEEL_AVATAR_PATH_RADIUS,
+    },
+  },
+
   'tokenplace-studio-cluster': {
     realWorldReference: 'dual 27-inch 16:9 workstation',
     realWorldDimensionsMeters: {

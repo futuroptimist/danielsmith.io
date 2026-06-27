@@ -682,3 +682,68 @@ only one short blue parabolic packet is visible at a time, five incoming packets
 precede one larger outgoing packet, reduced motion/flicker remains comfortable,
 the POI marker clears the machine, the miniature proxy is static and current, and
 there are no obvious frame spikes.
+
+## P6b implementation update: physical assembly
+
+P6b replaced the abstract kiosk with `FlywheelEnergyInstallation`, a bottom-centered
+unit-scale POI root anchored at the resolved Flywheel POI position. Production callers
+now pass `position`, `orientationRadians`, `roomBounds`, and `detailPolicy`; the
+legacy `centerX`/`centerZ` compatibility path is retained only for older tests or
+callers during migration. Child meshes are authored in installation-local coordinates.
+
+Final shared constants live in `src/scene/structures/flywheelEnergyContract.ts`:
+
+- installation bounds: `3.4 x 2.4 x 2.75` scene units;
+- base: `3.25 x 1.55 x 0.22` scene units;
+- wheel: radius `0.92`, rim tube `0.12`, thickness `0.24`, centered at
+  `(-0.58, 1.35, 0)`;
+- gearbox: centered at `(0.78, 1.24, 0)`, radius `0.52`, depth `0.26`;
+- energy port: `(1.32, 1.62, 0.62)`, radius `0.13`;
+- marker minimum height: `2.95`; avatar path radius: `1.2`.
+
+The implemented hierarchy is the physical-machine contract:
+
+```text
+FlywheelEnergyInstallation
+├─ FlywheelBase
+├─ FlywheelBearingStandLeft / FlywheelBearingStandRight
+├─ FlywheelAxle
+├─ FlywheelWheelGroup
+│  ├─ FlywheelHeavyRim
+│  ├─ FlywheelInnerHub
+│  ├─ FlywheelSpoke-*
+│  ├─ FlywheelCounterweight-*
+│  └─ FlywheelEnergyGlowRing
+├─ FlywheelCrankGroup
+│  ├─ FlywheelCrankDisc
+│  ├─ FlywheelCrankArm
+│  └─ FlywheelCrankHandle
+├─ FlywheelPlanetaryGearbox
+│  ├─ FlywheelRingGear
+│  ├─ FlywheelSunGear
+│  ├─ FlywheelPlanetCarrier
+│  ├─ FlywheelPlanetGear-*
+│  └─ FlywheelOutputShaft
+└─ FlywheelEnergyPort
+```
+
+The fixed-ring planetary train uses `18` sun teeth, `24` planet teeth, and `66`
+ring teeth. The carrier/output/flywheel angle is `crankAngle / 4.666666...`, and
+planet meshes counter-spin locally with
+`-(sunTeeth / planetTeeth) * (sunAngle - carrierAngle)`. The crank, sun, carrier,
+planet spin, output shaft, and flywheel are updated every rendered frame from the
+same deterministic crank angle. Focus/emphasis may increase the shared speed scale
+and glow intensity, but never changes the ratio math.
+
+Detail levels now build only the selected physical variant:
+
+| Detail level | Physical simplification                              |
+| ------------ | ---------------------------------------------------- |
+| Cinematic    | all tooth hints, 8 spokes, 16 bolts, two glow layers |
+| Balanced     | all tooth hints, 6 spokes, 12 bolts, one glow layer  |
+| Performance  | every third tooth, 5 spokes, 6 bolts, one glow layer |
+| Low          | grooved/disc gear silhouettes, 4 spokes, no bolts    |
+| Micro        | iconic base, wheel, crank, and gear silhouettes only |
+
+P6b intentionally does not implement cross-POI blue energy-transfer arcs. Those
+remain P6c future scope.
