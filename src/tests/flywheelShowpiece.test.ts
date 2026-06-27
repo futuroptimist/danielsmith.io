@@ -7,6 +7,8 @@ import { getPoiPhysicalMetadata } from '../scene/poi/physicalMetadata';
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
 import {
   FLYWHEEL_BASE_COLLIDER,
+  FLYWHEEL_BASE_DIMENSIONS,
+  FLYWHEEL_BEARING_STAND,
   FLYWHEEL_CRANK_RAD_PER_SECOND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
@@ -181,6 +183,13 @@ describe('createFlywheelShowpiece', () => {
       expect(
         Math.abs(yoke.position.z - FLYWHEEL_WHEEL.centerZ)
       ).toBeGreaterThan(FLYWHEEL_WHEEL.thickness / 2);
+
+      const bridge = yoke.children.find((child) =>
+        child.name.endsWith('Bridge')
+      ) as Object3D;
+      expect(bridge.position.y).toBeCloseTo(
+        FLYWHEEL_BASE_DIMENSIONS.height + FLYWHEEL_BEARING_STAND.height - 0.06
+      );
     }
     build.dispose();
   });

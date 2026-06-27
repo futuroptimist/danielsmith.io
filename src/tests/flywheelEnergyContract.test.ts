@@ -39,7 +39,7 @@ describe('flywheel energy contract', () => {
       FLYWHEEL_GEARBOX_LEFT_EDGE - FLYWHEEL_WHEEL_RIGHT_EDGE
     );
     expect(FLYWHEEL_WHEEL_GEAR_CLEARANCE).toBeGreaterThanOrEqual(0.18);
-    expect(FLYWHEEL_GEARBOX_OUTER_RADIUS).toBeGreaterThan(0.5);
+    expect(FLYWHEEL_GEARBOX_OUTER_RADIUS).toBeGreaterThan(0.62);
   });
 
   it('defines an output shaft that bridges the separated wheel and gearbox', () => {

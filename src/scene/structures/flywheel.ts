@@ -249,12 +249,16 @@ export function createFlywheelShowpiece(
       );
       yoke.add(post);
     }
+    const bridgeHeight = 0.12;
     const bridge = mesh(
       `${name}Bridge`,
-      new BoxGeometry(0.72, 0.12, FLYWHEEL_BEARING_STAND.depth),
+      new BoxGeometry(0.72, bridgeHeight, FLYWHEEL_BEARING_STAND.depth),
       steel
     );
-    bridge.position.y = FLYWHEEL_WHEEL.centerY + 0.26;
+    bridge.position.y =
+      FLYWHEEL_BASE_DIMENSIONS.height +
+      FLYWHEEL_BEARING_STAND.height -
+      bridgeHeight / 2;
     yoke.add(bridge);
     group.add(yoke);
   }
