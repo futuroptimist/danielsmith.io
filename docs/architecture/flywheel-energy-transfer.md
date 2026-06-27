@@ -268,6 +268,8 @@ export const FLYWHEEL_RING_TEETH =
 
 export const FLYWHEEL_TORQUE_RATIO =
   1 + FLYWHEEL_RING_TEETH / FLYWHEEL_SUN_TEETH; // 4.666666...
+
+export const FLYWHEEL_CRANK_RAD_PER_SECOND = 1.2;
 ```
 
 Animation should derive from one deterministic crank angle:
@@ -286,8 +288,9 @@ relative mesh convention:
 
 ```ts
 const planetLocalSpin =
-  -((FLYWHEEL_SUN_TEETH + FLYWHEEL_PLANET_TEETH) / FLYWHEEL_PLANET_TEETH) *
-  sunAngle;
+  -(FLYWHEEL_SUN_TEETH / FLYWHEEL_PLANET_TEETH) * (sunAngle - carrierAngle);
+// Cross-check: -(FLYWHEEL_RING_TEETH / FLYWHEEL_PLANET_TEETH) *
+// carrierAngle resolves to the same value.
 ```
 
 Implementation may add a constant phase offset per planet and a small inertial
@@ -397,9 +400,9 @@ disposal in the Flywheel build.
 Only a moving subsection is rendered:
 
 ```ts
-const window = direction === 'incoming' ? 0.1 : 0.16;
+const visibleWindow = direction === 'incoming' ? 0.1 : 0.16;
 const head = clamp01(phase);
-const start = clamp01(head - window);
+const start = clamp01(head - visibleWindow);
 const end = head;
 ```
 
@@ -449,6 +452,17 @@ export interface FlywheelEnergyTarget {
   worldPosition: { x: number; y: number; z: number };
 }
 
+export interface FlywheelDebugState {
+  crankAngle: number;
+  sunAngle: number;
+  carrierAngle: number;
+  planetLocalSpin: number;
+  transferDirection: 'incoming' | 'outgoing';
+  selectedTargetPoiId: string | null;
+  transferPhase: number;
+  visiblePacketCount: number;
+}
+
 export interface FlywheelShowpieceBuild {
   group: Group;
   colliders: RectCollider[];
@@ -475,8 +489,8 @@ export interface FlywheelShowpieceBuild {
    `resolveFlywheelEnergyTargets(...)` and then
    `flywheelShowpiece.setEnergyTargets(...)`;
 6. update Flywheel every rendered frame;
-7. pass `runDecorativeEffects:
-sceneDetailController.shouldRunDecorativeUpdate(...)` for secondary glow/halo
+7. pass `runDecorativeEffects` from
+   `sceneDetailController.shouldRunDecorativeUpdate(...)` for secondary glow/halo
    throttling only;
 8. call `flywheelShowpiece.dispose()` during full and partial teardown.
 
