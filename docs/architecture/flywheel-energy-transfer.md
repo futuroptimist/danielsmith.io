@@ -766,3 +766,45 @@ index, current direction/target/phase, visible window start/end, incoming and
 outgoing completion counts, source/destination world and local positions, active
 node count, detail level, and reduced pulse/flicker scale values. Returned arrays
 and points are copies so callers cannot mutate internal network state.
+
+## P6b.1 geometry/readability correction
+
+P6b.1 keeps the P6c five-in/one-out energy-transfer network intact while
+correcting the physical Flywheel silhouette. The local layout is now explicitly
+wheel-left, gearbox-right, and crank-front: `+X` runs toward the side-mounted
+planetary gearbox, `+Y` is up, and `+Z` is the front face where the hand crank
+sits. The flywheel and gearbox faces both lie in X/Y planes, and the crank is
+mounted in front of the gearbox instead of sharing the wheel envelope.
+
+The final physical constants in `flywheelEnergyContract.ts` place the heavy
+wheel at `(-0.78, 1.28, 0)` with radius `0.82` and rim tube `0.11`. The
+planetary gearbox is centered at `(1.08, 1.26, 0.38)` with radius `0.46`, and
+the crank front plane is at `z = 0.74`. The energy port moves slightly forward
+and right to `(1.42, 1.68, 0.72)` so P6c arcs still target a stable
+`FlywheelEnergyPort` without covering the wheel face.
+
+Non-overlap is enforced with formula-derived contract exports rather than
+visual guesswork:
+
+```ts
+const wheelOuterRadius = FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube;
+const gearboxOuterRadius =
+  FLYWHEEL_RING_RADIUS +
+  FLYWHEEL_GEAR_TOOTH_LENGTH +
+  FLYWHEEL_GEARBOX_HOUSING_PAD;
+const wheelRightEdge = FLYWHEEL_WHEEL.centerX + wheelOuterRadius;
+const gearboxLeftEdge = FLYWHEEL_GEARBOX.centerX - gearboxOuterRadius;
+const wheelGearClearance = gearboxLeftEdge - wheelRightEdge;
+```
+
+`FLYWHEEL_WHEEL_GEAR_CLEARANCE` must remain at least
+`FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE` (`0.18`) so ring teeth, housing padding,
+and isometric projection do not clip the flywheel rim.
+
+The hierarchy now uses front/back bearing yokes (`FlywheelBearingYokeFront` and
+`FlywheelBearingYokeBack`) around the Z-axis axle instead of left/right posts
+across the wheel face. A `FlywheelGearboxPedestal` supports the right-side gear
+cluster, and `FlywheelOutputShaft` / `FlywheelTorqueShaft` visibly bridges from
+the planet carrier toward the flywheel hub. The cyan accent is reduced to a slim
+inner `FlywheelEnergyGlowRing` behind the rotor so the dark metal rim, hub,
+spokes, and brass counterweights dominate the read.
