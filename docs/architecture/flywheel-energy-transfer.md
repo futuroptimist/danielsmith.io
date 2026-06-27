@@ -682,3 +682,66 @@ only one short blue parabolic packet is visible at a time, five incoming packets
 precede one larger outgoing packet, reduced motion/flicker remains comfortable,
 the POI marker clears the machine, the miniature proxy is static and current, and
 there are no obvious frame spikes.
+
+## P6b implementation update — physical kinetic machine
+
+P6b replaces the abstract automation kiosk with the production physical assembly.
+The runtime builder now uses the shared `flywheelEnergyContract` constants and
+anchors `FlywheelEnergyInstallation` as a bottom-centered, unit-scale POI root at
+`position` with `orientationRadians` applied only to the root. Child meshes are
+authored in local coordinates.
+
+Final physical constants live in `src/scene/structures/flywheelEnergyContract.ts`:
+
+- intended bounds: 4.0w × 2.45d × 2.25h scene units;
+- base: 3.15w × 1.75d × 0.18h;
+- heavy wheel: 0.78 radius, 0.18 thickness, center height 1.18;
+- gearbox: fixed ring planetary train at the wheel axle height;
+- teeth: sun 18, planet 18, ring 54, three planets;
+- fixed-ring carrier ratio: `1 + ring / sun = 4:1`, so the carrier, output
+  shaft, and flywheel turn at one quarter of the crank/sun speed;
+- baseline crank speed: `Math.PI * 1.15` radians per second, with a small
+  emphasis boost that preserves the deterministic ratio.
+
+Final hierarchy:
+
+```text
+FlywheelEnergyInstallation
+├─ FlywheelBase
+├─ FlywheelBearingStandLeft
+├─ FlywheelBearingStandRight
+├─ FlywheelAxle
+├─ FlywheelWheelGroup
+│  ├─ FlywheelHeavyRim
+│  ├─ FlywheelInnerHub
+│  ├─ FlywheelSpoke-*
+│  ├─ FlywheelCounterweight-*
+│  └─ FlywheelEnergyGlowRing*
+├─ FlywheelCrankGroup
+│  ├─ FlywheelCrankDisc
+│  ├─ FlywheelCrankArm
+│  └─ FlywheelCrankHandle
+├─ FlywheelPlanetaryGearbox
+│  ├─ FlywheelRingGear
+│  ├─ FlywheelSunGear
+│  ├─ FlywheelPlanetCarrier
+│  ├─ FlywheelPlanetGear-*
+│  └─ FlywheelOutputShaft
+└─ FlywheelEnergyPort
+```
+
+Detail-level matrix for P6b:
+
+| Level       | Geometry strategy                                                                   |
+| ----------- | ----------------------------------------------------------------------------------- |
+| Cinematic   | Full tooth density, 8 spokes, 3 glow rings, high cylinder/torus segments.           |
+| Balanced    | Reduced tooth density, 6 spokes, 2 glow rings.                                      |
+| Performance | Coarser tooth density, 5 spokes, one glow ring.                                     |
+| Low         | Sparse teeth and 4-spoke silhouette.                                                |
+| Micro       | Minimal teeth and 3-spoke silhouette while preserving wheel/crank/gear readability. |
+
+The frame loop now calls the Flywheel update every rendered frame for the crank,
+sun, planets, carrier, output shaft, and heavy wheel. Decorative glow pulsing is
+passed a throttled `runDecorativeEffects` flag so performance modes can skip
+secondary effects without freezing the mechanical train. Cross-POI blue energy
+transfer arcs remain future P6c scope.
