@@ -767,9 +767,9 @@ outgoing completion counts, source/destination world and local positions, active
 node count, detail level, and reduced pulse/flicker scale values. Returned arrays
 and points are copies so callers cannot mutate internal network state.
 
-## P6b.1 geometry/readability correction
+## Geometry/readability correction
 
-P6b.1 keeps the P6c energy-transfer network semantics intact and changes only
+This correction keeps the energy-transfer network semantics intact and changes only
 physical readability. The local coordinate contract is now explicit in the
 implementation: +X is the right side of the machine, +Y is up, +Z is the front
 side, and both the flywheel and gearbox faces lie in the X/Y plane. The
