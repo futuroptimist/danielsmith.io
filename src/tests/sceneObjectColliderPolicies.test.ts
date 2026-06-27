@@ -85,8 +85,7 @@ const migratedFactories = [
     placement: { position: { x: 9.035, y: 0, z: 0.745 }, orientation: 0 },
     build: ({ position, orientation }: MigratedFactoryPlacement) =>
       createFlywheelShowpiece({
-        centerX: position.x,
-        centerZ: position.z,
+        position: { x: position.x, y: position.y ?? 0, z: position.z },
         orientationRadians: orientation,
         roomBounds: { minX: 0, maxX: 16, minZ: -16, maxZ: 16 },
       }),

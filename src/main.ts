@@ -3023,15 +3023,17 @@ function initializeImmersiveScene(
       ? upperFloorColliders
       : groundColliders;
   if (studioRoom) {
-    const centerX =
-      flywheelPoi?.group.position.x ??
-      (studioRoom.bounds.minX + studioRoom.bounds.maxX) / 2;
-    const centerZ =
-      flywheelPoi?.group.position.z ??
-      (studioRoom.bounds.minZ + studioRoom.bounds.maxZ) / 2;
+    const position = {
+      x:
+        flywheelPoi?.group.position.x ??
+        (studioRoom.bounds.minX + studioRoom.bounds.maxX) / 2,
+      y: flywheelPoi?.group.position.y ?? 0,
+      z:
+        flywheelPoi?.group.position.z ??
+        (studioRoom.bounds.minZ + studioRoom.bounds.maxZ) / 2,
+    };
     const showpiece = createFlywheelShowpiece({
-      centerX,
-      centerZ,
+      position,
       roomBounds: studioRoom.bounds,
       orientationRadians: flywheelPoi?.group.rotation.y ?? 0,
       detailPolicy: activeSceneDetailPolicy,
@@ -6979,7 +6981,10 @@ function initializeImmersiveScene(
       selfieMirror.dispose();
       selfieMirror = null;
     }
-    flywheelShowpiece = null;
+    if (flywheelShowpiece) {
+      flywheelShowpiece.dispose();
+      flywheelShowpiece = null;
+    }
     f2ClipboardConsole = null;
     sigmaWorkbench = null;
     woveLoom = null;
@@ -7140,19 +7145,17 @@ function initializeImmersiveScene(
       if (flywheelShowpiece) {
         const activation = flywheelPoi?.activation ?? 0;
         const focus = flywheelPoi?.focus ?? 0;
-        if (
-          sceneDetailController.shouldRunDecorativeUpdate(
+        const emphasis = Math.max(activation, focus);
+        flywheelShowpiece.update({
+          elapsed: elapsedTime,
+          delta,
+          emphasis,
+          runDecorativeEffects: sceneDetailController.shouldRunDecorativeUpdate(
             elapsedTime,
-            Math.max(activation, focus),
+            emphasis,
             'flywheel'
-          )
-        ) {
-          flywheelShowpiece.update({
-            elapsed: elapsedTime,
-            delta,
-            emphasis: Math.max(activation, focus),
-          });
-        }
+          ),
+        });
       }
       if (f2ClipboardConsole) {
         const activation = f2ClipboardPoi?.activation ?? 0;

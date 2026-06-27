@@ -89,29 +89,48 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/flywheel.ts'],
+      'Physical P6b proxy: heavy flywheel, base bearings, hand crank, planetary gear cluster, and energy port glow.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/flywheel.ts',
+      'src/scene/structures/flywheelEnergyContract.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      cyl('flywheel-dais', 0.7, 0.18, [0, 0.09, 0], 0x0f766e),
+      box('flywheel-base', [1.45, 0.14, 0.7], [0, 0.07, 0], 0x1f2937),
+      box(
+        'flywheel-bearing-left',
+        [0.08, 0.58, 0.22],
+        [-0.52, 0.43, 0],
+        0x64748b
+      ),
+      box(
+        'flywheel-bearing-right',
+        [0.08, 0.58, 0.22],
+        [-0.16, 0.43, 0],
+        0x64748b
+      ),
       {
         kind: 'ring',
-        name: 'flywheel-rotor-ring',
-        radius: 0.55,
-        tube: 0.08,
-        position: [0, 0.65, 0],
-        rotation: [Math.PI / 2, 0, 0],
-        color: 0x2dd4bf,
+        name: 'flywheel-heavy-wheel',
+        radius: 0.42,
+        tube: 0.065,
+        position: [-0.34, 0.72, 0],
+        rotation: [0, Math.PI / 2, 0],
+        color: 0x334155,
       },
-      box('flywheel-spoke', [1, 0.05, 0.06], [0, 0.65, 0], 0xccfbf1),
+      box('flywheel-spoke', [0.72, 0.035, 0.04], [-0.34, 0.72, 0], 0xcbd5e1),
+      cyl('flywheel-gear-cluster', 0.22, 0.1, [0.36, 0.68, 0], 0x94a3b8),
+      cyl('flywheel-crank-disc', 0.13, 0.06, [0.36, 0.68, 0.22], 0xe2e8f0),
       box(
-        'flywheel-counterweight',
-        [0.18, 0.16, 0.18],
-        [0.44, 0.65, 0],
-        0xf59e0b
+        'flywheel-crank-arm',
+        [0.28, 0.035, 0.035],
+        [0.49, 0.68, 0.22],
+        0xe2e8f0
       ),
+      cyl('flywheel-energy-port', 0.08, 0.07, [0.62, 0.88, 0.32], 0x38bdf8),
     ],
   },
   'jobbot-studio-terminal': {
