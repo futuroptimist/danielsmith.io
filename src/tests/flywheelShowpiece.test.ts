@@ -1,291 +1,186 @@
-import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Box3, Vector3 } from 'three';
+import { describe, expect, it } from 'vitest';
 
+import { getSceneDetailPolicy } from '../scene/graphics/sceneDetailPolicy';
+import { MINIATURE_POI_PROXY_REGISTRY } from '../scene/miniature/poiProxyRegistry';
+import { getPoiPhysicalMetadata } from '../scene/poi/physicalMetadata';
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
+import {
+  FLYWHEEL_ANIMATION,
+  FLYWHEEL_BASE_DIMENSIONS,
+  FLYWHEEL_INSTALLATION_BOUNDS,
+  FLYWHEEL_MARKER_MIN_HEIGHT,
+  FLYWHEEL_PLANETARY_RATIO,
+} from '../scene/structures/flywheelEnergyContract';
 
-type CapturingContext = CanvasRenderingContext2D & {
-  fillTextCalls: string[];
-};
+const roomBounds = { minX: 0, maxX: 16, minZ: -16, maxZ: 16 };
+const anchor = { x: 10, y: 0, z: -2 };
 
-const contexts: CapturingContext[] = [];
+function build(level = 'balanced' as const) {
+  return createFlywheelShowpiece({
+    position: anchor,
+    orientationRadians: Math.PI / 4,
+    roomBounds,
+    detailPolicy: getSceneDetailPolicy(level),
+  });
+}
 
-const createMockContext = (canvas: HTMLCanvasElement): CapturingContext => {
-  const fillTextCalls: string[] = [];
-  const gradient = { addColorStop: vi.fn() };
-  const context = {
-    save: vi.fn(),
-    restore: vi.fn(),
-    clearRect: vi.fn(),
-    beginPath: vi.fn(),
-    closePath: vi.fn(),
-    moveTo: vi.fn(),
-    lineTo: vi.fn(),
-    quadraticCurveTo: vi.fn(),
-    fillRect: vi.fn(),
-    fill: vi.fn(),
-    stroke: vi.fn(),
-    createLinearGradient: vi.fn(() => gradient),
-    fillStyle: '',
-    strokeStyle: '',
-    lineWidth: 0,
-    textAlign: 'left',
-    textBaseline: 'alphabetic',
-    font: '',
-    globalAlpha: 1,
-    shadowBlur: 0,
-    shadowColor: '',
-    fillText: vi.fn((text: string) => {
-      fillTextCalls.push(text);
-    }),
-    fillTextCalls,
-  } as Partial<CapturingContext>;
-  Object.defineProperty(context, 'canvas', { value: canvas });
-  return context as CapturingContext;
-};
+describe('createFlywheelShowpiece physical assembly', () => {
+  it('anchors a unit-scale bottom-centered root at the POI position', () => {
+    const flywheel = build();
+    expect(flywheel.group.name).toBe('FlywheelEnergyInstallation');
+    expect(flywheel.group.position.toArray()).toEqual([
+      anchor.x,
+      anchor.y,
+      anchor.z,
+    ]);
+    expect(flywheel.group.rotation.y).toBeCloseTo(Math.PI / 4);
+    expect(flywheel.group.scale.toArray()).toEqual([1, 1, 1]);
+    flywheel.dispose();
+  });
 
-beforeAll(() => {
-  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-    configurable: true,
-    value(this: HTMLCanvasElement, type: string) {
-      if (type !== '2d') {
-        return null;
+  it('creates the semantic physical hierarchy and omits obsolete abstract parts', () => {
+    const flywheel = build();
+    for (const name of [
+      'FlywheelBase',
+      'FlywheelBearingStandLeft',
+      'FlywheelBearingStandRight',
+      'FlywheelAxle',
+      'FlywheelWheelGroup',
+      'FlywheelHeavyRim',
+      'FlywheelInnerHub',
+      'FlywheelSpoke-0',
+      'FlywheelCounterweight-0',
+      'FlywheelEnergyGlowRing',
+      'FlywheelCrankGroup',
+      'FlywheelCrankDisc',
+      'FlywheelCrankArm',
+      'FlywheelCrankHandle',
+      'FlywheelPlanetaryGearbox',
+      'FlywheelRingGear',
+      'FlywheelSunGear',
+      'FlywheelPlanetCarrier',
+      'FlywheelPlanetGear-0',
+      'FlywheelOutputShaft',
+      'FlywheelEnergyPort',
+    ]) {
+      expect(flywheel.group.getObjectByName(name), name).toBeTruthy();
+    }
+    for (const obsolete of [
+      'FlywheelRotorGroup',
+      'FlywheelInfoPanel',
+      'FlywheelAutomationPillars',
+    ]) {
+      expect(flywheel.group.getObjectByName(obsolete)).toBeUndefined();
+    }
+    flywheel.dispose();
+  });
+
+  it('keeps core geometry local instead of baking world coordinates into children', () => {
+    const flywheel = build();
+    flywheel.group.traverse((object) => {
+      if (object === flywheel.group) return;
+      expect(Math.abs(object.position.x)).toBeLessThan(3);
+      expect(Math.abs(object.position.z)).toBeLessThan(3);
+    });
+    flywheel.dispose();
+  });
+
+  it('synchronizes crank, sun, carrier, planet gears, and flywheel without allocations', () => {
+    const flywheel = build();
+    const initialTriangleCount = flywheel.getDebugState().triangleCount;
+    flywheel.update({
+      elapsed: 1,
+      delta: 1,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    const state = flywheel.getDebugState();
+    expect(state.crankAngle).toBeCloseTo(
+      FLYWHEEL_ANIMATION.crankRadiansPerSecond
+    );
+    expect(state.sunAngle).toBeCloseTo(state.crankAngle);
+    expect(state.carrierAngle).toBeCloseTo(
+      state.crankAngle / FLYWHEEL_PLANETARY_RATIO
+    );
+    expect(state.flywheelAngle).toBeCloseTo(state.carrierAngle);
+    expect(state.planetAngles[0].orbitAngle).toBeCloseTo(state.carrierAngle);
+    expect(state.planetAngles[0].spinAngle).toBeLessThan(0);
+    expect(flywheel.getDebugState().triangleCount).toBe(initialTriangleCount);
+    flywheel.update({
+      elapsed: 2,
+      delta: 0,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    expect(flywheel.getDebugState().crankAngle).toBeCloseTo(state.crankAngle);
+    flywheel.dispose();
+  });
+
+  it('builds all detail levels with meaningfully decreasing triangle counts', () => {
+    const counts = ['cinematic', 'balanced', 'performance', 'low', 'micro'].map(
+      (level) => {
+        const flywheel = createFlywheelShowpiece({
+          position: anchor,
+          roomBounds,
+          detailPolicy: getSceneDetailPolicy(level as never),
+        });
+        const count = flywheel.getDebugState().triangleCount;
+        flywheel.dispose();
+        return count;
       }
-      const context = createMockContext(this);
-      contexts.push(context);
-      return context;
-    },
-  });
-});
-
-beforeEach(() => {
-  contexts.length = 0;
-});
-
-describe('createFlywheelShowpiece', () => {
-  const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
-
-  it('builds kinetic hub geometry with docs callout signage', () => {
-    const build = createFlywheelShowpiece({
-      centerX: 0,
-      centerZ: 0,
-      roomBounds,
-    });
-
-    expect(build.group.name).toBe('FlywheelShowpiece');
-
-    const rotorGroup = build.group.getObjectByName('FlywheelRotorGroup');
-    expect(rotorGroup).toBeInstanceOf(Group);
-
-    const panel = build.group.getObjectByName('FlywheelInfoPanel');
-    expect(panel).toBeInstanceOf(Mesh);
-
-    const callout = build.group.getObjectByName('FlywheelDocsCallout');
-    expect(callout).toBeInstanceOf(Mesh);
-
-    const capturedText = contexts.flatMap((ctx) => ctx.fillTextCalls);
-    expect(capturedText).toContain('Flywheel Automation');
-    expect(capturedText).toContain('README');
-    expect(capturedText).toContain('github.com/futuroptimist/flywheel');
-    expect(capturedText).toContain('CI templates');
-    expect(capturedText).toContain('Typed prompts');
-    expect(capturedText).toContain('Scaffolds');
-    expect(capturedText).toContain('lint · test · deploy');
-    expect(capturedText).toContain('codex-driven flows');
-    expect(capturedText).toContain('vite · playwright');
+    );
+    counts.forEach((count) => expect(Number.isFinite(count)).toBe(true));
+    expect(counts[0]).toBeGreaterThan(counts[1]);
+    expect(counts[1]).toBeGreaterThan(counts[2]);
+    expect(counts[2]).toBeGreaterThan(counts[3]);
+    expect(counts[3]).toBeGreaterThanOrEqual(counts[4]);
   });
 
-  it('keeps the docs callout hidden when only emphasis is applied', () => {
-    const build = createFlywheelShowpiece({
-      centerX: 0,
-      centerZ: 0,
-      roomBounds,
+  it('keeps colliders and physical metadata aligned with the visible bounds', () => {
+    const flywheel = build();
+    expect(flywheel.colliders[0]).toMatchObject({
+      minX: anchor.x - FLYWHEEL_BASE_DIMENSIONS.width / 2,
+      maxX: anchor.x + FLYWHEEL_BASE_DIMENSIONS.width / 2,
     });
-
-    const callout = build.group.getObjectByName('FlywheelDocsCallout') as Mesh;
-    const calloutMaterial = callout.material as MeshBasicMaterial;
-
-    build.update({ elapsed: 0.5, delta: 0.5, emphasis: 1 });
-    build.update({ elapsed: 1, delta: 0.5, emphasis: 1 });
-
-    expect(calloutMaterial.opacity).toBeLessThan(0.05);
-    expect(callout.visible).toBe(false);
-
-    build.group.dispatchEvent({ type: 'removed' } as Event);
+    const bounds = new Box3().setFromObject(flywheel.group);
+    const size = bounds.getSize(new Vector3());
+    expect(size.x).toBeLessThanOrEqual(
+      FLYWHEEL_INSTALLATION_BOUNDS.width + 0.2
+    );
+    expect(size.y).toBeLessThanOrEqual(
+      FLYWHEEL_INSTALLATION_BOUNDS.height + 0.2
+    );
+    const metadata = getPoiPhysicalMetadata('flywheel-studio-flywheel');
+    expect(metadata?.anchor).toBe('bottom-center');
+    expect(metadata?.clearances?.markerMinHeight).toBe(
+      FLYWHEEL_MARKER_MIN_HEIGHT
+    );
+    flywheel.dispose();
   });
 
-  it('reveals docs callout when the flywheel POI is selected and hides when cleared', () => {
-    const build = createFlywheelShowpiece({
-      centerX: 0,
-      centerZ: 0,
-      roomBounds,
-    });
-
-    const callout = build.group.getObjectByName('FlywheelDocsCallout') as Mesh;
-    const calloutMaterial = callout.material as MeshBasicMaterial;
-    const calloutGlow = build.group.getObjectByName(
-      'FlywheelDocsCalloutGlow'
-    ) as Mesh;
-    const calloutGlowMaterial = calloutGlow.material as MeshBasicMaterial;
-    const rotorGroup = build.group.getObjectByName(
-      'FlywheelRotorGroup'
-    ) as Group;
-
-    const initialRotation = rotorGroup.rotation.y;
-
-    window.dispatchEvent(
-      new CustomEvent('poi:selected', {
-        detail: { poi: { id: 'flywheel-studio-flywheel' } },
-      })
-    );
-
-    build.update({ elapsed: 0.5, delta: 0.5, emphasis: 1 });
-    build.update({ elapsed: 1.1, delta: 0.6, emphasis: 1 });
-
-    expect(rotorGroup.rotation.y).toBeGreaterThan(initialRotation);
-    expect(calloutMaterial.opacity).toBeGreaterThan(0.3);
-    expect(calloutGlowMaterial.opacity).toBeGreaterThan(0.05);
-    expect(callout.visible).toBe(true);
-
-    window.dispatchEvent(
-      new CustomEvent('poi:selection-cleared', {
-        detail: { poi: { id: 'flywheel-studio-flywheel' } },
-      })
-    );
-
-    let elapsed = 1.6;
-    for (let i = 0; i < 6; i += 1) {
-      build.update({ elapsed, delta: 0.3, emphasis: 0.8 });
-      elapsed += 0.3;
-    }
-
-    expect(calloutMaterial.opacity).toBeLessThan(0.05);
-    expect(callout.visible).toBe(false);
-
-    build.group.dispatchEvent({ type: 'removed' } as Event);
+  it('disposes idempotently', () => {
+    const flywheel = build();
+    flywheel.dispose();
+    flywheel.dispose();
+    expect(flywheel.getDebugState().disposed).toBe(true);
   });
 
-  it('keeps the docs callout hidden when emphasis stays at zero', () => {
-    const build = createFlywheelShowpiece({
-      centerX: 0,
-      centerZ: 0,
-      roomBounds,
-    });
-
-    const callout = build.group.getObjectByName('FlywheelDocsCallout') as Mesh;
-    const calloutMaterial = callout.material as MeshBasicMaterial;
-
-    for (let i = 0; i < 5; i += 1) {
-      build.update({ elapsed: i * 0.5, delta: 0.5, emphasis: 0 });
-    }
-
-    expect(calloutMaterial.opacity).toBe(0);
-    expect(callout.visible).toBe(false);
-
-    build.group.dispatchEvent({ type: 'removed' } as Event);
-  });
-
-  it('reveals tech stack chips and animates their orbit after selection', () => {
-    const build = createFlywheelShowpiece({
-      centerX: 0,
-      centerZ: 0,
-      roomBounds,
-    });
-
-    const techStackGroup = build.group.getObjectByName(
-      'FlywheelTechStackGroup'
-    ) as Group;
-    expect(techStackGroup).toBeInstanceOf(Group);
-
-    const wrappers = techStackGroup.children as Group[];
-    expect(wrappers).toHaveLength(3);
-
-    const initialRotations = wrappers.map((wrapper) => wrapper.rotation.y);
-    const materials = wrappers.map((wrapper) => {
-      const chip = wrapper.children[0] as Mesh;
-      return chip.material as MeshBasicMaterial;
-    });
-
-    build.update({ elapsed: 0.25, delta: 0.25, emphasis: 0.6 });
-    materials.forEach((material) => {
-      expect(material.opacity).toBeLessThan(0.1);
-    });
-
-    window.dispatchEvent(
-      new CustomEvent('poi:selected:analytics', {
-        detail: { poi: { id: 'flywheel-studio-flywheel' } },
-      })
+  it('keeps the miniature proxy in sync with physical machine semantics', () => {
+    const proxy = MINIATURE_POI_PROXY_REGISTRY['flywheel-studio-flywheel'];
+    expect(proxy.syncRevision).toBe(5);
+    expect(proxy.sourceFiles).toContain(
+      'src/scene/structures/flywheelEnergyContract.ts'
     );
-
-    build.update({ elapsed: 0.9, delta: 0.65, emphasis: 1 });
-    build.update({ elapsed: 1.6, delta: 0.7, emphasis: 1 });
-
-    wrappers.forEach((wrapper, index) => {
-      expect(wrapper.rotation.y).not.toBeCloseTo(initialRotations[index]);
-      const chip = wrapper.children[0] as Mesh;
-      expect(chip.visible).toBe(true);
-    });
-
-    materials.forEach((material) => {
-      expect(material.opacity).toBeGreaterThan(0.3);
-    });
-
-    build.group.dispatchEvent({ type: 'removed' } as Event);
-  });
-
-  it('highlights automation pillars as emphasis and selection increase', () => {
-    const build = createFlywheelShowpiece({
-      centerX: 0,
-      centerZ: 0,
-      roomBounds,
-    });
-
-    const pillarGroup = build.group.getObjectByName(
-      'FlywheelAutomationPillars'
-    ) as Group;
-    expect(pillarGroup).toBeInstanceOf(Group);
-
-    const pillarMeshes = pillarGroup.children as Mesh[];
-    expect(pillarMeshes.length).toBeGreaterThan(0);
-
-    const initialHeights = pillarMeshes.map((mesh) => mesh.position.y);
-    const materials = pillarMeshes.map(
-      (mesh) => mesh.material as MeshStandardMaterial
+    const names = proxy.primitives.map((primitive) => primitive.name);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'flywheel-base',
+        'flywheel-heavy-wheel',
+        'flywheel-gear-cluster',
+        'flywheel-crank-arm',
+        'flywheel-energy-port',
+      ])
     );
-
-    build.update({ elapsed: 0.2, delta: 0.2, emphasis: 0.1 });
-
-    materials.forEach((material) => {
-      expect(material.opacity).toBeLessThan(0.3);
-    });
-
-    window.dispatchEvent(
-      new CustomEvent('poi:selected', {
-        detail: { poi: { id: 'flywheel-studio-flywheel' } },
-      })
-    );
-
-    build.update({ elapsed: 0.9, delta: 0.7, emphasis: 1 });
-    build.update({ elapsed: 1.6, delta: 0.7, emphasis: 1 });
-
-    const finalHeights = pillarMeshes.map((mesh) => mesh.position.y);
-    const heightChanged = finalHeights.some(
-      (height, index) => Math.abs(height - initialHeights[index]) > 1e-4
-    );
-    expect(heightChanged).toBe(true);
-
-    materials.forEach((material) => {
-      expect(material.opacity).toBeGreaterThan(0.4);
-      expect(material.emissiveIntensity).toBeGreaterThan(0.5);
-    });
-
-    expect(pillarMeshes.every((mesh) => mesh.visible)).toBe(true);
-
-    window.dispatchEvent(
-      new CustomEvent('poi:selection-cleared', {
-        detail: { poi: { id: 'flywheel-studio-flywheel' } },
-      })
-    );
-
-    build.group.dispatchEvent({ type: 'removed' } as Event);
   });
 });

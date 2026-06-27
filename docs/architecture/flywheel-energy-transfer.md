@@ -682,3 +682,74 @@ only one short blue parabolic packet is visible at a time, five incoming packets
 precede one larger outgoing packet, reduced motion/flicker remains comfortable,
 the POI marker clears the machine, the miniature proxy is static and current, and
 there are no obvious frame spikes.
+
+## 8. P6b physical assembly implementation
+
+P6b replaces the abstract kiosk with a bottom-centered physical installation root
+named `FlywheelEnergyInstallation`. Production code now passes a `position`
+anchor resolved from the Flywheel POI; the root owns the POI heading and remains
+unit scale, while all visible machine parts are authored in local coordinates.
+
+Final implementation constants live in
+`src/scene/structures/flywheelEnergyContract.ts` and are shared by the builder,
+metadata, miniature proxy, and tests:
+
+- installation bounds: 3.4w × 2.4d × 2.75h scene units;
+- base: 3.25w × 1.55d × 0.22h;
+- flywheel: 0.92 radius, 0.12 rim tube, 0.24 thickness, centered at local
+  `(-0.58, 1.35, 0)`;
+- gearbox: centered at local `(0.78, 1.24, 0)` with a 0.52 radius and 0.26
+  depth;
+- crank: centered at local `(1.18, 1.24, 0.42)` with a 0.36 crank radius;
+- energy port: local `(1.32, 1.62, 0.62)` with a 0.13 radius;
+- marker minimum height: 2.95; avatar path radius: 1.2.
+
+The planetary train uses a fixed 48-tooth ring gear, an 18-tooth sun gear, and
+three 15-tooth planet gears. The fixed-ring reduction is:
+
+```ts
+carrier = sun / (1 + ringTeeth / sunTeeth);
+```
+
+This yields a 3.6667:1 crank-to-carrier torque multiplication. The hand crank
+and sun gear share the deterministic crank angle. The planet carrier, output
+shaft, and heavy wheel use the carrier angle. Planet gears orbit on the carrier
+and counter-spin by `-crank * (sunTeeth / planetTeeth)`; emphasis may boost the
+single crank speed slightly and intensify glows, but it does not alter the gear
+ratio.
+
+The stable physical hierarchy is:
+
+```text
+FlywheelEnergyInstallation
+├─ FlywheelBase
+├─ FlywheelBearingStandLeft / FlywheelBearingStandRight
+├─ FlywheelAxle
+├─ FlywheelWheelGroup
+│  ├─ FlywheelHeavyRim
+│  ├─ FlywheelInnerHub
+│  ├─ FlywheelSpoke-*
+│  ├─ FlywheelCounterweight-*
+│  └─ FlywheelEnergyGlowRing
+├─ FlywheelCrankGroup
+│  ├─ FlywheelCrankDisc
+│  ├─ FlywheelCrankArm
+│  └─ FlywheelCrankHandle
+├─ FlywheelPlanetaryGearbox
+│  ├─ FlywheelRingGear
+│  ├─ FlywheelSunGear
+│  ├─ FlywheelPlanetCarrier
+│  ├─ FlywheelPlanetGear-*
+│  └─ FlywheelOutputShaft
+└─ FlywheelEnergyPort
+```
+
+Detail levels build only the selected variant. Cinematic uses every procedural
+gear tooth and the highest segment counts. Balanced halves visible tooth blocks
+while keeping high segments. Performance reduces tooth blocks and uses the
+performance geometry policy. Low and Micro keep the base, bearings, wheel,
+crank, gearbox, and port silhouettes while aggressively reducing segments and
+visible tooth blocks.
+
+Cross-POI blue energy-transfer arcs remain future P6c scope; P6b does not add arc
+geometry or arc colliders.

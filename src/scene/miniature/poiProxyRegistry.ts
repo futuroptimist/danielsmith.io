@@ -1,4 +1,9 @@
 import type { PoiId } from '../poi/types';
+import {
+  FLYWHEEL_BASE_DIMENSIONS,
+  FLYWHEEL_GEARBOX,
+  FLYWHEEL_WHEEL,
+} from '../structures/flywheelEnergyContract';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
 
 import type {
@@ -89,29 +94,63 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 3,
+    syncRevision: 5,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/flywheel.ts'],
+      'Tracks formatted P6b physical flywheel assembly with static wheel, crank, gearbox, bearings, and energy port.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/flywheel.ts',
+      'src/scene/structures/flywheelEnergyContract.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      cyl('flywheel-dais', 0.7, 0.18, [0, 0.09, 0], 0x0f766e),
+      box(
+        'flywheel-base',
+        [
+          FLYWHEEL_BASE_DIMENSIONS.width * 0.35,
+          0.08,
+          FLYWHEEL_BASE_DIMENSIONS.depth * 0.35,
+        ],
+        [0, 0.04, 0],
+        0x172033
+      ),
+      box(
+        'flywheel-bearing-left',
+        [0.08, 0.5, 0.18],
+        [-0.42, 0.33, 0],
+        0x64748b
+      ),
+      box(
+        'flywheel-bearing-right',
+        [0.08, 0.5, 0.18],
+        [0.42, 0.33, 0],
+        0x64748b
+      ),
       {
         kind: 'ring',
-        name: 'flywheel-rotor-ring',
-        radius: 0.55,
-        tube: 0.08,
-        position: [0, 0.65, 0],
-        rotation: [Math.PI / 2, 0, 0],
-        color: 0x2dd4bf,
+        name: 'flywheel-heavy-wheel',
+        radius: FLYWHEEL_WHEEL.radius * 0.25,
+        tube: FLYWHEEL_WHEEL.rimTube * 0.35,
+        position: [-0.2, 0.48, 0],
+        rotation: [0, Math.PI / 2, 0],
+        color: 0x94a3b8,
       },
-      box('flywheel-spoke', [1, 0.05, 0.06], [0, 0.65, 0], 0xccfbf1),
+      box('flywheel-spoke', [0.42, 0.025, 0.025], [-0.2, 0.48, 0], 0xe2e8f0),
+      cyl(
+        'flywheel-gear-cluster',
+        FLYWHEEL_GEARBOX.radius * 0.22,
+        0.08,
+        [0.25, 0.45, 0],
+        0xc08422
+      ),
       box(
-        'flywheel-counterweight',
-        [0.18, 0.16, 0.18],
-        [0.44, 0.65, 0],
+        'flywheel-crank-arm',
+        [0.26, 0.025, 0.025],
+        [0.42, 0.58, 0.16],
         0xf59e0b
       ),
+      sphere('flywheel-crank-handle', 0.045, [0.55, 0.58, 0.2], 0x111827),
+      sphere('flywheel-energy-port', 0.055, [0.5, 0.66, 0.24], 0x38bdf8),
     ],
   },
   'jobbot-studio-terminal': {

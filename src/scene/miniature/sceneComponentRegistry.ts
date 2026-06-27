@@ -364,9 +364,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 4,
+    syncRevision: 6,
     reason:
-      'Audited support source; PR Reaper real-world dimensions and scene bounds now feed its holographic installation contract while tabletop geometry remains covered by the POI proxy.',
+      'Audited support source; formatted Flywheel physical metadata references the shared kinetic installation contract while tabletop geometry remains covered by its POI proxy.',
   },
   {
     id: 'audit:src:scene:poi:structuredData',
