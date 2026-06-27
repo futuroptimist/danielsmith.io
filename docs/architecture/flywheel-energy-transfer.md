@@ -269,6 +269,7 @@ export const FLYWHEEL_RING_TEETH =
 export const FLYWHEEL_TORQUE_RATIO =
   1 + FLYWHEEL_RING_TEETH / FLYWHEEL_SUN_TEETH; // 4.666666...
 
+// Spec default for the hand-crank animation baseline.
 export const FLYWHEEL_CRANK_RAD_PER_SECOND = 1.2;
 ```
 
@@ -291,6 +292,7 @@ const planetLocalSpin =
   -(FLYWHEEL_SUN_TEETH / FLYWHEEL_PLANET_TEETH) * (sunAngle - carrierAngle);
 // Cross-check: -(FLYWHEEL_RING_TEETH / FLYWHEEL_PLANET_TEETH) *
 // carrierAngle resolves to the same value.
+// With 18/24/66 teeth this is about -0.589 * sunAngle.
 ```
 
 Implementation may add a constant phase offset per planet and a small inertial
