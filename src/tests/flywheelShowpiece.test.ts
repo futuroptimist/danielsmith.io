@@ -7,6 +7,9 @@ import { getPoiPhysicalMetadata } from '../scene/poi/physicalMetadata';
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
 import {
   FLYWHEEL_BASE_COLLIDER,
+  FLYWHEEL_CRANK_RAD_PER_SECOND,
+  FLYWHEEL_EMPHASIS_SPEED_BOOST,
+  FLYWHEEL_GEARBOX_COLLIDER,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_MARKER_MIN_HEIGHT,
   FLYWHEEL_TORQUE_RATIO,
@@ -130,6 +133,41 @@ describe('createFlywheelShowpiece', () => {
     expect(metadata?.anchor).toBe('bottom-center');
     expect(metadata?.clearances?.markerMinHeight).toBe(
       FLYWHEEL_MARKER_MIN_HEIGHT
+    );
+    build.dispose();
+  });
+
+  it('rotates asymmetric collider offsets with the installation orientation', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 3, z: 4 },
+      orientationRadians: Math.PI / 2,
+      roomBounds,
+    });
+    const gearbox = build.colliders[1];
+    const centerX = (gearbox.minX + gearbox.maxX) / 2;
+    const centerZ = (gearbox.minZ + gearbox.maxZ) / 2;
+    expect(centerX).toBeCloseTo(3 + FLYWHEEL_GEARBOX_COLLIDER.centerZ);
+    expect(centerZ).toBeCloseTo(4 - FLYWHEEL_GEARBOX_COLLIDER.centerX);
+    expect(gearbox.maxX - gearbox.minX).toBeCloseTo(
+      FLYWHEEL_GEARBOX_COLLIDER.depth
+    );
+    expect(gearbox.maxZ - gearbox.minZ).toBeCloseTo(
+      FLYWHEEL_GEARBOX_COLLIDER.width
+    );
+    build.dispose();
+  });
+
+  it('integrates crank phase continuously when emphasis changes', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.update({ elapsed: 600, delta: 1 / 60, emphasis: 0 });
+    const beforeBoost = build.getDebugState().crankAngle;
+    build.update({ elapsed: 600 + 1 / 60, delta: 1 / 60, emphasis: 1 });
+    const afterBoost = build.getDebugState().crankAngle;
+    expect(afterBoost - beforeBoost).toBeCloseTo(
+      (FLYWHEEL_CRANK_RAD_PER_SECOND * (1 + FLYWHEEL_EMPHASIS_SPEED_BOOST)) / 60
     );
     build.dispose();
   });

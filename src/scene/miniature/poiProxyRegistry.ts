@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
-      'Tracks P6b physical flywheel assembly: base, bearing silhouette, crank, planetary gear cluster, and energy port.',
+      'Acknowledges review hardening for flywheel phase integration and orientation-aware colliders; proxy geometry remains aligned.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',

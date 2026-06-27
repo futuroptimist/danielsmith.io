@@ -46,7 +46,7 @@ export interface FlywheelShowpieceBuild {
   colliders: RectCollider[];
   update(context: {
     elapsed: number;
-    delta: number;
+    delta?: number;
     emphasis: number;
     runDecorativeEffects?: boolean;
   }): void;
@@ -417,7 +417,11 @@ export function createFlywheelShowpiece(
   );
   group.add(port);
 
-  const colliders = createFlywheelColliders(position.x, position.z);
+  const colliders = createFlywheelColliders(
+    position.x,
+    position.z,
+    options.orientationRadians ?? 0
+  );
   let state: FlywheelDebugState = {
     crankAngle: 0,
     sunAngle: 0,
@@ -428,15 +432,27 @@ export function createFlywheelShowpiece(
     triangleCount: countTriangles(group),
   };
   let disposed = false;
+  let hasUpdated = false;
+  let previousElapsed = 0;
+  let crankPhase = 0;
 
   return {
     group,
     colliders,
-    update({ elapsed, emphasis, runDecorativeEffects = true }) {
+    update({ elapsed, delta, emphasis, runDecorativeEffects = true }) {
       const speed =
         FLYWHEEL_CRANK_RAD_PER_SECOND *
         (1 + Math.max(0, emphasis) * FLYWHEEL_EMPHASIS_SPEED_BOOST);
-      const crankAngle = elapsed * speed;
+      const elapsedDelta = elapsed - previousElapsed;
+      const integrationDelta = Number.isFinite(delta)
+        ? Math.max(0, delta ?? 0)
+        : Math.max(0, elapsedDelta);
+      crankPhase = hasUpdated
+        ? crankPhase + speed * integrationDelta
+        : elapsed * speed;
+      hasUpdated = true;
+      previousElapsed = elapsed;
+      const crankAngle = crankPhase;
       const carrierAngle = getFlywheelCarrierAngle(crankAngle);
       const planetLocalSpin = getFlywheelPlanetLocalSpin(
         crankAngle,
@@ -496,33 +512,61 @@ function addTeeth(
   }
 }
 
-function createFlywheelColliders(x: number, z: number): RectCollider[] {
+function createFlywheelColliders(
+  x: number,
+  z: number,
+  orientationRadians: number
+): RectCollider[] {
   return [
-    {
-      minX: x - FLYWHEEL_BASE_COLLIDER.width / 2,
-      maxX: x + FLYWHEEL_BASE_COLLIDER.width / 2,
-      minZ: z - FLYWHEEL_BASE_COLLIDER.depth / 2,
-      maxZ: z + FLYWHEEL_BASE_COLLIDER.depth / 2,
-    },
-    {
-      minX:
-        x +
-        FLYWHEEL_GEARBOX_COLLIDER.centerX -
-        FLYWHEEL_GEARBOX_COLLIDER.width / 2,
-      maxX:
-        x +
-        FLYWHEEL_GEARBOX_COLLIDER.centerX +
-        FLYWHEEL_GEARBOX_COLLIDER.width / 2,
-      minZ:
-        z +
-        FLYWHEEL_GEARBOX_COLLIDER.centerZ -
-        FLYWHEEL_GEARBOX_COLLIDER.depth / 2,
-      maxZ:
-        z +
-        FLYWHEEL_GEARBOX_COLLIDER.centerZ +
-        FLYWHEEL_GEARBOX_COLLIDER.depth / 2,
-    },
+    createRotatedCollider(
+      x,
+      z,
+      0,
+      0,
+      FLYWHEEL_BASE_COLLIDER.width,
+      FLYWHEEL_BASE_COLLIDER.depth,
+      orientationRadians
+    ),
+    createRotatedCollider(
+      x,
+      z,
+      FLYWHEEL_GEARBOX_COLLIDER.centerX,
+      FLYWHEEL_GEARBOX_COLLIDER.centerZ,
+      FLYWHEEL_GEARBOX_COLLIDER.width,
+      FLYWHEEL_GEARBOX_COLLIDER.depth,
+      orientationRadians
+    ),
   ];
+}
+
+function createRotatedCollider(
+  rootX: number,
+  rootZ: number,
+  centerX: number,
+  centerZ: number,
+  width: number,
+  depth: number,
+  orientationRadians: number
+): RectCollider {
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const sin = Math.sin(orientationRadians);
+  const cos = Math.cos(orientationRadians);
+  const corners = [
+    { x: centerX - halfWidth, z: centerZ - halfDepth },
+    { x: centerX + halfWidth, z: centerZ - halfDepth },
+    { x: centerX + halfWidth, z: centerZ + halfDepth },
+    { x: centerX - halfWidth, z: centerZ + halfDepth },
+  ].map((corner) => ({
+    x: rootX + corner.x * cos + corner.z * sin,
+    z: rootZ - corner.x * sin + corner.z * cos,
+  }));
+  return {
+    minX: Math.min(...corners.map((corner) => corner.x)),
+    maxX: Math.max(...corners.map((corner) => corner.x)),
+    minZ: Math.min(...corners.map((corner) => corner.z)),
+    maxZ: Math.max(...corners.map((corner) => corner.z)),
+  };
 }
 
 function countTriangles(root: Object3D): number {
@@ -533,6 +577,7 @@ function countTriangles(root: Object3D): number {
     if (!geometry) return;
     const index = geometry.index;
     const position = geometry.getAttribute('position');
+    if (!index && !position) return;
     count += index ? index.count / 3 : position.count / 3;
   });
   return count;
