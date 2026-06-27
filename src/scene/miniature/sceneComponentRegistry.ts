@@ -98,9 +98,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'POI orbs, halos, labels, hit areas, and badges are interaction UI, not miniature geometry.',
+      'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
   },
   {
     id: 'debug:visualizers',

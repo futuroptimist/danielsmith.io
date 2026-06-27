@@ -96,6 +96,9 @@ The POI registry defines `flywheel-studio-flywheel` in the studio at
 large readable body shell for the exhibit. The physical
 `FlywheelEnergyInstallation` supplies the inner spinning rotor, energy port, and
 energy-transfer packets, while the orb, halo, and label remain UI affordances.
+The Flywheel pedestal explicitly opts into a simplified Performance-mode render
+so low-detail graphics keep the large body silhouette; other hologram pedestals
+remain hidden in Performance unless they opt in.
 `src/scene/poi/placements.ts` can override placements from declarative scene
 objects; Flywheel's effective production placement should always come from the
 resolved POI instance rather than a hardcoded duplicate coordinate list.
@@ -108,7 +111,9 @@ bounds.
 The Flywheel is represented by both the intentional POI hologram body shell and
 the physical `FlywheelEnergyInstallation` rotor. The body shell is not a gear
 train; it is the large blue/teal visual envelope that makes the exhibit readable.
-Energy arcs continue to resolve their endpoint through `FlywheelEnergyPort`.
+It uses reduced opacity and existing low-segment marker geometry in Performance
+mode rather than disappearing entirely. Energy arcs continue to resolve their
+endpoint through `FlywheelEnergyPort`.
 
 ### Visual anchors, model triangles, and miniature proxy
 
@@ -643,7 +648,10 @@ exists, assert deleted gear/crank/tooth/shaft/coupler object names are absent,
 verify the asymmetric markers are children of the rotating wheel group, and check
 that the glow ring remains smaller than the physical rim. The POI marker tests
 also build the actual registry marker and assert the intentional Flywheel
-pedestal body, accent, ring, orb, and label remain present.
+pedestal body, accent, ring, orb, and label remain present in Cinematic,
+Balanced, and the Flywheel opt-in Performance mode. A companion marker test
+asserts hologram pedestals without the Flywheel opt-in remain hidden in
+Performance.
 
 The miniature proxy mirrors this baseline with a heavy wheel, spoke, motion tick,
 energy port, and static incoming/outgoing arc hints. It does not include crank,

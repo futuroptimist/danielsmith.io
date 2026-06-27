@@ -511,11 +511,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "d560aa2ab7929bed228d38439cd6c26566a34f397df1b14d99205bd780c47766",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "1371807afb16932a00ed3e2996692aa4f98008539a54064596019c12cbf1e36c"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "a4b7ec20ed601e304e3263fb5bf5517416cd2b4168d72ca99b606c2fa68f93cc",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "63f401237e2515f4289cdf4a9eabf90d17835ade28cbdf84afaa6f1d1abadd49"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -531,11 +531,11 @@
         "src/scene/miniature/poiProxyRegistry.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "37a605bb70036671d249e3c956b764048ee2c8700333b23437291b064d964a7d",
-      "proxyFingerprint": "e233b95468261e37872bb47c433fbe1a8a80f7c27419ed136042ef27649be137",
-      "metadataFingerprint": "fa9615757af2f9f3911ef88514f26533bcd15afe0c6d9ea1f13a35b7e8e44b57"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "f7b1f1ff981a925d52760a724671676ec5f6aa70f0877d6c86151fcfefd8d6bc",
+      "proxyFingerprint": "2aa5f688e1dd8ecd34ec8f046260f2ff9ab44f844915f565f7b6ebdbe5fc0ba0",
+      "metadataFingerprint": "7ba0e258575aefd3e8590a2cbd714456f28a8cef0603059b339a5889a121a85a"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -546,11 +546,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "e28ad477f31ed8573defb67f2d33efffb55b1278cf25c0903519fefdff81c048",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "7e9450e30f221261713d5031ad8d81ad7773fba226d16d76d9ad3e6c67fcdecc"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "fc279c5b2b65299859e87cfdef038f48cfdba1dac61fe0311a34522e700ea7c2",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "18df3400e4b42e5e5bc3f08020a44c78d4c00f4669abcb201698ad3c3d7c57da"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -561,11 +561,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "efa55c8aad112ebbcf5537f7be09f3e89a3cf569106949c34c3e5ad5bf8b2daf",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "6e4840738333de355a2843f8efbec3a2c9c3a9fe9089d10b1749b7222f419e78"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "2f1e8a7fc3deaa111e16e6a03013527965119b92d97b09f1b78648b577b36584",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "d26b6a4ba77b15fc7de9913416e8e1774991bdfec8c0a49076feaf91359841eb"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -578,11 +578,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 21,
-      "syncNote": "Tracks the simplified Flywheel rotor body plus restored blue/teal POI shell, energy port, and static energy-arc hints without the deferred gear/crank assembly.",
-      "sourceFingerprint": "1058cd2995e4304d104f35f418149fca42dc2af5400162f863517b2ea1c9a2d4",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "684565468a9bc0b16c3157a303998cb86201778752f44239ff45f7975a9acb1c"
+      "syncRevision": 22,
+      "syncNote": "Tracks the simplified Flywheel rotor body plus performance-visible blue/teal POI shell, energy port, and static energy-arc hints without the deferred gear/crank assembly.",
+      "sourceFingerprint": "b3a7df0b3e13d5b3d3921edc5a3c1c7f65e1d215f15caf65137ad5f8966c6c66",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "e015836380f2e0a5245506b6c10cdf8539a3d8846d4274890502c15d51a7cf49"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -593,11 +593,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "72c492eddd65cef451b846584cde3463abf5024c18f6b8d5867aa8f52e4f5629",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "7322b07570a851ed64f8c45da90f2040edbaf8c525759614ece2b40ae52247dc"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "fc41839553cb8d894adb1491561c765abff3b7e7daae6f9e090d64e23eec1567",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "c6a38e8f5c9009600682de8b5410a382c8e91c60cc27703076719b2577d50a37"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -608,11 +608,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "4b77621cf846fc09c4ab487937ad582a6a2a7ee46c02e33f8065111a8bb1c6b1",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "272fcbd7f6c5d200b11e07b78303d32f0168b2fb506a995c652283951db2dddb"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "bf8dc4d58f614431c0731f4de2fdaed1f971a42de96daac7e20bc190462915a2",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "3e4b8bcbebde225bf212394ecc8ad0e4a5e6681aba55b39cfc355ee27e8d971b"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -623,11 +623,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "c23e5326459e9b7cc34e7ef59d58a42539979f1b05fcd1e2c838498b2ad86111",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "8c620e9f719d8cf21cde8b800e59f4a5f6de74fa6b2a0ed215dd78667d82c10e"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "4436803d33b425c66c24c5c9ce6f34ce6d67d5787d64b0230a0386b6de1c669b",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "4fdf722cfeb551ce21463442ffcd4924a18671b22b3ef31dd3d105d032203967"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -638,11 +638,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "e19928707238c6fa17a3c300222f3ff026f394b9089dc77b4776b6cb3f456160",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "498d567978bbd235c333ac4490cc0858fec944ffcf1f488d8c9e12a9a1477254"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "1f63c8815cf2c5d8527a6c3dfff5e752b503da32e9383c959d526e2408600048",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "76917fdeea6dec76f13aaabf1477853a53a1f4b5cf6d7ad6f52cbf11d3a904ab"
     },
     {
       "id": "poi:markers-labels",
@@ -652,11 +652,11 @@
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "POI orbs, halos, labels, hit areas, and badges are interaction UI, not miniature geometry.",
-      "sourceFingerprint": "2d8610ac79daaf9017b355fb52f8e7b8bd1969556b20a9eff9eaf30beecbfe4d",
+      "syncRevision": 2,
+      "syncNote": "POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.",
+      "sourceFingerprint": "658f98fa79aab337982dc5af8c6e1413cc9e38624e611fa7834cca62190967e0",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "b34bfa9a91134993800b390aaec8aadd28bf510137fdb7cad715fe401d408435"
+      "metadataFingerprint": "46c76af2493d95837914fa60b601c417c53a4134ff5dffb97d5c05fc67afdef0"
     },
     {
       "id": "poi:pr-reaper-backyard-console",
@@ -673,11 +673,11 @@
         "src/ui/accessibility/animationPreferences.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 19,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "264ca5ea94f10f62ca6efa8f20b211a2b718ffbe10b970ce205a3188c78ba45e",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "2f41fabaf51bec25da6f668b6eb34c181e77d2064fa87458ef2510ea8b119bca"
+      "syncRevision": 20,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "bd997161126bf1aaf8ff160e31bf7ec9dd6f3014e594b71d159710bb21d3a522",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "3f7c3d3a714c32731c7a190695983084dd1dcd5ba9fa4683271c7d82e691161c"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -688,11 +688,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "8cd993c2721e563594af4ccaf388a7cf21c9799dc22a22f5ecfff1f23e75ef15",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "628a8d9ffc2f2a92f735399ee896ab714075f54b07788717482d3d575409a934"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "d6696b8379112b6fe19fe420102d841a1ddcbe747713c2175452aec94fb26ba0",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "bad6d659009fad48a9ffdf335cbcb3aa993925cc575da14a599d2a05f6b35380"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -703,11 +703,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 3,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "eafb07327be3977472284d683752b2f901e21301fe9ef5bb9f746f008ccecdb0",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "9078168151bab0a329114a53face8dcf1df05fc69442689ffa7b500ca0f118c5"
+      "syncRevision": 4,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "355927cea33ea392a2a51989ae57feef1a4d07d9744279a50b75ad82534dd234",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "99b33d83ab99a3947c933042bb53e9fd6fde4fe434c907c9494a848aa1a6494b"
     },
     {
       "id": "poi:tokenplace-studio-cluster",
@@ -718,11 +718,11 @@
         "src/scene/structures/tokenPlaceWorkstation.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 3,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "4c3ac975f22f4516da92e183f4e7170c9357251ab8692bb84a68923d8bdf52be",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "09ba90a693124e419cc4afc54a36b37666362a3f8fbdaae950082cd74e9fb040"
+      "syncRevision": 4,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "1699b67c0db7d55fdbc27e8e45bdd2759c0e27551ac50c9df1d04f7c258bdfef",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "93f8bc5e9d12415379e8b85f87508473db89c7f4b7329fffd1d4c5a1afd22eb1"
     },
     {
       "id": "poi:wove-kitchen-loom",
@@ -733,11 +733,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "a38743e6e36f75f6b9e2077d9f55fd12bd1ee7646fe1223422f6d1c41b604bee",
-      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
-      "metadataFingerprint": "24bce1b109eee5a8467cc3e9977d5ab1ebc3cfa5817b9d9fee646a1a53c5b728"
+      "syncRevision": 5,
+      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "sourceFingerprint": "b5f79bc9137af44394bd859ab1224199c7eceb279d0437385238d93de7738f4f",
+      "proxyFingerprint": "368e4459e1d9575bc4aea20b20394057cbffda2aaa2db23df46b59a3a397edf5",
+      "metadataFingerprint": "9e7ffd3304fc004d8edd7d936b328e96107bf1163e4ee2921c9fe459ad7d679e"
     },
     {
       "id": "structure:greenhouse",
