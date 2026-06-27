@@ -280,6 +280,7 @@ import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './scene/structures/flywheel';
+import type { FlywheelEnergyTarget } from './scene/structures/flywheelEnergyNetwork';
 import {
   createGabrielSentry,
   type GabrielSentryBuild,
@@ -1135,6 +1136,43 @@ function getLevelFloor(floorId: FloorId) {
   );
   if (!floor) throw new Error(`Portfolio level is missing floor "${floorId}".`);
   return floor;
+}
+
+export function resolveFlywheelEnergyTargets(options: {
+  poiInstances: readonly PoiInstance[];
+  getPoiFloorId: (poi: PoiInstance['definition']) => FloorId;
+  resolvePoiVisualAnchor: typeof import('./scene/poi/visualAnchors').resolvePoiVisualAnchor;
+}): { targets: FlywheelEnergyTarget[]; diagnostics: string[] } {
+  const targets: FlywheelEnergyTarget[] = [];
+  const diagnostics: string[] = [];
+  for (const poi of options.poiInstances) {
+    if (poi.definition.id === 'flywheel-studio-flywheel') continue;
+    if (options.getPoiFloorId(poi.definition) !== 'ground') continue;
+    const anchor = options.resolvePoiVisualAnchor(poi.definition.id);
+    const object = anchor?.object ?? poi.group;
+    if (!anchor) {
+      diagnostics.push(
+        `Missing visual anchor for ${poi.definition.id}; using POI group.`
+      );
+    }
+    try {
+      const worldPosition = object.getWorldPosition(new Vector3());
+      targets.push({
+        poiId: poi.definition.id,
+        label: poi.definition.title,
+        worldPosition: {
+          x: worldPosition.x,
+          y: worldPosition.y,
+          z: worldPosition.z,
+        },
+      });
+    } catch (error) {
+      diagnostics.push(
+        `Failed to resolve Flywheel energy target ${poi.definition.id}: ${String(error)}`
+      );
+    }
+  }
+  return { targets, diagnostics };
 }
 
 const container = document.getElementById('app');
@@ -3391,6 +3429,18 @@ function initializeImmersiveScene(
       'PortfolioMiniatureTableCollider'
     );
     portfolioMiniatureTable = table;
+  }
+
+  if (flywheelShowpiece) {
+    const { targets, diagnostics } = resolveFlywheelEnergyTargets({
+      poiInstances,
+      getPoiFloorId,
+      resolvePoiVisualAnchor,
+    });
+    flywheelShowpiece.setEnergyTargets(targets, diagnostics);
+    if (diagnostics.length > 0) {
+      console.info('[flywheel] energy target diagnostics', diagnostics);
+    }
   }
 
   poiInteractionManager = new PoiInteractionManager(

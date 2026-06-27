@@ -723,3 +723,50 @@ gearbox, and energy port without individual tooth blocks. The core update runs
 every rendered frame, while decorative glow updates can still be throttled by the
 scene detail controller. Cross-POI blue transfer arcs remain future P6c scope and
 are not implemented here.
+
+## 10. P6c implementation notes
+
+P6c implements the transfer packet in `src/scene/structures/flywheelEnergyNetwork.ts`
+and renders it from `src/scene/structures/flywheel.ts`. The network module is pure:
+it owns seeded selection, the five-in/one-out cycle, active transfer phase, visible
+window math, and parabolic sampling without importing DOM APIs or Three.js scene
+objects.
+
+Runtime targets are resolved in `src/main.ts` by `resolveFlywheelEnergyTargets(...)`
+after ground-floor structures and visual anchors are registered. The resolver uses
+the scene floor resolver, excludes `flywheel-studio-flywheel`, prefers
+`resolvePoiVisualAnchor(...)`, falls back to the POI group with diagnostics, and
+copies `Object3D.getWorldPosition(...)` into `FlywheelEnergyTarget` records. Missing
+optional anchors therefore fail open and do not block immersive mode.
+
+Selection uses `FLYWHEEL_ENERGY_NETWORK_SEED` with a local seeded random source; no
+runtime `Math.random()` is used by the network. Eligible ground-floor POIs are
+chosen deterministically while avoiding immediate repeats when more than one target
+is available. The cycle emits five incoming transfers followed by one outgoing
+transfer, then resets the incoming count and repeats. Incoming transfers use a
+phase window of `0.10`; outgoing transfers use `0.16`, a shorter duration, and a
+higher strength so the outgoing packet reads brighter and thicker.
+
+Rendering shows only `FlywheelEnergyPacketRoot`, a single moving packet subsection.
+The Flywheel builder preallocates packet node meshes and connector cylinders once;
+updates reposition and rescale that pool along the sampled parabola. It never builds
+per-frame `TubeGeometry`, per-frame materials/geometries, dynamic point lights, or
+an all-arcs spiderweb. Detail policy changes only rendering cost: node count,
+connector visibility, opacity, and decorative intensity. It does not change target
+order, timing, direction, phase, or the five-in/one-out rhythm.
+
+Accessibility scales from `getPulseScale()` and `getFlickerScale()` affect only
+presentation opacity and connector intensity. Reduced pulse/flicker settings do not
+pause transfers, alter targets, or change the cycle semantics. The packet is a
+smooth moving glow with tapered leading/trailing samples and no flashing/strobing.
+
+`FlywheelShowpieceBuild.getDebugState()` now includes an `energy` snapshot with
+target count, diagnostics, cycle count, direction, selected target, phase, visible
+window, completed incoming/outgoing counts, source/destination world and local
+positions, active node count, detail level, and current pulse/flicker scales. The
+snapshot copies arrays and position objects so callers cannot mutate internal state.
+
+The miniature proxy remains static and does not run the energy network. Its manifest
+now includes the physical Flywheel source files plus the energy network source, and
+the proxy includes the heavy wheel, crank, gear cluster, energy port/glow, a thin
+incoming blue arc hint, and a thicker outgoing blue arc hint.

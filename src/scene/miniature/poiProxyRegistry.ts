@@ -90,13 +90,14 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 6,
+    syncRevision: 9,
     syncNote:
-      'Acknowledges delta-only flywheel phase integration and shared Z-axis shaft alignment; proxy geometry remains aligned.',
+      'Adds static incoming/outgoing blue energy arc hints for the implemented transfer layer.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
       'src/scene/structures/flywheelEnergyContract.ts',
+      'src/scene/structures/flywheelEnergyNetwork.ts',
     ],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -137,6 +138,28 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         0xd1d5db
       ),
       sphere('flywheel-energy-port', 0.07, [0.56, 0.8, 0.28], 0x38bdf8),
+      {
+        kind: 'tube',
+        name: 'flywheel-thin-incoming-blue-arc-hint',
+        radius: 0.012,
+        points: [
+          [-0.72, 0.48, -0.48],
+          [-0.16, 1.08, -0.16],
+          [0.56, 0.8, 0.28],
+        ],
+        color: 0x60a5fa,
+      },
+      {
+        kind: 'tube',
+        name: 'flywheel-thicker-outgoing-blue-arc-hint',
+        radius: 0.022,
+        points: [
+          [0.56, 0.82, 0.28],
+          [0.1, 1.28, 0.12],
+          [-0.78, 0.62, 0.5],
+        ],
+        color: 0x38bdf8,
+      },
     ],
   },
   'jobbot-studio-terminal': {
