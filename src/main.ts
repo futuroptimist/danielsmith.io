@@ -280,6 +280,7 @@ import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './scene/structures/flywheel';
+import type { FlywheelEnergyTarget } from './scene/structures/flywheelEnergyNetwork';
 import {
   createGabrielSentry,
   type GabrielSentryBuild,
@@ -3022,6 +3023,47 @@ function initializeImmersiveScene(
     getPoiFloorId(poi.definition) === 'upper'
       ? upperFloorColliders
       : groundColliders;
+
+  const resolveFlywheelEnergyTargets = (): {
+    targets: FlywheelEnergyTarget[];
+    diagnostics: string[];
+  } => {
+    const targets: FlywheelEnergyTarget[] = [];
+    const diagnostics: string[] = [];
+    for (const poi of poiInstances) {
+      const poiId = poi.definition.id;
+      if (poiId === 'flywheel-studio-flywheel') continue;
+      const floorId = getPoiFloorId(poi.definition);
+      if (floorId !== 'ground') continue;
+      const anchor = resolvePoiVisualAnchor(poiId);
+      const source = anchor?.object ?? poi.group;
+      if (!anchor) {
+        diagnostics.push(`missing-visual-anchor:${poiId}`);
+      }
+      try {
+        source.updateMatrixWorld(true);
+        const worldPosition = source.getWorldPosition(new Vector3());
+        targets.push({
+          poiId,
+          label: poi.definition.title ?? poiId,
+          floorId,
+          worldPosition: {
+            x: worldPosition.x,
+            y: worldPosition.y,
+            z: worldPosition.z,
+          },
+        });
+      } catch (error) {
+        diagnostics.push(
+          `target-resolution-failed:${poiId}:${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    }
+    return { targets, diagnostics };
+  };
+
   if (studioRoom) {
     const showpiece = createFlywheelShowpiece({
       position: {
@@ -3391,6 +3433,22 @@ function initializeImmersiveScene(
       'PortfolioMiniatureTableCollider'
     );
     portfolioMiniatureTable = table;
+  }
+
+  if (flywheelShowpiece) {
+    const { targets, diagnostics } = resolveFlywheelEnergyTargets();
+    if (targets.length === 0) {
+      diagnostics.push('no-ground-floor-energy-targets');
+    }
+    flywheelShowpiece.setEnergyTargets(targets, diagnostics);
+    if (diagnostics.length > 0) {
+      crashBreadcrumbs.record({
+        type: 'snapshot',
+        message: `flywheel-energy-target-diagnostics:${diagnostics.join(',')}`,
+        renderer: rendererInfo,
+        softwareRendererPolicy,
+      });
+    }
   }
 
   poiInteractionManager = new PoiInteractionManager(

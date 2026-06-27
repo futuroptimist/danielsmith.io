@@ -202,6 +202,106 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
+  it('accepts runtime energy targets and renders one bounded packet subsection', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 10, z: -2 },
+      orientationRadians: Math.PI / 6,
+      roomBounds,
+      detailPolicy: SCENE_DETAIL_POLICIES.balanced,
+    });
+    build.setEnergyTargets(
+      [
+        {
+          poiId: 'tokenplace-studio-cluster',
+          label: 'TokenPlace',
+          floorId: 'ground',
+          worldPosition: { x: 0, y: 0, z: -2 },
+        },
+        {
+          poiId: 'jobbot-studio-terminal',
+          label: 'Jobbot',
+          floorId: 'ground',
+          worldPosition: { x: 14, y: 0, z: 6 },
+        },
+      ],
+      ['missing-visual-anchor:optional']
+    );
+    build.update({
+      elapsed: 1,
+      delta: 0.2,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    const debug = build.getDebugState().energy;
+    expect(debug.targetCount).toBe(2);
+    expect(debug.missingTargetDiagnostics).toEqual([
+      'missing-visual-anchor:optional',
+    ]);
+    expect(debug.direction).toBe('incoming');
+    expect(debug.selectedTargetId).toBeTruthy();
+    expect(debug.visibleWindowStart).not.toBeNull();
+    expect(
+      debug.visibleWindowEnd! - debug.visibleWindowStart!
+    ).toBeLessThanOrEqual(0.11);
+    expect(debug.activeNodeCount).toBeLessThanOrEqual(10);
+    expect(debug.sourceWorldPosition?.x).not.toBeCloseTo(
+      debug.destinationWorldPosition?.x ?? 0
+    );
+
+    const packet = build.group.getObjectByName('FlywheelEnergyTransferPacket')!;
+    const visibleNodes = packet.children.filter(
+      (child) =>
+        child.name.startsWith('FlywheelEnergyPacketNode') && child.visible
+    );
+    expect(visibleNodes.length).toBe(debug.activeNodeCount);
+    expect(
+      build.group.children.filter(
+        (child) => child.name === 'FlywheelEnergyTransferPacket'
+      )
+    ).toHaveLength(1);
+    build.dispose();
+  });
+
+  it('keeps transfer semantics under reduced presentation scales and reaches outgoing direction', () => {
+    document.documentElement.dataset.accessibilityPulseScale = '0';
+    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.setEnergyTargets([
+      {
+        poiId: 'a',
+        label: 'A',
+        floorId: 'ground',
+        worldPosition: { x: 1, y: 0, z: 0 },
+      },
+      {
+        poiId: 'b',
+        label: 'B',
+        floorId: 'ground',
+        worldPosition: { x: 2, y: 0, z: 0 },
+      },
+    ]);
+    for (let i = 0; i < 5; i += 1) {
+      expect(build.getDebugState().energy.direction ?? 'incoming').toBe(
+        'incoming'
+      );
+      build.update({
+        elapsed: i,
+        delta: 3,
+        emphasis: 0,
+        runDecorativeEffects: false,
+      });
+    }
+    expect(build.getDebugState().energy.direction).toBe('outgoing');
+    expect(build.getDebugState().energy.pulseScale).toBe(0);
+    expect(build.getDebugState().energy.flickerScale).toBe(0);
+    delete document.documentElement.dataset.accessibilityPulseScale;
+    delete document.documentElement.dataset.accessibilityFlickerScale;
+    build.dispose();
+  });
+
   it('keeps miniature proxy semantics in sync', () => {
     const proxy = MINIATURE_POI_PROXY_REGISTRY['flywheel-studio-flywheel'];
     const names = proxy.primitives.map((primitive) => primitive.name);
@@ -212,6 +312,8 @@ describe('createFlywheelShowpiece', () => {
         'flywheel-crank-arm',
         'flywheel-planetary-gear-cluster',
         'flywheel-energy-port',
+        'flywheel-incoming-arc-hint',
+        'flywheel-outgoing-arc-hint',
       ])
     );
   });

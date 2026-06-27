@@ -723,3 +723,45 @@ gearbox, and energy port without individual tooth blocks. The core update runs
 every rendered frame, while decorative glow updates can still be throttled by the
 scene detail controller. Cross-POI blue transfer arcs remain future P6c scope and
 are not implemented here.
+
+## 8. P6c implementation notes
+
+The implemented energy-transfer layer is split between the pure state module and
+runtime rendering integration:
+
+- `src/scene/structures/flywheelEnergyNetwork.ts` owns deterministic seeded
+  target selection, the five-in/one-out cycle, active-transfer phase, visible
+  window math, parabolic arc sampling, and debug snapshots. It has no DOM,
+  Three.js scene-object, or `main.ts` dependency and never uses `Math.random()`
+  for runtime target choice.
+- `src/scene/structures/flywheel.ts` owns the pooled presentation objects:
+  one `FlywheelEnergyTransferPacket` group, preallocated packet nodes, and
+  preallocated connector cylinders. The update loop advances the mechanical
+  crank/gear/flywheel state and the active energy-transfer phase every rendered
+  frame; `runDecorativeEffects` only gates secondary glow presentation.
+- `src/main.ts` resolves targets after ground-floor structures and visual
+  anchors have been created. It iterates the resolved `poiInstances`, uses the
+  scene floor resolver to keep only ground-floor POIs, excludes
+  `flywheel-studio-flywheel`, prefers `resolvePoiVisualAnchor(...)`, and reads
+  target world coordinates through `Object3D.getWorldPosition(...)`. Missing
+  optional anchors are diagnostics rather than immersive-mode blockers.
+
+Transfer timing is deterministic: five incoming packets travel from eligible
+POIs into the Flywheel energy port, followed by one outgoing packet from the port
+to an eligible POI. Incoming transfers use an approximately `0.10` phase window,
+while outgoing transfers use a wider `0.16` window and higher strength so they
+render thicker and brighter. Only samples inside the moving window are visible;
+the full curve is never rendered and all other potential arcs stay hidden.
+
+All five scene-detail levels preserve target order, direction, phase, transfer
+counts, and timing. Lower detail levels reduce only presentation cost by using
+fewer packet nodes/connectors and softer opacity. Accessibility pulse and flicker
+preferences are read through `getPulseScale()` and `getFlickerScale()` for
+opacity/scale presentation only; reduced settings do not pause the cycle or alter
+its targets.
+
+`getDebugState()` now reports target count, target-resolution diagnostics, cycle
+index, current direction/target/phase, visible window start/end, incoming and
+outgoing completion counts, source/destination world and local positions, active
+node count, detail level, and reduced pulse/flicker scale values. Returned arrays
+and points are copies so callers cannot mutate internal network state.
