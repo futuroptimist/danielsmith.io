@@ -761,8 +761,11 @@ and mounts the planetary gearbox as a separate front module:
 - the heavy flywheel stays centered near local `Z = 0` with visible hub, spokes,
   asymmetric rim ticks, and a slim inner energy accent;
 - the planetary gearbox center is around local `Z = 5` and is raised/right of
-  the flywheel, so the ring, sun, carrier, planet gears, teeth, and crank clear
-  the flywheel in both depth and X/Y face projection;
+  the flywheel. Its Y position is derived from wheel and gearbox outer radii so
+  the gearbox lower edge barely clears the flywheel upper edge; Z separation
+  alone is not sufficient;
+- the ring, sun, carrier, planet gears, teeth, and crank move as one coherent
+  raised module and clear the flywheel in depth and X/Y face projection;
 - the crank center is derived from `FLYWHEEL_GEARBOX.centerZ`, gearbox depth, and
   `FLYWHEEL_GEARBOX.crankClearance` so the handle sits on the gearbox front face;
 - `FlywheelTorqueShaft` is a fixed connector between explicit flywheel-hub and
@@ -780,8 +783,10 @@ sun, carrier, planet gears, and visible teeth do not intersect an expanded
 flywheel envelope. Separate face-projection checks project those same rendered
 bounds into the X/Y wheel-face plane while ignoring Z, so a gear set cannot pass
 by moving forward while still visually centered over the flywheel face. The
-contract also requires the gearbox projected minimum X and Y to exceed the
-flywheel projected maximum X and Y by the named face-projection margin.
+contract requires the gearbox projected minimum X to exceed the flywheel
+projected maximum X by the named face-projection margin, while the projected Y
+clearance is held to a tight face-plane tangency window so the gearbox reads as
+externally attached above the wheel instead of embedded in its opening.
 `wheelGearClearance` is the longitudinal gap between the flywheel front face and
 the gearbox rear face and is required to stay at least `0.18` scene units.
 

@@ -36,6 +36,7 @@ import {
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
   FLYWHEEL_GEARBOX_OUTPUT_POINT,
+  FLYWHEEL_GEARBOX_OUTER_RADIUS,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_PLANET_ORBIT_RADIUS,
   FLYWHEEL_PLANET_RADIUS,
@@ -442,14 +443,12 @@ export function createFlywheelShowpiece(
     FLYWHEEL_GEARBOX_OUTPUT_POINT.y,
     FLYWHEEL_GEARBOX_OUTPUT_POINT.z
   );
-  const shaftMidpoint = shaftStart.clone().add(shaftEnd).multiplyScalar(0.5);
-  const shaftDirection = shaftEnd.clone().sub(shaftStart);
-  const shaftLength = shaftDirection.length();
-  const shaftAxis = shaftDirection.clone().normalize();
-  const torqueShaft = new Group();
-  torqueShaft.name = 'FlywheelTorqueShaft';
-  torqueShaft.position.copy(shaftMidpoint);
-  torqueShaft.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), shaftAxis);
+  const shaftLength = shaftStart.distanceTo(shaftEnd);
+  const torqueShaft = createCylinderBetween(
+    'FlywheelTorqueShaft',
+    shaftStart,
+    shaftEnd
+  );
   const torqueShaftSpin = new Group();
   torqueShaftSpin.name = 'FlywheelTorqueShaftSpinGroup';
   const torqueShaftMesh = mesh(
@@ -491,7 +490,9 @@ export function createFlywheelShowpiece(
     'FlywheelGearboxPedestal',
     new BoxGeometry(
       0.34,
-      FLYWHEEL_GEARBOX.centerY - FLYWHEEL_GEARBOX.radius,
+      FLYWHEEL_GEARBOX.centerY -
+        FLYWHEEL_GEARBOX_OUTER_RADIUS -
+        FLYWHEEL_BASE_DIMENSIONS.height,
       0.28
     ),
     steel
@@ -499,7 +500,10 @@ export function createFlywheelShowpiece(
   gearboxPedestal.position.set(
     FLYWHEEL_GEARBOX.centerX,
     FLYWHEEL_BASE_DIMENSIONS.height +
-      (FLYWHEEL_GEARBOX.centerY - FLYWHEEL_GEARBOX.radius) / 2,
+      (FLYWHEEL_GEARBOX.centerY -
+        FLYWHEEL_GEARBOX_OUTER_RADIUS -
+        FLYWHEEL_BASE_DIMENSIONS.height) /
+        2,
     FLYWHEEL_GEARBOX.centerZ
   );
   group.add(gearboxPedestal);
@@ -937,6 +941,20 @@ export function createFlywheelShowpiece(
       ownedMaterials.forEach((m) => m.dispose());
     },
   };
+}
+
+function createCylinderBetween(
+  name: string,
+  start: Vector3,
+  end: Vector3
+): Group {
+  const shaft = new Group();
+  const midpoint = start.clone().add(end).multiplyScalar(0.5);
+  const direction = end.clone().sub(start).normalize();
+  shaft.name = name;
+  shaft.position.copy(midpoint);
+  shaft.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), direction);
+  return shaft;
 }
 
 function addTeeth(

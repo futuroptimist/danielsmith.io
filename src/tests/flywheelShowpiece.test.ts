@@ -13,11 +13,14 @@ import {
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
   FLYWHEEL_FACE_PROJECTION_CLEARANCE,
+  FLYWHEEL_FACE_TANGENCY_CLEARANCE,
+  FLYWHEEL_FACE_TANGENCY_CLEARANCE_MAX,
   FLYWHEEL_FLYWHEEL_COUPLER_POINT,
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
   FLYWHEEL_GEARBOX_OUTPUT_POINT,
   FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE,
+  FLYWHEEL_GEARBOX_OUTER_RADIUS,
   FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_INSTALLATION_BOUNDS,
@@ -292,8 +295,13 @@ describe('createFlywheelShowpiece', () => {
         wheelProjection.maxX + FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE
       );
       expect(projection.minY).toBeGreaterThanOrEqual(
-        wheelProjection.maxY + FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE
+        wheelProjection.maxY + FLYWHEEL_FACE_TANGENCY_CLEARANCE - 0.06
       );
+      if (name === 'FlywheelPlanetaryGearbox' || name === 'FlywheelRingGear') {
+        expect(projection.minY - wheelProjection.maxY).toBeLessThanOrEqual(
+          FLYWHEEL_FACE_TANGENCY_CLEARANCE_MAX + 0.08
+        );
+      }
     }
     build.dispose();
   });
@@ -375,6 +383,37 @@ describe('createFlywheelShowpiece', () => {
         )
       )
     ).toBeLessThan(0.01);
+    build.dispose();
+  });
+
+  it('supports the raised gearbox with a pedestal that reaches its lower edge', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.group.updateWorldMatrix(true, true);
+    const pedestal = build.group.getObjectByName(
+      'FlywheelGearboxPedestal'
+    ) as Object3D;
+    const gearbox = build.group.getObjectByName(
+      'FlywheelPlanetaryGearbox'
+    ) as Object3D;
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup') as Object3D;
+    const pedestalBox = new Box3().setFromObject(pedestal);
+    const gearboxLowerEdge =
+      FLYWHEEL_GEARBOX.centerY - FLYWHEEL_GEARBOX_OUTER_RADIUS;
+    const pedestalProjection = projectBoxToFacePlane(pedestalBox);
+    const wheelProjection = projectBoxToFacePlane(
+      new Box3().setFromObject(wheel).expandByScalar(0.03)
+    );
+
+    expect(pedestalBox.max.y).toBeCloseTo(gearboxLowerEdge, 1);
+    expect(Math.abs(pedestalBox.max.y - gearboxLowerEdge)).toBeLessThan(0.04);
+    expect(pedestal.position.x).toBeCloseTo(gearbox.position.x);
+    expect(pedestal.position.z).toBeCloseTo(gearbox.position.z);
+    expect(faceProjectionsOverlap(pedestalProjection, wheelProjection)).toBe(
+      false
+    );
     build.dispose();
   });
 
