@@ -766,3 +766,50 @@ index, current direction/target/phase, visible window start/end, incoming and
 outgoing completion counts, source/destination world and local positions, active
 node count, detail level, and reduced pulse/flicker scale values. Returned arrays
 and points are copies so callers cannot mutate internal network state.
+
+## P6b.1 visual QA correction: separated physical flywheel layout
+
+P6b.1 keeps the P6c five-in/one-out blue packet network intact and only adjusts
+physical readability. The local coordinate contract is now explicit: +X is the
+right side of the machine, +Y is up, +Z is the front face, and both the flywheel
+and planetary gearbox faces lie in the X/Y plane with their spin axes along Z.
+The hand crank is mounted on the gearbox front face.
+
+The corrected physical constants place the heavy wheel left of the root at
+`centerX = -0.78`, `centerY = 1.30`, `radius = 0.84`, and `rimTube = 0.11`.
+The planetary gearbox is separated to the right and slightly forward at
+`centerX = 1.08`, `centerY = 1.26`, `centerZ = 0.38`, with `radius = 0.46`.
+The crank center uses the contract formula
+`gearbox.centerZ + gearbox.depth / 2 + gearbox.crankClearance`, putting the
+handle in front of the gearbox instead of inside the flywheel silhouette.
+
+The layout is guarded by formula-based non-overlap invariants in
+`flywheelEnergyContract.ts`:
+
+```ts
+const wheelOuterRadius = FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube;
+const gearboxOuterRadius =
+  FLYWHEEL_RING_RADIUS +
+  FLYWHEEL_GEAR_TOOTH_LENGTH +
+  FLYWHEEL_GEARBOX_HOUSING_PAD;
+const wheelGearClearance =
+  FLYWHEEL_GEARBOX.centerX -
+  gearboxOuterRadius -
+  (FLYWHEEL_WHEEL.centerX + wheelOuterRadius);
+```
+
+`wheelGearClearance` must remain at least `0.18`, so the visible ring gear,
+teeth, housing, crank, and glow accents stay outside the flywheel rim envelope.
+The old large cyan visual accent is reduced to a slim inner energy ring, leaving
+the dark heavy rim, hub, spokes, brass counterweights, gearbox, and crank as the
+dominant silhouette.
+
+The hierarchy now uses front/back axle support names that match the Z-axis axle:
+`FlywheelBearingYokeFront`, `FlywheelBearingYokeBack`, `FlywheelAxleCapFront`,
+and `FlywheelAxleCapBack`. The gearbox sits on `FlywheelGearboxPedestal`, and
+`FlywheelOutputShaft` plus `FlywheelOutputCoupler` visibly bridge the horizontal
+power path from the planet carrier toward the flywheel hub. Animation remains
+mechanically grounded: crank and sun share the crank angle, carrier/output and
+flywheel use the fixed-ring torque ratio, and the asymmetric counterweights are
+children of `FlywheelWheelGroup` so their rotation makes the slower flywheel
+motion readable.

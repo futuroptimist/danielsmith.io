@@ -10,18 +10,24 @@ import {
   FLYWHEEL_CRANK_RAD_PER_SECOND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
+  FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
+  FLYWHEEL_GEARBOX_LEFT_EDGE,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_MARKER_MIN_HEIGHT,
   FLYWHEEL_TORQUE_RATIO,
+  FLYWHEEL_WHEEL,
+  FLYWHEEL_WHEEL_RIGHT_EDGE,
 } from '../scene/structures/flywheelEnergyContract';
 
 const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
 
 const coreNames = [
   'FlywheelBase',
-  'FlywheelBearingStandLeft',
-  'FlywheelBearingStandRight',
+  'FlywheelBearingYokeFront',
+  'FlywheelBearingYokeBack',
+  'FlywheelAxleCapFront',
+  'FlywheelAxleCapBack',
   'FlywheelAxle',
   'FlywheelWheelGroup',
   'FlywheelHeavyRim',
@@ -37,6 +43,8 @@ const coreNames = [
   'FlywheelPlanetCarrier',
   'FlywheelPlanetGear-0',
   'FlywheelOutputShaft',
+  'FlywheelOutputCoupler',
+  'FlywheelGearboxPedestal',
   'FlywheelEnergyPort',
 ];
 
@@ -115,12 +123,55 @@ describe('createFlywheelShowpiece', () => {
       Math.PI / 2
     );
     expect(
-      MathUtils.euclideanModulo(output.rotation.x, Math.PI * 2)
+      MathUtils.euclideanModulo(output.rotation.z, Math.PI * 2)
     ).toBeCloseTo(Math.PI / 2);
 
     build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
     expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
-    expect(output.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
+    expect(output.rotation.x).toBeCloseTo(build.getDebugState().carrierAngle);
+    build.dispose();
+  });
+
+  it('places the gearbox, crank, yokes, and output shaft in readable separated envelopes', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const gearbox = build.group.getObjectByName('FlywheelPlanetaryGearbox')!;
+    const crank = build.group.getObjectByName('FlywheelCrankGroup')!;
+    const output = build.group.getObjectByName('FlywheelOutputShaft')!;
+    const frontYoke = build.group.getObjectByName('FlywheelBearingYokeFront')!;
+    const backYoke = build.group.getObjectByName('FlywheelBearingYokeBack')!;
+
+    expect(gearbox.position.x).toBe(FLYWHEEL_GEARBOX.centerX);
+    expect(FLYWHEEL_GEARBOX_LEFT_EDGE).toBeGreaterThan(
+      FLYWHEEL_WHEEL_RIGHT_EDGE
+    );
+    expect(crank.position.z).toBeGreaterThan(gearbox.position.z);
+    expect(crank.position.x - 0.38).toBeGreaterThan(FLYWHEEL_WHEEL_RIGHT_EDGE);
+    expect(output.position.x).toBeCloseTo(
+      (FLYWHEEL_WHEEL.centerX + FLYWHEEL_GEARBOX.centerX) / 2
+    );
+    expect(output.position.x - FLYWHEEL_WHEEL.centerX).toBeGreaterThan(0.7);
+    expect(FLYWHEEL_GEARBOX.centerX - output.position.x).toBeGreaterThan(0.7);
+    expect(frontYoke.position.z).toBeGreaterThan(FLYWHEEL_WHEEL.centerZ);
+    expect(backYoke.position.z).toBeLessThan(FLYWHEEL_WHEEL.centerZ);
+    build.dispose();
+  });
+
+  it('keeps asymmetric motion markers attached to the rotating wheel', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup')!;
+    const markers = wheel.children.filter((child) =>
+      child.name.startsWith('FlywheelCounterweight-')
+    );
+    expect(markers.length).toBeGreaterThanOrEqual(2);
+    const before = wheel.rotation.z;
+    build.update({ elapsed: 1, delta: 0.5, emphasis: 0 });
+    expect(wheel.rotation.z - before).toBeGreaterThan(0.15);
     build.dispose();
   });
 
