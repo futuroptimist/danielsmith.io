@@ -284,15 +284,28 @@ const outputShaftAngle = carrierAngle;
 const flywheelAngle = outputShaftAngle;
 ```
 
-For planet local spin with the ring fixed and sun driving, use the standard
-relative mesh convention:
+For planet spin with the ring fixed and sun driving, the implementation must
+separate the carrier-relative local spin from any world-space/debug angle. A
+planet mesh parented under `FlywheelPlanetCarrier` already inherits the carrier
+orbit, so its local rotation is only the sun/planet mesh delta in the carrier
+frame:
 
 ```ts
 const planetLocalSpin =
   -(FLYWHEEL_SUN_TEETH / FLYWHEEL_PLANET_TEETH) * (sunAngle - carrierAngle);
-// Cross-check: -(FLYWHEEL_RING_TEETH / FLYWHEEL_PLANET_TEETH) *
-// carrierAngle resolves to the same value.
-// With 18/24/66 teeth this is about -0.589 * sunAngle.
+```
+
+Do not use `-(FLYWHEEL_SUN_TEETH + FLYWHEEL_PLANET_TEETH) /
+FLYWHEEL_PLANET_TEETH * sunAngle`; that `-1.75 * sunAngle` shortcut mixes
+world and carrier frames and violates the fixed-ring mesh constraints. Debug
+state may expose a derived `planetWorldSpin` for inspection, but renderable
+planet children under the carrier must use `planetLocalSpin`. A ring-constraint
+cross-check is:
+
+```ts
+const planetLocalSpinFromRing =
+  -(FLYWHEEL_RING_TEETH / FLYWHEEL_PLANET_TEETH) * carrierAngle;
+// With 18/24/66 teeth both forms resolve to about -0.589 * sunAngle.
 ```
 
 Implementation may add a constant phase offset per planet and a small inertial
