@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Tracks the connected bearing-yoke bridge, separated wheel-left/gearbox-right silhouette, and static arc hints.',
+      'Acknowledges named flywheel clearance constants while preserving the existing miniature silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
