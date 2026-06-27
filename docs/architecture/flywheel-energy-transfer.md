@@ -766,3 +766,57 @@ index, current direction/target/phase, visible window start/end, incoming and
 outgoing completion counts, source/destination world and local positions, active
 node count, detail level, and reduced pulse/flicker scale values. Returned arrays
 and points are copies so callers cannot mutate internal network state.
+
+## P6b.1 geometry/readability correction
+
+P6b.1 keeps the P6c energy-transfer network semantics intact and changes only
+physical readability. The local coordinate contract is now explicit in the
+implementation: +X is the right side of the machine, +Y is up, +Z is the front
+side, and both the flywheel and gearbox faces lie in the X/Y plane. The
+hand-crank is mounted on the gearbox front face toward +Z.
+
+The corrected physical layout is wheel-left / gearbox-right / crank-front:
+
+- the heavy flywheel center is `(-0.78, 1.28, 0)` with a `0.82` radius rim and
+  `0.11` rim tube;
+- the planetary gearbox center is `(1.08, 1.26, 0.38)`, moving the ring gear out
+  of the flywheel envelope and slightly toward the viewer;
+- the crank front face uses
+  `FLYWHEEL_GEARBOX.centerZ + FLYWHEEL_GEARBOX.depth / 2 + 0.18` so the handle
+  cannot bury itself in the gear housing;
+- the blue energy accent remains a slim inner torus plus the stable
+  `FlywheelEnergyPort`, not a dominant translucent barrel.
+
+The shared contract exports formula-based spacing invariants so tests can catch
+regressions before visual QA:
+
+```ts
+const wheelOuterRadius = FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube;
+const gearboxOuterRadius =
+  FLYWHEEL_RING_RADIUS +
+  FLYWHEEL_GEAR_TOOTH_LENGTH +
+  FLYWHEEL_GEARBOX_HOUSING_PAD;
+const wheelRightEdge = FLYWHEEL_WHEEL.centerX + wheelOuterRadius;
+const gearboxLeftEdge = FLYWHEEL_GEARBOX.centerX - gearboxOuterRadius;
+const wheelGearClearance = gearboxLeftEdge - wheelRightEdge;
+```
+
+`wheelGearClearance` is required to stay at least `0.18`; the current constants
+provide roughly `0.277` scene units before accounting for perspective. The
+`FlywheelOutputShaft` and `FlywheelTorqueShaft` now bridge from the planetary
+carrier side toward the flywheel hub so the power path reads as crank → sun gear
+→ planet carrier/output coupler → flywheel axle.
+
+The support hierarchy was also corrected for the Z-axis axle. Obsolete left/right
+face posts are replaced by `FlywheelBearingYokeFront`,
+`FlywheelBearingYokeBack`, `FlywheelAxleCapFront`, and `FlywheelAxleCapBack`,
+which straddle the wheel front/back instead of crossing the wheel face. The
+planetary assembly adds `FlywheelGearboxPedestal`, `FlywheelOutputShaft`, and
+`FlywheelTorqueShaft`, while asymmetric `FlywheelRimMotionTick-*` markers remain
+children of `FlywheelWheelGroup` so the slower, torque-multiplied wheel rotation
+is visibly readable.
+
+The miniature proxy sync revision is updated to reflect the new silhouette:
+heavy wheel on the left, side-mounted gear cluster on the right, front crank,
+output coupler hint, stable energy port, and unchanged incoming/outgoing static
+arc hints.

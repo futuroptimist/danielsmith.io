@@ -28,11 +28,13 @@ import {
   FLYWHEEL_BASE_DIMENSIONS,
   FLYWHEEL_BEARING_STAND,
   FLYWHEEL_CRANK,
+  FLYWHEEL_CRANK_CENTER_Z,
   FLYWHEEL_CRANK_RAD_PER_SECOND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
+  FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_PLANET_ORBIT_RADIUS,
   FLYWHEEL_PLANET_RADIUS,
   FLYWHEEL_PLANET_TEETH,
@@ -223,25 +225,38 @@ export function createFlywheelShowpiece(
   base.position.y = FLYWHEEL_BASE_DIMENSIONS.height / 2;
   group.add(base);
 
-  for (const [name, x] of [
-    ['FlywheelBearingStandLeft', FLYWHEEL_WHEEL.centerX - 0.62],
-    ['FlywheelBearingStandRight', FLYWHEEL_WHEEL.centerX + 0.62],
+  for (const [name, z] of [
+    ['FlywheelBearingYokeFront', FLYWHEEL_WHEEL.centerZ + 0.36],
+    ['FlywheelBearingYokeBack', FLYWHEEL_WHEEL.centerZ - 0.36],
   ] as const) {
-    const stand = mesh(
-      name,
-      new BoxGeometry(
-        FLYWHEEL_BEARING_STAND.width,
-        FLYWHEEL_BEARING_STAND.height,
-        FLYWHEEL_BEARING_STAND.depth
-      ),
+    const yoke = new Group();
+    yoke.name = name;
+    yoke.position.set(FLYWHEEL_WHEEL.centerX, 0, z);
+    for (const x of [-0.28, 0.28]) {
+      const post = mesh(
+        `${name}Post-${x > 0 ? 'Right' : 'Left'}`,
+        new BoxGeometry(
+          FLYWHEEL_BEARING_STAND.width,
+          FLYWHEEL_BEARING_STAND.height,
+          FLYWHEEL_BEARING_STAND.depth
+        ),
+        steel
+      );
+      post.position.set(
+        x,
+        FLYWHEEL_BASE_DIMENSIONS.height + FLYWHEEL_BEARING_STAND.height / 2,
+        0
+      );
+      yoke.add(post);
+    }
+    const bridge = mesh(
+      `${name}Bridge`,
+      new BoxGeometry(0.72, 0.12, FLYWHEEL_BEARING_STAND.depth),
       steel
     );
-    stand.position.set(
-      x,
-      FLYWHEEL_BASE_DIMENSIONS.height + FLYWHEEL_BEARING_STAND.height / 2,
-      0
-    );
-    group.add(stand);
+    bridge.position.y = FLYWHEEL_WHEEL.centerY + 0.26;
+    yoke.add(bridge);
+    group.add(yoke);
   }
 
   const axle = mesh(
@@ -257,6 +272,19 @@ export function createFlywheelShowpiece(
   axle.position.set(FLYWHEEL_WHEEL.centerX, FLYWHEEL_WHEEL.centerY, 0);
   axle.rotation.x = Math.PI / 2;
   group.add(axle);
+  for (const [name, z] of [
+    ['FlywheelAxleCapFront', FLYWHEEL_WHEEL.centerZ + FLYWHEEL_AXLE.length / 2],
+    ['FlywheelAxleCapBack', FLYWHEEL_WHEEL.centerZ - FLYWHEEL_AXLE.length / 2],
+  ] as const) {
+    const cap = mesh(
+      name,
+      new CylinderGeometry(0.14, 0.14, 0.05, cylSeg),
+      brass
+    );
+    cap.position.set(FLYWHEEL_WHEEL.centerX, FLYWHEEL_WHEEL.centerY, z);
+    cap.rotation.x = Math.PI / 2;
+    group.add(cap);
+  }
 
   const wheelGroup = new Group();
   wheelGroup.name = 'FlywheelWheelGroup';
@@ -307,6 +335,21 @@ export function createFlywheelShowpiece(
     glow
   );
   wheelGroup.add(glowRing);
+
+  for (const [index, angle] of [0.2, 2.55].entries()) {
+    const marker = mesh(
+      `FlywheelRimMotionTick-${index}`,
+      new BoxGeometry(0.09, 0.2, 0.045),
+      brass
+    );
+    marker.position.set(
+      Math.cos(angle) * FLYWHEEL_WHEEL.radius,
+      Math.sin(angle) * FLYWHEEL_WHEEL.radius,
+      FLYWHEEL_WHEEL.thickness / 2 + 0.025
+    );
+    marker.rotation.z = angle;
+    wheelGroup.add(marker);
+  }
 
   const gearbox = new Group();
   gearbox.name = 'FlywheelPlanetaryGearbox';
@@ -359,13 +402,55 @@ export function createFlywheelShowpiece(
     carrier.add(planet);
     planetGears.push(planet);
   }
-  const output = mesh(
-    'FlywheelOutputShaft',
-    new CylinderGeometry(0.055, 0.055, 0.95, cylSeg),
+  const output = new Group();
+  output.name = 'FlywheelOutputShaft';
+  output.position.set(0, 0, -0.12);
+  const gearboxCoupler = mesh(
+    'FlywheelGearboxOutputCoupler',
+    new CylinderGeometry(0.07, 0.07, FLYWHEEL_GEARBOX.depth * 1.15, cylSeg),
     steel
   );
-  output.rotation.x = Math.PI / 2;
+  gearboxCoupler.rotation.x = Math.PI / 2;
+  output.add(gearboxCoupler);
   gearbox.add(output);
+
+  const torqueShaft = new Group();
+  torqueShaft.name = 'FlywheelTorqueShaft';
+  torqueShaft.position.set(
+    (FLYWHEEL_OUTPUT_SHAFT.startX + FLYWHEEL_OUTPUT_SHAFT.endX) / 2,
+    FLYWHEEL_OUTPUT_SHAFT.y,
+    FLYWHEEL_OUTPUT_SHAFT.z
+  );
+  const torqueShaftMesh = mesh(
+    'FlywheelTorqueShaftBody',
+    new CylinderGeometry(
+      FLYWHEEL_OUTPUT_SHAFT.radius,
+      FLYWHEEL_OUTPUT_SHAFT.radius,
+      FLYWHEEL_OUTPUT_SHAFT.endX - FLYWHEEL_OUTPUT_SHAFT.startX,
+      cylSeg
+    ),
+    steel
+  );
+  torqueShaftMesh.rotation.z = Math.PI / 2;
+  torqueShaft.add(torqueShaftMesh);
+  group.add(torqueShaft);
+
+  const gearboxPedestal = mesh(
+    'FlywheelGearboxPedestal',
+    new BoxGeometry(
+      0.34,
+      FLYWHEEL_GEARBOX.centerY - FLYWHEEL_GEARBOX.radius,
+      0.28
+    ),
+    steel
+  );
+  gearboxPedestal.position.set(
+    FLYWHEEL_GEARBOX.centerX,
+    FLYWHEEL_BASE_DIMENSIONS.height +
+      (FLYWHEEL_GEARBOX.centerY - FLYWHEEL_GEARBOX.radius) / 2,
+    FLYWHEEL_GEARBOX.centerZ
+  );
+  group.add(gearboxPedestal);
 
   addTeeth(
     gearbox,
@@ -405,7 +490,7 @@ export function createFlywheelShowpiece(
   crankGroup.position.set(
     FLYWHEEL_GEARBOX.centerX,
     FLYWHEEL_GEARBOX.centerY,
-    FLYWHEEL_GEARBOX.centerZ + 0.34
+    FLYWHEEL_CRANK_CENTER_Z
   );
   group.add(crankGroup);
   const crankDisc = mesh(
@@ -752,6 +837,7 @@ export function createFlywheelShowpiece(
       sunGear.rotation.z = crankAngle;
       carrier.rotation.z = carrierAngle;
       output.rotation.z = carrierAngle;
+      torqueShaft.rotation.x = carrierAngle;
       wheelGroup.rotation.z = carrierAngle;
       planetGears.forEach((planet) => {
         planet.rotation.z = planetLocalSpin;
