@@ -514,7 +514,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "d560aa2ab7929bed228d38439cd6c26566a34f397df1b14d99205bd780c47766",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "47ac5aef40df0e5279529d33e08cd23b88265a8bcc44951f3e2b92872515806d"
     },
     {
@@ -534,7 +534,7 @@
       "syncRevision": 3,
       "syncNote": "Outer exhibit now uses the shared ground-floor layout and visual-anchor placement pipeline; inner proxy remains only the nonrecursive shell.",
       "sourceFingerprint": "37a605bb70036671d249e3c956b764048ee2c8700333b23437291b064d964a7d",
-      "proxyFingerprint": "774ee9b394af783850147e73e28127a12d1a0c09eb0a766e10829d40d543ad4b",
+      "proxyFingerprint": "37aa32d13450b882accdeb0abfd2ae7829610c4e9c60cd165a4d13bf03c8f6b6",
       "metadataFingerprint": "1d21e34769e8710485c27e83cb91e841a1b751619ea1057bb3f0a90f36138aeb"
     },
     {
@@ -549,7 +549,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "e28ad477f31ed8573defb67f2d33efffb55b1278cf25c0903519fefdff81c048",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "786ee7c818049bdc258d05a3720b0c24b331bf3b74fff51b103266627458eb00"
     },
     {
@@ -564,7 +564,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "efa55c8aad112ebbcf5537f7be09f3e89a3cf569106949c34c3e5ad5bf8b2daf",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "7e59b35d752bfbac5558f84e3c35b8ef71c6ef05e05375b0d9633ff41094ab62"
     },
     {
@@ -578,11 +578,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 15,
-      "syncNote": "Tracks the long-skid Flywheel silhouette with gearbox far forward, front crank, yokes, and longitudinal torque shaft.",
-      "sourceFingerprint": "beb05004fac2f5fb0db2b14e6d9c3242ceacb9193ff95124f45546b4e8e2fe35",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
-      "metadataFingerprint": "51e28ded6cc71074885f7325aa856301658ee8388c57e858397a4913dd909e3e"
+      "syncRevision": 16,
+      "syncNote": "Tracks the long-skid Flywheel silhouette with a right/front gearbox, face-projection clearance, yokes, and diagonal torque shaft.",
+      "sourceFingerprint": "fd0a366a87753c732b4f57b0ea09ffccffe09a0f5d0aa29c71883781526e4e87",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
+      "metadataFingerprint": "96e0cfc564a69ca10a7173347c2f999140bf9bbc8e53d6439e870e7ceacc3083"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -596,7 +596,7 @@
       "syncRevision": 3,
       "syncNote": "Tracks the explicit media-wall visual anchor used by the tabletop miniature.",
       "sourceFingerprint": "72c492eddd65cef451b846584cde3463abf5024c18f6b8d5867aa8f52e4f5629",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "72267991166e4246f3dfb2241ca7a6efdd1786e634e788716c1c6cb2265f42fa"
     },
     {
@@ -611,7 +611,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "4b77621cf846fc09c4ab487937ad582a6a2a7ee46c02e33f8065111a8bb1c6b1",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "3ca6a37892e29885feb436031dd15d32030afee5b58f4ad7e675c47a5637cb32"
     },
     {
@@ -626,7 +626,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "c23e5326459e9b7cc34e7ef59d58a42539979f1b05fcd1e2c838498b2ad86111",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "039970c412196a3415fde6f4132ce00cc756ab663a9e4f10160646777eb280e7"
     },
     {
@@ -641,7 +641,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "e19928707238c6fa17a3c300222f3ff026f394b9089dc77b4776b6cb3f456160",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "c6f08c624d272c62a0643814ec2eb881480df8b86860aea00c13b84ae60c9305"
     },
     {
@@ -676,7 +676,7 @@
       "syncRevision": 18,
       "syncNote": "Runtime hardening keeps the static 3:1 proxy synchronized with lifecycle, detail, and accessibility files.",
       "sourceFingerprint": "264ca5ea94f10f62ca6efa8f20b211a2b718ffbe10b970ce205a3188c78ba45e",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "a016a246521e144e01d8fd6a573f13791b7e4900ba32e5970f7437c5db851852"
     },
     {
@@ -691,7 +691,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "8cd993c2721e563594af4ccaf388a7cf21c9799dc22a22f5ecfff1f23e75ef15",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "1e233a900e029d5c325e1b60a9b3537e7136c9cf74a035916ec8a03101dafbde"
     },
     {
@@ -706,7 +706,7 @@
       "syncRevision": 2,
       "syncNote": "Covers merged table, switch, yellow rack, nodes, and cable silhouette.",
       "sourceFingerprint": "eafb07327be3977472284d683752b2f901e21301fe9ef5bb9f746f008ccecdb0",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "17f75919aefb4f157b4531af581f3c89661f599e2bfdd160c9a5233ad17a8f5d"
     },
     {
@@ -721,7 +721,7 @@
       "syncRevision": 2,
       "syncNote": "Covers merged desk, tower, chair, dual monitors, keyboard, and mouse.",
       "sourceFingerprint": "4c3ac975f22f4516da92e183f4e7170c9357251ab8692bb84a68923d8bdf52be",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "5c533bce1d7817805ce4afd0df758d534529e7e441e8823ead1acfb5b43b97a6"
     },
     {
@@ -736,7 +736,7 @@
       "syncRevision": 3,
       "syncNote": "Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.",
       "sourceFingerprint": "a38743e6e36f75f6b9e2077d9f55fd12bd1ee7646fe1223422f6d1c41b604bee",
-      "proxyFingerprint": "240c3bb902a2ea6b3ed5fba3578188c222911e41acd4c60116fe8881d747d465",
+      "proxyFingerprint": "2c8204c20e6a6845b06d1874f7e6717eda0e6860db00f24df7e0d057297047de",
       "metadataFingerprint": "4109c32d634025eac2d183df2d439687eefbc52bdb24d91d392eb5898dc62776"
     },
     {

@@ -32,8 +32,10 @@ import {
   FLYWHEEL_CRANK_RAD_PER_SECOND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
+  FLYWHEEL_FLYWHEEL_COUPLER_POINT,
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
+  FLYWHEEL_GEARBOX_OUTPUT_POINT,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_PLANET_ORBIT_RADIUS,
   FLYWHEEL_PLANET_RADIUS,
@@ -426,34 +428,64 @@ export function createFlywheelShowpiece(
   output.add(gearboxCoupler);
   gearbox.add(output);
 
+  const shaftStart = new Vector3(
+    FLYWHEEL_FLYWHEEL_COUPLER_POINT.x,
+    FLYWHEEL_FLYWHEEL_COUPLER_POINT.y,
+    FLYWHEEL_FLYWHEEL_COUPLER_POINT.z
+  );
+  const shaftEnd = new Vector3(
+    FLYWHEEL_GEARBOX_OUTPUT_POINT.x,
+    FLYWHEEL_GEARBOX_OUTPUT_POINT.y,
+    FLYWHEEL_GEARBOX_OUTPUT_POINT.z
+  );
+  const shaftMidpoint = shaftStart.clone().add(shaftEnd).multiplyScalar(0.5);
+  const shaftDirection = shaftEnd.clone().sub(shaftStart);
+  const shaftLength = shaftDirection.length();
+  const shaftAxis = shaftDirection.clone().normalize();
   const torqueShaft = new Group();
   torqueShaft.name = 'FlywheelTorqueShaft';
-  torqueShaft.position.set(
-    FLYWHEEL_OUTPUT_SHAFT.x,
-    FLYWHEEL_OUTPUT_SHAFT.y,
-    (FLYWHEEL_OUTPUT_SHAFT.startZ + FLYWHEEL_OUTPUT_SHAFT.endZ) / 2
+  torqueShaft.position.copy(shaftMidpoint);
+  const torqueShaftSpin = new Group();
+  torqueShaftSpin.name = 'FlywheelTorqueShaftSpinGroup';
+  torqueShaftSpin.quaternion.setFromUnitVectors(
+    new Vector3(0, 1, 0),
+    shaftAxis
   );
   const torqueShaftMesh = mesh(
     'FlywheelTorqueShaftBody',
     new CylinderGeometry(
       FLYWHEEL_OUTPUT_SHAFT.radius,
       FLYWHEEL_OUTPUT_SHAFT.radius,
-      FLYWHEEL_OUTPUT_SHAFT.endZ - FLYWHEEL_OUTPUT_SHAFT.startZ,
+      shaftLength,
       cylSeg
     ),
     steel
   );
-  torqueShaftMesh.rotation.x = Math.PI / 2;
-  torqueShaft.add(torqueShaftMesh);
+  torqueShaftSpin.add(torqueShaftMesh);
+  const shaftStripe = mesh(
+    'FlywheelTorqueShaftSpinStripe',
+    new BoxGeometry(0.035, shaftLength * 0.92, 0.018),
+    brass
+  );
+  shaftStripe.position.x = FLYWHEEL_OUTPUT_SHAFT.radius * 0.9;
+  torqueShaftSpin.add(shaftStripe);
+  torqueShaft.add(torqueShaftSpin);
   const hubCoupler = mesh(
     'FlywheelFlywheelHubCoupler',
     new CylinderGeometry(0.09, 0.09, 0.16, cylSeg),
     brass
   );
-  hubCoupler.position.z =
-    FLYWHEEL_OUTPUT_SHAFT.startZ - torqueShaft.position.z + 0.08;
-  hubCoupler.rotation.x = Math.PI / 2;
+  hubCoupler.position.copy(shaftStart).sub(shaftMidpoint);
+  hubCoupler.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), shaftAxis);
   torqueShaft.add(hubCoupler);
+  const outputCoupler = mesh(
+    'FlywheelShaftGearboxCoupler',
+    new CylinderGeometry(0.085, 0.085, 0.16, cylSeg),
+    brass
+  );
+  outputCoupler.position.copy(shaftEnd).sub(shaftMidpoint);
+  outputCoupler.quaternion.copy(hubCoupler.quaternion);
+  torqueShaft.add(outputCoupler);
   group.add(torqueShaft);
 
   const gearboxPedestal = mesh(
@@ -474,7 +506,7 @@ export function createFlywheelShowpiece(
   group.add(gearboxPedestal);
 
   addTeeth(
-    gearbox,
+    sunGear,
     'FlywheelSunTooth',
     FLYWHEEL_SUN_TEETH,
     FLYWHEEL_SUN_RADIUS,
@@ -858,7 +890,7 @@ export function createFlywheelShowpiece(
       sunGear.rotation.z = crankAngle;
       carrier.rotation.z = carrierAngle;
       output.rotation.z = carrierAngle;
-      torqueShaft.rotation.x = carrierAngle;
+      torqueShaftSpin.rotation.y = carrierAngle;
       wheelGroup.rotation.z = carrierAngle;
       planetGears.forEach((planet) => {
         planet.rotation.z = planetLocalSpin;

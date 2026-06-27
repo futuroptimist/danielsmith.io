@@ -12,8 +12,12 @@ import {
   FLYWHEEL_CRANK_RAD_PER_SECOND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
+  FLYWHEEL_FACE_PROJECTION_CLEARANCE,
+  FLYWHEEL_FLYWHEEL_COUPLER_POINT,
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
+  FLYWHEEL_GEARBOX_OUTPUT_POINT,
+  FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE,
   FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_INSTALLATION_BOUNDS,
@@ -23,6 +27,19 @@ import {
 } from '../scene/structures/flywheelEnergyContract';
 
 const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
+
+const projectBoxToFacePlane = (box: Box3) => ({
+  minX: box.min.x,
+  maxX: box.max.x,
+  minY: box.min.y,
+  maxY: box.max.y,
+});
+
+const faceProjectionsOverlap = (
+  a: ReturnType<typeof projectBoxToFacePlane>,
+  b: ReturnType<typeof projectBoxToFacePlane>
+) =>
+  a.minX <= b.maxX && a.maxX >= b.minX && a.minY <= b.maxY && a.maxY >= b.minY;
 
 const coreNames = [
   'FlywheelBase',
@@ -46,7 +63,10 @@ const coreNames = [
   'FlywheelPlanetGear-0',
   'FlywheelOutputShaft',
   'FlywheelTorqueShaft',
+  'FlywheelTorqueShaftSpinGroup',
+  'FlywheelTorqueShaftSpinStripe',
   'FlywheelFlywheelHubCoupler',
+  'FlywheelShaftGearboxCoupler',
   'FlywheelGearboxPedestal',
   'FlywheelRimMotionTick-0',
   'FlywheelEnergyPort',
@@ -130,7 +150,9 @@ describe('createFlywheelShowpiece', () => {
       Math.PI / 2
     );
     expect(output.position.z).toBeLessThan(0);
-    expect(torqueShaft.position.x).toBeCloseTo(FLYWHEEL_OUTPUT_SHAFT.x);
+    expect(torqueShaft.position.x).toBeCloseTo(
+      (FLYWHEEL_OUTPUT_SHAFT.startX + FLYWHEEL_OUTPUT_SHAFT.endX) / 2
+    );
     expect(torqueShaft.position.z).toBeCloseTo(
       (FLYWHEEL_OUTPUT_SHAFT.startZ + FLYWHEEL_OUTPUT_SHAFT.endZ) / 2
     );
@@ -141,9 +163,45 @@ describe('createFlywheelShowpiece', () => {
     build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
     expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
     expect(output.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
-    expect(torqueShaft.rotation.x).toBeCloseTo(
-      build.getDebugState().carrierAngle
+    expect(torqueShaft.rotation.x).toBeCloseTo(0);
+    expect(torqueShaft.rotation.y).toBeCloseTo(0);
+    expect(torqueShaft.rotation.z).toBeCloseTo(0);
+    expect(
+      (torqueShaft.getObjectByName('FlywheelTorqueShaftSpinGroup') as Object3D)
+        .rotation.y
+    ).toBeCloseTo(build.getDebugState().carrierAngle);
+    build.dispose();
+  });
+
+  it('keeps visible gear teeth owned by their animated gear elements', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const sunGear = build.group.getObjectByName('FlywheelSunGear') as Object3D;
+    const sunTooth = build.group.getObjectByName('FlywheelSunTooth-0');
+    const planetGear = build.group.getObjectByName(
+      'FlywheelPlanetGear-0'
+    ) as Object3D;
+    const planetTooth = build.group.getObjectByName('FlywheelPlanetTooth-0-0');
+
+    expect(sunTooth?.parent).toBe(sunGear);
+    expect(planetTooth?.parent).toBe(planetGear);
+    build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
+    expect(sunGear.rotation.z).toBeCloseTo(build.getDebugState().sunAngle);
+    expect(planetGear.rotation.z).toBeCloseTo(
+      build.getDebugState().planetLocalSpin
     );
+    expect(sunTooth?.parent?.rotation.z).toBeCloseTo(
+      build.getDebugState().sunAngle
+    );
+    expect(planetTooth?.parent?.rotation.z).toBeCloseTo(
+      build.getDebugState().planetLocalSpin
+    );
+    expect(
+      (build.group.getObjectByName('FlywheelOutputShaft') as Object3D).rotation
+        .z
+    ).toBeCloseTo(build.getDebugState().carrierAngle);
     build.dispose();
   });
 
@@ -189,6 +247,49 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
+  it('clears the flywheel face projection for every visible gear module part', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.group.updateWorldMatrix(true, true);
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup') as Object3D;
+    const wheelProjection = projectBoxToFacePlane(
+      new Box3().setFromObject(wheel).expandByScalar(0.05)
+    );
+    const moduleNames = [
+      'FlywheelPlanetaryGearbox',
+      'FlywheelRingGear',
+      'FlywheelSunGear',
+      'FlywheelPlanetCarrier',
+      'FlywheelPlanetGear-0',
+      'FlywheelPlanetGear-1',
+      'FlywheelPlanetGear-2',
+      'FlywheelCrankGroup',
+    ];
+
+    expect(FLYWHEEL_FACE_PROJECTION_CLEARANCE).toBeGreaterThanOrEqual(
+      FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE
+    );
+    build.group.traverse((object) => {
+      if (
+        object.name.startsWith('FlywheelRingTooth-') ||
+        object.name.startsWith('FlywheelSunTooth-') ||
+        object.name.startsWith('FlywheelPlanetTooth-')
+      ) {
+        moduleNames.push(object.name);
+      }
+    });
+    for (const name of moduleNames) {
+      const object = build.group.getObjectByName(name) as Object3D;
+      const projection = projectBoxToFacePlane(
+        new Box3().setFromObject(object)
+      );
+      expect(faceProjectionsOverlap(projection, wheelProjection)).toBe(false);
+    }
+    build.dispose();
+  });
+
   it('keeps accent glow subordinate to the heavy physical rim', () => {
     const build = createFlywheelShowpiece({
       position: { x: 0, z: 0 },
@@ -221,6 +322,7 @@ describe('createFlywheelShowpiece', () => {
     const torqueShaft = build.group.getObjectByName(
       'FlywheelTorqueShaft'
     ) as Object3D;
+    build.group.updateWorldMatrix(true, true);
     const shaftBox = new Box3().setFromObject(torqueShaft);
 
     const rim = build.group.getObjectByName('FlywheelHeavyRim') as Object3D;
@@ -231,9 +333,40 @@ describe('createFlywheelShowpiece', () => {
 
     expect(shaftBox.min.z).toBeLessThanOrEqual(FLYWHEEL_OUTPUT_SHAFT.startZ);
     expect(shaftBox.max.z).toBeGreaterThanOrEqual(FLYWHEEL_OUTPUT_SHAFT.endZ);
+    expect(shaftBox.min.x).toBeLessThanOrEqual(FLYWHEEL_OUTPUT_SHAFT.startX);
+    expect(shaftBox.max.x).toBeGreaterThanOrEqual(FLYWHEEL_OUTPUT_SHAFT.endX);
     expect(shaftLengthZ).toBeGreaterThan(requiredGap - 0.05);
     expect(shaftBox.max.z).toBeLessThan(FLYWHEEL_GEARBOX.centerZ);
     expect(shaftBox.min.z).toBeGreaterThan(rimBox.max.z - 0.02);
+
+    const hubCoupler = build.group.getObjectByName(
+      'FlywheelFlywheelHubCoupler'
+    ) as Object3D;
+    const gearboxCoupler = build.group.getObjectByName(
+      'FlywheelShaftGearboxCoupler'
+    ) as Object3D;
+    const hubPoint = new Vector3();
+    const gearboxPoint = new Vector3();
+    hubCoupler.getWorldPosition(hubPoint);
+    gearboxCoupler.getWorldPosition(gearboxPoint);
+    expect(
+      hubPoint.distanceTo(
+        new Vector3(
+          FLYWHEEL_FLYWHEEL_COUPLER_POINT.x,
+          FLYWHEEL_FLYWHEEL_COUPLER_POINT.y,
+          FLYWHEEL_FLYWHEEL_COUPLER_POINT.z
+        )
+      )
+    ).toBeLessThan(0.01);
+    expect(
+      gearboxPoint.distanceTo(
+        new Vector3(
+          FLYWHEEL_GEARBOX_OUTPUT_POINT.x,
+          FLYWHEEL_GEARBOX_OUTPUT_POINT.y,
+          FLYWHEEL_GEARBOX_OUTPUT_POINT.z
+        )
+      )
+    ).toBeLessThan(0.01);
     build.dispose();
   });
 
