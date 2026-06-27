@@ -202,6 +202,64 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
+  it('accepts runtime energy targets and renders one bounded packet subsection', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.setEnergyTargets([
+      {
+        poiId: 'jobbot-studio-terminal',
+        label: 'Jobbot',
+        worldPosition: { x: 4, y: 0, z: 0 },
+      },
+      {
+        poiId: 'sigma-kitchen-workbench',
+        label: 'Sigma',
+        worldPosition: { x: -4, y: 0, z: 0 },
+      },
+    ]);
+    build.update({
+      elapsed: 1,
+      delta: 0.25,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    const root = build.group.getObjectByName('FlywheelEnergyPacketRoot');
+    const visibleNodes = root?.children.filter(
+      (child) =>
+        child.name.startsWith('FlywheelEnergyPacketNode') && child.visible
+    );
+    const state = build.getDebugState().energy;
+    expect(state.targetCount).toBe(2);
+    expect(state.direction).toBe('incoming');
+    expect(
+      state.visibleWindow.end - state.visibleWindow.start
+    ).toBeLessThanOrEqual(0.11);
+    expect(state.activeNodeCount).toBeGreaterThan(1);
+    expect(visibleNodes?.length).toBe(state.activeNodeCount);
+    expect(state.sourceWorldPosition?.x).not.toBeCloseTo(
+      state.destinationWorldPosition?.x ?? 0
+    );
+    build.dispose();
+  });
+
+  it('fails open with diagnostics when energy targets are missing', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.setEnergyTargets([], ['Missing visual anchor for optional target.']);
+    build.update({ elapsed: 1, delta: 1, emphasis: 0 });
+    const state = build.getDebugState().energy;
+    expect(state.targetCount).toBe(0);
+    expect(state.activeNodeCount).toBe(0);
+    expect(state.missingTargetDiagnostics).toEqual([
+      'Missing visual anchor for optional target.',
+    ]);
+    build.dispose();
+  });
+
   it('keeps miniature proxy semantics in sync', () => {
     const proxy = MINIATURE_POI_PROXY_REGISTRY['flywheel-studio-flywheel'];
     const names = proxy.primitives.map((primitive) => primitive.name);
