@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 20,
+    syncRevision: 21,
     syncNote:
-      'Tracks the simplified Flywheel rotor body with hub, spokes, motion tick, energy port, and static energy-arc hints after removing the gear/crank assembly.',
+      'Tracks the simplified Flywheel rotor body plus restored blue/teal POI shell, energy port, and static energy-arc hints without the deferred gear/crank assembly.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',

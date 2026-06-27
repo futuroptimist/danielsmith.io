@@ -513,8 +513,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "f7decf7576f09293d48a745dd4e7151544010c630530fb197a4a137ef51a09f8",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "d560aa2ab7929bed228d38439cd6c26566a34f397df1b14d99205bd780c47766",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "1371807afb16932a00ed3e2996692aa4f98008539a54064596019c12cbf1e36c"
     },
     {
@@ -533,8 +533,8 @@
       ],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "4d15b74aa00e24ec7bad903232b2f45c8696b7f48495dc6f7ed77f8bc59dcef9",
-      "proxyFingerprint": "914f17f82a05635d4f183ec6148c6f33942a6f88a93bb9d71d2f2dc4f4127730",
+      "sourceFingerprint": "37a605bb70036671d249e3c956b764048ee2c8700333b23437291b064d964a7d",
+      "proxyFingerprint": "e233b95468261e37872bb47c433fbe1a8a80f7c27419ed136042ef27649be137",
       "metadataFingerprint": "fa9615757af2f9f3911ef88514f26533bcd15afe0c6d9ea1f13a35b7e8e44b57"
     },
     {
@@ -548,8 +548,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "fa5cb6bbeacb84897ed503d5c33514ce6b0b7cda8699e05f581d149c4b07217d",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "e28ad477f31ed8573defb67f2d33efffb55b1278cf25c0903519fefdff81c048",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "7e9450e30f221261713d5031ad8d81ad7773fba226d16d76d9ad3e6c67fcdecc"
     },
     {
@@ -563,8 +563,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "1ddc4a9cbd943d5521f76239d80423def3789a1c6a101d5869f38cc2451159ff",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "efa55c8aad112ebbcf5537f7be09f3e89a3cf569106949c34c3e5ad5bf8b2daf",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "6e4840738333de355a2843f8efbec3a2c9c3a9fe9089d10b1749b7222f419e78"
     },
     {
@@ -578,11 +578,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 20,
-      "syncNote": "Tracks the simplified Flywheel rotor body with hub, spokes, motion tick, energy port, and static energy-arc hints after removing the gear/crank assembly.",
-      "sourceFingerprint": "f4e1f9504017d924b51fc2da1f443f66acc6f73c62ed1ebb637a0aedb4834f77",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
-      "metadataFingerprint": "4fcb7a51c767c0b2e1dc46b532aaf22dbdb46bf155e71474c5cd1df2aea28dee"
+      "syncRevision": 21,
+      "syncNote": "Tracks the simplified Flywheel rotor body plus restored blue/teal POI shell, energy port, and static energy-arc hints without the deferred gear/crank assembly.",
+      "sourceFingerprint": "1058cd2995e4304d104f35f418149fca42dc2af5400162f863517b2ea1c9a2d4",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
+      "metadataFingerprint": "684565468a9bc0b16c3157a303998cb86201778752f44239ff45f7975a9acb1c"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -595,8 +595,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "8dcd325270f183b72b3ebbb229e17b92baa7380a278b0e1bd2adce0b96a82e06",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "72c492eddd65cef451b846584cde3463abf5024c18f6b8d5867aa8f52e4f5629",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "7322b07570a851ed64f8c45da90f2040edbaf8c525759614ece2b40ae52247dc"
     },
     {
@@ -610,8 +610,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "80a7e1bed59fe17b886b7935186efbb08c598b4f765e254785339fcae00d413a",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "4b77621cf846fc09c4ab487937ad582a6a2a7ee46c02e33f8065111a8bb1c6b1",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "272fcbd7f6c5d200b11e07b78303d32f0168b2fb506a995c652283951db2dddb"
     },
     {
@@ -625,8 +625,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "f553e64fcc6befd977da6702641953ead30648cfb55ba8d3e91d1e0f139cc205",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "c23e5326459e9b7cc34e7ef59d58a42539979f1b05fcd1e2c838498b2ad86111",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "8c620e9f719d8cf21cde8b800e59f4a5f6de74fa6b2a0ed215dd78667d82c10e"
     },
     {
@@ -640,8 +640,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "609c4b905338117cb40a8769c8ec4a7c8071824b4db3434156290b4bfb6b145b",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "e19928707238c6fa17a3c300222f3ff026f394b9089dc77b4776b6cb3f456160",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "498d567978bbd235c333ac4490cc0858fec944ffcf1f488d8c9e12a9a1477254"
     },
     {
@@ -675,8 +675,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 19,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "215feba48e0d15a4124c3b3b6d2eaf745085b1a2da04553441f9fdb7de8435b7",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "264ca5ea94f10f62ca6efa8f20b211a2b718ffbe10b970ce205a3188c78ba45e",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "2f41fabaf51bec25da6f668b6eb34c181e77d2064fa87458ef2510ea8b119bca"
     },
     {
@@ -690,8 +690,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "886c9e5fe9eecc27e5e1db622dfcdf2fd9daa9638068e8a7622abb3f76fb284a",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "8cd993c2721e563594af4ccaf388a7cf21c9799dc22a22f5ecfff1f23e75ef15",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "628a8d9ffc2f2a92f735399ee896ab714075f54b07788717482d3d575409a934"
     },
     {
@@ -705,8 +705,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 3,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "8dbce578e2d0f658bb4b133d642bf7444790c5955f15f71af8bc587e9719cbae",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "eafb07327be3977472284d683752b2f901e21301fe9ef5bb9f746f008ccecdb0",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "9078168151bab0a329114a53face8dcf1df05fc69442689ffa7b500ca0f118c5"
     },
     {
@@ -720,8 +720,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 3,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "ddf822247af1778bcf520db7f71d2edddb298288be45fe96e1754399bdcf97ef",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "4c3ac975f22f4516da92e183f4e7170c9357251ab8692bb84a68923d8bdf52be",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "09ba90a693124e419cc4afc54a36b37666362a3f8fbdaae950082cd74e9fb040"
     },
     {
@@ -735,8 +735,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 4,
       "syncNote": "Acknowledges the shared POI registry marker-source update while preserving this proxy silhouette.",
-      "sourceFingerprint": "98509928f911d92f4c877efdb4e705f639622ad11cb79f8f098405f2786dc87c",
-      "proxyFingerprint": "e975e995ce52a995485ef968ec08127af9a0db69f56400a6d2109a202b17061b",
+      "sourceFingerprint": "a38743e6e36f75f6b9e2077d9f55fd12bd1ee7646fe1223422f6d1c41b604bee",
+      "proxyFingerprint": "aef5bb65727262603535013d8d7bbc90bf77c4315147a7a55b4b5ab1c59d3123",
       "metadataFingerprint": "24bce1b109eee5a8467cc3e9977d5ab1ebc3cfa5817b9d9fee646a1a53c5b728"
     },
     {

@@ -80,9 +80,9 @@ itself the true anchor.
 The frame loop currently gates the entire Flywheel `update(...)` behind
 `sceneDetailController.shouldRunDecorativeUpdate(...)`. That is acceptable for the
 old decorative rotor but not for the new machine. Implementation should call
-`flywheelShowpiece.update(...)` every rendered frame for crank, gear, flywheel,
-and packet phase progression; only expensive secondary glow/halo work should use
-a `runDecorativeEffects` boolean.
+`flywheelShowpiece.update(...)` every rendered frame for flywheel rotor and
+packet phase progression; only expensive secondary glow/halo work should use a
+`runDecorativeEffects` boolean.
 
 The teardown path currently sets `flywheelShowpiece = null` but does not call a
 Flywheel-owned disposer. Implementation must add `dispose()` and main teardown should call it
@@ -92,22 +92,23 @@ when available, including partial-initialization teardown.
 
 The POI registry defines `flywheel-studio-flywheel` in the studio at
 `{ x: 10, y: 0, z: -2 }`, heading `0`, interaction radius `2.2`, and footprint
-`2 x 2`. The old custom hologram pedestal was removed because its translucent
-cylinder and rings occluded the physical `FlywheelEnergyInstallation`; the POI
-orb, halo, and label now remain UI affordances only. `src/scene/poi/placements.ts`
-can override placements from declarative scene objects; Flywheel's effective
-production placement should always come from the resolved POI instance rather
-than a hardcoded duplicate coordinate list.
+`2 x 2`. The Flywheel keeps a POI-specific blue/teal hologram pedestal as the
+large readable body shell for the exhibit. The physical
+`FlywheelEnergyInstallation` supplies the inner spinning rotor, energy port, and
+energy-transfer packets, while the orb, halo, and label remain UI affordances.
+`src/scene/poi/placements.ts` can override placements from declarative scene
+objects; Flywheel's effective production placement should always come from the
+resolved POI instance rather than a hardcoded duplicate coordinate list.
 
 `src/scene/poi/physicalMetadata.ts` does not currently define a Flywheel physical
 metadata entry. Implementation should add one that references the shared Flywheel contract,
 records bottom-center anchoring, marker height, avatar clearance, and intended
 bounds.
 
-The Flywheel is represented by the physical `FlywheelEnergyInstallation`, not a
-large POI pedestal shell. Marker visuals must stay non-occluding: the orb and
-label clear the installation, the flat halo remains a floor affordance, and
-energy arcs continue to resolve their endpoint through `FlywheelEnergyPort`.
+The Flywheel is represented by both the intentional POI hologram body shell and
+the physical `FlywheelEnergyInstallation` rotor. The body shell is not a gear
+train; it is the large blue/teal visual envelope that makes the exhibit readable.
+Energy arcs continue to resolve their endpoint through `FlywheelEnergyPort`.
 
 ### Visual anchors, model triangles, and miniature proxy
 
@@ -162,8 +163,8 @@ The current visible baseline is intentionally simplified for readability:
   counterweights, and asymmetric rim motion ticks;
 - a slim blue `FlywheelEnergyGlowRing` accents the rotor without replacing it;
 - `FlywheelEnergyPort` remains the endpoint for transfer arcs;
-- the old custom POI hologram pedestal remains removed so the physical machine is
-  not hidden by a translucent shell.
+- the POI-specific blue/teal hologram pedestal is intentional and provides the
+  large Flywheel body shell around the simple rotor baseline.
 
 ## 3. Physical assembly design
 
@@ -641,8 +642,8 @@ Regression tests build the actual showpiece, assert the restored rotor hierarchy
 exists, assert deleted gear/crank/tooth/shaft/coupler object names are absent,
 verify the asymmetric markers are children of the rotating wheel group, and check
 that the glow ring remains smaller than the physical rim. The POI marker tests
-continue to assert that the old Flywheel hologram pedestal is absent, so no large
-teal shell can obscure the machine.
+also build the actual registry marker and assert the intentional Flywheel
+pedestal body, accent, ring, orb, and label remain present.
 
 The miniature proxy mirrors this baseline with a heavy wheel, spoke, motion tick,
 energy port, and static incoming/outgoing arc hints. It does not include crank,
