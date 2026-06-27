@@ -695,19 +695,37 @@ and the active scene detail policy; all child geometry is authored in local
 coordinates under that root.
 
 The shared implementation contract lives in
-`src/scene/structures/flywheelEnergyContract.ts`. Final P6b constants keep the
-P6a envelope: 3.4 × 2.4 × 2.75 scene units overall, a 3.25 × 1.55 × 0.22 base,
-a 0.92 radius heavy wheel, a 0.52 radius gearbox, and a marker minimum height of
-2.95. Physical metadata and miniature proxy data import those constants instead
-of duplicating dimensions.
+`src/scene/structures/flywheelEnergyContract.ts`. The P6b.1 readability pass
+keeps the bottom-centered local root while widening the physical envelope to
+3.55 × 2.4 × 2.75 scene units overall. The final layout uses a 3.4 × 1.55 ×
+0.22 base, a left-mounted heavy wheel at `centerX = -0.78`, `centerY = 1.28`
+with `radius = 0.82` and `rimTube = 0.1`, and a right-mounted planetary gearbox
+at `centerX = 0.98`, `centerY = 1.28`, `centerZ = 0.38` with `radius = 0.46`.
+The hand crank sits on the front face at the gearbox depth plus crank clearance,
+and the energy port remains above/front of the gearbox so P6c transfer endpoints
+continue to resolve to `FlywheelEnergyPort`.
 
-The final hierarchy is the physical assembly from the P6a design:
-`FlywheelBase`, two bearing stands, `FlywheelAxle`, `FlywheelWheelGroup` with
-rim/hub/spokes/counterweights/glow ring, `FlywheelCrankGroup`,
+P6b.1 makes the physical non-overlap invariant explicit instead of relying on
+visual eyeballing. The wheel envelope is
+`FLYWHEEL_WHEEL.centerX + FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube`; the
+gearbox envelope is `FLYWHEEL_GEARBOX.centerX - (FLYWHEEL_RING_RADIUS +
+FLYWHEEL_GEAR_TOOTH_LENGTH + FLYWHEEL_GEARBOX_HOUSING_PAD)`. Tests require the
+resulting wheel-to-gear clearance to be at least `0.18` scene units, and the
+crank envelope is also kept outside the wheel rim. This preserves the readable
+power path: crank on the front of the gearbox, sun/planet carrier inside the
+right-side ring gear, output shaft/coupler running leftward, and flywheel axle on
+the left.
+
+The final hierarchy is the physical assembly from the P6a design updated for the
+separated P6b.1 silhouette: `FlywheelBase`, `FlywheelBearingYokeFront`,
+`FlywheelBearingYokeBack`, `FlywheelAxleCapFront`, `FlywheelAxleCapBack`,
+`FlywheelAxle`, `FlywheelWheelGroup` with rim/hub/spokes/counterweights/slim
+glow ring, `FlywheelGearboxPedestal`, `FlywheelCrankGroup`,
 `FlywheelPlanetaryGearbox`, fixed `FlywheelRingGear`, driven `FlywheelSunGear`,
 `FlywheelPlanetCarrier`, three `FlywheelPlanetGear-*` meshes,
-`FlywheelOutputShaft`, and `FlywheelEnergyPort`. The previous abstract rotor,
-orbit chips, automation pillars, and info panel are intentionally removed.
+`FlywheelOutputShaft`/`FlywheelTorqueShaft`, and `FlywheelEnergyPort`. The
+previous abstract rotor, orbit chips, automation pillars, info panel, and
+left/right bearing posts are intentionally removed.
 
 The implemented gear train uses the P6a planetary constants: sun 18 teeth,
 planet 24 teeth, ring 66 teeth, and a fixed-ring torque ratio of
