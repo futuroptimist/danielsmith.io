@@ -723,3 +723,39 @@ gearbox, and energy port without individual tooth blocks. The core update runs
 every rendered frame, while decorative glow updates can still be throttled by the
 scene detail controller. Cross-POI blue transfer arcs remain future P6c scope and
 are not implemented here.
+
+## 8. P6c implementation notes
+
+The production implementation now splits the deterministic transfer state from
+Three.js rendering:
+
+- `src/scene/structures/flywheelEnergyNetwork.ts` is the pure module. It owns the
+  seeded PRNG, filters out the Flywheel POI and upper-floor targets, avoids
+  immediate repeats when multiple targets exist, advances the five-in/one-out
+  cycle, exposes debug snapshots, and provides parabolic arc/window sampling
+  helpers.
+- `src/main.ts` resolves runtime energy targets after POI structures and visual
+  anchors are registered. It iterates `poiInstances`, uses the scene's
+  `getPoiFloorId(...)` resolver to keep only ground-floor POIs, excludes
+  `flywheel-studio-flywheel`, prefers `resolvePoiVisualAnchor(...)`, and falls
+  back to the POI group with a diagnostic when an optional anchor is absent.
+- `src/scene/structures/flywheel.ts` owns the pooled packet rendering. It keeps a
+  single `FlywheelEnergyTransferPacket` group with preallocated node and
+  connector meshes, so frame updates only move and fade existing objects.
+
+Transfer timing is deterministic and detail-independent: five incoming transfers
+use a short `0.10` visible phase window and then one outgoing transfer uses a
+larger `0.16` window with higher strength. Detail policy changes only rendering
+cost (node count, connector visibility, opacity), not target order, direction,
+phase, duration, or cycle counts.
+
+Accessibility preferences from `getPulseScale()` and `getFlickerScale()` are
+presentation-only. Reduced settings soften glow and opacity but do not pause the
+network or alter transfer semantics. The Flywheel update still runs every
+rendered frame so the crank, planetary gears, wheel, and active packet phase stay
+synchronized; `runDecorativeEffects` gates only secondary glow updates.
+
+`getDebugState().energy` returns copied diagnostics and state, including target
+count, current cycle, direction, selected target, phase, visible window,
+incoming/outgoing completion counts, source/destination world and local
+positions, active node count, detail level, and current accessibility scales.

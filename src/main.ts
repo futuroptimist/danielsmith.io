@@ -280,6 +280,7 @@ import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './scene/structures/flywheel';
+import type { FlywheelEnergyTarget } from './scene/structures/flywheelEnergyNetwork';
 import {
   createGabrielSentry,
   type GabrielSentryBuild,
@@ -3325,6 +3326,42 @@ function initializeImmersiveScene(
     addPoiStructure(wovePoi, loom.group);
     woveLoom = loom;
   }
+
+  const resolveFlywheelEnergyTargets = (): FlywheelEnergyTarget[] => {
+    const targets: FlywheelEnergyTarget[] = [];
+    const diagnostics: string[] = [];
+    poiInstances.forEach((poi) => {
+      if (poi.definition.id === 'flywheel-studio-flywheel') return;
+      if (getPoiFloorId(poi.definition) !== 'ground') return;
+      const anchor = resolvePoiVisualAnchor(poi.definition.id);
+      const source = anchor?.object ?? poi.group;
+      if (!anchor) {
+        diagnostics.push(
+          `Missing visual anchor for ${poi.definition.id}; using POI group.`
+        );
+      }
+      const worldPosition = source.getWorldPosition(new Vector3());
+      targets.push({
+        poiId: poi.definition.id,
+        label: poi.definition.title ?? poi.definition.id,
+        floorId: 'ground',
+        worldPosition: {
+          x: worldPosition.x,
+          y: worldPosition.y,
+          z: worldPosition.z,
+        },
+      });
+    });
+    if (diagnostics.length > 0) {
+      console.info(
+        '[flywheel] Energy target resolution used fallbacks.',
+        diagnostics
+      );
+    }
+    return targets;
+  };
+
+  flywheelShowpiece?.setEnergyTargets(resolveFlywheelEnergyTargets());
 
   // Keep tabletop construction after all POI visual-anchor producers so
   // ground-floor miniature placement can resolve every rendered anchor.
