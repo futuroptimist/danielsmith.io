@@ -89,29 +89,61 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Registry footprint source reviewed after PR Reaper full-width footprint alignment; proxy geometry remains representative.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/flywheel.ts'],
+      'Tracks the P6b physical flywheel, hand crank, planetary gearbox, base, bearings, and energy port silhouette.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/flywheel.ts',
+      'src/scene/structures/flywheelEnergyContract.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      cyl('flywheel-dais', 0.7, 0.18, [0, 0.09, 0], 0x0f766e),
+      box('flywheel-base', [1.45, 0.14, 0.72], [0, 0.07, 0], 0x1f2937),
+      box(
+        'flywheel-bearing-left',
+        [0.12, 0.62, 0.18],
+        [-0.34, 0.42, 0.05],
+        0x475569
+      ),
+      box(
+        'flywheel-bearing-right',
+        [0.12, 0.62, 0.18],
+        [0.34, 0.42, 0.05],
+        0x475569
+      ),
       {
         kind: 'ring',
-        name: 'flywheel-rotor-ring',
-        radius: 0.55,
-        tube: 0.08,
-        position: [0, 0.65, 0],
-        rotation: [Math.PI / 2, 0, 0],
-        color: 0x2dd4bf,
+        name: 'flywheel-heavy-wheel',
+        radius: 0.42,
+        tube: 0.055,
+        position: [0.12, 0.75, 0.05],
+        rotation: [0, 0, 0],
+        color: 0x94a3b8,
       },
-      box('flywheel-spoke', [1, 0.05, 0.06], [0, 0.65, 0], 0xccfbf1),
       box(
-        'flywheel-counterweight',
-        [0.18, 0.16, 0.18],
-        [0.44, 0.65, 0],
-        0xf59e0b
+        'flywheel-wheel-spoke',
+        [0.72, 0.04, 0.04],
+        [0.12, 0.75, 0.05],
+        0xe2e8f0
       ),
+      box(
+        'flywheel-crank-arm',
+        [0.3, 0.035, 0.035],
+        [-0.55, 0.75, -0.2],
+        0xe2e8f0
+      ),
+      cyl('flywheel-crank-handle', 0.05, 0.2, [-0.7, 0.75, -0.2], 0xfbbf24),
+      {
+        kind: 'ring',
+        name: 'flywheel-planetary-gear-cluster',
+        radius: 0.24,
+        tube: 0.035,
+        position: [-0.5, 0.75, 0.05],
+        rotation: [0, 0, 0],
+        color: 0x60a5fa,
+      },
+      cyl('flywheel-energy-port-glow', 0.11, 0.1, [-0.5, 1.05, 0.05], 0x38bdf8),
     ],
   },
   'jobbot-studio-terminal': {

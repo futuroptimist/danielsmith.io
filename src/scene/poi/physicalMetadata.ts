@@ -1,3 +1,4 @@
+import { FLYWHEEL_ENERGY_DIMENSIONS } from '../structures/flywheelEnergyContract';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../structures/portfolioMiniatureTableContract';
 import {
   PR_REAPER_INTENDED_BOUNDS,
@@ -39,6 +40,18 @@ const RASPBERRY_PI_5_BOARD_FOOTPRINT_METERS = {
 };
 
 const physicalMetadata = {
+  'flywheel-studio-flywheel': {
+    realWorldReference:
+      'industrial hand-cranked kinetic flywheel with fixed-ring planetary gearbox',
+    realWorldDimensionsMeters:
+      FLYWHEEL_ENERGY_DIMENSIONS.realWorldDimensionsMeters,
+    intendedSceneBounds: FLYWHEEL_ENERGY_DIMENSIONS.installationBounds,
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: FLYWHEEL_ENERGY_DIMENSIONS.markerClearance,
+      avatarPathRadius: FLYWHEEL_ENERGY_DIMENSIONS.avatarPathRadius,
+    },
+  },
   'tokenplace-studio-cluster': {
     realWorldReference: 'dual 27-inch 16:9 workstation',
     realWorldDimensionsMeters: {
