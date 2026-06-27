@@ -723,3 +723,46 @@ gearbox, and energy port without individual tooth blocks. The core update runs
 every rendered frame, while decorative glow updates can still be throttled by the
 scene detail controller. Cross-POI blue transfer arcs remain future P6c scope and
 are not implemented here.
+
+## 10. P6c implementation notes
+
+The runtime energy-transfer layer is implemented by the pure
+`src/scene/structures/flywheelEnergyNetwork.ts` module and the rendering adapter
+inside `src/scene/structures/flywheel.ts`. The pure network owns seeded target
+selection, deterministic cycle state, active transfer phase, visible-window
+math, and parabolic arc sampling. It does not import Three.js, the DOM, or
+`main.ts`.
+
+`src/main.ts` resolves live targets after all ground-floor POI structures have
+registered their visual anchors. It walks `poiInstances`, filters with the same
+`createPoiFloorResolver(FLOOR_PLAN_LEVELS)` scene floor resolver, excludes
+`flywheel-studio-flywheel`, prefers `resolvePoiVisualAnchor(...)`, and reads
+world-space positions through `Object3D.getWorldPosition(...)`. Missing optional
+anchors fail open through diagnostics instead of blocking immersive startup.
+
+The network repeats a deterministic 5-in / 1-out sequence. Five incoming
+transfers move from seeded random ground-floor POIs into the Flywheel energy
+port, then one outgoing transfer moves from the port to another seeded target.
+Immediate repeats are avoided when multiple targets are available. Incoming
+packets use an approximately `0.10` phase window; outgoing packets use a wider
+`0.16` window with higher strength so the packet renders thicker and brighter.
+No runtime `Math.random()` is used by the network.
+
+Rendering intentionally shows only one moving packet group, not the full arc and
+not a spiderweb of all possible routes. The showpiece preallocates packet node
+meshes and repositions/scales them along the visible subsection of the sampled
+parabolic curve each frame. Detail levels only change rendering cost by changing
+the pooled node count and glow presentation; target order, phase progression,
+direction, transfer durations, and the 5-in / 1-out rhythm are preserved.
+
+Accessibility preferences are presentation-only. `getPulseScale()` and
+`getFlickerScale()` soften port pulse and packet opacity without pausing the
+network, changing target selection, altering counts, or changing incoming versus
+outgoing semantics. The layer uses smooth opacity changes and no dynamic point
+lights or strobing flashes.
+
+`getDebugState().energy` reports target count, diagnostics, cycle count,
+direction, selected target id, phase, visible-window bounds, incoming/outgoing
+completion counts, current source/destination world and local positions, active
+node count, detail level, and reduced pulse/flicker scales. Returned arrays and
+position records are copied so callers cannot mutate internal state.

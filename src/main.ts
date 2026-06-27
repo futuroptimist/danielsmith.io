@@ -280,6 +280,7 @@ import {
   createFlywheelShowpiece,
   type FlywheelShowpieceBuild,
 } from './scene/structures/flywheel';
+import type { FlywheelEnergyTarget } from './scene/structures/flywheelEnergyNetwork';
 import {
   createGabrielSentry,
   type GabrielSentryBuild,
@@ -3324,6 +3325,42 @@ function initializeImmersiveScene(
     }
     addPoiStructure(wovePoi, loom.group);
     woveLoom = loom;
+  }
+
+  const resolveFlywheelRuntimeEnergyTargets = (): FlywheelEnergyTarget[] => {
+    const targets: FlywheelEnergyTarget[] = [];
+    const missing: string[] = [];
+    poiInstances.forEach((poi) => {
+      if (poi.definition.id === 'flywheel-studio-flywheel') return;
+      if (getPoiFloorId(poi.definition) !== 'ground') return;
+      const anchor = resolvePoiVisualAnchor(poi.definition.id);
+      const object = anchor?.object ?? poi.group;
+      if (!object) {
+        missing.push(poi.definition.id);
+        return;
+      }
+      object.updateMatrixWorld(true);
+      const world = object.getWorldPosition(new Vector3());
+      targets.push({
+        poiId: poi.definition.id,
+        label: poi.definition.title ?? poi.definition.id,
+        floorId: 'ground',
+        worldPosition: { x: world.x, y: world.y, z: world.z },
+      });
+    });
+    if (missing.length > 0) {
+      crashBreadcrumbs.record({
+        type: 'snapshot',
+        message: 'flywheel-energy-missing-targets:' + missing.join(','),
+        renderer: rendererInfo,
+        softwareRendererPolicy,
+      });
+    }
+    return targets;
+  };
+
+  if (flywheelShowpiece) {
+    flywheelShowpiece.setEnergyTargets(resolveFlywheelRuntimeEnergyTargets());
   }
 
   // Keep tabletop construction after all POI visual-anchor producers so
