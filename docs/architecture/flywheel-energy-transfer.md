@@ -760,9 +760,9 @@ and mounts the planetary gearbox as a separate front module:
 
 - the heavy flywheel stays centered near local `Z = 0` with visible hub, spokes,
   asymmetric rim ticks, and a slim inner energy accent;
-- the planetary gearbox center is around local `Z = 5` and shifted to the
-  machine's right side, so the ring, sun, carrier, planet gears, teeth, and
-  crank clear the flywheel in both depth and X/Y face projection;
+- the planetary gearbox center is around local `Z = 5` and is raised/right of
+  the flywheel, so the ring, sun, carrier, planet gears, teeth, and crank clear
+  the flywheel in both depth and X/Y face projection;
 - the crank center is derived from `FLYWHEEL_GEARBOX.centerZ`, gearbox depth, and
   `FLYWHEEL_GEARBOX.crankClearance` so the handle sits on the gearbox front face;
 - `FlywheelTorqueShaft` is a fixed connector between explicit flywheel-hub and
@@ -779,7 +779,9 @@ call `updateWorldMatrix(true, true)`, and assert that the gearbox, crank, ring,
 sun, carrier, planet gears, and visible teeth do not intersect an expanded
 flywheel envelope. Separate face-projection checks project those same rendered
 bounds into the X/Y wheel-face plane while ignoring Z, so a gear set cannot pass
-by moving forward while still visually centered over the flywheel face.
+by moving forward while still visually centered over the flywheel face. The
+contract also requires the gearbox projected minimum X and Y to exceed the
+flywheel projected maximum X and Y by the named face-projection margin.
 `wheelGearClearance` is the longitudinal gap between the flywheel front face and
 the gearbox rear face and is required to stay at least `0.18` scene units.
 
@@ -793,6 +795,6 @@ children of `FlywheelWheelGroup` so the slower, torque-multiplied wheel rotation
 is visibly readable.
 
 The miniature proxy sync revision is updated to reflect the new silhouette:
-heavy wheel on the left, side-mounted gear cluster on the right, front crank,
+heavy wheel on the left, raised side-mounted gear cluster on the right/front, front crank,
 output coupler hint, stable energy port, and unchanged incoming/outgoing static
 arc hints.

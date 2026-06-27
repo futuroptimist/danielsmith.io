@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 16,
+    syncRevision: 17,
     syncNote:
-      'Tracks the long-skid Flywheel silhouette with a right/front gearbox, face-projection clearance, yokes, and diagonal torque shaft.',
+      'Tracks the raised long-skid Flywheel silhouette with a right/front gearbox tower, X/Y face-projection clearance, yokes, and fixed diagonal torque shaft.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -119,28 +119,28 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         name: 'flywheel-heavy-wheel',
         radius: FLYWHEEL_WHEEL.radius * 0.35,
         tube: 0.055,
-        position: [-0.4, 0.64, -0.04],
+        position: [-0.4, 0.6, -0.04],
         rotation: [0, 0, 0],
         color: 0x1f2937,
       },
-      box('flywheel-spoke', [0.56, 0.04, 0.04], [-0.4, 0.64, -0.04], 0xcbd5e1),
+      box('flywheel-spoke', [0.56, 0.04, 0.04], [-0.4, 0.6, -0.04], 0xcbd5e1),
       box(
         'flywheel-crank-arm',
         [0.36, 0.035, 0.035],
-        [0.42, 0.62, 1.12],
+        [0.42, 1.18, 1.12],
         0xf59e0b
       ),
       cyl(
         'flywheel-planetary-gear-cluster',
         0.18,
         0.12,
-        [0.42, 0.61, 0.96],
+        [0.42, 1.16, 0.96],
         0xd1d5db
       ),
       box(
         'flywheel-output-coupler',
         [0.035, 0.035, 1.0],
-        [0.02, 0.62, 0.5],
+        [0.02, 0.88, 0.5],
         0x94a3b8
       ),
       sphere('flywheel-energy-port', 0.07, [-0.08, 0.82, 0.34], 0x38bdf8),

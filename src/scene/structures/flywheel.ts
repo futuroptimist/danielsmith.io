@@ -418,14 +418,18 @@ export function createFlywheelShowpiece(
   }
   const output = new Group();
   output.name = 'FlywheelOutputShaft';
-  output.position.set(0, 0, -0.12);
-  const gearboxCoupler = mesh(
-    'FlywheelGearboxOutputCoupler',
+  output.position.set(
+    0,
+    0,
+    FLYWHEEL_GEARBOX_OUTPUT_POINT.z - FLYWHEEL_GEARBOX.centerZ
+  );
+  const gearboxOutputSleeve = mesh(
+    'FlywheelCarrierOutputSleeve',
     new CylinderGeometry(0.07, 0.07, FLYWHEEL_GEARBOX.depth * 1.15, cylSeg),
     steel
   );
-  gearboxCoupler.rotation.x = Math.PI / 2;
-  output.add(gearboxCoupler);
+  gearboxOutputSleeve.rotation.x = Math.PI / 2;
+  output.add(gearboxOutputSleeve);
   gearbox.add(output);
 
   const shaftStart = new Vector3(
@@ -445,12 +449,9 @@ export function createFlywheelShowpiece(
   const torqueShaft = new Group();
   torqueShaft.name = 'FlywheelTorqueShaft';
   torqueShaft.position.copy(shaftMidpoint);
+  torqueShaft.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), shaftAxis);
   const torqueShaftSpin = new Group();
   torqueShaftSpin.name = 'FlywheelTorqueShaftSpinGroup';
-  torqueShaftSpin.quaternion.setFromUnitVectors(
-    new Vector3(0, 1, 0),
-    shaftAxis
-  );
   const torqueShaftMesh = mesh(
     'FlywheelTorqueShaftBody',
     new CylinderGeometry(
@@ -475,16 +476,14 @@ export function createFlywheelShowpiece(
     new CylinderGeometry(0.09, 0.09, 0.16, cylSeg),
     brass
   );
-  hubCoupler.position.copy(shaftStart).sub(shaftMidpoint);
-  hubCoupler.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), shaftAxis);
+  hubCoupler.position.y = -shaftLength / 2;
   torqueShaft.add(hubCoupler);
   const outputCoupler = mesh(
-    'FlywheelShaftGearboxCoupler',
+    'FlywheelGearboxOutputCoupler',
     new CylinderGeometry(0.085, 0.085, 0.16, cylSeg),
     brass
   );
-  outputCoupler.position.copy(shaftEnd).sub(shaftMidpoint);
-  outputCoupler.quaternion.copy(hubCoupler.quaternion);
+  outputCoupler.position.y = shaftLength / 2;
   torqueShaft.add(outputCoupler);
   group.add(torqueShaft);
 

@@ -9,11 +9,11 @@ export const FLYWHEEL_BASE_DIMENSIONS = {
   height: 0.22,
 } as const;
 export const FLYWHEEL_WHEEL = {
-  radius: 0.82,
-  rimTube: 0.11,
+  radius: 0.72,
+  rimTube: 0.09,
   thickness: 0.24,
   centerX: -0.95,
-  centerY: 1.28,
+  centerY: 1.18,
   centerZ: -0.12,
 } as const;
 export const FLYWHEEL_AXLE = { radius: 0.075, length: 1.18 } as const;
@@ -29,11 +29,11 @@ export const FLYWHEEL_CRANK = {
 } as const;
 export const FLYWHEEL_GEARBOX = {
   centerX: 0.95,
-  centerY: 1.26,
+  centerY: 2.82,
   centerZ: 5,
-  radius: 0.46,
+  radius: 0.42,
   depth: 0.26,
-  crankClearance: 0.18,
+  crankClearance: 0.22,
 } as const;
 export const FLYWHEEL_ENERGY_PORT = {
   x: -0.45,
@@ -67,12 +67,18 @@ export const FLYWHEEL_GEARBOX_OUTER_RADIUS =
   FLYWHEEL_GEARBOX_HOUSING_PAD;
 export const FLYWHEEL_WHEEL_RIGHT_EDGE =
   FLYWHEEL_WHEEL.centerX + FLYWHEEL_WHEEL_OUTER_RADIUS;
+export const FLYWHEEL_WHEEL_TOP_EDGE =
+  FLYWHEEL_WHEEL.centerY + FLYWHEEL_WHEEL_OUTER_RADIUS;
 export const FLYWHEEL_GEARBOX_LEFT_EDGE =
   FLYWHEEL_GEARBOX.centerX - FLYWHEEL_GEARBOX_OUTER_RADIUS;
+export const FLYWHEEL_GEARBOX_BOTTOM_EDGE =
+  FLYWHEEL_GEARBOX.centerY - FLYWHEEL_GEARBOX_OUTER_RADIUS;
 export const FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE = 0.18;
 export const FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE = 0.16;
 export const FLYWHEEL_FACE_PROJECTION_CLEARANCE =
   FLYWHEEL_GEARBOX_LEFT_EDGE - FLYWHEEL_WHEEL_RIGHT_EDGE;
+export const FLYWHEEL_FACE_PROJECTION_VERTICAL_CLEARANCE =
+  FLYWHEEL_GEARBOX_BOTTOM_EDGE - FLYWHEEL_WHEEL_TOP_EDGE;
 export const FLYWHEEL_WHEEL_GEAR_CLEARANCE =
   FLYWHEEL_GEARBOX.centerZ -
   FLYWHEEL_GEARBOX.depth / 2 -
@@ -80,12 +86,12 @@ export const FLYWHEEL_WHEEL_GEAR_CLEARANCE =
 export const FLYWHEEL_FLYWHEEL_COUPLER_POINT = {
   x: FLYWHEEL_WHEEL.centerX,
   y: FLYWHEEL_WHEEL.centerY,
-  z: FLYWHEEL_WHEEL.centerZ + FLYWHEEL_AXLE.length / 2,
+  z: FLYWHEEL_WHEEL.centerZ + FLYWHEEL_AXLE.length / 2 + 0.08,
 } as const;
 export const FLYWHEEL_GEARBOX_OUTPUT_POINT = {
   x: FLYWHEEL_GEARBOX.centerX,
   y: FLYWHEEL_GEARBOX.centerY,
-  z: FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_GEARBOX.depth / 2,
+  z: FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_GEARBOX.depth / 2 - 0.08,
 } as const;
 export const FLYWHEEL_OUTPUT_SHAFT = {
   startX: FLYWHEEL_FLYWHEEL_COUPLER_POINT.x,

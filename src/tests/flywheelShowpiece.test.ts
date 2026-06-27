@@ -66,7 +66,7 @@ const coreNames = [
   'FlywheelTorqueShaftSpinGroup',
   'FlywheelTorqueShaftSpinStripe',
   'FlywheelFlywheelHubCoupler',
-  'FlywheelShaftGearboxCoupler',
+  'FlywheelGearboxOutputCoupler',
   'FlywheelGearboxPedestal',
   'FlywheelRimMotionTick-0',
   'FlywheelEnergyPort',
@@ -157,15 +157,17 @@ describe('createFlywheelShowpiece', () => {
       (FLYWHEEL_OUTPUT_SHAFT.startZ + FLYWHEEL_OUTPUT_SHAFT.endZ) / 2
     );
     expect(FLYWHEEL_OUTPUT_SHAFT.startZ).toBeCloseTo(
-      FLYWHEEL_WHEEL.centerZ + 0.59
+      FLYWHEEL_FLYWHEEL_COUPLER_POINT.z
     );
+
+    const shaftPosition = torqueShaft.position.clone();
+    const shaftQuaternion = torqueShaft.quaternion.clone();
 
     build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
     expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
     expect(output.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
-    expect(torqueShaft.rotation.x).toBeCloseTo(0);
-    expect(torqueShaft.rotation.y).toBeCloseTo(0);
-    expect(torqueShaft.rotation.z).toBeCloseTo(0);
+    expect(torqueShaft.position.distanceTo(shaftPosition)).toBeLessThan(1e-6);
+    expect(torqueShaft.quaternion.angleTo(shaftQuaternion)).toBeLessThan(1e-6);
     expect(
       (torqueShaft.getObjectByName('FlywheelTorqueShaftSpinGroup') as Object3D)
         .rotation.y
@@ -286,6 +288,12 @@ describe('createFlywheelShowpiece', () => {
         new Box3().setFromObject(object)
       );
       expect(faceProjectionsOverlap(projection, wheelProjection)).toBe(false);
+      expect(projection.minX).toBeGreaterThanOrEqual(
+        wheelProjection.maxX + FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE
+      );
+      expect(projection.minY).toBeGreaterThanOrEqual(
+        wheelProjection.maxY + FLYWHEEL_MIN_FACE_PROJECTION_CLEARANCE
+      );
     }
     build.dispose();
   });
@@ -343,7 +351,7 @@ describe('createFlywheelShowpiece', () => {
       'FlywheelFlywheelHubCoupler'
     ) as Object3D;
     const gearboxCoupler = build.group.getObjectByName(
-      'FlywheelShaftGearboxCoupler'
+      'FlywheelGearboxOutputCoupler'
     ) as Object3D;
     const hubPoint = new Vector3();
     const gearboxPoint = new Vector3();
