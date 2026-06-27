@@ -10,8 +10,10 @@ import {
   FLYWHEEL_CRANK_RAD_PER_SECOND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
+  FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
   FLYWHEEL_INSTALLATION_BOUNDS,
+  FLYWHEEL_WHEEL,
   FLYWHEEL_MARKER_MIN_HEIGHT,
   FLYWHEEL_TORQUE_RATIO,
 } from '../scene/structures/flywheelEnergyContract';
@@ -20,8 +22,10 @@ const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
 
 const coreNames = [
   'FlywheelBase',
-  'FlywheelBearingStandLeft',
-  'FlywheelBearingStandRight',
+  'FlywheelBearingYokeFront',
+  'FlywheelBearingYokeBack',
+  'FlywheelAxleCapFront',
+  'FlywheelAxleCapBack',
   'FlywheelAxle',
   'FlywheelWheelGroup',
   'FlywheelHeavyRim',
@@ -37,6 +41,8 @@ const coreNames = [
   'FlywheelPlanetCarrier',
   'FlywheelPlanetGear-0',
   'FlywheelOutputShaft',
+  'FlywheelTorqueShaft',
+  'FlywheelGearboxPedestal',
   'FlywheelEnergyPort',
 ];
 
@@ -67,6 +73,12 @@ describe('createFlywheelShowpiece', () => {
       build.group.getObjectByName('FlywheelAutomationPillars')
     ).toBeUndefined();
     expect(build.group.getObjectByName('FlywheelInfoPanel')).toBeUndefined();
+    expect(
+      build.group.getObjectByName('FlywheelBearingStandLeft')
+    ).toBeUndefined();
+    expect(
+      build.group.getObjectByName('FlywheelBearingStandRight')
+    ).toBeUndefined();
     const childXs: number[] = [];
     build.group.traverse((object) => {
       if (object !== build.group) childXs.push(object.position.x);
@@ -114,13 +126,73 @@ describe('createFlywheelShowpiece', () => {
     expect(MathUtils.euclideanModulo(axle.rotation.x, Math.PI * 2)).toBeCloseTo(
       Math.PI / 2
     );
-    expect(
-      MathUtils.euclideanModulo(output.rotation.x, Math.PI * 2)
-    ).toBeCloseTo(Math.PI / 2);
+    expect(output.getObjectByName('FlywheelTorqueShaft')).toBeInstanceOf(
+      Object3D
+    );
 
     build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
     expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
     expect(output.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
+    build.dispose();
+  });
+
+  it('separates the gearbox silhouette and bridges it back to the flywheel hub', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup') as Object3D;
+    const gearbox = build.group.getObjectByName(
+      'FlywheelPlanetaryGearbox'
+    ) as Object3D;
+    const shaft = gearbox.getObjectByName('FlywheelTorqueShaft') as Object3D;
+    const wheelRightEdge =
+      FLYWHEEL_WHEEL.centerX + FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube;
+    const gearboxLeftEdge = FLYWHEEL_GEARBOX.centerX - FLYWHEEL_GEARBOX.radius;
+
+    expect(gearbox.position.x).toBeGreaterThan(wheel.position.x);
+    expect(gearboxLeftEdge - wheelRightEdge).toBeGreaterThan(0);
+    expect(shaft.position.x).toBeLessThan(0);
+    expect(shaft.scale.x).toBe(1);
+
+    const frontYoke = build.group.getObjectByName(
+      'FlywheelBearingYokeFront'
+    ) as Object3D;
+    const backYoke = build.group.getObjectByName(
+      'FlywheelBearingYokeBack'
+    ) as Object3D;
+    expect(Math.abs(frontYoke.position.z)).toBeGreaterThan(
+      FLYWHEEL_WHEEL.thickness / 2
+    );
+    expect(Math.abs(backYoke.position.z)).toBeGreaterThan(
+      FLYWHEEL_WHEEL.thickness / 2
+    );
+    expect(frontYoke.position.x).toBeCloseTo(FLYWHEEL_WHEEL.centerX);
+    expect(backYoke.position.x).toBeCloseTo(FLYWHEEL_WHEEL.centerX);
+    build.dispose();
+  });
+
+  it('keeps asymmetric wheel markers attached to the spinning wheel group', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    const wheel = build.group.getObjectByName('FlywheelWheelGroup') as Object3D;
+    const counterweight = wheel.getObjectByName(
+      'FlywheelCounterweight-0'
+    ) as Object3D;
+    const before = wheel.rotation.z;
+    build.update({
+      elapsed: 1,
+      delta: 1,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+
+    expect(counterweight).toBeInstanceOf(Object3D);
+    expect(wheel.rotation.z - before).toBeGreaterThan(0.3);
+    expect(counterweight.parent).toBe(wheel);
+    expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
     build.dispose();
   });
 

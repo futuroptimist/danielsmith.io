@@ -2,11 +2,17 @@ import { describe, expect, it } from 'vitest';
 
 import {
   FLYWHEEL_BASE_DIMENSIONS,
+  FLYWHEEL_CRANK,
+  FLYWHEEL_GEARBOX,
+  FLYWHEEL_GEARBOX_HOUSING_PAD,
+  FLYWHEEL_GEAR_TOOTH_LENGTH,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_PLANET_TEETH,
   FLYWHEEL_RING_TEETH,
   FLYWHEEL_SUN_TEETH,
+  FLYWHEEL_RING_RADIUS,
   FLYWHEEL_TORQUE_RATIO,
+  FLYWHEEL_WHEEL,
   getFlywheelCarrierAngle,
   getFlywheelPlanetLocalSpin,
 } from '../scene/structures/flywheelEnergyContract';
@@ -28,6 +34,22 @@ describe('flywheel energy contract', () => {
       1 + FLYWHEEL_RING_TEETH / FLYWHEEL_SUN_TEETH
     );
     expect(FLYWHEEL_TORQUE_RATIO).toBeGreaterThan(4);
+  });
+
+  it('keeps the gearbox and crank outside the flywheel envelope', () => {
+    const wheelOuterRadius = FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube;
+    const gearboxOuterRadius =
+      FLYWHEEL_RING_RADIUS +
+      FLYWHEEL_GEAR_TOOTH_LENGTH +
+      FLYWHEEL_GEARBOX_HOUSING_PAD;
+    const wheelRightEdge = FLYWHEEL_WHEEL.centerX + wheelOuterRadius;
+    const gearboxLeftEdge = FLYWHEEL_GEARBOX.centerX - gearboxOuterRadius;
+    const wheelGearClearance = gearboxLeftEdge - wheelRightEdge;
+    const crankLeftEdge = FLYWHEEL_GEARBOX.centerX - FLYWHEEL_CRANK.radius;
+
+    expect(wheelGearClearance).toBeGreaterThanOrEqual(0.18);
+    expect(crankLeftEdge - wheelRightEdge).toBeGreaterThanOrEqual(0.18);
+    expect(FLYWHEEL_GEARBOX.centerZ).toBeGreaterThan(0);
   });
 
   it('keeps carrier and planet spin synchronized from one sun angle', () => {
