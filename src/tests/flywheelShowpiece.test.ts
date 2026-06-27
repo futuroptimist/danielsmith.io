@@ -263,43 +263,61 @@ describe('createFlywheelShowpiece', () => {
   });
 
   it('keeps transfer semantics under reduced presentation scales and reaches outgoing direction', () => {
-    document.documentElement.dataset.accessibilityPulseScale = '0';
-    document.documentElement.dataset.accessibilityFlickerScale = '0';
+    const previousPulseScale =
+      document.documentElement.dataset.accessibilityPulseScale;
+    const previousFlickerScale =
+      document.documentElement.dataset.accessibilityFlickerScale;
     const build = createFlywheelShowpiece({
       position: { x: 0, z: 0 },
       roomBounds,
     });
-    build.setEnergyTargets([
-      {
-        poiId: 'a',
-        label: 'A',
-        floorId: 'ground',
-        worldPosition: { x: 1, y: 0, z: 0 },
-      },
-      {
-        poiId: 'b',
-        label: 'B',
-        floorId: 'ground',
-        worldPosition: { x: 2, y: 0, z: 0 },
-      },
-    ]);
-    for (let i = 0; i < 5; i += 1) {
-      expect(build.getDebugState().energy.direction ?? 'incoming').toBe(
-        'incoming'
-      );
-      build.update({
-        elapsed: i,
-        delta: 3,
-        emphasis: 0,
-        runDecorativeEffects: false,
-      });
+
+    try {
+      document.documentElement.dataset.accessibilityPulseScale = '0';
+      document.documentElement.dataset.accessibilityFlickerScale = '0';
+      build.setEnergyTargets([
+        {
+          poiId: 'a',
+          label: 'A',
+          floorId: 'ground',
+          worldPosition: { x: 1, y: 0, z: 0 },
+        },
+        {
+          poiId: 'b',
+          label: 'B',
+          floorId: 'ground',
+          worldPosition: { x: 2, y: 0, z: 0 },
+        },
+      ]);
+      for (let i = 0; i < 5; i += 1) {
+        expect(build.getDebugState().energy.direction ?? 'incoming').toBe(
+          'incoming'
+        );
+        build.update({
+          elapsed: i,
+          delta: 3,
+          emphasis: 0,
+          runDecorativeEffects: false,
+        });
+      }
+      expect(build.getDebugState().energy.direction).toBe('outgoing');
+      expect(build.getDebugState().energy.pulseScale).toBe(0);
+      expect(build.getDebugState().energy.flickerScale).toBe(0);
+    } finally {
+      if (previousPulseScale === undefined) {
+        delete document.documentElement.dataset.accessibilityPulseScale;
+      } else {
+        document.documentElement.dataset.accessibilityPulseScale =
+          previousPulseScale;
+      }
+      if (previousFlickerScale === undefined) {
+        delete document.documentElement.dataset.accessibilityFlickerScale;
+      } else {
+        document.documentElement.dataset.accessibilityFlickerScale =
+          previousFlickerScale;
+      }
+      build.dispose();
     }
-    expect(build.getDebugState().energy.direction).toBe('outgoing');
-    expect(build.getDebugState().energy.pulseScale).toBe(0);
-    expect(build.getDebugState().energy.flickerScale).toBe(0);
-    delete document.documentElement.dataset.accessibilityPulseScale;
-    delete document.documentElement.dataset.accessibilityFlickerScale;
-    build.dispose();
   });
 
   it('keeps miniature proxy semantics in sync', () => {

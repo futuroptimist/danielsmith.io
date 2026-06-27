@@ -721,8 +721,8 @@ procedural tooth hints with different segment budgets; Performance samples every
 third tooth; Low and Micro retain iconic rings/discs, base, bearings, crank,
 gearbox, and energy port without individual tooth blocks. The core update runs
 every rendered frame, while decorative glow updates can still be throttled by the
-scene detail controller. Cross-POI blue transfer arcs remain future P6c scope and
-are not implemented here.
+scene detail controller. The P6c layer now adds deterministic cross-POI blue
+transfer arcs while preserving the physical crank, gear, and flywheel motion.
 
 ## 8. P6c implementation notes
 

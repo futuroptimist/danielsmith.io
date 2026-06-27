@@ -453,7 +453,6 @@ export function createFlywheelShowpiece(
   group.add(port);
 
   const energyNetwork = createSeededFlywheelEnergyNetwork();
-  let energyTargets: FlywheelEnergyTarget[] = [];
   let missingTargetDiagnostics: string[] = [];
   const energyPacket = new Group();
   energyPacket.name = 'FlywheelEnergyTransferPacket';
@@ -608,7 +607,26 @@ export function createFlywheelShowpiece(
     const target = energyNetwork.getTarget(transfer.targetPoiId);
     if (!target) {
       hideEnergyPacket();
-      return { ...state.energy, targetCount: networkDebug.targetCount };
+      return {
+        targetCount: networkDebug.targetCount,
+        missingTargetDiagnostics: [...missingTargetDiagnostics],
+        cycleIndex: networkDebug.cycleIndex,
+        direction: null,
+        selectedTargetId: null,
+        phase: 0,
+        visibleWindowStart: null,
+        visibleWindowEnd: null,
+        incomingCompletedCount: networkDebug.incomingCompletedCount,
+        outgoingCompletedCount: networkDebug.outgoingCompletedCount,
+        sourceWorldPosition: null,
+        destinationWorldPosition: null,
+        sourceLocalPosition: null,
+        destinationLocalPosition: null,
+        activeNodeCount: 0,
+        detailLevel: detailPolicy.level,
+        pulseScale,
+        flickerScale,
+      };
     }
     port.getWorldPosition(portWorldPosition);
     targetWorldPosition.set(
@@ -677,11 +695,16 @@ export function createFlywheelShowpiece(
       vectorB.copy(packetNodes[i + 1].position);
       vectorMid.copy(vectorA).add(vectorB).multiplyScalar(0.5);
       vectorDirection.copy(vectorB).sub(vectorA);
+      const segmentLength = vectorDirection.length();
+      if (segmentLength < 1e-6) {
+        connector.visible = false;
+        continue;
+      }
       connector.position.copy(vectorMid);
-      connector.scale.set(strength, vectorDirection.length(), strength);
+      connector.scale.set(strength, segmentLength, strength);
       connector.quaternion.setFromUnitVectors(
         vectorUp,
-        vectorDirection.normalize()
+        vectorDirection.multiplyScalar(1 / segmentLength)
       );
       connector.visible = detailPolicy.level !== 'micro';
     }
@@ -711,12 +734,8 @@ export function createFlywheelShowpiece(
     group,
     colliders,
     setEnergyTargets(targets, diagnostics = []) {
-      energyTargets = targets.map((target) => ({
-        ...target,
-        worldPosition: { ...target.worldPosition },
-      }));
       missingTargetDiagnostics = [...diagnostics];
-      energyNetwork.setTargets(energyTargets);
+      energyNetwork.setTargets(targets);
     },
     update({ elapsed, delta = 0, emphasis, runDecorativeEffects = true }) {
       const emphasisBoost = Math.min(1, Math.max(0, emphasis));

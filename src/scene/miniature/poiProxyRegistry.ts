@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 8,
+    syncRevision: 9,
     syncNote:
-      'Syncs the pooled runtime transfer packet implementation with static incoming/outgoing arc hints.',
+      'Tracks hardened runtime transfer diagnostics while keeping the static arc hints unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',

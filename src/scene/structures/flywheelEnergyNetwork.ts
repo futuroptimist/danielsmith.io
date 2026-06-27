@@ -51,6 +51,9 @@ const DEFAULT_INCOMING_WINDOW = 0.1;
 const DEFAULT_OUTGOING_WINDOW = 0.16;
 const DEFAULT_INCOMING_STRENGTH = 1;
 const DEFAULT_OUTGOING_STRENGTH = 1.65;
+const MIN_TRANSFER_DURATION = 0.001;
+const MIN_TRANSFER_WINDOW = 0.001;
+const DEBUG_TARGET_SEQUENCE_LIMIT = 48;
 
 export function createSeededFlywheelEnergyNetwork(
   options: FlywheelEnergyNetworkOptions = {}
@@ -63,13 +66,36 @@ export function createSeededFlywheelEnergyNetwork(
   let outgoingCompletedCount = 0;
   let lastTargetPoiId: string | null = null;
   const targetSequence: string[] = [];
-  const incomingPerCycle =
-    options.incomingPerCycle ?? DEFAULT_INCOMING_PER_CYCLE;
+  const incomingPerCycle = Math.max(
+    1,
+    Math.floor(
+      positiveFiniteOrDefault(
+        options.incomingPerCycle,
+        DEFAULT_INCOMING_PER_CYCLE
+      )
+    )
+  );
   const config = {
-    incomingDuration: options.incomingDuration ?? DEFAULT_INCOMING_DURATION,
-    outgoingDuration: options.outgoingDuration ?? DEFAULT_OUTGOING_DURATION,
-    incomingWindow: options.incomingWindow ?? DEFAULT_INCOMING_WINDOW,
-    outgoingWindow: options.outgoingWindow ?? DEFAULT_OUTGOING_WINDOW,
+    incomingDuration: positiveFiniteOrDefault(
+      options.incomingDuration,
+      DEFAULT_INCOMING_DURATION,
+      MIN_TRANSFER_DURATION
+    ),
+    outgoingDuration: positiveFiniteOrDefault(
+      options.outgoingDuration,
+      DEFAULT_OUTGOING_DURATION,
+      MIN_TRANSFER_DURATION
+    ),
+    incomingWindow: positiveFiniteOrDefault(
+      options.incomingWindow,
+      DEFAULT_INCOMING_WINDOW,
+      MIN_TRANSFER_WINDOW
+    ),
+    outgoingWindow: positiveFiniteOrDefault(
+      options.outgoingWindow,
+      DEFAULT_OUTGOING_WINDOW,
+      MIN_TRANSFER_WINDOW
+    ),
     incomingStrength: options.incomingStrength ?? DEFAULT_INCOMING_STRENGTH,
     outgoingStrength: options.outgoingStrength ?? DEFAULT_OUTGOING_STRENGTH,
   };
@@ -89,6 +115,12 @@ export function createSeededFlywheelEnergyNetwork(
     }
     lastTargetPoiId = candidate.poiId;
     targetSequence.push(candidate.poiId);
+    if (targetSequence.length > DEBUG_TARGET_SEQUENCE_LIMIT) {
+      targetSequence.splice(
+        0,
+        targetSequence.length - DEBUG_TARGET_SEQUENCE_LIMIT
+      );
+    }
     return candidate;
   };
 
@@ -185,15 +217,18 @@ export function sanitizeFlywheelEnergyTargets(
     .filter((target) => target.poiId !== FLYWHEEL_POI_ID)
     .filter((target) => target.floorId !== 'upper')
     .filter((target) => {
-      const valid =
-        target.poiId &&
-        target.label &&
-        Number.isFinite(target.worldPosition.x) &&
-        Number.isFinite(target.worldPosition.y) &&
-        Number.isFinite(target.worldPosition.z) &&
-        !seen.has(target.poiId);
+      if (
+        !target.poiId ||
+        !target.label ||
+        !Number.isFinite(target.worldPosition.x) ||
+        !Number.isFinite(target.worldPosition.y) ||
+        !Number.isFinite(target.worldPosition.z) ||
+        seen.has(target.poiId)
+      ) {
+        return false;
+      }
       seen.add(target.poiId);
-      return valid;
+      return true;
     })
     .map(cloneTarget);
 }
@@ -237,6 +272,16 @@ function cloneTarget(target: FlywheelEnergyTarget): FlywheelEnergyTarget {
     floorId: target.floorId,
     worldPosition: { ...target.worldPosition },
   };
+}
+
+function positiveFiniteOrDefault(
+  value: number | undefined,
+  fallback: number,
+  minimum = 1
+): number {
+  return Number.isFinite(value) && value! > 0
+    ? Math.max(minimum, value!)
+    : fallback;
 }
 
 function clamp01(value: number): number {
