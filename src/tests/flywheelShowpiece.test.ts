@@ -15,6 +15,7 @@ import {
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
   FLYWHEEL_GEARBOX_LEFT_EDGE,
+  FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_MARKER_MIN_HEIGHT,
@@ -133,6 +134,10 @@ describe('createFlywheelShowpiece', () => {
     expect(torqueShaft.position.x).toBeCloseTo(
       (FLYWHEEL_OUTPUT_SHAFT.startX + FLYWHEEL_OUTPUT_SHAFT.endX) / 2
     );
+    expect(torqueShaft.position.z).toBeCloseTo(FLYWHEEL_OUTPUT_SHAFT.z);
+    expect(
+      Math.abs(torqueShaft.position.z - FLYWHEEL_WHEEL.centerZ)
+    ).toBeGreaterThan(FLYWHEEL_WHEEL.thickness / 2);
 
     build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
     expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
@@ -157,8 +162,12 @@ describe('createFlywheelShowpiece', () => {
     const gearboxBox = new Box3().setFromObject(gearbox);
     const crankBox = new Box3().setFromObject(crank);
 
-    expect(gearboxBox.min.x - wheelBox.max.x).toBeGreaterThanOrEqual(0.18);
-    expect(crankBox.min.x - wheelBox.max.x).toBeGreaterThanOrEqual(0.18);
+    expect(gearboxBox.min.x - wheelBox.max.x).toBeGreaterThanOrEqual(
+      FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
+    );
+    expect(crankBox.min.x - wheelBox.max.x).toBeGreaterThanOrEqual(
+      FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
+    );
     expect(gearbox.position.x).toBeGreaterThan(FLYWHEEL_WHEEL_RIGHT_EDGE);
     expect(gearbox.position.z).toBeGreaterThan(FLYWHEEL_WHEEL.centerZ);
     expect(gearboxBox.min.x).toBeGreaterThan(FLYWHEEL_GEARBOX_LEFT_EDGE);

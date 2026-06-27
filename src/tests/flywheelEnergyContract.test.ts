@@ -6,6 +6,7 @@ import {
   FLYWHEEL_GEARBOX_LEFT_EDGE,
   FLYWHEEL_GEARBOX_OUTER_RADIUS,
   FLYWHEEL_INSTALLATION_BOUNDS,
+  FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_PLANET_TEETH,
   FLYWHEEL_RING_TEETH,
@@ -38,21 +39,30 @@ describe('flywheel energy contract', () => {
     expect(FLYWHEEL_WHEEL_GEAR_CLEARANCE).toBeCloseTo(
       FLYWHEEL_GEARBOX_LEFT_EDGE - FLYWHEEL_WHEEL_RIGHT_EDGE
     );
-    expect(FLYWHEEL_WHEEL_GEAR_CLEARANCE).toBeGreaterThanOrEqual(0.18);
+    expect(FLYWHEEL_WHEEL_GEAR_CLEARANCE).toBeGreaterThanOrEqual(
+      FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
+    );
     expect(FLYWHEEL_GEARBOX_OUTER_RADIUS).toBeGreaterThan(0.62);
   });
 
-  it('defines an output shaft that bridges the separated wheel and gearbox', () => {
+  it('defines an output shaft from the gearbox side toward the wheel hub', () => {
     expect(FLYWHEEL_OUTPUT_SHAFT.startX).toBeGreaterThan(
       FLYWHEEL_WHEEL.centerX
     );
-    expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeGreaterThan(
+    expect(FLYWHEEL_OUTPUT_SHAFT.startX).toBeLessThan(
       FLYWHEEL_WHEEL_RIGHT_EDGE
     );
+    expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeGreaterThan(
+      FLYWHEEL_GEARBOX_LEFT_EDGE
+    );
     expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeLessThan(FLYWHEEL_GEARBOX.centerX);
+    expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeGreaterThan(
+      FLYWHEEL_OUTPUT_SHAFT.startX
+    );
     expect(
-      FLYWHEEL_OUTPUT_SHAFT.endX - FLYWHEEL_OUTPUT_SHAFT.startX
-    ).toBeGreaterThan(0.7);
+      Math.abs(FLYWHEEL_OUTPUT_SHAFT.z - FLYWHEEL_WHEEL.centerZ)
+    ).toBeGreaterThan(FLYWHEEL_WHEEL.thickness / 2);
+    expect(FLYWHEEL_OUTPUT_SHAFT.y).toBeCloseTo(FLYWHEEL_GEARBOX.centerY);
   });
 
   it('uses plausible planetary gear teeth and torque ratio math', () => {
