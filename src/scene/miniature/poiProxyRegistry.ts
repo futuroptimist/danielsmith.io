@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 14,
+    syncRevision: 15,
     syncNote:
-      'Tracks the widened wheel-left/back and gearbox-right/front contract with crank, yokes, output coupler, and deeper base.',
+      'Tracks the long-skid Flywheel silhouette with gearbox far forward, front crank, yokes, and longitudinal torque shaft.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -101,7 +101,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     ],
     proxyFiles: [SELF_FILE],
     primitives: [
-      box('flywheel-base', [1.35, 0.12, 0.64], [0, 0.06, 0], 0x17202a),
+      box('flywheel-base', [1.35, 0.12, 1.5], [0, 0.06, 0.34], 0x17202a),
       box(
         'flywheel-bearing-yoke-front',
         [0.42, 0.64, 0.08],
@@ -127,23 +127,23 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
       box(
         'flywheel-crank-arm',
         [0.36, 0.035, 0.035],
-        [0.5, 0.62, 0.48],
+        [-0.4, 0.62, 1.12],
         0xf59e0b
       ),
       cyl(
         'flywheel-planetary-gear-cluster',
         0.18,
         0.12,
-        [0.46, 0.61, 0.34],
+        [-0.4, 0.61, 0.96],
         0xd1d5db
       ),
       box(
         'flywheel-output-coupler',
-        [0.5, 0.035, 0.035],
-        [0.02, 0.61, 0.24],
+        [0.035, 0.035, 0.94],
+        [-0.4, 0.61, 0.5],
         0x94a3b8
       ),
-      sphere('flywheel-energy-port', 0.07, [0.6, 0.82, 0.48], 0x38bdf8),
+      sphere('flywheel-energy-port', 0.07, [-0.08, 0.82, 0.34], 0x38bdf8),
       {
         kind: 'tube',
         name: 'flywheel-incoming-arc-hint',
@@ -151,7 +151,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         points: [
           [-0.95, 0.18, -0.62],
           [-0.42, 1.06, -0.18],
-          [0.6, 0.82, 0.48],
+          [-0.08, 0.82, 0.34],
         ],
         color: 0x38bdf8,
       },
@@ -160,7 +160,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         name: 'flywheel-outgoing-arc-hint',
         radius: 0.024,
         points: [
-          [0.6, 0.82, 0.48],
+          [-0.08, 0.82, 0.34],
           [0.12, 1.22, 0.58],
           [1.05, 0.22, 0.76],
         ],

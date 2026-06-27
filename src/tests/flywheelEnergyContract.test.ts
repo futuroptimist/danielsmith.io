@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   FLYWHEEL_BASE_DIMENSIONS,
   FLYWHEEL_GEARBOX,
-  FLYWHEEL_GEARBOX_LEFT_EDGE,
   FLYWHEEL_GEARBOX_OUTER_RADIUS,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
@@ -37,34 +36,33 @@ describe('flywheel energy contract', () => {
       FLYWHEEL_WHEEL.centerX + FLYWHEEL_WHEEL_OUTER_RADIUS
     );
     expect(FLYWHEEL_WHEEL_GEAR_CLEARANCE).toBeCloseTo(
-      FLYWHEEL_GEARBOX_LEFT_EDGE - FLYWHEEL_WHEEL_RIGHT_EDGE
+      FLYWHEEL_GEARBOX.centerZ -
+        FLYWHEEL_GEARBOX.depth / 2 -
+        (FLYWHEEL_WHEEL.centerZ + FLYWHEEL_WHEEL.thickness / 2)
     );
     expect(FLYWHEEL_WHEEL_GEAR_CLEARANCE).toBeGreaterThanOrEqual(
       FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
     );
     expect(FLYWHEEL_GEARBOX_OUTER_RADIUS).toBeGreaterThan(0.62);
-    expect(FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_WHEEL.centerZ).toBeGreaterThan(
-      0.8
-    );
+    expect(
+      FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_WHEEL.centerZ
+    ).toBeGreaterThanOrEqual(4.5);
   });
 
   it('defines an output shaft from the gearbox side toward the wheel hub', () => {
-    expect(FLYWHEEL_OUTPUT_SHAFT.startX).toBeGreaterThan(
-      FLYWHEEL_WHEEL.centerX
+    expect(FLYWHEEL_OUTPUT_SHAFT.x).toBeCloseTo(FLYWHEEL_WHEEL.centerX);
+    expect(FLYWHEEL_OUTPUT_SHAFT.startZ).toBeCloseTo(
+      FLYWHEEL_WHEEL.centerZ + 0.59
     );
-    expect(FLYWHEEL_OUTPUT_SHAFT.startX).toBeLessThan(
-      FLYWHEEL_WHEEL_RIGHT_EDGE
+    expect(FLYWHEEL_OUTPUT_SHAFT.endZ).toBeCloseTo(
+      FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_GEARBOX.depth / 2
     );
-    expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeGreaterThan(
-      FLYWHEEL_GEARBOX_LEFT_EDGE
-    );
-    expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeLessThan(FLYWHEEL_GEARBOX.centerX);
-    expect(FLYWHEEL_OUTPUT_SHAFT.endX).toBeGreaterThan(
-      FLYWHEEL_OUTPUT_SHAFT.startX
+    expect(FLYWHEEL_OUTPUT_SHAFT.endZ).toBeGreaterThan(
+      FLYWHEEL_OUTPUT_SHAFT.startZ
     );
     expect(
-      Math.abs(FLYWHEEL_OUTPUT_SHAFT.z - FLYWHEEL_WHEEL.centerZ)
-    ).toBeGreaterThan(FLYWHEEL_WHEEL.thickness / 2);
+      FLYWHEEL_OUTPUT_SHAFT.endZ - FLYWHEEL_OUTPUT_SHAFT.startZ
+    ).toBeGreaterThan(4);
     expect(FLYWHEEL_OUTPUT_SHAFT.y).toBeCloseTo(FLYWHEEL_GEARBOX.centerY);
   });
 

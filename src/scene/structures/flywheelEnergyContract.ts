@@ -1,11 +1,11 @@
 export const FLYWHEEL_INSTALLATION_BOUNDS = {
   width: 3.6,
-  depth: 3,
+  depth: 11.2,
   height: 2.75,
 } as const;
 export const FLYWHEEL_BASE_DIMENSIONS = {
   width: 3.45,
-  depth: 2.5,
+  depth: 10.8,
   height: 0.22,
 } as const;
 export const FLYWHEEL_WHEEL = {
@@ -28,17 +28,17 @@ export const FLYWHEEL_CRANK = {
   handleRadius: 0.045,
 } as const;
 export const FLYWHEEL_GEARBOX = {
-  centerX: 1.12,
+  centerX: -0.95,
   centerY: 1.26,
-  centerZ: 0.82,
+  centerZ: 5,
   radius: 0.46,
   depth: 0.26,
   crankClearance: 0.18,
 } as const;
 export const FLYWHEEL_ENERGY_PORT = {
-  x: 1.46,
+  x: -0.45,
   y: 1.66,
-  z: 1.14,
+  z: 0.76,
   radius: 0.13,
 } as const;
 export const FLYWHEEL_SUN_TEETH = 18;
@@ -71,12 +71,14 @@ export const FLYWHEEL_GEARBOX_LEFT_EDGE =
   FLYWHEEL_GEARBOX.centerX - FLYWHEEL_GEARBOX_OUTER_RADIUS;
 export const FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE = 0.18;
 export const FLYWHEEL_WHEEL_GEAR_CLEARANCE =
-  FLYWHEEL_GEARBOX_LEFT_EDGE - FLYWHEEL_WHEEL_RIGHT_EDGE;
+  FLYWHEEL_GEARBOX.centerZ -
+  FLYWHEEL_GEARBOX.depth / 2 -
+  (FLYWHEEL_WHEEL.centerZ + FLYWHEEL_WHEEL.thickness / 2);
 export const FLYWHEEL_OUTPUT_SHAFT = {
-  startX: FLYWHEEL_WHEEL.centerX + 0.22,
-  endX: FLYWHEEL_GEARBOX.centerX - FLYWHEEL_RING_RADIUS - 0.02,
+  x: FLYWHEEL_WHEEL.centerX,
   y: FLYWHEEL_GEARBOX.centerY,
-  z: FLYWHEEL_GEARBOX.centerZ - 0.16,
+  startZ: FLYWHEEL_WHEEL.centerZ + FLYWHEEL_AXLE.length / 2,
+  endZ: FLYWHEEL_GEARBOX.centerZ - FLYWHEEL_GEARBOX.depth / 2,
   radius: 0.055,
 } as const;
 export const FLYWHEEL_CRANK_CENTER_Z =
@@ -84,10 +86,10 @@ export const FLYWHEEL_CRANK_CENTER_Z =
   FLYWHEEL_GEARBOX.depth / 2 +
   FLYWHEEL_GEARBOX.crankClearance;
 export const FLYWHEEL_AVATAR_PATH_RADIUS = 1.2;
-export const FLYWHEEL_BASE_COLLIDER = { width: 3.45, depth: 2.5 } as const;
+export const FLYWHEEL_BASE_COLLIDER = { width: 3.45, depth: 10.8 } as const;
 export const FLYWHEEL_GEARBOX_COLLIDER = {
-  centerX: 1.12,
-  centerZ: 0.82,
+  centerX: -0.95,
+  centerZ: 5,
   width: 1.08,
   depth: 1.02,
 } as const;

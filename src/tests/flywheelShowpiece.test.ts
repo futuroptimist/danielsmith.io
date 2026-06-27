@@ -14,15 +14,12 @@ import {
   FLYWHEEL_ENERGY_PORT,
   FLYWHEEL_GEARBOX,
   FLYWHEEL_GEARBOX_COLLIDER,
-  FLYWHEEL_GEARBOX_LEFT_EDGE,
-  FLYWHEEL_GEARBOX_OUTER_RADIUS,
   FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE,
   FLYWHEEL_OUTPUT_SHAFT,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_MARKER_MIN_HEIGHT,
   FLYWHEEL_TORQUE_RATIO,
   FLYWHEEL_WHEEL,
-  FLYWHEEL_WHEEL_RIGHT_EDGE,
 } from '../scene/structures/flywheelEnergyContract';
 
 const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
@@ -49,6 +46,7 @@ const coreNames = [
   'FlywheelPlanetGear-0',
   'FlywheelOutputShaft',
   'FlywheelTorqueShaft',
+  'FlywheelFlywheelHubCoupler',
   'FlywheelGearboxPedestal',
   'FlywheelRimMotionTick-0',
   'FlywheelEnergyPort',
@@ -132,13 +130,13 @@ describe('createFlywheelShowpiece', () => {
       Math.PI / 2
     );
     expect(output.position.z).toBeLessThan(0);
-    expect(torqueShaft.position.x).toBeCloseTo(
-      (FLYWHEEL_OUTPUT_SHAFT.startX + FLYWHEEL_OUTPUT_SHAFT.endX) / 2
+    expect(torqueShaft.position.x).toBeCloseTo(FLYWHEEL_OUTPUT_SHAFT.x);
+    expect(torqueShaft.position.z).toBeCloseTo(
+      (FLYWHEEL_OUTPUT_SHAFT.startZ + FLYWHEEL_OUTPUT_SHAFT.endZ) / 2
     );
-    expect(torqueShaft.position.z).toBeCloseTo(FLYWHEEL_OUTPUT_SHAFT.z);
-    expect(
-      Math.abs(torqueShaft.position.z - FLYWHEEL_WHEEL.centerZ)
-    ).toBeGreaterThan(FLYWHEEL_WHEEL.thickness / 2);
+    expect(FLYWHEEL_OUTPUT_SHAFT.startZ).toBeCloseTo(
+      FLYWHEEL_WHEEL.centerZ + 0.59
+    );
 
     build.update({ elapsed: 1, delta: 0.25, emphasis: 0 });
     expect(wheel.rotation.z).toBeCloseTo(build.getDebugState().carrierAngle);
@@ -159,22 +157,35 @@ describe('createFlywheelShowpiece', () => {
       'FlywheelPlanetaryGearbox'
     ) as Object3D;
     const crank = build.group.getObjectByName('FlywheelCrankGroup') as Object3D;
+    build.group.updateWorldMatrix(true, true);
     const wheelBox = new Box3().setFromObject(wheel);
+    const expandedWheelBox = wheelBox.clone().expandByScalar(0.05);
     const gearboxBox = new Box3().setFromObject(gearbox);
     const crankBox = new Box3().setFromObject(crank);
 
-    expect(gearboxBox.min.x - wheelBox.max.x).toBeGreaterThanOrEqual(
+    expect(gearbox.position.z - FLYWHEEL_WHEEL.centerZ).toBeGreaterThanOrEqual(
+      4.5
+    );
+    expect(crank.position.z).toBeGreaterThan(gearbox.position.z);
+    expect(gearboxBox.intersectsBox(expandedWheelBox)).toBe(false);
+    expect(crankBox.intersectsBox(expandedWheelBox)).toBe(false);
+    for (const name of [
+      'FlywheelRingGear',
+      'FlywheelSunGear',
+      'FlywheelPlanetCarrier',
+      'FlywheelPlanetGear-0',
+      'FlywheelPlanetGear-1',
+      'FlywheelPlanetGear-2',
+    ]) {
+      const componentBox = new Box3().setFromObject(
+        build.group.getObjectByName(name) as Object3D
+      );
+      expect(componentBox.intersectsBox(expandedWheelBox)).toBe(false);
+    }
+    expect(gearboxBox.min.z - wheelBox.max.z).toBeGreaterThanOrEqual(
       FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
     );
-    expect(crankBox.min.x - wheelBox.max.x).toBeGreaterThanOrEqual(
-      FLYWHEEL_MIN_WHEEL_GEAR_CLEARANCE
-    );
-    expect(gearbox.position.x).toBeGreaterThan(FLYWHEEL_WHEEL_RIGHT_EDGE);
-    expect(gearbox.position.z - FLYWHEEL_WHEEL.centerZ).toBeGreaterThan(0.8);
-    expect(gearboxBox.intersectsBox(wheelBox)).toBe(false);
-    expect(crankBox.intersectsBox(wheelBox)).toBe(false);
-    expect(gearboxBox.min.x).toBeGreaterThan(FLYWHEEL_GEARBOX_LEFT_EDGE);
-    expect(FLYWHEEL_GEARBOX.centerZ).toBeGreaterThan(0);
+    expect(FLYWHEEL_GEARBOX.centerZ).toBeGreaterThanOrEqual(4.5);
     build.dispose();
   });
 
@@ -212,14 +223,17 @@ describe('createFlywheelShowpiece', () => {
     ) as Object3D;
     const shaftBox = new Box3().setFromObject(torqueShaft);
 
-    expect(shaftBox.min.x).toBeLessThan(FLYWHEEL_WHEEL.centerX + 0.28);
-    expect(shaftBox.max.x).toBeGreaterThan(
-      FLYWHEEL_GEARBOX.centerX - FLYWHEEL_GEARBOX_OUTER_RADIUS
-    );
-    expect(shaftBox.min.z).toBeGreaterThan(
-      FLYWHEEL_WHEEL.centerZ + FLYWHEEL_WHEEL.thickness / 2
-    );
+    const rim = build.group.getObjectByName('FlywheelHeavyRim') as Object3D;
+    const rimBox = new Box3().setFromObject(rim);
+    const shaftLengthZ = shaftBox.max.z - shaftBox.min.z;
+    const requiredGap =
+      FLYWHEEL_OUTPUT_SHAFT.endZ - FLYWHEEL_OUTPUT_SHAFT.startZ;
+
+    expect(shaftBox.min.z).toBeLessThanOrEqual(FLYWHEEL_OUTPUT_SHAFT.startZ);
+    expect(shaftBox.max.z).toBeGreaterThanOrEqual(FLYWHEEL_OUTPUT_SHAFT.endZ);
+    expect(shaftLengthZ).toBeGreaterThan(requiredGap - 0.05);
     expect(shaftBox.max.z).toBeLessThan(FLYWHEEL_GEARBOX.centerZ);
+    expect(shaftBox.min.z).toBeGreaterThan(rimBox.max.z - 0.02);
     build.dispose();
   });
 

@@ -429,22 +429,31 @@ export function createFlywheelShowpiece(
   const torqueShaft = new Group();
   torqueShaft.name = 'FlywheelTorqueShaft';
   torqueShaft.position.set(
-    (FLYWHEEL_OUTPUT_SHAFT.startX + FLYWHEEL_OUTPUT_SHAFT.endX) / 2,
+    FLYWHEEL_OUTPUT_SHAFT.x,
     FLYWHEEL_OUTPUT_SHAFT.y,
-    FLYWHEEL_OUTPUT_SHAFT.z
+    (FLYWHEEL_OUTPUT_SHAFT.startZ + FLYWHEEL_OUTPUT_SHAFT.endZ) / 2
   );
   const torqueShaftMesh = mesh(
     'FlywheelTorqueShaftBody',
     new CylinderGeometry(
       FLYWHEEL_OUTPUT_SHAFT.radius,
       FLYWHEEL_OUTPUT_SHAFT.radius,
-      FLYWHEEL_OUTPUT_SHAFT.endX - FLYWHEEL_OUTPUT_SHAFT.startX,
+      FLYWHEEL_OUTPUT_SHAFT.endZ - FLYWHEEL_OUTPUT_SHAFT.startZ,
       cylSeg
     ),
     steel
   );
-  torqueShaftMesh.rotation.z = Math.PI / 2;
+  torqueShaftMesh.rotation.x = Math.PI / 2;
   torqueShaft.add(torqueShaftMesh);
+  const hubCoupler = mesh(
+    'FlywheelFlywheelHubCoupler',
+    new CylinderGeometry(0.09, 0.09, 0.16, cylSeg),
+    brass
+  );
+  hubCoupler.position.z =
+    FLYWHEEL_OUTPUT_SHAFT.startZ - torqueShaft.position.z + 0.08;
+  hubCoupler.rotation.x = Math.PI / 2;
+  torqueShaft.add(hubCoupler);
   group.add(torqueShaft);
 
   const gearboxPedestal = mesh(
