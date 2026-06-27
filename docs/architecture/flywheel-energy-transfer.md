@@ -721,10 +721,11 @@ procedural tooth hints with different segment budgets; Performance samples every
 third tooth; Low and Micro retain iconic rings/discs, base, bearings, crank,
 gearbox, and energy port without individual tooth blocks. The core update runs
 every rendered frame, while decorative glow updates can still be throttled by the
-scene detail controller. The P6c layer now adds deterministic cross-POI blue
-transfer arcs while preserving the physical crank, gear, and flywheel motion.
+scene detail controller. The energy-transfer layer adds deterministic
+cross-POI blue transfer arcs while preserving the physical crank, gear, and
+flywheel motion.
 
-## 8. P6c implementation notes
+## 8. Energy-transfer implementation notes
 
 The implemented energy-transfer layer is split between the pure state module and
 runtime rendering integration:
