@@ -92,7 +92,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     displayName: 'Flywheel proxy',
     syncRevision: 12,
     syncNote:
-      'Acknowledges named flywheel clearance constants while preserving the existing miniature silhouette.',
+      'Tracks the wheel-left, gearbox-right/front, crank-front silhouette with bearing yokes and an output coupler.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',

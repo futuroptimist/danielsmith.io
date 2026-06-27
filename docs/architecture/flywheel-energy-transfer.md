@@ -160,58 +160,29 @@ A temporary compatibility overload may accept `centerX`/`centerZ` during migrati
 
 ### Approximate dimensions and constants
 
-The machine should be visibly heavier than the current hologram but remain inside
-the current studio route. Proposed scene-unit envelope:
+The machine should be visibly heavier than the original hologram but remain inside
+the studio route. The implemented contract lives in
+`src/scene/structures/flywheelEnergyContract.ts` and is the source of truth for
+the builder, physical metadata, colliders, tests, and miniature proxy. Do not
+duplicate scene-unit numbers across those files.
 
-```ts
-export const FLYWHEEL_INSTALLATION_BOUNDS = {
-  width: 3.4,
-  depth: 2.4,
-  height: 2.75,
-} as const;
+The current layout is intentionally asymmetric for readability:
 
-export const FLYWHEEL_BASE_DIMENSIONS = {
-  width: 3.25,
-  depth: 1.55,
-  height: 0.22,
-} as const;
-
-export const FLYWHEEL_WHEEL = {
-  radius: 0.92,
-  rimTube: 0.12,
-  thickness: 0.24,
-  centerY: 1.35,
-  centerX: -0.58,
-  centerZ: 0,
-} as const;
-
-export const FLYWHEEL_GEARBOX = {
-  centerX: 0.78,
-  centerY: 1.24,
-  centerZ: 0,
-  radius: 0.52,
-  depth: 0.26,
-} as const;
-
-export const FLYWHEEL_ENERGY_PORT = {
-  x: 1.32,
-  y: 1.62,
-  z: 0.62,
-  radius: 0.13,
-} as const;
-
-export const FLYWHEEL_MARKER_MIN_HEIGHT = 2.95;
-export const FLYWHEEL_AVATAR_PATH_RADIUS = 1.2;
-```
-
-These constants should live in a shared module such as
-`src/scene/structures/flywheelEnergyContract.ts` and be imported by the builder,
-physical metadata, colliders, tests, and miniature proxy. Do not duplicate numbers
-across those files.
+- the heavy wheel sits on the left side of the base;
+- the planetary gearbox sits to the right and slightly forward of the wheel;
+- the hand crank is mounted on the gearbox front face using the named gearbox
+  crank clearance;
+- front/back bearing yokes cradle the wheel axle, with axle caps visible outside
+  the rim;
+- a torque/output shaft and coupler bridge the gearbox side toward the flywheel
+  hub without crossing the wheel rim on the wrong depth plane;
+- rim motion ticks stay attached to the wheel group so rotation remains legible;
+- formula-derived edge and clearance constants define wheel/gearbox separation
+  instead of ad hoc offsets.
 
 If implementation measurements show the studio route needs a narrower footprint,
-reduce base depth before changing the POI registry footprint. The initial target
-is to keep the existing route/footprint usable.
+reduce base depth before changing the POI registry footprint. The target remains
+to keep the existing route/footprint usable.
 
 ## 3. Physical assembly design
 
@@ -222,14 +193,19 @@ are part of the contract and should be covered by tests:
 ```text
 FlywheelEnergyInstallation
 ├─ FlywheelBase
-├─ FlywheelBearingStandLeft
-├─ FlywheelBearingStandRight
+├─ FlywheelBearingYokeFront
+│  └─ FlywheelBearingYokeFrontBridge
+├─ FlywheelBearingYokeBack
+│  └─ FlywheelBearingYokeBackBridge
 ├─ FlywheelAxle
+├─ FlywheelAxleCapFront
+├─ FlywheelAxleCapBack
 ├─ FlywheelWheelGroup
 │  ├─ FlywheelHeavyRim
 │  ├─ FlywheelInnerHub
 │  ├─ FlywheelSpoke-0..N
 │  ├─ FlywheelCounterweight-0..N
+│  ├─ FlywheelRimMotionTick-0..N
 │  └─ FlywheelEnergyGlowRing
 ├─ FlywheelCrankGroup
 │  ├─ FlywheelCrankDisc
@@ -239,8 +215,11 @@ FlywheelEnergyInstallation
 │  ├─ FlywheelRingGear
 │  ├─ FlywheelSunGear
 │  ├─ FlywheelPlanetCarrier
-│  ├─ FlywheelPlanetGear-0..2
-│  └─ FlywheelOutputShaft
+│  └─ FlywheelPlanetGear-0..2
+├─ FlywheelGearboxPedestal
+├─ FlywheelGearboxOutputCoupler
+├─ FlywheelTorqueShaft
+├─ FlywheelOutputShaft
 └─ FlywheelEnergyPort
 ```
 
@@ -248,7 +227,7 @@ Visual conventions:
 
 - heavy wheel uses a dark gunmetal rim, brighter worn-metal hub, and visible
   spokes/counterweights;
-- bearing stands are bolted to the base and visibly cradle the axle;
+- front/back bearing yokes are bolted to the base and visibly cradle the axle;
 - gearbox is close to the crank and output shaft, not detached from the machine;
 - the energy port is mounted on or near the gearbox/flywheel housing;
 - glow elements emphasize stored energy but do not replace physical supports;
