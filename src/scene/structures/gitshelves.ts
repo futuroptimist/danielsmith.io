@@ -360,6 +360,45 @@ export function createGitshelvesInstallation(
     }
   }
 
+  const gridfinityBaseMaterial = new MeshStandardMaterial({
+    color: new Color(0x263247),
+    roughness: 0.5,
+    metalness: 0.2,
+  });
+  const gridfinityLabelMaterial = new MeshStandardMaterial({
+    color: new Color(0x66e7ff),
+    emissive: new Color(0x2bbdff),
+    emissiveIntensity: 0.42,
+    roughness: 0.24,
+    metalness: 0.28,
+  });
+  for (let index = 0; index < 3; index += 1) {
+    const block = new Mesh(
+      new BoxGeometry(0.48, 0.18 + index * 0.08, 0.48),
+      gridfinityBaseMaterial.clone()
+    );
+    block.name = `GitshelvesGridfinityRepoBlock-${index}`;
+    block.position.set(
+      -0.62 + index * 0.62,
+      baseHeight + block.geometry.parameters.height / 2 + 0.05,
+      0.18
+    );
+    block.castShadow = true;
+    group.add(block);
+
+    const contributionCap = new Mesh(
+      new BoxGeometry(0.32, 0.035, 0.32),
+      gridfinityLabelMaterial.clone()
+    );
+    contributionCap.name = `GitshelvesContributionGraphCap-${index}`;
+    contributionCap.position.set(
+      0,
+      block.geometry.parameters.height / 2 + 0.02,
+      0
+    );
+    block.add(contributionCap);
+  }
+
   const spotlightMaterial = new MeshStandardMaterial({
     color: new Color(0x1c3048),
     emissive: new Color(0x2cb2ff),

@@ -348,9 +348,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
+      'Adds guardian-angel halo, wings, and shield cues to match the upstairs sentry refresh.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -358,21 +358,54 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
       cyl('gabriel-core', 0.28, 0.9, [0, 0.55, 0], 0x334155),
       sphere('gabriel-sensor-eye', 0.24, [0, 1.08, 0], 0x60a5fa),
       box('gabriel-shield', [0.85, 0.2, 0.12], [0, 0.55, -0.38], 0x93c5fd),
+      {
+        kind: 'ring',
+        name: 'gabriel-guardian-halo',
+        radius: 0.28,
+        tube: 0.025,
+        position: [0, 1.46, 0],
+        rotation: [Math.PI / 2, 0, 0],
+        color: 0xffd166,
+      },
+      box(
+        'gabriel-left-wing',
+        [0.16, 0.56, 0.06],
+        [-0.44, 0.86, 0.05],
+        0xdbeafe
+      ),
+      box(
+        'gabriel-right-wing',
+        [0.16, 0.56, 0.06],
+        [0.44, 0.86, 0.05],
+        0xdbeafe
+      ),
     ],
   },
   'f2clipboard-kitchen-console': {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
+      'Adds selected file cards flowing into the clipboard to mirror the console refresh.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
       box('f2-console', [1.1, 0.5, 0.55], [0, 0.25, 0], 0x475569),
       box('f2-clipboard-screen', [0.5, 0.7, 0.06], [0, 0.78, -0.16], 0xf8fafc),
       box('f2-clip', [0.22, 0.08, 0.08], [0, 1.16, -0.2], 0xfbbf24),
+      box(
+        'f2-selected-file-a',
+        [0.28, 0.38, 0.03],
+        [-0.38, 0.82, 0.1],
+        0xe0f2fe
+      ),
+      box(
+        'f2-selected-file-b',
+        [0.28, 0.38, 0.03],
+        [-0.16, 0.9, 0.16],
+        0xbae6fd
+      ),
     ],
   },
   'axel-studio-tracker': {
@@ -402,24 +435,38 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
+      'Replaces lab-only cues with the physical ESP32 AI pin enclosure and lanyard.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
       box('sigma-workbench', [1.15, 0.18, 0.7], [0, 0.45, 0], 0x854d0e),
-      cyl('sigma-flask', 0.13, 0.42, [-0.28, 0.72, 0], 0xa78bfa),
-      sphere('sigma-orbital-sample', 0.16, [0.28, 0.72, 0.06], 0x14b8a6),
+      box(
+        'sigma-wearable-enclosure',
+        [0.38, 0.56, 0.1],
+        [0, 0.82, 0],
+        0xf8fafc
+      ),
+      cyl('sigma-talk-button', 0.1, 0.05, [0, 0.86, -0.08], 0x14b8a6),
+      {
+        kind: 'ring',
+        name: 'sigma-lanyard-loop',
+        radius: 0.24,
+        tube: 0.018,
+        position: [0, 1.12, 0],
+        rotation: [Math.PI / 2, 0, 0],
+        color: 0x334155,
+      },
     ],
   },
   'gitshelves-living-room-installation': {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
+      'Adds Gridfinity contribution blocks to match the physical GitHub shelf refresh.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -427,6 +474,24 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
       box('gitshelves-shelf-top', [1.2, 0.06, 0.2], [0, 0.82, 0], 0xf59e0b),
       box('gitshelves-shelf-middle', [1.2, 0.06, 0.2], [0, 0.56, 0], 0xf59e0b),
       box('gitshelves-repo-books', [0.85, 0.22, 0.16], [0, 0.68, 0], 0x38bdf8),
+      box(
+        'gitshelves-gridfinity-a',
+        [0.26, 0.16, 0.26],
+        [-0.36, 0.28, 0.18],
+        0x22d3ee
+      ),
+      box(
+        'gitshelves-gridfinity-b',
+        [0.26, 0.24, 0.26],
+        [0, 0.32, 0.18],
+        0x38bdf8
+      ),
+      box(
+        'gitshelves-gridfinity-c',
+        [0.26, 0.32, 0.26],
+        [0.36, 0.36, 0.18],
+        0x0ea5e9
+      ),
     ],
   },
   'wove-kitchen-loom': {

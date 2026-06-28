@@ -216,6 +216,43 @@ export function createF2ClipboardConsole(
   clip.position.set(0, 0.56, 0.02);
   clipboardPivot.add(clip);
 
+  const fileCardMaterial = new MeshStandardMaterial({
+    color: new Color(0xe8f6ff),
+    emissive: new Color(0x4dbdff),
+    emissiveIntensity: 0.14,
+    roughness: 0.36,
+    metalness: 0.04,
+  });
+  const fileLineMaterial = new MeshStandardMaterial({
+    color: new Color(0x39a8ff),
+    emissive: new Color(0x39a8ff),
+    emissiveIntensity: 0.36,
+    roughness: 0.28,
+    metalness: 0.08,
+  });
+  for (let index = 0; index < 4; index += 1) {
+    const fileCard = new Mesh(
+      new BoxGeometry(0.32, 0.42, 0.015),
+      fileCardMaterial.clone()
+    );
+    fileCard.name = `F2ClipboardSelectedFileCard-${index}`;
+    fileCard.position.set(
+      -deckWidth * 0.3 + index * 0.18,
+      deckHeight + 0.34 + index * 0.04,
+      -deckDepth * 0.18 + index * 0.06
+    );
+    fileCard.rotation.set(-Math.PI * 0.08, Math.PI * 0.08, -Math.PI * 0.04);
+    group.add(fileCard);
+
+    const fileLine = new Mesh(
+      new BoxGeometry(0.2, 0.018, 0.018),
+      fileLineMaterial.clone()
+    );
+    fileLine.name = `F2ClipboardSelectedFileLine-${index}`;
+    fileLine.position.set(0, 0.06, 0.016);
+    fileCard.add(fileLine);
+  }
+
   const calloutGlowGeometry = new PlaneGeometry(0.42, 0.36);
   const calloutGlowMaterial = new MeshBasicMaterial({
     color: new Color(0x52d0ff),
