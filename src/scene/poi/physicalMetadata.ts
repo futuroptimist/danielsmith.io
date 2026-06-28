@@ -44,6 +44,82 @@ const RASPBERRY_PI_5_BOARD_FOOTPRINT_METERS = {
 };
 
 const physicalMetadata = {
+  'gabriel-studio-sentry': {
+    realWorldReference:
+      'privacy-first guardian monitor with shield, halo sensor, and local inference core',
+    realWorldDimensionsMeters: {
+      width: 0.55,
+      depth: 0.45,
+      height: 1.35,
+    },
+    intendedSceneBounds: {
+      width: 1.98,
+      depth: 1.8,
+      height: 2.4,
+    },
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: 2.4,
+      avatarPathRadius: 1.05,
+    },
+  },
+  'f2clipboard-kitchen-console': {
+    realWorldReference:
+      'standing incident-triage terminal with PR check cards flowing into a clipboard',
+    realWorldDimensionsMeters: {
+      width: 0.9,
+      depth: 0.75,
+      height: 1.45,
+    },
+    intendedSceneBounds: {
+      width: 2.5,
+      depth: 2.0,
+      height: 2.0,
+    },
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: 2.0,
+      avatarPathRadius: 1.0,
+    },
+  },
+  'sigma-kitchen-workbench': {
+    realWorldReference:
+      'ESP32 push-to-talk AI pin assembly bench with enclosure, mic, button, and speaker details',
+    realWorldDimensionsMeters: {
+      width: 1.1,
+      depth: 0.75,
+      height: 1.2,
+    },
+    intendedSceneBounds: {
+      width: 2.7,
+      depth: 1.7,
+      height: 1.9,
+    },
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: 1.9,
+      avatarPathRadius: 1.05,
+    },
+  },
+  'gitshelves-living-room-installation': {
+    realWorldReference:
+      'wall shelf of Gridfinity contribution blocks generated from GitHub activity',
+    realWorldDimensionsMeters: {
+      width: 0.75,
+      depth: 0.22,
+      height: 0.9,
+    },
+    intendedSceneBounds: {
+      width: 3.2,
+      depth: 1.25,
+      height: 3.1,
+    },
+    anchor: 'bottom-center',
+    clearances: {
+      markerMinHeight: 3.1,
+      avatarPathRadius: 1.0,
+    },
+  },
   'flywheel-studio-flywheel': {
     realWorldReference:
       'industrial flywheel kinetic energy demonstrator with exposed rotor, hub, spokes, and energy port',
