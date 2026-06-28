@@ -128,6 +128,27 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
+  it('defensively snapshots planet gear debug angles', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.update({
+      elapsed: 1,
+      delta: 1,
+      emphasis: 0.5,
+      runDecorativeEffects: false,
+    });
+    const debug = build.getDebugState();
+    const expectedAngle = debug.planetGearAngles[0];
+    debug.planetGearAngles[0] = 999;
+
+    expect(build.getDebugState().planetGearAngles[0]).toBeCloseTo(
+      expectedAngle
+    );
+    build.dispose();
+  });
+
   it('keeps glow subordinate to the heavy physical rim', () => {
     const build = createFlywheelShowpiece({
       position: { x: 0, z: 0 },

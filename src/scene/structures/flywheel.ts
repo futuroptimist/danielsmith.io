@@ -557,12 +557,13 @@ export function createFlywheelShowpiece(
     position.z,
     options.orientationRadians ?? 0
   );
-  let state: FlywheelDebugState = {
+  const planetGearAngles = planetGears.map(() => 0);
+  const state: FlywheelDebugState = {
     flywheelAngle: 0,
     crankAngle: 0,
     sunGearAngle: 0,
     planetCarrierAngle: 0,
-    planetGearAngles: [0, 0, 0],
+    planetGearAngles,
     outputShaftAngle: 0,
     spinVelocity: FLYWHEEL_SPIN_RAD_PER_SECOND,
     triangleCount: countTriangles(group),
@@ -602,7 +603,6 @@ export function createFlywheelShowpiece(
   const sourceLocalPosition = new Vector3();
   const destinationLocalPosition = new Vector3();
   const localPoint = new Vector3();
-  const planetGearAngles = planetGears.map(() => 0);
 
   const hideEnergyPacket = () => {
     for (let i = 0; i < packetNodes.length; i += 1) {
@@ -808,20 +808,17 @@ export function createFlywheelShowpiece(
       }
       const transfer = energyNetwork.update(delta);
       const energyDebug = renderEnergyTransfer(transfer);
-      state = {
-        flywheelAngle,
-        crankAngle: nextCrankAngle,
-        sunGearAngle,
-        planetCarrierAngle: carrierAngle,
-        planetGearAngles: [...planetGearAngles],
-        outputShaftAngle: carrierAngle,
-        spinVelocity,
-        triangleCount: state.triangleCount,
-        energy: energyDebug,
-      };
+      state.flywheelAngle = flywheelAngle;
+      state.crankAngle = nextCrankAngle;
+      state.sunGearAngle = sunGearAngle;
+      state.planetCarrierAngle = carrierAngle;
+      state.outputShaftAngle = carrierAngle;
+      state.spinVelocity = spinVelocity;
+      state.energy = energyDebug;
     },
     getDebugState: () => ({
       ...state,
+      planetGearAngles: [...state.planetGearAngles],
       energy: {
         ...state.energy,
         missingTargetDiagnostics: [...state.energy.missingTargetDiagnostics],
