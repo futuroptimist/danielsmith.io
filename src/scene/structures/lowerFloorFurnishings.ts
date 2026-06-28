@@ -1037,6 +1037,39 @@ function createStorageFurnishing(
         );
       }
     }
+    if (definition.id === 'living-room-drawer-console') {
+      const footInsetX = 0.34;
+      const footInsetZ = 0.18;
+      const footPositions: Array<[number, number]> = [
+        [
+          -visualFootprint.width / 2 + footInsetX,
+          -visualFootprint.depth / 2 + footInsetZ,
+        ],
+        [
+          visualFootprint.width / 2 - footInsetX,
+          -visualFootprint.depth / 2 + footInsetZ,
+        ],
+        [
+          -visualFootprint.width / 2 + footInsetX,
+          visualFootprint.depth / 2 - footInsetZ,
+        ],
+        [
+          visualFootprint.width / 2 - footInsetX,
+          visualFootprint.depth / 2 - footInsetZ,
+        ],
+      ];
+
+      footPositions.forEach(([x, z], index) => {
+        addBox(
+          group,
+          `drawerConsoleFoot${index}`,
+          { width: 0.16, height: 0.16, depth: 0.16 },
+          darkMaterial,
+          [x, 0.08, z]
+        );
+      });
+    }
+
     addBox(
       group,
       'topTray',

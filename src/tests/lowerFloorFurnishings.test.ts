@@ -203,6 +203,28 @@ describe('lower floor furnishings foundation', () => {
     });
   });
 
+  it('adds named foot meshes to the living-room drawer console visual', () => {
+    const { group } = createLowerFloorFurnishings();
+    const drawerConsole = group.children.find(
+      (child) => child.name === 'Furnishing:living-room-drawer-console'
+    );
+    const footMeshNames: string[] = [];
+
+    expect(drawerConsole).toBeDefined();
+    drawerConsole!.traverse((child) => {
+      if (child.name.startsWith('FurnishingPart:drawerConsoleFoot')) {
+        footMeshNames.push(child.name);
+      }
+    });
+
+    expect(footMeshNames.sort()).toEqual([
+      'FurnishingPart:drawerConsoleFoot0',
+      'FurnishingPart:drawerConsoleFoot1',
+      'FurnishingPart:drawerConsoleFoot2',
+      'FurnishingPart:drawerConsoleFoot3',
+    ]);
+  });
+
   it('does not create extra colliders for storage visual details', () => {
     const { colliders } = createLowerFloorFurnishings();
     const storageDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
