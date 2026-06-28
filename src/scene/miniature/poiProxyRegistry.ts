@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 22,
+    syncRevision: 24,
     syncNote:
-      'Tracks the simplified Flywheel rotor body plus performance-visible blue/teal POI shell, energy port, and static energy-arc hints without the deferred gear/crank assembly.',
+      'Tracks the final Flywheel rotor, hand crank, planetary gear cluster, base/bearings, energy port, and static energy-arc hints without running runtime energy logic.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -124,6 +124,21 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
         color: 0x1f2937,
       },
       box('flywheel-spoke', [0.56, 0.04, 0.04], [0, 0.62, 0], 0xcbd5e1),
+      box(
+        'flywheel-crank-arm',
+        [0.04, 0.22, 0.035],
+        [-0.46, 0.42, 0.24],
+        0xf59e0b
+      ),
+      {
+        kind: 'ring',
+        name: 'flywheel-planetary-gear-cluster',
+        radius: 0.13,
+        tube: 0.025,
+        position: [-0.34, 0.46, 0.22],
+        rotation: [0, 0, 0],
+        color: 0xcbd5e1,
+      },
       box(
         'flywheel-motion-tick',
         [0.05, 0.13, 0.035],

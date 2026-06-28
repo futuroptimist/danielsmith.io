@@ -29,6 +29,7 @@ import {
   FLYWHEEL_BEARING_STAND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
+  FLYWHEEL_GEAR_RATIO,
   FLYWHEEL_SPIN_RAD_PER_SECOND,
   FLYWHEEL_WHEEL,
 } from './flywheelEnergyContract';
@@ -80,6 +81,11 @@ export interface FlywheelDebugState {
     visibleWindowEnd: number | null;
     incomingCompletedCount: number;
     outgoingCompletedCount: number;
+    crankAngle: number;
+    sunGearAngle: number;
+    planetOrbitAngle: number;
+    planetSpinAngle: number;
+    carrierAngle: number;
     sourceWorldPosition: { x: number; y: number; z: number } | null;
     destinationWorldPosition: { x: number; y: number; z: number } | null;
     sourceLocalPosition: { x: number; y: number; z: number } | null;
@@ -316,6 +322,86 @@ export function createFlywheelShowpiece(
     weight.rotation.z = a;
     wheelGroup.add(weight);
   }
+  const gearbox = new Group();
+  gearbox.name = 'FlywheelPlanetaryGearbox';
+  gearbox.position.set(-0.74, FLYWHEEL_BASE_DIMENSIONS.height + 0.42, 0.44);
+  group.add(gearbox);
+
+  const crankGroup = new Group();
+  crankGroup.name = 'FlywheelCrankGroup';
+  crankGroup.position.set(-0.42, 0, 0.04);
+  gearbox.add(crankGroup);
+  const crankDisc = mesh(
+    'FlywheelCrankDisc',
+    new CylinderGeometry(0.18, 0.18, 0.05, cylSeg),
+    brass
+  );
+  crankDisc.rotation.x = Math.PI / 2;
+  crankGroup.add(crankDisc);
+  const crankArm = mesh(
+    'FlywheelCrankArm',
+    new BoxGeometry(0.08, 0.42, 0.04),
+    brass
+  );
+  crankArm.position.y = 0.21;
+  crankGroup.add(crankArm);
+  const crankHandle = mesh(
+    'FlywheelCrankHandle',
+    new CylinderGeometry(0.035, 0.035, 0.16, Math.max(6, cylSeg / 2)),
+    steel
+  );
+  crankHandle.position.set(0, 0.43, 0.08);
+  crankHandle.rotation.x = Math.PI / 2;
+  crankGroup.add(crankHandle);
+
+  const sunGearGroup = new Group();
+  sunGearGroup.name = 'FlywheelSunGearGroup';
+  gearbox.add(sunGearGroup);
+  const sunGear = mesh(
+    'FlywheelSunGear',
+    new CylinderGeometry(0.16, 0.16, 0.09, cylSeg),
+    brass
+  );
+  sunGear.rotation.x = Math.PI / 2;
+  sunGearGroup.add(sunGear);
+
+  const ringGear = mesh(
+    'FlywheelRingGear',
+    new TorusGeometry(0.42, 0.035, Math.max(5, cylSeg / 2), torusSeg),
+    dark
+  );
+  gearbox.add(ringGear);
+  const carrier = new Group();
+  carrier.name = 'FlywheelPlanetCarrier';
+  gearbox.add(carrier);
+  const planetCount = detailPolicy.level === 'micro' ? 2 : 3;
+  const planetGears: Object3D[] = [];
+  for (let i = 0; i < planetCount; i += 1) {
+    const holder = new Group();
+    holder.name = `FlywheelPlanetGearOrbit-${i}`;
+    holder.rotation.z = (i / planetCount) * Math.PI * 2;
+    const planet = mesh(
+      `FlywheelPlanetGear-${i}`,
+      new CylinderGeometry(0.095, 0.095, 0.08, Math.max(6, cylSeg / 2)),
+      steel
+    );
+    planet.position.x = 0.29;
+    planet.rotation.x = Math.PI / 2;
+    holder.add(planet);
+    carrier.add(holder);
+    planetGears.push(planet);
+  }
+
+  const outputShaft = mesh(
+    'FlywheelOutputShaft',
+    new CylinderGeometry(0.04, 0.04, 1.06, Math.max(6, cylSeg / 2)),
+    steel
+  );
+  outputShaft.name = 'FlywheelOutputShaft';
+  outputShaft.position.set(-0.36, FLYWHEEL_WHEEL.centerY, 0.22);
+  outputShaft.rotation.x = Math.PI / 2;
+  group.add(outputShaft);
+
   const glowRing = mesh(
     'FlywheelEnergyGlowRing',
     new TorusGeometry(FLYWHEEL_WHEEL.radius * 0.82, 0.018, 4, torusSeg),
@@ -437,6 +523,11 @@ export function createFlywheelShowpiece(
       sourceLocalPosition: null,
       destinationLocalPosition: null,
       activeNodeCount: 0,
+      crankAngle: 0,
+      sunGearAngle: 0,
+      planetOrbitAngle: 0,
+      planetSpinAngle: 0,
+      carrierAngle: 0,
       detailLevel: detailPolicy.level,
       pulseScale: 1,
       flickerScale: 1,
@@ -459,12 +550,12 @@ export function createFlywheelShowpiece(
   const localPoint = new Vector3();
 
   const hideEnergyPacket = () => {
-    packetNodes.forEach((node) => {
-      node.visible = false;
-    });
-    packetConnectors.forEach((connector) => {
-      connector.visible = false;
-    });
+    for (let i = 0; i < packetNodes.length; i += 1) {
+      packetNodes[i].visible = false;
+    }
+    for (let i = 0; i < packetConnectors.length; i += 1) {
+      packetConnectors[i].visible = false;
+    }
   };
 
   const clonePoint = (point: Vector3) => ({
@@ -497,6 +588,21 @@ export function createFlywheelShowpiece(
         sourceLocalPosition: null,
         destinationLocalPosition: null,
         activeNodeCount: 0,
+        crankAngle:
+          flywheelAngle /
+          FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+          FLYWHEEL_GEAR_RATIO.sunToCarrier,
+        sunGearAngle:
+          flywheelAngle /
+          FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+          FLYWHEEL_GEAR_RATIO.sunToCarrier,
+        planetOrbitAngle: flywheelAngle / FLYWHEEL_GEAR_RATIO.carrierToFlywheel,
+        planetSpinAngle:
+          (flywheelAngle /
+            FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+            FLYWHEEL_GEAR_RATIO.sunToCarrier) *
+          FLYWHEEL_GEAR_RATIO.sunToPlanetSpin,
+        carrierAngle: flywheelAngle / FLYWHEEL_GEAR_RATIO.carrierToFlywheel,
         detailLevel: detailPolicy.level,
         pulseScale,
         flickerScale,
@@ -521,6 +627,21 @@ export function createFlywheelShowpiece(
         sourceLocalPosition: null,
         destinationLocalPosition: null,
         activeNodeCount: 0,
+        crankAngle:
+          flywheelAngle /
+          FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+          FLYWHEEL_GEAR_RATIO.sunToCarrier,
+        sunGearAngle:
+          flywheelAngle /
+          FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+          FLYWHEEL_GEAR_RATIO.sunToCarrier,
+        planetOrbitAngle: flywheelAngle / FLYWHEEL_GEAR_RATIO.carrierToFlywheel,
+        planetSpinAngle:
+          (flywheelAngle /
+            FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+            FLYWHEEL_GEAR_RATIO.sunToCarrier) *
+          FLYWHEEL_GEAR_RATIO.sunToPlanetSpin,
+        carrierAngle: flywheelAngle / FLYWHEEL_GEAR_RATIO.carrierToFlywheel,
         detailLevel: detailPolicy.level,
         pulseScale,
         flickerScale,
@@ -622,6 +743,11 @@ export function createFlywheelShowpiece(
       sourceLocalPosition: clonePoint(sourceLocalPosition),
       destinationLocalPosition: clonePoint(destinationLocalPosition),
       activeNodeCount,
+      crankAngle: 0,
+      sunGearAngle: 0,
+      planetOrbitAngle: 0,
+      planetSpinAngle: 0,
+      carrierAngle: 0,
       detailLevel: detailPolicy.level,
       pulseScale,
       flickerScale,
@@ -647,7 +773,27 @@ export function createFlywheelShowpiece(
           0.45 + Math.min(0.4, emphasis * 0.35) + Math.sin(elapsed * 2) * 0.05;
       }
       const transfer = energyNetwork.update(delta);
+      const crankAngle =
+        flywheelAngle /
+        FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+        FLYWHEEL_GEAR_RATIO.sunToCarrier;
+      const sunGearAngle = crankAngle * FLYWHEEL_GEAR_RATIO.crankToSun;
+      const carrierAngle = sunGearAngle * FLYWHEEL_GEAR_RATIO.sunToCarrier;
+      const planetSpinAngle =
+        sunGearAngle * FLYWHEEL_GEAR_RATIO.sunToPlanetSpin;
+      crankGroup.rotation.z = crankAngle;
+      sunGearGroup.rotation.z = sunGearAngle;
+      carrier.rotation.z = carrierAngle;
+      outputShaft.rotation.z = carrierAngle;
+      for (let i = 0; i < planetGears.length; i += 1) {
+        planetGears[i].rotation.z = planetSpinAngle;
+      }
       const energyDebug = renderEnergyTransfer(transfer);
+      energyDebug.crankAngle = crankAngle;
+      energyDebug.sunGearAngle = sunGearAngle;
+      energyDebug.planetOrbitAngle = carrierAngle;
+      energyDebug.planetSpinAngle = planetSpinAngle;
+      energyDebug.carrierAngle = carrierAngle;
       state = {
         flywheelAngle,
         spinVelocity,
