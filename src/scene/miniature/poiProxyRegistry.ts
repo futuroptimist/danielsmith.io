@@ -348,9 +348,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Refreshes the upper-floor POI geometry with repository-specific physical details.',
+      'Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -364,9 +364,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Refreshes the upper-floor POI geometry with repository-specific physical details.',
+      'Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -417,9 +417,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Refreshes the upper-floor POI geometry with repository-specific physical details.',
+      'Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [

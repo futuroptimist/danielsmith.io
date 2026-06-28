@@ -348,7 +348,7 @@ export function createF2ClipboardConsole(
   pipelineSteps.forEach((step, index) => {
     const stepMesh = new Mesh(
       new BoxGeometry(0.22, 0.1, 0.16),
-      pipelineMaterial.clone()
+      pipelineMaterial
     );
     stepMesh.name = `F2ClipboardPipelineStep-${step}`;
     stepMesh.position.set(
@@ -360,7 +360,7 @@ export function createF2ClipboardConsole(
     if (index > 0) {
       const link = new Mesh(
         new BoxGeometry(0.14, 0.035, 0.035),
-        pipelineMaterial.clone()
+        pipelineMaterial
       );
       link.name = `F2ClipboardPipelineLink-${index}`;
       link.position.set(

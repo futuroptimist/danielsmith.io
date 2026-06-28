@@ -227,6 +227,8 @@ export function createGitshelvesInstallation(
       baseHeight + 0.03,
       0.28
     );
+    socket.castShadow = true;
+    socket.receiveShadow = true;
     group.add(socket);
   }
 

@@ -190,7 +190,7 @@ export function createGabrielSentry(
 
   const privacyRing = new Mesh(
     new TorusGeometry(0.56, 0.025, 12, 48),
-    ringMaterial.clone()
+    ringMaterial
   );
   privacyRing.name = 'GabrielPrivacyBoundaryRing';
   privacyRing.rotation.x = Math.PI / 2;
