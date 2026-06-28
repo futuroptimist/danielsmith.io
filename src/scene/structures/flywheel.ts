@@ -379,7 +379,7 @@ export function createFlywheelShowpiece(
       brass
     );
     const angle = (i / gearToothCount) * Math.PI * 2;
-    tooth.position.set(Math.cos(angle) * 0.32, Math.sin(angle) * 0.32, 0.02);
+    tooth.position.set(Math.cos(angle) * 0.285, Math.sin(angle) * 0.285, 0.02);
     tooth.rotation.z = angle;
     gearbox.add(tooth);
   }
@@ -448,11 +448,10 @@ export function createFlywheelShowpiece(
   );
   group.add(outputShaft);
   const torqueShaftBody = mesh(
-    'FlywheelTorqueShaftBody',
+    'FlywheelTorqueShaft',
     new CylinderGeometry(0.035, 0.035, 0.72, Math.max(6, cylSeg / 2)),
     steel
   );
-  torqueShaftBody.name = 'FlywheelTorqueShaft';
   torqueShaftBody.rotation.z = Math.PI / 2;
   outputShaft.add(torqueShaftBody);
   const outputCoupler = mesh(
@@ -471,6 +470,13 @@ export function createFlywheelShowpiece(
   hubCoupler.rotation.z = Math.PI / 2;
   hubCoupler.position.x = 0.36;
   outputShaft.add(hubCoupler);
+  const shaftKeyMark = mesh(
+    'FlywheelOutputShaftKeyMark',
+    new BoxGeometry(0.012, 0.11, 0.018),
+    brass
+  );
+  shaftKeyMark.position.set(0.405, 0.055, 0);
+  outputShaft.add(shaftKeyMark);
 
   const port = mesh(
     'FlywheelEnergyPort',

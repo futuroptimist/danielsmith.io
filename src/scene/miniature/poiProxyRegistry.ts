@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 23,
+    syncRevision: 24,
     syncNote:
-      'Tracks the final Flywheel rotor, crank, static planetary gear cluster, base, bearings, energy port, and one incoming/outgoing arc hint without running animation or target selection.',
+      'Tracks the final Flywheel rotor, crank, static planetary gear cluster, legible output shaft key mark, base, bearings, energy port, and one incoming/outgoing arc hint without running animation or target selection.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
