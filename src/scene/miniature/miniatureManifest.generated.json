@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 11,
-      "syncNote": "Sleeping nook mesh names remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.",
-      "sourceFingerprint": "996ac2753ac18b07253866eda65eee556cbd7e579f132ae70e431b0553119cc3",
+      "syncRevision": 12,
+      "syncNote": "Plants, lamps, and visual-only kitchen decor reviewed; furnishing proxy work stays deferred until the full furnishing set lands.",
+      "sourceFingerprint": "1d2ad4949c2c95f1b3f84c23f3af8b2cde6424ab7295f96705703a4a4309d058",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "e2fd9544a6dbdce90993b407a449a233ecb002ae7ec826c2707614df5d63031d"
+      "metadataFingerprint": "27fd25c237c4d1d1841cfea255ec474488f5e6025bf7f22e5f6a2cb19dece157"
     },
     {
       "id": "environment:backyard",
