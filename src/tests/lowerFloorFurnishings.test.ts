@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(24);
+    expect(build.colliders).toHaveLength(28);
     expect(build.decorativeFootprints).toHaveLength(2);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -104,6 +104,12 @@ describe('lower floor furnishings foundation', () => {
       'studio-nightstand-north',
       'studio-reading-chair',
       'studio-bedside-rug',
+      'living-room-large-plant',
+      'living-room-plant-stool',
+      'studio-floor-lamp',
+      'studio-monstera',
+      'kitchen-herb-planter',
+      'kitchen-pendant-lights',
       'living-room-media-rug',
     ]);
   });
@@ -194,6 +200,108 @@ describe('lower floor furnishings foundation', () => {
         expect(rectanglesOverlap(storage, blocker)).toBe(false);
       });
     });
+  });
+
+  it('adds P6 plants, lamps, and decor with intended solid and visual-only behavior', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const expectedDecorBounds: Record<string, RectCollider> = {
+      'living-room-large-plant': {
+        minX: -28.95,
+        maxX: -28.25,
+        minZ: -26.55,
+        maxZ: -25.85,
+      },
+      'living-room-plant-stool': {
+        minX: 5.3,
+        maxX: 6.3,
+        minZ: -31.3,
+        maxZ: -30.3,
+      },
+      'studio-floor-lamp': {
+        minX: 24.125,
+        maxX: 24.675,
+        minZ: 13.825,
+        maxZ: 14.375,
+      },
+      'studio-monstera': {
+        minX: 30.1,
+        maxX: 31.1,
+        minZ: -5.9,
+        maxZ: -4.9,
+      },
+    };
+    const p6SolidIds = Object.keys(expectedDecorBounds);
+    const p6Colliders = colliders.filter((collider) =>
+      p6SolidIds.includes(collider.furnishingId)
+    );
+
+    expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual(
+      expect.arrayContaining([
+        ...p6SolidIds,
+        'kitchen-herb-planter',
+        'kitchen-pendant-lights',
+      ])
+    );
+    expect(new Set(colliders.map(({ category }) => category))).toContain(
+      'plants-lighting-decor'
+    );
+
+    Object.entries(expectedDecorBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'plants-lighting-decor',
+      });
+      expect(
+        matchingColliders[0].maxX - matchingColliders[0].minX
+      ).toBeGreaterThan(0);
+      expect(
+        matchingColliders[0].maxZ - matchingColliders[0].minZ
+      ).toBeGreaterThan(0);
+      expect(
+        isContainedBy(
+          LOWER_FLOOR_ROOM_BOUNDS[matchingColliders[0].roomId],
+          matchingColliders[0]
+        )
+      ).toBe(true);
+    });
+
+    p6Colliders.forEach((p6Collider, index) => {
+      p6Colliders.slice(index + 1).forEach((otherP6Collider) => {
+        expect(rectanglesOverlap(p6Collider, otherP6Collider)).toBe(false);
+      });
+      colliders
+        .filter(
+          (collider) =>
+            !p6SolidIds.includes(collider.furnishingId) &&
+            [
+              'living-room-seating',
+              'kitchenette',
+              'storage',
+              'sleeping-nook',
+            ].includes(collider.category)
+        )
+        .forEach((otherCollider) => {
+          expect(rectanglesOverlap(p6Collider, otherCollider)).toBe(false);
+        });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(p6Collider, blocker)).toBe(false);
+      });
+    });
+
+    ['kitchen-herb-planter', 'kitchen-pendant-lights'].forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
+        false
+      );
+    });
+    expect(group.getObjectByName('FurnishingPart:pendantShade0')).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:herbPlanterBox')
+    ).toBeDefined();
   });
 
   it('keeps collider source IDs valid and unique for the default plan', () => {
