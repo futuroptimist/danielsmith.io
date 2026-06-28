@@ -231,8 +231,8 @@ export function createF2ClipboardConsole(
   clipboardPivot.add(calloutGlow);
 
   const clipboardCalloutEntries: Array<{ title: string; detail: string }> = [
-    { title: 'Queue synced', detail: 'Codex diffs summarised' },
-    { title: 'Clipboard ready', detail: '3 incidents triaged' },
+    { title: 'File set staged', detail: 'Selected paths bundled' },
+    { title: 'Clipboard ready', detail: 'Multi-file prompt copied' },
   ];
 
   clipboardCalloutEntries.forEach((entry, index) => {
@@ -311,9 +311,9 @@ export function createF2ClipboardConsole(
 
   const floatingLogs: FloatingLog[] = [];
   const logEntries: Array<{ title: string; status: string }> = [
-    { title: 'Incident 204', status: 'SLA recovered · 00:32' },
-    { title: 'Triage queue', status: '3 items → clipboard' },
-    { title: 'Codex sync', status: 'Diff summarized ✓' },
+    { title: 'Codex task page', status: 'Clean brief extracted' },
+    { title: 'GitHub logs', status: 'Failure context clipped' },
+    { title: 'Jira issue', status: 'Description summarized ✓' },
   ];
   logEntries.forEach((entry, index) => {
     const texture = createLogCardTexture(entry.title, entry.status);
@@ -539,14 +539,14 @@ function createConsoleScreenTexture(): CanvasTexture {
 
   context.font = '52px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#b7f3ff';
-  context.fillText('Incident digest pipeline', 70, 180);
+  context.fillText('Multi-file prompt clipboard', 70, 180);
 
   context.font = '42px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#8ad4ff';
   const bullets = [
-    'Tail logs → summarise in Markdown',
-    'Copy to clipboard in 3 seconds',
-    'Annotate follow-up actions automatically',
+    'Select files → bundle context',
+    'Paste-ready prompt in seconds',
+    'Plugins summarize Jira + CI logs',
   ];
   bullets.forEach((line, index) => {
     const y = 260 + index * 80;

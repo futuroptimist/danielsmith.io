@@ -71,6 +71,12 @@ describe('createSigmaWorkbench', () => {
 
     const pinCore = build.group.getObjectByName('SigmaWorkbenchPinCore');
     expect(pinCore).toBeInstanceOf(Mesh);
+    expect(
+      build.group.getObjectByName('SigmaWorkbenchPrintedEnclosureShell')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      build.group.getObjectByName('SigmaWorkbenchPushToTalkButton')
+    ).toBeInstanceOf(Mesh);
 
     const hologram = build.group.getObjectByName('SigmaWorkbenchHologram');
     expect(hologram).toBeInstanceOf(Mesh);

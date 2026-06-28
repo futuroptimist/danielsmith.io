@@ -128,10 +128,10 @@ describe('createF2ClipboardConsole', () => {
 
     const capturedText = contexts.flatMap((ctx) => ctx.fillTextCalls);
     expect(capturedText).toContain('f2clipboard');
-    expect(capturedText).toContain('Incident digest pipeline');
-    expect(capturedText).toContain('Queue synced');
-    expect(capturedText).toContain('Codex diffs summarised');
-    expect(capturedText).toContain('3 incidents triaged');
+    expect(capturedText).toContain('Multi-file prompt clipboard');
+    expect(capturedText).toContain('File set staged');
+    expect(capturedText).toContain('Selected paths bundled');
+    expect(capturedText).toContain('Multi-file prompt copied');
   });
 
   it('animates hologram and ticker with emphasis changes', () => {
