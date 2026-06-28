@@ -210,6 +210,27 @@ export function createGitshelvesInstallation(
   pedestal.receiveShadow = true;
   group.add(pedestal);
 
+  const gridfinityMaterial = new MeshStandardMaterial({
+    color: new Color(0x26364a),
+    emissive: new Color(0x0a5f9a),
+    emissiveIntensity: 0.16,
+    roughness: 0.5,
+    metalness: 0.18,
+  });
+  const baseplateGeometry = new BoxGeometry(0.42, 0.045, 0.42);
+  for (let month = 0; month < 3; month += 1) {
+    const baseplate = new Mesh(baseplateGeometry, gridfinityMaterial.clone());
+    baseplate.name = `GitshelvesGridfinityBaseplate-${month}`;
+    baseplate.position.set(
+      (month - 1) * 0.48,
+      baseHeight + pedestal.geometry.parameters.height + 0.03,
+      baseDepth * 0.18
+    );
+    baseplate.castShadow = true;
+    baseplate.receiveShadow = true;
+    group.add(baseplate);
+  }
+
   const panelHeight = rows * 0.36 + 1.1;
   const panelWidth = columns * 0.34 + 0.8;
   const panelThickness = 0.12;

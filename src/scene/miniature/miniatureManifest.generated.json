@@ -524,7 +524,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "a4b7ec20ed601e304e3263fb5bf5517416cd2b4168d72ca99b606c2fa68f93cc",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "63f401237e2515f4289cdf4a9eabf90d17835ade28cbdf84afaa6f1d1abadd49"
     },
     {
@@ -544,7 +544,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "f7b1f1ff981a925d52760a724671676ec5f6aa70f0877d6c86151fcfefd8d6bc",
-      "proxyFingerprint": "3dafe605d375241fb47f921bc9845cbf35dbe00e24958d04cbc948dbf548828c",
+      "proxyFingerprint": "f91e4046b9ef7e13043a678a49d15be1b7d0dba82c27bdd3f68bb63b123316ea",
       "metadataFingerprint": "7ba0e258575aefd3e8590a2cbd714456f28a8cef0603059b339a5889a121a85a"
     },
     {
@@ -559,7 +559,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "fc279c5b2b65299859e87cfdef038f48cfdba1dac61fe0311a34522e700ea7c2",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "18df3400e4b42e5e5bc3f08020a44c78d4c00f4669abcb201698ad3c3d7c57da"
     },
     {
@@ -571,11 +571,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
-      "sourceFingerprint": "2f1e8a7fc3deaa111e16e6a03013527965119b92d97b09f1b78648b577b36584",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
-      "metadataFingerprint": "d26b6a4ba77b15fc7de9913416e8e1774991bdfec8c0a49076feaf91359841eb"
+      "syncRevision": 6,
+      "syncNote": "Refreshes f2clipboard as a multi-file prompt clipboard and plugin console.",
+      "sourceFingerprint": "cbaf02027b6c07dfa678d60b5168d078c1ac6c1198711108388d83d2b14a1719",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
+      "metadataFingerprint": "dc0112cd489d9959a2a651b7b36258272838d4cac3000080b1c7de5d5ba217ce"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -591,7 +591,7 @@
       "syncRevision": 26,
       "syncNote": "Acknowledges Flywheel debug-state snapshot hardening while preserving the final rotor, crank, static planetary gear cluster, output shaft key mark, base, bearings, energy port, and incoming/outgoing arc hints.",
       "sourceFingerprint": "06bb38b24c96fcb832e676e9159b0e4d718b7e9a664fb0c7e272e37bdd09b03b",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "85d2e4a060cf0896c4bfb81a2abf893cd8e579324bfd51282804b81016c6931a"
     },
     {
@@ -603,11 +603,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
+      "syncRevision": 6,
+      "syncNote": "Refreshes Gabriel as a local privacy coaching guardian with actionable shield cards.",
       "sourceFingerprint": "fc41839553cb8d894adb1491561c765abff3b7e7daae6f9e090d64e23eec1567",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
-      "metadataFingerprint": "c6a38e8f5c9009600682de8b5410a382c8e91c60cc27703076719b2577d50a37"
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
+      "metadataFingerprint": "a12c58ebed736e4cbe76291d6ad7153e86d2a98e3718f3657c8355ec5e48d55f"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -618,11 +618,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
-      "sourceFingerprint": "bf8dc4d58f614431c0731f4de2fdaed1f971a42de96daac7e20bc190462915a2",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
-      "metadataFingerprint": "3e4b8bcbebde225bf212394ecc8ad0e4a5e6681aba55b39cfc355ee27e8d971b"
+      "syncRevision": 6,
+      "syncNote": "Refreshes Gabriel as a local privacy coaching guardian with actionable shield cards.",
+      "sourceFingerprint": "40d95c34dbff786702fd7bde3b294eddabd9d02af883c1030e41d95709e23fdb",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
+      "metadataFingerprint": "8b448713cfe1e4c57bee01ed6a5849583b62ba0b6d62ac38348e5ce24a0d3a60"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -633,11 +633,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
-      "sourceFingerprint": "4436803d33b425c66c24c5c9ce6f34ce6d67d5787d64b0230a0386b6de1c669b",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
-      "metadataFingerprint": "4fdf722cfeb551ce21463442ffcd4924a18671b22b3ef31dd3d105d032203967"
+      "syncRevision": 6,
+      "syncNote": "Refreshes Gitshelves as 42 mm Gridfinity contribution baseplates.",
+      "sourceFingerprint": "148495d18b90b2c1f8e5e81aa2ef8ec23b43f14b33033b294387948635232a9c",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
+      "metadataFingerprint": "ed4a849e31fe1a3bc9e138141799cd88eb245c2c66aca4f594e02e774685cf06"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -651,7 +651,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "1f63c8815cf2c5d8527a6c3dfff5e752b503da32e9383c959d526e2408600048",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "76917fdeea6dec76f13aaabf1477853a53a1f4b5cf6d7ad6f52cbf11d3a904ab"
     },
     {
@@ -686,7 +686,7 @@
       "syncRevision": 20,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "bd997161126bf1aaf8ff160e31bf7ec9dd6f3014e594b71d159710bb21d3a522",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "3f7c3d3a714c32731c7a190695983084dd1dcd5ba9fa4683271c7d82e691161c"
     },
     {
@@ -698,11 +698,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
-      "sourceFingerprint": "d6696b8379112b6fe19fe420102d841a1ddcbe747713c2175452aec94fb26ba0",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
-      "metadataFingerprint": "bad6d659009fad48a9ffdf335cbcb3aa993925cc575da14a599d2a05f6b35380"
+      "syncRevision": 6,
+      "syncNote": "Refreshes Sigma as an ESP32 AI pin workbench with printed enclosure details.",
+      "sourceFingerprint": "faac1e6a0f4a2ed78ebd495b97a5743b8b8accb9b21e7d9131157eddd82f77b9",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
+      "metadataFingerprint": "d46538e7ef7e120fa0812d0632dd6464b2a57a16c076857b0770128612ebd274"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -716,7 +716,7 @@
       "syncRevision": 4,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "355927cea33ea392a2a51989ae57feef1a4d07d9744279a50b75ad82534dd234",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "99b33d83ab99a3947c933042bb53e9fd6fde4fe434c907c9494a848aa1a6494b"
     },
     {
@@ -731,7 +731,7 @@
       "syncRevision": 4,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "1699b67c0db7d55fdbc27e8e45bdd2759c0e27551ac50c9df1d04f7c258bdfef",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "93f8bc5e9d12415379e8b85f87508473db89c7f4b7329fffd1d4c5a1afd22eb1"
     },
     {
@@ -746,7 +746,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "b5f79bc9137af44394bd859ab1224199c7eceb279d0437385238d93de7738f4f",
-      "proxyFingerprint": "cf3d79e9718ead39de2e9c5ee128022b36226fe4f4810d7f54c44bae589c5c78",
+      "proxyFingerprint": "bb46adc13e78c39a58f5db8b252ae53b0a472e3e174a074143024c4927902d64",
       "metadataFingerprint": "9e7ffd3304fc004d8edd7d936b328e96107bf1163e4ee2921c9fe459ad7d679e"
     },
     {

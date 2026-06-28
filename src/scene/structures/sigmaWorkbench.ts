@@ -180,6 +180,37 @@ export function createSigmaWorkbench(
   pinBase.position.set(0, workSurface.position.y + 0.11, 0);
   group.add(pinBase);
 
+  const enclosureMaterial = new MeshStandardMaterial({
+    color: new Color(0xf4f7fb),
+    roughness: 0.36,
+    metalness: 0.08,
+  });
+  const shell = new Mesh(new BoxGeometry(0.42, 0.54, 0.1), enclosureMaterial);
+  shell.name = 'SigmaWorkbenchPrintedEnclosureShell';
+  shell.position.set(0, workSurface.position.y + 0.3, tableDepth * 0.18);
+  shell.rotation.x = -Math.PI * 0.04;
+  group.add(shell);
+
+  const pushToTalkButtonMaterial = new MeshStandardMaterial({
+    color: new Color(0x1df2ff),
+    emissive: new Color(0x16b4ff),
+    emissiveIntensity: 0.72,
+    roughness: 0.2,
+    metalness: 0.28,
+  });
+  const pushToTalkButton = new Mesh(
+    new CylinderGeometry(0.085, 0.085, 0.035, 24),
+    pushToTalkButtonMaterial
+  );
+  pushToTalkButton.name = 'SigmaWorkbenchPushToTalkButton';
+  pushToTalkButton.rotation.x = Math.PI / 2;
+  pushToTalkButton.position.set(
+    0,
+    shell.position.y + 0.06,
+    shell.position.z - 0.055
+  );
+  group.add(pushToTalkButton);
+
   const pinCoreMaterial = new MeshStandardMaterial({
     color: new Color(0x48fff1),
     emissive: new Color(0x1dffe3),

@@ -112,6 +112,35 @@ export function createGabrielSentry(
   sensor.position.y = core.position.y + 0.64;
   group.add(sensor);
 
+  const privacyShieldMaterial = new MeshStandardMaterial({
+    color: new Color(0x5eead4),
+    emissive: new Color(0x0f766e),
+    emissiveIntensity: 0.28,
+    roughness: 0.42,
+    metalness: 0.18,
+    transparent: true,
+    opacity: 0.72,
+  });
+  const shieldArcGroup = new Group();
+  shieldArcGroup.name = 'GabrielSentryPrivacyCoachingArc';
+  shieldArcGroup.position.y = core.position.y + 0.12;
+  group.add(shieldArcGroup);
+  for (let index = 0; index < 3; index += 1) {
+    const card = new Mesh(
+      new BoxGeometry(0.38, 0.54, 0.045),
+      privacyShieldMaterial.clone()
+    );
+    card.name = `GabrielSentryActionCard-${index}`;
+    const angle = -0.55 + index * 0.55;
+    card.position.set(
+      Math.sin(angle) * 0.7,
+      index * 0.08,
+      Math.cos(angle) * 0.7
+    );
+    card.rotation.y = angle;
+    shieldArcGroup.add(card);
+  }
+
   const headGroup = new Group();
   headGroup.name = 'GabrielSentryScanner';
   headGroup.position.y = sensor.position.y + 0.42;
@@ -130,8 +159,8 @@ export function createGabrielSentry(
 
   const scannerMaterial = new MeshStandardMaterial({
     color: new Color(0x272f3f),
-    emissive: new Color(0xff2e45),
-    emissiveIntensity: 0.7,
+    emissive: new Color(0x38bdf8),
+    emissiveIntensity: 0.56,
     roughness: 0.28,
     metalness: 0.36,
   });
@@ -144,9 +173,9 @@ export function createGabrielSentry(
   headGroup.add(scannerBar);
 
   const beaconMaterial = new MeshStandardMaterial({
-    color: new Color(0xff4b4b),
-    emissive: new Color(0xff1a1a),
-    emissiveIntensity: 1.2,
+    color: new Color(0x38bdf8),
+    emissive: new Color(0x0ea5e9),
+    emissiveIntensity: 0.95,
     roughness: 0.22,
     metalness: 0.4,
   });
@@ -158,7 +187,7 @@ export function createGabrielSentry(
   beacon.position.y = 0.44;
   headGroup.add(beacon);
 
-  const beaconLight = new PointLight(0xff3a3a, 4.5, 6.5, 2.4);
+  const beaconLight = new PointLight(0x38bdf8, 3.2, 6.5, 2.4);
   beaconLight.name = 'GabrielSentryBeaconLight';
   beaconLight.position.set(0, 0.64, 0);
   headGroup.add(beaconLight);
