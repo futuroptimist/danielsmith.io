@@ -80,6 +80,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     syncNote: 'Ceiling panel fixtures need simplified caps in the tabletop.',
   },
   {
+    id: 'decor:lower-floor-furnishings',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
+    syncRevision: 1,
+    reason:
+      'Lower-floor furnishing geometry is currently an empty authoring foundation; future populated furniture plans will need proxy coverage.',
+  },
+  {
     id: 'avatar:overworld-player',
     kind: 'excluded',
     sourceFiles: [
