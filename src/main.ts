@@ -293,10 +293,7 @@ import {
   createJobbotTerminal,
   type JobbotTerminalBuild,
 } from './scene/structures/jobbotTerminal';
-import {
-  createLowerFloorFurnishings,
-  type LowerFloorFurnishingCollider,
-} from './scene/structures/lowerFloorFurnishings';
+import { createLowerFloorFurnishings } from './scene/structures/lowerFloorFurnishings';
 import {
   createLivingRoomMediaWall,
   type LivingRoomMediaWallBuild,
@@ -2280,19 +2277,16 @@ function initializeImmersiveScene(
 
   const lowerFloorFurnishings = createLowerFloorFurnishings();
   groundStructureGroup.add(lowerFloorFurnishings.group);
-  lowerFloorFurnishings.colliders.forEach(
-    (collider: LowerFloorFurnishingCollider) => {
-      groundColliders.push(collider);
-      namedColliderDebugNames.set(collider, collider.debugName);
-      colliderSourceMetadata.set(collider, {
-        sourceId: assertLevelSourceId(collider.sourceId),
-        sourceType: 'generatedCollider',
-        purpose: 'lower-floor-furnishing',
-        role: collider.category,
-        debugId: collider.debugName,
-      });
-    }
-  );
+  lowerFloorFurnishings.colliders.forEach((collider) => {
+    groundColliders.push(collider);
+    namedColliderDebugNames.set(collider, collider.debugName);
+    colliderSourceMetadata.set(collider, {
+      sourceId: assertLevelSourceId(collider.sourceId),
+      sourceType: 'generatedCollider',
+      purpose: 'lower-floor-furnishing',
+      role: collider.category,
+    });
+  });
 
   const upperFloorGroup = new Group();
   upperFloorGroup.visible = false;

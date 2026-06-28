@@ -8,6 +8,7 @@ import {
 } from 'three';
 
 import type { RectCollider } from '../collision';
+import { isLevelSourceId } from '../level/sourceIds';
 
 export type LowerFloorFurnishingCategory =
   | 'living-room-seating'
@@ -136,6 +137,12 @@ export function validateLowerFloorFurnishingPlan(
   const roomBounds = { ...LOWER_FLOOR_ROOM_BOUNDS, ...options.roomBounds };
   const blockers = options.reservedBlockers ?? LOWER_FLOOR_RESERVED_BLOCKERS;
   const tolerance = options.tolerance ?? 0.001;
+  definitions.forEach((definition) => {
+    if (!isLevelSourceId(definition.id)) {
+      throw new Error(`${definition.id} is not a valid furnishing ID.`);
+    }
+  });
+
   const solids = definitions.flatMap((definition) => {
     if (!definition.solidFootprint) return [];
     const bounds = createRotatedAabb(definition, definition.solidFootprint);
@@ -171,13 +178,22 @@ export function validateLowerFloorFurnishingPlan(
       definition,
       definition.decorativeFootprint
     );
+    if (!hasPositiveArea(bounds)) {
+      throw new Error(`${definition.id} has an empty decorative footprint.`);
+    }
     if (!containsBounds(roomBounds[definition.roomId], bounds, tolerance)) {
       throw new Error(
         `${definition.id} decorative footprint is outside ${definition.roomId}.`
       );
     }
-    if (definition.visual?.allowDecorativeOverlapWithSolid) return;
     solids.forEach((solid) => {
+      const isAssociatedSolid = solid.definition.id === definition.id;
+      if (
+        isAssociatedSolid &&
+        definition.visual?.allowDecorativeOverlapWithSolid
+      ) {
+        return;
+      }
       if (rectanglesOverlap(bounds, solid.bounds, tolerance)) {
         throw new Error(
           `${definition.id} decorative footprint overlaps ${solid.definition.id}.`

@@ -148,6 +148,42 @@ describe('lower floor furnishings foundation', () => {
         },
       ])
     ).toThrow(/decorative footprint overlaps/);
+
+    expect(() =>
+      validateLowerFloorFurnishingPlan([
+        ...validDefinitions,
+        {
+          id: 'studio-bedspread-over-unrelated-cabinet',
+          category: 'plants-lighting-decor',
+          roomId: 'studio',
+          position: { x: 25, z: 11 },
+          orientationRadians: 0,
+          decorativeFootprint: { width: 2, depth: 1 },
+          kind: 'bedspread-shadow',
+          visual: { allowDecorativeOverlapWithSolid: true },
+        },
+      ])
+    ).toThrow(/decorative footprint overlaps studio-storage-foundation/);
+  });
+
+  it('validates authoring IDs and decorative footprint area before building', () => {
+    expect(() =>
+      validateLowerFloorFurnishingPlan([
+        {
+          ...validDefinitions[0],
+          id: 'Invalid furnishing id',
+        },
+      ])
+    ).toThrow(/not a valid furnishing ID/);
+
+    expect(() =>
+      validateLowerFloorFurnishingPlan([
+        {
+          ...validDefinitions[4],
+          decorativeFootprint: { width: 0, depth: 3 },
+        },
+      ])
+    ).toThrow(/empty decorative footprint/);
   });
 });
 
