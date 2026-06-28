@@ -293,6 +293,7 @@ import {
   createJobbotTerminal,
   type JobbotTerminalBuild,
 } from './scene/structures/jobbotTerminal';
+import { createLowerFloorFurnishings } from './scene/structures/lowerFloorFurnishings';
 import {
   createLivingRoomMediaWall,
   type LivingRoomMediaWallBuild,
@@ -1048,6 +1049,7 @@ const colliderSourceMetadata = new Map<
     role?: string;
     intent?: string;
     debugId?: string;
+    category?: string;
   }
 >();
 const upperFloorColliders: RectCollider[] = [];
@@ -2273,6 +2275,24 @@ function initializeImmersiveScene(
     playerRadius: PLAYER_RADIUS,
     guardThickness: stairGuardThickness,
   }).forEach(registerSafetyCollider);
+
+  const lowerFloorFurnishings = createLowerFloorFurnishings();
+  groundFloorGroup.add(lowerFloorFurnishings.group);
+  lowerFloorFurnishings.colliders.forEach((collider) => {
+    groundColliders.push(collider.bounds);
+    namedColliderDebugNames.set(
+      collider.bounds,
+      `LowerFloorFurnishing:${collider.id}`
+    );
+    colliderSourceMetadata.set(collider.bounds, {
+      sourceId: assertLevelSourceId(collider.sourceId),
+      sourceType: 'generatedCollider',
+      purpose: 'lower-floor-furnishing',
+      role: collider.kind,
+      category: collider.category,
+      debugId: collider.sourceId,
+    });
+  });
 
   const upperFloorGroup = new Group();
   upperFloorGroup.visible = false;
