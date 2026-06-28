@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 9,
+    syncRevision: 10,
     reason:
-      'Storage furnishing visuals stay source-only after drawer-console foot detailing; furnishing proxy work remains deferred until the full furnishing set lands.',
+      'Studio sleeping nook furnishings stay source-only while furnishing proxy work remains deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',
