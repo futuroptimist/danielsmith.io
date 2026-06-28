@@ -1,3 +1,4 @@
+import { Box3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -110,16 +111,16 @@ describe('lower floor furnishings foundation', () => {
         maxZ: -23.0,
       },
       'living-room-lounge-chair-north': {
-        minX: -29.0,
-        maxX: -27.6,
-        minZ: -15.9,
-        maxZ: -14.5,
+        minX: -29.2,
+        maxX: -27.8,
+        minZ: -23.5,
+        maxZ: -22.1,
       },
       'living-room-lounge-chair-east': {
-        minX: -25.3,
-        maxX: -23.9,
-        minZ: -15.4,
-        maxZ: -14.0,
+        minX: -26.8,
+        maxX: -25.4,
+        minZ: -16.6,
+        maxZ: -15.2,
       },
       'living-room-floor-lamp': {
         minX: -29.175,
@@ -144,6 +145,78 @@ describe('lower floor furnishings foundation', () => {
         (footprint) => footprint.furnishingId === 'living-room-media-rug'
       )?.allowSolidOverlap
     ).toBe(true);
+  });
+
+  it('keeps the media sofa visual inside its authored collider', () => {
+    const build = createLowerFloorFurnishings();
+    const sofaCollider = build.colliders.find(
+      (collider) => collider.furnishingId === 'living-room-media-sofa'
+    );
+    const sofaGroup = build.group.children.find(
+      (child) => child.name === 'Furnishing:living-room-media-sofa'
+    );
+
+    expect(sofaCollider).toMatchObject({
+      minX: -26.9,
+      maxX: -25.3,
+      minZ: -22.1,
+      maxZ: -17.5,
+    });
+    expect(sofaGroup).toBeDefined();
+
+    const visualBounds = new Box3().setFromObject(sofaGroup!);
+    expect(visualBounds.min.x).toBeGreaterThanOrEqual(
+      sofaCollider!.minX - 0.00001
+    );
+    expect(visualBounds.max.x).toBeLessThanOrEqual(
+      sofaCollider!.maxX + 0.00001
+    );
+    expect(visualBounds.min.z).toBeGreaterThanOrEqual(
+      sofaCollider!.minZ - 0.00001
+    );
+    expect(visualBounds.max.z).toBeLessThanOrEqual(
+      sofaCollider!.maxZ + 0.00001
+    );
+    expect(visualBounds.max.z - visualBounds.min.z).toBeGreaterThan(
+      visualBounds.max.x - visualBounds.min.x
+    );
+  });
+
+  it('keeps media lounge chairs west-facing and split across sofa ends', () => {
+    const chairIds = [
+      'living-room-lounge-chair-north',
+      'living-room-lounge-chair-east',
+    ];
+    const chairDefinitions = chairIds.map((id) =>
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.find((definition) => definition.id === id)
+    );
+    const { colliders, decorativeFootprints } = createLowerFloorFurnishings();
+    const byId = new Map(
+      colliders.map((collider) => [collider.furnishingId, collider])
+    );
+    const sofa = byId.get('living-room-media-sofa')!;
+    const sideTable = byId.get('living-room-side-table')!;
+    const lamp = byId.get('living-room-floor-lamp')!;
+    const rug = decorativeFootprints.find(
+      (footprint) => footprint.furnishingId === 'living-room-media-rug'
+    )!;
+    const chairs = chairIds.map((id) => byId.get(id)!);
+
+    chairDefinitions.forEach((definition) => {
+      expect(definition?.orientationRadians).toBe(Math.PI / 2);
+    });
+    expect(chairs[0].maxZ).toBeLessThanOrEqual(sofa.minZ);
+    expect(chairs[1].minZ).toBeGreaterThanOrEqual(sofa.maxZ);
+
+    chairs.forEach((chair) => {
+      expect(rectanglesOverlap(chair, sofa)).toBe(false);
+      expect(rectanglesOverlap(chair, sideTable)).toBe(false);
+      expect(rectanglesOverlap(chair, lamp)).toBe(false);
+      expect(rug.allowSolidOverlap).toBe(true);
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(chair, blocker)).toBe(false);
+      });
+    });
   });
 
   it('requires the default rug to explicitly allow overlapping nearby solids', () => {
