@@ -29,6 +29,7 @@ import {
   FLYWHEEL_BEARING_STAND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
   FLYWHEEL_ENERGY_PORT,
+  FLYWHEEL_GEAR_RATIO,
   FLYWHEEL_SPIN_RAD_PER_SECOND,
   FLYWHEEL_WHEEL,
 } from './flywheelEnergyContract';
@@ -69,6 +70,15 @@ export interface FlywheelDebugState {
   flywheelAngle: number;
   spinVelocity: number;
   triangleCount: number;
+  gear: {
+    crankAngle: number;
+    sunAngle: number;
+    carrierAngle: number;
+    flywheelAngle: number;
+    planetOrbitAngles: number[];
+    planetSpinAngles: number[];
+    gearRatio: typeof FLYWHEEL_GEAR_RATIO;
+  };
   energy: {
     targetCount: number;
     missingTargetDiagnostics: string[];
@@ -338,6 +348,87 @@ export function createFlywheelShowpiece(
     wheelGroup.add(marker);
   }
 
+  const gearbox = new Group();
+  gearbox.name = 'FlywheelPlanetaryGearbox';
+  gearbox.position.set(-0.92, FLYWHEEL_BASE_DIMENSIONS.height + 0.48, 0.44);
+  group.add(gearbox);
+  const gearTeeth =
+    detailPolicy.level === 'cinematic'
+      ? 24
+      : detailPolicy.level === 'balanced'
+        ? 18
+        : detailPolicy.level === 'performance'
+          ? 12
+          : 8;
+  const crankGroup = new Group();
+  crankGroup.name = 'FlywheelCrankGroup';
+  crankGroup.position.set(-0.36, 0, 0.08);
+  gearbox.add(crankGroup);
+  const crankDisc = mesh(
+    'FlywheelCrankDisc',
+    new CylinderGeometry(0.16, 0.16, 0.05, cylSeg),
+    brass
+  );
+  crankDisc.rotation.x = Math.PI / 2;
+  crankGroup.add(crankDisc);
+  const crankArm = mesh(
+    'FlywheelCrankArm',
+    new BoxGeometry(0.38, 0.035, 0.035),
+    brass
+  );
+  crankArm.position.x = 0.19;
+  crankGroup.add(crankArm);
+  const crankHandle = mesh(
+    'FlywheelCrankHandle',
+    new CylinderGeometry(0.035, 0.035, 0.16, cylSeg),
+    dark
+  );
+  crankHandle.position.set(0.39, 0, 0.08);
+  crankHandle.rotation.x = Math.PI / 2;
+  crankGroup.add(crankHandle);
+  const ringGear = mesh(
+    'FlywheelRingGear',
+    new TorusGeometry(0.32, 0.035, Math.max(4, cylSeg / 2), gearTeeth),
+    steel
+  );
+  gearbox.add(ringGear);
+  const sunGearGroup = new Group();
+  sunGearGroup.name = 'FlywheelSunGearGroup';
+  gearbox.add(sunGearGroup);
+  const sunGear = mesh(
+    'FlywheelSunGear',
+    new CylinderGeometry(0.12, 0.12, 0.07, gearTeeth),
+    brass
+  );
+  sunGear.rotation.x = Math.PI / 2;
+  sunGearGroup.add(sunGear);
+  const carrier = new Group();
+  carrier.name = 'FlywheelPlanetCarrier';
+  gearbox.add(carrier);
+  const planetGears: Group[] = [];
+  const planetCount = detailPolicy.level === 'micro' ? 2 : 3;
+  for (let i = 0; i < planetCount; i += 1) {
+    const planet = new Group();
+    planet.name = `FlywheelPlanetGear-${i}`;
+    const body = mesh(
+      `FlywheelPlanetGearBody-${i}`,
+      new CylinderGeometry(0.075, 0.075, 0.06, Math.max(8, gearTeeth / 2)),
+      steel
+    );
+    body.rotation.x = Math.PI / 2;
+    planet.add(body);
+    carrier.add(planet);
+    planetGears.push(planet);
+  }
+  const outputShaft = mesh(
+    'FlywheelOutputShaft',
+    new CylinderGeometry(0.045, 0.045, 1.2, cylSeg),
+    steel
+  );
+  outputShaft.position.set(-0.44, FLYWHEEL_WHEEL.centerY, 0.22);
+  outputShaft.rotation.z = Math.PI / 2;
+  group.add(outputShaft);
+
   const port = mesh(
     'FlywheelEnergyPort',
     new SphereGeometry(
@@ -421,6 +512,15 @@ export function createFlywheelShowpiece(
     flywheelAngle: 0,
     spinVelocity: FLYWHEEL_SPIN_RAD_PER_SECOND,
     triangleCount: countTriangles(group),
+    gear: {
+      crankAngle: 0,
+      sunAngle: 0,
+      carrierAngle: 0,
+      flywheelAngle: 0,
+      planetOrbitAngles: [],
+      planetSpinAngles: [],
+      gearRatio: FLYWHEEL_GEAR_RATIO,
+    },
     energy: {
       targetCount: 0,
       missingTargetDiagnostics: [],
@@ -444,6 +544,8 @@ export function createFlywheelShowpiece(
   };
   let disposed = false;
   let flywheelAngle = 0;
+  const planetOrbitAngles = planetGears.map(() => 0);
+  const planetSpinAngles = planetGears.map(() => 0);
 
   const vectorA = new Vector3();
   const vectorB = new Vector3();
@@ -459,12 +561,12 @@ export function createFlywheelShowpiece(
   const localPoint = new Vector3();
 
   const hideEnergyPacket = () => {
-    packetNodes.forEach((node) => {
-      node.visible = false;
-    });
-    packetConnectors.forEach((connector) => {
-      connector.visible = false;
-    });
+    for (let i = 0; i < packetNodes.length; i += 1) {
+      packetNodes[i].visible = false;
+    }
+    for (let i = 0; i < packetConnectors.length; i += 1) {
+      packetConnectors[i].visible = false;
+    }
   };
 
   const clonePoint = (point: Vector3) => ({
@@ -641,7 +743,30 @@ export function createFlywheelShowpiece(
         FLYWHEEL_SPIN_RAD_PER_SECOND *
         (1 + emphasisBoost * FLYWHEEL_EMPHASIS_SPEED_BOOST);
       flywheelAngle += spinVelocity * Math.max(0, delta);
+      const crankAngle =
+        flywheelAngle /
+        FLYWHEEL_GEAR_RATIO.carrierToFlywheel /
+        FLYWHEEL_GEAR_RATIO.sunToCarrier;
+      const sunAngle = crankAngle * FLYWHEEL_GEAR_RATIO.crankToSun;
+      const carrierAngle = sunAngle * FLYWHEEL_GEAR_RATIO.sunToCarrier;
+      flywheelAngle = carrierAngle * FLYWHEEL_GEAR_RATIO.carrierToFlywheel;
+      crankGroup.rotation.z = crankAngle;
+      sunGearGroup.rotation.z = sunAngle;
+      carrier.rotation.z = carrierAngle;
+      outputShaft.rotation.x = flywheelAngle;
       wheelGroup.rotation.z = flywheelAngle;
+      for (let i = 0; i < planetGears.length; i += 1) {
+        const orbit = carrierAngle + (i / planetGears.length) * Math.PI * 2;
+        const spin = sunAngle * FLYWHEEL_GEAR_RATIO.planetCounterSpin;
+        planetGears[i].position.set(
+          Math.cos(orbit) * 0.21,
+          Math.sin(orbit) * 0.21,
+          0
+        );
+        planetGears[i].rotation.z = spin;
+        planetOrbitAngles[i] = orbit;
+        planetSpinAngles[i] = spin;
+      }
       if (runDecorativeEffects) {
         glow.opacity =
           0.45 + Math.min(0.4, emphasis * 0.35) + Math.sin(elapsed * 2) * 0.05;
@@ -652,11 +777,25 @@ export function createFlywheelShowpiece(
         flywheelAngle,
         spinVelocity,
         triangleCount: state.triangleCount,
+        gear: {
+          crankAngle,
+          sunAngle,
+          carrierAngle,
+          flywheelAngle,
+          planetOrbitAngles,
+          planetSpinAngles,
+          gearRatio: FLYWHEEL_GEAR_RATIO,
+        },
         energy: energyDebug,
       };
     },
     getDebugState: () => ({
       ...state,
+      gear: {
+        ...state.gear,
+        planetOrbitAngles: [...state.gear.planetOrbitAngles],
+        planetSpinAngles: [...state.gear.planetSpinAngles],
+      },
       energy: {
         ...state.energy,
         missingTargetDiagnostics: [...state.energy.missingTargetDiagnostics],
