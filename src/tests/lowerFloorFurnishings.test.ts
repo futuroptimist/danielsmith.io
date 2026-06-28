@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(6);
+    expect(build.colliders).toHaveLength(14);
     expect(build.decorativeFootprints).toHaveLength(1);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -86,6 +86,14 @@ describe('lower floor furnishings foundation', () => {
       'living-room-lounge-chair-east',
       'living-room-floor-lamp',
       'living-room-media-rug',
+      'kitchen-west-counter-run',
+      'kitchen-fridge',
+      'kitchen-sink-cabinet',
+      'kitchen-stove-cabinet',
+      'kitchen-island',
+      'kitchen-bar-stool-west',
+      'kitchen-bar-stool-east',
+      'kitchen-trash-drawer',
     ]);
   });
 
@@ -235,6 +243,94 @@ describe('lower floor furnishings foundation', () => {
     expect(() =>
       validateLowerFloorFurnishingPlan(definitionsWithoutRugAnySolidOverlap)
     ).toThrow(/living-room-media-rug decorative footprint overlaps/);
+  });
+
+  it('uses the requested kitchen kitchenette and dining AABBs', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const expectedSolidBounds: Record<string, RectCollider> = {
+      'kitchen-west-counter-run': {
+        minX: -31.625,
+        maxX: -30.375,
+        minZ: -0.8,
+        maxZ: 8.4,
+      },
+      'kitchen-fridge': {
+        minX: -31.675,
+        maxX: -30.325,
+        minZ: -6.35,
+        maxZ: -4.85,
+      },
+      'kitchen-sink-cabinet': {
+        minX: -31.6,
+        maxX: -30.4,
+        minZ: -2.9,
+        maxZ: -1.1,
+      },
+      'kitchen-stove-cabinet': {
+        minX: -31.6,
+        maxX: -30.4,
+        minZ: 6.2,
+        maxZ: 7.8,
+      },
+      'kitchen-island': {
+        minX: -15.4,
+        maxX: -10.6,
+        minZ: 10.1,
+        maxZ: 11.7,
+      },
+      'kitchen-bar-stool-west': {
+        minX: -16.25,
+        maxX: -15.55,
+        minZ: 12.55,
+        maxZ: 13.25,
+      },
+      'kitchen-bar-stool-east': {
+        minX: -10.45,
+        maxX: -9.75,
+        minZ: 12.55,
+        maxZ: 13.25,
+      },
+      'kitchen-trash-drawer': {
+        minX: -31.3,
+        maxX: -30.3,
+        minZ: 10.1,
+        maxZ: 11.3,
+      },
+    };
+
+    Object.entries(expectedSolidBounds).forEach(([id, expected]) => {
+      expect(
+        colliders.find((collider) => collider.furnishingId === id)
+      ).toMatchObject(expected);
+    });
+  });
+
+  it('keeps kitchen solids within bounds and clear of door buffers', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const kitchenColliders = colliders.filter(
+      (collider) => collider.roomId === 'kitchen'
+    );
+    const kitchenBounds = LOWER_FLOOR_ROOM_BOUNDS.kitchen;
+
+    kitchenColliders.forEach((collider) => {
+      expect(isContainedBy(kitchenBounds, collider)).toBe(true);
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+    });
+
+    kitchenColliders.forEach((collider, index) => {
+      kitchenColliders.slice(index + 1).forEach((other) => {
+        const integratedStove =
+          [collider.furnishingId, other.furnishingId].includes(
+            'kitchen-west-counter-run'
+          ) &&
+          [collider.furnishingId, other.furnishingId].includes(
+            'kitchen-stove-cabinet'
+          );
+        expect(rectanglesOverlap(collider, other)).toBe(integratedStove);
+      });
+    });
   });
 
   it('creates positive-area AABBs for every solid furnishing', () => {
