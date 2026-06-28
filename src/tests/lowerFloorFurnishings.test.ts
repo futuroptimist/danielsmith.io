@@ -161,6 +161,19 @@ describe('lower floor furnishings foundation', () => {
     });
   });
 
+  it('keeps kitchen solidBounds aligned with authored centers and footprints', () => {
+    const kitchenDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.category === 'kitchenette'
+    );
+
+    kitchenDefinitions.forEach((definition) => {
+      expect(definition.solidFootprint).toBeDefined();
+      expect(definition.solidBounds).toMatchObject(
+        deriveAabbFromCenterSize(definition)
+      );
+    });
+  });
+
   it('uses the requested living-room media seating AABBs', () => {
     const { colliders, decorativeFootprints } = createLowerFloorFurnishings();
     const expectedSolidBounds: Record<string, RectCollider> = {
@@ -353,6 +366,25 @@ describe('lower floor furnishings foundation', () => {
     });
   });
 
+  it('requires solid overlap allowlists to be mutual', () => {
+    const oneSidedDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.map(
+      (definition) => {
+        if (definition.id !== 'kitchen-stove-cabinet') return definition;
+        return {
+          ...definition,
+          visual: {
+            ...definition.visual,
+            allowSolidOverlapWithIds: [],
+          },
+        };
+      }
+    );
+
+    expect(() => validateLowerFloorFurnishingPlan(oneSidedDefinitions)).toThrow(
+      /kitchen-west-counter-run overlaps kitchen-stove-cabinet/
+    );
+  });
+
   it('allows decorative footprints to overlap associated solids only when explicit', () => {
     const { decorativeFootprints, colliders } = createLowerFloorFurnishings({
       definitions: validDefinitions,
@@ -418,6 +450,24 @@ describe('lower floor furnishings foundation', () => {
     ).toThrow(/empty decorative footprint/);
   });
 });
+
+function deriveAabbFromCenterSize(
+  definition: LowerFloorFurnishingDefinition
+): RectCollider {
+  const footprint = definition.solidFootprint;
+  if (!footprint)
+    throw new Error(`${definition.id} is missing a solid footprint.`);
+  return {
+    minX: roundAabbCoordinate(definition.position.x - footprint.width / 2),
+    maxX: roundAabbCoordinate(definition.position.x + footprint.width / 2),
+    minZ: roundAabbCoordinate(definition.position.z - footprint.depth / 2),
+    maxZ: roundAabbCoordinate(definition.position.z + footprint.depth / 2),
+  };
+}
+
+function roundAabbCoordinate(value: number): number {
+  return Number(value.toFixed(6));
+}
 
 function isContainedBy(container: RectCollider, bounds: RectCollider): boolean {
   return (

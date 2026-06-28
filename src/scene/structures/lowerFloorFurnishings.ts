@@ -220,7 +220,12 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       solidFootprint: { width: 1.2, depth: 1.8 },
       solidBounds: { minX: -31.6, maxX: -30.4, minZ: -2.9, maxZ: -1.1 },
       kind: 'kitchen-sink-cabinet',
-      visual: { color: 0x667382, accentColor: 0xd7dce0, height: 0.95 },
+      visual: {
+        color: 0x667382,
+        accentColor: 0xd7dce0,
+        height: 0.95,
+        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
+      },
     },
     {
       id: 'kitchen-stove-cabinet',
@@ -231,7 +236,12 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       solidFootprint: { width: 1.2, depth: 1.6 },
       solidBounds: { minX: -31.6, maxX: -30.4, minZ: 6.2, maxZ: 7.8 },
       kind: 'kitchen-stove-cabinet',
-      visual: { color: 0x5e6672, accentColor: 0x1d232b, height: 0.95 },
+      visual: {
+        color: 0x5e6672,
+        accentColor: 0x1d232b,
+        height: 0.95,
+        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
+      },
     },
     {
       id: 'kitchen-island',
@@ -364,8 +374,7 @@ export function validateLowerFloorFurnishingPlan(
           solid.definition.id
         );
       if (
-        !solidAllowed &&
-        !otherAllowed &&
+        !(solidAllowed && otherAllowed) &&
         rectanglesOverlap(solid.bounds, other.bounds, tolerance)
       ) {
         throw new Error(
@@ -705,6 +714,28 @@ function createKitchenFurnishing(
   });
   const group = new Group();
 
+  if (definition.kind === 'kitchen-bar-stool') {
+    const seat = new Mesh(
+      new CylinderGeometry(0.32, 0.32, 0.12, 20),
+      counterMaterial
+    );
+    seat.name = `Furnishing:${definition.id}:roundSeat`;
+    seat.position.y = height;
+    group.add(seat);
+    [-0.2, 0.2].forEach((x, xIndex) => {
+      [-0.2, 0.2].forEach((z, zIndex) => {
+        addBox(
+          group,
+          `stoolLeg${xIndex}-${zIndex}`,
+          { width: 0.06, height, depth: 0.06 },
+          darkMaterial,
+          [x, height / 2, z]
+        );
+      });
+    });
+    return group;
+  }
+
   if (definition.kind === 'kitchen-fridge') {
     addBox(
       group,
@@ -807,28 +838,8 @@ function createKitchenFurnishing(
         `islandDrawer${index}`,
         { width: 0.72, height: 0.08, depth: 0.06 },
         darkMaterial,
-        [x, 0.62, footprint.depth / 2 + 0.01]
+        [x, 0.62, visualFootprint.depth / 2 + 0.01]
       );
-    });
-  } else if (definition.kind === 'kitchen-bar-stool') {
-    group.clear();
-    const seat = new Mesh(
-      new CylinderGeometry(0.32, 0.32, 0.12, 20),
-      counterMaterial
-    );
-    seat.name = `Furnishing:${definition.id}:roundSeat`;
-    seat.position.y = height;
-    group.add(seat);
-    [-0.2, 0.2].forEach((x, xIndex) => {
-      [-0.2, 0.2].forEach((z, zIndex) => {
-        addBox(
-          group,
-          `stoolLeg${xIndex}-${zIndex}`,
-          { width: 0.06, height: height, depth: 0.06 },
-          darkMaterial,
-          [x, height / 2, z]
-        );
-      });
     });
   } else if (definition.kind === 'kitchen-trash-drawer') {
     addBox(
