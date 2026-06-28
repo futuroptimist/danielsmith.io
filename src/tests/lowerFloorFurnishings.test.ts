@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(24);
+    expect(build.colliders).toHaveLength(28);
     expect(build.decorativeFootprints).toHaveLength(2);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -85,11 +85,15 @@ describe('lower floor furnishings foundation', () => {
       'living-room-lounge-chair-north',
       'living-room-lounge-chair-east',
       'living-room-floor-lamp',
+      'living-room-large-plant',
+      'living-room-plant-stool',
       'kitchen-west-counter-run',
       'kitchen-fridge',
       'kitchen-sink-cabinet',
       'kitchen-stove-cabinet',
       'kitchen-island',
+      'kitchen-herb-planter',
+      'kitchen-pendant-lights',
       'kitchen-bar-stool-west',
       'kitchen-bar-stool-east',
       'kitchen-trash-drawer',
@@ -103,6 +107,8 @@ describe('lower floor furnishings foundation', () => {
       'studio-nightstand-south',
       'studio-nightstand-north',
       'studio-reading-chair',
+      'studio-floor-lamp',
+      'studio-monstera',
       'studio-bedside-rug',
       'living-room-media-rug',
     ]);
@@ -194,6 +200,96 @@ describe('lower floor furnishings foundation', () => {
         expect(rectanglesOverlap(storage, blocker)).toBe(false);
       });
     });
+  });
+
+  it('adds plants, lamps, and small decor without extra child colliders', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const expectedDecorBounds: Record<string, RectCollider> = {
+      'living-room-large-plant': {
+        minX: -28.95,
+        maxX: -28.25,
+        minZ: -26.55,
+        maxZ: -25.85,
+      },
+      'living-room-plant-stool': {
+        minX: 5.3,
+        maxX: 6.3,
+        minZ: -31.3,
+        maxZ: -30.3,
+      },
+      'studio-floor-lamp': {
+        minX: 24.125,
+        maxX: 24.675,
+        minZ: 13.825,
+        maxZ: 14.375,
+      },
+      'studio-monstera': {
+        minX: 30.1,
+        maxX: 31.1,
+        minZ: -5.9,
+        maxZ: -4.9,
+      },
+    };
+    const decorColliders = colliders.filter(
+      (collider) => collider.category === 'plants-lighting-decor'
+    );
+
+    expect(new Set(colliders.map(({ category }) => category))).toContain(
+      'plants-lighting-decor'
+    );
+    Object.entries(expectedDecorBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'plants-lighting-decor',
+      });
+      expect(
+        matchingColliders[0].maxX - matchingColliders[0].minX
+      ).toBeGreaterThan(0);
+      expect(
+        matchingColliders[0].maxZ - matchingColliders[0].minZ
+      ).toBeGreaterThan(0);
+      expect(
+        isContainedBy(
+          LOWER_FLOOR_ROOM_BOUNDS[matchingColliders[0].roomId],
+          matchingColliders[0]
+        )
+      ).toBe(true);
+    });
+
+    decorColliders.forEach((collider, index) => {
+      decorColliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+      colliders
+        .filter((other) => other.category !== 'plants-lighting-decor')
+        .forEach((other) => {
+          expect(rectanglesOverlap(collider, other)).toBe(false);
+        });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+    });
+
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-herb-planter'
+      )
+    ).toBe(false);
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-pendant-lights'
+      )
+    ).toBe(false);
+    expect(
+      group.getObjectByName('FurnishingPart:kitchen-herb-planter-box')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:kitchen-pendant-lights-shade0')
+    ).toBeDefined();
   });
 
   it('keeps collider source IDs valid and unique for the default plan', () => {
