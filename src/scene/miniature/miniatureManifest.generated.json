@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Lower-floor furnishing geometry is currently an empty authoring foundation; future populated furniture plans will need proxy coverage.",
-      "sourceFingerprint": "032b014637ad0bb63901a5c2eff5229e4c084efafd3ef8e5f908c5b5d4a801e0",
+      "syncRevision": 2,
+      "syncNote": "Living-room media seating now has runtime-scale colliders and low-poly meshes; tabletop proxy coverage can stay deferred until the full furnishing set lands.",
+      "sourceFingerprint": "8cfbb6c338d1fba7a53309a7e383e2d9964ad00484a81425d89797f2dd7b48df",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ffd3f7fb4847bf16a8d1931ff1edc7e8e8b98a1b94596854178e5af3946fd6ac"
+      "metadataFingerprint": "ab07ce1236e4f054e7531fc309651947f7321870c3b53933354d0ab5ea616c2f"
     },
     {
       "id": "environment:backyard",
