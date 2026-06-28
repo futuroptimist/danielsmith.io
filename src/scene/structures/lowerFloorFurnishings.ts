@@ -350,6 +350,67 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       kind: 'storage-east-dresser',
       visual: { color: 0x4d3a2b, accentColor: 0xb8c0c8, height: 1.05 },
     },
+
+    {
+      id: 'studio-daybed',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 27.6, z: 10.6 },
+      orientationRadians: -Math.PI / 2,
+      solidFootprint: { width: 3.8, depth: 2.0 },
+      solidBounds: { minX: 25.7, maxX: 29.5, minZ: 9.6, maxZ: 11.6 },
+      kind: 'studio-daybed',
+      visual: { color: 0x6f7f92, accentColor: 0xd8c7a7, height: 0.72 },
+    },
+    {
+      id: 'studio-nightstand-south',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 27.6, z: 8.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      solidBounds: { minX: 27.2, maxX: 28.0, minZ: 8.2, maxZ: 9.0 },
+      kind: 'studio-nightstand-lamp',
+      visual: { color: 0x4d3a2b, accentColor: 0xf0c56d, height: 0.58 },
+    },
+    {
+      id: 'studio-nightstand-north',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 27.6, z: 12.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      solidBounds: { minX: 27.2, maxX: 28.0, minZ: 12.2, maxZ: 13.0 },
+      kind: 'studio-nightstand-books',
+      visual: { color: 0x4d3a2b, accentColor: 0x8fb3c9, height: 0.58 },
+    },
+    {
+      id: 'studio-reading-chair',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 22.2, z: 12.6 },
+      orientationRadians: Math.PI * 0.3,
+      solidFootprint: { width: 1.4, depth: 1.4 },
+      solidBounds: { minX: 21.5, maxX: 22.9, minZ: 11.9, maxZ: 13.3 },
+      kind: 'studio-reading-chair',
+      visual: { color: 0x7d6f89, accentColor: 0xd8c7a7, height: 0.76 },
+    },
+    {
+      id: 'studio-bedside-rug',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 25.5, z: 10.8 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 4.8, depth: 3.0 },
+      decorativeBounds: { minX: 23.1, maxX: 27.9, minZ: 9.3, maxZ: 12.3 },
+      kind: 'studio-bedside-rug',
+      visual: {
+        color: 0x48596b,
+        accentColor: 0xcaa66a,
+        decorativeHeight: 0.024,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
     {
       id: 'living-room-media-rug',
       category: 'living-room-seating',
@@ -550,6 +611,8 @@ function createSolidPrimitive(
     return createKitchenFurnishing(definition);
   if (definition.kind.startsWith('storage-'))
     return createStorageFurnishing(definition);
+  if (definition.kind.startsWith('studio-'))
+    return createStudioSleepingNookFurnishing(definition);
 
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.height ?? 0.8;
@@ -1089,6 +1152,195 @@ function createStorageFurnishing(
       [visualFootprint.width / 2 - 0.52, height + 0.12, 0]
     );
   }
+
+  return group;
+}
+
+function createStudioSleepingNookFurnishing(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  if (definition.kind === 'studio-daybed')
+    return createStudioDaybed(definition);
+  if (definition.kind.startsWith('studio-nightstand'))
+    return createStudioNightstand(definition);
+  if (definition.kind === 'studio-reading-chair')
+    return createStudioReadingChair(definition);
+
+  return new Group();
+}
+
+function createStudioDaybed(definition: LowerFloorFurnishingDefinition): Group {
+  const footprint = definition.solidFootprint ?? { width: 3.8, depth: 2.0 };
+  const frameMaterial = createMaterial(definition.visual?.color ?? 0x6f7f92);
+  const beddingMaterial = createMaterial(0xe6dcc9);
+  const blanketMaterial = createMaterial(0x6b8798);
+  const pillowMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0xd8c7a7
+  );
+  const darkMaterial = createMaterial(0x2d2520);
+  const group = new Group();
+
+  addBox(
+    group,
+    'daybedFrame',
+    { width: footprint.width, height: 0.34, depth: footprint.depth },
+    frameMaterial,
+    [0, 0.22, 0]
+  );
+  addBox(
+    group,
+    'daybedMattress',
+    {
+      width: footprint.width - 0.28,
+      height: 0.22,
+      depth: footprint.depth - 0.28,
+    },
+    beddingMaterial,
+    [0, 0.5, -0.02]
+  );
+  addBox(
+    group,
+    'daybedBackPanel',
+    { width: footprint.width, height: 1.05, depth: 0.16 },
+    darkMaterial,
+    [0, 0.72, footprint.depth / 2 - 0.08]
+  );
+  addBox(
+    group,
+    'daybedBlanket',
+    { width: footprint.width - 0.52, height: 0.08, depth: 0.72 },
+    blanketMaterial,
+    [0.16, 0.67, -0.32]
+  );
+  [-1.0, 0.05, 1.1].forEach((x, index) => {
+    addBox(
+      group,
+      `daybedPillow${index}`,
+      { width: 0.78, height: 0.24, depth: 0.28 },
+      pillowMaterial,
+      [x, 0.76, 0.56]
+    );
+  });
+
+  return group;
+}
+
+function createStudioNightstand(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 0.8, depth: 0.8 };
+  const woodMaterial = createMaterial(definition.visual?.color ?? 0x4d3a2b);
+  const accentMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x8fb3c9
+  );
+  const darkMaterial = createMaterial(0x252321);
+  const group = new Group();
+  const height = definition.visual?.height ?? 0.58;
+
+  addBox(
+    group,
+    'nightstandBody',
+    { width: footprint.width, height, depth: footprint.depth },
+    woodMaterial,
+    [0, height / 2, 0]
+  );
+  addBox(
+    group,
+    'nightstandDrawer',
+    { width: footprint.width - 0.16, height: 0.08, depth: 0.05 },
+    accentMaterial,
+    [0, height * 0.58, -footprint.depth / 2 - 0.01]
+  );
+  addBox(
+    group,
+    'nightstandHandle',
+    { width: 0.26, height: 0.04, depth: 0.04 },
+    darkMaterial,
+    [0, height * 0.62, -footprint.depth / 2 - 0.04]
+  );
+
+  if (definition.kind === 'studio-nightstand-lamp') {
+    addBox(
+      group,
+      'nightstandLampBase',
+      { width: 0.16, height: 0.12, depth: 0.16 },
+      darkMaterial,
+      [-0.18, height + 0.06, 0.05]
+    );
+    addBox(
+      group,
+      'nightstandLampShade',
+      { width: 0.28, height: 0.22, depth: 0.28 },
+      accentMaterial,
+      [-0.18, height + 0.26, 0.05]
+    );
+  } else {
+    [0, 1, 2].forEach((index) => {
+      addBox(
+        group,
+        `nightstandBook${index}`,
+        { width: 0.38, height: 0.055, depth: 0.24 },
+        accentMaterial,
+        [0.04, height + 0.035 + index * 0.055, 0.02]
+      );
+    });
+  }
+
+  return group;
+}
+
+function createStudioReadingChair(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const material = createMaterial(definition.visual?.color ?? 0x7d6f89);
+  const pillowMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0xd8c7a7
+  );
+  const darkMaterial = createMaterial(0x2d2520);
+  const group = new Group();
+
+  addBox(
+    group,
+    'readingChairSeat',
+    { width: 1.12, height: 0.32, depth: 1.0 },
+    material,
+    [0, 0.34, 0]
+  );
+  addBox(
+    group,
+    'readingChairBack',
+    { width: 1.14, height: 0.78, depth: 0.18 },
+    material,
+    [0, 0.72, 0.48]
+  );
+  addBox(
+    group,
+    'readingChairLeftArm',
+    { width: 0.18, height: 0.52, depth: 0.92 },
+    material,
+    [-0.56, 0.52, 0]
+  );
+  addBox(
+    group,
+    'readingChairRightArm',
+    { width: 0.18, height: 0.52, depth: 0.92 },
+    material,
+    [0.56, 0.52, 0]
+  );
+  addBox(
+    group,
+    'readingChairPillow',
+    { width: 0.58, height: 0.28, depth: 0.16 },
+    pillowMaterial,
+    [0.08, 0.73, 0.35]
+  );
+  addBox(
+    group,
+    'readingChairBook',
+    { width: 0.34, height: 0.06, depth: 0.22 },
+    darkMaterial,
+    [-0.14, 0.54, -0.18]
+  );
 
   return group;
 }
