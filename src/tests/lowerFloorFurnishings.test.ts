@@ -306,9 +306,23 @@ describe('lower floor furnishings foundation', () => {
       'studio-daybed',
       'studio-nightstand-south',
       'studio-nightstand-north',
+      'studio-reading-chair',
     ].forEach((id) => {
       expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
     });
+    expect(
+      group.getObjectByName('FurnishingPart:daybedHeadboardPanel')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName(
+        'FurnishingPart:studio-nightstand-south:nightstandBody'
+      )
+    ).toBeDefined();
+    expect(
+      group.getObjectByName(
+        'FurnishingPart:studio-nightstand-north:nightstandBody'
+      )
+    ).toBeDefined();
     expect(
       group.getObjectByName('FurnishingPart:readingChairCushion')
     ).toBeDefined();

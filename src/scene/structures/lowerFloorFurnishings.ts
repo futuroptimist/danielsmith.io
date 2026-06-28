@@ -1045,29 +1045,31 @@ function createSleepingNookFurnishing(
     });
     addBox(
       group,
-      'murphyWallPanel',
+      'daybedHeadboardPanel',
       { width: visualFootprint.width, height: 1.15, depth: 0.12 },
       frameMaterial,
       [0, 0.86, -visualFootprint.depth / 2 + 0.06]
     );
   } else if (definition.kind.startsWith('sleeping-nightstand')) {
+    const nightstandPartPrefix = definition.id;
+
     addBox(
       group,
-      'nightstandBody',
+      `${nightstandPartPrefix}:nightstandBody`,
       { width: visualFootprint.width, height, depth: visualFootprint.depth },
       frameMaterial,
       [0, height / 2, 0]
     );
     addBox(
       group,
-      'nightstandDrawer',
+      `${nightstandPartPrefix}:nightstandDrawer`,
       { width: visualFootprint.width - 0.16, height: 0.08, depth: 0.05 },
       beddingMaterial,
       [0, height * 0.55, -visualFootprint.depth / 2 - 0.01]
     );
     addBox(
       group,
-      'nightstandHandle',
+      `${nightstandPartPrefix}:nightstandHandle`,
       { width: 0.26, height: 0.04, depth: 0.04 },
       darkMaterial,
       [0, height * 0.6, -visualFootprint.depth / 2 - 0.04]
@@ -1075,14 +1077,14 @@ function createSleepingNookFurnishing(
     if (definition.kind === 'sleeping-nightstand-lamp') {
       addBox(
         group,
-        'nightstandLampBase',
+        `${nightstandPartPrefix}:nightstandLampBase`,
         { width: 0.18, height: 0.18, depth: 0.18 },
         darkMaterial,
         [0.18, height + 0.09, 0]
       );
       addBox(
         group,
-        'nightstandLampShade',
+        `${nightstandPartPrefix}:nightstandLampShade`,
         { width: 0.32, height: 0.22, depth: 0.32 },
         beddingMaterial,
         [0.18, height + 0.29, 0]
@@ -1091,7 +1093,7 @@ function createSleepingNookFurnishing(
       [-0.16, 0.02, 0.2].forEach((x, index) => {
         addBox(
           group,
-          `nightstandBook${index}`,
+          `${nightstandPartPrefix}:nightstandBook${index}`,
           { width: 0.16, height: 0.06, depth: 0.34 },
           beddingMaterial,
           [x, height + 0.03 + index * 0.04, 0]
