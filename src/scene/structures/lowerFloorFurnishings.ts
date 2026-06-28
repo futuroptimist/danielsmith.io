@@ -4,6 +4,7 @@ import {
   Group,
   Mesh,
   MeshStandardMaterial,
+  SphereGeometry,
   type ColorRepresentation,
 } from 'three';
 
@@ -34,6 +35,7 @@ export interface LowerFloorFurnishingDefinition {
   solidFootprint?: LowerFloorFurnishingFootprint;
   decorativeFootprint?: LowerFloorFurnishingFootprint;
   kind: string;
+  colliderIgnoresOrientation?: boolean;
   visual?: {
     color?: ColorRepresentation;
     accentColor?: ColorRepresentation;
@@ -103,7 +105,90 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
 ];
 
 export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[] =
-  [];
+  [
+    {
+      id: 'living-room-media-sofa',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -26.1, z: -19.8 },
+      orientationRadians: Math.PI / 2,
+      colliderIgnoresOrientation: true,
+      solidFootprint: { width: 1.6, depth: 4.6 },
+      kind: 'media-sofa',
+      visual: { color: 0x475569, accentColor: 0xcbd5e1, height: 0.82 },
+    },
+    {
+      id: 'living-room-coffee-table',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -22.5, z: -18.4 },
+      orientationRadians: 0,
+      colliderIgnoresOrientation: true,
+      solidFootprint: { width: 2.2, depth: 1.2 },
+      kind: 'coffee-table',
+      visual: { color: 0x7c4a2d, accentColor: 0xe2e8f0, height: 0.42 },
+    },
+    {
+      id: 'living-room-side-table',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -26.0, z: -23.4 },
+      orientationRadians: 0,
+      colliderIgnoresOrientation: true,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'side-table',
+      visual: { color: 0x7c4a2d, accentColor: 0xf8fafc, height: 0.55 },
+    },
+    {
+      id: 'living-room-lounge-chair-north',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -28.3, z: -15.2 },
+      orientationRadians: Math.PI * 0.72,
+      colliderIgnoresOrientation: true,
+      solidFootprint: { width: 1.4, depth: 1.4 },
+      kind: 'lounge-chair',
+      visual: { color: 0x64748b, accentColor: 0xf1f5f9, height: 0.72 },
+    },
+    {
+      id: 'living-room-lounge-chair-east',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -24.6, z: -14.7 },
+      orientationRadians: Math.PI * 0.82,
+      colliderIgnoresOrientation: true,
+      solidFootprint: { width: 1.4, depth: 1.4 },
+      kind: 'lounge-chair',
+      visual: { color: 0x64748b, accentColor: 0xf1f5f9, height: 0.72 },
+    },
+    {
+      id: 'living-room-floor-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: -28.9, z: -17.0 },
+      orientationRadians: 0,
+      colliderIgnoresOrientation: true,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      kind: 'floor-lamp',
+      visual: { color: 0x1e293b, accentColor: 0xfacc15, height: 1.8 },
+    },
+    {
+      id: 'living-room-media-rug',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -24.7, z: -18.5 },
+      orientationRadians: 0,
+      colliderIgnoresOrientation: true,
+      decorativeFootprint: { width: 7.0, depth: 5.8 },
+      kind: 'media-rug',
+      visual: {
+        color: 0x1e3a5f,
+        accentColor: 0x38bdf8,
+        decorativeHeight: 0.025,
+        allowDecorativeOverlapWithSolid: true,
+      },
+    },
+  ];
 
 export function createAabbFromCenterSize(
   center: { x: number; z: number },
@@ -187,11 +272,7 @@ export function validateLowerFloorFurnishingPlan(
       );
     }
     solids.forEach((solid) => {
-      const isAssociatedSolid = solid.definition.id === definition.id;
-      if (
-        isAssociatedSolid &&
-        definition.visual?.allowDecorativeOverlapWithSolid
-      ) {
+      if (definition.visual?.allowDecorativeOverlapWithSolid) {
         return;
       }
       if (rectanglesOverlap(bounds, solid.bounds, tolerance)) {
@@ -259,6 +340,17 @@ export function createLowerFloorFurnishings(
 function createSolidPrimitive(
   definition: LowerFloorFurnishingDefinition
 ): Group {
+  if (definition.kind === 'media-sofa')
+    return createMediaSofaPrimitive(definition);
+  if (definition.kind === 'coffee-table')
+    return createTablePrimitive(definition, false);
+  if (definition.kind === 'side-table')
+    return createTablePrimitive(definition, true);
+  if (definition.kind === 'lounge-chair')
+    return createLoungeChairPrimitive(definition);
+  if (definition.kind === 'floor-lamp')
+    return createFloorLampPrimitive(definition);
+
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.height ?? 0.8;
   const material = new MeshStandardMaterial({
@@ -301,6 +393,159 @@ function createSolidPrimitive(
   return group;
 }
 
+function createMediaSofaPrimitive(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
+  const material = new MeshStandardMaterial({
+    color: definition.visual?.color ?? 0x475569,
+  });
+  const accent = new MeshStandardMaterial({
+    color: definition.visual?.accentColor ?? 0xcbd5e1,
+  });
+  const dark = new MeshStandardMaterial({ color: 0x0f172a });
+  const group = new Group();
+  const seat = new Mesh(
+    new BoxGeometry(footprint.width, 0.32, footprint.depth),
+    material
+  );
+  seat.name = `Furnishing:${definition.id}:lowSeat`;
+  seat.position.y = 0.34;
+  group.add(seat);
+  const back = new Mesh(new BoxGeometry(0.22, 0.82, footprint.depth), material);
+  back.name = `Furnishing:${definition.id}:westFacingBack`;
+  back.position.set(footprint.width / 2 - 0.11, 0.66, 0);
+  group.add(back);
+  [-1, 1].forEach((side) => {
+    const arm = new Mesh(
+      new BoxGeometry(footprint.width, 0.54, 0.18),
+      material
+    );
+    arm.name = `Furnishing:${definition.id}:arm:${side}`;
+    arm.position.set(0, 0.55, side * (footprint.depth / 2 - 0.09));
+    group.add(arm);
+  });
+  [-1.45, 0, 1.45].forEach((z) => {
+    const pillow = new Mesh(new BoxGeometry(0.14, 0.44, 0.84), accent);
+    pillow.name = `Furnishing:${definition.id}:backPillow`;
+    pillow.position.set(footprint.width / 2 - 0.25, 0.76, z);
+    group.add(pillow);
+  });
+  [-0.48, 0.48].forEach((x) => {
+    [-1.85, 1.85].forEach((z) => {
+      const foot = new Mesh(new BoxGeometry(0.12, 0.18, 0.12), dark);
+      foot.name = `Furnishing:${definition.id}:foot`;
+      foot.position.set(x, 0.09, z);
+      group.add(foot);
+    });
+  });
+  return group;
+}
+
+function createTablePrimitive(
+  definition: LowerFloorFurnishingDefinition,
+  roundTop: boolean
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
+  const height = definition.visual?.height ?? 0.45;
+  const wood = new MeshStandardMaterial({
+    color: definition.visual?.color ?? 0x7c4a2d,
+  });
+  const leg = new MeshStandardMaterial({ color: 0x111827 });
+  const group = new Group();
+  const top = new Mesh(
+    new BoxGeometry(footprint.width, 0.14, footprint.depth),
+    wood
+  );
+  top.name = `Furnishing:${definition.id}:${roundTop ? 'compactTop' : 'rectangularTop'}`;
+  top.position.y = height;
+  group.add(top);
+  [-1, 1].forEach((xSign) => {
+    [-1, 1].forEach((zSign) => {
+      const tableLeg = new Mesh(new BoxGeometry(0.08, height, 0.08), leg);
+      tableLeg.name = `Furnishing:${definition.id}:slimLeg`;
+      tableLeg.position.set(
+        xSign * (footprint.width / 2 - 0.18),
+        height / 2,
+        zSign * (footprint.depth / 2 - 0.18)
+      );
+      group.add(tableLeg);
+    });
+  });
+  return group;
+}
+
+function createLoungeChairPrimitive(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
+  const fabric = new MeshStandardMaterial({
+    color: definition.visual?.color ?? 0x64748b,
+  });
+  const accent = new MeshStandardMaterial({
+    color: definition.visual?.accentColor ?? 0xf1f5f9,
+  });
+  const group = new Group();
+  const seat = new Mesh(
+    new BoxGeometry(footprint.width, 0.28, footprint.depth * 0.75),
+    fabric
+  );
+  seat.name = `Furnishing:${definition.id}:angledSeat`;
+  seat.position.y = 0.32;
+  group.add(seat);
+  const back = new Mesh(new BoxGeometry(footprint.width, 0.68, 0.18), fabric);
+  back.name = `Furnishing:${definition.id}:chairBack`;
+  back.position.set(0, 0.62, footprint.depth * 0.29);
+  group.add(back);
+  const pillow = new Mesh(
+    new BoxGeometry(footprint.width * 0.56, 0.28, 0.12),
+    accent
+  );
+  pillow.name = `Furnishing:${definition.id}:throwPillow`;
+  pillow.position.set(0, 0.66, footprint.depth * 0.18);
+  group.add(pillow);
+  return group;
+}
+
+function createFloorLampPrimitive(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 0.55, depth: 0.55 };
+  const height = definition.visual?.height ?? 1.8;
+  const metal = new MeshStandardMaterial({
+    color: definition.visual?.color ?? 0x1e293b,
+  });
+  const glow = new MeshStandardMaterial({
+    color: definition.visual?.accentColor ?? 0xfacc15,
+    emissive: definition.visual?.accentColor ?? 0xfacc15,
+    emissiveIntensity: 0.8,
+  });
+  const group = new Group();
+  const base = new Mesh(
+    new CylinderGeometry(footprint.width / 2, footprint.width / 2, 0.08, 16),
+    metal
+  );
+  base.name = `Furnishing:${definition.id}:weightedBase`;
+  base.position.y = 0.04;
+  group.add(base);
+  const pole = new Mesh(
+    new CylinderGeometry(0.035, 0.035, height * 0.72, 12),
+    metal
+  );
+  pole.name = `Furnishing:${definition.id}:slimPole`;
+  pole.position.y = height * 0.36 + 0.08;
+  group.add(pole);
+  const shade = new Mesh(new CylinderGeometry(0.28, 0.38, 0.42, 16), glow);
+  shade.name = `Furnishing:${definition.id}:warmShade`;
+  shade.position.y = height * 0.82;
+  group.add(shade);
+  const bulb = new Mesh(new SphereGeometry(0.12, 12, 8), glow);
+  bulb.name = `Furnishing:${definition.id}:emissiveBulb`;
+  bulb.position.y = height * 0.78;
+  group.add(bulb);
+  return group;
+}
+
 function createDecorativePrimitive(
   definition: LowerFloorFurnishingDefinition
 ): Mesh {
@@ -323,6 +568,9 @@ function createRotatedAabb(
   definition: LowerFloorFurnishingDefinition,
   footprint: LowerFloorFurnishingFootprint
 ): RectCollider {
+  if (definition.colliderIgnoresOrientation) {
+    return createAabbFromCenterSize(definition.position, footprint);
+  }
   const cos = Math.abs(Math.cos(definition.orientationRadians));
   const sin = Math.abs(Math.sin(definition.orientationRadians));
   return createAabbFromCenterSize(definition.position, {

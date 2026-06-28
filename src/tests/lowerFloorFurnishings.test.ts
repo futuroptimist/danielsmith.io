@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DEFAULT_LOWER_FLOOR_FURNISHINGS,
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
@@ -70,12 +71,107 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
 ];
 
 describe('lower floor furnishings foundation', () => {
-  it('renders an empty default plan without colliders or decorative footprints', () => {
+  it('renders the default living-room media seating cluster', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toEqual([]);
-    expect(build.decorativeFootprints).toEqual([]);
+    expect(build.colliders.map((collider) => collider.furnishingId)).toEqual([
+      'living-room-media-sofa',
+      'living-room-coffee-table',
+      'living-room-side-table',
+      'living-room-lounge-chair-north',
+      'living-room-lounge-chair-east',
+      'living-room-floor-lamp',
+    ]);
+    expect(
+      build.decorativeFootprints.map((footprint) => footprint.furnishingId)
+    ).toEqual(['living-room-media-rug']);
+  });
+
+  it('matches the authored living-room media AABBs and keeps the rug non-blocking', () => {
+    const { colliders, decorativeFootprints } = createLowerFloorFurnishings();
+    const expectedBounds: Record<string, RectCollider> = {
+      'living-room-media-sofa': {
+        minX: -26.9,
+        maxX: -25.3,
+        minZ: -22.1,
+        maxZ: -17.5,
+      },
+      'living-room-coffee-table': {
+        minX: -23.6,
+        maxX: -21.4,
+        minZ: -19.0,
+        maxZ: -17.8,
+      },
+      'living-room-side-table': {
+        minX: -26.4,
+        maxX: -25.6,
+        minZ: -23.8,
+        maxZ: -23.0,
+      },
+      'living-room-lounge-chair-north': {
+        minX: -29.0,
+        maxX: -27.6,
+        minZ: -15.9,
+        maxZ: -14.5,
+      },
+      'living-room-lounge-chair-east': {
+        minX: -25.3,
+        maxX: -23.9,
+        minZ: -15.4,
+        maxZ: -14.0,
+      },
+      'living-room-floor-lamp': {
+        minX: -29.175,
+        maxX: -28.625,
+        minZ: -17.275,
+        maxZ: -16.725,
+      },
+    };
+
+    Object.entries(expectedBounds).forEach(([id, expected]) => {
+      const collider = colliders.find((entry) => entry.furnishingId === id);
+      expect(collider).toBeDefined();
+      expect(collider?.minX).toBeCloseTo(expected.minX, 3);
+      expect(collider?.maxX).toBeCloseTo(expected.maxX, 3);
+      expect(collider?.minZ).toBeCloseTo(expected.minZ, 3);
+      expect(collider?.maxZ).toBeCloseTo(expected.maxZ, 3);
+    });
+
+    expect(
+      colliders.find(
+        (collider) => collider.furnishingId === 'living-room-media-rug'
+      )
+    ).toBeUndefined();
+    const rug = decorativeFootprints.find(
+      (footprint) => footprint.furnishingId === 'living-room-media-rug'
+    );
+    expect(rug?.bounds.minX).toBeCloseTo(-28.2, 3);
+    expect(rug?.bounds.maxX).toBeCloseTo(-21.2, 3);
+    expect(rug?.bounds.minZ).toBeCloseTo(-21.4, 3);
+    expect(rug?.bounds.maxZ).toBeCloseTo(-15.6, 3);
+    expect(rug?.allowSolidOverlap).toBe(true);
+  });
+
+  it('keeps default living-room media solids clear of reserved blockers and one another', () => {
+    const { colliders } = createLowerFloorFurnishings();
+
+    colliders.forEach((collider, index) => {
+      colliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('keeps the Futuroptimist TV definition out of the furnishing defaults', () => {
+    expect(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.some(
+        (definition) => definition.id === 'futuroptimist-living-room-tv'
+      )
+    ).toBe(false);
   });
 
   it('creates positive-area AABBs for every solid furnishing', () => {
@@ -149,22 +245,18 @@ describe('lower floor furnishings foundation', () => {
       ])
     ).toThrow(/decorative footprint overlaps/);
 
-    expect(() =>
-      validateLowerFloorFurnishingPlan([
-        validDefinitions[3],
-        {
-          id: 'studio-storage-under-bed-rug',
-          category: 'storage',
-          roomId: 'studio',
-          position: { x: 24.45, z: 6 },
-          orientationRadians: 0,
-          solidFootprint: { width: 0.2, depth: 1.2 },
-          kind: 'cabinet',
-        },
-      ])
-    ).toThrow(
-      /studio-bed-foundation decorative footprint overlaps studio-storage-under-bed-rug/
-    );
+    validateLowerFloorFurnishingPlan([
+      validDefinitions[3],
+      {
+        id: 'studio-storage-under-bed-rug',
+        category: 'storage',
+        roomId: 'studio',
+        position: { x: 24.45, z: 6 },
+        orientationRadians: 0,
+        solidFootprint: { width: 0.2, depth: 1.2 },
+        kind: 'cabinet',
+      },
+    ]);
   });
 
   it('validates authoring IDs and decorative footprint area before building', () => {
