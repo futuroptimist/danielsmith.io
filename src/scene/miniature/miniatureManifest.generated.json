@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 8,
-      "syncNote": "Storage furnishing visuals stay source-only after shelf detail hardening; furnishing proxy work remains deferred until the full furnishing set lands.",
-      "sourceFingerprint": "e17dcc14a660225f4cb6595ec886dd2db06cf6b7e709764b00d62c04280315fc",
+      "syncRevision": 9,
+      "syncNote": "Storage furnishing visuals stay source-only after drawer-console foot detailing; furnishing proxy work remains deferred until the full furnishing set lands.",
+      "sourceFingerprint": "e5ebfa1c5e4f46611401b3038a62a5172dfda7bcbad2e5fa4b5f0f1aaa6ba04f",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "21e762c9de0f1483f75392436096a0111ddd91e05e7ef651c0eb8b0caa24a7b9"
+      "metadataFingerprint": "bb47a8be819b22feb6afd01adb4ede16da982c286c71ea647a195d86a616823a"
     },
     {
       "id": "environment:backyard",
