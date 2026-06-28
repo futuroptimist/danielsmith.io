@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DEFAULT_LOWER_FLOOR_FURNISHINGS,
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
@@ -69,13 +70,85 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
   },
 ];
 
+const expectedLivingRoomMediaSolidBounds: Record<string, RectCollider> = {
+  'living-room-media-sofa': {
+    minX: -26.9,
+    maxX: -25.3,
+    minZ: -22.1,
+    maxZ: -17.5,
+  },
+  'living-room-coffee-table': {
+    minX: -23.6,
+    maxX: -21.4,
+    minZ: -19.0,
+    maxZ: -17.8,
+  },
+  'living-room-side-table': {
+    minX: -26.4,
+    maxX: -25.6,
+    minZ: -23.8,
+    maxZ: -23.0,
+  },
+  'living-room-lounge-chair-north': {
+    minX: -29.0,
+    maxX: -27.6,
+    minZ: -15.9,
+    maxZ: -14.5,
+  },
+  'living-room-lounge-chair-east': {
+    minX: -25.3,
+    maxX: -23.9,
+    minZ: -15.4,
+    maxZ: -14.0,
+  },
+  'living-room-floor-lamp': {
+    minX: -29.175,
+    maxX: -28.625,
+    minZ: -17.275,
+    maxZ: -16.725,
+  },
+};
+
+const expectedLivingRoomMediaRugBounds: RectCollider = {
+  minX: -28.2,
+  maxX: -21.2,
+  minZ: -21.4,
+  maxZ: -15.6,
+};
+
 describe('lower floor furnishings foundation', () => {
-  it('renders an empty default plan without colliders or decorative footprints', () => {
+  it('renders the default living-room media seating plan', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toEqual([]);
-    expect(build.decorativeFootprints).toEqual([]);
+    expect(build.group.children.map((child) => child.name)).toEqual(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.map(
+        (definition) => `Furnishing:${definition.id}`
+      )
+    );
+    expect(build.colliders.map((collider) => collider.furnishingId)).toEqual(
+      Object.keys(expectedLivingRoomMediaSolidBounds)
+    );
+    expect(build.decorativeFootprints).toHaveLength(1);
+    expect(build.decorativeFootprints[0]).toMatchObject({
+      furnishingId: 'living-room-media-rug',
+      bounds: expectedLivingRoomMediaRugBounds,
+      allowSolidOverlap: true,
+    });
+  });
+
+  it('uses the specified living-room media seating solid AABBs', () => {
+    const { colliders } = createLowerFloorFurnishings();
+
+    Object.entries(expectedLivingRoomMediaSolidBounds).forEach(
+      ([furnishingId, expectedBounds]) => {
+        const collider = colliders.find(
+          (candidate) => candidate.furnishingId === furnishingId
+        );
+
+        expect(collider).toMatchObject(expectedBounds);
+      }
+    );
   });
 
   it('creates positive-area AABBs for every solid furnishing', () => {
