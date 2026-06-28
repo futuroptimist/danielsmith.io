@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   FLYWHEEL_BASE_DIMENSIONS,
+  FLYWHEEL_GEAR_RATIO,
   FLYWHEEL_INSTALLATION_BOUNDS,
   FLYWHEEL_SPIN_RAD_PER_SECOND,
   FLYWHEEL_WHEEL,
@@ -19,12 +20,14 @@ describe('flywheel energy contract', () => {
     expect(FLYWHEEL_INSTALLATION_BOUNDS.height).toBeGreaterThan(2);
   });
 
-  it('defines a readable physical wheel baseline without gear constants', () => {
+  it('defines a readable physical wheel baseline and gear ratio', () => {
     expect(FLYWHEEL_WHEEL_OUTER_RADIUS).toBeCloseTo(
       FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube
     );
     expect(FLYWHEEL_WHEEL.radius).toBeGreaterThan(0.75);
     expect(FLYWHEEL_WHEEL.rimTube).toBeGreaterThan(0.08);
     expect(FLYWHEEL_SPIN_RAD_PER_SECOND).toBeGreaterThan(0);
+    expect(FLYWHEEL_GEAR_RATIO.sunToCarrier).toBe(4);
+    expect(FLYWHEEL_GEAR_RATIO.carrierToFlywheel).toBe(1);
   });
 });
