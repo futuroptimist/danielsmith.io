@@ -44,6 +44,7 @@ export interface LowerFloorFurnishingDefinition {
     decorativeHeight?: number;
     allowDecorativeOverlapWithSolid?: boolean;
     allowDecorativeOverlapWithAnySolid?: boolean;
+    allowSolidOverlapWithIds?: readonly string[];
   };
 }
 
@@ -179,6 +180,109 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       kind: 'floor-lamp',
       visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.75 },
     },
+
+    {
+      id: 'kitchen-west-counter-run',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -31.0, z: 3.8 },
+      orientationRadians: Math.PI / 2,
+      solidFootprint: { width: 1.25, depth: 9.2 },
+      solidBounds: { minX: -31.625, maxX: -30.375, minZ: -0.8, maxZ: 8.4 },
+      kind: 'kitchen-counter-run',
+      visual: {
+        color: 0x687282,
+        accentColor: 0xd8ccb8,
+        height: 0.9,
+        allowSolidOverlapWithIds: ['kitchen-stove-cabinet'],
+      },
+    },
+    {
+      id: 'kitchen-fridge',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -31.0, z: -5.6 },
+      orientationRadians: Math.PI / 2,
+      solidFootprint: { width: 1.35, depth: 1.5 },
+      solidBounds: { minX: -31.675, maxX: -30.325, minZ: -6.35, maxZ: -4.85 },
+      kind: 'kitchen-fridge',
+      visual: { color: 0xc7d0d6, accentColor: 0x35404a, height: 2.35 },
+    },
+    {
+      id: 'kitchen-sink-cabinet',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -31.0, z: -2.0 },
+      orientationRadians: Math.PI / 2,
+      solidFootprint: { width: 1.2, depth: 1.8 },
+      solidBounds: { minX: -31.6, maxX: -30.4, minZ: -2.9, maxZ: -1.1 },
+      kind: 'kitchen-sink-cabinet',
+      visual: {
+        color: 0x667382,
+        accentColor: 0xd7dce0,
+        height: 0.95,
+      },
+    },
+    {
+      id: 'kitchen-stove-cabinet',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -31.0, z: 7.0 },
+      orientationRadians: Math.PI / 2,
+      solidFootprint: { width: 1.2, depth: 1.6 },
+      solidBounds: { minX: -31.6, maxX: -30.4, minZ: 6.2, maxZ: 7.8 },
+      kind: 'kitchen-stove-cabinet',
+      visual: {
+        color: 0x5e6672,
+        accentColor: 0x1d232b,
+        height: 0.95,
+        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
+      },
+    },
+    {
+      id: 'kitchen-island',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -13.0, z: 10.9 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.8, depth: 1.6 },
+      solidBounds: { minX: -15.4, maxX: -10.6, minZ: 10.1, maxZ: 11.7 },
+      kind: 'kitchen-island',
+      visual: { color: 0x526171, accentColor: 0xd0bea2, height: 0.92 },
+    },
+    {
+      id: 'kitchen-bar-stool-west',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -15.9, z: 12.9 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -16.25, maxX: -15.55, minZ: 12.55, maxZ: 13.25 },
+      kind: 'kitchen-bar-stool',
+      visual: { color: 0x2f3740, accentColor: 0xc28d52, height: 0.86 },
+    },
+    {
+      id: 'kitchen-bar-stool-east',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -10.1, z: 12.9 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -10.45, maxX: -9.75, minZ: 12.55, maxZ: 13.25 },
+      kind: 'kitchen-bar-stool',
+      visual: { color: 0x2f3740, accentColor: 0xc28d52, height: 0.86 },
+    },
+    {
+      id: 'kitchen-trash-drawer',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -30.8, z: 10.7 },
+      orientationRadians: Math.PI / 2,
+      solidFootprint: { width: 1.0, depth: 1.2 },
+      solidBounds: { minX: -31.3, maxX: -30.3, minZ: 10.1, maxZ: 11.3 },
+      kind: 'kitchen-trash-drawer',
+      visual: { color: 0x586575, accentColor: 0x8fd0a6, height: 0.82 },
+    },
     {
       id: 'living-room-media-rug',
       category: 'living-room-seating',
@@ -257,7 +361,18 @@ export function validateLowerFloorFurnishingPlan(
 
   solids.forEach((solid, index) => {
     solids.slice(index + 1).forEach((other) => {
-      if (rectanglesOverlap(solid.bounds, other.bounds, tolerance)) {
+      const solidAllowed =
+        solid.definition.visual?.allowSolidOverlapWithIds?.includes(
+          other.definition.id
+        );
+      const otherAllowed =
+        other.definition.visual?.allowSolidOverlapWithIds?.includes(
+          solid.definition.id
+        );
+      if (
+        !(solidAllowed && otherAllowed) &&
+        rectanglesOverlap(solid.bounds, other.bounds, tolerance)
+      ) {
         throw new Error(
           `${solid.definition.id} overlaps ${other.definition.id}.`
         );
@@ -364,6 +479,8 @@ function createSolidPrimitive(
   if (definition.kind === 'side-table') return createSideTable(definition);
   if (definition.kind === 'lounge-chair') return createLoungeChair(definition);
   if (definition.kind === 'floor-lamp') return createFloorLamp(definition);
+  if (definition.kind.startsWith('kitchen-'))
+    return createKitchenFurnishing(definition);
 
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.height ?? 0.8;
@@ -568,6 +685,168 @@ function createFloorLamp(definition: LowerFloorFurnishingDefinition): Group {
   shade.name = `Furnishing:${definition.id}:shade`;
   shade.position.y = 1.44;
   group.add(shade);
+  return group;
+}
+
+function createKitchenFurnishing(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
+  const isQuarterTurn =
+    Math.abs(Math.sin(definition.orientationRadians)) >
+    Math.abs(Math.cos(definition.orientationRadians));
+  const visualFootprint = isQuarterTurn
+    ? { width: footprint.depth, depth: footprint.width }
+    : footprint;
+  const height = definition.visual?.height ?? 0.9;
+  const cabinetMaterial = createMaterial(definition.visual?.color ?? 0x647181);
+  const counterMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0xd8ccb8
+  );
+  const darkMaterial = createMaterial(0x202833);
+  const metalMaterial = createMaterial(0xc9d1d6, {
+    metalness: 0.25,
+    roughness: 0.38,
+  });
+  const group = new Group();
+
+  if (definition.kind === 'kitchen-bar-stool') {
+    const seat = new Mesh(
+      new CylinderGeometry(0.32, 0.32, 0.12, 20),
+      counterMaterial
+    );
+    seat.name = `Furnishing:${definition.id}:roundSeat`;
+    seat.position.y = height;
+    group.add(seat);
+    [-0.2, 0.2].forEach((x, xIndex) => {
+      [-0.2, 0.2].forEach((z, zIndex) => {
+        addBox(
+          group,
+          `stoolLeg${xIndex}-${zIndex}`,
+          { width: 0.06, height, depth: 0.06 },
+          darkMaterial,
+          [x, height / 2, z]
+        );
+      });
+    });
+    return group;
+  }
+
+  if (definition.kind === 'kitchen-fridge') {
+    addBox(
+      group,
+      'fridgeBody',
+      { width: visualFootprint.width, height, depth: visualFootprint.depth },
+      metalMaterial,
+      [0, height / 2, 0]
+    );
+    addBox(
+      group,
+      'fridgeHandle',
+      { width: 0.08, height: 1.25, depth: 0.08 },
+      darkMaterial,
+      [visualFootprint.width / 2 - 0.14, 1.2, -visualFootprint.depth / 2 - 0.01]
+    );
+    return group;
+  }
+
+  addBox(
+    group,
+    'cabinetBody',
+    { width: visualFootprint.width, height, depth: visualFootprint.depth },
+    cabinetMaterial,
+    [0, height / 2, 0]
+  );
+  addBox(
+    group,
+    'countertop',
+    {
+      width: visualFootprint.width + 0.06,
+      height: 0.12,
+      depth: visualFootprint.depth + 0.06,
+    },
+    counterMaterial,
+    [0, height + 0.06, 0]
+  );
+
+  if (definition.kind === 'kitchen-counter-run') {
+    addBox(
+      group,
+      'backsplash',
+      { width: visualFootprint.width, height: 0.55, depth: 0.08 },
+      counterMaterial,
+      [0, 1.25, visualFootprint.depth / 2 - 0.04]
+    );
+    [-3.2, -1.6, 0, 1.6, 3.2].forEach((x, index) => {
+      addBox(
+        group,
+        `cabinetPull${index}`,
+        { width: 0.42, height: 0.08, depth: 0.06 },
+        darkMaterial,
+        [x, 0.58, -visualFootprint.depth / 2 - 0.01]
+      );
+    });
+  } else if (definition.kind === 'kitchen-sink-cabinet') {
+    addBox(
+      group,
+      'sinkBasin',
+      { width: 0.08, height: 0.08, depth: 0.82 },
+      metalMaterial,
+      [-0.1, height + 0.14, 0]
+    );
+    addBox(
+      group,
+      'faucet',
+      { width: 0.08, height: 0.42, depth: 0.08 },
+      metalMaterial,
+      [0.08, height + 0.32, 0]
+    );
+  } else if (definition.kind === 'kitchen-stove-cabinet') {
+    [-0.26, 0.26].forEach((x, index) => {
+      [-0.32, 0.32].forEach((z, innerIndex) => {
+        addBox(
+          group,
+          `cooktop${index}-${innerIndex}`,
+          { width: 0.22, height: 0.035, depth: 0.22 },
+          darkMaterial,
+          [x, height + 0.135, z]
+        );
+      });
+    });
+    addBox(
+      group,
+      'ovenFace',
+      { width: 0.08, height: 0.48, depth: 0.95 },
+      darkMaterial,
+      [-visualFootprint.width / 2 - 0.01, 0.48, 0]
+    );
+    addBox(
+      group,
+      'hoodPanel',
+      { width: visualFootprint.width, height: 0.16, depth: 0.28 },
+      metalMaterial,
+      [0, 1.55, visualFootprint.depth / 2 - 0.14]
+    );
+  } else if (definition.kind === 'kitchen-island') {
+    [-1.5, 0, 1.5].forEach((x, index) => {
+      addBox(
+        group,
+        `islandDrawer${index}`,
+        { width: 0.72, height: 0.08, depth: 0.06 },
+        darkMaterial,
+        [x, 0.62, visualFootprint.depth / 2 + 0.01]
+      );
+    });
+  } else if (definition.kind === 'kitchen-trash-drawer') {
+    addBox(
+      group,
+      'recyclingPull',
+      { width: 0.08, height: 0.08, depth: 0.55 },
+      counterMaterial,
+      [-visualFootprint.width / 2 - 0.01, 0.5, 0]
+    );
+  }
+
   return group;
 }
 
