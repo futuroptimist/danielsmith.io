@@ -211,6 +211,52 @@ export function createSigmaWorkbench(
   pinHalo.position.set(0, pinCore.position.y + 0.16, 0);
   group.add(pinHalo);
 
+  const buttonMaterial = new MeshStandardMaterial({
+    color: new Color(0xff7a18),
+    emissive: new Color(0xff9f1c),
+    emissiveIntensity: 0.45,
+    roughness: 0.3,
+    metalness: 0.18,
+  });
+  const talkButton = new Mesh(
+    new CylinderGeometry(0.075, 0.075, 0.03, 20),
+    buttonMaterial
+  );
+  talkButton.name = 'SigmaPushToTalkButton';
+  talkButton.position.set(0, pinCore.position.y + 0.135, 0);
+  group.add(talkButton);
+
+  const grilleMaterial = new MeshStandardMaterial({
+    color: new Color(0x020617),
+    roughness: 0.42,
+    metalness: 0.36,
+  });
+  for (let index = 0; index < 5; index += 1) {
+    const slot = new Mesh(new BoxGeometry(0.018, 0.012, 0.17), grilleMaterial);
+    slot.name = `SigmaSpeakerGrilleSlot-${index}`;
+    slot.position.set(
+      -0.075 + index * 0.0375,
+      pinCore.position.y + 0.02,
+      0.123
+    );
+    group.add(slot);
+  }
+
+  for (let index = 0; index < 3; index += 1) {
+    const mic = new Mesh(
+      new CylinderGeometry(0.014, 0.014, 0.012, 12),
+      grilleMaterial
+    );
+    mic.name = `SigmaMicrophonePort-${index}`;
+    mic.rotation.x = Math.PI / 2;
+    mic.position.set(
+      -0.055 + index * 0.055,
+      pinCore.position.y + 0.045,
+      -0.125
+    );
+    group.add(mic);
+  }
+
   const hologramGroup = new Group();
   hologramGroup.name = 'SigmaWorkbenchHologramGroup';
   hologramGroup.position.set(

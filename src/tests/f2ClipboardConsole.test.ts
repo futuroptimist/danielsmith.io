@@ -125,6 +125,12 @@ describe('createF2ClipboardConsole', () => {
     expect(build.group.getObjectByName('F2ClipboardLogCard-0')).toBeInstanceOf(
       Mesh
     );
+    expect(
+      build.group.getObjectByName('F2ClipboardPipelineStep-task')
+    ).toBeInstanceOf(Mesh);
+    expect(
+      build.group.getObjectByName('F2ClipboardPipelineStep-checks')
+    ).toBeInstanceOf(Mesh);
 
     const capturedText = contexts.flatMap((ctx) => ctx.fillTextCalls);
     expect(capturedText).toContain('f2clipboard');
@@ -132,6 +138,10 @@ describe('createF2ClipboardConsole', () => {
     expect(capturedText).toContain('Queue synced');
     expect(capturedText).toContain('Codex diffs summarised');
     expect(capturedText).toContain('3 incidents triaged');
+    expect(capturedText).toContain('PR URL');
+    expect(capturedText).toContain('query + hash stripped');
+    expect(capturedText).toContain('Failed CI log');
+    expect(capturedText).toContain('Secrets redacted');
   });
 
   it('animates hologram and ticker with emphasis changes', () => {

@@ -2,6 +2,7 @@ import {
   BoxGeometry,
   CanvasTexture,
   Color,
+  CylinderGeometry,
   DoubleSide,
   Group,
   MathUtils,
@@ -209,6 +210,25 @@ export function createGitshelvesInstallation(
   pedestal.castShadow = true;
   pedestal.receiveShadow = true;
   group.add(pedestal);
+
+  const baseplateMaterial = new MeshStandardMaterial({
+    color: new Color(0x1e293b),
+    roughness: 0.5,
+    metalness: 0.18,
+  });
+  for (let column = 0; column < columns; column += 1) {
+    const socket = new Mesh(
+      new CylinderGeometry(0.08, 0.08, 0.035, 16),
+      baseplateMaterial
+    );
+    socket.name = `GitshelvesGridfinitySocket-${column}`;
+    socket.position.set(
+      (column - (columns - 1) / 2) * 0.32,
+      baseHeight + 0.03,
+      0.28
+    );
+    group.add(socket);
+  }
 
   const panelHeight = rows * 0.36 + 1.1;
   const panelWidth = columns * 0.34 + 0.8;
