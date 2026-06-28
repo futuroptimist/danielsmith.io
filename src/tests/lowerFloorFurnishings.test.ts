@@ -76,8 +76,8 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(20);
-    expect(build.decorativeFootprints).toHaveLength(1);
+    expect(build.colliders).toHaveLength(24);
+    expect(build.decorativeFootprints).toHaveLength(2);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
       'living-room-coffee-table',
@@ -99,6 +99,11 @@ describe('lower floor furnishings foundation', () => {
       'studio-north-bookcase-east',
       'studio-drafting-drawers',
       'studio-east-dresser',
+      'studio-daybed',
+      'studio-nightstand-south',
+      'studio-nightstand-north',
+      'studio-reading-chair',
+      'studio-bedside-rug',
       'living-room-media-rug',
     ]);
   });
@@ -164,6 +169,122 @@ describe('lower floor furnishings foundation', () => {
         matchingColliders[0].maxZ - matchingColliders[0].minZ
       ).toBeGreaterThan(0);
     });
+  });
+
+  it('adds the requested studio sleeping nook colliders and non-blocking rug', () => {
+    const { colliders, decorativeFootprints } = createLowerFloorFurnishings();
+    const expectedSleepingNookBounds: Record<string, RectCollider> = {
+      'studio-daybed': {
+        minX: 25.7,
+        maxX: 29.5,
+        minZ: 9.6,
+        maxZ: 11.6,
+      },
+      'studio-nightstand-south': {
+        minX: 27.2,
+        maxX: 28.0,
+        minZ: 8.2,
+        maxZ: 9.0,
+      },
+      'studio-nightstand-north': {
+        minX: 27.2,
+        maxX: 28.0,
+        minZ: 12.2,
+        maxZ: 13.0,
+      },
+      'studio-reading-chair': {
+        minX: 21.5,
+        maxX: 22.9,
+        minZ: 11.9,
+        maxZ: 13.3,
+      },
+    };
+
+    Object.entries(expectedSleepingNookBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'sleeping-nook',
+        roomId: 'studio',
+      });
+    });
+
+    expect(
+      decorativeFootprints.find(
+        (footprint) => footprint.furnishingId === 'studio-bedside-rug'
+      )?.bounds
+    ).toMatchObject({ minX: 23.1, maxX: 27.9, minZ: 9.3, maxZ: 12.3 });
+    expect(
+      decorativeFootprints.find(
+        (footprint) => footprint.furnishingId === 'studio-bedside-rug'
+      )?.allowSolidOverlap
+    ).toBe(true);
+    expect(
+      colliders.find(
+        (collider) => collider.furnishingId === 'studio-bedside-rug'
+      )
+    ).toBeUndefined();
+  });
+
+  it('keeps studio sleeping nook solids clear of doorways and each other', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const sleepingNookColliders = colliders.filter(
+      (collider) => collider.category === 'sleeping-nook'
+    );
+    const studioBackyardDoorBuffer: RectCollider = {
+      minX: 11,
+      maxX: 19,
+      minZ: 14.8,
+      maxZ: 17.2,
+    };
+
+    sleepingNookColliders.forEach((collider, index) => {
+      expect(isContainedBy(LOWER_FLOOR_ROOM_BOUNDS.studio, collider)).toBe(
+        true
+      );
+      expect(rectanglesOverlap(collider, studioBackyardDoorBuffer)).toBe(false);
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+      sleepingNookColliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+    });
+  });
+
+  it('renders recognizable studio sleeping nook visual details without extra colliders', () => {
+    const { group, colliders } = createLowerFloorFurnishings();
+    const daybed = group.children.find(
+      (child) => child.name === 'Furnishing:studio-daybed'
+    );
+    const nightstandSouth = group.children.find(
+      (child) => child.name === 'Furnishing:studio-nightstand-south'
+    );
+    const nightstandNorth = group.children.find(
+      (child) => child.name === 'Furnishing:studio-nightstand-north'
+    );
+    const readingChair = group.children.find(
+      (child) => child.name === 'Furnishing:studio-reading-chair'
+    );
+    const partNames: string[] = [];
+
+    [daybed, nightstandSouth, nightstandNorth, readingChair].forEach((item) => {
+      expect(item).toBeDefined();
+      item!.traverse((child) => partNames.push(child.name));
+    });
+
+    expect(partNames).toContain('FurnishingPart:daybedMattress');
+    expect(partNames).toContain('FurnishingPart:daybedBlanket');
+    expect(partNames).toContain('FurnishingPart:daybedPillow0');
+    expect(partNames).toContain('FurnishingPart:nightstandLampShade');
+    expect(partNames).toContain('FurnishingPart:nightstandBook0');
+    expect(partNames).toContain('FurnishingPart:readingChairCushion');
+    expect(
+      colliders.filter((collider) => collider.category === 'sleeping-nook')
+    ).toHaveLength(4);
   });
 
   it('keeps storage colliders in room bounds and away from solids and blockers', () => {
