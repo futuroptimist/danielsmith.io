@@ -62,6 +62,12 @@ describe('createGitshelvesInstallation', () => {
     expect(build.group.getObjectByName('GitshelvesBase')).toBeTruthy();
     expect(build.group.getObjectByName('GitshelvesPanel')).toBeTruthy();
     expect(build.group.getObjectByName('GitshelvesLabel')).toBeTruthy();
+    expect(
+      build.group.getObjectByName('GitshelvesGridfinitySocket-0')
+    ).toBeTruthy();
+    expect(
+      build.group.getObjectByName('GitshelvesGridfinitySocket-3')
+    ).toBeTruthy();
 
     const commits = getCommitMeshes(build.group);
     expect(commits).toHaveLength(12);

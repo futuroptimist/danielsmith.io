@@ -173,6 +173,52 @@ export function createGabrielSentry(
   shield.position.set(0, 0.32, 0);
   core.add(shield);
 
+  const localModelMaterial = new MeshStandardMaterial({
+    color: new Color(0x0b1220),
+    emissive: new Color(0x38bdf8),
+    emissiveIntensity: 0.32,
+    roughness: 0.34,
+    metalness: 0.42,
+  });
+  const localModelCore = new Mesh(
+    new BoxGeometry(0.34, 0.22, 0.22),
+    localModelMaterial
+  );
+  localModelCore.name = 'GabrielLocalInferenceCore';
+  localModelCore.position.set(0, 0.32, -0.15);
+  core.add(localModelCore);
+
+  const privacyRing = new Mesh(
+    new TorusGeometry(0.56, 0.025, 12, 48),
+    ringMaterial
+  );
+  privacyRing.name = 'GabrielPrivacyBoundaryRing';
+  privacyRing.rotation.x = Math.PI / 2;
+  privacyRing.position.y = baseHeight + 0.08;
+  group.add(privacyRing);
+
+  const swordMaterial = new MeshStandardMaterial({
+    color: new Color(0xcbd5e1),
+    emissive: new Color(0x60a5fa),
+    emissiveIntensity: 0.2,
+    roughness: 0.26,
+    metalness: 0.62,
+  });
+  const swordBlade = new Mesh(
+    new BoxGeometry(0.045, 0.82, 0.045),
+    swordMaterial
+  );
+  swordBlade.name = 'GabrielDamoclesBlade';
+  swordBlade.position.set(0, sensor.position.y + 0.7, 0);
+  group.add(swordBlade);
+  const swordGuard = new Mesh(
+    new BoxGeometry(0.34, 0.035, 0.06),
+    swordMaterial
+  );
+  swordGuard.name = 'GabrielDamoclesGuard';
+  swordGuard.position.set(0, sensor.position.y + 0.28, 0);
+  group.add(swordGuard);
+
   const update = ({
     elapsed,
     emphasis,

@@ -231,8 +231,8 @@ export function createF2ClipboardConsole(
   clipboardPivot.add(calloutGlow);
 
   const clipboardCalloutEntries: Array<{ title: string; detail: string }> = [
-    { title: 'Queue synced', detail: 'Codex diffs summarised' },
-    { title: 'Clipboard ready', detail: '3 incidents triaged' },
+    { title: 'Task pages', detail: 'Codex prompts staged' },
+    { title: 'Markdown ready', detail: 'PR notes copied' },
   ];
 
   clipboardCalloutEntries.forEach((entry, index) => {
@@ -311,9 +311,9 @@ export function createF2ClipboardConsole(
 
   const floatingLogs: FloatingLog[] = [];
   const logEntries: Array<{ title: string; status: string }> = [
-    { title: 'Incident 204', status: 'SLA recovered · 00:32' },
-    { title: 'Triage queue', status: '3 items → clipboard' },
-    { title: 'Codex sync', status: 'Diff summarized ✓' },
+    { title: 'PR URL', status: 'query + hash stripped' },
+    { title: 'Failed CI log', status: '150 kB gate → summary' },
+    { title: 'Secrets redacted', status: 'ghp_… / sk-… masked' },
   ];
   logEntries.forEach((entry, index) => {
     const texture = createLogCardTexture(entry.title, entry.status);
@@ -335,6 +335,41 @@ export function createF2ClipboardConsole(
       baseHeight: log.position.y,
       baseRotation: log.rotation.y,
     });
+  });
+
+  const pipelineMaterial = new MeshStandardMaterial({
+    color: new Color(0x0f2f46),
+    emissive: new Color(0x38bdf8),
+    emissiveIntensity: 0.4,
+    roughness: 0.32,
+    metalness: 0.34,
+  });
+  const pipelineSteps = ['task', 'PR', 'checks', 'MD'];
+  pipelineSteps.forEach((step, index) => {
+    const stepMesh = new Mesh(
+      new BoxGeometry(0.22, 0.1, 0.16),
+      pipelineMaterial
+    );
+    stepMesh.name = `F2ClipboardPipelineStep-${step}`;
+    stepMesh.position.set(
+      -0.42 + index * 0.28,
+      deckHeight + 0.18,
+      deckDepth * 0.43
+    );
+    group.add(stepMesh);
+    if (index > 0) {
+      const link = new Mesh(
+        new BoxGeometry(0.14, 0.035, 0.035),
+        pipelineMaterial
+      );
+      link.name = `F2ClipboardPipelineLink-${index}`;
+      link.position.set(
+        stepMesh.position.x - 0.14,
+        stepMesh.position.y,
+        stepMesh.position.z
+      );
+      group.add(link);
+    }
   });
 
   const haloGeometry = new RingGeometry(0.75, 0.95, 64, 1);
@@ -539,14 +574,14 @@ function createConsoleScreenTexture(): CanvasTexture {
 
   context.font = '52px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#b7f3ff';
-  context.fillText('Incident digest pipeline', 70, 180);
+  context.fillText('Codex PR clipboard pipeline', 70, 180);
 
   context.font = '42px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#8ad4ff';
   const bullets = [
-    'Tail logs → summarise in Markdown',
-    'Copy to clipboard in 3 seconds',
-    'Annotate follow-up actions automatically',
+    'Codex task pages → PR-ready notes',
+    'GitHub checks + logs → concise Markdown',
+    'Redact secrets before paste',
   ];
   bullets.forEach((line, index) => {
     const y = 260 + index * 80;
@@ -628,10 +663,10 @@ function createTickerTexture(): CanvasTexture {
   context.textBaseline = 'middle';
   context.textAlign = 'left';
   const messages = [
-    'Queue synced',
-    'Clipboard primed',
-    'Incident resolved',
-    'Codex summary ready',
+    'Task page copied',
+    'PR checks parsed',
+    'Secrets redacted',
+    'Markdown ready',
   ];
   const spacing = canvas.width / messages.length;
   messages.forEach((message, index) => {
