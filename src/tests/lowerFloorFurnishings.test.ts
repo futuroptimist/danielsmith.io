@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
+  DEFAULT_LOWER_FLOOR_FURNISHINGS,
   createLowerFloorFurnishings,
   rectanglesOverlap,
   validateLowerFloorFurnishingPlan,
@@ -70,12 +71,89 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
 ];
 
 describe('lower floor furnishings foundation', () => {
-  it('renders an empty default plan without colliders or decorative footprints', () => {
+  it('renders the living-room media seating default plan', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toEqual([]);
-    expect(build.decorativeFootprints).toEqual([]);
+    expect(build.colliders.map((collider) => collider.furnishingId)).toEqual([
+      'living-room-media-sofa',
+      'living-room-coffee-table',
+      'living-room-side-table',
+      'living-room-lounge-chair-north',
+      'living-room-lounge-chair-east',
+      'living-room-floor-lamp',
+    ]);
+    expect(
+      build.decorativeFootprints.map((footprint) => footprint.furnishingId)
+    ).toEqual(['living-room-media-rug']);
+    expect(
+      build.group.getObjectByName('Furnishing:living-room-media-sofa')
+    ).toBeDefined();
+    expect(
+      build.group.getObjectByName('Furnishing:living-room-media-rug')
+    ).toBeDefined();
+  });
+
+  it('uses the exact living-room media seating AABBs and keeps the rug non-blocking', () => {
+    const build = createLowerFloorFurnishings();
+    const expectedAabbs: Record<string, RectCollider> = {
+      'living-room-media-sofa': {
+        minX: -26.9,
+        maxX: -25.3,
+        minZ: -22.1,
+        maxZ: -17.5,
+      },
+      'living-room-coffee-table': {
+        minX: -23.6,
+        maxX: -21.4,
+        minZ: -19.0,
+        maxZ: -17.8,
+      },
+      'living-room-side-table': {
+        minX: -26.4,
+        maxX: -25.6,
+        minZ: -23.8,
+        maxZ: -23.0,
+      },
+      'living-room-lounge-chair-north': {
+        minX: -29.0,
+        maxX: -27.6,
+        minZ: -15.9,
+        maxZ: -14.5,
+      },
+      'living-room-lounge-chair-east': {
+        minX: -25.3,
+        maxX: -23.9,
+        minZ: -15.4,
+        maxZ: -14.0,
+      },
+      'living-room-floor-lamp': {
+        minX: -29.175,
+        maxX: -28.625,
+        minZ: -17.275,
+        maxZ: -16.725,
+      },
+    };
+
+    expect(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.map((definition) => definition.id)
+    ).toContain('living-room-media-rug');
+    Object.entries(expectedAabbs).forEach(([id, bounds]) => {
+      const collider = build.colliders.find(
+        (entry) => entry.furnishingId === id
+      );
+      expect(collider).toMatchObject(bounds);
+    });
+    expect(
+      build.decorativeFootprints.find(
+        (footprint) => footprint.furnishingId === 'living-room-media-rug'
+      )?.bounds
+    ).toEqual({ minX: -28.2, maxX: -21.2, minZ: -21.4, maxZ: -15.6 });
+    expect(
+      build.colliders.some(
+        (collider) => collider.furnishingId === 'living-room-media-rug'
+      )
+    ).toBe(false);
   });
 
   it('creates positive-area AABBs for every solid furnishing', () => {
