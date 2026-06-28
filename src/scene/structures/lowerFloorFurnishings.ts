@@ -283,6 +283,73 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       kind: 'kitchen-trash-drawer',
       visual: { color: 0x586575, accentColor: 0x8fd0a6, height: 0.82 },
     },
+
+    {
+      id: 'living-room-south-bookcase-west',
+      category: 'storage',
+      roomId: 'livingRoom',
+      position: { x: -24.0, z: -31.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.8, depth: 0.75 },
+      solidBounds: { minX: -26.4, maxX: -21.6, minZ: -31.575, maxZ: -30.825 },
+      kind: 'storage-bookcase',
+      visual: { color: 0x4f392b, accentColor: 0xd2a85f, height: 1.65 },
+    },
+    {
+      id: 'living-room-south-open-shelf',
+      category: 'storage',
+      roomId: 'livingRoom',
+      position: { x: -15.5, z: -31.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.5, depth: 0.75 },
+      solidBounds: { minX: -17.75, maxX: -13.25, minZ: -31.575, maxZ: -30.825 },
+      kind: 'storage-open-shelf',
+      visual: { color: 0x465464, accentColor: 0x86a884, height: 1.32 },
+    },
+    {
+      id: 'living-room-drawer-console',
+      category: 'storage',
+      roomId: 'livingRoom',
+      position: { x: -2.5, z: -31.1 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.0, depth: 0.8 },
+      solidBounds: { minX: -4.5, maxX: -0.5, minZ: -31.5, maxZ: -30.7 },
+      kind: 'storage-drawer-console',
+      visual: { color: 0x5d4634, accentColor: 0xb9c0c7, height: 0.82 },
+    },
+    {
+      id: 'studio-north-bookcase-east',
+      category: 'storage',
+      roomId: 'studio',
+      position: { x: 26.6, z: 15.1 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.8, depth: 0.8 },
+      solidBounds: { minX: 24.2, maxX: 29.0, minZ: 14.7, maxZ: 15.5 },
+      kind: 'storage-tall-bookcase',
+      visual: { color: 0x394455, accentColor: 0xc99554, height: 2.15 },
+    },
+    {
+      id: 'studio-drafting-drawers',
+      category: 'storage',
+      roomId: 'studio',
+      position: { x: 5.8, z: 14.9 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.8, depth: 0.8 },
+      solidBounds: { minX: 3.4, maxX: 8.2, minZ: 14.5, maxZ: 15.3 },
+      kind: 'storage-drafting-drawers',
+      visual: { color: 0x59616c, accentColor: 0xc8ced4, height: 0.72 },
+    },
+    {
+      id: 'studio-east-dresser',
+      category: 'storage',
+      roomId: 'studio',
+      position: { x: 31.0, z: 4.1 },
+      orientationRadians: Math.PI / 2,
+      solidFootprint: { width: 1.0, depth: 3.2 },
+      solidBounds: { minX: 30.5, maxX: 31.5, minZ: 2.5, maxZ: 5.7 },
+      kind: 'storage-dresser',
+      visual: { color: 0x51443a, accentColor: 0xb8a782, height: 1.12 },
+    },
     {
       id: 'living-room-media-rug',
       category: 'living-room-seating',
@@ -481,6 +548,8 @@ function createSolidPrimitive(
   if (definition.kind === 'floor-lamp') return createFloorLamp(definition);
   if (definition.kind.startsWith('kitchen-'))
     return createKitchenFurnishing(definition);
+  if (definition.kind.startsWith('storage-'))
+    return createStorageFurnishing(definition);
 
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.height ?? 0.8;
@@ -686,6 +755,204 @@ function createFloorLamp(definition: LowerFloorFurnishingDefinition): Group {
   shade.position.y = 1.44;
   group.add(shade);
   return group;
+}
+
+function createStorageFurnishing(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
+  const isQuarterTurn =
+    Math.abs(Math.sin(definition.orientationRadians)) >
+    Math.abs(Math.cos(definition.orientationRadians));
+  const visualFootprint = isQuarterTurn
+    ? { width: footprint.depth, depth: footprint.width }
+    : footprint;
+  const height = definition.visual?.height ?? 1.1;
+  const woodMaterial = createMaterial(definition.visual?.color ?? 0x4f392b);
+  const accentMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0xb9c0c7,
+    {
+      metalness: 0.15,
+      roughness: 0.48,
+    }
+  );
+  const darkMaterial = createMaterial(0x29231f);
+  const bookMaterials = [
+    createMaterial(0x8b4e42),
+    createMaterial(0x3f6278),
+    createMaterial(0xc99554),
+    createMaterial(0x6f7f55),
+    createMaterial(0x7d5d84),
+  ];
+  const group = new Group();
+
+  addBox(
+    group,
+    'caseBody',
+    { width: visualFootprint.width, height, depth: visualFootprint.depth },
+    woodMaterial,
+    [0, height / 2, 0]
+  );
+  addBox(
+    group,
+    'frontRecess',
+    {
+      width: visualFootprint.width - 0.18,
+      height: Math.max(0.2, height - 0.22),
+      depth: 0.06,
+    },
+    darkMaterial,
+    [0, height / 2, -visualFootprint.depth / 2 - 0.01]
+  );
+
+  if (
+    definition.kind.includes('bookcase') ||
+    definition.kind.includes('shelf')
+  ) {
+    const shelfCount = definition.kind === 'storage-tall-bookcase' ? 4 : 3;
+    for (let index = 1; index < shelfCount; index += 1) {
+      addBox(
+        group,
+        `shelfDivider${index}`,
+        { width: visualFootprint.width - 0.16, height: 0.07, depth: 0.12 },
+        accentMaterial,
+        [0, (height / shelfCount) * index, -visualFootprint.depth / 2 - 0.04]
+      );
+    }
+    [-0.32, 0.32].forEach((xOffset, index) => {
+      addBox(
+        group,
+        `verticalDivider${index}`,
+        { width: 0.06, height: height - 0.18, depth: 0.1 },
+        accentMaterial,
+        [
+          xOffset * visualFootprint.width,
+          height / 2,
+          -visualFootprint.depth / 2 - 0.05,
+        ]
+      );
+    });
+    addBookRows(
+      group,
+      visualFootprint.width,
+      height,
+      shelfCount,
+      bookMaterials
+    );
+    addStorageBoxes(group, visualFootprint.width, height, accentMaterial);
+    if (definition.kind === 'storage-open-shelf') {
+      addBox(
+        group,
+        'tinyPlanter',
+        { width: 0.26, height: 0.16, depth: 0.2 },
+        accentMaterial,
+        [visualFootprint.width * 0.34, height + 0.08, -0.12]
+      );
+      addBox(
+        group,
+        'tinyPlant',
+        { width: 0.18, height: 0.28, depth: 0.14 },
+        createMaterial(0x6f8d5f),
+        [visualFootprint.width * 0.34, height + 0.3, -0.12]
+      );
+    }
+  } else {
+    const rows = definition.kind === 'storage-drafting-drawers' ? 5 : 3;
+    for (let row = 0; row < rows; row += 1) {
+      const y = 0.24 + row * ((height - 0.25) / rows);
+      addBox(
+        group,
+        `drawerFront${row}`,
+        { width: visualFootprint.width - 0.16, height: 0.08, depth: 0.07 },
+        accentMaterial,
+        [0, y, -visualFootprint.depth / 2 - 0.015]
+      );
+      addBox(
+        group,
+        `drawerPull${row}`,
+        { width: visualFootprint.width * 0.42, height: 0.035, depth: 0.08 },
+        darkMaterial,
+        [0, y + 0.02, -visualFootprint.depth / 2 - 0.07]
+      );
+    }
+    [-0.42, 0.42].forEach((x, index) => {
+      addBox(
+        group,
+        `consoleFoot${index}`,
+        { width: 0.16, height: 0.14, depth: 0.16 },
+        darkMaterial,
+        [x * visualFootprint.width, 0.07, visualFootprint.depth / 2 - 0.14]
+      );
+    });
+    if (definition.kind === 'storage-drawer-console') {
+      addBox(
+        group,
+        'topTray',
+        { width: 0.56, height: 0.06, depth: 0.3 },
+        accentMaterial,
+        [-1.1, height + 0.03, -0.04]
+      );
+      addBox(
+        group,
+        'stackedBooks',
+        { width: 0.42, height: 0.16, depth: 0.28 },
+        createMaterial(0x3f6278),
+        [1.15, height + 0.08, -0.04]
+      );
+    }
+  }
+
+  addBox(
+    group,
+    'topTrim',
+    {
+      width: visualFootprint.width,
+      height: 0.08,
+      depth: visualFootprint.depth,
+    },
+    accentMaterial,
+    [0, height + 0.04, 0]
+  );
+  return group;
+}
+
+function addBookRows(
+  group: Group,
+  width: number,
+  height: number,
+  shelfCount: number,
+  materials: MeshStandardMaterial[]
+): void {
+  for (let shelf = 0; shelf < shelfCount; shelf += 1) {
+    const shelfY = 0.22 + shelf * (height / shelfCount);
+    for (let book = 0; book < 9; book += 1) {
+      const bookHeight = 0.28 + ((book + shelf) % 4) * 0.07;
+      addBox(
+        group,
+        `book${shelf}-${book}`,
+        { width: 0.16, height: bookHeight, depth: 0.14 },
+        materials[(book + shelf) % materials.length],
+        [-width / 2 + 0.42 + book * 0.24, shelfY + bookHeight / 2, -0.43]
+      );
+    }
+  }
+}
+
+function addStorageBoxes(
+  group: Group,
+  width: number,
+  height: number,
+  material: MeshStandardMaterial
+): void {
+  [-0.18, 0.2].forEach((x, index) => {
+    addBox(
+      group,
+      `storageBin${index}`,
+      { width: 0.5, height: 0.28, depth: 0.22 },
+      material,
+      [width / 2 - 0.55 - index * 0.56, height * 0.32, -0.42]
+    );
+  });
 }
 
 function createKitchenFurnishing(

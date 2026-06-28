@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(14);
+    expect(build.colliders).toHaveLength(20);
     expect(build.decorativeFootprints).toHaveLength(1);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -93,6 +93,12 @@ describe('lower floor furnishings foundation', () => {
       'kitchen-bar-stool-west',
       'kitchen-bar-stool-east',
       'kitchen-trash-drawer',
+      'living-room-south-bookcase-west',
+      'living-room-south-open-shelf',
+      'living-room-drawer-console',
+      'studio-north-bookcase-east',
+      'studio-drafting-drawers',
+      'studio-east-dresser',
       'living-room-media-rug',
     ]);
   });
@@ -294,6 +300,119 @@ describe('lower floor furnishings foundation', () => {
         (footprint) => footprint.furnishingId === 'living-room-media-rug'
       )?.allowSolidOverlap
     ).toBe(true);
+  });
+
+  it('adds the requested lower-floor storage pieces with exact AABBs', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const expectedStorageBounds: Record<string, RectCollider> = {
+      'living-room-south-bookcase-west': {
+        minX: -26.4,
+        maxX: -21.6,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'living-room-south-open-shelf': {
+        minX: -17.75,
+        maxX: -13.25,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'living-room-drawer-console': {
+        minX: -4.5,
+        maxX: -0.5,
+        minZ: -31.5,
+        maxZ: -30.7,
+      },
+      'studio-north-bookcase-east': {
+        minX: 24.2,
+        maxX: 29.0,
+        minZ: 14.7,
+        maxZ: 15.5,
+      },
+      'studio-drafting-drawers': {
+        minX: 3.4,
+        maxX: 8.2,
+        minZ: 14.5,
+        maxZ: 15.3,
+      },
+      'studio-east-dresser': {
+        minX: 30.5,
+        maxX: 31.5,
+        minZ: 2.5,
+        maxZ: 5.7,
+      },
+    };
+
+    Object.entries(expectedStorageBounds).forEach(([id, expected]) => {
+      const collider = colliders.find((item) => item.furnishingId === id);
+
+      expect(collider).toMatchObject({
+        ...expected,
+        category: 'storage',
+      });
+      expect(collider!.maxX - collider!.minX).toBeGreaterThan(0);
+      expect(collider!.maxZ - collider!.minZ).toBeGreaterThan(0);
+    });
+    expect(
+      new Set(colliders.map(({ category }) => category)).has('storage')
+    ).toBe(true);
+  });
+
+  it('keeps storage colliders within their room bounds and clear of conflicts', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const p4Ids = new Set([
+      'living-room-south-bookcase-west',
+      'living-room-south-open-shelf',
+      'living-room-drawer-console',
+      'studio-north-bookcase-east',
+      'studio-drafting-drawers',
+      'studio-east-dresser',
+    ]);
+    const p2AndP3Categories = new Set(['living-room-seating', 'kitchenette']);
+    const p4Colliders = colliders.filter((collider) =>
+      p4Ids.has(collider.furnishingId)
+    );
+    const p2AndP3Colliders = colliders.filter((collider) =>
+      p2AndP3Categories.has(collider.category)
+    );
+
+    p4Colliders.forEach((collider, index) => {
+      expect(
+        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+      ).toBe(true);
+      p4Colliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+      p2AndP3Colliders.forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('creates one parent storage collider without child detail colliders', () => {
+    const build = createLowerFloorFurnishings();
+    const storageDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.category === 'storage'
+    );
+    const storageColliders = build.colliders.filter(
+      (collider) => collider.category === 'storage'
+    );
+    const sourceIds = new Set(
+      build.colliders.map((collider) => collider.sourceId)
+    );
+
+    expect(storageColliders).toHaveLength(storageDefinitions.length);
+    expect(sourceIds.size).toBe(build.colliders.length);
+    storageDefinitions.forEach((definition) => {
+      expect(
+        storageColliders.filter(
+          (collider) => collider.furnishingId === definition.id
+        )
+      ).toHaveLength(1);
+    });
   });
 
   it('keeps the media sofa visual inside its authored collider', () => {
