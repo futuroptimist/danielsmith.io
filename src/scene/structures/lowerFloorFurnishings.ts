@@ -194,10 +194,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
         color: 0x687282,
         accentColor: 0xd8ccb8,
         height: 0.9,
-        allowSolidOverlapWithIds: [
-          'kitchen-sink-cabinet',
-          'kitchen-stove-cabinet',
-        ],
+        allowSolidOverlapWithIds: ['kitchen-stove-cabinet'],
       },
     },
     {
@@ -224,7 +221,6 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
         color: 0x667382,
         accentColor: 0xd7dce0,
         height: 0.95,
-        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
       },
     },
     {

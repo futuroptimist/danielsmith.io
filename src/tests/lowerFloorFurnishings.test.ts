@@ -174,6 +174,70 @@ describe('lower floor furnishings foundation', () => {
     });
   });
 
+  it('keeps every kitchen collider inside the kitchen room bounds', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const kitchen = LOWER_FLOOR_ROOM_BOUNDS.kitchen;
+
+    colliders
+      .filter((collider) => collider.roomId === 'kitchen')
+      .forEach((collider) => {
+        expect(isContainedBy(kitchen, collider)).toBe(true);
+      });
+  });
+
+  it('keeps both kitchen doorway buffers clear', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const kitchenDoorwayBuffers: RectCollider[] = [
+      { minX: -5.2, maxX: -2.8, minZ: 0, maxZ: 8 },
+      { minX: -22, maxX: -14, minZ: 14.8, maxZ: 17.2 },
+    ];
+
+    colliders
+      .filter((collider) => collider.roomId === 'kitchen')
+      .forEach((collider) => {
+        kitchenDoorwayBuffers.forEach((buffer) => {
+          expect(rectanglesOverlap(collider, buffer)).toBe(false);
+        });
+      });
+  });
+
+  it('keeps kitchen solids disjoint except the authored stove counter integration', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const kitchenColliders = colliders.filter(
+      (collider) => collider.roomId === 'kitchen'
+    );
+    const allowedOverlap = new Set([
+      'kitchen-stove-cabinet|kitchen-west-counter-run',
+      'kitchen-west-counter-run|kitchen-stove-cabinet',
+    ]);
+
+    kitchenColliders.forEach((collider, index) => {
+      kitchenColliders.slice(index + 1).forEach((other) => {
+        const pairKey = `${collider.furnishingId}|${other.furnishingId}`;
+        expect(rectanglesOverlap(collider, other)).toBe(
+          allowedOverlap.has(pairKey)
+        );
+      });
+    });
+  });
+
+  it('keeps the wall counter visual narrow in world X and long in world Z', () => {
+    const build = createLowerFloorFurnishings();
+    const counterGroup = build.group.children.find(
+      (child) => child.name === 'Furnishing:kitchen-west-counter-run'
+    );
+
+    expect(counterGroup).toBeDefined();
+
+    const visualBounds = new Box3().setFromObject(counterGroup!);
+    const visualWidthX = visualBounds.max.x - visualBounds.min.x;
+    const visualDepthZ = visualBounds.max.z - visualBounds.min.z;
+
+    expect(visualWidthX).toBeLessThan(1.5);
+    expect(visualDepthZ).toBeGreaterThan(9);
+    expect(visualDepthZ).toBeGreaterThan(visualWidthX * 5);
+  });
+
   it('uses the requested living-room media seating AABBs', () => {
     const { colliders, decorativeFootprints } = createLowerFloorFurnishings();
     const expectedSolidBounds: Record<string, RectCollider> = {
