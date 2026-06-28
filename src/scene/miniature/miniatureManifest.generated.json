@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 6,
-      "syncNote": "Kitchenette collision and validation refinements do not add tabletop proxy coverage; furnishing proxy work remains deferred until the full furnishing set lands.",
-      "sourceFingerprint": "1723ff9c15b26bdec7751d8bb72e93e63beefaf90e8cedf4fe3c9d21e29ff227",
+      "syncRevision": 9,
+      "syncNote": "Storage furnishing visuals stay source-only after drawer-console foot detailing; furnishing proxy work remains deferred until the full furnishing set lands.",
+      "sourceFingerprint": "e5ebfa1c5e4f46611401b3038a62a5172dfda7bcbad2e5fa4b5f0f1aaa6ba04f",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "c85e4ba35bea9c5ed0ef1d7c0c1d8cd9dc095ade6b9d7c2ec27a809a592e614e"
+      "metadataFingerprint": "bb47a8be819b22feb6afd01adb4ede16da982c286c71ea647a195d86a616823a"
     },
     {
       "id": "environment:backyard",

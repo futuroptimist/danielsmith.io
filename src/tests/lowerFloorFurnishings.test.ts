@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(14);
+    expect(build.colliders).toHaveLength(20);
     expect(build.decorativeFootprints).toHaveLength(1);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -93,8 +93,156 @@ describe('lower floor furnishings foundation', () => {
       'kitchen-bar-stool-west',
       'kitchen-bar-stool-east',
       'kitchen-trash-drawer',
+      'living-room-south-bookcase-west',
+      'living-room-south-open-shelf',
+      'living-room-drawer-console',
+      'studio-north-bookcase-east',
+      'studio-drafting-drawers',
+      'studio-east-dresser',
       'living-room-media-rug',
     ]);
+  });
+
+  it('adds the requested lower-floor storage AABBs with one collider each', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const expectedStorageBounds: Record<string, RectCollider> = {
+      'living-room-south-bookcase-west': {
+        minX: -26.4,
+        maxX: -21.6,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'living-room-south-open-shelf': {
+        minX: -17.75,
+        maxX: -13.25,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'living-room-drawer-console': {
+        minX: -4.5,
+        maxX: -0.5,
+        minZ: -31.5,
+        maxZ: -30.7,
+      },
+      'studio-north-bookcase-east': {
+        minX: 24.2,
+        maxX: 29.0,
+        minZ: 14.7,
+        maxZ: 15.5,
+      },
+      'studio-drafting-drawers': {
+        minX: 3.4,
+        maxX: 8.2,
+        minZ: 14.5,
+        maxZ: 15.3,
+      },
+      'studio-east-dresser': {
+        minX: 30.5,
+        maxX: 31.5,
+        minZ: 2.5,
+        maxZ: 5.7,
+      },
+    };
+
+    expect(
+      new Set(colliders.map(({ category }) => category)).has('storage')
+    ).toBe(true);
+
+    Object.entries(expectedStorageBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'storage',
+      });
+      expect(
+        matchingColliders[0].maxX - matchingColliders[0].minX
+      ).toBeGreaterThan(0);
+      expect(
+        matchingColliders[0].maxZ - matchingColliders[0].minZ
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it('keeps storage colliders in room bounds and away from solids and blockers', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const storageColliders = colliders.filter(
+      (collider) => collider.category === 'storage'
+    );
+    const seatingAndKitchenColliders = colliders.filter((collider) =>
+      ['living-room-seating', 'kitchenette'].includes(collider.category)
+    );
+
+    storageColliders.forEach((storage, index) => {
+      expect(
+        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[storage.roomId], storage)
+      ).toBe(true);
+      storageColliders.slice(index + 1).forEach((otherStorage) => {
+        expect(rectanglesOverlap(storage, otherStorage)).toBe(false);
+      });
+      seatingAndKitchenColliders.forEach((other) => {
+        expect(rectanglesOverlap(storage, other)).toBe(false);
+      });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(storage, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('keeps collider source IDs valid and unique for the default plan', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const sourceIds = colliders.map((collider) => collider.sourceId);
+
+    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    colliders.forEach((collider) => {
+      expect(collider.sourceId).toBe(
+        `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
+      );
+    });
+  });
+
+  it('adds named foot meshes to the living-room drawer console visual', () => {
+    const { group } = createLowerFloorFurnishings();
+    const drawerConsole = group.children.find(
+      (child) => child.name === 'Furnishing:living-room-drawer-console'
+    );
+    const footMeshNames: string[] = [];
+
+    expect(drawerConsole).toBeDefined();
+    drawerConsole!.traverse((child) => {
+      if (child.name.startsWith('FurnishingPart:drawerConsoleFoot')) {
+        footMeshNames.push(child.name);
+      }
+    });
+
+    expect(footMeshNames.sort()).toEqual([
+      'FurnishingPart:drawerConsoleFoot0',
+      'FurnishingPart:drawerConsoleFoot1',
+      'FurnishingPart:drawerConsoleFoot2',
+      'FurnishingPart:drawerConsoleFoot3',
+    ]);
+  });
+
+  it('does not create extra colliders for storage visual details', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const storageDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.category === 'storage'
+    );
+    const storageColliders = colliders.filter(
+      (collider) => collider.category === 'storage'
+    );
+
+    expect(storageColliders).toHaveLength(storageDefinitions.length);
+    storageDefinitions.forEach((definition) => {
+      expect(definition.solidFootprint).toBeDefined();
+      expect(
+        storageColliders.filter(
+          ({ furnishingId }) => furnishingId === definition.id
+        )
+      ).toHaveLength(1);
+    });
   });
 
   it('uses the requested kitchen kitchenette and dining AABBs', () => {
