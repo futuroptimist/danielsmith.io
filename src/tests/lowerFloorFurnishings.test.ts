@@ -139,6 +139,29 @@ describe('lower floor furnishings foundation', () => {
         (footprint) => footprint.furnishingId === 'living-room-media-rug'
       )?.bounds
     ).toMatchObject({ minX: -28.2, maxX: -21.2, minZ: -21.4, maxZ: -15.6 });
+    expect(
+      decorativeFootprints.find(
+        (footprint) => footprint.furnishingId === 'living-room-media-rug'
+      )?.allowSolidOverlap
+    ).toBe(true);
+  });
+
+  it('requires the default rug to explicitly allow overlapping nearby solids', () => {
+    const definitionsWithoutRugAnySolidOverlap =
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.map((definition) => {
+        if (definition.id !== 'living-room-media-rug') return definition;
+        return {
+          ...definition,
+          visual: {
+            ...definition.visual,
+            allowDecorativeOverlapWithAnySolid: false,
+          },
+        };
+      });
+
+    expect(() =>
+      validateLowerFloorFurnishingPlan(definitionsWithoutRugAnySolidOverlap)
+    ).toThrow(/living-room-media-rug decorative footprint overlaps/);
   });
 
   it('creates positive-area AABBs for every solid furnishing', () => {

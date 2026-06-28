@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Living-room media seating now has runtime-scale colliders and low-poly meshes; tabletop proxy coverage can stay deferred until the full furnishing set lands.",
-      "sourceFingerprint": "8cfbb6c338d1fba7a53309a7e383e2d9964ad00484a81425d89797f2dd7b48df",
+      "syncRevision": 3,
+      "syncNote": "Living-room media seating mesh alignment and metadata were reviewed; tabletop proxy coverage can stay deferred until the full furnishing set lands.",
+      "sourceFingerprint": "92c2891a9fd1d65d338e9ce6b1605eb43be20e2047b003087d495df16b169675",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ab07ce1236e4f054e7531fc309651947f7321870c3b53933354d0ab5ea616c2f"
+      "metadataFingerprint": "7da50c6f7b2853a097b715f34832f74c569da3a93a1105057347e6f8f5c02ee1"
     },
     {
       "id": "environment:backyard",

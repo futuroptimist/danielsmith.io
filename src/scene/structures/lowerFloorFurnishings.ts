@@ -165,7 +165,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
     },
     {
       id: 'living-room-floor-lamp',
-      category: 'living-room-seating',
+      category: 'plants-lighting-decor',
       roomId: 'livingRoom',
       position: { x: -28.9, z: -17.0 },
       orientationRadians: 0,
@@ -344,7 +344,9 @@ export function createLowerFloorFurnishings(
         roomId: definition.roomId,
         bounds: createRotatedAabb(definition, definition.decorativeFootprint),
         allowSolidOverlap:
-          definition.visual?.allowDecorativeOverlapWithSolid ?? false,
+          definition.visual?.allowDecorativeOverlapWithSolid ||
+          definition.visual?.allowDecorativeOverlapWithAnySolid ||
+          false,
       });
     }
 
@@ -406,6 +408,11 @@ function createSolidPrimitive(
 }
 
 function createMediaSofa(definition: LowerFloorFurnishingDefinition): Group {
+  const footprint = definition.solidFootprint ?? { width: 4.6, depth: 1.6 };
+  const backDepth = 0.22;
+  const armWidth = 0.34;
+  const rearZ = footprint.depth / 2 - backDepth / 2;
+  const armX = footprint.width / 2 - armWidth / 2;
   const material = createMaterial(definition.visual?.color ?? 0x607084);
   const pillowMaterial = createMaterial(
     definition.visual?.accentColor ?? 0xd6c3a3
@@ -415,45 +422,49 @@ function createMediaSofa(definition: LowerFloorFurnishingDefinition): Group {
   addBox(
     group,
     'seat',
-    { width: 4.45, height: 0.34, depth: 1.25 },
+    {
+      width: footprint.width - 0.15,
+      height: 0.34,
+      depth: footprint.depth - 0.35,
+    },
     material,
     [0, 0.34, 0]
   );
   addBox(
     group,
     'back',
-    { width: 4.55, height: 0.82, depth: 0.22 },
+    { width: footprint.width - 0.05, height: 0.82, depth: backDepth },
     material,
-    [0.58, 0.72, 0]
+    [0, 0.72, rearZ]
   );
   addBox(
     group,
     'leftArm',
-    { width: 0.34, height: 0.66, depth: 1.38 },
+    { width: armWidth, height: 0.66, depth: footprint.depth - backDepth },
     material,
-    [0, 0.56, -0.78]
+    [-armX, 0.56, 0]
   );
   addBox(
     group,
     'rightArm',
-    { width: 0.34, height: 0.66, depth: 1.38 },
+    { width: armWidth, height: 0.66, depth: footprint.depth - backDepth },
     material,
-    [0, 0.56, 0.78]
+    [armX, 0.56, 0]
   );
-  [-1.35, 0, 1.35].forEach((z, index) => {
+  [-1.35, 0, 1.35].forEach((x, index) => {
     addBox(
       group,
       `backPillow${index}`,
-      { width: 0.22, height: 0.5, depth: 1.05 },
+      { width: 1.05, height: 0.5, depth: 0.16 },
       pillowMaterial,
-      [0.42, 0.78, z]
+      [x, 0.78, rearZ - backDepth / 2 - 0.08]
     );
   });
-  [-1.8, 1.8].forEach((x) => {
-    [-0.5, 0.5].forEach((z) => {
+  [-1.8, 1.8].forEach((x, xIndex) => {
+    [-0.5, 0.5].forEach((z, zIndex) => {
       addBox(
         group,
-        'foot',
+        `foot${xIndex * 2 + zIndex}`,
         { width: 0.16, height: 0.16, depth: 0.16 },
         footMaterial,
         [x, 0.08, z]
@@ -476,11 +487,11 @@ function createCoffeeTable(definition: LowerFloorFurnishingDefinition): Group {
     topMaterial,
     [0, 0.42, 0]
   );
-  [-0.9, 0.9].forEach((x) => {
-    [-0.42, 0.42].forEach((z) => {
+  [-0.9, 0.9].forEach((x, xIndex) => {
+    [-0.42, 0.42].forEach((z, zIndex) => {
       addBox(
         group,
-        'leg',
+        `leg${xIndex * 2 + zIndex}`,
         { width: 0.12, height: 0.42, depth: 0.12 },
         legMaterial,
         [x, 0.21, z]

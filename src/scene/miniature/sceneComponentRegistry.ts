@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'Living-room media seating now has runtime-scale colliders and low-poly meshes; tabletop proxy coverage can stay deferred until the full furnishing set lands.',
+      'Living-room media seating mesh alignment and metadata were reviewed; tabletop proxy coverage can stay deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',
