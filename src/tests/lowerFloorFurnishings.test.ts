@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(14);
+    expect(build.colliders).toHaveLength(20);
     expect(build.decorativeFootprints).toHaveLength(1);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -85,6 +85,9 @@ describe('lower floor furnishings foundation', () => {
       'living-room-lounge-chair-north',
       'living-room-lounge-chair-east',
       'living-room-floor-lamp',
+      'living-room-south-bookcase-west',
+      'living-room-south-open-shelf',
+      'living-room-drawer-console',
       'kitchen-west-counter-run',
       'kitchen-fridge',
       'kitchen-sink-cabinet',
@@ -93,6 +96,9 @@ describe('lower floor furnishings foundation', () => {
       'kitchen-bar-stool-west',
       'kitchen-bar-stool-east',
       'kitchen-trash-drawer',
+      'studio-north-bookcase-east',
+      'studio-drafting-drawers',
+      'studio-east-dresser',
       'living-room-media-rug',
     ]);
   });
@@ -384,6 +390,114 @@ describe('lower floor furnishings foundation', () => {
     expect(() =>
       validateLowerFloorFurnishingPlan(definitionsWithoutRugAnySolidOverlap)
     ).toThrow(/living-room-media-rug decorative footprint overlaps/);
+  });
+
+  it('uses the requested storage furnishing AABBs and category', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const expectedStorageBounds: Record<string, RectCollider> = {
+      'living-room-south-bookcase-west': {
+        minX: -26.4,
+        maxX: -21.6,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'living-room-south-open-shelf': {
+        minX: -17.75,
+        maxX: -13.25,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'living-room-drawer-console': {
+        minX: -4.5,
+        maxX: -0.5,
+        minZ: -31.5,
+        maxZ: -30.7,
+      },
+      'studio-north-bookcase-east': {
+        minX: 24.2,
+        maxX: 29.0,
+        minZ: 14.7,
+        maxZ: 15.5,
+      },
+      'studio-drafting-drawers': {
+        minX: 3.4,
+        maxX: 8.2,
+        minZ: 14.5,
+        maxZ: 15.3,
+      },
+      'studio-east-dresser': {
+        minX: 30.5,
+        maxX: 31.5,
+        minZ: 2.5,
+        maxZ: 5.7,
+      },
+    };
+
+    Object.entries(expectedStorageBounds).forEach(([id, expected]) => {
+      const collider = colliders.find((item) => item.furnishingId === id);
+
+      expect(collider).toMatchObject({
+        ...expected,
+        category: 'storage',
+      });
+      expect(collider!.maxX - collider!.minX).toBeGreaterThan(0);
+      expect(collider!.maxZ - collider!.minZ).toBeGreaterThan(0);
+    });
+    expect(new Set(colliders.map((collider) => collider.category))).toContain(
+      'storage'
+    );
+  });
+
+  it('keeps storage solids in room bounds and clear of existing blockers', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const storageColliders = colliders.filter(
+      (collider) => collider.category === 'storage'
+    );
+    const existingColliders = colliders.filter(
+      (collider) => collider.category !== 'storage'
+    );
+
+    storageColliders.forEach((collider, index) => {
+      expect(
+        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+      ).toBe(true);
+      storageColliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+      existingColliders.forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('keeps storage child details visual-only within parent collider count', () => {
+    const build = createLowerFloorFurnishings();
+    const storageDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.category === 'storage'
+    );
+    const sourceIds = build.colliders.map((collider) => collider.sourceId);
+
+    expect(
+      build.colliders.filter((collider) => collider.category === 'storage')
+    ).toHaveLength(storageDefinitions.length);
+    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    storageDefinitions.forEach((definition) => {
+      const collider = build.colliders.find(
+        (item) => item.furnishingId === definition.id
+      );
+      const group = build.group.children.find(
+        (child) => child.name === `Furnishing:${definition.id}`
+      );
+
+      expect(collider?.sourceId).toBe(
+        `ground.furnishings.storage.${definition.id}.generated_collider`
+      );
+      expect(group).toBeDefined();
+      expect(group!.children[0].children.length).toBeGreaterThan(1);
+    });
   });
 
   it('creates positive-area AABBs for every solid furnishing', () => {
