@@ -76,7 +76,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(24);
+    expect(build.colliders).toHaveLength(28);
     expect(build.decorativeFootprints).toHaveLength(2);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -85,6 +85,10 @@ describe('lower floor furnishings foundation', () => {
       'living-room-lounge-chair-north',
       'living-room-lounge-chair-east',
       'living-room-floor-lamp',
+      'living-room-large-plant',
+      'living-room-plant-stool',
+      'kitchen-herb-planter',
+      'kitchen-pendant-lights',
       'kitchen-west-counter-run',
       'kitchen-fridge',
       'kitchen-sink-cabinet',
@@ -99,6 +103,8 @@ describe('lower floor furnishings foundation', () => {
       'studio-north-bookcase-east',
       'studio-drafting-drawers',
       'studio-east-dresser',
+      'studio-floor-lamp',
+      'studio-monstera',
       'studio-daybed',
       'studio-nightstand-south',
       'studio-nightstand-north',
@@ -192,6 +198,119 @@ describe('lower floor furnishings foundation', () => {
       });
       LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
         expect(rectanglesOverlap(storage, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('adds plants, lamps, and non-blocking decor with requested AABBs', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const expectedDecorBounds: Record<string, RectCollider> = {
+      'living-room-large-plant': {
+        minX: -28.95,
+        maxX: -28.25,
+        minZ: -26.55,
+        maxZ: -25.85,
+      },
+      'living-room-plant-stool': {
+        minX: 5.3,
+        maxX: 6.3,
+        minZ: -31.3,
+        maxZ: -30.3,
+      },
+      'studio-floor-lamp': {
+        minX: 24.125,
+        maxX: 24.675,
+        minZ: 13.825,
+        maxZ: 14.375,
+      },
+      'studio-monstera': {
+        minX: 30.1,
+        maxX: 31.1,
+        minZ: -5.9,
+        maxZ: -4.9,
+      },
+    };
+
+    expect(
+      new Set(colliders.map(({ category }) => category)).has(
+        'plants-lighting-decor'
+      )
+    ).toBe(true);
+
+    Object.entries(expectedDecorBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'plants-lighting-decor',
+      });
+      expect(
+        matchingColliders[0].maxX - matchingColliders[0].minX
+      ).toBeGreaterThan(0);
+      expect(
+        matchingColliders[0].maxZ - matchingColliders[0].minZ
+      ).toBeGreaterThan(0);
+    });
+
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-herb-planter'
+      )
+    ).toBe(false);
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-pendant-lights'
+      )
+    ).toBe(false);
+    expect(
+      group.getObjectByName('Furnishing:kitchen-herb-planter')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName('Furnishing:kitchen-pendant-lights')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:kitchenHerbPlanterBox')
+    ).toBeDefined();
+    expect(group.getObjectByName('FurnishingPart:pendantShade0')).toBeDefined();
+  });
+
+  it('keeps plants and floor lamps within room bounds and collision exclusions', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const decorIds = new Set([
+      'living-room-large-plant',
+      'living-room-plant-stool',
+      'studio-floor-lamp',
+      'studio-monstera',
+    ]);
+    const decorColliders = colliders.filter((collider) =>
+      decorIds.has(collider.furnishingId)
+    );
+    const priorPassColliders = colliders.filter(
+      (collider) =>
+        !decorIds.has(collider.furnishingId) &&
+        [
+          'living-room-seating',
+          'kitchenette',
+          'storage',
+          'sleeping-nook',
+          'plants-lighting-decor',
+        ].includes(collider.category)
+    );
+
+    decorColliders.forEach((decor, index) => {
+      expect(isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[decor.roomId], decor)).toBe(
+        true
+      );
+      decorColliders.slice(index + 1).forEach((otherDecor) => {
+        expect(rectanglesOverlap(decor, otherDecor)).toBe(false);
+      });
+      priorPassColliders.forEach((other) => {
+        expect(rectanglesOverlap(decor, other)).toBe(false);
+      });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(decor, blocker)).toBe(false);
       });
     });
   });

@@ -182,6 +182,47 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
     },
 
     {
+      id: 'living-room-large-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: -28.6, z: -26.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -28.95, maxX: -28.25, minZ: -26.55, maxZ: -25.85 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x5f8f48, height: 1.65 },
+    },
+    {
+      id: 'living-room-plant-stool',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: 5.8, z: -30.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.0, depth: 1.0 },
+      solidBounds: { minX: 5.3, maxX: 6.3, minZ: -31.3, maxZ: -30.3 },
+      kind: 'plant-stool',
+      visual: { color: 0x6a4a32, accentColor: 0x6e9b58, height: 1.05 },
+    },
+    {
+      id: 'kitchen-herb-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'kitchen',
+      position: { x: -30.4, z: 9.2 },
+      orientationRadians: 0,
+      kind: 'herb-planter-detail',
+      visual: { color: 0xb7834f, accentColor: 0x6f9f5d, height: 1.0 },
+    },
+    {
+      id: 'kitchen-pendant-lights',
+      category: 'plants-lighting-decor',
+      roomId: 'kitchen',
+      position: { x: -13.0, z: 10.9 },
+      orientationRadians: 0,
+      kind: 'pendant-lights-detail',
+      visual: { color: 0x2f3740, accentColor: 0xffd48a, height: 2.45 },
+    },
+
+    {
       id: 'kitchen-west-counter-run',
       category: 'kitchenette',
       roomId: 'kitchen',
@@ -350,6 +391,30 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       kind: 'storage-east-dresser',
       visual: { color: 0x4d3a2b, accentColor: 0xb8c0c8, height: 1.05 },
     },
+
+    {
+      id: 'studio-floor-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'studio',
+      position: { x: 24.4, z: 14.1 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      solidBounds: { minX: 24.125, maxX: 24.675, minZ: 13.825, maxZ: 14.375 },
+      kind: 'floor-lamp',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.75 },
+    },
+    {
+      id: 'studio-monstera',
+      category: 'plants-lighting-decor',
+      roomId: 'studio',
+      position: { x: 30.6, z: -5.4 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.0, depth: 1.0 },
+      solidBounds: { minX: 30.1, maxX: 31.1, minZ: -5.9, maxZ: -4.9 },
+      kind: 'monstera-plant',
+      visual: { color: 0x7a5134, accentColor: 0x4f8f4f, height: 1.55 },
+    },
+
     {
       id: 'studio-daybed',
       category: 'sleeping-nook',
@@ -592,6 +657,10 @@ export function createLowerFloorFurnishings(
       });
     }
 
+    if (!definition.solidFootprint && !definition.decorativeFootprint) {
+      furnishing.add(createVisualDetailPrimitive(definition));
+    }
+
     group.add(furnishing);
   });
 
@@ -606,6 +675,11 @@ function createSolidPrimitive(
   if (definition.kind === 'side-table') return createSideTable(definition);
   if (definition.kind === 'lounge-chair') return createLoungeChair(definition);
   if (definition.kind === 'floor-lamp') return createFloorLamp(definition);
+  if (definition.kind === 'large-potted-plant')
+    return createLargePottedPlant(definition);
+  if (definition.kind === 'plant-stool') return createPlantStool(definition);
+  if (definition.kind === 'monstera-plant')
+    return createMonsteraPlant(definition);
   if (definition.kind.startsWith('sleeping-'))
     return createSleepingNookFurnishing(definition);
   if (definition.kind.startsWith('kitchen-'))
@@ -783,6 +857,127 @@ function createLoungeChair(definition: LowerFloorFurnishingDefinition): Group {
     [0, 0.72, 0.4]
   );
   return group;
+}
+
+function createLargePottedPlant(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const group = new Group();
+  const potMaterial = createMaterial(definition.visual?.color ?? 0x8a5a36);
+  const leafMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x5f8f48
+  );
+  const trunkMaterial = createMaterial(0x5b3a24);
+  addBox(
+    group,
+    'plantPotBase',
+    { width: 0.46, height: 0.36, depth: 0.46 },
+    potMaterial,
+    [0, 0.18, 0]
+  );
+  addBox(
+    group,
+    'plantPotRim',
+    { width: 0.58, height: 0.08, depth: 0.58 },
+    potMaterial,
+    [0, 0.4, 0]
+  );
+  addBox(
+    group,
+    'plantTrunk',
+    { width: 0.1, height: 0.75, depth: 0.1 },
+    trunkMaterial,
+    [0, 0.8, 0]
+  );
+  addPlantLeaves(group, leafMaterial, 0.58, 1.1);
+  return group;
+}
+
+function createPlantStool(definition: LowerFloorFurnishingDefinition): Group {
+  const group = new Group();
+  const woodMaterial = createMaterial(definition.visual?.color ?? 0x6a4a32);
+  const potMaterial = createMaterial(0xb7834f);
+  const leafMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x6e9b58
+  );
+  addBox(
+    group,
+    'plantStoolSeat',
+    { width: 0.62, height: 0.12, depth: 0.62 },
+    woodMaterial,
+    [0, 0.48, 0]
+  );
+  [-0.22, 0.22].forEach((x, xIndex) => {
+    [-0.22, 0.22].forEach((z, zIndex) => {
+      addBox(
+        group,
+        `plantStoolLeg${xIndex}-${zIndex}`,
+        { width: 0.08, height: 0.48, depth: 0.08 },
+        woodMaterial,
+        [x, 0.24, z]
+      );
+    });
+  });
+  addBox(
+    group,
+    'stoolPlantPot',
+    { width: 0.38, height: 0.28, depth: 0.38 },
+    potMaterial,
+    [0, 0.68, 0]
+  );
+  addPlantLeaves(group, leafMaterial, 0.34, 0.92);
+  return group;
+}
+
+function createMonsteraPlant(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const group = new Group();
+  const potMaterial = createMaterial(definition.visual?.color ?? 0x7a5134);
+  const leafMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x4f8f4f
+  );
+  addBox(
+    group,
+    'monsteraPot',
+    { width: 0.58, height: 0.42, depth: 0.58 },
+    potMaterial,
+    [0, 0.21, 0]
+  );
+  addBox(
+    group,
+    'monsteraPotRim',
+    { width: 0.7, height: 0.08, depth: 0.7 },
+    potMaterial,
+    [0, 0.46, 0]
+  );
+  addPlantLeaves(group, leafMaterial, 0.72, 1.05);
+  addPlantLeaves(group, leafMaterial, 0.56, 1.38);
+  return group;
+}
+
+function addPlantLeaves(
+  group: Group,
+  material: MeshStandardMaterial,
+  spread: number,
+  y: number
+): void {
+  const leafPositions: Array<[number, number, number]> = [
+    [0, y, 0],
+    [-spread * 0.35, y + 0.12, 0.08],
+    [spread * 0.35, y + 0.08, -0.08],
+    [0.08, y + 0.18, spread * 0.32],
+    [-0.06, y + 0.16, -spread * 0.32],
+  ];
+  leafPositions.forEach(([x, leafY, z], index) => {
+    addBox(
+      group,
+      `plantLeaf${index}`,
+      { width: spread, height: 0.08, depth: 0.24 },
+      material,
+      [x, leafY, z]
+    );
+  });
 }
 
 function createFloorLamp(definition: LowerFloorFurnishingDefinition): Group {
@@ -1404,6 +1599,77 @@ function addBox(
   mesh.name = `FurnishingPart:${name}`;
   mesh.position.set(...position);
   group.add(mesh);
+}
+
+function createVisualDetailPrimitive(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const group = new Group();
+  const baseMaterial = createMaterial(definition.visual?.color ?? 0x8a5a36);
+  const accentMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x6f9f5d,
+    {
+      emissive: definition.kind.includes('pendant')
+        ? (definition.visual?.accentColor ?? 0xffd48a)
+        : 0x000000,
+      emissiveIntensity: definition.kind.includes('pendant') ? 0.35 : 0,
+    }
+  );
+
+  if (definition.kind === 'herb-planter-detail') {
+    addBox(
+      group,
+      'kitchenHerbPlanterBox',
+      { width: 0.62, height: 0.18, depth: 0.28 },
+      baseMaterial,
+      [0, 0.98, 0]
+    );
+    [-0.2, 0, 0.2].forEach((x, index) => {
+      addBox(
+        group,
+        `kitchenHerbStem${index}`,
+        { width: 0.04, height: 0.3, depth: 0.04 },
+        accentMaterial,
+        [x, 1.22, 0]
+      );
+      addBox(
+        group,
+        `kitchenHerbLeaves${index}`,
+        { width: 0.18, height: 0.08, depth: 0.16 },
+        accentMaterial,
+        [x, 1.38, 0]
+      );
+    });
+    return group;
+  }
+
+  if (definition.kind === 'pendant-lights-detail') {
+    [-0.9, 0, 0.9].forEach((x, index) => {
+      addBox(
+        group,
+        `pendantCord${index}`,
+        { width: 0.035, height: 0.72, depth: 0.035 },
+        baseMaterial,
+        [x, 2.25, 0]
+      );
+      addBox(
+        group,
+        `pendantShade${index}`,
+        { width: 0.38, height: 0.24, depth: 0.38 },
+        accentMaterial,
+        [x, 1.78, 0]
+      );
+      addBox(
+        group,
+        `pendantBulb${index}`,
+        { width: 0.16, height: 0.12, depth: 0.16 },
+        accentMaterial,
+        [x, 1.58, 0]
+      );
+    });
+  }
+
+  return group;
 }
 
 function createDecorativePrimitive(
