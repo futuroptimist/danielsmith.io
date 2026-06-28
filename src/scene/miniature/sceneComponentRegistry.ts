@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 7,
+    syncRevision: 8,
     reason:
-      'Storage furnishings add lower-floor detail without tabletop proxy coverage; furnishing proxy work remains deferred until the full furnishing set lands.',
+      'Storage furnishing visuals stay source-only after shelf detail hardening; furnishing proxy work remains deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',

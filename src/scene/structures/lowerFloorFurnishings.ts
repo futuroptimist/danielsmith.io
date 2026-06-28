@@ -1003,6 +1003,7 @@ function createStorageFurnishing(
     if (definition.kind === 'storage-open-shelf') {
       addTinyPlant(
         group,
+        'openShelfTop',
         visualFootprint.width / 2 - 0.45,
         height + 0.16,
         frontZ + 0.05
@@ -1066,20 +1067,27 @@ function addBookRows(
   frontZ: number,
   materials: MeshStandardMaterial[]
 ): void {
-  const rowYs = [height * 0.28, height * 0.54, height * 0.78];
-  rowYs.forEach((y, rowIndex) => {
+  const rowCount = 3;
+  const verticalPadding = 0.14;
+  const availableHeight = Math.max(0.1, height - verticalPadding * 2);
+  const shelfHeight = availableHeight / rowCount;
+  const maxBookHeight = Math.max(0.08, shelfHeight - 0.08);
+
+  for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
+    const baselineY = verticalPadding + rowIndex * shelfHeight + 0.04;
     const startX = -width / 2 + 0.35;
     for (let index = 0; index < 12; index += 1) {
-      const bookHeight = 0.22 + ((index + rowIndex) % 4) * 0.055;
+      const preferredHeight = 0.22 + ((index + rowIndex) % 4) * 0.055;
+      const bookHeight = Math.min(preferredHeight, maxBookHeight);
       addBox(
         group,
         `book${rowIndex}-${index}`,
         { width: 0.12, height: bookHeight, depth: 0.12 },
         materials[(index + rowIndex) % materials.length],
-        [startX + index * 0.22, y + bookHeight / 2, frontZ - 0.01]
+        [startX + index * 0.22, baselineY + bookHeight / 2, frontZ - 0.01]
       );
     }
-  });
+  }
 }
 
 function addStorageBins(
@@ -1100,19 +1108,25 @@ function addStorageBins(
   });
 }
 
-function addTinyPlant(group: Group, x: number, y: number, z: number): void {
+function addTinyPlant(
+  group: Group,
+  suffix: string,
+  x: number,
+  y: number,
+  z: number
+): void {
   const potMaterial = createMaterial(0xc28d52);
   const leafMaterial = createMaterial(0x6e8f5f);
   addBox(
     group,
-    'tinyPlantPot',
+    `tinyPlantPot-${suffix}`,
     { width: 0.2, height: 0.16, depth: 0.2 },
     potMaterial,
     [x, y, z]
   );
   addBox(
     group,
-    'tinyPlantLeaves',
+    `tinyPlantLeaves-${suffix}`,
     { width: 0.28, height: 0.18, depth: 0.18 },
     leafMaterial,
     [x, y + 0.16, z]

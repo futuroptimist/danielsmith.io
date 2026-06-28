@@ -171,7 +171,7 @@ describe('lower floor furnishings foundation', () => {
     const storageColliders = colliders.filter(
       (collider) => collider.category === 'storage'
     );
-    const p2AndP3Colliders = colliders.filter((collider) =>
+    const seatingAndKitchenColliders = colliders.filter((collider) =>
       ['living-room-seating', 'kitchenette'].includes(collider.category)
     );
 
@@ -182,7 +182,7 @@ describe('lower floor furnishings foundation', () => {
       storageColliders.slice(index + 1).forEach((otherStorage) => {
         expect(rectanglesOverlap(storage, otherStorage)).toBe(false);
       });
-      p2AndP3Colliders.forEach((other) => {
+      seatingAndKitchenColliders.forEach((other) => {
         expect(rectanglesOverlap(storage, other)).toBe(false);
       });
       LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
