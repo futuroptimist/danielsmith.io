@@ -76,8 +76,8 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(20);
-    expect(build.decorativeFootprints).toHaveLength(1);
+    expect(build.colliders).toHaveLength(24);
+    expect(build.decorativeFootprints).toHaveLength(2);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
       'living-room-coffee-table',
@@ -99,6 +99,11 @@ describe('lower floor furnishings foundation', () => {
       'studio-north-bookcase-east',
       'studio-drafting-drawers',
       'studio-east-dresser',
+      'studio-daybed',
+      'studio-nightstand-south',
+      'studio-nightstand-north',
+      'studio-reading-chair',
+      'studio-bedside-rug',
       'living-room-media-rug',
     ]);
   });
@@ -243,6 +248,140 @@ describe('lower floor furnishings foundation', () => {
         )
       ).toHaveLength(1);
     });
+  });
+
+  it('adds the requested studio sleeping nook AABBs and non-blocking rug', () => {
+    const { colliders, decorativeFootprints, group } =
+      createLowerFloorFurnishings();
+    const expectedSleepingBounds: Record<string, RectCollider> = {
+      'studio-daybed': { minX: 25.7, maxX: 29.5, minZ: 9.6, maxZ: 11.6 },
+      'studio-nightstand-south': {
+        minX: 27.2,
+        maxX: 28.0,
+        minZ: 8.2,
+        maxZ: 9.0,
+      },
+      'studio-nightstand-north': {
+        minX: 27.2,
+        maxX: 28.0,
+        minZ: 12.2,
+        maxZ: 13.0,
+      },
+      'studio-reading-chair': {
+        minX: 21.5,
+        maxX: 22.9,
+        minZ: 11.9,
+        maxZ: 13.3,
+      },
+    };
+
+    Object.entries(expectedSleepingBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'sleeping-nook',
+        roomId: 'studio',
+      });
+    });
+
+    const rug = decorativeFootprints.find(
+      (footprint) => footprint.furnishingId === 'studio-bedside-rug'
+    );
+    expect(rug).toMatchObject({
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      bounds: { minX: 23.1, maxX: 27.9, minZ: 9.3, maxZ: 12.3 },
+      allowSolidOverlap: true,
+    });
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'studio-bedside-rug'
+      )
+    ).toBe(false);
+
+    [
+      'studio-daybed',
+      'studio-nightstand-south',
+      'studio-nightstand-north',
+      'studio-reading-chair',
+    ].forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+    });
+    expect(
+      group.getObjectByName('FurnishingPart:daybedHeadboardPanel')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName(
+        'FurnishingPart:studio-nightstand-south:nightstandBody'
+      )
+    ).toBeDefined();
+    expect(
+      group.getObjectByName(
+        'FurnishingPart:studio-nightstand-north:nightstandBody'
+      )
+    ).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:readingChairCushion')
+    ).toBeDefined();
+  });
+
+  it('keeps the rotated studio daybed visual aligned with its authored collider', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const epsilon = 0.000001;
+    const requestedDaybedBounds = {
+      minX: 25.7,
+      maxX: 29.5,
+      minZ: 9.6,
+      maxZ: 11.6,
+    };
+    const daybedDefinition = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+      ({ id }) => id === 'studio-daybed'
+    );
+    const daybedCollider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'studio-daybed'
+    );
+    const nightstandSouthCollider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'studio-nightstand-south'
+    );
+    const nightstandNorthCollider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'studio-nightstand-north'
+    );
+    const daybed = group.getObjectByName('Furnishing:studio-daybed');
+
+    expect(daybedDefinition?.orientationRadians).toBe(-Math.PI / 2);
+    expect(daybedDefinition?.solidBounds).toMatchObject(requestedDaybedBounds);
+    expect(daybedCollider).toMatchObject(requestedDaybedBounds);
+    expect(daybed).toBeDefined();
+    expect(nightstandSouthCollider).toBeDefined();
+    expect(nightstandNorthCollider).toBeDefined();
+
+    const visualBounds = new Box3().setFromObject(daybed!);
+
+    expect(visualBounds.min.x).toBeCloseTo(daybedCollider!.minX, 6);
+    expect(visualBounds.max.x).toBeCloseTo(daybedCollider!.maxX, 6);
+    expect(visualBounds.min.z).toBeCloseTo(daybedCollider!.minZ, 6);
+    expect(visualBounds.max.z).toBeCloseTo(daybedCollider!.maxZ, 6);
+    expect(Math.abs(visualBounds.min.x - daybedCollider!.minX)).toBeLessThan(
+      epsilon
+    );
+    expect(Math.abs(visualBounds.max.x - daybedCollider!.maxX)).toBeLessThan(
+      epsilon
+    );
+    expect(Math.abs(visualBounds.min.z - daybedCollider!.minZ)).toBeLessThan(
+      epsilon
+    );
+    expect(Math.abs(visualBounds.max.z - daybedCollider!.maxZ)).toBeLessThan(
+      epsilon
+    );
+    expect(visualBounds.min.z).toBeGreaterThanOrEqual(
+      nightstandSouthCollider!.maxZ
+    );
+    expect(visualBounds.max.z).toBeLessThanOrEqual(
+      nightstandNorthCollider!.minZ
+    );
   });
 
   it('uses the requested kitchen kitchenette and dining AABBs', () => {

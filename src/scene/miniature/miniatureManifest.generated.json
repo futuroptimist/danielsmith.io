@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 9,
-      "syncNote": "Storage furnishing visuals stay source-only after drawer-console foot detailing; furnishing proxy work remains deferred until the full furnishing set lands.",
-      "sourceFingerprint": "e5ebfa1c5e4f46611401b3038a62a5172dfda7bcbad2e5fa4b5f0f1aaa6ba04f",
+      "syncRevision": 11,
+      "syncNote": "Sleeping nook mesh names remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.",
+      "sourceFingerprint": "996ac2753ac18b07253866eda65eee556cbd7e579f132ae70e431b0553119cc3",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "bb47a8be819b22feb6afd01adb4ede16da982c286c71ea647a195d86a616823a"
+      "metadataFingerprint": "e2fd9544a6dbdce90993b407a449a233ecb002ae7ec826c2707614df5d63031d"
     },
     {
       "id": "environment:backyard",
