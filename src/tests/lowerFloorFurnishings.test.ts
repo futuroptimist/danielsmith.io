@@ -76,8 +76,8 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(20);
-    expect(build.decorativeFootprints).toHaveLength(1);
+    expect(build.colliders).toHaveLength(24);
+    expect(build.decorativeFootprints).toHaveLength(2);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
       'living-room-coffee-table',
@@ -99,6 +99,11 @@ describe('lower floor furnishings foundation', () => {
       'studio-north-bookcase-east',
       'studio-drafting-drawers',
       'studio-east-dresser',
+      'studio-daybed',
+      'studio-nightstand-south',
+      'studio-nightstand-north',
+      'studio-reading-chair',
+      'studio-bedside-rug',
       'living-room-media-rug',
     ]);
   });
@@ -243,6 +248,70 @@ describe('lower floor furnishings foundation', () => {
         )
       ).toHaveLength(1);
     });
+  });
+
+  it('adds the requested studio sleeping nook AABBs and non-blocking rug', () => {
+    const { colliders, decorativeFootprints, group } =
+      createLowerFloorFurnishings();
+    const expectedSleepingBounds: Record<string, RectCollider> = {
+      'studio-daybed': { minX: 25.7, maxX: 29.5, minZ: 9.6, maxZ: 11.6 },
+      'studio-nightstand-south': {
+        minX: 27.2,
+        maxX: 28.0,
+        minZ: 8.2,
+        maxZ: 9.0,
+      },
+      'studio-nightstand-north': {
+        minX: 27.2,
+        maxX: 28.0,
+        minZ: 12.2,
+        maxZ: 13.0,
+      },
+      'studio-reading-chair': {
+        minX: 21.5,
+        maxX: 22.9,
+        minZ: 11.9,
+        maxZ: 13.3,
+      },
+    };
+
+    Object.entries(expectedSleepingBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'sleeping-nook',
+        roomId: 'studio',
+      });
+    });
+
+    const rug = decorativeFootprints.find(
+      (footprint) => footprint.furnishingId === 'studio-bedside-rug'
+    );
+    expect(rug).toMatchObject({
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      bounds: { minX: 23.1, maxX: 27.9, minZ: 9.3, maxZ: 12.3 },
+      allowSolidOverlap: true,
+    });
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'studio-bedside-rug'
+      )
+    ).toBe(false);
+
+    [
+      'studio-daybed',
+      'studio-nightstand-south',
+      'studio-nightstand-north',
+    ].forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+    });
+    expect(
+      group.getObjectByName('FurnishingPart:readingChairCushion')
+    ).toBeDefined();
   });
 
   it('uses the requested kitchen kitchenette and dining AABBs', () => {
