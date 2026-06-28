@@ -71,6 +71,9 @@ describe('createSigmaWorkbench', () => {
 
     const pinCore = build.group.getObjectByName('SigmaWorkbenchPinCore');
     expect(pinCore).toBeInstanceOf(Mesh);
+    expect(
+      build.group.getObjectByName('SigmaPrintedEnclosureShell')
+    ).toBeInstanceOf(Mesh);
     expect(build.group.getObjectByName('SigmaPushToTalkButton')).toBeInstanceOf(
       Mesh
     );

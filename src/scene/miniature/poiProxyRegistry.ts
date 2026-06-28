@@ -402,9 +402,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Refreshes the upper-floor POI geometry with repository-specific physical details.',
+      'Adds the printed enclosure shell around the Sigma AI pin silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [

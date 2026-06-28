@@ -231,8 +231,8 @@ export function createF2ClipboardConsole(
   clipboardPivot.add(calloutGlow);
 
   const clipboardCalloutEntries: Array<{ title: string; detail: string }> = [
-    { title: 'Queue synced', detail: 'Codex diffs summarised' },
-    { title: 'Clipboard ready', detail: '3 incidents triaged' },
+    { title: 'Task pages', detail: 'Codex prompts staged' },
+    { title: 'Markdown ready', detail: 'PR notes copied' },
   ];
 
   clipboardCalloutEntries.forEach((entry, index) => {
@@ -574,14 +574,14 @@ function createConsoleScreenTexture(): CanvasTexture {
 
   context.font = '52px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#b7f3ff';
-  context.fillText('Incident digest pipeline', 70, 180);
+  context.fillText('Codex PR clipboard pipeline', 70, 180);
 
   context.font = '42px "Inter", "Segoe UI", sans-serif';
   context.fillStyle = '#8ad4ff';
   const bullets = [
-    'Tail logs → summarise in Markdown',
-    'Copy to clipboard in 3 seconds',
-    'Annotate follow-up actions automatically',
+    'Codex task pages → PR-ready notes',
+    'GitHub checks + logs → concise Markdown',
+    'Redact secrets before paste',
   ];
   bullets.forEach((line, index) => {
     const y = 260 + index * 80;
@@ -663,10 +663,10 @@ function createTickerTexture(): CanvasTexture {
   context.textBaseline = 'middle';
   context.textAlign = 'left';
   const messages = [
-    'Queue synced',
-    'Clipboard primed',
-    'Incident resolved',
-    'Codex summary ready',
+    'Task page copied',
+    'PR checks parsed',
+    'Secrets redacted',
+    'Markdown ready',
   ];
   const spacing = canvas.width / messages.length;
   messages.forEach((message, index) => {

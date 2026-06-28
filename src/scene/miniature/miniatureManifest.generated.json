@@ -524,7 +524,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "a4b7ec20ed601e304e3263fb5bf5517416cd2b4168d72ca99b606c2fa68f93cc",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "63f401237e2515f4289cdf4a9eabf90d17835ade28cbdf84afaa6f1d1abadd49"
     },
     {
@@ -544,7 +544,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "f7b1f1ff981a925d52760a724671676ec5f6aa70f0877d6c86151fcfefd8d6bc",
-      "proxyFingerprint": "b9decd66bb484cb21f7689a672a828ef1704b36851172c72659fef65ff5210ed",
+      "proxyFingerprint": "4a4ff9e8191dc7a2877a6e047f1069ce1f8459bc37a2fa3b129819d8cb9eb40f",
       "metadataFingerprint": "7ba0e258575aefd3e8590a2cbd714456f28a8cef0603059b339a5889a121a85a"
     },
     {
@@ -559,7 +559,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "fc279c5b2b65299859e87cfdef038f48cfdba1dac61fe0311a34522e700ea7c2",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "18df3400e4b42e5e5bc3f08020a44c78d4c00f4669abcb201698ad3c3d7c57da"
     },
     {
@@ -573,8 +573,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 7,
       "syncNote": "Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.",
-      "sourceFingerprint": "4882793d604f19a466664403fe46a72e84372bfcbb9df67ae49c33adb46e6ffa",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "sourceFingerprint": "d338953e130bb55599de8591f7c3c585f3deccf6ad1071e42092668115c1721b",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "203724c45bb66fbd270e45ab7a70e1dbafba3029e5c7564acd9d086d805da04e"
     },
     {
@@ -591,7 +591,7 @@
       "syncRevision": 26,
       "syncNote": "Acknowledges Flywheel debug-state snapshot hardening while preserving the final rotor, crank, static planetary gear cluster, output shaft key mark, base, bearings, energy port, and incoming/outgoing arc hints.",
       "sourceFingerprint": "06bb38b24c96fcb832e676e9159b0e4d718b7e9a664fb0c7e272e37bdd09b03b",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "85d2e4a060cf0896c4bfb81a2abf893cd8e579324bfd51282804b81016c6931a"
     },
     {
@@ -606,7 +606,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "fc41839553cb8d894adb1491561c765abff3b7e7daae6f9e090d64e23eec1567",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "c6a38e8f5c9009600682de8b5410a382c8e91c60cc27703076719b2577d50a37"
     },
     {
@@ -621,7 +621,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.",
       "sourceFingerprint": "5519bd57ed38839a83979ca24e37884834fd8fcef58414f43c2590aa395f445f",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "e211ac43acb6c5ba1c68752d59b2710f4f99ec7cfff4ebcd119ca5008e631fc3"
     },
     {
@@ -636,7 +636,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.",
       "sourceFingerprint": "23d44ccb3594b8a61cd8a971ac292ab08d66bd7eea213141e96b36f44224946f",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "088235cd162b79a0a99f9ce58f500e3d67358bb03db4d57b739e452775f4113a"
     },
     {
@@ -651,7 +651,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "1f63c8815cf2c5d8527a6c3dfff5e752b503da32e9383c959d526e2408600048",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "76917fdeea6dec76f13aaabf1477853a53a1f4b5cf6d7ad6f52cbf11d3a904ab"
     },
     {
@@ -686,7 +686,7 @@
       "syncRevision": 20,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "bd997161126bf1aaf8ff160e31bf7ec9dd6f3014e594b71d159710bb21d3a522",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "3f7c3d3a714c32731c7a190695983084dd1dcd5ba9fa4683271c7d82e691161c"
     },
     {
@@ -698,11 +698,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Refreshes the upper-floor POI geometry with repository-specific physical details.",
-      "sourceFingerprint": "dad7030bd71ed860ea5ade93780d44bf5f665e9dd3c04ee301a781910d0691c4",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
-      "metadataFingerprint": "7d67deba88fd2e1b1393f559c79f19f1e0d13f229cc5e47b92e598729b97ace4"
+      "syncRevision": 7,
+      "syncNote": "Adds the printed enclosure shell around the Sigma AI pin silhouette.",
+      "sourceFingerprint": "69151e3d9000e5e8d3c0dc2ea3b817ca6e5b008b44aa03cbe5e09026ced2f23f",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
+      "metadataFingerprint": "aa5a817cf4f5ca8f131522be446bec1762932a4c9d6bb42b4f537fa410bc7980"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -716,7 +716,7 @@
       "syncRevision": 4,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "355927cea33ea392a2a51989ae57feef1a4d07d9744279a50b75ad82534dd234",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "99b33d83ab99a3947c933042bb53e9fd6fde4fe434c907c9494a848aa1a6494b"
     },
     {
@@ -731,7 +731,7 @@
       "syncRevision": 4,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "1699b67c0db7d55fdbc27e8e45bdd2759c0e27551ac50c9df1d04f7c258bdfef",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "93f8bc5e9d12415379e8b85f87508473db89c7f4b7329fffd1d4c5a1afd22eb1"
     },
     {
@@ -746,7 +746,7 @@
       "syncRevision": 5,
       "syncNote": "Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.",
       "sourceFingerprint": "b5f79bc9137af44394bd859ab1224199c7eceb279d0437385238d93de7738f4f",
-      "proxyFingerprint": "3acf3e5924868b9b126c15254493e7d3bfbae096df5363268b87c6eb95751caa",
+      "proxyFingerprint": "d1762a098084885fbdbdf47310da5f5f110fd00de4ac6b3208da51dea472ccc0",
       "metadataFingerprint": "9e7ffd3304fc004d8edd7d936b328e96107bf1163e4ee2921c9fe459ad7d679e"
     },
     {

@@ -134,10 +134,10 @@ describe('createF2ClipboardConsole', () => {
 
     const capturedText = contexts.flatMap((ctx) => ctx.fillTextCalls);
     expect(capturedText).toContain('f2clipboard');
-    expect(capturedText).toContain('Incident digest pipeline');
-    expect(capturedText).toContain('Queue synced');
-    expect(capturedText).toContain('Codex diffs summarised');
-    expect(capturedText).toContain('3 incidents triaged');
+    expect(capturedText).toContain('Codex PR clipboard pipeline');
+    expect(capturedText).toContain('Task pages');
+    expect(capturedText).toContain('Codex prompts staged');
+    expect(capturedText).toContain('PR notes copied');
     expect(capturedText).toContain('PR URL');
     expect(capturedText).toContain('query + hash stripped');
     expect(capturedText).toContain('Failed CI log');

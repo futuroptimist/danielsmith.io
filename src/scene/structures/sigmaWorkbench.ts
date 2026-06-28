@@ -187,6 +187,21 @@ export function createSigmaWorkbench(
     roughness: 0.22,
     metalness: 0.38,
   });
+  const enclosureShellMaterial = new MeshStandardMaterial({
+    color: new Color(0x172033),
+    emissive: new Color(0x0f3f5c),
+    emissiveIntensity: 0.18,
+    roughness: 0.52,
+    metalness: 0.18,
+  });
+  const enclosureShell = new Mesh(
+    new BoxGeometry(0.38, 0.3, 0.06),
+    enclosureShellMaterial
+  );
+  enclosureShell.name = 'SigmaPrintedEnclosureShell';
+  enclosureShell.position.set(0, pinBase.position.y + 0.18, -0.15);
+  group.add(enclosureShell);
+
   const pinCore = new Mesh(
     new CylinderGeometry(0.12, 0.12, 0.24, 32),
     pinCoreMaterial
