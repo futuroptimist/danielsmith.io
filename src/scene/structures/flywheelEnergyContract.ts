@@ -32,6 +32,12 @@ export const FLYWHEEL_WHEEL_OUTER_RADIUS =
   FLYWHEEL_WHEEL.radius + FLYWHEEL_WHEEL.rimTube;
 export const FLYWHEEL_MARKER_MIN_HEIGHT = 2.75;
 export const FLYWHEEL_SPIN_RAD_PER_SECOND = 0.92;
+export const FLYWHEEL_GEAR_RATIO = {
+  crankToSun: 1,
+  sunToPlanetSpin: -2,
+  sunToCarrier: 0.25,
+  carrierToFlywheel: 1,
+} as const;
 export const FLYWHEEL_EMPHASIS_SPEED_BOOST = 0.18;
 export const FLYWHEEL_AVATAR_PATH_RADIUS = 1.15;
 export const FLYWHEEL_BASE_COLLIDER = { width: 2.25, depth: 1.35 } as const;

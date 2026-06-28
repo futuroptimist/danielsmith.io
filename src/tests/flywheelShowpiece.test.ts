@@ -19,26 +19,6 @@ import {
 
 const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
 
-const deletedGearNames = [
-  'FlywheelPlanetaryGearbox',
-  'FlywheelRingGear',
-  'FlywheelSunGear',
-  'FlywheelSunGearGroup',
-  'FlywheelPlanetCarrier',
-  'FlywheelCrankGroup',
-  'FlywheelCrankDisc',
-  'FlywheelCrankArm',
-  'FlywheelCrankHandle',
-  'FlywheelGearboxPedestal',
-  'FlywheelOutputShaft',
-  'FlywheelGearboxOutputCoupler',
-  'FlywheelFlywheelHubCoupler',
-  'FlywheelTorqueShaft',
-  'FlywheelTorqueShaftBody',
-  'FlywheelTorqueShaftSpinGroup',
-  'FlywheelTorqueShaftSpinStripe',
-];
-
 describe('createFlywheelShowpiece', () => {
   it('anchors a bottom-centered unit-scale root at the POI position', () => {
     const build = createFlywheelShowpiece({
@@ -53,7 +33,7 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
-  it('builds the restored wheel body and removes gear/crank assembly objects', () => {
+  it('builds the restored wheel body with crank and planetary gear assembly', () => {
     const build = createFlywheelShowpiece({
       position: { x: 0, z: 0 },
       roomBounds,
@@ -71,12 +51,6 @@ describe('createFlywheelShowpiece', () => {
     ]) {
       expect(build.group.getObjectByName(name)).toBeInstanceOf(Object3D);
     }
-    for (const name of deletedGearNames) {
-      expect(build.group.getObjectByName(name)).toBeUndefined();
-    }
-    build.group.traverse((object) => {
-      expect(object.name).not.toMatch(/Gear|Crank|Tooth|TorqueShaft|Coupler/);
-    });
     build.dispose();
   });
 
@@ -105,6 +79,43 @@ describe('createFlywheelShowpiece', () => {
       FLYWHEEL_SPIN_RAD_PER_SECOND
     );
     expect(after.distanceTo(before)).toBeGreaterThan(0.1);
+    build.dispose();
+  });
+
+  it('keeps crank, sun gear, planets, carrier, and flywheel synchronized', () => {
+    const build = createFlywheelShowpiece({
+      position: { x: 0, z: 0 },
+      roomBounds,
+    });
+    build.update({
+      elapsed: 1,
+      delta: 1,
+      emphasis: 0,
+      runDecorativeEffects: false,
+    });
+    const energy = build.getDebugState().energy;
+    expect(energy.sunGearAngle).toBeCloseTo(energy.crankAngle);
+    expect(energy.carrierAngle).toBeCloseTo(energy.sunGearAngle * 0.25);
+    expect(energy.planetOrbitAngle).toBeCloseTo(energy.carrierAngle);
+    expect(energy.planetSpinAngle).toBeCloseTo(energy.sunGearAngle * -2);
+    expect(build.getDebugState().flywheelAngle).toBeCloseTo(
+      energy.carrierAngle
+    );
+    expect(
+      (build.group.getObjectByName('FlywheelCrankGroup') as Object3D).rotation.z
+    ).toBeCloseTo(energy.crankAngle);
+    expect(
+      (build.group.getObjectByName('FlywheelSunGearGroup') as Object3D).rotation
+        .z
+    ).toBeCloseTo(energy.sunGearAngle);
+    expect(
+      (build.group.getObjectByName('FlywheelPlanetCarrier') as Object3D)
+        .rotation.z
+    ).toBeCloseTo(energy.carrierAngle);
+    expect(
+      (build.group.getObjectByName('FlywheelPlanetGear-0') as Object3D).rotation
+        .z
+    ).toBeCloseTo(energy.planetSpinAngle);
     build.dispose();
   });
 
@@ -409,15 +420,11 @@ describe('createFlywheelShowpiece', () => {
         'flywheel-heavy-wheel',
         'flywheel-spoke',
         'flywheel-motion-tick',
+        'flywheel-crank-arm',
+        'flywheel-planetary-gear-cluster',
         'flywheel-energy-port',
         'flywheel-incoming-arc-hint',
         'flywheel-outgoing-arc-hint',
-      ])
-    );
-    expect(names).not.toEqual(
-      expect.arrayContaining([
-        'flywheel-crank-arm',
-        'flywheel-planetary-gear-cluster',
       ])
     );
   });
