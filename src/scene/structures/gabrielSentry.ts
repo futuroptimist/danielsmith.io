@@ -7,6 +7,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   PointLight,
+  PlaneGeometry,
   SphereGeometry,
   TorusGeometry,
   Vector3,
@@ -173,6 +174,58 @@ export function createGabrielSentry(
   shield.position.set(0, 0.32, 0);
   core.add(shield);
 
+  const haloMaterial = new MeshStandardMaterial({
+    color: new Color(0xfff0a6),
+    emissive: new Color(0xffc94d),
+    emissiveIntensity: 0.7,
+    roughness: 0.24,
+    metalness: 0.5,
+  });
+  const halo = new Mesh(new TorusGeometry(0.38, 0.035, 12, 48), haloMaterial);
+  halo.name = 'GabrielSentryGuardianHalo';
+  halo.rotation.x = Math.PI / 2;
+  halo.position.y = 0.72;
+  headGroup.add(halo);
+
+  const wingMaterial = new MeshStandardMaterial({
+    color: new Color(0xd9ecff),
+    emissive: new Color(0x5aa8ff),
+    emissiveIntensity: 0.2,
+    roughness: 0.4,
+    metalness: 0.08,
+    transparent: true,
+    opacity: 0.78,
+  });
+  const wingGeometry = new PlaneGeometry(0.58, 0.9);
+  const leftWing = new Mesh(wingGeometry, wingMaterial);
+  leftWing.name = 'GabrielSentryLeftGuardianWing';
+  leftWing.position.set(-0.54, core.position.y + 0.22, 0.08);
+  leftWing.rotation.set(0.18, -0.4, 0.48);
+  group.add(leftWing);
+
+  const rightWing = new Mesh(wingGeometry, wingMaterial.clone());
+  rightWing.name = 'GabrielSentryRightGuardianWing';
+  rightWing.position.set(0.54, core.position.y + 0.22, 0.08);
+  rightWing.rotation.set(0.18, 0.4, -0.48);
+  group.add(rightWing);
+
+  const privacyPaneMaterial = new MeshStandardMaterial({
+    color: new Color(0x5fb7ff),
+    emissive: new Color(0x2b82ff),
+    emissiveIntensity: 0.36,
+    roughness: 0.18,
+    metalness: 0.12,
+    transparent: true,
+    opacity: 0.34,
+  });
+  const privacyPane = new Mesh(
+    new BoxGeometry(1.22, 0.78, 0.04),
+    privacyPaneMaterial
+  );
+  privacyPane.name = 'GabrielSentryPrivacyShieldPane';
+  privacyPane.position.set(0, core.position.y + 0.04, -0.56);
+  group.add(privacyPane);
+
   const update = ({
     elapsed,
     emphasis,
@@ -200,6 +253,13 @@ export function createGabrielSentry(
       emphasis + pulse * 0.6
     );
     ringMaterial.emissiveIntensity = MathUtils.lerp(0.35, 0.85, emphasis);
+    haloMaterial.emissiveIntensity = MathUtils.lerp(0.7, 1.35, emphasis);
+    wingMaterial.emissiveIntensity = MathUtils.lerp(0.2, 0.72, emphasis);
+    (rightWing.material as MeshStandardMaterial).emissiveIntensity =
+      wingMaterial.emissiveIntensity;
+    privacyPaneMaterial.opacity = MathUtils.lerp(0.34, 0.62, emphasis);
+    leftWing.rotation.z = 0.48 + Math.sin(elapsed * 1.6) * 0.05 * emphasis;
+    rightWing.rotation.z = -0.48 - Math.sin(elapsed * 1.6) * 0.05 * emphasis;
   };
 
   const colliderCenter = new Vector3(basePosition.x, 0, basePosition.z);

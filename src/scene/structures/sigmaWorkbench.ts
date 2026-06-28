@@ -195,6 +195,55 @@ export function createSigmaWorkbench(
   pinCore.position.set(0, pinBase.position.y + 0.19, 0);
   group.add(pinCore);
 
+  const enclosureMaterial = new MeshStandardMaterial({
+    color: new Color(0xf5f7fb),
+    roughness: 0.34,
+    metalness: 0.06,
+  });
+  const enclosure = new Mesh(
+    new BoxGeometry(0.46, 0.64, 0.12),
+    enclosureMaterial
+  );
+  enclosure.name = 'SigmaWorkbenchWearableEnclosure';
+  enclosure.position.set(0, workSurface.position.y + 0.38, 0.02);
+  enclosure.rotation.x = -Math.PI * 0.06;
+  group.add(enclosure);
+
+  const micMaterial = new MeshStandardMaterial({
+    color: new Color(0x111827),
+    roughness: 0.5,
+    metalness: 0.18,
+  });
+  for (let index = 0; index < 5; index += 1) {
+    const micHole = new Mesh(
+      new CylinderGeometry(0.018, 0.018, 0.012, 12),
+      micMaterial
+    );
+    micHole.name = `SigmaWorkbenchMicrophonePort-${index}`;
+    micHole.rotation.x = Math.PI / 2;
+    micHole.position.set(
+      (index - 2) * 0.07,
+      enclosure.position.y - 0.16,
+      enclosure.position.z - 0.07
+    );
+    group.add(micHole);
+  }
+
+  const lanyardMaterial = new MeshStandardMaterial({
+    color: new Color(0x243244),
+    roughness: 0.48,
+    metalness: 0.14,
+  });
+  const lanyard = new Mesh(
+    new TorusGeometry(0.28, 0.018, 12, 64),
+    lanyardMaterial
+  );
+  lanyard.name = 'SigmaWorkbenchWearableLanyardLoop';
+  lanyard.scale.set(0.72, 1, 0.18);
+  lanyard.rotation.x = Math.PI / 2;
+  lanyard.position.set(0, enclosure.position.y + 0.3, enclosure.position.z);
+  group.add(lanyard);
+
   const pinHaloMaterial = new MeshBasicMaterial({
     color: new Color(0x76fff8),
     transparent: true,
@@ -359,6 +408,7 @@ export function createSigmaWorkbench(
       targetPinIntensity,
       smoothing
     );
+    enclosure.rotation.z = Math.sin(elapsed * 1.5) * 0.025 * clampedEmphasis;
 
     pinHaloMaterial.opacity = MathUtils.lerp(
       pinHaloMaterial.opacity,
