@@ -151,19 +151,20 @@ describe('lower floor furnishings foundation', () => {
 
     expect(() =>
       validateLowerFloorFurnishingPlan([
-        ...validDefinitions,
+        validDefinitions[3],
         {
-          id: 'studio-bedspread-over-unrelated-cabinet',
-          category: 'plants-lighting-decor',
+          id: 'studio-storage-under-bed-rug',
+          category: 'storage',
           roomId: 'studio',
-          position: { x: 25, z: 11 },
+          position: { x: 24.45, z: 6 },
           orientationRadians: 0,
-          decorativeFootprint: { width: 2, depth: 1 },
-          kind: 'bedspread-shadow',
-          visual: { allowDecorativeOverlapWithSolid: true },
+          solidFootprint: { width: 0.2, depth: 1.2 },
+          kind: 'cabinet',
         },
       ])
-    ).toThrow(/decorative footprint overlaps studio-storage-foundation/);
+    ).toThrow(
+      /studio-bed-foundation decorative footprint overlaps studio-storage-under-bed-rug/
+    );
   });
 
   it('validates authoring IDs and decorative footprint area before building', () => {
