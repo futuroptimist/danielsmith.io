@@ -247,22 +247,21 @@ export function sampleFlywheelEnergyArc(
   source: FlywheelEnergyPoint,
   destination: FlywheelEnergyPoint,
   t: number,
-  lift = 1.35
+  lift = 1.35,
+  target?: FlywheelEnergyPoint
 ): FlywheelEnergyPoint {
   const phase = clamp01(t);
-  const mid = {
-    x: (source.x + destination.x) / 2,
-    y: Math.max(source.y, destination.y) + lift,
-    z: (source.z + destination.z) / 2,
-  };
+  const midX = (source.x + destination.x) / 2;
+  const midY = Math.max(source.y, destination.y) + lift;
+  const midZ = (source.z + destination.z) / 2;
   const a = (1 - phase) * (1 - phase);
   const b = 2 * (1 - phase) * phase;
   const c = phase * phase;
-  return {
-    x: a * source.x + b * mid.x + c * destination.x,
-    y: a * source.y + b * mid.y + c * destination.y,
-    z: a * source.z + b * mid.z + c * destination.z,
-  };
+  const point = target ?? { x: 0, y: 0, z: 0 };
+  point.x = a * source.x + b * midX + c * destination.x;
+  point.y = a * source.y + b * midY + c * destination.y;
+  point.z = a * source.z + b * midZ + c * destination.z;
+  return point;
 }
 
 function cloneTarget(target: FlywheelEnergyTarget): FlywheelEnergyTarget {

@@ -35,3 +35,8 @@ export const FLYWHEEL_SPIN_RAD_PER_SECOND = 0.92;
 export const FLYWHEEL_EMPHASIS_SPEED_BOOST = 0.18;
 export const FLYWHEEL_AVATAR_PATH_RADIUS = 1.15;
 export const FLYWHEEL_BASE_COLLIDER = { width: 2.25, depth: 1.35 } as const;
+
+export const FLYWHEEL_GEAR_RATIO = {
+  sunToCarrier: 4,
+  planetCounterSpin: 2,
+} as const;
