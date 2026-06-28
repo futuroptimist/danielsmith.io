@@ -328,6 +328,62 @@ describe('lower floor furnishings foundation', () => {
     ).toBeDefined();
   });
 
+  it('keeps the rotated studio daybed visual aligned with its authored collider', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const epsilon = 0.000001;
+    const requestedDaybedBounds = {
+      minX: 25.7,
+      maxX: 29.5,
+      minZ: 9.6,
+      maxZ: 11.6,
+    };
+    const daybedDefinition = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+      ({ id }) => id === 'studio-daybed'
+    );
+    const daybedCollider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'studio-daybed'
+    );
+    const nightstandSouthCollider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'studio-nightstand-south'
+    );
+    const nightstandNorthCollider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'studio-nightstand-north'
+    );
+    const daybed = group.getObjectByName('Furnishing:studio-daybed');
+
+    expect(daybedDefinition?.orientationRadians).toBe(-Math.PI / 2);
+    expect(daybedDefinition?.solidBounds).toMatchObject(requestedDaybedBounds);
+    expect(daybedCollider).toMatchObject(requestedDaybedBounds);
+    expect(daybed).toBeDefined();
+    expect(nightstandSouthCollider).toBeDefined();
+    expect(nightstandNorthCollider).toBeDefined();
+
+    const visualBounds = new Box3().setFromObject(daybed!);
+
+    expect(visualBounds.min.x).toBeCloseTo(daybedCollider!.minX, 6);
+    expect(visualBounds.max.x).toBeCloseTo(daybedCollider!.maxX, 6);
+    expect(visualBounds.min.z).toBeCloseTo(daybedCollider!.minZ, 6);
+    expect(visualBounds.max.z).toBeCloseTo(daybedCollider!.maxZ, 6);
+    expect(Math.abs(visualBounds.min.x - daybedCollider!.minX)).toBeLessThan(
+      epsilon
+    );
+    expect(Math.abs(visualBounds.max.x - daybedCollider!.maxX)).toBeLessThan(
+      epsilon
+    );
+    expect(Math.abs(visualBounds.min.z - daybedCollider!.minZ)).toBeLessThan(
+      epsilon
+    );
+    expect(Math.abs(visualBounds.max.z - daybedCollider!.maxZ)).toBeLessThan(
+      epsilon
+    );
+    expect(visualBounds.min.z).toBeGreaterThanOrEqual(
+      nightstandSouthCollider!.maxZ
+    );
+    expect(visualBounds.max.z).toBeLessThanOrEqual(
+      nightstandNorthCollider!.minZ
+    );
+  });
+
   it('uses the requested kitchen kitchenette and dining AABBs', () => {
     const { colliders } = createLowerFloorFurnishings();
     const expectedKitchenBounds: Record<string, RectCollider> = {
