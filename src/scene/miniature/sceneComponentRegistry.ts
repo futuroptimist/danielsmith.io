@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 1,
+    syncRevision: 4,
     reason:
-      'Lower-floor furnishing geometry is currently an empty authoring foundation; future populated furniture plans will need proxy coverage.',
+      'Living-room media seating orientation and layout were refined; tabletop proxy coverage can stay deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',
