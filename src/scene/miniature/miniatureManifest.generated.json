@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 12,
-      "syncNote": "Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.",
-      "sourceFingerprint": "86c76da16b6874fe017946e7674017fa56d4ecec50bc6ba7ab4bd999c3eead71",
+      "syncRevision": 13,
+      "syncNote": "Review feedback tightened validation and mesh naming without adding miniature proxies.",
+      "sourceFingerprint": "5df5d198774eda1c657978400b32832f31ee6e3c011bae787f0b761f170add3a",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ca00a44903f70c588bc7a4b265fe1872b176e90f549536e52f623ce95ed4b4ec"
+      "metadataFingerprint": "66a90d85c5dabdcc456d60f2074f602e47c2587051c3b8bf1f2c0ef4c84841cd"
     },
     {
       "id": "environment:backyard",

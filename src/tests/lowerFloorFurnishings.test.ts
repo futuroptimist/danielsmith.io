@@ -274,6 +274,67 @@ describe('lower floor furnishings foundation', () => {
       group.getObjectByName('FurnishingPart:kitchenHerbPlanterBox')
     ).toBeDefined();
     expect(group.getObjectByName('FurnishingPart:pendantShade0')).toBeDefined();
+
+    const herbPlanter = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+      (definition) => definition.id === 'kitchen-herb-planter'
+    );
+    const kitchenCounter = colliders.find(
+      (collider) => collider.furnishingId === 'kitchen-west-counter-run'
+    );
+    expect(herbPlanter?.position).toMatchObject({ x: -31, z: 7.9 });
+    expect(kitchenCounter).toBeDefined();
+    expect(herbPlanter!.position.x).toBeGreaterThan(kitchenCounter!.minX);
+    expect(herbPlanter!.position.x).toBeLessThan(kitchenCounter!.maxX);
+    expect(herbPlanter!.position.z).toBeGreaterThan(kitchenCounter!.minZ);
+    expect(herbPlanter!.position.z).toBeLessThan(kitchenCounter!.maxZ);
+  });
+
+  it('uses unique leaf mesh names across stacked monstera leaves', () => {
+    const { group } = createLowerFloorFurnishings();
+    const monstera = group.getObjectByName('Furnishing:studio-monstera');
+    const leafNames: string[] = [];
+
+    monstera?.traverse((object) => {
+      if (object.name.startsWith('FurnishingPart:plantLeaf')) {
+        leafNames.push(object.name);
+      }
+    });
+
+    expect(leafNames).toHaveLength(10);
+    expect(new Set(leafNames)).toHaveLength(10);
+    expect(leafNames).toContain('FurnishingPart:plantLeaflower0');
+    expect(leafNames).toContain('FurnishingPart:plantLeafupper0');
+  });
+
+  it('validates visual-only details before building visible geometry', () => {
+    const baseVisualDetail: LowerFloorFurnishingDefinition = {
+      id: 'kitchen-window-herb-detail',
+      category: 'plants-lighting-decor',
+      roomId: 'kitchen',
+      position: { x: -31, z: 7.9 },
+      orientationRadians: 0,
+      kind: 'herb-planter-detail',
+    };
+
+    expect(() =>
+      validateLowerFloorFurnishingPlan([
+        {
+          ...baseVisualDetail,
+          position: { x: -33, z: 7.9 },
+        },
+      ])
+    ).toThrow(/visual detail position is outside kitchen/);
+
+    expect(() =>
+      createLowerFloorFurnishings({
+        definitions: [
+          {
+            ...baseVisualDetail,
+            kind: 'herb-planter-detial',
+          },
+        ],
+      })
+    ).toThrow(/Unsupported visual-only furnishing kind: herb-planter-detial/);
   });
 
   it('keeps plants and floor lamps within room bounds and collision exclusions', () => {

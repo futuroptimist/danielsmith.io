@@ -207,7 +207,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       id: 'kitchen-herb-planter',
       category: 'plants-lighting-decor',
       roomId: 'kitchen',
-      position: { x: -30.4, z: 9.2 },
+      position: { x: -31.0, z: 7.9 },
       orientationRadians: 0,
       kind: 'herb-planter-detail',
       visual: { color: 0xb7834f, accentColor: 0x6f9f5d, height: 1.0 },
@@ -519,6 +519,19 @@ export function rectanglesOverlap(
   );
 }
 
+function containsPoint(
+  bounds: RectCollider,
+  point: { x: number; z: number },
+  tolerance = 0
+): boolean {
+  return (
+    point.x >= bounds.minX - tolerance &&
+    point.x <= bounds.maxX + tolerance &&
+    point.z >= bounds.minZ - tolerance &&
+    point.z <= bounds.maxZ + tolerance
+  );
+}
+
 export function validateLowerFloorFurnishingPlan(
   definitions: readonly LowerFloorFurnishingDefinition[],
   options: LowerFloorFurnishingValidationOptions = {}
@@ -570,6 +583,21 @@ export function validateLowerFloorFurnishingPlan(
         );
       }
     });
+  });
+
+  definitions.forEach((definition) => {
+    if (definition.solidFootprint || definition.decorativeFootprint) return;
+    if (
+      !containsPoint(
+        roomBounds[definition.roomId],
+        definition.position,
+        tolerance
+      )
+    ) {
+      throw new Error(
+        `${definition.id} visual detail position is outside ${definition.roomId}.`
+      );
+    }
   });
 
   definitions.forEach((definition) => {
@@ -951,8 +979,8 @@ function createMonsteraPlant(
     potMaterial,
     [0, 0.46, 0]
   );
-  addPlantLeaves(group, leafMaterial, 0.72, 1.05);
-  addPlantLeaves(group, leafMaterial, 0.56, 1.38);
+  addPlantLeaves(group, leafMaterial, 0.72, 1.05, 'lower');
+  addPlantLeaves(group, leafMaterial, 0.56, 1.38, 'upper');
   return group;
 }
 
@@ -960,7 +988,8 @@ function addPlantLeaves(
   group: Group,
   material: MeshStandardMaterial,
   spread: number,
-  y: number
+  y: number,
+  namePrefix = 'leaf'
 ): void {
   const leafPositions: Array<[number, number, number]> = [
     [0, y, 0],
@@ -972,7 +1001,7 @@ function addPlantLeaves(
   leafPositions.forEach(([x, leafY, z], index) => {
     addBox(
       group,
-      `plantLeaf${index}`,
+      `plantLeaf${namePrefix}${index}`,
       { width: spread, height: 0.08, depth: 0.24 },
       material,
       [x, leafY, z]
@@ -1667,9 +1696,12 @@ function createVisualDetailPrimitive(
         [x, 1.58, 0]
       );
     });
+    return group;
   }
 
-  return group;
+  throw new Error(
+    `Unsupported visual-only furnishing kind: ${definition.kind}.`
+  );
 }
 
 function createDecorativePrimitive(
