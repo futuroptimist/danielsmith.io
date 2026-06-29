@@ -235,7 +235,6 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
         color: 0x687282,
         accentColor: 0xd8ccb8,
         height: 0.9,
-        allowSolidOverlapWithIds: ['kitchen-stove-cabinet'],
       },
     },
     {
@@ -270,14 +269,11 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       roomId: 'kitchen',
       position: { x: -31.0, z: 7.0 },
       orientationRadians: Math.PI / 2,
-      solidFootprint: { width: 1.2, depth: 1.6 },
-      solidBounds: { minX: -31.6, maxX: -30.4, minZ: 6.2, maxZ: 7.8 },
       kind: 'kitchen-stove-cabinet',
       visual: {
         color: 0x5e6672,
         accentColor: 0x1d232b,
         height: 0.95,
-        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
       },
     },
     {
@@ -2065,6 +2061,10 @@ function createVisualDetailPrimitive(
       );
     });
     return group;
+  }
+
+  if (definition.kind === 'kitchen-stove-cabinet') {
+    return createKitchenFurnishing(definition);
   }
 
   if (definition.kind === 'pendant-lights-detail') {

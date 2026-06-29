@@ -2,6 +2,10 @@ import { Box3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
+  createBackyardFenceColliders,
+  createBackyardFenceSegments,
+} from '../scene/level/backyardCollisionPolicies';
+import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
@@ -10,10 +14,6 @@ import {
   validateLowerFloorFurnishingPlan,
   type LowerFloorFurnishingDefinition,
 } from '../scene/structures/lowerFloorFurnishings';
-import {
-  createBackyardFenceColliders,
-  createBackyardFenceSegments,
-} from '../scene/level/backyardCollisionPolicies';
 import type { RectCollider } from '../systems/collision';
 
 const validDefinitions: LowerFloorFurnishingDefinition[] = [
@@ -80,7 +80,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(40);
+    expect(build.colliders).toHaveLength(39);
     expect(build.decorativeFootprints).toHaveLength(3);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -850,12 +850,6 @@ describe('lower floor furnishings foundation', () => {
         minZ: -2.9,
         maxZ: -1.1,
       },
-      'kitchen-stove-cabinet': {
-        minX: -31.6,
-        maxX: -30.4,
-        minZ: 6.2,
-        maxZ: 7.8,
-      },
       'kitchen-island': {
         minX: -15.4,
         maxX: -10.6,
@@ -895,7 +889,8 @@ describe('lower floor furnishings foundation', () => {
 
   it('keeps kitchen solidBounds aligned with authored centers and footprints', () => {
     const kitchenDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
-      (definition) => definition.category === 'kitchenette'
+      (definition) =>
+        definition.category === 'kitchenette' && definition.solidFootprint
     );
 
     kitchenDefinitions.forEach((definition) => {
@@ -904,6 +899,32 @@ describe('lower floor furnishings foundation', () => {
         deriveAabbFromCenterSize(definition)
       );
     });
+  });
+
+  it('keeps stove detail visual-only inside the west counter footprint', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const stoveDefinition = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+      (definition) => definition.id === 'kitchen-stove-cabinet'
+    );
+    const counter = colliders.find(
+      (collider) => collider.furnishingId === 'kitchen-west-counter-run'
+    );
+
+    expect(stoveDefinition?.solidFootprint).toBeUndefined();
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-stove-cabinet'
+      )
+    ).toBe(false);
+    expect(
+      group.getObjectByName('Furnishing:kitchen-stove-cabinet')
+    ).toBeDefined();
+    expect(group.getObjectByName('FurnishingPart:cooktop0-0')).toBeDefined();
+    expect(counter).toBeDefined();
+    expect(stoveDefinition!.position.x).toBeGreaterThan(counter!.minX);
+    expect(stoveDefinition!.position.x).toBeLessThan(counter!.maxX);
+    expect(stoveDefinition!.position.z).toBeGreaterThan(counter!.minZ);
+    expect(stoveDefinition!.position.z).toBeLessThan(counter!.maxZ);
   });
 
   it('keeps every kitchen collider inside the kitchen room bounds', () => {
@@ -933,22 +954,14 @@ describe('lower floor furnishings foundation', () => {
       });
   });
 
-  it('keeps kitchen solids disjoint except the authored stove counter integration', () => {
+  it('keeps kitchen solids disjoint after visual-only stove integration', () => {
     const { colliders } = createLowerFloorFurnishings();
     const kitchenColliders = colliders.filter(
       (collider) => collider.roomId === 'kitchen'
     );
-    const allowedOverlap = new Set([
-      'kitchen-stove-cabinet|kitchen-west-counter-run',
-      'kitchen-west-counter-run|kitchen-stove-cabinet',
-    ]);
-
     kitchenColliders.forEach((collider, index) => {
       kitchenColliders.slice(index + 1).forEach((other) => {
-        const pairKey = `${collider.furnishingId}|${other.furnishingId}`;
-        expect(rectanglesOverlap(collider, other)).toBe(
-          allowedOverlap.has(pairKey)
-        );
+        expect(rectanglesOverlap(collider, other)).toBe(false);
       });
     });
   });
@@ -1160,25 +1173,6 @@ describe('lower floor furnishings foundation', () => {
         expect(rectanglesOverlap(collider, blocker)).toBe(false);
       });
     });
-  });
-
-  it('requires solid overlap allowlists to be mutual', () => {
-    const oneSidedDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.map(
-      (definition) => {
-        if (definition.id !== 'kitchen-stove-cabinet') return definition;
-        return {
-          ...definition,
-          visual: {
-            ...definition.visual,
-            allowSolidOverlapWithIds: [],
-          },
-        };
-      }
-    );
-
-    expect(() => validateLowerFloorFurnishingPlan(oneSidedDefinitions)).toThrow(
-      /kitchen-west-counter-run overlaps kitchen-stove-cabinet/
-    );
   });
 
   it('allows decorative footprints to overlap associated solids only when explicit', () => {
