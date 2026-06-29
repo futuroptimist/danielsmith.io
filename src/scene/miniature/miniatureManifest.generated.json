@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 16,
-      "syncNote": "Backyard rotated-furnishing containment remains source-only while furniture proxy coverage is deferred.",
-      "sourceFingerprint": "3f6fde04e6fde403cf17736466f95891ff79fe2066181925f76913189440bd40",
+      "syncRevision": 17,
+      "syncNote": "Stove detail remains source-only because miniature furniture proxy coverage is deferred.",
+      "sourceFingerprint": "8bed2c4384b4ff980e7ed4fd13dacae967f085a25572b66d4b1904ee83627399",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "38f2e4ffdf791e5045d86a2f3214016e1b8a09a560357c6a1c8778b49c0732b6"
+      "metadataFingerprint": "6d2d2b2e6be5a583f5849b415077dcfa19080285e25df456cbe49258d508aac5"
     },
     {
       "id": "environment:backyard",
