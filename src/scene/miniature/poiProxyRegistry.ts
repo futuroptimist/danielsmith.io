@@ -69,7 +69,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
@@ -90,7 +90,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 26,
+    syncRevision: 27,
     syncNote:
       'Acknowledges Flywheel debug-state snapshot hardening while preserving the final rotor, crank, static planetary gear cluster, output shaft key mark, base, bearings, energy port, and incoming/outgoing arc hints.',
     sourceFiles: [
@@ -172,7 +172,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
@@ -193,7 +193,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
@@ -210,7 +210,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
@@ -306,7 +306,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [
@@ -348,7 +348,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
       'Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
@@ -364,7 +364,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
       'Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
@@ -379,7 +379,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
@@ -402,7 +402,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
       'Adds the printed enclosure shell around the Sigma AI pin silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
@@ -417,7 +417,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
       'Acknowledges review polish for shared animated materials and explicit socket shadows while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
@@ -433,7 +433,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
@@ -448,7 +448,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 20,
+    syncRevision: 21,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [
@@ -519,7 +519,7 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
       'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
     sourceFiles: [
