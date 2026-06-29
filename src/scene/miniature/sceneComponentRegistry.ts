@@ -83,9 +83,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 11,
+    syncRevision: 13,
+    syncNote:
+      'Review feedback tightened validation and mesh naming without adding miniature proxies.',
     reason:
-      'Sleeping nook mesh names remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
+      'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',
