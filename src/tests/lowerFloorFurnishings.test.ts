@@ -2,6 +2,10 @@ import { Box3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
+  createBackyardFenceColliders,
+  createBackyardFenceSegments,
+} from '../scene/level/backyardCollisionPolicies';
+import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
@@ -10,10 +14,6 @@ import {
   validateLowerFloorFurnishingPlan,
   type LowerFloorFurnishingDefinition,
 } from '../scene/structures/lowerFloorFurnishings';
-import {
-  createBackyardFenceColliders,
-  createBackyardFenceSegments,
-} from '../scene/level/backyardCollisionPolicies';
 import type { RectCollider } from '../systems/collision';
 
 const validDefinitions: LowerFloorFurnishingDefinition[] = [
@@ -80,7 +80,7 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(40);
+    expect(build.colliders).toHaveLength(38);
     expect(build.decorativeFootprints).toHaveLength(3);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
@@ -650,6 +650,9 @@ describe('lower floor furnishings foundation', () => {
       expect(collider.sourceId).toBe(
         `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
       );
+      expect(collider.sourceType).toBe('generatedCollider');
+      expect(collider.purpose).toBe('lower-floor-furnishing');
+      expect(collider.role).toBe(collider.category);
     });
   });
 
@@ -844,18 +847,6 @@ describe('lower floor furnishings foundation', () => {
         minZ: -6.35,
         maxZ: -4.85,
       },
-      'kitchen-sink-cabinet': {
-        minX: -31.6,
-        maxX: -30.4,
-        minZ: -2.9,
-        maxZ: -1.1,
-      },
-      'kitchen-stove-cabinet': {
-        minX: -31.6,
-        maxX: -30.4,
-        minZ: 6.2,
-        maxZ: 7.8,
-      },
       'kitchen-island': {
         minX: -15.4,
         maxX: -10.6,
@@ -891,6 +882,16 @@ describe('lower floor furnishings foundation', () => {
         roomId: 'kitchen',
       });
     });
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-sink-cabinet'
+      )
+    ).toBe(false);
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'kitchen-stove-cabinet'
+      )
+    ).toBe(false);
   });
 
   it('keeps kitchen solidBounds aligned with authored centers and footprints', () => {
@@ -899,6 +900,16 @@ describe('lower floor furnishings foundation', () => {
     );
 
     kitchenDefinitions.forEach((definition) => {
+      if (
+        ['kitchen-sink-cabinet', 'kitchen-stove-cabinet'].includes(
+          definition.id
+        )
+      ) {
+        expect(definition.solidFootprint).toBeUndefined();
+        expect(definition.solidBounds).toBeUndefined();
+        return;
+      }
+
       expect(definition.solidFootprint).toBeDefined();
       expect(definition.solidBounds).toMatchObject(
         deriveAabbFromCenterSize(definition)
@@ -1128,6 +1139,10 @@ describe('lower floor furnishings foundation', () => {
 
     expect(build.colliders).toHaveLength(solidCount);
     build.colliders.forEach((collider) => {
+      expect(Number.isFinite(collider.minX)).toBe(true);
+      expect(Number.isFinite(collider.maxX)).toBe(true);
+      expect(Number.isFinite(collider.minZ)).toBe(true);
+      expect(Number.isFinite(collider.maxZ)).toBe(true);
       expect(collider.maxX - collider.minX).toBeGreaterThan(0);
       expect(collider.maxZ - collider.minZ).toBeGreaterThan(0);
       expect(collider.sourceId).toBe(
@@ -1162,23 +1177,14 @@ describe('lower floor furnishings foundation', () => {
     });
   });
 
-  it('requires solid overlap allowlists to be mutual', () => {
-    const oneSidedDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.map(
-      (definition) => {
-        if (definition.id !== 'kitchen-stove-cabinet') return definition;
-        return {
-          ...definition,
-          visual: {
-            ...definition.visual,
-            allowSolidOverlapWithIds: [],
-          },
-        };
-      }
-    );
+  it('rejects any default solid-solid furnishing overlaps', () => {
+    const { colliders } = createLowerFloorFurnishings();
 
-    expect(() => validateLowerFloorFurnishingPlan(oneSidedDefinitions)).toThrow(
-      /kitchen-west-counter-run overlaps kitchen-stove-cabinet/
-    );
+    colliders.forEach((collider, index) => {
+      colliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+    });
   });
 
   it('allows decorative footprints to overlap associated solids only when explicit', () => {
