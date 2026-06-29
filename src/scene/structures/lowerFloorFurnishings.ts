@@ -270,14 +270,11 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       roomId: 'kitchen',
       position: { x: -31.0, z: 7.0 },
       orientationRadians: Math.PI / 2,
-      solidFootprint: { width: 1.2, depth: 1.6 },
-      solidBounds: { minX: -31.6, maxX: -30.4, minZ: 6.2, maxZ: 7.8 },
       kind: 'kitchen-stove-cabinet',
       visual: {
         color: 0x5e6672,
         accentColor: 0x1d232b,
         height: 0.95,
-        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
       },
     },
     {
@@ -2039,6 +2036,35 @@ function createVisualDetailPrimitive(
       emissiveIntensity: definition.kind.includes('pendant') ? 0.35 : 0,
     }
   );
+
+  if (definition.kind === 'kitchen-stove-cabinet') {
+    addBox(
+      group,
+      'kitchenStoveInsetPanel',
+      { width: 1.12, height: 0.08, depth: 1.42 },
+      baseMaterial,
+      [0, 0.98, 0]
+    );
+    [-0.26, 0.26].forEach((x, index) => {
+      [-0.32, 0.32].forEach((z, innerIndex) => {
+        addBox(
+          group,
+          `kitchenStoveCooktop${index}-${innerIndex}`,
+          { width: 0.22, height: 0.04, depth: 0.22 },
+          accentMaterial,
+          [x, 1.05, z]
+        );
+      });
+    });
+    addBox(
+      group,
+      'kitchenStoveHoodPanel',
+      { width: 1.18, height: 0.14, depth: 0.28 },
+      accentMaterial,
+      [0, 1.55, 0.55]
+    );
+    return group;
+  }
 
   if (definition.kind === 'herb-planter-detail') {
     addBox(
