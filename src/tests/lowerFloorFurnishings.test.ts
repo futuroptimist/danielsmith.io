@@ -9,10 +9,14 @@ import { isLevelSourceId } from '../scene/level/sourceIds';
 import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
+  UPPER_FLOOR_RESERVED_BLOCKERS,
+  UPPER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
   createLowerFloorFurnishings,
+  createUpperFloorFurnishings,
   rectanglesOverlap,
   validateLowerFloorFurnishingPlan,
+  validateUpperFloorFurnishingPlan,
   type LowerFloorFurnishingDefinition,
 } from '../scene/structures/lowerFloorFurnishings';
 import type { RectCollider } from '../systems/collision';
@@ -22,7 +26,7 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
     id: 'living-couch-foundation',
     category: 'living-room-seating',
     roomId: 'livingRoom',
-    position: { x: -2, z: -21 },
+    position: { x: 22, z: -18 },
     orientationRadians: 0,
     solidFootprint: { width: 5.2, depth: 1.4 },
     kind: 'couch',
@@ -454,7 +458,12 @@ describe('lower floor furnishings foundation', () => {
 
     storageColliders.forEach((storage, index) => {
       expect(
-        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[storage.roomId], storage)
+        isContainedBy(
+          LOWER_FLOOR_ROOM_BOUNDS[
+            storage.roomId as keyof typeof LOWER_FLOOR_ROOM_BOUNDS
+          ],
+          storage
+        )
       ).toBe(true);
       storageColliders.slice(index + 1).forEach((otherStorage) => {
         expect(rectanglesOverlap(storage, otherStorage)).toBe(false);
@@ -627,9 +636,14 @@ describe('lower floor furnishings foundation', () => {
     );
 
     decorColliders.forEach((decor, index) => {
-      expect(isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[decor.roomId], decor)).toBe(
-        true
-      );
+      expect(
+        isContainedBy(
+          LOWER_FLOOR_ROOM_BOUNDS[
+            decor.roomId as keyof typeof LOWER_FLOOR_ROOM_BOUNDS
+          ],
+          decor
+        )
+      ).toBe(true);
       decorColliders.slice(index + 1).forEach((otherDecor) => {
         expect(rectanglesOverlap(decor, otherDecor)).toBe(false);
       });
@@ -1153,7 +1167,10 @@ describe('lower floor furnishings foundation', () => {
     });
 
     colliders.forEach((collider) => {
-      const room = LOWER_FLOOR_ROOM_BOUNDS[collider.roomId];
+      const room =
+        LOWER_FLOOR_ROOM_BOUNDS[
+          collider.roomId as keyof typeof LOWER_FLOOR_ROOM_BOUNDS
+        ];
       expect(isContainedBy(room, collider)).toBe(true);
     });
   });
@@ -1179,7 +1196,7 @@ describe('lower floor furnishings foundation', () => {
         id: 'living-overlap-a',
         category: 'living-room-seating',
         roomId: 'livingRoom',
-        position: { x: -2, z: -21 },
+        position: { x: 22, z: -18 },
         orientationRadians: 0,
         solidFootprint: { width: 2, depth: 2 },
         kind: 'couch',
@@ -1189,7 +1206,7 @@ describe('lower floor furnishings foundation', () => {
         id: 'living-overlap-b',
         category: 'living-room-seating',
         roomId: 'livingRoom',
-        position: { x: -1.5, z: -21 },
+        position: { x: 22.5, z: -18 },
         orientationRadians: 0,
         solidFootprint: { width: 2, depth: 2 },
         kind: 'couch',
@@ -1293,3 +1310,137 @@ function isContainedBy(container: RectCollider, bounds: RectCollider): boolean {
     bounds.maxZ <= container.maxZ
   );
 }
+
+describe('upper floor furnishings foundation', () => {
+  const upperDefinitions: LowerFloorFurnishingDefinition[] = [
+    {
+      id: 'upper-landing-console-foundation',
+      category: 'storage',
+      roomId: 'upperLanding',
+      position: { x: 14, z: -26 },
+      orientationRadians: 0,
+      solidFootprint: { width: 2.2, depth: 0.8 },
+      kind: 'storage-drawer-console',
+    },
+    {
+      id: 'creators-studio-rug-foundation',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: -8, z: -12 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 4, depth: 3 },
+      kind: 'rug',
+    },
+  ];
+
+  it('builds an empty default upper furnishing group', () => {
+    const build = createUpperFloorFurnishings();
+
+    expect(build.group.name).toBe('UpperFloorFurnishings');
+    expect(build.colliders).toHaveLength(0);
+    expect(build.decorativeFootprints).toHaveLength(0);
+  });
+
+  it('defines valid upper room bounds', () => {
+    expect(UPPER_FLOOR_ROOM_BOUNDS).toEqual({
+      upperLanding: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+      creatorsStudio: { minX: -20, maxX: 4, minZ: -32, maxZ: 0 },
+      loftLibrary: { minX: 4, maxX: 24, minZ: -16, maxZ: 12 },
+      focusPods: { minX: -20, maxX: 24, minZ: 12, maxZ: 28 },
+    });
+
+    Object.values(UPPER_FLOOR_ROOM_BOUNDS).forEach((bounds) => {
+      expect(bounds.maxX - bounds.minX).toBeGreaterThan(0);
+      expect(bounds.maxZ - bounds.minZ).toBeGreaterThan(0);
+    });
+  });
+
+  it('creates valid unique upper generated source IDs', () => {
+    const { colliders } = createUpperFloorFurnishings({
+      definitions: upperDefinitions,
+    });
+
+    const sourceIds = colliders.map((collider) => collider.sourceId);
+    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    colliders.forEach((collider) => {
+      expect(collider.sourceId).toBe(
+        `upper.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
+      );
+      expect(isLevelSourceId(collider.sourceId)).toBe(true);
+      expect(collider.debugName).toBe(
+        `UpperFloorFurnishingsCollider:${collider.furnishingId}`
+      );
+    });
+  });
+
+  it('keeps upper decorative footprints non-blocking', () => {
+    const { colliders, decorativeFootprints } = createUpperFloorFurnishings({
+      definitions: upperDefinitions,
+    });
+
+    expect(
+      colliders.some(({ furnishingId }) => furnishingId.includes('rug'))
+    ).toBe(false);
+    expect(decorativeFootprints).toHaveLength(1);
+    expect(decorativeFootprints[0]).toMatchObject({
+      furnishingId: 'creators-studio-rug-foundation',
+      roomId: 'creatorsStudio',
+      allowSolidOverlap: false,
+    });
+  });
+
+  it('rejects upper solid overlaps with reserved blockers', () => {
+    expect(UPPER_FLOOR_RESERVED_BLOCKERS.length).toBeGreaterThan(0);
+    expect(() =>
+      validateUpperFloorFurnishingPlan([
+        {
+          id: 'upper-poi-overlap-foundation',
+          category: 'storage',
+          roomId: 'focusPods',
+          position: { x: -0.6, z: 14 },
+          orientationRadians: 0,
+          solidFootprint: { width: 1, depth: 1 },
+          kind: 'storage-drawer-console',
+        },
+      ])
+    ).toThrow(/overlaps reserved blocker/);
+  });
+});
+
+const movedTokenPlaceReservedBlocker: RectCollider = {
+  minX: -0.6,
+  maxX: 4.2,
+  minZ: -23.2,
+  maxZ: -19.2,
+};
+
+const mediaSeatingClusterBounds: RectCollider = {
+  minX: -29.2,
+  maxX: -21.4,
+  minZ: -23.8,
+  maxZ: -15.2,
+};
+
+describe('token.place living-room reflow blocker', () => {
+  it('keeps token.place in the living room away from media seating', () => {
+    expect(LOWER_FLOOR_RESERVED_BLOCKERS).toContainEqual(
+      movedTokenPlaceReservedBlocker
+    );
+    expect(
+      rectanglesOverlap(
+        movedTokenPlaceReservedBlocker,
+        mediaSeatingClusterBounds
+      )
+    ).toBe(false);
+  });
+
+  it('does not overlap any current lower-floor solid furnishing collider', () => {
+    const { colliders } = createLowerFloorFurnishings();
+
+    colliders.forEach((collider) => {
+      expect(rectanglesOverlap(movedTokenPlaceReservedBlocker, collider)).toBe(
+        false
+      );
+    });
+  });
+});
