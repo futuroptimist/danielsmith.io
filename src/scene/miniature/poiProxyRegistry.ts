@@ -306,9 +306,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
-      'Acknowledges the Flywheel-specific performance pedestal registry update while preserving this proxy silhouette.',
+      'Acknowledges same-room living-room workstation reflow while preserving this proxy silhouette.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/tokenPlaceWorkstation.ts',

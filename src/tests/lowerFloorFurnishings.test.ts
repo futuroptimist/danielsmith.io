@@ -6,14 +6,21 @@ import {
   createBackyardFenceSegments,
 } from '../scene/level/backyardCollisionPolicies';
 import { isLevelSourceId } from '../scene/level/sourceIds';
+import { MANUAL_POI_PLACEMENTS } from '../scene/poi/placements';
 import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
+  UPPER_FLOOR_RESERVED_BLOCKERS,
+  UPPER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
   createLowerFloorFurnishings,
+  createUpperFloorFurnishings,
   rectanglesOverlap,
   validateLowerFloorFurnishingPlan,
+  validateUpperFloorFurnishingPlan,
   type LowerFloorFurnishingDefinition,
+  type LowerFloorRoomId,
+  type UpperFloorRoomId,
 } from '../scene/structures/lowerFloorFurnishings';
 import type { RectCollider } from '../systems/collision';
 
@@ -73,6 +80,45 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
     orientationRadians: 0,
     solidFootprint: { width: 2.2, depth: 2.2 },
     kind: 'plant-pot',
+  },
+];
+
+const upperDefinitions: LowerFloorFurnishingDefinition[] = [
+  {
+    id: 'upper-landing-console-foundation',
+    category: 'upper-landing',
+    roomId: 'upperLanding',
+    position: { x: 14, z: -28 },
+    orientationRadians: 0,
+    solidFootprint: { width: 3, depth: 1 },
+    kind: 'upper-console',
+  },
+  {
+    id: 'creators-studio-worktable-foundation',
+    category: 'creators-studio',
+    roomId: 'creatorsStudio',
+    position: { x: -8, z: -24 },
+    orientationRadians: Math.PI / 2,
+    solidFootprint: { width: 4, depth: 1.4 },
+    kind: 'upper-worktable',
+  },
+  {
+    id: 'loft-library-rug-foundation',
+    category: 'loft-library',
+    roomId: 'loftLibrary',
+    position: { x: 16, z: -4 },
+    orientationRadians: 0,
+    decorativeFootprint: { width: 5, depth: 3 },
+    kind: 'upper-rug',
+  },
+  {
+    id: 'focus-pods-plant-foundation',
+    category: 'plants-lighting-decor',
+    roomId: 'focusPods',
+    position: { x: 22, z: 26 },
+    orientationRadians: 0,
+    solidFootprint: { width: 0.8, depth: 0.8 },
+    kind: 'upper-potted-plant',
   },
 ];
 
@@ -454,7 +500,10 @@ describe('lower floor furnishings foundation', () => {
 
     storageColliders.forEach((storage, index) => {
       expect(
-        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[storage.roomId], storage)
+        isContainedBy(
+          LOWER_FLOOR_ROOM_BOUNDS[storage.roomId as LowerFloorRoomId],
+          storage
+        )
       ).toBe(true);
       storageColliders.slice(index + 1).forEach((otherStorage) => {
         expect(rectanglesOverlap(storage, otherStorage)).toBe(false);
@@ -627,9 +676,12 @@ describe('lower floor furnishings foundation', () => {
     );
 
     decorColliders.forEach((decor, index) => {
-      expect(isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[decor.roomId], decor)).toBe(
-        true
-      );
+      expect(
+        isContainedBy(
+          LOWER_FLOOR_ROOM_BOUNDS[decor.roomId as LowerFloorRoomId],
+          decor
+        )
+      ).toBe(true);
       decorColliders.slice(index + 1).forEach((otherDecor) => {
         expect(rectanglesOverlap(decor, otherDecor)).toBe(false);
       });
@@ -1153,7 +1205,7 @@ describe('lower floor furnishings foundation', () => {
     });
 
     colliders.forEach((collider) => {
-      const room = LOWER_FLOOR_ROOM_BOUNDS[collider.roomId];
+      const room = LOWER_FLOOR_ROOM_BOUNDS[collider.roomId as LowerFloorRoomId];
       expect(isContainedBy(room, collider)).toBe(true);
     });
   });
@@ -1264,6 +1316,142 @@ describe('lower floor furnishings foundation', () => {
         },
       ])
     ).toThrow(/empty decorative footprint/);
+  });
+});
+
+describe('upper floor furnishings foundation', () => {
+  it('builds an empty default upper furnishing group', () => {
+    const build = createUpperFloorFurnishings();
+
+    expect(build.group.name).toBe('UpperFloorFurnishings');
+    expect(build.colliders).toEqual([]);
+    expect(build.decorativeFootprints).toEqual([]);
+  });
+
+  it('defines valid upper room bounds for every supported upper room', () => {
+    expect(Object.keys(UPPER_FLOOR_ROOM_BOUNDS).sort()).toEqual([
+      'creatorsStudio',
+      'focusPods',
+      'loftLibrary',
+      'upperLanding',
+    ]);
+
+    Object.values(UPPER_FLOOR_ROOM_BOUNDS).forEach((bounds) => {
+      expect(bounds.maxX - bounds.minX).toBeGreaterThan(0);
+      expect(bounds.maxZ - bounds.minZ).toBeGreaterThan(0);
+    });
+  });
+
+  it('creates valid unique upper source IDs and upper-floor collider metadata', () => {
+    const { colliders, group } = createUpperFloorFurnishings({
+      definitions: upperDefinitions,
+    });
+    const sourceIds = new Set(colliders.map((collider) => collider.sourceId));
+
+    expect(group.children.map((child) => child.name)).toEqual(
+      upperDefinitions.map((definition) => `Furnishing:${definition.id}`)
+    );
+    expect(sourceIds.size).toBe(colliders.length);
+    colliders.forEach((collider) => {
+      expect(collider.floorId).toBe('upper');
+      expect(isLevelSourceId(collider.sourceId)).toBe(true);
+      expect(collider.sourceId).toBe(
+        `upper.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
+      );
+      expect(collider.debugName).toBe(
+        `UpperFloorFurnishingsCollider:${collider.furnishingId}`
+      );
+      expect(
+        isContainedBy(
+          UPPER_FLOOR_ROOM_BOUNDS[collider.roomId as UpperFloorRoomId],
+          collider
+        )
+      ).toBe(true);
+      UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('keeps upper decorative footprints non-blocking', () => {
+    const { colliders, decorativeFootprints } = createUpperFloorFurnishings({
+      definitions: upperDefinitions,
+    });
+
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'loft-library-rug-foundation'
+      )
+    ).toBe(false);
+    const rug = decorativeFootprints.find(
+      (footprint) => footprint.furnishingId === 'loft-library-rug-foundation'
+    );
+    expect(rug).toBeDefined();
+    expect(rug?.bounds).toEqual({
+      minX: 13.5,
+      maxX: 18.5,
+      minZ: -5.5,
+      maxZ: -2.5,
+    });
+  });
+
+  it('validates upper room containment and solid collisions', () => {
+    expect(() =>
+      validateUpperFloorFurnishingPlan(upperDefinitions)
+    ).not.toThrow();
+    expect(() =>
+      validateUpperFloorFurnishingPlan([
+        {
+          ...upperDefinitions[0],
+          id: 'upper-landing-outside',
+          position: { x: 2, z: -28 },
+        },
+      ])
+    ).toThrow(/outside upperLanding/);
+    expect(() =>
+      validateUpperFloorFurnishingPlan([
+        upperDefinitions[0],
+        {
+          ...upperDefinitions[0],
+          id: 'upper-landing-overlap',
+          position: { x: 14.2, z: -28 },
+        },
+      ])
+    ).toThrow(
+      /upper-landing-console-foundation overlaps upper-landing-overlap/
+    );
+  });
+});
+
+describe('token.place POI placement reflow', () => {
+  it('keeps the manual token.place placement in the living room at the reflowed workstation', () => {
+    const placement = MANUAL_POI_PLACEMENTS['tokenplace-studio-cluster'];
+
+    expect(placement?.roomId).toBe('livingRoom');
+    expect(placement?.position.x).toBeCloseTo(1.8);
+    expect(placement?.position.z).toBeCloseTo(-21.2);
+    expect(placement?.headingRadians).toBeCloseTo(-Math.PI * 0.18);
+  });
+
+  it('keeps the token.place blocker out of the media seating cluster', () => {
+    const tokenBlocker = LOWER_FLOOR_RESERVED_BLOCKERS[6];
+    const mediaCluster = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.category === 'living-room-seating'
+    );
+
+    mediaCluster.forEach((definition) => {
+      const bounds = definition.solidBounds ?? definition.decorativeBounds;
+      if (bounds) expect(rectanglesOverlap(tokenBlocker, bounds)).toBe(false);
+    });
+  });
+
+  it('keeps the moved token.place blocker clear of lower solid furnishings', () => {
+    const tokenBlocker = LOWER_FLOOR_RESERVED_BLOCKERS[6];
+    const { colliders } = createLowerFloorFurnishings();
+
+    colliders.forEach((collider) => {
+      expect(rectanglesOverlap(tokenBlocker, collider)).toBe(false);
+    });
   });
 });
 
