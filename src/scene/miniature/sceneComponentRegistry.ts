@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 17,
+    syncRevision: 18,
     syncNote:
-      'Kitchen stove detail remains source-only while furniture proxy coverage is deferred.',
+      'Kitchen stove cooktop part names were flattened; furniture proxy coverage remains deferred.',
     reason:
       'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },

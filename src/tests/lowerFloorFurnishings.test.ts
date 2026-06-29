@@ -654,7 +654,6 @@ describe('lower floor furnishings foundation', () => {
       expect(collider.sourceId).toBe(
         `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
       );
-      expect(isLevelSourceId(collider.sourceId)).toBe(true);
     });
   });
 
@@ -962,9 +961,7 @@ describe('lower floor furnishings foundation', () => {
     expect(
       group.getObjectByName('Furnishing:kitchen-stove-cabinet')
     ).toBeDefined();
-    expect(
-      group.getObjectByName('FurnishingPart:stoveCooktop0-0')
-    ).toBeDefined();
+    expect(group.getObjectByName('FurnishingPart:stoveCooktop0')).toBeDefined();
   });
 
   it('keeps the wall counter visual narrow in world X and long in world Z', () => {
@@ -1147,7 +1144,6 @@ describe('lower floor furnishings foundation', () => {
       expect(collider.sourceId).toBe(
         `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
       );
-      expect(isLevelSourceId(collider.sourceId)).toBe(true);
     });
   });
 

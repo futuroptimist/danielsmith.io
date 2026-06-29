@@ -2064,16 +2064,21 @@ function createVisualDetailPrimitive(
   }
 
   if (definition.kind === 'kitchen-stove-cabinet-detail') {
-    [-0.26, 0.26].forEach((x, index) => {
-      [-0.32, 0.32].forEach((z, innerIndex) => {
-        addBox(
-          group,
-          `stoveCooktop${index}-${innerIndex}`,
-          { width: 0.22, height: 0.035, depth: 0.22 },
-          accentMaterial,
-          [x, 1.085, z]
-        );
-      });
+    (
+      [
+        [-0.26, -0.32],
+        [-0.26, 0.32],
+        [0.26, -0.32],
+        [0.26, 0.32],
+      ] as Array<[number, number]>
+    ).forEach(([x, z], index) => {
+      addBox(
+        group,
+        `stoveCooktop${index}`,
+        { width: 0.22, height: 0.035, depth: 0.22 },
+        accentMaterial,
+        [x, 1.085, z]
+      );
     });
     addBox(
       group,

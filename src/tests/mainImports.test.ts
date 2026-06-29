@@ -61,7 +61,9 @@ describe('main module imports', () => {
   it('wires lower-floor furnishings once with generated collider metadata', () => {
     const source = readMainSource();
 
-    expect(source.match(/createLowerFloorFurnishings\(/g)).toHaveLength(1);
+    expect(source.match(/createLowerFloorFurnishings\(/g) ?? []).toHaveLength(
+      1
+    );
     expect(source).toContain(
       'groundStructureGroup.add(lowerFloorFurnishings.group);'
     );
