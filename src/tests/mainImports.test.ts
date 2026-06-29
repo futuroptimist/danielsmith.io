@@ -58,6 +58,25 @@ describe('main module imports', () => {
     expect(source).toContain('intent: sourceMetadata?.intent,');
   });
 
+  it('wires lower-floor furnishings once with generated collider metadata', () => {
+    const source = readMainSource();
+
+    expect(source.match(/createLowerFloorFurnishings\(/g)).toHaveLength(1);
+    expect(source).toContain(
+      'groundStructureGroup.add(lowerFloorFurnishings.group);'
+    );
+    expect(source).toContain(
+      'lowerFloorFurnishings.colliders.forEach((collider) => {'
+    );
+    expect(source).toContain('groundColliders.push(collider);');
+    expect(source).toContain("sourceType: 'generatedCollider',");
+    expect(source).toContain("purpose: 'lower-floor-furnishing',");
+    expect(source).toContain('role: collider.category,');
+    expect(source).not.toContain(
+      'lowerFloorFurnishings.decorativeFootprints.forEach'
+    );
+  });
+
   it('keeps the SelfieMirror collider source-backed while preserving debug ID 101A', () => {
     const source = readMainSource();
 
