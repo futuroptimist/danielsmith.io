@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Review feedback tightened validation and mesh naming without adding miniature proxies.',
+      'Backyard patio furnishings stay runtime-only; tabletop proxy coverage remains unchanged.',
     reason:
       'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
