@@ -76,8 +76,8 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(28);
-    expect(build.decorativeFootprints).toHaveLength(2);
+    expect(build.colliders).toHaveLength(40);
+    expect(build.decorativeFootprints).toHaveLength(3);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
       'living-room-coffee-table',
@@ -111,7 +111,193 @@ describe('lower floor furnishings foundation', () => {
       'studio-reading-chair',
       'studio-bedside-rug',
       'living-room-media-rug',
+      'backyard-lawn-chair-west-a',
+      'backyard-lawn-chair-west-b',
+      'backyard-side-table',
+      'backyard-grill',
+      'backyard-prep-cart',
+      'backyard-rock-garden-gravel',
+      'backyard-rock-01',
+      'backyard-rock-02',
+      'backyard-rock-03',
+      'backyard-planter-west-south',
+      'backyard-planter-west-north',
+      'backyard-planter-east-south',
+      'backyard-planter-east-north',
     ]);
+  });
+
+  it('adds backyard patio and landscaping AABBs with non-blocking gravel', () => {
+    const { colliders, decorativeFootprints, group } =
+      createLowerFloorFurnishings();
+    const expectedBackyardBounds: Record<string, RectCollider> = {
+      'backyard-lawn-chair-west-a': {
+        minX: -27.6,
+        maxX: -26.4,
+        minZ: 26.4,
+        maxZ: 28.2,
+      },
+      'backyard-lawn-chair-west-b': {
+        minX: -24.8,
+        maxX: -23.6,
+        minZ: 26.7,
+        maxZ: 28.5,
+      },
+      'backyard-side-table': {
+        minX: -26.1,
+        maxX: -25.1,
+        minZ: 24.7,
+        maxZ: 25.7,
+      },
+      'backyard-grill': {
+        minX: 26.0,
+        maxX: 27.4,
+        minZ: 18.35,
+        maxZ: 19.25,
+      },
+      'backyard-prep-cart': {
+        minX: 23.8,
+        maxX: 25.0,
+        minZ: 18.4,
+        maxZ: 19.2,
+      },
+      'backyard-rock-01': {
+        minX: 0.85,
+        maxX: 1.35,
+        minZ: 28.75,
+        maxZ: 29.25,
+      },
+      'backyard-rock-02': {
+        minX: 3.15,
+        maxX: 3.85,
+        minZ: 28.25,
+        maxZ: 28.95,
+      },
+      'backyard-rock-03': {
+        minX: 5.6,
+        maxX: 6.2,
+        minZ: 29.1,
+        maxZ: 29.7,
+      },
+      'backyard-planter-west-south': {
+        minX: -30.55,
+        maxX: -29.85,
+        minZ: 19.95,
+        maxZ: 20.65,
+      },
+      'backyard-planter-west-north': {
+        minX: -30.45,
+        maxX: -29.75,
+        minZ: 29.35,
+        maxZ: 30.05,
+      },
+      'backyard-planter-east-south': {
+        minX: 29.75,
+        maxX: 30.45,
+        minZ: 21.15,
+        maxZ: 21.85,
+      },
+      'backyard-planter-east-north': {
+        minX: 29.65,
+        maxX: 30.35,
+        minZ: 29.15,
+        maxZ: 29.85,
+      },
+    };
+
+    expect(
+      new Set(colliders.map(({ category }) => category)).has('backyard')
+    ).toBe(true);
+
+    Object.entries(expectedBackyardBounds).forEach(([id, expected]) => {
+      const matchingColliders = colliders.filter(
+        (collider) => collider.furnishingId === id
+      );
+      expect(matchingColliders).toHaveLength(1);
+      expect(matchingColliders[0]).toMatchObject({
+        ...expected,
+        category: 'backyard',
+        roomId: 'backyard',
+      });
+      expect(
+        matchingColliders[0].maxX - matchingColliders[0].minX
+      ).toBeGreaterThan(0);
+      expect(
+        matchingColliders[0].maxZ - matchingColliders[0].minZ
+      ).toBeGreaterThan(0);
+    });
+
+    const gravel = decorativeFootprints.find(
+      (footprint) => footprint.furnishingId === 'backyard-rock-garden-gravel'
+    );
+    expect(gravel).toMatchObject({
+      category: 'backyard',
+      roomId: 'backyard',
+      bounds: { minX: 0.0, maxX: 7.0, minZ: 28.05, maxZ: 30.15 },
+      allowSolidOverlap: true,
+    });
+    expect(
+      colliders.some(
+        (collider) => collider.furnishingId === 'backyard-rock-garden-gravel'
+      )
+    ).toBe(false);
+
+    Object.keys(expectedBackyardBounds).forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+    });
+    expect(
+      group.getObjectByName('Furnishing:backyard-rock-garden-gravel')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName(
+        'FurnishingPart:backyard-lawn-chair-west-a:chairSeatSlat0'
+      )
+    ).toBeDefined();
+    expect(group.getObjectByName('FurnishingPart:grillLid')).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:prepCartLowerShelf')
+    ).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:gravelSpeckle0')
+    ).toBeDefined();
+  });
+
+  it('keeps backyard solids bounded, disjoint, and limited to parent colliders', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const backyardColliders = colliders.filter(
+      (collider) => collider.category === 'backyard'
+    );
+    const priorPassColliders = colliders.filter(
+      (collider) => collider.category !== 'backyard'
+    );
+    const backyardSolidDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) =>
+        definition.category === 'backyard' && definition.solidFootprint
+    );
+
+    expect(backyardColliders).toHaveLength(backyardSolidDefinitions.length);
+    backyardSolidDefinitions.forEach((definition) => {
+      expect(
+        backyardColliders.filter(
+          (collider) => collider.furnishingId === definition.id
+        )
+      ).toHaveLength(1);
+    });
+
+    backyardColliders.forEach((backyard, index) => {
+      expect(isContainedBy(LOWER_FLOOR_ROOM_BOUNDS.backyard, backyard)).toBe(
+        true
+      );
+      backyardColliders.slice(index + 1).forEach((otherBackyard) => {
+        expect(rectanglesOverlap(backyard, otherBackyard)).toBe(false);
+      });
+      priorPassColliders.forEach((other) => {
+        expect(rectanglesOverlap(backyard, other)).toBe(false);
+      });
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(backyard, blocker)).toBe(false);
+      });
+    });
   });
 
   it('adds the requested lower-floor storage AABBs with one collider each', () => {
