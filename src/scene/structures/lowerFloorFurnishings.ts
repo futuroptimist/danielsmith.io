@@ -621,10 +621,10 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       id: 'backyard-planter-west-north',
       category: 'backyard',
       roomId: 'backyard',
-      position: { x: -30.1, z: 29.7 },
+      position: { x: -30.1, z: 29.55 },
       orientationRadians: 0,
       solidFootprint: { width: 0.7, depth: 0.7 },
-      solidBounds: { minX: -30.45, maxX: -29.75, minZ: 29.35, maxZ: 30.05 },
+      solidBounds: { minX: -30.45, maxX: -29.75, minZ: 29.2, maxZ: 29.9 },
       kind: 'backyard-potted-plant',
       visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 1.1 },
     },
@@ -1936,7 +1936,7 @@ function createBackyardFurnishing(
     return group;
   }
 
-  return group;
+  throw new Error(`Unsupported backyard furnishing kind: ${definition.kind}`);
 }
 
 function addBookRows(

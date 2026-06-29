@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 14,
-      "syncNote": "Backyard patio furnishings remain source-only while furniture proxy coverage is deferred.",
-      "sourceFingerprint": "44d5ecc25585934affded65b75bd65bbe5b2d14c6c9d909223083a3e86d20d4f",
+      "syncRevision": 15,
+      "syncNote": "Backyard furnishing collision hardening remains source-only while furniture proxy coverage is deferred.",
+      "sourceFingerprint": "1da17e931eb9fae2cead581dfa60d892437177d02977f769fdddb1dbfc96476a",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "65a7854222c87c1e39300b8cff77d5cfbfda7f5cd66ae5c2286067ec4975282e"
+      "metadataFingerprint": "b04b94bc6c383765b0aaaa2f1c842eb61e59ed8190fc9c052a07e0c8c67bc0f6"
     },
     {
       "id": "environment:backyard",

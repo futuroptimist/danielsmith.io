@@ -10,6 +10,10 @@ import {
   validateLowerFloorFurnishingPlan,
   type LowerFloorFurnishingDefinition,
 } from '../scene/structures/lowerFloorFurnishings';
+import {
+  createBackyardFenceColliders,
+  createBackyardFenceSegments,
+} from '../scene/level/backyardCollisionPolicies';
 import type { RectCollider } from '../systems/collision';
 
 const validDefinitions: LowerFloorFurnishingDefinition[] = [
@@ -188,8 +192,8 @@ describe('lower floor furnishings foundation', () => {
       'backyard-planter-west-north': {
         minX: -30.45,
         maxX: -29.75,
-        minZ: 29.35,
-        maxZ: 30.05,
+        minZ: 29.2,
+        maxZ: 29.9,
       },
       'backyard-planter-east-south': {
         minX: 29.75,
@@ -268,6 +272,42 @@ describe('lower floor furnishings foundation', () => {
     expect(
       group.getObjectByName('FurnishingPart:gravelSpeckle0')
     ).toBeDefined();
+  });
+
+  it('rejects unsupported backyard furnishing kinds instead of building empty groups', () => {
+    const typoBackyardFurnishing: LowerFloorFurnishingDefinition = {
+      id: 'backyard-typo-grill',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 0, z: 22 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1, depth: 1 },
+      solidBounds: { minX: -0.5, maxX: 0.5, minZ: 21.5, maxZ: 22.5 },
+      kind: 'backyard-girll',
+    };
+
+    expect(() =>
+      createLowerFloorFurnishings({ definitions: [typoBackyardFurnishing] })
+    ).toThrow(/Unsupported backyard furnishing kind: backyard-girll/);
+  });
+
+  it('keeps backyard solid colliders clear of generated fence colliders', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const fenceColliders = createBackyardFenceColliders(
+      createBackyardFenceSegments(LOWER_FLOOR_ROOM_BOUNDS.backyard)
+    );
+    const backyardColliders = colliders.filter(
+      (collider) => collider.category === 'backyard'
+    );
+
+    expect(
+      fenceColliders.some((collider) => collider.role === 'backFenceBoundary')
+    ).toBe(true);
+    backyardColliders.forEach((backyard) => {
+      fenceColliders.forEach((fence) => {
+        expect(rectanglesOverlap(backyard, fence)).toBe(false);
+      });
+    });
   });
 
   it('keeps backyard solids bounded, disjoint, and limited to parent colliders', () => {
