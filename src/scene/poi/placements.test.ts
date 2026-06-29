@@ -40,7 +40,7 @@ describe('applyManualPoiPlacements', () => {
         roomId: 'livingRoom',
         floorId: 'ground',
         anchorY: 0.75,
-        position: { x: -22.34, y: 0, z: -22.61 },
+        position: { x: 1.8, y: 0, z: -21.2 },
       },
       {
         id: 'sugarkube-backyard-greenhouse',

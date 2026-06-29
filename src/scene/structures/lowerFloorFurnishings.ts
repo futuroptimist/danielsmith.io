@@ -11,6 +11,8 @@ import {
 import type { RectCollider } from '../collision';
 import { isLevelSourceId } from '../level/sourceIds';
 
+export type FloorFurnishingFloorId = 'ground' | 'upper';
+
 export type LowerFloorFurnishingCategory =
   | 'living-room-seating'
   | 'kitchenette'
@@ -21,15 +23,31 @@ export type LowerFloorFurnishingCategory =
 
 export type LowerFloorRoomId = 'livingRoom' | 'kitchen' | 'studio' | 'backyard';
 
+export type UpperFloorRoomId =
+  | 'upperLanding'
+  | 'creatorsStudio'
+  | 'loftLibrary'
+  | 'focusPods';
+
+export type UpperFloorFurnishingCategory =
+  | 'upper-landing'
+  | 'creators-studio'
+  | 'loft-library'
+  | 'focus-pods'
+  | 'plants-lighting-decor';
+
 export interface LowerFloorFurnishingFootprint {
   width: number;
   depth: number;
 }
 
-export interface LowerFloorFurnishingDefinition {
+export interface FloorFurnishingDefinition<
+  Category extends string,
+  RoomId extends string,
+> {
   id: string;
-  category: LowerFloorFurnishingCategory;
-  roomId: LowerFloorRoomId;
+  category: Category;
+  roomId: RoomId;
   position: { x: number; y?: number; z: number };
   orientationRadians: number;
   solidFootprint?: LowerFloorFurnishingFootprint;
@@ -48,22 +66,51 @@ export interface LowerFloorFurnishingDefinition {
   };
 }
 
-export interface DecorativeFootprintRecord {
+export type LowerFloorFurnishingDefinition = FloorFurnishingDefinition<
+  LowerFloorFurnishingCategory,
+  LowerFloorRoomId
+>;
+
+export type UpperFloorFurnishingDefinition = FloorFurnishingDefinition<
+  UpperFloorFurnishingCategory,
+  UpperFloorRoomId
+>;
+
+type AnyFloorFurnishingDefinition = FloorFurnishingDefinition<string, string>;
+
+export interface DecorativeFootprintRecord<
+  Category extends string = LowerFloorFurnishingCategory,
+  RoomId extends string = LowerFloorRoomId,
+> {
   id: string;
   furnishingId: string;
-  category: LowerFloorFurnishingCategory;
-  roomId: LowerFloorRoomId;
+  category: Category;
+  roomId: RoomId;
   bounds: RectCollider;
   allowSolidOverlap: boolean;
 }
 
-export interface LowerFloorFurnishingCollider extends RectCollider {
+export interface FloorFurnishingCollider<
+  Category extends string,
+  RoomId extends string,
+> extends RectCollider {
   furnishingId: string;
-  category: LowerFloorFurnishingCategory;
-  roomId: LowerFloorRoomId;
+  category: Category;
+  roomId: RoomId;
   sourceId: string;
   debugName: string;
+  floorId: FloorFurnishingFloorId;
 }
+
+export type LowerFloorFurnishingCollider = FloorFurnishingCollider<
+  LowerFloorFurnishingCategory,
+  LowerFloorRoomId
+>;
+
+export type UpperFloorFurnishingCollider = FloorFurnishingCollider<
+  UpperFloorFurnishingCategory,
+  UpperFloorRoomId
+>;
 
 export interface LowerFloorFurnishingValidationOptions {
   roomBounds?: Partial<Record<LowerFloorRoomId, RectCollider>>;
@@ -82,6 +129,27 @@ export interface LowerFloorFurnishingsBuild {
   decorativeFootprints: DecorativeFootprintRecord[];
 }
 
+export interface UpperFloorFurnishingValidationOptions {
+  roomBounds?: Partial<Record<UpperFloorRoomId, RectCollider>>;
+  reservedBlockers?: readonly RectCollider[];
+  tolerance?: number;
+}
+
+export interface UpperFloorFurnishingsCreateOptions
+  extends UpperFloorFurnishingValidationOptions {
+  definitions?: readonly UpperFloorFurnishingDefinition[];
+  baseElevation?: number;
+}
+
+export interface UpperFloorFurnishingsBuild {
+  group: Group;
+  colliders: UpperFloorFurnishingCollider[];
+  decorativeFootprints: DecorativeFootprintRecord<
+    UpperFloorFurnishingCategory,
+    UpperFloorRoomId
+  >[];
+}
+
 export const LOWER_FLOOR_ROOM_BOUNDS: Record<LowerFloorRoomId, RectCollider> = {
   livingRoom: { minX: -32, maxX: 32, minZ: -32, maxZ: -8 },
   kitchen: { minX: -32, maxX: -4, minZ: -8, maxZ: 16 },
@@ -96,7 +164,7 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -22, maxX: -14, minZ: 14.8, maxZ: 17.2 },
   { minX: 11, maxX: 19, minZ: 14.8, maxZ: 17.2 },
   { minX: -32.0, maxX: -30.9, minZ: -23.2, maxZ: -16.8 },
-  { minX: -24.74, maxX: -19.94, minZ: -24.61, maxZ: -20.61 },
+  { minX: 0.8, maxX: 3.8, minZ: -23.2, maxZ: -19.2 },
   { minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
   { minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
   { minX: 26.4, maxX: 31.2, minZ: -24.4, maxZ: -21.2 },
@@ -106,6 +174,24 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -18.5, maxX: -10.0, minZ: 18.0, maxZ: 24.2 },
   { minX: 10.0, maxX: 18.2, minZ: 22.4, maxZ: 30.4 },
 ];
+
+export const UPPER_FLOOR_ROOM_BOUNDS: Record<UpperFloorRoomId, RectCollider> = {
+  upperLanding: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+  creatorsStudio: { minX: -20, maxX: 4, minZ: -32, maxZ: 0 },
+  loftLibrary: { minX: 4, maxX: 24, minZ: -16, maxZ: 12 },
+  focusPods: { minX: -20, maxX: 24, minZ: 12, maxZ: 28 },
+};
+
+export const UPPER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
+  { minX: -19.8, maxX: -14.8, minZ: -9.7, maxZ: -4.3 },
+  { minX: -19.4, maxX: -14.3, minZ: 14.6, maxZ: 19.9 },
+  { minX: -3.3, maxX: 2.1, minZ: 11.5, maxZ: 16.6 },
+  { minX: 13.9, maxX: 19.3, minZ: 15.0, maxZ: 20.3 },
+  { minX: 6.4, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
+];
+
+export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefinition[] =
+  [];
 
 export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[] =
   [
@@ -676,12 +762,21 @@ function containsPoint(
   );
 }
 
-export function validateLowerFloorFurnishingPlan(
-  definitions: readonly LowerFloorFurnishingDefinition[],
-  options: LowerFloorFurnishingValidationOptions = {}
+function validateFloorFurnishingPlan<
+  Category extends string,
+  RoomId extends string,
+>(
+  definitions: readonly FloorFurnishingDefinition<Category, RoomId>[],
+  defaultRoomBounds: Record<RoomId, RectCollider>,
+  defaultReservedBlockers: readonly RectCollider[],
+  options: {
+    roomBounds?: Partial<Record<RoomId, RectCollider>>;
+    reservedBlockers?: readonly RectCollider[];
+    tolerance?: number;
+  } = {}
 ): void {
-  const roomBounds = { ...LOWER_FLOOR_ROOM_BOUNDS, ...options.roomBounds };
-  const blockers = options.reservedBlockers ?? LOWER_FLOOR_RESERVED_BLOCKERS;
+  const roomBounds = { ...defaultRoomBounds, ...options.roomBounds };
+  const blockers = options.reservedBlockers ?? defaultReservedBlockers;
   const tolerance = options.tolerance ?? 0.001;
   definitions.forEach((definition) => {
     if (!isLevelSourceId(definition.id)) {
@@ -780,23 +875,52 @@ export function validateLowerFloorFurnishingPlan(
   });
 }
 
-export function createLowerFloorFurnishings(
-  options: LowerFloorFurnishingsCreateOptions = {}
-): LowerFloorFurnishingsBuild {
-  const definitions = options.definitions ?? DEFAULT_LOWER_FLOOR_FURNISHINGS;
-  validateLowerFloorFurnishingPlan(definitions, options);
+export function validateLowerFloorFurnishingPlan(
+  definitions: readonly LowerFloorFurnishingDefinition[],
+  options: LowerFloorFurnishingValidationOptions = {}
+): void {
+  validateFloorFurnishingPlan(
+    definitions,
+    LOWER_FLOOR_ROOM_BOUNDS,
+    LOWER_FLOOR_RESERVED_BLOCKERS,
+    options
+  );
+}
 
+export function validateUpperFloorFurnishingPlan(
+  definitions: readonly UpperFloorFurnishingDefinition[],
+  options: UpperFloorFurnishingValidationOptions = {}
+): void {
+  validateFloorFurnishingPlan(
+    definitions,
+    UPPER_FLOOR_ROOM_BOUNDS,
+    UPPER_FLOOR_RESERVED_BLOCKERS,
+    options
+  );
+}
+
+function createFloorFurnishings<Category extends string, RoomId extends string>(
+  floorId: FloorFurnishingFloorId,
+  groupName: string,
+  definitions: readonly FloorFurnishingDefinition<Category, RoomId>[],
+  baseElevation: number
+): {
+  group: Group;
+  colliders: FloorFurnishingCollider<Category, RoomId>[];
+  decorativeFootprints: DecorativeFootprintRecord<Category, RoomId>[];
+} {
   const group = new Group();
-  group.name = 'LowerFloorFurnishings';
-  const colliders: LowerFloorFurnishingCollider[] = [];
-  const decorativeFootprints: DecorativeFootprintRecord[] = [];
+  group.name = groupName;
+  const colliders: FloorFurnishingCollider<Category, RoomId>[] = [];
+  const decorativeFootprints: DecorativeFootprintRecord<Category, RoomId>[] =
+    [];
 
   definitions.forEach((definition) => {
     const furnishing = new Group();
     furnishing.name = `Furnishing:${definition.id}`;
     furnishing.position.set(
       definition.position.x,
-      definition.position.y ?? 0,
+      definition.position.y ?? baseElevation,
       definition.position.z
     );
     furnishing.rotation.y = definition.orientationRadians;
@@ -809,8 +933,9 @@ export function createLowerFloorFurnishings(
         furnishingId: definition.id,
         category: definition.category,
         roomId: definition.roomId,
-        sourceId: `ground.furnishings.${definition.category}.${definition.id}.generated_collider`,
-        debugName: `LowerFloorFurnishingCollider:${definition.id}`,
+        sourceId: `${floorId}.furnishings.${definition.category}.${definition.id}.generated_collider`,
+        debugName: `${groupName.slice(0, -1)}Collider:${definition.id}`,
+        floorId,
       });
     }
 
@@ -839,8 +964,34 @@ export function createLowerFloorFurnishings(
   return { group, colliders, decorativeFootprints };
 }
 
+export function createLowerFloorFurnishings(
+  options: LowerFloorFurnishingsCreateOptions = {}
+): LowerFloorFurnishingsBuild {
+  const definitions = options.definitions ?? DEFAULT_LOWER_FLOOR_FURNISHINGS;
+  validateLowerFloorFurnishingPlan(definitions, options);
+  return createFloorFurnishings(
+    'ground',
+    'LowerFloorFurnishings',
+    definitions,
+    0
+  );
+}
+
+export function createUpperFloorFurnishings(
+  options: UpperFloorFurnishingsCreateOptions = {}
+): UpperFloorFurnishingsBuild {
+  const definitions = options.definitions ?? DEFAULT_UPPER_FLOOR_FURNISHINGS;
+  validateUpperFloorFurnishingPlan(definitions, options);
+  return createFloorFurnishings(
+    'upper',
+    'UpperFloorFurnishings',
+    definitions,
+    options.baseElevation ?? 0
+  );
+}
+
 function createSolidPrimitive(
-  definition: LowerFloorFurnishingDefinition
+  definition: FloorFurnishingDefinition<string, string>
 ): Group {
   if (definition.kind === 'media-sofa') return createMediaSofa(definition);
   if (definition.kind === 'coffee-table') return createCoffeeTable(definition);
@@ -903,7 +1054,7 @@ function createSolidPrimitive(
   return group;
 }
 
-function createMediaSofa(definition: LowerFloorFurnishingDefinition): Group {
+function createMediaSofa(definition: AnyFloorFurnishingDefinition): Group {
   const footprint = definition.solidFootprint ?? { width: 4.6, depth: 1.6 };
   const backDepth = 0.22;
   const armWidth = 0.34;
@@ -970,7 +1121,7 @@ function createMediaSofa(definition: LowerFloorFurnishingDefinition): Group {
   return group;
 }
 
-function createCoffeeTable(definition: LowerFloorFurnishingDefinition): Group {
+function createCoffeeTable(definition: AnyFloorFurnishingDefinition): Group {
   const topMaterial = createMaterial(definition.visual?.color ?? 0x7a5538);
   const legMaterial = createMaterial(
     definition.visual?.accentColor ?? 0x2f2520
@@ -997,13 +1148,13 @@ function createCoffeeTable(definition: LowerFloorFurnishingDefinition): Group {
   return group;
 }
 
-function createSideTable(definition: LowerFloorFurnishingDefinition): Group {
+function createSideTable(definition: AnyFloorFurnishingDefinition): Group {
   const group = createCoffeeTable(definition);
   group.scale.set(0.36, 1.12, 0.67);
   return group;
 }
 
-function createLoungeChair(definition: LowerFloorFurnishingDefinition): Group {
+function createLoungeChair(definition: AnyFloorFurnishingDefinition): Group {
   const material = createMaterial(definition.visual?.color ?? 0x76865f);
   const pillowMaterial = createMaterial(
     definition.visual?.accentColor ?? 0xd8c7a7
@@ -1034,7 +1185,7 @@ function createLoungeChair(definition: LowerFloorFurnishingDefinition): Group {
 }
 
 function createLargePottedPlant(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group {
   const group = new Group();
   const potMaterial = createMaterial(definition.visual?.color ?? 0x8a5a36);
@@ -1067,7 +1218,7 @@ function createLargePottedPlant(
   return group;
 }
 
-function createPlantStool(definition: LowerFloorFurnishingDefinition): Group {
+function createPlantStool(definition: AnyFloorFurnishingDefinition): Group {
   const group = new Group();
   const woodMaterial = createMaterial(definition.visual?.color ?? 0x6a4a32);
   const potMaterial = createMaterial(0xb7834f);
@@ -1103,9 +1254,7 @@ function createPlantStool(definition: LowerFloorFurnishingDefinition): Group {
   return group;
 }
 
-function createMonsteraPlant(
-  definition: LowerFloorFurnishingDefinition
-): Group {
+function createMonsteraPlant(definition: AnyFloorFurnishingDefinition): Group {
   const group = new Group();
   const potMaterial = createMaterial(definition.visual?.color ?? 0x7a5134);
   const leafMaterial = createMaterial(
@@ -1155,7 +1304,7 @@ function addPlantLeaves(
   });
 }
 
-function createFloorLamp(definition: LowerFloorFurnishingDefinition): Group {
+function createFloorLamp(definition: AnyFloorFurnishingDefinition): Group {
   const poleMaterial = createMaterial(definition.visual?.color ?? 0x2b2b2f);
   const shadeMaterial = createMaterial(
     definition.visual?.accentColor ?? 0xffd48a,
@@ -1190,7 +1339,7 @@ function createFloorLamp(definition: LowerFloorFurnishingDefinition): Group {
 }
 
 function createKitchenFurnishing(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group {
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const isQuarterTurn =
@@ -1352,7 +1501,7 @@ function createKitchenFurnishing(
 }
 
 function createSleepingNookFurnishing(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group {
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const isQuarterTurn =
@@ -1507,7 +1656,7 @@ function createSleepingNookFurnishing(
 }
 
 function createStorageFurnishing(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group {
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const isQuarterTurn =
@@ -1681,7 +1830,7 @@ function createStorageFurnishing(
 }
 
 function createBackyardFurnishing(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group {
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.height ?? 0.8;
@@ -2022,7 +2171,7 @@ function addBox(
 }
 
 function createVisualDetailPrimitive(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group {
   const group = new Group();
   const baseMaterial = createMaterial(definition.visual?.color ?? 0x8a5a36);
@@ -2130,7 +2279,7 @@ function createVisualDetailPrimitive(
 }
 
 function createDecorativePrimitive(
-  definition: LowerFloorFurnishingDefinition
+  definition: AnyFloorFurnishingDefinition
 ): Group | Mesh {
   const footprint = definition.decorativeFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.decorativeHeight ?? 0.035;
@@ -2183,7 +2332,7 @@ function createDecorativePrimitive(
 }
 
 function createRotatedAabb(
-  definition: LowerFloorFurnishingDefinition,
+  definition: FloorFurnishingDefinition<string, string>,
   footprint: LowerFloorFurnishingFootprint
 ): RectCollider {
   if (definition.solidFootprint === footprint && definition.solidBounds) {
