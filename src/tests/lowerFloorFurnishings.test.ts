@@ -132,16 +132,16 @@ describe('lower floor furnishings foundation', () => {
       createLowerFloorFurnishings();
     const expectedBackyardBounds: Record<string, RectCollider> = {
       'backyard-lawn-chair-west-a': {
-        minX: -27.6,
-        maxX: -26.4,
-        minZ: 26.4,
-        maxZ: 28.2,
+        minX: -28.07430017161326,
+        maxX: -25.92569982838674,
+        minZ: 26.35680463572139,
+        maxZ: 28.243195364278613,
       },
       'backyard-lawn-chair-west-b': {
-        minX: -24.8,
-        maxX: -23.6,
-        minZ: 26.7,
-        maxZ: 28.5,
+        minX: -25.260660171779822,
+        maxX: -23.139339828220177,
+        minZ: 26.53933982822018,
+        maxZ: 28.660660171779824,
       },
       'backyard-side-table': {
         minX: -26.1,
@@ -150,10 +150,10 @@ describe('lower floor furnishings foundation', () => {
         maxZ: 25.7,
       },
       'backyard-grill': {
-        minX: 26.0,
-        maxX: 27.4,
-        minZ: 18.35,
-        maxZ: 19.25,
+        minX: 26.25,
+        maxX: 27.15,
+        minZ: 18.1,
+        maxZ: 19.5,
       },
       'backyard-prep-cart': {
         minX: 23.8,
@@ -254,6 +254,14 @@ describe('lower floor furnishings foundation', () => {
       )
     ).toBeDefined();
     expect(group.getObjectByName('FurnishingPart:grillLid')).toBeDefined();
+    expect(
+      group.getObjectByName(
+        'FurnishingPart:backyard-planter-west-south:backyardPlantPot'
+      )
+    ).toBeDefined();
+    expect(
+      group.getObjectByName('FurnishingPart:backyard-rock-01:gardenRockCore')
+    ).toBeDefined();
     expect(
       group.getObjectByName('FurnishingPart:prepCartLowerShelf')
     ).toBeDefined();
