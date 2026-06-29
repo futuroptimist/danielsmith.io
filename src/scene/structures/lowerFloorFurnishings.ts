@@ -62,6 +62,9 @@ export interface LowerFloorFurnishingCollider extends RectCollider {
   category: LowerFloorFurnishingCategory;
   roomId: LowerFloorRoomId;
   sourceId: string;
+  sourceType: 'generatedCollider';
+  purpose: 'lower-floor-furnishing';
+  role: LowerFloorFurnishingCategory;
   debugName: string;
 }
 
@@ -235,7 +238,6 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
         color: 0x687282,
         accentColor: 0xd8ccb8,
         height: 0.9,
-        allowSolidOverlapWithIds: ['kitchen-stove-cabinet'],
       },
     },
     {
@@ -255,8 +257,6 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       roomId: 'kitchen',
       position: { x: -31.0, z: -2.0 },
       orientationRadians: Math.PI / 2,
-      solidFootprint: { width: 1.2, depth: 1.8 },
-      solidBounds: { minX: -31.6, maxX: -30.4, minZ: -2.9, maxZ: -1.1 },
       kind: 'kitchen-sink-cabinet',
       visual: {
         color: 0x667382,
@@ -270,14 +270,11 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       roomId: 'kitchen',
       position: { x: -31.0, z: 7.0 },
       orientationRadians: Math.PI / 2,
-      solidFootprint: { width: 1.2, depth: 1.6 },
-      solidBounds: { minX: -31.6, maxX: -30.4, minZ: 6.2, maxZ: 7.8 },
       kind: 'kitchen-stove-cabinet',
       visual: {
         color: 0x5e6672,
         accentColor: 0x1d232b,
         height: 0.95,
-        allowSolidOverlapWithIds: ['kitchen-west-counter-run'],
       },
     },
     {
@@ -697,6 +694,9 @@ export function validateLowerFloorFurnishingPlan(
     if (!definition.solidFootprint) return [];
     const bounds = createRotatedAabb(definition, definition.solidFootprint);
     const room = roomBounds[definition.roomId];
+    if (!hasFiniteBounds(bounds)) {
+      throw new Error(`${definition.id} has non-finite solid bounds.`);
+    }
     if (!hasPositiveArea(bounds))
       throw new Error(`${definition.id} has an empty solid footprint.`);
     if (!containsBounds(room, bounds, tolerance)) {
@@ -754,6 +754,9 @@ export function validateLowerFloorFurnishingPlan(
       definition,
       definition.decorativeFootprint
     );
+    if (!hasFiniteBounds(bounds)) {
+      throw new Error(`${definition.id} has non-finite decorative bounds.`);
+    }
     if (!hasPositiveArea(bounds)) {
       throw new Error(`${definition.id} has an empty decorative footprint.`);
     }
@@ -814,6 +817,9 @@ export function createLowerFloorFurnishings(
         category: definition.category,
         roomId: definition.roomId,
         sourceId: `ground.furnishings.${definition.category}.${definition.id}.generated_collider`,
+        sourceType: 'generatedCollider',
+        purpose: 'lower-floor-furnishing',
+        role: definition.category,
         debugName: `LowerFloorFurnishingCollider:${definition.id}`,
       });
     }
@@ -2067,6 +2073,10 @@ function createVisualDetailPrimitive(
     return group;
   }
 
+  if (definition.kind.startsWith('kitchen-')) {
+    return createKitchenFurnishing(definition);
+  }
+
   if (definition.kind === 'pendant-lights-detail') {
     [-0.9, 0, 0.9].forEach((x, index) => {
       addBox(
@@ -2171,6 +2181,12 @@ function createRotatedAabb(
     width: footprint.width * cos + footprint.depth * sin,
     depth: footprint.width * sin + footprint.depth * cos,
   });
+}
+
+function hasFiniteBounds(bounds: RectCollider): boolean {
+  return [bounds.minX, bounds.maxX, bounds.minZ, bounds.maxZ].every(
+    Number.isFinite
+  );
 }
 
 function hasPositiveArea(bounds: RectCollider): boolean {
