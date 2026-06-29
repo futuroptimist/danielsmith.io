@@ -1047,6 +1047,7 @@ const colliderSourceMetadata = new Map<
     sourceType: 'wall' | 'safetyCollider' | 'sceneObject' | 'generatedCollider';
     purpose?: string;
     role?: string;
+    category?: string;
     intent?: string;
     debugId?: string;
   }
@@ -2285,6 +2286,7 @@ function initializeImmersiveScene(
       sourceType: 'generatedCollider',
       purpose: 'lower-floor-furnishing',
       role: collider.category,
+      category: collider.category,
     });
   });
 
