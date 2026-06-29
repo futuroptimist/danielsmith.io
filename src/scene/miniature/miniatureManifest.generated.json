@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 16,
-      "syncNote": "Backyard rotated-furnishing containment remains source-only while furniture proxy coverage is deferred.",
-      "sourceFingerprint": "3f6fde04e6fde403cf17736466f95891ff79fe2066181925f76913189440bd40",
+      "syncRevision": 18,
+      "syncNote": "Kitchen stove cooktop part names were flattened; furniture proxy coverage remains deferred.",
+      "sourceFingerprint": "2152c8d288227bea8b088e9da6474ee781f1b8ef24d7e55660856f67a3adb61a",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "38f2e4ffdf791e5045d86a2f3214016e1b8a09a560357c6a1c8778b49c0732b6"
+      "metadataFingerprint": "3d6b130cd99fb62fde66e6951c50e0f41ffd63ac13825bbb1dea1b3939c89d63"
     },
     {
       "id": "environment:backyard",
