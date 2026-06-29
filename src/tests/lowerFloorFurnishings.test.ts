@@ -136,16 +136,16 @@ describe('lower floor furnishings foundation', () => {
       createLowerFloorFurnishings();
     const expectedBackyardBounds: Record<string, RectCollider> = {
       'backyard-lawn-chair-west-a': {
-        minX: -28.07430017161326,
-        maxX: -25.92569982838674,
-        minZ: 26.35680463572139,
-        maxZ: 28.243195364278613,
+        minX: -27.6,
+        maxX: -26.4,
+        minZ: 26.4,
+        maxZ: 28.2,
       },
       'backyard-lawn-chair-west-b': {
-        minX: -25.260660171779822,
-        maxX: -23.139339828220177,
-        minZ: 26.53933982822018,
-        maxZ: 28.660660171779824,
+        minX: -24.8,
+        maxX: -23.6,
+        minZ: 26.7,
+        maxZ: 28.5,
       },
       'backyard-side-table': {
         minX: -26.1,
@@ -154,10 +154,10 @@ describe('lower floor furnishings foundation', () => {
         maxZ: 25.7,
       },
       'backyard-grill': {
-        minX: 26.25,
-        maxX: 27.15,
-        minZ: 18.1,
-        maxZ: 19.5,
+        minX: 26.0,
+        maxX: 27.4,
+        minZ: 18.35,
+        maxZ: 19.25,
       },
       'backyard-prep-cart': {
         minX: 23.8,
@@ -272,6 +272,37 @@ describe('lower floor furnishings foundation', () => {
     expect(
       group.getObjectByName('FurnishingPart:gravelSpeckle0')
     ).toBeDefined();
+  });
+
+  it('keeps angled backyard chair and grill visuals inside authored colliders', () => {
+    const { colliders, group } = createLowerFloorFurnishings();
+    const ids = [
+      'backyard-lawn-chair-west-a',
+      'backyard-lawn-chair-west-b',
+      'backyard-grill',
+    ];
+    const epsilon = 0.000001;
+
+    ids.forEach((id) => {
+      const collider = colliders.find(
+        ({ furnishingId }) => furnishingId === id
+      );
+      const furnishing = group.getObjectByName(`Furnishing:${id}`);
+
+      expect(collider).toBeDefined();
+      expect(furnishing).toBeDefined();
+
+      const visualBounds = new Box3().setFromObject(furnishing!);
+
+      expect(visualBounds.min.x).toBeGreaterThanOrEqual(
+        collider!.minX - epsilon
+      );
+      expect(visualBounds.max.x).toBeLessThanOrEqual(collider!.maxX + epsilon);
+      expect(visualBounds.min.z).toBeGreaterThanOrEqual(
+        collider!.minZ - epsilon
+      );
+      expect(visualBounds.max.z).toBeLessThanOrEqual(collider!.maxZ + epsilon);
+    });
   });
 
   it('rejects unsupported backyard furnishing kinds instead of building empty groups', () => {

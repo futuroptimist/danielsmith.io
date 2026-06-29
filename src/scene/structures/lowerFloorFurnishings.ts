@@ -499,12 +499,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       position: { x: -27.0, z: 27.3 },
       orientationRadians: Math.PI * 0.35,
       solidFootprint: { width: 1.2, depth: 1.8 },
-      solidBounds: {
-        minX: -28.07430017161326,
-        maxX: -25.92569982838674,
-        minZ: 26.35680463572139,
-        maxZ: 28.243195364278613,
-      },
+      solidBounds: { minX: -27.6, maxX: -26.4, minZ: 26.4, maxZ: 28.2 },
       kind: 'backyard-lawn-chair',
       visual: { color: 0x6f8aa0, accentColor: 0xd8c7a7, height: 0.64 },
     },
@@ -515,12 +510,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       position: { x: -24.2, z: 27.6 },
       orientationRadians: -Math.PI * 0.25,
       solidFootprint: { width: 1.2, depth: 1.8 },
-      solidBounds: {
-        minX: -25.260660171779822,
-        maxX: -23.139339828220177,
-        minZ: 26.53933982822018,
-        maxZ: 28.660660171779824,
-      },
+      solidBounds: { minX: -24.8, maxX: -23.6, minZ: 26.7, maxZ: 28.5 },
       kind: 'backyard-lawn-chair',
       visual: { color: 0x78966f, accentColor: 0xd8c7a7, height: 0.64 },
     },
@@ -542,7 +532,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       position: { x: 26.7, z: 18.8 },
       orientationRadians: -Math.PI / 2,
       solidFootprint: { width: 1.4, depth: 0.9 },
-      solidBounds: { minX: 26.25, maxX: 27.15, minZ: 18.1, maxZ: 19.5 },
+      solidBounds: { minX: 26.0, maxX: 27.4, minZ: 18.35, maxZ: 19.25 },
       kind: 'backyard-grill',
       visual: { color: 0x2f3740, accentColor: 0xc9d1d6, height: 1.1 },
     },
@@ -1715,38 +1705,38 @@ function createBackyardFurnishing(
       group,
       `${definition.id}:chairSeatFabric`,
       {
-        width: footprint.width * 0.82,
+        width: footprint.width * 0.58,
         height: 0.1,
-        depth: footprint.depth * 0.58,
+        depth: footprint.depth * 0.36,
       },
       primaryMaterial,
-      [0, 0.34, 0.1]
+      [0, 0.34, 0.04]
     );
     addBox(
       group,
       `${definition.id}:chairBackFabric`,
-      { width: footprint.width * 0.82, height: 0.58, depth: 0.1 },
+      { width: footprint.width * 0.58, height: 0.58, depth: 0.08 },
       primaryMaterial,
-      [0, 0.68, footprint.depth * 0.37]
+      [0, 0.68, footprint.depth * 0.22]
     );
-    [-0.36, 0, 0.36].forEach((x, index) => {
+    [-0.24, 0, 0.24].forEach((x, index) => {
       addBox(
         group,
         `${definition.id}:chairSeatSlat${index}`,
-        { width: 0.08, height: 0.08, depth: footprint.depth * 0.54 },
+        { width: 0.08, height: 0.08, depth: footprint.depth * 0.32 },
         accentMaterial,
-        [x, 0.42, 0.08]
+        [x, 0.42, 0.04]
       );
       addBox(
         group,
         `${definition.id}:chairBackSlat${index}`,
         { width: 0.08, height: 0.48, depth: 0.08 },
         accentMaterial,
-        [x, 0.74, footprint.depth * 0.31]
+        [x, 0.74, footprint.depth * 0.2]
       );
     });
-    [-0.46, 0.46].forEach((x, xIndex) => {
-      [-0.55, 0.55].forEach((z, zIndex) => {
+    [-0.28, 0.28].forEach((x, xIndex) => {
+      [-0.42, 0.42].forEach((z, zIndex) => {
         addBox(
           group,
           `${definition.id}:chairLeg${xIndex}-${zIndex}`,
@@ -1792,14 +1782,14 @@ function createBackyardFurnishing(
     addBox(
       group,
       'grillFirebox',
-      { width: 1.15, height: 0.42, depth: 0.62 },
+      { width: 0.8, height: 0.42, depth: 0.62 },
       darkMaterial,
       [0, 0.78, 0]
     );
     addBox(
       group,
       'grillLid',
-      { width: 1.18, height: 0.36, depth: 0.58 },
+      { width: 0.82, height: 0.36, depth: 0.58 },
       primaryMaterial,
       [0, 1.14, 0.03]
     );
@@ -1810,7 +1800,7 @@ function createBackyardFurnishing(
       metalMaterial,
       [0, 1.3, -0.34]
     );
-    [-0.36, 0, 0.36].forEach((x, index) => {
+    [-0.24, 0, 0.24].forEach((x, index) => {
       addBox(
         group,
         `grillGrate${index}`,
@@ -1819,7 +1809,7 @@ function createBackyardFurnishing(
         [x, 1.02, 0]
       );
     });
-    [-0.44, 0.44].forEach((x, index) => {
+    [-0.32, 0.32].forEach((x, index) => {
       addBox(
         group,
         `grillLeg${index}`,
@@ -1840,7 +1830,7 @@ function createBackyardFurnishing(
       'grillSideHandle',
       { width: 0.08, height: 0.08, depth: 0.5 },
       metalMaterial,
-      [0.68, 0.86, 0]
+      [0.4, 0.86, 0]
     );
     return group;
   }
