@@ -83,11 +83,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Review feedback tightened validation and mesh naming without adding miniature proxies.',
+      'Backyard patio furnishings reviewed; immersive-only lower-floor decor remains intentionally unproxied in miniature mode.',
     reason:
-      'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
+      'Outdoor patio furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',

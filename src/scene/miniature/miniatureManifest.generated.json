@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 13,
-      "syncNote": "Review feedback tightened validation and mesh naming without adding miniature proxies.",
-      "sourceFingerprint": "5df5d198774eda1c657978400b32832f31ee6e3c011bae787f0b761f170add3a",
+      "syncRevision": 14,
+      "syncNote": "Backyard patio furnishings reviewed; immersive-only lower-floor decor remains intentionally unproxied in miniature mode.",
+      "sourceFingerprint": "b749b39fe6f60be76823cb8349a676e2ec7c5cd450ed97b8ba2db5d7d480af14",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "66a90d85c5dabdcc456d60f2074f602e47c2587051c3b8bf1f2c0ef4c84841cd"
+      "metadataFingerprint": "adba0e63c15eb5d9d7df4e5fbe8470e1d84eb7612f6dc5e08e0fa2312063284f"
     },
     {
       "id": "environment:backyard",
