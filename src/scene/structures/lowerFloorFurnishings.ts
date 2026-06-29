@@ -492,6 +492,154 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
         allowDecorativeOverlapWithAnySolid: true,
       },
     },
+    {
+      id: 'backyard-lawn-chair-west-a',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -27.0, z: 27.3 },
+      orientationRadians: Math.PI * 0.35,
+      solidFootprint: { width: 1.2, depth: 1.8 },
+      solidBounds: { minX: -27.6, maxX: -26.4, minZ: 26.4, maxZ: 28.2 },
+      kind: 'backyard-lawn-chair',
+      visual: { color: 0x6686a1, accentColor: 0x2f3740, height: 0.72 },
+    },
+    {
+      id: 'backyard-lawn-chair-west-b',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -24.2, z: 27.6 },
+      orientationRadians: -Math.PI * 0.25,
+      solidFootprint: { width: 1.2, depth: 1.8 },
+      solidBounds: { minX: -24.8, maxX: -23.6, minZ: 26.7, maxZ: 28.5 },
+      kind: 'backyard-lawn-chair',
+      visual: { color: 0x6f8a72, accentColor: 0x2f3740, height: 0.72 },
+    },
+    {
+      id: 'backyard-side-table',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -25.6, z: 25.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.0, depth: 1.0 },
+      solidBounds: { minX: -26.1, maxX: -25.1, minZ: 24.7, maxZ: 25.7 },
+      kind: 'backyard-side-table',
+      visual: { color: 0x5d4636, accentColor: 0xa98054, height: 0.52 },
+    },
+    {
+      id: 'backyard-grill',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 26.7, z: 18.8 },
+      orientationRadians: -Math.PI / 2,
+      solidFootprint: { width: 1.4, depth: 0.9 },
+      solidBounds: { minX: 26.0, maxX: 27.4, minZ: 18.35, maxZ: 19.25 },
+      kind: 'backyard-grill',
+      visual: { color: 0x303741, accentColor: 0xb8c0c8, height: 1.05 },
+    },
+    {
+      id: 'backyard-prep-cart',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 24.4, z: 18.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.2, depth: 0.8 },
+      solidBounds: { minX: 23.8, maxX: 25.0, minZ: 18.4, maxZ: 19.2 },
+      kind: 'backyard-prep-cart',
+      visual: { color: 0x4d3a2b, accentColor: 0xb8c0c8, height: 0.86 },
+    },
+    {
+      id: 'backyard-rock-garden-gravel',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 3.5, z: 29.1 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 7.0, depth: 2.1 },
+      decorativeBounds: { minX: 0.0, maxX: 7.0, minZ: 28.05, maxZ: 30.15 },
+      kind: 'backyard-gravel-bed',
+      visual: {
+        color: 0x9a9385,
+        accentColor: 0x6f6a61,
+        decorativeHeight: 0.035,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
+    {
+      id: 'backyard-rock-01',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 1.1, z: 29.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.5, depth: 0.5 },
+      solidBounds: { minX: 0.85, maxX: 1.35, minZ: 28.75, maxZ: 29.25 },
+      kind: 'backyard-rock',
+      visual: { color: 0x78736a, accentColor: 0x5f5a52, height: 0.32 },
+    },
+    {
+      id: 'backyard-rock-02',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 3.5, z: 28.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: 3.15, maxX: 3.85, minZ: 28.25, maxZ: 28.95 },
+      kind: 'backyard-rock',
+      visual: { color: 0x6f6a61, accentColor: 0x555048, height: 0.42 },
+    },
+    {
+      id: 'backyard-rock-03',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 5.9, z: 29.4 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.6, depth: 0.6 },
+      solidBounds: { minX: 5.6, maxX: 6.2, minZ: 29.1, maxZ: 29.7 },
+      kind: 'backyard-rock',
+      visual: { color: 0x817a6f, accentColor: 0x5f5a52, height: 0.36 },
+    },
+    {
+      id: 'backyard-planter-west-south',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -30.2, z: 20.3 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -30.55, maxX: -29.85, minZ: 19.95, maxZ: 20.65 },
+      kind: 'backyard-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x5f8f48, height: 1.1 },
+    },
+    {
+      id: 'backyard-planter-west-north',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -30.1, z: 29.7 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -30.45, maxX: -29.75, minZ: 29.35, maxZ: 30.05 },
+      kind: 'backyard-potted-plant',
+      visual: { color: 0x7a5134, accentColor: 0x6e9b58, height: 1.1 },
+    },
+    {
+      id: 'backyard-planter-east-south',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 30.1, z: 21.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: 29.75, maxX: 30.45, minZ: 21.15, maxZ: 21.85 },
+      kind: 'backyard-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x5f8f48, height: 1.1 },
+    },
+    {
+      id: 'backyard-planter-east-north',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 30.0, z: 29.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: 29.65, maxX: 30.35, minZ: 29.15, maxZ: 29.85 },
+      kind: 'backyard-potted-plant',
+      visual: { color: 0x7a5134, accentColor: 0x6e9b58, height: 1.1 },
+    },
   ];
 
 export function createAabbFromCenterSize(
@@ -714,6 +862,8 @@ function createSolidPrimitive(
     return createKitchenFurnishing(definition);
   if (definition.kind.startsWith('storage-'))
     return createStorageFurnishing(definition);
+  if (definition.kind.startsWith('backyard-'))
+    return createBackyardFurnishing(definition);
 
   const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.height ?? 0.8;
@@ -1534,6 +1684,249 @@ function createStorageFurnishing(
   return group;
 }
 
+function createBackyardFurnishing(
+  definition: LowerFloorFurnishingDefinition
+): Group {
+  const footprint = definition.solidFootprint ?? { width: 1, depth: 1 };
+  const height = definition.visual?.height ?? 0.8;
+  const primaryMaterial = createMaterial(definition.visual?.color ?? 0x6686a1);
+  const accentMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x2f3740
+  );
+  const darkMaterial = createMaterial(0x242424);
+  const leafMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x5f8f48
+  );
+  const group = new Group();
+
+  if (definition.kind === 'backyard-lawn-chair') {
+    addBox(
+      group,
+      `${definition.id}:chairSeatFrame`,
+      { width: 1.05, height: 0.14, depth: 0.86 },
+      primaryMaterial,
+      [0, 0.32, -0.12]
+    );
+    addBox(
+      group,
+      `${definition.id}:chairBackFrame`,
+      { width: 1.05, height: 0.76, depth: 0.12 },
+      primaryMaterial,
+      [0, 0.72, 0.48]
+    );
+    [-0.36, 0, 0.36].forEach((x, index) => {
+      addBox(
+        group,
+        `${definition.id}:seatSlat${index}`,
+        { width: 0.18, height: 0.06, depth: 0.92 },
+        accentMaterial,
+        [x, 0.42, -0.12]
+      );
+      addBox(
+        group,
+        `${definition.id}:backSlat${index}`,
+        { width: 0.16, height: 0.56, depth: 0.06 },
+        accentMaterial,
+        [x, 0.76, 0.39]
+      );
+    });
+    [-0.42, 0.42].forEach((x, xIndex) => {
+      [-0.48, 0.42].forEach((z, zIndex) => {
+        addBox(
+          group,
+          `${definition.id}:chairFoot${xIndex}-${zIndex}`,
+          { width: 0.12, height: 0.22, depth: 0.12 },
+          darkMaterial,
+          [x, 0.11, z]
+        );
+      });
+    });
+    return group;
+  }
+
+  if (definition.kind === 'backyard-side-table') {
+    addBox(
+      group,
+      'patioTableTop',
+      { width: 0.92, height: 0.12, depth: 0.92 },
+      primaryMaterial,
+      [0, height, 0]
+    );
+    addBox(
+      group,
+      'patioTableTrim',
+      { width: 1.0, height: 0.08, depth: 1.0 },
+      accentMaterial,
+      [0, height - 0.08, 0]
+    );
+    addTableLegs(group, accentMaterial, 0.34, 0.34, height - 0.08);
+    return group;
+  }
+
+  if (definition.kind === 'backyard-grill') {
+    addBox(
+      group,
+      'grillFirebox',
+      { width: footprint.width, height: 0.48, depth: footprint.depth },
+      primaryMaterial,
+      [0, 0.62, 0]
+    );
+    addBox(
+      group,
+      'grillLid',
+      { width: footprint.width * 0.92, height: 0.32, depth: footprint.depth },
+      primaryMaterial,
+      [0, 0.98, 0.03]
+    );
+    addBox(
+      group,
+      'grillHandle',
+      { width: 0.92, height: 0.08, depth: 0.08 },
+      accentMaterial,
+      [0, 1.08, -footprint.depth / 2 - 0.08]
+    );
+    [-0.36, 0, 0.36].forEach((x, index) => {
+      addBox(
+        group,
+        `grillGrate${index}`,
+        { width: 0.06, height: 0.035, depth: footprint.depth * 0.72 },
+        accentMaterial,
+        [x, 0.88, -0.02]
+      );
+    });
+    addBox(
+      group,
+      'grillSideHandle',
+      { width: 0.1, height: 0.08, depth: 0.62 },
+      accentMaterial,
+      [footprint.width / 2 + 0.08, 0.72, 0]
+    );
+    addTableLegs(group, darkMaterial, 0.46, 0.25, 0.62);
+    addWheelPair(group, darkMaterial, 0.45, footprint.depth / 2 + 0.02);
+    return group;
+  }
+
+  if (definition.kind === 'backyard-prep-cart') {
+    addBox(
+      group,
+      'prepCartTopShelf',
+      { width: footprint.width, height: 0.12, depth: footprint.depth },
+      primaryMaterial,
+      [0, height, 0]
+    );
+    addBox(
+      group,
+      'prepCartLowerShelf',
+      {
+        width: footprint.width * 0.9,
+        height: 0.1,
+        depth: footprint.depth * 0.85,
+      },
+      accentMaterial,
+      [0, 0.34, 0]
+    );
+    addBox(
+      group,
+      'prepCartHandle',
+      { width: 0.1, height: 0.08, depth: footprint.depth * 0.82 },
+      accentMaterial,
+      [footprint.width / 2 + 0.08, height * 0.78, 0]
+    );
+    addTableLegs(group, accentMaterial, 0.44, 0.24, height);
+    addWheelPair(group, darkMaterial, 0.45, footprint.depth / 2 + 0.02);
+    return group;
+  }
+
+  if (definition.kind === 'backyard-rock') {
+    const rock = new Mesh(
+      new CylinderGeometry(
+        footprint.width * 0.46,
+        footprint.width * 0.38,
+        height,
+        7
+      ),
+      primaryMaterial
+    );
+    rock.name = `FurnishingPart:${definition.id}:lowPolyBoulder`;
+    rock.position.y = height / 2;
+    group.add(rock);
+    addBox(
+      group,
+      `${definition.id}:rockFacet`,
+      { width: footprint.width * 0.38, height: height * 0.2, depth: 0.05 },
+      accentMaterial,
+      [footprint.width * 0.08, height * 0.72, -footprint.depth * 0.28]
+    );
+    return group;
+  }
+
+  if (definition.kind === 'backyard-potted-plant') {
+    addBox(
+      group,
+      `${definition.id}:potBase`,
+      { width: 0.46, height: 0.36, depth: 0.46 },
+      primaryMaterial,
+      [0, 0.18, 0]
+    );
+    addBox(
+      group,
+      `${definition.id}:potRim`,
+      { width: 0.58, height: 0.08, depth: 0.58 },
+      primaryMaterial,
+      [0, 0.4, 0]
+    );
+    addBox(
+      group,
+      `${definition.id}:stem`,
+      { width: 0.08, height: 0.58, depth: 0.08 },
+      accentMaterial,
+      [0, 0.72, 0]
+    );
+    addPlantLeaves(group, leafMaterial, 0.5, 1.02, definition.id);
+    return group;
+  }
+
+  return group;
+}
+
+function addTableLegs(
+  group: Group,
+  material: MeshStandardMaterial,
+  xOffset: number,
+  zOffset: number,
+  height: number
+): void {
+  [-xOffset, xOffset].forEach((x, xIndex) => {
+    [-zOffset, zOffset].forEach((z, zIndex) => {
+      addBox(
+        group,
+        `tableLeg${xIndex}-${zIndex}`,
+        { width: 0.08, height, depth: 0.08 },
+        material,
+        [x, height / 2, z]
+      );
+    });
+  });
+}
+
+function addWheelPair(
+  group: Group,
+  material: MeshStandardMaterial,
+  xOffset: number,
+  z: number
+): void {
+  [-xOffset, xOffset].forEach((x, index) => {
+    const wheel = new Mesh(
+      new CylinderGeometry(0.11, 0.11, 0.08, 12),
+      material
+    );
+    wheel.name = `FurnishingPart:wheel${index}`;
+    wheel.rotation.z = Math.PI / 2;
+    wheel.position.set(x, 0.12, z);
+    group.add(wheel);
+  });
+}
+
 function addBookRows(
   group: Group,
   width: number,
@@ -1706,20 +2099,47 @@ function createVisualDetailPrimitive(
 
 function createDecorativePrimitive(
   definition: LowerFloorFurnishingDefinition
-): Mesh {
+): Group {
   const footprint = definition.decorativeFootprint ?? { width: 1, depth: 1 };
   const height = definition.visual?.decorativeHeight ?? 0.035;
   const material = new MeshStandardMaterial({
     color: definition.visual?.color ?? 0x56616f,
     roughness: 0.85,
   });
+  const group = new Group();
   const mesh = new Mesh(
     new BoxGeometry(footprint.width, height, footprint.depth),
     material
   );
   mesh.name = `Furnishing:${definition.id}:decorativeFootprint`;
   mesh.position.y = height / 2;
-  return mesh;
+  group.add(mesh);
+
+  if (definition.kind === 'backyard-gravel-bed') {
+    const stoneMaterial = createMaterial(
+      definition.visual?.accentColor ?? 0x6f6a61
+    );
+    const stonePositions: Array<[number, number, number, number, number]> = [
+      [-2.7, height + 0.018, -0.62, 0.28, 0.12],
+      [-1.8, height + 0.02, 0.34, 0.18, 0.1],
+      [-0.9, height + 0.018, -0.15, 0.22, 0.11],
+      [0.25, height + 0.02, 0.52, 0.16, 0.09],
+      [1.2, height + 0.018, -0.48, 0.24, 0.11],
+      [2.35, height + 0.02, 0.18, 0.2, 0.1],
+      [2.9, height + 0.018, -0.72, 0.16, 0.08],
+    ];
+    stonePositions.forEach(([x, y, z, width, depth], index) => {
+      addBox(
+        group,
+        `gravelStone${index}`,
+        { width, height: 0.035, depth },
+        stoneMaterial,
+        [x, y, z]
+      );
+    });
+  }
+
+  return group;
 }
 
 function createRotatedAabb(
