@@ -294,6 +294,105 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       kind: 'plant-stool',
       visual: { color: 0x6a4a32, accentColor: 0x6e9b58, height: 1.05 },
     },
+
+    {
+      id: 'living-room-tv-pothos-left',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: -29.8, z: -24.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -30.15, maxX: -29.45, minZ: -25.15, maxZ: -24.45 },
+      kind: 'trailing-pothos-plant',
+      visual: { color: 0x7a5134, accentColor: 0x4f9a58, height: 1.05 },
+    },
+    {
+      id: 'living-room-corner-fig',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: 30.2, z: -29.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.0, depth: 1.0 },
+      solidBounds: { minX: 29.7, maxX: 30.7, minZ: -30.0, maxZ: -29.0 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x4f8f4f, height: 1.85 },
+    },
+    {
+      id: 'living-room-reading-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: -23.1, z: -12.7 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.65, depth: 0.65 },
+      solidBounds: {
+        minX: -23.425,
+        maxX: -22.775,
+        minZ: -13.025,
+        maxZ: -12.375,
+      },
+      kind: 'fern-plant',
+      visual: { color: 0x9b6a3f, accentColor: 0x5f9b63, height: 0.88 },
+    },
+    {
+      id: 'living-room-floor-cushion-west',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -20.4, z: -15.4 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      solidBounds: { minX: -20.85, maxX: -19.95, minZ: -15.85, maxZ: -14.95 },
+      kind: 'floor-cushion',
+      visual: { color: 0x8f6f7d, accentColor: 0xd6c3a3, height: 0.28 },
+    },
+    {
+      id: 'living-room-round-pouf',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -18.4, z: -17.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      solidBounds: { minX: -18.85, maxX: -17.95, minZ: -17.45, maxZ: -16.55 },
+      kind: 'round-pouf',
+      visual: { color: 0x6f8aa0, accentColor: 0xd8c7a7, height: 0.36 },
+    },
+    {
+      id: 'living-room-slim-entry-console',
+      category: 'storage',
+      roomId: 'livingRoom',
+      position: { x: 3.2, z: -13.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 2.6, depth: 0.7 },
+      solidBounds: { minX: 1.9, maxX: 4.5, minZ: -13.35, maxZ: -12.65 },
+      kind: 'storage-slim-entry-console',
+      visual: { color: 0x4b5563, accentColor: 0xc4955a, height: 0.82 },
+    },
+    {
+      id: 'living-room-wall-art-south-triptych',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: 12.0, z: -31.85 },
+      orientationRadians: 0,
+      kind: 'wall-art-triptych-detail',
+      visual: { color: 0x304455, accentColor: 0xcaa66a, height: 1.45 },
+    },
+    {
+      id: 'living-room-console-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'livingRoom',
+      position: { x: -1.3, z: -31.1 },
+      orientationRadians: 0,
+      kind: 'tabletop-plant-detail',
+      visual: { color: 0xb7834f, accentColor: 0x6e9b58, height: 1.0 },
+    },
+    {
+      id: 'living-room-coffee-table-bowl',
+      category: 'living-room-seating',
+      roomId: 'livingRoom',
+      position: { x: -22.5, z: -18.4 },
+      orientationRadians: 0,
+      kind: 'tabletop-bowl-detail',
+      visual: { color: 0xcaa66a, accentColor: 0x40566a, height: 0.55 },
+    },
     {
       id: 'kitchen-herb-planter',
       category: 'plants-lighting-decor',
@@ -413,6 +512,94 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
     },
 
     {
+      id: 'kitchen-breakfast-table',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -7.1, z: -5.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.6, depth: 1.2 },
+      solidBounds: { minX: -7.9, maxX: -6.3, minZ: -6.4, maxZ: -5.2 },
+      kind: 'kitchen-breakfast-table',
+      visual: { color: 0x6b4a33, accentColor: 0xd0bea2, height: 0.74 },
+    },
+    {
+      id: 'kitchen-breakfast-stool-a',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -9.0, z: -5.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.6, depth: 0.6 },
+      solidBounds: { minX: -9.3, maxX: -8.7, minZ: -6.1, maxZ: -5.5 },
+      kind: 'kitchen-bar-stool',
+      visual: { color: 0x2f3740, accentColor: 0xc28d52, height: 0.62 },
+    },
+    {
+      id: 'kitchen-breakfast-stool-b',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -5.5, z: -5.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.6, depth: 0.6 },
+      solidBounds: { minX: -5.8, maxX: -5.2, minZ: -6.1, maxZ: -5.5 },
+      kind: 'kitchen-bar-stool',
+      visual: { color: 0x2f3740, accentColor: 0xc28d52, height: 0.62 },
+    },
+    {
+      id: 'kitchen-round-plant-stand',
+      category: 'plants-lighting-decor',
+      roomId: 'kitchen',
+      position: { x: -7.0, z: 13.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: -7.35, maxX: -6.65, minZ: 13.15, maxZ: 13.85 },
+      kind: 'plant-stool',
+      visual: { color: 0x6a4a32, accentColor: 0x6f9f5d, height: 1.0 },
+    },
+    {
+      id: 'kitchen-tall-pantry-south',
+      category: 'storage',
+      roomId: 'kitchen',
+      position: { x: -29.2, z: -6.9 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.1, depth: 1.4 },
+      solidBounds: { minX: -29.75, maxX: -28.65, minZ: -7.6, maxZ: -6.2 },
+      kind: 'storage-tall-pantry',
+      visual: { color: 0x536171, accentColor: 0xd8ccb8, height: 2.05 },
+    },
+    {
+      id: 'kitchen-runner-rug',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -21.0, z: 9.3 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 5.5, depth: 1.6 },
+      decorativeBounds: { minX: -23.75, maxX: -18.25, minZ: 8.5, maxZ: 10.1 },
+      kind: 'kitchen-runner-rug',
+      visual: {
+        color: 0x42546a,
+        accentColor: 0xd6c3a3,
+        decorativeHeight: 0.025,
+      },
+    },
+    {
+      id: 'kitchen-wall-spice-rack',
+      category: 'kitchenette',
+      roomId: 'kitchen',
+      position: { x: -31.0, z: 1.2 },
+      orientationRadians: Math.PI / 2,
+      kind: 'wall-spice-rack-detail',
+      visual: { color: 0x5d4330, accentColor: 0xc29249, height: 1.45 },
+    },
+    {
+      id: 'kitchen-counter-herb-cluster',
+      category: 'plants-lighting-decor',
+      roomId: 'kitchen',
+      position: { x: -13.8, z: 10.9 },
+      orientationRadians: 0,
+      kind: 'counter-herb-cluster-detail',
+      visual: { color: 0xb7834f, accentColor: 0x6f9f5d, height: 1.12 },
+    },
+    {
       id: 'living-room-south-bookcase-west',
       category: 'storage',
       roomId: 'livingRoom',
@@ -503,6 +690,75 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
     },
 
     {
+      id: 'studio-paper-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'studio',
+      position: { x: 21.0, z: 8.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      solidBounds: { minX: 20.725, maxX: 21.275, minZ: 7.725, maxZ: 8.275 },
+      kind: 'floor-lamp',
+      visual: { color: 0xd8ccb8, accentColor: 0xffd48a, height: 1.55 },
+    },
+    {
+      id: 'studio-narrow-plant-east',
+      category: 'plants-lighting-decor',
+      roomId: 'studio',
+      position: { x: 30.5, z: 7.4 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      solidBounds: { minX: 30.15, maxX: 30.85, minZ: 7.05, maxZ: 7.75 },
+      kind: 'snake-plant',
+      visual: { color: 0x7a5134, accentColor: 0x5f8f48, height: 1.35 },
+    },
+    {
+      id: 'studio-round-side-table',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 21.2, z: 10.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      solidBounds: { minX: 20.8, maxX: 21.6, minZ: 9.6, maxZ: 10.4 },
+      kind: 'side-table',
+      visual: { color: 0x75513a, accentColor: 0x221d1a, height: 0.55 },
+    },
+    {
+      id: 'studio-low-storage-bench',
+      category: 'storage',
+      roomId: 'studio',
+      position: { x: 6.0, z: -6.9 },
+      orientationRadians: 0,
+      solidFootprint: { width: 3.2, depth: 0.8 },
+      solidBounds: { minX: 4.4, maxX: 7.6, minZ: -7.3, maxZ: -6.5 },
+      kind: 'storage-low-bench',
+      visual: { color: 0x536171, accentColor: 0xd8c7a7, height: 0.48 },
+    },
+    {
+      id: 'studio-woven-rug',
+      category: 'sleeping-nook',
+      roomId: 'studio',
+      position: { x: 24.4, z: 8.8 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 5.4, depth: 3.6 },
+      decorativeBounds: { minX: 21.7, maxX: 27.1, minZ: 7.0, maxZ: 10.6 },
+      kind: 'studio-woven-rug',
+      visual: {
+        color: 0x8f7658,
+        accentColor: 0xd8ccb8,
+        decorativeHeight: 0.025,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
+    {
+      id: 'studio-hanging-plant-east',
+      category: 'plants-lighting-decor',
+      roomId: 'studio',
+      position: { x: 31.5, z: 10.8 },
+      orientationRadians: Math.PI / 2,
+      kind: 'hanging-plant-detail',
+      visual: { color: 0xb7834f, accentColor: 0x6e9b58, height: 1.75 },
+    },
+    {
       id: 'studio-daybed',
       category: 'sleeping-nook',
       roomId: 'studio',
@@ -578,6 +834,80 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
         allowDecorativeOverlapWithSolid: true,
         allowDecorativeOverlapWithAnySolid: true,
       },
+    },
+
+    {
+      id: 'backyard-birdbath',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 8.5, z: 20.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.1, depth: 1.1 },
+      solidBounds: { minX: 7.95, maxX: 9.05, minZ: 19.45, maxZ: 20.55 },
+      kind: 'birdbath',
+      visual: { color: 0x9aa8b7, accentColor: 0x73a8bc, height: 0.88 },
+    },
+    {
+      id: 'backyard-herb-trough-north',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -5.5, z: 30.85 },
+      orientationRadians: 0,
+      solidFootprint: { width: 3.0, depth: 0.6 },
+      solidBounds: { minX: -7.0, maxX: -4.0, minZ: 30.55, maxZ: 31.15 },
+      kind: 'herb-trough-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x6f9f5d, height: 0.72 },
+    },
+    {
+      id: 'backyard-flower-cluster-sw',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -28.0, z: 18.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      solidBounds: { minX: -28.45, maxX: -27.55, minZ: 17.75, maxZ: 18.65 },
+      kind: 'flower-cluster-plant',
+      visual: { color: 0x8a5a36, accentColor: 0xd66b8a, height: 0.85 },
+    },
+    {
+      id: 'backyard-patio-umbrella-base',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -22.0, z: 25.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      solidBounds: { minX: -22.45, maxX: -21.55, minZ: 24.55, maxZ: 25.45 },
+      kind: 'patio-umbrella-base',
+      visual: { color: 0x303741, accentColor: 0xd8c7a7, height: 2.8 },
+    },
+    {
+      id: 'backyard-garden-stool',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 21.2, z: 28.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      solidBounds: { minX: 20.8, maxX: 21.6, minZ: 28.1, maxZ: 28.9 },
+      kind: 'garden-stool',
+      visual: { color: 0x6f8aa0, accentColor: 0xd8c7a7, height: 0.62 },
+    },
+    {
+      id: 'backyard-string-lights',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: 25.4, z: 20.2 },
+      orientationRadians: 0,
+      kind: 'string-lights-detail',
+      visual: { color: 0x2f3740, accentColor: 0xffd48a, height: 2.4 },
+    },
+    {
+      id: 'backyard-watering-can',
+      category: 'backyard',
+      roomId: 'backyard',
+      position: { x: -29.55, z: 20.3 },
+      orientationRadians: 0,
+      kind: 'watering-can-detail',
+      visual: { color: 0x6f8aa0, accentColor: 0xc9d1d6, height: 0.45 },
     },
     {
       id: 'backyard-lawn-chair-west-a',
@@ -2278,6 +2608,134 @@ function createVisualDetailPrimitive(
         [x, 1.58, 0]
       );
     });
+    return group;
+  }
+
+  if (definition.kind === 'wall-art-triptych-detail') {
+    [-0.48, 0, 0.48].forEach((x, index) => {
+      addBox(
+        group,
+        `wallArtPanel${index}`,
+        { width: 0.34, height: 0.72, depth: 0.04 },
+        index === 1 ? accentMaterial : baseMaterial,
+        [x, 1.45, 0]
+      );
+    });
+    return group;
+  }
+
+  if (
+    definition.kind === 'tabletop-plant-detail' ||
+    definition.kind === 'counter-herb-cluster-detail' ||
+    definition.kind === 'hanging-plant-detail'
+  ) {
+    const baseY = definition.kind === 'hanging-plant-detail' ? 1.45 : 0.92;
+    addBox(
+      group,
+      'detailPlantPot',
+      { width: 0.22, height: 0.18, depth: 0.22 },
+      baseMaterial,
+      [0, baseY, 0]
+    );
+    [-0.12, 0, 0.12].forEach((x, index) => {
+      addBox(
+        group,
+        `detailPlantStem${index}`,
+        { width: 0.035, height: 0.28, depth: 0.035 },
+        accentMaterial,
+        [x, baseY + 0.22, 0]
+      );
+      addBox(
+        group,
+        `detailPlantLeaf${index}`,
+        { width: 0.18, height: 0.07, depth: 0.14 },
+        accentMaterial,
+        [x, baseY + 0.38, 0]
+      );
+    });
+    return group;
+  }
+
+  if (definition.kind === 'tabletop-bowl-detail') {
+    addBox(
+      group,
+      'coffeeTableBowl',
+      { width: 0.42, height: 0.12, depth: 0.28 },
+      baseMaterial,
+      [0, 0.66, 0]
+    );
+    addBox(
+      group,
+      'coffeeTableBowlAccent',
+      { width: 0.24, height: 0.05, depth: 0.14 },
+      accentMaterial,
+      [0, 0.75, 0]
+    );
+    return group;
+  }
+
+  if (definition.kind === 'wall-spice-rack-detail') {
+    addBox(
+      group,
+      'spiceRackRail',
+      { width: 0.72, height: 0.08, depth: 0.08 },
+      baseMaterial,
+      [0, 1.34, 0]
+    );
+    [-0.24, 0, 0.24].forEach((x, index) => {
+      addBox(
+        group,
+        `spiceJar${index}`,
+        { width: 0.12, height: 0.22, depth: 0.12 },
+        accentMaterial,
+        [x, 1.5, 0]
+      );
+    });
+    return group;
+  }
+
+  if (definition.kind === 'string-lights-detail') {
+    [-1.2, -0.6, 0, 0.6, 1.2].forEach((x, index) => {
+      addBox(
+        group,
+        `stringLightCord${index}`,
+        { width: 0.55, height: 0.035, depth: 0.035 },
+        baseMaterial,
+        [x, 2.35, 0]
+      );
+      addBox(
+        group,
+        `stringLightBulb${index}`,
+        { width: 0.12, height: 0.16, depth: 0.12 },
+        accentMaterial,
+        [x, 2.22, 0]
+      );
+    });
+    return group;
+  }
+
+  if (definition.kind === 'watering-can-detail') {
+    addBox(
+      group,
+      'wateringCanBody',
+      { width: 0.36, height: 0.22, depth: 0.22 },
+      baseMaterial,
+      [0, 0.24, 0]
+    );
+    addBox(
+      group,
+      'wateringCanSpout',
+      { width: 0.28, height: 0.06, depth: 0.06 },
+      accentMaterial,
+      [0.28, 0.3, 0]
+    );
+    addBox(
+      group,
+      'wateringCanHandle',
+      { width: 0.06, height: 0.28, depth: 0.06 },
+      accentMaterial,
+      [-0.22, 0.32, 0]
+    );
     return group;
   }
 

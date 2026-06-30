@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 22,
-      "syncNote": "Token.place blocker follows the northwest living-room reflow; furniture proxy coverage remains deferred.",
-      "sourceFingerprint": "a3f165013a9d62ae42a1c307a24868039651b54c2b1d17456779a0472773f5d1",
+      "syncRevision": 23,
+      "syncNote": "Dense lower-floor decor pass remains source-only while furniture proxy coverage stays deferred.",
+      "sourceFingerprint": "e02b22ab53c60973f5a621e9adfcf328103d645d93d608bc92298a813b9c161f",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "bfacc20cac438c1571348ff2cfa544952e5c09c30c81a52c28b12f96f182683b"
+      "metadataFingerprint": "acd19f9e68ed778d50f12a01dbf3a402e4c909a5d2a5b792e2bde024f025b0cd"
     },
     {
       "id": "environment:backyard",
