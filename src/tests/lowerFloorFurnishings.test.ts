@@ -87,8 +87,8 @@ describe('lower floor furnishings foundation', () => {
     const build = createLowerFloorFurnishings();
 
     expect(build.group.name).toBe('LowerFloorFurnishings');
-    expect(build.colliders).toHaveLength(39);
-    expect(build.decorativeFootprints).toHaveLength(3);
+    expect(build.colliders).toHaveLength(59);
+    expect(build.decorativeFootprints).toHaveLength(5);
     expect(DEFAULT_LOWER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
       'living-room-media-sofa',
       'living-room-coffee-table',
@@ -100,6 +100,15 @@ describe('lower floor furnishings foundation', () => {
       'living-room-plant-stool',
       'kitchen-herb-planter',
       'kitchen-pendant-lights',
+      'living-room-tv-pothos-left',
+      'living-room-corner-fig',
+      'living-room-reading-plant',
+      'living-room-floor-cushion-west',
+      'living-room-round-pouf',
+      'living-room-slim-entry-console',
+      'living-room-wall-art-south-triptych',
+      'living-room-console-plant',
+      'living-room-coffee-table-bowl',
       'kitchen-west-counter-run',
       'kitchen-fridge',
       'kitchen-sink-cabinet',
@@ -108,6 +117,14 @@ describe('lower floor furnishings foundation', () => {
       'kitchen-bar-stool-west',
       'kitchen-bar-stool-east',
       'kitchen-trash-drawer',
+      'kitchen-breakfast-table',
+      'kitchen-breakfast-stool-a',
+      'kitchen-breakfast-stool-b',
+      'kitchen-round-plant-stand',
+      'kitchen-tall-pantry-south',
+      'kitchen-runner-rug',
+      'kitchen-wall-spice-rack',
+      'kitchen-counter-herb-cluster',
       'living-room-south-bookcase-west',
       'living-room-south-open-shelf',
       'living-room-drawer-console',
@@ -116,11 +133,17 @@ describe('lower floor furnishings foundation', () => {
       'studio-east-dresser',
       'studio-floor-lamp',
       'studio-monstera',
+      'studio-paper-lamp',
+      'studio-narrow-plant-east',
       'studio-daybed',
       'studio-nightstand-south',
       'studio-nightstand-north',
       'studio-reading-chair',
       'studio-bedside-rug',
+      'studio-round-side-table',
+      'studio-low-storage-bench',
+      'studio-woven-rug',
+      'studio-hanging-plant-east',
       'living-room-media-rug',
       'backyard-lawn-chair-west-a',
       'backyard-lawn-chair-west-b',
@@ -131,6 +154,13 @@ describe('lower floor furnishings foundation', () => {
       'backyard-rock-01',
       'backyard-rock-02',
       'backyard-rock-03',
+      'backyard-birdbath',
+      'backyard-herb-trough-north',
+      'backyard-flower-cluster-sw',
+      'backyard-patio-umbrella-base',
+      'backyard-garden-stool',
+      'backyard-string-lights',
+      'backyard-watering-can',
       'backyard-planter-west-south',
       'backyard-planter-west-north',
       'backyard-planter-east-south',
@@ -911,8 +941,7 @@ describe('lower floor furnishings foundation', () => {
     );
 
     kitchenDefinitions.forEach((definition) => {
-      if (definition.id === 'kitchen-stove-cabinet') {
-        expect(definition.solidFootprint).toBeUndefined();
+      if (!definition.solidFootprint) {
         expect(definition.solidBounds).toBeUndefined();
         return;
       }
@@ -1471,6 +1500,173 @@ describe('upper floor furnishings foundation', () => {
           blocker.maxZ > -32
       )
     ).toBe(false);
+  });
+
+  it('adds dense downstairs decor pass solids and non-blocking details', () => {
+    const { colliders, decorativeFootprints, group } =
+      createLowerFloorFurnishings();
+    const expectedSolidBounds: Record<string, RectCollider> = {
+      'living-room-tv-pothos-left': {
+        minX: -30.15,
+        maxX: -29.45,
+        minZ: -25.15,
+        maxZ: -24.45,
+      },
+      'living-room-corner-fig': {
+        minX: 29.7,
+        maxX: 30.7,
+        minZ: -30,
+        maxZ: -29,
+      },
+      'living-room-reading-plant': {
+        minX: -23.425,
+        maxX: -22.775,
+        minZ: -13.025,
+        maxZ: -12.375,
+      },
+      'living-room-floor-cushion-west': {
+        minX: -20.85,
+        maxX: -19.95,
+        minZ: -15.85,
+        maxZ: -14.95,
+      },
+      'living-room-round-pouf': {
+        minX: -18.85,
+        maxX: -17.95,
+        minZ: -17.45,
+        maxZ: -16.55,
+      },
+      'living-room-slim-entry-console': {
+        minX: 1.9,
+        maxX: 4.5,
+        minZ: -13.35,
+        maxZ: -12.65,
+      },
+      'kitchen-breakfast-table': {
+        minX: -7.9,
+        maxX: -6.3,
+        minZ: -6.4,
+        maxZ: -5.2,
+      },
+      'kitchen-breakfast-stool-a': {
+        minX: -9.3,
+        maxX: -8.7,
+        minZ: -6.1,
+        maxZ: -5.5,
+      },
+      'kitchen-breakfast-stool-b': {
+        minX: -5.8,
+        maxX: -5.2,
+        minZ: -6.1,
+        maxZ: -5.5,
+      },
+      'kitchen-round-plant-stand': {
+        minX: -7.35,
+        maxX: -6.65,
+        minZ: 13.15,
+        maxZ: 13.85,
+      },
+      'kitchen-tall-pantry-south': {
+        minX: -29.75,
+        maxX: -28.65,
+        minZ: -7.6,
+        maxZ: -6.2,
+      },
+      'studio-paper-lamp': {
+        minX: 20.725,
+        maxX: 21.275,
+        minZ: 7.725,
+        maxZ: 8.275,
+      },
+      'studio-narrow-plant-east': {
+        minX: 30.15,
+        maxX: 30.85,
+        minZ: 7.05,
+        maxZ: 7.75,
+      },
+      'studio-round-side-table': {
+        minX: 20.8,
+        maxX: 21.6,
+        minZ: 9.6,
+        maxZ: 10.4,
+      },
+      'studio-low-storage-bench': {
+        minX: 4.4,
+        maxX: 7.6,
+        minZ: -7.3,
+        maxZ: -6.5,
+      },
+      'backyard-birdbath': { minX: 7.95, maxX: 9.05, minZ: 19.45, maxZ: 20.55 },
+      'backyard-herb-trough-north': {
+        minX: -7,
+        maxX: -4,
+        minZ: 30.5,
+        maxZ: 31.1,
+      },
+      'backyard-flower-cluster-sw': {
+        minX: -28.45,
+        maxX: -27.55,
+        minZ: 17.75,
+        maxZ: 18.65,
+      },
+      'backyard-patio-umbrella-base': {
+        minX: -22.45,
+        maxX: -21.55,
+        minZ: 24.55,
+        maxZ: 25.45,
+      },
+      'backyard-garden-stool': {
+        minX: 20.8,
+        maxX: 21.6,
+        minZ: 28.1,
+        maxZ: 28.9,
+      },
+    };
+
+    Object.entries(expectedSolidBounds).forEach(([id, bounds]) => {
+      expect(
+        colliders.filter((collider) => collider.furnishingId === id)
+      ).toHaveLength(1);
+      expect(
+        colliders.find((collider) => collider.furnishingId === id)
+      ).toMatchObject(bounds);
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+    });
+
+    ['kitchen-runner-rug', 'studio-woven-rug'].forEach((id) => {
+      expect(
+        decorativeFootprints.some((footprint) => footprint.furnishingId === id)
+      ).toBe(true);
+      expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
+        false
+      );
+    });
+
+    [
+      'living-room-wall-art-south-triptych',
+      'living-room-console-plant',
+      'living-room-coffee-table-bowl',
+      'kitchen-wall-spice-rack',
+      'kitchen-counter-herb-cluster',
+      'studio-hanging-plant-east',
+      'backyard-string-lights',
+      'backyard-watering-can',
+    ].forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
+        false
+      );
+    });
+
+    const plantDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      ({ id, kind }) =>
+        kind.includes('plant') ||
+        kind.includes('herb') ||
+        id.includes('pothos') ||
+        id.includes('fig') ||
+        id.includes('flower')
+    );
+    expect(plantDefinitions.length).toBeGreaterThanOrEqual(10);
   });
 });
 
