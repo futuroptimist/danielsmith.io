@@ -797,6 +797,31 @@ describe('lower floor furnishings foundation', () => {
     expect(leafNames).toContain('FurnishingPart:plantLeafupper0');
   });
 
+  it('anchors backyard flower-cluster leaves above their matching pots', () => {
+    const { group } = createLowerFloorFurnishings();
+    const flowerCluster = group.getObjectByName(
+      'Furnishing:backyard-flower-cluster-sw'
+    );
+
+    expect(flowerCluster).toBeDefined();
+    [-0.22, 0.18, 0].forEach((expectedX, index) => {
+      const expectedZ = index === 2 ? 0.22 : -0.08;
+      const flowerPot = flowerCluster?.getObjectByName(
+        `FurnishingPart:flowerPot${index}`
+      );
+      const flowerLeaf = flowerCluster?.getObjectByName(
+        `FurnishingPart:plantLeafflower${index}0`
+      );
+
+      expect(flowerPot).toBeDefined();
+      expect(flowerLeaf).toBeDefined();
+      expect(flowerPot!.position.x).toBeCloseTo(expectedX);
+      expect(flowerPot!.position.z).toBeCloseTo(expectedZ);
+      expect(flowerLeaf!.position.x).toBeCloseTo(expectedX);
+      expect(flowerLeaf!.position.z).toBeCloseTo(expectedZ);
+    });
+  });
+
   it('validates visual-only details before building visible geometry', () => {
     const baseVisualDetail: LowerFloorFurnishingDefinition = {
       id: 'kitchen-window-herb-detail',
@@ -834,7 +859,10 @@ describe('lower floor furnishings foundation', () => {
       'FurnishingPart:tinyPlantPot-kitchen-counter-herb-cluster'
     );
     const stringLightBulb = group.getObjectByName(
-      'FurnishingPart:stringLightBulb0'
+      'FurnishingPart:backyard-string-lights:stringLightBulb0'
+    );
+    const stringLightCord = group.getObjectByName(
+      'FurnishingPart:backyard-string-lights:stringLightCord0'
     );
     const herbDefinition = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
       (definition) => definition.id === 'kitchen-counter-herb-cluster'
@@ -842,13 +870,16 @@ describe('lower floor furnishings foundation', () => {
 
     expect(herbPot).toBeDefined();
     expect(stringLightBulb).toBeDefined();
+    expect(stringLightCord).toBeDefined();
     expect(herbDefinition?.visual?.color).toBeDefined();
     expect(
-      (herbPot as { material: MeshStandardMaterial }).material.color.getHex()
+      (
+        herbPot as unknown as { material: MeshStandardMaterial }
+      ).material.color.getHex()
     ).toBe(herbDefinition!.visual!.color);
     expect(
-      (stringLightBulb as { material: MeshStandardMaterial }).material
-        .emissiveIntensity
+      (stringLightBulb as unknown as { material: MeshStandardMaterial })
+        .material.emissiveIntensity
     ).toBeGreaterThan(0);
   });
 

@@ -1602,12 +1602,24 @@ function addPlantLeaves(
   y: number,
   namePrefix = 'leaf'
 ): void {
+  addPlantLeavesAt(group, material, spread, y, 0, 0, namePrefix);
+}
+
+function addPlantLeavesAt(
+  group: Group,
+  material: MeshStandardMaterial,
+  spread: number,
+  y: number,
+  xOffset: number,
+  zOffset: number,
+  namePrefix = 'leaf'
+): void {
   const leafPositions: Array<[number, number, number]> = [
-    [0, y, 0],
-    [-spread * 0.35, y + 0.12, 0.08],
-    [spread * 0.35, y + 0.08, -0.08],
-    [0.08, y + 0.18, spread * 0.32],
-    [-0.06, y + 0.16, -spread * 0.32],
+    [xOffset, y, zOffset],
+    [xOffset - spread * 0.35, y + 0.12, zOffset + 0.08],
+    [xOffset + spread * 0.35, y + 0.08, zOffset - 0.08],
+    [xOffset + 0.08, y + 0.18, zOffset + spread * 0.32],
+    [xOffset - 0.06, y + 0.16, zOffset - spread * 0.32],
   ];
   leafPositions.forEach(([x, leafY, z], index) => {
     addBox(
@@ -2434,11 +2446,13 @@ function createBackyardFurnishing(
         primaryMaterial,
         [x, 0.13, z]
       );
-      addPlantLeaves(
+      addPlantLeavesAt(
         group,
         accentMaterial,
         0.28,
         0.42 + index * 0.04,
+        x,
+        z,
         `flower${index}`
       );
     });
@@ -2755,14 +2769,14 @@ function createVisualDetailPrimitive(
       [-1.4, -0.7, 0, 0.7, 1.4].forEach((x, index) => {
         addBox(
           group,
-          `stringLightCord${index}`,
+          `${definition.id}:stringLightCord${index}`,
           { width: 0.62, height: 0.035, depth: 0.035 },
           baseMaterial,
           [x, 0, 0]
         );
         addBox(
           group,
-          `stringLightBulb${index}`,
+          `${definition.id}:stringLightBulb${index}`,
           { width: 0.12, height: 0.12, depth: 0.12 },
           accentMaterial,
           [x, -0.16, 0]

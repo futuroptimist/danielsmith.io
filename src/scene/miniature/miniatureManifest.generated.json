@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 24,
-      "syncNote": "Backyard herb trough placement adjustment remains source-only while furnishing proxy coverage is deferred.",
-      "sourceFingerprint": "a89bae08d35658c2a953222d5d8a3ba9429e306417d3be7bb128858c3f85fb25",
+      "syncRevision": 25,
+      "syncNote": "Backyard flower-cluster visual anchoring remains source-only while furnishing proxy coverage is deferred.",
+      "sourceFingerprint": "9d6c7737a030fd337df6289c1e7a6dac98ff50f8e3cc6255700025d1d7dfd928",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ff0944d9436f5f9b0bac3baaff6439b9cc71e9f7914576b6d4475cc3ccb352ab"
+      "metadataFingerprint": "2f32aa2461eb416621d5c93a9709bd366ed93f73ed07d1fa7fc88e8c0fd6dd82"
     },
     {
       "id": "environment:backyard",
