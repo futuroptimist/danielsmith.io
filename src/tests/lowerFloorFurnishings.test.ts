@@ -11,6 +11,7 @@ import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
+  UPPER_FLOOR_RESERVED_BLOCKERS,
   UPPER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
   createUpperFloorFurnishings,
@@ -135,6 +136,9 @@ describe('lower floor furnishings foundation', () => {
       'backyard-planter-east-south',
       'backyard-planter-east-north',
     ]);
+    expect(build.colliders[0]?.debugName).toBe(
+      'LowerFloorFurnishingCollider:living-room-media-sofa'
+    );
   });
 
   it('adds backyard patio and landscaping AABBs with non-blocking gravel', () => {
@@ -1342,6 +1346,10 @@ describe('upper floor furnishings foundation', () => {
       'upper.furnishings.upper-landing.upper-landing-bench-foundation.generated_collider',
       'upper.furnishings.creators-studio.creators-studio-desk-foundation.generated_collider',
     ]);
+    expect(build.colliders.map(({ debugName }) => debugName)).toEqual([
+      'UpperFloorFurnishingCollider:upper-landing-bench-foundation',
+      'UpperFloorFurnishingCollider:creators-studio-desk-foundation',
+    ]);
     expect(build.group.children.map(({ name }) => name)).toEqual([
       'Furnishing:upper-landing-bench-foundation',
       'Furnishing:creators-studio-desk-foundation',
@@ -1398,6 +1406,72 @@ describe('upper floor furnishings foundation', () => {
       ])
     ).toThrow(/overlaps/);
   });
+
+  it('reserves current upper POI footprints without blocking landing navigation', () => {
+    const upperPoiBlockers = [
+      {
+        label: 'jobbot-studio-terminal',
+        roomId: 'creatorsStudio',
+        position: { x: -16.76, z: -28.8 },
+        expectedBlocker: {
+          minX: -18.4,
+          maxX: -15.1,
+          minZ: -30.4,
+          maxZ: -27.2,
+        },
+      },
+      {
+        label: 'axel-studio-tracker',
+        roomId: 'creatorsStudio',
+        position: { x: -12.42, z: -19.18 },
+        expectedBlocker: {
+          minX: -14.0,
+          maxX: -10.8,
+          minZ: -20.8,
+          maxZ: -17.6,
+        },
+      },
+      {
+        label: 'wove-kitchen-loom',
+        roomId: 'loftLibrary',
+        position: { x: 16.48, z: 4.27 },
+        expectedBlocker: { minX: 14.8, maxX: 18.2, minZ: 2.6, maxZ: 5.9 },
+      },
+    ] satisfies {
+      label: string;
+      roomId: 'creatorsStudio' | 'loftLibrary';
+      position: { x: number; z: number };
+      expectedBlocker: RectCollider;
+    }[];
+
+    upperPoiBlockers.forEach(({ label, roomId, position, expectedBlocker }) => {
+      expect(UPPER_FLOOR_RESERVED_BLOCKERS).toContainEqual(expectedBlocker);
+      expect(() =>
+        validateUpperFloorFurnishingPlan([
+          {
+            id: `${label}-solid-probe`,
+            category:
+              roomId === 'loftLibrary' ? 'loft-library' : 'creators-studio',
+            roomId,
+            position,
+            orientationRadians: 0,
+            solidFootprint: { width: 0.8, depth: 0.8 },
+            kind: 'poi-probe',
+          },
+        ])
+      ).toThrow(/reserved blocker/);
+    });
+
+    expect(
+      UPPER_FLOOR_RESERVED_BLOCKERS.some(
+        (blocker) =>
+          blocker.minX < 7 &&
+          blocker.maxX > 4 &&
+          blocker.minZ < -24 &&
+          blocker.maxZ > -32
+      )
+    ).toBe(false);
+  });
 });
 
 describe('token.place placement reflow', () => {
@@ -1423,14 +1497,22 @@ describe('token.place placement reflow', () => {
   });
 
   it('keeps the token.place reserved blocker clear of the media seating cluster', () => {
-    expect(rectanglesOverlap(tokenPlaceBounds, sofaMediaCluster)).toBe(false);
+    const tokenPlaceBlocker = LOWER_FLOOR_RESERVED_BLOCKERS.find((blocker) =>
+      isContainedBy(blocker, tokenPlaceBounds)
+    );
+
+    expect(tokenPlaceBlocker).toEqual(tokenPlaceBounds);
+    expect(rectanglesOverlap(tokenPlaceBlocker!, sofaMediaCluster)).toBe(false);
   });
 
   it('keeps token.place clear of current lower-floor solid furnishings', () => {
     const { colliders } = createLowerFloorFurnishings();
+    const tokenPlaceBlocker = LOWER_FLOOR_RESERVED_BLOCKERS.find((blocker) =>
+      isContainedBy(blocker, tokenPlaceBounds)
+    );
 
     colliders.forEach((collider) => {
-      expect(rectanglesOverlap(tokenPlaceBounds, collider)).toBe(false);
+      expect(rectanglesOverlap(tokenPlaceBlocker!, collider)).toBe(false);
     });
   });
 });

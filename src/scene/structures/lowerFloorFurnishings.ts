@@ -185,11 +185,14 @@ export const UPPER_FLOOR_ROOM_BOUNDS: Record<UpperFloorRoomId, RectCollider> = {
 };
 
 export const UPPER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
+  { minX: -18.4, maxX: -15.1, minZ: -30.4, maxZ: -27.2 },
+  { minX: -14.0, maxX: -10.8, minZ: -20.8, maxZ: -17.6 },
+  { minX: 14.8, maxX: 18.2, minZ: 2.6, maxZ: 5.9 },
   { minX: -19.8, maxX: -14.8, minZ: -9.7, maxZ: -4.3 },
   { minX: -19.4, maxX: -14.3, minZ: 14.6, maxZ: 19.9 },
   { minX: -3.3, maxX: 2.1, minZ: 11.5, maxZ: 16.6 },
   { minX: 13.9, maxX: 19.3, minZ: 15.0, maxZ: 20.3 },
-  { minX: 6.4, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
+  { minX: 7.2, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
 ];
 
 export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefinition[] =
