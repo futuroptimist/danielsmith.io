@@ -2405,8 +2405,14 @@ function createBackyardFurnishing(
       primaryMaterial,
       [0, 0.18, 0]
     );
-    for (let index = 0; index < 9; index += 1) {
-      const x = -footprint.width / 2 + 0.28 + index * 0.3;
+    const sproutInset = 0.28;
+    const sproutStep = 0.3;
+    const sproutCount = Math.max(
+      1,
+      Math.floor((footprint.width - sproutInset * 2) / sproutStep) + 1
+    );
+    for (let index = 0; index < sproutCount; index += 1) {
+      const x = -footprint.width / 2 + sproutInset + index * sproutStep;
       addBox(
         group,
         `herbTroughSprout${index}`,
@@ -2564,6 +2570,18 @@ function addTinyPlant(
 ): void {
   const potMaterial = createMaterial(0xc28d52);
   const leafMaterial = createMaterial(0x6e8f5f);
+  addTinyPlantWithMaterials(group, suffix, potMaterial, leafMaterial, x, y, z);
+}
+
+function addTinyPlantWithMaterials(
+  group: Group,
+  suffix: string,
+  potMaterial: MeshStandardMaterial,
+  leafMaterial: MeshStandardMaterial,
+  x: number,
+  y: number,
+  z: number
+): void {
   addBox(
     group,
     `tinyPlantPot-${suffix}`,
@@ -2611,10 +2629,16 @@ function createVisualDetailPrimitive(
   const accentMaterial = createMaterial(
     definition.visual?.accentColor ?? 0x6f9f5d,
     {
-      emissive: definition.kind.includes('pendant')
-        ? (definition.visual?.accentColor ?? 0xffd48a)
-        : 0x000000,
-      emissiveIntensity: definition.kind.includes('pendant') ? 0.35 : 0,
+      emissive:
+        definition.kind.includes('pendant') ||
+        definition.kind.includes('string-lights')
+          ? (definition.visual?.accentColor ?? 0xffd48a)
+          : 0x000000,
+      emissiveIntensity:
+        definition.kind.includes('pendant') ||
+        definition.kind.includes('string-lights')
+          ? 0.35
+          : 0,
     }
   );
 
@@ -2709,7 +2733,15 @@ function createVisualDetailPrimitive(
   if (definition.kind.endsWith('-detail')) {
     const height = definition.visual?.height ?? 0.4;
     if (definition.kind.includes('plant') || definition.kind.includes('herb')) {
-      addTinyPlant(group, definition.id, 0, height * 0.35, 0);
+      addTinyPlantWithMaterials(
+        group,
+        definition.id,
+        baseMaterial,
+        accentMaterial,
+        0,
+        height * 0.35,
+        0
+      );
       addBox(
         group,
         `${definition.id}:extraLeaves`,

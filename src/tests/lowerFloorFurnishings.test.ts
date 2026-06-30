@@ -1,4 +1,4 @@
-import { Box3 } from 'three';
+import { Box3, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -827,6 +827,30 @@ describe('lower floor furnishings foundation', () => {
     ).toThrow(/Unsupported visual-only furnishing kind: herb-planter-detial/);
   });
 
+  it('uses authored colors and glow materials for visual-only details', () => {
+    const { group } = createLowerFloorFurnishings();
+    const herbPot = group.getObjectByName(
+      'FurnishingPart:tinyPlantPot-kitchen-counter-herb-cluster'
+    );
+    const stringLightBulb = group.getObjectByName(
+      'FurnishingPart:stringLightBulb0'
+    );
+    const herbDefinition = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+      (definition) => definition.id === 'kitchen-counter-herb-cluster'
+    );
+
+    expect(herbPot).toBeDefined();
+    expect(stringLightBulb).toBeDefined();
+    expect(herbDefinition?.visual?.color).toBeDefined();
+    expect(
+      (herbPot as { material: MeshStandardMaterial }).material.color.getHex()
+    ).toBe(herbDefinition!.visual!.color);
+    expect(
+      (stringLightBulb as { material: MeshStandardMaterial }).material
+        .emissiveIntensity
+    ).toBeGreaterThan(0);
+  });
+
   it('keeps plants and floor lamps within room bounds and collision exclusions', () => {
     const { colliders } = createLowerFloorFurnishings();
     const decorIds = new Set([
@@ -1126,6 +1150,12 @@ describe('lower floor furnishings foundation', () => {
     );
 
     kitchenDefinitions.forEach((definition) => {
+      if (definition.id === 'kitchen-stove-cabinet') {
+        expect(definition.solidFootprint).toBeUndefined();
+        expect(definition.solidBounds).toBeUndefined();
+        return;
+      }
+
       if (!definition.solidFootprint) {
         expect(definition.solidBounds).toBeUndefined();
         return;
