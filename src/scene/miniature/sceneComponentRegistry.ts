@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 20,
+    syncRevision: 21,
     syncNote:
-      'Floor-agnostic footprint naming, explicit debug labels, and token.place blocker sizing are runtime-only; furniture proxy coverage remains deferred.',
+      'Upper POI reserved blockers only affect authoring validation; furniture proxy coverage remains deferred.',
     reason:
       'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
