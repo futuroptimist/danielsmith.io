@@ -27,7 +27,7 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
     id: 'living-couch-foundation',
     category: 'living-room-seating',
     roomId: 'livingRoom',
-    position: { x: -2, z: -21 },
+    position: { x: -16, z: -21 },
     orientationRadians: 0,
     solidFootprint: { width: 5.2, depth: 1.4 },
     kind: 'couch',
@@ -1184,7 +1184,7 @@ describe('lower floor furnishings foundation', () => {
         id: 'living-overlap-a',
         category: 'living-room-seating',
         roomId: 'livingRoom',
-        position: { x: -2, z: -21 },
+        position: { x: -16, z: -21 },
         orientationRadians: 0,
         solidFootprint: { width: 2, depth: 2 },
         kind: 'couch',
@@ -1194,7 +1194,7 @@ describe('lower floor furnishings foundation', () => {
         id: 'living-overlap-b',
         category: 'living-room-seating',
         roomId: 'livingRoom',
-        position: { x: -1.5, z: -21 },
+        position: { x: -15.5, z: -21 },
         orientationRadians: 0,
         solidFootprint: { width: 2, depth: 2 },
         kind: 'couch',
@@ -1408,10 +1408,10 @@ describe('token.place placement reflow', () => {
     maxZ: -15.2,
   };
   const tokenPlaceBounds: RectCollider = {
-    minX: 0.8,
-    maxX: 3.8,
-    minZ: -23.2,
-    maxZ: -19.2,
+    minX: -0.92,
+    maxX: 4.61,
+    minZ: -23.29,
+    maxZ: -18.98,
   };
 
   it('keeps token.place in the living room at the reflowed workstation spot', () => {

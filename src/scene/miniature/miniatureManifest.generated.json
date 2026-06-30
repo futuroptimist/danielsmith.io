@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 19,
-      "syncNote": "Upper furnishing authoring and token.place blocker changes are runtime-only; furniture proxy coverage remains deferred.",
-      "sourceFingerprint": "ff8a7f3b200e5d9226b61a2456c6fd3a8032ea75ab24a56de3f00aacf6a8f75b",
+      "syncRevision": 20,
+      "syncNote": "Floor-agnostic footprint naming, explicit debug labels, and token.place blocker sizing are runtime-only; furniture proxy coverage remains deferred.",
+      "sourceFingerprint": "9559b589bfdbadc464dfa5da90ca60d70da1c86c1e903e73d0f01796f8e8e74c",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "e7a11a296b209824702958e52193250ceeca2dad94a351fe1a1e63a39af29dbe"
+      "metadataFingerprint": "9a2cd61644c7fc6669ea3141a691d86b905615bddadaa052dd5f5952423ca95a"
     },
     {
       "id": "environment:backyard",

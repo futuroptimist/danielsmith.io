@@ -36,10 +36,12 @@ export type UpperFloorFurnishingCategory =
   | 'focus-pods'
   | 'plants-lighting-decor';
 
-export interface LowerFloorFurnishingFootprint {
+export interface FloorFurnishingFootprint {
   width: number;
   depth: number;
 }
+
+export type LowerFloorFurnishingFootprint = FloorFurnishingFootprint;
 
 export interface FloorFurnishingDefinition<
   Category extends string,
@@ -50,8 +52,8 @@ export interface FloorFurnishingDefinition<
   roomId: RoomId;
   position: { x: number; y?: number; z: number };
   orientationRadians: number;
-  solidFootprint?: LowerFloorFurnishingFootprint;
-  decorativeFootprint?: LowerFloorFurnishingFootprint;
+  solidFootprint?: FloorFurnishingFootprint;
+  decorativeFootprint?: FloorFurnishingFootprint;
   solidBounds?: RectCollider;
   decorativeBounds?: RectCollider;
   kind: string;
@@ -164,7 +166,7 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -22, maxX: -14, minZ: 14.8, maxZ: 17.2 },
   { minX: 11, maxX: 19, minZ: 14.8, maxZ: 17.2 },
   { minX: -32.0, maxX: -30.9, minZ: -23.2, maxZ: -16.8 },
-  { minX: 0.8, maxX: 3.8, minZ: -23.2, maxZ: -19.2 },
+  { minX: -0.92, maxX: 4.61, minZ: -23.29, maxZ: -18.98 },
   { minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
   { minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
   { minX: 26.4, maxX: 31.2, minZ: -24.4, maxZ: -21.2 },
@@ -726,7 +728,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
 
 export function createAabbFromCenterSize(
   center: { x: number; z: number },
-  size: LowerFloorFurnishingFootprint
+  size: FloorFurnishingFootprint
 ): RectCollider {
   return {
     minX: center.x - size.width / 2,
@@ -902,6 +904,7 @@ export function validateUpperFloorFurnishingPlan(
 function createFloorFurnishings<Category extends string, RoomId extends string>(
   floorId: FloorFurnishingFloorId,
   groupName: string,
+  colliderDebugNamePrefix: string,
   definitions: readonly FloorFurnishingDefinition<Category, RoomId>[],
   baseElevation: number
 ): {
@@ -934,7 +937,7 @@ function createFloorFurnishings<Category extends string, RoomId extends string>(
         category: definition.category,
         roomId: definition.roomId,
         sourceId: `${floorId}.furnishings.${definition.category}.${definition.id}.generated_collider`,
-        debugName: `${groupName.slice(0, -1)}Collider:${definition.id}`,
+        debugName: `${colliderDebugNamePrefix}:${definition.id}`,
         floorId,
       });
     }
@@ -972,6 +975,7 @@ export function createLowerFloorFurnishings(
   return createFloorFurnishings(
     'ground',
     'LowerFloorFurnishings',
+    'LowerFloorFurnishingCollider',
     definitions,
     0
   );
@@ -985,6 +989,7 @@ export function createUpperFloorFurnishings(
   return createFloorFurnishings(
     'upper',
     'UpperFloorFurnishings',
+    'UpperFloorFurnishingCollider',
     definitions,
     options.baseElevation ?? 0
   );
@@ -2333,7 +2338,7 @@ function createDecorativePrimitive(
 
 function createRotatedAabb(
   definition: FloorFurnishingDefinition<string, string>,
-  footprint: LowerFloorFurnishingFootprint
+  footprint: FloorFurnishingFootprint
 ): RectCollider {
   if (definition.solidFootprint === footprint && definition.solidBounds) {
     return definition.solidBounds;
