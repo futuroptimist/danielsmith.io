@@ -11,6 +11,7 @@ import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
+  DEFAULT_UPPER_FLOOR_FURNISHINGS,
   UPPER_FLOOR_RESERVED_BLOCKERS,
   UPPER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
@@ -1583,13 +1584,128 @@ describe('upper floor furnishings foundation', () => {
     },
   ];
 
-  it('builds an empty default upper furnishing group', () => {
+  it('builds the default upper furnishing group', () => {
     const build = createUpperFloorFurnishings();
 
     expect(build.group.name).toBe('UpperFloorFurnishings');
-    expect(build.group.children).toHaveLength(0);
-    expect(build.colliders).toEqual([]);
-    expect(build.decorativeFootprints).toEqual([]);
+    expect(build.group.children.map(({ name }) => name)).toEqual(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS.map(({ id }) => `Furnishing:${id}`)
+    );
+    expect(build.colliders).toHaveLength(18);
+    expect(build.decorativeFootprints).toHaveLength(4);
+  });
+
+  it('includes all planned upper furniture IDs with expected solid bounds', () => {
+    const build = createUpperFloorFurnishings();
+    const solidsById = new Map(
+      build.colliders.map((collider) => [collider.furnishingId, collider])
+    );
+    const expectedSolidBounds = {
+      'upper-landing-bench': { minX: 4.7, maxX: 7.7, minZ: -30.9, maxZ: -30.1 },
+      'upper-landing-console': {
+        minX: 19.4,
+        maxX: 20.2,
+        minZ: -25.75,
+        maxZ: -22.25,
+      },
+      'upper-landing-planter': {
+        minX: 19.35,
+        maxX: 20.05,
+        minZ: -18.15,
+        maxZ: -17.45,
+      },
+      'creators-studio-corner-sofa': {
+        minX: -4.8,
+        maxX: -0.8,
+        minZ: -24,
+        maxZ: -22,
+      },
+      'creators-studio-coffee-table': {
+        minX: -3.9,
+        maxX: -1.7,
+        minZ: -20.3,
+        maxZ: -19.3,
+      },
+      'creators-studio-south-bookcase': {
+        minX: -6.2,
+        maxX: -2.2,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'creators-studio-work-cabinet': {
+        minX: 2.4,
+        maxX: 3.2,
+        minZ: -8,
+        maxZ: -4,
+      },
+      'creators-studio-floor-plant': {
+        minX: 2.4,
+        maxX: 3.2,
+        minZ: -1.7,
+        maxZ: -0.9,
+      },
+      'loft-library-sectional': { minX: 5.4, maxX: 9.6, minZ: -13, maxZ: -11 },
+      'loft-library-round-table': {
+        minX: 7.6,
+        maxX: 8.8,
+        minZ: -9.6,
+        maxZ: -8.4,
+      },
+      'loft-library-east-bookcase': {
+        minX: 22.55,
+        maxX: 23.45,
+        minZ: -7,
+        maxZ: -1,
+      },
+      'loft-library-reading-lamp': {
+        minX: 4.725,
+        maxX: 5.275,
+        minZ: -8.275,
+        maxZ: -7.725,
+      },
+      'loft-library-planter': { minX: 22.3, maxX: 23.1, minZ: 9.4, maxZ: 10.2 },
+      'focus-pods-daybed': { minX: 17.8, maxX: 22.2, minZ: 24.4, maxZ: 26.2 },
+      'focus-pods-round-table': {
+        minX: 4.85,
+        maxX: 6.15,
+        minZ: 23.85,
+        maxZ: 25.15,
+      },
+      'focus-pods-north-storage': {
+        minX: 1.5,
+        maxX: 6.5,
+        minZ: 26.8,
+        maxZ: 27.6,
+      },
+      'focus-pods-planter-east': {
+        minX: 22.6,
+        maxX: 23.4,
+        minZ: 20.1,
+        maxZ: 20.9,
+      },
+      'focus-pods-privacy-screen': {
+        minX: -8.25,
+        maxX: -3.75,
+        minZ: 26.75,
+        maxZ: 27.25,
+      },
+    } satisfies Record<string, RectCollider>;
+
+    expect(DEFAULT_UPPER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
+      ...Object.keys(expectedSolidBounds),
+      'upper-landing-runner',
+      'creators-studio-sofa-rug',
+      'loft-library-area-rug',
+      'focus-pods-soft-rug',
+    ]);
+    Object.entries(expectedSolidBounds).forEach(([id, bounds]) => {
+      const solid = solidsById.get(id);
+      expect(solid).toBeDefined();
+      expect(solid?.minX).toBeCloseTo(bounds.minX, 6);
+      expect(solid?.maxX).toBeCloseTo(bounds.maxX, 6);
+      expect(solid?.minZ).toBeCloseTo(bounds.minZ, 6);
+      expect(solid?.maxZ).toBeCloseTo(bounds.maxZ, 6);
+    });
   });
 
   it('declares valid upper room bounds for authoring', () => {
