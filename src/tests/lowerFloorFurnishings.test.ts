@@ -1308,9 +1308,10 @@ describe('lower floor furnishings foundation', () => {
     };
 
     Object.entries(expectedSolidBounds).forEach(([id, expected]) => {
-      expect(
-        colliders.find((collider) => collider.furnishingId === id)
-      ).toMatchObject(expected);
+      expectRectToBeCloseTo(
+        colliders.find((collider) => collider.furnishingId === id)!,
+        expected
+      );
     });
     expect(
       decorativeFootprints.find(
@@ -1583,13 +1584,13 @@ describe('upper floor furnishings foundation', () => {
     },
   ];
 
-  it('builds an empty default upper furnishing group', () => {
+  it('builds the default upstairs furnishing pass', () => {
     const build = createUpperFloorFurnishings();
 
     expect(build.group.name).toBe('UpperFloorFurnishings');
-    expect(build.group.children).toHaveLength(0);
-    expect(build.colliders).toEqual([]);
-    expect(build.decorativeFootprints).toEqual([]);
+    expect(build.group.children).toHaveLength(22);
+    expect(build.colliders).toHaveLength(18);
+    expect(build.decorativeFootprints).toHaveLength(4);
   });
 
   it('declares valid upper room bounds for authoring', () => {
@@ -1602,6 +1603,162 @@ describe('upper floor furnishings foundation', () => {
     Object.values(UPPER_FLOOR_ROOM_BOUNDS).forEach((bounds) => {
       expect(bounds.maxX - bounds.minX).toBeGreaterThan(0);
       expect(bounds.maxZ - bounds.minZ).toBeGreaterThan(0);
+    });
+  });
+
+  it('adds all requested default upstairs furniture with expected AABBs', () => {
+    const { colliders, group } = createUpperFloorFurnishings();
+    const expectedBounds: Record<string, RectCollider> = {
+      'upper-landing-bench': { minX: 4.7, maxX: 7.7, minZ: -30.9, maxZ: -30.1 },
+      'upper-landing-console': {
+        minX: 19.4,
+        maxX: 20.2,
+        minZ: -25.75,
+        maxZ: -22.25,
+      },
+      'upper-landing-planter': {
+        minX: 19.35,
+        maxX: 20.05,
+        minZ: -18.15,
+        maxZ: -17.45,
+      },
+      'creators-studio-corner-sofa': {
+        minX: -4.8,
+        maxX: -0.8,
+        minZ: -24,
+        maxZ: -22,
+      },
+      'creators-studio-coffee-table': {
+        minX: -3.9,
+        maxX: -1.7,
+        minZ: -20.3,
+        maxZ: -19.3,
+      },
+      'creators-studio-south-bookcase': {
+        minX: -6.2,
+        maxX: -2.2,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'creators-studio-work-cabinet': {
+        minX: 2.4,
+        maxX: 3.2,
+        minZ: -8,
+        maxZ: -4,
+      },
+      'creators-studio-floor-plant': {
+        minX: 2.4,
+        maxX: 3.2,
+        minZ: -1.7,
+        maxZ: -0.9,
+      },
+      'loft-library-sectional': { minX: 5.4, maxX: 9.6, minZ: -13, maxZ: -11 },
+      'loft-library-round-table': {
+        minX: 7.6,
+        maxX: 8.8,
+        minZ: -9.6,
+        maxZ: -8.4,
+      },
+      'loft-library-east-bookcase': {
+        minX: 22.55,
+        maxX: 23.45,
+        minZ: -7,
+        maxZ: -1,
+      },
+      'loft-library-reading-lamp': {
+        minX: 4.725,
+        maxX: 5.275,
+        minZ: -8.275,
+        maxZ: -7.725,
+      },
+      'loft-library-planter': { minX: 22.3, maxX: 23.1, minZ: 9.4, maxZ: 10.2 },
+      'focus-pods-daybed': { minX: 17.8, maxX: 22.2, minZ: 24.4, maxZ: 26.2 },
+      'focus-pods-round-table': {
+        minX: 4.85,
+        maxX: 6.15,
+        minZ: 23.85,
+        maxZ: 25.15,
+      },
+      'focus-pods-north-storage': {
+        minX: 1.5,
+        maxX: 6.5,
+        minZ: 26.8,
+        maxZ: 27.6,
+      },
+      'focus-pods-planter-east': {
+        minX: 22.6,
+        maxX: 23.4,
+        minZ: 20.1,
+        maxZ: 20.9,
+      },
+      'focus-pods-privacy-screen': {
+        minX: -8.25,
+        maxX: -3.75,
+        minZ: 26.75,
+        maxZ: 27.25,
+      },
+    };
+
+    Object.entries(expectedBounds).forEach(([id, expected]) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      expectRectToBeCloseTo(
+        colliders.find((collider) => collider.furnishingId === id)!,
+        expected
+      );
+    });
+  });
+
+  it('keeps default upper solids in rooms and clear of solids and blockers', () => {
+    const { colliders } = createUpperFloorFurnishings();
+
+    colliders.forEach((collider, index) => {
+      expect(collider.floorId).toBe('upper');
+      expect(
+        isContainedBy(UPPER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+      ).toBe(true);
+      UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+      colliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+    });
+  });
+
+  it('keeps default upstairs rugs decorative and non-blocking', () => {
+    const { colliders, decorativeFootprints } = createUpperFloorFurnishings();
+    const expectedRugs: Record<string, RectCollider> = {
+      'upper-landing-runner': {
+        minX: 4.05,
+        maxX: 7.05,
+        minZ: -29.5,
+        maxZ: -22.5,
+      },
+      'creators-studio-sofa-rug': {
+        minX: -5.2,
+        maxX: -0.4,
+        minZ: -23.6,
+        maxZ: -19,
+      },
+      'loft-library-area-rug': {
+        minX: 5.2,
+        maxX: 10.8,
+        minZ: -12.7,
+        maxZ: -8.5,
+      },
+      'focus-pods-soft-rug': { minX: 1.9, maxX: 8.1, minZ: 22.8, maxZ: 26.8 },
+    };
+
+    Object.entries(expectedRugs).forEach(([id, bounds]) => {
+      expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
+        false
+      );
+      const footprint = decorativeFootprints.find(
+        (decorativeFootprint) => decorativeFootprint.furnishingId === id
+      );
+
+      expect(footprint?.allowSolidOverlap).toBe(true);
+      expectRectToBeCloseTo(footprint!.bounds, bounds);
     });
   });
 
@@ -1793,6 +1950,16 @@ describe('token.place placement reflow', () => {
     });
   });
 });
+
+function expectRectToBeCloseTo(
+  actual: RectCollider,
+  expected: RectCollider
+): void {
+  expect(actual.minX).toBeCloseTo(expected.minX, 6);
+  expect(actual.maxX).toBeCloseTo(expected.maxX, 6);
+  expect(actual.minZ).toBeCloseTo(expected.minZ, 6);
+  expect(actual.maxZ).toBeCloseTo(expected.maxZ, 6);
+}
 
 function deriveAabbFromCenterSize(
   definition: LowerFloorFurnishingDefinition
