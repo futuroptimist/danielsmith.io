@@ -1482,17 +1482,18 @@ describe('token.place placement reflow', () => {
     maxZ: -15.2,
   };
   const tokenPlaceBounds: RectCollider = {
-    minX: -0.92,
-    maxX: 4.61,
-    minZ: -23.29,
-    maxZ: -18.98,
+    minX: -20.7,
+    maxX: -15.4,
+    minZ: -30.8,
+    maxZ: -25.5,
   };
 
   it('keeps token.place in the living room at the reflowed workstation spot', () => {
     expect(MANUAL_POI_PLACEMENTS['tokenplace-studio-cluster']).toMatchObject({
       roomId: 'livingRoom',
-      position: { x: 1.8, z: -21.2 },
-      interactionAnchorPosition: { x: 1.8, z: -21.2 },
+      position: { x: -18, z: -28.2 },
+      interactionAnchorPosition: { x: -18, z: -28.2 },
+      headingRadians: Math.PI * 0.25,
     });
   });
 

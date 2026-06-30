@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 21,
-      "syncNote": "Upper POI reserved blockers only affect authoring validation; furniture proxy coverage remains deferred.",
-      "sourceFingerprint": "d2b2745a0d29c3794d3d839b35f7955758673f51f86c5a98d8c96b9c2deca76e",
+      "syncRevision": 22,
+      "syncNote": "Token.place blocker follows the northwest living-room reflow; furniture proxy coverage remains deferred.",
+      "sourceFingerprint": "a3f165013a9d62ae42a1c307a24868039651b54c2b1d17456779a0472773f5d1",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "a7135ceec9f7bc274ab7540d96a5617fd6e538538f2c2a54edd9862d02f7e41e"
+      "metadataFingerprint": "bfacc20cac438c1571348ff2cfa544952e5c09c30c81a52c28b12f96f182683b"
     },
     {
       "id": "environment:backyard",
@@ -521,11 +521,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "89086f102559baa055f93f88d427c1a0419da43ddbc6ec3fa9ae70cb6a0455b3",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "efad6c15923c81f59ae90462d161a70606730d81a010eb0338fa8dd3bd9c0753"
+      "syncRevision": 7,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "3839414464902e6c0975076b1858cafc4889ea4c31c7391a5e8a3376f6bda853",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "e6e6addc012d2618e22c92f036b84a7e0fd27e91be7adc6ea9b0059d0ee3fec0"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -541,11 +541,11 @@
         "src/scene/miniature/poiProxyRegistry.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "f0a1fab98b8f1a5bd648de469084e8d9b19e020aaf72d3c255cec5647b3e6c91",
-      "proxyFingerprint": "88d3235320cdeab515690fa9151f27c0984b2f04f8e676bd48af42f4e193a474",
-      "metadataFingerprint": "2169975967dd8822baa8a487fbd13419ebc4f525024b27519660d7b5fb1d16eb"
+      "syncRevision": 7,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "da63b004597908a735d465024199136aa420cf4bfbd64e6366a1ad8efd97a044",
+      "proxyFingerprint": "3c3e91187000664b7d07cf1ec86c2696c4a1e31dd7945961aa7b2b6666d6a3eb",
+      "metadataFingerprint": "bd7cc120f59b9103245f32c3bef89a2466982ec06ca1dd7819830c5a68dd7a75"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -556,11 +556,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "c87383d3a6f49d502eb783e065ef22b959f13462848666216d3277db98321501",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "04d1c72624eebfb2536dacefa445b2d2f247f997535d725166ec1f9e55c836eb"
+      "syncRevision": 7,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "8619425e38cc64b26bbaa4574f4cc9cf400b909ec2e802fc81093b89903976f0",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "3694bb1b5988e45a32eb1bcfaf34ffb70e900316bb33732e3867b75abc248fb1"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -571,11 +571,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "d9c99df1cd61da12890dc0b6e14a548964dc78e8abdbea2ea974e0cfe2eb3ce4",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "0f2d6c581990c3ca0a52b2794c36d82859d50bc1a355bd116756b7ea63fb023c"
+      "syncRevision": 9,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "1278053ed91b9680bbb8ef64f484d7790cfb1e6fae0ff1e2dd1841db77ae9fcc",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "eed0ecd65120eca2eee0cc900289b97d68e6bb3198d251bd012c16e9f26075bc"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -588,11 +588,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 27,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "51673f968397b8576b9770c51e483dbd9df4908f34becfc97e86382f9964a284",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "c9d31c98950f7cca927b48089cdbf823dcc277acc6ecfca3a26e614f54d3bfaf"
+      "syncRevision": 28,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "cb72f384b4e755c560ffd3758b5718417c11d668a927447cc82dec4a1de298e1",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "233dcbaff32838a2889935fbd93e4e0264bec15743c3967cb2469f12b04c0a16"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -603,11 +603,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "dc0353e20df47adc0fc603239278aeb743d789f8206dfef0fa5afd3dc205dc3a",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "d565cc95cd3712d09767af45c26be4f9cab0efb2fbaf09e5df160655d7fe66fe"
+      "syncRevision": 7,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "a60c5dc0944fd769ee2d808867dc7d40ba13e1f88a975e675203a9f84011618d",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "923636edaf3232977f7939de6d989055a3d4f2ad700922d7a4c47eac7146136d"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -618,11 +618,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "77148305c61fe9d51393213a2872dfe423e200281087d58d766be8a61b23133d",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "dcfe3caeabab5fa71fa9aeece1d61d4396143e80f66cd6786417f2a48cf3cc1c"
+      "syncRevision": 9,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "92d30282c1ec96b7721cfe36220442e303407b3073c4318f6eaa666648769c0b",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "b21b23948590e18fa6fe9e2ea45c746f42c36aae989d3c259dc8b4e3a53f85b9"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -633,11 +633,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "a6a4d7481948a838178a30b12945d9da638262d4df7ded6620f1a9a00d80d210",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "f8dc544cbd4c7fda70ceaecc99e948f71b1865de938172c87005137c81f6d9d0"
+      "syncRevision": 9,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "036896305d28b71534f4d6a68582c5f01c61f6fba27716517b4904b9bb8922af",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "0030502280d84d5ff6973a18061f81a2f79a12ce7f4796d591519bb94c8a7fbd"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -648,11 +648,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "11f0a7b30d7648491804a44c0379a34f727f76661f62fab5503ef237350ee20b",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "7ba2b4c91dfb711b31207f0010f86b9a33bf28ed3fa247eafb1324d50901b727"
+      "syncRevision": 7,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "6e5cf48a8e8381e4ae30e2f983308ad0f1f12ec10e46fb36f557587b65f3da7c",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "58489a4e14fd8b31cabee4d7087f1fd54f7c90eeffb391de392d55d29ed9209c"
     },
     {
       "id": "poi:markers-labels",
@@ -683,11 +683,11 @@
         "src/ui/accessibility/animationPreferences.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 21,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "2446a3daca1cbc958edb093eb97e35c61f386d919800f8d772ca239d19bf7b4f",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "9a24d277c1954a274b6fdd17ac949b6451798a1f22c811e2373778b726445f19"
+      "syncRevision": 22,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "cfd883bdfe9822f4d50e9d9bd799bf940ea7aba433a7a3205bcc6c73c186384e",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "67f310329704a6ec1e663a9ff826746abd356a187b4b73067a820ab603c733cf"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -698,11 +698,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "ae2d13695f8011c7cdd9380a518859e6d114857b8ac3217ca9b25dabbd6773a5",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "5cd9cefbb2aa320e8396002017f45dcf76398a0662e3ee9a300511e70ec31fb4"
+      "syncRevision": 9,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "1f329c662f7866c5770be745aef3a560f9f201524a9eb93ad1341ca1311c0719",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "aa36be91f4f0be00010ef0cd0f0b686b135c80c65f235667ed6bc61fd8167aee"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -713,11 +713,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "ac4eb79207c4d2f70796e6b980bb8663d2e694f42a69ce6a04bca7c371f05436",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "edb902c02b9db644740f290a4e5c27d727b0dc04ba7d2e5381ea1e4e84a9e749"
+      "syncRevision": 6,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "2e782419d33e90f2128c0ab913770d3f02fffb41b40b2baed02f1b01f3ef98da",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "804fee894eef2b1882be9ec56d6a146ced46ec319334c6833b260235453a2a2c"
     },
     {
       "id": "poi:tokenplace-studio-cluster",
@@ -728,11 +728,11 @@
         "src/scene/structures/tokenPlaceWorkstation.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 5,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "f02ec6225ba49f587b5cf95fa2e9f4871e58d6328d3b123cec2972685e6f2f47",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "9364795c22e380dbebd9ce7c9414bf8d5f1df7865e62ed2a42fd5ec5b36132e8"
+      "syncRevision": 6,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "64d8d8062f5460221248de979e06403f9e5187398724f93445e9883b896532f6",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "96bfcca9a9be1b014381442972cfcfe7b177179cf58513d5548318fa2aedb0d0"
     },
     {
       "id": "poi:wove-kitchen-loom",
@@ -743,11 +743,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "47b5e6a824a3e87cdfa764593ff4c578245e579d90b1dbe83c7121d1555f263d",
-      "proxyFingerprint": "ed11e1d680d0714a3aaf951c60d5d0effc47e1e911b2c2239a567683f357a936",
-      "metadataFingerprint": "a026476f1f744afe9cf8d37087b8e7941fe60fd0fd72171be3eeabc2b2311c85"
+      "syncRevision": 7,
+      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
+      "sourceFingerprint": "bd452efdaa3db2c6d20b3d0d9f9e48deff2a81b9ee1ebfbdacde9309f4d74191",
+      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "metadataFingerprint": "97c5b2393a71ea8246443e26ee5da9530f7b874ccd745e11dc5db257c691ac05"
     },
     {
       "id": "structure:greenhouse",

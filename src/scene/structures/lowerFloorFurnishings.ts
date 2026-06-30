@@ -166,7 +166,7 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -22, maxX: -14, minZ: 14.8, maxZ: 17.2 },
   { minX: 11, maxX: 19, minZ: 14.8, maxZ: 17.2 },
   { minX: -32.0, maxX: -30.9, minZ: -23.2, maxZ: -16.8 },
-  { minX: -0.92, maxX: 4.61, minZ: -23.29, maxZ: -18.98 },
+  { minX: -20.7, maxX: -15.4, minZ: -30.8, maxZ: -25.5 },
   { minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
   { minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
   { minX: 26.4, maxX: 31.2, minZ: -24.4, maxZ: -21.2 },
