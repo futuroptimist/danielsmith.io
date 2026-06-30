@@ -267,10 +267,11 @@ describe('lower floor furnishings foundation', () => {
       },
       'backyard-birdbath': { minX: 7.95, maxX: 9.05, minZ: 19.45, maxZ: 20.55 },
       'backyard-herb-trough-north': {
+        // Nudged north by 0.1 to avoid the generated back-fence collider.
         minX: -7.0,
         maxX: -4.0,
-        minZ: 30.8,
-        maxZ: 31.4,
+        minZ: 30.5,
+        maxZ: 31.1,
       },
       'backyard-flower-cluster-sw': {
         minX: -28.45,

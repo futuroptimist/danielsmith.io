@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 23,
-      "syncNote": "Dense downstairs decor remains source-only while furnishing proxy coverage is deferred.",
-      "sourceFingerprint": "b1d1b259acfd4770ee0920cb5f9ad969debf1f46a0fb6513e7aeed373ec50349",
+      "syncRevision": 24,
+      "syncNote": "Backyard herb trough placement adjustment remains source-only while furnishing proxy coverage is deferred.",
+      "sourceFingerprint": "a89bae08d35658c2a953222d5d8a3ba9429e306417d3be7bb128858c3f85fb25",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "5defa803010c9fbd56fbdf839c0d88fc73667facd1ff846ecb17b99536729e3c"
+      "metadataFingerprint": "ff0944d9436f5f9b0bac3baaff6439b9cc71e9f7914576b6d4475cc3ccb352ab"
     },
     {
       "id": "environment:backyard",

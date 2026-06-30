@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 23,
+    syncRevision: 24,
     syncNote:
-      'Dense downstairs decor remains source-only while furnishing proxy coverage is deferred.',
+      'Backyard herb trough placement adjustment remains source-only while furnishing proxy coverage is deferred.',
     reason:
       'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
