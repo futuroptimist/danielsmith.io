@@ -11,6 +11,7 @@ import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
+  DEFAULT_UPPER_FLOOR_FURNISHINGS,
   UPPER_FLOOR_RESERVED_BLOCKERS,
   UPPER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
@@ -1583,8 +1584,221 @@ describe('upper floor furnishings foundation', () => {
     },
   ];
 
-  it('builds an empty default upper furnishing group', () => {
+  it('ships the planned upstairs furniture ids by default', () => {
+    expect(DEFAULT_UPPER_FLOOR_FURNISHINGS.map(({ id }) => id)).toEqual([
+      'upper-landing-bench',
+      'upper-landing-console',
+      'upper-landing-planter',
+      'upper-landing-runner',
+      'creators-studio-corner-sofa',
+      'creators-studio-coffee-table',
+      'creators-studio-south-bookcase',
+      'creators-studio-work-cabinet',
+      'creators-studio-floor-plant',
+      'creators-studio-sofa-rug',
+      'loft-library-sectional',
+      'loft-library-round-table',
+      'loft-library-east-bookcase',
+      'loft-library-reading-lamp',
+      'loft-library-planter',
+      'loft-library-area-rug',
+      'focus-pods-daybed',
+      'focus-pods-round-table',
+      'focus-pods-north-storage',
+      'focus-pods-planter-east',
+      'focus-pods-privacy-screen',
+      'focus-pods-soft-rug',
+    ]);
+  });
+
+  it('matches expected upstairs furniture AABBs and decorative footprints', () => {
     const build = createUpperFloorFurnishings();
+    const colliders = new Map(
+      build.colliders.map((collider) => [collider.furnishingId, collider])
+    );
+    const decorative = new Map(
+      build.decorativeFootprints.map((footprint) => [
+        footprint.furnishingId,
+        footprint,
+      ])
+    );
+
+    const expectedSolidBounds: Record<string, RectCollider> = {
+      'upper-landing-bench': { minX: 4.7, maxX: 7.7, minZ: -30.9, maxZ: -30.1 },
+      'upper-landing-console': {
+        minX: 19.4,
+        maxX: 20.2,
+        minZ: -25.75,
+        maxZ: -22.25,
+      },
+      'upper-landing-planter': {
+        minX: 19.35,
+        maxX: 20.05,
+        minZ: -18.15,
+        maxZ: -17.45,
+      },
+      'creators-studio-corner-sofa': {
+        minX: -4.8,
+        maxX: -0.8,
+        minZ: -24.0,
+        maxZ: -22.0,
+      },
+      'creators-studio-coffee-table': {
+        minX: -3.9,
+        maxX: -1.7,
+        minZ: -20.3,
+        maxZ: -19.3,
+      },
+      'creators-studio-south-bookcase': {
+        minX: -6.2,
+        maxX: -2.2,
+        minZ: -31.575,
+        maxZ: -30.825,
+      },
+      'creators-studio-work-cabinet': {
+        minX: 2.4,
+        maxX: 3.2,
+        minZ: -8.0,
+        maxZ: -4.0,
+      },
+      'creators-studio-floor-plant': {
+        minX: 2.4,
+        maxX: 3.2,
+        minZ: -1.7,
+        maxZ: -0.9,
+      },
+      'loft-library-sectional': {
+        minX: 5.4,
+        maxX: 9.6,
+        minZ: -13.0,
+        maxZ: -11.0,
+      },
+      'loft-library-round-table': {
+        minX: 7.6,
+        maxX: 8.8,
+        minZ: -9.6,
+        maxZ: -8.4,
+      },
+      'loft-library-east-bookcase': {
+        minX: 22.55,
+        maxX: 23.45,
+        minZ: -7.0,
+        maxZ: -1.0,
+      },
+      'loft-library-reading-lamp': {
+        minX: 4.725,
+        maxX: 5.275,
+        minZ: -8.275,
+        maxZ: -7.725,
+      },
+      'loft-library-planter': { minX: 22.3, maxX: 23.1, minZ: 9.4, maxZ: 10.2 },
+      'focus-pods-daybed': { minX: 17.8, maxX: 22.2, minZ: 24.4, maxZ: 26.2 },
+      'focus-pods-round-table': {
+        minX: 4.85,
+        maxX: 6.15,
+        minZ: 23.85,
+        maxZ: 25.15,
+      },
+      'focus-pods-north-storage': {
+        minX: 1.5,
+        maxX: 6.5,
+        minZ: 26.8,
+        maxZ: 27.6,
+      },
+      'focus-pods-planter-east': {
+        minX: 22.6,
+        maxX: 23.4,
+        minZ: 20.1,
+        maxZ: 20.9,
+      },
+      'focus-pods-privacy-screen': {
+        minX: -8.25,
+        maxX: -3.75,
+        minZ: 26.75,
+        maxZ: 27.25,
+      },
+    };
+
+    Object.entries(expectedSolidBounds).forEach(([id, bounds]) => {
+      expect(colliders.get(id)).toMatchObject(bounds);
+    });
+    expect(decorative.get('upper-landing-runner')?.bounds).toEqual({
+      minX: 5.4,
+      maxX: 8.6,
+      minZ: -29.5,
+      maxZ: -22.5,
+    });
+    expect(build.colliders).toHaveLength(
+      Object.keys(expectedSolidBounds).length
+    );
+    expect(build.decorativeFootprints).toHaveLength(4);
+  });
+
+  it('keeps default upstairs solids valid, unique, upper-routed, and clear', () => {
+    expect(() =>
+      validateUpperFloorFurnishingPlan(DEFAULT_UPPER_FLOOR_FURNISHINGS)
+    ).not.toThrow();
+    const build = createUpperFloorFurnishings();
+
+    expect(
+      new Set(build.colliders.map(({ furnishingId }) => furnishingId)).size
+    ).toBe(build.colliders.length);
+    expect(new Set(build.colliders.map(({ sourceId }) => sourceId)).size).toBe(
+      build.colliders.length
+    );
+    expect(
+      build.colliders.every(({ sourceId }) => isLevelSourceId(sourceId))
+    ).toBe(true);
+    expect(build.colliders.every(({ floorId }) => floorId === 'upper')).toBe(
+      true
+    );
+    expect(
+      build.colliders.every(({ sourceId }) =>
+        sourceId.startsWith('upper.furnishings.')
+      )
+    ).toBe(true);
+
+    build.colliders.forEach((collider, index) => {
+      expect(
+        isContainedBy(UPPER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+      ).toBe(true);
+      UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+      build.colliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
+    });
+  });
+
+  it('keeps upstairs decorative rugs non-blocking while allowing lounge overlap', () => {
+    const build = createUpperFloorFurnishings();
+    const rugIds = [
+      'upper-landing-runner',
+      'creators-studio-sofa-rug',
+      'loft-library-area-rug',
+      'focus-pods-soft-rug',
+    ];
+
+    rugIds.forEach((id) => {
+      expect(
+        build.decorativeFootprints.some(
+          (footprint) => footprint.furnishingId === id
+        )
+      ).toBe(true);
+      expect(
+        build.colliders.some((collider) => collider.furnishingId === id)
+      ).toBe(false);
+    });
+    expect(
+      build.decorativeFootprints
+        .filter(({ furnishingId }) => furnishingId !== 'upper-landing-runner')
+        .every(({ allowSolidOverlap }) => allowSolidOverlap)
+    ).toBe(true);
+  });
+
+  it('builds an empty default upper furnishing group', () => {
+    const build = createUpperFloorFurnishings({ definitions: [] });
 
     expect(build.group.name).toBe('UpperFloorFurnishings');
     expect(build.group.children).toHaveLength(0);
