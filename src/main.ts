@@ -293,7 +293,10 @@ import {
   createJobbotTerminal,
   type JobbotTerminalBuild,
 } from './scene/structures/jobbotTerminal';
-import { createLowerFloorFurnishings } from './scene/structures/lowerFloorFurnishings';
+import {
+  createLowerFloorFurnishings,
+  createUpperFloorFurnishings,
+} from './scene/structures/lowerFloorFurnishings';
 import {
   createLivingRoomMediaWall,
   type LivingRoomMediaWallBuild,
@@ -2284,6 +2287,21 @@ function initializeImmersiveScene(
       sourceId: assertLevelSourceId(collider.sourceId),
       sourceType: 'generatedCollider',
       purpose: 'lower-floor-furnishing',
+      role: collider.category,
+    });
+  });
+
+  const upperFloorFurnishings = createUpperFloorFurnishings({
+    baseElevation: UPPER_FLOOR_TOP_ELEVATION,
+  });
+  upperStructureGroup.add(upperFloorFurnishings.group);
+  upperFloorFurnishings.colliders.forEach((collider) => {
+    upperFloorColliders.push(collider);
+    namedColliderDebugNames.set(collider, collider.debugName);
+    colliderSourceMetadata.set(collider, {
+      sourceId: assertLevelSourceId(collider.sourceId),
+      sourceType: 'generatedCollider',
+      purpose: 'upper-floor-furnishing',
       role: collider.category,
     });
   });

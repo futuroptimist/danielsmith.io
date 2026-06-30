@@ -83,13 +83,13 @@ export const MANUAL_POI_PLACEMENTS: Partial<
   },
   'tokenplace-studio-cluster': {
     roomId: 'livingRoom',
-    position: { x: -22.34, y: getFloorTopElevation('ground'), z: -22.61 },
+    position: { x: -18, y: getFloorTopElevation('ground'), z: -28.2 },
     interactionAnchorPosition: {
-      x: -22.34,
+      x: -18,
       y: getFloorStandingInteractionAnchorY('ground'),
-      z: -22.61,
+      z: -28.2,
     },
-    headingRadians: Math.PI * 0.05,
+    headingRadians: Math.PI * 0.25,
   },
   'sugarkube-backyard-greenhouse': {
     roomId: 'livingRoom',
