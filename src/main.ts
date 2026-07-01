@@ -345,6 +345,10 @@ import {
   createUpperStairwellLanding,
   type UpperStairwellLandingCollider,
 } from './scene/structures/upperStairwellLanding';
+import {
+  createWallPaintings,
+  type WallPaintingsBuild,
+} from './scene/structures/wallPaintings';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,
@@ -1107,6 +1111,7 @@ let gabrielSentry: GabrielSentryBuild | null = null;
 let gitshelvesInstallation: GitshelvesInstallationBuild | null = null;
 const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
+let wallPaintings: WallPaintingsBuild | null = null;
 let futuroptimistTvModelRoot: Object3D | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
 let ledStripGroup: Group | null = null;
@@ -2190,6 +2195,15 @@ function initializeImmersiveScene(
     groundColliders.push(mirror.collider);
     selfieMirror = mirror;
   }
+
+  wallPaintings = createWallPaintings();
+  [...wallPaintings.group.children].forEach((painting) => {
+    if (painting.userData.floor === 'upper') {
+      upperStructureGroup.add(painting);
+    } else {
+      groundStructureGroup.add(painting);
+    }
+  });
 
   const staircase = createStaircase(STAIRCASE_CONFIG);
   scene.add(staircase.group);
@@ -7069,6 +7083,10 @@ function initializeImmersiveScene(
     if (selfieMirror) {
       selfieMirror.dispose();
       selfieMirror = null;
+    }
+    if (wallPaintings) {
+      wallPaintings.dispose();
+      wallPaintings = null;
     }
     if (flywheelShowpiece) {
       flywheelShowpiece.dispose();
