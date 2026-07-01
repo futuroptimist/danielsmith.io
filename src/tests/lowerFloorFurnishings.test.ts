@@ -21,7 +21,10 @@ import {
   validateLowerFloorFurnishingPlan,
   validateUpperFloorFurnishingPlan,
   type FloorFurnishingCollider,
+  type FloorFurnishingFloorId,
+  type LowerFloorFurnishingCategory,
   type LowerFloorFurnishingDefinition,
+  type UpperFloorFurnishingCategory,
   type UpperFloorFurnishingDefinition,
 } from '../scene/structures/lowerFloorFurnishings';
 import type { RectCollider } from '../systems/collision';
@@ -112,6 +115,55 @@ function expectColliderBoundsToBeCloseTo(
 }
 
 describe('lower floor furnishings foundation', () => {
+  it('keeps the complete lower-floor inventory accounted for by category', () => {
+    const { colliders, decorativeFootprints, group } =
+      createLowerFloorFurnishings();
+    const expectedByCategory: Record<LowerFloorFurnishingCategory, number> = {
+      'living-room-seating': 9,
+      kitchenette: 13,
+      storage: 9,
+      'sleeping-nook': 7,
+      'plants-lighting-decor': 17,
+      backyard: 20,
+    };
+
+    expect(group.children).toHaveLength(DEFAULT_LOWER_FLOOR_FURNISHINGS.length);
+    expect(countDefinitionsByCategory(DEFAULT_LOWER_FLOOR_FURNISHINGS)).toEqual(
+      expectedByCategory
+    );
+    expect(colliders).toHaveLength(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+        (definition) => definition.solidFootprint
+      ).length
+    );
+    expect(decorativeFootprints).toHaveLength(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+        (definition) => definition.decorativeFootprint
+      ).length
+    );
+  });
+
+  it('keeps every default lower furnishing collider finite, in-room, unique, and routed ground', () => {
+    const { colliders } = createLowerFloorFurnishings();
+
+    expectCompleteColliderMetadata({
+      colliders,
+      definitions: DEFAULT_LOWER_FLOOR_FURNISHINGS,
+      floorId: 'ground',
+      roomBounds: LOWER_FLOOR_ROOM_BOUNDS,
+    });
+  });
+
+  it('keeps every default lower furnishing clear of solids and reserved blockers', () => {
+    const { colliders } = createLowerFloorFurnishings();
+
+    expectNoColliderOverlaps(
+      colliders,
+      LOWER_FLOOR_RESERVED_BLOCKERS,
+      'lower floor'
+    );
+  });
+
   it('renders the default living-room media seating cluster', () => {
     const build = createLowerFloorFurnishings();
 
@@ -1619,6 +1671,54 @@ describe('upper floor furnishings foundation', () => {
     expect(build.decorativeFootprints).toHaveLength(4);
   });
 
+  it('keeps the complete upper-floor inventory accounted for by category', () => {
+    const { colliders, decorativeFootprints, group } =
+      createUpperFloorFurnishings();
+    const expectedByCategory: Record<UpperFloorFurnishingCategory, number> = {
+      'upper-landing': 6,
+      'creators-studio': 8,
+      'loft-library': 7,
+      'focus-pods': 6,
+      'plants-lighting-decor': 17,
+    };
+
+    expect(group.children).toHaveLength(DEFAULT_UPPER_FLOOR_FURNISHINGS.length);
+    expect(countDefinitionsByCategory(DEFAULT_UPPER_FLOOR_FURNISHINGS)).toEqual(
+      expectedByCategory
+    );
+    expect(colliders).toHaveLength(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+        (definition) => definition.solidFootprint
+      ).length
+    );
+    expect(decorativeFootprints).toHaveLength(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+        (definition) => definition.decorativeFootprint
+      ).length
+    );
+  });
+
+  it('keeps every default upper furnishing collider finite, in-room, unique, and routed upper', () => {
+    const { colliders } = createUpperFloorFurnishings();
+
+    expectCompleteColliderMetadata({
+      colliders,
+      definitions: DEFAULT_UPPER_FLOOR_FURNISHINGS,
+      floorId: 'upper',
+      roomBounds: UPPER_FLOOR_ROOM_BOUNDS,
+    });
+  });
+
+  it('keeps every default upper furnishing clear of solids and reserved blockers', () => {
+    const { colliders } = createUpperFloorFurnishings();
+
+    expectNoColliderOverlaps(
+      colliders,
+      UPPER_FLOOR_RESERVED_BLOCKERS,
+      'upper floor'
+    );
+  });
+
   it('declares valid upper room bounds for authoring', () => {
     expect(UPPER_FLOOR_ROOM_BOUNDS).toEqual({
       upperLanding: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
@@ -2140,6 +2240,85 @@ describe('token.place placement reflow', () => {
   });
 });
 
+describe('whole-home furnishing density QA', () => {
+  it('balances plant coverage across floors with varied greenery types', () => {
+    const greeneryMatchers = [
+      /fig|monstera|large-plant|floor-plant|tree-planter/,
+      /pothos|vine|hanging/,
+      /snake/,
+      /fern/,
+      /herb/,
+      /flower/,
+      /plant-row|trough|planter/,
+    ];
+    const allDefinitions = [
+      ...DEFAULT_LOWER_FLOOR_FURNISHINGS,
+      ...DEFAULT_UPPER_FLOOR_FURNISHINGS,
+    ];
+    const lowerPlantIds = plantLikeDefinitionIds(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS
+    );
+    const upperPlantIds = plantLikeDefinitionIds(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS
+    );
+
+    expect(lowerPlantIds.length).toBeGreaterThanOrEqual(10);
+    expect(upperPlantIds.length).toBeGreaterThanOrEqual(10);
+    greeneryMatchers.forEach((matcher) => {
+      expect(
+        allDefinitions.some(
+          (definition) =>
+            matcher.test(definition.id) || matcher.test(definition.kind)
+        ),
+        `Expected at least one greenery definition matching ${matcher}.`
+      ).toBe(true);
+    });
+  });
+
+  it('keeps decorative footprints and visual-only details out of movement colliders on both floors', () => {
+    const floors = [
+      {
+        label: 'lower floor',
+        build: createLowerFloorFurnishings(),
+        definitions: DEFAULT_LOWER_FLOOR_FURNISHINGS,
+      },
+      {
+        label: 'upper floor',
+        build: createUpperFloorFurnishings(),
+        definitions: DEFAULT_UPPER_FLOOR_FURNISHINGS,
+      },
+    ];
+
+    floors.forEach(({ label, build, definitions }) => {
+      const colliderIds = new Set(
+        build.colliders.map(({ furnishingId }) => furnishingId)
+      );
+      const decorativeIds = new Set(
+        build.decorativeFootprints.map(({ furnishingId }) => furnishingId)
+      );
+
+      definitions.forEach((definition) => {
+        if (definition.solidFootprint) {
+          expect(
+            colliderIds.has(definition.id),
+            `${label} solid ${definition.id} should create one collider.`
+          ).toBe(true);
+          return;
+        }
+
+        expect(
+          colliderIds.has(definition.id),
+          `${label} non-solid ${definition.id} should not create a collider.`
+        ).toBe(false);
+        expect(
+          decorativeIds.has(definition.id),
+          `${label} decorative footprint ${definition.id} should only be tracked when authored.`
+        ).toBe(Boolean(definition.decorativeFootprint));
+      });
+    });
+  });
+});
+
 function deriveAabbFromCenterSize(
   definition: LowerFloorFurnishingDefinition
 ): RectCollider {
@@ -2166,3 +2345,136 @@ function isContainedBy(container: RectCollider, bounds: RectCollider): boolean {
     bounds.maxZ <= container.maxZ
   );
 }
+
+function countDefinitionsByCategory<Category extends string>(
+  definitions: readonly { category: Category }[]
+): Record<Category, number> {
+  return definitions.reduce(
+    (counts, definition) => ({
+      ...counts,
+      [definition.category]: (counts[definition.category] ?? 0) + 1,
+    }),
+    {} as Record<Category, number>
+  );
+}
+
+function expectCompleteColliderMetadata<
+  Category extends string,
+  RoomId extends string,
+>({
+  colliders,
+  definitions,
+  floorId,
+  roomBounds,
+}: {
+  colliders: FloorFurnishingCollider<Category, RoomId>[];
+  definitions: readonly FloorFurnishingColliderDefinition<Category, RoomId>[];
+  floorId: FloorFurnishingFloorId;
+  roomBounds: Record<RoomId, RectCollider>;
+}): void {
+  const solidDefinitions = definitions.filter(
+    (definition) => definition.solidFootprint
+  );
+  const colliderIds = colliders.map(({ furnishingId }) => furnishingId);
+  const sourceIds = colliders.map(({ sourceId }) => sourceId);
+
+  expect(colliders).toHaveLength(solidDefinitions.length);
+  expect(new Set(colliderIds).size).toBe(colliderIds.length);
+  expect(new Set(sourceIds).size).toBe(sourceIds.length);
+  solidDefinitions.forEach((definition) => {
+    expect(
+      colliders.filter(({ furnishingId }) => furnishingId === definition.id),
+      `${floorId} furnishing ${definition.id} should have exactly one collider.`
+    ).toHaveLength(1);
+  });
+  colliders.forEach((collider) => {
+    const matchingDefinition = definitions.find(
+      ({ id }) => id === collider.furnishingId
+    );
+
+    expect(
+      matchingDefinition,
+      `${collider.furnishingId} has no definition.`
+    ).toBeDefined();
+    expect(Number.isFinite(collider.minX), collider.furnishingId).toBe(true);
+    expect(Number.isFinite(collider.maxX), collider.furnishingId).toBe(true);
+    expect(Number.isFinite(collider.minZ), collider.furnishingId).toBe(true);
+    expect(Number.isFinite(collider.maxZ), collider.furnishingId).toBe(true);
+    expect(
+      collider.maxX - collider.minX,
+      collider.furnishingId
+    ).toBeGreaterThan(0);
+    expect(
+      collider.maxZ - collider.minZ,
+      collider.furnishingId
+    ).toBeGreaterThan(0);
+    expect(collider.floorId, collider.furnishingId).toBe(floorId);
+    expect(collider.category, collider.furnishingId).toBe(
+      matchingDefinition?.category
+    );
+    expect(collider.roomId, collider.furnishingId).toBe(
+      matchingDefinition?.roomId
+    );
+    expect(collider.sourceId, collider.furnishingId).toBe(
+      `${floorId}.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
+    );
+    expect(isLevelSourceId(collider.sourceId), collider.furnishingId).toBe(
+      true
+    );
+    expect(collider.debugName, collider.furnishingId).toContain(
+      collider.furnishingId
+    );
+    expect(
+      isContainedBy(roomBounds[collider.roomId], collider),
+      `${collider.furnishingId} should stay inside ${collider.roomId}.`
+    ).toBe(true);
+  });
+}
+
+function expectNoColliderOverlaps<
+  Category extends string,
+  RoomId extends string,
+>(
+  colliders: FloorFurnishingCollider<Category, RoomId>[],
+  reservedBlockers: readonly RectCollider[],
+  label: string
+): void {
+  colliders.forEach((collider, index) => {
+    colliders.slice(index + 1).forEach((other) => {
+      expect(
+        rectanglesOverlap(collider, other),
+        `${label} ${collider.furnishingId} overlaps ${other.furnishingId}.`
+      ).toBe(false);
+    });
+    reservedBlockers.forEach((blocker, blockerIndex) => {
+      expect(
+        rectanglesOverlap(collider, blocker),
+        `${label} ${collider.furnishingId} overlaps reserved blocker ${blockerIndex}.`
+      ).toBe(false);
+    });
+  });
+}
+
+function plantLikeDefinitionIds(
+  definitions: readonly FloorFurnishingColliderDefinition<string, string>[]
+): string[] {
+  return definitions
+    .filter((definition) =>
+      /plant|planter|pothos|fig|fern|herb|flower|vine|snake|monstera|trough/.test(
+        `${definition.id} ${definition.kind}`
+      )
+    )
+    .map(({ id }) => id);
+}
+
+type FloorFurnishingColliderDefinition<
+  Category extends string,
+  RoomId extends string,
+> = {
+  id: string;
+  category: Category;
+  roomId: RoomId;
+  kind: string;
+  solidFootprint?: unknown;
+  decorativeFootprint?: unknown;
+};
