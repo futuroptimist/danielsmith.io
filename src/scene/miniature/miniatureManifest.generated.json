@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 30,
-      "syncNote": "Upstairs plant primitive updates remain source-only until furnishing proxy coverage lands.",
-      "sourceFingerprint": "414da93c1514a819a7235a976a1557789560d3f68a98277ff3bf68579bf27594",
+      "syncRevision": 31,
+      "syncNote": "Upstairs visual detail elevation fixes remain source-only until furnishing proxy coverage lands.",
+      "sourceFingerprint": "93ce2d445091394dee1978dc56c62377aa9c3a7aee894749fc446b5f3d6c1cf5",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "e0f0907dcafd4573a8b32bd652f98f74482267a1158ccc01e0d1319e5c4fb7ce"
+      "metadataFingerprint": "2bef3b8b029e4622246465effa0ea861a8db2c95a4dad793d063fd62b624a4e4"
     },
     {
       "id": "environment:backyard",

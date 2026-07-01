@@ -5,6 +5,7 @@ import {
   createBackyardFenceColliders,
   createBackyardFenceSegments,
 } from '../scene/level/backyardCollisionPolicies';
+import { UPPER_FLOOR_TOP_ELEVATION } from '../scene/level/floorElevations';
 import { isLevelSourceId } from '../scene/level/sourceIds';
 import { MANUAL_POI_PLACEMENTS } from '../scene/poi/placements';
 import {
@@ -1835,7 +1836,7 @@ describe('upper floor furnishings foundation', () => {
     });
   });
 
-  it('represents P12 upstairs visual-only decor without blocking colliders', () => {
+  it('represents upstairs visual-only decor without blocking colliders', () => {
     const { colliders, group, decorativeFootprints } =
       createUpperFloorFurnishings();
     const detailIds = [
@@ -1853,7 +1854,11 @@ describe('upper floor furnishings foundation', () => {
     ];
 
     detailIds.forEach((id) => {
-      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      const detail = group.getObjectByName(`Furnishing:${id}`);
+      expect(detail).toBeDefined();
+      expect(detail?.position.y).toBeGreaterThanOrEqual(
+        UPPER_FLOOR_TOP_ELEVATION
+      );
       expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
         false
       );
