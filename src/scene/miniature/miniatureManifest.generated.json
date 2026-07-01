@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 25,
-      "syncNote": "Backyard flower-cluster visual anchoring remains source-only while furnishing proxy coverage is deferred.",
-      "sourceFingerprint": "9d6c7737a030fd337df6289c1e7a6dac98ff50f8e3cc6255700025d1d7dfd928",
+      "syncRevision": 28,
+      "syncNote": "Multi-floor furniture remains source-only while shelf detail proxy coverage is deferred.",
+      "sourceFingerprint": "41777c5cae694afbfa3c312b3b1317948561b0bcde79a97b84a483b714008ce2",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "2f32aa2461eb416621d5c93a9709bd366ed93f73ed07d1fa7fc88e8c0fd6dd82"
+      "metadataFingerprint": "6b074bb8aca259c122ee35cb861be6b5fc9506a4e875effa0070f964b52a6f41"
     },
     {
       "id": "environment:backyard",

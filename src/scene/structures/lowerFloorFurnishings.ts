@@ -196,7 +196,248 @@ export const UPPER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
 ];
 
 export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefinition[] =
-  [];
+  [
+    {
+      id: 'upper-landing-bench',
+      category: 'upper-landing',
+      roomId: 'upperLanding',
+      position: { x: 6.2, z: -30.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 3.0, depth: 0.8 },
+      kind: 'storage-low-bench',
+      visual: { color: 0x607084, accentColor: 0xd8c7a7, height: 0.55 },
+    },
+    {
+      id: 'upper-landing-console',
+      category: 'upper-landing',
+      roomId: 'upperLanding',
+      position: { x: 19.8, z: -24.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 3.5 },
+      kind: 'storage-slim-entry-console',
+      visual: { color: 0x4f4237, accentColor: 0xc4955a, height: 0.86 },
+    },
+    {
+      id: 'upper-landing-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'upperLanding',
+      position: { x: 19.7, z: -17.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 1.25 },
+    },
+    {
+      id: 'creators-studio-corner-sofa',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -2.8, z: -23.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.0, depth: 2.0 },
+      kind: 'media-sofa',
+      visual: { color: 0x6f7f92, accentColor: 0xd8c7a7, height: 0.78 },
+    },
+    {
+      id: 'creators-studio-coffee-table',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -2.8, z: -19.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 2.2, depth: 1.0 },
+      kind: 'coffee-table',
+      visual: { color: 0x6b4a33, accentColor: 0x2f2520, height: 0.45 },
+    },
+    {
+      id: 'creators-studio-south-bookcase',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -4.2, z: -31.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.0, depth: 0.75 },
+      kind: 'storage-tall-bookcase',
+      visual: { color: 0x4f4237, accentColor: 0xc29249, height: 1.65 },
+    },
+    {
+      id: 'creators-studio-work-cabinet',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: 2.8, z: -6.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 4.0 },
+      kind: 'storage-drafting-drawers',
+      visual: { color: 0x56616f, accentColor: 0xd8ccb8, height: 1.35 },
+    },
+    {
+      id: 'creators-studio-floor-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: 2.8, z: -1.3 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'monstera-plant',
+      visual: { color: 0x7a5134, accentColor: 0x4f8f4f, height: 1.4 },
+    },
+    {
+      id: 'loft-library-sectional',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 7.5, z: -12.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.2, depth: 2.0 },
+      kind: 'media-sofa',
+      visual: { color: 0x607084, accentColor: 0xd6c3a3, height: 0.78 },
+    },
+    {
+      id: 'loft-library-round-table',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 8.2, z: -9.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.2, depth: 1.2 },
+      kind: 'side-table',
+      visual: { color: 0x5d4330, accentColor: 0xb8c0c8, height: 0.54 },
+    },
+    {
+      id: 'loft-library-east-bookcase',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 23.0, z: -4.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 6.0 },
+      kind: 'storage-tall-bookcase',
+      visual: { color: 0x4f4237, accentColor: 0xc29249, height: 1.8 },
+    },
+    {
+      id: 'loft-library-reading-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 5.0, z: -8.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      kind: 'floor-lamp',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.45 },
+    },
+    {
+      id: 'loft-library-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 22.7, z: 9.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 1.25 },
+    },
+    {
+      id: 'focus-pods-daybed',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: 20.0, z: 25.3 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.4, depth: 1.8 },
+      kind: 'sleeping-daybed',
+      visual: { color: 0x6f7f92, accentColor: 0xd8c7a7, height: 0.72 },
+    },
+    {
+      id: 'focus-pods-round-table',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: 5.5, z: 24.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.3, depth: 1.3 },
+      kind: 'side-table',
+      visual: { color: 0x5d4330, accentColor: 0xb8c0c8, height: 0.54 },
+    },
+    {
+      id: 'focus-pods-north-storage',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: 4.0, z: 27.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 5.0, depth: 0.8 },
+      kind: 'storage-slim-entry-console',
+      visual: { color: 0x56616f, accentColor: 0xd8ccb8, height: 0.9 },
+    },
+    {
+      id: 'focus-pods-planter-east',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 23.0, z: 20.5 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 1.2 },
+    },
+    {
+      id: 'focus-pods-privacy-screen',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: -6.0, z: 27.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 4.5, depth: 0.5 },
+      kind: 'storage-open-shelf',
+      visual: { color: 0x46536a, accentColor: 0xd8ccb8, height: 1.45 },
+    },
+    {
+      id: 'upper-landing-runner',
+      category: 'upper-landing',
+      roomId: 'upperLanding',
+      position: { x: 5.55, z: -26.0 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 3.0, depth: 7.0 },
+      kind: 'runner-rug',
+      visual: {
+        color: 0x42546a,
+        accentColor: 0xd6c3a3,
+        decorativeHeight: 0.025,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
+    {
+      id: 'creators-studio-sofa-rug',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -2.8, z: -21.3 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 4.8, depth: 4.6 },
+      kind: 'woven-rug',
+      visual: {
+        color: 0x42546a,
+        accentColor: 0xd6c3a3,
+        decorativeHeight: 0.025,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
+    {
+      id: 'loft-library-area-rug',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 8.0, z: -10.6 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 5.6, depth: 4.2 },
+      kind: 'woven-rug',
+      visual: {
+        color: 0x42546a,
+        accentColor: 0xd6c3a3,
+        decorativeHeight: 0.025,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
+    {
+      id: 'focus-pods-soft-rug',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: 5.0, z: 24.8 },
+      orientationRadians: 0,
+      decorativeFootprint: { width: 6.2, depth: 4.0 },
+      kind: 'woven-rug',
+      visual: {
+        color: 0x42546a,
+        accentColor: 0xd6c3a3,
+        decorativeHeight: 0.025,
+        allowDecorativeOverlapWithAnySolid: true,
+      },
+    },
+  ];
 
 export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[] =
   [
@@ -2540,18 +2781,28 @@ function addBookRows(
   const shelfHeight = availableHeight / rowCount;
   const maxBookHeight = Math.max(0.08, shelfHeight - 0.08);
 
+  const bookWidth = 0.12;
+  const bookSpacing = 0.22;
+  const horizontalInset = 0.35;
+  const availableBookRun = Math.max(bookWidth, width - horizontalInset * 2);
+  const bookCount = Math.min(
+    12,
+    Math.max(1, Math.floor((availableBookRun - bookWidth) / bookSpacing) + 1)
+  );
+  const rowWidth = (bookCount - 1) * bookSpacing + bookWidth;
+  const startX = -rowWidth / 2 + bookWidth / 2;
+
   for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
     const baselineY = verticalPadding + rowIndex * shelfHeight + 0.04;
-    const startX = -width / 2 + 0.35;
-    for (let index = 0; index < 12; index += 1) {
+    for (let index = 0; index < bookCount; index += 1) {
       const preferredHeight = 0.22 + ((index + rowIndex) % 4) * 0.055;
       const bookHeight = Math.min(preferredHeight, maxBookHeight);
       addBox(
         group,
         `book${rowIndex}-${index}`,
-        { width: 0.12, height: bookHeight, depth: 0.12 },
+        { width: bookWidth, height: bookHeight, depth: 0.12 },
         materials[(index + rowIndex) % materials.length],
-        [startX + index * 0.22, baselineY + bookHeight / 2, frontZ - 0.01]
+        [startX + index * 0.22, baselineY + bookHeight / 2, frontZ + 0.02]
       );
     }
   }
@@ -2564,13 +2815,17 @@ function addStorageBins(
   frontZ: number,
   material: MeshStandardMaterial
 ): void {
-  [-0.32, 0.34].forEach((ratio, index) => {
+  const binWidth = Math.min(0.58, Math.max(0.24, width - 0.32));
+  const binCenters =
+    width >= binWidth * 2 + 0.32 ? [-width * 0.32, width * 0.34] : [0];
+
+  binCenters.forEach((centerX, index) => {
     addBox(
       group,
       `storageBin${index}`,
-      { width: 0.58, height: 0.24, depth: 0.18 },
+      { width: binWidth, height: 0.24, depth: 0.18 },
       material,
-      [width * ratio, height * 0.18, frontZ - 0.02]
+      [centerX, height * 0.18, frontZ + 0.07]
     );
   });
 }
