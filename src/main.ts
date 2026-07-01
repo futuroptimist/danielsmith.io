@@ -345,6 +345,11 @@ import {
   createUpperStairwellLanding,
   type UpperStairwellLandingCollider,
 } from './scene/structures/upperStairwellLanding';
+import {
+  WALL_PAINTING_CONFIGS,
+  createWallPaintings,
+  type WallPaintingsBuild,
+} from './scene/structures/wallPaintings';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,
@@ -1109,6 +1114,8 @@ const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
 let futuroptimistTvModelRoot: Object3D | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
+let groundWallPaintings: WallPaintingsBuild | null = null;
+let upperWallPaintings: WallPaintingsBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
@@ -2075,6 +2082,11 @@ function initializeImmersiveScene(
     },
   });
   groundFloorGroup.add(groundWallMeshes.group);
+
+  groundWallPaintings = createWallPaintings(
+    WALL_PAINTING_CONFIGS.filter((painting) => painting.floor === 'ground')
+  );
+  groundFloorGroup.add(groundWallPaintings.group);
   groundWallInstances.forEach((instance) => {
     const debugIdentity = getWallColliderDebugIdentity('ground', instance);
     groundColliders.push(instance.collider);
@@ -2493,6 +2505,11 @@ function initializeImmersiveScene(
     },
   });
   upperFloorGroup.add(upperWallMeshes.group);
+
+  upperWallPaintings = createWallPaintings(
+    WALL_PAINTING_CONFIGS.filter((painting) => painting.floor === 'upper')
+  );
+  upperFloorGroup.add(upperWallPaintings.group);
   upperWallInstances.forEach((instance) => {
     const debugIdentity = getWallColliderDebugIdentity('upper', instance);
     upperFloorColliders.push(instance.collider);
@@ -7069,6 +7086,14 @@ function initializeImmersiveScene(
     if (selfieMirror) {
       selfieMirror.dispose();
       selfieMirror = null;
+    }
+    if (groundWallPaintings) {
+      groundWallPaintings.dispose();
+      groundWallPaintings = null;
+    }
+    if (upperWallPaintings) {
+      upperWallPaintings.dispose();
+      upperWallPaintings = null;
     }
     if (flywheelShowpiece) {
       flywheelShowpiece.dispose();
