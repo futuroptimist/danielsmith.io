@@ -138,13 +138,13 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     },
   },
   {
-    id: 'hypercar-focus-pods-north',
+    id: 'hypercar-focus-pods-west',
     label: 'Hypercar on grass',
     imagePath: '/images/hypercar_grassy.jpg',
     floor: 'upper',
     room: 'focus pods',
-    wallOrientation: 'north',
-    position: { x: -3.8, z: 27.92 },
+    wallOrientation: 'west',
+    position: { x: -19.92, z: 20.0 },
     size: 2.1,
     frame: {
       frameColor: 0x6a7258,
