@@ -2781,18 +2781,28 @@ function addBookRows(
   const shelfHeight = availableHeight / rowCount;
   const maxBookHeight = Math.max(0.08, shelfHeight - 0.08);
 
+  const bookWidth = 0.12;
+  const bookSpacing = 0.22;
+  const horizontalInset = 0.35;
+  const availableBookRun = Math.max(bookWidth, width - horizontalInset * 2);
+  const bookCount = Math.min(
+    12,
+    Math.max(1, Math.floor((availableBookRun - bookWidth) / bookSpacing) + 1)
+  );
+  const rowWidth = (bookCount - 1) * bookSpacing + bookWidth;
+  const startX = -rowWidth / 2 + bookWidth / 2;
+
   for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
     const baselineY = verticalPadding + rowIndex * shelfHeight + 0.04;
-    const startX = -width / 2 + 0.35;
-    for (let index = 0; index < 12; index += 1) {
+    for (let index = 0; index < bookCount; index += 1) {
       const preferredHeight = 0.22 + ((index + rowIndex) % 4) * 0.055;
       const bookHeight = Math.min(preferredHeight, maxBookHeight);
       addBox(
         group,
         `book${rowIndex}-${index}`,
-        { width: 0.12, height: bookHeight, depth: 0.12 },
+        { width: bookWidth, height: bookHeight, depth: 0.12 },
         materials[(index + rowIndex) % materials.length],
-        [startX + index * 0.22, baselineY + bookHeight / 2, frontZ - 0.01]
+        [startX + index * 0.22, baselineY + bookHeight / 2, frontZ + 0.02]
       );
     }
   }
@@ -2805,13 +2815,17 @@ function addStorageBins(
   frontZ: number,
   material: MeshStandardMaterial
 ): void {
-  [-0.32, 0.34].forEach((ratio, index) => {
+  const binWidth = Math.min(0.58, Math.max(0.24, width - 0.32));
+  const binCenters =
+    width >= binWidth * 2 + 0.32 ? [-width * 0.32, width * 0.34] : [0];
+
+  binCenters.forEach((centerX, index) => {
     addBox(
       group,
       `storageBin${index}`,
-      { width: 0.58, height: 0.24, depth: 0.18 },
+      { width: binWidth, height: 0.24, depth: 0.18 },
       material,
-      [width * ratio, height * 0.18, frontZ - 0.02]
+      [centerX, height * 0.18, frontZ + 0.07]
     );
   });
 }

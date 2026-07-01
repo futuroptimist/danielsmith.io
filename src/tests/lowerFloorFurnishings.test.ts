@@ -82,6 +82,32 @@ const validDefinitions: LowerFloorFurnishingDefinition[] = [
   },
 ];
 
+function expectRectToBeCloseTo(
+  actual: RectCollider,
+  expected: RectCollider
+): void {
+  expect(actual.minX).toBeCloseTo(expected.minX, 6);
+  expect(actual.maxX).toBeCloseTo(expected.maxX, 6);
+  expect(actual.minZ).toBeCloseTo(expected.minZ, 6);
+  expect(actual.maxZ).toBeCloseTo(expected.maxZ, 6);
+}
+
+function expectColliderBoundsToBeCloseTo(
+  colliders: RectCollider[],
+  furnishingId: string,
+  expected: RectCollider
+): void {
+  const collider = colliders.find(
+    ({ furnishingId: colliderFurnishingId }) =>
+      colliderFurnishingId === furnishingId
+  );
+
+  expect(collider).toBeDefined();
+  if (!collider) return;
+
+  expectRectToBeCloseTo(collider, expected);
+}
+
 describe('lower floor furnishings foundation', () => {
   it('renders the default living-room media seating cluster', () => {
     const build = createLowerFloorFurnishings();
@@ -1308,10 +1334,7 @@ describe('lower floor furnishings foundation', () => {
     };
 
     Object.entries(expectedSolidBounds).forEach(([id, expected]) => {
-      expectRectToBeCloseTo(
-        colliders.find((collider) => collider.furnishingId === id)!,
-        expected
-      );
+      expectColliderBoundsToBeCloseTo(colliders, id, expected);
     });
     expect(
       decorativeFootprints.find(
@@ -1701,11 +1724,30 @@ describe('upper floor furnishings foundation', () => {
 
     Object.entries(expectedBounds).forEach(([id, expected]) => {
       expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
-      expectRectToBeCloseTo(
-        colliders.find((collider) => collider.furnishingId === id)!,
-        expected
-      );
+      expectColliderBoundsToBeCloseTo(colliders, id, expected);
     });
+  });
+
+  it('keeps the narrow loft library bookcase visual inside its collider', () => {
+    const { colliders, group } = createUpperFloorFurnishings();
+    const collider = colliders.find(
+      ({ furnishingId }) => furnishingId === 'loft-library-east-bookcase'
+    );
+    const bookcase = group.getObjectByName(
+      'Furnishing:loft-library-east-bookcase'
+    );
+    const epsilon = 0.000001;
+
+    expect(collider).toBeDefined();
+    expect(bookcase).toBeDefined();
+    if (!collider || !bookcase) return;
+
+    const visualBounds = new Box3().setFromObject(bookcase);
+
+    expect(visualBounds.min.x).toBeGreaterThanOrEqual(collider.minX - epsilon);
+    expect(visualBounds.max.x).toBeLessThanOrEqual(collider.maxX + epsilon);
+    expect(visualBounds.min.z).toBeGreaterThanOrEqual(collider.minZ - epsilon);
+    expect(visualBounds.max.z).toBeLessThanOrEqual(collider.maxZ + epsilon);
   });
 
   it('keeps default upper solids in rooms and clear of solids and blockers', () => {
@@ -1950,16 +1992,6 @@ describe('token.place placement reflow', () => {
     });
   });
 });
-
-function expectRectToBeCloseTo(
-  actual: RectCollider,
-  expected: RectCollider
-): void {
-  expect(actual.minX).toBeCloseTo(expected.minX, 6);
-  expect(actual.maxX).toBeCloseTo(expected.maxX, 6);
-  expect(actual.minZ).toBeCloseTo(expected.minZ, 6);
-  expect(actual.maxZ).toBeCloseTo(expected.maxZ, 6);
-}
 
 function deriveAabbFromCenterSize(
   definition: LowerFloorFurnishingDefinition

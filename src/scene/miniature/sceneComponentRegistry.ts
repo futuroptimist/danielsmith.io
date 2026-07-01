@@ -83,11 +83,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 26,
+    syncRevision: 28,
     syncNote:
-      'Upper-floor furniture remains source-only while furnishing proxy coverage is deferred.',
+      'Multi-floor furniture remains source-only while shelf detail proxy coverage is deferred.',
     reason:
-      'Plants and warm decor remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
+      'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
   {
     id: 'avatar:overworld-player',
