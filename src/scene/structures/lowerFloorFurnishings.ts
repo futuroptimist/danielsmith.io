@@ -9,6 +9,7 @@ import {
 } from 'three';
 
 import type { RectCollider } from '../collision';
+import { UPPER_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
 import { isLevelSourceId } from '../level/sourceIds';
 
 export type FloorFurnishingFloorId = 'ground' | 'upper';
@@ -378,6 +379,116 @@ export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefin
       visual: { color: 0x46536a, accentColor: 0xd8ccb8, height: 1.45 },
     },
     {
+      id: 'upper-landing-snake-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'upperLanding',
+      position: { x: 5.0, z: -17.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      kind: 'snake-plant',
+      visual: { color: 0x7a5134, accentColor: 0x5f8f48, height: 1.55 },
+    },
+    {
+      id: 'upper-landing-gallery-plinth',
+      category: 'upper-landing',
+      roomId: 'upperLanding',
+      position: { x: 15.8, z: -30.4 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      kind: 'gallery-plinth',
+      visual: { color: 0xd8ccb8, accentColor: 0x6f7f92, height: 0.95 },
+    },
+    {
+      id: 'creators-studio-fern-stand',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: 0.8, z: -13.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'plant-stool',
+      visual: { color: 0x6a4a32, accentColor: 0x5f9f63, height: 1.05 },
+    },
+    {
+      id: 'creators-studio-floor-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: -1.0, z: -25.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      kind: 'floor-lamp',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.48 },
+    },
+    {
+      id: 'creators-studio-tool-cart',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -8.0, z: -3.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.2, depth: 0.8 },
+      kind: 'storage-open-shelf',
+      visual: { color: 0x56616f, accentColor: 0xc29249, height: 0.95 },
+    },
+    {
+      id: 'loft-library-window-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 5.0, z: 10.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 1.0 },
+    },
+    {
+      id: 'loft-library-east-snake-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 23.0, z: -12.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      kind: 'snake-plant',
+      visual: { color: 0x7a5134, accentColor: 0x5f8f48, height: 1.5 },
+    },
+    {
+      id: 'loft-library-ottoman',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 11.0, z: -11.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      kind: 'ottoman',
+      visual: { color: 0x607084, accentColor: 0xd6c3a3, height: 0.42 },
+    },
+    {
+      id: 'focus-pods-tree-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 22.7, z: 26.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x5f8f48, height: 1.75 },
+    },
+    {
+      id: 'focus-pods-low-plant-row-west',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: -18.0, z: 25.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.2, depth: 0.7 },
+      kind: 'plant-row',
+      visual: { color: 0x6a4a32, accentColor: 0x6e9b58, height: 0.72 },
+    },
+    {
+      id: 'focus-pods-floor-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 8.0, z: 26.3 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      kind: 'floor-lamp',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.42 },
+    },
+    {
       id: 'upper-landing-runner',
       category: 'upper-landing',
       roomId: 'upperLanding',
@@ -436,6 +547,105 @@ export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefin
         decorativeHeight: 0.025,
         allowDecorativeOverlapWithAnySolid: true,
       },
+    },
+    {
+      id: 'upper-landing-gallery-wall',
+      category: 'upper-landing',
+      roomId: 'upperLanding',
+      position: { x: 11.8, y: UPPER_FLOOR_TOP_ELEVATION + 1.8, z: -31.75 },
+      orientationRadians: 0,
+      kind: 'wall-art-detail',
+      visual: { color: 0x42546a, accentColor: 0xd6c3a3, height: 0.8 },
+    },
+    {
+      id: 'upper-landing-small-vase',
+      category: 'upper-landing',
+      roomId: 'upperLanding',
+      position: { x: 15.8, y: UPPER_FLOOR_TOP_ELEVATION + 0.98, z: -30.4 },
+      orientationRadians: 0,
+      kind: 'vase-detail',
+      visual: { color: 0xc29249, accentColor: 0x6e9b58, height: 0.36 },
+    },
+    {
+      id: 'creators-studio-hanging-plant-west',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: -19.7, y: UPPER_FLOOR_TOP_ELEVATION + 2.05, z: -14.0 },
+      orientationRadians: 0,
+      kind: 'hanging-plant-detail',
+      visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 0.55 },
+    },
+    {
+      id: 'creators-studio-pinboard',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -10.2, y: UPPER_FLOOR_TOP_ELEVATION + 1.55, z: -31.75 },
+      orientationRadians: 0,
+      kind: 'pinboard-detail',
+      visual: { color: 0x7a5538, accentColor: 0xd8ccb8, height: 0.72 },
+    },
+    {
+      id: 'creators-studio-table-books',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -2.8, y: UPPER_FLOOR_TOP_ELEVATION + 0.52, z: -19.8 },
+      orientationRadians: 0,
+      kind: 'book-stack-detail',
+      visual: { color: 0x42546a, accentColor: 0xc29249, height: 0.22 },
+    },
+    {
+      id: 'loft-library-book-stacks',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 8.2, y: UPPER_FLOOR_TOP_ELEVATION + 0.62, z: -9.0 },
+      orientationRadians: 0,
+      kind: 'book-stack-detail',
+      visual: { color: 0x56616f, accentColor: 0xc29249, height: 0.28 },
+    },
+    {
+      id: 'loft-library-wall-art',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 14.0, y: UPPER_FLOOR_TOP_ELEVATION + 1.75, z: -15.75 },
+      orientationRadians: 0,
+      kind: 'wall-art-detail',
+      visual: { color: 0x6f7f92, accentColor: 0xd6c3a3, height: 0.75 },
+    },
+    {
+      id: 'loft-library-hanging-vine',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 23.6, y: UPPER_FLOOR_TOP_ELEVATION + 1.95, z: 6.4 },
+      orientationRadians: 0,
+      kind: 'hanging-plant-detail',
+      visual: { color: 0x8a5a36, accentColor: 0x5f8f48, height: 0.62 },
+    },
+    {
+      id: 'focus-pods-cushion-scatter',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: 20.0, y: UPPER_FLOOR_TOP_ELEVATION + 0.78, z: 25.3 },
+      orientationRadians: 0,
+      kind: 'cushion-detail',
+      visual: { color: 0xd6c3a3, accentColor: 0x6f7f92, height: 0.24 },
+    },
+    {
+      id: 'focus-pods-wall-planters',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: -10.0, y: UPPER_FLOOR_TOP_ELEVATION + 1.65, z: 27.75 },
+      orientationRadians: 0,
+      kind: 'wall-planter-detail',
+      visual: { color: 0x7a5134, accentColor: 0x6e9b58, height: 0.45 },
+    },
+    {
+      id: 'focus-pods-soft-light-strip',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 4.8, y: UPPER_FLOOR_TOP_ELEVATION + 1.82, z: 27.75 },
+      orientationRadians: 0,
+      kind: 'string-lights-detail',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 0.18 },
     },
   ];
 
@@ -1560,6 +1770,8 @@ function createSolidPrimitive(
   if (definition.kind === 'plant-stool') return createPlantStool(definition);
   if (definition.kind === 'monstera-plant')
     return createMonsteraPlant(definition);
+  if (definition.kind === 'snake-plant') return createSnakePlant(definition);
+  if (definition.kind === 'plant-row') return createPlantRow(definition);
   if (definition.kind.startsWith('sleeping-'))
     return createSleepingNookFurnishing(definition);
   if (definition.kind.startsWith('kitchen-'))
@@ -1833,6 +2045,67 @@ function createMonsteraPlant(definition: AnyFloorFurnishingDefinition): Group {
   );
   addPlantLeaves(group, leafMaterial, 0.72, 1.05, 'lower');
   addPlantLeaves(group, leafMaterial, 0.56, 1.38, 'upper');
+  return group;
+}
+
+function createSnakePlant(definition: AnyFloorFurnishingDefinition): Group {
+  const group = new Group();
+  const potMaterial = createMaterial(definition.visual?.color ?? 0x7a5134);
+  const leafMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x5f8f48
+  );
+  const height = definition.visual?.height ?? 1.45;
+  addBox(
+    group,
+    'snakePlantPot',
+    { width: 0.44, height: 0.34, depth: 0.44 },
+    potMaterial,
+    [0, 0.17, 0]
+  );
+  addBox(
+    group,
+    'snakePlantPotRim',
+    { width: 0.54, height: 0.08, depth: 0.54 },
+    potMaterial,
+    [0, 0.38, 0]
+  );
+  [-0.18, -0.08, 0.04, 0.16].forEach((x, index) => {
+    addBox(
+      group,
+      `snakePlantBlade${index}`,
+      { width: 0.12, height: height - 0.4 - index * 0.08, depth: 0.05 },
+      leafMaterial,
+      [x, 0.42 + (height - 0.4 - index * 0.08) / 2, index % 2 ? 0.06 : -0.04]
+    );
+  });
+  return group;
+}
+
+function createPlantRow(definition: AnyFloorFurnishingDefinition): Group {
+  const group = new Group();
+  const footprint = definition.solidFootprint ?? { width: 1.2, depth: 0.7 };
+  const troughMaterial = createMaterial(definition.visual?.color ?? 0x6a4a32);
+  const leafMaterial = createMaterial(
+    definition.visual?.accentColor ?? 0x6e9b58
+  );
+  addBox(
+    group,
+    'plantRowTrough',
+    { width: footprint.width, height: 0.32, depth: footprint.depth * 0.7 },
+    troughMaterial,
+    [0, 0.16, 0]
+  );
+  [-0.36, 0, 0.36].forEach((x, index) => {
+    addPlantLeavesAt(
+      group,
+      leafMaterial,
+      0.28,
+      0.48 + index * 0.04,
+      x,
+      index % 2 ? 0.08 : -0.06,
+      `row${index}`
+    );
+  });
   return group;
 }
 
