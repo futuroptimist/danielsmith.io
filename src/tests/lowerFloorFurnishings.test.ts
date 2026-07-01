@@ -11,6 +11,7 @@ import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
+  DEFAULT_UPPER_FLOOR_FURNISHINGS,
   UPPER_FLOOR_RESERVED_BLOCKERS,
   UPPER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
@@ -1612,8 +1613,8 @@ describe('upper floor furnishings foundation', () => {
     const build = createUpperFloorFurnishings();
 
     expect(build.group.name).toBe('UpperFloorFurnishings');
-    expect(build.group.children).toHaveLength(22);
-    expect(build.colliders).toHaveLength(18);
+    expect(build.group.children).toHaveLength(44);
+    expect(build.colliders).toHaveLength(29);
     expect(build.decorativeFootprints).toHaveLength(4);
   });
 
@@ -1721,6 +1722,72 @@ describe('upper floor furnishings foundation', () => {
         minZ: 26.75,
         maxZ: 27.25,
       },
+      'upper-landing-snake-plant': {
+        minX: 4.65,
+        maxX: 5.35,
+        minZ: -17.95,
+        maxZ: -17.25,
+      },
+      'upper-landing-gallery-plinth': {
+        minX: 15.35,
+        maxX: 16.25,
+        minZ: -30.85,
+        maxZ: -29.95,
+      },
+      'creators-studio-fern-stand': {
+        minX: 0.4,
+        maxX: 1.2,
+        minZ: -13.6,
+        maxZ: -12.8,
+      },
+      'creators-studio-floor-lamp': {
+        minX: -1.275,
+        maxX: -0.725,
+        minZ: -25.875,
+        maxZ: -25.325,
+      },
+      'creators-studio-tool-cart': {
+        minX: -8.6,
+        maxX: -7.4,
+        minZ: -3.4,
+        maxZ: -2.6,
+      },
+      'loft-library-window-planter': {
+        minX: 4.6,
+        maxX: 5.4,
+        minZ: 9.8,
+        maxZ: 10.6,
+      },
+      'loft-library-east-snake-plant': {
+        minX: 22.65,
+        maxX: 23.35,
+        minZ: -12.35,
+        maxZ: -11.65,
+      },
+      'loft-library-ottoman': {
+        minX: 10.55,
+        maxX: 11.45,
+        minZ: -12.05,
+        maxZ: -11.15,
+      },
+      'focus-pods-tree-planter': {
+        minX: 22.25,
+        maxX: 23.15,
+        minZ: 26.35,
+        maxZ: 27.25,
+      },
+      'focus-pods-low-plant-row-west': {
+        minX: -18.6,
+        maxX: -17.4,
+        minZ: 24.65,
+        maxZ: 25.35,
+      },
+      'focus-pods-floor-lamp': {
+        minX: 7.725,
+        maxX: 8.275,
+        minZ: 26.025,
+        maxZ: 26.575,
+      },
     };
 
     Object.entries(expectedBounds).forEach(([id, expected]) => {
@@ -1766,6 +1833,50 @@ describe('upper floor furnishings foundation', () => {
         expect(rectanglesOverlap(collider, other)).toBe(false);
       });
     });
+  });
+
+  it('represents P12 upstairs visual-only decor without blocking colliders', () => {
+    const { colliders, group, decorativeFootprints } =
+      createUpperFloorFurnishings();
+    const detailIds = [
+      'upper-landing-gallery-wall',
+      'upper-landing-small-vase',
+      'creators-studio-hanging-plant-west',
+      'creators-studio-pinboard',
+      'creators-studio-table-books',
+      'loft-library-book-stacks',
+      'loft-library-wall-art',
+      'loft-library-hanging-vine',
+      'focus-pods-cushion-scatter',
+      'focus-pods-wall-planters',
+      'focus-pods-soft-light-strip',
+    ];
+
+    detailIds.forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
+        false
+      );
+      expect(
+        decorativeFootprints.some((footprint) => footprint.furnishingId === id)
+      ).toBe(false);
+    });
+  });
+
+  it('represents at least ten upstairs plant and greenery visuals', () => {
+    const plantDefinitions = DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+      (definition) =>
+        definition.kind.includes('plant') ||
+        definition.kind.includes('fern') ||
+        definition.kind.includes('snake') ||
+        definition.kind.includes('vine') ||
+        definition.kind.includes('planter') ||
+        definition.id.includes('plant') ||
+        definition.id.includes('fern') ||
+        definition.id.includes('vine')
+    );
+
+    expect(plantDefinitions.length).toBeGreaterThanOrEqual(10);
   });
 
   it('keeps default upstairs rugs decorative and non-blocking', () => {
