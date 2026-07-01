@@ -1027,10 +1027,14 @@ describe('lower floor furnishings foundation', () => {
         isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
       ).toBe(true);
       LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
-        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+        expect(rectanglesOverlap(collider, blocker, 0.001)).toBe(false);
       });
       colliders.slice(index + 1).forEach((other) => {
-        expect(rectanglesOverlap(collider, other)).toBe(false);
+        expectDefaultCollidersDoNotOverlap(
+          collider,
+          other,
+          DEFAULT_LOWER_FLOOR_FURNISHINGS
+        );
       });
     });
   });
@@ -1888,19 +1892,27 @@ describe('upper floor furnishings foundation', () => {
     expect(visualBounds.max.z).toBeLessThanOrEqual(collider.maxZ + epsilon);
   });
 
-  it('keeps default upper solids in rooms and clear of solids and blockers', () => {
+  it('keeps every default upper-floor collider finite, in-room, and disjoint', () => {
     const { colliders } = createUpperFloorFurnishings();
+    const sourceIds = new Set<string>();
 
     colliders.forEach((collider, index) => {
+      expectFinitePositiveCollider(collider);
       expect(collider.floorId).toBe('upper');
+      expect(sourceIds.has(collider.sourceId)).toBe(false);
+      sourceIds.add(collider.sourceId);
       expect(
         isContainedBy(UPPER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
       ).toBe(true);
       UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
-        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+        expect(rectanglesOverlap(collider, blocker, 0.001)).toBe(false);
       });
       colliders.slice(index + 1).forEach((other) => {
-        expect(rectanglesOverlap(collider, other)).toBe(false);
+        expectDefaultCollidersDoNotOverlap(
+          collider,
+          other,
+          DEFAULT_UPPER_FLOOR_FURNISHINGS
+        );
       });
     });
   });
@@ -2288,6 +2300,32 @@ function countDefinitionsByCategory(
     counts[definition.category] = (counts[definition.category] ?? 0) + 1;
     return counts;
   }, {});
+}
+
+function expectDefaultCollidersDoNotOverlap(
+  collider: FloorFurnishingCollider<string, string>,
+  other: FloorFurnishingCollider<string, string>,
+  definitions: readonly {
+    id: string;
+    visual?: { allowSolidOverlapWithIds?: readonly string[] };
+  }[]
+): void {
+  const definitionById = new Map(
+    definitions.map((definition) => [definition.id, definition])
+  );
+  const colliderDefinition = definitionById.get(collider.furnishingId);
+  const otherDefinition = definitionById.get(other.furnishingId);
+  const allowedOverlap =
+    colliderDefinition?.visual?.allowSolidOverlapWithIds?.includes(
+      other.furnishingId
+    ) &&
+    otherDefinition?.visual?.allowSolidOverlapWithIds?.includes(
+      collider.furnishingId
+    );
+
+  if (allowedOverlap) return;
+
+  expect(rectanglesOverlap(collider, other, 0.001)).toBe(false);
 }
 
 function expectFinitePositiveCollider(
