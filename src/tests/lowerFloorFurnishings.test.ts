@@ -111,6 +111,25 @@ function expectColliderBoundsToBeCloseTo(
   expectRectToBeCloseTo(collider, expected);
 }
 
+function countBy<T extends Record<Key, string>, Key extends keyof T>(
+  definitions: readonly T[],
+  key: Key
+): Record<T[Key], number> {
+  return definitions.reduce(
+    (counts, definition) => ({
+      ...counts,
+      [definition[key]]: (counts[definition[key]] ?? 0) + 1,
+    }),
+    {} as Record<T[Key], number>
+  );
+}
+
+function isPlantOrGreenery(definition: { id: string; kind: string }): boolean {
+  return /fig|flower|fern|herb|monstera|plant|planter|pothos|snake|trough|vine/.test(
+    `${definition.id} ${definition.kind}`
+  );
+}
+
 describe('lower floor furnishings foundation', () => {
   it('renders the default living-room media seating cluster', () => {
     const build = createLowerFloorFurnishings();
@@ -197,6 +216,47 @@ describe('lower floor furnishings foundation', () => {
     ]);
     expect(build.colliders[0]?.debugName).toBe(
       'LowerFloorFurnishingCollider:living-room-media-sofa'
+    );
+  });
+
+  it('keeps the default downstairs furnishing inventory balanced by room and category', () => {
+    expect(countBy(DEFAULT_LOWER_FLOOR_FURNISHINGS, 'roomId')).toEqual({
+      backyard: 20,
+      kitchen: 18,
+      livingRoom: 21,
+      studio: 16,
+    });
+    expect(countBy(DEFAULT_LOWER_FLOOR_FURNISHINGS, 'category')).toEqual({
+      backyard: 20,
+      kitchenette: 13,
+      'living-room-seating': 9,
+      'plants-lighting-decor': 17,
+      'sleeping-nook': 7,
+      storage: 9,
+    });
+  });
+
+  it('keeps varied downstairs greenery visible in every lower room', () => {
+    const greenery = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(isPlantOrGreenery);
+
+    expect(greenery).toHaveLength(18);
+    expect(countBy(greenery, 'roomId')).toEqual({
+      backyard: 6,
+      kitchen: 3,
+      livingRoom: 6,
+      studio: 3,
+    });
+    expect(greenery.map(({ id }) => id)).toEqual(
+      expect.arrayContaining([
+        'living-room-corner-fig',
+        'living-room-tv-pothos-left',
+        'living-room-reading-plant',
+        'kitchen-counter-herb-cluster',
+        'studio-narrow-plant-east',
+        'studio-hanging-plant-east',
+        'backyard-flower-cluster-sw',
+        'backyard-herb-trough-north',
+      ])
     );
   });
 
@@ -1451,10 +1511,22 @@ describe('lower floor furnishings foundation', () => {
 
     expect(build.colliders).toHaveLength(solidCount);
     build.colliders.forEach((collider) => {
+      expect(
+        [collider.minX, collider.maxX, collider.minZ, collider.maxZ].every(
+          Number.isFinite
+        ),
+        `${collider.furnishingId} has non-finite lower AABB coordinates`
+      ).toBe(true);
       expect(collider.maxX - collider.minX).toBeGreaterThan(0);
       expect(collider.maxZ - collider.minZ).toBeGreaterThan(0);
       expect(collider.sourceId).toBe(
         `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
+      );
+      expect(collider.floorId).toBe('ground');
+      expect(collider.category).toBeTruthy();
+      expect(collider.roomId).toBeTruthy();
+      expect(collider.debugName).toBe(
+        `LowerFloorFurnishingCollider:${collider.furnishingId}`
       );
     });
   });
@@ -1617,6 +1689,46 @@ describe('upper floor furnishings foundation', () => {
     expect(build.group.children).toHaveLength(44);
     expect(build.colliders).toHaveLength(29);
     expect(build.decorativeFootprints).toHaveLength(4);
+  });
+
+  it('keeps the default upstairs furnishing inventory balanced by room and category', () => {
+    expect(countBy(DEFAULT_UPPER_FLOOR_FURNISHINGS, 'roomId')).toEqual({
+      creatorsStudio: 12,
+      focusPods: 12,
+      loftLibrary: 12,
+      upperLanding: 8,
+    });
+    expect(countBy(DEFAULT_UPPER_FLOOR_FURNISHINGS, 'category')).toEqual({
+      'creators-studio': 8,
+      'focus-pods': 6,
+      'loft-library': 7,
+      'plants-lighting-decor': 17,
+      'upper-landing': 6,
+    });
+  });
+
+  it('keeps varied upstairs greenery visible across all upper rooms', () => {
+    const greenery = DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(isPlantOrGreenery);
+
+    expect(greenery).toHaveLength(13);
+    expect(countBy(greenery, 'roomId')).toEqual({
+      creatorsStudio: 3,
+      focusPods: 4,
+      loftLibrary: 4,
+      upperLanding: 2,
+    });
+    expect(greenery.map(({ id }) => id)).toEqual(
+      expect.arrayContaining([
+        'upper-landing-snake-plant',
+        'creators-studio-floor-plant',
+        'creators-studio-hanging-plant-west',
+        'loft-library-hanging-vine',
+        'loft-library-east-snake-plant',
+        'focus-pods-low-plant-row-west',
+        'focus-pods-tree-planter',
+        'focus-pods-wall-planters',
+      ])
+    );
   });
 
   it('declares valid upper room bounds for authoring', () => {
@@ -1950,7 +2062,21 @@ describe('upper floor furnishings foundation', () => {
     const sourceIds = colliders.map(({ sourceId }) => sourceId);
 
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
-    colliders.forEach(({ floorId, sourceId }) => {
+    colliders.forEach((collider) => {
+      const { floorId, sourceId } = collider;
+      expect(
+        [collider.minX, collider.maxX, collider.minZ, collider.maxZ].every(
+          Number.isFinite
+        ),
+        `${collider.furnishingId} has non-finite upper AABB coordinates`
+      ).toBe(true);
+      expect(collider.maxX - collider.minX).toBeGreaterThan(0);
+      expect(collider.maxZ - collider.minZ).toBeGreaterThan(0);
+      expect(collider.category).toBeTruthy();
+      expect(collider.roomId).toBeTruthy();
+      expect(collider.debugName).toBe(
+        `UpperFloorFurnishingCollider:${collider.furnishingId}`
+      );
       expect(isLevelSourceId(sourceId)).toBe(true);
       expect(floorId).toBe('upper');
       expect(sourceId.startsWith('upper.furnishings.')).toBe(true);
