@@ -439,11 +439,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 33,
-      "syncNote": "Furnishing collider metadata and QA tests are source-only; tabletop furnishing proxy coverage is unchanged.",
-      "sourceFingerprint": "a6593fb159faed84a4eca87a6e0215a690335fe0c764b06bc6e72de4f798a612",
+      "syncRevision": 34,
+      "syncNote": "Greenery QA assertions are source-only; tabletop furnishing proxy coverage is unchanged.",
+      "sourceFingerprint": "e513b0c19288f2c8df177cab580ea6617252044a92cbf2e0d600fed66a012d42",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "c57fd0619d0e1342c1485ae4c1fb0fd0b7f34558148250ea93e74caf440cfe87"
+      "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
     },
     {
       "id": "environment:backyard",

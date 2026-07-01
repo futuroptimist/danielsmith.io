@@ -26,6 +26,77 @@ import {
 } from '../scene/structures/lowerFloorFurnishings';
 import type { RectCollider } from '../systems/collision';
 
+const LOWER_FLOOR_GREENERY_EXPECTATIONS = {
+  total: 18,
+  byRoom: {
+    backyard: 6,
+    kitchen: 3,
+    livingRoom: 6,
+    studio: 3,
+  },
+  byVariety: {
+    broadLeafFigMonstera: [
+      'living-room-large-plant',
+      'living-room-plant-stool',
+      'living-room-corner-fig',
+      'living-room-console-plant',
+      'kitchen-round-plant-stand',
+      'studio-monstera',
+    ],
+    pothosTrailingHangingVines: [
+      'living-room-tv-pothos-left',
+      'studio-hanging-plant-east',
+    ],
+    snakePlants: ['studio-narrow-plant-east'],
+    ferns: ['living-room-reading-plant'],
+    herbs: [
+      'kitchen-herb-planter',
+      'kitchen-counter-herb-cluster',
+      'backyard-herb-trough-north',
+    ],
+    flowers: ['backyard-flower-cluster-sw'],
+    lowPlanterRows: [
+      'backyard-planter-west-south',
+      'backyard-planter-west-north',
+      'backyard-planter-east-south',
+      'backyard-planter-east-north',
+    ],
+    treePlanters: ['living-room-corner-fig'],
+  },
+} as const;
+
+const UPPER_FLOOR_GREENERY_EXPECTATIONS = {
+  total: 13,
+  byRoom: {
+    creatorsStudio: 3,
+    focusPods: 4,
+    loftLibrary: 4,
+    upperLanding: 2,
+  },
+  byVariety: {
+    broadLeafFigMonstera: [
+      'upper-landing-planter',
+      'creators-studio-floor-plant',
+      'loft-library-planter',
+      'loft-library-window-planter',
+      'focus-pods-planter-east',
+    ],
+    pothosTrailingHangingVines: [
+      'creators-studio-hanging-plant-west',
+      'loft-library-hanging-vine',
+    ],
+    snakePlants: ['upper-landing-snake-plant', 'loft-library-east-snake-plant'],
+    ferns: ['creators-studio-fern-stand'],
+    herbs: [],
+    flowers: [],
+    lowPlanterRows: [
+      'focus-pods-low-plant-row-west',
+      'focus-pods-wall-planters',
+    ],
+    treePlanters: ['focus-pods-tree-planter'],
+  },
+} as const;
+
 const validDefinitions: LowerFloorFurnishingDefinition[] = [
   {
     id: 'living-couch-foundation',
@@ -1015,6 +1086,13 @@ describe('lower floor furnishings foundation', () => {
     });
   });
 
+  it('keeps deterministic lower-floor plant and greenery coverage', () => {
+    expectGreeneryCoverage(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS,
+      LOWER_FLOOR_GREENERY_EXPECTATIONS
+    );
+  });
+
   it('keeps every default lower-floor collider finite, in-room, and disjoint', () => {
     const { colliders } = createLowerFloorFurnishings();
     const sourceIds = new Set<string>();
@@ -1024,10 +1102,14 @@ describe('lower floor furnishings foundation', () => {
       expect(sourceIds.has(collider.sourceId)).toBe(false);
       sourceIds.add(collider.sourceId);
       expect(
-        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[collider.roomId], collider),
+        `${collider.furnishingId} should stay inside room ${collider.roomId}`
       ).toBe(true);
-      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
-        expect(rectanglesOverlap(collider, blocker, 0.001)).toBe(false);
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker, blockerIndex) => {
+        expect(
+          rectanglesOverlap(collider, blocker, 0.001),
+          `${collider.furnishingId} should not overlap reserved blocker ${blockerIndex}`
+        ).toBe(false);
       });
       colliders.slice(index + 1).forEach((other) => {
         expectDefaultCollidersDoNotOverlap(
@@ -1902,10 +1984,14 @@ describe('upper floor furnishings foundation', () => {
       expect(sourceIds.has(collider.sourceId)).toBe(false);
       sourceIds.add(collider.sourceId);
       expect(
-        isContainedBy(UPPER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+        isContainedBy(UPPER_FLOOR_ROOM_BOUNDS[collider.roomId], collider),
+        `${collider.furnishingId} should stay inside room ${collider.roomId}`
       ).toBe(true);
-      UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
-        expect(rectanglesOverlap(collider, blocker, 0.001)).toBe(false);
+      UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker, blockerIndex) => {
+        expect(
+          rectanglesOverlap(collider, blocker, 0.001),
+          `${collider.furnishingId} should not overlap reserved blocker ${blockerIndex}`
+        ).toBe(false);
       });
       colliders.slice(index + 1).forEach((other) => {
         expectDefaultCollidersDoNotOverlap(
@@ -2081,6 +2167,13 @@ describe('upper floor furnishings foundation', () => {
         decorativeFootprints.some(({ furnishingId }) => furnishingId === id)
       ).toBe(false);
     });
+  });
+
+  it('keeps deterministic upper-floor plant and greenery coverage', () => {
+    expectGreeneryCoverage(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS,
+      UPPER_FLOOR_GREENERY_EXPECTATIONS
+    );
   });
 
   it('creates expected custom upper source IDs and floor-routed metadata', () => {
@@ -2302,6 +2395,62 @@ function countDefinitionsByCategory(
   }, {});
 }
 
+function expectGreeneryCoverage(
+  definitions: readonly { id: string; kind: string; roomId: string }[],
+  expectations: {
+    total: number;
+    byRoom: Record<string, number>;
+    byVariety: Record<string, readonly string[]>;
+  }
+): void {
+  const expectedGreeneryIds = new Set(
+    Object.values(expectations.byVariety).flat()
+  );
+  const definitionsById = new Map(
+    definitions.map((definition) => [definition.id, definition])
+  );
+  const greeneryDefinitions = [...expectedGreeneryIds].map((id) => {
+    const definition = definitionsById.get(id);
+
+    expect(
+      definition,
+      `${id} should exist in default greenery coverage`
+    ).toBeDefined();
+    return definition;
+  });
+
+  expect(greeneryDefinitions).toHaveLength(expectations.total);
+  expect(countDefinitionsByRoom(greeneryDefinitions)).toEqual(
+    expectations.byRoom
+  );
+
+  Object.entries(expectations.byVariety).forEach(([variety, ids]) => {
+    ids.forEach((id) => {
+      const definition = definitionsById.get(id);
+
+      expect(
+        definition,
+        `${id} should exist for ${variety} greenery coverage`
+      ).toBeDefined();
+      expect(
+        expectedGreeneryIds.has(id),
+        `${id} should be counted in total greenery coverage`
+      ).toBe(true);
+    });
+  });
+}
+
+function countDefinitionsByRoom(
+  definitions: readonly ({ roomId: string } | undefined)[]
+): Record<string, number> {
+  return definitions.reduce<Record<string, number>>((counts, definition) => {
+    if (!definition) return counts;
+
+    counts[definition.roomId] = (counts[definition.roomId] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
 function expectDefaultCollidersDoNotOverlap(
   collider: FloorFurnishingCollider<string, string>,
   other: FloorFurnishingCollider<string, string>,
@@ -2325,7 +2474,11 @@ function expectDefaultCollidersDoNotOverlap(
 
   if (allowedOverlap) return;
 
-  expect(rectanglesOverlap(collider, other, 0.001)).toBe(false);
+  expect(
+    rectanglesOverlap(collider, other, 0.001),
+    `${collider.furnishingId} (${collider.category}) should not overlap ` +
+      `${other.furnishingId} (${other.category})`
+  ).toBe(false);
 }
 
 function expectFinitePositiveCollider(
