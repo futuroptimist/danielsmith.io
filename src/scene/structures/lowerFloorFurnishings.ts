@@ -378,6 +378,215 @@ export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefin
       visual: { color: 0x46536a, accentColor: 0xd8ccb8, height: 1.45 },
     },
     {
+      id: 'upper-landing-snake-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'upperLanding',
+      position: { x: 5.0, z: -17.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      kind: 'snake-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x4f8f4f, height: 1.45 },
+    },
+    {
+      id: 'upper-landing-gallery-plinth',
+      category: 'plants-lighting-decor',
+      roomId: 'upperLanding',
+      position: { x: 15.8, z: -30.4 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      kind: 'gallery-plinth',
+      visual: { color: 0xd8ccb8, accentColor: 0x56616f, height: 0.9 },
+    },
+    {
+      id: 'creators-studio-fern-stand',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: 0.8, z: -13.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'fern-plant',
+      visual: { color: 0x6a4a32, accentColor: 0x5f9f63, height: 1.05 },
+    },
+    {
+      id: 'creators-studio-floor-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: -1.0, z: -25.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      kind: 'floor-lamp',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.55 },
+    },
+    {
+      id: 'creators-studio-tool-cart',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -8.0, z: -3.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.2, depth: 0.8 },
+      kind: 'storage-open-shelf',
+      visual: { color: 0x56616f, accentColor: 0xc29249, height: 0.82 },
+    },
+    {
+      id: 'loft-library-window-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 5.0, z: 10.2 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.8, depth: 0.8 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 0.95 },
+    },
+    {
+      id: 'loft-library-east-snake-plant',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 23.0, z: -12.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.7, depth: 0.7 },
+      kind: 'snake-plant',
+      visual: { color: 0x7a5134, accentColor: 0x5f8f48, height: 1.45 },
+    },
+    {
+      id: 'loft-library-ottoman',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 11.0, z: -11.6 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      kind: 'round-pouf',
+      visual: { color: 0x7d6f89, accentColor: 0xd8c7a7, height: 0.38 },
+    },
+    {
+      id: 'focus-pods-tree-planter',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 22.7, z: 26.8 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.9, depth: 0.9 },
+      kind: 'large-potted-plant',
+      visual: { color: 0x7a5134, accentColor: 0x4f8f4f, height: 1.85 },
+    },
+    {
+      id: 'focus-pods-low-plant-row-west',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: -18.0, z: 25.0 },
+      orientationRadians: 0,
+      solidFootprint: { width: 1.2, depth: 0.7 },
+      kind: 'herb-trough',
+      visual: { color: 0x8a5a36, accentColor: 0x6f9f5d, height: 0.65 },
+    },
+    {
+      id: 'focus-pods-floor-lamp',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 8.0, z: 26.3 },
+      orientationRadians: 0,
+      solidFootprint: { width: 0.55, depth: 0.55 },
+      kind: 'floor-lamp',
+      visual: { color: 0x2b2b2f, accentColor: 0xffd48a, height: 1.55 },
+    },
+    {
+      id: 'upper-landing-gallery-wall',
+      category: 'plants-lighting-decor',
+      roomId: 'upperLanding',
+      position: { x: 12.8, y: 1.55, z: -31.85 },
+      orientationRadians: 0,
+      kind: 'wall-art-triptych-detail',
+      visual: { color: 0xd6c3a3, accentColor: 0x384c5c, height: 0.7 },
+    },
+    {
+      id: 'upper-landing-small-vase',
+      category: 'plants-lighting-decor',
+      roomId: 'upperLanding',
+      position: { x: 15.8, y: 1.0, z: -30.4 },
+      orientationRadians: 0,
+      kind: 'table-bowl-detail',
+      visual: { color: 0xcaa66a, accentColor: 0xf1e9da, height: 0.22 },
+    },
+    {
+      id: 'creators-studio-hanging-plant-west',
+      category: 'plants-lighting-decor',
+      roomId: 'creatorsStudio',
+      position: { x: -19.2, y: 1.75, z: -13.4 },
+      orientationRadians: 0,
+      kind: 'hanging-plant-detail',
+      visual: { color: 0x8a5a36, accentColor: 0x4f9b59, height: 0.56 },
+    },
+    {
+      id: 'creators-studio-pinboard',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -9.2, y: 1.45, z: -31.85 },
+      orientationRadians: 0,
+      kind: 'pinboard-detail',
+      visual: { color: 0xb7834f, accentColor: 0xd8ccb8, height: 0.68 },
+    },
+    {
+      id: 'creators-studio-table-books',
+      category: 'creators-studio',
+      roomId: 'creatorsStudio',
+      position: { x: -2.8, y: 0.54, z: -19.8 },
+      orientationRadians: 0,
+      kind: 'book-stack-detail',
+      visual: { color: 0x384c5c, accentColor: 0xc29249, height: 0.22 },
+    },
+    {
+      id: 'loft-library-book-stacks',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 8.2, y: 0.64, z: -9.0 },
+      orientationRadians: 0,
+      kind: 'book-stack-detail',
+      visual: { color: 0x6e7d55, accentColor: 0xc29249, height: 0.24 },
+    },
+    {
+      id: 'loft-library-wall-art',
+      category: 'loft-library',
+      roomId: 'loftLibrary',
+      position: { x: 13.0, y: 1.55, z: -15.85 },
+      orientationRadians: 0,
+      kind: 'wall-art-panel-detail',
+      visual: { color: 0xd6c3a3, accentColor: 0x42546a, height: 0.72 },
+    },
+    {
+      id: 'loft-library-hanging-vine',
+      category: 'plants-lighting-decor',
+      roomId: 'loftLibrary',
+      position: { x: 22.7, y: 1.82, z: 7.2 },
+      orientationRadians: 0,
+      kind: 'hanging-vine-detail',
+      visual: { color: 0x8a5a36, accentColor: 0x4f9b59, height: 0.7 },
+    },
+    {
+      id: 'focus-pods-cushion-scatter',
+      category: 'focus-pods',
+      roomId: 'focusPods',
+      position: { x: 19.8, y: 0.72, z: 25.0 },
+      orientationRadians: 0,
+      kind: 'cushion-scatter-detail',
+      visual: { color: 0xd8c7a7, accentColor: 0x7d6f89, height: 0.2 },
+    },
+    {
+      id: 'focus-pods-wall-planters',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: -12.0, y: 1.45, z: 27.85 },
+      orientationRadians: 0,
+      kind: 'wall-planters-detail',
+      visual: { color: 0x8a5a36, accentColor: 0x6f9f5d, height: 0.5 },
+    },
+    {
+      id: 'focus-pods-soft-light-strip',
+      category: 'plants-lighting-decor',
+      roomId: 'focusPods',
+      position: { x: 5.0, y: 1.9, z: 27.85 },
+      orientationRadians: 0,
+      kind: 'soft-light-strip-detail',
+      visual: { color: 0x2f3740, accentColor: 0xffd48a, height: 0.12 },
+    },
+    {
       id: 'upper-landing-runner',
       category: 'upper-landing',
       roomId: 'upperLanding',
@@ -2900,12 +3109,14 @@ function createVisualDetailPrimitive(
     {
       emissive:
         definition.kind.includes('pendant') ||
-        definition.kind.includes('string-lights')
+        definition.kind.includes('string-lights') ||
+        definition.kind.includes('light-strip')
           ? (definition.visual?.accentColor ?? 0xffd48a)
           : 0x000000,
       emissiveIntensity:
         definition.kind.includes('pendant') ||
-        definition.kind.includes('string-lights')
+        definition.kind.includes('string-lights') ||
+        definition.kind.includes('light-strip')
           ? 0.35
           : 0,
     }
@@ -3001,7 +3212,12 @@ function createVisualDetailPrimitive(
 
   if (definition.kind.endsWith('-detail')) {
     const height = definition.visual?.height ?? 0.4;
-    if (definition.kind.includes('plant') || definition.kind.includes('herb')) {
+    if (
+      definition.kind.includes('plant') ||
+      definition.kind.includes('herb') ||
+      definition.kind.includes('vine') ||
+      definition.kind.includes('planters')
+    ) {
       addTinyPlantWithMaterials(
         group,
         definition.id,
