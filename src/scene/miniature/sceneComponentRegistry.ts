@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 28,
+    syncRevision: 29,
     syncNote:
-      'Multi-floor furniture remains source-only while shelf detail proxy coverage is deferred.',
+      'Upstairs decor density remains source-only until the furnishing proxy pass.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },

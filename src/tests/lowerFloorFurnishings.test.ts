@@ -11,6 +11,7 @@ import {
   LOWER_FLOOR_RESERVED_BLOCKERS,
   LOWER_FLOOR_ROOM_BOUNDS,
   DEFAULT_LOWER_FLOOR_FURNISHINGS,
+  DEFAULT_UPPER_FLOOR_FURNISHINGS,
   UPPER_FLOOR_RESERVED_BLOCKERS,
   UPPER_FLOOR_ROOM_BOUNDS,
   createLowerFloorFurnishings,
@@ -1612,8 +1613,8 @@ describe('upper floor furnishings foundation', () => {
     const build = createUpperFloorFurnishings();
 
     expect(build.group.name).toBe('UpperFloorFurnishings');
-    expect(build.group.children).toHaveLength(22);
-    expect(build.colliders).toHaveLength(18);
+    expect(build.group.children).toHaveLength(44);
+    expect(build.colliders).toHaveLength(29);
     expect(build.decorativeFootprints).toHaveLength(4);
   });
 
@@ -1727,6 +1728,133 @@ describe('upper floor furnishings foundation', () => {
       expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
       expectColliderBoundsToBeCloseTo(colliders, id, expected);
     });
+  });
+
+  it('adds upstairs plants, lamps, and small decor with requested P12 AABBs', () => {
+    const { colliders, group } = createUpperFloorFurnishings();
+    const expectedDecorBounds: Record<string, RectCollider> = {
+      'upper-landing-snake-plant': {
+        minX: 4.65,
+        maxX: 5.35,
+        minZ: -17.95,
+        maxZ: -17.25,
+      },
+      'upper-landing-gallery-plinth': {
+        minX: 15.35,
+        maxX: 16.25,
+        minZ: -30.85,
+        maxZ: -29.95,
+      },
+      'creators-studio-fern-stand': {
+        minX: 0.4,
+        maxX: 1.2,
+        minZ: -13.6,
+        maxZ: -12.8,
+      },
+      'creators-studio-floor-lamp': {
+        minX: -1.275,
+        maxX: -0.725,
+        minZ: -25.875,
+        maxZ: -25.325,
+      },
+      'creators-studio-tool-cart': {
+        minX: -8.6,
+        maxX: -7.4,
+        minZ: -3.4,
+        maxZ: -2.6,
+      },
+      'loft-library-window-planter': {
+        minX: 4.6,
+        maxX: 5.4,
+        minZ: 9.8,
+        maxZ: 10.6,
+      },
+      'loft-library-east-snake-plant': {
+        minX: 22.65,
+        maxX: 23.35,
+        minZ: -12.35,
+        maxZ: -11.65,
+      },
+      'loft-library-ottoman': {
+        minX: 10.55,
+        maxX: 11.45,
+        minZ: -12.05,
+        maxZ: -11.15,
+      },
+      'focus-pods-tree-planter': {
+        minX: 22.25,
+        maxX: 23.15,
+        minZ: 26.35,
+        maxZ: 27.25,
+      },
+      'focus-pods-low-plant-row-west': {
+        minX: -18.6,
+        maxX: -17.4,
+        minZ: 24.65,
+        maxZ: 25.35,
+      },
+      'focus-pods-floor-lamp': {
+        minX: 7.725,
+        maxX: 8.275,
+        minZ: 26.025,
+        maxZ: 26.575,
+      },
+    };
+
+    Object.entries(expectedDecorBounds).forEach(([id, expected]) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      expectColliderBoundsToBeCloseTo(colliders, id, expected);
+    });
+  });
+
+  it('keeps upstairs visual-only P12 details represented and non-blocking', () => {
+    const { colliders, decorativeFootprints, group } =
+      createUpperFloorFurnishings();
+    const visualOnlyIds = [
+      'upper-landing-gallery-wall',
+      'upper-landing-small-vase',
+      'creators-studio-hanging-plant-west',
+      'creators-studio-pinboard',
+      'creators-studio-table-books',
+      'loft-library-book-stacks',
+      'loft-library-wall-art',
+      'loft-library-hanging-vine',
+      'focus-pods-cushion-scatter',
+      'focus-pods-wall-planters',
+      'focus-pods-soft-light-strip',
+    ];
+
+    visualOnlyIds.forEach((id) => {
+      expect(group.getObjectByName(`Furnishing:${id}`)).toBeDefined();
+      expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
+        false
+      );
+      expect(
+        decorativeFootprints.some((footprint) => footprint.furnishingId === id)
+      ).toBe(false);
+    });
+  });
+
+  it('represents at least ten upstairs plant and greenery visuals', () => {
+    const greeneryDefinitions = DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+      ({ id, kind }) =>
+        kind.includes('plant') ||
+        kind.includes('fern') ||
+        kind.includes('vine') ||
+        kind.includes('planter') ||
+        id.includes('plant')
+    );
+
+    expect(greeneryDefinitions.map(({ id }) => id)).toEqual(
+      expect.arrayContaining([
+        'upper-landing-snake-plant',
+        'creators-studio-fern-stand',
+        'loft-library-window-planter',
+        'loft-library-hanging-vine',
+        'focus-pods-wall-planters',
+      ])
+    );
+    expect(greeneryDefinitions.length).toBeGreaterThanOrEqual(10);
   });
 
   it('keeps the narrow loft library bookcase visual inside its collider', () => {
