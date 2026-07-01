@@ -18,6 +18,7 @@ import {
   rectanglesOverlap,
   validateLowerFloorFurnishingPlan,
   validateUpperFloorFurnishingPlan,
+  type FloorFurnishingCollider,
   type LowerFloorFurnishingDefinition,
   type UpperFloorFurnishingDefinition,
 } from '../scene/structures/lowerFloorFurnishings';
@@ -93,7 +94,7 @@ function expectRectToBeCloseTo(
 }
 
 function expectColliderBoundsToBeCloseTo(
-  colliders: RectCollider[],
+  colliders: FloorFurnishingCollider<string, string>[],
   furnishingId: string,
   expected: RectCollider
 ): void {
@@ -1799,24 +1800,54 @@ describe('upper floor furnishings foundation', () => {
         (decorativeFootprint) => decorativeFootprint.furnishingId === id
       );
 
-      expect(footprint?.allowSolidOverlap).toBe(true);
-      expectRectToBeCloseTo(footprint!.bounds, bounds);
+      expect(footprint).toBeDefined();
+      if (!footprint) return;
+
+      expect(footprint.allowSolidOverlap).toBe(true);
+      expectRectToBeCloseTo(footprint.bounds, bounds);
     });
   });
 
-  it('creates valid unique upper source IDs and floor-routed metadata', () => {
+  it('keeps every default upstairs decorative footprint in-room and blocker-clear', () => {
+    const { colliders, decorativeFootprints } = createUpperFloorFurnishings();
+
+    decorativeFootprints.forEach((footprint) => {
+      expect(
+        colliders.some(
+          (collider) => collider.furnishingId === footprint.furnishingId
+        )
+      ).toBe(false);
+      expect(
+        isContainedBy(
+          UPPER_FLOOR_ROOM_BOUNDS[footprint.roomId],
+          footprint.bounds
+        )
+      ).toBe(true);
+      UPPER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(footprint.bounds, blocker)).toBe(false);
+      });
+    });
+  });
+
+  it('creates valid unique default upper source IDs and floor-routed metadata', () => {
+    const { colliders } = createUpperFloorFurnishings();
+    const sourceIds = colliders.map(({ sourceId }) => sourceId);
+
+    expect(new Set(sourceIds).size).toBe(sourceIds.length);
+    colliders.forEach(({ floorId, sourceId }) => {
+      expect(isLevelSourceId(sourceId)).toBe(true);
+      expect(floorId).toBe('upper');
+      expect(sourceId.startsWith('upper.furnishings.')).toBe(true);
+    });
+  });
+
+  it('creates expected custom upper source IDs and floor-routed metadata', () => {
     const build = createUpperFloorFurnishings({
       definitions: upperDefinitions,
       baseElevation: 6,
     });
-    const sourceIds = build.colliders.map(({ sourceId }) => sourceId);
 
-    expect(new Set(sourceIds).size).toBe(sourceIds.length);
-    expect(sourceIds.every(isLevelSourceId)).toBe(true);
     expect(build.colliders).toHaveLength(2);
-    expect(build.colliders.every(({ floorId }) => floorId === 'upper')).toBe(
-      true
-    );
     expect(build.colliders.map(({ sourceId }) => sourceId)).toEqual([
       'upper.furnishings.upper-landing.upper-landing-bench-foundation.generated_collider',
       'upper.furnishings.creators-studio.creators-studio-desk-foundation.generated_collider',
