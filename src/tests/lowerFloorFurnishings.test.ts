@@ -1839,25 +1839,25 @@ describe('upper floor furnishings foundation', () => {
   it('represents upstairs visual-only decor without blocking colliders', () => {
     const { colliders, group, decorativeFootprints } =
       createUpperFloorFurnishings();
-    const detailIds = [
-      'upper-landing-gallery-wall',
-      'upper-landing-small-vase',
-      'creators-studio-hanging-plant-west',
-      'creators-studio-pinboard',
-      'creators-studio-table-books',
-      'loft-library-book-stacks',
-      'loft-library-wall-art',
-      'loft-library-hanging-vine',
-      'focus-pods-cushion-scatter',
-      'focus-pods-wall-planters',
-      'focus-pods-soft-light-strip',
-    ];
+    const detailOffsets = new Map([
+      ['upper-landing-gallery-wall', 1.8],
+      ['upper-landing-small-vase', 0.98],
+      ['creators-studio-hanging-plant-west', 2.05],
+      ['creators-studio-pinboard', 1.55],
+      ['creators-studio-table-books', 0.52],
+      ['loft-library-book-stacks', 0.62],
+      ['loft-library-wall-art', 1.75],
+      ['loft-library-hanging-vine', 1.95],
+      ['focus-pods-cushion-scatter', 0.78],
+      ['focus-pods-wall-planters', 1.65],
+      ['focus-pods-soft-light-strip', 1.82],
+    ]);
 
-    detailIds.forEach((id) => {
+    detailOffsets.forEach((localOffset, id) => {
       const detail = group.getObjectByName(`Furnishing:${id}`);
       expect(detail).toBeDefined();
-      expect(detail?.position.y).toBeGreaterThanOrEqual(
-        UPPER_FLOOR_TOP_ELEVATION
+      expect(detail?.position.y).toBeCloseTo(
+        UPPER_FLOOR_TOP_ELEVATION + localOffset
       );
       expect(colliders.some((collider) => collider.furnishingId === id)).toBe(
         false
