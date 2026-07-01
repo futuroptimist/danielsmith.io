@@ -14,6 +14,15 @@ import { isLevelSourceId } from '../level/sourceIds';
 
 export type FloorFurnishingFloorId = 'ground' | 'upper';
 
+export type FloorFurnishingPurpose =
+  | 'lower-floor-furnishing'
+  | 'upper-floor-furnishing';
+
+const FLOOR_FURNISHING_PURPOSE_BY_FLOOR = {
+  ground: 'lower-floor-furnishing',
+  upper: 'upper-floor-furnishing',
+} satisfies Record<FloorFurnishingFloorId, FloorFurnishingPurpose>;
+
 export type LowerFloorFurnishingCategory =
   | 'living-room-seating'
   | 'kitchenette'
@@ -101,6 +110,8 @@ export interface FloorFurnishingCollider<
   category: Category;
   roomId: RoomId;
   sourceId: string;
+  sourceType: 'generatedCollider';
+  purpose: FloorFurnishingPurpose;
   debugName: string;
   floorId: FloorFurnishingFloorId;
 }
@@ -1699,6 +1710,8 @@ function createFloorFurnishings<Category extends string, RoomId extends string>(
         category: definition.category,
         roomId: definition.roomId,
         sourceId: `${floorId}.furnishings.${definition.category}.${definition.id}.generated_collider`,
+        sourceType: 'generatedCollider',
+        purpose: FLOOR_FURNISHING_PURPOSE_BY_FLOOR[floorId],
         debugName: `${colliderDebugNamePrefix}:${definition.id}`,
         floorId,
       });
