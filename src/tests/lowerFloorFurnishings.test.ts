@@ -112,6 +112,62 @@ function expectColliderBoundsToBeCloseTo(
 }
 
 describe('lower floor furnishings foundation', () => {
+  it('keeps the default downstairs inventory complete by room and category', () => {
+    const expectedByRoom = new Map([
+      ['livingRoom', 21],
+      ['kitchen', 18],
+      ['studio', 16],
+      ['backyard', 20],
+    ]);
+    const expectedByCategory = new Map([
+      ['living-room-seating', 9],
+      ['plants-lighting-decor', 17],
+      ['kitchenette', 13],
+      ['storage', 9],
+      ['sleeping-nook', 7],
+      ['backyard', 20],
+    ]);
+
+    expect(
+      countDefinitionsBy(DEFAULT_LOWER_FLOOR_FURNISHINGS, 'roomId')
+    ).toEqual(expectedByRoom);
+    expect(
+      countDefinitionsBy(DEFAULT_LOWER_FLOOR_FURNISHINGS, 'category')
+    ).toEqual(expectedByCategory);
+  });
+
+  it('keeps downstairs plant coverage varied across every ground room', () => {
+    const plantKindsByRoom = plantKindsByRoomId(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS
+    );
+
+    expect(plantKindsByRoom).toMatchObject({
+      livingRoom: expect.arrayContaining([
+        'large-potted-plant',
+        'plant-stool',
+        'trailing-pothos-plant',
+      ]),
+      kitchen: expect.arrayContaining([
+        'herb-planter-detail',
+        'plant-stool',
+        'herb-cluster-detail',
+      ]),
+      studio: expect.arrayContaining([
+        'monstera-plant',
+        'snake-plant',
+        'hanging-plant-detail',
+      ]),
+      backyard: expect.arrayContaining([
+        'backyard-herb-trough',
+        'backyard-flower-cluster',
+        'backyard-potted-plant',
+      ]),
+    });
+    expect(
+      DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(isPlantDefinition)
+    ).toHaveLength(18);
+  });
+
   it('renders the default living-room media seating cluster', () => {
     const build = createLowerFloorFurnishings();
 
@@ -956,10 +1012,15 @@ describe('lower floor furnishings foundation', () => {
     const sourceIds = colliders.map((collider) => collider.sourceId);
 
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
-    expect(
-      colliders.every((collider) => isLevelSourceId(collider.sourceId))
-    ).toBe(true);
     colliders.forEach((collider) => {
+      expect(isLevelSourceId(collider.sourceId)).toBe(true);
+      expect(collider.floorId).toBe('ground');
+      expect(Number.isFinite(collider.minX)).toBe(true);
+      expect(Number.isFinite(collider.maxX)).toBe(true);
+      expect(Number.isFinite(collider.minZ)).toBe(true);
+      expect(Number.isFinite(collider.maxZ)).toBe(true);
+      expect(collider.maxX - collider.minX).toBeGreaterThan(0);
+      expect(collider.maxZ - collider.minZ).toBeGreaterThan(0);
       expect(collider.sourceId).toBe(
         `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
       );
@@ -1619,6 +1680,60 @@ describe('upper floor furnishings foundation', () => {
     expect(build.decorativeFootprints).toHaveLength(4);
   });
 
+  it('keeps the default upstairs inventory complete by room and category', () => {
+    const expectedByRoom = new Map([
+      ['upperLanding', 8],
+      ['creatorsStudio', 12],
+      ['loftLibrary', 12],
+      ['focusPods', 12],
+    ]);
+    const expectedByCategory = new Map([
+      ['upper-landing', 6],
+      ['plants-lighting-decor', 17],
+      ['creators-studio', 8],
+      ['loft-library', 7],
+      ['focus-pods', 6],
+    ]);
+
+    expect(
+      countDefinitionsBy(DEFAULT_UPPER_FLOOR_FURNISHINGS, 'roomId')
+    ).toEqual(expectedByRoom);
+    expect(
+      countDefinitionsBy(DEFAULT_UPPER_FLOOR_FURNISHINGS, 'category')
+    ).toEqual(expectedByCategory);
+  });
+
+  it('keeps upstairs plant coverage varied across every upper room', () => {
+    const plantKindsByRoom = plantKindsByRoomId(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS
+    );
+
+    expect(plantKindsByRoom).toMatchObject({
+      upperLanding: expect.arrayContaining([
+        'large-potted-plant',
+        'snake-plant',
+      ]),
+      creatorsStudio: expect.arrayContaining([
+        'monstera-plant',
+        'plant-stool',
+        'hanging-plant-detail',
+      ]),
+      loftLibrary: expect.arrayContaining([
+        'large-potted-plant',
+        'hanging-plant-detail',
+        'snake-plant',
+      ]),
+      focusPods: expect.arrayContaining([
+        'large-potted-plant',
+        'plant-row',
+        'wall-planter-detail',
+      ]),
+    });
+    expect(
+      DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(isPlantDefinition)
+    ).toHaveLength(13);
+  });
+
   it('declares valid upper room bounds for authoring', () => {
     expect(UPPER_FLOOR_ROOM_BOUNDS).toEqual({
       upperLanding: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
@@ -1824,6 +1939,12 @@ describe('upper floor furnishings foundation', () => {
 
     colliders.forEach((collider, index) => {
       expect(collider.floorId).toBe('upper');
+      expect(Number.isFinite(collider.minX)).toBe(true);
+      expect(Number.isFinite(collider.maxX)).toBe(true);
+      expect(Number.isFinite(collider.minZ)).toBe(true);
+      expect(Number.isFinite(collider.maxZ)).toBe(true);
+      expect(collider.maxX - collider.minX).toBeGreaterThan(0);
+      expect(collider.maxZ - collider.minZ).toBeGreaterThan(0);
       expect(
         isContainedBy(UPPER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
       ).toBe(true);
@@ -2164,5 +2285,48 @@ function isContainedBy(container: RectCollider, bounds: RectCollider): boolean {
     bounds.maxX <= container.maxX &&
     bounds.minZ >= container.minZ &&
     bounds.maxZ <= container.maxZ
+  );
+}
+
+function countDefinitionsBy<
+  Definition extends { category: string; roomId: string },
+  Key extends 'category' | 'roomId',
+>(definitions: readonly Definition[], key: Key): Map<Definition[Key], number> {
+  return definitions.reduce((counts, definition) => {
+    const value = definition[key];
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+    return counts;
+  }, new Map<Definition[Key], number>());
+}
+
+function plantKindsByRoomId<
+  Definition extends { kind: string; id: string; roomId: string },
+>(definitions: readonly Definition[]): Record<string, string[]> {
+  return definitions
+    .filter(isPlantDefinition)
+    .reduce<Record<string, string[]>>((plantsByRoom, definition) => {
+      plantsByRoom[definition.roomId] = [
+        ...(plantsByRoom[definition.roomId] ?? []),
+        definition.kind,
+      ];
+      return plantsByRoom;
+    }, {});
+}
+
+function isPlantDefinition(definition: { kind: string; id: string }): boolean {
+  return (
+    definition.kind.includes('plant') ||
+    definition.kind.includes('fern') ||
+    definition.kind.includes('snake') ||
+    definition.kind.includes('vine') ||
+    definition.kind.includes('herb') ||
+    definition.kind.includes('flower') ||
+    definition.kind.includes('planter') ||
+    definition.id.includes('plant') ||
+    definition.id.includes('fern') ||
+    definition.id.includes('vine') ||
+    definition.id.includes('herb') ||
+    definition.id.includes('flower') ||
+    definition.id.includes('planter')
   );
 }
