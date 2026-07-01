@@ -101,6 +101,8 @@ export interface FloorFurnishingCollider<
   category: Category;
   roomId: RoomId;
   sourceId: string;
+  sourceType: 'generatedCollider';
+  purpose: 'lower-floor-furnishing' | 'upper-floor-furnishing';
   debugName: string;
   floorId: FloorFurnishingFloorId;
 }
@@ -1699,6 +1701,11 @@ function createFloorFurnishings<Category extends string, RoomId extends string>(
         category: definition.category,
         roomId: definition.roomId,
         sourceId: `${floorId}.furnishings.${definition.category}.${definition.id}.generated_collider`,
+        sourceType: 'generatedCollider',
+        purpose:
+          floorId === 'ground'
+            ? 'lower-floor-furnishing'
+            : 'upper-floor-furnishing',
         debugName: `${colliderDebugNamePrefix}:${definition.id}`,
         floorId,
       });

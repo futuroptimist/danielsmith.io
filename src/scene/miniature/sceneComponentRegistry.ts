@@ -83,9 +83,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 32,
+    syncRevision: 33,
     syncNote:
-      'Upstairs visual detail elevation constants remain source-only until furnishing proxy coverage lands.',
+      'Furnishing collider metadata and QA tests are source-only; tabletop furnishing proxy coverage is unchanged.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },

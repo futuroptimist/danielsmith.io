@@ -963,6 +963,75 @@ describe('lower floor furnishings foundation', () => {
       expect(collider.sourceId).toBe(
         `ground.furnishings.${collider.category}.${collider.furnishingId}.generated_collider`
       );
+      expect(collider).toMatchObject({
+        floorId: 'ground',
+        sourceType: 'generatedCollider',
+        purpose: 'lower-floor-furnishing',
+      });
+    });
+  });
+
+  it('keeps default lower-floor inventory complete by category and collider intent', () => {
+    expect(DEFAULT_LOWER_FLOOR_FURNISHINGS).toHaveLength(75);
+    expect(countDefinitionsByCategory(DEFAULT_LOWER_FLOOR_FURNISHINGS)).toEqual(
+      {
+        backyard: 20,
+        kitchenette: 13,
+        'living-room-seating': 9,
+        'plants-lighting-decor': 17,
+        'sleeping-nook': 7,
+        storage: 9,
+      }
+    );
+
+    const { colliders, decorativeFootprints } = createLowerFloorFurnishings();
+    const solidDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.solidFootprint
+    );
+    const decorativeDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.decorativeFootprint
+    );
+    const visualOnlyDefinitions = DEFAULT_LOWER_FLOOR_FURNISHINGS.filter(
+      (definition) =>
+        !definition.solidFootprint && !definition.decorativeFootprint
+    );
+
+    expect(colliders).toHaveLength(solidDefinitions.length);
+    expect(decorativeFootprints).toHaveLength(decorativeDefinitions.length);
+    expect(new Set(colliders.map(({ furnishingId }) => furnishingId))).toEqual(
+      new Set(solidDefinitions.map(({ id }) => id))
+    );
+    expect(
+      new Set(decorativeFootprints.map(({ furnishingId }) => furnishingId))
+    ).toEqual(new Set(decorativeDefinitions.map(({ id }) => id)));
+
+    visualOnlyDefinitions.forEach(({ id }) => {
+      expect(colliders.some(({ furnishingId }) => furnishingId === id)).toBe(
+        false
+      );
+      expect(
+        decorativeFootprints.some(({ furnishingId }) => furnishingId === id)
+      ).toBe(false);
+    });
+  });
+
+  it('keeps every default lower-floor collider finite, in-room, and disjoint', () => {
+    const { colliders } = createLowerFloorFurnishings();
+    const sourceIds = new Set<string>();
+
+    colliders.forEach((collider, index) => {
+      expectFinitePositiveCollider(collider);
+      expect(sourceIds.has(collider.sourceId)).toBe(false);
+      sourceIds.add(collider.sourceId);
+      expect(
+        isContainedBy(LOWER_FLOOR_ROOM_BOUNDS[collider.roomId], collider)
+      ).toBe(true);
+      LOWER_FLOOR_RESERVED_BLOCKERS.forEach((blocker) => {
+        expect(rectanglesOverlap(collider, blocker)).toBe(false);
+      });
+      colliders.slice(index + 1).forEach((other) => {
+        expect(rectanglesOverlap(collider, other)).toBe(false);
+      });
     });
   });
 
@@ -1950,10 +2019,55 @@ describe('upper floor furnishings foundation', () => {
     const sourceIds = colliders.map(({ sourceId }) => sourceId);
 
     expect(new Set(sourceIds).size).toBe(sourceIds.length);
-    colliders.forEach(({ floorId, sourceId }) => {
+    colliders.forEach(({ floorId, purpose, sourceId, sourceType }) => {
       expect(isLevelSourceId(sourceId)).toBe(true);
       expect(floorId).toBe('upper');
+      expect(sourceType).toBe('generatedCollider');
+      expect(purpose).toBe('upper-floor-furnishing');
       expect(sourceId.startsWith('upper.furnishings.')).toBe(true);
+    });
+  });
+
+  it('keeps default upper-floor inventory complete by category and collider intent', () => {
+    expect(DEFAULT_UPPER_FLOOR_FURNISHINGS).toHaveLength(44);
+    expect(countDefinitionsByCategory(DEFAULT_UPPER_FLOOR_FURNISHINGS)).toEqual(
+      {
+        'creators-studio': 8,
+        'focus-pods': 6,
+        'loft-library': 7,
+        'plants-lighting-decor': 17,
+        'upper-landing': 6,
+      }
+    );
+
+    const { colliders, decorativeFootprints } = createUpperFloorFurnishings();
+    const solidDefinitions = DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.solidFootprint
+    );
+    const decorativeDefinitions = DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+      (definition) => definition.decorativeFootprint
+    );
+    const visualOnlyDefinitions = DEFAULT_UPPER_FLOOR_FURNISHINGS.filter(
+      (definition) =>
+        !definition.solidFootprint && !definition.decorativeFootprint
+    );
+
+    expect(colliders).toHaveLength(solidDefinitions.length);
+    expect(decorativeFootprints).toHaveLength(decorativeDefinitions.length);
+    expect(new Set(colliders.map(({ furnishingId }) => furnishingId))).toEqual(
+      new Set(solidDefinitions.map(({ id }) => id))
+    );
+    expect(
+      new Set(decorativeFootprints.map(({ furnishingId }) => furnishingId))
+    ).toEqual(new Set(decorativeDefinitions.map(({ id }) => id)));
+
+    visualOnlyDefinitions.forEach(({ id }) => {
+      expect(colliders.some(({ furnishingId }) => furnishingId === id)).toBe(
+        false
+      );
+      expect(
+        decorativeFootprints.some(({ furnishingId }) => furnishingId === id)
+      ).toBe(false);
     });
   });
 
@@ -2165,4 +2279,24 @@ function isContainedBy(container: RectCollider, bounds: RectCollider): boolean {
     bounds.minZ >= container.minZ &&
     bounds.maxZ <= container.maxZ
   );
+}
+
+function countDefinitionsByCategory(
+  definitions: readonly { category: string }[]
+): Record<string, number> {
+  return definitions.reduce<Record<string, number>>((counts, definition) => {
+    counts[definition.category] = (counts[definition.category] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function expectFinitePositiveCollider(
+  collider: FloorFurnishingCollider<string, string>
+): void {
+  expect(Number.isFinite(collider.minX)).toBe(true);
+  expect(Number.isFinite(collider.maxX)).toBe(true);
+  expect(Number.isFinite(collider.minZ)).toBe(true);
+  expect(Number.isFinite(collider.maxZ)).toBe(true);
+  expect(collider.maxX - collider.minX).toBeGreaterThan(0);
+  expect(collider.maxZ - collider.minZ).toBeGreaterThan(0);
 }
