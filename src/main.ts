@@ -345,6 +345,10 @@ import {
   createUpperStairwellLanding,
   type UpperStairwellLandingCollider,
 } from './scene/structures/upperStairwellLanding';
+import {
+  createWallPaintings,
+  type WallPaintingsBuild,
+} from './scene/structures/wallPaintings';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
 import {
   createWoveLoom,
@@ -1109,6 +1113,7 @@ const mediaWallStarBridge = createMediaWallStarBridge();
 let livingRoomMediaWall: LivingRoomMediaWallBuild | null = null;
 let futuroptimistTvModelRoot: Object3D | null = null;
 let selfieMirror: SelfieMirrorBuild | null = null;
+let wallPaintings: WallPaintingsBuild | null = null;
 let ledStripGroup: Group | null = null;
 let ledFillLightGroup: Group | null = null;
 const ledStripMaterials: MeshStandardMaterial[] = [];
@@ -2277,6 +2282,10 @@ function initializeImmersiveScene(
     playerRadius: PLAYER_RADIUS,
     guardThickness: stairGuardThickness,
   }).forEach(registerSafetyCollider);
+
+  wallPaintings = createWallPaintings();
+  groundStructureGroup.add(wallPaintings.groundGroup);
+  upperStructureGroup.add(wallPaintings.upperGroup);
 
   const lowerFloorFurnishings = createLowerFloorFurnishings();
   groundStructureGroup.add(lowerFloorFurnishings.group);
@@ -7069,6 +7078,10 @@ function initializeImmersiveScene(
     if (selfieMirror) {
       selfieMirror.dispose();
       selfieMirror = null;
+    }
+    if (wallPaintings) {
+      wallPaintings.dispose();
+      wallPaintings = null;
     }
     if (flywheelShowpiece) {
       flywheelShowpiece.dispose();

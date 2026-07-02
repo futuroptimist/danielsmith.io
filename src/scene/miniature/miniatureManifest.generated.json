@@ -446,6 +446,16 @@
       "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
     },
     {
+      "id": "decor:wall-paintings",
+      "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 8,
+      "syncNote": "Wall-painting API cleanup keeps the same representative tabletop proxy geometry.",
+      "sourceFingerprint": "06ac3d14e53d098f7583918a19563c1b78166069f540e232ba8ab73d4667c3f8",
+      "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
+      "metadataFingerprint": "2bcc02f8f0a71e3f95f9bdda15b0cf21f9cb1ef8f24ace7bf5b08566db87dde7"
+    },
+    {
       "id": "environment:backyard",
       "sourceFiles": ["src/scene/environments/backyard.ts"],
       "proxyFiles": [],
