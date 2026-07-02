@@ -446,6 +446,16 @@
       "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
     },
     {
+      "id": "decor:wall-paintings",
+      "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Wall paintings are represented by simplified framed planes for tabletop readability.",
+      "sourceFingerprint": "27579a08ac6a1f674d43966e7eb79f79fbb1b7af04092187eb30ae2d4dc59fb6",
+      "proxyFingerprint": "d54aaff1e3eba627fc089a3203da1f15d8a80a04429952b03acc2eac567afa82",
+      "metadataFingerprint": "c7f297e6b65e1fccdc31b1688aa988d248097029cf2d7144d805ae4f8667eb70"
+    },
+    {
       "id": "environment:backyard",
       "sourceFiles": ["src/scene/environments/backyard.ts"],
       "proxyFiles": [],

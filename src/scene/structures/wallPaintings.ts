@@ -26,6 +26,8 @@ export interface WallPaintingFrameVariant {
   readonly backingDepth?: number;
 }
 
+export type WallPaintingMountSide = 'positive' | 'negative';
+
 export interface WallPaintingConfig {
   readonly id: string;
   readonly label: string;
@@ -33,13 +35,13 @@ export interface WallPaintingConfig {
   readonly floor: WallPaintingFloor;
   readonly room: string;
   readonly wallOrientation: WallPaintingOrientation;
+  readonly mountSide?: WallPaintingMountSide;
   readonly position: { readonly x: number; readonly z: number };
   readonly size: number;
   readonly frame: WallPaintingFrameVariant;
 }
 
 export interface WallPaintingsBuild {
-  readonly group: Group;
   readonly groundGroup: Group;
   readonly upperGroup: Group;
   readonly configs: readonly WallPaintingConfig[];
@@ -144,6 +146,7 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'upper',
     room: 'focus pods',
     wallOrientation: 'north',
+    mountSide: 'negative',
     position: { x: -3.8, z: 27.92 },
     size: 2.1,
     frame: {
@@ -160,13 +163,10 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
 export function createWallPaintings(
   configs: readonly WallPaintingConfig[] = WALL_PAINTING_CONFIGS
 ): WallPaintingsBuild {
-  const group = new Group();
-  group.name = 'WallPaintings';
   const groundGroup = new Group();
   groundGroup.name = 'GroundWallPaintings';
   const upperGroup = new Group();
   upperGroup.name = 'UpperWallPaintings';
-  group.add(groundGroup, upperGroup);
 
   const textureLoader = new TextureLoader();
   const textures: Texture[] = [];
@@ -186,7 +186,6 @@ export function createWallPaintings(
   });
 
   return {
-    group,
     groundGroup,
     upperGroup,
     configs,
@@ -264,7 +263,7 @@ function createWallPainting(
     frameMaterial,
     geometries
   );
-  placeOnWall(group, config);
+  placeOnWall(group, config, backingDepth);
 
   return group;
 }
@@ -299,26 +298,32 @@ function addFrameRails(
   });
 }
 
-function placeOnWall(group: Group, config: WallPaintingConfig): void {
+function placeOnWall(
+  group: Group,
+  config: WallPaintingConfig,
+  backingDepth: number
+): void {
   const centerY =
     config.floor === 'upper'
       ? UPPER_PAINTING_CENTER_Y
       : GROUND_PAINTING_CENTER_Y;
-  const wallOffset = WALL_OFFSET + config.frame.frameDepth / 2;
+  const wallOffset = WALL_OFFSET + backingDepth / 2;
+  const mountSign = config.mountSide === 'negative' ? -1 : 1;
 
   if (config.wallOrientation === 'west') {
     group.position.set(
-      config.position.x + wallOffset,
+      config.position.x + wallOffset * mountSign,
       centerY,
       config.position.z
     );
-    group.rotation.y = Math.PI / 2;
+    group.rotation.y = mountSign > 0 ? Math.PI / 2 : -Math.PI / 2;
     return;
   }
 
   group.position.set(
     config.position.x,
     centerY,
-    config.position.z + wallOffset
+    config.position.z + wallOffset * mountSign
   );
+  group.rotation.y = mountSign > 0 ? 0 : Math.PI;
 }

@@ -454,6 +454,15 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Multiplayer projection visible screen and plinth are represented by simplified proxy geometry.',
   },
   {
+    id: 'decor:wall-paintings',
+    kind: 'proxy',
+    sourceFiles: ['src/scene/structures/wallPaintings.ts'],
+    proxyFiles: [SELF_FILE],
+    syncRevision: 1,
+    syncNote:
+      'Wall paintings are represented by simplified framed planes for tabletop readability.',
+  },
+  {
     id: 'audit:src:scene:structures:triangleCount',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/triangleCount.ts'],
@@ -544,6 +553,30 @@ export const MINIATURE_SCENE_COMPONENT_PROXIES: readonly MiniatureProxyDefinitio
           radius: 0.16,
           position: [0, 0.75, 0],
           color: 0xfef08a,
+        },
+      ],
+    },
+    {
+      id: 'component:wall-paintings',
+      displayName: 'Wall paintings proxy',
+      syncRevision: 1,
+      syncNote: 'Simplified framed wall art planes.',
+      sourceFiles: ['src/scene/structures/wallPaintings.ts'],
+      proxyFiles: [SELF_FILE],
+      primitives: [
+        {
+          kind: 'plane',
+          name: 'miniature-wall-painting-image',
+          size: [0.52, 0, 0.52],
+          position: [0, 0.55, 0],
+          color: 0xf8fafc,
+        },
+        {
+          kind: 'box',
+          name: 'miniature-wall-painting-frame',
+          size: [0.62, 0.04, 0.62],
+          position: [0, 0.55, -0.02],
+          color: 0x6d4c2f,
         },
       ],
     },

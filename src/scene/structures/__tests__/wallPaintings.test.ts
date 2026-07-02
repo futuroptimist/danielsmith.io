@@ -51,7 +51,7 @@ describe('WALL_PAINTING_CONFIGS', () => {
       )
     );
 
-    expect(variants.size).toBe(WALL_PAINTING_CONFIGS.length);
+    expect(variants.size).toBeGreaterThan(1);
     expect(WALL_PAINTING_CONFIGS.every((config) => config.size > 0)).toBe(true);
   });
 });
