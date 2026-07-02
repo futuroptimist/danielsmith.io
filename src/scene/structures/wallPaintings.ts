@@ -15,6 +15,7 @@ import {
 import { UPPER_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
 
 import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from './lowerFloorFurnishings';
+import { WALL_THICKNESS } from './portfolioSceneLayout';
 
 export type WallPaintingFloor = 'ground' | 'upper';
 export type WallPaintingOrientation = 'north' | 'west';
@@ -37,6 +38,8 @@ export interface WallPaintingConfig {
   readonly room: string;
   readonly wallOrientation: WallPaintingOrientation;
   readonly surfaceSide?: WallPaintingSurfaceSide;
+  // Optional distance from the anchor centerline to the wall face.
+  readonly mountSurfaceOffset?: number;
   readonly position: {
     readonly x: number;
     // Optional additive offset from the floor's default painting center height.
@@ -180,6 +183,7 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     room: 'loft library',
     wallOrientation: 'west',
     surfaceSide: 'negative',
+    mountSurfaceOffset: WALL_THICKNESS / 2,
     position: { x: 4.08, z: -3.2 },
     size: 1.9,
     frame: {
@@ -327,7 +331,8 @@ export function resolveWallPaintingMountPose(
       : GROUND_PAINTING_CENTER_Y;
   const centerY = baseCenterY + (config.position.y ?? 0);
   const backingDepth = config.frame.backingDepth ?? DEFAULT_BACKING_DEPTH;
-  const wallOffset = WALL_OFFSET + backingDepth / 2;
+  const wallOffset =
+    WALL_OFFSET + backingDepth / 2 + (config.mountSurfaceOffset ?? 0);
   const offsetDirection = config.surfaceSide === 'negative' ? -1 : 1;
 
   if (config.wallOrientation === 'west') {

@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 9,
-      "syncNote": "Wall-painting mount-side fix keeps the same representative tabletop proxy geometry.",
-      "sourceFingerprint": "d3a67aa2176403bfa5916854a1d3bc0cf25be2d8ee7db2e9764a3aba94ffbd03",
+      "syncRevision": 10,
+      "syncNote": "Centered-wall face offset keeps wall paintings aligned with the same tabletop proxy.",
+      "sourceFingerprint": "65f9128d43a4e8ee951d699768fc6a85f603acd6cf3b4bb820cb434f480ae8f8",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "c04d4343060f5893137be01bb6846e8fc53ce6bd68d08c68ce451636dcf095d4"
+      "metadataFingerprint": "8128b4c6d7157bf1fc18f1ac3f14bc488044d6d102929cd927b5d83fb054f8cf"
     },
     {
       "id": "environment:backyard",

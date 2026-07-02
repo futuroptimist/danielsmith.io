@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Wall-painting mount-side fix keeps the same representative tabletop proxy geometry.',
+      'Centered-wall face offset keeps wall paintings aligned with the same tabletop proxy.',
   },
   {
     id: 'decor:lower-floor-furnishings',

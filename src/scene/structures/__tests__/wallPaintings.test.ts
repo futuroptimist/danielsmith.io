@@ -2,6 +2,7 @@ import { Mesh, Texture, TextureLoader, Vector3 } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from '../lowerFloorFurnishings';
+import { WALL_THICKNESS } from '../portfolioSceneLayout';
 import {
   WALL_PAINTING_CONFIGS,
   createWallPaintings,
@@ -139,7 +140,10 @@ describe('WALL_PAINTING_CONFIGS', () => {
     expect(pose.wallAxis).toBe('x');
     expect(pose.offsetDirection).toBe(-1);
     expect(pose.outwardNormal).toEqual({ x: -1, y: 0, z: 0 });
-    expect(pose.position.x).toBeLessThan(printerPainting!.position.x);
+    expect(printerPainting!.mountSurfaceOffset).toBe(WALL_THICKNESS / 2);
+    expect(pose.position.x).toBeLessThan(
+      printerPainting!.position.x - WALL_THICKNESS / 2
+    );
     expect(pose.rotationY).toBeCloseTo(-Math.PI / 2);
   });
 });
@@ -200,12 +204,14 @@ describe('createWallPaintings', () => {
         (candidate) => candidate.name === `WallPainting:${config.id}`
       );
       const pose = resolveWallPaintingMountPose(config);
-      const image = painting?.children.find(
+
+      expect(painting).toBeDefined();
+
+      const image = painting!.children.find(
         (child) => getPartName(child.name) === 'image'
       ) as Mesh | undefined;
       const imageNormal = new Vector3(0, 0, 1).applyEuler(painting!.rotation);
 
-      expect(painting).toBeDefined();
       expect(painting!.position.x).toBeCloseTo(pose.position.x);
       expect(painting!.position.z).toBeCloseTo(pose.position.z);
       expect(painting!.rotation.y).toBeCloseTo(pose.rotationY);
