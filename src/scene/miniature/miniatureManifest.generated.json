@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Wall-painting API cleanup keeps the same representative tabletop proxy geometry.",
-      "sourceFingerprint": "06ac3d14e53d098f7583918a19563c1b78166069f540e232ba8ab73d4667c3f8",
+      "syncRevision": 10,
+      "syncNote": "3D-printer wall-painting mount-side fix keeps the same tabletop proxy geometry.",
+      "sourceFingerprint": "e0e3fbc33eeb9b8a2d301ccf1dd3a8c55d6c4d4bb0c366e718cb8dae79acd184",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "2bcc02f8f0a71e3f95f9bdda15b0cf21f9cb1ef8f24ace7bf5b08566db87dde7"
+      "metadataFingerprint": "3d35b18b088a00cb2ca994fd11b1e56a41546d18e959390b47f12285b6ddea7a"
     },
     {
       "id": "environment:backyard",
