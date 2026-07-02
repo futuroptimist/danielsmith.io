@@ -37,6 +37,23 @@ describe('WALL_PAINTING_CONFIGS', () => {
     ).toBe(true);
   });
 
+  it('centers the dresser painting by accounting for the anchored frame edge', () => {
+    const dresserCenterX = -24;
+    const rocketPainting = WALL_PAINTING_CONFIGS.find(
+      (config) => config.id === 'rocket-nosecone-living-room-north'
+    );
+
+    expect(rocketPainting).toBeDefined();
+    const frameSize =
+      rocketPainting!.size +
+      rocketPainting!.frame.matBorder * 2 +
+      rocketPainting!.frame.frameThickness * 2;
+
+    expect(rocketPainting!.position.x + frameSize / 2).toBeCloseTo(
+      dresserCenterX
+    );
+  });
+
   it('varies the frame treatments while keeping square image dimensions', () => {
     const variants = new Set(
       WALL_PAINTING_CONFIGS.map((config) =>

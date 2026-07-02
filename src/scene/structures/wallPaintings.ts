@@ -53,6 +53,10 @@ export interface WallPaintingsBuild {
 const WALL_OFFSET = 0.08;
 const GROUND_PAINTING_CENTER_Y = 2.35;
 const UPPER_PAINTING_CENTER_Y = UPPER_FLOOR_TOP_ELEVATION + 2.2;
+const ROCKET_NOSECONE_DRESSER_CENTER_X = -24;
+const ROCKET_NOSECONE_FRAME_SIZE = 2.15 + 0.18 * 2 + 0.16 * 2;
+const ROCKET_NOSECONE_ANCHORED_X =
+  ROCKET_NOSECONE_DRESSER_CENTER_X - ROCKET_NOSECONE_FRAME_SIZE / 2;
 
 export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
   {
@@ -62,7 +66,7 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'ground',
     room: 'living room',
     wallOrientation: 'north',
-    position: { x: -24, y: 2.5, z: -30.06 },
+    position: { x: ROCKET_NOSECONE_ANCHORED_X, y: 2.5, z: -30.06 },
     size: 2.15,
     frame: {
       frameColor: 0x4f3528,
