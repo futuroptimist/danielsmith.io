@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 2,
-      "syncNote": "Living-room painting placement moved away from the media-wall POI; tabletop proxy geometry remains representative.",
-      "sourceFingerprint": "ad3a5072e9f1ccf33dc595f14c8d5f6f7b0a9f4d97d14291ee06887987cc3f20",
+      "syncRevision": 3,
+      "syncNote": "Kitchen painting was raised on its wall; tabletop proxy geometry remains representative.",
+      "sourceFingerprint": "72b8782ee9a4c7c733a097a0c36d17c92631f227dd7f58897e0cd9a2fb46d0f6",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "bb719f67d8fd8c101b1fe58b71e3916efc5489de2f457a3e54ff6429841ff50e"
+      "metadataFingerprint": "6997f2bd7f4dac2fe83dac35932825c72fe3ac1549aa50436f3e2ffa21127160"
     },
     {
       "id": "environment:backyard",

@@ -33,7 +33,11 @@ export interface WallPaintingConfig {
   readonly floor: WallPaintingFloor;
   readonly room: string;
   readonly wallOrientation: WallPaintingOrientation;
-  readonly position: { readonly x: number; readonly z: number };
+  readonly position: {
+    readonly x: number;
+    readonly y?: number;
+    readonly z: number;
+  };
   readonly size: number;
   readonly frame: WallPaintingFrameVariant;
 }
@@ -75,7 +79,7 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'ground',
     room: 'kitchen',
     wallOrientation: 'west',
-    position: { x: -31.92, z: 2.7 },
+    position: { x: -31.92, y: 0.35, z: 2.7 },
     size: 1.85,
     frame: {
       frameColor: 0x556b4f,
@@ -300,10 +304,11 @@ function addFrameRails(
 }
 
 function placeOnWall(group: Group, config: WallPaintingConfig): void {
-  const centerY =
+  const baseCenterY =
     config.floor === 'upper'
       ? UPPER_PAINTING_CENTER_Y
       : GROUND_PAINTING_CENTER_Y;
+  const centerY = baseCenterY + (config.position.y ?? 0);
   const wallOffset = WALL_OFFSET + config.frame.frameDepth / 2;
 
   if (config.wallOrientation === 'west') {

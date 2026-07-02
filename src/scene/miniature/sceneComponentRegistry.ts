@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Living-room painting placement moved away from the media-wall POI; tabletop proxy geometry remains representative.',
+      'Kitchen painting was raised on its wall; tabletop proxy geometry remains representative.',
   },
   {
     id: 'decor:lower-floor-furnishings',
