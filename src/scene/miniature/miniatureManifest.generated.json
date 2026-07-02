@@ -451,8 +451,8 @@
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
       "syncRevision": 8,
       "syncNote": "Wall-painting API cleanup keeps the same representative tabletop proxy geometry.",
-      "sourceFingerprint": "06ac3d14e53d098f7583918a19563c1b78166069f540e232ba8ab73d4667c3f8",
-      "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
+      "sourceFingerprint": "08c0cba49ef9f79dcb743cdc262ce0b166131ff1d26384a96b85acd91e40cda7",
+      "proxyFingerprint": "3af7b16342950ad47633e0f5e8753ecc011577514fb1240e861aa276e4c67449",
       "metadataFingerprint": "2bcc02f8f0a71e3f95f9bdda15b0cf21f9cb1ef8f24ace7bf5b08566db87dde7"
     },
     {

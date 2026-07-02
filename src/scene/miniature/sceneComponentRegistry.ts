@@ -511,8 +511,9 @@ export const MINIATURE_SCENE_COMPONENT_PROXIES: readonly MiniatureProxyDefinitio
     {
       id: 'component:wall-paintings',
       displayName: 'Wall painting proxy',
-      syncRevision: 1,
-      syncNote: 'Simplified framed wall paintings.',
+      syncRevision: 2,
+      syncNote:
+        'Acknowledges wall painting mount-side metadata; proxy unchanged.',
       sourceFiles: ['src/scene/structures/wallPaintings.ts'],
       proxyFiles: [SELF_FILE],
       primitives: [
