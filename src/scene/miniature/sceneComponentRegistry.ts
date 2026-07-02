@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Rocket painting centers from lower-floor dresser geometry; tabletop proxy remains representative.',
+      'Wall-painting API cleanup keeps the same representative tabletop proxy geometry.',
   },
   {
     id: 'decor:lower-floor-furnishings',

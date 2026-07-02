@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 7,
-      "syncNote": "Rocket painting centers from lower-floor dresser geometry; tabletop proxy remains representative.",
-      "sourceFingerprint": "8052d484dae79091f130b5dd6b1046e1766192c76daeebb8121980f2a2e7b688",
+      "syncRevision": 8,
+      "syncNote": "Wall-painting API cleanup keeps the same representative tabletop proxy geometry.",
+      "sourceFingerprint": "06ac3d14e53d098f7583918a19563c1b78166069f540e232ba8ab73d4667c3f8",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "14e481b46b87fb83b80c778d7c90afa78f06b10e61f62c58b6271b840bfe17c3"
+      "metadataFingerprint": "2bcc02f8f0a71e3f95f9bdda15b0cf21f9cb1ef8f24ace7bf5b08566db87dde7"
     },
     {
       "id": "environment:backyard",

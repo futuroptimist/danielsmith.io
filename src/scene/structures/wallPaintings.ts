@@ -37,6 +37,7 @@ export interface WallPaintingConfig {
   readonly wallOrientation: WallPaintingOrientation;
   readonly position: {
     readonly x: number;
+    // Optional additive offset from the floor's default painting center height.
     readonly y?: number;
     readonly z: number;
   };
@@ -45,7 +46,6 @@ export interface WallPaintingConfig {
 }
 
 export interface WallPaintingsBuild {
-  readonly group: Group;
   readonly groundGroup: Group;
   readonly upperGroup: Group;
   readonly configs: readonly WallPaintingConfig[];
@@ -53,6 +53,7 @@ export interface WallPaintingsBuild {
 }
 
 const WALL_OFFSET = 0.08;
+const DEFAULT_BACKING_DEPTH = 0.06;
 const GROUND_PAINTING_CENTER_Y = 2.35;
 const UPPER_PAINTING_CENTER_Y = UPPER_FLOOR_TOP_ELEVATION + 2.2;
 const ROCKET_NOSECONE_DRESSER_ID = 'living-room-south-bookcase-west';
@@ -193,13 +194,10 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
 export function createWallPaintings(
   configs: readonly WallPaintingConfig[] = WALL_PAINTING_CONFIGS
 ): WallPaintingsBuild {
-  const group = new Group();
-  group.name = 'WallPaintings';
   const groundGroup = new Group();
   groundGroup.name = 'GroundWallPaintings';
   const upperGroup = new Group();
   upperGroup.name = 'UpperWallPaintings';
-  group.add(groundGroup, upperGroup);
 
   const textureLoader = new TextureLoader();
   const textures: Texture[] = [];
@@ -219,7 +217,6 @@ export function createWallPaintings(
   });
 
   return {
-    group,
     groundGroup,
     upperGroup,
     configs,
@@ -268,7 +265,7 @@ function createWallPainting(
   const imageSize = config.size;
   const matSize = imageSize + config.frame.matBorder * 2;
   const frameSize = matSize + config.frame.frameThickness * 2;
-  const backingDepth = config.frame.backingDepth ?? 0.06;
+  const backingDepth = config.frame.backingDepth ?? DEFAULT_BACKING_DEPTH;
 
   const backingGeometry = new BoxGeometry(frameSize, frameSize, backingDepth);
   const matGeometry = new PlaneGeometry(matSize, matSize);
@@ -338,7 +335,8 @@ function placeOnWall(group: Group, config: WallPaintingConfig): void {
       ? UPPER_PAINTING_CENTER_Y
       : GROUND_PAINTING_CENTER_Y;
   const centerY = baseCenterY + (config.position.y ?? 0);
-  const wallOffset = WALL_OFFSET + config.frame.frameDepth / 2;
+  const backingDepth = config.frame.backingDepth ?? DEFAULT_BACKING_DEPTH;
+  const wallOffset = WALL_OFFSET + backingDepth / 2;
 
   if (config.wallOrientation === 'west') {
     group.position.set(
