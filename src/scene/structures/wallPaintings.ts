@@ -18,6 +18,7 @@ import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from './lowerFloorFurnishings';
 
 export type WallPaintingFloor = 'ground' | 'upper';
 export type WallPaintingOrientation = 'north' | 'west';
+export type WallPaintingSurfaceSide = 'positive' | 'negative';
 
 export interface WallPaintingFrameVariant {
   readonly frameColor: ColorRepresentation;
@@ -35,6 +36,7 @@ export interface WallPaintingConfig {
   readonly floor: WallPaintingFloor;
   readonly room: string;
   readonly wallOrientation: WallPaintingOrientation;
+  readonly surfaceSide?: WallPaintingSurfaceSide;
   readonly position: {
     readonly x: number;
     // Optional additive offset from the floor's default painting center height.
@@ -43,6 +45,22 @@ export interface WallPaintingConfig {
   };
   readonly size: number;
   readonly frame: WallPaintingFrameVariant;
+}
+
+export interface WallPaintingMountPose {
+  readonly position: {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+  };
+  readonly rotationY: number;
+  readonly wallAxis: 'x' | 'z';
+  readonly outwardNormal: {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+  };
+  readonly offsetDirection: 1 | -1;
 }
 
 export interface WallPaintingsBuild {
@@ -161,6 +179,7 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'upper',
     room: 'loft library',
     wallOrientation: 'west',
+    surfaceSide: 'negative',
     position: { x: 4.08, z: -3.2 },
     size: 1.9,
     frame: {
@@ -299,6 +318,45 @@ function createWallPainting(
   return group;
 }
 
+export function resolveWallPaintingMountPose(
+  config: WallPaintingConfig
+): WallPaintingMountPose {
+  const baseCenterY =
+    config.floor === 'upper'
+      ? UPPER_PAINTING_CENTER_Y
+      : GROUND_PAINTING_CENTER_Y;
+  const centerY = baseCenterY + (config.position.y ?? 0);
+  const backingDepth = config.frame.backingDepth ?? DEFAULT_BACKING_DEPTH;
+  const wallOffset = WALL_OFFSET + backingDepth / 2;
+  const offsetDirection = config.surfaceSide === 'negative' ? -1 : 1;
+
+  if (config.wallOrientation === 'west') {
+    return {
+      position: {
+        x: config.position.x + wallOffset * offsetDirection,
+        y: centerY,
+        z: config.position.z,
+      },
+      rotationY: offsetDirection === 1 ? Math.PI / 2 : -Math.PI / 2,
+      wallAxis: 'x',
+      outwardNormal: { x: offsetDirection, y: 0, z: 0 },
+      offsetDirection,
+    };
+  }
+
+  return {
+    position: {
+      x: config.position.x,
+      y: centerY,
+      z: config.position.z + wallOffset * offsetDirection,
+    },
+    rotationY: offsetDirection === 1 ? 0 : Math.PI,
+    wallAxis: 'z',
+    outwardNormal: { x: 0, y: 0, z: offsetDirection },
+    offsetDirection,
+  };
+}
+
 function addFrameRails(
   group: Group,
   frameSize: number,
@@ -330,27 +388,7 @@ function addFrameRails(
 }
 
 function placeOnWall(group: Group, config: WallPaintingConfig): void {
-  const baseCenterY =
-    config.floor === 'upper'
-      ? UPPER_PAINTING_CENTER_Y
-      : GROUND_PAINTING_CENTER_Y;
-  const centerY = baseCenterY + (config.position.y ?? 0);
-  const backingDepth = config.frame.backingDepth ?? DEFAULT_BACKING_DEPTH;
-  const wallOffset = WALL_OFFSET + backingDepth / 2;
-
-  if (config.wallOrientation === 'west') {
-    group.position.set(
-      config.position.x + wallOffset,
-      centerY,
-      config.position.z
-    );
-    group.rotation.y = Math.PI / 2;
-    return;
-  }
-
-  group.position.set(
-    config.position.x,
-    centerY,
-    config.position.z + wallOffset
-  );
+  const pose = resolveWallPaintingMountPose(config);
+  group.position.set(pose.position.x, pose.position.y, pose.position.z);
+  group.rotation.y = pose.rotationY;
 }
