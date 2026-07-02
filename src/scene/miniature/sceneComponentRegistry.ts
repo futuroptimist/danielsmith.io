@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 8,
+    syncRevision: 9,
     syncNote:
-      'Wall-painting API cleanup keeps the same representative tabletop proxy geometry.',
+      'Wall-painting mount-side fix keeps the same representative tabletop proxy geometry.',
   },
   {
     id: 'decor:lower-floor-furnishings',
@@ -511,8 +511,9 @@ export const MINIATURE_SCENE_COMPONENT_PROXIES: readonly MiniatureProxyDefinitio
     {
       id: 'component:wall-paintings',
       displayName: 'Wall painting proxy',
-      syncRevision: 1,
-      syncNote: 'Simplified framed wall paintings.',
+      syncRevision: 2,
+      syncNote:
+        'Simplified framed wall paintings; mount-side changes do not alter tabletop proxy geometry.',
       sourceFiles: ['src/scene/structures/wallPaintings.ts'],
       proxyFiles: [SELF_FILE],
       primitives: [
