@@ -446,6 +446,16 @@
       "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
     },
     {
+      "id": "decor:wall-paintings",
+      "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
+      "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
+      "syncRevision": 1,
+      "syncNote": "Wall paintings are represented by simplified framed panels so the tabletop preserves the new visual anchors.",
+      "sourceFingerprint": "a012d17110d5d25b5e886c2c9882790a7468d1da6830da11dd8d8c44c352abc9",
+      "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
+      "metadataFingerprint": "1b0709a527d2854aa37836cdc40a90191d536f4cd8a6f5f68593ba11c1a41905"
+    },
+    {
       "id": "environment:backyard",
       "sourceFiles": ["src/scene/environments/backyard.ts"],
       "proxyFiles": [],

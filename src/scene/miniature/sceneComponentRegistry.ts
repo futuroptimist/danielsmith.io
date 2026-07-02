@@ -80,6 +80,15 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     syncNote: 'Ceiling panel fixtures need simplified caps in the tabletop.',
   },
   {
+    id: 'decor:wall-paintings',
+    kind: 'proxy',
+    sourceFiles: ['src/scene/structures/wallPaintings.ts'],
+    proxyFiles: [SELF_FILE],
+    syncRevision: 1,
+    syncNote:
+      'Wall paintings are represented by simplified framed panels so the tabletop preserves the new visual anchors.',
+  },
+  {
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
@@ -496,6 +505,31 @@ export const MINIATURE_SCENE_COMPONENT_PROXIES: readonly MiniatureProxyDefinitio
           size: [1, 0.025, 0.7],
           position: [0, 0.25, 0],
           color: 0xe2e8f0,
+        },
+      ],
+    },
+    {
+      id: 'component:wall-paintings',
+      displayName: 'Wall painting proxy',
+      syncRevision: 1,
+      syncNote: 'Simplified framed wall paintings.',
+      sourceFiles: ['src/scene/structures/wallPaintings.ts'],
+      proxyFiles: [SELF_FILE],
+      primitives: [
+        {
+          kind: 'box',
+          name: 'miniature-wall-painting-frame',
+          size: [0.62, 0.04, 0.48],
+          position: [0, 0.54, 0],
+          color: 0x6a4a2f,
+        },
+        {
+          kind: 'plane',
+          name: 'miniature-wall-painting-image',
+          size: [0.46, 0, 0.34],
+          position: [0, 0.545, 0.021],
+          rotation: [0, 0, 0],
+          color: 0xdbeafe,
         },
       ],
     },
