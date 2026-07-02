@@ -130,7 +130,7 @@ describe('WALL_PAINTING_CONFIGS', () => {
     });
   });
 
-  it('mounts the 3D-printer painting on the west side of the interior wall', () => {
+  it('mounts the 3D-printer painting on the visible positive side of the interior wall', () => {
     const printerPainting = WALL_PAINTING_CONFIGS.find(
       (config) => config.id === '3d-printer-loft-library-west'
     );
@@ -139,16 +139,19 @@ describe('WALL_PAINTING_CONFIGS', () => {
 
     const pose = resolveWallPaintingMountPose(printerPainting!);
     expect(pose.wallAxis).toBe('x');
-    expect(pose.offsetDirection).toBe(-1);
-    expect(pose.outwardNormal).toEqual({ x: -1, y: 0, z: 0 });
+    expect(pose.offsetDirection).toBe(1);
+    expect(pose.outwardNormal).toEqual({ x: 1, y: 0, z: 0 });
     const interiorWallCenterX = 2 * FLOOR_PLAN_SCALE;
-    const wallNegativeFaceX = interiorWallCenterX - WALL_THICKNESS / 2;
+    const wallPositiveFaceX = interiorWallCenterX + WALL_THICKNESS / 2;
     const backingDepth = printerPainting!.frame.backingDepth ?? 0.06;
 
     expect(printerPainting!.mountSurfaceOffset).toBe(WALL_THICKNESS / 2);
-    expect(pose.position.x).toBeLessThan(wallNegativeFaceX);
-    expect(pose.position.x + backingDepth / 2).toBeCloseTo(wallNegativeFaceX);
-    expect(pose.rotationY).toBeCloseTo(-Math.PI / 2);
+    expect(pose.position.x).toBeGreaterThan(wallPositiveFaceX);
+    expect(pose.position.x - backingDepth / 2).toBeGreaterThan(
+      wallPositiveFaceX
+    );
+    expect(pose.position.z).toBeCloseTo(-2);
+    expect(pose.rotationY).toBeCloseTo(Math.PI / 2);
   });
 });
 

@@ -182,9 +182,9 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'upper',
     room: 'loft library',
     wallOrientation: 'west',
-    surfaceSide: 'negative',
+    surfaceSide: 'positive',
     mountSurfaceOffset: WALL_THICKNESS / 2,
-    position: { x: 4.08, z: -3.2 },
+    position: { x: 4.08, z: -2.0 },
     size: 1.9,
     frame: {
       frameColor: 0x2f3033,

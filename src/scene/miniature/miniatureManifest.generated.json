@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 10,
-      "syncNote": "Centered-wall face offset keeps wall paintings aligned with the same tabletop proxy.",
-      "sourceFingerprint": "65f9128d43a4e8ee951d699768fc6a85f603acd6cf3b4bb820cb434f480ae8f8",
+      "syncRevision": 11,
+      "syncNote": "Printer painting side fix changes only full-scale wall mounting; tabletop proxy remains aligned.",
+      "sourceFingerprint": "f30afe3f618a76fa74adf07e96d8ee81f9a856a7546d52490af3a80de382cd58",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "8128b4c6d7157bf1fc18f1ac3f14bc488044d6d102929cd927b5d83fb054f8cf"
+      "metadataFingerprint": "fe17b25475c0d89fa3e3195bca4eb87ebef30a5667cf1f08223b40ed28501ede"
     },
     {
       "id": "environment:backyard",
