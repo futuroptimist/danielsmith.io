@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 3,
-      "syncNote": "Kitchen painting was raised on its wall; tabletop proxy geometry remains representative.",
-      "sourceFingerprint": "72b8782ee9a4c7c733a097a0c36d17c92631f227dd7f58897e0cd9a2fb46d0f6",
+      "syncRevision": 4,
+      "syncNote": "Rocket painting moved above the dresser; tabletop proxy geometry remains representative.",
+      "sourceFingerprint": "e8f42399d72fcf67ce340ecaed0a8b0d47dc4728714f9beeb4dc64eab341810e",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "6997f2bd7f4dac2fe83dac35932825c72fe3ac1549aa50436f3e2ffa21127160"
+      "metadataFingerprint": "fddb15f9eeb5537e318306b25edccfee160e8566fe58249a39767ffaf3275897"
     },
     {
       "id": "environment:backyard",

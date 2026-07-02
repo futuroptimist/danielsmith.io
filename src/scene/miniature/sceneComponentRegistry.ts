@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Kitchen painting was raised on its wall; tabletop proxy geometry remains representative.',
+      'Rocket painting moved above the dresser; tabletop proxy geometry remains representative.',
   },
   {
     id: 'decor:lower-floor-furnishings',
