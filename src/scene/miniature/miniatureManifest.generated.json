@@ -449,11 +449,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Rocket painting uses frame half-width math to center over the dresser; tabletop proxy remains representative.",
-      "sourceFingerprint": "9b11aefac2e19023103892ea2e89c73892d5cc4c15aaa270508fe931fbb5717d",
+      "syncRevision": 7,
+      "syncNote": "Rocket painting centers from lower-floor dresser geometry; tabletop proxy remains representative.",
+      "sourceFingerprint": "8052d484dae79091f130b5dd6b1046e1766192c76daeebb8121980f2a2e7b688",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "d9fce55d62f37a6afed11c928c3a084d82b285a51cc73d3ed2f3b1e9db4ef95c"
+      "metadataFingerprint": "14e481b46b87fb83b80c778d7c90afa78f06b10e61f62c58b6271b840bfe17c3"
     },
     {
       "id": "environment:backyard",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { WALL_PAINTING_CONFIGS } from '../wallPaintings';
+import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from '../lowerFloorFurnishings';
+import { WALL_PAINTING_CONFIGS, getFurnishingCenter } from '../wallPaintings';
 
 const EXPECTED_IMAGE_PATHS = [
   '/images/3dprinted_rocket_nosecone.jpg',
@@ -37,21 +38,20 @@ describe('WALL_PAINTING_CONFIGS', () => {
     ).toBe(true);
   });
 
-  it('centers the dresser painting by accounting for the anchored frame edge', () => {
-    const dresserCenterX = -24;
+  it('centers the dresser painting from lower-floor furnishing geometry', () => {
+    const dresser = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+      (definition) => definition.id === 'living-room-south-bookcase-west'
+    );
     const rocketPainting = WALL_PAINTING_CONFIGS.find(
       (config) => config.id === 'rocket-nosecone-living-room-north'
     );
 
+    expect(dresser?.solidBounds).toBeDefined();
     expect(rocketPainting).toBeDefined();
-    const frameSize =
-      rocketPainting!.size +
-      rocketPainting!.frame.matBorder * 2 +
-      rocketPainting!.frame.frameThickness * 2;
 
-    expect(rocketPainting!.position.x + frameSize / 2).toBeCloseTo(
-      dresserCenterX
-    );
+    const dresserCenter = getFurnishingCenter(dresser!.id);
+    expect(rocketPainting!.position.x).toBeCloseTo(dresserCenter.x);
+    expect(rocketPainting!.position.z).toBeCloseTo(dresserCenter.z);
   });
 
   it('varies the frame treatments while keeping square image dimensions', () => {

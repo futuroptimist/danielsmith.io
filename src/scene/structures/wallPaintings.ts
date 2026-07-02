@@ -14,6 +14,8 @@ import {
 
 import { UPPER_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
 
+import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from './lowerFloorFurnishings';
+
 export type WallPaintingFloor = 'ground' | 'upper';
 export type WallPaintingOrientation = 'north' | 'west';
 
@@ -53,10 +55,29 @@ export interface WallPaintingsBuild {
 const WALL_OFFSET = 0.08;
 const GROUND_PAINTING_CENTER_Y = 2.35;
 const UPPER_PAINTING_CENTER_Y = UPPER_FLOOR_TOP_ELEVATION + 2.2;
-const ROCKET_NOSECONE_DRESSER_CENTER_X = -24;
-const ROCKET_NOSECONE_FRAME_SIZE = 2.15 + 0.18 * 2 + 0.16 * 2;
-const ROCKET_NOSECONE_ANCHORED_X =
-  ROCKET_NOSECONE_DRESSER_CENTER_X - ROCKET_NOSECONE_FRAME_SIZE / 2;
+const ROCKET_NOSECONE_DRESSER_ID = 'living-room-south-bookcase-west';
+const ROCKET_NOSECONE_DRESSER_CENTER = getFurnishingCenter(
+  ROCKET_NOSECONE_DRESSER_ID
+);
+
+export function getFurnishingCenter(id: string): { x: number; z: number } {
+  const furnishing = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
+    (definition) => definition.id === id
+  );
+
+  if (!furnishing) {
+    throw new Error(`Missing lower-floor furnishing for wall painting: ${id}`);
+  }
+
+  if (furnishing.solidBounds) {
+    return {
+      x: (furnishing.solidBounds.minX + furnishing.solidBounds.maxX) / 2,
+      z: (furnishing.solidBounds.minZ + furnishing.solidBounds.maxZ) / 2,
+    };
+  }
+
+  return { x: furnishing.position.x, z: furnishing.position.z };
+}
 
 export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
   {
@@ -66,7 +87,11 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'ground',
     room: 'living room',
     wallOrientation: 'north',
-    position: { x: ROCKET_NOSECONE_ANCHORED_X, y: 2.5, z: -30.06 },
+    position: {
+      x: ROCKET_NOSECONE_DRESSER_CENTER.x,
+      y: 2.5,
+      z: ROCKET_NOSECONE_DRESSER_CENTER.z,
+    },
     size: 2.15,
     frame: {
       frameColor: 0x4f3528,
