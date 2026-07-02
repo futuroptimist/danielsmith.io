@@ -62,7 +62,7 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'ground',
     room: 'living room',
     wallOrientation: 'north',
-    position: { x: -24.11, y: 2.5, z: -30.06 },
+    position: { x: -24, y: 2.5, z: -30.06 },
     size: 2.15,
     frame: {
       frameColor: 0x4f3528,
