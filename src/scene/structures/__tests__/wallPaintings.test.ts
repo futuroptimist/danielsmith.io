@@ -1,6 +1,7 @@
 import { Mesh, Texture, TextureLoader, Vector3 } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
 import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from '../lowerFloorFurnishings';
 import { WALL_THICKNESS } from '../portfolioSceneLayout';
 import {
@@ -140,10 +141,13 @@ describe('WALL_PAINTING_CONFIGS', () => {
     expect(pose.wallAxis).toBe('x');
     expect(pose.offsetDirection).toBe(-1);
     expect(pose.outwardNormal).toEqual({ x: -1, y: 0, z: 0 });
+    const interiorWallCenterX = 2 * FLOOR_PLAN_SCALE;
+    const wallNegativeFaceX = interiorWallCenterX - WALL_THICKNESS / 2;
+    const backingDepth = printerPainting!.frame.backingDepth ?? 0.06;
+
     expect(printerPainting!.mountSurfaceOffset).toBe(WALL_THICKNESS / 2);
-    expect(pose.position.x).toBeLessThan(
-      printerPainting!.position.x - WALL_THICKNESS / 2
-    );
+    expect(pose.position.x).toBeLessThan(wallNegativeFaceX);
+    expect(pose.position.x + backingDepth / 2).toBeCloseTo(wallNegativeFaceX);
     expect(pose.rotationY).toBeCloseTo(-Math.PI / 2);
   });
 });
