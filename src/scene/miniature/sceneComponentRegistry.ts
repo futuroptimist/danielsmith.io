@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
-      'Wall paintings are represented by simplified framed panels so the tabletop preserves the new visual anchors.',
+      'Living-room painting placement moved away from the media-wall POI; tabletop proxy geometry remains representative.',
   },
   {
     id: 'decor:lower-floor-furnishings',

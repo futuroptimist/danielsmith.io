@@ -52,13 +52,13 @@ const UPPER_PAINTING_CENTER_Y = UPPER_FLOOR_TOP_ELEVATION + 2.2;
 
 export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
   {
-    id: 'rocket-nosecone-living-room-west',
+    id: 'rocket-nosecone-living-room-north',
     label: '3D printed rocket nosecone',
     imagePath: '/images/3dprinted_rocket_nosecone.jpg',
     floor: 'ground',
     room: 'living room',
-    wallOrientation: 'west',
-    position: { x: -31.92, z: -20.2 },
+    wallOrientation: 'north',
+    position: { x: -28.57, z: -31.23 },
     size: 2.15,
     frame: {
       frameColor: 0x4f3528,
