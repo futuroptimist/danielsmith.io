@@ -84,9 +84,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 8,
+    syncRevision: 11,
     syncNote:
-      'Wall-painting API cleanup keeps the same representative tabletop proxy geometry.',
+      'Printer painting side fix changes only full-scale wall mounting; tabletop proxy remains aligned.',
   },
   {
     id: 'decor:lower-floor-furnishings',
