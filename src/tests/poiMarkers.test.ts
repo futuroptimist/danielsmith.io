@@ -448,7 +448,7 @@ describe('createPoiInstances', () => {
     );
   });
 
-  it('uses low-poly performance marker geometry without changing hit collider bounds', () => {
+  it('uses low-poly performance marker geometry without retaining hidden pedestal colliders', () => {
     const definition = createDefinition({
       id: 'flywheel-studio-flywheel',
       footprint: { width: 2.6, depth: 2.2 },
@@ -479,7 +479,8 @@ describe('createPoiInstances', () => {
     expect(performanceOrbGeometry.parameters.widthSegments).toBeLessThan(
       balancedOrbGeometry.parameters.widthSegments / 3
     );
-    expect(performance.collider).toEqual(balanced.collider);
+    expect(balanced.collider).not.toBeNull();
+    expect(performance.collider).toBeNull();
     expect(performance.hitArea.name).toBe(`POI_HIT:${definition.id}`);
   });
 

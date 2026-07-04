@@ -193,9 +193,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Acknowledges runtime collider tightening while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -210,9 +210,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Acknowledges runtime collider tightening while preserving this proxy silhouette.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [

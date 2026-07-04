@@ -117,9 +117,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
+      'POI markers gained geometry-derived collider exclusions; markers remain interaction UI, not miniature geometry.',
   },
   {
     id: 'debug:visualizers',
@@ -440,9 +440,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/greenhouse.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
-      'Greenhouse shell and visible planters are represented by simplified proxy geometry.',
+      'Acknowledges runtime collider tightening; greenhouse proxy geometry remains representative.',
   },
   {
     id: 'structure:media-wall-star-bridge',

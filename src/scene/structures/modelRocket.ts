@@ -18,6 +18,7 @@ import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { requireTightColliderFromObject } from '../poi/geometryCollider';
 
 export interface ModelRocketConfig {
   basePosition: Vector3;
@@ -257,13 +258,7 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   countdownPanel.visible = !isPerformance;
   group.add(countdownPanel);
 
-  const footprintRadius = standRadius * 1.45;
-  const collider: RectCollider = {
-    minX: basePosition.x - footprintRadius,
-    maxX: basePosition.x + footprintRadius,
-    minZ: basePosition.z - footprintRadius,
-    maxZ: basePosition.z + footprintRadius,
-  };
+  const collider = requireTightColliderFromObject(group);
 
   const thrusterBaseEmissive = thrusterMaterial.emissiveIntensity;
   const standTrimBaseEmissive = standTrimMaterial.emissiveIntensity;

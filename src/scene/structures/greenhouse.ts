@@ -22,6 +22,7 @@ import {
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { requireTightColliderFromObject } from '../poi/geometryCollider';
 
 export interface GreenhouseConfig {
   basePosition: Vector3;
@@ -75,14 +76,7 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   group.position.copy(basePosition);
   group.rotation.y = orientation;
 
-  const colliders: RectCollider[] = [
-    {
-      minX: basePosition.x - width / 2 - 0.08,
-      maxX: basePosition.x + width / 2 + 0.08,
-      minZ: basePosition.z - depth / 2 - 0.12,
-      maxZ: basePosition.z + depth / 2 + 0.12,
-    },
-  ];
+  const colliders: RectCollider[] = [];
 
   const baseGeometry = new BoxGeometry(width + 0.3, BASE_HEIGHT, depth + 0.3);
   const baseMaterial = new MeshStandardMaterial({
@@ -521,6 +515,8 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     pondRippleUniforms.sparkle.value = MathUtils.lerp(0.05, 0.24, flickerScale);
     pondRippleUniforms.calm.value = MathUtils.lerp(0.55, 1, calmScale);
   };
+
+  colliders.push(requireTightColliderFromObject(group));
 
   return { group, colliders, update };
 }
