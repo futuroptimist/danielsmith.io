@@ -730,6 +730,16 @@
       "metadataFingerprint": "b70b50cec4d2b55cba6fe708426341927ebf27aa510cb726142a2d3b1e5a32b6"
     },
     {
+      "id": "poi:tight-collider-bounds",
+      "sourceFiles": ["src/scene/structures/poiColliderBounds.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Collider bounds helper only affects walking blockers; tabletop proxy silhouettes remain covered by POI entries.",
+      "sourceFingerprint": "f08f8c43515e3e69607a8d1efaa929f06c181c94942460e1bb2d502d4a4c1c32",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "e1cdefc986288f656be15d8969f3152867b0803a48fd4faada37d559a685a2ae"
+    },
+    {
       "id": "poi:tokenplace-studio-cluster",
       "sourceFiles": [
         "src/scene/poi/constants.ts",

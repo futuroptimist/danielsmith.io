@@ -35,16 +35,16 @@ describe('createRequiredTightPoiCollider', () => {
     physical.name = 'PhysicalBox';
     root.add(physical);
 
-    const label = new Mesh(
+    const oversizedFixture = new Mesh(
       new BoxGeometry(10, 1, 10),
       new MeshBasicMaterial({ color: 0xffffff })
     );
-    label.name = 'FloatingLabel';
-    root.add(label);
+    oversizedFixture.name = 'OversizedFixture';
+    root.add(oversizedFixture);
 
     const collider = createRequiredTightPoiCollider(root, {
       padding: 0,
-      exclude: (object) => object.name.includes('Label'),
+      exclude: (object) => object.name === 'OversizedFixture',
     });
 
     expect(collider).toEqual({
