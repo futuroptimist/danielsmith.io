@@ -17,6 +17,8 @@ import {
 
 import type { RectCollider } from '../collision';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface AxelNavigatorBuild {
   group: Group;
   colliders: RectCollider[];
@@ -604,6 +606,14 @@ export function createAxelNavigator(
       smoothing
     );
   };
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, {
+      debugName: 'AxelNavigatorCollider',
+    })
+  );
 
   return {
     group,

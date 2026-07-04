@@ -13,6 +13,8 @@ import {
 
 import type { RectCollider } from '../collision';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface WoveLoomBuild {
   group: Group;
   colliders: RectCollider[];
@@ -378,6 +380,12 @@ export function createWoveLoom(options: WoveLoomOptions): WoveLoomBuild {
       0.6,
       orientationRadians
     )
+  );
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, { debugName: 'WoveLoomCollider' })
   );
 
   return {

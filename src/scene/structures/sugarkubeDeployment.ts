@@ -15,6 +15,8 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface SugarkubeDeploymentBuild {
   group: Group;
   colliders: RectCollider[];
@@ -55,31 +57,6 @@ const BOARD_DEPTH = 0.43;
 
 const createMat = (color: number, metalness = 0.08, roughness = 0.55) =>
   new MeshStandardMaterial({ color: new Color(color), metalness, roughness });
-
-function createCollider(
-  center: { x: number; z: number },
-  width: number,
-  depth: number,
-  rotation: number
-): RectCollider & { debugName: string } {
-  const corners = [
-    [-width / 2, -depth / 2],
-    [width / 2, -depth / 2],
-    [width / 2, depth / 2],
-    [-width / 2, depth / 2],
-  ];
-  const cos = Math.cos(rotation);
-  const sin = Math.sin(rotation);
-  const xs = corners.map(([x, z]) => center.x + x * cos - z * sin);
-  const zs = corners.map(([x, z]) => center.z + x * sin + z * cos);
-  return {
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minZ: Math.min(...zs),
-    maxZ: Math.max(...zs),
-    debugName: 'SugarkubeDeploymentCollider',
-  };
-}
 
 function addBox(
   parent: Group,
@@ -454,12 +431,9 @@ export function createSugarkubeDeployment(
   }
 
   const colliders = [
-    createCollider(
-      { x: position.x, z: position.z },
-      TABLE_WIDTH,
-      TABLE_DEPTH,
-      orientation
-    ),
+    createRequiredTightPoiCollider(table, {
+      debugName: 'SugarkubeDeploymentCollider',
+    }),
   ];
   const update = ({
     elapsed,

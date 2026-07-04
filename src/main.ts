@@ -2616,13 +2616,9 @@ function initializeImmersiveScene(
           : groundPoiGroup;
       poiGroup.add(poi.group);
     }
-    if (poi.collider) {
-      if (getPoiFloorId(poi.definition) === 'upper') {
-        upperFloorColliders.push(poi.collider);
-      } else {
-        staticColliders.push(poi.collider);
-      }
-    }
+    // POI interaction markers stay clickable, but walking blockers are registered
+    // from each rendered POI model/structure below so labels, halos, and generous
+    // interaction radii never consume floor space.
     poiInstances.push(poi);
   });
 

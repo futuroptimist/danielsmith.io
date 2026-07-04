@@ -18,6 +18,8 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface TerminalGlyphRun {
   x: number;
   width: number;
@@ -297,37 +299,6 @@ function createTerminalTexture(
   texture.colorSpace = SRGBColorSpace;
   drawTerminalTexture(texture, state, width, height);
   return texture;
-}
-
-function createCollider(
-  center: Vector3,
-  width: number,
-  depth: number,
-  rotation: number
-): RectCollider {
-  const halfWidth = width / 2;
-  const halfDepth = depth / 2;
-  const corners = [
-    new Vector3(-halfWidth, 0, -halfDepth),
-    new Vector3(halfWidth, 0, -halfDepth),
-    new Vector3(halfWidth, 0, halfDepth),
-    new Vector3(-halfWidth, 0, halfDepth),
-  ];
-  const cos = Math.cos(rotation);
-  const sin = Math.sin(rotation);
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minZ = Infinity;
-  let maxZ = -Infinity;
-  corners.forEach((corner) => {
-    const worldX = center.x + corner.x * cos - corner.z * sin;
-    const worldZ = center.z + corner.x * sin + corner.z * cos;
-    minX = Math.min(minX, worldX);
-    maxX = Math.max(maxX, worldX);
-    minZ = Math.min(minZ, worldZ);
-    maxZ = Math.max(maxZ, worldZ);
-  });
-  return { minX, maxX, minZ, maxZ };
 }
 
 function addBox(
@@ -655,27 +626,6 @@ export function createTokenPlaceWorkstation(
   token.position.set(2.16, 0.875, -0.42);
   group.add(token);
 
-  const rotateLocalOffset = (x: number, z: number) => {
-    const cos = Math.cos(orientationRadians);
-    const sin = Math.sin(orientationRadians);
-    return new Vector3(x * cos - z * sin, 0, x * sin + z * cos);
-  };
-
-  const colliders = [
-    createCollider(
-      basePosition.clone().add(rotateLocalOffset(0, 0.08)),
-      5.55,
-      1.58,
-      orientationRadians
-    ),
-    createCollider(
-      basePosition.clone().add(rotateLocalOffset(0.08, 1.48)),
-      1.08,
-      0.96,
-      orientationRadians - 0.08
-    ),
-  ];
-
   let redrawAccumulator = 0;
   const redrawInterval = 1 / config.redrawFps;
 
@@ -720,5 +670,9 @@ export function createTokenPlaceWorkstation(
     });
   };
 
-  return { group, colliders, terminals, update, dispose };
+  const tightCollider = createRequiredTightPoiCollider(group, {
+    debugName: 'TokenPlaceWorkstationCollider',
+  });
+
+  return { group, colliders: [tightCollider], terminals, update, dispose };
 }
