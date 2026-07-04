@@ -2616,13 +2616,9 @@ function initializeImmersiveScene(
           : groundPoiGroup;
       poiGroup.add(poi.group);
     }
-    if (poi.collider) {
-      if (getPoiFloorId(poi.definition) === 'upper') {
-        upperFloorColliders.push(poi.collider);
-      } else {
-        staticColliders.push(poi.collider);
-      }
-    }
+    // POI interaction markers stay clickable, but walking blockers are registered
+    // from each rendered POI model/structure below so labels, halos, and generous
+    // interaction radii never consume floor space.
     poiInstances.push(poi);
   });
 
@@ -3052,11 +3048,13 @@ function initializeImmersiveScene(
     (poi) => poi.definition.id === 'pr-reaper-backyard-console'
   );
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
+  const poiStructureColliderIds = new Set<PoiId>();
   const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
     (getPoiFloorId(poi.definition) === 'upper'
       ? upperStructureGroup
       : groundStructureGroup
     ).add(group);
+    poiStructureColliderIds.add(poi.definition.id);
     registerPoiModelRoot(poi.definition.id, group);
     registerPoiVisualAnchor(poi.definition.id, group, 'floor');
   };
@@ -3064,6 +3062,22 @@ function initializeImmersiveScene(
     getPoiFloorId(poi.definition) === 'upper'
       ? upperFloorColliders
       : groundColliders;
+  const registerMarkerOnlyPoiColliders = () => {
+    poiInstances.forEach((poi) => {
+      if (
+        poi.visualMode !== 'pedestal' ||
+        !poi.collider ||
+        poiStructureColliderIds.has(poi.definition.id)
+      ) {
+        return;
+      }
+
+      // Marker-only POIs have no rendered structure collider to register below,
+      // so keep their pedestal footprint blocked while avoiding label/orb blockers
+      // for POIs that do provide tighter model-derived colliders.
+      getPoiColliderTarget(poi).push(poi.collider);
+    });
+  };
 
   const resolveFlywheelEnergyTargets = (): {
     targets: FlywheelEnergyTarget[];
@@ -3408,6 +3422,8 @@ function initializeImmersiveScene(
     addPoiStructure(wovePoi, loom.group);
     woveLoom = loom;
   }
+
+  registerMarkerOnlyPoiColliders();
 
   // Keep tabletop construction after all POI visual-anchor producers so
   // ground-floor miniature placement can resolve every rendered anchor.

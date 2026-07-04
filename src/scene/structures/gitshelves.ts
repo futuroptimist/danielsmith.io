@@ -16,6 +16,8 @@ import {
 
 import type { RectCollider } from '../collision';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface GitshelvesInstallationBuild {
   group: Group;
   colliders: RectCollider[];
@@ -471,6 +473,14 @@ export function createGitshelvesInstallation(
         MathUtils.lerp(0.65, 1.1, MathUtils.lerp(signBeat, 1, emphasis));
     }
   };
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, {
+      debugName: 'GitshelvesInstallationCollider',
+    })
+  );
 
   return { group, colliders, update };
 }

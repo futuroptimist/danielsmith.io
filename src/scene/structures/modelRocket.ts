@@ -19,6 +19,8 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface ModelRocketConfig {
   basePosition: Vector3;
   orientationRadians?: number;
@@ -34,6 +36,12 @@ export interface ModelRocketBuild {
 
 const DEFAULT_SCALE = 1;
 const FIN_COUNT = 3;
+const PHYSICAL_ROCKET_MESH_NAMES =
+  /^(ModelRocketBody|ModelRocketStripe|ModelRocketNose|ModelRocketThruster|ModelRocketFin-\d+)$/;
+
+export const isDspaceRocketPhysicalColliderMesh = (
+  objectName: string
+): boolean => PHYSICAL_ROCKET_MESH_NAMES.test(objectName);
 
 export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   const detailPolicy = config.detailPolicy ?? getSceneDetailPolicy('balanced');
@@ -257,13 +265,11 @@ export function createModelRocket(config: ModelRocketConfig): ModelRocketBuild {
   countdownPanel.visible = !isPerformance;
   group.add(countdownPanel);
 
-  const footprintRadius = standRadius * 1.45;
-  const collider: RectCollider = {
-    minX: basePosition.x - footprintRadius,
-    maxX: basePosition.x + footprintRadius,
-    minZ: basePosition.z - footprintRadius,
-    maxZ: basePosition.z + footprintRadius,
-  };
+  const collider = createRequiredTightPoiCollider(group, {
+    debugName: 'DspaceRocketCollider',
+    include: (object) => isDspaceRocketPhysicalColliderMesh(object.name),
+    includeOnly: true,
+  });
 
   const thrusterBaseEmissive = thrusterMaterial.emissiveIntensity;
   const standTrimBaseEmissive = standTrimMaterial.emissiveIntensity;

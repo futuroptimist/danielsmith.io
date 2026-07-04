@@ -98,9 +98,13 @@ describe('TokenPlaceWorkstation', () => {
       )
     ).toBe(true);
     expect(finiteObject(build.group)).toBe(true);
-    expect(build.colliders).toHaveLength(2);
+    expect(build.colliders).toHaveLength(1);
     build.colliders.forEach((collider) => {
-      expect(Object.values(collider).every(Number.isFinite)).toBe(true);
+      expect(
+        [collider.minX, collider.maxX, collider.minZ, collider.maxZ].every(
+          Number.isFinite
+        )
+      ).toBe(true);
       expect(collider.maxX - collider.minX).toBeLessThanOrEqual(5.9);
       expect(collider.maxZ - collider.minZ).toBeLessThanOrEqual(5.9);
     });
@@ -154,19 +158,18 @@ describe('TokenPlaceWorkstation', () => {
     build.dispose();
   });
 
-  it('rotates collider offsets with the workstation heading', () => {
-    const orientationRadians = Math.PI / 2;
+  it('derives a tight collider from rotated workstation geometry', () => {
     const build = createTokenPlaceWorkstation({
       position: { x: 5, z: 7 },
-      orientationRadians,
+      orientationRadians: Math.PI / 2,
       detailPolicy: getSceneDetailPolicy('balanced'),
     });
-    const chairCollider = build.colliders[1];
-    const chairCenterX = (chairCollider.minX + chairCollider.maxX) / 2;
-    const chairCenterZ = (chairCollider.minZ + chairCollider.maxZ) / 2;
+    const [collider] = build.colliders;
 
-    expect(chairCenterX).toBeLessThan(4);
-    expect(chairCenterZ).toBeCloseTo(7.06, 1);
+    expect(collider.maxX - collider.minX).toBeGreaterThan(2);
+    expect(collider.maxX - collider.minX).toBeLessThan(2.9);
+    expect(collider.maxZ - collider.minZ).toBeGreaterThan(4.6);
+    expect(collider.maxZ - collider.minZ).toBeLessThan(5.7);
     build.dispose();
   });
 

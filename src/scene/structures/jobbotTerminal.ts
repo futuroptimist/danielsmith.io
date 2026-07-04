@@ -18,6 +18,8 @@ import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 const JOBBOT_SCREEN_WIDTH = 2048;
 const JOBBOT_SCREEN_HEIGHT = 1024;
 const JOBBOT_TELEMETRY_WIDTH = 1024;
@@ -613,6 +615,14 @@ export function createJobbotTerminal(
 
   let telemetryRotation = 0;
   let lastElapsed = 0;
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, {
+      debugName: 'JobbotTerminalCollider',
+    })
+  );
 
   return {
     group,

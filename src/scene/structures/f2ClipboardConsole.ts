@@ -19,6 +19,8 @@ import {
 import { getPulseScale } from '../../ui/accessibility/animationPreferences';
 import type { RectCollider } from '../collision';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface F2ClipboardConsoleBuild {
   group: Group;
   colliders: RectCollider[];
@@ -537,6 +539,14 @@ export function createF2ClipboardConsole(
       smoothing
     );
   }
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, {
+      debugName: 'F2ClipboardConsoleCollider',
+    })
+  );
 
   return {
     group,

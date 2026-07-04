@@ -46,12 +46,18 @@ describe('createModelRocket', () => {
     expect(childNames).toContain('ModelRocketThrusterLight');
     expect(childNames).toContain('ModelRocketCountdownPanel');
 
-    const footprintHalf = (collider.maxX - collider.minX) / 2;
-    expect(footprintHalf).toBeGreaterThan(1);
-    expect(collider.minX).toBeCloseTo(basePosition.x - footprintHalf);
-    expect(collider.maxX).toBeCloseTo(basePosition.x + footprintHalf);
-    expect(collider.minZ).toBeCloseTo(basePosition.z - footprintHalf);
-    expect(collider.maxZ).toBeCloseTo(basePosition.z + footprintHalf);
+    expect(collider.debugName).toBe('DspaceRocketCollider');
+    expect(collider.minX).toBeCloseTo(3.4345, 4);
+    expect(collider.maxX).toBeCloseTo(5.3512, 4);
+    expect(collider.minZ).toBeCloseTo(-4, 4);
+    expect(collider.maxZ).toBeCloseTo(-1.998, 4);
+
+    const footprintHalfX = (collider.maxX - collider.minX) / 2;
+    const footprintHalfZ = (collider.maxZ - collider.minZ) / 2;
+    expect(footprintHalfX).toBeGreaterThan(0.9);
+    expect(footprintHalfZ).toBeGreaterThan(0.95);
+    expect(footprintHalfX).toBeLessThan(1);
+    expect(footprintHalfZ).toBeLessThan(1.05);
   });
 
   it('pulses thruster glow, halo, and countdown indicator over time', () => {

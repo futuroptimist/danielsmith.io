@@ -14,6 +14,8 @@ import {
 
 import type { RectCollider } from '../collision';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface GabrielSentryBuild {
   group: Group;
   colliders: RectCollider[];
@@ -256,6 +258,14 @@ export function createGabrielSentry(
       baseRadius * 2,
       orientationRadians
     )
+  );
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, {
+      debugName: 'GabrielSentryCollider',
+    })
   );
 
   return { group, colliders, update };

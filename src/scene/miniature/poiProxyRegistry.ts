@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 28,
+    syncRevision: 30,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Flywheel collider now uses the visible wheel outer diameter as a square footprint; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -172,9 +172,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -193,9 +193,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 7,
+    syncRevision: 10,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'DSPACE physical collider is generated only from rocket meshes while keeping the tabletop proxy silhouette unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -210,9 +210,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -306,9 +306,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/tokenPlaceWorkstation.ts',
@@ -348,9 +348,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -364,9 +364,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -379,9 +379,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -402,9 +402,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -417,9 +417,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -433,9 +433,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [

@@ -6,7 +6,6 @@ import { MINIATURE_POI_PROXY_REGISTRY } from '../scene/miniature/poiProxyRegistr
 import { getPoiPhysicalMetadata } from '../scene/poi/physicalMetadata';
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
 import {
-  FLYWHEEL_BASE_COLLIDER,
   FLYWHEEL_BASE_DIMENSIONS,
   FLYWHEEL_BEARING_STAND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
@@ -16,6 +15,7 @@ import {
   FLYWHEEL_MARKER_MIN_HEIGHT,
   FLYWHEEL_SPIN_RAD_PER_SECOND,
   FLYWHEEL_WHEEL,
+  FLYWHEEL_WHEEL_OUTER_RADIUS,
 } from '../scene/structures/flywheelEnergyContract';
 
 const roomBounds = { minX: -6, maxX: 6, minZ: -6, maxZ: 6 };
@@ -190,16 +190,47 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
-  it('provides simplified physical colliders and metadata from the contract', () => {
+  it('uses a square collider matching the visible flywheel outer diameter', () => {
     const build = createFlywheelShowpiece({
       position: { x: 3, z: 4 },
       roomBounds,
     });
+    const collider = build.colliders[0];
+    const rimBox = new Box3().setFromObject(
+      build.group.getObjectByName('FlywheelHeavyRim') as Object3D
+    );
+    const glowBox = new Box3().setFromObject(
+      build.group.getObjectByName('FlywheelEnergyGlowRing') as Object3D
+    );
+
+    const colliderWidth = collider.maxX - collider.minX;
+    const colliderDepth = collider.maxZ - collider.minZ;
+    const outerDiameter = FLYWHEEL_WHEEL_OUTER_RADIUS * 2;
+
     expect(build.colliders).toHaveLength(1);
-    expect(build.colliders[0]).toMatchObject({
-      minX: 3 - FLYWHEEL_BASE_COLLIDER.width / 2,
-      maxX: 3 + FLYWHEEL_BASE_COLLIDER.width / 2,
-    });
+    expect(colliderWidth).toBeCloseTo(colliderDepth);
+    expect(colliderWidth).toBeCloseTo(outerDiameter);
+    expect(colliderDepth).toBeCloseTo(outerDiameter);
+    expect((collider.minX + collider.maxX) / 2).toBeCloseTo(
+      3 + FLYWHEEL_WHEEL.centerX
+    );
+    expect((collider.minZ + collider.maxZ) / 2).toBeCloseTo(
+      4 + FLYWHEEL_WHEEL.centerZ
+    );
+
+    expect(collider.minX).toBeCloseTo(rimBox.min.x);
+    expect(collider.maxX).toBeCloseTo(rimBox.max.x);
+    expect(collider.minZ).toBeLessThanOrEqual(4 - FLYWHEEL_WHEEL_OUTER_RADIUS);
+    expect(collider.maxZ).toBeGreaterThanOrEqual(
+      4 + FLYWHEEL_WHEEL_OUTER_RADIUS
+    );
+    expect(colliderDepth).toBeGreaterThan(FLYWHEEL_BASE_DIMENSIONS.depth);
+
+    expect(colliderWidth).toBeLessThan(FLYWHEEL_INSTALLATION_BOUNDS.width);
+    expect(colliderDepth).toBeLessThan(FLYWHEEL_INSTALLATION_BOUNDS.depth);
+    expect(glowBox.min.x).toBeGreaterThan(collider.minX);
+    expect(glowBox.max.x).toBeLessThan(collider.maxX);
+
     const metadata = getPoiPhysicalMetadata('flywheel-studio-flywheel');
     expect(metadata?.intendedSceneBounds).toBe(FLYWHEEL_INSTALLATION_BOUNDS);
     expect(metadata?.clearances?.markerMinHeight).toBe(

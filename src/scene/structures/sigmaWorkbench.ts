@@ -17,6 +17,8 @@ import {
 
 import type { RectCollider } from '../collision';
 
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
+
 export interface SigmaWorkbenchBuild {
   group: Group;
   colliders: RectCollider[];
@@ -474,6 +476,14 @@ export function createSigmaWorkbench(
 
     spoolGroup.rotation.y = elapsed * MathUtils.lerp(0.4, 1.6, clampedEmphasis);
   };
+
+  colliders.splice(
+    0,
+    colliders.length,
+    createRequiredTightPoiCollider(group, {
+      debugName: 'SigmaWorkbenchCollider',
+    })
+  );
 
   return { group, colliders, update };
 }

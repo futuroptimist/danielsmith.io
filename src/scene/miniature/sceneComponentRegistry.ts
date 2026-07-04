@@ -122,6 +122,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
   },
   {
+    id: 'poi:tight-collider-bounds',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/poiColliderBounds.ts'],
+    syncRevision: 3,
+    reason:
+      'Collider helper supports opt-in include-only bounds; tabletop proxy silhouettes remain covered by POI entries.',
+  },
+  {
     id: 'debug:visualizers',
     kind: 'excluded',
     sourceFiles: [
