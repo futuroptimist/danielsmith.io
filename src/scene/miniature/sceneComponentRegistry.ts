@@ -117,9 +117,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
+      'POI marker walk-blocking boxes were removed; markers remain interaction UI, not miniature geometry.',
   },
   {
     id: 'debug:visualizers',

@@ -397,15 +397,6 @@ function createPedestalPoiInstance(
   hitArea.name = `POI_HIT:${definition.id}`;
   group.add(hitArea);
 
-  const colliderRadiusX = Math.max(baseRadiusX, effectivePedestalRadius);
-  const colliderRadiusZ = Math.max(baseRadiusZ, effectivePedestalRadius);
-  const collider = {
-    minX: definition.position.x - colliderRadiusX,
-    maxX: definition.position.x + colliderRadiusX,
-    minZ: definition.position.z - colliderRadiusZ,
-    maxZ: definition.position.z + colliderRadiusZ,
-  };
-
   return {
     definition,
     group,
@@ -424,7 +415,6 @@ function createPedestalPoiInstance(
     accentMaterial,
     accentBaseColor,
     accentFocusColor,
-    collider,
     activation: 0,
     pulseOffset: MathUtils.randFloatSpread(Math.PI * 2),
     hitArea,

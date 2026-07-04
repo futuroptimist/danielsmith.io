@@ -672,11 +672,11 @@
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.",
-      "sourceFingerprint": "658f98fa79aab337982dc5af8c6e1413cc9e38624e611fa7834cca62190967e0",
+      "syncRevision": 3,
+      "syncNote": "POI marker walk-blocking boxes were removed; markers remain interaction UI, not miniature geometry.",
+      "sourceFingerprint": "fb6c3d10b9f3dc2bfceca677f98f05f91413cc73bbe385f8698613bd078d5378",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "46c76af2493d95837914fa60b601c417c53a4134ff5dffb97d5c05fc67afdef0"
+      "metadataFingerprint": "b71270791c913afaba9787b3b924f7f81d57359d1ddfe260aadfd871912277ab"
     },
     {
       "id": "poi:pr-reaper-backyard-console",

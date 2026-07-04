@@ -23,6 +23,7 @@ import {
   WebGLRenderer,
 } from 'three';
 import type { Object3D } from 'three';
+import { createTightColliderFromObject } from './scene/poi/geometryCollider';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -3065,6 +3066,26 @@ function initializeImmersiveScene(
       ? upperFloorColliders
       : groundColliders;
 
+  const deriveGeometryColliders = (
+    root: Object3D,
+    fallbackColliders: readonly RectCollider[] = []
+  ): RectCollider[] => {
+    const collider = createTightColliderFromObject(root);
+    return collider ? [collider] : [...fallbackColliders];
+  };
+
+  const addGeometryDerivedPoiCollider = (
+    poi: PoiInstance,
+    root: Object3D,
+    fallbackColliders: readonly RectCollider[] = [],
+    register?: (collider: RectCollider) => void
+  ) => {
+    deriveGeometryColliders(root, fallbackColliders).forEach((collider) => {
+      getPoiColliderTarget(poi).push(collider);
+      register?.(collider);
+    });
+  };
+
   const resolveFlywheelEnergyTargets = (): {
     targets: FlywheelEnergyTarget[];
     diagnostics: string[];
@@ -3125,11 +3146,15 @@ function initializeImmersiveScene(
     );
     if (flywheelSceneObject) {
       applySceneObjectSourceMetadata(showpiece.group, flywheelSceneObject);
-      registerSceneObjectColliders(
-        showpiece.colliders,
-        flywheelSceneObject,
-        groundColliders,
-        colliderSourceMetadata
+      deriveGeometryColliders(showpiece.group, showpiece.colliders).forEach(
+        (collider) => {
+          groundColliders.push(collider);
+          colliderSourceMetadata.set(collider, {
+            sourceId: flywheelSceneObject.sourceId,
+            sourceType: 'sceneObject',
+            purpose: getSceneObjectColliderSourcePurpose(flywheelSceneObject),
+          });
+        }
       );
     } else {
       showpiece.colliders.forEach((collider) => groundColliders.push(collider));
@@ -3165,8 +3190,9 @@ function initializeImmersiveScene(
         : groundColliders;
     if (jobbotSceneObject) {
       applySceneObjectSourceMetadata(terminal.group, jobbotSceneObject);
+      const collider = createTightColliderFromObject(terminal.group);
       registerSceneObjectColliders(
-        terminal.colliders,
+        collider ? [collider] : terminal.colliders,
         jobbotSceneObject,
         jobbotColliderTarget,
         colliderSourceMetadata
@@ -3196,7 +3222,7 @@ function initializeImmersiveScene(
       if (axelSceneObject) {
         applySceneObjectSourceMetadata(navigator.group, axelSceneObject);
         registerSceneObjectColliders(
-          navigator.colliders,
+          deriveGeometryColliders(navigator.group, navigator.colliders),
           axelSceneObject,
           getPoiColliderTarget(axelPoi),
           colliderSourceMetadata
@@ -3221,8 +3247,10 @@ function initializeImmersiveScene(
         detailPolicy: activeSceneDetailPolicy,
       });
       addPoiStructure(tokenPlacePoi, workstation.group);
-      workstation.colliders.forEach((collider) =>
-        getPoiColliderTarget(tokenPlacePoi).push(collider)
+      addGeometryDerivedPoiCollider(
+        tokenPlacePoi,
+        workstation.group,
+        workstation.colliders
       );
       tokenPlaceWorkstation = workstation;
     }
@@ -3237,9 +3265,7 @@ function initializeImmersiveScene(
         orientationRadians: gabrielPoi.group.rotation.y ?? 0,
       });
       addPoiStructure(gabrielPoi, sentry.group);
-      sentry.colliders.forEach((collider) =>
-        getPoiColliderTarget(gabrielPoi).push(collider)
-      );
+      addGeometryDerivedPoiCollider(gabrielPoi, sentry.group, sentry.colliders);
       gabrielSentry = sentry;
     }
   }
@@ -3297,8 +3323,10 @@ function initializeImmersiveScene(
         ];
       }
     }
-    deployment.colliders.forEach((collider) =>
-      getPoiColliderTarget(sugarkubePoi).push(collider)
+    addGeometryDerivedPoiCollider(
+      sugarkubePoi,
+      deployment.group,
+      deployment.colliders
     );
     sugarkubeDeployment = deployment;
   }
@@ -3320,7 +3348,7 @@ function initializeImmersiveScene(
     if (prReaperSceneObject) {
       applySceneObjectSourceMetadata(installation.group, prReaperSceneObject);
       registerSceneObjectColliders(
-        installation.colliders,
+        deriveGeometryColliders(installation.group, installation.colliders),
         prReaperSceneObject,
         getPoiColliderTarget(prReaperPoi),
         colliderSourceMetadata
@@ -3344,8 +3372,10 @@ function initializeImmersiveScene(
       orientationRadians: gitshelvesPoi.group.rotation.y ?? 0,
     });
     addPoiStructure(gitshelvesPoi, installation.group);
-    installation.colliders.forEach((collider) =>
-      getPoiColliderTarget(gitshelvesPoi).push(collider)
+    addGeometryDerivedPoiCollider(
+      gitshelvesPoi,
+      installation.group,
+      installation.colliders
     );
     gitshelvesInstallation = installation;
   }
@@ -3360,8 +3390,10 @@ function initializeImmersiveScene(
       orientationRadians: f2ClipboardPoi.group.rotation.y ?? 0,
     });
     addPoiStructure(f2ClipboardPoi, console.group);
-    console.colliders.forEach((collider) =>
-      getPoiColliderTarget(f2ClipboardPoi).push(collider)
+    addGeometryDerivedPoiCollider(
+      f2ClipboardPoi,
+      console.group,
+      console.colliders
     );
     f2ClipboardConsole = console;
   }
@@ -3376,8 +3408,10 @@ function initializeImmersiveScene(
       orientationRadians: sigmaPoi.group.rotation.y ?? 0,
     });
     addPoiStructure(sigmaPoi, workbench.group);
-    workbench.colliders.forEach((collider) =>
-      getPoiColliderTarget(sigmaPoi).push(collider)
+    addGeometryDerivedPoiCollider(
+      sigmaPoi,
+      workbench.group,
+      workbench.colliders
     );
     sigmaWorkbench = workbench;
   }
@@ -3395,7 +3429,7 @@ function initializeImmersiveScene(
     if (woveSceneObject) {
       applySceneObjectSourceMetadata(loom.group, woveSceneObject);
       registerSceneObjectColliders(
-        loom.colliders,
+        deriveGeometryColliders(loom.group, loom.colliders),
         woveSceneObject,
         getPoiColliderTarget(wovePoi),
         colliderSourceMetadata
@@ -3468,10 +3502,12 @@ function initializeImmersiveScene(
       poiPlacements: placementResolution.placements,
     });
     addPoiStructure(portfolioTablePoi, table.group);
-    getPoiColliderTarget(portfolioTablePoi).push(table.collider);
-    namedColliderDebugNames.set(
-      table.collider,
-      'PortfolioMiniatureTableCollider'
+    addGeometryDerivedPoiCollider(
+      portfolioTablePoi,
+      table.group,
+      [table.collider],
+      (collider) =>
+        namedColliderDebugNames.set(collider, 'PortfolioMiniatureTableCollider')
     );
     portfolioMiniatureTable = table;
   }
