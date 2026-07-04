@@ -31,6 +31,7 @@ import {
   FLYWHEEL_GEAR_RATIO,
   FLYWHEEL_SPIN_RAD_PER_SECOND,
   FLYWHEEL_WHEEL,
+  FLYWHEEL_WHEEL_OUTER_RADIUS,
 } from './flywheelEnergyContract';
 import {
   createSeededFlywheelEnergyNetwork,
@@ -38,7 +39,6 @@ import {
   sampleFlywheelEnergyArc,
   type FlywheelEnergyTarget,
 } from './flywheelEnergyNetwork';
-import { createRequiredTightPoiCollider } from './poiColliderBounds';
 
 export interface FlywheelShowpieceBuild {
   group: Group;
@@ -841,22 +841,25 @@ export function createFlywheelShowpiece(
   };
 }
 
-const FLYWHEEL_COLLIDER_INCLUDED_MESHES = new Set([
-  'FlywheelHeavyRim',
-  'FlywheelRingGear',
-  'FlywheelEnergyPort',
-]);
-
-const FLYWHEEL_COLLIDER_EXCLUDED_PATTERN =
-  /(EnergyGlowRing|EnergyTransferPacket|EnergyPacket|MotionTick)/i;
-
 function createFlywheelColliders(group: Group): RectCollider[] {
+  group.updateWorldMatrix(true, true);
+  const visibleWheelCenter = new Vector3(
+    FLYWHEEL_WHEEL.centerX,
+    FLYWHEEL_WHEEL.centerY,
+    FLYWHEEL_WHEEL.centerZ
+  );
+  group.localToWorld(visibleWheelCenter);
+
+  const outerRadius = FLYWHEEL_WHEEL_OUTER_RADIUS;
+
   return [
-    createRequiredTightPoiCollider(group, {
+    {
+      minX: visibleWheelCenter.x - outerRadius,
+      maxX: visibleWheelCenter.x + outerRadius,
+      minZ: visibleWheelCenter.z - outerRadius,
+      maxZ: visibleWheelCenter.z + outerRadius,
       debugName: 'FlywheelShowpiece',
-      include: (object) => FLYWHEEL_COLLIDER_INCLUDED_MESHES.has(object.name),
-      exclude: (object) => FLYWHEEL_COLLIDER_EXCLUDED_PATTERN.test(object.name),
-    }),
+    },
   ];
 }
 

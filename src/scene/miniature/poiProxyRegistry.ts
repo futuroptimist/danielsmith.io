@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 29,
+    syncRevision: 30,
     syncNote:
-      'Flywheel collider now includes visible rim and ring geometry; tabletop proxy silhouette remains unchanged.',
+      'Flywheel collider now uses the visible wheel outer diameter as a square footprint; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
