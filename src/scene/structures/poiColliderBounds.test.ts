@@ -54,4 +54,35 @@ describe('createRequiredTightPoiCollider', () => {
       maxZ: 0.5,
     });
   });
+
+  it('can whitelist collider generation to included physical meshes', () => {
+    const root = new Group();
+    const included = new Mesh(
+      new BoxGeometry(1, 1, 1),
+      new MeshBasicMaterial({ color: 0xffffff })
+    );
+    included.name = 'IncludedPhysicalMesh';
+    root.add(included);
+
+    const otherwisePhysical = new Mesh(
+      new BoxGeometry(10, 1, 10),
+      new MeshBasicMaterial({ color: 0xffffff })
+    );
+    otherwisePhysical.name = 'UnlistedPhysicalMesh';
+    otherwisePhysical.position.set(8, 0, 0);
+    root.add(otherwisePhysical);
+
+    const collider = createRequiredTightPoiCollider(root, {
+      padding: 0,
+      include: (object) => object.name === 'IncludedPhysicalMesh',
+      includeOnly: true,
+    });
+
+    expect(collider).toEqual({
+      minX: -0.5,
+      maxX: 0.5,
+      minZ: -0.5,
+      maxZ: 0.5,
+    });
+  });
 });

@@ -125,9 +125,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'poi:tight-collider-bounds',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/poiColliderBounds.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'Collider helper supports targeted physical mesh includes; tabletop proxy silhouettes remain covered by POI entries.',
+      'Collider helper supports opt-in include-only bounds; tabletop proxy silhouettes remain covered by POI entries.',
   },
   {
     id: 'debug:visualizers',

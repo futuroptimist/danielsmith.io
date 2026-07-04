@@ -13,6 +13,7 @@ export interface TightPoiColliderOptions {
   padding?: number;
   exclude?: (object: Object3D) => boolean;
   include?: (object: Object3D) => boolean;
+  includeOnly?: boolean;
   debugName?: string;
 }
 
@@ -44,7 +45,9 @@ export function createTightPoiCollider(
 
   root.traverse((object) => {
     if (options.exclude?.(object)) return;
-    if (!isPhysicalMesh(object) && !options.include?.(object)) return;
+    const isIncluded = options.include?.(object) ?? false;
+    if (options.includeOnly && !isIncluded) return;
+    if (!isPhysicalMesh(object) && !isIncluded) return;
     if (!(object instanceof Mesh) || !object.visible) return;
     const geometry = object.geometry;
     if (!geometry) return;

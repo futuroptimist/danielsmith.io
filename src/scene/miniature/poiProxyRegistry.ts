@@ -193,9 +193,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'DSPACE physical collider now explicitly excludes 105E while keeping the rocket-only tabletop proxy silhouette unchanged.',
+      'DSPACE physical collider is generated only from rocket meshes while keeping the tabletop proxy silhouette unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
