@@ -534,7 +534,7 @@
       "syncRevision": 8,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "59c843482d7a526b24eb3263d467ec782947845deadaf4967c0014ffdd080057",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "9246b329dff29429a00c7f5623335ef1a67464b2c897c65811d662f3c1ca4f56"
     },
     {
@@ -554,7 +554,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "da63b004597908a735d465024199136aa420cf4bfbd64e6366a1ad8efd97a044",
-      "proxyFingerprint": "bbea2c6d0378a339d82fc19f73b5d167cc85880b7166480a0b8f1bb3109b367e",
+      "proxyFingerprint": "e5972f0277af7c201eede2a636478373277b8a1b2127b597fac4ecd6314ff08c",
       "metadataFingerprint": "bd7cc120f59b9103245f32c3bef89a2466982ec06ca1dd7819830c5a68dd7a75"
     },
     {
@@ -566,11 +566,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 7,
-      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "8619425e38cc64b26bbaa4574f4cc9cf400b909ec2e802fc81093b89903976f0",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
-      "metadataFingerprint": "3694bb1b5988e45a32eb1bcfaf34ffb70e900316bb33732e3867b75abc248fb1"
+      "syncRevision": 8,
+      "syncNote": "DSPACE walk-blocking collider now derives from rocket-only geometry; tabletop proxy silhouette remains unchanged.",
+      "sourceFingerprint": "c4c1c7771701212569fdea2f0be3feb914475053d1c8f04a2856a2b808faa453",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
+      "metadataFingerprint": "90493ae0a47bd0095117faf9cb3e65449cb587be3cb4f17b1726ee535ce37c8a"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -584,7 +584,7 @@
       "syncRevision": 10,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "426f7708e8af65cabf89c7e3f21f35505ff8505b34cd4b828c4d3b8d86f2547a",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "47ebe766ea9f7b654c16d03f10f756de52f1c23d7c5f63e03a3fe3a5522b286f"
     },
     {
@@ -601,7 +601,7 @@
       "syncRevision": 29,
       "syncNote": "Flywheel collider now includes visible rim and ring geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "17ef624f199e0f75aa09fefb74e2fbff8914ca7f52e7a0c1a1290de091176cd6",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "05c0988883763f37a0ae93980678a3596f10a9c68e0eb761252e8b93f49f9ba8"
     },
     {
@@ -616,7 +616,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "a60c5dc0944fd769ee2d808867dc7d40ba13e1f88a975e675203a9f84011618d",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "923636edaf3232977f7939de6d989055a3d4f2ad700922d7a4c47eac7146136d"
     },
     {
@@ -631,7 +631,7 @@
       "syncRevision": 10,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "15b1366118cb78a24cbd650d695a11f32ecc36d6da5b0a7b9ab45798c5ccdddb",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "b7ff9f82e5b9af9e65538d025bac19ef70e653fa476090f3c18f43ff66385252"
     },
     {
@@ -646,7 +646,7 @@
       "syncRevision": 10,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "64b9741b57faa4da5036de6b8a82fdc340d3d70413724d031013644028d36ffb",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "9002f251926af771f410d7d05fcf44bb4f4977f7c3918efd1708638cc3ace269"
     },
     {
@@ -661,7 +661,7 @@
       "syncRevision": 8,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "d3b6be7336700b88be54c9bf7e2917c3697aa39727d0fa756ab9f6c6c71bd7e3",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "8c1994a53d5d4121a1bc0b46a30712721701a473857f400135632bea481078a6"
     },
     {
@@ -696,7 +696,7 @@
       "syncRevision": 22,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "cfd883bdfe9822f4d50e9d9bd799bf940ea7aba433a7a3205bcc6c73c186384e",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "67f310329704a6ec1e663a9ff826746abd356a187b4b73067a820ab603c733cf"
     },
     {
@@ -711,7 +711,7 @@
       "syncRevision": 10,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "5c1c2ae8bb3b679b8661b9c7621de322d34d31f60c89379f08cc4171c48caada",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "60e24920267ea1fc8dc79a39b8212b45ff74d3f00c6e4396acabdd2da4d75c82"
     },
     {
@@ -726,7 +726,7 @@
       "syncRevision": 7,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "a4f4e8c86e41b45b40fa638845570077ee96f69f6ba389ce230a6b907c42bd08",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "b70b50cec4d2b55cba6fe708426341927ebf27aa510cb726142a2d3b1e5a32b6"
     },
     {
@@ -751,7 +751,7 @@
       "syncRevision": 7,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "49dae38f35fd6bc6a60d3b5df73b47881b3ad807d6859efe59ecb9a55b42376f",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "852306f86f7867353123223d176165a606babdc487d53bac61f19214c0b4c48c"
     },
     {
@@ -766,7 +766,7 @@
       "syncRevision": 8,
       "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
       "sourceFingerprint": "76454c35fe415b3ad6d4fd5098307887be1cd8f99f34711b1b2a68dd8da2793f",
-      "proxyFingerprint": "4f95b261f61edb03d07bd15261fc1a70e3aa1f28b4dd68788ee7dae4d6abba94",
+      "proxyFingerprint": "70367a74c90649868e903cb58db4d7265dedf62b1b5264ff61981940fbad6966",
       "metadataFingerprint": "0375bc4052f47804da55c0146894ea52867e722f1d81dd57d6ac8440b6ce19ba"
     },
     {
