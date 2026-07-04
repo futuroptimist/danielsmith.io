@@ -14,6 +14,7 @@ import {
 import type { RectCollider } from '../collision';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { createPhysicalRectColliderFromObject } from '../poi/physicalColliderBounds';
 
 export interface SugarkubeDeploymentBuild {
   group: Group;
@@ -402,7 +403,7 @@ export function createSugarkubeDeployment(
     switchY + 0.04,
     SWITCH_DEPTH / 2 + 0.05
   );
-  addCable(
+  const uplinkCable = addCable(
     group,
     'SugarkubeUplinkCable',
     [
@@ -422,7 +423,10 @@ export function createSugarkubeDeployment(
     cableMat
   );
 
+  uplinkCable.userData.physicalCollider = false;
+
   const wallPlate = new Group();
+  wallPlate.userData.physicalCollider = false;
   wallPlate.name = 'SugarkubeWallPlate';
   wallPlate.position.copy(inverseEndpoint);
   wallPlate.rotation.y =
@@ -453,14 +457,19 @@ export function createSugarkubeDeployment(
     }
   }
 
-  const colliders = [
-    createCollider(
-      { x: position.x, z: position.z },
-      TABLE_WIDTH,
-      TABLE_DEPTH,
-      orientation
-    ),
-  ];
+  const tightCollider = createPhysicalRectColliderFromObject(group, {
+    exclude: (object) => object === wallPlate || object.parent === wallPlate,
+  });
+  const colliders = tightCollider
+    ? [{ ...tightCollider, debugName: 'SugarkubeDeploymentCollider' }]
+    : [
+        createCollider(
+          { x: position.x, z: position.z },
+          TABLE_WIDTH,
+          TABLE_DEPTH,
+          orientation
+        ),
+      ];
   const update = ({
     elapsed,
     emphasis,

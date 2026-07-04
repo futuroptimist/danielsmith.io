@@ -534,7 +534,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "3839414464902e6c0975076b1858cafc4889ea4c31c7391a5e8a3376f6bda853",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "e6e6addc012d2618e22c92f036b84a7e0fd27e91be7adc6ea9b0059d0ee3fec0"
     },
     {
@@ -554,7 +554,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "da63b004597908a735d465024199136aa420cf4bfbd64e6366a1ad8efd97a044",
-      "proxyFingerprint": "3c3e91187000664b7d07cf1ec86c2696c4a1e31dd7945961aa7b2b6666d6a3eb",
+      "proxyFingerprint": "d2c3ffbb1db7bd219759fdaace8e0ed5a3b26651eb90fa58629ba4a870d2073a",
       "metadataFingerprint": "bd7cc120f59b9103245f32c3bef89a2466982ec06ca1dd7819830c5a68dd7a75"
     },
     {
@@ -569,7 +569,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "8619425e38cc64b26bbaa4574f4cc9cf400b909ec2e802fc81093b89903976f0",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "3694bb1b5988e45a32eb1bcfaf34ffb70e900316bb33732e3867b75abc248fb1"
     },
     {
@@ -584,7 +584,7 @@
       "syncRevision": 9,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "1278053ed91b9680bbb8ef64f484d7790cfb1e6fae0ff1e2dd1841db77ae9fcc",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "eed0ecd65120eca2eee0cc900289b97d68e6bb3198d251bd012c16e9f26075bc"
     },
     {
@@ -601,7 +601,7 @@
       "syncRevision": 28,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "cb72f384b4e755c560ffd3758b5718417c11d668a927447cc82dec4a1de298e1",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "233dcbaff32838a2889935fbd93e4e0264bec15743c3967cb2469f12b04c0a16"
     },
     {
@@ -616,7 +616,7 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "a60c5dc0944fd769ee2d808867dc7d40ba13e1f88a975e675203a9f84011618d",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "923636edaf3232977f7939de6d989055a3d4f2ad700922d7a4c47eac7146136d"
     },
     {
@@ -631,7 +631,7 @@
       "syncRevision": 9,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "92d30282c1ec96b7721cfe36220442e303407b3073c4318f6eaa666648769c0b",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "b21b23948590e18fa6fe9e2ea45c746f42c36aae989d3c259dc8b4e3a53f85b9"
     },
     {
@@ -646,7 +646,7 @@
       "syncRevision": 9,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "036896305d28b71534f4d6a68582c5f01c61f6fba27716517b4904b9bb8922af",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "0030502280d84d5ff6973a18061f81a2f79a12ce7f4796d591519bb94c8a7fbd"
     },
     {
@@ -661,22 +661,23 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "6e5cf48a8e8381e4ae30e2f983308ad0f1f12ec10e46fb36f557587b65f3da7c",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "58489a4e14fd8b31cabee4d7087f1fd54f7c90eeffb391de392d55d29ed9209c"
     },
     {
       "id": "poi:markers-labels",
       "sourceFiles": [
         "src/scene/poi/markers.ts",
+        "src/scene/poi/physicalColliderBounds.ts",
         "src/scene/poi/visitedBadge.ts",
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.",
-      "sourceFingerprint": "658f98fa79aab337982dc5af8c6e1413cc9e38624e611fa7834cca62190967e0",
+      "syncRevision": 3,
+      "syncNote": "POI marker collider bounds now derive from visible geometry; markers remain interaction UI, not miniature geometry.",
+      "sourceFingerprint": "ac5226bde233c49d5f1f086d7c03fae68b3eca29cfd2eefd53bc24b55e67482a",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "46c76af2493d95837914fa60b601c417c53a4134ff5dffb97d5c05fc67afdef0"
+      "metadataFingerprint": "0852910428e29dca464bbd9b4644ad00f44f3bcf74a1d1583317b929ea949c83"
     },
     {
       "id": "poi:pr-reaper-backyard-console",
@@ -696,7 +697,7 @@
       "syncRevision": 22,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "cfd883bdfe9822f4d50e9d9bd799bf940ea7aba433a7a3205bcc6c73c186384e",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "67f310329704a6ec1e663a9ff826746abd356a187b4b73067a820ab603c733cf"
     },
     {
@@ -711,7 +712,7 @@
       "syncRevision": 9,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "1f329c662f7866c5770be745aef3a560f9f201524a9eb93ad1341ca1311c0719",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "aa36be91f4f0be00010ef0cd0f0b686b135c80c65f235667ed6bc61fd8167aee"
     },
     {
@@ -723,11 +724,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 6,
-      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "2e782419d33e90f2128c0ab913770d3f02fffb41b40b2baed02f1b01f3ef98da",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
-      "metadataFingerprint": "804fee894eef2b1882be9ec56d6a146ced46ec319334c6833b260235453a2a2c"
+      "syncRevision": 7,
+      "syncNote": "Runtime walk-blocker now derives from Sugarkube visible geometry; miniature proxy silhouette remains aligned.",
+      "sourceFingerprint": "3bb4cbe062fb3335675da8345af3f9b4961161f556531a97ddf10c6c6181071c",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
+      "metadataFingerprint": "17f69472bcec80b9866bbb4820fa24e30480a904555bc199251bde37c9b29a2f"
     },
     {
       "id": "poi:tokenplace-studio-cluster",
@@ -741,7 +742,7 @@
       "syncRevision": 6,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "64d8d8062f5460221248de979e06403f9e5187398724f93445e9883b896532f6",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "96bfcca9a9be1b014381442972cfcfe7b177179cf58513d5548318fa2aedb0d0"
     },
     {
@@ -756,18 +757,18 @@
       "syncRevision": 7,
       "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
       "sourceFingerprint": "bd452efdaa3db2c6d20b3d0d9f9e48deff2a81b9ee1ebfbdacde9309f4d74191",
-      "proxyFingerprint": "9df70990d348423781ddb311b8b3b95b69898b5297fa57fda364ffdbb2d11aa7",
+      "proxyFingerprint": "37c3a5b96f99e92541a15665f476120c8959bdfc255b1d14a0b90fe7fce25463",
       "metadataFingerprint": "97c5b2393a71ea8246443e26ee5da9530f7b874ccd745e11dc5db257c691ac05"
     },
     {
       "id": "structure:greenhouse",
       "sourceFiles": ["src/scene/structures/greenhouse.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 1,
-      "syncNote": "Greenhouse shell and visible planters are represented by simplified proxy geometry.",
-      "sourceFingerprint": "8a383bb3f20d591cf227395f4ba67c4c2d00a4e8ea838be5fcccdbee1dc67214",
-      "proxyFingerprint": "47d4be149f5cf2f69ead7e2822a2361f2b6b29397ff011b880ce24fc49113f02",
-      "metadataFingerprint": "fc6531df64c47d676958fcc5b51888d9c48fe33484b658d70841deb5f8888986"
+      "syncRevision": 2,
+      "syncNote": "Runtime walk-blocker now derives from greenhouse visible geometry; miniature proxy silhouette remains aligned.",
+      "sourceFingerprint": "453baaf9cd0382e8ffa95d62408609c1e886ae5a40e4d876900863501b8bcc46",
+      "proxyFingerprint": "d6047834637fe47b5aac2469278c8d0abf36eaf4e8f8a0b1264e22199da321fb",
+      "metadataFingerprint": "baa1c7c215d2377e6612b2b296dcf9efc6ba067031d2887c5fbcae99ebd7a2e1"
     },
     {
       "id": "structure:media-wall-star-bridge",

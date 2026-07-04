@@ -1,6 +1,5 @@
 import {
   AdditiveBlending,
-  Box3,
   CanvasTexture,
   Color,
   CylinderGeometry,
@@ -26,6 +25,7 @@ import {
   POI_ORB_HEIGHT_MULTIPLIER,
   POI_ORB_DIAMETER_MULTIPLIER,
 } from './constants';
+import { createPhysicalRectColliderFromObject } from './physicalColliderBounds';
 import type { PoiDefinition, PoiId } from './types';
 import { createVisitedBadge, type PoiVisitedBadge } from './visitedBadge';
 
@@ -316,6 +316,8 @@ function createPedestalPoiInstance(
   const labelWidth = scalePoiValue(2.7);
   const labelGeometry = new PlaneGeometry(labelWidth, labelHeight, 1, 1);
   const label = new Mesh(labelGeometry, labelMaterial);
+  label.userData.physicalCollider = false;
+  label.userData.poiLabel = true;
   const labelBaseHeight = orbBaseHeight + orbRadius + scalePoiValue(0.4);
   label.position.set(0, labelBaseHeight, 0);
   label.renderOrder = 12;
@@ -325,6 +327,7 @@ function createPedestalPoiInstance(
   const visitedBadge = createVisitedBadge({
     baseHeight: badgeBaseHeight,
   });
+  visitedBadge.mesh.userData.physicalCollider = false;
   visitedBadge.mesh.position.set(0, badgeBaseHeight, 0);
   group.add(visitedBadge.mesh);
 
@@ -350,6 +353,7 @@ function createPedestalPoiInstance(
   });
   haloMaterial.side = DoubleSide;
   const halo = new Mesh(haloGeometry, haloMaterial);
+  halo.userData.physicalCollider = false;
   halo.rotation.x = -Math.PI / 2;
   halo.position.y = scalePoiValue(0.08);
   halo.renderOrder = 11;
@@ -370,6 +374,7 @@ function createPedestalPoiInstance(
   });
   visitedRingMaterial.side = DoubleSide;
   const visitedRing = new Mesh(visitedRingGeometry, visitedRingMaterial);
+  visitedRing.userData.physicalCollider = false;
   visitedRing.rotation.x = -Math.PI / 2;
   visitedRing.position.y = scalePoiValue(0.12);
   visitedRing.renderOrder = 10;
@@ -394,16 +399,21 @@ function createPedestalPoiInstance(
   hitAreaMaterial.side = DoubleSide;
   const hitArea = new Mesh(hitAreaGeometry, hitAreaMaterial);
   hitArea.position.y = hitAreaHeight / 2;
+  hitArea.userData.physicalCollider = false;
   hitArea.name = `POI_HIT:${definition.id}`;
   group.add(hitArea);
 
-  const colliderRadiusX = Math.max(baseRadiusX, effectivePedestalRadius);
-  const colliderRadiusZ = Math.max(baseRadiusZ, effectivePedestalRadius);
-  const collider = {
-    minX: definition.position.x - colliderRadiusX,
-    maxX: definition.position.x + colliderRadiusX,
-    minZ: definition.position.z - colliderRadiusZ,
-    maxZ: definition.position.z + colliderRadiusZ,
+  const collider = createPhysicalRectColliderFromObject(group, {
+    exclude: (object) => object === orb,
+  }) ?? {
+    minX:
+      definition.position.x - Math.max(baseRadiusX, effectivePedestalRadius),
+    maxX:
+      definition.position.x + Math.max(baseRadiusX, effectivePedestalRadius),
+    minZ:
+      definition.position.z - Math.max(baseRadiusZ, effectivePedestalRadius),
+    maxZ:
+      definition.position.z + Math.max(baseRadiusZ, effectivePedestalRadius),
   };
 
   return {
@@ -449,40 +459,9 @@ function createDisplayPoiInstance(
 ): PoiInstance {
   override.hitArea.updateWorldMatrix(true, false);
 
-  let collider: PoiInstance['collider'];
-  const geometry = override.hitArea.geometry;
-
-  if (geometry) {
-    geometry.computeBoundingBox();
-    const boundingBox = geometry.boundingBox?.clone();
-    if (boundingBox) {
-      boundingBox.applyMatrix4(override.hitArea.matrixWorld);
-      collider = {
-        minX: boundingBox.min.x,
-        maxX: boundingBox.max.x,
-        minZ: boundingBox.min.z,
-        maxZ: boundingBox.max.z,
-      };
-    }
-  }
-
-  if (!collider) {
-    const fallbackBounds = new Box3().setFromObject(override.hitArea);
-    const hasValidBounds =
-      Number.isFinite(fallbackBounds.min.x) &&
-      Number.isFinite(fallbackBounds.max.x) &&
-      Number.isFinite(fallbackBounds.min.z) &&
-      Number.isFinite(fallbackBounds.max.z);
-
-    if (hasValidBounds) {
-      collider = {
-        minX: fallbackBounds.min.x,
-        maxX: fallbackBounds.max.x,
-        minZ: fallbackBounds.min.z,
-        maxZ: fallbackBounds.max.z,
-      };
-    }
-  }
+  const collider = createPhysicalRectColliderFromObject(
+    override.highlight.mesh
+  );
 
   override.hitArea.name = `POI_HIT:${definition.id}`;
 

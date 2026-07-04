@@ -114,12 +114,13 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'excluded',
     sourceFiles: [
       'src/scene/poi/markers.ts',
+      'src/scene/poi/physicalColliderBounds.ts',
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
+      'POI marker collider bounds now derive from visible geometry; markers remain interaction UI, not miniature geometry.',
   },
   {
     id: 'debug:visualizers',
@@ -440,9 +441,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/greenhouse.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
-      'Greenhouse shell and visible planters are represented by simplified proxy geometry.',
+      'Runtime walk-blocker now derives from greenhouse visible geometry; miniature proxy silhouette remains aligned.',
   },
   {
     id: 'structure:media-wall-star-bridge',
@@ -536,8 +537,9 @@ export const MINIATURE_SCENE_COMPONENT_PROXIES: readonly MiniatureProxyDefinitio
     {
       id: 'component:greenhouse',
       displayName: 'Greenhouse shell proxy',
-      syncRevision: 1,
-      syncNote: 'Simplified greenhouse shell and planters.',
+      syncRevision: 2,
+      syncNote:
+        'Runtime walk-blocker now derives from greenhouse visible geometry; miniature proxy silhouette remains aligned.',
       sourceFiles: ['src/scene/structures/greenhouse.ts'],
       proxyFiles: [SELF_FILE],
       primitives: [

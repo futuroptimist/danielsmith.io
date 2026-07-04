@@ -210,9 +210,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Runtime walk-blocker now derives from Sugarkube visible geometry; miniature proxy silhouette remains aligned.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
