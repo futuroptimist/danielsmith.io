@@ -125,9 +125,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'poi:tight-collider-bounds',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/poiColliderBounds.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Collider bounds helper only affects walking blockers; tabletop proxy silhouettes remain covered by POI entries.',
+      'Collider helper supports targeted physical mesh includes; tabletop proxy silhouettes remain covered by POI entries.',
   },
   {
     id: 'debug:visualizers',

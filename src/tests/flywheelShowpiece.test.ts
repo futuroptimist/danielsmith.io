@@ -6,7 +6,6 @@ import { MINIATURE_POI_PROXY_REGISTRY } from '../scene/miniature/poiProxyRegistr
 import { getPoiPhysicalMetadata } from '../scene/poi/physicalMetadata';
 import { createFlywheelShowpiece } from '../scene/structures/flywheel';
 import {
-  FLYWHEEL_BASE_COLLIDER,
   FLYWHEEL_BASE_DIMENSIONS,
   FLYWHEEL_BEARING_STAND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
@@ -190,16 +189,42 @@ describe('createFlywheelShowpiece', () => {
     build.dispose();
   });
 
-  it('provides simplified physical colliders and metadata from the contract', () => {
+  it('derives the physical collider from the full visible flywheel body', () => {
     const build = createFlywheelShowpiece({
       position: { x: 3, z: 4 },
       roomBounds,
     });
+    const collider = build.colliders[0];
+    const rimBox = new Box3().setFromObject(
+      build.group.getObjectByName('FlywheelHeavyRim') as Object3D
+    );
+    const ringGearBox = new Box3().setFromObject(
+      build.group.getObjectByName('FlywheelRingGear') as Object3D
+    );
+    const energyPortBox = new Box3().setFromObject(
+      build.group.getObjectByName('FlywheelEnergyPort') as Object3D
+    );
+
     expect(build.colliders).toHaveLength(1);
-    expect(build.colliders[0]).toMatchObject({
-      minX: 3 - FLYWHEEL_BASE_COLLIDER.width / 2,
-      maxX: 3 + FLYWHEEL_BASE_COLLIDER.width / 2,
-    });
+    expect(collider.minX).toBeLessThanOrEqual(rimBox.min.x);
+    expect(collider.maxX).toBeGreaterThanOrEqual(rimBox.max.x);
+    expect(collider.minZ).toBeLessThanOrEqual(ringGearBox.min.z);
+    expect(collider.maxZ).toBeGreaterThanOrEqual(ringGearBox.max.z);
+    expect(collider.minZ).toBeLessThanOrEqual(energyPortBox.min.z);
+    expect(collider.maxZ).toBeGreaterThanOrEqual(energyPortBox.max.z);
+    expect(collider.minX).toBeGreaterThan(
+      3 - FLYWHEEL_INSTALLATION_BOUNDS.width / 2
+    );
+    expect(collider.maxX).toBeLessThan(
+      3 + FLYWHEEL_INSTALLATION_BOUNDS.width / 2
+    );
+    expect(collider.minZ).toBeGreaterThan(
+      4 - FLYWHEEL_INSTALLATION_BOUNDS.depth / 2
+    );
+    expect(collider.maxZ).toBeLessThan(
+      4 + FLYWHEEL_INSTALLATION_BOUNDS.depth / 2
+    );
+
     const metadata = getPoiPhysicalMetadata('flywheel-studio-flywheel');
     expect(metadata?.intendedSceneBounds).toBe(FLYWHEEL_INSTALLATION_BOUNDS);
     expect(metadata?.clearances?.markerMinHeight).toBe(

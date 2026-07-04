@@ -24,7 +24,6 @@ import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 
 import {
   FLYWHEEL_AXLE,
-  FLYWHEEL_BASE_COLLIDER,
   FLYWHEEL_BASE_DIMENSIONS,
   FLYWHEEL_BEARING_STAND,
   FLYWHEEL_EMPHASIS_SPEED_BOOST,
@@ -39,6 +38,7 @@ import {
   sampleFlywheelEnergyArc,
   type FlywheelEnergyTarget,
 } from './flywheelEnergyNetwork';
+import { createRequiredTightPoiCollider } from './poiColliderBounds';
 
 export interface FlywheelShowpieceBuild {
   group: Group;
@@ -552,11 +552,7 @@ export function createFlywheelShowpiece(
     }
   );
 
-  const colliders = createFlywheelColliders(
-    position.x,
-    position.z,
-    options.orientationRadians ?? 0
-  );
+  const colliders = createFlywheelColliders(group);
   const planetGearAngles = planetGears.map(() => 0);
   const state: FlywheelDebugState = {
     flywheelAngle: 0,
@@ -845,52 +841,23 @@ export function createFlywheelShowpiece(
   };
 }
 
-function createFlywheelColliders(
-  x: number,
-  z: number,
-  orientationRadians: number
-): RectCollider[] {
-  return [
-    createRotatedCollider(
-      x,
-      z,
-      0,
-      0,
-      FLYWHEEL_BASE_COLLIDER.width,
-      FLYWHEEL_BASE_COLLIDER.depth,
-      orientationRadians
-    ),
-  ];
-}
+const FLYWHEEL_COLLIDER_INCLUDED_MESHES = new Set([
+  'FlywheelHeavyRim',
+  'FlywheelRingGear',
+  'FlywheelEnergyPort',
+]);
 
-function createRotatedCollider(
-  rootX: number,
-  rootZ: number,
-  centerX: number,
-  centerZ: number,
-  width: number,
-  depth: number,
-  orientationRadians: number
-): RectCollider {
-  const halfWidth = width / 2;
-  const halfDepth = depth / 2;
-  const sin = Math.sin(orientationRadians);
-  const cos = Math.cos(orientationRadians);
-  const corners = [
-    { x: centerX - halfWidth, z: centerZ - halfDepth },
-    { x: centerX + halfWidth, z: centerZ - halfDepth },
-    { x: centerX + halfWidth, z: centerZ + halfDepth },
-    { x: centerX - halfWidth, z: centerZ + halfDepth },
-  ].map((corner) => ({
-    x: rootX + corner.x * cos + corner.z * sin,
-    z: rootZ - corner.x * sin + corner.z * cos,
-  }));
-  return {
-    minX: Math.min(...corners.map((corner) => corner.x)),
-    maxX: Math.max(...corners.map((corner) => corner.x)),
-    minZ: Math.min(...corners.map((corner) => corner.z)),
-    maxZ: Math.max(...corners.map((corner) => corner.z)),
-  };
+const FLYWHEEL_COLLIDER_EXCLUDED_PATTERN =
+  /(EnergyGlowRing|EnergyTransferPacket|EnergyPacket|MotionTick)/i;
+
+function createFlywheelColliders(group: Group): RectCollider[] {
+  return [
+    createRequiredTightPoiCollider(group, {
+      debugName: 'FlywheelShowpiece',
+      include: (object) => FLYWHEEL_COLLIDER_INCLUDED_MESHES.has(object.name),
+      exclude: (object) => FLYWHEEL_COLLIDER_EXCLUDED_PATTERN.test(object.name),
+    }),
+  ];
 }
 
 function countTriangles(root: Object3D): number {

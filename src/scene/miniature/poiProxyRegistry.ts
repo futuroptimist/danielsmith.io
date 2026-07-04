@@ -90,9 +90,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 28,
+    syncRevision: 29,
     syncNote:
-      'Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.',
+      'Flywheel collider now includes visible rim and ring geometry; tabletop proxy silhouette remains unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',

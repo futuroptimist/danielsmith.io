@@ -12,6 +12,7 @@ const isNonPhysicalMaterial = (material: Material): boolean =>
 export interface TightPoiColliderOptions {
   padding?: number;
   exclude?: (object: Object3D) => boolean;
+  include?: (object: Object3D) => boolean;
   debugName?: string;
 }
 
@@ -43,7 +44,8 @@ export function createTightPoiCollider(
 
   root.traverse((object) => {
     if (options.exclude?.(object)) return;
-    if (!isPhysicalMesh(object)) return;
+    if (!isPhysicalMesh(object) && !options.include?.(object)) return;
+    if (!(object instanceof Mesh) || !object.visible) return;
     const geometry = object.geometry;
     if (!geometry) return;
     if (!geometry.boundingBox) geometry.computeBoundingBox();
