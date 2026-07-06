@@ -136,6 +136,26 @@ just helm-oci-upgrade \
 
 ## 4. Validate staging
 
+Prefer the automated promotion smoke because it records JSON evidence under
+`test-results/promotion-smoke/` with the base URL, final URLs, statuses, key headers, and
+per-check pass/fail summaries. Run it from this app repository after deploying the immutable image
+tag to staging:
+
+```bash
+PROMOTION_SMOKE_BASE_URL=https://staging.danielsmith.io npm run smoke:promotion
+```
+
+Use the same command shape for production by changing only `PROMOTION_SMOKE_BASE_URL`. For local
+preview before the stable resume PDF exists, build and preview the app, then skip only the resume
+probe:
+
+```bash
+PROMOTION_SMOKE_BASE_URL=http://127.0.0.1:5173 PROMOTION_SMOKE_SKIP_RESUME=1 npm run smoke:promotion
+```
+
+The legacy manual curls remain valid as a quick triage fallback, but they are not the preferred
+release evidence path:
+
 ```bash
 curl -fsS https://staging.danielsmith.io/livez
 curl -fsS https://staging.danielsmith.io/healthz
@@ -181,6 +201,14 @@ just helm-oci-upgrade \
 ```
 
 ## 6. Validate production
+
+Capture production promotion evidence for the same immutable image by changing only the base URL:
+
+```bash
+PROMOTION_SMOKE_BASE_URL=https://danielsmith.io npm run smoke:promotion
+```
+
+Manual curls remain useful for triage:
 
 ```bash
 curl -fsS https://danielsmith.io/livez

@@ -29,7 +29,8 @@
     "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts",
     "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts",
     "miniature:check": "tsx scripts/miniatureManifest.ts",
-    "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update"
+    "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update",
+    "smoke:promotion": "playwright test --config=playwright.promotion.config.ts playwright/promotion-smoke.spec.ts"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
