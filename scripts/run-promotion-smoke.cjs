@@ -37,7 +37,12 @@ env.PROMOTION_SMOKE_RUN = '1';
 
 const result = spawnSync(
   'npx',
-  ['playwright', 'test', 'playwright/promotion-smoke.spec.ts', ...passthrough],
+  [
+    'playwright',
+    'test',
+    '--config=playwright.promotion.config.ts',
+    ...passthrough,
+  ],
   {
     env,
     stdio: 'inherit',

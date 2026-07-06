@@ -34,11 +34,13 @@ const evidence: {
   baseUrl: string;
   generatedAt: string;
   skipResume: boolean;
+  summary: Record<StepEvidence['status'], number>;
   steps: StepEvidence[];
 } = {
   baseUrl: normalizeBaseUrl(process.env.PROMOTION_SMOKE_BASE_URL),
   generatedAt: new Date().toISOString(),
   skipResume: isTruthy(process.env.PROMOTION_SMOKE_SKIP_RESUME),
+  summary: { fail: 0, pass: 0, skip: 0 },
   steps: [],
 };
 
@@ -76,12 +78,23 @@ async function recordStep(
 ) {
   try {
     const result = await run();
-    evidence.steps.push({ name, status: result.status ?? 'pass', ...result });
+    const status = result.status ?? 'pass';
+    evidence.steps.push({ name, status, ...result });
+    evidence.summary[status] += 1;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     evidence.steps.push({ name, status: 'fail', message });
-    throw new Error(`${name} failed: ${message}`);
+    evidence.summary.fail += 1;
   }
+}
+
+function expectNoFailedSteps() {
+  const failures = evidence.steps.filter((step) => step.status === 'fail');
+
+  expect(
+    failures.map((step) => `${step.name}: ${step.message ?? 'failed'}`),
+    'promotion smoke failed steps'
+  ).toEqual([]);
 }
 
 async function writeEvidence() {
@@ -239,5 +252,7 @@ test.describe('promotion smoke', () => {
     } finally {
       await api.dispose();
     }
+
+    expectNoFailedSteps();
   });
 });
