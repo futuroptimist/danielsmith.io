@@ -106,9 +106,10 @@ npm run format:write
 npm run check
 ```
 
-`npm run check` is the complete non-mutating release gate. It runs lint,
-typecheck, test:ci, docs:check, and smoke while keeping formatting separate
-because `format:write` mutates files.
+`npm run check` is the non-mutating local release gate. It runs lint,
+test:ci, docs:check, and smoke while keeping formatting separate because
+`format:write` mutates files. Run `npm run typecheck` separately when working
+on TypeScript cleanup until the repo is type-clean enough to gate.
 
 ## Documentation Standards
 

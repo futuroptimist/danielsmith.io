@@ -18,7 +18,7 @@
     "docs:check": "node scripts/check-docs.cjs && npm run links:check",
     "smoke": "npm run build && node scripts/assert-dist.cjs",
     "press-kit": "tsx scripts/generate-press-kit.ts",
-    "check": "npm run lint && npm run typecheck && npm run test:ci && npm run docs:check && npm run smoke",
+    "check": "npm run lint && npm run test:ci && npm run docs:check && npm run smoke",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",

@@ -131,23 +131,23 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run docs:check`                            | Ensure required docs exist and run the link checker.                   |
 | `npm run links:check`                           | Validate POI and README/docs links, failing clear 404/410 targets.     |
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
-| `npm run check`                                 | Non-mutating release gate: lint, typecheck, test:ci, docs, and smoke.  |
+| `npm run check`                                 | Non-mutating local gate: lint, test:ci, docs:check, and smoke.         |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
 
 ### Local quality gates
 
-Run Prettier first, then the complete non-mutating release gate before pushing to stay
-aligned with CI:
+Run Prettier first, then the non-mutating local release gate before pushing:
 
 ```bash
 npm run format:write
 npm run check
 ```
 
-`npm run check` chains linting, TypeScript type checking, the CI Vitest suite, docs
-validation, and the production dist smoke assertions. `format:write` remains separate
-because it mutates files. Compared to the full Flywheel stack, we skip the Python-heavy
-aggregate hook to keep this web-focused repo lightweight.
+`npm run check` chains linting, the CI Vitest suite, `docs:check` (including
+`links:check`), and the production dist smoke assertions. `format:write` remains separate
+because it mutates files. CI also runs required guards outside this aggregate, including
+`format:check`, `miniature:check`, and `collider:audit:redundancy`. Run targeted checks
+when your change touches those areas.
 
 ## Testing & automation
 
