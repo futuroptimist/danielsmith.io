@@ -103,19 +103,12 @@ Run these commands before committing:
 
 ```bash
 npm run format:write
-npm run lint
-npm run test:ci
-npm run docs:check
-npm run smoke
-```
-
-Or use the convenience command (runs lint, test:ci, and docs:check):
-
-```bash
 npm run check
 ```
 
-Note: The `smoke` test is separate and should be run individually when needed.
+`npm run check` is the complete non-mutating release gate. It runs lint,
+typecheck, test:ci, docs:check, and smoke while keeping formatting separate
+because `format:write` mutates files.
 
 ## Documentation Standards
 
