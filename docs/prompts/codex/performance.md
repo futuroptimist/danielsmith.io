@@ -18,7 +18,7 @@ USER:
 3. Add automated benchmarks or metrics dashboards when practical.
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Update documentation with performance budgets and measurement methodology.
-6. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`, and
+6. Run `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`, and
    `npm run build`; capture perf before/after notes alongside test output.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
@@ -45,7 +45,7 @@ Use this prompt to refine danielsmith.io's Codex prompt documentation.
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository.
 Follow README.md for repository conventions.
-Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+Ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`,
 and `npm run smoke` pass before committing.
 
 USER:

@@ -18,7 +18,7 @@ USER:
 3. Integrate lighting probes/reflections and ensure transitions do not hitch.
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Document environmental audio or VFX cues added for immersion.
-6. Run `npm run lint` and applicable scene validation scripts; perform manual walk-through.
+6. Run `npm run lint`, `npm run typecheck`, and applicable scene validation scripts; perform manual walk-through.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
    needed) so the immersive scene never falls back to text mode. Add extra params with `&` or via
@@ -44,7 +44,7 @@ Use this prompt to refine danielsmith.io's Codex prompt documentation.
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository.
 Follow README.md for repository conventions.
-Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+Ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`,
 and `npm run smoke` pass before committing.
 
 USER:

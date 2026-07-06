@@ -37,6 +37,7 @@ Run Prettier in write mode, then run the Flywheel-style checks before committing
 ```bash
 npm run format:write
 npm run lint
+npm run typecheck
 npm run test:ci
 npm run docs:check
 npm run smoke

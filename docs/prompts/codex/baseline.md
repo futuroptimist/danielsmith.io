@@ -22,8 +22,8 @@ USER:
 2. Implement the change using production-quality TypeScript/Three.js code or docs updates.
 3. Update any affected documentation (README, roadmap, prompts, changelogs).
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
-5. Run `npm run format:write`, `npm run lint`, `npm run test:ci`, `npm run docs:check`, and
-   `npm run smoke`.
+5. Run `npm run format:write`, `npm run lint`, `npm run typecheck`, `npm run test:ci`,
+   `npm run docs:check`, and `npm run smoke`.
 6. Open the immersive preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (append params with `&`
    or `createImmersiveModeUrl(...)` from `src/ui/immersiveUrl.ts`) so text fallback never
@@ -52,7 +52,7 @@ Use this prompt to refine danielsmith.io's Codex prompt documentation.
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository.
 Follow README.md for repository conventions.
-Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+Ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`,
 and `npm run smoke` pass before committing.
 
 USER:

@@ -131,7 +131,7 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run docs:check`                            | Ensure required docs exist and run the link checker.                   |
 | `npm run links:check`                           | Validate POI and README/docs links, failing clear 404/410 targets.     |
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
-| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
+| `npm run check`                                 | Non-mutating release gate: lint, typecheck, tests, docs, and smoke.    |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
 
 ### Local quality gates
@@ -140,12 +140,13 @@ Run the Flywheel-style checks before pushing to stay aligned with CI:
 
 ```bash
 npm run lint
+npm run typecheck
 npm run test:ci
 npm run docs:check
 npm run smoke
 ```
 
-Pre-commit mirrors these commands alongside formatting hooks. Compared to the full
+`npm run check` mirrors the non-mutating release gate and fails on TypeScript errors or broken dist smoke assertions. Pre-commit mirrors these commands alongside formatting hooks. Compared to the full
 Flywheel stack, we skip the Python-heavy aggregate hook to keep this web-focused repo
 lightweight.
 

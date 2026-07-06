@@ -20,7 +20,7 @@ USER:
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
 5. Record before/after notes in `docs/roadmap.md` or `docs/backlog.md`, and stash visual evidence
    under `docs/media/` when available.
-6. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke`; attach
+6. Run `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke`; attach
    immersive screenshots when they help reviewers.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
@@ -49,7 +49,7 @@ Use this prompt to refine danielsmith.io's Codex prompt documentation.
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository.
 Follow README.md for repository conventions.
-Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+Ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`,
 and `npm run smoke` pass before committing.
 
 USER:

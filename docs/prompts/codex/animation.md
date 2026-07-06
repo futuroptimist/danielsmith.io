@@ -11,7 +11,7 @@ Type: evergreen · One-click: yes
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository focused on avatar
 locomotion and interaction animations. Follow README.md and AGENTS.md guardrails, keep
-blends responsive, and ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`, and
+blends responsive, and ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, and
 `npm run smoke` pass before committing.
 
 USER:
@@ -21,7 +21,7 @@ USER:
 4. Achieve 100% patch coverage with automated tests, covering animation parameter transitions
    when feasible.
 5. Document tuning knobs (speeds, blend times) and manual QA steps.
-6. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke` after
+6. Run `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke` after
    applying changes. Capture additional task-specific checks or scripts you execute.
 7. Always open the Web preview at
    `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` (adjust host/port as
@@ -51,7 +51,7 @@ Use this prompt to refine danielsmith.io's Codex prompt documentation.
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository.
 Follow README.md for repository conventions.
-Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+Ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`,
 and `npm run smoke` pass before committing.
 
 USER:

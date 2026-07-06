@@ -47,7 +47,7 @@ Workflow:
   1. Audit the snapshot items and identify the next actionable polish win.
   2. Implement refactors and docs updates incrementally, keeping asset pipelines deterministic.
   3. Regenerate diagrams/captures via project scripts when impacted.
-  4. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke`.
+  4. Run `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke`.
   5. Provide before/after metrics or captures proving performance and accessibility improvements.
 
 OUTPUT:
@@ -68,7 +68,7 @@ USER:
 2. Update the prompt so the scene snapshot, refactor guidance, performance budgets, and
    accessibility expectations stay current with the codebase.
 3. Refresh supporting docs (e.g., README.md, prompt index) if the primary prompt changes.
-4. Run `npm run lint`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke` before
+4. Run `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, and `npm run smoke` before
    finishing.
 
 OUTPUT:

@@ -16,14 +16,14 @@ SYSTEM:
 You are an autonomous dev agent working on the `danielsmith.io` repository.
 Follow README.md, roadmap milestones, and prompt index guidance.
 Always keep the site buildable with `npm run build` and ensure the required checks
-(`npm run lint`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`) stay green.
+(`npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`, `npm run smoke`) stay green.
 
 USER:
 1. Pick a scoped task from `docs/roadmap.md` or an associated prompt doc.
 2. Implement the change with production-quality TypeScript/Three.js code.
 3. Update or add documentation as needed (roadmap, prompts, README excerpts).
 4. Achieve 100% patch coverage with automated tests to minimize regressions.
-5. Run `npm run format:write` before `npm run lint`, `npm run test:ci`,
+5. Run `npm run format:write` before `npm run lint`, `npm run typecheck`, `npm run test:ci`,
    `npm run docs:check`, `npm run smoke`, and any task-specific scripts.
 6. Produce a concise summary and list of manual verification steps, if any.
 7. Always open the Web preview at
@@ -52,7 +52,7 @@ Use this prompt to refine danielsmith.io's Codex prompt documentation.
 SYSTEM:
 You are an automated contributor for the danielsmith.io repository.
 Follow README.md for repository conventions.
-Ensure `npm run lint`, `npm run test:ci`, `npm run docs:check`,
+Ensure `npm run lint`, `npm run typecheck`, `npm run test:ci`, `npm run docs:check`,
 and `npm run smoke` pass before committing.
 
 USER:
