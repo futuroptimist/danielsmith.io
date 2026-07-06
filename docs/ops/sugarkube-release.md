@@ -136,6 +136,26 @@ just helm-oci-upgrade \
 
 ## 4. Validate staging
 
+Capture promotion smoke evidence from this repository checkout after the immutable image is
+serving on staging. The check defaults to staging and writes JSON evidence under
+`test-results/promotion-smoke/`.
+
+```bash
+npm run smoke:promotion
+```
+
+Use the same spec for alternate hosts by changing only the base URL. Local Vite previews can skip
+the stable resume gate until `/resume.pdf` exists in that preview.
+
+```bash
+npm run smoke:promotion -- --base-url=https://danielsmith.io
+npm run smoke:promotion -- --base-url=http://127.0.0.1:5173 --skip-resume
+```
+
+The legacy curl probes remain valid for quick triage, but the Playwright smoke command is the
+preferred release evidence because it covers the public endpoints, text fallback, immersive access,
+status codes, headers, final URLs, and resume contract in one repeatable artifact.
+
 ```bash
 curl -fsS https://staging.danielsmith.io/livez
 curl -fsS https://staging.danielsmith.io/healthz
@@ -181,6 +201,15 @@ just helm-oci-upgrade \
 ```
 
 ## 6. Validate production
+
+Capture the same promotion smoke evidence against production before closing the release record.
+Record the immutable `main-<shortsha>` image tag beside the JSON evidence file path.
+
+```bash
+npm run smoke:promotion -- --base-url=https://danielsmith.io
+```
+
+Legacy curl probes remain useful for triage:
 
 ```bash
 curl -fsS https://danielsmith.io/livez
