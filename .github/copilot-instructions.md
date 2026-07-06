@@ -109,13 +109,11 @@ npm run docs:check
 npm run smoke
 ```
 
-Or use the convenience command (runs lint, test:ci, and docs:check):
+Or use the complete non-mutating release gate (runs lint, typecheck, test:ci, docs:check, and smoke):
 
 ```bash
 npm run check
 ```
-
-Note: The `smoke` test is separate and should be run individually when needed.
 
 ## Documentation Standards
 

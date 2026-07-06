@@ -131,23 +131,23 @@ Each floor has its own auto-generated diagram (regenerated locally with
 | `npm run docs:check`                            | Ensure required docs exist and run the link checker.                   |
 | `npm run links:check`                           | Validate POI and README/docs links, failing clear 404/410 targets.     |
 | `npm run smoke`                                 | Build and validate `dist/index.html`, bundled assets, and static refs. |
-| `npm run check`                                 | Convenience command chaining lint, test:ci, and docs:check.            |
+| `npm run check`                                 | Non-mutating release gate: lint, typecheck, tests, docs, and smoke.    |
 | `npm run press-kit`                             | Emit `docs/assets/press-kit.json` with POI and media manifest details. |
 
 ### Local quality gates
 
-Run the Flywheel-style checks before pushing to stay aligned with CI:
+Run Prettier first, then the complete non-mutating release gate before pushing to stay aligned with CI:
 
 ```bash
-npm run lint
-npm run test:ci
-npm run docs:check
-npm run smoke
+npm run format:write
+npm run check
 ```
 
-Pre-commit mirrors these commands alongside formatting hooks. Compared to the full
-Flywheel stack, we skip the Python-heavy aggregate hook to keep this web-focused repo
-lightweight.
+`npm run check` intentionally leaves `format:write` separate because formatting mutates files.
+It fails on lint errors, TypeScript errors, Vitest failures, documentation/link issues, and
+production `dist/` smoke regressions. Pre-commit mirrors these checks alongside formatting hooks.
+Compared to the full Flywheel stack, we skip the Python-heavy aggregate hook to keep this
+web-focused repo lightweight.
 
 ## Testing & automation
 
@@ -158,6 +158,7 @@ lightweight.
 - **Visual smoke thresholds** – [`playwright.config.ts`](playwright.config.ts) loads [`VISUAL_SMOKE_DIFF_BUDGET`](src/assets/performance.ts#L37-L45) so `expect().toHaveScreenshot` allows at most a 0.015 diff ratio or 1,200 differing pixels.
 - **Keyboard traversal macro** – [`playwright/keyboard-traversal.spec.ts`](playwright/keyboard-traversal.spec.ts) touches every POI and HUD overlay using keyboard-only input. Use `npm run test:e2e -- --grep traversal` to run just that macro when iterating.
 - **Animation QA checklist** – [`docs/media/animation-qa.md`](docs/media/animation-qa.md) links the IK contact/footstep sync tests and describes how to capture fresh clips when polishing locomotion.
+- **Full release gate** – `npm run check` chains `lint`, `typecheck`, `test:ci`, `docs:check`, and `smoke`, matching the non-mutating checks expected before release.
 - **Docs validation** – `npm run docs:check` enforces prompt, roadmap, and architecture coverage, then runs `npm run links:check`. The link checker collects POI locale links plus README/docs Markdown links, validates URL syntax, checks local targets, and probes external HTTP(S) targets with HEAD plus GET fallback while treating private, rate-limited, or unreachable hosts as warnings instead of clear broken-link failures.
 - **Launch smoke** – `npm run smoke` builds once, validates bundled output references, and reports
   manual static binary assets (`/resume.pdf`, favicon, and similar files) as warnings by
