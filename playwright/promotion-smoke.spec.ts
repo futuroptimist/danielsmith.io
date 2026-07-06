@@ -7,6 +7,7 @@ import {
   test,
   type APIResponse,
   type Page,
+  type Response,
 } from '@playwright/test';
 
 const DEFAULT_BASE_URL = 'https://staging.danielsmith.io';
@@ -14,9 +15,15 @@ const EVIDENCE_DIR = path.join('test-results', 'promotion-smoke');
 const HEALTH_PATHS = ['/livez', '/healthz'] as const;
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
+type StepHeaders = Partial<
+  Record<'cache-control' | 'content-type' | 'location', string>
+>;
+
+type HeaderProvider = Pick<APIResponse | Response, 'headers'>;
+
 type StepEvidence = {
   finalUrl?: string;
-  headers?: Record<string, string>;
+  headers?: StepHeaders;
   message?: string;
   name: string;
   status: 'pass' | 'fail' | 'skip';
@@ -52,7 +59,7 @@ function isLocalPreview() {
   return hostname === '127.0.0.1' || hostname === 'localhost';
 }
 
-function visibleHeaders(response: APIResponse) {
+function visibleHeaders(response: HeaderProvider): StepHeaders {
   const headers = response.headers();
   return {
     'cache-control': headers['cache-control'],
@@ -104,122 +111,133 @@ async function assertWebGlSupported(page: Page) {
 }
 
 test.describe('promotion smoke', () => {
+  const shouldRunPromotionSmoke = process.env.PROMOTION_SMOKE_RUN === '1';
+
+  test.skip(
+    !shouldRunPromotionSmoke,
+    'Promotion smoke only runs through npm run smoke:promotion.'
+  );
+
   test.afterAll(async () => {
-    await writeEvidence();
+    if (shouldRunPromotionSmoke) {
+      await writeEvidence();
+    }
   });
 
   test('captures staging/prod readiness evidence', async ({ page }) => {
     const api = await request.newContext({ baseURL: evidence.baseUrl });
 
-    await recordStep('GET / app HTML', async () => {
-      const response = await api.get('/');
-      expect(response.status(), 'GET / status code').toBe(200);
-      const body = await response.text();
-      expect(body, 'GET / should be this app HTML').toContain(
-        '<title>danielsmith.io</title>'
-      );
-      expect(body, 'GET / should not be a placeholder').not.toMatch(
-        /placeholder|coming soon/i
-      );
-      return {
-        finalUrl: response.url(),
-        headers: visibleHeaders(response),
-        statusCode: response.status(),
-      };
-    });
-
-    for (const healthPath of HEALTH_PATHS) {
-      await recordStep(`GET ${healthPath} JSON health`, async () => {
-        const response = await api.get(healthPath);
-        await expectJsonHealth(response, healthPath);
+    try {
+      await recordStep('GET / app HTML', async () => {
+        const response = await api.get('/');
+        expect(response.status(), 'GET / status code').toBe(200);
+        const body = await response.text();
+        expect(body, 'GET / should be this app HTML').toContain(
+          '<title>danielsmith.io</title>'
+        );
+        expect(body, 'GET / should not be a placeholder').not.toMatch(
+          /placeholder|coming soon/i
+        );
         return {
           finalUrl: response.url(),
           headers: visibleHeaders(response),
           statusCode: response.status(),
         };
       });
-    }
 
-    await recordStep('GET /resume.pdf stable resume', async () => {
-      if (evidence.skipResume) {
-        return {
-          status: 'skip',
-          message: 'Skipped by PROMOTION_SMOKE_SKIP_RESUME/--skip-resume.',
-        };
+      for (const healthPath of HEALTH_PATHS) {
+        await recordStep(`GET ${healthPath} JSON health`, async () => {
+          const response = await api.get(healthPath);
+          await expectJsonHealth(response, healthPath);
+          return {
+            finalUrl: response.url(),
+            headers: visibleHeaders(response),
+            statusCode: response.status(),
+          };
+        });
       }
 
-      const response = await api.get('/resume.pdf');
-      expect(response.status(), 'GET /resume.pdf status code').toBeLessThan(
-        400
-      );
-      expect(
-        response.headers()['content-type'],
-        'GET /resume.pdf content type'
-      ).toContain('pdf');
-      return {
-        finalUrl: response.url(),
-        headers: visibleHeaders(response),
-        statusCode: response.status(),
-      };
-    });
+      await recordStep('GET /resume.pdf stable resume', async () => {
+        if (evidence.skipResume) {
+          return {
+            status: 'skip',
+            message: 'Skipped by PROMOTION_SMOKE_SKIP_RESUME/--skip-resume.',
+          };
+        }
 
-    await recordStep('/?mode=text text fallback', async () => {
-      const response = await page.goto(endpointUrl('/?mode=text'), {
-        waitUntil: 'domcontentloaded',
-      });
-      expect(response?.status(), '/?mode=text status code').toBe(200);
-      await expect(
-        page.locator('html'),
-        '/?mode=text app mode'
-      ).toHaveAttribute('data-app-mode', 'fallback');
-      await expect(
-        page.locator('#app[data-mode="text"] .text-fallback')
-      ).toBeVisible();
-      await expect(page.locator('[data-action="immersive"]')).toBeVisible();
-      await expect(page.locator('[data-action="resume"]')).toHaveAttribute(
-        'href',
-        /resume\.pdf$/
-      );
-      await expect(page.locator('[data-action="github"]')).toBeVisible();
-      return {
-        finalUrl: page.url(),
-        headers: response ? visibleHeaders(response) : undefined,
-        statusCode: response?.status(),
-      };
-    });
-
-    await recordStep('/?mode=immersive immersive canvas', async () => {
-      const response = await page.goto(
-        endpointUrl('/?mode=immersive&disablePerformanceFailover=1'),
-        { waitUntil: 'domcontentloaded' }
-      );
-      expect(response?.status(), '/?mode=immersive status code').toBe(200);
-
-      if (!(await assertWebGlSupported(page))) {
+        const response = await api.get('/resume.pdf');
+        expect(response.status(), 'GET /resume.pdf status code').toBeLessThan(
+          400
+        );
+        expect(
+          response.headers()['content-type'],
+          'GET /resume.pdf content type'
+        ).toContain('pdf');
         return {
-          status: 'skip',
+          finalUrl: response.url(),
+          headers: visibleHeaders(response),
+          statusCode: response.status(),
+        };
+      });
+
+      await recordStep('/?mode=text text fallback', async () => {
+        const response = await page.goto(endpointUrl('/?mode=text'), {
+          waitUntil: 'domcontentloaded',
+        });
+        expect(response?.status(), '/?mode=text status code').toBe(200);
+        await expect(
+          page.locator('html'),
+          '/?mode=text app mode'
+        ).toHaveAttribute('data-app-mode', 'fallback');
+        await expect(
+          page.locator('#app[data-mode="text"] .text-fallback')
+        ).toBeVisible();
+        await expect(page.locator('[data-action="immersive"]')).toBeVisible();
+        await expect(page.locator('[data-action="resume"]')).toHaveAttribute(
+          'href',
+          /resume\.pdf$/
+        );
+        await expect(page.locator('[data-action="github"]')).toBeVisible();
+        return {
           finalUrl: page.url(),
-          message: 'Browser does not support WebGL in this environment.',
+          headers: response ? visibleHeaders(response) : undefined,
           statusCode: response?.status(),
         };
-      }
+      });
 
-      await page.waitForFunction(
-        () => document.documentElement.dataset.appMode === 'immersive',
-        undefined,
-        { timeout: IMMERSIVE_READY_TIMEOUT_MS }
-      );
-      await expect(
-        page.locator('#app canvas'),
-        'immersive canvas count'
-      ).toHaveCount(1);
-      return {
-        finalUrl: page.url(),
-        headers: response ? visibleHeaders(response) : undefined,
-        statusCode: response?.status(),
-      };
-    });
+      await recordStep('/?mode=immersive immersive canvas', async () => {
+        const response = await page.goto(
+          endpointUrl('/?mode=immersive&disablePerformanceFailover=1'),
+          { waitUntil: 'domcontentloaded' }
+        );
+        expect(response?.status(), '/?mode=immersive status code').toBe(200);
 
-    await api.dispose();
+        if (!(await assertWebGlSupported(page))) {
+          return {
+            status: 'skip',
+            finalUrl: page.url(),
+            message: 'Browser does not support WebGL in this environment.',
+            statusCode: response?.status(),
+          };
+        }
+
+        await page.waitForFunction(
+          () => document.documentElement.dataset.appMode === 'immersive',
+          undefined,
+          { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+        );
+        await expect(
+          page.locator('#app canvas'),
+          'immersive canvas count'
+        ).toHaveCount(1);
+        return {
+          finalUrl: page.url(),
+          headers: response ? visibleHeaders(response) : undefined,
+          statusCode: response?.status(),
+        };
+      });
+    } finally {
+      await api.dispose();
+    }
   });
 });

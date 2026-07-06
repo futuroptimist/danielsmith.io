@@ -32,7 +32,8 @@ for (let index = 0; index < args.length; index += 1) {
   passthrough.push(arg);
 }
 
-env.PLAYWRIGHT_NO_WEBSERVER = env.PLAYWRIGHT_NO_WEBSERVER ?? '1';
+env.PLAYWRIGHT_NO_WEBSERVER = '1';
+env.PROMOTION_SMOKE_RUN = '1';
 
 const result = spawnSync(
   'npx',
