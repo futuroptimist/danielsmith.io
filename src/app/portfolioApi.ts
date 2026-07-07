@@ -25,19 +25,23 @@ import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
 import type { FloorId, StairTransitionZone } from '../systems/movement/stairs';
 
 export type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
+export interface PortfolioKeyBindingsApi {
+  getBindings(): KeyBindingSnapshot;
+  setBinding(action: KeyBindingAction, keys: readonly string[]): void;
+  resetBinding(action: KeyBindingAction): void;
+  resetAll(): void;
+}
 export type InitialCameraFramingDebug = ReturnType<
   typeof resolveInitialAvatarCameraFraming
 >;
 
+export interface PortfolioInputApi {
+  keyBindings?: PortfolioKeyBindingsApi;
+  [section: string]: unknown;
+}
+
 export interface PortfolioApi {
-  input?: {
-    keyBindings?: {
-      getBindings(): KeyBindingSnapshot;
-      setBinding(action: KeyBindingAction, keys: readonly string[]): void;
-      resetBinding(action: KeyBindingAction): void;
-      resetAll(): void;
-    };
-  };
+  input?: PortfolioInputApi;
   avatar?: {
     getActiveVariant(): AvatarVariantId;
     setActiveVariant(variant: AvatarVariantId): void;
@@ -273,4 +277,24 @@ export function clearPortfolioSection(
   }
 
   delete targetWindow.portfolio[section];
+}
+
+export function setPortfolioInputKeyBindings(
+  value: PortfolioKeyBindingsApi,
+  targetWindow: Window = window
+): PortfolioKeyBindingsApi {
+  const portfolioNamespace = ensurePortfolioApi(targetWindow);
+  portfolioNamespace.input ??= {};
+  portfolioNamespace.input.keyBindings = value;
+  return value;
+}
+
+export function clearPortfolioInputKeyBindings(
+  targetWindow: Window = window
+): void {
+  if (!targetWindow.portfolio?.input) {
+    return;
+  }
+
+  delete targetWindow.portfolio.input.keyBindings;
 }

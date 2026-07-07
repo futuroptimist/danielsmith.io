@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  clearPortfolioInputKeyBindings,
   clearPortfolioSection,
   ensurePortfolioApi,
+  setPortfolioInputKeyBindings,
   setPortfolioSection,
 } from '../portfolioApi';
 
@@ -63,6 +65,51 @@ describe('portfolioApi namespace helpers', () => {
     setPortfolioSection('audio', audio, targetWindow);
 
     expect(targetWindow.portfolio?.audio).toBe(audio);
+  });
+
+  it('adds key bindings without deleting other input sections', () => {
+    const input = {
+      diagnostics: { enabled: true },
+    } as Window['portfolio']['input'];
+    const targetWindow = createWindow({ input });
+    const keyBindings = {
+      getBindings: () => ({}),
+      setBinding: () => undefined,
+      resetBinding: () => undefined,
+      resetAll: () => undefined,
+    };
+
+    setPortfolioInputKeyBindings(keyBindings, targetWindow);
+
+    expect(targetWindow.portfolio?.input).toBe(input);
+    expect(targetWindow.portfolio?.input?.keyBindings).toBe(keyBindings);
+    expect(targetWindow.portfolio?.input?.diagnostics).toEqual({
+      enabled: true,
+    });
+  });
+
+  it('clears key bindings without deleting sibling input fields or replacing input', () => {
+    const keyBindings = {
+      getBindings: () => ({}),
+      setBinding: () => undefined,
+      resetBinding: () => undefined,
+      resetAll: () => undefined,
+    };
+    const input = {
+      keyBindings,
+      customDiagnostics: { enabled: true },
+      inputSibling: 'preserved',
+    };
+    const targetWindow = createWindow({ input });
+
+    clearPortfolioInputKeyBindings(targetWindow);
+
+    expect(targetWindow.portfolio?.input).toBe(input);
+    expect(targetWindow.portfolio?.input?.keyBindings).toBeUndefined();
+    expect(targetWindow.portfolio?.input?.customDiagnostics).toEqual({
+      enabled: true,
+    });
+    expect(targetWindow.portfolio?.input?.inputSibling).toBe('preserved');
   });
 
   it('clears one section without deleting sibling sections', () => {
