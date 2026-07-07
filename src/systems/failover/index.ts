@@ -9,6 +9,7 @@ import {
   getPoiCopy,
   getPoiNarrativeLogStrings,
   getSiteStrings,
+  type SiteTextFallbackStrings,
 } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import type { PoiLink } from '../../scene/poi/types';
@@ -57,12 +58,15 @@ interface NetworkInformationSnapshot {
   rtt?: number;
 }
 
-type NetworkInformationLike = {
-  saveData?: boolean | string;
-  effectiveType?: string | null;
-  downlink?: number | string | null;
-  rtt?: number | string | null;
-} | null;
+type NetworkInformationLike =
+  | {
+      saveData?: boolean | string;
+      effectiveType?: string | null;
+      downlink?: number | string | null;
+      rtt?: number | string | null;
+    }
+  | null
+  | undefined;
 
 type TextPortfolioMetric = {
   label: string;
@@ -421,7 +425,7 @@ export function evaluateFailoverDecision(
   const search =
     options.search ??
     (typeof window !== 'undefined' ? window.location.search : '');
-  const mode = getModeFromSearch(search);
+  const mode: string | null = getModeFromSearch(search);
   const disablePerformanceFailover = shouldDisablePerformanceFailover(search);
 
   let storedPreference: ModePreference | null = null;

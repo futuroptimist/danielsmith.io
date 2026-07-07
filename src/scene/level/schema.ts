@@ -70,9 +70,10 @@ export interface WallRunDefinition {
   gaps?: WallRunGapDefinition[];
 }
 
-export type WallGeometryDefinition =
-  | { segments: WallSegmentDefinition[]; run?: never }
-  | { run: WallRunDefinition; segments?: never };
+export type WallGeometryDefinition = {
+  segments?: WallSegmentDefinition[];
+  run?: WallRunDefinition;
+};
 
 export type WallDefinition = WallGeometryDefinition & {
   id: string;
@@ -377,9 +378,9 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
       return;
     }
 
-    if (wall.segments.length === 0)
+    if (wall.segments!.length === 0)
       errors.push(`wall "${wall.id}" requires at least one segment.`);
-    wall.segments.forEach((segment, index) => {
+    wall.segments!.forEach((segment, index) => {
       if (!segmentUsesFiniteCoordinates(segment)) {
         errors.push(
           `wall "${wall.id}" segment ${index} must use finite coordinates.`
@@ -399,33 +400,33 @@ function validateWallGeometry(wall: WallDefinition, errors: string[]): void {
     return;
   }
 
-  if (!segmentUsesFiniteCoordinates(wall.run)) {
+  if (!segmentUsesFiniteCoordinates(wall.run!)) {
     errors.push(`wall "${wall.id}" run must use finite coordinates.`);
     return;
   }
 
-  if (getSegmentLength(wall.run) <= LENGTH_EPSILON) {
+  if (getSegmentLength(wall.run!) <= LENGTH_EPSILON) {
     errors.push(`wall "${wall.id}" run must have positive length.`);
   }
   validateWallRunGaps(wall, errors);
 }
 
 function validateWallRunGaps(wall: WallDefinition, errors: string[]): void {
-  if (!('run' in wall) || !wall.run.gaps) return;
+  if (!('run' in wall) || !wall.run!.gaps) return;
 
-  if (!Array.isArray(wall.run.gaps)) {
+  if (!Array.isArray(wall.run!.gaps)) {
     errors.push(`wall "${wall.id}" gaps must be an array.`);
     return;
   }
 
-  const runLength = getSegmentLength(wall.run);
-  if (!isAxisAlignedRun(wall.run)) {
+  const runLength = getSegmentLength(wall.run!);
+  if (!isAxisAlignedRun(wall.run!)) {
     errors.push(`wall "${wall.id}" gaps require an axis-aligned run.`);
     return;
   }
 
   const validGaps: WallRunGapDefinition[] = [];
-  wall.run.gaps.forEach((gap, index) => {
+  wall.run!.gaps.forEach((gap, index) => {
     if (!isFiniteWallRunGap(gap)) {
       errors.push(
         `wall "${wall.id}" gap ${index} must use finite coordinates.`

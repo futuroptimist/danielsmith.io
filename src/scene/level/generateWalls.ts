@@ -10,6 +10,7 @@ import type {
   FloorDefinition,
   SemanticRoomDefinition,
   WallDefinition,
+  WallRunDefinition,
 } from './schema';
 
 const DEFAULT_INTERIOR_EXTENSION = 0.5;
@@ -202,7 +203,7 @@ function combineAxis(
 }
 
 function expandWallDefinition(wall: WallDefinition): AtomicWallSegment[] {
-  const segments = 'segments' in wall ? wall.segments : splitRun(wall.run);
+  const segments = wall.segments ?? splitRun(wall.run!);
   return segments.flatMap((segment) => {
     const orientation = getOrientation(segment.start, segment.end);
     if (!orientation) {
@@ -217,7 +218,7 @@ function expandWallDefinition(wall: WallDefinition): AtomicWallSegment[] {
 }
 
 function splitRun(
-  run: WallDefinition['run']
+  run: WallRunDefinition
 ): Array<{ start: { x: number; z: number }; end: { x: number; z: number } }> {
   const length = Math.hypot(run.end.x - run.start.x, run.end.z - run.start.z);
   if (length <= AXIS_EPSILON) return [];
@@ -242,7 +243,7 @@ function splitRun(
 }
 
 function interpolate(
-  run: WallDefinition['run'],
+  run: WallRunDefinition,
   ratio: number
 ): { x: number; z: number } {
   return {
@@ -311,8 +312,8 @@ function getRoomWallForWall(
   room: SemanticRoomDefinition,
   wall: WallDefinition
 ): RoomWall | undefined {
-  const start = 'run' in wall ? wall.run.start : wall.segments[0]?.start;
-  const end = 'run' in wall ? wall.run.end : wall.segments[0]?.end;
+  const start = 'run' in wall ? wall.run!.start : wall.segments![0]?.start;
+  const end = 'run' in wall ? wall.run!.end : wall.segments![0]?.end;
   if (!start || !end) return undefined;
   if (Math.abs(start.z - end.z) <= AXIS_EPSILON) {
     if (Math.abs(start.z - room.bounds.maxZ) <= AXIS_EPSILON) return 'north';
@@ -384,10 +385,10 @@ function scaleFloorDefinition(
         return {
           ...wall,
           run: {
-            ...wall.run,
-            start: scalePoint(wall.run.start),
-            end: scalePoint(wall.run.end),
-            gaps: wall.run.gaps?.map((gap) => ({
+            ...wall.run!,
+            start: scalePoint(wall.run!.start),
+            end: scalePoint(wall.run!.end),
+            gaps: wall.run!.gaps?.map((gap) => ({
               ...gap,
               start: gap.start * scale,
               end: gap.end * scale,
@@ -397,7 +398,7 @@ function scaleFloorDefinition(
       }
       return {
         ...wall,
-        segments: wall.segments.map((segment) => ({
+        segments: wall.segments!.map((segment) => ({
           start: scalePoint(segment.start),
           end: scalePoint(segment.end),
         })),

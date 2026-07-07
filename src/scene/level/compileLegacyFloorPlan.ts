@@ -10,6 +10,7 @@ import {
   type LevelDefinition,
   type SemanticRoomDefinition,
   type WallDefinition,
+  type WallRunDefinition,
 } from './schema';
 
 const AXIS_EPSILON = 1e-6;
@@ -58,14 +59,18 @@ function getDoorwaysForWall(
   room: SemanticRoomDefinition,
   wall: WallDefinition
 ): DoorwayDefinition[] {
-  if (!('run' in wall) || !wall.rooms?.includes(room.id) || !wall.run.gaps)
+  if (!('run' in wall) || !wall.rooms?.includes(room.id) || !wall.run!.gaps)
     return [];
 
-  const roomWall = getRoomWallForRun(room, wall.run);
+  const roomWall = getRoomWallForRun(room, wall.run!);
   if (!roomWall) return [];
 
-  return wall.run.gaps.flatMap((gap) => {
-    const doorwayRange = projectGapToDoorwayRange(wall.run, gap.start, gap.end);
+  return wall.run!.gaps.flatMap((gap) => {
+    const doorwayRange = projectGapToDoorwayRange(
+      wall.run!,
+      gap.start,
+      gap.end
+    );
     if (!doorwayRange) return [];
 
     const clippedDoorwayRange = clipDoorwayRangeToRoomWall(
@@ -81,7 +86,7 @@ function getDoorwaysForWall(
 
 function getRoomWallForRun(
   room: SemanticRoomDefinition,
-  run: WallDefinition['run']
+  run: WallRunDefinition
 ): RoomWall | undefined {
   if (Math.abs(run.start.z - run.end.z) <= AXIS_EPSILON) {
     if (Math.abs(run.start.z - room.bounds.maxZ) <= AXIS_EPSILON)
@@ -99,7 +104,7 @@ function getRoomWallForRun(
 }
 
 function projectGapToDoorwayRange(
-  run: WallDefinition['run'],
+  run: WallRunDefinition,
   gapStart: number,
   gapEnd: number
 ): Pick<DoorwayDefinition, 'start' | 'end'> | undefined {

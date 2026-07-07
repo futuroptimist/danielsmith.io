@@ -5,6 +5,7 @@ export interface RectCollider {
   maxX: number;
   minZ: number;
   maxZ: number;
+  debugName?: string;
 }
 
 export function collidesWithColliders(

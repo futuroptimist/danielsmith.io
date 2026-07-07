@@ -100,7 +100,7 @@ const mapSummary = (
       category,
       eventCategoryCounts.get(category) ?? 0,
     ])
-  ),
+  ) as Record<EventCategory, number>,
   eventTypeCounts: Object.fromEntries(eventTypeCounts.entries()),
 });
 
@@ -129,7 +129,7 @@ export function createInputLatencyMonitor(
   const now = options.now ?? (() => performance.now());
   const listenerOptions = options.listenerOptions ?? { passive: true };
   const eventTypes =
-    (options.eventTypes?.length ?? 0)
+    options.eventTypes !== undefined && options.eventTypes.length > 0
       ? [...options.eventTypes]
       : [...DEFAULT_EVENT_TYPES];
   const listeners = new Map<string, EventListener>();

@@ -217,8 +217,8 @@ const getOwnUserDataSourceMetadata = (
       sourceId: directSourceId,
       ...(nestedSourceId === directSourceId
         ? {
-            sourceType: nestedSource.sourceType,
-            purpose: nestedSource.purpose,
+            sourceType: nestedSource?.sourceType,
+            purpose: nestedSource?.purpose,
           }
         : {}),
     });

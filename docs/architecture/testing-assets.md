@@ -5,12 +5,12 @@ auto-generated artifacts stay up to date.
 
 ## Test suites
 
-| Suite                    | Location                     | Command                             | Notes                                                                                                                                                      |
-| ------------------------ | ---------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                                                                |
-| End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot.                                         |
-| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds, `dist/index.html` exists, and built JS/CSS references resolve in `dist/`; `npm run check` includes this smoke suite.     |
-| Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | `npm run check` includes linting before tests, docs validation, and smoke; run `npm run typecheck` separately until the repo is type-clean enough to gate. |
+| Suite                    | Location                     | Command                             | Notes                                                                                                                                                                 |
+| ------------------------ | ---------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit & integration tests | `src/tests/` (Vitest)        | `npm run test:ci`                   | Run with `CI=1` locally to mirror pipeline timeouts and disable watch mode.                                                                                           |
+| End-to-end + visual      | `playwright/` (Playwright)   | `npm run test:e2e`                  | Uses the same immersive URL overrides as production. Set `CI=1` to lock workers to 1 for deterministic WebGL boot.                                                    |
+| Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds, `dist/index.html` exists, and built JS/CSS references resolve in `dist/`; the aggregate `npm run check` gate runs this smoke suite. |
+| Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | `npm run check` includes linting and type-checking before tests, docs validation, and smoke.                                                                          |
 
 ### Visual diff budgets
 
