@@ -7,6 +7,54 @@ export interface PerformanceBudget {
   maxTextureBytes: number;
 }
 
+export interface RuntimePerformanceCountersSnapshot {
+  calls: number;
+  triangles: number;
+  memoryGeometries: number;
+  memoryTextures: number;
+}
+
+export interface RuntimePerformanceFrameSnapshot {
+  p95FrameMs: number;
+}
+
+export interface RuntimePerformanceRendererSnapshot {
+  isSoftwareRenderer: boolean;
+  riskLevel: string;
+}
+
+export interface RuntimePerformanceQualitySnapshot {
+  level: string;
+}
+
+export interface RuntimePerformanceSnapshot
+  extends RuntimePerformanceFrameSnapshot {
+  rendererCounters: RuntimePerformanceCountersSnapshot;
+  renderer: RuntimePerformanceRendererSnapshot;
+  quality: RuntimePerformanceQualitySnapshot;
+}
+
+export interface RuntimePerformanceBudget {
+  /** Maximum renderer.info.render.calls after immersive warmup. */
+  maxDrawCalls: number;
+  /** Maximum renderer.info.render.triangles after immersive warmup. */
+  maxTriangles: number;
+  /** Maximum renderer.info.memory.geometries after immersive warmup. */
+  maxGeometries: number;
+  /** Maximum renderer.info.memory.textures/proxies after immersive warmup. */
+  maxTextures: number;
+  /** Maximum p95 frame time for non-software renderers after warmup. */
+  maxP95FrameMs: number;
+}
+
+export interface RuntimePerformanceBudgetResult {
+  metric: keyof RuntimePerformanceBudget;
+  actual: number;
+  budget: number;
+  applies: boolean;
+  isWithinBudget: boolean;
+}
+
 export interface ScenePerformanceSnapshot {
   /** Counted unique materials from the renderer info inspector. */
   materialCount: number;
@@ -64,6 +112,14 @@ export const IMMERSIVE_PERFORMANCE_BUDGET: PerformanceBudget = {
   maxMaterials: 36,
   maxDrawCalls: 150,
   maxTextureBytes: 24 * 1024 * 1024,
+};
+
+export const IMMERSIVE_RUNTIME_PERFORMANCE_BUDGET: RuntimePerformanceBudget = {
+  maxDrawCalls: 180,
+  maxTriangles: 140_000,
+  maxGeometries: 240,
+  maxTextures: 96,
+  maxP95FrameMs: 100,
 };
 
 export const IMMERSIVE_SCENE_BASELINE: ScenePerformanceSnapshot = {
@@ -143,6 +199,62 @@ const createUsage = (used: number, limit: number): PerformanceBudgetUsage => {
     hasInvalidMeasurements,
   };
 };
+
+export function evaluateRuntimePerformanceBudget(
+  snapshot: RuntimePerformanceSnapshot,
+  budget: RuntimePerformanceBudget = IMMERSIVE_RUNTIME_PERFORMANCE_BUDGET
+): RuntimePerformanceBudgetResult[] {
+  const counters = snapshot.rendererCounters;
+  return [
+    {
+      metric: 'maxDrawCalls',
+      actual: counters.calls,
+      budget: budget.maxDrawCalls,
+      applies: true,
+      isWithinBudget: counters.calls <= budget.maxDrawCalls,
+    },
+    {
+      metric: 'maxTriangles',
+      actual: counters.triangles,
+      budget: budget.maxTriangles,
+      applies: true,
+      isWithinBudget: counters.triangles <= budget.maxTriangles,
+    },
+    {
+      metric: 'maxGeometries',
+      actual: counters.memoryGeometries,
+      budget: budget.maxGeometries,
+      applies: true,
+      isWithinBudget: counters.memoryGeometries <= budget.maxGeometries,
+    },
+    {
+      metric: 'maxTextures',
+      actual: counters.memoryTextures,
+      budget: budget.maxTextures,
+      applies: true,
+      isWithinBudget: counters.memoryTextures <= budget.maxTextures,
+    },
+    {
+      metric: 'maxP95FrameMs',
+      actual: snapshot.p95FrameMs,
+      budget: budget.maxP95FrameMs,
+      applies: !snapshot.renderer.isSoftwareRenderer,
+      isWithinBudget:
+        snapshot.renderer.isSoftwareRenderer ||
+        snapshot.p95FrameMs <= budget.maxP95FrameMs,
+    },
+  ];
+}
+
+export function describeRuntimePerformanceBudgetResult(
+  result: RuntimePerformanceBudgetResult,
+  snapshot: RuntimePerformanceSnapshot
+): string {
+  return (
+    `${result.metric}: actual ${result.actual}, budget ${result.budget}, ` +
+    `renderer risk ${snapshot.renderer.riskLevel}, quality ${snapshot.quality.level}`
+  );
+}
 
 export function createPerformanceBudgetReport(
   snapshot: ScenePerformanceSnapshot,

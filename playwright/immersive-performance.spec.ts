@@ -1,5 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import {
+  IMMERSIVE_RUNTIME_PERFORMANCE_BUDGET,
+  describeRuntimePerformanceBudgetResult,
+  evaluateRuntimePerformanceBudget,
+} from '../src/assets/performance';
+
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_URL = '/?mode=immersive';
 const IMMERSIVE_DIAGNOSTICS_URL =
@@ -173,6 +179,69 @@ async function exerciseZoomPan(
   });
 }
 
+async function waitForBudgetWarmup(page: Page) {
+  await expect
+    .poll(async () => (await getSnapshot(page)).sampleCount, {
+      timeout: IMMERSIVE_READY_TIMEOUT_MS,
+      intervals: [250, 500, 1_000],
+    })
+    .toBeGreaterThan(10);
+}
+
+function expectCoherentRendererCounters(snapshot: PerformanceSnapshot) {
+  const counters = snapshot.rendererCounters;
+  for (const [metric, value] of Object.entries(counters)) {
+    expect(
+      Number.isFinite(value),
+      `${metric}: actual ${value}, renderer risk ${snapshot.renderer.riskLevel}, ` +
+        `quality ${snapshot.quality.level}`
+    ).toBe(true);
+    expect(
+      value,
+      `${metric}: actual ${value}, renderer risk ${snapshot.renderer.riskLevel}, ` +
+        `quality ${snapshot.quality.level}`
+    ).toBeGreaterThanOrEqual(0);
+  }
+}
+
+function expectRuntimePerformanceBudget(snapshot: PerformanceSnapshot) {
+  expectCoherentRendererCounters(snapshot);
+  const counters = snapshot.rendererCounters;
+  expect(
+    counters.calls,
+    `draw calls should be populated after warmup; renderer risk ` +
+      `${snapshot.renderer.riskLevel}, quality ${snapshot.quality.level}`
+  ).toBeGreaterThan(0);
+  expect(
+    counters.triangles,
+    `triangles should be populated after warmup; renderer risk ` +
+      `${snapshot.renderer.riskLevel}, quality ${snapshot.quality.level}`
+  ).toBeGreaterThan(0);
+  expect(
+    counters.memoryGeometries,
+    `geometries should be populated after warmup; renderer risk ` +
+      `${snapshot.renderer.riskLevel}, quality ${snapshot.quality.level}`
+  ).toBeGreaterThan(0);
+  expect(
+    counters.memoryTextures,
+    `textures/proxies should be populated after warmup; renderer risk ` +
+      `${snapshot.renderer.riskLevel}, quality ${snapshot.quality.level}`
+  ).toBeGreaterThan(0);
+
+  for (const result of evaluateRuntimePerformanceBudget(
+    snapshot,
+    IMMERSIVE_RUNTIME_PERFORMANCE_BUDGET
+  )) {
+    if (!result.applies) {
+      continue;
+    }
+    expect(
+      result.actual,
+      describeRuntimePerformanceBudgetResult(result, snapshot)
+    ).toBeLessThanOrEqual(result.budget);
+  }
+}
+
 async function getSnapshot(page: Page): Promise<PerformanceSnapshot> {
   const snapshot = await page.evaluate(() =>
     (window as PortfolioWindow).portfolio?.performance?.getSnapshot()
@@ -274,11 +343,8 @@ test.describe('immersive performance diagnostics', () => {
       expect(
         snapshot.quality.sceneDetail?.policy.textures.mediaWallScreen.width
       ).toBeLessThanOrEqual(512);
-      expect(snapshot.rendererCounters.calls).toBeGreaterThanOrEqual(0);
-      expect(snapshot.rendererCounters.triangles).toBeGreaterThanOrEqual(0);
-      expect(snapshot.rendererCounters.memoryGeometries).toBeGreaterThanOrEqual(
-        0
-      );
+      await waitForBudgetWarmup(page);
+      expectRuntimePerformanceBudget(await getSnapshot(page));
     } finally {
       await context.close();
     }
@@ -300,6 +366,8 @@ test.describe('immersive performance diagnostics', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
       expect(snapshot.quality.adaptivePolicy).toBeNull();
+      await waitForBudgetWarmup(page);
+      expectRuntimePerformanceBudget(await getSnapshot(page));
     } finally {
       await context.close();
     }

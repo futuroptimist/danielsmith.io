@@ -10,6 +10,9 @@ and the Vitest assertions when measurable changes land.
 | Draw calls       | ≤ 150   | 132      | 18       |
 | Texture memory   | ≤ 24 MB | 18.0 MB  | 6.0 MB   |
 
+These static values remain the press-kit and documentation snapshot. The live launch
+gate below is the enforceable smoke guard for renderer growth.
+
 - **Source** – [`src/assets/performance.ts`](../../src/assets/performance.ts)
   contains the structured data (`IMMERSIVE_PERFORMANCE_BUDGET` and
   `IMMERSIVE_SCENE_BASELINE`).
@@ -35,6 +38,29 @@ and the Vitest assertions when measurable changes land.
 - **Workflow** – Capture metrics via the Three.js inspector: open devtools,
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
   at launch. Update the snapshot date and notes when refreshing numbers.
+
+## Runtime launch gate
+
+`npm run perf:budget` runs the focused Playwright launch-budget check in
+[`playwright/immersive-performance.spec.ts`](../../playwright/immersive-performance.spec.ts).
+It opens immersive mode with performance failover disabled, waits for diagnostics to collect
+warm frame samples, asserts nonzero renderer counters, and compares live diagnostics against
+[`IMMERSIVE_RUNTIME_PERFORMANCE_BUDGET`](../../src/assets/performance.ts).
+
+| Live metric               | Budget      | How it is enforced                       |
+| ------------------------- | ----------- | ---------------------------------------- |
+| Draw calls                | ≤ 180 calls | Always enforced after warmup             |
+| Triangles                 | ≤ 140,000   | Always enforced after warmup             |
+| Renderer geometries       | ≤ 240       | Always enforced after warmup             |
+| Renderer textures/proxies | ≤ 96        | Always enforced after warmup             |
+| p95 frame time            | ≤ 100 ms    | Enforced only for non-software renderers |
+
+The thresholds were chosen from current local immersive warmup diagnostics with conservative
+headroom so normal driver variance and small content edits do not flap, while large accidental
+increases in draw calls or triangles still fail before release. CI can run on SwiftShader, so
+the frame-time budget is conditional for software renderers; renderer counters must still be
+present, finite, nonnegative, and populated. Budget failure messages include the actual value,
+budget, renderer risk level, and active quality level to make launch regressions actionable.
 
 ## Performance scene detail mode
 
