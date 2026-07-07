@@ -28,8 +28,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
+  clearPortfolioInputKeyBindings,
   clearPortfolioSection,
-  ensurePortfolioApi,
+  setPortfolioInputKeyBindings,
   setPortfolioSection,
   type InitialCameraFramingDebug,
   type KeyBindingSnapshot,
@@ -3612,9 +3613,7 @@ function initializeImmersiveScene(
   loadStoredKeyBindings();
 
   const ensureKeyBindingApi = () => {
-    const portfolioNamespace = ensurePortfolioApi();
-    portfolioNamespace.input ??= {};
-    portfolioNamespace.input.keyBindings = {
+    setPortfolioInputKeyBindings({
       getBindings() {
         return getBindingSnapshot();
       },
@@ -3636,7 +3635,7 @@ function initializeImmersiveScene(
         keyBindings.resetAll();
         saveKeyBindings();
       },
-    };
+    });
   };
 
   ensureKeyBindingApi();
@@ -6738,9 +6737,7 @@ function initializeImmersiveScene(
       const unsubscribe = keyBindingUnsubscribes.pop();
       unsubscribe?.();
     }
-    if (window.portfolio?.input?.keyBindings) {
-      delete window.portfolio.input.keyBindings;
-    }
+    clearPortfolioInputKeyBindings();
     if (window.portfolio?.avatar) {
       clearPortfolioSection('avatar');
     }

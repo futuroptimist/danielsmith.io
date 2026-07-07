@@ -28,6 +28,9 @@ export type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 export type InitialCameraFramingDebug = ReturnType<
   typeof resolveInitialAvatarCameraFraming
 >;
+export type PortfolioInputKeyBindings = NonNullable<
+  NonNullable<PortfolioApi['input']>['keyBindings']
+>;
 
 export interface PortfolioApi {
   input?: {
@@ -273,4 +276,26 @@ export function clearPortfolioSection(
   }
 
   delete targetWindow.portfolio[section];
+}
+
+export function setPortfolioInputKeyBindings(
+  keyBindings: PortfolioInputKeyBindings,
+  targetWindow: Window = window
+): PortfolioInputKeyBindings {
+  const portfolioNamespace = ensurePortfolioApi(targetWindow);
+  portfolioNamespace.input = {
+    ...portfolioNamespace.input,
+    keyBindings,
+  };
+  return keyBindings;
+}
+
+export function clearPortfolioInputKeyBindings(
+  targetWindow: Window = window
+): void {
+  if (!targetWindow.portfolio?.input) {
+    return;
+  }
+
+  delete targetWindow.portfolio.input.keyBindings;
 }
