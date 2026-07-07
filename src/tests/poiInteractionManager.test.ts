@@ -567,6 +567,57 @@ describe('PoiInteractionManager', () => {
     }
   });
 
+  it('ignores synthetic mousemove before suppressing a synthetic click', () => {
+    manager.start();
+    const selection = vi.fn();
+    manager.addSelectionListener(selection);
+
+    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => 1_000);
+
+    try {
+      dispatchTouchEvent(domElement, 'touchstart', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      dispatchTouchEvent(domElement, 'touchend', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      domElement.dispatchEvent(
+        new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+      );
+
+      expect(frameScheduler.pendingCount).toBe(0);
+
+      domElement.dispatchEvent(
+        new MouseEvent('click', { clientX: 200, clientY: 200 })
+      );
+
+      expect(selection).toHaveBeenCalledTimes(1);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('keeps pending pointer hovers when unrelated keys are pressed', () => {
+    manager.start();
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    frameScheduler.runFrame();
+
+    expect(intersectSpy).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+
+    intersectSpy.mockRestore();
+  });
+
   it('cycles focus with keyboard input and wraps around', () => {
     manager.dispose();
     const secondDefinition: PoiDefinition = {

@@ -10,15 +10,18 @@ export interface PoiSelectionContext {
 }
 
 function createDefaultFrameScheduler(): PoiInteractionFrameScheduler {
-  if (typeof window !== 'undefined') {
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.requestAnimationFrame === 'function' &&
+    typeof window.cancelAnimationFrame === 'function'
+  ) {
     return {
       request: window.requestAnimationFrame.bind(window),
       cancel: window.cancelAnimationFrame.bind(window),
     };
   }
   return {
-    request: (callback) =>
-      setTimeout(() => callback(Date.now()), 0) as unknown as number,
+    request: (callback) => setTimeout(() => callback(Date.now()), 0),
     cancel: (handle) => clearTimeout(handle),
   };
 }
@@ -51,9 +54,11 @@ type ListenerTarget = Pick<
   'addEventListener' | 'removeEventListener'
 >;
 
+export type PoiInteractionFrameHandle = number | ReturnType<typeof setTimeout>;
+
 export interface PoiInteractionFrameScheduler {
-  request(callback: FrameRequestCallback): number;
-  cancel(handle: number): void;
+  request(callback: FrameRequestCallback): PoiInteractionFrameHandle;
+  cancel(handle: PoiInteractionFrameHandle): void;
 }
 
 export interface PoiInteractionOptions {
@@ -80,7 +85,7 @@ export class PoiInteractionManager {
   private usingKeyboard = false;
   private touchPointerId: number | null = null;
   private suppressSyntheticClickUntil = 0;
-  private pendingHoverFrame: number | null = null;
+  private pendingHoverFrame: PoiInteractionFrameHandle | null = null;
   private pendingHoverInput: PoiSelectionInputMethod | null = null;
   private lastSelectionInput: PoiSelectionInputMethod = 'pointer';
   private lastHoverInput: PoiSelectionInputMethod = 'pointer';
@@ -212,7 +217,14 @@ export class PoiInteractionManager {
   }
 
   private handleMouseMove(event: MouseEvent) {
-    this.suppressSyntheticClickUntil = 0;
+    if (this.suppressSyntheticClickUntil) {
+      const now = Date.now();
+      if (now <= this.suppressSyntheticClickUntil) {
+        event.preventDefault();
+        return;
+      }
+      this.suppressSyntheticClickUntil = 0;
+    }
     if (!this.updatePointer(event)) {
       return;
     }
@@ -232,6 +244,7 @@ export class PoiInteractionManager {
       const now = Date.now();
       if (now <= this.suppressSyntheticClickUntil) {
         this.suppressSyntheticClickUntil = 0;
+        this.cancelScheduledHoverPick();
         event.preventDefault();
         event.stopImmediatePropagation?.();
         return;
@@ -342,8 +355,6 @@ export class PoiInteractionManager {
       return;
     }
 
-    this.cancelScheduledHoverPick();
-
     const { key } = event;
     const normalizedKey = key.toLowerCase();
 
@@ -354,6 +365,7 @@ export class PoiInteractionManager {
       normalizedKey === 'q';
 
     if (isCycleKey) {
+      this.cancelScheduledHoverPick();
       if (normalizedKey === 'e' || normalizedKey === 'q') {
         event.preventDefault();
       }
@@ -371,6 +383,7 @@ export class PoiInteractionManager {
           break;
         }
 
+        this.cancelScheduledHoverPick();
         event.preventDefault();
         if (!this.isPoiEnabled(this.hovered)) {
           const staleHovered = this.hovered;
@@ -388,6 +401,7 @@ export class PoiInteractionManager {
       }
       case 'escape':
         if (this.selected) {
+          this.cancelScheduledHoverPick();
           event.preventDefault();
           this.setSelected(null, 'keyboard');
         }
