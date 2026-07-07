@@ -28,6 +28,15 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
+  clearPortfolioApiSection,
+  clearPortfolioInputSection,
+  ensurePortfolioApi,
+  setPortfolioApiSection,
+  setPortfolioInputSection,
+  type InitialCameraFramingDebug,
+  type KeyBindingSnapshot,
+} from './app/portfolioApi';
+import {
   FLOOR_PLAN,
   FLOOR_PLAN_LEVELS,
   FLOOR_PLAN_SCALE,
@@ -114,17 +123,9 @@ import {
   createColliderVisualizer,
   type DebugColliderMetadata,
   type DebugColliderRegistration,
-  type DebugColliderVisualizerState,
 } from './scene/debug/colliderVisualizer';
-import {
-  createDebugPerformanceOverlay,
-  type DebugPerformanceState,
-} from './scene/debug/performanceOverlay';
-import {
-  createSolidVisualizer,
-  type DebugSolidMetadata,
-  type DebugSolidVisualizerState,
-} from './scene/debug/solidVisualizer';
+import { createDebugPerformanceOverlay } from './scene/debug/performanceOverlay';
+import { createSolidVisualizer } from './scene/debug/solidVisualizer';
 import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
@@ -205,14 +206,10 @@ import {
   resolveSeasonalLightingSchedule,
 } from './scene/lighting/seasonalPresets';
 import { createCrashBreadcrumbStore } from './scene/performance/crashBreadcrumbs';
-import {
-  LowFpsRecoveryMonitor,
-  type LowFpsRecoveryMonitorState,
-} from './scene/performance/lowFpsRecoveryMonitor';
+import { LowFpsRecoveryMonitor } from './scene/performance/lowFpsRecoveryMonitor';
 import {
   createPerformanceDiagnostics,
   type PerformanceCrashBreadcrumbApi,
-  type PerformanceDiagnosticsApi,
 } from './scene/performance/performanceDiagnostics';
 import {
   getQualityFeaturePolicy,
@@ -442,10 +439,7 @@ import {
   writeModePreference,
 } from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
-import {
-  createGitHubRepoStatsService,
-  type GitHubRepoStatsDiagnostics,
-} from './systems/github/repoStats';
+import { createGitHubRepoStatsService } from './systems/github/repoStats';
 import { GuidedTourPreference } from './systems/guidedTour/preference';
 import {
   createAnalyticsGlowRhythm,
@@ -473,7 +467,6 @@ import {
   predictStairFloorId,
   sampleStairSurfaceHeight,
   type FloorId,
-  type StairTransitionZone,
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
@@ -573,224 +566,6 @@ const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
 const AVATAR_ASSET_SCALE_TOLERANCE = 0.02;
-type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
-
-declare global {
-  interface Window {
-    portfolio?: {
-      input?: {
-        keyBindings?: {
-          getBindings(): KeyBindingSnapshot;
-          setBinding(action: KeyBindingAction, keys: readonly string[]): void;
-          resetBinding(action: KeyBindingAction): void;
-          resetAll(): void;
-        };
-      };
-      avatar?: {
-        getActiveVariant(): AvatarVariantId;
-        setActiveVariant(variant: AvatarVariantId): void;
-        listVariants(): Array<{
-          id: AvatarVariantId;
-          label: string;
-          description?: string;
-        }>;
-        listAccessories(): Array<{
-          id: AvatarAccessoryId;
-          label: string;
-          description?: string;
-          enabled: boolean;
-        }>;
-        getAccessories(): AvatarAccessoryState[];
-        setAccessoryEnabled(id: AvatarAccessoryId, enabled: boolean): void;
-        toggleAccessory(id: AvatarAccessoryId): void;
-        applyAccessoryPreset(id: AvatarAccessoryPresetId): void;
-        listAccessoryPresets(): Array<{
-          id: AvatarAccessoryPresetId;
-          label: string;
-          description: string;
-        }>;
-        isAccessoryPresetUnlocked(id: AvatarAccessoryPresetId): boolean;
-        unlockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
-        lockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
-        loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
-      };
-      performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
-      githubMetrics?: {
-        getDiagnostics(): GitHubRepoStatsDiagnostics;
-      };
-      audio?: {
-        getState(): {
-          preferenceEnabled: boolean;
-          ambientEnabled: boolean;
-          ambientSourcesPlaying: { id: string; isPlaying: boolean }[];
-          ambientSourcesPlayingCount: number;
-          ambientBedVolumes: {
-            id: string;
-            currentVolume: number;
-            targetVolume: number;
-          }[];
-          footstepEnabled: boolean;
-          footstepPlaying: boolean;
-          masterVolume: number;
-          baseVolume: number;
-          audioContextState: AudioContextState | 'unknown';
-          storageKeyVersion: string;
-          activeStorageKey: string;
-        };
-      };
-      narration?: {
-        getState(): {
-          preferenceEnabled: boolean;
-          activeStorageKey: string;
-          storageKeyVersion: string;
-          currentSubtitle: string | null;
-          currentSubtitleId: string | null;
-          currentSubtitleSource: string | null;
-          queueLength: number;
-          visible: boolean;
-          dismissCount: number;
-          lastDismissedAt: number | null;
-        };
-      };
-      graphics?: {
-        getLevel?(): string;
-        setLevel?(level: string): void;
-        getMotionBlurIntensity(): number;
-        setMotionBlurIntensity(intensity: number): void;
-        getMotionBlurState(): {
-          enabled: boolean;
-          damp: number;
-          intensity: number;
-          pendingHistoryReset: boolean;
-          historyResetRequestCount: number;
-          lastHistoryResetDamp: number | null;
-        };
-        resetMotionBlurHistory(): void;
-        getCameraZoom?(): number;
-        getCameraZoomTarget?(): number;
-        getInitialCameraFraming?(): InitialCameraFramingDebug | undefined;
-        setCameraPanForTest?(input: { x: number; y: number }): void;
-      };
-      poi?: {
-        getTooltipState(): {
-          overlayVisiblePoiId: string | null;
-          worldTooltipVisible: boolean;
-          worldTooltipPoiId: string | null;
-          worldTooltipTitle: string | null;
-          markerLabelVisible: boolean;
-          markerLabelPoiId: string | null;
-          visibleMarkerLabelCount: number;
-          visibleMarkerLabelPoiIds: string[];
-          activePoiMarkerLabelVisible: boolean;
-          activeInWorldTooltipCount: number;
-          totalInWorldTooltipCount: number;
-        };
-      };
-      debugColliders?: {
-        getState(): DebugColliderVisualizerState;
-        setEnabled(enabled: boolean): void;
-        setIdsEnabled(enabled: boolean): void;
-        getColliders(): DebugColliderMetadata[];
-        getBlockingCollidersAt(target: {
-          x: number;
-          z: number;
-          floorId?: FloorId;
-        }): DebugColliderMetadata[];
-        getColliderById(id: unknown): DebugColliderMetadata | undefined;
-        getColliderBySourceId(
-          sourceId: unknown
-        ): DebugColliderMetadata | undefined;
-        getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
-      };
-      debugSolids?: {
-        getState(): DebugSolidVisualizerState;
-        setEnabled(enabled: boolean): void;
-        getSolids(): DebugSolidMetadata[];
-        getSolidById(id: unknown): DebugSolidMetadata | undefined;
-        getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
-        getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
-      };
-      debugPerformance?: {
-        getState(): DebugPerformanceState;
-        setFpsEnabled(enabled: boolean): void;
-        getLowFpsRecoveryState?(): LowFpsRecoveryMonitorState;
-        forceLowFpsRecoveryPopup?(): void;
-        recordLowFpsRecoveryFrame?(deltaSeconds: number, nowMs?: number): void;
-        dismissLowFpsRecoveryPopup?(nowMs?: number): void;
-      };
-      debugCoordinates?: {
-        getState(): {
-          enabled: boolean;
-          x: number;
-          y: number;
-          z: number;
-          activeFloorId: FloorId;
-          predictedStairFloorId: FloorId;
-          cameraZoom: number;
-          insideStairWidth: boolean;
-          insideLanding: boolean;
-          insideStairNavArea: boolean;
-          stairZone: StairTransitionZone;
-          currentRoomId: string | null;
-        };
-        setEnabled(enabled: boolean): void;
-      };
-      world?: {
-        getActiveFloor(): FloorId;
-        canOccupyPosition(target: {
-          x: number;
-          z: number;
-          floorId?: FloorId;
-        }): boolean;
-        setActiveFloor(next: FloorId): void;
-        movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
-        stepPlayerForTest(step: { dx: number; dz: number }): {
-          movedX: boolean;
-          movedZ: boolean;
-          activeFloor: FloorId;
-          position: { x: number; y: number; z: number };
-          blockedBy?: string[];
-        };
-        getPlayerPosition(): { x: number; y: number; z: number };
-        predictFloorAt(target: {
-          x: number;
-          z: number;
-          currentFloor?: FloorId;
-        }): FloorId;
-        getStairTransitionZone(target: {
-          x: number;
-          z: number;
-          currentFloor?: FloorId;
-        }): StairTransitionZone;
-        getStairMetrics(): {
-          stairCenterX: number;
-          stairHalfWidth: number;
-          stairBottomZ: number;
-          stairTopZ: number;
-          stairLandingMinZ: number;
-          stairLandingMaxZ: number;
-          stairLandingDepth: number;
-          stairDirection: 1 | -1;
-          upperFloorElevation: number;
-        };
-        getCeilingOpacities(): number[];
-        getFloorVisibilitySnapshot(): {
-          activeFloorId: FloorId;
-          groundFloorVisible: boolean;
-          groundPoiVisible: boolean;
-          upperPoiVisible: boolean;
-          groundEnvironmentVisible: boolean;
-          groundStructureVisible: boolean;
-          upperFloorVisible: boolean;
-          backyardEnvironmentVisible: boolean | null;
-        };
-        // Test-only helper: current player yaw in radians
-        getPlayerYaw?(): number;
-      };
-    };
-  }
-}
-
 const PLAYER_RADIUS = 0.75;
 const PLAYER_SPEED = 12;
 const MOVEMENT_SMOOTHING = 8;
@@ -981,10 +756,6 @@ const LOW_FPS_RECOVERY_COOLDOWN_MS = 30_000;
 const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
-
-type InitialCameraFramingDebug = ReturnType<
-  typeof resolveInitialAvatarCameraFraming
->;
 
 type AppMode = 'immersive' | 'fallback';
 const markDocumentReady = (mode: AppMode, fallbackReason?: FallbackReason) => {
@@ -2783,18 +2554,15 @@ function initializeImmersiveScene(
     poiWorldTooltip.setIdleState(idle);
   });
   const githubRepoStatsService = createGitHubRepoStatsService();
-  if (!window.portfolio) {
-    window.portfolio = {};
-  }
-  window.portfolio.githubMetrics = {
+  setPortfolioApiSection('githubMetrics', {
     getDiagnostics: () => githubRepoStatsService.getDiagnostics(),
-  };
-  window.portfolio.audio = {
+  });
+  setPortfolioApiSection('audio', {
     getState: getAudioDebugState,
-  };
-  window.portfolio.narration = {
+  });
+  setPortfolioApiSection('narration', {
     getState: getNarrationDebugState,
-  };
+  });
   const wirePoiGitHubMetrics = () => {
     githubRepoMetrics?.dispose();
     githubRepoMetrics = wireGitHubRepoMetrics({
@@ -2872,11 +2640,7 @@ function initializeImmersiveScene(
   updatePassivePoiRecommendationPolicy();
 
   const ensurePoiApi = () => {
-    const portfolioWindow = window as Window;
-    if (!portfolioWindow.portfolio) {
-      portfolioWindow.portfolio = {};
-    }
-    portfolioWindow.portfolio.poi = {
+    setPortfolioApiSection('poi', {
       getTooltipState() {
         const overlayState = poiTooltipOverlay.getState();
         const worldState = poiWorldTooltip.getState();
@@ -2924,7 +2688,7 @@ function initializeImmersiveScene(
           totalInWorldTooltipCount,
         };
       },
-    };
+    });
   };
   ensurePoiApi();
 
@@ -3850,14 +3614,7 @@ function initializeImmersiveScene(
   loadStoredKeyBindings();
 
   const ensureKeyBindingApi = () => {
-    const portfolioWindow = window as Window;
-    if (!portfolioWindow.portfolio) {
-      portfolioWindow.portfolio = {};
-    }
-    if (!portfolioWindow.portfolio.input) {
-      portfolioWindow.portfolio.input = {};
-    }
-    portfolioWindow.portfolio.input.keyBindings = {
+    setPortfolioInputSection('keyBindings', {
       getBindings() {
         return getBindingSnapshot();
       },
@@ -3879,16 +3636,12 @@ function initializeImmersiveScene(
         keyBindings.resetAll();
         saveKeyBindings();
       },
-    };
+    });
   };
 
   ensureKeyBindingApi();
   const ensureWorldApi = () => {
-    const portfolioWindow = window as Window;
-    if (!portfolioWindow.portfolio) {
-      portfolioWindow.portfolio = {};
-    }
-    portfolioWindow.portfolio.world = {
+    setPortfolioApiSection('world', {
       getActiveFloor() {
         return activeFloorId;
       },
@@ -4002,7 +3755,7 @@ function initializeImmersiveScene(
           ),
         };
       },
-    };
+    });
   };
   ensureWorldApi();
   const getAvatarAssetPipeline = () => {
@@ -4019,11 +3772,7 @@ function initializeImmersiveScene(
     return avatarAssetPipeline;
   };
   function ensureAvatarApi() {
-    const portfolioWindow = window as Window;
-    if (!portfolioWindow.portfolio) {
-      portfolioWindow.portfolio = {};
-    }
-    portfolioWindow.portfolio.avatar = {
+    setPortfolioApiSection('avatar', {
       getActiveVariant(): AvatarVariantId {
         return avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID;
       },
@@ -4076,7 +3825,7 @@ function initializeImmersiveScene(
       loadAsset(options: AvatarAssetPipelineLoadOptions) {
         return getAvatarAssetPipeline().load(options);
       },
-    };
+    });
   }
   const interactControl = controlOverlay?.querySelector<HTMLElement>(
     '[data-control="interact"]'
@@ -5441,7 +5190,9 @@ function initializeImmersiveScene(
       );
   };
 
-  window.portfolio.debugColliders = {
+  ensurePortfolioApi();
+
+  setPortfolioApiSection('debugColliders', {
     getState: () => colliderVisualizer.getState(),
     setEnabled: (enabled: boolean) => {
       setDebugCollidersEnabled(enabled);
@@ -5456,9 +5207,9 @@ function initializeImmersiveScene(
       colliderVisualizer.getColliderBySourceId(sourceId),
     getCollidersBySourceId: (sourceId: unknown) =>
       colliderVisualizer.getCollidersBySourceId(sourceId),
-  };
+  });
 
-  window.portfolio.debugSolids = {
+  setPortfolioApiSection('debugSolids', {
     getState: () => solidVisualizer.getState(),
     setEnabled: (enabled: boolean) => {
       setDebugSolidIdsEnabled(enabled);
@@ -5479,9 +5230,9 @@ function initializeImmersiveScene(
       ensureSolidVisualizerRegistered();
       return solidVisualizer.getSolidsBySourceId(sourceId);
     },
-  };
+  });
 
-  window.portfolio.debugPerformance = {
+  setPortfolioApiSection('debugPerformance', {
     getState: () => debugPerformanceOverlay.getState(),
     setFpsEnabled: (enabled: boolean) => {
       setDebugFpsEnabled(enabled);
@@ -5504,14 +5255,14 @@ function initializeImmersiveScene(
         lowFpsRecoveryPopup.hidden = true;
       }
     },
-  };
+  });
 
-  window.portfolio.debugCoordinates = {
+  setPortfolioApiSection('debugCoordinates', {
     getState: getDebugCoordinatesState,
     setEnabled: (enabled: boolean) => {
       setDebugCoordinatesEnabled(enabled);
     },
-  };
+  });
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
@@ -6082,11 +5833,7 @@ function initializeImmersiveScene(
   }
 
   const ensureGraphicsApi = () => {
-    const portfolioWindow = window as Window;
-    if (!portfolioWindow.portfolio) {
-      portfolioWindow.portfolio = {};
-    }
-    portfolioWindow.portfolio.graphics = {
+    setPortfolioApiSection('graphics', {
       getLevel() {
         return graphicsQualityManager?.getLevel() ?? 'balanced';
       },
@@ -6156,7 +5903,7 @@ function initializeImmersiveScene(
           Math.abs(x) > 1e-3 || Math.abs(y) > 1e-3 ? -1 : null;
         mouseCameraInput.set(x, y);
       },
-    };
+    });
   };
   ensureGraphicsApi();
 
@@ -6307,11 +6054,7 @@ function initializeImmersiveScene(
     copyCrashLog: crashLogAccess.copyCrashLog,
     recordSnapshot: crashLogAccess.recordSnapshot,
   });
-  const portfolioWindow = window as Window;
-  if (!portfolioWindow.portfolio) {
-    portfolioWindow.portfolio = {};
-  }
-  portfolioWindow.portfolio.performance = performanceDiagnostics.methods;
+  setPortfolioApiSection('performance', performanceDiagnostics.methods);
 
   const lightingDebugController = createLightingDebugController({
     renderer,
@@ -6790,9 +6533,7 @@ function initializeImmersiveScene(
 
   function disposeDebugPerformanceRegistration() {
     debugPerformanceOverlay.dispose();
-    if (window.portfolio?.debugPerformance) {
-      delete window.portfolio.debugPerformance;
-    }
+    clearPortfolioApiSection('debugPerformance');
   }
 
   function disposeImmersiveResources() {
@@ -6997,40 +6738,18 @@ function initializeImmersiveScene(
       const unsubscribe = keyBindingUnsubscribes.pop();
       unsubscribe?.();
     }
-    if (window.portfolio?.input?.keyBindings) {
-      delete window.portfolio.input.keyBindings;
-    }
-    if (window.portfolio?.avatar) {
-      delete window.portfolio.avatar;
-    }
-    if (window.portfolio?.poi) {
-      delete window.portfolio.poi;
-    }
-    if (window.portfolio?.graphics) {
-      delete window.portfolio.graphics;
-    }
-    if (window.portfolio?.githubMetrics) {
-      delete window.portfolio.githubMetrics;
-    }
-    if (window.portfolio?.audio) {
-      delete window.portfolio.audio;
-    }
-    if (window.portfolio?.narration) {
-      delete window.portfolio.narration;
-    }
-    if (window.portfolio?.debugColliders) {
-      delete window.portfolio.debugColliders;
-    }
-    if (window.portfolio?.debugSolids) {
-      delete window.portfolio.debugSolids;
-    }
-    if (window.portfolio?.debugCoordinates) {
-      delete window.portfolio.debugCoordinates;
-    }
+    clearPortfolioInputSection('keyBindings');
+    clearPortfolioApiSection('avatar');
+    clearPortfolioApiSection('poi');
+    clearPortfolioApiSection('graphics');
+    clearPortfolioApiSection('githubMetrics');
+    clearPortfolioApiSection('audio');
+    clearPortfolioApiSection('narration');
+    clearPortfolioApiSection('debugColliders');
+    clearPortfolioApiSection('debugSolids');
+    clearPortfolioApiSection('debugCoordinates');
     disposeDebugPerformanceRegistration();
-    if (window.portfolio?.performance) {
-      window.portfolio.performance = crashLogAccess;
-    }
+    setPortfolioApiSection('performance', crashLogAccess);
     if (localeToggleControl) {
       localeToggleControl.dispose();
       localeToggleControl = null;

@@ -1,0 +1,296 @@
+import type {
+  AvatarAccessoryId,
+  AvatarAccessoryState,
+} from '../scene/avatar/accessories';
+import type { AvatarAccessoryPresetId } from '../scene/avatar/accessoryPresets';
+import type { AvatarAssetPipelineLoadOptions } from '../scene/avatar/assetPipeline';
+import type { AvatarVariantId } from '../scene/avatar/variants';
+import type { resolveInitialAvatarCameraFraming } from '../scene/camera/initialFraming';
+import type {
+  DebugColliderMetadata,
+  DebugColliderVisualizerState,
+} from '../scene/debug/colliderVisualizer';
+import type { DebugPerformanceState } from '../scene/debug/performanceOverlay';
+import type {
+  DebugSolidMetadata,
+  DebugSolidVisualizerState,
+} from '../scene/debug/solidVisualizer';
+import type {
+  PerformanceCrashBreadcrumbApi,
+  PerformanceDiagnosticsApi,
+} from '../scene/performance/performanceDiagnostics';
+import type { KeyBindingAction } from '../systems/controls/keyBindings';
+import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
+import type { FloorId, StairTransitionZone } from '../systems/movement/stairs';
+
+export type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
+export type InitialCameraFramingDebug = ReturnType<
+  typeof resolveInitialAvatarCameraFraming
+>;
+
+export interface PortfolioApi {
+  input?: {
+    keyBindings?: {
+      getBindings(): KeyBindingSnapshot;
+      setBinding(action: KeyBindingAction, keys: readonly string[]): void;
+      resetBinding(action: KeyBindingAction): void;
+      resetAll(): void;
+    };
+  };
+  avatar?: {
+    getActiveVariant(): AvatarVariantId;
+    setActiveVariant(variant: AvatarVariantId): void;
+    listVariants(): Array<{
+      id: AvatarVariantId;
+      label: string;
+      description?: string;
+    }>;
+    listAccessories(): Array<{
+      id: AvatarAccessoryId;
+      label: string;
+      description?: string;
+      enabled: boolean;
+    }>;
+    getAccessories(): AvatarAccessoryState[];
+    setAccessoryEnabled(id: AvatarAccessoryId, enabled: boolean): void;
+    toggleAccessory(id: AvatarAccessoryId): void;
+    applyAccessoryPreset(id: AvatarAccessoryPresetId): void;
+    listAccessoryPresets(): Array<{
+      id: AvatarAccessoryPresetId;
+      label: string;
+      description: string;
+    }>;
+    isAccessoryPresetUnlocked(id: AvatarAccessoryPresetId): boolean;
+    unlockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
+    lockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
+    loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
+  };
+  performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
+  githubMetrics?: {
+    getDiagnostics(): GitHubRepoStatsDiagnostics;
+  };
+  audio?: {
+    getState(): {
+      preferenceEnabled: boolean;
+      ambientEnabled: boolean;
+      ambientSourcesPlaying: { id: string; isPlaying: boolean }[];
+      ambientSourcesPlayingCount: number;
+      ambientBedVolumes: {
+        id: string;
+        currentVolume: number;
+        targetVolume: number;
+      }[];
+      footstepEnabled: boolean;
+      footstepPlaying: boolean;
+      masterVolume: number;
+      baseVolume: number;
+      audioContextState: AudioContextState | 'unknown';
+      storageKeyVersion: string;
+      activeStorageKey: string;
+    };
+  };
+  narration?: {
+    getState(): {
+      preferenceEnabled: boolean;
+      activeStorageKey: string;
+      storageKeyVersion: string;
+      currentSubtitle: string | null;
+      currentSubtitleId: string | null;
+      currentSubtitleSource: string | null;
+      queueLength: number;
+      visible: boolean;
+      dismissCount: number;
+      lastDismissedAt: number | null;
+    };
+  };
+  graphics?: {
+    getLevel?(): string;
+    setLevel?(level: string): void;
+    getMotionBlurIntensity(): number;
+    setMotionBlurIntensity(intensity: number): void;
+    getMotionBlurState(): {
+      enabled: boolean;
+      damp: number;
+      intensity: number;
+      pendingHistoryReset: boolean;
+      historyResetRequestCount: number;
+      lastHistoryResetDamp: number | null;
+    };
+    resetMotionBlurHistory(): void;
+    getCameraZoom?(): number;
+    getCameraZoomTarget?(): number;
+    getInitialCameraFraming?(): InitialCameraFramingDebug | undefined;
+    setCameraPanForTest?(input: { x: number; y: number }): void;
+  };
+  poi?: {
+    getTooltipState(): {
+      overlayVisiblePoiId: string | null;
+      worldTooltipVisible: boolean;
+      worldTooltipPoiId: string | null;
+      worldTooltipTitle: string | null;
+      markerLabelVisible: boolean;
+      markerLabelPoiId: string | null;
+      visibleMarkerLabelCount: number;
+      visibleMarkerLabelPoiIds: string[];
+      activePoiMarkerLabelVisible: boolean;
+      activeInWorldTooltipCount: number;
+      totalInWorldTooltipCount: number;
+    };
+  };
+  debugColliders?: {
+    getState(): DebugColliderVisualizerState;
+    setEnabled(enabled: boolean): void;
+    setIdsEnabled(enabled: boolean): void;
+    getColliders(): DebugColliderMetadata[];
+    getBlockingCollidersAt(target: {
+      x: number;
+      z: number;
+      floorId?: FloorId;
+    }): DebugColliderMetadata[];
+    getColliderById(id: unknown): DebugColliderMetadata | undefined;
+    getColliderBySourceId(sourceId: unknown): DebugColliderMetadata | undefined;
+    getCollidersBySourceId(sourceId: unknown): DebugColliderMetadata[];
+  };
+  debugSolids?: {
+    getState(): DebugSolidVisualizerState;
+    setEnabled(enabled: boolean): void;
+    getSolids(): DebugSolidMetadata[];
+    getSolidById(id: unknown): DebugSolidMetadata | undefined;
+    getSolidBySourceId(sourceId: unknown): DebugSolidMetadata | undefined;
+    getSolidsBySourceId(sourceId: unknown): DebugSolidMetadata[];
+  };
+  debugPerformance?: {
+    getState(): DebugPerformanceState;
+    setFpsEnabled(enabled: boolean): void;
+    getLowFpsRecoveryState?(): {
+      averageFps: number;
+      elapsedMs: number;
+      frameCount: number;
+      visible: boolean;
+      cooldownRemainingMs: number;
+    };
+    forceLowFpsRecoveryPopup?(): void;
+    recordLowFpsRecoveryFrame?(deltaSeconds: number, nowMs?: number): void;
+    dismissLowFpsRecoveryPopup?(nowMs?: number): void;
+  };
+  debugCoordinates?: {
+    getState(): {
+      enabled: boolean;
+      x: number;
+      y: number;
+      z: number;
+      activeFloorId: FloorId;
+      predictedStairFloorId: FloorId;
+      cameraZoom: number;
+      insideStairWidth: boolean;
+      insideLanding: boolean;
+      insideStairNavArea: boolean;
+      stairZone: StairTransitionZone;
+      currentRoomId: string | null;
+    };
+    setEnabled(enabled: boolean): void;
+  };
+  world?: {
+    getActiveFloor(): FloorId;
+    canOccupyPosition(target: {
+      x: number;
+      z: number;
+      floorId?: FloorId;
+    }): boolean;
+    setActiveFloor(next: FloorId): void;
+    movePlayerTo(target: { x: number; z: number; floorId?: FloorId }): void;
+    stepPlayerForTest(step: { dx: number; dz: number }): {
+      movedX: boolean;
+      movedZ: boolean;
+      activeFloor: FloorId;
+      position: { x: number; y: number; z: number };
+      blockedBy?: string[];
+    };
+    getPlayerPosition(): { x: number; y: number; z: number };
+    predictFloorAt(target: {
+      x: number;
+      z: number;
+      currentFloor?: FloorId;
+    }): FloorId;
+    getStairTransitionZone(target: {
+      x: number;
+      z: number;
+      currentFloor?: FloorId;
+    }): StairTransitionZone;
+    getStairMetrics(): {
+      stairCenterX: number;
+      stairHalfWidth: number;
+      stairBottomZ: number;
+      stairTopZ: number;
+      stairLandingMinZ: number;
+      stairLandingMaxZ: number;
+      stairLandingDepth: number;
+      stairDirection: 1 | -1;
+      upperFloorElevation: number;
+    };
+    getCeilingOpacities(): number[];
+    getFloorVisibilitySnapshot(): {
+      activeFloorId: FloorId;
+      groundFloorVisible: boolean;
+      groundPoiVisible: boolean;
+      upperPoiVisible: boolean;
+      groundEnvironmentVisible: boolean;
+      groundStructureVisible: boolean;
+      upperFloorVisible: boolean;
+      backyardEnvironmentVisible: boolean | null;
+    };
+    getPlayerYaw?(): number;
+  };
+}
+
+declare global {
+  interface Window {
+    portfolio?: PortfolioApi;
+  }
+}
+
+export function ensurePortfolioApi(
+  target: Pick<Window, 'portfolio'> = window
+): PortfolioApi {
+  target.portfolio ??= {};
+  return target.portfolio;
+}
+
+export function setPortfolioApiSection<Section extends keyof PortfolioApi>(
+  section: Section,
+  value: NonNullable<PortfolioApi[Section]>,
+  target?: Pick<Window, 'portfolio'>
+): NonNullable<PortfolioApi[Section]> {
+  const namespace = ensurePortfolioApi(target);
+  namespace[section] = value;
+  return value;
+}
+
+export function clearPortfolioApiSection<Section extends keyof PortfolioApi>(
+  section: Section,
+  target?: Pick<Window, 'portfolio'>
+): void {
+  delete ensurePortfolioApi(target)[section];
+}
+
+export function setPortfolioInputSection<
+  Section extends keyof NonNullable<PortfolioApi['input']>,
+>(
+  section: Section,
+  value: NonNullable<NonNullable<PortfolioApi['input']>[Section]>,
+  target?: Pick<Window, 'portfolio'>
+): NonNullable<NonNullable<PortfolioApi['input']>[Section]> {
+  const namespace = ensurePortfolioApi(target);
+  namespace.input ??= {};
+  namespace.input[section] = value;
+  return value;
+}
+
+export function clearPortfolioInputSection<
+  Section extends keyof NonNullable<PortfolioApi['input']>,
+>(section: Section, target?: Pick<Window, 'portfolio'>): void {
+  const namespace = ensurePortfolioApi(target);
+  if (namespace.input) {
+    delete namespace.input[section];
+  }
+}
