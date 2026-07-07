@@ -51,6 +51,46 @@ export interface PerformanceBudgetReport {
   isWithinBudget: boolean;
 }
 
+export interface ImmersiveLaunchPerformanceBudget {
+  /** Maximum draw calls reported by renderer.info.render.calls after warmup. */
+  maxDrawCalls: number;
+  /** Maximum triangles reported by renderer.info.render.triangles after warmup. */
+  maxTriangles: number;
+  /** Maximum geometries reported by renderer.info.memory.geometries after warmup. */
+  maxGeometries: number;
+  /** Maximum textures reported by renderer.info.memory.textures after warmup. */
+  maxTextures: number;
+  /** Maximum p95 frame time for non-software renderers after warmup. */
+  maxP95FrameMs: number;
+}
+
+export interface ImmersiveLaunchPerformanceSnapshot {
+  drawCalls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+  p95FrameMs: number;
+}
+
+export interface ImmersiveLaunchBudgetUsage {
+  metric: keyof ImmersiveLaunchPerformanceSnapshot;
+  used: number;
+  limit: number;
+  remaining: number;
+  overBudgetBy: number;
+  status: PerformanceBudgetStatus;
+  hasInvalidMeasurements: boolean;
+}
+
+export interface ImmersiveLaunchBudgetReport {
+  drawCalls: ImmersiveLaunchBudgetUsage;
+  triangles: ImmersiveLaunchBudgetUsage;
+  geometries: ImmersiveLaunchBudgetUsage;
+  textures: ImmersiveLaunchBudgetUsage;
+  p95FrameMs: ImmersiveLaunchBudgetUsage;
+  isWithinBudget: boolean;
+}
+
 export interface PerformanceBudgetLabelOptions {
   /**
    * Formatter for numeric values in the label. Defaults to `Intl.NumberFormat('en-US')`.
@@ -72,8 +112,28 @@ export const IMMERSIVE_SCENE_BASELINE: ScenePerformanceSnapshot = {
   textureBytes: 18_874_368,
   capturedAtIso: '2024-05-17T00:00:00.000Z',
   notes:
-    'Captured with Chrome 124 WebGL inspector at launch pose after camera settle.',
+    'Static press-kit budget baseline captured with Chrome 124 WebGL inspector ' +
+    'at launch pose after camera settle. Runtime launch budgets are enforced ' +
+    'separately by IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.',
 };
+
+export const IMMERSIVE_LAUNCH_PERFORMANCE_BASELINE: ImmersiveLaunchPerformanceSnapshot =
+  {
+    drawCalls: 114,
+    triangles: 32_000,
+    geometries: 86,
+    textures: 19,
+    p95FrameMs: 40,
+  };
+
+export const IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET: ImmersiveLaunchPerformanceBudget =
+  {
+    maxDrawCalls: 150,
+    maxTriangles: 50_000,
+    maxGeometries: 125,
+    maxTextures: 32,
+    maxP95FrameMs: 80,
+  };
 
 export const VISUAL_SMOKE_DIFF_BUDGET = {
   /** Acceptable ratio of changed pixels when comparing launch screenshots. */
@@ -196,4 +256,61 @@ export function isWithinBudget(
   budget: PerformanceBudget
 ): boolean {
   return createPerformanceBudgetReport(snapshot, budget).isWithinBudget;
+}
+
+const createLaunchUsage = (
+  metric: keyof ImmersiveLaunchPerformanceSnapshot,
+  used: number,
+  limit: number
+): ImmersiveLaunchBudgetUsage => {
+  const usage = createUsage(used, limit);
+  return {
+    metric,
+    used: usage.used,
+    limit: usage.limit,
+    remaining: usage.remaining,
+    overBudgetBy: usage.overBudgetBy,
+    status: usage.status,
+    hasInvalidMeasurements: usage.hasInvalidMeasurements,
+  };
+};
+
+export function createImmersiveLaunchBudgetReport(
+  snapshot: ImmersiveLaunchPerformanceSnapshot,
+  budget: ImmersiveLaunchPerformanceBudget = IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET
+): ImmersiveLaunchBudgetReport {
+  const drawCalls = createLaunchUsage(
+    'drawCalls',
+    snapshot.drawCalls,
+    budget.maxDrawCalls
+  );
+  const triangles = createLaunchUsage(
+    'triangles',
+    snapshot.triangles,
+    budget.maxTriangles
+  );
+  const geometries = createLaunchUsage(
+    'geometries',
+    snapshot.geometries,
+    budget.maxGeometries
+  );
+  const textures = createLaunchUsage(
+    'textures',
+    snapshot.textures,
+    budget.maxTextures
+  );
+  const p95FrameMs = createLaunchUsage(
+    'p95FrameMs',
+    snapshot.p95FrameMs,
+    budget.maxP95FrameMs
+  );
+  const entries = [drawCalls, triangles, geometries, textures, p95FrameMs];
+  return {
+    drawCalls,
+    triangles,
+    geometries,
+    textures,
+    p95FrameMs,
+    isWithinBudget: entries.every((entry) => entry.overBudgetBy === 0),
+  };
 }

@@ -32,9 +32,41 @@ and the Vitest assertions when measurable changes land.
   - Summary snapshots dispatch a `portfolio:input-latency-summary` CustomEvent containing the
     reason and raw summary payload so dashboards and failover hooks can consume telemetry
     without re-implementing monitor plumbing.
-- **Workflow** – Capture metrics via the Three.js inspector: open devtools,
+
+## Immersive launch runtime budgets
+
+Playwright now enforces live launch diagnostics from
+`window.portfolio.performance.getSnapshot()` with
+`npm run perf:budget`, which also runs from the main `npm run check` gate and
+the pull-request test workflow. The thresholds are encoded in
+[`IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET`](../../src/assets/performance.ts) and are
+based on current local warm-launch measurements rounded up with conservative
+headroom so small content additions have room while accidental scene bloat still
+fails CI.
+
+| Metric           | Budget | Local baseline | Headroom rationale                                      |
+| ---------------- | ------ | -------------- | ------------------------------------------------------- |
+| Draw calls       | ≤ 150  | 114            | ~30% room for small decor without returning to bloat.   |
+| Triangles        | ≤ 50k  | 32k            | >50% room for mesh variance while catching large props. |
+| Geometries       | ≤ 125  | 86             | Allows modest structure/POI growth.                     |
+| Textures/proxies | ≤ 32   | 19             | Leaves room for a few atlases, not unbounded screens.   |
+| p95 frame time   | ≤ 80ms | 40ms           | Hardware-only guard with 2× local warm-launch slack.    |
+
+Software renderers such as SwiftShader still have to expose coherent renderer
+counters and scene-detail diagnostics, but raw per-frame counters may remain
+zero if the fallback cadence samples before a completed render frame. Hardware
+renderers therefore keep the nonzero counter assertions while software renderer
+runs assert nonnegative, budget-shaped diagnostics. The p95 frame-time budget is
+skipped because CI CPU contention makes that metric unreliable without a hardware GPU.
+Failure messages include the actual value, budget, renderer risk level, and
+quality level.
+
+- **Workflow** – Capture static press-kit metrics via the Three.js inspector: open devtools,
   run `renderer.info.render` and `renderer.info.memory` after the camera settles
-  at launch. Update the snapshot date and notes when refreshing numbers.
+  at launch. Update the snapshot date and notes when refreshing numbers. Refresh
+  runtime launch budgets by running `npm run perf:budget` locally, copying the
+  warmed diagnostics from failures or `window.portfolio.performance.getSnapshot()`,
+  and preserving documented headroom.
 
 ## Performance scene detail mode
 
