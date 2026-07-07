@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { ensurePortfolioApi, setPortfolioSection } from '../portfolioApi';
+import {
+  clearPortfolioSection,
+  ensurePortfolioApi,
+  setPortfolioSection,
+} from '../portfolioApi';
 
 describe('portfolioApi namespace helpers', () => {
   const createWindow = (portfolio?: Window['portfolio']) =>
@@ -48,6 +52,40 @@ describe('portfolioApi namespace helpers', () => {
 
     expect(targetWindow.portfolio?.audio).toBe(nextAudio);
     expect(targetWindow.portfolio?.narration).toBe(narration);
+  });
+
+  it('recreates the namespace when window.portfolio is a falsy non-object value', () => {
+    const targetWindow = createWindow(false as unknown as Window['portfolio']);
+
+    const audio = {
+      getState: () => ({ preferenceEnabled: true }),
+    } as Window['portfolio']['audio'];
+    setPortfolioSection('audio', audio, targetWindow);
+
+    expect(targetWindow.portfolio?.audio).toBe(audio);
+  });
+
+  it('clears one section without deleting sibling sections', () => {
+    const audio = {
+      getState: () => ({ preferenceEnabled: true }),
+    } as Window['portfolio']['audio'];
+    const narration = {
+      getState: () => ({ visible: false }),
+    } as Window['portfolio']['narration'];
+    const targetWindow = createWindow({ audio, narration });
+
+    clearPortfolioSection('audio', targetWindow);
+
+    expect(targetWindow.portfolio?.audio).toBeUndefined();
+    expect(targetWindow.portfolio?.narration).toBe(narration);
+  });
+
+  it('does not create an empty namespace when clearing a missing portfolio API', () => {
+    const targetWindow = createWindow();
+
+    clearPortfolioSection('audio', targetWindow);
+
+    expect(targetWindow.portfolio).toBeUndefined();
   });
 
   it('returns the existing namespace when window.portfolio already exists', () => {

@@ -247,7 +247,10 @@ declare global {
 export function ensurePortfolioApi(
   targetWindow: Window = window
 ): PortfolioApi {
-  targetWindow.portfolio ??= {};
+  if (!targetWindow.portfolio) {
+    targetWindow.portfolio = {};
+  }
+
   return targetWindow.portfolio;
 }
 
@@ -265,5 +268,9 @@ export function clearPortfolioSection(
   section: keyof PortfolioApi,
   targetWindow: Window = window
 ): void {
-  delete ensurePortfolioApi(targetWindow)[section];
+  if (!targetWindow.portfolio) {
+    return;
+  }
+
+  delete targetWindow.portfolio[section];
 }
