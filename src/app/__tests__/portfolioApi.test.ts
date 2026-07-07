@@ -54,8 +54,10 @@ describe('portfolioApi namespace helpers', () => {
     expect(targetWindow.portfolio?.narration).toBe(narration);
   });
 
-  it('recreates the namespace when window.portfolio is a falsy non-object value', () => {
-    const targetWindow = createWindow(false as unknown as Window['portfolio']);
+  it('recreates the namespace when window.portfolio is a non-object value', () => {
+    const targetWindow = createWindow(
+      'debug' as unknown as Window['portfolio']
+    );
 
     const audio = {
       getState: () => ({ preferenceEnabled: true }),

@@ -247,7 +247,7 @@ declare global {
 export function ensurePortfolioApi(
   targetWindow: Window = window
 ): PortfolioApi {
-  if (!targetWindow.portfolio) {
+  if (!targetWindow.portfolio || typeof targetWindow.portfolio !== 'object') {
     targetWindow.portfolio = {};
   }
 
