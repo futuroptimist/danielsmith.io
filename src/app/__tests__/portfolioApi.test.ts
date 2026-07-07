@@ -88,18 +88,28 @@ describe('portfolioApi namespace helpers', () => {
     });
   });
 
-  it('clears key bindings without deleting the input namespace', () => {
+  it('clears key bindings without deleting sibling input fields or replacing input', () => {
     const keyBindings = {
       getBindings: () => ({}),
       setBinding: () => undefined,
       resetBinding: () => undefined,
       resetAll: () => undefined,
     };
-    const targetWindow = createWindow({ input: { keyBindings } });
+    const input = {
+      keyBindings,
+      customDiagnostics: { enabled: true },
+      inputSibling: 'preserved',
+    };
+    const targetWindow = createWindow({ input });
 
     clearPortfolioInputKeyBindings(targetWindow);
 
-    expect(targetWindow.portfolio?.input).toEqual({});
+    expect(targetWindow.portfolio?.input).toBe(input);
+    expect(targetWindow.portfolio?.input?.keyBindings).toBeUndefined();
+    expect(targetWindow.portfolio?.input?.customDiagnostics).toEqual({
+      enabled: true,
+    });
+    expect(targetWindow.portfolio?.input?.inputSibling).toBe('preserved');
   });
 
   it('clears one section without deleting sibling sections', () => {
