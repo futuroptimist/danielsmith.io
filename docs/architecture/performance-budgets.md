@@ -1,8 +1,8 @@
 # Performance budgets
 
-These guardrails capture the renderer metrics we sampled while booting the
-immersive scene on Chrome 124 (MacBook Pro M2 Pro). Update both the snapshot
-and the Vitest assertions when measurable changes land.
+These guardrails capture static scene metrics and live renderer diagnostics sampled while
+booting the immersive scene. Update the snapshots, Playwright guard, and Vitest assertions
+when measurable changes land.
 
 | Metric           | Budget  | Baseline | Headroom |
 | ---------------- | ------- | -------- | -------- |
@@ -10,11 +10,29 @@ and the Vitest assertions when measurable changes land.
 | Draw calls       | ≤ 150   | 132      | 18       |
 | Texture memory   | ≤ 24 MB | 18.0 MB  | 6.0 MB   |
 
+Runtime launch budgets are enforced from `window.portfolio.performance.getSnapshot()`
+after immersive warmup. Thresholds use the current local launch diagnostics rounded up
+with conservative CI headroom: enough slack for driver variance, but tight enough that
+large accidental scene bloat fails review. Software renderers still validate that
+diagnostics are finite and coherent, but skip frame-time enforcement because SwiftShader
+latency is host-dependent.
+
+| Runtime metric | Budget   | Baseline | Headroom |
+| -------------- | -------- | -------- | -------- |
+| Draw calls     | ≤ 130    | 84       | 46       |
+| Triangles      | ≤ 10,000 | 4,124    | 5,876    |
+| Geometries     | ≤ 130    | 89       | 41       |
+| Textures       | ≤ 16     | 7        | 9        |
+| p95 frame time | ≤ 80 ms  | 33 ms    | 47 ms    |
+
 - **Source** – [`src/assets/performance.ts`](../../src/assets/performance.ts)
   contains the structured data (`IMMERSIVE_PERFORMANCE_BUDGET` and
   `IMMERSIVE_SCENE_BASELINE`).
 - **Assertion** – [`src/tests/performanceBudget.test.ts`](../../src/tests/performanceBudget.test.ts)
-  enforces the headroom values so regressions fail fast in CI.
+  enforces the static headroom values, and
+  [`playwright/immersive-performance.spec.ts`](../../playwright/immersive-performance.spec.ts)
+  enforces live launch renderer budgets. Run `npm run perf:budget` for the focused
+  Playwright gate.
 - **Headroom labels** – `createPerformanceBudgetReport(...)` now adds a `status` label
   (`within-budget`, `over-budget`, or `invalid`) plus a clamped `remainingPercent` so
   press-kit exports and dashboards surface budget health without recomputing ratios.

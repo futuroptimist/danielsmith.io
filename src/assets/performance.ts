@@ -7,6 +7,29 @@ export interface PerformanceBudget {
   maxTextureBytes: number;
 }
 
+export interface ImmersiveLaunchPerformanceBudget {
+  /** Maximum renderer.info.render.calls after immersive launch warmup. */
+  maxDrawCalls: number;
+  /** Maximum renderer.info.render.triangles after immersive launch warmup. */
+  maxTriangles: number;
+  /** Maximum renderer.info.memory.geometries after immersive launch warmup. */
+  maxGeometries: number;
+  /** Maximum renderer.info.memory.textures after immersive launch warmup. */
+  maxTextures: number;
+  /** Maximum p95 frame time for non-software renderers after interaction warmup. */
+  maxP95FrameMs: number;
+}
+
+export interface ImmersiveLaunchPerformanceBaseline {
+  drawCalls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+  p95FrameMs: number;
+  capturedAtIso: string;
+  notes: string;
+}
+
 export interface ScenePerformanceSnapshot {
   /** Counted unique materials from the renderer info inspector. */
   materialCount: number;
@@ -72,8 +95,29 @@ export const IMMERSIVE_SCENE_BASELINE: ScenePerformanceSnapshot = {
   textureBytes: 18_874_368,
   capturedAtIso: '2024-05-17T00:00:00.000Z',
   notes:
-    'Captured with Chrome 124 WebGL inspector at launch pose after camera settle.',
+    'Legacy Chrome 124 WebGL inspector snapshot retained for press-kit headroom.',
 };
+
+export const IMMERSIVE_LAUNCH_PERFORMANCE_BASELINE: ImmersiveLaunchPerformanceBaseline =
+  {
+    drawCalls: 84,
+    triangles: 4_124,
+    geometries: 89,
+    textures: 7,
+    p95FrameMs: 33,
+    capturedAtIso: '2026-07-07T00:00:00.000Z',
+    notes:
+      'Local launch diagnostics rounded up from immersive warmup with conservative CI headroom.',
+  };
+
+export const IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET: ImmersiveLaunchPerformanceBudget =
+  {
+    maxDrawCalls: 130,
+    maxTriangles: 10_000,
+    maxGeometries: 130,
+    maxTextures: 16,
+    maxP95FrameMs: 80,
+  };
 
 export const VISUAL_SMOKE_DIFF_BUDGET = {
   /** Acceptable ratio of changed pixels when comparing launch screenshots. */
