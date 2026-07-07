@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "POI input cancellation and scheduler typing changed without miniature geometry impact.",
-      "sourceFingerprint": "ba0efc114298f8cb7dfb0e101ea037643b93f68776c3570115fda69389629cd6",
+      "syncRevision": 4,
+      "syncNote": "POI click hover synchronization changed without miniature geometry impact.",
+      "sourceFingerprint": "6dddb08d66a570116e185b259ae0811f58cf19938cc80902d86c5e7ac8de7942",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "a3553703b6dcf553e5805943536f58007cfda7749b339b8a5e808a17e3d45dbb"
+      "metadataFingerprint": "0b5288df3f5d099e4314af7dd842ee8ea15737ab71e0bf790ea87c7a02200594"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",

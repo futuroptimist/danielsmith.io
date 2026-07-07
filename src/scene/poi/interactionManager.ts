@@ -255,8 +255,12 @@ export class PoiInteractionManager {
       return;
     }
     this.usingKeyboard = false;
+    const hadPendingHoverFrame = this.pendingHoverFrame !== null;
     this.cancelScheduledHoverPick();
     const poi = this.pickPoi();
+    if (hadPendingHoverFrame) {
+      this.setHovered(poi, 'pointer');
+    }
     if (!poi) {
       this.setSelected(null, 'pointer');
       return;

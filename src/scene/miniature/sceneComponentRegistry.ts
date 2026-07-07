@@ -368,9 +368,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:interactionManager',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/interactionManager.ts'],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'POI input cancellation and scheduler typing changed without miniature geometry impact.',
+      'POI click hover synchronization changed without miniature geometry impact.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },

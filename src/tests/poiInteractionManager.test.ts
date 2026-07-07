@@ -490,6 +490,62 @@ describe('PoiInteractionManager', () => {
     intersectSpy.mockRestore();
   });
 
+  it('syncs hover to click picks when cancelling pending pointer hover work', () => {
+    manager.dispose();
+    const secondDefinition: PoiDefinition = {
+      ...definition,
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Centerpiece',
+      position: { x: 3, y: 0, z: 0 },
+      interactionPrompt: 'Engage Flywheel Centerpiece',
+    };
+    const secondPoi = createMockPoi(secondDefinition);
+    secondPoi.hitArea.updateWorldMatrix(true, true);
+    manager = new PoiInteractionManager(domElement, camera, [poi, secondPoi], {
+      frameScheduler: frameScheduler.scheduler,
+    });
+    const selection = vi.fn();
+    const hover = vi.fn();
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.addSelectionListener(selection);
+    manager.addHoverListener(hover);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    frameScheduler.runFrame();
+    expect(hover).toHaveBeenLastCalledWith(definition);
+    expect(poi.focusTarget).toBe(1);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 320, clientY: 200 })
+    );
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 320, clientY: 200 })
+    );
+
+    expect(selection).toHaveBeenCalledWith(secondDefinition, {
+      inputMethod: 'pointer',
+    });
+    expect(hover).toHaveBeenLastCalledWith(secondDefinition);
+    expect(secondPoi.focusTarget).toBe(1);
+    expect(poi.focusTarget).toBe(0);
+    expect(frameScheduler.pendingCount).toBe(0);
+    expect(intersectSpy).toHaveBeenCalledTimes(2);
+
+    frameScheduler.runFrame();
+
+    expect(intersectSpy).toHaveBeenCalledTimes(2);
+    expect(hover).toHaveBeenLastCalledWith(secondDefinition);
+    expect(secondPoi.focusTarget).toBe(1);
+    expect(poi.focusTarget).toBe(0);
+
+    intersectSpy.mockRestore();
+  });
+
   it('does not hover or select disabled POIs from pointer input', () => {
     manager.dispose();
     manager = new PoiInteractionManager(domElement, camera, [poi], {
