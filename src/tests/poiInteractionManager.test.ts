@@ -7,15 +7,53 @@ import {
   MeshStandardMaterial,
   OrthographicCamera,
   PlaneGeometry,
+  Raycaster,
   RingGeometry,
   SphereGeometry,
   Vector3,
 } from 'three';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
-import { PoiInteractionManager } from '../scene/poi/interactionManager';
+import {
+  PoiInteractionManager,
+  type PoiInteractionScheduler,
+} from '../scene/poi/interactionManager';
 import type { PoiInstance } from '../scene/poi/markers';
 import type { PoiAnalytics, PoiDefinition } from '../scene/poi/types';
+
+const immediateScheduler: PoiInteractionScheduler = {
+  requestAnimationFrame: (callback) => {
+    callback(0);
+    return 1;
+  },
+  cancelAnimationFrame: vi.fn(),
+};
+
+function createQueuedScheduler() {
+  let nextHandle = 1;
+  const callbacks = new Map<number, FrameRequestCallback>();
+  const scheduler: PoiInteractionScheduler = {
+    requestAnimationFrame: vi.fn((callback) => {
+      const handle = nextHandle;
+      nextHandle += 1;
+      callbacks.set(handle, callback);
+      return handle;
+    }),
+    cancelAnimationFrame: vi.fn((handle) => {
+      callbacks.delete(handle);
+    }),
+  };
+
+  return {
+    scheduler,
+    flush: () => {
+      const pending = [...callbacks.entries()];
+      callbacks.clear();
+      pending.forEach(([, callback]) => callback(0));
+    },
+    pendingCount: () => callbacks.size,
+  };
+}
 
 function createMockPoi(definition: PoiDefinition): PoiInstance {
   const group = new Group();
@@ -200,7 +238,9 @@ describe('PoiInteractionManager', () => {
     camera.updateMatrixWorld(true);
     poi = createMockPoi(definition);
     poi.hitArea.updateWorldMatrix(true, true);
-    manager = new PoiInteractionManager(domElement, camera, [poi]);
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      scheduler: immediateScheduler,
+    });
   });
 
   afterEach(() => {
@@ -291,6 +331,139 @@ describe('PoiInteractionManager', () => {
     ]);
 
     window.removeEventListener('poi:hovered', recordHover);
+  });
+
+  it('coalesces many pointer hover moves into one raycast per frame', () => {
+    manager.dispose();
+    const queued = createQueuedScheduler();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      scheduler: queued.scheduler,
+    });
+    const raycastSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 190, clientY: 190 })
+    );
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 210, clientY: 210 })
+    );
+
+    expect(queued.pendingCount()).toBe(1);
+    expect(queued.scheduler.requestAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(raycastSpy).not.toHaveBeenCalled();
+
+    queued.flush();
+
+    expect(raycastSpy).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+  });
+
+  it('coalesces touchmove hover picking through the same frame path', () => {
+    manager.dispose();
+    const queued = createQueuedScheduler();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      scheduler: queued.scheduler,
+    });
+    const raycastSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.start();
+
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 190, clientY: 190, identifier: 7 },
+    ]);
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 200, clientY: 200, identifier: 7 },
+    ]);
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 210, clientY: 210, identifier: 7 },
+    ]);
+
+    expect(queued.pendingCount()).toBe(1);
+    expect(queued.scheduler.requestAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(raycastSpy).not.toHaveBeenCalled();
+
+    queued.flush();
+
+    expect(raycastSpy).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+  });
+
+  it('keeps click selection immediate while hover picking is pending', () => {
+    manager.dispose();
+    const queued = createQueuedScheduler();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      scheduler: queued.scheduler,
+    });
+    const selection = vi.fn();
+    manager.addSelectionListener(selection);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(queued.pendingCount()).toBe(1);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+
+    expect(selection).toHaveBeenCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
+    expect(queued.scheduler.cancelAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(queued.pendingCount()).toBe(0);
+  });
+
+  it('does not hover or select disabled POIs through pointer input', () => {
+    manager.dispose();
+    const queued = createQueuedScheduler();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      isPoiEnabled: () => false,
+      scheduler: queued.scheduler,
+    });
+    const hover = vi.fn();
+    const selection = vi.fn();
+    manager.addHoverListener(hover);
+    manager.addSelectionListener(selection);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    queued.flush();
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+
+    expect(hover).not.toHaveBeenCalled();
+    expect(selection).not.toHaveBeenCalled();
+    expect(poi.focusTarget).toBe(0);
+  });
+
+  it('cancels pending hover work during dispose', () => {
+    manager.dispose();
+    const queued = createQueuedScheduler();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      scheduler: queued.scheduler,
+    });
+    const hover = vi.fn();
+    manager.addHoverListener(hover);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(queued.pendingCount()).toBe(1);
+
+    manager.dispose();
+
+    expect(queued.scheduler.cancelAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(queued.pendingCount()).toBe(0);
+    queued.flush();
+    expect(hover).not.toHaveBeenCalled();
   });
 
   it('persists focus on selected POIs and emits selection events', () => {
@@ -427,6 +600,7 @@ describe('PoiInteractionManager', () => {
       [poi, secondPoi],
       {
         keyboardTarget: window,
+        scheduler: immediateScheduler,
       }
     );
     keyboardManager.start();
@@ -494,6 +668,7 @@ describe('PoiInteractionManager', () => {
     let enabled = true;
     manager = new PoiInteractionManager(domElement, camera, [poi], {
       isPoiEnabled: () => enabled,
+      scheduler: immediateScheduler,
     });
     manager.start();
     const listener = vi.fn();
@@ -540,6 +715,7 @@ describe('PoiInteractionManager', () => {
       [poi],
       {
         isPoiEnabled: () => false,
+        scheduler: immediateScheduler,
       }
     );
     disabledManager.start();
@@ -598,6 +774,7 @@ describe('PoiInteractionManager', () => {
       [poi],
       {
         enableKeyboard: false,
+        scheduler: immediateScheduler,
       }
     );
     disabledManager.start();
@@ -626,7 +803,7 @@ describe('PoiInteractionManager', () => {
       domElement,
       camera,
       [poi],
-      {},
+      { scheduler: immediateScheduler },
       analytics
     );
     manager.start();
@@ -650,7 +827,7 @@ describe('PoiInteractionManager', () => {
     expect(selectionCleared).toHaveBeenCalledWith(definition);
   });
 
-  it('supports analytics passed without options for backward compatibility', () => {
+  it('supports analytics passed without options for backward compatibility', async () => {
     const analytics = {
       hoverStarted: vi.fn(),
       hoverEnded: vi.fn(),
@@ -665,6 +842,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    await new Promise((resolve) => window.setTimeout(resolve, 20));
     expect(analytics.hoverStarted).toHaveBeenCalledWith(definition);
 
     domElement.dispatchEvent(

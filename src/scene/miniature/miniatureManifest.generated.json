@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "a52d2497b276ac5d5ff83f125009c30a60bac5f6e1c1dffd4026b620bd649309",
+      "syncRevision": 2,
+      "syncNote": "Pointer hover scheduling changed only POI input timing; no tabletop geometry impact.",
+      "sourceFingerprint": "1c7d1f6531d0fa400a2679fef1e5d6334417a42d259b5bdb62ec34c5ec48b083",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7833a0acc7a87821f9e504f5926037b1c91a902adb380bed8122f5a9f41d54b3"
+      "metadataFingerprint": "3f0404b8c19666be162fe8e2214d3a1ef3cfa1e4361bdddc9a059fae8d5b127f"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",
