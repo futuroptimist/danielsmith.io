@@ -23,9 +23,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
-      'Miniature house will derive floors, room bounds, and door openings from shared level data.',
+      'Type-only wall schema cleanup keeps portfolio layout data unchanged.',
   },
   {
     id: 'level:floors-walls',
@@ -36,8 +36,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/wallSegmentsMesh.ts',
       'src/scene/structures/floorTiles.ts',
     ],
-    syncRevision: 1,
-    syncNote: 'Floor and wall shells are generated from shared topology.',
+    syncRevision: 2,
+    syncNote:
+      'Type-only wall geometry guards keep generated floor and wall topology unchanged.',
   },
   {
     id: 'level:stairs-landing',
@@ -136,8 +137,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/debug/colliderVisualizer.ts',
       'src/scene/debug/solidVisualizer.ts',
     ],
-    syncRevision: 1,
-    reason: 'Debug visualizers are not production miniature geometry.',
+    syncRevision: 2,
+    reason:
+      'Type-only debug metadata guards do not affect production miniature geometry.',
   },
   {
     id: 'audit:src:scene:avatar:accessoryManager',
@@ -223,9 +225,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:level:compileLegacyFloorPlan',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/compileLegacyFloorPlan.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Type-only wall run guards keep legacy doorway compilation unchanged for miniature geometry.',
   },
   {
     id: 'audit:src:scene:level:floorElevations',
@@ -311,9 +313,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:lighting:ledPulsePrograms',
     kind: 'excluded',
     sourceFiles: ['src/scene/lighting/ledPulsePrograms.ts'],
-    syncRevision: 1,
-    reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+    syncRevision: 2,
+    reason: 'Type-only multiplier guard keeps LED pulse geometry-independent.',
   },
   {
     id: 'audit:src:scene:lighting:lightmapBounceAnimator',
@@ -431,9 +432,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:visitedState',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/visitedState.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Type-only visited-id narrowing does not affect miniature geometry.',
   },
   {
     id: 'audit:src:scene:structures:doorwayOpenings',

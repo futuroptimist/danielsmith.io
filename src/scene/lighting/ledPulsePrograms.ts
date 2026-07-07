@@ -122,7 +122,7 @@ function sanitizeMultiplier(
   value: number | undefined,
   fallback: number
 ): number {
-  if (!Number.isFinite(value)) {
+  if (value === undefined || !Number.isFinite(value)) {
     return fallback;
   }
   if (value < 0) {

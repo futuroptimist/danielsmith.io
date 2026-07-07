@@ -59,7 +59,7 @@ const collectVisitedIds = (
   const collected: PoiId[] = [];
   for (const id of ids) {
     if (typeof id === 'string') {
-      collected.push(id);
+      collected.push(id as PoiId);
     }
   }
   return collected;

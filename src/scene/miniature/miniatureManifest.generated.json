@@ -113,11 +113,11 @@
       "id": "audit:src:scene:level:compileLegacyFloorPlan",
       "sourceFiles": ["src/scene/level/compileLegacyFloorPlan.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "f6634ef46afd88cd00b32b1ed1a8f63c369f2df47ab9f86d66edbf5588f68add",
+      "syncRevision": 2,
+      "syncNote": "Type-only wall run guards keep legacy doorway compilation unchanged for miniature geometry.",
+      "sourceFingerprint": "5f485b426f454311e3c572140d6ee51610e52eb73a0b4686ba2e4502f0264472",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "12d9777c557e3e9cb23402d29d29076d41a6c10219b2f49367d076647a48f06d"
+      "metadataFingerprint": "d8296ad828d6e5b0b44103391a53023309fc0b372792a2b9e782e9a7649e7b80"
     },
     {
       "id": "audit:src:scene:level:floorElevations",
@@ -223,11 +223,11 @@
       "id": "audit:src:scene:lighting:ledPulsePrograms",
       "sourceFiles": ["src/scene/lighting/ledPulsePrograms.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "8eab15b98746714e634fc35171611eb841a12d7b0e7007ba6b235a1c9173fcd9",
+      "syncRevision": 2,
+      "syncNote": "Type-only multiplier guard keeps LED pulse geometry-independent.",
+      "sourceFingerprint": "fce27f42fa3f15902964faeb8929f75d51c2cc5190d15056221a7626e726bea3",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "17c337145f81b3622d6850691e3c7d39c80473d703f358ed64264de9e8877a3f"
+      "metadataFingerprint": "c4cfe15ffe571d7b96e1c70a8aa41004f0b87290db29a2f6d013ad7f4a951943"
     },
     {
       "id": "audit:src:scene:lighting:lightmapBounceAnimator",
@@ -363,11 +363,11 @@
       "id": "audit:src:scene:poi:visitedState",
       "sourceFiles": ["src/scene/poi/visitedState.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "354a2b848939b672bfaf01478ed5088f6788e7e715b70d678fb0c0fca2b4228d",
+      "syncRevision": 2,
+      "syncNote": "Type-only visited-id narrowing does not affect miniature geometry.",
+      "sourceFingerprint": "515d26ec1f209b391a54662aa48d896eda035ad5d71bc405afba458365f4b7a7",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "d15fd8e5eeef68cd49ba7216c47c8d6d2d1f5e0ad989a005cd666b531221e9b2"
+      "metadataFingerprint": "ff65a7e11e301aba919fb88b757befb581adce8fcd44955d307009ecf24efb2f"
     },
     {
       "id": "audit:src:scene:poi:visualAnchors",
@@ -419,11 +419,11 @@
         "src/scene/debug/solidVisualizer.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Debug visualizers are not production miniature geometry.",
-      "sourceFingerprint": "275199031c0ce245b85ba5c624c3978135c6c0e65801dd1ec07e772c70af229f",
+      "syncRevision": 2,
+      "syncNote": "Type-only debug metadata guards do not affect production miniature geometry.",
+      "sourceFingerprint": "a251aab907fffd07392c2b9efae7bfe197a2f7e6b02996170a5c85466b77c5a8",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "050e6ab2fb06a709542332a2b47c88b9946dcec7751e92f3128dcb084246e863"
+      "metadataFingerprint": "2a874cb39a2205c09801582f3000c15fc4d897570b4cc096b67ab63a47dbb68a"
     },
     {
       "id": "decor:ceiling-panels",
@@ -474,11 +474,11 @@
         "src/scene/structures/wallSegmentsMesh.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Floor and wall shells are generated from shared topology.",
-      "sourceFingerprint": "e10a4597142585a1870bfe7c447e9a9ae1ee6f621991e151cad171578f65ba07",
+      "syncRevision": 2,
+      "syncNote": "Type-only wall geometry guards keep generated floor and wall topology unchanged.",
+      "sourceFingerprint": "5f2b2b41faf9adfaea0ba0f96580e18c51cf8f04c4729ef7986a7e251fd2223c",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "99d9c0161e76811b1e157519f365829256bcd5170b66aff1677153d8276c8c3e"
+      "metadataFingerprint": "c04d97d08981648eb9a6d7c1480a4c7dc3d341a21375554352a0a4f1ababd1e3"
     },
     {
       "id": "level:portfolio-layout",
@@ -488,11 +488,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Miniature house will derive floors, room bounds, and door openings from shared level data.",
-      "sourceFingerprint": "f4ba5a1f4a95c5d25c4c1bffc0fc762f635987e4360c656930ad05093d493fc5",
+      "syncRevision": 2,
+      "syncNote": "Type-only wall schema cleanup keeps portfolio layout data unchanged.",
+      "sourceFingerprint": "b3f2e0c11b30012b5a2d22dcd3b8dbc5d230f57c4b28dddb7ba91106b8a62439",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "606f9a96c9448860369087147d4058da977365cdab1a430626f2b5ddf995bfb7"
+      "metadataFingerprint": "acb861bc93948e77a4dc0501b3e097b58abd15a34ab7ec3395379e62359c2320"
     },
     {
       "id": "level:stairs-landing",

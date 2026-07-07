@@ -594,6 +594,24 @@ declare global {
           label: string;
           description?: string;
         }>;
+        listAccessories(): Array<{
+          id: AvatarAccessoryId;
+          label: string;
+          description?: string;
+          enabled: boolean;
+        }>;
+        getAccessories(): AvatarAccessoryState[];
+        setAccessoryEnabled(id: AvatarAccessoryId, enabled: boolean): void;
+        toggleAccessory(id: AvatarAccessoryId): void;
+        applyAccessoryPreset(id: AvatarAccessoryPresetId): void;
+        listAccessoryPresets(): Array<{
+          id: AvatarAccessoryPresetId;
+          label: string;
+          description: string;
+        }>;
+        isAccessoryPresetUnlocked(id: AvatarAccessoryPresetId): boolean;
+        unlockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
+        lockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
         loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
       };
       performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
@@ -3608,8 +3626,6 @@ function initializeImmersiveScene(
   footstepAudioNode.setBuffer(footstepSample);
   if (footstepStereoPanner) {
     footstepAudioNode.setFilter(footstepStereoPanner);
-  } else {
-    footstepAudioNode.setFilter(null);
   }
   player.add(footstepAudioNode);
   footstepAudio = footstepAudioNode;
