@@ -30,7 +30,8 @@
     "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts",
     "miniature:check": "tsx scripts/miniatureManifest.ts",
     "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update",
-    "smoke:promotion": "node scripts/run-promotion-smoke.cjs"
+    "smoke:promotion": "node scripts/run-promotion-smoke.cjs",
+    "perf:budget": "playwright test playwright/immersive-performance.spec.ts"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
