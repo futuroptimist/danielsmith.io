@@ -9,6 +9,23 @@ export interface PoiSelectionContext {
   inputMethod: PoiSelectionInputMethod;
 }
 
+function createDefaultFrameScheduler(): PoiInteractionFrameScheduler {
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.requestAnimationFrame === 'function' &&
+    typeof window.cancelAnimationFrame === 'function'
+  ) {
+    return {
+      request: window.requestAnimationFrame.bind(window),
+      cancel: window.cancelAnimationFrame.bind(window),
+    };
+  }
+  return {
+    request: (callback) => setTimeout(() => callback(Date.now()), 0),
+    cancel: (handle) => clearTimeout(handle),
+  };
+}
+
 function isPoiAnalyticsCandidate(value: unknown): value is PoiAnalytics {
   if (!value || typeof value !== 'object') {
     return false;
@@ -37,10 +54,18 @@ type ListenerTarget = Pick<
   'addEventListener' | 'removeEventListener'
 >;
 
+export type PoiInteractionFrameHandle = number | ReturnType<typeof setTimeout>;
+
+export interface PoiInteractionFrameScheduler {
+  request(callback: FrameRequestCallback): PoiInteractionFrameHandle;
+  cancel(handle: PoiInteractionFrameHandle): void;
+}
+
 export interface PoiInteractionOptions {
   keyboardTarget?: ListenerTarget | null;
   enableKeyboard?: boolean;
   isPoiEnabled?: (poi: PoiInstance) => boolean;
+  frameScheduler?: PoiInteractionFrameScheduler;
 }
 
 export class PoiInteractionManager {
@@ -60,10 +85,14 @@ export class PoiInteractionManager {
   private usingKeyboard = false;
   private touchPointerId: number | null = null;
   private suppressSyntheticClickUntil = 0;
+  private pendingHoverFrame: PoiInteractionFrameHandle | null = null;
+  private pendingHoverInput: PoiSelectionInputMethod | null = null;
   private lastSelectionInput: PoiSelectionInputMethod = 'pointer';
   private lastHoverInput: PoiSelectionInputMethod = 'pointer';
 
   private static readonly syntheticClickSuppressionMs = 500;
+
+  private readonly frameScheduler: PoiInteractionFrameScheduler;
 
   private readonly analytics?: PoiAnalytics;
 
@@ -89,6 +118,7 @@ export class PoiInteractionManager {
     this.handleTouchMove = this.handleTouchMove.bind(this);
     this.handleTouchEnd = this.handleTouchEnd.bind(this);
     this.handleTouchCancel = this.handleTouchCancel.bind(this);
+    this.runScheduledHoverPick = this.runScheduledHoverPick.bind(this);
 
     const resolvedOptions: PoiInteractionOptions = options ?? {};
 
@@ -100,6 +130,8 @@ export class PoiInteractionManager {
     this.keyboardTarget = defaultKeyboardTarget ?? domElement;
     this.enableKeyboard = resolvedOptions.enableKeyboard ?? true;
     this.isPoiEnabled = resolvedOptions.isPoiEnabled ?? (() => true);
+    this.frameScheduler =
+      resolvedOptions.frameScheduler ?? createDefaultFrameScheduler();
   }
 
   start() {
@@ -134,6 +166,7 @@ export class PoiInteractionManager {
       this.keyboardTarget?.removeEventListener('keydown', this.handleKeyDown);
     }
     this.active = false;
+    this.cancelScheduledHoverPick();
     this.setHovered(null);
     this.setSelected(null);
   }
@@ -164,6 +197,7 @@ export class PoiInteractionManager {
   }
 
   clearHover(inputMethod: PoiSelectionInputMethod = 'pointer'): void {
+    this.cancelScheduledHoverPick();
     this.setHovered(null, inputMethod);
   }
 
@@ -174,6 +208,7 @@ export class PoiInteractionManager {
     if (!poi || !this.isPoiEnabled(poi)) {
       return;
     }
+    this.cancelScheduledHoverPick();
     this.usingKeyboard = true;
     this.keyboardIndex = this.poiInstances.indexOf(poi);
     this.setHovered(poi, 'keyboard');
@@ -182,18 +217,25 @@ export class PoiInteractionManager {
   }
 
   private handleMouseMove(event: MouseEvent) {
-    this.suppressSyntheticClickUntil = 0;
+    if (this.suppressSyntheticClickUntil) {
+      const now = Date.now();
+      if (now <= this.suppressSyntheticClickUntil) {
+        event.preventDefault();
+        return;
+      }
+      this.suppressSyntheticClickUntil = 0;
+    }
     if (!this.updatePointer(event)) {
       return;
     }
     this.usingKeyboard = false;
-    const poi = this.pickPoi();
-    this.setHovered(poi, 'pointer');
+    this.scheduleHoverPick('pointer');
   }
 
   private handleMouseLeave() {
     this.suppressSyntheticClickUntil = 0;
     this.usingKeyboard = false;
+    this.cancelScheduledHoverPick();
     this.setHovered(null, 'pointer');
   }
 
@@ -202,6 +244,7 @@ export class PoiInteractionManager {
       const now = Date.now();
       if (now <= this.suppressSyntheticClickUntil) {
         this.suppressSyntheticClickUntil = 0;
+        this.cancelScheduledHoverPick();
         event.preventDefault();
         event.stopImmediatePropagation?.();
         return;
@@ -212,7 +255,12 @@ export class PoiInteractionManager {
       return;
     }
     this.usingKeyboard = false;
+    const hadPendingHoverFrame = this.pendingHoverFrame !== null;
+    this.cancelScheduledHoverPick();
     const poi = this.pickPoi();
+    if (hadPendingHoverFrame) {
+      this.setHovered(poi, 'pointer');
+    }
     if (!poi) {
       this.setSelected(null, 'pointer');
       return;
@@ -253,8 +301,7 @@ export class PoiInteractionManager {
     if (!this.updatePointerFromTouch(touch)) {
       return;
     }
-    const poi = this.pickPoi();
-    this.setHovered(poi, 'touch');
+    this.scheduleHoverPick('touch');
   }
 
   private handleTouchEnd(event: TouchEvent) {
@@ -262,11 +309,13 @@ export class PoiInteractionManager {
     this.usingKeyboard = false;
     if (!touch) {
       this.touchPointerId = null;
+      this.cancelScheduledHoverPick();
       this.setHovered(null, 'touch');
       this.suppressSyntheticClickUntil = 0;
       return;
     }
     this.touchPointerId = null;
+    this.cancelScheduledHoverPick();
     if (!this.updatePointerFromTouch(touch)) {
       this.suppressSyntheticClickUntil = 0;
       return;
@@ -288,6 +337,7 @@ export class PoiInteractionManager {
   private handleTouchCancel() {
     this.touchPointerId = null;
     this.usingKeyboard = false;
+    this.cancelScheduledHoverPick();
     this.setHovered(null, 'touch');
   }
 
@@ -319,6 +369,7 @@ export class PoiInteractionManager {
       normalizedKey === 'q';
 
     if (isCycleKey) {
+      this.cancelScheduledHoverPick();
       if (normalizedKey === 'e' || normalizedKey === 'q') {
         event.preventDefault();
       }
@@ -336,6 +387,7 @@ export class PoiInteractionManager {
           break;
         }
 
+        this.cancelScheduledHoverPick();
         event.preventDefault();
         if (!this.isPoiEnabled(this.hovered)) {
           const staleHovered = this.hovered;
@@ -353,6 +405,7 @@ export class PoiInteractionManager {
       }
       case 'escape':
         if (this.selected) {
+          this.cancelScheduledHoverPick();
           event.preventDefault();
           this.setSelected(null, 'keyboard');
         }
@@ -383,6 +436,34 @@ export class PoiInteractionManager {
     const poi = enabledPoiInstances[nextIndex];
     this.keyboardIndex = this.poiInstances.indexOf(poi);
     this.setHovered(poi, 'keyboard');
+  }
+
+  private scheduleHoverPick(inputMethod: PoiSelectionInputMethod) {
+    this.pendingHoverInput = inputMethod;
+    if (this.pendingHoverFrame !== null) {
+      return;
+    }
+    this.pendingHoverFrame = this.frameScheduler.request(
+      this.runScheduledHoverPick
+    );
+  }
+
+  private runScheduledHoverPick() {
+    this.pendingHoverFrame = null;
+    const inputMethod = this.pendingHoverInput ?? 'pointer';
+    this.pendingHoverInput = null;
+    const poi = this.pickPoi();
+    this.setHovered(poi, inputMethod);
+  }
+
+  private cancelScheduledHoverPick() {
+    if (this.pendingHoverFrame === null) {
+      this.pendingHoverInput = null;
+      return;
+    }
+    this.frameScheduler.cancel(this.pendingHoverFrame);
+    this.pendingHoverFrame = null;
+    this.pendingHoverInput = null;
   }
 
   private updatePointer(event: MouseEvent): boolean {

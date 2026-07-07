@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "a52d2497b276ac5d5ff83f125009c30a60bac5f6e1c1dffd4026b620bd649309",
+      "syncRevision": 4,
+      "syncNote": "POI click hover synchronization changed without miniature geometry impact.",
+      "sourceFingerprint": "6dddb08d66a570116e185b259ae0811f58cf19938cc80902d86c5e7ac8de7942",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7833a0acc7a87821f9e504f5926037b1c91a902adb380bed8122f5a9f41d54b3"
+      "metadataFingerprint": "0b5288df3f5d099e4314af7dd842ee8ea15737ab71e0bf790ea87c7a02200594"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",

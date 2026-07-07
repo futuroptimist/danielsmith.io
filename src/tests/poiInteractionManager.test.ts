@@ -7,13 +7,17 @@ import {
   MeshStandardMaterial,
   OrthographicCamera,
   PlaneGeometry,
+  Raycaster,
   RingGeometry,
   SphereGeometry,
   Vector3,
 } from 'three';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
-import { PoiInteractionManager } from '../scene/poi/interactionManager';
+import {
+  PoiInteractionManager,
+  type PoiInteractionFrameScheduler,
+} from '../scene/poi/interactionManager';
 import type { PoiInstance } from '../scene/poi/markers';
 import type { PoiAnalytics, PoiDefinition } from '../scene/poi/types';
 
@@ -147,6 +151,35 @@ function createTouchList(
   return touchList;
 }
 
+function createManualFrameScheduler() {
+  let nextHandle = 1;
+  const callbacks = new Map<number, FrameRequestCallback>();
+  const scheduler: PoiInteractionFrameScheduler = {
+    request(callback) {
+      const handle = nextHandle;
+      nextHandle += 1;
+      callbacks.set(handle, callback);
+      return handle;
+    },
+    cancel(handle) {
+      callbacks.delete(handle);
+    },
+  };
+  return {
+    scheduler,
+    get pendingCount() {
+      return callbacks.size;
+    },
+    runFrame() {
+      const frameCallbacks = [...callbacks.entries()];
+      callbacks.clear();
+      for (const [handle, callback] of frameCallbacks) {
+        callback(handle);
+      }
+    },
+  };
+}
+
 function dispatchTouchEvent(
   target: HTMLElement,
   type: 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel',
@@ -190,6 +223,7 @@ describe('PoiInteractionManager', () => {
   let camera: OrthographicCamera;
   let poi: PoiInstance;
   let manager: PoiInteractionManager;
+  let frameScheduler: ReturnType<typeof createManualFrameScheduler>;
 
   beforeEach(() => {
     domElement = createCanvas();
@@ -200,7 +234,10 @@ describe('PoiInteractionManager', () => {
     camera.updateMatrixWorld(true);
     poi = createMockPoi(definition);
     poi.hitArea.updateWorldMatrix(true, true);
-    manager = new PoiInteractionManager(domElement, camera, [poi]);
+    frameScheduler = createManualFrameScheduler();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      frameScheduler: frameScheduler.scheduler,
+    });
   });
 
   afterEach(() => {
@@ -214,6 +251,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
     expect(poi.focusTarget).toBe(1);
     expect(hoverListener).toHaveBeenLastCalledWith(definition);
 
@@ -233,6 +271,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
     expect(hoveredEvents).toHaveLength(1);
     expect(hoveredEvents[0]?.detail).toEqual({
       poi: definition,
@@ -275,6 +314,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
 
     dispatchTouchEvent(domElement, 'touchstart', [
       { clientX: 200, clientY: 200, identifier: 11 },
@@ -283,6 +323,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
 
     expect(hoveredEvents.map((event) => event.detail)).toEqual([
       { poi: definition, inputMethod: 'pointer' },
@@ -345,11 +386,13 @@ describe('PoiInteractionManager', () => {
     dispatchTouchEvent(domElement, 'touchmove', [
       { clientX: 210, clientY: 210, identifier: 42 },
     ]);
+    frameScheduler.runFrame();
     expect(hover).toHaveBeenLastCalledWith(definition);
 
     dispatchTouchEvent(domElement, 'touchmove', [
       { clientX: 205, clientY: 205, identifier: 99 },
     ]);
+    frameScheduler.runFrame();
     expect(hover).toHaveBeenLastCalledWith(definition);
 
     dispatchTouchEvent(domElement, 'touchend', [
@@ -367,11 +410,180 @@ describe('PoiInteractionManager', () => {
     dispatchTouchEvent(domElement, 'touchmove', [
       { clientX: 200, clientY: 200, identifier: 7 },
     ]);
+    frameScheduler.runFrame();
     expect(hover).toHaveBeenLastCalledWith(definition);
 
     dispatchTouchEvent(domElement, 'touchcancel', []);
     expect(hover).toHaveBeenLastCalledWith(null);
     expect(poi.focusTarget).toBe(1);
+  });
+
+  it('coalesces many mouse moves into one hover raycast per frame', () => {
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 180, clientY: 180 })
+    );
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 210, clientY: 210 })
+    );
+
+    expect(intersectSpy).not.toHaveBeenCalled();
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    frameScheduler.runFrame();
+
+    expect(intersectSpy).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+
+    intersectSpy.mockRestore();
+  });
+
+  it('coalesces touch moves through the same hover frame path', () => {
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.start();
+
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 190, clientY: 190, identifier: 2 },
+    ]);
+    dispatchTouchEvent(domElement, 'touchmove', [
+      { clientX: 200, clientY: 200, identifier: 2 },
+    ]);
+
+    expect(intersectSpy).not.toHaveBeenCalled();
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    frameScheduler.runFrame();
+
+    expect(intersectSpy).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+
+    intersectSpy.mockRestore();
+  });
+
+  it('keeps click selection immediate even with a pending hover frame', () => {
+    const selection = vi.fn();
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.addSelectionListener(selection);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 180, clientY: 180 })
+    );
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+
+    expect(selection).toHaveBeenCalledWith(definition, {
+      inputMethod: 'pointer',
+    });
+    expect(intersectSpy).toHaveBeenCalledTimes(1);
+    expect(frameScheduler.pendingCount).toBe(0);
+
+    frameScheduler.runFrame();
+    expect(intersectSpy).toHaveBeenCalledTimes(1);
+
+    intersectSpy.mockRestore();
+  });
+
+  it('syncs hover to click picks when cancelling pending pointer hover work', () => {
+    manager.dispose();
+    const secondDefinition: PoiDefinition = {
+      ...definition,
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Centerpiece',
+      position: { x: 3, y: 0, z: 0 },
+      interactionPrompt: 'Engage Flywheel Centerpiece',
+    };
+    const secondPoi = createMockPoi(secondDefinition);
+    secondPoi.hitArea.updateWorldMatrix(true, true);
+    manager = new PoiInteractionManager(domElement, camera, [poi, secondPoi], {
+      frameScheduler: frameScheduler.scheduler,
+    });
+    const selection = vi.fn();
+    const hover = vi.fn();
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.addSelectionListener(selection);
+    manager.addHoverListener(hover);
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    frameScheduler.runFrame();
+    expect(hover).toHaveBeenLastCalledWith(definition);
+    expect(poi.focusTarget).toBe(1);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 320, clientY: 200 })
+    );
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 320, clientY: 200 })
+    );
+
+    expect(selection).toHaveBeenCalledWith(secondDefinition, {
+      inputMethod: 'pointer',
+    });
+    expect(hover).toHaveBeenLastCalledWith(secondDefinition);
+    expect(secondPoi.focusTarget).toBe(1);
+    expect(poi.focusTarget).toBe(0);
+    expect(frameScheduler.pendingCount).toBe(0);
+    expect(intersectSpy).toHaveBeenCalledTimes(2);
+
+    frameScheduler.runFrame();
+
+    expect(intersectSpy).toHaveBeenCalledTimes(2);
+    expect(hover).toHaveBeenLastCalledWith(secondDefinition);
+    expect(secondPoi.focusTarget).toBe(1);
+    expect(poi.focusTarget).toBe(0);
+
+    intersectSpy.mockRestore();
+  });
+
+  it('does not hover or select disabled POIs from pointer input', () => {
+    manager.dispose();
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      isPoiEnabled: () => false,
+      frameScheduler: frameScheduler.scheduler,
+    });
+    manager.start();
+    const selection = vi.fn();
+    manager.addSelectionListener(selection);
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    frameScheduler.runFrame();
+    domElement.dispatchEvent(
+      new MouseEvent('click', { clientX: 200, clientY: 200 })
+    );
+
+    expect(poi.focusTarget).toBe(0);
+    expect(selection).not.toHaveBeenCalled();
+  });
+
+  it('cancels pending hover work during dispose', () => {
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+    manager.start();
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    manager.dispose();
+
+    expect(frameScheduler.pendingCount).toBe(0);
+    frameScheduler.runFrame();
+    expect(intersectSpy).not.toHaveBeenCalled();
+
+    intersectSpy.mockRestore();
   });
 
   it('suppresses synthetic clicks dispatched after touch selection', () => {
@@ -411,6 +623,57 @@ describe('PoiInteractionManager', () => {
     }
   });
 
+  it('ignores synthetic mousemove before suppressing a synthetic click', () => {
+    manager.start();
+    const selection = vi.fn();
+    manager.addSelectionListener(selection);
+
+    const nowSpy = vi.spyOn(Date, 'now').mockImplementation(() => 1_000);
+
+    try {
+      dispatchTouchEvent(domElement, 'touchstart', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      dispatchTouchEvent(domElement, 'touchend', [
+        { clientX: 200, clientY: 200, identifier: 5 },
+      ]);
+
+      domElement.dispatchEvent(
+        new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+      );
+
+      expect(frameScheduler.pendingCount).toBe(0);
+
+      domElement.dispatchEvent(
+        new MouseEvent('click', { clientX: 200, clientY: 200 })
+      );
+
+      expect(selection).toHaveBeenCalledTimes(1);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('keeps pending pointer hovers when unrelated keys are pressed', () => {
+    manager.start();
+    const intersectSpy = vi.spyOn(Raycaster.prototype, 'intersectObjects');
+
+    domElement.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+    );
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+
+    expect(frameScheduler.pendingCount).toBe(1);
+
+    frameScheduler.runFrame();
+
+    expect(intersectSpy).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(1);
+
+    intersectSpy.mockRestore();
+  });
+
   it('cycles focus with keyboard input and wraps around', () => {
     manager.dispose();
     const secondDefinition: PoiDefinition = {
@@ -427,6 +690,7 @@ describe('PoiInteractionManager', () => {
       [poi, secondPoi],
       {
         keyboardTarget: window,
+        frameScheduler: frameScheduler.scheduler,
       }
     );
     keyboardManager.start();
@@ -494,6 +758,7 @@ describe('PoiInteractionManager', () => {
     let enabled = true;
     manager = new PoiInteractionManager(domElement, camera, [poi], {
       isPoiEnabled: () => enabled,
+      frameScheduler: frameScheduler.scheduler,
     });
     manager.start();
     const listener = vi.fn();
@@ -506,6 +771,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
     expect(poi.focusTarget).toBe(1);
 
     enabled = false;
@@ -540,6 +806,7 @@ describe('PoiInteractionManager', () => {
       [poi],
       {
         isPoiEnabled: () => false,
+        frameScheduler: frameScheduler.scheduler,
       }
     );
     disabledManager.start();
@@ -598,6 +865,7 @@ describe('PoiInteractionManager', () => {
       [poi],
       {
         enableKeyboard: false,
+        frameScheduler: frameScheduler.scheduler,
       }
     );
     disabledManager.start();
@@ -626,7 +894,7 @@ describe('PoiInteractionManager', () => {
       domElement,
       camera,
       [poi],
-      {},
+      { frameScheduler: frameScheduler.scheduler },
       analytics
     );
     manager.start();
@@ -634,6 +902,7 @@ describe('PoiInteractionManager', () => {
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
     expect(hoverStarted).toHaveBeenCalledWith(definition);
     expect(hoverEnded).not.toHaveBeenCalled();
 
@@ -659,12 +928,19 @@ describe('PoiInteractionManager', () => {
     } satisfies PoiAnalytics;
 
     manager.dispose();
-    manager = new PoiInteractionManager(domElement, camera, [poi], analytics);
+    manager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      { frameScheduler: frameScheduler.scheduler },
+      analytics
+    );
     manager.start();
 
     domElement.dispatchEvent(
       new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
     );
+    frameScheduler.runFrame();
     expect(analytics.hoverStarted).toHaveBeenCalledWith(definition);
 
     domElement.dispatchEvent(
