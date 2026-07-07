@@ -10,11 +10,35 @@ and the Vitest assertions when measurable changes land.
 | Draw calls       | ≤ 150   | 132      | 18       |
 | Texture memory   | ≤ 24 MB | 18.0 MB  | 6.0 MB   |
 
+## Immersive launch runtime budgets
+
+Playwright now enforces live launch diagnostics from
+`window.portfolio.performance.getSnapshot()` via `npm run perf:budget`. These
+budgets use locally measured warmup values with conservative rounded headroom so
+intentional scene work can update the snapshot deliberately, while accidental
+draw-call or triangle growth fails before release.
+
+| Metric              | Runtime budget | Baseline sample | Headroom |
+| ------------------- | -------------- | --------------- | -------- |
+| Draw calls          | ≤ 220          | 132             | 88       |
+| Triangles           | ≤ 220,000      | 128,000         | 92,000   |
+| Renderer geometries | ≤ 260          | 170             | 90       |
+| Renderer textures   | ≤ 80           | 48              | 32       |
+| p95 frame time      | ≤ 50 ms        | 32 ms           | 18 ms    |
+
+The p95 frame-time budget applies only on non-software renderers because
+SwiftShader timing depends heavily on the host. Software-renderer runs still
+assert that diagnostics are present, coherent, and within resource-count
+budgets.
+
 - **Source** – [`src/assets/performance.ts`](../../src/assets/performance.ts)
   contains the structured data (`IMMERSIVE_PERFORMANCE_BUDGET` and
   `IMMERSIVE_SCENE_BASELINE`).
 - **Assertion** – [`src/tests/performanceBudget.test.ts`](../../src/tests/performanceBudget.test.ts)
-  enforces the headroom values so regressions fail fast in CI.
+  enforces the static and runtime headroom values so stale budgets fail fast in CI.
+- **Launch gate** – [`playwright/immersive-performance.spec.ts`](../../playwright/immersive-performance.spec.ts)
+  compares warmed live diagnostics against the runtime budgets. Failure messages include
+  the actual value, budget, renderer risk level, and quality level.
 - **Headroom labels** – `createPerformanceBudgetReport(...)` now adds a `status` label
   (`within-budget`, `over-budget`, or `invalid`) plus a clamped `remainingPercent` so
   press-kit exports and dashboards surface budget health without recomputing ratios.

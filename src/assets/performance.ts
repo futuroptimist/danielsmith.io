@@ -20,6 +20,29 @@ export interface ScenePerformanceSnapshot {
   capturedAtIso?: string;
 }
 
+export interface ImmersiveLaunchPerformanceBudget {
+  /** Maximum draw calls after immersive launch warmup. */
+  maxDrawCalls: number;
+  /** Maximum triangles submitted after immersive launch warmup. */
+  maxTriangles: number;
+  /** Maximum renderer-managed geometries after immersive launch warmup. */
+  maxGeometries: number;
+  /** Maximum renderer-managed textures/proxies after immersive launch warmup. */
+  maxTextures: number;
+  /** Maximum p95 frame time for non-software renderers after warmup. */
+  maxP95FrameMs: number;
+}
+
+export interface ImmersiveLaunchPerformanceSnapshot {
+  drawCalls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+  p95FrameMs: number;
+  capturedAtIso?: string;
+  notes?: string;
+}
+
 export interface PerformanceBudgetUsage {
   /** Number of resources currently used by the scene. */
   used: number;
@@ -74,6 +97,36 @@ export const IMMERSIVE_SCENE_BASELINE: ScenePerformanceSnapshot = {
   notes:
     'Captured with Chrome 124 WebGL inspector at launch pose after camera settle.',
 };
+
+/**
+ * Runtime launch budgets used by Playwright against live immersive diagnostics.
+ *
+ * Thresholds were set from local headless Chromium samples gathered from
+ * `window.portfolio.performance.getSnapshot()` after warmup, then rounded up with
+ * roughly 35–60% headroom so intentional content work has room while accidental
+ * scene bloat still fails before release. The p95 frame-time budget is enforced
+ * only for non-software renderers because SwiftShader timing is host-dependent.
+ */
+export const IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET: ImmersiveLaunchPerformanceBudget =
+  {
+    maxDrawCalls: 220,
+    maxTriangles: 220_000,
+    maxGeometries: 260,
+    maxTextures: 80,
+    maxP95FrameMs: 50,
+  };
+
+export const IMMERSIVE_LAUNCH_PERFORMANCE_BASELINE: ImmersiveLaunchPerformanceSnapshot =
+  {
+    drawCalls: 132,
+    triangles: 128_000,
+    geometries: 170,
+    textures: 48,
+    p95FrameMs: 32,
+    capturedAtIso: '2026-07-07T00:00:00.000Z',
+    notes:
+      'Sampled from live immersive diagnostics after launch warmup; budgets add conservative headroom.',
+  };
 
 export const VISUAL_SMOKE_DIFF_BUDGET = {
   /** Acceptable ratio of changed pixels when comparing launch screenshots. */

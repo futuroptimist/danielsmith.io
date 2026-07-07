@@ -20,3 +20,5 @@ tasks that deserve immediate attention while the roadmap handles long-range plan
 - fix: Upper floor traversal no longer auto-descends when walking above the stairwell;
   the landing plate now gates stair descent to prevent surprise teleports.
 - perf: Low-FPS failover now records p95/min FPS with sample counts for the telemetry pipeline.
+- perf: Immersive launch diagnostics now enforce draw-call, triangle, geometry, texture,
+  and non-software p95 frame-time budgets through `npm run perf:budget`.

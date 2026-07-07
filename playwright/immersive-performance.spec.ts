@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
+
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_URL = '/?mode=immersive';
 const IMMERSIVE_DIAGNOSTICS_URL =
@@ -83,6 +85,105 @@ interface PerformanceSnapshot {
     reason: string;
   };
   lastFailoverReason: string | null;
+}
+
+function describeBudgetContext(
+  snapshot: PerformanceSnapshot,
+  metric: string,
+  budget: number
+) {
+  return (
+    `${metric} exceeded immersive launch budget; actual=${getMetricValue(snapshot, metric)}, ` +
+    `budget=${budget}, rendererRisk=${snapshot.renderer.riskLevel}, ` +
+    `quality=${snapshot.quality.level}`
+  );
+}
+
+function getMetricValue(snapshot: PerformanceSnapshot, metric: string) {
+  switch (metric) {
+    case 'drawCalls':
+      return snapshot.rendererCounters.calls;
+    case 'triangles':
+      return snapshot.rendererCounters.triangles;
+    case 'geometries':
+      return snapshot.rendererCounters.memoryGeometries;
+    case 'textures':
+      return snapshot.rendererCounters.memoryTextures;
+    case 'p95FrameMs':
+      return snapshot.p95FrameMs;
+    default:
+      return 'unknown';
+  }
+}
+
+function expectBudgetedMetric(
+  snapshot: PerformanceSnapshot,
+  metric: string,
+  actual: number,
+  budget: number
+) {
+  expect(Number.isFinite(actual), `${metric} must be finite`).toBe(true);
+  expect(actual, `${metric} must not be negative`).toBeGreaterThanOrEqual(0);
+  expect(
+    actual,
+    describeBudgetContext(snapshot, metric, budget)
+  ).toBeLessThanOrEqual(budget);
+}
+
+function expectImmersiveLaunchBudgets(snapshot: PerformanceSnapshot) {
+  const counters = snapshot.rendererCounters;
+  expectBudgetedMetric(
+    snapshot,
+    'drawCalls',
+    counters.calls,
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxDrawCalls
+  );
+  expectBudgetedMetric(
+    snapshot,
+    'triangles',
+    counters.triangles,
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxTriangles
+  );
+  expectBudgetedMetric(
+    snapshot,
+    'geometries',
+    counters.memoryGeometries,
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxGeometries
+  );
+  expectBudgetedMetric(
+    snapshot,
+    'textures',
+    counters.memoryTextures,
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxTextures
+  );
+
+  if (!snapshot.renderer.isSoftwareRenderer) {
+    expect(
+      counters.calls,
+      'hardware renderer should report draw calls'
+    ).toBeGreaterThan(0);
+    expect(
+      counters.triangles,
+      'hardware renderer should report triangles'
+    ).toBeGreaterThan(0);
+    expect(
+      counters.memoryGeometries,
+      'hardware renderer should report geometries'
+    ).toBeGreaterThan(0);
+    expect(
+      counters.memoryTextures,
+      'hardware renderer should report textures'
+    ).toBeGreaterThan(0);
+    expectBudgetedMetric(
+      snapshot,
+      'p95FrameMs',
+      snapshot.p95FrameMs,
+      IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxP95FrameMs
+    );
+  } else {
+    expect(snapshot.renderer.riskLevel).toMatch(/software/);
+    expect(snapshot.sampleCount).toBeGreaterThanOrEqual(0);
+  }
 }
 
 interface PortfolioWindow extends Window {
@@ -274,11 +375,7 @@ test.describe('immersive performance diagnostics', () => {
       expect(
         snapshot.quality.sceneDetail?.policy.textures.mediaWallScreen.width
       ).toBeLessThanOrEqual(512);
-      expect(snapshot.rendererCounters.calls).toBeGreaterThanOrEqual(0);
-      expect(snapshot.rendererCounters.triangles).toBeGreaterThanOrEqual(0);
-      expect(snapshot.rendererCounters.memoryGeometries).toBeGreaterThanOrEqual(
-        0
-      );
+      expectImmersiveLaunchBudgets(snapshot);
     } finally {
       await context.close();
     }
@@ -300,6 +397,7 @@ test.describe('immersive performance diagnostics', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
       expect(snapshot.quality.adaptivePolicy).toBeNull();
+      expectImmersiveLaunchBudgets(snapshot);
     } finally {
       await context.close();
     }
