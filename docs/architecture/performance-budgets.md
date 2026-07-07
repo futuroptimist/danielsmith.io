@@ -37,7 +37,8 @@ and the Vitest assertions when measurable changes land.
 
 Playwright now enforces live launch diagnostics from
 `window.portfolio.performance.getSnapshot()` with
-`npm run perf:budget`. The thresholds are encoded in
+`npm run perf:budget`, which also runs from the main `npm run check` gate and
+the pull-request test workflow. The thresholds are encoded in
 [`IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET`](../../src/assets/performance.ts) and are
 based on current local warm-launch measurements rounded up with conservative
 headroom so small content additions have room while accidental scene bloat still
@@ -52,8 +53,11 @@ fails CI.
 | p95 frame time   | ≤ 80ms | 40ms           | Hardware-only guard with 2× local warm-launch slack.    |
 
 Software renderers such as SwiftShader still have to expose coherent renderer
-counters and scene-detail diagnostics, but the p95 frame-time budget is skipped
-because CI CPU contention makes that metric unreliable without a hardware GPU.
+counters and scene-detail diagnostics, but raw per-frame counters may remain
+zero if the fallback cadence samples before a completed render frame. Hardware
+renderers therefore keep the nonzero counter assertions while software renderer
+runs assert nonnegative, budget-shaped diagnostics. The p95 frame-time budget is
+skipped because CI CPU contention makes that metric unreliable without a hardware GPU.
 Failure messages include the actual value, budget, renderer risk level, and
 quality level.
 

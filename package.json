@@ -18,7 +18,7 @@
     "docs:check": "node scripts/check-docs.cjs && npm run links:check",
     "smoke": "npm run build && node scripts/assert-dist.cjs",
     "press-kit": "tsx scripts/generate-press-kit.ts",
-    "check": "npm run lint && npm run typecheck && npm run test:ci && npm run docs:check && npm run smoke",
+    "check": "npm run check:static && npm run docs:check && npm run smoke && npm run perf:budget",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",
@@ -31,7 +31,8 @@
     "miniature:check": "tsx scripts/miniatureManifest.ts",
     "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update",
     "smoke:promotion": "node scripts/run-promotion-smoke.cjs",
-    "perf:budget": "playwright test playwright/immersive-performance.spec.ts"
+    "perf:budget": "playwright test playwright/immersive-performance.spec.ts",
+    "check:static": "npm run lint && npm run typecheck && npm run test:ci"
   },
   "dependencies": {
     "stats.js": "^0.17.0",
