@@ -29,14 +29,16 @@ export type InitialCameraFramingDebug = ReturnType<
   typeof resolveInitialAvatarCameraFraming
 >;
 
+export interface PortfolioKeyBindingsApi {
+  getBindings(): KeyBindingSnapshot;
+  setBinding(action: KeyBindingAction, keys: readonly string[]): void;
+  resetBinding(action: KeyBindingAction): void;
+  resetAll(): void;
+}
+
 export interface PortfolioApi {
   input?: {
-    keyBindings?: {
-      getBindings(): KeyBindingSnapshot;
-      setBinding(action: KeyBindingAction, keys: readonly string[]): void;
-      resetBinding(action: KeyBindingAction): void;
-      resetAll(): void;
-    };
+    keyBindings?: PortfolioKeyBindingsApi;
   };
   avatar?: {
     getActiveVariant(): AvatarVariantId;
@@ -273,4 +275,22 @@ export function clearPortfolioSection(
   }
 
   delete targetWindow.portfolio[section];
+}
+
+export function setPortfolioKeyBindings(
+  keyBindings: PortfolioKeyBindingsApi,
+  targetWindow: Window = window
+): PortfolioKeyBindingsApi {
+  const portfolioNamespace = ensurePortfolioApi(targetWindow);
+  portfolioNamespace.input ??= {};
+  portfolioNamespace.input.keyBindings = keyBindings;
+  return keyBindings;
+}
+
+export function clearPortfolioKeyBindings(targetWindow: Window = window): void {
+  if (!targetWindow.portfolio?.input) {
+    return;
+  }
+
+  delete targetWindow.portfolio.input.keyBindings;
 }

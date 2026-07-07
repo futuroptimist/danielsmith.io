@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  clearPortfolioKeyBindings,
   clearPortfolioSection,
   ensurePortfolioApi,
+  setPortfolioKeyBindings,
   setPortfolioSection,
 } from '../portfolioApi';
 
@@ -19,6 +21,51 @@ describe('portfolioApi namespace helpers', () => {
 
     expect(targetWindow.portfolio).toBe(portfolioNamespace);
     expect(portfolioNamespace).toEqual({});
+  });
+
+  it('sets key binding APIs without deleting sibling input state', () => {
+    const input = { customDiagnostics: { enabled: true } } as NonNullable<
+      Window['portfolio']
+    >['input'] & { customDiagnostics: { enabled: boolean } };
+    const targetWindow = createWindow({ input });
+    const keyBindings = {
+      getBindings: () =>
+        ({}) as ReturnType<
+          NonNullable<
+            Window['portfolio']
+          >['input']['keyBindings']['getBindings']
+        >,
+      setBinding: () => undefined,
+      resetBinding: () => undefined,
+      resetAll: () => undefined,
+    } as NonNullable<NonNullable<Window['portfolio']>['input']>['keyBindings'];
+
+    setPortfolioKeyBindings(keyBindings, targetWindow);
+
+    expect(targetWindow.portfolio?.input).toBe(input);
+    expect(targetWindow.portfolio?.input?.keyBindings).toBe(keyBindings);
+    expect(input.customDiagnostics).toEqual({ enabled: true });
+  });
+
+  it('clears key binding APIs without deleting sibling input state', () => {
+    const keyBindings = {
+      getBindings: () => ({}),
+      setBinding: () => undefined,
+      resetBinding: () => undefined,
+      resetAll: () => undefined,
+    } as NonNullable<NonNullable<Window['portfolio']>['input']>['keyBindings'];
+    const input = {
+      keyBindings,
+      customDiagnostics: { enabled: true },
+    } as NonNullable<Window['portfolio']>['input'] & {
+      customDiagnostics: { enabled: boolean };
+    };
+    const targetWindow = createWindow({ input });
+
+    clearPortfolioKeyBindings(targetWindow);
+
+    expect(targetWindow.portfolio?.input?.keyBindings).toBeUndefined();
+    expect(input.customDiagnostics).toEqual({ enabled: true });
   });
 
   it('preserves existing sections when adding a new section', () => {
