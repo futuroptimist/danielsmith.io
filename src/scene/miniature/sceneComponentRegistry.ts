@@ -368,9 +368,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:interactionManager',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/interactionManager.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'POI interaction raycast scheduling changed without affecting visible miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:modelTriangles',

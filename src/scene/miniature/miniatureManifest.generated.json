@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "a52d2497b276ac5d5ff83f125009c30a60bac5f6e1c1dffd4026b620bd649309",
+      "syncRevision": 2,
+      "syncNote": "POI interaction raycast scheduling changed without affecting visible miniature geometry.",
+      "sourceFingerprint": "b307d0a7979bbf4cd54cbb294edfc58bd42a54a4655f16967415313b9e5a2892",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7833a0acc7a87821f9e504f5926037b1c91a902adb380bed8122f5a9f41d54b3"
+      "metadataFingerprint": "8525c61f2105deb557011c123a55d2da402a153824cf27d1b9a73ccfccafdb73"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",
