@@ -193,6 +193,11 @@ function describeBudgetFailure(
   ].join(' | ');
 }
 
+function expectFiniteNonNegativeDiagnostic(value: number, label: string) {
+  expect(Number.isFinite(value), `${label} should be finite`).toBe(true);
+  expect(value, `${label} should be non-negative`).toBeGreaterThanOrEqual(0);
+}
+
 function expectRendererCounterBudget(
   snapshot: PerformanceSnapshot,
   options: { includeFrameTime: boolean; requireNonzeroCounters: boolean }
@@ -206,6 +211,21 @@ function expectRendererCounterBudget(
   };
   const report = createImmersiveLaunchBudgetReport(liveBudgetSnapshot);
   const counters = snapshot.rendererCounters;
+
+  expectFiniteNonNegativeDiagnostic(counters.calls, 'rendererCounters.calls');
+  expectFiniteNonNegativeDiagnostic(
+    counters.triangles,
+    'rendererCounters.triangles'
+  );
+  expectFiniteNonNegativeDiagnostic(
+    counters.memoryGeometries,
+    'rendererCounters.memoryGeometries'
+  );
+  expectFiniteNonNegativeDiagnostic(
+    counters.memoryTextures,
+    'rendererCounters.memoryTextures'
+  );
+  expectFiniteNonNegativeDiagnostic(snapshot.p95FrameMs, 'p95FrameMs');
 
   if (options.requireNonzeroCounters) {
     expect(
@@ -224,11 +244,6 @@ function expectRendererCounterBudget(
       counters.memoryTextures,
       'hardware renderer should report texture/proxy count'
     ).toBeGreaterThan(0);
-  } else {
-    expect(counters.calls).toBeGreaterThanOrEqual(0);
-    expect(counters.triangles).toBeGreaterThanOrEqual(0);
-    expect(counters.memoryGeometries).toBeGreaterThanOrEqual(0);
-    expect(counters.memoryTextures).toBeGreaterThanOrEqual(0);
   }
 
   expect(
@@ -282,8 +297,6 @@ function expectRendererCounterBudget(
         snapshot
       )
     ).toBe(0);
-  } else {
-    expect(snapshot.p95FrameMs).toBeGreaterThanOrEqual(0);
   }
 }
 
@@ -293,6 +306,24 @@ async function getSnapshot(page: Page): Promise<PerformanceSnapshot> {
   );
   expect(snapshot).toBeDefined();
   return snapshot as PerformanceSnapshot;
+}
+
+async function waitForWarmPerformanceSamples(page: Page) {
+  await expect
+    .poll(async () => (await getSnapshot(page)).sampleCount, {
+      message: 'performance diagnostics should collect warm samples',
+      timeout: IMMERSIVE_READY_TIMEOUT_MS,
+    })
+    .toBeGreaterThan(10);
+}
+
+async function getBudgetReadySnapshot(page: Page) {
+  const snapshot = await getSnapshot(page);
+  if (!snapshot.renderer.isSoftwareRenderer) {
+    await waitForWarmPerformanceSamples(page);
+    return getSnapshot(page);
+  }
+  return snapshot;
 }
 
 test.describe('immersive performance diagnostics', () => {
@@ -329,7 +360,7 @@ test.describe('immersive performance diagnostics', () => {
       );
       expect(probe?.eventCount ?? 0).toBe(0);
 
-      const snapshot = await getSnapshot(page);
+      const snapshot = await getBudgetReadySnapshot(page);
       expectRendererCounterBudget(snapshot, {
         includeFrameTime: !snapshot.renderer.isSoftwareRenderer,
         requireNonzeroCounters: !snapshot.renderer.isSoftwareRenderer,
@@ -367,7 +398,7 @@ test.describe('immersive performance diagnostics', () => {
 
     try {
       await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
-      const snapshot = await getSnapshot(page);
+      const snapshot = await getBudgetReadySnapshot(page);
       expect(snapshot.quality.level).toBe('performance');
       expect(snapshot.quality.sceneDetail?.level).toBe('performance');
       expect(snapshot.quality.sceneDetail?.theoreticalBudget).toMatchObject({
