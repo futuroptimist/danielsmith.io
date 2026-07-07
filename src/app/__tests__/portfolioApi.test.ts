@@ -83,13 +83,9 @@ describe('portfolioApi namespace helpers', () => {
 
     expect(targetWindow.portfolio?.input).toBe(input);
     expect(targetWindow.portfolio?.input?.keyBindings).toBe(keyBindings);
-    expect(
-      (
-        targetWindow.portfolio?.input as typeof input & {
-          diagnostics: { enabled: boolean };
-        }
-      ).diagnostics
-    ).toEqual({ enabled: true });
+    expect(targetWindow.portfolio?.input?.diagnostics).toEqual({
+      enabled: true,
+    });
   });
 
   it('clears key bindings without deleting the input namespace', () => {

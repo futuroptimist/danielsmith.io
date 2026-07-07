@@ -35,10 +35,13 @@ export type InitialCameraFramingDebug = ReturnType<
   typeof resolveInitialAvatarCameraFraming
 >;
 
+export interface PortfolioInputApi {
+  keyBindings?: PortfolioKeyBindingsApi;
+  [section: string]: unknown;
+}
+
 export interface PortfolioApi {
-  input?: {
-    keyBindings?: PortfolioKeyBindingsApi;
-  };
+  input?: PortfolioInputApi;
   avatar?: {
     getActiveVariant(): AvatarVariantId;
     setActiveVariant(variant: AvatarVariantId): void;
