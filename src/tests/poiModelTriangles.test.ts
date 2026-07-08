@@ -104,8 +104,11 @@ describe('POI model triangle registry', () => {
     );
   });
 
-  it('keeps main debug triangle reporting on the registry path', () => {
-    const mainSource = readFileSync(join(process.cwd(), 'src/main.ts'), 'utf8');
+  it('keeps immersive scene debug triangle reporting on the registry path', () => {
+    const mainSource = readFileSync(
+      join(process.cwd(), 'src/immersiveScene.ts'),
+      'utf8'
+    );
 
     const staleCounterName = ['countPoiModel', 'Triangles'].join('');
 

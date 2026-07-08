@@ -515,7 +515,7 @@ describe('createPerformanceFailoverHandler', () => {
   });
 
   it('routes partial immersive teardown through idempotent tabletop disposal before clearing anchors', () => {
-    const mainSource = readFileSync('src/main.ts', 'utf8');
+    const mainSource = readFileSync('src/immersiveScene.ts', 'utf8');
     const helperMatch = mainSource.match(
       /function disposePortfolioMiniatureTableBuild\(\) \{[\s\S]*?\n\}/
     );
