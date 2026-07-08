@@ -160,8 +160,7 @@ describe('createResponsiveControlOverlay', () => {
     });
 
     button.focus();
-    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
-    button.click();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
 
     expect(handle.isOpen()).toBe(true);
     expect(popover.hidden).toBe(false);
@@ -201,18 +200,38 @@ describe('createResponsiveControlOverlay', () => {
     });
 
     button.focus();
-    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
-    button.click();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
     expect(handle.isOpen()).toBe(true);
     expect(document.activeElement).toBe(document.body);
 
     button.focus();
-    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
-    button.click();
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
     expect(handle.isOpen()).toBe(false);
     expect(popover.hidden).toBe(true);
 
     button.focus();
+    handle.open();
+
+    expect(handle.isOpen()).toBe(true);
+    expect(popover.hidden).toBe(false);
+    expect(document.activeElement).toBe(button);
+
+    handle.dispose();
+  });
+
+  it('ignores unconsumed pointer state when click handling is external', () => {
+    const { container, button, popover, list } = createOverlay();
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: createStrings(),
+      manageButtonClick: false,
+    });
+
+    button.focus();
+    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
     handle.open();
 
     expect(handle.isOpen()).toBe(true);

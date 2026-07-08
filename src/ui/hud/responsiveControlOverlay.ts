@@ -8,6 +8,7 @@ export interface ResponsiveControlOverlayHandle {
   open(): void;
   close(): void;
   toggle(): void;
+  releaseButtonFocusOnNextOpen(): void;
   isOpen(): boolean;
   setLayout(layout: HudLayout): void;
   setStrings(strings: ControlOverlayStrings): void;
@@ -98,6 +99,9 @@ const createNoopResponsiveControlOverlay =
       /* noop */
     },
     toggle() {
+      /* noop */
+    },
+    releaseButtonFocusOnNextOpen() {
       /* noop */
     },
     isOpen() {
@@ -270,11 +274,14 @@ export function createResponsiveControlOverlay(
     }
   };
 
-  const handleButtonPointerDown = () => {
+  const releaseButtonFocusOnNextOpen = () => {
     releaseButtonFocusOnOpen = true;
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = (event: MouseEvent) => {
+    if (!open && event.detail > 0) {
+      releaseButtonFocusOnNextOpen();
+    }
     togglePopover();
   };
 
@@ -305,7 +312,6 @@ export function createResponsiveControlOverlay(
     }
   };
 
-  button.addEventListener('pointerdown', handleButtonPointerDown);
   if (manageButtonClick) {
     button.addEventListener('click', handleButtonClick);
   }
@@ -337,6 +343,7 @@ export function createResponsiveControlOverlay(
     open: openPopover,
     close,
     toggle: togglePopover,
+    releaseButtonFocusOnNextOpen,
     isOpen() {
       return open;
     },
@@ -365,7 +372,6 @@ export function createResponsiveControlOverlay(
       }
       disposed = true;
       observer.disconnect();
-      button.removeEventListener('pointerdown', handleButtonPointerDown);
       if (manageButtonClick) {
         button.removeEventListener('click', handleButtonClick);
       }
