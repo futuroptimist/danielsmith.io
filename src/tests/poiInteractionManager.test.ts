@@ -877,6 +877,21 @@ describe('PoiInteractionManager', () => {
     disabledManager.dispose();
   });
 
+  it('uses keyboard shortcut gating before cycling POIs', () => {
+    manager.dispose();
+    const shouldHandleKeyboardShortcut = vi.fn(() => false);
+    manager = new PoiInteractionManager(domElement, camera, [poi], {
+      frameScheduler: frameScheduler.scheduler,
+      shouldHandleKeyboardShortcut,
+    });
+    manager.start();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+
+    expect(shouldHandleKeyboardShortcut).toHaveBeenCalledTimes(1);
+    expect(poi.focusTarget).toBe(0);
+  });
+
   it('notifies analytics hooks for hover and selection transitions', () => {
     const hoverStarted = vi.fn();
     const hoverEnded = vi.fn();

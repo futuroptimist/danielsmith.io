@@ -507,6 +507,7 @@ import {
   createHudCustomizationSection,
   type HudCustomizationHandle,
 } from './ui/hud/customizationSection';
+import { canHandleGameplayShortcut } from './ui/hud/gameplayShortcutGating';
 import { createHelpModal } from './ui/hud/helpModal';
 import {
   attachHelpModalController,
@@ -3210,6 +3211,11 @@ export function initializeImmersiveScene(
     {
       isPoiEnabled: (poi) =>
         floorVisibilityController.isPoiVisibleOnActiveFloor(poi.definition),
+      shouldHandleKeyboardShortcut: (event) =>
+        canHandleGameplayShortcut(
+          event,
+          hudPanelCoordinator?.getActivePanel() ?? null
+        ),
     },
     poiAnalytics
   );
@@ -3780,7 +3786,7 @@ export function initializeImmersiveScene(
       controlsButton,
       helpButton,
       documentTarget: document,
-      focusOnInit: true,
+      focusOnInit: false,
     });
   }
   responsiveControlOverlay = controlOverlay
@@ -5229,7 +5235,12 @@ export function initializeImmersiveScene(
   updateCameraProjection(aspect);
 
   const handleKeyboardZoom = (event: KeyboardEvent) => {
-    if ((hudPanelCoordinator?.getActivePanel() ?? null) !== null) {
+    if (
+      !canHandleGameplayShortcut(
+        event,
+        hudPanelCoordinator?.getActivePanel() ?? null
+      )
+    ) {
       return;
     }
     const direction = getKeyboardZoomDirection(event);

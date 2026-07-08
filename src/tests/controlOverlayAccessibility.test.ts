@@ -89,6 +89,20 @@ describe('applyControlOverlayAccessibility', () => {
     expect([...describedByIds].sort()).toEqual(expectedIds.sort());
   });
 
+  it('does not focus the overlay by default on initial setup', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    document.body.appendChild(container);
+
+    applyControlOverlayAccessibility({
+      container,
+      heading,
+      documentTarget: document,
+    });
+
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it('focuses the overlay when no other target is active', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');

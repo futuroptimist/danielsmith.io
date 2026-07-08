@@ -65,6 +65,7 @@ export interface PoiInteractionOptions {
   keyboardTarget?: ListenerTarget | null;
   enableKeyboard?: boolean;
   isPoiEnabled?: (poi: PoiInstance) => boolean;
+  shouldHandleKeyboardShortcut?: (event: KeyboardEvent) => boolean;
   frameScheduler?: PoiInteractionFrameScheduler;
 }
 
@@ -81,6 +82,9 @@ export class PoiInteractionManager {
   private readonly keyboardTarget: ListenerTarget | null;
   private readonly enableKeyboard: boolean;
   private readonly isPoiEnabled: (poi: PoiInstance) => boolean;
+  private readonly shouldHandleKeyboardShortcut: (
+    event: KeyboardEvent
+  ) => boolean;
   private keyboardIndex: number | null = null;
   private usingKeyboard = false;
   private touchPointerId: number | null = null;
@@ -130,6 +134,8 @@ export class PoiInteractionManager {
     this.keyboardTarget = defaultKeyboardTarget ?? domElement;
     this.enableKeyboard = resolvedOptions.enableKeyboard ?? true;
     this.isPoiEnabled = resolvedOptions.isPoiEnabled ?? (() => true);
+    this.shouldHandleKeyboardShortcut =
+      resolvedOptions.shouldHandleKeyboardShortcut ?? (() => true);
     this.frameScheduler =
       resolvedOptions.frameScheduler ?? createDefaultFrameScheduler();
   }
@@ -342,7 +348,7 @@ export class PoiInteractionManager {
   }
 
   private handleKeyDown(event: KeyboardEvent) {
-    if (!this.enableKeyboard) {
+    if (!this.enableKeyboard || !this.shouldHandleKeyboardShortcut(event)) {
       return;
     }
 
