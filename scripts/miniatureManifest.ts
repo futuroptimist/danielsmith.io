@@ -265,13 +265,21 @@ function assertAuditedFilesClassified(
     );
 }
 
+const INLINE_GEOMETRY_AUDIT_FILES = ['src/main.ts', 'src/immersiveScene.ts'];
+
 function assertNoInlineMainGeometry() {
-  const main = readFileSync('src/main.ts', 'utf8');
+  for (const file of INLINE_GEOMETRY_AUDIT_FILES) {
+    assertNoInlineGeometry(file);
+  }
+}
+
+function assertNoInlineGeometry(file: string) {
+  const source = readFileSync(file, 'utf8');
   const scanner = createScanner(
     ScriptTarget.Latest,
     true,
     LanguageVariant.Standard,
-    main
+    source
   );
   let token = scanner.scan();
   while (token !== SyntaxKind.EndOfFileToken) {
@@ -293,7 +301,7 @@ function assertNoInlineMainGeometry() {
       }
       if (sawGeometryConstructor && token === SyntaxKind.OpenParenToken) {
         throw new Error(
-          'src/main.ts must not construct visible geometry inline; use audited builder modules.'
+          `${file} must not construct visible geometry inline; use audited builder modules.`
         );
       }
     }

@@ -106,6 +106,9 @@ describe('bootstrapApp', () => {
     const container = renderAppShell();
     const { bootstrapApp } = await loadBootstrap();
     const error = new Error('webgl unavailable');
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     bootstrapApp({
       initializeImmersiveScene: vi.fn<ImmersiveInitializer>(() => {
@@ -121,6 +124,8 @@ describe('bootstrapApp', () => {
     expect(document.documentElement.dataset.fallbackReason).toBe(
       'immersive-init-error'
     );
+    expect(consoleError).toHaveBeenCalledWith('Immersive scene failed:', error);
+    consoleError.mockRestore();
   });
 
   it('runs renderer cleanup hooks when fatal initialization provides a renderer', async () => {

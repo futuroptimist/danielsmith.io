@@ -95,7 +95,7 @@ export function createImmersiveFailureHandler(
       return;
     }
     immersiveFailureHandled = true;
-    console.error('Failed to initialize immersive scene:', error);
+    console.error('Immersive scene failed:', error);
 
     if (options.renderer) {
       cleanupRenderer(options.renderer);
