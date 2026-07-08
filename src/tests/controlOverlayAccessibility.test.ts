@@ -23,6 +23,20 @@ describe('applyControlOverlayAccessibility', () => {
     expect(heading.id).toBe('custom-heading');
   });
 
+  it('does not focus the overlay by default', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    document.body.appendChild(container);
+
+    applyControlOverlayAccessibility({
+      container,
+      heading,
+      documentTarget: document,
+    });
+
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it('falls back to a generated heading id and preserves existing focus', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);
@@ -89,7 +103,7 @@ describe('applyControlOverlayAccessibility', () => {
     expect([...describedByIds].sort()).toEqual(expectedIds.sort());
   });
 
-  it('focuses the overlay when no other target is active', () => {
+  it('focuses the overlay when opt-in focus is requested and no other target is active', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
     document.body.appendChild(container);

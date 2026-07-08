@@ -149,6 +149,26 @@ describe('createResponsiveControlOverlay', () => {
     handle.dispose();
   });
 
+  it('releases button focus when opening so gameplay shortcuts keep working', () => {
+    const { container, button, popover, list } = createOverlay();
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: createStrings(),
+    });
+
+    button.focus();
+    button.click();
+
+    expect(handle.isOpen()).toBe(true);
+    expect(popover.hidden).toBe(false);
+    expect(document.activeElement).toBe(document.body);
+
+    handle.dispose();
+  });
+
   it('closes with Escape when the popover is open', () => {
     const { container, button, popover, list } = createOverlay();
     const handle = createResponsiveControlOverlay({

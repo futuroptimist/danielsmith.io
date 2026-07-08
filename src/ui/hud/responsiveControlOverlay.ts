@@ -251,6 +251,9 @@ export function createResponsiveControlOverlay(
       return;
     }
     open = true;
+    if (documentTarget?.activeElement === button) {
+      button.blur();
+    }
     update();
     onOpenChange?.(open);
   };
