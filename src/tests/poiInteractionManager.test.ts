@@ -722,6 +722,39 @@ describe('PoiInteractionManager', () => {
     keyboardManager.dispose();
   });
 
+  it('respects the shared gameplay shortcut gate for Q/E POI cycling', () => {
+    manager.dispose();
+    const secondDefinition: PoiDefinition = {
+      ...definition,
+      id: 'flywheel-studio-flywheel',
+      title: 'Flywheel Centerpiece',
+      position: { x: 3, y: 0, z: 0 },
+      interactionPrompt: 'Engage Flywheel Centerpiece',
+    };
+    const secondPoi = createMockPoi(secondDefinition);
+    const shouldHandleKeyboardEvent = vi.fn(() => false);
+    const keyboardManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi, secondPoi],
+      {
+        keyboardTarget: window,
+        frameScheduler: frameScheduler.scheduler,
+        shouldHandleKeyboardEvent,
+      }
+    );
+    keyboardManager.start();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' }));
+
+    expect(shouldHandleKeyboardEvent).toHaveBeenCalledTimes(2);
+    expect(poi.focusTarget).toBe(0);
+    expect(secondPoi.focusTarget).toBe(0);
+
+    keyboardManager.dispose();
+  });
+
   it('selects focused POIs via keyboard activation', () => {
     manager.start();
     const listener = vi.fn();

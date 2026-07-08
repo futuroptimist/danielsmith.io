@@ -10,6 +10,19 @@ afterEach(() => {
 });
 
 describe('applyControlOverlayAccessibility', () => {
+  it('does not move focus by default during initial setup', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    document.body.appendChild(container);
+
+    applyControlOverlayAccessibility({
+      container,
+      heading,
+      documentTarget: document,
+    });
+
+    expect(document.activeElement).toBe(document.body);
+  });
   it('assigns region semantics and heading linkage', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
