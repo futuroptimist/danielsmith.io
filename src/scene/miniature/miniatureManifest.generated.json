@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 4,
-      "syncNote": "POI click hover synchronization changed without miniature geometry impact.",
-      "sourceFingerprint": "6dddb08d66a570116e185b259ae0811f58cf19938cc80902d86c5e7ac8de7942",
+      "syncRevision": 5,
+      "syncNote": "POI keyboard gating changed only runtime input handling; no miniature geometry impact.",
+      "sourceFingerprint": "fa20edd49bc6d89de0613f498ced9ee24dfc988f49f703b7cbe504c18a6e5f55",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "0b5288df3f5d099e4314af7dd842ee8ea15737ab71e0bf790ea87c7a02200594"
+      "metadataFingerprint": "f161b16b55ea43e5d46f8a32e9b1290ee5efb4a95734d8a25b6ef94ac1605565"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",

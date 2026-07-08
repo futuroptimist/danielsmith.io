@@ -20,6 +20,7 @@ import {
 } from '../scene/poi/interactionManager';
 import type { PoiInstance } from '../scene/poi/markers';
 import type { PoiAnalytics, PoiDefinition } from '../scene/poi/types';
+import { canHandleGameplayShortcut } from '../ui/hud/gameplayShortcutGating';
 
 function createMockPoi(definition: PoiDefinition): PoiInstance {
   const group = new Group();
@@ -672,6 +673,83 @@ describe('PoiInteractionManager', () => {
     expect(poi.focusTarget).toBe(1);
 
     intersectSpy.mockRestore();
+  });
+
+  it('uses the keyboard shortcut gate before cycling POIs', () => {
+    manager.dispose();
+    let activePanel: 'controls' | 'settings' | null = 'controls';
+    const keyboardManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {
+        keyboardTarget: window,
+        frameScheduler: frameScheduler.scheduler,
+        shouldHandleKeyboardEvent: (event) =>
+          canHandleGameplayShortcut(event, activePanel),
+      }
+    );
+    keyboardManager.start();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' }));
+    expect(poi.focusTarget).toBe(1);
+    expect(activePanel).toBe('controls');
+
+    poi.focusTarget = 0;
+    activePanel = 'settings';
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(activePanel).toBe('settings');
+
+    activePanel = null;
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.focus();
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { bubbles: true, key: 'q' })
+    );
+    expect(poi.focusTarget).toBe(0);
+
+    input.remove();
+    keyboardManager.dispose();
+  });
+
+  it('keeps Controls-open POI cycling independent from button focus release', () => {
+    manager.dispose();
+    let activePanel: 'controls' | null = 'controls';
+    const controlsButton = document.createElement('button');
+    controlsButton.type = 'button';
+    document.body.appendChild(controlsButton);
+    controlsButton.focus();
+
+    const keyboardManager = new PoiInteractionManager(
+      domElement,
+      camera,
+      [poi],
+      {
+        keyboardTarget: window,
+        frameScheduler: frameScheduler.scheduler,
+        shouldHandleKeyboardEvent: () => activePanel === 'controls',
+      }
+    );
+    keyboardManager.start();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(activePanel).toBe('controls');
+
+    controlsButton.blur();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+    expect(poi.focusTarget).toBe(1);
+    expect(activePanel).toBe('controls');
+
+    activePanel = 'controls';
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' }));
+    expect(poi.focusTarget).toBe(1);
+    expect(activePanel).toBe('controls');
+
+    controlsButton.remove();
+    keyboardManager.dispose();
   });
 
   it('cycles focus with keyboard input and wraps around', () => {

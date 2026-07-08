@@ -3211,6 +3211,11 @@ export function initializeImmersiveScene(
     {
       isPoiEnabled: (poi) =>
         floorVisibilityController.isPoiVisibleOnActiveFloor(poi.definition),
+      shouldHandleKeyboardEvent: (event) =>
+        canHandleGameplayShortcut(
+          event,
+          hudPanelCoordinator?.getActivePanel() ?? null
+        ),
     },
     poiAnalytics
   );

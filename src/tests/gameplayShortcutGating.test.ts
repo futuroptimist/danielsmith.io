@@ -11,7 +11,15 @@ describe('canHandleGameplayShortcut', () => {
   });
 
   it('blocks gameplay shortcuts when Settings is open', () => {
-    expect(canHandleGameplayShortcut(keyboardEvent(), 'settings')).toBe(false);
+    expect(
+      canHandleGameplayShortcut(keyboardEvent({ key: 'q' }), 'settings')
+    ).toBe(false);
+    expect(
+      canHandleGameplayShortcut(
+        keyboardEvent({ code: 'Equal', key: '+', shiftKey: true }),
+        'settings'
+      )
+    ).toBe(false);
   });
 
   it('keeps text-entry targets protected', () => {
