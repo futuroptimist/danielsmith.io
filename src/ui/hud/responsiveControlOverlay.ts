@@ -190,6 +190,7 @@ export function createResponsiveControlOverlay(
   let layout: HudLayout = initialLayout;
   let open = false;
   let disposed = false;
+  let releaseButtonFocusOnOpen = false;
 
   const applyStrings = () => {
     if (ownsContainerLabel) {
@@ -246,12 +247,14 @@ export function createResponsiveControlOverlay(
   };
 
   const openPopover = () => {
+    const shouldReleaseButtonFocus = releaseButtonFocusOnOpen;
+    releaseButtonFocusOnOpen = false;
     if (open) {
       update();
       return;
     }
     open = true;
-    if (documentTarget?.activeElement === button) {
+    if (shouldReleaseButtonFocus && documentTarget?.activeElement === button) {
       button.blur();
     }
     update();
@@ -264,6 +267,10 @@ export function createResponsiveControlOverlay(
     } else {
       openPopover();
     }
+  };
+
+  const handleButtonPointerDown = () => {
+    releaseButtonFocusOnOpen = true;
   };
 
   const handleButtonClick = () => {
@@ -297,6 +304,7 @@ export function createResponsiveControlOverlay(
     }
   };
 
+  button.addEventListener('pointerdown', handleButtonPointerDown);
   if (manageButtonClick) {
     button.addEventListener('click', handleButtonClick);
   }
@@ -356,6 +364,7 @@ export function createResponsiveControlOverlay(
       }
       disposed = true;
       observer.disconnect();
+      button.removeEventListener('pointerdown', handleButtonPointerDown);
       if (manageButtonClick) {
         button.removeEventListener('click', handleButtonClick);
       }

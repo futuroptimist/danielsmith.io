@@ -3781,7 +3781,7 @@ export function initializeImmersiveScene(
       controlsButton,
       helpButton,
       documentTarget: document,
-      focusOnInit: false,
+      focusOnInit: true,
     });
   }
   responsiveControlOverlay = controlOverlay

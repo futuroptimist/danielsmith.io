@@ -23,7 +23,7 @@ describe('applyControlOverlayAccessibility', () => {
     expect(heading.id).toBe('custom-heading');
   });
 
-  it('does not focus the overlay by default', () => {
+  it('does not focus the overlay unless requested', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
     document.body.appendChild(container);
@@ -32,6 +32,7 @@ describe('applyControlOverlayAccessibility', () => {
       container,
       heading,
       documentTarget: document,
+      focusOnInit: false,
     });
 
     expect(document.activeElement).toBe(document.body);

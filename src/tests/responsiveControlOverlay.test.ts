@@ -149,7 +149,28 @@ describe('createResponsiveControlOverlay', () => {
     handle.dispose();
   });
 
-  it('releases button focus when opening so gameplay shortcuts keep working', () => {
+  it('releases button focus after pointer opening so gameplay shortcuts keep working', () => {
+    const { container, button, popover, list } = createOverlay();
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: createStrings(),
+    });
+
+    button.focus();
+    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    button.click();
+
+    expect(handle.isOpen()).toBe(true);
+    expect(popover.hidden).toBe(false);
+    expect(document.activeElement).toBe(document.body);
+
+    handle.dispose();
+  });
+
+  it('preserves button focus after keyboard opening for predictable announcements', () => {
     const { container, button, popover, list } = createOverlay();
     const handle = createResponsiveControlOverlay({
       container,
@@ -164,7 +185,7 @@ describe('createResponsiveControlOverlay', () => {
 
     expect(handle.isOpen()).toBe(true);
     expect(popover.hidden).toBe(false);
-    expect(document.activeElement).toBe(document.body);
+    expect(document.activeElement).toBe(button);
 
     handle.dispose();
   });
