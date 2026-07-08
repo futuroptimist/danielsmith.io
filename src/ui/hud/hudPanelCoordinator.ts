@@ -131,6 +131,9 @@ export function createHudPanelCoordinator({
 
   const handleControlsClick = () => {
     toggleControls();
+    if (controls.isOpen()) {
+      controlsButton?.blur();
+    }
   };
 
   const handleSettingsClick = () => {

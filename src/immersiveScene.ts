@@ -394,6 +394,7 @@ import {
 } from './systems/controls/audioHudControl';
 import { createAvatarAccessoryControl } from './systems/controls/avatarAccessoryControl';
 import { createAvatarVariantControl } from './systems/controls/avatarVariantControl';
+import { canHandleGameplayShortcut } from './systems/controls/gameplayShortcuts';
 import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
@@ -3780,7 +3781,6 @@ export function initializeImmersiveScene(
       controlsButton,
       helpButton,
       documentTarget: document,
-      focusOnInit: true,
     });
   }
   responsiveControlOverlay = controlOverlay
@@ -5229,7 +5229,12 @@ export function initializeImmersiveScene(
   updateCameraProjection(aspect);
 
   const handleKeyboardZoom = (event: KeyboardEvent) => {
-    if ((hudPanelCoordinator?.getActivePanel() ?? null) !== null) {
+    if (
+      !canHandleGameplayShortcut(
+        event,
+        hudPanelCoordinator?.getActivePanel() ?? null
+      )
+    ) {
       return;
     }
     const direction = getKeyboardZoomDirection(event);
