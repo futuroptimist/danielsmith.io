@@ -190,6 +190,38 @@ describe('createResponsiveControlOverlay', () => {
     handle.dispose();
   });
 
+  it('clears pointer focus release state when a pointer click closes the popover', () => {
+    const { container, button, popover, list } = createOverlay();
+    const handle = createResponsiveControlOverlay({
+      container,
+      list,
+      button,
+      popover,
+      strings: createStrings(),
+    });
+
+    button.focus();
+    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    button.click();
+    expect(handle.isOpen()).toBe(true);
+    expect(document.activeElement).toBe(document.body);
+
+    button.focus();
+    button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    button.click();
+    expect(handle.isOpen()).toBe(false);
+    expect(popover.hidden).toBe(true);
+
+    button.focus();
+    handle.open();
+
+    expect(handle.isOpen()).toBe(true);
+    expect(popover.hidden).toBe(false);
+    expect(document.activeElement).toBe(button);
+
+    handle.dispose();
+  });
+
   it('closes with Escape when the popover is open', () => {
     const { container, button, popover, list } = createOverlay();
     const handle = createResponsiveControlOverlay({

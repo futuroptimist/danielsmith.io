@@ -237,6 +237,7 @@ export function createResponsiveControlOverlay(
   };
 
   const close = () => {
+    releaseButtonFocusOnOpen = false;
     if (!open) {
       update();
       return;
