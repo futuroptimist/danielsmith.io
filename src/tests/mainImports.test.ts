@@ -5,19 +5,20 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
-const mainPath = resolve(currentDir, '../main.ts');
-const readMainSource = () => readFileSync(mainPath, 'utf-8');
+const immersiveScenePath = resolve(currentDir, '../immersiveScene.ts');
+const readImmersiveSceneSource = () =>
+  readFileSync(immersiveScenePath, 'utf-8');
 
-describe('main module imports', () => {
+describe('immersive scene module imports', () => {
   it('keeps camera-relative yaw helpers wired in', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
     expect(source).toMatch(
       /import\s*\{[^}]*\bcomputeCameraRelativeYaw\b[^}]*\}\s*from '\.\/systems\/movement\/facing';/
     );
   });
 
   it('falls back to a URL scene-detail reload handoff when sessionStorage is blocked', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source).toContain(
       "const PENDING_SCENE_DETAIL_RELOAD_PARAM = 'sceneDetailReloadLevel';"
@@ -41,7 +42,7 @@ describe('main module imports', () => {
   });
 
   it('passes generated source IDs and purposes into debug collider metadata', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source).toContain('colliderSourceMetadata.set(instance.collider, {');
     expect(source).toContain("sourceType: 'wall',");
@@ -59,7 +60,7 @@ describe('main module imports', () => {
   });
 
   it('wires lower-floor furnishings once with generated collider metadata', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source.match(/createLowerFloorFurnishings\(/g) ?? []).toHaveLength(
       1
@@ -80,7 +81,7 @@ describe('main module imports', () => {
   });
 
   it('keeps the SelfieMirror collider source-backed while preserving debug ID 101A', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source).toContain(
       "const SELFIE_MIRROR_SCENE_OBJECT_ID = 'selfie-mirror-living-room';"
@@ -109,7 +110,7 @@ describe('main module imports', () => {
   });
 
   it('does not wire runtime adaptive quality into immersive mode', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source).not.toContain('createAdaptiveQualityController');
     expect(source).not.toContain('adaptiveQualityController');
@@ -122,7 +123,7 @@ describe('main module imports', () => {
   });
 
   it('rebuilds scene detail when graphics quality changes', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source).toContain(
       'let pendingLowFpsPerformanceRecoveryReload = false;'
@@ -143,7 +144,7 @@ describe('main module imports', () => {
   });
 
   it('does not reload when no scene-detail handoff can be persisted', () => {
-    const source = readMainSource();
+    const source = readImmersiveSceneSource();
 
     expect(source).toContain(
       'window.sessionStorage.getItem(PENDING_SCENE_DETAIL_RELOAD_KEY) ==='

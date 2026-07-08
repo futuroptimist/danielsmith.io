@@ -515,21 +515,21 @@ describe('createPerformanceFailoverHandler', () => {
   });
 
   it('routes partial immersive teardown through idempotent tabletop disposal before clearing anchors', () => {
-    const mainSource = readFileSync('src/main.ts', 'utf8');
-    const helperMatch = mainSource.match(
+    const immersiveSceneSource = readFileSync('src/immersiveScene.ts', 'utf8');
+    const helperMatch = immersiveSceneSource.match(
       /function disposePortfolioMiniatureTableBuild\(\) \{[\s\S]*?\n\}/
     );
     expect(helperMatch?.[0]).toContain('portfolioMiniatureTable?.dispose();');
     expect(helperMatch?.[0]).toContain('portfolioMiniatureTable = null;');
 
-    const partialStart = mainSource.indexOf(
+    const partialStart = immersiveSceneSource.indexOf(
       'function disposePartiallyInitializedImmersiveResources()'
     );
-    const partialEnd = mainSource.indexOf(
+    const partialEnd = immersiveSceneSource.indexOf(
       'function disposeInitializedOrPartialImmersiveResources()',
       partialStart
     );
-    const partialSource = mainSource.slice(partialStart, partialEnd);
+    const partialSource = immersiveSceneSource.slice(partialStart, partialEnd);
     const disposeIndex = partialSource.indexOf(
       'disposePortfolioMiniatureTableBuild();'
     );
@@ -542,9 +542,12 @@ describe('createPerformanceFailoverHandler', () => {
     );
 
     const helperCallCount = (
-      mainSource.match(/disposePortfolioMiniatureTableBuild\(\);/g) ?? []
+      immersiveSceneSource.match(/disposePortfolioMiniatureTableBuild\(\);/g) ??
+      []
     ).length;
     expect(helperCallCount).toBeGreaterThanOrEqual(2);
-    expect(mainSource).not.toContain('portfolioMiniatureTable.dispose();');
+    expect(immersiveSceneSource).not.toContain(
+      'portfolioMiniatureTable.dispose();'
+    );
   });
 });
