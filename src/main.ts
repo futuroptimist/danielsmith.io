@@ -28,6 +28,11 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 import {
+  bootstrapApp,
+  markDocumentReady,
+  type ImmersiveFatalOptions,
+} from './app/bootstrap';
+import {
   clearPortfolioInputKeyBindings,
   clearPortfolioSection,
   setPortfolioInputKeyBindings,
@@ -424,11 +429,6 @@ import {
 } from './systems/controls/tourResetControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
 import {
-  evaluateFailoverDecision,
-  renderTextFallback,
-  type FallbackReason,
-} from './systems/failover';
-import {
   createManualModeToggle,
   type ManualModeToggleHandle,
 } from './systems/failover/manualModeToggle';
@@ -756,67 +756,10 @@ const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
-type AppMode = 'immersive' | 'fallback';
-const markDocumentReady = (mode: AppMode, fallbackReason?: FallbackReason) => {
-  const root = document.documentElement;
-  root.dataset.appMode = mode;
-  if (mode === 'fallback') {
-    root.dataset.fallbackReason = fallbackReason ?? 'manual';
-  } else {
-    delete root.dataset.fallbackReason;
-  }
-  root.removeAttribute('data-app-loading');
-};
-
-let immersiveFailureHandled = false;
-
 let locomotionAnimator: AvatarLocomotionAnimatorHandle | null = null;
 let avatarFootIkController: AvatarFootIkControllerHandle | null = null;
 let locomotionLinearSpeed = 0;
 let locomotionAngularSpeed = 0;
-
-const handleImmersiveFailure = (
-  container: HTMLElement,
-  error: unknown,
-  { renderer }: { renderer?: WebGLRenderer } = {}
-) => {
-  if (immersiveFailureHandled) {
-    return;
-  }
-  immersiveFailureHandled = true;
-  console.error('Failed to initialize immersive scene:', error);
-
-  if (renderer) {
-    try {
-      renderer.setAnimationLoop(null);
-    } catch (loopError) {
-      console.error('Failed to stop immersive renderer loop:', loopError);
-    }
-
-    try {
-      renderer.dispose();
-    } catch (disposeError) {
-      console.error('Failed to dispose immersive renderer:', disposeError);
-    }
-
-    try {
-      renderer.domElement.remove();
-    } catch (removeError) {
-      console.error('Failed to remove renderer canvas:', removeError);
-    }
-  }
-
-  try {
-    renderTextFallback(container, {
-      reason: 'immersive-init-error',
-      immersiveUrl: createImmersiveModeUrl(),
-    });
-  } catch (fallbackError) {
-    console.error('Failed to render fallback experience:', fallbackError);
-  }
-
-  markDocumentReady('fallback', 'immersive-init-error');
-};
 
 const LIGHTING_OPTIONS = {
   enableLedStrips: true,
@@ -935,37 +878,9 @@ function getLevelFloor(floorId: FloorId) {
   return floor;
 }
 
-const container = document.getElementById('app');
-
-if (!container) {
-  throw new Error('Missing #app container element.');
-}
-
-const failoverDecision = evaluateFailoverDecision();
-
-if (failoverDecision.shouldUseFallback) {
-  const immersiveUrl = createImmersiveModeUrl();
-  renderTextFallback(container, {
-    reason: failoverDecision.reason ?? 'manual',
-    immersiveUrl,
-  });
-  markDocumentReady('fallback', failoverDecision.reason ?? 'manual');
-} else {
-  const failImmersive = (
-    error: unknown,
-    options: { renderer?: WebGLRenderer } = {}
-  ) => handleImmersiveFailure(container, error, options);
-
-  try {
-    initializeImmersiveScene(container, failImmersive);
-  } catch (error) {
-    failImmersive(error);
-  }
-}
-
 function initializeImmersiveScene(
   container: HTMLElement,
-  onFatalError: (error: unknown, options: { renderer?: WebGLRenderer }) => void
+  onFatalError: (error: unknown, options: ImmersiveFatalOptions) => void
 ) {
   clearPoiVisualAnchors();
   clearPoiModelRoots();
@@ -7224,3 +7139,5 @@ function initializeImmersiveScene(
     );
   });
 }
+
+bootstrapApp(initializeImmersiveScene);
