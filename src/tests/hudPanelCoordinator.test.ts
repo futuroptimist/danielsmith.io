@@ -113,6 +113,27 @@ describe('createHudPanelCoordinator', () => {
     coordinator.dispose();
   });
 
+  it('blurs the Controls button after pointer activation so gameplay shortcuts can continue', () => {
+    const controls = createPanel();
+    const settings = createPanel();
+    const controlsButton = document.createElement('button');
+    document.body.append(controlsButton);
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      controlsButton,
+      onTextMode: vi.fn(),
+    });
+
+    controlsButton.focus();
+    controlsButton.click();
+
+    expect(controls.isOpen()).toBe(true);
+    expect(document.activeElement).toBe(document.body);
+
+    coordinator.dispose();
+  });
+
   it('wires HUD buttons and Escape to panel actions', () => {
     const controls = createPanel();
     const settings = createPanel();

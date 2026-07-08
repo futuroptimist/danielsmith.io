@@ -89,6 +89,24 @@ describe('applyControlOverlayAccessibility', () => {
     expect([...describedByIds].sort()).toEqual(expectedIds.sort());
   });
 
+  it('does not move focus during default setup', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    const controlsButton = document.createElement('button');
+    document.body.append(container, controlsButton);
+
+    applyControlOverlayAccessibility({
+      container,
+      heading,
+      controlsButton,
+      documentTarget: document,
+    });
+
+    expect(document.activeElement).toBe(document.body);
+    expect(container.getAttribute('role')).toBe('region');
+    expect(container.getAttribute('aria-labelledby')).toBe(controlsButton.id);
+  });
+
   it('focuses the overlay when no other target is active', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
