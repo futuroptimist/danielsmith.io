@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { applyImmersiveControlOverlayAccessibility } from '../immersiveScene';
 import { applyControlOverlayAccessibility } from '../ui/hud/controlOverlayAccessibility';
 
 afterEach(() => {
@@ -117,5 +118,26 @@ describe('applyControlOverlayAccessibility', () => {
     });
 
     expect(document.activeElement).toBe(container);
+  });
+});
+
+describe('applyImmersiveControlOverlayAccessibility', () => {
+  it('does not move focus during normal immersive HUD setup', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    const controlsButton = document.createElement('button');
+    const helpButton = document.createElement('button');
+    document.body.append(container, controlsButton, helpButton);
+
+    applyImmersiveControlOverlayAccessibility({
+      container,
+      heading,
+      controlsButton,
+      helpButton,
+      documentTarget: document,
+    });
+
+    expect(container.getAttribute('role')).toBe('region');
+    expect(document.activeElement).toBe(document.body);
   });
 });

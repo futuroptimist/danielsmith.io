@@ -544,6 +544,30 @@ import {
 } from './ui/immersiveUrl';
 import { createSoftwareRendererWarning } from './ui/softwareRendererWarning';
 
+interface ImmersiveControlOverlayAccessibilityOptions {
+  container: HTMLElement;
+  heading?: HTMLElement | null;
+  controlsButton?: HTMLButtonElement | null;
+  helpButton?: HTMLButtonElement | null;
+  documentTarget?: Document;
+}
+
+export const applyImmersiveControlOverlayAccessibility = ({
+  container,
+  heading,
+  controlsButton,
+  helpButton,
+  documentTarget,
+}: ImmersiveControlOverlayAccessibilityOptions) => {
+  applyControlOverlayAccessibility({
+    container,
+    heading,
+    controlsButton,
+    helpButton,
+    documentTarget,
+  });
+};
+
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
@@ -3780,13 +3804,12 @@ export function initializeImmersiveScene(
       })
     : null;
   if (controlOverlay) {
-    applyControlOverlayAccessibility({
+    applyImmersiveControlOverlayAccessibility({
       container: controlOverlay,
       heading: controlOverlayHeading,
       controlsButton,
       helpButton,
       documentTarget: document,
-      focusOnInit: true,
     });
   }
   responsiveControlOverlay = controlOverlay
