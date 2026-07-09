@@ -266,20 +266,12 @@ export const JA_OVERRIDES: LocaleOverrides = {
     audioSubtitles: {
       labels: {
         ambient: '環境音',
-        poi: 'ナレーション',
+        poi: '優先キャプション',
       },
       dismissLabels: {
         ambient: '字幕を閉じる',
-        poi: 'ナレーションを閉じる',
+        poi: '優先キャプションを閉じる',
       },
-    },
-    narrationToggle: {
-      labelEnabled: 'ナレーション オン',
-      labelDisabled: 'ナレーション オフ',
-      descriptionEnabled:
-        '今後の展示シーンでナレーションのポップアップと字幕を表示します。',
-      descriptionDisabled:
-        'オンにするまでナレーションのポップアップと字幕は非表示です。',
     },
     debugCoordinates: {
       labelEnabled: 'デバッグ座標オン',
@@ -332,7 +324,6 @@ export const JA_OVERRIDES: LocaleOverrides = {
     },
     poiOverlay: {
       visited: '訪問済み',
-      nextHighlight: '次のハイライト',
       prototype: 'プロトタイプ',
       live: '公開中',
       closeDetails: 'POI の詳細を閉じる',
@@ -342,54 +333,6 @@ export const JA_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: '{title} を発見しました。{summary}',
-    },
-    narrativeLog: {
-      heading: 'クリエイターストーリーログ',
-      visitedHeading: '訪問した展示',
-      empty: '展示を訪問するとショーケースの記録がアンロックされます。',
-      defaultVisitedLabel: '訪問済み',
-      visitedLabelTemplate: '{time} に訪問',
-      liveAnnouncementTemplate:
-        '{title} をクリエイターストーリーログに追加しました。',
-      journey: {
-        heading: '旅のハイライト',
-        empty: '新しい展示を巡ると旅の語りが生成されます。',
-        entryLabelTemplate: '{from} → {to}',
-        sameRoomTemplate:
-          '{room}{descriptor}の中で物語は{fromPoi}から{toPoi}へ滑らかに移り変わります。',
-        crossRoomTemplate:
-          '{fromRoom}{fromDescriptor}を後にして、{toRoom}{toDescriptor}へ進み{toPoi}をクローズアップします。',
-        crossSectionTemplate:
-          '閾値を{direction}にくぐり、{toRoom}{toDescriptor}へ向かって{toPoi}に到達します。',
-        fallbackTemplate: '物語は{toPoi}へ向かって進みます。',
-        announcementTemplate: '旅の更新 — {label}: {story}',
-        directions: {
-          indoors: '屋内へ',
-          outdoors: '屋外へ',
-        },
-      },
-      rooms: {
-        livingRoom: {
-          label: 'リビング',
-          descriptor: 'のシネマラウンジ',
-          zone: 'interior',
-        },
-        studio: {
-          label: 'スタジオ',
-          descriptor: 'のオートメーションラボ',
-          zone: 'interior',
-        },
-        kitchen: {
-          label: 'キッチンラボ',
-          descriptor: 'のフードロボティクスウィング',
-          zone: 'interior',
-        },
-        backyard: {
-          label: 'バックヤード',
-          descriptor: 'の黄昏ガーデン',
-          zone: 'exterior',
-        },
-      },
     },
     lowFpsRecovery: {
       title: '低いフレームレートを検出しました',

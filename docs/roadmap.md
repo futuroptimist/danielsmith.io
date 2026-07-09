@@ -379,16 +379,12 @@ Focus: unify user controls and ensure graceful fallback experiences.
        and auto-resumes after the next pointer/key interaction to respect autoplay policies.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.
-     - ✅ Idle monitor now waits roughly four seconds of inactivity before surfacing the next
-       highlight so overlays stay quiet while the player is actively moving or interacting.
+   - ✅ POI progress stays lightweight and focused on discovered exhibits without retired
+     recommendation controls in Settings.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
-   - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
-   - ✅ Guided tour reset utility now lets the HUD restart the curated path on demand so
-     visitors can replay the experience during sessions or demos.
-     - ✅ Guided tour reset control now flags pending resets with `aria-busy` so screen readers
-       announce progress while the tour refreshes.
+   - ✅ POI overlays now focus on hovered, selected, and visited exhibit states so ordinary
+     detail discovery stays clear without idle recommendation prompts.
 
 ## Phase 4 – Accessibility & Internationalization
 
@@ -435,16 +431,8 @@ Focus: make the experience inclusive and globally friendly.
 - ✅ High contrast accessibility preset now boosts HUD readability without disabling cinematic
   lighting cues.
 
-- ✅ Subtitle/captions system for ambient audio callouts and POI narration.
-  - ✅ Repeated captions now refresh their live region sequence so screen readers re-announce
-    identical lines instead of treating them as stale updates.
-  - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
-  - ✅ Subtitle queue now sequences overlapping ambient and narration clips so lower-priority
-    callouts surface once higher-priority events finish.
-  - ✅ High-priority narration captions now temporarily escalate the subtitles live region to
-    `aria-live="assertive"`, ensuring screen readers announce urgent clips before returning to polite mode.
 - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
-- ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
+- ✅ Ambient caption bridge now honors per-bed priorities so critical captions can override
   gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
   guards would normally delay the ambient line.
 - ✅ Ambient audio HUD now announces mute state and current levels so screen readers surface
@@ -527,8 +515,8 @@ Ideas to evaluate after the core experience is stable:
   windows, slowing or accelerating pulse programs according to the calendar.
   - ✅ Backyard lanterns now inherit seasonal palettes and expose a runtime retint hook so the
     greenhouse walkway glow matches the active preset.
-- ✅ Procedural storytelling AI that narrates the journey between POIs.
-  - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
+- ✅ Exhibit captions and POI metadata keep project context available without a separate
+  journey story log.
 - ✅ Integration with GitHub API for live repo stats and contribution heatmaps.
   - ✅ Live GitHub star counts now stream into POI metric panels via the repo stats service.
 - ✅ Exportable "press kit" mode now packages screenshots, POI blurbs, and metrics for media kits.

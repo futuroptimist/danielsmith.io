@@ -31,25 +31,17 @@ interface LatinLocaleCopy {
     syncing: string;
     discovered: string;
     closePoi: string;
-    nextHighlight: string;
     related: string;
     prototype: string;
     live: string;
     textMode: string;
     tryImmersive: string;
-    guidedTour: string;
-    guidedTourOn: string;
-    guidedTourOff: string;
     audioOn: string;
     audioOff: string;
     audioSubtitleAmbientLabel: string;
     audioSubtitlePoiLabel: string;
     audioSubtitleDismissAmbient: string;
     audioSubtitleDismissPoi: string;
-    narrationToggleLabelEnabled: string;
-    narrationToggleLabelDisabled: string;
-    narrationToggleDescriptionEnabled: string;
-    narrationToggleDescriptionDisabled: string;
     debugCoordinatesLabelEnabled: string;
     debugCoordinatesLabelDisabled: string;
     debugCoordinatesDescriptionEnabled: string;
@@ -134,8 +126,6 @@ const localizedTemplates: Record<
     audioMutedAnnouncementTemplate: string;
     audioMutedValueTemplate: string;
     audioMutedAriaValueTemplate: string;
-    tourResetLabel: string;
-    tourResetDescription: string;
     fallbackRendererLabel: string;
     softwareRendererTitle: string;
     softwareRendererDescriptionTemplate: string;
@@ -183,8 +173,6 @@ const localizedTemplates: Record<
       'Audio ambiental silenciado. Volumen {volume}.',
     audioMutedValueTemplate: 'Silenciado · {volume}',
     audioMutedAriaValueTemplate: 'Silenciado ({volume})',
-    tourResetLabel: 'Reiniciar visita guiada',
-    tourResetDescription: 'Borra los POI visitados y repite la ruta curada.',
     fallbackRendererLabel: 'renderizador WebGL por software',
     softwareRendererTitle: 'Renderizado por software detectado',
     softwareRendererDescriptionTemplate:
@@ -232,9 +220,6 @@ const localizedTemplates: Record<
       'Áudio ambiente silenciado. Volume {volume}.',
     audioMutedValueTemplate: 'Silenciado · {volume}',
     audioMutedAriaValueTemplate: 'Silenciado ({volume})',
-    tourResetLabel: 'Reiniciar visita guiada',
-    tourResetDescription:
-      'Limpe os POIs visitados e repita o caminho selecionado.',
     fallbackRendererLabel: 'renderizador WebGL por software',
     softwareRendererTitle: 'Renderização por software detectada',
     softwareRendererDescriptionTemplate:
@@ -281,9 +266,6 @@ const localizedTemplates: Record<
     audioMutedAnnouncementTemplate: 'Ambient-Audio stumm. Lautstärke {volume}.',
     audioMutedValueTemplate: 'Stumm · {volume}',
     audioMutedAriaValueTemplate: 'Stumm ({volume})',
-    tourResetLabel: 'Geführte Tour neu starten',
-    tourResetDescription:
-      'Besuchte POIs löschen und den kuratierten Pfad wiederholen.',
     fallbackRendererLabel: 'Software-WebGL-Renderer',
     softwareRendererTitle: 'Software-Rendering erkannt',
     softwareRendererDescriptionTemplate:
@@ -331,9 +313,6 @@ const localizedTemplates: Record<
       'Környezeti hang némítva. Hangerő {volume}.',
     audioMutedValueTemplate: 'Némítva · {volume}',
     audioMutedAriaValueTemplate: 'Némítva ({volume})',
-    tourResetLabel: 'Vezetett túra újraindítása',
-    tourResetDescription:
-      'Látogatott POI-k törlése és a kijelölt útvonal újrajátszása.',
     fallbackRendererLabel: 'szoftveres WebGL renderer',
     softwareRendererTitle: 'Szoftveres renderelés észlelve',
     softwareRendererDescriptionTemplate:
@@ -643,18 +622,6 @@ export function buildLatinLocaleOverrides(
         selectedAnnouncementTemplate: s.selected,
         failureAnnouncementTemplate: s.failure,
       },
-      tourGuideToggle: {
-        labelEnabled: s.guidedTourOn,
-        labelDisabled: s.guidedTourOff,
-        descriptionEnabled: s.guidedTour,
-        descriptionDisabled: s.guidedTour,
-      },
-      narrationToggle: {
-        labelEnabled: s.narrationToggleLabelEnabled,
-        labelDisabled: s.narrationToggleLabelDisabled,
-        descriptionEnabled: s.narrationToggleDescriptionEnabled,
-        descriptionDisabled: s.narrationToggleDescriptionDisabled,
-      },
       debugCoordinates: {
         labelEnabled: s.debugCoordinatesLabelEnabled,
         labelDisabled: s.debugCoordinatesLabelDisabled,
@@ -711,18 +678,6 @@ export function buildLatinLocaleOverrides(
           s.debugCollidersFpsDescriptionDisabled ??
           'Hides the stats.js FPS panel while keeping diagnostics available.',
       },
-      tourReset: {
-        heading: s.guidedTour,
-        label: templates.tourResetLabel,
-        description: templates.tourResetDescription,
-        guidedTourDescription: s.guidedTour,
-        guidedTourLabelOn: s.guidedTourOn,
-        guidedTourLabelOff: s.guidedTourOff,
-        toggleAnnouncementOn: s.guidedTourOn,
-        toggleAnnouncementOff: s.guidedTourOff,
-        toggleTitleOn: s.guidedTourOff,
-        toggleTitleOff: s.guidedTourOn,
-      },
       modeToggle: {
         idleLabelTemplate: `${s.textMode} · {keyHint}`,
         idleDescriptionTemplate: s.textMode,
@@ -747,7 +702,6 @@ export function buildLatinLocaleOverrides(
               : copy.locale === 'pt'
                 ? 'Visitado'
                 : 'Visitado',
-        nextHighlight: s.nextHighlight,
         prototype: s.prototype,
         live: s.live,
         closeDetails: s.closePoi,
@@ -757,54 +711,6 @@ export function buildLatinLocaleOverrides(
         debugDetailsLabel: 'Debug details',
         debugPoiAnchor: 'POI anchor',
         debugModelTriangles: 'Model triangles',
-      },
-      narrativeLog: {
-        heading:
-          copy.locale === 'de'
-            ? 'Creator-Story-Log'
-            : copy.locale === 'hu'
-              ? 'Alkotói történetnapló'
-              : copy.locale === 'pt'
-                ? 'Registro da história do criador'
-                : 'Registro de historia del creador',
-        visitedHeading:
-          copy.locale === 'de'
-            ? 'Besuchte Exponate'
-            : copy.locale === 'hu'
-              ? 'Meglátogatott kiállítások'
-              : copy.locale === 'pt'
-                ? 'Exibições visitadas'
-                : 'Exhibiciones visitadas',
-        empty:
-          copy.locale === 'de'
-            ? 'Besuche Exponate, um Erzähleinträge freizuschalten.'
-            : copy.locale === 'hu'
-              ? 'Látogass kiállításokat a történetbejegyzések feloldásához.'
-              : copy.locale === 'pt'
-                ? 'Visite exibições para liberar entradas narrativas.'
-                : 'Visita exhibiciones para desbloquear entradas narrativas.',
-        defaultVisitedLabel:
-          copy.locale === 'de'
-            ? 'Besucht'
-            : copy.locale === 'hu'
-              ? 'Megnézve'
-              : 'Visitado',
-        visitedLabelTemplate:
-          copy.locale === 'de'
-            ? 'Besucht um {time}'
-            : copy.locale === 'hu'
-              ? 'Megnézve ekkor: {time}'
-              : copy.locale === 'pt'
-                ? 'Visitado às {time}'
-                : 'Visitado a las {time}',
-        liveAnnouncementTemplate:
-          copy.locale === 'de'
-            ? '{title} wurde dem Creator-Story-Log hinzugefügt.'
-            : copy.locale === 'hu'
-              ? '{title} bekerült az alkotói történetnaplóba.'
-              : copy.locale === 'pt'
-                ? '{title} adicionado ao registro da história do criador.'
-                : '{title} añadido al registro de historia del creador.',
       },
       helpModal: {
         heading: s.settingsHelp,

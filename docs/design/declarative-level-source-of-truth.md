@@ -98,7 +98,7 @@ be downstream products.
 
 Rooms define semantic zones, labels, floor assignment, broad bounds, and category
 metadata. They are the spatial anchors for floor-plan editing, lighting zones,
-POI placement validation, narration, and UI labels. Room bounds can remain broad
+POI placement validation, caption context, and UI labels. Room bounds can remain broad
 rectangles where that matches the current scene, but rooms should not be the only
 place where walls, floors, and connections are implied.
 
@@ -168,7 +168,7 @@ stable source ID, room/floor placement, purpose, and `custom`
 ### Room connections
 
 Room connections describe optional semantic adjacency for UI, navigation,
-narration, and editor affordances. They are not a second geometry system. A
+caption context, and editor affordances. They are not a second geometry system. A
 connection may reference the rooms it links and the wall opening, threshold, or
 scene object that represents it, but geometry still comes from the wall, floor,
 and object layers.

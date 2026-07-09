@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   AVAILABLE_LOCALES,
   formatMessage,
-  getAudioSubtitleStrings,
   getControlOverlayStrings,
   getDebugCoordinatesStrings,
   getDebugCollidersStrings,
@@ -14,11 +13,7 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getLocaleStrings,
-  getNarrationToggleStrings,
-  getTourGuideToggleStrings,
-  getTourResetControlStrings,
   isI18nDebugEnabled,
-  getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getPoiCopy,
   getSelectableLocales,
@@ -234,6 +229,34 @@ describe('i18n utilities', () => {
       expect(sectionIds.filter((id) => id === 'controls')).toHaveLength(1);
       expect(sectionIds).not.toContain('movement');
       expect(sectionIds).not.toContain('interactions');
+    }
+  });
+
+  it('omits removed retired-tour settings from current settings copy', () => {
+    const staleSettingsTerms = [
+      'Narra' + 'tion',
+      'Guided ' + 'Tour',
+      'tour ' + 'reset',
+      'guided ' + 'highlight',
+      'next ' + 'recommended',
+    ];
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const helpModal = getHelpModalStrings(locale);
+      const settingsCopy = [
+        helpModal.heading,
+        helpModal.description,
+        helpModal.settings.heading,
+        helpModal.settings.description,
+        ...helpModal.sections.flatMap((section) => [
+          section.title,
+          ...section.items.flatMap((item) => [item.label, item.description]),
+        ]),
+      ].join('\n');
+
+      for (const term of staleSettingsTerms) {
+        expect(settingsCopy, `${locale} settings copy`).not.toContain(term);
+      }
     }
   });
 
@@ -624,9 +647,9 @@ describe('i18n utilities', () => {
     expect(pseudo.closeDetails).toBe('⟦Close POI details⟧');
     expect(pseudo.relatedCaseStudies).toBe('⟦Related case studies⟧');
     expect(arabic.prototype).toBe('نموذج أولي');
-    expect(japanese.nextHighlight).toBe('次のハイライト');
-    expect(getPoiOverlayChromeStrings('zh-Hans').nextHighlight).toBe(
-      '下一个亮点'
+    expect(japanese.closeDetails).toBe('POI の詳細を閉じる');
+    expect(getPoiOverlayChromeStrings('zh-Hans').closeDetails).toBe(
+      '关闭兴趣点详情'
     );
   });
 
@@ -821,8 +844,8 @@ describe('i18n utilities', () => {
       'Tentar imersivo novamente'
     );
     expect(getHelpModalStrings('de').heading).toBe('Einstellungen & Hilfe');
-    expect(getPoiOverlayChromeStrings('hu').nextHighlight).toBe(
-      'Következő kiemelés'
+    expect(getPoiOverlayChromeStrings('hu').relatedCaseStudies).toBe(
+      'Kapcsolódó esettanulmányok'
     );
     expect(getPoiCopy('es')['tokenplace-studio-cluster'].summary).toContain(
       'peer-to-peer'
@@ -1090,30 +1113,6 @@ describe('i18n utilities', () => {
     }
   });
 
-  it('localizes narration controls and subtitle labels for Latin locales', () => {
-    expect(getAudioSubtitleStrings('es').dismissLabels.poi).toBe(
-      'Descartar narración'
-    );
-    expect(getAudioSubtitleStrings('pt').labels.ambient).toBe('Áudio ambiente');
-    expect(getNarrationToggleStrings('de').labelEnabled).toBe('Erzählung ein');
-    expect(getNarrationToggleStrings('hu').descriptionDisabled).toContain(
-      'rejtve maradnak'
-    );
-  });
-
-  it('localizes guided tour controls for Mandarin and pseudo locale', () => {
-    expect(getTourGuideToggleStrings('zh-Hans').labelEnabled).toBe(
-      '导览已开启'
-    );
-    expect(getTourResetControlStrings('zh-Hans').heading).toBe('导览');
-    expect(getTourGuideToggleStrings('en-x-pseudo').labelEnabled).toBe(
-      '⟦Guided tour on⟧'
-    );
-    expect(getTourResetControlStrings('en-x-pseudo').label).toBe(
-      '⟦Restart guided tour⟧'
-    );
-  });
-
   it('builds mode announcer messages from localized HUD and fallback copy', () => {
     const english = getModeAnnouncerStrings('en');
     expect(english.immersiveReady).toBe(
@@ -1130,39 +1129,6 @@ describe('i18n utilities', () => {
     expect(
       getSiteStrings('en').textFallback.reasonDescriptions.manual
     ).not.toBe('Mutated');
-  });
-
-  it('exposes narrative log strings with localized announcements', () => {
-    const english = getPoiNarrativeLogStrings('en');
-    expect(english.heading).toBe('Creator story log');
-    expect(
-      formatMessage(english.visitedLabelTemplate, { time: '3:30 PM' })
-    ).toBe('Visited at 3:30 PM');
-
-    const pseudo = getPoiNarrativeLogStrings('en-x-pseudo');
-    expect(pseudo.heading).toBe('⟦Creator story log⟧');
-    expect(pseudo.defaultVisitedLabel).toBe('⟦Visited⟧');
-    expect(
-      formatMessage(pseudo.liveAnnouncementTemplate, { title: 'Story' })
-    ).toBe('⟦Story added to the creator story log.⟧');
-
-    const arabic = getPoiNarrativeLogStrings('ar');
-    expect(arabic.heading).toBe('سجل القصة');
-    expect(formatMessage(arabic.visitedLabelTemplate, { time: '٣:٣٠ م' })).toBe(
-      'تمت الزيارة في ٣:٣٠ م'
-    );
-
-    const japanese = getPoiNarrativeLogStrings('ja');
-    expect(japanese.heading).toBe('クリエイターストーリーログ');
-    expect(
-      formatMessage(japanese.visitedLabelTemplate, { time: '15:30' })
-    ).toBe('15:30 に訪問');
-
-    const chinese = getPoiNarrativeLogStrings('zh-Hans');
-    expect(chinese.heading).toBe('创作者故事日志');
-    expect(formatMessage(chinese.visitedLabelTemplate, { time: '15:30' })).toBe(
-      '访问时间 15:30'
-    );
   });
 
   it('provides localized copy for POIs with English fallback', () => {

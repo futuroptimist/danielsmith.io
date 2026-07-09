@@ -43,7 +43,7 @@ A cinematic transition that travels from a dynamic, data-rich globe hovering ove
 - **`HouseScene.tsx`:** Orthographic layout with baked lightmaps, animated desk accessories, and desk globe instance. Ensure responsive scaling for different aspect ratios.
 - **`SceneTransition.tsx`:** Central timeline using React Spring or GSAP to drive progress value, blending scene visibility, lights, and camera parameters.
 - **Libraries & Tools:** Drei for helpers (`Environment`, `Html`), React Spring for transitions, gltfpack + meshopt for asset compression pipeline.
-- **Accessibility:** Respect `prefers-reduced-motion` by shortening or skipping camera movement while preserving fade. Provide captioned audio cues and ARIA-live narration for key beats.
+- **Accessibility:** Respect `prefers-reduced-motion` by shortening or skipping camera movement while preserving fade. Provide captioned audio cues and ARIA-live status updates for key beats.
 - **Lazy Loading:** Preload house assets during final second of globe focus via `useProgress` thresholds; guard with Suspense fallbacks.
 
 ## Visual Language and Style

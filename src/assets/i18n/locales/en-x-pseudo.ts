@@ -273,11 +273,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     audioSubtitles: {
       labels: {
         ambient: wrap('Ambient audio'),
-        poi: wrap('Narration'),
+        poi: wrap('Priority caption'),
       },
       dismissLabels: {
         ambient: wrap('Dismiss caption'),
-        poi: wrap('Dismiss narration'),
+        poi: wrap('Dismiss priority caption'),
       },
     },
     audioControl: {
@@ -323,26 +323,6 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       selectedAnnouncementTemplate: wrap('{label} locale selected.'),
       failureAnnouncementTemplate: wrap(
         'Unable to switch to {target}. Staying on {current} locale.'
-      ),
-    },
-    tourGuideToggle: {
-      labelEnabled: wrap('Guided tour on'),
-      labelDisabled: wrap('Guided tour off'),
-      descriptionEnabled: wrap(
-        'Highlights the next recommended exhibit in the immersive tour.'
-      ),
-      descriptionDisabled: wrap(
-        'Guided tour highlights are hidden until you turn them back on.'
-      ),
-    },
-    narrationToggle: {
-      labelEnabled: wrap('Narration on'),
-      labelDisabled: wrap('Narration off'),
-      descriptionEnabled: wrap(
-        'Narration popups and captions are shown for future exhibit moments.'
-      ),
-      descriptionDisabled: wrap(
-        'Narration popups and captions stay hidden until you turn them on.'
       ),
     },
     debugCoordinates: {
@@ -401,30 +381,6 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       fpsDescriptionDisabled:
         '⟦Hides the stats.js FPS panel while keeping diagnostics available.⟧',
     },
-    tourReset: {
-      heading: wrap('Guided tour'),
-      resetKey: 'g',
-      label: wrap('Restart guided tour'),
-      description: wrap('Clear visited POIs and replay the curated path.'),
-      emptyLabel: wrap('Guided tour ready'),
-      emptyDescription: wrap(
-        'Explore exhibits to unlock the guided tour reset.'
-      ),
-      pendingLabel: wrap('Resetting tour…'),
-      pendingDescription: wrap('Resetting the guided tour…'),
-      restartPromptTemplate: wrap('Press {key} to restart.'),
-      guidedTourDescription: wrap('Show recommended exhibits when idle.'),
-      guidedTourLabelOn: wrap('Guided tour highlights: On'),
-      guidedTourLabelOff: wrap('Guided tour highlights: Off'),
-      toggleAnnouncementOn: wrap(
-        'Guided tour highlights enabled. Activate to disable recommendations.'
-      ),
-      toggleAnnouncementOff: wrap(
-        'Guided tour highlights disabled. Activate to enable recommendations.'
-      ),
-      toggleTitleOn: wrap('Disable guided tour highlights'),
-      toggleTitleOff: wrap('Enable guided tour highlights'),
-    },
     softwareRendererWarning: {
       fallbackRendererLabel: wrap('software WebGL renderer'),
       title: wrap('Software rendering detected'),
@@ -469,7 +425,6 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     },
     poiOverlay: {
       visited: wrap('Visited'),
-      nextHighlight: wrap('Next highlight'),
       prototype: wrap('Prototype'),
       live: wrap('Live'),
       closeDetails: wrap('Close POI details'),
@@ -479,58 +434,6 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: wrap('POI anchor'),
       debugModelTriangles: wrap('Model triangles'),
       discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
-    },
-    narrativeLog: {
-      heading: wrap('Creator story log'),
-      visitedHeading: wrap('Visited exhibits'),
-      empty: wrap(
-        'Visit exhibits to unlock narrative entries chronicling the creator showcase.'
-      ),
-      defaultVisitedLabel: wrap('Visited'),
-      visitedLabelTemplate: wrap('Visited at {time}'),
-      liveAnnouncementTemplate: wrap('{title} added to the creator story log.'),
-      journey: {
-        heading: wrap('Journey beats'),
-        empty: wrap('Explore new exhibits to weave journey narration.'),
-        entryLabelTemplate: wrap('{from} → {to}'),
-        sameRoomTemplate: wrap(
-          'Within the {room} {descriptor}, the story shifts from {fromPoi} toward {toPoi}.'
-        ),
-        crossRoomTemplate: wrap(
-          'Leaving the {fromRoom} {fromDescriptor}, the journey drifts into the {toRoom} {toDescriptor} to spotlight {toPoi}.'
-        ),
-        crossSectionTemplate: wrap(
-          'Stepping {direction} through the threshold, the path flows into the {toRoom} {toDescriptor} to reach {toPoi}.'
-        ),
-        fallbackTemplate: wrap('The narrative flows toward {toPoi}.'),
-        announcementTemplate: wrap('Journey update — {label}: {story}'),
-        directions: {
-          indoors: wrap('back inside'),
-          outdoors: wrap('outdoors'),
-        },
-      },
-      rooms: {
-        livingRoom: {
-          label: wrap('living room'),
-          descriptor: wrap('cinematic lounge'),
-          zone: 'interior',
-        },
-        studio: {
-          label: wrap('studio'),
-          descriptor: wrap('automation lab'),
-          zone: 'interior',
-        },
-        kitchen: {
-          label: wrap('kitchen lab'),
-          descriptor: wrap('culinary robotics wing'),
-          zone: 'interior',
-        },
-        backyard: {
-          label: wrap('backyard observatory'),
-          descriptor: wrap('dusk-lit garden'),
-          zone: 'exterior',
-        },
-      },
     },
     helpModal: {
       heading: wrap('Settings & Help'),
