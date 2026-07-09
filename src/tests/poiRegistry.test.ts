@@ -104,19 +104,6 @@ describe('POI registry', () => {
     ).toBe(true);
   });
 
-  it('derives localized interaction prompts for exhibits', () => {
-    const flywheel = pois.find((poi) => poi.id === 'flywheel-studio-flywheel');
-    expect(flywheel?.interactionPrompt).toBe('Engage Flywheel systems');
-
-    const rocket = pois.find((poi) => poi.id === 'dspace-backyard-rocket');
-    expect(rocket?.interactionPrompt).toBe('Launch DSPACE countdown');
-
-    const gitshelves = pois.find(
-      (poi) => poi.id === 'gitshelves-living-room-installation'
-    );
-    expect(gitshelves?.interactionPrompt).toBe('Inspect Gitshelves');
-  });
-
   it('exposes stable room-level ordering with defensive copies', () => {
     const expectedStudioOrder = [
       'flywheel-studio-flywheel',
@@ -151,16 +138,6 @@ describe('POI registry', () => {
     }
     mutated.links?.push({ label: 'Temp', href: '#' });
 
-    const flywheel = firstCall.find(
-      (poi) => poi.id === 'flywheel-studio-flywheel'
-    );
-    const flywheelBaseline = secondCall.find(
-      (poi) => poi.id === 'flywheel-studio-flywheel'
-    );
-    if (flywheel?.narration) {
-      flywheel.narration.caption = 'Altered caption';
-    }
-
     const thirdCall = getPoiDefinitionsByRoom('studio');
     const refreshed = thirdCall[0];
     expect(refreshed.title).toBe(originalTitle);
@@ -168,13 +145,6 @@ describe('POI registry', () => {
     expect(refreshed.footprint.width).toBe(originalFootprintWidth);
     expect(refreshed.metrics?.[0]?.value).toBe(originalMetricValue);
     expect(refreshed.links?.length ?? 0).toBe(originalLinksLength);
-
-    const refreshedFlywheel = thirdCall.find(
-      (poi) => poi.id === 'flywheel-studio-flywheel'
-    );
-    expect(refreshedFlywheel?.narration?.caption).toBe(
-      flywheelBaseline?.narration?.caption
-    );
   });
 
   it('returns an empty array when a room has no registered POIs', () => {

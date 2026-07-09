@@ -138,7 +138,7 @@ describe('AmbientCaptionBridge priority handling', () => {
     let current: AudioSubtitleMessage | null = {
       id: 'poi-1',
       source: 'poi',
-      text: 'POI narration',
+      text: 'POI POI caption',
       priority: 2,
     };
 
@@ -249,7 +249,7 @@ describe('AmbientCaptionBridge priority handling', () => {
     current = {
       id: 'poi-1',
       source: 'poi',
-      text: 'POI narration',
+      text: 'POI POI caption',
       priority: 2,
     };
 
@@ -322,7 +322,7 @@ describe('AmbientCaptionBridge priority handling', () => {
     current = {
       id: 'poi-1',
       source: 'poi',
-      text: 'POI narration',
+      text: 'POI POI caption',
       priority: 4,
     };
 
@@ -353,7 +353,7 @@ describe('AmbientCaptionBridge priority handling', () => {
     let current: AudioSubtitleMessage | null = {
       id: 'poi-1',
       source: 'poi',
-      text: 'POI narration',
+      text: 'POI POI caption',
       priority: 2,
     };
 

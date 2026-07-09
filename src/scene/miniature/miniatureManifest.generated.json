@@ -270,16 +270,6 @@
       "metadataFingerprint": "c344e1cfcc6c5b4477ef25ea9140d0cb808c7abdcfcba7deb9abc1b0511b0777"
     },
     {
-      "id": "audit:src:scene:poi:guidedTourChannel",
-      "sourceFiles": ["src/scene/poi/guidedTourChannel.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "a5971bb82bbfcb93a823dfb403e2503ecae83d67e771bd9c4688ba313705faba",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "659c5f673e6eef65406d86149a5ddccdd38f4c41141d6003e87fd0c51cd9a086"
-    },
-    {
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
@@ -323,21 +313,11 @@
       "id": "audit:src:scene:poi:tooltipOverlay",
       "sourceFiles": ["src/scene/poi/tooltipOverlay.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "414f76c1d2dbeeda79e90700ff706db899245adb42deb368bffefd244df11335",
+      "syncRevision": 2,
+      "syncNote": "Recommendation badges were removed from the 2D overlay; no miniature geometry changes are required.",
+      "sourceFingerprint": "e646faf6bf9c5da92a54e2b02b1388b2611c525126a592486d9da8a3fcb50f8b",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f1569422851af7b9f1dcd5476bc8bf41dc4422703c967c5f5fe02d91d34672fb"
-    },
-    {
-      "id": "audit:src:scene:poi:tourGuide",
-      "sourceFiles": ["src/scene/poi/tourGuide.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "ada60e8191b993d39bfd254743bd9225f666f72eb99318cc1b552fe81b8fb3de",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "6d5c4cb1ce85dc2a40a961361b7541be9da6f1feac469c73b0d53deda5557f8a"
+      "metadataFingerprint": "2d6c6e6543b533945e0c2fd507ffb54defaadddd8b6057af975fe7f6037df79b"
     },
     {
       "id": "audit:src:scene:poi:validation",
@@ -521,11 +501,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "59c843482d7a526b24eb3263d467ec782947845deadaf4967c0014ffdd080057",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "9246b329dff29429a00c7f5623335ef1a67464b2c897c65811d662f3c1ca4f56"
+      "syncRevision": 9,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "5e821e509471fd2acd2e6aed5db113e5f811a892f7cda64939797aa47c4ff4ab",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "da7c7d8d067e28f9d9e09880010f141cb3b0c990a97f7a1891907355ce40198c"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -541,11 +521,11 @@
         "src/scene/miniature/poiProxyRegistry.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 7,
-      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "da63b004597908a735d465024199136aa420cf4bfbd64e6366a1ad8efd97a044",
-      "proxyFingerprint": "18287980151d22653e2ac364bc8094e6a2466c0caa0030f3b43aaedc821c1c54",
-      "metadataFingerprint": "bd7cc120f59b9103245f32c3bef89a2466982ec06ca1dd7819830c5a68dd7a75"
+      "syncRevision": 8,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "98b6fa1ada7091307fb7cd5facd6540181cb6ca6e0b9da70126e62668dd41373",
+      "proxyFingerprint": "d64d27ad0bb0c091ff4371720cb7efab24004d7f6579d75307fd6b283cec3a19",
+      "metadataFingerprint": "94043fcae64073c9c1daffe535cc9b560ec6f416cfa9c56c47bbc38914887247"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -556,11 +536,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 10,
-      "syncNote": "DSPACE physical collider is generated only from rocket meshes while keeping the tabletop proxy silhouette unchanged.",
-      "sourceFingerprint": "39ae83d12abdc60c3779dba360b7fdc3c23e9ab6a17f4b4e15de95120791cea7",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "a40aec40ee381ad52ef164579768598b690f42f743bc29969a14fe040f3cfb85"
+      "syncRevision": 11,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "618b035f4ba492e0e0d96e309ed25a41e7f827b41f7f6b75c508f1e2d5033921",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "923cb50d6f131f375d20a662d29e14823c7e8bec0935265f96169c062ee0c6a5"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -571,11 +551,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 10,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "426f7708e8af65cabf89c7e3f21f35505ff8505b34cd4b828c4d3b8d86f2547a",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "47ebe766ea9f7b654c16d03f10f756de52f1c23d7c5f63e03a3fe3a5522b286f"
+      "syncRevision": 11,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "2eceb72848c2f1bfd4b98a37f854d2ab3a025a145072c5baa7baf9575747e668",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "d45df33ede616f69f71132d0417b59cd5cfe976a5e3900a95a96a58b872179c2"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -588,11 +568,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 30,
-      "syncNote": "Flywheel collider now uses the visible wheel outer diameter as a square footprint; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "38c9b91340b660fc046b8df86ca4e38b7eaabbdc361d5828c937014ee6fe03b0",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "c4eca12196eed43b0b5f3be262f0ddda50f8e8f7fc0cb5823e5c9f870d16e41b"
+      "syncRevision": 31,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "dbfe80401dbe55c154e98779e17fd9fae8fc47f7be0f92474015b9d00941849d",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "4fed029337f05e2c98d5b33e775878bd887409ea7613fd50e1fddfe1351c55ef"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -603,11 +583,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 7,
-      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "a60c5dc0944fd769ee2d808867dc7d40ba13e1f88a975e675203a9f84011618d",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "923636edaf3232977f7939de6d989055a3d4f2ad700922d7a4c47eac7146136d"
+      "syncRevision": 8,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "7e7ffb83512b2fccace4dd55f8d732421c4323335d24b2da72b7b27b0ad83ecc",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "db7320343a6a65d02dcec3d2b1a3ae1c1a7894a77a561fb534f2e519267e7876"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -618,11 +598,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 10,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "15b1366118cb78a24cbd650d695a11f32ecc36d6da5b0a7b9ab45798c5ccdddb",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "b7ff9f82e5b9af9e65538d025bac19ef70e653fa476090f3c18f43ff66385252"
+      "syncRevision": 11,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "b4f6a77803daef2f3706daea9eb68f5982ca9d1bc9b87b069fe5312cb182db73",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "5844f93aec3dac7a7436329ec49ccf003cec292932309d2d9108c4d40ab10fc5"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -633,11 +613,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 10,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "64b9741b57faa4da5036de6b8a82fdc340d3d70413724d031013644028d36ffb",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "9002f251926af771f410d7d05fcf44bb4f4977f7c3918efd1708638cc3ace269"
+      "syncRevision": 11,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "c29042c83f04ba1df884266f851e40a51d0bf456cefdabe2a72110bf9ab5cd1d",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "148c532242fe27fc0338c4550f268af0c68ab4e9f982cfb5b26e54d5fe7bb306"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -648,11 +628,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "d3b6be7336700b88be54c9bf7e2917c3697aa39727d0fa756ab9f6c6c71bd7e3",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "8c1994a53d5d4121a1bc0b46a30712721701a473857f400135632bea481078a6"
+      "syncRevision": 9,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "8131482624fa6d9b1f0bdf1cfcb94e14c13eb3a0dbf7260d7f96917ef96f75f3",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "5fc746eab88586499a09095fb5658f6f2c86d0cf56c781fa9d4085c97e25d759"
     },
     {
       "id": "poi:markers-labels",
@@ -662,11 +642,11 @@
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.",
-      "sourceFingerprint": "658f98fa79aab337982dc5af8c6e1413cc9e38624e611fa7834cca62190967e0",
+      "syncRevision": 3,
+      "syncNote": "POI recommendation rendering was removed; markers remain interaction UI, not miniature geometry.",
+      "sourceFingerprint": "91ee89df6f6cd9046ee6289f05b1322910afe96bb5d400035559ae2ff7fdb379",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "46c76af2493d95837914fa60b601c417c53a4134ff5dffb97d5c05fc67afdef0"
+      "metadataFingerprint": "1691f462d876d7fe4fb88083f105bb480a842af3aa882b7b065d84068f6a582b"
     },
     {
       "id": "poi:pr-reaper-backyard-console",
@@ -683,11 +663,11 @@
         "src/ui/accessibility/animationPreferences.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 22,
-      "syncNote": "Acknowledges token.place northwest placement reflow in shared POI placement data while preserving this proxy silhouette.",
-      "sourceFingerprint": "cfd883bdfe9822f4d50e9d9bd799bf940ea7aba433a7a3205bcc6c73c186384e",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "67f310329704a6ec1e663a9ff826746abd356a187b4b73067a820ab603c733cf"
+      "syncRevision": 23,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "02d52b817f5f6abe5f240bd0d638c165e00cbd838be9dfdfcd9cdc46b8a8acb1",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "857807aed0413194518994ce28c3d79bda59a0f321a3e05b290a3150bc6c653b"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -698,11 +678,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 10,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "5c1c2ae8bb3b679b8661b9c7621de322d34d31f60c89379f08cc4171c48caada",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "60e24920267ea1fc8dc79a39b8212b45ff74d3f00c6e4396acabdd2da4d75c82"
+      "syncRevision": 11,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "100d6919303a548f10bc81c071ae2893f946ed7d17d1a474e49cf85439de5c78",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "51981495806d206584c6c84ef0f3610d8f70abb09747a72354f6bc5537f947f9"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -713,11 +693,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 7,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "a4f4e8c86e41b45b40fa638845570077ee96f69f6ba389ce230a6b907c42bd08",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "b70b50cec4d2b55cba6fe708426341927ebf27aa510cb726142a2d3b1e5a32b6"
+      "syncRevision": 8,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "bbcc0fb9fae4cdfc09b3c00496118ec3a92dc0b786d0a8d5fc53a9c2b4eed39f",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "617a8d560cd06c0014aca4257fb1168bc3da989d21456e4193ee219c069ad1f0"
     },
     {
       "id": "poi:tight-collider-bounds",
@@ -738,11 +718,11 @@
         "src/scene/structures/tokenPlaceWorkstation.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 7,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "49dae38f35fd6bc6a60d3b5df73b47881b3ad807d6859efe59ecb9a55b42376f",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "852306f86f7867353123223d176165a606babdc487d53bac61f19214c0b4c48c"
+      "syncRevision": 8,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "7bfec92f4d1017742dc6acaad6996656fdb3a4f1742cdf8ff78f72bb3b51665f",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "d02659440d65ec1d7fbd2874f6561bf5e070b9d58ad1505110d6e2fd37e1ab56"
     },
     {
       "id": "poi:wove-kitchen-loom",
@@ -753,11 +733,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "Collider registration now derives from rendered geometry; tabletop proxy silhouette remains unchanged.",
-      "sourceFingerprint": "76454c35fe415b3ad6d4fd5098307887be1cd8f99f34711b1b2a68dd8da2793f",
-      "proxyFingerprint": "4b2860c22efa0978408968a050cc23290bfc435a27212a58cd9c215f27a8eda1",
-      "metadataFingerprint": "0375bc4052f47804da55c0146894ea52867e722f1d81dd57d6ac8440b6ce19ba"
+      "syncRevision": 9,
+      "syncNote": "POI caption metadata was removed; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "edf0283b35a02f3a730c5d67082c7fa419d36c3d25ac4c43dbdb699f5778236c",
+      "proxyFingerprint": "5a5374d615ddac0c9b9981eca6c230dae1fbb4a675e4acf57ded1daa8f2681c6",
+      "metadataFingerprint": "e0fbf39eeb840ae3b8aa398aea5cf65cd259d5715204c0dfc84ce34425237283"
     },
     {
       "id": "structure:greenhouse",

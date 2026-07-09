@@ -211,14 +211,16 @@ describe('audio subtitles overlay', () => {
     vi.advanceTimersByTime(200);
 
     handle.show({
-      id: 'poi-narration',
-      text: 'Narration cuts through with project stats.',
+      id: 'poi-caption',
+      text: 'POI caption cuts through with project stats.',
       source: 'poi',
       priority: 5,
       durationMs: 600,
     });
 
-    expect(getCaptionText()).toBe('Narration cuts through with project stats.');
+    expect(getCaptionText()).toBe(
+      'POI caption cuts through with project stats.'
+    );
 
     vi.advanceTimersByTime(600);
     expect(getCaptionText()).toBe('Ambient hum steadies the space.');
@@ -241,8 +243,8 @@ describe('audio subtitles overlay', () => {
     });
 
     handle.show({
-      id: 'poi-narration',
-      text: 'Narration takes the stage.',
+      id: 'poi-caption',
+      text: 'POI caption takes the stage.',
       source: 'poi',
       priority: 3,
       durationMs: 500,
@@ -250,16 +252,16 @@ describe('audio subtitles overlay', () => {
 
     handle.show({
       id: 'ambient-hum',
-      text: 'Updated ambient copy after narration.',
+      text: 'Updated ambient copy after POI caption.',
       source: 'ambient',
       priority: 2,
       durationMs: 700,
     });
 
-    expect(getCaptionText()).toBe('Narration takes the stage.');
+    expect(getCaptionText()).toBe('POI caption takes the stage.');
 
     vi.advanceTimersByTime(500);
-    expect(getCaptionText()).toBe('Updated ambient copy after narration.');
+    expect(getCaptionText()).toBe('Updated ambient copy after POI caption.');
 
     vi.advanceTimersByTime(700);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
@@ -268,11 +270,11 @@ describe('audio subtitles overlay', () => {
     handle.dispose();
   });
 
-  it('clears queued ambient captions by id without dropping active narration', () => {
+  it('clears queued ambient captions by id without dropping active POI caption', () => {
     const handle = createAudioSubtitles();
     handle.show({
-      id: 'poi-narration',
-      text: 'Narration remains active while ambient is muted.',
+      id: 'poi-caption',
+      text: 'POI caption remains active while ambient is muted.',
       source: 'poi',
       priority: 4,
       durationMs: 1000,
@@ -289,7 +291,7 @@ describe('audio subtitles overlay', () => {
     handle.clear('ambient-hum');
 
     expect(getCaptionText()).toBe(
-      'Narration remains active while ambient is muted.'
+      'POI caption remains active while ambient is muted.'
     );
     vi.advanceTimersByTime(1000);
     expect(document.querySelector('.audio-subtitles')?.dataset.visible).toBe(
@@ -301,8 +303,8 @@ describe('audio subtitles overlay', () => {
   it('clears the active and queued captions when clear is called without an id', () => {
     const handle = createAudioSubtitles();
     handle.show({
-      id: 'poi-narration',
-      text: 'Long-running narration clip.',
+      id: 'poi-caption',
+      text: 'Long-running POI caption clip.',
       source: 'poi',
       priority: 4,
       durationMs: 5000,
@@ -333,7 +335,7 @@ describe('audio subtitles overlay', () => {
     const handle = createAudioSubtitles();
     handle.show({
       id: 'poi-critical',
-      text: 'Critical narration demands immediate attention.',
+      text: 'Critical POI caption demands immediate attention.',
       source: 'poi',
       priority: 6,
       durationMs: 1200,
@@ -354,7 +356,7 @@ describe('audio subtitles overlay', () => {
     });
     handle.show({
       id: 'poi-critical',
-      text: 'Critical narration would normally elevate priority.',
+      text: 'Critical POI caption would normally elevate priority.',
       source: 'poi',
       priority: 6,
       durationMs: 1000,
@@ -410,8 +412,8 @@ describe('audio subtitles overlay', () => {
     const handle = createAudioSubtitles();
 
     handle.show({
-      id: 'poi-narration',
-      text: 'Narration is visible until dismissed.',
+      id: 'poi-caption',
+      text: 'POI caption is visible until dismissed.',
       source: 'poi',
       durationMs: 5000,
     });
@@ -421,7 +423,7 @@ describe('audio subtitles overlay', () => {
     );
     expect(button).toBeTruthy();
     expect(button?.hidden).toBe(false);
-    expect(button?.getAttribute('aria-label')).toBe('Dismiss narration');
+    expect(button?.getAttribute('aria-label')).toBe('Dismiss POI caption');
     expect(button?.tabIndex).toBe(0);
 
     handle.dispose();
@@ -431,8 +433,8 @@ describe('audio subtitles overlay', () => {
     const handle = createAudioSubtitles();
 
     handle.show({
-      id: 'poi-narration',
-      text: 'Narration is active.',
+      id: 'poi-caption',
+      text: 'POI caption is active.',
       source: 'poi',
       priority: 5,
       durationMs: 5000,

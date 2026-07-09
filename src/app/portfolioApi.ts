@@ -84,20 +84,6 @@ export interface PortfolioApi {
       activeStorageKey: string;
     };
   };
-  narration?: {
-    getState(): {
-      preferenceEnabled: boolean;
-      activeStorageKey: string;
-      storageKeyVersion: string;
-      currentSubtitle: string | null;
-      currentSubtitleId: string | null;
-      currentSubtitleSource: string | null;
-      queueLength: number;
-      visible: boolean;
-      dismissCount: number;
-      lastDismissedAt: number | null;
-    };
-  };
   graphics?: {
     getLevel?(): string;
     setLevel?(level: string): void;

@@ -2,7 +2,6 @@ import type {
   PoiId,
   PoiInteraction,
   PoiMetricSource,
-  PoiNarration,
   PoiOutcome,
 } from '../../scene/poi/types';
 import type { FallbackReason } from '../../types/failover';
@@ -196,20 +195,6 @@ export interface LocaleOptionStrings {
   direction: LocaleDirection;
 }
 
-export interface TourGuideToggleStrings {
-  labelEnabled: string;
-  labelDisabled: string;
-  descriptionEnabled: string;
-  descriptionDisabled: string;
-}
-
-export interface NarrationToggleStrings {
-  labelEnabled: string;
-  labelDisabled: string;
-  descriptionEnabled: string;
-  descriptionDisabled: string;
-}
-
 export interface DebugCoordinatesStrings {
   labelEnabled: string;
   labelDisabled: string;
@@ -253,25 +238,6 @@ export interface DebugCollidersStrings {
   fpsDescriptionDisabled: string;
 }
 
-export interface TourResetControlStrings {
-  heading: string;
-  resetKey: string;
-  label: string;
-  description: string;
-  emptyLabel: string;
-  emptyDescription: string;
-  pendingLabel: string;
-  pendingDescription: string;
-  restartPromptTemplate: string;
-  guidedTourDescription: string;
-  guidedTourLabelOn: string;
-  guidedTourLabelOff: string;
-  toggleAnnouncementOn: string;
-  toggleAnnouncementOff: string;
-  toggleTitleOn: string;
-  toggleTitleOff: string;
-}
-
 export interface SoftwareRendererWarningStrings {
   fallbackRendererLabel: string;
   title: string;
@@ -305,37 +271,6 @@ export interface PoiOverlayChromeStrings {
   debugDetailsLabel: string;
   debugPoiAnchor: string;
   debugModelTriangles: string;
-}
-
-export interface PoiNarrativeLogStrings {
-  heading: string;
-  visitedHeading: string;
-  empty: string;
-  defaultVisitedLabel: string;
-  visitedLabelTemplate: string;
-  liveAnnouncementTemplate: string;
-  journey: {
-    heading: string;
-    empty: string;
-    entryLabelTemplate: string;
-    sameRoomTemplate: string;
-    crossRoomTemplate: string;
-    crossSectionTemplate: string;
-    fallbackTemplate: string;
-    announcementTemplate: string;
-    directions: {
-      indoors: string;
-      outdoors: string;
-    };
-  };
-  rooms: Record<
-    string,
-    {
-      label: string;
-      descriptor: string;
-      zone: 'interior' | 'exterior';
-    }
-  >;
 }
 
 export type StructuredDataEntityType = 'Person' | 'Organization';
@@ -439,7 +374,6 @@ export interface PoiCopy {
     source?: PoiMetricSource;
   }>;
   links?: ReadonlyArray<{ label: string; href: string }>;
-  narration?: PoiNarration;
   interactionPrompt?: string;
 }
 
@@ -453,16 +387,12 @@ export interface LocaleStrings {
     audioSubtitles: AudioSubtitleStrings;
     modeToggle: ModeToggleStrings;
     localeToggle: LocaleToggleStrings;
-    tourGuideToggle: TourGuideToggleStrings;
-    narrationToggle: NarrationToggleStrings;
     debugCoordinates: DebugCoordinatesStrings;
     debugColliders: DebugCollidersStrings;
-    tourReset: TourResetControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
-    narrativeLog: PoiNarrativeLogStrings;
     poiOverlay: PoiOverlayChromeStrings;
   };
   poi: Record<PoiId, PoiCopy>;

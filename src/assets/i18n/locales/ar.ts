@@ -272,14 +272,6 @@ export const AR_OVERRIDES: LocaleOverrides = {
         poi: 'إغلاق السرد',
       },
     },
-    narrationToggle: {
-      labelEnabled: 'السرد مفعّل',
-      labelDisabled: 'السرد معطّل',
-      descriptionEnabled:
-        'تظهر نوافذ السرد والتسميات التوضيحية في محطات المعرض القادمة.',
-      descriptionDisabled:
-        'تبقى نوافذ السرد والتسميات التوضيحية مخفية حتى تفعّلها.',
-    },
     debugCoordinates: {
       labelEnabled: 'إحداثيات التصحيح مفعّلة',
       labelDisabled: 'إحداثيات التصحيح معطّلة',
@@ -342,53 +334,6 @@ export const AR_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
-    },
-    narrativeLog: {
-      heading: 'سجل القصة',
-      visitedHeading: 'المعارض التي تمت زيارتها',
-      empty: 'قم بزيارة المعارض لفتح مدخلات جديدة تحكي قصة صانع المحتوى.',
-      defaultVisitedLabel: 'تمت الزيارة',
-      visitedLabelTemplate: 'تمت الزيارة في {time}',
-      liveAnnouncementTemplate: '{title} أضيف إلى سجل القصة.',
-      journey: {
-        heading: 'محطات الرحلة',
-        empty: 'استكشف معارض جديدة لنسج سرد الرحلة.',
-        entryLabelTemplate: '{from} → {to}',
-        sameRoomTemplate:
-          'داخل {room} {descriptor}، ينتقل السرد من {fromPoi} نحو {toPoi}.',
-        crossRoomTemplate:
-          'مغادرًا {fromRoom} {fromDescriptor}، تنساب الرحلة إلى {toRoom} {toDescriptor} لإبراز {toPoi}.',
-        crossSectionTemplate:
-          'عند العبور {direction} عبر العتبة، يتجه المسار إلى {toRoom} {toDescriptor} للوصول إلى {toPoi}.',
-        fallbackTemplate: 'يتجه السرد نحو {toPoi}.',
-        announcementTemplate: 'تحديث الرحلة — {label}: {story}',
-        directions: {
-          indoors: 'إلى الداخل',
-          outdoors: 'إلى الخارج',
-        },
-      },
-      rooms: {
-        livingRoom: {
-          label: 'غرفة المعيشة',
-          descriptor: 'صالة سينمائية',
-          zone: 'interior',
-        },
-        studio: {
-          label: 'الاستوديو',
-          descriptor: 'مختبر الأتمتة',
-          zone: 'interior',
-        },
-        kitchen: {
-          label: 'مختبر المطبخ',
-          descriptor: 'جناح الروبوتات الطهوية',
-          zone: 'interior',
-        },
-        backyard: {
-          label: 'الفناء الخلفي',
-          descriptor: 'حديقة مضاءة عند الغسق',
-          zone: 'exterior',
-        },
-      },
     },
     helpModal: {
       heading: 'الإعدادات والمساعدة',
